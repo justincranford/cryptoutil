@@ -3,6 +3,7 @@
 package github_actions
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -131,11 +132,11 @@ func TestValidateAndParseWorkflowFile(t *testing.T) {
 	tmpDir := t.TempDir()
 	workflowDir := filepath.Join(tmpDir, ".github", "workflows")
 
-	err := os.MkdirAll(workflowDir, 0o755)
+	err := os.MkdirAll(workflowDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	workflowFile := filepath.Join(workflowDir, "ci.yml")
-	err = os.WriteFile(workflowFile, []byte(testWorkflowWithActions), 0o600)
+	err = os.WriteFile(workflowFile, []byte(testWorkflowWithActions), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	actionDetails, validationErrors, err := validateAndParseWorkflowFile(workflowFile)
@@ -181,7 +182,7 @@ func TestFindSubstring(t *testing.T) {
 		expected int
 	}{
 		{"found at beginning", "hello world", "hello", 0},
-		{"found at end", "hello world", "world", 6},
+		{"found at end", "hello world", "world", cryptoutilSharedMagic.DefaultEmailOTPLength},
 		{"found in middle", "hello world", "lo wo", 3},
 		{"not found", "hello world", "foo", -1},
 		{"empty substr", "hello", "", 0},
@@ -207,7 +208,7 @@ func TestLintGitHubWorkflows_NoActions(t *testing.T) {
 	tmpDir := t.TempDir()
 	workflowDir := filepath.Join(tmpDir, ".github", "workflows")
 
-	err := os.MkdirAll(workflowDir, 0o755)
+	err := os.MkdirAll(workflowDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	workflowFile := filepath.Join(workflowDir, "simple.yml")
@@ -219,7 +220,7 @@ jobs:
     steps:
       - run: echo "Hello World"
 `
-	err = os.WriteFile(workflowFile, []byte(content), 0o600)
+	err = os.WriteFile(workflowFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	err = Check(logger, []string{workflowFile})
@@ -233,11 +234,11 @@ func TestLintGitHubWorkflows_WithActions(t *testing.T) {
 	tmpDir := t.TempDir()
 	workflowDir := filepath.Join(tmpDir, ".github", "workflows")
 
-	err := os.MkdirAll(workflowDir, 0o755)
+	err := os.MkdirAll(workflowDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	workflowFile := filepath.Join(workflowDir, "ci.yml")
-	err = os.WriteFile(workflowFile, []byte(testWorkflowWithActions), 0o600)
+	err = os.WriteFile(workflowFile, []byte(testWorkflowWithActions), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	err = Check(logger, []string{workflowFile})
@@ -258,11 +259,11 @@ func TestLoadWorkflowActionExceptions_InvalidJSON(t *testing.T) {
 	require.NoError(t, err)
 
 	githubDir := filepath.Join(tmpDir, ".github")
-	err = os.MkdirAll(githubDir, 0o755)
+	err = os.MkdirAll(githubDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	exceptionsFile := filepath.Join(githubDir, "workflow-action-exceptions.json")
-	err = os.WriteFile(exceptionsFile, []byte("invalid json"), 0o600)
+	err = os.WriteFile(exceptionsFile, []byte("invalid json"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	err = os.Chdir(tmpDir)
@@ -284,12 +285,12 @@ func TestLoadWorkflowActionExceptions_ValidJSON(t *testing.T) {
 	require.NoError(t, err)
 
 	githubDir := filepath.Join(tmpDir, ".github")
-	err = os.MkdirAll(githubDir, 0o755)
+	err = os.MkdirAll(githubDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	exceptionsFile := filepath.Join(githubDir, "workflow-action-exceptions.json")
 	content := `{"exceptions":{"actions/checkout":{"version":"v3","reason":"Test exception"}}}`
-	err = os.WriteFile(exceptionsFile, []byte(content), 0o600)
+	err = os.WriteFile(exceptionsFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	err = os.Chdir(tmpDir)
@@ -309,7 +310,7 @@ func TestLoadWorkflowActionExceptions_ValidJSON(t *testing.T) {
 }
 
 func TestLoadWorkflowActionExceptions_UnreadableFile(t *testing.T) {
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
 		t.Skip("os.Chmod does not enforce POSIX permissions on Windows")
 	}
 
@@ -322,7 +323,7 @@ func TestLoadWorkflowActionExceptions_UnreadableFile(t *testing.T) {
 	require.NoError(t, err)
 
 	githubDir := filepath.Join(tmpDir, ".github")
-	err = os.MkdirAll(githubDir, 0o755)
+	err = os.MkdirAll(githubDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	exceptionsFile := filepath.Join(githubDir, "workflow-action-exceptions.json")
@@ -332,7 +333,7 @@ func TestLoadWorkflowActionExceptions_UnreadableFile(t *testing.T) {
 
 	defer func() {
 		// Restore permissions so cleanup can delete the file.
-		_ = os.Chmod(exceptionsFile, 0o644)
+		_ = os.Chmod(exceptionsFile, cryptoutilSharedMagic.CICDOutputFilePermissions)
 	}()
 
 	err = os.Chdir(tmpDir)
@@ -374,7 +375,7 @@ jobs:
     steps:
       - uses: actions/upload-artifact@v3
 `
-	err := os.WriteFile(workflowFile, []byte(content), 0o600)
+	err := os.WriteFile(workflowFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	actionDetails, validationErrors, err := validateAndParseWorkflowFile(workflowFile)
@@ -447,7 +448,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 `
-	err := os.WriteFile(workflowFile1, []byte(content1), 0o600)
+	err := os.WriteFile(workflowFile1, []byte(content1), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	workflowFile2 := filepath.Join(tmpDir, "cd.yml")
@@ -459,7 +460,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
 `
-	err = os.WriteFile(workflowFile2, []byte(content2), 0o600)
+	err = os.WriteFile(workflowFile2, []byte(content2), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	actionDetails, err := validateAndGetWorkflowActionsDetails(logger, []string{workflowFile1, workflowFile2})

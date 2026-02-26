@@ -52,7 +52,7 @@ func TestHandleRefreshTokenGrant_ErrorPaths(t *testing.T) {
 				t.Helper()
 
 				// Token but no client ID.
-				return "test-refresh-token", "", "read"
+				return "test-refresh-token", "", cryptoutilSharedMagic.ScopeRead
 			},
 			expectedStatus: fiber.StatusBadRequest,
 		},
@@ -76,7 +76,7 @@ func TestHandleRefreshTokenGrant_ErrorPaths(t *testing.T) {
 					ClientID:                "test-client-" + googleUuid.NewString(),
 					ClientSecret:            "test-secret",
 					Name:                    "Test Client",
-					AllowedScopes:           []string{"read", "write"},
+					AllowedScopes:           []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
 					ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 					TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
 				}
@@ -117,7 +117,7 @@ func TestHandleRefreshTokenGrant_ErrorPaths(t *testing.T) {
 					ClientID:                "test-client-" + googleUuid.NewString(),
 					ClientSecret:            "test-secret",
 					Name:                    "Test Client",
-					AllowedScopes:           []string{"read", "write"},
+					AllowedScopes:           []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
 					ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 					TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
 				}
@@ -136,7 +136,7 @@ func TestHandleRefreshTokenGrant_ErrorPaths(t *testing.T) {
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					TokenValue:  tokenValue,
 					Scopes:      []string{cryptoutilSharedMagic.ScopeRead},
-					ExpiresAt:   time.Now().UTC().Add(24 * time.Hour),
+					ExpiresAt:   time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour),
 					IssuedAt:    time.Now().UTC(),
 					NotBefore:   time.Now().UTC(),
 					Revoked:     true,
@@ -161,7 +161,7 @@ func TestHandleRefreshTokenGrant_ErrorPaths(t *testing.T) {
 					ClientID:                "test-client-" + googleUuid.NewString(),
 					ClientSecret:            "test-secret",
 					Name:                    "Test Client",
-					AllowedScopes:           []string{"read", "write"},
+					AllowedScopes:           []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
 					ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 					TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
 				}
@@ -180,8 +180,8 @@ func TestHandleRefreshTokenGrant_ErrorPaths(t *testing.T) {
 					TokenValue:  tokenValue,
 					Scopes:      []string{cryptoutilSharedMagic.ScopeRead},
 					ExpiresAt:   time.Now().UTC().Add(-1 * time.Hour), // Already expired
-					IssuedAt:    time.Now().UTC().Add(-25 * time.Hour),
-					NotBefore:   time.Now().UTC().Add(-25 * time.Hour),
+					IssuedAt:    time.Now().UTC().Add(-cryptoutilSharedMagic.TLSMaxValidityCACertYears * time.Hour),
+					NotBefore:   time.Now().UTC().Add(-cryptoutilSharedMagic.TLSMaxValidityCACertYears * time.Hour),
 				}
 
 				tokenRepo := repoFactory.TokenRepository()
@@ -209,18 +209,18 @@ func TestHandleRefreshTokenGrant_ErrorPaths(t *testing.T) {
 			refreshToken, clientID, scope := tc.setupFunc(t, repoFactory)
 
 			form := url.Values{}
-			form.Set("grant_type", cryptoutilSharedMagic.GrantTypeRefreshToken)
+			form.Set(cryptoutilSharedMagic.ParamGrantType, cryptoutilSharedMagic.GrantTypeRefreshToken)
 
 			if refreshToken != "" {
-				form.Set("refresh_token", refreshToken)
+				form.Set(cryptoutilSharedMagic.GrantTypeRefreshToken, refreshToken)
 			}
 
 			if clientID != "" {
-				form.Set("client_id", clientID)
+				form.Set(cryptoutilSharedMagic.ClaimClientID, clientID)
 			}
 
 			if scope != "" {
-				form.Set("scope", scope)
+				form.Set(cryptoutilSharedMagic.ClaimScope, scope)
 			}
 
 			req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(form.Encode()))
@@ -244,7 +244,7 @@ func createRefreshTokenTestDependencies(t *testing.T) (*cryptoutilIdentityConfig
 	t.Helper()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type:        "sqlite",
+		Type:        cryptoutilSharedMagic.TestDatabaseSQLite,
 		DSN:         fmt.Sprintf("file::memory:?cache=private&mode=memory&_id=%s", googleUuid.New().String()),
 		AutoMigrate: true,
 	}
@@ -253,7 +253,7 @@ func createRefreshTokenTestDependencies(t *testing.T) (*cryptoutilIdentityConfig
 		Database: dbConfig,
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			Issuer:              "https://localhost:8080",
-			AccessTokenLifetime: 3600,
+			AccessTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		},
 	}
 

@@ -25,10 +25,10 @@ func TestSessionManager_StartCleanupTask_CleansExpiredSessions(t *testing.T) {
 	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		BrowserSessionAlgorithm:  string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
 		ServiceSessionAlgorithm:  string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
-		BrowserSessionExpiration: 24 * time.Hour,
-		ServiceSessionExpiration: 7 * 24 * time.Hour,
+		BrowserSessionExpiration: cryptoutilSharedMagic.HoursPerDay * time.Hour,
+		ServiceSessionExpiration: cryptoutilSharedMagic.GitRecentActivityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		SessionIdleTimeout:       2 * time.Hour,
-		SessionCleanupInterval:   100 * time.Millisecond, // Very short for testing
+		SessionCleanupInterval:   cryptoutilSharedMagic.JoseJAMaxMaterials * time.Millisecond, // Very short for testing
 	}
 
 	sm := NewSessionManager(db, nil, config)
@@ -64,7 +64,7 @@ func TestSessionManager_StartCleanupTask_CleansExpiredSessions(t *testing.T) {
 	cancel()
 
 	// Give task time to stop
-	time.Sleep(50 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond)
 
 	// Session should have been cleaned up
 	var count int64
@@ -82,13 +82,13 @@ func TestSessionManager_ServiceSession_JWS_FullCycle(t *testing.T) {
 		name   string
 		jwsAlg string
 	}{
-		{"RS256", cryptoutilSharedMagic.SessionJWSAlgorithmRS256},
-		{"RS384", cryptoutilSharedMagic.SessionJWSAlgorithmRS384},
-		{"RS512", cryptoutilSharedMagic.SessionJWSAlgorithmRS512},
-		{"ES256", cryptoutilSharedMagic.SessionJWSAlgorithmES256},
-		{"ES384", cryptoutilSharedMagic.SessionJWSAlgorithmES384},
-		{"ES512", cryptoutilSharedMagic.SessionJWSAlgorithmES512},
-		{"EdDSA", cryptoutilSharedMagic.SessionJWSAlgorithmEdDSA},
+		{cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilSharedMagic.SessionJWSAlgorithmRS256},
+		{cryptoutilSharedMagic.JoseAlgRS384, cryptoutilSharedMagic.SessionJWSAlgorithmRS384},
+		{cryptoutilSharedMagic.JoseAlgRS512, cryptoutilSharedMagic.SessionJWSAlgorithmRS512},
+		{cryptoutilSharedMagic.JoseAlgES256, cryptoutilSharedMagic.SessionJWSAlgorithmES256},
+		{cryptoutilSharedMagic.JoseAlgES384, cryptoutilSharedMagic.SessionJWSAlgorithmES384},
+		{cryptoutilSharedMagic.JoseAlgES512, cryptoutilSharedMagic.SessionJWSAlgorithmES512},
+		{cryptoutilSharedMagic.JoseAlgEdDSA, cryptoutilSharedMagic.SessionJWSAlgorithmEdDSA},
 	}
 
 	for _, tt := range tests {
@@ -99,8 +99,8 @@ func TestSessionManager_ServiceSession_JWS_FullCycle(t *testing.T) {
 			config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 				BrowserSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
 				ServiceSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmJWS),
-				BrowserSessionExpiration:   24 * time.Hour,
-				ServiceSessionExpiration:   7 * 24 * time.Hour,
+				BrowserSessionExpiration:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
+				ServiceSessionExpiration:   cryptoutilSharedMagic.GitRecentActivityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 				SessionIdleTimeout:         2 * time.Hour,
 				SessionCleanupInterval:     time.Hour,
 				ServiceSessionJWSAlgorithm: tt.jwsAlg,
@@ -153,8 +153,8 @@ func TestSessionManager_ServiceSession_JWE_FullCycle(t *testing.T) {
 			config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 				BrowserSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
 				ServiceSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmJWE),
-				BrowserSessionExpiration:   24 * time.Hour,
-				ServiceSessionExpiration:   7 * 24 * time.Hour,
+				BrowserSessionExpiration:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
+				ServiceSessionExpiration:   cryptoutilSharedMagic.GitRecentActivityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 				SessionIdleTimeout:         2 * time.Hour,
 				SessionCleanupInterval:     time.Hour,
 				ServiceSessionJWEAlgorithm: tt.jweAlg,
@@ -190,8 +190,8 @@ func TestSessionManager_CleanupServiceSessions(t *testing.T) {
 	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		BrowserSessionAlgorithm:  string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
 		ServiceSessionAlgorithm:  string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
-		BrowserSessionExpiration: 24 * time.Hour,
-		ServiceSessionExpiration: 7 * 24 * time.Hour,
+		BrowserSessionExpiration: cryptoutilSharedMagic.HoursPerDay * time.Hour,
+		ServiceSessionExpiration: cryptoutilSharedMagic.GitRecentActivityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		SessionIdleTimeout:       2 * time.Hour,
 		SessionCleanupInterval:   time.Hour,
 	}

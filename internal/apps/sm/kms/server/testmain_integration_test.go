@@ -6,6 +6,7 @@
 package server
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 "context"
 "crypto/tls"
 "fmt"
@@ -55,7 +56,7 @@ TLSClientConfig: &tls.Config{
 InsecureSkipVerify: true, //nolint:gosec // G402: Test client for self-signed certs.
 },
 },
-Timeout: 5 * time.Second,
+Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 }
 
 // Run all tests.

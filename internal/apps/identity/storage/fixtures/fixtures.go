@@ -6,6 +6,7 @@
 package fixtures
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"time"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
@@ -133,7 +134,7 @@ func NewTestTokenBuilder() *TestTokenBuilder {
 			TokenType:   cryptoutilIdentityDomain.TokenTypeAccess,
 			TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 			ClientID:    googleUuid.Must(googleUuid.NewV7()), // Will be overridden in tests
-			Scopes:      []string{"openid", "profile"},
+			Scopes:      []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 			IssuedAt:    time.Now().UTC(),
 			ExpiresAt:   time.Now().UTC().Add(time.Hour),
 			CreatedAt:   time.Now().UTC(),

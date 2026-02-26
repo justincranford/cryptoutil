@@ -5,6 +5,7 @@
 package jobs
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	"time"
@@ -23,7 +24,7 @@ func CleanupExpiredSecrets(ctx context.Context, db *gorm.DB) (int64, error) {
 	result := db.WithContext(ctx).
 		Model(&cryptoutilIdentityDomain.ClientSecretVersion{}).
 		Where("status = ? AND expires_at IS NOT NULL AND expires_at < ?", cryptoutilIdentityDomain.SecretStatusActive, now).
-		Update("status", cryptoutilIdentityDomain.SecretStatusExpired)
+		Update(cryptoutilSharedMagic.StringStatus, cryptoutilIdentityDomain.SecretStatusExpired)
 
 	if result.Error != nil {
 		return 0, fmt.Errorf("failed to cleanup expired secrets: %w", result.Error)

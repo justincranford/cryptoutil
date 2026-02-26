@@ -5,6 +5,7 @@
 package realms
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"strings"
 	"testing"
 
@@ -156,7 +157,7 @@ func TestValidateUsernameForRealm(t *testing.T) {
 		},
 		{
 			name:     "valid username - maximum length",
-			username: strings.Repeat("a", 64),
+			username: strings.Repeat("a", cryptoutilSharedMagic.MinSerialNumberBits),
 			wantErr:  false,
 		},
 		{
@@ -216,11 +217,11 @@ func TestDefaultAndEnterpriseRealmDefaults(t *testing.T) {
 	enterpriseRealm := EnterpriseRealm()
 
 	// Verify default realm settings.
-	require.Equal(t, 12, defaultRealm.PasswordMinLength, "default realm password min length")
+	require.Equal(t, cryptoutilSharedMagic.HashPrefixLength, defaultRealm.PasswordMinLength, "default realm password min length")
 	require.Equal(t, 3, defaultRealm.PasswordMaxRepeatedChars, "default realm max repeated chars")
 
 	// Verify enterprise realm has stricter settings.
-	require.Equal(t, 16, enterpriseRealm.PasswordMinLength, "enterprise realm password min length")
+	require.Equal(t, cryptoutilSharedMagic.RealmMinTokenLengthBytes, enterpriseRealm.PasswordMinLength, "enterprise realm password min length")
 	require.Equal(t, 2, enterpriseRealm.PasswordMaxRepeatedChars, "enterprise realm max repeated chars")
 
 	// Enterprise should be stricter than default.

@@ -5,6 +5,7 @@
 package crypto
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto"
 	"fmt"
 	"testing"
@@ -56,7 +57,7 @@ type mockUnknownKeyWithJWEHeaders struct{ mockUnknownKey }
 
 func (m mockUnknownKeyWithJWEHeaders) Get(name string, dst any) error {
 	switch name {
-	case "enc":
+	case cryptoutilSharedMagic.JoseKeyUseEnc:
 		if p, ok := dst.(*joseJwa.ContentEncryptionAlgorithm); ok {
 			*p = joseJwa.A256GCM()
 
@@ -162,7 +163,7 @@ func TestGetGenerateAlgorithmTestProbability_UnknownAlgorithm(t *testing.T) {
 	t.Parallel()
 
 	prob := GetGenerateAlgorithmTestProbability(cryptoutilOpenapiModel.GenerateAlgorithm("unknown"))
-	require.InDelta(t, 1.0, prob, 0.001)
+	require.InDelta(t, cryptoutilSharedMagic.TestProbAlways, prob, 0.001)
 }
 
 // TestGetElasticKeyAlgorithmTestProbability_UnknownAlgorithm tests the default branch.
@@ -170,7 +171,7 @@ func TestGetElasticKeyAlgorithmTestProbability_UnknownAlgorithm(t *testing.T) {
 	t.Parallel()
 
 	prob := GetElasticKeyAlgorithmTestProbability(cryptoutilOpenapiModel.ElasticKeyAlgorithm("unknown"))
-	require.InDelta(t, 1.0, prob, 0.001)
+	require.InDelta(t, cryptoutilSharedMagic.TestProbAlways, prob, 0.001)
 }
 
 // mockGenerateAlgorithmKeyAlg implements joseJwa.KeyAlgorithm with a custom string

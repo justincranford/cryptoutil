@@ -38,9 +38,9 @@ func ExecuteIdentity(parameters []string) {
 	serviceParams := parameters[1:]
 
 	switch service {
-	case "authz":
+	case cryptoutilSharedMagic.AuthzServiceName:
 		identityAuthz(serviceParams)
-	case "idp":
+	case cryptoutilSharedMagic.IDPServiceName:
 		identityIdp(serviceParams)
 	case "rs":
 		identityRs(serviceParams)

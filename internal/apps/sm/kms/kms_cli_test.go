@@ -5,6 +5,7 @@
 package kms
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"testing"
 
@@ -47,7 +48,7 @@ func TestKMS_Version(t *testing.T) {
 	require.Equal(t, 0, exitCode)
 
 	combined := stdout.String() + stderr.String()
-	require.Contains(t, combined, "sm-kms")
+	require.Contains(t, combined, cryptoutilSharedMagic.OTLPServiceSMKMS)
 }
 
 // TestKMS_SubcommandHelpFlags verifies help flags for all subcommands.

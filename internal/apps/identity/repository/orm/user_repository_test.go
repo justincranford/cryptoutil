@@ -5,6 +5,7 @@
 package orm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -299,7 +300,7 @@ func TestUserRepository_List(t *testing.T) {
 	repo := NewUserRepository(testDB.db)
 	ctx := context.Background()
 
-	for i := range 5 {
+	for i := range cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries {
 		user := &cryptoutilIdentityDomain.User{
 			ID:                googleUuid.Must(googleUuid.NewV7()),
 			Sub:               "user-list-" + string(rune('0'+i)),
@@ -333,7 +334,7 @@ func TestUserRepository_Count(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, int64(0), count)
 
-	for i := range 5 {
+	for i := range cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries {
 		user := &cryptoutilIdentityDomain.User{
 			ID:                googleUuid.Must(googleUuid.NewV7()),
 			Sub:               "user-count-" + string(rune('0'+i)),
@@ -349,5 +350,5 @@ func TestUserRepository_Count(t *testing.T) {
 
 	count, err = repo.Count(ctx)
 	require.NoError(t, err)
-	require.Equal(t, int64(5), count)
+	require.Equal(t, int64(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries), count)
 }

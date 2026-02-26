@@ -67,7 +67,7 @@ Examples:
 				// Build args with multiple --config flags for Parse()
 				parseArgs := []string{"start"} // Subcommand required by Parse()
 				for _, cf := range configFiles {
-					parseArgs = append(parseArgs, "--config", cf)
+					parseArgs = append(parseArgs, cryptoutilSharedMagic.IdentityCLIFlagConfig, cf)
 				}
 
 				settings, err = cryptoutilAppsCaServerConfig.Parse(parseArgs, false)
@@ -105,7 +105,7 @@ Examples:
 	// Note: "config" flag is provided by template config - do not redefine it here.
 	cmd.Flags().StringVarP(&bindAddr, "bind", "b", cryptoutilSharedMagic.IPv4Loopback, "Bind address")
 	cmd.Flags().Uint16VarP(&bindPort, "port", "p", cryptoutilSharedMagic.DefaultPublicPortCAServer, "Bind port")
-	cmd.Flags().BoolVar(&devMode, "dev", false, "Enable development mode (relaxed security)")
+	cmd.Flags().BoolVar(&devMode, cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault, false, "Enable development mode (relaxed security)")
 
 	return cmd
 }

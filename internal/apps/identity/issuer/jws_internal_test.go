@@ -37,7 +37,7 @@ func TestSignJWT(t *testing.T) {
 			name:      "RS256_success",
 			algorithm: cryptoutilSharedMagic.AlgorithmRS256,
 			keyGen: func() any {
-				key, err := rsa.GenerateKey(crand.Reader, 2048)
+				key, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 				require.NoError(t, err)
 
 				return key
@@ -71,7 +71,7 @@ func TestSignJWT(t *testing.T) {
 		},
 		{
 			name:        "unsupported_algorithm",
-			algorithm:   "HS256",
+			algorithm:   cryptoutilSharedMagic.JoseAlgHS256,
 			keyGen:      func() any { return []byte("secret") },
 			wantErr:     true,
 			errContains: "unsupported signing algorithm",
@@ -114,7 +114,7 @@ func TestVerifyJWTSignature(t *testing.T) {
 			name:      "RS256_valid_signature",
 			algorithm: cryptoutilSharedMagic.AlgorithmRS256,
 			setupKeys: func(_ *testing.T) (any, any) {
-				key, err := rsa.GenerateKey(crand.Reader, 2048)
+				key, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 				require.NoError(t, err)
 
 				return key, &key.PublicKey
@@ -136,7 +136,7 @@ func TestVerifyJWTSignature(t *testing.T) {
 			name:      "RS256_wrong_public_key_type",
 			algorithm: cryptoutilSharedMagic.AlgorithmRS256,
 			setupKeys: func(_ *testing.T) (any, any) {
-				key, err := rsa.GenerateKey(crand.Reader, 2048)
+				key, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 				require.NoError(t, err)
 
 				return key, invalidKeyString
@@ -170,7 +170,7 @@ func TestVerifyJWTSignature(t *testing.T) {
 		},
 		{
 			name:        "unsupported_algorithm",
-			algorithm:   "HS256",
+			algorithm:   cryptoutilSharedMagic.JoseAlgHS256,
 			setupKeys:   func(_ *testing.T) (any, any) { return []byte("secret"), []byte("secret") },
 			wantErr:     true,
 			errContains: "unsupported verification algorithm",
@@ -230,7 +230,7 @@ func TestConvertToJWK(t *testing.T) {
 				KeyID:     "test-rsa-kid",
 				Algorithm: cryptoutilSharedMagic.AlgorithmRS256,
 				Key: func() any {
-					key, err := rsa.GenerateKey(crand.Reader, 2048)
+					key, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 					require.NoError(t, err)
 
 					return key
@@ -238,7 +238,7 @@ func TestConvertToJWK(t *testing.T) {
 			},
 			expected: map[string]any{
 				"kid": "test-rsa-kid",
-				"use": "sig",
+				"use": cryptoutilSharedMagic.JoseKeyUseSig,
 				"alg": cryptoutilSharedMagic.AlgorithmRS256,
 				"kty": cryptoutilSharedMagic.KeyTypeRSA,
 			},
@@ -249,7 +249,7 @@ func TestConvertToJWK(t *testing.T) {
 				KeyID:     "test-rsa-pub-kid",
 				Algorithm: cryptoutilSharedMagic.AlgorithmRS256,
 				Key: func() any {
-					key, err := rsa.GenerateKey(crand.Reader, 2048)
+					key, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 					require.NoError(t, err)
 
 					return &key.PublicKey
@@ -257,7 +257,7 @@ func TestConvertToJWK(t *testing.T) {
 			},
 			expected: map[string]any{
 				"kid": "test-rsa-pub-kid",
-				"use": "sig",
+				"use": cryptoutilSharedMagic.JoseKeyUseSig,
 				"alg": cryptoutilSharedMagic.AlgorithmRS256,
 				"kty": cryptoutilSharedMagic.KeyTypeRSA,
 			},
@@ -276,7 +276,7 @@ func TestConvertToJWK(t *testing.T) {
 			},
 			expected: map[string]any{
 				"kid": "test-ec-kid",
-				"use": "sig",
+				"use": cryptoutilSharedMagic.JoseKeyUseSig,
 				"alg": cryptoutilSharedMagic.AlgorithmES256,
 				"kty": cryptoutilSharedMagic.KeyTypeEC,
 				"crv": "P-256",
@@ -296,7 +296,7 @@ func TestConvertToJWK(t *testing.T) {
 			},
 			expected: map[string]any{
 				"kid": "test-ec-pub-kid",
-				"use": "sig",
+				"use": cryptoutilSharedMagic.JoseKeyUseSig,
 				"alg": cryptoutilSharedMagic.AlgorithmES256,
 				"kty": cryptoutilSharedMagic.KeyTypeEC,
 				"crv": "P-256",
@@ -306,7 +306,7 @@ func TestConvertToJWK(t *testing.T) {
 			name: "HMAC_key_returns_nil",
 			key: &SigningKey{
 				KeyID:     "test-hmac-kid",
-				Algorithm: "HS256",
+				Algorithm: cryptoutilSharedMagic.JoseAlgHS256,
 				Key:       []byte("secret"),
 			},
 			expected: nil,

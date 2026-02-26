@@ -5,6 +5,7 @@
 package certificate
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 "crypto"
 "crypto/x509"
 "fmt"
@@ -208,7 +209,7 @@ func TestCertificateTemplateEndEntity_ExceedsDuration(t *testing.T) {
 t.Parallel()
 
 // 398 days exceeds TLSDefaultSubscriberCertDuration (397 days).
-excessiveDuration := 398 * 24 * time.Hour
+excessiveDuration := cryptoutilSharedMagic.TLSMaxValidityEndEntityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour
 
 _, err := CertificateTemplateEndEntity(
 "Issuer CA",
@@ -234,7 +235,7 @@ caSubject, err := CreateCASubject(nil, nil, "Test CA", keyPairs[1], testCACertVa
 require.NoError(t, err)
 
 // 398 days exceeds TLSDefaultSubscriberCertDuration.
-excessiveDuration := 398 * 24 * time.Hour
+excessiveDuration := cryptoutilSharedMagic.TLSMaxValidityEndEntityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour
 
 _, err = CreateEndEntitySubject(
 caSubject,

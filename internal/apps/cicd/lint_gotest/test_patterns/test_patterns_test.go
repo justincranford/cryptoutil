@@ -3,6 +3,7 @@
 package test_patterns
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -29,7 +30,7 @@ func TestCheckTestFile_HardcodedUUID(t *testing.T) {
 
 	// File with hardcoded UUID pattern.
 	content := "package example\n\nimport \"testing\"\n\nfunc TestExample(t *testing.T) {\n\tid := \"12345678-1234-1234-1234-123456789012\"\n\t_ = id\n}\n"
-	err := os.WriteFile(testFile, []byte(content), 0o600)
+	err := os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	issues := CheckTestFile(testFile)
@@ -56,7 +57,7 @@ func TestCheckTestFile_TestErrorf(t *testing.T) {
 
 	// File with t.Errorf() which should be flagged.
 	content := "package example\n\nimport \"testing\"\n\nfunc TestExample(t *testing.T) {\n\tif true {\n\t\tt.Errorf(\"something went wrong\")\n\t}\n}\n"
-	err := os.WriteFile(testFile, []byte(content), 0o600)
+	err := os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	issues := CheckTestFile(testFile)
@@ -83,7 +84,7 @@ func TestCheckTestFile_TestFatalf(t *testing.T) {
 
 	// File with t.Fatalf() which should be flagged.
 	content := "package example\n\nimport \"testing\"\n\nfunc TestExample(t *testing.T) {\n\tif true {\n\t\tt.Fatalf(\"fatal error\")\n\t}\n}\n"
-	err := os.WriteFile(testFile, []byte(content), 0o600)
+	err := os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	issues := CheckTestFile(testFile)
@@ -110,7 +111,7 @@ func TestEnforceTestPatterns_FilteredFiles(t *testing.T) {
 	// Create a file that matches the filtering pattern.
 	adminTestFile := filepath.Join(tmpDir, "admin_test.go")
 	content := "package example\n\nfunc TestAdmin(t *testing.T) {}\n"
-	err := os.WriteFile(adminTestFile, []byte(content), 0o600)
+	err := os.WriteFile(adminTestFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -151,7 +152,7 @@ id := googleUuid.NewV7()
 require.NotNil(t, id)
 }
 `
-	require.NoError(t, os.WriteFile(testFile, []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
@@ -172,7 +173,7 @@ func TestCheck_WithMultipleFilteredFiles(t *testing.T) {
 	}
 
 	for _, f := range filteredFiles {
-		require.NoError(t, os.WriteFile(f, []byte("package main\n"), 0o600))
+		require.NoError(t, os.WriteFile(f, []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
 	}
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -199,7 +200,7 @@ func TestBadUUID(t *testing.T) {
 	_ = uuid
 }
 `
-	require.NoError(t, os.WriteFile(testFile, []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
@@ -215,7 +216,7 @@ func TestCheckTestFile_UUIDNewViolation(t *testing.T) {
 	testFile := filepath.Join(tmpDir, "uuid_test.go")
 
 	content := "package foo\nfunc T() { _ = uuid.New() }\n"
-	require.NoError(t, os.WriteFile(testFile, []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	issues := CheckTestFile(testFile)
 	require.NotEmpty(t, issues, "uuid.New() should be flagged")
@@ -229,7 +230,7 @@ func TestCheckTestFile_TestifyWithoutImport(t *testing.T) {
 	testFile := filepath.Join(tmpDir, "noImport_test.go")
 
 	content := "package foo\nfunc T() { require.NoError(t, nil) }\n"
-	require.NoError(t, os.WriteFile(testFile, []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	issues := CheckTestFile(testFile)
 	require.NotEmpty(t, issues, "testify usage without import should be flagged")
@@ -242,7 +243,7 @@ func TestCheckTestFile_ErrorfViolation(t *testing.T) {
 	testFile := filepath.Join(tmpDir, "errorf_test.go")
 
 	content := "package foo\nfunc T(t *testing.T) { t.Errorf(\"fail\") }\n"
-	require.NoError(t, os.WriteFile(testFile, []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	issues := CheckTestFile(testFile)
 	require.NotEmpty(t, issues, "t.Errorf() should be flagged")
@@ -255,7 +256,7 @@ func TestCheckTestFile_FatalfViolation(t *testing.T) {
 	testFile := filepath.Join(tmpDir, "fatalf_test.go")
 
 	content := "package foo\nfunc T(t *testing.T) { t.Fatalf(\"fail\") }\n"
-	require.NoError(t, os.WriteFile(testFile, []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	issues := CheckTestFile(testFile)
 	require.NotEmpty(t, issues, "t.Fatalf() should be flagged")

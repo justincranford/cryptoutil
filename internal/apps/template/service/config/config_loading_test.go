@@ -48,7 +48,7 @@ tls-private-ip-addresses:
 
 	tmpDir := t.TempDir()
 	configPath := filepath.Join(tmpDir, "test-config.yml")
-	err := os.WriteFile(configPath, []byte(yamlContent), 0o600)
+	err := os.WriteFile(configPath, []byte(yamlContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	cmdParams := []string{"start", "--config=" + configPath}
@@ -57,10 +57,10 @@ tls-private-ip-addresses:
 	require.NoError(t, err)
 
 	require.Equal(t, true, settings.DevMode, "dev should map to DevMode")
-	require.Equal(t, "127.0.0.1", settings.BindPublicAddress, "bind-public-address should map to BindPublicAddress")
-	require.Equal(t, uint16(8080), settings.BindPublicPort, "bind-public-port should map to BindPublicPort")
-	require.Equal(t, "127.0.0.1", settings.BindPrivateAddress, "bind-private-address should map to BindPrivateAddress")
-	require.Equal(t, uint16(9090), settings.BindPrivatePort, "bind-private-port should map to BindPrivatePort")
+	require.Equal(t, cryptoutilSharedMagic.IPv4Loopback, settings.BindPublicAddress, "bind-public-address should map to BindPublicAddress")
+	require.Equal(t, uint16(cryptoutilSharedMagic.DemoServerPort), settings.BindPublicPort, "bind-public-port should map to BindPublicPort")
+	require.Equal(t, cryptoutilSharedMagic.IPv4Loopback, settings.BindPrivateAddress, "bind-private-address should map to BindPrivateAddress")
+	require.Equal(t, uint16(cryptoutilSharedMagic.JoseJAAdminPort), settings.BindPrivatePort, "bind-private-port should map to BindPrivatePort")
 }
 
 // TestYAMLFieldMapping_CamelCase tests that camelCase YAML field names (devMode, bindPublicAddress)
@@ -79,7 +79,7 @@ bind-private-port: 9999
 
 	tmpDir := t.TempDir()
 	configPath := filepath.Join(tmpDir, "test-config.yml")
-	err := os.WriteFile(configPath, []byte(yamlContent), 0o600)
+	err := os.WriteFile(configPath, []byte(yamlContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	cmdParams := []string{"start", "--config=" + configPath}
@@ -90,7 +90,7 @@ bind-private-port: 9999
 	require.Equal(t, false, settings.DevMode, "dev field correctly maps to DevMode")
 	require.Equal(t, cryptoutilSharedMagic.IPv4AnyAddress, settings.BindPublicAddress, "bindPublicAddress should map to BindPublicAddress")
 	require.Equal(t, uint16(8070), settings.BindPublicPort, "bindPublicPort should map to BindPublicPort")
-	require.Equal(t, "127.0.0.1", settings.BindPrivateAddress, "bindPrivateAddress should map to BindPrivateAddress")
+	require.Equal(t, cryptoutilSharedMagic.IPv4Loopback, settings.BindPrivateAddress, "bindPrivateAddress should map to BindPrivateAddress")
 	require.Equal(t, uint16(9999), settings.BindPrivatePort, "bindPrivatePort should map to BindPrivatePort")
 }
 
@@ -110,7 +110,7 @@ bind-private-port: 6666
 
 	tmpDir := t.TempDir()
 	configPath := filepath.Join(tmpDir, "test-config.yml")
-	err := os.WriteFile(configPath, []byte(yamlContent), 0o600)
+	err := os.WriteFile(configPath, []byte(yamlContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	cmdParams := []string{"start", "--config=" + configPath}
@@ -153,7 +153,7 @@ tls-private-ip-addresses:
 
 	tmpDir := t.TempDir()
 	configPath := filepath.Join(tmpDir, "test-config.yml")
-	err := os.WriteFile(configPath, []byte(yamlContent), 0o600)
+	err := os.WriteFile(configPath, []byte(yamlContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	cmdParams := []string{"start", "--config=" + configPath}
@@ -163,7 +163,7 @@ tls-private-ip-addresses:
 
 	require.Equal(t, false, settings.DevMode, "dev: false should map to DevMode: false")
 	require.Equal(t, cryptoutilSharedMagic.IPv4AnyAddress, settings.BindPublicAddress)
-	require.Equal(t, uint16(8080), settings.BindPublicPort)
-	require.Equal(t, "127.0.0.1", settings.BindPrivateAddress)
-	require.Equal(t, uint16(9090), settings.BindPrivatePort)
+	require.Equal(t, uint16(cryptoutilSharedMagic.DemoServerPort), settings.BindPublicPort)
+	require.Equal(t, cryptoutilSharedMagic.IPv4Loopback, settings.BindPrivateAddress)
+	require.Equal(t, uint16(cryptoutilSharedMagic.JoseJAAdminPort), settings.BindPrivatePort)
 }

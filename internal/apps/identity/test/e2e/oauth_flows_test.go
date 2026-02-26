@@ -33,10 +33,10 @@ func TestAuthorizationCodeFlow(t *testing.T) {
 	// Start services
 	t.Log("📦 Starting identity services for authorization code flow...")
 	require.NoError(t, startCompose(ctx, defaultProfile, map[string]int{
-		"identity-authz": cryptoutilSharedMagic.IdentityScaling1x,
-		"identity-idp":   cryptoutilSharedMagic.IdentityScaling1x,
-		"identity-rs":    cryptoutilSharedMagic.IdentityScaling1x,
-		"identity-spa":   cryptoutilSharedMagic.IdentityScaling1x,
+		cryptoutilSharedMagic.OTLPServiceIdentityAuthz: cryptoutilSharedMagic.IdentityScaling1x,
+		cryptoutilSharedMagic.OTLPServiceIdentityIDP:   cryptoutilSharedMagic.IdentityScaling1x,
+		cryptoutilSharedMagic.OTLPServiceIdentityRS:    cryptoutilSharedMagic.IdentityScaling1x,
+		cryptoutilSharedMagic.OTLPServiceIdentitySPA:   cryptoutilSharedMagic.IdentityScaling1x,
 	}))
 
 	defer func() {
@@ -57,8 +57,8 @@ func TestAuthorizationCodeFlow(t *testing.T) {
 
 	// Step 1: Authorization request
 	authURL := fmt.Sprintf("%s/authorize", suite.AuthZURL)
-	redirectURI := "https://example.com/callback"
-	state := generateRandomStringOAuthFlows(32)
+	redirectURI := cryptoutilSharedMagic.DemoRedirectURI
+	state := generateRandomStringOAuthFlows(cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 
 	_ = fmt.Sprintf("%s?response_type=code&client_id=test-client&redirect_uri=%s&state=%s&code_challenge=%s&code_challenge_method=S256&scope=openid profile email",
 		authURL, url.QueryEscape(redirectURI), state, codeChallenge)
@@ -72,12 +72,12 @@ func TestAuthorizationCodeFlow(t *testing.T) {
 	tokenURL := fmt.Sprintf("%s/token", suite.AuthZURL)
 
 	tokenReqData := url.Values{
-		"grant_type":    {"authorization_code"},
-		"code":          {authCode},
-		"redirect_uri":  {redirectURI},
-		"client_id":     {"test-client"},
-		"client_secret": {"test-secret"},
-		"code_verifier": {codeVerifier},
+		cryptoutilSharedMagic.ParamGrantType:    {cryptoutilSharedMagic.GrantTypeAuthorizationCode},
+		cryptoutilSharedMagic.ResponseTypeCode:          {authCode},
+		cryptoutilSharedMagic.ParamRedirectURI:  {redirectURI},
+		cryptoutilSharedMagic.ClaimClientID:     {"test-client"},
+		cryptoutilSharedMagic.ParamClientSecret: {"test-secret"},
+		cryptoutilSharedMagic.ParamCodeVerifier: {codeVerifier},
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, strings.NewReader(tokenReqData.Encode()))
@@ -99,7 +99,7 @@ func TestAuthorizationCodeFlow(t *testing.T) {
 
 			require.NoError(t, json.NewDecoder(resp.Body).Decode(&tokenResp))
 			require.NotEmpty(t, tokenResp.AccessToken, "Access token should be returned")
-			require.Equal(t, "Bearer", tokenResp.TokenType, "Token type should be Bearer")
+			require.Equal(t, cryptoutilSharedMagic.AuthorizationBearer, tokenResp.TokenType, "Token type should be Bearer")
 
 			t.Log("✅ Authorization code flow completed successfully")
 		} else {
@@ -120,10 +120,10 @@ func TestClientCredentialsFlow(t *testing.T) {
 	// Start services
 	t.Log("📦 Starting identity services for client credentials flow...")
 	require.NoError(t, startCompose(ctx, defaultProfile, map[string]int{
-		"identity-authz": cryptoutilSharedMagic.IdentityScaling1x,
-		"identity-idp":   cryptoutilSharedMagic.IdentityScaling1x,
-		"identity-rs":    cryptoutilSharedMagic.IdentityScaling1x,
-		"identity-spa":   cryptoutilSharedMagic.IdentityScaling1x,
+		cryptoutilSharedMagic.OTLPServiceIdentityAuthz: cryptoutilSharedMagic.IdentityScaling1x,
+		cryptoutilSharedMagic.OTLPServiceIdentityIDP:   cryptoutilSharedMagic.IdentityScaling1x,
+		cryptoutilSharedMagic.OTLPServiceIdentityRS:    cryptoutilSharedMagic.IdentityScaling1x,
+		cryptoutilSharedMagic.OTLPServiceIdentitySPA:   cryptoutilSharedMagic.IdentityScaling1x,
 	}))
 
 	defer func() {
@@ -142,10 +142,10 @@ func TestClientCredentialsFlow(t *testing.T) {
 	tokenURL := fmt.Sprintf("%s/token", suite.AuthZURL)
 
 	tokenReqData := url.Values{
-		"grant_type":    {"client_credentials"},
-		"client_id":     {"test-client-m2m"},
-		"client_secret": {"test-secret-m2m"},
-		"scope":         {"api:read api:write"},
+		cryptoutilSharedMagic.ParamGrantType:    {cryptoutilSharedMagic.GrantTypeClientCredentials},
+		cryptoutilSharedMagic.ClaimClientID:     {"test-client-m2m"},
+		cryptoutilSharedMagic.ParamClientSecret: {"test-secret-m2m"},
+		cryptoutilSharedMagic.ClaimScope:         {"api:read api:write"},
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, strings.NewReader(tokenReqData.Encode()))
@@ -166,7 +166,7 @@ func TestClientCredentialsFlow(t *testing.T) {
 
 			require.NoError(t, json.NewDecoder(resp.Body).Decode(&tokenResp))
 			require.NotEmpty(t, tokenResp.AccessToken, "Access token should be returned")
-			require.Equal(t, "Bearer", tokenResp.TokenType, "Token type should be Bearer")
+			require.Equal(t, cryptoutilSharedMagic.AuthorizationBearer, tokenResp.TokenType, "Token type should be Bearer")
 
 			t.Log("✅ Client credentials flow completed successfully")
 		} else {
@@ -187,10 +187,10 @@ func TestTokenIntrospection(t *testing.T) {
 	// Start services
 	t.Log("📦 Starting identity services for token introspection...")
 	require.NoError(t, startCompose(ctx, defaultProfile, map[string]int{
-		"identity-authz": cryptoutilSharedMagic.IdentityScaling1x,
-		"identity-idp":   cryptoutilSharedMagic.IdentityScaling1x,
-		"identity-rs":    cryptoutilSharedMagic.IdentityScaling1x,
-		"identity-spa":   cryptoutilSharedMagic.IdentityScaling1x,
+		cryptoutilSharedMagic.OTLPServiceIdentityAuthz: cryptoutilSharedMagic.IdentityScaling1x,
+		cryptoutilSharedMagic.OTLPServiceIdentityIDP:   cryptoutilSharedMagic.IdentityScaling1x,
+		cryptoutilSharedMagic.OTLPServiceIdentityRS:    cryptoutilSharedMagic.IdentityScaling1x,
+		cryptoutilSharedMagic.OTLPServiceIdentitySPA:   cryptoutilSharedMagic.IdentityScaling1x,
 	}))
 
 	defer func() {
@@ -219,9 +219,9 @@ func TestTokenIntrospection(t *testing.T) {
 	introspectURL := fmt.Sprintf("%s/introspect", suite.AuthZURL)
 
 	introspectReqData := url.Values{
-		"token":         {token},
-		"client_id":     {"test-client-introspect"},
-		"client_secret": {"test-secret-introspect"},
+		cryptoutilSharedMagic.ParamToken:         {token},
+		cryptoutilSharedMagic.ClaimClientID:     {"test-client-introspect"},
+		cryptoutilSharedMagic.ParamClientSecret: {"test-secret-introspect"},
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, introspectURL, strings.NewReader(introspectReqData.Encode()))
@@ -264,10 +264,10 @@ func TestTokenRefresh(t *testing.T) {
 	// Start services
 	t.Log("📦 Starting identity services for token refresh...")
 	require.NoError(t, startCompose(ctx, defaultProfile, map[string]int{
-		"identity-authz": cryptoutilSharedMagic.IdentityScaling1x,
-		"identity-idp":   cryptoutilSharedMagic.IdentityScaling1x,
-		"identity-rs":    cryptoutilSharedMagic.IdentityScaling1x,
-		"identity-spa":   cryptoutilSharedMagic.IdentityScaling1x,
+		cryptoutilSharedMagic.OTLPServiceIdentityAuthz: cryptoutilSharedMagic.IdentityScaling1x,
+		cryptoutilSharedMagic.OTLPServiceIdentityIDP:   cryptoutilSharedMagic.IdentityScaling1x,
+		cryptoutilSharedMagic.OTLPServiceIdentityRS:    cryptoutilSharedMagic.IdentityScaling1x,
+		cryptoutilSharedMagic.OTLPServiceIdentitySPA:   cryptoutilSharedMagic.IdentityScaling1x,
 	}))
 
 	defer func() {
@@ -289,10 +289,10 @@ func TestTokenRefresh(t *testing.T) {
 	tokenURL := fmt.Sprintf("%s/token", suite.AuthZURL)
 
 	tokenReqData := url.Values{
-		"grant_type":    {"refresh_token"},
-		"refresh_token": {refreshToken},
-		"client_id":     {"test-client-refresh"},
-		"client_secret": {"test-secret-refresh"},
+		cryptoutilSharedMagic.ParamGrantType:    {cryptoutilSharedMagic.GrantTypeRefreshToken},
+		cryptoutilSharedMagic.GrantTypeRefreshToken: {refreshToken},
+		cryptoutilSharedMagic.ClaimClientID:     {"test-client-refresh"},
+		cryptoutilSharedMagic.ParamClientSecret: {"test-secret-refresh"},
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, strings.NewReader(tokenReqData.Encode()))
@@ -313,7 +313,7 @@ func TestTokenRefresh(t *testing.T) {
 
 			require.NoError(t, json.NewDecoder(resp.Body).Decode(&tokenResp))
 			require.NotEmpty(t, tokenResp.AccessToken, "New access token should be returned")
-			require.Equal(t, "Bearer", tokenResp.TokenType, "Token type should be Bearer")
+			require.Equal(t, cryptoutilSharedMagic.AuthorizationBearer, tokenResp.TokenType, "Token type should be Bearer")
 
 			t.Log("✅ Token refresh completed successfully")
 		} else {
@@ -334,10 +334,10 @@ func TestPKCEFlow(t *testing.T) {
 	// Start services
 	t.Log("📦 Starting identity services for PKCE flow...")
 	require.NoError(t, startCompose(ctx, defaultProfile, map[string]int{
-		"identity-authz": cryptoutilSharedMagic.IdentityScaling1x,
-		"identity-idp":   cryptoutilSharedMagic.IdentityScaling1x,
-		"identity-rs":    cryptoutilSharedMagic.IdentityScaling1x,
-		"identity-spa":   cryptoutilSharedMagic.IdentityScaling1x,
+		cryptoutilSharedMagic.OTLPServiceIdentityAuthz: cryptoutilSharedMagic.IdentityScaling1x,
+		cryptoutilSharedMagic.OTLPServiceIdentityIDP:   cryptoutilSharedMagic.IdentityScaling1x,
+		cryptoutilSharedMagic.OTLPServiceIdentityRS:    cryptoutilSharedMagic.IdentityScaling1x,
+		cryptoutilSharedMagic.OTLPServiceIdentitySPA:   cryptoutilSharedMagic.IdentityScaling1x,
 	}))
 
 	defer func() {
@@ -354,12 +354,12 @@ func TestPKCEFlow(t *testing.T) {
 	codeVerifier, codeChallenge := generatePKCEChallenge()
 
 	// Verify code verifier is correct length (43-128 characters)
-	require.GreaterOrEqual(t, len(codeVerifier), 43, "Code verifier should be at least 43 characters")
-	require.LessOrEqual(t, len(codeVerifier), 128, "Code verifier should be at most 128 characters")
+	require.GreaterOrEqual(t, len(codeVerifier), cryptoutilSharedMagic.DefaultCodeChallengeLength, "Code verifier should be at least 43 characters")
+	require.LessOrEqual(t, len(codeVerifier), cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits, "Code verifier should be at most 128 characters")
 
 	// Verify code challenge is base64url encoded SHA256 hash
 	require.NotEmpty(t, codeChallenge, "Code challenge should not be empty")
-	require.Equal(t, 43, len(codeChallenge), "Code challenge should be 43 characters (base64url SHA256)")
+	require.Equal(t, cryptoutilSharedMagic.DefaultCodeChallengeLength, len(codeChallenge), "Code challenge should be 43 characters (base64url SHA256)")
 
 	// Verify code challenge is derived from code verifier
 	expectedChallenge := generateCodeChallengeOAuthFlows(codeVerifier)
@@ -371,7 +371,7 @@ func TestPKCEFlow(t *testing.T) {
 // Helper: generatePKCEChallenge generates PKCE code verifier and challenge.
 func generatePKCEChallenge() (codeVerifier, codeChallenge string) {
 	// Generate code verifier (43-128 characters).
-	verifierBytes := make([]byte, 32)
+	verifierBytes := make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 	if _, err := io.ReadFull(crand.Reader, verifierBytes); err != nil {
 		panic(fmt.Sprintf("failed to generate code verifier: %v", err))
 	}

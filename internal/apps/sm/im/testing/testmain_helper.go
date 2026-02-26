@@ -64,7 +64,7 @@ func SetupTestServer(ctx context.Context, _ bool) (*TestServerResources, error) 
 
 	// Setup database DSN - always use normalized in-memory format for tests.
 	// Note: WAL mode is handled by application_core.go which special-cases in-memory databases.
-	dsn := "file::memory:?cache=shared"
+	dsn := cryptoutilSharedMagic.SQLiteInMemoryDSN
 
 	// Generate TLS config for HTTP client.
 	var err error

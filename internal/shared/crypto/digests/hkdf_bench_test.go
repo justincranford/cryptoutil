@@ -5,6 +5,7 @@
 package digests
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -15,7 +16,7 @@ func BenchmarkHKDFwithSHA256(b *testing.B) {
 	secret := []byte("benchmark secret")
 	salt := []byte("benchmark salt")
 	info := []byte("benchmark info")
-	outputLength := 32
+	outputLength := cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes
 
 	b.ResetTimer()
 
@@ -30,7 +31,7 @@ func BenchmarkHKDFwithSHA384(b *testing.B) {
 	secret := []byte("benchmark secret")
 	salt := []byte("benchmark salt")
 	info := []byte("benchmark info")
-	outputLength := 48
+	outputLength := cryptoutilSharedMagic.HMACSHA384KeySize
 
 	b.ResetTimer()
 
@@ -45,7 +46,7 @@ func BenchmarkHKDFwithSHA512(b *testing.B) {
 	secret := []byte("benchmark secret")
 	salt := []byte("benchmark salt")
 	info := []byte("benchmark info")
-	outputLength := 64
+	outputLength := cryptoutilSharedMagic.MinSerialNumberBits
 
 	b.ResetTimer()
 
@@ -60,7 +61,7 @@ func BenchmarkHKDFwithSHA224(b *testing.B) {
 	secret := []byte("benchmark secret")
 	salt := []byte("benchmark salt")
 	info := []byte("benchmark info")
-	outputLength := 28
+	outputLength := cryptoutilSharedMagic.HKDFSHA224OutputLength
 
 	b.ResetTimer()
 

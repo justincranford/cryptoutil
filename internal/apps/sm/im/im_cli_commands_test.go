@@ -143,7 +143,7 @@ func TestIM_SubcommandLiveServer(t *testing.T) {
 	}{
 		{
 			subcommand:       "health",
-			url:              publicBaseURL + "/service/api/v1",
+			url:              publicBaseURL + cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath,
 			expectedExitCode: 0,
 			expectedOutputs:  []string{"Service is healthy", "HTTP 200"},
 		},

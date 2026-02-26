@@ -5,6 +5,7 @@
 package orm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -29,14 +30,14 @@ func TestClientRepository_Create(t *testing.T) {
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                    "Test Client",
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
-		AllowedGrantTypes:       []string{"authorization_code"},
-		AllowedResponseTypes:    []string{"code"},
-		AllowedScopes:           []string{"openid"},
-		RedirectURIs:            []string{"https://example.com/callback"},
+		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
+		AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
+		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID},
+		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
 		RequirePKCE:             boolPtr(true),
-		AccessTokenLifetime:     3600,
-		RefreshTokenLifetime:    86400,
-		IDTokenLifetime:         3600,
+		AccessTokenLifetime:     cryptoutilSharedMagic.IMDefaultSessionTimeout,
+		RefreshTokenLifetime:    cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+		IDTokenLifetime:         cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		Enabled:                 boolPtr(true),
 	}
 
@@ -66,9 +67,9 @@ func TestClientRepository_Create(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, events, 1, "Expected exactly 1 audit event for client creation")
 	require.Equal(t, "secret_created", events[0].EventType, "Expected secret_created event type")
-	require.Equal(t, "client_secret", events[0].KeyType, "Expected client_secret key type")
+	require.Equal(t, cryptoutilSharedMagic.ParamClientSecret, events[0].KeyType, "Expected client_secret key type")
 	require.Equal(t, client.ID.String(), events[0].KeyID, "Expected client ID in event")
-	require.Equal(t, "system", events[0].Initiator, "Expected system initiator")
+	require.Equal(t, cryptoutilSharedMagic.SystemInitiatorName, events[0].Initiator, "Expected system initiator")
 	require.NotNil(t, events[0].OldKeyVersion, "Expected OldKeyVersion to be set")
 	require.Equal(t, 0, *events[0].OldKeyVersion, "Expected OldKeyVersion = 0")
 	require.NotNil(t, events[0].NewKeyVersion, "Expected NewKeyVersion to be set")
@@ -121,14 +122,14 @@ func TestClientRepository_GetByClientID(t *testing.T) {
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                    "Test Client",
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
-		AllowedGrantTypes:       []string{"authorization_code"},
-		AllowedResponseTypes:    []string{"code"},
-		AllowedScopes:           []string{"openid"},
-		RedirectURIs:            []string{"https://example.com/callback"},
+		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
+		AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
+		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID},
+		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
 		RequirePKCE:             boolPtr(true),
-		AccessTokenLifetime:     3600,
-		RefreshTokenLifetime:    86400,
-		IDTokenLifetime:         3600,
+		AccessTokenLifetime:     cryptoutilSharedMagic.IMDefaultSessionTimeout,
+		RefreshTokenLifetime:    cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+		IDTokenLifetime:         cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		Enabled:                 boolPtr(true),
 	}
 
@@ -184,14 +185,14 @@ func TestClientRepository_Update(t *testing.T) {
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                    "Test Client",
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
-		AllowedGrantTypes:       []string{"authorization_code"},
-		AllowedResponseTypes:    []string{"code"},
-		AllowedScopes:           []string{"openid"},
-		RedirectURIs:            []string{"https://example.com/callback"},
+		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
+		AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
+		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID},
+		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
 		RequirePKCE:             boolPtr(true),
-		AccessTokenLifetime:     3600,
-		RefreshTokenLifetime:    86400,
-		IDTokenLifetime:         3600,
+		AccessTokenLifetime:     cryptoutilSharedMagic.IMDefaultSessionTimeout,
+		RefreshTokenLifetime:    cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+		IDTokenLifetime:         cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		Enabled:                 boolPtr(true),
 	}
 
@@ -221,14 +222,14 @@ func TestClientRepository_Delete(t *testing.T) {
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                    "Test Client",
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
-		AllowedGrantTypes:       []string{"authorization_code"},
-		AllowedResponseTypes:    []string{"code"},
-		AllowedScopes:           []string{"openid"},
-		RedirectURIs:            []string{"https://example.com/callback"},
+		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
+		AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
+		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID},
+		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
 		RequirePKCE:             boolPtr(true),
-		AccessTokenLifetime:     3600,
-		RefreshTokenLifetime:    86400,
-		IDTokenLifetime:         3600,
+		AccessTokenLifetime:     cryptoutilSharedMagic.IMDefaultSessionTimeout,
+		RefreshTokenLifetime:    cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+		IDTokenLifetime:         cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		Enabled:                 boolPtr(true),
 	}
 
@@ -250,7 +251,7 @@ func TestClientRepository_List(t *testing.T) {
 	repo := NewClientRepository(testDB.db)
 	ctx := context.Background()
 
-	for i := range 5 {
+	for i := range cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries {
 		client := &cryptoutilIdentityDomain.Client{
 			ID:                      googleUuid.Must(googleUuid.NewV7()),
 			ClientID:                "test-client-" + string(rune('0'+i)),
@@ -258,14 +259,14 @@ func TestClientRepository_List(t *testing.T) {
 			ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 			Name:                    "Test Client",
 			TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
-			AllowedGrantTypes:       []string{"authorization_code"},
-			AllowedResponseTypes:    []string{"code"},
-			AllowedScopes:           []string{"openid"},
-			RedirectURIs:            []string{"https://example.com/callback"},
+			AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
+			AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
+			AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID},
+			RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
 			RequirePKCE:             boolPtr(true),
-			AccessTokenLifetime:     3600,
-			RefreshTokenLifetime:    86400,
-			IDTokenLifetime:         3600,
+			AccessTokenLifetime:     cryptoutilSharedMagic.IMDefaultSessionTimeout,
+			RefreshTokenLifetime:    cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+			IDTokenLifetime:         cryptoutilSharedMagic.IMDefaultSessionTimeout,
 			Enabled:                 boolPtr(true),
 		}
 		err := repo.Create(ctx, client)
@@ -292,7 +293,7 @@ func TestClientRepository_Count(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, int64(0), count)
 
-	for i := range 5 {
+	for i := range cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries {
 		client := &cryptoutilIdentityDomain.Client{
 			ID:                      googleUuid.Must(googleUuid.NewV7()),
 			ClientID:                "test-client-count-" + string(rune('0'+i)),
@@ -300,14 +301,14 @@ func TestClientRepository_Count(t *testing.T) {
 			ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 			Name:                    "Test Client",
 			TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
-			AllowedGrantTypes:       []string{"authorization_code"},
-			AllowedResponseTypes:    []string{"code"},
-			AllowedScopes:           []string{"openid"},
-			RedirectURIs:            []string{"https://example.com/callback"},
+			AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
+			AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
+			AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID},
+			RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
 			RequirePKCE:             boolPtr(true),
-			AccessTokenLifetime:     3600,
-			RefreshTokenLifetime:    86400,
-			IDTokenLifetime:         3600,
+			AccessTokenLifetime:     cryptoutilSharedMagic.IMDefaultSessionTimeout,
+			RefreshTokenLifetime:    cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+			IDTokenLifetime:         cryptoutilSharedMagic.IMDefaultSessionTimeout,
 			Enabled:                 boolPtr(true),
 		}
 		err := repo.Create(ctx, client)
@@ -316,7 +317,7 @@ func TestClientRepository_Count(t *testing.T) {
 
 	count, err = repo.Count(ctx)
 	require.NoError(t, err)
-	require.Equal(t, int64(5), count)
+	require.Equal(t, int64(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries), count)
 }
 
 func TestClientRepository_GetAll(t *testing.T) {
@@ -326,7 +327,7 @@ func TestClientRepository_GetAll(t *testing.T) {
 	repo := NewClientRepository(testDB.db)
 	ctx := context.Background()
 
-	for i := range 5 {
+	for i := range cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries {
 		client := &cryptoutilIdentityDomain.Client{
 			ID:                      googleUuid.Must(googleUuid.NewV7()),
 			ClientID:                "test-client-getall-" + string(rune('0'+i)),
@@ -334,14 +335,14 @@ func TestClientRepository_GetAll(t *testing.T) {
 			ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 			Name:                    "Test Client",
 			TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
-			AllowedGrantTypes:       []string{"authorization_code"},
-			AllowedResponseTypes:    []string{"code"},
-			AllowedScopes:           []string{"openid"},
-			RedirectURIs:            []string{"https://example.com/callback"},
+			AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
+			AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
+			AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID},
+			RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
 			RequirePKCE:             boolPtr(true),
-			AccessTokenLifetime:     3600,
-			RefreshTokenLifetime:    86400,
-			IDTokenLifetime:         3600,
+			AccessTokenLifetime:     cryptoutilSharedMagic.IMDefaultSessionTimeout,
+			RefreshTokenLifetime:    cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+			IDTokenLifetime:         cryptoutilSharedMagic.IMDefaultSessionTimeout,
 			Enabled:                 boolPtr(true),
 		}
 		err := repo.Create(ctx, client)
@@ -350,5 +351,5 @@ func TestClientRepository_GetAll(t *testing.T) {
 
 	clients, err := repo.GetAll(ctx)
 	require.NoError(t, err)
-	require.Len(t, clients, 5)
+	require.Len(t, clients, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 }

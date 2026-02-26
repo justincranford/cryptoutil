@@ -3,6 +3,7 @@
 package ra
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"crypto/x509/pkix"
 	"encoding/pem"
@@ -17,7 +18,7 @@ func TestParseCSR_InvalidPEMBlockType(t *testing.T) {
 	t.Parallel()
 
 	// Create PEM block with wrong type.
-	block := &pem.Block{Type: "CERTIFICATE", Bytes: []byte("dummy")}
+	block := &pem.Block{Type: cryptoutilSharedMagic.StringPEMTypeCertificate, Bytes: []byte("dummy")}
 	data := pem.EncodeToMemory(block)
 
 	_, err := parseCSR(data)
@@ -170,7 +171,7 @@ func TestRAService_ListRequests_BeyondOffset(t *testing.T) {
 	require.NoError(t, err)
 
 	// Empty service: list with offset=100 returns empty slice, total=0.
-	items, total, err := svc.ListRequests(context.Background(), nil, 10, 100)
+	items, total, err := svc.ListRequests(context.Background(), nil, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cryptoutilSharedMagic.JoseJAMaxMaterials)
 	require.NoError(t, err)
 	require.Zero(t, total)
 	require.Empty(t, items)
@@ -296,11 +297,11 @@ func TestRAService_CSRSignatureInvalid(t *testing.T) {
 	der := make([]byte, len(block.Bytes))
 	copy(der, block.Bytes)
 
-	for i := len(der) - 8; i < len(der); i++ {
+	for i := len(der) - cryptoutilSharedMagic.IMMinPasswordLength; i < len(der); i++ {
 		der[i] ^= 0xFF
 	}
 
-	tamperedPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE REQUEST", Bytes: der})
+	tamperedPEM := pem.EncodeToMemory(&pem.Block{Type: cryptoutilSharedMagic.StringPEMTypeCSR, Bytes: der})
 
 	req, err := svc.SubmitRequest(context.Background(), tamperedPEM, "tls-server", "user-123")
 	require.NoError(t, err)

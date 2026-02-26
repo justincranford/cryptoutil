@@ -3,6 +3,7 @@
 package subject
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -15,7 +16,7 @@ func TestLoadProfile_Valid(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	profilePath := filepath.Join(tmpDir, "profile.yml")
-	err := os.WriteFile(profilePath, []byte("name: test-profile\ndescription: test\n"), 0o600)
+	err := os.WriteFile(profilePath, []byte("name: test-profile\ndescription: test\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	p, err := LoadProfile(profilePath)
@@ -122,7 +123,7 @@ func TestResolveSANs_EmailErrors(t *testing.T) {
 			name:    "email pattern mismatch",
 			yaml:    "name: test\nsubject_alt_names:\n  email_addresses:\n    allowed: true\n    patterns:\n      - \"^.*@example\\\\.com$\"",
 			req:     &Request{EmailAddresses: []string{"a@other.com"}},
-			wantErr: "email",
+			wantErr: cryptoutilSharedMagic.ClaimEmail,
 		},
 		{
 			name:    "email required",

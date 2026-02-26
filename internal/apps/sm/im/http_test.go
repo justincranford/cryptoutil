@@ -5,6 +5,7 @@
 package im
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"crypto/tls"
 	"fmt"
@@ -22,7 +23,7 @@ import (
 // initTestConfig returns an SmIMServerSettings with all required settings for tests.
 func initTestConfig() *cryptoutilAppsSmImServerConfig.SmIMServerSettings {
 	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("sm-im-http-test")
-	settings.DatabaseURL = "file::memory:?cache=shared" // SQLite in-memory for fast tests.
+	settings.DatabaseURL = cryptoutilSharedMagic.SQLiteInMemoryDSN // SQLite in-memory for fast tests.
 
 	return &cryptoutilAppsSmImServerConfig.SmIMServerSettings{
 		ServiceTemplateServerSettings: settings,
@@ -55,7 +56,7 @@ func TestHTTPGet(t *testing.T) {
 	// Wait for server to be ready using polling pattern.
 	require.Eventually(t, func() bool {
 		return srv.PublicPort() > 0
-	}, 10*time.Second, 100*time.Millisecond, "server should allocate port")
+	}, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond, "server should allocate port")
 
 	// Get actual ports.
 	publicPort := srv.PublicPort()
@@ -68,7 +69,7 @@ func TestHTTPGet(t *testing.T) {
 				InsecureSkipVerify: true,
 			},
 		},
-		Timeout: 5 * time.Second,
+		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}
 
 	// Test public health endpoint.
@@ -144,7 +145,7 @@ func TestHTTPPost(t *testing.T) {
 	// Wait for server to be ready using polling pattern.
 	require.Eventually(t, func() bool {
 		return srv.AdminPort() > 0
-	}, 10*time.Second, 100*time.Millisecond, "server should allocate port")
+	}, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond, "server should allocate port")
 
 	// Get actual ports.
 	adminPort := srv.AdminPort()
@@ -156,7 +157,7 @@ func TestHTTPPost(t *testing.T) {
 				InsecureSkipVerify: true,
 			},
 		},
-		Timeout: 5 * time.Second,
+		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}
 
 	// Test admin shutdown endpoint (triggers async shutdown).
@@ -190,7 +191,7 @@ func TestHTTPPost(t *testing.T) {
 		if err != nil && err.Error() != adminStoppedErr && err.Error() != appCancelledErr && err.Error() != wrappedAppCancelled {
 			require.FailNowf(t, "Unexpected server error", "%v", err)
 		}
-	case <-time.After(5 * time.Second):
+	case <-time.After(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second):
 		require.FailNow(t, "Server did not shutdown within timeout")
 	}
 }

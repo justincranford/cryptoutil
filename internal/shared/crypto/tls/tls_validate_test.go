@@ -80,7 +80,7 @@ func TestStoreCertificatePEM(t *testing.T) {
 	serverSubject, err := chain.CreateEndEntity(ServerEndEntityOptions(
 		"server.test.local",
 		[]string{"server.test.local"},
-		[]net.IP{net.ParseIP("127.0.0.1")},
+		[]net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)},
 	))
 	require.NoError(t, err)
 
@@ -179,7 +179,7 @@ func TestLoadCertificatePEM(t *testing.T) {
 	serverSubject, err := chain.CreateEndEntity(ServerEndEntityOptions(
 		"server.test.local",
 		[]string{"server.test.local"},
-		[]net.IP{net.ParseIP("127.0.0.1")},
+		[]net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)},
 	))
 	require.NoError(t, err)
 
@@ -277,8 +277,8 @@ func TestCreateCAChain_AllCurves(t *testing.T) {
 		curve ECCurve
 	}{
 		{"P256 default", CurveP256},
-		{"P384", CurveP384},
-		{"P521", CurveP521},
+		{cryptoutilSharedMagic.ECCurveP384, CurveP384},
+		{cryptoutilSharedMagic.ECCurveP521, CurveP521},
 	}
 
 	for _, tc := range curves {

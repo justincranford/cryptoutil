@@ -98,7 +98,7 @@ var (
 var profiles = map[string]map[string]any{
 	"test": {
 		"log-level":                "ERROR",
-		"dev":                      cryptoutilSharedMagic.DefaultDevMode,
+		cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault:                      cryptoutilSharedMagic.DefaultDevMode,
 		"bind-public-protocol":     defaultBindPublicProtocol,
 		"bind-public-address":      defaultBindPublicAddress,
 		"bind-public-port":         defaultBindPublicPort,
@@ -112,9 +112,9 @@ var profiles = map[string]map[string]any{
 		"otlp-console":             false,
 		"otlp-environment":         "test",
 	},
-	"dev": {
+	cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault: {
 		"log-level":                "DEBUG",
-		"dev":                      cryptoutilSharedMagic.DefaultDevMode,
+		cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault:                      cryptoutilSharedMagic.DefaultDevMode,
 		"bind-public-protocol":     defaultBindPrivateProtocol,
 		"bind-public-address":      defaultBindPublicAddress,
 		"bind-public-port":         defaultBindPublicPort,
@@ -126,13 +126,13 @@ var profiles = map[string]map[string]any{
 		"csrf-token-cookie-secure": false,
 		"otlp":                     false,
 		"otlp-console":             true,
-		"otlp-environment":         "dev",
+		"otlp-environment":         cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault,
 	},
 	"stg": {
-		"log-level":                "INFO",
-		"dev":                      false,
+		"log-level":                cryptoutilSharedMagic.DefaultLogLevelInfo,
+		cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault:                      false,
 		"bind-public-protocol":     defaultBindPrivateProtocol,
-		"bind-public-address":      "0.0.0.0",
+		"bind-public-address":      cryptoutilSharedMagic.IPv4AnyAddress,
 		"bind-public-port":         defaultBindPublicPort,
 		"bind-private-protocol":    defaultBindPrivateProtocol,
 		"bind-private-address":     defaultBindPrivateAddress,
@@ -145,9 +145,9 @@ var profiles = map[string]map[string]any{
 	},
 	"prod": {
 		"log-level":                "WARN",
-		"dev":                      false,
+		cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault:                      false,
 		"bind-public-protocol":     defaultBindPublicProtocol,
-		"bind-public-address":      "0.0.0.0",
+		"bind-public-address":      cryptoutilSharedMagic.IPv4AnyAddress,
 		"bind-public-port":         defaultBindPublicPort,
 		"bind-private-protocol":    defaultBindPrivateProtocol,
 		"bind-private-address":     defaultBindPrivateAddress,

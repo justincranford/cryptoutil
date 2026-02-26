@@ -38,7 +38,7 @@ func TestHandlePAR_InvalidClient(t *testing.T) {
 	formData := url.Values{
 		cryptoutilSharedMagic.ParamClientID:            []string{"nonexistent-client-id"},
 		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
-		cryptoutilSharedMagic.ParamRedirectURI:         []string{"https://example.com/callback"},
+		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.DemoRedirectURI},
 		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-code-challenge"},
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
@@ -58,7 +58,7 @@ func TestHandlePAR_InvalidClient(t *testing.T) {
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err, "Should decode JSON response")
 
-	errorCode, ok := result["error"].(string)
+	errorCode, ok := result[cryptoutilSharedMagic.StringError].(string)
 	require.True(t, ok, "error should be string")
 	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidClient, errorCode, "Should return invalid_client error")
 }
@@ -101,13 +101,13 @@ func TestHandlePAR_InvalidRedirectURI(t *testing.T) {
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err, "Should decode JSON response")
 
-	errorCode, ok := result["error"].(string)
+	errorCode, ok := result[cryptoutilSharedMagic.StringError].(string)
 	require.True(t, ok, "error should be string")
 	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidRequest, errorCode, "Should return invalid_request error")
 
 	errorDescription, ok := result["error_description"].(string)
 	require.True(t, ok, "error_description should be string")
-	require.Contains(t, errorDescription, "redirect_uri", "Error description should mention redirect_uri")
+	require.Contains(t, errorDescription, cryptoutilSharedMagic.ParamRedirectURI, "Error description should mention redirect_uri")
 }
 
 // TestHandlePAR_UnsupportedResponseType validates error for unsupported response_type.
@@ -127,8 +127,8 @@ func TestHandlePAR_UnsupportedResponseType(t *testing.T) {
 
 	formData := url.Values{
 		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
-		cryptoutilSharedMagic.ParamResponseType:        []string{"token"}, // Only "code" is supported.
-		cryptoutilSharedMagic.ParamRedirectURI:         []string{"https://example.com/callback"},
+		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ParamToken}, // Only "code" is supported.
+		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.DemoRedirectURI},
 		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-code-challenge"},
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
@@ -148,7 +148,7 @@ func TestHandlePAR_UnsupportedResponseType(t *testing.T) {
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err, "Should decode JSON response")
 
-	errorCode, ok := result["error"].(string)
+	errorCode, ok := result[cryptoutilSharedMagic.StringError].(string)
 	require.True(t, ok, "error should be string")
 	require.Equal(t, cryptoutilSharedMagic.ErrorUnsupportedResponseType, errorCode, "Should return unsupported_response_type error")
 }
@@ -171,9 +171,9 @@ func TestHandlePAR_UnsupportedCodeChallengeMethod(t *testing.T) {
 	formData := url.Values{
 		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
 		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
-		cryptoutilSharedMagic.ParamRedirectURI:         []string{"https://example.com/callback"},
+		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.DemoRedirectURI},
 		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-code-challenge"},
-		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{"plain"}, // Only S256 is supported.
+		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodPlain}, // Only S256 is supported.
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/par", strings.NewReader(formData.Encode()))
@@ -191,13 +191,13 @@ func TestHandlePAR_UnsupportedCodeChallengeMethod(t *testing.T) {
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err, "Should decode JSON response")
 
-	errorCode, ok := result["error"].(string)
+	errorCode, ok := result[cryptoutilSharedMagic.StringError].(string)
 	require.True(t, ok, "error should be string")
 	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidRequest, errorCode, "Should return invalid_request error")
 
 	errorDescription, ok := result["error_description"].(string)
 	require.True(t, ok, "error_description should be string")
-	require.Contains(t, errorDescription, "code_challenge_method", "Error description should mention code_challenge_method")
+	require.Contains(t, errorDescription, cryptoutilSharedMagic.ParamCodeChallengeMethod, "Error description should mention code_challenge_method")
 }
 
 // createPARTestDependencies creates test dependencies for PAR tests.
@@ -206,7 +206,7 @@ func createPARTestDependencies(t *testing.T) (*cryptoutilIdentityConfig.Config, 
 
 	config := &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
+			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
 			DSN:  "file::memory:?cache=private",
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
@@ -244,19 +244,19 @@ func createTestClientForPAR(ctx context.Context, t *testing.T, repoFactory *cryp
 
 	client := &cryptoutilIdentityDomain.Client{
 		ID:                      googleUuid.Must(googleUuid.NewV7()),
-		ClientID:                "test-par-client-" + googleUuid.NewString()[:8],
+		ClientID:                "test-par-client-" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		ClientSecret:            "$2a$10$examplehashedvalue",
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                    "Test PAR Client",
-		RedirectURIs:            []string{"https://example.com/callback"},
-		AllowedScopes:           []string{"openid", "profile", "email"},
+		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
+		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail},
 		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
 		AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
 		TokenEndpointAuthMethod: cryptoutilSharedMagic.ClientAuthMethodSecretPost,
 		RequirePKCE:             &requirePKCE,
-		AccessTokenLifetime:     3600,
-		RefreshTokenLifetime:    86400,
-		IDTokenLifetime:         3600,
+		AccessTokenLifetime:     cryptoutilSharedMagic.IMDefaultSessionTimeout,
+		RefreshTokenLifetime:    cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+		IDTokenLifetime:         cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		Enabled:                 &enabled,
 	}
 

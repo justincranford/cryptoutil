@@ -3,6 +3,7 @@
 package healthcheck
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	json "encoding/json"
 	"errors"
@@ -33,7 +34,7 @@ func TestPoller_IntervalCapping(t *testing.T) {
 	// Use small intervals so poll.Until retries quickly.
 	poller := &Poller{
 		client:   server.Client(),
-		timeout:  10 * time.Millisecond,
+		timeout:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond,
 		interval: 1 * time.Millisecond,
 	}
 
@@ -48,7 +49,7 @@ func TestPoller_InvalidURL(t *testing.T) {
 
 	poller := &Poller{
 		client:   &http.Client{Timeout: 1 * time.Second},
-		timeout:  5 * time.Millisecond,
+		timeout:  cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Millisecond,
 		interval: 1 * time.Millisecond,
 	}
 
@@ -70,7 +71,7 @@ func TestPoller_ClosedServer(t *testing.T) {
 
 	poller := &Poller{
 		client:   &http.Client{Timeout: 1 * time.Second},
-		timeout:  5 * time.Millisecond,
+		timeout:  cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Millisecond,
 		interval: 1 * time.Millisecond,
 	}
 
@@ -92,11 +93,11 @@ func TestNewPoller_TLSConfigFallback(t *testing.T) {
 		return nil, errors.New("simulated TLS config failure")
 	}
 
-	poller := NewPoller(5*time.Second, 3, true)
+	poller := NewPoller(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second, 3, true)
 	require.NotNil(t, poller)
 	require.NotNil(t, poller.client)
 	require.Equal(t, 3*defaultInitialInterval, poller.timeout)
-	require.Equal(t, 5*time.Second, poller.client.Timeout)
+	require.Equal(t, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second, poller.client.Timeout)
 	// When TLS config fails, transport should be nil (no TLS config).
 	require.Nil(t, poller.client.Transport)
 }

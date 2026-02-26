@@ -6,6 +6,7 @@
 package ra
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"errors"
 	"fmt"
@@ -116,7 +117,7 @@ func DefaultRAConfig() *RAConfig {
 			ValidateEmailOwnership:  true,
 			ValidateOrganization:    false,
 			ValidateKeyStrength:     true,
-			AllowedKeyAlgorithms:    []string{"RSA", "ECDSA", "Ed25519"},
+			AllowedKeyAlgorithms:    []string{cryptoutilSharedMagic.KeyTypeRSA, "ECDSA", cryptoutilSharedMagic.EdCurveEd25519},
 			MinRSAKeySize:           minRSAKeyBits,
 			MinECKeySize:            minECKeyBits,
 			BlocklistedDomains:      []string{},
@@ -218,7 +219,7 @@ func (s *RAService) SubmitRequest(ctx context.Context, csr []byte, profileID, re
 		request.ApprovalHistory = append(request.ApprovalHistory, ApprovalAction{
 			ActionID:   mustNewUUID(),
 			RequestID:  requestID,
-			ApproverID: "system",
+			ApproverID: cryptoutilSharedMagic.SystemInitiatorName,
 			Action:     "approve",
 			Comment:    "Auto-approved based on profile configuration",
 			Timestamp:  now,

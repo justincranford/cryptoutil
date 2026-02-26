@@ -69,13 +69,13 @@ func (s *UserServiceImpl) HandleRegisterUser() fiber.Handler {
 
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Invalid request body",
+				cryptoutilSharedMagic.StringError: "Invalid request body",
 			})
 		}
 
 		if req.Username == "" || req.Password == "" {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Username and password are required",
+				cryptoutilSharedMagic.StringError: "Username and password are required",
 			})
 		}
 
@@ -83,14 +83,14 @@ func (s *UserServiceImpl) HandleRegisterUser() fiber.Handler {
 		if len(req.Username) < cryptoutilSharedMagic.IMMinUsernameLength ||
 			len(req.Username) > cryptoutilSharedMagic.IMMaxUsernameLength {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "username must be 3-50 characters",
+				cryptoutilSharedMagic.StringError: "username must be 3-50 characters",
 			})
 		}
 
 		// Validate password length (minimum 8 characters).
 		if len(req.Password) < cryptoutilSharedMagic.IMMinPasswordLength {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "password must be at least 8 characters",
+				cryptoutilSharedMagic.StringError: "password must be at least 8 characters",
 			})
 		}
 
@@ -103,13 +103,13 @@ func (s *UserServiceImpl) HandleRegisterUser() fiber.Handler {
 			if err.Error() == "failed to create user: UNIQUE constraint failed: users.username" ||
 				err.Error() == "failed to create user: duplicate key value violates unique constraint \"users_username_key\"" {
 				return c.Status(fiber.StatusConflict).JSON(fiber.Map{
-					"error": "Username already exists",
+					cryptoutilSharedMagic.StringError: "Username already exists",
 				})
 			}
 
 			// Generic error for other failures.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to create user",
+				cryptoutilSharedMagic.StringError: "Failed to create user",
 			})
 		}
 
@@ -156,13 +156,13 @@ func (s *UserServiceImpl) HandleLoginUser(jwtSecret string) fiber.Handler {
 
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Invalid request body",
+				cryptoutilSharedMagic.StringError: "Invalid request body",
 			})
 		}
 
 		if req.Username == "" || req.Password == "" {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Username and password are required",
+				cryptoutilSharedMagic.StringError: "Username and password are required",
 			})
 		}
 
@@ -171,7 +171,7 @@ func (s *UserServiceImpl) HandleLoginUser(jwtSecret string) fiber.Handler {
 		if err != nil {
 			// Service layer returns generic error for security.
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "Invalid credentials",
+				cryptoutilSharedMagic.StringError: "Invalid credentials",
 			})
 		}
 
@@ -179,12 +179,12 @@ func (s *UserServiceImpl) HandleLoginUser(jwtSecret string) fiber.Handler {
 		token, expiresAt, err := realmsHandlersGenerateJWTFn(user.GetID(), user.GetUsername(), jwtSecret)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to generate token",
+				cryptoutilSharedMagic.StringError: "Failed to generate token",
 			})
 		}
 
 		return c.JSON(fiber.Map{
-			"token":      token,
+			cryptoutilSharedMagic.ParamToken:      token,
 			"expires_at": expiresAt.Format(time.RFC3339),
 		})
 	}
@@ -230,13 +230,13 @@ func (s *UserServiceImpl) HandleLoginUserWithSession(sessionManager any, isBrows
 
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Invalid request body",
+				cryptoutilSharedMagic.StringError: "Invalid request body",
 			})
 		}
 
 		if req.Username == "" || req.Password == "" {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Username and password are required",
+				cryptoutilSharedMagic.StringError: "Username and password are required",
 			})
 		}
 
@@ -245,7 +245,7 @@ func (s *UserServiceImpl) HandleLoginUserWithSession(sessionManager any, isBrows
 		if err != nil {
 			// Service layer returns generic error for security.
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "Invalid credentials",
+				cryptoutilSharedMagic.StringError: "Invalid credentials",
 			})
 		}
 
@@ -260,7 +260,7 @@ func (s *UserServiceImpl) HandleLoginUserWithSession(sessionManager any, isBrows
 		manager, ok := sessionManager.(sessionIssuer)
 		if !ok {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Invalid session manager implementation",
+				cryptoutilSharedMagic.StringError: "Invalid session manager implementation",
 			})
 		}
 
@@ -283,7 +283,7 @@ func (s *UserServiceImpl) HandleLoginUserWithSession(sessionManager any, isBrows
 			// Fallback for user models without TenantID exposure.
 			// This should not happen in practice since template.User implements this.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "User model does not expose tenant ID",
+				cryptoutilSharedMagic.StringError: "User model does not expose tenant ID",
 			})
 		}
 
@@ -318,7 +318,7 @@ func (s *UserServiceImpl) HandleLoginUserWithSession(sessionManager any, isBrows
 
 		if issueErr != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to generate session token",
+				cryptoutilSharedMagic.StringError: "Failed to generate session token",
 			})
 		}
 
@@ -327,7 +327,7 @@ func (s *UserServiceImpl) HandleLoginUserWithSession(sessionManager any, isBrows
 		expiresAt := time.Now().UTC().Add(cryptoutilSharedMagic.DefaultCompatibilitySessionExpiration)
 
 		return c.JSON(fiber.Map{
-			"token":      token,
+			cryptoutilSharedMagic.ParamToken:      token,
 			"expires_at": expiresAt.Format(time.RFC3339),
 		})
 	}

@@ -98,7 +98,7 @@ func NewPublicHTTPServer(ctx context.Context, settings *cryptoutilAppsTemplateSe
 // This is a placeholder - services will inject their own route handlers.
 func (s *PublicHTTPServer) registerRoutes() {
 	// Service-to-service paths.
-	s.app.Get("/service/api/v1/health", s.handleServiceHealth)
+	s.app.Get(cryptoutilSharedMagic.IdentityE2EHealthEndpoint, s.handleServiceHealth)
 
 	// Browser-to-service paths.
 	s.app.Get("/browser/api/v1/health", s.handleBrowserHealth)
@@ -111,7 +111,7 @@ func (s *PublicHTTPServer) handleServiceHealth(c *fiber.Ctx) error {
 
 	if s.shutdown {
 		if err := c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			"status": "shutting down",
+			cryptoutilSharedMagic.StringStatus: "shutting down",
 		}); err != nil {
 			return fmt.Errorf("failed to send service health shutdown response: %w", err)
 		}
@@ -120,7 +120,7 @@ func (s *PublicHTTPServer) handleServiceHealth(c *fiber.Ctx) error {
 	}
 
 	if err := c.JSON(fiber.Map{
-		"status": "healthy",
+		cryptoutilSharedMagic.StringStatus: cryptoutilSharedMagic.DockerServiceHealthHealthy,
 	}); err != nil {
 		return fmt.Errorf("failed to send service health response: %w", err)
 	}
@@ -135,7 +135,7 @@ func (s *PublicHTTPServer) handleBrowserHealth(c *fiber.Ctx) error {
 
 	if s.shutdown {
 		if err := c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			"status": "shutting down",
+			cryptoutilSharedMagic.StringStatus: "shutting down",
 		}); err != nil {
 			return fmt.Errorf("failed to send browser health shutdown response: %w", err)
 		}
@@ -144,7 +144,7 @@ func (s *PublicHTTPServer) handleBrowserHealth(c *fiber.Ctx) error {
 	}
 
 	if err := c.JSON(fiber.Map{
-		"status": "healthy",
+		cryptoutilSharedMagic.StringStatus: cryptoutilSharedMagic.DockerServiceHealthHealthy,
 	}); err != nil {
 		return fmt.Errorf("failed to send browser health response: %w", err)
 	}

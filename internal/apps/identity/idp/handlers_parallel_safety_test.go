@@ -3,6 +3,7 @@
 package idp
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"fmt"
@@ -35,19 +36,19 @@ func TestParallelTestSafety(t *testing.T) {
 	}{
 		{
 			name:           "parallel_user_creation",
-			parallelOps:    20,
+			parallelOps:    cryptoutilSharedMagic.MaxErrorDisplay,
 			entityType:     "user",
 			validateUnique: true,
 		},
 		{
 			name:           "parallel_client_creation",
-			parallelOps:    20,
+			parallelOps:    cryptoutilSharedMagic.MaxErrorDisplay,
 			entityType:     "client",
 			validateUnique: true,
 		},
 		{
 			name:           "parallel_mixed_operations",
-			parallelOps:    30,
+			parallelOps:    cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days,
 			entityType:     "mixed",
 			validateUnique: true,
 		},
@@ -67,7 +68,7 @@ func TestParallelTestSafety(t *testing.T) {
 			dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", dbID.String())
 
 			// Open database connection using modernc.org/sqlite (CGO-free).
-			sqlDB, err := sql.Open("sqlite", dsn)
+			sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 			require.NoError(t, err)
 
 			// Apply SQLite PRAGMA settings for WAL mode and busy timeout.
@@ -93,8 +94,8 @@ func TestParallelTestSafety(t *testing.T) {
 			require.NoError(t, err)
 
 			// Configure connection pool for GORM transaction pattern.
-			gormDB.SetMaxOpenConns(5) // Allows transaction + operations concurrently.
-			gormDB.SetMaxIdleConns(5)
+			gormDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries) // Allows transaction + operations concurrently.
+			gormDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 			gormDB.SetConnMaxLifetime(0) // In-memory DB: never close connections.
 			gormDB.SetConnMaxIdleTime(0)
 
@@ -162,7 +163,7 @@ func TestParallelTestSafety(t *testing.T) {
 							ClientID:     "client_parallel_" + uniqueID,
 							ClientSecret: "secret_" + uniqueID,
 							Name:         "Parallel Test Client " + uniqueID,
-							RedirectURIs: []string{"https://example.com/callback"},
+							RedirectURIs: []string{cryptoutilSharedMagic.DemoRedirectURI},
 						}
 
 						if err := clientRepo.Create(ctx, client); err != nil {
@@ -211,7 +212,7 @@ func TestParallelTestSafety(t *testing.T) {
 								ClientID:     "client_mixed_" + uniqueID,
 								ClientSecret: "secret_" + uniqueID,
 								Name:         "Mixed Test Client " + uniqueID,
-								RedirectURIs: []string{"https://example.com/callback"},
+								RedirectURIs: []string{cryptoutilSharedMagic.DemoRedirectURI},
 							}
 
 							if err := clientRepo.Create(ctx, client); err != nil {

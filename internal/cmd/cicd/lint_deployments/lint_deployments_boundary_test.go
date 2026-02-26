@@ -1,6 +1,7 @@
 package lint_deployments
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -104,7 +105,7 @@ func TestCheckOTLPProtocolOverride_LineNumber(t *testing.T) {
 		{
 			name:     "protocol on line 5",
 			content:  "line1: a\nline2: b\nline3: c\nline4: d\notlp-endpoint: http://collector:4318\n",
-			wantLine: 5,
+			wantLine: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 		},
 		{
 			name:     "protocol on line 1",
@@ -124,8 +125,8 @@ func TestCheckOTLPProtocolOverride_LineNumber(t *testing.T) {
 
 			dir := t.TempDir()
 			configDir := filepath.Join(dir, "config")
-			require.NoError(t, os.MkdirAll(configDir, 0o755))
-			require.NoError(t, os.WriteFile(filepath.Join(configDir, "config-test.yml"), []byte(tc.content), 0o600))
+			require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+			require.NoError(t, os.WriteFile(filepath.Join(configDir, "config-test.yml"), []byte(tc.content), cryptoutilSharedMagic.CacheFilePermissions))
 
 			result := &ValidationResult{Valid: true}
 			checkOTLPProtocolOverride(dir, "test-svc", DeploymentTypeProductService, result)

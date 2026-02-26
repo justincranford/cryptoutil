@@ -5,6 +5,7 @@
 package util_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -96,11 +97,11 @@ func TestContains(t *testing.T) {
 		{
 			name: "integer_slice",
 			setupFn: func() (any, any) {
-				val1 := 10
-				val2 := 20
-				val3 := 30
+				val1 := cryptoutilSharedMagic.JoseJADefaultMaxMaterials
+				val2 := cryptoutilSharedMagic.MaxErrorDisplay
+				val3 := cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days
 				slice := []*int{&val1, &val2, &val3}
-				searchItem := 20
+				searchItem := cryptoutilSharedMagic.MaxErrorDisplay
 
 				return slice, &searchItem
 			},
@@ -109,9 +110,9 @@ func TestContains(t *testing.T) {
 		{
 			name: "not_found_integer",
 			setupFn: func() (any, any) {
-				val1 := 10
-				val2 := 20
-				val3 := 30
+				val1 := cryptoutilSharedMagic.JoseJADefaultMaxMaterials
+				val2 := cryptoutilSharedMagic.MaxErrorDisplay
+				val3 := cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days
 				slice := []*int{&val1, &val2, &val3}
 				searchItem := 40
 

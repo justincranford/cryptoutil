@@ -19,7 +19,7 @@ const expectedSysInfos = 13
 func TestSysInfoAll(t *testing.T) {
 	t.Parallel()
 
-	all, err := GetAllInfoWithTimeout(mockSysInfoProvider, 5*time.Second)
+	all, err := GetAllInfoWithTimeout(mockSysInfoProvider, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	require.NoError(t, err)
 	require.Len(t, all, expectedSysInfos)
 
@@ -41,7 +41,7 @@ func TestSysInfoAll_RealProvider(t *testing.T) {
 	t.Parallel()
 	// Skip on Windows - CPU info collection can take 10+ seconds which exceeds
 	// the timeout and causes test failures. Mock provider covers the code paths.
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
 		t.Skip("Skipping real sysinfo test on Windows due to slow gopsutil CPU collection")
 	}
 

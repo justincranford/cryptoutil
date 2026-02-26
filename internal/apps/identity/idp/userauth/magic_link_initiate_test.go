@@ -274,7 +274,7 @@ func TestMagicLinkAuthenticator_VerifyAuthExpired(t *testing.T) {
 		UserID:    userID.String(),
 		Method:    "magic_link",
 		ExpiresAt: time.Now().UTC().Add(-1 * time.Hour), // Expired 1 hour ago.
-		Metadata:  map[string]any{"email": user.Email},
+		Metadata:  map[string]any{cryptoutilSharedMagic.ClaimEmail: user.Email},
 	}
 
 	err = challengeStore.Store(ctx, expiredChallenge, hashedToken)
@@ -322,7 +322,7 @@ func TestMagicLinkAuthenticator_VerifyAuthSuccess(t *testing.T) {
 		UserID:    userID.String(),
 		Method:    "magic_link",
 		ExpiresAt: time.Now().UTC().Add(15 * time.Minute),
-		Metadata:  map[string]any{"email": user.Email},
+		Metadata:  map[string]any{cryptoutilSharedMagic.ClaimEmail: user.Email},
 	}
 
 	err = challengeStore.Store(ctx, challenge, hashedToken)

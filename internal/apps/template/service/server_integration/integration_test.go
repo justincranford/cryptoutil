@@ -6,6 +6,7 @@
 package server_integration
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -23,7 +24,7 @@ func TestIntegration_TenantRegistration_CreateTenant(t *testing.T) {
 	ctx := context.Background()
 
 	// Create in-memory SQLite database with migrations.
-	gormDB, err := cryptoutilAppsTemplateServiceServerRepository.InitSQLite(ctx, "file::memory:?cache=shared", cryptoutilAppsTemplateServiceServerRepository.MigrationsFS)
+	gormDB, err := cryptoutilAppsTemplateServiceServerRepository.InitSQLite(ctx, cryptoutilSharedMagic.SQLiteInMemoryDSN, cryptoutilAppsTemplateServiceServerRepository.MigrationsFS)
 	require.NoError(t, err, "Failed to initialize in-memory database")
 
 	sqlDB, err := gormDB.DB()
@@ -70,7 +71,7 @@ func TestIntegration_TenantRegistration_ClientJoinRequest(t *testing.T) {
 	ctx := context.Background()
 
 	// Create in-memory SQLite database with migrations.
-	gormDB, err := cryptoutilAppsTemplateServiceServerRepository.InitSQLite(ctx, "file::memory:?cache=shared", cryptoutilAppsTemplateServiceServerRepository.MigrationsFS)
+	gormDB, err := cryptoutilAppsTemplateServiceServerRepository.InitSQLite(ctx, cryptoutilSharedMagic.SQLiteInMemoryDSN, cryptoutilAppsTemplateServiceServerRepository.MigrationsFS)
 	require.NoError(t, err, "Failed to initialize in-memory database")
 
 	sqlDB, err := gormDB.DB()
@@ -118,7 +119,7 @@ func TestIntegration_JoinRequest_Approve(t *testing.T) {
 	ctx := context.Background()
 
 	// Create in-memory SQLite database with migrations.
-	gormDB, err := cryptoutilAppsTemplateServiceServerRepository.InitSQLite(ctx, "file::memory:?cache=shared", cryptoutilAppsTemplateServiceServerRepository.MigrationsFS)
+	gormDB, err := cryptoutilAppsTemplateServiceServerRepository.InitSQLite(ctx, cryptoutilSharedMagic.SQLiteInMemoryDSN, cryptoutilAppsTemplateServiceServerRepository.MigrationsFS)
 	require.NoError(t, err, "Failed to initialize in-memory database")
 
 	sqlDB, err := gormDB.DB()
@@ -176,7 +177,7 @@ func TestIntegration_JoinRequest_Reject(t *testing.T) {
 	ctx := context.Background()
 
 	// Create in-memory SQLite database with migrations.
-	gormDB, err := cryptoutilAppsTemplateServiceServerRepository.InitSQLite(ctx, "file::memory:?cache=shared", cryptoutilAppsTemplateServiceServerRepository.MigrationsFS)
+	gormDB, err := cryptoutilAppsTemplateServiceServerRepository.InitSQLite(ctx, cryptoutilSharedMagic.SQLiteInMemoryDSN, cryptoutilAppsTemplateServiceServerRepository.MigrationsFS)
 	require.NoError(t, err, "Failed to initialize in-memory database")
 
 	sqlDB, err := gormDB.DB()

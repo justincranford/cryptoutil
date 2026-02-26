@@ -3,6 +3,7 @@
 package domain_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
 
@@ -109,5 +110,5 @@ func TestRecoveryCode_MarkAsUsed(t *testing.T) {
 
 	require.True(t, code.IsUsed())
 	require.NotNil(t, code.UsedAt)
-	require.WithinDuration(t, time.Now().UTC(), *code.UsedAt, 5*time.Second)
+	require.WithinDuration(t, time.Now().UTC(), *code.UsedAt, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 }

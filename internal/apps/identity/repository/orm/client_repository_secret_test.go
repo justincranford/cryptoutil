@@ -5,6 +5,7 @@
 package orm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"encoding/base64"
 	"fmt"
@@ -32,14 +33,14 @@ func TestClientRepository_RotateSecret(t *testing.T) {
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                    "Test Client for Secret Rotation",
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
-		AllowedGrantTypes:       []string{"authorization_code"},
-		AllowedResponseTypes:    []string{"code"},
-		AllowedScopes:           []string{"openid"},
-		RedirectURIs:            []string{"https://example.com/callback"},
+		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
+		AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
+		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID},
+		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
 		RequirePKCE:             boolPtr(true),
-		AccessTokenLifetime:     3600,
-		RefreshTokenLifetime:    86400,
-		IDTokenLifetime:         3600,
+		AccessTokenLifetime:     cryptoutilSharedMagic.IMDefaultSessionTimeout,
+		RefreshTokenLifetime:    cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+		IDTokenLifetime:         cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		Enabled:                 boolPtr(true),
 	}
 
@@ -177,14 +178,14 @@ func TestClientRepository_GetSecretHistory(t *testing.T) {
 				ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 				Name:                    fmt.Sprintf("Test Client for %s", tc.name),
 				TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
-				AllowedGrantTypes:       []string{"authorization_code"},
-				AllowedResponseTypes:    []string{"code"},
-				AllowedScopes:           []string{"openid"},
-				RedirectURIs:            []string{"https://example.com/callback"},
+				AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
+				AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
+				AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID},
+				RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
 				RequirePKCE:             boolPtr(true),
-				AccessTokenLifetime:     3600,
-				RefreshTokenLifetime:    86400,
-				IDTokenLifetime:         3600,
+				AccessTokenLifetime:     cryptoutilSharedMagic.IMDefaultSessionTimeout,
+				RefreshTokenLifetime:    cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+				IDTokenLifetime:         cryptoutilSharedMagic.IMDefaultSessionTimeout,
 				Enabled:                 boolPtr(true),
 			}
 
@@ -260,21 +261,21 @@ func TestGenerateRandomSecret(t *testing.T) {
 	}{
 		{
 			name:       "valid_32_bytes",
-			length:     32,
+			length:     cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes,
 			expectErr:  false,
 			minEncoded: 40, // Base64 encoding: 32 bytes → ~43 chars
 		},
 		{
 			name:       "valid_16_bytes",
-			length:     16,
+			length:     cryptoutilSharedMagic.RealmMinTokenLengthBytes,
 			expectErr:  false,
-			minEncoded: 20, // Base64 encoding: 16 bytes → ~21 chars
+			minEncoded: cryptoutilSharedMagic.MaxErrorDisplay, // Base64 encoding: 16 bytes → ~21 chars
 		},
 		{
 			name:       "valid_64_bytes",
-			length:     64,
+			length:     cryptoutilSharedMagic.MinSerialNumberBits,
 			expectErr:  false,
-			minEncoded: 80, // Base64 encoding: 64 bytes → ~85 chars
+			minEncoded: cryptoutilSharedMagic.LineWidth, // Base64 encoding: 64 bytes → ~85 chars
 		},
 		{
 			name:       "zero_length",

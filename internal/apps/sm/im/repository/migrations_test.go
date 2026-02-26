@@ -5,6 +5,7 @@
 package repository
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"io"
 	"io/fs"
 	"testing"
@@ -201,7 +202,7 @@ func TestMergedFS_ReadDir(t *testing.T) {
 	require.NoError(t, err)
 
 	// Should have at least template migrations (1001-1004) plus sm-im migrations (2001+).
-	require.GreaterOrEqual(t, len(entries), 5, "should have at least 5 migration files")
+	require.GreaterOrEqual(t, len(entries), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, "should have at least 5 migration files")
 
 	// Verify entries contain expected migrations.
 	fileNames := make(map[string]bool)

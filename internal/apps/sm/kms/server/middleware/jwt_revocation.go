@@ -5,6 +5,7 @@
 package middleware
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"crypto"
 	ecdsa "crypto/ecdsa"
@@ -77,7 +78,7 @@ func (v *JWTValidator) shouldPerformRevocationCheck(claims *JWTClaims) bool {
 func (v *JWTValidator) hasSensitiveScope(claims *JWTClaims) bool {
 	if len(v.config.SensitiveScopes) == 0 {
 		// Default sensitive scopes if not configured.
-		defaultSensitiveScopes := []string{"admin", "write", "delete", "kms:admin", "kms:write"}
+		defaultSensitiveScopes := []string{"admin", cryptoutilSharedMagic.ScopeWrite, "delete", "kms:admin", "kms:write"}
 
 		for _, scope := range defaultSensitiveScopes {
 			if claims.HasScope(scope) {
@@ -215,28 +216,28 @@ func (v *JWTValidator) extractClaims(token jwt.Token) *JWTClaims {
 
 	// Extract OIDC claims.
 	var name string
-	if err := token.Get("name", &name); err == nil {
+	if err := token.Get(cryptoutilSharedMagic.ClaimName, &name); err == nil {
 		claims.Name = name
 	}
 
 	var username string
-	if err := token.Get("preferred_username", &username); err == nil {
+	if err := token.Get(cryptoutilSharedMagic.ClaimPreferredUsername, &username); err == nil {
 		claims.PreferredUsername = username
 	}
 
 	var email string
-	if err := token.Get("email", &email); err == nil {
+	if err := token.Get(cryptoutilSharedMagic.ClaimEmail, &email); err == nil {
 		claims.Email = email
 	}
 
 	var emailVerified bool
-	if err := token.Get("email_verified", &emailVerified); err == nil {
+	if err := token.Get(cryptoutilSharedMagic.ClaimEmailVerified, &emailVerified); err == nil {
 		claims.EmailVerified = emailVerified
 	}
 
 	// Extract scope claim.
 	var scope string
-	if err := token.Get("scope", &scope); err == nil {
+	if err := token.Get(cryptoutilSharedMagic.ClaimScope, &scope); err == nil {
 		claims.Scope = scope
 		claims.Scopes = strings.Fields(claims.Scope)
 	}
@@ -257,7 +258,7 @@ func (v *JWTValidator) isAlgorithmAllowed(alg string) bool {
 
 // unauthorizedError returns a 401 error response.
 func (v *JWTValidator) unauthorizedError(c *fiber.Ctx, errorCode, message string) error {
-	response := fiber.Map{"error": errorCode}
+	response := fiber.Map{cryptoutilSharedMagic.StringError: errorCode}
 
 	if v.config.ErrorDetailLevel != errorDetailLevelMin {
 		response["message"] = message
@@ -272,7 +273,7 @@ func (v *JWTValidator) unauthorizedError(c *fiber.Ctx, errorCode, message string
 
 // forbiddenError returns a 403 error response.
 func (v *JWTValidator) forbiddenError(c *fiber.Ctx, errorCode, message string) error {
-	response := fiber.Map{"error": errorCode}
+	response := fiber.Map{cryptoutilSharedMagic.StringError: errorCode}
 
 	if v.config.ErrorDetailLevel != errorDetailLevelMin {
 		response["message"] = message
@@ -302,7 +303,7 @@ func (v *JWTValidator) handleValidationError(c *fiber.Ctx, err error) error {
 	case strings.Contains(errMsg, "signature"):
 		return v.unauthorizedError(c, "invalid_signature", "Token signature is invalid")
 	default:
-		return v.unauthorizedError(c, "invalid_token", "Token validation failed")
+		return v.unauthorizedError(c, cryptoutilSharedMagic.ErrorInvalidToken, "Token validation failed")
 	}
 }
 
@@ -357,7 +358,7 @@ func RequireScopeMiddleware(validator *JWTValidator, requiredScopes ...string) f
 		}
 
 		if !claims.HasAllScopes(requiredScopes...) {
-			return validator.forbiddenError(c, "insufficient_scope", "Missing required scopes")
+			return validator.forbiddenError(c, cryptoutilSharedMagic.ErrorInsufficientScope, "Missing required scopes")
 		}
 
 		return c.Next()
@@ -373,7 +374,7 @@ func RequireAnyScopeMiddleware(validator *JWTValidator, requiredScopes ...string
 		}
 
 		if !claims.HasAnyScope(requiredScopes...) {
-			return validator.forbiddenError(c, "insufficient_scope", "Missing required scopes")
+			return validator.forbiddenError(c, cryptoutilSharedMagic.ErrorInsufficientScope, "Missing required scopes")
 		}
 
 		return c.Next()

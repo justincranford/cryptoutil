@@ -115,7 +115,7 @@ func TestLoadCircularDepCache_InvalidJSON(t *testing.T) {
 
 	// Create temp file with invalid JSON.
 	tmpFile := filepath.Join(t.TempDir(), "invalid-cache.json")
-	err := os.WriteFile(tmpFile, []byte("{invalid json}"), 0o600)
+	err := os.WriteFile(tmpFile, []byte("{invalid json}"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	cache, err := LoadCircularDepCache(tmpFile)
@@ -229,7 +229,7 @@ func TestCheck_FreshCheckFindsCircularDeps(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	// Create go.mod so os.Stat("go.mod") succeeds.
-	require.NoError(t, os.WriteFile("go.mod", []byte("module testmod\n\ngo 1.21\n"), 0o600))
+	require.NoError(t, os.WriteFile("go.mod", []byte("module testmod\n\ngo 1.21\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Remove cache so we get a cache miss.
 	cacheFile := cryptoutilSharedMagic.CircularDepCacheFileName

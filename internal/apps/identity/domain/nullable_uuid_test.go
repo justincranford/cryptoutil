@@ -5,6 +5,7 @@
 package domain_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"database/sql"
 	"testing"
 
@@ -21,7 +22,7 @@ func TestNullableUUID_SQLiteIntegration(t *testing.T) {
 	t.Parallel()
 
 	// Open in-memory SQLite database using modernc.org/sqlite (CGO-free).
-	sqlDB, err := sql.Open("sqlite", ":memory:")
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
 	require.NoError(t, err)
 
 	defer func() {
@@ -47,7 +48,7 @@ func TestNullableUUID_SQLiteIntegration(t *testing.T) {
 		ClientID:                "test-client",
 		ClientType:              "confidential",
 		Name:                    "Test Client",
-		TokenEndpointAuthMethod: "client_secret_post",
+		TokenEndpointAuthMethod: cryptoutilSharedMagic.ClientAuthMethodSecretPost,
 	}
 
 	err = db.Create(testClient).Error
@@ -67,7 +68,7 @@ func TestNullableUUID_SQLiteIntegration(t *testing.T) {
 		ClientID:                "test-client-2",
 		ClientType:              "confidential",
 		Name:                    "Test Client 2",
-		TokenEndpointAuthMethod: "client_secret_post",
+		TokenEndpointAuthMethod: cryptoutilSharedMagic.ClientAuthMethodSecretPost,
 		ClientProfileID:         cryptoutilIdentityDomain.NewNullableUUID(&profileID),
 	}
 

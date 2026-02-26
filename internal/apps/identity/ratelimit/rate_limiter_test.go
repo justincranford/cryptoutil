@@ -3,6 +3,7 @@
 package ratelimit_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
 
@@ -14,7 +15,7 @@ import (
 func TestRateLimiter_Allow(t *testing.T) {
 	t.Parallel()
 
-	rl := cryptoutilIdentityRatelimit.NewRateLimiter(3, 100*time.Millisecond)
+	rl := cryptoutilIdentityRatelimit.NewRateLimiter(3, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond)
 
 	// First 3 requests should succeed.
 	for i := 0; i < 3; i++ {
@@ -31,7 +32,7 @@ func TestRateLimiter_Allow(t *testing.T) {
 func TestRateLimiter_Allow_DifferentKeys(t *testing.T) {
 	t.Parallel()
 
-	rl := cryptoutilIdentityRatelimit.NewRateLimiter(2, 100*time.Millisecond)
+	rl := cryptoutilIdentityRatelimit.NewRateLimiter(2, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond)
 
 	// User1: 2 requests (at limit).
 	err := rl.Allow("user1")
@@ -57,7 +58,7 @@ func TestRateLimiter_Allow_DifferentKeys(t *testing.T) {
 func TestRateLimiter_WindowExpiration(t *testing.T) {
 	t.Parallel()
 
-	rl := cryptoutilIdentityRatelimit.NewRateLimiter(2, 50*time.Millisecond)
+	rl := cryptoutilIdentityRatelimit.NewRateLimiter(2, cryptoutilSharedMagic.IMMaxUsernameLength*time.Millisecond)
 
 	// Make 2 requests (at limit).
 	err := rl.Allow("user1")
@@ -70,7 +71,7 @@ func TestRateLimiter_WindowExpiration(t *testing.T) {
 	require.Error(t, err)
 
 	// Wait for window to expire.
-	time.Sleep(60 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds * time.Millisecond)
 
 	// After window expiration, request should succeed.
 	err = rl.Allow("user1")
@@ -80,7 +81,7 @@ func TestRateLimiter_WindowExpiration(t *testing.T) {
 func TestRateLimiter_Reset(t *testing.T) {
 	t.Parallel()
 
-	rl := cryptoutilIdentityRatelimit.NewRateLimiter(2, 100*time.Millisecond)
+	rl := cryptoutilIdentityRatelimit.NewRateLimiter(2, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond)
 
 	// Make 2 requests (at limit).
 	err := rl.Allow("user1")
@@ -103,7 +104,7 @@ func TestRateLimiter_Reset(t *testing.T) {
 func TestRateLimiter_GetCount(t *testing.T) {
 	t.Parallel()
 
-	rl := cryptoutilIdentityRatelimit.NewRateLimiter(5, 100*time.Millisecond)
+	rl := cryptoutilIdentityRatelimit.NewRateLimiter(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond)
 
 	// No requests yet.
 	count := rl.GetCount("user1")

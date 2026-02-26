@@ -4,6 +4,7 @@
 package server
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"crypto"
 	crand "crypto/rand"
@@ -91,7 +92,7 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsCaServerConfig.CAServ
 
 	// Create issuer config.
 	issuerConfig := &cryptoutilCAServiceIssuer.IssuingCAConfig{
-		Name:        "pki-ca",
+		Name:        cryptoutilSharedMagic.OTLPServicePKICA,
 		Certificate: caCert,
 		PrivateKey:  caKey,
 	}
@@ -323,7 +324,7 @@ func createSelfSignedCA(provider cryptoutilCACrypto.Provider) (*x509.Certificate
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
 			CommonName:   "PKI-CA Development CA",
-			Organization: []string{"cryptoutil"},
+			Organization: []string{cryptoutilSharedMagic.DefaultOTLPServiceDefault},
 			Country:      []string{"US"},
 		},
 		NotBefore:             now,

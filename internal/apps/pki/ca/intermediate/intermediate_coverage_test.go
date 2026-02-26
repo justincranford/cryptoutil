@@ -3,6 +3,7 @@
 package intermediate
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
@@ -34,7 +35,7 @@ func TestProvisioner_Provision_NonCAIssuer(t *testing.T) {
 	require.NoError(t, err)
 
 	leafTemplate := &x509.Certificate{
-		SerialNumber:          big.NewInt(42),
+		SerialNumber:          big.NewInt(cryptoutilSharedMagic.AnswerToLifeUniverseEverything),
 		Subject:               pkix.Name{CommonName: "leaf"},
 		NotBefore:             time.Now().UTC().Add(-time.Hour),
 		NotAfter:              time.Now().UTC().Add(time.Hour),
@@ -78,7 +79,7 @@ func TestProvisioner_Provision_IntermediatePathLenTooLong(t *testing.T) {
 			Type:       cryptoutilCACrypto.KeyTypeECDSA,
 			ECDSACurve: "P-256",
 		},
-		ValidityDuration:  10 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 1, // MaxPathLen=1.
 	}
 
@@ -94,7 +95,7 @@ func TestProvisioner_Provision_IntermediatePathLenTooLong(t *testing.T) {
 			Type:       cryptoutilCACrypto.KeyTypeECDSA,
 			ECDSACurve: "P-256",
 		},
-		ValidityDuration:  5 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 1, // == issuer MaxPathLen, so should fail.
 		IssuerCertificate: rootCA.Certificate,
 		IssuerPrivateKey:  rootCA.PrivateKey,
@@ -118,9 +119,9 @@ func TestKeyAlgorithmName_Ed25519(t *testing.T) {
 		Name: "Ed25519 Root CA",
 		KeySpec: cryptoutilCACrypto.KeySpec{
 			Type:       cryptoutilCACrypto.KeyTypeEdDSA,
-			EdDSACurve: "Ed25519",
+			EdDSACurve: cryptoutilSharedMagic.EdCurveEd25519,
 		},
-		ValidityDuration:  10 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 1,
 	}
 
@@ -134,9 +135,9 @@ func TestKeyAlgorithmName_Ed25519(t *testing.T) {
 		Name: "Ed25519 Intermediate CA",
 		KeySpec: cryptoutilCACrypto.KeySpec{
 			Type:       cryptoutilCACrypto.KeyTypeEdDSA,
-			EdDSACurve: "Ed25519",
+			EdDSACurve: cryptoutilSharedMagic.EdCurveEd25519,
 		},
-		ValidityDuration:  5 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 0,
 		IssuerCertificate: rootCA.Certificate,
 		IssuerPrivateKey:  rootCA.PrivateKey,
@@ -146,7 +147,7 @@ func TestKeyAlgorithmName_Ed25519(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, intermediateCA)
 	require.NotNil(t, audit)
-	require.Equal(t, "Ed25519", audit.KeyAlgorithm)
+	require.Equal(t, cryptoutilSharedMagic.EdCurveEd25519, audit.KeyAlgorithm)
 
 	// Verify it's actually Ed25519.
 	_, ok := intermediateCA.PublicKey.(ed25519.PublicKey)
@@ -171,7 +172,7 @@ func TestProvisioner_Provision_InvalidKeySpec(t *testing.T) {
 	rootCA, _, err := bootstrapper.Bootstrap(&cryptoutilCABootstrap.RootCAConfig{
 		Name:              "Root CA for Invalid KeySpec Test",
 		KeySpec:           cryptoutilCACrypto.KeySpec{Type: cryptoutilCACrypto.KeyTypeECDSA, ECDSACurve: "P-256"},
-		ValidityDuration:  10 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 1,
 	})
 	require.NoError(t, err)
@@ -184,7 +185,7 @@ func TestProvisioner_Provision_InvalidKeySpec(t *testing.T) {
 		KeySpec: cryptoutilCACrypto.KeySpec{
 			Type: "UNSUPPORTED_KEY_TYPE",
 		},
-		ValidityDuration:  5 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 0,
 		IssuerCertificate: rootCA.Certificate,
 		IssuerPrivateKey:  rootCA.PrivateKey,
@@ -205,7 +206,7 @@ func TestPersistMaterials_MkdirError(t *testing.T) {
 	rootCA, _, err := bootstrapper.Bootstrap(&cryptoutilCABootstrap.RootCAConfig{
 		Name:              "Root CA for Persist Test",
 		KeySpec:           cryptoutilCACrypto.KeySpec{Type: cryptoutilCACrypto.KeyTypeECDSA, ECDSACurve: "P-256"},
-		ValidityDuration:  10 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 1,
 	})
 	require.NoError(t, err)
@@ -213,7 +214,7 @@ func TestPersistMaterials_MkdirError(t *testing.T) {
 	intCA, _, err := p.Provision(&IntermediateCAConfig{
 		Name:              "Persist Error Intermediate",
 		KeySpec:           cryptoutilCACrypto.KeySpec{Type: cryptoutilCACrypto.KeyTypeECDSA, ECDSACurve: "P-256"},
-		ValidityDuration:  5 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 0,
 		IssuerCertificate: rootCA.Certificate,
 		IssuerPrivateKey:  rootCA.PrivateKey,
@@ -224,7 +225,7 @@ func TestPersistMaterials_MkdirError(t *testing.T) {
 	tmpDir := t.TempDir()
 	conflictPath := filepath.Join(tmpDir, "conflictfile")
 
-	err = os.WriteFile(conflictPath, []byte("block"), 0o600)
+	err = os.WriteFile(conflictPath, []byte("block"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	config := &IntermediateCAConfig{
@@ -247,7 +248,7 @@ func TestPersistMaterials_CertWriteError(t *testing.T) {
 	rootCA, _, err := bootstrapper.Bootstrap(&cryptoutilCABootstrap.RootCAConfig{
 		Name:              "Root CA for Cert Write Test",
 		KeySpec:           cryptoutilCACrypto.KeySpec{Type: cryptoutilCACrypto.KeyTypeECDSA, ECDSACurve: "P-256"},
-		ValidityDuration:  10 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 1,
 	})
 	require.NoError(t, err)
@@ -255,7 +256,7 @@ func TestPersistMaterials_CertWriteError(t *testing.T) {
 	intCA, _, err := p.Provision(&IntermediateCAConfig{
 		Name:              "Cert Write Error Intermediate",
 		KeySpec:           cryptoutilCACrypto.KeySpec{Type: cryptoutilCACrypto.KeyTypeECDSA, ECDSACurve: "P-256"},
-		ValidityDuration:  5 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 0,
 		IssuerCertificate: rootCA.Certificate,
 		IssuerPrivateKey:  rootCA.PrivateKey,
@@ -266,7 +267,7 @@ func TestPersistMaterials_CertWriteError(t *testing.T) {
 	tmpDir := t.TempDir()
 	certBlockPath := filepath.Join(tmpDir, "Cert Write Error Intermediate.crt")
 
-	err = os.Mkdir(certBlockPath, 0o755) // Create dir in place of file.
+	err = os.Mkdir(certBlockPath, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute) // Create dir in place of file.
 	require.NoError(t, err)
 
 	config := &IntermediateCAConfig{
@@ -289,7 +290,7 @@ func TestPersistMaterials_ChainWriteError(t *testing.T) {
 	rootCA, _, err := bootstrapper.Bootstrap(&cryptoutilCABootstrap.RootCAConfig{
 		Name:              "Root CA for Chain Write Test",
 		KeySpec:           cryptoutilCACrypto.KeySpec{Type: cryptoutilCACrypto.KeyTypeECDSA, ECDSACurve: "P-256"},
-		ValidityDuration:  10 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 1,
 	})
 	require.NoError(t, err)
@@ -297,7 +298,7 @@ func TestPersistMaterials_ChainWriteError(t *testing.T) {
 	intCA, _, err := p.Provision(&IntermediateCAConfig{
 		Name:              "Chain Write Error CA",
 		KeySpec:           cryptoutilCACrypto.KeySpec{Type: cryptoutilCACrypto.KeyTypeECDSA, ECDSACurve: "P-256"},
-		ValidityDuration:  5 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 0,
 		IssuerCertificate: rootCA.Certificate,
 		IssuerPrivateKey:  rootCA.PrivateKey,
@@ -308,7 +309,7 @@ func TestPersistMaterials_ChainWriteError(t *testing.T) {
 	tmpDir := t.TempDir()
 	chainBlockPath := filepath.Join(tmpDir, "Chain Write Error CA-chain.crt")
 
-	err = os.Mkdir(chainBlockPath, 0o755)
+	err = os.Mkdir(chainBlockPath, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	config := &IntermediateCAConfig{
@@ -331,7 +332,7 @@ func TestPersistMaterials_KeyWriteError(t *testing.T) {
 	rootCA, _, err := bootstrapper.Bootstrap(&cryptoutilCABootstrap.RootCAConfig{
 		Name:              "Root CA for Key Write Test",
 		KeySpec:           cryptoutilCACrypto.KeySpec{Type: cryptoutilCACrypto.KeyTypeECDSA, ECDSACurve: "P-256"},
-		ValidityDuration:  10 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 1,
 	})
 	require.NoError(t, err)
@@ -339,7 +340,7 @@ func TestPersistMaterials_KeyWriteError(t *testing.T) {
 	intCA, _, err := p.Provision(&IntermediateCAConfig{
 		Name:              "Key Write Error CA",
 		KeySpec:           cryptoutilCACrypto.KeySpec{Type: cryptoutilCACrypto.KeyTypeECDSA, ECDSACurve: "P-256"},
-		ValidityDuration:  5 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 0,
 		IssuerCertificate: rootCA.Certificate,
 		IssuerPrivateKey:  rootCA.PrivateKey,
@@ -350,7 +351,7 @@ func TestPersistMaterials_KeyWriteError(t *testing.T) {
 	tmpDir := t.TempDir()
 	keyBlockPath := filepath.Join(tmpDir, "Key Write Error CA.key")
 
-	err = os.Mkdir(keyBlockPath, 0o755)
+	err = os.Mkdir(keyBlockPath, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	config := &IntermediateCAConfig{
@@ -391,7 +392,7 @@ func TestProvisioner_Provision_SignatureAlgorithmError(t *testing.T) {
 	_, _, err = provisioner.Provision(&IntermediateCAConfig{
 		Name:              "Test",
 		KeySpec:           cryptoutilCACrypto.KeySpec{Type: cryptoutilCACrypto.KeyTypeECDSA, ECDSACurve: "P-256"},
-		ValidityDuration:  5 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 0,
 		IssuerCertificate: fakeIssuer,
 		IssuerPrivateKey:  realKey, // Passes validateConfig but signing won't be reached.
@@ -411,7 +412,7 @@ func TestProvisioner_Provision_PersistMaterialsError(t *testing.T) {
 	rootCA, _, err := bootstrapper.Bootstrap(&cryptoutilCABootstrap.RootCAConfig{
 		Name:              "Root CA for Persist Fail Test",
 		KeySpec:           cryptoutilCACrypto.KeySpec{Type: cryptoutilCACrypto.KeyTypeECDSA, ECDSACurve: "P-256"},
-		ValidityDuration:  10 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 1,
 	})
 	require.NoError(t, err)
@@ -419,13 +420,13 @@ func TestProvisioner_Provision_PersistMaterialsError(t *testing.T) {
 	// Create a regular file where OutputDir should be.
 	tmpDir := t.TempDir()
 	conflictFile := filepath.Join(tmpDir, "conflict")
-	require.NoError(t, os.WriteFile(conflictFile, []byte("x"), 0o600))
+	require.NoError(t, os.WriteFile(conflictFile, []byte("x"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	provisioner := NewProvisioner(provider)
 	_, _, err = provisioner.Provision(&IntermediateCAConfig{
 		Name:              "Persist Fail Intermediate",
 		KeySpec:           cryptoutilCACrypto.KeySpec{Type: cryptoutilCACrypto.KeyTypeECDSA, ECDSACurve: "P-256"},
-		ValidityDuration:  5 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 0,
 		IssuerCertificate: rootCA.Certificate,
 		IssuerPrivateKey:  rootCA.PrivateKey,

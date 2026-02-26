@@ -5,6 +5,7 @@
 package builder
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"github.com/getkin/kin-openapi/openapi3"
 	fiber "github.com/gofiber/fiber/v2"
 	fibermiddleware "github.com/oapi-codegen/fiber-middleware"
@@ -37,8 +38,8 @@ type OpenAPIConfig struct {
 func NewDefaultOpenAPIConfig(swaggerSpec *openapi3.T) *OpenAPIConfig {
 	return &OpenAPIConfig{
 		SwaggerSpec:             swaggerSpec,
-		BrowserAPIBasePath:      "/browser/api/v1",
-		ServiceAPIBasePath:      "/service/api/v1",
+		BrowserAPIBasePath:      cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
+		ServiceAPIBasePath:      cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath,
 		EnableRequestValidation: true,
 		ValidatorOptions:        &fibermiddleware.Options{},
 	}

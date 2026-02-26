@@ -3,6 +3,7 @@
 package lint_workflow
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -30,12 +31,12 @@ func TestLint_ValidWorkflowFile(t *testing.T) {
 
 	// Create valid workflow directory structure.
 	workflowDir := filepath.Join(tmpDir, ".github", "workflows")
-	require.NoError(t, os.MkdirAll(workflowDir, 0o755))
+	require.NoError(t, os.MkdirAll(workflowDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	// Create a simple valid workflow file.
 	workflowContent := "name: Test\non: push\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n"
 	workflowPath := filepath.Join(workflowDir, "test.yml")
-	require.NoError(t, os.WriteFile(workflowPath, []byte(workflowContent), 0o600))
+	require.NoError(t, os.WriteFile(workflowPath, []byte(workflowContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	filesByExtension := map[string][]string{
 		"yml": {workflowPath},
@@ -54,12 +55,12 @@ func TestLint_BranchPinnedAction(t *testing.T) {
 
 	// Create workflow directory structure.
 	workflowDir := filepath.Join(tmpDir, ".github", "workflows")
-	require.NoError(t, os.MkdirAll(workflowDir, 0o755))
+	require.NoError(t, os.MkdirAll(workflowDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	// Create a workflow file with branch-pinned action (disallowed).
 	workflowContent := "name: Test\non: push\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@main\n"
 	workflowPath := filepath.Join(workflowDir, "invalid.yml")
-	require.NoError(t, os.WriteFile(workflowPath, []byte(workflowContent), 0o600))
+	require.NoError(t, os.WriteFile(workflowPath, []byte(workflowContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	filesByExtension := map[string][]string{
 		"yml": {workflowPath},

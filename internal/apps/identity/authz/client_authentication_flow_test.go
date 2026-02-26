@@ -56,7 +56,7 @@ func TestAuthenticateClient_BasicAuthSuccess(t *testing.T) {
 			t.Logf("Fiber error details: %+v", err)
 
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": err.Error(),
+				cryptoutilSharedMagic.StringError: err.Error(),
 			})
 		},
 	})
@@ -80,7 +80,7 @@ func TestAuthenticateClient_BasicAuthSuccess(t *testing.T) {
 
 	// Log response details if not 200.
 	if resp.StatusCode != fiber.StatusOK {
-		bodyBytes := make([]byte, 1024)
+		bodyBytes := make([]byte, cryptoutilSharedMagic.DefaultLogsBatchSize)
 		n, _ := resp.Body.Read(bodyBytes) //nolint:errcheck // Test logging
 		t.Logf("Response status: %d, body: %s", resp.StatusCode, string(bodyBytes[:n]))
 	}
@@ -176,14 +176,14 @@ func createClientAuthFlowTestConfig(t *testing.T) *cryptoutilIdentityConfig.Conf
 
 	return &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
+			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
 			DSN:  fmt.Sprintf("file:test_%s.db?mode=memory&cache=shared", testID),
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			Issuer:              "https://localhost:8080",
-			SigningAlgorithm:    "RS256",
-			AccessTokenFormat:   "jws", // Use JWS format for testing (legacy issuer)
-			AccessTokenLifetime: 3600,
+			SigningAlgorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+			AccessTokenFormat:   cryptoutilSharedMagic.DefaultBrowserSessionCookie, // Use JWS format for testing (legacy issuer)
+			AccessTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		},
 	}
 }
@@ -237,13 +237,13 @@ func createClientAuthFlowTestClient(
 		Name:                    "Test Client",
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeClientCredentials},
-		AllowedScopes:           []string{"openid", "profile", "email"},
-		RedirectURIs:            []string{"https://example.com/callback"},
+		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail},
+		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
 		TokenEndpointAuthMethod: authMethod,
 		ClientSecret:            hashedSecret,
-		AccessTokenLifetime:     3600,
-		RefreshTokenLifetime:    86400,
-		IDTokenLifetime:         3600,
+		AccessTokenLifetime:     cryptoutilSharedMagic.IMDefaultSessionTimeout,
+		RefreshTokenLifetime:    cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+		IDTokenLifetime:         cryptoutilSharedMagic.IMDefaultSessionTimeout,
 	}
 
 	err = clientRepo.Create(ctx, testClient)

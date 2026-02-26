@@ -5,6 +5,7 @@
 package rotation
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"fmt"
@@ -27,7 +28,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	dbName := fmt.Sprintf("file:test_%s.db?mode=memory&cache=shared", t.Name())
 
 	// Open SQLite with modernc.org/sqlite (CGO-free).
-	sqlDB, err := sql.Open("sqlite", dbName)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dbName)
 	require.NoError(t, err, "Failed to open SQL database")
 
 	// Apply SQLite PRAGMA settings for concurrent operations.
@@ -48,8 +49,8 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	require.NoError(t, gormErr, "Failed to create GORM database")
 
 	// Configure connection pool for GORM transaction pattern.
-	sqlDB.SetMaxOpenConns(5)
-	sqlDB.SetMaxIdleConns(5)
+	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	sqlDB.SetConnMaxLifetime(0)
 	sqlDB.SetConnMaxIdleTime(0)
 
@@ -71,7 +72,7 @@ func TestRotateClientSecret_FirstRotation(t *testing.T) {
 	ctx := context.Background()
 
 	clientID := googleUuid.Must(googleUuid.NewV7())
-	gracePeriod := 24 * time.Hour
+	gracePeriod := cryptoutilSharedMagic.HoursPerDay * time.Hour
 
 	result, err := service.RotateClientSecret(
 		ctx,
@@ -97,7 +98,7 @@ func TestRotateClientSecret_SubsequentRotation(t *testing.T) {
 	ctx := context.Background()
 
 	clientID := googleUuid.Must(googleUuid.NewV7())
-	gracePeriod := 24 * time.Hour
+	gracePeriod := cryptoutilSharedMagic.HoursPerDay * time.Hour
 
 	// First rotation.
 	result1, err1 := service.RotateClientSecret(
@@ -153,7 +154,7 @@ func TestGetActiveSecretVersion(t *testing.T) {
 	result, rotateErr := service.RotateClientSecret(
 		ctx,
 		clientID,
-		24*time.Hour,
+		cryptoutilSharedMagic.HoursPerDay*time.Hour,
 		"test-user",
 		"test",
 	)
@@ -174,7 +175,7 @@ func TestValidateSecretDuringGracePeriod(t *testing.T) {
 	ctx := context.Background()
 
 	clientID := googleUuid.Must(googleUuid.NewV7())
-	gracePeriod := 24 * time.Hour
+	gracePeriod := cryptoutilSharedMagic.HoursPerDay * time.Hour
 
 	// First rotation.
 	result1, err1 := service.RotateClientSecret(
@@ -234,7 +235,7 @@ func TestRevokeSecretVersion(t *testing.T) {
 	result, rotateErr := service.RotateClientSecret(
 		ctx,
 		clientID,
-		24*time.Hour,
+		cryptoutilSharedMagic.HoursPerDay*time.Hour,
 		"test-user",
 		"initial",
 	)

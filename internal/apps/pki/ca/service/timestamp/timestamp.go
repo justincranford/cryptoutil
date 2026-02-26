@@ -4,6 +4,7 @@
 package timestamp
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto"
 	"crypto/x509"
 	"encoding/asn1"
@@ -94,9 +95,9 @@ const (
 // OID returns the ASN.1 OID for the hash algorithm.
 func (h HashAlgorithm) OID() asn1.ObjectIdentifier {
 	hashOIDs := map[HashAlgorithm]asn1.ObjectIdentifier{
-		HashAlgorithmSHA256: {2, 16, 840, 1, 101, 3, 4, 2, 1},
-		HashAlgorithmSHA384: {2, 16, 840, 1, 101, 3, 4, 2, 2},
-		HashAlgorithmSHA512: {2, 16, 840, 1, 101, 3, 4, 2, 3},
+		HashAlgorithmSHA256: {2, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 840, 1, 101, 3, 4, 2, 1},
+		HashAlgorithmSHA384: {2, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 840, 1, 101, 3, 4, 2, 2},
+		HashAlgorithmSHA512: {2, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 840, 1, 101, 3, 4, 2, 3},
 	}
 
 	if oid, ok := hashOIDs[h]; ok {

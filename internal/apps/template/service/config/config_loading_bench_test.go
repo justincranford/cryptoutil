@@ -5,6 +5,7 @@
 package config_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -39,7 +40,7 @@ tls-public-dns-names: ["api.example.com"]
 tls-private-dns-names: ["localhost"]
 `
 
-	err := os.WriteFile(configPath, []byte(configContent), 0o600)
+	err := os.WriteFile(configPath, []byte(configContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(b, err)
 
 	b.ResetTimer() // Reset timer after setup.
@@ -50,7 +51,7 @@ tls-private-dns-names: ["localhost"]
 
 		_, err := cryptoutilAppsTemplateServiceConfig.ParseWithFlagSet(
 			fs,
-			[]string{"start", "--config", configPath},
+			[]string{"start", cryptoutilSharedMagic.IdentityCLIFlagConfig, configPath},
 			false, // Don't exit on help
 		)
 		if err != nil {
@@ -88,7 +89,7 @@ cors-allowed-origins: ["http://localhost:3000", "https://app.example.com"]
 allowed-ips: ["192.168.1.0/24", "10.0.0.0/8"]
 `
 
-	err := os.WriteFile(configPath, []byte(configContent), 0o600)
+	err := os.WriteFile(configPath, []byte(configContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(b, err)
 
 	b.ResetTimer()
@@ -100,7 +101,7 @@ allowed-ips: ["192.168.1.0/24", "10.0.0.0/8"]
 
 		_, err := cryptoutilAppsTemplateServiceConfig.ParseWithFlagSet(
 			fs,
-			[]string{"start", "--config", configPath},
+			[]string{"start", cryptoutilSharedMagic.IdentityCLIFlagConfig, configPath},
 			false,
 		)
 		if err != nil {
@@ -128,7 +129,7 @@ service-ip-rate-limit: 100
 otlp-endpoint: "http://otel-collector:4317"
 `
 
-	err := os.WriteFile(configPath, []byte(configContent), 0o600)
+	err := os.WriteFile(configPath, []byte(configContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(b, err)
 
 	// Set environment variables to merge.
@@ -152,8 +153,8 @@ otlp-endpoint: "http://otel-collector:4317"
 			fs,
 			[]string{
 				"start",
-				"--config", configPath,
-				"--bind-private-address", "127.0.0.1", // CLI override.
+				cryptoutilSharedMagic.IdentityCLIFlagConfig, configPath,
+				"--bind-private-address", cryptoutilSharedMagic.IPv4Loopback, // CLI override.
 			},
 			false,
 		)

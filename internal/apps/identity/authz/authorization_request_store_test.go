@@ -41,7 +41,7 @@ func TestInMemoryAuthorizationRequestStore(t *testing.T) {
 					CodeChallenge:       "test-challenge",
 					CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 					CreatedAt:           time.Now().UTC(),
-					ExpiresAt:           time.Now().UTC().Add(5 * time.Minute),
+					ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 					ConsentGranted:      false,
 				}
 
@@ -73,7 +73,7 @@ func TestInMemoryAuthorizationRequestStore(t *testing.T) {
 					CodeChallenge:       "test-challenge",
 					CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 					CreatedAt:           time.Now().UTC(),
-					ExpiresAt:           time.Now().UTC().Add(5 * time.Minute),
+					ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 					ConsentGranted:      true,
 				}
 
@@ -103,7 +103,7 @@ func TestInMemoryAuthorizationRequestStore(t *testing.T) {
 					CodeChallenge:       "test-challenge",
 					CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 					CreatedAt:           time.Now().UTC(),
-					ExpiresAt:           time.Now().UTC().Add(5 * time.Minute),
+					ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 					ConsentGranted:      false,
 				}
 
@@ -139,7 +139,7 @@ func TestInMemoryAuthorizationRequestStore(t *testing.T) {
 					CodeChallenge:       "test-challenge",
 					CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 					CreatedAt:           time.Now().UTC(),
-					ExpiresAt:           time.Now().UTC().Add(5 * time.Minute),
+					ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 					ConsentGranted:      false,
 				}
 
@@ -168,8 +168,8 @@ func TestInMemoryAuthorizationRequestStore(t *testing.T) {
 					State:               "test-state",
 					CodeChallenge:       "test-challenge",
 					CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
-					CreatedAt:           time.Now().UTC().Add(-10 * time.Minute),
-					ExpiresAt:           time.Now().UTC().Add(-5 * time.Minute),
+					CreatedAt:           time.Now().UTC().Add(-cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
+					ExpiresAt:           time.Now().UTC().Add(-cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 					ConsentGranted:      false,
 				}
 

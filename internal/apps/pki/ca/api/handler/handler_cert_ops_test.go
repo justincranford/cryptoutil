@@ -3,6 +3,7 @@
 package handler
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
@@ -277,14 +278,14 @@ func TestGetKeyInfoWithRSA4096(t *testing.T) {
 	t.Parallel()
 
 	// Test RSA 4096 key.
-	key, err := rsa.GenerateKey(crand.Reader, 4096)
+	key, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.RSA4096KeySize)
 	require.NoError(t, err)
 
 	cert := &x509.Certificate{PublicKey: &key.PublicKey}
 	algo, size := getKeyInfo(cert)
 
-	require.Equal(t, "RSA", algo)
-	require.Equal(t, 4096, size)
+	require.Equal(t, cryptoutilSharedMagic.KeyTypeRSA, algo)
+	require.Equal(t, cryptoutilSharedMagic.RSA4096KeySize, size)
 }
 
 func TestEnrollmentTracker(t *testing.T) {
@@ -293,16 +294,16 @@ func TestEnrollmentTracker(t *testing.T) {
 	t.Run("NewEnrollmentTracker", func(t *testing.T) {
 		t.Parallel()
 
-		tracker := newEnrollmentTracker(100)
+		tracker := newEnrollmentTracker(cryptoutilSharedMagic.JoseJAMaxMaterials)
 		require.NotNil(t, tracker)
 		require.NotNil(t, tracker.requests)
-		require.Equal(t, 100, tracker.maxEntries)
+		require.Equal(t, cryptoutilSharedMagic.JoseJAMaxMaterials, tracker.maxEntries)
 	})
 
 	t.Run("TrackAndGet", func(t *testing.T) {
 		t.Parallel()
 
-		tracker := newEnrollmentTracker(100)
+		tracker := newEnrollmentTracker(cryptoutilSharedMagic.JoseJAMaxMaterials)
 
 		requestID := googleUuid.New()
 		status := cryptoutilApiCaServer.EnrollmentStatusResponseStatusIssued
@@ -320,7 +321,7 @@ func TestEnrollmentTracker(t *testing.T) {
 	t.Run("GetNotFound", func(t *testing.T) {
 		t.Parallel()
 
-		tracker := newEnrollmentTracker(100)
+		tracker := newEnrollmentTracker(cryptoutilSharedMagic.JoseJAMaxMaterials)
 
 		requestID := googleUuid.New()
 		entry, found := tracker.get(requestID)
@@ -377,7 +378,7 @@ func TestParseESTCSR(t *testing.T) {
 		require.NoError(t, err)
 
 		csrPEM := pem.EncodeToMemory(&pem.Block{
-			Type:  "CERTIFICATE REQUEST",
+			Type:  cryptoutilSharedMagic.StringPEMTypeCSR,
 			Bytes: csrDER,
 		})
 

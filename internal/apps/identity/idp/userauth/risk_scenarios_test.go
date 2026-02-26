@@ -7,6 +7,7 @@
 package userauth
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"math"
 	"testing"
 	"time"
@@ -63,14 +64,14 @@ func TestRiskScenario_LowRisk(t *testing.T) {
 				KnownDevices: []DeviceFingerprint{
 					{ID: "known-device-001"},
 				},
-				TypicalLoginHours: []int{8, 9, 10, 11, 12, 13, 14, 15, 16, 17}, // Business hours EST.
-				LastLoginTime:     time.Now().UTC().Add(-24 * time.Hour),
-				EstablishedAt:     time.Now().UTC().Add(-90 * 24 * time.Hour), // 90 days of data.
+				TypicalLoginHours: []int{cryptoutilSharedMagic.IMMinPasswordLength, 9, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 11, cryptoutilSharedMagic.HashPrefixLength, 13, 14, 15, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 17}, // Business hours EST.
+				LastLoginTime:     time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour),
+				EstablishedAt:     time.Now().UTC().Add(-cryptoutilSharedMagic.StrictCertificateMaxAgeDays * cryptoutilSharedMagic.HoursPerDay * time.Hour), // 90 days of data.
 				EventCount:        150,                                  // Well-established baseline.
 			},
 			expectedMaxScore: 0.2, // Low risk threshold.
 			expectedLevel:    RiskLevelLow,
-			expectedMinConf:  0.7, // High confidence due to established baseline.
+			expectedMinConf:  cryptoutilSharedMagic.RiskScoreCritical, // High confidence due to established baseline.
 		},
 		{
 			name: "trusted location during typical hours",
@@ -106,12 +107,12 @@ func TestRiskScenario_LowRisk(t *testing.T) {
 				KnownDevices: []DeviceFingerprint{
 					{ID: "known-device-002"},
 				},
-				TypicalLoginHours: []int{9, 10, 11, 12, 13, 14, 15, 16, 17, 18},
-				LastLoginTime:     time.Now().UTC().Add(-6 * time.Hour),
-				EstablishedAt:     time.Now().UTC().Add(-60 * 24 * time.Hour),
-				EventCount:        120,
+				TypicalLoginHours: []int{9, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 11, cryptoutilSharedMagic.HashPrefixLength, 13, 14, 15, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 17, 18},
+				LastLoginTime:     time.Now().UTC().Add(-cryptoutilSharedMagic.DefaultEmailOTPLength * time.Hour),
+				EstablishedAt:     time.Now().UTC().Add(-cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds * cryptoutilSharedMagic.HoursPerDay * time.Hour),
+				EventCount:        cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes,
 			},
-			expectedMaxScore: 0.15,
+			expectedMaxScore: cryptoutilSharedMagic.ConfidenceWeightBaseline,
 			expectedLevel:    RiskLevelLow,
 			expectedMinConf:  0.75,
 		},
@@ -188,7 +189,7 @@ func TestRiskScenario_MediumRisk(t *testing.T) {
 					IsProxy:   false,
 					IsTor:     false,
 				},
-				Timestamp: time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC),
+				Timestamp: time.Date(2025, 1, 15, cryptoutilSharedMagic.HashPrefixLength, 0, 0, 0, time.UTC),
 			},
 			baseline: &UserBaseline{
 				UserID: googleUuid.New().String(),
@@ -198,13 +199,13 @@ func TestRiskScenario_MediumRisk(t *testing.T) {
 				KnownDevices: []DeviceFingerprint{
 					{ID: "known-device-001"},
 				},
-				TypicalLoginHours: []int{8, 9, 10, 11, 12, 13, 14, 15, 16, 17},
-				LastLoginTime:     time.Now().UTC().Add(-24 * time.Hour),
-				EstablishedAt:     time.Now().UTC().Add(-90 * 24 * time.Hour),
+				TypicalLoginHours: []int{cryptoutilSharedMagic.IMMinPasswordLength, 9, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 11, cryptoutilSharedMagic.HashPrefixLength, 13, 14, 15, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 17},
+				LastLoginTime:     time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour),
+				EstablishedAt:     time.Now().UTC().Add(-cryptoutilSharedMagic.StrictCertificateMaxAgeDays * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 				EventCount:        150,
 			},
 			expectedMinScore: 0.2,
-			expectedMaxScore: 0.5,
+			expectedMaxScore: cryptoutilSharedMagic.Tolerance50Percent,
 			expectedLevel:    RiskLevelMedium,
 		},
 		{
@@ -241,13 +242,13 @@ func TestRiskScenario_MediumRisk(t *testing.T) {
 				KnownDevices: []DeviceFingerprint{
 					{ID: "known-device-002"},
 				},
-				TypicalLoginHours: []int{8, 9, 10, 11, 12, 13, 14, 15, 16, 17},
-				LastLoginTime:     time.Now().UTC().Add(-12 * time.Hour),
-				EstablishedAt:     time.Now().UTC().Add(-60 * 24 * time.Hour),
-				EventCount:        100,
+				TypicalLoginHours: []int{cryptoutilSharedMagic.IMMinPasswordLength, 9, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 11, cryptoutilSharedMagic.HashPrefixLength, 13, 14, 15, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 17},
+				LastLoginTime:     time.Now().UTC().Add(-cryptoutilSharedMagic.HashPrefixLength * time.Hour),
+				EstablishedAt:     time.Now().UTC().Add(-cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds * cryptoutilSharedMagic.HoursPerDay * time.Hour),
+				EventCount:        cryptoutilSharedMagic.JoseJAMaxMaterials,
 			},
 			expectedMinScore: 0.2,
-			expectedMaxScore: 0.4,
+			expectedMaxScore: cryptoutilSharedMagic.RiskScoreMedium,
 			expectedLevel:    RiskLevelMedium,
 		},
 	}

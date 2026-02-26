@@ -87,7 +87,7 @@ func (c *CLI) GenerateKey(_ context.Context, opts *KeyGenOptions, cmdOpts *Comma
 	)
 
 	switch opts.Algorithm {
-	case "RSA", "rsa":
+	case cryptoutilSharedMagic.KeyTypeRSA, "rsa":
 		keySize := opts.KeySize
 		if keySize == 0 {
 			keySize = defaultRSAKeySize
@@ -106,7 +106,7 @@ func (c *CLI) GenerateKey(_ context.Context, opts *KeyGenOptions, cmdOpts *Comma
 			return nil, fmt.Errorf("failed to generate ECDSA key: %w", err)
 		}
 
-	case "Ed25519", "ed25519", "EdDSA", "eddsa":
+	case cryptoutilSharedMagic.EdCurveEd25519, "ed25519", cryptoutilSharedMagic.JoseAlgEdDSA, "eddsa":
 		_, key, err = ed25519.GenerateKey(crand.Reader)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate Ed25519 key: %w", err)
@@ -390,7 +390,7 @@ func (c *CLI) writeKeyToFile(key any, opts *CommandOptions) error {
 	}
 
 	keyPEM := pem.EncodeToMemory(&pem.Block{
-		Type:  "PRIVATE KEY",
+		Type:  cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey,
 		Bytes: keyDER,
 	})
 
@@ -415,7 +415,7 @@ func (c *CLI) writeCertToFile(cert *x509.Certificate, name string, opts *Command
 	}
 
 	certPEM := pem.EncodeToMemory(&pem.Block{
-		Type:  "CERTIFICATE",
+		Type:  cryptoutilSharedMagic.StringPEMTypeCertificate,
 		Bytes: cert.Raw,
 	})
 
@@ -448,7 +448,7 @@ const (
 
 // generateSerialNumber generates a random serial number.
 func generateSerialNumber() (*big.Int, error) {
-	serialNumber := make([]byte, cryptoutilSharedMagic.PKICASerialNumberBits/8)
+	serialNumber := make([]byte, cryptoutilSharedMagic.PKICASerialNumberBits/cryptoutilSharedMagic.IMMinPasswordLength)
 
 	_, err := crand.Read(serialNumber)
 	if err != nil {

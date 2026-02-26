@@ -5,6 +5,7 @@
 package tls
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/elliptic"
 	"crypto/tls"
 	"crypto/x509"
@@ -29,7 +30,7 @@ func testSubjectHelper(t *testing.T) *cryptoutilSharedCryptoCertificate.Subject 
 	chain, err := CreateCAChain(DefaultCAChainOptions("test.local"))
 	require.NoError(t, err)
 
-	subject, err := chain.CreateEndEntity(ServerEndEntityOptions("server.test.local", []string{"server.test.local", "localhost"}, []net.IP{net.ParseIP("127.0.0.1")}))
+	subject, err := chain.CreateEndEntity(ServerEndEntityOptions("server.test.local", []string{"server.test.local", cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)}))
 	require.NoError(t, err)
 
 	return subject
@@ -51,7 +52,7 @@ func TestValidateFQDN_LabelTooLong(t *testing.T) {
 	t.Parallel()
 
 	// Build a label longer than 63 characters.
-	label := strings.Repeat("a", 64)
+	label := strings.Repeat("a", cryptoutilSharedMagic.MinSerialNumberBits)
 	name := label + ".example.com"
 
 	err := ValidateFQDN(name)
@@ -116,7 +117,7 @@ func TestCreateEndEntity_KeyGenError(t *testing.T) {
 
 	defer func() { chainGenerateECDSAKeyPairFn = orig }()
 
-	_, err = chain.CreateEndEntity(ServerEndEntityOptions("server.test.local", []string{"server.test.local", "localhost"}, []net.IP{net.ParseIP("127.0.0.1")}))
+	_, err = chain.CreateEndEntity(ServerEndEntityOptions("server.test.local", []string{"server.test.local", cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)}))
 
 	require.ErrorIs(t, err, injectedErr)
 }
@@ -146,7 +147,7 @@ func TestCreateEndEntity_CreateSubjectError(t *testing.T) {
 
 	defer func() { chainCreateEndEntitySubjectFn = orig }()
 
-	_, err = chain.CreateEndEntity(ServerEndEntityOptions("server.test.local", []string{"server.test.local", "localhost"}, []net.IP{net.ParseIP("127.0.0.1")}))
+	_, err = chain.CreateEndEntity(ServerEndEntityOptions("server.test.local", []string{"server.test.local", cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)}))
 
 	require.ErrorIs(t, err, injectedErr)
 }

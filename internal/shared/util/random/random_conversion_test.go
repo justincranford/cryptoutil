@@ -3,6 +3,7 @@
 package random
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/binary"
 	"testing"
 
@@ -96,7 +97,7 @@ func TestUint64ToBytes(t *testing.T) {
 
 			result := Uint64ToBytes(tt.value)
 			require.Equal(t, tt.expected, result)
-			require.Len(t, result, 8, "Should always be 8 bytes")
+			require.Len(t, result, cryptoutilSharedMagic.IMMinPasswordLength, "Should always be 8 bytes")
 
 			// Verify round-trip conversion.
 			decoded := binary.BigEndian.Uint64(result)
@@ -239,7 +240,7 @@ func TestInt64ToBytes(t *testing.T) {
 
 			result := Int64ToBytes(tt.value)
 			require.Equal(t, tt.expected, result)
-			require.Len(t, result, 8, "Should always be 8 bytes")
+			require.Len(t, result, cryptoutilSharedMagic.IMMinPasswordLength, "Should always be 8 bytes")
 		})
 	}
 }

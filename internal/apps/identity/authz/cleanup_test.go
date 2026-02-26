@@ -54,7 +54,7 @@ func TestCleanupService_StartStop(t *testing.T) {
 	cleanupService.Start(ctx)
 
 	// Wait briefly to ensure goroutine starts.
-	time.Sleep(50 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond)
 
 	// Stop cleanup service (should complete gracefully).
 	stopDone := make(chan struct{})
@@ -90,8 +90,8 @@ func TestCleanupService_WithInterval(t *testing.T) {
 	}{
 		{
 			name:             "custom valid interval",
-			interval:         5 * time.Minute,
-			expectedInterval: 5 * time.Minute,
+			interval:         cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute,
+			expectedInterval: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute,
 		},
 		{
 			name:             "zero interval uses default",
@@ -156,9 +156,9 @@ func TestCleanupService_ExpiredTokenDeletion(t *testing.T) {
 		ClientSecret:            "secret123",
 		Name:                    "test-client",
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
-		AllowedScopes:           []string{"read", "write"},
-		AllowedGrantTypes:       []string{"authorization_code"},
-		AllowedResponseTypes:    []string{"code"},
+		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
+		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
+		AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,
 	}
 
@@ -173,7 +173,7 @@ func TestCleanupService_ExpiredTokenDeletion(t *testing.T) {
 		TokenFormat:   cryptoutilIdentityDomain.TokenFormatUUID,
 		ExpiresAt:     time.Now().UTC().Add(-1 * time.Hour), // Expired 1 hour ago.
 		IssuedAt:      time.Now().UTC().Add(-2 * time.Hour),
-		Scopes:        []string{"read", "write"},
+		Scopes:        []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
 		ClientID:      testClient.ID,
 		UserID:        cryptoutilIdentityDomain.NullableUUID{UUID: testUser.ID, Valid: true},
 		CodeChallenge: "",
@@ -189,7 +189,7 @@ func TestCleanupService_ExpiredTokenDeletion(t *testing.T) {
 		TokenFormat:   cryptoutilIdentityDomain.TokenFormatUUID,
 		ExpiresAt:     time.Now().UTC().Add(1 * time.Hour), // Expires 1 hour from now.
 		IssuedAt:      time.Now().UTC(),
-		Scopes:        []string{"read", "write"},
+		Scopes:        []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
 		ClientID:      testClient.ID,
 		UserID:        cryptoutilIdentityDomain.NullableUUID{UUID: testUser.ID, Valid: true},
 		CodeChallenge: "",
@@ -206,7 +206,7 @@ func TestCleanupService_ExpiredTokenDeletion(t *testing.T) {
 	cleanupService := cryptoutilIdentityAuthz.NewCleanupService(service)
 
 	// Set short interval for testing and start cleanup service.
-	cleanupService.WithInterval(50 * time.Millisecond)
+	cleanupService.WithInterval(cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond)
 	cleanupService.Start(ctx)
 
 	// Wait for cleanup to execute (need time for ticker + cleanup operation).
@@ -245,7 +245,7 @@ func TestCleanupService_ErrorHandling(t *testing.T) {
 	cleanupService.Start(ctx)
 
 	// Wait briefly to allow cleanup to execute and handle error.
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.JoseJAMaxMaterials * time.Millisecond)
 
 	// Stop cleanup service (should complete gracefully despite errors).
 	cleanupService.Stop()
@@ -258,7 +258,7 @@ func createTestRepoFactory(t *testing.T) *cryptoutilIdentityRepository.Repositor
 
 	// Use unique database name per test for SQLite isolation.
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type:        "sqlite",
+		Type:        cryptoutilSharedMagic.TestDatabaseSQLite,
 		DSN:         "file::memory:?cache=private&_fk=1&mode=memory&_loc=UTC",
 		AutoMigrate: true,
 	}
@@ -279,8 +279,8 @@ func createInvalidTestRepoFactory(t *testing.T) *cryptoutilIdentityRepository.Re
 
 	// Use invalid DSN to simulate database errors.
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type:        "sqlite",
-		DSN:         ":memory:",
+		Type:        cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:         cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 		AutoMigrate: false, // Don't migrate to simulate errors.
 	}
 
@@ -300,7 +300,7 @@ func createTestConfig(t *testing.T) *cryptoutilIdentityConfig.Config {
 	return &cryptoutilIdentityConfig.Config{
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			AccessTokenLifetime:  1 * time.Hour,
-			RefreshTokenLifetime: 24 * time.Hour,
+			RefreshTokenLifetime: cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		},
 		Security: &cryptoutilIdentityConfig.SecurityConfig{
 			CORSAllowedOrigins: []string{"https://localhost:8080"},

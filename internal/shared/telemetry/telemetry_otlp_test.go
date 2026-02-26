@@ -3,6 +3,7 @@
 package telemetry
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -63,17 +64,17 @@ func TestParseLogLevel_AllLevels(t *testing.T) {
 		input   string
 		wantErr bool
 	}{
-		{"ALL", "ALL", false},
+		{cryptoutilSharedMagic.TestDefaultLogLevelAll, cryptoutilSharedMagic.TestDefaultLogLevelAll, false},
 		{"TRACE", "TRACE", false},
 		{"DEBUG", "DEBUG", false},
 		{"CONFIG", "CONFIG", false},
-		{"INFO", "INFO", false},
+		{cryptoutilSharedMagic.DefaultLogLevelInfo, cryptoutilSharedMagic.DefaultLogLevelInfo, false},
 		{"NOTICE", "NOTICE", false},
 		{"WARN", "WARN", false},
 		{"ERROR", "ERROR", false},
 		{"FATAL", "FATAL", false},
 		{"OFF", "OFF", false},
-		{"lowercase_all", "all", false},
+		{"lowercase_all", cryptoutilSharedMagic.ModeNameAll, false},
 		{"lowercase_trace", "trace", false},
 		{"lowercase_config", "config", false},
 		{"lowercase_notice", "notice", false},

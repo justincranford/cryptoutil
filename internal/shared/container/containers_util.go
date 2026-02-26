@@ -6,6 +6,7 @@
 package container
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 
@@ -24,7 +25,7 @@ func StartContainer(ctx context.Context, telemetryService *cryptoutilSharedTelem
 		Started:          true,
 	})
 	if err != nil {
-		telemetryService.Slogger.Error("failed to start container", "error", err)
+		telemetryService.Slogger.Error("failed to start container", cryptoutilSharedMagic.StringError, err)
 
 		return nil, nil, fmt.Errorf("failed to start container: %w", err)
 	}
@@ -47,14 +48,14 @@ func StartContainer(ctx context.Context, telemetryService *cryptoutilSharedTelem
 func GetContainerHostAndMappedPort(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, container testcontainers.Container, port string) (string, string, error) {
 	host, err := container.Host(ctx)
 	if err != nil {
-		telemetryService.Slogger.Error("failed to get container host", "error", err)
+		telemetryService.Slogger.Error("failed to get container host", cryptoutilSharedMagic.StringError, err)
 
 		return "", "", fmt.Errorf("failed to get container host: %w", err)
 	}
 
 	mappedPort, err := container.MappedPort(ctx, nat.Port(port))
 	if err != nil {
-		telemetryService.Slogger.Error("failed to get container mapped port", "error", err)
+		telemetryService.Slogger.Error("failed to get container mapped port", cryptoutilSharedMagic.StringError, err)
 
 		return "", "", fmt.Errorf("failed to get container mapped port: %w", err)
 	}

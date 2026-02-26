@@ -5,6 +5,7 @@
 package tls
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/tls"
 	"net"
 	"testing"
@@ -39,7 +40,7 @@ func TestValidateFQDN(t *testing.T) {
 		},
 		{
 			name:        "valid single label",
-			fqdn:        "localhost",
+			fqdn:        cryptoutilSharedMagic.DefaultOTLPHostnameDefault,
 			expectError: false,
 		},
 		{
@@ -207,7 +208,7 @@ func TestCreateEndEntity(t *testing.T) {
 		},
 		{
 			name:        "valid server certificate",
-			opts:        ServerEndEntityOptions("server.test.local", []string{"server.test.local", "localhost"}, []net.IP{net.ParseIP("127.0.0.1")}),
+			opts:        ServerEndEntityOptions("server.test.local", []string{"server.test.local", cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)}),
 			expectError: false,
 		},
 		{
@@ -247,7 +248,7 @@ func TestNewServerConfig(t *testing.T) {
 	serverSubject, err := chain.CreateEndEntity(ServerEndEntityOptions(
 		"server.test.local",
 		[]string{"server.test.local"},
-		[]net.IP{net.ParseIP("127.0.0.1")},
+		[]net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)},
 	))
 	require.NoError(t, err)
 

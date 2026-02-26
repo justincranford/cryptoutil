@@ -3,6 +3,7 @@
 package hash
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"strings"
 	"testing"
 
@@ -30,10 +31,10 @@ func randomHighEntropyValue(t *testing.T, length int) string {
 func highEntropyTests(t *testing.T) []highEntropyTest {
 	t.Helper()
 
-	randomValue1, err := cryptoutilSharedUtilRandom.GenerateString(16)
+	randomValue1, err := cryptoutilSharedUtilRandom.GenerateString(cryptoutilSharedMagic.RealmMinTokenLengthBytes)
 	require.NoError(t, err)
 
-	randomValue2, err := cryptoutilSharedUtilRandom.GenerateString(256)
+	randomValue2, err := cryptoutilSharedUtilRandom.GenerateString(cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 	require.NoError(t, err)
 
 	return []highEntropyTest{
@@ -74,7 +75,7 @@ func TestHashHighEntropyDeterministic(t *testing.T) {
 				// Verify format: hkdf-sha256-fixed-high$base64(dk)
 				parts := strings.Split(hash, "$")
 				require.Len(t, parts, 2, "hash should have 2 parts")
-				require.Equal(t, "hkdf-sha256-fixed-high", parts[0])
+				require.Equal(t, cryptoutilSharedMagic.HKDFFixedHighHashName, parts[0])
 				require.NotEmpty(t, parts[1], "derived key should not be empty")
 			}
 		})
@@ -101,7 +102,7 @@ func TestHashSecretHKDFFixedHigh(t *testing.T) {
 				// Verify format.
 				parts := strings.Split(hash, "$")
 				require.Len(t, parts, 2)
-				require.Equal(t, "hkdf-sha256-fixed-high", parts[0])
+				require.Equal(t, cryptoutilSharedMagic.HKDFFixedHighHashName, parts[0])
 			}
 		})
 	}
@@ -111,7 +112,7 @@ func TestHashSecretHKDFFixedHigh_Determinism(t *testing.T) {
 	t.Parallel()
 
 	// Generate high-entropy test value (simulates API key/token)
-	value, err := cryptoutilSharedUtilRandom.GenerateString(36)
+	value, err := cryptoutilSharedUtilRandom.GenerateString(cryptoutilSharedMagic.UUIDStringLength)
 	require.NoError(t, err)
 
 	fixedInfo := []byte("deterministic-info-high")
@@ -149,14 +150,14 @@ func TestVerifySecretHKDFFixedHigh(t *testing.T) {
 		{
 			name:           "valid_hash_matches",
 			expectedOutput: "hkdf-sha256-fixed-high$ZGVyaXZlZGtleTE2Ynl0ZXNsb25nZGVyaXZlZGtleTE2",
-			input:          randomHighEntropyValue(t, 36),
+			input:          randomHighEntropyValue(t, cryptoutilSharedMagic.UUIDStringLength),
 			expectMatch:    false, // Won't match unless we use the exact secret that generated this hash.
 			expectError:    false,
 		},
 		{
 			name:           "empty_stored_hash",
 			expectedOutput: "",
-			input:          randomHighEntropyValue(t, 36),
+			input:          randomHighEntropyValue(t, cryptoutilSharedMagic.UUIDStringLength),
 			expectMatch:    false,
 			expectError:    true,
 		},
@@ -170,21 +171,21 @@ func TestVerifySecretHKDFFixedHigh(t *testing.T) {
 		{
 			name:           "invalid_hash_format",
 			expectedOutput: "invalid-format",
-			input:          randomHighEntropyValue(t, 36),
+			input:          randomHighEntropyValue(t, cryptoutilSharedMagic.UUIDStringLength),
 			expectMatch:    false,
 			expectError:    true,
 		},
 		{
 			name:           "invalid_dk_encoding",
 			expectedOutput: "hkdf-sha256-fixed-high$!!!invalid-base64!!!",
-			input:          randomHighEntropyValue(t, 36),
+			input:          randomHighEntropyValue(t, cryptoutilSharedMagic.UUIDStringLength),
 			expectMatch:    false,
 			expectError:    true,
 		},
 		{
 			name:           "wrong_algorithm",
 			expectedOutput: "hkdf-sha512-fixed-high$ZGVyaXZlZGtleTE2Ynl0ZXNsb25nZGVyaXZlZGtleTE2",
-			input:          randomHighEntropyValue(t, 36),
+			input:          randomHighEntropyValue(t, cryptoutilSharedMagic.UUIDStringLength),
 			expectMatch:    false,
 			expectError:    true,
 		},
@@ -211,7 +212,7 @@ func TestHashHighEntropyDeterministic_CrossVerification(t *testing.T) {
 	t.Parallel()
 
 	// Generate high-entropy test value (simulates API key/token)
-	secret, err := cryptoutilSharedUtilRandom.GenerateString(36)
+	secret, err := cryptoutilSharedUtilRandom.GenerateString(cryptoutilSharedMagic.UUIDStringLength)
 	require.NoError(t, err)
 
 	// Generate hash.
@@ -235,7 +236,7 @@ func TestHashHighEntropyDeterministic_CrossVerification(t *testing.T) {
 	require.True(t, match2, "hash2 should verify with correct secret")
 
 	// Verify hashes fail with wrong secret.
-	wrongSecret, err := cryptoutilSharedUtilRandom.GenerateString(36)
+	wrongSecret, err := cryptoutilSharedUtilRandom.GenerateString(cryptoutilSharedMagic.UUIDStringLength)
 	require.NoError(t, err)
 
 	matchWrong1, err := VerifySecretHKDFFixedHigh(hash1, wrongSecret)
@@ -265,7 +266,7 @@ func TestConstantTimeCompareBytesHigh(t *testing.T) {
 		{
 			name:   "different_slices",
 			a:      []byte{1, 2, 3, 4},
-			b:      []byte{1, 2, 3, 5},
+			b:      []byte{1, 2, 3, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
 			expect: false,
 		},
 		{
@@ -309,12 +310,12 @@ func TestSplitHKDFFixedHighParts(t *testing.T) {
 		{
 			name:   "valid_two_parts",
 			hash:   "hkdf-sha256-fixed-high$ZGVyaXZlZGtleQ==",
-			expect: []string{"hkdf-sha256-fixed-high", "ZGVyaXZlZGtleQ=="},
+			expect: []string{cryptoutilSharedMagic.HKDFFixedHighHashName, "ZGVyaXZlZGtleQ=="},
 		},
 		{
 			name:   "single_part",
-			hash:   "hkdf-sha256-fixed-high",
-			expect: []string{"hkdf-sha256-fixed-high"},
+			hash:   cryptoutilSharedMagic.HKDFFixedHighHashName,
+			expect: []string{cryptoutilSharedMagic.HKDFFixedHighHashName},
 		},
 		{
 			name:   "empty_string",

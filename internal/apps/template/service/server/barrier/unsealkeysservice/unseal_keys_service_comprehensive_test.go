@@ -3,6 +3,7 @@
 package unsealkeysservice
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
@@ -210,7 +211,7 @@ func TestUnsealKeysServiceSimple_LargeData(t *testing.T) {
 
 	largeData := make([]byte, largeDataSize)
 	for i := range largeData {
-		largeData[i] = byte(i % 256)
+		largeData[i] = byte(i % cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 	}
 
 	// Encrypt large data

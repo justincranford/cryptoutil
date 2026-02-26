@@ -152,11 +152,11 @@ func GenerateServerCertFromCA(caCertPEM, caKeyPEM []byte, dns []string, ips []st
 	var caPrivateKey any
 
 	switch keyBlock.Type {
-	case "RSA PRIVATE KEY":
+	case cryptoutilSharedMagic.StringPEMTypeRSAPrivateKey:
 		caPrivateKey, err = x509.ParsePKCS1PrivateKey(keyBlock.Bytes)
-	case "EC PRIVATE KEY":
+	case cryptoutilSharedMagic.StringPEMTypeECPrivateKey:
 		caPrivateKey, err = x509.ParseECPrivateKey(keyBlock.Bytes)
-	case "PRIVATE KEY":
+	case cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey:
 		caPrivateKey, err = x509.ParsePKCS8PrivateKey(keyBlock.Bytes)
 	default:
 		return nil, fmt.Errorf("unsupported CA private key type: %s", keyBlock.Type)
@@ -183,10 +183,10 @@ func GenerateServerCertFromCA(caCertPEM, caKeyPEM []byte, dns []string, ips []st
 
 	// Set default validity if not specified.
 	if validityDays <= 0 {
-		validityDays = 365
+		validityDays = cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year
 	}
 
-	duration := time.Duration(validityDays) * 24 * time.Hour //nolint:mnd // Duration calculation (24 hours per day).
+	duration := time.Duration(validityDays) * cryptoutilSharedMagic.HoursPerDay * time.Hour //nolint:mnd // Duration calculation (24 hours per day).
 
 	// Create CA Subject from parsed certificate.
 	issuerSubject := &cryptoutilSharedCryptoCertificate.Subject{
@@ -235,7 +235,7 @@ func GenerateServerCertFromCA(caCertPEM, caKeyPEM []byte, dns []string, ips []st
 		return nil, fmt.Errorf("failed to marshal server private key to DER: %w", err)
 	}
 
-	privateKeyPEM := pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: dk})
+	privateKeyPEM := pem.EncodeToMemory(&pem.Block{Type: cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey, Bytes: dk})
 
 	return &TLSGeneratedSettings{
 		StaticCertPEM: pemChain,
@@ -252,7 +252,7 @@ func GenerateServerCertFromCA(caCertPEM, caKeyPEM []byte, dns []string, ips []st
 func GenerateAutoTLSGeneratedSettings(dns []string, ips []string, validityDays int) (*TLSGeneratedSettings, error) {
 	// Default validity if not provided.
 	if validityDays <= 0 {
-		validityDays = 365
+		validityDays = cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year
 	}
 
 	// Calculate validity period.
@@ -333,7 +333,7 @@ func GenerateAutoTLSGeneratedSettings(dns []string, ips []string, validityDays i
 		return nil, fmt.Errorf("failed to marshal server private key to DER: %w", err)
 	}
 
-	privateKeyPEM := pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: dk})
+	privateKeyPEM := pem.EncodeToMemory(&pem.Block{Type: cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey, Bytes: dk})
 
 	return &TLSGeneratedSettings{
 		StaticCertPEM: pemChain,
@@ -375,7 +375,7 @@ func GenerateTestCA() (caCertPEM []byte, caKeyPEM []byte, err error) {
 	}
 
 	caKeyPEM = pem.EncodeToMemory(&pem.Block{
-		Type:  "PRIVATE KEY",
+		Type:  cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey,
 		Bytes: caKeyBytes,
 	})
 

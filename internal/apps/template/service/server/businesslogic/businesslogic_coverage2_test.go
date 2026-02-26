@@ -29,8 +29,8 @@ func setupJWESessionManager(t *testing.T) *SessionManager {
 	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		BrowserSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmJWE),
 		ServiceSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmJWE),
-		BrowserSessionExpiration:   24 * time.Hour,
-		ServiceSessionExpiration:   7 * 24 * time.Hour,
+		BrowserSessionExpiration:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
+		ServiceSessionExpiration:   cryptoutilSharedMagic.GitRecentActivityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		SessionIdleTimeout:         2 * time.Hour,
 		SessionCleanupInterval:     time.Hour,
 		BrowserSessionJWEAlgorithm: cryptoutilSharedMagic.SessionJWEAlgorithmDirA256GCM,
@@ -85,7 +85,7 @@ func TestValidateBrowserSession_JWE_NoJTIClaim(t *testing.T) {
 	t.Parallel()
 
 	sm := setupJWESessionManager(t)
-	futureExp := time.Now().UTC().Add(24 * time.Hour).Unix()
+	futureExp := time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour).Unix()
 	claimsJSON := []byte(fmt.Sprintf(`{"exp":%d,"sub":"user123"}`, futureExp))
 	token := encryptCustomJWEClaims(t, sm, claimsJSON)
 
@@ -100,7 +100,7 @@ func TestValidateBrowserSession_JWE_InvalidJTI(t *testing.T) {
 	t.Parallel()
 
 	sm := setupJWESessionManager(t)
-	futureExp := time.Now().UTC().Add(24 * time.Hour).Unix()
+	futureExp := time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour).Unix()
 	claimsJSON := []byte(fmt.Sprintf(`{"exp":%d,"jti":"not-a-valid-uuid"}`, futureExp))
 	token := encryptCustomJWEClaims(t, sm, claimsJSON)
 
@@ -118,8 +118,8 @@ func TestCleanupExpiredSessions_BrowserSessionsError(t *testing.T) {
 	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		BrowserSessionAlgorithm:  string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
 		ServiceSessionAlgorithm:  string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
-		BrowserSessionExpiration: 24 * time.Hour,
-		ServiceSessionExpiration: 7 * 24 * time.Hour,
+		BrowserSessionExpiration: cryptoutilSharedMagic.HoursPerDay * time.Hour,
+		ServiceSessionExpiration: cryptoutilSharedMagic.GitRecentActivityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		SessionIdleTimeout:       2 * time.Hour,
 		SessionCleanupInterval:   time.Hour,
 	}
@@ -205,7 +205,7 @@ func TestValidateServiceSession_JWE_NoJTIClaim(t *testing.T) {
 	t.Parallel()
 
 	sm := setupJWESessionManager(t)
-	futureExp := time.Now().UTC().Add(24 * time.Hour).Unix()
+	futureExp := time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour).Unix()
 	claimsJSON := []byte(fmt.Sprintf(`{"exp":%d,"sub":"client123"}`, futureExp))
 	token := encryptCustomJWEServiceClaims(t, sm, claimsJSON)
 
@@ -223,10 +223,10 @@ func TestStartCleanupTask_LogsError(t *testing.T) {
 	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		BrowserSessionAlgorithm:  string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
 		ServiceSessionAlgorithm:  string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
-		BrowserSessionExpiration: 24 * time.Hour,
-		ServiceSessionExpiration: 7 * 24 * time.Hour,
+		BrowserSessionExpiration: cryptoutilSharedMagic.HoursPerDay * time.Hour,
+		ServiceSessionExpiration: cryptoutilSharedMagic.GitRecentActivityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		SessionIdleTimeout:       2 * time.Hour,
-		SessionCleanupInterval:   50 * time.Millisecond, // Very short for testing.
+		SessionCleanupInterval:   cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond, // Very short for testing.
 	}
 
 	sm := NewSessionManager(db, nil, config)
@@ -248,5 +248,5 @@ func TestStartCleanupTask_LogsError(t *testing.T) {
 	time.Sleep(200 * time.Millisecond)
 
 	cancel()
-	time.Sleep(50 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond)
 }

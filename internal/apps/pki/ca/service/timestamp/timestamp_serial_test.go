@@ -3,6 +3,7 @@
 package timestamp
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
 	crand "crypto/rand"
@@ -29,7 +30,7 @@ func TestTSAService_UniqueSerialNumbers(t *testing.T) {
 		Certificate:        cert,
 		PrivateKey:         key,
 		Provider:           provider,
-		Policy:             asn1.ObjectIdentifier{1, 2, 3, 4, 5},
+		Policy:             asn1.ObjectIdentifier{1, 2, 3, 4, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
 		AcceptedAlgorithms: []HashAlgorithm{HashAlgorithmSHA256},
 	}
 
@@ -40,7 +41,7 @@ func TestTSAService_UniqueSerialNumbers(t *testing.T) {
 	hash := sha256.Sum256([]byte("test"))
 	serials := make(map[string]bool)
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < cryptoutilSharedMagic.JoseJAMaxMaterials; i++ {
 		req := &TimestampRequest{
 			Version: 1,
 			MessageImprint: MessageImprint{
@@ -64,8 +65,8 @@ func TestTSAService_AcceptedPolicies(t *testing.T) {
 
 	cert, key := createTSACert(t)
 	provider := cryptoutilCACrypto.NewSoftwareProvider()
-	defaultPolicy := asn1.ObjectIdentifier{1, 2, 3, 4, 5}
-	otherPolicy := asn1.ObjectIdentifier{1, 2, 3, 4, 6}
+	defaultPolicy := asn1.ObjectIdentifier{1, 2, 3, 4, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries}
+	otherPolicy := asn1.ObjectIdentifier{1, 2, 3, 4, cryptoutilSharedMagic.DefaultEmailOTPLength}
 
 	config := &TSAConfig{
 		Certificate:        cert,
@@ -118,7 +119,7 @@ func TestTSTInfo_ToEntry(t *testing.T) {
 
 	tstInfo := &TSTInfo{
 		Version:      1,
-		Policy:       asn1.ObjectIdentifier{1, 2, 3, 4, 5},
+		Policy:       asn1.ObjectIdentifier{1, 2, 3, 4, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
 		SerialNumber: big.NewInt(12345),
 		GenTime:      genTime,
 		MessageImprint: MessageImprint{
@@ -132,7 +133,7 @@ func TestTSTInfo_ToEntry(t *testing.T) {
 	require.Equal(t, "3039", entry.SerialNumber) // 12345 in hex.
 	require.Equal(t, genTime, entry.GenTime)
 	require.Equal(t, "1.2.3.4.5", entry.Policy)
-	require.Equal(t, "SHA-256", entry.HashAlgorithm)
+	require.Equal(t, cryptoutilSharedMagic.PBKDF2DefaultAlgorithm, entry.HashAlgorithm)
 	require.Equal(t, "CN=Test TSA", entry.TSACertificate)
 	require.NotEmpty(t, entry.Nonce)
 }
@@ -211,12 +212,12 @@ func TestSerializeTimestampResponse(t *testing.T) {
 				TimeStampToken: &TimeStampToken{
 					TSTInfo: TSTInfo{
 						Version:      1,
-						Policy:       asn1.ObjectIdentifier{1, 2, 3, 4, 5},
+						Policy:       asn1.ObjectIdentifier{1, 2, 3, 4, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
 						SerialNumber: big.NewInt(12345),
 						GenTime:      time.Now().UTC(),
 						MessageImprint: MessageImprint{
 							HashAlgorithm: HashAlgorithmSHA256,
-							HashedMessage: make([]byte, 32),
+							HashedMessage: make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes),
 						},
 					},
 				},
@@ -253,22 +254,22 @@ func TestOidToHashAlgorithm(t *testing.T) {
 	}{
 		{
 			name: "sha256",
-			oid:  asn1.ObjectIdentifier{2, 16, 840, 1, 101, 3, 4, 2, 1},
+			oid:  asn1.ObjectIdentifier{2, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 840, 1, 101, 3, 4, 2, 1},
 			want: HashAlgorithmSHA256,
 		},
 		{
 			name: "sha384",
-			oid:  asn1.ObjectIdentifier{2, 16, 840, 1, 101, 3, 4, 2, 2},
+			oid:  asn1.ObjectIdentifier{2, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 840, 1, 101, 3, 4, 2, 2},
 			want: HashAlgorithmSHA384,
 		},
 		{
 			name: "sha512",
-			oid:  asn1.ObjectIdentifier{2, 16, 840, 1, 101, 3, 4, 2, 3},
+			oid:  asn1.ObjectIdentifier{2, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 840, 1, 101, 3, 4, 2, 3},
 			want: HashAlgorithmSHA512,
 		},
 		{
 			name:    "unknown-oid",
-			oid:     asn1.ObjectIdentifier{1, 2, 3, 4, 5},
+			oid:     asn1.ObjectIdentifier{1, 2, 3, 4, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
 			wantErr: true,
 		},
 	}
@@ -303,7 +304,7 @@ func createTSACert(t *testing.T) (*x509.Certificate, *ecdsa.PrivateKey) {
 			Organization: []string{"Test Org"},
 		},
 		NotBefore:             time.Now().UTC(),
-		NotAfter:              time.Now().UTC().Add(365 * 24 * time.Hour),
+		NotAfter:              time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		KeyUsage:              x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageTimeStamping},
 		BasicConstraintsValid: true,

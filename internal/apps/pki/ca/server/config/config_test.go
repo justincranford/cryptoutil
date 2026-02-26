@@ -38,9 +38,9 @@ func TestNewTestConfig_BasicCreation(t *testing.T) {
 func TestNewTestConfig_CustomPortAndAddress(t *testing.T) {
 	t.Parallel()
 
-	cfg := NewTestConfig("0.0.0.0", 8050, false)
+	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4AnyAddress, 8050, false)
 
-	require.Equal(t, "0.0.0.0", cfg.BindPublicAddress)
+	require.Equal(t, cryptoutilSharedMagic.IPv4AnyAddress, cfg.BindPublicAddress)
 	require.Equal(t, uint16(8050), cfg.BindPublicPort)
 	require.False(t, cfg.DevMode)
 }
@@ -120,7 +120,7 @@ func TestValidateCASettings_ValidPaths(t *testing.T) {
 
 	// Create temporary CA config file.
 	tmpConfigFile := filepath.Join(tmpDir, "ca-config.yaml")
-	err = os.WriteFile(tmpConfigFile, []byte("# CA config"), 0o600)
+	err = os.WriteFile(tmpConfigFile, []byte("# CA config"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	cfg := DefaultTestConfig()
@@ -160,7 +160,7 @@ func TestCAServerSettings_OTLPServiceName(t *testing.T) {
 	cfg := DefaultTestConfig()
 
 	// Verify OTLP service name is set to pki-ca.
-	require.Equal(t, "pki-ca", cfg.OTLPService, "OTLP service should be pki-ca")
+	require.Equal(t, cryptoutilSharedMagic.OTLPServicePKICA, cfg.OTLPService, "OTLP service should be pki-ca")
 }
 
 func TestValidateCASettings_MultipleErrors(t *testing.T) {

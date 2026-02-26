@@ -5,6 +5,7 @@
 package barrier
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"context"
 	json "encoding/json"
@@ -276,7 +277,7 @@ func TestHandleGetBarrierKeysStatus_ServiceError(t *testing.T) {
 	err = json.NewDecoder(resp.Body).Decode(&errorResp)
 	require.NoError(t, err)
 	require.NoError(t, resp.Body.Close())
-	require.Contains(t, errorResp["error"], "Failed to retrieve barrier keys status")
+	require.Contains(t, errorResp[cryptoutilSharedMagic.StringError], "Failed to retrieve barrier keys status")
 }
 
 // TestGetBarrierKeysStatus_NoKeys tests GetBarrierKeysStatus when no keys exist (nil responses).

@@ -3,6 +3,7 @@
 package domain_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	json "encoding/json"
@@ -38,7 +39,7 @@ func TestTokenExpirationEnforcement(t *testing.T) {
 		{
 			name:         "access_token_not_expired",
 			tokenType:    cryptoutilIdentityDomain.TokenTypeAccess,
-			issuedOffset: -5 * time.Minute,
+			issuedOffset: -cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute,
 			expiresAt:    time.Now().UTC().Add(1 * time.Hour),
 			wantExpired:  false,
 		},
@@ -53,21 +54,21 @@ func TestTokenExpirationEnforcement(t *testing.T) {
 			name:         "refresh_token_not_expired",
 			tokenType:    cryptoutilIdentityDomain.TokenTypeRefresh,
 			issuedOffset: -1 * time.Hour,
-			expiresAt:    time.Now().UTC().Add(24 * time.Hour),
+			expiresAt:    time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour),
 			wantExpired:  false,
 		},
 		{
 			name:         "refresh_token_expired",
 			tokenType:    cryptoutilIdentityDomain.TokenTypeRefresh,
-			issuedOffset: -48 * time.Hour,
-			expiresAt:    time.Now().UTC().Add(-24 * time.Hour),
+			issuedOffset: -cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour,
+			expiresAt:    time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour),
 			wantExpired:  true,
 		},
 		{
 			name:         "id_token_not_expired",
 			tokenType:    cryptoutilIdentityDomain.TokenTypeID,
-			issuedOffset: -10 * time.Minute,
-			expiresAt:    time.Now().UTC().Add(30 * time.Minute),
+			issuedOffset: -cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute,
+			expiresAt:    time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Minute),
 			wantExpired:  false,
 		},
 		{
@@ -97,7 +98,7 @@ func TestTokenExpirationEnforcement(t *testing.T) {
 
 			dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", dbID.String())
 
-			sqlDB, err := sql.Open("sqlite", dsn)
+			sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 			require.NoError(t, err)
 
 			// Apply PRAGMA settings
@@ -118,8 +119,8 @@ func TestTokenExpirationEnforcement(t *testing.T) {
 			gormDB, err := db.DB()
 			require.NoError(t, err)
 
-			gormDB.SetMaxOpenConns(5)
-			gormDB.SetMaxIdleConns(5)
+			gormDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+			gormDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 
 			err = db.AutoMigrate(&cryptoutilIdentityDomain.Token{})
 			require.NoError(t, err)
@@ -141,7 +142,7 @@ func TestTokenExpirationEnforcement(t *testing.T) {
 				TokenType:   tc.tokenType,
 				TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 				ClientID:    clientID,
-				Scopes:      []string{"openid"},
+				Scopes:      []string{cryptoutilSharedMagic.ScopeOpenID},
 				IssuedAt:    time.Now().UTC().Add(tc.issuedOffset),
 				ExpiresAt:   tc.expiresAt,
 			}
@@ -198,7 +199,7 @@ func TestTokenRevocationEnforcement(t *testing.T) {
 			name:            "access_token_revoked",
 			tokenType:       cryptoutilIdentityDomain.TokenTypeAccess,
 			revoked:         cryptoutilIdentityDomain.IntBool(true),
-			revokedAt:       timePtr(time.Now().UTC().Add(-5 * time.Minute)),
+			revokedAt:       timePtr(time.Now().UTC().Add(-cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute)),
 			wantRevoked:     cryptoutilIdentityDomain.IntBool(true),
 			wantRevokedTime: true,
 		},
@@ -222,7 +223,7 @@ func TestTokenRevocationEnforcement(t *testing.T) {
 			name:            "id_token_revoked",
 			tokenType:       cryptoutilIdentityDomain.TokenTypeID,
 			revoked:         cryptoutilIdentityDomain.IntBool(true),
-			revokedAt:       timePtr(time.Now().UTC().Add(-30 * time.Second)),
+			revokedAt:       timePtr(time.Now().UTC().Add(-cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second)),
 			wantRevoked:     cryptoutilIdentityDomain.IntBool(true),
 			wantRevokedTime: true,
 		},
@@ -239,7 +240,7 @@ func TestTokenRevocationEnforcement(t *testing.T) {
 
 			dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", dbID.String())
 
-			sqlDB, err := sql.Open("sqlite", dsn)
+			sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 			require.NoError(t, err)
 
 			_, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
@@ -259,8 +260,8 @@ func TestTokenRevocationEnforcement(t *testing.T) {
 			gormDB, err := db.DB()
 			require.NoError(t, err)
 
-			gormDB.SetMaxOpenConns(5)
-			gormDB.SetMaxIdleConns(5)
+			gormDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+			gormDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 
 			err = db.AutoMigrate(&cryptoutilIdentityDomain.Token{})
 			require.NoError(t, err)
@@ -282,7 +283,7 @@ func TestTokenRevocationEnforcement(t *testing.T) {
 				TokenType:   tc.tokenType,
 				TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 				ClientID:    clientID,
-				Scopes:      []string{"openid"},
+				Scopes:      []string{cryptoutilSharedMagic.ScopeOpenID},
 				IssuedAt:    time.Now().UTC().Add(-1 * time.Hour),
 				ExpiresAt:   time.Now().UTC().Add(1 * time.Hour),
 				Revoked:     tc.revoked,

@@ -5,6 +5,7 @@
 package sm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"strings"
 	"testing"
@@ -23,7 +24,7 @@ func TestSm_NoArguments(t *testing.T) {
 	output := stdout.String() + stderr.String()
 	require.Contains(t, output, "Usage: sm <service> <subcommand> [options]")
 	require.Contains(t, output, "Available services:")
-	require.Contains(t, output, "kms")
+	require.Contains(t, output, cryptoutilSharedMagic.KMSServiceName)
 }
 
 func TestSm_HelpCommand(t *testing.T) {
@@ -50,7 +51,7 @@ func TestSm_HelpCommand(t *testing.T) {
 			output := stdout.String() + stderr.String()
 			require.Contains(t, output, "Usage: sm <service> <subcommand> [options]")
 			require.Contains(t, output, "Available services:")
-			require.Contains(t, output, "kms")
+			require.Contains(t, output, cryptoutilSharedMagic.KMSServiceName)
 		})
 	}
 }
@@ -114,7 +115,7 @@ func TestSm_KMSService_RoutesCorrectly(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Sm([]string{"kms", "help"}, nil, &stdout, &stderr)
+	exitCode := Sm([]string{cryptoutilSharedMagic.KMSServiceName, "help"}, nil, &stdout, &stderr)
 	require.Equal(t, 0, exitCode)
 
 	combinedOutput := stdout.String() + stderr.String()
@@ -129,7 +130,7 @@ func TestSm_KMSService_InvalidSubcommand(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Sm([]string{"kms", "invalid-subcommand"}, nil, &stdout, &stderr)
+	exitCode := Sm([]string{cryptoutilSharedMagic.KMSServiceName, "invalid-subcommand"}, nil, &stdout, &stderr)
 	require.Equal(t, 1, exitCode)
 
 	output := stdout.String() + stderr.String()

@@ -5,6 +5,7 @@
 package crypto
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
@@ -128,8 +129,8 @@ func TestEncryptKey_HappyPath(t *testing.T) {
 		enc  *joseJwa.ContentEncryptionAlgorithm
 		alg  *joseJwa.KeyEncryptionAlgorithm
 	}{
-		{"RSA-OAEP", &EncA256GCM, &AlgRSAOAEP},
-		{"RSA-OAEP-256", &EncA256GCM, &AlgRSAOAEP256},
+		{cryptoutilSharedMagic.JoseAlgRSAOAEP, &EncA256GCM, &AlgRSAOAEP},
+		{cryptoutilSharedMagic.JoseAlgRSAOAEP256, &EncA256GCM, &AlgRSAOAEP256},
 		{"ECDH-ES+A256KW", &EncA256GCM, &AlgECDHESA256KW},
 		{"A256KW", &EncA256GCM, &AlgA256KW},
 	}
@@ -192,7 +193,7 @@ func TestJWEHeadersString_HappyPath(t *testing.T) {
 			headersStr, err := JWEHeadersString(jweMessage)
 			require.NoError(t, err)
 			require.NotEmpty(t, headersStr)
-			require.Contains(t, headersStr, "enc")
+			require.Contains(t, headersStr, cryptoutilSharedMagic.JoseKeyUseEnc)
 			require.Contains(t, headersStr, "alg")
 		})
 	}

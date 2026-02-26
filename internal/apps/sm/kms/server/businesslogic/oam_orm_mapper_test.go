@@ -3,6 +3,7 @@
 package businesslogic
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
 
@@ -179,7 +180,7 @@ func TestToOamMaterialKey(t *testing.T) {
 	generateDateMillis := time.Now().UTC().UnixMilli()
 	importDateMillis := time.Now().UTC().Add(-time.Hour).UnixMilli()
 	expirationDateMillis := time.Now().UTC().Add(time.Hour).UnixMilli()
-	revocationDateMillis := time.Now().UTC().Add(-30 * time.Minute).UnixMilli()
+	revocationDateMillis := time.Now().UTC().Add(-cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Minute).UnixMilli()
 	publicBytes := []byte(`{"kty":"RSA"}`)
 
 	tests := []struct {

@@ -1,6 +1,7 @@
 package lint_deployments
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 "os"
 "path/filepath"
 "testing"
@@ -30,7 +31,7 @@ func TestValidateSchema_ValidConfig(t *testing.T) {
 t.Parallel()
 
 path := filepath.Join(t.TempDir(), "config.yml")
-require.NoError(t, os.WriteFile(path, []byte(validConfigContent()), 0o600))
+require.NoError(t, os.WriteFile(path, []byte(validConfigContent()), cryptoutilSharedMagic.CacheFilePermissions))
 
 result, err := ValidateSchema(path)
 require.NoError(t, err)
@@ -69,7 +70,7 @@ t.Run(tc.name, func(t *testing.T) {
 t.Parallel()
 
 path := filepath.Join(t.TempDir(), "config.yml")
-require.NoError(t, os.WriteFile(path, []byte(tc.content), 0o600))
+require.NoError(t, os.WriteFile(path, []byte(tc.content), cryptoutilSharedMagic.CacheFilePermissions))
 
 result, err := ValidateSchema(path)
 require.NoError(t, err)
@@ -120,7 +121,7 @@ t.Run(tc.name, func(t *testing.T) {
 t.Parallel()
 
 path := filepath.Join(t.TempDir(), "config.yml")
-require.NoError(t, os.WriteFile(path, []byte(tc.content), 0o600))
+require.NoError(t, os.WriteFile(path, []byte(tc.content), cryptoutilSharedMagic.CacheFilePermissions))
 
 result, err := ValidateSchema(path)
 require.NoError(t, err)
@@ -176,7 +177,7 @@ t.Run(tc.name, func(t *testing.T) {
 t.Parallel()
 
 path := filepath.Join(t.TempDir(), "config.yml")
-require.NoError(t, os.WriteFile(path, []byte(tc.content), 0o600))
+require.NoError(t, os.WriteFile(path, []byte(tc.content), cryptoutilSharedMagic.CacheFilePermissions))
 
 result, err := ValidateSchema(path)
 require.NoError(t, err)
@@ -192,7 +193,7 @@ t.Parallel()
 
 content := validConfigContent() + "unknown-field: \"value\"\nanother-unknown: 42\n"
 path := filepath.Join(t.TempDir(), "config.yml")
-require.NoError(t, os.WriteFile(path, []byte(content), 0o600))
+require.NoError(t, os.WriteFile(path, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 result, err := ValidateSchema(path)
 require.NoError(t, err)
@@ -218,7 +219,7 @@ func TestValidateSchema_InvalidYAML(t *testing.T) {
 t.Parallel()
 
 path := filepath.Join(t.TempDir(), "broken.yml")
-require.NoError(t, os.WriteFile(path, []byte("invalid: [yaml: {broken"), 0o600))
+require.NoError(t, os.WriteFile(path, []byte("invalid: [yaml: {broken"), cryptoutilSharedMagic.CacheFilePermissions))
 
 result, err := ValidateSchema(path)
 require.NoError(t, err)
@@ -231,7 +232,7 @@ func TestValidateSchema_EmptyFile(t *testing.T) {
 t.Parallel()
 
 path := filepath.Join(t.TempDir(), "empty.yml")
-require.NoError(t, os.WriteFile(path, []byte(""), 0o600))
+require.NoError(t, os.WriteFile(path, []byte(""), cryptoutilSharedMagic.CacheFilePermissions))
 
 result, err := ValidateSchema(path)
 require.NoError(t, err)
@@ -245,7 +246,7 @@ t.Parallel()
 
 content := validConfigContent() + "cors-allowed-origins:\n  - \"http://ok\"\n  - 123\n"
 path := filepath.Join(t.TempDir(), "config.yml")
-require.NoError(t, os.WriteFile(path, []byte(content), 0o600))
+require.NoError(t, os.WriteFile(path, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 result, err := ValidateSchema(path)
 require.NoError(t, err)
@@ -266,7 +267,7 @@ content := validConfigContent() +
 "database-url: \"file:///run/secrets/db.secret\"\n"
 
 path := filepath.Join(t.TempDir(), "config.yml")
-require.NoError(t, os.WriteFile(path, []byte(content), 0o600))
+require.NoError(t, os.WriteFile(path, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 result, err := ValidateSchema(path)
 require.NoError(t, err)
@@ -283,8 +284,8 @@ name string
 val  any
 want bool
 }{
-{name: "int", val: 42, want: true},
-{name: "int64", val: int64(42), want: true},
+{name: "int", val: cryptoutilSharedMagic.AnswerToLifeUniverseEverything, want: true},
+{name: "int64", val: int64(cryptoutilSharedMagic.AnswerToLifeUniverseEverything), want: true},
 {name: "float64", val: float64(42.0), want: true},
 {name: "string", val: "42", want: false},
 {name: "bool", val: true, want: false},
@@ -311,7 +312,7 @@ contains []string
 {
 name:     "passing",
 result:   &SchemaValidationResult{Path: "/test", Valid: true},
-contains: []string{"PASS", "/test"},
+contains: []string{cryptoutilSharedMagic.TestStatusPass, "/test"},
 },
 {
 name: "failing with errors and warnings",
@@ -320,7 +321,7 @@ Path: "/test", Valid: false,
 Errors:   []string{"missing field"},
 Warnings: []string{"unknown field"},
 },
-contains: []string{"FAIL", "missing field", "unknown field"},
+contains: []string{cryptoutilSharedMagic.TestStatusFail, "missing field", "unknown field"},
 },
 }
 

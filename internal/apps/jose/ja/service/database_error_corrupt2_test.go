@@ -27,7 +27,7 @@ func TestJWTService_CreateJWT_CorruptedPrivateKeyDB(t *testing.T) {
 	jwtSvc := NewJWTService(testElasticRepo, testMaterialRepo, testBarrierService)
 	tenantID := googleUuid.New()
 
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, "RS256", cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 	require.NotNil(t, elasticJWK)
 	require.NotNil(t, material)
@@ -64,7 +64,7 @@ func TestElasticJWKService_CreateElasticJWK_UnsupportedAlgorithm(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Try to create with an unsupported algorithm.
-	_, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, "INVALID-ALGORITHM", cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	_, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, "INVALID-ALGORITHM", cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid algorithm")
 }
@@ -80,7 +80,7 @@ func TestElasticJWKService_CreateElasticJWK_EmptyAlgorithm(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Try to create with empty algorithm.
-	_, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, "", cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	_, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, "", cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.Error(t, err)
 }
 
@@ -100,7 +100,7 @@ func TestElasticJWKService_DeleteElasticJWK_WithMultipleMaterials(t *testing.T) 
 	tenantID := googleUuid.New()
 
 	// Create elastic JWK with initial material.
-	elasticJWK, material1, err := elasticSvc.CreateElasticJWK(ctx, tenantID, "RS256", cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	elasticJWK, material1, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 	require.NotNil(t, elasticJWK)
 	require.NotNil(t, material1)
@@ -148,7 +148,7 @@ func TestElasticJWKService_DeleteElasticJWK_GetError(t *testing.T) {
 	err = svc.DeleteElasticJWK(ctx, googleUuid.New(), googleUuid.New())
 	require.Error(t, err)
 	// Error should propagate from GetElasticJWK.
-	require.True(t, strings.Contains(err.Error(), "failed to") || strings.Contains(err.Error(), "database"))
+	require.True(t, strings.Contains(err.Error(), "failed to") || strings.Contains(err.Error(), cryptoutilSharedMagic.RealmStorageTypeDatabase))
 }
 
 // TestElasticJWKService_DeleteElasticJWK_ListMaterialsError tests error during material listing.
@@ -170,7 +170,7 @@ func TestElasticJWKService_DeleteElasticJWK_ListMaterialsError(t *testing.T) {
 	require.Error(t, err)
 	// Error will be from GetElasticJWK (earlier step), not ListByElasticJWK.
 	// This documents the limitation: Can't easily isolate ListByElasticJWK error with closed DB.
-	require.True(t, strings.Contains(err.Error(), "failed to") || strings.Contains(err.Error(), "database"))
+	require.True(t, strings.Contains(err.Error(), "failed to") || strings.Contains(err.Error(), cryptoutilSharedMagic.RealmStorageTypeDatabase))
 }
 
 // TestElasticJWKService_DeleteElasticJWK_MaterialDeleteError tests error during material deletion.
@@ -192,7 +192,7 @@ func TestElasticJWKService_DeleteElasticJWK_MaterialDeleteError(t *testing.T) {
 	require.Error(t, err)
 	// Error will be from GetElasticJWK (earlier step), not material deletion.
 	// This documents the limitation: Can't easily isolate material deletion error with closed DB.
-	require.True(t, strings.Contains(err.Error(), "failed to") || strings.Contains(err.Error(), "database"))
+	require.True(t, strings.Contains(err.Error(), "failed to") || strings.Contains(err.Error(), cryptoutilSharedMagic.RealmStorageTypeDatabase))
 }
 
 // TestElasticJWKService_DeleteElasticJWK_FinalDeleteError tests error during final elastic JWK deletion.
@@ -204,7 +204,7 @@ func TestElasticJWKService_DeleteElasticJWK_FinalDeleteError(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create elastic JWK.
-	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, "RS256", cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	// Manually delete the elastic JWK from database (but not its materials).
@@ -234,7 +234,7 @@ func TestJWEService_Decrypt_CorruptedJWEInDB(t *testing.T) {
 	jweSvc := NewJWEService(testElasticRepo, testMaterialRepo, testBarrierService)
 	tenantID := googleUuid.New()
 
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyUseEnc, 10)
+	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyUseEnc, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 	require.NotNil(t, elasticJWK)
 	require.NotNil(t, material)

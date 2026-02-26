@@ -26,9 +26,9 @@ func TestGenerateRSAKeyPair(t *testing.T) {
 		rsaBits int
 		prob    float32
 	}{
-		{"RSA 2048", 2048, cryptoutilSharedMagic.TestProbAlways},
-		{"RSA 3072", 3072, cryptoutilSharedMagic.TestProbTenth},
-		{"RSA 4096", 4096, cryptoutilSharedMagic.TestProbTenth},
+		{"RSA cryptoutilSharedMagic.DefaultMetricsBatchSize", 2048, cryptoutilSharedMagic.TestProbAlways},
+		{"RSA cryptoutilSharedMagic.RSA3072KeySize", 3072, cryptoutilSharedMagic.TestProbTenth},
+		{"RSA cryptoutilSharedMagic.RSA4096KeySize", 4096, cryptoutilSharedMagic.TestProbTenth},
 	}
 
 	for _, tc := range testCases {
@@ -189,7 +189,7 @@ func TestGenerateEDDSAKeyPair(t *testing.T) {
 		verify func(*testing.T, *KeyPair)
 	}{
 		{
-			name:  "Ed25519",
+			name:  cryptoutilSharedMagic.EdCurveEd25519,
 			curve: EdCurveEd25519,
 			prob:  cryptoutilSharedMagic.TestProbAlways,
 			verify: func(t *testing.T, keyPair *KeyPair) {
@@ -203,7 +203,7 @@ func TestGenerateEDDSAKeyPair(t *testing.T) {
 			},
 		},
 		{
-			name:  "Ed448",
+			name:  cryptoutilSharedMagic.EdCurveEd448,
 			curve: EdCurveEd448,
 			prob:  cryptoutilSharedMagic.TestProbTenth,
 			verify: func(t *testing.T, keyPair *KeyPair) {
@@ -304,7 +304,7 @@ func TestGenerateAESKey(t *testing.T) {
 func TestGenerateAESKey_InvalidSize(t *testing.T) {
 	t.Parallel()
 
-	_, err := GenerateAESKey(100)
+	_, err := GenerateAESKey(cryptoutilSharedMagic.JoseJAMaxMaterials)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid AES key size")
 }
@@ -368,7 +368,7 @@ func TestGenerateAESHSKey(t *testing.T) {
 func TestGenerateAESHSKey_InvalidSize(t *testing.T) {
 	t.Parallel()
 
-	_, err := GenerateAESHSKey(100)
+	_, err := GenerateAESHSKey(cryptoutilSharedMagic.JoseJAMaxMaterials)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid AES HAMC-SHA2 key size")
 }
@@ -396,9 +396,9 @@ func TestGenerateHMACKey(t *testing.T) {
 		expectedSize int
 		prob         float32
 	}{
-		{"HMAC 256", 256, 256 / cryptoutilSharedMagic.BitsToBytes, cryptoutilSharedMagic.TestProbAlways},
-		{"HMAC 512", 512, 512 / cryptoutilSharedMagic.BitsToBytes, cryptoutilSharedMagic.TestProbQuarter},
-		{"HMAC 1024", 1024, 1024 / cryptoutilSharedMagic.BitsToBytes, cryptoutilSharedMagic.TestProbQuarter},
+		{"HMAC cryptoutilSharedMagic.MaxUnsealSharedSecrets", cryptoutilSharedMagic.MaxUnsealSharedSecrets, 256 / cryptoutilSharedMagic.BitsToBytes, cryptoutilSharedMagic.TestProbAlways},
+		{"HMAC cryptoutilSharedMagic.DefaultTracesBatchSize", cryptoutilSharedMagic.DefaultTracesBatchSize, 512 / cryptoutilSharedMagic.BitsToBytes, cryptoutilSharedMagic.TestProbQuarter},
+		{"HMAC cryptoutilSharedMagic.DefaultLogsBatchSize", cryptoutilSharedMagic.DefaultLogsBatchSize, 1024 / cryptoutilSharedMagic.BitsToBytes, cryptoutilSharedMagic.TestProbQuarter},
 	}
 
 	for _, tc := range testCases {
@@ -432,7 +432,7 @@ func TestGenerateHMACKey(t *testing.T) {
 func TestGenerateHMACKey_BelowMinimum(t *testing.T) {
 	t.Parallel()
 
-	_, err := GenerateHMACKey(cryptoutilSharedMagic.MinHMACKeySize - 8) // Below minimum
+	_, err := GenerateHMACKey(cryptoutilSharedMagic.MinHMACKeySize - cryptoutilSharedMagic.IMMinPasswordLength) // Below minimum
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid HMAC key size")
 }
@@ -441,20 +441,20 @@ func TestGenerateHMACKey_BelowMinimum(t *testing.T) {
 func TestGenerateHMACKeyFunction(t *testing.T) {
 	t.Parallel()
 
-	genFunc := GenerateHMACKeyFunction(512)
+	genFunc := GenerateHMACKeyFunction(cryptoutilSharedMagic.DefaultTracesBatchSize)
 	require.NotNil(t, genFunc)
 
 	key, err := genFunc()
 	require.NoError(t, err)
 	require.NotNil(t, key)
-	require.Len(t, key, 512/cryptoutilSharedMagic.BitsToBytes)
+	require.Len(t, key, cryptoutilSharedMagic.DefaultTracesBatchSize/cryptoutilSharedMagic.BitsToBytes)
 }
 
 // TestKeyPair_isKey tests KeyPair implements Key interface.
 func TestKeyPair_isKey(t *testing.T) {
 	t.Parallel()
 
-	keyPair, err := GenerateRSAKeyPair(2048)
+	keyPair, err := GenerateRSAKeyPair(cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	// Verify it implements Key interface by calling isKey

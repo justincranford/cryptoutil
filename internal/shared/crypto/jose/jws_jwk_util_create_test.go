@@ -3,6 +3,7 @@
 package crypto
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/elliptic"
 	"testing"
 
@@ -58,7 +59,7 @@ func TestCreateJWSJWKFromKey_EdDSA_Ed25519(t *testing.T) {
 
 	kid := googleUuid.New()
 	alg := joseJwa.EdDSA()
-	keyPair, err := cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPair("Ed25519")
+	keyPair, err := cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPair(cryptoutilSharedMagic.EdCurveEd25519)
 	require.NoError(t, err)
 
 	resultKid, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWSJWKFromKey(&kid, &alg, keyPair)
@@ -85,7 +86,7 @@ func TestCreateJWSJWKFromKey_ErrorCases(t *testing.T) {
 		t.Parallel()
 
 		alg := joseJwa.HS256()
-		key, err := cryptoutilSharedCryptoKeygen.GenerateHMACKey(256)
+		key, err := cryptoutilSharedCryptoKeygen.GenerateHMACKey(cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 		require.NoError(t, err)
 
 		resultKid, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWSJWKFromKey(nil, &alg, key)
@@ -102,7 +103,7 @@ func TestCreateJWSJWKFromKey_ErrorCases(t *testing.T) {
 		t.Parallel()
 
 		kid := googleUuid.New()
-		key, err := cryptoutilSharedCryptoKeygen.GenerateHMACKey(256)
+		key, err := cryptoutilSharedCryptoKeygen.GenerateHMACKey(cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 		require.NoError(t, err)
 
 		resultKid, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWSJWKFromKey(&kid, nil, key)
@@ -141,9 +142,9 @@ func TestCreateJWSJWKFromKey_HMAC_AllSizes(t *testing.T) {
 		alg     joseJwa.SignatureAlgorithm
 		keySize int
 	}{
-		{"HS256_256bit", joseJwa.HS256(), 256},
-		{"HS384_384bit", joseJwa.HS384(), 384},
-		{"HS512_512bit", joseJwa.HS512(), 512},
+		{"HS256_256bit", joseJwa.HS256(), cryptoutilSharedMagic.MaxUnsealSharedSecrets},
+		{"HS384_384bit", joseJwa.HS384(), cryptoutilSharedMagic.SymmetricKeySize384},
+		{"HS512_512bit", joseJwa.HS512(), cryptoutilSharedMagic.DefaultTracesBatchSize},
 	}
 
 	for _, tt := range tests {
@@ -181,12 +182,12 @@ func TestCreateJWSJWKFromKey_RSA_AllSizes(t *testing.T) {
 		alg     joseJwa.SignatureAlgorithm
 		keySize int
 	}{
-		{"RS256_2048", joseJwa.RS256(), 2048},
-		{"RS384_3072", joseJwa.RS384(), 3072},
-		{"RS512_4096", joseJwa.RS512(), 4096},
-		{"PS256_2048", joseJwa.PS256(), 2048},
-		{"PS384_3072", joseJwa.PS384(), 3072},
-		{"PS512_4096", joseJwa.PS512(), 4096},
+		{"RS256_2048", joseJwa.RS256(), cryptoutilSharedMagic.DefaultMetricsBatchSize},
+		{"RS384_3072", joseJwa.RS384(), cryptoutilSharedMagic.RSA3072KeySize},
+		{"RS512_4096", joseJwa.RS512(), cryptoutilSharedMagic.RSA4096KeySize},
+		{"PS256_2048", joseJwa.PS256(), cryptoutilSharedMagic.DefaultMetricsBatchSize},
+		{"PS384_3072", joseJwa.PS384(), cryptoutilSharedMagic.RSA3072KeySize},
+		{"PS512_4096", joseJwa.PS512(), cryptoutilSharedMagic.RSA4096KeySize},
 	}
 
 	for _, tt := range tests {

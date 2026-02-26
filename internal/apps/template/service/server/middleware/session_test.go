@@ -6,6 +6,7 @@
 package middleware
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"errors"
 	"net/http/httptest"
@@ -42,12 +43,12 @@ func createTestApp() *fiber.App {
 			var appErr *cryptoutilSharedApperr.Error
 			if errors.As(err, &appErr) {
 				return c.Status(int(appErr.HTTPStatusLineAndCode.StatusLine.StatusCode)).JSON(fiber.Map{
-					"error": appErr.Summary,
+					cryptoutilSharedMagic.StringError: appErr.Summary,
 				})
 			}
 
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": err.Error(),
+				cryptoutilSharedMagic.StringError: err.Error(),
 			})
 		},
 	})
@@ -109,7 +110,7 @@ func TestSessionMiddleware_EmptyToken(t *testing.T) {
 	// which triggers the "invalid format" check before reaching the "empty token" check.
 	// The empty token check (session.go:75-79) is defensive dead code that can't be
 	// triggered due to HTTP library header trimming behavior.
-	req.Header.Set("Authorization", "Bearer ")
+	req.Header.Set("Authorization", cryptoutilSharedMagic.AuthorizationBearerPrefix)
 
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
@@ -424,7 +425,7 @@ func TestContextKeyConstants(t *testing.T) {
 	// Verify context key constants are defined correctly.
 	require.Equal(t, "session", ContextKeySession)
 	require.Equal(t, "user_id", ContextKeyUserID)
-	require.Equal(t, "client_id", ContextKeyClientID)
+	require.Equal(t, cryptoutilSharedMagic.ClaimClientID, ContextKeyClientID)
 	require.Equal(t, "tenant_id", ContextKeyTenantID)
 	require.Equal(t, "realm_id", ContextKeyRealmID)
 }

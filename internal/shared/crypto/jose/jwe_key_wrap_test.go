@@ -3,6 +3,7 @@
 package crypto
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	crand "crypto/rand"
 	rsa "crypto/rsa"
 	"testing"
@@ -22,7 +23,7 @@ func TestEncryptDecryptKey_AES256KW(t *testing.T) {
 	kekKid := googleUuid.New()
 	kekAlg := AlgA256KW
 	kekEnc := EncA256GCM
-	kekBytes := make([]byte, 32) // 256 bits for A256KW.
+	kekBytes := make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes) // 256 bits for A256KW.
 	_, err := crand.Read(kekBytes)
 	require.NoError(t, err)
 
@@ -33,7 +34,7 @@ func TestEncryptDecryptKey_AES256KW(t *testing.T) {
 
 	// Generate CEK (Content Encryption Key) to be wrapped.
 	cekKid := googleUuid.New()
-	cekBytes := make([]byte, 32) // 256 bits.
+	cekBytes := make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes) // 256 bits.
 	_, err = crand.Read(cekBytes)
 	require.NoError(t, err)
 
@@ -65,7 +66,7 @@ func TestEncryptDecryptKey_RSAOAEP(t *testing.T) {
 	t.Parallel()
 
 	// Generate RSA KEK.
-	rsaPrivateKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	rsaPrivateKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	kekKid := googleUuid.New()
@@ -84,7 +85,7 @@ func TestEncryptDecryptKey_RSAOAEP(t *testing.T) {
 
 	// Generate CEK to be wrapped.
 	cekKid := googleUuid.New()
-	cekBytes := make([]byte, 32)
+	cekBytes := make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 	_, err = crand.Read(cekBytes)
 	require.NoError(t, err)
 
@@ -115,7 +116,7 @@ func TestEncryptKey_MarshalError(t *testing.T) {
 
 	// Generate valid KEK.
 	kekKid := googleUuid.New()
-	kekBytes := make([]byte, 32)
+	kekBytes := make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 	_, err := crand.Read(kekBytes)
 	require.NoError(t, err)
 
@@ -135,7 +136,7 @@ func TestDecryptKey_InvalidEncryptedBytes(t *testing.T) {
 
 	// Generate valid KDK (Key Decryption Key).
 	kdkKid := googleUuid.New()
-	kdkBytes := make([]byte, 32)
+	kdkBytes := make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 	_, err := crand.Read(kdkBytes)
 	require.NoError(t, err)
 
@@ -154,7 +155,7 @@ func TestDecryptKey_CorruptedEncryptedBytes(t *testing.T) {
 
 	// Generate KEK and CEK.
 	kekKid := googleUuid.New()
-	kekBytes := make([]byte, 32)
+	kekBytes := make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 	_, err := crand.Read(kekBytes)
 	require.NoError(t, err)
 
@@ -162,7 +163,7 @@ func TestDecryptKey_CorruptedEncryptedBytes(t *testing.T) {
 	require.NoError(t, err)
 
 	cekKid := googleUuid.New()
-	cekBytes := make([]byte, 32)
+	cekBytes := make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 	_, err = crand.Read(cekBytes)
 	require.NoError(t, err)
 
@@ -186,7 +187,7 @@ func TestDecryptKey_InvalidJWKFormat(t *testing.T) {
 
 	// Generate KEK.
 	kekKid := googleUuid.New()
-	kekBytes := make([]byte, 32)
+	kekBytes := make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 	_, err := crand.Read(kekBytes)
 	require.NoError(t, err)
 
@@ -209,7 +210,7 @@ func TestEncryptKey_NilKEKs(t *testing.T) {
 
 	// Generate CEK.
 	cekKid := googleUuid.New()
-	cekBytes := make([]byte, 32)
+	cekBytes := make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 	_, err := crand.Read(cekBytes)
 	require.NoError(t, err)
 

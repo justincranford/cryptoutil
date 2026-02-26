@@ -5,6 +5,7 @@
 package testutil_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -79,8 +80,8 @@ func TestWriteTempFile_NestedDirectory(t *testing.T) {
 	t.Parallel()
 
 	tempDir := t.TempDir()
-	nestedDir := filepath.Join(tempDir, "sub", "nested")
-	err := os.MkdirAll(nestedDir, 0o755)
+	nestedDir := filepath.Join(tempDir, cryptoutilSharedMagic.ClaimSub, "nested")
+	err := os.MkdirAll(nestedDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	// Act: Write file in nested directory
@@ -116,7 +117,7 @@ func TestWriteTestFile(t *testing.T) {
 		{
 			name:     "Large_content",
 			filename: "large.txt",
-			content:  string(make([]byte, 10000)), // 10KB of zeros
+			content:  string(make([]byte, cryptoutilSharedMagic.DBContainerRandSuffixMax)), // 10KB of zeros
 		},
 		{
 			name:     "Special_characters",
@@ -158,7 +159,7 @@ func TestWriteTestFile_CreateDirectories(t *testing.T) {
 	// This test verifies the expected behavior
 
 	// Create parent directories first
-	err := os.MkdirAll(filepath.Dir(nestedPath), 0o755)
+	err := os.MkdirAll(filepath.Dir(nestedPath), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	// Now WriteTestFile should succeed
@@ -206,7 +207,7 @@ func TestReadTestFile(t *testing.T) {
 			filePath := filepath.Join(tempDir, "test.txt")
 
 			// Setup: Write file using standard library
-			err := os.WriteFile(filePath, []byte(tc.content), 0o600)
+			err := os.WriteFile(filePath, []byte(tc.content), cryptoutilSharedMagic.CacheFilePermissions)
 			require.NoError(t, err)
 
 			// Act: Read test file
@@ -284,7 +285,7 @@ func TestIntegrationTimeout(t *testing.T) {
 // TestIntegrationTimeout_Override verifies that TestTimeoutOverride is used when set.
 // Sequential: modifies package-level TestTimeoutOverride variable.
 func TestIntegrationTimeout_Override(t *testing.T) {
-	customTimeout := 42 * time.Second
+	customTimeout := cryptoutilSharedMagic.AnswerToLifeUniverseEverything * time.Second
 
 	cryptoutilSharedTestutil.TestTimeoutOverride = customTimeout
 
@@ -313,7 +314,7 @@ func TestTestID(t *testing.T) {
 
 		id := cryptoutilSharedTestutil.TestID("")
 		require.NotEmpty(t, id)
-		require.Len(t, id, 36) // UUID format: 8-4-4-4-12
+		require.Len(t, id, cryptoutilSharedMagic.UUIDStringLength) // UUID format: 8-4-4-4-12
 	})
 
 	t.Run("with prefix", func(t *testing.T) {
@@ -399,7 +400,7 @@ func TestTestTenantFactory(t *testing.T) {
 
 		tenant := factory.Create("ACME Corp")
 		require.NotEmpty(t, tenant.ID)
-		require.Len(t, tenant.ID, 36) // UUID format
+		require.Len(t, tenant.ID, cryptoutilSharedMagic.UUIDStringLength) // UUID format
 		require.Contains(t, tenant.Name, "ACME Corp")
 		require.Contains(t, tenant.Description, "Test tenant")
 		require.Equal(t, "default", tenant.RealmID)

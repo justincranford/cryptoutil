@@ -3,6 +3,7 @@
 package crypto
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto"
 	"crypto/ed25519"
 	"crypto/elliptic"
@@ -36,13 +37,13 @@ func TestEdDSACurves(t *testing.T) {
 		errContains string
 	}{
 		{
-			name:    "Ed25519",
+			name:    cryptoutilSharedMagic.EdCurveEd25519,
 			curve:   testEd25519Curve,
 			wantErr: false,
 		},
 		{
-			name:    "Ed448",
-			curve:   "Ed448",
+			name:    cryptoutilSharedMagic.EdCurveEd448,
+			curve:   cryptoutilSharedMagic.EdCurveEd448,
 			wantErr: false,
 		},
 		{
@@ -113,7 +114,7 @@ func TestVerifyRSAFailures(t *testing.T) {
 	provider := NewSoftwareProvider()
 
 	// Generate RSA key pair
-	kp, err := provider.generateRSAKeyPair(2048)
+	kp, err := provider.generateRSAKeyPair(cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	priv, ok := kp.PrivateKey.(*rsa.PrivateKey)
@@ -121,7 +122,7 @@ func TestVerifyRSAFailures(t *testing.T) {
 
 	// Test verification with invalid signature
 	digest := sha256.Sum256([]byte("test message"))
-	invalidSignature := make([]byte, 256)
+	invalidSignature := make([]byte, cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 
 	_, err = crand.Read(invalidSignature)
 	require.NoError(t, err)
@@ -167,17 +168,17 @@ func TestGenerateRSAKeyPairSizes(t *testing.T) {
 	}{
 		{
 			name:    "RSA-2048",
-			bits:    2048,
+			bits:    cryptoutilSharedMagic.DefaultMetricsBatchSize,
 			wantErr: false,
 		},
 		{
 			name:    "RSA-3072",
-			bits:    3072,
+			bits:    cryptoutilSharedMagic.RSA3072KeySize,
 			wantErr: false,
 		},
 		{
 			name:    "RSA-4096",
-			bits:    4096,
+			bits:    cryptoutilSharedMagic.RSA4096KeySize,
 			wantErr: false,
 		},
 	}
@@ -265,31 +266,31 @@ func TestGetSignatureAlgorithm(t *testing.T) {
 	}{
 		{
 			name:    "RSA-2048",
-			keySize: 2048,
+			keySize: cryptoutilSharedMagic.DefaultMetricsBatchSize,
 			keyType: testRSAAlgorithm,
 			wantErr: false,
 		},
 		{
 			name:    "RSA-3072",
-			keySize: 3072,
+			keySize: cryptoutilSharedMagic.RSA3072KeySize,
 			keyType: testRSAAlgorithm,
 			wantErr: false,
 		},
 		{
 			name:    "RSA-4096",
-			keySize: 4096,
+			keySize: cryptoutilSharedMagic.RSA4096KeySize,
 			keyType: testRSAAlgorithm,
 			wantErr: false,
 		},
 		{
 			name:    "ECDSA-P256",
-			keySize: 256,
+			keySize: cryptoutilSharedMagic.MaxUnsealSharedSecrets,
 			keyType: "ECDSA-P256",
 			wantErr: false,
 		},
 		{
 			name:    "ECDSA-P384",
-			keySize: 384,
+			keySize: cryptoutilSharedMagic.SymmetricKeySize384,
 			keyType: "ECDSA-P384",
 			wantErr: false,
 		},
@@ -300,7 +301,7 @@ func TestGetSignatureAlgorithm(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "Ed25519",
+			name:    cryptoutilSharedMagic.EdCurveEd25519,
 			keySize: 0,
 			keyType: testEd25519Curve,
 			wantErr: false,

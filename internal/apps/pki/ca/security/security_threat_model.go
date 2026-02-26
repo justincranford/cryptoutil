@@ -4,6 +4,7 @@
 package security
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"crypto/x509"
 	"errors"
@@ -64,7 +65,7 @@ func (b *ThreatModelBuilder) Build() *ThreatModel {
 
 // CAThreatModel creates a predefined threat model for CA operations.
 func CAThreatModel() *ThreatModel {
-	builder := NewThreatModelBuilder("CA Security Threat Model", "1.0.0")
+	builder := NewThreatModelBuilder("CA Security Threat Model", cryptoutilSharedMagic.ServiceVersion)
 
 	builder.WithDescription("STRIDE-based threat model for Certificate Authority operations")
 
@@ -89,7 +90,7 @@ func CAThreatModel() *ThreatModel {
 		ID:          "ASSET-003",
 		Name:        "Certificate Database",
 		Description: "Database storing issued certificates and revocation status",
-		Type:        "database",
+		Type:        cryptoutilSharedMagic.RealmStorageTypeDatabase,
 		Sensitivity: "high",
 	})
 

@@ -3,6 +3,7 @@
 package issuer
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/x509"
 	"testing"
 	"time"
@@ -27,7 +28,7 @@ func createTestIssuingCA(t *testing.T, provider cryptoutilCACrypto.Provider) *cr
 			Type:       cryptoutilCACrypto.KeyTypeECDSA,
 			ECDSACurve: "P-256",
 		},
-		ValidityDuration:  20 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.MaxErrorDisplay * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 2,
 	}
 
@@ -42,7 +43,7 @@ func createTestIssuingCA(t *testing.T, provider cryptoutilCACrypto.Provider) *cr
 			Type:       cryptoutilCACrypto.KeyTypeECDSA,
 			ECDSACurve: "P-256",
 		},
-		ValidityDuration:  10 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 0,
 		IssuerCertificate: rootCA.Certificate,
 		IssuerPrivateKey:  rootCA.PrivateKey,
@@ -153,7 +154,7 @@ func TestIssuer_Issue_TLSServer(t *testing.T) {
 			DNSNames:   []string{"www.example.com", "example.com"},
 		},
 		PublicKey:        keyPair.PublicKey,
-		ValidityDuration: 90 * 24 * time.Hour, // 90 days.
+		ValidityDuration: cryptoutilSharedMagic.StrictCertificateMaxAgeDays * cryptoutilSharedMagic.HoursPerDay * time.Hour, // 90 days.
 	}
 
 	issued, audit, err := issuer.Issue(req)
@@ -207,7 +208,7 @@ func TestIssuer_Issue_WithIPAddresses(t *testing.T) {
 			IPAddresses: []string{"192.168.1.100", "10.0.0.1"},
 		},
 		PublicKey:        keyPair.PublicKey,
-		ValidityDuration: 30 * 24 * time.Hour,
+		ValidityDuration: cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 
 	issued, audit, err := issuer.Issue(req)
@@ -251,7 +252,7 @@ func TestIssuer_Issue_WithEmail(t *testing.T) {
 			EmailAddresses: []string{"john.doe@example.com"},
 		},
 		PublicKey:        keyPair.PublicKey,
-		ValidityDuration: 365 * 24 * time.Hour,
+		ValidityDuration: cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 
 	issued, audit, err := issuer.Issue(req)
@@ -279,7 +280,7 @@ func TestIssuer_Issue_WithProfile(t *testing.T) {
 		SubjectAltNames: cryptoutilCAProfileSubject.SANConfig{
 			DNSNames: cryptoutilCAProfileSubject.SANPatterns{
 				Allowed:  true,
-				MaxCount: 10,
+				MaxCount: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 			},
 		},
 	}
@@ -322,7 +323,7 @@ func TestIssuer_Issue_WithProfile(t *testing.T) {
 			DNSNames:   []string{"api.example.com"},
 		},
 		PublicKey:        keyPair.PublicKey,
-		ValidityDuration: 90 * 24 * time.Hour,
+		ValidityDuration: cryptoutilSharedMagic.StrictCertificateMaxAgeDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 
 	issued, audit, err := issuer.Issue(req)

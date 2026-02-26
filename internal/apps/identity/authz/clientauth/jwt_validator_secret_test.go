@@ -5,6 +5,7 @@
 package clientauth
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -35,7 +36,7 @@ func TestClientSecretJWTValidator_ValidateJWT_Success(t *testing.T) {
 	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
-	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(5*time.Minute)))
+	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)))
 	require.NoError(t, token.Set(joseJwt.IssuedAtKey, now))
 	require.NoError(t, token.Set(joseJwt.JwtIDKey, googleUuid.NewString()))
 
@@ -96,7 +97,7 @@ func TestClientSecretJWTValidator_ValidateJWT_InvalidSignature(t *testing.T) {
 	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
-	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(5*time.Minute)))
+	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)))
 	require.NoError(t, token.Set(joseJwt.IssuedAtKey, now))
 	require.NoError(t, token.Set(joseJwt.JwtIDKey, googleUuid.NewString()))
 
@@ -204,7 +205,7 @@ func TestClientSecretJWTValidator_ValidateJWT_MissingIssuedAtClaim(t *testing.T)
 	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
-	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(5*time.Minute)))
+	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)))
 	// No issued at set.
 	require.NoError(t, token.Set(joseJwt.JwtIDKey, googleUuid.NewString()))
 
@@ -255,7 +256,7 @@ func TestPrivateKeyJWTValidator_ExtractClaims_AllClaimsPresent(t *testing.T) {
 	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
-	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(5*time.Minute)))
+	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)))
 	require.NoError(t, token.Set(joseJwt.IssuedAtKey, now))
 	require.NoError(t, token.Set(joseJwt.JwtIDKey, jti))
 
@@ -280,7 +281,7 @@ func TestClientSecretJWTValidator_ExtractClaims_AllClaimsPresent(t *testing.T) {
 	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
-	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(5*time.Minute)))
+	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)))
 	require.NoError(t, token.Set(joseJwt.IssuedAtKey, now))
 	require.NoError(t, token.Set(joseJwt.JwtIDKey, jti))
 

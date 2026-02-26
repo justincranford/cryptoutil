@@ -5,6 +5,7 @@
 package pool
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	"testing"
@@ -68,7 +69,7 @@ func TestNewValueGenPool_MetricCreationErrors(t *testing.T) {
 
 			_, err := NewValueGenPool(NewValueGenPoolConfig(
 				context.Background(), testTelemetryService,
-				"metric-error", 1, 1, 10, time.Second,
+				"metric-error", 1, 1, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, time.Second,
 				cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false,
 			))
 			require.Error(t, err)

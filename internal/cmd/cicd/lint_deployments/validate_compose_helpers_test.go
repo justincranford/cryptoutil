@@ -1,6 +1,7 @@
 package lint_deployments
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -76,7 +77,7 @@ func TestExtractSecretName(t *testing.T) {
 		{name: "map with source", input: map[string]any{"source": "my_secret.secret"}, expected: "my_secret.secret"},
 		{name: "map without source", input: map[string]any{"target": "/run/secrets/foo"}, expected: ""},
 		{name: "nil", input: nil, expected: ""},
-		{name: "integer", input: 42, expected: ""},
+		{name: "integer", input: cryptoutilSharedMagic.AnswerToLifeUniverseEverything, expected: ""},
 	}
 
 	for _, tc := range tests {
@@ -128,7 +129,7 @@ func TestIsExemptFromHealthcheck(t *testing.T) {
 		expected bool
 	}{
 		{name: "builder prefix", svcName: "builder-myapp", svc: composeService{}, expected: true},
-		{name: "healthcheck prefix", svcName: "healthcheck-secrets", svc: composeService{}, expected: true},
+		{name: "healthcheck prefix", svcName: cryptoutilSharedMagic.DockerJobHealthcheckSecrets, svc: composeService{}, expected: true},
 		{name: "echo entrypoint", svcName: "init", svc: composeService{Entrypoint: []any{"sh", "-c", "echo done"}}, expected: true},
 		{name: "regular service", svcName: "myapp", svc: composeService{}, expected: false},
 		{name: "non-echo entrypoint", svcName: "myapp", svc: composeService{Entrypoint: []any{"app", "start"}}, expected: false},
@@ -153,7 +154,7 @@ func TestFormatComposeValidationResult(t *testing.T) {
 		{
 			name:     "pass",
 			result:   &ComposeValidationResult{Path: "test.yml", Valid: true},
-			contains: []string{"test.yml", "PASS"},
+			contains: []string{"test.yml", cryptoutilSharedMagic.TestStatusPass},
 		},
 		{
 			name: "fail with errors and warnings",
@@ -161,7 +162,7 @@ func TestFormatComposeValidationResult(t *testing.T) {
 				Path: "test.yml", Valid: false,
 				Errors: []string{"port conflict"}, Warnings: []string{"dep warning"},
 			},
-			contains: []string{"FAIL", "ERROR: port conflict", "WARNING: dep warning"},
+			contains: []string{cryptoutilSharedMagic.TestStatusFail, "ERROR: port conflict", "WARNING: dep warning"},
 		},
 	}
 

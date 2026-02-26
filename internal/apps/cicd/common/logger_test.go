@@ -6,6 +6,7 @@
 package common
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"errors"
 	"fmt"
@@ -50,7 +51,7 @@ func TestLogger_Log(t *testing.T) {
 
 	logger := NewLogger("test-log")
 
-	time.Sleep(10 * time.Millisecond) // Ensure some duration
+	time.Sleep(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond) // Ensure some duration
 	logger.Log("test message")
 
 	if err := w.Close(); err != nil {
@@ -126,11 +127,11 @@ func TestLogger_Duration(t *testing.T) {
 
 	logger := NewLogger("test-duration")
 
-	time.Sleep(50 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond)
 
 	duration := logger.Duration()
 
-	require.GreaterOrEqual(t, duration, 50*time.Millisecond, "Duration should be at least 50ms")
+	require.GreaterOrEqual(t, duration, cryptoutilSharedMagic.IMMaxUsernameLength*time.Millisecond, "Duration should be at least 50ms")
 	require.Less(t, duration, 200*time.Millisecond, "Duration should be less than 200ms")
 }
 
@@ -180,9 +181,9 @@ func TestLogger_MultipleLogs(t *testing.T) {
 
 	logger := NewLogger("test-multiple")
 	logger.Log("message 1")
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond)
 	logger.Log("message 2")
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond)
 	logger.Log("message 3")
 
 	if err := w.Close(); err != nil {
@@ -221,7 +222,7 @@ func TestLogger_ConcurrentLogging(t *testing.T) {
 	// Spawn multiple goroutines logging concurrently
 	done := make(chan bool)
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < cryptoutilSharedMagic.JoseJADefaultMaxMaterials; i++ {
 		go func(id int) {
 			logger.Log(fmt.Sprintf("concurrent message %d", id))
 
@@ -230,7 +231,7 @@ func TestLogger_ConcurrentLogging(t *testing.T) {
 	}
 
 	// Wait for all goroutines
-	for i := 0; i < 10; i++ {
+	for i := 0; i < cryptoutilSharedMagic.JoseJADefaultMaxMaterials; i++ {
 		<-done
 	}
 
@@ -246,7 +247,7 @@ func TestLogger_ConcurrentLogging(t *testing.T) {
 	output := buf.String()
 
 	// Verify all messages appear (may be interleaved)
-	for i := 0; i < 10; i++ {
+	for i := 0; i < cryptoutilSharedMagic.JoseJADefaultMaxMaterials; i++ {
 		expectedMsg := fmt.Sprintf("concurrent message %d", i)
 		require.Contains(t, output, expectedMsg, "Should contain message %d", i)
 	}

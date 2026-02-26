@@ -3,6 +3,7 @@
 package unsealkeysservice
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	json "encoding/json"
 	"os"
 	"path/filepath"
@@ -24,7 +25,7 @@ func TestNewUnsealKeysServiceFromSettings_MofN_FileMismatch(t *testing.T) {
 	tmpDir := t.TempDir()
 	secretFile := filepath.Join(tmpDir, "secret1.bin")
 
-	err := os.WriteFile(secretFile, []byte("this is a long enough shared secret for testing purposes"), 0o600)
+	err := os.WriteFile(secretFile, []byte("this is a long enough shared secret for testing purposes"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	ctx, telemetryService := createTestContext(t)
@@ -49,13 +50,13 @@ func TestNewUnsealKeysServiceFromSettings_MofN_HappyPath(t *testing.T) {
 	secret2 := filepath.Join(tmpDir, "secret2.bin")
 	secret3 := filepath.Join(tmpDir, "secret3.bin")
 
-	err := os.WriteFile(secret1, []byte("first shared secret with sufficient length for validation"), 0o600)
+	err := os.WriteFile(secret1, []byte("first shared secret with sufficient length for validation"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
-	err = os.WriteFile(secret2, []byte("second shared secret with sufficient length for validation"), 0o600)
+	err = os.WriteFile(secret2, []byte("second shared secret with sufficient length for validation"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
-	err = os.WriteFile(secret3, []byte("third shared secret with sufficient length for validation"), 0o600)
+	err = os.WriteFile(secret3, []byte("third shared secret with sufficient length for validation"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	ctx, telemetryService := createTestContext(t)
@@ -89,10 +90,10 @@ func TestNewUnsealKeysServiceFromSettings_SimpleMode_HappyPath(t *testing.T) {
 	jwk2Bytes, err := json.Marshal(jwks[1])
 	require.NoError(t, err)
 
-	err = os.WriteFile(jwk1File, jwk1Bytes, 0o600)
+	err = os.WriteFile(jwk1File, jwk1Bytes, cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
-	err = os.WriteFile(jwk2File, jwk2Bytes, 0o600)
+	err = os.WriteFile(jwk2File, jwk2Bytes, cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	ctx, telemetryService := createTestContext(t)
@@ -114,7 +115,7 @@ func TestNewUnsealKeysServiceFromSettings_SimpleMode_InvalidJWK(t *testing.T) {
 	tmpDir := t.TempDir()
 	badJWKFile := filepath.Join(tmpDir, "bad.jwk")
 
-	err := os.WriteFile(badJWKFile, []byte("this is not a valid JWK"), 0o600)
+	err := os.WriteFile(badJWKFile, []byte("this is not a valid JWK"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	ctx, telemetryService := createTestContext(t)

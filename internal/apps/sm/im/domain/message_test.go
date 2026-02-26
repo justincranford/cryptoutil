@@ -5,6 +5,7 @@
 package domain_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
 
@@ -28,7 +29,7 @@ func TestMessage_FieldTypes(t *testing.T) {
 	senderID := googleUuid.New()
 	messageID := googleUuid.New()
 	createdAt := time.Now().UTC()
-	readAt := time.Now().UTC().Add(10 * time.Minute)
+	readAt := time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute)
 	jwe := `{"protected":"eyJhbGciOiJBMjU2R0NNS1ciLCJlbmMiOiJBMjU2R0NNIn0","iv":"test","ciphertext":"test","tag":"test"}`
 
 	m := cryptoutilAppsSmImDomain.Message{

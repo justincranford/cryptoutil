@@ -3,6 +3,7 @@
 package server
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 
 	fiber "github.com/gofiber/fiber/v2"
@@ -37,8 +38,8 @@ func (s *PublicServer) registerRoutes() error {
 
 	// Health endpoints (no auth required).
 	app.Get("/health", s.handleHealth)
-	app.Get("/livez", s.handleLivez)
-	app.Get("/readyz", s.handleReadyz)
+	app.Get(cryptoutilSharedMagic.PrivateAdminLivezRequestPath, s.handleLivez)
+	app.Get(cryptoutilSharedMagic.PrivateAdminReadyzRequestPath, s.handleReadyz)
 
 	// Protected API endpoints.
 	// TODO: Add protected API endpoints demonstrating token validation:
@@ -67,7 +68,7 @@ func (s *PublicServer) handleListResources(c *fiber.Ctx) error {
 	authHeader := c.Get("Authorization")
 	if authHeader == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error":   "unauthorized",
+			cryptoutilSharedMagic.StringError:   "unauthorized",
 			"message": "Authorization header required",
 		})
 	}
@@ -83,8 +84,8 @@ func (s *PublicServer) handleListResources(c *fiber.Ctx) error {
 // handleHealth returns server health status.
 func (s *PublicServer) handleHealth(c *fiber.Ctx) error {
 	if err := c.JSON(fiber.Map{
-		"status": "healthy",
-		"time":   c.Context().Time().UTC().Format("2006-01-02T15:04:05Z"),
+		cryptoutilSharedMagic.StringStatus: cryptoutilSharedMagic.DockerServiceHealthHealthy,
+		"time":   c.Context().Time().UTC().Format(cryptoutilSharedMagic.StringUTCFormat),
 	}); err != nil {
 		return fmt.Errorf("failed to send health response: %w", err)
 	}

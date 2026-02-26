@@ -19,7 +19,7 @@ OTLPService:     serviceName,
 OTLPInstance:    "test-instance",
 OTLPVersion:     "0.0.0-test",
 OTLPEnvironment: "test",
-OTLPHostname:    "localhost",
+OTLPHostname:    cryptoutilSharedMagic.DefaultOTLPHostnameDefault,
 OTLPEndpoint:    cryptoutilSharedMagic.DefaultOTLPEndpointDefault,
 }
 }

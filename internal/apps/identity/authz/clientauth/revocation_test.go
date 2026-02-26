@@ -3,6 +3,7 @@
 package clientauth
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	crand "crypto/rand"
 	rsa "crypto/rsa"
@@ -24,7 +25,7 @@ func createTestCertificatePair(t *testing.T, includeCRLDistributionPoints, inclu
 	t.Helper()
 
 	// Create CA certificate.
-	caPrivKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	caPrivKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	caTemplate := &x509.Certificate{
@@ -34,7 +35,7 @@ func createTestCertificatePair(t *testing.T, includeCRLDistributionPoints, inclu
 			Organization: []string{"Test Org"},
 		},
 		NotBefore:             time.Now().UTC().Add(-1 * time.Hour),
-		NotAfter:              time.Now().UTC().Add(24 * time.Hour),
+		NotAfter:              time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
 		BasicConstraintsValid: true,
 		IsCA:                  true,
@@ -47,17 +48,17 @@ func createTestCertificatePair(t *testing.T, includeCRLDistributionPoints, inclu
 	require.NoError(t, err)
 
 	// Create client certificate.
-	clientPrivKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	clientPrivKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	clientTemplate := &x509.Certificate{
-		SerialNumber: big.NewInt(42),
+		SerialNumber: big.NewInt(cryptoutilSharedMagic.AnswerToLifeUniverseEverything),
 		Subject: pkix.Name{
 			CommonName:   "Test Client",
 			Organization: []string{"Test Org"},
 		},
 		NotBefore:             time.Now().UTC().Add(-1 * time.Hour),
-		NotAfter:              time.Now().UTC().Add(24 * time.Hour),
+		NotAfter:              time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		KeyUsage:              x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 		BasicConstraintsValid: true,
@@ -98,7 +99,7 @@ func createTestCRL(t *testing.T, issuer *x509.Certificate, issuerKey *rsa.Privat
 	revocationList := &x509.RevocationList{
 		Number:     big.NewInt(1),
 		ThisUpdate: time.Now().UTC(),
-		NextUpdate: time.Now().UTC().Add(24 * time.Hour),
+		NextUpdate: time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		RevokedCertificateEntries: func() []x509.RevocationListEntry {
 			entries := make([]x509.RevocationListEntry, len(revokedCerts))
 			for i, rc := range revokedCerts {
@@ -156,7 +157,7 @@ func TestCRLCache_GetCRL(t *testing.T) {
 		},
 		{
 			name:        "refetch after cache expiration",
-			cacheMaxAge: 100 * time.Millisecond,
+			cacheMaxAge: cryptoutilSharedMagic.JoseJAMaxMaterials * time.Millisecond,
 			waitTime:    200 * time.Millisecond,
 			wantCached:  false,
 			wantErr:     false,
@@ -327,7 +328,7 @@ func TestCRLRevocationChecker_CheckRevocation(t *testing.T) {
 		},
 	}
 
-	checker := NewCRLRevocationChecker(1*time.Hour, 5*time.Second)
+	checker := NewCRLRevocationChecker(1*time.Hour, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	ctx := context.Background()
 
 	for _, tc := range tests {
@@ -349,7 +350,7 @@ func TestOCSPRevocationChecker_CheckRevocation_NoOCSPServer(t *testing.T) {
 
 	caCert, clientCert, _ := createTestCertificatePair(t, false, false)
 
-	checker := NewOCSPRevocationChecker(5 * time.Second)
+	checker := NewOCSPRevocationChecker(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second)
 	ctx := context.Background()
 
 	err := checker.CheckRevocation(ctx, clientCert, caCert)
@@ -395,7 +396,7 @@ func TestOCSPRevocationChecker_CheckRevocation_Good(t *testing.T) {
 			Response     []byte `asn1:"explicit,tag:0"`
 		}{
 			Status:       0,                                                    // Successful.
-			ResponseType: asn1.ObjectIdentifier{1, 3, 6, 1, 5, 5, 7, 48, 1, 1}, // id-pkix-ocsp-basic.
+			ResponseType: asn1.ObjectIdentifier{1, 3, cryptoutilSharedMagic.DefaultEmailOTPLength, 1, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, cryptoutilSharedMagic.GitRecentActivityDays, cryptoutilSharedMagic.HMACSHA384KeySize, 1, 1}, // id-pkix-ocsp-basic.
 			Response:     basicRespBytes,
 		}
 
@@ -412,7 +413,7 @@ func TestOCSPRevocationChecker_CheckRevocation_Good(t *testing.T) {
 	// Update client certificate OCSP server to test server URL.
 	clientCert.OCSPServer = []string{server.URL}
 
-	checker := NewOCSPRevocationChecker(5 * time.Second)
+	checker := NewOCSPRevocationChecker(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second)
 	ctx := context.Background()
 
 	// Note: This test may fail parsing the simplified OCSP response.
@@ -422,7 +423,7 @@ func TestOCSPRevocationChecker_CheckRevocation_Good(t *testing.T) {
 
 	// For now, just verify the checker was created and called.
 	require.NotNil(t, checker)
-	require.Equal(t, 5*time.Second, checker.timeout)
+	require.Equal(t, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second, checker.timeout)
 
 	// Suppress unused variable warnings.
 	_ = caPrivKey
@@ -447,7 +448,7 @@ func TestCombinedRevocationChecker_CheckRevocation(t *testing.T) {
 	clientCert.CRLDistributionPoints = []string{crlServer.URL}
 	clientCert.OCSPServer = []string{"http://127.0.0.1:9998/ocsp"} // Invalid OCSP server.
 
-	checker := NewCombinedRevocationChecker(5*time.Second, 5*time.Second, 1*time.Hour)
+	checker := NewCombinedRevocationChecker(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second, 1*time.Hour)
 	ctx := context.Background()
 
 	// OCSP should fail (invalid server), CRL should succeed (not revoked).

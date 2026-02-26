@@ -128,15 +128,15 @@ func Demo(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	exitCode := ExitSuccess
 
 	switch command {
-	case "kms":
+	case cryptoutilSharedMagic.KMSServiceName:
 		exitCode = runKMSDemo(ctx, config)
-	case "identity":
+	case cryptoutilSharedMagic.IdentityProductName:
 		exitCode = runIdentityDemo(ctx, config)
-	case "jose":
+	case cryptoutilSharedMagic.JoseProductName:
 		exitCode = runJOSEDemo(ctx, config)
 	case "ca":
 		exitCode = runCADemo(ctx, config)
-	case "all":
+	case cryptoutilSharedMagic.ModeNameAll:
 		exitCode = runIntegrationDemo(ctx, config)
 	case "help", "-h", "--help":
 		printUsage()

@@ -55,10 +55,10 @@ func TestAdminServer_Shutdown_Endpoint(t *testing.T) {
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //nolint:gosec // Self-signed cert in test.
 		},
-		Timeout: 5 * time.Second,
+		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}
 
-	reqCtx, reqCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	reqCtx, reqCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer reqCancel()
 
 	url := fmt.Sprintf("https://%s:%d/admin/api/v1/shutdown", cryptoutilSharedMagic.IPv4Loopback, port)
@@ -84,7 +84,7 @@ func TestAdminServer_Shutdown_Endpoint(t *testing.T) {
 	err = json.Unmarshal(body, &response)
 	require.NoError(t, err)
 
-	assert.Equal(t, "shutdown initiated", response["status"])
+	assert.Equal(t, "shutdown initiated", response[cryptoutilSharedMagic.StringStatus])
 
 	// The endpoint triggers shutdown in a goroutine with 100ms delay.
 	// Cancel context to let Start() exit cleanly, then wait for goroutine.

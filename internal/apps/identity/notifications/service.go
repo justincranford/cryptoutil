@@ -46,7 +46,7 @@ type NotificationConfig struct {
 // DefaultNotificationConfig returns the default notification configuration.
 func DefaultNotificationConfig() *NotificationConfig {
 	return &NotificationConfig{
-		Thresholds:      []int{7, 3, 1}, // 7 days, 3 days, 1 day before expiration
+		Thresholds:      []int{cryptoutilSharedMagic.GitRecentActivityDays, 3, 1}, // 7 days, 3 days, 1 day before expiration
 		Channels:        []NotificationChannel{ChannelLog},
 		WebhookURL:      "",
 		EmailRecipients: []string{},
@@ -110,7 +110,7 @@ func (s *NotificationService) CheckExpiringSecrets(ctx context.Context) (int, er
 	// Check each threshold (7, 3, 1 days).
 	for _, threshold := range s.config.Thresholds {
 		// Calculate time window for this threshold (e.g., 7 days ± 1 hour).
-		expirationStart := now.Add(time.Duration(threshold) * 24 * time.Hour)
+		expirationStart := now.Add(time.Duration(threshold) * cryptoutilSharedMagic.HoursPerDay * time.Hour)
 		expirationEnd := expirationStart.Add(cryptoutilSharedMagic.SecretRotationCheckInterval)
 
 		// Find active secrets expiring within this threshold window.

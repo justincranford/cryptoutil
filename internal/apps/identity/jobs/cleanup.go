@@ -6,6 +6,7 @@
 package jobs
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	"log/slog"
@@ -94,7 +95,7 @@ func (j *CleanupJob) cleanup(ctx context.Context) {
 	// Cleanup expired tokens.
 	tokensDeleted, err := j.cleanupExpiredTokens(ctx, now)
 	if err != nil {
-		j.logger.Error("Failed to cleanup expired tokens", "error", err)
+		j.logger.Error("Failed to cleanup expired tokens", cryptoutilSharedMagic.StringError, err)
 
 		j.metrics.ErrorCount++
 		j.metrics.LastError = fmt.Errorf("token cleanup failed: %w", err)
@@ -105,7 +106,7 @@ func (j *CleanupJob) cleanup(ctx context.Context) {
 	// Cleanup expired sessions.
 	sessionsDeleted, err := j.cleanupExpiredSessions(ctx, now)
 	if err != nil {
-		j.logger.Error("Failed to cleanup expired sessions", "error", err)
+		j.logger.Error("Failed to cleanup expired sessions", cryptoutilSharedMagic.StringError, err)
 
 		j.metrics.ErrorCount++
 		j.metrics.LastError = fmt.Errorf("session cleanup failed: %w", err)

@@ -234,31 +234,31 @@ func (s *jwsServiceImpl) verifyWithMaterial(ctx context.Context, jwsObject *jose
 // mapToSignatureAlgorithm maps algorithm string to JWS signature algorithm.
 func mapToSignatureAlgorithm(algorithm string) jose.SignatureAlgorithm {
 	switch algorithm {
-	case "RS256", "RSA/2048":
+	case cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilSharedMagic.JoseKeyTypeRSA2048:
 		return jose.RS256
-	case "RS384", "RSA/3072":
+	case cryptoutilSharedMagic.JoseAlgRS384, cryptoutilSharedMagic.JoseKeyTypeRSA3072:
 		return jose.RS384
-	case "RS512", "RSA/4096":
+	case cryptoutilSharedMagic.JoseAlgRS512, cryptoutilSharedMagic.JoseKeyTypeRSA4096:
 		return jose.RS512
-	case "PS256":
+	case cryptoutilSharedMagic.JoseAlgPS256:
 		return jose.PS256
-	case "PS384":
+	case cryptoutilSharedMagic.JoseAlgPS384:
 		return jose.PS384
-	case "PS512":
+	case cryptoutilSharedMagic.JoseAlgPS512:
 		return jose.PS512
-	case "ES256", "EC/P256":
+	case cryptoutilSharedMagic.JoseAlgES256, cryptoutilSharedMagic.JoseKeyTypeECP256:
 		return jose.ES256
-	case "ES384", "EC/P384":
+	case cryptoutilSharedMagic.JoseAlgES384, cryptoutilSharedMagic.JoseKeyTypeECP384:
 		return jose.ES384
-	case "ES512", "EC/P521":
+	case cryptoutilSharedMagic.JoseAlgES512, cryptoutilSharedMagic.JoseKeyTypeECP521:
 		return jose.ES512
-	case "EdDSA", "OKP/Ed25519":
+	case cryptoutilSharedMagic.JoseAlgEdDSA, cryptoutilSharedMagic.JoseKeyTypeOKPEd25519:
 		return jose.EdDSA
-	case "HS256", "oct/256":
+	case cryptoutilSharedMagic.JoseAlgHS256, cryptoutilSharedMagic.JoseKeyTypeOct256:
 		return jose.HS256
-	case "HS384", "oct/384":
+	case cryptoutilSharedMagic.JoseAlgHS384, cryptoutilSharedMagic.JoseKeyTypeOct384:
 		return jose.HS384
-	case "HS512", "oct/512":
+	case cryptoutilSharedMagic.JoseAlgHS512, cryptoutilSharedMagic.JoseKeyTypeOct512:
 		return jose.HS512
 	default:
 		return ""

@@ -82,7 +82,7 @@ func TestMain(m *testing.M) {
 	exitCode := m.Run()
 
 	// Cleanup: Shutdown server.
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second)
 	defer cancel()
 
 	_ = testJoseJAService.Shutdown(shutdownCtx)

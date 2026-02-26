@@ -5,6 +5,7 @@
 package idp_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -23,8 +24,8 @@ func TestAuthMiddleware(t *testing.T) {
 	ctx := context.Background()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
@@ -49,8 +50,8 @@ func TestTokenAuthMiddleware(t *testing.T) {
 	ctx := context.Background()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
@@ -75,8 +76,8 @@ func TestInitializeAuthProfiles(t *testing.T) {
 	ctx := context.Background()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
@@ -113,8 +114,8 @@ func TestHybridAuthMiddleware(t *testing.T) {
 	ctx := context.Background()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)

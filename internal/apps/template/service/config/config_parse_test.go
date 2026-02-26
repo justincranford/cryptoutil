@@ -5,6 +5,7 @@
 package config
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"testing"
 
@@ -24,7 +25,7 @@ log-level: INFO
 bind-public-port: 8080
 browser-ip-rate-limit: 100
 `
-	err := os.WriteFile(configFile1, []byte(config1Content), 0o600)
+	err := os.WriteFile(configFile1, []byte(config1Content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Write second config file (overrides).
@@ -33,7 +34,7 @@ log-level: DEBUG
 bind-public-port: 9080
 service-rate-limit: 200
 `
-	err = os.WriteFile(configFile2, []byte(config2Content), 0o600)
+	err = os.WriteFile(configFile2, []byte(config2Content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Parse with multiple config files (second should override first).
@@ -50,7 +51,7 @@ service-rate-limit: 200
 	require.Equal(t, "DEBUG", s.LogLevel, "second config should override log-level")
 	require.Equal(t, uint16(9080), s.BindPublicPort, "second config should override bind-public-port")
 	require.Equal(t, uint16(200), s.ServiceIPRateLimit, "second config should set service-rate-limit")
-	require.Equal(t, uint16(100), s.BrowserIPRateLimit, "first config browser-ip-rate-limit should remain")
+	require.Equal(t, uint16(cryptoutilSharedMagic.JoseJAMaxMaterials), s.BrowserIPRateLimit, "first config browser-ip-rate-limit should remain")
 }
 
 // TestFormatDefault_EmptyStringSlice tests formatDefault with empty []string.

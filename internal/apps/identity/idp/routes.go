@@ -5,6 +5,7 @@
 package idp
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	fiber "github.com/gofiber/fiber/v2"
 )
 
@@ -34,7 +35,7 @@ func (s *Service) RegisterRoutes(app *fiber.App) {
 	oidc.Post("/login", s.handleLoginSubmit)
 	oidc.Get("/consent", s.AuthMiddleware(), s.handleConsent)
 	oidc.Post("/consent", s.AuthMiddleware(), s.handleConsentSubmit)
-	oidc.Get("/userinfo", s.TokenAuthMiddleware(), s.handleUserInfo)
-	oidc.Post("/logout", s.AuthMiddleware(), s.handleLogout)
-	oidc.Get("/endsession", s.handleEndSession) // OIDC RP-Initiated Logout (no auth required).
+	oidc.Get(cryptoutilSharedMagic.PathUserInfo, s.TokenAuthMiddleware(), s.handleUserInfo)
+	oidc.Post(cryptoutilSharedMagic.PathLogout, s.AuthMiddleware(), s.handleLogout)
+	oidc.Get(cryptoutilSharedMagic.PathEndSession, s.handleEndSession) // OIDC RP-Initiated Logout (no auth required).
 }

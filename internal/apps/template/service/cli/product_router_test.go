@@ -5,6 +5,7 @@
 package cli_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"io"
 	"testing"
@@ -105,7 +106,7 @@ func TestRouteProduct_RoutesToService(t *testing.T) {
 
 	services := []cryptoutilAppsTemplateCli.ServiceEntry{
 		makeTestServiceEntry("svc1", 0),
-		makeTestServiceEntry("svc2", 42),
+		makeTestServiceEntry("svc2", cryptoutilSharedMagic.AnswerToLifeUniverseEverything),
 	}
 
 	t.Run("routes_to_svc1", func(t *testing.T) {
@@ -123,7 +124,7 @@ func TestRouteProduct_RoutesToService(t *testing.T) {
 		var stdout, stderr bytes.Buffer
 
 		exitCode := cryptoutilAppsTemplateCli.RouteProduct(testProductCfg, []string{"svc2"}, nil, &stdout, &stderr, services)
-		require.Equal(t, 42, exitCode)
+		require.Equal(t, cryptoutilSharedMagic.AnswerToLifeUniverseEverything, exitCode)
 	})
 }
 
@@ -134,11 +135,11 @@ func TestRouteProduct_MultipleServices(t *testing.T) {
 		serviceName  string
 		expectedCode int
 	}{
-		{serviceName: "authz", expectedCode: 1},
-		{serviceName: "idp", expectedCode: 2},
+		{serviceName: cryptoutilSharedMagic.AuthzServiceName, expectedCode: 1},
+		{serviceName: cryptoutilSharedMagic.IDPServiceName, expectedCode: 2},
 		{serviceName: "rs", expectedCode: 3},
 		{serviceName: "rp", expectedCode: 4},
-		{serviceName: "spa", expectedCode: 5},
+		{serviceName: cryptoutilSharedMagic.SPAServiceName, expectedCode: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
 	}
 
 	services := make([]cryptoutilAppsTemplateCli.ServiceEntry, 0, len(tests))

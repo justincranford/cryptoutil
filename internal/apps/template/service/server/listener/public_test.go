@@ -107,7 +107,7 @@ func TestPublicHTTPServer_Start_Success(t *testing.T) {
 	wg.Wait()
 
 	// Wait for port to be fully released.
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP * time.Millisecond)
 }
 
 // TestPublicHTTPServer_Start_NilContext tests Start rejects nil context.
@@ -160,7 +160,7 @@ func TestPublicHTTPServer_ServiceHealth_Healthy(t *testing.T) {
 				InsecureSkipVerify: true, //nolint:gosec // Test server uses self-signed cert.
 			},
 		},
-		Timeout: 5 * time.Second,
+		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}
 
 	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, server.ActualPort())
@@ -181,14 +181,14 @@ func TestPublicHTTPServer_ServiceHealth_Healthy(t *testing.T) {
 
 	err = json.Unmarshal(body, &result)
 	require.NoError(t, err)
-	require.Equal(t, "healthy", result["status"])
+	require.Equal(t, cryptoutilSharedMagic.DockerServiceHealthHealthy, result[cryptoutilSharedMagic.StringStatus])
 
 	// Shutdown server.
 	cancel()
 	wg.Wait()
 
 	// Wait for port to be fully released.
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP * time.Millisecond)
 }
 
 // TestPublicHTTPServer_BrowserHealth_Healthy tests /browser/api/v1/health returns healthy.
@@ -224,7 +224,7 @@ func TestPublicHTTPServer_BrowserHealth_Healthy(t *testing.T) {
 				InsecureSkipVerify: true, //nolint:gosec // Test server uses self-signed cert.
 			},
 		},
-		Timeout: 5 * time.Second,
+		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}
 
 	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, server.ActualPort())
@@ -245,14 +245,14 @@ func TestPublicHTTPServer_BrowserHealth_Healthy(t *testing.T) {
 
 	err = json.Unmarshal(body, &result)
 	require.NoError(t, err)
-	require.Equal(t, "healthy", result["status"])
+	require.Equal(t, cryptoutilSharedMagic.DockerServiceHealthHealthy, result[cryptoutilSharedMagic.StringStatus])
 
 	// Shutdown server.
 	cancel()
 	wg.Wait()
 
 	// Wait for port to be fully released.
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP * time.Millisecond)
 }
 
 // TestPublicHTTPServer_Shutdown_Graceful tests graceful shutdown.

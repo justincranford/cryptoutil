@@ -3,6 +3,7 @@
 package issuer
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/x509"
 	"testing"
 	"time"
@@ -52,7 +53,7 @@ func TestIssuer_Issue_InvalidRequest(t *testing.T) {
 				SubjectRequest: &cryptoutilCAProfileSubject.Request{
 					CommonName: "test",
 				},
-				ValidityDuration: 24 * time.Hour,
+				ValidityDuration: cryptoutilSharedMagic.HoursPerDay * time.Hour,
 			},
 			wantErr: "public key is required",
 		},
@@ -71,7 +72,7 @@ func TestIssuer_Issue_InvalidRequest(t *testing.T) {
 			name: "no-subject-request",
 			req: &CertificateRequest{
 				PublicKey:        keyPair.PublicKey,
-				ValidityDuration: 24 * time.Hour,
+				ValidityDuration: cryptoutilSharedMagic.HoursPerDay * time.Hour,
 			},
 			wantErr: "subject request is required",
 		},
@@ -103,7 +104,7 @@ func TestIssuer_Issue_ValidityTruncation(t *testing.T) {
 			Type:       cryptoutilCACrypto.KeyTypeECDSA,
 			ECDSACurve: "P-256",
 		},
-		ValidityDuration:  180 * 24 * time.Hour, // 180 days.
+		ValidityDuration:  180 * cryptoutilSharedMagic.HoursPerDay * time.Hour, // 180 days.
 		PathLenConstraint: 1,
 	}
 
@@ -118,7 +119,7 @@ func TestIssuer_Issue_ValidityTruncation(t *testing.T) {
 			Type:       cryptoutilCACrypto.KeyTypeECDSA,
 			ECDSACurve: "P-256",
 		},
-		ValidityDuration:  90 * 24 * time.Hour, // 90 days.
+		ValidityDuration:  cryptoutilSharedMagic.StrictCertificateMaxAgeDays * cryptoutilSharedMagic.HoursPerDay * time.Hour, // 90 days.
 		PathLenConstraint: 0,
 		IssuerCertificate: rootCA.Certificate,
 		IssuerPrivateKey:  rootCA.PrivateKey,
@@ -147,7 +148,7 @@ func TestIssuer_Issue_ValidityTruncation(t *testing.T) {
 			CommonName: "long-validity-request",
 		},
 		PublicKey:        keyPair.PublicKey,
-		ValidityDuration: 365 * 24 * time.Hour, // Request 1 year.
+		ValidityDuration: cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour, // Request 1 year.
 	}
 
 	issued, _, err := issuer.Issue(req)
@@ -171,7 +172,7 @@ func TestIssuer_Issue_ChainVerification(t *testing.T) {
 			Type:       cryptoutilCACrypto.KeyTypeECDSA,
 			ECDSACurve: "P-256",
 		},
-		ValidityDuration:  20 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.MaxErrorDisplay * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 2,
 	}
 
@@ -185,7 +186,7 @@ func TestIssuer_Issue_ChainVerification(t *testing.T) {
 			Type:       cryptoutilCACrypto.KeyTypeECDSA,
 			ECDSACurve: "P-256",
 		},
-		ValidityDuration:  10 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 0,
 		IssuerCertificate: rootCA.Certificate,
 		IssuerPrivateKey:  rootCA.PrivateKey,
@@ -215,7 +216,7 @@ func TestIssuer_Issue_ChainVerification(t *testing.T) {
 			DNSNames:   []string{"chain-test.example.com"},
 		},
 		PublicKey:        keyPair.PublicKey,
-		ValidityDuration: 90 * 24 * time.Hour,
+		ValidityDuration: cryptoutilSharedMagic.StrictCertificateMaxAgeDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 
 	issued, _, err := issuer.Issue(req)

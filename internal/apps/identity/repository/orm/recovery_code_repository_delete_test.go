@@ -5,6 +5,7 @@
 package orm_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -37,7 +38,7 @@ func TestRecoveryCodeRepository_DeleteByUserID(t *testing.T) {
 					CodeHash:  "hash-delete-1",
 					Used:      false,
 					CreatedAt: time.Now().UTC(),
-					ExpiresAt: time.Now().UTC().Add(24 * time.Hour).UTC(),
+					ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour).UTC(),
 				},
 				{
 					ID:        googleUuid.New(),
@@ -45,7 +46,7 @@ func TestRecoveryCodeRepository_DeleteByUserID(t *testing.T) {
 					CodeHash:  "hash-delete-2",
 					Used:      true,
 					CreatedAt: time.Now().UTC(),
-					ExpiresAt: time.Now().UTC().Add(24 * time.Hour).UTC(),
+					ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour).UTC(),
 				},
 			},
 			expectedError: "",
@@ -115,8 +116,8 @@ func TestRecoveryCodeRepository_DeleteExpired(t *testing.T) {
 					UserID:    googleUuid.New(),
 					CodeHash:  "hash-expired-1",
 					Used:      false,
-					CreatedAt: time.Now().UTC().Add(-48 * time.Hour).UTC(),
-					ExpiresAt: time.Now().UTC().Add(-24 * time.Hour).UTC(),
+					CreatedAt: time.Now().UTC().Add(-cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour).UTC(),
+					ExpiresAt: time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour).UTC(),
 				},
 				{
 					ID:        googleUuid.New(),
@@ -124,7 +125,7 @@ func TestRecoveryCodeRepository_DeleteExpired(t *testing.T) {
 					CodeHash:  "hash-valid-1",
 					Used:      false,
 					CreatedAt: time.Now().UTC(),
-					ExpiresAt: time.Now().UTC().Add(24 * time.Hour).UTC(),
+					ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour).UTC(),
 				},
 			},
 			expectedError:        "",
@@ -144,7 +145,7 @@ func TestRecoveryCodeRepository_DeleteExpired(t *testing.T) {
 					CodeHash:  "hash-valid-2",
 					Used:      false,
 					CreatedAt: time.Now().UTC(),
-					ExpiresAt: time.Now().UTC().Add(48 * time.Hour).UTC(),
+					ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour).UTC(),
 				},
 			},
 			expectedError:        "",
@@ -203,7 +204,7 @@ func TestRecoveryCodeRepository_CountUnused(t *testing.T) {
 					CodeHash:  "hash-unused-1",
 					Used:      false,
 					CreatedAt: time.Now().UTC(),
-					ExpiresAt: time.Now().UTC().Add(24 * time.Hour).UTC(),
+					ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour).UTC(),
 				},
 				{
 					ID:        googleUuid.New(),
@@ -211,7 +212,7 @@ func TestRecoveryCodeRepository_CountUnused(t *testing.T) {
 					CodeHash:  "hash-unused-2",
 					Used:      false,
 					CreatedAt: time.Now().UTC(),
-					ExpiresAt: time.Now().UTC().Add(24 * time.Hour).UTC(),
+					ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour).UTC(),
 				},
 				{
 					ID:        googleUuid.New(),
@@ -219,15 +220,15 @@ func TestRecoveryCodeRepository_CountUnused(t *testing.T) {
 					CodeHash:  "hash-used-1",
 					Used:      true,
 					CreatedAt: time.Now().UTC(),
-					ExpiresAt: time.Now().UTC().Add(24 * time.Hour).UTC(),
+					ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour).UTC(),
 				},
 				{
 					ID:        googleUuid.New(),
 					UserID:    googleUuid.UUID{}, // Overwritten below.
 					CodeHash:  "hash-expired-1",
 					Used:      false,
-					CreatedAt: time.Now().UTC().Add(-48 * time.Hour).UTC(),
-					ExpiresAt: time.Now().UTC().Add(-24 * time.Hour).UTC(),
+					CreatedAt: time.Now().UTC().Add(-cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour).UTC(),
+					ExpiresAt: time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour).UTC(),
 				},
 			},
 			expectedCount: 2,

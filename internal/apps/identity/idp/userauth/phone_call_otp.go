@@ -88,7 +88,7 @@ func (a *PhoneCallOTPAuthenticator) InitiateAuth(ctx context.Context, userID str
 		Method:    a.Method(),
 		ExpiresAt: time.Now().UTC().Add(a.otpExpiration),
 		Metadata: map[string]any{
-			"phone":       user.PhoneNumber,
+			cryptoutilSharedMagic.ScopePhone:       user.PhoneNumber,
 			"retry_count": 0,
 		},
 	}

@@ -218,7 +218,7 @@ func TestGenerateNotBeforeNotAfter_InvalidParams(t *testing.T) {
 		{
 			name:           "minSubtract is zero",
 			requestedStart: now,
-			requestedDur:   24 * time.Hour,
+			requestedDur:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
 			minSubtract:    0,
 			maxSubtract:    time.Hour,
 			wantErrContain: "minSubtract must be positive",
@@ -226,7 +226,7 @@ func TestGenerateNotBeforeNotAfter_InvalidParams(t *testing.T) {
 		{
 			name:           "maxSubtract is zero",
 			requestedStart: now,
-			requestedDur:   24 * time.Hour,
+			requestedDur:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
 			minSubtract:    time.Minute,
 			maxSubtract:    0,
 			wantErrContain: "maxSubtract must be positive",
@@ -234,7 +234,7 @@ func TestGenerateNotBeforeNotAfter_InvalidParams(t *testing.T) {
 		{
 			name:           "maxRangeOffset is zero (maxSubtract equals minSubtract)",
 			requestedStart: now,
-			requestedDur:   24 * time.Hour,
+			requestedDur:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
 			minSubtract:    time.Hour,
 			maxSubtract:    time.Hour, // maxRangeOffset = maxSubtract - minSubtract = 0.
 			wantErrContain: "maxRangeOffset must be positive",
@@ -242,7 +242,7 @@ func TestGenerateNotBeforeNotAfter_InvalidParams(t *testing.T) {
 		{
 			name:           "maxRangeOffset is negative (maxSubtract less than minSubtract)",
 			requestedStart: now,
-			requestedDur:   24 * time.Hour,
+			requestedDur:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
 			minSubtract:    2 * time.Hour,
 			maxSubtract:    time.Hour, // maxRangeOffset = 1h - 2h = -1h.
 			wantErrContain: "maxRangeOffset must be positive",
@@ -266,13 +266,13 @@ func TestRandomizedNotBeforeNotAfterCA_ExcessiveDuration(t *testing.T) {
 	t.Parallel()
 
 	// 26 years exceeds TLSMaxCACertDuration (25 years).
-	excessiveDuration := time.Duration(26 * 365 * 24 * time.Hour)
+	excessiveDuration := time.Duration(26 * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour)
 
 	_, _, err := randomizedNotBeforeNotAfterCA(
 		time.Now().UTC(),
 		excessiveDuration,
 		time.Minute,
-		120*time.Minute,
+		cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes*time.Minute,
 	)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "requestedDuration exceeds maxCACertDuration")
@@ -284,13 +284,13 @@ func TestRandomizedNotBeforeNotAfterEndEntity_ExcessiveDuration(t *testing.T) {
 	t.Parallel()
 
 	// 398 days exceeds TLSDefaultSubscriberCertDuration (397 days).
-	excessiveDuration := 398 * 24 * time.Hour
+	excessiveDuration := cryptoutilSharedMagic.TLSMaxValidityEndEntityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour
 
 	_, _, err := randomizedNotBeforeNotAfterEndEntity(
 		time.Now().UTC(),
 		excessiveDuration,
 		time.Minute,
-		120*time.Minute,
+		cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes*time.Minute,
 	)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "requestedDuration exceeds maxSubscriberCertDuration")

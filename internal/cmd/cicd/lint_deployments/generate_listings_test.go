@@ -1,6 +1,7 @@
 package lint_deployments
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	json "encoding/json"
 	"os"
 	"path/filepath"
@@ -342,11 +343,11 @@ func createTestFile(t *testing.T, dir string, name string, content string) {
 	path := filepath.Join(dir, name)
 
 	dirPath := filepath.Dir(path)
-	if err := os.MkdirAll(dirPath, 0o755); err != nil {
+	if err := os.MkdirAll(dirPath, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute); err != nil {
 		t.Fatalf("failed to create directory %s: %v", dirPath, err)
 	}
 
-	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+	if err := os.WriteFile(path, []byte(content), cryptoutilSharedMagic.CacheFilePermissions); err != nil {
 		t.Fatalf("failed to create file %s: %v", path, err)
 	}
 }
@@ -356,7 +357,7 @@ func createTestDir(t *testing.T, dir string, name string) {
 	t.Helper()
 
 	path := filepath.Join(dir, name)
-	if err := os.MkdirAll(path, 0o755); err != nil {
+	if err := os.MkdirAll(path, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute); err != nil {
 		t.Fatalf("failed to create directory %s: %v", path, err)
 	}
 }
@@ -394,7 +395,7 @@ func TestGenerateDirectoryListing_WalkError(t *testing.T) {
 
 	// Create a subdirectory then remove read permission.
 	subDir := filepath.Join(tmpDir, "restricted")
-	require.NoError(t, os.MkdirAll(subDir, 0o755))
+	require.NoError(t, os.MkdirAll(subDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	createTestFile(t, subDir, "file.txt", "data")
 
 	// Remove read permission on subdirectory.
@@ -402,7 +403,7 @@ func TestGenerateDirectoryListing_WalkError(t *testing.T) {
 
 	t.Cleanup(func() {
 		// Restore permission for cleanup.
-		_ = os.Chmod(subDir, 0o755)
+		_ = os.Chmod(subDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	})
 
 	_, err := GenerateDirectoryListing(tmpDir)

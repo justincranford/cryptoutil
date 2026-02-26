@@ -83,9 +83,9 @@ func TestPrintExecutiveSummaryFooter(t *testing.T) {
 			t.Parallel()
 
 			summary := &ExecutionSummary{
-				StartTime:     now.Add(-10 * time.Second),
+				StartTime:     now.Add(-cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second),
 				EndTime:       now,
-				TotalDuration: 10 * time.Second,
+				TotalDuration: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second,
 				TotalSuccess:  2 - tc.totalFailed,
 				TotalFailed:   tc.totalFailed,
 				OutputDir:     "/tmp/output",
@@ -94,7 +94,7 @@ func TestPrintExecutiveSummaryFooter(t *testing.T) {
 					{
 						Name:         "quality",
 						Success:      tc.totalFailed == 0,
-						Duration:     5 * time.Second,
+						Duration:     cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 						LogFile:      "/tmp/quality.log",
 						AnalysisFile: "/tmp/quality.md",
 						ErrorMessages: func() []string {
@@ -315,17 +315,17 @@ func TestCreateAnalysisFile(t *testing.T) {
 			result := WorkflowResult{
 				Name:         "test-workflow",
 				Success:      tc.success,
-				StartTime:    now.Add(-5 * time.Second),
+				StartTime:    now.Add(-cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second),
 				EndTime:      now,
-				Duration:     5 * time.Second,
+				Duration:     cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 				LogFile:      "/tmp/test.log",
 				AnalysisFile: analysisFile,
 				TaskResults:  make(map[string]TaskResult),
 			}
 
 			if tc.withTasks {
-				result.TaskResults["ok"] = TaskResult{Name: "ok", Status: "SUCCESS", Artifacts: []string{"artifact.txt"}}
-				result.TaskResults["fail"] = TaskResult{Name: "fail", Status: "FAILED"}
+				result.TaskResults["ok"] = TaskResult{Name: "ok", Status: cryptoutilSharedMagic.TaskSuccess, Artifacts: []string{"artifact.txt"}}
+				result.TaskResults["fail"] = TaskResult{Name: "fail", Status: cryptoutilSharedMagic.TaskFailed}
 			}
 
 			if tc.withErrors {
@@ -405,7 +405,7 @@ func TestGetWorkflowDescription(t *testing.T) {
 		{
 			name:         "nonexistent file - fallback description",
 			workflowName: "nonexistent_xyz",
-			wfDir:        "none",
+			wfDir:        cryptoutilSharedMagic.PromptNone,
 			wantContains: "nonexistent",
 		},
 	}
@@ -414,7 +414,7 @@ func TestGetWorkflowDescription(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			if tc.wfDir != "none" {
+			if tc.wfDir != cryptoutilSharedMagic.PromptNone {
 				// Create a temp directory with workflow file and use a test that doesn't need os.Chdir.
 				// Instead we need to pass the path to getWorkflowDescription, but it hardcodes the path.
 				// So we test by checking the fallback description format for names not found.

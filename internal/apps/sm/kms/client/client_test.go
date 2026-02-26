@@ -212,19 +212,19 @@ func generateHappyPathElasticKeyTestCasesEncrypt() []elasticKeyTestCase {
 }
 
 var happyPathElasticKeyTestCasesSign = []elasticKeyTestCase{
-	{name: "placeholder", description: "placeholder", algorithm: "RS256", provider: "Internal", importAllowed: false, versioningAllowed: true},
+	{name: "placeholder", description: "placeholder", algorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, provider: "Internal", importAllowed: false, versioningAllowed: true},
 	// {name: "placeholder", description: "placeholder", algorithm: "RS384", provider: "Internal", importAllowed: false, versioningAllowed: true},
 	// {name: "placeholder", description: "placeholder", algorithm: "RS512", provider: "Internal", importAllowed: false, versioningAllowed: true},
-	{name: "placeholder", description: "placeholder", algorithm: "PS256", provider: "Internal", importAllowed: false, versioningAllowed: true},
+	{name: "placeholder", description: "placeholder", algorithm: cryptoutilSharedMagic.JoseAlgPS256, provider: "Internal", importAllowed: false, versioningAllowed: true},
 	// {name: "placeholder", description: "placeholder", algorithm: "PS384", provider: "Internal", importAllowed: false, versioningAllowed: true},
 	// {name: "placeholder", description: "placeholder", algorithm: "PS512", provider: "Internal", importAllowed: false, versioningAllowed: true},
-	{name: "placeholder", description: "placeholder", algorithm: "ES256", provider: "Internal", importAllowed: false, versioningAllowed: true},
+	{name: "placeholder", description: "placeholder", algorithm: cryptoutilSharedMagic.JoseAlgES256, provider: "Internal", importAllowed: false, versioningAllowed: true},
 	// {name: "placeholder", description: "placeholder", algorithm: "ES384", provider: "Internal", importAllowed: false, versioningAllowed: true},
 	// {name: "placeholder", description: "placeholder", algorithm: "ES512", provider: "Internal", importAllowed: false, versioningAllowed: true},
-	{name: "placeholder", description: "placeholder", algorithm: "HS256", provider: "Internal", importAllowed: false, versioningAllowed: true},
+	{name: "placeholder", description: "placeholder", algorithm: cryptoutilSharedMagic.JoseAlgHS256, provider: "Internal", importAllowed: false, versioningAllowed: true},
 	// {name: "placeholder", description: "placeholder", algorithm: "HS384", provider: "Internal", importAllowed: false, versioningAllowed: true},
 	// {name: "placeholder", description: "placeholder", algorithm: "HS512", provider: "Internal", importAllowed: false, versioningAllowed: true},
-	{name: "placeholder", description: "placeholder", algorithm: "EdDSA", provider: "Internal", importAllowed: false, versioningAllowed: true},
+	{name: "placeholder", description: "placeholder", algorithm: cryptoutilSharedMagic.JoseAlgEdDSA, provider: "Internal", importAllowed: false, versioningAllowed: true},
 }
 
 func TestAllElasticKeyCipherAlgorithms(t *testing.T) {

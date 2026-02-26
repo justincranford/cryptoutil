@@ -48,8 +48,8 @@ func TestHandleAuthorizationCodeGrant_ErrorPaths(t *testing.T) {
 					ClientID:                clientID,
 					ClientSecret:            "test-secret",
 					Name:                    "Test Client",
-					RedirectURIs:            []string{"https://example.com/callback"},
-					AllowedScopes:           []string{"openid", "profile"},
+					RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
+					AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 					ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 					TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
 					RequirePKCE:             boolPtr(true),
@@ -68,13 +68,13 @@ func TestHandleAuthorizationCodeGrant_ErrorPaths(t *testing.T) {
 					ID:                  googleUuid.Must(googleUuid.NewV7()),
 					ClientID:            clientID,
 					Code:                authCode,
-					RedirectURI:         "https://example.com/callback",
+					RedirectURI:         cryptoutilSharedMagic.DemoRedirectURI,
 					ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
 					Scope:               "openid profile",
 					CodeChallenge:       "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
 					CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 					CreatedAt:           time.Now().UTC(),
-					ExpiresAt:           time.Now().UTC().Add(10 * time.Minute),
+					ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
 					ConsentGranted:      true,
 					// UserID NOT SET - this is the error condition we're testing
 				}
@@ -84,7 +84,7 @@ func TestHandleAuthorizationCodeGrant_ErrorPaths(t *testing.T) {
 
 				verifier := "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk" // Valid verifier for challenge above
 
-				return clientID, authCode, "https://example.com/callback", verifier
+				return clientID, authCode, cryptoutilSharedMagic.DemoRedirectURI, verifier
 			},
 			expectedStatus: fiber.StatusBadRequest,
 			expectedError:  cryptoutilSharedMagic.ErrorInvalidRequest,
@@ -109,11 +109,11 @@ func TestHandleAuthorizationCodeGrant_ErrorPaths(t *testing.T) {
 
 			// Build token request form.
 			form := url.Values{}
-			form.Set("grant_type", cryptoutilSharedMagic.GrantTypeAuthorizationCode)
-			form.Set("code", code)
-			form.Set("redirect_uri", redirectURI)
-			form.Set("client_id", clientID)
-			form.Set("code_verifier", codeVerifier)
+			form.Set(cryptoutilSharedMagic.ParamGrantType, cryptoutilSharedMagic.GrantTypeAuthorizationCode)
+			form.Set(cryptoutilSharedMagic.ResponseTypeCode, code)
+			form.Set(cryptoutilSharedMagic.ParamRedirectURI, redirectURI)
+			form.Set(cryptoutilSharedMagic.ClaimClientID, clientID)
+			form.Set(cryptoutilSharedMagic.ParamCodeVerifier, codeVerifier)
 
 			req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(form.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -151,8 +151,8 @@ func TestHandleRevoke_ErrorPaths(t *testing.T) {
 					ClientID:                "test-client-" + googleUuid.NewString(),
 					ClientSecret:            "test-secret",
 					Name:                    "Test Client",
-					RedirectURIs:            []string{"https://example.com/callback"},
-					AllowedScopes:           []string{"read", "write"},
+					RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
+					AllowedScopes:           []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
 					ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 					TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
 					RequirePKCE:             boolPtr(true),
@@ -171,7 +171,7 @@ func TestHandleRevoke_ErrorPaths(t *testing.T) {
 					TokenType:   cryptoutilIdentityDomain.TokenTypeAccess,
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					TokenValue:  tokenValue,
-					Scopes:      []string{"read"},
+					Scopes:      []string{cryptoutilSharedMagic.ScopeRead},
 					ExpiresAt:   time.Now().UTC().Add(1 * time.Hour),
 					IssuedAt:    time.Now().UTC(),
 					NotBefore:   time.Now().UTC(),
@@ -209,12 +209,12 @@ func TestHandleRevoke_ErrorPaths(t *testing.T) {
 				Tokens: &cryptoutilIdentityConfig.TokenConfig{
 					Issuer:               "https://identity.example.com",
 					AccessTokenLifetime:  15 * time.Minute,
-					RefreshTokenLifetime: 24 * time.Hour,
+					RefreshTokenLifetime: cryptoutilSharedMagic.HoursPerDay * time.Hour,
 				},
 			}
 
 			dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-				Type:        "sqlite",
+				Type:        cryptoutilSharedMagic.TestDatabaseSQLite,
 				DSN:         "file::memory:?cache=private&_id=" + googleUuid.NewString(),
 				AutoMigrate: true,
 			}
@@ -236,7 +236,7 @@ func TestHandleRevoke_ErrorPaths(t *testing.T) {
 
 			// Build revocation request form.
 			form := url.Values{}
-			form.Set("token", tokenValue)
+			form.Set(cryptoutilSharedMagic.ParamToken, tokenValue)
 
 			req := httptest.NewRequest("POST", "/oauth2/v1/revoke", strings.NewReader(form.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -260,12 +260,12 @@ func createUncoveredPathsTestDependencies(t *testing.T) (*cryptoutilIdentityConf
 
 	config := &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
+			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
 			DSN:  fmt.Sprintf("file::memory:?cache=private&mode=memory&_id=%s", googleUuid.New().String()),
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			Issuer:              "https://localhost:8080",
-			AccessTokenLifetime: 3600,
+			AccessTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		},
 	}
 

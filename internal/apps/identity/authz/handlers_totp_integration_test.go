@@ -6,6 +6,7 @@
 package authz_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
 
@@ -60,7 +61,7 @@ func TestTOTPEnrollment_HappyPath(t *testing.T) {
 
 	backupCodes, ok := enrollResp["backup_codes"].([]any)
 	require.True(t, ok, "backup_codes should be array")
-	require.Len(t, backupCodes, 10, "Should generate 10 backup codes")
+	require.Len(t, backupCodes, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, "Should generate 10 backup codes")
 
 	// ========== STEP 2: Verify Secret Stored in Database ==========
 	var secret cryptoutilIdentityMfa.TOTPSecret
@@ -76,7 +77,7 @@ func TestTOTPEnrollment_HappyPath(t *testing.T) {
 
 	err = db.Where("user_id = ?", userID).Find(&storedCodes).Error
 	require.NoError(t, err, "Should retrieve backup codes")
-	require.Len(t, storedCodes, 10, "Should store 10 backup codes")
+	require.Len(t, storedCodes, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, "Should store 10 backup codes")
 
 	for _, code := range storedCodes {
 		require.False(t, code.Used, "Backup codes should not be used yet")
@@ -193,7 +194,7 @@ func TestTOTPLockout_FiveFailedAttempts(t *testing.T) {
 
 	// Submit 5 invalid codes.
 	invalidCode := "000000"
-	for i := 0; i < 5; i++ {
+	for i := 0; i < cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries; i++ {
 		verifyResp := verifyTOTP(t, app, userID, invalidCode, 200)
 		verified, ok := verifyResp["verified"].(bool)
 		require.True(t, ok, "verified should be boolean")
@@ -205,13 +206,13 @@ func TestTOTPLockout_FiveFailedAttempts(t *testing.T) {
 
 	err := db.Where("user_id = ?", userID).First(&totpSecret).Error
 	require.NoError(t, err, "Should retrieve TOTP secret")
-	require.Equal(t, 5, totpSecret.FailedAttempts, "Should have 5 failed attempts")
+	require.Equal(t, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, totpSecret.FailedAttempts, "Should have 5 failed attempts")
 	require.NotNil(t, totpSecret.LockedUntil, "Account should be locked")
 	require.True(t, totpSecret.LockedUntil.After(time.Now().UTC()), "Lockout should be in future")
 
 	// 6th attempt should return 403 Forbidden.
 	verifyResp := verifyTOTP(t, app, userID, invalidCode, 403)
-	require.Contains(t, verifyResp, "error", "Response should include error")
+	require.Contains(t, verifyResp, cryptoutilSharedMagic.StringError, "Response should include error")
 }
 
 // TestMFAStepUp_ThirtyMinuteRequirement validates 30-minute step-up requirement.
@@ -301,7 +302,7 @@ func TestBackupCodes_GenerateAndVerify(t *testing.T) {
 
 	backupCodes, ok := enrollResp["backup_codes"].([]any)
 	require.True(t, ok, "backup_codes should be array")
-	require.Len(t, backupCodes, 10, "Should generate 10 backup codes")
+	require.Len(t, backupCodes, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, "Should generate 10 backup codes")
 
 	// Store first code for testing.
 	code1, ok := backupCodes[0].(string)
@@ -342,14 +343,14 @@ func TestBackupCodes_GenerateAndVerify(t *testing.T) {
 
 	newCodes, ok := regenerateResp["backup_codes"].([]any)
 	require.True(t, ok, "backup_codes should be array")
-	require.Len(t, newCodes, 10, "Should generate 10 new backup codes")
+	require.Len(t, newCodes, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, "Should generate 10 new backup codes")
 
 	// Verify old codes invalidated.
 	var storedCodesAfterRegenerate []cryptoutilIdentityMfa.BackupCode
 
 	err = db.Where("user_id = ?", userID).Find(&storedCodesAfterRegenerate).Error
 	require.NoError(t, err, "Should retrieve backup codes after regeneration")
-	require.Len(t, storedCodesAfterRegenerate, 10, "Should have 10 backup codes after regeneration")
+	require.Len(t, storedCodesAfterRegenerate, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, "Should have 10 backup codes after regeneration")
 
 	for _, code := range storedCodesAfterRegenerate {
 		require.False(t, code.Used, "New backup codes should not be used")

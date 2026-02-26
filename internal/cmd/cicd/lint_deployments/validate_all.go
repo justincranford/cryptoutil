@@ -1,6 +1,7 @@
 package lint_deployments
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -249,13 +250,13 @@ func discoverDeploymentDirs(deploymentsDir string) []deploymentEntry {
 // classifyDeployment determines the deployment type from the directory name.
 func classifyDeployment(name string) string {
 	serviceNames := map[string]bool{
-		"jose-ja": true, "sm-im": true, "pki-ca": true, "sm-kms": true,
-		"identity-authz": true, "identity-idp": true, "identity-rp": true,
-		"identity-rs": true, "identity-spa": true,
+		cryptoutilSharedMagic.OTLPServiceJoseJA: true, cryptoutilSharedMagic.OTLPServiceSMIM: true, cryptoutilSharedMagic.OTLPServicePKICA: true, cryptoutilSharedMagic.OTLPServiceSMKMS: true,
+		cryptoutilSharedMagic.OTLPServiceIdentityAuthz: true, cryptoutilSharedMagic.OTLPServiceIdentityIDP: true, cryptoutilSharedMagic.OTLPServiceIdentityRP: true,
+		cryptoutilSharedMagic.OTLPServiceIdentityRS: true, cryptoutilSharedMagic.OTLPServiceIdentitySPA: true,
 	}
 
 	productNames := map[string]bool{
-		"identity": true, "sm": true, "pki": true, "jose": true,
+		cryptoutilSharedMagic.IdentityProductName: true, "sm": true, cryptoutilSharedMagic.PKIProductName: true, cryptoutilSharedMagic.JoseProductName: true,
 	}
 
 	switch {

@@ -148,7 +148,7 @@ func setupRotationTestEnvironment(t *testing.T) (*fiber.App, *RotationService, *
 	dbID, _ := googleUuid.NewV7()
 	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
 
-	testSQLDB, err := sql.Open("sqlite", dsn)
+	testSQLDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = testSQLDB.Close() })
 
@@ -207,7 +207,7 @@ func setupRotationTestEnvironment(t *testing.T) (*fiber.App, *RotationService, *
 	app := fiber.New(fiber.Config{
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": err.Error(),
+				cryptoutilSharedMagic.StringError: err.Error(),
 			})
 		},
 	})
@@ -402,7 +402,7 @@ func TestRotateKey_MissingReason(t *testing.T) {
 
 			err = json.Unmarshal(respBody, &errResp)
 			require.NoError(t, err)
-			require.Equal(t, "validation_error", errResp["error"])
+			require.Equal(t, "validation_error", errResp[cryptoutilSharedMagic.StringError])
 			require.Contains(t, errResp["message"], "at least 10 characters")
 		})
 	}
@@ -440,7 +440,7 @@ func TestRotateKey_ShortReason(t *testing.T) {
 
 			err = json.Unmarshal(respBody, &errResp)
 			require.NoError(t, err)
-			require.Equal(t, "validation_error", errResp["error"])
+			require.Equal(t, "validation_error", errResp[cryptoutilSharedMagic.StringError])
 			require.Contains(t, errResp["message"], "at least 10 characters")
 		})
 	}

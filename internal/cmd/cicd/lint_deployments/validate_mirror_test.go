@@ -1,6 +1,7 @@
 package lint_deployments
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -17,15 +18,15 @@ func TestMapDeploymentToConfig(t *testing.T) {
 		deployment string
 		want       string
 	}{
-		{name: "identity service", deployment: "identity-authz", want: "identity"},
-		{name: "identity product", deployment: "identity", want: "identity"},
-		{name: "sm-im service", deployment: "sm-im", want: "sm"},
-		{name: "jose service", deployment: "jose-ja", want: "jose"},
-		{name: "jose product", deployment: "jose", want: "jose"},
-		{name: "pki explicit mapping", deployment: "pki", want: "ca"},
-		{name: "pki-ca explicit mapping", deployment: "pki-ca", want: "ca"},
+		{name: "identity service", deployment: cryptoutilSharedMagic.OTLPServiceIdentityAuthz, want: cryptoutilSharedMagic.IdentityProductName},
+		{name: "identity product", deployment: cryptoutilSharedMagic.IdentityProductName, want: cryptoutilSharedMagic.IdentityProductName},
+		{name: "sm-im service", deployment: cryptoutilSharedMagic.OTLPServiceSMIM, want: "sm"},
+		{name: "jose service", deployment: cryptoutilSharedMagic.OTLPServiceJoseJA, want: cryptoutilSharedMagic.JoseProductName},
+		{name: "jose product", deployment: cryptoutilSharedMagic.JoseProductName, want: cryptoutilSharedMagic.JoseProductName},
+		{name: "pki explicit mapping", deployment: cryptoutilSharedMagic.PKIProductName, want: "ca"},
+		{name: "pki-ca explicit mapping", deployment: cryptoutilSharedMagic.OTLPServicePKICA, want: "ca"},
 		{name: "sm explicit mapping", deployment: "sm", want: "sm"},
-		{name: "sm-kms explicit mapping", deployment: "sm-kms", want: "sm"},
+		{name: "sm-kms explicit mapping", deployment: cryptoutilSharedMagic.OTLPServiceSMKMS, want: "sm"},
 		{name: "single segment fallback", deployment: "newproduct", want: "newproduct"},
 		{name: "product-service fallback", deployment: "newproduct-service", want: "newproduct"},
 	}
@@ -169,7 +170,7 @@ func TestValidateStructuralMirror(t *testing.T) {
 			t.Error("expected valid when only excluded dirs exist")
 		}
 
-		if len(result.Excluded) != 5 {
+		if len(result.Excluded) != cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries {
 			t.Errorf("expected 5 excluded, got %d: %v", len(result.Excluded), result.Excluded)
 		}
 
@@ -188,7 +189,7 @@ func TestValidateStructuralMirror(t *testing.T) {
 		createTestDir(t, tmpDir, "configs")
 
 		// Create deployment dir without matching config dir.
-		createTestDir(t, deploymentsDir, "sm-im")
+		createTestDir(t, deploymentsDir, cryptoutilSharedMagic.OTLPServiceSMIM)
 
 		result, err := ValidateStructuralMirror(deploymentsDir, configsDir)
 		if err != nil {
@@ -203,7 +204,7 @@ func TestValidateStructuralMirror(t *testing.T) {
 			t.Fatalf("expected 1 missing, got %d", len(result.MissingMirrors))
 		}
 
-		if result.MissingMirrors[0] != "sm-im" {
+		if result.MissingMirrors[0] != cryptoutilSharedMagic.OTLPServiceSMIM {
 			t.Errorf("expected missing mirror 'sm-im', got %q", result.MissingMirrors[0])
 		}
 	})
@@ -218,7 +219,7 @@ func TestValidateStructuralMirror(t *testing.T) {
 		createTestDir(t, tmpDir, "configs")
 
 		// Create deployment and matching config.
-		createTestDir(t, deploymentsDir, "sm-im")
+		createTestDir(t, deploymentsDir, cryptoutilSharedMagic.OTLPServiceSMIM)
 		createTestDir(t, configsDir, "sm")
 
 		result, err := ValidateStructuralMirror(deploymentsDir, configsDir)
@@ -271,9 +272,9 @@ func TestValidateStructuralMirror(t *testing.T) {
 		createTestDir(t, tmpDir, "configs")
 
 		// Both identity and identity-authz map to identity config.
-		createTestDir(t, deploymentsDir, "identity")
-		createTestDir(t, deploymentsDir, "identity-authz")
-		createTestDir(t, configsDir, "identity")
+		createTestDir(t, deploymentsDir, cryptoutilSharedMagic.IdentityProductName)
+		createTestDir(t, deploymentsDir, cryptoutilSharedMagic.OTLPServiceIdentityAuthz)
+		createTestDir(t, configsDir, cryptoutilSharedMagic.IdentityProductName)
 
 		result, err := ValidateStructuralMirror(deploymentsDir, configsDir)
 		if err != nil {
@@ -298,7 +299,7 @@ func TestValidateStructuralMirror(t *testing.T) {
 		createTestDir(t, tmpDir, "deployments")
 		createTestDir(t, tmpDir, "configs")
 
-		createTestDir(t, deploymentsDir, "pki-ca")
+		createTestDir(t, deploymentsDir, cryptoutilSharedMagic.OTLPServicePKICA)
 		createTestDir(t, configsDir, "ca")
 
 		result, err := ValidateStructuralMirror(deploymentsDir, configsDir)
@@ -349,7 +350,7 @@ func TestFormatMirrorResult(t *testing.T) {
 
 		output := FormatMirrorResult(result)
 
-		assert.Contains(t, output, "PASS")
+		assert.Contains(t, output, cryptoutilSharedMagic.TestStatusPass)
 		assert.Contains(t, output, "Excluded (1)")
 		assert.Contains(t, output, "shared-postgres")
 		assert.NotContains(t, output, "Errors")
@@ -361,7 +362,7 @@ func TestFormatMirrorResult(t *testing.T) {
 
 		result := &MirrorResult{
 			Valid:          false,
-			MissingMirrors: []string{"sm", "jose"},
+			MissingMirrors: []string{"sm", cryptoutilSharedMagic.JoseProductName},
 			Orphans:        []string{"orphan1"},
 			Excluded:       []string{"template"},
 			Errors:         []string{"some error"},
@@ -370,7 +371,7 @@ func TestFormatMirrorResult(t *testing.T) {
 
 		output := FormatMirrorResult(result)
 
-		assert.Contains(t, output, "FAIL")
+		assert.Contains(t, output, cryptoutilSharedMagic.TestStatusFail)
 		assert.Contains(t, output, "Excluded (1)")
 		assert.Contains(t, output, "template")
 		assert.Contains(t, output, "Errors (1)")
@@ -390,7 +391,7 @@ func TestFormatMirrorResult(t *testing.T) {
 
 		output := FormatMirrorResult(result)
 
-		assert.Contains(t, output, "PASS")
+		assert.Contains(t, output, cryptoutilSharedMagic.TestStatusPass)
 		assert.NotContains(t, output, "Excluded")
 		assert.NotContains(t, output, "Errors")
 		assert.NotContains(t, output, "Warnings")
@@ -405,13 +406,13 @@ func TestValidateStructuralMirror_ExcludedWithConfigs(t *testing.T) {
 	deploymentsDir := filepath.Join(tmpDir, "deployments")
 	configsDir := filepath.Join(tmpDir, "configs")
 
-	require.NoError(t, os.MkdirAll(deploymentsDir, 0o750))
-	require.NoError(t, os.MkdirAll(configsDir, 0o750))
+	require.NoError(t, os.MkdirAll(deploymentsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
+	require.NoError(t, os.MkdirAll(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
 
 	// Create excluded deployment + a matching config deployment.
 	createTestDir(t, deploymentsDir, "shared-postgres")
-	createTestDir(t, deploymentsDir, "jose-ja")
-	createTestDir(t, configsDir, "jose")
+	createTestDir(t, deploymentsDir, cryptoutilSharedMagic.OTLPServiceJoseJA)
+	createTestDir(t, configsDir, cryptoutilSharedMagic.JoseProductName)
 
 	// Add an orphan config to trigger the orphan check loop which includes excluded dirs.
 	createTestDir(t, configsDir, "orphaned")
@@ -432,15 +433,15 @@ func TestValidateStructuralMirror_MatchedAndOrphaned(t *testing.T) {
 	deploymentsDir := filepath.Join(tmpDir, "deployments")
 	configsDir := filepath.Join(tmpDir, "configs")
 
-	require.NoError(t, os.MkdirAll(deploymentsDir, 0o755))
-	require.NoError(t, os.MkdirAll(configsDir, 0o755))
+	require.NoError(t, os.MkdirAll(deploymentsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.MkdirAll(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	// Create matched pair: sm-im -> sm.
-	require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, "sm-im"), 0o755))
-	require.NoError(t, os.MkdirAll(filepath.Join(configsDir, "sm"), 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServiceSMIM), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.MkdirAll(filepath.Join(configsDir, "sm"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	// Create orphaned config (no matching deployment).
-	require.NoError(t, os.MkdirAll(filepath.Join(configsDir, "orphan-svc"), 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Join(configsDir, "orphan-svc"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	result, err := ValidateStructuralMirror(deploymentsDir, configsDir)
 	require.NoError(t, err)
@@ -460,14 +461,14 @@ func TestValidateStructuralMirror_UnreadableDeployments(t *testing.T) {
 	deploymentsDir := filepath.Join(tmpDir, "deployments")
 	configsDir := filepath.Join(tmpDir, "configs")
 
-	require.NoError(t, os.MkdirAll(deploymentsDir, 0o750))
-	require.NoError(t, os.MkdirAll(configsDir, 0o750))
+	require.NoError(t, os.MkdirAll(deploymentsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
+	require.NoError(t, os.MkdirAll(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
 
 	// Make deployments dir unreadable.
 	require.NoError(t, os.Chmod(deploymentsDir, 0o000))
 
 	t.Cleanup(func() {
-		_ = os.Chmod(deploymentsDir, 0o750)
+		_ = os.Chmod(deploymentsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute)
 	})
 
 	_, err := ValidateStructuralMirror(deploymentsDir, configsDir)
@@ -483,14 +484,14 @@ func TestValidateStructuralMirror_UnreadableConfigs(t *testing.T) {
 	deploymentsDir := filepath.Join(tmpDir, "deployments")
 	configsDir := filepath.Join(tmpDir, "configs")
 
-	require.NoError(t, os.MkdirAll(deploymentsDir, 0o750))
-	require.NoError(t, os.MkdirAll(configsDir, 0o750))
+	require.NoError(t, os.MkdirAll(deploymentsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
+	require.NoError(t, os.MkdirAll(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
 
 	// Make configs dir unreadable.
 	require.NoError(t, os.Chmod(configsDir, 0o000))
 
 	t.Cleanup(func() {
-		_ = os.Chmod(configsDir, 0o750)
+		_ = os.Chmod(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute)
 	})
 
 	_, err := ValidateStructuralMirror(deploymentsDir, configsDir)

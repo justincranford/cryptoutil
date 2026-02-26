@@ -3,6 +3,7 @@
 package userauth
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"os"
 	"path/filepath"
@@ -68,7 +69,7 @@ time_risks: {}
 behavior_risks: {}
 `
 
-	err := os.WriteFile(policyFile, []byte(policyContent), 0o600)
+	err := os.WriteFile(policyFile, []byte(policyContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Create policy loader.
@@ -92,11 +93,11 @@ behavior_risks: {}
 
 	// Verify weights loaded from policy.
 	require.InDelta(t, 0.30, engine.locationWeight, 0.001)
-	require.InDelta(t, 0.25, engine.deviceWeight, 0.001)
-	require.InDelta(t, 0.10, engine.timeWeight, 0.001)
-	require.InDelta(t, 0.15, engine.behaviorWeight, 0.001)
-	require.InDelta(t, 0.10, engine.networkWeight, 0.001)
-	require.InDelta(t, 0.10, engine.velocityWeight, 0.001)
+	require.InDelta(t, cryptoutilSharedMagic.TestProbQuarter, engine.deviceWeight, 0.001)
+	require.InDelta(t, cryptoutilSharedMagic.ConfidenceWeightBehavior, engine.timeWeight, 0.001)
+	require.InDelta(t, cryptoutilSharedMagic.ConfidenceWeightBaseline, engine.behaviorWeight, 0.001)
+	require.InDelta(t, cryptoutilSharedMagic.ConfidenceWeightBehavior, engine.networkWeight, 0.001)
+	require.InDelta(t, cryptoutilSharedMagic.ConfidenceWeightBehavior, engine.velocityWeight, 0.001)
 
 	// Load weights again (should use cached values).
 	err = engine.loadWeights(ctx)
@@ -162,7 +163,7 @@ time_risks: {}
 behavior_risks: {}
 `
 
-	err := os.WriteFile(policyFile, []byte(policyContent), 0o600)
+	err := os.WriteFile(policyFile, []byte(policyContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	loader := NewYAMLPolicyLoader(policyFile, "", "")
@@ -173,7 +174,7 @@ behavior_risks: {}
 			{Country: "US"},
 		},
 		KnownDevices:  []string{"device-fingerprint-1"},
-		TypicalHours:  []int{9, 10, 11, 14, 15, 16},
+		TypicalHours:  []int{9, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 11, 14, 15, cryptoutilSharedMagic.RealmMinTokenLengthBytes},
 		KnownNetworks: []string{"192.168.1.1"},
 		LastAuthTime:  time.Now().UTC().Add(-1 * time.Hour),
 	}
@@ -200,11 +201,11 @@ behavior_risks: {}
 				Location: &GeoLocation{Country: "US"},
 				Device:   &DeviceFingerprint{ID: "device-fingerprint-1"},
 				Network:  &NetworkInfo{IPAddress: "192.168.1.1", IsVPN: false, IsProxy: false},
-				Time:     time.Date(2025, 1, 15, 10, 0, 0, 0, time.UTC), // Wednesday, 10 AM.
+				Time:     time.Date(2025, 1, 15, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 0, 0, 0, time.UTC), // Wednesday, 10 AM.
 			},
 			wantRiskLevel: RiskLevelLow,
-			wantLowScore:  0.0,
-			wantHighScore: 0.25,
+			wantLowScore:  cryptoutilSharedMagic.BaselineContributionZero,
+			wantHighScore: cryptoutilSharedMagic.TestProbQuarter,
 		},
 		{
 			name: "medium-risk new location",
@@ -212,10 +213,10 @@ behavior_risks: {}
 				Location: &GeoLocation{Country: "CA"}, // New country.
 				Device:   &DeviceFingerprint{ID: "device-fingerprint-1"},
 				Network:  &NetworkInfo{IPAddress: "192.168.1.1", IsVPN: false, IsProxy: false},
-				Time:     time.Date(2025, 1, 15, 10, 0, 0, 0, time.UTC),
+				Time:     time.Date(2025, 1, 15, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 0, 0, 0, time.UTC),
 			},
 			wantRiskLevel: RiskLevelMedium,
-			wantLowScore:  0.25,
+			wantLowScore:  cryptoutilSharedMagic.TestProbQuarter,
 			wantHighScore: 0.50,
 		},
 		{
@@ -224,10 +225,10 @@ behavior_risks: {}
 				Location: &GeoLocation{Country: "US"},
 				Device:   &DeviceFingerprint{ID: "device-fingerprint-1"},
 				Network:  &NetworkInfo{IPAddress: "10.0.0.1", IsVPN: true, IsProxy: false}, // VPN detected.
-				Time:     time.Date(2025, 1, 15, 10, 0, 0, 0, time.UTC),
+				Time:     time.Date(2025, 1, 15, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 0, 0, 0, time.UTC),
 			},
 			wantRiskLevel: RiskLevelMedium,
-			wantLowScore:  0.25,
+			wantLowScore:  cryptoutilSharedMagic.TestProbQuarter,
 			wantHighScore: 0.50,
 		},
 	}
@@ -242,7 +243,7 @@ behavior_risks: {}
 			require.Equal(t, tc.wantRiskLevel, score.Level)
 			require.GreaterOrEqual(t, score.Score, tc.wantLowScore)
 			require.LessOrEqual(t, score.Score, tc.wantHighScore)
-			require.Greater(t, score.Confidence, 0.0)
+			require.Greater(t, score.Confidence, cryptoutilSharedMagic.BaselineContributionZero)
 			require.NotEmpty(t, score.Factors)
 		})
 	}

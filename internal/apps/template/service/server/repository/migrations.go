@@ -5,6 +5,7 @@
 package repository
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"database/sql"
 	"embed"
 	"errors"
@@ -134,7 +135,7 @@ func ApplyMigrationsFromFS(db *sql.DB, migrationFS fs.FS, migrationsPath string,
 	switch databaseType {
 	case "sqlite", "sqlite3":
 		dbType = DatabaseTypeSQLite
-	case "postgres", "postgresql":
+	case cryptoutilSharedMagic.DockerServicePostgres, "postgresql":
 		dbType = DatabaseTypePostgreSQL
 	default:
 		return fmt.Errorf("unsupported database type: %s", databaseType)

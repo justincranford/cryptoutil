@@ -14,7 +14,7 @@ import (
 func RequireNewForTest(_ string) *Config {
 	return &Config{
 		AuthZ: &ServerConfig{
-			Name:             "authz",
+			Name:             cryptoutilSharedMagic.AuthzServiceName,
 			BindAddress:      cryptoutilSharedMagic.IPv4Loopback,
 			Port:             int(cryptoutilSharedMagic.DefaultPublicPortCryptoutil),
 			TLSEnabled:       true,
@@ -28,7 +28,7 @@ func RequireNewForTest(_ string) *Config {
 			AdminPort:        int(cryptoutilSharedMagic.DefaultPrivatePortCryptoutil),
 		},
 		IDP: &ServerConfig{
-			Name:             "idp",
+			Name:             cryptoutilSharedMagic.IDPServiceName,
 			BindAddress:      cryptoutilSharedMagic.IPv4Loopback,
 			Port:             int(cryptoutilSharedMagic.DefaultPublicPortCryptoutilCompose1),
 			TLSEnabled:       true,
@@ -57,7 +57,7 @@ func RequireNewForTest(_ string) *Config {
 		},
 		Database: &DatabaseConfig{
 			Type:         "sqlite",
-			DSN:          ":memory:",
+			DSN:          cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 			MaxOpenConns: cryptoutilSharedMagic.SQLiteMaxOpenConnections,
 		},
 		Tokens: &TokenConfig{

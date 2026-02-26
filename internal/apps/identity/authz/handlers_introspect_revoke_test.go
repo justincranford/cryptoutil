@@ -129,7 +129,7 @@ func createIntrospectTestConfig(t *testing.T) *cryptoutilIdentityConfig.Config {
 
 	return &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
+			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
 			DSN:  "file::memory:?cache=private",
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{

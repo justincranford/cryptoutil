@@ -7,6 +7,7 @@
 package userauth
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -28,14 +29,14 @@ func TestWebAuthnIntegration_RegistrationAndAuthentication(t *testing.T) {
 	// Setup test infrastructure.
 	db := setupTestDB(t)
 	credStore := setupCredentialStore(t, db)
-	challengeMetadata := NewChallengeMetadata(ctx, 5*time.Minute)
+	challengeMetadata := NewChallengeMetadata(ctx, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)
 
 	// Create WebAuthn authenticator.
 	config := &WebAuthnConfig{
 		RPID:          "example.com",
 		RPDisplayName: "Example Corp",
 		RPOrigins:     []string{"https://example.com"},
-		Timeout:       5 * time.Minute,
+		Timeout:       cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute,
 	}
 
 	auth, err := NewWebAuthnAuthenticator(config, challengeMetadata, credStore)
@@ -100,13 +101,13 @@ func TestWebAuthnIntegration_CredentialLifecycle(t *testing.T) {
 	// Setup test infrastructure.
 	db := setupTestDB(t)
 	credStore := setupCredentialStore(t, db)
-	challengeMetadata := NewChallengeMetadata(ctx, 5*time.Minute)
+	challengeMetadata := NewChallengeMetadata(ctx, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)
 
 	config := &WebAuthnConfig{
 		RPID:          "example.com",
 		RPDisplayName: "Example Corp",
 		RPOrigins:     []string{"https://example.com"},
-		Timeout:       5 * time.Minute,
+		Timeout:       cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute,
 	}
 
 	auth, err := NewWebAuthnAuthenticator(config, challengeMetadata, credStore)
@@ -137,7 +138,7 @@ func TestWebAuthnIntegration_CredentialLifecycle(t *testing.T) {
 	credentialID := userCreds[0].ID
 
 	// Use credential (authenticate 5 times).
-	for i := 1; i <= 5; i++ {
+	for i := 1; i <= cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries; i++ {
 		authOptions, err := auth.InitiateAuth(ctx, user)
 		require.NoError(t, err)
 
@@ -175,13 +176,13 @@ func TestWebAuthnIntegration_MultipleCredentials(t *testing.T) {
 	// Setup test infrastructure.
 	db := setupTestDB(t)
 	credStore := setupCredentialStore(t, db)
-	challengeMetadata := NewChallengeMetadata(ctx, 5*time.Minute)
+	challengeMetadata := NewChallengeMetadata(ctx, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)
 
 	config := &WebAuthnConfig{
 		RPID:          "example.com",
 		RPDisplayName: "Example Corp",
 		RPOrigins:     []string{"https://example.com"},
-		Timeout:       5 * time.Minute,
+		Timeout:       cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute,
 	}
 
 	auth, err := NewWebAuthnAuthenticator(config, challengeMetadata, credStore)
@@ -253,13 +254,13 @@ func TestWebAuthnIntegration_ReplayAttackPrevention(t *testing.T) {
 	// Setup test infrastructure.
 	db := setupTestDB(t)
 	credStore := setupCredentialStore(t, db)
-	challengeMetadata := NewChallengeMetadata(ctx, 5*time.Minute)
+	challengeMetadata := NewChallengeMetadata(ctx, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)
 
 	config := &WebAuthnConfig{
 		RPID:          "example.com",
 		RPDisplayName: "Example Corp",
 		RPOrigins:     []string{"https://example.com"},
-		Timeout:       5 * time.Minute,
+		Timeout:       cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute,
 	}
 
 	auth, err := NewWebAuthnAuthenticator(config, challengeMetadata, credStore)

@@ -5,6 +5,7 @@
 package pwdgen
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	crand "crypto/rand"
 	"errors"
 	"fmt"
@@ -55,7 +56,7 @@ const (
 var (
 	LowercaseLetters = []rune("abcdefghijklmnopqrstuvwxyz")
 	UppercaseLetters = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-	Digits           = []rune("0123456789")
+	Digits           = []rune(cryptoutilSharedMagic.EmailOTPCharset)
 	SpecialChars     = []rune("!@#$%^&*()-_=+[]{}|;:,.<>?")
 	Alphanumeric     = append(append([]rune{}, LowercaseLetters...), append(UppercaseLetters, Digits...)...)
 )
@@ -176,7 +177,7 @@ func (g *PasswordGenerator) Generate() (string, error) {
 	}
 
 	// Generate password meeting all requirements.
-	for attempts := 0; attempts < 1000; attempts++ {
+	for attempts := 0; attempts < cryptoutilSharedMagic.JoseJADefaultListLimit; attempts++ {
 		password, err := g.generateCandidate(length, allChars)
 		if err != nil {
 			return "", err
@@ -251,7 +252,7 @@ func (g *PasswordGenerator) generateCandidate(length int, allChars []rune) (stri
 
 	// Fill middle characters.
 	for i := 1; i < length-1; i++ {
-		for attempts := 0; attempts < 100; attempts++ {
+		for attempts := 0; attempts < cryptoutilSharedMagic.JoseJAMaxMaterials; attempts++ {
 			idx, err := pwdgenCrandIntFn(big.NewInt(int64(len(allChars))))
 			if err != nil {
 				return "", fmt.Errorf("failed to generate random middle character index: %w", err)

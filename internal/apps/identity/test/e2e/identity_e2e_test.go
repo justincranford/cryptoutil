@@ -7,6 +7,7 @@
 package e2e
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"crypto/tls"
 	json "encoding/json"
@@ -63,7 +64,7 @@ func NewE2ETestSuite() *E2ETestSuite {
 		RSURL:    "https://127.0.0.1:8082",
 		SPAUrl:   "https://127.0.0.1:8083",
 		Client: &http.Client{
-			Timeout: 10 * time.Second,
+			Timeout: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second,
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{
 					InsecureSkipVerify: true, // Self-signed certs in dev
@@ -213,7 +214,7 @@ func GetAllTestScenarios() []TestScenario {
 					ClientAuth:       clientAuth,
 					UserAuth:         userAuth,
 					GrantType:        grantType,
-					Scopes:           []string{"openid", "profile", "email"},
+					Scopes:           []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail},
 					ExpectedSuccess:  true,
 					ExpectedHTTPCode: http.StatusOK,
 				}
@@ -381,13 +382,13 @@ func (s *E2ETestSuite) initiateAuthorizationCodeFlow(ctx context.Context, scenar
 
 	// Build authorization request with PKCE parameters
 	params := url.Values{}
-	params.Set("response_type", "code")
-	params.Set("client_id", "test_client_id")
-	params.Set("redirect_uri", "https://127.0.0.1:8083/callback")
-	params.Set("scope", strings.Join(scenario.Scopes, " "))
-	params.Set("state", state)
-	params.Set("code_challenge", codeChallenge)
-	params.Set("code_challenge_method", "S256")
+	params.Set(cryptoutilSharedMagic.ParamResponseType, cryptoutilSharedMagic.ResponseTypeCode)
+	params.Set(cryptoutilSharedMagic.ClaimClientID, "test_client_id")
+	params.Set(cryptoutilSharedMagic.ParamRedirectURI, "https://127.0.0.1:8083/callback")
+	params.Set(cryptoutilSharedMagic.ClaimScope, strings.Join(scenario.Scopes, " "))
+	params.Set(cryptoutilSharedMagic.ParamState, state)
+	params.Set(cryptoutilSharedMagic.ParamCodeChallenge, codeChallenge)
+	params.Set(cryptoutilSharedMagic.ParamCodeChallengeMethod, cryptoutilSharedMagic.PKCEMethodS256)
 
 	fullURL := fmt.Sprintf("%s?%s", authorizeURL, params.Encode())
 
@@ -446,13 +447,13 @@ func (s *E2ETestSuite) initiateAuthorizationCodeFlow(ctx context.Context, scenar
 		return "", fmt.Errorf("failed to parse redirect location: %w", err)
 	}
 
-	code := locationURL.Query().Get("code")
+	code := locationURL.Query().Get(cryptoutilSharedMagic.ResponseTypeCode)
 	if code == "" {
 		return "", fmt.Errorf("no authorization code in redirect: %s", location)
 	}
 
 	// Validate state parameter.
-	returnedState := locationURL.Query().Get("state")
+	returnedState := locationURL.Query().Get(cryptoutilSharedMagic.ParamState)
 	if returnedState != state {
 		return "", fmt.Errorf("state mismatch: expected %s, got %s", state, returnedState)
 	}

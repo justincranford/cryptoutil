@@ -3,6 +3,7 @@
 package revocation
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/x509"
 	"math/big"
 	"testing"
@@ -24,7 +25,7 @@ func TestGenerateCRLPEM_Success(t *testing.T) {
 		Issuer:     caCert,
 		PrivateKey: caKey,
 		Provider:   provider,
-		Validity:   24 * time.Hour,
+		Validity:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 
 	svc, err := NewCRLService(config)
@@ -46,7 +47,7 @@ func TestOCSPService_RespondToRequest_CertFound(t *testing.T) {
 		Issuer:     caCert,
 		PrivateKey: caKey,
 		Provider:   provider,
-		Validity:   24 * time.Hour,
+		Validity:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 
 	crlService, err := NewCRLService(crlConfig)
@@ -57,7 +58,7 @@ func TestOCSPService_RespondToRequest_CertFound(t *testing.T) {
 		Responder:    responderCert,
 		ResponderKey: responderKey,
 		Provider:     provider,
-		Validity:     24 * time.Hour,
+		Validity:     cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 
 	ocspService, err := NewOCSPService(ocspConfig, crlService)
@@ -96,7 +97,7 @@ func TestOCSPService_RespondToRequest_CertNotFound(t *testing.T) {
 		Issuer:     caCert,
 		PrivateKey: caKey,
 		Provider:   provider,
-		Validity:   24 * time.Hour,
+		Validity:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 
 	crlService, err := NewCRLService(crlConfig)
@@ -107,7 +108,7 @@ func TestOCSPService_RespondToRequest_CertNotFound(t *testing.T) {
 		Responder:    responderCert,
 		ResponderKey: responderKey,
 		Provider:     provider,
-		Validity:     24 * time.Hour,
+		Validity:     cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 
 	ocspService, err := NewOCSPService(ocspConfig, crlService)
@@ -146,7 +147,7 @@ func TestOCSPService_ParseRequest_Success(t *testing.T) {
 		Issuer:     caCert,
 		PrivateKey: caKey,
 		Provider:   provider,
-		Validity:   24 * time.Hour,
+		Validity:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 
 	crlService, err := NewCRLService(crlConfig)
@@ -157,7 +158,7 @@ func TestOCSPService_ParseRequest_Success(t *testing.T) {
 		Responder:    responderCert,
 		ResponderKey: responderKey,
 		Provider:     provider,
-		Validity:     24 * time.Hour,
+		Validity:     cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 
 	ocspService, err := NewOCSPService(ocspConfig, crlService)
@@ -184,7 +185,7 @@ func TestOCSPService_RespondToRequest_InvalidRequest(t *testing.T) {
 		Issuer:     caCert,
 		PrivateKey: caKey,
 		Provider:   provider,
-		Validity:   24 * time.Hour,
+		Validity:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 
 	crlService, err := NewCRLService(crlConfig)
@@ -195,7 +196,7 @@ func TestOCSPService_RespondToRequest_InvalidRequest(t *testing.T) {
 		Responder:    caCert,
 		ResponderKey: caKey,
 		Provider:     provider,
-		Validity:     24 * time.Hour,
+		Validity:     cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 
 	ocspService, err := NewOCSPService(ocspConfig, crlService)

@@ -84,8 +84,8 @@ func TestRegisterUserWithTenant_UserCreate_Error(t *testing.T) {
 	ctx := context.Background()
 
 	userID := googleUuid.Must(googleUuid.NewV7())
-	username := fmt.Sprintf("erruser_%s", userID.String()[:8])
-	email := fmt.Sprintf("err_%s@example.com", userID.String()[:8])
+	username := fmt.Sprintf("erruser_%s", userID.String()[:cryptoutilSharedMagic.IMMinPasswordLength])
+	email := fmt.Sprintf("err_%s@example.com", userID.String()[:cryptoutilSharedMagic.IMMinPasswordLength])
 
 	_, err := service.RegisterUserWithTenant(ctx, userID, username, email, testPasswordHash, "Error Test Tenant", true)
 	require.Error(t, err)
@@ -163,8 +163,8 @@ func setupJWSSessionManager(t *testing.T) *SessionManager {
 	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		BrowserSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmJWS),
 		ServiceSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmJWS),
-		BrowserSessionExpiration:   24 * time.Hour,
-		ServiceSessionExpiration:   7 * 24 * time.Hour,
+		BrowserSessionExpiration:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
+		ServiceSessionExpiration:   cryptoutilSharedMagic.GitRecentActivityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		SessionIdleTimeout:         2 * time.Hour,
 		SessionCleanupInterval:     time.Hour,
 		BrowserSessionJWSAlgorithm: cryptoutilSharedMagic.SessionJWSAlgorithmRS256,
@@ -253,8 +253,8 @@ func TestInitialize_UnsupportedJWSSubAlgorithm(t *testing.T) {
 	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		BrowserSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmJWS),
 		ServiceSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
-		BrowserSessionExpiration:   24 * time.Hour,
-		ServiceSessionExpiration:   7 * 24 * time.Hour,
+		BrowserSessionExpiration:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
+		ServiceSessionExpiration:   cryptoutilSharedMagic.GitRecentActivityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		SessionIdleTimeout:         2 * time.Hour,
 		SessionCleanupInterval:     time.Hour,
 		BrowserSessionJWSAlgorithm: "UNSUPPORTED_JWS_ALG",
@@ -275,8 +275,8 @@ func TestInitialize_UnsupportedJWESubAlgorithm(t *testing.T) {
 	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		BrowserSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmJWE),
 		ServiceSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
-		BrowserSessionExpiration:   24 * time.Hour,
-		ServiceSessionExpiration:   7 * 24 * time.Hour,
+		BrowserSessionExpiration:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
+		ServiceSessionExpiration:   cryptoutilSharedMagic.GitRecentActivityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		SessionIdleTimeout:         2 * time.Hour,
 		SessionCleanupInterval:     time.Hour,
 		BrowserSessionJWEAlgorithm: "UNSUPPORTED_JWE_ALG",
@@ -324,8 +324,8 @@ func TestValidateBrowserSession_JWS_NoExpClaim(t *testing.T) {
 	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		BrowserSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmJWS),
 		ServiceSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
-		BrowserSessionExpiration:   24 * time.Hour,
-		ServiceSessionExpiration:   7 * 24 * time.Hour,
+		BrowserSessionExpiration:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
+		ServiceSessionExpiration:   cryptoutilSharedMagic.GitRecentActivityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		SessionIdleTimeout:         2 * time.Hour,
 		SessionCleanupInterval:     time.Hour,
 		BrowserSessionJWSAlgorithm: cryptoutilSharedMagic.SessionJWSAlgorithmRS256,
@@ -352,8 +352,8 @@ func TestValidateBrowserSession_JWS_NoJTIClaim(t *testing.T) {
 	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		BrowserSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmJWS),
 		ServiceSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
-		BrowserSessionExpiration:   24 * time.Hour,
-		ServiceSessionExpiration:   7 * 24 * time.Hour,
+		BrowserSessionExpiration:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
+		ServiceSessionExpiration:   cryptoutilSharedMagic.GitRecentActivityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		SessionIdleTimeout:         2 * time.Hour,
 		SessionCleanupInterval:     time.Hour,
 		BrowserSessionJWSAlgorithm: cryptoutilSharedMagic.SessionJWSAlgorithmRS256,
@@ -363,7 +363,7 @@ func TestValidateBrowserSession_JWS_NoJTIClaim(t *testing.T) {
 	err := sm.Initialize(context.Background())
 	require.NoError(t, err)
 
-	futureExp := time.Now().UTC().Add(24 * time.Hour).Unix()
+	futureExp := time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour).Unix()
 	claimsJSON := []byte(fmt.Sprintf(`{"exp":%d,"sub":"user123"}`, futureExp))
 	token := signCustomJWSClaims(t, sm, claimsJSON)
 
@@ -381,8 +381,8 @@ func TestValidateBrowserSession_JWS_InvalidJTI(t *testing.T) {
 	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		BrowserSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmJWS),
 		ServiceSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
-		BrowserSessionExpiration:   24 * time.Hour,
-		ServiceSessionExpiration:   7 * 24 * time.Hour,
+		BrowserSessionExpiration:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
+		ServiceSessionExpiration:   cryptoutilSharedMagic.GitRecentActivityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		SessionIdleTimeout:         2 * time.Hour,
 		SessionCleanupInterval:     time.Hour,
 		BrowserSessionJWSAlgorithm: cryptoutilSharedMagic.SessionJWSAlgorithmRS256,
@@ -392,7 +392,7 @@ func TestValidateBrowserSession_JWS_InvalidJTI(t *testing.T) {
 	err := sm.Initialize(context.Background())
 	require.NoError(t, err)
 
-	futureExp := time.Now().UTC().Add(24 * time.Hour).Unix()
+	futureExp := time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour).Unix()
 	claimsJSON := []byte(fmt.Sprintf(`{"exp":%d,"jti":"not-a-valid-uuid"}`, futureExp))
 	token := signCustomJWSClaims(t, sm, claimsJSON)
 

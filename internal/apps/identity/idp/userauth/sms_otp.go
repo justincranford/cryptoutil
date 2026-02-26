@@ -50,7 +50,7 @@ func NewSMSOTPAuthenticator(
 
 // Method returns the authentication method name.
 func (a *SMSOTPAuthenticator) Method() string {
-	return "sms_otp"
+	return cryptoutilSharedMagic.AuthMethodSMSOTP
 }
 
 // InitiateAuth initiates SMS OTP authentication for a user.
@@ -82,7 +82,7 @@ func (a *SMSOTPAuthenticator) InitiateAuth(ctx context.Context, userID string) (
 		UserID:    userID,
 		Method:    a.Method(),
 		ExpiresAt: time.Now().UTC().Add(a.otpExpiration),
-		Metadata:  map[string]any{"phone": user.PhoneNumber},
+		Metadata:  map[string]any{cryptoutilSharedMagic.ScopePhone: user.PhoneNumber},
 	}
 
 	// Hash OTP before storage (SECURITY: never store plaintext tokens).

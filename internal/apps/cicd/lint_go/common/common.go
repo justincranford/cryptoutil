@@ -186,7 +186,7 @@ return false
 // magicGeneratedAPIDirs lists api/ subdirectories containing only generated files.
 // Matches the exclusion list used by golangci-lint in .golangci.yml.
 var magicGeneratedAPIDirs = map[string]bool{
-"client": true, "model": true, "server": true, "idp": true, "authz": true,
+"client": true, "model": true, "server": true, cryptoutilSharedMagic.IDPServiceName: true, cryptoutilSharedMagic.AuthzServiceName: true,
 }
 
 // MagicShouldSkipPath returns true if the given relative path should be excluded from magic scanning.

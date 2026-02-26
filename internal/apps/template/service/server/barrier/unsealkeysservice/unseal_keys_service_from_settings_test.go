@@ -3,6 +3,7 @@
 package unsealkeysservice
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"os"
 	"path/filepath"
@@ -193,7 +194,7 @@ func TestNewUnsealKeysServiceFromSettings_FileMismatch(t *testing.T) {
 	tmpDir := t.TempDir()
 	keyFile := filepath.Join(tmpDir, "key1.jwk")
 
-	err := os.WriteFile(keyFile, []byte(`{"kty":"oct","k":"test"}`), 0o600)
+	err := os.WriteFile(keyFile, []byte(`{"kty":"oct","k":"test"}`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	ctx, telemetryService := createTestContext(t)

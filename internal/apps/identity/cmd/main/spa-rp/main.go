@@ -28,7 +28,7 @@ var staticFiles embed.FS
 func main() {
 	// Parse command-line flags.
 	port := flag.Int("port", cryptoutilSharedMagic.DefaultSPARPPort, "port for SPA RP server")
-	bindAddress := flag.String("bind", "127.0.0.1", "bind address for SPA RP server")
+	bindAddress := flag.String("bind", cryptoutilSharedMagic.IPv4Loopback, "bind address for SPA RP server")
 
 	flag.Parse()
 

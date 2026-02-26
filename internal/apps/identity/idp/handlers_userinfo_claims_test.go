@@ -3,6 +3,7 @@
 package idp
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	json "encoding/json"
 	"testing"
@@ -45,16 +46,16 @@ func TestUserInfoClaims(t *testing.T) {
 				UpdatedAt:         time.Now().UTC(),
 			},
 			expectedClaims: map[string]any{
-				"sub":                nil, // Value validated separately
-				"preferred_username": "testuser_standard",
-				"email":              "standard@example.com",
-				"email_verified":     true,
-				"given_name":         "Test",
-				"family_name":        "User",
-				"name":               "Test User",
-				"locale":             "en-US",
-				"zoneinfo":           "America/New_York",
-				"updated_at":         nil, // Timestamp validation
+				cryptoutilSharedMagic.ClaimSub:                nil, // Value validated separately
+				cryptoutilSharedMagic.ClaimPreferredUsername: "testuser_standard",
+				cryptoutilSharedMagic.ClaimEmail:              "standard@example.com",
+				cryptoutilSharedMagic.ClaimEmailVerified:     true,
+				cryptoutilSharedMagic.ClaimGivenName:         "Test",
+				cryptoutilSharedMagic.ClaimFamilyName:        "User",
+				cryptoutilSharedMagic.ClaimName:               "Test User",
+				cryptoutilSharedMagic.ClaimLocale:             "en-US",
+				cryptoutilSharedMagic.ClaimZoneinfo:           "America/New_York",
+				cryptoutilSharedMagic.ClaimUpdatedAt:         nil, // Timestamp validation
 			},
 			verifyClaimValues: true,
 		},
@@ -68,17 +69,17 @@ func TestUserInfoClaims(t *testing.T) {
 				EmailVerified:     false,
 			},
 			expectedClaims: map[string]any{
-				"sub":                nil,
-				"preferred_username": "testuser_minimal",
-				"email":              "minimal@example.com",
-				"email_verified":     false,
+				cryptoutilSharedMagic.ClaimSub:                nil,
+				cryptoutilSharedMagic.ClaimPreferredUsername: "testuser_minimal",
+				cryptoutilSharedMagic.ClaimEmail:              "minimal@example.com",
+				cryptoutilSharedMagic.ClaimEmailVerified:     false,
 			},
 			unexpectedClaims: []string{
-				"given_name",
-				"family_name",
-				"name",
-				"locale",
-				"zoneinfo",
+				cryptoutilSharedMagic.ClaimGivenName,
+				cryptoutilSharedMagic.ClaimFamilyName,
+				cryptoutilSharedMagic.ClaimName,
+				cryptoutilSharedMagic.ClaimLocale,
+				cryptoutilSharedMagic.ClaimZoneinfo,
 			},
 			verifyClaimValues: true,
 		},
@@ -92,7 +93,7 @@ func TestUserInfoClaims(t *testing.T) {
 				EmailVerified:     true,
 			},
 			expectedClaims: map[string]any{
-				"email_verified": true,
+				cryptoutilSharedMagic.ClaimEmailVerified: true,
 			},
 			verifyClaimValues: true,
 		},
@@ -106,7 +107,7 @@ func TestUserInfoClaims(t *testing.T) {
 				EmailVerified:     false,
 			},
 			expectedClaims: map[string]any{
-				"email_verified": false,
+				cryptoutilSharedMagic.ClaimEmailVerified: false,
 			},
 			verifyClaimValues: true,
 		},
@@ -121,8 +122,8 @@ func TestUserInfoClaims(t *testing.T) {
 
 			// Create in-memory SQLite repository factory.
 			repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, &cryptoutilIdentityConfig.DatabaseConfig{
-				Type: "sqlite",
-				DSN:  ":memory:",
+				Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+				DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 			})
 			require.NoError(t, err, "failed to create repository factory")
 
@@ -143,16 +144,16 @@ func TestUserInfoClaims(t *testing.T) {
 
 			// Convert user to UserInfo claims (JSON representation).
 			claimsJSON, err := json.Marshal(map[string]any{
-				"sub":                retrievedUser.Sub,
-				"preferred_username": retrievedUser.PreferredUsername,
-				"email":              retrievedUser.Email,
-				"email_verified":     retrievedUser.EmailVerified,
-				"given_name":         retrievedUser.GivenName,
-				"family_name":        retrievedUser.FamilyName,
-				"name":               retrievedUser.Name,
-				"locale":             retrievedUser.Locale,
-				"zoneinfo":           retrievedUser.Zoneinfo,
-				"updated_at":         retrievedUser.UpdatedAt.Unix(),
+				cryptoutilSharedMagic.ClaimSub:                retrievedUser.Sub,
+				cryptoutilSharedMagic.ClaimPreferredUsername: retrievedUser.PreferredUsername,
+				cryptoutilSharedMagic.ClaimEmail:              retrievedUser.Email,
+				cryptoutilSharedMagic.ClaimEmailVerified:     retrievedUser.EmailVerified,
+				cryptoutilSharedMagic.ClaimGivenName:         retrievedUser.GivenName,
+				cryptoutilSharedMagic.ClaimFamilyName:        retrievedUser.FamilyName,
+				cryptoutilSharedMagic.ClaimName:               retrievedUser.Name,
+				cryptoutilSharedMagic.ClaimLocale:             retrievedUser.Locale,
+				cryptoutilSharedMagic.ClaimZoneinfo:           retrievedUser.Zoneinfo,
+				cryptoutilSharedMagic.ClaimUpdatedAt:         retrievedUser.UpdatedAt.Unix(),
 			})
 			require.NoError(t, err, "failed to marshal claims to JSON")
 
@@ -179,41 +180,41 @@ func TestUserInfoClaims(t *testing.T) {
 
 			// Verify specific claim values.
 			if tc.verifyClaimValues {
-				require.Equal(t, tc.user.Sub, claims["sub"], "sub claim should match")
-				require.Equal(t, tc.user.PreferredUsername, claims["preferred_username"], "preferred_username claim should match")
-				require.Equal(t, tc.user.Email, claims["email"], "email claim should match")
-				require.Equal(t, tc.user.EmailVerified.Bool(), claims["email_verified"], "email_verified claim should match")
+				require.Equal(t, tc.user.Sub, claims[cryptoutilSharedMagic.ClaimSub], "sub claim should match")
+				require.Equal(t, tc.user.PreferredUsername, claims[cryptoutilSharedMagic.ClaimPreferredUsername], "preferred_username claim should match")
+				require.Equal(t, tc.user.Email, claims[cryptoutilSharedMagic.ClaimEmail], "email claim should match")
+				require.Equal(t, tc.user.EmailVerified.Bool(), claims[cryptoutilSharedMagic.ClaimEmailVerified], "email_verified claim should match")
 
 				// Verify optional claims if present.
 				if tc.user.GivenName != "" {
-					require.Equal(t, tc.user.GivenName, claims["given_name"], "given_name claim should match")
+					require.Equal(t, tc.user.GivenName, claims[cryptoutilSharedMagic.ClaimGivenName], "given_name claim should match")
 				}
 
 				if tc.user.FamilyName != "" {
-					require.Equal(t, tc.user.FamilyName, claims["family_name"], "family_name claim should match")
+					require.Equal(t, tc.user.FamilyName, claims[cryptoutilSharedMagic.ClaimFamilyName], "family_name claim should match")
 				}
 
 				if tc.user.Name != "" {
-					require.Equal(t, tc.user.Name, claims["name"], "name claim should match")
+					require.Equal(t, tc.user.Name, claims[cryptoutilSharedMagic.ClaimName], "name claim should match")
 				}
 
 				if tc.user.Locale != "" {
-					require.Equal(t, tc.user.Locale, claims["locale"], "locale claim should match")
+					require.Equal(t, tc.user.Locale, claims[cryptoutilSharedMagic.ClaimLocale], "locale claim should match")
 				}
 
 				if tc.user.Zoneinfo != "" {
-					require.Equal(t, tc.user.Zoneinfo, claims["zoneinfo"], "zoneinfo claim should match")
+					require.Equal(t, tc.user.Zoneinfo, claims[cryptoutilSharedMagic.ClaimZoneinfo], "zoneinfo claim should match")
 				}
 
 				// Verify updated_at matches user record timestamp (NOT time.Now() - causes race failures).
 				// CRITICAL: Comparing against time.Now() fails when test execution takes >5s (OAuth flow, HTTP requests).
 				// The DB timestamp is set at user creation, which may be 30-60+ seconds before this assertion.
 				if !tc.user.UpdatedAt.IsZero() {
-					updatedAtFloat, ok := claims["updated_at"].(float64)
+					updatedAtFloat, ok := claims[cryptoutilSharedMagic.ClaimUpdatedAt].(float64)
 					require.True(t, ok, "updated_at should be a number")
 
 					updatedAtTime := time.Unix(int64(updatedAtFloat), 0)
-					require.WithinDuration(t, tc.user.UpdatedAt, updatedAtTime, 5*time.Second, "updated_at should match user record")
+					require.WithinDuration(t, tc.user.UpdatedAt, updatedAtTime, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second, "updated_at should match user record")
 				}
 			}
 		})

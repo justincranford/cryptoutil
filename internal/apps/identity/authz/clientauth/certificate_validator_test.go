@@ -5,6 +5,7 @@
 package clientauth_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
 	crand "crypto/rand"
@@ -107,7 +108,7 @@ func createTestCA(t *testing.T) (*x509.Certificate, *ecdsa.PrivateKey) {
 			CommonName: "Test CA",
 		},
 		NotBefore:             time.Now().UTC().Add(-1 * time.Hour),
-		NotAfter:              time.Now().UTC().Add(24 * time.Hour),
+		NotAfter:              time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		KeyUsage:              x509.KeyUsageCertSign,
 		BasicConstraintsValid: true,
 		IsCA:                  true,
@@ -135,7 +136,7 @@ func createTestClientCert(t *testing.T, caCert *x509.Certificate, caKey *ecdsa.P
 			CommonName: "Test Client",
 		},
 		NotBefore: time.Now().UTC().Add(-1 * time.Hour),
-		NotAfter:  time.Now().UTC().Add(24 * time.Hour),
+		NotAfter:  time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		KeyUsage:  x509.KeyUsageDigitalSignature,
 	}
 
@@ -160,8 +161,8 @@ func createExpiredClientCert(t *testing.T, caCert *x509.Certificate, caKey *ecds
 		Subject: pkix.Name{
 			CommonName: "Expired Client",
 		},
-		NotBefore:   time.Now().UTC().Add(-48 * time.Hour),
-		NotAfter:    time.Now().UTC().Add(-24 * time.Hour), // Expired.
+		NotBefore:   time.Now().UTC().Add(-cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour),
+		NotAfter:    time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour), // Expired.
 		KeyUsage:    x509.KeyUsageDigitalSignature,
 		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 	}
@@ -182,7 +183,7 @@ func TestCACertificateValidator_IsRevoked_Deprecated(t *testing.T) {
 	validator := cryptoutilIdentityClientAuth.NewCACertificateValidator(nil, nil)
 
 	// Deprecated method always returns false.
-	isRevoked := validator.IsRevoked(big.NewInt(42))
+	isRevoked := validator.IsRevoked(big.NewInt(cryptoutilSharedMagic.AnswerToLifeUniverseEverything))
 	require.False(t, isRevoked, "deprecated IsRevoked should always return false")
 }
 
@@ -191,7 +192,7 @@ func TestSelfSignedCertificateValidator_ValidateCertificate(t *testing.T) {
 	t.Parallel()
 
 	// Create test self-signed certificate.
-	privKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	privKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	certTemplate := &x509.Certificate{
@@ -201,7 +202,7 @@ func TestSelfSignedCertificateValidator_ValidateCertificate(t *testing.T) {
 			Organization: []string{"Test Org"},
 		},
 		NotBefore:             time.Now().UTC().Add(-1 * time.Hour),
-		NotAfter:              time.Now().UTC().Add(24 * time.Hour),
+		NotAfter:              time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		KeyUsage:              x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 		BasicConstraintsValid: true,
@@ -220,8 +221,8 @@ func TestSelfSignedCertificateValidator_ValidateCertificate(t *testing.T) {
 			CommonName:   "Expired Client",
 			Organization: []string{"Test Org"},
 		},
-		NotBefore:             time.Now().UTC().Add(-48 * time.Hour),
-		NotAfter:              time.Now().UTC().Add(-24 * time.Hour),
+		NotBefore:             time.Now().UTC().Add(-cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour),
+		NotAfter:              time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		KeyUsage:              x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 		BasicConstraintsValid: true,
@@ -240,8 +241,8 @@ func TestSelfSignedCertificateValidator_ValidateCertificate(t *testing.T) {
 			CommonName:   "Future Client",
 			Organization: []string{"Test Org"},
 		},
-		NotBefore:             time.Now().UTC().Add(24 * time.Hour),
-		NotAfter:              time.Now().UTC().Add(48 * time.Hour),
+		NotBefore:             time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour),
+		NotAfter:              time.Now().UTC().Add(cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour),
 		KeyUsage:              x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 		BasicConstraintsValid: true,
@@ -324,7 +325,7 @@ func TestSelfSignedCertificateValidator_IsRevoked(t *testing.T) {
 	validator := cryptoutilIdentityClientAuth.NewSelfSignedCertificateValidator(nil)
 
 	// IsRevoked always returns false for self-signed certificates.
-	isRevoked := validator.IsRevoked(big.NewInt(42))
+	isRevoked := validator.IsRevoked(big.NewInt(cryptoutilSharedMagic.AnswerToLifeUniverseEverything))
 	require.False(t, isRevoked, "self-signed validator IsRevoked should always return false")
 }
 
@@ -333,7 +334,7 @@ func TestCertificateParser_ParsePEMCertificate(t *testing.T) {
 	t.Parallel()
 
 	// Create test certificate.
-	privKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	privKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	template := &x509.Certificate{
@@ -342,7 +343,7 @@ func TestCertificateParser_ParsePEMCertificate(t *testing.T) {
 			CommonName: "Test Certificate",
 		},
 		NotBefore: time.Now().UTC().Add(-1 * time.Hour),
-		NotAfter:  time.Now().UTC().Add(24 * time.Hour),
+		NotAfter:  time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour),
 	}
 
 	certDER, err := x509.CreateCertificate(crand.Reader, template, template, &privKey.PublicKey, privKey)
@@ -350,7 +351,7 @@ func TestCertificateParser_ParsePEMCertificate(t *testing.T) {
 
 	// Encode as PEM.
 	pemData := pem.EncodeToMemory(&pem.Block{
-		Type:  "CERTIFICATE",
+		Type:  cryptoutilSharedMagic.StringPEMTypeCertificate,
 		Bytes: certDER,
 	})
 
@@ -374,7 +375,7 @@ func TestCertificateParser_ParsePEMCertificate(t *testing.T) {
 		{
 			name: "invalid certificate data",
 			pemData: pem.EncodeToMemory(&pem.Block{
-				Type:  "CERTIFICATE",
+				Type:  cryptoutilSharedMagic.StringPEMTypeCertificate,
 				Bytes: []byte("invalid certificate bytes"),
 			}),
 			wantErr:     true,

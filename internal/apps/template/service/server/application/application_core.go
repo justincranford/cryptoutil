@@ -87,7 +87,7 @@ func StartCore(ctx context.Context, settings *cryptoutilAppsTemplateServiceConfi
 	// Provision database based on DatabaseURL and DatabaseContainer settings.
 	db, shutdownContainer, err := provisionDatabase(ctx, basic, settings)
 	if err != nil {
-		basic.TelemetryService.Slogger.Error("failed to provision database", "error", err)
+		basic.TelemetryService.Slogger.Error("failed to provision database", cryptoutilSharedMagic.StringError, err)
 		core.Shutdown()
 
 		return nil, fmt.Errorf("failed to provision database: %w", err)
@@ -278,7 +278,7 @@ func provisionDatabase(ctx context.Context, basic *Basic, settings *cryptoutilAp
 		// Handle sqlite:// scheme (e.g., sqlite://file::memory:?cache=shared).
 		isSQLite = true
 		databaseURL = databaseURL[9:] // Strip sqlite:// prefix -> file::memory:?cache=shared.
-	} else if len(databaseURL) >= 7 && databaseURL[:7] == "file://" {
+	} else if len(databaseURL) >= cryptoutilSharedMagic.GitRecentActivityDays && databaseURL[:cryptoutilSharedMagic.GitRecentActivityDays] == cryptoutilSharedMagic.FileURIScheme {
 		isSQLite = true
 	} else if len(databaseURL) >= 13 && databaseURL[:13] == "file::memory:" {
 		// Handle file::memory:NAME?cache=shared format (used by test utilities with unique names).
@@ -291,7 +291,7 @@ func provisionDatabase(ctx context.Context, basic *Basic, settings *cryptoutilAp
 	}
 
 	// Handle PostgreSQL testcontainer provisioning.
-	if isPostgres && containerMode != "" && containerMode != "disabled" {
+	if isPostgres && containerMode != "" && containerMode != cryptoutilSharedMagic.DefaultDatabaseContainerDisabled {
 		basic.TelemetryService.Slogger.Debug("attempting to start PostgreSQL testcontainer", "containerMode", containerMode)
 
 		containerURL, cleanup, err := startPostgresFn(
@@ -306,11 +306,11 @@ func provisionDatabase(ctx context.Context, basic *Basic, settings *cryptoutilAp
 			databaseURL = containerURL
 			shutdownContainer = cleanup
 		} else if containerMode == "required" {
-			basic.TelemetryService.Slogger.Error("failed to start required PostgreSQL testcontainer", "error", err)
+			basic.TelemetryService.Slogger.Error("failed to start required PostgreSQL testcontainer", cryptoutilSharedMagic.StringError, err)
 
 			return nil, nil, fmt.Errorf("failed to start required PostgreSQL testcontainer: %w", err)
 		} else {
-			basic.TelemetryService.Slogger.Warn("failed to start preferred PostgreSQL testcontainer, falling back to external DB", "error", err)
+			basic.TelemetryService.Slogger.Warn("failed to start preferred PostgreSQL testcontainer, falling back to external DB", cryptoutilSharedMagic.StringError, err)
 		}
 	}
 
@@ -349,7 +349,7 @@ func openSQLite(ctx context.Context, databaseURL string, debugMode bool) (*gorm.
 	// Configure SQLite for concurrent operations.
 	// Note: Skip WAL mode for in-memory databases as it's not supported.
 	// Matches: ":memory:", "file::memory:?cache=shared", "file::memory:NAME?cache=shared" (unique per-test)
-	isInMemory := databaseURL == ":memory:" || strings.HasPrefix(databaseURL, "file::memory:") ||
+	isInMemory := databaseURL == cryptoutilSharedMagic.SQLiteMemoryPlaceholder || strings.HasPrefix(databaseURL, "file::memory:") ||
 		strings.Contains(databaseURL, "mode=memory")
 
 	if !isInMemory {

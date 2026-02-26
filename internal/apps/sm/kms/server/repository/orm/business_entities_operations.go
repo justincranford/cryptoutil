@@ -212,7 +212,7 @@ func (tx *OrmTransaction) UpdateElasticKeyMaterialKeyRevoke(materialKey *Materia
 }
 
 func (tx *OrmTransaction) toAppErr(msg *string, err error) error {
-	tx.ormRepository.telemetryService.Slogger.Error(*msg, "error", err)
+	tx.ormRepository.telemetryService.Slogger.Error(*msg, cryptoutilSharedMagic.StringError, err)
 
 	// custom errors
 	if cryptoutilSharedApperr.IsAppErr(err) {

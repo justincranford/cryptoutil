@@ -128,7 +128,7 @@ func TestRealmConfig_Validate_Valid(t *testing.T) {
 		{
 			name: "UsernamePasswordConfig_Valid",
 			config: &UsernamePasswordConfig{
-				MinPasswordLength: 8,
+				MinPasswordLength: cryptoutilSharedMagic.IMMinPasswordLength,
 				RequireUppercase:  true,
 				RequireLowercase:  true,
 				RequireDigit:      true,
@@ -145,7 +145,7 @@ func TestRealmConfig_Validate_Valid(t *testing.T) {
 		{
 			name: "OAuth2Config_Valid_WithDiscovery",
 			config: &OAuth2Config{
-				ClientID:     "test-client-id",
+				ClientID:     cryptoutilSharedMagic.TestClientID,
 				ProviderURL:  "https://auth.example.com",
 				UseDiscovery: true,
 			},
@@ -153,7 +153,7 @@ func TestRealmConfig_Validate_Valid(t *testing.T) {
 		{
 			name: "OAuth2Config_Valid_WithoutDiscovery",
 			config: &OAuth2Config{
-				ClientID:     "test-client-id",
+				ClientID:     cryptoutilSharedMagic.TestClientID,
 				UseDiscovery: false,
 				AuthorizeURL: "https://auth.example.com/authorize",
 				TokenURL:     "https://auth.example.com/token",
@@ -177,21 +177,21 @@ func TestRealmConfig_Validate_Valid(t *testing.T) {
 		{
 			name: "JWESessionCookieConfig_Valid",
 			config: &JWESessionCookieConfig{
-				EncryptionAlgorithm:  "dir+A256GCM",
+				EncryptionAlgorithm:  cryptoutilSharedMagic.DefaultBrowserSessionJWEAlgorithm,
 				SessionExpiryMinutes: 15,
 			},
 		},
 		{
 			name: "JWSSessionCookieConfig_Valid",
 			config: &JWSSessionCookieConfig{
-				SigningAlgorithm:     "RS256",
+				SigningAlgorithm:     cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 				SessionExpiryMinutes: 15,
 			},
 		},
 		{
 			name: "OpaqueSessionCookieConfig_Valid",
 			config: &OpaqueSessionCookieConfig{
-				TokenLengthBytes:     32,
+				TokenLengthBytes:     cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes,
 				SessionExpiryMinutes: 15,
 				StorageType:          cryptoutilSharedMagic.RealmStorageTypeDatabase,
 			},
@@ -199,7 +199,7 @@ func TestRealmConfig_Validate_Valid(t *testing.T) {
 		{
 			name: "OpaqueSessionCookieConfig_Valid_Redis",
 			config: &OpaqueSessionCookieConfig{
-				TokenLengthBytes:     32,
+				TokenLengthBytes:     cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes,
 				SessionExpiryMinutes: 15,
 				StorageType:          cryptoutilSharedMagic.RealmStorageTypeRedis,
 			},
@@ -207,7 +207,7 @@ func TestRealmConfig_Validate_Valid(t *testing.T) {
 		{
 			name: "BasicUsernamePasswordConfig_Valid",
 			config: &BasicUsernamePasswordConfig{
-				MinPasswordLength: 8,
+				MinPasswordLength: cryptoutilSharedMagic.IMMinPasswordLength,
 				RequireUppercase:  true,
 				RequireLowercase:  true,
 				RequireDigit:      true,
@@ -217,8 +217,8 @@ func TestRealmConfig_Validate_Valid(t *testing.T) {
 		{
 			name: "BearerAPITokenConfig_Valid",
 			config: &BearerAPITokenConfig{
-				TokenExpiryDays:   30,
-				TokenLengthBytes:  64,
+				TokenExpiryDays:   cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days,
+				TokenLengthBytes:  cryptoutilSharedMagic.MinSerialNumberBits,
 				AllowRefreshToken: true,
 			},
 		},
@@ -242,29 +242,29 @@ func TestRealmConfig_Validate_Valid(t *testing.T) {
 		{
 			name: "JWESessionTokenConfig_Valid",
 			config: &JWESessionTokenConfig{
-				EncryptionAlgorithm: "dir+A256GCM",
-				TokenExpiryMinutes:  60,
+				EncryptionAlgorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWEAlgorithm,
+				TokenExpiryMinutes:  cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds,
 			},
 		},
 		{
 			name: "JWSSessionTokenConfig_Valid",
 			config: &JWSSessionTokenConfig{
-				SigningAlgorithm:   "ES256",
-				TokenExpiryMinutes: 60,
+				SigningAlgorithm:   cryptoutilSharedMagic.JoseAlgES256,
+				TokenExpiryMinutes: cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds,
 			},
 		},
 		{
 			name: "OpaqueSessionTokenConfig_Valid",
 			config: &OpaqueSessionTokenConfig{
-				TokenLengthBytes:   32,
-				TokenExpiryMinutes: 60,
+				TokenLengthBytes:   cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes,
+				TokenExpiryMinutes: cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds,
 				StorageType:        cryptoutilSharedMagic.RealmStorageTypeDatabase,
 			},
 		},
 		{
 			name: "BasicClientIDSecretConfig_Valid",
 			config: &BasicClientIDSecretConfig{
-				MinSecretLength:  32,
+				MinSecretLength:  cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes,
 				RequireUppercase: true,
 				RequireLowercase: true,
 				RequireDigit:     true,

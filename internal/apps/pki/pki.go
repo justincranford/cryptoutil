@@ -6,6 +6,7 @@
 package pki
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"io"
 
 	cryptoutilAppsPkiCa "cryptoutil/internal/apps/pki/ca"
@@ -27,7 +28,7 @@ const (
 func Pki(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	return cryptoutilTemplateCli.RouteProduct(
 		cryptoutilTemplateCli.ProductConfig{
-			ProductName: "pki",
+			ProductName: cryptoutilSharedMagic.PKIProductName,
 			UsageText:   usageText,
 			VersionText: versionText,
 		},

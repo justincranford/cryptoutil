@@ -3,6 +3,7 @@
 package random
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	testify "github.com/stretchr/testify/require"
@@ -18,11 +19,11 @@ func TestGenerateString(t *testing.T) {
 	}{
 		{"Empty string", 0},
 		{"Single char", 1},
-		{"Short string", 8},
-		{"Medium string", 32},
-		{"Long string", 128},
+		{"Short string", cryptoutilSharedMagic.IMMinPasswordLength},
+		{"Medium string", cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes},
+		{"Long string", cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits},
 		{"Odd length", 15},
-		{"Even length", 16},
+		{"Even length", cryptoutilSharedMagic.RealmMinTokenLengthBytes},
 	}
 
 	for _, tc := range tests {
@@ -72,10 +73,10 @@ func TestGenerateBytes(t *testing.T) {
 	}{
 		{"Empty bytes", 0},
 		{"Single byte", 1},
-		{"Short bytes", 8},
-		{"Medium bytes", 32},
-		{"Long bytes", 128},
-		{"Very long bytes", 1024},
+		{"Short bytes", cryptoutilSharedMagic.IMMinPasswordLength},
+		{"Medium bytes", cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes},
+		{"Long bytes", cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits},
+		{"Very long bytes", cryptoutilSharedMagic.DefaultLogsBatchSize},
 	}
 
 	for _, tc := range tests {
@@ -221,7 +222,7 @@ func TestGenerateUUIDv7_HappyPath(t *testing.T) {
 	uuid, err := GenerateUUIDv7()
 	testify.NoError(t, err, "GenerateUUIDv7 should not return error")
 	testify.NotNil(t, uuid, "Generated UUID should not be nil")
-	testify.Equal(t, 7, int(uuid.Version()), "UUID version should be 7")
+	testify.Equal(t, cryptoutilSharedMagic.GitRecentActivityDays, int(uuid.Version()), "UUID version should be 7")
 }
 
 // TestGenerateUUIDv7_Uniqueness verifies different calls produce different UUIDs.

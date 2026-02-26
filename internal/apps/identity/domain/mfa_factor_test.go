@@ -5,6 +5,7 @@
 package domain
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
 
@@ -158,7 +159,7 @@ func TestMFAFactor_IsNonceValid(t *testing.T) {
 					return &t
 				}(),
 				NonceUsedAt: func() *time.Time {
-					t := time.Now().UTC().Add(-30 * time.Minute)
+					t := time.Now().UTC().Add(-cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Minute)
 
 					return &t
 				}(),

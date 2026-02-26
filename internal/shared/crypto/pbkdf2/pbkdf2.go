@@ -5,6 +5,7 @@
 package pbkdf2
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	crand "crypto/rand"
 	"crypto/subtle"
 	"encoding/base64"
@@ -87,7 +88,7 @@ func VerifyPassword(password, storedHash string) (bool, error) {
 		return false, fmt.Errorf("invalid hash format: expected empty first part")
 	}
 
-	if parts[1] != "pbkdf2-sha256" {
+	if parts[1] != cryptoutilSharedMagic.PBKDF2Prefix {
 		return false, fmt.Errorf("invalid hash algorithm: expected pbkdf2-sha256, got %s", parts[1])
 	}
 

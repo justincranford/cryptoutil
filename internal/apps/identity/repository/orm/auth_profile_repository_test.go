@@ -5,6 +5,7 @@
 package orm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -31,7 +32,7 @@ func TestAuthProfileRepository_Create(t *testing.T) {
 		Description: "Standard username/password authentication",
 		ProfileType: cryptoutilIdentityDomain.AuthProfileTypeUsernamePassword,
 		RequireMFA:  true,
-		MFAChain:    []string{"totp", "sms"},
+		MFAChain:    []string{cryptoutilSharedMagic.MFATypeTOTP, cryptoutilSharedMagic.AMRSMS},
 		Enabled:     true,
 	}
 
@@ -127,7 +128,7 @@ func TestAuthProfileRepository_Update(t *testing.T) {
 
 	profile.Description = updatedDescriptionAuthProfile
 	profile.RequireMFA = true
-	profile.MFAChain = []string{"totp"}
+	profile.MFAChain = []string{cryptoutilSharedMagic.MFATypeTOTP}
 	err = repo.Update(context.Background(), profile)
 	require.NoError(t, err)
 
@@ -166,7 +167,7 @@ func TestAuthProfileRepository_List(t *testing.T) {
 	testDB := setupTestDB(t)
 	repo := NewAuthProfileRepository(testDB.db)
 
-	for i := 0; i < 5; i++ {
+	for i := 0; i < cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries; i++ {
 		profile := &cryptoutilIdentityDomain.AuthProfile{
 			Name:        "list_test_profile_" + string(rune('a'+i)),
 			ProfileType: cryptoutilIdentityDomain.AuthProfileTypeUsernamePassword,
@@ -196,7 +197,7 @@ func TestAuthProfileRepository_Count(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, int64(0), count)
 
-	for i := 0; i < 5; i++ {
+	for i := 0; i < cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries; i++ {
 		profile := &cryptoutilIdentityDomain.AuthProfile{
 			Name:        "count_test_profile_" + string(rune('a'+i)),
 			ProfileType: cryptoutilIdentityDomain.AuthProfileTypeUsernamePassword,
@@ -209,5 +210,5 @@ func TestAuthProfileRepository_Count(t *testing.T) {
 
 	count, err = repo.Count(context.Background())
 	require.NoError(t, err)
-	require.Equal(t, int64(5), count)
+	require.Equal(t, int64(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries), count)
 }

@@ -28,12 +28,12 @@ func (s *Service) RegisterMiddleware(app *fiber.App) {
 	// Referrer-Policy, Content-Security-Policy, Permissions-Policy.
 	app.Use(helmet.New(helmet.Config{
 		XSSProtection:             "1; mode=block",
-		ContentTypeNosniff:        "nosniff",
+		ContentTypeNosniff:        cryptoutilSharedMagic.ContentTypeOptions,
 		XFrameOptions:             "DENY",
-		ReferrerPolicy:            "strict-origin-when-cross-origin",
-		CrossOriginEmbedderPolicy: "require-corp",
-		CrossOriginOpenerPolicy:   "same-origin",
-		CrossOriginResourcePolicy: "same-origin",
+		ReferrerPolicy:            cryptoutilSharedMagic.ReferrerPolicy,
+		CrossOriginEmbedderPolicy: cryptoutilSharedMagic.CrossOriginEmbedderPolicy,
+		CrossOriginOpenerPolicy:   cryptoutilSharedMagic.CrossOriginOpenerPolicy,
+		CrossOriginResourcePolicy: cryptoutilSharedMagic.CrossOriginOpenerPolicy,
 		PermissionPolicy:          "geolocation=(), microphone=(), camera=()",
 	}))
 

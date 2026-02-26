@@ -29,7 +29,7 @@ func TestGenerateAutoTLSGeneratedSettings_CAKeyGenError(t *testing.T) {
 
 	defer func() { generateECDSAKeyPairFn = orig }()
 
-	_, err := GenerateAutoTLSGeneratedSettings([]string{"localhost"}, nil, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
+	_, err := GenerateAutoTLSGeneratedSettings([]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, nil, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
 	require.ErrorContains(t, err, "failed to generate CA key pair")
 }
 
@@ -41,7 +41,7 @@ func TestGenerateAutoTLSGeneratedSettings_CASubjectsError(t *testing.T) {
 
 	defer func() { createCASubjectsFn = orig }()
 
-	_, err := GenerateAutoTLSGeneratedSettings([]string{"localhost"}, nil, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
+	_, err := GenerateAutoTLSGeneratedSettings([]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, nil, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
 	require.ErrorContains(t, err, "failed to create CA subjects")
 }
 
@@ -59,7 +59,7 @@ func TestGenerateAutoTLSGeneratedSettings_ServerKeyGenError(t *testing.T) {
 
 	defer func() { generateECDSAKeyPairFn = orig }()
 
-	_, err := GenerateAutoTLSGeneratedSettings([]string{"localhost"}, nil, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
+	_, err := GenerateAutoTLSGeneratedSettings([]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, nil, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
 	require.ErrorContains(t, err, "failed to generate server key pair")
 }
 
@@ -71,7 +71,7 @@ func TestGenerateAutoTLSGeneratedSettings_CreateEndEntityError(t *testing.T) {
 
 	defer func() { createEndEntitySubjectFn = orig }()
 
-	_, err := GenerateAutoTLSGeneratedSettings([]string{"localhost"}, nil, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
+	_, err := GenerateAutoTLSGeneratedSettings([]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, nil, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
 	require.ErrorContains(t, err, "failed to create server certificate")
 }
 
@@ -83,7 +83,7 @@ func TestGenerateAutoTLSGeneratedSettings_BuildTLSError(t *testing.T) {
 
 	defer func() { buildTLSCertificateFn = orig }()
 
-	_, err := GenerateAutoTLSGeneratedSettings([]string{"localhost"}, nil, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
+	_, err := GenerateAutoTLSGeneratedSettings([]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, nil, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
 	require.ErrorContains(t, err, "failed to build TLS certificate")
 }
 
@@ -93,7 +93,7 @@ func TestGenerateAutoTLSGeneratedSettings_MarshalKeyError(t *testing.T) {
 
 	defer func() { marshalPKCS8PrivateKeyFn = orig }()
 
-	_, err := GenerateAutoTLSGeneratedSettings([]string{"localhost"}, nil, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
+	_, err := GenerateAutoTLSGeneratedSettings([]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, nil, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
 	require.ErrorContains(t, err, "failed to marshal server private key")
 }
 
@@ -142,7 +142,7 @@ func TestGenerateServerCertFromCA_ServerKeyGenError(t *testing.T) {
 
 	defer func() { generateECDSAKeyPairFn = orig }()
 
-	_, err = GenerateServerCertFromCA(caCertPEM, caKeyPEM, []string{"localhost"}, []string{"127.0.0.1"}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
+	_, err = GenerateServerCertFromCA(caCertPEM, caKeyPEM, []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []string{cryptoutilSharedMagic.IPv4Loopback}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
 	require.ErrorContains(t, err, "failed to generate server key pair")
 }
 
@@ -157,7 +157,7 @@ func TestGenerateServerCertFromCA_BuildTLSError(t *testing.T) {
 
 	defer func() { buildTLSCertificateFn = orig }()
 
-	_, err = GenerateServerCertFromCA(caCertPEM, caKeyPEM, []string{"localhost"}, []string{"127.0.0.1"}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
+	_, err = GenerateServerCertFromCA(caCertPEM, caKeyPEM, []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []string{cryptoutilSharedMagic.IPv4Loopback}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
 	require.ErrorContains(t, err, "failed to build TLS certificate")
 }
 
@@ -170,6 +170,6 @@ func TestGenerateServerCertFromCA_MarshalKeyError(t *testing.T) {
 
 	defer func() { marshalPKCS8PrivateKeyFn = orig }()
 
-	_, err = GenerateServerCertFromCA(caCertPEM, caKeyPEM, []string{"localhost"}, []string{"127.0.0.1"}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
+	_, err = GenerateServerCertFromCA(caCertPEM, caKeyPEM, []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []string{cryptoutilSharedMagic.IPv4Loopback}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
 	require.ErrorContains(t, err, "failed to marshal server private key")
 }

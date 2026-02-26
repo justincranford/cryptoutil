@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	json "encoding/json"
 	http "net/http"
 	"net/http/httptest"
@@ -170,7 +171,7 @@ func TestPerformRevocationCheck_Modes(t *testing.T) {
 		{
 			name:    "disabled mode skips check",
 			mode:    RevocationCheckDisabled,
-			claims:  &JWTClaims{Scopes: []string{"read"}},
+			claims:  &JWTClaims{Scopes: []string{cryptoutilSharedMagic.ScopeRead}},
 			wantErr: false,
 		},
 		{
@@ -178,7 +179,7 @@ func TestPerformRevocationCheck_Modes(t *testing.T) {
 			mode: RevocationCheckEveryRequest,
 			claims: &JWTClaims{
 				Subject: "user-1",
-				Scopes:  []string{"read"},
+				Scopes:  []string{cryptoutilSharedMagic.ScopeRead},
 			},
 			wantErr: false,
 		},
@@ -187,7 +188,7 @@ func TestPerformRevocationCheck_Modes(t *testing.T) {
 			mode: RevocationCheckSensitiveOnly,
 			claims: &JWTClaims{
 				Subject: "user-2",
-				Scopes:  []string{"read"},
+				Scopes:  []string{cryptoutilSharedMagic.ScopeRead},
 			},
 			wantErr: false,
 		},
@@ -210,7 +211,7 @@ func TestPerformRevocationCheck_Modes(t *testing.T) {
 				JWKSURL:             "https://localhost/.well-known/jwks.json",
 				RevocationCheckMode: tc.mode,
 				IntrospectionURL:    introspectionServer.URL,
-				SensitiveScopes:     []string{"admin", "write"},
+				SensitiveScopes:     []string{"admin", cryptoutilSharedMagic.ScopeWrite},
 			})
 			require.NoError(t, err)
 

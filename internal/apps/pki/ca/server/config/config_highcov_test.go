@@ -4,6 +4,7 @@
 package config
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	"github.com/spf13/pflag"
@@ -19,14 +20,14 @@ func TestParse_HappyPath(t *testing.T) {
 	fs := pflag.NewFlagSet("test-pki-happy-path", pflag.ContinueOnError)
 	args := []string{
 		"start", // Required subcommand.
-		"--bind-public-address", "127.0.0.1",
+		"--bind-public-address", cryptoutilSharedMagic.IPv4Loopback,
 		"--dev",
 	}
 
 	settings, err := ParseWithFlagSet(fs, args, false)
 	require.NoError(t, err)
 	require.NotNil(t, settings)
-	require.Equal(t, "127.0.0.1", settings.BindPublicAddress)
+	require.Equal(t, cryptoutilSharedMagic.IPv4Loopback, settings.BindPublicAddress)
 	// Verify CA-specific defaults.
 	require.Empty(t, settings.CAConfigPath)
 	require.Empty(t, settings.ProfilesPath)

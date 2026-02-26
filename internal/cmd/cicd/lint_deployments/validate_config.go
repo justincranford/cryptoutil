@@ -186,7 +186,7 @@ func validateConfigSecretRefs(config map[string]any, result *ConfigValidationRes
 	// Safe patterns: file:///run/secrets/ or sqlite://.
 	if strings.HasPrefix(strVal, "file:///run/secrets/") ||
 		strings.HasPrefix(strVal, "sqlite://") ||
-		strings.HasPrefix(strVal, ":memory:") {
+		strings.HasPrefix(strVal, cryptoutilSharedMagic.SQLiteMemoryPlaceholder) {
 		return
 	}
 

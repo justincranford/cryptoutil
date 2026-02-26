@@ -5,6 +5,7 @@
 package client_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	http "net/http"
 	"testing"
 
@@ -58,7 +59,7 @@ func TestSendAuthenticatedRequest_ConnectionError(t *testing.T) {
 
 	client := &http.Client{}
 
-	resp, err := cryptoutilAppsTemplateServiceClient.SendAuthenticatedRequest(client, http.MethodGet, "http://127.0.0.1:59999/api", "token", nil) //nolint:bodyclose // resp is nil on connection error.
+	resp, err := cryptoutilAppsTemplateServiceClient.SendAuthenticatedRequest(client, http.MethodGet, "http://127.0.0.1:59999/api", cryptoutilSharedMagic.ParamToken, nil) //nolint:bodyclose // resp is nil on connection error.
 
 	require.Error(t, err)
 	require.Nil(t, resp)
@@ -123,7 +124,7 @@ func TestSendAuthenticatedRequest_InvalidURL(t *testing.T) {
 
 	client := &http.Client{}
 
-	resp, err := cryptoutilAppsTemplateServiceClient.SendAuthenticatedRequest(client, http.MethodGet, "http://invalid\x00url/api", "token", nil) //nolint:bodyclose // resp is nil on invalid URL.
+	resp, err := cryptoutilAppsTemplateServiceClient.SendAuthenticatedRequest(client, http.MethodGet, "http://invalid\x00url/api", cryptoutilSharedMagic.ParamToken, nil) //nolint:bodyclose // resp is nil on invalid URL.
 
 	require.Error(t, err)
 	require.Nil(t, resp)

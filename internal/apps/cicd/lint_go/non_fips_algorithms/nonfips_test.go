@@ -50,7 +50,7 @@ func main() {
 }
 `
 
-	err := os.WriteFile(cleanFile, []byte(cleanCode), 0o600)
+	err := os.WriteFile(cleanFile, []byte(cleanCode), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Check file.
@@ -76,7 +76,7 @@ func main() {
 }
 `
 
-	err := os.WriteFile(bannedFile, []byte(bannedCode), 0o600)
+	err := os.WriteFile(bannedFile, []byte(bannedCode), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Check file.
@@ -105,14 +105,14 @@ func main() {
 }
 `
 
-	err := os.WriteFile(bannedFile, []byte(bannedCode), 0o600)
+	err := os.WriteFile(bannedFile, []byte(bannedCode), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Check file.
 	violations := CheckFileForNonFIPS(bannedFile)
 	require.NotEmpty(t, violations, "MD5 usage should be detected")
 	require.Contains(t, strings.Join(violations, "\n"), "md5", "Violation should mention md5")
-	require.Contains(t, strings.Join(violations, "\n"), "SHA-256", "Violation should suggest SHA-256")
+	require.Contains(t, strings.Join(violations, "\n"), cryptoutilSharedMagic.PBKDF2DefaultAlgorithm, "Violation should suggest SHA-256")
 }
 
 func TestCheckFileForNonFIPS_SHA1(t *testing.T) {
@@ -134,14 +134,14 @@ func main() {
 }
 `
 
-	err := os.WriteFile(bannedFile, []byte(bannedCode), 0o600)
+	err := os.WriteFile(bannedFile, []byte(bannedCode), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Check file.
 	violations := CheckFileForNonFIPS(bannedFile)
 	require.NotEmpty(t, violations, "SHA-1 usage should be detected")
 	require.Contains(t, strings.Join(violations, "\n"), "sha1", "Violation should mention sha1")
-	require.Contains(t, strings.Join(violations, "\n"), "SHA-256", "Violation should suggest SHA-256")
+	require.Contains(t, strings.Join(violations, "\n"), cryptoutilSharedMagic.PBKDF2DefaultAlgorithm, "Violation should suggest SHA-256")
 }
 
 func TestCheckFileForNonFIPS_DES(t *testing.T) {
@@ -162,7 +162,7 @@ func main() {
 }
 `
 
-	err := os.WriteFile(bannedFile, []byte(bannedCode), 0o600)
+	err := os.WriteFile(bannedFile, []byte(bannedCode), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Check file.
@@ -194,7 +194,7 @@ func main() {
 }
 `
 
-	err := os.WriteFile(bannedFile, []byte(bannedCode), 0o600)
+	err := os.WriteFile(bannedFile, []byte(bannedCode), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Check file.
@@ -224,7 +224,7 @@ func TestPrintNonFIPSViolations(t *testing.T) {
 
 	os.Stderr = oldStderr
 
-	var buf [8192]byte
+	var buf [cryptoutilSharedMagic.MockRAMMB]byte
 
 	n, _ := r.Read(buf[:])
 	output := string(buf[:n])
@@ -259,13 +259,13 @@ func TestFindGoFiles_WithTempDir(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	// Create Go files.
-	require.NoError(t, os.WriteFile("main.go", []byte(testPackageMainDef), 0o600))
-	require.NoError(t, os.WriteFile("util.go", []byte(testPackageMainDef), 0o600))
-	require.NoError(t, os.WriteFile("main_test.go", []byte(testPackageMainDef), 0o600))
+	require.NoError(t, os.WriteFile("main.go", []byte(testPackageMainDef), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile("util.go", []byte(testPackageMainDef), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile("main_test.go", []byte(testPackageMainDef), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Create excluded directories.
-	require.NoError(t, os.MkdirAll("vendor", 0o755))
-	require.NoError(t, os.WriteFile("vendor/vendored.go", []byte("package vendor\n"), 0o600))
+	require.NoError(t, os.MkdirAll(cryptoutilSharedMagic.CICDExcludeDirVendor, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.WriteFile("vendor/vendored.go", []byte("package vendor\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Test - should find main.go and util.go, but NOT test files, vendor files.
 	files, err := FindGoFiles()
@@ -290,7 +290,7 @@ func TestCheckNonFIPS_WithTempDir(t *testing.T) {
 
 	// Create clean Go file without banned algorithms.
 	cleanContent := "package main\n\nimport (\n\t\"crypto/sha256\"\n)\n\nfunc main() { sha256.New() }\n"
-	require.NoError(t, os.WriteFile("main.go", []byte(cleanContent), 0o600))
+	require.NoError(t, os.WriteFile("main.go", []byte(cleanContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
@@ -316,7 +316,7 @@ func TestCheckNonFIPS_WithViolations(t *testing.T) {
 
 	// Create Go file with banned algorithm (bcrypt).
 	badContent := "package main\n\nimport \"golang.org/x/crypto/bcrypt\"\n\nfunc main() { bcrypt.GenerateFromPassword(nil, 0) }\n"
-	require.NoError(t, os.WriteFile("bad.go", []byte(badContent), 0o600))
+	require.NoError(t, os.WriteFile("bad.go", []byte(badContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
@@ -346,15 +346,15 @@ func TestFindGoFiles_ErrorPath(t *testing.T) {
 
 	// Create a subdirectory that will trigger walk error.
 	subDir := "subdir"
-	require.NoError(t, os.MkdirAll(subDir, 0o755))
-	require.NoError(t, os.WriteFile(filepath.Join(subDir, "file.go"), []byte("package main\n"), 0o600))
+	require.NoError(t, os.MkdirAll(subDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.WriteFile(filepath.Join(subDir, "file.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Make subdirectory unreadable.
 	require.NoError(t, os.Chmod(subDir, 0o000))
 
 	defer func() {
 		// Restore permissions for cleanup.
-		_ = os.Chmod(filepath.Join(tempDir, subDir), 0o755)
+		_ = os.Chmod(filepath.Join(tempDir, subDir), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	}()
 
 	// Test - should get error from walking directory.
@@ -379,7 +379,7 @@ func TestCheckFileForNonFIPS_NolintComment(t *testing.T) {
 	// Create a Go file with a banned algorithm and a nolint comment on the same line.
 	goFile := filepath.Join(tempDir, "main.go")
 	content := "package main\n\nimport \"crypto/md5\" //nolint:gosec // Required for legacy\n"
-	require.NoError(t, os.WriteFile(goFile, []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(goFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	violations := CheckFileForNonFIPS(goFile)
 	require.Empty(t, violations, "nolint comment should suppress violation")
@@ -387,7 +387,7 @@ func TestCheckFileForNonFIPS_NolintComment(t *testing.T) {
 
 func TestCheck_FindGoFilesError(t *testing.T) {
 	// NOTE: Cannot use t.Parallel() - test changes working directory.
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
 		t.Skip("chmod 0o000 does not work on Windows")
 	}
 
@@ -401,11 +401,11 @@ func TestCheck_FindGoFilesError(t *testing.T) {
 
 	// Create a subdirectory that will trigger walk error.
 	subDir := "lockdir"
-	require.NoError(t, os.MkdirAll(subDir, 0o755))
-	require.NoError(t, os.WriteFile(filepath.Join(subDir, "file.go"), []byte("package main\n"), 0o600))
+	require.NoError(t, os.MkdirAll(subDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.WriteFile(filepath.Join(subDir, "file.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.Chmod(subDir, 0o000))
 
-	defer func() { _ = os.Chmod(filepath.Join(tempDir, subDir), 0o755) }()
+	defer func() { _ = os.Chmod(filepath.Join(tempDir, subDir), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute) }()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	err = Check(logger)

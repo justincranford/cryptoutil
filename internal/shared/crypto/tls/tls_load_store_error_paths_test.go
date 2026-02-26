@@ -5,6 +5,7 @@
 package tls
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/tls"
 	"encoding/pem"
 	"net"
@@ -38,7 +39,7 @@ func TestLoadCertificatePEM_EmptyCertList(t *testing.T) {
 	tmpFile, err := os.CreateTemp(t.TempDir(), "test*.pem")
 	require.NoError(t, err)
 
-	_ = pem.Encode(tmpFile, &pem.Block{Type: "PRIVATE KEY", Bytes: []byte("fakekey")})
+	_ = pem.Encode(tmpFile, &pem.Block{Type: cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey, Bytes: []byte("fakekey")})
 	require.NoError(t, tmpFile.Close())
 
 	_, err = LoadCertificatePEM(tmpFile.Name(), "")
@@ -54,7 +55,7 @@ func TestLoadCertificatePEM_ParseCertError(t *testing.T) {
 	tmpFile, err := os.CreateTemp(t.TempDir(), "test*.pem")
 	require.NoError(t, err)
 
-	_ = pem.Encode(tmpFile, &pem.Block{Type: "CERTIFICATE", Bytes: []byte("notvalidder")})
+	_ = pem.Encode(tmpFile, &pem.Block{Type: cryptoutilSharedMagic.StringPEMTypeCertificate, Bytes: []byte("notvalidder")})
 	require.NoError(t, tmpFile.Close())
 
 	_, err = LoadCertificatePEM(tmpFile.Name(), "")
@@ -69,7 +70,7 @@ func TestLoadCertificatePEM_ReadKeyError(t *testing.T) {
 	chain, err := CreateCAChain(DefaultCAChainOptions("test.local"))
 	require.NoError(t, err)
 
-	subject, err := chain.CreateEndEntity(ServerEndEntityOptions("server.test.local", []string{"server.test.local", "localhost"}, []net.IP{net.ParseIP("127.0.0.1")}))
+	subject, err := chain.CreateEndEntity(ServerEndEntityOptions("server.test.local", []string{"server.test.local", cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)}))
 	require.NoError(t, err)
 
 	opts := DefaultStorageOptions(t.TempDir())
@@ -89,7 +90,7 @@ func TestLoadCertificatePEM_DecodeKeyError(t *testing.T) {
 	chain, err := CreateCAChain(DefaultCAChainOptions("test.local"))
 	require.NoError(t, err)
 
-	subject, err := chain.CreateEndEntity(ServerEndEntityOptions("server.test.local", []string{"server.test.local", "localhost"}, []net.IP{net.ParseIP("127.0.0.1")}))
+	subject, err := chain.CreateEndEntity(ServerEndEntityOptions("server.test.local", []string{"server.test.local", cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)}))
 	require.NoError(t, err)
 
 	opts := DefaultStorageOptions(t.TempDir())
@@ -98,7 +99,7 @@ func TestLoadCertificatePEM_DecodeKeyError(t *testing.T) {
 
 	// Write an invalid (non-PEM) key file.
 	keyFile := stored.CertificatePath + ".key"
-	require.NoError(t, os.WriteFile(keyFile, []byte("not valid PEM content"), 0o600)) //nolint:gosec // Test file.
+	require.NoError(t, os.WriteFile(keyFile, []byte("not valid PEM content"), cryptoutilSharedMagic.CacheFilePermissions)) //nolint:gosec // Test file.
 
 	_, err = LoadCertificatePEM(stored.CertificatePath, keyFile)
 
@@ -113,7 +114,7 @@ func TestLoadCertificatePEM_ParseKeyError(t *testing.T) {
 	chain, err := CreateCAChain(DefaultCAChainOptions("test.local"))
 	require.NoError(t, err)
 
-	subject, err := chain.CreateEndEntity(ServerEndEntityOptions("server.test.local", []string{"server.test.local", "localhost"}, []net.IP{net.ParseIP("127.0.0.1")}))
+	subject, err := chain.CreateEndEntity(ServerEndEntityOptions("server.test.local", []string{"server.test.local", cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)}))
 	require.NoError(t, err)
 
 	opts := DefaultStorageOptions(t.TempDir())
@@ -122,8 +123,8 @@ func TestLoadCertificatePEM_ParseKeyError(t *testing.T) {
 
 	// Write a key PEM file with valid PEM block but invalid PKCS8 bytes.
 	keyFile := stored.CertificatePath + ".key"
-	keyPEMBytes := pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: []byte("notvalidpkcs8")})
-	require.NoError(t, os.WriteFile(keyFile, keyPEMBytes, 0o600)) //nolint:gosec // Test file.
+	keyPEMBytes := pem.EncodeToMemory(&pem.Block{Type: cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey, Bytes: []byte("notvalidpkcs8")})
+	require.NoError(t, os.WriteFile(keyFile, keyPEMBytes, cryptoutilSharedMagic.CacheFilePermissions)) //nolint:gosec // Test file.
 
 	_, err = LoadCertificatePEM(stored.CertificatePath, keyFile)
 

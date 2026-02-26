@@ -5,6 +5,7 @@
 package config
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -74,7 +75,7 @@ func TestLoadProfileFromFile(t *testing.T) {
   rs:
     enabled: false
 `
-		err := os.WriteFile(profileFile, []byte(profileContent), 0o600)
+		err := os.WriteFile(profileFile, []byte(profileContent), cryptoutilSharedMagic.CacheFilePermissions)
 		require.NoError(t, err)
 
 		cfg, err := LoadProfileFromFile(profileFile)
@@ -92,7 +93,7 @@ func TestLoadProfileFromFile(t *testing.T) {
 		profileFile := filepath.Join(tempDir, "invalid.yml")
 
 		invalidContent := `this is not: valid: yaml: content`
-		err := os.WriteFile(profileFile, []byte(invalidContent), 0o600)
+		err := os.WriteFile(profileFile, []byte(invalidContent), cryptoutilSharedMagic.CacheFilePermissions)
 		require.NoError(t, err)
 
 		cfg, err := LoadProfileFromFile(profileFile)
@@ -118,7 +119,7 @@ func TestProfileConfigValidate(t *testing.T) {
 					AuthZ: ServiceConfig{
 						Enabled:     true,
 						BindAddress: "127.0.0.1:8080",
-						DatabaseURL: ":memory:",
+						DatabaseURL: cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 						LogLevel:    "debug",
 					},
 				},
@@ -143,7 +144,7 @@ func TestProfileConfigValidate(t *testing.T) {
 				Services: ServiceConfigs{
 					AuthZ: ServiceConfig{
 						Enabled:     true,
-						DatabaseURL: ":memory:",
+						DatabaseURL: cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 						LogLevel:    "info",
 					},
 				},
@@ -158,7 +159,7 @@ func TestProfileConfigValidate(t *testing.T) {
 					AuthZ: ServiceConfig{
 						Enabled:     true,
 						BindAddress: "127.0.0.1:8080",
-						DatabaseURL: ":memory:",
+						DatabaseURL: cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 						LogLevel:    "invalid",
 					},
 				},
@@ -173,7 +174,7 @@ func TestProfileConfigValidate(t *testing.T) {
 					IDP: ServiceConfig{
 						Enabled:     true,
 						BindAddress: "127.0.0.1:8081",
-						DatabaseURL: ":memory:",
+						DatabaseURL: cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 						LogLevel:    "info",
 					},
 				},
@@ -213,7 +214,7 @@ func TestProfileConfigValidate(t *testing.T) {
 				Services: ServiceConfigs{
 					RS: ServiceConfig{
 						Enabled:  true,
-						LogLevel: "error",
+						LogLevel: cryptoutilSharedMagic.StringError,
 					},
 				},
 			},

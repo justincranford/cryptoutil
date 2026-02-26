@@ -5,6 +5,7 @@
 package ca
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 "bytes"
 "testing"
 
@@ -149,7 +150,7 @@ expectedOutputs  []string
 }{
 {
 subcommand:       "health",
-url:              publicBaseURL + "/service/api/v1",
+url:              publicBaseURL + cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath,
 expectedExitCode: 0,
 expectedOutputs:  []string{"HTTP 200"},
 },

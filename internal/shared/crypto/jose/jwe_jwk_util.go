@@ -93,11 +93,11 @@ func CreateJWEJWKFromKey(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlg
 		return nil, nil, nil, nil, nil, fmt.Errorf("failed to set `alg` header in JWE JWK: %w", err)
 	}
 
-	if err = jwkKeySet(nonPublicJWK, "enc", *enc); err != nil {
+	if err = jwkKeySet(nonPublicJWK, cryptoutilSharedMagic.JoseKeyUseEnc, *enc); err != nil {
 		return nil, nil, nil, nil, nil, fmt.Errorf("failed to set `alg` header in JWE JWK: %w", err)
 	}
 
-	if err = jwkKeySet(nonPublicJWK, "iat", now); err != nil {
+	if err = jwkKeySet(nonPublicJWK, cryptoutilSharedMagic.ClaimIat, now); err != nil {
 		return nil, nil, nil, nil, nil, fmt.Errorf("failed to set `iat` header in JWE JWK: %w", err)
 	}
 
@@ -228,7 +228,7 @@ func validateOrGenerateJWEAESJWK(key cryptoutilSharedCryptoKeygen.Key, enc *jose
 		return nil, fmt.Errorf("valid enc %s and alg %s, but invalid nil key bytes", *enc, *alg)
 	}
 
-	if len(keyBytes) != keyBitsLength/8 {
+	if len(keyBytes) != keyBitsLength/cryptoutilSharedMagic.IMMinPasswordLength {
 		return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but invalid key length %d; use AES %d", *enc, *alg, len(keyBytes), keyBitsLength)
 	}
 
@@ -343,12 +343,12 @@ func ExtractAlgEncFromJWEJWK(jwk joseJwk.Key, i int) (*joseJwa.ContentEncryption
 
 	var enc joseJwa.ContentEncryptionAlgorithm
 
-	err := jwk.Get("enc", &enc) // Example: A256GCM, A192GCM, A128GCM, A256CBC-HS512, A192CBC-HS384, A128CBC-HS256
+	err := jwk.Get(cryptoutilSharedMagic.JoseKeyUseEnc, &enc) // Example: A256GCM, A192GCM, A128GCM, A256CBC-HS512, A192CBC-HS384, A128CBC-HS256
 	if err != nil {
 		// Workaround: If JWK was serialized (for encryption) and parsed (after decryption), 'enc' header incorrect gets parsed as string, so try getting as string converting it to joseJwa.ContentEncryptionAlgorithm
 		var encString string
 
-		err = jwk.Get("enc", &encString)
+		err = jwk.Get(cryptoutilSharedMagic.JoseKeyUseEnc, &encString)
 		if err != nil {
 			return nil, nil, fmt.Errorf("can't get JWK %d 'enc' attribute: %w", i, err)
 		}

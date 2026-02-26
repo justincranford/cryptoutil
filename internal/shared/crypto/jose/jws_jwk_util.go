@@ -92,7 +92,7 @@ func CreateJWSJWKFromKey(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm, 
 		return nil, nil, nil, nil, nil, fmt.Errorf("failed to set `alg` header in JWS JWK: %w", err)
 	}
 
-	if err = jwkKeySet(nonPublicJWK, "iat", now); err != nil {
+	if err = jwkKeySet(nonPublicJWK, cryptoutilSharedMagic.ClaimIat, now); err != nil {
 		return nil, nil, nil, nil, nil, fmt.Errorf("failed to set `iat` header in JWS JWK: %w", err)
 	}
 
@@ -155,7 +155,7 @@ func validateJWSJWKHeaders(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm
 	case cryptoutilSharedMagic.JoseAlgES256:
 		return validateOrGenerateJWSEcdsaJWK(key, *alg, elliptic.P256())
 	case cryptoutilSharedMagic.JoseAlgEdDSA:
-		return validateOrGenerateJWSEddsaJWK(key, *alg, "Ed25519")
+		return validateOrGenerateJWSEddsaJWK(key, *alg, cryptoutilSharedMagic.EdCurveEd25519)
 	case cryptoutilSharedMagic.JoseAlgHS512:
 		return validateOrGenerateJWSHMACJWK(key, *alg, cryptoutilSharedMagic.HMACKeySize512)
 	case cryptoutilSharedMagic.JoseAlgHS384:
@@ -294,7 +294,7 @@ func validateOrGenerateJWSHMACJWK(key cryptoutilSharedCryptoKeygen.Key, alg jose
 		return nil, fmt.Errorf("valid JWS JWK alg %s, but invalid nil key bytes", alg)
 	}
 
-	if len(hmacKey) != keyBitsLength/8 {
+	if len(hmacKey) != keyBitsLength/cryptoutilSharedMagic.IMMinPasswordLength {
 		return nil, fmt.Errorf("valid JWS JWK alg %s, but invalid key length %d; use AES %d", alg, len(hmacKey), keyBitsLength)
 	}
 

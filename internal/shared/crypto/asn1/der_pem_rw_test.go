@@ -29,7 +29,7 @@ func TestPEMWrite(t *testing.T) {
 		{
 			name: "RSA private key",
 			keyGen: func() (any, error) {
-				return rsa.GenerateKey(crand.Reader, 2048)
+				return rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 			},
 		},
 		{
@@ -105,7 +105,7 @@ func TestDERWrite(t *testing.T) {
 		{
 			name: "RSA private key",
 			keyGen: func() (any, error) {
-				return rsa.GenerateKey(crand.Reader, 2048)
+				return rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 			},
 		},
 		{
@@ -175,7 +175,7 @@ func TestRoundTrip_PEMFileOperations(t *testing.T) {
 	t.Parallel()
 
 	// Generate RSA key.
-	originalKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	originalKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	// Create temporary file.

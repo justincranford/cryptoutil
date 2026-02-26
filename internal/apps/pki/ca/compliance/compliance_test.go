@@ -3,6 +3,7 @@
 package compliance
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"context"
 	ecdsa "crypto/ecdsa"
@@ -143,7 +144,7 @@ func TestChecker_CheckCertificate(t *testing.T) {
 			name:      "cabf valid cert",
 			framework: FrameworkCABFBaseline,
 			certFunc: func() *x509.Certificate {
-				return createTestCert(t, key, false, time.Now().UTC(), time.Now().UTC().Add(365*24*time.Hour), []string{"example.com"})
+				return createTestCert(t, key, false, time.Now().UTC(), time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*cryptoutilSharedMagic.HoursPerDay*time.Hour), []string{"example.com"})
 			},
 			wantErr: false,
 		},
@@ -151,7 +152,7 @@ func TestChecker_CheckCertificate(t *testing.T) {
 			name:      "rfc5280 valid cert",
 			framework: FrameworkRFC5280,
 			certFunc: func() *x509.Certificate {
-				return createTestCert(t, key, false, time.Now().UTC(), time.Now().UTC().Add(365*24*time.Hour), []string{"example.com"})
+				return createTestCert(t, key, false, time.Now().UTC(), time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*cryptoutilSharedMagic.HoursPerDay*time.Hour), []string{"example.com"})
 			},
 			wantErr: false,
 		},
@@ -199,21 +200,21 @@ func TestChecker_CABFRequirements(t *testing.T) {
 		{
 			name: "compliant certificate",
 			certFunc: func() *x509.Certificate {
-				return createTestCert(t, key, false, time.Now().UTC(), time.Now().UTC().Add(365*24*time.Hour), []string{"example.com"})
+				return createTestCert(t, key, false, time.Now().UTC(), time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*cryptoutilSharedMagic.HoursPerDay*time.Hour), []string{"example.com"})
 			},
 			expectCompliant: true,
 		},
 		{
 			name: "certificate exceeds validity period",
 			certFunc: func() *x509.Certificate {
-				return createTestCert(t, key, false, time.Now().UTC(), time.Now().UTC().Add(500*24*time.Hour), []string{"example.com"})
+				return createTestCert(t, key, false, time.Now().UTC(), time.Now().UTC().Add(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP*cryptoutilSharedMagic.HoursPerDay*time.Hour), []string{"example.com"})
 			},
 			expectCompliant: false,
 		},
 		{
 			name: "certificate without SAN",
 			certFunc: func() *x509.Certificate {
-				return createTestCert(t, key, false, time.Now().UTC(), time.Now().UTC().Add(365*24*time.Hour), nil)
+				return createTestCert(t, key, false, time.Now().UTC(), time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*cryptoutilSharedMagic.HoursPerDay*time.Hour), nil)
 			},
 			expectCompliant: false,
 		},
@@ -258,7 +259,7 @@ func TestChecker_RFC5280Requirements(t *testing.T) {
 	key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
-	cert := createTestCert(t, key, false, time.Now().UTC(), time.Now().UTC().Add(365*24*time.Hour), []string{"example.com"})
+	cert := createTestCert(t, key, false, time.Now().UTC(), time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*cryptoutilSharedMagic.HoursPerDay*time.Hour), []string{"example.com"})
 
 	requirements, err := checker.CheckCertificate(ctx, cert)
 	require.NoError(t, err)

@@ -5,6 +5,7 @@
 package orm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"fmt"
@@ -50,7 +51,7 @@ func (r *OrmRepository) WithTransaction(ctx context.Context, transactionMode Tra
 
 	err := tx.begin(ctx, transactionMode)
 	if err != nil {
-		r.telemetryService.Slogger.Error("failed to begin transaction", "error", err)
+		r.telemetryService.Slogger.Error("failed to begin transaction", cryptoutilSharedMagic.StringError, err)
 
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
@@ -58,7 +59,7 @@ func (r *OrmRepository) WithTransaction(ctx context.Context, transactionMode Tra
 	defer func() {
 		if tx.state != nil && tx.state.txMode != AutoCommit { // watch out for other commit() or rollback() calls that set tx.state as nil
 			if err := tx.rollback(); err != nil {
-				r.telemetryService.Slogger.Error("failed to rollback transaction", "txID", tx.ID(), "mode", tx.Mode(), "error", err)
+				r.telemetryService.Slogger.Error("failed to rollback transaction", "txID", tx.ID(), "mode", tx.Mode(), cryptoutilSharedMagic.StringError, err)
 			}
 		}
 
@@ -69,14 +70,14 @@ func (r *OrmRepository) WithTransaction(ctx context.Context, transactionMode Tra
 	}()
 
 	if err := function(tx); err != nil {
-		r.telemetryService.Slogger.Error("transaction function failed", "txID", tx.ID(), "mode", tx.Mode(), "error", err)
+		r.telemetryService.Slogger.Error("transaction function failed", "txID", tx.ID(), "mode", tx.Mode(), cryptoutilSharedMagic.StringError, err)
 
 		return fmt.Errorf("failed to execute transaction: %w", err)
 	}
 
 	if tx.state.txMode != AutoCommit {
 		if err := tx.commit(); err != nil { // clears state
-			r.telemetryService.Slogger.Error("failed to commit transaction", "txID", tx.ID(), "mode", tx.Mode(), "error", err)
+			r.telemetryService.Slogger.Error("failed to commit transaction", "txID", tx.ID(), "mode", tx.Mode(), cryptoutilSharedMagic.StringError, err)
 
 			return fmt.Errorf("failed to commit transaction: %w", err)
 		}
@@ -168,7 +169,7 @@ func (tx *OrmTransaction) commit() error {
 	}
 
 	if _, err := tx.commitImplementation(); err != nil {
-		tx.ormRepository.telemetryService.Slogger.Error("failed to commit transaction", "txID", tx.ID(), "mode", tx.Mode(), "error", err)
+		tx.ormRepository.telemetryService.Slogger.Error("failed to commit transaction", "txID", tx.ID(), "mode", tx.Mode(), cryptoutilSharedMagic.StringError, err)
 
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
@@ -198,7 +199,7 @@ func (tx *OrmTransaction) rollback() error {
 	}
 
 	if _, err := tx.rollbackImplementation(); err != nil {
-		tx.ormRepository.telemetryService.Slogger.Error("failed to rollback transaction", "txID", tx.ID(), "mode", tx.Mode(), "error", err)
+		tx.ormRepository.telemetryService.Slogger.Error("failed to rollback transaction", "txID", tx.ID(), "mode", tx.Mode(), cryptoutilSharedMagic.StringError, err)
 
 		return fmt.Errorf("failed to rollback transaction: %w", err)
 	}

@@ -5,6 +5,7 @@
 package testutil
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"sync"
 	"testing"
 
@@ -51,7 +52,7 @@ func TestSafeBuffer_Reset(t *testing.T) {
 
 	_, err := sb.Write([]byte("hello"))
 	require.NoError(t, err)
-	require.Equal(t, 5, sb.Len())
+	require.Equal(t, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, sb.Len())
 	require.Equal(t, "hello", sb.String())
 
 	sb.Reset()

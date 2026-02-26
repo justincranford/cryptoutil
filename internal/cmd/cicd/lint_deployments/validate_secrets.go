@@ -1,6 +1,7 @@
 package lint_deployments
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -18,7 +19,7 @@ type SecretValidationResult struct {
 
 // secretKeyPatterns are field name substrings that indicate credential fields.
 var secretKeyPatterns = []string{
-	"password", "passwd", "secret", "token", "api-key",
+	"password", "passwd", "secret", cryptoutilSharedMagic.ParamToken, "api-key",
 	"api_key", "private-key", "private_key", "pepper",
 }
 
@@ -36,9 +37,9 @@ var secretFilePatterns = []string{
 // safeConfigPrefixes are prefixes for config values that indicate safe external references.
 var safeConfigPrefixes = []string{
 	"file:///run/secrets/",
-	"file://",
+	cryptoutilSharedMagic.FileURIScheme,
 	"sqlite://",
-	":memory:",
+	cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 }
 
 // ValidateSecrets validates secret files and checks for inline secrets in configs.

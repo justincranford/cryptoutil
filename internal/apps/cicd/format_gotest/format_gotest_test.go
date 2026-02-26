@@ -3,6 +3,7 @@
 package format_gotest_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -32,7 +33,7 @@ func TestFormat_NoTestFiles(t *testing.T) {
 
 	// Create a non-test Go file.
 	mainFile := filepath.Join(tmpDir, "main.go")
-	err := os.WriteFile(mainFile, []byte("package main\n\nfunc main() {}\n"), 0o600)
+	err := os.WriteFile(mainFile, []byte("package main\n\nfunc main() {}\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -48,7 +49,7 @@ func TestFormat_WithHelperNeedingFix(t *testing.T) {
 
 	// File with helper function missing t.Helper().
 	testFile := filepath.Join(tmpDir, "helper_test.go")
-	err := os.WriteFile(testFile, []byte(testHelperNeedingFix), 0o600)
+	err := os.WriteFile(testFile, []byte(testHelperNeedingFix), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -78,7 +79,7 @@ func setupTest(t *testing.T) {
 	// setup code
 }
 `
-	err := os.WriteFile(testFile, []byte(content), 0o600)
+	err := os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	originalContent := content
@@ -126,7 +127,7 @@ func TestExample(t *testing.T) {
 	_ = data
 }
 `
-	err := os.WriteFile(testFile, []byte(content), 0o600)
+	err := os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -154,7 +155,7 @@ func invalidSyntax( {
 	// missing closing paren
 }
 `
-	err := os.WriteFile(testFile, []byte(content), 0o600)
+	err := os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -186,7 +187,7 @@ func BenchmarkExample(b *testing.B) {
 	setupBenchmark(b)
 }
 `
-	err := os.WriteFile(testFile, []byte(content), 0o600)
+	err := os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -228,7 +229,7 @@ type TestInterface interface {
 	Setup(t *testing.T)
 }
 `
-	err := os.WriteFile(testFile, []byte(content), 0o600)
+	err := os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -262,7 +263,7 @@ func TestExample(t *testing.T) {
 	s.setupHelper(t)
 }
 `
-	err := os.WriteFile(testFile, []byte(content), 0o600)
+	err := os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -304,7 +305,7 @@ func TestExample(t *testing.T) {
 	setupHelper(t)
 }
 `
-	err := os.WriteFile(testFile, []byte(content), 0o600)
+	err := os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -341,7 +342,7 @@ func TestExample(t *testing.T) {
 	setupByValue(*t)
 }
 `
-	err := os.WriteFile(testFile, []byte(content), 0o600)
+	err := os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -363,7 +364,7 @@ func TestFormat_FileCreateError(t *testing.T) {
 
 	// Create a test file that will need fixing.
 	testFile := filepath.Join(tmpDir, "helper_test.go")
-	err := os.WriteFile(testFile, []byte(testHelperNeedingFix), 0o600)
+	err := os.WriteFile(testFile, []byte(testHelperNeedingFix), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Make the file read-only so os.Create fails.
@@ -377,7 +378,7 @@ func TestFormat_FileCreateError(t *testing.T) {
 	require.Contains(t, err.Error(), "format-go-test failed", "Error should indicate format failure")
 
 	// Cleanup: restore write permission so t.TempDir can clean up.
-	_ = os.Chmod(testFile, 0o600)
+	_ = os.Chmod(testFile, cryptoutilSharedMagic.CacheFilePermissions)
 }
 
 // TestFormat_HelperWithNoParams tests helper function with no parameters.
@@ -403,7 +404,7 @@ func TestExample(t *testing.T) {
 	setupNoParams()
 }
 `
-	err := os.WriteFile(testFile, []byte(content), 0o600)
+	err := os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -443,7 +444,7 @@ func TestExample(t *testing.T) {
 	setupWithPointer(m)
 }
 `
-	err := os.WriteFile(testFile, []byte(content), 0o600)
+	err := os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -481,7 +482,7 @@ func TestExample(t *testing.T) {
 	setupWithArray(&arr)
 }
 `
-	err := os.WriteFile(testFile, []byte(content), 0o600)
+	err := os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")

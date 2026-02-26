@@ -3,6 +3,7 @@
 package magic_duplicates
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -16,7 +17,7 @@ import (
 func writeMagicFile(t *testing.T, dir, name, content string) {
 	t.Helper()
 
-	err := os.WriteFile(filepath.Join(dir, name), []byte(content), 0o600)
+	err := os.WriteFile(filepath.Join(dir, name), []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 }
 
@@ -169,11 +170,11 @@ func writeGoFile(t *testing.T, dir, subPkg, name, content string) {
 t.Helper()
 
 pkgDir := filepath.Join(dir, subPkg)
-if err := os.MkdirAll(pkgDir, 0o750); err != nil {
+if err := os.MkdirAll(pkgDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute); err != nil {
 t.Fatalf("MkdirAll: %v", err)
 }
 
-if err := os.WriteFile(filepath.Join(pkgDir, name), []byte(content), 0o600); err != nil {
+if err := os.WriteFile(filepath.Join(pkgDir, name), []byte(content), cryptoutilSharedMagic.CacheFilePermissions); err != nil {
 t.Fatalf("WriteFile: %v", err)
 }
 }
@@ -246,7 +247,7 @@ t.Parallel()
 rootDir := t.TempDir()
 magicDir := filepath.Join(rootDir, "shared", "magic")
 
-if err := os.MkdirAll(magicDir, 0o750); err != nil {
+if err := os.MkdirAll(magicDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute); err != nil {
 t.Fatalf("MkdirAll: %v", err)
 }
 
@@ -254,7 +255,7 @@ t.Fatalf("MkdirAll: %v", err)
 if err := os.WriteFile(filepath.Join(magicDir, "magic_net.go"), []byte(`package magic
 
 const ProtoHTTPS = "https"
-`), 0o600); err != nil {
+`), cryptoutilSharedMagic.CacheFilePermissions); err != nil {
 t.Fatalf("WriteFile: %v", err)
 }
 

@@ -3,6 +3,7 @@
 package cicd
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"os"
 	"testing"
@@ -271,11 +272,11 @@ func TestCommandResult(t *testing.T) {
 
 	result := cryptoutilCmdCicdCommon.CommandResult{
 		Command:  "lint-text",
-		Duration: 100 * time.Millisecond,
+		Duration: cryptoutilSharedMagic.JoseJAMaxMaterials * time.Millisecond,
 		Error:    fmt.Errorf("test error"),
 	}
 	require.Equal(t, "lint-text", result.Command)
-	require.Equal(t, 100*time.Millisecond, result.Duration)
+	require.Equal(t, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond, result.Duration)
 	require.Error(t, result.Error)
 }
 
@@ -284,11 +285,11 @@ func TestCommandResultSuccess(t *testing.T) {
 
 	result := cryptoutilCmdCicdCommon.CommandResult{
 		Command:  "lint-workflow",
-		Duration: 50 * time.Millisecond,
+		Duration: cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond,
 		Error:    nil,
 	}
 	require.Equal(t, "lint-workflow", result.Command)
-	require.Equal(t, 50*time.Millisecond, result.Duration)
+	require.Equal(t, cryptoutilSharedMagic.IMMaxUsernameLength*time.Millisecond, result.Duration)
 	require.NoError(t, result.Error)
 }
 
@@ -296,10 +297,10 @@ func TestGetFailedCommands(t *testing.T) {
 	t.Parallel()
 
 	results := []cryptoutilCmdCicdCommon.CommandResult{
-		{Command: "lint-text", Duration: 100 * time.Millisecond, Error: nil},
+		{Command: "lint-text", Duration: cryptoutilSharedMagic.JoseJAMaxMaterials * time.Millisecond, Error: nil},
 		{Command: "lint-go", Duration: 200 * time.Millisecond, Error: fmt.Errorf("error1")},
 		{Command: "format-go", Duration: 150 * time.Millisecond, Error: nil},
-		{Command: "lint-workflow", Duration: 50 * time.Millisecond, Error: fmt.Errorf("error2")},
+		{Command: "lint-workflow", Duration: cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond, Error: fmt.Errorf("error2")},
 	}
 
 	failed := cryptoutilCmdCicdCommon.GetFailedCommands(results)
@@ -312,7 +313,7 @@ func TestGetFailedCommands_NoFailures(t *testing.T) {
 	t.Parallel()
 
 	results := []cryptoutilCmdCicdCommon.CommandResult{
-		{Command: "lint-text", Duration: 100 * time.Millisecond, Error: nil},
+		{Command: "lint-text", Duration: cryptoutilSharedMagic.JoseJAMaxMaterials * time.Millisecond, Error: nil},
 		{Command: "lint-go", Duration: 200 * time.Millisecond, Error: nil},
 	}
 

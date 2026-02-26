@@ -38,12 +38,12 @@ func TestCreateJWKFromKey_SymmetricKeys(t *testing.T) {
 		prob        float32
 	}{
 		// AES variants (Oct128, Oct192 only - no Oct256 for AES!)
-		{"Oct128_AES", cryptoutilOpenapiModel.Oct128, cryptoutilSharedMagic.AESKeySize128, cryptoutilSharedCryptoKeygen.GenerateAESKey, "A128GCM", "enc", cryptoutilSharedMagic.TestProbAlways},
-		{"Oct192_AES", cryptoutilOpenapiModel.Oct192, cryptoutilSharedMagic.AESKeySize192, cryptoutilSharedCryptoKeygen.GenerateAESKey, "A192GCM", "enc", cryptoutilSharedMagic.TestProbTenth},
+		{"Oct128_AES", cryptoutilOpenapiModel.Oct128, cryptoutilSharedMagic.AESKeySize128, cryptoutilSharedCryptoKeygen.GenerateAESKey, cryptoutilSharedMagic.JoseEncA128GCM, cryptoutilSharedMagic.JoseKeyUseEnc, cryptoutilSharedMagic.TestProbAlways},
+		{"Oct192_AES", cryptoutilOpenapiModel.Oct192, cryptoutilSharedMagic.AESKeySize192, cryptoutilSharedCryptoKeygen.GenerateAESKey, cryptoutilSharedMagic.JoseEncA192GCM, cryptoutilSharedMagic.JoseKeyUseEnc, cryptoutilSharedMagic.TestProbTenth},
 		// HMAC variants (Oct256, Oct384, Oct512)
-		{"Oct256_HMAC", cryptoutilOpenapiModel.Oct256, cryptoutilSharedMagic.HMACKeySize256, cryptoutilSharedCryptoKeygen.GenerateHMACKey, "HS256", "sig", cryptoutilSharedMagic.TestProbAlways},
-		{"Oct384_HMAC", cryptoutilOpenapiModel.Oct384, cryptoutilSharedMagic.HMACKeySize384, cryptoutilSharedCryptoKeygen.GenerateHMACKey, "HS384", "sig", cryptoutilSharedMagic.TestProbTenth},
-		{"Oct512_HMAC", cryptoutilOpenapiModel.Oct512, cryptoutilSharedMagic.HMACKeySize512, cryptoutilSharedCryptoKeygen.GenerateHMACKey, "HS512", "sig", cryptoutilSharedMagic.TestProbTenth},
+		{"Oct256_HMAC", cryptoutilOpenapiModel.Oct256, cryptoutilSharedMagic.HMACKeySize256, cryptoutilSharedCryptoKeygen.GenerateHMACKey, cryptoutilSharedMagic.JoseAlgHS256, cryptoutilSharedMagic.JoseKeyUseSig, cryptoutilSharedMagic.TestProbAlways},
+		{"Oct384_HMAC", cryptoutilOpenapiModel.Oct384, cryptoutilSharedMagic.HMACKeySize384, cryptoutilSharedCryptoKeygen.GenerateHMACKey, cryptoutilSharedMagic.JoseAlgHS384, cryptoutilSharedMagic.JoseKeyUseSig, cryptoutilSharedMagic.TestProbTenth},
+		{"Oct512_HMAC", cryptoutilOpenapiModel.Oct512, cryptoutilSharedMagic.HMACKeySize512, cryptoutilSharedCryptoKeygen.GenerateHMACKey, cryptoutilSharedMagic.JoseAlgHS512, cryptoutilSharedMagic.JoseKeyUseSig, cryptoutilSharedMagic.TestProbTenth},
 	}
 
 	for _, tc := range tests {
@@ -303,9 +303,9 @@ func TestCreateJWEJWKFromKey_ECDH_Variants(t *testing.T) {
 		alg   joseJwa.KeyEncryptionAlgorithm
 		prob  float32
 	}{
-		{"P256", ecdh.P256(), joseJwa.A256GCM(), joseJwa.ECDH_ES(), cryptoutilSharedMagic.TestProbAlways},
-		{"P384", ecdh.P384(), joseJwa.A256GCM(), joseJwa.ECDH_ES(), cryptoutilSharedMagic.TestProbTenth},
-		{"P521", ecdh.P521(), joseJwa.A128GCM(), joseJwa.ECDH_ES_A256KW(), cryptoutilSharedMagic.TestProbTenth},
+		{cryptoutilSharedMagic.ECCurveP256, ecdh.P256(), joseJwa.A256GCM(), joseJwa.ECDH_ES(), cryptoutilSharedMagic.TestProbAlways},
+		{cryptoutilSharedMagic.ECCurveP384, ecdh.P384(), joseJwa.A256GCM(), joseJwa.ECDH_ES(), cryptoutilSharedMagic.TestProbTenth},
+		{cryptoutilSharedMagic.ECCurveP521, ecdh.P521(), joseJwa.A128GCM(), joseJwa.ECDH_ES_A256KW(), cryptoutilSharedMagic.TestProbTenth},
 	}
 
 	for _, tc := range tests {

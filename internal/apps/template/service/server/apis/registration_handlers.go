@@ -58,14 +58,14 @@ func (h *RegistrationHandlers) HandleRegisterUser(c *fiber.Ctx) error {
 	var req RegisterUserRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid request body",
+			cryptoutilSharedMagic.StringError: "Invalid request body",
 		})
 	}
 
 	// Validate request fields.
 	if err := validateRegistrationRequest(&req); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"error": err.Error(),
+			cryptoutilSharedMagic.StringError: err.Error(),
 		})
 	}
 
@@ -73,7 +73,7 @@ func (h *RegistrationHandlers) HandleRegisterUser(c *fiber.Ctx) error {
 	passwordHash, err := registrationHandlersHashSecretPBKDF2Fn(req.Password)
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to process password",
+			cryptoutilSharedMagic.StringError: "Failed to process password",
 		})
 	}
 
@@ -92,7 +92,7 @@ func (h *RegistrationHandlers) HandleRegisterUser(c *fiber.Ctx) error {
 	)
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Registration failed",
+			cryptoutilSharedMagic.StringError: "Registration failed",
 		})
 	}
 
@@ -165,14 +165,14 @@ func (h *RegistrationHandlers) HandleListJoinRequests(c *fiber.Ctx) error {
 	tenantIDVal := c.Locals("tenant_id")
 	if tenantIDVal == nil {
 		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Missing tenant_id in session context",
+			cryptoutilSharedMagic.StringError: "Missing tenant_id in session context",
 		})
 	}
 
 	tenantID, ok := tenantIDVal.(googleUuid.UUID)
 	if !ok {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Invalid tenant_id type in context",
+			cryptoutilSharedMagic.StringError: "Invalid tenant_id type in context",
 		})
 	}
 
@@ -181,7 +181,7 @@ func (h *RegistrationHandlers) HandleListJoinRequests(c *fiber.Ctx) error {
 	requests, err := h.registrationService.ListJoinRequests(c.Context(), tenantID)
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to list join requests",
+			cryptoutilSharedMagic.StringError: "Failed to list join requests",
 		})
 	}
 
@@ -234,14 +234,14 @@ func (h *RegistrationHandlers) HandleProcessJoinRequest(c *fiber.Ctx) error {
 	requestID, err := googleUuid.Parse(c.Params("id"))
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid request ID",
+			cryptoutilSharedMagic.StringError: "Invalid request ID",
 		})
 	}
 
 	var req ProcessJoinRequestRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid request body",
+			cryptoutilSharedMagic.StringError: "Invalid request body",
 		})
 	}
 
@@ -249,14 +249,14 @@ func (h *RegistrationHandlers) HandleProcessJoinRequest(c *fiber.Ctx) error {
 	userIDVal := c.Locals("user_id")
 	if userIDVal == nil {
 		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Missing user_id in session context",
+			cryptoutilSharedMagic.StringError: "Missing user_id in session context",
 		})
 	}
 
 	adminUserID, ok := userIDVal.(googleUuid.UUID)
 	if !ok {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Invalid user_id type in context",
+			cryptoutilSharedMagic.StringError: "Invalid user_id type in context",
 		})
 	}
 
@@ -268,7 +268,7 @@ func (h *RegistrationHandlers) HandleProcessJoinRequest(c *fiber.Ctx) error {
 	)
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
+			cryptoutilSharedMagic.StringError: err.Error(),
 		})
 	}
 

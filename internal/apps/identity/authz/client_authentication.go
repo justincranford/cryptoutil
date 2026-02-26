@@ -105,7 +105,7 @@ func (s *Service) authenticateClient(c *fiber.Ctx) (*cryptoutilIdentityDomain.Cl
 			var pemChain strings.Builder
 			for _, cert := range peerCerts {
 				err := pem.Encode(&pemChain, &pem.Block{
-					Type:  "CERTIFICATE",
+					Type:  cryptoutilSharedMagic.StringPEMTypeCertificate,
 					Bytes: cert.Raw,
 				})
 				if err != nil {

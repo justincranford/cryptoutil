@@ -60,7 +60,7 @@ func (h *PBKDF2Hasher) HashLowEntropyNonDeterministic(plaintext string) (string,
 func (h *PBKDF2Hasher) CompareSecret(hashed, plaintext string) error {
 	// Parse stored hash format: $pbkdf2-sha256$iterations$salt$hash.
 	parts := strings.Split(hashed, "$")
-	if len(parts) != 5 || parts[0] != "" || parts[1] != cryptoutilSharedMagic.PBKDF2DefaultHashName {
+	if len(parts) != cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries || parts[0] != "" || parts[1] != cryptoutilSharedMagic.PBKDF2DefaultHashName {
 		return fmt.Errorf("invalid hash format")
 	}
 

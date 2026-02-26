@@ -3,6 +3,7 @@
 package no_hardcoded_passwords
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -96,7 +97,7 @@ func TestSomething(t *testing.T) {
 
 			tmpDir := t.TempDir()
 			testFile := filepath.Join(tmpDir, "test_test.go")
-			err := os.WriteFile(testFile, []byte(tc.fileContent), 0o600)
+			err := os.WriteFile(testFile, []byte(tc.fileContent), cryptoutilSharedMagic.CacheFilePermissions)
 			require.NoError(t, err)
 
 			logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -149,7 +150,7 @@ func TestCheckHardcodedPasswords(t *testing.T) {
 
 			tmpDir := t.TempDir()
 			testFile := filepath.Join(tmpDir, "test_test.go")
-			err := os.WriteFile(testFile, []byte(tc.fileContent), 0o600)
+			err := os.WriteFile(testFile, []byte(tc.fileContent), cryptoutilSharedMagic.CacheFilePermissions)
 			require.NoError(t, err)
 
 			issues := CheckHardcodedPasswords(testFile)

@@ -15,6 +15,7 @@
 package service
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"fmt"
@@ -37,7 +38,7 @@ func setupVerificationTestDB(t *testing.T) *gorm.DB {
 
 	// Create unique database name to avoid sharing between tests.
 	dbName := fmt.Sprintf("file:test_%s.db?mode=memory&cache=private", strings.ReplaceAll(t.Name(), "/", "_"))
-	sqlDB, err := sql.Open("sqlite", dbName)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dbName)
 	require.NoError(t, err)
 
 	// Enable WAL mode for better concurrency.
@@ -56,8 +57,8 @@ func setupVerificationTestDB(t *testing.T) *gorm.DB {
 	// Configure connection pool.
 	sqlDB, err = db.DB()
 	require.NoError(t, err)
-	sqlDB.SetMaxOpenConns(5)
-	sqlDB.SetMaxIdleConns(5)
+	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	sqlDB.SetConnMaxLifetime(0)
 
 	// Auto-migrate all required tables.
@@ -118,7 +119,7 @@ func createTestTenantAndRole(t *testing.T, db *gorm.DB, tenantName string) (*cry
 	role := &cryptoutilAppsTemplateServiceServerRepository.Role{
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
-		Name:        "user_" + googleUuid.NewString()[:8],
+		Name:        "user_" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		Description: "Test role",
 	}
 	require.NoError(t, db.Create(role).Error)
@@ -133,15 +134,15 @@ func TestVerificationService_ListPendingUsers(t *testing.T) {
 	svc, db := setupVerificationService(t)
 	ctx := context.Background()
 
-	tenant, _ := createTestTenantAndRole(t, db, "list-pending-users-"+googleUuid.NewString()[:8])
+	tenant, _ := createTestTenantAndRole(t, db, "list-pending-users-"+googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
 
 	// Create pending users.
 	for i := 0; i < 3; i++ {
 		unverifiedUser := &cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser{
 			ID:           googleUuid.New(),
 			TenantID:     tenant.ID,
-			Username:     "user" + googleUuid.NewString()[:8],
-			Email:        "user" + googleUuid.NewString()[:8] + "@example.com",
+			Username:     "user" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength],
+			Email:        "user" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength] + "@example.com",
 			PasswordHash: "hash",
 			ExpiresAt:    time.Now().UTC().Add(72 * time.Hour),
 		}
@@ -161,14 +162,14 @@ func TestVerificationService_ListPendingClients(t *testing.T) {
 	svc, db := setupVerificationService(t)
 	ctx := context.Background()
 
-	tenant, _ := createTestTenantAndRole(t, db, "list-pending-clients-"+googleUuid.NewString()[:8])
+	tenant, _ := createTestTenantAndRole(t, db, "list-pending-clients-"+googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
 
 	// Create pending clients.
 	for i := 0; i < 2; i++ {
 		unverifiedClient := &cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient{
 			ID:               googleUuid.New(),
 			TenantID:         tenant.ID,
-			ClientID:         "client" + googleUuid.NewString()[:8],
+			ClientID:         "client" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength],
 			ClientSecretHash: "secret",
 			ExpiresAt:        time.Now().UTC().Add(72 * time.Hour),
 		}
@@ -188,14 +189,14 @@ func TestVerificationService_ApproveUser_Success(t *testing.T) {
 	svc, db := setupVerificationService(t)
 	ctx := context.Background()
 
-	tenant, role := createTestTenantAndRole(t, db, "approve-user-"+googleUuid.NewString()[:8])
+	tenant, role := createTestTenantAndRole(t, db, "approve-user-"+googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
 
 	// Create unverified user.
 	unverifiedUser := &cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser{
 		ID:           googleUuid.New(),
 		TenantID:     tenant.ID,
-		Username:     "pendinguser" + googleUuid.NewString()[:8],
-		Email:        "pending" + googleUuid.NewString()[:8] + "@example.com",
+		Username:     "pendinguser" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength],
+		Email:        "pending" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength] + "@example.com",
 		PasswordHash: "hashedpassword",
 		ExpiresAt:    time.Now().UTC().Add(72 * time.Hour),
 	}
@@ -230,14 +231,14 @@ func TestVerificationService_ApproveUser_ExpiredRegistration(t *testing.T) {
 	svc, db := setupVerificationService(t)
 	ctx := context.Background()
 
-	tenant, role := createTestTenantAndRole(t, db, "approve-expired-"+googleUuid.NewString()[:8])
+	tenant, role := createTestTenantAndRole(t, db, "approve-expired-"+googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
 
 	// Create expired unverified user.
 	unverifiedUser := &cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser{
 		ID:           googleUuid.New(),
 		TenantID:     tenant.ID,
-		Username:     "expireduser" + googleUuid.NewString()[:8],
-		Email:        "expired" + googleUuid.NewString()[:8] + "@example.com",
+		Username:     "expireduser" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength],
+		Email:        "expired" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength] + "@example.com",
 		PasswordHash: "hashedpassword",
 		ExpiresAt:    time.Now().UTC().Add(-1 * time.Hour), // Already expired.
 	}
@@ -256,15 +257,15 @@ func TestVerificationService_ApproveUser_WrongTenant(t *testing.T) {
 	svc, db := setupVerificationService(t)
 	ctx := context.Background()
 
-	tenant1, role := createTestTenantAndRole(t, db, "tenant1-"+googleUuid.NewString()[:8])
-	tenant2, _ := createTestTenantAndRole(t, db, "tenant2-"+googleUuid.NewString()[:8])
+	tenant1, role := createTestTenantAndRole(t, db, "tenant1-"+googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
+	tenant2, _ := createTestTenantAndRole(t, db, "tenant2-"+googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
 
 	// Create unverified user in tenant1.
 	unverifiedUser := &cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser{
 		ID:           googleUuid.New(),
 		TenantID:     tenant1.ID,
-		Username:     "wrongtenantuser" + googleUuid.NewString()[:8],
-		Email:        "wrong" + googleUuid.NewString()[:8] + "@example.com",
+		Username:     "wrongtenantuser" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength],
+		Email:        "wrong" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength] + "@example.com",
 		PasswordHash: "hashedpassword",
 		ExpiresAt:    time.Now().UTC().Add(72 * time.Hour),
 	}

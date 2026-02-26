@@ -3,6 +3,7 @@
 package github_actions
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -43,7 +44,7 @@ jobs:
 `
 
 	workflowFile := filepath.Join(tmpDir, "test.yml")
-	require.NoError(t, os.WriteFile(workflowFile, []byte(workflowContent), 0o600))
+	require.NoError(t, os.WriteFile(workflowFile, []byte(workflowContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	err := Check(logger, []string{workflowFile})
 	require.Error(t, err)

@@ -5,6 +5,7 @@
 package middleware
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	json "encoding/json"
 	"errors"
@@ -115,19 +116,19 @@ func NewClaimsExtractor() *ClaimsExtractor {
 	return &ClaimsExtractor{
 		KnownClaims: []string{
 			// Standard JWT.
-			"sub", "iss", "aud", "exp", "iat", "nbf", "jti",
+			cryptoutilSharedMagic.ClaimSub, cryptoutilSharedMagic.ClaimIss, cryptoutilSharedMagic.ClaimAud, cryptoutilSharedMagic.ClaimExp, cryptoutilSharedMagic.ClaimIat, cryptoutilSharedMagic.ClaimNbf, cryptoutilSharedMagic.ClaimJti,
 			// OIDC profile.
-			"name", "given_name", "family_name", "middle_name", "nickname",
-			"preferred_username", "profile", "picture", "website",
-			"gender", "birthdate", "zoneinfo", "locale", "updated_at",
+			cryptoutilSharedMagic.ClaimName, cryptoutilSharedMagic.ClaimGivenName, cryptoutilSharedMagic.ClaimFamilyName, cryptoutilSharedMagic.ClaimMiddleName, cryptoutilSharedMagic.ClaimNickname,
+			cryptoutilSharedMagic.ClaimPreferredUsername, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimPicture, cryptoutilSharedMagic.ClaimWebsite,
+			cryptoutilSharedMagic.ClaimGender, cryptoutilSharedMagic.ClaimBirthdate, cryptoutilSharedMagic.ClaimZoneinfo, cryptoutilSharedMagic.ClaimLocale, cryptoutilSharedMagic.ClaimUpdatedAt,
 			// OIDC email.
-			"email", "email_verified",
+			cryptoutilSharedMagic.ClaimEmail, cryptoutilSharedMagic.ClaimEmailVerified,
 			// OIDC phone.
-			"phone_number", "phone_number_verified",
+			cryptoutilSharedMagic.ClaimPhoneNumber, cryptoutilSharedMagic.ClaimPhoneVerified,
 			// OIDC address.
-			"address",
+			cryptoutilSharedMagic.ClaimAddress,
 			// OAuth2.
-			"scope", "client_id", "token_type", "active_until",
+			cryptoutilSharedMagic.ClaimScope, cryptoutilSharedMagic.ClaimClientID, cryptoutilSharedMagic.ParamTokenType, "active_until",
 			// Authorization.
 			"groups", "roles", "permissions",
 			// Multi-tenancy.
@@ -135,7 +136,7 @@ func NewClaimsExtractor() *ClaimsExtractor {
 			// Service identity.
 			"service_name", "service_version", "service_type",
 			// Session.
-			"sid", "auth_time", "acr", "amr", "nonce", "at_hash", "c_hash",
+			"sid", cryptoutilSharedMagic.ClaimAuthTime, cryptoutilSharedMagic.ClaimAcr, cryptoutilSharedMagic.ClaimAmr, cryptoutilSharedMagic.ClaimNonce, "at_hash", "c_hash",
 		},
 	}
 }

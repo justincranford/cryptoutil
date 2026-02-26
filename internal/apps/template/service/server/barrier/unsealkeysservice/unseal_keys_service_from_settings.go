@@ -40,7 +40,7 @@ func NewUnsealKeysServiceFromSettings(_ context.Context, telemetryService *crypt
 	}
 	// Parse mode - could be "N", "M-of-N", or "sysinfo"
 	switch {
-	case settings.UnsealMode == "sysinfo":
+	case settings.UnsealMode == cryptoutilSharedMagic.DefaultUnsealModeSysInfo:
 		return NewUnsealKeysServiceFromSysInfo(&cryptoutilSharedUtilSysinfo.DefaultSysInfoProvider{})
 
 	case strings.Contains(settings.UnsealMode, "-of-"):

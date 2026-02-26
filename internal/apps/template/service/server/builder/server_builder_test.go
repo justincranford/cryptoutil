@@ -5,6 +5,7 @@
 package builder
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	"io/fs"
@@ -254,7 +255,7 @@ func TestBuild_AdminTLSError(t *testing.T) {
 // TestBuild_PublicRouteRegistrationError tests Build failure when route registration fails.
 // Note: This test cannot run in parallel with other Build tests due to shared in-memory SQLite cache.
 func TestBuild_PublicRouteRegistrationError(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second)
 	defer cancel()
 
 	settings := getMinimalSettings()
@@ -279,7 +280,7 @@ func TestBuild_PublicRouteRegistrationError(t *testing.T) {
 // This covers the error path after services are initialized but before public server creation.
 // Note: This test cannot run in parallel due to shared in-memory SQLite cache.
 func TestBuild_PublicTLSError(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second)
 	defer cancel()
 
 	settings := getMinimalSettings()
@@ -301,7 +302,7 @@ func TestBuild_PublicTLSError(t *testing.T) {
 func TestBuild_MigrationError(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second)
 	defer cancel()
 
 	settings := getMinimalSettings()
@@ -327,7 +328,7 @@ func TestBuild_MigrationError(t *testing.T) {
 func TestBuild_Success(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second)
 	defer cancel()
 
 	settings := getMinimalSettings()

@@ -5,6 +5,7 @@
 package clientauth
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	rsa "crypto/rsa"
 	"database/sql"
@@ -38,7 +39,7 @@ func setupPrivateKeyTestDB(t *testing.T) *gorm.DB {
 
 	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", dbID.String())
 
-	sqlDB, err := sql.Open("sqlite", dsn)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	require.NoError(t, err)
 
 	// Configure SQLite for concurrent writes (WAL mode, busy timeout).
@@ -75,7 +76,7 @@ func TestPrivateKeyJWTValidator_JTIReplayProtection(t *testing.T) {
 
 	// Generate RSA key pair.
 	keyID := googleUuid.NewString()
-	rsaKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
+	rsaKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	rsaPrivateKey, ok := rsaKeyPair.Private.(*rsa.PrivateKey)
@@ -111,7 +112,7 @@ func TestPrivateKeyJWTValidator_JTIReplayProtection(t *testing.T) {
 		require.NoError(t, token.Set(joseJwt.IssuerKey, client.ClientID))
 		require.NoError(t, token.Set(joseJwt.SubjectKey, client.ClientID))
 		require.NoError(t, token.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
-		require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(5*time.Minute)))
+		require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)))
 		require.NoError(t, token.Set(joseJwt.IssuedAtKey, now))
 		require.NoError(t, token.Set(joseJwt.JwtIDKey, jti))
 
@@ -144,7 +145,7 @@ func TestPrivateKeyJWTValidator_AssertionLifetimeValidation(t *testing.T) {
 
 	// Generate RSA key pair.
 	keyID := googleUuid.NewString()
-	rsaKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
+	rsaKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	rsaPrivateKey, ok := rsaKeyPair.Private.(*rsa.PrivateKey)
@@ -176,8 +177,8 @@ func TestPrivateKeyJWTValidator_AssertionLifetimeValidation(t *testing.T) {
 		lifetime  time.Duration
 		wantError bool
 	}{
-		{"valid lifetime (5 minutes)", 5 * time.Minute, false},
-		{"valid lifetime (maximum 10 minutes)", 10 * time.Minute, false},
+		{"valid lifetime (cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries minutes)", 5 * time.Minute, false},
+		{"valid lifetime (maximum cryptoutilSharedMagic.JoseJADefaultMaxMaterials minutes)", 10 * time.Minute, false},
 		{"invalid lifetime (15 minutes)", 15 * time.Minute, true},
 		{"invalid lifetime (1 hour)", time.Hour, true},
 	}
@@ -221,7 +222,7 @@ func TestPrivateKeyJWTValidator_MissingJTI(t *testing.T) {
 
 	// Generate RSA key pair.
 	keyID := googleUuid.NewString()
-	rsaKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
+	rsaKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	rsaPrivateKey, ok := rsaKeyPair.Private.(*rsa.PrivateKey)
@@ -253,7 +254,7 @@ func TestPrivateKeyJWTValidator_MissingJTI(t *testing.T) {
 	require.NoError(t, token.Set(joseJwt.IssuerKey, client.ClientID))
 	require.NoError(t, token.Set(joseJwt.SubjectKey, client.ClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
-	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(5*time.Minute)))
+	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)))
 	require.NoError(t, token.Set(joseJwt.IssuedAtKey, now))
 	// Deliberately omit JTI claim.
 

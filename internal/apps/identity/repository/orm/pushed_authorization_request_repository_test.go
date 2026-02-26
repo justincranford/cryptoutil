@@ -5,6 +5,7 @@
 package orm_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"testing"
@@ -37,13 +38,13 @@ func TestPushedAuthorizationRequestRepository_Create(t *testing.T) {
 					ID:                  googleUuid.Must(googleUuid.NewV7()),
 					RequestURI:          "urn:ietf:params:oauth:request_uri:abc123",
 					ClientID:            googleUuid.Must(googleUuid.NewV7()),
-					ResponseType:        "code",
-					RedirectURI:         "https://example.com/callback",
+					ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
+					RedirectURI:         cryptoutilSharedMagic.DemoRedirectURI,
 					Scope:               "openid profile",
 					State:               "state123",
 					CodeChallenge:       "challenge",
-					CodeChallengeMethod: "S256",
-					ExpiresAt:           time.Now().UTC().Add(90 * time.Second),
+					CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
+					ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.StrictCertificateMaxAgeDays * time.Second),
 					CreatedAt:           time.Now().UTC(),
 				}
 			},
@@ -90,11 +91,11 @@ func TestPushedAuthorizationRequestRepository_GetByRequestURI(t *testing.T) {
 						ID:                  googleUuid.Must(googleUuid.NewV7()),
 						RequestURI:          "urn:ietf:params:oauth:request_uri:found",
 						ClientID:            googleUuid.Must(googleUuid.NewV7()),
-						ResponseType:        "code",
-						RedirectURI:         "https://example.com/callback",
+						ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
+						RedirectURI:         cryptoutilSharedMagic.DemoRedirectURI,
 						CodeChallenge:       "challenge",
-						CodeChallengeMethod: "S256",
-						ExpiresAt:           time.Now().UTC().Add(90 * time.Second),
+						CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
+						ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.StrictCertificateMaxAgeDays * time.Second),
 						CreatedAt:           time.Now().UTC(),
 					},
 				}
@@ -111,11 +112,11 @@ func TestPushedAuthorizationRequestRepository_GetByRequestURI(t *testing.T) {
 						ID:                  googleUuid.Must(googleUuid.NewV7()),
 						RequestURI:          "urn:ietf:params:oauth:request_uri:different",
 						ClientID:            googleUuid.Must(googleUuid.NewV7()),
-						ResponseType:        "code",
-						RedirectURI:         "https://example.com/callback",
+						ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
+						RedirectURI:         cryptoutilSharedMagic.DemoRedirectURI,
 						CodeChallenge:       "challenge",
-						CodeChallengeMethod: "S256",
-						ExpiresAt:           time.Now().UTC().Add(90 * time.Second),
+						CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
+						ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.StrictCertificateMaxAgeDays * time.Second),
 						CreatedAt:           time.Now().UTC(),
 					},
 				}
@@ -174,11 +175,11 @@ func TestPushedAuthorizationRequestRepository_GetByID(t *testing.T) {
 					ID:                  googleUuid.Must(googleUuid.NewV7()),
 					RequestURI:          "urn:ietf:params:oauth:request_uri:getbyid",
 					ClientID:            googleUuid.Must(googleUuid.NewV7()),
-					ResponseType:        "code",
-					RedirectURI:         "https://example.com/callback",
+					ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
+					RedirectURI:         cryptoutilSharedMagic.DemoRedirectURI,
 					CodeChallenge:       "challenge",
-					CodeChallengeMethod: "S256",
-					ExpiresAt:           time.Now().UTC().Add(90 * time.Second),
+					CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
+					ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.StrictCertificateMaxAgeDays * time.Second),
 					CreatedAt:           time.Now().UTC(),
 				}
 			},
@@ -194,11 +195,11 @@ func TestPushedAuthorizationRequestRepository_GetByID(t *testing.T) {
 					ID:                  googleUuid.Must(googleUuid.NewV7()),
 					RequestURI:          "urn:ietf:params:oauth:request_uri:notfound",
 					ClientID:            googleUuid.Must(googleUuid.NewV7()),
-					ResponseType:        "code",
-					RedirectURI:         "https://example.com/callback",
+					ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
+					RedirectURI:         cryptoutilSharedMagic.DemoRedirectURI,
 					CodeChallenge:       "challenge",
-					CodeChallengeMethod: "S256",
-					ExpiresAt:           time.Now().UTC().Add(90 * time.Second),
+					CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
+					ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.StrictCertificateMaxAgeDays * time.Second),
 					CreatedAt:           time.Now().UTC(),
 				}
 			},
@@ -248,12 +249,12 @@ func TestPushedAuthorizationRequestRepository_Update(t *testing.T) {
 					ID:                  googleUuid.Must(googleUuid.NewV7()),
 					RequestURI:          "urn:ietf:params:oauth:request_uri:update",
 					ClientID:            googleUuid.Must(googleUuid.NewV7()),
-					ResponseType:        "code",
-					RedirectURI:         "https://example.com/callback",
+					ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
+					RedirectURI:         cryptoutilSharedMagic.DemoRedirectURI,
 					CodeChallenge:       "challenge",
-					CodeChallengeMethod: "S256",
+					CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 					Used:                false,
-					ExpiresAt:           time.Now().UTC().Add(90 * time.Second),
+					ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.StrictCertificateMaxAgeDays * time.Second),
 					CreatedAt:           time.Now().UTC(),
 				}
 			},
@@ -304,33 +305,33 @@ func TestPushedAuthorizationRequestRepository_DeleteExpired(t *testing.T) {
 					ID:                  googleUuid.Must(googleUuid.NewV7()),
 					RequestURI:          "urn:ietf:params:oauth:request_uri:expired1",
 					ClientID:            googleUuid.Must(googleUuid.NewV7()),
-					ResponseType:        "code",
-					RedirectURI:         "https://example.com/callback",
+					ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
+					RedirectURI:         cryptoutilSharedMagic.DemoRedirectURI,
 					CodeChallenge:       "challenge",
-					CodeChallengeMethod: "S256",
-					ExpiresAt:           now.Add(-10 * time.Minute),
-					CreatedAt:           now.Add(-20 * time.Minute),
+					CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
+					ExpiresAt:           now.Add(-cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
+					CreatedAt:           now.Add(-cryptoutilSharedMagic.MaxErrorDisplay * time.Minute),
 				}
 				expired2 := &cryptoutilIdentityDomain.PushedAuthorizationRequest{
 					ID:                  googleUuid.Must(googleUuid.NewV7()),
 					RequestURI:          "urn:ietf:params:oauth:request_uri:expired2",
 					ClientID:            googleUuid.Must(googleUuid.NewV7()),
-					ResponseType:        "code",
-					RedirectURI:         "https://example.com/callback",
+					ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
+					RedirectURI:         cryptoutilSharedMagic.DemoRedirectURI,
 					CodeChallenge:       "challenge",
-					CodeChallengeMethod: "S256",
-					ExpiresAt:           now.Add(-5 * time.Minute),
+					CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
+					ExpiresAt:           now.Add(-cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 					CreatedAt:           now.Add(-15 * time.Minute),
 				}
 				valid := &cryptoutilIdentityDomain.PushedAuthorizationRequest{
 					ID:                  googleUuid.Must(googleUuid.NewV7()),
 					RequestURI:          "urn:ietf:params:oauth:request_uri:valid",
 					ClientID:            googleUuid.Must(googleUuid.NewV7()),
-					ResponseType:        "code",
-					RedirectURI:         "https://example.com/callback",
+					ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
+					RedirectURI:         cryptoutilSharedMagic.DemoRedirectURI,
 					CodeChallenge:       "challenge",
-					CodeChallengeMethod: "S256",
-					ExpiresAt:           now.Add(90 * time.Second),
+					CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
+					ExpiresAt:           now.Add(cryptoutilSharedMagic.StrictCertificateMaxAgeDays * time.Second),
 					CreatedAt:           now,
 				}
 
@@ -347,11 +348,11 @@ func TestPushedAuthorizationRequestRepository_DeleteExpired(t *testing.T) {
 					ID:                  googleUuid.Must(googleUuid.NewV7()),
 					RequestURI:          "urn:ietf:params:oauth:request_uri:valid2",
 					ClientID:            googleUuid.Must(googleUuid.NewV7()),
-					ResponseType:        "code",
-					RedirectURI:         "https://example.com/callback",
+					ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
+					RedirectURI:         cryptoutilSharedMagic.DemoRedirectURI,
 					CodeChallenge:       "challenge",
-					CodeChallengeMethod: "S256",
-					ExpiresAt:           now.Add(90 * time.Second),
+					CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
+					ExpiresAt:           now.Add(cryptoutilSharedMagic.StrictCertificateMaxAgeDays * time.Second),
 					CreatedAt:           now,
 				}
 
@@ -396,7 +397,7 @@ func setupPARTestDB(t *testing.T) *gorm.DB {
 
 	// Use testDSNInMemory for isolated per-test database (no shared cache for parallel test safety).
 	dsn := testDSNInMemory
-	sqlDB, err := sql.Open("sqlite", dsn)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	require.NoError(t, err)
 
 	_, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
@@ -405,8 +406,8 @@ func setupPARTestDB(t *testing.T) *gorm.DB {
 	_, err = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
 	require.NoError(t, err)
 
-	sqlDB.SetMaxOpenConns(5)
-	sqlDB.SetMaxIdleConns(5)
+	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	sqlDB.SetConnMaxLifetime(0)
 
 	dialector := sqlite.Dialector{Conn: sqlDB}

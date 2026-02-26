@@ -3,6 +3,7 @@
 package lint_golangci
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -31,7 +32,7 @@ func TestLint_ValidConfig(t *testing.T) {
 	// Create a valid golangci-lint v2 config file.
 	configContent := "version: \"2\"\nlinters:\n  enable:\n    - errcheck\n"
 	configPath := filepath.Join(tmpDir, ".golangci.yml")
-	require.NoError(t, os.WriteFile(configPath, []byte(configContent), 0o600))
+	require.NoError(t, os.WriteFile(configPath, []byte(configContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	filesByExtension := map[string][]string{
 		"yml": {configPath},
@@ -51,7 +52,7 @@ func TestLint_DeprecatedV1Options(t *testing.T) {
 	// Create a config file with deprecated v1 option under linters-settings.
 	configContent := "linters-settings:\n  wsl:\n    force-err-cuddling: true\n"
 	configPath := filepath.Join(tmpDir, ".golangci.yml")
-	require.NoError(t, os.WriteFile(configPath, []byte(configContent), 0o600))
+	require.NoError(t, os.WriteFile(configPath, []byte(configContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	filesByExtension := map[string][]string{
 		"yml": {configPath},

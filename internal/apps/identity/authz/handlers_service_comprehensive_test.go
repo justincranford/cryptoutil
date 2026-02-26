@@ -5,6 +5,7 @@
 package authz_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -61,7 +62,7 @@ func createServiceComprehensiveTestConfig(t *testing.T) *cryptoutilIdentityConfi
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			Issuer:               "https://identity.example.com",
 			AccessTokenLifetime:  15 * time.Minute,
-			RefreshTokenLifetime: 24 * time.Hour,
+			RefreshTokenLifetime: cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		},
 	}
 }
@@ -72,7 +73,7 @@ func createServiceComprehensiveTestRepoFactory(t *testing.T) *cryptoutilIdentity
 	ctx := context.Background()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type:        "sqlite",
+		Type:        cryptoutilSharedMagic.TestDatabaseSQLite,
 		DSN:         "file::memory:?cache=private&_id=" + googleUuid.NewString(),
 		AutoMigrate: true,
 	}
@@ -93,7 +94,7 @@ func createServiceComprehensiveTestTokenService(t *testing.T) *cryptoutilIdentit
 	config := &cryptoutilIdentityConfig.TokenConfig{
 		Issuer:               "https://identity.example.com",
 		AccessTokenLifetime:  15 * time.Minute,
-		RefreshTokenLifetime: 24 * time.Hour,
+		RefreshTokenLifetime: cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 
 	// Service comprehensive tests don't need issuers (nil is acceptable).

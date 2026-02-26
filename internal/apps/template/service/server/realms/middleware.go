@@ -67,7 +67,7 @@ func JWTMiddleware(secret string) fiber.Handler {
 		if authHeader == "" {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "missing authorization header",
+				cryptoutilSharedMagic.StringError: "missing authorization header",
 			})
 		}
 
@@ -75,7 +75,7 @@ func JWTMiddleware(secret string) fiber.Handler {
 		if !strings.HasPrefix(authHeader, cryptoutilSharedMagic.HTTPAuthorizationBearerPrefix) {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "invalid authorization header format (expected: Bearer <token>)",
+				cryptoutilSharedMagic.StringError: "invalid authorization header format (expected: Bearer <token>)",
 			})
 		}
 
@@ -94,14 +94,14 @@ func JWTMiddleware(secret string) fiber.Handler {
 		if err != nil {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": fmt.Sprintf("invalid token: %v", err),
+				cryptoutilSharedMagic.StringError: fmt.Sprintf("invalid token: %v", err),
 			})
 		}
 
 		if !token.Valid {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "token is not valid",
+				cryptoutilSharedMagic.StringError: "token is not valid",
 			})
 		}
 
@@ -110,7 +110,7 @@ func JWTMiddleware(secret string) fiber.Handler {
 		if err != nil {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "invalid user ID in token",
+				cryptoutilSharedMagic.StringError: "invalid user ID in token",
 			})
 		}
 

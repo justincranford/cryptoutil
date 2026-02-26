@@ -45,7 +45,7 @@ const (
 	defaultConsentSessionTimeout = 300                      // 5 minute consent session timeout.
 )
 
-var defaultMFAMethods = []string{"totp"} // Default MFA methods.
+var defaultMFAMethods = []string{cryptoutilSharedMagic.MFATypeTOTP} // Default MFA methods.
 
 var allIdentityIDPServerRegisteredSettings []*cryptoutilAppsTemplateServiceConfig.Setting //nolint:gochecknoglobals
 

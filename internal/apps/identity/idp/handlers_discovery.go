@@ -6,6 +6,7 @@
 package idp
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 )
@@ -85,130 +86,130 @@ func (s *Service) handleDiscovery(c *fiber.Ctx) error {
 		AuthorizationEndpoint: baseURL + "/authz/v1/authorize",
 		TokenEndpoint:         baseURL + "/authz/v1/token",
 		UserInfoEndpoint:      baseURL + "/oidc/v1/userinfo",
-		JWKSUri:               baseURL + "/.well-known/jwks.json",
+		JWKSUri:               baseURL + cryptoutilSharedMagic.PathJWKS,
 
 		// Supported scopes (OIDC + custom).
 		ScopesSupported: []string{
-			"openid",
-			"profile",
-			"email",
-			"address",
-			"phone",
-			"offline_access",
+			cryptoutilSharedMagic.ScopeOpenID,
+			cryptoutilSharedMagic.ClaimProfile,
+			cryptoutilSharedMagic.ClaimEmail,
+			cryptoutilSharedMagic.ClaimAddress,
+			cryptoutilSharedMagic.ScopePhone,
+			cryptoutilSharedMagic.ScopeOfflineAccess,
 		},
 
 		// Response types (OAuth 2.1 + OIDC).
 		ResponseTypesSupported: []string{
-			"code",
+			cryptoutilSharedMagic.ResponseTypeCode,
 		},
 
 		// Response modes.
 		ResponseModesSupported: []string{
-			"query",
+			cryptoutilSharedMagic.ResponseModeQuery,
 		},
 
 		// Grant types (OAuth 2.1).
 		GrantTypesSupported: []string{
-			"authorization_code",
-			"refresh_token",
-			"client_credentials",
+			cryptoutilSharedMagic.GrantTypeAuthorizationCode,
+			cryptoutilSharedMagic.GrantTypeRefreshToken,
+			cryptoutilSharedMagic.GrantTypeClientCredentials,
 		},
 
 		// Subject types (OIDC).
 		SubjectTypesSupported: []string{
-			"public",
+			cryptoutilSharedMagic.SubjectTypePublic,
 		},
 
 		// ID token signing algorithms (FIPS 140-3 approved).
 		IDTokenSigningAlgValuesSupported: []string{
-			"RS256",
-			"RS384",
-			"RS512",
-			"ES256",
-			"ES384",
-			"ES512",
-			"EdDSA",
+			cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+			cryptoutilSharedMagic.JoseAlgRS384,
+			cryptoutilSharedMagic.JoseAlgRS512,
+			cryptoutilSharedMagic.JoseAlgES256,
+			cryptoutilSharedMagic.JoseAlgES384,
+			cryptoutilSharedMagic.JoseAlgES512,
+			cryptoutilSharedMagic.JoseAlgEdDSA,
 		},
 
 		// Token endpoint authentication methods (OAuth 2.1 + OIDC).
 		TokenEndpointAuthMethodsSupported: []string{
-			"client_secret_basic",
-			"client_secret_post",
-			"client_secret_jwt",
-			"private_key_jwt",
-			"tls_client_auth",
-			"self_signed_tls_client_auth",
+			cryptoutilSharedMagic.ClientAuthMethodSecretBasic,
+			cryptoutilSharedMagic.ClientAuthMethodSecretPost,
+			cryptoutilSharedMagic.ClientAuthMethodSecretJWT,
+			cryptoutilSharedMagic.ClientAuthMethodPrivateKeyJWT,
+			cryptoutilSharedMagic.ClientAuthMethodTLSClientAuth,
+			cryptoutilSharedMagic.ClientAuthMethodSelfSignedTLSAuth,
 		},
 
 		// Token endpoint auth signing algorithms (FIPS 140-3 approved).
 		TokenEndpointAuthSigningAlgValuesSupported: []string{
-			"RS256",
-			"RS384",
-			"RS512",
-			"ES256",
-			"ES384",
-			"ES512",
-			"EdDSA",
+			cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+			cryptoutilSharedMagic.JoseAlgRS384,
+			cryptoutilSharedMagic.JoseAlgRS512,
+			cryptoutilSharedMagic.JoseAlgES256,
+			cryptoutilSharedMagic.JoseAlgES384,
+			cryptoutilSharedMagic.JoseAlgES512,
+			cryptoutilSharedMagic.JoseAlgEdDSA,
 		},
 
 		// Claims supported (OIDC standard claims).
 		ClaimsSupported: []string{
-			"sub",
-			"iss",
-			"aud",
-			"exp",
-			"iat",
-			"auth_time",
-			"nonce",
-			"acr",
-			"amr",
-			"azp",
-			"name",
-			"given_name",
-			"family_name",
-			"middle_name",
-			"nickname",
-			"preferred_username",
-			"profile",
-			"picture",
-			"website",
-			"email",
-			"email_verified",
-			"gender",
-			"birthdate",
-			"zoneinfo",
-			"locale",
-			"phone_number",
-			"phone_number_verified",
-			"address",
-			"updated_at",
+			cryptoutilSharedMagic.ClaimSub,
+			cryptoutilSharedMagic.ClaimIss,
+			cryptoutilSharedMagic.ClaimAud,
+			cryptoutilSharedMagic.ClaimExp,
+			cryptoutilSharedMagic.ClaimIat,
+			cryptoutilSharedMagic.ClaimAuthTime,
+			cryptoutilSharedMagic.ClaimNonce,
+			cryptoutilSharedMagic.ClaimAcr,
+			cryptoutilSharedMagic.ClaimAmr,
+			cryptoutilSharedMagic.ClaimAzp,
+			cryptoutilSharedMagic.ClaimName,
+			cryptoutilSharedMagic.ClaimGivenName,
+			cryptoutilSharedMagic.ClaimFamilyName,
+			cryptoutilSharedMagic.ClaimMiddleName,
+			cryptoutilSharedMagic.ClaimNickname,
+			cryptoutilSharedMagic.ClaimPreferredUsername,
+			cryptoutilSharedMagic.ClaimProfile,
+			cryptoutilSharedMagic.ClaimPicture,
+			cryptoutilSharedMagic.ClaimWebsite,
+			cryptoutilSharedMagic.ClaimEmail,
+			cryptoutilSharedMagic.ClaimEmailVerified,
+			cryptoutilSharedMagic.ClaimGender,
+			cryptoutilSharedMagic.ClaimBirthdate,
+			cryptoutilSharedMagic.ClaimZoneinfo,
+			cryptoutilSharedMagic.ClaimLocale,
+			cryptoutilSharedMagic.ClaimPhoneNumber,
+			cryptoutilSharedMagic.ClaimPhoneVerified,
+			cryptoutilSharedMagic.ClaimAddress,
+			cryptoutilSharedMagic.ClaimUpdatedAt,
 		},
 
 		// Revocation endpoint (OAuth 2.1).
 		RevocationEndpoint: baseURL + "/authz/v1/revoke",
 		RevocationEndpointAuthMethodsSupported: []string{
-			"client_secret_basic",
-			"client_secret_post",
-			"client_secret_jwt",
-			"private_key_jwt",
-			"tls_client_auth",
-			"self_signed_tls_client_auth",
+			cryptoutilSharedMagic.ClientAuthMethodSecretBasic,
+			cryptoutilSharedMagic.ClientAuthMethodSecretPost,
+			cryptoutilSharedMagic.ClientAuthMethodSecretJWT,
+			cryptoutilSharedMagic.ClientAuthMethodPrivateKeyJWT,
+			cryptoutilSharedMagic.ClientAuthMethodTLSClientAuth,
+			cryptoutilSharedMagic.ClientAuthMethodSelfSignedTLSAuth,
 		},
 
 		// Introspection endpoint (OAuth 2.1).
 		IntrospectionEndpoint: baseURL + "/authz/v1/introspect",
 		IntrospectionEndpointAuthMethodsSupported: []string{
-			"client_secret_basic",
-			"client_secret_post",
-			"client_secret_jwt",
-			"private_key_jwt",
-			"tls_client_auth",
-			"self_signed_tls_client_auth",
+			cryptoutilSharedMagic.ClientAuthMethodSecretBasic,
+			cryptoutilSharedMagic.ClientAuthMethodSecretPost,
+			cryptoutilSharedMagic.ClientAuthMethodSecretJWT,
+			cryptoutilSharedMagic.ClientAuthMethodPrivateKeyJWT,
+			cryptoutilSharedMagic.ClientAuthMethodTLSClientAuth,
+			cryptoutilSharedMagic.ClientAuthMethodSelfSignedTLSAuth,
 		},
 
 		// PKCE support (OAuth 2.1 required).
 		CodeChallengeMethodsSupported: []string{
-			"S256",
+			cryptoutilSharedMagic.PKCEMethodS256,
 		},
 
 		// Optional fields.

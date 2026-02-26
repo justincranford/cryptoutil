@@ -1,6 +1,7 @@
 package repository
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"testing"
@@ -21,7 +22,7 @@ func TestErrorReturns_DatabaseErrors(t *testing.T) {
 	ctx := context.Background()
 
 	// Create a SEPARATE closed database for error testing (don't touch testDB).
-	closedSQLDB, err := sql.Open("sqlite", ":memory:")
+	closedSQLDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
 	require.NoError(t, err)
 
 	// Create GORM instance on this separate connection.
@@ -100,7 +101,7 @@ func TestApplySmIMMigrations_Error(t *testing.T) {
 	t.Parallel()
 
 	// Create closed database.
-	closedDB, err := sql.Open("sqlite", ":memory:")
+	closedDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
 	require.NoError(t, err)
 	err = closedDB.Close()
 	require.NoError(t, err)

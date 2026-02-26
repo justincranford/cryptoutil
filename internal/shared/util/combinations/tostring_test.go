@@ -3,6 +3,7 @@
 package combinations
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"strings"
 	"testing"
 
@@ -163,7 +164,7 @@ func TestEncode_Panic_CombinationTooLarge(t *testing.T) {
 	t.Parallel()
 
 	// Create combination with 256 values (exceeds uint8 max of 255)
-	largeCombination := make(combination, 256)
+	largeCombination := make(combination, cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 	for i := range largeCombination {
 		largeCombination[i] = value("X")
 	}
@@ -194,7 +195,7 @@ func TestEncode_Panic_ValueTooLarge(t *testing.T) {
 	t.Parallel()
 
 	// Create value with 256 bytes (exceeds uint8 max of 255)
-	largeValue := make(value, 256)
+	largeValue := make(value, cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 	for i := range largeValue {
 		largeValue[i] = 'X'
 	}
@@ -229,7 +230,7 @@ func TestComputeCombinations_LargeMError(t *testing.T) {
 	t.Parallel()
 
 	// Create M with 256 values (exceeds uint8 max of 255)
-	largeM := make(M, 256)
+	largeM := make(M, cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 	for i := range largeM {
 		largeM[i] = []byte("X")
 	}

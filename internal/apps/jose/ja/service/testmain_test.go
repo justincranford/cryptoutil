@@ -52,7 +52,7 @@ func TestMain(m *testing.M) {
 	// CRITICAL: Store sql.DB reference in package variable.
 	var err error
 
-	testSQLDB, err = sql.Open("sqlite", dsn)
+	testSQLDB, err = sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	if err != nil {
 		panic("TestMain: failed to open SQLite: " + err.Error())
 	}

@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	crand "crypto/rand"
 	rsa "crypto/rsa"
 	json "encoding/json"
@@ -39,7 +40,7 @@ func newTestJWKSServer(t *testing.T) *testJWKSServer {
 
 	require.NoError(t, jwkKey.Set(joseJwk.KeyIDKey, keyID))
 	require.NoError(t, jwkKey.Set(joseJwk.AlgorithmKey, joseJwa.RS256()))
-	require.NoError(t, jwkKey.Set(joseJwk.KeyUsageKey, "sig"))
+	require.NoError(t, jwkKey.Set(joseJwk.KeyUsageKey, cryptoutilSharedMagic.JoseKeyUseSig))
 
 	keySet := joseJwk.NewSet()
 
@@ -104,14 +105,14 @@ func TestValidateToken_WithMockJWKS(t *testing.T) {
 		{
 			name: "valid token with all claims",
 			claims: map[string]any{
-				"sub":   "user-123",
-				"iss":   "https://auth.example.com",
-				"aud":   []string{"https://api.example.com"},
-				"exp":   now.Add(1 * time.Hour).Unix(),
-				"iat":   now.Unix(),
-				"nbf":   now.Add(-1 * time.Minute).Unix(),
-				"jti":   "token-1",
-				"scope": "read write",
+				cryptoutilSharedMagic.ClaimSub:   "user-123",
+				cryptoutilSharedMagic.ClaimIss:   "https://auth.example.com",
+				cryptoutilSharedMagic.ClaimAud:   []string{"https://api.example.com"},
+				cryptoutilSharedMagic.ClaimExp:   now.Add(1 * time.Hour).Unix(),
+				cryptoutilSharedMagic.ClaimIat:   now.Unix(),
+				cryptoutilSharedMagic.ClaimNbf:   now.Add(-1 * time.Minute).Unix(),
+				cryptoutilSharedMagic.ClaimJti:   "token-1",
+				cryptoutilSharedMagic.ClaimScope: "read write",
 			},
 			config: JWTValidatorConfig{
 				JWKSURL:          jwksServer.server.URL,
@@ -123,9 +124,9 @@ func TestValidateToken_WithMockJWKS(t *testing.T) {
 		{
 			name: "valid token minimal claims",
 			claims: map[string]any{
-				"sub": "user-456",
-				"exp": now.Add(1 * time.Hour).Unix(),
-				"iat": now.Unix(),
+				cryptoutilSharedMagic.ClaimSub: "user-456",
+				cryptoutilSharedMagic.ClaimExp: now.Add(1 * time.Hour).Unix(),
+				cryptoutilSharedMagic.ClaimIat: now.Unix(),
 			},
 			config: JWTValidatorConfig{
 				JWKSURL: jwksServer.server.URL,
@@ -135,9 +136,9 @@ func TestValidateToken_WithMockJWKS(t *testing.T) {
 		{
 			name: "expired token",
 			claims: map[string]any{
-				"sub": "user-expired",
-				"exp": now.Add(-1 * time.Hour).Unix(),
-				"iat": now.Add(-2 * time.Hour).Unix(),
+				cryptoutilSharedMagic.ClaimSub: "user-expired",
+				cryptoutilSharedMagic.ClaimExp: now.Add(-1 * time.Hour).Unix(),
+				cryptoutilSharedMagic.ClaimIat: now.Add(-2 * time.Hour).Unix(),
 			},
 			config: JWTValidatorConfig{
 				JWKSURL: jwksServer.server.URL,
@@ -148,10 +149,10 @@ func TestValidateToken_WithMockJWKS(t *testing.T) {
 		{
 			name: "wrong issuer",
 			claims: map[string]any{
-				"sub": "user-789",
-				"iss": "https://wrong-issuer.com",
-				"exp": now.Add(1 * time.Hour).Unix(),
-				"iat": now.Unix(),
+				cryptoutilSharedMagic.ClaimSub: "user-789",
+				cryptoutilSharedMagic.ClaimIss: "https://wrong-issuer.com",
+				cryptoutilSharedMagic.ClaimExp: now.Add(1 * time.Hour).Unix(),
+				cryptoutilSharedMagic.ClaimIat: now.Unix(),
 			},
 			config: JWTValidatorConfig{
 				JWKSURL:        jwksServer.server.URL,
@@ -163,10 +164,10 @@ func TestValidateToken_WithMockJWKS(t *testing.T) {
 		{
 			name: "wrong audience",
 			claims: map[string]any{
-				"sub": "user-aud",
-				"aud": []string{"https://wrong-api.com"},
-				"exp": now.Add(1 * time.Hour).Unix(),
-				"iat": now.Unix(),
+				cryptoutilSharedMagic.ClaimSub: "user-aud",
+				cryptoutilSharedMagic.ClaimAud: []string{"https://wrong-api.com"},
+				cryptoutilSharedMagic.ClaimExp: now.Add(1 * time.Hour).Unix(),
+				cryptoutilSharedMagic.ClaimIat: now.Unix(),
 			},
 			config: JWTValidatorConfig{
 				JWKSURL:          jwksServer.server.URL,
@@ -247,20 +248,20 @@ func TestJWTMiddleware_FullFlow(t *testing.T) {
 	}{
 		{
 			name: "valid token succeeds",
-			authHeader: "Bearer " + jwksServer.signToken(t, map[string]any{
-				"sub":   "user-123",
-				"exp":   now.Add(1 * time.Hour).Unix(),
-				"iat":   now.Unix(),
-				"scope": "read",
+			authHeader: cryptoutilSharedMagic.AuthorizationBearerPrefix + jwksServer.signToken(t, map[string]any{
+				cryptoutilSharedMagic.ClaimSub:   "user-123",
+				cryptoutilSharedMagic.ClaimExp:   now.Add(1 * time.Hour).Unix(),
+				cryptoutilSharedMagic.ClaimIat:   now.Unix(),
+				cryptoutilSharedMagic.ClaimScope: cryptoutilSharedMagic.ScopeRead,
 			}),
 			expectedStatus: http.StatusOK,
 		},
 		{
 			name: "expired token fails",
-			authHeader: "Bearer " + jwksServer.signToken(t, map[string]any{
-				"sub": "user-expired",
-				"exp": now.Add(-1 * time.Hour).Unix(),
-				"iat": now.Add(-2 * time.Hour).Unix(),
+			authHeader: cryptoutilSharedMagic.AuthorizationBearerPrefix + jwksServer.signToken(t, map[string]any{
+				cryptoutilSharedMagic.ClaimSub: "user-expired",
+				cryptoutilSharedMagic.ClaimExp: now.Add(-1 * time.Hour).Unix(),
+				cryptoutilSharedMagic.ClaimIat: now.Add(-2 * time.Hour).Unix(),
 			}),
 			expectedStatus: http.StatusUnauthorized,
 		},
@@ -316,10 +317,10 @@ IntrospectionURL:    introspectionServer.URL,
 require.NoError(t, err)
 
 tokenString := jwksServer.signToken(t, map[string]any{
-"sub":   "user-revcheck",
-"exp":   now.Add(1 * time.Hour).Unix(),
-"iat":   now.Unix(),
-"scope": "read write",
+cryptoutilSharedMagic.ClaimSub:   "user-revcheck",
+cryptoutilSharedMagic.ClaimExp:   now.Add(1 * time.Hour).Unix(),
+cryptoutilSharedMagic.ClaimIat:   now.Unix(),
+cryptoutilSharedMagic.ClaimScope: "read write",
 })
 
 claims, err := validator.ValidateToken(t.Context(), tokenString)
@@ -351,9 +352,9 @@ IntrospectionURL:    introspectionServer.URL,
 require.NoError(t, err)
 
 tokenString := jwksServer.signToken(t, map[string]any{
-"sub": "revoked-user",
-"exp": now.Add(1 * time.Hour).Unix(),
-"iat": now.Unix(),
+cryptoutilSharedMagic.ClaimSub: "revoked-user",
+cryptoutilSharedMagic.ClaimExp: now.Add(1 * time.Hour).Unix(),
+cryptoutilSharedMagic.ClaimIat: now.Unix(),
 })
 
 claims, err := validator.ValidateToken(t.Context(), tokenString)
@@ -375,9 +376,9 @@ AllowedAlgorithms: DefaultAllowedAlgorithms(),
 require.NoError(t, err)
 
 tokenString := jwksServer.signToken(t, map[string]any{
-"sub": "user-alg",
-"exp": now.Add(1 * time.Hour).Unix(),
-"iat": now.Unix(),
+cryptoutilSharedMagic.ClaimSub: "user-alg",
+cryptoutilSharedMagic.ClaimExp: now.Add(1 * time.Hour).Unix(),
+cryptoutilSharedMagic.ClaimIat: now.Unix(),
 })
 
 claims, err := validator.ValidateToken(t.Context(), tokenString)

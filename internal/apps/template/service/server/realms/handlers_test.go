@@ -4,6 +4,7 @@
 package realms
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	json "encoding/json"
 	"fmt"
@@ -26,10 +27,10 @@ func TestHandleRegisterUser_InvalidJSON(t *testing.T) {
 
 	// Create Fiber app with handler.
 	app := fiber.New()
-	app.Post("/register", svc.HandleRegisterUser())
+	app.Post(cryptoutilSharedMagic.PathRegistration, svc.HandleRegisterUser())
 
 	// Test invalid JSON.
-	req := httptest.NewRequest("POST", "/register", bytes.NewReader([]byte("invalid json")))
+	req := httptest.NewRequest("POST", cryptoutilSharedMagic.PathRegistration, bytes.NewReader([]byte("invalid json")))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -46,7 +47,7 @@ func TestHandleRegisterUser_InvalidJSON(t *testing.T) {
 
 	err = json.Unmarshal(body, &response)
 	require.NoError(t, err)
-	require.Contains(t, response["error"], "Invalid request body")
+	require.Contains(t, response[cryptoutilSharedMagic.StringError], "Invalid request body")
 }
 
 // TestHandleRegisterUser_MissingFields tests registration with missing username/password.
@@ -58,7 +59,7 @@ func TestHandleRegisterUser_MissingFields(t *testing.T) {
 	svc := NewUserService(repo, factory)
 
 	app := fiber.New()
-	app.Post("/register", svc.HandleRegisterUser())
+	app.Post(cryptoutilSharedMagic.PathRegistration, svc.HandleRegisterUser())
 
 	tests := []struct {
 		name    string
@@ -94,7 +95,7 @@ func TestHandleRegisterUser_MissingFields(t *testing.T) {
 			bodyBytes, err := json.Marshal(tt.body)
 			require.NoError(t, err)
 
-			req := httptest.NewRequest("POST", "/register", bytes.NewReader(bodyBytes))
+			req := httptest.NewRequest("POST", cryptoutilSharedMagic.PathRegistration, bytes.NewReader(bodyBytes))
 			req.Header.Set("Content-Type", "application/json")
 
 			resp, err := app.Test(req, -1)
@@ -111,7 +112,7 @@ func TestHandleRegisterUser_MissingFields(t *testing.T) {
 
 			err = json.Unmarshal(body, &response)
 			require.NoError(t, err)
-			require.Contains(t, response["error"], tt.wantErr)
+			require.Contains(t, response[cryptoutilSharedMagic.StringError], tt.wantErr)
 		})
 	}
 }
@@ -125,7 +126,7 @@ func TestHandleRegisterUser_UsernameLengthValidation(t *testing.T) {
 	svc := NewUserService(repo, factory)
 
 	app := fiber.New()
-	app.Post("/register", svc.HandleRegisterUser())
+	app.Post(cryptoutilSharedMagic.PathRegistration, svc.HandleRegisterUser())
 
 	tests := []struct {
 		name     string
@@ -139,7 +140,7 @@ func TestHandleRegisterUser_UsernameLengthValidation(t *testing.T) {
 		},
 		{
 			name:     "username too long",
-			username: "a" + string(make([]byte, 50)), // 51 characters
+			username: "a" + string(make([]byte, cryptoutilSharedMagic.IMMaxUsernameLength)), // 51 characters
 			wantErr:  "username must be 3-50 characters",
 		},
 	}
@@ -154,7 +155,7 @@ func TestHandleRegisterUser_UsernameLengthValidation(t *testing.T) {
 			})
 			require.NoError(t, err)
 
-			req := httptest.NewRequest("POST", "/register", bytes.NewReader(bodyBytes))
+			req := httptest.NewRequest("POST", cryptoutilSharedMagic.PathRegistration, bytes.NewReader(bodyBytes))
 			req.Header.Set("Content-Type", "application/json")
 
 			resp, err := app.Test(req, -1)
@@ -171,7 +172,7 @@ func TestHandleRegisterUser_UsernameLengthValidation(t *testing.T) {
 
 			err = json.Unmarshal(body, &response)
 			require.NoError(t, err)
-			require.Contains(t, response["error"], tt.wantErr)
+			require.Contains(t, response[cryptoutilSharedMagic.StringError], tt.wantErr)
 		})
 	}
 }
@@ -185,7 +186,7 @@ func TestHandleRegisterUser_PasswordTooShort(t *testing.T) {
 	svc := NewUserService(repo, factory)
 
 	app := fiber.New()
-	app.Post("/register", svc.HandleRegisterUser())
+	app.Post(cryptoutilSharedMagic.PathRegistration, svc.HandleRegisterUser())
 
 	bodyBytes, err := json.Marshal(map[string]string{
 		"username": "testuser",
@@ -193,7 +194,7 @@ func TestHandleRegisterUser_PasswordTooShort(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/register", bytes.NewReader(bodyBytes))
+	req := httptest.NewRequest("POST", cryptoutilSharedMagic.PathRegistration, bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -210,7 +211,7 @@ func TestHandleRegisterUser_PasswordTooShort(t *testing.T) {
 
 	err = json.Unmarshal(body, &response)
 	require.NoError(t, err)
-	require.Contains(t, response["error"], "password must be at least 8 characters")
+	require.Contains(t, response[cryptoutilSharedMagic.StringError], "password must be at least 8 characters")
 }
 
 // TestHandleRegisterUser_Success tests successful user registration.
@@ -222,7 +223,7 @@ func TestHandleRegisterUser_Success(t *testing.T) {
 	svc := NewUserService(repo, factory)
 
 	app := fiber.New()
-	app.Post("/register", svc.HandleRegisterUser())
+	app.Post(cryptoutilSharedMagic.PathRegistration, svc.HandleRegisterUser())
 
 	bodyBytes, err := json.Marshal(map[string]string{
 		"username": "testuser",
@@ -230,7 +231,7 @@ func TestHandleRegisterUser_Success(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/register", bytes.NewReader(bodyBytes))
+	req := httptest.NewRequest("POST", cryptoutilSharedMagic.PathRegistration, bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -262,7 +263,7 @@ func TestHandleRegisterUser_DuplicateUsernameSQLite(t *testing.T) {
 	svc := NewUserService(repo, factory)
 
 	app := fiber.New()
-	app.Post("/register", svc.HandleRegisterUser())
+	app.Post(cryptoutilSharedMagic.PathRegistration, svc.HandleRegisterUser())
 
 	bodyBytes, err := json.Marshal(map[string]string{
 		"username": "existinguser",
@@ -270,7 +271,7 @@ func TestHandleRegisterUser_DuplicateUsernameSQLite(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/register", bytes.NewReader(bodyBytes))
+	req := httptest.NewRequest("POST", cryptoutilSharedMagic.PathRegistration, bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -288,7 +289,7 @@ func TestHandleRegisterUser_DuplicateUsernameSQLite(t *testing.T) {
 
 	err = json.Unmarshal(body, &response)
 	require.NoError(t, err)
-	require.Equal(t, "Username already exists", response["error"])
+	require.Equal(t, "Username already exists", response[cryptoutilSharedMagic.StringError])
 }
 
 // TestHandleRegisterUser_DuplicateUsernamePostgreSQL tests 409 Conflict for PostgreSQL duplicate username.
@@ -302,7 +303,7 @@ func TestHandleRegisterUser_DuplicateUsernamePostgreSQL(t *testing.T) {
 	svc := NewUserService(repo, factory)
 
 	app := fiber.New()
-	app.Post("/register", svc.HandleRegisterUser())
+	app.Post(cryptoutilSharedMagic.PathRegistration, svc.HandleRegisterUser())
 
 	bodyBytes, err := json.Marshal(map[string]string{
 		"username": "existinguser",
@@ -310,7 +311,7 @@ func TestHandleRegisterUser_DuplicateUsernamePostgreSQL(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/register", bytes.NewReader(bodyBytes))
+	req := httptest.NewRequest("POST", cryptoutilSharedMagic.PathRegistration, bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -328,7 +329,7 @@ func TestHandleRegisterUser_DuplicateUsernamePostgreSQL(t *testing.T) {
 
 	err = json.Unmarshal(body, &response)
 	require.NoError(t, err)
-	require.Equal(t, "Username already exists", response["error"])
+	require.Equal(t, "Username already exists", response[cryptoutilSharedMagic.StringError])
 }
 
 // TestHandleRegisterUser_GenericError tests 500 Internal Server Error for non-duplicate errors.
@@ -342,7 +343,7 @@ func TestHandleRegisterUser_GenericError(t *testing.T) {
 	svc := NewUserService(repo, factory)
 
 	app := fiber.New()
-	app.Post("/register", svc.HandleRegisterUser())
+	app.Post(cryptoutilSharedMagic.PathRegistration, svc.HandleRegisterUser())
 
 	bodyBytes, err := json.Marshal(map[string]string{
 		"username": "newuser",
@@ -350,7 +351,7 @@ func TestHandleRegisterUser_GenericError(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/register", bytes.NewReader(bodyBytes))
+	req := httptest.NewRequest("POST", cryptoutilSharedMagic.PathRegistration, bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -368,7 +369,7 @@ func TestHandleRegisterUser_GenericError(t *testing.T) {
 
 	err = json.Unmarshal(body, &response)
 	require.NoError(t, err)
-	require.Equal(t, "Failed to create user", response["error"])
+	require.Equal(t, "Failed to create user", response[cryptoutilSharedMagic.StringError])
 }
 
 // TestHandleLoginUser_InvalidJSON tests login with invalid JSON body.
@@ -399,7 +400,7 @@ func TestHandleLoginUser_InvalidJSON(t *testing.T) {
 
 	err = json.Unmarshal(body, &response)
 	require.NoError(t, err)
-	require.Contains(t, response["error"], "Invalid request body")
+	require.Contains(t, response[cryptoutilSharedMagic.StringError], "Invalid request body")
 }
 
 // TestHandleLoginUser_MissingFields tests login with missing username/password.
@@ -454,7 +455,7 @@ func TestHandleLoginUser_MissingFields(t *testing.T) {
 
 			err = json.Unmarshal(body, &response)
 			require.NoError(t, err)
-			require.Contains(t, response["error"], tt.wantErr)
+			require.Contains(t, response[cryptoutilSharedMagic.StringError], tt.wantErr)
 		})
 	}
 }

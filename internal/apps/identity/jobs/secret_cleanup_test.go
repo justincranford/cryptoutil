@@ -5,6 +5,7 @@
 package jobs
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"fmt"
@@ -38,7 +39,7 @@ func TestCleanupExpiredSecrets(t *testing.T) {
 					SecretHash: "hash1",
 					Status:     cryptoutilIdentityDomain.SecretStatusActive,
 					CreatedAt:  time.Now().UTC(),
-					ExpiresAt:  ptrTime(time.Now().UTC().Add(24 * time.Hour)), // Future expiration.
+					ExpiresAt:  ptrTime(time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour)), // Future expiration.
 				},
 			},
 			wantRows: 0,
@@ -52,7 +53,7 @@ func TestCleanupExpiredSecrets(t *testing.T) {
 					Version:    1,
 					SecretHash: "hash1",
 					Status:     cryptoutilIdentityDomain.SecretStatusActive,
-					CreatedAt:  time.Now().UTC().Add(-48 * time.Hour),
+					CreatedAt:  time.Now().UTC().Add(-cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour),
 					ExpiresAt:  ptrTime(time.Now().UTC().Add(-1 * time.Hour)), // Past expiration.
 				},
 			},
@@ -67,7 +68,7 @@ func TestCleanupExpiredSecrets(t *testing.T) {
 					Version:    1,
 					SecretHash: "hash1",
 					Status:     cryptoutilIdentityDomain.SecretStatusActive,
-					CreatedAt:  time.Now().UTC().Add(-48 * time.Hour),
+					CreatedAt:  time.Now().UTC().Add(-cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour),
 					ExpiresAt:  ptrTime(time.Now().UTC().Add(-1 * time.Hour)), // Expired.
 				},
 				{
@@ -77,7 +78,7 @@ func TestCleanupExpiredSecrets(t *testing.T) {
 					SecretHash: "hash2",
 					Status:     cryptoutilIdentityDomain.SecretStatusActive,
 					CreatedAt:  time.Now().UTC(),
-					ExpiresAt:  ptrTime(time.Now().UTC().Add(24 * time.Hour)), // Active.
+					ExpiresAt:  ptrTime(time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour)), // Active.
 				},
 			},
 			wantRows: 1,
@@ -91,7 +92,7 @@ func TestCleanupExpiredSecrets(t *testing.T) {
 					Version:    1,
 					SecretHash: "hash1",
 					Status:     cryptoutilIdentityDomain.SecretStatusExpired, // Already expired.
-					CreatedAt:  time.Now().UTC().Add(-48 * time.Hour),
+					CreatedAt:  time.Now().UTC().Add(-cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour),
 					ExpiresAt:  ptrTime(time.Now().UTC().Add(-1 * time.Hour)),
 				},
 			},
@@ -106,9 +107,9 @@ func TestCleanupExpiredSecrets(t *testing.T) {
 					Version:    1,
 					SecretHash: "hash1",
 					Status:     cryptoutilIdentityDomain.SecretStatusRevoked, // Revoked.
-					CreatedAt:  time.Now().UTC().Add(-48 * time.Hour),
+					CreatedAt:  time.Now().UTC().Add(-cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour),
 					ExpiresAt:  ptrTime(time.Now().UTC().Add(-1 * time.Hour)),
-					RevokedAt:  ptrTime(time.Now().UTC().Add(-12 * time.Hour)),
+					RevokedAt:  ptrTime(time.Now().UTC().Add(-cryptoutilSharedMagic.HashPrefixLength * time.Hour)),
 				},
 			},
 			wantRows: 0,
@@ -156,7 +157,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", dbID.String())
 
 	// Open database connection using modernc.org/sqlite (CGO-free).
-	sqlDB, err := sql.Open("sqlite", dsn)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	require.NoError(t, err)
 
 	// Apply SQLite PRAGMA settings.

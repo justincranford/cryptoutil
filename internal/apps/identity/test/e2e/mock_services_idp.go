@@ -54,13 +54,13 @@ func (tms *TestableMockServices) startIDPServer(ctx context.Context) error {
 		}
 
 		response := map[string]any{
-			"sub":            "test_user",
-			"name":           "Test User",
-			"email":          "test@example.com",
-			"email_verified": true,
-			"profile":        "https://example.com/profile/test_user",
-			"picture":        "https://example.com/avatar/test_user.jpg",
-			"updated_at":     time.Now().UTC().Unix(),
+			cryptoutilSharedMagic.ClaimSub:            "test_user",
+			cryptoutilSharedMagic.ClaimName:           "Test User",
+			cryptoutilSharedMagic.ClaimEmail:          "test@example.com",
+			cryptoutilSharedMagic.ClaimEmailVerified: true,
+			cryptoutilSharedMagic.ClaimProfile:        "https://example.com/profile/test_user",
+			cryptoutilSharedMagic.ClaimPicture:        "https://example.com/avatar/test_user.jpg",
+			cryptoutilSharedMagic.ClaimUpdatedAt:     time.Now().UTC().Unix(),
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -94,7 +94,7 @@ func (tms *TestableMockServices) startIDPServer(ctx context.Context) error {
 	mux.HandleFunc("/health", corsHandler(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
-		if err := json.NewEncoder(w).Encode(map[string]string{"status": "ok", "service": "idp"}); err != nil {
+		if err := json.NewEncoder(w).Encode(map[string]string{cryptoutilSharedMagic.StringStatus: "ok", "service": cryptoutilSharedMagic.IDPServiceName}); err != nil {
 			log.Printf("Failed to encode health response: %v", err)
 			http.Error(w, "internal server error", http.StatusInternalServerError)
 
@@ -150,7 +150,7 @@ func (tms *TestableMockServices) startResourceServer(ctx context.Context) error 
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
-		if err := json.NewEncoder(w).Encode(map[string]string{"status": "ok", "service": "resource"}); err != nil {
+		if err := json.NewEncoder(w).Encode(map[string]string{cryptoutilSharedMagic.StringStatus: "ok", "service": "resource"}); err != nil {
 			log.Printf("Failed to encode health response: %v", err)
 			http.Error(w, "internal server error", http.StatusInternalServerError)
 
@@ -181,12 +181,12 @@ func (tms *TestableMockServices) startResourceServer(ctx context.Context) error 
 func (tms *TestableMockServices) startSPARPServer(ctx context.Context) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
-		code := r.URL.Query().Get("code")
-		state := r.URL.Query().Get("state")
+		code := r.URL.Query().Get(cryptoutilSharedMagic.ResponseTypeCode)
+		state := r.URL.Query().Get(cryptoutilSharedMagic.ParamState)
 
 		response := map[string]any{
-			"code":        code,
-			"state":       state,
+			cryptoutilSharedMagic.ResponseTypeCode:        code,
+			cryptoutilSharedMagic.ParamState:       state,
 			"received_at": time.Now().UTC().Format(time.RFC3339),
 		}
 
@@ -203,7 +203,7 @@ func (tms *TestableMockServices) startSPARPServer(ctx context.Context) error {
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
-		if err := json.NewEncoder(w).Encode(map[string]string{"status": "ok", "service": "spa-rp"}); err != nil {
+		if err := json.NewEncoder(w).Encode(map[string]string{cryptoutilSharedMagic.StringStatus: "ok", "service": "spa-rp"}); err != nil {
 			log.Printf("Failed to encode health response: %v", err)
 			http.Error(w, "internal server error", http.StatusInternalServerError)
 
@@ -243,13 +243,13 @@ func (tms *TestableMockServices) waitForServicesReady(ctx context.Context) error
 		url      string
 		expected string
 	}{
-		{fmt.Sprintf("https://127.0.0.1:%d/health", tms.authZPort), "authz"},
-		{fmt.Sprintf("https://127.0.0.1:%d/health", tms.idpPort), "idp"},
+		{fmt.Sprintf("https://127.0.0.1:%d/health", tms.authZPort), cryptoutilSharedMagic.AuthzServiceName},
+		{fmt.Sprintf("https://127.0.0.1:%d/health", tms.idpPort), cryptoutilSharedMagic.IDPServiceName},
 		{fmt.Sprintf("https://127.0.0.1:%d/health", tms.rsPort), "resource"},
 		{fmt.Sprintf("https://127.0.0.1:%d/health", tms.spaRPPort), "spa-rp"},
 	}
 
-	maxRetries := 30 // 30 seconds max wait
+	maxRetries := cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days // 30 seconds max wait
 	for i := 0; i < maxRetries; i++ {
 		allReady := true
 
@@ -279,7 +279,7 @@ func (tms *TestableMockServices) waitForServicesReady(ctx context.Context) error
 				break
 			}
 
-			if result["status"] != "ok" || result["service"] != ep.expected {
+			if result[cryptoutilSharedMagic.StringStatus] != "ok" || result["service"] != ep.expected {
 				log.Printf("Health check attempt %d failed for %s: unexpected response %+v", i+1, ep.url, result)
 
 				allReady = false

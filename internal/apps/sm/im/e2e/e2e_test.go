@@ -80,12 +80,12 @@ func TestE2E_GrafanaHealth(t *testing.T) {
 	t.Parallel()
 
 	// Grafana HTTP API health check with retries (Grafana can be slow to start).
-	client := &http.Client{Timeout: 5 * time.Second}
+	client := &http.Client{Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second}
 
 	var lastErr error
 
-	for attempt := 0; attempt < 5; attempt++ {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	for attempt := 0; attempt < cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries; attempt++ {
+		ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, grafanaURL+"/api/health", http.NoBody)
 		if err != nil {
@@ -281,7 +281,7 @@ func TestE2E_PostgreSQLSharedState(t *testing.T) {
 
 	// Connect to shared PostgreSQL database (already running from TestMain).
 	dsn := "postgres://sm_im_user:sm_im_pass@127.0.0.1:5432/sm_im?sslmode=disable"
-	db, err := sql.Open("postgres", dsn)
+	db, err := sql.Open(cryptoutilSharedMagic.DockerServicePostgres, dsn)
 	require.NoError(t, err, "Connecting to PostgreSQL should succeed")
 
 	defer func() { _ = db.Close() }()

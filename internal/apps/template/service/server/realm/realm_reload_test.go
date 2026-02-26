@@ -5,6 +5,7 @@
 package realm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 "os"
 "path/filepath"
 "testing"
@@ -38,7 +39,7 @@ t.Helper()
 tmpDir := t.TempDir()
 // Write minimal valid realms.yml.
 content := "version: \"1.0\"\nrealms: []\ndefaults:\n  password_policy:\n    algorithm: sha256\n    iterations: 600000\n    salt_bytes: 32\n    hash_bytes: 32\n"
-err := os.WriteFile(filepath.Join(tmpDir, "realms.yml"), []byte(content), 0o600)
+err := os.WriteFile(filepath.Join(tmpDir, "realms.yml"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 require.NoError(t, err)
 
 return tmpDir
@@ -51,7 +52,7 @@ setup: func(t *testing.T) string {
 t.Helper()
 tmpDir := t.TempDir()
 // Write invalid YAML content.
-err := os.WriteFile(filepath.Join(tmpDir, "realms.yml"), []byte("{\tinvalid yaml content"), 0o600)
+err := os.WriteFile(filepath.Join(tmpDir, "realms.yml"), []byte("{\tinvalid yaml content"), cryptoutilSharedMagic.CacheFilePermissions)
 require.NoError(t, err)
 
 return tmpDir
@@ -66,7 +67,7 @@ t.Helper()
 tmpDir := t.TempDir()
 // Write valid YAML that fails validation (bad UUID).
 content := "version: \"1.0\"\nrealms:\n  - id: \"not-a-uuid\"\n    name: \"test\"\n    type: \"file\"\n    enabled: true\n"
-err := os.WriteFile(filepath.Join(tmpDir, "realms.yml"), []byte(content), 0o600)
+err := os.WriteFile(filepath.Join(tmpDir, "realms.yml"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 require.NoError(t, err)
 
 return tmpDir

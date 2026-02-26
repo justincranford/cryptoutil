@@ -3,6 +3,7 @@
 package userauth
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"os"
 	"path/filepath"
@@ -54,7 +55,7 @@ monitoring:
   description: ""
 `
 
-	err := os.WriteFile(stepUpFile, []byte(policyContent), 0o600)
+	err := os.WriteFile(stepUpFile, []byte(policyContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	loader := NewYAMLPolicyLoader("", stepUpFile, "")
@@ -85,8 +86,8 @@ monitoring:
 	transferPolicy := auth.policies["transfer_funds"]
 	require.Equal(t, "transfer_funds", transferPolicy.OperationPattern)
 	require.Equal(t, AuthLevelStepUp, transferPolicy.RequiredLevel)
-	require.Equal(t, 5*time.Minute, transferPolicy.MaxAge)
-	require.ElementsMatch(t, []string{"sms_otp", "totp", "webauthn"}, transferPolicy.AllowedMethods)
+	require.Equal(t, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute, transferPolicy.MaxAge)
+	require.ElementsMatch(t, []string{cryptoutilSharedMagic.AuthMethodSMSOTP, cryptoutilSharedMagic.MFATypeTOTP, cryptoutilSharedMagic.MFATypeWebAuthn}, transferPolicy.AllowedMethods)
 
 	// Verify change_password policy.
 	passwordPolicy := auth.policies["change_password"]
@@ -96,7 +97,7 @@ monitoring:
 	// Verify default policy.
 	defaultPolicy := auth.policies["default"]
 	require.Equal(t, AuthLevelBasic, defaultPolicy.RequiredLevel)
-	require.Equal(t, 24*time.Hour, defaultPolicy.MaxAge)
+	require.Equal(t, cryptoutilSharedMagic.HoursPerDay*time.Hour, defaultPolicy.MaxAge)
 
 	// Load policies again (should use cached).
 	err = auth.loadPolicies(ctx)
@@ -138,7 +139,7 @@ monitoring:
   description: ""
 `
 
-	err := os.WriteFile(stepUpFile, []byte(policyContent), 0o600)
+	err := os.WriteFile(stepUpFile, []byte(policyContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	loader := NewYAMLPolicyLoader("", stepUpFile, "")
@@ -178,7 +179,7 @@ monitoring:
 			name:              "transfer_funds expired - old step_up",
 			operation:         "transfer_funds",
 			currentLevel:      AuthLevelStepUp,
-			authTime:          time.Now().UTC().Add(-10 * time.Minute), // Beyond 5m max age.
+			authTime:          time.Now().UTC().Add(-cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute), // Beyond 5m max age.
 			wantStepUpNeeded:  true,
 			wantRequiredLevel: AuthLevelStepUp,
 		},
@@ -233,9 +234,9 @@ func TestStepUpAuthenticator_ParseAuthLevel(t *testing.T) {
 		levelString string
 		want        AuthenticationLevel
 	}{
-		{"none", AuthLevelNone},
+		{cryptoutilSharedMagic.PromptNone, AuthLevelNone},
 		{"basic", AuthLevelBasic},
-		{"mfa", AuthLevelMFA},
+		{cryptoutilSharedMagic.AMRMultiFactor, AuthLevelMFA},
 		{"step_up", AuthLevelStepUp},
 		{"strong_mfa", AuthLevelStrongMFA},
 		{"unknown", AuthLevelBasic}, // Default to basic for unknown.

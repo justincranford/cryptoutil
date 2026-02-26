@@ -25,11 +25,11 @@ func TestJWTService_CreateEncryptedJWT(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create signing key.
-	signingKey, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	signingKey, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	// Create encryption key.
-	encryptionKey, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyUseEnc, 10)
+	encryptionKey, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyUseEnc, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	// Create encrypted JWT.
@@ -54,11 +54,11 @@ func TestJWTService_CreateEncryptedJWT_WrongSigningKeyUse(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create encryption key for signing (wrong use).
-	signingKey, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyUseEnc, 10)
+	signingKey, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyUseEnc, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	// Create encryption key.
-	encryptionKey, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyUseEnc, 10)
+	encryptionKey, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyUseEnc, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	// Try to create encrypted JWT with wrong signing key use - should fail.
@@ -78,11 +78,11 @@ func TestJWTService_CreateEncryptedJWT_WrongEncryptionKeyUse(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create signing key.
-	signingKey, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	signingKey, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	// Create signing key for encryption (wrong use).
-	encryptionKey, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	encryptionKey, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	// Try to create encrypted JWT with wrong encryption key use - should fail.
@@ -102,11 +102,11 @@ func TestJWTService_CreateEncryptedJWT_WrongTenant(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create signing key.
-	signingKey, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	signingKey, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	// Create encryption key.
-	encryptionKey, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyUseEnc, 10)
+	encryptionKey, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyUseEnc, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	// Try to create encrypted JWT with wrong tenant - should fail.
@@ -127,7 +127,7 @@ func TestJWTService_CreateJWT_WithCustomClaims(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create signing key.
-	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	// Create JWT with custom claims.
@@ -142,7 +142,7 @@ func TestJWTService_CreateJWT_WithCustomClaims(t *testing.T) {
 		JTI:       googleUuid.New().String(),
 		Custom: map[string]any{
 			"role":        "admin",
-			"permissions": []string{"read", "write"},
+			"permissions": []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
 		},
 	}
 	token, err := jwtSvc.CreateJWT(ctx, tenantID, elasticJWK.ID, claims)
@@ -189,7 +189,7 @@ func TestJWTService_CreateEncryptedJWT_NonExistentEncryptionKey(t *testing.T) {
 	}
 
 	// Create signing key.
-	signingKey, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	signingKey, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	// Try to create encrypted JWT with non-existent encryption key.
@@ -220,7 +220,7 @@ func TestJWTService_ValidateJWT_InvalidKeyUse(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create encryption key (not signing).
-	encKey, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyUseEnc, 10)
+	encKey, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyUseEnc, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	// Try to validate JWT with encryption key - should fail due to key use.
@@ -239,11 +239,11 @@ func TestJWTService_CreateEncryptedJWT_WrongEncryptionKeyTenant(t *testing.T) {
 	otherTenantID := googleUuid.New()
 
 	// Create signing key for tenant 1.
-	signingKey, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	signingKey, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	// Create encryption key for tenant 2 (different tenant).
-	encryptionKey, _, err := elasticSvc.CreateElasticJWK(ctx, otherTenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyUseEnc, 10)
+	encryptionKey, _, err := elasticSvc.CreateElasticJWK(ctx, otherTenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyUseEnc, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	// Try to create encrypted JWT with encryption key from wrong tenant - should fail.
@@ -263,10 +263,10 @@ func TestJWTService_ValidateJWT_MaterialFromDifferentKey(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create two signing keys.
-	sigKey1, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	sigKey1, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
-	sigKey2, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	sigKey2, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	// Create JWT with key 1.

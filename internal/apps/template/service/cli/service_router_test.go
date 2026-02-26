@@ -5,6 +5,7 @@
 package cli_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"io"
 	"testing"
@@ -99,11 +100,11 @@ func TestRouteService_ServerSubcommand(t *testing.T) {
 	serverFn := func(_ []string, _, _ io.Writer) int {
 		serverCalled = true
 
-		return 7
+		return cryptoutilSharedMagic.GitRecentActivityDays
 	}
 
 	exitCode := cryptoutilAppsTemplateCli.RouteService(testServiceCfg, []string{"server"}, &stdout, &stderr, serverFn, noopSubcmd, noopSubcmd)
-	require.Equal(t, 7, exitCode)
+	require.Equal(t, cryptoutilSharedMagic.GitRecentActivityDays, exitCode)
 	require.True(t, serverCalled)
 }
 
@@ -116,11 +117,11 @@ func TestRouteService_ClientSubcommand(t *testing.T) {
 	clientFn := func(_ []string, _, _ io.Writer) int {
 		clientCalled = true
 
-		return 8
+		return cryptoutilSharedMagic.IMMinPasswordLength
 	}
 
 	exitCode := cryptoutilAppsTemplateCli.RouteService(testServiceCfg, []string{"client"}, &stdout, &stderr, noopSubcmd, clientFn, noopSubcmd)
-	require.Equal(t, 8, exitCode)
+	require.Equal(t, cryptoutilSharedMagic.IMMinPasswordLength, exitCode)
 	require.True(t, clientCalled)
 }
 

@@ -218,7 +218,7 @@ func StartServerListenerApplication(settings *cryptoutilAppsTemplateServiceConfi
 	// Public Swagger UI with basic authentication
 	swaggerAPI, err := cryptoutilKmsServer.GetSwagger()
 	if err != nil {
-		serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Error("failed to get swagger", "error", err)
+		serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Error("failed to get swagger", cryptoutilSharedMagic.StringError, err)
 		serverApplicationCore.Shutdown()
 
 		return nil, fmt.Errorf("failed to get swagger: %w", err)
@@ -231,7 +231,7 @@ func StartServerListenerApplication(settings *cryptoutilAppsTemplateServiceConfi
 
 	swaggerSpecBytes, err := swaggerAPI.MarshalJSON() // Serialize OpenAPI 3 spec to JSON with the added public server context path
 	if err != nil {
-		serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Error("failed to get fiber handler for OpenAPI spec", "error", err)
+		serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Error("failed to get fiber handler for OpenAPI spec", cryptoutilSharedMagic.StringError, err)
 		serverApplicationCore.Shutdown()
 
 		return nil, fmt.Errorf("failed to marshal OpenAPI spec: %w", err)
@@ -319,7 +319,7 @@ func StartServerListenerApplication(settings *cryptoutilAppsTemplateServiceConfi
 		return nil, fmt.Errorf("failed to get public listener address")
 	}
 
-	if publicAddr.Port < 0 || publicAddr.Port > 65535 {
+	if publicAddr.Port < 0 || publicAddr.Port > int(cryptoutilSharedMagic.MaxPortNumber) {
 		return nil, fmt.Errorf("invalid public port: %d", publicAddr.Port)
 	}
 
@@ -330,14 +330,14 @@ func StartServerListenerApplication(settings *cryptoutilAppsTemplateServiceConfi
 		return nil, fmt.Errorf("failed to get private listener address")
 	}
 
-	if privateAddr.Port < 0 || privateAddr.Port > 65535 {
+	if privateAddr.Port < 0 || privateAddr.Port > int(cryptoutilSharedMagic.MaxPortNumber) {
 		return nil, fmt.Errorf("invalid private port: %d", privateAddr.Port)
 	}
 
 	actualPrivatePort := uint16(privateAddr.Port)
 
 	serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Info("assigned ports",
-		"public", actualPublicPort, "private", actualPrivatePort)
+		cryptoutilSharedMagic.SubjectTypePublic, actualPublicPort, "private", actualPrivatePort)
 
 	startServerFunction := startServerFuncWithListeners(
 		publicListener, privateListener,
@@ -384,7 +384,7 @@ func startServerFuncWithListeners(publicListener, privateListener net.Listener, 
 			}
 
 			if err != nil {
-				telemetryService.Slogger.Error("failed to start private fiber listener", "error", err)
+				telemetryService.Slogger.Error("failed to start private fiber listener", cryptoutilSharedMagic.StringError, err)
 			}
 
 			telemetryService.Slogger.Debug("private fiber listener stopped")
@@ -407,7 +407,7 @@ func startServerFuncWithListeners(publicListener, privateListener net.Listener, 
 		}
 
 		if err != nil {
-			telemetryService.Slogger.Error("failed to start public fiber listener", "error", err)
+			telemetryService.Slogger.Error("failed to start public fiber listener", cryptoutilSharedMagic.StringError, err)
 		}
 
 		telemetryService.Slogger.Debug("public fiber listener stopped")

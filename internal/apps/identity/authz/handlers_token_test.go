@@ -61,7 +61,7 @@ func TestHandleToken_AuthorizationCodeGrant_MissingCode(t *testing.T) {
 
 	reqBody := url.Values{
 		cryptoutilSharedMagic.ParamGrantType:   []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
-		cryptoutilSharedMagic.ParamRedirectURI: []string{"https://example.com/callback"},
+		cryptoutilSharedMagic.ParamRedirectURI: []string{cryptoutilSharedMagic.DemoRedirectURI},
 		cryptoutilSharedMagic.ParamClientID:    []string{"test-client"},
 	}
 
@@ -164,7 +164,7 @@ func createTokenTestConfig(t *testing.T) *cryptoutilIdentityConfig.Config {
 
 	return &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
+			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
 			DSN:  "file::memory:?cache=private",
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{

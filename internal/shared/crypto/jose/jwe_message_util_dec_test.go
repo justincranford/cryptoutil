@@ -5,6 +5,7 @@
 package crypto
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
@@ -160,7 +161,7 @@ func Test_ExtractKidEncAlgFromJWEMessage_MissingEnc(t *testing.T) {
 	require.NoError(t, err)
 
 	// Remove enc header.
-	err = jweMessage.ProtectedHeaders().Remove("enc")
+	err = jweMessage.ProtectedHeaders().Remove(cryptoutilSharedMagic.JoseKeyUseEnc)
 	require.NoError(t, err)
 
 	// Test extraction should fail with missing enc error.

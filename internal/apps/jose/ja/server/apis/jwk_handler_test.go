@@ -4,6 +4,7 @@
 package apis
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 
 	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
@@ -279,7 +280,7 @@ func setupFiberApp() *fiber.App {
 	app := fiber.New(fiber.Config{
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": err.Error(),
+				cryptoutilSharedMagic.StringError: err.Error(),
 			})
 		},
 	})

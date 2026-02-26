@@ -5,6 +5,7 @@
 package tests
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -68,7 +69,7 @@ func TestUserRepositoryCRUD(t *testing.T) {
 	require.Equal(t, "Updated Test User", retrievedUpdated.Name)
 
 	// Test List
-	users, err := userRepo.List(ctx, 0, 10)
+	users, err := userRepo.List(ctx, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 	require.Len(t, users, 1)
 	require.Equal(t, user.ID, users[0].ID)
@@ -132,7 +133,7 @@ func TestClientRepositoryCRUD(t *testing.T) {
 	require.NoError(t, err)
 
 	// Test List
-	clients, err := clientRepo.List(ctx, 0, 10)
+	clients, err := clientRepo.List(ctx, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 	require.Len(t, clients, 1)
 
@@ -179,7 +180,7 @@ func TestTokenRepositoryCRUD(t *testing.T) {
 		TokenType:   cryptoutilIdentityDomain.TokenTypeAccess,
 		TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 		ClientID:    client.ID,
-		Scopes:      []string{"openid", "profile"},
+		Scopes:      []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 		IssuedAt:    time.Now().UTC(),
 		ExpiresAt:   time.Now().UTC().Add(time.Hour),
 	}
@@ -200,7 +201,7 @@ func TestTokenRepositoryCRUD(t *testing.T) {
 
 	// Test Update
 	updatedToken := *retrievedToken
-	updatedToken.Scopes = []string{"openid", "profile", "email"}
+	updatedToken.Scopes = []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail}
 	err = tokenRepo.Update(ctx, &updatedToken)
 	require.NoError(t, err)
 
@@ -275,7 +276,7 @@ func TestSessionRepositoryCRUD(t *testing.T) {
 	require.NoError(t, err)
 
 	// Test List
-	sessions, err := sessionRepo.List(ctx, 0, 10)
+	sessions, err := sessionRepo.List(ctx, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 	require.Len(t, sessions, 1)
 

@@ -20,8 +20,8 @@ func TestBrowserAndServiceRealms_DefaultCounts(t *testing.T) {
 	browserRealms := cryptoutilSharedMagic.DefaultBrowserRealms
 	serviceRealms := cryptoutilSharedMagic.DefaultServiceRealms
 
-	require.Len(t, browserRealms, 6, "DefaultBrowserRealms must have exactly 6 non-federated browser authentication methods")
-	require.Len(t, serviceRealms, 6, "DefaultServiceRealms must have exactly 6 non-federated service authentication methods")
+	require.Len(t, browserRealms, cryptoutilSharedMagic.DefaultEmailOTPLength, "DefaultBrowserRealms must have exactly 6 non-federated browser authentication methods")
+	require.Len(t, serviceRealms, cryptoutilSharedMagic.DefaultEmailOTPLength, "DefaultServiceRealms must have exactly 6 non-federated service authentication methods")
 
 	// Verify browser realms (session-based).
 	expectedBrowserRealms := []string{
@@ -69,7 +69,7 @@ func TestRealmService_CreateMultipleRealms_AllTypes(t *testing.T) {
 	ctx := context.Background()
 
 	// Create tenant for testing all realm types.
-	tenant := createRealmTestTenant(t, db, "tenant-all-types-"+googleUuid.NewString()[:8])
+	tenant := createRealmTestTenant(t, db, "tenant-all-types-"+googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
 
 	// Browser realms (6 total) - using username/password config as template.
 	browserTests := []struct {
@@ -89,7 +89,7 @@ func TestRealmService_CreateMultipleRealms_AllTypes(t *testing.T) {
 	for _, tt := range browserTests {
 		t.Run("browser_"+tt.name, func(t *testing.T) {
 			config := &UsernamePasswordConfig{
-				MinPasswordLength: 8,
+				MinPasswordLength: cryptoutilSharedMagic.IMMinPasswordLength,
 				RequireUppercase:  true,
 				RequireLowercase:  true,
 				RequireDigit:      true,
@@ -122,7 +122,7 @@ func TestRealmService_CreateMultipleRealms_AllTypes(t *testing.T) {
 	for _, tt := range serviceTests {
 		t.Run("service_"+tt.name, func(t *testing.T) {
 			config := &UsernamePasswordConfig{
-				MinPasswordLength: 12,
+				MinPasswordLength: cryptoutilSharedMagic.HashPrefixLength,
 				RequireUppercase:  true,
 				RequireLowercase:  true,
 				RequireDigit:      true,
@@ -140,7 +140,7 @@ func TestRealmService_CreateMultipleRealms_AllTypes(t *testing.T) {
 	// Verify all realms were created (12 total: 6 browser + 6 service).
 	allRealms, err := svc.ListRealms(ctx, tenant.ID, false) // activeOnly=false to get all
 	require.NoError(t, err)
-	require.Len(t, allRealms, 12, "Should have exactly 12 realms (6 browser + 6 service)")
+	require.Len(t, allRealms, cryptoutilSharedMagic.HashPrefixLength, "Should have exactly 12 realms (6 browser + 6 service)")
 }
 
 // TestRealmService_ActivateDeactivateAllTypes tests enabling/disabling realms for all authentication methods.
@@ -150,11 +150,11 @@ func TestRealmService_ActivateDeactivateAllTypes(t *testing.T) {
 	svc, db := setupRealmService(t)
 	ctx := context.Background()
 
-	tenant := createRealmTestTenant(t, db, "tenant-activate-deactivate-"+googleUuid.NewString()[:8])
+	tenant := createRealmTestTenant(t, db, "tenant-activate-deactivate-"+googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
 
 	// Test with one representative realm type (can be extended to all 12 if needed).
 	config := &UsernamePasswordConfig{
-		MinPasswordLength: 8,
+		MinPasswordLength: cryptoutilSharedMagic.IMMinPasswordLength,
 		RequireUppercase:  true,
 		RequireLowercase:  true,
 		RequireDigit:      true,

@@ -3,6 +3,7 @@
 package digests
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	sha256 "crypto/sha256"
 	"errors"
 	"hash"
@@ -21,10 +22,10 @@ func TestPBKDF2WithParams_ErrorPaths(t *testing.T) {
 
 	validParams := &PBKDF2Params{
 		Version:    "1",
-		HashName:   "pbkdf2-sha256",
-		Iterations: 600000,
-		SaltLength: 32,
-		KeyLength:  32,
+		HashName:   cryptoutilSharedMagic.PBKDF2Prefix,
+		Iterations: cryptoutilSharedMagic.IMPBKDF2Iterations,
+		SaltLength: cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes,
+		KeyLength:  cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes,
 		HashFunc:   func() hash.Hash { return sha256.New() }, // Required for PBKDF2
 	}
 
@@ -57,7 +58,7 @@ func TestPBKDF2WithParams_ErrorPaths(t *testing.T) {
 		},
 		{
 			name:          "valid_long_secret",
-			secret:        strings.Repeat("long", 100), // 400 chars
+			secret:        strings.Repeat("long", cryptoutilSharedMagic.JoseJAMaxMaterials), // 400 chars
 			params:        validParams,
 			expectedError: false,
 		},
@@ -260,10 +261,10 @@ func TestPBKDF2WithParams_RandReadError(t *testing.T) {
 
 	params := &PBKDF2Params{
 		Version:    "1",
-		HashName:   "pbkdf2-sha256",
-		Iterations: 600000,
-		SaltLength: 32,
-		KeyLength:  32,
+		HashName:   cryptoutilSharedMagic.PBKDF2Prefix,
+		Iterations: cryptoutilSharedMagic.IMPBKDF2Iterations,
+		SaltLength: cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes,
+		KeyLength:  cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes,
 		HashFunc:   func() hash.Hash { return sha256.New() },
 	}
 
@@ -282,7 +283,7 @@ func TestHKDF_ReadError(t *testing.T) {
 
 	defer func() { digestsHKDFReadFn = orig }()
 
-	_, err := HKDF("SHA256", []byte("secret"), []byte("salt"), []byte("info"), sha256.Size)
+	_, err := HKDF(cryptoutilSharedMagic.SHA256, []byte("secret"), []byte("salt"), []byte("info"), sha256.Size)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to compute HKDF")
 }

@@ -4,6 +4,7 @@
 package authz
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
@@ -50,7 +51,7 @@ func (s *Service) handleEnrollMFA(c *fiber.Ctx) error {
 	var req EnrollMFARequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             "invalid_request",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "invalid request body",
 		})
 	}
@@ -59,7 +60,7 @@ func (s *Service) handleEnrollMFA(c *fiber.Ctx) error {
 	userID, err := googleUuid.Parse(req.UserID)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             "invalid_request",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "invalid user_id format",
 		})
 	}
@@ -70,7 +71,7 @@ func (s *Service) handleEnrollMFA(c *fiber.Ctx) error {
 	user, err := s.repoFactory.UserRepository().GetByID(ctx, userID)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error":             "user_not_found",
+			cryptoutilSharedMagic.StringError:             "user_not_found",
 			"error_description": fmt.Sprintf("user not found: %v", err),
 		})
 	}
@@ -79,7 +80,7 @@ func (s *Service) handleEnrollMFA(c *fiber.Ctx) error {
 	factorType := cryptoutilIdentityDomain.MFAFactorType(req.FactorType)
 	if !isValidMFAFactorType(factorType) {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             "invalid_request",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": fmt.Sprintf("invalid factor_type: %s", req.FactorType),
 		})
 	}
@@ -102,7 +103,7 @@ func (s *Service) handleEnrollMFA(c *fiber.Ctx) error {
 		}
 		if err := authProfileRepo.Create(ctx, authProfile); err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error":             "server_error",
+				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 				"error_description": fmt.Sprintf("failed to create auth profile: %v", err),
 			})
 		}
@@ -123,7 +124,7 @@ func (s *Service) handleEnrollMFA(c *fiber.Ctx) error {
 	mfaFactorRepo := s.repoFactory.MFAFactorRepository()
 	if err := mfaFactorRepo.Create(ctx, mfaFactor); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             "server_error",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": fmt.Sprintf("failed to create MFA factor: %v", err),
 		})
 	}
@@ -144,7 +145,7 @@ func (s *Service) handleListMFAFactors(c *fiber.Ctx) error {
 	userIDStr := c.Query("user_id")
 	if userIDStr == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             "invalid_request",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "missing user_id query parameter",
 		})
 	}
@@ -152,7 +153,7 @@ func (s *Service) handleListMFAFactors(c *fiber.Ctx) error {
 	userID, err := googleUuid.Parse(userIDStr)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             "invalid_request",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "invalid user_id format",
 		})
 	}
@@ -163,7 +164,7 @@ func (s *Service) handleListMFAFactors(c *fiber.Ctx) error {
 	user, err := s.repoFactory.UserRepository().GetByID(ctx, userID)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error":             "user_not_found",
+			cryptoutilSharedMagic.StringError:             "user_not_found",
 			"error_description": fmt.Sprintf("user not found: %v", err),
 		})
 	}
@@ -186,7 +187,7 @@ func (s *Service) handleListMFAFactors(c *fiber.Ctx) error {
 	factors, err := mfaFactorRepo.GetByAuthProfileID(ctx, authProfile.ID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             "server_error",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": fmt.Sprintf("failed to get MFA factors: %v", err),
 		})
 	}
@@ -214,7 +215,7 @@ func (s *Service) handleDeleteMFAFactor(c *fiber.Ctx) error {
 	factorIDStr := c.Params("id")
 	if factorIDStr == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             "invalid_request",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "missing factor id in path",
 		})
 	}
@@ -222,7 +223,7 @@ func (s *Service) handleDeleteMFAFactor(c *fiber.Ctx) error {
 	factorID, err := googleUuid.Parse(factorIDStr)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             "invalid_request",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "invalid factor id format",
 		})
 	}
@@ -231,7 +232,7 @@ func (s *Service) handleDeleteMFAFactor(c *fiber.Ctx) error {
 	userIDStr := c.Query("user_id")
 	if userIDStr == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             "invalid_request",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "missing user_id query parameter",
 		})
 	}
@@ -239,7 +240,7 @@ func (s *Service) handleDeleteMFAFactor(c *fiber.Ctx) error {
 	userID, err := googleUuid.Parse(userIDStr)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             "invalid_request",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "invalid user_id format",
 		})
 	}
@@ -250,7 +251,7 @@ func (s *Service) handleDeleteMFAFactor(c *fiber.Ctx) error {
 	user, err := s.repoFactory.UserRepository().GetByID(ctx, userID)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error":             "user_not_found",
+			cryptoutilSharedMagic.StringError:             "user_not_found",
 			"error_description": fmt.Sprintf("user not found: %v", err),
 		})
 	}
@@ -261,7 +262,7 @@ func (s *Service) handleDeleteMFAFactor(c *fiber.Ctx) error {
 	factor, err := mfaFactorRepo.GetByID(ctx, factorID)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error":             "factor_not_found",
+			cryptoutilSharedMagic.StringError:             "factor_not_found",
 			"error_description": fmt.Sprintf("MFA factor not found: %v", err),
 		})
 	}
@@ -272,7 +273,7 @@ func (s *Service) handleDeleteMFAFactor(c *fiber.Ctx) error {
 	authProfile, err := authProfileRepo.GetByID(ctx, factor.AuthProfileID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             "server_error",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": fmt.Sprintf("failed to get auth profile: %v", err),
 		})
 	}
@@ -281,7 +282,7 @@ func (s *Service) handleDeleteMFAFactor(c *fiber.Ctx) error {
 	expectedProfileName := fmt.Sprintf("user_%s_default", user.ID.String())
 	if authProfile.Name != expectedProfileName {
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-			"error":             "unauthorized",
+			cryptoutilSharedMagic.StringError:             "unauthorized",
 			"error_description": "MFA factor does not belong to specified user",
 		})
 	}
@@ -289,7 +290,7 @@ func (s *Service) handleDeleteMFAFactor(c *fiber.Ctx) error {
 	// Soft delete the factor.
 	if err := mfaFactorRepo.Delete(ctx, factorID); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             "server_error",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": fmt.Sprintf("failed to delete MFA factor: %v", err),
 		})
 	}

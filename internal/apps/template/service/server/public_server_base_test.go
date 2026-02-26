@@ -27,7 +27,7 @@ func createTestTLSMaterial(t *testing.T) *cryptoutilAppsTemplateServiceConfig.TL
 
 	// Generate TLS settings with auto-generated CA hierarchy.
 	tlsSettings, err := cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings(
-		[]string{"localhost"},
+		[]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault},
 		[]string{cryptoutilSharedMagic.IPv4Loopback},
 		cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year,
 	)
@@ -117,7 +117,7 @@ func TestPublicServerBase_HandleServiceHealth_Healthy(t *testing.T) {
 	server, err := NewPublicServerBase(cfg)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("GET", "/service/api/v1/health", nil)
+	req := httptest.NewRequest("GET", cryptoutilSharedMagic.IdentityE2EHealthEndpoint, nil)
 
 	resp, err := server.App().Test(req, -1)
 	require.NoError(t, err)
@@ -130,7 +130,7 @@ func TestPublicServerBase_HandleServiceHealth_Healthy(t *testing.T) {
 
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
-	require.Equal(t, "healthy", result["status"])
+	require.Equal(t, cryptoutilSharedMagic.DockerServiceHealthHealthy, result[cryptoutilSharedMagic.StringStatus])
 }
 
 // TestPublicServerBase_HandleServiceHealth_ShuttingDown tests shutting down status.
@@ -151,7 +151,7 @@ func TestPublicServerBase_HandleServiceHealth_ShuttingDown(t *testing.T) {
 	server.shutdown = true
 	server.mu.Unlock()
 
-	req := httptest.NewRequest("GET", "/service/api/v1/health", nil)
+	req := httptest.NewRequest("GET", cryptoutilSharedMagic.IdentityE2EHealthEndpoint, nil)
 
 	resp, err := server.App().Test(req, -1)
 	require.NoError(t, err)
@@ -164,7 +164,7 @@ func TestPublicServerBase_HandleServiceHealth_ShuttingDown(t *testing.T) {
 
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
-	require.Equal(t, "shutting down", result["status"])
+	require.Equal(t, "shutting down", result[cryptoutilSharedMagic.StringStatus])
 }
 
 // TestPublicServerBase_HandleBrowserHealth_Healthy tests browser health healthy status.
@@ -193,7 +193,7 @@ func TestPublicServerBase_HandleBrowserHealth_Healthy(t *testing.T) {
 
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
-	require.Equal(t, "healthy", result["status"])
+	require.Equal(t, cryptoutilSharedMagic.DockerServiceHealthHealthy, result[cryptoutilSharedMagic.StringStatus])
 }
 
 // TestPublicServerBase_HandleBrowserHealth_ShuttingDown tests browser health shutting down status.
@@ -227,7 +227,7 @@ func TestPublicServerBase_HandleBrowserHealth_ShuttingDown(t *testing.T) {
 
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
-	require.Equal(t, "shutting down", result["status"])
+	require.Equal(t, "shutting down", result[cryptoutilSharedMagic.StringStatus])
 }
 
 // TestPublicServerBase_Shutdown_NotStarted tests shutdown when not started.
@@ -366,7 +366,7 @@ func TestPublicServerBase_StartAndShutdown(t *testing.T) {
 	// Wait for server to bind port using polling (not sleep) to avoid race.
 	require.Eventually(t, func() bool {
 		return server.ActualPort() > 0
-	}, 10*time.Second, 50*time.Millisecond, "server should allocate port")
+	}, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second, cryptoutilSharedMagic.IMMaxUsernameLength*time.Millisecond, "server should allocate port")
 
 	// Verify actual port is assigned.
 	actualPort := server.ActualPort()
@@ -374,7 +374,7 @@ func TestPublicServerBase_StartAndShutdown(t *testing.T) {
 
 	// Verify base URL is correct.
 	baseURL := server.PublicBaseURL()
-	require.Contains(t, baseURL, "https://127.0.0.1:")
+	require.Contains(t, baseURL, cryptoutilSharedMagic.URLPrefixLocalhostHTTPS)
 
 	// Shutdown via context cancellation.
 	cancel()
@@ -384,7 +384,7 @@ func TestPublicServerBase_StartAndShutdown(t *testing.T) {
 	case err := <-errChan:
 		// Expected: context cancelled error.
 		require.Error(t, err)
-	case <-time.After(5 * time.Second):
+	case <-time.After(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second):
 		t.Fatal("server did not stop within timeout")
 	}
 }
@@ -414,12 +414,12 @@ func TestPublicServerBase_StartAndMakeRequest(t *testing.T) {
 	}()
 
 	// Wait for server to be ready using polling pattern.
-	waitCtx, waitCancel := context.WithTimeout(ctx, 10*time.Second)
+	waitCtx, waitCancel := context.WithTimeout(ctx, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second)
 	defer waitCancel()
 
 	require.Eventually(t, func() bool {
 		return server.ActualPort() > 0
-	}, 10*time.Second, 100*time.Millisecond, "server should allocate port")
+	}, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond, "server should allocate port")
 
 	// Make actual HTTPS request to running server.
 	actualPort := server.ActualPort()
@@ -428,7 +428,7 @@ func TestPublicServerBase_StartAndMakeRequest(t *testing.T) {
 	// Create client that trusts our CA.
 	client := createTestHTTPClient(t, tlsMaterial)
 
-	healthURL := server.PublicBaseURL() + "/service/api/v1/health"
+	healthURL := server.PublicBaseURL() + cryptoutilSharedMagic.IdentityE2EHealthEndpoint
 
 	// Use http.NewRequestWithContext for proper context handling.
 	req, err := http.NewRequestWithContext(waitCtx, http.MethodGet, healthURL, nil)
@@ -447,7 +447,7 @@ func TestPublicServerBase_StartAndMakeRequest(t *testing.T) {
 	select {
 	case <-errChan:
 		// Server stopped.
-	case <-time.After(5 * time.Second):
+	case <-time.After(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second):
 		t.Fatal("server did not stop within timeout")
 	}
 }

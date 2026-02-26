@@ -174,9 +174,9 @@ const (
 	TestDefaultDevMode = true
 
 	// TestDefaultRateLimitBrowserIP - Default browser IP rate limit.
-	TestDefaultRateLimitBrowserIP uint16 = 1000
+	TestDefaultRateLimitBrowserIP = 1000
 	// TestDefaultRateLimitServiceIP - Default service IP rate limit.
-	TestDefaultRateLimitServiceIP uint16 = 500
+	TestDefaultRateLimitServiceIP = 500
 
 	// TestDefaultServerIdleTimeout - Idle timeout for test server connections (30 seconds).
 	TestDefaultServerIdleTimeout = 30 * time.Second

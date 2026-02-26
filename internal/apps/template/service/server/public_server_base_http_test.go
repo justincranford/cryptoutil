@@ -6,6 +6,7 @@
 package server
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/tls"
 	http "net/http"
 	"testing"
@@ -24,6 +25,6 @@ func createTestHTTPClient(t *testing.T, tlsMaterial *cryptoutilAppsTemplateServi
 				MinVersion: tls.VersionTLS12,
 			},
 		},
-		Timeout: 5 * time.Second,
+		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}
 }

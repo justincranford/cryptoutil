@@ -267,7 +267,7 @@ func TestApplyGetElasticKeysFilters(t *testing.T) {
 	t.Run("Custom PageSize", func(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&ElasticKey{})
 		filters := &GetElasticKeysFilters{
-			PageSize: 50,
+			PageSize: cryptoutilSharedMagic.IMMaxUsernameLength,
 		}
 		filteredQuery := applyGetElasticKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)

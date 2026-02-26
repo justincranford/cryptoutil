@@ -35,9 +35,9 @@ func GenerateRecoveryCode() (string, error) {
 	// Format with hyphens: XXXX-XXXX-XXXX-XXXX.
 	formatted := fmt.Sprintf("%s-%s-%s-%s",
 		code[0:4],
-		code[4:8],
-		code[8:12],
-		code[12:16])
+		code[4:cryptoutilSharedMagic.IMMinPasswordLength],
+		code[cryptoutilSharedMagic.IMMinPasswordLength:cryptoutilSharedMagic.HashPrefixLength],
+		code[cryptoutilSharedMagic.HashPrefixLength:cryptoutilSharedMagic.RealmMinTokenLengthBytes])
 
 	return formatted, nil
 }

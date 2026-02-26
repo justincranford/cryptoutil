@@ -7,6 +7,7 @@
 package e2e
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	crand "crypto/rand"
 	sha256 "crypto/sha256"
@@ -24,9 +25,9 @@ func (s *E2ETestSuite) exchangeCodeForTokens(ctx context.Context, code string, c
 
 	// Build token request parameters
 	params := url.Values{}
-	params.Set("grant_type", "authorization_code")
-	params.Set("code", code)
-	params.Set("redirect_uri", "https://127.0.0.1:8083/callback")
+	params.Set(cryptoutilSharedMagic.ParamGrantType, cryptoutilSharedMagic.GrantTypeAuthorizationCode)
+	params.Set(cryptoutilSharedMagic.ResponseTypeCode, code)
+	params.Set(cryptoutilSharedMagic.ParamRedirectURI, "https://127.0.0.1:8083/callback")
 
 	// Add client authentication based on method
 	var req *http.Request
@@ -46,8 +47,8 @@ func (s *E2ETestSuite) exchangeCodeForTokens(ctx context.Context, code string, c
 
 	case ClientAuthPost:
 		// client_secret_post: Include client_id and client_secret in POST body
-		params.Set("client_id", "test_client_id")
-		params.Set("client_secret", "test_client_secret")
+		params.Set(cryptoutilSharedMagic.ClaimClientID, "test_client_id")
+		params.Set(cryptoutilSharedMagic.ParamClientSecret, "test_client_secret")
 
 		req, err = http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, strings.NewReader(params.Encode()))
 		if err != nil {
@@ -63,7 +64,7 @@ func (s *E2ETestSuite) exchangeCodeForTokens(ctx context.Context, code string, c
 			return nil, fmt.Errorf("failed to generate client secret JWT: %w", err)
 		}
 
-		params.Set("client_id", "test_client_id")
+		params.Set(cryptoutilSharedMagic.ClaimClientID, "test_client_id")
 		params.Set("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer")
 		params.Set("client_assertion", clientAssertion)
 
@@ -81,7 +82,7 @@ func (s *E2ETestSuite) exchangeCodeForTokens(ctx context.Context, code string, c
 			return nil, fmt.Errorf("failed to generate private key JWT: %w", err)
 		}
 
-		params.Set("client_id", "test_client_id")
+		params.Set(cryptoutilSharedMagic.ClaimClientID, "test_client_id")
 		params.Set("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer")
 		params.Set("client_assertion", clientAssertion)
 
@@ -94,7 +95,7 @@ func (s *E2ETestSuite) exchangeCodeForTokens(ctx context.Context, code string, c
 
 	case ClientAuthTLS:
 		// tls_client_auth: Mutual TLS with client certificate
-		params.Set("client_id", "test_client_id")
+		params.Set(cryptoutilSharedMagic.ClaimClientID, "test_client_id")
 
 		req, err = http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, strings.NewReader(params.Encode()))
 		if err != nil {
@@ -106,7 +107,7 @@ func (s *E2ETestSuite) exchangeCodeForTokens(ctx context.Context, code string, c
 
 	case ClientAuthSelfSignedTLS:
 		// self_signed_tls_client_auth: Mutual TLS with self-signed certificate
-		params.Set("client_id", "test_client_id")
+		params.Set(cryptoutilSharedMagic.ClaimClientID, "test_client_id")
 
 		req, err = http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, strings.NewReader(params.Encode()))
 		if err != nil {
@@ -200,8 +201,8 @@ func (s *E2ETestSuite) refreshAccessToken(ctx context.Context, refreshToken stri
 
 	// Build refresh token request parameters
 	params := url.Values{}
-	params.Set("grant_type", "refresh_token")
-	params.Set("refresh_token", refreshToken)
+	params.Set(cryptoutilSharedMagic.ParamGrantType, cryptoutilSharedMagic.GrantTypeRefreshToken)
+	params.Set(cryptoutilSharedMagic.GrantTypeRefreshToken, refreshToken)
 
 	// Add client authentication based on method
 	var req *http.Request
@@ -219,8 +220,8 @@ func (s *E2ETestSuite) refreshAccessToken(ctx context.Context, refreshToken stri
 		req.SetBasicAuth("test_client_id", "test_client_secret")
 
 	case ClientAuthPost:
-		params.Set("client_id", "test_client_id")
-		params.Set("client_secret", "test_client_secret")
+		params.Set(cryptoutilSharedMagic.ClaimClientID, "test_client_id")
+		params.Set(cryptoutilSharedMagic.ParamClientSecret, "test_client_secret")
 
 		req, err = http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, strings.NewReader(params.Encode()))
 		if err != nil {
@@ -235,7 +236,7 @@ func (s *E2ETestSuite) refreshAccessToken(ctx context.Context, refreshToken stri
 			return fmt.Errorf("failed to generate client secret JWT: %w", err)
 		}
 
-		params.Set("client_id", "test_client_id")
+		params.Set(cryptoutilSharedMagic.ClaimClientID, "test_client_id")
 		params.Set("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer")
 		params.Set("client_assertion", clientAssertion)
 
@@ -252,7 +253,7 @@ func (s *E2ETestSuite) refreshAccessToken(ctx context.Context, refreshToken stri
 			return fmt.Errorf("failed to generate private key JWT: %w", err)
 		}
 
-		params.Set("client_id", "test_client_id")
+		params.Set(cryptoutilSharedMagic.ClaimClientID, "test_client_id")
 		params.Set("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer")
 		params.Set("client_assertion", clientAssertion)
 
@@ -264,7 +265,7 @@ func (s *E2ETestSuite) refreshAccessToken(ctx context.Context, refreshToken stri
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	case ClientAuthTLS:
-		params.Set("client_id", "test_client_id")
+		params.Set(cryptoutilSharedMagic.ClaimClientID, "test_client_id")
 
 		req, err = http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, strings.NewReader(params.Encode()))
 		if err != nil {
@@ -274,7 +275,7 @@ func (s *E2ETestSuite) refreshAccessToken(ctx context.Context, refreshToken stri
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	case ClientAuthSelfSignedTLS:
-		params.Set("client_id", "test_client_id")
+		params.Set(cryptoutilSharedMagic.ClaimClientID, "test_client_id")
 
 		req, err = http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, strings.NewReader(params.Encode()))
 		if err != nil {
@@ -331,7 +332,7 @@ func (s *E2ETestSuite) refreshAccessToken(ctx context.Context, refreshToken stri
 // generateCodeVerifier generates a cryptographically secure random code verifier for PKCE.
 func generateCodeVerifier() string {
 	// Generate 32 bytes of random data (256 bits).
-	verifierBytes := make([]byte, 32)
+	verifierBytes := make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 	if _, err := crand.Read(verifierBytes); err != nil {
 		panic(fmt.Sprintf("failed to generate code verifier: %v", err))
 	}
@@ -366,7 +367,7 @@ func (s *E2ETestSuite) generatePrivateKeyJWT() (string, error) {
 // generateState generates a random state parameter for CSRF protection.
 func generateState() string {
 	// Generate 16 bytes of random data (128 bits).
-	stateBytes := make([]byte, 16)
+	stateBytes := make([]byte, cryptoutilSharedMagic.RealmMinTokenLengthBytes)
 	if _, err := crand.Read(stateBytes); err != nil {
 		panic(fmt.Sprintf("failed to generate state: %v", err))
 	}

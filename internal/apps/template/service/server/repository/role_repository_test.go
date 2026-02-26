@@ -5,6 +5,7 @@
 package repository
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -15,7 +16,7 @@ import (
 
 // uniqueRoleTenantName returns a unique tenant name for tests.
 func uniqueRoleTenantName(base string) string {
-	return base + " " + googleUuid.New().String()[:8]
+	return base + " " + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength]
 }
 
 func TestRoleRepository_Create(t *testing.T) {
@@ -184,8 +185,8 @@ func TestUserRoleRepository_Assign(t *testing.T) {
 	user := &User{
 		ID:        googleUuid.New(),
 		TenantID:  tenant.ID,
-		Username:  "testuser2-" + googleUuid.New().String()[:8],
-		Email:     "test-" + googleUuid.New().String()[:8] + "@example.com",
+		Username:  "testuser2-" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength],
+		Email:     "test-" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength] + "@example.com",
 		Active:    1,
 		CreatedAt: time.Now().UTC(),
 	}
@@ -304,7 +305,7 @@ func TestClientRoleRepository_Assign(t *testing.T) {
 	client := &Client{
 		ID:        googleUuid.New(),
 		TenantID:  tenant.ID,
-		ClientID:  "client-" + googleUuid.New().String()[:8],
+		ClientID:  "client-" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		Active:    1,
 		CreatedAt: time.Now().UTC(),
 	}

@@ -4,6 +4,7 @@
 package repository
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -98,7 +99,7 @@ func TestAuditLogRepository_ListPaginationBoundary(t *testing.T) {
 		{
 			name:      "negative offset",
 			offset:    -1,
-			limit:     10,
+			limit:     cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 			wantError: false,
 		},
 		{
@@ -133,7 +134,7 @@ func TestAuditLogRepository_ListByElasticJWKNonExistent(t *testing.T) {
 
 	nonExistentJWKID := googleUuid.New()
 
-	entries, total, err := repo.ListByElasticJWK(ctx, nonExistentJWKID, 0, 10)
+	entries, total, err := repo.ListByElasticJWK(ctx, nonExistentJWKID, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 
 	require.NoError(t, err)
 	require.Equal(t, int64(0), total)
@@ -159,7 +160,7 @@ func TestAuditLogRepository_ListByOperationEdgeCases(t *testing.T) {
 		},
 		{
 			name:      "very long operation name",
-			operation: string(make([]byte, 1000)),
+			operation: string(make([]byte, cryptoutilSharedMagic.JoseJADefaultListLimit)),
 		},
 		{
 			name:      "special characters",
@@ -171,7 +172,7 @@ func TestAuditLogRepository_ListByOperationEdgeCases(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			entries, total, err := repo.ListByOperation(ctx, tenantID, tt.operation, 0, 10)
+			entries, total, err := repo.ListByOperation(ctx, tenantID, tt.operation, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 
 			require.NoError(t, err)
 			require.Equal(t, int64(0), total)
@@ -244,7 +245,7 @@ func TestAuditLogRepository_ContextCancellation(t *testing.T) {
 	repo := NewAuditLogRepository(testDB)
 	tenantID := googleUuid.New()
 
-	_, _, err := repo.List(ctx, tenantID, 0, 10)
+	_, _, err := repo.List(ctx, tenantID, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 
 	// Driver-specific behavior.
 	if err == nil {

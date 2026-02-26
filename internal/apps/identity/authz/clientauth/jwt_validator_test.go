@@ -5,6 +5,7 @@
 package clientauth
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	rsa "crypto/rsa"
 	json "encoding/json"
@@ -36,7 +37,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_Success(t *testing.T) {
 
 	// Generate RSA key pair for testing.
 	keyID := googleUuid.NewString()
-	rsaKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
+	rsaKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	// Extract *rsa.PrivateKey from KeyPair.
@@ -70,7 +71,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_Success(t *testing.T) {
 	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
-	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(5*time.Minute)))
+	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)))
 	require.NoError(t, token.Set(joseJwt.IssuedAtKey, now))
 	require.NoError(t, token.Set(joseJwt.JwtIDKey, googleUuid.NewString()))
 
@@ -131,7 +132,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_InvalidSignature(t *testing.T) {
 
 	// Generate RSA key pair for signing.
 	keyID := googleUuid.NewString()
-	rsaKeyPair1, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
+	rsaKeyPair1, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	rsaPrivateKey1, ok := rsaKeyPair1.Private.(*rsa.PrivateKey)
@@ -143,7 +144,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_InvalidSignature(t *testing.T) {
 	require.NoError(t, privateJWK.Set(joseJwk.AlgorithmKey, joseJwa.RS256()))
 
 	// Generate DIFFERENT RSA key pair for client's public key.
-	rsaKeyPair2, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
+	rsaKeyPair2, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	rsaPrivateKey2, ok := rsaKeyPair2.Private.(*rsa.PrivateKey)
@@ -172,7 +173,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_InvalidSignature(t *testing.T) {
 	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
-	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(5*time.Minute)))
+	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)))
 	require.NoError(t, token.Set(joseJwt.IssuedAtKey, now))
 	require.NoError(t, token.Set(joseJwt.JwtIDKey, googleUuid.NewString()))
 
@@ -194,7 +195,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_ExpiredToken(t *testing.T) {
 
 	// Generate RSA key pair.
 	keyID := googleUuid.NewString()
-	rsaKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
+	rsaKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	rsaPrivateKey, ok := rsaKeyPair.Private.(*rsa.PrivateKey)
@@ -246,7 +247,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_InvalidIssuer(t *testing.T) {
 
 	// Generate RSA key pair.
 	keyID := googleUuid.NewString()
-	rsaKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
+	rsaKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	rsaPrivateKey, ok := rsaKeyPair.Private.(*rsa.PrivateKey)
@@ -277,7 +278,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_InvalidIssuer(t *testing.T) {
 	require.NoError(t, token.Set(joseJwt.IssuerKey, "wrong-client-id")) // Wrong issuer.
 	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
-	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(5*time.Minute)))
+	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)))
 	require.NoError(t, token.Set(joseJwt.IssuedAtKey, now))
 	require.NoError(t, token.Set(joseJwt.JwtIDKey, googleUuid.NewString()))
 
@@ -298,7 +299,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_InvalidAudience(t *testing.T) {
 
 	// Generate RSA key pair.
 	keyID := googleUuid.NewString()
-	rsaKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
+	rsaKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	rsaPrivateKey, ok := rsaKeyPair.Private.(*rsa.PrivateKey)
@@ -329,7 +330,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_InvalidAudience(t *testing.T) {
 	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{"https://wrong.example.com/token"})) // Wrong audience.
-	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(5*time.Minute)))
+	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)))
 	require.NoError(t, token.Set(joseJwt.IssuedAtKey, now))
 	require.NoError(t, token.Set(joseJwt.JwtIDKey, googleUuid.NewString()))
 

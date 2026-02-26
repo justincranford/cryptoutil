@@ -88,13 +88,13 @@ wantProb float64
 // Other AES-CBC variants - quarter
 {"A128CBCHS256A256KW", cryptoutilOpenapiModel.A128CBCHS256A256KW, cryptoutilSharedMagic.TestProbQuarter},
 // Base signature algorithms - always
-{"RS256", cryptoutilOpenapiModel.RS256, cryptoutilSharedMagic.TestProbAlways},
-{"PS256", cryptoutilOpenapiModel.PS256, cryptoutilSharedMagic.TestProbAlways},
-{"ES256", cryptoutilOpenapiModel.ES256, cryptoutilSharedMagic.TestProbAlways},
-{"HS256", cryptoutilOpenapiModel.HS256, cryptoutilSharedMagic.TestProbAlways},
-{"EdDSA", cryptoutilOpenapiModel.EdDSA, cryptoutilSharedMagic.TestProbAlways},
+{cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilOpenapiModel.RS256, cryptoutilSharedMagic.TestProbAlways},
+{cryptoutilSharedMagic.JoseAlgPS256, cryptoutilOpenapiModel.PS256, cryptoutilSharedMagic.TestProbAlways},
+{cryptoutilSharedMagic.JoseAlgES256, cryptoutilOpenapiModel.ES256, cryptoutilSharedMagic.TestProbAlways},
+{cryptoutilSharedMagic.JoseAlgHS256, cryptoutilOpenapiModel.HS256, cryptoutilSharedMagic.TestProbAlways},
+{cryptoutilSharedMagic.JoseAlgEdDSA, cryptoutilOpenapiModel.EdDSA, cryptoutilSharedMagic.TestProbAlways},
 // Other signature variants - third
-{"RS384", cryptoutilOpenapiModel.RS384, cryptoutilSharedMagic.TestProbThird},
+{cryptoutilSharedMagic.JoseAlgRS384, cryptoutilOpenapiModel.RS384, cryptoutilSharedMagic.TestProbThird},
 }
 
 for _, tc := range tests {
@@ -161,7 +161,7 @@ Private: (*rsa.PrivateKey)(nil), // typed nil - type assertion succeeds but poin
 Public:  &rsa.PublicKey{},
 }
 
-validated, err := validateOrGenerateRSAJWK(keyPair, 2048)
+validated, err := validateOrGenerateRSAJWK(keyPair, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 require.Error(t, err)
 require.Nil(t, validated)
 require.Contains(t, err.Error(), "invalid nil RSA private key")
@@ -170,7 +170,7 @@ require.Contains(t, err.Error(), "invalid nil RSA private key")
 func TestValidateOrGenerateRSAJWK_TypedNilPublicKey(t *testing.T) {
 t.Parallel()
 
-privateKey, err := rsa.GenerateKey(crand.Reader, 2048)
+privateKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 require.NoError(t, err)
 
 keyPair := &cryptoutilSharedCryptoKeygen.KeyPair{
@@ -178,7 +178,7 @@ Private: privateKey,
 Public:  (*rsa.PublicKey)(nil), // typed nil
 }
 
-validated, err := validateOrGenerateRSAJWK(keyPair, 2048)
+validated, err := validateOrGenerateRSAJWK(keyPair, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 require.Error(t, err)
 require.Nil(t, validated)
 require.Contains(t, err.Error(), "invalid nil RSA public key")
@@ -227,7 +227,7 @@ Private: ed25519.PrivateKey(nil), // typed nil slice
 Public:  ed25519.PublicKey(make([]byte, ed25519.PublicKeySize)),
 }
 
-validated, err := validateOrGenerateEddsaJWK(keyPair, "Ed25519")
+validated, err := validateOrGenerateEddsaJWK(keyPair, cryptoutilSharedMagic.EdCurveEd25519)
 require.Error(t, err)
 require.Nil(t, validated)
 require.Contains(t, err.Error(), "invalid nil Ed29919 private key")
@@ -244,7 +244,7 @@ Private: privateKey,
 Public:  ed25519.PublicKey(nil), // typed nil slice
 }
 
-validated, err := validateOrGenerateEddsaJWK(keyPair, "Ed25519")
+validated, err := validateOrGenerateEddsaJWK(keyPair, cryptoutilSharedMagic.EdCurveEd25519)
 require.Error(t, err)
 require.Nil(t, validated)
 require.Contains(t, err.Error(), "invalid nil Ed29919 public key")
@@ -255,7 +255,7 @@ require.Contains(t, err.Error(), "invalid nil Ed29919 public key")
 func TestValidateOrGenerateHMACJWK_WrongLength(t *testing.T) {
 t.Parallel()
 
-wrongLengthKey := cryptoutilSharedCryptoKeygen.SecretKey(make([]byte, 10)) // 80 bits, not 256
+wrongLengthKey := cryptoutilSharedCryptoKeygen.SecretKey(make([]byte, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)) // 80 bits, not 256
 validated, err := validateOrGenerateHMACJWK(wrongLengthKey, cryptoutilSharedMagic.HMACKeySize256)
 require.Error(t, err)
 require.Nil(t, validated)
@@ -267,7 +267,7 @@ require.Contains(t, err.Error(), "invalid key length")
 func TestValidateOrGenerateAESJWK_WrongLength(t *testing.T) {
 t.Parallel()
 
-wrongLengthKey := cryptoutilSharedCryptoKeygen.SecretKey(make([]byte, 10)) // 80 bits, not 256
+wrongLengthKey := cryptoutilSharedCryptoKeygen.SecretKey(make([]byte, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)) // 80 bits, not 256
 validated, err := validateOrGenerateAESJWK(wrongLengthKey, cryptoutilSharedMagic.AESKeySize256)
 require.Error(t, err)
 require.Nil(t, validated)
@@ -280,7 +280,7 @@ func TestEnsureSignatureAlgorithmType_NoAlgorithm(t *testing.T) {
 t.Parallel()
 
 // Create a JWK without setting algorithm
-hmacKey := make([]byte, 32)
+hmacKey := make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 _, err := crand.Read(hmacKey)
 require.NoError(t, err)
 
@@ -296,11 +296,11 @@ func TestEnsureSignatureAlgorithmType_ValidAlgorithmStrings(t *testing.T) {
 t.Parallel()
 
 algorithms := []string{
-"HS256", "HS384", "HS512",
-"RS256", "RS384", "RS512",
-"PS256", "PS384", "PS512",
-"ES256", "ES384", "ES512",
-"EdDSA",
+cryptoutilSharedMagic.JoseAlgHS256, cryptoutilSharedMagic.JoseAlgHS384, cryptoutilSharedMagic.JoseAlgHS512,
+cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilSharedMagic.JoseAlgRS384, cryptoutilSharedMagic.JoseAlgRS512,
+cryptoutilSharedMagic.JoseAlgPS256, cryptoutilSharedMagic.JoseAlgPS384, cryptoutilSharedMagic.JoseAlgPS512,
+cryptoutilSharedMagic.JoseAlgES256, cryptoutilSharedMagic.JoseAlgES384, cryptoutilSharedMagic.JoseAlgES512,
+cryptoutilSharedMagic.JoseAlgEdDSA,
 }
 
 for _, algStr := range algorithms {
@@ -308,7 +308,7 @@ t.Run(algStr, func(t *testing.T) {
 t.Parallel()
 
 // Create JWK with algorithm set as plain string
-hmacKey := make([]byte, 64)
+hmacKey := make([]byte, cryptoutilSharedMagic.MinSerialNumberBits)
 _, err := crand.Read(hmacKey)
 require.NoError(t, err)
 
@@ -330,7 +330,7 @@ _ = err
 func TestEnsureSignatureAlgorithmType_UnsupportedAlgorithm(t *testing.T) {
 t.Parallel()
 
-hmacKey := make([]byte, 32)
+hmacKey := make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 _, err := crand.Read(hmacKey)
 require.NoError(t, err)
 

@@ -5,6 +5,7 @@
 package builder
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 
 	fiber "github.com/gofiber/fiber/v2"
@@ -47,8 +48,8 @@ type StrictServerConfig struct {
 // ServiceAPIBasePath defaults to "/service/api/v1".
 func NewDefaultStrictServerConfig() *StrictServerConfig {
 	return &StrictServerConfig{
-		BrowserAPIBasePath: "/browser/api/v1",
-		ServiceAPIBasePath: "/service/api/v1",
+		BrowserAPIBasePath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
+		ServiceAPIBasePath: cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath,
 		BrowserMiddlewares: nil,
 		ServiceMiddlewares: nil,
 	}

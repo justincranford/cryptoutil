@@ -133,7 +133,7 @@ func TestExtractAlg_JWKMissingAlgHeader(t *testing.T) {
 	t.Parallel()
 
 	// Generate JWK without algorithm header.
-	keyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
+	keyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	rsaPrivateKey, ok := keyPair.Private.(*rsa.PrivateKey)
@@ -246,7 +246,7 @@ func TestCreateJWKFromKey_RSAKeyPair(t *testing.T) {
 	// RSA key pair has public key component.
 	kid := googleUuid.New()
 	alg := cryptoutilOpenapiModel.RSA2048
-	keyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
+	keyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	_, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWKFromKey(&kid, &alg, keyPair)
@@ -309,14 +309,14 @@ func TestCreateJWKFromKey_Oct128AES(t *testing.T) {
 	// Verify headers.
 	algVal, ok := nonPublicJWK.Algorithm()
 	require.True(t, ok)
-	require.Equal(t, "A128GCM", algVal.String())
+	require.Equal(t, cryptoutilSharedMagic.JoseEncA128GCM, algVal.String())
 
 	kty := nonPublicJWK.KeyType()
 	require.Equal(t, KtyOCT, kty)
 
 	usage, ok := nonPublicJWK.KeyUsage()
 	require.True(t, ok)
-	require.Equal(t, "enc", usage)
+	require.Equal(t, cryptoutilSharedMagic.JoseKeyUseEnc, usage)
 }
 
 // TestCreateJWKFromKey_InvalidHeaders tests CreateJWKFromKey with invalid headers.
@@ -374,7 +374,7 @@ func TestCreateJWKFromKey_EdDSAKeyPair(t *testing.T) {
 	// Generate Ed25519 key pair.
 	kid := googleUuid.New()
 	alg := cryptoutilOpenapiModel.OKPEd25519
-	keyPair, err := cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPair("Ed25519")
+	keyPair, err := cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPair(cryptoutilSharedMagic.EdCurveEd25519)
 	require.NoError(t, err)
 
 	resultKid, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWKFromKey(&kid, &alg, keyPair)
@@ -423,9 +423,9 @@ func TestExtractKty_ValidKeyTypes(t *testing.T) {
 		expectedKty joseJwa.KeyType
 	}{
 		{
-			name: "RSA",
+			name: cryptoutilSharedMagic.KeyTypeRSA,
 			genKey: func(t *testing.T) joseJwk.Key {
-				keyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
+				keyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(cryptoutilSharedMagic.DefaultMetricsBatchSize)
 				require.NoError(t, err)
 				jwk, err := joseJwk.Import(keyPair.Private)
 				require.NoError(t, err)
@@ -449,7 +449,7 @@ func TestExtractKty_ValidKeyTypes(t *testing.T) {
 		{
 			name: "OKP",
 			genKey: func(t *testing.T) joseJwk.Key {
-				keyPair, err := cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPair("Ed25519")
+				keyPair, err := cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPair(cryptoutilSharedMagic.EdCurveEd25519)
 				require.NoError(t, err)
 				jwk, err := joseJwk.Import(keyPair.Private)
 				require.NoError(t, err)
@@ -459,7 +459,7 @@ func TestExtractKty_ValidKeyTypes(t *testing.T) {
 			expectedKty: joseJwa.OKP(),
 		},
 		{
-			name: "oct",
+			name: cryptoutilSharedMagic.KeyTypeOct,
 			genKey: func(t *testing.T) joseJwk.Key {
 				jwk, err := joseJwk.Import([]byte("test-key-for-oct-requires-32-byte"))
 				require.NoError(t, err)

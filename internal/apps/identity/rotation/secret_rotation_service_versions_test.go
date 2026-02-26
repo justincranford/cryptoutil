@@ -5,6 +5,7 @@
 package rotation
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	"testing"
@@ -95,7 +96,7 @@ func TestGetActiveSecretVersions(t *testing.T) {
 			ctx := context.Background()
 
 			clientID := googleUuid.Must(googleUuid.NewV7())
-			gracePeriod := 24 * time.Hour
+			gracePeriod := cryptoutilSharedMagic.HoursPerDay * time.Hour
 
 			// Create secret versions.
 			for i := 0; i < tc.setupVersions; i++ {
@@ -148,21 +149,21 @@ func TestGenerateRandomSecret(t *testing.T) {
 	}{
 		{
 			name:       "standard_length_32",
-			length:     32,
+			length:     cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes,
 			wantErr:    false,
 			minEncoded: 40, // base64(32 bytes) = ~43 chars.
 		},
 		{
 			name:       "standard_length_64",
-			length:     64,
+			length:     cryptoutilSharedMagic.MinSerialNumberBits,
 			wantErr:    false,
-			minEncoded: 80, // base64(64 bytes) = ~86 chars.
+			minEncoded: cryptoutilSharedMagic.LineWidth, // base64(64 bytes) = ~86 chars.
 		},
 		{
 			name:       "minimum_length_16",
-			length:     16,
+			length:     cryptoutilSharedMagic.RealmMinTokenLengthBytes,
 			wantErr:    false,
-			minEncoded: 20, // base64(16 bytes) = ~22 chars.
+			minEncoded: cryptoutilSharedMagic.MaxErrorDisplay, // base64(16 bytes) = ~22 chars.
 		},
 		{
 			name:       "zero_length",
@@ -241,7 +242,7 @@ func TestSecretRotationService_GetActiveSecretVersions(t *testing.T) {
 		ClientID:  clientID,
 		Version:   1,
 		Status:    cryptoutilIdentityDomain.SecretStatusActive,
-		CreatedAt: time.Now().UTC().Add(-48 * time.Hour),
+		CreatedAt: time.Now().UTC().Add(-cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour),
 	}
 
 	activeVersion2 := &cryptoutilIdentityDomain.ClientSecretVersion{
@@ -249,17 +250,17 @@ func TestSecretRotationService_GetActiveSecretVersions(t *testing.T) {
 		ClientID:  clientID,
 		Version:   2,
 		Status:    cryptoutilIdentityDomain.SecretStatusActive,
-		CreatedAt: time.Now().UTC().Add(-24 * time.Hour),
+		CreatedAt: time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour),
 	}
 
-	revokedAt := time.Now().UTC().Add(-6 * time.Hour)
+	revokedAt := time.Now().UTC().Add(-cryptoutilSharedMagic.DefaultEmailOTPLength * time.Hour)
 
 	revokedVersion := &cryptoutilIdentityDomain.ClientSecretVersion{
 		ID:        googleUuid.New(),
 		ClientID:  clientID,
 		Version:   3,
 		Status:    cryptoutilIdentityDomain.SecretStatusRevoked,
-		CreatedAt: time.Now().UTC().Add(-12 * time.Hour),
+		CreatedAt: time.Now().UTC().Add(-cryptoutilSharedMagic.HashPrefixLength * time.Hour),
 		RevokedAt: &revokedAt,
 	}
 

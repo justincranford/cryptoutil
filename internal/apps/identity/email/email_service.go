@@ -4,6 +4,7 @@
 package email
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	"net/smtp"
@@ -101,7 +102,7 @@ func (m *MockEmailService) ContainsOTP(email *SentEmail) (string, bool) {
 	// Extract 6-digit numeric OTP from body.
 	words := strings.Fields(email.Body)
 	for _, word := range words {
-		if len(word) == 6 && isNumeric(word) {
+		if len(word) == cryptoutilSharedMagic.DefaultEmailOTPLength && isNumeric(word) {
 			return word, true
 		}
 	}

@@ -5,6 +5,7 @@
 package process
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 "context"
 "fmt"
 "os"
@@ -23,7 +24,7 @@ t.Parallel()
 // Create a regular file where the PID directory should be.
 tmpDir := t.TempDir()
 conflictFile := filepath.Join(tmpDir, "conflict")
-require.NoError(t, os.WriteFile(conflictFile, []byte("x"), 0o600))
+require.NoError(t, os.WriteFile(conflictFile, []byte("x"), cryptoutilSharedMagic.CacheFilePermissions))
 
 // Try to create manager with the file path as the dir.
 _, err := NewManager(filepath.Join(conflictFile, "subdir"))
@@ -41,7 +42,7 @@ require.NoError(t, err)
 
 // Write a corrupted PID file with invalid content.
 pidFile := filepath.Join(pidDir, "corrupt-service.pid")
-require.NoError(t, os.WriteFile(pidFile, []byte("not-a-number"), 0o600))
+require.NoError(t, os.WriteFile(pidFile, []byte("not-a-number"), cryptoutilSharedMagic.CacheFilePermissions))
 
 // readPID is unexported, access via GetPID which calls it.
 _, err = manager.GetPID("corrupt-service")
@@ -63,7 +64,7 @@ require.NoError(t, err)
 pidFile := filepath.Join(pidDir, "stale-service.pid")
 
 // Use a negative PID which is invalid and won't be found.
-require.NoError(t, os.WriteFile(pidFile, []byte("-1"), 0o600))
+require.NoError(t, os.WriteFile(pidFile, []byte("-1"), cryptoutilSharedMagic.CacheFilePermissions))
 
 // isRunning via IsRunning.
 result := manager.IsRunning("stale-service")
@@ -84,7 +85,7 @@ require.NoError(t, err)
 // Remove the PID directory to cause ReadDir to fail.
 require.NoError(t, os.RemoveAll(pidDir))
 
-err = manager.StopAll(false, 5*time.Second)
+err = manager.StopAll(false, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 require.Error(t, err)
 require.Contains(t, err.Error(), "failed to read PID directory")
 }
@@ -108,7 +109,7 @@ require.True(t, manager.IsRunning("error-svc"))
 
 // Override PID file with invalid/non-existent PID to cause stop failure.
 pidFile := filepath.Join(pidDir, "error-svc.pid")
-require.NoError(t, os.WriteFile(pidFile, []byte(fmt.Sprintf("%d", 9999999)), 0o600))
+require.NoError(t, os.WriteFile(pidFile, []byte(fmt.Sprintf("%d", 9999999)), cryptoutilSharedMagic.CacheFilePermissions))
 
 // Kill the original process via its original PID so it's gone.
 origPID, _ := strconv.Atoi("error-svc")
@@ -116,7 +117,7 @@ _ = origPID // Not used this way.
 
 // StopAll will try to stop the service using the fake PID, which will fail.
 // This path propagates errors in errs slice.
-err = manager.StopAll(true, 5*time.Second)
+err = manager.StopAll(true, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 // May or may not error depending on whether PID 9999999 exists.
 // The goal is to exercise the errs path when stop fails.
 _ = err

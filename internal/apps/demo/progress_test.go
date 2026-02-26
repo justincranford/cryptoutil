@@ -5,6 +5,7 @@
 package demo
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"errors"
 	"testing"
@@ -28,8 +29,8 @@ func TestProgressDisplay_SetTotalSteps(t *testing.T) {
 	t.Parallel()
 
 	p := NewProgressDisplay(&Config{NoColor: true})
-	p.SetTotalSteps(5)
-	require.Equal(t, 5, p.stepTotal)
+	p.SetTotalSteps(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+	require.Equal(t, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, p.stepTotal)
 }
 
 func TestProgressDisplay_StartStep(t *testing.T) {
@@ -351,7 +352,7 @@ func TestProgressDisplay_PrintSummary(t *testing.T) {
 			TotalSteps:  3,
 			PassedSteps: 2,
 			FailedSteps: 1,
-			Errors:      []DemoError{{Phase: "kms", Step: "s1", Message: "err1"}},
+			Errors:      []DemoError{{Phase: cryptoutilSharedMagic.KMSServiceName, Step: "s1", Message: "err1"}},
 		})
 
 		output := buf.String()
@@ -371,7 +372,7 @@ func TestProgressDisplay_PrintSummary(t *testing.T) {
 			TotalSteps:  3,
 			PassedSteps: 2,
 			FailedSteps: 1,
-			Errors:      []DemoError{{Phase: "kms", Step: "s1", Message: "err1"}},
+			Errors:      []DemoError{{Phase: cryptoutilSharedMagic.KMSServiceName, Step: "s1", Message: "err1"}},
 		})
 
 		output := buf.String()
@@ -390,7 +391,7 @@ func TestProgressDisplay_PrintSummary(t *testing.T) {
 			TotalSteps:  2,
 			PassedSteps: 0,
 			FailedSteps: 2,
-			Errors:      []DemoError{{Phase: "kms", Step: "s1", Message: "err1"}},
+			Errors:      []DemoError{{Phase: cryptoutilSharedMagic.KMSServiceName, Step: "s1", Message: "err1"}},
 		})
 
 		output := buf.String()
@@ -409,7 +410,7 @@ func TestProgressDisplay_PrintSummary(t *testing.T) {
 			TotalSteps:  2,
 			PassedSteps: 0,
 			FailedSteps: 2,
-			Errors:      []DemoError{{Phase: "kms", Step: "s1", Message: "err1"}},
+			Errors:      []DemoError{{Phase: cryptoutilSharedMagic.KMSServiceName, Step: "s1", Message: "err1"}},
 		})
 
 		output := buf.String()
@@ -425,7 +426,7 @@ func TestSpinner_StartStop(t *testing.T) {
 
 	// Start and immediately stop.
 	spinner.Start("loading")
-	time.Sleep(50 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond)
 	spinner.Stop()
 
 	// Double stop should not panic.
@@ -440,6 +441,6 @@ func TestSpinner_DoubleStart(t *testing.T) {
 	spinner.Start("loading")
 	spinner.Start("loading again") // Should be no-op since already running.
 
-	time.Sleep(50 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond)
 	spinner.Stop()
 }

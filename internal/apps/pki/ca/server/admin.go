@@ -69,14 +69,14 @@ func NewAdminHTTPServer(
 
 // registerRoutes sets up admin API endpoints.
 func (s *AdminServer) registerRoutes() {
-	api := s.app.Group("/admin/api/v1")
+	api := s.app.Group(cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath)
 
 	// Health check endpoints.
-	api.Get("/livez", s.handleLivez)
-	api.Get("/readyz", s.handleReadyz)
+	api.Get(cryptoutilSharedMagic.PrivateAdminLivezRequestPath, s.handleLivez)
+	api.Get(cryptoutilSharedMagic.PrivateAdminReadyzRequestPath, s.handleReadyz)
 
 	// Graceful shutdown endpoint.
-	api.Post("/shutdown", s.handleShutdown)
+	api.Post(cryptoutilSharedMagic.PrivateAdminShutdownRequestPath, s.handleShutdown)
 }
 
 // handleLivez returns liveness status (200 if server is running).
@@ -86,7 +86,7 @@ func (s *AdminServer) handleLivez(c *fiber.Ctx) error {
 
 	if s.shutdown {
 		if err := c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			"status": "shutting down",
+			cryptoutilSharedMagic.StringStatus: "shutting down",
 		}); err != nil {
 			return fmt.Errorf("failed to send livez shutdown response: %w", err)
 		}
@@ -95,7 +95,7 @@ func (s *AdminServer) handleLivez(c *fiber.Ctx) error {
 	}
 
 	if err := c.JSON(fiber.Map{
-		"status": "alive",
+		cryptoutilSharedMagic.StringStatus: "alive",
 	}); err != nil {
 		return fmt.Errorf("failed to send livez response: %w", err)
 	}
@@ -110,7 +110,7 @@ func (s *AdminServer) handleReadyz(c *fiber.Ctx) error {
 
 	if s.shutdown {
 		if err := c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			"status": "shutting down",
+			cryptoutilSharedMagic.StringStatus: "shutting down",
 		}); err != nil {
 			return fmt.Errorf("failed to send readyz shutdown response: %w", err)
 		}
@@ -120,7 +120,7 @@ func (s *AdminServer) handleReadyz(c *fiber.Ctx) error {
 
 	if !s.ready {
 		if err := c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			"status": "not ready",
+			cryptoutilSharedMagic.StringStatus: "not ready",
 		}); err != nil {
 			return fmt.Errorf("failed to send readyz not-ready response: %w", err)
 		}
@@ -129,7 +129,7 @@ func (s *AdminServer) handleReadyz(c *fiber.Ctx) error {
 	}
 
 	if err := c.JSON(fiber.Map{
-		"status": "ready",
+		cryptoutilSharedMagic.StringStatus: "ready",
 	}); err != nil {
 		return fmt.Errorf("failed to send readyz response: %w", err)
 	}
@@ -145,7 +145,7 @@ func (s *AdminServer) handleShutdown(c *fiber.Ctx) error {
 
 	// Acknowledge shutdown request.
 	_ = c.JSON(fiber.Map{
-		"status": "shutdown initiated",
+		cryptoutilSharedMagic.StringStatus: "shutdown initiated",
 	})
 
 	// Trigger shutdown in background to avoid blocking response.
@@ -279,7 +279,7 @@ func (s *AdminServer) generateTLSConfig() (*tls.Config, error) {
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
 			CommonName:   "cryptoutil-ca-admin",
-			Organization: []string{"cryptoutil"},
+			Organization: []string{cryptoutilSharedMagic.DefaultOTLPServiceDefault},
 		},
 		NotBefore:             time.Now().UTC(),
 		NotAfter:              time.Now().UTC().Add(validityDuration),
@@ -296,14 +296,14 @@ func (s *AdminServer) generateTLSConfig() (*tls.Config, error) {
 	}
 
 	// Encode certificate and key to PEM.
-	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certDER})
+	certPEM := pem.EncodeToMemory(&pem.Block{Type: cryptoutilSharedMagic.StringPEMTypeCertificate, Bytes: certDER})
 
 	privKeyBytes, err := x509.MarshalECPrivateKey(privateKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal private key: %w", err)
 	}
 
-	privKeyPEM := pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: privKeyBytes})
+	privKeyPEM := pem.EncodeToMemory(&pem.Block{Type: cryptoutilSharedMagic.StringPEMTypeECPrivateKey, Bytes: privKeyBytes})
 
 	// Load certificate.
 	cert, err := tls.X509KeyPair(certPEM, privKeyPEM)

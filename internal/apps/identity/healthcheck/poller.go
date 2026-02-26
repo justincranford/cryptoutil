@@ -4,6 +4,7 @@
 package healthcheck
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	json "encoding/json"
 	"fmt"
@@ -72,7 +73,7 @@ func (p *Poller) Poll(ctx context.Context, url string) (*Response, error) {
 
 	err := cryptoutilSharedUtilPoll.Until(ctx, p.timeout, p.interval, func(ctx context.Context) (bool, error) {
 		resp, checkErr := p.check(ctx, url)
-		if checkErr == nil && resp.Status == "healthy" {
+		if checkErr == nil && resp.Status == cryptoutilSharedMagic.DockerServiceHealthHealthy {
 			lastResp = resp
 
 			return true, nil

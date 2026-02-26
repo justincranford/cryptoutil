@@ -207,5 +207,5 @@ func TestBuildContentSecurityPolicy_VerboseMode(t *testing.T) {
 
 	csp := buildContentSecurityPolicy(settings)
 
-	require.True(t, strings.Contains(csp, "localhost"))
+	require.True(t, strings.Contains(csp, cryptoutilSharedMagic.DefaultOTLPHostnameDefault))
 }

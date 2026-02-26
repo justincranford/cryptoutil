@@ -4,6 +4,7 @@
 package idp_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"context"
 	json "encoding/json"
@@ -36,11 +37,11 @@ func TestIdPContractHealth(t *testing.T) {
 	// Create IdP service with minimal config.
 	config := &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
-			DSN:  ":memory:",
+			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+			DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			AccessTokenLifetime: 3600 * time.Second,
+			AccessTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout * time.Second,
 		},
 	}
 

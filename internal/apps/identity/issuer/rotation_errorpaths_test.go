@@ -3,6 +3,7 @@
 package issuer
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
@@ -90,9 +91,9 @@ func TestGetPublicKeys_ExpiredAndInvalidKeys(t *testing.T) {
 	mgr.signingKeys = append(mgr.signingKeys, &SigningKey{
 		KeyID:         "expired-key",
 		Key:           ecKey,
-		Algorithm:     "ES256",
-		CreatedAt:     time.Now().UTC().Add(-48 * time.Hour),
-		ExpiresAt:     time.Now().UTC().Add(-24 * time.Hour),
+		Algorithm:     cryptoutilSharedMagic.JoseAlgES256,
+		CreatedAt:     time.Now().UTC().Add(-cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour),
+		ExpiresAt:     time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		Active:        false,
 		ValidForVerif: true,
 	})
@@ -100,9 +101,9 @@ func TestGetPublicKeys_ExpiredAndInvalidKeys(t *testing.T) {
 	mgr.signingKeys = append(mgr.signingKeys, &SigningKey{
 		KeyID:         "not-valid-for-verif",
 		Key:           ecKey,
-		Algorithm:     "ES256",
+		Algorithm:     cryptoutilSharedMagic.JoseAlgES256,
 		CreatedAt:     time.Now().UTC(),
-		ExpiresAt:     time.Now().UTC().Add(24 * time.Hour),
+		ExpiresAt:     time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		Active:        false,
 		ValidForVerif: false,
 	})
@@ -123,7 +124,7 @@ func TestRotateSigningKey_GeneratorFailure(t *testing.T) {
 	mgr, err := NewKeyRotationManager(DefaultKeyRotationPolicy(), failGen, nil)
 	testify.NoError(t, err)
 
-	err = mgr.RotateSigningKey(context.Background(), "RS256")
+	err = mgr.RotateSigningKey(context.Background(), cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm)
 	testify.Error(t, err)
 	testify.Contains(t, err.Error(), "failed to generate signing key")
 }
@@ -185,19 +186,19 @@ func TestStartAutoRotation_WithErrors(t *testing.T) {
 	}
 
 	policy := &KeyRotationPolicy{
-		RotationInterval:    10 * time.Millisecond,
+		RotationInterval:    cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond,
 		GracePeriod:         time.Millisecond,
-		MaxActiveKeys:       5,
+		MaxActiveKeys:       cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 		AutoRotationEnabled: true,
 	}
 
 	mgr, err := NewKeyRotationManager(policy, failGen, nil)
 	testify.NoError(t, err)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.IMMaxUsernameLength*time.Millisecond)
 	defer cancel()
 
-	mgr.StartAutoRotation(ctx, "RS256")
+	mgr.StartAutoRotation(ctx, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm)
 	testify.Error(t, ctx.Err())
 }
 
@@ -215,18 +216,18 @@ func TestStartAutoRotation_SigningSucceedsEncryptionFails(t *testing.T) {
 	t.Parallel()
 
 	policy := &KeyRotationPolicy{
-		RotationInterval:    10 * time.Millisecond,
+		RotationInterval:    cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond,
 		GracePeriod:         time.Millisecond,
-		MaxActiveKeys:       5,
+		MaxActiveKeys:       cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 		AutoRotationEnabled: true,
 	}
 
 	mgr, err := NewKeyRotationManager(policy, &partialFailKeyGenerator{}, nil)
 	testify.NoError(t, err)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.IMMaxUsernameLength*time.Millisecond)
 	defer cancel()
 
-	mgr.StartAutoRotation(ctx, "ES256")
+	mgr.StartAutoRotation(ctx, cryptoutilSharedMagic.JoseAlgES256)
 	testify.Error(t, ctx.Err())
 }

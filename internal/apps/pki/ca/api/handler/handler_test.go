@@ -111,13 +111,13 @@ func TestGetKeyInfo(t *testing.T) {
 		{
 			name: "rsa_2048",
 			generateCert: func() *x509.Certificate {
-				key, _ := rsa.GenerateKey(crand.Reader, 2048)
+				key, _ := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 
 				return &x509.Certificate{PublicKey: &key.PublicKey}
 			},
-			expectedAlgo:    "RSA",
-			expectedMinSize: 2048,
-			expectedMaxSize: 2048,
+			expectedAlgo:    cryptoutilSharedMagic.KeyTypeRSA,
+			expectedMinSize: cryptoutilSharedMagic.DefaultMetricsBatchSize,
+			expectedMaxSize: cryptoutilSharedMagic.DefaultMetricsBatchSize,
 		},
 		{
 			name: "ecdsa_p256",
@@ -127,8 +127,8 @@ func TestGetKeyInfo(t *testing.T) {
 				return &x509.Certificate{PublicKey: &key.PublicKey}
 			},
 			expectedAlgo:    "ECDSA",
-			expectedMinSize: 256,
-			expectedMaxSize: 256,
+			expectedMinSize: cryptoutilSharedMagic.MaxUnsealSharedSecrets,
+			expectedMaxSize: cryptoutilSharedMagic.MaxUnsealSharedSecrets,
 		},
 		{
 			name: "ecdsa_p384",
@@ -138,8 +138,8 @@ func TestGetKeyInfo(t *testing.T) {
 				return &x509.Certificate{PublicKey: &key.PublicKey}
 			},
 			expectedAlgo:    "ECDSA",
-			expectedMinSize: 384,
-			expectedMaxSize: 384,
+			expectedMinSize: cryptoutilSharedMagic.SymmetricKeySize384,
+			expectedMaxSize: cryptoutilSharedMagic.SymmetricKeySize384,
 		},
 		{
 			name: "ed25519",
@@ -148,7 +148,7 @@ func TestGetKeyInfo(t *testing.T) {
 
 				return &x509.Certificate{PublicKey: pub}
 			},
-			expectedAlgo:    "EdDSA",
+			expectedAlgo:    cryptoutilSharedMagic.JoseAlgEdDSA,
 			expectedMinSize: ed25519.PublicKeySize * cryptoutilSharedMagic.BitsPerByte,
 			expectedMaxSize: ed25519.PublicKeySize * cryptoutilSharedMagic.BitsPerByte,
 		},

@@ -5,6 +5,7 @@
 package realm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	json "encoding/json"
 	http "net/http"
@@ -24,9 +25,9 @@ func TestFederationManager_MapTenantFromClaims(t *testing.T) {
 		IssuerURL: "https://issuer.example.com",
 		Type:      FederationTypeOIDC,
 		TenantMappings: []TenantMapping{
-			{ClaimName: "org", ClaimValue: "acme", TenantID: "tenant-acme", Priority: 10},
-			{ClaimName: "groups", ClaimValue: "admin", TenantID: "tenant-admin", Priority: 5},
-			{ClaimName: "sub", ClaimValue: "user123", TenantID: "tenant-user", Priority: 20},
+			{ClaimName: "org", ClaimValue: "acme", TenantID: "tenant-acme", Priority: cryptoutilSharedMagic.JoseJADefaultMaxMaterials},
+			{ClaimName: "groups", ClaimValue: "admin", TenantID: "tenant-admin", Priority: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
+			{ClaimName: cryptoutilSharedMagic.ClaimSub, ClaimValue: "user123", TenantID: "tenant-user", Priority: cryptoutilSharedMagic.MaxErrorDisplay},
 		},
 	})
 	require.NoError(t, err)
@@ -253,5 +254,5 @@ func TestTenantIsolationModes(t *testing.T) {
 
 	require.Equal(t, TenantIsolationMode("schema"), TenantIsolationSchema)
 	require.Equal(t, TenantIsolationMode("row"), TenantIsolationRow)
-	require.Equal(t, TenantIsolationMode("database"), TenantIsolationDatabase)
+	require.Equal(t, TenantIsolationMode(cryptoutilSharedMagic.RealmStorageTypeDatabase), TenantIsolationDatabase)
 }

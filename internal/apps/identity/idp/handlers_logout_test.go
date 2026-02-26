@@ -5,6 +5,7 @@
 package idp_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	http "net/http"
 	"net/http/httptest"
@@ -28,8 +29,8 @@ func TestHandleLogout_POST(t *testing.T) {
 	ctx := context.Background()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
@@ -46,9 +47,9 @@ func TestHandleLogout_POST(t *testing.T) {
 	// Initialize IDP service.
 	config := &cryptoutilIdentityConfig.Config{
 		IDP: &cryptoutilIdentityConfig.ServerConfig{
-			Name:        "idp",
-			BindAddress: "127.0.0.1",
-			Port:        8080,
+			Name:        cryptoutilSharedMagic.IDPServiceName,
+			BindAddress: cryptoutilSharedMagic.IPv4Loopback,
+			Port:        cryptoutilSharedMagic.DemoServerPort,
 			TLSEnabled:  true,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{
@@ -111,13 +112,13 @@ func TestHandleLogout_POST(t *testing.T) {
 				testSession := &cryptoutilIdentityDomain.Session{
 					UserID:                testUser.ID,
 					SessionID:             googleUuid.Must(googleUuid.NewV7()).String(),
-					IPAddress:             "127.0.0.1",
+					IPAddress:             cryptoutilSharedMagic.IPv4Loopback,
 					UserAgent:             "test-agent",
 					IssuedAt:              time.Now().UTC(),
 					ExpiresAt:             time.Now().UTC().Add(1 * time.Hour),
 					LastSeenAt:            time.Now().UTC(),
 					Active:                boolPtr(true),
-					AuthenticationMethods: []string{"username_password"},
+					AuthenticationMethods: []string{cryptoutilSharedMagic.AuthMethodUsernamePassword},
 					AuthenticationTime:    time.Now().UTC(),
 				}
 				require.NoError(t, sessionRepo.Create(ctx, testSession))
@@ -150,8 +151,8 @@ func TestHandleEndSession_MissingParams(t *testing.T) {
 	ctx := context.Background()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
@@ -159,9 +160,9 @@ func TestHandleEndSession_MissingParams(t *testing.T) {
 
 	config := &cryptoutilIdentityConfig.Config{
 		IDP: &cryptoutilIdentityConfig.ServerConfig{
-			Name:        "idp",
-			BindAddress: "127.0.0.1",
-			Port:        8080,
+			Name:        cryptoutilSharedMagic.IDPServiceName,
+			BindAddress: cryptoutilSharedMagic.IPv4Loopback,
+			Port:        cryptoutilSharedMagic.DemoServerPort,
 			TLSEnabled:  true,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{
@@ -193,8 +194,8 @@ func TestHandleEndSession_WithClientID(t *testing.T) {
 	ctx := context.Background()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
@@ -202,9 +203,9 @@ func TestHandleEndSession_WithClientID(t *testing.T) {
 
 	config := &cryptoutilIdentityConfig.Config{
 		IDP: &cryptoutilIdentityConfig.ServerConfig{
-			Name:        "idp",
-			BindAddress: "127.0.0.1",
-			Port:        8080,
+			Name:        cryptoutilSharedMagic.IDPServiceName,
+			BindAddress: cryptoutilSharedMagic.IPv4Loopback,
+			Port:        cryptoutilSharedMagic.DemoServerPort,
 			TLSEnabled:  true,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{

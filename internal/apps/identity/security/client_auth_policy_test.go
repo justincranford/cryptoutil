@@ -5,6 +5,7 @@
 package security
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -32,7 +33,7 @@ func TestPolicyConstructors(t *testing.T) {
 		{
 			name:                      "default_policy",
 			constructor:               DefaultClientAuthPolicy,
-			wantAllowedMethodsCount:   5,
+			wantAllowedMethodsCount:   cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 			wantRequireMTLS:           false,
 			wantRequireJWTSignature:   true,
 			wantRequireCertValidation: true,
@@ -45,7 +46,7 @@ func TestPolicyConstructors(t *testing.T) {
 			wantRequireMTLS:               true,
 			wantRequireJWTSignature:       true,
 			wantAllowedJWTAlgorithmsCount: 2,
-			wantSpecificAlgorithms:        []string{"RS256", "ES256"},
+			wantSpecificAlgorithms:        []string{cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilSharedMagic.JoseAlgES256},
 		},
 		{
 			name:                    "public_client_policy",
@@ -58,7 +59,7 @@ func TestPolicyConstructors(t *testing.T) {
 		{
 			name:                    "development_policy",
 			constructor:             DevelopmentClientAuthPolicy,
-			wantAllowedMethodsCount: 7,
+			wantAllowedMethodsCount: cryptoutilSharedMagic.GitRecentActivityDays,
 			wantRequireMTLS:         false,
 			wantRequireJWTSignature: false,
 			wantAllowSelfSigned:     true,
@@ -136,7 +137,7 @@ func TestClientAuthPolicyManager(t *testing.T) {
 			testFn: func(t *testing.T, manager *ClientAuthPolicyManager) {
 				t.Helper()
 
-				policy, err := manager.GetPolicy("public")
+				policy, err := manager.GetPolicy(cryptoutilSharedMagic.SubjectTypePublic)
 				require.NoError(t, err)
 				require.NotNil(t, policy)
 			},
@@ -245,13 +246,13 @@ func TestClientAuthPolicy_ValidateJWTAlgorithm(t *testing.T) {
 		{
 			name:      "allowed_algorithm",
 			policy:    StrictClientAuthPolicy(),
-			algorithm: "RS256",
+			algorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 			wantErr:   false,
 		},
 		{
 			name:      "disallowed_algorithm",
 			policy:    StrictClientAuthPolicy(),
-			algorithm: "HS256",
+			algorithm: cryptoutilSharedMagic.JoseAlgHS256,
 			wantErr:   true,
 		},
 		{
@@ -262,7 +263,7 @@ func TestClientAuthPolicy_ValidateJWTAlgorithm(t *testing.T) {
 
 				return policy
 			}(),
-			algorithm: "HS256",
+			algorithm: cryptoutilSharedMagic.JoseAlgHS256,
 			wantErr:   false,
 		},
 	}

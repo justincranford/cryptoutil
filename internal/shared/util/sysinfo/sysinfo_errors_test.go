@@ -4,6 +4,7 @@
 package sysinfo
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"errors"
 	"os/user"
@@ -111,8 +112,8 @@ type blockingProviderForTimeout struct {
 	releaseCh chan struct{}
 }
 
-func (p *blockingProviderForTimeout) RuntimeGoArch() string { return "amd64" }
-func (p *blockingProviderForTimeout) RuntimeGoOS() string   { return "linux" }
+func (p *blockingProviderForTimeout) RuntimeGoArch() string { return cryptoutilSharedMagic.MockRuntimeGoArch }
+func (p *blockingProviderForTimeout) RuntimeGoOS() string   { return cryptoutilSharedMagic.MockRuntimeGoOS }
 func (p *blockingProviderForTimeout) RuntimeNumCPU() int    { return 1 }
 
 func (p *blockingProviderForTimeout) CPUInfo() (string, string, string, string, error) {

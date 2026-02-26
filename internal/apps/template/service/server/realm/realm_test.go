@@ -40,10 +40,10 @@ func TestDefaultPasswordPolicy(t *testing.T) {
 
 	policy := DefaultPasswordPolicy()
 
-	require.Equal(t, "SHA-256", policy.Algorithm)
-	require.Equal(t, 600000, policy.Iterations)
-	require.Equal(t, 32, policy.SaltBytes)
-	require.Equal(t, 32, policy.HashBytes)
+	require.Equal(t, cryptoutilSharedMagic.PBKDF2DefaultAlgorithm, policy.Algorithm)
+	require.Equal(t, cryptoutilSharedMagic.IMPBKDF2Iterations, policy.Iterations)
+	require.Equal(t, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes, policy.SaltBytes)
+	require.Equal(t, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes, policy.HashBytes)
 }
 
 func TestGenerateTenantID(t *testing.T) {
@@ -65,7 +65,7 @@ func TestGenerateTenantID(t *testing.T) {
 
 			id := GenerateTenantID()
 			require.NotEmpty(t, id)
-			require.Len(t, id, 36) // UUID format: 8-4-4-4-12 = 36 chars.
+			require.Len(t, id, cryptoutilSharedMagic.UUIDStringLength) // UUID format: 8-4-4-4-12 = 36 chars.
 			require.Contains(t, id, "-")
 
 			// Each call should generate unique ID.
@@ -265,7 +265,7 @@ defaults:
     hash_bytes: 32
 `
 
-	err := os.WriteFile(configPath, []byte(yamlContent), 0o600)
+	err := os.WriteFile(configPath, []byte(yamlContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	config, err := LoadConfig(tempDir)
@@ -295,7 +295,7 @@ realms:
   - id: [invalid yaml
 `
 
-	err := os.WriteFile(configPath, []byte(invalidYAML), 0o600)
+	err := os.WriteFile(configPath, []byte(invalidYAML), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	config, err := LoadConfig(tempDir)

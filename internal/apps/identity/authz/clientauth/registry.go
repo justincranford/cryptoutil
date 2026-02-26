@@ -43,19 +43,19 @@ func NewRegistry(repoFactory *cryptoutilIdentityRepository.RepositoryFactory, co
 	selfSignedValidator := NewSelfSignedCertificateValidator(make(map[string]*x509.Certificate))
 
 	// Get token issuer URL from config for JWT-based authenticators
-	tokenEndpointURL := config.Tokens.Issuer + "/token"
+	tokenEndpointURL := config.Tokens.Issuer + cryptoutilSharedMagic.PathToken
 
 	// Create secret-based authenticator with rotation service support
 	secretAuth := NewSecretBasedAuthenticator(clientRepo, rotationService)
 
 	return &Registry{
 		authenticators: map[string]ClientAuthenticator{
-			"client_secret_basic":         secretAuth,
-			"client_secret_post":          secretAuth,
-			"tls_client_auth":             NewTLSClientAuthenticator(clientRepo, caValidator),
-			"self_signed_tls_client_auth": NewSelfSignedAuthenticator(clientRepo, selfSignedValidator),
-			"private_key_jwt":             NewPrivateKeyJWTAuthenticator(tokenEndpointURL, clientRepo, jtiRepoCache),
-			"client_secret_jwt":           NewClientSecretJWTAuthenticator(tokenEndpointURL, clientRepo, jtiRepoCache),
+			cryptoutilSharedMagic.ClientAuthMethodSecretBasic:         secretAuth,
+			cryptoutilSharedMagic.ClientAuthMethodSecretPost:          secretAuth,
+			cryptoutilSharedMagic.ClientAuthMethodTLSClientAuth:             NewTLSClientAuthenticator(clientRepo, caValidator),
+			cryptoutilSharedMagic.ClientAuthMethodSelfSignedTLSAuth: NewSelfSignedAuthenticator(clientRepo, selfSignedValidator),
+			cryptoutilSharedMagic.ClientAuthMethodPrivateKeyJWT:             NewPrivateKeyJWTAuthenticator(tokenEndpointURL, clientRepo, jtiRepoCache),
+			cryptoutilSharedMagic.ClientAuthMethodSecretJWT:           NewClientSecretJWTAuthenticator(tokenEndpointURL, clientRepo, jtiRepoCache),
 		},
 		hasher: secretAuth,
 	}

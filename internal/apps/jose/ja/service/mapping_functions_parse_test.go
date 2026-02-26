@@ -21,38 +21,38 @@ func TestMapToGenerateAlgorithmForRotation_AllBranches(t *testing.T) {
 		expectNil bool
 	}{
 		// RSA signing.
-		{name: "RS256", algorithm: cryptoutilSharedMagic.JoseAlgRS256, expectNil: false},
-		{name: "RS384", algorithm: cryptoutilSharedMagic.JoseAlgRS384, expectNil: false},
-		{name: "RS512", algorithm: cryptoutilSharedMagic.JoseAlgRS512, expectNil: false},
-		{name: "RSA/2048", algorithm: cryptoutilSharedMagic.JoseKeyTypeRSA2048, expectNil: false},
+		{name: cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, algorithm: cryptoutilSharedMagic.JoseAlgRS256, expectNil: false},
+		{name: cryptoutilSharedMagic.JoseAlgRS384, algorithm: cryptoutilSharedMagic.JoseAlgRS384, expectNil: false},
+		{name: cryptoutilSharedMagic.JoseAlgRS512, algorithm: cryptoutilSharedMagic.JoseAlgRS512, expectNil: false},
+		{name: cryptoutilSharedMagic.JoseKeyTypeRSA2048, algorithm: cryptoutilSharedMagic.JoseKeyTypeRSA2048, expectNil: false},
 		// RSA-PSS signing.
-		{name: "PS256", algorithm: cryptoutilSharedMagic.JoseAlgPS256, expectNil: false},
-		{name: "PS384", algorithm: cryptoutilSharedMagic.JoseAlgPS384, expectNil: false},
-		{name: "PS512", algorithm: cryptoutilSharedMagic.JoseAlgPS512, expectNil: false},
-		{name: "RSA/3072", algorithm: cryptoutilSharedMagic.JoseKeyTypeRSA3072, expectNil: false},
+		{name: cryptoutilSharedMagic.JoseAlgPS256, algorithm: cryptoutilSharedMagic.JoseAlgPS256, expectNil: false},
+		{name: cryptoutilSharedMagic.JoseAlgPS384, algorithm: cryptoutilSharedMagic.JoseAlgPS384, expectNil: false},
+		{name: cryptoutilSharedMagic.JoseAlgPS512, algorithm: cryptoutilSharedMagic.JoseAlgPS512, expectNil: false},
+		{name: cryptoutilSharedMagic.JoseKeyTypeRSA3072, algorithm: cryptoutilSharedMagic.JoseKeyTypeRSA3072, expectNil: false},
 		// RSA/4096.
-		{name: "RSA/4096", algorithm: cryptoutilSharedMagic.JoseKeyTypeRSA4096, expectNil: false},
+		{name: cryptoutilSharedMagic.JoseKeyTypeRSA4096, algorithm: cryptoutilSharedMagic.JoseKeyTypeRSA4096, expectNil: false},
 		// ECDSA signing.
-		{name: "ES256", algorithm: cryptoutilSharedMagic.JoseAlgES256, expectNil: false},
-		{name: "EC/P256", algorithm: cryptoutilSharedMagic.JoseKeyTypeECP256, expectNil: false},
-		{name: "ES384", algorithm: cryptoutilSharedMagic.JoseAlgES384, expectNil: false},
-		{name: "EC/P384", algorithm: cryptoutilSharedMagic.JoseKeyTypeECP384, expectNil: false},
-		{name: "ES512", algorithm: cryptoutilSharedMagic.JoseAlgES512, expectNil: false},
-		{name: "EC/P521", algorithm: cryptoutilSharedMagic.JoseKeyTypeECP521, expectNil: false},
+		{name: cryptoutilSharedMagic.JoseAlgES256, algorithm: cryptoutilSharedMagic.JoseAlgES256, expectNil: false},
+		{name: cryptoutilSharedMagic.JoseKeyTypeECP256, algorithm: cryptoutilSharedMagic.JoseKeyTypeECP256, expectNil: false},
+		{name: cryptoutilSharedMagic.JoseAlgES384, algorithm: cryptoutilSharedMagic.JoseAlgES384, expectNil: false},
+		{name: cryptoutilSharedMagic.JoseKeyTypeECP384, algorithm: cryptoutilSharedMagic.JoseKeyTypeECP384, expectNil: false},
+		{name: cryptoutilSharedMagic.JoseAlgES512, algorithm: cryptoutilSharedMagic.JoseAlgES512, expectNil: false},
+		{name: cryptoutilSharedMagic.JoseKeyTypeECP521, algorithm: cryptoutilSharedMagic.JoseKeyTypeECP521, expectNil: false},
 		// EdDSA.
-		{name: "EdDSA", algorithm: cryptoutilSharedMagic.JoseAlgEdDSA, expectNil: false},
-		{name: "OKP/Ed25519", algorithm: cryptoutilSharedMagic.JoseKeyTypeOKPEd25519, expectNil: false},
+		{name: cryptoutilSharedMagic.JoseAlgEdDSA, algorithm: cryptoutilSharedMagic.JoseAlgEdDSA, expectNil: false},
+		{name: cryptoutilSharedMagic.JoseKeyTypeOKPEd25519, algorithm: cryptoutilSharedMagic.JoseKeyTypeOKPEd25519, expectNil: false},
 		// Symmetric keys.
-		{name: "oct/128", algorithm: cryptoutilSharedMagic.JoseKeyTypeOct128, expectNil: false},
-		{name: "A128GCM", algorithm: cryptoutilSharedMagic.JoseEncA128GCM, expectNil: false},
-		{name: "oct/192", algorithm: cryptoutilSharedMagic.JoseKeyTypeOct192, expectNil: false},
-		{name: "A192GCM", algorithm: cryptoutilSharedMagic.JoseEncA192GCM, expectNil: false},
-		{name: "oct/256", algorithm: cryptoutilSharedMagic.JoseKeyTypeOct256, expectNil: false},
-		{name: "A256GCM", algorithm: cryptoutilSharedMagic.JoseEncA256GCM, expectNil: false},
-		{name: "oct/384", algorithm: cryptoutilSharedMagic.JoseKeyTypeOct384, expectNil: false},
-		{name: "A128CBC-HS256", algorithm: cryptoutilSharedMagic.JoseEncA128CBCHS256, expectNil: false},
-		{name: "oct/512", algorithm: cryptoutilSharedMagic.JoseKeyTypeOct512, expectNil: false},
-		{name: "A256CBC-HS512", algorithm: cryptoutilSharedMagic.JoseEncA256CBCHS512, expectNil: false},
+		{name: cryptoutilSharedMagic.JoseKeyTypeOct128, algorithm: cryptoutilSharedMagic.JoseKeyTypeOct128, expectNil: false},
+		{name: cryptoutilSharedMagic.JoseEncA128GCM, algorithm: cryptoutilSharedMagic.JoseEncA128GCM, expectNil: false},
+		{name: cryptoutilSharedMagic.JoseKeyTypeOct192, algorithm: cryptoutilSharedMagic.JoseKeyTypeOct192, expectNil: false},
+		{name: cryptoutilSharedMagic.JoseEncA192GCM, algorithm: cryptoutilSharedMagic.JoseEncA192GCM, expectNil: false},
+		{name: cryptoutilSharedMagic.JoseKeyTypeOct256, algorithm: cryptoutilSharedMagic.JoseKeyTypeOct256, expectNil: false},
+		{name: cryptoutilSharedMagic.JoseEncA256GCM, algorithm: cryptoutilSharedMagic.JoseEncA256GCM, expectNil: false},
+		{name: cryptoutilSharedMagic.JoseKeyTypeOct384, algorithm: cryptoutilSharedMagic.JoseKeyTypeOct384, expectNil: false},
+		{name: cryptoutilSharedMagic.JoseEncA128CBCHS256, algorithm: cryptoutilSharedMagic.JoseEncA128CBCHS256, expectNil: false},
+		{name: cryptoutilSharedMagic.JoseKeyTypeOct512, algorithm: cryptoutilSharedMagic.JoseKeyTypeOct512, expectNil: false},
+		{name: cryptoutilSharedMagic.JoseEncA256CBCHS512, algorithm: cryptoutilSharedMagic.JoseEncA256CBCHS512, expectNil: false},
 		// Invalid/unknown.
 		{name: "invalid", algorithm: "INVALID", expectNil: true},
 		{name: "empty", algorithm: "", expectNil: true},
@@ -88,8 +88,8 @@ func TestParseClaimsMap_AllBranches(t *testing.T) {
 		{
 			name: "iss as non-string (int) - type assertion fails",
 			claimsMap: map[string]any{
-				"iss": 12345, // Not a string.
-				"sub": "test-subject",
+				cryptoutilSharedMagic.ClaimIss: 12345, // Not a string.
+				cryptoutilSharedMagic.ClaimSub: "test-subject",
 			},
 			verify: func(t *testing.T, claims *JWTClaims) {
 				require.Empty(t, claims.Issuer)
@@ -99,8 +99,8 @@ func TestParseClaimsMap_AllBranches(t *testing.T) {
 		{
 			name: "sub as non-string (bool) - type assertion fails",
 			claimsMap: map[string]any{
-				"iss": "test-issuer",
-				"sub": true, // Not a string.
+				cryptoutilSharedMagic.ClaimIss: "test-issuer",
+				cryptoutilSharedMagic.ClaimSub: true, // Not a string.
 			},
 			verify: func(t *testing.T, claims *JWTClaims) {
 				require.Equal(t, "test-issuer", claims.Issuer)
@@ -110,7 +110,7 @@ func TestParseClaimsMap_AllBranches(t *testing.T) {
 		{
 			name: "aud as string",
 			claimsMap: map[string]any{
-				"aud": "single-audience",
+				cryptoutilSharedMagic.ClaimAud: "single-audience",
 			},
 			verify: func(t *testing.T, claims *JWTClaims) {
 				require.Equal(t, []string{"single-audience"}, claims.Audience)
@@ -119,7 +119,7 @@ func TestParseClaimsMap_AllBranches(t *testing.T) {
 		{
 			name: "aud as array of strings",
 			claimsMap: map[string]any{
-				"aud": []any{"aud1", "aud2", "aud3"},
+				cryptoutilSharedMagic.ClaimAud: []any{"aud1", "aud2", "aud3"},
 			},
 			verify: func(t *testing.T, claims *JWTClaims) {
 				require.Equal(t, []string{"aud1", "aud2", "aud3"}, claims.Audience)
@@ -128,7 +128,7 @@ func TestParseClaimsMap_AllBranches(t *testing.T) {
 		{
 			name: "aud as neither string nor array",
 			claimsMap: map[string]any{
-				"aud": 12345, // Neither string nor array.
+				cryptoutilSharedMagic.ClaimAud: 12345, // Neither string nor array.
 			},
 			verify: func(t *testing.T, claims *JWTClaims) {
 				require.Empty(t, claims.Audience)
@@ -137,7 +137,7 @@ func TestParseClaimsMap_AllBranches(t *testing.T) {
 		{
 			name: "aud as array with non-string items (filters out)",
 			claimsMap: map[string]any{
-				"aud": []any{123, "valid-aud", true}, // Mixed types.
+				cryptoutilSharedMagic.ClaimAud: []any{123, "valid-aud", true}, // Mixed types.
 			},
 			verify: func(t *testing.T, claims *JWTClaims) {
 				require.Equal(t, []string{"valid-aud"}, claims.Audience)
@@ -146,7 +146,7 @@ func TestParseClaimsMap_AllBranches(t *testing.T) {
 		{
 			name: "exp as float64",
 			claimsMap: map[string]any{
-				"exp": float64(1700000000),
+				cryptoutilSharedMagic.ClaimExp: float64(1700000000),
 			},
 			verify: func(t *testing.T, claims *JWTClaims) {
 				require.NotNil(t, claims.ExpiresAt)
@@ -156,7 +156,7 @@ func TestParseClaimsMap_AllBranches(t *testing.T) {
 		{
 			name: "exp as json.Number",
 			claimsMap: map[string]any{
-				"exp": json.Number("1700000000"),
+				cryptoutilSharedMagic.ClaimExp: json.Number("1700000000"),
 			},
 			verify: func(t *testing.T, claims *JWTClaims) {
 				require.NotNil(t, claims.ExpiresAt)
@@ -166,7 +166,7 @@ func TestParseClaimsMap_AllBranches(t *testing.T) {
 		{
 			name: "exp as non-numeric value",
 			claimsMap: map[string]any{
-				"exp": "not-a-number", // Should be float64 or json.Number.
+				cryptoutilSharedMagic.ClaimExp: "not-a-number", // Should be float64 or json.Number.
 			},
 			verify: func(t *testing.T, claims *JWTClaims) {
 				require.Nil(t, claims.ExpiresAt)
@@ -175,7 +175,7 @@ func TestParseClaimsMap_AllBranches(t *testing.T) {
 		{
 			name: "nbf as float64",
 			claimsMap: map[string]any{
-				"nbf": float64(1699990000),
+				cryptoutilSharedMagic.ClaimNbf: float64(1699990000),
 			},
 			verify: func(t *testing.T, claims *JWTClaims) {
 				require.NotNil(t, claims.NotBefore)
@@ -185,7 +185,7 @@ func TestParseClaimsMap_AllBranches(t *testing.T) {
 		{
 			name: "nbf as json.Number",
 			claimsMap: map[string]any{
-				"nbf": json.Number("1699990000"),
+				cryptoutilSharedMagic.ClaimNbf: json.Number("1699990000"),
 			},
 			verify: func(t *testing.T, claims *JWTClaims) {
 				require.NotNil(t, claims.NotBefore)
@@ -195,7 +195,7 @@ func TestParseClaimsMap_AllBranches(t *testing.T) {
 		{
 			name: "nbf as non-numeric value",
 			claimsMap: map[string]any{
-				"nbf": true, // Should be float64 or json.Number.
+				cryptoutilSharedMagic.ClaimNbf: true, // Should be float64 or json.Number.
 			},
 			verify: func(t *testing.T, claims *JWTClaims) {
 				require.Nil(t, claims.NotBefore)
@@ -204,7 +204,7 @@ func TestParseClaimsMap_AllBranches(t *testing.T) {
 		{
 			name: "iat as float64",
 			claimsMap: map[string]any{
-				"iat": float64(1699980000),
+				cryptoutilSharedMagic.ClaimIat: float64(1699980000),
 			},
 			verify: func(t *testing.T, claims *JWTClaims) {
 				require.NotNil(t, claims.IssuedAt)
@@ -214,7 +214,7 @@ func TestParseClaimsMap_AllBranches(t *testing.T) {
 		{
 			name: "iat as json.Number",
 			claimsMap: map[string]any{
-				"iat": json.Number("1699980000"),
+				cryptoutilSharedMagic.ClaimIat: json.Number("1699980000"),
 			},
 			verify: func(t *testing.T, claims *JWTClaims) {
 				require.NotNil(t, claims.IssuedAt)
@@ -224,7 +224,7 @@ func TestParseClaimsMap_AllBranches(t *testing.T) {
 		{
 			name: "iat as non-numeric value",
 			claimsMap: map[string]any{
-				"iat": []string{"array"}, // Should be float64 or json.Number.
+				cryptoutilSharedMagic.ClaimIat: []string{"array"}, // Should be float64 or json.Number.
 			},
 			verify: func(t *testing.T, claims *JWTClaims) {
 				require.Nil(t, claims.IssuedAt)
@@ -233,7 +233,7 @@ func TestParseClaimsMap_AllBranches(t *testing.T) {
 		{
 			name: "jti as string",
 			claimsMap: map[string]any{
-				"jti": "test-jti",
+				cryptoutilSharedMagic.ClaimJti: "test-jti",
 			},
 			verify: func(t *testing.T, claims *JWTClaims) {
 				require.Equal(t, "test-jti", claims.JTI)
@@ -242,7 +242,7 @@ func TestParseClaimsMap_AllBranches(t *testing.T) {
 		{
 			name: "jti as non-string",
 			claimsMap: map[string]any{
-				"jti": 12345, // Not a string.
+				cryptoutilSharedMagic.ClaimJti: 12345, // Not a string.
 			},
 			verify: func(t *testing.T, claims *JWTClaims) {
 				require.Empty(t, claims.JTI)
@@ -252,25 +252,25 @@ func TestParseClaimsMap_AllBranches(t *testing.T) {
 			name: "custom claims are preserved",
 			claimsMap: map[string]any{
 				"custom_string": "value",
-				"custom_int":    42,
+				"custom_int":    cryptoutilSharedMagic.AnswerToLifeUniverseEverything,
 				"custom_bool":   true,
 			},
 			verify: func(t *testing.T, claims *JWTClaims) {
 				require.Equal(t, "value", claims.Custom["custom_string"])
-				require.Equal(t, 42, claims.Custom["custom_int"])
+				require.Equal(t, cryptoutilSharedMagic.AnswerToLifeUniverseEverything, claims.Custom["custom_int"])
 				require.Equal(t, true, claims.Custom["custom_bool"])
 			},
 		},
 		{
 			name: "all claims combined",
 			claimsMap: map[string]any{
-				"iss":    "combined-issuer",
-				"sub":    "combined-subject",
-				"aud":    []any{"aud1", "aud2"},
-				"exp":    json.Number("1700000000"),
-				"nbf":    float64(1699990000),
-				"iat":    float64(1699980000),
-				"jti":    "combined-jti",
+				cryptoutilSharedMagic.ClaimIss:    "combined-issuer",
+				cryptoutilSharedMagic.ClaimSub:    "combined-subject",
+				cryptoutilSharedMagic.ClaimAud:    []any{"aud1", "aud2"},
+				cryptoutilSharedMagic.ClaimExp:    json.Number("1700000000"),
+				cryptoutilSharedMagic.ClaimNbf:    float64(1699990000),
+				cryptoutilSharedMagic.ClaimIat:    float64(1699980000),
+				cryptoutilSharedMagic.ClaimJti:    "combined-jti",
 				"custom": "custom-value",
 			},
 			verify: func(t *testing.T, claims *JWTClaims) {

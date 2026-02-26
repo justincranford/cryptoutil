@@ -5,6 +5,7 @@
 package clientauth_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"strings"
 	"testing"
 
@@ -33,7 +34,7 @@ func TestHashLowEntropyNonDeterministic(t *testing.T) {
 		},
 		{
 			name:    "long secret",
-			secret:  strings.Repeat("a", 1000),
+			secret:  strings.Repeat("a", cryptoutilSharedMagic.JoseJADefaultListLimit),
 			wantErr: false,
 		},
 	}
@@ -183,7 +184,7 @@ func TestCompareSecret_ConstantTime(t *testing.T) {
 	require.NoError(t, err)
 
 	// Multiple comparisons should all complete (no early returns).
-	for i := 0; i < 10; i++ {
+	for i := 0; i < cryptoutilSharedMagic.JoseJADefaultMaxMaterials; i++ {
 		match, err := cryptoutilIdentityClientAuth.CompareSecret(hashed, "wrong-password")
 		require.NoError(t, err)
 		require.False(t, match)

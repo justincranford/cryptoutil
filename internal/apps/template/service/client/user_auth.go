@@ -186,7 +186,7 @@ func LoginUser(client *http.Client, baseURL, loginPath, username, password strin
 		return "", fmt.Errorf("failed to decode response: %w", err)
 	}
 
-	token, ok := respBody["token"]
+	token, ok := respBody[cryptoutilSharedMagic.ParamToken]
 	if !ok {
 		return "", fmt.Errorf("response missing token field")
 	}
@@ -309,12 +309,12 @@ func VerifyHealthEndpoint(client *http.Client, baseURL, path string) error {
 		return fmt.Errorf("failed to decode health response: %w", err)
 	}
 
-	status, ok := healthResp["status"]
+	status, ok := healthResp[cryptoutilSharedMagic.StringStatus]
 	if !ok {
 		return fmt.Errorf("health response missing status field")
 	}
 
-	if status != "healthy" {
+	if status != cryptoutilSharedMagic.DockerServiceHealthHealthy {
 		return fmt.Errorf("health status is '%s', expected 'healthy'", status)
 	}
 

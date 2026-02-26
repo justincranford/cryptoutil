@@ -3,6 +3,7 @@
 package enforce_time_now_utc
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"strings"
@@ -31,7 +32,7 @@ println(now)
 }
 `
 
-	err := os.WriteFile(testFile, []byte(originalContent), 0o600)
+	err := os.WriteFile(testFile, []byte(originalContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Run enforcement.
@@ -67,7 +68,7 @@ println(now)
 }
 `
 
-	err := os.WriteFile(testFile, []byte(originalContent), 0o600)
+	err := os.WriteFile(testFile, []byte(originalContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Run enforcement.
@@ -100,7 +101,7 @@ println(later)
 }
 `
 
-	err := os.WriteFile(testFile, []byte(originalContent), 0o600)
+	err := os.WriteFile(testFile, []byte(originalContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Run enforcement.
@@ -136,7 +137,7 @@ println(later)
 }
 `
 
-	err := os.WriteFile(testFile, []byte(originalContent), 0o600)
+	err := os.WriteFile(testFile, []byte(originalContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Run enforcement.
@@ -188,7 +189,7 @@ func main() {
 }
 `
 
-	err := os.WriteFile(testFile, []byte(originalContent), 0o600)
+	err := os.WriteFile(testFile, []byte(originalContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Create file map.
@@ -235,7 +236,7 @@ func main() {
 }
 `
 
-	err := os.WriteFile(testFile, []byte(correctContent), 0o600)
+	err := os.WriteFile(testFile, []byte(correctContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Create file map.
@@ -272,7 +273,7 @@ func TestEnforceTimeNowUTC_InvalidGoFile(t *testing.T) {
 this is not valid Go code!
 `
 
-	err := os.WriteFile(testFile, []byte(invalidContent), 0o600)
+	err := os.WriteFile(testFile, []byte(invalidContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Create file map.
@@ -318,7 +319,7 @@ func TestProcessGoFileForTimeNowUTC_UTCOnVariable(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test.go")
 
-	err := os.WriteFile(testFile, []byte(testGoContentUTCOnVariable), 0o600)
+	err := os.WriteFile(testFile, []byte(testGoContentUTCOnVariable), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	replacements, err := ProcessGoFileForTimeNowUTC(testFile)
@@ -346,7 +347,7 @@ fakeFormatGoDir := filepath.Join(tmpDir, "internal", "cmd", "cicd", "format_go")
 require.NoError(t, os.MkdirAll(fakeFormatGoDir, 0o700))
 
 goFile := filepath.Join(fakeFormatGoDir, "dummy.go")
-require.NoError(t, os.WriteFile(goFile, []byte("package format_go\n\nimport \"time\"\n\nvar t = time.Now()\n"), 0o600))
+require.NoError(t, os.WriteFile(goFile, []byte("package format_go\n\nimport \"time\"\n\nvar t = time.Now()\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 replacements, err := ProcessGoFileForTimeNowUTC(goFile)
 require.NoError(t, err)
@@ -367,7 +368,7 @@ func gettime() time.Time { return time.Now().UTC() }
 
 func f() { _ = gettime().UTC() }
 `
-require.NoError(t, os.WriteFile(goFile, []byte(content), 0o600))
+require.NoError(t, os.WriteFile(goFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 replacements, err := ProcessGoFileForTimeNowUTC(goFile)
 require.NoError(t, err)
@@ -386,7 +387,7 @@ import "time"
 
 func f() { _ = time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC).UTC() }
 `
-require.NoError(t, os.WriteFile(goFile, []byte(content), 0o600))
+require.NoError(t, os.WriteFile(goFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 replacements, err := ProcessGoFileForTimeNowUTC(goFile)
 require.NoError(t, err)
@@ -413,7 +414,7 @@ _ = ft.Now().UTC()
 _ = ft.Now()
 }
 `
-require.NoError(t, os.WriteFile(goFile, []byte(content), 0o600))
+require.NoError(t, os.WriteFile(goFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 replacements, err := ProcessGoFileForTimeNowUTC(goFile)
 require.NoError(t, err)

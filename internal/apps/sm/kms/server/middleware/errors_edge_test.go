@@ -5,6 +5,7 @@
 package middleware
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"net/http/httptest"
 	"testing"
 
@@ -160,5 +161,5 @@ func TestAuthErrorResponder_HybridUnauthorized(t *testing.T) {
 	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
-	require.Contains(t, resp.Header.Get("WWW-Authenticate"), "Bearer")
+	require.Contains(t, resp.Header.Get("WWW-Authenticate"), cryptoutilSharedMagic.AuthorizationBearer)
 }

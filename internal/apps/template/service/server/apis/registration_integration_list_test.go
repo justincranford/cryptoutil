@@ -6,6 +6,7 @@
 package apis
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	json "encoding/json"
 	"fmt"
@@ -35,8 +36,8 @@ func TestIntegration_ListJoinRequests_NoRequests(t *testing.T) {
 
 	// Create empty database for this test only
 	emptyDB, err := gorm.Open(sqlite.Dialector{
-		DriverName: "sqlite",
-		DSN:        "file::memory:?cache=shared",
+		DriverName: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:        cryptoutilSharedMagic.SQLiteInMemoryDSN,
 	}, &gorm.Config{})
 	require.NoError(t, err)
 
@@ -100,7 +101,7 @@ func TestIntegration_ListJoinRequests_WithData(t *testing.T) {
 	// Create tenant if it doesn't exist (FirstOrCreate handles both cases).
 	tenant := &cryptoutilAppsTemplateServiceServerRepository.Tenant{
 		ID:   testTenantID,
-		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:8]),
+		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength]),
 	}
 	require.NoError(t, testDB.WithContext(ctx).Where("id = ?", testTenantID).FirstOrCreate(tenant).Error)
 
@@ -154,7 +155,7 @@ func TestIntegration_ListJoinRequests_WithData(t *testing.T) {
 		if reqMap["id"] == joinReq.ID.String() {
 			foundOurRequest = true
 
-			require.Equal(t, "pending", reqMap["status"])
+			require.Equal(t, "pending", reqMap[cryptoutilSharedMagic.StringStatus])
 			require.Equal(t, tenant.ID.String(), reqMap["tenant_id"])
 
 			break
@@ -173,7 +174,7 @@ func TestIntegration_ListJoinRequests_AllOptionalFields(t *testing.T) {
 	// Create or find existing tenant using the same tenant ID from auth middleware.
 	tenant := &cryptoutilAppsTemplateServiceServerRepository.Tenant{
 		ID:   testTenantID,
-		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:8]),
+		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength]),
 	}
 	dbResult := testDB.Where("id = ?", testTenantID).FirstOrCreate(tenant)
 	require.NoError(t, dbResult.Error)
@@ -228,11 +229,11 @@ func TestIntegration_ListJoinRequests_AllOptionalFields(t *testing.T) {
 		if reqMap["id"] == joinReq.ID.String() {
 			foundOurRequest = true
 
-			require.Equal(t, "approved", reqMap["status"])
+			require.Equal(t, "approved", reqMap[cryptoutilSharedMagic.StringStatus])
 
 			// Verify optional fields are present in response.
-			require.Contains(t, reqMap, "client_id", "ClientID should be present")
-			require.Equal(t, clientID.String(), reqMap["client_id"])
+			require.Contains(t, reqMap, cryptoutilSharedMagic.ClaimClientID, "ClientID should be present")
+			require.Equal(t, clientID.String(), reqMap[cryptoutilSharedMagic.ClaimClientID])
 
 			require.Contains(t, reqMap, "processed_at", "ProcessedAt should be present")
 			require.NotNil(t, reqMap["processed_at"])
@@ -265,8 +266,8 @@ func TestIntegration_ProcessJoinRequest_InvalidID(t *testing.T) {
 
 	var result map[string]any
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
-	require.Contains(t, result, "error")
-	require.Equal(t, "Invalid request ID", result["error"])
+	require.Contains(t, result, cryptoutilSharedMagic.StringError)
+	require.Equal(t, "Invalid request ID", result[cryptoutilSharedMagic.StringError])
 }
 
 // TestIntegration_ProcessJoinRequest_InvalidJSON tests handling of malformed JSON in request body.
@@ -287,8 +288,8 @@ func TestIntegration_ProcessJoinRequest_InvalidJSON(t *testing.T) {
 
 	var result map[string]any
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
-	require.Contains(t, result, "error")
-	require.Equal(t, "Invalid request body", result["error"])
+	require.Contains(t, result, cryptoutilSharedMagic.StringError)
+	require.Equal(t, "Invalid request body", result[cryptoutilSharedMagic.StringError])
 }
 
 // TestIntegration_JoinRequestManagement_Unauthenticated tests that admin endpoints

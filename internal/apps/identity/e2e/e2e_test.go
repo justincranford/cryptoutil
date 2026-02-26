@@ -60,7 +60,7 @@ func TestE2E_ServicePath_AuthZ(t *testing.T) {
 	defer cancel()
 
 	// Test OIDC Discovery endpoint (/.well-known/openid-configuration).
-	discoveryURL := authzPublicURL + "/.well-known/openid-configuration"
+	discoveryURL := authzPublicURL + cryptoutilSharedMagic.PathDiscovery
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, discoveryURL, nil)
 	require.NoError(t, err, "Creating discovery request should succeed")
 
@@ -84,7 +84,7 @@ func TestE2E_ServicePath_JWKS(t *testing.T) {
 	defer cancel()
 
 	// Test JWKS endpoint (/.well-known/jwks.json).
-	jwksURL := authzPublicURL + "/.well-known/jwks.json"
+	jwksURL := authzPublicURL + cryptoutilSharedMagic.PathJWKS
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, jwksURL, nil)
 	require.NoError(t, err, "Creating JWKS request should succeed")
 
@@ -148,7 +148,7 @@ func TestE2E_CORS_Headers(t *testing.T) {
 
 	// CORS headers should be present for browser endpoints.
 	if corsHeader != "" {
-		require.True(t, strings.Contains(corsHeader, "*") || strings.Contains(corsHeader, "localhost"),
+		require.True(t, strings.Contains(corsHeader, "*") || strings.Contains(corsHeader, cryptoutilSharedMagic.DefaultOTLPHostnameDefault),
 			"CORS should allow localhost origins")
 	}
 }

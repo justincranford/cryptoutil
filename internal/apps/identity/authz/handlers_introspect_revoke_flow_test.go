@@ -104,7 +104,7 @@ func TestHandleIntrospect_ExpiredToken(t *testing.T) {
 		TokenValue: fmt.Sprintf("expired-token-%s", tokenID.String()),
 		TokenType:  cryptoutilIdentityDomain.TokenTypeAccess,
 		ClientID:   clientUUID,
-		Scopes:     []string{"openid", "profile"},
+		Scopes:     []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 		ExpiresAt:  time.Now().UTC().Add(-1 * time.Hour),
 		IssuedAt:   time.Now().UTC().Add(-2 * time.Hour),
 	}
@@ -199,7 +199,7 @@ func createIntrospectRevokeTestConfig(t *testing.T) *cryptoutilIdentityConfig.Co
 
 	return &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
+			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
 			DSN:  fmt.Sprintf("file:test_%s.db?mode=memory&cache=shared", testID),
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
@@ -248,8 +248,8 @@ func createIntrospectRevokeTestClient(t *testing.T, repoFactory *cryptoutilIdent
 		Name:                    "Test Client",
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
-		AllowedScopes:           []string{"openid", "profile", "email"},
-		RedirectURIs:            []string{"https://example.com/callback"},
+		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail},
+		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,
 	}
 
@@ -278,7 +278,7 @@ func createIntrospectRevokeTestToken(
 		TokenValue: fmt.Sprintf("test-token-%s", tokenID.String()),
 		TokenType:  tokenType,
 		ClientID:   clientID,
-		Scopes:     []string{"openid", "profile"},
+		Scopes:     []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 		ExpiresAt:  time.Now().UTC().Add(1 * time.Hour),
 		IssuedAt:   time.Now().UTC(),
 	}

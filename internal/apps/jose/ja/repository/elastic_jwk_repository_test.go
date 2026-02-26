@@ -4,6 +4,7 @@
 package repository
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -34,11 +35,11 @@ func TestElasticJWKRepository_Create(t *testing.T) {
 				return &cryptoutilAppsJoseJaDomain.ElasticJWK{
 					ID:           *id,
 					TenantID:     *tenantID,
-					KID:          "test-kid-" + id.String()[:8],
+					KID:          "test-kid-" + id.String()[:cryptoutilSharedMagic.IMMinPasswordLength],
 					KeyType:      cryptoutilAppsJoseJaDomain.KeyTypeRSA,
-					Algorithm:    "RS256",
-					Use:          "sig",
-					MaxMaterials: 10,
+					Algorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+					Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+					MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 					CreatedAt:    time.Now().UTC(),
 				}
 			},
@@ -53,11 +54,11 @@ func TestElasticJWKRepository_Create(t *testing.T) {
 				return &cryptoutilAppsJoseJaDomain.ElasticJWK{
 					ID:           *id,
 					TenantID:     *tenantID,
-					KID:          "test-ec-" + id.String()[:8],
+					KID:          "test-ec-" + id.String()[:cryptoutilSharedMagic.IMMinPasswordLength],
 					KeyType:      cryptoutilAppsJoseJaDomain.KeyTypeEC,
-					Algorithm:    "ES256",
-					Use:          "sig",
-					MaxMaterials: 5,
+					Algorithm:    cryptoutilSharedMagic.JoseAlgES256,
+					Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+					MaxMaterials: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 					CreatedAt:    time.Now().UTC(),
 				}
 			},
@@ -72,11 +73,11 @@ func TestElasticJWKRepository_Create(t *testing.T) {
 				return &cryptoutilAppsJoseJaDomain.ElasticJWK{
 					ID:           *id,
 					TenantID:     *tenantID,
-					KID:          "test-okp-" + id.String()[:8],
+					KID:          "test-okp-" + id.String()[:cryptoutilSharedMagic.IMMinPasswordLength],
 					KeyType:      cryptoutilAppsJoseJaDomain.KeyTypeOKP,
-					Algorithm:    "EdDSA",
-					Use:          "sig",
-					MaxMaterials: 20,
+					Algorithm:    cryptoutilSharedMagic.JoseAlgEdDSA,
+					Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+					MaxMaterials: cryptoutilSharedMagic.MaxErrorDisplay,
 					CreatedAt:    time.Now().UTC(),
 				}
 			},
@@ -127,11 +128,11 @@ func TestElasticJWKRepository_Get(t *testing.T) {
 	testJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:           *id,
 		TenantID:     *tenantID,
-		KID:          "test-get-" + id.String()[:8],
+		KID:          "test-get-" + id.String()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		KeyType:      cryptoutilAppsJoseJaDomain.KeyTypeRSA,
-		Algorithm:    "RS256",
-		Use:          "sig",
-		MaxMaterials: 10,
+		Algorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 		CreatedAt:    time.Now().UTC(),
 	}
 	require.NoError(t, repo.Create(ctx, testJWK))
@@ -170,16 +171,16 @@ func TestElasticJWKRepository_List(t *testing.T) {
 
 	var createdJWKs []*cryptoutilAppsJoseJaDomain.ElasticJWK
 
-	for i := 0; i < 5; i++ {
+	for i := 0; i < cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries; i++ {
 		id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 		jwk := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 			ID:           *id,
 			TenantID:     *tenantID,
 			KID:          "test-list-" + id.String(), // Use full UUID to avoid collisions
 			KeyType:      cryptoutilAppsJoseJaDomain.KeyTypeRSA,
-			Algorithm:    "RS256",
-			Use:          "sig",
-			MaxMaterials: 10,
+			Algorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+			Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+			MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 			CreatedAt:    time.Now().UTC(),
 		}
 		require.NoError(t, repo.Create(ctx, jwk))
@@ -205,9 +206,9 @@ func TestElasticJWKRepository_List(t *testing.T) {
 			name:      "list all JWKs",
 			tenantID:  *tenantID,
 			offset:    0,
-			limit:     100,
-			wantCount: 5,
-			wantTotal: 5,
+			limit:     cryptoutilSharedMagic.JoseJAMaxMaterials,
+			wantCount: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
+			wantTotal: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 		},
 		{
 			name:      "list with pagination - first page",
@@ -215,7 +216,7 @@ func TestElasticJWKRepository_List(t *testing.T) {
 			offset:    0,
 			limit:     2,
 			wantCount: 2,
-			wantTotal: 5,
+			wantTotal: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 		},
 		{
 			name:      "list with pagination - second page",
@@ -223,13 +224,13 @@ func TestElasticJWKRepository_List(t *testing.T) {
 			offset:    2,
 			limit:     2,
 			wantCount: 2,
-			wantTotal: 5,
+			wantTotal: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 		},
 		{
 			name:      "list with wrong tenant",
 			tenantID:  googleUuid.New(),
 			offset:    0,
-			limit:     100,
+			limit:     cryptoutilSharedMagic.JoseJAMaxMaterials,
 			wantCount: 0,
 			wantTotal: 0,
 		},
@@ -259,11 +260,11 @@ func TestElasticJWKRepository_Update(t *testing.T) {
 	testJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:           *id,
 		TenantID:     *tenantID,
-		KID:          "test-update-" + id.String()[:8],
+		KID:          "test-update-" + id.String()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		KeyType:      cryptoutilAppsJoseJaDomain.KeyTypeRSA,
-		Algorithm:    "RS256",
-		Use:          "sig",
-		MaxMaterials: 10,
+		Algorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 		CreatedAt:    time.Now().UTC(),
 	}
 	require.NoError(t, repo.Create(ctx, testJWK))
@@ -273,7 +274,7 @@ func TestElasticJWKRepository_Update(t *testing.T) {
 	}()
 
 	// Update the JWK.
-	testJWK.MaxMaterials = 20
+	testJWK.MaxMaterials = cryptoutilSharedMagic.MaxErrorDisplay
 
 	err := repo.Update(ctx, testJWK)
 	require.NoError(t, err)
@@ -281,7 +282,7 @@ func TestElasticJWKRepository_Update(t *testing.T) {
 	// Verify the update.
 	retrieved, err := repo.Get(ctx, testJWK.TenantID, testJWK.KID)
 	require.NoError(t, err)
-	require.Equal(t, 20, retrieved.MaxMaterials)
+	require.Equal(t, cryptoutilSharedMagic.MaxErrorDisplay, retrieved.MaxMaterials)
 }
 
 func TestElasticJWKRepository_Delete(t *testing.T) {
@@ -296,11 +297,11 @@ func TestElasticJWKRepository_Delete(t *testing.T) {
 	testJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:           *id,
 		TenantID:     *tenantID,
-		KID:          "test-delete-" + id.String()[:8],
+		KID:          "test-delete-" + id.String()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		KeyType:      cryptoutilAppsJoseJaDomain.KeyTypeRSA,
-		Algorithm:    "RS256",
-		Use:          "sig",
-		MaxMaterials: 10,
+		Algorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 		CreatedAt:    time.Now().UTC(),
 	}
 	require.NoError(t, repo.Create(ctx, testJWK))
@@ -327,11 +328,11 @@ func TestElasticJWKRepository_GetByID(t *testing.T) {
 	testJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:           *id,
 		TenantID:     *tenantID,
-		KID:          "test-getbyid-" + id.String()[:8],
+		KID:          "test-getbyid-" + id.String()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		KeyType:      cryptoutilAppsJoseJaDomain.KeyTypeRSA,
-		Algorithm:    "RS256",
-		Use:          "sig",
-		MaxMaterials: 10,
+		Algorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 		CreatedAt:    time.Now().UTC(),
 	}
 	require.NoError(t, repo.Create(ctx, testJWK))
@@ -366,11 +367,11 @@ func TestElasticJWKRepository_IncrementMaterialCount(t *testing.T) {
 	testJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:                   *id,
 		TenantID:             *tenantID,
-		KID:                  "test-increment-" + id.String()[:8],
+		KID:                  "test-increment-" + id.String()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		KeyType:              cryptoutilAppsJoseJaDomain.KeyTypeRSA,
-		Algorithm:            "RS256",
-		Use:                  "sig",
-		MaxMaterials:         10,
+		Algorithm:            cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		Use:                  cryptoutilSharedMagic.JoseKeyUseSig,
+		MaxMaterials:         cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 		CurrentMaterialCount: 0,
 		CreatedAt:            time.Now().UTC(),
 	}
@@ -405,7 +406,7 @@ func TestElasticJWKRepository_IncrementMaterialCount(t *testing.T) {
 
 	retrieved, err = repo.GetByID(ctx, testJWK.ID)
 	require.NoError(t, err)
-	require.Equal(t, 5, retrieved.CurrentMaterialCount)
+	require.Equal(t, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, retrieved.CurrentMaterialCount)
 }
 
 // TestElasticJWKRepository_DecrementMaterialCount tests atomic material count decrement.
@@ -421,12 +422,12 @@ func TestElasticJWKRepository_DecrementMaterialCount(t *testing.T) {
 	testJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:                   *id,
 		TenantID:             *tenantID,
-		KID:                  "test-decrement-" + id.String()[:8],
+		KID:                  "test-decrement-" + id.String()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		KeyType:              cryptoutilAppsJoseJaDomain.KeyTypeRSA,
-		Algorithm:            "RS256",
-		Use:                  "sig",
-		MaxMaterials:         10,
-		CurrentMaterialCount: 5,
+		Algorithm:            cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		Use:                  cryptoutilSharedMagic.JoseKeyUseSig,
+		MaxMaterials:         cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
+		CurrentMaterialCount: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 		CreatedAt:            time.Now().UTC(),
 	}
 	require.NoError(t, repo.Create(ctx, testJWK))

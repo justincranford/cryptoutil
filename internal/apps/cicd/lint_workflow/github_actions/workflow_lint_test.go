@@ -3,6 +3,7 @@
 package github_actions
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -79,7 +80,7 @@ func TestValidateAndParseWorkflowFile_EmptyFile(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	workflowFile := filepath.Join(tmpDir, "empty.yml")
-	err := os.WriteFile(workflowFile, []byte(""), 0o600)
+	err := os.WriteFile(workflowFile, []byte(""), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	actionDetails, validationErrors, err := validateAndParseWorkflowFile(workflowFile)
@@ -102,7 +103,7 @@ jobs:
       - uses: actions/checkout
       - uses: actions/setup-go@
 `
-	err := os.WriteFile(workflowFile, []byte(content), 0o600)
+	err := os.WriteFile(workflowFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	actionDetails, validationErrors, err := validateAndParseWorkflowFile(workflowFile)
@@ -199,7 +200,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 `
-	err := os.WriteFile(workflowFile1, []byte(content1), 0o600)
+	err := os.WriteFile(workflowFile1, []byte(content1), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	workflowFile2 := filepath.Join(tmpDir, "ci2.yml")
@@ -210,7 +211,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 `
-	err = os.WriteFile(workflowFile2, []byte(content2), 0o600)
+	err = os.WriteFile(workflowFile2, []byte(content2), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	actionDetails, err := validateAndGetWorkflowActionsDetails(logger, []string{workflowFile1, workflowFile2})
@@ -237,7 +238,7 @@ func TestLintGitHubWorkflows_WithExemptedActions(t *testing.T) {
 
 	// Create .github directory with exceptions file.
 	githubDir := filepath.Join(tmpDir, ".github")
-	err = os.MkdirAll(githubDir, 0o755)
+	err = os.MkdirAll(githubDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	// Create exceptions file with exempted action.
@@ -250,12 +251,12 @@ func TestLintGitHubWorkflows_WithExemptedActions(t *testing.T) {
   }
 }`
 	exceptionsFile := filepath.Join(githubDir, "workflow-action-exceptions.json")
-	err = os.WriteFile(exceptionsFile, []byte(exceptionsContent), 0o600)
+	err = os.WriteFile(exceptionsFile, []byte(exceptionsContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Create workflows directory with workflow using exempted action.
 	workflowDir := filepath.Join(githubDir, "workflows")
-	err = os.MkdirAll(workflowDir, 0o755)
+	err = os.MkdirAll(workflowDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	// Create workflow file using the exempted version.
@@ -268,7 +269,7 @@ jobs:
       - uses: actions/checkout@v3
 `
 	workflowFile := filepath.Join(workflowDir, "ci.yml")
-	err = os.WriteFile(workflowFile, []byte(workflowContent), 0o600)
+	err = os.WriteFile(workflowFile, []byte(workflowContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -294,7 +295,7 @@ func TestLintGitHubWorkflows_SuccessPath(t *testing.T) {
 	// Create .github/workflows directory.
 	githubDir := filepath.Join(tmpDir, ".github")
 	workflowDir := filepath.Join(githubDir, "workflows")
-	err = os.MkdirAll(workflowDir, 0o755)
+	err = os.MkdirAll(workflowDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	// Create workflow file with actions (no exceptions file means no exemptions).
@@ -308,7 +309,7 @@ jobs:
       - uses: actions/setup-go@v5
 `
 	workflowFile := filepath.Join(workflowDir, "ci.yml")
-	err = os.WriteFile(workflowFile, []byte(workflowContent), 0o600)
+	err = os.WriteFile(workflowFile, []byte(workflowContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -333,7 +334,7 @@ func TestLintGitHubWorkflows_ExemptedAndNonExemptedMixed(t *testing.T) {
 
 	// Create .github directory with exceptions file.
 	githubDir := filepath.Join(tmpDir, ".github")
-	err = os.MkdirAll(githubDir, 0o755)
+	err = os.MkdirAll(githubDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	// Create exceptions file with one exempted action.
@@ -346,12 +347,12 @@ func TestLintGitHubWorkflows_ExemptedAndNonExemptedMixed(t *testing.T) {
   }
 }`
 	exceptionsFile := filepath.Join(githubDir, "workflow-action-exceptions.json")
-	err = os.WriteFile(exceptionsFile, []byte(exceptionsContent), 0o600)
+	err = os.WriteFile(exceptionsFile, []byte(exceptionsContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Create workflows directory.
 	workflowDir := filepath.Join(githubDir, "workflows")
-	err = os.MkdirAll(workflowDir, 0o755)
+	err = os.MkdirAll(workflowDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	// Create workflow with both exempted and non-exempted actions.
@@ -365,7 +366,7 @@ jobs:
       - uses: actions/setup-go@v5
 `
 	workflowFile := filepath.Join(workflowDir, "ci.yml")
-	err = os.WriteFile(workflowFile, []byte(workflowContent), 0o600)
+	err = os.WriteFile(workflowFile, []byte(workflowContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")

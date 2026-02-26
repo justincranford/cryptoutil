@@ -3,6 +3,7 @@
 package server
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	http "net/http"
 
@@ -33,8 +34,8 @@ func (s *PublicServer) RegisterRoutes() {
 
 	// Health check endpoints.
 	app.Get("/health", s.handleHealth)
-	app.Get("/livez", s.handleLivez)
-	app.Get("/readyz", s.handleReadyz)
+	app.Get(cryptoutilSharedMagic.PrivateAdminLivezRequestPath, s.handleLivez)
+	app.Get(cryptoutilSharedMagic.PrivateAdminReadyzRequestPath, s.handleReadyz)
 
 	// SPA configuration endpoint (client-side config).
 	app.Get("/config.json", s.handleConfig)
@@ -53,8 +54,8 @@ func (s *PublicServer) handleHealth(c *fiber.Ctx) error {
 	c.Status(http.StatusOK)
 
 	if err := c.JSON(fiber.Map{
-		"status":  "healthy",
-		"service": "identity-spa",
+		cryptoutilSharedMagic.StringStatus:  cryptoutilSharedMagic.DockerServiceHealthHealthy,
+		"service": cryptoutilSharedMagic.OTLPServiceIdentitySPA,
 	}); err != nil {
 		return fmt.Errorf("failed to send health response: %w", err)
 	}
@@ -67,7 +68,7 @@ func (s *PublicServer) handleLivez(c *fiber.Ctx) error {
 	c.Status(http.StatusOK)
 
 	if err := c.JSON(fiber.Map{
-		"status": "live",
+		cryptoutilSharedMagic.StringStatus: "live",
 	}); err != nil {
 		return fmt.Errorf("failed to send liveness response: %w", err)
 	}
@@ -82,7 +83,7 @@ func (s *PublicServer) handleReadyz(c *fiber.Ctx) error {
 	c.Status(http.StatusOK)
 
 	if err := c.JSON(fiber.Map{
-		"status": "ready",
+		cryptoutilSharedMagic.StringStatus: "ready",
 	}); err != nil {
 		return fmt.Errorf("failed to send readiness response: %w", err)
 	}
@@ -94,8 +95,8 @@ func (s *PublicServer) handleReadyz(c *fiber.Ctx) error {
 // This allows the SPA to discover the RP (BFF) endpoint dynamically.
 func (s *PublicServer) handleConfig(c *fiber.Ctx) error {
 	config := fiber.Map{
-		"service": "identity-spa",
-		"version": "0.0.1",
+		"service": cryptoutilSharedMagic.OTLPServiceIdentitySPA,
+		"version": cryptoutilSharedMagic.DefaultOTLPVersionDefault,
 	}
 
 	// Include RP origin if configured.
@@ -126,7 +127,7 @@ func (s *PublicServer) handleSPAFallback(c *fiber.Ctx) error {
 		c.Status(http.StatusNotFound)
 
 		if err := c.JSON(fiber.Map{
-			"error": "API endpoint not found",
+			cryptoutilSharedMagic.StringError: "API endpoint not found",
 		}); err != nil {
 			return fmt.Errorf("failed to send API not found response: %w", err)
 		}

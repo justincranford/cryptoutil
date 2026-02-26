@@ -36,14 +36,14 @@ func TestHandleRefreshTokenGrant_Success(t *testing.T) {
 
 	cfg := &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
+			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
 			DSN:  fmt.Sprintf("file:test_%s.db?mode=memory&cache=shared", testID),
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			Issuer:              "https://localhost:8080",
-			SigningAlgorithm:    "RS256",
-			AccessTokenFormat:   "jws",
-			AccessTokenLifetime: 3600,
+			SigningAlgorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+			AccessTokenFormat:   cryptoutilSharedMagic.DefaultBrowserSessionCookie,
+			AccessTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		},
 	}
 
@@ -87,12 +87,12 @@ func TestHandleRefreshTokenGrant_Success(t *testing.T) {
 		Name:                    "Test Client Refresh",
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeRefreshToken},
-		AllowedScopes:           []string{"openid"},
-		RedirectURIs:            []string{"https://example.com/callback"},
+		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID},
+		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
-		AccessTokenLifetime:     3600,
-		RefreshTokenLifetime:    86400,
-		IDTokenLifetime:         3600,
+		AccessTokenLifetime:     cryptoutilSharedMagic.IMDefaultSessionTimeout,
+		RefreshTokenLifetime:    cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+		IDTokenLifetime:         cryptoutilSharedMagic.IMDefaultSessionTimeout,
 	}
 
 	clientRepo := repoFactory.ClientRepository()
@@ -121,7 +121,7 @@ func TestHandleRefreshTokenGrant_Success(t *testing.T) {
 		TokenValue:  tokenValue,
 		ClientID:    clientUUID,
 		UserID:      cryptoutilIdentityDomain.NullableUUID{UUID: userUUID, Valid: true},
-		ExpiresAt:   time.Now().UTC().Add(24 * time.Hour),
+		ExpiresAt:   time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		IssuedAt:    time.Now().UTC(),
 	}
 
@@ -149,7 +149,7 @@ func TestHandleRefreshTokenGrant_Success(t *testing.T) {
 		cryptoutilSharedMagic.ParamGrantType:    []string{cryptoutilSharedMagic.GrantTypeRefreshToken},
 		cryptoutilSharedMagic.ParamRefreshToken: []string{tokenValue},
 		cryptoutilSharedMagic.ParamClientID:     []string{testClient.ClientID},
-		cryptoutilSharedMagic.ParamScope:        []string{"openid"},
+		cryptoutilSharedMagic.ParamScope:        []string{cryptoutilSharedMagic.ScopeOpenID},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(formBody.Encode()))
@@ -167,13 +167,13 @@ func TestHandleRefreshTokenGrant_Success(t *testing.T) {
 	err = json.NewDecoder(resp.Body).Decode(&body)
 	require.NoError(t, err, "Response body should be valid JSON")
 
-	accessToken, ok := body["access_token"].(string)
+	accessToken, ok := body[cryptoutilSharedMagic.TokenTypeAccessToken].(string)
 	require.True(t, ok, "Response should contain access_token")
 	require.NotEmpty(t, accessToken, "Access token should not be empty")
 
-	tokenType, ok := body["token_type"].(string)
+	tokenType, ok := body[cryptoutilSharedMagic.ParamTokenType].(string)
 	require.True(t, ok, "Response should contain token_type")
-	require.Equal(t, "Bearer", tokenType, "Token type should be Bearer")
+	require.Equal(t, cryptoutilSharedMagic.AuthorizationBearer, tokenType, "Token type should be Bearer")
 }
 
 // TestHandleRefreshTokenGrant_MissingRefreshTokenParam validates error for missing refresh_token.
@@ -188,11 +188,11 @@ func TestHandleRefreshTokenGrant_MissingRefreshTokenParam(t *testing.T) {
 
 	cfg := &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
+			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
 			DSN:  fmt.Sprintf("file:test_%s.db?mode=memory&cache=shared", testID),
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			AccessTokenLifetime: 3600,
+			AccessTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		},
 	}
 
@@ -239,7 +239,7 @@ func TestHandleRefreshTokenGrant_MissingRefreshTokenParam(t *testing.T) {
 	err = json.NewDecoder(resp.Body).Decode(&body)
 	require.NoError(t, err, "Response body should be valid JSON")
 
-	errorCode, ok := body["error"].(string)
+	errorCode, ok := body[cryptoutilSharedMagic.StringError].(string)
 	require.True(t, ok, "Response should contain error field")
 	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidRequest, errorCode, "Error should be invalid_request")
 }
@@ -256,11 +256,11 @@ func TestHandleRefreshTokenGrant_InvalidRefreshToken(t *testing.T) {
 
 	cfg := &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
+			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
 			DSN:  fmt.Sprintf("file:test_%s.db?mode=memory&cache=shared", testID),
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			AccessTokenLifetime: 3600,
+			AccessTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		},
 	}
 
@@ -308,7 +308,7 @@ func TestHandleRefreshTokenGrant_InvalidRefreshToken(t *testing.T) {
 	err = json.NewDecoder(resp.Body).Decode(&body)
 	require.NoError(t, err, "Response body should be valid JSON")
 
-	errorCode, ok := body["error"].(string)
+	errorCode, ok := body[cryptoutilSharedMagic.StringError].(string)
 	require.True(t, ok, "Response should contain error field")
 	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidGrant, errorCode, "Error should be invalid_grant")
 }
@@ -325,11 +325,11 @@ func TestHandleRefreshTokenGrant_RevokedToken(t *testing.T) {
 
 	cfg := &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
+			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
 			DSN:  fmt.Sprintf("file:test_%s.db?mode=memory&cache=shared", testID),
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			AccessTokenLifetime: 3600,
+			AccessTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		},
 	}
 
@@ -348,12 +348,12 @@ func TestHandleRefreshTokenGrant_RevokedToken(t *testing.T) {
 		Name:                    "Test Client Revoked",
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeRefreshToken},
-		AllowedScopes:           []string{"openid"},
-		RedirectURIs:            []string{"https://example.com/callback"},
+		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID},
+		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
-		AccessTokenLifetime:     3600,
-		RefreshTokenLifetime:    86400,
-		IDTokenLifetime:         3600,
+		AccessTokenLifetime:     cryptoutilSharedMagic.IMDefaultSessionTimeout,
+		RefreshTokenLifetime:    cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+		IDTokenLifetime:         cryptoutilSharedMagic.IMDefaultSessionTimeout,
 	}
 
 	clientRepo := repoFactory.ClientRepository()
@@ -383,7 +383,7 @@ func TestHandleRefreshTokenGrant_RevokedToken(t *testing.T) {
 		TokenValue:  tokenValue,
 		ClientID:    clientUUID,
 		UserID:      cryptoutilIdentityDomain.NullableUUID{UUID: userUUID, Valid: true},
-		ExpiresAt:   time.Now().UTC().Add(24 * time.Hour),
+		ExpiresAt:   time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		RevokedAt:   &now,
 		IssuedAt:    time.Now().UTC(),
 	}
@@ -429,7 +429,7 @@ func TestHandleRefreshTokenGrant_RevokedToken(t *testing.T) {
 	err = json.NewDecoder(resp.Body).Decode(&body)
 	require.NoError(t, err, "Response body should be valid JSON")
 
-	errorCode, ok := body["error"].(string)
+	errorCode, ok := body[cryptoutilSharedMagic.StringError].(string)
 	require.True(t, ok, "Response should contain error field")
 	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidGrant, errorCode, "Error should be invalid_grant")
 }

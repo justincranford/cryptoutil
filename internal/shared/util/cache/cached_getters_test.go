@@ -3,6 +3,7 @@
 package cache_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"sync"
 	"testing"
@@ -89,7 +90,7 @@ func TestGetCached(t *testing.T) {
 				}
 
 				getter := func() any {
-					return &CustomStruct{Name: "Alice", Age: 30}
+					return &CustomStruct{Name: "Alice", Age: cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days}
 				}
 
 				var once sync.Once
@@ -100,7 +101,7 @@ func TestGetCached(t *testing.T) {
 				typed, ok := result.(*CustomStruct)
 				require.True(t, ok, "Should return correct type")
 				require.Equal(t, "Alice", typed.Name)
-				require.Equal(t, 30, typed.Age)
+				require.Equal(t, cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days, typed.Age)
 			},
 		},
 	}
@@ -206,7 +207,7 @@ func TestGetCachedWithError(t *testing.T) {
 				getter := func() (any, error) {
 					callCount++
 
-					return nil, errors.New("error")
+					return nil, errors.New(cryptoutilSharedMagic.StringError)
 				}
 
 				var once1, once2 sync.Once

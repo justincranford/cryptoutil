@@ -5,6 +5,7 @@
 package orm_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"testing"
@@ -25,7 +26,7 @@ import (
 func setupDeviceAuthTestDB(t *testing.T) *cryptoutilIdentityORM.DeviceAuthorizationRepository {
 	t.Helper()
 
-	sqlDB, err := sql.Open("sqlite", testDSNInMemory)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, testDSNInMemory)
 	require.NoError(t, err)
 
 	ctx := context.Background()
@@ -47,8 +48,8 @@ func setupDeviceAuthTestDB(t *testing.T) *cryptoutilIdentityORM.DeviceAuthorizat
 	underlyingDB, err := db.DB()
 	require.NoError(t, err)
 
-	underlyingDB.SetMaxOpenConns(5)
-	underlyingDB.SetMaxIdleConns(5)
+	underlyingDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+	underlyingDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	underlyingDB.SetConnMaxLifetime(0)
 
 	return cryptoutilIdentityORM.NewDeviceAuthorizationRepository(db)
@@ -72,7 +73,7 @@ func TestDeviceAuthorizationRepository_Create(t *testing.T) {
 				Scope:      "openid profile",
 				Status:     cryptoutilIdentityDomain.DeviceAuthStatusPending,
 				CreatedAt:  time.Now().UTC(),
-				ExpiresAt:  time.Now().UTC().Add(10 * time.Minute).UTC(),
+				ExpiresAt:  time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute).UTC(),
 			},
 			expectedError: "",
 		},
@@ -115,7 +116,7 @@ func TestDeviceAuthorizationRepository_GetByDeviceCode(t *testing.T) {
 				UserCode:   "WXYZ-9876",
 				Status:     cryptoutilIdentityDomain.DeviceAuthStatusPending,
 				CreatedAt:  time.Now().UTC(),
-				ExpiresAt:  time.Now().UTC().Add(5 * time.Minute).UTC(),
+				ExpiresAt:  time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute).UTC(),
 			},
 			expectedError: nil,
 			validateResult: func(t *testing.T, result *cryptoutilIdentityDomain.DeviceAuthorization) {
@@ -242,12 +243,12 @@ func TestDeviceAuthorizationRepository_GetByID(t *testing.T) {
 			id:   googleUuid.New(),
 			setupAuth: &cryptoutilIdentityDomain.DeviceAuthorization{
 				ID:         googleUuid.UUID{}, // Overwritten below.
-				ClientID:   "test-client-id",
+				ClientID:   cryptoutilSharedMagic.TestClientID,
 				DeviceCode: "device-" + googleUuid.NewString(),
 				UserCode:   "QRST-4321",
 				Status:     cryptoutilIdentityDomain.DeviceAuthStatusAuthorized,
 				CreatedAt:  time.Now().UTC(),
-				ExpiresAt:  time.Now().UTC().Add(20 * time.Minute).UTC(),
+				ExpiresAt:  time.Now().UTC().Add(cryptoutilSharedMagic.MaxErrorDisplay * time.Minute).UTC(),
 			},
 			expectedError: nil,
 			validateResult: func(t *testing.T, result *cryptoutilIdentityDomain.DeviceAuthorization) {
@@ -313,7 +314,7 @@ func TestDeviceAuthorizationRepository_Update(t *testing.T) {
 				UserCode:   "UPDATE-1234",
 				Status:     cryptoutilIdentityDomain.DeviceAuthStatusPending,
 				CreatedAt:  time.Now().UTC(),
-				ExpiresAt:  time.Now().UTC().Add(10 * time.Minute).UTC(),
+				ExpiresAt:  time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute).UTC(),
 			},
 			updateAuth: &cryptoutilIdentityDomain.DeviceAuthorization{
 				Status: cryptoutilIdentityDomain.DeviceAuthStatusAuthorized,
@@ -393,8 +394,8 @@ func TestDeviceAuthorizationRepository_DeleteExpired(t *testing.T) {
 					DeviceCode: "device-expired-1",
 					UserCode:   "EXP1-0000",
 					Status:     cryptoutilIdentityDomain.DeviceAuthStatusPending,
-					CreatedAt:  time.Now().UTC().Add(-20 * time.Minute).UTC(),
-					ExpiresAt:  time.Now().UTC().Add(-10 * time.Minute).UTC(),
+					CreatedAt:  time.Now().UTC().Add(-cryptoutilSharedMagic.MaxErrorDisplay * time.Minute).UTC(),
+					ExpiresAt:  time.Now().UTC().Add(-cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute).UTC(),
 				},
 				{
 					ID:         googleUuid.New(),
@@ -403,7 +404,7 @@ func TestDeviceAuthorizationRepository_DeleteExpired(t *testing.T) {
 					UserCode:   "VAL1-9999",
 					Status:     cryptoutilIdentityDomain.DeviceAuthStatusPending,
 					CreatedAt:  time.Now().UTC(),
-					ExpiresAt:  time.Now().UTC().Add(10 * time.Minute).UTC(),
+					ExpiresAt:  time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute).UTC(),
 				},
 			},
 			expectedError: nil,

@@ -5,6 +5,7 @@
 package repository
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"embed"
@@ -61,7 +62,7 @@ func Migrate(db *sql.DB, dbType string) error {
 			name string
 		)
 
-		if err := row.Scan(&seq, &name, &dbPath); err == nil && (dbPath == "" || dbPath == ":memory:") {
+		if err := row.Scan(&seq, &name, &dbPath); err == nil && (dbPath == "" || dbPath == cryptoutilSharedMagic.SQLiteMemoryPlaceholder) {
 			isMemoryDB = true
 		}
 	}
@@ -125,7 +126,7 @@ func Migrate(db *sql.DB, dbType string) error {
 			return fmt.Errorf("failed to create postgres driver: %w", err)
 		}
 
-		m, err = migrate.NewWithInstance("iofs", sourceDriver, "postgres", postgresDriver)
+		m, err = migrate.NewWithInstance("iofs", sourceDriver, cryptoutilSharedMagic.DockerServicePostgres, postgresDriver)
 		if err != nil {
 			return fmt.Errorf("failed to create migrate instance: %w", err)
 		}

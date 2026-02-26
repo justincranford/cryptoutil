@@ -6,6 +6,7 @@
 package orm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
 
@@ -50,7 +51,7 @@ func TestApplyKeyFilters_WithDates(t *testing.T) {
 	query := testOrmRepository.gormDB.Model(&MaterialKey{})
 
 	// Test with MinimumGenerateDate.
-	minDate := time.Now().UTC().Add(-24 * time.Hour)
+	minDate := time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour)
 	filters := &GetMaterialKeysFilters{
 		MinimumGenerateDate: &minDate,
 	}
@@ -81,7 +82,7 @@ func TestApplyGetElasticKeyKeysFilters_WithDates(t *testing.T) {
 	query := testOrmRepository.gormDB.Model(&MaterialKey{})
 
 	// Test with MinimumGenerateDate.
-	minDate := time.Now().UTC().Add(-24 * time.Hour)
+	minDate := time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour)
 	filters := &GetElasticKeyMaterialKeysFilters{
 		MinimumGenerateDate: &minDate,
 	}
@@ -177,7 +178,7 @@ func TestApplyKeyFilters_WithPagination(t *testing.T) {
 	// Test with pagination (PageSize > 0).
 	filters := &GetMaterialKeysFilters{
 		PageNumber: 0,
-		PageSize:   10,
+		PageSize:   cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 	}
 	filteredQuery := applyKeyFilters(query, filters)
 	require.NotNil(t, filteredQuery)
@@ -200,7 +201,7 @@ func TestApplyGetElasticKeyKeysFilters_WithPagination(t *testing.T) {
 	// Test with pagination (PageSize > 0).
 	filters := &GetElasticKeyMaterialKeysFilters{
 		PageNumber: 0,
-		PageSize:   10,
+		PageSize:   cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 	}
 	filteredQuery := applyGetElasticKeyKeysFilters(query, filters)
 	require.NotNil(t, filteredQuery)

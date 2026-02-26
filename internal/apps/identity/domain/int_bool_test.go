@@ -5,6 +5,7 @@
 package domain
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"database/sql/driver"
 	"testing"
 
@@ -40,7 +41,7 @@ func TestIntBool_Scan(t *testing.T) {
 		},
 		{
 			name:      "int64_nonzero",
-			input:     int64(42),
+			input:     int64(cryptoutilSharedMagic.AnswerToLifeUniverseEverything),
 			expected:  true,
 			wantError: false,
 		},

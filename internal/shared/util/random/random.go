@@ -5,6 +5,7 @@
 package random
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	crand "crypto/rand"
 	"encoding/binary"
 	"encoding/hex"
@@ -129,7 +130,7 @@ func StringPointersToBytes(values ...*string) [][]byte {
 
 // Uint64ToBytes converts a uint64 value to a big-endian byte slice.
 func Uint64ToBytes(val uint64) []byte {
-	bytes := make([]byte, 8)
+	bytes := make([]byte, cryptoutilSharedMagic.IMMinPasswordLength)
 	binary.BigEndian.PutUint64(bytes, val)
 
 	return bytes

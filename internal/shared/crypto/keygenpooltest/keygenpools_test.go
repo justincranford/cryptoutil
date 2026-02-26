@@ -41,7 +41,7 @@ func TestPoolsExample(t *testing.T) {
 
 	keys, err := generateKeys(ctx, telemetryService)
 	if err != nil {
-		slog.Error("failed to generate keys", "error", err)
+		slog.Error("failed to generate keys", cryptoutilSharedMagic.StringError, err)
 
 		return
 	}
@@ -51,13 +51,13 @@ func TestPoolsExample(t *testing.T) {
 }
 
 func generateKeys(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService) ([]any, error) {
-	rsaKeyGenPool, err1 := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(ctx, telemetryService, "Test RSA 2048", exampleNumWorkersRSA, examplePoolSize, exampleMaxLifetimeKeys, cryptoutilSharedMagic.MaxPoolLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateRSAKeyPairFunction(2048), false))
+	rsaKeyGenPool, err1 := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(ctx, telemetryService, "Test RSA cryptoutilSharedMagic.DefaultMetricsBatchSize", exampleNumWorkersRSA, examplePoolSize, exampleMaxLifetimeKeys, cryptoutilSharedMagic.MaxPoolLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateRSAKeyPairFunction(2048), false))
 	ecdsaKeyGenPool, err2 := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(ctx, telemetryService, "Test ECDSA P256", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, cryptoutilSharedMagic.MaxPoolLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPairFunction(elliptic.P256()), false))
 	ecdhKeyGenPool, err3 := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(ctx, telemetryService, "Test ECDH P256", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, cryptoutilSharedMagic.MaxPoolLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateECDHKeyPairFunction(ecdh.P256()), false))
-	eddsaKeyGenPool, err4 := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(ctx, telemetryService, "Test EdDSA Ed25519", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, cryptoutilSharedMagic.MaxPoolLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPairFunction("Ed25519"), false))
-	aesKeyGenPool, err5 := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(ctx, telemetryService, "Test AES 128 GCM", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, cryptoutilSharedMagic.MaxPoolLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateAESKeyFunction(128), false))
-	aesHsKeyGenPool, err6 := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(ctx, telemetryService, "Test AES HS 128", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, cryptoutilSharedMagic.MaxPoolLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateAESHSKeyFunction(256), false))
-	hmacKeyGenPool, err7 := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(ctx, telemetryService, "Test HMAC 256", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, cryptoutilSharedMagic.MaxPoolLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateHMACKeyFunction(256), false))
+	eddsaKeyGenPool, err4 := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(ctx, telemetryService, "Test EdDSA Ed25519", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, cryptoutilSharedMagic.MaxPoolLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPairFunction(cryptoutilSharedMagic.EdCurveEd25519), false))
+	aesKeyGenPool, err5 := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(ctx, telemetryService, "Test AES cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits GCM", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, cryptoutilSharedMagic.MaxPoolLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateAESKeyFunction(128), false))
+	aesHsKeyGenPool, err6 := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(ctx, telemetryService, "Test AES HS 128", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, cryptoutilSharedMagic.MaxPoolLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateAESHSKeyFunction(cryptoutilSharedMagic.MaxUnsealSharedSecrets), false))
+	hmacKeyGenPool, err7 := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(ctx, telemetryService, "Test HMAC cryptoutilSharedMagic.MaxUnsealSharedSecrets", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, cryptoutilSharedMagic.MaxPoolLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateHMACKeyFunction(256), false))
 
 	if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil || err6 != nil || err7 != nil {
 		return nil, fmt.Errorf("failed to create pools: %w", errors.Join(err1, err2, err3, err4, err5, err6, err7))
@@ -71,7 +71,7 @@ func generateKeys(ctx context.Context, telemetryService *cryptoutilSharedTelemet
 	defer aesHsKeyGenPool.Cancel()
 	defer hmacKeyGenPool.Cancel()
 
-	keys := make([]any, 0, 7*exampleMaxLifetimeKeys) // 7 pools * K keys per pool
+	keys := make([]any, 0, cryptoutilSharedMagic.GitRecentActivityDays*exampleMaxLifetimeKeys) // 7 pools * K keys per pool
 
 	for range exampleMaxLifetimeKeys {
 		telemetryService.Slogger.Info("Getting keys")

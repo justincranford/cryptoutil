@@ -34,7 +34,7 @@ require (
 )
 `
 
-	err := os.WriteFile(goModFile, []byte(content), 0o600)
+	err := os.WriteFile(goModFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations, err := CheckGoModForCGO(goModFile)
@@ -59,7 +59,7 @@ require (
 )
 `
 
-	err := os.WriteFile(goModFile, []byte(content), 0o600)
+	err := os.WriteFile(goModFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations, err := CheckGoModForCGO(goModFile)
@@ -85,7 +85,7 @@ require (
 )
 `
 
-	err := os.WriteFile(goModFile, []byte(content), 0o600)
+	err := os.WriteFile(goModFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations, err := CheckGoModForCGO(goModFile)
@@ -118,7 +118,7 @@ require (
 )
 `
 
-	err := os.WriteFile(goModFile, []byte(content), 0o600)
+	err := os.WriteFile(goModFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	found, err := CheckRequiredCGOModule(goModFile)
@@ -142,7 +142,7 @@ require (
 )
 `
 
-	err := os.WriteFile(goModFile, []byte(content), 0o600)
+	err := os.WriteFile(goModFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	found, err := CheckRequiredCGOModule(goModFile)
@@ -178,7 +178,7 @@ func main() {
 }
 `
 
-	err := os.WriteFile(cleanFile, []byte(content), 0o600)
+	err := os.WriteFile(cleanFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations, err := CheckGoFileForCGO(cleanFile)
@@ -203,7 +203,7 @@ func main() {
 }
 `
 
-	err := os.WriteFile(bannedFile, []byte(content), 0o600)
+	err := os.WriteFile(bannedFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations, err := CheckGoFileForCGO(bannedFile)
@@ -229,7 +229,7 @@ func main() {
 }
 `
 
-	err := os.WriteFile(bannedFile, []byte(content), 0o600)
+	err := os.WriteFile(bannedFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations, err := CheckGoFileForCGO(bannedFile)
@@ -244,7 +244,7 @@ func TestCheckGoFileForCGO_LintGoSkipped(t *testing.T) {
 	// Create temp file in a lint_go directory (should be skipped).
 	tmpDir := t.TempDir()
 	lintGoDir := filepath.Join(tmpDir, "lint_go")
-	require.NoError(t, os.MkdirAll(lintGoDir, 0o755))
+	require.NoError(t, os.MkdirAll(lintGoDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	skippedFile := filepath.Join(lintGoDir, "lint_go.go")
 
@@ -256,7 +256,7 @@ import (
 )
 `
 
-	err := os.WriteFile(skippedFile, []byte(content), 0o600)
+	err := os.WriteFile(skippedFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations, err := CheckGoFileForCGO(skippedFile)
@@ -352,14 +352,14 @@ func TestCheckCGOFreeSQLite_WithTempDir(t *testing.T) {
 	// Build required module string dynamically.
 	var required strings.Builder
 	required.WriteString("modernc.org/")
-	required.WriteString("sqlite")
+	required.WriteString(cryptoutilSharedMagic.TestDatabaseSQLite)
 
 	// Create go.mod with required CGO-free module.
 	goModContent := "module testmod\n\ngo 1.21\n\nrequire (\n\t" + required.String() + " v1.30.0\n)\n"
-	require.NoError(t, os.WriteFile("go.mod", []byte(goModContent), 0o600))
+	require.NoError(t, os.WriteFile("go.mod", []byte(goModContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Create clean Go file.
-	require.NoError(t, os.WriteFile("main.go", []byte(testMainContent), 0o600))
+	require.NoError(t, os.WriteFile("main.go", []byte(testMainContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
@@ -385,10 +385,10 @@ func TestCheckCGOFreeSQLite_MissingRequired(t *testing.T) {
 
 	// Create go.mod WITHOUT required CGO-free module.
 	goModContent := "module testmod\n\ngo 1.21\n"
-	require.NoError(t, os.WriteFile("go.mod", []byte(goModContent), 0o600))
+	require.NoError(t, os.WriteFile("go.mod", []byte(goModContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Create clean Go file.
-	require.NoError(t, os.WriteFile("main.go", []byte(testMainContent), 0o600))
+	require.NoError(t, os.WriteFile("main.go", []byte(testMainContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
@@ -433,7 +433,7 @@ func TestCheck_WalkError(t *testing.T) {
 
 	// Write go.mod with required module so CheckGoModForCGO passes.
 	goModContent := "module testmod\n\ngo 1.21\n\nrequire (\n\tmodernc.org/sqlite v1.30.0\n)\n"
-	require.NoError(t, os.WriteFile("go.mod", []byte(goModContent), 0o600))
+	require.NoError(t, os.WriteFile("go.mod", []byte(goModContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Create chmod 0000 subdir - filepath.Walk callback receives OS error when
 	// Walk tries to ReadDir the locked directory, covering the walk callback
@@ -457,7 +457,7 @@ func TestCheckGoModForCGO_ScannerError(t *testing.T) {
 	// Create a go.mod file with a line longer than bufio.MaxScanTokenSize (64KB) to trigger scanner.Err().
 	longLine := "// " + strings.Repeat("x", 70000) + "\n"
 	goModFile := filepath.Join(tempDir, "go.mod")
-	require.NoError(t, os.WriteFile(goModFile, []byte("module test\n"+longLine), 0o600))
+	require.NoError(t, os.WriteFile(goModFile, []byte("module test\n"+longLine), cryptoutilSharedMagic.CacheFilePermissions))
 
 	_, err := CheckGoModForCGO(goModFile)
 	require.Error(t, err)
@@ -472,7 +472,7 @@ func TestCheckRequiredCGOModule_ScannerError(t *testing.T) {
 	// Create a go.mod file with a line longer than bufio.MaxScanTokenSize (64KB) to trigger scanner.Err().
 	longLine := "// " + strings.Repeat("x", 70000) + "\n"
 	goModFile := filepath.Join(tempDir, "go.mod")
-	require.NoError(t, os.WriteFile(goModFile, []byte("module test\n"+longLine), 0o600))
+	require.NoError(t, os.WriteFile(goModFile, []byte("module test\n"+longLine), cryptoutilSharedMagic.CacheFilePermissions))
 
 	_, err := CheckRequiredCGOModule(goModFile)
 	require.Error(t, err)

@@ -3,6 +3,7 @@
 package issuer
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
 	crand "crypto/rand"
@@ -32,7 +33,7 @@ func BenchmarkCertificateIssuance_ECDSA(b *testing.B) {
 			Organization: []string{"Test Org"},
 		},
 		NotBefore:             time.Now().UTC(),
-		NotAfter:              time.Now().UTC().Add(365 * 24 * time.Hour),
+		NotAfter:              time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		IsCA:                  true,
 		BasicConstraintsValid: true,
 		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
@@ -65,7 +66,7 @@ func BenchmarkCertificateIssuance_ECDSA(b *testing.B) {
 			DNSNames:     []string{"test.example.com", "www.test.example.com"},
 		},
 		PublicKey:        eeKey.Public(),
-		ValidityDuration: 90 * 24 * time.Hour,
+		ValidityDuration: cryptoutilSharedMagic.StrictCertificateMaxAgeDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 
 	b.ResetTimer()
@@ -82,7 +83,7 @@ func BenchmarkCertificateIssuance_ECDSA(b *testing.B) {
 // BenchmarkCertificateIssuance_RSA measures end-entity certificate issuance with RSA keys.
 func BenchmarkCertificateIssuance_RSA(b *testing.B) {
 	// Setup issuing CA with RSA key.
-	caKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	caKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(b, err)
 
 	caCert := &x509.Certificate{
@@ -92,7 +93,7 @@ func BenchmarkCertificateIssuance_RSA(b *testing.B) {
 			Organization: []string{"Test Org"},
 		},
 		NotBefore:             time.Now().UTC(),
-		NotAfter:              time.Now().UTC().Add(365 * 24 * time.Hour),
+		NotAfter:              time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		IsCA:                  true,
 		BasicConstraintsValid: true,
 		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
@@ -115,7 +116,7 @@ func BenchmarkCertificateIssuance_RSA(b *testing.B) {
 	require.NoError(b, err)
 
 	// Generate end-entity RSA key once.
-	eeKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	eeKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(b, err)
 
 	req := &CertificateRequest{
@@ -125,7 +126,7 @@ func BenchmarkCertificateIssuance_RSA(b *testing.B) {
 			DNSNames:     []string{"rsa-test.example.com", "www.rsa-test.example.com"},
 		},
 		PublicKey:        eeKey.Public(),
-		ValidityDuration: 90 * 24 * time.Hour,
+		ValidityDuration: cryptoutilSharedMagic.StrictCertificateMaxAgeDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 
 	b.ResetTimer()
@@ -152,7 +153,7 @@ func BenchmarkCertificateIssuance_Parallel(b *testing.B) {
 			Organization: []string{"Test Org"},
 		},
 		NotBefore:             time.Now().UTC(),
-		NotAfter:              time.Now().UTC().Add(365 * 24 * time.Hour),
+		NotAfter:              time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		IsCA:                  true,
 		BasicConstraintsValid: true,
 		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
@@ -188,7 +189,7 @@ func BenchmarkCertificateIssuance_Parallel(b *testing.B) {
 				DNSNames:     []string{"parallel-test.example.com"},
 			},
 			PublicKey:        eeKey.Public(),
-			ValidityDuration: 90 * 24 * time.Hour,
+			ValidityDuration: cryptoutilSharedMagic.StrictCertificateMaxAgeDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		}
 
 		for pb.Next() {

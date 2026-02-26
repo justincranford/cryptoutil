@@ -5,6 +5,7 @@
 package keygen
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/ecdh"
 	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
@@ -23,14 +24,14 @@ func TestRSAKeyGenerationProperties(t *testing.T) {
 
 	// Reduce iterations for expensive RSA key generation (10 instead of default 100)
 	params := gopter.DefaultTestParameters()
-	params.MinSuccessfulTests = 10
+	params.MinSuccessfulTests = cryptoutilSharedMagic.JoseJADefaultMaxMaterials
 	properties := gopter.NewProperties(params)
 
 	// Property 1: RSA key generation produces valid keys
 	properties.Property("RSA keys are valid for supported bit sizes", prop.ForAll(
 		func(bits uint) bool {
 			// Only test supported RSA bit sizes
-			supportedBits := []int{2048, 3072, 4096}
+			supportedBits := []int{cryptoutilSharedMagic.DefaultMetricsBatchSize, cryptoutilSharedMagic.RSA3072KeySize, cryptoutilSharedMagic.RSA4096KeySize}
 			//nolint:gosec // G115: Intentional modulo for property test array selection
 			rsaBits := supportedBits[int(bits)%len(supportedBits)]
 
@@ -65,8 +66,8 @@ func TestRSAKeyGenerationProperties(t *testing.T) {
 	// Property 2: RSA key generation produces unique keys
 	properties.Property("RSA keys are unique across generations", prop.ForAll(
 		func() bool {
-			keyPair1, err1 := GenerateRSAKeyPair(2048)
-			keyPair2, err2 := GenerateRSAKeyPair(2048)
+			keyPair1, err1 := GenerateRSAKeyPair(cryptoutilSharedMagic.DefaultMetricsBatchSize)
+			keyPair2, err2 := GenerateRSAKeyPair(cryptoutilSharedMagic.DefaultMetricsBatchSize)
 
 			if err1 != nil || err2 != nil {
 				return false
@@ -93,7 +94,7 @@ func TestECDSAKeyGenerationProperties(t *testing.T) {
 
 	// Reduce iterations for faster test execution (25 instead of default 100)
 	params := gopter.DefaultTestParameters()
-	params.MinSuccessfulTests = 25
+	params.MinSuccessfulTests = cryptoutilSharedMagic.TLSMaxValidityCACertYears
 	properties := gopter.NewProperties(params)
 
 	// Property 1: ECDSA key generation produces valid keys for all supported curves
@@ -166,7 +167,7 @@ func TestECDHKeyGenerationProperties(t *testing.T) {
 
 	// Reduce iterations for faster test execution (25 instead of default 100)
 	params := gopter.DefaultTestParameters()
-	params.MinSuccessfulTests = 25
+	params.MinSuccessfulTests = cryptoutilSharedMagic.TLSMaxValidityCACertYears
 	properties := gopter.NewProperties(params)
 
 	// Property 1: ECDH key generation produces valid keys
@@ -199,13 +200,13 @@ func TestEdDSAKeyGenerationProperties(t *testing.T) {
 
 	// Reduce iterations for faster test execution (25 instead of default 100)
 	params := gopter.DefaultTestParameters()
-	params.MinSuccessfulTests = 25
+	params.MinSuccessfulTests = cryptoutilSharedMagic.TLSMaxValidityCACertYears
 	properties := gopter.NewProperties(params)
 
 	// Property 1: EdDSA key generation produces valid Ed25519 keys
 	properties.Property("EdDSA keys are valid for Ed25519", prop.ForAll(
 		func() bool {
-			keyPair, err := GenerateEDDSAKeyPair("Ed25519")
+			keyPair, err := GenerateEDDSAKeyPair(cryptoutilSharedMagic.EdCurveEd25519)
 			if err != nil {
 				return false
 			}
@@ -230,8 +231,8 @@ func TestEdDSAKeyGenerationProperties(t *testing.T) {
 	// Property 2: EdDSA key generation produces unique keys
 	properties.Property("EdDSA keys are unique across generations", prop.ForAll(
 		func() bool {
-			keyPair1, err1 := GenerateEDDSAKeyPair("Ed25519")
-			keyPair2, err2 := GenerateEDDSAKeyPair("Ed25519")
+			keyPair1, err1 := GenerateEDDSAKeyPair(cryptoutilSharedMagic.EdCurveEd25519)
+			keyPair2, err2 := GenerateEDDSAKeyPair(cryptoutilSharedMagic.EdCurveEd25519)
 
 			if err1 != nil || err2 != nil {
 				return false
@@ -268,7 +269,7 @@ func TestAESKeyGenerationProperties(t *testing.T) {
 	// Property 1: AES key generation produces correct key sizes
 	properties.Property("AES keys have correct size for supported bit lengths", prop.ForAll(
 		func(bits uint) bool {
-			supportedBits := []int{128, 192, 256}
+			supportedBits := []int{cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits, cryptoutilSharedMagic.SymmetricKeySize192, cryptoutilSharedMagic.MaxUnsealSharedSecrets}
 			//nolint:gosec // G115: Intentional modulo for property test array selection
 			aesBits := supportedBits[int(bits)%len(supportedBits)]
 
@@ -277,7 +278,7 @@ func TestAESKeyGenerationProperties(t *testing.T) {
 				return false
 			}
 
-			expectedBytes := aesBits / 8
+			expectedBytes := aesBits / cryptoutilSharedMagic.IMMinPasswordLength
 
 			return len(key) == expectedBytes
 		},
@@ -287,8 +288,8 @@ func TestAESKeyGenerationProperties(t *testing.T) {
 	// Property 2: AES key generation produces unique keys
 	properties.Property("AES keys are unique across generations", prop.ForAll(
 		func() bool {
-			key1, err1 := GenerateAESKey(256)
-			key2, err2 := GenerateAESKey(256)
+			key1, err1 := GenerateAESKey(cryptoutilSharedMagic.MaxUnsealSharedSecrets)
+			key2, err2 := GenerateAESKey(cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 
 			if err1 != nil || err2 != nil {
 				return false
@@ -318,7 +319,7 @@ func TestHMACKeyGenerationProperties(t *testing.T) {
 	// Property 1: HMAC key generation produces correct key sizes
 	properties.Property("HMAC keys have correct size for supported bit lengths", prop.ForAll(
 		func(bits uint) bool {
-			supportedBits := []int{256, 384, 512}
+			supportedBits := []int{cryptoutilSharedMagic.MaxUnsealSharedSecrets, cryptoutilSharedMagic.SymmetricKeySize384, cryptoutilSharedMagic.DefaultTracesBatchSize}
 			//nolint:gosec // G115: Intentional modulo for property test array selection
 			hmacBits := supportedBits[int(bits)%len(supportedBits)]
 
@@ -327,7 +328,7 @@ func TestHMACKeyGenerationProperties(t *testing.T) {
 				return false
 			}
 
-			expectedBytes := hmacBits / 8
+			expectedBytes := hmacBits / cryptoutilSharedMagic.IMMinPasswordLength
 
 			return len(key) == expectedBytes
 		},
@@ -337,8 +338,8 @@ func TestHMACKeyGenerationProperties(t *testing.T) {
 	// Property 2: HMAC key generation produces unique keys
 	properties.Property("HMAC keys are unique across generations", prop.ForAll(
 		func() bool {
-			key1, err1 := GenerateHMACKey(512)
-			key2, err2 := GenerateHMACKey(512)
+			key1, err1 := GenerateHMACKey(cryptoutilSharedMagic.DefaultTracesBatchSize)
+			key2, err2 := GenerateHMACKey(cryptoutilSharedMagic.DefaultTracesBatchSize)
 
 			if err1 != nil || err2 != nil {
 				return false

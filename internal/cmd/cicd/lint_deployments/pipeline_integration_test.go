@@ -1,6 +1,7 @@
 package lint_deployments_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -22,14 +23,14 @@ func TestIntegrationFullPipeline(t *testing.T) {
 
 	// Create a realistic deployment structure.
 	// Note: mapDeploymentToConfig maps PRODUCT-SERVICE "jose-ja" -> PRODUCT "jose".
-	deployName := "jose-ja"
-	configName := "jose"
+	deployName := cryptoutilSharedMagic.OTLPServiceJoseJA
+	configName := cryptoutilSharedMagic.JoseProductName
 	svcDeployDir := filepath.Join(deploymentsDir, deployName)
 	svcConfigDir := filepath.Join(configsDir, configName)
 
-	require.NoError(t, os.MkdirAll(filepath.Join(svcDeployDir, "config"), 0o755))
-	require.NoError(t, os.MkdirAll(filepath.Join(svcDeployDir, "secrets"), 0o755))
-	require.NoError(t, os.MkdirAll(filepath.Join(svcConfigDir, "config"), 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Join(svcDeployDir, "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.MkdirAll(filepath.Join(svcDeployDir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.MkdirAll(filepath.Join(svcConfigDir, "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	// Write compose file.
 	composeContent := `services:
@@ -56,7 +57,7 @@ secrets:
     file: ./secrets/test_secret.secret
 `
 	require.NoError(t, os.WriteFile(filepath.Join(svcDeployDir, "compose.yml"),
-		[]byte(composeContent), 0o600))
+		[]byte(composeContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Write config file.
 	configContent := `bind-public-protocol: https
@@ -69,17 +70,17 @@ database-url: "file:///run/secrets/db_url"
 `
 	require.NoError(t, os.WriteFile(
 		filepath.Join(svcConfigDir, "config", "config.yml"),
-		[]byte(configContent), 0o600))
+		[]byte(configContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Write deployment config file (empty placeholder).
 	require.NoError(t, os.WriteFile(
 		filepath.Join(svcDeployDir, "config", "config.yml"),
-		[]byte(configContent), 0o600))
+		[]byte(configContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Write secrets.
 	require.NoError(t, os.WriteFile(
 		filepath.Join(svcDeployDir, "secrets", "test_secret.secret"),
-		[]byte("secret-value"), 0o600))
+		[]byte("secret-value"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Step 1: Generate listings.
 	deploymentsOutput := filepath.Join(deploymentsDir, "deployments-all-files.json")
@@ -134,7 +135,7 @@ func TestIntegrationFullPipeline_DetectsErrors(t *testing.T) {
     environment:
       DB_PASSWORD: supersecret123
 `
-		require.NoError(t, os.WriteFile(composePath, []byte(badCompose), 0o600))
+		require.NoError(t, os.WriteFile(composePath, []byte(badCompose), cryptoutilSharedMagic.CacheFilePermissions))
 
 		result, err := ValidateComposeFile(composePath)
 		require.NoError(t, err)
@@ -151,7 +152,7 @@ func TestIntegrationFullPipeline_DetectsErrors(t *testing.T) {
 bind-private-address: 0.0.0.0
 database-url: "postgres://user:pass@db:5432/mydb"
 `
-		require.NoError(t, os.WriteFile(configPath, []byte(badConfig), 0o600))
+		require.NoError(t, os.WriteFile(configPath, []byte(badConfig), cryptoutilSharedMagic.CacheFilePermissions))
 
 		result, err := ValidateConfigFile(configPath)
 		require.NoError(t, err)
@@ -168,11 +169,11 @@ database-url: "postgres://user:pass@db:5432/mydb"
 		configsDir := filepath.Join(tmpDir, "configs")
 
 		// Create deployment without matching config.
-		require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, "svc-a", "config"), 0o755))
+		require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, "svc-a", "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.WriteFile(
 			filepath.Join(deploymentsDir, "svc-a", "compose.yml"),
-			[]byte("services: {}"), 0o600))
-		require.NoError(t, os.MkdirAll(configsDir, 0o755))
+			[]byte("services: {}"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.MkdirAll(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 		result, err := ValidateStructuralMirror(deploymentsDir, configsDir)
 		require.NoError(t, err)

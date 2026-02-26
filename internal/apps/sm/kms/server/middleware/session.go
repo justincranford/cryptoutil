@@ -15,6 +15,7 @@
 package middleware
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"errors"
 	"strings"
@@ -72,7 +73,7 @@ func SessionMiddleware(validator SessionValidator, cookieName string, isBrowser 
 			token = c.Cookies(cookieName)
 			if token == "" {
 				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-					"error":   "unauthorized",
+					cryptoutilSharedMagic.StringError:   "unauthorized",
 					"message": "Missing session cookie",
 				})
 			}
@@ -80,7 +81,7 @@ func SessionMiddleware(validator SessionValidator, cookieName string, isBrowser 
 			authHeader := c.Get("Authorization")
 			if authHeader == "" {
 				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-					"error":   "unauthorized",
+					cryptoutilSharedMagic.StringError:   "unauthorized",
 					"message": "Missing Authorization header",
 				})
 			}
@@ -88,7 +89,7 @@ func SessionMiddleware(validator SessionValidator, cookieName string, isBrowser 
 			parts := strings.SplitN(authHeader, " ", 2)
 			if len(parts) != 2 || !strings.EqualFold(parts[0], "bearer") {
 				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-					"error":   "unauthorized",
+					cryptoutilSharedMagic.StringError:   "unauthorized",
 					"message": "Invalid Authorization header format",
 				})
 			}
@@ -98,7 +99,7 @@ func SessionMiddleware(validator SessionValidator, cookieName string, isBrowser 
 
 		if token == "" {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error":   "unauthorized",
+				cryptoutilSharedMagic.StringError:   "unauthorized",
 				"message": "Empty session token",
 			})
 		}
@@ -118,7 +119,7 @@ func SessionMiddleware(validator SessionValidator, cookieName string, isBrowser 
 
 		if err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error":   "unauthorized",
+				cryptoutilSharedMagic.StringError:   "unauthorized",
 				"message": "Invalid or expired session",
 			})
 		}
@@ -157,7 +158,7 @@ func RequireSessionMiddleware() fiber.Handler {
 		sessionInfo := GetSessionInfo(c.UserContext())
 		if sessionInfo == nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error":   "unauthorized",
+				cryptoutilSharedMagic.StringError:   "unauthorized",
 				"message": "Session required",
 			})
 		}

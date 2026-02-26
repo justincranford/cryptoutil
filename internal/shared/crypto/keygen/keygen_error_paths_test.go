@@ -3,6 +3,7 @@
 package keygen
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/ecdh"
 	"crypto/elliptic"
 	"errors"
@@ -21,7 +22,7 @@ func TestGenerateRSAKeyPair_RandError(t *testing.T) {
 
 	defer func() { keygenRandReader = orig }()
 
-	_, err := GenerateRSAKeyPair(2048)
+	_, err := GenerateRSAKeyPair(cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.Error(t, err)
 }
 
@@ -72,7 +73,7 @@ func TestGenerateAESKey_GenerateBytesError(t *testing.T) {
 
 	defer func() { keygenGenerateBytesFn = orig }()
 
-	_, err := GenerateAESKey(128)
+	_, err := GenerateAESKey(cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits)
 	require.ErrorIs(t, err, injectedErr)
 }
 
@@ -83,7 +84,7 @@ func TestGenerateAESHSKey_GenerateBytesError(t *testing.T) {
 
 	defer func() { keygenGenerateBytesFn = orig }()
 
-	_, err := GenerateAESHSKey(256)
+	_, err := GenerateAESHSKey(cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 	require.ErrorIs(t, err, injectedErr)
 }
 
@@ -94,6 +95,6 @@ func TestGenerateHMACKey_GenerateBytesError(t *testing.T) {
 
 	defer func() { keygenGenerateBytesFn = orig }()
 
-	_, err := GenerateHMACKey(256)
+	_, err := GenerateHMACKey(cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 	require.ErrorIs(t, err, injectedErr)
 }

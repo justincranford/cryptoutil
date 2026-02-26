@@ -4,6 +4,7 @@
 package pbkdf2
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"strings"
 	"testing"
 
@@ -30,7 +31,7 @@ func TestHashPassword(t *testing.T) {
 		},
 		{
 			name:        "long password",
-			password:    strings.Repeat("a", 1000),
+			password:    strings.Repeat("a", cryptoutilSharedMagic.JoseJADefaultListLimit),
 			expectError: false,
 		},
 	}
@@ -51,9 +52,9 @@ func TestHashPassword(t *testing.T) {
 
 				// Verify hash format: $pbkdf2-sha256$iterations$salt$hash
 				parts := strings.Split(hash, "$")
-				require.Len(t, parts, 5)
+				require.Len(t, parts, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 				require.Equal(t, "", parts[0])
-				require.Equal(t, "pbkdf2-sha256", parts[1])
+				require.Equal(t, cryptoutilSharedMagic.PBKDF2Prefix, parts[1])
 				require.Equal(t, "600000", parts[2])
 				require.NotEmpty(t, parts[3]) // salt
 				require.NotEmpty(t, parts[4]) // hash
@@ -194,19 +195,19 @@ func TestHashPasswordWithIterations(t *testing.T) {
 		{
 			name:        "minimum iterations (210000)",
 			password:    "Password123!",
-			iterations:  210000,
+			iterations:  cryptoutilSharedMagic.PBKDF2MinIterations,
 			expectError: false,
 		},
 		{
 			name:        "recommended iterations (600000)",
 			password:    "Password123!",
-			iterations:  600000,
+			iterations:  cryptoutilSharedMagic.IMPBKDF2Iterations,
 			expectError: false,
 		},
 		{
 			name:        "too few iterations",
 			password:    "Password123!",
-			iterations:  100000,
+			iterations:  cryptoutilSharedMagic.PBKDF2Iterations,
 			expectError: true,
 		},
 	}

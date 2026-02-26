@@ -20,18 +20,18 @@ var (
 func Initialize() error {
 	// Create shared ServiceTemplateServerSettings fixture for tests (port 0 for dynamic allocation).
 	serverSettings = &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
-		BindPublicProtocol:          "https",
+		BindPublicProtocol:          cryptoutilSharedMagic.ProtocolHTTPS,
 		BindPublicAddress:           cryptoutilSharedMagic.IPv4Loopback,
 		BindPublicPort:              0,
-		BindPrivateProtocol:         "https",
+		BindPrivateProtocol:         cryptoutilSharedMagic.ProtocolHTTPS,
 		BindPrivateAddress:          cryptoutilSharedMagic.IPv4Loopback,
 		BindPrivatePort:             0,
-		PublicBrowserAPIContextPath: "/browser",
-		PublicServiceAPIContextPath: "/service",
+		PublicBrowserAPIContextPath: cryptoutilSharedMagic.PathPrefixBrowser,
+		PublicServiceAPIContextPath: cryptoutilSharedMagic.PathPrefixService,
 		PrivateAdminAPIContextPath:  "/admin",
-		TLSPublicDNSNames:           []string{"localhost"},
+		TLSPublicDNSNames:           []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault},
 		TLSPublicIPAddresses:        []string{cryptoutilSharedMagic.IPv4Loopback},
-		TLSPrivateDNSNames:          []string{"localhost"},
+		TLSPrivateDNSNames:          []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault},
 		TLSPrivateIPAddresses:       []string{cryptoutilSharedMagic.IPv4Loopback},
 		TLSPublicMode:               cryptoutilAppsTemplateServiceConfig.TLSModeAuto,
 		TLSPrivateMode:              cryptoutilAppsTemplateServiceConfig.TLSModeAuto,
@@ -40,12 +40,12 @@ func Initialize() error {
 	// Generate shared TLS fixtures for tests (auto-mode, localhost/IPs).
 	var err error
 
-	publicTLS, err = cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings([]string{"localhost"}, []string{cryptoutilSharedMagic.IPv4Loopback}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
+	publicTLS, err = cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings([]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []string{cryptoutilSharedMagic.IPv4Loopback}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
 	if err != nil {
 		return fmt.Errorf("failed to generate public TLS settings: %w", err)
 	}
 
-	privateTLS, err = cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings([]string{"localhost"}, []string{cryptoutilSharedMagic.IPv4Loopback}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
+	privateTLS, err = cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings([]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []string{cryptoutilSharedMagic.IPv4Loopback}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
 	if err != nil {
 		return fmt.Errorf("failed to generate private TLS settings: %w", err)
 	}

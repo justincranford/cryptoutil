@@ -5,6 +5,7 @@
 package repository
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -60,7 +61,7 @@ func TestMessageRepository_Create(t *testing.T) {
 			message: &cryptoutilAppsSmImDomain.Message{
 				ID:       *testJWKGenService.GenerateUUIDv7(),
 				SenderID: sender.ID,
-				JWE:      `{"protected":"...","ciphertext":"` + string(make([]byte, 4096)) + `"}`,
+				JWE:      `{"protected":"...","ciphertext":"` + string(make([]byte, cryptoutilSharedMagic.RSA4096KeySize)) + `"}`,
 			},
 			wantErr: false,
 		},

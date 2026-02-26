@@ -5,6 +5,7 @@
 package builder
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"database/sql"
 	"fmt"
 
@@ -83,6 +84,6 @@ func NewDatabaseConfig(url string) *DatabaseConfig {
 	return &DatabaseConfig{
 		URL:           url,
 		VerboseMode:   false,
-		ContainerMode: "disabled",
+		ContainerMode: cryptoutilSharedMagic.DefaultDatabaseContainerDisabled,
 	}
 }

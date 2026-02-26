@@ -3,6 +3,7 @@
 package security
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
@@ -282,7 +283,7 @@ func createTestCACert(t *testing.T, key *ecdsa.PrivateKey, parent *x509.Certific
 			CommonName: cn,
 		},
 		NotBefore:             time.Now().UTC(),
-		NotAfter:              time.Now().UTC().Add(365 * 24 * time.Hour),
+		NotAfter:              time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
 		BasicConstraintsValid: true,
 		IsCA:                  true,
@@ -312,7 +313,7 @@ func createTestLeafCert(t *testing.T, key *ecdsa.PrivateKey, parent *x509.Certif
 			CommonName: cn,
 		},
 		NotBefore:             time.Now().UTC(),
-		NotAfter:              time.Now().UTC().Add(365 * 24 * time.Hour),
+		NotAfter:              time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		KeyUsage:              x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		BasicConstraintsValid: true,

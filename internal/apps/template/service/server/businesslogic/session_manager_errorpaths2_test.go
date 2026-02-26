@@ -382,8 +382,8 @@ func TestInitializeSessionJWK_ServiceStoreError(t *testing.T) {
 	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		BrowserSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmJWS),
 		ServiceSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmJWS),
-		BrowserSessionJWSAlgorithm: "RS256",
-		ServiceSessionJWSAlgorithm: "RS256",
+		BrowserSessionJWSAlgorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		ServiceSessionJWSAlgorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 	}
 
 	sm := NewSessionManager(db, nil, config)

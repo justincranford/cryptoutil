@@ -4,6 +4,7 @@
 package service
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"fmt"
@@ -30,7 +31,7 @@ func createClosedServiceDependencies() (*gorm.DB, cryptoutilAppsJoseJaRepository
 	dbID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
 
-	sqlDB, err := sql.Open("sqlite", dsn)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	if err != nil {
 		return nil, nil, nil, nil, nil, fmt.Errorf("failed to open SQLite: %w", err)
 	}
@@ -84,7 +85,7 @@ func TestElasticJWKService_CreateDatabaseError(t *testing.T) {
 	svc := NewElasticJWKService(elasticRepo, materialRepo, testJWKGenService, testBarrierService)
 
 	// Valid parameters, but database is closed.
-	_, _, err = svc.CreateElasticJWK(ctx, googleUuid.New(), "RS256", cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	_, _, err = svc.CreateElasticJWK(ctx, googleUuid.New(), cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "failed to create elastic JWK"))
 }
@@ -112,7 +113,7 @@ func TestElasticJWKService_ListDatabaseError(t *testing.T) {
 	ctx := context.Background()
 	svc := NewElasticJWKService(elasticRepo, materialRepo, testJWKGenService, testBarrierService)
 
-	_, _, err = svc.ListElasticJWKs(ctx, googleUuid.New(), 0, 10)
+	_, _, err = svc.ListElasticJWKs(ctx, googleUuid.New(), 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "failed to list elastic JWKs"))
 }
@@ -163,7 +164,7 @@ func TestAuditLogService_ListAuditLogsDatabaseError(t *testing.T) {
 	ctx := context.Background()
 	svc := NewAuditLogService(auditLogRepo, auditConfigRepo, elasticRepo)
 
-	_, _, err = svc.ListAuditLogs(ctx, googleUuid.New(), 0, 10)
+	_, _, err = svc.ListAuditLogs(ctx, googleUuid.New(), 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "failed to list audit logs"))
 }
@@ -177,7 +178,7 @@ func TestAuditLogService_ListAuditLogsByElasticJWKDatabaseError(t *testing.T) {
 	ctx := context.Background()
 	svc := NewAuditLogService(auditLogRepo, auditConfigRepo, elasticRepo)
 
-	_, _, err = svc.ListAuditLogsByElasticJWK(ctx, googleUuid.New(), googleUuid.New(), 0, 10)
+	_, _, err = svc.ListAuditLogsByElasticJWK(ctx, googleUuid.New(), googleUuid.New(), 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.Error(t, err)
 	// Could fail on get elastic JWK or list logs.
 	require.True(t,
@@ -195,7 +196,7 @@ func TestAuditLogService_ListAuditLogsByOperationDatabaseError(t *testing.T) {
 	ctx := context.Background()
 	svc := NewAuditLogService(auditLogRepo, auditConfigRepo, elasticRepo)
 
-	_, _, err = svc.ListAuditLogsByOperation(ctx, googleUuid.New(), "test-operation", 0, 10)
+	_, _, err = svc.ListAuditLogsByOperation(ctx, googleUuid.New(), "test-operation", 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "failed to list audit logs"))
 }
@@ -228,7 +229,7 @@ func TestAuditLogService_UpdateAuditConfigDatabaseError(t *testing.T) {
 		TenantID:     tenantID,
 		Operation:    "test-operation",
 		Enabled:      true,
-		SamplingRate: 1.0,
+		SamplingRate: cryptoutilSharedMagic.TestProbAlways,
 	}
 
 	err = svc.UpdateAuditConfig(ctx, tenantID, config)
@@ -245,7 +246,7 @@ func TestAuditLogService_CleanupOldLogsDatabaseError(t *testing.T) {
 	ctx := context.Background()
 	svc := NewAuditLogService(auditLogRepo, auditConfigRepo, elasticRepo)
 
-	_, err = svc.CleanupOldLogs(ctx, googleUuid.New(), 30)
+	_, err = svc.CleanupOldLogs(ctx, googleUuid.New(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days)
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "failed to delete old audit logs"))
 }

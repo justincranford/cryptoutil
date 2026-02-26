@@ -5,6 +5,7 @@
 package digests
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 )
 
@@ -54,7 +55,7 @@ func BenchmarkSHA224(b *testing.B) {
 
 // BenchmarkSHA512Large benchmarks SHA512 with large data.
 func BenchmarkSHA512Large(b *testing.B) {
-	data := make([]byte, 1024*1024) // 1MB of data
+	data := make([]byte, cryptoutilSharedMagic.DefaultLogsBatchSize*cryptoutilSharedMagic.DefaultLogsBatchSize) // 1MB of data
 
 	b.ResetTimer()
 
@@ -65,7 +66,7 @@ func BenchmarkSHA512Large(b *testing.B) {
 
 // BenchmarkSHA256Large benchmarks SHA256 with large data.
 func BenchmarkSHA256Large(b *testing.B) {
-	data := make([]byte, 1024*1024) // 1MB of data
+	data := make([]byte, cryptoutilSharedMagic.DefaultLogsBatchSize*cryptoutilSharedMagic.DefaultLogsBatchSize) // 1MB of data
 
 	b.ResetTimer()
 

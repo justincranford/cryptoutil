@@ -3,6 +3,7 @@
 package dpop
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	sha256 "crypto/sha256"
 	"encoding/base64"
 	json "encoding/json"
@@ -126,7 +127,7 @@ func TestValidateProof(t *testing.T) {
 				require.Equal(t, strings.ToUpper(testCase.httpMethod), strings.ToUpper(proof.HTM))
 				require.Equal(t, testCase.httpURI, proof.HTU)
 				require.Equal(t, expectedThumbprint, proof.JWKThumbprint)
-				require.WithinDuration(t, time.Now().UTC(), proof.IAT, 60*time.Second)
+				require.WithinDuration(t, time.Now().UTC(), proof.IAT, cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds*time.Second)
 			}
 		})
 	}
@@ -225,10 +226,10 @@ func buildValidProof(t *testing.T, privateKey, publicKey joseJwk.Key, httpMethod
 	t.Helper()
 
 	token := joseJwt.New()
-	require.NoError(t, token.Set("jti", "unique-jti-value"))
+	require.NoError(t, token.Set(cryptoutilSharedMagic.ClaimJti, "unique-jti-value"))
 	require.NoError(t, token.Set("htm", httpMethod))
 	require.NoError(t, token.Set("htu", httpURI))
-	require.NoError(t, token.Set("iat", time.Now().UTC().Unix()))
+	require.NoError(t, token.Set(cryptoutilSharedMagic.ClaimIat, time.Now().UTC().Unix()))
 
 	if accessToken != "" {
 		ath := ComputeAccessTokenHash(accessToken)
@@ -254,7 +255,7 @@ func buildAccessTokenWithCnf(t *testing.T, jkt string) string {
 	require.NoError(t, err)
 
 	token := joseJwt.New()
-	require.NoError(t, token.Set("sub", "test-subject"))
+	require.NoError(t, token.Set(cryptoutilSharedMagic.ClaimSub, "test-subject"))
 	require.NoError(t, token.Set("cnf", map[string]any{"jkt": jkt}))
 
 	signed, err := joseJwt.Sign(token, joseJwt.WithKey(joseJwa.ES256(), privateKey))
@@ -271,7 +272,7 @@ func buildAccessTokenWithoutCnf(t *testing.T) string {
 	require.NoError(t, err)
 
 	token := joseJwt.New()
-	require.NoError(t, token.Set("sub", "test-subject"))
+	require.NoError(t, token.Set(cryptoutilSharedMagic.ClaimSub, "test-subject"))
 
 	signed, err := joseJwt.Sign(token, joseJwt.WithKey(joseJwa.ES256(), privateKey))
 	require.NoError(t, err)

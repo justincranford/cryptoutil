@@ -3,6 +3,7 @@
 package cicd
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"fmt"
 	"os"
@@ -81,7 +82,7 @@ No ref on this line.
 
 	require.Len(t, refs, 2)
 	require.Equal(t, "test-file.md", refs[0].SourceFile)
-	require.Equal(t, 5, refs[0].LineNumber)
+	require.Equal(t, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, refs[0].LineNumber)
 	require.Equal(t, "11-vision-statement", refs[0].Anchor)
 	require.Equal(t, "64-cryptographic-architecture", refs[1].Anchor)
 }
@@ -118,8 +119,8 @@ func TestTruncateRef(t *testing.T) {
 		expected string
 	}{
 		{name: "short line", input: "short", expected: "short"},
-		{name: "exact 120", input: strings.Repeat("a", 120), expected: strings.Repeat("a", 120)},
-		{name: "over 120", input: strings.Repeat("b", 130), expected: strings.Repeat("b", 120) + "..."},
+		{name: "exact cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes", input: strings.Repeat("a", cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes), expected: strings.Repeat("a", 120)},
+		{name: "over cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes", input: strings.Repeat("b", 130), expected: strings.Repeat("b", 120) + "..."},
 		{name: "with leading spaces", input: "  trimmed  ", expected: "trimmed"},
 	}
 
@@ -152,9 +153,9 @@ See [ARCHITECTURE.md Section 99.9](../../docs/ARCHITECTURE.md#99-nonexistent) br
 	require.NoError(t, os.MkdirAll(rootDir+"/.github/instructions", 0o700))
 	require.NoError(t, os.MkdirAll(rootDir+"/.github/agents", 0o700))
 	require.NoError(t, os.MkdirAll(rootDir+"/docs", 0o700))
-	require.NoError(t, os.WriteFile(rootDir+"/docs/ARCHITECTURE.md", []byte(archContent), 0o600))
-	require.NoError(t, os.WriteFile(rootDir+"/.github/instructions/test.instructions.md", []byte(instructionContent), 0o600))
-	require.NoError(t, os.WriteFile(rootDir+"/.github/copilot-instructions.md", []byte("No refs here."), 0o600))
+	require.NoError(t, os.WriteFile(rootDir+"/docs/ARCHITECTURE.md", []byte(archContent), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(rootDir+"/.github/instructions/test.instructions.md", []byte(instructionContent), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(rootDir+"/.github/copilot-instructions.md", []byte("No refs here."), cryptoutilSharedMagic.CacheFilePermissions))
 
 	readFile := func(path string) ([]byte, error) {
 		return os.ReadFile(rootDir + "/" + path)
@@ -202,10 +203,10 @@ func TestFormatPropagationResults_AllValid(t *testing.T) {
 		ValidRefs:    []PropagationRef{{Anchor: "test"}},
 		BrokenRefs:   nil,
 		OrphanedKeys: nil,
-		TotalAnchors: 10,
+		TotalAnchors: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 		HighImpact:   LevelCoverage{Total: 3, Referenced: 3},
-		MediumImpact: LevelCoverage{Total: 7, Referenced: 5},
-		LowImpact:    LevelCoverage{Total: 10, Referenced: 2},
+		MediumImpact: LevelCoverage{Total: cryptoutilSharedMagic.GitRecentActivityDays, Referenced: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
+		LowImpact:    LevelCoverage{Total: cryptoutilSharedMagic.JoseJADefaultMaxMaterials, Referenced: 2},
 	}
 
 	report := FormatPropagationResults(result)
@@ -224,18 +225,18 @@ func TestFormatPropagationResults_WithBroken(t *testing.T) {
 
 	result := &PropagationResult{
 		ValidRefs:    []PropagationRef{{Anchor: "valid"}},
-		BrokenRefs:   []PropagationRef{{SourceFile: "test.md", LineNumber: 5, Anchor: "broken"}},
+		BrokenRefs:   []PropagationRef{{SourceFile: "test.md", LineNumber: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, Anchor: "broken"}},
 		OrphanedKeys: []string{"orphan1"},
-		TotalAnchors: 10,
+		TotalAnchors: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 		HighImpact:   LevelCoverage{Total: 2, Referenced: 1},
-		MediumImpact: LevelCoverage{Total: 5, Referenced: 2},
+		MediumImpact: LevelCoverage{Total: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, Referenced: 2},
 	}
 
 	report := FormatPropagationResults(result)
 	require.Contains(t, report, "BROKEN REFERENCES (1)")
 	require.Contains(t, report, "test.md:5 -> #broken")
 	require.Contains(t, report, "ORPHANED SECTIONS (1 of 10")
-	require.Contains(t, report, "FAILED")
+	require.Contains(t, report, cryptoutilSharedMagic.TaskFailed)
 	require.Contains(t, report, "High   (##  ): 1/2 (50%)")
 	require.Contains(t, report, "Medium (### ): 2/5 (40%)")
 	require.Contains(t, report, "Combined ##/###: 3/7 (42%)")
@@ -251,9 +252,9 @@ func TestFormatLevelCoverage(t *testing.T) {
 		expected string
 	}{
 		{name: "zero total", label: "Test", lc: LevelCoverage{Total: 0, Referenced: 0}, expected: "Test: 0/0 (N/A)\n"},
-		{name: "full coverage", label: "High", lc: LevelCoverage{Total: 5, Referenced: 5}, expected: "High: 5/5 (100%)\n"},
-		{name: "partial coverage", label: "Med", lc: LevelCoverage{Total: 10, Referenced: 3}, expected: "Med: 3/10 (30%)\n"},
-		{name: "no coverage", label: "Low", lc: LevelCoverage{Total: 8, Referenced: 0}, expected: "Low: 0/8 (0%)\n"},
+		{name: "full coverage", label: "High", lc: LevelCoverage{Total: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, Referenced: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries}, expected: "High: 5/5 (100%)\n"},
+		{name: "partial coverage", label: "Med", lc: LevelCoverage{Total: cryptoutilSharedMagic.JoseJADefaultMaxMaterials, Referenced: 3}, expected: "Med: 3/10 (30%)\n"},
+		{name: "no coverage", label: "Low", lc: LevelCoverage{Total: cryptoutilSharedMagic.IMMinPasswordLength, Referenced: 0}, expected: "Low: 0/8 (0%)\n"},
 		{name: "integer truncation", label: "X", lc: LevelCoverage{Total: 3, Referenced: 1}, expected: "X: 1/3 (33%)\n"},
 	}
 

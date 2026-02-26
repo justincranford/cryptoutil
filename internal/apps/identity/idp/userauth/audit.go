@@ -6,6 +6,7 @@
 package userauth
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	"time"
@@ -107,7 +108,7 @@ func (l *TelemetryAuditLogger) LogTokenGeneration(ctx context.Context, event Tok
 	attrs := []attribute.KeyValue{
 		attribute.String("user_id", event.UserID),
 		attribute.String("token_id", event.TokenID.String()),
-		attribute.String("token_type", event.TokenType),
+		attribute.String(cryptoutilSharedMagic.ParamTokenType, event.TokenType),
 		attribute.String("provider", event.Provider),
 		attribute.Int64("expires_at", event.ExpiresAt.Unix()),
 	}
@@ -134,7 +135,7 @@ func (l *TelemetryAuditLogger) LogValidationAttempt(ctx context.Context, event V
 	attrs := []attribute.KeyValue{
 		attribute.String("user_id", event.UserID),
 		attribute.String("token_id", event.TokenID.String()),
-		attribute.String("token_type", event.TokenType),
+		attribute.String(cryptoutilSharedMagic.ParamTokenType, event.TokenType),
 		attribute.Bool("success", event.Success),
 		attribute.Int("remaining_attempts", event.RemainingAttempts),
 	}
@@ -160,7 +161,7 @@ func (l *TelemetryAuditLogger) LogTokenInvalidation(ctx context.Context, event T
 	attrs := []attribute.KeyValue{
 		attribute.String("user_id", event.UserID),
 		attribute.String("token_id", event.TokenID.String()),
-		attribute.String("token_type", event.TokenType),
+		attribute.String(cryptoutilSharedMagic.ParamTokenType, event.TokenType),
 		attribute.String("reason", event.Reason),
 	}
 

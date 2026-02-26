@@ -5,6 +5,7 @@
 package repository
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"fmt"
@@ -30,7 +31,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", dbID.String())
 
-	sqlDB, err := sql.Open("sqlite", dsn)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	require.NoError(t, err)
 
 	if _, err := sqlDB.ExecContext(context.Background(), "PRAGMA journal_mode=WAL;"); err != nil {
@@ -52,8 +53,8 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	gormDB, err := db.DB()
 	require.NoError(t, err)
 
-	gormDB.SetMaxOpenConns(5)
-	gormDB.SetMaxIdleConns(5)
+	gormDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+	gormDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	gormDB.SetConnMaxLifetime(0)
 	gormDB.SetConnMaxIdleTime(0)
 
@@ -74,7 +75,7 @@ func TestJTIReplayCacheRepository_Store(t *testing.T) {
 	ctx := context.Background()
 	jti := "test-jti-" + googleUuid.NewString()
 	clientID := googleUuid.New()
-	expiresAt := time.Now().UTC().Add(10 * time.Minute)
+	expiresAt := time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute)
 
 	// First store should succeed
 	err := repo.Store(ctx, jti, clientID, expiresAt)
@@ -96,7 +97,7 @@ func TestJTIReplayCacheRepository_Exists(t *testing.T) {
 	ctx := context.Background()
 	jti := "test-jti-" + googleUuid.NewString()
 	clientID := googleUuid.New()
-	expiresAt := time.Now().UTC().Add(10 * time.Minute)
+	expiresAt := time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute)
 
 	// JTI should not exist initially
 	exists, err := repo.Exists(ctx, jti)
@@ -130,7 +131,7 @@ func TestJTIReplayCacheRepository_DeleteExpired(t *testing.T) {
 
 	// Store valid JTI (expires in future)
 	validJTI := "valid-jti-" + googleUuid.NewString()
-	err = repo.Store(ctx, validJTI, clientID, time.Now().UTC().Add(10*time.Minute))
+	err = repo.Store(ctx, validJTI, clientID, time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Minute))
 	require.NoError(t, err)
 
 	// Delete expired entries

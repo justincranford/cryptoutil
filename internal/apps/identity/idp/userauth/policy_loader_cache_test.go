@@ -3,6 +3,7 @@
 package userauth
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"os"
 	"path/filepath"
@@ -91,11 +92,11 @@ tuning:
   baseline_staleness_threshold: "30d"
 `
 
-	err := os.WriteFile(riskScoringFile, []byte(riskScoringContent), 0o600)
+	err := os.WriteFile(riskScoringFile, []byte(riskScoringContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
-	err = os.WriteFile(stepUpFile, []byte(stepUpContent), 0o600)
+	err = os.WriteFile(stepUpFile, []byte(stepUpContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
-	err = os.WriteFile(adaptiveAuthFile, []byte(adaptiveAuthContent), 0o600)
+	err = os.WriteFile(adaptiveAuthFile, []byte(adaptiveAuthContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	loader := NewYAMLPolicyLoader(riskScoringFile, stepUpFile, adaptiveAuthFile)
@@ -138,7 +139,7 @@ func TestYAMLPolicyLoader_HotReload(t *testing.T) {
 
 	initialContent := testRiskScoringYAML
 
-	err := os.WriteFile(riskScoringFile, []byte(initialContent), 0o600)
+	err := os.WriteFile(riskScoringFile, []byte(initialContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	loader := NewYAMLPolicyLoader(riskScoringFile, "", "")
@@ -149,7 +150,7 @@ func TestYAMLPolicyLoader_HotReload(t *testing.T) {
 	require.Equal(t, "1.0", policy1.Version)
 
 	// Enable hot-reload with short interval.
-	err = loader.EnableHotReload(ctx, 100*time.Millisecond)
+	err = loader.EnableHotReload(ctx, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond)
 	require.NoError(t, err)
 
 	// Wait for hot-reload to invalidate cache.

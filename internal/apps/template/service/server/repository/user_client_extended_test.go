@@ -3,6 +3,7 @@
 package repository
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -33,8 +34,8 @@ func TestUserRepository_GetByID(t *testing.T) {
 	user := &User{
 		ID:       googleUuid.New(),
 		TenantID: tenant.ID,
-		Username: "testuser_" + googleUuid.New().String()[:8],
-		Email:    "testuser_" + googleUuid.New().String()[:8] + "@example.com",
+		Username: "testuser_" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength],
+		Email:    "testuser_" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength] + "@example.com",
 		Active:   1,
 	}
 
@@ -78,12 +79,12 @@ func TestUserRepository_GetByEmail(t *testing.T) {
 	err := tenantRepo.Create(ctx, tenant)
 	require.NoError(t, err)
 
-	email := "unique_" + googleUuid.New().String()[:8] + "@example.com"
+	email := "unique_" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength] + "@example.com"
 
 	user := &User{
 		ID:       googleUuid.New(),
 		TenantID: tenant.ID,
-		Username: "testuser_" + googleUuid.New().String()[:8],
+		Username: "testuser_" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		Email:    email,
 		Active:   1,
 	}
@@ -130,15 +131,15 @@ func TestUserRepository_Update(t *testing.T) {
 	user := &User{
 		ID:       googleUuid.New(),
 		TenantID: tenant.ID,
-		Username: "testuser_" + googleUuid.New().String()[:8],
-		Email:    "original_" + googleUuid.New().String()[:8] + "@example.com",
+		Username: "testuser_" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength],
+		Email:    "original_" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength] + "@example.com",
 		Active:   1,
 	}
 
 	err = userRepo.Create(ctx, user)
 	require.NoError(t, err)
 
-	newEmail := "updated_" + googleUuid.New().String()[:8] + "@example.com"
+	newEmail := "updated_" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength] + "@example.com"
 	user.Email = newEmail
 
 	err = userRepo.Update(ctx, user)
@@ -171,8 +172,8 @@ func TestUserRepository_Delete(t *testing.T) {
 	user := &User{
 		ID:       googleUuid.New(),
 		TenantID: tenant.ID,
-		Username: "testuser_" + googleUuid.New().String()[:8],
-		Email:    "todelete_" + googleUuid.New().String()[:8] + "@example.com",
+		Username: "testuser_" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength],
+		Email:    "todelete_" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength] + "@example.com",
 		Active:   1,
 	}
 
@@ -208,7 +209,7 @@ func TestClientRepository_GetByID(t *testing.T) {
 	client := &Client{
 		ID:       googleUuid.New(),
 		TenantID: tenant.ID,
-		ClientID: "client_" + googleUuid.New().String()[:8],
+		ClientID: "client_" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		Active:   1,
 	}
 
@@ -251,7 +252,7 @@ func TestClientRepository_GetByClientID(t *testing.T) {
 	err := tenantRepo.Create(ctx, tenant)
 	require.NoError(t, err)
 
-	clientID := "unique_client_" + googleUuid.New().String()[:8]
+	clientID := "unique_client_" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength]
 
 	client := &Client{
 		ID:       googleUuid.New(),
@@ -302,14 +303,14 @@ func TestClientRepository_ListByTenant(t *testing.T) {
 	client1 := &Client{
 		ID:       googleUuid.New(),
 		TenantID: tenant.ID,
-		ClientID: "client1_" + googleUuid.New().String()[:8],
+		ClientID: "client1_" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		Active:   1,
 	}
 
 	client2 := &Client{
 		ID:       googleUuid.New(),
 		TenantID: tenant.ID,
-		ClientID: "client2_" + googleUuid.New().String()[:8],
+		ClientID: "client2_" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		Active:   0,
 	}
 
@@ -350,7 +351,7 @@ func TestClientRepository_Update(t *testing.T) {
 	client := &Client{
 		ID:       googleUuid.New(),
 		TenantID: tenant.ID,
-		ClientID: "original_" + googleUuid.New().String()[:8],
+		ClientID: "original_" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		Name:     "Original Name",
 		Active:   1,
 	}
@@ -390,7 +391,7 @@ func TestClientRepository_Delete(t *testing.T) {
 	client := &Client{
 		ID:       googleUuid.New(),
 		TenantID: tenant.ID,
-		ClientID: "todelete_" + googleUuid.New().String()[:8],
+		ClientID: "todelete_" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		Active:   1,
 	}
 

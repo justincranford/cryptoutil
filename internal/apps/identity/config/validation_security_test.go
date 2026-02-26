@@ -5,6 +5,7 @@
 package config
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
 
@@ -24,7 +25,7 @@ func TestSecurityConfig_Validate(t *testing.T) {
 			name: "valid_s256_pkce",
 			config: &SecurityConfig{
 				RequirePKCE:         true,
-				PKCEChallengeMethod: "S256",
+				PKCEChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 				RateLimitEnabled:    false,
 			},
 			expectError: false,
@@ -33,7 +34,7 @@ func TestSecurityConfig_Validate(t *testing.T) {
 			name: "valid_plain_pkce",
 			config: &SecurityConfig{
 				RequirePKCE:         true,
-				PKCEChallengeMethod: "plain",
+				PKCEChallengeMethod: cryptoutilSharedMagic.PKCEMethodPlain,
 				RateLimitEnabled:    false,
 			},
 			expectError: false,
@@ -42,10 +43,10 @@ func TestSecurityConfig_Validate(t *testing.T) {
 			name: "valid_with_rate_limiting",
 			config: &SecurityConfig{
 				RequirePKCE:         true,
-				PKCEChallengeMethod: "S256",
+				PKCEChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 				RateLimitEnabled:    true,
-				RateLimitRequests:   100,
-				RateLimitWindow:     60 * time.Second,
+				RateLimitRequests:   cryptoutilSharedMagic.JoseJAMaxMaterials,
+				RateLimitWindow:     cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds * time.Second,
 			},
 			expectError: false,
 		},
@@ -53,7 +54,7 @@ func TestSecurityConfig_Validate(t *testing.T) {
 			name: "invalid_pkce_challenge_method",
 			config: &SecurityConfig{
 				RequirePKCE:         true,
-				PKCEChallengeMethod: "SHA256",
+				PKCEChallengeMethod: cryptoutilSharedMagic.SHA256,
 				RateLimitEnabled:    false,
 			},
 			expectError: true,
@@ -63,10 +64,10 @@ func TestSecurityConfig_Validate(t *testing.T) {
 			name: "rate_limit_enabled_invalid_requests_zero",
 			config: &SecurityConfig{
 				RequirePKCE:         true,
-				PKCEChallengeMethod: "S256",
+				PKCEChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 				RateLimitEnabled:    true,
 				RateLimitRequests:   0,
-				RateLimitWindow:     60 * time.Second,
+				RateLimitWindow:     cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds * time.Second,
 			},
 			expectError: true,
 			errorMsg:    "rate limit requests must be positive",
@@ -75,10 +76,10 @@ func TestSecurityConfig_Validate(t *testing.T) {
 			name: "rate_limit_enabled_invalid_requests_negative",
 			config: &SecurityConfig{
 				RequirePKCE:         true,
-				PKCEChallengeMethod: "S256",
+				PKCEChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 				RateLimitEnabled:    true,
 				RateLimitRequests:   -1,
-				RateLimitWindow:     60 * time.Second,
+				RateLimitWindow:     cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds * time.Second,
 			},
 			expectError: true,
 			errorMsg:    "rate limit requests must be positive",
@@ -87,9 +88,9 @@ func TestSecurityConfig_Validate(t *testing.T) {
 			name: "rate_limit_enabled_invalid_window_zero",
 			config: &SecurityConfig{
 				RequirePKCE:         true,
-				PKCEChallengeMethod: "S256",
+				PKCEChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 				RateLimitEnabled:    true,
-				RateLimitRequests:   100,
+				RateLimitRequests:   cryptoutilSharedMagic.JoseJAMaxMaterials,
 				RateLimitWindow:     0,
 			},
 			expectError: true,
@@ -99,9 +100,9 @@ func TestSecurityConfig_Validate(t *testing.T) {
 			name: "rate_limit_enabled_invalid_window_negative",
 			config: &SecurityConfig{
 				RequirePKCE:         true,
-				PKCEChallengeMethod: "S256",
+				PKCEChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 				RateLimitEnabled:    true,
-				RateLimitRequests:   100,
+				RateLimitRequests:   cryptoutilSharedMagic.JoseJAMaxMaterials,
 				RateLimitWindow:     -1 * time.Second,
 			},
 			expectError: true,
@@ -168,7 +169,7 @@ func TestObservabilityConfig_Validate(t *testing.T) {
 		{
 			name: "valid_all_features",
 			config: &ObservabilityConfig{
-				LogLevel:       "error",
+				LogLevel:       cryptoutilSharedMagic.StringError,
 				LogFormat:      "json",
 				MetricsEnabled: true,
 				MetricsPath:    "/metrics",
@@ -265,44 +266,44 @@ func TestConfig_Validate(t *testing.T) {
 			config: &Config{
 				AuthZ: &ServerConfig{
 					Name:        "authz-server",
-					BindAddress: "127.0.0.1",
-					Port:        8080,
+					BindAddress: cryptoutilSharedMagic.IPv4Loopback,
+					Port:        cryptoutilSharedMagic.DemoServerPort,
 				},
 				IDP: &ServerConfig{
 					Name:        "idp-server",
-					BindAddress: "127.0.0.1",
-					Port:        8081,
+					BindAddress: cryptoutilSharedMagic.IPv4Loopback,
+					Port:        cryptoutilSharedMagic.TestIDPServerPort,
 				},
 				RS: &ServerConfig{
 					Name:        "rs-server",
-					BindAddress: "127.0.0.1",
-					Port:        8082,
+					BindAddress: cryptoutilSharedMagic.IPv4Loopback,
+					Port:        cryptoutilSharedMagic.TestResourceServerPort,
 				},
 				Database: &DatabaseConfig{
-					Type:         "sqlite",
-					DSN:          ":memory:",
-					MaxOpenConns: 5,
+					Type:         cryptoutilSharedMagic.TestDatabaseSQLite,
+					DSN:          cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
+					MaxOpenConns: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 					MaxIdleConns: 2,
 				},
 				Tokens: &TokenConfig{
-					AccessTokenLifetime:  3600 * time.Second,
-					RefreshTokenLifetime: 86400 * time.Second,
-					IDTokenLifetime:      3600 * time.Second,
-					AccessTokenFormat:    "jws",
-					RefreshTokenFormat:   "uuid",
-					IDTokenFormat:        "jws",
+					AccessTokenLifetime:  cryptoutilSharedMagic.IMDefaultSessionTimeout * time.Second,
+					RefreshTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax * time.Second,
+					IDTokenLifetime:      cryptoutilSharedMagic.IMDefaultSessionTimeout * time.Second,
+					AccessTokenFormat:    cryptoutilSharedMagic.DefaultBrowserSessionCookie,
+					RefreshTokenFormat:   cryptoutilSharedMagic.IdentityTokenFormatUUID,
+					IDTokenFormat:        cryptoutilSharedMagic.DefaultBrowserSessionCookie,
 					Issuer:               "https://example.com",
-					SigningAlgorithm:     "RS256",
+					SigningAlgorithm:     cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 				},
 				Sessions: &SessionConfig{
-					SessionLifetime: 3600 * time.Second,
-					IdleTimeout:     1800 * time.Second,
+					SessionLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout * time.Second,
+					IdleTimeout:     cryptoutilSharedMagic.IMEnterpriseSessionTimeout * time.Second,
 					CookieName:      "session_id",
-					CookieSameSite:  "Strict",
+					CookieSameSite:  cryptoutilSharedMagic.DefaultCSRFTokenSameSiteStrict,
 				},
 				Security: &SecurityConfig{
 					RequirePKCE:         true,
-					PKCEChallengeMethod: "S256",
+					PKCEChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 					RateLimitEnabled:    false,
 				},
 				Observability: &ObservabilityConfig{
@@ -319,8 +320,8 @@ func TestConfig_Validate(t *testing.T) {
 			config: &Config{
 				AuthZ: &ServerConfig{
 					Name:        "",
-					BindAddress: "127.0.0.1",
-					Port:        8080,
+					BindAddress: cryptoutilSharedMagic.IPv4Loopback,
+					Port:        cryptoutilSharedMagic.DemoServerPort,
 				},
 			},
 			expectError: true,
@@ -332,7 +333,7 @@ func TestConfig_Validate(t *testing.T) {
 				IDP: &ServerConfig{
 					Name:        "idp-server",
 					BindAddress: "",
-					Port:        8081,
+					Port:        cryptoutilSharedMagic.TestIDPServerPort,
 				},
 			},
 			expectError: true,
@@ -343,7 +344,7 @@ func TestConfig_Validate(t *testing.T) {
 			config: &Config{
 				RS: &ServerConfig{
 					Name:        "rs-server",
-					BindAddress: "127.0.0.1",
+					BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 					Port:        0,
 				},
 			},
@@ -355,8 +356,8 @@ func TestConfig_Validate(t *testing.T) {
 			config: &Config{
 				Database: &DatabaseConfig{
 					Type:         "",
-					DSN:          ":memory:",
-					MaxOpenConns: 5,
+					DSN:          cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
+					MaxOpenConns: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 					MaxIdleConns: 2,
 				},
 			},

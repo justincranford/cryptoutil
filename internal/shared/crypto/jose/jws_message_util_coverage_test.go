@@ -5,6 +5,7 @@
 package crypto
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
@@ -45,10 +46,10 @@ func TestVerifyBytes_HappyPath(t *testing.T) {
 		name string
 		alg  *joseJwa.SignatureAlgorithm
 	}{
-		{"RS256", &AlgRS256},
-		{"ES256", &AlgES256},
-		{"HS256", &AlgHS256},
-		{"EdDSA", &AlgEdDSA},
+		{cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, &AlgRS256},
+		{cryptoutilSharedMagic.JoseAlgES256, &AlgES256},
+		{cryptoutilSharedMagic.JoseAlgHS256, &AlgHS256},
+		{cryptoutilSharedMagic.JoseAlgEdDSA, &AlgEdDSA},
 	}
 
 	for _, tc := range testCases {
@@ -105,10 +106,10 @@ func TestExtractKidAlgFromJWSMessage_HappyPath(t *testing.T) {
 		name string
 		alg  *joseJwa.SignatureAlgorithm
 	}{
-		{"RS384", &AlgRS384},
-		{"ES384", &AlgES384},
-		{"HS512", &AlgHS512},
-		{"EdDSA", &AlgEdDSA},
+		{cryptoutilSharedMagic.JoseAlgRS384, &AlgRS384},
+		{cryptoutilSharedMagic.JoseAlgES384, &AlgES384},
+		{cryptoutilSharedMagic.JoseAlgHS512, &AlgHS512},
+		{cryptoutilSharedMagic.JoseAlgEdDSA, &AlgEdDSA},
 	}
 
 	for _, tc := range testCases {
@@ -164,9 +165,9 @@ func TestJWSHeadersString_HappyPath(t *testing.T) {
 		name string
 		alg  *joseJwa.SignatureAlgorithm
 	}{
-		{"PS256", &AlgPS256},
-		{"ES512", &AlgES512},
-		{"HS384", &AlgHS384},
+		{cryptoutilSharedMagic.JoseAlgPS256, &AlgPS256},
+		{cryptoutilSharedMagic.JoseAlgES512, &AlgES512},
+		{cryptoutilSharedMagic.JoseAlgHS384, &AlgHS384},
 	}
 
 	for _, tc := range testCases {

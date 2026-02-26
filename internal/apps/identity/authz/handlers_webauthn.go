@@ -6,6 +6,7 @@
 package authz
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"context"
 	"encoding/base64"
@@ -130,16 +131,16 @@ func (s *Service) loadWebAuthnUser(ctx context.Context, userID googleUuid.UUID, 
 func (s *Service) BeginWebAuthnRegistration(c *fiber.Ctx) error {
 	var req BeginWebAuthnRegistrationRequest
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Invalid request body"})
 	}
 
 	// Validate required fields.
 	if req.UserID == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "user_id is required"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "user_id is required"})
 	}
 
 	if req.Username == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "username is required"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "username is required"})
 	}
 
 	if req.DisplayName == "" {
@@ -149,13 +150,13 @@ func (s *Service) BeginWebAuthnRegistration(c *fiber.Ctx) error {
 	// Parse user ID.
 	userID, err := googleUuid.Parse(req.UserID)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid user_id format"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Invalid user_id format"})
 	}
 
 	// Get WebAuthn service.
 	webauthnSvc, err := s.getWebAuthnService()
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "WebAauthn service unavailable"})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "WebAauthn service unavailable"})
 	}
 
 	// Load WebAuthn user.
@@ -163,7 +164,7 @@ func (s *Service) BeginWebAuthnRegistration(c *fiber.Ctx) error {
 
 	user, err := s.loadWebAuthnUser(ctx, userID, req.Username, req.DisplayName, webauthnSvc)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to load user"})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Failed to load user"})
 	}
 
 	// Begin registration.
@@ -172,9 +173,9 @@ func (s *Service) BeginWebAuthnRegistration(c *fiber.Ctx) error {
 		// Check for specific errors.
 		switch {
 		case errors.Is(err, cryptoutilIdentityAppErr.ErrWebAuthnSessionAlreadyExists):
-			return c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": "Reauthentication session already exists"})
+			return c.Status(fiber.StatusConflict).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Reauthentication session already exists"})
 		default:
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to begin registration"})
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Failed to begin registration"})
 		}
 	}
 
@@ -188,12 +189,12 @@ func (s *Service) BeginWebAuthnRegistration(c *fiber.Ctx) error {
 func (s *Service) FinishWebAuthnRegistration(c *fiber.Ctx) error {
 	var req FinishWebAuthnRegistrationRequest
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Invalid request body"})
 	}
 
 	// Validate required fields.
 	if req.UserID == "" || req.Username == "" || req.SessionID == "" || req.Response == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Missing required fields"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Missing required fields"})
 	}
 
 	if req.DisplayName == "" {
@@ -203,29 +204,29 @@ func (s *Service) FinishWebAuthnRegistration(c *fiber.Ctx) error {
 	// Parse IDs.
 	userID, err := googleUuid.Parse(req.UserID)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid user_id format"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Invalid user_id format"})
 	}
 
 	sessionID, err := googleUuid.Parse(req.SessionID)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid session_id format"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Invalid session_id format"})
 	}
 
 	// Parse the credential creation response.
 	responseBytes, err := base64.StdEncoding.DecodeString(req.Response)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid response encoding"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Invalid response encoding"})
 	}
 
 	parsedResponse, err := protocol.ParseCredentialCreationResponseBody(bytes.NewReader(responseBytes))
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid credential response"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Invalid credential response"})
 	}
 
 	// Get WebAuthn service.
 	webauthnSvc, err := s.getWebAuthnService()
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "WebAauthn service unavailable"})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "WebAauthn service unavailable"})
 	}
 
 	// Load WebAuthn user.
@@ -233,7 +234,7 @@ func (s *Service) FinishWebAuthnRegistration(c *fiber.Ctx) error {
 
 	user, err := s.loadWebAuthnUser(ctx, userID, req.Username, req.DisplayName, webauthnSvc)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to load user"})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Failed to load user"})
 	}
 
 	// Finish registration.
@@ -241,15 +242,15 @@ func (s *Service) FinishWebAuthnRegistration(c *fiber.Ctx) error {
 	if err != nil {
 		switch {
 		case errors.Is(err, cryptoutilIdentityAppErr.ErrWebAuthnSessionNotFound):
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Session not found or expired"})
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Session not found or expired"})
 		case errors.Is(err, cryptoutilIdentityAppErr.ErrWebAuthnSessionExpired):
-			return c.Status(fiber.StatusGone).JSON(fiber.Map{"error": "Session has expired"})
+			return c.Status(fiber.StatusGone).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Session has expired"})
 		case errors.Is(err, cryptoutilIdentityAppErr.ErrWebAuthnCredentialAlreadyExists):
-			return c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": "Credential already exists"})
+			return c.Status(fiber.StatusConflict).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Credential already exists"})
 		case errors.Is(err, cryptoutilIdentityAppErr.ErrWebAuthnVerificationFailed):
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Credential verification failed"})
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Credential verification failed"})
 		default:
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to complete registration"})
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Failed to complete registration"})
 		}
 	}
 
@@ -263,28 +264,28 @@ func (s *Service) FinishWebAuthnRegistration(c *fiber.Ctx) error {
 func (s *Service) BeginWebAuthnAuthentication(c *fiber.Ctx) error {
 	var req BeginWebAuthnAuthenticationRequest
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Invalid request body"})
 	}
 
 	// Validate required fields.
 	if req.UserID == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "user_id is required"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "user_id is required"})
 	}
 
 	if req.Username == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "username is required"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "username is required"})
 	}
 
 	// Parse user ID.
 	userID, err := googleUuid.Parse(req.UserID)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid user_id format"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Invalid user_id format"})
 	}
 
 	// Get WebAuthn service.
 	webauthnSvc, err := s.getWebAuthnService()
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "WebAuthn service unavailable"})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "WebAuthn service unavailable"})
 	}
 
 	// Load WebAuthn user with credentials.
@@ -292,12 +293,12 @@ func (s *Service) BeginWebAuthnAuthentication(c *fiber.Ctx) error {
 
 	user, err := s.loadWebAuthnUser(ctx, userID, req.Username, "", webauthnSvc)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to load user"})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Failed to load user"})
 	}
 
 	// Check if user has any credentials.
 	if len(user.Credentials) == 0 {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "No credentials registered for this user"})
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "No credentials registered for this user"})
 	}
 
 	// Begin authentication.
@@ -305,9 +306,9 @@ func (s *Service) BeginWebAuthnAuthentication(c *fiber.Ctx) error {
 	if err != nil {
 		switch {
 		case errors.Is(err, cryptoutilIdentityAppErr.ErrWebAuthnSessionAlreadyExists):
-			return c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": "Authentication session already exists"})
+			return c.Status(fiber.StatusConflict).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Authentication session already exists"})
 		default:
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to begin authentication"})
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Failed to begin authentication"})
 		}
 	}
 
@@ -321,40 +322,40 @@ func (s *Service) BeginWebAuthnAuthentication(c *fiber.Ctx) error {
 func (s *Service) FinishWebAuthnAuthentication(c *fiber.Ctx) error {
 	var req FinishWebAuthnAuthenticationRequest
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Invalid request body"})
 	}
 
 	// Validate required fields.
 	if req.UserID == "" || req.Username == "" || req.SessionID == "" || req.Response == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Missing required fields"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Missing required fields"})
 	}
 
 	// Parse IDs.
 	userID, err := googleUuid.Parse(req.UserID)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid user_id format"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Invalid user_id format"})
 	}
 
 	sessionID, err := googleUuid.Parse(req.SessionID)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid session_id format"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Invalid session_id format"})
 	}
 
 	// Parse the credential assertion response.
 	responseBytes, err := base64.StdEncoding.DecodeString(req.Response)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid response encoding"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Invalid response encoding"})
 	}
 
 	parsedResponse, err := protocol.ParseCredentialRequestResponseBody(bytes.NewReader(responseBytes))
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid credential response"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Invalid credential response"})
 	}
 
 	// Get WebAuthn service.
 	webauthnSvc, err := s.getWebAuthnService()
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "WebAuthn service unavailable"})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "WebAuthn service unavailable"})
 	}
 
 	// Load WebAuthn user with credentials.
@@ -362,7 +363,7 @@ func (s *Service) FinishWebAuthnAuthentication(c *fiber.Ctx) error {
 
 	user, err := s.loadWebAuthnUser(ctx, userID, req.Username, "", webauthnSvc)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to load user"})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Failed to load user"})
 	}
 
 	// Finish authentication.
@@ -370,15 +371,15 @@ func (s *Service) FinishWebAuthnAuthentication(c *fiber.Ctx) error {
 	if err != nil {
 		switch {
 		case errors.Is(err, cryptoutilIdentityAppErr.ErrWebAuthnSessionNotFound):
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Session not found or expired"})
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Session not found or expired"})
 		case errors.Is(err, cryptoutilIdentityAppErr.ErrWebAuthnSessionExpired):
-			return c.Status(fiber.StatusGone).JSON(fiber.Map{"error": "Session has expired"})
+			return c.Status(fiber.StatusGone).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Session has expired"})
 		case errors.Is(err, cryptoutilIdentityAppErr.ErrWebAuthnCredentialNotFound):
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Credential not found"})
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Credential not found"})
 		case errors.Is(err, cryptoutilIdentityAppErr.ErrWebAuthnVerificationFailed):
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Authentication verification failed"})
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Authentication verification failed"})
 		default:
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to complete authentication"})
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Failed to complete authentication"})
 		}
 	}
 
@@ -398,18 +399,18 @@ func (s *Service) FinishWebAuthnAuthentication(c *fiber.Ctx) error {
 func (s *Service) ListWebAuthnCredentials(c *fiber.Ctx) error {
 	userIDString := c.Params("user_id")
 	if userIDString == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "user_id is required"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "user_id is required"})
 	}
 
 	userID, err := googleUuid.Parse(userIDString)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid user_id format"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Invalid user_id format"})
 	}
 
 	// Get WebAuthn service.
 	webauthnSvc, err := s.getWebAuthnService()
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "WebAuthn service unavailable"})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "WebAuthn service unavailable"})
 	}
 
 	// Get credentials for the user.
@@ -417,7 +418,7 @@ func (s *Service) ListWebAuthnCredentials(c *fiber.Ctx) error {
 
 	credentials, err := webauthnSvc.GetCredentials(ctx, userID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to get credentials"})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Failed to get credentials"})
 	}
 
 	// Convert to response format.
@@ -445,29 +446,29 @@ func (s *Service) ListWebAuthnCredentials(c *fiber.Ctx) error {
 func (s *Service) DeleteWebAuthnCredential(c *fiber.Ctx) error {
 	var req DeleteWebAuthnCredentialRequest
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Invalid request body"})
 	}
 
 	// Validate required fields.
 	if req.UserID == "" || req.CredentialID == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Missing required fields"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Missing required fields"})
 	}
 
 	// Parse IDs.
 	userID, err := googleUuid.Parse(req.UserID)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid user_id format"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Invalid user_id format"})
 	}
 
 	credentialID, err := googleUuid.Parse(req.CredentialID)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid credential_id format"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Invalid credential_id format"})
 	}
 
 	// Get WebAuthn service.
 	webauthnSvc, err := s.getWebAuthnService()
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "WebAuthn service unavailable"})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "WebAuthn service unavailable"})
 	}
 
 	// Delete the credential.
@@ -477,9 +478,9 @@ func (s *Service) DeleteWebAuthnCredential(c *fiber.Ctx) error {
 	if err != nil {
 		switch {
 		case errors.Is(err, cryptoutilIdentityAppErr.ErrWebAuthnCredentialNotFound):
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Credential not found"})
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Credential not found"})
 		default:
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to delete credential"})
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "Failed to delete credential"})
 		}
 	}
 

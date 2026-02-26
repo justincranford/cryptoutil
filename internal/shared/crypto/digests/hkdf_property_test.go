@@ -3,6 +3,7 @@
 package digests
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"errors"
 	"testing"
@@ -21,7 +22,7 @@ func TestHKDFInvariants(t *testing.T) {
 	// Property 1: HKDF determinism - same inputs always produce same outputs
 	properties.Property("HKDF is deterministic", prop.ForAll(
 		func(ikm, salt, info []byte, length uint) bool {
-			if len(ikm) == 0 || length == 0 || length > 64 {
+			if len(ikm) == 0 || length == 0 || length > cryptoutilSharedMagic.MinSerialNumberBits {
 				return true // Skip invalid inputs (empty IKM, zero/large length)
 			}
 
@@ -39,13 +40,13 @@ func TestHKDFInvariants(t *testing.T) {
 		gen.SliceOf(gen.UInt8()), // IKM
 		gen.SliceOf(gen.UInt8()), // Salt
 		gen.SliceOf(gen.UInt8()), // Info
-		gen.UIntRange(1, 64),     // Output length 1-64 bytes
+		gen.UIntRange(1, cryptoutilSharedMagic.MinSerialNumberBits),     // Output length 1-64 bytes
 	))
 
 	// Property 2: HKDF output length correctness
 	properties.Property("HKDF produces correct output length", prop.ForAll(
 		func(ikm, salt, info []byte, length uint) bool {
-			if len(ikm) == 0 || length == 0 || length > 64 {
+			if len(ikm) == 0 || length == 0 || length > cryptoutilSharedMagic.MinSerialNumberBits {
 				return true // Skip invalid inputs
 			}
 
@@ -59,7 +60,7 @@ func TestHKDFInvariants(t *testing.T) {
 		gen.SliceOf(gen.UInt8()),
 		gen.SliceOf(gen.UInt8()),
 		gen.SliceOf(gen.UInt8()),
-		gen.UIntRange(1, 64),
+		gen.UIntRange(1, cryptoutilSharedMagic.MinSerialNumberBits),
 	))
 
 	// Property 3: HKDF avalanche effect - different IKMs produce different outputs
@@ -70,11 +71,11 @@ func TestHKDFInvariants(t *testing.T) {
 		func(ikm1, ikm2, salt, info []byte, length uint) bool {
 			// Use minimum 8 bytes output to avoid hash collision false positives
 			actualLength := length
-			if actualLength < 8 {
-				actualLength = 8
+			if actualLength < cryptoutilSharedMagic.IMMinPasswordLength {
+				actualLength = cryptoutilSharedMagic.IMMinPasswordLength
 			}
 
-			if actualLength > 64 {
+			if actualLength > cryptoutilSharedMagic.MinSerialNumberBits {
 				return true // Skip invalid length
 			}
 
@@ -117,7 +118,7 @@ func TestHKDFInvariants(t *testing.T) {
 		gen.SliceOf(gen.UInt8()),
 		gen.SliceOf(gen.UInt8()),
 		gen.SliceOf(gen.UInt8()),
-		gen.UIntRange(1, 64),
+		gen.UIntRange(1, cryptoutilSharedMagic.MinSerialNumberBits),
 	))
 
 	properties.TestingRun(t)

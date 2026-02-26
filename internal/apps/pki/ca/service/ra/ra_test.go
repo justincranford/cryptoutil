@@ -3,6 +3,7 @@
 package ra
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"crypto/x509/pkix"
 	"testing"
@@ -189,29 +190,29 @@ func TestRAService_ListRequests(t *testing.T) {
 	csrPEM, _, err := GenerateTestCSR(pkix.Name{CommonName: "test.example.com"}, nil)
 	require.NoError(t, err)
 
-	for i := 0; i < 5; i++ {
+	for i := 0; i < cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries; i++ {
 		_, err = svc.SubmitRequest(ctx, csrPEM, "tls-server", "user-123")
 		require.NoError(t, err)
 	}
 
 	// List all requests.
-	results, total, err := svc.ListRequests(ctx, nil, 10, 0)
+	results, total, err := svc.ListRequests(ctx, nil, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 0)
 	require.NoError(t, err)
-	require.Equal(t, 5, total)
-	require.Len(t, results, 5)
+	require.Equal(t, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, total)
+	require.Len(t, results, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 
 	// List with pagination.
 	results, total, err = svc.ListRequests(ctx, nil, 2, 0)
 	require.NoError(t, err)
-	require.Equal(t, 5, total)
+	require.Equal(t, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, total)
 	require.Len(t, results, 2)
 
 	// Filter by status.
 	pending := StatusPending
-	results, total, err = svc.ListRequests(ctx, &pending, 10, 0)
+	results, total, err = svc.ListRequests(ctx, &pending, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 0)
 	require.NoError(t, err)
-	require.Equal(t, 5, total)
-	require.Len(t, results, 5)
+	require.Equal(t, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, total)
+	require.Len(t, results, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 }
 
 func TestRAService_ApproveRequest(t *testing.T) {

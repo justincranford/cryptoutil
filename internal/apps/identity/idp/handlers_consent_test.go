@@ -5,6 +5,7 @@
 package idp_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	http "net/http"
 	"net/http/httptest"
@@ -30,8 +31,8 @@ func TestHandleConsent_GET(t *testing.T) {
 	ctx := context.Background()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
@@ -40,9 +41,9 @@ func TestHandleConsent_GET(t *testing.T) {
 	// Initialize IDP service.
 	config := &cryptoutilIdentityConfig.Config{
 		IDP: &cryptoutilIdentityConfig.ServerConfig{
-			Name:        "idp",
-			BindAddress: "127.0.0.1",
-			Port:        8080,
+			Name:        cryptoutilSharedMagic.IDPServiceName,
+			BindAddress: cryptoutilSharedMagic.IPv4Loopback,
+			Port:        cryptoutilSharedMagic.DemoServerPort,
 			TLSEnabled:  true,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{
@@ -105,8 +106,8 @@ func TestHandleConsentSubmit_POST(t *testing.T) {
 	ctx := context.Background()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
@@ -127,9 +128,9 @@ func TestHandleConsentSubmit_POST(t *testing.T) {
 	// Initialize IDP service.
 	config := &cryptoutilIdentityConfig.Config{
 		IDP: &cryptoutilIdentityConfig.ServerConfig{
-			Name:        "idp",
-			BindAddress: "127.0.0.1",
-			Port:        8080,
+			Name:        cryptoutilSharedMagic.IDPServiceName,
+			BindAddress: cryptoutilSharedMagic.IPv4Loopback,
+			Port:        cryptoutilSharedMagic.DemoServerPort,
 			TLSEnabled:  true,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{
@@ -166,11 +167,11 @@ func TestHandleConsentSubmit_POST(t *testing.T) {
 		ID:           googleUuid.Must(googleUuid.NewV7()),
 		ClientID:     testClient.ClientID,
 		RedirectURI:  testClient.RedirectURIs[0],
-		ResponseType: "code",
+		ResponseType: cryptoutilSharedMagic.ResponseTypeCode,
 		Scope:        "openid profile",
 		State:        "test-state",
 		CreatedAt:    time.Now().UTC(),
-		ExpiresAt:    time.Now().UTC().Add(10 * time.Minute),
+		ExpiresAt:    time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
 	}
 	authzReqRepo := repoFactory.AuthorizationRequestRepository()
 	require.NoError(t, authzReqRepo.Create(ctx, authzReq))

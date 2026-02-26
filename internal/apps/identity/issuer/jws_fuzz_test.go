@@ -27,7 +27,7 @@ func FuzzJWSTokenParsing(f *testing.F) {
 	issuer, err := NewJWSIssuerLegacy(
 		"https://test.example.com",
 		[]byte("test-signing-key"),
-		"RS256",
+		cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		cryptoutilSharedMagic.DefaultAccessTokenLifetime,
 		cryptoutilSharedMagic.DefaultIDTokenLifetime,
 	)
@@ -51,14 +51,14 @@ func FuzzJWSClaimsMarshaling(f *testing.F) {
 	// Seed corpus with various claim structures.
 	f.Add("test-sub", "test-aud", "openid profile")
 	f.Add("", "", "")
-	f.Add("very-long-subject-"+string(make([]byte, 1000)), "aud", "scope")
-	f.Add("sub", "aud-with-special-chars-!@#$%^&*()", "scope1 scope2 scope3")
+	f.Add("very-long-subject-"+string(make([]byte, cryptoutilSharedMagic.JoseJADefaultListLimit)), cryptoutilSharedMagic.ClaimAud, cryptoutilSharedMagic.ClaimScope)
+	f.Add(cryptoutilSharedMagic.ClaimSub, "aud-with-special-chars-!@#$%^&*()", "scope1 scope2 scope3")
 
 	// Create legacy JWS issuer.
 	issuer, err := NewJWSIssuerLegacy(
 		"https://test.example.com",
 		[]byte("test-signing-key"),
-		"RS256",
+		cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		cryptoutilSharedMagic.DefaultAccessTokenLifetime,
 		cryptoutilSharedMagic.DefaultIDTokenLifetime,
 	)
@@ -89,14 +89,14 @@ func FuzzJWSIDTokenGeneration(f *testing.F) {
 	// Seed corpus.
 	f.Add("user123", "client456", "John Doe", "john@example.com")
 	f.Add("", "", "", "")
-	f.Add("sub", "aud", "", "")
-	f.Add("very-long-"+string(make([]byte, 500)), "aud", "name", "email@test.com")
+	f.Add(cryptoutilSharedMagic.ClaimSub, cryptoutilSharedMagic.ClaimAud, "", "")
+	f.Add("very-long-"+string(make([]byte, cryptoutilSharedMagic.TestDefaultRateLimitServiceIP)), cryptoutilSharedMagic.ClaimAud, cryptoutilSharedMagic.ClaimName, "email@test.com")
 
 	// Create legacy JWS issuer.
 	issuer, err := NewJWSIssuerLegacy(
 		"https://test.example.com",
 		[]byte("test-signing-key"),
-		"RS256",
+		cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		cryptoutilSharedMagic.DefaultAccessTokenLifetime,
 		cryptoutilSharedMagic.DefaultIDTokenLifetime,
 	)
@@ -113,11 +113,11 @@ func FuzzJWSIDTokenGeneration(f *testing.F) {
 		}
 
 		if name != "" {
-			claims["name"] = name
+			claims[cryptoutilSharedMagic.ClaimName] = name
 		}
 
 		if email != "" {
-			claims["email"] = email
+			claims[cryptoutilSharedMagic.ClaimEmail] = email
 		}
 
 		// Issue ID token - should not panic.
@@ -142,7 +142,7 @@ func FuzzJWSExpirationValidation(f *testing.F) {
 	issuer, err := NewJWSIssuerLegacy(
 		"https://test.example.com",
 		[]byte("test-signing-key"),
-		"RS256",
+		cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		cryptoutilSharedMagic.DefaultAccessTokenLifetime,
 		cryptoutilSharedMagic.DefaultIDTokenLifetime,
 	)

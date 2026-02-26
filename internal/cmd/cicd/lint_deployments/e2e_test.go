@@ -1,6 +1,7 @@
 package lint_deployments
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -26,10 +27,10 @@ func TestMainGenerateListings(t *testing.T) {
 				tmpDir := t.TempDir()
 				deploymentsDir := filepath.Join(tmpDir, "deployments")
 				configsDir := filepath.Join(tmpDir, "configs")
-				require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, "jose-ja"), dirPermissions))
+				require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServiceJoseJA), dirPermissions))
 				require.NoError(t, os.MkdirAll(configsDir, dirPermissions))
 				require.NoError(t, os.WriteFile(
-					filepath.Join(deploymentsDir, "jose-ja", "compose.yml"),
+					filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServiceJoseJA, "compose.yml"),
 					[]byte("name: jose-ja\n"), filePermissions))
 
 				return deploymentsDir, configsDir
@@ -75,8 +76,8 @@ func TestMainValidateMirror(t *testing.T) {
 				tmpDir := t.TempDir()
 				deploymentsDir := filepath.Join(tmpDir, "deployments")
 				configsDir := filepath.Join(tmpDir, "configs")
-				require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, "jose-ja"), dirPermissions))
-				require.NoError(t, os.MkdirAll(filepath.Join(configsDir, "jose"), dirPermissions))
+				require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServiceJoseJA), dirPermissions))
+				require.NoError(t, os.MkdirAll(filepath.Join(configsDir, cryptoutilSharedMagic.JoseProductName), dirPermissions))
 
 				return deploymentsDir, configsDir
 			},
@@ -90,7 +91,7 @@ func TestMainValidateMirror(t *testing.T) {
 				tmpDir := t.TempDir()
 				deploymentsDir := filepath.Join(tmpDir, "deployments")
 				configsDir := filepath.Join(tmpDir, "configs")
-				require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, "jose-ja"), dirPermissions))
+				require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServiceJoseJA), dirPermissions))
 				require.NoError(t, os.MkdirAll(configsDir, dirPermissions))
 
 				return deploymentsDir, configsDir
@@ -210,10 +211,10 @@ func TestMainSubcommandRouting(t *testing.T) {
 				tmpDir := t.TempDir()
 				deploymentsDir := filepath.Join(tmpDir, "deployments")
 				configsDir := filepath.Join(tmpDir, "configs")
-				require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, "jose-ja"), dirPermissions))
+				require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServiceJoseJA), dirPermissions))
 				require.NoError(t, os.MkdirAll(configsDir, dirPermissions))
 				require.NoError(t, os.WriteFile(
-					filepath.Join(deploymentsDir, "jose-ja", "compose.yml"),
+					filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServiceJoseJA, "compose.yml"),
 					[]byte("name: jose-ja\n"), filePermissions))
 
 				return []string{"generate-listings", deploymentsDir, configsDir}
@@ -228,8 +229,8 @@ func TestMainSubcommandRouting(t *testing.T) {
 				tmpDir := t.TempDir()
 				deploymentsDir := filepath.Join(tmpDir, "deployments")
 				configsDir := filepath.Join(tmpDir, "configs")
-				require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, "jose-ja"), dirPermissions))
-				require.NoError(t, os.MkdirAll(filepath.Join(configsDir, "jose"), dirPermissions))
+				require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServiceJoseJA), dirPermissions))
+				require.NoError(t, os.MkdirAll(filepath.Join(configsDir, cryptoutilSharedMagic.JoseProductName), dirPermissions))
 
 				return []string{"validate-mirror", deploymentsDir, configsDir}
 			},

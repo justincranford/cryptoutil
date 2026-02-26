@@ -3,6 +3,7 @@
 package handler
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"context"
 	"crypto"
@@ -49,7 +50,7 @@ func TestSubmitEnrollment_WithOverrides(t *testing.T) {
 		storage:           mockStorage,
 		issuer:            testSetup.Issuer,
 		profiles:          profiles,
-		enrollmentTracker: newEnrollmentTracker(100),
+		enrollmentTracker: newEnrollmentTracker(cryptoutilSharedMagic.JoseJAMaxMaterials),
 	}
 
 	app := fiber.New()
@@ -73,14 +74,14 @@ func TestSubmitEnrollment_WithOverrides(t *testing.T) {
 	require.NoError(t, err)
 
 	csrPEM := string(pem.EncodeToMemory(&pem.Block{
-		Type:  "CERTIFICATE REQUEST",
+		Type:  cryptoutilSharedMagic.StringPEMTypeCSR,
 		Bytes: csrDER,
 	}))
 
 	// Build the request body with overrides.
 	dnsNames := []string{"override.example.com"}
 	org := []string{"Override Org"}
-	validityDays := 30
+	validityDays := cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days
 
 	reqBody := cryptoutilApiCaServer.EnrollmentRequest{
 		CSR:     csrPEM,
@@ -143,7 +144,7 @@ func TestHandleOCSP_ValidRequest(t *testing.T) {
 		Issuer:     testSetup.Issuer.GetCAConfig().Certificate,
 		PrivateKey: signer,
 		Provider:   testSetup.Provider,
-		Validity:   24 * time.Hour,
+		Validity:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 
 	crlService, err := cryptoutilCAServiceRevocation.NewCRLService(crlConfig)
@@ -176,7 +177,7 @@ func TestHandleOCSP_ValidRequest(t *testing.T) {
 			CommonName: "ocsp-test.example.com",
 		},
 		NotBefore: time.Now().UTC().Add(-time.Hour),
-		NotAfter:  time.Now().UTC().Add(time.Hour * 24),
+		NotAfter:  time.Now().UTC().Add(time.Hour * cryptoutilSharedMagic.HoursPerDay),
 	}
 
 	leafCertDER, err := x509.CreateCertificate(
@@ -191,8 +192,8 @@ func TestHandleOCSP_ValidRequest(t *testing.T) {
 	leafCert, err := x509.ParseCertificate(leafCertDER)
 	require.NoError(t, err)
 
-	certPEM := string(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: leafCertDER}))
-	serialHex := leafCert.SerialNumber.Text(16)
+	certPEM := string(pem.EncodeToMemory(&pem.Block{Type: cryptoutilSharedMagic.StringPEMTypeCertificate, Bytes: leafCertDER}))
+	serialHex := leafCert.SerialNumber.Text(cryptoutilSharedMagic.RealmMinTokenLengthBytes)
 
 	stored := &cryptoutilCAStorage.StoredCertificate{
 		SerialNumber:   serialHex,
@@ -241,7 +242,7 @@ func TestHandleOCSP_ValidRequest_CertNotInStorage(t *testing.T) {
 		Issuer:     testSetup.Issuer.GetCAConfig().Certificate,
 		PrivateKey: signer,
 		Provider:   testSetup.Provider,
-		Validity:   24 * time.Hour,
+		Validity:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 
 	crlService, err := cryptoutilCAServiceRevocation.NewCRLService(crlConfig)
@@ -275,7 +276,7 @@ func TestHandleOCSP_ValidRequest_CertNotInStorage(t *testing.T) {
 			CommonName: "not-stored.example.com",
 		},
 		NotBefore: time.Now().UTC().Add(-time.Hour),
-		NotAfter:  time.Now().UTC().Add(time.Hour * 24),
+		NotAfter:  time.Now().UTC().Add(time.Hour * cryptoutilSharedMagic.HoursPerDay),
 	}
 
 	leafCertDER, err := x509.CreateCertificate(

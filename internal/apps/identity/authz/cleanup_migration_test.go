@@ -29,7 +29,7 @@ func TestMigrateClientSecrets_Success(t *testing.T) {
 	cryptoutilIdentityRepository.ResetMigrationStateForTesting()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type:        "sqlite",
+		Type:        cryptoutilSharedMagic.TestDatabaseSQLite,
 		DSN:         fmt.Sprintf("file:test_%s.db?mode=memory&cache=shared", testID),
 		AutoMigrate: true,
 	}
@@ -37,7 +37,7 @@ func TestMigrateClientSecrets_Success(t *testing.T) {
 	cfg := &cryptoutilIdentityConfig.Config{
 		Database: dbConfig,
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			AccessTokenLifetime: 3600,
+			AccessTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		},
 	}
 
@@ -58,13 +58,13 @@ func TestMigrateClientSecrets_Success(t *testing.T) {
 		Name:                    "Test Client Migration",
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeClientCredentials},
-		AllowedScopes:           []string{"openid"},
-		RedirectURIs:            []string{"https://example.com/callback"},
+		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID},
+		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
 		ClientSecret:            legacyHash,
-		AccessTokenLifetime:     3600,
-		RefreshTokenLifetime:    86400,
-		IDTokenLifetime:         3600,
+		AccessTokenLifetime:     cryptoutilSharedMagic.IMDefaultSessionTimeout,
+		RefreshTokenLifetime:    cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+		IDTokenLifetime:         cryptoutilSharedMagic.IMDefaultSessionTimeout,
 	}
 
 	clientRepo := repoFactory.ClientRepository()
@@ -104,7 +104,7 @@ func TestMigrateClientSecrets_NoClients(t *testing.T) {
 	cryptoutilIdentityRepository.ResetMigrationStateForTesting()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type:        "sqlite",
+		Type:        cryptoutilSharedMagic.TestDatabaseSQLite,
 		DSN:         fmt.Sprintf("file:test_%s.db?mode=memory&cache=shared", testID),
 		AutoMigrate: true,
 	}
@@ -112,7 +112,7 @@ func TestMigrateClientSecrets_NoClients(t *testing.T) {
 	cfg := &cryptoutilIdentityConfig.Config{
 		Database: dbConfig,
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			AccessTokenLifetime: 3600,
+			AccessTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		},
 	}
 

@@ -5,6 +5,7 @@
 package tenant
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"strings"
@@ -31,7 +32,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
 	// Open in-memory SQLite database.
-	sqlDB, err := sql.Open("sqlite", ":memory:")
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
 	require.NoError(t, err)
 
 	// Configure pragmas.
@@ -51,8 +52,8 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	require.NoError(t, err)
 
 	// Configure connection pool.
-	sqlDB.SetMaxOpenConns(5)
-	sqlDB.SetMaxIdleConns(5)
+	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	sqlDB.SetConnMaxLifetime(0)
 
 	return db

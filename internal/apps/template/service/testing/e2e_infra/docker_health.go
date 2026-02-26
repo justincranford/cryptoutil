@@ -109,10 +109,10 @@ func determineServiceHealthStatus(serviceMap map[string]map[string]any, services
 			var isHealthy bool
 			if hasHealth {
 				// If Health field present, check if "healthy"
-				isHealthy = health == "healthy"
+				isHealthy = health == cryptoutilSharedMagic.DockerServiceHealthHealthy
 			} else {
 				// If no Health field, check if State is "running"
-				isHealthy = hasState && state == "running"
+				isHealthy = hasState && state == cryptoutilSharedMagic.DockerServiceStateRunning
 			}
 
 			healthStatus[healthKey] = isHealthy

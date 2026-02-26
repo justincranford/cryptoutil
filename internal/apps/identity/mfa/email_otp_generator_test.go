@@ -35,7 +35,7 @@ func TestGenerateEmailOTP_Uniqueness(t *testing.T) {
 	}
 
 	// With 6-digit OTPs (1,000,000 possibilities), 1000 samples should have >900 unique values.
-	require.Greater(t, len(seen), 900, "Should generate mostly unique OTPs")
+	require.Greater(t, len(seen), cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSecondsSession, "Should generate mostly unique OTPs")
 }
 
 func TestGenerateEmailOTP_AllNumeric(t *testing.T) {

@@ -5,6 +5,7 @@
 package issuer_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -44,8 +45,8 @@ func setupTestService(t *testing.T, tokenFormat string) *cryptoutilIdentityIssue
 	ctx := context.Background()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
@@ -57,7 +58,7 @@ func setupTestService(t *testing.T, tokenFormat string) *cryptoutilIdentityIssue
 
 	tokenConfig := &cryptoutilIdentityConfig.TokenConfig{
 		Issuer:            "https://localhost:8080",
-		SigningAlgorithm:  "RS256",
+		SigningAlgorithm:  cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		AccessTokenFormat: tokenFormat,
 	}
 
@@ -69,11 +70,11 @@ func setupTestService(t *testing.T, tokenFormat string) *cryptoutilIdentityIssue
 	require.NoError(t, err)
 
 	// Initialize signing key for token generation.
-	err = keyRotationMgr.RotateSigningKey(ctx, "RS256")
+	err = keyRotationMgr.RotateSigningKey(ctx, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm)
 	require.NoError(t, err)
 
 	// Initialize encryption key if using JWE format.
-	if tokenFormat == "jwe" {
+	if tokenFormat == cryptoutilSharedMagic.IdentityTokenFormatJWE {
 		err = keyRotationMgr.RotateEncryptionKey(ctx)
 		require.NoError(t, err)
 	}
@@ -102,8 +103,8 @@ func TestNewTokenService(t *testing.T) {
 	ctx := context.Background()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
@@ -118,8 +119,8 @@ func TestNewTokenService(t *testing.T) {
 
 	tokenConfig := &cryptoutilIdentityConfig.TokenConfig{
 		Issuer:            "https://localhost:8080",
-		SigningAlgorithm:  "RS256",
-		AccessTokenFormat: "jws",
+		SigningAlgorithm:  cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		AccessTokenFormat: cryptoutilSharedMagic.DefaultBrowserSessionCookie,
 	}
 
 	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
@@ -157,8 +158,8 @@ func TestIssueAccessTokenJWS(t *testing.T) {
 	ctx := context.Background()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
@@ -173,8 +174,8 @@ func TestIssueAccessTokenJWS(t *testing.T) {
 
 	tokenConfig := &cryptoutilIdentityConfig.TokenConfig{
 		Issuer:            "https://localhost:8080",
-		SigningAlgorithm:  "RS256",
-		AccessTokenFormat: "jws",
+		SigningAlgorithm:  cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		AccessTokenFormat: cryptoutilSharedMagic.DefaultBrowserSessionCookie,
 	}
 
 	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
@@ -185,7 +186,7 @@ func TestIssueAccessTokenJWS(t *testing.T) {
 	require.NoError(t, err)
 
 	// Initialize signing key for token generation.
-	err = keyRotationMgr.RotateSigningKey(ctx, "RS256")
+	err = keyRotationMgr.RotateSigningKey(ctx, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm)
 	require.NoError(t, err)
 
 	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuer(
@@ -205,11 +206,11 @@ func TestIssueAccessTokenJWS(t *testing.T) {
 	service := cryptoutilIdentityIssuer.NewTokenService(jwsIssuer, jweIssuer, uuidIssuer, tokenConfig)
 
 	claims := map[string]any{
-		"sub":   googleUuid.Must(googleUuid.NewV7()).String(),
-		"email": "test@example.com",
-		"name":  "Test User",
-		"iat":   time.Now().UTC().Unix(),
-		"exp":   time.Now().UTC().Add(1 * time.Hour).Unix(),
+		cryptoutilSharedMagic.ClaimSub:   googleUuid.Must(googleUuid.NewV7()).String(),
+		cryptoutilSharedMagic.ClaimEmail: "test@example.com",
+		cryptoutilSharedMagic.ClaimName:  "Test User",
+		cryptoutilSharedMagic.ClaimIat:   time.Now().UTC().Unix(),
+		cryptoutilSharedMagic.ClaimExp:   time.Now().UTC().Add(1 * time.Hour).Unix(),
 	}
 
 	token, err := service.IssueAccessToken(ctx, claims)
@@ -225,7 +226,7 @@ func TestIssueAccessTokenInvalidFormat(t *testing.T) {
 
 	tokenConfig := &cryptoutilIdentityConfig.TokenConfig{
 		Issuer:            "https://localhost:8080",
-		SigningAlgorithm:  "RS256",
+		SigningAlgorithm:  cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		AccessTokenFormat: "invalid-format",
 	}
 
@@ -253,8 +254,8 @@ func TestIssueAccessTokenInvalidFormat(t *testing.T) {
 	service := cryptoutilIdentityIssuer.NewTokenService(jwsIssuer, jweIssuer, uuidIssuer, tokenConfig)
 
 	claims := map[string]any{
-		"sub":   googleUuid.Must(googleUuid.NewV7()).String(),
-		"email": "test@example.com",
+		cryptoutilSharedMagic.ClaimSub:   googleUuid.Must(googleUuid.NewV7()).String(),
+		cryptoutilSharedMagic.ClaimEmail: "test@example.com",
 	}
 
 	_, err = service.IssueAccessToken(ctx, claims)
@@ -269,8 +270,8 @@ func TestIssueAccessTokenJWE(t *testing.T) {
 	ctx := context.Background()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
@@ -285,8 +286,8 @@ func TestIssueAccessTokenJWE(t *testing.T) {
 
 	tokenConfig := &cryptoutilIdentityConfig.TokenConfig{
 		Issuer:            "https://localhost:8080",
-		SigningAlgorithm:  "RS256",
-		AccessTokenFormat: "jwe",
+		SigningAlgorithm:  cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		AccessTokenFormat: cryptoutilSharedMagic.IdentityTokenFormatJWE,
 	}
 
 	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
@@ -297,7 +298,7 @@ func TestIssueAccessTokenJWE(t *testing.T) {
 	require.NoError(t, err)
 
 	// Initialize signing and encryption keys.
-	err = keyRotationMgr.RotateSigningKey(ctx, "RS256")
+	err = keyRotationMgr.RotateSigningKey(ctx, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm)
 	require.NoError(t, err)
 
 	err = keyRotationMgr.RotateEncryptionKey(ctx)
@@ -320,11 +321,11 @@ func TestIssueAccessTokenJWE(t *testing.T) {
 	service := cryptoutilIdentityIssuer.NewTokenService(jwsIssuer, jweIssuer, uuidIssuer, tokenConfig)
 
 	claims := map[string]any{
-		"sub":   googleUuid.Must(googleUuid.NewV7()).String(),
-		"email": "test@example.com",
-		"name":  "Test User",
-		"iat":   time.Now().UTC().Unix(),
-		"exp":   time.Now().UTC().Add(1 * time.Hour).Unix(),
+		cryptoutilSharedMagic.ClaimSub:   googleUuid.Must(googleUuid.NewV7()).String(),
+		cryptoutilSharedMagic.ClaimEmail: "test@example.com",
+		cryptoutilSharedMagic.ClaimName:  "Test User",
+		cryptoutilSharedMagic.ClaimIat:   time.Now().UTC().Unix(),
+		cryptoutilSharedMagic.ClaimExp:   time.Now().UTC().Add(1 * time.Hour).Unix(),
 	}
 
 	token, err := service.IssueAccessToken(ctx, claims)
@@ -339,8 +340,8 @@ func TestIssueAccessTokenUUID(t *testing.T) {
 	ctx := context.Background()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
@@ -355,8 +356,8 @@ func TestIssueAccessTokenUUID(t *testing.T) {
 
 	tokenConfig := &cryptoutilIdentityConfig.TokenConfig{
 		Issuer:            "https://localhost:8080",
-		SigningAlgorithm:  "RS256",
-		AccessTokenFormat: "uuid",
+		SigningAlgorithm:  cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		AccessTokenFormat: cryptoutilSharedMagic.IdentityTokenFormatUUID,
 	}
 
 	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
@@ -383,8 +384,8 @@ func TestIssueAccessTokenUUID(t *testing.T) {
 	service := cryptoutilIdentityIssuer.NewTokenService(jwsIssuer, jweIssuer, uuidIssuer, tokenConfig)
 
 	claims := map[string]any{
-		"sub":   googleUuid.Must(googleUuid.NewV7()).String(),
-		"email": "test@example.com",
+		cryptoutilSharedMagic.ClaimSub:   googleUuid.Must(googleUuid.NewV7()).String(),
+		cryptoutilSharedMagic.ClaimEmail: "test@example.com",
 	}
 
 	token, err := service.IssueAccessToken(ctx, claims)

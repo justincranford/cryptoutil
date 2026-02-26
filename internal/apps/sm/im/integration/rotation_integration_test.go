@@ -24,8 +24,8 @@ func TestE2E_RotateRootKey(t *testing.T) {
 	t.Parallel()
 
 	// Step 1: Send baseline message before rotation.
-	user1 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user1_rotate_root", *cryptoutilSharedUtilRandom.GeneratePassword(t, 43))
-	user2 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user2_rotate_root", *cryptoutilSharedUtilRandom.GeneratePassword(t, 43))
+	user1 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user1_rotate_root", *cryptoutilSharedUtilRandom.GeneratePassword(t, cryptoutilSharedMagic.DefaultCodeChallengeLength))
+	user2 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user2_rotate_root", *cryptoutilSharedUtilRandom.GeneratePassword(t, cryptoutilSharedMagic.DefaultCodeChallengeLength))
 
 	plaintext1 := "Message before root key rotation"
 
@@ -36,7 +36,7 @@ func TestE2E_RotateRootKey(t *testing.T) {
 	// Step 2: Get initial barrier keys status.
 	initialStatus := getBarrierKeysStatus(t, sharedHTTPClient, adminBaseURL)
 
-	initialRootKeyUUID, ok := initialStatus["root_key"].(map[string]any)["uuid"].(string)
+	initialRootKeyUUID, ok := initialStatus["root_key"].(map[string]any)[cryptoutilSharedMagic.IdentityTokenFormatUUID].(string)
 	require.True(t, ok, "initial root_key uuid should be string")
 	require.NotEmpty(t, initialRootKeyUUID, "initial root_key uuid should not be empty")
 
@@ -64,7 +64,7 @@ func TestE2E_RotateRootKey(t *testing.T) {
 	// Step 4: Verify status endpoint reflects new root key.
 	updatedStatus := getBarrierKeysStatus(t, sharedHTTPClient, adminBaseURL)
 
-	updatedRootKeyUUID, ok := updatedStatus["root_key"].(map[string]any)["uuid"].(string)
+	updatedRootKeyUUID, ok := updatedStatus["root_key"].(map[string]any)[cryptoutilSharedMagic.IdentityTokenFormatUUID].(string)
 	require.True(t, ok, "updated root_key uuid should be string")
 	require.Equal(t, newKeyUUID, updatedRootKeyUUID, "status should reflect new root key UUID")
 
@@ -105,8 +105,8 @@ func TestE2E_RotateIntermediateKey(t *testing.T) {
 	t.Parallel()
 
 	// Step 1: Send baseline message before rotation.
-	user1 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user1_rotate_intermediate", *cryptoutilSharedUtilRandom.GeneratePassword(t, 43))
-	user2 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user2_rotate_intermediate", *cryptoutilSharedUtilRandom.GeneratePassword(t, 43))
+	user1 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user1_rotate_intermediate", *cryptoutilSharedUtilRandom.GeneratePassword(t, cryptoutilSharedMagic.DefaultCodeChallengeLength))
+	user2 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user2_rotate_intermediate", *cryptoutilSharedUtilRandom.GeneratePassword(t, cryptoutilSharedMagic.DefaultCodeChallengeLength))
 
 	plaintext1 := "Message before intermediate key rotation"
 
@@ -117,7 +117,7 @@ func TestE2E_RotateIntermediateKey(t *testing.T) {
 	// Step 2: Get initial intermediate key status.
 	initialStatus := getBarrierKeysStatus(t, sharedHTTPClient, adminBaseURL)
 
-	initialIntermediateKeyUUID, ok := initialStatus["intermediate_key"].(map[string]any)["uuid"].(string)
+	initialIntermediateKeyUUID, ok := initialStatus["intermediate_key"].(map[string]any)[cryptoutilSharedMagic.IdentityTokenFormatUUID].(string)
 	require.True(t, ok, "initial intermediate_key uuid should be string")
 	require.NotEmpty(t, initialIntermediateKeyUUID, "initial intermediate_key uuid should not be empty")
 
@@ -137,7 +137,7 @@ func TestE2E_RotateIntermediateKey(t *testing.T) {
 	// Step 4: Verify status reflects new intermediate key.
 	updatedStatus := getBarrierKeysStatus(t, sharedHTTPClient, adminBaseURL)
 
-	updatedIntermediateKeyUUID, ok := updatedStatus["intermediate_key"].(map[string]any)["uuid"].(string)
+	updatedIntermediateKeyUUID, ok := updatedStatus["intermediate_key"].(map[string]any)[cryptoutilSharedMagic.IdentityTokenFormatUUID].(string)
 	require.True(t, ok, "updated intermediate_key uuid should be string")
 	require.Equal(t, newKeyUUID, updatedIntermediateKeyUUID, "status should reflect new intermediate key")
 
@@ -177,8 +177,8 @@ func TestE2E_RotateContentKey(t *testing.T) {
 	t.Parallel()
 
 	// Step 1: Send baseline message (creates first content key).
-	user1 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user1_rotate_content", *cryptoutilSharedUtilRandom.GeneratePassword(t, 43))
-	user2 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user2_rotate_content", *cryptoutilSharedUtilRandom.GeneratePassword(t, 43))
+	user1 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user1_rotate_content", *cryptoutilSharedUtilRandom.GeneratePassword(t, cryptoutilSharedMagic.DefaultCodeChallengeLength))
+	user2 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user2_rotate_content", *cryptoutilSharedUtilRandom.GeneratePassword(t, cryptoutilSharedMagic.DefaultCodeChallengeLength))
 
 	plaintext1 := "Message before content key rotation"
 
@@ -245,7 +245,7 @@ func TestE2E_GetBarrierKeysStatus(t *testing.T) {
 	rootKey, ok := initialStatus["root_key"].(map[string]any)
 	require.True(t, ok, "root_key should be object")
 
-	rootKeyUUID, ok := rootKey["uuid"].(string)
+	rootKeyUUID, ok := rootKey[cryptoutilSharedMagic.IdentityTokenFormatUUID].(string)
 	require.True(t, ok, "root_key uuid should be string")
 	require.NotEmpty(t, rootKeyUUID, "root_key uuid should not be empty")
 
@@ -253,7 +253,7 @@ func TestE2E_GetBarrierKeysStatus(t *testing.T) {
 	require.True(t, ok, "root_key created_at should be number")
 	require.Greater(t, rootKeyCreatedAt, float64(0), "root_key created_at should be positive timestamp")
 
-	rootKeyUpdatedAt, ok := rootKey["updated_at"].(float64)
+	rootKeyUpdatedAt, ok := rootKey[cryptoutilSharedMagic.ClaimUpdatedAt].(float64)
 	require.True(t, ok, "root_key updated_at should be number")
 	require.Greater(t, rootKeyUpdatedAt, float64(0), "root_key updated_at should be positive timestamp")
 
@@ -261,7 +261,7 @@ func TestE2E_GetBarrierKeysStatus(t *testing.T) {
 	intermediateKey, ok := initialStatus["intermediate_key"].(map[string]any)
 	require.True(t, ok, "intermediate_key should be object")
 
-	intermediateKeyUUID, ok := intermediateKey["uuid"].(string)
+	intermediateKeyUUID, ok := intermediateKey[cryptoutilSharedMagic.IdentityTokenFormatUUID].(string)
 	require.True(t, ok, "intermediate_key uuid should be string")
 	require.NotEmpty(t, intermediateKeyUUID, "intermediate_key uuid should not be empty")
 
@@ -279,7 +279,7 @@ func TestE2E_GetBarrierKeysStatus(t *testing.T) {
 	updatedRootKey, ok := updatedStatus["root_key"].(map[string]any)
 	require.True(t, ok, "updated root_key should be object")
 
-	updatedRootKeyUUID, ok := updatedRootKey["uuid"].(string)
+	updatedRootKeyUUID, ok := updatedRootKey[cryptoutilSharedMagic.IdentityTokenFormatUUID].(string)
 	require.True(t, ok, "updated root_key uuid should be string")
 	require.NotEqual(t, rootKeyUUID, updatedRootKeyUUID, "root_key UUID should change after rotation")
 
@@ -287,7 +287,7 @@ func TestE2E_GetBarrierKeysStatus(t *testing.T) {
 	updatedIntermediateKey, ok := updatedStatus["intermediate_key"].(map[string]any)
 	require.True(t, ok, "updated intermediate_key should be object")
 
-	updatedIntermediateKeyUUID, ok := updatedIntermediateKey["uuid"].(string)
+	updatedIntermediateKeyUUID, ok := updatedIntermediateKey[cryptoutilSharedMagic.IdentityTokenFormatUUID].(string)
 	require.True(t, ok, "updated intermediate_key uuid should be string")
 	require.Equal(t, intermediateKeyUUID, updatedIntermediateKeyUUID, "intermediate_key UUID should remain unchanged after root rotation")
 }

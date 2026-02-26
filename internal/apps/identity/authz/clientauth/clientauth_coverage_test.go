@@ -3,6 +3,7 @@
 package clientauth
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"errors"
 	"testing"
@@ -104,7 +105,7 @@ func TestClientSecretJWTAuthenticator_ClientNotFound(t *testing.T) {
 				return fakeToken, nil
 			},
 			extractClaimsFn: func(_ context.Context, _ joseJwt.Token) (*ClientClaims, error) {
-				return &ClientClaims{Issuer: "test-client-id"}, nil
+				return &ClientClaims{Issuer: cryptoutilSharedMagic.TestClientID}, nil
 			},
 		},
 		repo: &mockErrorClientRepo{},
@@ -121,7 +122,7 @@ func TestClientSecretJWTAuthenticator_ValidateJWTSecondPassFails(t *testing.T) {
 	t.Parallel()
 
 	fakeToken := joseJwt.New()
-	expectedClient := &cryptoutilIdentityDomain.Client{ClientID: "test-client-id"}
+	expectedClient := &cryptoutilIdentityDomain.Client{ClientID: cryptoutilSharedMagic.TestClientID}
 	callCount := 0
 	auth := &ClientSecretJWTAuthenticator{
 		validator: &mockJWTValidator{
@@ -134,12 +135,12 @@ func TestClientSecretJWTAuthenticator_ValidateJWTSecondPassFails(t *testing.T) {
 				return nil, errors.New("jwt validation with secret failed") // second pass fails
 			},
 			extractClaimsFn: func(_ context.Context, _ joseJwt.Token) (*ClientClaims, error) {
-				return &ClientClaims{Issuer: "test-client-id"}, nil
+				return &ClientClaims{Issuer: cryptoutilSharedMagic.TestClientID}, nil
 			},
 		},
 		repo: &mockClientRepo{
 			clients: map[string]*cryptoutilIdentityDomain.Client{
-				"test-client-id": expectedClient,
+				cryptoutilSharedMagic.TestClientID: expectedClient,
 			},
 		},
 	}
@@ -155,19 +156,19 @@ func TestClientSecretJWTAuthenticator_Success(t *testing.T) {
 	t.Parallel()
 
 	fakeToken := joseJwt.New()
-	expectedClient := &cryptoutilIdentityDomain.Client{ClientID: "test-client-id"}
+	expectedClient := &cryptoutilIdentityDomain.Client{ClientID: cryptoutilSharedMagic.TestClientID}
 	auth := &ClientSecretJWTAuthenticator{
 		validator: &mockJWTValidator{
 			validateJWTFn: func(_ context.Context, _ string, _ *cryptoutilIdentityDomain.Client) (joseJwt.Token, error) {
 				return fakeToken, nil
 			},
 			extractClaimsFn: func(_ context.Context, _ joseJwt.Token) (*ClientClaims, error) {
-				return &ClientClaims{Issuer: "test-client-id"}, nil
+				return &ClientClaims{Issuer: cryptoutilSharedMagic.TestClientID}, nil
 			},
 		},
 		repo: &mockClientRepo{
 			clients: map[string]*cryptoutilIdentityDomain.Client{
-				"test-client-id": expectedClient,
+				cryptoutilSharedMagic.TestClientID: expectedClient,
 			},
 		},
 	}
@@ -175,7 +176,7 @@ func TestClientSecretJWTAuthenticator_Success(t *testing.T) {
 	client, err := auth.Authenticate(context.Background(), "some.jwt.token", "")
 	require.NoError(t, err)
 	require.NotNil(t, client)
-	require.Equal(t, "test-client-id", client.ClientID)
+	require.Equal(t, cryptoutilSharedMagic.TestClientID, client.ClientID)
 }
 
 // TestPrivateKeyJWTAuthenticator_EmptyAssertion tests that empty assertion returns error.
@@ -246,7 +247,7 @@ func TestPrivateKeyJWTAuthenticator_ClientNotFound(t *testing.T) {
 				return fakeToken, nil
 			},
 			extractClaimsFn: func(_ context.Context, _ joseJwt.Token) (*ClientClaims, error) {
-				return &ClientClaims{Issuer: "test-client-id"}, nil
+				return &ClientClaims{Issuer: cryptoutilSharedMagic.TestClientID}, nil
 			},
 		},
 		repo: &mockErrorClientRepo{},
@@ -263,7 +264,7 @@ func TestPrivateKeyJWTAuthenticator_ValidateJWTSecondPassFails(t *testing.T) {
 	t.Parallel()
 
 	fakeToken := joseJwt.New()
-	expectedClient := &cryptoutilIdentityDomain.Client{ClientID: "test-client-id"}
+	expectedClient := &cryptoutilIdentityDomain.Client{ClientID: cryptoutilSharedMagic.TestClientID}
 	callCount := 0
 	auth := &PrivateKeyJWTAuthenticator{
 		validator: &mockJWTValidator{
@@ -276,12 +277,12 @@ func TestPrivateKeyJWTAuthenticator_ValidateJWTSecondPassFails(t *testing.T) {
 				return nil, errors.New("jwt validation with key failed")
 			},
 			extractClaimsFn: func(_ context.Context, _ joseJwt.Token) (*ClientClaims, error) {
-				return &ClientClaims{Issuer: "test-client-id"}, nil
+				return &ClientClaims{Issuer: cryptoutilSharedMagic.TestClientID}, nil
 			},
 		},
 		repo: &mockClientRepo{
 			clients: map[string]*cryptoutilIdentityDomain.Client{
-				"test-client-id": expectedClient,
+				cryptoutilSharedMagic.TestClientID: expectedClient,
 			},
 		},
 	}
@@ -297,19 +298,19 @@ func TestPrivateKeyJWTAuthenticator_Success(t *testing.T) {
 	t.Parallel()
 
 	fakeToken := joseJwt.New()
-	expectedClient := &cryptoutilIdentityDomain.Client{ClientID: "test-client-id"}
+	expectedClient := &cryptoutilIdentityDomain.Client{ClientID: cryptoutilSharedMagic.TestClientID}
 	auth := &PrivateKeyJWTAuthenticator{
 		validator: &mockJWTValidator{
 			validateJWTFn: func(_ context.Context, _ string, _ *cryptoutilIdentityDomain.Client) (joseJwt.Token, error) {
 				return fakeToken, nil
 			},
 			extractClaimsFn: func(_ context.Context, _ joseJwt.Token) (*ClientClaims, error) {
-				return &ClientClaims{Issuer: "test-client-id"}, nil
+				return &ClientClaims{Issuer: cryptoutilSharedMagic.TestClientID}, nil
 			},
 		},
 		repo: &mockClientRepo{
 			clients: map[string]*cryptoutilIdentityDomain.Client{
-				"test-client-id": expectedClient,
+				cryptoutilSharedMagic.TestClientID: expectedClient,
 			},
 		},
 	}
@@ -317,5 +318,5 @@ func TestPrivateKeyJWTAuthenticator_Success(t *testing.T) {
 	client, err := auth.Authenticate(context.Background(), "some.jwt.token", "")
 	require.NoError(t, err)
 	require.NotNil(t, client)
-	require.Equal(t, "test-client-id", client.ClientID)
+	require.Equal(t, cryptoutilSharedMagic.TestClientID, client.ClientID)
 }

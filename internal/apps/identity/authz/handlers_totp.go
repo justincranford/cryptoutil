@@ -6,6 +6,7 @@
 package authz
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"strings"
 
@@ -70,7 +71,7 @@ func (s *Service) handleEnrollTOTP(c *fiber.Ctx) error {
 
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             "invalid_request",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Invalid request body",
 		})
 	}
@@ -78,21 +79,21 @@ func (s *Service) handleEnrollTOTP(c *fiber.Ctx) error {
 	// Validate required fields.
 	if req.UserID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             "invalid_request",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Missing user_id parameter",
 		})
 	}
 
 	if req.Issuer == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             "invalid_request",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Missing issuer parameter",
 		})
 	}
 
 	if req.AccountName == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             "invalid_request",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Missing account_name parameter",
 		})
 	}
@@ -100,7 +101,7 @@ func (s *Service) handleEnrollTOTP(c *fiber.Ctx) error {
 	userID, err := googleUuid.Parse(req.UserID)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             "invalid_request",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Invalid user_id format (must be UUID)",
 		})
 	}
@@ -110,13 +111,13 @@ func (s *Service) handleEnrollTOTP(c *fiber.Ctx) error {
 	if err != nil {
 		if errors.Is(err, cryptoutilIdentityAppErr.ErrUserNotFound) {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"error":             "user_not_found",
+				cryptoutilSharedMagic.StringError:             "user_not_found",
 				"error_description": "User not found",
 			})
 		}
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             "server_error",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Internal server error",
 		})
 	}
@@ -128,7 +129,7 @@ func (s *Service) handleEnrollTOTP(c *fiber.Ctx) error {
 	totpSecret, qrURI, backupCodes, err := service.EnrollTOTP(c.Context(), userID, req.Issuer, req.AccountName)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             "server_error",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Failed to enroll in TOTP",
 		})
 	}
@@ -147,7 +148,7 @@ func (s *Service) handleVerifyTOTP(c *fiber.Ctx) error {
 
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             "invalid_request",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Invalid request body",
 		})
 	}
@@ -155,14 +156,14 @@ func (s *Service) handleVerifyTOTP(c *fiber.Ctx) error {
 	// Validate required fields.
 	if req.UserID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             "invalid_request",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Missing user_id parameter",
 		})
 	}
 
 	if req.Code == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             "invalid_request",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Missing code parameter",
 		})
 	}
@@ -170,7 +171,7 @@ func (s *Service) handleVerifyTOTP(c *fiber.Ctx) error {
 	userID, err := googleUuid.Parse(req.UserID)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             "invalid_request",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Invalid user_id format (must be UUID)",
 		})
 	}
@@ -184,14 +185,14 @@ func (s *Service) handleVerifyTOTP(c *fiber.Ctx) error {
 		// Check for specific errors.
 		if errors.Is(err, cryptoutilIdentityAppErr.ErrTOTPSecretNotFound) {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"error":             "totp_not_enrolled",
+				cryptoutilSharedMagic.StringError:             "totp_not_enrolled",
 				"error_description": "User not enrolled in TOTP MFA",
 			})
 		}
 
 		if errors.Is(err, cryptoutilIdentityAppErr.ErrTOTPAccountLocked) {
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-				"error":             "account_locked",
+				cryptoutilSharedMagic.StringError:             "account_locked",
 				"error_description": "Account temporarily locked due to too many failed attempts",
 			})
 		}
@@ -213,7 +214,7 @@ func (s *Service) handleCheckMFAStepUp(c *fiber.Ctx) error {
 	userIDStr := c.Query("user_id")
 	if userIDStr == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             "invalid_request",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Missing user_id query parameter",
 		})
 	}
@@ -221,7 +222,7 @@ func (s *Service) handleCheckMFAStepUp(c *fiber.Ctx) error {
 	userID, err := googleUuid.Parse(userIDStr)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             "invalid_request",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Invalid user_id format (must be UUID)",
 		})
 	}
@@ -234,13 +235,13 @@ func (s *Service) handleCheckMFAStepUp(c *fiber.Ctx) error {
 	if err != nil {
 		if errors.Is(err, cryptoutilIdentityAppErr.ErrTOTPSecretNotFound) {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"error":             "totp_not_enrolled",
+				cryptoutilSharedMagic.StringError:             "totp_not_enrolled",
 				"error_description": "User not enrolled in TOTP MFA",
 			})
 		}
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             "server_error",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Failed to check MFA step-up requirement",
 		})
 	}
@@ -260,7 +261,7 @@ func (s *Service) handleGenerateTOTPBackupCodes(c *fiber.Ctx) error {
 
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             "invalid_request",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Invalid request body",
 		})
 	}
@@ -268,7 +269,7 @@ func (s *Service) handleGenerateTOTPBackupCodes(c *fiber.Ctx) error {
 	// Validate user_id.
 	if req.UserID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             "invalid_request",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Missing user_id parameter",
 		})
 	}
@@ -276,7 +277,7 @@ func (s *Service) handleGenerateTOTPBackupCodes(c *fiber.Ctx) error {
 	userID, err := googleUuid.Parse(req.UserID)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             "invalid_request",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Invalid user_id format (must be UUID)",
 		})
 	}
@@ -286,13 +287,13 @@ func (s *Service) handleGenerateTOTPBackupCodes(c *fiber.Ctx) error {
 	if err != nil {
 		if errors.Is(err, cryptoutilIdentityAppErr.ErrUserNotFound) {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"error":             "user_not_found",
+				cryptoutilSharedMagic.StringError:             "user_not_found",
 				"error_description": "User not found",
 			})
 		}
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             "server_error",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Internal server error",
 		})
 	}
@@ -304,7 +305,7 @@ func (s *Service) handleGenerateTOTPBackupCodes(c *fiber.Ctx) error {
 	codes, err := service.GenerateBackupCodes(c.Context(), userID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             "server_error",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Failed to generate backup codes",
 		})
 	}
@@ -321,7 +322,7 @@ func (s *Service) handleVerifyTOTPBackupCode(c *fiber.Ctx) error {
 
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             "invalid_request",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Invalid request body",
 		})
 	}
@@ -329,14 +330,14 @@ func (s *Service) handleVerifyTOTPBackupCode(c *fiber.Ctx) error {
 	// Validate required fields.
 	if req.UserID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             "invalid_request",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Missing user_id parameter",
 		})
 	}
 
 	if req.Code == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             "invalid_request",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Missing code parameter",
 		})
 	}
@@ -344,7 +345,7 @@ func (s *Service) handleVerifyTOTPBackupCode(c *fiber.Ctx) error {
 	userID, err := googleUuid.Parse(req.UserID)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             "invalid_request",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Invalid user_id format (must be UUID)",
 		})
 	}
@@ -372,7 +373,7 @@ func (s *Service) handleVerifyTOTPBackupCode(c *fiber.Ctx) error {
 		}
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             "server_error",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Failed to verify backup code",
 		})
 	}

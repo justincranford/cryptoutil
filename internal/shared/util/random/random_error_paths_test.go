@@ -5,6 +5,7 @@
 package random
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"io"
 	"testing"
@@ -32,7 +33,7 @@ func TestGenerateBytes_RandError(t *testing.T) {
 
 	defer func() { globalRandReader = orig }()
 
-	_, err := GenerateBytes(16)
+	_, err := GenerateBytes(cryptoutilSharedMagic.RealmMinTokenLengthBytes)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to generate")
 }
@@ -44,7 +45,7 @@ func TestGenerateMultipleBytes_RandError(t *testing.T) {
 
 	defer func() { globalRandReader = orig }()
 
-	_, err := GenerateMultipleBytes(2, 16)
+	_, err := GenerateMultipleBytes(2, cryptoutilSharedMagic.RealmMinTokenLengthBytes)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to generate consecutive byte slices")
 }
@@ -56,7 +57,7 @@ func TestGenerateString_RandError(t *testing.T) {
 
 	defer func() { globalRandReader = orig }()
 
-	_, err := GenerateString(32)
+	_, err := GenerateString(cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to generate")
 }
@@ -123,9 +124,9 @@ func TestGenerateUUIDv7_HappyPath2(t *testing.T) {
 func TestGlobalRandReader_ReadFull(t *testing.T) {
 	t.Parallel()
 
-	buf := make([]byte, 16)
+	buf := make([]byte, cryptoutilSharedMagic.RealmMinTokenLengthBytes)
 
 	_, err := io.ReadFull(globalRandReader, buf)
 	require.NoError(t, err)
-	require.Len(t, buf, 16)
+	require.Len(t, buf, cryptoutilSharedMagic.RealmMinTokenLengthBytes)
 }

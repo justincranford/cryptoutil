@@ -5,6 +5,7 @@
 package idp
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	testify "github.com/stretchr/testify/require"
@@ -21,21 +22,21 @@ func TestParseScopeDescriptions(t *testing.T) {
 	}{
 		{
 			name:           "single scope",
-			scopeStr:       "openid",
+			scopeStr:       cryptoutilSharedMagic.ScopeOpenID,
 			expectedCount:  1,
-			expectedScopes: []string{"openid"},
+			expectedScopes: []string{cryptoutilSharedMagic.ScopeOpenID},
 		},
 		{
 			name:           "multiple scopes",
 			scopeStr:       "openid profile email",
 			expectedCount:  3,
-			expectedScopes: []string{"openid", "profile", "email"},
+			expectedScopes: []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail},
 		},
 		{
 			name:           "all standard scopes",
 			scopeStr:       "openid profile email address phone offline_access",
-			expectedCount:  6,
-			expectedScopes: []string{"openid", "profile", "email", "address", "phone", "offline_access"},
+			expectedCount:  cryptoutilSharedMagic.DefaultEmailOTPLength,
+			expectedScopes: []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail, cryptoutilSharedMagic.ClaimAddress, cryptoutilSharedMagic.ScopePhone, cryptoutilSharedMagic.ScopeOfflineAccess},
 		},
 		{
 			name:           "empty string",
@@ -47,13 +48,13 @@ func TestParseScopeDescriptions(t *testing.T) {
 			name:           "extra spaces",
 			scopeStr:       "openid  profile",
 			expectedCount:  2,
-			expectedScopes: []string{"openid", "profile"},
+			expectedScopes: []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 		},
 		{
 			name:           "custom scope",
 			scopeStr:       "openid custom_scope",
 			expectedCount:  2,
-			expectedScopes: []string{"openid", "custom_scope"},
+			expectedScopes: []string{cryptoutilSharedMagic.ScopeOpenID, "custom_scope"},
 		},
 	}
 
@@ -84,32 +85,32 @@ func TestGetScopeDescription(t *testing.T) {
 	}{
 		{
 			name:                "openid scope",
-			scope:               "openid",
+			scope:               cryptoutilSharedMagic.ScopeOpenID,
 			expectedDescription: "Access your basic identity information",
 		},
 		{
 			name:                "profile scope",
-			scope:               "profile",
+			scope:               cryptoutilSharedMagic.ClaimProfile,
 			expectedDescription: "Access your profile information (name, picture, etc.)",
 		},
 		{
 			name:                "email scope",
-			scope:               "email",
+			scope:               cryptoutilSharedMagic.ClaimEmail,
 			expectedDescription: "Access your email address",
 		},
 		{
 			name:                "address scope",
-			scope:               "address",
+			scope:               cryptoutilSharedMagic.ClaimAddress,
 			expectedDescription: "Access your address information",
 		},
 		{
 			name:                "phone scope",
-			scope:               "phone",
+			scope:               cryptoutilSharedMagic.ScopePhone,
 			expectedDescription: "Access your phone number",
 		},
 		{
 			name:                "offline_access scope",
-			scope:               "offline_access",
+			scope:               cryptoutilSharedMagic.ScopeOfflineAccess,
 			expectedDescription: "Maintain access when you're offline (refresh token)",
 		},
 		{

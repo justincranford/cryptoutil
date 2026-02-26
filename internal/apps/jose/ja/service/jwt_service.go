@@ -5,6 +5,7 @@
 package service
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"encoding/base64"
 	json "encoding/json"
@@ -299,35 +300,35 @@ func (s *jwtServiceImpl) buildClaimsMap(claims *JWTClaims) map[string]any {
 	claimsMap := make(map[string]any)
 
 	if claims.Issuer != "" {
-		claimsMap["iss"] = claims.Issuer
+		claimsMap[cryptoutilSharedMagic.ClaimIss] = claims.Issuer
 	}
 
 	if claims.Subject != "" {
-		claimsMap["sub"] = claims.Subject
+		claimsMap[cryptoutilSharedMagic.ClaimSub] = claims.Subject
 	}
 
 	if len(claims.Audience) > 0 {
 		if len(claims.Audience) == 1 {
-			claimsMap["aud"] = claims.Audience[0]
+			claimsMap[cryptoutilSharedMagic.ClaimAud] = claims.Audience[0]
 		} else {
-			claimsMap["aud"] = claims.Audience
+			claimsMap[cryptoutilSharedMagic.ClaimAud] = claims.Audience
 		}
 	}
 
 	if claims.ExpiresAt != nil {
-		claimsMap["exp"] = claims.ExpiresAt.Unix()
+		claimsMap[cryptoutilSharedMagic.ClaimExp] = claims.ExpiresAt.Unix()
 	}
 
 	if claims.NotBefore != nil {
-		claimsMap["nbf"] = claims.NotBefore.Unix()
+		claimsMap[cryptoutilSharedMagic.ClaimNbf] = claims.NotBefore.Unix()
 	}
 
 	if claims.IssuedAt != nil {
-		claimsMap["iat"] = claims.IssuedAt.Unix()
+		claimsMap[cryptoutilSharedMagic.ClaimIat] = claims.IssuedAt.Unix()
 	}
 
 	if claims.JTI != "" {
-		claimsMap["jti"] = claims.JTI
+		claimsMap[cryptoutilSharedMagic.ClaimJti] = claims.JTI
 	}
 
 	// Add custom claims.
@@ -346,15 +347,15 @@ func (s *jwtServiceImpl) parseClaimsMap(claimsMap map[string]any) *JWTClaims {
 
 	for k, v := range claimsMap {
 		switch k {
-		case "iss":
+		case cryptoutilSharedMagic.ClaimIss:
 			if str, ok := v.(string); ok {
 				claims.Issuer = str
 			}
-		case "sub":
+		case cryptoutilSharedMagic.ClaimSub:
 			if str, ok := v.(string); ok {
 				claims.Subject = str
 			}
-		case "aud":
+		case cryptoutilSharedMagic.ClaimAud:
 			switch a := v.(type) {
 			case string:
 				claims.Audience = []string{a}
@@ -365,7 +366,7 @@ func (s *jwtServiceImpl) parseClaimsMap(claimsMap map[string]any) *JWTClaims {
 					}
 				}
 			}
-		case "exp":
+		case cryptoutilSharedMagic.ClaimExp:
 			if f, ok := v.(float64); ok {
 				t := time.Unix(int64(f), 0)
 				claims.ExpiresAt = &t
@@ -374,7 +375,7 @@ func (s *jwtServiceImpl) parseClaimsMap(claimsMap map[string]any) *JWTClaims {
 				t := time.Unix(i, 0)
 				claims.ExpiresAt = &t
 			}
-		case "nbf":
+		case cryptoutilSharedMagic.ClaimNbf:
 			if f, ok := v.(float64); ok {
 				t := time.Unix(int64(f), 0)
 				claims.NotBefore = &t
@@ -383,7 +384,7 @@ func (s *jwtServiceImpl) parseClaimsMap(claimsMap map[string]any) *JWTClaims {
 				t := time.Unix(i, 0)
 				claims.NotBefore = &t
 			}
-		case "iat":
+		case cryptoutilSharedMagic.ClaimIat:
 			if f, ok := v.(float64); ok {
 				t := time.Unix(int64(f), 0)
 				claims.IssuedAt = &t
@@ -392,7 +393,7 @@ func (s *jwtServiceImpl) parseClaimsMap(claimsMap map[string]any) *JWTClaims {
 				t := time.Unix(i, 0)
 				claims.IssuedAt = &t
 			}
-		case "jti":
+		case cryptoutilSharedMagic.ClaimJti:
 			if str, ok := v.(string); ok {
 				claims.JTI = str
 			}

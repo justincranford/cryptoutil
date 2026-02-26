@@ -5,6 +5,7 @@
 package demo
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"sync"
 	"testing"
 
@@ -31,7 +32,7 @@ func TestGenerateDemoTenantID(t *testing.T) {
 
 			id := GenerateDemoTenantID()
 			require.NotEmpty(t, id)
-			require.Len(t, id, 36) // UUID format: 8-4-4-4-12.
+			require.Len(t, id, cryptoutilSharedMagic.UUIDStringLength) // UUID format: 8-4-4-4-12.
 			require.Contains(t, id, "-")
 
 			mu.Lock()
@@ -55,7 +56,7 @@ func TestDefaultDemoTenants(t *testing.T) {
 
 		for _, tenant := range tenants {
 			require.NotEmpty(t, tenant.ID, "Tenant ID should not be empty")
-			require.Len(t, tenant.ID, 36, "Tenant ID should be UUID format")
+			require.Len(t, tenant.ID, cryptoutilSharedMagic.UUIDStringLength, "Tenant ID should be UUID format")
 			require.NotEmpty(t, tenant.Name, "Tenant name should not be empty")
 		}
 

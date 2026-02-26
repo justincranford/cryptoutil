@@ -213,7 +213,7 @@ func _createInMemoryDB(ctx context.Context) (*gorm.DB, *sql.DB, error) {
 	dbID, _ := googleUuid.NewV7()
 	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
 
-	sqlDB, err := sql.Open("sqlite", dsn)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to open SQLite: %w", err)
 	}

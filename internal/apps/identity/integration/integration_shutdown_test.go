@@ -14,6 +14,7 @@
 package integration
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	json "encoding/json"
 	"io"
@@ -99,7 +100,7 @@ func TestGracefulShutdown(t *testing.T) {
 	shutdownTestServers(t, servers)
 
 	// Verify servers stopped (connection should fail).
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.JoseJAMaxMaterials * time.Millisecond)
 
 	req2, err := http.NewRequestWithContext(context.Background(), http.MethodGet, testAuthZBaseURL+"/health", nil)
 	testify.NoError(t, err, "Failed to create health check request")
@@ -120,10 +121,10 @@ func getTestAccessToken(t *testing.T, servers *testServers, scope string) string
 	// this would go through the full OAuth flow.
 	tokenURL := testAuthZBaseURL + "/oauth2/v1/token"
 	tokenData := url.Values{}
-	tokenData.Set("grant_type", "client_credentials")
-	tokenData.Set("client_id", testClientID)
-	tokenData.Set("client_secret", testClientSecret)
-	tokenData.Set("scope", scope)
+	tokenData.Set(cryptoutilSharedMagic.ParamGrantType, cryptoutilSharedMagic.GrantTypeClientCredentials)
+	tokenData.Set(cryptoutilSharedMagic.ClaimClientID, testClientID)
+	tokenData.Set(cryptoutilSharedMagic.ParamClientSecret, testClientSecret)
+	tokenData.Set(cryptoutilSharedMagic.ClaimScope, scope)
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, tokenURL, strings.NewReader(tokenData.Encode()))
 	testify.NoError(t, err, "Failed to create token request")
@@ -147,7 +148,7 @@ func getTestAccessToken(t *testing.T, servers *testServers, scope string) string
 	err = json.Unmarshal(body, &tokenResponse)
 	testify.NoError(t, err, "Failed to decode token response")
 
-	accessToken, ok := tokenResponse["access_token"].(string)
+	accessToken, ok := tokenResponse[cryptoutilSharedMagic.TokenTypeAccessToken].(string)
 	testify.True(t, ok, "Access token should be present")
 	testify.NotEmpty(t, accessToken, "Access token should not be empty")
 

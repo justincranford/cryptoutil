@@ -3,6 +3,7 @@
 package handler
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
 
@@ -24,7 +25,7 @@ func TestOamOasMapper_ToOamGetElasticKeyMaterialKeysQueryParams_AllPopulated(t *
 	materialKeyIDs := cryptoutilKmsServer.MaterialKeyIDs{materialKeyID1, materialKeyID2}
 
 	pageNum := 2
-	pageSize := 50
+	pageSize := cryptoutilSharedMagic.IMMaxUsernameLength
 	now := time.Now().UTC()
 
 	params := &cryptoutilKmsServer.GetElastickeyElasticKeyIDMaterialkeysParams{
@@ -50,7 +51,7 @@ func TestOamOasMapper_ToOamGetElasticKeyMaterialKeysQueryParams_AllPopulated(t *
 	require.NotNil(t, result.Page)
 	require.Equal(t, cryptoutilOpenapiModel.PageNumber(2), *result.Page)
 	require.NotNil(t, result.Size)
-	require.Equal(t, cryptoutilOpenapiModel.PageSize(50), *result.Size)
+	require.Equal(t, cryptoutilOpenapiModel.PageSize(cryptoutilSharedMagic.IMMaxUsernameLength), *result.Size)
 	require.NotNil(t, result.MinGenerateDate)
 	require.NotNil(t, result.MaxGenerateDate)
 	require.NotNil(t, result.MinImportDate)
@@ -72,13 +73,13 @@ func TestOamOasMapper_ToOamGetElasticKeyQueryParams_AllPopulated(t *testing.T) {
 	names := cryptoutilKmsServer.Names{"key-1", "key-2"}
 	providers := cryptoutilKmsServer.Providers{"local", "hsm"}
 	algorithms := cryptoutilKmsServer.Algorithms{"AES-256-GCM", "RSA-2048"}
-	statuses := cryptoutilKmsServer.Statuses{"active", "disabled"}
+	statuses := cryptoutilKmsServer.Statuses{"active", cryptoutilSharedMagic.DefaultDatabaseContainerDisabled}
 	sorts := cryptoutilKmsServer.Sorts{"name:asc", "created_at:desc"}
 
 	versioningAllowed := true
 	importAllowed := false
 	pageNum := 1
-	pageSize := 25
+	pageSize := cryptoutilSharedMagic.TLSMaxValidityCACertYears
 
 	params := &cryptoutilKmsServer.GetElastickeysParams{
 		ElasticKeyIds:     &elasticKeyIDs,
@@ -115,7 +116,7 @@ func TestOamOasMapper_ToOamGetElasticKeyQueryParams_AllPopulated(t *testing.T) {
 	require.NotNil(t, result.Page)
 	require.Equal(t, cryptoutilOpenapiModel.PageNumber(1), *result.Page)
 	require.NotNil(t, result.Size)
-	require.Equal(t, cryptoutilOpenapiModel.PageSize(25), *result.Size)
+	require.Equal(t, cryptoutilOpenapiModel.PageSize(cryptoutilSharedMagic.TLSMaxValidityCACertYears), *result.Size)
 }
 
 func TestOamOasMapper_ToOamGetMaterialKeysQueryParams_AllPopulated(t *testing.T) {
@@ -131,7 +132,7 @@ func TestOamOasMapper_ToOamGetMaterialKeysQueryParams_AllPopulated(t *testing.T)
 
 	now := time.Now().UTC()
 	pageNum := 3
-	pageSize := 100
+	pageSize := cryptoutilSharedMagic.JoseJAMaxMaterials
 
 	params := &cryptoutilKmsServer.GetMaterialkeysParams{
 		ElasticKeyIds:     &elasticKeyIDs,
@@ -167,6 +168,6 @@ func TestOamOasMapper_ToOamGetMaterialKeysQueryParams_AllPopulated(t *testing.T)
 	require.NotNil(t, result.Page)
 	require.Equal(t, cryptoutilOpenapiModel.PageNumber(3), *result.Page)
 	require.NotNil(t, result.Size)
-	require.Equal(t, cryptoutilOpenapiModel.PageSize(100), *result.Size)
+	require.Equal(t, cryptoutilOpenapiModel.PageSize(cryptoutilSharedMagic.JoseJAMaxMaterials), *result.Size)
 	require.Nil(t, result.Sort)
 }

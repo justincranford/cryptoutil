@@ -3,6 +3,7 @@
 package lint_go_mod
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"testing"
 
@@ -39,10 +40,10 @@ func TestLint_UpToDateGoMod(t *testing.T) {
 
 	// Create minimal go.mod with no external dependencies (always up-to-date).
 	goModContent := "module testmod\n\ngo 1.21\n"
-	require.NoError(t, os.WriteFile("go.mod", []byte(goModContent), 0o600))
+	require.NoError(t, os.WriteFile("go.mod", []byte(goModContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Create empty go.sum (required by outdated_deps checker).
-	require.NoError(t, os.WriteFile("go.sum", []byte(""), 0o600))
+	require.NoError(t, os.WriteFile("go.sum", []byte(""), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 

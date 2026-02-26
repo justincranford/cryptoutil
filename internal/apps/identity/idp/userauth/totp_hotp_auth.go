@@ -48,7 +48,7 @@ func NewTOTPAuthenticator(
 
 // Method returns the authentication method name.
 func (t *TOTPAuthenticator) Method() string {
-	return "totp"
+	return cryptoutilSharedMagic.MFATypeTOTP
 }
 
 // GenerateSecret generates a random TOTP secret.
@@ -111,7 +111,7 @@ func (t *TOTPAuthenticator) InitiateAuth(ctx context.Context, userID string) (*A
 	challenge := &AuthChallenge{
 		ID:        challengeID,
 		UserID:    userID,
-		Method:    "totp",
+		Method:    cryptoutilSharedMagic.MFATypeTOTP,
 		ExpiresAt: expiresAt,
 		Metadata: map[string]any{
 			"digits": t.digits,
@@ -175,8 +175,8 @@ func (t *TOTPAuthenticator) generateTOTPAtTime(secret string, testTime time.Time
 	// Decode base32 secret.
 	secret = strings.ToUpper(secret)
 	// Add padding if needed.
-	if l := len(secret) % 8; l != 0 { //nolint:mnd // Base32 requires padding to 8-byte boundary.
-		secret += strings.Repeat("=", 8-l) //nolint:mnd // Base32 padding size.
+	if l := len(secret) % cryptoutilSharedMagic.IMMinPasswordLength; l != 0 { //nolint:mnd // Base32 requires padding to 8-byte boundary.
+		secret += strings.Repeat("=", cryptoutilSharedMagic.IMMinPasswordLength-l) //nolint:mnd // Base32 padding size.
 	}
 
 	key, err := base32.StdEncoding.DecodeString(secret)
@@ -282,8 +282,8 @@ func (h *HOTPAuthenticator) GenerateHOTP(_ context.Context, secret string, count
 	// Decode base32 secret.
 	secret = strings.ToUpper(secret)
 	// Add padding if needed.
-	if l := len(secret) % 8; l != 0 { //nolint:mnd // Base32 requires padding to 8-byte boundary.
-		secret += strings.Repeat("=", 8-l) //nolint:mnd // Base32 requires padding to 8-byte boundary.
+	if l := len(secret) % cryptoutilSharedMagic.IMMinPasswordLength; l != 0 { //nolint:mnd // Base32 requires padding to 8-byte boundary.
+		secret += strings.Repeat("=", cryptoutilSharedMagic.IMMinPasswordLength-l) //nolint:mnd // Base32 requires padding to 8-byte boundary.
 	}
 
 	key, err := base32.StdEncoding.DecodeString(secret)

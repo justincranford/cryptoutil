@@ -5,6 +5,7 @@
 package crypto
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	json "encoding/json"
 	"fmt"
 	"log"
@@ -290,7 +291,7 @@ func requireJWEJWKHeaders(t *testing.T, nonPublicJWEJWK joseJwk.Key, expectedJWE
 	var actualJWKUse string
 
 	require.NoError(t, nonPublicJWEJWK.Get(joseJwk.KeyUsageKey, &actualJWKUse))
-	require.Equal(t, "enc", actualJWKUse)
+	require.Equal(t, cryptoutilSharedMagic.JoseKeyUseEnc, actualJWKUse)
 }
 
 func requireJWEMessageHeaders(t *testing.T, jweMessage *joseJwe.Message, actualKeyKid *googleUuid.UUID, testCase *happyPathJWETestCase) {
@@ -309,7 +310,7 @@ func requireJWEMessageHeaders(t *testing.T, jweMessage *joseJwe.Message, actualK
 
 	var actualJWEEnc joseJwa.ContentEncryptionAlgorithm
 
-	require.NoError(t, jweHeaders.Get("enc", &actualJWEEnc))
+	require.NoError(t, jweHeaders.Get(cryptoutilSharedMagic.JoseKeyUseEnc, &actualJWEEnc))
 	// require.Equal(t, AlgCekA256GCM, actualJWEEnc)
 
 	var actualJWEAlg joseJwa.KeyAlgorithm

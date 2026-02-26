@@ -6,6 +6,7 @@
 package jose
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 
 	cryptoutilAppsJoseJa "cryptoutil/internal/apps/jose/ja"
@@ -16,7 +17,7 @@ import (
 func Execute(parameters []string) {
 	// ja.Ja expects args like: ["jose-ja", "start", ...]
 	// We receive: ["start", ...] from parameters
-	args := append([]string{"jose-ja"}, parameters...)
+	args := append([]string{cryptoutilSharedMagic.OTLPServiceJoseJA}, parameters...)
 	exitCode := cryptoutilAppsJoseJa.Ja(args, os.Stdin, os.Stdout, os.Stderr)
 	os.Exit(exitCode)
 }

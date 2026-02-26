@@ -3,6 +3,7 @@
 package cicd
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"os"
 	"path/filepath"
@@ -159,7 +160,7 @@ func TestCheckChunkVerification_NoGoMod(t *testing.T) {
 
 			cleanups = append(cleanups, func() {
 				_ = os.Remove(savedPath) // Remove any test artifact.
-				_ = os.WriteFile(savedPath, savedData, 0o600)
+				_ = os.WriteFile(savedPath, savedData, cryptoutilSharedMagic.CacheFilePermissions)
 				_ = os.Remove(savedPath + ".test-backup")
 			})
 		}
@@ -211,7 +212,7 @@ func TestFindProjectRoot_NoGoMod(t *testing.T) {
 
 			cleanups = append(cleanups, func() {
 				_ = os.Remove(savedPath)
-				_ = os.WriteFile(savedPath, savedData, 0o600)
+				_ = os.WriteFile(savedPath, savedData, cryptoutilSharedMagic.CacheFilePermissions)
 				_ = os.Remove(savedPath + ".test-backup")
 			})
 		}

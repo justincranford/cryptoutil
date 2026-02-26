@@ -6,6 +6,7 @@
 package auth
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 
@@ -36,7 +37,7 @@ func (p *EmailPasswordProfile) Name() string {
 
 // Authenticate performs email/password authentication.
 func (p *EmailPasswordProfile) Authenticate(ctx context.Context, credentials map[string]string) (*cryptoutilIdentityDomain.User, error) {
-	email, ok := credentials["email"]
+	email, ok := credentials[cryptoutilSharedMagic.ClaimEmail]
 	if !ok || email == "" {
 		return nil, fmt.Errorf("%w: missing email", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 	}
@@ -67,7 +68,7 @@ func (p *EmailPasswordProfile) RequiresMFA() bool {
 
 // ValidateCredentials validates the credential format.
 func (p *EmailPasswordProfile) ValidateCredentials(credentials map[string]string) error {
-	email, ok := credentials["email"]
+	email, ok := credentials[cryptoutilSharedMagic.ClaimEmail]
 	if !ok || email == "" {
 		return fmt.Errorf("%w: missing email", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 	}

@@ -6,6 +6,7 @@
 package idp
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	fiber "github.com/gofiber/fiber/v2"
 )
 
@@ -19,25 +20,25 @@ func (s *Service) handleHealth(c *fiber.Ctx) error {
 	sqlDB, err := db.DB()
 	if err != nil {
 		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			"status":   "unhealthy",
-			"database": "unavailable",
-			"service":  "idp",
-			"error":    err.Error(),
+			cryptoutilSharedMagic.StringStatus:   "unhealthy",
+			cryptoutilSharedMagic.RealmStorageTypeDatabase: "unavailable",
+			"service":  cryptoutilSharedMagic.IDPServiceName,
+			cryptoutilSharedMagic.StringError:    err.Error(),
 		})
 	}
 
 	if err := sqlDB.PingContext(ctx); err != nil {
 		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			"status":   "unhealthy",
-			"database": "unreachable",
-			"service":  "idp",
-			"error":    err.Error(),
+			cryptoutilSharedMagic.StringStatus:   "unhealthy",
+			cryptoutilSharedMagic.RealmStorageTypeDatabase: "unreachable",
+			"service":  cryptoutilSharedMagic.IDPServiceName,
+			cryptoutilSharedMagic.StringError:    err.Error(),
 		})
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"status":   "healthy",
-		"database": "ok",
-		"service":  "idp",
+		cryptoutilSharedMagic.StringStatus:   cryptoutilSharedMagic.DockerServiceHealthHealthy,
+		cryptoutilSharedMagic.RealmStorageTypeDatabase: "ok",
+		"service":  cryptoutilSharedMagic.IDPServiceName,
 	})
 }

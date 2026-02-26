@@ -3,6 +3,7 @@
 package lint_compose
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -39,7 +40,7 @@ services:
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/v1/livez"]
 `
-	err := os.WriteFile(composeFile, []byte(validContent), 0o600)
+	err := os.WriteFile(composeFile, []byte(validContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -66,7 +67,7 @@ services:
       - "8080:8080"
       - "9090:9090"
 `
-	err := os.WriteFile(composeFile, []byte(violatingContent), 0o600)
+	err := os.WriteFile(composeFile, []byte(violatingContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -93,7 +94,7 @@ services:
     ports:
       - "19090:9090"
 `
-	err := os.WriteFile(composeFile, []byte(violatingContent), 0o600)
+	err := os.WriteFile(composeFile, []byte(violatingContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -119,7 +120,7 @@ services:
     ports:
       - "9080-9089:9090"
 `
-	err := os.WriteFile(composeFile, []byte(violatingContent), 0o600)
+	err := os.WriteFile(composeFile, []byte(violatingContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -146,7 +147,7 @@ services:
       - "8080:8080"
       # - "9090:9090"  # Commented out - should not trigger
 `
-	err := os.WriteFile(composeFile, []byte(validContent), 0o600)
+	err := os.WriteFile(composeFile, []byte(validContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -172,7 +173,7 @@ services:
     ports:
       - "9090:9090"
 `
-	err := os.WriteFile(composeFile, []byte(violatingContent), 0o600)
+	err := os.WriteFile(composeFile, []byte(violatingContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -204,10 +205,10 @@ services:
     ports:
       - "19090:9090"
 `
-	err := os.WriteFile(composeFile1, []byte(violating1), 0o600)
+	err := os.WriteFile(composeFile1, []byte(violating1), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
-	err = os.WriteFile(composeFile2, []byte(violating2), 0o600)
+	err = os.WriteFile(composeFile2, []byte(violating2), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -235,7 +236,7 @@ services:
     ports:
       - "8080:8080"
 `
-	err := os.WriteFile(composeFile, []byte(validContent), 0o600)
+	err := os.WriteFile(composeFile, []byte(validContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")

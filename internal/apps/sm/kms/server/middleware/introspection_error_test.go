@@ -5,6 +5,7 @@
 package middleware
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	json "encoding/json"
 	http "net/http"
@@ -97,7 +98,7 @@ func TestBatchIntrospector_IntrospectWithClientAuth(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		username, password, ok := r.BasicAuth()
 		require.True(t, ok, "Basic auth should be present")
-		require.Equal(t, "test-client-id", username)
+		require.Equal(t, cryptoutilSharedMagic.TestClientID, username)
 		require.Equal(t, "test-client-secret", password)
 
 		w.Header().Set("Content-Type", "application/json")
@@ -111,7 +112,7 @@ func TestBatchIntrospector_IntrospectWithClientAuth(t *testing.T) {
 	introspector, err := NewBatchIntrospector(IntrospectionConfig{
 		IntrospectionURL: server.URL,
 		CacheTTL:         time.Minute,
-		ClientID:         "test-client-id",
+		ClientID:         cryptoutilSharedMagic.TestClientID,
 		ClientSecret:     "test-client-secret",
 	})
 	require.NoError(t, err)
@@ -133,7 +134,7 @@ func TestBatchIntrospector_BatchIntrospectWithErrors(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestCount++
 
-		token := r.FormValue("token")
+		token := r.FormValue(cryptoutilSharedMagic.ParamToken)
 
 		if token == "error-token" {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -152,7 +153,7 @@ func TestBatchIntrospector_BatchIntrospectWithErrors(t *testing.T) {
 	introspector, err := NewBatchIntrospector(IntrospectionConfig{
 		IntrospectionURL: server.URL,
 		CacheTTL:         time.Minute,
-		MaxBatchSize:     10,
+		MaxBatchSize:     cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 	})
 	require.NoError(t, err)
 
@@ -199,7 +200,7 @@ func TestBatchIntrospector_BatchIntrospectAllCached(t *testing.T) {
 	introspector, err := NewBatchIntrospector(IntrospectionConfig{
 		IntrospectionURL: server.URL,
 		CacheTTL:         time.Minute,
-		MaxBatchSize:     10,
+		MaxBatchSize:     cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 	})
 	require.NoError(t, err)
 
@@ -252,7 +253,7 @@ func TestBatchIntrospector_BatchIntrospectMultipleBatches(t *testing.T) {
 
 	results, err := introspector.BatchIntrospect(ctx, tokens)
 	require.NoError(t, err)
-	require.Len(t, results, 5)
+	require.Len(t, results, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 
 	// All tokens should be active.
 	for _, token := range tokens {
@@ -260,7 +261,7 @@ func TestBatchIntrospector_BatchIntrospectMultipleBatches(t *testing.T) {
 	}
 
 	// All 5 tokens should have been requested individually.
-	require.Equal(t, 5, requestCount)
+	require.Equal(t, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, requestCount)
 }
 
 // TestBatchIntrospector_IntrospectCacheHit tests the Introspect cache hit path.
@@ -279,7 +280,7 @@ func TestBatchIntrospector_IntrospectCacheHit(t *testing.T) {
 
 	introspector, introspectorErr := NewBatchIntrospector(IntrospectionConfig{
 		IntrospectionURL: server.URL,
-		MaxBatchSize:     10,
+		MaxBatchSize:     cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 	})
 	require.NoError(t, introspectorErr)
 

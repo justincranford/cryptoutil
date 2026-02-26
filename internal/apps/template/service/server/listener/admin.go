@@ -94,14 +94,14 @@ func NewAdminHTTPServer(ctx context.Context, settings *cryptoutilAppsTemplateSer
 
 // registerRoutes sets up admin API endpoints.
 func (s *AdminServer) registerRoutes() {
-	api := s.app.Group("/admin/api/v1")
+	api := s.app.Group(cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath)
 
 	// Health check endpoints.
-	api.Get("/livez", s.handleLivez)
-	api.Get("/readyz", s.handleReadyz)
+	api.Get(cryptoutilSharedMagic.PrivateAdminLivezRequestPath, s.handleLivez)
+	api.Get(cryptoutilSharedMagic.PrivateAdminReadyzRequestPath, s.handleReadyz)
 
 	// Graceful shutdown endpoint.
-	api.Post("/shutdown", s.handleShutdown)
+	api.Post(cryptoutilSharedMagic.PrivateAdminShutdownRequestPath, s.handleShutdown)
 }
 
 // handleLivez returns liveness status (200 if server is running).
@@ -112,7 +112,7 @@ func (s *AdminServer) handleLivez(c *fiber.Ctx) error {
 
 	if s.shutdown {
 		if err := c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			"status": "shutting down",
+			cryptoutilSharedMagic.StringStatus: "shutting down",
 		}); err != nil {
 			return fmt.Errorf("failed to send livez shutdown response: %w", err)
 		}
@@ -121,7 +121,7 @@ func (s *AdminServer) handleLivez(c *fiber.Ctx) error {
 	}
 
 	if err := c.JSON(fiber.Map{
-		"status": "alive",
+		cryptoutilSharedMagic.StringStatus: "alive",
 	}); err != nil {
 		return fmt.Errorf("failed to send livez response: %w", err)
 	}
@@ -137,7 +137,7 @@ func (s *AdminServer) handleReadyz(c *fiber.Ctx) error {
 
 	if s.shutdown {
 		if err := c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			"status": "shutting down",
+			cryptoutilSharedMagic.StringStatus: "shutting down",
 		}); err != nil {
 			return fmt.Errorf("failed to send readyz shutdown response: %w", err)
 		}
@@ -147,7 +147,7 @@ func (s *AdminServer) handleReadyz(c *fiber.Ctx) error {
 
 	if !s.ready {
 		if err := c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			"status": "not ready",
+			cryptoutilSharedMagic.StringStatus: "not ready",
 		}); err != nil {
 			return fmt.Errorf("failed to send readyz not-ready response: %w", err)
 		}
@@ -156,7 +156,7 @@ func (s *AdminServer) handleReadyz(c *fiber.Ctx) error {
 	}
 
 	if err := c.JSON(fiber.Map{
-		"status": "ready",
+		cryptoutilSharedMagic.StringStatus: "ready",
 	}); err != nil {
 		return fmt.Errorf("failed to send readyz response: %w", err)
 	}
@@ -172,7 +172,7 @@ func (s *AdminServer) handleShutdown(c *fiber.Ctx) error {
 
 	// Acknowledge shutdown request.
 	_ = c.JSON(fiber.Map{
-		"status": "shutdown initiated",
+		cryptoutilSharedMagic.StringStatus: "shutdown initiated",
 	})
 
 	// Trigger shutdown in background to avoid blocking response.
@@ -222,7 +222,7 @@ func (s *AdminServer) Start(ctx context.Context) error {
 			return fmt.Errorf("listener address is not a TCP address")
 		}
 
-		if tcpAddr.Port < 0 || tcpAddr.Port > 65535 {
+		if tcpAddr.Port < 0 || tcpAddr.Port > int(cryptoutilSharedMagic.MaxPortNumber) {
 			s.mu.Unlock()
 
 			_ = listener.Close()

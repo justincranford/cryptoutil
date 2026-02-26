@@ -156,7 +156,7 @@ func (s *TelemetryService) Shutdown() {
 				startTimeForceFlushTracesProvider := time.Now().UTC()
 
 				if err := s.tracesProviderSdk.ForceFlush(forceFlushCtx); err != nil {
-					s.Slogger.Error("traces provider force flush failed", "error", fmt.Errorf("traces provider force flush error: %w", err))
+					s.Slogger.Error("traces provider force flush failed", cryptoutilSharedMagic.StringError, fmt.Errorf("traces provider force flush error: %w", err))
 				} else if s.VerboseMode {
 					s.Slogger.Debug("traces provider force flushed", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeForceFlushTracesProvider).Seconds())
 				}
@@ -170,7 +170,7 @@ func (s *TelemetryService) Shutdown() {
 				startTimeForceFlushMetricsProvider := time.Now().UTC()
 
 				if err := s.metricsProviderSdk.ForceFlush(forceFlushCtx); err != nil {
-					s.Slogger.Error("metrics provider force flush failed", "error", fmt.Errorf("metrics provider force flush error: %w", err))
+					s.Slogger.Error("metrics provider force flush failed", cryptoutilSharedMagic.StringError, fmt.Errorf("metrics provider force flush error: %w", err))
 				} else if s.VerboseMode {
 					s.Slogger.Debug("metrics provider force flushed", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeForceFlushMetricsProvider).Seconds())
 				}
@@ -184,7 +184,7 @@ func (s *TelemetryService) Shutdown() {
 				startTimeForceFlushLogsProvider := time.Now().UTC()
 
 				if err := s.logsProviderSdk.ForceFlush(forceFlushCtx); err != nil {
-					s.Slogger.Error("logs provider force flush failed", "error", fmt.Errorf("logs provider force flush error: %w", err))
+					s.Slogger.Error("logs provider force flush failed", cryptoutilSharedMagic.StringError, fmt.Errorf("logs provider force flush error: %w", err))
 				} else if s.VerboseMode {
 					s.Slogger.Debug("logs provider force flushed", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeForceFlushLogsProvider).Seconds())
 				}
@@ -203,7 +203,7 @@ func (s *TelemetryService) Shutdown() {
 				startTimeShutdownTracesProvider := time.Now().UTC()
 
 				if err := s.tracesProviderSdk.Shutdown(shutdownCtx); err != nil {
-					s.Slogger.Error("traces provider shutdown failed", "error", fmt.Errorf("traces provider shutdown error: %w", err))
+					s.Slogger.Error("traces provider shutdown failed", cryptoutilSharedMagic.StringError, fmt.Errorf("traces provider shutdown error: %w", err))
 				} else if s.VerboseMode {
 					s.Slogger.Debug("traces provider shut down", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeShutdownTracesProvider).Seconds())
 				}
@@ -217,7 +217,7 @@ func (s *TelemetryService) Shutdown() {
 				startTimeShutdownMetricsProvider := time.Now().UTC()
 
 				if err := s.metricsProviderSdk.Shutdown(shutdownCtx); err != nil {
-					s.Slogger.Error("metrics provider shutdown failed", "error", fmt.Errorf("metrics provider shutdown error: %w", err))
+					s.Slogger.Error("metrics provider shutdown failed", cryptoutilSharedMagic.StringError, fmt.Errorf("metrics provider shutdown error: %w", err))
 				} else if s.VerboseMode {
 					s.Slogger.Debug("metrics provider shut down", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeShutdownMetricsProvider).Seconds())
 				}
@@ -231,7 +231,7 @@ func (s *TelemetryService) Shutdown() {
 				startTimeShutdownLogsProvider := time.Now().UTC()
 
 				if err := s.logsProviderSdk.Shutdown(shutdownCtx); err != nil {
-					s.Slogger.Error("logs provider shutdown failed", "error", fmt.Errorf("logs provider shutdown error: %w", err))
+					s.Slogger.Error("logs provider shutdown failed", cryptoutilSharedMagic.StringError, fmt.Errorf("logs provider shutdown error: %w", err))
 				} else if s.VerboseMode {
 					s.Slogger.Debug("logs provider shut down", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeShutdownLogsProvider).Seconds())
 				}
@@ -262,7 +262,7 @@ func initLogger(ctx context.Context, settings *TelemetrySettings) (*stdoutLogExp
 
 	isHTTP, isHTTPS, isGRPC, isGRPCS, endpoint, err := parseProtocolAndEndpoint(&settings.OTLPEndpoint)
 	if err != nil {
-		slogger.Error("parse protocol and endpoint failed", "error", err)
+		slogger.Error("parse protocol and endpoint failed", cryptoutilSharedMagic.StringError, err)
 
 		return nil, nil, fmt.Errorf("parse protocol and endpoint failed: %w", err)
 	}
@@ -327,7 +327,7 @@ func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, setting
 		}
 
 		if err != nil {
-			slogger.Error("create Otel metrics exporter failed", "error", err)
+			slogger.Error("create Otel metrics exporter failed", cryptoutilSharedMagic.StringError, err)
 
 			return nil, fmt.Errorf("create Otel metrics exporter failed: %w", err)
 		}
@@ -345,7 +345,7 @@ func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, setting
 	if settings.OTLPConsole {
 		stdoutMetrics, err := stdoutMetricExporterNewFn(stdoutMetricExporter.WithPrettyPrint())
 		if err != nil {
-			slogger.Error("create STDOUT metrics failed", "error", err)
+			slogger.Error("create STDOUT metrics failed", cryptoutilSharedMagic.StringError, err)
 
 			return nil, fmt.Errorf("create STDOUT metrics failed: %w", err)
 		}
@@ -389,7 +389,7 @@ func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, settings
 		}
 
 		if err != nil {
-			slogger.Error("create Otel traces exporter failed", "error", err)
+			slogger.Error("create Otel traces exporter failed", cryptoutilSharedMagic.StringError, err)
 
 			return nil, fmt.Errorf("create Otel traces exporter failed: %w", err)
 		}
@@ -402,7 +402,7 @@ func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, settings
 	if settings.OTLPConsole {
 		stdoutTraces, err := stdoutTraceExporterNewFn(stdoutTraceExporter.WithPrettyPrint())
 		if err != nil {
-			slogger.Error("create STDOUT traces failed", "error", err)
+			slogger.Error("create STDOUT traces failed", cryptoutilSharedMagic.StringError, err)
 
 			return nil, fmt.Errorf("create STDOUT traces failed: %w", err)
 		}

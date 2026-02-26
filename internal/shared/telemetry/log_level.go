@@ -5,6 +5,7 @@
 package telemetry
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	stdoutLogExporter "log/slog"
 	"math"
@@ -46,7 +47,7 @@ func ParseLogLevel(logLevelString string) (stdoutLogExporter.Level, error) {
 		return LevelDebug, nil
 	case "CONFIG": // Java JUL CONFIG, between DEBUG and INFO
 		return LevelConfig, nil
-	case "INFO": // OpenTelemetry INFO = 0
+	case cryptoutilSharedMagic.DefaultLogLevelInfo: // OpenTelemetry INFO = 0
 		return LevelInfo, nil
 	case "NOTICE": // OpenTelemetry NOTICE = 2, no constant in slog, but slog allows extra levels
 		return LevelNotice, nil

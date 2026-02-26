@@ -3,6 +3,7 @@
 package orm_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"testing"
@@ -35,7 +36,7 @@ func TestEmailOTPRepository_Create(t *testing.T) {
 					ID:        googleUuid.Must(googleUuid.NewV7()),
 					UserID:    googleUuid.Must(googleUuid.NewV7()),
 					CodeHash:  "hash123",
-					ExpiresAt: time.Now().UTC().Add(5 * time.Minute),
+					ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 					CreatedAt: time.Now().UTC(),
 				}
 			},
@@ -81,14 +82,14 @@ func TestEmailOTPRepository_GetByUserID(t *testing.T) {
 					ID:        googleUuid.Must(googleUuid.NewV7()),
 					UserID:    userID,
 					CodeHash:  "older",
-					ExpiresAt: time.Now().UTC().Add(5 * time.Minute),
-					CreatedAt: time.Now().UTC().Add(-10 * time.Minute),
+					ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
+					CreatedAt: time.Now().UTC().Add(-cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
 				}
 				newer := &cryptoutilIdentityDomain.EmailOTP{
 					ID:        googleUuid.Must(googleUuid.NewV7()),
 					UserID:    userID,
 					CodeHash:  "newer",
-					ExpiresAt: time.Now().UTC().Add(5 * time.Minute),
+					ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 					CreatedAt: time.Now().UTC(),
 				}
 
@@ -154,7 +155,7 @@ func TestEmailOTPRepository_GetByID(t *testing.T) {
 					ID:        googleUuid.Must(googleUuid.NewV7()),
 					UserID:    googleUuid.Must(googleUuid.NewV7()),
 					CodeHash:  "hash123",
-					ExpiresAt: time.Now().UTC().Add(5 * time.Minute),
+					ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 					CreatedAt: time.Now().UTC(),
 				}
 			},
@@ -170,7 +171,7 @@ func TestEmailOTPRepository_GetByID(t *testing.T) {
 					ID:        googleUuid.Must(googleUuid.NewV7()),
 					UserID:    googleUuid.Must(googleUuid.NewV7()),
 					CodeHash:  "hash123",
-					ExpiresAt: time.Now().UTC().Add(5 * time.Minute),
+					ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 					CreatedAt: time.Now().UTC(),
 				}
 			},
@@ -218,7 +219,7 @@ func TestEmailOTPRepository_Update(t *testing.T) {
 					ID:        googleUuid.Must(googleUuid.NewV7()),
 					UserID:    googleUuid.Must(googleUuid.NewV7()),
 					CodeHash:  "oldhash",
-					ExpiresAt: time.Now().UTC().Add(5 * time.Minute),
+					ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 					CreatedAt: time.Now().UTC(),
 				}
 			},
@@ -266,14 +267,14 @@ func TestEmailOTPRepository_DeleteByUserID(t *testing.T) {
 					ID:        googleUuid.Must(googleUuid.NewV7()),
 					UserID:    userID,
 					CodeHash:  "hash1",
-					ExpiresAt: time.Now().UTC().Add(5 * time.Minute),
+					ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 					CreatedAt: time.Now().UTC(),
 				}
 				otp2 := &cryptoutilIdentityDomain.EmailOTP{
 					ID:        googleUuid.Must(googleUuid.NewV7()),
 					UserID:    userID,
 					CodeHash:  "hash2",
-					ExpiresAt: time.Now().UTC().Add(5 * time.Minute),
+					ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 					CreatedAt: time.Now().UTC(),
 				}
 
@@ -333,21 +334,21 @@ func TestEmailOTPRepository_DeleteExpired(t *testing.T) {
 					ID:        googleUuid.Must(googleUuid.NewV7()),
 					UserID:    googleUuid.Must(googleUuid.NewV7()),
 					CodeHash:  "expired1",
-					ExpiresAt: time.Now().UTC().Add(-10 * time.Minute),
-					CreatedAt: time.Now().UTC().Add(-20 * time.Minute),
+					ExpiresAt: time.Now().UTC().Add(-cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
+					CreatedAt: time.Now().UTC().Add(-cryptoutilSharedMagic.MaxErrorDisplay * time.Minute),
 				}
 				expired2 := &cryptoutilIdentityDomain.EmailOTP{
 					ID:        googleUuid.Must(googleUuid.NewV7()),
 					UserID:    googleUuid.Must(googleUuid.NewV7()),
 					CodeHash:  "expired2",
-					ExpiresAt: time.Now().UTC().Add(-5 * time.Minute),
+					ExpiresAt: time.Now().UTC().Add(-cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 					CreatedAt: time.Now().UTC().Add(-15 * time.Minute),
 				}
 				valid := &cryptoutilIdentityDomain.EmailOTP{
 					ID:        googleUuid.Must(googleUuid.NewV7()),
 					UserID:    googleUuid.Must(googleUuid.NewV7()),
 					CodeHash:  "valid",
-					ExpiresAt: time.Now().UTC().Add(5 * time.Minute),
+					ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 					CreatedAt: time.Now().UTC(),
 				}
 
@@ -363,7 +364,7 @@ func TestEmailOTPRepository_DeleteExpired(t *testing.T) {
 					ID:        googleUuid.Must(googleUuid.NewV7()),
 					UserID:    googleUuid.Must(googleUuid.NewV7()),
 					CodeHash:  "valid",
-					ExpiresAt: time.Now().UTC().Add(5 * time.Minute),
+					ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 					CreatedAt: time.Now().UTC(),
 				}
 
@@ -408,7 +409,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 	// Use testDSNInMemory for isolated per-test database (no shared cache for parallel test safety).
 	dsn := testDSNInMemory
-	sqlDB, err := sql.Open("sqlite", dsn)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	require.NoError(t, err)
 
 	_, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
@@ -417,8 +418,8 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	_, err = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
 	require.NoError(t, err)
 
-	sqlDB.SetMaxOpenConns(5)
-	sqlDB.SetMaxIdleConns(5)
+	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	sqlDB.SetConnMaxLifetime(0)
 
 	dialector := sqlite.Dialector{Conn: sqlDB}

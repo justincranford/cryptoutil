@@ -43,22 +43,22 @@ const (
 
 // HKDFwithSHA512 performs HKDF key derivation using SHA-512 digest.
 func HKDFwithSHA512(secret, salt, info []byte, outputBytesLength int) ([]byte, error) {
-	return HKDF("SHA512", secret, salt, info, outputBytesLength)
+	return HKDF(cryptoutilSharedMagic.SHA512, secret, salt, info, outputBytesLength)
 }
 
 // HKDFwithSHA384 performs HKDF key derivation using SHA-384 digest.
 func HKDFwithSHA384(secret, salt, info []byte, outputBytesLength int) ([]byte, error) {
-	return HKDF("SHA384", secret, salt, info, outputBytesLength)
+	return HKDF(cryptoutilSharedMagic.SHA384, secret, salt, info, outputBytesLength)
 }
 
 // HKDFwithSHA256 performs HKDF key derivation using SHA-256 digest.
 func HKDFwithSHA256(secret, salt, info []byte, outputBytesLength int) ([]byte, error) {
-	return HKDF("SHA256", secret, salt, info, outputBytesLength)
+	return HKDF(cryptoutilSharedMagic.SHA256, secret, salt, info, outputBytesLength)
 }
 
 // HKDFwithSHA224 performs HKDF key derivation using SHA-224 digest.
 func HKDFwithSHA224(secret, salt, info []byte, outputBytesLength int) ([]byte, error) {
-	return HKDF("SHA224", secret, salt, info, outputBytesLength)
+	return HKDF(cryptoutilSharedMagic.SHA224, secret, salt, info, outputBytesLength)
 }
 
 // HKDF Supported digestNames: "SHA512", "SHA384", "SHA256", "SHA224".
@@ -70,17 +70,17 @@ func HKDF(digestName string, secretBytes, saltBytes, infoBytes []byte, outputByt
 	switch digestName {
 	case DigestSHA512:
 		digestFunction = sha512.New
-		digestLength = 64
+		digestLength = cryptoutilSharedMagic.MinSerialNumberBits
 	case DigestSHA384:
 		digestFunction = sha512.New384
-		digestLength = 48
+		digestLength = cryptoutilSharedMagic.HMACSHA384KeySize
 	case DigestSHA256:
 		digestFunction = sha256.New
-		digestLength = 32
+		digestLength = cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes
 	case DigestSHA224:
 		// FIPS 140-2/140-3 compliance: Use full SHA-256 instead of SHA-224
 		digestFunction = sha256.New
-		digestLength = 32
+		digestLength = cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes
 	default:
 		return nil, fmt.Errorf("invalid digest name: %s. %w", digestName, ErrInvalidNilDigestFunction)
 	}
@@ -96,7 +96,7 @@ func HKDF(digestName string, secretBytes, saltBytes, infoBytes []byte, outputByt
 		errs = append(errs, ErrInvalidOutputBytesLengthNegative)
 	} else if outputBytesLength == 0 {
 		errs = append(errs, ErrInvalidOutputBytesLengthZero)
-	} else if outputBytesLength > 255*digestLength {
+	} else if outputBytesLength > cryptoutilSharedMagic.HKDFMaxMultiplier*digestLength {
 		errs = append(errs, ErrInvalidOutputBytesLengthTooBig)
 	}
 

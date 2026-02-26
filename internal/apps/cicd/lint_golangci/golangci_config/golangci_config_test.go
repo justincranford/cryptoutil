@@ -3,6 +3,7 @@
 package golangci_config
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -44,7 +45,7 @@ linters:
     - revive
     - staticcheck
 `
-	err := os.WriteFile(configFile, []byte(validContent), 0o600)
+	err := os.WriteFile(configFile, []byte(validContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -175,7 +176,7 @@ func TestLintGolangCIConfig_DeprecatedOptions(t *testing.T) {
 			tempDir := t.TempDir()
 			configFile := filepath.Join(tempDir, ".golangci.yml")
 
-			err := os.WriteFile(configFile, []byte(tt.content), 0o600)
+			err := os.WriteFile(configFile, []byte(tt.content), cryptoutilSharedMagic.CacheFilePermissions)
 			require.NoError(t, err)
 
 			logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -221,7 +222,7 @@ linters:
     - deadcode
     - structcheck
 `
-	err := os.WriteFile(configFile, []byte(content), 0o600)
+	err := os.WriteFile(configFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations, err := CheckGolangCIConfig(configFile)
@@ -241,7 +242,7 @@ func TestFindGolangCIConfigFiles_AllFormats(t *testing.T) {
 	otherFile := filepath.Join(tempDir, "other.yml")
 
 	for _, file := range []string{ymlFile, yamlFile, tomlFile, otherFile} {
-		err := os.WriteFile(file, []byte("test"), 0o600)
+		err := os.WriteFile(file, []byte("test"), cryptoutilSharedMagic.CacheFilePermissions)
 		require.NoError(t, err)
 	}
 
@@ -295,7 +296,7 @@ linters:
   enable:
     - gofmt
 `
-	err := os.WriteFile(configFile, []byte(content), 0o600)
+	err := os.WriteFile(configFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations, err := CheckGolangCIConfig(configFile)
@@ -320,7 +321,7 @@ func TestCheckGolangCIConfig_CommentTopLevelKey(t *testing.T) {
   wsl_v5:
     force-err-cuddling: false
 `
-	err := os.WriteFile(configFile, []byte(content), 0o600)
+	err := os.WriteFile(configFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	_, err = CheckGolangCIConfig(configFile)

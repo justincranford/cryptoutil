@@ -5,6 +5,7 @@
 package realm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	"testing"
@@ -141,7 +142,7 @@ func TestDBRealmRepository_ListUsers(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create test users.
-	for i := 0; i < 5; i++ {
+	for i := 0; i < cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries; i++ {
 		user := &DBRealmUser{
 			ID:       "list-user-" + string(rune('0'+i)),
 			RealmID:  "realm-1",
@@ -155,7 +156,7 @@ func TestDBRealmRepository_ListUsers(t *testing.T) {
 	// List all users.
 	users, err := repo.ListUsers(ctx, "realm-1", 0, 0)
 	require.NoError(t, err)
-	require.Len(t, users, 5)
+	require.Len(t, users, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 
 	// List with limit.
 	users, err = repo.ListUsers(ctx, "realm-1", 2, 0)

@@ -3,6 +3,7 @@
 package handler
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
@@ -222,7 +223,7 @@ func TestParseCSR(t *testing.T) {
 	require.NoError(t, err)
 
 	csrPEM := pem.EncodeToMemory(&pem.Block{
-		Type:  "CERTIFICATE REQUEST",
+		Type:  cryptoutilSharedMagic.StringPEMTypeCSR,
 		Bytes: csrDER,
 	})
 
@@ -246,7 +247,7 @@ func TestParseCSR(t *testing.T) {
 		{
 			name: "wrong_pem_type",
 			input: string(pem.EncodeToMemory(&pem.Block{
-				Type:  "CERTIFICATE",
+				Type:  cryptoutilSharedMagic.StringPEMTypeCertificate,
 				Bytes: []byte("not a cert"),
 			})),
 			wantErr:     true,
@@ -255,7 +256,7 @@ func TestParseCSR(t *testing.T) {
 		{
 			name: "invalid_csr_content",
 			input: string(pem.EncodeToMemory(&pem.Block{
-				Type:  "CERTIFICATE REQUEST",
+				Type:  cryptoutilSharedMagic.StringPEMTypeCSR,
 				Bytes: []byte("invalid csr data"),
 			})),
 			wantErr:     true,
@@ -297,7 +298,7 @@ func TestBuildEnrollmentResponse(t *testing.T) {
 			Country:      []string{"US"},
 		},
 		NotBefore:   time.Now().UTC(),
-		NotAfter:    time.Now().UTC().Add(365 * 24 * time.Hour),
+		NotAfter:    time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		KeyUsage:    x509.KeyUsageDigitalSignature,
 		DNSNames:    []string{"test.example.com"},
 		IPAddresses: []net.IP{net.ParseIP("192.168.1.1")},
@@ -310,7 +311,7 @@ func TestBuildEnrollmentResponse(t *testing.T) {
 	require.NoError(t, err)
 
 	certPEM := pem.EncodeToMemory(&pem.Block{
-		Type:  "CERTIFICATE",
+		Type:  cryptoutilSharedMagic.StringPEMTypeCertificate,
 		Bytes: certDER,
 	})
 
@@ -394,7 +395,7 @@ func TestBuildProfileResponse(t *testing.T) {
 	require.NotNil(t, result.Description)
 	require.Equal(t, "A profile for TLS server certificates", *result.Description)
 	require.NotNil(t, result.MaxValidityDays)
-	require.Equal(t, 365, *result.MaxValidityDays)
+	require.Equal(t, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year, *result.MaxValidityDays)
 }
 
 func TestOcspErrorResponse(t *testing.T) {

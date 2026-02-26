@@ -5,6 +5,7 @@
 package apperr
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	http "net/http"
 	"testing"
@@ -169,7 +170,7 @@ func TestPredefinedErrors_ClientErrors(t *testing.T) {
 		{"ClientNotFound", ErrClientNotFound, "client_not_found", http.StatusNotFound},
 		{"ClientAlreadyExists", ErrClientAlreadyExists, "client_already_exists", http.StatusConflict},
 		{"ClientDisabled", ErrClientDisabled, "client_disabled", http.StatusForbidden},
-		{"InvalidClientAuth", ErrInvalidClientAuth, "invalid_client", http.StatusUnauthorized},
+		{"InvalidClientAuth", ErrInvalidClientAuth, cryptoutilSharedMagic.ErrorInvalidClient, http.StatusUnauthorized},
 		{"InvalidClientSecret", ErrInvalidClientSecret, "invalid_client_secret", http.StatusUnauthorized},
 	}
 
@@ -196,7 +197,7 @@ func TestPredefinedErrors_TokenErrors(t *testing.T) {
 		{"TokenNotFound", ErrTokenNotFound, "token_not_found", http.StatusNotFound},
 		{"TokenExpired", ErrTokenExpired, "token_expired", http.StatusUnauthorized},
 		{"TokenRevoked", ErrTokenRevoked, "token_revoked", http.StatusUnauthorized},
-		{"InvalidToken", ErrInvalidToken, "invalid_token", http.StatusUnauthorized},
+		{"InvalidToken", ErrInvalidToken, cryptoutilSharedMagic.ErrorInvalidToken, http.StatusUnauthorized},
 	}
 
 	for _, tc := range tests {
@@ -245,13 +246,13 @@ func TestPredefinedErrors_OAuthErrors(t *testing.T) {
 		code       string
 		httpStatus int
 	}{
-		{"InvalidRequest", ErrInvalidRequest, "invalid_request", http.StatusBadRequest},
-		{"InvalidGrant", ErrInvalidGrant, "invalid_grant", http.StatusBadRequest},
-		{"UnauthorizedClient", ErrUnauthorizedClient, "unauthorized_client", http.StatusUnauthorized},
-		{"AccessDenied", ErrAccessDenied, "access_denied", http.StatusForbidden},
-		{"UnsupportedGrantType", ErrUnsupportedGrantType, "unsupported_grant_type", http.StatusBadRequest},
-		{"InvalidScope", ErrInvalidScope, "invalid_scope", http.StatusBadRequest},
-		{"ServerError", ErrServerError, "server_error", http.StatusInternalServerError},
+		{"InvalidRequest", ErrInvalidRequest, cryptoutilSharedMagic.ErrorInvalidRequest, http.StatusBadRequest},
+		{"InvalidGrant", ErrInvalidGrant, cryptoutilSharedMagic.ErrorInvalidGrant, http.StatusBadRequest},
+		{"UnauthorizedClient", ErrUnauthorizedClient, cryptoutilSharedMagic.ErrorUnauthorizedClient, http.StatusUnauthorized},
+		{"AccessDenied", ErrAccessDenied, cryptoutilSharedMagic.ErrorAccessDenied, http.StatusForbidden},
+		{"UnsupportedGrantType", ErrUnsupportedGrantType, cryptoutilSharedMagic.ErrorUnsupportedGrantType, http.StatusBadRequest},
+		{"InvalidScope", ErrInvalidScope, cryptoutilSharedMagic.ErrorInvalidScope, http.StatusBadRequest},
+		{"ServerError", ErrServerError, cryptoutilSharedMagic.ErrorServerError, http.StatusInternalServerError},
 	}
 
 	for _, tc := range tests {

@@ -4,6 +4,7 @@
 package server
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 
 	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose/ja/repository"
@@ -135,7 +136,7 @@ func (s *PublicServer) registerRoutes() error {
 	// JWKS endpoint (public key set for verification - typically public, no auth required).
 	app.Get("/service/api/v1/jwks.json", s.jwkHandler.HandleGetJWKS())
 	app.Get("/browser/api/v1/jwks.json", s.jwkHandler.HandleGetJWKS())
-	app.Get("/.well-known/jwks.json", s.jwkHandler.HandleGetJWKS()) // Standard well-known endpoint.
+	app.Get(cryptoutilSharedMagic.PathJWKS, s.jwkHandler.HandleGetJWKS()) // Standard well-known endpoint.
 
 	// Cryptographic operations (sign, verify, encrypt, decrypt).
 	app.Post("/service/api/v1/sign", serviceSessionMiddleware, s.jwkHandler.HandleSign())

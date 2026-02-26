@@ -33,8 +33,8 @@ func TestClientSecretRotation_EndToEnd(t *testing.T) {
 
 	// Setup database and service.
 	dbCfg := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type:        "sqlite",
-		DSN:         ":memory:",
+		Type:        cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:         cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 		AutoMigrate: true,
 	}
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbCfg)
@@ -46,9 +46,9 @@ func TestClientSecretRotation_EndToEnd(t *testing.T) {
 
 	appCfg := &cryptoutilIdentityConfig.Config{
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			AccessTokenLifetime:  3600,
-			RefreshTokenLifetime: 86400,
-			IDTokenLifetime:      3600,
+			AccessTokenLifetime:  cryptoutilSharedMagic.IMDefaultSessionTimeout,
+			RefreshTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+			IDTokenLifetime:      cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		},
 	}
 	tokenSvc := cryptoutilIdentityIssuer.NewTokenService(nil, nil, nil, appCfg.Tokens)
@@ -108,7 +108,7 @@ func TestClientSecretRotation_EndToEnd(t *testing.T) {
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
 
-	newSecret, ok := result["client_secret"].(string)
+	newSecret, ok := result[cryptoutilSharedMagic.ParamClientSecret].(string)
 	require.True(t, ok)
 	require.NotEmpty(t, newSecret)
 
@@ -138,8 +138,8 @@ func TestClientSecretRotation_InvalidClientID(t *testing.T) {
 
 	// Setup database and service.
 	dbCfg := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type:        "sqlite",
-		DSN:         ":memory:",
+		Type:        cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:         cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 		AutoMigrate: true,
 	}
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbCfg)
@@ -151,9 +151,9 @@ func TestClientSecretRotation_InvalidClientID(t *testing.T) {
 
 	appCfg := &cryptoutilIdentityConfig.Config{
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			AccessTokenLifetime:  3600,
-			RefreshTokenLifetime: 86400,
-			IDTokenLifetime:      3600,
+			AccessTokenLifetime:  cryptoutilSharedMagic.IMDefaultSessionTimeout,
+			RefreshTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+			IDTokenLifetime:      cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		},
 	}
 	tokenSvc := cryptoutilIdentityIssuer.NewTokenService(nil, nil, nil, appCfg.Tokens)
@@ -181,7 +181,7 @@ func TestClientSecretRotation_InvalidClientID(t *testing.T) {
 
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
-	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidClient, result["error"])
+	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidClient, result[cryptoutilSharedMagic.StringError])
 	require.Contains(t, result["error_description"], "Client authentication failed")
 }
 
@@ -193,8 +193,8 @@ func TestClientSecretRotation_ClientNotFound(t *testing.T) {
 
 	// Setup service.
 	dbCfg := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type:        "sqlite",
-		DSN:         ":memory:",
+		Type:        cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:         cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 		AutoMigrate: true,
 	}
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbCfg)
@@ -206,9 +206,9 @@ func TestClientSecretRotation_ClientNotFound(t *testing.T) {
 
 	appCfg := &cryptoutilIdentityConfig.Config{
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			AccessTokenLifetime:  3600,
-			RefreshTokenLifetime: 86400,
-			IDTokenLifetime:      3600,
+			AccessTokenLifetime:  cryptoutilSharedMagic.IMDefaultSessionTimeout,
+			RefreshTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+			IDTokenLifetime:      cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		},
 	}
 	tokenSvc := cryptoutilIdentityIssuer.NewTokenService(nil, nil, nil, appCfg.Tokens)
@@ -255,5 +255,5 @@ func TestClientSecretRotation_ClientNotFound(t *testing.T) {
 
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
-	require.Equal(t, cryptoutilSharedMagic.ErrorAccessDenied, result["error"])
+	require.Equal(t, cryptoutilSharedMagic.ErrorAccessDenied, result[cryptoutilSharedMagic.StringError])
 }

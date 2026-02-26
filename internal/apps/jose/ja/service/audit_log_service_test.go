@@ -75,7 +75,7 @@ func TestAuditLogService_LogOperation(t *testing.T) {
 				TenantID:     tenantID,
 				Operation:    tt.operation,
 				Enabled:      true,
-				SamplingRate: 1.0,
+				SamplingRate: cryptoutilSharedMagic.TestProbAlways,
 			}
 			err := svc.UpdateAuditConfig(ctx, tenantID, config)
 			require.NoError(t, err)
@@ -86,7 +86,7 @@ func TestAuditLogService_LogOperation(t *testing.T) {
 			require.NoError(t, err)
 
 			// Verify log was created.
-			logs, total, listErr := svc.ListAuditLogs(ctx, tenantID, 0, 10)
+			logs, total, listErr := svc.ListAuditLogs(ctx, tenantID, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 			require.NoError(t, listErr)
 			require.Equal(t, int64(1), total)
 			require.Len(t, logs, 1)
@@ -111,30 +111,30 @@ func TestAuditLogService_ListAuditLogs(t *testing.T) {
 	}{
 		{
 			name:       "list all logs",
-			numLogs:    5,
+			numLogs:    cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 			offset:     0,
-			limit:      10,
-			expectLogs: 5,
+			limit:      cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
+			expectLogs: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 		},
 		{
 			name:       "list with pagination",
-			numLogs:    10,
+			numLogs:    cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 			offset:     0,
-			limit:      5,
-			expectLogs: 5,
+			limit:      cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
+			expectLogs: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 		},
 		{
 			name:       "list with offset",
-			numLogs:    10,
-			offset:     5,
-			limit:      10,
-			expectLogs: 5,
+			numLogs:    cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
+			offset:     cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
+			limit:      cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
+			expectLogs: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 		},
 		{
 			name:       "empty tenant",
 			numLogs:    0,
 			offset:     0,
-			limit:      10,
+			limit:      cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 			expectLogs: 0,
 		},
 	}
@@ -152,7 +152,7 @@ func TestAuditLogService_ListAuditLogs(t *testing.T) {
 					TenantID:     tenantID,
 					Operation:    cryptoutilAppsJoseJaDomain.OperationGenerate,
 					Enabled:      true,
-					SamplingRate: 1.0,
+					SamplingRate: cryptoutilSharedMagic.TestProbAlways,
 				}
 				err := svc.UpdateAuditConfig(ctx, tenantID, config)
 				require.NoError(t, err)
@@ -191,13 +191,13 @@ func TestAuditLogService_ListAuditLogsByElasticJWK(t *testing.T) {
 			TenantID:     tenantID,
 			Operation:    cryptoutilAppsJoseJaDomain.OperationSign,
 			Enabled:      true,
-			SamplingRate: 1.0,
+			SamplingRate: cryptoutilSharedMagic.TestProbAlways,
 		}
 		err := auditSvc.UpdateAuditConfig(ctx, tenantID, config)
 		require.NoError(t, err)
 
 		// Create elastic JWK.
-		elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+		elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 		require.NoError(t, err)
 
 		// Log operations for this JWK.
@@ -208,7 +208,7 @@ func TestAuditLogService_ListAuditLogsByElasticJWK(t *testing.T) {
 		}
 
 		// List logs by elastic JWK.
-		logs, total, err := auditSvc.ListAuditLogsByElasticJWK(ctx, tenantID, elasticJWK.ID, 0, 10)
+		logs, total, err := auditSvc.ListAuditLogsByElasticJWK(ctx, tenantID, elasticJWK.ID, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 		require.NoError(t, err)
 		require.Equal(t, int64(3), total)
 		require.Len(t, logs, 3)
@@ -227,13 +227,13 @@ func TestAuditLogService_ListAuditLogsByElasticJWK(t *testing.T) {
 		tenantID := googleUuid.New()
 
 		// Create elastic JWK.
-		elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+		elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 		require.NoError(t, err)
 
 		// Try to list with wrong tenant.
 		wrongTenantID := googleUuid.New()
 
-		_, _, err = auditSvc.ListAuditLogsByElasticJWK(ctx, wrongTenantID, elasticJWK.ID, 0, 10)
+		_, _, err = auditSvc.ListAuditLogsByElasticJWK(ctx, wrongTenantID, elasticJWK.ID, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "not found")
 	})
@@ -256,7 +256,7 @@ func TestAuditLogService_ListAuditLogsByOperation(t *testing.T) {
 				TenantID:     tenantID,
 				Operation:    op,
 				Enabled:      true,
-				SamplingRate: 1.0,
+				SamplingRate: cryptoutilSharedMagic.TestProbAlways,
 			}
 			err := svc.UpdateAuditConfig(ctx, tenantID, config)
 			require.NoError(t, err)
@@ -278,7 +278,7 @@ func TestAuditLogService_ListAuditLogsByOperation(t *testing.T) {
 		}
 
 		// List by sign operation.
-		logs, total, err := svc.ListAuditLogsByOperation(ctx, tenantID, cryptoutilAppsJoseJaDomain.OperationSign, 0, 10)
+		logs, total, err := svc.ListAuditLogsByOperation(ctx, tenantID, cryptoutilAppsJoseJaDomain.OperationSign, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 		require.NoError(t, err)
 		require.Equal(t, int64(3), total)
 		require.Len(t, logs, 3)
@@ -305,7 +305,7 @@ func TestAuditLogService_GetAuditConfig(t *testing.T) {
 		require.NotNil(t, config)
 		require.Equal(t, tenantID, config.TenantID)
 		require.True(t, config.Enabled)
-		require.Equal(t, float64(1.0), config.SamplingRate)
+		require.Equal(t, float64(cryptoutilSharedMagic.TestProbAlways), config.SamplingRate)
 	})
 
 	t.Run("get existing config", func(t *testing.T) {
@@ -319,7 +319,7 @@ func TestAuditLogService_GetAuditConfig(t *testing.T) {
 			TenantID:     tenantID,
 			Operation:    cryptoutilAppsJoseJaDomain.OperationSign,
 			Enabled:      false,
-			SamplingRate: 0.5,
+			SamplingRate: cryptoutilSharedMagic.Tolerance50Percent,
 		}
 		err := svc.UpdateAuditConfig(ctx, tenantID, customConfig)
 		require.NoError(t, err)
@@ -365,7 +365,7 @@ func TestAuditLogService_UpdateAuditConfig(t *testing.T) {
 		config := &cryptoutilAppsJoseJaDomain.AuditConfig{
 			Operation:    cryptoutilAppsJoseJaDomain.OperationDecrypt,
 			Enabled:      false,
-			SamplingRate: 0.25,
+			SamplingRate: cryptoutilSharedMagic.TestProbQuarter,
 		}
 
 		err := svc.UpdateAuditConfig(ctx, tenantID, config)
@@ -392,7 +392,7 @@ func TestAuditLogService_CleanupOldLogs(t *testing.T) {
 			TenantID:     tenantID,
 			Operation:    cryptoutilAppsJoseJaDomain.OperationGenerate,
 			Enabled:      true,
-			SamplingRate: 1.0,
+			SamplingRate: cryptoutilSharedMagic.TestProbAlways,
 		}
 		err := svc.UpdateAuditConfig(ctx, tenantID, config)
 		require.NoError(t, err)
@@ -405,12 +405,12 @@ func TestAuditLogService_CleanupOldLogs(t *testing.T) {
 		}
 
 		// Cleanup logs older than 30 days.
-		count, cleanupErr := svc.CleanupOldLogs(ctx, tenantID, 30)
+		count, cleanupErr := svc.CleanupOldLogs(ctx, tenantID, cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days)
 		require.NoError(t, cleanupErr)
 		require.Equal(t, int64(0), count) // No old logs to delete.
 
 		// Verify logs still exist.
-		logs, total, listErr := svc.ListAuditLogs(ctx, tenantID, 0, 10)
+		logs, total, listErr := svc.ListAuditLogs(ctx, tenantID, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 		require.NoError(t, listErr)
 		require.Equal(t, int64(3), total)
 		require.Len(t, logs, 3)
@@ -433,7 +433,7 @@ func TestAuditLogService_LogOperation_AuditDisabled(t *testing.T) {
 			TenantID:     tenantID,
 			Operation:    cryptoutilAppsJoseJaDomain.OperationSign,
 			Enabled:      false,
-			SamplingRate: 0.0,
+			SamplingRate: cryptoutilSharedMagic.BaselineContributionZero,
 		}
 		err := svc.UpdateAuditConfig(ctx, tenantID, config)
 		require.NoError(t, err)
@@ -444,7 +444,7 @@ func TestAuditLogService_LogOperation_AuditDisabled(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify no log was created.
-		logs, total, listErr := svc.ListAuditLogs(ctx, tenantID, 0, 10)
+		logs, total, listErr := svc.ListAuditLogs(ctx, tenantID, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 		require.NoError(t, listErr)
 		require.Equal(t, int64(0), total)
 		require.Empty(t, logs)
@@ -464,12 +464,12 @@ func TestAuditLogService_ListAuditLogsByElasticJWK_WrongTenant(t *testing.T) {
 		tenantID := googleUuid.New()
 
 		// Create an elastic JWK.
-		elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+		elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 		require.NoError(t, err)
 
 		// Try to list logs with wrong tenant - should fail.
 		wrongTenantID := googleUuid.New()
-		_, _, err = auditSvc.ListAuditLogsByElasticJWK(ctx, wrongTenantID, elasticJWK.ID, 0, 10)
+		_, _, err = auditSvc.ListAuditLogsByElasticJWK(ctx, wrongTenantID, elasticJWK.ID, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "not found")
 	})
@@ -487,7 +487,7 @@ func TestAuditLogService_ListAuditLogsByElasticJWK_NonExistent(t *testing.T) {
 		tenantID := googleUuid.New()
 
 		// Try to list logs for non-existent elastic JWK - should fail.
-		_, _, err := auditSvc.ListAuditLogsByElasticJWK(ctx, tenantID, googleUuid.New(), 0, 10)
+		_, _, err := auditSvc.ListAuditLogsByElasticJWK(ctx, tenantID, googleUuid.New(), 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 		require.Error(t, err)
 	})
 }

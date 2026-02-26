@@ -3,6 +3,7 @@
 package crypto
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/ed25519"
 	crand "crypto/rand"
 	rsa "crypto/rsa"
@@ -27,7 +28,7 @@ func TestValidateOrGenerateJWSRSAJWK_TypedNilPrivateKey(t *testing.T) {
 		Public:  &rsa.PublicKey{},
 	}
 
-	validated, err := validateOrGenerateJWSRSAJWK(keyPair, joseJwa.RS256(), 2048)
+	validated, err := validateOrGenerateJWSRSAJWK(keyPair, joseJwa.RS256(), cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.Error(t, err)
 	require.Nil(t, validated)
 	require.Contains(t, err.Error(), "invalid nil RSA private key")
@@ -38,7 +39,7 @@ func TestValidateOrGenerateJWSRSAJWK_TypedNilPrivateKey(t *testing.T) {
 func TestValidateOrGenerateJWSRSAJWK_TypedNilPublicKey(t *testing.T) {
 	t.Parallel()
 
-	privateKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	privateKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	keyPair := &cryptoutilSharedCryptoKeygen.KeyPair{
@@ -46,7 +47,7 @@ func TestValidateOrGenerateJWSRSAJWK_TypedNilPublicKey(t *testing.T) {
 		Public:  (*rsa.PublicKey)(nil),
 	}
 
-	validated, err := validateOrGenerateJWSRSAJWK(keyPair, joseJwa.RS256(), 2048)
+	validated, err := validateOrGenerateJWSRSAJWK(keyPair, joseJwa.RS256(), cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.Error(t, err)
 	require.Nil(t, validated)
 	require.Contains(t, err.Error(), "invalid nil RSA public key")
@@ -62,7 +63,7 @@ func TestValidateOrGenerateJWSEddsaJWK_TypedNilPrivateKey(t *testing.T) {
 		Public:  ed25519.PublicKey{},
 	}
 
-	validated, err := validateOrGenerateJWSEddsaJWK(keyPair, joseJwa.EdDSA(), "Ed25519")
+	validated, err := validateOrGenerateJWSEddsaJWK(keyPair, joseJwa.EdDSA(), cryptoutilSharedMagic.EdCurveEd25519)
 	require.Error(t, err)
 	require.Nil(t, validated)
 	require.Contains(t, err.Error(), "invalid nil Ed29919 private key")
@@ -81,7 +82,7 @@ func TestValidateOrGenerateJWSEddsaJWK_TypedNilPublicKey(t *testing.T) {
 		Public:  ed25519.PublicKey(nil),
 	}
 
-	validated, err := validateOrGenerateJWSEddsaJWK(keyPair, joseJwa.EdDSA(), "Ed25519")
+	validated, err := validateOrGenerateJWSEddsaJWK(keyPair, joseJwa.EdDSA(), cryptoutilSharedMagic.EdCurveEd25519)
 	require.Error(t, err)
 	require.Nil(t, validated)
 	require.Contains(t, err.Error(), "invalid nil Ed29919 public key")
@@ -102,7 +103,7 @@ func TestValidateOrGenerateJWSRSAJWK_WrongPrivateKeyType(t *testing.T) {
 		Public:  &rsa.PublicKey{},
 	}
 
-	validated, err := validateOrGenerateJWSRSAJWK(keyPair, joseJwa.RS256(), 2048)
+	validated, err := validateOrGenerateJWSRSAJWK(keyPair, joseJwa.RS256(), cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.Error(t, err)
 	require.Nil(t, validated)
 	require.Contains(t, err.Error(), "invalid key type")
@@ -113,7 +114,7 @@ func TestValidateOrGenerateJWSRSAJWK_WrongPrivateKeyType(t *testing.T) {
 func TestValidateOrGenerateJWSRSAJWK_WrongPublicKeyType(t *testing.T) {
 	t.Parallel()
 
-	rsaKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	rsaKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	edPub, _, err := ed25519.GenerateKey(crand.Reader)
@@ -124,7 +125,7 @@ func TestValidateOrGenerateJWSRSAJWK_WrongPublicKeyType(t *testing.T) {
 		Public:  edPub,
 	}
 
-	validated, err := validateOrGenerateJWSRSAJWK(keyPair, joseJwa.RS256(), 2048)
+	validated, err := validateOrGenerateJWSRSAJWK(keyPair, joseJwa.RS256(), cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.Error(t, err)
 	require.Nil(t, validated)
 	require.Contains(t, err.Error(), "invalid key type")
@@ -143,7 +144,7 @@ func TestValidateOrGenerateJWSEddsaJWK_WrongPublicKeyType(t *testing.T) {
 		Public:  &rsa.PublicKey{},
 	}
 
-	validated, err := validateOrGenerateJWSEddsaJWK(keyPair, joseJwa.EdDSA(), "Ed25519")
+	validated, err := validateOrGenerateJWSEddsaJWK(keyPair, joseJwa.EdDSA(), cryptoutilSharedMagic.EdCurveEd25519)
 	require.Error(t, err)
 	require.Nil(t, validated)
 	require.Contains(t, err.Error(), "invalid key type")
@@ -154,7 +155,7 @@ func TestValidateOrGenerateJWSEddsaJWK_WrongPublicKeyType(t *testing.T) {
 func TestValidateOrGenerateJWSEddsaJWK_WrongPrivateKeyType(t *testing.T) {
 	t.Parallel()
 
-	rsaKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	rsaKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	keyPair := &cryptoutilSharedCryptoKeygen.KeyPair{
@@ -162,7 +163,7 @@ func TestValidateOrGenerateJWSEddsaJWK_WrongPrivateKeyType(t *testing.T) {
 		Public:  ed25519.PublicKey{},
 	}
 
-	validated, err := validateOrGenerateJWSEddsaJWK(keyPair, joseJwa.EdDSA(), "Ed25519")
+	validated, err := validateOrGenerateJWSEddsaJWK(keyPair, joseJwa.EdDSA(), cryptoutilSharedMagic.EdCurveEd25519)
 	require.Error(t, err)
 	require.Nil(t, validated)
 	require.Contains(t, err.Error(), "invalid key type")
@@ -235,7 +236,7 @@ func TestExtractAlgEncFromJWEJWK_MissingAlgAttr(t *testing.T) {
 	jwk, err := joseJwk.Import([]byte("0123456789abcdef"))
 	require.NoError(t, err)
 
-	require.NoError(t, jwk.Set("enc", "A256GCM"))
+	require.NoError(t, jwk.Set(cryptoutilSharedMagic.JoseKeyUseEnc, cryptoutilSharedMagic.JoseEncA256GCM))
 
 	_, _, extractErr := ExtractAlgEncFromJWEJWK(jwk, 0)
 	require.Error(t, extractErr)

@@ -84,7 +84,7 @@ func NewDefaultJWTAuthConfig() *JWTAuthConfig {
 	return &JWTAuthConfig{
 		Mode:              JWTAuthModeSession,
 		CacheTTL:          cryptoutilSharedMagic.JWKSCacheTTL,
-		AllowedAlgorithms: []string{"RS256", "RS384", "RS512", "ES256", "ES384", "ES512"},
+		AllowedAlgorithms: []string{cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilSharedMagic.JoseAlgRS384, cryptoutilSharedMagic.JoseAlgRS512, cryptoutilSharedMagic.JoseAlgES256, cryptoutilSharedMagic.JoseAlgES384, cryptoutilSharedMagic.JoseAlgES512},
 		ErrorDetailLevel:  "minimal",
 	}
 }
@@ -97,7 +97,7 @@ func NewKMSJWTAuthConfig(jwksURL, issuer, audience string) *JWTAuthConfig {
 		CacheTTL:          cryptoutilSharedMagic.JWKSCacheTTL,
 		RequiredIssuer:    issuer,
 		RequiredAudience:  audience,
-		AllowedAlgorithms: []string{"RS256", "RS384", "RS512", "ES256", "ES384", "ES512"},
+		AllowedAlgorithms: []string{cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilSharedMagic.JoseAlgRS384, cryptoutilSharedMagic.JoseAlgRS512, cryptoutilSharedMagic.JoseAlgES256, cryptoutilSharedMagic.JoseAlgES384, cryptoutilSharedMagic.JoseAlgES512},
 		ErrorDetailLevel:  "minimal",
 	}
 }

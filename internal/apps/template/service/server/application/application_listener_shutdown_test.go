@@ -74,11 +74,11 @@ func TestProvisionDatabase_SQLiteVariations(t *testing.T) {
 				LogLevel:          "info",
 				OTLPEndpoint:      "grpc://localhost:4317",
 				OTLPService:       "test-service",
-				OTLPVersion:       "1.0.0",
+				OTLPVersion:       cryptoutilSharedMagic.ServiceVersion,
 				OTLPEnvironment:   "test",
-				UnsealMode:        "sysinfo",
+				UnsealMode:        cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 				DatabaseURL:       tt.databaseURL,
-				DatabaseContainer: "disabled",
+				DatabaseContainer: cryptoutilSharedMagic.DefaultDatabaseContainerDisabled,
 			}
 
 			basic, err := StartBasic(ctx, settings)
@@ -116,13 +116,13 @@ func TestStartCore_Variations(t *testing.T) {
 	}{
 		{
 			name:        "sysinfo mode with in-memory",
-			unsealMode:  "sysinfo",
+			unsealMode:  cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 			databaseURL: cryptoutilSharedMagic.SQLiteInMemoryDSN,
 			expectError: false,
 		},
 		{
 			name:        "sysinfo mode with empty URL",
-			unsealMode:  "sysinfo",
+			unsealMode:  cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 			databaseURL: "",
 			expectError: false,
 		},
@@ -136,7 +136,7 @@ func TestStartCore_Variations(t *testing.T) {
 				LogLevel:        "info",
 				OTLPEndpoint:    "grpc://localhost:4317",
 				OTLPService:     "test-service",
-				OTLPVersion:     "1.0.0",
+				OTLPVersion:     cryptoutilSharedMagic.ServiceVersion,
 				OTLPEnvironment: "test",
 				UnsealMode:      tt.unsealMode,
 				DatabaseURL:     tt.databaseURL,
@@ -224,9 +224,9 @@ func TestOpenPostgreSQL_WithContainer(t *testing.T) {
 		LogLevel:        "info",
 		OTLPEndpoint:    "grpc://localhost:4317",
 		OTLPService:     "test-container",
-		OTLPVersion:     "1.0.0",
+		OTLPVersion:     cryptoutilSharedMagic.ServiceVersion,
 		OTLPEnvironment: "test",
-		UnsealMode:      "sysinfo",
+		UnsealMode:      cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 		DatabaseURL:     cryptoutilSharedMagic.SQLiteInMemoryDSN,
 	}
 
@@ -317,9 +317,9 @@ func TestStartBasic_VerboseMode(t *testing.T) {
 				LogLevel:        "info",
 				OTLPEndpoint:    "grpc://localhost:4317",
 				OTLPService:     "test-service",
-				OTLPVersion:     "1.0.0",
+				OTLPVersion:     cryptoutilSharedMagic.ServiceVersion,
 				OTLPEnvironment: "test",
-				UnsealMode:      "sysinfo",
+				UnsealMode:      cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 				VerboseMode:     tt.verboseMode,
 				DatabaseURL:     cryptoutilSharedMagic.SQLiteInMemoryDSN,
 			}
@@ -353,7 +353,7 @@ func TestProvisionDatabase_PostgreSQLContainerModes(t *testing.T) {
 	}{
 		{
 			name:          "Container mode disabled with SQLite",
-			containerMode: "disabled",
+			containerMode: cryptoutilSharedMagic.DefaultDatabaseContainerDisabled,
 			databaseURL:   cryptoutilSharedMagic.SQLiteInMemoryDSN,
 			expectError:   false,
 		},
@@ -373,9 +373,9 @@ func TestProvisionDatabase_PostgreSQLContainerModes(t *testing.T) {
 				LogLevel:          "info",
 				OTLPEndpoint:      "grpc://localhost:4317",
 				OTLPService:       "test-container-modes",
-				OTLPVersion:       "1.0.0",
+				OTLPVersion:       cryptoutilSharedMagic.ServiceVersion,
 				OTLPEnvironment:   "test",
-				UnsealMode:        "sysinfo",
+				UnsealMode:        cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 				DatabaseURL:       tt.databaseURL,
 				DatabaseContainer: tt.containerMode,
 			}
@@ -438,11 +438,11 @@ func TestMaskPasswordVariations(t *testing.T) {
 				LogLevel:          "info",
 				OTLPEndpoint:      "grpc://localhost:4317",
 				OTLPService:       "test-mask-password",
-				OTLPVersion:       "1.0.0",
+				OTLPVersion:       cryptoutilSharedMagic.ServiceVersion,
 				OTLPEnvironment:   "test",
-				UnsealMode:        "sysinfo",
+				UnsealMode:        cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 				DatabaseURL:       tt.databaseURL,
-				DatabaseContainer: "disabled", // Don't try to start container.
+				DatabaseContainer: cryptoutilSharedMagic.DefaultDatabaseContainerDisabled, // Don't try to start container.
 			}
 
 			basic, err := StartBasic(ctx, settings)

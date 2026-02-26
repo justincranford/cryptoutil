@@ -1,6 +1,7 @@
 package lint_deployments
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 "os"
 "path/filepath"
 "testing"
@@ -16,8 +17,8 @@ t.Helper()
 dir := t.TempDir()
 
 // Create required directories.
-require.NoError(t, os.MkdirAll(filepath.Join(dir, "config"), 0o755))
-require.NoError(t, os.MkdirAll(filepath.Join(dir, "secrets"), 0o755))
+require.NoError(t, os.MkdirAll(filepath.Join(dir, "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+require.NoError(t, os.MkdirAll(filepath.Join(dir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 // Compose files with placeholders.
 serviceContent := "name: PRODUCT-SERVICE\nservices:\n  PRODUCT-SERVICE-sqlite:\n    ports:\n      - \"XXXX:8080\"\n"
@@ -25,19 +26,19 @@ productContent := "name: PRODUCT\nservices:\n  PRODUCT-sqlite:\n    ports:\n    
 suiteContent := "name: cryptoutil\nservices:\n  sm-kms-sqlite:\n    ports:\n      - \"28000:8080\"\n"
 baseContent := "name: PRODUCT-SERVICE\nservices:\n  PRODUCT-SERVICE-sqlite:\n    image: local\n"
 
-require.NoError(t, os.WriteFile(filepath.Join(dir, "compose-cryptoutil-PRODUCT-SERVICE.yml"), []byte(serviceContent), 0o600))
-require.NoError(t, os.WriteFile(filepath.Join(dir, "compose-cryptoutil-PRODUCT.yml"), []byte(productContent), 0o600))
-require.NoError(t, os.WriteFile(filepath.Join(dir, "compose-cryptoutil.yml"), []byte(suiteContent), 0o600))
-require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(baseContent), 0o600))
+require.NoError(t, os.WriteFile(filepath.Join(dir, "compose-cryptoutil-PRODUCT-SERVICE.yml"), []byte(serviceContent), cryptoutilSharedMagic.CacheFilePermissions))
+require.NoError(t, os.WriteFile(filepath.Join(dir, "compose-cryptoutil-PRODUCT.yml"), []byte(productContent), cryptoutilSharedMagic.CacheFilePermissions))
+require.NoError(t, os.WriteFile(filepath.Join(dir, "compose-cryptoutil.yml"), []byte(suiteContent), cryptoutilSharedMagic.CacheFilePermissions))
+require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(baseContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 // Config files.
 for _, f := range requiredTemplateConfigFiles {
-require.NoError(t, os.WriteFile(filepath.Join(dir, "config", f), []byte("# template config\n"), 0o600))
+require.NoError(t, os.WriteFile(filepath.Join(dir, "config", f), []byte("# template config\n"), cryptoutilSharedMagic.CacheFilePermissions))
 }
 
 // Secret files.
 for _, f := range requiredTemplateSecretFiles {
-require.NoError(t, os.WriteFile(filepath.Join(dir, "secrets", f), []byte("secret-value"), 0o600))
+require.NoError(t, os.WriteFile(filepath.Join(dir, "secrets", f), []byte("secret-value"), cryptoutilSharedMagic.CacheFilePermissions))
 }
 
 return dir
@@ -68,7 +69,7 @@ func TestValidateTemplatePattern_PathIsFile(t *testing.T) {
 t.Parallel()
 
 f := filepath.Join(t.TempDir(), "file.txt")
-require.NoError(t, os.WriteFile(f, []byte("data"), 0o600))
+require.NoError(t, os.WriteFile(f, []byte("data"), cryptoutilSharedMagic.CacheFilePermissions))
 
 result, err := ValidateTemplatePattern(f)
 require.NoError(t, err)
@@ -150,7 +151,7 @@ t.Parallel()
 dir := createValidTemplateDir(t)
 // Overwrite service compose template without XXXX placeholder.
 content := "name: my-service\nservices:\n  PRODUCT-SERVICE-sqlite:\n    ports:\n      - \"8080:8080\"\n"
-require.NoError(t, os.WriteFile(filepath.Join(dir, "compose-cryptoutil-PRODUCT-SERVICE.yml"), []byte(content), 0o600))
+require.NoError(t, os.WriteFile(filepath.Join(dir, "compose-cryptoutil-PRODUCT-SERVICE.yml"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 result, err := ValidateTemplatePattern(dir)
 require.NoError(t, err)
@@ -165,7 +166,7 @@ t.Parallel()
 dir := createValidTemplateDir(t)
 // Overwrite product compose template without PRODUCT placeholder.
 content := "name: my-app\nservices:\n  my-sqlite:\n    ports:\n      - \"18000:8080\"\n"
-require.NoError(t, os.WriteFile(filepath.Join(dir, "compose-cryptoutil-PRODUCT.yml"), []byte(content), 0o600))
+require.NoError(t, os.WriteFile(filepath.Join(dir, "compose-cryptoutil-PRODUCT.yml"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 result, err := ValidateTemplatePattern(dir)
 require.NoError(t, err)
@@ -179,7 +180,7 @@ t.Parallel()
 
 dir := createValidTemplateDir(t)
 // Add a config file that doesn't follow template-app-*.yml naming.
-require.NoError(t, os.WriteFile(filepath.Join(dir, "config", "custom-config.yml"), []byte("# custom\n"), 0o600))
+require.NoError(t, os.WriteFile(filepath.Join(dir, "config", "custom-config.yml"), []byte("# custom\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 result, err := ValidateTemplatePattern(dir)
 require.NoError(t, err)
@@ -193,7 +194,7 @@ t.Parallel()
 
 dir := createValidTemplateDir(t)
 // Add a non-YAML file in config - should be ignored.
-require.NoError(t, os.WriteFile(filepath.Join(dir, "config", "README.md"), []byte("# readme\n"), 0o600))
+require.NoError(t, os.WriteFile(filepath.Join(dir, "config", "README.md"), []byte("# readme\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 result, err := ValidateTemplatePattern(dir)
 require.NoError(t, err)
@@ -207,7 +208,7 @@ t.Parallel()
 
 dir := createValidTemplateDir(t)
 // Add a subdirectory inside config - should be ignored.
-require.NoError(t, os.MkdirAll(filepath.Join(dir, "config", "subdir"), 0o755))
+require.NoError(t, os.MkdirAll(filepath.Join(dir, "config", "subdir"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 result, err := ValidateTemplatePattern(dir)
 require.NoError(t, err)
@@ -226,7 +227,7 @@ contains []string
 {
 name:     "passing",
 result:   &TemplatePatternResult{Path: "/template", Valid: true},
-contains: []string{"PASS", "/template"},
+contains: []string{cryptoutilSharedMagic.TestStatusPass, "/template"},
 },
 {
 name: "failing with errors and warnings",
@@ -235,7 +236,7 @@ Path: "/template", Valid: false,
 Errors:   []string{"missing compose.yml"},
 Warnings: []string{"non-standard name"},
 },
-contains: []string{"FAIL", "missing compose.yml", "non-standard name"},
+contains: []string{cryptoutilSharedMagic.TestStatusFail, "missing compose.yml", "non-standard name"},
 },
 }
 

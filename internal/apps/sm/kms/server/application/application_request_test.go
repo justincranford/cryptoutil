@@ -9,6 +9,7 @@
 package application
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	json "encoding/json"
 	http "net/http"
@@ -41,32 +42,32 @@ func TestSendServerListenerReadinessCheck(t *testing.T) {
 	require.NoError(t, err, "should return valid JSON")
 
 	// Validate readiness response structure
-	require.Equal(t, "ok", response["status"], "readiness status should be 'ok'")
+	require.Equal(t, "ok", response[cryptoutilSharedMagic.StringStatus], "readiness status should be 'ok'")
 	require.Equal(t, "readiness", response["probe"], "probe should be 'readiness'")
 	require.NotEmpty(t, response["timestamp"], "should include timestamp")
-	require.Equal(t, "cryptoutil", response["service"], "service name should be 'cryptoutil'")
+	require.Equal(t, cryptoutilSharedMagic.DefaultOTLPServiceDefault, response["service"], "service name should be 'cryptoutil'")
 
 	// Readiness should include detailed checks
-	require.Contains(t, response, "database", "readiness should include database checks")
+	require.Contains(t, response, cryptoutilSharedMagic.RealmStorageTypeDatabase, "readiness should include database checks")
 	require.Contains(t, response, "memory", "readiness should include memory checks")
 	require.Contains(t, response, "dependencies", "readiness should include dependency checks")
 
 	// Validate database health structure
-	database, ok := response["database"].(map[string]any)
+	database, ok := response[cryptoutilSharedMagic.RealmStorageTypeDatabase].(map[string]any)
 	require.True(t, ok, "database should be a map")
-	require.Contains(t, database, "status", "database should have status")
+	require.Contains(t, database, cryptoutilSharedMagic.StringStatus, "database should have status")
 
 	// Validate memory health structure
 	memory, ok := response["memory"].(map[string]any)
 	require.True(t, ok, "memory should be a map")
-	require.Contains(t, memory, "status", "memory should have status")
+	require.Contains(t, memory, cryptoutilSharedMagic.StringStatus, "memory should have status")
 	require.Contains(t, memory, "heap_alloc", "memory should include heap allocation info")
 	require.Contains(t, memory, "num_goroutines", "memory should include goroutine count")
 
 	// Validate dependencies health structure
 	dependencies, ok := response["dependencies"].(map[string]any)
 	require.True(t, ok, "dependencies should be a map")
-	require.Contains(t, dependencies, "status", "dependencies should have status")
+	require.Contains(t, dependencies, cryptoutilSharedMagic.StringStatus, "dependencies should have status")
 	require.Contains(t, dependencies, "services", "dependencies should include services")
 
 	t.Logf("âœ“ SendServerListenerReadinessCheck validation passed")
@@ -116,7 +117,7 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 				context.Background(),
 				tc.method,
 				url,
-				10*time.Second, // Increased from 2s to 10s for race detector compatibility (race detector adds ~10x overhead)
+				cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second, // Increased from 2s to 10s for race detector compatibility (race detector adds ~10x overhead)
 				false,
 				startServerListenerApplication.PublicTLSServer.RootCAsPool,
 				false,

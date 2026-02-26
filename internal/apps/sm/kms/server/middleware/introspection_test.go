@@ -5,6 +5,7 @@
 package middleware
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	json "encoding/json"
 	http "net/http"
@@ -42,8 +43,8 @@ func TestBatchIntrospector_NewBatchIntrospector(t *testing.T) {
 				ClientID:         "client-id",
 				ClientSecret:     "client-secret",
 				CacheTTL:         time.Minute,
-				MaxBatchSize:     20,
-				HTTPTimeout:      time.Second * 5,
+				MaxBatchSize:     cryptoutilSharedMagic.MaxErrorDisplay,
+				HTTPTimeout:      time.Second * cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 			},
 			wantErr: false,
 		},
@@ -73,7 +74,7 @@ func TestBatchIntrospector_Introspect(t *testing.T) {
 		require.Equal(t, http.MethodPost, r.Method)
 		require.Equal(t, "application/x-www-form-urlencoded", r.Header.Get("Content-Type"))
 
-		token := r.FormValue("token")
+		token := r.FormValue(cryptoutilSharedMagic.ParamToken)
 		response := IntrospectionResult{Active: token == "valid-token"}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -115,7 +116,7 @@ func TestBatchIntrospector_BatchIntrospect(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestCount++
 
-		token := r.FormValue("token")
+		token := r.FormValue(cryptoutilSharedMagic.ParamToken)
 		response := IntrospectionResult{Active: token == "valid-token-1" || token == "valid-token-2"}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -129,7 +130,7 @@ func TestBatchIntrospector_BatchIntrospect(t *testing.T) {
 	introspector, err := NewBatchIntrospector(IntrospectionConfig{
 		IntrospectionURL: server.URL,
 		CacheTTL:         time.Minute,
-		MaxBatchSize:     10,
+		MaxBatchSize:     cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 	})
 	require.NoError(t, err)
 
@@ -185,23 +186,23 @@ func TestBatchIntrospector_CacheExpiry(t *testing.T) {
 
 	introspector, err := NewBatchIntrospector(IntrospectionConfig{
 		IntrospectionURL: "https://example.com/introspect",
-		CacheTTL:         10 * time.Millisecond,
+		CacheTTL:         cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond,
 	})
 	require.NoError(t, err)
 
 	// Add entry to cache.
-	introspector.setCached("token", true)
+	introspector.setCached(cryptoutilSharedMagic.ParamToken, true)
 
 	// Entry should be cached.
-	entry := introspector.getCached("token")
+	entry := introspector.getCached(cryptoutilSharedMagic.ParamToken)
 	require.NotNil(t, entry)
 	require.True(t, entry.active)
 
 	// Wait for expiry.
-	time.Sleep(20 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.MaxErrorDisplay * time.Millisecond)
 
 	// Entry should be expired.
-	entry = introspector.getCached("token")
+	entry = introspector.getCached(cryptoutilSharedMagic.ParamToken)
 	require.Nil(t, entry)
 }
 
@@ -210,9 +211,9 @@ func TestDefaultIntrospectionConfig(t *testing.T) {
 
 	config := DefaultIntrospectionConfig()
 
-	require.Equal(t, 5*time.Minute, config.CacheTTL)
-	require.Equal(t, 10, config.MaxBatchSize)
-	require.Equal(t, 10*time.Second, config.HTTPTimeout)
+	require.Equal(t, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute, config.CacheTTL)
+	require.Equal(t, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, config.MaxBatchSize)
+	require.Equal(t, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second, config.HTTPTimeout)
 }
 
 func TestBatchIntrospector_DeduplicateTokens(t *testing.T) {

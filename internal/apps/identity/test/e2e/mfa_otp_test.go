@@ -7,6 +7,7 @@
 package e2e
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -102,7 +103,7 @@ func TestTOTPValidation(t *testing.T) {
 	t.Run("TOTP_With_Time_Window", func(t *testing.T) {
 		t.Parallel()
 		// Generate code for 30 seconds ago (outside standard window).
-		pastTime := time.Now().UTC().Add(-30 * time.Second)
+		pastTime := time.Now().UTC().Add(-cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second)
 		pastCode, err := totp.GenerateCode(secret, pastTime)
 		require.NoError(t, err)
 
@@ -277,7 +278,7 @@ func TestOTPExpiration(t *testing.T) {
 	t.Run("Expired_Code_With_Window", func(t *testing.T) {
 		t.Parallel()
 		// Generate code for 90 seconds ago.
-		expiredTime := time.Now().UTC().Add(-90 * time.Second)
+		expiredTime := time.Now().UTC().Add(-cryptoutilSharedMagic.StrictCertificateMaxAgeDays * time.Second)
 		expiredCode, err := totp.GenerateCode(secret, expiredTime)
 		require.NoError(t, err)
 

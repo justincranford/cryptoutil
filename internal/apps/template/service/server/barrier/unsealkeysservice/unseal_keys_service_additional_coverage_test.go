@@ -3,6 +3,7 @@
 package unsealkeysservice
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	json "encoding/json"
 	"os"
@@ -63,7 +64,7 @@ func TestNewUnsealKeysServiceFromSettings_SimpleMode_FileCountMismatch(t *testin
 	jwkBytes, err := json.Marshal(jwks[0])
 	require.NoError(t, err)
 
-	err = os.WriteFile(jwkFile, jwkBytes, 0o600)
+	err = os.WriteFile(jwkFile, jwkBytes, cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	ctx, telemetryService := createTestContext(t)

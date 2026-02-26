@@ -5,6 +5,7 @@
 package cmd
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -22,11 +23,11 @@ func TestParseConfigFlag(t *testing.T) {
 		expected     string
 	}{
 		{name: "empty params returns default", params: []string{}, defaultValue: "default.yml", expected: "default.yml"},
-		{name: "--config space value", params: []string{"--config", "/path/to/config.yml"}, defaultValue: "default.yml", expected: "/path/to/config.yml"},
+		{name: "--config space value", params: []string{cryptoutilSharedMagic.IdentityCLIFlagConfig, "/path/to/config.yml"}, defaultValue: "default.yml", expected: "/path/to/config.yml"},
 		{name: "--config=value", params: []string{"--config=/path/to/config.yml"}, defaultValue: "default.yml", expected: "/path/to/config.yml"},
 		{name: "-c space value", params: []string{"-c", "/path/to/config.yml"}, defaultValue: "default.yml", expected: "/path/to/config.yml"},
 		{name: "-c=value", params: []string{"-c=/path/to/config.yml"}, defaultValue: "default.yml", expected: "/path/to/config.yml"},
-		{name: "--config at end without value", params: []string{"--config"}, defaultValue: "default.yml", expected: "default.yml"},
+		{name: "--config at end without value", params: []string{cryptoutilSharedMagic.IdentityCLIFlagConfig}, defaultValue: "default.yml", expected: "default.yml"},
 		{name: "no matching flag returns default", params: []string{"--other", "value"}, defaultValue: "default.yml", expected: "default.yml"},
 	}
 	for _, tc := range tests {
@@ -80,9 +81,9 @@ func TestResolveDSNValue(t *testing.T) {
 
 		tmpDir := t.TempDir()
 		dsnFile := filepath.Join(tmpDir, "dsn.txt")
-		testify.NoError(t, os.WriteFile(dsnFile, []byte("postgres://filehost:5432/filedb\n"), 0o600))
+		testify.NoError(t, os.WriteFile(dsnFile, []byte("postgres://filehost:5432/filedb\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
-		result := resolveDSNValue("file://" + dsnFile)
+		result := resolveDSNValue(cryptoutilSharedMagic.FileURIScheme + dsnFile)
 		testify.Equal(t, "postgres://filehost:5432/filedb", result)
 	})
 

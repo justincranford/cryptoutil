@@ -5,6 +5,7 @@
 package random
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"strconv"
 	"testing"
 
@@ -17,10 +18,10 @@ func TestValidInputs(t *testing.T) {
 		bytesLength int
 	}{
 		{1, 1},       // min count, min length
-		{1, 1024},    // min count, high length
-		{1024, 32},   // high count, min length
-		{1024, 1024}, // high count, high length
-		{256, 256},   // intermediate values
+		{1, cryptoutilSharedMagic.DefaultLogsBatchSize},    // min count, high length
+		{cryptoutilSharedMagic.DefaultLogsBatchSize, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes},   // high count, min length
+		{cryptoutilSharedMagic.DefaultLogsBatchSize, cryptoutilSharedMagic.DefaultLogsBatchSize}, // high count, high length
+		{cryptoutilSharedMagic.MaxUnsealSharedSecrets, cryptoutilSharedMagic.MaxUnsealSharedSecrets},   // intermediate values
 	}
 	for _, testCase := range testCases {
 		t.Run(
@@ -38,25 +39,25 @@ func TestValidInputs(t *testing.T) {
 }
 
 func TestZeroCount(t *testing.T) {
-	_, err := GenerateMultipleBytes(0, 32)
+	_, err := GenerateMultipleBytes(0, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 	require.Error(t, err)
 	require.Equal(t, "count can't be less than 1", err.Error())
 }
 
 func TestNegativeCount(t *testing.T) {
-	_, err := GenerateMultipleBytes(-1, 32)
+	_, err := GenerateMultipleBytes(-1, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 	require.Error(t, err)
 	require.Equal(t, "count can't be less than 1", err.Error())
 }
 
 func TestZeroLength(t *testing.T) {
-	_, err := GenerateMultipleBytes(32, 0)
+	_, err := GenerateMultipleBytes(cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes, 0)
 	require.Error(t, err)
 	require.Equal(t, "length can't be less than 1", err.Error())
 }
 
 func TestNegativeLength(t *testing.T) {
-	_, err := GenerateMultipleBytes(32, -1)
+	_, err := GenerateMultipleBytes(cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes, -1)
 	require.Error(t, err)
 	require.Equal(t, "length can't be less than 1", err.Error())
 }
@@ -78,7 +79,7 @@ func TestGenerateUsernameSimple(t *testing.T) {
 
 			username1, err := GenerateUsernameSimple()
 			require.NoError(t, err)
-			require.True(t, len(username1) > 5, "username should have prefix + UUID")
+			require.True(t, len(username1) > cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, "username should have prefix + UUID")
 			require.Contains(t, username1, "user_", "username should have user_ prefix")
 
 			username2, err := GenerateUsernameSimple()
@@ -105,7 +106,7 @@ func TestGeneratePasswordSimple(t *testing.T) {
 
 			password1, err := GeneratePasswordSimple()
 			require.NoError(t, err)
-			require.True(t, len(password1) > 5, "password should have prefix + UUID")
+			require.True(t, len(password1) > cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, "password should have prefix + UUID")
 			require.Contains(t, password1, "pass_", "password should have pass_ prefix")
 
 			password2, err := GeneratePasswordSimple()

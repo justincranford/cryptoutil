@@ -66,7 +66,7 @@ func TestPBKDF2Hasher_HashLowEntropyNonDeterministic(t *testing.T) {
 		},
 		{
 			name:      "valid long password (256 chars)",
-			secret:    strings.Repeat("a", 256),
+			secret:    strings.Repeat("a", cryptoutilSharedMagic.MaxUnsealSharedSecrets),
 			wantError: false,
 		},
 	}
@@ -86,7 +86,7 @@ func TestPBKDF2Hasher_HashLowEntropyNonDeterministic(t *testing.T) {
 
 				// Verify hash format: cryptoutilMagic.PBKDF2DefaultHashName$iterations$base64(salt)$base64(hash).
 				parts := strings.Split(hash, "$")
-				testify.Len(t, parts, 5, "Hash should have 5 parts: empty$$"+cryptoutilSharedMagic.PBKDF2DefaultHashName+"$iterations$salt$hash")
+				testify.Len(t, parts, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, "Hash should have 5 parts: empty$$"+cryptoutilSharedMagic.PBKDF2DefaultHashName+"$iterations$salt$hash")
 				testify.Equal(t, "", parts[0], "First part should be empty (leading $)")
 				testify.Equal(t, cryptoutilSharedMagic.PBKDF2DefaultHashName, parts[1], "Second part should be 'pbkdf2-sha256'")
 				testify.Equal(t, "100000", parts[2], "Iterations should be 100000")
@@ -94,12 +94,12 @@ func TestPBKDF2Hasher_HashLowEntropyNonDeterministic(t *testing.T) {
 				// Verify salt is base64-encoded 16 bytes (128 bits).
 				saltBytes, err := base64.RawStdEncoding.DecodeString(parts[3])
 				testify.NoError(t, err, "Salt should be valid base64")
-				testify.Len(t, saltBytes, 16, "Salt should be 16 bytes (128 bits)")
+				testify.Len(t, saltBytes, cryptoutilSharedMagic.RealmMinTokenLengthBytes, "Salt should be 16 bytes (128 bits)")
 
 				// Verify hash is base64-encoded 32 bytes (256 bits).
 				hashBytes, err := base64.RawStdEncoding.DecodeString(parts[4])
 				testify.NoError(t, err, "Hash should be valid base64")
-				testify.Len(t, hashBytes, 32, "Hash should be 32 bytes (256 bits)")
+				testify.Len(t, hashBytes, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes, "Hash should be 32 bytes (256 bits)")
 			}
 		})
 	}
@@ -283,7 +283,7 @@ func TestPBKDF2Hasher_FIPS140_3Compliance(t *testing.T) {
 
 	// Parse hash format.
 	parts := strings.Split(hash, "$")
-	testify.Len(t, parts, 5, "Hash should have 5 parts")
+	testify.Len(t, parts, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, "Hash should have 5 parts")
 
 	// Verify PBKDF2 algorithm identifier.
 	testify.Equal(t, cryptoutilSharedMagic.PBKDF2DefaultHashName, parts[1], "Algorithm should be PBKDF2-SHA256")
@@ -294,12 +294,12 @@ func TestPBKDF2Hasher_FIPS140_3Compliance(t *testing.T) {
 	// Verify salt length (FIPS 140-3 recommends ≥128 bits).
 	saltBytes, err := base64.RawStdEncoding.DecodeString(parts[3])
 	testify.NoError(t, err, "Salt should be valid base64")
-	testify.GreaterOrEqual(t, len(saltBytes), 16, "Salt should be ≥128 bits (16 bytes)")
+	testify.GreaterOrEqual(t, len(saltBytes), cryptoutilSharedMagic.RealmMinTokenLengthBytes, "Salt should be ≥128 bits (16 bytes)")
 
 	// Verify hash length (SHA-256 produces 256 bits).
 	hashBytes, err := base64.RawStdEncoding.DecodeString(parts[4])
 	testify.NoError(t, err, "Hash should be valid base64")
-	testify.Equal(t, 32, len(hashBytes), "Hash should be 256 bits (32 bytes) for SHA-256")
+	testify.Equal(t, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes, len(hashBytes), "Hash should be 256 bits (32 bytes) for SHA-256")
 }
 
 // TestPBKDF2Hasher_SaltRandomness validates cryptographic salt generation.
@@ -313,7 +313,7 @@ func TestPBKDF2Hasher_SaltRandomness(t *testing.T) {
 
 	// Generate 100 hashes and collect salts.
 	salts := make(map[string]bool)
-	iterations := 100
+	iterations := cryptoutilSharedMagic.JoseJAMaxMaterials
 
 	for range iterations {
 		hash, err := hasher.HashLowEntropyNonDeterministic(testPassword)
@@ -396,7 +396,7 @@ func TestPBKDF2Hasher_CompareSecret_VectorTests(t *testing.T) {
 
 	// Generate known test vector: hash password "TestVector123" with known salt.
 	password := "TestVector123"
-	knownSalt := make([]byte, 16)
+	knownSalt := make([]byte, cryptoutilSharedMagic.RealmMinTokenLengthBytes)
 	_, err := crand.Read(knownSalt)
 	testify.NoError(t, err, "Should generate random salt")
 

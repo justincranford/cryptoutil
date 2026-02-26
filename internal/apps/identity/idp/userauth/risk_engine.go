@@ -206,7 +206,7 @@ func (e *BehavioralRiskEngine) CalculateRiskFactors(authContext *AuthContext, ba
 			Weight: e.locationWeight,
 			Reason: "Location-based risk assessment",
 			Metadata: map[string]any{
-				"country": authContext.Location.Country,
+				cryptoutilSharedMagic.AddressCountry: authContext.Location.Country,
 				"city":    authContext.Location.City,
 			},
 		})

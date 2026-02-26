@@ -5,6 +5,7 @@
 package integration
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	http "net/http"
 	"os"
@@ -32,7 +33,7 @@ var (
 // and exclude telemetry containers (otel-collector, grafana-lgtm).
 func TestMain(m *testing.M) {
 	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("sm-im-integration-test")
-	settings.DatabaseURL = "file::memory:?cache=shared" // SQLite in-memory for fast integration tests.
+	settings.DatabaseURL = cryptoutilSharedMagic.SQLiteInMemoryDSN // SQLite in-memory for fast integration tests.
 
 	testSmIMServer = &cryptoutilAppsSmImServerConfig.SmIMServerSettings{
 		ServiceTemplateServerSettings: settings,

@@ -5,6 +5,7 @@
 package bootstrap_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"errors"
 	"testing"
@@ -206,7 +207,7 @@ func TestDeleteDemoClient_DeleteError(t *testing.T) {
 
 	existingClient := &cryptoutilIdentityDomain.Client{
 		ID:       googleUuid.New(),
-		ClientID: "demo-client",
+		ClientID: cryptoutilSharedMagic.DemoClientID,
 	}
 	deleteErr := errors.New("delete failed")
 	client := &mockClientRepo{
@@ -342,7 +343,7 @@ func TestBootstrapClients_AlreadyExists(t *testing.T) {
 
 	existingClient := &cryptoutilIdentityDomain.Client{
 		ID:       googleUuid.New(),
-		ClientID: "demo-client",
+		ClientID: cryptoutilSharedMagic.DemoClientID,
 	}
 	client := &mockClientRepo{
 		getByClientIDFn: func(_ context.Context, _ string) (*cryptoutilIdentityDomain.Client, error) {

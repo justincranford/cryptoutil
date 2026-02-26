@@ -107,7 +107,7 @@ func TestParse_HappyPath(t *testing.T) {
 	// due to pflag.Parse() being called twice (once in template, once in sm-im).
 	args := []string{
 		"start", // Required subcommand.
-		"--bind-public-address", "127.0.0.1",
+		"--bind-public-address", cryptoutilSharedMagic.IPv4Loopback,
 		"--bind-public-port", "8080",
 	}
 
@@ -115,8 +115,8 @@ func TestParse_HappyPath(t *testing.T) {
 
 	require.NoError(t, err)
 	require.NotNil(t, settings)
-	require.Equal(t, "127.0.0.1", settings.BindPublicAddress)
-	require.Equal(t, uint16(8080), settings.BindPublicPort) // CLI flag --bind-public-port=8080 is respected.
+	require.Equal(t, cryptoutilSharedMagic.IPv4Loopback, settings.BindPublicAddress)
+	require.Equal(t, uint16(cryptoutilSharedMagic.DemoServerPort), settings.BindPublicPort) // CLI flag --bind-public-port=8080 is respected.
 	require.Equal(t, cryptoutilSharedMagic.IMJWEAlgorithm, settings.MessageJWEAlgorithm)
 	require.Equal(t, cryptoutilSharedMagic.IMMessageMinLength, settings.MessageMinLength)
 	require.Equal(t, cryptoutilSharedMagic.IMMessageMaxLength, settings.MessageMaxLength)

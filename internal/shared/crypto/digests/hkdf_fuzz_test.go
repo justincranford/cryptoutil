@@ -20,14 +20,14 @@ import (
 // FuzzHKDFAllVariants tests HKDF function with various inputs to ensure it doesn't crash.
 func FuzzHKDFAllVariants(f *testing.F) {
 	// Add seed corpus with valid inputs
-	f.Add("SHA256", []byte("secret"), []byte("salt"), []byte("info"), cryptoutilSharedMagic.HKDFSHA256OutputLength)
-	f.Add("SHA384", []byte("secret"), []byte("salt"), []byte("info"), cryptoutilSharedMagic.HKDFSHA384OutputLength)
-	f.Add("SHA512", []byte("secret"), []byte("salt"), []byte("info"), cryptoutilSharedMagic.HKDFSHA512OutputLength)
-	f.Add("SHA224", []byte("secret"), []byte("salt"), []byte("info"), cryptoutilSharedMagic.HKDFSHA224OutputLength)
+	f.Add(cryptoutilSharedMagic.SHA256, []byte("secret"), []byte("salt"), []byte("info"), cryptoutilSharedMagic.HKDFSHA256OutputLength)
+	f.Add(cryptoutilSharedMagic.SHA384, []byte("secret"), []byte("salt"), []byte("info"), cryptoutilSharedMagic.HKDFSHA384OutputLength)
+	f.Add(cryptoutilSharedMagic.SHA512, []byte("secret"), []byte("salt"), []byte("info"), cryptoutilSharedMagic.HKDFSHA512OutputLength)
+	f.Add(cryptoutilSharedMagic.SHA224, []byte("secret"), []byte("salt"), []byte("info"), cryptoutilSharedMagic.HKDFSHA224OutputLength)
 
 	f.Fuzz(func(t *testing.T, digestName string, secret, salt, info []byte, outputLength int) {
 		// Skip invalid digest names
-		if digestName != "SHA224" && digestName != "SHA256" && digestName != "SHA384" && digestName != "SHA512" {
+		if digestName != cryptoutilSharedMagic.SHA224 && digestName != cryptoutilSharedMagic.SHA256 && digestName != cryptoutilSharedMagic.SHA384 && digestName != cryptoutilSharedMagic.SHA512 {
 			t.Skip("Skipping invalid digest name for fuzzing")
 		}
 

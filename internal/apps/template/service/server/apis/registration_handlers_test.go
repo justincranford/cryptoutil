@@ -6,6 +6,7 @@
 package apis
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	json "encoding/json"
 	"net/http/httptest"
@@ -46,9 +47,9 @@ func TestHandleRegisterUser_InvalidJSON(t *testing.T) {
 	handlers := NewRegistrationHandlers(registrationService)
 
 	app := fiber.New()
-	app.Post("/register", handlers.HandleRegisterUser)
+	app.Post(cryptoutilSharedMagic.PathRegistration, handlers.HandleRegisterUser)
 
-	req := httptest.NewRequest("POST", "/register", bytes.NewReader([]byte("invalid json")))
+	req := httptest.NewRequest("POST", cryptoutilSharedMagic.PathRegistration, bytes.NewReader([]byte("invalid json")))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -280,9 +281,9 @@ func TestHandleRegisterUser_TableDriven(t *testing.T) {
 			handlers := NewRegistrationHandlers(registrationService)
 
 			app := fiber.New()
-			app.Post("/register", handlers.HandleRegisterUser)
+			app.Post(cryptoutilSharedMagic.PathRegistration, handlers.HandleRegisterUser)
 
-			req := httptest.NewRequest("POST", "/register", bytes.NewReader([]byte(tt.requestBody)))
+			req := httptest.NewRequest("POST", cryptoutilSharedMagic.PathRegistration, bytes.NewReader([]byte(tt.requestBody)))
 			req.Header.Set("Content-Type", "application/json")
 
 			resp, err := app.Test(req, -1)

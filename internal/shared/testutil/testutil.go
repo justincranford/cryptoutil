@@ -107,7 +107,7 @@ func NewTestUserFactory(prefix string) *TestUserFactory {
 func (f *TestUserFactory) Create(username string) *TestUser {
 	id := TestID(f.IDPrefix)
 	// Use last 12 chars of UUID for better uniqueness in short strings.
-	suffix := id[len(id)-12:]
+	suffix := id[len(id)-cryptoutilSharedMagic.HashPrefixLength:]
 
 	return &TestUser{
 		ID:       id,
@@ -142,15 +142,15 @@ func NewTestClientFactory(prefix string) *TestClientFactory {
 // CreateConfidential creates a confidential OAuth client.
 func (f *TestClientFactory) CreateConfidential(name string) *TestClient {
 	id := TestID(f.IDPrefix)
-	suffix := id[len(id)-12:]
+	suffix := id[len(id)-cryptoutilSharedMagic.HashPrefixLength:]
 
 	return &TestClient{
 		ID:           id,
 		ClientID:     "client-" + suffix,
-		ClientSecret: "secret-" + googleUuid.NewString()[:16],
+		ClientSecret: "secret-" + googleUuid.NewString()[:cryptoutilSharedMagic.RealmMinTokenLengthBytes],
 		Name:         name,
 		RedirectURIs: []string{"https://localhost/callback"},
-		Scopes:       []string{"openid", "profile", "email"},
+		Scopes:       []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail},
 		Public:       false,
 	}
 }
@@ -158,7 +158,7 @@ func (f *TestClientFactory) CreateConfidential(name string) *TestClient {
 // CreatePublic creates a public OAuth client.
 func (f *TestClientFactory) CreatePublic(name string) *TestClient {
 	id := TestID(f.IDPrefix)
-	suffix := id[len(id)-12:]
+	suffix := id[len(id)-cryptoutilSharedMagic.HashPrefixLength:]
 
 	return &TestClient{
 		ID:           id,
@@ -166,7 +166,7 @@ func (f *TestClientFactory) CreatePublic(name string) *TestClient {
 		ClientSecret: "",
 		Name:         name,
 		RedirectURIs: []string{"https://localhost/callback"},
-		Scopes:       []string{"openid", "profile"},
+		Scopes:       []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 		Public:       true,
 	}
 }
@@ -194,7 +194,7 @@ func NewTestTenantFactory(prefix string) *TestTenantFactory {
 func (f *TestTenantFactory) Create(name string) *TestTenant {
 	// Use UUIDv4 for tenant IDs per Session 3 Q10.
 	id := googleUuid.NewString()
-	suffix := id[len(id)-12:]
+	suffix := id[len(id)-cryptoutilSharedMagic.HashPrefixLength:]
 
 	return &TestTenant{
 		ID:          id,

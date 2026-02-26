@@ -21,7 +21,7 @@ func TestGenerateDeviceCode(t *testing.T) {
 	// Generate multiple device codes and check properties.
 	codes := make(map[string]bool)
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < cryptoutilSharedMagic.JoseJAMaxMaterials; i++ {
 		code, err := GenerateDeviceCode()
 		require.NoError(t, err, "Failed to generate device code")
 		require.NotEmpty(t, code, "Device code should not be empty")
@@ -37,7 +37,7 @@ func TestGenerateDeviceCode(t *testing.T) {
 
 		// Check length (base64url encoding produces ~43 characters for 32 bytes).
 		require.GreaterOrEqual(t, len(code), 40, "Device code should be at least 40 characters")
-		require.LessOrEqual(t, len(code), 50, "Device code should be at most 50 characters")
+		require.LessOrEqual(t, len(code), cryptoutilSharedMagic.IMMaxUsernameLength, "Device code should be at most 50 characters")
 	}
 }
 
@@ -67,7 +67,7 @@ func TestGenerateUserCode(t *testing.T) {
 	// Generate multiple user codes and check properties.
 	codes := make(map[string]bool)
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < cryptoutilSharedMagic.JoseJAMaxMaterials; i++ {
 		code, err := GenerateUserCode()
 		require.NoError(t, err, "Failed to generate user code")
 		require.NotEmpty(t, code, "User code should not be empty")
@@ -123,7 +123,7 @@ func TestGenerateUserCode_Format(t *testing.T) {
 		runs int
 	}{
 		{"single generation", 1},
-		{"multiple generations", 50},
+		{"multiple generations", cryptoutilSharedMagic.IMMaxUsernameLength},
 	}
 
 	for _, tc := range tests {
@@ -140,18 +140,18 @@ func TestGenerateUserCode_Format(t *testing.T) {
 
 				// Extract segments.
 				segment1 := code[:4]
-				segment2 := code[5:]
+				segment2 := code[cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries:]
 
 				require.Len(t, segment1, 4, "First segment should be 4 characters")
 				require.Len(t, segment2, 4, "Second segment should be 4 characters")
 
 				// Each segment should contain only valid charset.
 				for _, ch := range segment1 {
-					require.Contains(t, "ABCDEFGHJKLMNPQRSTUVWXYZ23456789", string(ch), "Invalid character in segment 1: %c", ch)
+					require.Contains(t, cryptoutilSharedMagic.RecoveryCodeCharset, string(ch), "Invalid character in segment 1: %c", ch)
 				}
 
 				for _, ch := range segment2 {
-					require.Contains(t, "ABCDEFGHJKLMNPQRSTUVWXYZ23456789", string(ch), "Invalid character in segment 2: %c", ch)
+					require.Contains(t, cryptoutilSharedMagic.RecoveryCodeCharset, string(ch), "Invalid character in segment 2: %c", ch)
 				}
 			}
 		})

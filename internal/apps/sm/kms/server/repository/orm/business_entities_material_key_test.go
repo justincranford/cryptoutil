@@ -6,6 +6,7 @@
 package orm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	cryptoutilKmsServer "cryptoutil/api/kms/server"
@@ -73,7 +74,7 @@ func TestOrmTransaction_GetElasticKeyMaterialKeyVersion(t *testing.T) {
 	err = testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
 		// Get all material keys.
 		filters := GetMaterialKeysFilters{
-			PageSize: 100,
+			PageSize: cryptoutilSharedMagic.JoseJAMaxMaterials,
 		}
 		allKeys, getErr := tx.GetMaterialKeys(&filters)
 		require.NoError(t, getErr)

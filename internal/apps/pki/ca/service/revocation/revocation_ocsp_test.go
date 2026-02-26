@@ -3,6 +3,7 @@
 package revocation
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
 	crand "crypto/rand"
@@ -29,7 +30,7 @@ func TestNewOCSPService(t *testing.T) {
 		Issuer:     caCert,
 		PrivateKey: caKey,
 		Provider:   provider,
-		Validity:   24 * time.Hour,
+		Validity:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 	crlSvc, _ := NewCRLService(crlConfig)
 
@@ -150,7 +151,7 @@ func TestOCSPService_CreateResponse(t *testing.T) {
 		Issuer:     caCert,
 		PrivateKey: caKey,
 		Provider:   provider,
-		Validity:   24 * time.Hour,
+		Validity:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 	crlSvc, err := NewCRLService(crlConfig)
 	require.NoError(t, err)
@@ -202,7 +203,7 @@ func TestOCSPService_CreateResponse_NilCert(t *testing.T) {
 		Issuer:     caCert,
 		PrivateKey: caKey,
 		Provider:   provider,
-		Validity:   24 * time.Hour,
+		Validity:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 	crlSvc, err := NewCRLService(crlConfig)
 	require.NoError(t, err)
@@ -232,7 +233,7 @@ func TestOCSPService_ParseRequest(t *testing.T) {
 		Issuer:     caCert,
 		PrivateKey: caKey,
 		Provider:   provider,
-		Validity:   24 * time.Hour,
+		Validity:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 	crlSvc, err := NewCRLService(crlConfig)
 	require.NoError(t, err)
@@ -291,7 +292,7 @@ func createTestCA(t *testing.T) (*x509.Certificate, *ecdsa.PrivateKey) {
 			Organization: []string{"Test Org"},
 		},
 		NotBefore:             time.Now().UTC(),
-		NotAfter:              time.Now().UTC().Add(365 * 24 * time.Hour),
+		NotAfter:              time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageOCSPSigning},
 		IsCA:                  true,
@@ -323,7 +324,7 @@ func createTestCertificate(t *testing.T, issuer *x509.Certificate, issuerKey *ec
 			Organization: []string{"Test Org"},
 		},
 		NotBefore:   time.Now().UTC(),
-		NotAfter:    time.Now().UTC().Add(90 * 24 * time.Hour),
+		NotAfter:    time.Now().UTC().Add(cryptoutilSharedMagic.StrictCertificateMaxAgeDays * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		KeyUsage:    x509.KeyUsageDigitalSignature,
 		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		DNSNames:    []string{"test.example.com"},

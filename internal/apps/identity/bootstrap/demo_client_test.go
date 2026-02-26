@@ -5,6 +5,7 @@
 package bootstrap_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -22,8 +23,8 @@ func TestCreateDemoClient_NewClient(t *testing.T) {
 
 	// Create in-memory database.
 	cfg := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, cfg)
@@ -40,8 +41,8 @@ func TestCreateDemoClient_NewClient(t *testing.T) {
 
 	require.NoError(t, err, "CreateDemoClient should succeed")
 	require.True(t, created, "Client should be created")
-	require.Equal(t, "demo-client", clientID, "Client ID should be demo-client")
-	require.Equal(t, "demo-secret", secret, "Secret should be demo-secret")
+	require.Equal(t, cryptoutilSharedMagic.DemoClientID, clientID, "Client ID should be demo-client")
+	require.Equal(t, cryptoutilSharedMagic.DemoClientSecret, secret, "Secret should be demo-secret")
 }
 
 func TestCreateDemoClient_ExistingClient(t *testing.T) {
@@ -51,8 +52,8 @@ func TestCreateDemoClient_ExistingClient(t *testing.T) {
 
 	// Create in-memory database.
 	cfg := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, cfg)
@@ -73,7 +74,7 @@ func TestCreateDemoClient_ExistingClient(t *testing.T) {
 	clientID, secret, created2, err := cryptoutilIdentityBootstrap.CreateDemoClient(ctx, repoFactory)
 	require.NoError(t, err, "Second CreateDemoClient should succeed")
 	require.False(t, created2, "Second call should not create client")
-	require.Equal(t, "demo-client", clientID, "Client ID should be demo-client")
+	require.Equal(t, cryptoutilSharedMagic.DemoClientID, clientID, "Client ID should be demo-client")
 	require.Empty(t, secret, "Secret should be empty for existing client")
 }
 
@@ -84,8 +85,8 @@ func TestBootstrapClients(t *testing.T) {
 
 	// Create in-memory database.
 	cfg := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, cfg)
@@ -106,11 +107,11 @@ func TestBootstrapClients(t *testing.T) {
 
 	// Verify demo-client exists.
 	clientRepo := repoFactory.ClientRepository()
-	client, err := clientRepo.GetByClientID(ctx, "demo-client")
+	client, err := clientRepo.GetByClientID(ctx, cryptoutilSharedMagic.DemoClientID)
 	require.NoError(t, err, "GetByClientID should succeed")
 	require.NotNil(t, client, "Demo client should exist")
-	require.Equal(t, "demo-client", client.ClientID, "Client ID should match")
-	require.Equal(t, "Demo Client", client.Name, "Client name should match")
+	require.Equal(t, cryptoutilSharedMagic.DemoClientID, client.ClientID, "Client ID should match")
+	require.Equal(t, cryptoutilSharedMagic.DemoClientName, client.Name, "Client name should match")
 	require.NotNil(t, client.Enabled, "Enabled field should not be nil")
 	require.True(t, *client.Enabled, "Client should be enabled")
 }

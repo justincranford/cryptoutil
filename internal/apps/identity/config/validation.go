@@ -73,7 +73,7 @@ func (sc *ServerConfig) Validate() error {
 		return fmt.Errorf("bind address is required")
 	}
 
-	if sc.Port <= 0 || sc.Port > 65535 {
+	if sc.Port <= 0 || sc.Port > int(cryptoutilSharedMagic.MaxPortNumber) {
 		return fmt.Errorf("port must be between 1 and 65535")
 	}
 
@@ -92,7 +92,7 @@ func (sc *ServerConfig) Validate() error {
 			return fmt.Errorf("admin bind address is required when admin is enabled")
 		}
 
-		if sc.AdminPort <= 0 || sc.AdminPort > 65535 {
+		if sc.AdminPort <= 0 || sc.AdminPort > int(cryptoutilSharedMagic.MaxPortNumber) {
 			return fmt.Errorf("admin port must be between 1 and 65535")
 		}
 	}
@@ -106,7 +106,7 @@ func (dc *DatabaseConfig) Validate() error {
 		return fmt.Errorf("database type is required")
 	}
 
-	if dc.Type != "postgres" && dc.Type != "sqlite" {
+	if dc.Type != cryptoutilSharedMagic.DockerServicePostgres && dc.Type != "sqlite" {
 		return fmt.Errorf("database type must be 'postgres' or 'sqlite'")
 	}
 
@@ -180,7 +180,7 @@ func (sc *SessionConfig) Validate() error {
 		return fmt.Errorf("cookie name is required")
 	}
 
-	if sc.CookieSameSite != "Strict" && sc.CookieSameSite != "Lax" && sc.CookieSameSite != "None" {
+	if sc.CookieSameSite != cryptoutilSharedMagic.DefaultCSRFTokenSameSiteStrict && sc.CookieSameSite != "Lax" && sc.CookieSameSite != "None" {
 		return fmt.Errorf("cookie SameSite must be 'Strict', 'Lax', or 'None'")
 	}
 
@@ -189,7 +189,7 @@ func (sc *SessionConfig) Validate() error {
 
 // Validate validates security configuration.
 func (sc *SecurityConfig) Validate() error {
-	if sc.PKCEChallengeMethod != "S256" && sc.PKCEChallengeMethod != "plain" {
+	if sc.PKCEChallengeMethod != cryptoutilSharedMagic.PKCEMethodS256 && sc.PKCEChallengeMethod != cryptoutilSharedMagic.PKCEMethodPlain {
 		return fmt.Errorf("pKCE challenge method must be 'S256' or 'plain'")
 	}
 
@@ -216,7 +216,7 @@ func (oc *ObservabilityConfig) Validate() error {
 		"debug": true,
 		"info":  true,
 		"warn":  true,
-		"error": true,
+		cryptoutilSharedMagic.StringError: true,
 	}
 
 	if !validLogLevels[oc.LogLevel] {

@@ -5,6 +5,7 @@
 package config
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -131,7 +132,7 @@ func TestLoadCAConfig(t *testing.T) {
 			// Create temp file.
 			tmpDir := t.TempDir()
 			tmpFile := filepath.Join(tmpDir, "ca-config.yaml")
-			err := os.WriteFile(tmpFile, []byte(tc.content), 0o600)
+			err := os.WriteFile(tmpFile, []byte(tc.content), cryptoutilSharedMagic.CacheFilePermissions)
 			require.NoError(t, err)
 
 			// Load config.
@@ -250,7 +251,7 @@ func TestLoadProfileConfig(t *testing.T) {
 			// Create temp file.
 			tmpDir := t.TempDir()
 			tmpFile := filepath.Join(tmpDir, "profile.yaml")
-			err := os.WriteFile(tmpFile, []byte(tc.content), 0o600)
+			err := os.WriteFile(tmpFile, []byte(tc.content), cryptoutilSharedMagic.CacheFilePermissions)
 			require.NoError(t, err)
 
 			// Load config.
@@ -291,7 +292,7 @@ func TestLoadCAConfig_InvalidYAML(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	tmpFile := filepath.Join(tmpDir, "invalid.yaml")
-	err := os.WriteFile(tmpFile, []byte("{{invalid yaml"), 0o600)
+	err := os.WriteFile(tmpFile, []byte("{{invalid yaml"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	config, err := LoadCAConfig(tmpFile)
@@ -305,7 +306,7 @@ func TestLoadProfileConfig_InvalidYAML(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	tmpFile := filepath.Join(tmpDir, "invalid.yaml")
-	err := os.WriteFile(tmpFile, []byte("{{invalid yaml"), 0o600)
+	err := os.WriteFile(tmpFile, []byte("{{invalid yaml"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	config, err := LoadProfileConfig(tmpFile)

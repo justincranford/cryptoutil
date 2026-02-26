@@ -33,7 +33,7 @@ func TenantMiddleware() fiber.Handler {
 			// Validate UUID format.
 			if !isValidUUID(tenantID) {
 				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-					"error":   "invalid_tenant_id",
+					cryptoutilSharedMagic.StringError:   "invalid_tenant_id",
 					"message": "Tenant ID must be a valid UUID",
 				})
 			}
@@ -62,7 +62,7 @@ func RequireTenantMiddleware() fiber.Handler {
 		tenantID := GetTenantID(c.UserContext())
 		if tenantID == "" {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error":   "missing_tenant_id",
+				cryptoutilSharedMagic.StringError:   "missing_tenant_id",
 				"message": "X-Tenant-ID header is required",
 			})
 		}
@@ -78,7 +78,7 @@ func isValidUUID(s string) bool {
 	}
 
 	// Check hyphen positions: 8, 13, 18, 23.
-	hyphenPositions := []int{8, 13, 18, 23}
+	hyphenPositions := []int{cryptoutilSharedMagic.IMMinPasswordLength, 13, 18, 23}
 	for _, pos := range hyphenPositions {
 		if s[pos] != '-' {
 			return false
@@ -87,7 +87,7 @@ func isValidUUID(s string) bool {
 
 	// Check all other characters are hex.
 	for i, char := range s {
-		if i == 8 || i == 13 || i == 18 || i == 23 {
+		if i == cryptoutilSharedMagic.IMMinPasswordLength || i == 13 || i == 18 || i == 23 {
 			continue
 		}
 

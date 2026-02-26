@@ -24,13 +24,13 @@ func TestJWKSService_GetJWKS(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create multiple keys for the tenant.
-	_, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	_, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
-	_, _, err = elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgES256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	_, _, err = elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgES256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
-	_, _, err = elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyUseEnc, 10)
+	_, _, err = elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyUseEnc, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	// Get JWKS.
@@ -65,7 +65,7 @@ func TestJWKSService_GetJWKSForElasticKey(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create key.
-	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	// Get JWKS for specific elastic key.
@@ -85,7 +85,7 @@ func TestJWKSService_GetJWKSForElasticKey_WrongTenant(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create key.
-	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	// Try to get JWKS with wrong tenant - should fail.
@@ -118,7 +118,7 @@ func TestJWKSService_GetPublicJWK(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create key.
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	// Get public JWK by KID.
@@ -140,7 +140,7 @@ func TestJWKSService_GetPublicJWK_WrongTenant(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create key.
-	_, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	_, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	// Try to get public JWK with wrong tenant - should fail.
@@ -176,13 +176,13 @@ func TestJWKSService_GetJWKS_MultipleTenants(t *testing.T) {
 	tenantID1 := googleUuid.New()
 	tenantID2 := googleUuid.New()
 
-	_, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID1, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	_, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID1, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
-	_, _, err = elasticSvc.CreateElasticJWK(ctx, tenantID1, cryptoutilSharedMagic.JoseAlgES256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	_, _, err = elasticSvc.CreateElasticJWK(ctx, tenantID1, cryptoutilSharedMagic.JoseAlgES256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
-	_, _, err = elasticSvc.CreateElasticJWK(ctx, tenantID2, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	_, _, err = elasticSvc.CreateElasticJWK(ctx, tenantID2, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	// Get JWKS for tenant1 - should have 2 keys.
@@ -206,7 +206,7 @@ func TestJWKSService_GetJWKS_VerifyPublicKeyOnly(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create key.
-	_, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	_, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	// Get JWKS.

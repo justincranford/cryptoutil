@@ -3,6 +3,7 @@
 package main
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"os"
 	"strings"
@@ -35,5 +36,5 @@ func fixExternalRef(filename string) error {
 	fixed := strings.ReplaceAll(string(content), "ExternalRef0", "externalRef0")
 
 	// Write back to file
-	return os.WriteFile(filename, []byte(fixed), 0o600)
+	return os.WriteFile(filename, []byte(fixed), cryptoutilSharedMagic.CacheFilePermissions)
 }

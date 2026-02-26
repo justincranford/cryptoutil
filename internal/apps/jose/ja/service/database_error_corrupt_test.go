@@ -25,7 +25,7 @@ func TestJWSService_Sign_CorruptedBase64(t *testing.T) {
 	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
 	tenantID := googleUuid.New()
 
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, "RS256", cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 	require.NotNil(t, elasticJWK)
 	require.NotNil(t, material)
@@ -54,7 +54,7 @@ func TestJWSService_Sign_CorruptedJWE(t *testing.T) {
 	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
 	tenantID := googleUuid.New()
 
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, "RS256", cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 	require.NotNil(t, elasticJWK)
 	require.NotNil(t, material)
@@ -86,7 +86,7 @@ func TestJWEService_Encrypt_CorruptedBase64(t *testing.T) {
 	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
 	tenantID := googleUuid.New()
 
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyUseEnc, 10)
+	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyUseEnc, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 	require.NotNil(t, elasticJWK)
 	require.NotNil(t, material)
@@ -119,7 +119,7 @@ func TestJWEService_Decrypt_CorruptedBase64(t *testing.T) {
 	jweSvc := NewJWEService(testElasticRepo, testMaterialRepo, testBarrierService)
 	tenantID := googleUuid.New()
 
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyUseEnc, 10)
+	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyUseEnc, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 	require.NotNil(t, elasticJWK)
 	require.NotNil(t, material)
@@ -156,7 +156,7 @@ func TestJWSService_Verify_CorruptedBase64(t *testing.T) {
 	jwsSvc := NewJWSService(testElasticRepo, testMaterialRepo, testBarrierService)
 	tenantID := googleUuid.New()
 
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, "RS256", cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 	require.NotNil(t, elasticJWK)
 	require.NotNil(t, material)
@@ -190,7 +190,7 @@ func TestJWKSService_GetPublicJWK_CorruptedBase64(t *testing.T) {
 	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
 	tenantID := googleUuid.New()
 
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, "RS256", cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 	require.NotNil(t, elasticJWK)
 	require.NotNil(t, material)
@@ -221,7 +221,7 @@ func TestJWKSService_GetJWKS_CorruptedBase64(t *testing.T) {
 	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
 	tenantID := googleUuid.New()
 
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, "RS256", cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 	require.NotNil(t, elasticJWK)
 	require.NotNil(t, material)
@@ -256,7 +256,7 @@ func TestJWTService_ValidateJWT_CorruptedPublicKeyDB(t *testing.T) {
 	jwtSvc := NewJWTService(testElasticRepo, testMaterialRepo, testBarrierService)
 	tenantID := googleUuid.New()
 
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, "RS256", cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 	require.NotNil(t, elasticJWK)
 	require.NotNil(t, material)

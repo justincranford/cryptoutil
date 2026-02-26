@@ -190,13 +190,13 @@ func (p *Provisioner) Provision(config *IntermediateCAConfig) (*IntermediateCA, 
 
 	// Encode to PEM.
 	certPEM := pem.EncodeToMemory(&pem.Block{
-		Type:  "CERTIFICATE",
+		Type:  cryptoutilSharedMagic.StringPEMTypeCertificate,
 		Bytes: certDER,
 	})
 
 	// Build chain PEM (intermediate + issuer).
 	issuerPEM := pem.EncodeToMemory(&pem.Block{
-		Type:  "CERTIFICATE",
+		Type:  cryptoutilSharedMagic.StringPEMTypeCertificate,
 		Bytes: config.IssuerCertificate.Raw,
 	})
 	chainPEM := append(certPEM, issuerPEM...)
@@ -342,7 +342,7 @@ func (p *Provisioner) persistMaterials(config *IntermediateCAConfig, intermediat
 	}
 
 	keyPEM := pem.EncodeToMemory(&pem.Block{
-		Type:  "PRIVATE KEY",
+		Type:  cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey,
 		Bytes: keyDER,
 	})
 
@@ -357,11 +357,11 @@ func (p *Provisioner) persistMaterials(config *IntermediateCAConfig, intermediat
 func keyAlgorithmName(pub crypto.PublicKey) string {
 	switch pub.(type) {
 	case *rsa.PublicKey:
-		return "RSA"
+		return cryptoutilSharedMagic.KeyTypeRSA
 	case *ecdsa.PublicKey:
 		return "ECDSA"
 	case ed25519.PublicKey:
-		return "Ed25519"
+		return cryptoutilSharedMagic.EdCurveEd25519
 	default:
 		return "Unknown"
 	}

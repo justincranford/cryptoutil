@@ -35,8 +35,8 @@ func TestOpenPostgreSQL(t *testing.T) {
 func TestListener_Start_NilContext(t *testing.T) {
 	t.Parallel()
 
-	publicServer := &mockPublicServer{port: 8080}
-	adminServer := &mockAdminServer{port: 9090}
+	publicServer := &mockPublicServer{port: cryptoutilSharedMagic.DemoServerPort}
+	adminServer := &mockAdminServer{port: cryptoutilSharedMagic.JoseJAAdminPort}
 
 	listener := &Listener{
 		PublicServer: publicServer,
@@ -59,16 +59,16 @@ func TestListener_Start_PublicServerError(t *testing.T) {
 		DatabaseURL:  cryptoutilSharedMagic.SQLiteInMemoryDSN,
 		OTLPService:  "test-start-error",
 		OTLPEnabled:  false,
-		OTLPEndpoint: "grpc://127.0.0.1:4317",
-		LogLevel:     "INFO",
+		OTLPEndpoint: cryptoutilSharedMagic.DefaultOTLPEndpointDefault,
+		LogLevel:     cryptoutilSharedMagic.DefaultLogLevelInfo,
 	}
 
 	// Create mock server that fails immediately.
 	publicServer := &mockPublicServer{
-		port:     8080,
+		port:     cryptoutilSharedMagic.DemoServerPort,
 		startErr: fmt.Errorf("mock public server error"),
 	}
-	adminServer := &mockAdminServer{port: 9090}
+	adminServer := &mockAdminServer{port: cryptoutilSharedMagic.JoseJAAdminPort}
 
 	config := &ListenerConfig{
 		Settings:     settings,
@@ -98,14 +98,14 @@ func TestListener_Start_AdminServerError(t *testing.T) {
 		DatabaseURL:  cryptoutilSharedMagic.SQLiteInMemoryDSN,
 		OTLPService:  "test-start-admin-error",
 		OTLPEnabled:  false,
-		OTLPEndpoint: "grpc://127.0.0.1:4317",
-		LogLevel:     "INFO",
+		OTLPEndpoint: cryptoutilSharedMagic.DefaultOTLPEndpointDefault,
+		LogLevel:     cryptoutilSharedMagic.DefaultLogLevelInfo,
 	}
 
-	publicServer := &mockPublicServer{port: 8080}
+	publicServer := &mockPublicServer{port: cryptoutilSharedMagic.DemoServerPort}
 	// Create mock server that fails immediately.
 	adminServer := &mockAdminServer{
-		port:     9090,
+		port:     cryptoutilSharedMagic.JoseJAAdminPort,
 		startErr: fmt.Errorf("mock admin server error"),
 	}
 
@@ -136,18 +136,18 @@ func TestListener_Start_ContextCancelled(t *testing.T) {
 		DatabaseURL:  cryptoutilSharedMagic.SQLiteInMemoryDSN,
 		OTLPService:  "test-start-cancel",
 		OTLPEnabled:  false,
-		OTLPEndpoint: "grpc://127.0.0.1:4317",
-		LogLevel:     "INFO",
+		OTLPEndpoint: cryptoutilSharedMagic.DefaultOTLPEndpointDefault,
+		LogLevel:     cryptoutilSharedMagic.DefaultLogLevelInfo,
 	}
 
 	// Create servers that block until cancelled.
 	startDone := make(chan struct{})
 	publicServer := &mockPublicServer{
-		port:      8080,
+		port:      cryptoutilSharedMagic.DemoServerPort,
 		startDone: startDone,
 	}
 	adminServer := &mockAdminServer{
-		port:      9090,
+		port:      cryptoutilSharedMagic.JoseJAAdminPort,
 		startDone: startDone,
 	}
 
@@ -170,7 +170,7 @@ func TestListener_Start_ContextCancelled(t *testing.T) {
 	}()
 
 	// Wait a bit for Start to begin.
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.JoseJAMaxMaterials * time.Millisecond)
 
 	// Cancel context.
 	cancel()
@@ -221,8 +221,8 @@ func TestProvisionDatabase_UnsupportedScheme(t *testing.T) {
 		DatabaseURL:  "mysql://localhost:3306/test", // Unsupported scheme.
 		OTLPService:  "test-unsupported-db",
 		OTLPEnabled:  false,
-		OTLPEndpoint: "grpc://127.0.0.1:4317",
-		LogLevel:     "INFO",
+		OTLPEndpoint: cryptoutilSharedMagic.DefaultOTLPEndpointDefault,
+		LogLevel:     cryptoutilSharedMagic.DefaultLogLevelInfo,
 	}
 
 	basic, err := StartBasic(ctx, settings)
@@ -253,11 +253,11 @@ func TestProvisionDatabase_SQLiteFileURL(t *testing.T) {
 
 	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		DevMode:      true,
-		DatabaseURL:  "file://" + dbFile,
+		DatabaseURL:  cryptoutilSharedMagic.FileURIScheme + dbFile,
 		OTLPService:  "test-sqlite-file",
 		OTLPEnabled:  false,
-		OTLPEndpoint: "grpc://127.0.0.1:4317",
-		LogLevel:     "INFO",
+		OTLPEndpoint: cryptoutilSharedMagic.DefaultOTLPEndpointDefault,
+		LogLevel:     cryptoutilSharedMagic.DefaultLogLevelInfo,
 	}
 
 	basic, err := StartBasic(ctx, settings)
@@ -288,8 +288,8 @@ func TestProvisionDatabase_SQLiteSchemePrefixURL(t *testing.T) {
 		DatabaseURL:  "sqlite://file::memory:?cache=shared", // sqlite:// prefix with in-memory DSN
 		OTLPService:  "test-sqlite-scheme",
 		OTLPEnabled:  false,
-		OTLPEndpoint: "grpc://127.0.0.1:4317",
-		LogLevel:     "INFO",
+		OTLPEndpoint: cryptoutilSharedMagic.DefaultOTLPEndpointDefault,
+		LogLevel:     cryptoutilSharedMagic.DefaultLogLevelInfo,
 	}
 
 	basic, err := StartBasic(ctx, settings)
@@ -326,7 +326,7 @@ func TestOpenSQLite_InvalidDSN(t *testing.T) {
 	sqlDB, _ := db.DB()
 	err = sqlDB.QueryRowContext(ctx, "PRAGMA busy_timeout").Scan(&busyTimeout)
 	require.NoError(t, err)
-	require.Equal(t, 30000, busyTimeout) // 30 seconds as configured.
+	require.Equal(t, cryptoutilSharedMagic.FiberTestTimeoutMs, busyTimeout) // 30 seconds as configured.
 }
 
 // TestOpenPostgreSQL_Success tests successful PostgreSQL connection.
@@ -390,9 +390,9 @@ func TestProvisionDatabase_PostgreSQLContainerRequired(t *testing.T) {
 		VerboseMode:       false,
 		OTLPEndpoint:      "grpc://localhost:4317",
 		OTLPService:       "test-service",
-		OTLPVersion:       "1.0.0",
+		OTLPVersion:       cryptoutilSharedMagic.ServiceVersion,
 		OTLPEnvironment:   "test",
-		UnsealMode:        "sysinfo",
+		UnsealMode:        cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 		DatabaseURL:       testPostgresDSN,
 		DatabaseContainer: "required",
 	}
@@ -432,9 +432,9 @@ func TestProvisionDatabase_PostgreSQLContainerPreferred(t *testing.T) {
 		VerboseMode:       false,
 		OTLPEndpoint:      "grpc://localhost:4317",
 		OTLPService:       "test-service",
-		OTLPVersion:       "1.0.0",
+		OTLPVersion:       cryptoutilSharedMagic.ServiceVersion,
 		OTLPEnvironment:   "test",
-		UnsealMode:        "sysinfo",
+		UnsealMode:        cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 		DatabaseURL:       testPostgresDSN,
 		DatabaseContainer: "preferred",
 	}

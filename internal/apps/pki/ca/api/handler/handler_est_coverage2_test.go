@@ -3,6 +3,7 @@
 package handler
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
@@ -37,7 +38,7 @@ func createHandlerTSACert(t *testing.T) (*x509.Certificate, *ecdsa.PrivateKey) {
 			Organization: []string{"Test Org"},
 		},
 		NotBefore:             time.Now().UTC(),
-		NotAfter:              time.Now().UTC().Add(365 * 24 * time.Hour),
+		NotAfter:              time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		KeyUsage:              x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageTimeStamping},
 		BasicConstraintsValid: true,
@@ -58,7 +59,7 @@ func createHandlerTSAService(t *testing.T) *cryptoutilCAServiceTimestamp.TSAServ
 
 	cert, key := createHandlerTSACert(t)
 	provider := cryptoutilCACrypto.NewSoftwareProvider()
-	policy := asn1.ObjectIdentifier{1, 2, 3, 4, 5}
+	policy := asn1.ObjectIdentifier{1, 2, 3, 4, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries}
 
 	config := &cryptoutilCAServiceTimestamp.TSAConfig{
 		Certificate: cert,
@@ -163,9 +164,9 @@ func TestTsaTimestamp_ValidRequest(t *testing.T) {
 		CertReq        bool     `asn1:"optional"`
 	}
 
-	sha256OID := asn1.ObjectIdentifier{2, 16, 840, 1, 101, 3, 4, 2, 1}
+	sha256OID := asn1.ObjectIdentifier{2, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 840, 1, 101, 3, 4, 2, 1}
 
-	hash := [32]byte{}
+	hash := [cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes]byte{}
 	for i := range hash {
 		hash[i] = byte(i + 1)
 	}

@@ -1,6 +1,7 @@
 package lint_deployments
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 "fmt"
 "net/url"
 "os"
@@ -179,7 +180,7 @@ fmt.Sprintf("[ValidateTelemetry] '%s': otlp-endpoint missing port (using default
 filepath.Base(entry.FilePath), entry.Endpoint))
 }
 
-if parsed.Scheme != "" && parsed.Scheme != "http" && parsed.Scheme != "https" && parsed.Scheme != "grpc" {
+if parsed.Scheme != "" && parsed.Scheme != cryptoutilSharedMagic.ProtocolHTTP && parsed.Scheme != cryptoutilSharedMagic.ProtocolHTTPS && parsed.Scheme != "grpc" {
 result.Warnings = append(result.Warnings,
 fmt.Sprintf("[ValidateTelemetry] '%s': otlp-endpoint unusual scheme '%s': %s",
 filepath.Base(entry.FilePath), parsed.Scheme, entry.Endpoint))

@@ -4,6 +4,7 @@
 package realms
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	http "net/http"
 	"net/http/httptest"
 	"testing"
@@ -73,7 +74,7 @@ func TestJWTMiddleware_AuthenticationErrors(t *testing.T) {
 				// Token with invalid UUID format for user_id
 				token := createTestToken(t, "not-a-valid-uuid", "testuser", testJWTSecret, time.Now().UTC().Add(1*time.Hour))
 
-				return "Bearer " + token
+				return cryptoutilSharedMagic.AuthorizationBearerPrefix + token
 			},
 			wantStatus: fiber.StatusUnauthorized,
 		},
@@ -124,7 +125,7 @@ func TestJWTMiddleware_ValidToken_Success(t *testing.T) {
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
-	req.Header.Set("Authorization", "Bearer "+validToken)
+	req.Header.Set("Authorization", cryptoutilSharedMagic.AuthorizationBearerPrefix+validToken)
 
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
@@ -162,7 +163,7 @@ func TestJWTMiddleware_UnsupportedSigningMethod(t *testing.T) {
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
-	req.Header.Set("Authorization", "Bearer "+tokenString)
+	req.Header.Set("Authorization", cryptoutilSharedMagic.AuthorizationBearerPrefix+tokenString)
 
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)

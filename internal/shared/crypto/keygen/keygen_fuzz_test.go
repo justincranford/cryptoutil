@@ -42,9 +42,9 @@ func FuzzGenerateRSAKeyPair(f *testing.F) {
 // FuzzGenerateECDSAKeyPair tests ECDSA key pair generation with various curves.
 func FuzzGenerateECDSAKeyPair(f *testing.F) {
 	// Add seed corpus with curve identifiers (we'll map them to actual curves)
-	f.Add("P256")
-	f.Add("P384")
-	f.Add("P521")
+	f.Add(cryptoutilSharedMagic.ECCurveP256)
+	f.Add(cryptoutilSharedMagic.ECCurveP384)
+	f.Add(cryptoutilSharedMagic.ECCurveP521)
 
 	f.Fuzz(func(t *testing.T, curveName string) {
 		var curve elliptic.Curve
@@ -73,9 +73,9 @@ func FuzzGenerateECDSAKeyPair(f *testing.F) {
 // FuzzGenerateECDHKeyPair tests ECDH key pair generation with various curves.
 func FuzzGenerateECDHKeyPair(f *testing.F) {
 	// Add seed corpus with curve identifiers
-	f.Add("P256")
-	f.Add("P384")
-	f.Add("P521")
+	f.Add(cryptoutilSharedMagic.ECCurveP256)
+	f.Add(cryptoutilSharedMagic.ECCurveP384)
+	f.Add(cryptoutilSharedMagic.ECCurveP521)
 
 	f.Fuzz(func(t *testing.T, curveName string) {
 		var curve ecdh.Curve
@@ -104,8 +104,8 @@ func FuzzGenerateECDHKeyPair(f *testing.F) {
 // FuzzGenerateEDDSAKeyPair tests EdDSA key pair generation with various curves.
 func FuzzGenerateEDDSAKeyPair(f *testing.F) {
 	// Add seed corpus with valid EdDSA curve names
-	f.Add("Ed25519")
-	f.Add("Ed448")
+	f.Add(cryptoutilSharedMagic.EdCurveEd25519)
+	f.Add(cryptoutilSharedMagic.EdCurveEd448)
 
 	f.Fuzz(func(t *testing.T, edCurve string) {
 		// Only test valid EdDSA curves

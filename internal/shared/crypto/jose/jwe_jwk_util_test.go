@@ -5,6 +5,7 @@
 package crypto
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/ecdh"
 	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
@@ -33,7 +34,7 @@ func TestValidateOrGenerateJWEAESJWK_Generate(t *testing.T) {
 			name:          "A256KW with A256GCM",
 			enc:           &EncA256GCM,
 			alg:           &AlgA256KW,
-			keyBitsLength: 256,
+			keyBitsLength: cryptoutilSharedMagic.MaxUnsealSharedSecrets,
 			allowedEncs:   []*joseJwa.ContentEncryptionAlgorithm{&EncA256GCM},
 			expectError:   false,
 		},
@@ -41,7 +42,7 @@ func TestValidateOrGenerateJWEAESJWK_Generate(t *testing.T) {
 			name:          "A192KW with A192GCM",
 			enc:           &EncA192GCM,
 			alg:           &AlgA192KW,
-			keyBitsLength: 192,
+			keyBitsLength: cryptoutilSharedMagic.SymmetricKeySize192,
 			allowedEncs:   []*joseJwa.ContentEncryptionAlgorithm{&EncA192GCM},
 			expectError:   false,
 		},
@@ -49,7 +50,7 @@ func TestValidateOrGenerateJWEAESJWK_Generate(t *testing.T) {
 			name:          "A128KW with A128GCM",
 			enc:           &EncA128GCM,
 			alg:           &AlgA128KW,
-			keyBitsLength: 128,
+			keyBitsLength: cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits,
 			allowedEncs:   []*joseJwa.ContentEncryptionAlgorithm{&EncA128GCM},
 			expectError:   false,
 		},
@@ -57,7 +58,7 @@ func TestValidateOrGenerateJWEAESJWK_Generate(t *testing.T) {
 			name:          "dir with A256GCM",
 			enc:           &EncA256GCM,
 			alg:           &AlgDir,
-			keyBitsLength: 256,
+			keyBitsLength: cryptoutilSharedMagic.MaxUnsealSharedSecrets,
 			allowedEncs:   []*joseJwa.ContentEncryptionAlgorithm{&EncA256GCM},
 			expectError:   false,
 		},
@@ -65,7 +66,7 @@ func TestValidateOrGenerateJWEAESJWK_Generate(t *testing.T) {
 			name:          "dir with A256CBC-HS512",
 			enc:           &EncA256CBCHS512,
 			alg:           &AlgDir,
-			keyBitsLength: 512,
+			keyBitsLength: cryptoutilSharedMagic.DefaultTracesBatchSize,
 			allowedEncs:   []*joseJwa.ContentEncryptionAlgorithm{&EncA256CBCHS512},
 			expectError:   false,
 		},
@@ -73,7 +74,7 @@ func TestValidateOrGenerateJWEAESJWK_Generate(t *testing.T) {
 			name:          "disallowed enc",
 			enc:           &EncA128GCM,
 			alg:           &AlgA256KW,
-			keyBitsLength: 256,
+			keyBitsLength: cryptoutilSharedMagic.MaxUnsealSharedSecrets,
 			allowedEncs:   []*joseJwa.ContentEncryptionAlgorithm{&EncA256GCM},
 			expectError:   true,
 		},
@@ -94,7 +95,7 @@ func TestValidateOrGenerateJWEAESJWK_Generate(t *testing.T) {
 
 			require.NoError(t, err)
 			require.NotNil(t, keyBytes)
-			require.Equal(t, tc.keyBitsLength/8, len(keyBytes))
+			require.Equal(t, tc.keyBitsLength/cryptoutilSharedMagic.IMMinPasswordLength, len(keyBytes))
 		})
 	}
 }
@@ -102,10 +103,10 @@ func TestValidateOrGenerateJWEAESJWK_Generate(t *testing.T) {
 func TestValidateOrGenerateJWEAESJWK_Validate(t *testing.T) {
 	t.Parallel()
 
-	validKey256, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(256)
+	validKey256, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 	require.NoError(t, err)
 
-	validKey128, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(128)
+	validKey128, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -122,7 +123,7 @@ func TestValidateOrGenerateJWEAESJWK_Validate(t *testing.T) {
 			key:         validKey256,
 			enc:         &EncA256GCM,
 			alg:         &AlgA256KW,
-			keyBitsLen:  256,
+			keyBitsLen:  cryptoutilSharedMagic.MaxUnsealSharedSecrets,
 			allowedEncs: []*joseJwa.ContentEncryptionAlgorithm{&EncA256GCM},
 			expectError: false,
 		},
@@ -131,7 +132,7 @@ func TestValidateOrGenerateJWEAESJWK_Validate(t *testing.T) {
 			key:         validKey128,
 			enc:         &EncA256GCM,
 			alg:         &AlgA256KW,
-			keyBitsLen:  256,
+			keyBitsLen:  cryptoutilSharedMagic.MaxUnsealSharedSecrets,
 			allowedEncs: []*joseJwa.ContentEncryptionAlgorithm{&EncA256GCM},
 			expectError: true,
 		},
@@ -140,7 +141,7 @@ func TestValidateOrGenerateJWEAESJWK_Validate(t *testing.T) {
 			key:         cryptoutilSharedCryptoKeygen.SecretKey(nil),
 			enc:         &EncA256GCM,
 			alg:         &AlgA256KW,
-			keyBitsLen:  256,
+			keyBitsLen:  cryptoutilSharedMagic.MaxUnsealSharedSecrets,
 			allowedEncs: []*joseJwa.ContentEncryptionAlgorithm{&EncA256GCM},
 			expectError: true,
 		},
@@ -149,7 +150,7 @@ func TestValidateOrGenerateJWEAESJWK_Validate(t *testing.T) {
 			key:         &cryptoutilSharedCryptoKeygen.KeyPair{},
 			enc:         &EncA256GCM,
 			alg:         &AlgA256KW,
-			keyBitsLen:  256,
+			keyBitsLen:  cryptoutilSharedMagic.MaxUnsealSharedSecrets,
 			allowedEncs: []*joseJwa.ContentEncryptionAlgorithm{&EncA256GCM},
 			expectError: true,
 		},
@@ -181,7 +182,7 @@ func TestValidateOrGenerateJWEAESJWK_InvalidEncWithDir(t *testing.T) {
 	alg := joseJwa.DIRECT()
 	allowedEncs := []*joseJwa.ContentEncryptionAlgorithm{&invalidEnc}
 
-	keyBytes, err := validateOrGenerateJWEAESJWK(nil, &invalidEnc, &alg, 256, allowedEncs...)
+	keyBytes, err := validateOrGenerateJWEAESJWK(nil, &invalidEnc, &alg, cryptoutilSharedMagic.MaxUnsealSharedSecrets, allowedEncs...)
 	require.Error(t, err)
 	require.Nil(t, keyBytes)
 	require.Contains(t, err.Error(), "valid JWE JWK alg")
@@ -192,7 +193,7 @@ func TestValidateOrGenerateJWEAESJWK_WrongKeyType(t *testing.T) {
 	t.Parallel()
 
 	// Pass KeyPair (RSA) instead of SecretKey ([]byte).
-	rsaKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	rsaKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	keyPair := &cryptoutilSharedCryptoKeygen.KeyPair{
@@ -200,7 +201,7 @@ func TestValidateOrGenerateJWEAESJWK_WrongKeyType(t *testing.T) {
 		Public:  &rsaKey.PublicKey,
 	}
 
-	result, err := validateOrGenerateJWEAESJWK(keyPair, &EncA256GCM, &AlgA256KW, 256, &EncA256GCM)
+	result, err := validateOrGenerateJWEAESJWK(keyPair, &EncA256GCM, &AlgA256KW, cryptoutilSharedMagic.MaxUnsealSharedSecrets, &EncA256GCM)
 	require.Error(t, err)
 	require.Nil(t, result)
 	require.Contains(t, err.Error(), "unsupported key type *keygen.KeyPair")
@@ -210,11 +211,11 @@ func TestValidateOrGenerateJWEAESJWK_DisallowedEnc(t *testing.T) {
 	t.Parallel()
 
 	// Test enc not in allowedEncs list.
-	secretKey, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(256)
+	secretKey, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 	require.NoError(t, err)
 
 	// Use A128GCM but only allow A256GCM.
-	result, err := validateOrGenerateJWEAESJWK(secretKey, &EncA128GCM, &AlgA256KW, 256, &EncA256GCM)
+	result, err := validateOrGenerateJWEAESJWK(secretKey, &EncA128GCM, &AlgA256KW, cryptoutilSharedMagic.MaxUnsealSharedSecrets, &EncA256GCM)
 	require.Error(t, err)
 	require.Nil(t, result)
 	require.Contains(t, err.Error(), "enc A128GCM not allowed")
@@ -226,7 +227,7 @@ func TestValidateOrGenerateJWEAESJWK_NilKey(t *testing.T) {
 	// Test nil key bytes.
 	var secretKey cryptoutilSharedCryptoKeygen.SecretKey
 
-	result, err := validateOrGenerateJWEAESJWK(secretKey, &EncA256GCM, &AlgA256KW, 256, &EncA256GCM)
+	result, err := validateOrGenerateJWEAESJWK(secretKey, &EncA256GCM, &AlgA256KW, cryptoutilSharedMagic.MaxUnsealSharedSecrets, &EncA256GCM)
 	require.Error(t, err)
 	require.Nil(t, result)
 	require.Contains(t, err.Error(), "invalid nil key bytes")
@@ -236,10 +237,10 @@ func TestValidateOrGenerateJWEAESJWK_WrongLength(t *testing.T) {
 	t.Parallel()
 
 	// Test wrong length key (128 bits instead of 256 bits).
-	secretKey, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(128)
+	secretKey, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits)
 	require.NoError(t, err)
 
-	result, err := validateOrGenerateJWEAESJWK(secretKey, &EncA256GCM, &AlgA256KW, 256, &EncA256GCM)
+	result, err := validateOrGenerateJWEAESJWK(secretKey, &EncA256GCM, &AlgA256KW, cryptoutilSharedMagic.MaxUnsealSharedSecrets, &EncA256GCM)
 	require.Error(t, err)
 	require.Nil(t, result)
 	require.Contains(t, err.Error(), "invalid key length")
@@ -260,7 +261,7 @@ func TestValidateOrGenerateJWERSAJWK_Generate(t *testing.T) {
 			name:          "RSA-OAEP with A256GCM",
 			enc:           &EncA256GCM,
 			alg:           &AlgRSAOAEP,
-			keyBitsLength: 2048,
+			keyBitsLength: cryptoutilSharedMagic.DefaultMetricsBatchSize,
 			allowedEncs:   []*joseJwa.ContentEncryptionAlgorithm{&EncA256GCM},
 			expectError:   false,
 		},
@@ -268,7 +269,7 @@ func TestValidateOrGenerateJWERSAJWK_Generate(t *testing.T) {
 			name:          "RSA-OAEP-256 with A192GCM",
 			enc:           &EncA192GCM,
 			alg:           &AlgRSAOAEP256,
-			keyBitsLength: 3072,
+			keyBitsLength: cryptoutilSharedMagic.RSA3072KeySize,
 			allowedEncs:   []*joseJwa.ContentEncryptionAlgorithm{&EncA192GCM},
 			expectError:   false,
 		},
@@ -276,7 +277,7 @@ func TestValidateOrGenerateJWERSAJWK_Generate(t *testing.T) {
 			name:          "disallowed enc",
 			enc:           &EncA128GCM,
 			alg:           &AlgRSAOAEP,
-			keyBitsLength: 2048,
+			keyBitsLength: cryptoutilSharedMagic.DefaultMetricsBatchSize,
 			allowedEncs:   []*joseJwa.ContentEncryptionAlgorithm{&EncA256GCM},
 			expectError:   true,
 		},
@@ -320,7 +321,7 @@ func TestValidateOrGenerateJWEEcdhJWK_WrongKeyType(t *testing.T) {
 	t.Parallel()
 
 	// Use symmetric key (wrong type for ECDH).
-	symmetricKey := cryptoutilSharedCryptoKeygen.SecretKey(make([]byte, 32))
+	symmetricKey := cryptoutilSharedCryptoKeygen.SecretKey(make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes))
 
 	validated, err := validateOrGenerateJWEEcdhJWK(symmetricKey, &EncA256GCM, &AlgECDHES, ecdh.P256(), &EncA256GCM)
 	require.Error(t, err)
@@ -332,11 +333,11 @@ func TestValidateOrGenerateJWERSAJWK_ValidateExistingKey(t *testing.T) {
 	t.Parallel()
 
 	// Generate valid RSA key pair.
-	validKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
+	validKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	// Test validation with valid key.
-	validated, err := validateOrGenerateJWERSAJWK(validKeyPair, &EncA256GCM, &AlgRSAOAEP, 2048, &EncA256GCM)
+	validated, err := validateOrGenerateJWERSAJWK(validKeyPair, &EncA256GCM, &AlgRSAOAEP, cryptoutilSharedMagic.DefaultMetricsBatchSize, &EncA256GCM)
 	require.NoError(t, err)
 	require.Equal(t, validKeyPair, validated)
 }
@@ -345,9 +346,9 @@ func TestValidateOrGenerateJWERSAJWK_WrongKeyType(t *testing.T) {
 	t.Parallel()
 
 	// Use symmetric key (wrong type for RSA).
-	symmetricKey := cryptoutilSharedCryptoKeygen.SecretKey(make([]byte, 32))
+	symmetricKey := cryptoutilSharedCryptoKeygen.SecretKey(make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes))
 
-	validated, err := validateOrGenerateJWERSAJWK(symmetricKey, &EncA256GCM, &AlgRSAOAEP, 2048, &EncA256GCM)
+	validated, err := validateOrGenerateJWERSAJWK(symmetricKey, &EncA256GCM, &AlgRSAOAEP, cryptoutilSharedMagic.DefaultMetricsBatchSize, &EncA256GCM)
 	require.Error(t, err)
 	require.Nil(t, validated)
 	require.Contains(t, err.Error(), "unsupported key type")
@@ -357,7 +358,7 @@ func TestValidateOrGenerateJWERSAJWK_NilPrivateKey(t *testing.T) {
 	t.Parallel()
 
 	// Generate RSA key then set private to nil.
-	rsaKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	rsaKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	keyPair := &cryptoutilSharedCryptoKeygen.KeyPair{
@@ -365,7 +366,7 @@ func TestValidateOrGenerateJWERSAJWK_NilPrivateKey(t *testing.T) {
 		Public:  &rsaKey.PublicKey,
 	}
 
-	result, err := validateOrGenerateJWERSAJWK(keyPair, &EncA256GCM, &AlgRSAOAEP, 2048, &EncA256GCM)
+	result, err := validateOrGenerateJWERSAJWK(keyPair, &EncA256GCM, &AlgRSAOAEP, cryptoutilSharedMagic.DefaultMetricsBatchSize, &EncA256GCM)
 	require.Error(t, err)
 	require.Nil(t, result)
 	require.Contains(t, err.Error(), "invalid nil RSA private key")
@@ -375,7 +376,7 @@ func TestValidateOrGenerateJWERSAJWK_NilPublicKey(t *testing.T) {
 	t.Parallel()
 
 	// Generate RSA private key, create KeyPair with typed nil public.
-	rsaKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	rsaKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	keyPair := &cryptoutilSharedCryptoKeygen.KeyPair{
@@ -383,7 +384,7 @@ func TestValidateOrGenerateJWERSAJWK_NilPublicKey(t *testing.T) {
 		Public:  (*rsa.PublicKey)(nil), // Typed nil to pass type check
 	}
 
-	result, err := validateOrGenerateJWERSAJWK(keyPair, &EncA256GCM, &AlgRSAOAEP, 2048, &EncA256GCM)
+	result, err := validateOrGenerateJWERSAJWK(keyPair, &EncA256GCM, &AlgRSAOAEP, cryptoutilSharedMagic.DefaultMetricsBatchSize, &EncA256GCM)
 	require.Error(t, err)
 	require.Nil(t, result)
 	require.Contains(t, err.Error(), "invalid nil RSA public key")
@@ -401,7 +402,7 @@ func TestValidateOrGenerateJWERSAJWK_WrongPrivateKeyType(t *testing.T) {
 		Public:  &ecdsaKey.PublicKey,
 	}
 
-	result, err := validateOrGenerateJWERSAJWK(keyPair, &EncA256GCM, &AlgRSAOAEP, 2048, &EncA256GCM)
+	result, err := validateOrGenerateJWERSAJWK(keyPair, &EncA256GCM, &AlgRSAOAEP, cryptoutilSharedMagic.DefaultMetricsBatchSize, &EncA256GCM)
 	require.Error(t, err)
 	require.Nil(t, result)
 	require.Contains(t, err.Error(), "unsupported key type *ecdsa.PrivateKey")
@@ -411,7 +412,7 @@ func TestValidateOrGenerateJWERSAJWK_WrongPublicKeyType(t *testing.T) {
 	t.Parallel()
 
 	// Generate RSA private key, pair with ECDSA public key (invalid).
-	rsaKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	rsaKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	ecdsaKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
@@ -422,7 +423,7 @@ func TestValidateOrGenerateJWERSAJWK_WrongPublicKeyType(t *testing.T) {
 		Public:  &ecdsaKey.PublicKey,
 	}
 
-	result, err := validateOrGenerateJWERSAJWK(keyPair, &EncA256GCM, &AlgRSAOAEP, 2048, &EncA256GCM)
+	result, err := validateOrGenerateJWERSAJWK(keyPair, &EncA256GCM, &AlgRSAOAEP, cryptoutilSharedMagic.DefaultMetricsBatchSize, &EncA256GCM)
 	require.Error(t, err)
 	require.Nil(t, result)
 	require.Contains(t, err.Error(), "unsupported key type *ecdsa.PublicKey")
@@ -432,7 +433,7 @@ func TestValidateOrGenerateJWERSAJWK_DisallowedEnc(t *testing.T) {
 	t.Parallel()
 
 	// Test enc not in allowedEncs list.
-	rsaKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	rsaKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	keyPair := &cryptoutilSharedCryptoKeygen.KeyPair{
@@ -441,7 +442,7 @@ func TestValidateOrGenerateJWERSAJWK_DisallowedEnc(t *testing.T) {
 	}
 
 	// Use A128GCM but only allow A256GCM.
-	result, err := validateOrGenerateJWERSAJWK(keyPair, &EncA128GCM, &AlgRSAOAEP, 2048, &EncA256GCM)
+	result, err := validateOrGenerateJWERSAJWK(keyPair, &EncA128GCM, &AlgRSAOAEP, cryptoutilSharedMagic.DefaultMetricsBatchSize, &EncA256GCM)
 	require.Error(t, err)
 	require.Nil(t, result)
 	require.Contains(t, err.Error(), "enc A128GCM not allowed")

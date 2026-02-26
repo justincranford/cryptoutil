@@ -23,7 +23,7 @@ func (s *Service) handleLogin(c *fiber.Ctx) error {
 
 	if requestID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "request_id is required",
 		})
 	}
@@ -47,21 +47,21 @@ func (s *Service) handleLoginSubmit(c *fiber.Ctx) error {
 	// Validate required parameters.
 	if username == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "username is required",
 		})
 	}
 
 	if password == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "password is required",
 		})
 	}
 
 	if requestIDStr == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "request_id is required",
 		})
 	}
@@ -72,7 +72,7 @@ func (s *Service) handleLoginSubmit(c *fiber.Ctx) error {
 	requestID, err := googleUuid.Parse(requestIDStr)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Invalid request_id format",
 		})
 	}
@@ -83,7 +83,7 @@ func (s *Service) handleLoginSubmit(c *fiber.Ctx) error {
 	authRequest, err := authzReqRepo.GetByID(ctx, requestID)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Authorization request not found or expired",
 		})
 	}
@@ -91,16 +91,16 @@ func (s *Service) handleLoginSubmit(c *fiber.Ctx) error {
 	// Validate request not expired.
 	if authRequest.IsExpired() {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Authorization request has expired",
 		})
 	}
 
 	// Use the default username/password authentication profile.
-	profile, exists := s.authProfiles.Get("username_password")
+	profile, exists := s.authProfiles.Get(cryptoutilSharedMagic.AuthMethodUsernamePassword)
 	if !exists {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorServerError,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Authentication profile not available",
 		})
 	}
@@ -112,7 +112,7 @@ func (s *Service) handleLoginSubmit(c *fiber.Ctx) error {
 	})
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorAccessDenied,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorAccessDenied,
 			"error_description": "Invalid username or password",
 		})
 	}
@@ -125,7 +125,7 @@ func (s *Service) handleLoginSubmit(c *fiber.Ctx) error {
 
 	if err := authzReqRepo.Update(ctx, authRequest); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorServerError,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Failed to update authorization request",
 		})
 	}
@@ -140,14 +140,14 @@ func (s *Service) handleLoginSubmit(c *fiber.Ctx) error {
 		ExpiresAt:             time.Now().UTC().Add(s.config.Sessions.SessionLifetime),
 		LastSeenAt:            time.Now().UTC(),
 		Active:                &active,
-		AuthenticationMethods: []string{"username_password"},
+		AuthenticationMethods: []string{cryptoutilSharedMagic.AuthMethodUsernamePassword},
 		AuthenticationTime:    time.Now().UTC(),
 	}
 
 	sessionRepo := s.repoFactory.SessionRepository()
 	if err := sessionRepo.Create(ctx, session); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorServerError,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Failed to create session",
 		})
 	}

@@ -4,6 +4,7 @@
 package repository_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"errors"
 	"fmt"
@@ -33,8 +34,8 @@ func TestApplication_TableDriven_HappyPath(t *testing.T) {
 				t.Helper()
 
 				ctx := context.Background()
-				publicServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockPublicServer(8080)
-				adminServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockAdminServer(9090)
+				publicServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockPublicServer(cryptoutilSharedMagic.DemoServerPort)
+				adminServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockAdminServer(cryptoutilSharedMagic.JoseJAAdminPort)
 
 				app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 				require.NoError(t, err)
@@ -86,7 +87,7 @@ func TestApplication_TableDriven_HappyPath(t *testing.T) {
 				t.Helper()
 
 				port := app.PublicPort()
-				require.Equal(t, 8080, port)
+				require.Equal(t, cryptoutilSharedMagic.DemoServerPort, port)
 			},
 		},
 		{
@@ -96,7 +97,7 @@ func TestApplication_TableDriven_HappyPath(t *testing.T) {
 				t.Helper()
 
 				port := app.AdminPort()
-				require.Equal(t, 9090, port)
+				require.Equal(t, cryptoutilSharedMagic.JoseJAAdminPort, port)
 			},
 		},
 		{
@@ -124,10 +125,10 @@ func TestApplication_TableDriven_HappyPath(t *testing.T) {
 
 				var wg sync.WaitGroup
 
-				errChan := make(chan error, 5)
+				errChan := make(chan error, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 
 				// Launch 5 concurrent shutdown calls.
-				for range 5 {
+				for range cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries {
 					wg.Add(1)
 
 					go func() {
@@ -161,8 +162,8 @@ func TestApplication_TableDriven_HappyPath(t *testing.T) {
 
 			// Create fresh application for each test.
 			ctx := context.Background()
-			publicServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockPublicServer(8080)
-			adminServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockAdminServer(9090)
+			publicServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockPublicServer(cryptoutilSharedMagic.DemoServerPort)
+			adminServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockAdminServer(cryptoutilSharedMagic.JoseJAAdminPort)
 
 			app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 			require.NoError(t, err)
@@ -189,8 +190,8 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 			setupFunc: func(t *testing.T) (*cryptoutilAppsTemplateServiceServer.Application, error) {
 				t.Helper()
 
-				publicServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockPublicServer(8080)
-				adminServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockAdminServer(9090)
+				publicServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockPublicServer(cryptoutilSharedMagic.DemoServerPort)
+				adminServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockAdminServer(cryptoutilSharedMagic.JoseJAAdminPort)
 
 				return cryptoutilAppsTemplateServiceServer.NewApplication(nil, publicServer, adminServer) //nolint:staticcheck // Testing nil context.
 			},
@@ -203,7 +204,7 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 				t.Helper()
 
 				ctx := context.Background()
-				adminServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockAdminServer(9090)
+				adminServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockAdminServer(cryptoutilSharedMagic.JoseJAAdminPort)
 
 				return cryptoutilAppsTemplateServiceServer.NewApplication(ctx, nil, adminServer)
 			},
@@ -216,7 +217,7 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 				t.Helper()
 
 				ctx := context.Background()
-				publicServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockPublicServer(8080)
+				publicServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockPublicServer(cryptoutilSharedMagic.DemoServerPort)
 
 				return cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, nil)
 			},
@@ -229,8 +230,8 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 				t.Helper()
 
 				ctx := context.Background()
-				publicServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockPublicServer(8080)
-				adminServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockAdminServer(9090)
+				publicServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockPublicServer(cryptoutilSharedMagic.DemoServerPort)
+				adminServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockAdminServer(cryptoutilSharedMagic.JoseJAAdminPort)
 
 				app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 				require.NoError(t, err)
@@ -248,9 +249,9 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 				t.Helper()
 
 				ctx := context.Background()
-				publicServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockPublicServer(8080)
+				publicServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockPublicServer(cryptoutilSharedMagic.DemoServerPort)
 				publicServer.StartErr = errors.New("public server start failed")
-				adminServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockAdminServer(9090)
+				adminServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockAdminServer(cryptoutilSharedMagic.JoseJAAdminPort)
 
 				app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 				require.NoError(t, err)
@@ -268,8 +269,8 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 				t.Helper()
 
 				ctx := context.Background()
-				publicServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockPublicServer(8080)
-				adminServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockAdminServer(9090)
+				publicServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockPublicServer(cryptoutilSharedMagic.DemoServerPort)
+				adminServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockAdminServer(cryptoutilSharedMagic.JoseJAAdminPort)
 				adminServer.StartErr = errors.New("admin server start failed")
 
 				app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
@@ -288,8 +289,8 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 				t.Helper()
 
 				ctx := context.Background()
-				publicServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockPublicServer(8080)
-				adminServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockAdminServer(9090)
+				publicServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockPublicServer(cryptoutilSharedMagic.DemoServerPort)
+				adminServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockAdminServer(cryptoutilSharedMagic.JoseJAAdminPort)
 
 				app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 				require.NoError(t, err)
@@ -310,9 +311,9 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 				t.Helper()
 
 				ctx := context.Background()
-				publicServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockPublicServer(8080)
+				publicServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockPublicServer(cryptoutilSharedMagic.DemoServerPort)
 				publicServer.ShutdownErr = errors.New("public shutdown failed")
-				adminServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockAdminServer(9090)
+				adminServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockAdminServer(cryptoutilSharedMagic.JoseJAAdminPort)
 
 				app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 				require.NoError(t, err)
@@ -330,8 +331,8 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 				t.Helper()
 
 				ctx := context.Background()
-				publicServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockPublicServer(8080)
-				adminServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockAdminServer(9090)
+				publicServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockPublicServer(cryptoutilSharedMagic.DemoServerPort)
+				adminServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockAdminServer(cryptoutilSharedMagic.JoseJAAdminPort)
 				adminServer.ShutdownErr = errors.New("admin shutdown failed")
 
 				app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
@@ -350,9 +351,9 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 				t.Helper()
 
 				ctx := context.Background()
-				publicServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockPublicServer(8080)
+				publicServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockPublicServer(cryptoutilSharedMagic.DemoServerPort)
 				publicServer.ShutdownErr = errors.New("public shutdown failed")
-				adminServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockAdminServer(9090)
+				adminServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockAdminServer(cryptoutilSharedMagic.JoseJAAdminPort)
 				adminServer.ShutdownErr = errors.New("admin shutdown failed")
 
 				app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
@@ -371,7 +372,7 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 				t.Helper()
 
 				ctx := context.Background()
-				publicServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockPublicServer(8080)
+				publicServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockPublicServer(cryptoutilSharedMagic.DemoServerPort)
 				adminServer := cryptoutilAppsTemplateServiceServerTestutil.NewMockAdminServer(0) // Port 0 returns 0.
 
 				app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)

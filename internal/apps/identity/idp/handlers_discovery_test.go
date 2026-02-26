@@ -33,14 +33,14 @@ func TestDiscoveryHandler_ReturnsValidOIDCMetadata(t *testing.T) {
 	}{
 		{
 			name:             "HTTPS request",
-			requestProtocol:  "https",
+			requestProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
 			requestHost:      "identity.example.com",
 			expectedIssuer:   "https://identity.example.com/oidc/v1/",
 			expectedEndpoint: "https://identity.example.com/authz/v1/authorize",
 		},
 		{
 			name:             "HTTP request (development)",
-			requestProtocol:  "http",
+			requestProtocol:  cryptoutilSharedMagic.ProtocolHTTP,
 			requestHost:      "localhost:8080",
 			expectedIssuer:   "http://localhost:8080/oidc/v1/",
 			expectedEndpoint: "http://localhost:8080/authz/v1/authorize",
@@ -54,11 +54,11 @@ func TestDiscoveryHandler_ReturnsValidOIDCMetadata(t *testing.T) {
 			// Create test service with minimal config.
 			config := &cryptoutilIdentityConfig.Config{
 				Database: &cryptoutilIdentityConfig.DatabaseConfig{
-					Type: "sqlite",
-					DSN:  ":memory:",
+					Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+					DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 				},
 				Tokens: &cryptoutilIdentityConfig.TokenConfig{
-					AccessTokenLifetime: 3600 * time.Second,
+					AccessTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout * time.Second,
 				},
 			}
 
@@ -77,7 +77,7 @@ func TestDiscoveryHandler_ReturnsValidOIDCMetadata(t *testing.T) {
 			testService.RegisterRoutes(app)
 
 			// Make request to discovery endpoint.
-			req := httptest.NewRequest("GET", "https://"+tc.requestHost+"/.well-known/openid-configuration", nil)
+			req := httptest.NewRequest("GET", "https://"+tc.requestHost+cryptoutilSharedMagic.PathDiscovery, nil)
 
 			// Set protocol via X-Forwarded-Proto header (standard proxy header).
 			req.Header.Set("X-Forwarded-Proto", tc.requestProtocol)
@@ -107,40 +107,40 @@ func TestDiscoveryHandler_ReturnsValidOIDCMetadata(t *testing.T) {
 			require.NotEmpty(t, metadata.JWKSUri)
 
 			// Verify supported scopes include OIDC standard scopes.
-			require.Contains(t, metadata.ScopesSupported, "openid")
-			require.Contains(t, metadata.ScopesSupported, "profile")
-			require.Contains(t, metadata.ScopesSupported, "email")
-			require.Contains(t, metadata.ScopesSupported, "offline_access")
+			require.Contains(t, metadata.ScopesSupported, cryptoutilSharedMagic.ScopeOpenID)
+			require.Contains(t, metadata.ScopesSupported, cryptoutilSharedMagic.ClaimProfile)
+			require.Contains(t, metadata.ScopesSupported, cryptoutilSharedMagic.ClaimEmail)
+			require.Contains(t, metadata.ScopesSupported, cryptoutilSharedMagic.ScopeOfflineAccess)
 
 			// Verify response types (OAuth 2.1 authorization code only).
-			require.Contains(t, metadata.ResponseTypesSupported, "code")
+			require.Contains(t, metadata.ResponseTypesSupported, cryptoutilSharedMagic.ResponseTypeCode)
 
 			// Verify grant types (OAuth 2.1).
-			require.Contains(t, metadata.GrantTypesSupported, "authorization_code")
-			require.Contains(t, metadata.GrantTypesSupported, "refresh_token")
-			require.Contains(t, metadata.GrantTypesSupported, "client_credentials")
+			require.Contains(t, metadata.GrantTypesSupported, cryptoutilSharedMagic.GrantTypeAuthorizationCode)
+			require.Contains(t, metadata.GrantTypesSupported, cryptoutilSharedMagic.GrantTypeRefreshToken)
+			require.Contains(t, metadata.GrantTypesSupported, cryptoutilSharedMagic.GrantTypeClientCredentials)
 
 			// Verify subject types (OIDC).
-			require.Contains(t, metadata.SubjectTypesSupported, "public")
+			require.Contains(t, metadata.SubjectTypesSupported, cryptoutilSharedMagic.SubjectTypePublic)
 
 			// Verify signing algorithms (FIPS 140-3 approved).
-			require.Contains(t, metadata.IDTokenSigningAlgValuesSupported, "RS256")
-			require.Contains(t, metadata.IDTokenSigningAlgValuesSupported, "ES256")
-			require.Contains(t, metadata.IDTokenSigningAlgValuesSupported, "EdDSA")
+			require.Contains(t, metadata.IDTokenSigningAlgValuesSupported, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm)
+			require.Contains(t, metadata.IDTokenSigningAlgValuesSupported, cryptoutilSharedMagic.JoseAlgES256)
+			require.Contains(t, metadata.IDTokenSigningAlgValuesSupported, cryptoutilSharedMagic.JoseAlgEdDSA)
 
 			// Verify token endpoint auth methods (OAuth 2.1).
-			require.Contains(t, metadata.TokenEndpointAuthMethodsSupported, "client_secret_basic")
-			require.Contains(t, metadata.TokenEndpointAuthMethodsSupported, "private_key_jwt")
-			require.Contains(t, metadata.TokenEndpointAuthMethodsSupported, "tls_client_auth")
+			require.Contains(t, metadata.TokenEndpointAuthMethodsSupported, cryptoutilSharedMagic.ClientAuthMethodSecretBasic)
+			require.Contains(t, metadata.TokenEndpointAuthMethodsSupported, cryptoutilSharedMagic.ClientAuthMethodPrivateKeyJWT)
+			require.Contains(t, metadata.TokenEndpointAuthMethodsSupported, cryptoutilSharedMagic.ClientAuthMethodTLSClientAuth)
 
 			// Verify PKCE support (OAuth 2.1 required).
 			require.Contains(t, metadata.CodeChallengeMethodsSupported, cryptoutilSharedMagic.PKCEMethodS256)
 
 			// Verify claims supported (OIDC standard claims).
-			require.Contains(t, metadata.ClaimsSupported, "sub")
-			require.Contains(t, metadata.ClaimsSupported, "email")
-			require.Contains(t, metadata.ClaimsSupported, "email_verified")
-			require.Contains(t, metadata.ClaimsSupported, "name")
+			require.Contains(t, metadata.ClaimsSupported, cryptoutilSharedMagic.ClaimSub)
+			require.Contains(t, metadata.ClaimsSupported, cryptoutilSharedMagic.ClaimEmail)
+			require.Contains(t, metadata.ClaimsSupported, cryptoutilSharedMagic.ClaimEmailVerified)
+			require.Contains(t, metadata.ClaimsSupported, cryptoutilSharedMagic.ClaimName)
 
 			// Verify revocation endpoint (OAuth 2.1).
 			require.NotEmpty(t, metadata.RevocationEndpoint)
@@ -156,11 +156,11 @@ func TestDiscoveryHandler_HTTPSByDefault(t *testing.T) {
 
 	config := &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
-			DSN:  ":memory:",
+			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+			DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			AccessTokenLifetime: 3600 * time.Second,
+			AccessTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout * time.Second,
 		},
 	}
 
@@ -180,7 +180,7 @@ func TestDiscoveryHandler_HTTPSByDefault(t *testing.T) {
 	req := httptest.NewRequest("GET", "https://identity.example.com/.well-known/openid-configuration", nil)
 
 	// Explicitly set X-Forwarded-Proto to test HTTPS default behavior.
-	req.Header.Set("X-Forwarded-Proto", "https")
+	req.Header.Set("X-Forwarded-Proto", cryptoutilSharedMagic.ProtocolHTTPS)
 
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
@@ -207,11 +207,11 @@ func TestDiscoveryHandler_AllRequiredOIDCFieldsPresent(t *testing.T) {
 
 	config := &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
-			DSN:  ":memory:",
+			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+			DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			AccessTokenLifetime: 3600 * time.Second,
+			AccessTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout * time.Second,
 		},
 	}
 

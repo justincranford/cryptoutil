@@ -5,6 +5,7 @@
 package process
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"os"
 	"path/filepath"
@@ -87,7 +88,7 @@ func TestManagerStartStop(t *testing.T) {
 			require.Greater(t, pid, 0)
 
 			// Stop the service
-			err = manager.Stop(tc.serviceName, tc.forceKill, 5*time.Second)
+			err = manager.Stop(tc.serviceName, tc.forceKill, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 			if tc.expectStopErr {
 				require.Error(t, err)
 			} else {
@@ -122,7 +123,7 @@ func TestManagerStopAll(t *testing.T) {
 	}
 
 	// Stop all services
-	err = manager.StopAll(false, 5*time.Second)
+	err = manager.StopAll(false, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	require.NoError(t, err)
 
 	// Verify all services stopped
@@ -150,7 +151,7 @@ func TestManagerDoubleStart(t *testing.T) {
 	require.Contains(t, err.Error(), "already running")
 
 	// Cleanup
-	err = manager.Stop("test-double", true, 5*time.Second)
+	err = manager.Stop("test-double", true, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	require.NoError(t, err)
 }
 
@@ -162,7 +163,7 @@ func TestManagerStopNonRunning(t *testing.T) {
 	require.NoError(t, err)
 
 	// Try to stop non-running service
-	err = manager.Stop("nonexistent", false, 5*time.Second)
+	err = manager.Stop("nonexistent", false, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "not running")
 }

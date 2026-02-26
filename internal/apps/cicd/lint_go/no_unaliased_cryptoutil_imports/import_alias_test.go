@@ -45,7 +45,7 @@ func main() {
 }
 `
 
-	err := os.WriteFile(cleanFile, []byte(content), 0o600)
+	err := os.WriteFile(cleanFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations, err := CheckGoFileForUnaliasedCryptoutilImports(cleanFile)
@@ -67,7 +67,7 @@ func TestCheckGoFileForUnaliasedCryptoutilImports_Unaliased(t *testing.T) {
 	content.WriteString("cryptoutil/internal/shared/magic")
 	content.WriteString("\"\n)\n\nfunc main() {\n\t_ = magic.TestValue\n}\n")
 
-	err := os.WriteFile(unaliasedFile, []byte(content.String()), 0o600)
+	err := os.WriteFile(unaliasedFile, []byte(content.String()), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations, err := CheckGoFileForUnaliasedCryptoutilImports(unaliasedFile)
@@ -90,7 +90,7 @@ func TestCheckGoFileForUnaliasedCryptoutilImports_SingleLineImport(t *testing.T)
 	content.WriteString("cryptoutil/internal/shared/magic")
 	content.WriteString("\"\n\nfunc main() {\n}\n")
 
-	err := os.WriteFile(singleLineFile, []byte(content.String()), 0o600)
+	err := os.WriteFile(singleLineFile, []byte(content.String()), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations, err := CheckGoFileForUnaliasedCryptoutilImports(singleLineFile)
@@ -115,7 +115,7 @@ func TestCheckGoFileForUnaliasedCryptoutilImports_ScannerError(t *testing.T) {
 	// Create a Go file with a line longer than bufio.MaxScanTokenSize (64KB) to trigger scanner.Err().
 	longLine := "// " + strings.Repeat("x", 70000) + "\n"
 	goFile := filepath.Join(tempDir, "long.go")
-	require.NoError(t, os.WriteFile(goFile, []byte("package main\n"+longLine), 0o600))
+	require.NoError(t, os.WriteFile(goFile, []byte("package main\n"+longLine), cryptoutilSharedMagic.CacheFilePermissions))
 
 	_, err := CheckGoFileForUnaliasedCryptoutilImports(goFile)
 	require.Error(t, err)
@@ -129,7 +129,7 @@ func TestFindUnaliasedCryptoutilImports_WalkCallbackError(t *testing.T) {
 
 	defer func() { require.NoError(t, os.Chdir(origDir)) }()
 
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
 		t.Skip("chmod 0o000 on directories does not work on Windows")
 	}
 
@@ -139,7 +139,7 @@ func TestFindUnaliasedCryptoutilImports_WalkCallbackError(t *testing.T) {
 	// Create a subdirectory and make it inaccessible so filepath.Walk passes an error to the callback.
 	lockedDir := filepath.Join(tmpDir, "locked")
 	require.NoError(t, os.MkdirAll(lockedDir, 0o700))
-	require.NoError(t, os.WriteFile(filepath.Join(lockedDir, "main.go"), []byte("package main\n"), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(lockedDir, "main.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.Chmod(lockedDir, 0o000))
 
 	defer func() { _ = os.Chmod(filepath.Join(tmpDir, "locked"), 0o700) }()
@@ -188,7 +188,7 @@ func TestFindUnaliasedCryptoutilImports_WithTempDir(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	// Create clean Go file with no cryptoutil imports.
-	require.NoError(t, os.WriteFile(testCleanGoFile, []byte(testCleanContent), 0o600))
+	require.NoError(t, os.WriteFile(testCleanGoFile, []byte(testCleanContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Test - should have no violations.
 	violations, err := FindUnaliasedCryptoutilImports()
@@ -212,7 +212,7 @@ func TestCheckNoUnaliasedCryptoutilImports_WithTempDir(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	// Create clean Go file with no cryptoutil imports.
-	require.NoError(t, os.WriteFile(testCleanGoFile, []byte(testCleanContent), 0o600))
+	require.NoError(t, os.WriteFile(testCleanGoFile, []byte(testCleanContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
@@ -243,7 +243,7 @@ func TestCheckNoUnaliasedCryptoutilImports_WithViolations(t *testing.T) {
 
 	// Create Go file with unaliased cryptoutil import.
 	badContent := "package main\n\nimport \"" + importPath.String() + "\"\n\nfunc main() {}\n"
-	require.NoError(t, os.WriteFile("bad.go", []byte(badContent), 0o600))
+	require.NoError(t, os.WriteFile("bad.go", []byte(badContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
@@ -273,14 +273,14 @@ func TestFindUnaliasedCryptoutilImports_ErrorPath(t *testing.T) {
 
 	// Create a file (not a directory) that will be treated as a directory during walk.
 	// This will cause an error in filepath.Walk.
-	require.NoError(t, os.WriteFile("main.go", []byte("package main\n"), 0o600))
+	require.NoError(t, os.WriteFile("main.go", []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Make main.go unreadable to trigger error.
 	require.NoError(t, os.Chmod("main.go", 0o000))
 
 	defer func() {
 		// Restore permissions for cleanup.
-		_ = os.Chmod(filepath.Join(tempDir, "main.go"), 0o600)
+		_ = os.Chmod(filepath.Join(tempDir, "main.go"), cryptoutilSharedMagic.CacheFilePermissions)
 	}()
 
 	// Test - should get error from reading file.
@@ -299,11 +299,11 @@ func TestFindUnaliasedCryptoutilImports_VendorDirSkipped(t *testing.T) {
 	require.NoError(t, os.Chdir(tmpDir))
 
 	// Create a vendor directory with a Go file that has unaliased cryptoutil imports.
-	vendorDir := filepath.Join(tmpDir, "vendor")
-	require.NoError(t, os.MkdirAll(vendorDir, 0o755))
+	vendorDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDExcludeDirVendor)
+	require.NoError(t, os.MkdirAll(vendorDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	vendorFile := filepath.Join(vendorDir, "pkg.go")
-	require.NoError(t, os.WriteFile(vendorFile, []byte("package vendor\nimport \"cryptoutil/internal/apps/foo\"\n"), 0o600))
+	require.NoError(t, os.WriteFile(vendorFile, []byte("package vendor\nimport \"cryptoutil/internal/apps/foo\"\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// FindUnaliasedCryptoutilImports should skip vendor directory.
 	violations, findErr := FindUnaliasedCryptoutilImports()
@@ -326,10 +326,10 @@ func TestCheck_WalkError(t *testing.T) {
 	require.NoError(t, os.Chdir(tmpDir))
 
 	// Create an unreadable file to cause a walk error.
-	require.NoError(t, os.WriteFile("bad.go", []byte("package main\n"), 0o600))
+	require.NoError(t, os.WriteFile("bad.go", []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.Chmod("bad.go", 0o000))
 
-	defer func() { _ = os.Chmod(filepath.Join(tmpDir, "bad.go"), 0o600) }()
+	defer func() { _ = os.Chmod(filepath.Join(tmpDir, "bad.go"), cryptoutilSharedMagic.CacheFilePermissions) }()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 

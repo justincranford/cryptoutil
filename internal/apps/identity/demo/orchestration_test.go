@@ -5,6 +5,7 @@
 package demo
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	"os"
@@ -47,7 +48,7 @@ func TestDockerComposeProfiles(t *testing.T) {
 
 			// Cleanup on test completion
 			defer func() {
-				cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 30*time.Second)
+				cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second)
 				defer cleanupCancel()
 
 				downCmd := exec.CommandContext(cleanupCtx, "docker", "compose", "-f", composeFile, "--profile", profile, "down", "-v")
@@ -57,10 +58,10 @@ func TestDockerComposeProfiles(t *testing.T) {
 			}()
 
 			// Wait for services to become healthy
-			healthyCtx, healthyCancel := context.WithTimeout(context.Background(), 90*time.Second)
+			healthyCtx, healthyCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.StrictCertificateMaxAgeDays*time.Second)
 			defer healthyCancel()
 
-			ticker := time.NewTicker(5 * time.Second)
+			ticker := time.NewTicker(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second)
 			defer ticker.Stop()
 
 			for {
@@ -99,22 +100,22 @@ func TestDockerComposeScaling(t *testing.T) {
 		{
 			name: "2x2x2x2",
 			scaling: map[string]int{
-				"identity-authz":  cryptoutilMagic.IdentityScaling2x,
-				"identity-idp":    cryptoutilMagic.IdentityScaling2x,
-				"identity-rs":     cryptoutilMagic.IdentityScaling2x,
+				cryptoutilSharedMagic.OTLPServiceIdentityAuthz:  cryptoutilMagic.IdentityScaling2x,
+				cryptoutilSharedMagic.OTLPServiceIdentityIDP:    cryptoutilMagic.IdentityScaling2x,
+				cryptoutilSharedMagic.OTLPServiceIdentityRS:     cryptoutilMagic.IdentityScaling2x,
 				"identity-spa-rp": cryptoutilMagic.IdentityScaling2x,
 			},
-			expected: 8, // 2x4 services
+			expected: cryptoutilSharedMagic.IMMinPasswordLength, // 2x4 services
 		},
 		{
 			name: "3x3x3x3",
 			scaling: map[string]int{
-				"identity-authz":  cryptoutilMagic.IdentityScaling3x,
-				"identity-idp":    cryptoutilMagic.IdentityScaling3x,
-				"identity-rs":     cryptoutilMagic.IdentityScaling3x,
+				cryptoutilSharedMagic.OTLPServiceIdentityAuthz:  cryptoutilMagic.IdentityScaling3x,
+				cryptoutilSharedMagic.OTLPServiceIdentityIDP:    cryptoutilMagic.IdentityScaling3x,
+				cryptoutilSharedMagic.OTLPServiceIdentityRS:     cryptoutilMagic.IdentityScaling3x,
 				"identity-spa-rp": cryptoutilMagic.IdentityScaling3x,
 			},
-			expected: 12, // 3x4 services
+			expected: cryptoutilSharedMagic.HashPrefixLength, // 3x4 services
 		},
 	}
 
@@ -143,7 +144,7 @@ func TestDockerComposeScaling(t *testing.T) {
 
 			// Cleanup
 			defer func() {
-				cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 30*time.Second)
+				cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second)
 				defer cleanupCancel()
 
 				downCmd := exec.CommandContext(cleanupCtx, "docker", "compose", "-f", composeFile, "--profile", profile, "down", "-v")
@@ -153,7 +154,7 @@ func TestDockerComposeScaling(t *testing.T) {
 			}()
 
 			// Wait for services to become healthy
-			time.Sleep(30 * time.Second) // Give services time to start
+			time.Sleep(cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second) // Give services time to start
 
 			// Count running containers
 			psCmd := exec.CommandContext(ctx, "docker", "compose", "-f", composeFile, "--profile", profile, "ps", "-q")
@@ -190,7 +191,7 @@ func TestDockerSecretsIntegration(t *testing.T) {
 
 	// Cleanup
 	defer func() {
-		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 30*time.Second)
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second)
 		defer cleanupCancel()
 
 		downCmd := exec.CommandContext(cleanupCtx, "docker", "compose", "-f", composeFile, "--profile", profile, "down", "-v")
@@ -203,7 +204,7 @@ func TestDockerSecretsIntegration(t *testing.T) {
 	time.Sleep(15 * time.Second)
 
 	// Verify secrets are mounted in authz container
-	secretsCmd := exec.CommandContext(ctx, "docker", "compose", "-f", composeFile, "--profile", profile, "exec", "-T", "identity-authz", "ls", "-la", "/run/secrets/")
+	secretsCmd := exec.CommandContext(ctx, "docker", "compose", "-f", composeFile, "--profile", profile, "exec", "-T", cryptoutilSharedMagic.OTLPServiceIdentityAuthz, "ls", "-la", "/run/secrets/")
 	output, err := secretsCmd.Output()
 	require.NoError(t, err, "Failed to list secrets in authz container")
 
@@ -234,7 +235,7 @@ func TestHealthChecks(t *testing.T) {
 
 	// Cleanup
 	defer func() {
-		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 30*time.Second)
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second)
 		defer cleanupCancel()
 
 		downCmd := exec.CommandContext(cleanupCtx, "docker", "compose", "-f", composeFile, "--profile", profile, "down", "-v")
@@ -244,10 +245,10 @@ func TestHealthChecks(t *testing.T) {
 	}()
 
 	// Wait for health checks to pass
-	healthyCtx, healthyCancel := context.WithTimeout(context.Background(), 90*time.Second)
+	healthyCtx, healthyCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.StrictCertificateMaxAgeDays*time.Second)
 	defer healthyCancel()
 
-	ticker := time.NewTicker(5 * time.Second)
+	ticker := time.NewTicker(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second)
 	defer ticker.Stop()
 
 	for {

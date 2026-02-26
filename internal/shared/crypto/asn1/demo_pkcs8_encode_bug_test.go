@@ -5,6 +5,7 @@
 package asn1
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/ecdh"
 	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
@@ -82,7 +83,7 @@ func pkcs8EncodeDecode(t *testing.T, key any) (any, error) {
 		return nil, fmt.Errorf("encode failed: %w", err)
 	}
 
-	pemBytes := pem.EncodeToMemory(&pem.Block{Bytes: encodedBytes, Type: "PRIVATE KEY"})
+	pemBytes := pem.EncodeToMemory(&pem.Block{Bytes: encodedBytes, Type: cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey})
 	t.Logf("PKCS#8 PEM of private Key :\n%s", string(pemBytes))
 
 	decodedKey, err := x509.ParsePKCS8PrivateKey(encodedBytes)

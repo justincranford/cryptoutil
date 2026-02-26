@@ -27,7 +27,7 @@ func createTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
 	// Use modernc.org/sqlite driver (CGO-free).
-	sqlDB, err := sql.Open("sqlite", "file::memory:?cache=private")
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, "file::memory:?cache=private")
 	require.NoError(t, err)
 
 	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
@@ -50,7 +50,7 @@ func TestRecoveryCodeService_GenerateForUser(t *testing.T) {
 	service := cryptoutilIdentityMfa.NewRecoveryCodeService(repo)
 
 	userID := googleUuid.New()
-	count := 10
+	count := cryptoutilSharedMagic.JoseJADefaultMaxMaterials
 
 	codes, err := service.GenerateForUser(context.Background(), userID, count)
 	require.NoError(t, err)
@@ -87,9 +87,9 @@ func TestRecoveryCodeService_Verify_Success(t *testing.T) {
 	userID := googleUuid.New()
 
 	// Generate codes.
-	codes, err := service.GenerateForUser(context.Background(), userID, 5)
+	codes, err := service.GenerateForUser(context.Background(), userID, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	require.NoError(t, err)
-	require.Len(t, codes, 5)
+	require.Len(t, codes, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 
 	// Verify first code.
 	err = service.Verify(context.Background(), userID, codes[0])
@@ -122,7 +122,7 @@ func TestRecoveryCodeService_Verify_InvalidCode(t *testing.T) {
 	userID := googleUuid.New()
 
 	// Generate codes.
-	_, err := service.GenerateForUser(context.Background(), userID, 5)
+	_, err := service.GenerateForUser(context.Background(), userID, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	require.NoError(t, err)
 
 	// Try to verify invalid code.
@@ -140,7 +140,7 @@ func TestRecoveryCodeService_Verify_AlreadyUsed(t *testing.T) {
 	userID := googleUuid.New()
 
 	// Generate codes.
-	codes, err := service.GenerateForUser(context.Background(), userID, 5)
+	codes, err := service.GenerateForUser(context.Background(), userID, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	require.NoError(t, err)
 
 	// Use first code.
@@ -194,14 +194,14 @@ func TestRecoveryCodeService_RegenerateForUser(t *testing.T) {
 	userID := googleUuid.New()
 
 	// Generate initial codes.
-	oldCodes, err := service.GenerateForUser(context.Background(), userID, 5)
+	oldCodes, err := service.GenerateForUser(context.Background(), userID, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	require.NoError(t, err)
-	require.Len(t, oldCodes, 5)
+	require.Len(t, oldCodes, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 
 	// Regenerate codes.
-	newCodes, err := service.RegenerateForUser(context.Background(), userID, 8)
+	newCodes, err := service.RegenerateForUser(context.Background(), userID, cryptoutilSharedMagic.IMMinPasswordLength)
 	require.NoError(t, err)
-	require.Len(t, newCodes, 8)
+	require.Len(t, newCodes, cryptoutilSharedMagic.IMMinPasswordLength)
 
 	// Verify old codes are deleted.
 	for _, oldCode := range oldCodes {
@@ -224,13 +224,13 @@ func TestRecoveryCodeService_GetRemainingCount(t *testing.T) {
 	userID := googleUuid.New()
 
 	// Generate codes.
-	codes, err := service.GenerateForUser(context.Background(), userID, 10)
+	codes, err := service.GenerateForUser(context.Background(), userID, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	// Check initial count.
 	count, err := service.GetRemainingCount(context.Background(), userID)
 	require.NoError(t, err)
-	require.Equal(t, int64(10), count, "should have 10 unused codes")
+	require.Equal(t, int64(cryptoutilSharedMagic.JoseJADefaultMaxMaterials), count, "should have 10 unused codes")
 
 	// Use 3 codes.
 	for i := range 3 {
@@ -241,5 +241,5 @@ func TestRecoveryCodeService_GetRemainingCount(t *testing.T) {
 	// Check remaining count.
 	count, err = service.GetRemainingCount(context.Background(), userID)
 	require.NoError(t, err)
-	require.Equal(t, int64(7), count, "should have 7 unused codes remaining")
+	require.Equal(t, int64(cryptoutilSharedMagic.GitRecentActivityDays), count, "should have 7 unused codes remaining")
 }

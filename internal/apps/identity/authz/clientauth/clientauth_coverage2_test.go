@@ -3,6 +3,7 @@
 package clientauth
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"errors"
 	"testing"
@@ -85,7 +86,7 @@ tok := joseJwt.New()
 require.NoError(t, tok.Set(joseJwt.IssuerKey, client.ClientID))
 require.NoError(t, tok.Set(joseJwt.SubjectKey, client.ClientID))
 require.NoError(t, tok.Set(joseJwt.AudienceKey, []string{"https://auth.example.com/token"}))
-require.NoError(t, tok.Set(joseJwt.ExpirationKey, time.Now().UTC().Add(-10*time.Minute)))
+require.NoError(t, tok.Set(joseJwt.ExpirationKey, time.Now().UTC().Add(-cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Minute)))
 
 err := validator.validateClaims(context.Background(), tok, client)
 require.Error(t, err)
@@ -104,7 +105,7 @@ tok := joseJwt.New()
 require.NoError(t, tok.Set(joseJwt.IssuerKey, client.ClientID))
 require.NoError(t, tok.Set(joseJwt.SubjectKey, client.ClientID))
 require.NoError(t, tok.Set(joseJwt.AudienceKey, []string{"https://auth.example.com/token"}))
-require.NoError(t, tok.Set(joseJwt.ExpirationKey, time.Now().UTC().Add(5*time.Minute)))
+require.NoError(t, tok.Set(joseJwt.ExpirationKey, time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)))
 // Intentionally no iat
 
 err := validator.validateClaims(context.Background(), tok, client)
@@ -125,8 +126,8 @@ tok := joseJwt.New()
 require.NoError(t, tok.Set(joseJwt.IssuerKey, client.ClientID))
 require.NoError(t, tok.Set(joseJwt.SubjectKey, client.ClientID))
 require.NoError(t, tok.Set(joseJwt.AudienceKey, []string{"https://auth.example.com/token"}))
-require.NoError(t, tok.Set(joseJwt.ExpirationKey, now.Add(10*time.Minute)))
-require.NoError(t, tok.Set(joseJwt.IssuedAtKey, now.Add(5*time.Minute)))
+require.NoError(t, tok.Set(joseJwt.ExpirationKey, now.Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Minute)))
+require.NoError(t, tok.Set(joseJwt.IssuedAtKey, now.Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)))
 
 err := validator.validateClaims(context.Background(), tok, client)
 require.Error(t, err)

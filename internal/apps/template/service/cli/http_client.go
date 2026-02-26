@@ -4,6 +4,7 @@
 package cli
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"crypto/tls"
 	"crypto/x509"
@@ -37,7 +38,7 @@ func LoadCACertPool(cacertPath string) (*x509.CertPool, error) {
 			break
 		}
 
-		if block.Type == "CERTIFICATE" {
+		if block.Type == cryptoutilSharedMagic.StringPEMTypeCertificate {
 			cert, err := x509.ParseCertificate(block.Bytes)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse CA certificate: %w", err)

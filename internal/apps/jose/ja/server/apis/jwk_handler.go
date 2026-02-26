@@ -91,7 +91,7 @@ func (h *JWKHandler) HandleCreateElasticJWK() fiber.Handler {
 		var req CreateElasticJWKRequest
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Invalid request body",
+				cryptoutilSharedMagic.StringError: "Invalid request body",
 			})
 		}
 
@@ -100,28 +100,28 @@ func (h *JWKHandler) HandleCreateElasticJWK() fiber.Handler {
 
 		if tenantID == nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "Missing tenant context",
+				cryptoutilSharedMagic.StringError: "Missing tenant context",
 			})
 		}
 
 		tenantUUID, ok := tenantID.(googleUuid.UUID)
 		if !ok {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Invalid tenant ID format",
+				cryptoutilSharedMagic.StringError: "Invalid tenant ID format",
 			})
 		}
 
 		// Set default max materials.
 		maxMaterials := req.MaxMaterials
 		if maxMaterials <= 0 {
-			maxMaterials = 10
+			maxMaterials = cryptoutilSharedMagic.JoseJADefaultMaxMaterials
 		}
 
 		// Map algorithm to key type.
 		keyType := mapAlgorithmToKeyType(req.Algorithm)
 		if keyType == "" {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Invalid algorithm",
+				cryptoutilSharedMagic.StringError: "Invalid algorithm",
 			})
 		}
 
@@ -144,7 +144,7 @@ func (h *JWKHandler) HandleCreateElasticJWK() fiber.Handler {
 		ctx := c.Context()
 		if err := h.elasticJWKRepo.Create(ctx, elasticJWK); err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to create elastic JWK",
+				cryptoutilSharedMagic.StringError: "Failed to create elastic JWK",
 			})
 		}
 
@@ -167,7 +167,7 @@ func (h *JWKHandler) HandleGetElasticJWK() fiber.Handler {
 		kid := c.Params("kid")
 		if kid == "" {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Missing key ID",
+				cryptoutilSharedMagic.StringError: "Missing key ID",
 			})
 		}
 
@@ -176,14 +176,14 @@ func (h *JWKHandler) HandleGetElasticJWK() fiber.Handler {
 
 		if tenantID == nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "Missing tenant context",
+				cryptoutilSharedMagic.StringError: "Missing tenant context",
 			})
 		}
 
 		tenantUUID, ok := tenantID.(googleUuid.UUID)
 		if !ok {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Invalid tenant ID format",
+				cryptoutilSharedMagic.StringError: "Invalid tenant ID format",
 			})
 		}
 
@@ -192,7 +192,7 @@ func (h *JWKHandler) HandleGetElasticJWK() fiber.Handler {
 		elasticJWK, err := h.elasticJWKRepo.Get(ctx, tenantUUID, kid)
 		if err != nil {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"error": "Elastic JWK not found",
+				cryptoutilSharedMagic.StringError: "Elastic JWK not found",
 			})
 		}
 
@@ -217,14 +217,14 @@ func (h *JWKHandler) HandleListElasticJWKs() fiber.Handler {
 
 		if tenantID == nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "Missing tenant context",
+				cryptoutilSharedMagic.StringError: "Missing tenant context",
 			})
 		}
 
 		tenantUUID, ok := tenantID.(googleUuid.UUID)
 		if !ok {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Invalid tenant ID format",
+				cryptoutilSharedMagic.StringError: "Invalid tenant ID format",
 			})
 		}
 
@@ -237,7 +237,7 @@ func (h *JWKHandler) HandleListElasticJWKs() fiber.Handler {
 		elasticJWKs, total, err := h.elasticJWKRepo.List(ctx, tenantUUID, offset, limit)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to list elastic JWKs",
+				cryptoutilSharedMagic.StringError: "Failed to list elastic JWKs",
 			})
 		}
 
@@ -268,7 +268,7 @@ func (h *JWKHandler) HandleDeleteElasticJWK() fiber.Handler {
 		kid := c.Params("kid")
 		if kid == "" {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Missing key ID",
+				cryptoutilSharedMagic.StringError: "Missing key ID",
 			})
 		}
 
@@ -277,14 +277,14 @@ func (h *JWKHandler) HandleDeleteElasticJWK() fiber.Handler {
 
 		if tenantID == nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "Missing tenant context",
+				cryptoutilSharedMagic.StringError: "Missing tenant context",
 			})
 		}
 
 		tenantUUID, ok := tenantID.(googleUuid.UUID)
 		if !ok {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Invalid tenant ID format",
+				cryptoutilSharedMagic.StringError: "Invalid tenant ID format",
 			})
 		}
 
@@ -294,14 +294,14 @@ func (h *JWKHandler) HandleDeleteElasticJWK() fiber.Handler {
 		elasticJWK, err := h.elasticJWKRepo.Get(ctx, tenantUUID, kid)
 		if err != nil {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"error": "Elastic JWK not found",
+				cryptoutilSharedMagic.StringError: "Elastic JWK not found",
 			})
 		}
 
 		// Delete using the ID.
 		if err := h.elasticJWKRepo.Delete(ctx, elasticJWK.ID); err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to delete elastic JWK",
+				cryptoutilSharedMagic.StringError: "Failed to delete elastic JWK",
 			})
 		}
 
@@ -315,7 +315,7 @@ func (h *JWKHandler) HandleCreateMaterialJWK() fiber.Handler {
 		kid := c.Params("kid")
 		if kid == "" {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Missing elastic key ID",
+				cryptoutilSharedMagic.StringError: "Missing elastic key ID",
 			})
 		}
 
@@ -324,14 +324,14 @@ func (h *JWKHandler) HandleCreateMaterialJWK() fiber.Handler {
 
 		if tenantID == nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "Missing tenant context",
+				cryptoutilSharedMagic.StringError: "Missing tenant context",
 			})
 		}
 
 		tenantUUID, ok := tenantID.(googleUuid.UUID)
 		if !ok {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Invalid tenant ID format",
+				cryptoutilSharedMagic.StringError: "Invalid tenant ID format",
 			})
 		}
 
@@ -341,14 +341,14 @@ func (h *JWKHandler) HandleCreateMaterialJWK() fiber.Handler {
 		elasticJWK, err := h.elasticJWKRepo.Get(ctx, tenantUUID, kid)
 		if err != nil {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"error": "Elastic JWK not found",
+				cryptoutilSharedMagic.StringError: "Elastic JWK not found",
 			})
 		}
 
 		// Check material limit.
 		if elasticJWK.CurrentMaterialCount >= elasticJWK.MaxMaterials {
 			return c.Status(fiber.StatusConflict).JSON(fiber.Map{
-				"error": "Maximum material keys reached",
+				cryptoutilSharedMagic.StringError: "Maximum material keys reached",
 			})
 		}
 
@@ -370,14 +370,14 @@ func (h *JWKHandler) HandleCreateMaterialJWK() fiber.Handler {
 
 		if err := h.materialJWKRepo.Create(ctx, material); err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to create material JWK",
+				cryptoutilSharedMagic.StringError: "Failed to create material JWK",
 			})
 		}
 
 		// Increment material count.
 		if err := h.elasticJWKRepo.IncrementMaterialCount(ctx, elasticJWK.ID); err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to update material count",
+				cryptoutilSharedMagic.StringError: "Failed to update material count",
 			})
 		}
 

@@ -3,6 +3,7 @@
 package copyloopvar
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -64,7 +65,7 @@ func main() {
 	}
 }
 `
-	err := os.WriteFile(testFile, []byte(content), 0o600)
+	err := os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -93,7 +94,7 @@ func TestFixCopyLoopVarInFile_WithLoopVarCopy(t *testing.T) {
 	testFile := filepath.Join(tmpDir, "test.go")
 
 	// File with loop var copy pattern.
-	err := os.WriteFile(testFile, []byte(testGoContentWithLoopVarCopy), 0o600)
+	err := os.WriteFile(testFile, []byte(testGoContentWithLoopVarCopy), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -116,7 +117,7 @@ func TestFixCopyLoopVarInFile_ParseError(t *testing.T) {
 	testFile := filepath.Join(tmpDir, "invalid.go")
 
 	// Invalid Go syntax.
-	err := os.WriteFile(testFile, []byte(testGoContentInvalid), 0o600)
+	err := os.WriteFile(testFile, []byte(testGoContentInvalid), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -143,7 +144,7 @@ func main() {
 	}
 }
 `
-	err := os.WriteFile(testFile, []byte(content), 0o600)
+	err := os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -175,7 +176,7 @@ func TestFixCopyLoopVar_SupportedVersion(t *testing.T) {
 
 	// Create a Go file with loop var copy.
 	testFile := filepath.Join(tmpDir, "test.go")
-	err := os.WriteFile(testFile, []byte(testGoContentWithLoopVarCopy), 0o600)
+	err := os.WriteFile(testFile, []byte(testGoContentWithLoopVarCopy), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -269,7 +270,7 @@ func TestFixCopyLoopVarInFile_KeyCopy(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test.go")
 
-	err := os.WriteFile(testFile, []byte(testGoContentKeyCopy), 0o600)
+	err := os.WriteFile(testFile, []byte(testGoContentKeyCopy), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -287,7 +288,7 @@ func TestFixCopyLoopVarInFile_LhsNotRhs(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test.go")
 
-	err := os.WriteFile(testFile, []byte(testGoContentLhsNotRhs), 0o600)
+	err := os.WriteFile(testFile, []byte(testGoContentLhsNotRhs), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -306,7 +307,7 @@ func TestFixCopyLoopVarInFile_OuterVarShadow(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test.go")
 
-	err := os.WriteFile(testFile, []byte(testGoContentOuterVarShadow), 0o600)
+	err := os.WriteFile(testFile, []byte(testGoContentOuterVarShadow), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -349,7 +350,7 @@ func TestFixCopyLoopVarInFile_SelfAssignment(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test.go")
 
-	err := os.WriteFile(testFile, []byte(testGoContentSelfAssign), 0o600)
+	err := os.WriteFile(testFile, []byte(testGoContentSelfAssign), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -368,7 +369,7 @@ func TestFixCopyLoopVarInFile_RhsIsNotIdent(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test.go")
 
-	err := os.WriteFile(testFile, []byte(testGoContentRhsIsIndex), 0o600)
+	err := os.WriteFile(testFile, []byte(testGoContentRhsIsIndex), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -388,7 +389,7 @@ func TestFixCopyLoopVarInFile_ReadOnlyFile(t *testing.T) {
 	testFile := filepath.Join(tmpDir, "test.go")
 
 	// Create file with loop var copy content.
-	err := os.WriteFile(testFile, []byte(testGoContentWithLoopVarCopy), 0o600)
+	err := os.WriteFile(testFile, []byte(testGoContentWithLoopVarCopy), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Make file read-only so os.Create will fail during write.
@@ -399,7 +400,7 @@ func TestFixCopyLoopVarInFile_ReadOnlyFile(t *testing.T) {
 	changed, fixes, err := FixInFile(logger, testFile)
 
 	// Restore permissions for cleanup.
-	_ = os.Chmod(testFile, 0o600)
+	_ = os.Chmod(testFile, cryptoutilSharedMagic.CacheFilePermissions)
 
 	require.Error(t, err, "fixCopyLoopVarInFile should fail when file is read-only")
 	require.False(t, changed, "Should return false when error occurs")
@@ -428,7 +429,7 @@ func TestFix_WithSyntaxErrorFile(t *testing.T) {
 	tmpDir := t.TempDir()
 	// Create a .go file with syntax errors - FixInFile will fail to parse it.
 	goFile := filepath.Join(tmpDir, "bad_syntax.go")
-	require.NoError(t, os.WriteFile(goFile, []byte(testGoContentInvalid), 0o600))
+	require.NoError(t, os.WriteFile(goFile, []byte(testGoContentInvalid), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	_, _, _, err := Fix(logger, tmpDir, "1.22")

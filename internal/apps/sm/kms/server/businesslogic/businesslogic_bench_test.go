@@ -5,6 +5,7 @@
 package businesslogic_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/ecdh"
 	"crypto/elliptic"
 	crand "crypto/rand"
@@ -218,7 +219,7 @@ func BenchmarkPayloadSizes(b *testing.B) {
 		b.ReportAllocs()
 
 		for i := 0; i < b.N; i++ {
-			_, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(128)
+			_, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits)
 			if err != nil {
 				b.Fatalf("AES128 generation failed: %v", err)
 			}
@@ -230,7 +231,7 @@ func BenchmarkPayloadSizes(b *testing.B) {
 		b.ReportAllocs()
 
 		for i := 0; i < b.N; i++ {
-			_, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(192)
+			_, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(cryptoutilSharedMagic.SymmetricKeySize192)
 			if err != nil {
 				b.Fatalf("AES192 generation failed: %v", err)
 			}
@@ -242,7 +243,7 @@ func BenchmarkPayloadSizes(b *testing.B) {
 		b.ReportAllocs()
 
 		for i := 0; i < b.N; i++ {
-			_, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(256)
+			_, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 			if err != nil {
 				b.Fatalf("AES256 generation failed: %v", err)
 			}

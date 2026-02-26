@@ -3,6 +3,7 @@
 package telemetry
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -151,12 +152,12 @@ func TestShutdown_WithTracesMetricsLogs(t *testing.T) {
 	meter := service.MetricsProvider.Meter("test-meter")
 	counter, err := meter.Float64Counter("test-counter")
 	require.NoError(t, err)
-	counter.Add(ctx, 1.0)
+	counter.Add(ctx, cryptoutilSharedMagic.TestProbAlways)
 
 	service.Slogger.Info("test log message")
 
 	// Allow time for async operations
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond)
 
 	// Shutdown should flush and shutdown all providers
 	service.Shutdown()
@@ -200,7 +201,7 @@ func TestShutdown_AfterUptime(t *testing.T) {
 	require.NotNil(t, service)
 
 	// Wait a bit to accumulate uptime
-	time.Sleep(50 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond)
 
 	// Verify uptime is non-zero
 	uptime := time.Since(service.StartTime)
@@ -292,7 +293,7 @@ func TestTelemetryService_DifferentLogLevels(t *testing.T) {
 		logLevel string
 	}{
 		{"DEBUG", "DEBUG"},
-		{"INFO", "INFO"},
+		{cryptoutilSharedMagic.DefaultLogLevelInfo, cryptoutilSharedMagic.DefaultLogLevelInfo},
 		{"WARN", "WARN"},
 		{"ERROR", "ERROR"},
 	}
@@ -343,7 +344,7 @@ func TestParseLogLevel_ValidLevels(t *testing.T) {
 		input string
 	}{
 		{"DEBUG", "DEBUG"},
-		{"INFO", "INFO"},
+		{cryptoutilSharedMagic.DefaultLogLevelInfo, cryptoutilSharedMagic.DefaultLogLevelInfo},
 		{"WARN", "WARN"},
 		{"ERROR", "ERROR"},
 		{"lowercase", "info"},
@@ -384,7 +385,7 @@ func TestTelemetryService_Concurrent(t *testing.T) {
 	// Launch concurrent goroutines using the service
 	done := make(chan bool)
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < cryptoutilSharedMagic.JoseJADefaultMaxMaterials; i++ {
 		go func(id int) {
 			// Log
 			service.Slogger.Info("concurrent log", "goroutine", id)
@@ -407,7 +408,7 @@ func TestTelemetryService_Concurrent(t *testing.T) {
 	}
 
 	// Wait for all goroutines
-	for i := 0; i < 10; i++ {
+	for i := 0; i < cryptoutilSharedMagic.JoseJADefaultMaxMaterials; i++ {
 		<-done
 	}
 
@@ -426,7 +427,7 @@ func TestTelemetryService_ShutdownIdempotent(t *testing.T) {
 	require.NotNil(t, service)
 
 	// Multiple shutdowns should be safe
-	for i := 0; i < 5; i++ {
+	for i := 0; i < cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries; i++ {
 		service.Shutdown()
 	}
 }

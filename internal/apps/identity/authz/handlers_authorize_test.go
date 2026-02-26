@@ -33,7 +33,7 @@ func TestHandleAuthorizeGET_MissingClientID(t *testing.T) {
 
 	query := url.Values{
 		cryptoutilSharedMagic.ParamResponseType: []string{cryptoutilSharedMagic.ResponseTypeCode},
-		cryptoutilSharedMagic.ParamRedirectURI:  []string{"https://example.com/callback"},
+		cryptoutilSharedMagic.ParamRedirectURI:  []string{cryptoutilSharedMagic.DemoRedirectURI},
 		cryptoutilSharedMagic.ParamScope:        []string{"openid profile"},
 		cryptoutilSharedMagic.ParamState:        []string{"test-state"},
 	}
@@ -64,7 +64,7 @@ func TestHandleAuthorizeGET_MissingResponseType(t *testing.T) {
 
 	query := url.Values{
 		cryptoutilSharedMagic.ParamClientID:    []string{"test-client"},
-		cryptoutilSharedMagic.ParamRedirectURI: []string{"https://example.com/callback"},
+		cryptoutilSharedMagic.ParamRedirectURI: []string{cryptoutilSharedMagic.DemoRedirectURI},
 		cryptoutilSharedMagic.ParamScope:       []string{"openid profile"},
 		cryptoutilSharedMagic.ParamState:       []string{"test-state"},
 	}
@@ -146,7 +146,7 @@ func createAuthorizeTestConfig(t *testing.T) *cryptoutilIdentityConfig.Config {
 
 	return &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
+			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
 			DSN:  "file::memory:?cache=private",
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{

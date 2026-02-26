@@ -5,6 +5,7 @@
 package crypto
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/elliptic"
 	"testing"
 
@@ -22,7 +23,7 @@ func TestCreateJWKFromKey_HMAC_HS512(t *testing.T) {
 
 	kid := googleUuid.Must(googleUuid.NewV7())
 	alg := cryptoutilOpenapiModel.Oct512
-	key, err := cryptoutilSharedCryptoKeygen.GenerateHMACKey(512)
+	key, err := cryptoutilSharedCryptoKeygen.GenerateHMACKey(cryptoutilSharedMagic.DefaultTracesBatchSize)
 	require.NoError(t, err)
 
 	retKid, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWKFromKey(&kid, &alg, key)
@@ -45,7 +46,7 @@ func TestCreateJWKFromKey_AES_A128GCM(t *testing.T) {
 
 	kid := googleUuid.Must(googleUuid.NewV7())
 	alg := cryptoutilOpenapiModel.Oct128
-	key, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(128)
+	key, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits)
 	require.NoError(t, err)
 
 	retKid, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWKFromKey(&kid, &alg, key)
@@ -67,7 +68,7 @@ func TestCreateJWKFromKey_AES_A192GCM(t *testing.T) {
 
 	kid := googleUuid.Must(googleUuid.NewV7())
 	alg := cryptoutilOpenapiModel.Oct192
-	key, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(192)
+	key, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(cryptoutilSharedMagic.SymmetricKeySize192)
 	require.NoError(t, err)
 
 	retKid, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWKFromKey(&kid, &alg, key)
@@ -88,7 +89,7 @@ func TestCreateJWKFromKey_RSA(t *testing.T) {
 
 	kid := googleUuid.Must(googleUuid.NewV7())
 	alg := cryptoutilOpenapiModel.RSA2048
-	key, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
+	key, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	retKid, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWKFromKey(&kid, &alg, key)
@@ -145,7 +146,7 @@ func TestCreateJWKFromKey_EdDSA(t *testing.T) {
 
 	kid := googleUuid.Must(googleUuid.NewV7())
 	alg := cryptoutilOpenapiModel.OKPEd25519
-	key, err := cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPair("Ed25519")
+	key, err := cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPair(cryptoutilSharedMagic.EdCurveEd25519)
 	require.NoError(t, err)
 
 	retKid, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWKFromKey(&kid, &alg, key)
@@ -168,7 +169,7 @@ func TestCreateJWKFromKey_NilKid(t *testing.T) {
 	t.Parallel()
 
 	alg := cryptoutilOpenapiModel.Oct256
-	key, err := cryptoutilSharedCryptoKeygen.GenerateHMACKey(256)
+	key, err := cryptoutilSharedCryptoKeygen.GenerateHMACKey(cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 	require.NoError(t, err)
 
 	retKid, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWKFromKey(nil, &alg, key)
@@ -186,7 +187,7 @@ func TestCreateJWKFromKey_NilAlg(t *testing.T) {
 	t.Parallel()
 
 	kid := googleUuid.Must(googleUuid.NewV7())
-	key, err := cryptoutilSharedCryptoKeygen.GenerateHMACKey(256)
+	key, err := cryptoutilSharedCryptoKeygen.GenerateHMACKey(cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 	require.NoError(t, err)
 
 	retKid, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWKFromKey(&kid, nil, key)

@@ -76,7 +76,7 @@ func TestHandleRotateMaterialJWK_Success(t *testing.T) {
 		ID:                   elasticID,
 		TenantID:             tenantID,
 		KID:                  kid,
-		MaxMaterials:         5,
+		MaxMaterials:         cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 		CurrentMaterialCount: 3,
 	}
 
@@ -113,8 +113,8 @@ func TestHandleRotateMaterialJWK_MaxMaterialsReached(t *testing.T) {
 		ID:                   googleUuid.New(),
 		TenantID:             tenantID,
 		KID:                  kid,
-		MaxMaterials:         5,
-		CurrentMaterialCount: 5,
+		MaxMaterials:         cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
+		CurrentMaterialCount: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 	}
 
 	elasticRepo.On("Get", mock.Anything, tenantID, kid).Return(elasticJWK, nil)
@@ -142,9 +142,9 @@ func TestHandleGetJWKS_Success(t *testing.T) {
 	handler, _, _, _, _ := setupTestHandler()
 	app := setupFiberApp()
 
-	app.Get("/.well-known/jwks.json", handler.HandleGetJWKS())
+	app.Get(cryptoutilSharedMagic.PathJWKS, handler.HandleGetJWKS())
 
-	req := httptest.NewRequest(fiber.MethodGet, "/.well-known/jwks.json", nil)
+	req := httptest.NewRequest(fiber.MethodGet, cryptoutilSharedMagic.PathJWKS, nil)
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
@@ -281,7 +281,7 @@ func TestHandleCreateMaterialJWK_CreateRepositoryError(t *testing.T) {
 		ID:                   googleUuid.New(),
 		TenantID:             tenantID,
 		KID:                  kid,
-		MaxMaterials:         5,
+		MaxMaterials:         cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 		CurrentMaterialCount: 2,
 	}
 
@@ -317,7 +317,7 @@ func TestHandleCreateMaterialJWK_IncrementCountError(t *testing.T) {
 		ID:                   googleUuid.New(),
 		TenantID:             tenantID,
 		KID:                  kid,
-		MaxMaterials:         5,
+		MaxMaterials:         cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 		CurrentMaterialCount: 2,
 	}
 
@@ -422,7 +422,7 @@ func TestHandleRotateMaterialJWK_RotateRepositoryError(t *testing.T) {
 		ID:                   googleUuid.New(),
 		TenantID:             tenantID,
 		KID:                  kid,
-		MaxMaterials:         5,
+		MaxMaterials:         cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 		CurrentMaterialCount: 2,
 	}
 

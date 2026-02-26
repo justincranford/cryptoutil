@@ -5,6 +5,7 @@
 package authz
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"log/slog"
 
 	fiber "github.com/gofiber/fiber/v2"
@@ -16,7 +17,7 @@ func (s *Service) RegisterRoutes(app *fiber.App) {
 	swaggerHandler, err := ServeOpenAPISpec()
 	if err != nil {
 		// Swagger UI is non-critical, but log error for diagnostics.
-		slog.Warn("Failed to generate OpenAPI spec for Swagger UI", "error", err)
+		slog.Warn("Failed to generate OpenAPI spec for Swagger UI", cryptoutilSharedMagic.StringError, err)
 	} else {
 		app.Get("/ui/swagger/doc.json", swaggerHandler)
 	}
@@ -26,15 +27,15 @@ func (s *Service) RegisterRoutes(app *fiber.App) {
 
 	// OAuth 2.1 Discovery endpoints (RFC 8414).
 	app.Get("/.well-known/oauth-authorization-server", s.handleOAuthMetadata)
-	app.Get("/.well-known/openid-configuration", s.handleOIDCDiscovery)
+	app.Get(cryptoutilSharedMagic.PathDiscovery, s.handleOIDCDiscovery)
 
 	// OAuth 2.1 endpoints with /oauth2/v1 prefix.
 	oauth := app.Group("/oauth2/v1")
-	oauth.Get("/authorize", s.handleAuthorizeGET)
-	oauth.Post("/authorize", s.handleAuthorizePOST)
-	oauth.Post("/token", s.handleToken)
-	oauth.Post("/introspect", s.handleIntrospect)
-	oauth.Post("/revoke", s.handleRevoke)
+	oauth.Get(cryptoutilSharedMagic.PathAuthorize, s.handleAuthorizeGET)
+	oauth.Post(cryptoutilSharedMagic.PathAuthorize, s.handleAuthorizePOST)
+	oauth.Post(cryptoutilSharedMagic.PathToken, s.handleToken)
+	oauth.Post(cryptoutilSharedMagic.PathIntrospect, s.handleIntrospect)
+	oauth.Post(cryptoutilSharedMagic.PathRevoke, s.handleRevoke)
 	oauth.Get("/jwks", s.handleJWKS)
 	oauth.Post("/device_authorization", s.handleDeviceAuthorization)
 	oauth.Post("/par", s.handlePAR)

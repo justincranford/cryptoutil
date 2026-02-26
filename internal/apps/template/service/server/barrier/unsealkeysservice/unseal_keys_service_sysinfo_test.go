@@ -3,6 +3,7 @@
 package unsealkeysservice
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
@@ -70,11 +71,11 @@ func TestNewUnsealKeysServiceFromSysInfo_Shutdown(t *testing.T) {
 type ErrorMockSysInfoProvider struct{}
 
 func (e *ErrorMockSysInfoProvider) RuntimeGoArch() string {
-	return "amd64"
+	return cryptoutilSharedMagic.MockRuntimeGoArch
 }
 
 func (e *ErrorMockSysInfoProvider) RuntimeGoOS() string {
-	return "linux"
+	return cryptoutilSharedMagic.MockRuntimeGoOS
 }
 
 func (e *ErrorMockSysInfoProvider) RuntimeNumCPU() int {

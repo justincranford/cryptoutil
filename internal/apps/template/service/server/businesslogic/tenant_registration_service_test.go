@@ -72,7 +72,7 @@ func TestMain(m *testing.M) {
 			testcontainers.WithWaitStrategy(
 				wait.ForLog("database system is ready to accept connections").
 					WithOccurrence(2).
-					WithStartupTimeout(60*time.Second),
+					WithStartupTimeout(cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds*time.Second),
 			),
 		)
 	}()
@@ -99,7 +99,7 @@ func TestMain(m *testing.M) {
 	} else {
 		// Fallback to SQLite in-memory database.
 		// Use sql.Open with "sqlite" driver to force modernc.org/sqlite (CGO-free).
-		sqlDB, err := sql.Open("sqlite", "file::memory:?cache=shared")
+		sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteInMemoryDSN)
 		if err != nil {
 			panic(fmt.Sprintf("failed to open sqlite: %v", err))
 		}
@@ -154,14 +154,14 @@ func TestMain(m *testing.M) {
 	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		BrowserSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
 		ServiceSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
-		BrowserSessionExpiration:   24 * time.Hour,
-		ServiceSessionExpiration:   7 * 24 * time.Hour,
+		BrowserSessionExpiration:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
+		ServiceSessionExpiration:   cryptoutilSharedMagic.GitRecentActivityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		SessionIdleTimeout:         2 * time.Hour,
 		SessionCleanupInterval:     time.Hour,
-		BrowserSessionJWSAlgorithm: "RS256",
-		BrowserSessionJWEAlgorithm: "dir+A256GCM",
-		ServiceSessionJWSAlgorithm: "RS256",
-		ServiceSessionJWEAlgorithm: "dir+A256GCM",
+		BrowserSessionJWSAlgorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		BrowserSessionJWEAlgorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWEAlgorithm,
+		ServiceSessionJWSAlgorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		ServiceSessionJWEAlgorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWEAlgorithm,
 	}
 
 	testSessionManager = NewSessionManager(testDB, nil, config)
@@ -190,7 +190,7 @@ func TestMain(m *testing.M) {
 		ID:       testRealmID,
 		TenantID: testTenantID,
 		RealmID:  googleUuid.New(),
-		Type:     "username_password",
+		Type:     cryptoutilSharedMagic.AuthMethodUsernamePassword,
 		Active:   true,
 		Source:   "db",
 	}

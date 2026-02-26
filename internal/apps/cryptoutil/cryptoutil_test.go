@@ -5,6 +5,7 @@
 package cryptoutil
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"testing"
 
@@ -29,7 +30,7 @@ func TestSuite_OneArgument(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Suite([]string{"cryptoutil"}, nil, &stdout, &stderr)
+	exitCode := Suite([]string{cryptoutilSharedMagic.DefaultOTLPServiceDefault}, nil, &stdout, &stderr)
 	require.Equal(t, 1, exitCode)
 
 	output := stderr.String()
@@ -43,9 +44,9 @@ func TestSuite_HelpCommand(t *testing.T) {
 		name string
 		args []string
 	}{
-		{name: "help command", args: []string{"cryptoutil", "help"}},
-		{name: "help flag long", args: []string{"cryptoutil", "--help"}},
-		{name: "help flag short", args: []string{"cryptoutil", "-h"}},
+		{name: "help command", args: []string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, "help"}},
+		{name: "help flag long", args: []string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, "--help"}},
+		{name: "help flag short", args: []string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, "-h"}},
 	}
 
 	for _, tt := range tests {
@@ -60,9 +61,9 @@ func TestSuite_HelpCommand(t *testing.T) {
 			output := stderr.String()
 			require.Contains(t, output, "Usage: cryptoutil")
 			require.Contains(t, output, "Available products:")
-			require.Contains(t, output, "identity")
-			require.Contains(t, output, "jose")
-			require.Contains(t, output, "pki")
+			require.Contains(t, output, cryptoutilSharedMagic.IdentityProductName)
+			require.Contains(t, output, cryptoutilSharedMagic.JoseProductName)
+			require.Contains(t, output, cryptoutilSharedMagic.PKIProductName)
 			require.Contains(t, output, "sm")
 		})
 	}
@@ -73,7 +74,7 @@ func TestSuite_UnknownProduct(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Suite([]string{"cryptoutil", "nonexistent"}, nil, &stdout, &stderr)
+	exitCode := Suite([]string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, "nonexistent"}, nil, &stdout, &stderr)
 	require.Equal(t, 1, exitCode)
 
 	output := stderr.String()
@@ -89,9 +90,9 @@ func TestSuite_ProductRouting(t *testing.T) {
 		product     string
 		expectedStr string
 	}{
-		{name: "identity help", product: "identity", expectedStr: "Usage: identity"},
-		{name: "jose help", product: "jose", expectedStr: "Usage: jose"},
-		{name: "pki help", product: "pki", expectedStr: "Usage: pki"},
+		{name: "identity help", product: cryptoutilSharedMagic.IdentityProductName, expectedStr: "Usage: identity"},
+		{name: "jose help", product: cryptoutilSharedMagic.JoseProductName, expectedStr: "Usage: jose"},
+		{name: "pki help", product: cryptoutilSharedMagic.PKIProductName, expectedStr: "Usage: pki"},
 		{name: "sm help", product: "sm", expectedStr: "Usage: sm"},
 	}
 
@@ -102,7 +103,7 @@ func TestSuite_ProductRouting(t *testing.T) {
 			var stdout, stderr bytes.Buffer
 
 			// Route to product with help flag to verify routing works.
-			exitCode := Suite([]string{"cryptoutil", tt.product, "help"}, nil, &stdout, &stderr)
+			exitCode := Suite([]string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, tt.product, "help"}, nil, &stdout, &stderr)
 			require.Equal(t, 0, exitCode)
 
 			combinedOutput := stdout.String() + stderr.String()
@@ -119,9 +120,9 @@ func TestSuite_ProductVersion(t *testing.T) {
 		product     string
 		expectedStr string
 	}{
-		{name: "identity version", product: "identity", expectedStr: "identity product"},
-		{name: "jose version", product: "jose", expectedStr: "jose product"},
-		{name: "pki version", product: "pki", expectedStr: "pki product"},
+		{name: "identity version", product: cryptoutilSharedMagic.IdentityProductName, expectedStr: "identity product"},
+		{name: "jose version", product: cryptoutilSharedMagic.JoseProductName, expectedStr: "jose product"},
+		{name: "pki version", product: cryptoutilSharedMagic.PKIProductName, expectedStr: "pki product"},
 		{name: "sm version", product: "sm", expectedStr: "sm product"},
 	}
 
@@ -131,7 +132,7 @@ func TestSuite_ProductVersion(t *testing.T) {
 
 			var stdout, stderr bytes.Buffer
 
-			exitCode := Suite([]string{"cryptoutil", tt.product, "version"}, nil, &stdout, &stderr)
+			exitCode := Suite([]string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, tt.product, "version"}, nil, &stdout, &stderr)
 			require.Equal(t, 0, exitCode)
 
 			combinedOutput := stdout.String() + stderr.String()

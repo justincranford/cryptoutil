@@ -3,6 +3,7 @@
 package issuer
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
@@ -77,7 +78,7 @@ func TestNewIssuer_NonCACert(t *testing.T) {
 			Type:       cryptoutilCACrypto.KeyTypeECDSA,
 			ECDSACurve: "P-256",
 		},
-		ValidityDuration:  10 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 2,
 	}
 	rootCA, _, err := bootstrapper.Bootstrap(rootConfig)
@@ -133,7 +134,7 @@ func TestIssuer_Issue_RSAKey(t *testing.T) {
 	require.NoError(t, err)
 
 	// Generate RSA key outside of provider (direct crypto/rsa usage).
-	rsaPriv, genErr := rsa.GenerateKey(crand.Reader, 2048)
+	rsaPriv, genErr := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, genErr)
 
 	req := &CertificateRequest{
@@ -142,14 +143,14 @@ func TestIssuer_Issue_RSAKey(t *testing.T) {
 			DNSNames:   []string{"rsa-server.example.com"},
 		},
 		PublicKey:        &rsaPriv.PublicKey,
-		ValidityDuration: 90 * 24 * time.Hour,
+		ValidityDuration: cryptoutilSharedMagic.StrictCertificateMaxAgeDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 
 	issued, audit, issueErr := issuerObj.Issue(req)
 	require.NoError(t, issueErr)
 	require.NotNil(t, issued)
 	require.NotNil(t, audit)
-	require.Equal(t, "RSA", audit.KeyAlgorithm)
+	require.Equal(t, cryptoutilSharedMagic.KeyTypeRSA, audit.KeyAlgorithm)
 }
 
 // TestIssuer_Issue_EdDSAKey verifies that an Ed25519 public key produces "Ed25519" in audit.
@@ -178,14 +179,14 @@ func TestIssuer_Issue_EdDSAKey(t *testing.T) {
 			DNSNames:   []string{"eddsa-server.example.com"},
 		},
 		PublicKey:        edPub,
-		ValidityDuration: 90 * 24 * time.Hour,
+		ValidityDuration: cryptoutilSharedMagic.StrictCertificateMaxAgeDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 
 	issued, audit, issueErr := issuerObj.Issue(req)
 	require.NoError(t, issueErr)
 	require.NotNil(t, issued)
 	require.NotNil(t, audit)
-	require.Equal(t, "Ed25519", audit.KeyAlgorithm)
+	require.Equal(t, cryptoutilSharedMagic.EdCurveEd25519, audit.KeyAlgorithm)
 }
 
 // TestIssuer_Issue_UnknownKeyType verifies that an unknown public key type produces "Unknown" in audit.
@@ -212,7 +213,7 @@ func TestIssuer_Issue_UnknownKeyType(t *testing.T) {
 			CommonName: "unknown-key.example.com",
 		},
 		PublicKey:        unknownKey{},
-		ValidityDuration: 90 * 24 * time.Hour,
+		ValidityDuration: cryptoutilSharedMagic.StrictCertificateMaxAgeDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 
 	// Issue will fail (x509.CreateCertificate rejects unknown key type), but
@@ -251,7 +252,7 @@ func TestIssuer_Issue_WithURIs(t *testing.T) {
 			URIs:       []string{"spiffe://example.org/workload/api"},
 		},
 		PublicKey:        keyPair.PublicKey,
-		ValidityDuration: 90 * 24 * time.Hour,
+		ValidityDuration: cryptoutilSharedMagic.StrictCertificateMaxAgeDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 
 	issued, audit, issueErr := issuerObj.Issue(req)
@@ -293,7 +294,7 @@ func TestIssuer_Issue_InvalidIPAddress(t *testing.T) {
 			IPAddresses: []string{"not.a.valid.ip"},
 		},
 		PublicKey:        keyPair.PublicKey,
-		ValidityDuration: 30 * 24 * time.Hour,
+		ValidityDuration: cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 
 	_, _, issueErr := issuerObj.Issue(req)
@@ -344,7 +345,7 @@ func TestIssuer_Issue_ValidityValidationFailure(t *testing.T) {
 			DNSNames:   []string{"server.example.com"},
 		},
 		PublicKey:        keyPair.PublicKey,
-		ValidityDuration: 365 * 24 * time.Hour, // 365 days > 30 day max
+		ValidityDuration: cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour, // 365 days > 30 day max
 	}
 
 	_, _, issueErr := issuerObj.Issue(req)
@@ -389,7 +390,7 @@ func TestIssuer_Issue_SubjectProfileResolveError(t *testing.T) {
 			CommonName: "", // No CommonName — profile requires one.
 		},
 		PublicKey:        keyPair.PublicKey,
-		ValidityDuration: 90 * 24 * time.Hour,
+		ValidityDuration: cryptoutilSharedMagic.StrictCertificateMaxAgeDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 
 	_, _, issueErr := issuerObj.Issue(req)
@@ -425,7 +426,7 @@ func TestIssuer_Issue_InvalidURI(t *testing.T) {
 			URIs:       []string{"http://[invalid"}, // missing ']' in host
 		},
 		PublicKey:        keyPair.PublicKey,
-		ValidityDuration: 30 * 24 * time.Hour,
+		ValidityDuration: cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 
 	_, _, issueErr := issuerObj.Issue(req)
@@ -444,9 +445,9 @@ func TestIssuer_Issue_WithRSACA(t *testing.T) {
 		Name: "RSA Root CA",
 		KeySpec: cryptoutilCACrypto.KeySpec{
 			Type:    cryptoutilCACrypto.KeyTypeRSA,
-			RSABits: 2048,
+			RSABits: cryptoutilSharedMagic.DefaultMetricsBatchSize,
 		},
-		ValidityDuration:  10 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 1,
 	}
 	rootCA, _, err := bootstrapper.Bootstrap(rootConfig)
@@ -457,9 +458,9 @@ func TestIssuer_Issue_WithRSACA(t *testing.T) {
 		Name: "RSA Issuing CA",
 		KeySpec: cryptoutilCACrypto.KeySpec{
 			Type:    cryptoutilCACrypto.KeyTypeRSA,
-			RSABits: 2048,
+			RSABits: cryptoutilSharedMagic.DefaultMetricsBatchSize,
 		},
-		ValidityDuration:  5 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 0,
 		IssuerCertificate: rootCA.Certificate,
 		IssuerPrivateKey:  rootCA.PrivateKey,
@@ -489,7 +490,7 @@ func TestIssuer_Issue_WithRSACA(t *testing.T) {
 			DNSNames:   []string{"rsa-ca-issued.example.com"},
 		},
 		PublicKey:        keyPair.PublicKey,
-		ValidityDuration: 90 * 24 * time.Hour,
+		ValidityDuration: cryptoutilSharedMagic.StrictCertificateMaxAgeDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 
 	issued, audit, issueErr := issuerObj.Issue(req)

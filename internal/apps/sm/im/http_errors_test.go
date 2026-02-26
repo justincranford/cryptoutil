@@ -43,7 +43,7 @@ func TestIM_HealthSubcommand_SlowResponse(t *testing.T) {
 			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write([]byte("OK"))
 		}),
-		ReadHeaderTimeout: 10 * time.Second,
+		ReadHeaderTimeout: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second,
 	}
 
 	go func() {
@@ -51,14 +51,14 @@ func TestIM_HealthSubcommand_SlowResponse(t *testing.T) {
 	}()
 
 	defer func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 		defer cancel()
 
 		_ = server.Shutdown(ctx)
 	}()
 
 	// Wait for server to start.
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.JoseJAMaxMaterials * time.Millisecond)
 
 	// Test health check completes despite slow response.
 	var stdout, stderr bytes.Buffer

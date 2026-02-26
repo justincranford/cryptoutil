@@ -4,6 +4,7 @@
 package realms
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"context"
 	json "encoding/json"
@@ -58,7 +59,7 @@ func TestHandleLoginUserWithSession_UserWithoutTenantID(t *testing.T) {
 
 	err = json.Unmarshal(body, &response)
 	require.NoError(t, err)
-	require.Contains(t, response["error"], "User model does not expose tenant ID")
+	require.Contains(t, response[cryptoutilSharedMagic.StringError], "User model does not expose tenant ID")
 }
 
 // mockTenantAwareUserRepository is a mock repository that returns TenantAwareUser.
@@ -144,7 +145,7 @@ func TestHandleLoginUserWithSession_BrowserSession_Success(t *testing.T) {
 
 	err = json.Unmarshal(body, &response)
 	require.NoError(t, err)
-	require.Equal(t, "browser-session-token-123", response["token"])
+	require.Equal(t, "browser-session-token-123", response[cryptoutilSharedMagic.ParamToken])
 	require.NotEmpty(t, response["expires_at"])
 }
 
@@ -196,7 +197,7 @@ func TestHandleLoginUserWithSession_ServiceSession_Success(t *testing.T) {
 
 	err = json.Unmarshal(body, &response)
 	require.NoError(t, err)
-	require.Equal(t, "service-session-token-456", response["token"])
+	require.Equal(t, "service-session-token-456", response[cryptoutilSharedMagic.ParamToken])
 }
 
 // TestHandleLoginUserWithSession_SessionIssueError tests error during session issuance.
@@ -246,7 +247,7 @@ func TestHandleLoginUserWithSession_SessionIssueError(t *testing.T) {
 
 	err = json.Unmarshal(body, &response)
 	require.NoError(t, err)
-	require.Contains(t, response["error"], "Failed to generate session token")
+	require.Contains(t, response[cryptoutilSharedMagic.StringError], "Failed to generate session token")
 }
 
 // TestClaims tests the Claims struct.

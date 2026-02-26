@@ -30,7 +30,7 @@ const (
 // runKMSDemo executes the KMS demo.
 func runKMSDemo(ctx context.Context, config *Config) int {
 	progress := NewProgressDisplay(config)
-	errors := NewErrorAggregator("kms")
+	errors := NewErrorAggregator(cryptoutilSharedMagic.KMSServiceName)
 	startTime := time.Now().UTC()
 
 	progress.Info("Starting KMS Demo")
@@ -132,7 +132,7 @@ func parseKMSConfig() (*cryptoutilAppsTemplateServiceConfig.ServiceTemplateServe
 		"start",
 		"--dev",
 		"--demo",
-		"--log-level", "INFO",
+		"--log-level", cryptoutilSharedMagic.DefaultLogLevelInfo,
 		"--bind-public-port", "0", // Dynamic port allocation
 		"--bind-private-port", "0",
 	}

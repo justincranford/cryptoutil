@@ -178,7 +178,7 @@ func TestService_Start(t *testing.T) {
 
 	config := &cryptoutilIdentityConfig.Config{
 		RS: &cryptoutilIdentityConfig.ServerConfig{
-			BindAddress: "127.0.0.1",
+			BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 			Port:        9100,
 		},
 	}
@@ -200,7 +200,7 @@ func TestService_Stop(t *testing.T) {
 
 	config := &cryptoutilIdentityConfig.Config{
 		RS: &cryptoutilIdentityConfig.ServerConfig{
-			BindAddress: "127.0.0.1",
+			BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 			Port:        9100,
 		},
 	}

@@ -42,7 +42,7 @@ func CreateDemoClient(
 	}
 
 	// Generate demo client secret.
-	plainSecret = "demo-secret"
+	plainSecret = cryptoutilSharedMagic.DemoClientSecret
 
 	secretHash, err := cryptoutilSharedCryptoHash.HashLowEntropyNonDeterministic(plainSecret)
 	if err != nil {
@@ -61,7 +61,7 @@ func CreateDemoClient(
 		ClientID:     demoClientID,
 		ClientSecret: secretHash,
 		ClientType:   cryptoutilIdentityDomain.ClientTypeConfidential,
-		Name:         "Demo Client",
+		Name:         cryptoutilSharedMagic.DemoClientName,
 		Description:  "Bootstrap client for testing OAuth flows",
 		RedirectURIs: []string{
 			"http://localhost:3000/callback",
@@ -76,15 +76,15 @@ func CreateDemoClient(
 			cryptoutilSharedMagic.ResponseTypeCode,
 		},
 		AllowedScopes: []string{
-			"openid",
-			"profile",
-			"email",
-			"read",
-			"write",
+			cryptoutilSharedMagic.ScopeOpenID,
+			cryptoutilSharedMagic.ClaimProfile,
+			cryptoutilSharedMagic.ClaimEmail,
+			cryptoutilSharedMagic.ScopeRead,
+			cryptoutilSharedMagic.ScopeWrite,
 		},
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,
 		RequirePKCE:             &requirePKCE,
-		PKCEChallengeMethod:     "S256",
+		PKCEChallengeMethod:     cryptoutilSharedMagic.PKCEMethodS256,
 		AccessTokenLifetime:     int(cryptoutilSharedMagic.DefaultAccessTokenLifetime.Seconds()),
 		RefreshTokenLifetime:    int(cryptoutilSharedMagic.DefaultRefreshTokenLifetime.Seconds()),
 		IDTokenLifetime:         int(cryptoutilSharedMagic.DefaultIDTokenLifetime.Seconds()),

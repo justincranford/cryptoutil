@@ -34,7 +34,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", dbID.String())
 
-	sqlDB, err := sql.Open("sqlite", dsn)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	require.NoError(t, err)
 
 	if _, err := sqlDB.ExecContext(context.Background(), "PRAGMA journal_mode=WAL;"); err != nil {
@@ -56,8 +56,8 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	gormDB, err := db.DB()
 	require.NoError(t, err)
 
-	gormDB.SetMaxOpenConns(5)
-	gormDB.SetMaxIdleConns(5)
+	gormDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+	gormDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	gormDB.SetConnMaxLifetime(0)
 	gormDB.SetConnMaxIdleTime(0)
 
@@ -90,7 +90,7 @@ func TestClientSecretJWTValidator_JTIReplayProtection(t *testing.T) {
 	require.NoError(t, firstToken.Set(joseJwt.SubjectKey, client.ClientID))
 	require.NoError(t, firstToken.Set(joseJwt.AudienceKey, []string{"https://auth.example.com/token"}))
 	require.NoError(t, firstToken.Set(joseJwt.IssuedAtKey, now))
-	require.NoError(t, firstToken.Set(joseJwt.ExpirationKey, now.Add(5*time.Minute)))
+	require.NoError(t, firstToken.Set(joseJwt.ExpirationKey, now.Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)))
 	require.NoError(t, firstToken.Set(joseJwt.JwtIDKey, "unique-jti-1"))
 
 	// First validation should succeed (JTI stored in cache)
@@ -103,7 +103,7 @@ func TestClientSecretJWTValidator_JTIReplayProtection(t *testing.T) {
 	require.NoError(t, secondToken.Set(joseJwt.SubjectKey, client.ClientID))
 	require.NoError(t, secondToken.Set(joseJwt.AudienceKey, []string{"https://auth.example.com/token"}))
 	require.NoError(t, secondToken.Set(joseJwt.IssuedAtKey, now))
-	require.NoError(t, secondToken.Set(joseJwt.ExpirationKey, now.Add(5*time.Minute)))
+	require.NoError(t, secondToken.Set(joseJwt.ExpirationKey, now.Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)))
 	require.NoError(t, secondToken.Set(joseJwt.JwtIDKey, "unique-jti-1")) // Same JTI!
 
 	err = validator.validateClaims(context.Background(), secondToken, client)
@@ -123,7 +123,7 @@ func TestClientSecretJWTValidator_AssertionLifetimeValidation(t *testing.T) {
 	}{
 		{
 			name:     "valid lifetime (5 minutes)",
-			lifetime: 5 * time.Minute,
+			lifetime: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute,
 			wantErr:  false,
 		},
 		{
@@ -199,7 +199,7 @@ func TestClientSecretJWTValidator_MissingJTI(t *testing.T) {
 	require.NoError(t, token.Set(joseJwt.SubjectKey, client.ClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{"https://auth.example.com/token"}))
 	require.NoError(t, token.Set(joseJwt.IssuedAtKey, now))
-	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(5*time.Minute)))
+	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)))
 	// No jti claim set!
 
 	err := validator.validateClaims(context.Background(), token, client)

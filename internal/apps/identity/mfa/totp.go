@@ -5,6 +5,7 @@
 package mfa
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	hmac "crypto/hmac"
 	crand "crypto/rand"
@@ -263,18 +264,18 @@ func (s *TOTPService) generateTOTP(secret string, timeStep int64, algorithm stri
 	}
 
 	// Convert time step to byte array (big endian).
-	timeBytes := make([]byte, 8)
+	timeBytes := make([]byte, cryptoutilSharedMagic.IMMinPasswordLength)
 	binary.BigEndian.PutUint64(timeBytes, uint64(timeStep)) //nolint:gosec // G115: timeStep is always positive (Unix timestamp / period)
 
 	// Generate HMAC based on algorithm.
 	var mac hash.Hash
 
 	switch strings.ToUpper(algorithm) {
-	case "SHA1":
+	case cryptoutilSharedMagic.DefaultTOTPAlgorithm:
 		mac = hmac.New(sha1.New, secretBytes)
-	case "SHA256":
+	case cryptoutilSharedMagic.SHA256:
 		mac = hmac.New(sha256.New, secretBytes)
-	case "SHA512":
+	case cryptoutilSharedMagic.SHA512:
 		mac = hmac.New(sha512.New, secretBytes)
 	default:
 		return "", fmt.Errorf("unsupported algorithm: %s", algorithm)

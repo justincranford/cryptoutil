@@ -76,9 +76,9 @@ func TestEncryptContent_InvalidInput(t *testing.T) {
 	require.NoError(t, err)
 
 	// Test with large content.
-	largeContent := make([]byte, 1024*1024) // 1MB
+	largeContent := make([]byte, cryptoutilSharedMagic.DefaultLogsBatchSize*cryptoutilSharedMagic.DefaultLogsBatchSize) // 1MB
 	for i := range largeContent {
-		largeContent[i] = byte(i % 256)
+		largeContent[i] = byte(i % cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 	}
 
 	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {

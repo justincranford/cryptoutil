@@ -3,6 +3,7 @@
 package unsealkeysservice
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
@@ -64,7 +65,7 @@ func TestDeriveJWKsFromMChooseNCombinations_LargeCombinations(t *testing.T) {
 
 	jwks, err := deriveJWKsFromMChooseNCombinations(secrets, 3)
 	require.NoError(t, err)
-	require.Len(t, jwks, 10) // C(5,3) = 10
+	require.Len(t, jwks, cryptoutilSharedMagic.JoseJADefaultMaxMaterials) // C(5,3) = 10
 
 	// Verify all JWKs are unique
 	kidSet := make(map[string]bool)
@@ -87,8 +88,8 @@ func TestNewUnsealKeysServiceSharedSecrets_EdgeCaseBoundaries(t *testing.T) {
 		errMatch  string
 	}{
 		{"min-length-31", 31, true, "can't be less than"},
-		{"min-length-32", 32, false, ""},
-		{"max-length-64", 64, false, ""},
+		{"min-length-cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes", 32, false, ""},
+		{"max-length-cryptoutilSharedMagic.MinSerialNumberBits", 64, false, ""},
 		{"max-length-65", 65, true, "can't be greater than"},
 	}
 

@@ -5,6 +5,7 @@
 package idp_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	http "net/http"
 	"net/http/httptest"
@@ -27,8 +28,8 @@ func TestRegisterRoutes_RouteRegistration(t *testing.T) {
 	ctx := context.Background()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
@@ -37,9 +38,9 @@ func TestRegisterRoutes_RouteRegistration(t *testing.T) {
 	// Initialize IDP service.
 	config := &cryptoutilIdentityConfig.Config{
 		IDP: &cryptoutilIdentityConfig.ServerConfig{
-			Name:        "idp",
-			BindAddress: "127.0.0.1",
-			Port:        8080,
+			Name:        cryptoutilSharedMagic.IDPServiceName,
+			BindAddress: cryptoutilSharedMagic.IPv4Loopback,
+			Port:        cryptoutilSharedMagic.DemoServerPort,
 			TLSEnabled:  true,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{
@@ -50,7 +51,7 @@ func TestRegisterRoutes_RouteRegistration(t *testing.T) {
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			Issuer:           "https://localhost:8080",
-			SigningAlgorithm: "RS256",
+			SigningAlgorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		},
 	}
 
@@ -74,7 +75,7 @@ func TestRegisterRoutes_RouteRegistration(t *testing.T) {
 		{
 			name:           "GET /.well-known/openid-configuration",
 			method:         http.MethodGet,
-			path:           "/.well-known/openid-configuration",
+			path:           cryptoutilSharedMagic.PathDiscovery,
 			expectedStatus: http.StatusOK,
 		},
 		{

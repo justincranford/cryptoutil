@@ -56,7 +56,7 @@ func TestIntrospectionRevocationFlow(t *testing.T) {
 	require.True(t, ok, "Response should have active field")
 	require.True(t, active, "Token should be ACTIVE before revocation")
 
-	clientID, ok := introspectResult["client_id"].(string)
+	clientID, ok := introspectResult[cryptoutilSharedMagic.ClaimClientID].(string)
 	require.True(t, ok, "Response should have client_id field")
 	require.Equal(t, testClient.ID.String(), clientID, "Token should belong to test client")
 
@@ -118,8 +118,8 @@ func TestIntrospectionRefreshTokenRevocation(t *testing.T) {
 		TokenValue: fmt.Sprintf("refresh-token-%s", tokenID.String()),
 		TokenType:  cryptoutilIdentityDomain.TokenTypeRefresh,
 		ClientID:   testClient.ID,
-		Scopes:     []string{"openid", "offline_access"},
-		ExpiresAt:  time.Now().UTC().Add(7 * 24 * time.Hour), // 7 days.
+		Scopes:     []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ScopeOfflineAccess},
+		ExpiresAt:  time.Now().UTC().Add(cryptoutilSharedMagic.GitRecentActivityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour), // 7 days.
 		IssuedAt:   time.Now().UTC(),
 	}
 
@@ -282,7 +282,7 @@ func createRevocationFlowTestConfig(t *testing.T) *cryptoutilIdentityConfig.Conf
 
 	return &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
+			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
 			DSN:  fmt.Sprintf("file:revocation_flow_test_%s.db?mode=memory&cache=shared", testID),
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
@@ -332,8 +332,8 @@ func createRevocationFlowTestClient(t *testing.T, repoFactory *cryptoutilIdentit
 		Name:                    "Revocation Flow Test Client",
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeClientCredentials},
-		AllowedScopes:           []string{"openid", "profile", "email", "offline_access"},
-		RedirectURIs:            []string{"https://example.com/callback"},
+		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail, cryptoutilSharedMagic.ScopeOfflineAccess},
+		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,
 	}
 
@@ -357,7 +357,7 @@ func createRevocationFlowTestToken(t *testing.T, repoFactory *cryptoutilIdentity
 		TokenValue: fmt.Sprintf("revoke-flow-token-%s", tokenID.String()),
 		TokenType:  cryptoutilIdentityDomain.TokenTypeAccess,
 		ClientID:   clientID,
-		Scopes:     []string{"openid", "profile"},
+		Scopes:     []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 		ExpiresAt:  time.Now().UTC().Add(1 * time.Hour),
 		IssuedAt:   time.Now().UTC(),
 	}

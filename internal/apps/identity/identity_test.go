@@ -5,6 +5,7 @@
 package identity
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"testing"
 
@@ -22,11 +23,11 @@ func TestIdentity_NoArguments(t *testing.T) {
 	output := stdout.String() + stderr.String()
 	require.Contains(t, output, "Usage: identity <service> <subcommand> [options]")
 	require.Contains(t, output, "Available services:")
-	require.Contains(t, output, "authz")
-	require.Contains(t, output, "idp")
+	require.Contains(t, output, cryptoutilSharedMagic.AuthzServiceName)
+	require.Contains(t, output, cryptoutilSharedMagic.IDPServiceName)
 	require.Contains(t, output, "rp")
 	require.Contains(t, output, "rs")
-	require.Contains(t, output, "spa")
+	require.Contains(t, output, cryptoutilSharedMagic.SPAServiceName)
 }
 
 func TestIdentity_HelpCommand(t *testing.T) {
@@ -53,7 +54,7 @@ func TestIdentity_HelpCommand(t *testing.T) {
 			output := stdout.String() + stderr.String()
 			require.Contains(t, output, "Usage: identity <service> <subcommand> [options]")
 			require.Contains(t, output, "Available services:")
-			require.Contains(t, output, "authz")
+			require.Contains(t, output, cryptoutilSharedMagic.AuthzServiceName)
 		})
 	}
 }
@@ -120,11 +121,11 @@ func TestIdentity_ServiceRouting(t *testing.T) {
 		serviceName     string
 		expectedUsage   string
 	}{
-		{name: "authz service", serviceName: "authz", expectedUsage: "Usage: identity authz <subcommand>"},
-		{name: "idp service", serviceName: "idp", expectedUsage: "Usage: identity idp <subcommand>"},
+		{name: "authz service", serviceName: cryptoutilSharedMagic.AuthzServiceName, expectedUsage: "Usage: identity authz <subcommand>"},
+		{name: "idp service", serviceName: cryptoutilSharedMagic.IDPServiceName, expectedUsage: "Usage: identity idp <subcommand>"},
 		{name: "rp service", serviceName: "rp", expectedUsage: "Usage: identity rp <subcommand>"},
 		{name: "rs service", serviceName: "rs", expectedUsage: "Usage: identity rs <subcommand>"},
-		{name: "spa service", serviceName: "spa", expectedUsage: "Usage: identity spa <subcommand>"},
+		{name: "spa service", serviceName: cryptoutilSharedMagic.SPAServiceName, expectedUsage: "Usage: identity spa <subcommand>"},
 	}
 
 	for _, tt := range tests {

@@ -42,7 +42,7 @@ func createMixedHandler(t *testing.T) *MessageHandler {
 
 	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
 
-	tempSQLDB, err := sql.Open("sqlite", dsn)
+	tempSQLDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	require.NoError(t, err)
 
 	_, err = tempSQLDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
@@ -82,7 +82,7 @@ func createTriggerDB(t *testing.T, triggerSQL string) (*gorm.DB, *sql.DB) {
 
 	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
 
-	triggerSQLDB, err := sql.Open("sqlite", dsn)
+	triggerSQLDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	require.NoError(t, err)
 
 	_, err = triggerSQLDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")

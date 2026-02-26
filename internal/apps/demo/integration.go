@@ -8,6 +8,7 @@
 package demo
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	http "net/http"
@@ -154,7 +155,7 @@ func runIntegrationDemo(ctx context.Context, config *Config) int {
 	accessToken, err := obtainIntegrationAccessToken(ctx, &servers, progress)
 	if err != nil {
 		progress.FailStep("Obtaining access token", err)
-		errors.Add("token", "failed to obtain access token", err)
+		errors.Add(cryptoutilSharedMagic.ParamToken, "failed to obtain access token", err)
 
 		result := errors.ToResult(integrationStepsAfterHealth, integrationRemainingAfterToken)
 		result.DurationMS = time.Since(startTime).Milliseconds()
@@ -230,19 +231,19 @@ func startIntegrationIdentityServer(ctx context.Context, servers *integrationSer
 	identityConfig := &cryptoutilIdentityConfig.Config{
 		AuthZ: &cryptoutilIdentityConfig.ServerConfig{
 			Name:             "integration-identity",
-			BindAddress:      "127.0.0.1",
+			BindAddress:      cryptoutilSharedMagic.IPv4Loopback,
 			Port:             integrationIdentityPort,
 			TLSEnabled:       false,
 			ReadTimeout:      integrationServerReadTime,
 			WriteTimeout:     integrationServerWriteTime,
 			IdleTimeout:      integrationServerIdleTime,
 			AdminEnabled:     true,
-			AdminBindAddress: "127.0.0.1",
+			AdminBindAddress: cryptoutilSharedMagic.IPv4Loopback,
 			AdminPort:        integrationIdentityAdminPort,
 		},
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
 			Type:            "sqlite",
-			DSN:             ":memory:",
+			DSN:             cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 			MaxOpenConns:    integrationDBMaxOpenConns,
 			MaxIdleConns:    integrationDBMaxIdleConns,
 			ConnMaxLifetime: integrationDBConnMaxLife,
@@ -251,13 +252,13 @@ func startIntegrationIdentityServer(ctx context.Context, servers *integrationSer
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			AccessTokenLifetime:  integrationAccessTokenTTL,
-			AccessTokenFormat:    "jws",
+			AccessTokenFormat:    cryptoutilSharedMagic.DefaultBrowserSessionCookie,
 			IDTokenLifetime:      integrationIDTokenTTL,
-			IDTokenFormat:        "jws",
+			IDTokenFormat:        cryptoutilSharedMagic.DefaultBrowserSessionCookie,
 			RefreshTokenLifetime: integrationRefreshTokenTTL,
-			RefreshTokenFormat:   "uuid",
+			RefreshTokenFormat:   cryptoutilSharedMagic.IdentityTokenFormatUUID,
 			Issuer:               "https://integration-demo.local",
-			SigningAlgorithm:     "RS256",
+			SigningAlgorithm:     cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		},
 	}
 
@@ -379,7 +380,7 @@ func startIntegrationKMSServer(ctx context.Context, servers *integrationServers)
 		"start",
 		"--dev",
 		"--demo",
-		"--log-level", "INFO",
+		"--log-level", cryptoutilSharedMagic.DefaultLogLevelInfo,
 		"--bind-public-port", "0",
 		"--bind-private-port", "0",
 	}

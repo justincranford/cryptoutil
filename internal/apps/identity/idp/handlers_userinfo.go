@@ -30,7 +30,7 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 
 	if authHeader == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorInvalidToken,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
 			"error_description": "Missing Authorization header",
 		})
 	}
@@ -39,7 +39,7 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 	parts := strings.SplitN(authHeader, " ", 2)
 	if len(parts) != 2 || parts[0] != cryptoutilSharedMagic.AuthorizationBearer {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorInvalidToken,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
 			"error_description": "Invalid Authorization header format",
 		})
 	}
@@ -50,7 +50,7 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 	claims, err := s.tokenSvc.ValidateAccessToken(ctx, accessToken)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorInvalidToken,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
 			"error_description": "Invalid or expired access token",
 		})
 	}
@@ -67,7 +67,7 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 		// JWT tokens don't exist in database, so this is expected for JWT format.
 		if len(claims) == 0 {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error":             cryptoutilSharedMagic.ErrorInvalidToken,
+				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
 				"error_description": "Token not found",
 			})
 		}
@@ -80,7 +80,7 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 		// Check token expiration for UUID tokens.
 		if time.Now().UTC().After(dbToken.ExpiresAt) {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error":             cryptoutilSharedMagic.ErrorInvalidToken,
+				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
 				"error_description": "Token has expired",
 			})
 		}
@@ -88,8 +88,8 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 		// Populate claims from database token for UUID format.
 		if len(claims) == 0 {
 			claims = map[string]any{
-				"sub":   dbToken.UserID.UUID.String(),
-				"scope": dbToken.Scopes,
+				cryptoutilSharedMagic.ClaimSub:   dbToken.UserID.UUID.String(),
+				cryptoutilSharedMagic.ClaimScope: dbToken.Scopes,
 			}
 		}
 
@@ -98,10 +98,10 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 	}
 
 	// Extract sub (subject) claim to identify user.
-	sub, ok := claims["sub"].(string)
+	sub, ok := claims[cryptoutilSharedMagic.ClaimSub].(string)
 	if !ok || sub == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorInvalidToken,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
 			"error_description": "Token missing sub claim",
 		})
 	}
@@ -112,17 +112,17 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 	user, err := userRepo.GetBySub(ctx, sub)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorInvalidToken,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
 			"error_description": "User not found",
 		})
 	}
 
 	// Map user to OIDC standard claims.
 	userInfo := make(map[string]any)
-	userInfo["sub"] = user.Sub
+	userInfo[cryptoutilSharedMagic.ClaimSub] = user.Sub
 
 	// Add optional claims based on scopes (extract from token claims).
-	scopesAny, scopesExist := claims["scope"]
+	scopesAny, scopesExist := claims[cryptoutilSharedMagic.ClaimScope]
 	if scopesExist {
 		scopes, scopesOk := scopesAny.(string)
 		if scopesOk {
@@ -154,41 +154,41 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 func addScopeBasedClaims(userInfo map[string]any, scopeList []string, user *cryptoutilIdentityDomain.User) {
 	for _, scope := range scopeList {
 		switch scope {
-		case "profile":
-			userInfo["name"] = user.Name
-			userInfo["given_name"] = user.GivenName
-			userInfo["family_name"] = user.FamilyName
-			userInfo["middle_name"] = user.MiddleName
-			userInfo["nickname"] = user.Nickname
-			userInfo["preferred_username"] = user.PreferredUsername
-			userInfo["profile"] = user.Profile
-			userInfo["picture"] = user.Picture
-			userInfo["website"] = user.Website
-			userInfo["gender"] = user.Gender
-			userInfo["birthdate"] = user.Birthdate
-			userInfo["zoneinfo"] = user.Zoneinfo
-			userInfo["locale"] = user.Locale
-			userInfo["updated_at"] = user.UpdatedAt.Unix()
+		case cryptoutilSharedMagic.ClaimProfile:
+			userInfo[cryptoutilSharedMagic.ClaimName] = user.Name
+			userInfo[cryptoutilSharedMagic.ClaimGivenName] = user.GivenName
+			userInfo[cryptoutilSharedMagic.ClaimFamilyName] = user.FamilyName
+			userInfo[cryptoutilSharedMagic.ClaimMiddleName] = user.MiddleName
+			userInfo[cryptoutilSharedMagic.ClaimNickname] = user.Nickname
+			userInfo[cryptoutilSharedMagic.ClaimPreferredUsername] = user.PreferredUsername
+			userInfo[cryptoutilSharedMagic.ClaimProfile] = user.Profile
+			userInfo[cryptoutilSharedMagic.ClaimPicture] = user.Picture
+			userInfo[cryptoutilSharedMagic.ClaimWebsite] = user.Website
+			userInfo[cryptoutilSharedMagic.ClaimGender] = user.Gender
+			userInfo[cryptoutilSharedMagic.ClaimBirthdate] = user.Birthdate
+			userInfo[cryptoutilSharedMagic.ClaimZoneinfo] = user.Zoneinfo
+			userInfo[cryptoutilSharedMagic.ClaimLocale] = user.Locale
+			userInfo[cryptoutilSharedMagic.ClaimUpdatedAt] = user.UpdatedAt.Unix()
 
-		case "email":
-			userInfo["email"] = user.Email
-			userInfo["email_verified"] = user.EmailVerified
+		case cryptoutilSharedMagic.ClaimEmail:
+			userInfo[cryptoutilSharedMagic.ClaimEmail] = user.Email
+			userInfo[cryptoutilSharedMagic.ClaimEmailVerified] = user.EmailVerified
 
-		case "address":
+		case cryptoutilSharedMagic.ClaimAddress:
 			if user.Address != nil {
-				userInfo["address"] = map[string]any{
-					"formatted":      user.Address.Formatted,
-					"street_address": user.Address.StreetAddress,
-					"locality":       user.Address.Locality,
-					"region":         user.Address.Region,
-					"postal_code":    user.Address.PostalCode,
-					"country":        user.Address.Country,
+				userInfo[cryptoutilSharedMagic.ClaimAddress] = map[string]any{
+					cryptoutilSharedMagic.AddressFormatted:      user.Address.Formatted,
+					cryptoutilSharedMagic.AddressStreetAddress: user.Address.StreetAddress,
+					cryptoutilSharedMagic.AddressLocality:       user.Address.Locality,
+					cryptoutilSharedMagic.AddressRegion:         user.Address.Region,
+					cryptoutilSharedMagic.AddressPostalCode:    user.Address.PostalCode,
+					cryptoutilSharedMagic.AddressCountry:        user.Address.Country,
 				}
 			}
 
-		case "phone":
-			userInfo["phone_number"] = user.PhoneNumber
-			userInfo["phone_number_verified"] = user.PhoneVerified
+		case cryptoutilSharedMagic.ScopePhone:
+			userInfo[cryptoutilSharedMagic.ClaimPhoneNumber] = user.PhoneNumber
+			userInfo[cryptoutilSharedMagic.ClaimPhoneVerified] = user.PhoneVerified
 		}
 	}
 }

@@ -57,7 +57,7 @@ func (s *Service) handleJWKS(c *fiber.Ctx) error {
 	jwksBytes, err := json.Marshal(jwkSet)
 	if err != nil {
 		jsonErr := c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             "server_error",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Failed to serialize JWKS",
 		})
 

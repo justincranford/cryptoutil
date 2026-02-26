@@ -4,6 +4,7 @@
 package repository
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"strings"
 	"testing"
@@ -63,9 +64,9 @@ func TestMaterialJWKRepository_RotateMaterialCreateError(t *testing.T) {
 		TenantID:     *tenantID,
 		KID:          googleUuid.NewString(),
 		KeyType:      cryptoutilAppsJoseJaDomain.KeyTypeRSA,
-		Algorithm:    "RS256",
-		Use:          "sig",
-		MaxMaterials: 10,
+		Algorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 	}
 	err := elasticRepo.Create(ctx, elasticJWK)
 	require.NoError(t, err)
@@ -193,7 +194,7 @@ func TestAuditConfigRepository_UpsertDatabaseError(t *testing.T) {
 		TenantID:     *tenantID,
 		Operation:    cryptoutilAppsJoseJaDomain.OperationSign,
 		Enabled:      true,
-		SamplingRate: 0.5,
+		SamplingRate: cryptoutilSharedMagic.Tolerance50Percent,
 	}
 
 	err = repo.Upsert(ctx, config)

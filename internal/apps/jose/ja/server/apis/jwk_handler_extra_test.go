@@ -38,7 +38,7 @@ func TestHandleListMaterialJWKs_WithRetiredMaterial(t *testing.T) {
 		KID:      kid,
 	}
 
-	retiredAt := time.Now().UTC().Add(-24 * time.Hour)
+	retiredAt := time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour)
 	materials := []*cryptoutilAppsJoseJaDomain.MaterialJWK{
 		{
 			ID:           googleUuid.New(),
@@ -46,7 +46,7 @@ func TestHandleListMaterialJWKs_WithRetiredMaterial(t *testing.T) {
 			MaterialKID:  "material-retired",
 			Active:       false,
 			RetiredAt:    &retiredAt,
-			CreatedAt:    time.Now().UTC().Add(-48 * time.Hour),
+			CreatedAt:    time.Now().UTC().Add(-cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour),
 		},
 	}
 
@@ -87,7 +87,7 @@ func TestHandleRotateMaterialJWK_IncrementCountError(t *testing.T) {
 		ID:                   elasticID,
 		TenantID:             tenantID,
 		KID:                  kid,
-		MaxMaterials:         5,
+		MaxMaterials:         cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 		CurrentMaterialCount: 2,
 	}
 
@@ -176,8 +176,8 @@ func TestHandleCreateElasticJWK_DefaultMaxMaterials(t *testing.T) {
 
 	// Request with max_materials = 0 (should default to 10).
 	reqBody := CreateElasticJWKRequest{
-		Algorithm:    "RSA/2048",
-		Use:          "sig",
+		Algorithm:    cryptoutilSharedMagic.JoseKeyTypeRSA2048,
+		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
 		MaxMaterials: 0,
 	}
 	body, err := json.Marshal(reqBody)
@@ -193,7 +193,7 @@ func TestHandleCreateElasticJWK_DefaultMaxMaterials(t *testing.T) {
 	var response ElasticJWKResponse
 
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&response))
-	require.Equal(t, 10, response.MaxMaterials)
+	require.Equal(t, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, response.MaxMaterials)
 
 	elasticRepo.AssertExpectations(t)
 }

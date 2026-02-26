@@ -3,6 +3,7 @@
 package idp
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	json "encoding/json"
@@ -87,9 +88,9 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 					TokenValue:  accessToken,
 					TokenType:   cryptoutilIdentityDomain.TokenTypeAccess,
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
-					Scopes:      []string{"openid", "profile", "email"},
+					Scopes:      []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail},
 					IssuedAt:    time.Now().UTC(),
-					ExpiresAt:   time.Now().UTC().Add(3600 * time.Second),
+					ExpiresAt:   time.Now().UTC().Add(cryptoutilSharedMagic.IMDefaultSessionTimeout * time.Second),
 				}
 
 				err = db.Create(token).Error
@@ -98,34 +99,34 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 				return accessToken
 			},
 			requiredFields: []string{
-				"sub",            // OIDC required
-				"email",          // OIDC standard
-				"email_verified", // OIDC standard
+				cryptoutilSharedMagic.ClaimSub,            // OIDC required
+				cryptoutilSharedMagic.ClaimEmail,          // OIDC standard
+				cryptoutilSharedMagic.ClaimEmailVerified, // OIDC standard
 			},
 			optionalFields: []string{
-				"name",
-				"given_name",
-				"family_name",
-				"locale",
-				"zoneinfo",
+				cryptoutilSharedMagic.ClaimName,
+				cryptoutilSharedMagic.ClaimGivenName,
+				cryptoutilSharedMagic.ClaimFamilyName,
+				cryptoutilSharedMagic.ClaimLocale,
+				cryptoutilSharedMagic.ClaimZoneinfo,
 			},
 			validateResponse: func(t *testing.T, resp map[string]any) {
 				t.Helper()
 
 				// Validate sub is a valid UUID
-				sub, ok := resp["sub"].(string)
+				sub, ok := resp[cryptoutilSharedMagic.ClaimSub].(string)
 				require.True(t, ok, "sub must be string")
 
 				_, err := googleUuid.Parse(sub)
 				require.NoError(t, err, "sub must be valid UUID")
 
 				// Validate email format
-				email, ok := resp["email"].(string)
+				email, ok := resp[cryptoutilSharedMagic.ClaimEmail].(string)
 				require.True(t, ok, "email must be string")
 				require.Contains(t, email, "@", "email must contain @")
 
 				// Validate email_verified is boolean
-				emailVerified, ok := resp["email_verified"].(bool)
+				emailVerified, ok := resp[cryptoutilSharedMagic.ClaimEmailVerified].(bool)
 				require.True(t, ok, "email_verified must be boolean")
 				require.True(t, emailVerified, "email_verified should be true for test user")
 			},
@@ -188,7 +189,7 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 					ID:           clientID,
 					ClientID:     clientID.String(),
 					ClientSecret: "test-secret",
-					RedirectURIs: []string{"https://example.com/callback"},
+					RedirectURIs: []string{cryptoutilSharedMagic.DemoRedirectURI},
 				}
 
 				err = db.Create(client).Error
@@ -218,7 +219,7 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 					TokenValue:  codeID.String(),
 					TokenType:   cryptoutilIdentityDomain.TokenTypeAccess,
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
-					Scopes:      []string{"openid"},
+					Scopes:      []string{cryptoutilSharedMagic.ScopeOpenID},
 					IssuedAt:    time.Now().UTC(),
 					ExpiresAt:   time.Now().UTC().Add(600 * time.Second),
 				}
@@ -229,30 +230,30 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 				return codeID.String() // Return authorization code
 			},
 			requiredFields: []string{
-				"access_token",
-				"token_type",
-				"expires_in",
+				cryptoutilSharedMagic.TokenTypeAccessToken,
+				cryptoutilSharedMagic.ParamTokenType,
+				cryptoutilSharedMagic.ParamExpiresIn,
 			},
 			optionalFields: []string{
-				"refresh_token",
-				"id_token",
-				"scope",
+				cryptoutilSharedMagic.GrantTypeRefreshToken,
+				cryptoutilSharedMagic.ParamIDToken,
+				cryptoutilSharedMagic.ClaimScope,
 			},
 			validateResponse: func(t *testing.T, resp map[string]any) {
 				t.Helper()
 
 				// Validate access_token is non-empty string
-				accessToken, ok := resp["access_token"].(string)
+				accessToken, ok := resp[cryptoutilSharedMagic.TokenTypeAccessToken].(string)
 				require.True(t, ok, "access_token must be string")
 				require.NotEmpty(t, accessToken, "access_token must not be empty")
 
 				// Validate token_type is "Bearer"
-				tokenType, ok := resp["token_type"].(string)
+				tokenType, ok := resp[cryptoutilSharedMagic.ParamTokenType].(string)
 				require.True(t, ok, "token_type must be string")
-				require.Equal(t, "Bearer", tokenType, "token_type must be Bearer")
+				require.Equal(t, cryptoutilSharedMagic.AuthorizationBearer, tokenType, "token_type must be Bearer")
 
 				// Validate expires_in is positive number
-				expiresIn, ok := resp["expires_in"].(float64) // JSON numbers are float64
+				expiresIn, ok := resp[cryptoutilSharedMagic.ParamExpiresIn].(float64) // JSON numbers are float64
 				require.True(t, ok, "expires_in must be number")
 				require.Greater(t, expiresIn, float64(0), "expires_in must be positive")
 			},
@@ -272,7 +273,7 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 
 			dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", dbID.String())
 
-			sqlDB, err := sql.Open("sqlite", dsn)
+			sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 			require.NoError(t, err)
 
 			// Apply PRAGMA settings
@@ -296,8 +297,8 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 			gormDB, err := db.DB()
 			require.NoError(t, err)
 
-			gormDB.SetMaxOpenConns(5)
-			gormDB.SetMaxIdleConns(5)
+			gormDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+			gormDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 
 			// Auto-migrate test schemas
 			err = db.AutoMigrate(
@@ -318,7 +319,7 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 			req := httptest.NewRequest(tc.method, tc.endpoint, nil)
 
 			if tokenOrParam != "" && tc.endpoint == endpointUserInfo {
-				req.Header.Set("Authorization", "Bearer "+tokenOrParam)
+				req.Header.Set("Authorization", cryptoutilSharedMagic.AuthorizationBearerPrefix+tokenOrParam)
 			}
 
 			// Create test handler
@@ -331,14 +332,14 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 			switch tc.endpoint {
 			case endpointUserInfo:
 				respBody = map[string]any{
-					"sub":            testUUID,
-					"email":          "test@example.com",
-					"email_verified": true,
-					"name":           "Test User",
-					"given_name":     "Test",
-					"family_name":    "User",
-					"locale":         "en-US",
-					"zoneinfo":       "America/New_York",
+					cryptoutilSharedMagic.ClaimSub:            testUUID,
+					cryptoutilSharedMagic.ClaimEmail:          "test@example.com",
+					cryptoutilSharedMagic.ClaimEmailVerified: true,
+					cryptoutilSharedMagic.ClaimName:           "Test User",
+					cryptoutilSharedMagic.ClaimGivenName:     "Test",
+					cryptoutilSharedMagic.ClaimFamilyName:    "User",
+					cryptoutilSharedMagic.ClaimLocale:         "en-US",
+					cryptoutilSharedMagic.ClaimZoneinfo:       "America/New_York",
 				}
 			case endpointDiscovery:
 				respBody = map[string]any{
@@ -347,18 +348,18 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 					"token_endpoint":                        "https://example.com/token",
 					"userinfo_endpoint":                     "https://example.com/userinfo",
 					"jwks_uri":                              "https://example.com/jwks",
-					"response_types_supported":              []any{"code", "token", "id_token"},
-					"subject_types_supported":               []any{"public"},
-					"id_token_signing_alg_values_supported": []any{"RS256"},
-					"scopes_supported":                      []any{"openid", "profile", "email"},
-					"claims_supported":                      []any{"sub", "email", "name"},
+					"response_types_supported":              []any{cryptoutilSharedMagic.ResponseTypeCode, cryptoutilSharedMagic.ParamToken, cryptoutilSharedMagic.ParamIDToken},
+					"subject_types_supported":               []any{cryptoutilSharedMagic.SubjectTypePublic},
+					"id_token_signing_alg_values_supported": []any{cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm},
+					"scopes_supported":                      []any{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail},
+					"claims_supported":                      []any{cryptoutilSharedMagic.ClaimSub, cryptoutilSharedMagic.ClaimEmail, cryptoutilSharedMagic.ClaimName},
 				}
 			case endpointToken:
 				respBody = map[string]any{
-					"access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
-					"token_type":   "Bearer",
-					"expires_in":   float64(3600),
-					"id_token":     "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+					cryptoutilSharedMagic.TokenTypeAccessToken: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+					cryptoutilSharedMagic.ParamTokenType:   cryptoutilSharedMagic.AuthorizationBearer,
+					cryptoutilSharedMagic.ParamExpiresIn:   float64(cryptoutilSharedMagic.IMDefaultSessionTimeout),
+					cryptoutilSharedMagic.ParamIDToken:     "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
 				}
 			}
 

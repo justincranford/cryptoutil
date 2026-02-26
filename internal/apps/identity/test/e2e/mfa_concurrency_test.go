@@ -94,7 +94,7 @@ func (s *E2ETestSuite) executeMFAChain(ctx context.Context, userID string, metho
 	// Execute each authentication method in chain.
 	for idx, method := range methods {
 		// Simulate network delay for realistic concurrency testing.
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond)
 
 		if err := s.performUserAuth(ctx, method); err != nil {
 			return fmt.Errorf("MFA chain step %d (%s) failed for user %s: %w", idx+1, method, userID, err)
@@ -114,10 +114,10 @@ func (s *E2ETestSuite) executeMFAChain(ctx context.Context, userID string, metho
 // validateSessionIsolation verifies sessions don't interfere with each other.
 func (s *E2ETestSuite) validateSessionIsolation(ctx context.Context, userID string, sessionID string) error {
 	// Simulate session creation.
-	time.Sleep(5 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Millisecond)
 
 	// Simulate concurrent session updates.
-	for i := 0; i < 5; i++ {
+	for i := 0; i < cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries; i++ {
 		time.Sleep(2 * time.Millisecond)
 
 		// Each session update should be independent.
@@ -148,7 +148,7 @@ func TestMFAReplayAttackPrevention(t *testing.T) {
 		// Replay attempt with same nonce should fail.
 		err = suite.simulateReplayAttack(ctx, userID)
 		require.Error(t, err, "Replay attack should be detected and rejected")
-		require.Contains(t, err.Error(), "nonce", "Error should indicate nonce issue")
+		require.Contains(t, err.Error(), cryptoutilSharedMagic.ClaimNonce, "Error should indicate nonce issue")
 	})
 
 	t.Run("Expired_Nonce_Rejection", func(t *testing.T) {

@@ -5,6 +5,7 @@
 package config
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
 
@@ -59,10 +60,10 @@ func TestNewForServer(t *testing.T) {
 		devMode     bool
 		wantService string
 	}{
-		{name: "JOSE dev mode", factory: NewForJOSEServer, address: "127.0.0.1", port: 8060, devMode: true, wantService: "jose-ja"},
-		{name: "JOSE production", factory: NewForJOSEServer, address: "127.0.0.1", port: 8061, devMode: false, wantService: "jose-ja"},
-		{name: "CA dev mode", factory: NewForCAServer, address: "127.0.0.1", port: 8050, devMode: true, wantService: "pki-ca"},
-		{name: "CA production", factory: NewForCAServer, address: "127.0.0.1", port: 8051, devMode: false, wantService: "pki-ca"},
+		{name: "JOSE dev mode", factory: NewForJOSEServer, address: cryptoutilSharedMagic.IPv4Loopback, port: 8060, devMode: true, wantService: cryptoutilSharedMagic.OTLPServiceJoseJA},
+		{name: "JOSE production", factory: NewForJOSEServer, address: cryptoutilSharedMagic.IPv4Loopback, port: 8061, devMode: false, wantService: cryptoutilSharedMagic.OTLPServiceJoseJA},
+		{name: "CA dev mode", factory: NewForCAServer, address: cryptoutilSharedMagic.IPv4Loopback, port: 8050, devMode: true, wantService: cryptoutilSharedMagic.OTLPServicePKICA},
+		{name: "CA production", factory: NewForCAServer, address: cryptoutilSharedMagic.IPv4Loopback, port: 8051, devMode: false, wantService: cryptoutilSharedMagic.OTLPServicePKICA},
 	}
 
 	for _, tc := range tests {
@@ -100,8 +101,8 @@ func TestRegisterAsSettings(t *testing.T) {
 	t.Run("uint16", func(t *testing.T) {
 		t.Parallel()
 
-		setting := Setting{Value: uint16(8080)}
-		require.Equal(t, uint16(8080), RegisterAsUint16Setting(&setting))
+		setting := Setting{Value: uint16(cryptoutilSharedMagic.DemoServerPort)}
+		require.Equal(t, uint16(cryptoutilSharedMagic.DemoServerPort), RegisterAsUint16Setting(&setting))
 	})
 
 	t.Run("string slice", func(t *testing.T) {
@@ -121,14 +122,14 @@ func TestRegisterAsSettings(t *testing.T) {
 	t.Run("duration", func(t *testing.T) {
 		t.Parallel()
 
-		setting := Setting{Value: 5 * time.Minute}
-		require.Equal(t, 5*time.Minute, RegisterAsDurationSetting(&setting))
+		setting := Setting{Value: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute}
+		require.Equal(t, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute, RegisterAsDurationSetting(&setting))
 	})
 
 	t.Run("int", func(t *testing.T) {
 		t.Parallel()
 
-		setting := Setting{Value: 100}
-		require.Equal(t, 100, RegisterAsIntSetting(&setting))
+		setting := Setting{Value: cryptoutilSharedMagic.JoseJAMaxMaterials}
+		require.Equal(t, cryptoutilSharedMagic.JoseJAMaxMaterials, RegisterAsIntSetting(&setting))
 	})
 }

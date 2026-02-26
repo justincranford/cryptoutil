@@ -3,6 +3,7 @@
 package userauth
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"os"
 	"path/filepath"
@@ -52,7 +53,7 @@ time_risks: {}
 behavior_risks: {}
 `
 
-	err := os.WriteFile(policyFile, []byte(policyContent), 0o600)
+	err := os.WriteFile(policyFile, []byte(policyContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	loader := NewYAMLPolicyLoader(policyFile, "", "")
@@ -71,37 +72,37 @@ behavior_risks: {}
 		{
 			name:              "no previous auth (first login)",
 			lastAuthTime:      time.Time{}, // Zero time.
-			currentAuthTime:   time.Date(2025, 1, 15, 10, 0, 0, 0, time.UTC),
+			currentAuthTime:   time.Date(2025, 1, 15, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 0, 0, 0, time.UTC),
 			wantRiskLevel:     RiskLevelLow,
-			wantMinScore:      0.0,
-			wantMaxScore:      0.25,
-			velocityRiskScore: 0.1, // Low risk.
+			wantMinScore:      cryptoutilSharedMagic.BaselineContributionZero,
+			wantMaxScore:      cryptoutilSharedMagic.TestProbQuarter,
+			velocityRiskScore: cryptoutilSharedMagic.Tolerance10Percent, // Low risk.
 		},
 		{
 			name:              "very fast auth (<5s) - critical risk",
-			lastAuthTime:      time.Date(2025, 1, 15, 10, 0, 0, 0, time.UTC),
-			currentAuthTime:   time.Date(2025, 1, 15, 10, 0, 3, 0, time.UTC), // 3 seconds later.
+			lastAuthTime:      time.Date(2025, 1, 15, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 0, 0, 0, time.UTC),
+			currentAuthTime:   time.Date(2025, 1, 15, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 0, 3, 0, time.UTC), // 3 seconds later.
 			wantRiskLevel:     RiskLevelCritical,
 			wantMinScore:      0.85,
-			wantMaxScore:      1.0,
-			velocityRiskScore: 1.0, // Extreme risk.
+			wantMaxScore:      cryptoutilSharedMagic.TestProbAlways,
+			velocityRiskScore: cryptoutilSharedMagic.TestProbAlways, // Extreme risk.
 		},
 		{
 			name:              "fast auth (<1min) - high risk",
-			lastAuthTime:      time.Date(2025, 1, 15, 10, 0, 0, 0, time.UTC),
-			currentAuthTime:   time.Date(2025, 1, 15, 10, 0, 30, 0, time.UTC), // 30 seconds later.
+			lastAuthTime:      time.Date(2025, 1, 15, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 0, 0, 0, time.UTC),
+			currentAuthTime:   time.Date(2025, 1, 15, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 0, cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days, 0, time.UTC), // 30 seconds later.
 			wantRiskLevel:     RiskLevelHigh,
-			wantMinScore:      0.5,
-			wantMaxScore:      0.9,
-			velocityRiskScore: 0.8, // High risk.
+			wantMinScore:      cryptoutilSharedMagic.Tolerance50Percent,
+			wantMaxScore:      cryptoutilSharedMagic.RiskScoreExtreme,
+			velocityRiskScore: cryptoutilSharedMagic.RiskScoreVeryHigh, // High risk.
 		},
 		{
 			name:              "normal auth (>1min) - low risk",
-			lastAuthTime:      time.Date(2025, 1, 15, 10, 0, 0, 0, time.UTC),
-			currentAuthTime:   time.Date(2025, 1, 15, 10, 5, 0, 0, time.UTC), // 5 minutes later.
+			lastAuthTime:      time.Date(2025, 1, 15, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 0, 0, 0, time.UTC),
+			currentAuthTime:   time.Date(2025, 1, 15, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, 0, 0, time.UTC), // 5 minutes later.
 			wantRiskLevel:     RiskLevelLow,
-			wantMinScore:      0.0,
-			wantMaxScore:      0.25,
+			wantMinScore:      cryptoutilSharedMagic.BaselineContributionZero,
+			wantMaxScore:      cryptoutilSharedMagic.TestProbQuarter,
 			velocityRiskScore: 0.2, // Normal/low risk.
 		},
 	}
@@ -115,7 +116,7 @@ behavior_risks: {}
 				KnownLocations: []GeoLocation{{Country: "US"}},
 				KnownDevices:   []string{"device-1"},
 				KnownNetworks:  []string{"192.168.1.1"},
-				TypicalHours:   []int{9, 10, 11},
+				TypicalHours:   []int{9, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 11},
 				LastAuthTime:   tc.lastAuthTime,
 			}
 
@@ -193,17 +194,17 @@ func TestBehavioralRiskEngine_assessBehaviorRisk(t *testing.T) {
 			baseline: &UserBaseline{
 				BehaviorProfile: nil,
 			},
-			wantScore: 0.40 + 0.10, // RiskScoreMedium + RiskScoreLow.
+			wantScore: 0.40 + cryptoutilSharedMagic.ConfidenceWeightBehavior, // RiskScoreMedium + RiskScoreLow.
 		},
 		{
 			name:     "with behavior profile returns low risk",
 			behavior: &UserBehavior{},
 			baseline: &UserBaseline{
 				BehaviorProfile: &BehaviorProfile{
-					AverageSessionLength: 3600,
+					AverageSessionLength: cryptoutilSharedMagic.IMDefaultSessionTimeout,
 				},
 			},
-			wantScore: 0.10, // RiskScoreLow.
+			wantScore: cryptoutilSharedMagic.ConfidenceWeightBehavior, // RiskScoreLow.
 		},
 	}
 
@@ -265,10 +266,10 @@ func TestRiskBasedAuthenticator_Authenticate(t *testing.T) {
 			riskEngine := &mockRiskEngine{
 				riskScore: &RiskScore{
 					Level:      tc.riskLevel,
-					Score:      0.5,
-					Confidence: 0.8,
+					Score:      cryptoutilSharedMagic.Tolerance50Percent,
+					Confidence: cryptoutilSharedMagic.RiskScoreVeryHigh,
 					Factors: []RiskFactor{
-						{Type: "test", Score: 0.5, Weight: 1.0, Reason: "Test factor"},
+						{Type: "test", Score: cryptoutilSharedMagic.Tolerance50Percent, Weight: cryptoutilSharedMagic.TestProbAlways, Reason: "Test factor"},
 					},
 				},
 			}

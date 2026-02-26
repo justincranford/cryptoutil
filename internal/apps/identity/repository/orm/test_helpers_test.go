@@ -5,6 +5,7 @@
 package orm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"fmt"
@@ -41,7 +42,7 @@ func setupTestDB(t *testing.T) *testDB {
 	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", dbID.String())
 
 	// Open database connection using modernc.org/sqlite (CGO-free).
-	sqlDB, err := sql.Open("sqlite", dsn)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	require.NoError(t, err)
 
 	// Apply SQLite PRAGMA settings for WAL mode and busy timeout.
@@ -67,8 +68,8 @@ func setupTestDB(t *testing.T) *testDB {
 	require.NoError(t, err)
 
 	// Configure connection pool for GORM transaction pattern.
-	gormDB.SetMaxOpenConns(5) // Allows transaction + operations concurrently.
-	gormDB.SetMaxIdleConns(5)
+	gormDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries) // Allows transaction + operations concurrently.
+	gormDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	gormDB.SetConnMaxLifetime(0) // In-memory DB: never close connections.
 	gormDB.SetConnMaxIdleTime(0)
 

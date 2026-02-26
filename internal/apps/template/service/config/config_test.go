@@ -5,6 +5,7 @@
 package config
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
 
@@ -141,10 +142,10 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 	require.Equal(t, []string{"test.yaml"}, s.ConfigFile)
 	require.Equal(t, "debug", s.LogLevel)
 	require.True(t, s.VerboseMode)
-	require.Equal(t, "http", s.BindPublicProtocol)
+	require.Equal(t, cryptoutilSharedMagic.ProtocolHTTP, s.BindPublicProtocol)
 	require.Equal(t, "192.168.1.2", s.BindPublicAddress)
 	require.Equal(t, uint16(18080), s.BindPublicPort)
-	require.Equal(t, "https", s.BindPrivateProtocol)
+	require.Equal(t, cryptoutilSharedMagic.ProtocolHTTPS, s.BindPrivateProtocol)
 	require.Equal(t, "192.168.1.3", s.BindPrivateAddress)
 	require.Equal(t, uint16(19090), s.BindPrivatePort)
 	require.Equal(t, []string{"public1.example.com", "public2.example.com"}, s.TLSPublicDNSNames)
@@ -161,32 +162,32 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 	require.Equal(t, []byte("CERT---"), s.TLSMixedCACertPEM)
 	// Base64-decoded "S0VZLUtFWQ==" -> "KEY-KEY"
 	require.Equal(t, []byte("KEY-KEY"), s.TLSMixedCAKeyPEM)
-	require.Equal(t, "/browser", s.PublicBrowserAPIContextPath)
-	require.Equal(t, "/service", s.PublicServiceAPIContextPath)
+	require.Equal(t, cryptoutilSharedMagic.PathPrefixBrowser, s.PublicBrowserAPIContextPath)
+	require.Equal(t, cryptoutilSharedMagic.PathPrefixService, s.PublicServiceAPIContextPath)
 	require.Equal(t, []string{"https://example.com"}, s.CORSAllowedOrigins)
 	require.Equal(t, []string{"GET", "POST"}, s.CORSAllowedMethods)
 	require.Equal(t, []string{"X-Custom-Header"}, s.CORSAllowedHeaders)
-	require.Equal(t, uint16(1800), s.CORSMaxAge)
+	require.Equal(t, uint16(cryptoutilSharedMagic.IMEnterpriseSessionTimeout), s.CORSMaxAge)
 	require.Equal(t, "custom_csrf", s.CSRFTokenName)
 	require.Equal(t, "Lax", s.CSRFTokenSameSite)
-	require.Equal(t, 24*time.Hour, s.CSRFTokenMaxAge)
+	require.Equal(t, cryptoutilSharedMagic.HoursPerDay*time.Hour, s.CSRFTokenMaxAge)
 	require.Equal(t, false, s.CSRFTokenCookieSecure)
 	require.Equal(t, false, s.CSRFTokenCookieHTTPOnly)
 	require.Equal(t, false, s.CSRFTokenCookieSessionOnly)
 	require.Equal(t, true, s.CSRFTokenSingleUseToken)
-	require.Equal(t, uint16(100), s.BrowserIPRateLimit)
-	require.Equal(t, uint16(50), s.ServiceIPRateLimit)
+	require.Equal(t, uint16(cryptoutilSharedMagic.JoseJAMaxMaterials), s.BrowserIPRateLimit)
+	require.Equal(t, uint16(cryptoutilSharedMagic.IMMaxUsernameLength), s.ServiceIPRateLimit)
 	require.Equal(t, []string{"192.168.1.100", "192.168.1.101"}, s.AllowedIPs)
-	require.Equal(t, []string{"10.0.0.0/8", "192.168.1.0/24"}, s.AllowedCIDRs)
+	require.Equal(t, []string{cryptoutilSharedMagic.PrivateLANClassACIDRv4, "192.168.1.0/24"}, s.AllowedCIDRs)
 	require.Equal(t, "required", s.DatabaseContainer)
 	require.Equal(t, "postgres://user:pass@db:5432/dbname?sslmode=disable", s.DatabaseURL)
-	require.Equal(t, 5*time.Minute, s.DatabaseInitTotalTimeout)
-	require.Equal(t, 30*time.Second, s.DatabaseInitRetryWait)
+	require.Equal(t, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute, s.DatabaseInitTotalTimeout)
+	require.Equal(t, cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second, s.DatabaseInitRetryWait)
 	require.True(t, s.OTLPEnabled)
 	require.True(t, s.OTLPConsole)
 	require.Equal(t, "my-service", s.OTLPService)
 	require.Equal(t, "my-instance", s.OTLPInstance)
-	require.Equal(t, "1.0.0", s.OTLPVersion)
+	require.Equal(t, cryptoutilSharedMagic.ServiceVersion, s.OTLPVersion)
 	require.Equal(t, "development", s.OTLPEnvironment)
 	require.Equal(t, "example.com", s.OTLPHostname)
 	require.Equal(t, "grpc://example.com:4317", s.OTLPEndpoint)
@@ -338,7 +339,7 @@ func TestParse_EnvironmentVariables(t *testing.T) {
 	// Verify environment variables were loaded
 	require.Equal(t, "DEBUG", s.LogLevel)
 	require.True(t, s.DevMode)
-	require.Equal(t, uint16(8080), s.BindPublicPort)
+	require.Equal(t, uint16(cryptoutilSharedMagic.DemoServerPort), s.BindPublicPort)
 	require.Equal(t, "postgres://env:pass@envdb:5432/envdb?sslmode=require", s.DatabaseURL)
 }
 
@@ -355,7 +356,7 @@ func TestParse_EnvironmentVariables_CommandLineOverride(t *testing.T) {
 	require.NoError(t, err)
 
 	// Command line flags should override environment variables
-	require.Equal(t, "INFO", s.LogLevel)
+	require.Equal(t, cryptoutilSharedMagic.DefaultLogLevelInfo, s.LogLevel)
 	require.False(t, s.DevMode)
 }
 

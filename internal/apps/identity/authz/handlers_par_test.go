@@ -37,12 +37,12 @@ func TestHandlePAR_HappyPath(t *testing.T) {
 	formData := url.Values{
 		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
 		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
-		cryptoutilSharedMagic.ParamRedirectURI:         []string{"https://example.com/callback"},
+		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.DemoRedirectURI},
 		cryptoutilSharedMagic.ParamScope:               []string{"openid profile"},
 		cryptoutilSharedMagic.ParamState:               []string{"random-state-value"},
 		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-code-challenge-value-xxxxxxxxxxxxxxxxx"},
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
-		"nonce": []string{"random-nonce-value"},
+		cryptoutilSharedMagic.ClaimNonce: []string{"random-nonce-value"},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/par", strings.NewReader(formData.Encode()))
@@ -61,18 +61,18 @@ func TestHandlePAR_HappyPath(t *testing.T) {
 	require.NoError(t, err, "Should decode JSON response")
 
 	// Validate response fields (RFC 9126 Section 2.1).
-	require.Contains(t, result, "request_uri", "Response should include request_uri")
-	require.Contains(t, result, "expires_in", "Response should include expires_in")
+	require.Contains(t, result, cryptoutilSharedMagic.ParamRequestURI, "Response should include request_uri")
+	require.Contains(t, result, cryptoutilSharedMagic.ParamExpiresIn, "Response should include expires_in")
 
 	// Validate field types and values.
-	requestURI, ok := result["request_uri"].(string)
+	requestURI, ok := result[cryptoutilSharedMagic.ParamRequestURI].(string)
 	require.True(t, ok, "request_uri should be string")
 	require.True(t, strings.HasPrefix(requestURI, cryptoutilSharedMagic.RequestURIPrefix), "request_uri should start with URN prefix")
-	require.GreaterOrEqual(t, len(requestURI), len(cryptoutilSharedMagic.RequestURIPrefix)+43, "request_uri should be at least 43 chars")
+	require.GreaterOrEqual(t, len(requestURI), len(cryptoutilSharedMagic.RequestURIPrefix)+cryptoutilSharedMagic.DefaultCodeChallengeLength, "request_uri should be at least 43 chars")
 
-	expiresIn, ok := result["expires_in"].(float64)
+	expiresIn, ok := result[cryptoutilSharedMagic.ParamExpiresIn].(float64)
 	require.True(t, ok, "expires_in should be number")
-	require.Equal(t, float64(90), expiresIn, "expires_in should be 90 seconds")
+	require.Equal(t, float64(cryptoutilSharedMagic.StrictCertificateMaxAgeDays), expiresIn, "expires_in should be 90 seconds")
 
 	// Verify PAR stored in database.
 	parRepo := repoFactory.PushedAuthorizationRequestRepository()
@@ -81,7 +81,7 @@ func TestHandlePAR_HappyPath(t *testing.T) {
 	require.NotNil(t, storedPAR, "Stored PAR should not be nil")
 	require.Equal(t, testClient.ID, storedPAR.ClientID, "ClientID should match")
 	require.Equal(t, cryptoutilSharedMagic.ResponseTypeCode, storedPAR.ResponseType, "ResponseType should match")
-	require.Equal(t, "https://example.com/callback", storedPAR.RedirectURI, "RedirectURI should match")
+	require.Equal(t, cryptoutilSharedMagic.DemoRedirectURI, storedPAR.RedirectURI, "RedirectURI should match")
 	require.Equal(t, "openid profile", storedPAR.Scope, "Scope should match")
 	require.Equal(t, "random-state-value", storedPAR.State, "State should match")
 	require.Equal(t, "test-code-challenge-value-xxxxxxxxxxxxxxxxx", storedPAR.CodeChallenge, "CodeChallenge should match")
@@ -104,7 +104,7 @@ func TestHandlePAR_MissingClientID(t *testing.T) {
 
 	formData := url.Values{
 		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
-		cryptoutilSharedMagic.ParamRedirectURI:         []string{"https://example.com/callback"},
+		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.DemoRedirectURI},
 		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-code-challenge"},
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
@@ -124,13 +124,13 @@ func TestHandlePAR_MissingClientID(t *testing.T) {
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err, "Should decode JSON response")
 
-	errorCode, ok := result["error"].(string)
+	errorCode, ok := result[cryptoutilSharedMagic.StringError].(string)
 	require.True(t, ok, "error should be string")
 	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidRequest, errorCode, "Should return invalid_request error")
 
 	errorDescription, ok := result["error_description"].(string)
 	require.True(t, ok, "error_description should be string")
-	require.Contains(t, errorDescription, "client_id", "Error description should mention client_id")
+	require.Contains(t, errorDescription, cryptoutilSharedMagic.ClaimClientID, "Error description should mention client_id")
 }
 
 // TestHandlePAR_MissingResponseType validates error when response_type is missing.
@@ -150,7 +150,7 @@ func TestHandlePAR_MissingResponseType(t *testing.T) {
 
 	formData := url.Values{
 		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
-		cryptoutilSharedMagic.ParamRedirectURI:         []string{"https://example.com/callback"},
+		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.DemoRedirectURI},
 		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-code-challenge"},
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
@@ -170,13 +170,13 @@ func TestHandlePAR_MissingResponseType(t *testing.T) {
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err, "Should decode JSON response")
 
-	errorCode, ok := result["error"].(string)
+	errorCode, ok := result[cryptoutilSharedMagic.StringError].(string)
 	require.True(t, ok, "error should be string")
 	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidRequest, errorCode, "Should return invalid_request error")
 
 	errorDescription, ok := result["error_description"].(string)
 	require.True(t, ok, "error_description should be string")
-	require.Contains(t, errorDescription, "response_type", "Error description should mention response_type")
+	require.Contains(t, errorDescription, cryptoutilSharedMagic.ParamResponseType, "Error description should mention response_type")
 }
 
 // TestHandlePAR_MissingRedirectURI validates error when redirect_uri is missing.
@@ -216,13 +216,13 @@ func TestHandlePAR_MissingRedirectURI(t *testing.T) {
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err, "Should decode JSON response")
 
-	errorCode, ok := result["error"].(string)
+	errorCode, ok := result[cryptoutilSharedMagic.StringError].(string)
 	require.True(t, ok, "error should be string")
 	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidRequest, errorCode, "Should return invalid_request error")
 
 	errorDescription, ok := result["error_description"].(string)
 	require.True(t, ok, "error_description should be string")
-	require.Contains(t, errorDescription, "redirect_uri", "Error description should mention redirect_uri")
+	require.Contains(t, errorDescription, cryptoutilSharedMagic.ParamRedirectURI, "Error description should mention redirect_uri")
 }
 
 // TestHandlePAR_MissingCodeChallenge validates error when code_challenge is missing.
@@ -243,7 +243,7 @@ func TestHandlePAR_MissingCodeChallenge(t *testing.T) {
 	formData := url.Values{
 		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
 		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
-		cryptoutilSharedMagic.ParamRedirectURI:         []string{"https://example.com/callback"},
+		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.DemoRedirectURI},
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
 
@@ -262,13 +262,13 @@ func TestHandlePAR_MissingCodeChallenge(t *testing.T) {
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err, "Should decode JSON response")
 
-	errorCode, ok := result["error"].(string)
+	errorCode, ok := result[cryptoutilSharedMagic.StringError].(string)
 	require.True(t, ok, "error should be string")
 	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidRequest, errorCode, "Should return invalid_request error")
 
 	errorDescription, ok := result["error_description"].(string)
 	require.True(t, ok, "error_description should be string")
-	require.Contains(t, errorDescription, "code_challenge", "Error description should mention code_challenge")
+	require.Contains(t, errorDescription, cryptoutilSharedMagic.ParamCodeChallenge, "Error description should mention code_challenge")
 }
 
 // TestHandlePAR_InvalidClient validates error when client_id is invalid.

@@ -5,6 +5,7 @@
 package domain
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
 
@@ -17,8 +18,8 @@ func TestKeyRotationEvent_BeforeCreate(t *testing.T) {
 
 	event := &KeyRotationEvent{
 		EventType: "rotation",
-		KeyType:   "client_secret",
-		KeyID:     "test-client-id",
+		KeyType:   cryptoutilSharedMagic.ParamClientSecret,
+		KeyID:     cryptoutilSharedMagic.TestClientID,
 		Initiator: "test-user",
 	}
 
@@ -46,7 +47,7 @@ func TestKeyRotationEvent_Constants(t *testing.T) {
 	require.Equal(t, "expiration", EventTypeExpiration)
 
 	// Key type constants.
-	require.Equal(t, "client_secret", KeyTypeClientSecret)
+	require.Equal(t, cryptoutilSharedMagic.ParamClientSecret, KeyTypeClientSecret)
 	require.Equal(t, "jwk", KeyTypeJWK)
 	require.Equal(t, "api_key", KeyTypeAPIKey)
 }
@@ -62,8 +63,8 @@ func TestKeyRotationEvent_FieldValidation(t *testing.T) {
 	event := &KeyRotationEvent{
 		ID:            googleUuid.Must(googleUuid.NewV7()),
 		EventType:     "rotation",
-		KeyType:       "client_secret",
-		KeyID:         "test-client-id",
+		KeyType:       cryptoutilSharedMagic.ParamClientSecret,
+		KeyID:         cryptoutilSharedMagic.TestClientID,
 		Timestamp:     now,
 		Initiator:     "test-user",
 		OldKeyVersion: &oldVersion,
@@ -76,8 +77,8 @@ func TestKeyRotationEvent_FieldValidation(t *testing.T) {
 	}
 
 	require.Equal(t, "rotation", event.EventType)
-	require.Equal(t, "client_secret", event.KeyType)
-	require.Equal(t, "test-client-id", event.KeyID)
+	require.Equal(t, cryptoutilSharedMagic.ParamClientSecret, event.KeyType)
+	require.Equal(t, cryptoutilSharedMagic.TestClientID, event.KeyID)
 	require.Equal(t, now, event.Timestamp)
 	require.Equal(t, "test-user", event.Initiator)
 	require.NotNil(t, event.OldKeyVersion)

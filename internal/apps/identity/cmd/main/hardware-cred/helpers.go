@@ -5,6 +5,7 @@
 package main
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"encoding/base64"
 	"flag"
@@ -47,7 +48,7 @@ func runInventory(args []string) {
 	fmt.Println()
 
 	// Audit log entry.
-	logAuditEvent(ctx, "INVENTORY_GENERATED", "system", "all", map[string]any{
+	logAuditEvent(ctx, "INVENTORY_GENERATED", cryptoutilSharedMagic.SystemInitiatorName, cryptoutilSharedMagic.ModeNameAll, map[string]any{
 		"timestamp":       time.Now().UTC().Format(time.RFC3339),
 		"event_category":  "access",
 		"compliance_flag": "hardware_credential_inventory",
@@ -66,7 +67,7 @@ func initDatabase(_ context.Context) (*gorm.DB, error) {
 
 // generateMockCredentialID generates a mock credential ID for testing.
 func generateMockCredentialID() string {
-	randomBytes := make([]byte, 16)
+	randomBytes := make([]byte, cryptoutilSharedMagic.RealmMinTokenLengthBytes)
 
 	for i := range randomBytes {
 		randomBytes[i] = byte(i + 1)

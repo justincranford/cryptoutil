@@ -65,7 +65,7 @@ func NewJWKGenService(ctx context.Context, telemetryService *cryptoutilSharedTel
 	ecdhP521KeyGenPool, err7 := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService ECDH-P521", cryptoutilSharedMagic.DefaultPoolConfigECDHP521.NumWorkers, cryptoutilSharedMagic.DefaultPoolConfigECDHP521.MaxSize, cryptoutilSharedMagic.MaxPoolLifetimeValues, cryptoutilSharedMagic.MaxPoolLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateECDHKeyPairFunction(ecdh.P521()), verbose))
 	ecdhP384KeyGenPool, err8 := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService ECDH-P384", cryptoutilSharedMagic.DefaultPoolConfigECDHP384.NumWorkers, cryptoutilSharedMagic.DefaultPoolConfigECDHP384.MaxSize, cryptoutilSharedMagic.MaxPoolLifetimeValues, cryptoutilSharedMagic.MaxPoolLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateECDHKeyPairFunction(ecdh.P384()), verbose))
 	ecdhP256KeyGenPool, err9 := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService ECDH-P256", cryptoutilSharedMagic.DefaultPoolConfigECDHP256.NumWorkers, cryptoutilSharedMagic.DefaultPoolConfigECDHP256.MaxSize, cryptoutilSharedMagic.MaxPoolLifetimeValues, cryptoutilSharedMagic.MaxPoolLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateECDHKeyPairFunction(ecdh.P256()), verbose))
-	ed25519KeyGenPool, err10 := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService Ed25519", cryptoutilSharedMagic.DefaultPoolConfigED25519.NumWorkers, cryptoutilSharedMagic.DefaultPoolConfigED25519.MaxSize, cryptoutilSharedMagic.MaxPoolLifetimeValues, cryptoutilSharedMagic.MaxPoolLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPairFunction("Ed25519"), verbose))
+	ed25519KeyGenPool, err10 := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService Ed25519", cryptoutilSharedMagic.DefaultPoolConfigED25519.NumWorkers, cryptoutilSharedMagic.DefaultPoolConfigED25519.MaxSize, cryptoutilSharedMagic.MaxPoolLifetimeValues, cryptoutilSharedMagic.MaxPoolLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPairFunction(cryptoutilSharedMagic.EdCurveEd25519), verbose))
 	aes256KeyGenPool, err11 := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService AES-256-GCM", cryptoutilSharedMagic.DefaultPoolConfigAES256.NumWorkers, cryptoutilSharedMagic.DefaultPoolConfigAES256.MaxSize, cryptoutilSharedMagic.MaxPoolLifetimeValues, cryptoutilSharedMagic.MaxPoolLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateAESKeyFunction(cryptoutilSharedMagic.AESKeySize256), verbose))
 	aes192KeyGenPool, err12 := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService AES-192-GCM", cryptoutilSharedMagic.DefaultPoolConfigAES192.NumWorkers, cryptoutilSharedMagic.DefaultPoolConfigAES192.MaxSize, cryptoutilSharedMagic.MaxPoolLifetimeValues, cryptoutilSharedMagic.MaxPoolLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateAESKeyFunction(cryptoutilSharedMagic.AESKeySize192), verbose))
 	aes128KeyGenPool, err13 := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService AES-128-GCM", cryptoutilSharedMagic.DefaultPoolConfigAES128.NumWorkers, cryptoutilSharedMagic.DefaultPoolConfigAES128.MaxSize, cryptoutilSharedMagic.MaxPoolLifetimeValues, cryptoutilSharedMagic.MaxPoolLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateAESKeyFunction(cryptoutilSharedMagic.AESKeySize128), verbose))
@@ -189,31 +189,31 @@ func (s *JWKGenService) GenerateJWEJWK(enc *joseJwa.ContentEncryptionAlgorithm, 
 // GenerateJWSJWK generates a JWS JWK using the pooled key generation service.
 func (s *JWKGenService) GenerateJWSJWK(alg joseJwa.SignatureAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	switch alg.String() {
-	case "PS512":
+	case cryptoutilSharedMagic.JoseAlgPS512:
 		return CreateJWSJWKFromKey(s.UUIDv7KeyGenPool.Get(), &alg, s.RSA4096KeyGenPool.Get())
-	case "PS384":
+	case cryptoutilSharedMagic.JoseAlgPS384:
 		return CreateJWSJWKFromKey(s.UUIDv7KeyGenPool.Get(), &alg, s.RSA3072KeyGenPool.Get())
-	case "PS256":
+	case cryptoutilSharedMagic.JoseAlgPS256:
 		return CreateJWSJWKFromKey(s.UUIDv7KeyGenPool.Get(), &alg, s.RSA2048KeyGenPool.Get())
-	case "RS512":
+	case cryptoutilSharedMagic.JoseAlgRS512:
 		return CreateJWSJWKFromKey(s.UUIDv7KeyGenPool.Get(), &alg, s.RSA4096KeyGenPool.Get())
-	case "RS384":
+	case cryptoutilSharedMagic.JoseAlgRS384:
 		return CreateJWSJWKFromKey(s.UUIDv7KeyGenPool.Get(), &alg, s.RSA3072KeyGenPool.Get())
-	case "RS256":
+	case cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm:
 		return CreateJWSJWKFromKey(s.UUIDv7KeyGenPool.Get(), &alg, s.RSA2048KeyGenPool.Get())
-	case "ES512":
+	case cryptoutilSharedMagic.JoseAlgES512:
 		return CreateJWSJWKFromKey(s.UUIDv7KeyGenPool.Get(), &alg, s.ECDSAP521KeyGenPool.Get())
-	case "ES384":
+	case cryptoutilSharedMagic.JoseAlgES384:
 		return CreateJWSJWKFromKey(s.UUIDv7KeyGenPool.Get(), &alg, s.ECDSAP384KeyGenPool.Get())
-	case "ES256":
+	case cryptoutilSharedMagic.JoseAlgES256:
 		return CreateJWSJWKFromKey(s.UUIDv7KeyGenPool.Get(), &alg, s.ECDSAP256KeyGenPool.Get())
-	case "EdDSA":
+	case cryptoutilSharedMagic.JoseAlgEdDSA:
 		return CreateJWSJWKFromKey(s.UUIDv7KeyGenPool.Get(), &alg, s.ED25519KeyGenPool.Get())
-	case "HS512":
+	case cryptoutilSharedMagic.JoseAlgHS512:
 		return CreateJWSJWKFromKey(s.UUIDv7KeyGenPool.Get(), &alg, s.HMAC512KeyGenPool.Get())
-	case "HS384":
+	case cryptoutilSharedMagic.JoseAlgHS384:
 		return CreateJWSJWKFromKey(s.UUIDv7KeyGenPool.Get(), &alg, s.HMAC384KeyGenPool.Get())
-	case "HS256":
+	case cryptoutilSharedMagic.JoseAlgHS256:
 		return CreateJWSJWKFromKey(s.UUIDv7KeyGenPool.Get(), &alg, s.HMAC256KeyGenPool.Get())
 	default:
 		return nil, nil, nil, nil, nil, fmt.Errorf("unsupported JWS JWK alg: %s", alg)

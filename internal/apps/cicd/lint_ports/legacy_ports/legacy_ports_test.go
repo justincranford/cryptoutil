@@ -3,6 +3,7 @@
 package legacy_ports
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -21,12 +22,12 @@ func TestGetServiceForLegacyPort(t *testing.T) {
 		port uint16
 		want string
 	}{
-		{name: "sm-im 8888", port: 8888, want: "sm-im"},
-		{name: "sm-im 8889", port: 8889, want: "sm-im"},
-		{name: "sm-im 8890", port: 8890, want: "sm-im"},
-		{name: "jose-ja 9443", port: 9443, want: "jose-ja"},
-		{name: "jose-ja 8092", port: 8092, want: "jose-ja"},
-		{name: "pki-ca 8443", port: 8443, want: "pki-ca"},
+		{name: "sm-im cryptoutilSharedMagic.DefaultPublicPortInternalMetrics", port: 8888, want: cryptoutilSharedMagic.OTLPServiceSMIM},
+		{name: "sm-im cryptoutilSharedMagic.PortOtelCollectorReceivedMetrics", port: 8889, want: cryptoutilSharedMagic.OTLPServiceSMIM},
+		{name: "sm-im 8890", port: 8890, want: cryptoutilSharedMagic.OTLPServiceSMIM},
+		{name: "jose-ja 9443", port: 9443, want: cryptoutilSharedMagic.OTLPServiceJoseJA},
+		{name: "jose-ja 8092", port: 8092, want: cryptoutilSharedMagic.OTLPServiceJoseJA},
+		{name: "pki-ca 8443", port: 8443, want: cryptoutilSharedMagic.OTLPServicePKICA},
 		{name: "unknown port", port: 12345, want: "unknown"},
 	}
 
@@ -58,7 +59,7 @@ func TestCheck_WithGoFileContainingLegacyPort(t *testing.T) {
 
 	// Write a Go file that contains a legacy port number (8888 used by sm-im).
 	content := "package main\nconst port = 8888\n"
-	require.NoError(t, os.WriteFile(goFile, []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(goFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
@@ -77,8 +78,8 @@ func TestCheck_WithMarkdownAndYamlFiles(t *testing.T) {
 	mdFile := filepath.Join(tmpDir, "README.md")
 	yamlFile := filepath.Join(tmpDir, "config.yml")
 
-	require.NoError(t, os.WriteFile(mdFile, []byte("# Config\nport: 9000\n"), 0o600))
-	require.NoError(t, os.WriteFile(yamlFile, []byte("port: 9000\n"), 0o600))
+	require.NoError(t, os.WriteFile(mdFile, []byte("# Config\nport: 9000\n"), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(yamlFile, []byte("port: 9000\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
@@ -98,7 +99,7 @@ func TestCheckFile_WithLegacyPort(t *testing.T) {
 
 	// Port 9443 belongs to jose-ja range.
 	content := "package main\nconst tlsPort = 9443\n"
-	require.NoError(t, os.WriteFile(goFile, []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(goFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	violations := CheckFile(goFile, lintPortsCommon.AllLegacyPorts())
 	require.NotEmpty(t, violations, "Should find legacy port 9443")
@@ -116,7 +117,7 @@ func TestCheck_WithYamlExtension(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	yamlFile := filepath.Join(tmpDir, "config.yaml")
-	require.NoError(t, os.WriteFile(yamlFile, []byte("port: 9000\n"), 0o600))
+	require.NoError(t, os.WriteFile(yamlFile, []byte("port: 9000\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
@@ -135,7 +136,7 @@ func TestCheckFile_ParseUintOverflow(t *testing.T) {
 
 	// 99999 is 5 digits but > 65535 (uint16 max), triggering ParseUint error.
 	content := "package main\nconst bigPort = 99999\n"
-	require.NoError(t, os.WriteFile(goFile, []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(goFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	violations := CheckFile(goFile, lintPortsCommon.AllLegacyPorts())
 	require.Empty(t, violations, "99999 cannot be uint16, should be skipped")
@@ -152,7 +153,7 @@ func TestCheckFile_OtelPortSkipped(t *testing.T) {
 
 	// 4317 is an OTEL gRPC port that should be allowed in OTEL context.
 	content := "grpc_port: 4317\n"
-	require.NoError(t, os.WriteFile(otelFile, []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(otelFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	violations := CheckFile(otelFile, lintPortsCommon.AllLegacyPorts())
 	// 4317 is not a legacy port anyway, but this exercises the OTEL skip path.
@@ -180,7 +181,7 @@ func TestCheckFile_OtelPortInOtelContext(t *testing.T) {
 	otelFile := filepath.Join(otelDir, "config.yml")
 
 	content := "metrics_port: 8888\n"
-	require.NoError(t, os.WriteFile(otelFile, []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(otelFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	violations := CheckFile(otelFile, lintPortsCommon.AllLegacyPorts())
 	// 8888 is both an OTEL collector port AND a legacy sm-im port.

@@ -5,6 +5,7 @@
 package idp
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/base64"
 	"testing"
 
@@ -58,7 +59,7 @@ func TestGenerateClientSecretUniqueness(t *testing.T) {
 	// Generate multiple secrets and verify they're all unique.
 	secrets := make(map[string]bool)
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < cryptoutilSharedMagic.JoseJADefaultMaxMaterials; i++ {
 		plaintext, hashed, err := GenerateClientSecret()
 		testify.NoError(t, err)
 

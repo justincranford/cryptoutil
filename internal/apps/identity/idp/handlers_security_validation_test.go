@@ -6,6 +6,7 @@
 package idp_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	http "net/http"
@@ -47,8 +48,8 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 
 	// Create in-memory database.
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	// Create repository factory.
@@ -94,11 +95,11 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 	config := &cryptoutilIdentityConfig.Config{
 		Database: dbConfig,
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			AccessTokenLifetime: 3600 * time.Second,
+			AccessTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout * time.Second,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{
 			CookieName:      "identity_session",
-			SessionLifetime: 3600 * time.Second,
+			SessionLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout * time.Second,
 			CookieHTTPOnly:  true,
 		},
 		IDP: &cryptoutilIdentityConfig.ServerConfig{
@@ -132,13 +133,13 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 		ClientID:                testClientID,
 		ClientSecret:            testClientSecretHash,
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
-		RedirectURIs:            []string{"https://example.com/callback"},
-		AllowedScopes:           []string{"openid", "profile", "email"},
-		AllowedGrantTypes:       []string{"authorization_code"},
-		AllowedResponseTypes:    []string{"code"},
+		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
+		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail},
+		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
+		AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
 		RequirePKCE:             boolPtr(true),
-		PKCEChallengeMethod:     "S256",
+		PKCEChallengeMethod:     cryptoutilSharedMagic.PKCEMethodS256,
 		Enabled:                 boolPtr(true),
 		Name:                    "Test Client",
 		CreatedAt:               time.Now().UTC(),
@@ -182,12 +183,12 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 					ID:           googleUuid.Must(googleUuid.NewV7()),
 					ClientID:     testClient.ClientID,
 					RedirectURI:  testClient.RedirectURIs[0],
-					ResponseType: "code",
+					ResponseType: cryptoutilSharedMagic.ResponseTypeCode,
 					Scope:        "openid profile email",
 					State:        "test-state",
 					Nonce:        "test-nonce",
 					CreatedAt:    time.Now().UTC(),
-					ExpiresAt:    time.Now().UTC().Add(10 * time.Minute),
+					ExpiresAt:    time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
 				}
 
 				authzReqRepo := repoFactory.AuthorizationRequestRepository()
@@ -217,12 +218,12 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 					ID:           googleUuid.Must(googleUuid.NewV7()),
 					ClientID:     testClient.ClientID,
 					RedirectURI:  testClient.RedirectURIs[0],
-					ResponseType: "code",
+					ResponseType: cryptoutilSharedMagic.ResponseTypeCode,
 					Scope:        "openid profile email",
 					State:        "test-state",
 					Nonce:        "test-nonce",
 					CreatedAt:    time.Now().UTC(),
-					ExpiresAt:    time.Now().UTC().Add(10 * time.Minute),
+					ExpiresAt:    time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
 				}
 
 				authzReqRepo := repoFactory.AuthorizationRequestRepository()
@@ -252,12 +253,12 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 				maliciousRedirectURI := "https://example.com/callback\r\nSet-Cookie: malicious=true"
 
 				params := url.Values{}
-				params.Set("client_id", testClient.ClientID)
-				params.Set("redirect_uri", maliciousRedirectURI) // CRLF injection attempt
-				params.Set("response_type", "code")
-				params.Set("scope", "openid profile email")
-				params.Set("state", "test-state")
-				params.Set("nonce", "test-nonce")
+				params.Set(cryptoutilSharedMagic.ClaimClientID, testClient.ClientID)
+				params.Set(cryptoutilSharedMagic.ParamRedirectURI, maliciousRedirectURI) // CRLF injection attempt
+				params.Set(cryptoutilSharedMagic.ParamResponseType, cryptoutilSharedMagic.ResponseTypeCode)
+				params.Set(cryptoutilSharedMagic.ClaimScope, "openid profile email")
+				params.Set(cryptoutilSharedMagic.ParamState, "test-state")
+				params.Set(cryptoutilSharedMagic.ClaimNonce, "test-nonce")
 
 				req := httptest.NewRequest(
 					http.MethodGet,
@@ -277,12 +278,12 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 					ID:           googleUuid.Must(googleUuid.NewV7()),
 					ClientID:     testClient.ClientID,
 					RedirectURI:  testClient.RedirectURIs[0],
-					ResponseType: "code",
+					ResponseType: cryptoutilSharedMagic.ResponseTypeCode,
 					Scope:        "openid profile email",
 					State:        "test-state",
 					Nonce:        "test-nonce",
 					CreatedAt:    time.Now().UTC(),
-					ExpiresAt:    time.Now().UTC().Add(10 * time.Minute),
+					ExpiresAt:    time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
 				}
 
 				authzReqRepo := repoFactory.AuthorizationRequestRepository()

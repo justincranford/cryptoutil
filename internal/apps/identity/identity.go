@@ -5,6 +5,7 @@
 package identity
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"io"
 
 	cryptoutilAppsIdentityAuthz "cryptoutil/internal/apps/identity/authz"
@@ -30,17 +31,17 @@ const (
 func Identity(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	return cryptoutilTemplateCli.RouteProduct(
 		cryptoutilTemplateCli.ProductConfig{
-			ProductName: "identity",
+			ProductName: cryptoutilSharedMagic.IdentityProductName,
 			UsageText:   usageText,
 			VersionText: versionText,
 		},
 		args, stdin, stdout, stderr,
 		[]cryptoutilTemplateCli.ServiceEntry{
-			{Name: "authz", Handler: cryptoutilAppsIdentityAuthz.Authz},
-			{Name: "idp", Handler: cryptoutilAppsIdentityIdp.Idp},
+			{Name: cryptoutilSharedMagic.AuthzServiceName, Handler: cryptoutilAppsIdentityAuthz.Authz},
+			{Name: cryptoutilSharedMagic.IDPServiceName, Handler: cryptoutilAppsIdentityIdp.Idp},
 			{Name: "rp", Handler: cryptoutilAppsIdentityRp.Rp},
 			{Name: "rs", Handler: cryptoutilAppsIdentityRs.Rs},
-			{Name: "spa", Handler: cryptoutilAppsIdentitySpa.Spa},
+			{Name: cryptoutilSharedMagic.SPAServiceName, Handler: cryptoutilAppsIdentitySpa.Spa},
 		},
 	)
 }

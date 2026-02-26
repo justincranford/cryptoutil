@@ -3,6 +3,7 @@
 package handler
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	http "net/http"
 	"net/http/httptest"
@@ -25,14 +26,14 @@ func TestListCertificates_Pagination(t *testing.T) {
 	mockStorage := cryptoutilCAStorage.NewMemoryStore()
 
 	// Add 5 test certificates to storage.
-	for i := 1; i <= 5; i++ {
+	for i := 1; i <= cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries; i++ {
 		cert := &cryptoutilCAStorage.StoredCertificate{
 			ID:             googleUuid.New(),
 			SerialNumber:   googleUuid.NewString(),
 			SubjectDN:      "CN=test.example.com,O=Test Org",
 			IssuerDN:       "CN=Test CA,O=Test Org",
 			NotBefore:      time.Now().UTC().Add(-time.Hour),
-			NotAfter:       time.Now().UTC().Add(time.Hour * 24 * 365),
+			NotAfter:       time.Now().UTC().Add(time.Hour * cryptoutilSharedMagic.HoursPerDay * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year),
 			Status:         cryptoutilCAStorage.StatusActive,
 			ProfileID:      "tls-server",
 			CertificatePEM: "-----BEGIN CERTIFICATE-----\nMIIB...\n-----END CERTIFICATE-----",
@@ -47,7 +48,7 @@ func TestListCertificates_Pagination(t *testing.T) {
 		params := cryptoutilApiCaServer.ListCertificatesParams{}
 
 		// Parse page parameter.
-		if pageStr := c.Query("page"); pageStr != "" {
+		if pageStr := c.Query(cryptoutilSharedMagic.DisplayPage); pageStr != "" {
 			page := 2
 			params.Page = &page
 		}
@@ -107,7 +108,7 @@ func TestListCertificates_Filtering(t *testing.T) {
 		SubjectDN:      "CN=test1.example.com,O=Test Org",
 		IssuerDN:       "CN=Test CA,O=Test Org",
 		NotBefore:      time.Now().UTC().Add(-time.Hour),
-		NotAfter:       time.Now().UTC().Add(time.Hour * 24 * 365),
+		NotAfter:       time.Now().UTC().Add(time.Hour * cryptoutilSharedMagic.HoursPerDay * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year),
 		Status:         cryptoutilCAStorage.StatusActive,
 		ProfileID:      "tls-server",
 		CertificatePEM: "-----BEGIN CERTIFICATE-----\nMIIB...\n-----END CERTIFICATE-----",
@@ -121,7 +122,7 @@ func TestListCertificates_Filtering(t *testing.T) {
 		SubjectDN:      "CN=test2.example.com,O=Test Org",
 		IssuerDN:       "CN=Test CA,O=Test Org",
 		NotBefore:      time.Now().UTC().Add(-time.Hour),
-		NotAfter:       time.Now().UTC().Add(time.Hour * 24 * 365),
+		NotAfter:       time.Now().UTC().Add(time.Hour * cryptoutilSharedMagic.HoursPerDay * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year),
 		Status:         cryptoutilCAStorage.StatusRevoked,
 		ProfileID:      "tls-client",
 		CertificatePEM: "-----BEGIN CERTIFICATE-----\nMIIB...\n-----END CERTIFICATE-----",
@@ -135,12 +136,12 @@ func TestListCertificates_Filtering(t *testing.T) {
 		params := cryptoutilApiCaServer.ListCertificatesParams{}
 
 		// Parse profile parameter.
-		if profileStr := c.Query("profile"); profileStr != "" {
+		if profileStr := c.Query(cryptoutilSharedMagic.ClaimProfile); profileStr != "" {
 			params.Profile = &profileStr
 		}
 
 		// Parse status parameter.
-		if statusStr := c.Query("status"); statusStr != "" {
+		if statusStr := c.Query(cryptoutilSharedMagic.StringStatus); statusStr != "" {
 			status := cryptoutilApiCaServer.CertificateStatus(statusStr)
 			params.Status = &status
 		}

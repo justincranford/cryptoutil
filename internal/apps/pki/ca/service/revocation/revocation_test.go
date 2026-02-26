@@ -3,6 +3,7 @@
 package revocation
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/x509"
 	"encoding/pem"
 	"math/big"
@@ -32,7 +33,7 @@ func TestRevocationReason_String(t *testing.T) {
 		{"removeFromCRL", ReasonRemoveFromCRL, "removeFromCRL"},
 		{"privilegeWithdrawn", ReasonPrivilegeWithdrawn, "privilegeWithdrawn"},
 		{"aaCompromise", ReasonAACompromise, "aaCompromise"},
-		{"unknown", RevocationReason(100), "unknown"},
+		{"unknown", RevocationReason(cryptoutilSharedMagic.JoseJAMaxMaterials), "unknown"},
 	}
 
 	for _, tc := range tests {
@@ -99,7 +100,7 @@ func TestNewCRLService(t *testing.T) {
 				Issuer:     caCert,
 				PrivateKey: caKey,
 				Provider:   provider,
-				Validity:   24 * time.Hour,
+				Validity:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
 			},
 			wantErr: false,
 		},
@@ -133,7 +134,7 @@ func TestCRLService_Revoke(t *testing.T) {
 		Issuer:     caCert,
 		PrivateKey: caKey,
 		Provider:   provider,
-		Validity:   24 * time.Hour,
+		Validity:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 
 	svc, err := NewCRLService(config)
@@ -165,7 +166,7 @@ func TestCRLService_IsRevoked(t *testing.T) {
 		Issuer:     caCert,
 		PrivateKey: caKey,
 		Provider:   provider,
-		Validity:   24 * time.Hour,
+		Validity:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 
 	svc, err := NewCRLService(config)
@@ -200,7 +201,7 @@ func TestCRLService_GenerateCRL(t *testing.T) {
 		Issuer:           caCert,
 		PrivateKey:       caKey,
 		Provider:         provider,
-		Validity:         24 * time.Hour,
+		Validity:         cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		NextUpdateBuffer: time.Hour,
 	}
 
@@ -235,7 +236,7 @@ func TestCRLService_GenerateCRLPEM(t *testing.T) {
 		Issuer:     caCert,
 		PrivateKey: caKey,
 		Provider:   provider,
-		Validity:   24 * time.Hour,
+		Validity:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 
 	svc, err := NewCRLService(config)

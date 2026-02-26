@@ -3,6 +3,7 @@
 package server
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 
 	fiber "github.com/gofiber/fiber/v2"
@@ -37,13 +38,13 @@ func (s *PublicServer) registerRoutes() error {
 
 	// Health endpoints (no auth required).
 	app.Get("/health", s.handleHealth)
-	app.Get("/livez", s.handleLivez)
-	app.Get("/readyz", s.handleReadyz)
+	app.Get(cryptoutilSharedMagic.PrivateAdminLivezRequestPath, s.handleLivez)
+	app.Get(cryptoutilSharedMagic.PrivateAdminReadyzRequestPath, s.handleReadyz)
 
 	// OIDC Discovery endpoints.
 	if s.cfg.EnableDiscovery {
-		app.Get("/.well-known/openid-configuration", s.handleOpenIDConfiguration)
-		app.Get("/.well-known/jwks.json", s.handleJWKS)
+		app.Get(cryptoutilSharedMagic.PathDiscovery, s.handleOpenIDConfiguration)
+		app.Get(cryptoutilSharedMagic.PathJWKS, s.handleJWKS)
 	}
 
 	// OAuth 2.1 Authorization Server endpoints.
@@ -63,8 +64,8 @@ func (s *PublicServer) registerRoutes() error {
 // handleHealth returns server health status.
 func (s *PublicServer) handleHealth(c *fiber.Ctx) error {
 	if err := c.JSON(fiber.Map{
-		"status": "healthy",
-		"time":   c.Context().Time().UTC().Format("2006-01-02T15:04:05Z"),
+		cryptoutilSharedMagic.StringStatus: cryptoutilSharedMagic.DockerServiceHealthHealthy,
+		"time":   c.Context().Time().UTC().Format(cryptoutilSharedMagic.StringUTCFormat),
 	}); err != nil {
 		return fmt.Errorf("failed to send health response: %w", err)
 	}
@@ -134,53 +135,53 @@ func (s *PublicServer) handleOpenIDConfiguration(c *fiber.Ctx) error {
 		"authorization_endpoint": s.cfg.Issuer + "/service/api/v1/oauth/authorize",
 		"token_endpoint":         s.cfg.Issuer + "/service/api/v1/oauth/token",
 		"userinfo_endpoint":      s.cfg.Issuer + "/service/api/v1/userinfo",
-		"jwks_uri":               s.cfg.Issuer + "/.well-known/jwks.json",
+		"jwks_uri":               s.cfg.Issuer + cryptoutilSharedMagic.PathJWKS,
 		"revocation_endpoint":    s.cfg.Issuer + "/service/api/v1/oauth/revoke",
 		"introspection_endpoint": s.cfg.Issuer + "/service/api/v1/oauth/introspect",
 		"response_types_supported": []string{
-			"code",
-			"token",
-			"id_token",
+			cryptoutilSharedMagic.ResponseTypeCode,
+			cryptoutilSharedMagic.ParamToken,
+			cryptoutilSharedMagic.ParamIDToken,
 			"code token",
 			"code id_token",
 			"token id_token",
 			"code token id_token",
 		},
 		"grant_types_supported": []string{
-			"authorization_code",
-			"refresh_token",
-			"client_credentials",
+			cryptoutilSharedMagic.GrantTypeAuthorizationCode,
+			cryptoutilSharedMagic.GrantTypeRefreshToken,
+			cryptoutilSharedMagic.GrantTypeClientCredentials,
 		},
-		"subject_types_supported": []string{"public"},
+		"subject_types_supported": []string{cryptoutilSharedMagic.SubjectTypePublic},
 		"id_token_signing_alg_values_supported": []string{
-			"RS256",
-			"RS384",
-			"RS512",
-			"ES256",
-			"ES384",
-			"ES512",
+			cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+			cryptoutilSharedMagic.JoseAlgRS384,
+			cryptoutilSharedMagic.JoseAlgRS512,
+			cryptoutilSharedMagic.JoseAlgES256,
+			cryptoutilSharedMagic.JoseAlgES384,
+			cryptoutilSharedMagic.JoseAlgES512,
 		},
 		"scopes_supported": []string{
-			"openid",
-			"profile",
-			"email",
-			"offline_access",
+			cryptoutilSharedMagic.ScopeOpenID,
+			cryptoutilSharedMagic.ClaimProfile,
+			cryptoutilSharedMagic.ClaimEmail,
+			cryptoutilSharedMagic.ScopeOfflineAccess,
 		},
 		"token_endpoint_auth_methods_supported": []string{
-			"client_secret_basic",
-			"client_secret_post",
-			"private_key_jwt",
+			cryptoutilSharedMagic.ClientAuthMethodSecretBasic,
+			cryptoutilSharedMagic.ClientAuthMethodSecretPost,
+			cryptoutilSharedMagic.ClientAuthMethodPrivateKeyJWT,
 		},
 		"claims_supported": []string{
-			"sub",
-			"iss",
-			"aud",
-			"exp",
-			"iat",
-			"auth_time",
-			"name",
-			"email",
-			"email_verified",
+			cryptoutilSharedMagic.ClaimSub,
+			cryptoutilSharedMagic.ClaimIss,
+			cryptoutilSharedMagic.ClaimAud,
+			cryptoutilSharedMagic.ClaimExp,
+			cryptoutilSharedMagic.ClaimIat,
+			cryptoutilSharedMagic.ClaimAuthTime,
+			cryptoutilSharedMagic.ClaimName,
+			cryptoutilSharedMagic.ClaimEmail,
+			cryptoutilSharedMagic.ClaimEmailVerified,
 		},
 	}
 

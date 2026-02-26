@@ -57,7 +57,7 @@ client := &http.Client{
 Transport: &http.Transport{
 TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //nolint:gosec // Self-signed cert in test.
 },
-Timeout: 5 * time.Second,
+Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 }
 
 return server, client, port, cancel, &wg

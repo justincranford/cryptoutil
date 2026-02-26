@@ -15,6 +15,7 @@
 package service
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	json "encoding/json"
 	"testing"
 
@@ -225,7 +226,7 @@ func TestParseRealmConfig_VerifyConfigValues(t *testing.T) {
 
 	// Test UsernamePasswordConfig with specific values.
 	config := &UsernamePasswordConfig{
-		MinPasswordLength: 12,
+		MinPasswordLength: cryptoutilSharedMagic.HashPrefixLength,
 		RequireUppercase:  true,
 		RequireLowercase:  true,
 		RequireDigit:      true,
@@ -241,7 +242,7 @@ func TestParseRealmConfig_VerifyConfigValues(t *testing.T) {
 
 	upConfig, ok := parsed.(*UsernamePasswordConfig)
 	require.True(t, ok)
-	require.Equal(t, 12, upConfig.MinPasswordLength)
+	require.Equal(t, cryptoutilSharedMagic.HashPrefixLength, upConfig.MinPasswordLength)
 	require.True(t, upConfig.RequireUppercase)
 	require.True(t, upConfig.RequireLowercase)
 	require.True(t, upConfig.RequireDigit)

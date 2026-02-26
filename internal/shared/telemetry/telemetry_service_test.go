@@ -5,6 +5,7 @@
 package telemetry
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	crand "crypto/rand"
 	"fmt"
@@ -50,29 +51,29 @@ func TestMetric(t *testing.T) {
 		exampleMetricCounter.Add(testCtx, -2)
 		exampleMetricCounter.Add(testCtx, 4)
 	} else {
-		testTelemetryService.Slogger.Error("metric failed", "error", fmt.Errorf("metric error: %w", err))
+		testTelemetryService.Slogger.Error("metric failed", cryptoutilSharedMagic.StringError, fmt.Errorf("metric error: %w", err))
 	}
 
 	exampleMetricHistogram, err := exampleMetricsScope.Int64Histogram("example-histogram")
 	if err == nil {
 		// Generate cryptographically secure random numbers for histogram test data
-		val1, err := crand.Int(crand.Reader, big.NewInt(100))
+		val1, err := crand.Int(crand.Reader, big.NewInt(cryptoutilSharedMagic.JoseJAMaxMaterials))
 		if err != nil {
-			testTelemetryService.Slogger.Error("random generation failed", "error", err)
+			testTelemetryService.Slogger.Error("random generation failed", cryptoutilSharedMagic.StringError, err)
 
 			return
 		}
 
-		val2, err := crand.Int(crand.Reader, big.NewInt(100))
+		val2, err := crand.Int(crand.Reader, big.NewInt(cryptoutilSharedMagic.JoseJAMaxMaterials))
 		if err != nil {
-			testTelemetryService.Slogger.Error("random generation failed", "error", err)
+			testTelemetryService.Slogger.Error("random generation failed", cryptoutilSharedMagic.StringError, err)
 
 			return
 		}
 
-		val3, err := crand.Int(crand.Reader, big.NewInt(100))
+		val3, err := crand.Int(crand.Reader, big.NewInt(cryptoutilSharedMagic.JoseJAMaxMaterials))
 		if err != nil {
-			testTelemetryService.Slogger.Error("random generation failed", "error", err)
+			testTelemetryService.Slogger.Error("random generation failed", cryptoutilSharedMagic.StringError, err)
 
 			return
 		}
@@ -81,7 +82,7 @@ func TestMetric(t *testing.T) {
 		exampleMetricHistogram.Record(testCtx, val2.Int64())
 		exampleMetricHistogram.Record(testCtx, val3.Int64())
 	} else {
-		testTelemetryService.Slogger.Error("metric failed", "error", fmt.Errorf("metric error: %w", err))
+		testTelemetryService.Slogger.Error("metric failed", cryptoutilSharedMagic.StringError, fmt.Errorf("metric error: %w", err))
 	}
 }
 
@@ -94,21 +95,21 @@ func TestTrace(t *testing.T) {
 	// simulate time spent in parent function, before calling child 1 function
 	exampleParentSpanContext, exampleParentSpan := exampleTrace.Start(testCtx, "example-parent-span")
 
-	time.Sleep(5 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Millisecond)
 	exampleParentSpan.End()
 	testTelemetryService.Slogger.Info("exampleParentSpan", "testCtx", exampleParentSpanContext, "span", exampleParentSpan)
 
 	// simulate time spent in child 1 function
 	exampleChildSpanContext1, exampleChildSpan1 := exampleTrace.Start(exampleParentSpanContext, "example-child-span-1")
 
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond)
 
 	defer exampleChildSpan1.End()
 
 	testTelemetryService.Slogger.Info("exampleChildSpan1", "testCtx", exampleChildSpanContext1, "span", exampleChildSpan1)
 
 	// simulate time spent in parent function, before calling child 2 function
-	time.Sleep(5 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Millisecond)
 
 	// simulate time spent in child 2 function
 	exampleChildSpanContext2, exampleChildSpan2 := exampleTrace.Start(exampleParentSpanContext, "example-child-span-2")
@@ -120,5 +121,5 @@ func TestTrace(t *testing.T) {
 	testTelemetryService.Slogger.Info("exampleChildSpan2", "testCtx", exampleChildSpanContext2, "span", exampleChildSpan2)
 
 	// simulate time spent in parent function, before returning
-	time.Sleep(5 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Millisecond)
 }

@@ -3,6 +3,7 @@
 package authz_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	json "encoding/json"
 	"fmt"
@@ -81,7 +82,7 @@ func TestHandleListMFAFactors_InvalidUserID(t *testing.T) {
 	var errResp map[string]any
 
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&errResp))
-	require.Equal(t, "invalid_request", errResp["error"])
+	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidRequest, errResp[cryptoutilSharedMagic.StringError])
 	require.Contains(t, errResp["error_description"], "invalid user_id format")
 }
 
@@ -183,7 +184,7 @@ func TestHandleDeleteMFAFactor_FactorNotFound(t *testing.T) {
 	var errResp map[string]any
 
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&errResp))
-	require.Equal(t, "factor_not_found", errResp["error"])
+	require.Equal(t, "factor_not_found", errResp[cryptoutilSharedMagic.StringError])
 }
 
 // TestHandleDeleteMFAFactor_Unauthorized tests deletion when factor doesn't belong to user.
@@ -257,6 +258,6 @@ func TestHandleDeleteMFAFactor_Unauthorized(t *testing.T) {
 	var errResp map[string]any
 
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&errResp))
-	require.Equal(t, "unauthorized", errResp["error"])
+	require.Equal(t, "unauthorized", errResp[cryptoutilSharedMagic.StringError])
 	require.Contains(t, errResp["error_description"], "does not belong to specified user")
 }

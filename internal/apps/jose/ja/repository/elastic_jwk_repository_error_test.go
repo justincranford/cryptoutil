@@ -4,6 +4,7 @@
 package repository
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -92,7 +93,7 @@ func TestElasticJWKRepository_ListPaginationBoundary(t *testing.T) {
 		{
 			name:      "negative offset",
 			offset:    -1,
-			limit:     10,
+			limit:     cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 			wantError: false, // GORM treats as 0.
 		},
 		{

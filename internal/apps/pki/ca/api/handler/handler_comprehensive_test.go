@@ -3,6 +3,7 @@
 package handler
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"net"
 	"net/url"
 	"testing"
@@ -39,7 +40,7 @@ func createTestIssuer(t *testing.T) *testIssuerSetup {
 			Type:       cryptoutilCACrypto.KeyTypeECDSA,
 			ECDSACurve: "P-256",
 		},
-		ValidityDuration:  20 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.MaxErrorDisplay * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 2,
 	}
 
@@ -54,7 +55,7 @@ func createTestIssuer(t *testing.T) *testIssuerSetup {
 			Type:       cryptoutilCACrypto.KeyTypeECDSA,
 			ECDSACurve: "P-256",
 		},
-		ValidityDuration:  10 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 0,
 		IssuerCertificate: rootCA.Certificate,
 		IssuerPrivateKey:  rootCA.PrivateKey,
@@ -90,7 +91,7 @@ func TestMapCategory(t *testing.T) {
 		expected cryptoutilApiCaServer.ProfileSummaryCategory
 	}{
 		{"tls", "tls", cryptoutilApiCaServer.TLS},
-		{"email", "email", cryptoutilApiCaServer.Email},
+		{cryptoutilSharedMagic.ClaimEmail, cryptoutilSharedMagic.ClaimEmail, cryptoutilApiCaServer.Email},
 		{"code_signing", "code_signing", cryptoutilApiCaServer.CodeSigning},
 		{"document_signing", "document_signing", cryptoutilApiCaServer.DocumentSigning},
 		{"ca", "ca", cryptoutilApiCaServer.CA},
@@ -367,8 +368,8 @@ func TestIpsToStrings(t *testing.T) {
 		},
 		{
 			name:     "ipv6_address",
-			input:    []net.IP{net.ParseIP("::1")},
-			expected: []string{"::1"},
+			input:    []net.IP{net.ParseIP(cryptoutilSharedMagic.IPv6Loopback)},
+			expected: []string{cryptoutilSharedMagic.IPv6Loopback},
 		},
 	}
 

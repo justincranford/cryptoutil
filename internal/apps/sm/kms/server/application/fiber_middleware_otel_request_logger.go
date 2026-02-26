@@ -5,6 +5,7 @@
 package application
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"log/slog"
 	"time"
@@ -83,7 +84,7 @@ func commonOtelFiberRequestLoggerMiddleware(telemetryService *cryptoutilSharedTe
 		spanID := spanContext.SpanID().String()
 		args := []any{
 			// Response details (now available after processing)
-			slog.Int("status", statusCode),
+			slog.Int(cryptoutilSharedMagic.StringStatus, statusCode),
 			slog.Duration("duration", duration),
 
 			// Request size details
@@ -124,12 +125,12 @@ func commonOtelFiberRequestLoggerMiddleware(telemetryService *cryptoutilSharedTe
 
 		// Add query string if present
 		if len(queryString) > 0 {
-			args = append(args, slog.String("query", string(queryString)))
+			args = append(args, slog.String(cryptoutilSharedMagic.ResponseModeQuery, string(queryString)))
 		}
 
 		// Add error information if request processing failed
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.String(cryptoutilSharedMagic.StringError, err.Error()))
 		}
 
 		// Log the complete request/response details

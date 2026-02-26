@@ -35,11 +35,11 @@ var (
 	testCtx               = context.Background()
 	testTelemetryService  *cryptoutilSharedTelemetry.TelemetryService
 
-	happyPathWorkers             = []uint32{1, 3, 10}
-	happyPathSize                = []uint32{1, 4, 20}
-	happyPathMaxLifetimeValues   = []uint64{1, 50, cryptoutilSharedMagic.MaxPoolLifetimeValues}
+	happyPathWorkers             = []uint32{1, 3, cryptoutilSharedMagic.JoseJADefaultMaxMaterials}
+	happyPathSize                = []uint32{1, 4, cryptoutilSharedMagic.MaxErrorDisplay}
+	happyPathMaxLifetimeValues   = []uint64{1, cryptoutilSharedMagic.IMMaxUsernameLength, cryptoutilSharedMagic.MaxPoolLifetimeValues}
 	happyPathMaxLifetimeDuration = []time.Duration{cryptoutilSharedMagic.MaxPoolLifetimeDuration}
-	happyPathGets                = []uint64{0, 1, 4, 50}
+	happyPathGets                = []uint64{0, 1, 4, cryptoutilSharedMagic.IMMaxUsernameLength}
 
 	happyPathTestCases = func() []*TestCase {
 		testCases := make([]*TestCase, 0, len(happyPathWorkers)*len(happyPathSize)*len(happyPathMaxLifetimeValues)*len(happyPathMaxLifetimeDuration)*len(happyPathGets))
@@ -126,7 +126,7 @@ func TestName(t *testing.T) {
 	t.Parallel()
 
 	poolName := "TestNamePool"
-	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, poolName, 1, 1, 10, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
+	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, poolName, 1, 1, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
 	require.NoError(t, err)
 	require.NotNil(t, poolInstance)
 
@@ -147,14 +147,14 @@ func TestGetMany(t *testing.T) {
 		{name: "get zero values", numValues: 0, expectLen: 0},
 		{name: "get negative values", numValues: -1, expectLen: 0},
 		{name: "get one value", numValues: 1, expectLen: 1},
-		{name: "get five values", numValues: 5, expectLen: 5},
+		{name: "get five values", numValues: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, expectLen: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, 2, 10, 100, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
+			poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, 2, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cryptoutilSharedMagic.JoseJAMaxMaterials, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
 			require.NoError(t, err)
 			require.NotNil(t, poolInstance)
 
@@ -178,7 +178,7 @@ func TestGetMany(t *testing.T) {
 func TestGetManyCanceled(t *testing.T) {
 	t.Parallel()
 
-	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "GetManyCanceled", 1, 2, 100, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
+	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "GetManyCanceled", 1, 2, cryptoutilSharedMagic.JoseJAMaxMaterials, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
 	require.NoError(t, err)
 	require.NotNil(t, poolInstance)
 
@@ -190,8 +190,8 @@ func TestGetManyCanceled(t *testing.T) {
 	poolInstance.Cancel()
 
 	// GetMany should return partial/empty results after cancel
-	values = poolInstance.GetMany(5)
-	require.True(t, len(values) < 5) // Should get fewer values due to cancel
+	values = poolInstance.GetMany(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+	require.True(t, len(values) < cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries) // Should get fewer values due to cancel
 }
 
 // TestCancelNotNil tests the CancelNotNil utility function.
@@ -202,7 +202,7 @@ func TestCancelNotNil(t *testing.T) {
 	CancelNotNil[any](nil)
 
 	// Test with real pool
-	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "CancelNotNil", 1, 1, 10, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
+	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "CancelNotNil", 1, 1, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
 	require.NoError(t, err)
 	require.NotNil(t, poolInstance)
 
@@ -218,10 +218,10 @@ func TestCancelAllNotNil(t *testing.T) {
 	t.Parallel()
 
 	// Create multiple pools with the same type (*uuid.UUID)
-	pool1, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "CancelAll1", 1, 1, 10, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
+	pool1, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "CancelAll1", 1, 1, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
 	require.NoError(t, err)
 
-	pool2, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "CancelAll2", 1, 1, 10, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
+	pool2, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "CancelAll2", 1, 1, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
 	require.NoError(t, err)
 
 	// Include nil in the slice - note: must use same type *googleUuid.UUID
@@ -239,7 +239,7 @@ func TestCancelAllNotNil(t *testing.T) {
 func TestCancelIdempotent(t *testing.T) {
 	t.Parallel()
 
-	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "CancelIdempotent", 1, 1, 10, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
+	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "CancelIdempotent", 1, 1, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
 	require.NoError(t, err)
 	require.NotNil(t, poolInstance)
 
@@ -258,7 +258,7 @@ func TestValidateConfig_NilContext(t *testing.T) {
 	t.Parallel()
 
 	//nolint:staticcheck // SA1012: intentionally passing nil context to test validation
-	_, err := NewValueGenPool(NewValueGenPoolConfig(nil, testTelemetryService, "test", 1, 1, 10, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
+	_, err := NewValueGenPool(NewValueGenPoolConfig(nil, testTelemetryService, "test", 1, 1, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "context can't be nil")
 }
@@ -267,7 +267,7 @@ func TestValidateConfig_NilContext(t *testing.T) {
 func TestValidateConfig_NilTelemetry(t *testing.T) {
 	t.Parallel()
 
-	_, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, nil, "test", 1, 1, 10, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
+	_, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, nil, "test", 1, 1, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "telemetry service can't be nil")
 }
@@ -276,7 +276,7 @@ func TestValidateConfig_NilTelemetry(t *testing.T) {
 func TestValidateConfig_EmptyPoolName(t *testing.T) {
 	t.Parallel()
 
-	_, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "", 1, 1, 10, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
+	_, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "", 1, 1, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "name can't be empty")
 }
@@ -285,7 +285,7 @@ func TestValidateConfig_EmptyPoolName(t *testing.T) {
 func TestValidateConfig_ZeroWorkers(t *testing.T) {
 	t.Parallel()
 
-	_, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "test", 0, 1, 10, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
+	_, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "test", 0, 1, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "number of workers can't be 0")
 }
@@ -294,7 +294,7 @@ func TestValidateConfig_ZeroWorkers(t *testing.T) {
 func TestValidateConfig_ZeroPoolSize(t *testing.T) {
 	t.Parallel()
 
-	_, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "test", 1, 0, 10, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
+	_, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "test", 1, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "pool size can't be 0")
 }
@@ -312,7 +312,7 @@ func TestValidateConfig_ZeroMaxValues(t *testing.T) {
 func TestValidateConfig_ZeroMaxDuration(t *testing.T) {
 	t.Parallel()
 
-	_, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "test", 1, 1, 10, 0, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
+	_, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "test", 1, 1, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 0, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "max lifetime duration must be positive")
 }
@@ -321,7 +321,7 @@ func TestValidateConfig_ZeroMaxDuration(t *testing.T) {
 func TestValidateConfig_NegativeMaxDuration(t *testing.T) {
 	t.Parallel()
 
-	_, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "test", 1, 1, 10, -time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
+	_, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "test", 1, 1, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, -time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "max lifetime duration must be positive")
 }
@@ -330,7 +330,7 @@ func TestValidateConfig_NegativeMaxDuration(t *testing.T) {
 func TestValidateConfig_WorkersGreaterThanPoolSize(t *testing.T) {
 	t.Parallel()
 
-	_, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "test", 5, 2, 10, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
+	_, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "test", cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, 2, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "number of workers can't be greater than pool size")
 }
@@ -339,7 +339,7 @@ func TestValidateConfig_WorkersGreaterThanPoolSize(t *testing.T) {
 func TestValidateConfig_PoolSizeGreaterThanMaxValues(t *testing.T) {
 	t.Parallel()
 
-	_, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "test", 1, 20, 10, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
+	_, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "test", 1, cryptoutilSharedMagic.MaxErrorDisplay, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "pool size can't be greater than max lifetime values")
 }
@@ -351,7 +351,7 @@ func TestValidateConfig_NilGenerateFunction(t *testing.T) {
 	// Need to provide a typed nil function since Go can't infer T from nil
 	var nilGenFunc func() (*googleUuid.UUID, error)
 
-	_, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "test", 1, 1, 10, time.Second, nilGenFunc, false))
+	_, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "test", 1, 1, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, time.Second, nilGenFunc, false))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "generate function can't be nil")
 }
@@ -362,7 +362,7 @@ func TestNewValueGenPoolConfigError(t *testing.T) {
 
 	// Create a config that returns an error (nil context)
 	//nolint:staticcheck // SA1012: intentionally passing nil context to test error propagation
-	cfg, err := NewValueGenPoolConfig(nil, testTelemetryService, "test", 1, 1, 10, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false)
+	cfg, err := NewValueGenPoolConfig(nil, testTelemetryService, "test", 1, 1, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false)
 	require.Error(t, err)
 	require.Nil(t, cfg)
 
@@ -377,7 +377,7 @@ func TestNewValueGenPoolConfigError(t *testing.T) {
 func TestVerboseMode(t *testing.T) {
 	t.Parallel()
 
-	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "VerbosePool", 2, 5, 20, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), true))
+	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "VerbosePool", 2, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, cryptoutilSharedMagic.MaxErrorDisplay, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), true))
 	require.NoError(t, err)
 	require.NotNil(t, poolInstance)
 
@@ -397,7 +397,7 @@ func TestVerboseMode(t *testing.T) {
 func TestConcurrentGetOperations(t *testing.T) {
 	t.Parallel()
 
-	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "ConcurrentGet", 4, 10, 100, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
+	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "ConcurrentGet", 4, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cryptoutilSharedMagic.JoseJAMaxMaterials, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
 	require.NoError(t, err)
 	require.NotNil(t, poolInstance)
 
@@ -407,8 +407,8 @@ func TestConcurrentGetOperations(t *testing.T) {
 
 	var successCount atomic.Int64
 
-	numGoroutines := 10
-	getsPerGoroutine := 5
+	numGoroutines := cryptoutilSharedMagic.JoseJADefaultMaxMaterials
+	getsPerGoroutine := cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries
 
 	for range numGoroutines {
 		wg.Add(1)
@@ -433,8 +433,8 @@ func TestConcurrentGetOperations(t *testing.T) {
 func TestMaxLifetimeValuesLimit(t *testing.T) {
 	t.Parallel()
 
-	maxValues := uint64(5)
-	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "MaxValuesLimit", 2, 3, maxValues, time.Second*30, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
+	maxValues := uint64(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "MaxValuesLimit", 2, 3, maxValues, time.Second*cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
 	require.NoError(t, err)
 	require.NotNil(t, poolInstance)
 
@@ -443,7 +443,7 @@ func TestMaxLifetimeValuesLimit(t *testing.T) {
 	// Get all available values
 	var gotCount int
 
-	for range int(maxValues) + 5 { // Try to get more than maxValues
+	for range int(maxValues) + cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries { // Try to get more than maxValues
 		value := poolInstance.Get()
 		if value != nil {
 			gotCount++
@@ -464,7 +464,7 @@ func TestMaxLifetimeDurationLimit(t *testing.T) {
 
 	// Use a short duration (100ms) that will expire before the maintenance check
 	// Pool size 2 means up to 2 buffered values
-	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "MaxDurationLimit", 1, 2, 1000, 100*time.Millisecond, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
+	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "MaxDurationLimit", 1, 2, cryptoutilSharedMagic.JoseJADefaultListLimit, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
 	require.NoError(t, err)
 	require.NotNil(t, poolInstance)
 
@@ -479,7 +479,7 @@ func TestMaxLifetimeDurationLimit(t *testing.T) {
 
 	// After pool is cancelled due to time limit, drain any buffered values
 	// and then Get should return zero value
-	for range 10 { // More than pool size to ensure we exhaust buffer
+	for range cryptoutilSharedMagic.JoseJADefaultMaxMaterials { // More than pool size to ensure we exhaust buffer
 		value := poolInstance.Get()
 		if value == nil {
 			// Got zero value, which is expected after pool is cancelled and buffer is empty

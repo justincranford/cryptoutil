@@ -3,6 +3,7 @@
 package handler
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	http "net/http"
 	"net/http/httptest"
@@ -25,7 +26,7 @@ func TestGetEnrollmentStatus_WithCertificate(t *testing.T) {
 	storage := cryptoutilCAStorage.NewMemoryStore()
 
 	// Create tracker and track an issued enrollment.
-	tracker := newEnrollmentTracker(100)
+	tracker := newEnrollmentTracker(cryptoutilSharedMagic.JoseJAMaxMaterials)
 	requestID := googleUuid.New()
 	serialNumber := googleUuid.NewString()
 	tracker.track(requestID, cryptoutilApiCaServer.EnrollmentStatusResponseStatusIssued, serialNumber)
@@ -37,7 +38,7 @@ func TestGetEnrollmentStatus_WithCertificate(t *testing.T) {
 		SubjectDN:      "CN=test.example.com",
 		IssuerDN:       "CN=Test CA",
 		NotBefore:      time.Now().UTC().Add(-time.Hour),
-		NotAfter:       time.Now().UTC().Add(time.Hour * 24 * 365),
+		NotAfter:       time.Now().UTC().Add(time.Hour * cryptoutilSharedMagic.HoursPerDay * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year),
 		Status:         cryptoutilCAStorage.StatusActive,
 		ProfileID:      "tls-server",
 		CertificatePEM: "-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----",
@@ -55,7 +56,7 @@ func TestGetEnrollmentStatus_WithCertificate(t *testing.T) {
 
 		id, parseErr := googleUuid.Parse(idStr)
 		if parseErr != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request ID"})
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "invalid request ID"})
 		}
 
 		return handler.GetEnrollmentStatus(c, id)
@@ -78,7 +79,7 @@ func TestGetEnrollmentStatus_IssuedNoCertificate(t *testing.T) {
 	storage := cryptoutilCAStorage.NewMemoryStore()
 
 	// Create tracker and track an issued enrollment with non-existent serial.
-	tracker := newEnrollmentTracker(100)
+	tracker := newEnrollmentTracker(cryptoutilSharedMagic.JoseJAMaxMaterials)
 	requestID := googleUuid.New()
 	tracker.track(requestID, cryptoutilApiCaServer.EnrollmentStatusResponseStatusIssued, "NONEXISTENT")
 
@@ -92,7 +93,7 @@ func TestGetEnrollmentStatus_IssuedNoCertificate(t *testing.T) {
 
 		id, parseErr := googleUuid.Parse(idStr)
 		if parseErr != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request ID"})
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "invalid request ID"})
 		}
 
 		return handler.GetEnrollmentStatus(c, id)
@@ -116,7 +117,7 @@ func TestGetEnrollmentStatus_Pending(t *testing.T) {
 	storage := cryptoutilCAStorage.NewMemoryStore()
 
 	// Create tracker and track a pending enrollment.
-	tracker := newEnrollmentTracker(100)
+	tracker := newEnrollmentTracker(cryptoutilSharedMagic.JoseJAMaxMaterials)
 	requestID := googleUuid.New()
 	tracker.track(requestID, cryptoutilApiCaServer.EnrollmentStatusResponseStatusPending, "")
 
@@ -130,7 +131,7 @@ func TestGetEnrollmentStatus_Pending(t *testing.T) {
 
 		id, parseErr := googleUuid.Parse(idStr)
 		if parseErr != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request ID"})
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "invalid request ID"})
 		}
 
 		return handler.GetEnrollmentStatus(c, id)
@@ -160,7 +161,7 @@ func TestGetCertificateChain_Success(t *testing.T) {
 		SubjectDN:      "CN=test.example.com,O=Test Org,C=US",
 		IssuerDN:       "CN=Test CA,O=Test Org,C=US",
 		NotBefore:      time.Now().UTC().Add(-time.Hour),
-		NotAfter:       time.Now().UTC().Add(time.Hour * 24 * 365),
+		NotAfter:       time.Now().UTC().Add(time.Hour * cryptoutilSharedMagic.HoursPerDay * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year),
 		Status:         cryptoutilCAStorage.StatusActive,
 		ProfileID:      "tls-server",
 		CertificatePEM: "-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----",

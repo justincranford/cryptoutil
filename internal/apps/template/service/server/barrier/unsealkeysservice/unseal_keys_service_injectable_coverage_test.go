@@ -39,7 +39,7 @@ func (f *failingSysInfoProvider) CPUInfo() (string, string, string, string, erro
 
 func (f *failingSysInfoProvider) RAMSize() (uint64, error) { return 0, nil }
 
-func (f *failingSysInfoProvider) OSHostname() (string, error) { return "localhost", nil }
+func (f *failingSysInfoProvider) OSHostname() (string, error) { return cryptoutilSharedMagic.DefaultOTLPHostnameDefault, nil }
 
 func (f *failingSysInfoProvider) HostID() (string, error) { return "host-id", nil }
 

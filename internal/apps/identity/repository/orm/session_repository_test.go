@@ -5,6 +5,7 @@
 package orm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -33,12 +34,12 @@ func TestSessionRepository_Create(t *testing.T) {
 		IPAddress:             "192.168.1.100",
 		UserAgent:             "Mozilla/5.0",
 		IssuedAt:              time.Now().UTC(),
-		ExpiresAt:             time.Now().UTC().Add(24 * time.Hour),
+		ExpiresAt:             time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		LastSeenAt:            time.Now().UTC(),
 		Active:                &active,
-		AuthenticationMethods: []string{"password", "totp"},
+		AuthenticationMethods: []string{"password", cryptoutilSharedMagic.MFATypeTOTP},
 		AuthenticationTime:    time.Now().UTC(),
-		GrantedScopes:         []string{"openid", "profile"},
+		GrantedScopes:         []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 	}
 
 	err := repo.Create(context.Background(), session)
@@ -84,9 +85,9 @@ func TestSessionRepository_GetBySessionID(t *testing.T) {
 				session := &cryptoutilIdentityDomain.Session{
 					SessionID:  "test-session-123",
 					UserID:     userID,
-					IPAddress:  "127.0.0.1",
+					IPAddress:  cryptoutilSharedMagic.IPv4Loopback,
 					IssuedAt:   time.Now().UTC(),
-					ExpiresAt:  time.Now().UTC().Add(24 * time.Hour),
+					ExpiresAt:  time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour),
 					LastSeenAt: time.Now().UTC(),
 					Active:     boolPtr(true),
 				}
@@ -133,9 +134,9 @@ func TestSessionRepository_Update(t *testing.T) {
 	session := &cryptoutilIdentityDomain.Session{
 		SessionID:  "update-session",
 		UserID:     userID,
-		IPAddress:  "127.0.0.1",
+		IPAddress:  cryptoutilSharedMagic.IPv4Loopback,
 		IssuedAt:   time.Now().UTC(),
-		ExpiresAt:  time.Now().UTC().Add(24 * time.Hour),
+		ExpiresAt:  time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		LastSeenAt: time.Now().UTC(),
 		Active:     boolPtr(true),
 	}
@@ -163,9 +164,9 @@ func TestSessionRepository_Delete(t *testing.T) {
 	session := &cryptoutilIdentityDomain.Session{
 		SessionID:  "delete-session",
 		UserID:     userID,
-		IPAddress:  "127.0.0.1",
+		IPAddress:  cryptoutilSharedMagic.IPv4Loopback,
 		IssuedAt:   time.Now().UTC(),
-		ExpiresAt:  time.Now().UTC().Add(24 * time.Hour),
+		ExpiresAt:  time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		LastSeenAt: time.Now().UTC(),
 		Active:     boolPtr(true),
 	}
@@ -190,9 +191,9 @@ func TestSessionRepository_TerminateByID(t *testing.T) {
 	session := &cryptoutilIdentityDomain.Session{
 		SessionID:  "terminate-by-id-session",
 		UserID:     userID,
-		IPAddress:  "127.0.0.1",
+		IPAddress:  cryptoutilSharedMagic.IPv4Loopback,
 		IssuedAt:   time.Now().UTC(),
-		ExpiresAt:  time.Now().UTC().Add(24 * time.Hour),
+		ExpiresAt:  time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		LastSeenAt: time.Now().UTC(),
 		Active:     boolPtr(true),
 	}
@@ -221,9 +222,9 @@ func TestSessionRepository_TerminateBySessionID(t *testing.T) {
 	session := &cryptoutilIdentityDomain.Session{
 		SessionID:  "terminate-by-session-id",
 		UserID:     userID,
-		IPAddress:  "127.0.0.1",
+		IPAddress:  cryptoutilSharedMagic.IPv4Loopback,
 		IssuedAt:   time.Now().UTC(),
-		ExpiresAt:  time.Now().UTC().Add(24 * time.Hour),
+		ExpiresAt:  time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		LastSeenAt: time.Now().UTC(),
 		Active:     boolPtr(true),
 	}
@@ -253,10 +254,10 @@ func TestSessionRepository_DeleteExpired(t *testing.T) {
 	expiredSession := &cryptoutilIdentityDomain.Session{
 		SessionID:  "expired-session",
 		UserID:     userID,
-		IPAddress:  "127.0.0.1",
-		IssuedAt:   time.Now().UTC().Add(-48 * time.Hour),
-		ExpiresAt:  time.Now().UTC().Add(-24 * time.Hour), // Expired.
-		LastSeenAt: time.Now().UTC().Add(-24 * time.Hour),
+		IPAddress:  cryptoutilSharedMagic.IPv4Loopback,
+		IssuedAt:   time.Now().UTC().Add(-cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour),
+		ExpiresAt:  time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour), // Expired.
+		LastSeenAt: time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		Active:     boolPtr(true),
 	}
 	err := repo.Create(context.Background(), expiredSession)
@@ -266,9 +267,9 @@ func TestSessionRepository_DeleteExpired(t *testing.T) {
 	validSession := &cryptoutilIdentityDomain.Session{
 		SessionID:  "valid-session",
 		UserID:     userID,
-		IPAddress:  "127.0.0.1",
+		IPAddress:  cryptoutilSharedMagic.IPv4Loopback,
 		IssuedAt:   time.Now().UTC(),
-		ExpiresAt:  time.Now().UTC().Add(24 * time.Hour), // Not expired.
+		ExpiresAt:  time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour), // Not expired.
 		LastSeenAt: time.Now().UTC(),
 		Active:     boolPtr(true),
 	}
@@ -297,10 +298,10 @@ func TestSessionRepository_DeleteExpiredBefore(t *testing.T) {
 	session1 := &cryptoutilIdentityDomain.Session{
 		SessionID:  "session-1",
 		UserID:     userID,
-		IPAddress:  "127.0.0.1",
+		IPAddress:  cryptoutilSharedMagic.IPv4Loopback,
 		IssuedAt:   time.Now().UTC().Add(-72 * time.Hour),
-		ExpiresAt:  time.Now().UTC().Add(-48 * time.Hour), // Expired 48h ago.
-		LastSeenAt: time.Now().UTC().Add(-48 * time.Hour),
+		ExpiresAt:  time.Now().UTC().Add(-cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour), // Expired 48h ago.
+		LastSeenAt: time.Now().UTC().Add(-cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour),
 		Active:     boolPtr(true),
 	}
 	err := repo.Create(context.Background(), session1)
@@ -309,16 +310,16 @@ func TestSessionRepository_DeleteExpiredBefore(t *testing.T) {
 	session2 := &cryptoutilIdentityDomain.Session{
 		SessionID:  "session-2",
 		UserID:     userID,
-		IPAddress:  "127.0.0.1",
-		IssuedAt:   time.Now().UTC().Add(-36 * time.Hour),
-		ExpiresAt:  time.Now().UTC().Add(-12 * time.Hour), // Expired 12h ago.
-		LastSeenAt: time.Now().UTC().Add(-12 * time.Hour),
+		IPAddress:  cryptoutilSharedMagic.IPv4Loopback,
+		IssuedAt:   time.Now().UTC().Add(-cryptoutilSharedMagic.UUIDStringLength * time.Hour),
+		ExpiresAt:  time.Now().UTC().Add(-cryptoutilSharedMagic.HashPrefixLength * time.Hour), // Expired 12h ago.
+		LastSeenAt: time.Now().UTC().Add(-cryptoutilSharedMagic.HashPrefixLength * time.Hour),
 		Active:     boolPtr(true),
 	}
 	err = repo.Create(context.Background(), session2)
 	require.NoError(t, err)
 
-	cutoffTime := time.Now().UTC().Add(-24 * time.Hour)
+	cutoffTime := time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour)
 	deletedCount, err := repo.DeleteExpiredBefore(context.Background(), cutoffTime)
 	require.NoError(t, err)
 	require.Equal(t, 1, deletedCount) // Only session1 deleted (expired 48h ago).
@@ -339,13 +340,13 @@ func TestSessionRepository_List(t *testing.T) {
 	userID := googleUuid.Must(googleUuid.NewV7())
 
 	// Create 5 sessions.
-	for i := 0; i < 5; i++ {
+	for i := 0; i < cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries; i++ {
 		session := &cryptoutilIdentityDomain.Session{
 			SessionID:  googleUuid.Must(googleUuid.NewV7()).String(),
 			UserID:     userID,
-			IPAddress:  "127.0.0.1",
+			IPAddress:  cryptoutilSharedMagic.IPv4Loopback,
 			IssuedAt:   time.Now().UTC(),
-			ExpiresAt:  time.Now().UTC().Add(24 * time.Hour),
+			ExpiresAt:  time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour),
 			LastSeenAt: time.Now().UTC(),
 			Active:     boolPtr(true),
 		}
@@ -358,7 +359,7 @@ func TestSessionRepository_List(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, sessions, 3)
 
-	sessions, err = repo.List(context.Background(), 3, 5)
+	sessions, err = repo.List(context.Background(), 3, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	require.NoError(t, err)
 	require.Len(t, sessions, 2)
 }
@@ -377,13 +378,13 @@ func TestSessionRepository_Count(t *testing.T) {
 	userID := googleUuid.Must(googleUuid.NewV7())
 
 	// Create 5 sessions.
-	for i := 0; i < 5; i++ {
+	for i := 0; i < cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries; i++ {
 		session := &cryptoutilIdentityDomain.Session{
 			SessionID:  googleUuid.Must(googleUuid.NewV7()).String(),
 			UserID:     userID,
-			IPAddress:  "127.0.0.1",
+			IPAddress:  cryptoutilSharedMagic.IPv4Loopback,
 			IssuedAt:   time.Now().UTC(),
-			ExpiresAt:  time.Now().UTC().Add(24 * time.Hour),
+			ExpiresAt:  time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour),
 			LastSeenAt: time.Now().UTC(),
 			Active:     boolPtr(true),
 		}
@@ -394,5 +395,5 @@ func TestSessionRepository_Count(t *testing.T) {
 	// Count should be 5.
 	count, err = repo.Count(context.Background())
 	require.NoError(t, err)
-	require.Equal(t, int64(5), count)
+	require.Equal(t, int64(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries), count)
 }

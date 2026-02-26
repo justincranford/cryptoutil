@@ -5,6 +5,7 @@
 package asn1
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"crypto/ecdh"
 	ecdsa "crypto/ecdsa"
@@ -43,7 +44,7 @@ func TestMain(m *testing.M) {
 func TestPEMEncodeDecodeRSA(t *testing.T) {
 	t.Parallel()
 
-	keyPairOriginal, err := rsa.GenerateKey(crand.Reader, 2048)
+	keyPairOriginal, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	privateKeyOriginal := keyPairOriginal

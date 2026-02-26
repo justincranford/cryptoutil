@@ -27,8 +27,8 @@ func TestOIDCCoreEndpoints(t *testing.T) {
 
 	// Create in-memory SQLite database configuration.
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  "file::memory:?cache=shared",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteInMemoryDSN,
 	}
 
 	// Initialize repository factory.
@@ -76,20 +76,20 @@ func TestOIDCCoreEndpoints(t *testing.T) {
 			"https://localhost:8080/callback",
 		},
 		AllowedGrantTypes: []string{
-			"authorization_code",
-			"refresh_token",
+			cryptoutilSharedMagic.GrantTypeAuthorizationCode,
+			cryptoutilSharedMagic.GrantTypeRefreshToken,
 		},
 		AllowedResponseTypes: []string{
-			"code",
+			cryptoutilSharedMagic.ResponseTypeCode,
 		},
 		AllowedScopes: []string{
-			"openid",
-			"profile",
-			"email",
-			"address",
-			"phone",
+			cryptoutilSharedMagic.ScopeOpenID,
+			cryptoutilSharedMagic.ClaimProfile,
+			cryptoutilSharedMagic.ClaimEmail,
+			cryptoutilSharedMagic.ClaimAddress,
+			cryptoutilSharedMagic.ScopePhone,
 		},
-		TokenEndpointAuthMethod: "client_secret_basic",
+		TokenEndpointAuthMethod: cryptoutilSharedMagic.ClientAuthMethodSecretBasic,
 		Enabled:                 boolPtr(true),
 		CreatedAt:               time.Now().UTC(),
 		UpdatedAt:               time.Now().UTC(),
@@ -106,9 +106,9 @@ func TestOIDCCoreEndpoints(t *testing.T) {
 		RedirectURI:         testClient.RedirectURIs[0],
 		Scope:               "openid profile email address phone",
 		State:               "test_state",
-		ResponseType:        "code",
+		ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
 		CodeChallenge:       "test_code_challenge",
-		CodeChallengeMethod: "S256",
+		CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 		UserID: cryptoutilIdentityDomain.NullableUUID{
 			UUID:  testUser.ID,
 			Valid: true,
@@ -126,13 +126,13 @@ func TestOIDCCoreEndpoints(t *testing.T) {
 	session := &cryptoutilIdentityDomain.Session{
 		UserID:                testUser.ID,
 		SessionID:             "test_session_" + googleUuid.New().String(),
-		IPAddress:             "127.0.0.1",
+		IPAddress:             cryptoutilSharedMagic.IPv4Loopback,
 		UserAgent:             "test-agent",
 		IssuedAt:              time.Now().UTC(),
-		ExpiresAt:             time.Now().UTC().Add(30 * time.Minute),
+		ExpiresAt:             time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Minute),
 		LastSeenAt:            time.Now().UTC(),
 		Active:                boolPtr(true),
-		AuthenticationMethods: []string{"username_password"},
+		AuthenticationMethods: []string{cryptoutilSharedMagic.AuthMethodUsernamePassword},
 		AuthenticationTime:    time.Now().UTC(),
 	}
 

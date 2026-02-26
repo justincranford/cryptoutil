@@ -5,6 +5,7 @@
 package idp
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
 
@@ -59,51 +60,51 @@ func TestAddScopeBasedClaims(t *testing.T) {
 	}{
 		{
 			name:           "profile scope",
-			scopes:         []string{"profile"},
-			expectedClaims: []string{"name", "given_name", "family_name", "middle_name", "nickname", "preferred_username", "profile", "picture", "website", "gender", "birthdate", "zoneinfo", "locale", "updated_at"},
-			missingClaims:  []string{"email", "email_verified", "address", "phone_number", "phone_number_verified"},
+			scopes:         []string{cryptoutilSharedMagic.ClaimProfile},
+			expectedClaims: []string{cryptoutilSharedMagic.ClaimName, cryptoutilSharedMagic.ClaimGivenName, cryptoutilSharedMagic.ClaimFamilyName, cryptoutilSharedMagic.ClaimMiddleName, cryptoutilSharedMagic.ClaimNickname, cryptoutilSharedMagic.ClaimPreferredUsername, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimPicture, cryptoutilSharedMagic.ClaimWebsite, cryptoutilSharedMagic.ClaimGender, cryptoutilSharedMagic.ClaimBirthdate, cryptoutilSharedMagic.ClaimZoneinfo, cryptoutilSharedMagic.ClaimLocale, cryptoutilSharedMagic.ClaimUpdatedAt},
+			missingClaims:  []string{cryptoutilSharedMagic.ClaimEmail, cryptoutilSharedMagic.ClaimEmailVerified, cryptoutilSharedMagic.ClaimAddress, cryptoutilSharedMagic.ClaimPhoneNumber, cryptoutilSharedMagic.ClaimPhoneVerified},
 		},
 		{
 			name:           "email scope",
-			scopes:         []string{"email"},
-			expectedClaims: []string{"email", "email_verified"},
-			missingClaims:  []string{"name", "address", "phone_number"},
+			scopes:         []string{cryptoutilSharedMagic.ClaimEmail},
+			expectedClaims: []string{cryptoutilSharedMagic.ClaimEmail, cryptoutilSharedMagic.ClaimEmailVerified},
+			missingClaims:  []string{cryptoutilSharedMagic.ClaimName, cryptoutilSharedMagic.ClaimAddress, cryptoutilSharedMagic.ClaimPhoneNumber},
 		},
 		{
 			name:           "phone scope",
-			scopes:         []string{"phone"},
-			expectedClaims: []string{"phone_number", "phone_number_verified"},
-			missingClaims:  []string{"name", "email", "address"},
+			scopes:         []string{cryptoutilSharedMagic.ScopePhone},
+			expectedClaims: []string{cryptoutilSharedMagic.ClaimPhoneNumber, cryptoutilSharedMagic.ClaimPhoneVerified},
+			missingClaims:  []string{cryptoutilSharedMagic.ClaimName, cryptoutilSharedMagic.ClaimEmail, cryptoutilSharedMagic.ClaimAddress},
 		},
 		{
 			name:           "address scope",
-			scopes:         []string{"address"},
-			expectedClaims: []string{"address"},
-			missingClaims:  []string{"name", "email", "phone_number"},
+			scopes:         []string{cryptoutilSharedMagic.ClaimAddress},
+			expectedClaims: []string{cryptoutilSharedMagic.ClaimAddress},
+			missingClaims:  []string{cryptoutilSharedMagic.ClaimName, cryptoutilSharedMagic.ClaimEmail, cryptoutilSharedMagic.ClaimPhoneNumber},
 		},
 		{
 			name:           "multiple scopes",
-			scopes:         []string{"profile", "email"},
-			expectedClaims: []string{"name", "email", "email_verified"},
-			missingClaims:  []string{"address", "phone_number"},
+			scopes:         []string{cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail},
+			expectedClaims: []string{cryptoutilSharedMagic.ClaimName, cryptoutilSharedMagic.ClaimEmail, cryptoutilSharedMagic.ClaimEmailVerified},
+			missingClaims:  []string{cryptoutilSharedMagic.ClaimAddress, cryptoutilSharedMagic.ClaimPhoneNumber},
 		},
 		{
 			name:           "all scopes",
-			scopes:         []string{"profile", "email", "phone", "address"},
-			expectedClaims: []string{"name", "email", "phone_number", "address"},
+			scopes:         []string{cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail, cryptoutilSharedMagic.ScopePhone, cryptoutilSharedMagic.ClaimAddress},
+			expectedClaims: []string{cryptoutilSharedMagic.ClaimName, cryptoutilSharedMagic.ClaimEmail, cryptoutilSharedMagic.ClaimPhoneNumber, cryptoutilSharedMagic.ClaimAddress},
 			missingClaims:  []string{},
 		},
 		{
 			name:           "empty scopes",
 			scopes:         []string{},
 			expectedClaims: []string{},
-			missingClaims:  []string{"name", "email", "phone_number", "address"},
+			missingClaims:  []string{cryptoutilSharedMagic.ClaimName, cryptoutilSharedMagic.ClaimEmail, cryptoutilSharedMagic.ClaimPhoneNumber, cryptoutilSharedMagic.ClaimAddress},
 		},
 		{
 			name:           "openid only",
-			scopes:         []string{"openid"},
+			scopes:         []string{cryptoutilSharedMagic.ScopeOpenID},
 			expectedClaims: []string{},
-			missingClaims:  []string{"name", "email", "phone_number", "address"},
+			missingClaims:  []string{cryptoutilSharedMagic.ClaimName, cryptoutilSharedMagic.ClaimEmail, cryptoutilSharedMagic.ClaimPhoneNumber, cryptoutilSharedMagic.ClaimAddress},
 		},
 	}
 
@@ -136,10 +137,10 @@ func TestAddScopeBasedClaimsNilAddress(t *testing.T) {
 	}
 
 	userInfo := make(map[string]any)
-	addScopeBasedClaims(userInfo, []string{"address"}, userWithNoAddress)
+	addScopeBasedClaims(userInfo, []string{cryptoutilSharedMagic.ClaimAddress}, userWithNoAddress)
 
 	// Address should not be present when user.Address is nil.
-	testify.NotContains(t, userInfo, "address")
+	testify.NotContains(t, userInfo, cryptoutilSharedMagic.ClaimAddress)
 }
 
 func TestAddScopeBasedClaimsProfileValues(t *testing.T) {
@@ -166,22 +167,22 @@ func TestAddScopeBasedClaimsProfileValues(t *testing.T) {
 	}
 
 	userInfo := make(map[string]any)
-	addScopeBasedClaims(userInfo, []string{"profile"}, user)
+	addScopeBasedClaims(userInfo, []string{cryptoutilSharedMagic.ClaimProfile}, user)
 
-	testify.Equal(t, "John Doe", userInfo["name"])
-	testify.Equal(t, "John", userInfo["given_name"])
-	testify.Equal(t, "Doe", userInfo["family_name"])
-	testify.Equal(t, "William", userInfo["middle_name"])
-	testify.Equal(t, "JD", userInfo["nickname"])
-	testify.Equal(t, "johndoe", userInfo["preferred_username"])
-	testify.Equal(t, "https://example.com/johndoe", userInfo["profile"])
-	testify.Equal(t, "https://example.com/johndoe.png", userInfo["picture"])
-	testify.Equal(t, "https://johndoe.com", userInfo["website"])
-	testify.Equal(t, "male", userInfo["gender"])
-	testify.Equal(t, "1985-05-15", userInfo["birthdate"])
-	testify.Equal(t, "Europe/London", userInfo["zoneinfo"])
-	testify.Equal(t, "en-GB", userInfo["locale"])
-	testify.Equal(t, now.Unix(), userInfo["updated_at"])
+	testify.Equal(t, "John Doe", userInfo[cryptoutilSharedMagic.ClaimName])
+	testify.Equal(t, "John", userInfo[cryptoutilSharedMagic.ClaimGivenName])
+	testify.Equal(t, "Doe", userInfo[cryptoutilSharedMagic.ClaimFamilyName])
+	testify.Equal(t, "William", userInfo[cryptoutilSharedMagic.ClaimMiddleName])
+	testify.Equal(t, "JD", userInfo[cryptoutilSharedMagic.ClaimNickname])
+	testify.Equal(t, "johndoe", userInfo[cryptoutilSharedMagic.ClaimPreferredUsername])
+	testify.Equal(t, "https://example.com/johndoe", userInfo[cryptoutilSharedMagic.ClaimProfile])
+	testify.Equal(t, "https://example.com/johndoe.png", userInfo[cryptoutilSharedMagic.ClaimPicture])
+	testify.Equal(t, "https://johndoe.com", userInfo[cryptoutilSharedMagic.ClaimWebsite])
+	testify.Equal(t, "male", userInfo[cryptoutilSharedMagic.ClaimGender])
+	testify.Equal(t, "1985-05-15", userInfo[cryptoutilSharedMagic.ClaimBirthdate])
+	testify.Equal(t, "Europe/London", userInfo[cryptoutilSharedMagic.ClaimZoneinfo])
+	testify.Equal(t, "en-GB", userInfo[cryptoutilSharedMagic.ClaimLocale])
+	testify.Equal(t, now.Unix(), userInfo[cryptoutilSharedMagic.ClaimUpdatedAt])
 }
 
 func TestAddScopeBasedClaimsAddressValues(t *testing.T) {
@@ -202,14 +203,14 @@ func TestAddScopeBasedClaimsAddressValues(t *testing.T) {
 	}
 
 	userInfo := make(map[string]any)
-	addScopeBasedClaims(userInfo, []string{"address"}, user)
+	addScopeBasedClaims(userInfo, []string{cryptoutilSharedMagic.ClaimAddress}, user)
 
-	addressMap, ok := userInfo["address"].(map[string]any)
+	addressMap, ok := userInfo[cryptoutilSharedMagic.ClaimAddress].(map[string]any)
 	testify.True(t, ok)
-	testify.Equal(t, "456 Oak Ave, Suite 100, Metro City, MC 67890, Canada", addressMap["formatted"])
-	testify.Equal(t, "456 Oak Ave, Suite 100", addressMap["street_address"])
-	testify.Equal(t, "Metro City", addressMap["locality"])
-	testify.Equal(t, "MC", addressMap["region"])
-	testify.Equal(t, "67890", addressMap["postal_code"])
-	testify.Equal(t, "Canada", addressMap["country"])
+	testify.Equal(t, "456 Oak Ave, Suite 100, Metro City, MC 67890, Canada", addressMap[cryptoutilSharedMagic.AddressFormatted])
+	testify.Equal(t, "456 Oak Ave, Suite 100", addressMap[cryptoutilSharedMagic.AddressStreetAddress])
+	testify.Equal(t, "Metro City", addressMap[cryptoutilSharedMagic.AddressLocality])
+	testify.Equal(t, "MC", addressMap[cryptoutilSharedMagic.AddressRegion])
+	testify.Equal(t, "67890", addressMap[cryptoutilSharedMagic.AddressPostalCode])
+	testify.Equal(t, "Canada", addressMap[cryptoutilSharedMagic.AddressCountry])
 }

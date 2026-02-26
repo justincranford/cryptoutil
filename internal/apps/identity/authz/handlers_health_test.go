@@ -5,6 +5,7 @@
 package authz_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"net/http/httptest"
 	"testing"
@@ -25,8 +26,8 @@ func TestHandleHealth_Success(t *testing.T) {
 
 	// Initialize database and repositories.
 	cfg := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, cfg)
@@ -35,9 +36,9 @@ func TestHandleHealth_Success(t *testing.T) {
 	// Initialize token service.
 	appCfg := &cryptoutilIdentityConfig.Config{
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			AccessTokenLifetime:  3600,
-			RefreshTokenLifetime: 86400,
-			IDTokenLifetime:      3600,
+			AccessTokenLifetime:  cryptoutilSharedMagic.IMDefaultSessionTimeout,
+			RefreshTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+			IDTokenLifetime:      cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		},
 	}
 	tokenSvc := cryptoutilIdentityIssuer.NewTokenService(nil, nil, nil, appCfg.Tokens)
@@ -71,8 +72,8 @@ func TestHandleHealth_DatabaseUnavailable(t *testing.T) {
 
 	// Initialize database with valid DSN.
 	cfg := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, cfg)
@@ -88,9 +89,9 @@ func TestHandleHealth_DatabaseUnavailable(t *testing.T) {
 	// Initialize token service.
 	appCfg := &cryptoutilIdentityConfig.Config{
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			AccessTokenLifetime:  3600,
-			RefreshTokenLifetime: 86400,
-			IDTokenLifetime:      3600,
+			AccessTokenLifetime:  cryptoutilSharedMagic.IMDefaultSessionTimeout,
+			RefreshTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+			IDTokenLifetime:      cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		},
 	}
 	tokenSvc := cryptoutilIdentityIssuer.NewTokenService(nil, nil, nil, appCfg.Tokens)

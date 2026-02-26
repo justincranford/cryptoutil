@@ -5,6 +5,7 @@
 package cli_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"encoding/pem"
 	"fmt"
@@ -41,7 +42,7 @@ func TestLoadCACertPool_InvalidPEM(t *testing.T) {
 	tmpDir := t.TempDir()
 	certPath := filepath.Join(tmpDir, "invalid.pem")
 
-	err := os.WriteFile(certPath, []byte("not a valid PEM certificate"), 0o600)
+	err := os.WriteFile(certPath, []byte("not a valid PEM certificate"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	pool, err := cryptoutilAppsTemplateCli.LoadCACertPool(certPath)
@@ -54,14 +55,14 @@ func TestLoadCACertPool_InvalidCertDER(t *testing.T) {
 
 	// Create a PEM file with CERTIFICATE type but invalid DER bytes inside.
 	invalidCertPEM := pem.EncodeToMemory(&pem.Block{
-		Type:  "CERTIFICATE",
+		Type:  cryptoutilSharedMagic.StringPEMTypeCertificate,
 		Bytes: []byte("invalid DER certificate data"),
 	})
 
 	tmpDir := t.TempDir()
 	certPath := filepath.Join(tmpDir, "bad_cert.pem")
 
-	err := os.WriteFile(certPath, invalidCertPEM, 0o600)
+	err := os.WriteFile(certPath, invalidCertPEM, cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	pool, err := cryptoutilAppsTemplateCli.LoadCACertPool(certPath)
@@ -82,7 +83,7 @@ func TestHTTPGet_Success(t *testing.T) {
 	statusCode, body, err := cryptoutilAppsTemplateCli.HTTPGet(srv.URL+"/test", "")
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, statusCode)
-	require.Contains(t, body, "status")
+	require.Contains(t, body, cryptoutilSharedMagic.StringStatus)
 }
 
 func TestHTTPGet_ServiceUnavailable(t *testing.T) {
@@ -123,7 +124,7 @@ func TestHTTPPost_Success(t *testing.T) {
 	}))
 	t.Cleanup(srv.Close)
 
-	statusCode, body, err := cryptoutilAppsTemplateCli.HTTPPost(srv.URL+"/shutdown", "")
+	statusCode, body, err := cryptoutilAppsTemplateCli.HTTPPost(srv.URL+cryptoutilSharedMagic.PrivateAdminShutdownRequestPath, "")
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, statusCode)
 	require.Contains(t, body, "done")
@@ -138,7 +139,7 @@ func TestHTTPPost_Accepted(t *testing.T) {
 	}))
 	t.Cleanup(srv.Close)
 
-	statusCode, body, err := cryptoutilAppsTemplateCli.HTTPPost(srv.URL+"/shutdown", "")
+	statusCode, body, err := cryptoutilAppsTemplateCli.HTTPPost(srv.URL+cryptoutilSharedMagic.PrivateAdminShutdownRequestPath, "")
 	require.NoError(t, err)
 	require.Equal(t, http.StatusAccepted, statusCode)
 	require.Contains(t, body, "accepted")
@@ -161,12 +162,12 @@ func writeCACertFromTLSServer(t *testing.T, srv *httptest.Server) string {
 	certDER := srv.TLS.Certificates[0].Certificate[0]
 
 	pemData := pem.EncodeToMemory(&pem.Block{
-		Type:  "CERTIFICATE",
+		Type:  cryptoutilSharedMagic.StringPEMTypeCertificate,
 		Bytes: certDER,
 	})
 	require.NotNil(t, pemData, "failed to encode certificate to PEM")
 
-	err := os.WriteFile(certPath, pemData, 0o600)
+	err := os.WriteFile(certPath, pemData, cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	return certPath
@@ -201,7 +202,7 @@ func TestHTTPGet_WithCACert(t *testing.T) {
 	statusCode, body, err := cryptoutilAppsTemplateCli.HTTPGet(srv.URL+"/test", certPath)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, statusCode)
-	require.Contains(t, body, "status")
+	require.Contains(t, body, cryptoutilSharedMagic.StringStatus)
 }
 
 func TestHTTPPost_WithCACert(t *testing.T) {
@@ -215,7 +216,7 @@ func TestHTTPPost_WithCACert(t *testing.T) {
 
 	certPath := writeCACertFromTLSServer(t, srv)
 
-	statusCode, body, err := cryptoutilAppsTemplateCli.HTTPPost(srv.URL+"/shutdown", certPath)
+	statusCode, body, err := cryptoutilAppsTemplateCli.HTTPPost(srv.URL+cryptoutilSharedMagic.PrivateAdminShutdownRequestPath, certPath)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, statusCode)
 	require.Contains(t, body, "done")
@@ -238,7 +239,7 @@ func TestHealthCommand_WithCACert(t *testing.T) {
 		[]string{"--url", srv.URL, "--cacert", certPath},
 		&stdout, &stderr,
 		"Usage: health",
-		8800,
+		cryptoutilSharedMagic.JoseJAServicePort,
 	)
 	require.Equal(t, 0, exitCode)
 	require.Contains(t, stdout.String(), "\u2705")
@@ -314,7 +315,7 @@ func TestHealthCommand_URLAlreadyHasHealthPath(t *testing.T) {
 		[]string{"--url", srv.URL + "/health"},
 		&stdout, &stderr,
 		"Usage: health",
-		8800,
+		cryptoutilSharedMagic.JoseJAServicePort,
 	)
 	// Connection succeeds but response shape may differ
 	// The key check is that it doesn't double-append /health

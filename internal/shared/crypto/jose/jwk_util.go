@@ -76,19 +76,19 @@ var (
 	AlgSigInvalid = joseJwa.NewSignatureAlgorithm("invalid") // SignatureAlgorithm
 
 	// String constants for algorithm names to avoid goconst warnings.
-	algStrHS256 = "HS256"
-	algStrHS384 = "HS384"
-	algStrHS512 = "HS512"
-	algStrRS256 = "RS256"
-	algStrRS384 = "RS384"
-	algStrRS512 = "RS512"
-	algStrPS256 = "PS256"
-	algStrPS384 = "PS384"
-	algStrPS512 = "PS512"
-	algStrES256 = "ES256"
-	algStrES384 = "ES384"
-	algStrES512 = "ES512"
-	algStrEdDSA = "EdDSA"
+	algStrHS256 = cryptoutilSharedMagic.JoseAlgHS256
+	algStrHS384 = cryptoutilSharedMagic.JoseAlgHS384
+	algStrHS512 = cryptoutilSharedMagic.JoseAlgHS512
+	algStrRS256 = cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm
+	algStrRS384 = cryptoutilSharedMagic.JoseAlgRS384
+	algStrRS512 = cryptoutilSharedMagic.JoseAlgRS512
+	algStrPS256 = cryptoutilSharedMagic.JoseAlgPS256
+	algStrPS384 = cryptoutilSharedMagic.JoseAlgPS384
+	algStrPS512 = cryptoutilSharedMagic.JoseAlgPS512
+	algStrES256 = cryptoutilSharedMagic.JoseAlgES256
+	algStrES384 = cryptoutilSharedMagic.JoseAlgES384
+	algStrES512 = cryptoutilSharedMagic.JoseAlgES512
+	algStrEdDSA = cryptoutilSharedMagic.JoseAlgEdDSA
 
 	OpsEncDec = joseJwk.KeyOperationList{joseJwk.KeyOpEncrypt, joseJwk.KeyOpDecrypt} // []KeyOperation
 	OpsSigVer = joseJwk.KeyOperationList{joseJwk.KeyOpSign, joseJwk.KeyOpVerify}     // []KeyOperation
@@ -234,18 +234,18 @@ func CreateJWKFromKey(kid *googleUuid.UUID, alg *cryptoutilOpenapiModel.Generate
 			// AES keys, set encryption algorithm
 			switch *alg {
 			case cryptoutilOpenapiModel.Oct128:
-				if err = jwkKeySet(nonPublicJWK, joseJwk.AlgorithmKey, "A128GCM"); err != nil {
+				if err = jwkKeySet(nonPublicJWK, joseJwk.AlgorithmKey, cryptoutilSharedMagic.JoseEncA128GCM); err != nil {
 					return nil, nil, nil, nil, nil, fmt.Errorf("failed to set 'alg' header to 'A128GCM' in JWK: %w", err)
 				}
 			case cryptoutilOpenapiModel.Oct192:
-				if err = jwkKeySet(nonPublicJWK, joseJwk.AlgorithmKey, "A192GCM"); err != nil {
+				if err = jwkKeySet(nonPublicJWK, joseJwk.AlgorithmKey, cryptoutilSharedMagic.JoseEncA192GCM); err != nil {
 					return nil, nil, nil, nil, nil, fmt.Errorf("failed to set 'alg' header to 'A192GCM' in JWK: %w", err)
 				}
 			default:
 				return nil, nil, nil, nil, nil, fmt.Errorf("unexpected algorithm %s for secret key in AES switch", *alg)
 			}
 
-			if err = jwkKeySet(nonPublicJWK, joseJwk.KeyUsageKey, "enc"); err != nil {
+			if err = jwkKeySet(nonPublicJWK, joseJwk.KeyUsageKey, cryptoutilSharedMagic.JoseKeyUseEnc); err != nil {
 				return nil, nil, nil, nil, nil, fmt.Errorf("failed to set 'use' header to 'enc' in JWK: %w", err)
 			}
 		default:
@@ -280,7 +280,7 @@ func CreateJWKFromKey(kid *googleUuid.UUID, alg *cryptoutilOpenapiModel.Generate
 		return nil, nil, nil, nil, nil, fmt.Errorf("failed to set `kid` header in JWK: %w", err)
 	}
 
-	if err = jwkKeySet(nonPublicJWK, "iat", now); err != nil {
+	if err = jwkKeySet(nonPublicJWK, cryptoutilSharedMagic.ClaimIat, now); err != nil {
 		return nil, nil, nil, nil, nil, fmt.Errorf("failed to set `iat` header in JWK: %w", err)
 	}
 
@@ -331,7 +331,7 @@ func validateJWKHeaders2(kid *googleUuid.UUID, alg *cryptoutilOpenapiModel.Gener
 	case cryptoutilOpenapiModel.ECP256:
 		return validateOrGenerateEcdsaJWK(key, elliptic.P256())
 	case cryptoutilOpenapiModel.OKPEd25519:
-		return validateOrGenerateEddsaJWK(key, "Ed25519")
+		return validateOrGenerateEddsaJWK(key, cryptoutilSharedMagic.EdCurveEd25519)
 	case cryptoutilOpenapiModel.Oct512:
 		return validateOrGenerateHMACJWK(key, cryptoutilSharedMagic.HMACKeySize512)
 	case cryptoutilOpenapiModel.Oct384:

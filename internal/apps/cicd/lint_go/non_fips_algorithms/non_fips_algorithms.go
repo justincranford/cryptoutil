@@ -4,6 +4,7 @@
 package non_fips_algorithms
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -106,7 +107,7 @@ func FindGoFiles() ([]string, error) {
 		// Skip directories to exclude.
 		if info.IsDir() {
 			switch info.Name() {
-			case "vendor", "test-output", ".git", "node_modules":
+			case cryptoutilSharedMagic.CICDExcludeDirVendor, "test-output", cryptoutilSharedMagic.CICDExcludeDirGit, "node_modules":
 				return filepath.SkipDir
 			}
 

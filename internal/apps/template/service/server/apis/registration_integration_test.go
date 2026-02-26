@@ -6,6 +6,7 @@
 package apis
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"context"
 	json "encoding/json"
@@ -94,8 +95,8 @@ func addAuthHeader(req *http.Request) {
 func TestMain(m *testing.M) {
 	// Use SQLite with modernc driver (CGO-free).
 	db, err := gorm.Open(sqlite.Dialector{
-		DriverName: "sqlite",
-		DSN:        "file::memory:?cache=shared",
+		DriverName: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:        cryptoutilSharedMagic.SQLiteInMemoryDSN,
 	}, &gorm.Config{})
 	if err != nil {
 		panic(fmt.Sprintf("failed to open SQLite: %v", err))
@@ -118,8 +119,8 @@ func TestMain(m *testing.M) {
 		panic(fmt.Sprintf("failed to set busy timeout: %v", err))
 	}
 
-	sqlDB.SetMaxOpenConns(5)
-	sqlDB.SetMaxIdleConns(5)
+	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	sqlDB.SetConnMaxLifetime(0)
 
 	// Create barrier tables (before GORM migrations).
@@ -188,7 +189,7 @@ func TestMain(m *testing.M) {
 	ctx := context.Background()
 
 	// Create telemetry service (minimal - no OTLP export).
-	testConfig := cryptoutilAppsTemplateServiceConfig.NewTestConfig("127.0.0.1", 0, true)
+	testConfig := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
 	telemetryService, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, testConfig.ToTelemetrySettings())
 	if err != nil {
@@ -256,12 +257,12 @@ func TestMain(m *testing.M) {
 			var appErr *cryptoutilSharedApperr.Error
 			if errors.As(err, &appErr) {
 				return c.Status(int(appErr.HTTPStatusLineAndCode.StatusLine.StatusCode)).JSON(fiber.Map{
-					"error": appErr.Summary,
+					cryptoutilSharedMagic.StringError: appErr.Summary,
 				})
 			}
 
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": err.Error(),
+				cryptoutilSharedMagic.StringError: err.Error(),
 			})
 		},
 	})
@@ -288,7 +289,7 @@ func TestMain(m *testing.M) {
 	}
 
 	// Register routes.
-	RegisterRegistrationRoutes(testRegistrationApp, testRegistrationSvc, 10)
+	RegisterRegistrationRoutes(testRegistrationApp, testRegistrationSvc, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	RegisterJoinRequestManagementRoutes(testJoinRequestMgmtApp, testRegistrationSvc, testMockSessionValidator)
 
 	// Run tests.
@@ -301,9 +302,9 @@ func TestMain(m *testing.M) {
 func TestIntegration_RegisterUser_CreateTenant(t *testing.T) {
 	t.Parallel()
 
-	username := fmt.Sprintf("user_%s", googleUuid.NewString()[:8])
+	username := fmt.Sprintf("user_%s", googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
 	password := testIntegrationPassword
-	tenantName := fmt.Sprintf("tenant_%s", googleUuid.NewString()[:8])
+	tenantName := fmt.Sprintf("tenant_%s", googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
 
 	reqBody := RegisterUserRequest{
 		Username:     username,
@@ -340,7 +341,7 @@ func TestIntegration_RegisterUser_JoinExistingTenant(t *testing.T) {
 	// Create tenant first.
 	tenant := &cryptoutilAppsTemplateServiceServerRepository.Tenant{
 		ID:   googleUuid.New(),
-		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:8]),
+		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength]),
 	}
 	require.NoError(t, testDB.Create(tenant).Error)
 
@@ -349,14 +350,14 @@ func TestIntegration_RegisterUser_JoinExistingTenant(t *testing.T) {
 		ID:       googleUuid.New(),
 		TenantID: tenant.ID,
 		RealmID:  googleUuid.New(),
-		Type:     "username_password",
+		Type:     cryptoutilSharedMagic.AuthMethodUsernamePassword,
 		Active:   true,
 		Source:   "db",
 	}
 	require.NoError(t, testDB.Create(realm).Error)
 
 	// Register user to join existing tenant.
-	username := fmt.Sprintf("user_%s", googleUuid.NewString()[:8])
+	username := fmt.Sprintf("user_%s", googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
 	password := testIntegrationPassword
 
 	reqBody := RegisterUserRequest{
@@ -412,7 +413,7 @@ func TestIntegration_RateLimiting_ExceedsLimit(t *testing.T) {
 		ipAddress := c.IP()
 		if !rateLimiter.Allow(ipAddress) {
 			return c.Status(http.StatusTooManyRequests).JSON(fiber.Map{
-				"error": "Rate limit exceeded. Please try again later.",
+				cryptoutilSharedMagic.StringError: "Rate limit exceeded. Please try again later.",
 			})
 		}
 
@@ -423,7 +424,7 @@ func TestIntegration_RateLimiting_ExceedsLimit(t *testing.T) {
 	handlers := NewRegistrationHandlers(testRegistrationSvc)
 	app.Post("/browser/api/v1/auth/register", rateLimitMiddleware, handlers.HandleRegisterUser)
 
-	username := fmt.Sprintf("user_%s", googleUuid.NewString()[:8])
+	username := fmt.Sprintf("user_%s", googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
 
 	// Make 4 requests quickly (should exceed limit).
 	for i := 0; i < 4; i++ {

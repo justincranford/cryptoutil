@@ -3,6 +3,7 @@
 package handler
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"context"
 	http "net/http"
@@ -57,7 +58,7 @@ func TestRevokeCertificate_ErrorPaths(t *testing.T) {
 					SubjectDN:      "CN=test.example.com",
 					IssuerDN:       "CN=Test CA",
 					NotBefore:      time.Now().UTC().Add(-time.Hour),
-					NotAfter:       time.Now().UTC().Add(time.Hour * 24 * 365),
+					NotAfter:       time.Now().UTC().Add(time.Hour * cryptoutilSharedMagic.HoursPerDay * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year),
 					Status:         cryptoutilCAStorage.StatusRevoked,
 					ProfileID:      "tls-server",
 					CertificatePEM: "-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----",
@@ -86,7 +87,7 @@ func TestRevokeCertificate_ErrorPaths(t *testing.T) {
 				return handler.RevokeCertificate(c, serial)
 			})
 
-			req := httptest.NewRequest(http.MethodPost, "/certificates/"+tc.serialNumber+"/revoke", bytes.NewBufferString(tc.requestBody))
+			req := httptest.NewRequest(http.MethodPost, "/certificates/"+tc.serialNumber+cryptoutilSharedMagic.PathRevoke, bytes.NewBufferString(tc.requestBody))
 			req.Header.Set("Content-Type", "application/json")
 
 			resp, err := app.Test(req, -1)
@@ -132,7 +133,7 @@ func TestRevokeCertificate_AllReasons(t *testing.T) {
 				SubjectDN:      "CN=test.example.com",
 				IssuerDN:       "CN=Test CA",
 				NotBefore:      time.Now().UTC().Add(-time.Hour),
-				NotAfter:       time.Now().UTC().Add(time.Hour * 24 * 365),
+				NotAfter:       time.Now().UTC().Add(time.Hour * cryptoutilSharedMagic.HoursPerDay * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year),
 				Status:         cryptoutilCAStorage.StatusActive,
 				ProfileID:      "tls-server",
 				CertificatePEM: "-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----",
@@ -147,7 +148,7 @@ func TestRevokeCertificate_AllReasons(t *testing.T) {
 			})
 
 			requestBody := `{"reason": "` + tc.name + `"}`
-			req := httptest.NewRequest(http.MethodPost, "/certificates/"+cert.SerialNumber+"/revoke", bytes.NewBufferString(requestBody))
+			req := httptest.NewRequest(http.MethodPost, "/certificates/"+cert.SerialNumber+cryptoutilSharedMagic.PathRevoke, bytes.NewBufferString(requestBody))
 			req.Header.Set("Content-Type", "application/json")
 
 			resp, err := app.Test(req, -1)

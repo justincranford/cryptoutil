@@ -3,6 +3,7 @@
 package userauth
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"os"
 	"path/filepath"
@@ -125,7 +126,7 @@ monitoring:
 			// Create temporary file.
 			tempDir := t.TempDir()
 			policyFile := filepath.Join(tempDir, "step_up.yml")
-			err := os.WriteFile(policyFile, []byte(tc.yamlContent), 0o600)
+			err := os.WriteFile(policyFile, []byte(tc.yamlContent), cryptoutilSharedMagic.CacheFilePermissions)
 			require.NoError(t, err)
 
 			// Create loader.
@@ -333,7 +334,7 @@ tuning:
 			// Create temporary file.
 			tempDir := t.TempDir()
 			policyFile := filepath.Join(tempDir, "adaptive_auth.yml")
-			err := os.WriteFile(policyFile, []byte(tc.yamlContent), 0o600)
+			err := os.WriteFile(policyFile, []byte(tc.yamlContent), cryptoutilSharedMagic.CacheFilePermissions)
 			require.NoError(t, err)
 
 			// Create loader.

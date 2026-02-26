@@ -132,7 +132,7 @@ func TestMFASessionCollisions(t *testing.T) {
 		wg.Wait()
 
 		totalUpdates := parallelUpdates * updatesPerSession
-		collisionRate := float64(atomic.LoadInt32(&collisions)) / float64(totalUpdates) * 100
+		collisionRate := float64(atomic.LoadInt32(&collisions)) / float64(totalUpdates) * cryptoutilSharedMagic.JoseJAMaxMaterials
 
 		t.Logf("Total session updates: %d", totalUpdates)
 		t.Logf("Collisions detected: %d", atomic.LoadInt32(&collisions))
@@ -249,7 +249,7 @@ func TestMFALongRunningStress(t *testing.T) {
 						sessionCount++
 
 						// Small delay between sessions.
-						time.Sleep(10 * time.Millisecond)
+						time.Sleep(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond)
 					}
 				}
 			}(i)
@@ -272,8 +272,8 @@ func TestMFALongRunningStress(t *testing.T) {
 		t.Logf("Failed: %d", atomic.LoadInt32(&suite.failedSessions))
 		t.Logf("Throughput: %.2f sessions/second", throughput)
 
-		failureRate := float64(atomic.LoadInt32(&suite.failedSessions)) / float64(totalSessions) * 100
-		require.Less(t, failureRate, 1.0, "Failure rate should be below 1%")
+		failureRate := float64(atomic.LoadInt32(&suite.failedSessions)) / float64(totalSessions) * cryptoutilSharedMagic.JoseJAMaxMaterials
+		require.Less(t, failureRate, cryptoutilSharedMagic.TestProbAlways, "Failure rate should be below 1%")
 	})
 }
 
@@ -292,7 +292,7 @@ func (s *MFAStressTestSuite) executeMFAChain(ctx context.Context, userID string,
 	// Simulate factor validations.
 	for i := 0; i < factorCount; i++ {
 		// Simulate validation delay (database query, crypto operations).
-		time.Sleep(5 * time.Millisecond)
+		time.Sleep(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Millisecond)
 
 		// Simulate nonce validation.
 		nonce := googleUuid.Must(googleUuid.NewV7()).String()

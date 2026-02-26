@@ -50,8 +50,8 @@ func TestServiceStart(t *testing.T) {
 
 	// Create test database.
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
 	require.NoError(t, err)
@@ -69,7 +69,7 @@ func TestServiceStart(t *testing.T) {
 		AccessTokenLifetime:  cryptoutilSharedMagic.DefaultAccessTokenLifetime,
 		RefreshTokenLifetime: cryptoutilSharedMagic.DefaultRefreshTokenLifetime,
 		IDTokenLifetime:      cryptoutilSharedMagic.DefaultIDTokenLifetime,
-		SigningAlgorithm:     "RS256",
+		SigningAlgorithm:     cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 	}
 
 	// Create key rotation manager.
@@ -120,8 +120,8 @@ func TestServiceStop(t *testing.T) {
 
 	// Create test database.
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
 	require.NoError(t, err)
@@ -150,7 +150,7 @@ func TestServiceStop(t *testing.T) {
 		AccessTokenLifetime:  cryptoutilSharedMagic.DefaultAccessTokenLifetime,
 		RefreshTokenLifetime: cryptoutilSharedMagic.DefaultRefreshTokenLifetime,
 		IDTokenLifetime:      cryptoutilSharedMagic.DefaultIDTokenLifetime,
-		SigningAlgorithm:     "RS256",
+		SigningAlgorithm:     cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 	}
 
 	// Create key rotation manager.

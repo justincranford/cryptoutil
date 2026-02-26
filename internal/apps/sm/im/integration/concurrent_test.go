@@ -5,6 +5,7 @@
 package integration
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/tls"
 	"fmt"
 	http "net/http"
@@ -32,7 +33,7 @@ func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // Test server uses self-signed cert.
 		},
-		Timeout: 10 * time.Second,
+		Timeout: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second,
 	}
 
 	// Define test scenarios.
@@ -47,24 +48,24 @@ func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 	}{
 		{
 			name:            "N=5 users, M=4 concurrent sends (1 recipient each)",
-			numUsers:        5,
+			numUsers:        cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 			concurrentSends: 4,
 			recipientsEach:  1,
-			targetDuration:  20 * time.Second, // Adjusted from 15s to account for CI load variance
+			targetDuration:  cryptoutilSharedMagic.MaxErrorDisplay * time.Second, // Adjusted from 15s to account for CI load variance
 		},
 		{
 			name:            "N=5 users, P=3 concurrent sends (2 recipients each)",
-			numUsers:        5,
+			numUsers:        cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 			concurrentSends: 3,
 			recipientsEach:  2,
-			targetDuration:  10 * time.Second, // Adjusted from 5s (observed ~8s)
+			targetDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second, // Adjusted from 5s (observed ~8s)
 		},
 		{
 			name:            "N=5 users, Q=2 concurrent sends (all recipients broadcast)",
-			numUsers:        5,
+			numUsers:        cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 			concurrentSends: 2,
 			recipientsEach:  4,                // All other users (broadcast)
-			targetDuration:  10 * time.Second, // Adjusted from 6s (observed ~7s)
+			targetDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second, // Adjusted from 6s (observed ~7s)
 		},
 	}
 

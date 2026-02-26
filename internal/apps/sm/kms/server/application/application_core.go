@@ -5,6 +5,7 @@
 package application
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	"io/fs"
@@ -49,7 +50,7 @@ func StartServerApplicationCore(ctx context.Context, settings *cryptoutilAppsTem
 	// Use template's StartCore to provision database (GORM directly, no SQLRepository).
 	templateCore, err := cryptoutilAppsTemplateServiceServerApplication.StartCore(ctx, settings)
 	if err != nil {
-		serverApplicationBasic.TelemetryService.Slogger.Error("failed to start template core (database)", "error", err)
+		serverApplicationBasic.TelemetryService.Slogger.Error("failed to start template core (database)", cryptoutilSharedMagic.StringError, err)
 		serverApplicationCore.Shutdown()
 
 		return nil, fmt.Errorf("failed to start template core: %w", err)
@@ -62,7 +63,7 @@ func StartServerApplicationCore(ctx context.Context, settings *cryptoutilAppsTem
 	// Get underlying sql.DB for migrations.
 	sqlDB, err := templateCore.DB.DB()
 	if err != nil {
-		serverApplicationBasic.TelemetryService.Slogger.Error("failed to get sql.DB from GORM", "error", err)
+		serverApplicationBasic.TelemetryService.Slogger.Error("failed to get sql.DB from GORM", cryptoutilSharedMagic.StringError, err)
 		serverApplicationCore.Shutdown()
 
 		return nil, fmt.Errorf("failed to get sql.DB: %w", err)
@@ -82,7 +83,7 @@ func StartServerApplicationCore(ctx context.Context, settings *cryptoutilAppsTem
 
 	// Apply merged migrations.
 	if err := cryptoutilAppsTemplateServiceServerRepository.ApplyMigrationsFromFS(sqlDB, mergedFS, "", databaseType); err != nil {
-		serverApplicationBasic.TelemetryService.Slogger.Error("failed to apply migrations", "error", err)
+		serverApplicationBasic.TelemetryService.Slogger.Error("failed to apply migrations", cryptoutilSharedMagic.StringError, err)
 		serverApplicationCore.Shutdown()
 
 		return nil, fmt.Errorf("failed to apply migrations: %w", err)
@@ -93,7 +94,7 @@ func StartServerApplicationCore(ctx context.Context, settings *cryptoutilAppsTem
 	// Use NewOrmRepository (GORM directly from template Core).
 	ormRepository, err := cryptoutilOrmRepository.NewOrmRepository(ctx, serverApplicationBasic.TelemetryService, templateCore.DB, jwkGenService, settings.VerboseMode)
 	if err != nil {
-		serverApplicationBasic.TelemetryService.Slogger.Error("failed to create ORM repository", "error", err)
+		serverApplicationBasic.TelemetryService.Slogger.Error("failed to create ORM repository", cryptoutilSharedMagic.StringError, err)
 		serverApplicationCore.Shutdown()
 
 		return nil, fmt.Errorf("failed to create ORM repository: %w", err)
@@ -104,7 +105,7 @@ func StartServerApplicationCore(ctx context.Context, settings *cryptoutilAppsTem
 	// Create GormRepository wrapper for template barrier (implements barrier.Repository interface).
 	gormRepository, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(templateCore.DB)
 	if err != nil {
-		serverApplicationBasic.TelemetryService.Slogger.Error("failed to create gorm barrier repository", "error", err)
+		serverApplicationBasic.TelemetryService.Slogger.Error("failed to create gorm barrier repository", cryptoutilSharedMagic.StringError, err)
 		serverApplicationCore.Shutdown()
 
 		return nil, fmt.Errorf("failed to create gorm barrier repository: %w", err)
@@ -112,7 +113,7 @@ func StartServerApplicationCore(ctx context.Context, settings *cryptoutilAppsTem
 
 	barrierService, err := cryptoutilAppsTemplateServiceServerBarrier.NewService(ctx, serverApplicationBasic.TelemetryService, jwkGenService, gormRepository, serverApplicationBasic.UnsealKeysService)
 	if err != nil {
-		serverApplicationBasic.TelemetryService.Slogger.Error("failed to initialize barrier service", "error", err)
+		serverApplicationBasic.TelemetryService.Slogger.Error("failed to initialize barrier service", cryptoutilSharedMagic.StringError, err)
 		serverApplicationCore.Shutdown()
 
 		return nil, fmt.Errorf("failed to create barrier service: %w", err)
@@ -122,7 +123,7 @@ func StartServerApplicationCore(ctx context.Context, settings *cryptoutilAppsTem
 
 	businessLogicService, err := cryptoutilKmsServerBusinesslogic.NewBusinessLogicService(ctx, serverApplicationBasic.TelemetryService, jwkGenService, ormRepository, barrierService)
 	if err != nil {
-		serverApplicationBasic.TelemetryService.Slogger.Error("failed to initialize business logic service", "error", err)
+		serverApplicationBasic.TelemetryService.Slogger.Error("failed to initialize business logic service", cryptoutilSharedMagic.StringError, err)
 		serverApplicationCore.Shutdown()
 
 		return nil, fmt.Errorf("failed to initialize business logic service: %w", err)
@@ -136,7 +137,7 @@ func StartServerApplicationCore(ctx context.Context, settings *cryptoutilAppsTem
 
 		err = cryptoutilKmsServerDemo.SeedDemoData(ctx, serverApplicationBasic.TelemetryService, businessLogicService)
 		if err != nil {
-			serverApplicationBasic.TelemetryService.Slogger.Error("failed to seed demo data", "error", err)
+			serverApplicationBasic.TelemetryService.Slogger.Error("failed to seed demo data", cryptoutilSharedMagic.StringError, err)
 			serverApplicationCore.Shutdown()
 
 			return nil, fmt.Errorf("failed to seed demo data: %w", err)
@@ -146,7 +147,7 @@ func StartServerApplicationCore(ctx context.Context, settings *cryptoutilAppsTem
 
 		err = cryptoutilKmsServerDemo.ResetDemoData(ctx, serverApplicationBasic.TelemetryService, businessLogicService)
 		if err != nil {
-			serverApplicationBasic.TelemetryService.Slogger.Error("failed to reset demo data", "error", err)
+			serverApplicationBasic.TelemetryService.Slogger.Error("failed to reset demo data", cryptoutilSharedMagic.StringError, err)
 			serverApplicationCore.Shutdown()
 
 			return nil, fmt.Errorf("failed to reset demo data: %w", err)
@@ -185,14 +186,14 @@ func (c *ServerApplicationCore) Shutdown() func() {
 // determineDatabaseType returns "sqlite" or "postgres" based on the database URL.
 func determineDatabaseType(databaseURL string) string {
 	if databaseURL == "" ||
-		databaseURL == "file::memory:?cache=shared" ||
-		databaseURL == ":memory:" ||
+		databaseURL == cryptoutilSharedMagic.SQLiteInMemoryDSN ||
+		databaseURL == cryptoutilSharedMagic.SQLiteMemoryPlaceholder ||
 		strings.HasPrefix(databaseURL, "file:") ||
 		strings.HasPrefix(databaseURL, "sqlite://") {
 		return "sqlite"
 	}
 
-	return "postgres"
+	return cryptoutilSharedMagic.DockerServicePostgres
 }
 
 // mergedMigrations combines template and domain migrations into a single filesystem view.

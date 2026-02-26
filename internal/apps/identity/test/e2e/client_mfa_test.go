@@ -7,6 +7,7 @@
 package e2e
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	"testing"
@@ -73,7 +74,7 @@ func (s *E2ETestSuite) executeClientMFAChain(ctx context.Context, clientID strin
 	// Execute each client authentication method in chain.
 	for idx, method := range methods {
 		// Simulate network delay for realistic testing.
-		time.Sleep(5 * time.Millisecond)
+		time.Sleep(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Millisecond)
 
 		if err := s.performClientAuth(ctx, method, clientID); err != nil {
 			return fmt.Errorf("client MFA chain step %d (%s) failed for client %s: %w", idx+1, method, clientID, err)
@@ -294,7 +295,7 @@ func (s *E2ETestSuite) validateClientAuthStrength(
 // calculateClientAuthStrength calculates overall authentication strength from chain.
 func (s *E2ETestSuite) calculateClientAuthStrength(methods []ClientAuthMethod) string {
 	if len(methods) == 0 {
-		return "none"
+		return cryptoutilSharedMagic.PromptNone
 	}
 
 	// Single weak method = Low strength.

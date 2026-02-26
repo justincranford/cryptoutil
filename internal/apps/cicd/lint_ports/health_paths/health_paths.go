@@ -4,6 +4,7 @@
 package health_paths
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bufio"
 	"fmt"
 	"os"
@@ -112,7 +113,7 @@ func CheckHealthPathsInDockerfile(filePath string) []lintPortsCommon.HealthViola
 
 			// Check for incorrect port.
 			if match := legacyPortPattern.FindStringSubmatch(line); match != nil {
-				port, err := strconv.ParseUint(match[1], 10, 16)
+				port, err := strconv.ParseUint(match[1], cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cryptoutilSharedMagic.RealmMinTokenLengthBytes)
 				if err == nil && uint16(port) != lintPortsCommon.StandardAdminPort {
 					// Only flag if it looks like it's being used for a health check.
 					if strings.Contains(strings.ToLower(line), "health") || strings.Contains(line, "livez") || strings.Contains(line, "readyz") {

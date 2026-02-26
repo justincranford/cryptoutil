@@ -3,6 +3,7 @@
 package repository
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"errors"
@@ -26,7 +27,7 @@ func TestInitSQLite_SqlOpenError(t *testing.T) {
 
 	defer func() { sqlOpenFn = original }()
 
-	db, err := InitSQLite(context.Background(), "file::memory:?cache=shared", testDBMigrationsFS)
+	db, err := InitSQLite(context.Background(), cryptoutilSharedMagic.SQLiteInMemoryDSN, testDBMigrationsFS)
 	require.Error(t, err)
 	require.Nil(t, db)
 	require.Contains(t, err.Error(), "failed to open SQLite database")
@@ -42,7 +43,7 @@ func TestInitSQLite_GormOpenError(t *testing.T) {
 
 	defer func() { gormOpenFn = original }()
 
-	db, err := InitSQLite(context.Background(), "file::memory:?cache=shared", testDBMigrationsFS)
+	db, err := InitSQLite(context.Background(), cryptoutilSharedMagic.SQLiteInMemoryDSN, testDBMigrationsFS)
 	require.Error(t, err)
 	require.Nil(t, db)
 	require.Contains(t, err.Error(), "failed to initialize GORM for SQLite")
@@ -58,7 +59,7 @@ func TestInitSQLite_ApplyMigrationsInjectedError(t *testing.T) {
 
 	defer func() { applyMigrationsFn = original }()
 
-	db, err := InitSQLite(context.Background(), "file::memory:?cache=shared", testDBMigrationsFS)
+	db, err := InitSQLite(context.Background(), cryptoutilSharedMagic.SQLiteInMemoryDSN, testDBMigrationsFS)
 	require.Error(t, err)
 	require.Nil(t, db)
 	require.Contains(t, err.Error(), "failed to apply migrations")
@@ -87,7 +88,7 @@ func TestMigrationRunner_MigrateNewWithInstanceError(t *testing.T) {
 
 	// Open a real SQLite database so that iofs and sqlite driver creation succeed,
 	// then fail at the migrate.NewWithInstance step.
-	sqlDB, err := sql.Open("sqlite", "file::memory:?cache=shared")
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteInMemoryDSN)
 	require.NoError(t, err)
 
 	defer func() {

@@ -61,7 +61,7 @@ func waitForIdentityHealth(ctx context.Context, demoServer *identityDemoServer, 
 
 // verifyOpenIDConfiguration verifies the OpenID configuration endpoint.
 func verifyOpenIDConfiguration(ctx context.Context, demoServer *identityDemoServer, progress *ProgressDisplay) error {
-	configURL := demoServer.baseURL + "/.well-known/openid-configuration"
+	configURL := demoServer.baseURL + cryptoutilSharedMagic.PathDiscovery
 
 	client := &http.Client{Timeout: identityHTTPLongTimeout}
 
@@ -115,8 +115,8 @@ func demonstrateClientCredentialsFlow(ctx context.Context, demoServer *identityD
 	clientSecret := cryptoutilSharedMagic.DemoClientSecret
 
 	form := url.Values{}
-	form.Set("grant_type", "client_credentials")
-	form.Set("scope", "read write")
+	form.Set(cryptoutilSharedMagic.ParamGrantType, cryptoutilSharedMagic.GrantTypeClientCredentials)
+	form.Set(cryptoutilSharedMagic.ClaimScope, "read write")
 
 	client := &http.Client{Timeout: identityHTTPLongTimeout}
 
@@ -158,13 +158,13 @@ func demonstrateClientCredentialsFlow(ctx context.Context, demoServer *identityD
 	}
 
 	// Verify token response.
-	accessToken, ok := tokenResp["access_token"].(string)
+	accessToken, ok := tokenResp[cryptoutilSharedMagic.TokenTypeAccessToken].(string)
 	if !ok || accessToken == "" {
 		return fmt.Errorf("missing access_token in response")
 	}
 
-	tokenType, _ := tokenResp["token_type"].(string)
-	expiresIn, _ := tokenResp["expires_in"].(float64)
+	tokenType, _ := tokenResp[cryptoutilSharedMagic.ParamTokenType].(string)
+	expiresIn, _ := tokenResp[cryptoutilSharedMagic.ParamExpiresIn].(float64)
 
 	progress.Debug("Token response received successfully:")
 	progress.Debug(fmt.Sprintf("  token_type: %s", tokenType))

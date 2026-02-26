@@ -66,7 +66,7 @@ func TestApplyKeyFilters(t *testing.T) {
 
 	t.Run("Filter by MinimumGenerateDate", func(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&MaterialKey{})
-		minDate := time.Now().UTC().Add(-24 * time.Hour)
+		minDate := time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour)
 		filters := &GetMaterialKeysFilters{
 			MinimumGenerateDate: timePtr(minDate),
 			PageSize:            cryptoutilSharedMagic.DefaultPageSize,
@@ -90,7 +90,7 @@ func TestApplyKeyFilters(t *testing.T) {
 
 	t.Run("Filter by date range", func(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&MaterialKey{})
-		minDate := time.Now().UTC().Add(-24 * time.Hour)
+		minDate := time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour)
 		maxDate := time.Now().UTC()
 		filters := &GetMaterialKeysFilters{
 			MinimumGenerateDate: timePtr(minDate),
@@ -116,7 +116,7 @@ func TestApplyKeyFilters(t *testing.T) {
 
 	t.Run("Filter by combined filters and date range", func(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&MaterialKey{})
-		minDate := time.Now().UTC().Add(-24 * time.Hour)
+		minDate := time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour)
 		maxDate := time.Now().UTC()
 		filters := &GetMaterialKeysFilters{
 			MaterialKeyID:       []googleUuid.UUID{googleUuid.New()},
@@ -143,7 +143,7 @@ func TestApplyKeyFilters(t *testing.T) {
 
 	t.Run("Filter by all fields comprehensive", func(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&MaterialKey{})
-		minDate := time.Now().UTC().Add(-24 * time.Hour)
+		minDate := time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour)
 		maxDate := time.Now().UTC()
 		filters := &GetMaterialKeysFilters{
 			MaterialKeyID:       []googleUuid.UUID{googleUuid.New()},
@@ -215,7 +215,7 @@ func TestApplyGetElasticKeyKeysFilters(t *testing.T) {
 
 	t.Run("Filter by MinimumGenerateDate", func(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&MaterialKey{})
-		minDate := time.Now().UTC().Add(-24 * time.Hour)
+		minDate := time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour)
 		filters := &GetElasticKeyMaterialKeysFilters{
 			MinimumGenerateDate: timePtr(minDate),
 			PageSize:            cryptoutilSharedMagic.DefaultPageSize,
@@ -239,7 +239,7 @@ func TestApplyGetElasticKeyKeysFilters(t *testing.T) {
 
 	t.Run("Filter by date range", func(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&MaterialKey{})
-		minDate := time.Now().UTC().Add(-24 * time.Hour)
+		minDate := time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour)
 		maxDate := time.Now().UTC()
 		filters := &GetElasticKeyMaterialKeysFilters{
 			MinimumGenerateDate: timePtr(minDate),
@@ -253,7 +253,7 @@ func TestApplyGetElasticKeyKeysFilters(t *testing.T) {
 
 	t.Run("Filter by combined ElasticKeyID and date range", func(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&MaterialKey{})
-		minDate := time.Now().UTC().Add(-24 * time.Hour)
+		minDate := time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour)
 		maxDate := time.Now().UTC()
 		filters := &GetElasticKeyMaterialKeysFilters{
 			ElasticKeyID:        []googleUuid.UUID{googleUuid.New()},
@@ -279,7 +279,7 @@ func TestApplyGetElasticKeyKeysFilters(t *testing.T) {
 
 	t.Run("Filter by all fields comprehensive", func(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&MaterialKey{})
-		minDate := time.Now().UTC().Add(-24 * time.Hour)
+		minDate := time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour)
 		maxDate := time.Now().UTC()
 		filters := &GetElasticKeyMaterialKeysFilters{
 			ElasticKeyID:        []googleUuid.UUID{googleUuid.New()},

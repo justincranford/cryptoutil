@@ -5,6 +5,7 @@
 package config
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 "os"
 "path/filepath"
 "testing"
@@ -19,7 +20,7 @@ t.Helper()
 tmpDir := t.TempDir()
 path := filepath.Join(tmpDir, "config.yaml")
 
-err := os.WriteFile(path, []byte(content), 0o600)
+err := os.WriteFile(path, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 require.NoError(t, err)
 
 return path

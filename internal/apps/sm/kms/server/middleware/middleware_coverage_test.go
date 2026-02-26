@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
@@ -87,7 +88,7 @@ func TestAuthenticateJWT_EmptyToken(t *testing.T) {
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
-	req.Header.Set("Authorization", "Bearer ")
+	req.Header.Set("Authorization", cryptoutilSharedMagic.AuthorizationBearerPrefix)
 
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
@@ -166,7 +167,7 @@ func TestJWTMiddleware_EmptyBearerToken(t *testing.T) {
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
-	req.Header.Set("Authorization", "Bearer ")
+	req.Header.Set("Authorization", cryptoutilSharedMagic.AuthorizationBearerPrefix)
 
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
@@ -188,7 +189,7 @@ func TestSessionMiddleware_EmptyServiceToken(t *testing.T) {
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
-	req.Header.Set("Authorization", "Bearer ")
+	req.Header.Set("Authorization", cryptoutilSharedMagic.AuthorizationBearerPrefix)
 
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
@@ -283,7 +284,7 @@ func TestExtractFromMap_MarshalError(t *testing.T) {
 	extractor := NewClaimsExtractor()
 
 	rawClaims := map[string]any{
-		"sub": make(chan int),
+		cryptoutilSharedMagic.ClaimSub: make(chan int),
 	}
 
 	claims, err := extractor.ExtractFromMap(rawClaims)
@@ -363,7 +364,7 @@ func generateTestCert(
 			OrganizationalUnit: []string{"Test OU"},
 		},
 		DNSNames:    dnsNames,
-		IPAddresses: []net.IP{net.ParseIP("127.0.0.1")},
+		IPAddresses: []net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)},
 		NotBefore:   time.Now().UTC().Add(-time.Hour),
 		NotAfter:    time.Now().UTC().Add(time.Hour),
 		KeyUsage:    x509.KeyUsageDigitalSignature,
@@ -379,12 +380,12 @@ func generateTestCert(
 	parsedCert, err := x509.ParseCertificate(certDER)
 	require.NoError(t, err)
 
-	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certDER})
+	certPEM := pem.EncodeToMemory(&pem.Block{Type: cryptoutilSharedMagic.StringPEMTypeCertificate, Bytes: certDER})
 
 	keyDER, err := x509.MarshalECPrivateKey(certKey)
 	require.NoError(t, err)
 
-	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: keyDER})
+	keyPEM := pem.EncodeToMemory(&pem.Block{Type: cryptoutilSharedMagic.StringPEMTypeECPrivateKey, Bytes: keyDER})
 
 	tlsCert, err := tls.X509KeyPair(certPEM, keyPEM)
 	require.NoError(t, err)
@@ -396,7 +397,7 @@ func TestAuthenticateMTLS_SuccessfulAuth(t *testing.T) {
 	t.Parallel()
 
 	caCert, caKey := generateTestCA(t)
-	serverCert, _ := generateTestCert(t, caCert, caKey, "test-server", []string{"localhost"})
+	serverCert, _ := generateTestCert(t, caCert, caKey, "test-server", []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault})
 	clientCert, _ := generateTestCert(t, caCert, caKey, "test-client", []string{"client.local"})
 
 	caPool := x509.NewCertPool()
@@ -442,7 +443,7 @@ func TestAuthenticateMTLS_SuccessfulAuth(t *testing.T) {
 
 	url := fmt.Sprintf("https://%s/test", ln.Addr().String())
 
-	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(t.Context(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)

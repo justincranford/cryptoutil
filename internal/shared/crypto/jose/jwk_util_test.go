@@ -5,6 +5,7 @@
 package crypto
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/ecdh"
 	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
@@ -216,14 +217,14 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 
 	var wg sync.WaitGroup
 
-	wg.Add(7)
+	wg.Add(cryptoutilSharedMagic.GitRecentActivityDays)
 
 	go func() {
 		defer wg.Done()
 
 		var rsaEncryptKeyPair *cryptoutilSharedCryptoKeygen.KeyPair
 
-		rsaEncryptKeyPair, rsaEncryptErr = cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
+		rsaEncryptKeyPair, rsaEncryptErr = cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(cryptoutilSharedMagic.DefaultMetricsBatchSize)
 		if rsaEncryptErr == nil {
 			rsaPrivateKey, ok := rsaEncryptKeyPair.Private.(*rsa.PrivateKey)
 			if !ok {
@@ -242,10 +243,10 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 
 				if rsaEncryptErr == nil {
 					if rsaEncryptErr = testKeys.rsaDecryptPrivateJWK.Set("alg", "RSA-OAEP-512"); rsaEncryptErr == nil {
-						if rsaEncryptErr = testKeys.rsaDecryptPrivateJWK.Set("enc", "A256GCM"); rsaEncryptErr == nil {
+						if rsaEncryptErr = testKeys.rsaDecryptPrivateJWK.Set(cryptoutilSharedMagic.JoseKeyUseEnc, cryptoutilSharedMagic.JoseEncA256GCM); rsaEncryptErr == nil {
 							if rsaEncryptErr = testKeys.rsaEncryptPublicJWK.Set("alg", "RSA-OAEP-512"); rsaEncryptErr == nil {
 								// Error is handled by checking rsaEncryptErr later
-								rsaEncryptErr = testKeys.rsaEncryptPublicJWK.Set("enc", "A256GCM")
+								rsaEncryptErr = testKeys.rsaEncryptPublicJWK.Set(cryptoutilSharedMagic.JoseKeyUseEnc, cryptoutilSharedMagic.JoseEncA256GCM)
 							}
 						}
 					}
@@ -258,7 +259,7 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 
 		var rsaSignKeyPair *cryptoutilSharedCryptoKeygen.KeyPair
 
-		rsaSignKeyPair, rsaSignErr = cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
+		rsaSignKeyPair, rsaSignErr = cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(cryptoutilSharedMagic.DefaultMetricsBatchSize)
 		if rsaSignErr == nil {
 			rsaPrivateKey, ok := rsaSignKeyPair.Private.(*rsa.PrivateKey)
 			if !ok {
@@ -276,9 +277,9 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 				}
 
 				if rsaSignErr == nil {
-					if rsaSignErr = testKeys.rsaSignPrivateJWK.Set("alg", "RS512"); rsaSignErr == nil {
+					if rsaSignErr = testKeys.rsaSignPrivateJWK.Set("alg", cryptoutilSharedMagic.JoseAlgRS512); rsaSignErr == nil {
 						// Error is handled by checking rsaSignErr later
-						rsaSignErr = testKeys.rsaVerifyPublicJWK.Set("alg", "RS512")
+						rsaSignErr = testKeys.rsaVerifyPublicJWK.Set("alg", cryptoutilSharedMagic.JoseAlgRS512)
 					}
 				}
 			}
@@ -307,9 +308,9 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 				}
 
 				if ecdsaErr == nil {
-					if ecdsaErr = testKeys.ecdsaSignPrivateJWK.Set("alg", "ES256"); ecdsaErr == nil {
+					if ecdsaErr = testKeys.ecdsaSignPrivateJWK.Set("alg", cryptoutilSharedMagic.JoseAlgES256); ecdsaErr == nil {
 						// Error is handled by checking ecdsaErr later
-						ecdsaErr = testKeys.ecdsaVerifyPublicJWK.Set("alg", "ES256")
+						ecdsaErr = testKeys.ecdsaVerifyPublicJWK.Set("alg", cryptoutilSharedMagic.JoseAlgES256)
 					}
 				}
 			}
@@ -339,10 +340,10 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 
 				if ecdhErr == nil {
 					if ecdhErr = testKeys.ecdhDecryptPrivateJWK.Set("alg", "ECDH-ES+A256KW"); ecdhErr == nil {
-						if ecdhErr = testKeys.ecdhDecryptPrivateJWK.Set("enc", "A256GCM"); ecdhErr == nil {
+						if ecdhErr = testKeys.ecdhDecryptPrivateJWK.Set(cryptoutilSharedMagic.JoseKeyUseEnc, cryptoutilSharedMagic.JoseEncA256GCM); ecdhErr == nil {
 							if ecdhErr = testKeys.ecdhEncryptPublicJWK.Set("alg", "ECDH-ES+A256KW"); ecdhErr == nil {
 								// Error is handled by checking ecdhErr later
-								ecdhErr = testKeys.ecdhEncryptPublicJWK.Set("enc", "A256GCM")
+								ecdhErr = testKeys.ecdhEncryptPublicJWK.Set(cryptoutilSharedMagic.JoseKeyUseEnc, cryptoutilSharedMagic.JoseEncA256GCM)
 							}
 						}
 					}
@@ -355,7 +356,7 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 
 		var ed25519KeyPair *cryptoutilSharedCryptoKeygen.KeyPair
 
-		ed25519KeyPair, ed25519Err = cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPair("Ed25519")
+		ed25519KeyPair, ed25519Err = cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPair(cryptoutilSharedMagic.EdCurveEd25519)
 		if ed25519Err == nil {
 			ed25519PrivateKey, ok := ed25519KeyPair.Private.(ed25519.PrivateKey)
 			if !ok {
@@ -373,9 +374,9 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 				}
 
 				if ed25519Err == nil {
-					if ed25519Err = testKeys.ed25519SignPrivateJWK.Set("alg", "EdDSA"); ed25519Err == nil {
+					if ed25519Err = testKeys.ed25519SignPrivateJWK.Set("alg", cryptoutilSharedMagic.JoseAlgEdDSA); ed25519Err == nil {
 						// Error is handled by checking ed25519Err later
-						ed25519Err = testKeys.ed25519VerifyPublicJWK.Set("alg", "EdDSA")
+						ed25519Err = testKeys.ed25519VerifyPublicJWK.Set("alg", cryptoutilSharedMagic.JoseAlgEdDSA)
 					}
 				}
 			}
@@ -386,13 +387,13 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 
 		var aesSecretKey []byte
 
-		aesSecretKey, aesErr = cryptoutilSharedCryptoKeygen.GenerateAESKey(256)
+		aesSecretKey, aesErr = cryptoutilSharedCryptoKeygen.GenerateAESKey(cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 		if aesErr == nil {
 			testKeys.aesEncryptDecryptSecretJWK, aesErr = joseJwk.Import(aesSecretKey)
 			if aesErr == nil {
 				if aesErr = testKeys.aesEncryptDecryptSecretJWK.Set("alg", "A256KW"); aesErr == nil {
 					// Error is handled by checking aesErr later
-					aesErr = testKeys.aesEncryptDecryptSecretJWK.Set("enc", "A256GCM")
+					aesErr = testKeys.aesEncryptDecryptSecretJWK.Set(cryptoutilSharedMagic.JoseKeyUseEnc, cryptoutilSharedMagic.JoseEncA256GCM)
 				}
 			}
 		}
@@ -402,12 +403,12 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 
 		var hmacSecretKey []byte
 
-		hmacSecretKey, hmacErr = cryptoutilSharedCryptoKeygen.GenerateHMACKey(256)
+		hmacSecretKey, hmacErr = cryptoutilSharedCryptoKeygen.GenerateHMACKey(cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 		if hmacErr == nil {
 			testKeys.hmacSignVerifySecretJWK, hmacErr = joseJwk.Import(hmacSecretKey)
 			if hmacErr == nil {
 				// Error is handled by checking hmacErr later
-				hmacErr = testKeys.hmacSignVerifySecretJWK.Set("alg", "HS256")
+				hmacErr = testKeys.hmacSignVerifySecretJWK.Set("alg", cryptoutilSharedMagic.JoseAlgHS256)
 			}
 		}
 	}()

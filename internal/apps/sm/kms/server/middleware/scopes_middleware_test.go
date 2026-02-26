@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	json "encoding/json"
 	http "net/http"
@@ -277,7 +278,7 @@ func TestInsufficientScopeError_DetailLevels(t *testing.T) {
 
 			err = json.NewDecoder(resp.Body).Decode(&body)
 			require.NoError(t, err)
-			require.Equal(t, "insufficient_scope", body["error"])
+			require.Equal(t, cryptoutilSharedMagic.ErrorInsufficientScope, body[cryptoutilSharedMagic.StringError])
 
 			if tc.expectRequired {
 				require.Contains(t, body, "required_scope")

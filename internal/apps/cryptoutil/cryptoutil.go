@@ -6,6 +6,7 @@
 package cryptoutil
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"io"
 
@@ -29,11 +30,11 @@ func Suite(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 
 	// Route to product command.
 	switch product {
-	case "identity":
+	case cryptoutilSharedMagic.IdentityProductName:
 		return cryptoutilAppsIdentity.Identity(parameters, stdin, stdout, stderr)
-	case "jose":
+	case cryptoutilSharedMagic.JoseProductName:
 		return cryptoutilAppsJose.Jose(parameters, stdin, stdout, stderr)
-	case "pki":
+	case cryptoutilSharedMagic.PKIProductName:
 		return cryptoutilAppsPki.Pki(parameters, stdin, stdout, stderr)
 	case "sm":
 		return cryptoutilAppsSm.Sm(parameters, stdin, stdout, stderr)

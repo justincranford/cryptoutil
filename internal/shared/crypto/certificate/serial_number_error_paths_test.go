@@ -5,6 +5,7 @@
 package certificate
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/x509"
 	"fmt"
 	"io"
@@ -42,7 +43,7 @@ func TestGenerateNotBeforeNotAfter_RandIntError(t *testing.T) {
 
 	now := time.Now().UTC()
 
-	_, _, err := generateNotBeforeNotAfter(now, 24*time.Hour, 5*time.Minute, 10*time.Minute)
+	_, _, err := generateNotBeforeNotAfter(now, cryptoutilSharedMagic.HoursPerDay*time.Hour, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Minute)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to generate random range offset")
 }
@@ -57,7 +58,7 @@ func TestCertificateTemplateCA_SerialNumberError(t *testing.T) {
 
 	defer func() { randIntFn = original }()
 
-	_, err := CertificateTemplateCA("Issuer", "Subject", 24*time.Hour, 0)
+	_, err := CertificateTemplateCA("Issuer", "Subject", cryptoutilSharedMagic.HoursPerDay*time.Hour, 0)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to generate serial number")
 }
@@ -72,7 +73,7 @@ func TestCertificateTemplateEndEntity_SerialNumberError(t *testing.T) {
 
 	defer func() { randIntFn = original }()
 
-	_, err := CertificateTemplateEndEntity("Issuer", "Subject", 24*time.Hour, nil, nil, nil, nil, 0, nil)
+	_, err := CertificateTemplateEndEntity("Issuer", "Subject", cryptoutilSharedMagic.HoursPerDay*time.Hour, nil, nil, nil, nil, 0, nil)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to generate serial number")
 }
@@ -87,7 +88,7 @@ func TestRandomizedNotBeforeNotAfterCA_RandIntError(t *testing.T) {
 
 	defer func() { randIntFn = original }()
 
-	_, _, err := randomizedNotBeforeNotAfterCA(time.Now().UTC(), 24*time.Hour, 5*time.Minute, 10*time.Minute)
+	_, _, err := randomizedNotBeforeNotAfterCA(time.Now().UTC(), cryptoutilSharedMagic.HoursPerDay*time.Hour, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Minute)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to generate notBefore/notAfter")
 }
@@ -102,7 +103,7 @@ func TestRandomizedNotBeforeNotAfterEndEntity_RandIntError(t *testing.T) {
 
 	defer func() { randIntFn = original }()
 
-	_, _, err := randomizedNotBeforeNotAfterEndEntity(time.Now().UTC(), 24*time.Hour, 5*time.Minute, 10*time.Minute)
+	_, _, err := randomizedNotBeforeNotAfterEndEntity(time.Now().UTC(), cryptoutilSharedMagic.HoursPerDay*time.Hour, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Minute)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to generate notBefore/notAfter")
 }
@@ -124,7 +125,7 @@ func TestCertificateTemplateCA_ValidityPeriodError(t *testing.T) {
 
 	defer func() { randIntFn = original }()
 
-	_, err := CertificateTemplateCA("Issuer", "Subject", 24*time.Hour, 0)
+	_, err := CertificateTemplateCA("Issuer", "Subject", cryptoutilSharedMagic.HoursPerDay*time.Hour, 0)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to generate certificate validity period")
 }
@@ -146,7 +147,7 @@ func TestCertificateTemplateEndEntity_ValidityPeriodError(t *testing.T) {
 
 	defer func() { randIntFn = original }()
 
-	_, err := CertificateTemplateEndEntity("Issuer", "Subject", 24*time.Hour, nil, nil, nil, nil, 0, nil)
+	_, err := CertificateTemplateEndEntity("Issuer", "Subject", cryptoutilSharedMagic.HoursPerDay*time.Hour, nil, nil, nil, nil, 0, nil)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to generate certificate validity period")
 }
@@ -163,7 +164,7 @@ func TestCreateCASubject_CertificateTemplateError(t *testing.T) {
 
 	keyPair := testKeyGenPool.GetMany(1)[0]
 
-	_, err := CreateCASubject(nil, nil, "Test CA", keyPair, 24*time.Hour, 0)
+	_, err := CreateCASubject(nil, nil, "Test CA", keyPair, cryptoutilSharedMagic.HoursPerDay*time.Hour, 0)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to create CA certificate template")
 }
@@ -180,7 +181,7 @@ func TestCreateCASubjects_CertificateTemplateError(t *testing.T) {
 
 	keyPairs := testKeyGenPool.GetMany(2)
 
-	_, err := CreateCASubjects(keyPairs, "Test CA", 24*time.Hour)
+	_, err := CreateCASubjects(keyPairs, "Test CA", cryptoutilSharedMagic.HoursPerDay*time.Hour)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to create CA subject")
 }

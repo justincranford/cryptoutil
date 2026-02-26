@@ -5,6 +5,7 @@
 package orm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -30,7 +31,7 @@ func TestTokenRepository_Create(t *testing.T) {
 		TokenFormat:    cryptoutilIdentityDomain.TokenFormatUUID,
 		ClientID:       googleUuid.Must(googleUuid.NewV7()),
 		UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
-		Scopes:         []string{"openid", "profile"},
+		Scopes:         []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 		IssuedAt:       time.Now().UTC(),
 		ExpiresAt:      time.Now().UTC().Add(time.Hour),
 		Revoked:        false,
@@ -89,7 +90,7 @@ func TestTokenRepository_GetByTokenValue(t *testing.T) {
 		TokenFormat:    cryptoutilIdentityDomain.TokenFormatUUID,
 		ClientID:       googleUuid.Must(googleUuid.NewV7()),
 		UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
-		Scopes:         []string{"openid", "profile"},
+		Scopes:         []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 		IssuedAt:       time.Now().UTC(),
 		ExpiresAt:      time.Now().UTC().Add(time.Hour),
 		Revoked:        false,
@@ -148,7 +149,7 @@ func TestTokenRepository_Update(t *testing.T) {
 		TokenFormat:    cryptoutilIdentityDomain.TokenFormatUUID,
 		ClientID:       googleUuid.Must(googleUuid.NewV7()),
 		UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
-		Scopes:         []string{"openid", "profile"},
+		Scopes:         []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 		IssuedAt:       time.Now().UTC(),
 		ExpiresAt:      time.Now().UTC().Add(time.Hour),
 		Revoked:        false,
@@ -158,7 +159,7 @@ func TestTokenRepository_Update(t *testing.T) {
 	err := repo.Create(ctx, token)
 	require.NoError(t, err)
 
-	token.Scopes = []string{"openid", "profile", "email"}
+	token.Scopes = []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail}
 	err = repo.Update(ctx, token)
 	require.NoError(t, err)
 
@@ -181,7 +182,7 @@ func TestTokenRepository_Delete(t *testing.T) {
 		TokenFormat:    cryptoutilIdentityDomain.TokenFormatUUID,
 		ClientID:       googleUuid.Must(googleUuid.NewV7()),
 		UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
-		Scopes:         []string{"openid", "profile"},
+		Scopes:         []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 		IssuedAt:       time.Now().UTC(),
 		ExpiresAt:      time.Now().UTC().Add(time.Hour),
 		Revoked:        false,
@@ -213,7 +214,7 @@ func TestTokenRepository_RevokeByID(t *testing.T) {
 		TokenFormat:    cryptoutilIdentityDomain.TokenFormatUUID,
 		ClientID:       googleUuid.Must(googleUuid.NewV7()),
 		UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
-		Scopes:         []string{"openid", "profile"},
+		Scopes:         []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 		IssuedAt:       time.Now().UTC(),
 		ExpiresAt:      time.Now().UTC().Add(time.Hour),
 		Revoked:        false,
@@ -245,7 +246,7 @@ func TestTokenRepository_RevokeByTokenValue(t *testing.T) {
 		TokenFormat:    cryptoutilIdentityDomain.TokenFormatUUID,
 		ClientID:       googleUuid.Must(googleUuid.NewV7()),
 		UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
-		Scopes:         []string{"openid", "profile"},
+		Scopes:         []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 		IssuedAt:       time.Now().UTC(),
 		ExpiresAt:      time.Now().UTC().Add(time.Hour),
 		Revoked:        false,
@@ -270,7 +271,7 @@ func TestTokenRepository_List(t *testing.T) {
 	repo := NewTokenRepository(testDB.db)
 	ctx := context.Background()
 
-	for i := range 5 {
+	for i := range cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries {
 		token := &cryptoutilIdentityDomain.Token{
 			ID:             googleUuid.Must(googleUuid.NewV7()),
 			TokenValue:     "access_token_list_" + string(rune('0'+i)),
@@ -278,7 +279,7 @@ func TestTokenRepository_List(t *testing.T) {
 			TokenFormat:    cryptoutilIdentityDomain.TokenFormatUUID,
 			ClientID:       googleUuid.Must(googleUuid.NewV7()),
 			UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
-			Scopes:         []string{"openid", "profile"},
+			Scopes:         []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 			IssuedAt:       time.Now().UTC(),
 			ExpiresAt:      time.Now().UTC().Add(time.Hour),
 			Revoked:        false,
@@ -308,7 +309,7 @@ func TestTokenRepository_Count(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, int64(0), count)
 
-	for i := range 5 {
+	for i := range cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries {
 		token := &cryptoutilIdentityDomain.Token{
 			ID:             googleUuid.Must(googleUuid.NewV7()),
 			TokenValue:     "access_token_count_" + string(rune('0'+i)),
@@ -316,7 +317,7 @@ func TestTokenRepository_Count(t *testing.T) {
 			TokenFormat:    cryptoutilIdentityDomain.TokenFormatUUID,
 			ClientID:       googleUuid.Must(googleUuid.NewV7()),
 			UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
-			Scopes:         []string{"openid", "profile"},
+			Scopes:         []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 			IssuedAt:       time.Now().UTC(),
 			ExpiresAt:      time.Now().UTC().Add(time.Hour),
 			Revoked:        false,
@@ -328,7 +329,7 @@ func TestTokenRepository_Count(t *testing.T) {
 
 	count, err = repo.Count(ctx)
 	require.NoError(t, err)
-	require.Equal(t, int64(5), count)
+	require.Equal(t, int64(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries), count)
 }
 
 func TestTokenRepository_DeleteExpired(t *testing.T) {
@@ -346,7 +347,7 @@ func TestTokenRepository_DeleteExpired(t *testing.T) {
 		TokenFormat:    cryptoutilIdentityDomain.TokenFormatUUID,
 		ClientID:       googleUuid.Must(googleUuid.NewV7()),
 		UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
-		Scopes:         []string{"openid"},
+		Scopes:         []string{cryptoutilSharedMagic.ScopeOpenID},
 		IssuedAt:       time.Now().UTC().Add(-2 * time.Hour),
 		ExpiresAt:      time.Now().UTC().Add(-1 * time.Hour),
 		Revoked:        false,
@@ -363,7 +364,7 @@ func TestTokenRepository_DeleteExpired(t *testing.T) {
 		TokenFormat:    cryptoutilIdentityDomain.TokenFormatUUID,
 		ClientID:       googleUuid.Must(googleUuid.NewV7()),
 		UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
-		Scopes:         []string{"openid"},
+		Scopes:         []string{cryptoutilSharedMagic.ScopeOpenID},
 		IssuedAt:       time.Now().UTC(),
 		ExpiresAt:      time.Now().UTC().Add(1 * time.Hour),
 		Revoked:        false,
@@ -400,7 +401,7 @@ func TestTokenRepository_DeleteExpiredBefore(t *testing.T) {
 		TokenFormat:    cryptoutilIdentityDomain.TokenFormatUUID,
 		ClientID:       googleUuid.Must(googleUuid.NewV7()),
 		UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
-		Scopes:         []string{"openid"},
+		Scopes:         []string{cryptoutilSharedMagic.ScopeOpenID},
 		IssuedAt:       time.Now().UTC().Add(-3 * time.Hour),
 		ExpiresAt:      time.Now().UTC().Add(-2 * time.Hour),
 		Revoked:        false,
@@ -417,9 +418,9 @@ func TestTokenRepository_DeleteExpiredBefore(t *testing.T) {
 		TokenFormat:    cryptoutilIdentityDomain.TokenFormatUUID,
 		ClientID:       googleUuid.Must(googleUuid.NewV7()),
 		UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
-		Scopes:         []string{"openid"},
+		Scopes:         []string{cryptoutilSharedMagic.ScopeOpenID},
 		IssuedAt:       time.Now().UTC().Add(-1 * time.Hour),
-		ExpiresAt:      time.Now().UTC().Add(-30 * time.Minute),
+		ExpiresAt:      time.Now().UTC().Add(-cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Minute),
 		Revoked:        false,
 		RefreshTokenID: cryptoutilIdentityDomain.NullableUUID{Valid: false},
 	}

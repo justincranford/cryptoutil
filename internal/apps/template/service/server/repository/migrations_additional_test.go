@@ -5,6 +5,7 @@
 package repository
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 "context"
 "database/sql"
 "testing"
@@ -31,7 +32,7 @@ t.Parallel()
 
 ctx := context.Background()
 
-db, err := InitSQLite(ctx, "file::memory:?cache=shared", testSuccessMigrationsFS)
+db, err := InitSQLite(ctx, cryptoutilSharedMagic.SQLiteInMemoryDSN, testSuccessMigrationsFS)
 require.NoError(t, err)
 require.NotNil(t, db)
 
@@ -65,7 +66,7 @@ require.Contains(t, err.Error(), "failed to apply migrations")
 func TestMigrationRunner_Apply_PostgreSQLDriverError(t *testing.T) {
 t.Parallel()
 
-db, err := sql.Open("sqlite", ":memory:")
+db, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
 require.NoError(t, err)
 
 defer func() {
@@ -83,7 +84,7 @@ require.Error(t, err)
 func TestMigrationRunner_Apply_SQLiteDriverError(t *testing.T) {
 t.Parallel()
 
-db, err := sql.Open("sqlite", ":memory:")
+db, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
 require.NoError(t, err)
 require.NoError(t, db.Close())
 
@@ -97,14 +98,14 @@ require.Error(t, err)
 func TestApplyMigrationsFromFS_PostgreSQL(t *testing.T) {
 t.Parallel()
 
-db, err := sql.Open("sqlite", ":memory:")
+db, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
 require.NoError(t, err)
 
 defer func() {
 _ = db.Close()
 }()
 
-err = ApplyMigrationsFromFS(db, testDBMigrationsFS, "test_migrations", "postgres")
+err = ApplyMigrationsFromFS(db, testDBMigrationsFS, "test_migrations", cryptoutilSharedMagic.DockerServicePostgres)
 require.Error(t, err)
 }
 
@@ -123,7 +124,7 @@ Data: []byte("DROP TABLE IF EXISTS whatever;"),
 },
 }
 
-db, err := sql.Open("sqlite", ":memory:")
+db, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
 require.NoError(t, err)
 
 defer func() {

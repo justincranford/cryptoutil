@@ -105,7 +105,7 @@ func TestCreateEndEntity_CustomDuration(t *testing.T) {
 	cert := subject.KeyMaterial.CertificateChain[0]
 	validity := cert.NotAfter.Sub(cert.NotBefore)
 	// Allow some tolerance for not-before randomization.
-	require.Less(t, validity, 24*time.Hour, "custom 2h duration cert should not have default 365-day validity")
+	require.Less(t, validity, cryptoutilSharedMagic.HoursPerDay*time.Hour, "custom 2h duration cert should not have default 365-day validity")
 }
 
 // TestRootCAsPool_ContainsRootCert kills negation mutants at chain.go:321

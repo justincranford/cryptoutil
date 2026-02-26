@@ -1,6 +1,7 @@
 package lint_deployments
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 "os"
 "path/filepath"
 "testing"
@@ -48,7 +49,7 @@ func TestValidateTelemetry_PathIsFile(t *testing.T) {
 t.Parallel()
 
 f := filepath.Join(t.TempDir(), "file.yml")
-require.NoError(t, os.WriteFile(f, []byte("test"), 0o600))
+require.NoError(t, os.WriteFile(f, []byte("test"), cryptoutilSharedMagic.CacheFilePermissions))
 
 result, err := ValidateTelemetry(f)
 require.NoError(t, err)
@@ -143,8 +144,8 @@ tests := []struct {
 name     string
 endpoint string
 }{
-{name: "http", endpoint: "http://collector:4317"},
-{name: "https", endpoint: "https://collector:4318"},
+{name: cryptoutilSharedMagic.ProtocolHTTP, endpoint: "http://collector:4317"},
+{name: cryptoutilSharedMagic.ProtocolHTTPS, endpoint: "https://collector:4318"},
 {name: "grpc", endpoint: "grpc://collector:4317"},
 }
 
@@ -235,7 +236,7 @@ t.Parallel()
 dir := t.TempDir()
 require.NoError(t, os.WriteFile(
 filepath.Join(dir, "config.yml"),
-[]byte("otlp: \"yes\"\n"), 0o600))
+[]byte("otlp: \"yes\"\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 result, err := ValidateTelemetry(dir)
 require.NoError(t, err)
@@ -248,7 +249,7 @@ t.Parallel()
 dir := t.TempDir()
 require.NoError(t, os.WriteFile(
 filepath.Join(dir, "config.yml"),
-[]byte("bind-public-port: 8080\n"), 0o600))
+[]byte("bind-public-port: 8080\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 result, err := ValidateTelemetry(dir)
 require.NoError(t, err)
@@ -261,7 +262,7 @@ t.Parallel()
 dir := t.TempDir()
 require.NoError(t, os.WriteFile(
 filepath.Join(dir, "config.yml"),
-[]byte("{{invalid yaml"), 0o600))
+[]byte("{{invalid yaml"), cryptoutilSharedMagic.CacheFilePermissions))
 
 result, err := ValidateTelemetry(dir)
 require.NoError(t, err)
@@ -284,7 +285,7 @@ func TestValidateTelemetry_SubdirectorySkipped(t *testing.T) {
 t.Parallel()
 
 dir := t.TempDir()
-require.NoError(t, os.MkdirAll(filepath.Join(dir, "subdir"), 0o755))
+require.NoError(t, os.MkdirAll(filepath.Join(dir, "subdir"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 writeConfig(t, dir, "config.yml", map[string]string{
 "otlp":          "true",
 "otlp-service":  "svc-1",
@@ -302,7 +303,7 @@ t.Parallel()
 dir := t.TempDir()
 require.NoError(t, os.WriteFile(
 filepath.Join(dir, "readme.txt"),
-[]byte("not yaml"), 0o600))
+[]byte("not yaml"), cryptoutilSharedMagic.CacheFilePermissions))
 
 result, err := ValidateTelemetry(dir)
 require.NoError(t, err)
@@ -390,7 +391,7 @@ Valid:    false,
 Errors:   []string{"err1"},
 Warnings: []string{"warn1"},
 },
-contains: []string{"FAILED", "ERROR: err1", "WARNING: warn1"},
+contains: []string{cryptoutilSharedMagic.TaskFailed, "ERROR: err1", "WARNING: warn1"},
 },
 }
 
@@ -440,5 +441,5 @@ content += k + ": \"" + v + "\"\n"
 }
 }
 
-require.NoError(t, os.WriteFile(filepath.Join(dir, name), []byte(content), 0o600))
+require.NoError(t, os.WriteFile(filepath.Join(dir, name), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 }

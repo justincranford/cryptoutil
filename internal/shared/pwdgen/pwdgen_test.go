@@ -4,6 +4,7 @@
 package pwdgen
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -38,7 +39,7 @@ func TestPasswordPolicy_Validate(t *testing.T) {
 			name: "invalid_min_length_zero",
 			policy: PasswordPolicy{
 				MinLength: 0,
-				MaxLength: 10,
+				MaxLength: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 				CharSets:  []CharSetConfig{{Name: "test", Characters: []rune("abc"), Min: 1, Max: MaxInt}},
 			},
 			wantErr: true,
@@ -47,8 +48,8 @@ func TestPasswordPolicy_Validate(t *testing.T) {
 		{
 			name: "invalid_max_less_than_min",
 			policy: PasswordPolicy{
-				MinLength: 10,
-				MaxLength: 5,
+				MinLength: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
+				MaxLength: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 				CharSets:  []CharSetConfig{{Name: "test", Characters: []rune("abc"), Min: 1, Max: MaxInt}},
 			},
 			wantErr: true,
@@ -57,8 +58,8 @@ func TestPasswordPolicy_Validate(t *testing.T) {
 		{
 			name: "invalid_no_charsets",
 			policy: PasswordPolicy{
-				MinLength: 8,
-				MaxLength: 16,
+				MinLength: cryptoutilSharedMagic.IMMinPasswordLength,
+				MaxLength: cryptoutilSharedMagic.RealmMinTokenLengthBytes,
 				CharSets:  []CharSetConfig{},
 			},
 			wantErr: true,
@@ -67,8 +68,8 @@ func TestPasswordPolicy_Validate(t *testing.T) {
 		{
 			name: "invalid_charset_no_characters",
 			policy: PasswordPolicy{
-				MinLength: 8,
-				MaxLength: 16,
+				MinLength: cryptoutilSharedMagic.IMMinPasswordLength,
+				MaxLength: cryptoutilSharedMagic.RealmMinTokenLengthBytes,
 				CharSets:  []CharSetConfig{{Name: "empty", Characters: []rune{}, Min: 1, Max: MaxInt}},
 			},
 			wantErr: true,
@@ -77,8 +78,8 @@ func TestPasswordPolicy_Validate(t *testing.T) {
 		{
 			name: "invalid_charset_negative_min",
 			policy: PasswordPolicy{
-				MinLength: 8,
-				MaxLength: 16,
+				MinLength: cryptoutilSharedMagic.IMMinPasswordLength,
+				MaxLength: cryptoutilSharedMagic.RealmMinTokenLengthBytes,
 				CharSets:  []CharSetConfig{{Name: "test", Characters: []rune("abc"), Min: -1, Max: MaxInt}},
 			},
 			wantErr: true,
@@ -87,9 +88,9 @@ func TestPasswordPolicy_Validate(t *testing.T) {
 		{
 			name: "invalid_charset_max_less_than_min",
 			policy: PasswordPolicy{
-				MinLength: 8,
-				MaxLength: 16,
-				CharSets:  []CharSetConfig{{Name: "test", Characters: []rune("abc"), Min: 5, Max: 2}},
+				MinLength: cryptoutilSharedMagic.IMMinPasswordLength,
+				MaxLength: cryptoutilSharedMagic.RealmMinTokenLengthBytes,
+				CharSets:  []CharSetConfig{{Name: "test", Characters: []rune("abc"), Min: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, Max: 2}},
 			},
 			wantErr: true,
 			errMsg:  "Max must be >= Min",
@@ -97,12 +98,12 @@ func TestPasswordPolicy_Validate(t *testing.T) {
 		{
 			name: "invalid_sum_of_mins_exceeds_max_length",
 			policy: PasswordPolicy{
-				MinLength: 8,
-				MaxLength: 10,
+				MinLength: cryptoutilSharedMagic.IMMinPasswordLength,
+				MaxLength: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 				CharSets: []CharSetConfig{
-					{Name: "lower", Characters: LowercaseLetters, Min: 5, Max: MaxInt},
-					{Name: "upper", Characters: UppercaseLetters, Min: 5, Max: MaxInt},
-					{Name: "digit", Characters: Digits, Min: 5, Max: MaxInt},
+					{Name: "lower", Characters: LowercaseLetters, Min: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, Max: MaxInt},
+					{Name: "upper", Characters: UppercaseLetters, Min: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, Max: MaxInt},
+					{Name: "digit", Characters: Digits, Min: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, Max: MaxInt},
 				},
 			},
 			wantErr: true,
@@ -142,7 +143,7 @@ func TestNewPasswordGenerator(t *testing.T) {
 
 		invalidPolicy := PasswordPolicy{
 			MinLength: 0,
-			MaxLength: 10,
+			MaxLength: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 		}
 
 		_, err := NewPasswordGenerator(invalidPolicy)
@@ -158,7 +159,7 @@ func TestGenerate_BasicPolicy(t *testing.T) {
 	gen, err := NewPasswordGenerator(BasicPolicy)
 	require.NoError(t, err)
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < cryptoutilSharedMagic.JoseJADefaultMaxMaterials; i++ {
 		password, err := gen.Generate()
 		require.NoError(t, err)
 		require.NotEmpty(t, password)
@@ -187,7 +188,7 @@ func TestGenerate_StrongPolicy(t *testing.T) {
 	gen, err := NewPasswordGenerator(StrongPolicy)
 	require.NoError(t, err)
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < cryptoutilSharedMagic.JoseJADefaultMaxMaterials; i++ {
 		password, err := gen.Generate()
 		require.NoError(t, err)
 		require.NotEmpty(t, password)
@@ -211,7 +212,7 @@ func TestGenerate_EnterprisePolicy(t *testing.T) {
 	gen, err := NewPasswordGenerator(EnterprisePolicy)
 	require.NoError(t, err)
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < cryptoutilSharedMagic.JoseJADefaultMaxMaterials; i++ {
 		password, err := gen.Generate()
 		require.NoError(t, err)
 		require.NotEmpty(t, password)
@@ -240,27 +241,27 @@ func TestGenerate_CustomPolicy(t *testing.T) {
 
 	customPolicy := PasswordPolicy{
 		Name:                 "custom",
-		MinLength:            10,
-		MaxLength:            10, // Fixed length.
+		MinLength:            cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
+		MaxLength:            cryptoutilSharedMagic.JoseJADefaultMaxMaterials, // Fixed length.
 		AllowDuplicates:      true,
 		AllowAdjacentRepeats: true,
 		StartCharacters:      []rune("ABC"),
 		EndCharacters:        []rune("123"),
 		CharSets: []CharSetConfig{
-			{Name: "uppercase", Characters: []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ"), Min: 3, Max: 5},
-			{Name: "digits", Characters: []rune("0123456789"), Min: 3, Max: 5},
+			{Name: "uppercase", Characters: []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ"), Min: 3, Max: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
+			{Name: "digits", Characters: []rune(cryptoutilSharedMagic.EmailOTPCharset), Min: 3, Max: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
 		},
 	}
 
 	gen, err := NewPasswordGenerator(customPolicy)
 	require.NoError(t, err)
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < cryptoutilSharedMagic.JoseJADefaultMaxMaterials; i++ {
 		password, err := gen.Generate()
 		require.NoError(t, err)
 
 		// Check fixed length.
-		require.Equal(t, 10, len(password))
+		require.Equal(t, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, len(password))
 
 		// Check start/end constraints.
 		require.True(t, containsRune(customPolicy.StartCharacters, rune(password[0])))
@@ -268,12 +269,12 @@ func TestGenerate_CustomPolicy(t *testing.T) {
 
 		// Check character set requirements.
 		upperCount := countChars(password, []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
-		digitCount := countChars(password, []rune("0123456789"))
+		digitCount := countChars(password, []rune(cryptoutilSharedMagic.EmailOTPCharset))
 
 		require.GreaterOrEqual(t, upperCount, 3)
-		require.LessOrEqual(t, upperCount, 5)
+		require.LessOrEqual(t, upperCount, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 		require.GreaterOrEqual(t, digitCount, 3)
-		require.LessOrEqual(t, digitCount, 5)
+		require.LessOrEqual(t, digitCount, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	}
 }
 
@@ -286,7 +287,7 @@ func TestGenerate_Uniqueness(t *testing.T) {
 
 	passwords := make(map[string]bool)
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < cryptoutilSharedMagic.JoseJAMaxMaterials; i++ {
 		password, err := gen.Generate()
 		require.NoError(t, err)
 		require.False(t, passwords[password], "generated duplicate password: %s", password)

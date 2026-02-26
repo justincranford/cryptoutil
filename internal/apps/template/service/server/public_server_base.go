@@ -69,7 +69,7 @@ func NewPublicServerBase(cfg *PublicServerConfig) (*PublicServerBase, error) {
 
 // registerHealthEndpoints registers standard health check endpoints.
 func (s *PublicServerBase) registerHealthEndpoints() {
-	s.app.Get("/service/api/v1/health", s.handleServiceHealth)
+	s.app.Get(cryptoutilSharedMagic.IdentityE2EHealthEndpoint, s.handleServiceHealth)
 	s.app.Get("/browser/api/v1/health", s.handleBrowserHealth)
 }
 
@@ -81,13 +81,13 @@ func (s *PublicServerBase) handleServiceHealth(c *fiber.Ctx) error {
 	if s.shutdown {
 		//nolint:wrapcheck // Fiber framework error.
 		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			"status": "shutting down",
+			cryptoutilSharedMagic.StringStatus: "shutting down",
 		})
 	}
 
 	//nolint:wrapcheck // Fiber framework error.
 	return c.JSON(fiber.Map{
-		"status": "healthy",
+		cryptoutilSharedMagic.StringStatus: cryptoutilSharedMagic.DockerServiceHealthHealthy,
 	})
 }
 
@@ -99,13 +99,13 @@ func (s *PublicServerBase) handleBrowserHealth(c *fiber.Ctx) error {
 	if s.shutdown {
 		//nolint:wrapcheck // Fiber framework error.
 		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			"status": "shutting down",
+			cryptoutilSharedMagic.StringStatus: "shutting down",
 		})
 	}
 
 	//nolint:wrapcheck // Fiber framework error.
 	return c.JSON(fiber.Map{
-		"status": "healthy",
+		cryptoutilSharedMagic.StringStatus: cryptoutilSharedMagic.DockerServiceHealthHealthy,
 	})
 }
 

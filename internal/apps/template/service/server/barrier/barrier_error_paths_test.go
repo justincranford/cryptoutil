@@ -32,7 +32,7 @@ require.NoError(t, err)
 
 dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", dbUUID.String())
 
-sqlDB, err := sql.Open("sqlite", dsn)
+sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 require.NoError(t, err)
 
 db, err := gorm.Open(gormSqlite.Dialector{Conn: sqlDB}, &gorm.Config{SkipDefaultTransaction: true})

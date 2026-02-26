@@ -1,6 +1,7 @@
 package lint_deployments_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -26,7 +27,7 @@ func createRequiredSecrets(t *testing.T, baseDir string) {
 	}
 
 	for _, secret := range requiredSecrets {
-		require.NoError(t, os.WriteFile(filepath.Join(secretsPath, secret), []byte("secret-value"), 0o600))
+		require.NoError(t, os.WriteFile(filepath.Join(secretsPath, secret), []byte("secret-value"), cryptoutilSharedMagic.CacheFilePermissions))
 	}
 }
 
@@ -43,7 +44,7 @@ func createRequiredConfigFiles(t *testing.T, baseDir string, productService stri
 	}
 
 	for _, cfg := range requiredConfigs {
-		require.NoError(t, os.WriteFile(filepath.Join(configPath, cfg), []byte("# config"), 0o600))
+		require.NoError(t, os.WriteFile(filepath.Join(configPath, cfg), []byte("# config"), cryptoutilSharedMagic.CacheFilePermissions))
 	}
 }
 
@@ -51,10 +52,10 @@ func createRequiredConfigFiles(t *testing.T, baseDir string, productService stri
 func createValidProductServiceDeployment(t *testing.T, baseDir string, productService string) {
 	t.Helper()
 
-	require.NoError(t, os.MkdirAll(filepath.Join(baseDir, "secrets"), 0o755))
-	require.NoError(t, os.MkdirAll(filepath.Join(baseDir, "config"), 0o755))
-	require.NoError(t, os.WriteFile(filepath.Join(baseDir, "compose.yml"), []byte("version: '3'"), 0o600))
-	require.NoError(t, os.WriteFile(filepath.Join(baseDir, "Dockerfile"), []byte("FROM alpine"), 0o600))
+	require.NoError(t, os.MkdirAll(filepath.Join(baseDir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.MkdirAll(filepath.Join(baseDir, "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.WriteFile(filepath.Join(baseDir, "compose.yml"), []byte("version: '3'"), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(baseDir, "Dockerfile"), []byte("FROM alpine"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	createRequiredSecrets(t, baseDir)
 	createRequiredConfigFiles(t, baseDir, productService)
@@ -76,59 +77,59 @@ func TestValidateDeploymentStructure(t *testing.T) {
 	}{
 		{
 			name:           "valid PRODUCT-SERVICE deployment",
-			deploymentName: "sm-kms",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
 			structType:     "PRODUCT-SERVICE",
 			setupFunc: func(t *testing.T, baseDir string) {
 				t.Helper()
-				createValidProductServiceDeployment(t, baseDir, "sm-kms")
+				createValidProductServiceDeployment(t, baseDir, cryptoutilSharedMagic.OTLPServiceSMKMS)
 			},
 			wantValid: true,
 		},
 		{
 			name:           "valid PRODUCT-SERVICE deployment with optional demo and e2e",
-			deploymentName: "sm-kms",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
 			structType:     "PRODUCT-SERVICE",
 			setupFunc: func(t *testing.T, baseDir string) {
 				t.Helper()
-				createValidProductServiceDeployment(t, baseDir, "sm-kms")
+				createValidProductServiceDeployment(t, baseDir, cryptoutilSharedMagic.OTLPServiceSMKMS)
 				// Add optional demo and e2e files (should not cause errors).
-				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "config", "sm-kms-demo.yml"), []byte("# demo"), 0o600))
-				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "config", "sm-kms-e2e.yml"), []byte("# e2e"), 0o600))
+				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "config", "sm-kms-demo.yml"), []byte("# demo"), cryptoutilSharedMagic.CacheFilePermissions))
+				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "config", "sm-kms-e2e.yml"), []byte("# e2e"), cryptoutilSharedMagic.CacheFilePermissions))
 			},
 			wantValid: true,
 		},
 		{
 			name:           "valid PRODUCT-SERVICE deployment with identity-authz multi-part name",
-			deploymentName: "identity-authz",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceIdentityAuthz,
 			structType:     "PRODUCT-SERVICE",
 			setupFunc: func(t *testing.T, baseDir string) {
 				t.Helper()
-				createValidProductServiceDeployment(t, baseDir, "identity-authz")
+				createValidProductServiceDeployment(t, baseDir, cryptoutilSharedMagic.OTLPServiceIdentityAuthz)
 			},
 			wantValid: true,
 		},
 		{
 			name:           "missing secrets directory",
-			deploymentName: "sm-kms",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
 			structType:     "PRODUCT-SERVICE",
 			setupFunc: func(t *testing.T, baseDir string) {
 				t.Helper()
-				require.NoError(t, os.MkdirAll(filepath.Join(baseDir, "config"), 0o755))
-				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "compose.yml"), []byte("version: '3'"), 0o600))
-				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "Dockerfile"), []byte("FROM alpine"), 0o600))
+				require.NoError(t, os.MkdirAll(filepath.Join(baseDir, "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "compose.yml"), []byte("version: '3'"), cryptoutilSharedMagic.CacheFilePermissions))
+				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "Dockerfile"), []byte("FROM alpine"), cryptoutilSharedMagic.CacheFilePermissions))
 			},
 			wantValid:       false,
 			wantMissingDirs: []string{"secrets"},
 		},
 		{
 			name:           "missing config directory",
-			deploymentName: "sm-kms",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
 			structType:     "PRODUCT-SERVICE",
 			setupFunc: func(t *testing.T, baseDir string) {
 				t.Helper()
-				require.NoError(t, os.MkdirAll(filepath.Join(baseDir, "secrets"), 0o755))
-				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "compose.yml"), []byte("version: '3'"), 0o600))
-				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "Dockerfile"), []byte("FROM alpine"), 0o600))
+				require.NoError(t, os.MkdirAll(filepath.Join(baseDir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "compose.yml"), []byte("version: '3'"), cryptoutilSharedMagic.CacheFilePermissions))
+				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "Dockerfile"), []byte("FROM alpine"), cryptoutilSharedMagic.CacheFilePermissions))
 				createRequiredSecrets(t, baseDir)
 			},
 			wantValid:       false,
@@ -136,48 +137,48 @@ func TestValidateDeploymentStructure(t *testing.T) {
 		},
 		{
 			name:           "missing compose.yml",
-			deploymentName: "sm-kms",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
 			structType:     "PRODUCT-SERVICE",
 			setupFunc: func(t *testing.T, baseDir string) {
 				t.Helper()
-				require.NoError(t, os.MkdirAll(filepath.Join(baseDir, "secrets"), 0o755))
-				require.NoError(t, os.MkdirAll(filepath.Join(baseDir, "config"), 0o755))
-				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "Dockerfile"), []byte("FROM alpine"), 0o600))
+				require.NoError(t, os.MkdirAll(filepath.Join(baseDir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				require.NoError(t, os.MkdirAll(filepath.Join(baseDir, "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "Dockerfile"), []byte("FROM alpine"), cryptoutilSharedMagic.CacheFilePermissions))
 				createRequiredSecrets(t, baseDir)
-				createRequiredConfigFiles(t, baseDir, "sm-kms")
+				createRequiredConfigFiles(t, baseDir, cryptoutilSharedMagic.OTLPServiceSMKMS)
 			},
 			wantValid:        false,
 			wantMissingFiles: []string{"compose.yml"},
 		},
 		{
 			name:           "missing Dockerfile",
-			deploymentName: "sm-kms",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
 			structType:     "PRODUCT-SERVICE",
 			setupFunc: func(t *testing.T, baseDir string) {
 				t.Helper()
-				require.NoError(t, os.MkdirAll(filepath.Join(baseDir, "secrets"), 0o755))
-				require.NoError(t, os.MkdirAll(filepath.Join(baseDir, "config"), 0o755))
-				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "compose.yml"), []byte("version: '3'"), 0o600))
+				require.NoError(t, os.MkdirAll(filepath.Join(baseDir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				require.NoError(t, os.MkdirAll(filepath.Join(baseDir, "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "compose.yml"), []byte("version: '3'"), cryptoutilSharedMagic.CacheFilePermissions))
 				createRequiredSecrets(t, baseDir)
-				createRequiredConfigFiles(t, baseDir, "sm-kms")
+				createRequiredConfigFiles(t, baseDir, cryptoutilSharedMagic.OTLPServiceSMKMS)
 			},
 			wantValid:        false,
 			wantMissingFiles: []string{"Dockerfile"},
 		},
 		{
 			name:           "missing some secrets",
-			deploymentName: "sm-kms",
+			deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS,
 			structType:     "PRODUCT-SERVICE",
 			setupFunc: func(t *testing.T, baseDir string) {
 				t.Helper()
-				require.NoError(t, os.MkdirAll(filepath.Join(baseDir, "secrets"), 0o755))
-				require.NoError(t, os.MkdirAll(filepath.Join(baseDir, "config"), 0o755))
-				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "compose.yml"), []byte("version: '3'"), 0o600))
-				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "Dockerfile"), []byte("FROM alpine"), 0o600))
+				require.NoError(t, os.MkdirAll(filepath.Join(baseDir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				require.NoError(t, os.MkdirAll(filepath.Join(baseDir, "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "compose.yml"), []byte("version: '3'"), cryptoutilSharedMagic.CacheFilePermissions))
+				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "Dockerfile"), []byte("FROM alpine"), cryptoutilSharedMagic.CacheFilePermissions))
 				// Only create 2 of 10 required secrets.
-				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "secrets", "unseal_1of5.secret"), []byte("s"), 0o600))
-				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "secrets", "hash_pepper_v3.secret"), []byte("s"), 0o600))
-				createRequiredConfigFiles(t, baseDir, "sm-kms")
+				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "secrets", "unseal_1of5.secret"), []byte("s"), cryptoutilSharedMagic.CacheFilePermissions))
+				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "secrets", "hash_pepper_v3.secret"), []byte("s"), cryptoutilSharedMagic.CacheFilePermissions))
+				createRequiredConfigFiles(t, baseDir, cryptoutilSharedMagic.OTLPServiceSMKMS)
 			},
 			wantValid: false,
 			wantMissingSecrets: []string{
@@ -193,31 +194,31 @@ func TestValidateDeploymentStructure(t *testing.T) {
 			structType:     "template",
 			setupFunc: func(t *testing.T, baseDir string) {
 				t.Helper()
-				require.NoError(t, os.MkdirAll(filepath.Join(baseDir, "secrets"), 0o755))
-				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "compose.yml"), []byte("version: '3'"), 0o600))
+				require.NoError(t, os.MkdirAll(filepath.Join(baseDir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "compose.yml"), []byte("version: '3'"), cryptoutilSharedMagic.CacheFilePermissions))
 				createRequiredSecrets(t, baseDir)
 			},
 			wantValid: true,
 		},
 		{
 			name:           "valid infrastructure deployment",
-			deploymentName: "grafana-otel-lgtm",
+			deploymentName: cryptoutilSharedMagic.DockerServiceGrafanaOtelLgtm,
 			structType:     "infrastructure",
 			setupFunc: func(t *testing.T, baseDir string) {
 				t.Helper()
-				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "compose.yml"), []byte("version: '3'"), 0o600))
+				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "compose.yml"), []byte("version: '3'"), cryptoutilSharedMagic.CacheFilePermissions))
 			},
 			wantValid: true,
 		},
 		{
 			name:           "infrastructure with optional files",
-			deploymentName: "grafana-otel-lgtm",
+			deploymentName: cryptoutilSharedMagic.DockerServiceGrafanaOtelLgtm,
 			structType:     "infrastructure",
 			setupFunc: func(t *testing.T, baseDir string) {
 				t.Helper()
-				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "compose.yml"), []byte("version: '3'"), 0o600))
-				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "init-db.sql"), []byte("CREATE TABLE test;"), 0o600))
-				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "README.md"), []byte("# README"), 0o600))
+				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "compose.yml"), []byte("version: '3'"), cryptoutilSharedMagic.CacheFilePermissions))
+				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "init-db.sql"), []byte("CREATE TABLE test;"), cryptoutilSharedMagic.CacheFilePermissions))
+				require.NoError(t, os.WriteFile(filepath.Join(baseDir, "README.md"), []byte("# README"), cryptoutilSharedMagic.CacheFilePermissions))
 			},
 			wantValid: true,
 		},
@@ -267,11 +268,11 @@ func TestValidateAllDeployments_ProductAndSuiteAndTemplate(t *testing.T) {
 				t.Helper()
 
 				tmpDir := t.TempDir()
-				productDir := filepath.Join(tmpDir, "identity")
-				require.NoError(t, os.MkdirAll(filepath.Join(productDir, "secrets"), 0o750))
+				productDir := filepath.Join(tmpDir, cryptoutilSharedMagic.IdentityProductName)
+				require.NoError(t, os.MkdirAll(filepath.Join(productDir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
 				require.NoError(t, os.WriteFile(
 					filepath.Join(productDir, "compose.yml"),
-					[]byte("name: identity\n"), 0o600))
+					[]byte("name: identity\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 				return tmpDir
 			},
@@ -284,10 +285,10 @@ func TestValidateAllDeployments_ProductAndSuiteAndTemplate(t *testing.T) {
 
 				tmpDir := t.TempDir()
 				suiteDir := filepath.Join(tmpDir, "cryptoutil-suite")
-				require.NoError(t, os.MkdirAll(filepath.Join(suiteDir, "secrets"), 0o750))
+				require.NoError(t, os.MkdirAll(filepath.Join(suiteDir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
 				require.NoError(t, os.WriteFile(
 					filepath.Join(suiteDir, "compose.yml"),
-					[]byte("name: cryptoutil\n"), 0o600))
+					[]byte("name: cryptoutil\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 				return tmpDir
 			},
@@ -300,10 +301,10 @@ func TestValidateAllDeployments_ProductAndSuiteAndTemplate(t *testing.T) {
 
 				tmpDir := t.TempDir()
 				templateDir := filepath.Join(tmpDir, "template")
-				require.NoError(t, os.MkdirAll(filepath.Join(templateDir, "secrets"), 0o750))
+				require.NoError(t, os.MkdirAll(filepath.Join(templateDir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
 				require.NoError(t, os.WriteFile(
 					filepath.Join(templateDir, "compose.yml"),
-					[]byte("name: template\n"), 0o600))
+					[]byte("name: template\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 				return tmpDir
 			},
@@ -337,10 +338,10 @@ func TestValidateDeploymentStructure_ProductType(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "secrets"), 0o750))
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "compose.yml"), []byte("n: t\n"), 0o600))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "compose.yml"), []byte("n: t\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	result, err := ValidateDeploymentStructure(tmpDir, "identity", "PRODUCT")
+	result, err := ValidateDeploymentStructure(tmpDir, cryptoutilSharedMagic.IdentityProductName, "PRODUCT")
 	require.NoError(t, err)
 	require.NotNil(t, result)
 
@@ -353,8 +354,8 @@ func TestValidateDeploymentStructure_SuiteType(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "secrets"), 0o750))
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "compose.yml"), []byte("n: t\n"), 0o600))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "compose.yml"), []byte("n: t\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateDeploymentStructure(tmpDir, "cryptoutil-suite", "SUITE")
 	require.NoError(t, err)

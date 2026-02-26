@@ -5,6 +5,7 @@
 package demo
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
 
@@ -214,7 +215,7 @@ func TestParseArgs_AllFlags(t *testing.T) {
 			args: []string{"--health-timeout", "5s"},
 			check: func(t *testing.T, c *Config) {
 				t.Helper()
-				require.Equal(t, 5*time.Second, c.HealthTimeout)
+				require.Equal(t, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second, c.HealthTimeout)
 			},
 		},
 		{
@@ -222,7 +223,7 @@ func TestParseArgs_AllFlags(t *testing.T) {
 			args: []string{"--retry", "5"},
 			check: func(t *testing.T, c *Config) {
 				t.Helper()
-				require.Equal(t, 5, c.RetryCount)
+				require.Equal(t, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, c.RetryCount)
 			},
 		},
 		{

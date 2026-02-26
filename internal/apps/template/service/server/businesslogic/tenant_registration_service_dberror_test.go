@@ -4,6 +4,7 @@
 package businesslogic
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"fmt"
@@ -63,8 +64,8 @@ func TestRegisterUserWithTenant_JoinFlow(t *testing.T) {
 
 	ctx := context.Background()
 	userID := googleUuid.Must(googleUuid.NewV7())
-	username := fmt.Sprintf("testuser_%s", userID.String()[:8])
-	email := fmt.Sprintf("test_%s@example.com", userID.String()[:8])
+	username := fmt.Sprintf("testuser_%s", userID.String()[:cryptoutilSharedMagic.IMMinPasswordLength])
+	email := fmt.Sprintf("test_%s@example.com", userID.String()[:cryptoutilSharedMagic.IMMinPasswordLength])
 
 	// Test join flow (createTenant=false) - should return "not yet implemented" error.
 	_, err := service.RegisterUserWithTenant(ctx, userID, username, email, testPasswordHash, "Existing Tenant", false)
@@ -79,7 +80,7 @@ func TestRegisterUserWithTenant_JoinFlow(t *testing.T) {
 // TestRegisterUserWithTenant_CreateTenant_DBError tests that RegisterUserWithTenant returns error when DB is closed.
 func TestRegisterUserWithTenant_CreateTenant_DBError(t *testing.T) {
 	// Create fresh database for this test.
-	sqlDB, err := sql.Open("sqlite", "file::memory:?cache=shared")
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteInMemoryDSN)
 	require.NoError(t, err)
 
 	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
@@ -104,8 +105,8 @@ func TestRegisterUserWithTenant_CreateTenant_DBError(t *testing.T) {
 
 	ctx := context.Background()
 	userID := googleUuid.Must(googleUuid.NewV7())
-	username := fmt.Sprintf("testuser_%s", userID.String()[:8])
-	email := fmt.Sprintf("test_%s@example.com", userID.String()[:8])
+	username := fmt.Sprintf("testuser_%s", userID.String()[:cryptoutilSharedMagic.IMMinPasswordLength])
+	email := fmt.Sprintf("test_%s@example.com", userID.String()[:cryptoutilSharedMagic.IMMinPasswordLength])
 
 	// Try to create tenant with closed DB.
 	_, err = service.RegisterUserWithTenant(ctx, userID, username, email, testPasswordHash, "New Tenant", true)
@@ -116,7 +117,7 @@ func TestRegisterUserWithTenant_CreateTenant_DBError(t *testing.T) {
 // TestRegisterClientWithTenant_DBError tests that RegisterClientWithTenant returns error when DB is closed.
 func TestRegisterClientWithTenant_DBError(t *testing.T) {
 	// Create fresh database for this test.
-	sqlDB, err := sql.Open("sqlite", "file::memory:?cache=shared")
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteInMemoryDSN)
 	require.NoError(t, err)
 
 	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
@@ -185,7 +186,7 @@ func TestRegisterClientWithTenant_JoinRequestCreateError(t *testing.T) {
 // TestAuthorizeJoinRequest_GetByID_DBError tests that AuthorizeJoinRequest returns error when GetByID fails.
 func TestAuthorizeJoinRequest_GetByID_DBError(t *testing.T) {
 	// Create fresh database for this test.
-	sqlDB, err := sql.Open("sqlite", "file::memory:?cache=shared")
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteInMemoryDSN)
 	require.NoError(t, err)
 
 	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
@@ -222,7 +223,7 @@ func TestAuthorizeJoinRequest_GetByID_DBError(t *testing.T) {
 // TestAuthorizeJoinRequest_Update_DBError tests that AuthorizeJoinRequest returns error when Update fails.
 func TestAuthorizeJoinRequest_Update_DBError(t *testing.T) {
 	// Create fresh database for this test.
-	sqlDB, err := sql.Open("sqlite", "file::memory:?cache=shared")
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteInMemoryDSN)
 	require.NoError(t, err)
 
 	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
@@ -273,7 +274,7 @@ func TestAuthorizeJoinRequest_Update_DBError(t *testing.T) {
 // TestListJoinRequests_DBError tests that ListJoinRequests returns error when ListByTenant fails.
 func TestListJoinRequests_DBError(t *testing.T) {
 	// Create fresh database for this test.
-	sqlDB, err := sql.Open("sqlite", "file::memory:?cache=shared")
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteInMemoryDSN)
 	require.NoError(t, err)
 
 	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{

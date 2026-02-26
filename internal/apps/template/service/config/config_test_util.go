@@ -394,7 +394,7 @@ func RequireNewForTest(applicationName string) *ServiceTemplateServerSettings {
 		// The file::memory:NAME?cache=shared format creates disk files in modernc.org/sqlite.
 		// Use file:NAME?mode=memory&cache=shared which is the correct named in-memory URI.
 		settings.DatabaseURL = "file:" + applicationName + "_" + uniqueSuffix + "?mode=memory&cache=shared"
-	} else if strings.Contains(settings.DatabaseURL, ":memory:") {
+	} else if strings.Contains(settings.DatabaseURL, cryptoutilSharedMagic.SQLiteMemoryPlaceholder) {
 		// SQLite simple :memory: format - convert to unique named in-memory database.
 		settings.DatabaseURL = "file:" + applicationName + "_" + uniqueSuffix + "?mode=memory&cache=private"
 	} else if strings.Contains(settings.DatabaseURL, "postgres://") {
@@ -420,5 +420,5 @@ func RequireNewForTest(applicationName string) *ServiceTemplateServerSettings {
 func NewFromFile(filePath string) (*ServiceTemplateServerSettings, error) {
 	fs := pflag.NewFlagSet("NewFromFile", pflag.ContinueOnError)
 
-	return ParseWithFlagSet(fs, []string{"start", "--config", filePath}, false)
+	return ParseWithFlagSet(fs, []string{"start", cryptoutilSharedMagic.IdentityCLIFlagConfig, filePath}, false)
 }

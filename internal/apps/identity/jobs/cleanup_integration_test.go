@@ -5,6 +5,7 @@
 package jobs
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"log/slog"
 	"os"
@@ -52,9 +53,9 @@ func TestCleanupJob_Integration_TokenDeletion(t *testing.T) {
 		ClientSecret:            "secret123",
 		Name:                    "test-client",
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
-		AllowedScopes:           []string{"read", "write"},
-		AllowedGrantTypes:       []string{"authorization_code"},
-		AllowedResponseTypes:    []string{"code"},
+		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
+		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
+		AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,
 	}
 
@@ -69,7 +70,7 @@ func TestCleanupJob_Integration_TokenDeletion(t *testing.T) {
 		TokenFormat:   cryptoutilIdentityDomain.TokenFormatUUID,
 		ExpiresAt:     time.Now().UTC().Add(-1 * time.Hour), // Expired 1 hour ago.
 		IssuedAt:      time.Now().UTC().Add(-2 * time.Hour),
-		Scopes:        []string{"read", "write"},
+		Scopes:        []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
 		ClientID:      testClient.ID,
 		UserID:        cryptoutilIdentityDomain.NullableUUID{UUID: testUser.ID, Valid: true},
 		CodeChallenge: "",
@@ -86,7 +87,7 @@ func TestCleanupJob_Integration_TokenDeletion(t *testing.T) {
 		TokenFormat:   cryptoutilIdentityDomain.TokenFormatUUID,
 		ExpiresAt:     time.Now().UTC().Add(1 * time.Hour), // Expires 1 hour from now.
 		IssuedAt:      time.Now().UTC(),
-		Scopes:        []string{"read", "write"},
+		Scopes:        []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
 		ClientID:      testClient.ID,
 		UserID:        cryptoutilIdentityDomain.NullableUUID{UUID: testUser.ID, Valid: true},
 		CodeChallenge: "",
@@ -96,7 +97,7 @@ func TestCleanupJob_Integration_TokenDeletion(t *testing.T) {
 	testify.NoError(t, err, "Failed to create valid token")
 
 	// Create cleanup job with very short interval for testing.
-	job := NewCleanupJob(repoFactory, logger, 100*time.Millisecond)
+	job := NewCleanupJob(repoFactory, logger, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond)
 
 	// Run cleanup once.
 	job.cleanup(ctx)
@@ -179,7 +180,7 @@ func TestCleanupJob_Integration_SessionDeletion(t *testing.T) {
 	testify.NoError(t, err, "Failed to create valid session")
 
 	// Create cleanup job with very short interval for testing.
-	job := NewCleanupJob(repoFactory, logger, 100*time.Millisecond)
+	job := NewCleanupJob(repoFactory, logger, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond)
 
 	// Run cleanup once.
 	job.cleanup(ctx)

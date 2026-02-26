@@ -3,6 +3,7 @@
 package compliance
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	ecdsa "crypto/ecdsa"
 	crand "crypto/rand"
 	"crypto/x509"
@@ -26,7 +27,7 @@ func TestGenerateReport(t *testing.T) {
 	}
 
 	period := AuditPeriod{
-		StartDate: time.Now().UTC().Add(-30 * 24 * time.Hour),
+		StartDate: time.Now().UTC().Add(-cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		EndDate:   time.Now().UTC(),
 	}
 
@@ -36,10 +37,10 @@ func TestGenerateReport(t *testing.T) {
 	require.NotEmpty(t, report.ID)
 	require.Equal(t, FrameworkCABFBaseline, report.Framework)
 	require.Equal(t, "test-auditor", report.GeneratedBy)
-	require.Len(t, report.Requirements, 5)
+	require.Len(t, report.Requirements, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 
 	// Verify summary.
-	require.Equal(t, 5, report.Summary.TotalRequirements)
+	require.Equal(t, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, report.Summary.TotalRequirements)
 	require.Equal(t, 1, report.Summary.Compliant)
 	require.Equal(t, 2, report.Summary.NonCompliant)
 	require.Equal(t, 1, report.Summary.Partial)
@@ -51,7 +52,7 @@ func TestGenerateReport(t *testing.T) {
 func TestAuditTrailBuilder(t *testing.T) {
 	t.Parallel()
 
-	startTime := time.Now().UTC().Add(-24 * time.Hour)
+	startTime := time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour)
 	endTime := time.Now().UTC()
 
 	builder := NewAuditTrailBuilder(startTime, endTime)
@@ -78,7 +79,7 @@ func TestAuditTrailBuilder(t *testing.T) {
 		ID:        "EVT-003",
 		EventType: EventAuthenticationFailed,
 		Actor:     "attacker",
-		Resource:  "login",
+		Resource:  cryptoutilSharedMagic.PromptLogin,
 		Action:    "authenticate",
 		Outcome:   "failure",
 	})
@@ -107,7 +108,7 @@ func TestCreateCPSTemplate(t *testing.T) {
 	require.Equal(t, "CPS-001", cps.ID)
 	require.Equal(t, "Certificate Practice Statement", cps.Title)
 	require.NotEmpty(t, cps.Sections)
-	require.Len(t, cps.Sections, 10)
+	require.Len(t, cps.Sections, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 }
 
 func TestEvidenceCollector(t *testing.T) {
@@ -207,7 +208,7 @@ func createTestCert(t *testing.T, key *ecdsa.PrivateKey, isCA bool, notBefore, n
 	t.Helper()
 
 	// Use a large serial number with at least 64 bits of entropy for BR compliance.
-	serialNumber, err := crand.Int(crand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
+	serialNumber, err := crand.Int(crand.Reader, new(big.Int).Lsh(big.NewInt(1), cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits))
 	require.NoError(t, err)
 
 	template := &x509.Certificate{
@@ -237,7 +238,7 @@ func createTestCACert(t *testing.T, key *ecdsa.PrivateKey) *x509.Certificate {
 	t.Helper()
 
 	// Use a large serial number with at least 64 bits of entropy for BR compliance.
-	serialNumber, err := crand.Int(crand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
+	serialNumber, err := crand.Int(crand.Reader, new(big.Int).Lsh(big.NewInt(1), cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits))
 	require.NoError(t, err)
 
 	template := &x509.Certificate{
@@ -246,7 +247,7 @@ func createTestCACert(t *testing.T, key *ecdsa.PrivateKey) *x509.Certificate {
 			CommonName: "Test CA",
 		},
 		NotBefore:             time.Now().UTC(),
-		NotAfter:              time.Now().UTC().Add(10 * 365 * 24 * time.Hour),
+		NotAfter:              time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
 		BasicConstraintsValid: true,
 		IsCA:                  true,

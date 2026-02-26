@@ -4,6 +4,7 @@
 package dpop
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	sha256 "crypto/sha256"
 	"encoding/base64"
 	json "encoding/json"
@@ -95,7 +96,7 @@ func ValidateProof(dpopHeader, httpMethod, httpURI, accessToken string) (*Proof,
 
 	// Verify JWT claims.
 	var jti string
-	if err := token.Get("jti", &jti); err != nil {
+	if err := token.Get(cryptoutilSharedMagic.ClaimJti, &jti); err != nil {
 		return nil, fmt.Errorf("DPoP must include jti claim")
 	}
 
@@ -126,7 +127,7 @@ func ValidateProof(dpopHeader, httpMethod, httpURI, accessToken string) (*Proof,
 
 	// RFC 9449 Section 4.3: iat must be within acceptable time window (±60s).
 	now := time.Now().UTC()
-	if now.Sub(iat) > 60*time.Second || iat.Sub(now) > 60*time.Second {
+	if now.Sub(iat) > cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds*time.Second || iat.Sub(now) > cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds*time.Second {
 		return nil, fmt.Errorf("DPoP iat claim is outside acceptable time window")
 	}
 

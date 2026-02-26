@@ -14,6 +14,7 @@
 package integration
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	json "encoding/json"
 	"fmt"
@@ -45,7 +46,7 @@ func TestOAuth2AuthorizationCodeFlow(t *testing.T) {
 	codeVerifier, err := cryptoutilIdentityPKCE.GenerateCodeVerifier()
 	testify.NoError(t, err, "Failed to generate code verifier")
 
-	codeChallenge := cryptoutilIdentityPKCE.GenerateCodeChallenge(codeVerifier, "S256")
+	codeChallenge := cryptoutilIdentityPKCE.GenerateCodeChallenge(codeVerifier, cryptoutilSharedMagic.PKCEMethodS256)
 
 	// Step 1a: Request authorization code with PKCE.
 	// This should redirect to login page with request_id.
@@ -153,21 +154,21 @@ func TestOAuth2AuthorizationCodeFlow(t *testing.T) {
 	redirectURL, err := url.Parse(location)
 	testify.NoError(t, err, "Invalid redirect URL")
 
-	code := redirectURL.Query().Get("code")
+	code := redirectURL.Query().Get(cryptoutilSharedMagic.ResponseTypeCode)
 	testify.NotEmpty(t, code, "Authorization code should be present in callback redirect")
 
-	state := redirectURL.Query().Get("state")
+	state := redirectURL.Query().Get(cryptoutilSharedMagic.ParamState)
 	testify.Equal(t, "test-state", state, "State parameter should match")
 
 	// Step 2: Exchange authorization code for tokens.
 	tokenURL := testAuthZBaseURL + "/oauth2/v1/token"
 	tokenData := url.Values{}
-	tokenData.Set("grant_type", "authorization_code")
-	tokenData.Set("code", code)
-	tokenData.Set("redirect_uri", testRedirectURI)
-	tokenData.Set("client_id", testClientID)
-	tokenData.Set("client_secret", testClientSecret)
-	tokenData.Set("code_verifier", codeVerifier) // OAuth 2.1 PKCE requirement
+	tokenData.Set(cryptoutilSharedMagic.ParamGrantType, cryptoutilSharedMagic.GrantTypeAuthorizationCode)
+	tokenData.Set(cryptoutilSharedMagic.ResponseTypeCode, code)
+	tokenData.Set(cryptoutilSharedMagic.ParamRedirectURI, testRedirectURI)
+	tokenData.Set(cryptoutilSharedMagic.ClaimClientID, testClientID)
+	tokenData.Set(cryptoutilSharedMagic.ParamClientSecret, testClientSecret)
+	tokenData.Set(cryptoutilSharedMagic.ParamCodeVerifier, codeVerifier) // OAuth 2.1 PKCE requirement
 
 	tokenReq, err := http.NewRequestWithContext(context.Background(), http.MethodPost, tokenURL, strings.NewReader(tokenData.Encode()))
 	testify.NoError(t, err, "Failed to create token request")
@@ -188,7 +189,7 @@ func TestOAuth2AuthorizationCodeFlow(t *testing.T) {
 	err = json.NewDecoder(tokenResp.Body).Decode(&tokenResponse)
 	testify.NoError(t, err, "Failed to decode token response")
 
-	accessToken, ok := tokenResponse["access_token"].(string)
+	accessToken, ok := tokenResponse[cryptoutilSharedMagic.TokenTypeAccessToken].(string)
 	testify.True(t, ok, "Access token should be present")
 	testify.NotEmpty(t, accessToken, "Access token should not be empty")
 
@@ -212,7 +213,7 @@ func TestOAuth2AuthorizationCodeFlow(t *testing.T) {
 	// - R05-01: Refresh token issuance with offline_access scope
 	// - R05-02: Refresh token exchange for new access tokens
 	// Verify refresh token issued when offline_access scope granted.
-	refreshToken, ok := tokenResponse["refresh_token"].(string)
+	refreshToken, ok := tokenResponse[cryptoutilSharedMagic.GrantTypeRefreshToken].(string)
 	if testScope == "openid offline_access" {
 		testify.True(t, ok, "Refresh token should be present when offline_access scope granted")
 		testify.NotEmpty(t, refreshToken, "Refresh token should not be empty")

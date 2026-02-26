@@ -43,10 +43,10 @@ func TestDefaultTestConfig(t *testing.T) {
 func TestNewTestConfig_ProductionMode(t *testing.T) {
 	t.Parallel()
 
-	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 8500, false)
+	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, cryptoutilSharedMagic.DefaultSPARPPort, false)
 
 	require.NotNil(t, cfg, "config should not be nil")
-	require.Equal(t, uint16(8500), cfg.BindPublicPort, "bind port should be 8500")
+	require.Equal(t, uint16(cryptoutilSharedMagic.DefaultSPARPPort), cfg.BindPublicPort, "bind port should be 8500")
 	require.False(t, cfg.DevMode, "dev mode should be disabled")
 }
 
@@ -55,14 +55,14 @@ func TestIdentityRPServerSettings_FullConfig(t *testing.T) {
 
 	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	cfg.AuthzServerURL = "https://authz.example.com:8100"
-	cfg.ClientID = "test-client-id"
+	cfg.ClientID = cryptoutilSharedMagic.TestClientID
 	cfg.ClientSecret = "test-client-secret"
 	cfg.RedirectURI = "https://rp.example.com/callback"
 	cfg.SPAOrigin = "https://spa.example.com:8130"
 	cfg.SessionSecret = "super-secret-session-key"
 
 	require.Equal(t, "https://authz.example.com:8100", cfg.AuthzServerURL)
-	require.Equal(t, "test-client-id", cfg.ClientID)
+	require.Equal(t, cryptoutilSharedMagic.TestClientID, cfg.ClientID)
 	require.Equal(t, "test-client-secret", cfg.ClientSecret)
 	require.Equal(t, "https://rp.example.com/callback", cfg.RedirectURI)
 	require.Equal(t, "https://spa.example.com:8130", cfg.SPAOrigin)
@@ -113,8 +113,8 @@ func TestValidateIdentityRPSettings_SPAOriginFormat(t *testing.T) {
 				require.Empty(t, cfg.SPAOrigin)
 			} else if tt.valid {
 				// Check that it starts with http:// or https://.
-				hasHTTP := len(cfg.SPAOrigin) >= 7 && cfg.SPAOrigin[:7] == "http://"
-				hasHTTPS := len(cfg.SPAOrigin) >= 8 && cfg.SPAOrigin[:8] == "https://"
+				hasHTTP := len(cfg.SPAOrigin) >= cryptoutilSharedMagic.GitRecentActivityDays && cfg.SPAOrigin[:cryptoutilSharedMagic.GitRecentActivityDays] == "http://"
+				hasHTTPS := len(cfg.SPAOrigin) >= cryptoutilSharedMagic.IMMinPasswordLength && cfg.SPAOrigin[:cryptoutilSharedMagic.IMMinPasswordLength] == "https://"
 				require.True(t, hasHTTP || hasHTTPS,
 					"valid SPA origin should start with http:// or https://")
 			}

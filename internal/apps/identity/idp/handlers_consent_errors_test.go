@@ -3,6 +3,7 @@
 package idp_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	http "net/http"
 	"net/http/httptest"
@@ -25,8 +26,8 @@ func TestHandleConsent_MissingRequestID(t *testing.T) {
 	ctx := context.Background()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
@@ -34,9 +35,9 @@ func TestHandleConsent_MissingRequestID(t *testing.T) {
 
 	config := &cryptoutilIdentityConfig.Config{
 		IDP: &cryptoutilIdentityConfig.ServerConfig{
-			Name:        "idp",
-			BindAddress: "127.0.0.1",
-			Port:        8080,
+			Name:        cryptoutilSharedMagic.IDPServiceName,
+			BindAddress: cryptoutilSharedMagic.IPv4Loopback,
+			Port:        cryptoutilSharedMagic.DemoServerPort,
 			TLSEnabled:  true,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{
@@ -69,8 +70,8 @@ func TestHandleConsent_InvalidRequestIDFormat(t *testing.T) {
 	ctx := context.Background()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
@@ -78,9 +79,9 @@ func TestHandleConsent_InvalidRequestIDFormat(t *testing.T) {
 
 	config := &cryptoutilIdentityConfig.Config{
 		IDP: &cryptoutilIdentityConfig.ServerConfig{
-			Name:        "idp",
-			BindAddress: "127.0.0.1",
-			Port:        8080,
+			Name:        cryptoutilSharedMagic.IDPServiceName,
+			BindAddress: cryptoutilSharedMagic.IPv4Loopback,
+			Port:        cryptoutilSharedMagic.DemoServerPort,
 			TLSEnabled:  true,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{
@@ -113,8 +114,8 @@ func TestHandleConsent_RequestNotFound(t *testing.T) {
 	ctx := context.Background()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
@@ -122,9 +123,9 @@ func TestHandleConsent_RequestNotFound(t *testing.T) {
 
 	config := &cryptoutilIdentityConfig.Config{
 		IDP: &cryptoutilIdentityConfig.ServerConfig{
-			Name:        "idp",
-			BindAddress: "127.0.0.1",
-			Port:        8080,
+			Name:        cryptoutilSharedMagic.IDPServiceName,
+			BindAddress: cryptoutilSharedMagic.IPv4Loopback,
+			Port:        cryptoutilSharedMagic.DemoServerPort,
 			TLSEnabled:  true,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{

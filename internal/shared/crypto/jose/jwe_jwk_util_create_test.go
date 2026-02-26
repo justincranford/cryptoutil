@@ -5,6 +5,7 @@
 package crypto
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/ecdh"
 	"testing"
 
@@ -24,9 +25,9 @@ func TestCreateJWEJWKFromKey_RSA_AllAlgorithms(t *testing.T) {
 		alg     joseJwa.KeyEncryptionAlgorithm
 		keySize int
 	}{
-		{"RSA_OAEP_256_A256GCM", joseJwa.A256GCM(), joseJwa.RSA_OAEP_256(), 2048},
-		{"RSA_OAEP_384_A256GCM", joseJwa.A256GCM(), joseJwa.RSA_OAEP_384(), 3072},
-		{"RSA_OAEP_512_A256GCM", joseJwa.A256GCM(), joseJwa.RSA_OAEP_512(), 4096},
+		{"RSA_OAEP_256_A256GCM", joseJwa.A256GCM(), joseJwa.RSA_OAEP_256(), cryptoutilSharedMagic.DefaultMetricsBatchSize},
+		{"RSA_OAEP_384_A256GCM", joseJwa.A256GCM(), joseJwa.RSA_OAEP_384(), cryptoutilSharedMagic.RSA3072KeySize},
+		{"RSA_OAEP_512_A256GCM", joseJwa.A256GCM(), joseJwa.RSA_OAEP_512(), cryptoutilSharedMagic.RSA4096KeySize},
 	}
 
 	for _, tt := range tests {
@@ -97,10 +98,10 @@ func TestCreateJWEJWKFromKey_AES_AllSizes(t *testing.T) {
 		alg     joseJwa.KeyEncryptionAlgorithm
 		keySize int
 	}{
-		{"A128KW_A128GCM", joseJwa.A128GCM(), joseJwa.A128KW(), 128},
-		{"A192KW_A192GCM", joseJwa.A192GCM(), joseJwa.A192KW(), 192},
-		{"A256KW_A256GCM", joseJwa.A256GCM(), joseJwa.A256KW(), 256},
-		{"dir_A256GCM", joseJwa.A256GCM(), joseJwa.DIRECT(), 256},
+		{"A128KW_A128GCM", joseJwa.A128GCM(), joseJwa.A128KW(), cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits},
+		{"A192KW_A192GCM", joseJwa.A192GCM(), joseJwa.A192KW(), cryptoutilSharedMagic.SymmetricKeySize192},
+		{"A256KW_A256GCM", joseJwa.A256GCM(), joseJwa.A256KW(), cryptoutilSharedMagic.MaxUnsealSharedSecrets},
+		{"dir_A256GCM", joseJwa.A256GCM(), joseJwa.DIRECT(), cryptoutilSharedMagic.MaxUnsealSharedSecrets},
 	}
 
 	for _, tt := range tests {
@@ -133,7 +134,7 @@ func TestCreateJWEJWKFromKey_ErrorCases(t *testing.T) {
 
 		enc := joseJwa.A256GCM()
 		alg := joseJwa.A256KW()
-		key, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(256)
+		key, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 		require.NoError(t, err)
 
 		resultKid, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWEJWKFromKey(nil, &enc, &alg, key)
@@ -151,7 +152,7 @@ func TestCreateJWEJWKFromKey_ErrorCases(t *testing.T) {
 
 		kid := googleUuid.New()
 		alg := joseJwa.A256KW()
-		key, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(256)
+		key, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 		require.NoError(t, err)
 
 		resultKid, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWEJWKFromKey(&kid, nil, &alg, key)
@@ -169,7 +170,7 @@ func TestCreateJWEJWKFromKey_ErrorCases(t *testing.T) {
 
 		kid := googleUuid.New()
 		enc := joseJwa.A256GCM()
-		key, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(256)
+		key, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 		require.NoError(t, err)
 
 		resultKid, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWEJWKFromKey(&kid, &enc, nil, key)

@@ -48,12 +48,12 @@ func TestSessionManager_Initialize_JWS_AllAlgorithms(t *testing.T) {
 		{"Browser_EdDSA", cryptoutilSharedMagic.SessionJWSAlgorithmEdDSA, true},
 		// HMAC algorithms (HS256/HS384/HS512) are supported in initializeSessionJWK
 		// but constants are not exported; test with raw strings
-		{"Browser_HS256", "HS256", true},
-		{"Browser_HS384", "HS384", true},
-		{"Browser_HS512", "HS512", true},
+		{"Browser_HS256", cryptoutilSharedMagic.JoseAlgHS256, true},
+		{"Browser_HS384", cryptoutilSharedMagic.JoseAlgHS384, true},
+		{"Browser_HS512", cryptoutilSharedMagic.JoseAlgHS512, true},
 		{"Service_RS256", cryptoutilSharedMagic.SessionJWSAlgorithmRS256, false},
 		{"Service_ES256", cryptoutilSharedMagic.SessionJWSAlgorithmES256, false},
-		{"Service_HS256", "HS256", false},
+		{"Service_HS256", cryptoutilSharedMagic.JoseAlgHS256, false},
 	}
 
 	for _, tt := range tests {
@@ -62,8 +62,8 @@ func TestSessionManager_Initialize_JWS_AllAlgorithms(t *testing.T) {
 
 			db := setupTestDB(t)
 			config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
-				BrowserSessionExpiration: 24 * time.Hour,
-				ServiceSessionExpiration: 7 * 24 * time.Hour,
+				BrowserSessionExpiration: cryptoutilSharedMagic.HoursPerDay * time.Hour,
+				ServiceSessionExpiration: cryptoutilSharedMagic.GitRecentActivityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 				SessionIdleTimeout:       2 * time.Hour,
 				SessionCleanupInterval:   time.Hour,
 			}
@@ -114,8 +114,8 @@ func TestSessionManager_Initialize_JWE_AllAlgorithms(t *testing.T) {
 
 			db := setupTestDB(t)
 			config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
-				BrowserSessionExpiration: 24 * time.Hour,
-				ServiceSessionExpiration: 7 * 24 * time.Hour,
+				BrowserSessionExpiration: cryptoutilSharedMagic.HoursPerDay * time.Hour,
+				ServiceSessionExpiration: cryptoutilSharedMagic.GitRecentActivityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 				SessionIdleTimeout:       2 * time.Hour,
 				SessionCleanupInterval:   time.Hour,
 			}
@@ -196,8 +196,8 @@ func TestSessionManager_Initialize_UnsupportedAlgorithm(t *testing.T) {
 			config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 				BrowserSessionAlgorithm:    string(tt.browserAlg),
 				ServiceSessionAlgorithm:    string(tt.serviceAlg),
-				BrowserSessionExpiration:   24 * time.Hour,
-				ServiceSessionExpiration:   7 * 24 * time.Hour,
+				BrowserSessionExpiration:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
+				ServiceSessionExpiration:   cryptoutilSharedMagic.GitRecentActivityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 				SessionIdleTimeout:         2 * time.Hour,
 				SessionCleanupInterval:     time.Hour,
 				BrowserSessionJWSAlgorithm: tt.browserJWSAlg,
@@ -223,8 +223,8 @@ func TestSessionManager_Initialize_ExistingJWK(t *testing.T) {
 	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		BrowserSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmJWS),
 		ServiceSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
-		BrowserSessionExpiration:   24 * time.Hour,
-		ServiceSessionExpiration:   7 * 24 * time.Hour,
+		BrowserSessionExpiration:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
+		ServiceSessionExpiration:   cryptoutilSharedMagic.GitRecentActivityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		SessionIdleTimeout:         2 * time.Hour,
 		SessionCleanupInterval:     time.Hour,
 		BrowserSessionJWSAlgorithm: cryptoutilSharedMagic.SessionJWSAlgorithmRS256,
@@ -265,7 +265,7 @@ func TestSessionManager_StartCleanupTask(t *testing.T) {
 	}()
 
 	// Let it run for a brief moment
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond)
 
 	// Cancel context to stop the cleanup task
 	cancel()

@@ -3,6 +3,7 @@
 package cli
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
@@ -79,7 +80,7 @@ func TestCLI_GenerateEndEntityCert(t *testing.T) {
 			opts: &CertGenOptions{
 				Subject:      pkix.Name{CommonName: "test.example.com"},
 				DNSNames:     []string{"test.example.com"},
-				ValidityDays: 365,
+				ValidityDays: cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year,
 				ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 			},
 			wantErr: false,
@@ -179,7 +180,7 @@ func TestGenerateSerialNumber(t *testing.T) {
 	// Generate multiple serial numbers and verify uniqueness.
 	serials := make(map[string]bool)
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < cryptoutilSharedMagic.JoseJAMaxMaterials; i++ {
 		serial, err := generateSerialNumber()
 		require.NoError(t, err)
 		require.NotNil(t, serial)
@@ -225,7 +226,7 @@ func TestPublicKey(t *testing.T) {
 	cli := NewCLI(nil, nil)
 
 	// Test RSA.
-	rsaKey, err := cli.GenerateKey(ctx, &KeyGenOptions{Algorithm: "RSA", KeySize: 2048}, nil)
+	rsaKey, err := cli.GenerateKey(ctx, &KeyGenOptions{Algorithm: cryptoutilSharedMagic.KeyTypeRSA, KeySize: cryptoutilSharedMagic.DefaultMetricsBatchSize}, nil)
 	require.NoError(t, err)
 
 	rsaPub := publicKey(rsaKey)
@@ -241,7 +242,7 @@ func TestPublicKey(t *testing.T) {
 	require.True(t, ok)
 
 	// Test Ed25519.
-	edKey, err := cli.GenerateKey(ctx, &KeyGenOptions{Algorithm: "Ed25519"}, nil)
+	edKey, err := cli.GenerateKey(ctx, &KeyGenOptions{Algorithm: cryptoutilSharedMagic.EdCurveEd25519}, nil)
 	require.NoError(t, err)
 
 	edPub := publicKey(edKey)

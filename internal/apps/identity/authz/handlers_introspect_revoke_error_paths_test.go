@@ -162,7 +162,7 @@ func createRevokeErrorPathTestDependencies(t *testing.T) (*cryptoutilIdentityCon
 	t.Helper()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type:        "sqlite",
+		Type:        cryptoutilSharedMagic.TestDatabaseSQLite,
 		DSN:         fmt.Sprintf("file::memory:?cache=private&mode=memory&_id=%s", googleUuid.New().String()),
 		AutoMigrate: true,
 	}
@@ -171,7 +171,7 @@ func createRevokeErrorPathTestDependencies(t *testing.T) (*cryptoutilIdentityCon
 		Database: dbConfig,
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			Issuer:              "https://localhost:8080",
-			AccessTokenLifetime: 3600,
+			AccessTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		},
 	}
 

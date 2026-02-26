@@ -29,7 +29,7 @@ func TestJWKSService_GetJWKSForElasticKey_CorruptedPublicJWK(t *testing.T) {
 	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
 	jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
 	tenantID := googleUuid.New()
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	invalidJSON := []byte("not-valid-json")
@@ -52,7 +52,7 @@ func TestJWKSService_GetPublicJWK_CorruptedPublicJWKParse(t *testing.T) {
 	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
 	jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
 	tenantID := googleUuid.New()
-	_, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	_, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	invalidJSON := []byte("not-valid-json")
@@ -75,7 +75,7 @@ func TestJWKSService_GetJWKS_CorruptedPublicJWKParse(t *testing.T) {
 	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
 	jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
 	tenantID := googleUuid.New()
-	_, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	_, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	invalidJSON := []byte("not-valid-json")
@@ -99,7 +99,7 @@ func TestJWKSService_GetJWKSForElasticKey_InactiveMaterials(t *testing.T) {
 	rotationSvc := NewMaterialRotationService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
 	jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
 	tenantID := googleUuid.New()
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 	err = rotationSvc.RetireMaterial(ctx, tenantID, elasticJWK.ID, material.ID)
 	require.NoError(t, err)
@@ -116,7 +116,7 @@ func TestJWKSService_GetPublicJWK_CorruptedBarrierDecrypt(t *testing.T) {
 	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
 	jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
 	tenantID := googleUuid.New()
-	_, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	_, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	corruptedBase64 := base64.StdEncoding.EncodeToString([]byte("not-barrier"))
@@ -136,7 +136,7 @@ func TestGetJWKS_NoActiveMaterial(t *testing.T) {
 	rotationSvc := NewMaterialRotationService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
 	jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
 	tenantID := googleUuid.New()
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 	err = rotationSvc.RetireMaterial(ctx, tenantID, elasticJWK.ID, material.ID)
 	require.NoError(t, err)
@@ -153,7 +153,7 @@ func TestGetJWKS_BarrierDecryptFailure(t *testing.T) {
 	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
 	jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
 	tenantID := googleUuid.New()
-	_, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	_, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	corruptedBase64 := base64.StdEncoding.EncodeToString([]byte("not-barrier"))
@@ -172,7 +172,7 @@ func TestGetJWKS_Base64DecodeFailure(t *testing.T) {
 	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
 	jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
 	tenantID := googleUuid.New()
-	_, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	_, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 	err = testDB.Model(&cryptoutilAppsJoseJaDomain.MaterialJWK{}).Where("id = ?", material.ID).Update("public_jwk_jwe", "===invalid===").Error
 	require.NoError(t, err)
@@ -189,7 +189,7 @@ func TestGetJWKSForElasticKey_Base64DecodeSkip(t *testing.T) {
 	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
 	jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
 	tenantID := googleUuid.New()
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 	err = testDB.Model(&cryptoutilAppsJoseJaDomain.MaterialJWK{}).Where("id = ?", material.ID).Update("public_jwk_jwe", "===invalid===").Error
 	require.NoError(t, err)
@@ -206,7 +206,7 @@ func TestGetJWKSForElasticKey_BarrierDecryptSkip(t *testing.T) {
 	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
 	jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
 	tenantID := googleUuid.New()
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	corruptedBase64 := base64.StdEncoding.EncodeToString([]byte("not-barrier"))
@@ -225,7 +225,7 @@ func TestMaterialRotationService_RotateMaterial_UnsupportedAlgorithm(t *testing.
 	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
 	rotationSvc := NewMaterialRotationService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
 	tenantID := googleUuid.New()
-	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 	err = testDB.Model(&cryptoutilAppsJoseJaDomain.ElasticJWK{}).Where("id = ?", elasticJWK.ID).Update("alg", "UNSUPPORTED-ALG").Error
 	require.NoError(t, err)
@@ -242,7 +242,7 @@ func TestGetActiveMaterial_NoActiveMaterial(t *testing.T) {
 	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
 	rotationSvc := NewMaterialRotationService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
 	tenantID := googleUuid.New()
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 	err = rotationSvc.RetireMaterial(ctx, tenantID, elasticJWK.ID, material.ID)
 	require.NoError(t, err)
@@ -259,7 +259,7 @@ func TestJWKSService_GetPublicJWK_Base64DecodeFailure(t *testing.T) {
 	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
 	jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
 	tenantID := googleUuid.New()
-	_, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	_, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 	err = testDB.Model(&cryptoutilAppsJoseJaDomain.MaterialJWK{}).Where("id = ?", material.ID).Update("public_jwk_jwe", "===invalid===").Error
 	require.NoError(t, err)
@@ -277,7 +277,7 @@ func TestJWKSService_GetPublicJWK_ElasticJWKDeleted(t *testing.T) {
 	jwksSvc := NewJWKSService(testElasticRepo, testMaterialRepo, testBarrierService)
 	tenantID := googleUuid.New()
 
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	// Delete elastic JWK record directly (bypass service which also deletes materials).
@@ -298,12 +298,12 @@ func TestAuditLogsByElasticJWK_TenantMismatch(t *testing.T) {
 	auditSvc := NewAuditLogService(testAuditLogRepo, testAuditConfigRepo, testElasticRepo)
 	tenantID := googleUuid.New()
 
-	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	differentTenantID := googleUuid.New()
 
-	_, _, err = auditSvc.ListAuditLogsByElasticJWK(ctx, differentTenantID, elasticJWK.ID, 0, 10)
+	_, _, err = auditSvc.ListAuditLogsByElasticJWK(ctx, differentTenantID, elasticJWK.ID, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "elastic JWK not found")
 }
@@ -326,7 +326,7 @@ func TestDeleteElasticJWK_NotFound(t *testing.T) {
 func closedDBMaterialRepo(t *testing.T) cryptoutilAppsJoseJaRepository.MaterialJWKRepository {
 	t.Helper()
 
-	tmpSQLDB, err := sql.Open("sqlite", ":memory:")
+	tmpSQLDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
 	require.NoError(t, err)
 
 	tmpGormDB, err := gorm.Open(sqlite.Dialector{Conn: tmpSQLDB}, &gorm.Config{SkipDefaultTransaction: true})
@@ -347,7 +347,7 @@ func TestRotateMaterial_CountMaterialsDBError(t *testing.T) {
 	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
 	tenantID := googleUuid.New()
 
-	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	// Create rotation service with working elastic repo but closed-DB material repo.
@@ -369,7 +369,7 @@ func TestListMaterials_DBError(t *testing.T) {
 	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
 	tenantID := googleUuid.New()
 
-	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	// Create rotation service with working elastic repo but closed-DB material repo.
@@ -391,7 +391,7 @@ func TestGetJWKSForElasticKey_ListMaterialsDBError(t *testing.T) {
 	elasticSvc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
 	tenantID := googleUuid.New()
 
-	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	// Create JWKS service with working elastic repo but closed-DB material repo.
@@ -414,7 +414,7 @@ func TestVerify_ListMaterialsDBError(t *testing.T) {
 	jwsSvc := NewJWSService(testElasticRepo, testMaterialRepo, testBarrierService)
 	tenantID := googleUuid.New()
 
-	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
+	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	// Sign something to get a valid JWS token.

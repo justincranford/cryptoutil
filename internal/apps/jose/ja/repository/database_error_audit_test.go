@@ -4,6 +4,7 @@
 package repository
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"io/fs"
@@ -51,7 +52,7 @@ func TestAuditLogRepository_ListDatabaseError(t *testing.T) {
 	ctx := context.Background()
 	repo := NewAuditLogRepository(closedDB)
 
-	_, _, err = repo.List(ctx, googleUuid.New(), 0, 10)
+	_, _, err = repo.List(ctx, googleUuid.New(), 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.Error(t, err)
 	// Could fail on Count or Find - either error path is valid.
 	require.True(t,
@@ -69,7 +70,7 @@ func TestAuditLogRepository_ListByElasticJWKDatabaseError(t *testing.T) {
 	ctx := context.Background()
 	repo := NewAuditLogRepository(closedDB)
 
-	_, _, err = repo.ListByElasticJWK(ctx, googleUuid.New(), 0, 10)
+	_, _, err = repo.ListByElasticJWK(ctx, googleUuid.New(), 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.Error(t, err)
 	// Could fail on Count or Find - either error path is valid.
 	require.True(t,
@@ -87,7 +88,7 @@ func TestAuditLogRepository_ListByOperationDatabaseError(t *testing.T) {
 	ctx := context.Background()
 	repo := NewAuditLogRepository(closedDB)
 
-	_, _, err = repo.ListByOperation(ctx, googleUuid.New(), cryptoutilAppsJoseJaDomain.OperationSign, 0, 10)
+	_, _, err = repo.ListByOperation(ctx, googleUuid.New(), cryptoutilAppsJoseJaDomain.OperationSign, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.Error(t, err)
 	// Could fail on Count or Find - either error path is valid.
 	require.True(t,
@@ -119,7 +120,7 @@ func TestAuditLogRepository_DeleteOlderThanDatabaseError(t *testing.T) {
 	ctx := context.Background()
 	repo := NewAuditLogRepository(closedDB)
 
-	_, err = repo.DeleteOlderThan(ctx, googleUuid.New(), 30)
+	_, err = repo.DeleteOlderThan(ctx, googleUuid.New(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days)
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "failed to delete old audit log entries"))
 }
@@ -199,7 +200,7 @@ func TestApplyJoseJAMigrations_Error(t *testing.T) {
 	dbID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
 
-	sqlDB, err := sql.Open("sqlite", dsn)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	require.NoError(t, err)
 
 	// Close immediately without applying migrations.

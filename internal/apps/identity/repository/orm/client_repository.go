@@ -79,10 +79,10 @@ func (r *ClientRepositoryGORM) Create(ctx context.Context, client *cryptoutilIde
 		event := &cryptoutilIdentityDomain.KeyRotationEvent{
 			ID:            googleUuid.New(),
 			EventType:     "secret_created",
-			KeyType:       "client_secret",
+			KeyType:       cryptoutilSharedMagic.ParamClientSecret,
 			KeyID:         client.ID.String(),
 			Timestamp:     now,
-			Initiator:     "system",
+			Initiator:     cryptoutilSharedMagic.SystemInitiatorName,
 			OldKeyVersion: &oldVersion,
 			NewKeyVersion: &newVersion,
 			Reason:        "Initial client creation",
@@ -224,7 +224,7 @@ func (r *ClientRepositoryGORM) RotateSecret(_ context.Context, clientID googleUu
 		}
 
 		// 3. Update client with new secret hash.
-		if err := tx.Model(&client).Update("client_secret", newSecretHash).Error; err != nil {
+		if err := tx.Model(&client).Update(cryptoutilSharedMagic.ParamClientSecret, newSecretHash).Error; err != nil {
 			return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to update client secret: %w", err))
 		}
 

@@ -3,6 +3,7 @@
 package security
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
@@ -82,7 +83,7 @@ func TestValidator_WeakAlgorithms(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create certificate with weak algorithm indicator.
-	cert := createTestCert(t, key, false, time.Now().UTC(), time.Now().UTC().Add(365*24*time.Hour))
+	cert := createTestCert(t, key, false, time.Now().UTC(), time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*cryptoutilSharedMagic.HoursPerDay*time.Hour))
 
 	// The test certificate uses ECDSA with SHA256 which is not weak.
 	result, err := validator.ValidateCertificate(ctx, cert)
@@ -94,7 +95,7 @@ func TestValidator_WeakAlgorithms(t *testing.T) {
 func TestThreatModelBuilder(t *testing.T) {
 	t.Parallel()
 
-	builder := NewThreatModelBuilder("Test Model", "1.0.0")
+	builder := NewThreatModelBuilder("Test Model", cryptoutilSharedMagic.ServiceVersion)
 	require.NotNil(t, builder)
 
 	builder.WithDescription("Test description")
@@ -126,7 +127,7 @@ func TestThreatModelBuilder(t *testing.T) {
 	model := builder.Build()
 
 	require.Equal(t, "Test Model", model.Name)
-	require.Equal(t, "1.0.0", model.Version)
+	require.Equal(t, cryptoutilSharedMagic.ServiceVersion, model.Version)
 	require.Equal(t, "Test description", model.Description)
 	require.Len(t, model.Assets, 1)
 	require.Len(t, model.Threats, 1)
@@ -140,7 +141,7 @@ func TestCAThreatModel(t *testing.T) {
 
 	require.NotNil(t, model)
 	require.Equal(t, "CA Security Threat Model", model.Name)
-	require.Equal(t, "1.0.0", model.Version)
+	require.Equal(t, cryptoutilSharedMagic.ServiceVersion, model.Version)
 	require.NotEmpty(t, model.Assets)
 	require.NotEmpty(t, model.Threats)
 	require.NotEmpty(t, model.Controls)

@@ -66,7 +66,7 @@ func (s *RSServer) Start(_ context.Context) error {
 	listenAddr := fmt.Sprintf("%s:%d", s.config.RS.BindAddress, s.config.RS.Port)
 
 	s.logger.Info("Starting Resource Server",
-		slog.String("address", listenAddr))
+		slog.String(cryptoutilSharedMagic.ClaimAddress, listenAddr))
 
 	if err := s.fiberApp.Listen(listenAddr); err != nil {
 		return fmt.Errorf("resource server failed to start: %w", err)

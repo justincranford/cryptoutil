@@ -6,6 +6,7 @@
 package config
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"os"
 
@@ -226,7 +227,7 @@ func validateCAConfig(config *CAConfig) error {
 
 func validateKeyConfig(key *KeyConfig) error {
 	switch key.Algorithm {
-	case "RSA":
+	case cryptoutilSharedMagic.KeyTypeRSA:
 		// CurveOrSize should be a number (2048, 3072, 4096).
 	case "ECDSA":
 		switch key.CurveOrSize {
@@ -235,9 +236,9 @@ func validateKeyConfig(key *KeyConfig) error {
 		default:
 			return fmt.Errorf("invalid ECDSA curve: %s", key.CurveOrSize)
 		}
-	case "EdDSA":
+	case cryptoutilSharedMagic.JoseAlgEdDSA:
 		switch key.CurveOrSize {
-		case "Ed25519", "Ed448":
+		case cryptoutilSharedMagic.EdCurveEd25519, cryptoutilSharedMagic.EdCurveEd448:
 			// Valid.
 		default:
 			return fmt.Errorf("invalid EdDSA curve: %s", key.CurveOrSize)

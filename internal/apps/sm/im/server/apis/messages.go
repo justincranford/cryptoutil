@@ -4,6 +4,7 @@
 package apis
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 
 	fiber "github.com/gofiber/fiber/v2"
@@ -72,7 +73,7 @@ func (h *MessageHandler) HandleSendMessage() fiber.Handler {
 		if err := c.BodyParser(&req); err != nil {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "invalid request body",
+				cryptoutilSharedMagic.StringError: "invalid request body",
 			})
 		}
 
@@ -80,14 +81,14 @@ func (h *MessageHandler) HandleSendMessage() fiber.Handler {
 		if len(req.ReceiverIDs) == 0 {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "receiver_ids cannot be empty",
+				cryptoutilSharedMagic.StringError: "receiver_ids cannot be empty",
 			})
 		}
 
 		if req.Message == "" {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "message cannot be empty",
+				cryptoutilSharedMagic.StringError: "message cannot be empty",
 			})
 		}
 
@@ -96,7 +97,7 @@ func (h *MessageHandler) HandleSendMessage() fiber.Handler {
 		if !ok {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "authentication required",
+				cryptoutilSharedMagic.StringError: "authentication required",
 			})
 		}
 
@@ -105,7 +106,7 @@ func (h *MessageHandler) HandleSendMessage() fiber.Handler {
 		if err != nil {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "failed to generate message encryption key",
+				cryptoutilSharedMagic.StringError: "failed to generate message encryption key",
 			})
 		}
 
@@ -113,7 +114,7 @@ func (h *MessageHandler) HandleSendMessage() fiber.Handler {
 		if len(cekJWKBytes) == 0 {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "generated JWK is empty",
+				cryptoutilSharedMagic.StringError: "generated JWK is empty",
 			})
 		}
 
@@ -124,7 +125,7 @@ func (h *MessageHandler) HandleSendMessage() fiber.Handler {
 		if err != nil {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "failed to encrypt message",
+				cryptoutilSharedMagic.StringError: "failed to encrypt message",
 			})
 		}
 
@@ -139,7 +140,7 @@ func (h *MessageHandler) HandleSendMessage() fiber.Handler {
 		if err := h.messageRepo.Create(c.Context(), message); err != nil {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "failed to save message",
+				cryptoutilSharedMagic.StringError: "failed to save message",
 			})
 		}
 
@@ -149,7 +150,7 @@ func (h *MessageHandler) HandleSendMessage() fiber.Handler {
 			if err != nil {
 				//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-					"error": fmt.Sprintf("invalid recipient ID: %s", recipientIDStr),
+					cryptoutilSharedMagic.StringError: fmt.Sprintf("invalid recipient ID: %s", recipientIDStr),
 				})
 			}
 
@@ -158,7 +159,7 @@ func (h *MessageHandler) HandleSendMessage() fiber.Handler {
 			if err != nil {
 				//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-					"error": "failed to encrypt recipient JWK",
+					cryptoutilSharedMagic.StringError: "failed to encrypt recipient JWK",
 				})
 			}
 
@@ -173,7 +174,7 @@ func (h *MessageHandler) HandleSendMessage() fiber.Handler {
 			if err := h.messageRecipientJWKRepo.Create(c.Context(), messageRecipientJWK); err != nil {
 				//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-					"error": "failed to save recipient JWK",
+					cryptoutilSharedMagic.StringError: "failed to save recipient JWK",
 				})
 			}
 		}
@@ -194,7 +195,7 @@ func (h *MessageHandler) HandleReceiveMessages() fiber.Handler {
 		if !ok {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "authentication required",
+				cryptoutilSharedMagic.StringError: "authentication required",
 			})
 		}
 
@@ -203,7 +204,7 @@ func (h *MessageHandler) HandleReceiveMessages() fiber.Handler {
 		if err != nil {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "failed to retrieve messages",
+				cryptoutilSharedMagic.StringError: "failed to retrieve messages",
 			})
 		}
 
@@ -272,7 +273,7 @@ func (h *MessageHandler) HandleDeleteMessage() fiber.Handler {
 		if messageIDStr == "" {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "message ID is required",
+				cryptoutilSharedMagic.StringError: "message ID is required",
 			})
 		}
 
@@ -280,7 +281,7 @@ func (h *MessageHandler) HandleDeleteMessage() fiber.Handler {
 		if err != nil {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "invalid message ID",
+				cryptoutilSharedMagic.StringError: "invalid message ID",
 			})
 		}
 
@@ -289,7 +290,7 @@ func (h *MessageHandler) HandleDeleteMessage() fiber.Handler {
 		if err != nil {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"error": "message not found",
+				cryptoutilSharedMagic.StringError: "message not found",
 			})
 		}
 
@@ -298,7 +299,7 @@ func (h *MessageHandler) HandleDeleteMessage() fiber.Handler {
 		if !ok {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "authentication required",
+				cryptoutilSharedMagic.StringError: "authentication required",
 			})
 		}
 
@@ -306,7 +307,7 @@ func (h *MessageHandler) HandleDeleteMessage() fiber.Handler {
 		if message.SenderID != userID {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-				"error": "only the sender can delete this message",
+				cryptoutilSharedMagic.StringError: "only the sender can delete this message",
 			})
 		}
 
@@ -314,7 +315,7 @@ func (h *MessageHandler) HandleDeleteMessage() fiber.Handler {
 		if err := h.messageRecipientJWKRepo.DeleteByMessageID(c.Context(), messageID); err != nil {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "failed to delete recipient JWKs",
+				cryptoutilSharedMagic.StringError: "failed to delete recipient JWKs",
 			})
 		}
 
@@ -322,7 +323,7 @@ func (h *MessageHandler) HandleDeleteMessage() fiber.Handler {
 		if err := h.messageRepo.Delete(c.Context(), messageID); err != nil {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "failed to delete message",
+				cryptoutilSharedMagic.StringError: "failed to delete message",
 			})
 		}
 

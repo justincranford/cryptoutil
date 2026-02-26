@@ -7,6 +7,7 @@
 package userauth
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -41,9 +42,9 @@ func TestAdaptiveAuth_E2E_LowRiskNoStepUp(t *testing.T) {
 		KnownDevices: []DeviceFingerprint{
 			{ID: "known-device-001"},
 		},
-		TypicalLoginHours: []int{8, 9, 10, 11, 12, 13, 14, 15, 16, 17},
-		LastLoginTime:     time.Now().UTC().Add(-24 * time.Hour),
-		EstablishedAt:     time.Now().UTC().Add(-90 * 24 * time.Hour),
+		TypicalLoginHours: []int{cryptoutilSharedMagic.IMMinPasswordLength, 9, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 11, cryptoutilSharedMagic.HashPrefixLength, 13, 14, 15, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 17},
+		LastLoginTime:     time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour),
+		EstablishedAt:     time.Now().UTC().Add(-cryptoutilSharedMagic.StrictCertificateMaxAgeDays * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		EventCount:        150,
 	}
 
@@ -109,7 +110,7 @@ func TestAdaptiveAuth_E2E_LowRiskNoStepUp(t *testing.T) {
 	authState := &AuthenticationState{
 		UserID:          user.ID.UUID.String(),
 		CurrentLevel:    AuthLevelBasic,
-		AuthenticatedAt: time.Now().UTC().Add(-10 * time.Minute), // Recent authentication.
+		AuthenticatedAt: time.Now().UTC().Add(-cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute), // Recent authentication.
 		SessionID:       googleUuid.New().String(),
 	}
 
@@ -142,9 +143,9 @@ func TestAdaptiveAuth_E2E_MediumRiskOTPStepUp(t *testing.T) {
 		KnownDevices: []DeviceFingerprint{
 			{ID: "known-device-001"},
 		},
-		TypicalLoginHours: []int{8, 9, 10, 11, 12, 13, 14, 15, 16, 17},
-		LastLoginTime:     time.Now().UTC().Add(-24 * time.Hour),
-		EstablishedAt:     time.Now().UTC().Add(-90 * 24 * time.Hour),
+		TypicalLoginHours: []int{cryptoutilSharedMagic.IMMinPasswordLength, 9, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 11, cryptoutilSharedMagic.HashPrefixLength, 13, 14, 15, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 17},
+		LastLoginTime:     time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour),
+		EstablishedAt:     time.Now().UTC().Add(-cryptoutilSharedMagic.StrictCertificateMaxAgeDays * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		EventCount:        150,
 	}
 
@@ -171,7 +172,7 @@ func TestAdaptiveAuth_E2E_MediumRiskOTPStepUp(t *testing.T) {
 			IsProxy:   false,
 			IsTor:     false,
 		},
-		Timestamp: time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC),
+		Timestamp: time.Date(2025, 1, 15, cryptoutilSharedMagic.HashPrefixLength, 0, 0, 0, time.UTC),
 	}
 
 	// Create mock dependencies.
@@ -208,7 +209,7 @@ func TestAdaptiveAuth_E2E_MediumRiskOTPStepUp(t *testing.T) {
 		mockContextAnalyzer,
 		mockChallengeStore,
 		map[string]UserAuthenticator{
-			"otp": &mockOTPAuthenticator{otpService: otpService},
+			cryptoutilSharedMagic.AMRTOTP: &mockOTPAuthenticator{otpService: otpService},
 		},
 	)
 
@@ -216,7 +217,7 @@ func TestAdaptiveAuth_E2E_MediumRiskOTPStepUp(t *testing.T) {
 	authState := &AuthenticationState{
 		UserID:          user.ID.UUID.String(),
 		CurrentLevel:    AuthLevelBasic,
-		AuthenticatedAt: time.Now().UTC().Add(-10 * time.Minute),
+		AuthenticatedAt: time.Now().UTC().Add(-cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
 		SessionID:       googleUuid.New().String(),
 	}
 
@@ -251,10 +252,10 @@ func TestAdaptiveAuth_E2E_HighRiskStrongMFAOrBlock(t *testing.T) {
 		KnownDevices: []DeviceFingerprint{
 			{ID: "known-device-001"},
 		},
-		TypicalLoginHours: []int{9, 10, 11, 12, 13, 14, 15, 16, 17, 18},
-		LastLoginTime:     time.Now().UTC().Add(-48 * time.Hour),
-		EstablishedAt:     time.Now().UTC().Add(-30 * 24 * time.Hour),
-		EventCount:        50,
+		TypicalLoginHours: []int{9, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 11, cryptoutilSharedMagic.HashPrefixLength, 13, 14, 15, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 17, 18},
+		LastLoginTime:     time.Now().UTC().Add(-cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour),
+		EstablishedAt:     time.Now().UTC().Add(-cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * cryptoutilSharedMagic.HoursPerDay * time.Hour),
+		EventCount:        cryptoutilSharedMagic.IMMaxUsernameLength,
 	}
 
 	// Create high-risk auth context (VPN + new device + unusual time).
@@ -314,7 +315,7 @@ func TestAdaptiveAuth_E2E_HighRiskStrongMFAOrBlock(t *testing.T) {
 		mockContextAnalyzer,
 		mockChallengeStore,
 		map[string]UserAuthenticator{
-			"webauthn": &mockWebAuthnAuthenticator{},
+			cryptoutilSharedMagic.MFATypeWebAuthn: &mockWebAuthnAuthenticator{},
 		},
 	)
 
@@ -322,7 +323,7 @@ func TestAdaptiveAuth_E2E_HighRiskStrongMFAOrBlock(t *testing.T) {
 	authState := &AuthenticationState{
 		UserID:          user.ID.UUID.String(),
 		CurrentLevel:    AuthLevelBasic,
-		AuthenticatedAt: time.Now().UTC().Add(-10 * time.Minute),
+		AuthenticatedAt: time.Now().UTC().Add(-cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
 		SessionID:       googleUuid.New().String(),
 	}
 
@@ -358,9 +359,9 @@ func TestAdaptiveAuth_E2E_CriticalRiskBlocked(t *testing.T) {
 		KnownDevices: []DeviceFingerprint{
 			{ID: "known-device-001"},
 		},
-		TypicalLoginHours: []int{8, 9, 10, 11, 12, 13, 14, 15, 16, 17},
+		TypicalLoginHours: []int{cryptoutilSharedMagic.IMMinPasswordLength, 9, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 11, cryptoutilSharedMagic.HashPrefixLength, 13, 14, 15, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 17},
 		LastLoginTime:     time.Now().UTC().Add(-72 * time.Hour),
-		EstablishedAt:     time.Now().UTC().Add(-120 * 24 * time.Hour),
+		EstablishedAt:     time.Now().UTC().Add(-cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		EventCount:        200,
 	}
 
@@ -425,7 +426,7 @@ func (m *mockOTPAuthenticator) Authenticate(ctx context.Context, userID string, 
 }
 
 func (m *mockOTPAuthenticator) SupportedMethods() []string {
-	return []string{"otp"}
+	return []string{cryptoutilSharedMagic.AMRTOTP}
 }
 
 // Mock WebAuthn authenticator for E2E tests.
@@ -437,5 +438,5 @@ func (m *mockWebAuthnAuthenticator) Authenticate(ctx context.Context, userID str
 }
 
 func (m *mockWebAuthnAuthenticator) SupportedMethods() []string {
-	return []string{"webauthn"}
+	return []string{cryptoutilSharedMagic.MFATypeWebAuthn}
 }

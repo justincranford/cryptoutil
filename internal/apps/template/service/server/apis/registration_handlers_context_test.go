@@ -1,6 +1,7 @@
 package apis
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	json "encoding/json"
 	"net/http/httptest"
@@ -39,7 +40,7 @@ func TestHandleListJoinRequests_ValidationErrors(t *testing.T) {
 				// Inject wrong type to trigger error path
 				c.Locals("tenant_id", "not-a-uuid-type")
 			},
-			wantStatusCode:   500,
+			wantStatusCode:   cryptoutilSharedMagic.TestDefaultRateLimitServiceIP,
 			wantErrorMessage: "Invalid tenant_id type in context",
 		},
 	}
@@ -74,8 +75,8 @@ func TestHandleListJoinRequests_ValidationErrors(t *testing.T) {
 
 			err = json.NewDecoder(resp.Body).Decode(&result)
 			require.NoError(t, err)
-			require.Contains(t, result, "error")
-			require.Equal(t, tt.wantErrorMessage, result["error"])
+			require.Contains(t, result, cryptoutilSharedMagic.StringError)
+			require.Equal(t, tt.wantErrorMessage, result[cryptoutilSharedMagic.StringError])
 		})
 	}
 }
@@ -104,7 +105,7 @@ func TestHandleProcessJoinRequest_ValidationErrors(t *testing.T) {
 				// Inject wrong type to trigger error path
 				c.Locals("user_id", "not-a-uuid-type")
 			},
-			wantStatusCode:   500,
+			wantStatusCode:   cryptoutilSharedMagic.TestDefaultRateLimitServiceIP,
 			wantErrorMessage: "Invalid user_id type in context",
 		},
 	}
@@ -145,8 +146,8 @@ func TestHandleProcessJoinRequest_ValidationErrors(t *testing.T) {
 
 			err = json.NewDecoder(resp.Body).Decode(&result)
 			require.NoError(t, err)
-			require.Contains(t, result, "error")
-			require.Equal(t, tt.wantErrorMessage, result["error"])
+			require.Contains(t, result, cryptoutilSharedMagic.StringError)
+			require.Equal(t, tt.wantErrorMessage, result[cryptoutilSharedMagic.StringError])
 		})
 	}
 }

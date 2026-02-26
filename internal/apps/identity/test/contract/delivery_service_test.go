@@ -5,6 +5,7 @@
 package contract
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -148,11 +149,11 @@ func RunDeliveryServiceContractTests(t *testing.T, providerType string, newProvi
 
 	// Only run SMS tests for SMS providers, email tests for email providers.
 	switch providerType {
-	case "sms":
+	case cryptoutilSharedMagic.AMRSMS:
 		t.Run("SMS_Success", tests.TestDeliverySMSSuccess)
 		t.Run("SMS_Invalid_Phone_Number", tests.TestDeliverySMSInvalidPhoneNumber)
 		t.Run("SMS_Empty_Message", tests.TestDeliverySMSEmptyMessage)
-	case "email":
+	case cryptoutilSharedMagic.ClaimEmail:
 		t.Run("Email_Success", tests.TestDeliveryEmailSuccess)
 		t.Run("Email_Invalid_Recipient", tests.TestDeliveryEmailInvalidRecipient)
 		t.Run("Email_Empty_Subject", tests.TestDeliveryEmailEmptySubject)
@@ -167,7 +168,7 @@ func RunDeliveryServiceContractTests(t *testing.T, providerType string, newProvi
 func TestSMSProviderContract(t *testing.T) {
 	t.Parallel()
 
-	RunDeliveryServiceContractTests(t, "sms", func() cryptoutilIdentityIdpUserauth.DeliveryService {
+	RunDeliveryServiceContractTests(t, cryptoutilSharedMagic.AMRSMS, func() cryptoutilIdentityIdpUserauth.DeliveryService {
 		return cryptoutilIdentityIdpUserauthMocks.NewSMSProvider()
 	})
 }
@@ -176,7 +177,7 @@ func TestSMSProviderContract(t *testing.T) {
 func TestEmailProviderContract(t *testing.T) {
 	t.Parallel()
 
-	RunDeliveryServiceContractTests(t, "email", func() cryptoutilIdentityIdpUserauth.DeliveryService {
+	RunDeliveryServiceContractTests(t, cryptoutilSharedMagic.ClaimEmail, func() cryptoutilIdentityIdpUserauth.DeliveryService {
 		return cryptoutilIdentityIdpUserauthMocks.NewEmailProvider()
 	})
 }

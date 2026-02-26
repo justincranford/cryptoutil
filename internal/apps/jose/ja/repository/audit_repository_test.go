@@ -5,6 +5,7 @@
 package repository
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -36,7 +37,7 @@ func TestAuditConfigRepository_Get(t *testing.T) {
 		TenantID:     *tenantID,
 		Operation:    operation,
 		Enabled:      true,
-		SamplingRate: 0.5,
+		SamplingRate: cryptoutilSharedMagic.Tolerance50Percent,
 	}
 	require.NoError(t, repo.Upsert(ctx, config))
 
@@ -73,7 +74,7 @@ func TestAuditConfigRepository_GetAllForTenant(t *testing.T) {
 			TenantID:     *tenantID,
 			Operation:    op,
 			Enabled:      true,
-			SamplingRate: 0.1,
+			SamplingRate: cryptoutilSharedMagic.Tolerance10Percent,
 		}
 		require.NoError(t, repo.Upsert(ctx, config))
 
@@ -108,7 +109,7 @@ func TestAuditConfigRepository_Upsert(t *testing.T) {
 		TenantID:     *tenantID,
 		Operation:    operation,
 		Enabled:      true,
-		SamplingRate: 0.25,
+		SamplingRate: cryptoutilSharedMagic.TestProbQuarter,
 	}
 	err := repo.Upsert(ctx, config)
 	require.NoError(t, err)
@@ -120,7 +121,7 @@ func TestAuditConfigRepository_Upsert(t *testing.T) {
 	// Verify created.
 	retrieved, err := repo.Get(ctx, *tenantID, operation)
 	require.NoError(t, err)
-	require.Equal(t, 0.25, retrieved.SamplingRate)
+	require.Equal(t, cryptoutilSharedMagic.TestProbQuarter, retrieved.SamplingRate)
 
 	// Test update (upsert).
 	config.SamplingRate = 0.75
@@ -148,7 +149,7 @@ func TestAuditConfigRepository_Delete(t *testing.T) {
 		TenantID:     *tenantID,
 		Operation:    operation,
 		Enabled:      true,
-		SamplingRate: 0.5,
+		SamplingRate: cryptoutilSharedMagic.Tolerance50Percent,
 	}
 	require.NoError(t, repo.Upsert(ctx, config))
 
@@ -179,7 +180,7 @@ func TestAuditConfigRepository_ShouldAudit(t *testing.T) {
 		TenantID:     *tenantID,
 		Operation:    operation,
 		Enabled:      true,
-		SamplingRate: 1.0,
+		SamplingRate: cryptoutilSharedMagic.TestProbAlways,
 	}
 	require.NoError(t, repo.Upsert(ctx, config))
 
@@ -203,7 +204,7 @@ func TestAuditConfigRepository_ShouldAudit(t *testing.T) {
 
 	// Update to enabled with 0% sampling.
 	config.Enabled = true
-	config.SamplingRate = 0.0
+	config.SamplingRate = cryptoutilSharedMagic.BaselineContributionZero
 	require.NoError(t, repo.Upsert(ctx, config))
 
 	// Test ShouldAudit with 0% sampling - should always return false.
@@ -270,7 +271,7 @@ func TestAuditLogRepository_List(t *testing.T) {
 	}
 
 	// Test list all.
-	entries, total, err := repo.List(ctx, *tenantID, 0, 10)
+	entries, total, err := repo.List(ctx, *tenantID, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 	require.Equal(t, int64(3), total)
 	require.Len(t, entries, 3)
@@ -283,7 +284,7 @@ func TestAuditLogRepository_List(t *testing.T) {
 
 	// Test empty result for non-existent tenant.
 	nonExistentTenant := googleUuid.New()
-	entries, total, err = repo.List(ctx, nonExistentTenant, 0, 10)
+	entries, total, err = repo.List(ctx, nonExistentTenant, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 	require.Equal(t, int64(0), total)
 	require.Empty(t, entries)

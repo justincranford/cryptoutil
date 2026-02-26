@@ -3,6 +3,7 @@
 package client
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	http "net/http"
 	"net/http/httptest"
@@ -23,7 +24,7 @@ func TestSendMessage_RequestError(t *testing.T) {
 
 	receiver := googleUuid.New()
 
-	_, err := SendMessage(http.DefaultClient, closedURL, "test", "token", receiver)
+	_, err := SendMessage(http.DefaultClient, closedURL, "test", cryptoutilSharedMagic.ParamToken, receiver)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to send message")
 }
@@ -40,7 +41,7 @@ func TestSendMessage_DecodeError(t *testing.T) {
 
 	receiver := googleUuid.New()
 
-	_, err := SendMessage(http.DefaultClient, server.URL, "test", "token", receiver)
+	_, err := SendMessage(http.DefaultClient, server.URL, "test", cryptoutilSharedMagic.ParamToken, receiver)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to decode response")
 }
@@ -54,7 +55,7 @@ func TestReceiveMessagesService_RequestError(t *testing.T) {
 	closedURL := server.URL
 	server.Close()
 
-	_, err := ReceiveMessagesService(http.DefaultClient, closedURL, "token")
+	_, err := ReceiveMessagesService(http.DefaultClient, closedURL, cryptoutilSharedMagic.ParamToken)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to receive messages")
 }
@@ -69,7 +70,7 @@ func TestReceiveMessagesService_DecodeError(t *testing.T) {
 	}))
 	defer server.Close()
 
-	_, err := ReceiveMessagesService(http.DefaultClient, server.URL, "token")
+	_, err := ReceiveMessagesService(http.DefaultClient, server.URL, cryptoutilSharedMagic.ParamToken)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to decode response")
 }
@@ -83,7 +84,7 @@ func TestDeleteMessageService_RequestError(t *testing.T) {
 	closedURL := server.URL
 	server.Close()
 
-	err := DeleteMessageService(http.DefaultClient, closedURL, "msg-id", "token")
+	err := DeleteMessageService(http.DefaultClient, closedURL, "msg-id", cryptoutilSharedMagic.ParamToken)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to delete message")
 }
@@ -99,7 +100,7 @@ func TestSendMessageBrowser_RequestError(t *testing.T) {
 
 	receiver := googleUuid.New()
 
-	_, err := SendMessageBrowser(http.DefaultClient, closedURL, "test", "token", receiver)
+	_, err := SendMessageBrowser(http.DefaultClient, closedURL, "test", cryptoutilSharedMagic.ParamToken, receiver)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to send message")
 }
@@ -116,7 +117,7 @@ func TestSendMessageBrowser_DecodeError(t *testing.T) {
 
 	receiver := googleUuid.New()
 
-	_, err := SendMessageBrowser(http.DefaultClient, server.URL, "test", "token", receiver)
+	_, err := SendMessageBrowser(http.DefaultClient, server.URL, "test", cryptoutilSharedMagic.ParamToken, receiver)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to decode response")
 }
@@ -130,7 +131,7 @@ func TestReceiveMessagesBrowser_RequestError(t *testing.T) {
 	closedURL := server.URL
 	server.Close()
 
-	_, err := ReceiveMessagesBrowser(http.DefaultClient, closedURL, "token")
+	_, err := ReceiveMessagesBrowser(http.DefaultClient, closedURL, cryptoutilSharedMagic.ParamToken)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to receive messages")
 }
@@ -145,7 +146,7 @@ func TestReceiveMessagesBrowser_DecodeError(t *testing.T) {
 	}))
 	defer server.Close()
 
-	_, err := ReceiveMessagesBrowser(http.DefaultClient, server.URL, "token")
+	_, err := ReceiveMessagesBrowser(http.DefaultClient, server.URL, cryptoutilSharedMagic.ParamToken)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to decode response")
 }
@@ -159,7 +160,7 @@ func TestDeleteMessageBrowser_RequestError(t *testing.T) {
 	closedURL := server.URL
 	server.Close()
 
-	err := DeleteMessageBrowser(http.DefaultClient, closedURL, "msg-id", "token")
+	err := DeleteMessageBrowser(http.DefaultClient, closedURL, "msg-id", cryptoutilSharedMagic.ParamToken)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to delete message")
 }
@@ -179,7 +180,7 @@ func TestSendMessage_MarshalError(t *testing.T) {
 
 	receiver := googleUuid.New()
 
-	_, err := SendMessage(http.DefaultClient, "http://localhost", "test", "token", receiver)
+	_, err := SendMessage(http.DefaultClient, "http://localhost", "test", cryptoutilSharedMagic.ParamToken, receiver)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to marshal request")
 }

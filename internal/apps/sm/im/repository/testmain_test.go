@@ -43,7 +43,7 @@ func TestMain(m *testing.M) {
 	// Storing reference prevents GC from closing connection during parallel test execution.
 	var err error
 
-	testSQLDB, err = sql.Open("sqlite", dsn)
+	testSQLDB, err = sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	if err != nil {
 		panic("TestMain: failed to open SQLite: " + err.Error())
 	}

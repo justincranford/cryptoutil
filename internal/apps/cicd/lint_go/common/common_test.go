@@ -3,6 +3,7 @@
 package common
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"go/ast"
 	"go/token"
 	"os"
@@ -16,7 +17,7 @@ func TestPrintCryptoViolations(t *testing.T) {
 	t.Parallel()
 
 	violations := []CryptoViolation{
-		{File: "test.go", Line: 10, Issue: "weak crypto", Content: "md5.New()"},
+		{File: "test.go", Line: cryptoutilSharedMagic.JoseJADefaultMaxMaterials, Issue: "weak crypto", Content: "md5.New()"},
 	}
 
 	// Should not panic.
@@ -38,7 +39,7 @@ TestProtocol = "https"
 
 var NotAConst = "skip"
 `
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "magic_test_constants.go"), []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "magic_test_constants.go"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	inv, err := ParseMagicDir(tmpDir)
 	require.NoError(t, err)
@@ -65,14 +66,14 @@ func TestParseMagicDir_SkipTestFiles(t *testing.T) {
 
 const TestOnly = "should-be-skipped"
 `
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "magic_test.go"), []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "magic_test.go"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Create a non-test file.
 	content2 := `package magic
 
 const ProductionConst = "kept"
 `
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "magic_prod.go"), []byte(content2), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "magic_prod.go"), []byte(content2), cryptoutilSharedMagic.CacheFilePermissions))
 
 	inv, err := ParseMagicDir(tmpDir)
 	require.NoError(t, err)
@@ -91,7 +92,7 @@ func TestParseMagicDir_DerivedConstant(t *testing.T) {
 const Base = "base"
 const Derived = Base
 `
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "magic_derived.go"), []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "magic_derived.go"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	inv, err := ParseMagicDir(tmpDir)
 	require.NoError(t, err)
@@ -111,7 +112,7 @@ func TestParseMagicDir_TestingFile(t *testing.T) {
 
 const TestingConst = "test-value"
 `
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "magic_testing.go"), []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "magic_testing.go"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	inv, err := ParseMagicDir(tmpDir)
 	require.NoError(t, err)
@@ -135,7 +136,7 @@ C
 
 const Named = "literal"
 `
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "magic_iota.go"), []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "magic_iota.go"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	inv, err := ParseMagicDir(tmpDir)
 	require.NoError(t, err)
@@ -203,10 +204,10 @@ func TestParseMagicDir_MultipleFiles(t *testing.T) {
 
 	// Create constants in two different files to exercise cross-file sort.
 	content1 := "package magic\n\nconst FileOneConst = \"one\"\n"
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "magic_a.go"), []byte(content1), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "magic_a.go"), []byte(content1), cryptoutilSharedMagic.CacheFilePermissions))
 
 	content2 := "package magic\n\nconst FileTwoConst = \"two\"\n"
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "magic_b.go"), []byte(content2), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "magic_b.go"), []byte(content2), cryptoutilSharedMagic.CacheFilePermissions))
 
 	inv, err := ParseMagicDir(tmpDir)
 	require.NoError(t, err)

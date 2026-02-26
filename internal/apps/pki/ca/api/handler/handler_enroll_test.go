@@ -3,6 +3,7 @@
 package handler
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"crypto"
 	ecdsa "crypto/ecdsa"
@@ -47,7 +48,7 @@ func TestEstSimpleEnrollWithRealIssuer(t *testing.T) {
 		storage:           mockStorage,
 		issuer:            testSetup.Issuer,
 		profiles:          profiles,
-		enrollmentTracker: newEnrollmentTracker(100),
+		enrollmentTracker: newEnrollmentTracker(cryptoutilSharedMagic.JoseJAMaxMaterials),
 	}
 
 	app.Post("/est/simpleenroll", func(c *fiber.Ctx) error {
@@ -105,7 +106,7 @@ func TestEstSimpleEnrollWithRealIssuer(t *testing.T) {
 		t.Parallel()
 
 		csrPEM := pem.EncodeToMemory(&pem.Block{
-			Type:  "CERTIFICATE REQUEST",
+			Type:  cryptoutilSharedMagic.StringPEMTypeCSR,
 			Bytes: csrDER,
 		})
 		req := httptest.NewRequest(http.MethodPost, "/est/simpleenroll", bytes.NewReader(csrPEM))
@@ -147,7 +148,7 @@ func TestEstSimpleEnrollNoProfile(t *testing.T) {
 		storage:           mockStorage,
 		issuer:            testSetup.Issuer,
 		profiles:          map[string]*ProfileConfig{},
-		enrollmentTracker: newEnrollmentTracker(100),
+		enrollmentTracker: newEnrollmentTracker(cryptoutilSharedMagic.JoseJAMaxMaterials),
 	}
 
 	app.Post("/est/simpleenroll", func(c *fiber.Ctx) error {
@@ -198,7 +199,7 @@ func TestEstServerKeyGenWithRealIssuer(t *testing.T) {
 		storage:           mockStorage,
 		issuer:            testSetup.Issuer,
 		profiles:          profiles,
-		enrollmentTracker: newEnrollmentTracker(100),
+		enrollmentTracker: newEnrollmentTracker(cryptoutilSharedMagic.JoseJAMaxMaterials),
 	}
 
 	app.Post("/est/serverkeygen", func(c *fiber.Ctx) error {
@@ -282,7 +283,7 @@ func TestTsaTimestampWithService(t *testing.T) {
 		Certificate:        testSetup.Issuer.GetCAConfig().Certificate,
 		PrivateKey:         signer,
 		Provider:           testSetup.Provider,
-		Policy:             []int{1, 3, 6, 1, 4, 1, 99999, 1},
+		Policy:             []int{1, 3, cryptoutilSharedMagic.DefaultEmailOTPLength, 1, 4, 1, 99999, 1},
 		AcceptedAlgorithms: []cryptoutilCAServiceTimestamp.HashAlgorithm{cryptoutilCAServiceTimestamp.HashAlgorithmSHA256},
 	}
 	tsaService, err := cryptoutilCAServiceTimestamp.NewTSAService(tsaConfig)
@@ -339,7 +340,7 @@ func TestGetCRLWithService(t *testing.T) {
 		Issuer:           testSetup.Issuer.GetCAConfig().Certificate,
 		PrivateKey:       signer,
 		Provider:         testSetup.Provider,
-		Validity:         24 * time.Hour,
+		Validity:         cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		NextUpdateBuffer: time.Hour,
 	}
 	crlService, err := cryptoutilCAServiceRevocation.NewCRLService(crlConfig)

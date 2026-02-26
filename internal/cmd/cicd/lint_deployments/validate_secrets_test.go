@@ -1,6 +1,7 @@
 package lint_deployments
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -13,9 +14,9 @@ func TestValidateSecrets_ValidDeployment(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	secretsDir := filepath.Join(dir, "secrets")
-	require.NoError(t, os.Mkdir(secretsDir, 0o755))
+	require.NoError(t, os.Mkdir(secretsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(secretsDir, "my_password.secret"),
-		[]byte("this-is-a-very-long-secret-value-with-enough-entropy-for-security"), 0o600))
+		[]byte("this-is-a-very-long-secret-value-with-enough-entropy-for-security"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -36,7 +37,7 @@ func TestValidateSecrets_PathNotFound(t *testing.T) {
 func TestValidateSecrets_PathIsFile(t *testing.T) {
 	t.Parallel()
 	f := filepath.Join(t.TempDir(), "file.txt")
-	require.NoError(t, os.WriteFile(f, []byte("data"), 0o600))
+	require.NoError(t, os.WriteFile(f, []byte("data"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSecrets(f)
 	require.NoError(t, err)
@@ -48,8 +49,8 @@ func TestValidateSecrets_EmptySecretFile(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	secretsDir := filepath.Join(dir, "secrets")
-	require.NoError(t, os.Mkdir(secretsDir, 0o755))
-	require.NoError(t, os.WriteFile(filepath.Join(secretsDir, "my_password.secret"), []byte(""), 0o600))
+	require.NoError(t, os.Mkdir(secretsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.WriteFile(filepath.Join(secretsDir, "my_password.secret"), []byte(""), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -62,8 +63,8 @@ func TestValidateSecrets_ShortSecretFile(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	secretsDir := filepath.Join(dir, "secrets")
-	require.NoError(t, os.Mkdir(secretsDir, 0o755))
-	require.NoError(t, os.WriteFile(filepath.Join(secretsDir, "hash_pepper.secret"), []byte("short"), 0o600))
+	require.NoError(t, os.Mkdir(secretsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.WriteFile(filepath.Join(secretsDir, "hash_pepper.secret"), []byte("short"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -77,10 +78,10 @@ func TestValidateSecrets_Base64LengthOK(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	secretsDir := filepath.Join(dir, "secrets")
-	require.NoError(t, os.Mkdir(secretsDir, 0o755))
+	require.NoError(t, os.Mkdir(secretsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	base64Value := "4b0beuNCVMFMjA4y2/WvULfaCZiE6TLnPctdiSdtVrI="
-	require.NoError(t, os.WriteFile(filepath.Join(secretsDir, "hash_pepper.secret"), []byte(base64Value), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(secretsDir, "hash_pepper.secret"), []byte(base64Value), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -93,8 +94,8 @@ func TestValidateSecrets_NonSecretFileIgnored(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	secretsDir := filepath.Join(dir, "secrets")
-	require.NoError(t, os.Mkdir(secretsDir, 0o755))
-	require.NoError(t, os.WriteFile(filepath.Join(secretsDir, "readme.md"), []byte("short"), 0o600))
+	require.NoError(t, os.Mkdir(secretsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.WriteFile(filepath.Join(secretsDir, "readme.md"), []byte("short"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -106,8 +107,8 @@ func TestValidateSecrets_NonHighEntropySecretIgnored(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	secretsDir := filepath.Join(dir, "secrets")
-	require.NoError(t, os.Mkdir(secretsDir, 0o755))
-	require.NoError(t, os.WriteFile(filepath.Join(secretsDir, "postgres_database.secret"), []byte("mydb"), 0o600))
+	require.NoError(t, os.Mkdir(secretsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.WriteFile(filepath.Join(secretsDir, "postgres_database.secret"), []byte("mydb"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -120,8 +121,8 @@ func TestValidateSecrets_SecretDirSubdirectorySkipped(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	secretsDir := filepath.Join(dir, "secrets")
-	require.NoError(t, os.Mkdir(secretsDir, 0o755))
-	require.NoError(t, os.Mkdir(filepath.Join(secretsDir, "subdir"), 0o755))
+	require.NoError(t, os.Mkdir(secretsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.Mkdir(filepath.Join(secretsDir, "subdir"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -132,12 +133,12 @@ func TestValidateSecrets_UnreadableSecretFile(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	secretsDir := filepath.Join(dir, "secrets")
-	require.NoError(t, os.Mkdir(secretsDir, 0o755))
+	require.NoError(t, os.Mkdir(secretsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	f := filepath.Join(secretsDir, "api_key.secret")
-	require.NoError(t, os.WriteFile(f, []byte("data"), 0o600))
+	require.NoError(t, os.WriteFile(f, []byte("data"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.Chmod(f, 0o000))
 
-	t.Cleanup(func() { _ = os.Chmod(f, 0o600) })
+	t.Cleanup(func() { _ = os.Chmod(f, cryptoutilSharedMagic.CacheFilePermissions) })
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -149,10 +150,10 @@ func TestValidateSecrets_UnreadableSecretsDir(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	secretsDir := filepath.Join(dir, "secrets")
-	require.NoError(t, os.Mkdir(secretsDir, 0o755))
+	require.NoError(t, os.Mkdir(secretsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.Chmod(secretsDir, 0o000))
 
-	t.Cleanup(func() { _ = os.Chmod(secretsDir, 0o755) })
+	t.Cleanup(func() { _ = os.Chmod(secretsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute) })
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -164,10 +165,10 @@ func TestValidateSecrets_ConfigInlineSecret(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	configsDir := filepath.Join(dir, "configs")
-	require.NoError(t, os.Mkdir(configsDir, 0o755))
+	require.NoError(t, os.Mkdir(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	config := "database-password: supersecretpassword123\n"
-	require.NoError(t, os.WriteFile(filepath.Join(configsDir, "app.yml"), []byte(config), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(configsDir, "app.yml"), []byte(config), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -180,10 +181,10 @@ func TestValidateSecrets_ConfigSafeReference(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	configsDir := filepath.Join(dir, "configs")
-	require.NoError(t, os.Mkdir(configsDir, 0o755))
+	require.NoError(t, os.Mkdir(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	config := "database-password: file:///run/secrets/db_password\n"
-	require.NoError(t, os.WriteFile(filepath.Join(configsDir, "app.yml"), []byte(config), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(configsDir, "app.yml"), []byte(config), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -195,10 +196,10 @@ func TestValidateSecrets_ConfigNestedInlineSecret(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	configsDir := filepath.Join(dir, "configs")
-	require.NoError(t, os.Mkdir(configsDir, 0o755))
+	require.NoError(t, os.Mkdir(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	config := "auth:\n  api-key: my-hardcoded-api-key-value\n"
-	require.NoError(t, os.WriteFile(filepath.Join(configsDir, "app.yml"), []byte(config), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(configsDir, "app.yml"), []byte(config), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -210,10 +211,10 @@ func TestValidateSecrets_ConfigEmptySecretValue(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	configsDir := filepath.Join(dir, "configs")
-	require.NoError(t, os.Mkdir(configsDir, 0o755))
+	require.NoError(t, os.Mkdir(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	config := "database-password: \"\"\n"
-	require.NoError(t, os.WriteFile(filepath.Join(configsDir, "app.yml"), []byte(config), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(configsDir, "app.yml"), []byte(config), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -224,10 +225,10 @@ func TestValidateSecrets_ConfigNonSecretField(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	configsDir := filepath.Join(dir, "configs")
-	require.NoError(t, os.Mkdir(configsDir, 0o755))
+	require.NoError(t, os.Mkdir(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	config := "bind-public-port: 8080\nhost: localhost\n"
-	require.NoError(t, os.WriteFile(filepath.Join(configsDir, "app.yml"), []byte(config), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(configsDir, "app.yml"), []byte(config), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -238,8 +239,8 @@ func TestValidateSecrets_ConfigInvalidYAML(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	configsDir := filepath.Join(dir, "configs")
-	require.NoError(t, os.Mkdir(configsDir, 0o755))
-	require.NoError(t, os.WriteFile(filepath.Join(configsDir, "bad.yml"), []byte(":\n  - :\n:"), 0o600))
+	require.NoError(t, os.Mkdir(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.WriteFile(filepath.Join(configsDir, "bad.yml"), []byte(":\n  - :\n:"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -250,12 +251,12 @@ func TestValidateSecrets_ConfigUnreadableFile(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	configsDir := filepath.Join(dir, "configs")
-	require.NoError(t, os.Mkdir(configsDir, 0o755))
+	require.NoError(t, os.Mkdir(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	f := filepath.Join(configsDir, "unreadable.yml")
-	require.NoError(t, os.WriteFile(f, []byte("data"), 0o600))
+	require.NoError(t, os.WriteFile(f, []byte("data"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.Chmod(f, 0o000))
 
-	t.Cleanup(func() { _ = os.Chmod(f, 0o600) })
+	t.Cleanup(func() { _ = os.Chmod(f, cryptoutilSharedMagic.CacheFilePermissions) })
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -267,8 +268,8 @@ func TestValidateSecrets_ConfigNonYAMLIgnored(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	configsDir := filepath.Join(dir, "configs")
-	require.NoError(t, os.Mkdir(configsDir, 0o755))
-	require.NoError(t, os.WriteFile(filepath.Join(configsDir, "readme.md"), []byte("api-key: secret"), 0o600))
+	require.NoError(t, os.Mkdir(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.WriteFile(filepath.Join(configsDir, "readme.md"), []byte("api-key: secret"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -279,8 +280,8 @@ func TestValidateSecrets_ConfigSubdirIgnored(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	configsDir := filepath.Join(dir, "configs")
-	require.NoError(t, os.Mkdir(configsDir, 0o755))
-	require.NoError(t, os.Mkdir(filepath.Join(configsDir, "subdir"), 0o755))
+	require.NoError(t, os.Mkdir(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.Mkdir(filepath.Join(configsDir, "subdir"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -291,10 +292,10 @@ func TestValidateSecrets_UnreadableConfigsDir(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	configsDir := filepath.Join(dir, "configs")
-	require.NoError(t, os.Mkdir(configsDir, 0o755))
+	require.NoError(t, os.Mkdir(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.Chmod(configsDir, 0o000))
 
-	t.Cleanup(func() { _ = os.Chmod(configsDir, 0o755) })
+	t.Cleanup(func() { _ = os.Chmod(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute) })
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -311,7 +312,7 @@ func TestValidateSecrets_ComposeInlineSecret(t *testing.T) {
     environment:
       DB_PASSWORD: "hardcoded-password-value"
 `
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(compose), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(compose), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -329,7 +330,7 @@ func TestValidateSecrets_ComposeSecretFileRef(t *testing.T) {
     environment:
       DB_PASSWORD_FILE: "/run/secrets/db_password"
 `
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(compose), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(compose), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -345,7 +346,7 @@ func TestValidateSecrets_ComposeNonSecretEnv(t *testing.T) {
     environment:
       APP_NAME: "my-service"
 `
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(compose), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(compose), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -361,7 +362,7 @@ func TestValidateSecrets_ComposeEmptySecretValue(t *testing.T) {
     environment:
       DB_PASSWORD: ""
 `
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(compose), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(compose), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -371,7 +372,7 @@ func TestValidateSecrets_ComposeEmptySecretValue(t *testing.T) {
 func TestValidateSecrets_ComposeInvalidYAML(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(":\n  - :\n:"), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(":\n  - :\n:"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -382,10 +383,10 @@ func TestValidateSecrets_ComposeUnreadable(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	f := filepath.Join(dir, "compose.yml")
-	require.NoError(t, os.WriteFile(f, []byte("data"), 0o600))
+	require.NoError(t, os.WriteFile(f, []byte("data"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.Chmod(f, 0o000))
 
-	t.Cleanup(func() { _ = os.Chmod(f, 0o600) })
+	t.Cleanup(func() { _ = os.Chmod(f, cryptoutilSharedMagic.CacheFilePermissions) })
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -402,7 +403,7 @@ func TestValidateSecrets_ComposeNonMapEnv(t *testing.T) {
     environment:
       - DB_PASSWORD=hardcoded
 `
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(compose), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(compose), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)

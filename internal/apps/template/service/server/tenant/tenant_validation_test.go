@@ -5,6 +5,7 @@
 package tenant
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -71,8 +72,8 @@ func TestSchemaManager_GetScopedDB_Unsupported(t *testing.T) {
 func TestDBType_Constants(t *testing.T) {
 	t.Parallel()
 
-	require.Equal(t, DBType("sqlite"), DBTypeSQLite)
-	require.Equal(t, DBType("postgres"), DBTypePostgres)
+	require.Equal(t, DBType(cryptoutilSharedMagic.TestDatabaseSQLite), DBTypeSQLite)
+	require.Equal(t, DBType(cryptoutilSharedMagic.DockerServicePostgres), DBTypePostgres)
 }
 
 func TestSchemaPrefix_Constant(t *testing.T) {

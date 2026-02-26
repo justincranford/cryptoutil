@@ -5,6 +5,7 @@
 package repository
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"fmt"
@@ -23,7 +24,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 	dsn := fmt.Sprintf("file:test_%s?mode=memory&cache=shared", googleUuid.Must(googleUuid.NewV7()).String())
 
-	sqlDB, err := sql.Open("sqlite", dsn)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	require.NoError(t, err)
 
 	_, err = sqlDB.ExecContext(context.Background(), "PRAGMA journal_mode=WAL;")
@@ -39,8 +40,8 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	sqlDB, err = db.DB()
 	require.NoError(t, err)
 
-	sqlDB.SetMaxOpenConns(5)
-	sqlDB.SetMaxIdleConns(5)
+	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	sqlDB.SetConnMaxLifetime(0)
 
 	// Run migrations
@@ -52,7 +53,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 // uniqueTenantName returns a unique tenant name for tests.
 func uniqueTenantName(base string) string {
-	return base + " " + googleUuid.New().String()[:8]
+	return base + " " + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength]
 }
 
 func TestTenantRepository_Create(t *testing.T) {
@@ -319,7 +320,7 @@ func TestTenantRepository_Update(t *testing.T) {
 	err := repo.Create(ctx, tenant)
 	require.NoError(t, err)
 
-	time.Sleep(10 * time.Millisecond) // Ensure UpdatedAt will be different.
+	time.Sleep(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond) // Ensure UpdatedAt will be different.
 
 	tenant.Description = "Updated description"
 	tenant.Active = 0
@@ -360,8 +361,8 @@ func TestTenantRepository_Delete(t *testing.T) {
 				user := &User{
 					ID:        googleUuid.New(),
 					TenantID:  tenantID,
-					Username:  "testuser-" + googleUuid.New().String()[:8],
-					Email:     "test-" + googleUuid.New().String()[:8] + "@example.com",
+					Username:  "testuser-" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength],
+					Email:     "test-" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength] + "@example.com",
 					Active:    1,
 					CreatedAt: time.Now().UTC(),
 				}
@@ -425,8 +426,8 @@ func TestTenantRepository_CountUsersAndClients(t *testing.T) {
 	user := &User{
 		ID:        googleUuid.New(),
 		TenantID:  tenant.ID,
-		Username:  "testuser-" + googleUuid.New().String()[:8],
-		Email:     "test-" + googleUuid.New().String()[:8] + "@example.com",
+		Username:  "testuser-" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength],
+		Email:     "test-" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength] + "@example.com",
 		Active:    1,
 		CreatedAt: time.Now().UTC(),
 	}
@@ -437,7 +438,7 @@ func TestTenantRepository_CountUsersAndClients(t *testing.T) {
 	client := &Client{
 		ID:        googleUuid.New(),
 		TenantID:  tenant.ID,
-		ClientID:  "client-" + googleUuid.New().String()[:8],
+		ClientID:  "client-" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		Active:    1,
 		CreatedAt: time.Now().UTC(),
 	}

@@ -30,7 +30,7 @@ func TestPublicServerBase_StartContextCancellation(t *testing.T) {
 	t.Parallel()
 
 	config := &PublicServerConfig{
-		BindAddress: "127.0.0.1",
+		BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 		Port:        0,
 		TLSMaterial: createTestTLSMaterial(t),
 	}
@@ -53,7 +53,7 @@ func TestPublicServerBase_StartListenError(t *testing.T) {
 
 	// Create first server to occupy a specific port.
 	config1 := &PublicServerConfig{
-		BindAddress: "127.0.0.1",
+		BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 		Port:        0, // Dynamic allocation.
 		TLSMaterial: createTestTLSMaterial(t),
 	}
@@ -74,13 +74,13 @@ func TestPublicServerBase_StartListenError(t *testing.T) {
 	// Use a small sleep to allow server to bind.
 	require.Eventually(t, func() bool {
 		return base1.ActualPort() != 0
-	}, 5*time.Second, 10*time.Millisecond)
+	}, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Millisecond)
 
 	occupiedPort := base1.ActualPort()
 
 	// Try to create second server on same port.
 	config2 := &PublicServerConfig{
-		BindAddress: "127.0.0.1",
+		BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 		Port:        occupiedPort, // Use same port.
 		TLSMaterial: createTestTLSMaterial(t),
 	}
@@ -106,7 +106,7 @@ func TestPublicServerBase_ShutdownTwice(t *testing.T) {
 	t.Parallel()
 
 	config := &PublicServerConfig{
-		BindAddress: "127.0.0.1",
+		BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 		Port:        0,
 		TLSMaterial: createTestTLSMaterial(t),
 	}
@@ -141,7 +141,7 @@ func TestNewServiceTemplate_TelemetryInitError(t *testing.T) {
 
 	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		OTLPService: "test-service",
-		LogLevel:    "INFO",
+		LogLevel:    cryptoutilSharedMagic.DefaultLogLevelInfo,
 	}
 
 	dbUUID, err := googleUuid.NewV7()
@@ -149,7 +149,7 @@ func TestNewServiceTemplate_TelemetryInitError(t *testing.T) {
 
 	dsn := "file:" + dbUUID.String() + "?mode=memory&cache=private"
 
-	sqlDB, err := sql.Open("sqlite", dsn)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	require.NoError(t, err)
 
 	defer func() { _ = sqlDB.Close() }()
@@ -176,7 +176,7 @@ func TestNewServiceTemplate_JWKGenInitError(t *testing.T) {
 
 	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		OTLPService:  "test-service",
-		LogLevel:     "INFO",
+		LogLevel:     cryptoutilSharedMagic.DefaultLogLevelInfo,
 		OTLPEndpoint: "http://localhost:4318",
 	}
 
@@ -185,7 +185,7 @@ func TestNewServiceTemplate_JWKGenInitError(t *testing.T) {
 
 	dsn := "file:" + dbUUID.String() + "?mode=memory&cache=private"
 
-	sqlDB, err := sql.Open("sqlite", dsn)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	require.NoError(t, err)
 
 	defer func() { _ = sqlDB.Close() }()
@@ -208,7 +208,7 @@ func TestNewServiceTemplate_OptionError(t *testing.T) {
 	// Provide minimal valid config so telemetry initialization passes.
 	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		OTLPService:  "test-service",
-		LogLevel:     "INFO",
+		LogLevel:     cryptoutilSharedMagic.DefaultLogLevelInfo,
 		OTLPEndpoint: "http://localhost:4318", // Valid OTLP HTTP endpoint.
 	}
 
@@ -218,7 +218,7 @@ func TestNewServiceTemplate_OptionError(t *testing.T) {
 
 	dsn := "file:" + dbID.String() + "?mode=memory&cache=private"
 
-	sqlDB, err := sql.Open("sqlite", dsn)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	require.NoError(t, err)
 
 	defer func() { _ = sqlDB.Close() }()
@@ -291,7 +291,7 @@ func (m *mockPublicServerForCoverage) Shutdown(ctx context.Context) error {
 }
 
 func (m *mockPublicServerForCoverage) ActualPort() int {
-	return 8080
+	return cryptoutilSharedMagic.DemoServerPort
 }
 
 func (m *mockPublicServerForCoverage) PublicBaseURL() string {
@@ -323,7 +323,7 @@ func (m *mockAdminServerForCoverage) Shutdown(ctx context.Context) error {
 }
 
 func (m *mockAdminServerForCoverage) ActualPort() int {
-	return 9090
+	return cryptoutilSharedMagic.JoseJAAdminPort
 }
 
 func (m *mockAdminServerForCoverage) SetReady(_ bool) {}
@@ -372,7 +372,7 @@ func TestPublicServerBase_ErrChanPath(t *testing.T) {
 	t.Parallel()
 
 	config := &PublicServerConfig{
-		BindAddress: "127.0.0.1",
+		BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 		Port:        0,
 		TLSMaterial: createTestTLSMaterial(t),
 	}
@@ -390,7 +390,7 @@ func TestPublicServerBase_ErrChanPath(t *testing.T) {
 	// Wait for server to be listening.
 	require.Eventually(t, func() bool {
 		return base.ActualPort() != 0
-	}, 5*time.Second, 10*time.Millisecond)
+	}, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Millisecond)
 
 	// Directly shutdown the Fiber app (NOT base.Shutdown which also cancels context).
 	// This causes app.Listener to return, firing errChan, without serverCtx.Done().
@@ -417,7 +417,7 @@ func TestPublicServerBase_ListenerError(t *testing.T) {
 	defer func() { appListenerFn = original }()
 
 	config := &PublicServerConfig{
-		BindAddress: "127.0.0.1",
+		BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 		Port:        0,
 		TLSMaterial: createTestTLSMaterial(t),
 	}

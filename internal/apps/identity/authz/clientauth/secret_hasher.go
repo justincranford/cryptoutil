@@ -141,7 +141,7 @@ func (a *SecretBasedAuthenticator) Authenticate(ctx context.Context, clientID, c
 
 // Method implements ClientAuthenticator interface - returns basic auth method (registry handles mapping).
 func (a *SecretBasedAuthenticator) Method() string {
-	return "client_secret_basic"
+	return cryptoutilSharedMagic.ClientAuthMethodSecretBasic
 }
 
 // MigrateSecrets wraps MigrateClientSecrets for use through registry.

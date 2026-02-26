@@ -4,6 +4,7 @@
 package server_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"crypto/tls"
 	"fmt"
@@ -29,7 +30,7 @@ func newTestHTTPClient() *http.Client {
 				InsecureSkipVerify: true, //nolint:gosec // Test environment only.
 			},
 		},
-		Timeout: 10 * time.Second,
+		Timeout: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second,
 	}
 }
 
@@ -55,10 +56,10 @@ func TestUserRegistration_TriggerUserFactory(t *testing.T) {
 	for i, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// NOT parallel — order matters for userFactory state.
-			username := fmt.Sprintf("reg-user-%d-%s", i, googleUuid.New().String()[:8])
+			username := fmt.Sprintf("reg-user-%d-%s", i, googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength])
 			body := fmt.Sprintf(`{"username":"%s","password":"testpassword123"}`, username)
 
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second)
 			defer cancel()
 
 			req, err := http.NewRequestWithContext(ctx, http.MethodPost, registerURL, strings.NewReader(body))
@@ -100,7 +101,7 @@ func TestUserRegistration_DBClosedError(t *testing.T) {
 	// Wait for server to bind to ports.
 	require.Eventually(t, func() bool {
 		return server.PublicPort() > 0
-	}, 10*time.Second, 100*time.Millisecond, "Server should start within 10 seconds")
+	}, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond, "Server should start within 10 seconds")
 
 	// Close DB to force RegisterUserWithTenant failure in userFactory.
 	sqlDB, err := server.DB().DB()
@@ -113,10 +114,10 @@ func TestUserRegistration_DBClosedError(t *testing.T) {
 	client := newTestHTTPClient()
 	registerURL := server.PublicBaseURL() + "/service/api/v1/users/register"
 
-	username := fmt.Sprintf("db-closed-%s", googleUuid.New().String()[:8])
+	username := fmt.Sprintf("db-closed-%s", googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength])
 	body := fmt.Sprintf(`{"username":"%s","password":"testpassword123"}`, username)
 
-	reqCtx, reqCancel := context.WithTimeout(ctx, 10*time.Second)
+	reqCtx, reqCancel := context.WithTimeout(ctx, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second)
 	defer reqCancel()
 
 	req, err := http.NewRequestWithContext(reqCtx, http.MethodPost, registerURL, strings.NewReader(body))

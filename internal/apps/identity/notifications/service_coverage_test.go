@@ -25,7 +25,7 @@ func setupCoverageTestDB(t *testing.T) (*gorm.DB, *sql.DB) {
 	t.Helper()
 
 	dsn := cryptoutilSharedMagic.SQLiteMemoryPlaceholder
-	sqlDB, err := sql.Open("sqlite", dsn)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	require.NoError(t, err)
 
 	ctx := context.Background()
@@ -40,8 +40,8 @@ func setupCoverageTestDB(t *testing.T) (*gorm.DB, *sql.DB) {
 	db, err := gorm.Open(dialector, &gorm.Config{SkipDefaultTransaction: true})
 	require.NoError(t, err)
 
-	sqlDB.SetMaxOpenConns(5)
-	sqlDB.SetMaxIdleConns(5)
+	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	sqlDB.SetConnMaxLifetime(0)
 	sqlDB.SetConnMaxIdleTime(0)
 
@@ -63,7 +63,7 @@ func createCoverageTestClient(t *testing.T, db *gorm.DB, expiresAt *time.Time) *
 		ID:            googleUuid.New(),
 		ClientID:      googleUuid.NewString(),
 		Name:          "coverage-client-" + googleUuid.NewString(),
-		AllowedScopes: []string{"read"},
+		AllowedScopes: []string{cryptoutilSharedMagic.ScopeRead},
 	}
 
 	err := db.WithContext(ctx).Create(client).Error
@@ -91,11 +91,11 @@ func TestCheckExpiringSecrets_NotifierError(t *testing.T) {
 	db, _ := setupCoverageTestDB(t)
 
 	// Secret expiring in 7 days + 30min hits the 7-day threshold window.
-	expiresAt := time.Now().UTC().Add(7*24*time.Hour + 30*time.Minute)
+	expiresAt := time.Now().UTC().Add(cryptoutilSharedMagic.GitRecentActivityDays*cryptoutilSharedMagic.HoursPerDay*time.Hour + cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Minute)
 	createCoverageTestClient(t, db, &expiresAt)
 
 	config := &cryptoutilIdentityNotifications.NotificationConfig{
-		Thresholds:      []int{7},
+		Thresholds:      []int{cryptoutilSharedMagic.GitRecentActivityDays},
 		Channels:        []cryptoutilIdentityNotifications.NotificationChannel{cryptoutilIdentityNotifications.ChannelEmail},
 		EmailRecipients: []string{"admin@example.com"},
 	}
@@ -116,7 +116,7 @@ func TestCheckExpiringSecrets_DBQueryError(t *testing.T) {
 	require.NoError(t, sqlDB.Close())
 
 	config := &cryptoutilIdentityNotifications.NotificationConfig{
-		Thresholds: []int{7},
+		Thresholds: []int{cryptoutilSharedMagic.GitRecentActivityDays},
 		Channels:   []cryptoutilIdentityNotifications.NotificationChannel{cryptoutilIdentityNotifications.ChannelLog},
 	}
 

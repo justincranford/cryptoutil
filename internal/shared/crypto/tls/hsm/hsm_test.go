@@ -5,6 +5,7 @@
 package hsm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -124,8 +125,8 @@ func TestKeyInfoFields(t *testing.T) {
 	info := KeyInfo{
 		ID:         "key-123",
 		Label:      "My RSA Key",
-		Type:       "RSA",
-		Size:       2048,
+		Type:       cryptoutilSharedMagic.KeyTypeRSA,
+		Size:       cryptoutilSharedMagic.DefaultMetricsBatchSize,
 		CanSign:    true,
 		CanEncrypt: true,
 		CanDecrypt: true,
@@ -135,8 +136,8 @@ func TestKeyInfoFields(t *testing.T) {
 
 	require.Equal(t, "key-123", info.ID)
 	require.Equal(t, "My RSA Key", info.Label)
-	require.Equal(t, "RSA", info.Type)
-	require.Equal(t, 2048, info.Size)
+	require.Equal(t, cryptoutilSharedMagic.KeyTypeRSA, info.Type)
+	require.Equal(t, cryptoutilSharedMagic.DefaultMetricsBatchSize, info.Size)
 	require.True(t, info.CanSign)
 	require.True(t, info.CanEncrypt)
 	require.True(t, info.CanDecrypt)
@@ -150,7 +151,7 @@ func TestKeySpecFields(t *testing.T) {
 	spec := &KeySpec{
 		Label:       "my-ec-key",
 		Type:        "EC",
-		Size:        256,
+		Size:        cryptoutilSharedMagic.MaxUnsealSharedSecrets,
 		Curve:       "P-256",
 		Extractable: false,
 		Usage: KeyUsage{
@@ -165,7 +166,7 @@ func TestKeySpecFields(t *testing.T) {
 
 	require.Equal(t, "my-ec-key", spec.Label)
 	require.Equal(t, "EC", spec.Type)
-	require.Equal(t, 256, spec.Size)
+	require.Equal(t, cryptoutilSharedMagic.MaxUnsealSharedSecrets, spec.Size)
 	require.Equal(t, "P-256", spec.Curve)
 	require.False(t, spec.Extractable)
 	require.True(t, spec.Usage.Sign)

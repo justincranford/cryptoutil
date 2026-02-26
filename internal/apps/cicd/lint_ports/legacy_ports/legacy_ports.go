@@ -4,6 +4,7 @@
 package legacy_ports
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bufio"
 	"fmt"
 	"os"
@@ -108,7 +109,7 @@ func CheckFile(filePath string, legacyPorts []uint16) []lintPortsCommon.Violatio
 				continue
 			}
 
-			portNum, err := strconv.ParseUint(match[1], 10, 16)
+			portNum, err := strconv.ParseUint(match[1], cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cryptoutilSharedMagic.RealmMinTokenLengthBytes)
 			if err != nil {
 				continue
 			}

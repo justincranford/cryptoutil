@@ -5,6 +5,7 @@
 package main
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"flag"
 	"os"
@@ -41,7 +42,7 @@ func TestEnrollCommand(t *testing.T) {
 			wantErr:      false,
 			wantUserID:   userID1,
 			wantDevice:   "Test Device",
-			wantCredType: "passkey",
+			wantCredType: cryptoutilSharedMagic.AMRPasskey,
 		},
 		{
 			name: "valid enrollment with default device name",
@@ -50,7 +51,7 @@ func TestEnrollCommand(t *testing.T) {
 			},
 			wantErr:      false,
 			wantUserID:   userID2,
-			wantCredType: "passkey",
+			wantCredType: cryptoutilSharedMagic.AMRPasskey,
 		},
 		{
 			name:    "missing user-id flag",
@@ -73,7 +74,7 @@ func TestEnrollCommand(t *testing.T) {
 			fs := flag.NewFlagSet("enroll", flag.ContinueOnError)
 			userIDStr := fs.String("user-id", "", "User ID (UUID)")
 			deviceName := fs.String("device-name", "", "Device name")
-			credentialType := fs.String("credential-type", "passkey", "Credential type")
+			credentialType := fs.String("credential-type", cryptoutilSharedMagic.AMRPasskey, "Credential type")
 
 			err := fs.Parse(tc.args)
 			if err != nil {
@@ -255,7 +256,7 @@ func TestParseCredentialType(t *testing.T) {
 	}{
 		{
 			name:     "passkey type",
-			typeStr:  "passkey",
+			typeStr:  cryptoutilSharedMagic.AMRPasskey,
 			wantType: cryptoutilIdentityORM.CredentialTypePasskey,
 		},
 		{

@@ -3,6 +3,7 @@
 package files_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -25,19 +26,19 @@ func TestWriteFile(t *testing.T) {
 		{
 			name:        "Valid_string_content",
 			content:     "test content",
-			permissions: 0o600,
+			permissions: cryptoutilSharedMagic.CacheFilePermissions,
 			wantErr:     false,
 		},
 		{
 			name:        "Valid_byte_slice_content",
 			content:     []byte("test content as bytes"),
-			permissions: 0o600,
+			permissions: cryptoutilSharedMagic.CacheFilePermissions,
 			wantErr:     false,
 		},
 		{
 			name:        "Invalid_content_type",
 			content:     123, // int, not string or []byte
-			permissions: 0o600,
+			permissions: cryptoutilSharedMagic.CacheFilePermissions,
 			wantErr:     true,
 			errContains: "content must be string or []byte",
 		},
@@ -51,19 +52,19 @@ func TestWriteFile(t *testing.T) {
 		{
 			name:        "Empty_string_content",
 			content:     "",
-			permissions: 0o600,
+			permissions: cryptoutilSharedMagic.CacheFilePermissions,
 			wantErr:     false,
 		},
 		{
 			name:        "Empty_byte_slice_content",
 			content:     []byte{},
-			permissions: 0o600,
+			permissions: cryptoutilSharedMagic.CacheFilePermissions,
 			wantErr:     false,
 		},
 		{
 			name:        "Different_permissions",
 			content:     "test",
-			permissions: 0o644,
+			permissions: cryptoutilSharedMagic.CICDOutputFilePermissions,
 			wantErr:     false,
 		},
 	}
@@ -202,14 +203,14 @@ func TestListAllFiles(t *testing.T) {
 			// Create subdirectories.
 			for _, dir := range tc.setupDirs {
 				dirPath := filepath.Join(tempDir, dir)
-				err := os.MkdirAll(dirPath, 0o755)
+				err := os.MkdirAll(dirPath, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 				require.NoError(t, err, "Should create subdirectory")
 			}
 
 			// Create files.
 			for _, file := range tc.setupFiles {
 				filePath := filepath.Join(tempDir, file)
-				err := cryptoutilSharedUtilFiles.WriteFile(filePath, "test content", 0o600)
+				err := cryptoutilSharedUtilFiles.WriteFile(filePath, "test content", cryptoutilSharedMagic.CacheFilePermissions)
 				require.NoError(t, err, "Should create test file")
 			}
 
@@ -248,17 +249,17 @@ func TestListAllFilesWithOptions_DirectoryExclusions(t *testing.T) {
 	includedDir := filepath.Join(tempDir, "included")
 	excludedDir := filepath.Join(tempDir, "excluded")
 
-	err := os.MkdirAll(includedDir, 0o755)
+	err := os.MkdirAll(includedDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err, "Should create included directory")
 
-	err = os.MkdirAll(excludedDir, 0o755)
+	err = os.MkdirAll(excludedDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err, "Should create excluded directory")
 
 	// Create files in both directories.
-	err = cryptoutilSharedUtilFiles.WriteFile(filepath.Join(includedDir, "included.go"), "package included", 0o600)
+	err = cryptoutilSharedUtilFiles.WriteFile(filepath.Join(includedDir, "included.go"), "package included", cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err, "Should create included file")
 
-	err = cryptoutilSharedUtilFiles.WriteFile(filepath.Join(excludedDir, "excluded.go"), "package excluded", 0o600)
+	err = cryptoutilSharedUtilFiles.WriteFile(filepath.Join(excludedDir, "excluded.go"), "package excluded", cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err, "Should create excluded file")
 
 	// Call function with exclusion using the normalized excluded directory path.

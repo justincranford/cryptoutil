@@ -72,11 +72,11 @@ func (g *ProductionKeyGenerator) generateRSASigningKey(_ context.Context, algori
 	var keySize int
 
 	switch algorithm {
-	case "RS256":
+	case cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm:
 		keySize = cryptoutilSharedMagic.RSA2048KeySize
-	case "RS384":
+	case cryptoutilSharedMagic.JoseAlgRS384:
 		keySize = cryptoutilSharedMagic.RSA3072KeySize
-	case "RS512":
+	case cryptoutilSharedMagic.JoseAlgRS512:
 		keySize = cryptoutilSharedMagic.RSA4096KeySize
 	default:
 		return nil, cryptoutilIdentityAppErr.WrapError(
@@ -111,11 +111,11 @@ func (g *ProductionKeyGenerator) generateECDSASigningKey(_ context.Context, algo
 	var curve elliptic.Curve
 
 	switch algorithm {
-	case "ES256":
+	case cryptoutilSharedMagic.JoseAlgES256:
 		curve = elliptic.P256()
-	case "ES384":
+	case cryptoutilSharedMagic.JoseAlgES384:
 		curve = elliptic.P384()
-	case "ES512":
+	case cryptoutilSharedMagic.JoseAlgES512:
 		curve = elliptic.P521()
 	default:
 		return nil, cryptoutilIdentityAppErr.WrapError(
@@ -150,11 +150,11 @@ func (g *ProductionKeyGenerator) generateHMACSigningKey(_ context.Context, algor
 	var keySize int
 
 	switch algorithm {
-	case "HS256":
+	case cryptoutilSharedMagic.JoseAlgHS256:
 		keySize = cryptoutilSharedMagic.HMACSHA256KeySize
-	case "HS384":
+	case cryptoutilSharedMagic.JoseAlgHS384:
 		keySize = cryptoutilSharedMagic.HMACSHA384KeySize
-	case "HS512":
+	case cryptoutilSharedMagic.JoseAlgHS512:
 		keySize = cryptoutilSharedMagic.HMACSHA512KeySize
 	default:
 		return nil, cryptoutilIdentityAppErr.WrapError(

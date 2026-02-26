@@ -5,6 +5,7 @@
 package config
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -105,12 +106,12 @@ func TestServerConfigValidation(t *testing.T) {
 			name: "valid config",
 			config: &ServerConfig{
 				Name:         "test",
-				BindAddress:  "127.0.0.1",
-				Port:         8080,
+				BindAddress:  cryptoutilSharedMagic.IPv4Loopback,
+				Port:         cryptoutilSharedMagic.DemoServerPort,
 				TLSEnabled:   false,
-				ReadTimeout:  30 * time.Second,
-				WriteTimeout: 30 * time.Second,
-				IdleTimeout:  120 * time.Second,
+				ReadTimeout:  cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second,
+				WriteTimeout: cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second,
+				IdleTimeout:  cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes * time.Second,
 			},
 			expectError: false,
 		},
@@ -118,7 +119,7 @@ func TestServerConfigValidation(t *testing.T) {
 			name: "invalid port",
 			config: &ServerConfig{
 				Name:        "test",
-				BindAddress: "127.0.0.1",
+				BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 				Port:        -1,
 			},
 			expectError: true,
@@ -148,9 +149,9 @@ func TestDatabaseConfigValidation(t *testing.T) {
 		{
 			name: "valid sqlite config",
 			config: &DatabaseConfig{
-				Type:         "sqlite",
-				DSN:          ":memory:",
-				MaxOpenConns: 5,
+				Type:         cryptoutilSharedMagic.TestDatabaseSQLite,
+				DSN:          cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
+				MaxOpenConns: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 				MaxIdleConns: 2,
 			},
 			expectError: false,
@@ -158,10 +159,10 @@ func TestDatabaseConfigValidation(t *testing.T) {
 		{
 			name: "valid postgres config",
 			config: &DatabaseConfig{
-				Type:         "postgres",
+				Type:         cryptoutilSharedMagic.DockerServicePostgres,
 				DSN:          "postgres://user:pass@localhost/db",
-				MaxOpenConns: 25,
-				MaxIdleConns: 10,
+				MaxOpenConns: cryptoutilSharedMagic.TLSMaxValidityCACertYears,
+				MaxIdleConns: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 			},
 			expectError: false,
 		},
@@ -169,8 +170,8 @@ func TestDatabaseConfigValidation(t *testing.T) {
 			name: "empty type",
 			config: &DatabaseConfig{
 				Type:         "",
-				DSN:          ":memory:",
-				MaxOpenConns: 5,
+				DSN:          cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
+				MaxOpenConns: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 				MaxIdleConns: 2,
 			},
 			expectError: true,
@@ -178,9 +179,9 @@ func TestDatabaseConfigValidation(t *testing.T) {
 		{
 			name: "empty dsn",
 			config: &DatabaseConfig{
-				Type:         "sqlite",
+				Type:         cryptoutilSharedMagic.TestDatabaseSQLite,
 				DSN:          "",
-				MaxOpenConns: 5,
+				MaxOpenConns: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 				MaxIdleConns: 2,
 			},
 			expectError: true,
@@ -210,22 +211,22 @@ func TestTokenConfigValidation(t *testing.T) {
 		{
 			name: "valid config",
 			config: &TokenConfig{
-				AccessTokenLifetime:  3600 * time.Second,
-				RefreshTokenLifetime: 86400 * time.Second,
-				IDTokenLifetime:      3600 * time.Second,
-				AccessTokenFormat:    "jws",
-				RefreshTokenFormat:   "uuid",
-				IDTokenFormat:        "jws",
+				AccessTokenLifetime:  cryptoutilSharedMagic.IMDefaultSessionTimeout * time.Second,
+				RefreshTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax * time.Second,
+				IDTokenLifetime:      cryptoutilSharedMagic.IMDefaultSessionTimeout * time.Second,
+				AccessTokenFormat:    cryptoutilSharedMagic.DefaultBrowserSessionCookie,
+				RefreshTokenFormat:   cryptoutilSharedMagic.IdentityTokenFormatUUID,
+				IDTokenFormat:        cryptoutilSharedMagic.DefaultBrowserSessionCookie,
 				Issuer:               "https://example.com",
-				SigningAlgorithm:     "RS256",
+				SigningAlgorithm:     cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 			},
 			expectError: false,
 		},
 		{
 			name: "empty issuer",
 			config: &TokenConfig{
-				AccessTokenLifetime: 3600 * time.Second,
-				AccessTokenFormat:   "jws",
+				AccessTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout * time.Second,
+				AccessTokenFormat:   cryptoutilSharedMagic.DefaultBrowserSessionCookie,
 				Issuer:              "",
 			},
 			expectError: true,

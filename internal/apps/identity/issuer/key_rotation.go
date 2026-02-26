@@ -410,7 +410,7 @@ func convertToJWK(key *SigningKey) map[string]any {
 
 	jwk := map[string]any{
 		"kid": key.KeyID,
-		"use": "sig",
+		"use": cryptoutilSharedMagic.JoseKeyUseSig,
 		"alg": key.Algorithm,
 	}
 

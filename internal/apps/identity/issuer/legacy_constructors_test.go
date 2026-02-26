@@ -23,13 +23,13 @@ import (
 func TestNewJWSIssuerLegacy_Success(t *testing.T) {
 	t.Parallel()
 
-	privateKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	privateKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	issuer, err := cryptoutilIdentityIssuer.NewJWSIssuerLegacy(
 		"https://auth.example.com",
 		privateKey,
-		"RS256",
+		cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		time.Hour,
 		time.Hour,
 	)
@@ -42,13 +42,13 @@ func TestNewJWSIssuerLegacy_Success(t *testing.T) {
 func TestNewJWSIssuerLegacy_EmptyIssuer(t *testing.T) {
 	t.Parallel()
 
-	privateKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	privateKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	_, err = cryptoutilIdentityIssuer.NewJWSIssuerLegacy(
 		"", // Empty issuer
 		privateKey,
-		"RS256",
+		cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		time.Hour,
 		time.Hour,
 	)
@@ -61,7 +61,7 @@ func TestNewJWSIssuerLegacy_EmptyIssuer(t *testing.T) {
 func TestNewJWSIssuerLegacy_EmptySigningAlgorithm(t *testing.T) {
 	t.Parallel()
 
-	privateKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	privateKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	_, err = cryptoutilIdentityIssuer.NewJWSIssuerLegacy(
@@ -83,7 +83,7 @@ func TestNewJWSIssuerLegacy_NilSigningKey(t *testing.T) {
 	_, err := cryptoutilIdentityIssuer.NewJWSIssuerLegacy(
 		"https://auth.example.com",
 		nil, // Nil key
-		"RS256",
+		cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		time.Hour,
 		time.Hour,
 	)
@@ -102,7 +102,7 @@ func TestNewJWSIssuerLegacy_ECDSAKey(t *testing.T) {
 	issuer, err := cryptoutilIdentityIssuer.NewJWSIssuerLegacy(
 		"https://auth.example.com",
 		privateKey,
-		"ES256",
+		cryptoutilSharedMagic.JoseAlgES256,
 		time.Hour,
 		time.Hour,
 	)
@@ -137,22 +137,22 @@ func TestNewJWEIssuerLegacy_InvalidKeySize(t *testing.T) {
 	}{
 		{
 			name:      "too short (16 bytes)",
-			keySize:   16,
+			keySize:   cryptoutilSharedMagic.RealmMinTokenLengthBytes,
 			wantError: true,
 		},
 		{
 			name:      "too short (24 bytes)",
-			keySize:   24,
+			keySize:   cryptoutilSharedMagic.HoursPerDay,
 			wantError: true,
 		},
 		{
 			name:      "valid (32 bytes)",
-			keySize:   32,
+			keySize:   cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes,
 			wantError: false,
 		},
 		{
 			name:      "too long (48 bytes)",
-			keySize:   48,
+			keySize:   cryptoutilSharedMagic.HMACSHA384KeySize,
 			wantError: true,
 		},
 		{

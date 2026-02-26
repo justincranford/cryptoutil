@@ -5,6 +5,7 @@
 package test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"strings"
 	"testing"
@@ -101,7 +102,7 @@ func (suite *KMSWorkflowSuite) TestEncryptDecryptWorkflow() {
 
 	// Verify JWE format (5 parts separated by dots)
 	jweParts := strings.Split(ciphertext, ".")
-	suite.Require().Equal(5, len(jweParts), "JWE should have 5 parts")
+	suite.Require().Equal(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, len(jweParts), "JWE should have 5 parts")
 
 	// Step 5: Decrypt ciphertext
 	suite.T().Log("Decrypting ciphertext...")
@@ -132,7 +133,7 @@ func (suite *KMSWorkflowSuite) TestSignVerifyWorkflow() {
 	suite.T().Log("Creating elastic key for signing...")
 
 	elasticKeyName := cryptoutilOpenapiModel.ElasticKeyName("e2e-test-sign-key")
-	elasticKeyAlg := cryptoutilOpenapiModel.ElasticKeyAlgorithm("ES384")
+	elasticKeyAlg := cryptoutilOpenapiModel.ElasticKeyAlgorithm(cryptoutilSharedMagic.JoseAlgES384)
 	elasticKeyProvider := cryptoutilOpenapiModel.ElasticKeyProvider("Internal")
 	elasticKeyDescription := cryptoutilOpenapiModel.ElasticKeyDescription("E2E test signing key")
 

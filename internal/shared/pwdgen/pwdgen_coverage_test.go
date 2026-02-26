@@ -4,6 +4,7 @@
 package pwdgen
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"math/big"
 	"testing"
@@ -75,9 +76,9 @@ func TestGenerate_RandomLengthError(t *testing.T) {
 	// Use a policy with MinLength != MaxLength to trigger randomLength -> crand.Int.
 	pol := PasswordPolicy{
 		Name:      "var-length",
-		MinLength: 8,
-		MaxLength: 12,
-		CharSets:  []CharSetConfig{{Name: "letters", Characters: []rune("abcdefgh"), Min: 8, Max: MaxInt}},
+		MinLength: cryptoutilSharedMagic.IMMinPasswordLength,
+		MaxLength: cryptoutilSharedMagic.HashPrefixLength,
+		CharSets:  []CharSetConfig{{Name: "letters", Characters: []rune("abcdefgh"), Min: cryptoutilSharedMagic.IMMinPasswordLength, Max: MaxInt}},
 	}
 	gen, err := NewPasswordGenerator(pol)
 	require.NoError(t, err)

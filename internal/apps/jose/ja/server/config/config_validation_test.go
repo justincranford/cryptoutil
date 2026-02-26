@@ -107,16 +107,16 @@ func TestParseWithFlagSet_DefaultValues(t *testing.T) {
 	require.NoError(t, err, "ParseWithFlagSet() should not error")
 
 	// Verify jose-ja defaults.
-	require.Equal(t, 10, settings.DefaultMaxMaterials, "DefaultMaxMaterials should be 10")
+	require.Equal(t, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, settings.DefaultMaxMaterials, "DefaultMaxMaterials should be 10")
 
 	require.True(t, settings.AuditEnabled, "AuditEnabled should be true")
 
-	require.Equal(t, 100, settings.AuditSamplingRate, "AuditSamplingRate should be 100")
+	require.Equal(t, cryptoutilSharedMagic.JoseJAMaxMaterials, settings.AuditSamplingRate, "AuditSamplingRate should be 100")
 
 	// Verify template defaults inherited.
-	require.Equal(t, uint16(8800), settings.BindPublicPort, "BindPublicPort should be 8800") // cryptoutilSharedMagic.JoseJAServicePort.
+	require.Equal(t, uint16(cryptoutilSharedMagic.JoseJAServicePort), settings.BindPublicPort, "BindPublicPort should be 8800") // cryptoutilSharedMagic.JoseJAServicePort.
 
-	require.Equal(t, "jose-ja", settings.OTLPService, "OTLPService should be jose-ja")
+	require.Equal(t, cryptoutilSharedMagic.OTLPServiceJoseJA, settings.OTLPService, "OTLPService should be jose-ja")
 }
 
 // TestParseWithFlagSet_OverrideDefaults tests ParseWithFlagSet with command line overrides.
@@ -132,30 +132,30 @@ func TestParseWithFlagSet_OverrideDefaults(t *testing.T) {
 		{
 			name:     "override max materials",
 			args:     []string{"start", "--max-materials", "50"},
-			wantMax:  50,
+			wantMax:  cryptoutilSharedMagic.IMMaxUsernameLength,
 			wantAud:  true,
-			wantRate: 100,
+			wantRate: cryptoutilSharedMagic.JoseJAMaxMaterials,
 		},
 		{
 			name:     "disable audit",
 			args:     []string{"start", "--audit-enabled=false"},
-			wantMax:  10,
+			wantMax:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 			wantAud:  false,
-			wantRate: 100,
+			wantRate: cryptoutilSharedMagic.JoseJAMaxMaterials,
 		},
 		{
 			name:     "override sampling rate",
 			args:     []string{"start", "--audit-sampling-rate", "25"},
-			wantMax:  10,
+			wantMax:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 			wantAud:  true,
-			wantRate: 25,
+			wantRate: cryptoutilSharedMagic.TLSMaxValidityCACertYears,
 		},
 		{
 			name:     "override all jose-ja flags",
 			args:     []string{"start", "--max-materials", "100", "--audit-enabled=false", "--audit-sampling-rate", "50"},
-			wantMax:  100,
+			wantMax:  cryptoutilSharedMagic.JoseJAMaxMaterials,
 			wantAud:  false,
-			wantRate: 50,
+			wantRate: cryptoutilSharedMagic.IMMaxUsernameLength,
 		},
 	}
 
@@ -207,7 +207,7 @@ func TestPrivateBaseURL(t *testing.T) {
 	t.Parallel()
 
 	settings := DefaultTestConfig()
-	settings.BindPrivatePort = 9090 // Set explicit port for test.
+	settings.BindPrivatePort = cryptoutilSharedMagic.JoseJAAdminPort // Set explicit port for test.
 
 	url := settings.PrivateBaseURL()
 

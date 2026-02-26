@@ -37,7 +37,7 @@ type WorkflowActionExceptions struct {
 
 // disallowedVersionsBranchPinning lists branch names that should not be used as action versions.
 // Actions pinned to branches are not deterministic and fail security best practices.
-var disallowedVersionsBranchPinning = []string{"main", "master", "latest", "develop", "dev", "trunk"}
+var disallowedVersionsBranchPinning = []string{"main", "master", "latest", "develop", cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault, "trunk"}
 
 // checkActionVersionsConcurrentlyFn is injectable for testing the outdated actions branch.
 var checkActionVersionsConcurrentlyFn = checkActionVersionsConcurrently
@@ -277,7 +277,7 @@ func FilterWorkflowFiles(filesByExtension map[string][]string) []string {
 func IsWorkflowFile(path string) bool {
 	// Check for .github/workflows/ in the path.
 	// Support both forward and backward slashes for cross-platform compatibility.
-	return (len(path) > 4 && (path[len(path)-4:] == ".yml" || path[len(path)-5:] == ".yaml")) &&
+	return (len(path) > 4 && (path[len(path)-4:] == ".yml" || path[len(path)-cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries:] == ".yaml")) &&
 		(contains(path, ".github/workflows/") || contains(path, ".github\\workflows\\"))
 }
 

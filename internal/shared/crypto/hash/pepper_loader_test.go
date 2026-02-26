@@ -3,6 +3,7 @@
 package hash
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -22,7 +23,7 @@ func TestLoadPepperFromSecret_HappyPath(t *testing.T) {
 	secretFile := filepath.Join(tempDir, "test_pepper.secret")
 
 	expectedPepper := "7t1qT7/OxY7lzqe8E5Q89AfNF2iNzu+QrvLJJe+V/WY="
-	require.NoError(t, os.WriteFile(secretFile, []byte(expectedPepper+"\n"), 0o600))
+	require.NoError(t, os.WriteFile(secretFile, []byte(expectedPepper+"\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Test loading pepper
 	pepper, err := LoadPepperFromSecret(secretFile)
@@ -39,10 +40,10 @@ func TestLoadPepperFromSecret_FilePrefixSupport(t *testing.T) {
 	secretFile := filepath.Join(tempDir, "test_pepper.secret")
 
 	expectedPepper := "testPepperValue123"
-	require.NoError(t, os.WriteFile(secretFile, []byte(expectedPepper), 0o600))
+	require.NoError(t, os.WriteFile(secretFile, []byte(expectedPepper), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Test with "file://" prefix
-	pepper, err := LoadPepperFromSecret("file://" + secretFile)
+	pepper, err := LoadPepperFromSecret(cryptoutilSharedMagic.FileURIScheme + secretFile)
 	require.NoError(t, err)
 	require.Equal(t, expectedPepper, pepper)
 }
@@ -56,7 +57,7 @@ func TestLoadPepperFromSecret_WhitespaceTrimming(t *testing.T) {
 	secretFile := filepath.Join(tempDir, "test_pepper.secret")
 
 	expectedPepper := "pepperWithWhitespace"
-	require.NoError(t, os.WriteFile(secretFile, []byte("\n  "+expectedPepper+"  \n\n"), 0o600))
+	require.NoError(t, os.WriteFile(secretFile, []byte("\n  "+expectedPepper+"  \n\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Test loading and trimming
 	pepper, err := LoadPepperFromSecret(secretFile)
@@ -92,7 +93,7 @@ func TestLoadPepperFromSecret_ErrorCases(t *testing.T) {
 			setupFunc: func(t *testing.T) string {
 				tempDir := t.TempDir()
 				emptyFile := filepath.Join(tempDir, "empty.secret")
-				require.NoError(t, os.WriteFile(emptyFile, []byte("  \n  "), 0o600))
+				require.NoError(t, os.WriteFile(emptyFile, []byte("  \n  "), cryptoutilSharedMagic.CacheFilePermissions))
 
 				return emptyFile
 			},
@@ -129,9 +130,9 @@ func TestConfigurePeppers_HappyPath(t *testing.T) {
 	secret2 := filepath.Join(tempDir, "pepper_v2.secret")
 	secret3 := filepath.Join(tempDir, "pepper_v3.secret")
 
-	require.NoError(t, os.WriteFile(secret1, []byte(pepper1), 0o600))
-	require.NoError(t, os.WriteFile(secret2, []byte(pepper2), 0o600))
-	require.NoError(t, os.WriteFile(secret3, []byte(pepper3), 0o600))
+	require.NoError(t, os.WriteFile(secret1, []byte(pepper1), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(secret2, []byte(pepper2), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(secret3, []byte(pepper3), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Create fresh registry
 	registry := NewParameterSetRegistry()
@@ -140,7 +141,7 @@ func TestConfigurePeppers_HappyPath(t *testing.T) {
 	peppers := []PepperConfig{
 		{Version: "1", SecretPath: secret1},
 		{Version: "2", SecretPath: secret2},
-		{Version: "3", SecretPath: "file://" + secret3}, // Test file:// prefix
+		{Version: "3", SecretPath: cryptoutilSharedMagic.FileURIScheme + secret3}, // Test file:// prefix
 	}
 
 	err := ConfigurePeppers(registry, peppers)
@@ -166,7 +167,7 @@ func TestConfigurePeppers_ErrorCases(t *testing.T) {
 
 	tempDir := t.TempDir()
 	validSecret := filepath.Join(tempDir, "valid.secret")
-	require.NoError(t, os.WriteFile(validSecret, []byte("validPepper"), 0o600))
+	require.NoError(t, os.WriteFile(validSecret, []byte("validPepper"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	tests := []struct {
 		name           string
@@ -239,8 +240,8 @@ func TestPepperedHashing_DifferentPeppersProduceDifferentHashes(t *testing.T) {
 	secret1 := filepath.Join(tempDir, "pepper1.secret")
 	secret2 := filepath.Join(tempDir, "pepper2.secret")
 
-	require.NoError(t, os.WriteFile(secret1, []byte(pepper1), 0o600))
-	require.NoError(t, os.WriteFile(secret2, []byte(pepper2), 0o600))
+	require.NoError(t, os.WriteFile(secret1, []byte(pepper1), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(secret2, []byte(pepper2), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Create two registries with different peppers
 	registry1 := NewParameterSetRegistry()
@@ -283,8 +284,8 @@ func TestPepperedVerification_CorrectPepperRequired(t *testing.T) {
 	correctSecret := filepath.Join(tempDir, "correct.secret")
 	wrongSecret := filepath.Join(tempDir, "wrong.secret")
 
-	require.NoError(t, os.WriteFile(correctSecret, []byte(correctPepper), 0o600))
-	require.NoError(t, os.WriteFile(wrongSecret, []byte(wrongPepper), 0o600))
+	require.NoError(t, os.WriteFile(correctSecret, []byte(correctPepper), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(wrongSecret, []byte(wrongPepper), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Create registry with correct pepper
 	registryCorrect := NewParameterSetRegistry()

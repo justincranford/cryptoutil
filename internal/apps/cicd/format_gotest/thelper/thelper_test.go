@@ -3,6 +3,7 @@
 package thelper
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -37,7 +38,7 @@ func TestFix_NonTestFile(t *testing.T) {
 
 	// Write a non-test Go file (should be ignored by Fix).
 	content := "package foo\n\nfunc helper() {}\n"
-	err := os.WriteFile(filepath.Join(tmpDir, "helper.go"), []byte(content), 0o600)
+	err := os.WriteFile(filepath.Join(tmpDir, "helper.go"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	processed, modified, fixed, err := Fix(logger, tmpDir)
@@ -55,7 +56,7 @@ func TestFix_TestFileNoHelpers(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	content := "package foo\n\nimport \"testing\"\n\nfunc TestSomething(t *testing.T) {\n\tt.Parallel()\n}\n"
-	err := os.WriteFile(filepath.Join(tmpDir, "something_test.go"), []byte(content), 0o600)
+	err := os.WriteFile(filepath.Join(tmpDir, "something_test.go"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	processed, modified, fixed, err := Fix(logger, tmpDir)
@@ -74,7 +75,7 @@ func TestFix_AddsTHelperToSetupFunc(t *testing.T) {
 
 	// Write test file with setup helper missing t.Helper().
 	content := testContentSetupMissingHelper
-	err := os.WriteFile(filepath.Join(tmpDir, "something_test.go"), []byte(content), 0o600)
+	err := os.WriteFile(filepath.Join(tmpDir, "something_test.go"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	processed, modified, fixed, err := Fix(logger, tmpDir)
@@ -96,7 +97,7 @@ func TestFix_AlreadyHasTHelper(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	content := "package foo\n\nimport \"testing\"\n\nfunc setupSomething(t *testing.T) {\n\tt.Helper()\n\tt.Log(\"setup\")\n}\n"
-	err := os.WriteFile(filepath.Join(tmpDir, "something_test.go"), []byte(content), 0o600)
+	err := os.WriteFile(filepath.Join(tmpDir, "something_test.go"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	processed, modified, fixed, err := Fix(logger, tmpDir)
@@ -128,7 +129,7 @@ func TestFix_InvalidGoFile(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	tmpDir := t.TempDir()
 
-	err := os.WriteFile(filepath.Join(tmpDir, "invalid_test.go"), []byte("this is not valid Go code!"), 0o600)
+	err := os.WriteFile(filepath.Join(tmpDir, "invalid_test.go"), []byte("this is not valid Go code!"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	_, _, _, err = Fix(logger, tmpDir)
@@ -246,7 +247,7 @@ func TestGetTestingParam_Extraction(t *testing.T) {
 
 			tmpDir := t.TempDir()
 			filePath := filepath.Join(tmpDir, "test_helper.go")
-			err := os.WriteFile(filePath, []byte(tc.content), 0o600)
+			err := os.WriteFile(filePath, []byte(tc.content), cryptoutilSharedMagic.CacheFilePermissions)
 			require.NoError(t, err)
 
 			fset := token.NewFileSet()
@@ -317,7 +318,7 @@ func TestGetTestingParam_StarExprNotSelector(t *testing.T) {
 	content := "package foo\nfunc setupDB(x *int) {}\n"
 	tmpDir := t.TempDir()
 	filePath := filepath.Join(tmpDir, "setup.go")
-	require.NoError(t, os.WriteFile(filePath, []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(filePath, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, filePath, nil, 0)
@@ -341,7 +342,7 @@ func TestGetTestingParam_SelectorNotTesting(t *testing.T) {
 	content := "package foo\nimport \"myPkg\"\nfunc setupDB(x *myPkg.MyType) {}\n"
 	tmpDir := t.TempDir()
 	filePath := filepath.Join(tmpDir, "setup.go")
-	require.NoError(t, os.WriteFile(filePath, []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(filePath, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, filePath, nil, 0)
@@ -370,12 +371,12 @@ func TestFix_ReadOnlyFile(t *testing.T) {
 	// Write a test file with helper function missing t.Helper().
 	testFile := filepath.Join(tmpDir, "setup_test.go")
 	content := testContentSetupMissingHelper
-	require.NoError(t, os.WriteFile(testFile, []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(testFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Make the file read-only so that os.Create() fails when trying to write back.
-	require.NoError(t, os.Chmod(testFile, 0o444))
+	require.NoError(t, os.Chmod(testFile, cryptoutilSharedMagic.FilePermOwnerReadOnlyGroupOtherReadOnly))
 
-	t.Cleanup(func() { _ = os.Chmod(testFile, 0o600) })
+	t.Cleanup(func() { _ = os.Chmod(testFile, cryptoutilSharedMagic.CacheFilePermissions) })
 
 	_, _, _, err := Fix(logger, tmpDir)
 	require.Error(t, err, "Should fail when test file is read-only")
@@ -391,7 +392,7 @@ func TestFix_HelperWithoutTestingParam(t *testing.T) {
 	// Helper function named "setup*" but without *testing.T parameter.
 	// This exercises the getTestingParam() == "" early return in fixTHelperInFile.
 	content := "package foo\n\nfunc setupSomething() {\n}\n"
-	err := os.WriteFile(filepath.Join(tmpDir, "something_test.go"), []byte(content), 0o600)
+	err := os.WriteFile(filepath.Join(tmpDir, "something_test.go"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	processed, modified, fixed, err := Fix(logger, tmpDir)

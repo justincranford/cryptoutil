@@ -3,6 +3,7 @@
 package security
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
@@ -23,18 +24,18 @@ func TestValidator_ValidateCertificate_DisallowedSignatureAlgorithm(t *testing.T
 	ctx := context.Background()
 
 	// Config that only allows ECDSAWithSHA384 — use a SHA256WithRSA cert.
-	key, err := rsa.GenerateKey(crand.Reader, 2048)
+	key, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	config := &Config{
-		MinRSAKeySize:              2048,
+		MinRSAKeySize:              cryptoutilSharedMagic.DefaultMetricsBatchSize,
 		AllowedSignatureAlgorithms: []x509.SignatureAlgorithm{x509.ECDSAWithSHA384},
-		MaxCertValidityDays:        398,
+		MaxCertValidityDays:        cryptoutilSharedMagic.TLSMaxValidityEndEntityDays,
 	}
 	validator := NewValidator(config)
 
 	cert := createTestCertWithKey(t, key, false,
-		time.Now().UTC(), time.Now().UTC().Add(365*24*time.Hour))
+		time.Now().UTC(), time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*cryptoutilSharedMagic.HoursPerDay*time.Hour))
 
 	result, err := validator.ValidateCertificate(ctx, cert)
 	require.NoError(t, err)
@@ -65,16 +66,16 @@ func TestValidator_ValidateCertificate_NotYetValid(t *testing.T) {
 	require.NoError(t, err)
 
 	config := &Config{
-		MinECKeySize:               256,
+		MinECKeySize:               cryptoutilSharedMagic.MaxUnsealSharedSecrets,
 		AllowedSignatureAlgorithms: []x509.SignatureAlgorithm{x509.ECDSAWithSHA256},
-		MaxCertValidityDays:        398,
+		MaxCertValidityDays:        cryptoutilSharedMagic.TLSMaxValidityEndEntityDays,
 	}
 	validator := NewValidator(config)
 
 	// Certificate that becomes valid in 30 days (not yet valid).
 	cert := createTestCert(t, key, false,
-		time.Now().UTC().Add(30*24*time.Hour),
-		time.Now().UTC().Add(90*24*time.Hour))
+		time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*cryptoutilSharedMagic.HoursPerDay*time.Hour),
+		time.Now().UTC().Add(cryptoutilSharedMagic.StrictCertificateMaxAgeDays*cryptoutilSharedMagic.HoursPerDay*time.Hour))
 
 	result, err := validator.ValidateCertificate(ctx, cert)
 	require.NoError(t, err)
@@ -101,9 +102,9 @@ func TestValidator_ValidateCertificate_CAMissingBasicConstraints(t *testing.T) {
 	ctx := context.Background()
 
 	config := &Config{
-		MinECKeySize:               256,
+		MinECKeySize:               cryptoutilSharedMagic.MaxUnsealSharedSecrets,
 		AllowedSignatureAlgorithms: []x509.SignatureAlgorithm{x509.ECDSAWithSHA256},
-		MaxCertValidityDays:        398,
+		MaxCertValidityDays:        cryptoutilSharedMagic.TLSMaxValidityEndEntityDays,
 		RequireBasicConstraints:    true,
 	}
 	validator := NewValidator(config)
@@ -114,7 +115,7 @@ func TestValidator_ValidateCertificate_CAMissingBasicConstraints(t *testing.T) {
 		BasicConstraintsValid: false,
 		SignatureAlgorithm:    x509.ECDSAWithSHA256,
 		NotBefore:             time.Now().UTC(),
-		NotAfter:              time.Now().UTC().Add(365 * 24 * time.Hour),
+		NotAfter:              time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		PublicKey:             mustGenerateECKey(t).Public(),
 	}
 
@@ -141,9 +142,9 @@ func TestValidator_ValidateCertificate_NonCAMissingSAN(t *testing.T) {
 	ctx := context.Background()
 
 	config := &Config{
-		MinECKeySize:               256,
+		MinECKeySize:               cryptoutilSharedMagic.MaxUnsealSharedSecrets,
 		AllowedSignatureAlgorithms: []x509.SignatureAlgorithm{x509.ECDSAWithSHA256},
-		MaxCertValidityDays:        398,
+		MaxCertValidityDays:        cryptoutilSharedMagic.TLSMaxValidityEndEntityDays,
 		RequireSAN:                 true,
 	}
 	validator := NewValidator(config)
@@ -153,7 +154,7 @@ func TestValidator_ValidateCertificate_NonCAMissingSAN(t *testing.T) {
 		IsCA:               false,
 		SignatureAlgorithm: x509.ECDSAWithSHA256,
 		NotBefore:          time.Now().UTC(),
-		NotAfter:           time.Now().UTC().Add(365 * 24 * time.Hour),
+		NotAfter:           time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		KeyUsage:           x509.KeyUsageDigitalSignature,
 		PublicKey:          mustGenerateECKey(t).Public(),
 	}
@@ -181,9 +182,9 @@ func TestValidator_ValidateCertificate_MissingKeyUsage(t *testing.T) {
 	ctx := context.Background()
 
 	config := &Config{
-		MinECKeySize:               256,
+		MinECKeySize:               cryptoutilSharedMagic.MaxUnsealSharedSecrets,
 		AllowedSignatureAlgorithms: []x509.SignatureAlgorithm{x509.ECDSAWithSHA256},
-		MaxCertValidityDays:        398,
+		MaxCertValidityDays:        cryptoutilSharedMagic.TLSMaxValidityEndEntityDays,
 		RequireKeyUsage:            true,
 	}
 	validator := NewValidator(config)
@@ -193,7 +194,7 @@ func TestValidator_ValidateCertificate_MissingKeyUsage(t *testing.T) {
 		IsCA:               false,
 		SignatureAlgorithm: x509.ECDSAWithSHA256,
 		NotBefore:          time.Now().UTC(),
-		NotAfter:           time.Now().UTC().Add(365 * 24 * time.Hour),
+		NotAfter:           time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		KeyUsage:           0,
 		PublicKey:          mustGenerateECKey(t).Public(),
 		DNSNames:           []string{"example.com"},
@@ -225,9 +226,9 @@ func TestValidator_ValidateCertificate_WeakAlgorithm_SHA1WithRSA(t *testing.T) {
 
 	// DisallowWeakAlgorithms=true, SHA1WithRSA cert.
 	config := &Config{
-		MinRSAKeySize:              2048,
+		MinRSAKeySize:              cryptoutilSharedMagic.DefaultMetricsBatchSize,
 		AllowedSignatureAlgorithms: []x509.SignatureAlgorithm{x509.SHA1WithRSA},
-		MaxCertValidityDays:        398,
+		MaxCertValidityDays:        cryptoutilSharedMagic.TLSMaxValidityEndEntityDays,
 		DisallowWeakAlgorithms:     true,
 	}
 	validator := NewValidator(config)
@@ -235,7 +236,7 @@ func TestValidator_ValidateCertificate_WeakAlgorithm_SHA1WithRSA(t *testing.T) {
 	cert := &x509.Certificate{
 		SignatureAlgorithm: x509.SHA1WithRSA,
 		NotBefore:          time.Now().UTC(),
-		NotAfter:           time.Now().UTC().Add(365 * 24 * time.Hour),
+		NotAfter:           time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		KeyUsage:           x509.KeyUsageDigitalSignature,
 		DNSNames:           []string{"example.com"},
 		PublicKey:          mustGenerateRSAKey(t).Public(),
@@ -266,9 +267,9 @@ func TestValidator_ValidateCertificate_CANoPathLengthConstraint(t *testing.T) {
 	ctx := context.Background()
 
 	config := &Config{
-		MinECKeySize:                 256,
+		MinECKeySize:                 cryptoutilSharedMagic.MaxUnsealSharedSecrets,
 		AllowedSignatureAlgorithms:   []x509.SignatureAlgorithm{x509.ECDSAWithSHA256},
-		MaxCertValidityDays:          398,
+		MaxCertValidityDays:          cryptoutilSharedMagic.TLSMaxValidityEndEntityDays,
 		EnforcePathLengthConstraints: true,
 	}
 	validator := NewValidator(config)
@@ -281,7 +282,7 @@ func TestValidator_ValidateCertificate_CANoPathLengthConstraint(t *testing.T) {
 		MaxPathLenZero:        false,
 		SignatureAlgorithm:    x509.ECDSAWithSHA256,
 		NotBefore:             time.Now().UTC(),
-		NotAfter:              time.Now().UTC().Add(365 * 24 * time.Hour),
+		NotAfter:              time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		KeyUsage:              x509.KeyUsageCertSign,
 		DNSNames:              []string{"ca.example.com"},
 		PublicKey:             mustGenerateECKey(t).Public(),
@@ -311,10 +312,10 @@ func TestValidator_ValidatePrivateKey_RSABelowMinimum(t *testing.T) {
 	ctx := context.Background()
 
 	// Use a high minimum so 2048-bit key fails.
-	config := &Config{MinRSAKeySize: 4096}
+	config := &Config{MinRSAKeySize: cryptoutilSharedMagic.RSA4096KeySize}
 	validator := NewValidator(config)
 
-	key, err := rsa.GenerateKey(crand.Reader, 2048)
+	key, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	result, err := validator.ValidatePrivateKey(ctx, key)
@@ -341,7 +342,7 @@ func TestValidator_ValidatePrivateKey_ECDSABelowMinimum(t *testing.T) {
 	ctx := context.Background()
 
 	// Use a high minimum so P-256 (256-bit) key fails.
-	config := &Config{MinECKeySize: 384}
+	config := &Config{MinECKeySize: cryptoutilSharedMagic.SymmetricKeySize384}
 	validator := NewValidator(config)
 
 	key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)

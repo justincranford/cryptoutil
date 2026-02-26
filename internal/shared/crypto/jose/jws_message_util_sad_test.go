@@ -5,6 +5,7 @@
 package crypto
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	googleUuid "github.com/google/uuid"
@@ -289,7 +290,7 @@ func Test_LogJWSInfo_AllHeaders(t *testing.T) {
 				joseJws.ContentTypeKey: "application/json",
 				joseJws.JWKSetURLKey:   "https://example.com/jwks",
 				joseJws.X509URLKey:     "https://example.com/x509",
-				joseJws.CriticalKey:    []string{"exp", "nbf"},
+				joseJws.CriticalKey:    []string{cryptoutilSharedMagic.ClaimExp, cryptoutilSharedMagic.ClaimNbf},
 				"custom-header":        "custom-value",
 			},
 		},

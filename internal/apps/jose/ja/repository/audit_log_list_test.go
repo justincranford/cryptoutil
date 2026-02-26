@@ -5,6 +5,7 @@
 package repository
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -47,14 +48,14 @@ func TestAuditLogRepository_ListByElasticJWK(t *testing.T) {
 	}
 
 	// Test list by ElasticJWK.
-	entries, total, err := repo.ListByElasticJWK(ctx, *elasticJWKID, 0, 10)
+	entries, total, err := repo.ListByElasticJWK(ctx, *elasticJWKID, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 	require.Equal(t, int64(2), total)
 	require.Len(t, entries, 2)
 
 	// Test empty result for non-existent ElasticJWK.
 	nonExistentID := googleUuid.New()
-	entries, total, err = repo.ListByElasticJWK(ctx, nonExistentID, 0, 10)
+	entries, total, err = repo.ListByElasticJWK(ctx, nonExistentID, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 	require.Equal(t, int64(0), total)
 	require.Empty(t, entries)
@@ -85,19 +86,19 @@ func TestAuditLogRepository_ListByOperation(t *testing.T) {
 	}
 
 	// Test list by operation "sign".
-	entries, total, err := repo.ListByOperation(ctx, *tenantID, "sign", 0, 10)
+	entries, total, err := repo.ListByOperation(ctx, *tenantID, "sign", 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 	require.Equal(t, int64(2), total)
 	require.Len(t, entries, 2)
 
 	// Test list by operation "verify".
-	entries, total, err = repo.ListByOperation(ctx, *tenantID, "verify", 0, 10)
+	entries, total, err = repo.ListByOperation(ctx, *tenantID, "verify", 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 	require.Equal(t, int64(1), total)
 	require.Len(t, entries, 1)
 
 	// Test empty result for non-existent operation.
-	entries, total, err = repo.ListByOperation(ctx, *tenantID, "decrypt", 0, 10)
+	entries, total, err = repo.ListByOperation(ctx, *tenantID, "decrypt", 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 	require.Equal(t, int64(0), total)
 	require.Empty(t, entries)
@@ -144,7 +145,7 @@ func TestAuditLogRepository_DeleteOlderThan(t *testing.T) {
 	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 
 	// Create 3 entries with created_at 31 days in the past.
-	oldTime := time.Now().UTC().Add(-31 * 24 * time.Hour)
+	oldTime := time.Now().UTC().Add(-31 * cryptoutilSharedMagic.HoursPerDay * time.Hour)
 
 	for i := 0; i < 3; i++ {
 		id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
@@ -161,18 +162,18 @@ func TestAuditLogRepository_DeleteOlderThan(t *testing.T) {
 	}
 
 	// Verify 3 entries exist.
-	entries, total, err := repo.List(ctx, *tenantID, 0, 10)
+	entries, total, err := repo.List(ctx, *tenantID, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 	require.Equal(t, int64(3), total)
 	require.Len(t, entries, 3)
 
 	// Delete entries older than 30 days (should delete all 3 entries since they're 31 days old).
-	deleted, err := repo.DeleteOlderThan(ctx, *tenantID, 30)
+	deleted, err := repo.DeleteOlderThan(ctx, *tenantID, cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days)
 	require.NoError(t, err)
 	require.Equal(t, int64(3), deleted)
 
 	// Verify entries deleted.
-	entries, total, err = repo.List(ctx, *tenantID, 0, 10)
+	entries, total, err = repo.List(ctx, *tenantID, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 	require.Equal(t, int64(0), total)
 	require.Empty(t, entries)

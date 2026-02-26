@@ -33,7 +33,7 @@ func createKeyServiceTestDB(t *testing.T) (*gorm.DB, func()) {
 	require.NoError(t, err)
 
 	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", dbUUID.String())
-	sqlDB, err := sql.Open("sqlite", dsn)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	require.NoError(t, err)
 
 	_, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")

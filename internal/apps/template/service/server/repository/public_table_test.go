@@ -68,7 +68,7 @@ func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 				require.Greater(t, port, 0, "Expected dynamic port allocation")
 
 				// Shutdown.
-				shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+				shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 				defer shutdownCancel()
 
 				err := server.Shutdown(shutdownCtx)
@@ -108,7 +108,7 @@ func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 							InsecureSkipVerify: true, //nolint:gosec // Test uses self-signed cert.
 						},
 					},
-					Timeout: 5 * time.Second,
+					Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 				}
 
 				url := fmt.Sprintf("https://%s:%d/service/api/v1/health", cryptoutilSharedMagic.IPv4Loopback, port)
@@ -123,10 +123,10 @@ func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 
 				body, err := io.ReadAll(resp.Body)
 				require.NoError(t, err)
-				require.Contains(t, string(body), "healthy")
+				require.Contains(t, string(body), cryptoutilSharedMagic.DockerServiceHealthHealthy)
 
 				// Shutdown.
-				shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+				shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 				defer shutdownCancel()
 
 				err = server.Shutdown(shutdownCtx)
@@ -166,7 +166,7 @@ func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 							InsecureSkipVerify: true, //nolint:gosec // Test uses self-signed cert.
 						},
 					},
-					Timeout: 5 * time.Second,
+					Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 				}
 
 				url := fmt.Sprintf("https://%s:%d/browser/api/v1/health", cryptoutilSharedMagic.IPv4Loopback, port)
@@ -181,10 +181,10 @@ func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 
 				body, err := io.ReadAll(resp.Body)
 				require.NoError(t, err)
-				require.Contains(t, string(body), "healthy")
+				require.Contains(t, string(body), cryptoutilSharedMagic.DockerServiceHealthHealthy)
 
 				// Shutdown.
-				shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+				shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 				defer shutdownCancel()
 
 				err = server.Shutdown(shutdownCtx)
@@ -215,7 +215,7 @@ func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 				time.Sleep(200 * time.Millisecond)
 
 				// Shutdown.
-				shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+				shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 				defer shutdownCancel()
 
 				err := server.Shutdown(shutdownCtx)

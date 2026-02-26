@@ -249,8 +249,8 @@ func TestBuildContentSecurityPolicy(t *testing.T) {
 				"frame-ancestors 'none'",
 			},
 			wantNotContain: []string{
-				"localhost",
-				"127.0.0.1",
+				cryptoutilSharedMagic.DefaultOTLPHostnameDefault,
+				cryptoutilSharedMagic.IPv4Loopback,
 			},
 		},
 		{
@@ -262,8 +262,8 @@ func TestBuildContentSecurityPolicy(t *testing.T) {
 				"default-src 'none'",
 			},
 			wantNotContain: []string{
-				"localhost",
-				"127.0.0.1",
+				cryptoutilSharedMagic.DefaultOTLPHostnameDefault,
+				cryptoutilSharedMagic.IPv4Loopback,
 			},
 		},
 		{
@@ -273,8 +273,8 @@ func TestBuildContentSecurityPolicy(t *testing.T) {
 			},
 			wantContains: []string{
 				"default-src 'none'",
-				"localhost",
-				"127.0.0.1",
+				cryptoutilSharedMagic.DefaultOTLPHostnameDefault,
+				cryptoutilSharedMagic.IPv4Loopback,
 			},
 		},
 	}
@@ -326,7 +326,7 @@ func TestIsNonBrowserAPIRequest(t *testing.T) {
 		},
 		{
 			name:           "well-known path",
-			path:           "/.well-known/openid-configuration",
+			path:           cryptoutilSharedMagic.PathDiscovery,
 			wantNonBrowser: true,
 		},
 		{

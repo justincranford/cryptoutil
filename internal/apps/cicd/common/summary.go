@@ -31,9 +31,9 @@ func PrintExecutionSummary(results []CommandResult, totalDuration time.Duration)
 	failureCount := 0
 
 	for _, result := range results {
-		status := "✅ SUCCESS"
+		status := cryptoutilSharedMagic.StatusSuccess
 		if result.Error != nil {
-			status = "❌ FAILED"
+			status = cryptoutilSharedMagic.StatusFailed
 			failureCount++
 		} else {
 			successCount++

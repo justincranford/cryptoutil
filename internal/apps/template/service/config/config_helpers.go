@@ -290,7 +290,7 @@ func validateConfiguration(s *ServiceTemplateServerSettings) error {
 		errors = append(errors, "HTTPS public protocol requires TLS DNS names or IP addresses to be configured")
 	}
 
-	if s.BindPrivateProtocol == "https" && len(s.TLSPrivateDNSNames) == 0 && len(s.TLSPrivateIPAddresses) == 0 {
+	if s.BindPrivateProtocol == cryptoutilSharedMagic.ProtocolHTTPS && len(s.TLSPrivateDNSNames) == 0 && len(s.TLSPrivateIPAddresses) == 0 {
 		errors = append(errors, "HTTPS private protocol requires TLS DNS names or IP addresses to be configured")
 	}
 
@@ -298,7 +298,7 @@ func validateConfiguration(s *ServiceTemplateServerSettings) error {
 	// Allow special SQLite formats: ":memory:", "file::memory:?cache=shared", "file::memory:NAME?cache=shared" (unique per-test)
 	// Standard formats must contain "://" (e.g., "postgres://...", "file://...")
 	if s.DatabaseURL != "" &&
-		s.DatabaseURL != ":memory:" &&
+		s.DatabaseURL != cryptoutilSharedMagic.SQLiteMemoryPlaceholder &&
 		!strings.HasPrefix(s.DatabaseURL, "file::memory:") &&
 		!strings.Contains(s.DatabaseURL, "mode=memory") &&
 		!strings.Contains(s.DatabaseURL, "://") {
@@ -313,7 +313,7 @@ func validateConfiguration(s *ServiceTemplateServerSettings) error {
 	}
 
 	// Validate log level
-	validLogLevels := []string{"ALL", "TRACE", "DEBUG", "CONFIG", "INFO", "NOTICE", "WARN", "WARNING", "ERROR", "FATAL", "OFF"}
+	validLogLevels := []string{"ALL", "TRACE", "DEBUG", "CONFIG", cryptoutilSharedMagic.DefaultLogLevelInfo, "NOTICE", "WARN", "WARNING", "ERROR", "FATAL", "OFF"}
 	logLevelValid := false
 
 	for _, level := range validLogLevels {
@@ -359,11 +359,11 @@ func validateConfiguration(s *ServiceTemplateServerSettings) error {
 // This pattern is used for Docker secrets and Kubernetes secrets mounted as files.
 // Example: "file:///run/secrets/database_url" reads the secret file content.
 func resolveFileURL(value string) string {
-	if !strings.HasPrefix(value, "file://") {
+	if !strings.HasPrefix(value, cryptoutilSharedMagic.FileURIScheme) {
 		return value
 	}
 
-	filePath := strings.TrimPrefix(value, "file://")
+	filePath := strings.TrimPrefix(value, cryptoutilSharedMagic.FileURIScheme)
 
 	content, err := os.ReadFile(filePath)
 	if err != nil {
@@ -382,7 +382,7 @@ func NewForJOSEServer(bindAddr string, bindPort uint16, devMode bool) *ServiceTe
 		"start", // Subcommand required
 		"--bind-public-address", bindAddr,
 		"--bind-public-port", fmt.Sprintf("%d", bindPort),
-		"--otlp-service", "jose-ja",
+		"--otlp-service", cryptoutilSharedMagic.OTLPServiceJoseJA,
 	}
 
 	if devMode {
@@ -405,7 +405,7 @@ func NewForCAServer(bindAddr string, bindPort uint16, devMode bool) *ServiceTemp
 		"start", // Subcommand required
 		"--bind-public-address", bindAddr,
 		"--bind-public-port", fmt.Sprintf("%d", bindPort),
-		"--otlp-service", "pki-ca",
+		"--otlp-service", cryptoutilSharedMagic.OTLPServicePKICA,
 	}
 
 	if devMode {

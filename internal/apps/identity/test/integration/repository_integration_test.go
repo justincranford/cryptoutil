@@ -5,6 +5,7 @@
 package integration
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -28,14 +29,14 @@ func TestDatabaseSetup(t *testing.T) {
 
 // TestConfigCreation tests test configuration creation.
 func TestConfigCreation(t *testing.T) {
-	config := cryptoutilIdentityTestTestutils.CreateTestConfig(t, 8100, 8100, 8110)
+	config := cryptoutilIdentityTestTestutils.CreateTestConfig(t, cryptoutilSharedMagic.PKICAServicePort, cryptoutilSharedMagic.PKICAServicePort, 8110)
 
 	require.NotNil(t, config, "config should be created")
-	require.Equal(t, 8100, config.AuthZ.Port, "AuthZ port should match")
-	require.Equal(t, 8100, config.IDP.Port, "IDP port should match")
+	require.Equal(t, cryptoutilSharedMagic.PKICAServicePort, config.AuthZ.Port, "AuthZ port should match")
+	require.Equal(t, cryptoutilSharedMagic.PKICAServicePort, config.IDP.Port, "IDP port should match")
 	require.Equal(t, 8110, config.RS.Port, "RS port should match")
-	require.Equal(t, "sqlite", config.Database.Type, "database type should be sqlite")
-	require.Equal(t, ":memory:", config.Database.DSN, "database DSN should be in-memory")
+	require.Equal(t, cryptoutilSharedMagic.TestDatabaseSQLite, config.Database.Type, "database type should be sqlite")
+	require.Equal(t, cryptoutilSharedMagic.SQLiteMemoryPlaceholder, config.Database.DSN, "database DSN should be in-memory")
 }
 
 // TestUserRepository_CRUD tests User repository CRUD operations.
@@ -160,7 +161,7 @@ func TestUserRepository_CRUD(t *testing.T) {
 				err = userRepo.Create(ctx, user2)
 				require.NoError(t, err)
 
-				users, err := userRepo.List(ctx, 0, 10)
+				users, err := userRepo.List(ctx, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 				require.NoError(t, err)
 				require.GreaterOrEqual(t, len(users), 2)
 			},
@@ -307,7 +308,7 @@ func TestClientRepository_CRUD(t *testing.T) {
 				err = clientRepo.Create(ctx, client2)
 				require.NoError(t, err)
 
-				clients, err := clientRepo.List(ctx, 0, 10)
+				clients, err := clientRepo.List(ctx, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 				require.NoError(t, err)
 				require.GreaterOrEqual(t, len(clients), 2)
 			},

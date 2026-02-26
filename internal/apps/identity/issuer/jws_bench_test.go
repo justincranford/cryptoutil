@@ -3,6 +3,7 @@
 package issuer
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -24,7 +25,7 @@ func BenchmarkJWSIssueAccessToken(b *testing.B) {
 	jwsIssuer, err := NewJWSIssuer(
 		"https://localhost:8080",
 		keyRotationMgr,
-		"RS256",
+		cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		1*time.Hour,
 		1*time.Hour,
 	)
@@ -33,11 +34,11 @@ func BenchmarkJWSIssueAccessToken(b *testing.B) {
 	}
 
 	claims := map[string]any{
-		"sub":   "user123",
-		"aud":   "test-audience",
-		"scope": "read write",
-		"exp":   1234567890,
-		"iat":   1234567800,
+		cryptoutilSharedMagic.ClaimSub:   "user123",
+		cryptoutilSharedMagic.ClaimAud:   "test-audience",
+		cryptoutilSharedMagic.ClaimScope: "read write",
+		cryptoutilSharedMagic.ClaimExp:   1234567890,
+		cryptoutilSharedMagic.ClaimIat:   1234567800,
 	}
 
 	b.ResetTimer()
@@ -66,7 +67,7 @@ func BenchmarkJWSIssueIDToken(b *testing.B) {
 	jwsIssuer, err := NewJWSIssuer(
 		"https://localhost:8080",
 		keyRotationMgr,
-		"RS256",
+		cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		1*time.Hour,
 		1*time.Hour,
 	)
@@ -75,11 +76,11 @@ func BenchmarkJWSIssueIDToken(b *testing.B) {
 	}
 
 	claims := map[string]any{
-		"sub":   "user123",
-		"aud":   "client-app",
-		"nonce": "random-nonce",
-		"exp":   1234567890,
-		"iat":   1234567800,
+		cryptoutilSharedMagic.ClaimSub:   "user123",
+		cryptoutilSharedMagic.ClaimAud:   "client-app",
+		cryptoutilSharedMagic.ClaimNonce: "random-nonce",
+		cryptoutilSharedMagic.ClaimExp:   1234567890,
+		cryptoutilSharedMagic.ClaimIat:   1234567800,
 	}
 
 	b.ResetTimer()
@@ -108,7 +109,7 @@ func BenchmarkJWSValidateToken(b *testing.B) {
 	jwsIssuer, err := NewJWSIssuer(
 		"https://localhost:8080",
 		keyRotationMgr,
-		"RS256",
+		cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		1*time.Hour,
 		1*time.Hour,
 	)
@@ -117,10 +118,10 @@ func BenchmarkJWSValidateToken(b *testing.B) {
 	}
 
 	claims := map[string]any{
-		"sub": "user123",
-		"aud": "test-audience",
-		"exp": 9999999999,
-		"iat": 1234567800,
+		cryptoutilSharedMagic.ClaimSub: "user123",
+		cryptoutilSharedMagic.ClaimAud: "test-audience",
+		cryptoutilSharedMagic.ClaimExp: 9999999999,
+		cryptoutilSharedMagic.ClaimIat: 1234567800,
 	}
 
 	token, err := jwsIssuer.IssueAccessToken(ctx, claims)

@@ -5,6 +5,7 @@
 package keygen
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/ecdh"
 	"crypto/elliptic"
 	"testing"
@@ -15,7 +16,7 @@ import (
 // BenchmarkGenerateRSA2048KeyPair benchmarks RSA-2048 key pair generation.
 func BenchmarkGenerateRSA2048KeyPair(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, err := GenerateRSAKeyPair(2048)
+		_, err := GenerateRSAKeyPair(cryptoutilSharedMagic.DefaultMetricsBatchSize)
 		require.NoError(b, err, "GenerateRSAKeyPair should not fail")
 	}
 }
@@ -23,7 +24,7 @@ func BenchmarkGenerateRSA2048KeyPair(b *testing.B) {
 // BenchmarkGenerateRSA3072KeyPair benchmarks RSA-3072 key pair generation.
 func BenchmarkGenerateRSA3072KeyPair(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, err := GenerateRSAKeyPair(3072)
+		_, err := GenerateRSAKeyPair(cryptoutilSharedMagic.RSA3072KeySize)
 		require.NoError(b, err, "GenerateRSAKeyPair should not fail")
 	}
 }
@@ -31,7 +32,7 @@ func BenchmarkGenerateRSA3072KeyPair(b *testing.B) {
 // BenchmarkGenerateRSA4096KeyPair benchmarks RSA-4096 key pair generation.
 func BenchmarkGenerateRSA4096KeyPair(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, err := GenerateRSAKeyPair(4096)
+		_, err := GenerateRSAKeyPair(cryptoutilSharedMagic.RSA4096KeySize)
 		require.NoError(b, err, "GenerateRSAKeyPair should not fail")
 	}
 }
@@ -71,7 +72,7 @@ func BenchmarkGenerateECDHKeyPair(b *testing.B) {
 // BenchmarkGenerateEd25519KeyPair benchmarks Ed25519 key pair generation.
 func BenchmarkGenerateEd25519KeyPair(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, err := GenerateEDDSAKeyPair("Ed25519")
+		_, err := GenerateEDDSAKeyPair(cryptoutilSharedMagic.EdCurveEd25519)
 		require.NoError(b, err, "GenerateEDDSAKeyPair should not fail")
 	}
 }
@@ -79,7 +80,7 @@ func BenchmarkGenerateEd25519KeyPair(b *testing.B) {
 // BenchmarkGenerateEd448KeyPair benchmarks Ed448 key pair generation.
 func BenchmarkGenerateEd448KeyPair(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, err := GenerateEDDSAKeyPair("Ed448")
+		_, err := GenerateEDDSAKeyPair(cryptoutilSharedMagic.EdCurveEd448)
 		require.NoError(b, err, "GenerateEDDSAKeyPair should not fail")
 	}
 }
@@ -87,7 +88,7 @@ func BenchmarkGenerateEd448KeyPair(b *testing.B) {
 // BenchmarkGenerateAES128Key benchmarks AES-128 key generation.
 func BenchmarkGenerateAES128Key(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, err := GenerateAESKey(128)
+		_, err := GenerateAESKey(cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits)
 		require.NoError(b, err, "GenerateAESKey should not fail")
 	}
 }
@@ -95,7 +96,7 @@ func BenchmarkGenerateAES128Key(b *testing.B) {
 // BenchmarkGenerateAES192Key benchmarks AES-192 key generation.
 func BenchmarkGenerateAES192Key(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, err := GenerateAESKey(192)
+		_, err := GenerateAESKey(cryptoutilSharedMagic.SymmetricKeySize192)
 		require.NoError(b, err, "GenerateAESKey should not fail")
 	}
 }
@@ -103,7 +104,7 @@ func BenchmarkGenerateAES192Key(b *testing.B) {
 // BenchmarkGenerateAES256Key benchmarks AES-256 key generation.
 func BenchmarkGenerateAES256Key(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, err := GenerateAESKey(256)
+		_, err := GenerateAESKey(cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 		require.NoError(b, err, "GenerateAESKey should not fail")
 	}
 }
@@ -111,7 +112,7 @@ func BenchmarkGenerateAES256Key(b *testing.B) {
 // BenchmarkGenerateHMAC256Key benchmarks HMAC-256 key generation.
 func BenchmarkGenerateHMAC256Key(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, err := GenerateHMACKey(256)
+		_, err := GenerateHMACKey(cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 		require.NoError(b, err, "GenerateHMACKey should not fail")
 	}
 }
@@ -119,7 +120,7 @@ func BenchmarkGenerateHMAC256Key(b *testing.B) {
 // BenchmarkGenerateHMAC384Key benchmarks HMAC-384 key generation.
 func BenchmarkGenerateHMAC384Key(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, err := GenerateHMACKey(384)
+		_, err := GenerateHMACKey(cryptoutilSharedMagic.SymmetricKeySize384)
 		require.NoError(b, err, "GenerateHMACKey should not fail")
 	}
 }
@@ -127,7 +128,7 @@ func BenchmarkGenerateHMAC384Key(b *testing.B) {
 // BenchmarkGenerateHMAC512Key benchmarks HMAC-512 key generation.
 func BenchmarkGenerateHMAC512Key(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, err := GenerateHMACKey(512)
+		_, err := GenerateHMACKey(cryptoutilSharedMagic.DefaultTracesBatchSize)
 		require.NoError(b, err, "GenerateHMACKey should not fail")
 	}
 }

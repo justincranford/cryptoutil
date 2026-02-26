@@ -3,6 +3,7 @@
 package files_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"strings"
@@ -23,7 +24,7 @@ func TestReadFileBytes(t *testing.T) {
 		tmpDir := t.TempDir()
 		testFile := filepath.Join(tmpDir, "test.txt")
 		testContent := []byte("test content")
-		err := os.WriteFile(testFile, testContent, 0o600)
+		err := os.WriteFile(testFile, testContent, cryptoutilSharedMagic.CacheFilePermissions)
 		require.NoError(t, err, "Failed to create test file")
 
 		// Read file.
@@ -56,8 +57,8 @@ func TestReadFilesBytes(t *testing.T) {
 		content1 := []byte("content 1")
 		content2 := []byte("content 2")
 
-		require.NoError(t, os.WriteFile(file1, content1, 0o600))
-		require.NoError(t, os.WriteFile(file2, content2, 0o600))
+		require.NoError(t, os.WriteFile(file1, content1, cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(file2, content2, cryptoutilSharedMagic.CacheFilePermissions))
 
 		// Read files.
 		contents, err := cryptoutilSharedUtilFiles.ReadFilesBytes([]string{file1, file2})
@@ -90,7 +91,7 @@ func TestReadFilesBytes(t *testing.T) {
 
 		tmpDir := t.TempDir()
 		file1 := filepath.Join(tmpDir, "file1.txt")
-		require.NoError(t, os.WriteFile(file1, []byte("content"), 0o600))
+		require.NoError(t, os.WriteFile(file1, []byte("content"), cryptoutilSharedMagic.CacheFilePermissions))
 
 		contents, err := cryptoutilSharedUtilFiles.ReadFilesBytes([]string{file1, ""})
 		require.Error(t, err, "Should return error for empty path")
@@ -103,7 +104,7 @@ func TestReadFilesBytes(t *testing.T) {
 
 		tmpDir := t.TempDir()
 		file1 := filepath.Join(tmpDir, "file1.txt")
-		require.NoError(t, os.WriteFile(file1, []byte("content"), 0o600))
+		require.NoError(t, os.WriteFile(file1, []byte("content"), cryptoutilSharedMagic.CacheFilePermissions))
 
 		contents, err := cryptoutilSharedUtilFiles.ReadFilesBytes([]string{file1, "   "})
 		require.Error(t, err, "Should return error for whitespace path")
@@ -116,7 +117,7 @@ func TestReadFilesBytes(t *testing.T) {
 
 		tmpDir := t.TempDir()
 		file1 := filepath.Join(tmpDir, "file1.txt")
-		require.NoError(t, os.WriteFile(file1, []byte("content"), 0o600))
+		require.NoError(t, os.WriteFile(file1, []byte("content"), cryptoutilSharedMagic.CacheFilePermissions))
 
 		contents, err := cryptoutilSharedUtilFiles.ReadFilesBytes([]string{file1, "/nonexistent/file.txt"})
 		require.Error(t, err, "Should return error for missing file")
@@ -136,10 +137,10 @@ func TestReadFileBytesLimit(t *testing.T) {
 		tmpDir := t.TempDir()
 		testFile := filepath.Join(tmpDir, "test.txt")
 		testContent := []byte("1234567890")
-		require.NoError(t, os.WriteFile(testFile, testContent, 0o600))
+		require.NoError(t, os.WriteFile(testFile, testContent, cryptoutilSharedMagic.CacheFilePermissions))
 
 		// Read with limit larger than file size.
-		content, err := cryptoutilSharedUtilFiles.ReadFileBytesLimit(testFile, 100)
+		content, err := cryptoutilSharedUtilFiles.ReadFileBytesLimit(testFile, cryptoutilSharedMagic.JoseJAMaxMaterials)
 		require.NoError(t, err, "Failed to read file")
 		require.Equal(t, testContent, content, "Should read entire file")
 	})
@@ -150,7 +151,7 @@ func TestReadFileBytesLimit(t *testing.T) {
 		tmpDir := t.TempDir()
 		testFile := filepath.Join(tmpDir, "test.txt")
 		testContent := []byte("1234567890")
-		require.NoError(t, os.WriteFile(testFile, testContent, 0o600))
+		require.NoError(t, os.WriteFile(testFile, testContent, cryptoutilSharedMagic.CacheFilePermissions))
 
 		// Read with limit equal to file size.
 		content, err := cryptoutilSharedUtilFiles.ReadFileBytesLimit(testFile, int64(len(testContent)))
@@ -164,13 +165,13 @@ func TestReadFileBytesLimit(t *testing.T) {
 		tmpDir := t.TempDir()
 		testFile := filepath.Join(tmpDir, "test.txt")
 		testContent := []byte("1234567890")
-		require.NoError(t, os.WriteFile(testFile, testContent, 0o600))
+		require.NoError(t, os.WriteFile(testFile, testContent, cryptoutilSharedMagic.CacheFilePermissions))
 
 		// Read first 5 bytes.
-		content, err := cryptoutilSharedUtilFiles.ReadFileBytesLimit(testFile, 5)
+		content, err := cryptoutilSharedUtilFiles.ReadFileBytesLimit(testFile, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 		require.NoError(t, err, "Failed to read file")
 		require.Equal(t, []byte("12345"), content, "Should read first 5 bytes")
-		require.Len(t, content, 5, "Should read exactly 5 bytes")
+		require.Len(t, content, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, "Should read exactly 5 bytes")
 	})
 
 	t.Run("no limit (zero)", func(t *testing.T) {
@@ -179,7 +180,7 @@ func TestReadFileBytesLimit(t *testing.T) {
 		tmpDir := t.TempDir()
 		testFile := filepath.Join(tmpDir, "test.txt")
 		testContent := []byte("1234567890")
-		require.NoError(t, os.WriteFile(testFile, testContent, 0o600))
+		require.NoError(t, os.WriteFile(testFile, testContent, cryptoutilSharedMagic.CacheFilePermissions))
 
 		// Read with limit 0 (should read entire file).
 		content, err := cryptoutilSharedUtilFiles.ReadFileBytesLimit(testFile, 0)
@@ -193,7 +194,7 @@ func TestReadFileBytesLimit(t *testing.T) {
 		tmpDir := t.TempDir()
 		testFile := filepath.Join(tmpDir, "test.txt")
 		testContent := []byte("1234567890")
-		require.NoError(t, os.WriteFile(testFile, testContent, 0o600))
+		require.NoError(t, os.WriteFile(testFile, testContent, cryptoutilSharedMagic.CacheFilePermissions))
 
 		// Read with negative limit (should read entire file).
 		content, err := cryptoutilSharedUtilFiles.ReadFileBytesLimit(testFile, -1)
@@ -204,7 +205,7 @@ func TestReadFileBytesLimit(t *testing.T) {
 	t.Run("file not found", func(t *testing.T) {
 		t.Parallel()
 
-		content, err := cryptoutilSharedUtilFiles.ReadFileBytesLimit("/nonexistent/file.txt", 100)
+		content, err := cryptoutilSharedUtilFiles.ReadFileBytesLimit("/nonexistent/file.txt", cryptoutilSharedMagic.JoseJAMaxMaterials)
 		require.Error(t, err, "Should return error for missing file")
 		require.Nil(t, content, "Content should be nil on error")
 		require.Contains(t, err.Error(), "failed to open file", "Error should indicate open failure")
@@ -225,11 +226,11 @@ func TestReadFilesBytesLimit(t *testing.T) {
 		content1 := []byte("content 1")
 		content2 := []byte("content 2")
 
-		require.NoError(t, os.WriteFile(file1, content1, 0o600))
-		require.NoError(t, os.WriteFile(file2, content2, 0o600))
+		require.NoError(t, os.WriteFile(file1, content1, cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(file2, content2, cryptoutilSharedMagic.CacheFilePermissions))
 
 		// Read files with high limits.
-		contents, err := cryptoutilSharedUtilFiles.ReadFilesBytesLimit([]string{file1, file2}, 10, 100)
+		contents, err := cryptoutilSharedUtilFiles.ReadFilesBytesLimit([]string{file1, file2}, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cryptoutilSharedMagic.JoseJAMaxMaterials)
 		require.NoError(t, err, "Failed to read files")
 		require.Len(t, contents, 2, "Should have 2 file contents")
 		require.Equal(t, content1, contents[0], "First file content should match")
@@ -244,12 +245,12 @@ func TestReadFilesBytesLimit(t *testing.T) {
 		file2 := filepath.Join(tmpDir, "file2.txt")
 		file3 := filepath.Join(tmpDir, "file3.txt")
 
-		require.NoError(t, os.WriteFile(file1, []byte("1"), 0o600))
-		require.NoError(t, os.WriteFile(file2, []byte("2"), 0o600))
-		require.NoError(t, os.WriteFile(file3, []byte("3"), 0o600))
+		require.NoError(t, os.WriteFile(file1, []byte("1"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(file2, []byte("2"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(file3, []byte("3"), cryptoutilSharedMagic.CacheFilePermissions))
 
 		// Read with maxFiles=2 but provide 3 files.
-		contents, err := cryptoutilSharedUtilFiles.ReadFilesBytesLimit([]string{file1, file2, file3}, 2, 100)
+		contents, err := cryptoutilSharedUtilFiles.ReadFilesBytesLimit([]string{file1, file2, file3}, 2, cryptoutilSharedMagic.JoseJAMaxMaterials)
 		require.Error(t, err, "Should return error for too many files")
 		require.Nil(t, contents, "Contents should be nil on error")
 		require.Contains(t, err.Error(), "too many files specified", "Error should indicate too many files")
@@ -260,22 +261,22 @@ func TestReadFilesBytesLimit(t *testing.T) {
 
 		tmpDir := t.TempDir()
 		file1 := filepath.Join(tmpDir, "large.txt")
-		largeContent := []byte(strings.Repeat("A", 100))
-		require.NoError(t, os.WriteFile(file1, largeContent, 0o600))
+		largeContent := []byte(strings.Repeat("A", cryptoutilSharedMagic.JoseJAMaxMaterials))
+		require.NoError(t, os.WriteFile(file1, largeContent, cryptoutilSharedMagic.CacheFilePermissions))
 
 		// Read with maxBytesPerFile=10 (file has 100 bytes).
 		// Should succeed but only read first 10 bytes.
-		contents, err := cryptoutilSharedUtilFiles.ReadFilesBytesLimit([]string{file1}, 10, 10)
+		contents, err := cryptoutilSharedUtilFiles.ReadFilesBytesLimit([]string{file1}, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 		require.NoError(t, err, "Should read partial content")
 		require.Len(t, contents, 1, "Should have 1 file content")
-		require.Len(t, contents[0], 10, "Should read only 10 bytes")
+		require.Len(t, contents[0], cryptoutilSharedMagic.JoseJADefaultMaxMaterials, "Should read only 10 bytes")
 		require.Equal(t, []byte("AAAAAAAAAA"), contents[0], "Should read first 10 bytes")
 	})
 
 	t.Run("no files specified", func(t *testing.T) {
 		t.Parallel()
 
-		contents, err := cryptoutilSharedUtilFiles.ReadFilesBytesLimit([]string{}, 10, 100)
+		contents, err := cryptoutilSharedUtilFiles.ReadFilesBytesLimit([]string{}, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cryptoutilSharedMagic.JoseJAMaxMaterials)
 		require.Error(t, err, "Should return error for empty file list")
 		require.Nil(t, contents, "Contents should be nil on error")
 		require.Contains(t, err.Error(), "no files specified", "Error should indicate no files")
@@ -286,9 +287,9 @@ func TestReadFilesBytesLimit(t *testing.T) {
 
 		tmpDir := t.TempDir()
 		file1 := filepath.Join(tmpDir, "file1.txt")
-		require.NoError(t, os.WriteFile(file1, []byte("content"), 0o600))
+		require.NoError(t, os.WriteFile(file1, []byte("content"), cryptoutilSharedMagic.CacheFilePermissions))
 
-		contents, err := cryptoutilSharedUtilFiles.ReadFilesBytesLimit([]string{file1, ""}, 10, 100)
+		contents, err := cryptoutilSharedUtilFiles.ReadFilesBytesLimit([]string{file1, ""}, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cryptoutilSharedMagic.JoseJAMaxMaterials)
 		require.Error(t, err, "Should return error for empty path")
 		require.Nil(t, contents, "Contents should be nil on error")
 		require.Contains(t, err.Error(), "empty file path", "Error should indicate empty path")

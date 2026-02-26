@@ -4,6 +4,7 @@
 package realms
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"context"
 	json "encoding/json"
@@ -49,7 +50,7 @@ func TestHandleLoginUser_InvalidCredentials(t *testing.T) {
 
 	err = json.Unmarshal(body, &response)
 	require.NoError(t, err)
-	require.Contains(t, response["error"], "Invalid credentials")
+	require.Contains(t, response[cryptoutilSharedMagic.StringError], "Invalid credentials")
 }
 
 // TestHandleLoginUser_Success tests successful login and JWT generation.
@@ -90,7 +91,7 @@ func TestHandleLoginUser_Success(t *testing.T) {
 
 	err = json.Unmarshal(body, &response)
 	require.NoError(t, err)
-	require.NotEmpty(t, response["token"])
+	require.NotEmpty(t, response[cryptoutilSharedMagic.ParamToken])
 	require.NotEmpty(t, response["expires_at"])
 }
 
@@ -170,7 +171,7 @@ func TestHandleLoginUserWithSession_InvalidJSON(t *testing.T) {
 
 	err = json.Unmarshal(body, &response)
 	require.NoError(t, err)
-	require.Contains(t, response["error"], "Invalid request body")
+	require.Contains(t, response[cryptoutilSharedMagic.StringError], "Invalid request body")
 }
 
 // TestHandleLoginUserWithSession_MissingFields tests session login with missing fields.
@@ -268,7 +269,7 @@ func TestHandleLoginUserWithSession_InvalidSessionManager(t *testing.T) {
 
 	err = json.Unmarshal(body, &response)
 	require.NoError(t, err)
-	require.Contains(t, response["error"], "Invalid session manager implementation")
+	require.Contains(t, response[cryptoutilSharedMagic.StringError], "Invalid session manager implementation")
 }
 
 // mockSessionManager implements the sessionIssuer interface for testing.

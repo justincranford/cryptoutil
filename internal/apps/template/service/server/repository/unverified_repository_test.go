@@ -3,6 +3,7 @@
 package repository
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -30,7 +31,7 @@ func TestUnverifiedUserRepository_GetByUsername(t *testing.T) {
 	err := tenantRepo.Create(ctx, tenant)
 	require.NoError(t, err)
 
-	username := "unverified_user_" + googleUuid.New().String()[:8]
+	username := "unverified_user_" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength]
 	email := username + "@example.com"
 
 	unverifiedUser := &UnverifiedUser{
@@ -85,8 +86,8 @@ func TestUnverifiedUserRepository_ListByTenant(t *testing.T) {
 	user1 := &UnverifiedUser{
 		ID:        googleUuid.New(),
 		TenantID:  tenant.ID,
-		Username:  "user1_" + googleUuid.New().String()[:8],
-		Email:     "user1_" + googleUuid.New().String()[:8] + "@example.com",
+		Username:  "user1_" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength],
+		Email:     "user1_" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength] + "@example.com",
 		ExpiresAt: time.Now().UTC().Add(72 * time.Hour),
 		CreatedAt: time.Now().UTC(),
 	}
@@ -94,8 +95,8 @@ func TestUnverifiedUserRepository_ListByTenant(t *testing.T) {
 	user2 := &UnverifiedUser{
 		ID:        googleUuid.New(),
 		TenantID:  tenant.ID,
-		Username:  "user2_" + googleUuid.New().String()[:8],
-		Email:     "user2_" + googleUuid.New().String()[:8] + "@example.com",
+		Username:  "user2_" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength],
+		Email:     "user2_" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength] + "@example.com",
 		ExpiresAt: time.Now().UTC().Add(72 * time.Hour),
 		CreatedAt: time.Now().UTC(),
 	}
@@ -133,8 +134,8 @@ func TestUnverifiedUserRepository_Delete(t *testing.T) {
 	unverifiedUser := &UnverifiedUser{
 		ID:        googleUuid.New(),
 		TenantID:  tenant.ID,
-		Username:  "user_to_delete_" + googleUuid.New().String()[:8],
-		Email:     "delete_" + googleUuid.New().String()[:8] + "@example.com",
+		Username:  "user_to_delete_" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength],
+		Email:     "delete_" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength] + "@example.com",
 		ExpiresAt: time.Now().UTC().Add(72 * time.Hour),
 		CreatedAt: time.Now().UTC(),
 	}
@@ -168,7 +169,7 @@ func TestUnverifiedClientRepository_GetByClientID(t *testing.T) {
 	err := tenantRepo.Create(ctx, tenant)
 	require.NoError(t, err)
 
-	clientID := "unverified_client_" + googleUuid.New().String()[:8]
+	clientID := "unverified_client_" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength]
 
 	unverifiedClient := &UnverifiedClient{
 		ID:        googleUuid.New(),
@@ -220,7 +221,7 @@ func TestUnverifiedClientRepository_ListByTenant(t *testing.T) {
 	client1 := &UnverifiedClient{
 		ID:        googleUuid.New(),
 		TenantID:  tenant.ID,
-		ClientID:  "client1_" + googleUuid.New().String()[:8],
+		ClientID:  "client1_" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		ExpiresAt: time.Now().UTC().Add(72 * time.Hour),
 		CreatedAt: time.Now().UTC(),
 	}
@@ -228,7 +229,7 @@ func TestUnverifiedClientRepository_ListByTenant(t *testing.T) {
 	client2 := &UnverifiedClient{
 		ID:        googleUuid.New(),
 		TenantID:  tenant.ID,
-		ClientID:  "client2_" + googleUuid.New().String()[:8],
+		ClientID:  "client2_" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		ExpiresAt: time.Now().UTC().Add(72 * time.Hour),
 		CreatedAt: time.Now().UTC(),
 	}
@@ -266,7 +267,7 @@ func TestUnverifiedClientRepository_Delete(t *testing.T) {
 	unverifiedClient := &UnverifiedClient{
 		ID:        googleUuid.New(),
 		TenantID:  tenant.ID,
-		ClientID:  "client_to_delete_" + googleUuid.New().String()[:8],
+		ClientID:  "client_to_delete_" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		ExpiresAt: time.Now().UTC().Add(72 * time.Hour),
 		CreatedAt: time.Now().UTC(),
 	}

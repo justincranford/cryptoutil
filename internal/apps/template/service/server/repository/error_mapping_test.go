@@ -3,6 +3,7 @@
 package repository
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"testing"
 
@@ -76,7 +77,7 @@ func TestToAppErr_GenericDatabaseError(t *testing.T) {
 	appErr := &cryptoutilSharedApperr.Error{}
 	ok := errors.As(err, &appErr)
 	require.True(t, ok)
-	require.Equal(t, 500, int(appErr.HTTPStatusLineAndCode.StatusLine.StatusCode))
+	require.Equal(t, cryptoutilSharedMagic.TestDefaultRateLimitServiceIP, int(appErr.HTTPStatusLineAndCode.StatusLine.StatusCode))
 }
 
 func TestToAppErr_WrappedRecordNotFound(t *testing.T) {

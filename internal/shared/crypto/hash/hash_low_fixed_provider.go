@@ -94,7 +94,7 @@ func VerifySecretHKDFFixed(storedHash, providedSecret string) (bool, error) {
 	}
 
 	algorithm := parts[0]
-	if algorithm != "hkdf-sha256-fixed" {
+	if algorithm != cryptoutilSharedMagic.HKDFFixedLowHashName {
 		return false, fmt.Errorf("unsupported algorithm: %s", algorithm)
 	}
 

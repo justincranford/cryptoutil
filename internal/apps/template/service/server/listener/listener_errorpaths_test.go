@@ -26,7 +26,7 @@ func validAutoTLSSettings(t *testing.T) *cryptoutilAppsTemplateServiceConfigTlsG
 	t.Helper()
 
 	tlsCfg, err := cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings(
-		[]string{"localhost"},
+		[]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault},
 		[]string{cryptoutilSharedMagic.IPv4Loopback},
 		cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year,
 	)
@@ -128,8 +128,8 @@ func TestAdminServer_Start_ContextCancellation(t *testing.T) {
 		startErr <- server.Start(ctx)
 	}()
 
-	for i := 0; i < 20; i++ {
-		time.Sleep(50 * time.Millisecond)
+	for i := 0; i < cryptoutilSharedMagic.MaxErrorDisplay; i++ {
+		time.Sleep(cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond)
 
 		if server.ActualPort() > 0 {
 			break
@@ -167,8 +167,8 @@ func TestPublicHTTPServer_Start_ContextCancellation(t *testing.T) {
 		startErr <- server.Start(ctx)
 	}()
 
-	for i := 0; i < 20; i++ {
-		time.Sleep(50 * time.Millisecond)
+	for i := 0; i < cryptoutilSharedMagic.MaxErrorDisplay; i++ {
+		time.Sleep(cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond)
 
 		if server.ActualPort() > 0 {
 			break

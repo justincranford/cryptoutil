@@ -5,6 +5,7 @@
 package crypto
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
@@ -39,11 +40,11 @@ func TestValidateOrGenerateRSAJWK_ValidExistingKey(t *testing.T) {
 	t.Parallel()
 
 	// Generate valid RSA key pair.
-	validKey, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
+	validKey, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	// Validate existing key.
-	validated, err := validateOrGenerateRSAJWK(validKey, 2048)
+	validated, err := validateOrGenerateRSAJWK(validKey, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 	require.Equal(t, validKey, validated)
 }
@@ -52,9 +53,9 @@ func TestValidateOrGenerateRSAJWK_WrongKeyType(t *testing.T) {
 	t.Parallel()
 
 	// Use symmetric key (wrong type).
-	wrongKey := cryptoutilSharedCryptoKeygen.SecretKey(make([]byte, 32))
+	wrongKey := cryptoutilSharedCryptoKeygen.SecretKey(make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes))
 
-	validated, err := validateOrGenerateRSAJWK(wrongKey, 2048)
+	validated, err := validateOrGenerateRSAJWK(wrongKey, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.Error(t, err)
 	require.Nil(t, validated)
 	require.Contains(t, err.Error(), "unsupported key type")
@@ -68,7 +69,7 @@ func TestValidateOrGenerateRSAJWK_NilPrivateKey(t *testing.T) {
 		Public:  &rsa.PublicKey{},
 	}
 
-	validated, err := validateOrGenerateRSAJWK(keyPair, 2048)
+	validated, err := validateOrGenerateRSAJWK(keyPair, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.Error(t, err)
 	require.Nil(t, validated)
 	require.Contains(t, err.Error(), "invalid key type")
@@ -77,7 +78,7 @@ func TestValidateOrGenerateRSAJWK_NilPrivateKey(t *testing.T) {
 func TestValidateOrGenerateRSAJWK_NilPublicKey(t *testing.T) {
 	t.Parallel()
 
-	privateKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	privateKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	keyPair := &cryptoutilSharedCryptoKeygen.KeyPair{
@@ -85,7 +86,7 @@ func TestValidateOrGenerateRSAJWK_NilPublicKey(t *testing.T) {
 		Public:  nil,
 	}
 
-	validated, err := validateOrGenerateRSAJWK(keyPair, 2048)
+	validated, err := validateOrGenerateRSAJWK(keyPair, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.Error(t, err)
 	require.Nil(t, validated)
 	require.Contains(t, err.Error(), "invalid key type")
@@ -108,7 +109,7 @@ func TestValidateOrGenerateEcdsaJWK_WrongKeyType(t *testing.T) {
 	t.Parallel()
 
 	// Use symmetric key (wrong type).
-	wrongKey := cryptoutilSharedCryptoKeygen.SecretKey(make([]byte, 32))
+	wrongKey := cryptoutilSharedCryptoKeygen.SecretKey(make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes))
 
 	validated, err := validateOrGenerateEcdsaJWK(wrongKey, elliptic.P256())
 	require.Error(t, err)
@@ -151,11 +152,11 @@ func TestValidateOrGenerateEddsaJWK_ValidExistingKey(t *testing.T) {
 	t.Parallel()
 
 	// Generate valid Ed25519 key pair.
-	validKey, err := cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPair("Ed25519")
+	validKey, err := cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPair(cryptoutilSharedMagic.EdCurveEd25519)
 	require.NoError(t, err)
 
 	// Validate existing key.
-	validated, err := validateOrGenerateEddsaJWK(validKey, "Ed25519")
+	validated, err := validateOrGenerateEddsaJWK(validKey, cryptoutilSharedMagic.EdCurveEd25519)
 	require.NoError(t, err)
 	require.Equal(t, validKey, validated)
 }
@@ -164,9 +165,9 @@ func TestValidateOrGenerateEddsaJWK_WrongKeyType(t *testing.T) {
 	t.Parallel()
 
 	// Use symmetric key (wrong type).
-	wrongKey := cryptoutilSharedCryptoKeygen.SecretKey(make([]byte, 32))
+	wrongKey := cryptoutilSharedCryptoKeygen.SecretKey(make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes))
 
-	validated, err := validateOrGenerateEddsaJWK(wrongKey, "Ed25519")
+	validated, err := validateOrGenerateEddsaJWK(wrongKey, cryptoutilSharedMagic.EdCurveEd25519)
 	require.Error(t, err)
 	require.Nil(t, validated)
 	require.Contains(t, err.Error(), "unsupported key type")
@@ -180,7 +181,7 @@ func TestValidateOrGenerateEddsaJWK_NilPrivateKey(t *testing.T) {
 		Public:  ed25519.PublicKey{},
 	}
 
-	validated, err := validateOrGenerateEddsaJWK(keyPair, "Ed25519")
+	validated, err := validateOrGenerateEddsaJWK(keyPair, cryptoutilSharedMagic.EdCurveEd25519)
 	require.Error(t, err)
 	require.Nil(t, validated)
 	require.Contains(t, err.Error(), "invalid key type")
@@ -199,7 +200,7 @@ func TestValidateOrGenerateEddsaJWK_NilPublicKey(t *testing.T) {
 		Public:  nil,
 	}
 
-	validated, err := validateOrGenerateEddsaJWK(keyPair, "Ed25519")
+	validated, err := validateOrGenerateEddsaJWK(keyPair, cryptoutilSharedMagic.EdCurveEd25519)
 	require.Error(t, err)
 	require.Nil(t, validated)
 	require.Contains(t, err.Error(), "invalid key type")
@@ -209,11 +210,11 @@ func TestValidateOrGenerateHMACJWK_ValidExistingKey(t *testing.T) {
 	t.Parallel()
 
 	// Generate valid HMAC 256 key.
-	validKey, err := cryptoutilSharedCryptoKeygen.GenerateHMACKey(256)
+	validKey, err := cryptoutilSharedCryptoKeygen.GenerateHMACKey(cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 	require.NoError(t, err)
 
 	// Validate existing key.
-	validated, err := validateOrGenerateHMACJWK(validKey, 256)
+	validated, err := validateOrGenerateHMACJWK(validKey, cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 	require.NoError(t, err)
 	require.Equal(t, validKey, validated)
 }
@@ -222,10 +223,10 @@ func TestValidateOrGenerateHMACJWK_WrongKeyType(t *testing.T) {
 	t.Parallel()
 
 	// Use asymmetric key (wrong type).
-	wrongKey, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
+	wrongKey, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
-	validated, err := validateOrGenerateHMACJWK(wrongKey, 256)
+	validated, err := validateOrGenerateHMACJWK(wrongKey, cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 	require.Error(t, err)
 	require.Nil(t, validated)
 	require.Contains(t, err.Error(), "invalid key type")
@@ -235,11 +236,11 @@ func TestValidateOrGenerateAESJWK_ValidExistingKey(t *testing.T) {
 	t.Parallel()
 
 	// Generate valid AES 256 key.
-	validKey, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(256)
+	validKey, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 	require.NoError(t, err)
 
 	// Validate existing key.
-	validated, err := validateOrGenerateAESJWK(validKey, 256)
+	validated, err := validateOrGenerateAESJWK(validKey, cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 	require.NoError(t, err)
 	require.Equal(t, validKey, validated)
 }
@@ -248,10 +249,10 @@ func TestValidateOrGenerateAESJWK_WrongKeyType(t *testing.T) {
 	t.Parallel()
 
 	// Use asymmetric key (wrong type).
-	wrongKey, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
+	wrongKey, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
-	validated, err := validateOrGenerateAESJWK(wrongKey, 256)
+	validated, err := validateOrGenerateAESJWK(wrongKey, cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 	require.Error(t, err)
 	require.Nil(t, validated)
 	require.Contains(t, err.Error(), "invalid key type")
@@ -263,7 +264,7 @@ func TestCreateJWKFromKey_HMAC_HS256(t *testing.T) {
 
 	kid := googleUuid.Must(googleUuid.NewV7())
 	alg := cryptoutilOpenapiModel.Oct256
-	key, err := cryptoutilSharedCryptoKeygen.GenerateHMACKey(256)
+	key, err := cryptoutilSharedCryptoKeygen.GenerateHMACKey(cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 	require.NoError(t, err)
 
 	retKid, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWKFromKey(&kid, &alg, key)
@@ -297,7 +298,7 @@ func TestCreateJWKFromKey_HMAC_HS384(t *testing.T) {
 
 	kid := googleUuid.Must(googleUuid.NewV7())
 	alg := cryptoutilOpenapiModel.Oct384
-	key, err := cryptoutilSharedCryptoKeygen.GenerateHMACKey(384)
+	key, err := cryptoutilSharedCryptoKeygen.GenerateHMACKey(cryptoutilSharedMagic.SymmetricKeySize384)
 	require.NoError(t, err)
 
 	retKid, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWKFromKey(&kid, &alg, key)

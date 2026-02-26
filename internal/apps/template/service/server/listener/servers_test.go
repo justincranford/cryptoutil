@@ -54,7 +54,7 @@ func TestNewHTTPServers_StaticMode_HappyPath(t *testing.T) {
 	t.Parallel()
 	// Generate static certs first using auto mode.
 	staticTLS, err := cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings(
-		[]string{"localhost"},
+		[]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault},
 		[]string{cryptoutilSharedMagic.IPv4Loopback},
 		cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year,
 	)
@@ -113,9 +113,9 @@ func TestNewHTTPServers_MixedMode_HappyPath(t *testing.T) {
 	settings.TLSPrivateMode = cryptoutilAppsTemplateServiceConfig.TLSModeMixed
 	settings.TLSMixedCACertPEM = caCertPEM
 	settings.TLSMixedCAKeyPEM = caKeyPEM
-	settings.TLSPublicDNSNames = []string{"localhost"}
+	settings.TLSPublicDNSNames = []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}
 	settings.TLSPublicIPAddresses = []string{cryptoutilSharedMagic.IPv4Loopback}
-	settings.TLSPrivateDNSNames = []string{"localhost"}
+	settings.TLSPrivateDNSNames = []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}
 	settings.TLSPrivateIPAddresses = []string{cryptoutilSharedMagic.IPv4Loopback}
 
 	ctx := context.Background()
@@ -133,7 +133,7 @@ func TestNewHTTPServers_MixedMode_InvalidPublicCA(t *testing.T) {
 	settings.TLSPublicMode = cryptoutilAppsTemplateServiceConfig.TLSModeMixed
 	settings.TLSMixedCACertPEM = []byte("invalid-ca-cert")
 	settings.TLSMixedCAKeyPEM = []byte("invalid-ca-key")
-	settings.TLSPublicDNSNames = []string{"localhost"}
+	settings.TLSPublicDNSNames = []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}
 	settings.TLSPublicIPAddresses = []string{cryptoutilSharedMagic.IPv4Loopback}
 
 	ctx := context.Background()
@@ -151,7 +151,7 @@ func TestNewHTTPServers_MixedMode_InvalidPrivateCA(t *testing.T) {
 	settings.TLSPrivateMode = cryptoutilAppsTemplateServiceConfig.TLSModeMixed
 	settings.TLSMixedCACertPEM = []byte("invalid-ca-cert")
 	settings.TLSMixedCAKeyPEM = []byte("invalid-ca-key")
-	settings.TLSPrivateDNSNames = []string{"localhost"}
+	settings.TLSPrivateDNSNames = []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}
 	settings.TLSPrivateIPAddresses = []string{cryptoutilSharedMagic.IPv4Loopback}
 
 	ctx := context.Background()

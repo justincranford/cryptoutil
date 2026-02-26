@@ -107,7 +107,7 @@ func startTLSEchoServer(tlsServerListener string, readTimeout, writeTimeout time
 						log.Printf("warning: failed to set write deadline: %v", err)
 					}
 
-					tlsClientRequestBodyBuffer := make([]byte, 1024) // Increased buffer size
+					tlsClientRequestBodyBuffer := make([]byte, cryptoutilSharedMagic.DefaultLogsBatchSize) // Increased buffer size
 
 					bytesRead, err := conn.Read(tlsClientRequestBodyBuffer)
 					if err != nil {

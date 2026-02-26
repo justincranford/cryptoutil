@@ -5,6 +5,7 @@
 package hash
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"strings"
 	"testing"
 
@@ -173,7 +174,7 @@ func TestParameterSetRegistry_ConcurrentAccess(t *testing.T) {
 	t.Parallel()
 
 	registry := NewParameterSetRegistry()
-	iterations := 100
+	iterations := cryptoutilSharedMagic.JoseJAMaxMaterials
 
 	// Spawn goroutines to access registry concurrently.
 	done := make(chan bool, iterations)

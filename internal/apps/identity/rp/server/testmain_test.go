@@ -73,7 +73,7 @@ func TestMain(m *testing.M) {
 
 	// Create HTTP client with TLS config.
 	testHTTPClient = &http.Client{
-		Timeout: 10 * time.Second,
+		Timeout: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true, //nolint:gosec // Test environment

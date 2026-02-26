@@ -9,6 +9,7 @@
 package orm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	"os"
@@ -40,7 +41,7 @@ var (
 	testTemplateCore     *cryptoutilAppsTemplateServiceServerApplication.Core
 	testOrmRepository    *OrmRepository
 	skipReadOnlyTxTests  = true // true for DBTypeSQLite, false for DBTypePostgres
-	numMaterialKeys      = 10
+	numMaterialKeys      = cryptoutilSharedMagic.JoseJADefaultMaxMaterials
 )
 
 func TestMain(m *testing.M) {
@@ -76,7 +77,7 @@ func TestMain(m *testing.M) {
 			sqlDB,
 			cryptoutilAppsTemplateServiceServerRepository.MigrationsFS,
 			"migrations",
-			"sqlite",
+			cryptoutilSharedMagic.TestDatabaseSQLite,
 		)
 		if err != nil {
 			panic(fmt.Sprintf("failed to apply template migrations: %v", err))
@@ -213,7 +214,7 @@ func TestSQLTransaction_Success(t *testing.T) {
 
 			addedElasticKeys = append(addedElasticKeys, elasticKey)
 
-			multipleByteSlices, err := cryptoutilSharedUtilRandom.GenerateMultipleBytes(numMaterialKeys, 32)
+			multipleByteSlices, err := cryptoutilSharedUtilRandom.GenerateMultipleBytes(numMaterialKeys, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 			cryptoutilSharedApperr.RequireNoError(err, "failed to generate AES 256 key materials")
 
 			for nextKeyID := 1; nextKeyID <= numMaterialKeys; nextKeyID++ {
@@ -239,7 +240,7 @@ func TestSQLTransaction_Success(t *testing.T) {
 			return nil
 		})
 
-		testTelemetryService.Slogger.Info("Happy path test case result", "mode", testCase.txMode, "expectError", testCase.expectError, "error", err)
+		testTelemetryService.Slogger.Info("Happy path test case result", "mode", testCase.txMode, "expectError", testCase.expectError, cryptoutilSharedMagic.StringError, err)
 
 		if testCase.expectError {
 			require.Error(t, err)

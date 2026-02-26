@@ -52,20 +52,20 @@ func (v *TokenValidator) ValidateToken() fiber.Handler {
 				"method", c.Method())
 
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error":             "invalid_token",
+				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
 				"error_description": "Missing Authorization header",
 			})
 		}
 
 		// Parse Bearer token.
 		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
+		if len(parts) != 2 || parts[0] != cryptoutilSharedMagic.AuthorizationBearer {
 			v.logger.Warn("Invalid Authorization header format",
 				"path", c.Path(),
 				"auth_header", authHeader)
 
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error":             "invalid_token",
+				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
 				"error_description": "Invalid Authorization header format",
 			})
 		}
@@ -77,10 +77,10 @@ func (v *TokenValidator) ValidateToken() fiber.Handler {
 		if err != nil {
 			v.logger.Warn("Token validation failed",
 				"path", c.Path(),
-				"error", err.Error())
+				cryptoutilSharedMagic.StringError, err.Error())
 
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error":             "invalid_token",
+				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
 				"error_description": "Token validation failed",
 			})
 		}
@@ -89,17 +89,17 @@ func (v *TokenValidator) ValidateToken() fiber.Handler {
 		if !v.tokenSvc.IsTokenActive(claims) {
 			v.logger.Warn("Token expired or not yet valid",
 				"path", c.Path(),
-				"client_id", claims[cryptoutilSharedMagic.ClaimClientID])
+				cryptoutilSharedMagic.ClaimClientID, claims[cryptoutilSharedMagic.ClaimClientID])
 
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error":             "invalid_token",
+				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
 				"error_description": "Token expired",
 			})
 		}
 
 		v.logger.Debug("Token validated successfully",
-			"client_id", claims[cryptoutilSharedMagic.ClaimClientID],
-			"scope", claims[cryptoutilSharedMagic.ClaimScope],
+			cryptoutilSharedMagic.ClaimClientID, claims[cryptoutilSharedMagic.ClaimClientID],
+			cryptoutilSharedMagic.ClaimScope, claims[cryptoutilSharedMagic.ClaimScope],
 			"path", c.Path())
 
 		// Store claims in context for downstream handlers.

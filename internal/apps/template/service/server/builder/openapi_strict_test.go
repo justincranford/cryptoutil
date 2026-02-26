@@ -4,6 +4,7 @@
 package builder
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"testing"
 
@@ -17,8 +18,8 @@ func TestNewDefaultStrictServerConfig(t *testing.T) {
 	config := NewDefaultStrictServerConfig()
 
 	require.NotNil(t, config)
-	require.Equal(t, "/browser/api/v1", config.BrowserAPIBasePath)
-	require.Equal(t, "/service/api/v1", config.ServiceAPIBasePath)
+	require.Equal(t, cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath, config.BrowserAPIBasePath)
+	require.Equal(t, cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath, config.ServiceAPIBasePath)
 	require.Nil(t, config.BrowserMiddlewares)
 	require.Nil(t, config.ServiceMiddlewares)
 	require.Nil(t, config.RegisterBrowserHandlers)
@@ -39,7 +40,7 @@ func TestStrictServerConfig_Validate_Success(t *testing.T) {
 		{
 			name: "browser only",
 			config: &StrictServerConfig{
-				BrowserAPIBasePath: "/browser/api/v1",
+				BrowserAPIBasePath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
 				ServiceAPIBasePath: "",
 			},
 		},
@@ -47,7 +48,7 @@ func TestStrictServerConfig_Validate_Success(t *testing.T) {
 			name: "service only",
 			config: &StrictServerConfig{
 				BrowserAPIBasePath: "",
-				ServiceAPIBasePath: "/service/api/v1",
+				ServiceAPIBasePath: cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath,
 			},
 		},
 		{
@@ -132,8 +133,8 @@ func TestStrictServerConfig_HandlerRegistration(t *testing.T) {
 
 	require.True(t, browserCalled)
 	require.True(t, serviceCalled)
-	require.Equal(t, "/browser/api/v1", capturedBrowserURL)
-	require.Equal(t, "/service/api/v1", capturedServiceURL)
+	require.Equal(t, cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath, capturedBrowserURL)
+	require.Equal(t, cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath, capturedServiceURL)
 }
 
 func TestStrictServerConfig_RegisterHandlers_BrowserOnly(t *testing.T) {
@@ -142,7 +143,7 @@ func TestStrictServerConfig_RegisterHandlers_BrowserOnly(t *testing.T) {
 	var browserCalled bool
 
 	config := &StrictServerConfig{
-		BrowserAPIBasePath: "/browser/api/v1",
+		BrowserAPIBasePath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
 		ServiceAPIBasePath: "", // No service path.
 		RegisterBrowserHandlers: func(router fiber.Router, baseURL string, middlewares []fiber.Handler) error {
 			browserCalled = true
@@ -164,7 +165,7 @@ func TestStrictServerConfig_RegisterHandlers_ServiceOnly(t *testing.T) {
 
 	config := &StrictServerConfig{
 		BrowserAPIBasePath: "", // No browser path.
-		ServiceAPIBasePath: "/service/api/v1",
+		ServiceAPIBasePath: cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath,
 		RegisterServiceHandlers: func(router fiber.Router, baseURL string, middlewares []fiber.Handler) error {
 			serviceCalled = true
 

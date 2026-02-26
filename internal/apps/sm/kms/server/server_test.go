@@ -1,6 +1,7 @@
 package server
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	"testing"
@@ -27,7 +28,7 @@ type stubAdminServer struct{}
 
 func (s *stubAdminServer) Start(context.Context) error    { return nil }
 func (s *stubAdminServer) Shutdown(context.Context) error { return nil }
-func (s *stubAdminServer) ActualPort() int                { return 9090 }
+func (s *stubAdminServer) ActualPort() int                { return cryptoutilSharedMagic.JoseJAAdminPort }
 func (s *stubAdminServer) SetReady(bool)                  {}
 func (s *stubAdminServer) AdminBaseURL() string           { return "https://localhost:9090" }
 
@@ -175,7 +176,7 @@ func TestKMSServer_AccessorsWithResources(t *testing.T) {
 	}
 
 	require.Equal(t, 8443, srv.PublicPort())
-	require.Equal(t, 9090, srv.AdminPort())
+	require.Equal(t, cryptoutilSharedMagic.JoseJAAdminPort, srv.AdminPort())
 	require.Equal(t, "https://localhost:8443", srv.PublicBaseURL())
 	require.Equal(t, "https://localhost:9090", srv.AdminBaseURL())
 	require.NotNil(t, srv.Resources())
@@ -247,8 +248,8 @@ func TestRegisterKMSRoutes(t *testing.T) {
 		{
 			name: "default paths",
 			settings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
-				PublicBrowserAPIContextPath: "/browser/api/v1",
-				PublicServiceAPIContextPath: "/service/api/v1",
+				PublicBrowserAPIContextPath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
+				PublicServiceAPIContextPath: cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath,
 			},
 		},
 		{

@@ -3,6 +3,7 @@
 package clientauth
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	sha256 "crypto/sha256"
 	"crypto/x509"
@@ -127,7 +128,7 @@ func TestTLSClientAuthenticator_Method_Cert(t *testing.T) {
 
 func encodeCertToPEM(cert *x509.Certificate) []byte {
 	return pem.EncodeToMemory(&pem.Block{
-		Type:  "CERTIFICATE",
+		Type:  cryptoutilSharedMagic.StringPEMTypeCertificate,
 		Bytes: cert.Raw,
 	})
 }

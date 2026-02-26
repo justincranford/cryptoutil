@@ -4,6 +4,7 @@
 package repository
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"fmt"
@@ -25,9 +26,9 @@ func setupJoinRequestTestDB(t *testing.T) *gorm.DB {
 	// Use unique database name to avoid sharing between parallel tests.
 	)
 
-	dsn := fmt.Sprintf("file:memdb_%s?mode=memory&cache=shared", googleUuid.NewString()[:8])
+	dsn := fmt.Sprintf("file:memdb_%s?mode=memory&cache=shared", googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
 
-	sqlDB, err := sql.Open("sqlite", dsn)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	require.NoError(t, err)
 
 	_, err = sqlDB.ExecContext(context.Background(), "PRAGMA journal_mode=WAL;")
@@ -43,8 +44,8 @@ func setupJoinRequestTestDB(t *testing.T) *gorm.DB {
 	sqlDB, err = db.DB()
 	require.NoError(t, err)
 
-	sqlDB.SetMaxOpenConns(5)
-	sqlDB.SetMaxIdleConns(5)
+	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	sqlDB.SetConnMaxLifetime(0)
 
 	// Run migrations for all required tables.

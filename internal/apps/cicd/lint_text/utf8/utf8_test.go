@@ -3,6 +3,7 @@
 package utf8
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -94,7 +95,7 @@ func TestCheckFileEncoding(t *testing.T) {
 			tmpDir := t.TempDir()
 			testFile := filepath.Join(tmpDir, "test.txt")
 
-			err := os.WriteFile(testFile, tc.content, 0o600)
+			err := os.WriteFile(testFile, tc.content, cryptoutilSharedMagic.CacheFilePermissions)
 			require.NoError(t, err)
 
 			issues := CheckFileEncoding(testFile)
@@ -134,7 +135,7 @@ func TestCheck_WithValidUTF8Files(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	goFile := filepath.Join(tmpDir, "main.go")
-	require.NoError(t, os.WriteFile(goFile, []byte("package main\n"), 0o600))
+	require.NoError(t, os.WriteFile(goFile, []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
@@ -153,7 +154,7 @@ func TestCheck_WithBOMFile(t *testing.T) {
 
 	// Write file with UTF-8 BOM (EF BB BF prefix).
 	contentWithBOM := "\xef\xbb\xbfpackage main\n"
-	require.NoError(t, os.WriteFile(bomFile, []byte(contentWithBOM), 0o600))
+	require.NoError(t, os.WriteFile(bomFile, []byte(contentWithBOM), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
@@ -212,10 +213,10 @@ func TestCheckFilesEncoding_MultipleFiles(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	validFile := filepath.Join(tmpDir, "valid.go")
-	require.NoError(t, os.WriteFile(validFile, []byte("package main\n"), 0o600))
+	require.NoError(t, os.WriteFile(validFile, []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	bomFile := filepath.Join(tmpDir, "bom.go")
-	require.NoError(t, os.WriteFile(bomFile, []byte("\xef\xbb\xbfpackage main\n"), 0o600))
+	require.NoError(t, os.WriteFile(bomFile, []byte("\xef\xbb\xbfpackage main\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	violations := checkFilesEncoding([]string{validFile, bomFile})
 	require.Len(t, violations, 1, "Only BOM file should be a violation")

@@ -3,6 +3,7 @@
 package security
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
@@ -29,7 +30,7 @@ func TestNewValidator(t *testing.T) {
 		},
 		{
 			name:   "with custom config",
-			config: &Config{MinRSAKeySize: 4096},
+			config: &Config{MinRSAKeySize: cryptoutilSharedMagic.RSA4096KeySize},
 		},
 	}
 
@@ -48,9 +49,9 @@ func TestDefaultConfig(t *testing.T) {
 
 	config := DefaultConfig()
 
-	require.Equal(t, 2048, config.MinRSAKeySize)
-	require.Equal(t, 256, config.MinECKeySize)
-	require.Equal(t, 398, config.MaxCertValidityDays)
+	require.Equal(t, cryptoutilSharedMagic.DefaultMetricsBatchSize, config.MinRSAKeySize)
+	require.Equal(t, cryptoutilSharedMagic.MaxUnsealSharedSecrets, config.MinECKeySize)
+	require.Equal(t, cryptoutilSharedMagic.TLSMaxValidityEndEntityDays, config.MaxCertValidityDays)
 	require.True(t, config.RequireKeyUsage)
 	require.True(t, config.RequireBasicConstraints)
 	require.True(t, config.RequireSAN)
@@ -79,7 +80,7 @@ func TestValidator_ValidateCertificate(t *testing.T) {
 		{
 			name: "valid certificate",
 			certFunc: func() *x509.Certificate {
-				return createTestCert(t, key, false, time.Now().UTC(), time.Now().UTC().Add(365*24*time.Hour))
+				return createTestCert(t, key, false, time.Now().UTC(), time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*cryptoutilSharedMagic.HoursPerDay*time.Hour))
 			},
 			wantValid: true,
 			wantErr:   false,
@@ -87,7 +88,7 @@ func TestValidator_ValidateCertificate(t *testing.T) {
 		{
 			name: "expired certificate",
 			certFunc: func() *x509.Certificate {
-				return createTestCert(t, key, false, time.Now().UTC().Add(-730*24*time.Hour), time.Now().UTC().Add(-365*24*time.Hour))
+				return createTestCert(t, key, false, time.Now().UTC().Add(-730*cryptoutilSharedMagic.HoursPerDay*time.Hour), time.Now().UTC().Add(-cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*cryptoutilSharedMagic.HoursPerDay*time.Hour))
 			},
 			wantValid: false,
 			wantErr:   false,
@@ -95,7 +96,7 @@ func TestValidator_ValidateCertificate(t *testing.T) {
 		{
 			name: "certificate with excessive validity",
 			certFunc: func() *x509.Certificate {
-				return createTestCert(t, key, false, time.Now().UTC(), time.Now().UTC().Add(500*24*time.Hour))
+				return createTestCert(t, key, false, time.Now().UTC(), time.Now().UTC().Add(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP*cryptoutilSharedMagic.HoursPerDay*time.Hour))
 			},
 			wantValid: false,
 			wantErr:   false,
@@ -141,21 +142,21 @@ func TestValidator_ValidateCertificate_KeySizes(t *testing.T) {
 		{
 			name: "RSA 2048 with 2048 minimum",
 			keyFunc: func() any {
-				key, _ := rsa.GenerateKey(crand.Reader, 2048)
+				key, _ := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 
 				return key
 			},
-			config:    &Config{MinRSAKeySize: 2048, AllowedSignatureAlgorithms: []x509.SignatureAlgorithm{x509.SHA256WithRSA}, MaxCertValidityDays: 398},
+			config:    &Config{MinRSAKeySize: cryptoutilSharedMagic.DefaultMetricsBatchSize, AllowedSignatureAlgorithms: []x509.SignatureAlgorithm{x509.SHA256WithRSA}, MaxCertValidityDays: cryptoutilSharedMagic.TLSMaxValidityEndEntityDays},
 			wantValid: true,
 		},
 		{
 			name: "RSA 2048 with 4096 minimum",
 			keyFunc: func() any {
-				key, _ := rsa.GenerateKey(crand.Reader, 2048)
+				key, _ := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 
 				return key
 			},
-			config:    &Config{MinRSAKeySize: 4096, AllowedSignatureAlgorithms: []x509.SignatureAlgorithm{x509.SHA256WithRSA}, MaxCertValidityDays: 398},
+			config:    &Config{MinRSAKeySize: cryptoutilSharedMagic.RSA4096KeySize, AllowedSignatureAlgorithms: []x509.SignatureAlgorithm{x509.SHA256WithRSA}, MaxCertValidityDays: cryptoutilSharedMagic.TLSMaxValidityEndEntityDays},
 			wantValid: false,
 		},
 		{
@@ -165,7 +166,7 @@ func TestValidator_ValidateCertificate_KeySizes(t *testing.T) {
 
 				return key
 			},
-			config:    &Config{MinECKeySize: 256, AllowedSignatureAlgorithms: []x509.SignatureAlgorithm{x509.ECDSAWithSHA256}, MaxCertValidityDays: 398},
+			config:    &Config{MinECKeySize: cryptoutilSharedMagic.MaxUnsealSharedSecrets, AllowedSignatureAlgorithms: []x509.SignatureAlgorithm{x509.ECDSAWithSHA256}, MaxCertValidityDays: cryptoutilSharedMagic.TLSMaxValidityEndEntityDays},
 			wantValid: true,
 		},
 		{
@@ -175,7 +176,7 @@ func TestValidator_ValidateCertificate_KeySizes(t *testing.T) {
 
 				return key
 			},
-			config:    &Config{MinECKeySize: 384, AllowedSignatureAlgorithms: []x509.SignatureAlgorithm{x509.ECDSAWithSHA256}, MaxCertValidityDays: 398},
+			config:    &Config{MinECKeySize: cryptoutilSharedMagic.SymmetricKeySize384, AllowedSignatureAlgorithms: []x509.SignatureAlgorithm{x509.ECDSAWithSHA256}, MaxCertValidityDays: cryptoutilSharedMagic.TLSMaxValidityEndEntityDays},
 			wantValid: false,
 		},
 		{
@@ -185,7 +186,7 @@ func TestValidator_ValidateCertificate_KeySizes(t *testing.T) {
 
 				return key
 			},
-			config:    &Config{AllowedSignatureAlgorithms: []x509.SignatureAlgorithm{x509.PureEd25519}, MaxCertValidityDays: 398},
+			config:    &Config{AllowedSignatureAlgorithms: []x509.SignatureAlgorithm{x509.PureEd25519}, MaxCertValidityDays: cryptoutilSharedMagic.TLSMaxValidityEndEntityDays},
 			wantValid: true,
 		},
 	}
@@ -197,7 +198,7 @@ func TestValidator_ValidateCertificate_KeySizes(t *testing.T) {
 			validator := NewValidator(tc.config)
 			key := tc.keyFunc()
 
-			cert := createTestCertWithKey(t, key, false, time.Now().UTC(), time.Now().UTC().Add(365*24*time.Hour))
+			cert := createTestCertWithKey(t, key, false, time.Now().UTC(), time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*cryptoutilSharedMagic.HoursPerDay*time.Hour))
 			result, err := validator.ValidateCertificate(ctx, cert)
 
 			require.NoError(t, err)
@@ -221,7 +222,7 @@ func TestValidator_ValidatePrivateKey(t *testing.T) {
 		{
 			name: "valid RSA 2048 key",
 			keyFunc: func() any {
-				key, _ := rsa.GenerateKey(crand.Reader, 2048)
+				key, _ := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 
 				return key
 			},

@@ -4,6 +4,7 @@
 package observability
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -174,7 +175,7 @@ func (r *MetricsRegistry) DecrementGauge(name string) {
 // Histogram operations.
 
 // Default histogram buckets (in milliseconds).
-var defaultBuckets = []float64{1, 5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000}
+var defaultBuckets = []float64{1, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cryptoutilSharedMagic.TLSMaxValidityCACertYears, cryptoutilSharedMagic.IMMaxUsernameLength, cryptoutilSharedMagic.JoseJAMaxMaterials, 250, 500, cryptoutilSharedMagic.JoseJADefaultListLimit, 2500, 5000, cryptoutilSharedMagic.DBContainerRandSuffixMax}
 
 // NewHistogram creates a new histogram with default buckets.
 func NewHistogram() *Histogram {

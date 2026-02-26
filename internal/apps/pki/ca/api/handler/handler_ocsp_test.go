@@ -3,6 +3,7 @@
 package handler
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	sha256 "crypto/sha256"
 	"encoding/asn1"
@@ -134,8 +135,8 @@ func createMinimalOCSPRequest(t *testing.T) []byte {
 
 	certID := CertID{
 		HashAlgorithm:  sha1OID,
-		IssuerNameHash: issuerNameHash[:20], // Use first 20 bytes for SHA-1 size.
-		IssuerKeyHash:  issuerKeyHash[:20],
+		IssuerNameHash: issuerNameHash[:cryptoutilSharedMagic.MaxErrorDisplay], // Use first 20 bytes for SHA-1 size.
+		IssuerKeyHash:  issuerKeyHash[:cryptoutilSharedMagic.MaxErrorDisplay],
 		SerialNumber:   big.NewInt(12345),
 	}
 

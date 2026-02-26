@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
@@ -77,10 +78,10 @@ func TestExtractClaims(t *testing.T) {
 					Subject("user-oidc").
 					Build()
 				require.NoError(t, err)
-				require.NoError(t, tok.Set("name", "John Doe"))
-				require.NoError(t, tok.Set("preferred_username", "johndoe"))
-				require.NoError(t, tok.Set("email", "john@example.com"))
-				require.NoError(t, tok.Set("email_verified", true))
+				require.NoError(t, tok.Set(cryptoutilSharedMagic.ClaimName, "John Doe"))
+				require.NoError(t, tok.Set(cryptoutilSharedMagic.ClaimPreferredUsername, "johndoe"))
+				require.NoError(t, tok.Set(cryptoutilSharedMagic.ClaimEmail, "john@example.com"))
+				require.NoError(t, tok.Set(cryptoutilSharedMagic.ClaimEmailVerified, true))
 
 				return tok
 			},
@@ -99,7 +100,7 @@ func TestExtractClaims(t *testing.T) {
 					Subject("user-scoped").
 					Build()
 				require.NoError(t, err)
-				require.NoError(t, tok.Set("scope", "kms:read kms:write kms:admin"))
+				require.NoError(t, tok.Set(cryptoutilSharedMagic.ClaimScope, "kms:read kms:write kms:admin"))
 
 				return tok
 			},
@@ -157,7 +158,7 @@ func TestHandleValidationError(t *testing.T) {
 		{name: "issuer error", err: errors.New("invalid issuer"), expectedCode: "invalid_issuer"},
 		{name: "audience error", err: errors.New("invalid audience"), expectedCode: "invalid_audience"},
 		{name: "signature error", err: errors.New("invalid signature"), expectedCode: "invalid_signature"},
-		{name: "generic error", err: errors.New("something went wrong"), expectedCode: "invalid_token"},
+		{name: "generic error", err: errors.New("something went wrong"), expectedCode: cryptoutilSharedMagic.ErrorInvalidToken},
 	}
 
 	for _, tc := range tests {
@@ -353,7 +354,7 @@ func TestPublicKeyFromJWK(t *testing.T) {
 			setupFn: func(t *testing.T) joseJwk.Key {
 				t.Helper()
 
-				rsaKey, err := rsa.GenerateKey(crand.Reader, 2048)
+				rsaKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 				require.NoError(t, err)
 				jwkKey, err := joseJwk.Import(&rsaKey.PublicKey)
 				require.NoError(t, err)

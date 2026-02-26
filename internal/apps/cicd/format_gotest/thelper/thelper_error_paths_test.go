@@ -3,6 +3,7 @@
 package thelper
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"go/token"
 	"io"
@@ -29,7 +30,7 @@ func TestFix_PrinterFprintError(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "setup_test.go"),
-		[]byte(testContentSetupMissingHelper), 0o600))
+		[]byte(testContentSetupMissingHelper), cryptoutilSharedMagic.CacheFilePermissions))
 
 	_, _, _, err := Fix(logger, tmpDir)
 	require.Error(t, err)

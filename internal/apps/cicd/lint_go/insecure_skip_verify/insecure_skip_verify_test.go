@@ -1,6 +1,7 @@
 package insecure_skip_verify
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -33,7 +34,7 @@ func main() {
 }
 `
 
-	err := os.WriteFile(cleanFile, []byte(content), 0o600)
+	err := os.WriteFile(cleanFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations, err := CheckFileForInsecureSkipVerify(cleanFile)
@@ -50,7 +51,7 @@ func TestCheckInsecureSkipVerify_Violation(t *testing.T) {
 	// Use concatenation to avoid triggering the linter on this test file.
 	content := "package main\n\nimport (\n\t\"crypto/tls\"\n)\n\nfunc main() {\n\tconfig := &tls.Config{\n\t\t" + "Insecure" + "SkipVerify: true,\n\t}\n\tprintln(config)\n}\n"
 
-	err := os.WriteFile(badFile, []byte(content), 0o600)
+	err := os.WriteFile(badFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations, err := CheckFileForInsecureSkipVerify(badFile)
@@ -68,7 +69,7 @@ func TestCheckInsecureSkipVerify_WithNolint(t *testing.T) {
 	// Use concatenation to avoid triggering the linter on this test file.
 	content := "package main\n\nimport (\n\t\"crypto/tls\"\n)\n\nfunc main() {\n\tconfig := &tls.Config{\n\t\t" + "Insecure" + "SkipVerify: true, //nolint:all\n\t}\n\tprintln(config)\n}\n"
 
-	err := os.WriteFile(cleanFile, []byte(content), 0o600)
+	err := os.WriteFile(cleanFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations, err := CheckFileForInsecureSkipVerify(cleanFile)
@@ -87,7 +88,7 @@ func TestPrintInsecureSkipVerifyViolations(t *testing.T) {
 	t.Parallel()
 
 	violations := []lintGoCommon.CryptoViolation{
-		{File: "file2.go", Line: 5, Content: "TLS config", Issue: "disables TLS certificate verification"},
+		{File: "file2.go", Line: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, Content: "TLS config", Issue: "disables TLS certificate verification"},
 	}
 
 	// Just verify the print function does not panic.
@@ -133,7 +134,7 @@ func getClient() *tls.Config {
 }
 `)
 
-	err := os.WriteFile(violationFile, content, 0o600)
+	err := os.WriteFile(violationFile, content, cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	err = CheckInDir(logger, tmpDir)
@@ -152,7 +153,7 @@ func TestCheckInsecureSkipVerifyInDir_Clean(t *testing.T) {
 
 	content := []byte("package foo\n")
 
-	err := os.WriteFile(cleanFile, content, 0o600)
+	err := os.WriteFile(cleanFile, content, cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	err = CheckInDir(logger, tmpDir)
@@ -174,7 +175,7 @@ func TestHelper() *tls.Config {
 }
 `)
 
-	err := os.WriteFile(testFile, content, 0o600)
+	err := os.WriteFile(testFile, content, cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations, err := FindInsecureSkipVerifyViolationsInDir(tmpDir)
@@ -191,7 +192,7 @@ func TestCheckInsecureSkipVerifyInDir_SkipsTestHelperDirs(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	testingDir := filepath.Join(tmpDir, "testing")
-	err := os.MkdirAll(testingDir, 0o755)
+	err := os.MkdirAll(testingDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	violationFile := filepath.Join(testingDir, "helper.go")
@@ -202,7 +203,7 @@ import "crypto/tls"
 func Helper() *tls.Config { return &tls.Config{InsecureSkipVerify: true} }
 `)
 
-	err = os.WriteFile(violationFile, content, 0o600)
+	err = os.WriteFile(violationFile, content, cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	err = CheckInDir(logger, tmpDir)
@@ -248,12 +249,12 @@ func TestFindInsecureSkipVerifyViolationsInDir_VendorDirSkipped(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	vendorDir := filepath.Join(tmpDir, "vendor")
+	vendorDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDExcludeDirVendor)
 	require.NoError(t, os.MkdirAll(vendorDir, 0o700))
 
 	vendorFile := filepath.Join(vendorDir, "bad.go")
 	content := []byte("package vendor\n\nfunc bad() bool { return true } // InsecureSkipVerify: true\n")
-	require.NoError(t, os.WriteFile(vendorFile, content, 0o600))
+	require.NoError(t, os.WriteFile(vendorFile, content, cryptoutilSharedMagic.CacheFilePermissions))
 
 	violations, err := FindInsecureSkipVerifyViolationsInDir(tmpDir)
 	require.NoError(t, err)
@@ -265,7 +266,7 @@ func TestFindInsecureSkipVerifyViolationsInDir_NonGoFileSkipped(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	txtFile := filepath.Join(tmpDir, "config.txt")
-	require.NoError(t, os.WriteFile(txtFile, []byte("InsecureSkipVerify: true\n"), 0o600))
+	require.NoError(t, os.WriteFile(txtFile, []byte("InsecureSkipVerify: true\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	violations, err := FindInsecureSkipVerifyViolationsInDir(tmpDir)
 	require.NoError(t, err)
@@ -287,7 +288,7 @@ func TestCheckFileForInsecureSkipVerify_ScannerError(t *testing.T) {
 	// Create a Go file with a line longer than bufio.MaxScanTokenSize (64KB) to trigger scanner.Err().
 	longLine := "// " + strings.Repeat("x", 70000) + "\n"
 	goFile := filepath.Join(tempDir, "main.go")
-	require.NoError(t, os.WriteFile(goFile, []byte("package main\n"+longLine), 0o600))
+	require.NoError(t, os.WriteFile(goFile, []byte("package main\n"+longLine), cryptoutilSharedMagic.CacheFilePermissions))
 
 	_, err := CheckFileForInsecureSkipVerify(goFile)
 	require.Error(t, err)
@@ -297,7 +298,7 @@ func TestCheckFileForInsecureSkipVerify_ScannerError(t *testing.T) {
 func TestFindInsecureSkipVerifyViolationsInDir_CheckFileError(t *testing.T) {
 	t.Parallel()
 
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
 		t.Skip("chmod 0o000 does not work on Windows")
 	}
 
@@ -305,10 +306,10 @@ func TestFindInsecureSkipVerifyViolationsInDir_CheckFileError(t *testing.T) {
 
 	// Create a Go file that is unreadable, so CheckFileForInsecureSkipVerify returns error during Walk.
 	goFile := filepath.Join(tempDir, "main.go")
-	require.NoError(t, os.WriteFile(goFile, []byte("package main\n"), 0o600))
+	require.NoError(t, os.WriteFile(goFile, []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.Chmod(goFile, 0o000))
 
-	defer func() { _ = os.Chmod(goFile, 0o600) }()
+	defer func() { _ = os.Chmod(goFile, cryptoutilSharedMagic.CacheFilePermissions) }()
 
 	_, err := FindInsecureSkipVerifyViolationsInDir(tempDir)
 	require.Error(t, err)

@@ -3,6 +3,7 @@
 package e2e
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"fmt"
@@ -40,11 +41,11 @@ func TestCompleteRotationLifecycle(t *testing.T) {
 	ctx := context.Background()
 	db := setupTestDB(t)
 	rotationService := cryptoutilIdentityRotation.NewSecretRotationService(db)
-	gracePeriod := 24 * time.Hour
+	gracePeriod := cryptoutilSharedMagic.HoursPerDay * time.Hour
 
 	// Step 1: Create client with version 1 secret
 	client := createTestClient(t, db, "lifecycle-client")
-	_ = createTestSecret(t, db, client.ID, 1, time.Now().UTC().Add(48*time.Hour))
+	_ = createTestSecret(t, db, client.ID, 1, time.Now().UTC().Add(cryptoutilSharedMagic.HMACSHA384KeySize*time.Hour))
 
 	// Verify: 1 active secret (version 1)
 	activeSecrets, err := rotationService.GetActiveSecretVersions(ctx, client.ID)
@@ -123,14 +124,14 @@ func TestMultiClientConcurrentRotation(t *testing.T) {
 	ctx := context.Background()
 	db := setupTestDB(t)
 	rotationService := cryptoutilIdentityRotation.NewSecretRotationService(db)
-	gracePeriod := 24 * time.Hour
-	clientCount := 5
+	gracePeriod := cryptoutilSharedMagic.HoursPerDay * time.Hour
+	clientCount := cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries
 
 	// Step 1: Create 5 clients concurrently
 	clients := make([]*cryptoutilIdentityDomain.Client, clientCount)
 	for i := 0; i < clientCount; i++ {
 		clients[i] = createTestClient(t, db, googleUuid.NewString())
-		createTestSecret(t, db, clients[i].ID, 1, time.Now().UTC().Add(48*time.Hour))
+		createTestSecret(t, db, clients[i].ID, 1, time.Now().UTC().Add(cryptoutilSharedMagic.HMACSHA384KeySize*time.Hour))
 	}
 
 	// Step 2: Rotate all 5 clients concurrently
@@ -172,11 +173,11 @@ func TestGracePeriodOverlap(t *testing.T) {
 	ctx := context.Background()
 	db := setupTestDB(t)
 	rotationService := cryptoutilIdentityRotation.NewSecretRotationService(db)
-	gracePeriod := 24 * time.Hour
+	gracePeriod := cryptoutilSharedMagic.HoursPerDay * time.Hour
 
 	// Step 1: Create client with version 1 secret
 	client := createTestClient(t, db, "overlap-client")
-	createTestSecret(t, db, client.ID, 1, time.Now().UTC().Add(48*time.Hour))
+	createTestSecret(t, db, client.ID, 1, time.Now().UTC().Add(cryptoutilSharedMagic.HMACSHA384KeySize*time.Hour))
 
 	// Rotate to version 2 (24h grace)
 	_, err := rotationService.RotateClientSecret(ctx, client.ID, gracePeriod, "admin", "first rotation")
@@ -193,7 +194,7 @@ func TestGracePeriodOverlap(t *testing.T) {
 	err = db.Where("client_id = ? AND version = ?", client.ID, 1).First(&secret1).Error
 	require.NoError(t, err)
 
-	secret1.ExpiresAt = timePtr(time.Now().UTC().Add(12 * time.Hour)) // 12h remaining
+	secret1.ExpiresAt = timePtr(time.Now().UTC().Add(cryptoutilSharedMagic.HashPrefixLength * time.Hour)) // 12h remaining
 	err = db.Save(&secret1).Error
 	require.NoError(t, err)
 
@@ -238,7 +239,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", dbID.String())
 
 	// Open database connection using modernc.org/sqlite (CGO-free)
-	sqlDB, err := sql.Open("sqlite", dsn)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	require.NoError(t, err)
 
 	// Apply SQLite PRAGMA settings
@@ -262,8 +263,8 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	// Configure connection pool for concurrent transactions
 	dbSQL, err := db.DB()
 	require.NoError(t, err)
-	dbSQL.SetMaxOpenConns(5)    // Allow concurrent transactions
-	dbSQL.SetMaxIdleConns(5)    // Match max open
+	dbSQL.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)    // Allow concurrent transactions
+	dbSQL.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)    // Match max open
 	dbSQL.SetConnMaxLifetime(0) // In-memory DB: never close connections
 	dbSQL.SetConnMaxIdleTime(0)
 
@@ -290,7 +291,7 @@ func createTestClient(t *testing.T, db *gorm.DB, name string) *cryptoutilIdentit
 		ID:            googleUuid.New(),
 		ClientID:      googleUuid.NewString(),
 		Name:          name,
-		AllowedScopes: []string{"read", "write"},
+		AllowedScopes: []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
 	}
 
 	err := db.Create(client).Error

@@ -4,6 +4,7 @@
 package notifications
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	"log/slog"
@@ -20,7 +21,7 @@ func NewLogNotifier() *LogNotifier {
 // Send logs the expiration notification.
 func (n *LogNotifier) Send(ctx context.Context, notification *ExpirationNotification) error {
 	slog.WarnContext(ctx, "Client secret expiring soon",
-		"client_id", notification.ClientID,
+		cryptoutilSharedMagic.ClaimClientID, notification.ClientID,
 		"client_name", notification.ClientName,
 		"version", notification.Version,
 		"expires_at", notification.ExpiresAt,
@@ -48,7 +49,7 @@ func (n *WebhookNotifier) Send(ctx context.Context, notification *ExpirationNoti
 	// For now, log that webhook would be called.
 	slog.InfoContext(ctx, "Webhook notification (not implemented)",
 		"webhook_url", n.webhookURL,
-		"client_id", notification.ClientID,
+		cryptoutilSharedMagic.ClaimClientID, notification.ClientID,
 		"client_name", notification.ClientName,
 		"days_remaining", notification.DaysRemaining,
 	)
@@ -74,7 +75,7 @@ func (n *EmailNotifier) Send(ctx context.Context, notification *ExpirationNotifi
 	// For now, log that email would be sent.
 	slog.InfoContext(ctx, "Email notification (not implemented)",
 		"recipients", n.recipients,
-		"client_id", notification.ClientID,
+		cryptoutilSharedMagic.ClaimClientID, notification.ClientID,
 		"client_name", notification.ClientName,
 		"days_remaining", notification.DaysRemaining,
 	)

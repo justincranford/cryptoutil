@@ -3,6 +3,7 @@
 package server
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"crypto/tls"
 	"io"
@@ -67,8 +68,8 @@ func TestAuthzServer_PublicHealth(t *testing.T) {
 		wantCode int
 	}{
 		{"health", "/health", http.StatusOK},
-		{"livez", "/livez", http.StatusOK},
-		{"readyz", "/readyz", http.StatusOK},
+		{"livez", cryptoutilSharedMagic.PrivateAdminLivezRequestPath, http.StatusOK},
+		{"readyz", cryptoutilSharedMagic.PrivateAdminReadyzRequestPath, http.StatusOK},
 	}
 
 	for _, tt := range tests {
@@ -112,7 +113,7 @@ func TestAuthzServer_OIDCDiscovery(t *testing.T) {
 	}
 
 	// Test OIDC discovery endpoint.
-	url := testBaseURL + "/.well-known/openid-configuration"
+	url := testBaseURL + cryptoutilSharedMagic.PathDiscovery
 
 	ctx, cancel := context.WithTimeout(context.Background(), httpTimeout)
 	defer cancel()
@@ -150,7 +151,7 @@ func TestAuthzServer_JWKS(t *testing.T) {
 	}
 
 	// Test JWKS endpoint.
-	url := testBaseURL + "/.well-known/jwks.json"
+	url := testBaseURL + cryptoutilSharedMagic.PathJWKS
 
 	ctx, cancel := context.WithTimeout(context.Background(), httpTimeout)
 	defer cancel()

@@ -18,6 +18,7 @@
 package businesslogic
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	json "encoding/json"
 	"errors"
@@ -91,10 +92,10 @@ func (sm *SessionManager) issueJWESession(ctx context.Context, isBrowser bool, p
 	jti := googleUuid.Must(googleUuid.NewV7())
 
 	claims := map[string]any{
-		"jti":       jti.String(),
-		"iat":       now.Unix(),
-		"exp":       exp.Unix(),
-		"sub":       principalID,
+		cryptoutilSharedMagic.ClaimJti:       jti.String(),
+		cryptoutilSharedMagic.ClaimIat:       now.Unix(),
+		cryptoutilSharedMagic.ClaimExp:       exp.Unix(),
+		cryptoutilSharedMagic.ClaimSub:       principalID,
 		"tenant_id": tenantID.String(),
 		"realm_id":  realmID.String(),
 	}
@@ -222,7 +223,7 @@ func (sm *SessionManager) validateJWESession(ctx context.Context, isBrowser bool
 	}
 
 	// Validate expiration claim
-	expFloat, expOk := claims["exp"].(float64)
+	expFloat, expOk := claims[cryptoutilSharedMagic.ClaimExp].(float64)
 	if !expOk {
 		summary := errMsgMissingInvalidExpClaim
 
@@ -239,7 +240,7 @@ func (sm *SessionManager) validateJWESession(ctx context.Context, isBrowser bool
 	}
 
 	// Extract jti (token ID) and hash it for database lookup
-	jtiStr, jtiOk := claims["jti"].(string)
+	jtiStr, jtiOk := claims[cryptoutilSharedMagic.ClaimJti].(string)
 	if !jtiOk {
 		summary := errMsgMissingInvalidJTIClaim
 

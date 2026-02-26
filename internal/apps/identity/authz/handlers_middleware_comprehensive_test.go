@@ -5,6 +5,7 @@
 package authz_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"net/http/httptest"
 	"testing"
@@ -113,7 +114,7 @@ func TestRegisterMiddleware_RateLimitEnforcement(t *testing.T) {
 
 	// Execute multiple requests rapidly to test rate limiting.
 	// Note: Default rate limit is 100 req/min, so we send 5 requests to verify middleware is active.
-	for i := 0; i < 5; i++ {
+	for i := 0; i < cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries; i++ {
 		req := httptest.NewRequest("GET", "/rate-limited", nil)
 		resp, err := app.Test(req, -1)
 		require.NoError(t, err, "Request should succeed")
@@ -140,7 +141,7 @@ func createMiddlewareTestRepoFactory(t *testing.T) *cryptoutilIdentityRepository
 	ctx := context.Background()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type:        "sqlite",
+		Type:        cryptoutilSharedMagic.TestDatabaseSQLite,
 		DSN:         "file::memory:?cache=private",
 		AutoMigrate: true, // Enable auto-migration for tests
 	}

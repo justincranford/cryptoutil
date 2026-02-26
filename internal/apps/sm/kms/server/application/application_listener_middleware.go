@@ -37,7 +37,7 @@ func stopServerFuncWithListeners(serverApplicationCore *ServerApplicationCore, p
 			serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Debug("shutting down public fiber app")
 
 			if err := publicFiberApp.ShutdownWithContext(shutdownCtx); err != nil {
-				serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Error("failed to stop public fiber server", "error", err)
+				serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Error("failed to stop public fiber server", cryptoutilSharedMagic.StringError, err)
 			}
 		}
 
@@ -45,20 +45,20 @@ func stopServerFuncWithListeners(serverApplicationCore *ServerApplicationCore, p
 			serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Debug("shutting down private fiber app")
 
 			if err := privateFiberApp.ShutdownWithContext(shutdownCtx); err != nil {
-				serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Error("failed to stop private fiber server", "error", err)
+				serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Error("failed to stop private fiber server", cryptoutilSharedMagic.StringError, err)
 			}
 		}
 
 		// Close the listeners if they're still open (they should be closed by Fiber, but just in case)
 		if publicListener != nil {
 			if err := publicListener.Close(); err != nil {
-				serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Debug("public listener already closed", "error", err)
+				serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Debug("public listener already closed", cryptoutilSharedMagic.StringError, err)
 			}
 		}
 
 		if privateListener != nil {
 			if err := privateListener.Close(); err != nil {
-				serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Debug("private listener already closed", "error", err)
+				serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Debug("private listener already closed", cryptoutilSharedMagic.StringError, err)
 			}
 		}
 
@@ -111,7 +111,7 @@ func commonIPFilterMiddleware(telemetryService *cryptoutilSharedTelemetry.Teleme
 		for _, allowedCIDR := range settings.AllowedCIDRs {
 			_, network, err := net.ParseCIDR(allowedCIDR) // "192.0.2.1/24" => 192.0.2.1 (not useful) and 192.0.2.0/24 (useful)
 			if err != nil {
-				telemetryService.Slogger.Error("invalid allowed CIDR:", "CIDR", allowedCIDR, "error", err)
+				telemetryService.Slogger.Error("invalid allowed CIDR:", "CIDR", allowedCIDR, cryptoutilSharedMagic.StringError, err)
 			} else {
 				allowedCIDRs = append(allowedCIDRs, network)
 
@@ -191,8 +191,8 @@ func commonHTTPGETCacheControlMiddleware() func(c *fiber.Ctx) error {
 func checkDatabaseHealth(serverApplicationCore *ServerApplicationCore) map[string]any {
 	if serverApplicationCore.OrmRepository == nil {
 		return map[string]any{
-			"status": "error",
-			"error":  "ORM repository not initialized",
+			cryptoutilSharedMagic.StringStatus: cryptoutilSharedMagic.StringError,
+			cryptoutilSharedMagic.StringError:  "ORM repository not initialized",
 		}
 	}
 
@@ -213,7 +213,7 @@ func checkMemoryHealth() map[string]any {
 	runtime.ReadMemStats(&m)
 
 	return map[string]any{
-		"status":         "ok",
+		cryptoutilSharedMagic.StringStatus:         "ok",
 		"heap_alloc":     m.Alloc,
 		"num_goroutines": runtime.NumGoroutine(),
 	}
@@ -223,7 +223,7 @@ func checkSidecarHealth(serverApplicationCore *ServerApplicationCore) map[string
 	// Only check sidecar health if OTLP is enabled
 	if !serverApplicationCore.Settings.OTLPEnabled {
 		return map[string]any{
-			"status": "disabled",
+			cryptoutilSharedMagic.StringStatus: cryptoutilSharedMagic.DefaultDatabaseContainerDisabled,
 			"note":   "OTLP export is disabled",
 		}
 	}
@@ -235,13 +235,13 @@ func checkSidecarHealth(serverApplicationCore *ServerApplicationCore) map[string
 	err := serverApplicationCore.ServerApplicationBasic.TelemetryService.CheckSidecarHealth(ctx)
 	if err != nil {
 		return map[string]any{
-			"status": "error",
-			"error":  fmt.Sprintf("sidecar connectivity check failed: %v", err),
+			cryptoutilSharedMagic.StringStatus: cryptoutilSharedMagic.StringError,
+			cryptoutilSharedMagic.StringError:  fmt.Sprintf("sidecar connectivity check failed: %v", err),
 		}
 	}
 
 	return map[string]any{
-		"status":   "ok",
+		cryptoutilSharedMagic.StringStatus:   "ok",
 		"endpoint": serverApplicationCore.Settings.OTLPEndpoint,
 	}
 }
@@ -252,7 +252,7 @@ func checkDependenciesHealth(_ *ServerApplicationCore) map[string]any {
 	services := map[string]any{}
 
 	return map[string]any{
-		"status":   "ok",
+		cryptoutilSharedMagic.StringStatus:   "ok",
 		"services": services,
 		"note":     "No external dependencies configured",
 	}
@@ -333,7 +333,7 @@ func privateHealthCheckMiddlewareFunction(serverApplicationCore *ServerApplicati
 		healthStatus := map[string]any{
 			cryptoutilSharedMagic.StringStatus: "ok",
 			"timestamp":                        time.Now().UTC().Format(time.RFC3339),
-			"service":                          "cryptoutil",
+			"service":                          cryptoutilSharedMagic.DefaultOTLPServiceDefault,
 			"version":                          cryptoutilSharedMagic.ServiceVersion,
 			"probe":                            "liveness",
 		}
@@ -352,7 +352,7 @@ func privateHealthCheckMiddlewareFunction(serverApplicationCore *ServerApplicati
 			}
 
 			// Check if any component is unhealthy for readiness
-			if dbStatus, ok := healthStatus["database"].(map[string]any); ok {
+			if dbStatus, ok := healthStatus[cryptoutilSharedMagic.RealmStorageTypeDatabase].(map[string]any); ok {
 				if status, ok := dbStatus[cryptoutilSharedMagic.StringStatus].(string); ok && status != cryptoutilSharedMagic.StringStatusOK {
 					healthStatus[cryptoutilSharedMagic.StringStatus] = cryptoutilSharedMagic.StringStatusDegraded
 				}
@@ -365,7 +365,7 @@ func privateHealthCheckMiddlewareFunction(serverApplicationCore *ServerApplicati
 			}
 
 			if sidecarStatus, ok := healthStatus["sidecar"].(map[string]any); ok {
-				if status, ok := sidecarStatus[cryptoutilSharedMagic.StringStatus].(string); ok && status == "error" {
+				if status, ok := sidecarStatus[cryptoutilSharedMagic.StringStatus].(string); ok && status == cryptoutilSharedMagic.StringError {
 					healthStatus[cryptoutilSharedMagic.StringStatus] = cryptoutilSharedMagic.StringStatusDegraded
 				}
 			}

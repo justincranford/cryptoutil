@@ -3,6 +3,7 @@
 package lint_ports
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -24,7 +25,7 @@ func TestLint_NoLegacyPorts(t *testing.T) {
 	err := os.WriteFile(goFile, []byte(`package main
 
 const port = 8700 // sm-im standardized port
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -47,7 +48,7 @@ func TestLint_DetectsLegacyPort(t *testing.T) {
 	err := os.WriteFile(goFile, []byte(`package main
 
 const port = 8888 // legacy sm-im port
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -71,7 +72,7 @@ func TestLint_DetectsMultipleLegacyPorts(t *testing.T) {
 
 const cipherPort = 8888 // legacy
 const josePort = 9443   // legacy
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -95,7 +96,7 @@ func TestLint_SkipsOtelFilesForOtelPorts(t *testing.T) {
 
 const metricsPort = 8888 // OTEL internal metrics
 const promPort = 8889    // OTEL Prometheus port
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -118,7 +119,7 @@ func TestLint_DetectsLegacyPortInRegularFile(t *testing.T) {
 	err := os.WriteFile(normalFile, []byte(`package main
 
 const port = 8890 // legacy sm-im port
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -142,7 +143,7 @@ func TestLint_Detects8888InRegularFile(t *testing.T) {
 	err := os.WriteFile(normalFile, []byte(`package main
 
 const port = 8888
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Verify the file path does NOT contain OTEL-related terms.
@@ -167,7 +168,7 @@ func TestLint_YamlFiles(t *testing.T) {
 	yamlFile := filepath.Join(tempDir, "config.yml")
 	err := os.WriteFile(yamlFile, []byte(`server:
   port: 8443
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -190,7 +191,7 @@ func TestLint_MarkdownFiles(t *testing.T) {
 	err := os.WriteFile(mdFile, []byte(`# Server
 
 Connect to port 9443 for JOSE.
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -210,13 +211,13 @@ func TestLint_SkipsLintPortsDirectory(t *testing.T) {
 
 	// Create a file that looks like it's in lint_ports directory.
 	lintPortsFile := filepath.Join(tempDir, "lint_ports", "constants.go")
-	err := os.MkdirAll(filepath.Dir(lintPortsFile), 0o755)
+	err := os.MkdirAll(filepath.Dir(lintPortsFile), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	err = os.WriteFile(lintPortsFile, []byte(`package lint_ports
 
 var LegacyPorts = []uint16{8888, 8889, 8890}
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -259,7 +260,7 @@ func TestLint_PortNumbersInText(t *testing.T) {
 const validPort = 8000
 const anotherValid = 8700
 const irrelevantNumber = 1234
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -294,7 +295,7 @@ func TestLint_JsonFiles(t *testing.T) {
 	err := os.WriteFile(testFile, []byte(`{
   "port": 8888
 }
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -318,26 +319,26 @@ func TestLint_MultipleExtensions(t *testing.T) {
 	goFile := filepath.Join(tempDir, "main.go")
 	err := os.WriteFile(goFile, []byte(`package main
 const port = 8888
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Create a YAML file with violation.
 	yamlFile := filepath.Join(tempDir, "config.yml")
 	err = os.WriteFile(yamlFile, []byte(`port: 9443
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Create another YAML file (yaml extension).
 	yaml2File := filepath.Join(tempDir, "config.yaml")
 	err = os.WriteFile(yaml2File, []byte(`port: 8443
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Create a Markdown file with violation.
 	mdFile := filepath.Join(tempDir, "README.md")
 	err = os.WriteFile(mdFile, []byte(`# Docs
 Port 8890 is used.
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -368,7 +369,7 @@ const port1 = 8000  // standard port (sm-kms)
 const port2 = 8700  // standard port (sm-im)
 const port3 = 9000  // random port
 const port4 = 12345 // 5-digit port
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -397,7 +398,7 @@ func TestLint_SkipsCollectorPortsInMagicFile(t *testing.T) {
 const DefaultPublicPortInternalMetrics uint16 = 8888
 // PortOtelCollectorReceivedMetrics - Default OpenTelemetry collector received metrics port.
 const PortOtelCollectorReceivedMetrics uint16 = 8889
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 	require.False(t, lintPortsCommon.IsOtelRelatedFile(magicFile), "File path should NOT be otel-related")
 
@@ -425,7 +426,7 @@ func TestLint_AllThreeChecksPass(t *testing.T) {
 	err := os.WriteFile(goFile, []byte(`package main
 
 const port = 8700
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Create a valid compose file.
@@ -436,14 +437,14 @@ const port = 8700
       - "8700:8700"
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Create a valid Dockerfile.
 	dockerfile := filepath.Join(tempDir, "Dockerfile")
 	err = os.WriteFile(dockerfile, []byte(`FROM alpine:3.19
 HEALTHCHECK CMD wget -q -O /dev/null https://127.0.0.1:9090/admin/api/v1/livez
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -466,7 +467,7 @@ func TestLint_LegacyPortViolation(t *testing.T) {
 	err := os.WriteFile(goFile, []byte(`package main
 
 const port = 9443
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")

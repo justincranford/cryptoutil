@@ -5,6 +5,7 @@
 package bootstrap_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -22,8 +23,8 @@ func TestResetDemoData(t *testing.T) {
 
 	// Create in-memory database.
 	cfg := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, cfg)
@@ -43,7 +44,7 @@ func TestResetDemoData(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify demo data exists.
-	client, err := repoFactory.ClientRepository().GetByClientID(ctx, "demo-client")
+	client, err := repoFactory.ClientRepository().GetByClientID(ctx, cryptoutilSharedMagic.DemoClientID)
 	require.NoError(t, err)
 	require.NotNil(t, client)
 
@@ -56,7 +57,7 @@ func TestResetDemoData(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify demo data is deleted.
-	_, err = repoFactory.ClientRepository().GetByClientID(ctx, "demo-client")
+	_, err = repoFactory.ClientRepository().GetByClientID(ctx, cryptoutilSharedMagic.DemoClientID)
 	require.Error(t, err, "Demo client should be deleted")
 
 	_, err = repoFactory.UserRepository().GetBySub(ctx, "demo-user")
@@ -70,8 +71,8 @@ func TestResetDemoData_NoData(t *testing.T) {
 
 	// Create in-memory database without seeding demo data.
 	cfg := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, cfg)
@@ -95,8 +96,8 @@ func TestResetAndReseedDemo(t *testing.T) {
 
 	// Create in-memory database.
 	cfg := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, cfg)

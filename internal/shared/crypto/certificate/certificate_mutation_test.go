@@ -41,8 +41,8 @@ func TestRandomizedNotBeforeNotAfterCA_ExactMaxCACertDurationSucceeds(t *testing
 func TestRandomizedNotBeforeNotAfterCA_BoundaryDurationSucceeds(t *testing.T) {
 	t.Parallel()
 
-	minSub := 5 * time.Minute
-	maxSub := 10 * time.Minute
+	minSub := cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute
+	maxSub := cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute
 	maxRangeOffset := int64(maxSub - minSub)
 
 	original := randIntFn
@@ -55,7 +55,7 @@ func TestRandomizedNotBeforeNotAfterCA_BoundaryDurationSucceeds(t *testing.T) {
 
 	defer func() { randIntFn = original }()
 
-	_, _, err := randomizedNotBeforeNotAfterCA(time.Now().UTC(), 24*time.Hour, minSub, maxSub)
+	_, _, err := randomizedNotBeforeNotAfterCA(time.Now().UTC(), cryptoutilSharedMagic.HoursPerDay*time.Hour, minSub, maxSub)
 	require.NoError(t, err) // Original `>`: no error. Mutant `>=`: would error.
 }
 
@@ -65,8 +65,8 @@ func TestRandomizedNotBeforeNotAfterCA_BoundaryDurationSucceeds(t *testing.T) {
 func TestRandomizedNotBeforeNotAfterEndEntity_BoundaryDurationSucceeds(t *testing.T) {
 	t.Parallel()
 
-	minSub := 5 * time.Minute
-	maxSub := 10 * time.Minute
+	minSub := cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute
+	maxSub := cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute
 	maxRangeOffset := int64(maxSub - minSub)
 
 	original := randIntFn
@@ -78,7 +78,7 @@ func TestRandomizedNotBeforeNotAfterEndEntity_BoundaryDurationSucceeds(t *testin
 
 	defer func() { randIntFn = original }()
 
-	_, _, err := randomizedNotBeforeNotAfterEndEntity(time.Now().UTC(), 24*time.Hour, minSub, maxSub)
+	_, _, err := randomizedNotBeforeNotAfterEndEntity(time.Now().UTC(), cryptoutilSharedMagic.HoursPerDay*time.Hour, minSub, maxSub)
 	require.NoError(t, err) // Original `>`: no error. Mutant `>=`: would error.
 }
 
@@ -166,8 +166,8 @@ func TestBuildTLSCertificate_IntermediatePoolContents(t *testing.T) {
 	endEntity, err := CreateEndEntitySubject(
 		caSubjects[0], keyPairs[0], "Pool Test EE",
 		testEndEntityCertValidity396Days,
-		[]string{"localhost"},
-		[]net.IP{net.ParseIP("127.0.0.1")},
+		[]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault},
+		[]net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)},
 		nil, nil,
 		x509.KeyUsageDigitalSignature,
 		[]x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},

@@ -5,6 +5,7 @@
 package middleware
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -39,7 +40,7 @@ func TestNewJWTValidator(t *testing.T) {
 				CacheTTL:                  defaultJWKSCacheTTL * 2,
 				RequiredIssuer:            "https://issuer.example.com",
 				RequiredAudience:          "my-api",
-				AllowedAlgorithms:         []string{"RS256", "ES256"},
+				AllowedAlgorithms:         []string{cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilSharedMagic.JoseAlgES256},
 				RevocationCheckEnabled:    true,
 				IntrospectionURL:          "https://example.com/oauth2/introspect",
 				IntrospectionClientID:     "client-id",
@@ -71,7 +72,7 @@ func TestJWTClaims_HasScope(t *testing.T) {
 	t.Parallel()
 
 	claims := &JWTClaims{
-		Scopes: []string{"read", "write", "admin"},
+		Scopes: []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite, "admin"},
 	}
 
 	tests := []struct {
@@ -79,8 +80,8 @@ func TestJWTClaims_HasScope(t *testing.T) {
 		scope    string
 		expected bool
 	}{
-		{name: "has read scope", scope: "read", expected: true},
-		{name: "has write scope", scope: "write", expected: true},
+		{name: "has read scope", scope: cryptoutilSharedMagic.ScopeRead, expected: true},
+		{name: "has write scope", scope: cryptoutilSharedMagic.ScopeWrite, expected: true},
 		{name: "has admin scope", scope: "admin", expected: true},
 		{name: "missing delete scope", scope: "delete", expected: false},
 		{name: "empty scope", scope: "", expected: false},
@@ -100,7 +101,7 @@ func TestJWTClaims_HasAnyScope(t *testing.T) {
 	t.Parallel()
 
 	claims := &JWTClaims{
-		Scopes: []string{"read", "write"},
+		Scopes: []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
 	}
 
 	tests := []struct {
@@ -108,9 +109,9 @@ func TestJWTClaims_HasAnyScope(t *testing.T) {
 		scopes   []string
 		expected bool
 	}{
-		{name: "has one of the scopes", scopes: []string{"read", "admin"}, expected: true},
-		{name: "has exact match", scopes: []string{"read"}, expected: true},
-		{name: "has both scopes", scopes: []string{"read", "write"}, expected: true},
+		{name: "has one of the scopes", scopes: []string{cryptoutilSharedMagic.ScopeRead, "admin"}, expected: true},
+		{name: "has exact match", scopes: []string{cryptoutilSharedMagic.ScopeRead}, expected: true},
+		{name: "has both scopes", scopes: []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite}, expected: true},
 		{name: "has none of the scopes", scopes: []string{"admin", "delete"}, expected: false},
 		{name: "empty scopes", scopes: []string{}, expected: false},
 	}
@@ -129,7 +130,7 @@ func TestJWTClaims_HasAllScopes(t *testing.T) {
 	t.Parallel()
 
 	claims := &JWTClaims{
-		Scopes: []string{"read", "write", "admin"},
+		Scopes: []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite, "admin"},
 	}
 
 	tests := []struct {
@@ -137,9 +138,9 @@ func TestJWTClaims_HasAllScopes(t *testing.T) {
 		scopes   []string
 		expected bool
 	}{
-		{name: "has all scopes", scopes: []string{"read", "write"}, expected: true},
-		{name: "has single scope", scopes: []string{"read"}, expected: true},
-		{name: "missing one scope", scopes: []string{"read", "delete"}, expected: false},
+		{name: "has all scopes", scopes: []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite}, expected: true},
+		{name: "has single scope", scopes: []string{cryptoutilSharedMagic.ScopeRead}, expected: true},
+		{name: "missing one scope", scopes: []string{cryptoutilSharedMagic.ScopeRead, "delete"}, expected: false},
 		{name: "missing all scopes", scopes: []string{"delete", "execute"}, expected: false},
 		{name: "empty scopes (vacuously true)", scopes: []string{}, expected: true},
 	}
@@ -160,22 +161,22 @@ func TestDefaultAllowedAlgorithms(t *testing.T) {
 	algorithms := DefaultAllowedAlgorithms()
 
 	// Should contain FIPS-approved algorithms.
-	require.Contains(t, algorithms, "RS256")
-	require.Contains(t, algorithms, "RS384")
-	require.Contains(t, algorithms, "RS512")
-	require.Contains(t, algorithms, "ES256")
-	require.Contains(t, algorithms, "ES384")
-	require.Contains(t, algorithms, "ES512")
-	require.Contains(t, algorithms, "PS256")
-	require.Contains(t, algorithms, "PS384")
-	require.Contains(t, algorithms, "PS512")
-	require.Contains(t, algorithms, "EdDSA")
+	require.Contains(t, algorithms, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm)
+	require.Contains(t, algorithms, cryptoutilSharedMagic.JoseAlgRS384)
+	require.Contains(t, algorithms, cryptoutilSharedMagic.JoseAlgRS512)
+	require.Contains(t, algorithms, cryptoutilSharedMagic.JoseAlgES256)
+	require.Contains(t, algorithms, cryptoutilSharedMagic.JoseAlgES384)
+	require.Contains(t, algorithms, cryptoutilSharedMagic.JoseAlgES512)
+	require.Contains(t, algorithms, cryptoutilSharedMagic.JoseAlgPS256)
+	require.Contains(t, algorithms, cryptoutilSharedMagic.JoseAlgPS384)
+	require.Contains(t, algorithms, cryptoutilSharedMagic.JoseAlgPS512)
+	require.Contains(t, algorithms, cryptoutilSharedMagic.JoseAlgEdDSA)
 
 	// Should not contain non-FIPS algorithms.
-	require.NotContains(t, algorithms, "HS256")
-	require.NotContains(t, algorithms, "HS384")
-	require.NotContains(t, algorithms, "HS512")
-	require.NotContains(t, algorithms, "none")
+	require.NotContains(t, algorithms, cryptoutilSharedMagic.JoseAlgHS256)
+	require.NotContains(t, algorithms, cryptoutilSharedMagic.JoseAlgHS384)
+	require.NotContains(t, algorithms, cryptoutilSharedMagic.JoseAlgHS512)
+	require.NotContains(t, algorithms, cryptoutilSharedMagic.PromptNone)
 }
 
 func TestIsAlgorithmAllowed(t *testing.T) {
@@ -183,7 +184,7 @@ func TestIsAlgorithmAllowed(t *testing.T) {
 
 	validator, err := NewJWTValidator(JWTValidatorConfig{
 		JWKSURL:           "https://example.com/.well-known/jwks.json",
-		AllowedAlgorithms: []string{"RS256", "ES256"},
+		AllowedAlgorithms: []string{cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilSharedMagic.JoseAlgES256},
 	})
 	require.NoError(t, err)
 
@@ -192,10 +193,10 @@ func TestIsAlgorithmAllowed(t *testing.T) {
 		alg      string
 		expected bool
 	}{
-		{name: "RS256 allowed", alg: "RS256", expected: true},
-		{name: "ES256 allowed", alg: "ES256", expected: true},
-		{name: "RS384 not allowed", alg: "RS384", expected: false},
-		{name: "HS256 not allowed", alg: "HS256", expected: false},
+		{name: "RS256 allowed", alg: cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, expected: true},
+		{name: "ES256 allowed", alg: cryptoutilSharedMagic.JoseAlgES256, expected: true},
+		{name: "RS384 not allowed", alg: cryptoutilSharedMagic.JoseAlgRS384, expected: false},
+		{name: "HS256 not allowed", alg: cryptoutilSharedMagic.JoseAlgHS256, expected: false},
 		{name: "empty not allowed", alg: "", expected: false},
 	}
 
@@ -240,7 +241,7 @@ func TestShouldPerformRevocationCheck(t *testing.T) {
 				IntrospectionURL:    "https://example.com/introspect",
 				RevocationCheckMode: RevocationCheckDisabled,
 			},
-			claims:   &JWTClaims{Scopes: []string{"read"}},
+			claims:   &JWTClaims{Scopes: []string{cryptoutilSharedMagic.ScopeRead}},
 			expected: false,
 		},
 		{
@@ -250,7 +251,7 @@ func TestShouldPerformRevocationCheck(t *testing.T) {
 				IntrospectionURL:    "https://example.com/introspect",
 				RevocationCheckMode: RevocationCheckEveryRequest,
 			},
-			claims:   &JWTClaims{Scopes: []string{"read"}},
+			claims:   &JWTClaims{Scopes: []string{cryptoutilSharedMagic.ScopeRead}},
 			expected: true,
 		},
 		{
@@ -260,7 +261,7 @@ func TestShouldPerformRevocationCheck(t *testing.T) {
 				IntrospectionURL:    "https://example.com/introspect",
 				RevocationCheckMode: RevocationCheckSensitiveOnly,
 			},
-			claims:   &JWTClaims{Scopes: []string{"read", "write"}},
+			claims:   &JWTClaims{Scopes: []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite}},
 			expected: true,
 		},
 		{
@@ -270,7 +271,7 @@ func TestShouldPerformRevocationCheck(t *testing.T) {
 				IntrospectionURL:    "https://example.com/introspect",
 				RevocationCheckMode: RevocationCheckSensitiveOnly,
 			},
-			claims:   &JWTClaims{Scopes: []string{"read", "profile"}},
+			claims:   &JWTClaims{Scopes: []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ClaimProfile}},
 			expected: false,
 		},
 		{
@@ -281,7 +282,7 @@ func TestShouldPerformRevocationCheck(t *testing.T) {
 				RevocationCheckMode: RevocationCheckSensitiveOnly,
 				SensitiveScopes:     []string{"special:admin"},
 			},
-			claims:   &JWTClaims{Scopes: []string{"read", "special:admin"}},
+			claims:   &JWTClaims{Scopes: []string{cryptoutilSharedMagic.ScopeRead, "special:admin"}},
 			expected: true,
 		},
 		{
@@ -290,7 +291,7 @@ func TestShouldPerformRevocationCheck(t *testing.T) {
 				JWKSURL:             "https://example.com/.well-known/jwks.json",
 				RevocationCheckMode: RevocationCheckEveryRequest,
 			},
-			claims:   &JWTClaims{Scopes: []string{"read"}},
+			claims:   &JWTClaims{Scopes: []string{cryptoutilSharedMagic.ScopeRead}},
 			expected: false,
 		},
 		{
@@ -300,7 +301,7 @@ func TestShouldPerformRevocationCheck(t *testing.T) {
 				IntrospectionURL:       "https://example.com/introspect",
 				RevocationCheckEnabled: true,
 			},
-			claims:   &JWTClaims{Scopes: []string{"read"}},
+			claims:   &JWTClaims{Scopes: []string{cryptoutilSharedMagic.ScopeRead}},
 			expected: true,
 		},
 		{
@@ -310,7 +311,7 @@ func TestShouldPerformRevocationCheck(t *testing.T) {
 				IntrospectionURL:    "https://example.com/introspect",
 				RevocationCheckMode: RevocationCheckInterval,
 			},
-			claims:   &JWTClaims{Scopes: []string{"read"}},
+			claims:   &JWTClaims{Scopes: []string{cryptoutilSharedMagic.ScopeRead}},
 			expected: true,
 		},
 		{
@@ -320,7 +321,7 @@ func TestShouldPerformRevocationCheck(t *testing.T) {
 				IntrospectionURL:    "https://example.com/introspect",
 				RevocationCheckMode: "unknown-mode",
 			},
-			claims:   &JWTClaims{Scopes: []string{"read"}},
+			claims:   &JWTClaims{Scopes: []string{cryptoutilSharedMagic.ScopeRead}},
 			expected: false,
 		},
 	}
@@ -350,37 +351,37 @@ func TestHasSensitiveScope(t *testing.T) {
 		{
 			name:            "default sensitive scopes - has admin",
 			sensitiveScopes: nil,
-			claims:          &JWTClaims{Scopes: []string{"read", "admin"}},
+			claims:          &JWTClaims{Scopes: []string{cryptoutilSharedMagic.ScopeRead, "admin"}},
 			expected:        true,
 		},
 		{
 			name:            "default sensitive scopes - has write",
 			sensitiveScopes: nil,
-			claims:          &JWTClaims{Scopes: []string{"read", "write"}},
+			claims:          &JWTClaims{Scopes: []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite}},
 			expected:        true,
 		},
 		{
 			name:            "default sensitive scopes - has kms:admin",
 			sensitiveScopes: nil,
-			claims:          &JWTClaims{Scopes: []string{"read", "kms:admin"}},
+			claims:          &JWTClaims{Scopes: []string{cryptoutilSharedMagic.ScopeRead, "kms:admin"}},
 			expected:        true,
 		},
 		{
 			name:            "default sensitive scopes - read only",
 			sensitiveScopes: nil,
-			claims:          &JWTClaims{Scopes: []string{"read", "profile"}},
+			claims:          &JWTClaims{Scopes: []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ClaimProfile}},
 			expected:        false,
 		},
 		{
 			name:            "custom sensitive scopes - match",
 			sensitiveScopes: []string{"custom:write"},
-			claims:          &JWTClaims{Scopes: []string{"read", "custom:write"}},
+			claims:          &JWTClaims{Scopes: []string{cryptoutilSharedMagic.ScopeRead, "custom:write"}},
 			expected:        true,
 		},
 		{
 			name:            "custom sensitive scopes - no match",
 			sensitiveScopes: []string{"custom:write"},
-			claims:          &JWTClaims{Scopes: []string{"read", "write"}},
+			claims:          &JWTClaims{Scopes: []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite}},
 			expected:        false,
 		},
 	}

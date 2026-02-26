@@ -37,7 +37,7 @@ func TestInMemoryChallengeStore_StoreAndRetrieve(t *testing.T) {
 		ID:        challengeID,
 		UserID:    googleUuid.NewString(),
 		Method:    cryptoutilSharedMagic.AuthMethodSMSOTP,
-		ExpiresAt: time.Now().UTC().Add(5 * time.Minute),
+		ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 	}
 
 	// Store the challenge.
@@ -102,7 +102,7 @@ func TestInMemoryChallengeStore_Delete(t *testing.T) {
 		ID:        challengeID,
 		UserID:    googleUuid.NewString(),
 		Method:    cryptoutilSharedMagic.AuthMethodSMSOTP,
-		ExpiresAt: time.Now().UTC().Add(5 * time.Minute),
+		ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 	}
 
 	// Store the challenge.
@@ -146,7 +146,7 @@ func TestInMemoryChallengeStore_MultipleChallenges(t *testing.T) {
 			ID:        googleUuid.Must(googleUuid.NewV7()),
 			UserID:    googleUuid.NewString(),
 			Method:    cryptoutilSharedMagic.AuthMethodSMSOTP,
-			ExpiresAt: time.Now().UTC().Add(5 * time.Minute),
+			ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 		}
 		secrets[i] = googleUuid.NewString()
 
@@ -232,7 +232,7 @@ func TestInMemoryRateLimiter_ExceedMaxAttempts(t *testing.T) {
 	identifier := "test-user-lockout"
 
 	// Record max failed attempts (default is 5).
-	for range 5 {
+	for range cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries {
 		err := limiter.RecordAttempt(ctx, identifier, false)
 		require.NoError(t, err, "RecordAttempt should succeed")
 	}
@@ -252,7 +252,7 @@ func TestInMemoryRateLimiter_LockoutWithRemainingTime(t *testing.T) {
 	identifier := "test-user-lockout-time"
 
 	// Exceed max attempts to trigger lockout.
-	for range 5 {
+	for range cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries {
 		err := limiter.RecordAttempt(ctx, identifier, false)
 		require.NoError(t, err, "RecordAttempt should succeed")
 	}
@@ -273,7 +273,7 @@ func TestInMemoryRateLimiter_MultipleIdentifiers(t *testing.T) {
 	identifier2 := "user-2"
 
 	// Lock out identifier1.
-	for range 5 {
+	for range cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries {
 		err := limiter.RecordAttempt(ctx, identifier1, false)
 		require.NoError(t, err, "RecordAttempt should succeed for identifier1")
 	}

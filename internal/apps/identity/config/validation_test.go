@@ -5,6 +5,7 @@
 package config
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
 
@@ -24,11 +25,11 @@ func TestServerConfig_Validate(t *testing.T) {
 			name: "valid_minimal_config",
 			config: &ServerConfig{
 				Name:         "test-server",
-				BindAddress:  "127.0.0.1",
-				Port:         8080,
-				ReadTimeout:  30 * time.Second,
-				WriteTimeout: 30 * time.Second,
-				IdleTimeout:  120 * time.Second,
+				BindAddress:  cryptoutilSharedMagic.IPv4Loopback,
+				Port:         cryptoutilSharedMagic.DemoServerPort,
+				ReadTimeout:  cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second,
+				WriteTimeout: cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second,
+				IdleTimeout:  cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes * time.Second,
 			},
 			expectError: false,
 		},
@@ -36,14 +37,14 @@ func TestServerConfig_Validate(t *testing.T) {
 			name: "valid_with_tls",
 			config: &ServerConfig{
 				Name:         "test-server",
-				BindAddress:  "127.0.0.1",
-				Port:         8100,
+				BindAddress:  cryptoutilSharedMagic.IPv4Loopback,
+				Port:         cryptoutilSharedMagic.PKICAServicePort,
 				TLSEnabled:   true,
 				TLSCertFile:  "/path/to/cert.pem",
 				TLSKeyFile:   "/path/to/key.pem",
-				ReadTimeout:  30 * time.Second,
-				WriteTimeout: 30 * time.Second,
-				IdleTimeout:  120 * time.Second,
+				ReadTimeout:  cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second,
+				WriteTimeout: cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second,
+				IdleTimeout:  cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes * time.Second,
 			},
 			expectError: false,
 		},
@@ -51,14 +52,14 @@ func TestServerConfig_Validate(t *testing.T) {
 			name: "valid_with_admin",
 			config: &ServerConfig{
 				Name:             "test-server",
-				BindAddress:      "127.0.0.1",
-				Port:             8080,
+				BindAddress:      cryptoutilSharedMagic.IPv4Loopback,
+				Port:             cryptoutilSharedMagic.DemoServerPort,
 				AdminEnabled:     true,
-				AdminBindAddress: "127.0.0.1",
-				AdminPort:        9090,
-				ReadTimeout:      30 * time.Second,
-				WriteTimeout:     30 * time.Second,
-				IdleTimeout:      120 * time.Second,
+				AdminBindAddress: cryptoutilSharedMagic.IPv4Loopback,
+				AdminPort:        cryptoutilSharedMagic.JoseJAAdminPort,
+				ReadTimeout:      cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second,
+				WriteTimeout:     cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second,
+				IdleTimeout:      cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes * time.Second,
 			},
 			expectError: false,
 		},
@@ -66,8 +67,8 @@ func TestServerConfig_Validate(t *testing.T) {
 			name: "missing_name",
 			config: &ServerConfig{
 				Name:        "",
-				BindAddress: "127.0.0.1",
-				Port:        8080,
+				BindAddress: cryptoutilSharedMagic.IPv4Loopback,
+				Port:        cryptoutilSharedMagic.DemoServerPort,
 			},
 			expectError: true,
 			errorMsg:    "server name is required",
@@ -77,7 +78,7 @@ func TestServerConfig_Validate(t *testing.T) {
 			config: &ServerConfig{
 				Name:        "test-server",
 				BindAddress: "",
-				Port:        8080,
+				Port:        cryptoutilSharedMagic.DemoServerPort,
 			},
 			expectError: true,
 			errorMsg:    "bind address is required",
@@ -86,7 +87,7 @@ func TestServerConfig_Validate(t *testing.T) {
 			name: "invalid_port_zero",
 			config: &ServerConfig{
 				Name:        "test-server",
-				BindAddress: "127.0.0.1",
+				BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 				Port:        0,
 			},
 			expectError: true,
@@ -96,7 +97,7 @@ func TestServerConfig_Validate(t *testing.T) {
 			name: "invalid_port_negative",
 			config: &ServerConfig{
 				Name:        "test-server",
-				BindAddress: "127.0.0.1",
+				BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 				Port:        -1,
 			},
 			expectError: true,
@@ -106,7 +107,7 @@ func TestServerConfig_Validate(t *testing.T) {
 			name: "invalid_port_too_high",
 			config: &ServerConfig{
 				Name:        "test-server",
-				BindAddress: "127.0.0.1",
+				BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 				Port:        65536,
 			},
 			expectError: true,
@@ -116,8 +117,8 @@ func TestServerConfig_Validate(t *testing.T) {
 			name: "tls_enabled_missing_cert",
 			config: &ServerConfig{
 				Name:        "test-server",
-				BindAddress: "127.0.0.1",
-				Port:        8100,
+				BindAddress: cryptoutilSharedMagic.IPv4Loopback,
+				Port:        cryptoutilSharedMagic.PKICAServicePort,
 				TLSEnabled:  true,
 				TLSCertFile: "",
 				TLSKeyFile:  "/path/to/key.pem",
@@ -129,8 +130,8 @@ func TestServerConfig_Validate(t *testing.T) {
 			name: "tls_enabled_missing_key",
 			config: &ServerConfig{
 				Name:        "test-server",
-				BindAddress: "127.0.0.1",
-				Port:        8100,
+				BindAddress: cryptoutilSharedMagic.IPv4Loopback,
+				Port:        cryptoutilSharedMagic.PKICAServicePort,
 				TLSEnabled:  true,
 				TLSCertFile: "/path/to/cert.pem",
 				TLSKeyFile:  "",
@@ -142,11 +143,11 @@ func TestServerConfig_Validate(t *testing.T) {
 			name: "admin_enabled_missing_bind_address",
 			config: &ServerConfig{
 				Name:             "test-server",
-				BindAddress:      "127.0.0.1",
-				Port:             8080,
+				BindAddress:      cryptoutilSharedMagic.IPv4Loopback,
+				Port:             cryptoutilSharedMagic.DemoServerPort,
 				AdminEnabled:     true,
 				AdminBindAddress: "",
-				AdminPort:        9090,
+				AdminPort:        cryptoutilSharedMagic.JoseJAAdminPort,
 			},
 			expectError: true,
 			errorMsg:    "admin bind address is required when admin is enabled",
@@ -155,10 +156,10 @@ func TestServerConfig_Validate(t *testing.T) {
 			name: "admin_enabled_invalid_port_zero",
 			config: &ServerConfig{
 				Name:             "test-server",
-				BindAddress:      "127.0.0.1",
-				Port:             8080,
+				BindAddress:      cryptoutilSharedMagic.IPv4Loopback,
+				Port:             cryptoutilSharedMagic.DemoServerPort,
 				AdminEnabled:     true,
-				AdminBindAddress: "127.0.0.1",
+				AdminBindAddress: cryptoutilSharedMagic.IPv4Loopback,
 				AdminPort:        0,
 			},
 			expectError: true,
@@ -168,10 +169,10 @@ func TestServerConfig_Validate(t *testing.T) {
 			name: "admin_enabled_invalid_port_negative",
 			config: &ServerConfig{
 				Name:             "test-server",
-				BindAddress:      "127.0.0.1",
-				Port:             8080,
+				BindAddress:      cryptoutilSharedMagic.IPv4Loopback,
+				Port:             cryptoutilSharedMagic.DemoServerPort,
 				AdminEnabled:     true,
-				AdminBindAddress: "127.0.0.1",
+				AdminBindAddress: cryptoutilSharedMagic.IPv4Loopback,
 				AdminPort:        -1,
 			},
 			expectError: true,
@@ -181,10 +182,10 @@ func TestServerConfig_Validate(t *testing.T) {
 			name: "admin_enabled_invalid_port_too_high",
 			config: &ServerConfig{
 				Name:             "test-server",
-				BindAddress:      "127.0.0.1",
-				Port:             8080,
+				BindAddress:      cryptoutilSharedMagic.IPv4Loopback,
+				Port:             cryptoutilSharedMagic.DemoServerPort,
 				AdminEnabled:     true,
-				AdminBindAddress: "127.0.0.1",
+				AdminBindAddress: cryptoutilSharedMagic.IPv4Loopback,
 				AdminPort:        65536,
 			},
 			expectError: true,
@@ -219,9 +220,9 @@ func TestDatabaseConfig_Validate(t *testing.T) {
 		{
 			name: "valid_sqlite",
 			config: &DatabaseConfig{
-				Type:         "sqlite",
-				DSN:          ":memory:",
-				MaxOpenConns: 5,
+				Type:         cryptoutilSharedMagic.TestDatabaseSQLite,
+				DSN:          cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
+				MaxOpenConns: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 				MaxIdleConns: 2,
 			},
 			expectError: false,
@@ -229,10 +230,10 @@ func TestDatabaseConfig_Validate(t *testing.T) {
 		{
 			name: "valid_postgres",
 			config: &DatabaseConfig{
-				Type:         "postgres",
+				Type:         cryptoutilSharedMagic.DockerServicePostgres,
 				DSN:          "postgres://user:pass@localhost/db",
-				MaxOpenConns: 25,
-				MaxIdleConns: 10,
+				MaxOpenConns: cryptoutilSharedMagic.TLSMaxValidityCACertYears,
+				MaxIdleConns: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 			},
 			expectError: false,
 		},
@@ -240,8 +241,8 @@ func TestDatabaseConfig_Validate(t *testing.T) {
 			name: "missing_type",
 			config: &DatabaseConfig{
 				Type:         "",
-				DSN:          ":memory:",
-				MaxOpenConns: 5,
+				DSN:          cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
+				MaxOpenConns: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 				MaxIdleConns: 2,
 			},
 			expectError: true,
@@ -252,8 +253,8 @@ func TestDatabaseConfig_Validate(t *testing.T) {
 			config: &DatabaseConfig{
 				Type:         "mysql",
 				DSN:          "mysql://user:pass@localhost/db",
-				MaxOpenConns: 25,
-				MaxIdleConns: 10,
+				MaxOpenConns: cryptoutilSharedMagic.TLSMaxValidityCACertYears,
+				MaxIdleConns: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 			},
 			expectError: true,
 			errorMsg:    "database type must be 'postgres' or 'sqlite'",
@@ -261,9 +262,9 @@ func TestDatabaseConfig_Validate(t *testing.T) {
 		{
 			name: "missing_dsn",
 			config: &DatabaseConfig{
-				Type:         "sqlite",
+				Type:         cryptoutilSharedMagic.TestDatabaseSQLite,
 				DSN:          "",
-				MaxOpenConns: 5,
+				MaxOpenConns: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 				MaxIdleConns: 2,
 			},
 			expectError: true,
@@ -272,8 +273,8 @@ func TestDatabaseConfig_Validate(t *testing.T) {
 		{
 			name: "invalid_max_open_conns_zero",
 			config: &DatabaseConfig{
-				Type:         "sqlite",
-				DSN:          ":memory:",
+				Type:         cryptoutilSharedMagic.TestDatabaseSQLite,
+				DSN:          cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 				MaxOpenConns: 0,
 				MaxIdleConns: 2,
 			},
@@ -283,8 +284,8 @@ func TestDatabaseConfig_Validate(t *testing.T) {
 		{
 			name: "invalid_max_open_conns_negative",
 			config: &DatabaseConfig{
-				Type:         "sqlite",
-				DSN:          ":memory:",
+				Type:         cryptoutilSharedMagic.TestDatabaseSQLite,
+				DSN:          cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 				MaxOpenConns: -1,
 				MaxIdleConns: 2,
 			},
@@ -294,9 +295,9 @@ func TestDatabaseConfig_Validate(t *testing.T) {
 		{
 			name: "invalid_max_idle_conns_zero",
 			config: &DatabaseConfig{
-				Type:         "sqlite",
-				DSN:          ":memory:",
-				MaxOpenConns: 5,
+				Type:         cryptoutilSharedMagic.TestDatabaseSQLite,
+				DSN:          cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
+				MaxOpenConns: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 				MaxIdleConns: 0,
 			},
 			expectError: true,
@@ -305,9 +306,9 @@ func TestDatabaseConfig_Validate(t *testing.T) {
 		{
 			name: "invalid_max_idle_conns_negative",
 			config: &DatabaseConfig{
-				Type:         "sqlite",
-				DSN:          ":memory:",
-				MaxOpenConns: 5,
+				Type:         cryptoutilSharedMagic.TestDatabaseSQLite,
+				DSN:          cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
+				MaxOpenConns: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 				MaxIdleConns: -1,
 			},
 			expectError: true,
@@ -316,10 +317,10 @@ func TestDatabaseConfig_Validate(t *testing.T) {
 		{
 			name: "idle_exceeds_max_open",
 			config: &DatabaseConfig{
-				Type:         "sqlite",
-				DSN:          ":memory:",
-				MaxOpenConns: 5,
-				MaxIdleConns: 10,
+				Type:         cryptoutilSharedMagic.TestDatabaseSQLite,
+				DSN:          cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
+				MaxOpenConns: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
+				MaxIdleConns: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 			},
 			expectError: true,
 			errorMsg:    "max idle connections cannot exceed max open connections",

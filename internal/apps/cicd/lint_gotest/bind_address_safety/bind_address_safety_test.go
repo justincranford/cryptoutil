@@ -3,6 +3,7 @@
 package bind_address_safety
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -137,7 +138,7 @@ func TestExample(t *testing.T) {
 			tempDir := t.TempDir()
 			tempFile := filepath.Join(tempDir, "test_file_test.go")
 
-			err := os.WriteFile(tempFile, []byte(tt.fileContent), 0o600)
+			err := os.WriteFile(tempFile, []byte(tt.fileContent), cryptoutilSharedMagic.CacheFilePermissions)
 			require.NoError(t, err, "Failed to create temp test file")
 
 			// Run linter.
@@ -175,7 +176,7 @@ func TestExample(t *testing.T) {
 	listener, _ := net.Listen("tcp", ":0")
 }`,
 			wantIssues:   4, // 1 direct 0.0.0.0 + 2 blank binds + 1 net.Listen.
-			issuePattern: "0.0.0.0",
+			issuePattern: cryptoutilSharedMagic.IPv4AnyAddress,
 		},
 		{
 			name: "no_violations",
@@ -198,7 +199,7 @@ func TestExample(t *testing.T) {
 			tempDir := t.TempDir()
 			tempFile := filepath.Join(tempDir, "test_file_test.go")
 
-			err := os.WriteFile(tempFile, []byte(tt.fileContent), 0o600)
+			err := os.WriteFile(tempFile, []byte(tt.fileContent), cryptoutilSharedMagic.CacheFilePermissions)
 			require.NoError(t, err)
 
 			// Check file directly.
@@ -241,7 +242,7 @@ func TestEnforceBindAddressSafety_FilteredFiles(t *testing.T) {
 	// Create a file that matches the filtering pattern.
 	configTestFile := filepath.Join(tmpDir, "config_test.go")
 	content := "package example\n\nfunc TestConfig(t *testing.T) {}\n"
-	err := os.WriteFile(configTestFile, []byte(content), 0o600)
+	err := os.WriteFile(configTestFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")

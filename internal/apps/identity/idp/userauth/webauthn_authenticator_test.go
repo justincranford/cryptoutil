@@ -11,6 +11,7 @@
 package userauth
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -199,7 +200,7 @@ func TestWebAuthnAuthenticator_BeginRegistration(t *testing.T) {
 					UserID:          userID2.String(),
 					Type:            CredentialTypePasskey,
 					PublicKey:       []byte("stub-public-key"),
-					AttestationType: "none",
+					AttestationType: cryptoutilSharedMagic.PromptNone,
 					SignCount:       1,
 				},
 			},
@@ -280,8 +281,8 @@ func TestWebAuthnAuthenticator_InitiateAuth(t *testing.T) {
 					UserID:          userID1,
 					Type:            CredentialTypePasskey,
 					PublicKey:       []byte("stub-public-key"),
-					AttestationType: "none",
-					SignCount:       5,
+					AttestationType: cryptoutilSharedMagic.PromptNone,
+					SignCount:       cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 				},
 			},
 			wantError: false,
@@ -371,7 +372,7 @@ func TestWebAuthnAuthenticator_ChallengeExpiration(t *testing.T) {
 	require.NotNil(t, creation)
 
 	// Wait for challenge to expire.
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond)
 
 	// Attempt to finish registration with expired challenge (would need real credentialCreationResponse).
 	// For now, just verify challenge is expired by checking InitiateAuth with no credentials.

@@ -68,7 +68,7 @@ func (c *CleanupService) runCleanup(ctx context.Context) {
 	slog.InfoContext(ctx, "Starting token cleanup")
 
 	if err := tokenRepo.DeleteExpired(ctx); err != nil {
-		slog.ErrorContext(ctx, "Token cleanup failed", "error", err)
+		slog.ErrorContext(ctx, "Token cleanup failed", cryptoutilSharedMagic.StringError, err)
 
 		return
 	}

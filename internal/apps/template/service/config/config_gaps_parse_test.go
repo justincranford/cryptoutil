@@ -83,7 +83,7 @@ func TestParseWithFlagSet_ConfigFileReadError(t *testing.T) {
 	// Create a directory (not a file) to cause read error.
 	tmpDir := t.TempDir()
 	configDir := filepath.Join(tmpDir, "config-dir.yml")
-	err := os.MkdirAll(configDir, 0o755)
+	err := os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
@@ -108,7 +108,7 @@ func TestParseWithFlagSet_ConfigFileInvalidYAML(t *testing.T) {
 dev: true
 bind-public-address: [this is invalid YAML
 `
-	err := os.WriteFile(configPath, []byte(invalidYAML), 0o600)
+	err := os.WriteFile(configPath, []byte(invalidYAML), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
@@ -132,7 +132,7 @@ func TestParseWithFlagSet_MultipleConfigFiles(t *testing.T) {
 dev: true
 bind-public-address: 127.0.0.1
 `
-	err := os.WriteFile(config1Path, []byte(config1), 0o600)
+	err := os.WriteFile(config1Path, []byte(config1), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Create second config file.
@@ -140,7 +140,7 @@ bind-public-address: 127.0.0.1
 	config2 := `
 bind-public-port: 9999
 `
-	err = os.WriteFile(config2Path, []byte(config2), 0o600)
+	err = os.WriteFile(config2Path, []byte(config2), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
@@ -164,7 +164,7 @@ func TestParseWithFlagSet_MergeConfigFileError(t *testing.T) {
 	config1 := `
 dev: true
 `
-	err := os.WriteFile(config1Path, []byte(config1), 0o600)
+	err := os.WriteFile(config1Path, []byte(config1), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Create second config file with invalid YAML.
@@ -172,7 +172,7 @@ dev: true
 	config2Invalid := `
 bind-public-port: [invalid yaml syntax
 `
-	err = os.WriteFile(config2Path, []byte(config2Invalid), 0o600)
+	err = os.WriteFile(config2Path, []byte(config2Invalid), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
@@ -190,7 +190,7 @@ func TestNewForJOSEServer_PanicOnInvalidArgs(t *testing.T) {
 
 	// In dev mode, IPv4AnyAddress is rejected, so this should cause a validation error and panic
 	require.Panics(t, func() {
-		NewForJOSEServer(cryptoutilSharedMagic.IPv4AnyAddress, 8080, true)
+		NewForJOSEServer(cryptoutilSharedMagic.IPv4AnyAddress, cryptoutilSharedMagic.DemoServerPort, true)
 	})
 }
 
@@ -203,7 +203,7 @@ func TestNewForCAServer_PanicOnInvalidArgs(t *testing.T) {
 
 	// In dev mode, IPv4AnyAddress is rejected, so this should cause a validation error and panic
 	require.Panics(t, func() {
-		NewForCAServer(cryptoutilSharedMagic.IPv4AnyAddress, 8080, true)
+		NewForCAServer(cryptoutilSharedMagic.IPv4AnyAddress, cryptoutilSharedMagic.DemoServerPort, true)
 	})
 }
 
@@ -213,11 +213,11 @@ func TestNewForJOSEServer_HappyPath(t *testing.T) {
 	resetFlags()
 
 	// Valid address should succeed
-	settings := NewForJOSEServer("127.0.0.1", 8080, true)
+	settings := NewForJOSEServer(cryptoutilSharedMagic.IPv4Loopback, cryptoutilSharedMagic.DemoServerPort, true)
 	require.NotNil(t, settings)
-	require.Equal(t, "127.0.0.1", settings.BindPublicAddress)
-	require.Equal(t, uint16(8080), settings.BindPublicPort)
-	require.Equal(t, "jose-ja", settings.OTLPService)
+	require.Equal(t, cryptoutilSharedMagic.IPv4Loopback, settings.BindPublicAddress)
+	require.Equal(t, uint16(cryptoutilSharedMagic.DemoServerPort), settings.BindPublicPort)
+	require.Equal(t, cryptoutilSharedMagic.OTLPServiceJoseJA, settings.OTLPService)
 }
 
 // TestParseWithFlagSet_ValidationError tests that validation errors propagate correctly.
@@ -242,9 +242,9 @@ func TestParseWithFlagSet_EmptyTLSMode(t *testing.T) {
 tls-public-mode: ""
 tls-private-mode: ""
 `
-	require.NoError(t, os.WriteFile(configFile, []byte(configContent), 0o600))
+	require.NoError(t, os.WriteFile(configFile, []byte(configContent), cryptoutilSharedMagic.CacheFilePermissions))
 
-	args := []string{"start", "--config", configFile}
+	args := []string{"start", cryptoutilSharedMagic.IdentityCLIFlagConfig, configFile}
 	s, err := Parse(args, true)
 	require.NoError(t, err)
 	// Empty TLS mode should get default (self_signed for dev mode)
@@ -258,9 +258,9 @@ func TestNewForCAServer_HappyPath(t *testing.T) {
 	resetFlags()
 
 	// Valid address should succeed
-	settings := NewForCAServer("127.0.0.1", 8080, true)
+	settings := NewForCAServer(cryptoutilSharedMagic.IPv4Loopback, cryptoutilSharedMagic.DemoServerPort, true)
 	require.NotNil(t, settings)
-	require.Equal(t, "127.0.0.1", settings.BindPublicAddress)
-	require.Equal(t, uint16(8080), settings.BindPublicPort)
-	require.Equal(t, "pki-ca", settings.OTLPService)
+	require.Equal(t, cryptoutilSharedMagic.IPv4Loopback, settings.BindPublicAddress)
+	require.Equal(t, uint16(cryptoutilSharedMagic.DemoServerPort), settings.BindPublicPort)
+	require.Equal(t, cryptoutilSharedMagic.OTLPServicePKICA, settings.OTLPService)
 }

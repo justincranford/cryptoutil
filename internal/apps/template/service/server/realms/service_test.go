@@ -4,6 +4,7 @@
 package realms
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	"testing"
@@ -140,7 +141,7 @@ func TestRegisterUser_UsernameTooLong(t *testing.T) {
 	svc := NewUserService(repo, factory)
 
 	ctx := context.Background()
-	longUsername := "a" + string(make([]byte, 50)) // 51 characters
+	longUsername := "a" + string(make([]byte, cryptoutilSharedMagic.IMMaxUsernameLength)) // 51 characters
 	user, err := svc.RegisterUser(ctx, longUsername, "SecurePass123!")
 
 	require.Error(t, err)

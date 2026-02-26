@@ -3,6 +3,7 @@
 package digests
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"testing"
 
@@ -33,7 +34,7 @@ func TestSHA256Invariants(t *testing.T) {
 		func(input []byte) bool {
 			hash := SHA256(input)
 
-			return len(hash) == 32
+			return len(hash) == cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes
 		},
 		gen.SliceOf(gen.UInt8()),
 	))

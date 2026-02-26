@@ -5,6 +5,7 @@
 package cmd
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	json "encoding/json"
 	"fmt"
 	"os"
@@ -20,7 +21,7 @@ func NewStatusCommand() *cobra.Command {
 	var jsonOutput bool
 
 	cmd := &cobra.Command{
-		Use:   "status",
+		Use:   cryptoutilSharedMagic.StringStatus,
 		Short: "Show status of identity services",
 		Long: `Show running status, PID, uptime, and health of all identity services.
 
@@ -45,7 +46,7 @@ Examples:
 			}
 
 			// Check status of each service
-			services := []string{"authz", "idp", "rs"}
+			services := []string{cryptoutilSharedMagic.AuthzServiceName, cryptoutilSharedMagic.IDPServiceName, "rs"}
 
 			type ServiceStatus struct {
 				Name    string `json:"name"`
@@ -84,7 +85,7 @@ Examples:
 					pidStr := "-"
 
 					if s.Running {
-						statusStr = "running"
+						statusStr = cryptoutilSharedMagic.DockerServiceStateRunning
 
 						if s.PID > 0 {
 							pidStr = fmt.Sprintf("%d", s.PID)

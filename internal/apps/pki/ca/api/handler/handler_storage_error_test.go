@@ -3,6 +3,7 @@
 package handler
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"context"
 	"errors"
@@ -332,7 +333,7 @@ func TestSubmitEnrollment_ErrorPaths(t *testing.T) {
 				issuer:            testSetup.Issuer,
 				storage:           cryptoutilCAStorage.NewMemoryStore(),
 				profiles:          profiles,
-				enrollmentTracker: newEnrollmentTracker(100),
+				enrollmentTracker: newEnrollmentTracker(cryptoutilSharedMagic.JoseJAMaxMaterials),
 			}
 
 			app := fiber.New()

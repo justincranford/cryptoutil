@@ -55,11 +55,11 @@ func TestPublicHTTPServer_ServiceHealth_DuringShutdown(t *testing.T) {
 				InsecureSkipVerify: true, //nolint:gosec // Test server uses self-signed cert.
 			},
 		},
-		Timeout: 5 * time.Second,
+		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}
 
 	// Trigger shutdown.
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer shutdownCancel()
 
 	err = server.Shutdown(shutdownCtx)
@@ -84,7 +84,7 @@ func TestPublicHTTPServer_ServiceHealth_DuringShutdown(t *testing.T) {
 
 			_ = json.Unmarshal(body, &result)
 
-			require.Equal(t, "shutting down", result["status"])
+			require.Equal(t, "shutting down", result[cryptoutilSharedMagic.StringStatus])
 		}
 	}
 
@@ -92,7 +92,7 @@ func TestPublicHTTPServer_ServiceHealth_DuringShutdown(t *testing.T) {
 	wg.Wait()
 
 	// Wait for port to be fully released.
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP * time.Millisecond)
 }
 
 // TestPublicHTTPServer_BrowserHealth_DuringShutdown tests browser health during shutdown.
@@ -128,11 +128,11 @@ func TestPublicHTTPServer_BrowserHealth_DuringShutdown(t *testing.T) {
 				InsecureSkipVerify: true, //nolint:gosec // Test server uses self-signed cert.
 			},
 		},
-		Timeout: 5 * time.Second,
+		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}
 
 	// Trigger shutdown.
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer shutdownCancel()
 
 	err = server.Shutdown(shutdownCtx)
@@ -157,7 +157,7 @@ func TestPublicHTTPServer_BrowserHealth_DuringShutdown(t *testing.T) {
 
 			_ = json.Unmarshal(body, &result)
 
-			require.Equal(t, "shutting down", result["status"])
+			require.Equal(t, "shutting down", result[cryptoutilSharedMagic.StringStatus])
 		}
 	}
 
@@ -165,7 +165,7 @@ func TestPublicHTTPServer_BrowserHealth_DuringShutdown(t *testing.T) {
 	wg.Wait()
 
 	// Wait for port to be fully released.
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP * time.Millisecond)
 }
 
 // TestPublicHTTPServer_Shutdown_DoubleCall tests calling Shutdown twice returns error.
@@ -210,8 +210,8 @@ func TestPublicHTTPServer_PublicBaseURL(t *testing.T) {
 	// Wait for server to be ready with retry logic.
 	var port int
 
-	for i := 0; i < 10; i++ {
-		time.Sleep(50 * time.Millisecond)
+	for i := 0; i < cryptoutilSharedMagic.JoseJADefaultMaxMaterials; i++ {
+		time.Sleep(cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond)
 
 		port = server.ActualPort()
 		if port > 0 {
@@ -227,7 +227,7 @@ func TestPublicHTTPServer_PublicBaseURL(t *testing.T) {
 	require.Equal(t, expectedURL, baseURL)
 
 	// Shutdown server.
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer shutdownCancel()
 
 	err = server.Shutdown(shutdownCtx)
@@ -236,7 +236,7 @@ func TestPublicHTTPServer_PublicBaseURL(t *testing.T) {
 	wg.Wait()
 
 	// Wait for port to be fully released.
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP * time.Millisecond)
 }
 
 // TestPublicHTTPServer_ServiceHealth_DuringShutdown_InMemory tests that /service/api/v1/health returns 503 during shutdown.
@@ -254,7 +254,7 @@ func TestPublicHTTPServer_ServiceHealth_DuringShutdown_InMemory(t *testing.T) {
 	require.NoError(t, err)
 
 	// Use app.Test() to make in-memory request after shutdown.
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/service/api/v1/health", nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, cryptoutilSharedMagic.IdentityE2EHealthEndpoint, nil)
 	require.NoError(t, err)
 
 	resp, err := server.App().Test(req, -1)
@@ -275,7 +275,7 @@ func TestPublicHTTPServer_ServiceHealth_DuringShutdown_InMemory(t *testing.T) {
 
 	err = json.Unmarshal(body, &result)
 	require.NoError(t, err)
-	require.Equal(t, "shutting down", result["status"])
+	require.Equal(t, "shutting down", result[cryptoutilSharedMagic.StringStatus])
 }
 
 // TestPublicHTTPServer_BrowserHealth_DuringShutdown_InMemory tests that /browser/api/v1/health returns 503 during shutdown.
@@ -314,7 +314,7 @@ func TestPublicHTTPServer_BrowserHealth_DuringShutdown_InMemory(t *testing.T) {
 
 	err = json.Unmarshal(body, &result)
 	require.NoError(t, err)
-	require.Equal(t, "shutting down", result["status"])
+	require.Equal(t, "shutting down", result[cryptoutilSharedMagic.StringStatus])
 }
 
 // TestPublicHTTPServer_Shutdown_Idempotent tests that shutdown behavior is consistent.

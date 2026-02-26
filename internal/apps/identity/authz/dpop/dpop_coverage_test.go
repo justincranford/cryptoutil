@@ -3,6 +3,7 @@
 package dpop
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
 	crand "crypto/rand"
@@ -34,10 +35,10 @@ func buildBaseToken(t *testing.T) joseJwt.Token {
 	t.Helper()
 
 	token := joseJwt.New()
-	require.NoError(t, token.Set("jti", "test-jti"))
+	require.NoError(t, token.Set(cryptoutilSharedMagic.ClaimJti, "test-jti"))
 	require.NoError(t, token.Set("htm", "POST"))
 	require.NoError(t, token.Set("htu", "https://example.com/token"))
-	require.NoError(t, token.Set("iat", time.Now().UTC().Unix()))
+	require.NoError(t, token.Set(cryptoutilSharedMagic.ClaimIat, time.Now().UTC().Unix()))
 
 	return token
 }
@@ -149,7 +150,7 @@ func TestValidateProof_MissingJTI(t *testing.T) {
 	token := joseJwt.New()
 	require.NoError(t, token.Set("htm", "POST"))
 	require.NoError(t, token.Set("htu", "https://example.com/token"))
-	require.NoError(t, token.Set("iat", time.Now().UTC().Unix()))
+	require.NoError(t, token.Set(cryptoutilSharedMagic.ClaimIat, time.Now().UTC().Unix()))
 
 	headers := buildValidHeaders(t, publicKey)
 	dpopHeader := buildProofWithHeaders(t, privateKey, token, headers)
@@ -167,9 +168,9 @@ func TestValidateProof_MissingHTM(t *testing.T) {
 
 	// Build token without htm.
 	token := joseJwt.New()
-	require.NoError(t, token.Set("jti", "test-jti"))
+	require.NoError(t, token.Set(cryptoutilSharedMagic.ClaimJti, "test-jti"))
 	require.NoError(t, token.Set("htu", "https://example.com/token"))
-	require.NoError(t, token.Set("iat", time.Now().UTC().Unix()))
+	require.NoError(t, token.Set(cryptoutilSharedMagic.ClaimIat, time.Now().UTC().Unix()))
 
 	headers := buildValidHeaders(t, publicKey)
 	dpopHeader := buildProofWithHeaders(t, privateKey, token, headers)
@@ -187,9 +188,9 @@ func TestValidateProof_MissingHTU(t *testing.T) {
 
 	// Build token without htu.
 	token := joseJwt.New()
-	require.NoError(t, token.Set("jti", "test-jti"))
+	require.NoError(t, token.Set(cryptoutilSharedMagic.ClaimJti, "test-jti"))
 	require.NoError(t, token.Set("htm", "POST"))
-	require.NoError(t, token.Set("iat", time.Now().UTC().Unix()))
+	require.NoError(t, token.Set(cryptoutilSharedMagic.ClaimIat, time.Now().UTC().Unix()))
 
 	headers := buildValidHeaders(t, publicKey)
 	dpopHeader := buildProofWithHeaders(t, privateKey, token, headers)
@@ -207,7 +208,7 @@ func TestValidateProof_MissingIAT(t *testing.T) {
 
 	// Build token without iat.
 	token := joseJwt.New()
-	require.NoError(t, token.Set("jti", "test-jti"))
+	require.NoError(t, token.Set(cryptoutilSharedMagic.ClaimJti, "test-jti"))
 	require.NoError(t, token.Set("htm", "POST"))
 	require.NoError(t, token.Set("htu", "https://example.com/token"))
 	// Intentionally omit iat
@@ -228,10 +229,10 @@ func TestValidateProof_FutureIAT(t *testing.T) {
 
 	// Build token with iat 10 minutes in the future.
 	token := joseJwt.New()
-	require.NoError(t, token.Set("jti", "test-jti"))
+	require.NoError(t, token.Set(cryptoutilSharedMagic.ClaimJti, "test-jti"))
 	require.NoError(t, token.Set("htm", "POST"))
 	require.NoError(t, token.Set("htu", "https://example.com/token"))
-	require.NoError(t, token.Set("iat", time.Now().UTC().Add(10*time.Minute).Unix()))
+	require.NoError(t, token.Set(cryptoutilSharedMagic.ClaimIat, time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Minute).Unix()))
 
 	headers := buildValidHeaders(t, publicKey)
 	dpopHeader := buildProofWithHeaders(t, privateKey, token, headers)
@@ -249,10 +250,10 @@ func TestValidateProof_OldIAT(t *testing.T) {
 
 	// Build token with iat 10 minutes in the past.
 	token := joseJwt.New()
-	require.NoError(t, token.Set("jti", "test-jti"))
+	require.NoError(t, token.Set(cryptoutilSharedMagic.ClaimJti, "test-jti"))
 	require.NoError(t, token.Set("htm", "POST"))
 	require.NoError(t, token.Set("htu", "https://example.com/token"))
-	require.NoError(t, token.Set("iat", time.Now().UTC().Add(-10*time.Minute).Unix()))
+	require.NoError(t, token.Set(cryptoutilSharedMagic.ClaimIat, time.Now().UTC().Add(-cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Minute).Unix()))
 
 	headers := buildValidHeaders(t, publicKey)
 	dpopHeader := buildProofWithHeaders(t, privateKey, token, headers)
@@ -313,7 +314,7 @@ func TestIsDPoPBound_CNFWithoutJKT(t *testing.T) {
 	require.NoError(t, err)
 
 	token := joseJwt.New()
-	require.NoError(t, token.Set("sub", "test-subject"))
+	require.NoError(t, token.Set(cryptoutilSharedMagic.ClaimSub, "test-subject"))
 	require.NoError(t, token.Set("cnf", map[string]any{"x5t#S256": "some-thumbprint"})) // cnf with no jkt
 
 	signed, err := joseJwt.Sign(token, joseJwt.WithKey(joseJwa.ES256(), privateKey))
@@ -334,7 +335,7 @@ func TestIsDPoPBound_CNFJKTNotString(t *testing.T) {
 	require.NoError(t, err)
 
 	token := joseJwt.New()
-	require.NoError(t, token.Set("sub", "test-subject"))
+	require.NoError(t, token.Set(cryptoutilSharedMagic.ClaimSub, "test-subject"))
 	require.NoError(t, token.Set("cnf", map[string]any{"jkt": 12345})) // non-string jkt
 
 	signed, err := joseJwt.Sign(token, joseJwt.WithKey(joseJwa.ES256(), privateKey))

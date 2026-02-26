@@ -6,6 +6,7 @@
 package realm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	json "encoding/json"
 	"errors"
@@ -257,7 +258,7 @@ func (m *FederationManager) DiscoverOIDC(ctx context.Context, providerID string)
 	}
 
 	// Fetch discovery document.
-	discoveryURL := strings.TrimSuffix(provider.IssuerURL, "/") + "/.well-known/openid-configuration"
+	discoveryURL := strings.TrimSuffix(provider.IssuerURL, "/") + cryptoutilSharedMagic.PathDiscovery
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, discoveryURL, nil)
 	if err != nil {

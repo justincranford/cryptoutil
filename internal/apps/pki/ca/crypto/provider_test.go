@@ -5,6 +5,7 @@
 package crypto
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto"
 	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
@@ -30,7 +31,7 @@ func TestSoftwareProvider_GenerateKeyPair(t *testing.T) {
 	}{
 		{
 			name:    "RSA-2048",
-			spec:    KeySpec{Type: KeyTypeRSA, RSABits: 2048},
+			spec:    KeySpec{Type: KeyTypeRSA, RSABits: cryptoutilSharedMagic.DefaultMetricsBatchSize},
 			wantErr: false,
 			checkType: func(t *testing.T, kp *KeyPair) {
 				t.Helper()
@@ -43,7 +44,7 @@ func TestSoftwareProvider_GenerateKeyPair(t *testing.T) {
 		},
 		{
 			name:    "RSA-4096",
-			spec:    KeySpec{Type: KeyTypeRSA, RSABits: 4096},
+			spec:    KeySpec{Type: KeyTypeRSA, RSABits: cryptoutilSharedMagic.RSA4096KeySize},
 			wantErr: false,
 			checkType: func(t *testing.T, kp *KeyPair) {
 				t.Helper()
@@ -55,7 +56,7 @@ func TestSoftwareProvider_GenerateKeyPair(t *testing.T) {
 		},
 		{
 			name:        "RSA-1024-too-small",
-			spec:        KeySpec{Type: KeyTypeRSA, RSABits: 1024},
+			spec:        KeySpec{Type: KeyTypeRSA, RSABits: cryptoutilSharedMagic.DefaultLogsBatchSize},
 			wantErr:     true,
 			errContains: "at least",
 		},
@@ -103,7 +104,7 @@ func TestSoftwareProvider_GenerateKeyPair(t *testing.T) {
 		},
 		{
 			name:    "EdDSA-Ed25519",
-			spec:    KeySpec{Type: KeyTypeEdDSA, EdDSACurve: "Ed25519"},
+			spec:    KeySpec{Type: KeyTypeEdDSA, EdDSACurve: cryptoutilSharedMagic.EdCurveEd25519},
 			wantErr: false,
 			checkType: func(t *testing.T, kp *KeyPair) {
 				t.Helper()
@@ -111,7 +112,7 @@ func TestSoftwareProvider_GenerateKeyPair(t *testing.T) {
 				_, ok := kp.PrivateKey.(ed25519.PrivateKey)
 				require.True(t, ok, "expected Ed25519 private key")
 				require.Equal(t, KeyTypeEdDSA, kp.Type)
-				require.Equal(t, "Ed25519", kp.Algorithm)
+				require.Equal(t, cryptoutilSharedMagic.EdCurveEd25519, kp.Algorithm)
 			},
 		},
 		{
@@ -160,7 +161,7 @@ func TestSoftwareProvider_SignAndVerify(t *testing.T) {
 	}{
 		{
 			name: "RSA-SHA256",
-			spec: KeySpec{Type: KeyTypeRSA, RSABits: 2048},
+			spec: KeySpec{Type: KeyTypeRSA, RSABits: cryptoutilSharedMagic.DefaultMetricsBatchSize},
 			opts: crypto.SHA256,
 		},
 		{
@@ -215,8 +216,8 @@ func TestSoftwareProvider_VerifyInvalidSignature(t *testing.T) {
 		opts crypto.SignerOpts
 	}{
 		{
-			name: "RSA",
-			spec: KeySpec{Type: KeyTypeRSA, RSABits: 2048},
+			name: cryptoutilSharedMagic.KeyTypeRSA,
+			spec: KeySpec{Type: KeyTypeRSA, RSABits: cryptoutilSharedMagic.DefaultMetricsBatchSize},
 			opts: crypto.SHA256,
 		},
 		{
@@ -225,8 +226,8 @@ func TestSoftwareProvider_VerifyInvalidSignature(t *testing.T) {
 			opts: crypto.SHA256,
 		},
 		{
-			name: "EdDSA",
-			spec: KeySpec{Type: KeyTypeEdDSA, EdDSACurve: "Ed25519"},
+			name: cryptoutilSharedMagic.JoseAlgEdDSA,
+			spec: KeySpec{Type: KeyTypeEdDSA, EdDSACurve: cryptoutilSharedMagic.EdCurveEd25519},
 			opts: nil, // EdDSA uses pre-hashed, but for this test we pass the full message.
 		},
 	}
@@ -249,7 +250,7 @@ func TestSoftwareProvider_VerifyUnsupportedKey(t *testing.T) {
 
 	provider := NewSoftwareProvider()
 
-	err := provider.Verify("not-a-key", []byte("digest"), []byte("sig"), crypto.SHA256)
+	err := provider.Verify("not-a-key", []byte("digest"), []byte(cryptoutilSharedMagic.JoseKeyUseSig), crypto.SHA256)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "unsupported public key type")
 }
@@ -266,17 +267,17 @@ func TestSoftwareProvider_GetSignatureAlgorithm(t *testing.T) {
 	}{
 		{
 			name:     "RSA-2048",
-			spec:     KeySpec{Type: KeyTypeRSA, RSABits: 2048},
+			spec:     KeySpec{Type: KeyTypeRSA, RSABits: cryptoutilSharedMagic.DefaultMetricsBatchSize},
 			expected: x509.SHA256WithRSA,
 		},
 		{
 			name:     "RSA-3072",
-			spec:     KeySpec{Type: KeyTypeRSA, RSABits: 3072},
+			spec:     KeySpec{Type: KeyTypeRSA, RSABits: cryptoutilSharedMagic.RSA3072KeySize},
 			expected: x509.SHA384WithRSA,
 		},
 		{
 			name:     "RSA-4096",
-			spec:     KeySpec{Type: KeyTypeRSA, RSABits: 4096},
+			spec:     KeySpec{Type: KeyTypeRSA, RSABits: cryptoutilSharedMagic.RSA4096KeySize},
 			expected: x509.SHA512WithRSA,
 		},
 		{
@@ -296,7 +297,7 @@ func TestSoftwareProvider_GetSignatureAlgorithm(t *testing.T) {
 		},
 		{
 			name:     "EdDSA-Ed25519",
-			spec:     KeySpec{Type: KeyTypeEdDSA, EdDSACurve: "Ed25519"},
+			spec:     KeySpec{Type: KeyTypeEdDSA, EdDSACurve: cryptoutilSharedMagic.EdCurveEd25519},
 			expected: x509.PureEd25519,
 		},
 	}
@@ -338,18 +339,18 @@ func TestParseKeySpecFromConfig(t *testing.T) {
 	}{
 		{
 			name:        "RSA-2048",
-			algorithm:   "RSA",
+			algorithm:   cryptoutilSharedMagic.KeyTypeRSA,
 			curveOrSize: "2048",
 			wantErr:     false,
 			checkSpec: func(t *testing.T, spec KeySpec) {
 				t.Helper()
 				require.Equal(t, KeyTypeRSA, spec.Type)
-				require.Equal(t, 2048, spec.RSABits)
+				require.Equal(t, cryptoutilSharedMagic.DefaultMetricsBatchSize, spec.RSABits)
 			},
 		},
 		{
 			name:        "RSA-invalid",
-			algorithm:   "RSA",
+			algorithm:   cryptoutilSharedMagic.KeyTypeRSA,
 			curveOrSize: "invalid",
 			wantErr:     true,
 			errContains: "invalid RSA key size",
@@ -367,13 +368,13 @@ func TestParseKeySpecFromConfig(t *testing.T) {
 		},
 		{
 			name:        "EdDSA-Ed25519",
-			algorithm:   "EdDSA",
-			curveOrSize: "Ed25519",
+			algorithm:   cryptoutilSharedMagic.JoseAlgEdDSA,
+			curveOrSize: cryptoutilSharedMagic.EdCurveEd25519,
 			wantErr:     false,
 			checkSpec: func(t *testing.T, spec KeySpec) {
 				t.Helper()
 				require.Equal(t, KeyTypeEdDSA, spec.Type)
-				require.Equal(t, "Ed25519", spec.EdDSACurve)
+				require.Equal(t, cryptoutilSharedMagic.EdCurveEd25519, spec.EdDSACurve)
 			},
 		},
 		{

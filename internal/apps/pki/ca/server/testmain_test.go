@@ -4,6 +4,7 @@
 package server
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"crypto/tls"
 	"fmt"
@@ -26,7 +27,7 @@ func TestMain(m *testing.M) {
 	ctx := context.Background()
 
 	// Create test configuration.
-	cfg := cryptoutilAppsCaServerConfig.NewTestConfig("127.0.0.1", 0, true)
+	cfg := cryptoutilAppsCaServerConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
 	// Create server.
 	var err error
@@ -86,14 +87,14 @@ func TestMain(m *testing.M) {
 				InsecureSkipVerify: true, //nolint:gosec // G402: Test client for self-signed certs.
 			},
 		},
-		Timeout: 5 * time.Second,
+		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}
 
 	// Run all tests.
 	exitCode := m.Run()
 
 	// Cleanup: Shutdown server.
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second)
 	defer cancel()
 
 	_ = testServer.Shutdown(shutdownCtx)

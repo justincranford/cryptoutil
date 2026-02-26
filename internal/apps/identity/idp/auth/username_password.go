@@ -5,6 +5,7 @@
 package auth
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 
@@ -29,7 +30,7 @@ func NewUsernamePasswordProfile(userRepo cryptoutilIdentityRepository.UserReposi
 
 // Name returns the profile name.
 func (p *UsernamePasswordProfile) Name() string {
-	return "username_password"
+	return cryptoutilSharedMagic.AuthMethodUsernamePassword
 }
 
 // Authenticate performs username/password authentication.

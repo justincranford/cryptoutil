@@ -15,6 +15,7 @@
 package middleware
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"io"
 	"net/http/httptest"
 	"testing"
@@ -43,7 +44,7 @@ func TestSessionMiddleware_EmptyTokenAfterParse(t *testing.T) {
 	// Test with "Bearer " followed by empty string
 	// Note: HTTP headers are trimmed, so this becomes just "Bearer"
 	req := httptest.NewRequest("GET", "/test", nil)
-	req.Header.Set("Authorization", "Bearer ")
+	req.Header.Set("Authorization", cryptoutilSharedMagic.AuthorizationBearerPrefix)
 
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)

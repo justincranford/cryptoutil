@@ -42,7 +42,7 @@ func Execute(parameters []string) {
 		startService(cmdParams)
 	case "stop":
 		stopService(cmdParams)
-	case "status":
+	case cryptoutilSharedMagic.StringStatus:
 		statusService(cmdParams)
 	case "health":
 		healthService(cmdParams)
@@ -72,7 +72,7 @@ func startService(parameters []string) {
 	fmt.Fprintf(os.Stderr, "Using config file: %s\n", configFile)
 
 	// Load IDP-specific configuration from YAML file.
-	parseArgs := []string{"start", "--config", configFile}
+	parseArgs := []string{"start", cryptoutilSharedMagic.IdentityCLIFlagConfig, configFile}
 
 	settings, err := cryptoutilAppsIdentityIdpServerConfig.Parse(parseArgs, false)
 	if err != nil {

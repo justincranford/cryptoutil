@@ -5,6 +5,7 @@
 package client_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	json "encoding/json"
 	http "net/http"
 	httptest "net/http/httptest"
@@ -65,16 +66,16 @@ func TestVerifyHealthEndpoint_Success(t *testing.T) {
 	t.Parallel()
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		require.Equal(t, "/service/api/v1/health", r.URL.Path)
+		require.Equal(t, cryptoutilSharedMagic.IdentityE2EHealthEndpoint, r.URL.Path)
 
 		w.WriteHeader(http.StatusOK)
 		_ = json.NewEncoder(w).Encode(map[string]string{
-			"status": "healthy",
+			cryptoutilSharedMagic.StringStatus: cryptoutilSharedMagic.DockerServiceHealthHealthy,
 		})
 	}))
 	defer server.Close()
 
-	err := cryptoutilAppsTemplateServiceClient.VerifyHealthEndpoint(server.Client(), server.URL, "/service/api/v1/health")
+	err := cryptoutilAppsTemplateServiceClient.VerifyHealthEndpoint(server.Client(), server.URL, cryptoutilSharedMagic.IdentityE2EHealthEndpoint)
 
 	require.NoError(t, err)
 }
@@ -86,7 +87,7 @@ func TestVerifyHealthEndpoint_UnhealthyStatus(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_ = json.NewEncoder(w).Encode(map[string]string{
-			"status": "degraded",
+			cryptoutilSharedMagic.StringStatus: cryptoutilSharedMagic.StringStatusDegraded,
 		})
 	}))
 	defer server.Close()

@@ -8,6 +8,7 @@
 package orm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
 
@@ -32,9 +33,9 @@ func TestGetElasticKeysFilters(t *testing.T) {
 			VersioningAllowed: &versioningAllowed,
 			ImportAllowed:     &importAllowed,
 			ExportAllowed:     &exportAllowed,
-			Sort:              []string{"name", "-created_at"},
+			Sort:              []string{cryptoutilSharedMagic.ClaimName, "-created_at"},
 			PageNumber:        1,
-			PageSize:          50,
+			PageSize:          cryptoutilSharedMagic.IMMaxUsernameLength,
 		}
 
 		require.Len(t, filters.ElasticKeyID, 2, "Should have 2 elastic key IDs")
@@ -48,13 +49,13 @@ func TestGetElasticKeysFilters(t *testing.T) {
 		require.True(t, *filters.ExportAllowed, "ExportAllowed should be true")
 		require.Len(t, filters.Sort, 2, "Should have 2 sort fields")
 		require.Equal(t, 1, filters.PageNumber, "PageNumber should be 1")
-		require.Equal(t, 50, filters.PageSize, "PageSize should be 50")
+		require.Equal(t, cryptoutilSharedMagic.IMMaxUsernameLength, filters.PageSize, "PageSize should be 50")
 	})
 
 	t.Run("Create filters with minimal fields", func(t *testing.T) {
 		filters := GetElasticKeysFilters{
 			PageNumber: 0,
-			PageSize:   10,
+			PageSize:   cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 		}
 
 		require.Nil(t, filters.ElasticKeyID, "ElasticKeyID should be nil")
@@ -65,7 +66,7 @@ func TestGetElasticKeysFilters(t *testing.T) {
 		require.Nil(t, filters.ExportAllowed, "ExportAllowed should be nil")
 		require.Nil(t, filters.Sort, "Sort should be nil")
 		require.Equal(t, 0, filters.PageNumber, "PageNumber should be 0")
-		require.Equal(t, 10, filters.PageSize, "PageSize should be 10")
+		require.Equal(t, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, filters.PageSize, "PageSize should be 10")
 	})
 
 	t.Run("Create filters with nil boolean pointers", func(t *testing.T) {
@@ -75,7 +76,7 @@ func TestGetElasticKeysFilters(t *testing.T) {
 			ImportAllowed:     nil,
 			ExportAllowed:     nil,
 			PageNumber:        0,
-			PageSize:          20,
+			PageSize:          cryptoutilSharedMagic.MaxErrorDisplay,
 		}
 
 		require.Len(t, filters.Name, 1, "Should have 1 name")
@@ -91,7 +92,7 @@ func TestGetElasticKeyMaterialKeysFilters(t *testing.T) {
 	t.Run("Create filters with all fields", func(t *testing.T) {
 		ekID1 := googleUuid.New()
 		ekID2 := googleUuid.New()
-		minDate := time.Now().UTC().Add(-24 * time.Hour)
+		minDate := time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour)
 		maxDate := time.Now().UTC()
 
 		filters := GetElasticKeyMaterialKeysFilters{
@@ -100,7 +101,7 @@ func TestGetElasticKeyMaterialKeysFilters(t *testing.T) {
 			MaximumGenerateDate: &maxDate,
 			Sort:                []string{"generate_date", "-material_key_id"},
 			PageNumber:          2,
-			PageSize:            100,
+			PageSize:            cryptoutilSharedMagic.JoseJAMaxMaterials,
 		}
 
 		require.Len(t, filters.ElasticKeyID, 2, "Should have 2 elastic key IDs")
@@ -109,13 +110,13 @@ func TestGetElasticKeyMaterialKeysFilters(t *testing.T) {
 		require.True(t, filters.MinimumGenerateDate.Before(*filters.MaximumGenerateDate), "MinDate should be before MaxDate")
 		require.Len(t, filters.Sort, 2, "Should have 2 sort fields")
 		require.Equal(t, 2, filters.PageNumber, "PageNumber should be 2")
-		require.Equal(t, 100, filters.PageSize, "PageSize should be 100")
+		require.Equal(t, cryptoutilSharedMagic.JoseJAMaxMaterials, filters.PageSize, "PageSize should be 100")
 	})
 
 	t.Run("Create filters with minimal fields", func(t *testing.T) {
 		filters := GetElasticKeyMaterialKeysFilters{
 			PageNumber: 0,
-			PageSize:   25,
+			PageSize:   cryptoutilSharedMagic.TLSMaxValidityCACertYears,
 		}
 
 		require.Nil(t, filters.ElasticKeyID, "ElasticKeyID should be nil")
@@ -123,7 +124,7 @@ func TestGetElasticKeyMaterialKeysFilters(t *testing.T) {
 		require.Nil(t, filters.MaximumGenerateDate, "MaximumGenerateDate should be nil")
 		require.Nil(t, filters.Sort, "Sort should be nil")
 		require.Equal(t, 0, filters.PageNumber, "PageNumber should be 0")
-		require.Equal(t, 25, filters.PageSize, "PageSize should be 25")
+		require.Equal(t, cryptoutilSharedMagic.TLSMaxValidityCACertYears, filters.PageSize, "PageSize should be 25")
 	})
 
 	t.Run("Create filters with single elastic key ID", func(t *testing.T) {
@@ -132,7 +133,7 @@ func TestGetElasticKeyMaterialKeysFilters(t *testing.T) {
 		filters := GetElasticKeyMaterialKeysFilters{
 			ElasticKeyID: []googleUuid.UUID{ekID},
 			PageNumber:   0,
-			PageSize:     10,
+			PageSize:     cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 		}
 
 		require.Len(t, filters.ElasticKeyID, 1, "Should have 1 elastic key ID")
@@ -149,7 +150,7 @@ func TestGetMaterialKeysFilters(t *testing.T) {
 		mkID1 := googleUuid.New()
 		mkID2 := googleUuid.New()
 		mkID3 := googleUuid.New()
-		minDate := time.Now().UTC().Add(-7 * 24 * time.Hour)
+		minDate := time.Now().UTC().Add(-cryptoutilSharedMagic.GitRecentActivityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour)
 		maxDate := time.Now().UTC()
 
 		filters := GetMaterialKeysFilters{
@@ -158,7 +159,7 @@ func TestGetMaterialKeysFilters(t *testing.T) {
 			MinimumGenerateDate: &minDate,
 			MaximumGenerateDate: &maxDate,
 			Sort:                []string{"-generate_date", "elastic_key_id"},
-			PageNumber:          5,
+			PageNumber:          cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 			PageSize:            200,
 		}
 
@@ -168,14 +169,14 @@ func TestGetMaterialKeysFilters(t *testing.T) {
 		require.NotNil(t, filters.MaximumGenerateDate, "MaximumGenerateDate should not be nil")
 		require.True(t, filters.MinimumGenerateDate.Before(*filters.MaximumGenerateDate), "MinDate should be before MaxDate")
 		require.Len(t, filters.Sort, 2, "Should have 2 sort fields")
-		require.Equal(t, 5, filters.PageNumber, "PageNumber should be 5")
+		require.Equal(t, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, filters.PageNumber, "PageNumber should be 5")
 		require.Equal(t, 200, filters.PageSize, "PageSize should be 200")
 	})
 
 	t.Run("Create filters with minimal fields", func(t *testing.T) {
 		filters := GetMaterialKeysFilters{
 			PageNumber: 0,
-			PageSize:   50,
+			PageSize:   cryptoutilSharedMagic.IMMaxUsernameLength,
 		}
 
 		require.Nil(t, filters.ElasticKeyID, "ElasticKeyID should be nil")
@@ -184,7 +185,7 @@ func TestGetMaterialKeysFilters(t *testing.T) {
 		require.Nil(t, filters.MaximumGenerateDate, "MaximumGenerateDate should be nil")
 		require.Nil(t, filters.Sort, "Sort should be nil")
 		require.Equal(t, 0, filters.PageNumber, "PageNumber should be 0")
-		require.Equal(t, 50, filters.PageSize, "PageSize should be 50")
+		require.Equal(t, cryptoutilSharedMagic.IMMaxUsernameLength, filters.PageSize, "PageSize should be 50")
 	})
 
 	t.Run("Create filters with material key IDs only", func(t *testing.T) {
@@ -194,7 +195,7 @@ func TestGetMaterialKeysFilters(t *testing.T) {
 		filters := GetMaterialKeysFilters{
 			MaterialKeyID: []googleUuid.UUID{mkID1, mkID2},
 			PageNumber:    0,
-			PageSize:      10,
+			PageSize:      cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 		}
 
 		require.Len(t, filters.MaterialKeyID, 2, "Should have 2 material key IDs")
@@ -204,14 +205,14 @@ func TestGetMaterialKeysFilters(t *testing.T) {
 	})
 
 	t.Run("Create filters with date range only", func(t *testing.T) {
-		minDate := time.Now().UTC().Add(-30 * 24 * time.Hour)
+		minDate := time.Now().UTC().Add(-cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * cryptoutilSharedMagic.HoursPerDay * time.Hour)
 		maxDate := time.Now().UTC()
 
 		filters := GetMaterialKeysFilters{
 			MinimumGenerateDate: &minDate,
 			MaximumGenerateDate: &maxDate,
 			PageNumber:          0,
-			PageSize:            100,
+			PageSize:            cryptoutilSharedMagic.JoseJAMaxMaterials,
 		}
 
 		require.NotNil(t, filters.MinimumGenerateDate, "MinimumGenerateDate should not be nil")

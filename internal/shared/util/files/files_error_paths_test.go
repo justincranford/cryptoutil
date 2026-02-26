@@ -31,7 +31,7 @@ func TestWriteFile_OSError(t *testing.T) {
 
 	t.Cleanup(func() { _ = os.Chmod(readOnlyDir, 0o700) })
 
-	err := cryptoutilSharedUtilFiles.WriteFile(filepath.Join(readOnlyDir, "file.txt"), "data", 0o600)
+	err := cryptoutilSharedUtilFiles.WriteFile(filepath.Join(readOnlyDir, "file.txt"), "data", cryptoutilSharedMagic.CacheFilePermissions)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to write file")
 }
@@ -42,7 +42,7 @@ func TestListAllFilesWithOptions_DotfileNoExtension(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	dotFile := filepath.Join(tmpDir, ".gitignore")
-	require.NoError(t, os.WriteFile(dotFile, []byte("*.out"), 0o600))
+	require.NoError(t, os.WriteFile(dotFile, []byte("*.out"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := cryptoutilSharedUtilFiles.ListAllFilesWithOptions(tmpDir, []string{"gitignore"}, nil)
 	require.NoError(t, err)
@@ -59,12 +59,12 @@ func TestReadFilesBytesLimit_InnerReadError(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	unreadableFile := filepath.Join(tmpDir, "unreadable.txt")
-	require.NoError(t, os.WriteFile(unreadableFile, []byte("data"), 0o600))
+	require.NoError(t, os.WriteFile(unreadableFile, []byte("data"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.Chmod(unreadableFile, 0o000))
 
-	t.Cleanup(func() { _ = os.Chmod(unreadableFile, 0o600) })
+	t.Cleanup(func() { _ = os.Chmod(unreadableFile, cryptoutilSharedMagic.CacheFilePermissions) })
 
-	_, err := cryptoutilSharedUtilFiles.ReadFilesBytesLimit([]string{unreadableFile}, 10, 1024)
+	_, err := cryptoutilSharedUtilFiles.ReadFilesBytesLimit([]string{unreadableFile}, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cryptoutilSharedMagic.DefaultLogsBatchSize)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to read file")
 }
@@ -79,12 +79,12 @@ func TestReadFileBytesLimit_UnreadableFile(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	unreadableFile := filepath.Join(tmpDir, "unreadable.txt")
-	require.NoError(t, os.WriteFile(unreadableFile, []byte("hello world"), 0o600))
+	require.NoError(t, os.WriteFile(unreadableFile, []byte("hello world"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.Chmod(unreadableFile, 0o000))
 
-	t.Cleanup(func() { _ = os.Chmod(unreadableFile, 0o600) })
+	t.Cleanup(func() { _ = os.Chmod(unreadableFile, cryptoutilSharedMagic.CacheFilePermissions) })
 
-	_, err := cryptoutilSharedUtilFiles.ReadFileBytesLimit(unreadableFile, 1024)
+	_, err := cryptoutilSharedUtilFiles.ReadFileBytesLimit(unreadableFile, cryptoutilSharedMagic.DefaultLogsBatchSize)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to open file")
 }

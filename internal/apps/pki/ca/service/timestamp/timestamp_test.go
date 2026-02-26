@@ -3,6 +3,7 @@
 package timestamp
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto"
 	sha256 "crypto/sha256"
 	"encoding/asn1"
@@ -28,7 +29,7 @@ func TestPKIStatus_String(t *testing.T) {
 		{"waiting", PKIStatusWaiting, "waiting"},
 		{"revocationWarning", PKIStatusRevocationWarning, "revocationWarning"},
 		{"revocationNotification", PKIStatusRevocationNotification, "revocationNotification"},
-		{"unknown", PKIStatus(100), "unknown"},
+		{"unknown", PKIStatus(cryptoutilSharedMagic.JoseJAMaxMaterials), "unknown"},
 	}
 
 	for _, tc := range tests {
@@ -57,7 +58,7 @@ func TestPKIFailureInfo_String(t *testing.T) {
 		{"unacceptedExtension", PKIFailureUnacceptedExtension, "unacceptedExtension"},
 		{"addInfoNotAvailable", PKIFailureAddInfoNotAvailable, "addInfoNotAvailable"},
 		{"systemFailure", PKIFailureSystemFailure, "systemFailure"},
-		{"unknown", PKIFailureInfo(100), "unknown"},
+		{"unknown", PKIFailureInfo(cryptoutilSharedMagic.JoseJAMaxMaterials), "unknown"},
 	}
 
 	for _, tc := range tests {
@@ -78,9 +79,9 @@ func TestHashAlgorithm_OID(t *testing.T) {
 		alg  HashAlgorithm
 		want asn1.ObjectIdentifier
 	}{
-		{"SHA-256", HashAlgorithmSHA256, asn1.ObjectIdentifier{2, 16, 840, 1, 101, 3, 4, 2, 1}},
-		{"SHA-384", HashAlgorithmSHA384, asn1.ObjectIdentifier{2, 16, 840, 1, 101, 3, 4, 2, 2}},
-		{"SHA-512", HashAlgorithmSHA512, asn1.ObjectIdentifier{2, 16, 840, 1, 101, 3, 4, 2, 3}},
+		{cryptoutilSharedMagic.PBKDF2DefaultAlgorithm, HashAlgorithmSHA256, asn1.ObjectIdentifier{2, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 840, 1, 101, 3, 4, 2, 1}},
+		{"SHA-384", HashAlgorithmSHA384, asn1.ObjectIdentifier{2, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 840, 1, 101, 3, 4, 2, 2}},
+		{"SHA-512", HashAlgorithmSHA512, asn1.ObjectIdentifier{2, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 840, 1, 101, 3, 4, 2, 3}},
 		{"unknown", HashAlgorithm("unknown"), nil},
 	}
 
@@ -103,9 +104,9 @@ func TestHashAlgorithm_CryptoHash(t *testing.T) {
 		want   int
 		isZero bool
 	}{
-		{"SHA-256", HashAlgorithmSHA256, 32, false},
-		{"SHA-384", HashAlgorithmSHA384, 48, false},
-		{"SHA-512", HashAlgorithmSHA512, 64, false},
+		{cryptoutilSharedMagic.PBKDF2DefaultAlgorithm, HashAlgorithmSHA256, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes, false},
+		{"SHA-384", HashAlgorithmSHA384, cryptoutilSharedMagic.HMACSHA384KeySize, false},
+		{"SHA-512", HashAlgorithmSHA512, cryptoutilSharedMagic.MinSerialNumberBits, false},
 		{"unknown", HashAlgorithm("unknown"), 0, true},
 	}
 
@@ -128,7 +129,7 @@ func TestNewTSAService(t *testing.T) {
 
 	cert, key := createTSACert(t)
 	provider := cryptoutilCACrypto.NewSoftwareProvider()
-	policy := asn1.ObjectIdentifier{1, 2, 3, 4, 5}
+	policy := asn1.ObjectIdentifier{1, 2, 3, 4, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries}
 
 	tests := []struct {
 		name    string
@@ -232,7 +233,7 @@ func TestTSAService_CreateTimestamp(t *testing.T) {
 
 	cert, key := createTSACert(t)
 	provider := cryptoutilCACrypto.NewSoftwareProvider()
-	policy := asn1.ObjectIdentifier{1, 2, 3, 4, 5}
+	policy := asn1.ObjectIdentifier{1, 2, 3, 4, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries}
 
 	config := &TSAConfig{
 		Certificate:        cert,

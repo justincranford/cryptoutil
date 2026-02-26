@@ -5,6 +5,7 @@
 package builder
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	"testing"
@@ -19,7 +20,7 @@ func TestNewDefaultJWTAuthConfig(t *testing.T) {
 	cfg := NewDefaultJWTAuthConfig()
 
 	require.Equal(t, JWTAuthModeSession, cfg.Mode)
-	require.Equal(t, 5*time.Minute, cfg.CacheTTL)
+	require.Equal(t, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute, cfg.CacheTTL)
 	require.Equal(t, "minimal", cfg.ErrorDetailLevel)
 	require.False(t, cfg.IsEnabled())
 	require.False(t, cfg.IsRequired())
@@ -56,7 +57,7 @@ func TestJWTAuthConfig_Validate(t *testing.T) {
 			config: &JWTAuthConfig{
 				Mode:              JWTAuthModeRequired,
 				JWKSURL:           "https://example.com/.well-known/jwks.json",
-				AllowedAlgorithms: []string{"RS256"},
+				AllowedAlgorithms: []string{cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm},
 			},
 			wantErr: false,
 		},
@@ -64,7 +65,7 @@ func TestJWTAuthConfig_Validate(t *testing.T) {
 			name: "required mode - missing JWKS URL",
 			config: &JWTAuthConfig{
 				Mode:              JWTAuthModeRequired,
-				AllowedAlgorithms: []string{"RS256"},
+				AllowedAlgorithms: []string{cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm},
 			},
 			wantErr: true,
 		},
@@ -82,7 +83,7 @@ func TestJWTAuthConfig_Validate(t *testing.T) {
 			config: &JWTAuthConfig{
 				Mode:              JWTAuthModeOptional,
 				JWKSURL:           "https://example.com/.well-known/jwks.json",
-				AllowedAlgorithms: []string{"ES256"},
+				AllowedAlgorithms: []string{cryptoutilSharedMagic.JoseAlgES256},
 			},
 			wantErr: false,
 		},
@@ -107,14 +108,14 @@ func TestJWTClaims_Scopes(t *testing.T) {
 
 	claims := &JWTClaims{
 		Subject: "user123",
-		Scopes:  []string{"read", "write", "admin"},
+		Scopes:  []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite, "admin"},
 	}
 
 	t.Run("HasScope", func(t *testing.T) {
 		t.Parallel()
 
-		require.True(t, claims.HasScope("read"))
-		require.True(t, claims.HasScope("write"))
+		require.True(t, claims.HasScope(cryptoutilSharedMagic.ScopeRead))
+		require.True(t, claims.HasScope(cryptoutilSharedMagic.ScopeWrite))
 		require.True(t, claims.HasScope("admin"))
 		require.False(t, claims.HasScope("delete"))
 	})
@@ -122,17 +123,17 @@ func TestJWTClaims_Scopes(t *testing.T) {
 	t.Run("HasAnyScope", func(t *testing.T) {
 		t.Parallel()
 
-		require.True(t, claims.HasAnyScope("read", "unknown"))
-		require.True(t, claims.HasAnyScope("unknown", "write"))
+		require.True(t, claims.HasAnyScope(cryptoutilSharedMagic.ScopeRead, "unknown"))
+		require.True(t, claims.HasAnyScope("unknown", cryptoutilSharedMagic.ScopeWrite))
 		require.False(t, claims.HasAnyScope("unknown1", "unknown2"))
 	})
 
 	t.Run("HasAllScopes", func(t *testing.T) {
 		t.Parallel()
 
-		require.True(t, claims.HasAllScopes("read", "write"))
-		require.True(t, claims.HasAllScopes("read"))
-		require.False(t, claims.HasAllScopes("read", "delete"))
+		require.True(t, claims.HasAllScopes(cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite))
+		require.True(t, claims.HasAllScopes(cryptoutilSharedMagic.ScopeRead))
+		require.False(t, claims.HasAllScopes(cryptoutilSharedMagic.ScopeRead, "delete"))
 	})
 }
 
@@ -200,7 +201,7 @@ func TestWithJWTAuth(t *testing.T) {
 		},
 		{
 			name:    "valid required config",
-			config:  NewKMSJWTAuthConfig("https://example.com/.well-known/jwks.json", "https://auth.example.com", "kms"),
+			config:  NewKMSJWTAuthConfig("https://example.com/.well-known/jwks.json", "https://auth.example.com", cryptoutilSharedMagic.KMSServiceName),
 			wantErr: false,
 		},
 	}

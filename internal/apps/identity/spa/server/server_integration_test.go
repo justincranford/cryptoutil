@@ -3,6 +3,7 @@
 package server
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"crypto/tls"
 	"io"
@@ -67,8 +68,8 @@ func TestSPAServer_PublicHealth(t *testing.T) {
 		wantCode int
 	}{
 		{"health", "/health", http.StatusOK},
-		{"livez", "/livez", http.StatusOK},
-		{"readyz", "/readyz", http.StatusOK},
+		{"livez", cryptoutilSharedMagic.PrivateAdminLivezRequestPath, http.StatusOK},
+		{"readyz", cryptoutilSharedMagic.PrivateAdminReadyzRequestPath, http.StatusOK},
 		{"config", "/config.json", http.StatusOK},
 	}
 

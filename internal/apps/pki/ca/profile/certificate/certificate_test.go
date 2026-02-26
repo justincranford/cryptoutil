@@ -3,6 +3,7 @@
 package certificate
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/x509"
 	"testing"
 	"time"
@@ -453,7 +454,7 @@ func TestValidityConfig_GetBackdateBuffer(t *testing.T) {
 			config: ValidityConfig{
 				BackdateBuffer: "5m",
 			},
-			want:    5 * time.Minute,
+			want:    cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute,
 			wantErr: false,
 		},
 	}

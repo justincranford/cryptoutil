@@ -29,8 +29,8 @@ func TestStartBasic_Success(t *testing.T) {
 		VerboseMode:  false,
 		OTLPService:  "template-service-test",
 		OTLPEnabled:  false,
-		OTLPEndpoint: "grpc://127.0.0.1:4317",
-		LogLevel:     "INFO",
+		OTLPEndpoint: cryptoutilSharedMagic.DefaultOTLPEndpointDefault,
+		LogLevel:     cryptoutilSharedMagic.DefaultLogLevelInfo,
 	}
 
 	basic, err := StartBasic(ctx, settings)
@@ -80,8 +80,8 @@ func TestBasicShutdown(t *testing.T) {
 		VerboseMode:  false,
 		OTLPService:  "template-service-test",
 		OTLPEnabled:  false,
-		OTLPEndpoint: "grpc://127.0.0.1:4317",
-		LogLevel:     "INFO",
+		OTLPEndpoint: cryptoutilSharedMagic.DefaultOTLPEndpointDefault,
+		LogLevel:     cryptoutilSharedMagic.DefaultLogLevelInfo,
 	}
 
 	basic, err := StartBasic(ctx, settings)
@@ -118,17 +118,17 @@ func TestInitializeServicesOnCore_Success(t *testing.T) {
 		DatabaseURL:                dbName,
 		OTLPService:                "template-service-test",
 		OTLPEnabled:                false,
-		OTLPEndpoint:               "grpc://127.0.0.1:4317",
-		LogLevel:                   "INFO",
-		BrowserSessionAlgorithm:    "JWS",
-		BrowserSessionJWSAlgorithm: "RS256",
-		BrowserSessionJWEAlgorithm: "RSA-OAEP",
+		OTLPEndpoint:               cryptoutilSharedMagic.DefaultOTLPEndpointDefault,
+		LogLevel:                   cryptoutilSharedMagic.DefaultLogLevelInfo,
+		BrowserSessionAlgorithm:    cryptoutilSharedMagic.DefaultServiceSessionAlgorithm,
+		BrowserSessionJWSAlgorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		BrowserSessionJWEAlgorithm: cryptoutilSharedMagic.JoseAlgRSAOAEP,
 		BrowserSessionExpiration:   15 * time.Minute,
-		ServiceSessionAlgorithm:    "JWS",
-		ServiceSessionJWSAlgorithm: "RS256",
-		ServiceSessionJWEAlgorithm: "RSA-OAEP",
+		ServiceSessionAlgorithm:    cryptoutilSharedMagic.DefaultServiceSessionAlgorithm,
+		ServiceSessionJWSAlgorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		ServiceSessionJWEAlgorithm: cryptoutilSharedMagic.JoseAlgRSAOAEP,
 		ServiceSessionExpiration:   1 * time.Hour,
-		SessionIdleTimeout:         30 * time.Minute,
+		SessionIdleTimeout:         cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Minute,
 		SessionCleanupInterval:     1 * time.Hour,
 	}
 
@@ -181,8 +181,8 @@ func TestCoreShutdown(t *testing.T) {
 		DatabaseURL:  cryptoutilSharedMagic.SQLiteInMemoryDSN,
 		OTLPService:  "template-service-test",
 		OTLPEnabled:  false,
-		OTLPEndpoint: "grpc://127.0.0.1:4317",
-		LogLevel:     "INFO",
+		OTLPEndpoint: cryptoutilSharedMagic.DefaultOTLPEndpointDefault,
+		LogLevel:     cryptoutilSharedMagic.DefaultLogLevelInfo,
 	}
 
 	core, err := StartCore(ctx, settings)
@@ -267,12 +267,12 @@ func TestStartListener(t *testing.T) {
 		DatabaseURL:  cryptoutilSharedMagic.SQLiteInMemoryDSN,
 		OTLPService:  "test-listener",
 		OTLPEnabled:  false,
-		OTLPEndpoint: "grpc://127.0.0.1:4317",
-		LogLevel:     "INFO",
+		OTLPEndpoint: cryptoutilSharedMagic.DefaultOTLPEndpointDefault,
+		LogLevel:     cryptoutilSharedMagic.DefaultLogLevelInfo,
 	}
 
-	publicServer := &mockPublicServer{port: 8080, baseURL: "https://localhost:8080"}
-	adminServer := &mockAdminServer{port: 9090, baseURL: "https://localhost:9090"}
+	publicServer := &mockPublicServer{port: cryptoutilSharedMagic.DemoServerPort, baseURL: "https://localhost:8080"}
+	adminServer := &mockAdminServer{port: cryptoutilSharedMagic.JoseJAAdminPort, baseURL: "https://localhost:9090"}
 
 	config := &ListenerConfig{
 		Settings:     settings,
@@ -439,12 +439,12 @@ func TestListener_Shutdown(t *testing.T) {
 		DatabaseURL:  cryptoutilSharedMagic.SQLiteInMemoryDSN,
 		OTLPService:  "test-shutdown",
 		OTLPEnabled:  false,
-		OTLPEndpoint: "grpc://127.0.0.1:4317",
-		LogLevel:     "INFO",
+		OTLPEndpoint: cryptoutilSharedMagic.DefaultOTLPEndpointDefault,
+		LogLevel:     cryptoutilSharedMagic.DefaultLogLevelInfo,
 	}
 
-	publicServer := &mockPublicServer{port: 8080}
-	adminServer := &mockAdminServer{port: 9090}
+	publicServer := &mockPublicServer{port: cryptoutilSharedMagic.DemoServerPort}
+	adminServer := &mockAdminServer{port: cryptoutilSharedMagic.JoseJAAdminPort}
 
 	config := &ListenerConfig{
 		Settings:     settings,
@@ -469,12 +469,12 @@ func TestListener_Shutdown_NilContext(t *testing.T) {
 		DatabaseURL:  cryptoutilSharedMagic.SQLiteInMemoryDSN,
 		OTLPService:  "test-shutdown-nil-ctx",
 		OTLPEnabled:  false,
-		OTLPEndpoint: "grpc://127.0.0.1:4317",
-		LogLevel:     "INFO",
+		OTLPEndpoint: cryptoutilSharedMagic.DefaultOTLPEndpointDefault,
+		LogLevel:     cryptoutilSharedMagic.DefaultLogLevelInfo,
 	}
 
-	publicServer := &mockPublicServer{port: 8080}
-	adminServer := &mockAdminServer{port: 9090}
+	publicServer := &mockPublicServer{port: cryptoutilSharedMagic.DemoServerPort}
+	adminServer := &mockAdminServer{port: cryptoutilSharedMagic.JoseJAAdminPort}
 
 	config := &ListenerConfig{
 		Settings:     settings,

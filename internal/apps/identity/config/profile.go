@@ -5,6 +5,7 @@
 package config
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -45,7 +46,7 @@ func LoadProfile(profileName string) (*ProfileConfig, error) {
 		projectRoot = filepath.Join(projectRoot, "..", "..", "..", "..")
 	}
 
-	profilePath := filepath.Join(projectRoot, "configs", "identity", "profiles", profileName+".yml")
+	profilePath := filepath.Join(projectRoot, "configs", cryptoutilSharedMagic.IdentityProductName, "profiles", profileName+".yml")
 
 	return LoadProfileFromFile(profilePath)
 }
@@ -76,13 +77,13 @@ func (c *ProfileConfig) Validate() error {
 	}
 
 	if c.Services.AuthZ.Enabled {
-		if err := c.Services.AuthZ.validate("authz"); err != nil {
+		if err := c.Services.AuthZ.validate(cryptoutilSharedMagic.AuthzServiceName); err != nil {
 			return err
 		}
 	}
 
 	if c.Services.IDP.Enabled {
-		if err := c.Services.IDP.validate("idp"); err != nil {
+		if err := c.Services.IDP.validate(cryptoutilSharedMagic.IDPServiceName); err != nil {
 			return err
 		}
 	}
@@ -102,7 +103,7 @@ func (s *ServiceConfig) validate(serviceName string) error {
 		return fmt.Errorf("%s: bind_address is required", serviceName)
 	}
 
-	if s.DatabaseURL == "" && (serviceName == "authz" || serviceName == "idp") {
+	if s.DatabaseURL == "" && (serviceName == cryptoutilSharedMagic.AuthzServiceName || serviceName == cryptoutilSharedMagic.IDPServiceName) {
 		return fmt.Errorf("%s: database_url is required", serviceName)
 	}
 
@@ -115,7 +116,7 @@ func (s *ServiceConfig) validate(serviceName string) error {
 		"debug": true,
 		"info":  true,
 		"warn":  true,
-		"error": true,
+		cryptoutilSharedMagic.StringError: true,
 	}
 
 	if !validLogLevels[s.LogLevel] {

@@ -32,7 +32,7 @@ func setupTenantTestDB(t *testing.T) *gorm.DB {
 	dbName := fmt.Sprintf("file:tenant_test_%d?mode=memory&cache=private", time.Now().UTC().UnixNano())
 
 	// Use database/sql with modernc.org/sqlite driver.
-	sqlDB, err := sql.Open("sqlite", dbName)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dbName)
 	require.NoError(t, err)
 
 	// Configure connection pool per instructions.
@@ -319,7 +319,7 @@ func TestTenantManager_WithTenant_Disabled(t *testing.T) {
 	// Should fail for disabled tenant.
 	_, err = manager.WithTenant(ctx, "disabled-tenant")
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "disabled")
+	require.Contains(t, err.Error(), cryptoutilSharedMagic.DefaultDatabaseContainerDisabled)
 }
 
 func TestTenantManager_WithTenant_Schema(t *testing.T) {

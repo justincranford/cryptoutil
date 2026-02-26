@@ -5,6 +5,7 @@
 package demo
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"testing"
 
@@ -55,12 +56,12 @@ func TestDemoError_Error(t *testing.T) {
 	}{
 		{
 			name:     "basic error",
-			err:      DemoError{Phase: "kms", Step: "config", Message: "parse failed"},
+			err:      DemoError{Phase: cryptoutilSharedMagic.KMSServiceName, Step: "config", Message: "parse failed"},
 			expected: "[kms/config] parse failed",
 		},
 		{
 			name:     "error with details",
-			err:      DemoError{Phase: "kms", Step: "config", Message: "parse failed", Details: "missing field"},
+			err:      DemoError{Phase: cryptoutilSharedMagic.KMSServiceName, Step: "config", Message: "parse failed", Details: "missing field"},
 			expected: "[kms/config] parse failed: missing field",
 		},
 	}
@@ -80,7 +81,7 @@ func TestDemoError_Unwrap(t *testing.T) {
 	t.Run("nil cause", func(t *testing.T) {
 		t.Parallel()
 
-		err := DemoError{Phase: "kms", Step: "config", Message: "failed"}
+		err := DemoError{Phase: cryptoutilSharedMagic.KMSServiceName, Step: "config", Message: "failed"}
 		require.NoError(t, err.Unwrap())
 	})
 
@@ -88,7 +89,7 @@ func TestDemoError_Unwrap(t *testing.T) {
 		t.Parallel()
 
 		cause := DemoError{Phase: "inner", Step: "step", Message: "root cause"}
-		err := DemoError{Phase: "kms", Step: "config", Message: "failed", Cause: &cause}
+		err := DemoError{Phase: cryptoutilSharedMagic.KMSServiceName, Step: "config", Message: "failed", Cause: &cause}
 		unwrapped := err.Unwrap()
 		require.Error(t, unwrapped)
 		require.Contains(t, unwrapped.Error(), "root cause")
@@ -98,16 +99,16 @@ func TestDemoError_Unwrap(t *testing.T) {
 func TestNewDemoError(t *testing.T) {
 	t.Parallel()
 
-	err := NewDemoError("identity", "login", "auth failed")
-	require.Equal(t, "identity", err.Phase)
-	require.Equal(t, "login", err.Step)
+	err := NewDemoError(cryptoutilSharedMagic.IdentityProductName, cryptoutilSharedMagic.PromptLogin, "auth failed")
+	require.Equal(t, cryptoutilSharedMagic.IdentityProductName, err.Phase)
+	require.Equal(t, cryptoutilSharedMagic.PromptLogin, err.Step)
 	require.Equal(t, "auth failed", err.Message)
 }
 
 func TestDemoError_WithDetails(t *testing.T) {
 	t.Parallel()
 
-	err := NewDemoError("kms", "encrypt", "failed").WithDetails("invalid key")
+	err := NewDemoError(cryptoutilSharedMagic.KMSServiceName, "encrypt", "failed").WithDetails("invalid key")
 	require.Equal(t, "invalid key", err.Details)
 	require.Contains(t, err.Error(), "invalid key")
 }
@@ -156,19 +157,19 @@ func TestErrorAggregator(t *testing.T) {
 	t.Run("add error", func(t *testing.T) {
 		t.Parallel()
 
-		agg := NewErrorAggregator("kms")
+		agg := NewErrorAggregator(cryptoutilSharedMagic.KMSServiceName)
 		agg.Add("step1", "failed", errors.New("cause"))
 		require.True(t, agg.HasErrors())
 		require.Len(t, agg.Errors(), 1)
 		require.Equal(t, 1, agg.Count())
-		require.Equal(t, "kms", agg.Errors()[0].Phase)
+		require.Equal(t, cryptoutilSharedMagic.KMSServiceName, agg.Errors()[0].Phase)
 		require.Equal(t, "step1", agg.Errors()[0].Step)
 	})
 
 	t.Run("add error nil cause", func(t *testing.T) {
 		t.Parallel()
 
-		agg := NewErrorAggregator("kms")
+		agg := NewErrorAggregator(cryptoutilSharedMagic.KMSServiceName)
 		agg.Add("step1", "failed", nil)
 		require.True(t, agg.HasErrors())
 		require.Nil(t, agg.Errors()[0].Cause)
@@ -177,8 +178,8 @@ func TestErrorAggregator(t *testing.T) {
 	t.Run("add demo error directly", func(t *testing.T) {
 		t.Parallel()
 
-		agg := NewErrorAggregator("identity")
-		de := NewDemoError("identity", "login", "auth failed")
+		agg := NewErrorAggregator(cryptoutilSharedMagic.IdentityProductName)
+		de := NewDemoError(cryptoutilSharedMagic.IdentityProductName, cryptoutilSharedMagic.PromptLogin, "auth failed")
 		agg.AddError(de)
 		require.Equal(t, 1, agg.Count())
 		require.Equal(t, "auth failed", agg.Errors()[0].Message)
@@ -201,7 +202,7 @@ func TestErrorAggregator_ToResult(t *testing.T) {
 	t.Run("no errors", func(t *testing.T) {
 		t.Parallel()
 
-		agg := NewErrorAggregator("kms")
+		agg := NewErrorAggregator(cryptoutilSharedMagic.KMSServiceName)
 		result := agg.ToResult(3, 0)
 		require.True(t, result.Success)
 		require.Equal(t, 3, result.TotalSteps)
@@ -213,7 +214,7 @@ func TestErrorAggregator_ToResult(t *testing.T) {
 	t.Run("with errors and skipped", func(t *testing.T) {
 		t.Parallel()
 
-		agg := NewErrorAggregator("kms")
+		agg := NewErrorAggregator(cryptoutilSharedMagic.KMSServiceName)
 		agg.Add("step2", "failed", nil)
 		result := agg.ToResult(1, 2)
 		require.False(t, result.Success)
@@ -233,8 +234,8 @@ func TestOutputFormatter_FormatResult(t *testing.T) {
 		PassedSteps:  1,
 		FailedSteps:  1,
 		SkippedSteps: 1,
-		DurationMS:   42,
-		Errors:       []DemoError{{Phase: "kms", Step: "config", Message: "parse failed"}},
+		DurationMS:   cryptoutilSharedMagic.AnswerToLifeUniverseEverything,
+		Errors:       []DemoError{{Phase: cryptoutilSharedMagic.KMSServiceName, Step: "config", Message: "parse failed"}},
 	}
 
 	t.Run("json format", func(t *testing.T) {
@@ -286,8 +287,8 @@ func TestOutputFormatter_FormatResult(t *testing.T) {
 			PassedSteps: 0,
 			FailedSteps: 2,
 			Errors: []DemoError{
-				{Phase: "kms", Step: "s1", Message: "err1"},
-				{Phase: "kms", Step: "s2", Message: "err2"},
+				{Phase: cryptoutilSharedMagic.KMSServiceName, Step: "s1", Message: "err1"},
+				{Phase: cryptoutilSharedMagic.KMSServiceName, Step: "s2", Message: "err2"},
 			},
 		}
 		formatter := NewOutputFormatter(OutputHuman)

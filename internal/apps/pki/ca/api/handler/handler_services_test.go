@@ -3,6 +3,7 @@
 package handler
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"context"
 	"crypto"
@@ -40,7 +41,7 @@ func TestHandleOCSPWithService(t *testing.T) {
 		Issuer:           testSetup.Issuer.GetCAConfig().Certificate,
 		PrivateKey:       signer,
 		Provider:         testSetup.Provider,
-		Validity:         24 * time.Hour,
+		Validity:         cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		NextUpdateBuffer: time.Hour,
 	}
 	crlService, err := cryptoutilCAServiceRevocation.NewCRLService(crlConfig)
@@ -189,7 +190,7 @@ func TestLookupCertificateBySerialWithCert(t *testing.T) {
 			CommonName: "test.example.com",
 		},
 		NotBefore: time.Now().UTC(),
-		NotAfter:  time.Now().UTC().Add(24 * time.Hour),
+		NotAfter:  time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour),
 	}
 
 	// Self-sign for testing.
@@ -197,13 +198,13 @@ func TestLookupCertificateBySerialWithCert(t *testing.T) {
 	require.NoError(t, err)
 
 	certPEM := pem.EncodeToMemory(&pem.Block{
-		Type:  "CERTIFICATE",
+		Type:  cryptoutilSharedMagic.StringPEMTypeCertificate,
 		Bytes: certDER,
 	})
 
 	// Store the certificate.
 	storedCert := &cryptoutilCAStorage.StoredCertificate{
-		SerialNumber:   serialNumber.Text(16),
+		SerialNumber:   serialNumber.Text(cryptoutilSharedMagic.RealmMinTokenLengthBytes),
 		CertificatePEM: string(certPEM),
 	}
 	ctx := context.Background()
@@ -232,7 +233,7 @@ func TestLookupCertificateBySerialInvalidPEM(t *testing.T) {
 
 	// Store certificate with invalid PEM.
 	storedCert := &cryptoutilCAStorage.StoredCertificate{
-		SerialNumber:   serialNumber.Text(16),
+		SerialNumber:   serialNumber.Text(cryptoutilSharedMagic.RealmMinTokenLengthBytes),
 		CertificatePEM: "not-valid-pem-data",
 	}
 	ctx := context.Background()

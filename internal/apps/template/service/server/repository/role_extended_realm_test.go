@@ -3,6 +3,7 @@
 package repository
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -35,14 +36,14 @@ func TestClientRoleRepository_ListClientsByRole(t *testing.T) {
 	client1 := &Client{
 		ID:       googleUuid.New(),
 		TenantID: tenant.ID,
-		ClientID: "client1_" + googleUuid.New().String()[:8],
+		ClientID: "client1_" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		Active:   1,
 	}
 
 	client2 := &Client{
 		ID:       googleUuid.New(),
 		TenantID: tenant.ID,
-		ClientID: "client2_" + googleUuid.New().String()[:8],
+		ClientID: "client2_" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		Active:   1,
 	}
 
@@ -55,7 +56,7 @@ func TestClientRoleRepository_ListClientsByRole(t *testing.T) {
 	role := &Role{
 		ID:       googleUuid.New(),
 		TenantID: tenant.ID,
-		Name:     "api_access_" + googleUuid.New().String()[:8],
+		Name:     "api_access_" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength],
 	}
 
 	err = roleRepo.Create(ctx, role)

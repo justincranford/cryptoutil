@@ -1,6 +1,7 @@
 package lint_deployments
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -40,11 +41,11 @@ func TestRunSchemaValidation_ErrorPath(t *testing.T) {
 
 	// Create an unreadable YAML file matching service template config pattern.
 	unreadable := filepath.Join(dir, "config-bad.yml")
-	require.NoError(t, os.WriteFile(unreadable, []byte("key: val"), 0o600))
+	require.NoError(t, os.WriteFile(unreadable, []byte("key: val"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.Chmod(unreadable, 0o000))
 
 	t.Cleanup(func() {
-		_ = os.Chmod(unreadable, 0o600)
+		_ = os.Chmod(unreadable, cryptoutilSharedMagic.CacheFilePermissions)
 	})
 
 	result := &AllValidationResult{}
@@ -70,7 +71,7 @@ func TestRunTemplatePatternValidation_ErrorPath(t *testing.T) {
 
 	dir := t.TempDir()
 	templateDir := filepath.Join(dir, "template")
-	require.NoError(t, os.MkdirAll(templateDir, 0o755))
+	require.NoError(t, os.MkdirAll(templateDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	result := &AllValidationResult{}
 	runTemplatePatternValidation(dir, result)
@@ -83,7 +84,7 @@ func TestRunPortsValidation_ErrorPath(t *testing.T) {
 	t.Parallel()
 
 	deployments := []deploymentEntry{
-		{path: "/nonexistent/path/abc123", name: "jose-ja", level: DeploymentTypeProductService},
+		{path: "/nonexistent/path/abc123", name: cryptoutilSharedMagic.OTLPServiceJoseJA, level: DeploymentTypeProductService},
 	}
 
 	result := &AllValidationResult{}
@@ -124,7 +125,7 @@ func TestRunAdminValidation_ErrorPath(t *testing.T) {
 	t.Parallel()
 
 	deployments := []deploymentEntry{
-		{path: "/nonexistent/path/abc123", name: "jose-ja", level: DeploymentTypeProductService},
+		{path: "/nonexistent/path/abc123", name: cryptoutilSharedMagic.OTLPServiceJoseJA, level: DeploymentTypeProductService},
 	}
 
 	result := &AllValidationResult{}
@@ -138,7 +139,7 @@ func TestRunSecretsValidation_ErrorPath(t *testing.T) {
 	t.Parallel()
 
 	deployments := []deploymentEntry{
-		{path: "/nonexistent/path/abc123", name: "jose-ja", level: DeploymentTypeProductService},
+		{path: "/nonexistent/path/abc123", name: cryptoutilSharedMagic.OTLPServiceJoseJA, level: DeploymentTypeProductService},
 	}
 
 	result := &AllValidationResult{}

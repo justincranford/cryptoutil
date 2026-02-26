@@ -197,13 +197,13 @@ func (i *Issuer) Issue(req *CertificateRequest) (*IssuedCertificate, *AuditEntry
 
 	// Encode to PEM.
 	certPEM := pem.EncodeToMemory(&pem.Block{
-		Type:  "CERTIFICATE",
+		Type:  cryptoutilSharedMagic.StringPEMTypeCertificate,
 		Bytes: certDER,
 	})
 
 	// Build chain PEM.
 	issuerPEM := pem.EncodeToMemory(&pem.Block{
-		Type:  "CERTIFICATE",
+		Type:  cryptoutilSharedMagic.StringPEMTypeCertificate,
 		Bytes: i.caConfig.Certificate.Raw,
 	})
 	chainPEM := append(certPEM, issuerPEM...)
@@ -385,11 +385,11 @@ func generateSerialNumber() (*big.Int, error) {
 func keyAlgorithmName(pub crypto.PublicKey) string {
 	switch pub.(type) {
 	case *rsa.PublicKey:
-		return "RSA"
+		return cryptoutilSharedMagic.KeyTypeRSA
 	case *ecdsa.PublicKey:
 		return "ECDSA"
 	case ed25519.PublicKey:
-		return "Ed25519"
+		return cryptoutilSharedMagic.EdCurveEd25519
 	default:
 		return "Unknown"
 	}

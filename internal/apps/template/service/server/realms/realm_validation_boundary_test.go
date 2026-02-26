@@ -92,7 +92,7 @@ func TestRegisterUser_BoundaryUsernameLengths(t *testing.T) {
 		},
 		{
 			name:     "exact max username length",
-			username: strings.Repeat("a", 50), // maxUsernameLength=50.
+			username: strings.Repeat("a", cryptoutilSharedMagic.IMMaxUsernameLength), // maxUsernameLength=50.
 			wantErr:  false,
 		},
 		{
@@ -181,7 +181,7 @@ func TestHandleRegisterUser_BoundaryValues(t *testing.T) {
 	svc := NewUserService(repo, factory)
 
 	app := fiber.New()
-	app.Post("/register", svc.HandleRegisterUser())
+	app.Post(cryptoutilSharedMagic.PathRegistration, svc.HandleRegisterUser())
 
 	tests := []struct {
 		name       string
@@ -219,7 +219,7 @@ func TestHandleRegisterUser_BoundaryValues(t *testing.T) {
 			})
 			require.NoError(t, err)
 
-			req := httptest.NewRequest("POST", "/register", bytes.NewReader(bodyBytes))
+			req := httptest.NewRequest("POST", cryptoutilSharedMagic.PathRegistration, bytes.NewReader(bodyBytes))
 			req.Header.Set("Content-Type", "application/json")
 
 			resp, err := app.Test(req, -1)

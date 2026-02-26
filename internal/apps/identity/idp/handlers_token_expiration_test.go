@@ -3,6 +3,7 @@
 package idp
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"fmt"
@@ -63,9 +64,9 @@ func TestTokenExpiration(t *testing.T) {
 					TokenValue:  tokenID.String(),
 					TokenType:   cryptoutilIdentityDomain.TokenTypeAccess,
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
-					Scopes:      []string{"openid", "profile"},
-					IssuedAt:    time.Now().UTC().Add(-10 * time.Minute),
-					ExpiresAt:   time.Now().UTC().Add(50 * time.Minute), // Valid for 50 more minutes.
+					Scopes:      []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
+					IssuedAt:    time.Now().UTC().Add(-cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
+					ExpiresAt:   time.Now().UTC().Add(cryptoutilSharedMagic.IMMaxUsernameLength * time.Minute), // Valid for 50 more minutes.
 				}
 
 				err = db.Create(token).Error
@@ -102,9 +103,9 @@ func TestTokenExpiration(t *testing.T) {
 					TokenValue:  tokenID.String(),
 					TokenType:   cryptoutilIdentityDomain.TokenTypeAccess,
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
-					Scopes:      []string{"openid", "profile"},
+					Scopes:      []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 					IssuedAt:    time.Now().UTC().Add(-70 * time.Minute),
-					ExpiresAt:   time.Now().UTC().Add(-10 * time.Minute), // Expired 10 minutes ago.
+					ExpiresAt:   time.Now().UTC().Add(-cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute), // Expired 10 minutes ago.
 				}
 
 				err = db.Create(token).Error
@@ -113,7 +114,7 @@ func TestTokenExpiration(t *testing.T) {
 				return token.TokenValue
 			},
 			expectedStatus: http.StatusUnauthorized,
-			expectedError:  "invalid_token",
+			expectedError:  cryptoutilSharedMagic.ErrorInvalidToken,
 		},
 		{
 			name: "token_expiring_within_grace_period_allows_access",
@@ -141,7 +142,7 @@ func TestTokenExpiration(t *testing.T) {
 					TokenValue:  tokenID.String(),
 					TokenType:   cryptoutilIdentityDomain.TokenTypeAccess,
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
-					Scopes:      []string{"openid", "profile"},
+					Scopes:      []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 					IssuedAt:    time.Now().UTC().Add(-59 * time.Minute),
 					ExpiresAt:   time.Now().UTC().Add(1 * time.Minute), // Expires in 1 minute (within grace).
 				}
@@ -168,7 +169,7 @@ func TestTokenExpiration(t *testing.T) {
 
 			dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", dbID.String())
 
-			sqlDB, err := sql.Open("sqlite", dsn)
+			sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 			require.NoError(t, err)
 
 			// Apply PRAGMA settings.
@@ -192,8 +193,8 @@ func TestTokenExpiration(t *testing.T) {
 			gormDB, err := db.DB()
 			require.NoError(t, err)
 
-			gormDB.SetMaxOpenConns(5)
-			gormDB.SetMaxIdleConns(5)
+			gormDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+			gormDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 
 			// Auto-migrate test schemas.
 			err = db.AutoMigrate(
@@ -211,7 +212,7 @@ func TestTokenExpiration(t *testing.T) {
 
 			// Create repository factory and token service.
 			dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-				Type: "sqlite",
+				Type: cryptoutilSharedMagic.TestDatabaseSQLite,
 				DSN:  dsn,
 			}
 
@@ -219,7 +220,7 @@ func TestTokenExpiration(t *testing.T) {
 			require.NoError(t, err)
 
 			tokenCfg := &cryptoutilIdentityConfig.TokenConfig{
-				AccessTokenFormat: "uuid",
+				AccessTokenFormat: cryptoutilSharedMagic.IdentityTokenFormatUUID,
 				Issuer:            "https://example.com",
 			}
 
@@ -236,7 +237,7 @@ func TestTokenExpiration(t *testing.T) {
 
 			// Create request to UserInfo endpoint with Bearer token.
 			req := httptest.NewRequest(http.MethodGet, "/oidc/v1/userinfo", nil)
-			req.Header.Set("Authorization", "Bearer "+tokenValue)
+			req.Header.Set("Authorization", cryptoutilSharedMagic.AuthorizationBearerPrefix+tokenValue)
 
 			// Execute request.
 			resp, err := app.Test(req, -1)

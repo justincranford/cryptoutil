@@ -30,7 +30,7 @@ func TestGenerateCodeVerifier(t *testing.T) {
 				verifier, err := GenerateCodeVerifier()
 				testify.NoError(t, err, "Generate code verifier should succeed")
 				testify.NotEmpty(t, verifier, "Code verifier should not be empty")
-				testify.GreaterOrEqual(t, len(verifier), 43, "Code verifier should be at least 43 characters (RFC 7636)")
+				testify.GreaterOrEqual(t, len(verifier), cryptoutilSharedMagic.DefaultCodeChallengeLength, "Code verifier should be at least 43 characters (RFC 7636)")
 				testify.NotContains(t, verifier, "+", "Code verifier should use base64url encoding")
 				testify.NotContains(t, verifier, "/", "Code verifier should use base64url encoding")
 				testify.NotContains(t, verifier, "=", "Code verifier should not have padding")
@@ -43,7 +43,7 @@ func TestGenerateCodeVerifier(t *testing.T) {
 
 				verifiers := make(map[string]bool)
 
-				for i := 0; i < 100; i++ {
+				for i := 0; i < cryptoutilSharedMagic.JoseJAMaxMaterials; i++ {
 					verifier, err := GenerateCodeVerifier()
 					testify.NoError(t, err, "Generate code verifier should succeed")
 					testify.False(t, verifiers[verifier], "Code verifiers should be unique")
@@ -331,11 +331,11 @@ func TestPKCERoundtrip(t *testing.T) {
 func TestPKCERoundtrip_MultipleVerifiers(t *testing.T) {
 	t.Parallel()
 
-	verifiers := make([]string, 10)
-	challenges := make([]string, 10)
+	verifiers := make([]string, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+	challenges := make([]string, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 
 	// Generate multiple verifier/challenge pairs
-	for i := 0; i < 10; i++ {
+	for i := 0; i < cryptoutilSharedMagic.JoseJADefaultMaxMaterials; i++ {
 		verifier, err := GenerateCodeVerifier()
 		testify.NoError(t, err, "Generate code verifier should succeed")
 
@@ -347,8 +347,8 @@ func TestPKCERoundtrip_MultipleVerifiers(t *testing.T) {
 	}
 
 	// Verify each verifier validates only with its own challenge
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 10; j++ {
+	for i := 0; i < cryptoutilSharedMagic.JoseJADefaultMaxMaterials; i++ {
+		for j := 0; j < cryptoutilSharedMagic.JoseJADefaultMaxMaterials; j++ {
 			valid := ValidateCodeVerifier(verifiers[i], challenges[j], cryptoutilSharedMagic.PKCEMethodS256)
 
 			if i == j {

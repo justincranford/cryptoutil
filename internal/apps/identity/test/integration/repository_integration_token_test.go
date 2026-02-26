@@ -5,6 +5,7 @@
 package integration
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -48,7 +49,7 @@ func TestTokenRepository_CRUD(t *testing.T) {
 					TokenType:   cryptoutilIdentityDomain.TokenTypeAccess,
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					ClientID:    testClient.ID,
-					Scopes:      []string{"openid", "profile"},
+					Scopes:      []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 					IssuedAt:    time.Now().UTC(),
 					ExpiresAt:   time.Now().UTC().Add(time.Hour),
 				}
@@ -66,7 +67,7 @@ func TestTokenRepository_CRUD(t *testing.T) {
 					TokenType:   cryptoutilIdentityDomain.TokenTypeAccess,
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					ClientID:    testClient.ID,
-					Scopes:      []string{"openid", "profile"},
+					Scopes:      []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 					IssuedAt:    time.Now().UTC(),
 					ExpiresAt:   time.Now().UTC().Add(time.Hour),
 				}
@@ -87,7 +88,7 @@ func TestTokenRepository_CRUD(t *testing.T) {
 					TokenType:   cryptoutilIdentityDomain.TokenTypeAccess,
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					ClientID:    testClient.ID,
-					Scopes:      []string{"openid", "profile"},
+					Scopes:      []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 					IssuedAt:    time.Now().UTC(),
 					ExpiresAt:   time.Now().UTC().Add(time.Hour),
 				}
@@ -107,14 +108,14 @@ func TestTokenRepository_CRUD(t *testing.T) {
 					TokenType:   cryptoutilIdentityDomain.TokenTypeAccess,
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					ClientID:    testClient.ID,
-					Scopes:      []string{"openid", "profile"},
+					Scopes:      []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 					IssuedAt:    time.Now().UTC(),
 					ExpiresAt:   time.Now().UTC().Add(time.Hour),
 				}
 				err := tokenRepo.Create(ctx, token)
 				require.NoError(t, err)
 
-				token.Scopes = []string{"openid", "profile", "email"}
+				token.Scopes = []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail}
 				err = tokenRepo.Update(ctx, token)
 				require.NoError(t, err)
 
@@ -131,7 +132,7 @@ func TestTokenRepository_CRUD(t *testing.T) {
 					TokenType:   cryptoutilIdentityDomain.TokenTypeAccess,
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					ClientID:    testClient.ID,
-					Scopes:      []string{"openid", "profile"},
+					Scopes:      []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 					IssuedAt:    time.Now().UTC(),
 					ExpiresAt:   time.Now().UTC().Add(time.Hour),
 				}
@@ -150,7 +151,7 @@ func TestTokenRepository_CRUD(t *testing.T) {
 					TokenType:   cryptoutilIdentityDomain.TokenTypeAccess,
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					ClientID:    testClient.ID,
-					Scopes:      []string{"openid", "profile"},
+					Scopes:      []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 					IssuedAt:    time.Now().UTC(),
 					ExpiresAt:   time.Now().UTC().Add(time.Hour),
 				}
@@ -159,7 +160,7 @@ func TestTokenRepository_CRUD(t *testing.T) {
 					TokenType:   cryptoutilIdentityDomain.TokenTypeAccess,
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					ClientID:    testClient.ID,
-					Scopes:      []string{"openid", "profile"},
+					Scopes:      []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 					IssuedAt:    time.Now().UTC(),
 					ExpiresAt:   time.Now().UTC().Add(time.Hour),
 				}
@@ -169,7 +170,7 @@ func TestTokenRepository_CRUD(t *testing.T) {
 				err = tokenRepo.Create(ctx, token2)
 				require.NoError(t, err)
 
-				tokens, err := tokenRepo.List(ctx, 0, 10)
+				tokens, err := tokenRepo.List(ctx, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 				require.NoError(t, err)
 				require.GreaterOrEqual(t, len(tokens), 2)
 			},
@@ -182,7 +183,7 @@ func TestTokenRepository_CRUD(t *testing.T) {
 					TokenType:   cryptoutilIdentityDomain.TokenTypeAccess,
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					ClientID:    testClient.ID,
-					Scopes:      []string{"openid", "profile"},
+					Scopes:      []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 					IssuedAt:    time.Now().UTC(),
 					ExpiresAt:   time.Now().UTC().Add(time.Hour),
 				}
@@ -344,7 +345,7 @@ func TestSessionRepository_CRUD(t *testing.T) {
 				err = sessionRepo.Create(ctx, session2)
 				require.NoError(t, err)
 
-				sessions, err := sessionRepo.List(ctx, 0, 10)
+				sessions, err := sessionRepo.List(ctx, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 				require.NoError(t, err)
 				require.GreaterOrEqual(t, len(sessions), 2)
 			},

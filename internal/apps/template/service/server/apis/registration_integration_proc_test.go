@@ -6,6 +6,7 @@
 package apis
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"context"
 	json "encoding/json"
@@ -35,7 +36,7 @@ func TestIntegration_ListJoinRequests(t *testing.T) {
 	// Create tenant.
 	tenant := &cryptoutilAppsTemplateServiceServerRepository.Tenant{
 		ID:   googleUuid.New(),
-		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:8]),
+		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength]),
 	}
 	require.NoError(t, testDB.Create(tenant).Error)
 
@@ -85,7 +86,7 @@ func TestIntegration_ProcessJoinRequest_Approve(t *testing.T) {
 	// Create tenant.
 	tenant := &cryptoutilAppsTemplateServiceServerRepository.Tenant{
 		ID:   googleUuid.New(),
-		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:8]),
+		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength]),
 	}
 	require.NoError(t, testDB.Create(tenant).Error)
 
@@ -130,7 +131,7 @@ func TestIntegration_ProcessJoinRequest_Reject(t *testing.T) {
 	// Create tenant.
 	tenant := &cryptoutilAppsTemplateServiceServerRepository.Tenant{
 		ID:   googleUuid.New(),
-		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:8]),
+		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength]),
 	}
 	require.NoError(t, testDB.Create(tenant).Error)
 
@@ -176,11 +177,11 @@ func TestIntegration_DuplicateUsername_SameTenant(t *testing.T) {
 	// Create tenant.
 	tenant := &cryptoutilAppsTemplateServiceServerRepository.Tenant{
 		ID:   googleUuid.New(),
-		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:8]),
+		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength]),
 	}
 	require.NoError(t, testDB.Create(tenant).Error)
 
-	username := fmt.Sprintf("user_%s", googleUuid.NewString()[:8])
+	username := fmt.Sprintf("user_%s", googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
 
 	// Create first join request.
 	userID1 := googleUuid.New()
@@ -259,7 +260,7 @@ func TestIntegration_PostgreSQL(t *testing.T) {
 	// Create tenant via service.
 	tenant := &cryptoutilAppsTemplateServiceServerRepository.Tenant{
 		ID:   googleUuid.New(),
-		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:8]),
+		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength]),
 	}
 	require.NoError(t, db.Create(tenant).Error)
 
@@ -287,8 +288,8 @@ func TestIntegration_RegisterUser_InvalidJSON(t *testing.T) {
 
 	var result map[string]any
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
-	require.Contains(t, result, "error")
-	require.Contains(t, result["error"], "Invalid request body")
+	require.Contains(t, result, cryptoutilSharedMagic.StringError)
+	require.Contains(t, result[cryptoutilSharedMagic.StringError], "Invalid request body")
 }
 
 // TestIntegration_ListJoinRequests_NoRequests tests list when no requests exist.

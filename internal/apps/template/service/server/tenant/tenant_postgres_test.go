@@ -4,6 +4,7 @@
 package tenant
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"database/sql/driver"
@@ -420,7 +421,7 @@ func newClosedSQLiteSchemaManager(t *testing.T) *SchemaManager {
 	t.Helper()
 
 	// Create a normal SQLite db then close it to force errors.
-	rawDB, err := sql.Open("sqlite", ":memory:")
+	rawDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
 	require.NoError(t, err)
 
 	gormDB, err := gorm.Open(sqlite.Dialector{Conn: rawDB}, &gorm.Config{
@@ -433,7 +434,7 @@ func newClosedSQLiteSchemaManager(t *testing.T) *SchemaManager {
 	require.NoError(t, rawDB.Close())
 
 	// Build a fresh raw DB that is closed immediately for the sqlDB field.
-	closedDB, err := sql.Open("sqlite", ":memory:")
+	closedDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
 	require.NoError(t, err)
 	require.NoError(t, closedDB.Close())
 

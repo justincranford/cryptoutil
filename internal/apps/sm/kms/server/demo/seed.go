@@ -6,6 +6,7 @@
 package demo
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 
@@ -100,7 +101,7 @@ func SeedDemoData(ctx context.Context, telemetryService *cryptoutilSharedTelemet
 			if existingKey.Name != nil && *existingKey.Name == keyConfig.Name {
 				keyExists = true
 
-				telemetryService.Slogger.Debug("Demo key already exists, skipping", "name", keyConfig.Name)
+				telemetryService.Slogger.Debug("Demo key already exists, skipping", cryptoutilSharedMagic.ClaimName, keyConfig.Name)
 
 				skippedCount++
 
@@ -121,12 +122,12 @@ func SeedDemoData(ctx context.Context, telemetryService *cryptoutilSharedTelemet
 
 		_, err = businessLogicService.AddElasticKey(ctx, keyCreate)
 		if err != nil {
-			telemetryService.Slogger.Error("Failed to create demo key", "name", keyConfig.Name, "error", err)
+			telemetryService.Slogger.Error("Failed to create demo key", cryptoutilSharedMagic.ClaimName, keyConfig.Name, cryptoutilSharedMagic.StringError, err)
 
 			return fmt.Errorf("failed to create demo key %s: %w", keyConfig.Name, err)
 		}
 
-		telemetryService.Slogger.Info("Created demo key", "name", keyConfig.Name, "algorithm", keyConfig.Algorithm)
+		telemetryService.Slogger.Info("Created demo key", cryptoutilSharedMagic.ClaimName, keyConfig.Name, "algorithm", keyConfig.Algorithm)
 
 		seededCount++
 	}
@@ -157,7 +158,7 @@ func ResetDemoData(ctx context.Context, telemetryService *cryptoutilSharedTeleme
 				// Note: Since there's no UpdateElasticKeyStatus method in business logic service,
 				// we'll need to add one or use repository directly. For now, we'll skip disabling
 				// and just re-seed (which will be idempotent)
-				telemetryService.Slogger.Info("Demo key exists, will be replaced during re-seed", "name", keyConfig.Name)
+				telemetryService.Slogger.Info("Demo key exists, will be replaced during re-seed", cryptoutilSharedMagic.ClaimName, keyConfig.Name)
 
 				break
 			}

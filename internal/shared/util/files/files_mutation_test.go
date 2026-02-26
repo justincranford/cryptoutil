@@ -1,6 +1,7 @@
 package files_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -51,10 +52,10 @@ func TestReadFilesBytesLimit_BoundaryMaxFiles(t *testing.T) {
 
 			for i := range tc.fileCount {
 				filePaths[i] = filepath.Join(tmpDir, "file"+string(rune('a'+i))+".txt")
-				require.NoError(t, os.WriteFile(filePaths[i], []byte("content"), 0o600))
+				require.NoError(t, os.WriteFile(filePaths[i], []byte("content"), cryptoutilSharedMagic.CacheFilePermissions))
 			}
 
-			contents, err := cryptoutilSharedUtilFiles.ReadFilesBytesLimit(filePaths, tc.maxFiles, 100)
+			contents, err := cryptoutilSharedUtilFiles.ReadFilesBytesLimit(filePaths, tc.maxFiles, cryptoutilSharedMagic.JoseJAMaxMaterials)
 			if tc.wantErr {
 				require.Error(t, err)
 				require.Nil(t, contents)
@@ -81,21 +82,21 @@ func TestReadFileBytesLimit_BoundaryFileSize(t *testing.T) {
 	}{
 		{
 			name:         "file size equals maxBytes",
-			contentSize:  10,
-			maxBytes:     10,
-			expectedSize: 10,
+			contentSize:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
+			maxBytes:     cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
+			expectedSize: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 		},
 		{
 			name:         "file size one less than maxBytes",
 			contentSize:  9,
-			maxBytes:     10,
+			maxBytes:     cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 			expectedSize: 9,
 		},
 		{
 			name:         "file size one more than maxBytes",
 			contentSize:  11,
-			maxBytes:     10,
-			expectedSize: 10,
+			maxBytes:     cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
+			expectedSize: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 		},
 	}
 
@@ -111,7 +112,7 @@ func TestReadFileBytesLimit_BoundaryFileSize(t *testing.T) {
 				content[i] = byte('A' + (i % 26))
 			}
 
-			require.NoError(t, os.WriteFile(testFile, content, 0o600))
+			require.NoError(t, os.WriteFile(testFile, content, cryptoutilSharedMagic.CacheFilePermissions))
 
 			result, err := cryptoutilSharedUtilFiles.ReadFileBytesLimit(testFile, tc.maxBytes)
 			require.NoError(t, err)
@@ -130,7 +131,7 @@ func TestReadFileBytesLimit_MaxBytesZeroBoundary(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test.txt")
 	testContent := []byte("ABCDEFGHIJ")
-	require.NoError(t, os.WriteFile(testFile, testContent, 0o600))
+	require.NoError(t, os.WriteFile(testFile, testContent, cryptoutilSharedMagic.CacheFilePermissions))
 
 	tests := []struct {
 		name         string
@@ -140,12 +141,12 @@ func TestReadFileBytesLimit_MaxBytesZeroBoundary(t *testing.T) {
 		{
 			name:         "maxBytes 0 reads entire file",
 			maxBytes:     0,
-			expectedSize: 10,
+			expectedSize: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 		},
 		{
 			name:         "maxBytes -1 reads entire file",
 			maxBytes:     -1,
-			expectedSize: 10,
+			expectedSize: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 		},
 		{
 			name:         "maxBytes 1 reads one byte",
@@ -154,8 +155,8 @@ func TestReadFileBytesLimit_MaxBytesZeroBoundary(t *testing.T) {
 		},
 		{
 			name:         "maxBytes 5 reads five bytes",
-			maxBytes:     5,
-			expectedSize: 5,
+			maxBytes:     cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
+			expectedSize: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 		},
 	}
 
@@ -200,7 +201,7 @@ func TestReadFilesBytesLimit_EmptyPathIndex(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			contents, err := cryptoutilSharedUtilFiles.ReadFilesBytesLimit(tc.filePaths, 10, 100)
+			contents, err := cryptoutilSharedUtilFiles.ReadFilesBytesLimit(tc.filePaths, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cryptoutilSharedMagic.JoseJAMaxMaterials)
 			require.Error(t, err)
 			require.Nil(t, contents)
 			require.Contains(t, err.Error(), tc.expectedErrIndex)
@@ -251,7 +252,7 @@ func TestListAllFilesWithOptions_ExtensionFiltering(t *testing.T) {
 			tmpDir := t.TempDir()
 
 			for name, content := range tc.files {
-				require.NoError(t, os.WriteFile(filepath.Join(tmpDir, name), []byte(content), 0o600))
+				require.NoError(t, os.WriteFile(filepath.Join(tmpDir, name), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 			}
 
 			matches, err := cryptoutilSharedUtilFiles.ListAllFilesWithOptions(tmpDir, tc.inclusions, nil)
@@ -280,7 +281,7 @@ func TestWriteFile_ByteSliceContent(t *testing.T) {
 	testFile := filepath.Join(tmpDir, "bytes.bin")
 	binaryContent := []byte{0x00, 0x01, 0x02, 0xFF, 0xFE, 0xFD}
 
-	err := cryptoutilSharedUtilFiles.WriteFile(testFile, binaryContent, 0o600)
+	err := cryptoutilSharedUtilFiles.WriteFile(testFile, binaryContent, cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	readBack, readErr := os.ReadFile(testFile)
@@ -321,7 +322,7 @@ func TestReadFilesBytesLimit_ReadErrorIndex(t *testing.T) {
 
 	// Provide a non-existent file path that passes validation but fails during read.
 	contents, err := cryptoutilSharedUtilFiles.ReadFilesBytesLimit(
-		[]string{"/nonexistent/path/file.txt"}, 10, 100,
+		[]string{"/nonexistent/path/file.txt"}, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cryptoutilSharedMagic.JoseJAMaxMaterials,
 	)
 	require.Error(t, err)
 	require.Nil(t, contents)

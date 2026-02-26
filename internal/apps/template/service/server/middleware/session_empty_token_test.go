@@ -6,6 +6,7 @@
 package middleware
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -25,7 +26,7 @@ func TestSessionMiddleware_EmptyBearerToken(t *testing.T) {
 	orig := sessionMiddlewareStringsSplitNFn
 	sessionMiddlewareStringsSplitNFn = func(s, sep string, n int) []string {
 		if strings.HasPrefix(strings.ToLower(s), "bearer") {
-			return []string{"Bearer", ""}
+			return []string{cryptoutilSharedMagic.AuthorizationBearer, ""}
 		}
 
 		return strings.SplitN(s, sep, n)

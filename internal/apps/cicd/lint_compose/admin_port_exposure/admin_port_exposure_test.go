@@ -3,6 +3,7 @@
 package admin_port_exposure
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -48,7 +49,7 @@ func TestCheck_WithCleanComposeFile(t *testing.T) {
 	tmpDir := t.TempDir()
 	composeFile := filepath.Join(tmpDir, "compose.yml")
 	content := "services:\n  app:\n    ports:\n      - 8080:8080\n"
-	require.NoError(t, os.WriteFile(composeFile, []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(composeFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
@@ -65,7 +66,7 @@ func TestCheck_WithAdminPortExposure(t *testing.T) {
 	tmpDir := t.TempDir()
 	composeFile := filepath.Join(tmpDir, "compose.yml")
 	content := "services:\n  admin:\n    ports:\n      - 9090:9090\n"
-	require.NoError(t, os.WriteFile(composeFile, []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(composeFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
@@ -98,7 +99,7 @@ func TestCheckComposeFile_NoPortsSection(t *testing.T) {
 	tmpDir := t.TempDir()
 	composeFile := filepath.Join(tmpDir, "compose.yml")
 	content := "services:\n  app:\n    image: alpine\n"
-	require.NoError(t, os.WriteFile(composeFile, []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(composeFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	violations, err := CheckComposeFile(composeFile)
 	require.NoError(t, err)
@@ -111,7 +112,7 @@ func TestCheckComposeFile_PortRangeToAdmin(t *testing.T) {
 	tmpDir := t.TempDir()
 	composeFile := filepath.Join(tmpDir, "compose.yml")
 	content := "services:\n  admin:\n    ports:\n      - 9080-9089:9090\n"
-	require.NoError(t, os.WriteFile(composeFile, []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(composeFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	violations, err := CheckComposeFile(composeFile)
 	require.NoError(t, err)
@@ -124,7 +125,7 @@ func TestCheckComposeFile_CommentedPortLine(t *testing.T) {
 	tmpDir := t.TempDir()
 	composeFile := filepath.Join(tmpDir, "compose.yml")
 	content := "services:\n  app:\n    ports:\n      # - 9090:9090\n"
-	require.NoError(t, os.WriteFile(composeFile, []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(composeFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	violations, err := CheckComposeFile(composeFile)
 	require.NoError(t, err)
@@ -138,7 +139,7 @@ func TestCheckComposeFile_ExitsPortsSection(t *testing.T) {
 	composeFile := filepath.Join(tmpDir, "compose.yml")
 	// After "volumes:", we are no longer in a ports section.
 	content := "services:\n  app:\n    ports:\n      - 8080:8080\n    volumes:\n      - ./data:/data\n"
-	require.NoError(t, os.WriteFile(composeFile, []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(composeFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	violations, err := CheckComposeFile(composeFile)
 	require.NoError(t, err)
@@ -151,7 +152,7 @@ func TestCheckComposeFile_DifferentHostPort(t *testing.T) {
 	tmpDir := t.TempDir()
 	composeFile := filepath.Join(tmpDir, "compose.yml")
 	content := "services:\n  admin:\n    ports:\n      - 19090:9090\n"
-	require.NoError(t, os.WriteFile(composeFile, []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(composeFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	violations, err := CheckComposeFile(composeFile)
 	require.NoError(t, err)

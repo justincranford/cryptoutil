@@ -3,6 +3,7 @@
 package lint_text
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -28,11 +29,11 @@ func TestLint_ValidUTF8Files(t *testing.T) {
 
 	// Create valid UTF-8 files.
 	validFile := filepath.Join(tmpDir, "test.txt")
-	err := os.WriteFile(validFile, []byte("Hello, World!"), 0o600)
+	err := os.WriteFile(validFile, []byte("Hello, World!"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	validGoFile := filepath.Join(tmpDir, "main.go")
-	err = os.WriteFile(validGoFile, []byte("package main\n\nfunc main() {}\n"), 0o600)
+	err = os.WriteFile(validGoFile, []byte("package main\n\nfunc main() {}\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -54,7 +55,7 @@ func TestLint_FileWithBOM(t *testing.T) {
 	bomFile := filepath.Join(tmpDir, "bom.txt")
 
 	bomContent := append([]byte{0xEF, 0xBB, 0xBF}, []byte("Hello with BOM")...)
-	err := os.WriteFile(bomFile, bomContent, 0o600)
+	err := os.WriteFile(bomFile, bomContent, cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -72,7 +73,7 @@ func TestFilterTextFilesViaLint(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	goFile := filepath.Join(tmpDir, "main.go")
-	err := os.WriteFile(goFile, []byte("package main"), 0o600)
+	err := os.WriteFile(goFile, []byte("package main"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")

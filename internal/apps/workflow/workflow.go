@@ -66,13 +66,13 @@ type ExecutionSummary struct {
 
 // Workflow executes the workflow runner with the provided command line arguments.
 func Workflow(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
-	return runWithWorkflowsDir(args[1:], ".github/workflows")
+	return runWithWorkflowsDir(args[1:], cryptoutilSharedMagic.WorkflowsDir)
 }
 
 // run executes the workflow runner with the provided command line arguments.
 // It uses the default .github/workflows directory for workflow discovery.
 func run(args []string) int {
-	return runWithWorkflowsDir(args, ".github/workflows")
+	return runWithWorkflowsDir(args, cryptoutilSharedMagic.WorkflowsDir)
 }
 
 // runWithWorkflowsDir executes the workflow runner with a configurable workflows directory.

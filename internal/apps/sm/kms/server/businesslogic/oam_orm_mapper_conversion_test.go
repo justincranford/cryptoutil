@@ -1,6 +1,7 @@
 package businesslogic
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
 
@@ -102,9 +103,9 @@ func TestToOrmDateRange(t *testing.T) {
 	mapper := NewOamOrmMapper()
 
 	now := time.Now().UTC()
-	past := now.Add(-24 * time.Hour)
-	future := now.Add(24 * time.Hour)
-	farPast := now.Add(-48 * time.Hour)
+	past := now.Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour)
+	future := now.Add(cryptoutilSharedMagic.HoursPerDay * time.Hour)
+	farPast := now.Add(-cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour)
 
 	tests := []struct {
 		name          string
@@ -144,7 +145,7 @@ func TestToOrmPageNumber(t *testing.T) {
 	mapper := NewOamOrmMapper()
 
 	zero := cryptoutilKmsServer.PageNumber(0)
-	positive := cryptoutilKmsServer.PageNumber(5)
+	positive := cryptoutilKmsServer.PageNumber(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	negative := cryptoutilKmsServer.PageNumber(-1)
 
 	tests := []struct {
@@ -155,7 +156,7 @@ func TestToOrmPageNumber(t *testing.T) {
 	}{
 		{"nil returns default", nil, 0, false},
 		{"zero page number", &zero, 0, false},
-		{"positive page number", &positive, 5, false},
+		{"positive page number", &positive, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, false},
 		{"negative page number", &negative, 0, true},
 	}
 
@@ -182,7 +183,7 @@ func TestToOrmPageSize(t *testing.T) {
 	mapper := NewOamOrmMapper()
 
 	one := cryptoutilKmsServer.PageSize(1)
-	ten := cryptoutilKmsServer.PageSize(10)
+	ten := cryptoutilKmsServer.PageSize(cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	zero := cryptoutilKmsServer.PageSize(0)
 
 	tests := []struct {
@@ -193,7 +194,7 @@ func TestToOrmPageSize(t *testing.T) {
 	}{
 		{"nil returns default", nil, false, 1},
 		{"size of one", &one, false, 1},
-		{"size of ten", &ten, false, 10},
+		{"size of ten", &ten, false, cryptoutilSharedMagic.JoseJADefaultMaxMaterials},
 		{"zero size", &zero, true, 0},
 	}
 

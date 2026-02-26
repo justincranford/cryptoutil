@@ -99,7 +99,7 @@ func TestRunWithWorkflowsDir_DryRun_DastWorkflow(t *testing.T) {
 t.Parallel()
 
 tempDir := t.TempDir()
-wfDir := makeWorkflowsDir(t, "dast")
+wfDir := makeWorkflowsDir(t, cryptoutilSharedMagic.WorkflowNameDAST)
 outputDir := filepath.Join(tempDir, "output")
 
 result := runWithWorkflowsDir([]string{
@@ -228,7 +228,7 @@ t.Parallel()
 available := map[string]WorkflowConfig{
 "quality":  {Description: "Quality checks"},
 "coverage": {Description: "Coverage"},
-"dast":     {Description: "DAST"},
+cryptoutilSharedMagic.WorkflowNameDAST:     {Description: "DAST"},
 }
 
 tests := []struct {

@@ -5,6 +5,7 @@
 package tests
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -129,10 +130,10 @@ func setupTestRepositoryFactory(ctx context.Context, t *testing.T) *cryptoutilId
 	uuidSuffix := googleUuid.Must(googleUuid.NewV7()).String()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type:            "sqlite",
+		Type:            cryptoutilSharedMagic.TestDatabaseSQLite,
 		DSN:             "file:" + uuidSuffix + ".db?mode=memory&cache=shared",
-		MaxOpenConns:    5,
-		MaxIdleConns:    5,
+		MaxOpenConns:    cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
+		MaxIdleConns:    cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 		ConnMaxLifetime: 0,
 		ConnMaxIdleTime: 0,
 		AutoMigrate:     true,

@@ -5,6 +5,7 @@
 package bootstrap_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -23,8 +24,8 @@ func TestCreateDemoUser_NewUser(t *testing.T) {
 
 	// Create in-memory database.
 	cfg := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, cfg)
@@ -67,8 +68,8 @@ func TestCreateDemoUser_ExistingUser(t *testing.T) {
 
 	// Create in-memory database.
 	cfg := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, cfg)
@@ -101,8 +102,8 @@ func TestBootstrapUsers(t *testing.T) {
 
 	// Create in-memory database.
 	cfg := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, cfg)
@@ -135,8 +136,8 @@ func TestBootstrapUsers_ExistingUser(t *testing.T) {
 
 	// Create in-memory database.
 	cfg := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, cfg)
@@ -158,7 +159,7 @@ func TestBootstrapUsers_ExistingUser(t *testing.T) {
 
 	// Verify still only one demo user.
 	userRepo := repoFactory.UserRepository()
-	users, err := userRepo.List(ctx, 0, 10)
+	users, err := userRepo.List(ctx, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err, "List should succeed")
 	require.Len(t, users, 1, "Should have exactly one user")
 	require.Equal(t, "demo-user", users[0].Sub, "User should be demo-user")

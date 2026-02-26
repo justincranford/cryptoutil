@@ -78,10 +78,10 @@ func TestHandleClientCredentialsGrant_ErrorPaths(t *testing.T) {
 					ClientID:                "test-client-" + googleUuid.NewString(),
 					ClientSecret:            "test-secret",
 					Name:                    "Test Client",
-					AllowedScopes:           []string{"read"},
+					AllowedScopes:           []string{cryptoutilSharedMagic.ScopeRead},
 					ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 					TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,
-					AccessTokenLifetime:     3600,
+					AccessTokenLifetime:     cryptoutilSharedMagic.IMDefaultSessionTimeout,
 				}
 
 				clientRepo := repoFactory.ClientRepository()
@@ -90,7 +90,7 @@ func TestHandleClientCredentialsGrant_ErrorPaths(t *testing.T) {
 
 				authHeader := base64.StdEncoding.EncodeToString([]byte(client.ClientID + ":test-secret"))
 
-				return client.ClientID, "write", "Basic " + authHeader // Request scope not in AllowedScopes
+				return client.ClientID, cryptoutilSharedMagic.ScopeWrite, "Basic " + authHeader // Request scope not in AllowedScopes
 			},
 			expectedStatus: fiber.StatusUnauthorized, // Fails on auth (unsupported hash) before scope validation
 		},
@@ -111,14 +111,14 @@ func TestHandleClientCredentialsGrant_ErrorPaths(t *testing.T) {
 			clientID, scope, authHeader := tc.setupFunc(t, repoFactory)
 
 			form := url.Values{}
-			form.Set("grant_type", cryptoutilSharedMagic.GrantTypeClientCredentials)
+			form.Set(cryptoutilSharedMagic.ParamGrantType, cryptoutilSharedMagic.GrantTypeClientCredentials)
 
 			if clientID != "" {
-				form.Set("client_id", clientID)
+				form.Set(cryptoutilSharedMagic.ClaimClientID, clientID)
 			}
 
 			if scope != "" {
-				form.Set("scope", scope)
+				form.Set(cryptoutilSharedMagic.ClaimScope, scope)
 			}
 
 			req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(form.Encode()))
@@ -146,7 +146,7 @@ func createClientCredentialsTestDependencies(t *testing.T) (*cryptoutilIdentityC
 	t.Helper()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type:        "sqlite",
+		Type:        cryptoutilSharedMagic.TestDatabaseSQLite,
 		DSN:         fmt.Sprintf("file::memory:?cache=private&mode=memory&_id=%s", googleUuid.New().String()),
 		AutoMigrate: true,
 	}
@@ -155,7 +155,7 @@ func createClientCredentialsTestDependencies(t *testing.T) (*cryptoutilIdentityC
 		Database: dbConfig,
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			Issuer:              "https://localhost:8080",
-			AccessTokenLifetime: 3600,
+			AccessTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		},
 	}
 

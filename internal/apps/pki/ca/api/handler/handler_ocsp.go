@@ -249,7 +249,7 @@ func (h *Handler) ptrSlice(s []string) *[]string {
 func (h *Handler) mapCategory(category string) cryptoutilApiCaServer.ProfileSummaryCategory {
 	categoryMap := map[string]cryptoutilApiCaServer.ProfileSummaryCategory{
 		"tls":              cryptoutilApiCaServer.TLS,
-		"email":            cryptoutilApiCaServer.Email,
+		cryptoutilSharedMagic.ClaimEmail:            cryptoutilApiCaServer.Email,
 		"code_signing":     cryptoutilApiCaServer.CodeSigning,
 		"document_signing": cryptoutilApiCaServer.DocumentSigning,
 		"ca":               cryptoutilApiCaServer.CA,

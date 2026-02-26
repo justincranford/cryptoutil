@@ -3,6 +3,7 @@
 package handler
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"context"
 	ecdsa "crypto/ecdsa"
@@ -70,7 +71,7 @@ func TestListCertificates(t *testing.T) {
 		SubjectDN:      "CN=test1.example.com,O=Test Org",
 		IssuerDN:       "CN=Test CA,O=Test Org",
 		NotBefore:      time.Now().UTC().Add(-time.Hour),
-		NotAfter:       time.Now().UTC().Add(time.Hour * 24 * 365),
+		NotAfter:       time.Now().UTC().Add(time.Hour * cryptoutilSharedMagic.HoursPerDay * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year),
 		Status:         cryptoutilCAStorage.StatusActive,
 		ProfileID:      "tls-server",
 		CertificatePEM: "-----BEGIN CERTIFICATE-----\nMIIB...\n-----END CERTIFICATE-----",
@@ -84,7 +85,7 @@ func TestListCertificates(t *testing.T) {
 		SubjectDN:      "CN=test2.example.com,O=Test Org",
 		IssuerDN:       "CN=Test CA,O=Test Org",
 		NotBefore:      time.Now().UTC().Add(-time.Hour),
-		NotAfter:       time.Now().UTC().Add(time.Hour * 24 * 365),
+		NotAfter:       time.Now().UTC().Add(time.Hour * cryptoutilSharedMagic.HoursPerDay * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year),
 		Status:         cryptoutilCAStorage.StatusRevoked,
 		ProfileID:      "tls-server",
 		CertificatePEM: "-----BEGIN CERTIFICATE-----\nMIIB...\n-----END CERTIFICATE-----",
@@ -124,7 +125,7 @@ func TestGetCertificate(t *testing.T) {
 		SubjectDN:      "CN=test.example.com,O=Test Org",
 		IssuerDN:       "CN=Test CA,O=Test Org",
 		NotBefore:      time.Now().UTC().Add(-time.Hour),
-		NotAfter:       time.Now().UTC().Add(time.Hour * 24 * 365),
+		NotAfter:       time.Now().UTC().Add(time.Hour * cryptoutilSharedMagic.HoursPerDay * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year),
 		Status:         cryptoutilCAStorage.StatusActive,
 		ProfileID:      "tls-server",
 		CertificatePEM: "-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----",
@@ -183,7 +184,7 @@ func TestGetCertificateChain(t *testing.T) {
 		SubjectDN:      "CN=test.example.com",
 		IssuerDN:       "CN=Test CA",
 		NotBefore:      time.Now().UTC().Add(-time.Hour),
-		NotAfter:       time.Now().UTC().Add(time.Hour * 24 * 365),
+		NotAfter:       time.Now().UTC().Add(time.Hour * cryptoutilSharedMagic.HoursPerDay * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year),
 		Status:         cryptoutilCAStorage.StatusActive,
 		ProfileID:      "tls-server",
 		CertificatePEM: "-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----",
@@ -232,7 +233,7 @@ func TestRevokeCertificate(t *testing.T) {
 		SubjectDN:      "CN=test.example.com",
 		IssuerDN:       "CN=Test CA",
 		NotBefore:      time.Now().UTC().Add(-time.Hour),
-		NotAfter:       time.Now().UTC().Add(time.Hour * 24 * 365),
+		NotAfter:       time.Now().UTC().Add(time.Hour * cryptoutilSharedMagic.HoursPerDay * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year),
 		Status:         cryptoutilCAStorage.StatusActive,
 		ProfileID:      "tls-server",
 		CertificatePEM: "-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----",
@@ -279,7 +280,7 @@ func TestGetEnrollmentStatusHandler(t *testing.T) {
 	app := fiber.New()
 	mockStorage := cryptoutilCAStorage.NewMemoryStore()
 
-	tracker := newEnrollmentTracker(100)
+	tracker := newEnrollmentTracker(cryptoutilSharedMagic.JoseJAMaxMaterials)
 	requestID := googleUuid.New()
 	tracker.track(requestID, cryptoutilApiCaServer.EnrollmentStatusResponseStatusIssued, "ISSUED123")
 
@@ -293,7 +294,7 @@ func TestGetEnrollmentStatusHandler(t *testing.T) {
 
 		id, parseErr := googleUuid.Parse(idStr)
 		if parseErr != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request ID"})
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "invalid request ID"})
 		}
 
 		return handler.GetEnrollmentStatus(c, id)

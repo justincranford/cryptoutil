@@ -6,6 +6,7 @@
 package apis
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"context"
 	json "encoding/json"
@@ -61,7 +62,7 @@ func TestIssueSession_ServiceSessionSuccess(t *testing.T) {
 	app.Post("/sessions/issue", handler.IssueSession)
 
 	reqBody := SessionIssueRequest{
-		UserID:      "test-client-id",
+		UserID:      cryptoutilSharedMagic.TestClientID,
 		TenantID:    googleUuid.New().String(),
 		RealmID:     googleUuid.New().String(),
 		SessionType: "service", // ← Tests service branch (line 91-94)
@@ -98,7 +99,7 @@ func TestIssueSession_ServiceSessionError(t *testing.T) {
 	app.Post("/sessions/issue", handler.IssueSession)
 
 	reqBody := SessionIssueRequest{
-		UserID:      "test-client-id",
+		UserID:      cryptoutilSharedMagic.TestClientID,
 		TenantID:    googleUuid.New().String(),
 		RealmID:     googleUuid.New().String(),
 		SessionType: "service",
@@ -113,7 +114,7 @@ func TestIssueSession_ServiceSessionError(t *testing.T) {
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
 
-	require.Equal(t, 500, resp.StatusCode) // ← Tests line 97-100 (error path)
+	require.Equal(t, cryptoutilSharedMagic.TestDefaultRateLimitServiceIP, resp.StatusCode) // ← Tests line 97-100 (error path)
 }
 
 // TestIssueSession_BrowserSessionSuccess tests browser session issuance with mock.

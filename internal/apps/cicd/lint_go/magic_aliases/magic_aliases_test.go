@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -19,10 +20,10 @@ func writeGoFile(t *testing.T, dir, subPkg, name, content string) {
 
 	pkgDir := filepath.Join(dir, subPkg)
 
-	err := os.MkdirAll(pkgDir, 0o750)
+	err := os.MkdirAll(pkgDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute)
 	require.NoError(t, err)
 
-	err = os.WriteFile(filepath.Join(pkgDir, name), []byte(content), 0o600)
+	err = os.WriteFile(filepath.Join(pkgDir, name), []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 }
 
@@ -91,7 +92,7 @@ func TestCheckMagicAliasesInDir_SkipsMagicDir(t *testing.T) {
 	rootDir := t.TempDir()
 	magicDir := filepath.Join(rootDir, "shared", "magic")
 
-	err := os.MkdirAll(magicDir, 0o750)
+	err := os.MkdirAll(magicDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute)
 	require.NoError(t, err)
 
 	// Const alias inside magic dir should not be reported.
@@ -100,7 +101,7 @@ func TestCheckMagicAliasesInDir_SkipsMagicDir(t *testing.T) {
 import cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 const localHelper = cryptoutilSharedMagic.EmptyString
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-aliases-test")
@@ -263,7 +264,7 @@ func TestFindMagicImportAlias_DefaultName(t *testing.T) {
 
 	writeDir := t.TempDir()
 
-	err := os.WriteFile(filepath.Join(writeDir, "test.go"), []byte("package a\n\nimport \"cryptoutil/internal/shared/magic\"\n\nconst x = magic.EmptyString\n"), 0o600)
+	err := os.WriteFile(filepath.Join(writeDir, "test.go"), []byte("package a\n\nimport \"cryptoutil/internal/shared/magic\"\n\nconst x = magic.EmptyString\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations := findAliasesInFile(filepath.Join(writeDir, "test.go"), "test.go")

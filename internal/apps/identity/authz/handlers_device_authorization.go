@@ -40,7 +40,7 @@ func (s *Service) handleDeviceAuthorization(c *fiber.Ctx) error {
 	// Validate required parameters.
 	if clientID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "client_id is required",
 		})
 	}
@@ -52,10 +52,10 @@ func (s *Service) handleDeviceAuthorization(c *fiber.Ctx) error {
 
 	_, err := clientRepo.GetByClientID(ctx, clientID)
 	if err != nil {
-		slog.ErrorContext(ctx, "Client not found for device authorization", "client_id", clientID, "error", err)
+		slog.ErrorContext(ctx, "Client not found for device authorization", cryptoutilSharedMagic.ClaimClientID, clientID, cryptoutilSharedMagic.StringError, err)
 
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorInvalidClient,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidClient,
 			"error_description": "Invalid client_id",
 		})
 	}
@@ -63,10 +63,10 @@ func (s *Service) handleDeviceAuthorization(c *fiber.Ctx) error {
 	// Generate device code (opaque token for polling).
 	deviceCode, err := GenerateDeviceCode()
 	if err != nil {
-		slog.ErrorContext(ctx, "Failed to generate device code", "error", err)
+		slog.ErrorContext(ctx, "Failed to generate device code", cryptoutilSharedMagic.StringError, err)
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorServerError,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Failed to generate device code",
 		})
 	}
@@ -74,10 +74,10 @@ func (s *Service) handleDeviceAuthorization(c *fiber.Ctx) error {
 	// Generate user code (human-readable code for verification).
 	userCode, err := GenerateUserCode()
 	if err != nil {
-		slog.ErrorContext(ctx, "Failed to generate user code", "error", err)
+		slog.ErrorContext(ctx, "Failed to generate user code", cryptoutilSharedMagic.StringError, err)
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorServerError,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Failed to generate user code",
 		})
 	}
@@ -98,10 +98,10 @@ func (s *Service) handleDeviceAuthorization(c *fiber.Ctx) error {
 
 	deviceAuthRepo := s.repoFactory.DeviceAuthorizationRepository()
 	if err := deviceAuthRepo.Create(ctx, deviceAuth); err != nil {
-		slog.ErrorContext(ctx, "Failed to store device authorization", "error", err, "device_code", deviceCode[:8]+"...")
+		slog.ErrorContext(ctx, "Failed to store device authorization", cryptoutilSharedMagic.StringError, err, cryptoutilSharedMagic.ParamDeviceCode, deviceCode[:cryptoutilSharedMagic.IMMinPasswordLength]+"...")
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorServerError,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Failed to store device authorization",
 		})
 	}
@@ -118,20 +118,20 @@ func (s *Service) handleDeviceAuthorization(c *fiber.Ctx) error {
 	verificationURIComplete := fmt.Sprintf("%s?%s=%s", verificationURI, cryptoutilSharedMagic.ParamUserCode, userCode)
 
 	slog.InfoContext(ctx, "Device authorization request created",
-		"device_code_prefix", deviceCode[:8]+"...",
-		"user_code", userCode,
-		"client_id", clientID,
-		"scope", scope,
+		"device_code_prefix", deviceCode[:cryptoutilSharedMagic.IMMinPasswordLength]+"...",
+		cryptoutilSharedMagic.ParamUserCode, userCode,
+		cryptoutilSharedMagic.ClaimClientID, clientID,
+		cryptoutilSharedMagic.ClaimScope, scope,
 		"expires_at", deviceAuth.ExpiresAt,
 	)
 
 	// Return RFC 8628 Section 3.2 response.
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"device_code":               deviceCode,
-		"user_code":                 userCode,
+		cryptoutilSharedMagic.ParamDeviceCode:               deviceCode,
+		cryptoutilSharedMagic.ParamUserCode:                 userCode,
 		"verification_uri":          verificationURI,
 		"verification_uri_complete": verificationURIComplete,
-		"expires_in":                int(cryptoutilSharedMagic.DefaultDeviceCodeLifetime.Seconds()),
+		cryptoutilSharedMagic.ParamExpiresIn:                int(cryptoutilSharedMagic.DefaultDeviceCodeLifetime.Seconds()),
 		"interval":                  int(cryptoutilSharedMagic.DefaultPollingInterval.Seconds()),
 	})
 }

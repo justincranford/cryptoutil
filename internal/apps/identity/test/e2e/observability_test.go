@@ -5,6 +5,7 @@
 package e2e
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	json "encoding/json"
 	"fmt"
@@ -35,10 +36,10 @@ func TestOTELCollectorIntegration(t *testing.T) {
 	// Start services with OTEL collector
 	t.Log("📦 Starting identity services with OTEL collector...")
 	require.NoError(t, startCompose(ctx, defaultProfile, map[string]int{
-		"identity-authz": 1,
-		"identity-idp":   1,
-		"identity-rs":    1,
-		"identity-spa":   1,
+		cryptoutilSharedMagic.OTLPServiceIdentityAuthz: 1,
+		cryptoutilSharedMagic.OTLPServiceIdentityIDP:   1,
+		cryptoutilSharedMagic.OTLPServiceIdentityRS:    1,
+		cryptoutilSharedMagic.OTLPServiceIdentitySPA:   1,
 	}))
 
 	defer func() {
@@ -64,7 +65,7 @@ func TestOTELCollectorIntegration(t *testing.T) {
 
 	// Wait for telemetry propagation
 	t.Log("⏳ Waiting for telemetry propagation to OTEL collector...")
-	time.Sleep(10 * time.Second)
+	time.Sleep(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second)
 
 	// Verify metrics are available from OTEL collector
 	t.Log("📊 Verifying metrics available from OTEL collector...")
@@ -91,10 +92,10 @@ func TestGrafanaIntegration(t *testing.T) {
 	// Start services with Grafana stack
 	t.Log("📦 Starting identity services with Grafana stack...")
 	require.NoError(t, startCompose(ctx, defaultProfile, map[string]int{
-		"identity-authz": 1,
-		"identity-idp":   1,
-		"identity-rs":    1,
-		"identity-spa":   1,
+		cryptoutilSharedMagic.OTLPServiceIdentityAuthz: 1,
+		cryptoutilSharedMagic.OTLPServiceIdentityIDP:   1,
+		cryptoutilSharedMagic.OTLPServiceIdentityRS:    1,
+		cryptoutilSharedMagic.OTLPServiceIdentitySPA:   1,
 	}))
 
 	defer func() {
@@ -154,10 +155,10 @@ func TestPrometheusMetricScraping(t *testing.T) {
 	// Start services with Prometheus
 	t.Log("📦 Starting identity services with Prometheus...")
 	require.NoError(t, startCompose(ctx, defaultProfile, map[string]int{
-		"identity-authz": 1,
-		"identity-idp":   1,
-		"identity-rs":    1,
-		"identity-spa":   1,
+		cryptoutilSharedMagic.OTLPServiceIdentityAuthz: 1,
+		cryptoutilSharedMagic.OTLPServiceIdentityIDP:   1,
+		cryptoutilSharedMagic.OTLPServiceIdentityRS:    1,
+		cryptoutilSharedMagic.OTLPServiceIdentitySPA:   1,
 	}))
 
 	defer func() {
@@ -179,7 +180,7 @@ func TestPrometheusMetricScraping(t *testing.T) {
 
 	// Wait for metric scraping
 	t.Log("⏳ Waiting for Prometheus metric scraping...")
-	time.Sleep(30 * time.Second) // Prometheus scrape interval typically 15-30s
+	time.Sleep(cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second) // Prometheus scrape interval typically 15-30s
 
 	// Query Prometheus for identity service metrics
 	t.Log("📊 Querying Prometheus for identity service metrics...")
@@ -195,16 +196,16 @@ func TestPrometheusMetricScraping(t *testing.T) {
 func TestTelemetryEndToEnd(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)
 	defer cancel()
 
 	// Start complete observability stack
 	t.Log("📦 Starting identity services with complete observability stack...")
 	require.NoError(t, startCompose(ctx, defaultProfile, map[string]int{
-		"identity-authz": 1,
-		"identity-idp":   1,
-		"identity-rs":    1,
-		"identity-spa":   1,
+		cryptoutilSharedMagic.OTLPServiceIdentityAuthz: 1,
+		cryptoutilSharedMagic.OTLPServiceIdentityIDP:   1,
+		cryptoutilSharedMagic.OTLPServiceIdentityRS:    1,
+		cryptoutilSharedMagic.OTLPServiceIdentitySPA:   1,
 	}))
 
 	defer func() {
@@ -233,7 +234,7 @@ func TestTelemetryEndToEnd(t *testing.T) {
 
 	// Wait for complete telemetry propagation
 	t.Log("⏳ Waiting for complete telemetry propagation...")
-	time.Sleep(30 * time.Second)
+	time.Sleep(cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second)
 
 	// Verify traces available in Tempo (via Grafana API)
 	t.Log("🔍 Verifying traces available in Tempo...")
@@ -257,7 +258,7 @@ func TestTelemetryEndToEnd(t *testing.T) {
 
 // Helper: checkOTELCollectorHealth verifies OTEL collector is healthy.
 func checkOTELCollectorHealth(ctx context.Context) error {
-	client := &http.Client{Timeout: 10 * time.Second}
+	client := &http.Client{Timeout: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, otelCollectorHealthURL, nil)
 	if err != nil {
@@ -280,7 +281,7 @@ func checkOTELCollectorHealth(ctx context.Context) error {
 
 // Helper: fetchOTELCollectorMetrics fetches metrics from OTEL collector.
 func fetchOTELCollectorMetrics(ctx context.Context) (string, error) {
-	client := &http.Client{Timeout: 10 * time.Second}
+	client := &http.Client{Timeout: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, otelCollectorMetricsURL, nil)
 	if err != nil {
@@ -313,7 +314,7 @@ func containsMetric(metrics, metricName string) bool {
 
 // Helper: checkGrafanaHealth verifies Grafana is healthy.
 func checkGrafanaHealth(ctx context.Context) error {
-	client := &http.Client{Timeout: 10 * time.Second}
+	client := &http.Client{Timeout: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second}
 
 	healthURL := fmt.Sprintf("%s/api/health", grafanaURL)
 
@@ -338,7 +339,7 @@ func checkGrafanaHealth(ctx context.Context) error {
 
 // Helper: fetchGrafanaDataSources fetches Grafana data sources.
 func fetchGrafanaDataSources(ctx context.Context) ([]map[string]any, error) {
-	client := &http.Client{Timeout: 10 * time.Second}
+	client := &http.Client{Timeout: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second}
 
 	dataSourcesURL := fmt.Sprintf("%s/datasources", grafanaAPIURL)
 
@@ -382,7 +383,7 @@ func containsDataSource(dataSources []map[string]any, dsType string) bool {
 
 // Helper: queryPrometheusMetrics queries Prometheus for metrics.
 func queryPrometheusMetrics(ctx context.Context, query string) (string, error) {
-	client := &http.Client{Timeout: 10 * time.Second}
+	client := &http.Client{Timeout: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second}
 
 	queryURL := fmt.Sprintf("%s?query=%s", prometheusQueryURL, query)
 

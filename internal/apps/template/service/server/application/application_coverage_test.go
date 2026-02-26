@@ -29,11 +29,11 @@ func TestProvisionDatabase_FileMemoryNamedFormat(t *testing.T) {
 		LogLevel:          "info",
 		OTLPEndpoint:      "grpc://localhost:4317",
 		OTLPService:       "test-file-memory-named",
-		OTLPVersion:       "1.0.0",
+		OTLPVersion:       cryptoutilSharedMagic.ServiceVersion,
 		OTLPEnvironment:   "test",
-		UnsealMode:        "sysinfo",
+		UnsealMode:        cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 		DatabaseURL:       "file::memory:testnameddb_provision?cache=shared",
-		DatabaseContainer: "disabled",
+		DatabaseContainer: cryptoutilSharedMagic.DefaultDatabaseContainerDisabled,
 	}
 
 	basic, err := StartBasic(ctx, settings)
@@ -67,9 +67,9 @@ func TestProvisionDatabase_ContainerSuccess(t *testing.T) {
 		LogLevel:          "info",
 		OTLPEndpoint:      "grpc://localhost:4317",
 		OTLPService:       "test-container-success",
-		OTLPVersion:       "1.0.0",
+		OTLPVersion:       cryptoutilSharedMagic.ServiceVersion,
 		OTLPEnvironment:   "test",
-		UnsealMode:        "sysinfo",
+		UnsealMode:        cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 		DatabaseURL:       "postgres://user:pass@localhost:5432/db",
 		DatabaseContainer: "required",
 	}
@@ -107,9 +107,9 @@ func TestProvisionDatabase_ContainerPreferredFallback(t *testing.T) {
 		LogLevel:          "info",
 		OTLPEndpoint:      "grpc://localhost:4317",
 		OTLPService:       "test-container-preferred",
-		OTLPVersion:       "1.0.0",
+		OTLPVersion:       cryptoutilSharedMagic.ServiceVersion,
 		OTLPEnvironment:   "test",
-		UnsealMode:        "sysinfo",
+		UnsealMode:        cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 		DatabaseURL:       "postgres://user:pass@localhost:5432/db",
 		DatabaseContainer: "preferred",
 	}
@@ -147,9 +147,9 @@ func TestProvisionDatabase_ContainerRequiredFailure(t *testing.T) {
 		LogLevel:          "info",
 		OTLPEndpoint:      "grpc://localhost:4317",
 		OTLPService:       "test-container-required-fail",
-		OTLPVersion:       "1.0.0",
+		OTLPVersion:       cryptoutilSharedMagic.ServiceVersion,
 		OTLPEnvironment:   "test",
-		UnsealMode:        "sysinfo",
+		UnsealMode:        cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 		DatabaseURL:       "postgres://user:pass@localhost:5432/db",
 		DatabaseContainer: "required",
 	}
@@ -181,7 +181,7 @@ func TestOpenSQLite_SqlOpenError(t *testing.T) {
 
 	ctx := context.Background()
 
-	_, err := openSQLite(ctx, "file::memory:?cache=shared", false)
+	_, err := openSQLite(ctx, cryptoutilSharedMagic.SQLiteInMemoryDSN, false)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to open SQLite database")
 }
@@ -199,7 +199,7 @@ func TestOpenSQLite_GormOpenError(t *testing.T) {
 
 	ctx := context.Background()
 
-	_, err := openSQLite(ctx, "file::memory:?cache=shared", false)
+	_, err := openSQLite(ctx, cryptoutilSharedMagic.SQLiteInMemoryDSN, false)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to initialize GORM")
 }

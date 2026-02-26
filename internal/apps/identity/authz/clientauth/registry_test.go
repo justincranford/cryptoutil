@@ -5,6 +5,7 @@
 package clientauth_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -27,12 +28,12 @@ func TestRegistry_Creation(t *testing.T) {
 
 	// Verify all expected authenticators are registered.
 	methods := []string{
-		"client_secret_basic",
-		"client_secret_post",
-		"tls_client_auth",
-		"self_signed_tls_client_auth",
-		"private_key_jwt",
-		"client_secret_jwt",
+		cryptoutilSharedMagic.ClientAuthMethodSecretBasic,
+		cryptoutilSharedMagic.ClientAuthMethodSecretPost,
+		cryptoutilSharedMagic.ClientAuthMethodTLSClientAuth,
+		cryptoutilSharedMagic.ClientAuthMethodSelfSignedTLSAuth,
+		cryptoutilSharedMagic.ClientAuthMethodPrivateKeyJWT,
+		cryptoutilSharedMagic.ClientAuthMethodSecretJWT,
 	}
 
 	// Secret-based methods share the same authenticator, so Method() returns "client_secret_basic" for both.
@@ -54,10 +55,10 @@ func TestRegistry_GetAuthenticator(t *testing.T) {
 
 	registry := cryptoutilIdentityClientAuth.NewRegistry(repoFactory, config, nil)
 
-	auth, ok := registry.GetAuthenticator("client_secret_basic")
+	auth, ok := registry.GetAuthenticator(cryptoutilSharedMagic.ClientAuthMethodSecretBasic)
 	require.True(t, ok, "Should find client_secret_basic authenticator")
 	require.NotNil(t, auth, "Authenticator should not be nil")
-	require.Equal(t, "client_secret_basic", auth.Method(), "Method should match")
+	require.Equal(t, cryptoutilSharedMagic.ClientAuthMethodSecretBasic, auth.Method(), "Method should match")
 }
 
 // TestRegistry_GetAuthenticator_NotFound validates missing authenticator handling.
@@ -107,7 +108,7 @@ func createRegistryTestRepoFactory(t *testing.T) *cryptoutilIdentityRepository.R
 func createRegistryTestConfig() *cryptoutilIdentityConfig.Config {
 	return &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
+			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
 			DSN:  "file::memory:?cache=private",
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{

@@ -31,7 +31,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 	// Create unique database name to avoid sharing between tests.
 	dbName := fmt.Sprintf("file:test_%s.db?mode=memory&cache=private", strings.ReplaceAll(t.Name(), "/", "_"))
-	sqlDB, err := sql.Open("sqlite", dbName)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dbName)
 	require.NoError(t, err)
 
 	// Enable WAL mode for better concurrency.
@@ -50,8 +50,8 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	// Configure connection pool for GORM transactions.
 	sqlDB, err = db.DB()
 	require.NoError(t, err)
-	sqlDB.SetMaxOpenConns(5) // Required for GORM transactions
-	sqlDB.SetMaxIdleConns(5)
+	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries) // Required for GORM transactions
+	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	sqlDB.SetConnMaxLifetime(0) // In-memory: never close
 
 	// Auto-migrate session tables.
@@ -82,14 +82,14 @@ func setupSessionManager(t *testing.T, browserAlg, serviceAlg cryptoutilSharedMa
 	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		BrowserSessionAlgorithm:    string(browserAlg),
 		ServiceSessionAlgorithm:    string(serviceAlg),
-		BrowserSessionExpiration:   24 * time.Hour,
-		ServiceSessionExpiration:   7 * 24 * time.Hour,
+		BrowserSessionExpiration:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
+		ServiceSessionExpiration:   cryptoutilSharedMagic.GitRecentActivityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		SessionIdleTimeout:         2 * time.Hour,
 		SessionCleanupInterval:     time.Hour,
-		BrowserSessionJWSAlgorithm: "RS256",
-		BrowserSessionJWEAlgorithm: "dir+A256GCM",
-		ServiceSessionJWSAlgorithm: "RS256",
-		ServiceSessionJWEAlgorithm: "dir+A256GCM",
+		BrowserSessionJWSAlgorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		BrowserSessionJWEAlgorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWEAlgorithm,
+		ServiceSessionJWSAlgorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		ServiceSessionJWEAlgorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWEAlgorithm,
 	}
 
 	// Use nil barrier service for tests (enables plain text JWK storage for testing)
@@ -134,12 +134,12 @@ func TestSessionManager_Initialize_EmptyAlgorithm_UsesDefaults(t *testing.T) {
 	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		BrowserSessionAlgorithm:    "", // Empty - should default to OPAQUE
 		ServiceSessionAlgorithm:    "", // Empty - should default to JWS
-		BrowserSessionExpiration:   24 * time.Hour,
-		ServiceSessionExpiration:   7 * 24 * time.Hour,
+		BrowserSessionExpiration:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
+		ServiceSessionExpiration:   cryptoutilSharedMagic.GitRecentActivityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		SessionIdleTimeout:         2 * time.Hour,
 		SessionCleanupInterval:     time.Hour,
-		BrowserSessionJWSAlgorithm: "RS256", // Needed if browser default changes to JWS
-		ServiceSessionJWSAlgorithm: "RS256", // Required since default service algorithm is JWS
+		BrowserSessionJWSAlgorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, // Needed if browser default changes to JWS
+		ServiceSessionJWSAlgorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, // Required since default service algorithm is JWS
 	}
 
 	// Use nil barrier service for tests (enables plain text JWK storage for testing).
@@ -442,13 +442,13 @@ func TestSessionManager_GenerateJWSKey_AllAlgorithms(t *testing.T) {
 		name      string
 		algorithm string
 	}{
-		{"RS256", cryptoutilSharedMagic.SessionJWSAlgorithmRS256},
-		{"RS384", cryptoutilSharedMagic.SessionJWSAlgorithmRS384},
-		{"RS512", cryptoutilSharedMagic.SessionJWSAlgorithmRS512},
-		{"ES256", cryptoutilSharedMagic.SessionJWSAlgorithmES256},
-		{"ES384", cryptoutilSharedMagic.SessionJWSAlgorithmES384},
-		{"ES512", cryptoutilSharedMagic.SessionJWSAlgorithmES512},
-		{"EdDSA", cryptoutilSharedMagic.SessionJWSAlgorithmEdDSA},
+		{cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilSharedMagic.SessionJWSAlgorithmRS256},
+		{cryptoutilSharedMagic.JoseAlgRS384, cryptoutilSharedMagic.SessionJWSAlgorithmRS384},
+		{cryptoutilSharedMagic.JoseAlgRS512, cryptoutilSharedMagic.SessionJWSAlgorithmRS512},
+		{cryptoutilSharedMagic.JoseAlgES256, cryptoutilSharedMagic.SessionJWSAlgorithmES256},
+		{cryptoutilSharedMagic.JoseAlgES384, cryptoutilSharedMagic.SessionJWSAlgorithmES384},
+		{cryptoutilSharedMagic.JoseAlgES512, cryptoutilSharedMagic.SessionJWSAlgorithmES512},
+		{cryptoutilSharedMagic.JoseAlgEdDSA, cryptoutilSharedMagic.SessionJWSAlgorithmEdDSA},
 	}
 
 	for _, tt := range tests {

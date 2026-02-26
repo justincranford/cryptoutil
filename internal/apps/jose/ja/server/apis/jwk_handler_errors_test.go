@@ -4,6 +4,7 @@
 package apis
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"net/http/httptest"
 	"strings"
@@ -25,17 +26,17 @@ func TestMapAlgorithmToKeyType(t *testing.T) {
 		algorithm string
 		expected  string
 	}{
-		{"RSA 2048", "RSA/2048", cryptoutilAppsJoseJaDomain.KeyTypeRSA},
-		{"RSA 3072", "RSA/3072", cryptoutilAppsJoseJaDomain.KeyTypeRSA},
-		{"RSA 4096", "RSA/4096", cryptoutilAppsJoseJaDomain.KeyTypeRSA},
-		{"EC P256", "EC/P256", cryptoutilAppsJoseJaDomain.KeyTypeEC},
-		{"EC P384", "EC/P384", cryptoutilAppsJoseJaDomain.KeyTypeEC},
-		{"EC P521", "EC/P521", cryptoutilAppsJoseJaDomain.KeyTypeEC},
-		{"OKP Ed25519", "OKP/Ed25519", cryptoutilAppsJoseJaDomain.KeyTypeOKP},
+		{"RSA 2048", cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
+		{"RSA 3072", cryptoutilSharedMagic.JoseKeyTypeRSA3072, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
+		{"RSA 4096", cryptoutilSharedMagic.JoseKeyTypeRSA4096, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
+		{"EC P256", cryptoutilSharedMagic.JoseKeyTypeECP256, cryptoutilAppsJoseJaDomain.KeyTypeEC},
+		{"EC P384", cryptoutilSharedMagic.JoseKeyTypeECP384, cryptoutilAppsJoseJaDomain.KeyTypeEC},
+		{"EC P521", cryptoutilSharedMagic.JoseKeyTypeECP521, cryptoutilAppsJoseJaDomain.KeyTypeEC},
+		{"OKP Ed25519", cryptoutilSharedMagic.JoseKeyTypeOKPEd25519, cryptoutilAppsJoseJaDomain.KeyTypeOKP},
 		{"OKP Ed448", "OKP/Ed448", cryptoutilAppsJoseJaDomain.KeyTypeOKP},
-		{"oct 256", "oct/256", cryptoutilAppsJoseJaDomain.KeyTypeOct},
-		{"oct 384", "oct/384", cryptoutilAppsJoseJaDomain.KeyTypeOct},
-		{"oct 512", "oct/512", cryptoutilAppsJoseJaDomain.KeyTypeOct},
+		{"oct 256", cryptoutilSharedMagic.JoseKeyTypeOct256, cryptoutilAppsJoseJaDomain.KeyTypeOct},
+		{"oct 384", cryptoutilSharedMagic.JoseKeyTypeOct384, cryptoutilAppsJoseJaDomain.KeyTypeOct},
+		{"oct 512", cryptoutilSharedMagic.JoseKeyTypeOct512, cryptoutilAppsJoseJaDomain.KeyTypeOct},
 		{"unknown", "unknown", ""},
 		{"empty", "", ""},
 	}
@@ -138,7 +139,7 @@ func TestHandleListElasticJWKs_RepositoryError(t *testing.T) {
 
 	tenantID := googleUuid.New()
 
-	elasticRepo.On("List", mock.Anything, tenantID, 0, 100).Return(nil, int64(0), errors.New("list failed"))
+	elasticRepo.On("List", mock.Anything, tenantID, 0, cryptoutilSharedMagic.JoseJAMaxMaterials).Return(nil, int64(0), errors.New("list failed"))
 
 	app.Get("/elastic-jwks", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)

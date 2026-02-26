@@ -4,6 +4,7 @@
 package database
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	"regexp"
@@ -58,7 +59,7 @@ func DefaultShardConfig() *ShardConfig {
 	return &ShardConfig{
 		Strategy:        StrategyRowLevel,
 		SchemaPrefix:    "tenant_",
-		DefaultSchema:   "public",
+		DefaultSchema:   cryptoutilSharedMagic.SubjectTypePublic,
 		EnableMigration: true,
 	}
 }

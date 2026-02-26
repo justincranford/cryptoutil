@@ -3,6 +3,7 @@
 package files_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -21,17 +22,17 @@ func TestListAllFilesWithOptions_ErrorPath(t *testing.T) {
 
 	// Create a file to trigger walk
 	testFile := filepath.Join(tempDir, "test.txt")
-	err := cryptoutilSharedUtilFiles.WriteFile(testFile, "content", 0o600)
+	err := cryptoutilSharedUtilFiles.WriteFile(testFile, "content", cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Create subdirectory
 	subDir := filepath.Join(tempDir, "subdir")
-	err = os.MkdirAll(subDir, 0o755)
+	err = os.MkdirAll(subDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	// Create file in subdirectory
 	subFile := filepath.Join(subDir, "subfile.txt")
-	err = cryptoutilSharedUtilFiles.WriteFile(subFile, "subcontent", 0o600)
+	err = cryptoutilSharedUtilFiles.WriteFile(subFile, "subcontent", cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Test with directory exclusion using prefix match
@@ -55,7 +56,7 @@ func TestListAllFilesWithOptions_NoExtension(t *testing.T) {
 
 	// Create file without extension
 	noExtFile := filepath.Join(tempDir, "Makefile")
-	err := cryptoutilSharedUtilFiles.WriteFile(noExtFile, "content", 0o600)
+	err := cryptoutilSharedUtilFiles.WriteFile(noExtFile, "content", cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Try to find it without matching extension
@@ -85,7 +86,7 @@ func TestReadFileBytesLimit_ErrorPaths(t *testing.T) {
 	t.Run("Non-existent file", func(t *testing.T) {
 		t.Parallel()
 
-		content, err := cryptoutilSharedUtilFiles.ReadFileBytesLimit("/nonexistent/file.txt", 100)
+		content, err := cryptoutilSharedUtilFiles.ReadFileBytesLimit("/nonexistent/file.txt", cryptoutilSharedMagic.JoseJAMaxMaterials)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "failed to open file")
 		require.Nil(t, content)
@@ -97,7 +98,7 @@ func TestReadFileBytesLimit_ErrorPaths(t *testing.T) {
 		tempDir := t.TempDir()
 		testFile := filepath.Join(tempDir, "test.txt")
 		testContent := []byte("test content")
-		err := os.WriteFile(testFile, testContent, 0o600)
+		err := os.WriteFile(testFile, testContent, cryptoutilSharedMagic.CacheFilePermissions)
 		require.NoError(t, err)
 
 		// Zero limit should read entire file via ReadFileBytes
@@ -112,7 +113,7 @@ func TestReadFileBytesLimit_ErrorPaths(t *testing.T) {
 		tempDir := t.TempDir()
 		testFile := filepath.Join(tempDir, "test.txt")
 		testContent := []byte("test content")
-		err := os.WriteFile(testFile, testContent, 0o600)
+		err := os.WriteFile(testFile, testContent, cryptoutilSharedMagic.CacheFilePermissions)
 		require.NoError(t, err)
 
 		// Negative limit should read entire file via ReadFileBytes
@@ -127,11 +128,11 @@ func TestReadFileBytesLimit_ErrorPaths(t *testing.T) {
 		tempDir := t.TempDir()
 		testFile := filepath.Join(tempDir, "test.txt")
 		testContent := []byte("small")
-		err := os.WriteFile(testFile, testContent, 0o600)
+		err := os.WriteFile(testFile, testContent, cryptoutilSharedMagic.CacheFilePermissions)
 		require.NoError(t, err)
 
 		// Limit larger than file size - should read entire file
-		content, err := cryptoutilSharedUtilFiles.ReadFileBytesLimit(testFile, 1000)
+		content, err := cryptoutilSharedUtilFiles.ReadFileBytesLimit(testFile, cryptoutilSharedMagic.JoseJADefaultListLimit)
 		require.NoError(t, err)
 		require.Equal(t, testContent, content)
 	})

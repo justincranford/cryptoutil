@@ -33,7 +33,7 @@ func initTestDB(t *testing.T) *gorm.DB {
 
 	dsn := "file:" + dbID.String() + "?mode=memory&cache=private"
 
-	sqlDB, err := sql.Open("sqlite", dsn)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	require.NoError(t, err)
 
 	// Configure SQLite for concurrent operations.

@@ -15,6 +15,7 @@
 package service
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -30,10 +31,10 @@ func TestRealmService_GetRealmConfig(t *testing.T) {
 	svc, db := setupRealmService(t)
 	ctx := context.Background()
 
-	tenant := createRealmTestTenant(t, db, "realm-config-"+googleUuid.NewString()[:8])
+	tenant := createRealmTestTenant(t, db, "realm-config-"+googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
 
 	originalConfig := &UsernamePasswordConfig{
-		MinPasswordLength: 10,
+		MinPasswordLength: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 		RequireUppercase:  true,
 		RequireLowercase:  true,
 		RequireDigit:      true,
@@ -49,7 +50,7 @@ func TestRealmService_GetRealmConfig(t *testing.T) {
 
 	pwConfig, ok := parsedConfig.(*UsernamePasswordConfig)
 	require.True(t, ok)
-	require.Equal(t, 10, pwConfig.MinPasswordLength)
+	require.Equal(t, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, pwConfig.MinPasswordLength)
 	require.True(t, pwConfig.RequireUppercase)
 	require.True(t, pwConfig.RequireLowercase)
 	require.True(t, pwConfig.RequireDigit)
@@ -67,7 +68,7 @@ func TestUsernamePasswordConfig_Validate(t *testing.T) {
 	}{
 		{
 			name:    "valid",
-			config:  &UsernamePasswordConfig{MinPasswordLength: 8},
+			config:  &UsernamePasswordConfig{MinPasswordLength: cryptoutilSharedMagic.IMMinPasswordLength},
 			wantErr: false,
 		},
 		{

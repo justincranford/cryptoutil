@@ -139,7 +139,7 @@ func TestNewService_NilUnsealService(t *testing.T) {
 	// Create a valid repository for this test.
 	dbID, _ := googleUuid.NewV7()
 	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
-	validSQLDB, err := sql.Open("sqlite", dsn)
+	validSQLDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	require.NoError(t, err)
 
 	defer func() {

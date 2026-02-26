@@ -5,6 +5,7 @@
 package orm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -26,8 +27,8 @@ func TestClientProfileRepository_Create(t *testing.T) {
 	profile := &cryptoutilIdentityDomain.ClientProfile{
 		Name:               "standard_profile",
 		Description:        "Standard OAuth client profile",
-		RequiredScopes:     []string{"openid", "profile"},
-		OptionalScopes:     []string{"email", "phone"},
+		RequiredScopes:     []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
+		OptionalScopes:     []string{cryptoutilSharedMagic.ClaimEmail, cryptoutilSharedMagic.ScopePhone},
 		ConsentScreenCount: 1,
 		ConsentScreen1Text: "Grant access to your profile?",
 		RequireClientMFA:   false,
@@ -73,7 +74,7 @@ func TestClientProfileRepository_GetByName(t *testing.T) {
 			setup: func() string {
 				profile := &cryptoutilIdentityDomain.ClientProfile{
 					Name:           "test_profile",
-					RequiredScopes: []string{"openid"},
+					RequiredScopes: []string{cryptoutilSharedMagic.ScopeOpenID},
 					Enabled:        true,
 				}
 				err := repo.Create(context.Background(), profile)
@@ -116,7 +117,7 @@ func TestClientProfileRepository_Update(t *testing.T) {
 
 	profile := &cryptoutilIdentityDomain.ClientProfile{
 		Name:           "update_test_profile",
-		RequiredScopes: []string{"openid"},
+		RequiredScopes: []string{cryptoutilSharedMagic.ScopeOpenID},
 		Enabled:        true,
 	}
 	err := repo.Create(context.Background(), profile)
@@ -143,7 +144,7 @@ func TestClientProfileRepository_Delete(t *testing.T) {
 
 	profile := &cryptoutilIdentityDomain.ClientProfile{
 		Name:           "delete_test_profile",
-		RequiredScopes: []string{"openid"},
+		RequiredScopes: []string{cryptoutilSharedMagic.ScopeOpenID},
 		Enabled:        true,
 	}
 	err := repo.Create(context.Background(), profile)
@@ -162,10 +163,10 @@ func TestClientProfileRepository_List(t *testing.T) {
 	testDB := setupTestDB(t)
 	repo := NewClientProfileRepository(testDB.db)
 
-	for i := 0; i < 5; i++ {
+	for i := 0; i < cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries; i++ {
 		profile := &cryptoutilIdentityDomain.ClientProfile{
 			Name:           "list_test_profile_" + string(rune('a'+i)),
-			RequiredScopes: []string{"openid"},
+			RequiredScopes: []string{cryptoutilSharedMagic.ScopeOpenID},
 			Enabled:        true,
 		}
 		err := repo.Create(context.Background(), profile)
@@ -191,10 +192,10 @@ func TestClientProfileRepository_Count(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, int64(0), count)
 
-	for i := 0; i < 5; i++ {
+	for i := 0; i < cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries; i++ {
 		profile := &cryptoutilIdentityDomain.ClientProfile{
 			Name:           "count_test_profile_" + string(rune('a'+i)),
-			RequiredScopes: []string{"openid"},
+			RequiredScopes: []string{cryptoutilSharedMagic.ScopeOpenID},
 			Enabled:        true,
 		}
 		err := repo.Create(context.Background(), profile)
@@ -203,5 +204,5 @@ func TestClientProfileRepository_Count(t *testing.T) {
 
 	count, err = repo.Count(context.Background())
 	require.NoError(t, err)
-	require.Equal(t, int64(5), count)
+	require.Equal(t, int64(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries), count)
 }

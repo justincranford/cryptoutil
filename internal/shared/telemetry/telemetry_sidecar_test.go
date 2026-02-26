@@ -3,6 +3,7 @@
 package telemetry
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -150,11 +151,11 @@ func TestTelemetryService_UptimeCalculation(t *testing.T) {
 	require.NotNil(t, service)
 
 	// Small delay
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond)
 
 	// Calculate uptime
 	uptime := time.Since(service.StartTime)
-	require.Greater(t, uptime, 10*time.Millisecond)
+	require.Greater(t, uptime, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Millisecond)
 
 	defer service.Shutdown()
 }

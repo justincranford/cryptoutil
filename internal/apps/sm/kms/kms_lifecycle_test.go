@@ -5,6 +5,7 @@
 package kms
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"strings"
 	"syscall"
@@ -37,7 +38,7 @@ func TestKMS_ServerLifecycle(t *testing.T) {
 	// Wait for server to be fully started and listening.
 	require.Eventually(t, func() bool {
 		return strings.Contains(stdout.String(), "Starting sm-kms service")
-	}, 30*time.Second, 200*time.Millisecond, "server should start within timeout")
+	}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second, 200*time.Millisecond, "server should start within timeout")
 
 	// Send SIGINT to trigger the signal handler and graceful shutdown.
 	proc, err := os.FindProcess(os.Getpid())
@@ -48,7 +49,7 @@ func TestKMS_ServerLifecycle(t *testing.T) {
 	select {
 	case exitCode := <-exitCodeCh:
 		require.Equal(t, 0, exitCode, "graceful shutdown should return exit code 0")
-	case <-time.After(30 * time.Second):
+	case <-time.After(cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second):
 		t.Fatal("server did not shut down within timeout")
 	}
 

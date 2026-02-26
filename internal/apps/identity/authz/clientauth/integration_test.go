@@ -5,6 +5,7 @@
 package clientauth
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -31,7 +32,7 @@ func getTestRepository(t *testing.T) (*cryptoutilIdentityRepository.RepositoryFa
 	dsn := "file::memory:?cache=private&_id=" + googleUuid.NewString()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type:        "sqlite",
+		Type:        cryptoutilSharedMagic.TestDatabaseSQLite,
 		DSN:         dsn,
 		AutoMigrate: true, // Required for schema creation
 	}
@@ -63,12 +64,12 @@ func TestRegistry_AllAuthMethods(t *testing.T) {
 
 	// Test all auth methods are registered.
 	authMethods := []string{
-		"client_secret_basic",
-		"client_secret_post",
-		"tls_client_auth",
-		"self_signed_tls_client_auth",
-		"private_key_jwt",
-		"client_secret_jwt",
+		cryptoutilSharedMagic.ClientAuthMethodSecretBasic,
+		cryptoutilSharedMagic.ClientAuthMethodSecretPost,
+		cryptoutilSharedMagic.ClientAuthMethodTLSClientAuth,
+		cryptoutilSharedMagic.ClientAuthMethodSelfSignedTLSAuth,
+		cryptoutilSharedMagic.ClientAuthMethodPrivateKeyJWT,
+		cryptoutilSharedMagic.ClientAuthMethodSecretJWT,
 	}
 
 	for _, method := range authMethods {
@@ -123,7 +124,7 @@ func TestBasicAuthenticator_Method(t *testing.T) {
 
 	repoFactory, _ := getTestRepository(t)
 	authenticator := NewBasicAuthenticator(repoFactory.ClientRepository())
-	require.Equal(t, "client_secret_basic", authenticator.Method())
+	require.Equal(t, cryptoutilSharedMagic.ClientAuthMethodSecretBasic, authenticator.Method())
 }
 
 func TestPostAuthenticator_Method(t *testing.T) {
@@ -131,7 +132,7 @@ func TestPostAuthenticator_Method(t *testing.T) {
 
 	repoFactory, _ := getTestRepository(t)
 	authenticator := NewPostAuthenticator(repoFactory.ClientRepository())
-	require.Equal(t, "client_secret_post", authenticator.Method())
+	require.Equal(t, cryptoutilSharedMagic.ClientAuthMethodSecretPost, authenticator.Method())
 }
 
 // TestClientAuthentication_MultiSecretValidation verifies that both old and new secrets work during grace period.
@@ -149,14 +150,14 @@ func TestClientAuthentication_MultiSecretValidation(t *testing.T) {
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                    "Multi-Secret Test Client",
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
-		AllowedGrantTypes:       []string{"authorization_code"},
-		AllowedResponseTypes:    []string{"code"},
-		AllowedScopes:           []string{"openid"},
-		RedirectURIs:            []string{"https://example.com/callback"},
+		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
+		AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
+		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID},
+		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
 		RequirePKCE:             boolPtr(true),
-		AccessTokenLifetime:     3600,
-		RefreshTokenLifetime:    86400,
-		IDTokenLifetime:         3600,
+		AccessTokenLifetime:     cryptoutilSharedMagic.IMDefaultSessionTimeout,
+		RefreshTokenLifetime:    cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+		IDTokenLifetime:         cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		Enabled:                 boolPtr(true),
 	}
 	err := clientRepo.Create(ctx, client)
@@ -169,7 +170,7 @@ func TestClientAuthentication_MultiSecretValidation(t *testing.T) {
 	require.Len(t, secretVersions, 1)
 
 	// Rotate secret to version 2 with 24-hour grace period.
-	secretV2Result, err := rotationService.RotateClientSecret(ctx, client.ID, 24*time.Hour, "test-admin", "test rotation")
+	secretV2Result, err := rotationService.RotateClientSecret(ctx, client.ID, cryptoutilSharedMagic.HoursPerDay*time.Hour, "test-admin", "test rotation")
 	require.NoError(t, err)
 
 	// Verify new secret (version 2) works immediately.
@@ -197,14 +198,14 @@ func TestClientAuthentication_OldSecretExpired(t *testing.T) {
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                    "Expired Secret Test Client",
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
-		AllowedGrantTypes:       []string{"authorization_code"},
-		AllowedResponseTypes:    []string{"code"},
-		AllowedScopes:           []string{"openid"},
-		RedirectURIs:            []string{"https://example.com/callback"},
+		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
+		AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
+		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID},
+		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
 		RequirePKCE:             boolPtr(true),
-		AccessTokenLifetime:     3600,
-		RefreshTokenLifetime:    86400,
-		IDTokenLifetime:         3600,
+		AccessTokenLifetime:     cryptoutilSharedMagic.IMDefaultSessionTimeout,
+		RefreshTokenLifetime:    cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+		IDTokenLifetime:         cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		Enabled:                 boolPtr(true),
 	}
 	err := clientRepo.Create(ctx, client)
@@ -256,14 +257,14 @@ func TestClientAuthentication_NewSecretImmediate(t *testing.T) {
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                    "Immediate Secret Test Client",
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
-		AllowedGrantTypes:       []string{"authorization_code"},
-		AllowedResponseTypes:    []string{"code"},
-		AllowedScopes:           []string{"openid"},
-		RedirectURIs:            []string{"https://example.com/callback"},
+		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
+		AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
+		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID},
+		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
 		RequirePKCE:             boolPtr(true),
-		AccessTokenLifetime:     3600,
-		RefreshTokenLifetime:    86400,
-		IDTokenLifetime:         3600,
+		AccessTokenLifetime:     cryptoutilSharedMagic.IMDefaultSessionTimeout,
+		RefreshTokenLifetime:    cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+		IDTokenLifetime:         cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		Enabled:                 boolPtr(true),
 	}
 	err := clientRepo.Create(ctx, client)
@@ -271,7 +272,7 @@ func TestClientAuthentication_NewSecretImmediate(t *testing.T) {
 
 	// Rotate secret to version 2 with 24-hour grace period.
 	rotationService := cryptoutilIdentityRotation.NewSecretRotationService(repoFactory.DB())
-	secretV2Result, err := rotationService.RotateClientSecret(ctx, client.ID, 24*time.Hour, "test-admin", "test rotation")
+	secretV2Result, err := rotationService.RotateClientSecret(ctx, client.ID, cryptoutilSharedMagic.HoursPerDay*time.Hour, "test-admin", "test rotation")
 	require.NoError(t, err)
 
 	// Verify new secret works immediately (no delay).
@@ -296,14 +297,14 @@ func TestClientAuthentication_RevokedSecretRejected(t *testing.T) {
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                    "Revoked Secret Test Client",
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
-		AllowedGrantTypes:       []string{"authorization_code"},
-		AllowedResponseTypes:    []string{"code"},
-		AllowedScopes:           []string{"openid"},
-		RedirectURIs:            []string{"https://example.com/callback"},
+		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
+		AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
+		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID},
+		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
 		RequirePKCE:             boolPtr(true),
-		AccessTokenLifetime:     3600,
-		RefreshTokenLifetime:    86400,
-		IDTokenLifetime:         3600,
+		AccessTokenLifetime:     cryptoutilSharedMagic.IMDefaultSessionTimeout,
+		RefreshTokenLifetime:    cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+		IDTokenLifetime:         cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		Enabled:                 boolPtr(true),
 	}
 	err := clientRepo.Create(ctx, client)
@@ -317,7 +318,7 @@ func TestClientAuthentication_RevokedSecretRejected(t *testing.T) {
 	secretV1Hash := secretVersions[0].SecretHash
 
 	// Rotate secret to version 2 with 24-hour grace period.
-	secretV2Result, err := rotationService.RotateClientSecret(ctx, client.ID, 24*time.Hour, "test-admin", "test rotation")
+	secretV2Result, err := rotationService.RotateClientSecret(ctx, client.ID, cryptoutilSharedMagic.HoursPerDay*time.Hour, "test-admin", "test rotation")
 	require.NoError(t, err)
 
 	// Manually revoke version 1 secret.

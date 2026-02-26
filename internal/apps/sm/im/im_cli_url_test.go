@@ -69,7 +69,7 @@ func TestIM_URLEdgeCases(t *testing.T) {
 					// Extract host from server URL and add user info.
 					urlParts := strings.Split(testMockServerOK.URL, "//")
 
-					return urlParts[0] + "//user:pass@" + urlParts[1] + "/livez"
+					return urlParts[0] + "//user:pass@" + urlParts[1] + cryptoutilSharedMagic.PrivateAdminLivezRequestPath
 				}(),
 			},
 			wantExitCode: 0,

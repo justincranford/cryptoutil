@@ -105,7 +105,7 @@ func TestRequireNewForTest_DatabaseURLBranches(t *testing.T) {
 	}{
 		{
 			name:  "file::memory: format",
-			dbURL: "file::memory:?cache=shared",
+			dbURL: cryptoutilSharedMagic.SQLiteInMemoryDSN,
 			expect: func(t *testing.T, result string) {
 				t.Helper()
 				require.Contains(t, result, "?mode=memory&cache=shared")
@@ -114,7 +114,7 @@ func TestRequireNewForTest_DatabaseURLBranches(t *testing.T) {
 		},
 		{
 			name:  ":memory: format",
-			dbURL: ":memory:",
+			dbURL: cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 			expect: func(t *testing.T, result string) {
 				t.Helper()
 				require.Contains(t, result, "?mode=memory&cache=private")
@@ -178,7 +178,7 @@ func TestNewTestConfig_ValidationPanic(t *testing.T) {
 // environment variable overrides the default database URL in RequireNewForTest.
 func TestRequireNewForTest_DatabaseURLEnvOverride(t *testing.T) {
 	// NOTE: Cannot use t.Parallel() — modifies environment variable.
-	t.Setenv("CRYPTOUTIL_DATABASE_URL", "file::memory:?cache=shared")
+	t.Setenv("CRYPTOUTIL_DATABASE_URL", cryptoutilSharedMagic.SQLiteInMemoryDSN)
 
 	settings := RequireNewForTest("test-env-override")
 	require.Contains(t, settings.DatabaseURL, "?mode=memory&cache=shared")

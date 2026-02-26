@@ -5,6 +5,7 @@
 package authz_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	json "encoding/json"
 	"net/http/httptest"
@@ -48,25 +49,25 @@ func TestHandleOAuthMetadata(t *testing.T) {
 				// Verify grant types.
 				grantTypes, ok := body["grant_types_supported"].([]any)
 				require.True(t, ok, "grant_types_supported should be an array")
-				require.Contains(t, grantTypes, "authorization_code")
-				require.Contains(t, grantTypes, "refresh_token")
-				require.Contains(t, grantTypes, "client_credentials")
+				require.Contains(t, grantTypes, cryptoutilSharedMagic.GrantTypeAuthorizationCode)
+				require.Contains(t, grantTypes, cryptoutilSharedMagic.GrantTypeRefreshToken)
+				require.Contains(t, grantTypes, cryptoutilSharedMagic.GrantTypeClientCredentials)
 
 				// Verify response types.
 				responseTypes, ok := body["response_types_supported"].([]any)
 				require.True(t, ok, "response_types_supported should be an array")
-				require.Contains(t, responseTypes, "code")
+				require.Contains(t, responseTypes, cryptoutilSharedMagic.ResponseTypeCode)
 
 				// Verify PKCE support.
 				codeChallenges, ok := body["code_challenge_methods_supported"].([]any)
 				require.True(t, ok, "code_challenge_methods_supported should be an array")
-				require.Contains(t, codeChallenges, "S256")
+				require.Contains(t, codeChallenges, cryptoutilSharedMagic.PKCEMethodS256)
 
 				// Verify token auth methods.
 				authMethods, ok := body["token_endpoint_auth_methods_supported"].([]any)
 				require.True(t, ok, "token_endpoint_auth_methods_supported should be an array")
-				require.Contains(t, authMethods, "client_secret_post")
-				require.Contains(t, authMethods, "client_secret_basic")
+				require.Contains(t, authMethods, cryptoutilSharedMagic.ClientAuthMethodSecretPost)
+				require.Contains(t, authMethods, cryptoutilSharedMagic.ClientAuthMethodSecretBasic)
 			},
 		},
 		{
@@ -149,31 +150,31 @@ func TestHandleOIDCDiscovery(t *testing.T) {
 				// Verify subject types.
 				subjectTypes, ok := body["subject_types_supported"].([]any)
 				require.True(t, ok, "subject_types_supported should be an array")
-				require.Contains(t, subjectTypes, "public")
+				require.Contains(t, subjectTypes, cryptoutilSharedMagic.SubjectTypePublic)
 
 				// Verify ID token signing algorithms.
 				signingAlgs, ok := body["id_token_signing_alg_values_supported"].([]any)
 				require.True(t, ok, "id_token_signing_alg_values_supported should be an array")
-				require.Contains(t, signingAlgs, "RS256")
-				require.Contains(t, signingAlgs, "ES256")
+				require.Contains(t, signingAlgs, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm)
+				require.Contains(t, signingAlgs, cryptoutilSharedMagic.JoseAlgES256)
 
 				// Verify OIDC scopes.
 				scopes, ok := body["scopes_supported"].([]any)
 				require.True(t, ok, "scopes_supported should be an array")
-				require.Contains(t, scopes, "openid")
-				require.Contains(t, scopes, "profile")
-				require.Contains(t, scopes, "email")
-				require.Contains(t, scopes, "address")
-				require.Contains(t, scopes, "phone")
+				require.Contains(t, scopes, cryptoutilSharedMagic.ScopeOpenID)
+				require.Contains(t, scopes, cryptoutilSharedMagic.ClaimProfile)
+				require.Contains(t, scopes, cryptoutilSharedMagic.ClaimEmail)
+				require.Contains(t, scopes, cryptoutilSharedMagic.ClaimAddress)
+				require.Contains(t, scopes, cryptoutilSharedMagic.ScopePhone)
 
 				// Verify OIDC claims.
 				claims, ok := body["claims_supported"].([]any)
 				require.True(t, ok, "claims_supported should be an array")
-				require.Contains(t, claims, "sub")
-				require.Contains(t, claims, "iss")
-				require.Contains(t, claims, "name")
-				require.Contains(t, claims, "email")
-				require.Contains(t, claims, "email_verified")
+				require.Contains(t, claims, cryptoutilSharedMagic.ClaimSub)
+				require.Contains(t, claims, cryptoutilSharedMagic.ClaimIss)
+				require.Contains(t, claims, cryptoutilSharedMagic.ClaimName)
+				require.Contains(t, claims, cryptoutilSharedMagic.ClaimEmail)
+				require.Contains(t, claims, cryptoutilSharedMagic.ClaimEmailVerified)
 			},
 		},
 		{
@@ -186,8 +187,8 @@ func TestHandleOIDCDiscovery(t *testing.T) {
 				// OIDC Discovery includes additional response types.
 				responseTypes, ok := body["response_types_supported"].([]any)
 				require.True(t, ok, "response_types_supported should be an array")
-				require.Contains(t, responseTypes, "code")
-				require.Contains(t, responseTypes, "id_token")
+				require.Contains(t, responseTypes, cryptoutilSharedMagic.ResponseTypeCode)
+				require.Contains(t, responseTypes, cryptoutilSharedMagic.ParamIDToken)
 				require.Contains(t, responseTypes, "token id_token")
 			},
 		},
@@ -208,7 +209,7 @@ func TestHandleOIDCDiscovery(t *testing.T) {
 			svc.RegisterRoutes(app)
 
 			// Create test request.
-			req := httptest.NewRequest(fiber.MethodGet, "/.well-known/openid-configuration", nil)
+			req := httptest.NewRequest(fiber.MethodGet, cryptoutilSharedMagic.PathDiscovery, nil)
 
 			// Execute request.
 			resp, err := app.Test(req, -1)
@@ -263,7 +264,7 @@ func TestHandleJWKS(t *testing.T) {
 					require.Contains(t, firstKey, "kty", "key should have 'kty' field")
 					require.Contains(t, firstKey, "kid", "key should have 'kid' field")
 					require.Contains(t, firstKey, "use", "key should have 'use' field")
-					require.Equal(t, "sig", firstKey["use"], "key use should be 'sig'")
+					require.Equal(t, cryptoutilSharedMagic.JoseKeyUseSig, firstKey["use"], "key use should be 'sig'")
 				}
 			},
 		},
@@ -312,7 +313,7 @@ func createDiscoveryTestConfig(t *testing.T, issuer string) *cryptoutilIdentityC
 
 	return &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
+			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
 			DSN:  "file::memory:?cache=private",
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{

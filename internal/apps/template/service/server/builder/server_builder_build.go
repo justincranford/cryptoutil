@@ -111,7 +111,7 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 		b.config.TLSMixedCAKeyPEM,
 		b.config.TLSPublicDNSNames,
 		b.config.TLSPublicIPAddresses,
-		"public",
+		cryptoutilSharedMagic.SubjectTypePublic,
 	)
 	if err != nil {
 		applicationCore.Shutdown()
@@ -280,14 +280,14 @@ func (b *ServerBuilder) applyMigrations(sqlDB *sql.DB) error {
 	// Determine database type from URL.
 	var databaseType string
 	if b.config.DatabaseURL == "" ||
-		b.config.DatabaseURL == ":memory:" ||
+		b.config.DatabaseURL == cryptoutilSharedMagic.SQLiteMemoryPlaceholder ||
 		strings.HasPrefix(b.config.DatabaseURL, "file::memory:") ||
 		strings.Contains(b.config.DatabaseURL, "mode=memory") ||
-		(len(b.config.DatabaseURL) >= 7 && b.config.DatabaseURL[:7] == "file://") ||
+		(len(b.config.DatabaseURL) >= cryptoutilSharedMagic.GitRecentActivityDays && b.config.DatabaseURL[:cryptoutilSharedMagic.GitRecentActivityDays] == cryptoutilSharedMagic.FileURIScheme) ||
 		(len(b.config.DatabaseURL) >= 9 && b.config.DatabaseURL[:9] == "sqlite://") {
 		databaseType = "sqlite"
 	} else {
-		databaseType = "postgres"
+		databaseType = cryptoutilSharedMagic.DockerServicePostgres
 	}
 
 	// Merge template migrations with domain migrations (if provided).

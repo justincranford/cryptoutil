@@ -3,6 +3,7 @@
 package authz_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"context"
 	json "encoding/json"
@@ -26,7 +27,7 @@ func createMFAAdminTestDependencies(t *testing.T) (*cryptoutilIdentityConfig.Con
 
 	config := &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
+			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
 			DSN:  "file::memory:?cache=private",
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
@@ -79,8 +80,8 @@ func TestHandleEnrollMFA_HappyPath(t *testing.T) {
 	// Prepare enrollment request.
 	reqBody := map[string]any{
 		"user_id":     user.ID.String(),
-		"factor_type": "totp",
-		"name":        "My TOTP",
+		"factor_type": cryptoutilSharedMagic.MFATypeTOTP,
+		cryptoutilSharedMagic.ClaimName:        "My TOTP",
 		"required":    true,
 	}
 	bodyBytes, err := json.Marshal(reqBody)
@@ -102,8 +103,8 @@ func TestHandleEnrollMFA_HappyPath(t *testing.T) {
 
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&enrollResp))
 	require.NotEmpty(t, enrollResp["id"])
-	require.Equal(t, "totp", enrollResp["factor_type"])
-	require.Equal(t, "My TOTP", enrollResp["name"])
+	require.Equal(t, cryptoutilSharedMagic.MFATypeTOTP, enrollResp["factor_type"])
+	require.Equal(t, "My TOTP", enrollResp[cryptoutilSharedMagic.ClaimName])
 	require.Equal(t, true, enrollResp["required"])
 	require.Equal(t, true, enrollResp["enabled"])
 	require.NotEmpty(t, enrollResp["created_at"])
@@ -121,8 +122,8 @@ func TestHandleEnrollMFA_InvalidUserID(t *testing.T) {
 
 	reqBody := map[string]any{
 		"user_id":     "not-a-uuid",
-		"factor_type": "totp",
-		"name":        "My TOTP",
+		"factor_type": cryptoutilSharedMagic.MFATypeTOTP,
+		cryptoutilSharedMagic.ClaimName:        "My TOTP",
 		"required":    true,
 	}
 	bodyBytes, err := json.Marshal(reqBody)
@@ -143,7 +144,7 @@ func TestHandleEnrollMFA_InvalidUserID(t *testing.T) {
 	var errResp map[string]any
 
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&errResp))
-	require.Equal(t, "invalid_request", errResp["error"])
+	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidRequest, errResp[cryptoutilSharedMagic.StringError])
 	require.Contains(t, errResp["error_description"], "invalid user_id format")
 }
 
@@ -159,8 +160,8 @@ func TestHandleEnrollMFA_UserNotFound(t *testing.T) {
 
 	reqBody := map[string]any{
 		"user_id":     googleUuid.Must(googleUuid.NewV7()).String(),
-		"factor_type": "totp",
-		"name":        "My TOTP",
+		"factor_type": cryptoutilSharedMagic.MFATypeTOTP,
+		cryptoutilSharedMagic.ClaimName:        "My TOTP",
 		"required":    false,
 	}
 	bodyBytes, err := json.Marshal(reqBody)
@@ -181,7 +182,7 @@ func TestHandleEnrollMFA_UserNotFound(t *testing.T) {
 	var errResp map[string]any
 
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&errResp))
-	require.Equal(t, "user_not_found", errResp["error"])
+	require.Equal(t, "user_not_found", errResp[cryptoutilSharedMagic.StringError])
 }
 
 // TestHandleEnrollMFA_InvalidFactorType tests enrollment with invalid factor_type.
@@ -207,7 +208,7 @@ func TestHandleEnrollMFA_InvalidFactorType(t *testing.T) {
 	reqBody := map[string]any{
 		"user_id":     user.ID.String(),
 		"factor_type": "invalid_type",
-		"name":        "My Factor",
+		cryptoutilSharedMagic.ClaimName:        "My Factor",
 		"required":    false,
 	}
 	bodyBytes, err := json.Marshal(reqBody)
@@ -228,7 +229,7 @@ func TestHandleEnrollMFA_InvalidFactorType(t *testing.T) {
 	var errResp map[string]any
 
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&errResp))
-	require.Equal(t, "invalid_request", errResp["error"])
+	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidRequest, errResp[cryptoutilSharedMagic.StringError])
 	require.Contains(t, errResp["error_description"], "invalid factor_type")
 }
 
@@ -310,15 +311,15 @@ func TestHandleListMFAFactors_HappyPath(t *testing.T) {
 	// Verify first factor.
 	f1, ok := factors[0].(map[string]any)
 	require.True(t, ok)
-	require.Equal(t, "TOTP Factor", f1["name"])
-	require.Equal(t, "totp", f1["factor_type"])
+	require.Equal(t, "TOTP Factor", f1[cryptoutilSharedMagic.ClaimName])
+	require.Equal(t, cryptoutilSharedMagic.MFATypeTOTP, f1["factor_type"])
 	require.Equal(t, true, f1["required"])
 	require.Equal(t, true, f1["enabled"])
 
 	// Verify second factor.
 	f2, ok := factors[1].(map[string]any)
 	require.True(t, ok)
-	require.Equal(t, "Email OTP Factor", f2["name"])
+	require.Equal(t, "Email OTP Factor", f2[cryptoutilSharedMagic.ClaimName])
 	require.Equal(t, "email_otp", f2["factor_type"])
 	require.Equal(t, false, f2["required"])
 	require.Equal(t, true, f2["enabled"])

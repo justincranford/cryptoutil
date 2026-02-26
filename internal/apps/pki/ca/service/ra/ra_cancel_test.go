@@ -3,6 +3,7 @@
 package ra
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
@@ -168,7 +169,7 @@ func TestRAService_CleanupExpired(t *testing.T) {
 	require.NoError(t, err)
 
 	// Wait for expiration.
-	time.Sleep(5 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Millisecond)
 
 	count, err := svc.CleanupExpired(ctx)
 	require.NoError(t, err)
@@ -197,7 +198,7 @@ func TestRAService_AutoApproval(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, StatusApproved, req.Status)
 	require.NotEmpty(t, req.ApprovalHistory)
-	require.Equal(t, "system", req.ApprovalHistory[0].ApproverID)
+	require.Equal(t, cryptoutilSharedMagic.SystemInitiatorName, req.ApprovalHistory[0].ApproverID)
 
 	// Request with non-auto-approve profile should remain pending.
 	req2, err := svc.SubmitRequest(ctx, csrPEM, "tls-server", "user-123")
@@ -244,7 +245,7 @@ func TestRAService_KeyStrengthValidation(t *testing.T) {
 	ctx := context.Background()
 	cfg := DefaultRAConfig()
 	cfg.Validation.ValidateKeyStrength = true
-	cfg.Validation.MinECKeySize = 256
+	cfg.Validation.MinECKeySize = cryptoutilSharedMagic.MaxUnsealSharedSecrets
 
 	svc, err := NewRAService(cfg)
 	require.NoError(t, err)
@@ -358,7 +359,7 @@ func TestRAService_ValidateKeyStrength_RSA(t *testing.T) {
 	t.Parallel()
 
 	cfg := DefaultRAConfig()
-	cfg.Validation.MinRSAKeySize = 2048
+	cfg.Validation.MinRSAKeySize = cryptoutilSharedMagic.DefaultMetricsBatchSize
 
 	svc, err := NewRAService(cfg)
 	require.NoError(t, err)
@@ -366,7 +367,7 @@ func TestRAService_ValidateKeyStrength_RSA(t *testing.T) {
 	timestamp := time.Now().UTC()
 
 	// Valid RSA 2048-bit key.
-	rsaKey2048, err := rsa.GenerateKey(crand.Reader, 2048)
+	rsaKey2048, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	result := svc.validateKeyStrength(&rsaKey2048.PublicKey, timestamp)
@@ -374,7 +375,7 @@ func TestRAService_ValidateKeyStrength_RSA(t *testing.T) {
 	require.Equal(t, "key_strength", result.CheckName)
 
 	// Invalid RSA 1024-bit key (below minimum).
-	rsaKey1024, err := rsa.GenerateKey(crand.Reader, 1024) //nolint:gosec // G403: intentionally weak RSA key to test minimum size rejection
+	rsaKey1024, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultLogsBatchSize) //nolint:gosec // G403: intentionally weak RSA key to test minimum size rejection
 	require.NoError(t, err)
 
 	result = svc.validateKeyStrength(&rsaKey1024.PublicKey, timestamp)
@@ -387,7 +388,7 @@ func TestRAService_ValidateKeyStrength_ECDSAInvalid(t *testing.T) {
 	t.Parallel()
 
 	cfg := DefaultRAConfig()
-	cfg.Validation.MinECKeySize = 256
+	cfg.Validation.MinECKeySize = cryptoutilSharedMagic.MaxUnsealSharedSecrets
 
 	svc, err := NewRAService(cfg)
 	require.NoError(t, err)

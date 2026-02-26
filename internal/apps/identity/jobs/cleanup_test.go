@@ -5,6 +5,7 @@
 package jobs
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"log/slog"
 	"os"
@@ -30,8 +31,8 @@ func TestNewCleanupJob(t *testing.T) {
 	}{
 		{
 			name:             "Custom interval",
-			interval:         30 * time.Minute,
-			expectedInterval: 30 * time.Minute,
+			interval:         cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Minute,
+			expectedInterval: cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Minute,
 		},
 		{
 			name:             "Zero interval uses default",
@@ -63,7 +64,7 @@ func TestCleanupJob_StartAndStop(t *testing.T) {
 	repoFactory := createTestRepoFactory(t)
 
 	// Create job with short interval for testing.
-	job := NewCleanupJob(repoFactory, logger, 100*time.Millisecond)
+	job := NewCleanupJob(repoFactory, logger, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
@@ -97,7 +98,7 @@ func TestCleanupJob_ContextCancellation(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
 	repoFactory := createTestRepoFactory(t)
 
-	job := NewCleanupJob(repoFactory, logger, 100*time.Millisecond)
+	job := NewCleanupJob(repoFactory, logger, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
 	defer cancel()
@@ -141,8 +142,8 @@ func createTestRepoFactory(t *testing.T) *cryptoutilIdentityRepository.Repositor
 	t.Helper()
 
 	config := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(context.Background(), config)

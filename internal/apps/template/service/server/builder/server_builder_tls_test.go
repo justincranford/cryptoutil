@@ -201,7 +201,7 @@ func generateTestCA(t *testing.T) (caCertPEM, caKeyPEM []byte) {
 
 	// Serialize CA certificate to PEM.
 	caCertPEM = pem.EncodeToMemory(&pem.Block{
-		Type:  "CERTIFICATE",
+		Type:  cryptoutilSharedMagic.StringPEMTypeCertificate,
 		Bytes: caCert.Raw,
 	})
 
@@ -210,7 +210,7 @@ func generateTestCA(t *testing.T) (caCertPEM, caKeyPEM []byte) {
 	require.NoError(t, err)
 
 	caKeyPEM = pem.EncodeToMemory(&pem.Block{
-		Type:  "PRIVATE KEY",
+		Type:  cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey,
 		Bytes: caKeyBytes,
 	})
 
@@ -226,29 +226,29 @@ func getMinimalSettings() *cryptoutilAppsTemplateServiceConfig.ServiceTemplateSe
 		DatabaseURL:                fmt.Sprintf("file:%s?mode=memory&cache=shared", strings.ReplaceAll(googleUuid.Must(googleUuid.NewV7()).String(), "-", "")),
 		OTLPService:                "template-service-test",
 		OTLPEnabled:                false,
-		OTLPEndpoint:               "grpc://127.0.0.1:4317",
-		LogLevel:                   "INFO",
-		BrowserSessionAlgorithm:    "JWS",
-		BrowserSessionJWSAlgorithm: "RS256",
-		BrowserSessionJWEAlgorithm: "RSA-OAEP",
+		OTLPEndpoint:               cryptoutilSharedMagic.DefaultOTLPEndpointDefault,
+		LogLevel:                   cryptoutilSharedMagic.DefaultLogLevelInfo,
+		BrowserSessionAlgorithm:    cryptoutilSharedMagic.DefaultServiceSessionAlgorithm,
+		BrowserSessionJWSAlgorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		BrowserSessionJWEAlgorithm: cryptoutilSharedMagic.JoseAlgRSAOAEP,
 		BrowserSessionExpiration:   15 * time.Minute,
-		ServiceSessionAlgorithm:    "JWS",
-		ServiceSessionJWSAlgorithm: "RS256",
-		ServiceSessionJWEAlgorithm: "RSA-OAEP",
+		ServiceSessionAlgorithm:    cryptoutilSharedMagic.DefaultServiceSessionAlgorithm,
+		ServiceSessionJWSAlgorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		ServiceSessionJWEAlgorithm: cryptoutilSharedMagic.JoseAlgRSAOAEP,
 		ServiceSessionExpiration:   1 * time.Hour,
-		SessionIdleTimeout:         30 * time.Minute,
+		SessionIdleTimeout:         cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Minute,
 		SessionCleanupInterval:     1 * time.Hour,
-		BindPublicProtocol:         "https",
+		BindPublicProtocol:         cryptoutilSharedMagic.ProtocolHTTPS,
 		BindPublicAddress:          cryptoutilSharedMagic.IPv4Loopback,
 		BindPublicPort:             0,
-		BindPrivateProtocol:        "https",
+		BindPrivateProtocol:        cryptoutilSharedMagic.ProtocolHTTPS,
 		BindPrivateAddress:         cryptoutilSharedMagic.IPv4Loopback,
 		BindPrivatePort:            0,
 		TLSPublicMode:              cryptoutilAppsTemplateServiceConfig.TLSModeAuto,
 		TLSPrivateMode:             cryptoutilAppsTemplateServiceConfig.TLSModeAuto,
-		TLSPublicDNSNames:          []string{"localhost"},
-		TLSPublicIPAddresses:       []string{"127.0.0.1"},
-		TLSPrivateDNSNames:         []string{"localhost"},
-		TLSPrivateIPAddresses:      []string{"127.0.0.1"},
+		TLSPublicDNSNames:          []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault},
+		TLSPublicIPAddresses:       []string{cryptoutilSharedMagic.IPv4Loopback},
+		TLSPrivateDNSNames:         []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault},
+		TLSPrivateIPAddresses:      []string{cryptoutilSharedMagic.IPv4Loopback},
 	}
 }

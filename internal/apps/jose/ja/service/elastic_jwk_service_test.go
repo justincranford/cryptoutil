@@ -30,73 +30,73 @@ func TestElasticJWKService_CreateElasticJWK(t *testing.T) {
 	}{
 		{
 			name:         "valid RS256 signing key",
-			algorithm:    "RS256",
-			use:          "sig",
-			maxMaterials: 10,
+			algorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+			use:          cryptoutilSharedMagic.JoseKeyUseSig,
+			maxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 			wantErr:      false,
 		},
 		{
 			name:         "valid ES256 signing key",
-			algorithm:    "ES256",
-			use:          "sig",
-			maxMaterials: 5,
+			algorithm:    cryptoutilSharedMagic.JoseAlgES256,
+			use:          cryptoutilSharedMagic.JoseKeyUseSig,
+			maxMaterials: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 			wantErr:      false,
 		},
 		{
 			name:         "valid EdDSA signing key",
-			algorithm:    "EdDSA",
-			use:          "sig",
+			algorithm:    cryptoutilSharedMagic.JoseAlgEdDSA,
+			use:          cryptoutilSharedMagic.JoseKeyUseSig,
 			maxMaterials: 3,
 			wantErr:      false,
 		},
 		{
 			name:         "valid A256GCM encryption key",
-			algorithm:    "A256GCM",
-			use:          "enc",
-			maxMaterials: 20,
+			algorithm:    cryptoutilSharedMagic.JoseEncA256GCM,
+			use:          cryptoutilSharedMagic.JoseKeyUseEnc,
+			maxMaterials: cryptoutilSharedMagic.MaxErrorDisplay,
 			wantErr:      false,
 		},
 		{
 			name:         "valid A128CBC-HS256 encryption key",
-			algorithm:    "A128CBC-HS256",
-			use:          "enc",
-			maxMaterials: 10,
+			algorithm:    cryptoutilSharedMagic.JoseEncA128CBCHS256,
+			use:          cryptoutilSharedMagic.JoseKeyUseEnc,
+			maxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 			wantErr:      false,
 		},
 		{
 			name:         "valid A192CBC-HS384 encryption key",
-			algorithm:    "A192CBC-HS384",
-			use:          "enc",
-			maxMaterials: 10,
+			algorithm:    cryptoutilSharedMagic.JoseEncA192CBCHS384,
+			use:          cryptoutilSharedMagic.JoseKeyUseEnc,
+			maxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 			wantErr:      false,
 		},
 		{
 			name:         "valid A256CBC-HS512 encryption key",
-			algorithm:    "A256CBC-HS512",
-			use:          "enc",
-			maxMaterials: 10,
+			algorithm:    cryptoutilSharedMagic.JoseEncA256CBCHS512,
+			use:          cryptoutilSharedMagic.JoseKeyUseEnc,
+			maxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 			wantErr:      false,
 		},
 		{
 			name:         "default max materials when zero",
-			algorithm:    "RS256",
-			use:          "sig",
+			algorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+			use:          cryptoutilSharedMagic.JoseKeyUseSig,
 			maxMaterials: 0,
 			wantErr:      false,
 		},
 		{
 			name:         "invalid algorithm",
 			algorithm:    "INVALID",
-			use:          "sig",
-			maxMaterials: 10,
+			use:          cryptoutilSharedMagic.JoseKeyUseSig,
+			maxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 			wantErr:      true,
 			errContains:  "invalid algorithm",
 		},
 		{
 			name:         "invalid key use",
-			algorithm:    "RS256",
+			algorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 			use:          "invalid",
-			maxMaterials: 10,
+			maxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 			wantErr:      true,
 			errContains:  "invalid key use",
 		},
@@ -132,7 +132,7 @@ func TestElasticJWKService_CreateElasticJWK(t *testing.T) {
 			require.Equal(t, tt.use, elasticJWK.Use)
 
 			if tt.maxMaterials <= 0 {
-				require.Equal(t, 10, elasticJWK.MaxMaterials) // Default value.
+				require.Equal(t, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, elasticJWK.MaxMaterials) // Default value.
 			} else {
 				require.Equal(t, tt.maxMaterials, elasticJWK.MaxMaterials)
 			}
@@ -164,7 +164,7 @@ func TestElasticJWKService_GetElasticJWK(t *testing.T) {
 	tenantID, err := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	require.NoError(t, err)
 
-	elasticJWK, _, err := svc.CreateElasticJWK(ctx, *tenantID, "RS256", "sig", 10)
+	elasticJWK, _, err := svc.CreateElasticJWK(ctx, *tenantID, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilSharedMagic.JoseKeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
@@ -237,7 +237,7 @@ func TestElasticJWKService_ListElasticJWKs(t *testing.T) {
 	var createdIDs []googleUuid.UUID
 
 	for i := 0; i < 3; i++ {
-		elasticJWK, _, err := svc.CreateElasticJWK(ctx, *tenantID, "RS256", "sig", 10)
+		elasticJWK, _, err := svc.CreateElasticJWK(ctx, *tenantID, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilSharedMagic.JoseKeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 		require.NoError(t, err)
 
 		createdIDs = append(createdIDs, elasticJWK.ID)
@@ -261,7 +261,7 @@ func TestElasticJWKService_ListElasticJWKs(t *testing.T) {
 			name:        "list all",
 			tenantID:    *tenantID,
 			offset:      0,
-			limit:       100,
+			limit:       cryptoutilSharedMagic.JoseJAMaxMaterials,
 			expectCount: 3,
 			wantErr:     false,
 		},
@@ -277,7 +277,7 @@ func TestElasticJWKService_ListElasticJWKs(t *testing.T) {
 			name:        "list with offset",
 			tenantID:    *tenantID,
 			offset:      1,
-			limit:       100,
+			limit:       cryptoutilSharedMagic.JoseJAMaxMaterials,
 			expectCount: 2,
 			wantErr:     false,
 		},
@@ -285,7 +285,7 @@ func TestElasticJWKService_ListElasticJWKs(t *testing.T) {
 			name:        "list empty tenant",
 			tenantID:    googleUuid.New(),
 			offset:      0,
-			limit:       100,
+			limit:       cryptoutilSharedMagic.JoseJAMaxMaterials,
 			expectCount: 0,
 			wantErr:     false,
 		},
@@ -331,7 +331,7 @@ func TestElasticJWKService_DeleteElasticJWK(t *testing.T) {
 			name: "delete existing JWK",
 			setup: func() (tenantID, id googleUuid.UUID) {
 				tid, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-				elasticJWK, _, _ := svc.CreateElasticJWK(ctx, *tid, "RS256", "sig", 10)
+				elasticJWK, _, _ := svc.CreateElasticJWK(ctx, *tid, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilSharedMagic.JoseKeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 
 				return *tid, elasticJWK.ID
 			},
@@ -351,7 +351,7 @@ func TestElasticJWKService_DeleteElasticJWK(t *testing.T) {
 			name: "delete with wrong tenant",
 			setup: func() (tenantID, id googleUuid.UUID) {
 				tid, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-				elasticJWK, _, _ := svc.CreateElasticJWK(ctx, *tid, "RS256", "sig", 10)
+				elasticJWK, _, _ := svc.CreateElasticJWK(ctx, *tid, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilSharedMagic.JoseKeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 				wrongTenant := googleUuid.New()
 
 				return wrongTenant, elasticJWK.ID
@@ -392,34 +392,34 @@ func TestMapAlgorithmToKeyType(t *testing.T) {
 		algorithm string
 		expected  string
 	}{
-		{"RS256", cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
-		{"RS384", cryptoutilSharedMagic.JoseAlgRS384, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
-		{"RS512", cryptoutilSharedMagic.JoseAlgRS512, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
-		{"PS256", cryptoutilSharedMagic.JoseAlgPS256, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
-		{"PS384", cryptoutilSharedMagic.JoseAlgPS384, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
-		{"PS512", cryptoutilSharedMagic.JoseAlgPS512, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
-		{"ES256", cryptoutilSharedMagic.JoseAlgES256, cryptoutilAppsJoseJaDomain.KeyTypeEC},
-		{"ES384", cryptoutilSharedMagic.JoseAlgES384, cryptoutilAppsJoseJaDomain.KeyTypeEC},
-		{"ES512", cryptoutilSharedMagic.JoseAlgES512, cryptoutilAppsJoseJaDomain.KeyTypeEC},
-		{"EdDSA", cryptoutilSharedMagic.JoseAlgEdDSA, cryptoutilAppsJoseJaDomain.KeyTypeOKP},
-		{"A128GCM", cryptoutilSharedMagic.JoseEncA128GCM, cryptoutilAppsJoseJaDomain.KeyTypeOct},
-		{"A192GCM", cryptoutilSharedMagic.JoseEncA192GCM, cryptoutilAppsJoseJaDomain.KeyTypeOct},
-		{"A256GCM", cryptoutilSharedMagic.JoseEncA256GCM, cryptoutilAppsJoseJaDomain.KeyTypeOct},
-		{"A128CBC-HS256", cryptoutilSharedMagic.JoseEncA128CBCHS256, cryptoutilAppsJoseJaDomain.KeyTypeOct},
-		{"A192CBC-HS384", cryptoutilSharedMagic.JoseEncA192CBCHS384, cryptoutilAppsJoseJaDomain.KeyTypeOct},
-		{"A256CBC-HS512", cryptoutilSharedMagic.JoseEncA256CBCHS512, cryptoutilAppsJoseJaDomain.KeyTypeOct},
-		{"oct/128", cryptoutilSharedMagic.JoseKeyTypeOct128, cryptoutilAppsJoseJaDomain.KeyTypeOct},
-		{"oct/192", cryptoutilSharedMagic.JoseKeyTypeOct192, cryptoutilAppsJoseJaDomain.KeyTypeOct},
-		{"oct/256", cryptoutilSharedMagic.JoseKeyTypeOct256, cryptoutilAppsJoseJaDomain.KeyTypeOct},
-		{"oct/384", cryptoutilSharedMagic.JoseKeyTypeOct384, cryptoutilAppsJoseJaDomain.KeyTypeOct},
-		{"oct/512", cryptoutilSharedMagic.JoseKeyTypeOct512, cryptoutilAppsJoseJaDomain.KeyTypeOct},
-		{"RSA/2048", cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
-		{"RSA/3072", cryptoutilSharedMagic.JoseKeyTypeRSA3072, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
-		{"RSA/4096", cryptoutilSharedMagic.JoseKeyTypeRSA4096, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
-		{"EC/P256", cryptoutilSharedMagic.JoseKeyTypeECP256, cryptoutilAppsJoseJaDomain.KeyTypeEC},
-		{"EC/P384", cryptoutilSharedMagic.JoseKeyTypeECP384, cryptoutilAppsJoseJaDomain.KeyTypeEC},
-		{"EC/P521", cryptoutilSharedMagic.JoseKeyTypeECP521, cryptoutilAppsJoseJaDomain.KeyTypeEC},
-		{"OKP/Ed25519", cryptoutilSharedMagic.JoseKeyTypeOKPEd25519, cryptoutilAppsJoseJaDomain.KeyTypeOKP},
+		{cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
+		{cryptoutilSharedMagic.JoseAlgRS384, cryptoutilSharedMagic.JoseAlgRS384, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
+		{cryptoutilSharedMagic.JoseAlgRS512, cryptoutilSharedMagic.JoseAlgRS512, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
+		{cryptoutilSharedMagic.JoseAlgPS256, cryptoutilSharedMagic.JoseAlgPS256, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
+		{cryptoutilSharedMagic.JoseAlgPS384, cryptoutilSharedMagic.JoseAlgPS384, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
+		{cryptoutilSharedMagic.JoseAlgPS512, cryptoutilSharedMagic.JoseAlgPS512, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
+		{cryptoutilSharedMagic.JoseAlgES256, cryptoutilSharedMagic.JoseAlgES256, cryptoutilAppsJoseJaDomain.KeyTypeEC},
+		{cryptoutilSharedMagic.JoseAlgES384, cryptoutilSharedMagic.JoseAlgES384, cryptoutilAppsJoseJaDomain.KeyTypeEC},
+		{cryptoutilSharedMagic.JoseAlgES512, cryptoutilSharedMagic.JoseAlgES512, cryptoutilAppsJoseJaDomain.KeyTypeEC},
+		{cryptoutilSharedMagic.JoseAlgEdDSA, cryptoutilSharedMagic.JoseAlgEdDSA, cryptoutilAppsJoseJaDomain.KeyTypeOKP},
+		{cryptoutilSharedMagic.JoseEncA128GCM, cryptoutilSharedMagic.JoseEncA128GCM, cryptoutilAppsJoseJaDomain.KeyTypeOct},
+		{cryptoutilSharedMagic.JoseEncA192GCM, cryptoutilSharedMagic.JoseEncA192GCM, cryptoutilAppsJoseJaDomain.KeyTypeOct},
+		{cryptoutilSharedMagic.JoseEncA256GCM, cryptoutilSharedMagic.JoseEncA256GCM, cryptoutilAppsJoseJaDomain.KeyTypeOct},
+		{cryptoutilSharedMagic.JoseEncA128CBCHS256, cryptoutilSharedMagic.JoseEncA128CBCHS256, cryptoutilAppsJoseJaDomain.KeyTypeOct},
+		{cryptoutilSharedMagic.JoseEncA192CBCHS384, cryptoutilSharedMagic.JoseEncA192CBCHS384, cryptoutilAppsJoseJaDomain.KeyTypeOct},
+		{cryptoutilSharedMagic.JoseEncA256CBCHS512, cryptoutilSharedMagic.JoseEncA256CBCHS512, cryptoutilAppsJoseJaDomain.KeyTypeOct},
+		{cryptoutilSharedMagic.JoseKeyTypeOct128, cryptoutilSharedMagic.JoseKeyTypeOct128, cryptoutilAppsJoseJaDomain.KeyTypeOct},
+		{cryptoutilSharedMagic.JoseKeyTypeOct192, cryptoutilSharedMagic.JoseKeyTypeOct192, cryptoutilAppsJoseJaDomain.KeyTypeOct},
+		{cryptoutilSharedMagic.JoseKeyTypeOct256, cryptoutilSharedMagic.JoseKeyTypeOct256, cryptoutilAppsJoseJaDomain.KeyTypeOct},
+		{cryptoutilSharedMagic.JoseKeyTypeOct384, cryptoutilSharedMagic.JoseKeyTypeOct384, cryptoutilAppsJoseJaDomain.KeyTypeOct},
+		{cryptoutilSharedMagic.JoseKeyTypeOct512, cryptoutilSharedMagic.JoseKeyTypeOct512, cryptoutilAppsJoseJaDomain.KeyTypeOct},
+		{cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
+		{cryptoutilSharedMagic.JoseKeyTypeRSA3072, cryptoutilSharedMagic.JoseKeyTypeRSA3072, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
+		{cryptoutilSharedMagic.JoseKeyTypeRSA4096, cryptoutilSharedMagic.JoseKeyTypeRSA4096, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
+		{cryptoutilSharedMagic.JoseKeyTypeECP256, cryptoutilSharedMagic.JoseKeyTypeECP256, cryptoutilAppsJoseJaDomain.KeyTypeEC},
+		{cryptoutilSharedMagic.JoseKeyTypeECP384, cryptoutilSharedMagic.JoseKeyTypeECP384, cryptoutilAppsJoseJaDomain.KeyTypeEC},
+		{cryptoutilSharedMagic.JoseKeyTypeECP521, cryptoutilSharedMagic.JoseKeyTypeECP521, cryptoutilAppsJoseJaDomain.KeyTypeEC},
+		{cryptoutilSharedMagic.JoseKeyTypeOKPEd25519, cryptoutilSharedMagic.JoseKeyTypeOKPEd25519, cryptoutilAppsJoseJaDomain.KeyTypeOKP},
 		{"INVALID", "INVALID", ""},
 		{"empty", "", ""},
 	}
@@ -442,34 +442,34 @@ func TestMapToGenerateAlgorithm(t *testing.T) {
 		algorithm string
 		expectNil bool
 	}{
-		{"RS256", cryptoutilSharedMagic.JoseAlgRS256, false},
-		{"RS384", cryptoutilSharedMagic.JoseAlgRS384, false},
-		{"RS512", cryptoutilSharedMagic.JoseAlgRS512, false},
-		{"PS256", cryptoutilSharedMagic.JoseAlgPS256, false},
-		{"PS384", cryptoutilSharedMagic.JoseAlgPS384, false},
-		{"PS512", cryptoutilSharedMagic.JoseAlgPS512, false},
-		{"ES256", cryptoutilSharedMagic.JoseAlgES256, false},
-		{"ES384", cryptoutilSharedMagic.JoseAlgES384, false},
-		{"ES512", cryptoutilSharedMagic.JoseAlgES512, false},
-		{"EdDSA", cryptoutilSharedMagic.JoseAlgEdDSA, false},
-		{"A128GCM", cryptoutilSharedMagic.JoseEncA128GCM, false},
-		{"A192GCM", cryptoutilSharedMagic.JoseEncA192GCM, false},
-		{"A256GCM", cryptoutilSharedMagic.JoseEncA256GCM, false},
-		{"A128CBC-HS256", cryptoutilSharedMagic.JoseEncA128CBCHS256, false},
-		{"A192CBC-HS384", cryptoutilSharedMagic.JoseEncA192CBCHS384, false},
-		{"A256CBC-HS512", cryptoutilSharedMagic.JoseEncA256CBCHS512, false},
-		{"RSA/2048", cryptoutilSharedMagic.JoseKeyTypeRSA2048, false},
-		{"RSA/3072", cryptoutilSharedMagic.JoseKeyTypeRSA3072, false},
-		{"RSA/4096", cryptoutilSharedMagic.JoseKeyTypeRSA4096, false},
-		{"EC/P256", cryptoutilSharedMagic.JoseKeyTypeECP256, false},
-		{"EC/P384", cryptoutilSharedMagic.JoseKeyTypeECP384, false},
-		{"EC/P521", cryptoutilSharedMagic.JoseKeyTypeECP521, false},
-		{"OKP/Ed25519", cryptoutilSharedMagic.JoseKeyTypeOKPEd25519, false},
-		{"oct/128", cryptoutilSharedMagic.JoseKeyTypeOct128, false},
-		{"oct/192", cryptoutilSharedMagic.JoseKeyTypeOct192, false},
-		{"oct/256", cryptoutilSharedMagic.JoseKeyTypeOct256, false},
-		{"oct/384", cryptoutilSharedMagic.JoseKeyTypeOct384, false},
-		{"oct/512", cryptoutilSharedMagic.JoseKeyTypeOct512, false},
+		{cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilSharedMagic.JoseAlgRS256, false},
+		{cryptoutilSharedMagic.JoseAlgRS384, cryptoutilSharedMagic.JoseAlgRS384, false},
+		{cryptoutilSharedMagic.JoseAlgRS512, cryptoutilSharedMagic.JoseAlgRS512, false},
+		{cryptoutilSharedMagic.JoseAlgPS256, cryptoutilSharedMagic.JoseAlgPS256, false},
+		{cryptoutilSharedMagic.JoseAlgPS384, cryptoutilSharedMagic.JoseAlgPS384, false},
+		{cryptoutilSharedMagic.JoseAlgPS512, cryptoutilSharedMagic.JoseAlgPS512, false},
+		{cryptoutilSharedMagic.JoseAlgES256, cryptoutilSharedMagic.JoseAlgES256, false},
+		{cryptoutilSharedMagic.JoseAlgES384, cryptoutilSharedMagic.JoseAlgES384, false},
+		{cryptoutilSharedMagic.JoseAlgES512, cryptoutilSharedMagic.JoseAlgES512, false},
+		{cryptoutilSharedMagic.JoseAlgEdDSA, cryptoutilSharedMagic.JoseAlgEdDSA, false},
+		{cryptoutilSharedMagic.JoseEncA128GCM, cryptoutilSharedMagic.JoseEncA128GCM, false},
+		{cryptoutilSharedMagic.JoseEncA192GCM, cryptoutilSharedMagic.JoseEncA192GCM, false},
+		{cryptoutilSharedMagic.JoseEncA256GCM, cryptoutilSharedMagic.JoseEncA256GCM, false},
+		{cryptoutilSharedMagic.JoseEncA128CBCHS256, cryptoutilSharedMagic.JoseEncA128CBCHS256, false},
+		{cryptoutilSharedMagic.JoseEncA192CBCHS384, cryptoutilSharedMagic.JoseEncA192CBCHS384, false},
+		{cryptoutilSharedMagic.JoseEncA256CBCHS512, cryptoutilSharedMagic.JoseEncA256CBCHS512, false},
+		{cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilSharedMagic.JoseKeyTypeRSA2048, false},
+		{cryptoutilSharedMagic.JoseKeyTypeRSA3072, cryptoutilSharedMagic.JoseKeyTypeRSA3072, false},
+		{cryptoutilSharedMagic.JoseKeyTypeRSA4096, cryptoutilSharedMagic.JoseKeyTypeRSA4096, false},
+		{cryptoutilSharedMagic.JoseKeyTypeECP256, cryptoutilSharedMagic.JoseKeyTypeECP256, false},
+		{cryptoutilSharedMagic.JoseKeyTypeECP384, cryptoutilSharedMagic.JoseKeyTypeECP384, false},
+		{cryptoutilSharedMagic.JoseKeyTypeECP521, cryptoutilSharedMagic.JoseKeyTypeECP521, false},
+		{cryptoutilSharedMagic.JoseKeyTypeOKPEd25519, cryptoutilSharedMagic.JoseKeyTypeOKPEd25519, false},
+		{cryptoutilSharedMagic.JoseKeyTypeOct128, cryptoutilSharedMagic.JoseKeyTypeOct128, false},
+		{cryptoutilSharedMagic.JoseKeyTypeOct192, cryptoutilSharedMagic.JoseKeyTypeOct192, false},
+		{cryptoutilSharedMagic.JoseKeyTypeOct256, cryptoutilSharedMagic.JoseKeyTypeOct256, false},
+		{cryptoutilSharedMagic.JoseKeyTypeOct384, cryptoutilSharedMagic.JoseKeyTypeOct384, false},
+		{cryptoutilSharedMagic.JoseKeyTypeOct512, cryptoutilSharedMagic.JoseKeyTypeOct512, false},
 		{"INVALID", "INVALID", true},
 		{"empty", "", true},
 	}

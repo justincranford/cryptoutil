@@ -5,6 +5,7 @@
 package authz_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"net/http/httptest"
 	"testing"
@@ -79,7 +80,7 @@ func createRoutesComprehensiveTestRepoFactory(t *testing.T) *cryptoutilIdentityR
 	ctx := context.Background()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type:        "sqlite",
+		Type:        cryptoutilSharedMagic.TestDatabaseSQLite,
 		DSN:         "file::memory:?cache=private&_id=" + googleUuid.NewString(),
 		AutoMigrate: true,
 	}

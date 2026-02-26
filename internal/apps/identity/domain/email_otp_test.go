@@ -3,6 +3,7 @@
 package domain_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
 
@@ -22,7 +23,7 @@ func TestEmailOTP_IsExpired(t *testing.T) {
 	}{
 		{
 			name:      "not_expired",
-			expiresAt: time.Now().UTC().Add(5 * time.Minute),
+			expiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 			want:      false,
 		},
 		{

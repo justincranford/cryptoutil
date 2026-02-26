@@ -5,6 +5,7 @@
 package storage
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -36,13 +37,13 @@ func TestMemoryStore_Store_DuplicateSerialNumber(t *testing.T) {
 	ctx := context.Background()
 	store := NewMemoryStore()
 
-	cert1 := newTestCert("serial-dup-001", "profile-1", "req-1", "CN=CA", time.Now().UTC().Add(365*24*time.Hour))
+	cert1 := newTestCert("serial-dup-001", "profile-1", "req-1", "CN=CA", time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*cryptoutilSharedMagic.HoursPerDay*time.Hour))
 
 	err := store.Store(ctx, cert1)
 	require.NoError(t, err)
 
 	// Store another cert with the same serial number.
-	cert2 := newTestCert("serial-dup-001", "profile-2", "req-2", "CN=CA", time.Now().UTC().Add(365*24*time.Hour))
+	cert2 := newTestCert("serial-dup-001", "profile-2", "req-2", "CN=CA", time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*cryptoutilSharedMagic.HoursPerDay*time.Hour))
 
 	err = store.Store(ctx, cert2)
 
@@ -58,12 +59,12 @@ func TestMemoryStore_List_OffsetBeyondResults(t *testing.T) {
 	ctx := context.Background()
 	store := NewMemoryStore()
 
-	cert := newTestCert("serial-offset-001", "profile-1", "req-1", "CN=CA", time.Now().UTC().Add(365*24*time.Hour))
+	cert := newTestCert("serial-offset-001", "profile-1", "req-1", "CN=CA", time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*cryptoutilSharedMagic.HoursPerDay*time.Hour))
 
 	err := store.Store(ctx, cert)
 	require.NoError(t, err)
 
-	filter := &ListFilter{Offset: 100}
+	filter := &ListFilter{Offset: cryptoutilSharedMagic.JoseJAMaxMaterials}
 
 	results, total, err := store.List(ctx, filter)
 
@@ -84,7 +85,7 @@ func TestMemoryStore_List_OffsetWithinResults(t *testing.T) {
 		cert := newTestCert(
 			"serial-within-"+string(rune('A'+i)),
 			"profile-1", "req-1", "CN=CA",
-			time.Now().UTC().Add(365*24*time.Hour),
+			time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*cryptoutilSharedMagic.HoursPerDay*time.Hour),
 		)
 
 		err := store.Store(ctx, cert)
@@ -111,7 +112,7 @@ func TestMemoryStore_List_LimitResults(t *testing.T) {
 		cert := newTestCert(
 			"serial-limit-"+string(rune('A'+i)),
 			"profile-1", "req-1", "CN=CA",
-			time.Now().UTC().Add(365*24*time.Hour),
+			time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*cryptoutilSharedMagic.HoursPerDay*time.Hour),
 		)
 
 		err := store.Store(ctx, cert)
@@ -135,7 +136,7 @@ func TestMemoryStore_matchesFilter_StatusMismatch(t *testing.T) {
 	ctx := context.Background()
 	store := NewMemoryStore()
 
-	cert := newTestCert("serial-status-001", "profile-1", "req-1", "CN=CA", time.Now().UTC().Add(365*24*time.Hour))
+	cert := newTestCert("serial-status-001", "profile-1", "req-1", "CN=CA", time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*cryptoutilSharedMagic.HoursPerDay*time.Hour))
 
 	err := store.Store(ctx, cert)
 	require.NoError(t, err)
@@ -158,7 +159,7 @@ func TestMemoryStore_matchesFilter_ProfileIDMismatch(t *testing.T) {
 	ctx := context.Background()
 	store := NewMemoryStore()
 
-	cert := newTestCert("serial-profile-001", "profile-A", "req-1", "CN=CA", time.Now().UTC().Add(365*24*time.Hour))
+	cert := newTestCert("serial-profile-001", "profile-A", "req-1", "CN=CA", time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*cryptoutilSharedMagic.HoursPerDay*time.Hour))
 
 	err := store.Store(ctx, cert)
 	require.NoError(t, err)
@@ -181,7 +182,7 @@ func TestMemoryStore_Store_DuplicateID(t *testing.T) {
 	ctx := context.Background()
 	store := NewMemoryStore()
 
-	cert1 := newTestCert("serial-dup-id-001", "profile-1", "req-1", "CN=CA", time.Now().UTC().Add(365*24*time.Hour))
+	cert1 := newTestCert("serial-dup-id-001", "profile-1", "req-1", "CN=CA", time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*cryptoutilSharedMagic.HoursPerDay*time.Hour))
 
 	err := store.Store(ctx, cert1)
 	require.NoError(t, err)
@@ -193,7 +194,7 @@ func TestMemoryStore_Store_DuplicateID(t *testing.T) {
 		SubjectDN:    "CN=test2",
 		IssuerDN:     "CN=CA",
 		NotBefore:    time.Now().UTC(),
-		NotAfter:     time.Now().UTC().Add(365 * 24 * time.Hour),
+		NotAfter:     time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		Status:       StatusActive,
 	}
 
@@ -210,7 +211,7 @@ func TestMemoryStore_matchesFilter_RequesterIDMismatch(t *testing.T) {
 	ctx := context.Background()
 	store := NewMemoryStore()
 
-	cert := newTestCert("serial-req-001", "profile-1", "requester-A", "CN=CA", time.Now().UTC().Add(365*24*time.Hour))
+	cert := newTestCert("serial-req-001", "profile-1", "requester-A", "CN=CA", time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*cryptoutilSharedMagic.HoursPerDay*time.Hour))
 
 	err := store.Store(ctx, cert)
 	require.NoError(t, err)

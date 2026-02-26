@@ -3,6 +3,7 @@
 package businesslogic
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
 
@@ -135,9 +136,9 @@ func TestToOrmGetMaterialKeysForElasticKeyQueryParams(t *testing.T) {
 
 	materialKeyID := googleUuid.New()
 	zeroMaterialKeyID := googleUuid.UUID{}
-	minDate := time.Now().UTC().Add(-24 * time.Hour)
+	minDate := time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour)
 	maxDate := time.Now().UTC()
-	futureDate := time.Now().UTC().Add(24 * time.Hour)
+	futureDate := time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour)
 	negativePage := cryptoutilKmsServer.PageNumber(-1)
 	zeroPageSize := cryptoutilKmsServer.PageSize(0)
 	invalidSort := cryptoutilOpenapiModel.MaterialKeySort("invalid")
@@ -239,9 +240,9 @@ func TestToOrmGetMaterialKeysQueryParams(t *testing.T) {
 	materialKeyID := googleUuid.New()
 	zeroElasticKeyID := googleUuid.UUID{}
 	zeroMatKeyID := googleUuid.UUID{}
-	minDate := time.Now().UTC().Add(-24 * time.Hour)
+	minDate := time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour)
 	maxDate := time.Now().UTC()
-	futureDate := time.Now().UTC().Add(24 * time.Hour)
+	futureDate := time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour)
 	negativePage := cryptoutilKmsServer.PageNumber(-1)
 	zeroPageSize := cryptoutilKmsServer.PageSize(0)
 	invalidSort := cryptoutilOpenapiModel.MaterialKeySort("invalid")

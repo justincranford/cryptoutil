@@ -3,6 +3,7 @@
 package network
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	http "net/http"
 	"net/http/httptest"
@@ -35,13 +36,13 @@ func TestMain(m *testing.M) {
 				w.WriteHeader(http.StatusOK)
 				_, _ = w.Write([]byte("OK"))
 			}
-		case "/livez":
+		case cryptoutilSharedMagic.PrivateAdminLivezRequestPath:
 			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write([]byte("OK"))
-		case "/readyz":
+		case cryptoutilSharedMagic.PrivateAdminReadyzRequestPath:
 			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write([]byte("OK"))
-		case "/shutdown":
+		case cryptoutilSharedMagic.PrivateAdminShutdownRequestPath:
 			if r.Method == http.MethodPost {
 				w.WriteHeader(http.StatusOK)
 				_, _ = w.Write([]byte("Shutting down"))
@@ -63,7 +64,7 @@ func TestMain(m *testing.M) {
 
 	// Create shared slow server for timeout tests.
 	testSlowServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP * time.Millisecond)
 		w.WriteHeader(http.StatusOK)
 	}))
 	defer testSlowServer.Close()
@@ -146,7 +147,7 @@ func TestHTTPResponse_Timeout(t *testing.T) {
 	ctx := context.Background()
 
 	// Use very short timeout (server sleeps 500ms, timeout is 50ms).
-	_, _, _, err := HTTPResponse(ctx, http.MethodGet, testSlowServer.URL, 50*time.Millisecond, true, nil, false)
+	_, _, _, err := HTTPResponse(ctx, http.MethodGet, testSlowServer.URL, cryptoutilSharedMagic.IMMaxUsernameLength*time.Millisecond, true, nil, false)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "context deadline exceeded")
 }
@@ -203,7 +204,7 @@ func TestHTTPGetLivez_Error(t *testing.T) {
 	ctx := context.Background()
 
 	// Invalid URL should trigger HTTPResponse error, which HTTPGetLivez wraps.
-	_, _, _, err := HTTPGetLivez(ctx, "http://127.0.0.1:1", "", 100*time.Millisecond, nil, false)
+	_, _, _, err := HTTPGetLivez(ctx, "http://127.0.0.1:1", "", cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond, nil, false)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to get")
 }
@@ -226,7 +227,7 @@ func TestHTTPGetReadyz_Error(t *testing.T) {
 	ctx := context.Background()
 
 	// Invalid URL should trigger HTTPResponse error, which HTTPGetReadyz wraps.
-	_, _, _, err := HTTPGetReadyz(ctx, "http://127.0.0.1:1", "", 100*time.Millisecond, nil, false)
+	_, _, _, err := HTTPGetReadyz(ctx, "http://127.0.0.1:1", "", cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond, nil, false)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to get")
 }
@@ -249,7 +250,7 @@ func TestHTTPPostShutdown_Error(t *testing.T) {
 	ctx := context.Background()
 
 	// Invalid URL should trigger HTTPResponse error, which HTTPPostShutdown wraps.
-	_, _, _, err := HTTPPostShutdown(ctx, "http://127.0.0.1:1", "", 100*time.Millisecond, nil, false)
+	_, _, _, err := HTTPPostShutdown(ctx, "http://127.0.0.1:1", "", cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond, nil, false)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to post")
 }
@@ -291,7 +292,7 @@ func TestHTTPResponse_HTTPS_SystemDefaults(t *testing.T) {
 	ctx := context.Background()
 
 	// This tests the "rootCAsPool == nil && !insecureSkipVerify" path.
-	statusCode, _, _, err := HTTPResponse(ctx, http.MethodGet, "https://dns.google", 5*time.Second, true, nil, false)
+	statusCode, _, _, err := HTTPResponse(ctx, http.MethodGet, "https://dns.google", cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second, true, nil, false)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, statusCode)
 }

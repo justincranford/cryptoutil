@@ -5,6 +5,7 @@
 package builder
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"testing/fstest"
@@ -178,8 +179,8 @@ func TestGenerateTLSConfig_StaticMode(t *testing.T) {
 		[]byte("test-key-pem"),
 		nil,
 		nil,
-		[]string{"localhost"},
-		[]string{"127.0.0.1"},
+		[]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault},
+		[]string{cryptoutilSharedMagic.IPv4Loopback},
 		"admin",
 	)
 
@@ -207,9 +208,9 @@ func TestGenerateTLSConfig_MixedMode(t *testing.T) {
 		nil,
 		caCertPEM,
 		caKeyPEM,
-		[]string{"localhost"},
-		[]string{"127.0.0.1"},
-		"public",
+		[]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault},
+		[]string{cryptoutilSharedMagic.IPv4Loopback},
+		cryptoutilSharedMagic.SubjectTypePublic,
 	)
 
 	require.NoError(t, err)
@@ -232,8 +233,8 @@ func TestGenerateTLSConfig_MixedModeError(t *testing.T) {
 		nil,
 		[]byte("invalid-ca-cert"),
 		[]byte("invalid-ca-key"),
-		[]string{"localhost"},
-		[]string{"127.0.0.1"},
+		[]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault},
+		[]string{cryptoutilSharedMagic.IPv4Loopback},
 		"admin",
 	)
 
@@ -259,9 +260,9 @@ func TestGenerateTLSConfig_AutoModeError(t *testing.T) {
 		nil,
 		nil,
 		nil,
-		[]string{"localhost"},
+		[]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault},
 		[]string{"not-a-valid-ip"}, // Invalid IP address causes error
-		"public",
+		cryptoutilSharedMagic.SubjectTypePublic,
 	)
 
 	require.Error(t, err)
@@ -284,8 +285,8 @@ func TestGenerateTLSConfig_UnsupportedMode(t *testing.T) {
 		nil,
 		nil,
 		nil,
-		[]string{"localhost"},
-		[]string{"127.0.0.1"},
+		[]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault},
+		[]string{cryptoutilSharedMagic.IPv4Loopback},
 		"admin",
 	)
 
@@ -310,9 +311,9 @@ func TestGenerateTLSConfig_DefaultMode(t *testing.T) {
 		nil,
 		nil,
 		nil,
-		[]string{"localhost"},
-		[]string{"127.0.0.1"},
-		"public",
+		[]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault},
+		[]string{cryptoutilSharedMagic.IPv4Loopback},
+		cryptoutilSharedMagic.SubjectTypePublic,
 	)
 
 	require.NoError(t, err)

@@ -29,16 +29,16 @@ const (
 func TestOAuthFlowFailover(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)
 	defer cancel()
 
 	// Start 2x2x2x2 deployment (2 instances per service)
 	t.Log("📦 Starting 2x2x2x2 deployment for failover testing...")
 	require.NoError(t, startCompose(ctx, defaultProfile, map[string]int{
-		"identity-authz": cryptoutilSharedMagic.IdentityScaling2x,
-		"identity-idp":   cryptoutilSharedMagic.IdentityScaling2x,
-		"identity-rs":    cryptoutilSharedMagic.IdentityScaling2x,
-		"identity-spa":   cryptoutilSharedMagic.IdentityScaling2x,
+		cryptoutilSharedMagic.OTLPServiceIdentityAuthz: cryptoutilSharedMagic.IdentityScaling2x,
+		cryptoutilSharedMagic.OTLPServiceIdentityIDP:   cryptoutilSharedMagic.IdentityScaling2x,
+		cryptoutilSharedMagic.OTLPServiceIdentityRS:    cryptoutilSharedMagic.IdentityScaling2x,
+		cryptoutilSharedMagic.OTLPServiceIdentitySPA:   cryptoutilSharedMagic.IdentityScaling2x,
 	}))
 
 	defer func() {
@@ -83,16 +83,16 @@ func TestOAuthFlowFailover(t *testing.T) {
 func TestResourceServerFailover(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)
 	defer cancel()
 
 	// Start 2x2x2x2 deployment
 	t.Log("📦 Starting 2x2x2x2 deployment for resource server failover...")
 	require.NoError(t, startCompose(ctx, defaultProfile, map[string]int{
-		"identity-authz": cryptoutilSharedMagic.IdentityScaling2x,
-		"identity-idp":   cryptoutilSharedMagic.IdentityScaling2x,
-		"identity-rs":    cryptoutilSharedMagic.IdentityScaling2x,
-		"identity-spa":   cryptoutilSharedMagic.IdentityScaling2x,
+		cryptoutilSharedMagic.OTLPServiceIdentityAuthz: cryptoutilSharedMagic.IdentityScaling2x,
+		cryptoutilSharedMagic.OTLPServiceIdentityIDP:   cryptoutilSharedMagic.IdentityScaling2x,
+		cryptoutilSharedMagic.OTLPServiceIdentityRS:    cryptoutilSharedMagic.IdentityScaling2x,
+		cryptoutilSharedMagic.OTLPServiceIdentitySPA:   cryptoutilSharedMagic.IdentityScaling2x,
 	}))
 
 	defer func() {
@@ -141,16 +141,16 @@ func TestResourceServerFailover(t *testing.T) {
 func TestIdentityProviderFailover(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)
 	defer cancel()
 
 	// Start 2x2x2x2 deployment
 	t.Log("📦 Starting 2x2x2x2 deployment for IdP failover...")
 	require.NoError(t, startCompose(ctx, defaultProfile, map[string]int{
-		"identity-authz": cryptoutilSharedMagic.IdentityScaling2x,
-		"identity-idp":   cryptoutilSharedMagic.IdentityScaling2x,
-		"identity-rs":    cryptoutilSharedMagic.IdentityScaling2x,
-		"identity-spa":   cryptoutilSharedMagic.IdentityScaling2x,
+		cryptoutilSharedMagic.OTLPServiceIdentityAuthz: cryptoutilSharedMagic.IdentityScaling2x,
+		cryptoutilSharedMagic.OTLPServiceIdentityIDP:   cryptoutilSharedMagic.IdentityScaling2x,
+		cryptoutilSharedMagic.OTLPServiceIdentityRS:    cryptoutilSharedMagic.IdentityScaling2x,
+		cryptoutilSharedMagic.OTLPServiceIdentitySPA:   cryptoutilSharedMagic.IdentityScaling2x,
 	}))
 
 	defer func() {
@@ -262,14 +262,14 @@ func waitForHealthy(ctx context.Context, profile string, timeout, retryInterval 
 			}
 
 			// Check if service is running and healthy
-			if container.State != "running" {
+			if container.State != cryptoutilSharedMagic.DockerServiceStateRunning {
 				allHealthy = false
 
 				break
 			}
 
 			// If service has health check, verify it's healthy
-			if container.Health != "" && container.Health != "healthy" {
+			if container.Health != "" && container.Health != cryptoutilSharedMagic.DockerServiceHealthHealthy {
 				allHealthy = false
 
 				break

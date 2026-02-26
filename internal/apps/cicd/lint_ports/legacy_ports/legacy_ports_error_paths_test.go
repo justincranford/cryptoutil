@@ -3,6 +3,7 @@
 package legacy_ports
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -41,8 +42,8 @@ func TestCheckFile_ShortRegexMatch(t *testing.T) {
 	// Create a test file with content that would normally match.
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test.go")
-	require.NoError(t, os.WriteFile(testFile, []byte("port: 8080\n"), 0o600))
+	require.NoError(t, os.WriteFile(testFile, []byte("port: 8080\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	violations := CheckFile(testFile, []uint16{8080})
+	violations := CheckFile(testFile, []uint16{cryptoutilSharedMagic.DemoServerPort})
 	require.Empty(t, violations)
 }

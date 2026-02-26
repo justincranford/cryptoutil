@@ -15,6 +15,7 @@
 package repository
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"fmt"
@@ -31,7 +32,7 @@ func setupClientRoleTestDB(t *testing.T) *gorm.DB {
 
 	dsn := fmt.Sprintf("file:test_%s?mode=memory&cache=shared", googleUuid.Must(googleUuid.NewV7()).String())
 
-	sqlDB, err := sql.Open("sqlite", dsn)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	require.NoError(t, err)
 
 	_, err = sqlDB.ExecContext(context.Background(), "PRAGMA journal_mode=WAL;")
@@ -47,8 +48,8 @@ func setupClientRoleTestDB(t *testing.T) *gorm.DB {
 	sqlDB, err = db.DB()
 	require.NoError(t, err)
 
-	sqlDB.SetMaxOpenConns(5)
-	sqlDB.SetMaxIdleConns(5)
+	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	sqlDB.SetConnMaxLifetime(0)
 
 	err = db.AutoMigrate(&Tenant{}, &Client{}, &Role{}, &ClientRole{})

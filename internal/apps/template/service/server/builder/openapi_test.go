@@ -4,6 +4,7 @@
 package builder
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	http "net/http"
 	"net/http/httptest"
 	"testing"
@@ -43,8 +44,8 @@ func TestNewDefaultOpenAPIConfig(t *testing.T) {
 
 			require.NotNil(t, config)
 			require.Equal(t, tc.swaggerSpec, config.SwaggerSpec)
-			require.Equal(t, "/browser/api/v1", config.BrowserAPIBasePath)
-			require.Equal(t, "/service/api/v1", config.ServiceAPIBasePath)
+			require.Equal(t, cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath, config.BrowserAPIBasePath)
+			require.Equal(t, cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath, config.ServiceAPIBasePath)
 			require.True(t, config.EnableRequestValidation)
 			require.NotNil(t, config.ValidatorOptions)
 		})
@@ -60,7 +61,7 @@ func TestOpenAPIConfig_CreateRequestValidatorMiddleware(t *testing.T) {
 		OpenAPI: "3.0.0",
 		Info: &openapi3.Info{
 			Title:   "Test API",
-			Version: "1.0.0",
+			Version: cryptoutilSharedMagic.ServiceVersion,
 		},
 		Paths: &openapi3.Paths{},
 	}
@@ -134,7 +135,7 @@ func TestOpenAPIConfig_Middlewares(t *testing.T) {
 		OpenAPI: "3.0.0",
 		Info: &openapi3.Info{
 			Title:   "Test API",
-			Version: "1.0.0",
+			Version: cryptoutilSharedMagic.ServiceVersion,
 		},
 		Paths: &openapi3.Paths{},
 	}
@@ -192,7 +193,7 @@ func TestOpenAPIConfig_MiddlewareExecution(t *testing.T) {
 		OpenAPI: "3.0.0",
 		Info: &openapi3.Info{
 			Title:   "Test API",
-			Version: "1.0.0",
+			Version: cryptoutilSharedMagic.ServiceVersion,
 		},
 		Paths: &openapi3.Paths{
 			Extensions: map[string]any{},
@@ -218,8 +219,8 @@ func TestOpenAPIConfig_MiddlewareExecution(t *testing.T) {
 
 	config := &OpenAPIConfig{
 		SwaggerSpec:             spec,
-		BrowserAPIBasePath:      "/browser/api/v1",
-		ServiceAPIBasePath:      "/service/api/v1",
+		BrowserAPIBasePath:      cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
+		ServiceAPIBasePath:      cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath,
 		EnableRequestValidation: true,
 		ValidatorOptions:        &fibermiddleware.Options{},
 	}

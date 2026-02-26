@@ -6,6 +6,7 @@
 package crypto
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto"
 	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
@@ -243,7 +244,7 @@ func ParseKeySpecFromConfig(algorithm, curveOrSize string) (KeySpec, error) {
 	spec := KeySpec{}
 
 	switch algorithm {
-	case "RSA":
+	case cryptoutilSharedMagic.KeyTypeRSA:
 		spec.Type = KeyTypeRSA
 
 		var bits int
@@ -255,7 +256,7 @@ func ParseKeySpecFromConfig(algorithm, curveOrSize string) (KeySpec, error) {
 	case "ECDSA":
 		spec.Type = KeyTypeECDSA
 		spec.ECDSACurve = curveOrSize
-	case "EdDSA":
+	case cryptoutilSharedMagic.JoseAlgEdDSA:
 		spec.Type = KeyTypeEdDSA
 		spec.EdDSACurve = curveOrSize
 	default:

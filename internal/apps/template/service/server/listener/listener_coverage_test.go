@@ -142,7 +142,7 @@ func TestAdminServer_ErrChanPath(t *testing.T) {
 	// Wait for server to be listening.
 	require.Eventually(t, func() bool {
 		return server.ActualPort() != 0
-	}, 5*time.Second, 10*time.Millisecond)
+	}, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Millisecond)
 
 	// Directly shutdown Fiber app (not server.Shutdown which cancels context).
 	_ = server.app.Shutdown()

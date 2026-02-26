@@ -5,6 +5,7 @@
 package authz_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -26,12 +27,12 @@ func TestInMemoryAuthorizationRequestStore_StoreAndGet(t *testing.T) {
 	request := &cryptoutilIdentityAuthz.AuthorizationRequest{
 		RequestID:    requestID,
 		ClientID:     "test-client",
-		RedirectURI:  "https://example.com/callback",
-		ResponseType: "code",
+		RedirectURI:  cryptoutilSharedMagic.DemoRedirectURI,
+		ResponseType: cryptoutilSharedMagic.ResponseTypeCode,
 		Scope:        "openid profile",
 		State:        "state123",
 		CreatedAt:    time.Now().UTC(),
-		ExpiresAt:    time.Now().UTC().Add(10 * time.Minute),
+		ExpiresAt:    time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
 	}
 
 	err := store.Store(ctx, request)
@@ -55,11 +56,11 @@ func TestInMemoryAuthorizationRequestStore_GetByCode(t *testing.T) {
 	request := &cryptoutilIdentityAuthz.AuthorizationRequest{
 		RequestID:    requestID,
 		ClientID:     "test-client",
-		RedirectURI:  "https://example.com/callback",
-		ResponseType: "code",
+		RedirectURI:  cryptoutilSharedMagic.DemoRedirectURI,
+		ResponseType: cryptoutilSharedMagic.ResponseTypeCode,
 		Code:         code,
 		CreatedAt:    time.Now().UTC(),
-		ExpiresAt:    time.Now().UTC().Add(10 * time.Minute),
+		ExpiresAt:    time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
 	}
 
 	err := store.Store(ctx, request)
@@ -82,10 +83,10 @@ func TestInMemoryAuthorizationRequestStore_Update(t *testing.T) {
 	request := &cryptoutilIdentityAuthz.AuthorizationRequest{
 		RequestID:    requestID,
 		ClientID:     "test-client",
-		RedirectURI:  "https://example.com/callback",
-		ResponseType: "code",
+		RedirectURI:  cryptoutilSharedMagic.DemoRedirectURI,
+		ResponseType: cryptoutilSharedMagic.ResponseTypeCode,
 		CreatedAt:    time.Now().UTC(),
-		ExpiresAt:    time.Now().UTC().Add(10 * time.Minute),
+		ExpiresAt:    time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
 	}
 
 	err := store.Store(ctx, request)
@@ -113,11 +114,11 @@ func TestInMemoryAuthorizationRequestStore_Delete(t *testing.T) {
 	request := &cryptoutilIdentityAuthz.AuthorizationRequest{
 		RequestID:    requestID,
 		ClientID:     "test-client",
-		RedirectURI:  "https://example.com/callback",
-		ResponseType: "code",
+		RedirectURI:  cryptoutilSharedMagic.DemoRedirectURI,
+		ResponseType: cryptoutilSharedMagic.ResponseTypeCode,
 		Code:         code,
 		CreatedAt:    time.Now().UTC(),
-		ExpiresAt:    time.Now().UTC().Add(10 * time.Minute),
+		ExpiresAt:    time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
 	}
 
 	err := store.Store(ctx, request)
@@ -144,10 +145,10 @@ func TestInMemoryAuthorizationRequestStore_ExpiredRequest(t *testing.T) {
 	request := &cryptoutilIdentityAuthz.AuthorizationRequest{
 		RequestID:    requestID,
 		ClientID:     "test-client",
-		RedirectURI:  "https://example.com/callback",
-		ResponseType: "code",
-		CreatedAt:    time.Now().UTC().Add(-20 * time.Minute),
-		ExpiresAt:    time.Now().UTC().Add(-10 * time.Minute), // Expired.
+		RedirectURI:  cryptoutilSharedMagic.DemoRedirectURI,
+		ResponseType: cryptoutilSharedMagic.ResponseTypeCode,
+		CreatedAt:    time.Now().UTC().Add(-cryptoutilSharedMagic.MaxErrorDisplay * time.Minute),
+		ExpiresAt:    time.Now().UTC().Add(-cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute), // Expired.
 	}
 
 	err := store.Store(ctx, request)
@@ -186,10 +187,10 @@ func TestInMemoryAuthorizationRequestStore_UpdateNonExistent(t *testing.T) {
 	nonExistentRequest := &cryptoutilIdentityAuthz.AuthorizationRequest{
 		RequestID:    googleUuid.New(),
 		ClientID:     "test-client",
-		RedirectURI:  "https://example.com/callback",
-		ResponseType: "code",
+		RedirectURI:  cryptoutilSharedMagic.DemoRedirectURI,
+		ResponseType: cryptoutilSharedMagic.ResponseTypeCode,
 		CreatedAt:    time.Now().UTC(),
-		ExpiresAt:    time.Now().UTC().Add(10 * time.Minute),
+		ExpiresAt:    time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
 	}
 
 	err := store.Update(ctx, nonExistentRequest)

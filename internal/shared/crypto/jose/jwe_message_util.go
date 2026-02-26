@@ -5,6 +5,7 @@
 package crypto
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	json "encoding/json"
 	"fmt"
 	"time"
@@ -52,7 +53,7 @@ func EncryptBytesWithContext(jwks []joseJwk.Key, clearBytes []byte, context []by
 	}
 
 	jweProtectedHeaders := joseJwe.NewHeaders()
-	if err := jweProtectedHeaders.Set("iat", time.Now().UTC().Unix()); err != nil {
+	if err := jweProtectedHeaders.Set(cryptoutilSharedMagic.ClaimIat, time.Now().UTC().Unix()); err != nil {
 		return nil, nil, fmt.Errorf("failed to set iat header: %w", err)
 	}
 
@@ -256,7 +257,7 @@ func ExtractKidEncAlgFromJWEMessage(jweMessage *joseJwe.Message) (*googleUuid.UU
 
 	var enc joseJwa.ContentEncryptionAlgorithm
 
-	err = jweMessage.ProtectedHeaders().Get("enc", &enc)
+	err = jweMessage.ProtectedHeaders().Get(cryptoutilSharedMagic.JoseKeyUseEnc, &enc)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to get enc: %w", err)
 	}

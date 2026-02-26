@@ -4,6 +4,7 @@
 package testutil
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"fmt"
@@ -130,7 +131,7 @@ func InitDatabase(ctx context.Context, databaseURL string, migrationsFS fs.FS) (
 	switch {
 	case len(databaseURL) >= 11 && databaseURL[:11] == "postgres://":
 		db, err = cryptoutilAppsTemplateServiceServerRepository.InitPostgreSQL(ctx, databaseURL, migrationsFS)
-	case len(databaseURL) >= 5 && databaseURL[:5] == "file:":
+	case len(databaseURL) >= cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries && databaseURL[:cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries] == "file:":
 		db, err = cryptoutilAppsTemplateServiceServerRepository.InitSQLite(ctx, databaseURL, migrationsFS)
 	default:
 		return nil, fmt.Errorf("unsupported database URL scheme: %s", databaseURL)

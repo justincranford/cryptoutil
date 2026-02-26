@@ -31,7 +31,7 @@ func TestOpenSQLite_FileBasedWithWAL(t *testing.T) {
 
 	defer func() { _ = os.Remove(tmpFile) }()
 
-	db, err := openSQLite(ctx, "file://"+tmpFile, false)
+	db, err := openSQLite(ctx, cryptoutilSharedMagic.FileURIScheme+tmpFile, false)
 	require.NoError(t, err)
 	require.NotNil(t, db)
 
@@ -49,7 +49,7 @@ func TestOpenSQLite_FileBasedWithWAL(t *testing.T) {
 
 	err = sqlDB.QueryRowContext(ctx, "PRAGMA busy_timeout").Scan(&busyTimeout)
 	require.NoError(t, err)
-	require.Equal(t, 30000, busyTimeout)
+	require.Equal(t, cryptoutilSharedMagic.FiberTestTimeoutMs, busyTimeout)
 }
 
 // TestOpenSQLite_WALModeFailure tests openSQLite when WAL mode fails.
@@ -86,7 +86,7 @@ func TestStartBasic_TelemetryFailure(t *testing.T) {
 		VerboseMode:     false,
 		OTLPEndpoint:    "invalid://endpoint",
 		OTLPService:     "test-service",
-		OTLPVersion:     "1.0.0",
+		OTLPVersion:     cryptoutilSharedMagic.ServiceVersion,
 		OTLPEnvironment: "test",
 	}
 
@@ -113,9 +113,9 @@ func TestInitializeServicesOnCore_ErrorPaths(t *testing.T) {
 		VerboseMode:     false,
 		OTLPEndpoint:    "grpc://localhost:4317",
 		OTLPService:     "test-service",
-		OTLPVersion:     "1.0.0",
+		OTLPVersion:     cryptoutilSharedMagic.ServiceVersion,
 		OTLPEnvironment: "test",
-		UnsealMode:      "sysinfo",
+		UnsealMode:      cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 		DatabaseURL:     cryptoutilSharedMagic.SQLiteInMemoryDSN,
 	}
 
@@ -173,9 +173,9 @@ func TestStartCore_DatabaseProvisionFailure(t *testing.T) {
 		LogLevel:        "info",
 		OTLPEndpoint:    "grpc://localhost:4317",
 		OTLPService:     "test-service",
-		OTLPVersion:     "1.0.0",
+		OTLPVersion:     cryptoutilSharedMagic.ServiceVersion,
 		OTLPEnvironment: "test",
-		UnsealMode:      "sysinfo",
+		UnsealMode:      cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 	}
 
 	// StartCore should fail when database provisioning fails.
@@ -197,9 +197,9 @@ func TestOpenSQLite_PragmaErrors(t *testing.T) {
 		LogLevel:        "info",
 		OTLPEndpoint:    "grpc://localhost:4317",
 		OTLPService:     "test-sqlite-pragma",
-		OTLPVersion:     "1.0.0",
+		OTLPVersion:     cryptoutilSharedMagic.ServiceVersion,
 		OTLPEnvironment: "test",
-		UnsealMode:      "sysinfo",
+		UnsealMode:      cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 	}
 
 	// StartCore should handle SQLite open errors gracefully.
@@ -253,7 +253,7 @@ func TestShutdown_AdminServerError(t *testing.T) {
 	ctx := context.Background()
 
 	adminServer := &mockAdminServer{
-		port:        9090,
+		port:        cryptoutilSharedMagic.JoseJAAdminPort,
 		shutdownErr: fmt.Errorf("admin server shutdown failed"),
 	}
 
@@ -275,7 +275,7 @@ func TestShutdown_PublicServerError(t *testing.T) {
 	ctx := context.Background()
 
 	publicServer := &mockPublicServer{
-		port:        8080,
+		port:        cryptoutilSharedMagic.DemoServerPort,
 		shutdownErr: fmt.Errorf("public server shutdown failed"),
 	}
 
@@ -297,12 +297,12 @@ func TestShutdown_BothServersShutdownError(t *testing.T) {
 	ctx := context.Background()
 
 	adminServer := &mockAdminServer{
-		port:        9090,
+		port:        cryptoutilSharedMagic.JoseJAAdminPort,
 		shutdownErr: fmt.Errorf("admin server shutdown failed"),
 	}
 
 	publicServer := &mockPublicServer{
-		port:        8080,
+		port:        cryptoutilSharedMagic.DemoServerPort,
 		shutdownErr: fmt.Errorf("public server shutdown failed"),
 	}
 
@@ -316,7 +316,7 @@ func TestShutdown_BothServersShutdownError(t *testing.T) {
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "multiple shutdown errors")
 	require.Contains(t, err.Error(), "admin")
-	require.Contains(t, err.Error(), "public")
+	require.Contains(t, err.Error(), cryptoutilSharedMagic.SubjectTypePublic)
 }
 
 // TestStartBasic_InvalidOTLPProtocol tests StartBasic with invalid OTLP protocol.
@@ -330,9 +330,9 @@ func TestStartBasic_InvalidOTLPProtocol(t *testing.T) {
 		LogLevel:        "info",
 		OTLPEndpoint:    "invalid-protocol://localhost:4317",
 		OTLPService:     "test-service",
-		OTLPVersion:     "1.0.0",
+		OTLPVersion:     cryptoutilSharedMagic.ServiceVersion,
 		OTLPEnvironment: "test",
-		UnsealMode:      "sysinfo",
+		UnsealMode:      cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 		DatabaseURL:     cryptoutilSharedMagic.SQLiteInMemoryDSN,
 	}
 
@@ -353,9 +353,9 @@ func TestStartBasic_MissingOTLPService(t *testing.T) {
 		LogLevel:        "info",
 		OTLPEndpoint:    "grpc://localhost:4317",
 		OTLPService:     "",
-		OTLPVersion:     "1.0.0",
+		OTLPVersion:     cryptoutilSharedMagic.ServiceVersion,
 		OTLPEnvironment: "test",
-		UnsealMode:      "sysinfo",
+		UnsealMode:      cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 		DatabaseURL:     cryptoutilSharedMagic.SQLiteInMemoryDSN,
 	}
 
@@ -377,9 +377,9 @@ func TestInitializeServicesOnCore_NilCore(t *testing.T) {
 		LogLevel:        "info",
 		OTLPEndpoint:    "grpc://localhost:4317",
 		OTLPService:     "test-service",
-		OTLPVersion:     "1.0.0",
+		OTLPVersion:     cryptoutilSharedMagic.ServiceVersion,
 		OTLPEnvironment: "test",
-		UnsealMode:      "sysinfo",
+		UnsealMode:      cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 	}
 
 	// InitializeServicesOnCore should fail with nil Core.
@@ -399,9 +399,9 @@ func TestStartBasic_InvalidLogLevel(t *testing.T) {
 		LogLevel:        "INVALID_LEVEL",
 		OTLPEndpoint:    "grpc://localhost:4317",
 		OTLPService:     "test-service",
-		OTLPVersion:     "1.0.0",
+		OTLPVersion:     cryptoutilSharedMagic.ServiceVersion,
 		OTLPEnvironment: "test",
-		UnsealMode:      "sysinfo",
+		UnsealMode:      cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 		DatabaseURL:     cryptoutilSharedMagic.SQLiteInMemoryDSN,
 	}
 

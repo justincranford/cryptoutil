@@ -5,6 +5,7 @@
 package auth_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -25,7 +26,7 @@ func TestTOTPProfile_Name(t *testing.T) {
 	t.Parallel()
 
 	profile := cryptoutilIdentityAuth.NewTOTPProfile(nil)
-	require.Equal(t, "totp", profile.Name(), "Name should return 'totp'")
+	require.Equal(t, cryptoutilSharedMagic.MFATypeTOTP, profile.Name(), "Name should return 'totp'")
 }
 
 // TestTOTPProfile_RequiresMFA tests RequiresMFA.
@@ -155,7 +156,7 @@ func TestPasskeyProfile_Name(t *testing.T) {
 
 	userRepo := newMockUserRepo()
 	profile := cryptoutilIdentityAuth.NewPasskeyProfile(userRepo, nil)
-	require.Equal(t, "passkey", profile.Name(), "Name should return 'passkey'")
+	require.Equal(t, cryptoutilSharedMagic.AMRPasskey, profile.Name(), "Name should return 'passkey'")
 }
 
 // TestPasskeyProfile_RequiresMFA tests RequiresMFA.
@@ -289,7 +290,7 @@ func TestProfileRegistry_RegisterAndGet(t *testing.T) {
 
 	registry.Register(profile)
 
-	retrieved, ok := registry.Get("username_password")
+	retrieved, ok := registry.Get(cryptoutilSharedMagic.AuthMethodUsernamePassword)
 	require.True(t, ok, "Get should return true for registered profile")
 	require.NotNil(t, retrieved, "Get should return registered profile")
 	require.Equal(t, profile.Name(), retrieved.Name(), "Retrieved profile should match")

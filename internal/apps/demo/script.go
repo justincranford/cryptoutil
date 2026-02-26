@@ -160,7 +160,7 @@ func (d *DemoScript) waitForServices(ctx context.Context) error {
 	// Check Identity server.
 	if err := d.waitForEndpoint(ctx, d.endpoints.JWKSEndpoint); err != nil {
 		d.progress.FailStep("Identity server not healthy", err)
-		d.errors.Add("identity", "health_check", err)
+		d.errors.Add(cryptoutilSharedMagic.IdentityProductName, "health_check", err)
 
 		return err
 	}
@@ -168,7 +168,7 @@ func (d *DemoScript) waitForServices(ctx context.Context) error {
 	// Check KMS server.
 	if err := d.waitForEndpoint(ctx, d.endpoints.KMSHealthEndpoint); err != nil {
 		d.progress.FailStep("KMS server not healthy", err)
-		d.errors.Add("kms", "health_check", err)
+		d.errors.Add(cryptoutilSharedMagic.KMSServiceName, "health_check", err)
 
 		return err
 	}
@@ -180,7 +180,7 @@ func (d *DemoScript) waitForServices(ctx context.Context) error {
 
 // waitForEndpoint polls an endpoint until it responds successfully.
 func (d *DemoScript) waitForEndpoint(ctx context.Context, endpoint string) error {
-	maxRetries := 10
+	maxRetries := cryptoutilSharedMagic.JoseJADefaultMaxMaterials
 	retryDelay := 2 * time.Second
 
 	for i := range maxRetries {
@@ -211,10 +211,10 @@ func (d *DemoScript) getAccessToken(ctx context.Context) (string, error) {
 	d.progress.StartStep("Obtaining access token")
 
 	form := url.Values{}
-	form.Set("grant_type", "client_credentials")
-	form.Set("client_id", d.credentials.ClientID)
-	form.Set("client_secret", d.credentials.ClientSecret)
-	form.Set("scope", "kms:read kms:write kms:encrypt kms:decrypt")
+	form.Set(cryptoutilSharedMagic.ParamGrantType, cryptoutilSharedMagic.GrantTypeClientCredentials)
+	form.Set(cryptoutilSharedMagic.ClaimClientID, d.credentials.ClientID)
+	form.Set(cryptoutilSharedMagic.ParamClientSecret, d.credentials.ClientSecret)
+	form.Set(cryptoutilSharedMagic.ClaimScope, "kms:read kms:write kms:encrypt kms:decrypt")
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, d.endpoints.TokenEndpoint, bytes.NewBufferString(form.Encode()))
 	if err != nil {
@@ -228,7 +228,7 @@ func (d *DemoScript) getAccessToken(ctx context.Context) (string, error) {
 	resp, err := d.httpClient.Do(req)
 	if err != nil {
 		d.progress.FailStep("Token request failed", err)
-		d.errors.Add("identity", "token_request", err)
+		d.errors.Add(cryptoutilSharedMagic.IdentityProductName, "token_request", err)
 
 		return "", fmt.Errorf("token request failed: %w", err)
 	}
@@ -282,7 +282,7 @@ func (d *DemoScript) listKeyPools(ctx context.Context, token string) error {
 	resp, err := d.httpClient.Do(req)
 	if err != nil {
 		d.progress.FailStep("Pools request failed", err)
-		d.errors.Add("kms", "list_pools", err)
+		d.errors.Add(cryptoutilSharedMagic.KMSServiceName, "list_pools", err)
 
 		return fmt.Errorf("pools request failed: %w", err)
 	}

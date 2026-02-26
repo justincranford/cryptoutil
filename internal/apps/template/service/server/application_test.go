@@ -160,7 +160,7 @@ func createTestTLSMaterial(t *testing.T) *cryptoutilAppsTemplateServiceConfig.TL
 
 	// Generate TLS settings with auto-generated CA hierarchy.
 	tlsSettings, err := cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings(
-		[]string{"localhost"},
+		[]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault},
 		[]string{cryptoutilSharedMagic.IPv4Loopback},
 		cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year,
 	)
@@ -180,8 +180,8 @@ func TestNewApplication_HappyPath(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	publicServer := newMockPublicServer(8080, "https://localhost:8080")
-	adminServer := newMockAdminServer(9090, "https://localhost:9090")
+	publicServer := newMockPublicServer(cryptoutilSharedMagic.DemoServerPort, "https://localhost:8080")
+	adminServer := newMockAdminServer(cryptoutilSharedMagic.JoseJAAdminPort, "https://localhost:9090")
 
 	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 
@@ -194,8 +194,8 @@ func TestNewApplication_HappyPath(t *testing.T) {
 func TestNewApplication_NilContext(t *testing.T) {
 	t.Parallel()
 
-	publicServer := newMockPublicServer(8080, "https://localhost:8080")
-	adminServer := newMockAdminServer(9090, "https://localhost:9090")
+	publicServer := newMockPublicServer(cryptoutilSharedMagic.DemoServerPort, "https://localhost:8080")
+	adminServer := newMockAdminServer(cryptoutilSharedMagic.JoseJAAdminPort, "https://localhost:9090")
 
 	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(nil, publicServer, adminServer) //nolint:staticcheck // SA1012 - Testing nil context behavior intentionally
 
@@ -209,7 +209,7 @@ func TestNewApplication_NilPublicServer(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	adminServer := newMockAdminServer(9090, "https://localhost:9090")
+	adminServer := newMockAdminServer(cryptoutilSharedMagic.JoseJAAdminPort, "https://localhost:9090")
 
 	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, nil, adminServer)
 
@@ -223,7 +223,7 @@ func TestNewApplication_NilAdminServer(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	publicServer := newMockPublicServer(8080, "https://localhost:8080")
+	publicServer := newMockPublicServer(cryptoutilSharedMagic.DemoServerPort, "https://localhost:8080")
 
 	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, nil)
 
@@ -237,8 +237,8 @@ func TestApplication_Start_NilContext(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	publicServer := newMockPublicServer(8080, "https://localhost:8080")
-	adminServer := newMockAdminServer(9090, "https://localhost:9090")
+	publicServer := newMockPublicServer(cryptoutilSharedMagic.DemoServerPort, "https://localhost:8080")
+	adminServer := newMockAdminServer(cryptoutilSharedMagic.JoseJAAdminPort, "https://localhost:9090")
 
 	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 	require.NoError(t, err)
@@ -254,10 +254,10 @@ func TestApplication_Start_PublicServerFails(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	publicServer := newMockPublicServer(8080, "https://localhost:8080")
+	publicServer := newMockPublicServer(cryptoutilSharedMagic.DemoServerPort, "https://localhost:8080")
 	publicServer.startErr = fmt.Errorf("public server startup failed")
 
-	adminServer := newMockAdminServer(9090, "https://localhost:9090")
+	adminServer := newMockAdminServer(cryptoutilSharedMagic.JoseJAAdminPort, "https://localhost:9090")
 	adminServer.blockUntilStop = true
 
 	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
@@ -278,10 +278,10 @@ func TestApplication_Start_AdminServerFails(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	publicServer := newMockPublicServer(8080, "https://localhost:8080")
+	publicServer := newMockPublicServer(cryptoutilSharedMagic.DemoServerPort, "https://localhost:8080")
 	publicServer.blockUntilStop = true
 
-	adminServer := newMockAdminServer(9090, "https://localhost:9090")
+	adminServer := newMockAdminServer(cryptoutilSharedMagic.JoseJAAdminPort, "https://localhost:9090")
 	adminServer.startErr = fmt.Errorf("admin server startup failed")
 
 	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
@@ -302,16 +302,16 @@ func TestApplication_Start_ContextCancelled(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	publicServer := newMockPublicServer(8080, "https://localhost:8080")
+	publicServer := newMockPublicServer(cryptoutilSharedMagic.DemoServerPort, "https://localhost:8080")
 	publicServer.blockUntilStop = true
 
-	adminServer := newMockAdminServer(9090, "https://localhost:9090")
+	adminServer := newMockAdminServer(cryptoutilSharedMagic.JoseJAAdminPort, "https://localhost:9090")
 	adminServer.blockUntilStop = true
 
 	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 	require.NoError(t, err)
 
-	startCtx, cancel := context.WithTimeout(ctx, 100*time.Millisecond)
+	startCtx, cancel := context.WithTimeout(ctx, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond)
 	defer cancel()
 
 	err = app.Start(startCtx)
@@ -326,8 +326,8 @@ func TestApplication_Shutdown_NilContext(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	publicServer := newMockPublicServer(8080, "https://localhost:8080")
-	adminServer := newMockAdminServer(9090, "https://localhost:9090")
+	publicServer := newMockPublicServer(cryptoutilSharedMagic.DemoServerPort, "https://localhost:8080")
+	adminServer := newMockAdminServer(cryptoutilSharedMagic.JoseJAAdminPort, "https://localhost:9090")
 
 	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 	require.NoError(t, err)
@@ -343,10 +343,10 @@ func TestApplication_Shutdown_PublicServerFails(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	publicServer := newMockPublicServer(8080, "https://localhost:8080")
+	publicServer := newMockPublicServer(cryptoutilSharedMagic.DemoServerPort, "https://localhost:8080")
 	publicServer.shutdownErr = fmt.Errorf("public server shutdown failed")
 
-	adminServer := newMockAdminServer(9090, "https://localhost:9090")
+	adminServer := newMockAdminServer(cryptoutilSharedMagic.JoseJAAdminPort, "https://localhost:9090")
 
 	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 	require.NoError(t, err)
@@ -363,8 +363,8 @@ func TestApplication_Shutdown_AdminServerFails(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	publicServer := newMockPublicServer(8080, "https://localhost:8080")
-	adminServer := newMockAdminServer(9090, "https://localhost:9090")
+	publicServer := newMockPublicServer(cryptoutilSharedMagic.DemoServerPort, "https://localhost:8080")
+	adminServer := newMockAdminServer(cryptoutilSharedMagic.JoseJAAdminPort, "https://localhost:9090")
 	adminServer.shutdownErr = fmt.Errorf("admin server shutdown failed")
 
 	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
@@ -382,10 +382,10 @@ func TestApplication_Shutdown_BothServersFail(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	publicServer := newMockPublicServer(8080, "https://localhost:8080")
+	publicServer := newMockPublicServer(cryptoutilSharedMagic.DemoServerPort, "https://localhost:8080")
 	publicServer.shutdownErr = fmt.Errorf("public server shutdown failed")
 
-	adminServer := newMockAdminServer(9090, "https://localhost:9090")
+	adminServer := newMockAdminServer(cryptoutilSharedMagic.JoseJAAdminPort, "https://localhost:9090")
 	adminServer.shutdownErr = fmt.Errorf("admin server shutdown failed")
 
 	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)

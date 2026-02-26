@@ -1,6 +1,7 @@
 package lint_deployments
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"strings"
@@ -19,7 +20,7 @@ func TestCheckDelegationPattern_SuiteValid(t *testing.T) {
   - path: ../pki/compose.yml
   - path: ../jose/compose.yml
 `
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(compose), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(compose), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result := &ValidationResult{Valid: true}
 	checkDelegationPattern(dir, "cryptoutil-suite", DeploymentTypeSuite, result)
@@ -39,7 +40,7 @@ func TestCheckDelegationPattern_SuiteInvalidServiceLevel(t *testing.T) {
   - path: ../sm-im/compose.yml
   - path: ../jose-ja/compose.yml
 `
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(compose), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(compose), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result := &ValidationResult{Valid: true}
 	checkDelegationPattern(dir, "cryptoutil-suite", DeploymentTypeSuite, result)
@@ -55,7 +56,7 @@ func TestCheckDelegationPattern_SuiteMissingProducts(t *testing.T) {
 	compose := `include:
   - path: ../sm/compose.yml
 `
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(compose), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(compose), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result := &ValidationResult{Valid: true}
 	checkDelegationPattern(dir, "cryptoutil-suite", DeploymentTypeSuite, result)
@@ -79,12 +80,12 @@ func TestCheckDelegationPattern_ProductValid(t *testing.T) {
 		},
 		{
 			name:           "pki includes pki-ca",
-			deploymentName: "pki",
+			deploymentName: cryptoutilSharedMagic.PKIProductName,
 			composeContent: "include:\n  - path: ../pki-ca/compose.yml\n",
 		},
 		{
 			name:           "jose includes jose-ja",
-			deploymentName: "jose",
+			deploymentName: cryptoutilSharedMagic.JoseProductName,
 			composeContent: "include:\n  - path: ../jose-ja/compose.yml\n",
 		},
 	}
@@ -94,7 +95,7 @@ func TestCheckDelegationPattern_ProductValid(t *testing.T) {
 			t.Parallel()
 
 			dir := t.TempDir()
-			require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(tc.composeContent), 0o600))
+			require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(tc.composeContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 			result := &ValidationResult{Valid: true}
 			checkDelegationPattern(dir, tc.deploymentName, DeploymentTypeProduct, result)
@@ -113,10 +114,10 @@ func TestCheckDelegationPattern_ProductMissingService(t *testing.T) {
 		deploymentName string
 		wantError      string
 	}{
-		{name: "sm missing sm-kms", deploymentName: "sm", wantError: "sm-kms"},
-		{name: "sm missing sm-im", deploymentName: "sm", wantError: "sm-im"},
-		{name: "pki missing pki-ca", deploymentName: "pki", wantError: "pki-ca"},
-		{name: "jose missing jose-ja", deploymentName: "jose", wantError: "jose-ja"},
+		{name: "sm missing sm-kms", deploymentName: "sm", wantError: cryptoutilSharedMagic.OTLPServiceSMKMS},
+		{name: "sm missing sm-im", deploymentName: "sm", wantError: cryptoutilSharedMagic.OTLPServiceSMIM},
+		{name: "pki missing pki-ca", deploymentName: cryptoutilSharedMagic.PKIProductName, wantError: cryptoutilSharedMagic.OTLPServicePKICA},
+		{name: "jose missing jose-ja", deploymentName: cryptoutilSharedMagic.JoseProductName, wantError: cryptoutilSharedMagic.OTLPServiceJoseJA},
 	}
 
 	for _, tc := range tests {
@@ -124,7 +125,7 @@ func TestCheckDelegationPattern_ProductMissingService(t *testing.T) {
 			t.Parallel()
 
 			dir := t.TempDir()
-			require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte("name: empty\n"), 0o600))
+			require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte("name: empty\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 			result := &ValidationResult{Valid: true}
 			checkDelegationPattern(dir, tc.deploymentName, DeploymentTypeProduct, result)
@@ -151,7 +152,7 @@ func TestCheckDelegationPattern_SkipsNonSuiteProduct(t *testing.T) {
 	t.Parallel()
 
 	result := &ValidationResult{Valid: true}
-	checkDelegationPattern(t.TempDir(), "jose-ja", DeploymentTypeProductService, result)
+	checkDelegationPattern(t.TempDir(), cryptoutilSharedMagic.OTLPServiceJoseJA, DeploymentTypeProductService, result)
 
 	assert.True(t, result.Valid, "should skip non-suite/product types")
 	assert.Empty(t, result.Errors)
@@ -182,15 +183,15 @@ func TestCheckOTLPProtocolOverride_WithProtocolPrefix(t *testing.T) {
 
 	dir := t.TempDir()
 	configDir := filepath.Join(dir, "config")
-	require.NoError(t, os.MkdirAll(configDir, 0o750))
+	require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
 	require.NoError(t, os.WriteFile(
 		filepath.Join(configDir, "config-test.yml"),
 		[]byte("otlp-endpoint: grpc://collector:4317\n"),
-		0o600,
+		cryptoutilSharedMagic.CacheFilePermissions,
 	))
 
 	result := &ValidationResult{Valid: true}
-	checkOTLPProtocolOverride(dir, "jose-ja", DeploymentTypeProductService, result)
+	checkOTLPProtocolOverride(dir, cryptoutilSharedMagic.OTLPServiceJoseJA, DeploymentTypeProductService, result)
 
 	assert.NotEmpty(t, result.Warnings, "expected warning about protocol prefix")
 }
@@ -200,15 +201,15 @@ func TestCheckOTLPProtocolOverride_NoProtocolPrefix(t *testing.T) {
 
 	dir := t.TempDir()
 	configDir := filepath.Join(dir, "config")
-	require.NoError(t, os.MkdirAll(configDir, 0o750))
+	require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
 	require.NoError(t, os.WriteFile(
 		filepath.Join(configDir, "config-test.yml"),
 		[]byte("otlp-endpoint: collector:4317\n"),
-		0o600,
+		cryptoutilSharedMagic.CacheFilePermissions,
 	))
 
 	result := &ValidationResult{Valid: true}
-	checkOTLPProtocolOverride(dir, "jose-ja", DeploymentTypeProductService, result)
+	checkOTLPProtocolOverride(dir, cryptoutilSharedMagic.OTLPServiceJoseJA, DeploymentTypeProductService, result)
 
 	assert.Empty(t, result.Warnings, "should not warn when no protocol prefix")
 }
@@ -217,7 +218,7 @@ func TestCheckOTLPProtocolOverride_NoConfigDir(t *testing.T) {
 	t.Parallel()
 
 	result := &ValidationResult{Valid: true}
-	checkOTLPProtocolOverride(t.TempDir(), "jose-ja", DeploymentTypeProductService, result)
+	checkOTLPProtocolOverride(t.TempDir(), cryptoutilSharedMagic.OTLPServiceJoseJA, DeploymentTypeProductService, result)
 
 	assert.True(t, result.Valid)
 	assert.Empty(t, result.Warnings)
@@ -228,18 +229,18 @@ func TestCheckBrowserServiceCredentials_AllPresent(t *testing.T) {
 
 	dir := t.TempDir()
 	secretsDir := filepath.Join(dir, "secrets")
-	require.NoError(t, os.MkdirAll(secretsDir, 0o750))
+	require.NoError(t, os.MkdirAll(secretsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
 
 	credFiles := []string{
 		"browser_username.secret", "browser_password.secret",
 		"service_username.secret", "service_password.secret",
 	}
 	for _, f := range credFiles {
-		require.NoError(t, os.WriteFile(filepath.Join(secretsDir, f), []byte("val"), 0o600))
+		require.NoError(t, os.WriteFile(filepath.Join(secretsDir, f), []byte("val"), cryptoutilSharedMagic.CacheFilePermissions))
 	}
 
 	result := &ValidationResult{Valid: true}
-	checkBrowserServiceCredentials(dir, "jose-ja", DeploymentTypeProductService, result)
+	checkBrowserServiceCredentials(dir, cryptoutilSharedMagic.OTLPServiceJoseJA, DeploymentTypeProductService, result)
 
 	assert.True(t, result.Valid)
 	assert.Empty(t, result.Errors)
@@ -249,10 +250,10 @@ func TestCheckBrowserServiceCredentials_Missing(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	require.NoError(t, os.MkdirAll(filepath.Join(dir, "secrets"), 0o750))
+	require.NoError(t, os.MkdirAll(filepath.Join(dir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
 
 	result := &ValidationResult{Valid: true}
-	checkBrowserServiceCredentials(dir, "jose-ja", DeploymentTypeProductService, result)
+	checkBrowserServiceCredentials(dir, cryptoutilSharedMagic.OTLPServiceJoseJA, DeploymentTypeProductService, result)
 
 	assert.False(t, result.Valid)
 	assert.Len(t, result.Errors, 4, "expected 4 missing credential files")

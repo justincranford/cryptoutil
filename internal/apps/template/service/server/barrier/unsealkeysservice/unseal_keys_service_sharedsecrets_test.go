@@ -5,6 +5,7 @@
 package unsealkeysservice
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
@@ -17,7 +18,7 @@ const sharedSecretCount = 10
 func TestNewUnsealKeysServiceSharedSecrets_HappyPath(t *testing.T) {
 	t.Parallel()
 
-	unsealKeys, err := cryptoutilSharedUtilRandom.GenerateMultipleBytes(sharedSecretCount, 32)
+	unsealKeys, err := cryptoutilSharedUtilRandom.GenerateMultipleBytes(sharedSecretCount, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 	require.NoError(t, err)
 	unsealKeysService, err := NewUnsealKeysServiceSharedSecrets(unsealKeys, sharedSecretCount-1)
 	require.NoError(t, err)
@@ -56,7 +57,7 @@ func TestSharedSecretsCountGreaterThan256(t *testing.T) {
 
 	sharedSecretsM := make([][]byte, 257)
 	for i := range sharedSecretsM {
-		sharedSecretsM[i] = make([]byte, 32)
+		sharedSecretsM[i] = make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 	}
 
 	_, err := NewUnsealKeysServiceSharedSecrets(sharedSecretsM, 1)
@@ -68,7 +69,7 @@ func TestChooseNZero(t *testing.T) {
 	t.Parallel()
 
 	sharedSecretsM := [][]byte{
-		make([]byte, 32),
+		make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes),
 	}
 	_, err := NewUnsealKeysServiceSharedSecrets(sharedSecretsM, 0)
 	require.Error(t, err)
@@ -79,7 +80,7 @@ func TestChooseNNegative(t *testing.T) {
 	t.Parallel()
 
 	sharedSecretsM := [][]byte{
-		make([]byte, 32),
+		make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes),
 	}
 	_, err := NewUnsealKeysServiceSharedSecrets(sharedSecretsM, -1)
 	require.Error(t, err)
@@ -90,8 +91,8 @@ func TestChooseNGreaterThanCount(t *testing.T) {
 	t.Parallel()
 
 	sharedSecretsM := [][]byte{
-		make([]byte, 32),
-		make([]byte, 32),
+		make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes),
+		make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes),
 	}
 	_, err := NewUnsealKeysServiceSharedSecrets(sharedSecretsM, 3)
 	require.Error(t, err)
@@ -102,7 +103,7 @@ func TestSharedSecretNil(t *testing.T) {
 	t.Parallel()
 
 	sharedSecretsM := [][]byte{
-		make([]byte, 32),
+		make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes),
 		nil,
 	}
 	_, err := NewUnsealKeysServiceSharedSecrets(sharedSecretsM, 1)
@@ -114,7 +115,7 @@ func TestSharedSecretLengthLessThan32(t *testing.T) {
 	t.Parallel()
 
 	sharedSecretsM := [][]byte{
-		make([]byte, 32),
+		make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes),
 		make([]byte, 31),
 	}
 	_, err := NewUnsealKeysServiceSharedSecrets(sharedSecretsM, 1)
@@ -126,7 +127,7 @@ func TestSharedSecretLengthGreaterThan64(t *testing.T) {
 	t.Parallel()
 
 	sharedSecretsM := [][]byte{
-		make([]byte, 32),
+		make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes),
 		make([]byte, 65),
 	}
 	_, err := NewUnsealKeysServiceSharedSecrets(sharedSecretsM, 1)

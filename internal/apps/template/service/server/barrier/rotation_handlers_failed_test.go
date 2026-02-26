@@ -60,7 +60,7 @@ func TestRotateKey_TooLongReason(t *testing.T) {
 
 			err = json.Unmarshal(respBody, &errResp)
 			require.NoError(t, err)
-			require.Equal(t, "validation_error", errResp["error"])
+			require.Equal(t, "validation_error", errResp[cryptoutilSharedMagic.StringError])
 			require.Contains(t, errResp["message"], "at most 500 characters")
 		})
 	}
@@ -94,7 +94,7 @@ func TestRotateKey_InvalidJSON(t *testing.T) {
 
 			err = json.Unmarshal(respBody, &errResp)
 			require.NoError(t, err)
-			require.Equal(t, "invalid_request_body", errResp["error"])
+			require.Equal(t, "invalid_request_body", errResp[cryptoutilSharedMagic.StringError])
 			require.Contains(t, errResp["message"], "Failed to parse request body")
 		})
 	}
@@ -151,7 +151,7 @@ func TestHandleRotateRootKey_RotationFailed(t *testing.T) {
 
 	err = json.Unmarshal(respBody, &errResp)
 	require.NoError(t, err)
-	require.Equal(t, "rotation_failed", errResp["error"])
+	require.Equal(t, "rotation_failed", errResp[cryptoutilSharedMagic.StringError])
 	require.Contains(t, errResp["message"], "Failed to rotate root key")
 }
 
@@ -206,7 +206,7 @@ func TestHandleRotateIntermediateKey_RotationFailed(t *testing.T) {
 
 	err = json.Unmarshal(respBody, &errResp)
 	require.NoError(t, err)
-	require.Equal(t, "rotation_failed", errResp["error"])
+	require.Equal(t, "rotation_failed", errResp[cryptoutilSharedMagic.StringError])
 	require.Contains(t, errResp["message"], "Failed to rotate intermediate key")
 }
 
@@ -261,6 +261,6 @@ func TestHandleRotateContentKey_RotationFailed(t *testing.T) {
 
 	err = json.Unmarshal(respBody, &errResp)
 	require.NoError(t, err)
-	require.Equal(t, "rotation_failed", errResp["error"])
+	require.Equal(t, "rotation_failed", errResp[cryptoutilSharedMagic.StringError])
 	require.Contains(t, errResp["message"], "Failed to rotate content key")
 }

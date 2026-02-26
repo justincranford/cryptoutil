@@ -5,6 +5,7 @@
 package hash
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"strings"
 	"testing"
 
@@ -22,7 +23,7 @@ func TestHashHighEntropyNonDeterministic(t *testing.T) {
 	}{
 		{name: "valid_high_entropy_secret", secret: "api-key-1234567890abcdefghijklmnopqrstuvwxyz", expectError: false},
 		{name: "empty_secret", secret: "", expectError: true},
-		{name: "long_secret", secret: strings.Repeat("x", 1024), expectError: false},
+		{name: "long_secret", secret: strings.Repeat("x", cryptoutilSharedMagic.DefaultLogsBatchSize), expectError: false},
 		{name: "unicode_secret", secret: "秘密🔐密钥", expectError: false},
 		{name: "special_characters", secret: "!@#$%^&*()_+-={}[]|\\:;\"'<>,.?/", expectError: false},
 	}
@@ -61,7 +62,7 @@ func TestHashSecretHKDFRandom(t *testing.T) {
 	}{
 		{name: "valid_secret", secret: "high-entropy-secret-1234567890", expectError: false},
 		{name: "empty_secret", secret: "", expectError: true},
-		{name: "long_secret", secret: strings.Repeat("a", 256), expectError: false},
+		{name: "long_secret", secret: strings.Repeat("a", cryptoutilSharedMagic.MaxUnsealSharedSecrets), expectError: false},
 		{name: "unicode_secret", secret: "日本語パスワード", expectError: false},
 	}
 
@@ -83,7 +84,7 @@ func TestHashSecretHKDFRandom(t *testing.T) {
 
 				parts := strings.Split(hash, "$")
 				require.Len(t, parts, expectedParts, "hash should have exactly %d parts", expectedParts)
-				require.Equal(t, "hkdf-sha256", parts[0], "hash algorithm should be hkdf-sha256")
+				require.Equal(t, cryptoutilSharedMagic.HKDFHashName, parts[0], "hash algorithm should be hkdf-sha256")
 			}
 		})
 	}
@@ -94,7 +95,7 @@ func TestHashSecretHKDFRandom_Uniqueness(t *testing.T) {
 	t.Parallel()
 
 	secret := "same-secret-for-all-hashes"
-	iterations := 10
+	iterations := cryptoutilSharedMagic.JoseJADefaultMaxMaterials
 
 	hashes := make(map[string]bool)
 

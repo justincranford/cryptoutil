@@ -196,14 +196,14 @@ func TestDEREncode_AllKeyTypes(t *testing.T) {
 		{
 			name: "RSA private key",
 			keyGen: func() (any, error) {
-				return rsa.GenerateKey(crand.Reader, 2048)
+				return rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 			},
 			expectedPEMType: cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey,
 		},
 		{
 			name: "RSA public key",
 			keyGen: func() (any, error) {
-				priv, err := rsa.GenerateKey(crand.Reader, 2048)
+				priv, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 				if err != nil {
 					return nil, err
 				}
@@ -252,7 +252,7 @@ func TestDEREncode_AllKeyTypes(t *testing.T) {
 		{
 			name: "byte slice (secret key)",
 			keyGen: func() (any, error) {
-				secretKey := make([]byte, 32)
+				secretKey := make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 				_, err := crand.Read(secretKey)
 
 				return secretKey, err
@@ -298,7 +298,7 @@ func TestDERDecode_AllKeyTypes(t *testing.T) {
 		{
 			name: "RSA private key (PKCS8)",
 			keyGen: func() (any, error) {
-				return rsa.GenerateKey(crand.Reader, 2048)
+				return rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 			},
 			pemType: cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey,
 			verifyType: func(t *testing.T, key any) {
@@ -308,7 +308,7 @@ func TestDERDecode_AllKeyTypes(t *testing.T) {
 		{
 			name: "RSA public key (PKIX)",
 			keyGen: func() (any, error) {
-				priv, err := rsa.GenerateKey(crand.Reader, 2048)
+				priv, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 				if err != nil {
 					return nil, err
 				}
@@ -372,7 +372,7 @@ func TestDERDecode_AllKeyTypes(t *testing.T) {
 		{
 			name: "Secret key (byte slice)",
 			keyGen: func() (any, error) {
-				secretKey := make([]byte, 32)
+				secretKey := make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 				_, err := crand.Read(secretKey)
 
 				return secretKey, err

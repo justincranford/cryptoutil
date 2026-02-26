@@ -3,6 +3,7 @@
 package compliance
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"crypto/x509"
 	"crypto/x509/pkix"
@@ -28,7 +29,7 @@ func (fw *failingWriter) Write(_ []byte) (int, error) {
 type mockRSAPublicKey struct{}
 
 func (m *mockRSAPublicKey) Size() int {
-	return 64 // 512 bits, well below 2048 minimum.
+	return cryptoutilSharedMagic.MinSerialNumberBits // 512 bits, well below 2048 minimum.
 }
 
 func TestAuditLogger_Log_WriteError(t *testing.T) {
@@ -58,10 +59,10 @@ func TestChecker_CheckCertificate_WebTrustFramework(t *testing.T) {
 	checker := NewChecker(FrameworkWebTrust)
 
 	cert := &x509.Certificate{
-		SerialNumber: new(big.Int).Lsh(big.NewInt(1), 128),
+		SerialNumber: new(big.Int).Lsh(big.NewInt(1), cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits),
 		Subject:      pkix.Name{CommonName: "test"},
 		NotBefore:    time.Now().UTC(),
-		NotAfter:     time.Now().UTC().Add(365 * 24 * time.Hour),
+		NotAfter:     time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		KeyUsage:     x509.KeyUsageDigitalSignature,
 		DNSNames:     []string{"example.com"},
 	}
@@ -79,10 +80,10 @@ func TestChecker_RFC5280_CACertificate(t *testing.T) {
 
 	// CA cert with valid BasicConstraints (covers evaluateBasicConstraints5280 compliant path).
 	cert := &x509.Certificate{
-		SerialNumber:          new(big.Int).Lsh(big.NewInt(1), 128),
+		SerialNumber:          new(big.Int).Lsh(big.NewInt(1), cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits),
 		Subject:               pkix.Name{CommonName: "Test CA"},
 		NotBefore:             time.Now().UTC(),
-		NotAfter:              time.Now().UTC().Add(365 * 24 * time.Hour),
+		NotAfter:              time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		IsCA:                  true,
 		BasicConstraintsValid: true,
 		KeyUsage:              x509.KeyUsageCertSign,
@@ -113,10 +114,10 @@ func TestChecker_RFC5280_CACert_NonCompliant(t *testing.T) {
 
 	// CA cert WITHOUT valid BasicConstraints (covers evaluateBasicConstraints5280 non-compliant path).
 	cert := &x509.Certificate{
-		SerialNumber:          new(big.Int).Lsh(big.NewInt(1), 128),
+		SerialNumber:          new(big.Int).Lsh(big.NewInt(1), cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits),
 		Subject:               pkix.Name{CommonName: "Test CA"},
 		NotBefore:             time.Now().UTC(),
-		NotAfter:              time.Now().UTC().Add(365 * 24 * time.Hour),
+		NotAfter:              time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		IsCA:                  true,
 		BasicConstraintsValid: false, // Non-compliant.
 		KeyUsage:              x509.KeyUsageCertSign,
@@ -149,7 +150,7 @@ func TestChecker_RFC5280_NonCompliantCert(t *testing.T) {
 			cert: &x509.Certificate{
 				SerialNumber: big.NewInt(-1),
 				NotBefore:    time.Now().UTC(),
-				NotAfter:     time.Now().UTC().Add(365 * 24 * time.Hour),
+				NotAfter:     time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 			},
 			section: "4.1.2.2",
 			status:  StatusNonCompliant,
@@ -157,8 +158,8 @@ func TestChecker_RFC5280_NonCompliantCert(t *testing.T) {
 		{
 			name: "invalid validity period",
 			cert: &x509.Certificate{
-				SerialNumber: new(big.Int).Lsh(big.NewInt(1), 128),
-				NotBefore:    time.Now().UTC().Add(365 * 24 * time.Hour),
+				SerialNumber: new(big.Int).Lsh(big.NewInt(1), cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits),
+				NotBefore:    time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 				NotAfter:     time.Now().UTC(),
 			},
 			section: "4.1.2.5",
@@ -167,12 +168,12 @@ func TestChecker_RFC5280_NonCompliantCert(t *testing.T) {
 		{
 			name: "unknown critical extension",
 			cert: &x509.Certificate{
-				SerialNumber: new(big.Int).Lsh(big.NewInt(1), 128),
+				SerialNumber: new(big.Int).Lsh(big.NewInt(1), cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits),
 				NotBefore:    time.Now().UTC(),
-				NotAfter:     time.Now().UTC().Add(365 * 24 * time.Hour),
+				NotAfter:     time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 				Extensions: []pkix.Extension{
 					{
-						Id:       asn1.ObjectIdentifier{1, 2, 3, 4, 5, 6, 7},
+						Id:       asn1.ObjectIdentifier{1, 2, 3, 4, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, cryptoutilSharedMagic.DefaultEmailOTPLength, cryptoutilSharedMagic.GitRecentActivityDays},
 						Critical: true,
 						Value:    []byte{0x01},
 					},
@@ -215,10 +216,10 @@ func TestChecker_CABF_NonCompliantCert(t *testing.T) {
 		{
 			name: "empty subject and no SAN",
 			cert: &x509.Certificate{
-				SerialNumber: new(big.Int).Lsh(big.NewInt(1), 128),
+				SerialNumber: new(big.Int).Lsh(big.NewInt(1), cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits),
 				Subject:      pkix.Name{},
 				NotBefore:    time.Now().UTC(),
-				NotAfter:     time.Now().UTC().Add(365 * 24 * time.Hour),
+				NotAfter:     time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 				KeyUsage:     x509.KeyUsageDigitalSignature,
 			},
 			checkID: "BR-7.1.2.1",
@@ -230,7 +231,7 @@ func TestChecker_CABF_NonCompliantCert(t *testing.T) {
 				SerialNumber: big.NewInt(1),
 				Subject:      pkix.Name{CommonName: "test"},
 				NotBefore:    time.Now().UTC(),
-				NotAfter:     time.Now().UTC().Add(365 * 24 * time.Hour),
+				NotAfter:     time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 				KeyUsage:     x509.KeyUsageDigitalSignature,
 				DNSNames:     []string{"example.com"},
 			},
@@ -240,10 +241,10 @@ func TestChecker_CABF_NonCompliantCert(t *testing.T) {
 		{
 			name: "no key usage",
 			cert: &x509.Certificate{
-				SerialNumber: new(big.Int).Lsh(big.NewInt(1), 128),
+				SerialNumber: new(big.Int).Lsh(big.NewInt(1), cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits),
 				Subject:      pkix.Name{CommonName: "test"},
 				NotBefore:    time.Now().UTC(),
-				NotAfter:     time.Now().UTC().Add(365 * 24 * time.Hour),
+				NotAfter:     time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 				KeyUsage:     0,
 				DNSNames:     []string{"example.com"},
 			},
@@ -253,10 +254,10 @@ func TestChecker_CABF_NonCompliantCert(t *testing.T) {
 		{
 			name: "CA cert without BasicConstraintsValid",
 			cert: &x509.Certificate{
-				SerialNumber:          new(big.Int).Lsh(big.NewInt(1), 128),
+				SerialNumber:          new(big.Int).Lsh(big.NewInt(1), cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits),
 				Subject:               pkix.Name{CommonName: "test CA"},
 				NotBefore:             time.Now().UTC(),
-				NotAfter:              time.Now().UTC().Add(365 * 24 * time.Hour),
+				NotAfter:              time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 				KeyUsage:              x509.KeyUsageCertSign,
 				IsCA:                  true,
 				BasicConstraintsValid: false,
@@ -267,10 +268,10 @@ func TestChecker_CABF_NonCompliantCert(t *testing.T) {
 		{
 			name: "small RSA key",
 			cert: &x509.Certificate{
-				SerialNumber: new(big.Int).Lsh(big.NewInt(1), 128),
+				SerialNumber: new(big.Int).Lsh(big.NewInt(1), cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits),
 				Subject:      pkix.Name{CommonName: "test"},
 				NotBefore:    time.Now().UTC(),
-				NotAfter:     time.Now().UTC().Add(365 * 24 * time.Hour),
+				NotAfter:     time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 				KeyUsage:     x509.KeyUsageDigitalSignature,
 				DNSNames:     []string{"example.com"},
 				PublicKey:    &mockRSAPublicKey{},
@@ -281,10 +282,10 @@ func TestChecker_CABF_NonCompliantCert(t *testing.T) {
 		{
 			name: "weak signature algorithm",
 			cert: &x509.Certificate{
-				SerialNumber:       new(big.Int).Lsh(big.NewInt(1), 128),
+				SerialNumber:       new(big.Int).Lsh(big.NewInt(1), cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits),
 				Subject:            pkix.Name{CommonName: "test"},
 				NotBefore:          time.Now().UTC(),
-				NotAfter:           time.Now().UTC().Add(365 * 24 * time.Hour),
+				NotAfter:           time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 				KeyUsage:           x509.KeyUsageDigitalSignature,
 				DNSNames:           []string{"example.com"},
 				SignatureAlgorithm: x509.SHA1WithRSA,
@@ -320,7 +321,7 @@ func TestGenerateReport_MediumAndLowSeverity(t *testing.T) {
 	}
 
 	period := AuditPeriod{
-		StartDate: time.Now().UTC().Add(-30 * 24 * time.Hour),
+		StartDate: time.Now().UTC().Add(-cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		EndDate:   time.Now().UTC(),
 	}
 

@@ -56,7 +56,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Get public signing keys from repository.
 	jwkSet, err := h.getPublicSigningKeys(ctx)
 	if err != nil {
-		h.logger.ErrorContext(ctx, "Failed to get public signing keys", "error", err)
+		h.logger.ErrorContext(ctx, "Failed to get public signing keys", cryptoutilSharedMagic.StringError, err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 
 		return
@@ -65,7 +65,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Marshal JWKS to JSON.
 	jwksBytes, err := h.marshalJSONFn(jwkSet)
 	if err != nil {
-		h.logger.ErrorContext(ctx, "Failed to marshal JWKS", "error", err)
+		h.logger.ErrorContext(ctx, "Failed to marshal JWKS", cryptoutilSharedMagic.StringError, err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 
 		return
@@ -77,7 +77,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	if _, writeErr := w.Write(jwksBytes); writeErr != nil {
-		h.logger.ErrorContext(ctx, "Failed to write JWKS response", "error", writeErr)
+		h.logger.ErrorContext(ctx, "Failed to write JWKS response", cryptoutilSharedMagic.StringError, writeErr)
 	}
 }
 
@@ -101,14 +101,14 @@ func (h *Handler) getPublicSigningKeys(ctx context.Context) (joseJwk.Set, error)
 		// Parse public key JWK.
 		publicJWK, parseErr := joseJwk.ParseKey([]byte(key.PublicKey))
 		if parseErr != nil {
-			h.logger.WarnContext(ctx, "Skipping invalid public key", "key_id", key.ID, "error", parseErr)
+			h.logger.WarnContext(ctx, "Skipping invalid public key", "key_id", key.ID, cryptoutilSharedMagic.StringError, parseErr)
 
 			continue
 		}
 
 		// Add to set.
 		if addErr := jwkSet.AddKey(publicJWK); addErr != nil {
-			h.logger.WarnContext(ctx, "Failed to add key to JWKS", "key_id", key.ID, "error", addErr)
+			h.logger.WarnContext(ctx, "Failed to add key to JWKS", "key_id", key.ID, cryptoutilSharedMagic.StringError, addErr)
 
 			continue
 		}

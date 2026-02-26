@@ -6,6 +6,7 @@
 package demo
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	http "net/http"
@@ -64,7 +65,7 @@ type identityDemoServer struct {
 // runIdentityDemo executes the Identity demo.
 func runIdentityDemo(ctx context.Context, config *Config) int {
 	progress := NewProgressDisplay(config)
-	errors := NewErrorAggregator("identity")
+	errors := NewErrorAggregator(cryptoutilSharedMagic.IdentityProductName)
 	startTime := time.Now().UTC()
 
 	progress.Info("Starting Identity Demo")
@@ -131,7 +132,7 @@ func runIdentityDemo(ctx context.Context, config *Config) int {
 
 	if err := verifyOpenIDConfiguration(ctx, demoServer, progress); err != nil {
 		progress.FailStep("OpenID configuration", err)
-		errors.Add("openid", "OpenID configuration verification failed", err)
+		errors.Add(cryptoutilSharedMagic.ScopeOpenID, "OpenID configuration verification failed", err)
 
 		if !config.ContinueOnError {
 			result := errors.ToResult(identityStepsAfterHealth, identityStepCount-identityStepsAfterHealth-1)
@@ -170,19 +171,19 @@ func parseIdentityConfig() (*cryptoutilIdentityConfig.Config, error) {
 	return &cryptoutilIdentityConfig.Config{
 		AuthZ: &cryptoutilIdentityConfig.ServerConfig{
 			Name:             "identity-demo",
-			BindAddress:      "127.0.0.1",
+			BindAddress:      cryptoutilSharedMagic.IPv4Loopback,
 			Port:             identityDemoPort,
 			TLSEnabled:       false,
 			ReadTimeout:      identityServerReadTimeout,
 			WriteTimeout:     identityServerWriteTimeout,
 			IdleTimeout:      identityServerIdleTimeout,
 			AdminEnabled:     true,
-			AdminBindAddress: "127.0.0.1",
+			AdminBindAddress: cryptoutilSharedMagic.IPv4Loopback,
 			AdminPort:        identityAdminPort,
 		},
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
 			Type:            "sqlite",
-			DSN:             ":memory:",
+			DSN:             cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 			MaxOpenConns:    identityDBMaxOpenConns,
 			MaxIdleConns:    identityDBMaxIdleConns,
 			ConnMaxLifetime: identityDBConnMaxLifetime,
@@ -191,13 +192,13 @@ func parseIdentityConfig() (*cryptoutilIdentityConfig.Config, error) {
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			AccessTokenLifetime:  identityAccessTokenTTL,
-			AccessTokenFormat:    "jws",
+			AccessTokenFormat:    cryptoutilSharedMagic.DefaultBrowserSessionCookie,
 			IDTokenLifetime:      identityIDTokenTTL,
-			IDTokenFormat:        "jws",
+			IDTokenFormat:        cryptoutilSharedMagic.DefaultBrowserSessionCookie,
 			RefreshTokenLifetime: identityRefreshTokenTTL,
-			RefreshTokenFormat:   "uuid",
+			RefreshTokenFormat:   cryptoutilSharedMagic.IdentityTokenFormatUUID,
 			Issuer:               "https://identity-demo.local",
-			SigningAlgorithm:     "RS256",
+			SigningAlgorithm:     cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		},
 	}, nil
 }

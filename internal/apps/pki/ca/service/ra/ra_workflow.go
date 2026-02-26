@@ -6,6 +6,7 @@
 package ra
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"crypto"
 	ecdsa "crypto/ecdsa"
@@ -254,7 +255,7 @@ func parseCSR(data []byte) (*x509.CertificateRequest, error) {
 	// Try PEM first.
 	block, _ := pem.Decode(data)
 	if block != nil {
-		if block.Type != "CERTIFICATE REQUEST" && block.Type != "NEW CERTIFICATE REQUEST" {
+		if block.Type != cryptoutilSharedMagic.StringPEMTypeCSR && block.Type != "NEW CERTIFICATE REQUEST" {
 			return nil, fmt.Errorf("unexpected PEM block type: %s", block.Type)
 		}
 
@@ -307,7 +308,7 @@ func GenerateTestCSR(subject pkix.Name, dnsNames []string) ([]byte, crypto.Priva
 	}
 
 	csrPEM := pem.EncodeToMemory(&pem.Block{
-		Type:  "CERTIFICATE REQUEST",
+		Type:  cryptoutilSharedMagic.StringPEMTypeCSR,
 		Bytes: csrDER,
 	})
 

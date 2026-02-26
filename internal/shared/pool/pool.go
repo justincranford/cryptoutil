@@ -304,7 +304,7 @@ func (pool *ValueGenPool[T]) generateWorker(workerNum uint32) {
 
 			err := pool.generatePublishRelease(workerNum, startTime) // attempt to generate inside a function, where permission is always released, even if there is an error or panic
 			if err != nil {                                          // if there was an error, log it and stop the worker
-				pool.cfg.telemetryService.Slogger.Error("worker error", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds(), "error", err)
+				pool.cfg.telemetryService.Slogger.Error("worker error", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds(), cryptoutilSharedMagic.StringError, err)
 
 				return
 			}
@@ -364,7 +364,7 @@ func (pool *ValueGenPool[T]) generatePublishRelease(workerNum uint32, startTime 
 	}()
 
 	if err != nil {
-		pool.cfg.telemetryService.Slogger.Error("generation failed", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds(), "error", err)
+		pool.cfg.telemetryService.Slogger.Error("generation failed", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds(), cryptoutilSharedMagic.StringError, err)
 		pool.Cancel() // signal all workers to stop (e.g. does generateFunction() have a bug?)
 
 		return fmt.Errorf("pool %s worker %d failed to generate value: %w", pool.cfg.poolName, workerNum, err)

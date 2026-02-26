@@ -4,6 +4,7 @@
 package server_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -174,10 +175,10 @@ func TestServer_Shutdown(t *testing.T) {
 	// Wait for server to become ready (check public port is assigned).
 	require.Eventually(t, func() bool {
 		return testServer.PublicPort() > 0
-	}, 5*time.Second, 100*time.Millisecond, "Server should start within 5 seconds")
+	}, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond, "Server should start within 5 seconds")
 
 	// Test graceful shutdown.
-	shutdownCtx, shutdownCancel := context.WithTimeout(ctx, 10*time.Second)
+	shutdownCtx, shutdownCancel := context.WithTimeout(ctx, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second)
 	defer shutdownCancel()
 
 	err = testServer.Shutdown(shutdownCtx)

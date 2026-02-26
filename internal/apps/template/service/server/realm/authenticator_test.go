@@ -5,6 +5,7 @@
 package realm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -117,11 +118,11 @@ func TestAuthenticator_Authenticate(t *testing.T) {
 				Roles: []RoleConfig{
 					{
 						Name:        "admin",
-						Permissions: []string{"read", "write", "delete"},
+						Permissions: []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite, "delete"},
 					},
 					{
 						Name:        "user",
-						Permissions: []string{"read"},
+						Permissions: []string{cryptoutilSharedMagic.ScopeRead},
 					},
 				},
 			},
@@ -296,11 +297,11 @@ func TestAuthenticator_ExpandPermissions(t *testing.T) {
 				Roles: []RoleConfig{
 					{
 						Name:        "reader",
-						Permissions: []string{"read"},
+						Permissions: []string{cryptoutilSharedMagic.ScopeRead},
 					},
 					{
 						Name:        "writer",
-						Permissions: []string{"write"},
+						Permissions: []string{cryptoutilSharedMagic.ScopeWrite},
 						Inherits:    []string{"reader"},
 					},
 					{
@@ -332,8 +333,8 @@ func TestAuthenticator_ExpandPermissions(t *testing.T) {
 	// Should have all inherited permissions.
 	require.Contains(t, result.Permissions, "manage_users")
 	require.Contains(t, result.Permissions, "delete")
-	require.Contains(t, result.Permissions, "write")
-	require.Contains(t, result.Permissions, "read")
+	require.Contains(t, result.Permissions, cryptoutilSharedMagic.ScopeWrite)
+	require.Contains(t, result.Permissions, cryptoutilSharedMagic.ScopeRead)
 }
 
 func TestAuthenticator_GetRealm(t *testing.T) {

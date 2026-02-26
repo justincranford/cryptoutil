@@ -6,6 +6,7 @@
 package orm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"testing"
 
@@ -25,7 +26,7 @@ func TestToAppErr_PostgresUniqueViolation(t *testing.T) {
 
 		// Create PostgreSQL unique violation error.
 		pgErr := &pgconn.PgError{
-			Code:    "23505", // unique_violation
+			Code:    cryptoutilSharedMagic.PGCodeUniqueViolation, // unique_violation
 			Message: "duplicate key value violates unique constraint",
 		}
 
@@ -51,7 +52,7 @@ func TestToAppErr_PostgresForeignKeyViolation(t *testing.T) {
 
 		// Create PostgreSQL foreign key violation error.
 		pgErr := &pgconn.PgError{
-			Code:    "23503", // foreign_key_violation
+			Code:    cryptoutilSharedMagic.PGCodeForeignKeyViolation, // foreign_key_violation
 			Message: "insert or update on table violates foreign key constraint",
 		}
 
@@ -77,7 +78,7 @@ func TestToAppErr_PostgresCheckViolation(t *testing.T) {
 
 		// Create PostgreSQL check violation error.
 		pgErr := &pgconn.PgError{
-			Code:    "23514", // check_violation
+			Code:    cryptoutilSharedMagic.PGCodeCheckViolation, // check_violation
 			Message: "new row violates check constraint",
 		}
 
@@ -103,7 +104,7 @@ func TestToAppErr_PostgresStringDataTruncation(t *testing.T) {
 
 		// Create PostgreSQL string data truncation error.
 		pgErr := &pgconn.PgError{
-			Code:    "22001", // string_data_right_truncation
+			Code:    cryptoutilSharedMagic.PGCodeStringDataTruncation, // string_data_right_truncation
 			Message: "value too long for type character varying",
 		}
 

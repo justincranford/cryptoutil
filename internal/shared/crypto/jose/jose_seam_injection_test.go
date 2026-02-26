@@ -120,10 +120,10 @@ func TestCreateJWEJWKFromKey_SeamErrors(t *testing.T) {
 	rsaAlg := AlgRSAOAEP256
 	ecAlg := AlgECDHES
 
-	aesKey := make([]byte, 32)
+	aesKey := make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 	_, _ = crand.Read(aesKey)
 
-	rsaPriv, err := rsa.GenerateKey(crand.Reader, 2048)
+	rsaPriv, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	ecdhPriv, err := ecdh.P521().GenerateKey(crand.Reader)
@@ -136,9 +136,9 @@ func TestCreateJWEJWKFromKey_SeamErrors(t *testing.T) {
 		alg     *joseJwa.KeyEncryptionAlgorithm
 		maxSets int
 	}{
-		{"AES", cryptoutilSharedCryptoKeygen.SecretKey(aesKey), &enc, &aesAlg, 7},
-		{"RSA", &cryptoutilSharedCryptoKeygen.KeyPair{Private: rsaPriv, Public: &rsaPriv.PublicKey}, &enc, &rsaAlg, 8},
-		{"EC", &cryptoutilSharedCryptoKeygen.KeyPair{Private: ecdhPriv, Public: ecdhPriv.PublicKey()}, &enc, &ecAlg, 8},
+		{"AES", cryptoutilSharedCryptoKeygen.SecretKey(aesKey), &enc, &aesAlg, cryptoutilSharedMagic.GitRecentActivityDays},
+		{cryptoutilSharedMagic.KeyTypeRSA, &cryptoutilSharedCryptoKeygen.KeyPair{Private: rsaPriv, Public: &rsaPriv.PublicKey}, &enc, &rsaAlg, cryptoutilSharedMagic.IMMinPasswordLength},
+		{"EC", &cryptoutilSharedCryptoKeygen.KeyPair{Private: ecdhPriv, Public: ecdhPriv.PublicKey()}, &enc, &ecAlg, cryptoutilSharedMagic.IMMinPasswordLength},
 	}
 
 	for _, tc := range tests {
@@ -192,7 +192,7 @@ func TestCreateJWEJWKFromKey_SeamErrors(t *testing.T) {
 	t.Run("RSA/set_public_ops_fail", func(t *testing.T) {
 		resetSeams()
 
-		jwkKeySet = countingSet(8)
+		jwkKeySet = countingSet(cryptoutilSharedMagic.IMMinPasswordLength)
 		_, _, _, _, _, err := CreateJWEJWKFromKey(&kid, &enc, &rsaAlg,
 			&cryptoutilSharedCryptoKeygen.KeyPair{Private: rsaPriv, Public: &rsaPriv.PublicKey})
 		require.Error(t, err)
@@ -210,10 +210,10 @@ func TestCreateJWSJWKFromKey_SeamErrors(t *testing.T) {
 	ecAlg := AlgES256
 	edAlg := AlgEdDSA
 
-	hmacKey := make([]byte, 32)
+	hmacKey := make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 	_, _ = crand.Read(hmacKey)
 
-	rsaPriv, err := rsa.GenerateKey(crand.Reader, 2048)
+	rsaPriv, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	ecPriv, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
@@ -228,10 +228,10 @@ func TestCreateJWSJWKFromKey_SeamErrors(t *testing.T) {
 		alg     *joseJwa.SignatureAlgorithm
 		maxSets int
 	}{
-		{"HMAC", cryptoutilSharedCryptoKeygen.SecretKey(hmacKey), &hmacAlg, 5},
-		{"RSA", &cryptoutilSharedCryptoKeygen.KeyPair{Private: rsaPriv, Public: &rsaPriv.PublicKey}, &rsaAlg, 6},
-		{"EC", &cryptoutilSharedCryptoKeygen.KeyPair{Private: ecPriv, Public: &ecPriv.PublicKey}, &ecAlg, 6},
-		{"EdDSA", &cryptoutilSharedCryptoKeygen.KeyPair{Private: edPriv, Public: edPriv.Public()}, &edAlg, 6},
+		{"HMAC", cryptoutilSharedCryptoKeygen.SecretKey(hmacKey), &hmacAlg, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
+		{cryptoutilSharedMagic.KeyTypeRSA, &cryptoutilSharedCryptoKeygen.KeyPair{Private: rsaPriv, Public: &rsaPriv.PublicKey}, &rsaAlg, cryptoutilSharedMagic.DefaultEmailOTPLength},
+		{"EC", &cryptoutilSharedCryptoKeygen.KeyPair{Private: ecPriv, Public: &ecPriv.PublicKey}, &ecAlg, cryptoutilSharedMagic.DefaultEmailOTPLength},
+		{cryptoutilSharedMagic.JoseAlgEdDSA, &cryptoutilSharedCryptoKeygen.KeyPair{Private: edPriv, Public: edPriv.Public()}, &edAlg, cryptoutilSharedMagic.DefaultEmailOTPLength},
 	}
 
 	for _, tc := range tests {
@@ -285,7 +285,7 @@ func TestCreateJWSJWKFromKey_SeamErrors(t *testing.T) {
 	t.Run("RSA/set_public_ops_fail", func(t *testing.T) {
 		resetSeams()
 
-		jwkKeySet = countingSet(7)
+		jwkKeySet = countingSet(cryptoutilSharedMagic.GitRecentActivityDays)
 		_, _, _, _, _, err := CreateJWSJWKFromKey(&kid, &rsaAlg,
 			&cryptoutilSharedCryptoKeygen.KeyPair{Private: rsaPriv, Public: &rsaPriv.PublicKey})
 		require.Error(t, err)
@@ -307,22 +307,22 @@ func TestCreateJWKFromKey_SeamErrors(t *testing.T) {
 	ecAlg := cryptoutilOpenapiModel.ECP256
 	edAlg := cryptoutilOpenapiModel.OKPEd25519
 
-	hmacKey := make([]byte, 32)
+	hmacKey := make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 	_, _ = crand.Read(hmacKey)
 
-	hmac384Key := make([]byte, 48)
+	hmac384Key := make([]byte, cryptoutilSharedMagic.HMACSHA384KeySize)
 	_, _ = crand.Read(hmac384Key)
 
-	hmac512Key := make([]byte, 64)
+	hmac512Key := make([]byte, cryptoutilSharedMagic.MinSerialNumberBits)
 	_, _ = crand.Read(hmac512Key)
 
-	aes128Key := make([]byte, 16)
+	aes128Key := make([]byte, cryptoutilSharedMagic.RealmMinTokenLengthBytes)
 	_, _ = crand.Read(aes128Key)
 
-	aes192Key := make([]byte, 24)
+	aes192Key := make([]byte, cryptoutilSharedMagic.HoursPerDay)
 	_, _ = crand.Read(aes192Key)
 
-	rsaPriv, err := rsa.GenerateKey(crand.Reader, 2048)
+	rsaPriv, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	ecPriv, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
@@ -337,14 +337,14 @@ func TestCreateJWKFromKey_SeamErrors(t *testing.T) {
 		alg     *cryptoutilOpenapiModel.GenerateAlgorithm
 		maxSets int
 	}{
-		{"HMAC256", cryptoutilSharedCryptoKeygen.SecretKey(hmacKey), &hmacAlg, 6},
-		{"HMAC384", cryptoutilSharedCryptoKeygen.SecretKey(hmac384Key), &hmac384Alg, 6},
-		{"HMAC512", cryptoutilSharedCryptoKeygen.SecretKey(hmac512Key), &hmac512Alg, 6},
-		{"AES128", cryptoutilSharedCryptoKeygen.SecretKey(aes128Key), &aes128Alg, 5},
-		{"AES192", cryptoutilSharedCryptoKeygen.SecretKey(aes192Key), &aes192Alg, 5},
-		{"RSA", &cryptoutilSharedCryptoKeygen.KeyPair{Private: rsaPriv, Public: &rsaPriv.PublicKey}, &rsaAlg, 3},
+		{"HMAC256", cryptoutilSharedCryptoKeygen.SecretKey(hmacKey), &hmacAlg, cryptoutilSharedMagic.DefaultEmailOTPLength},
+		{"HMAC384", cryptoutilSharedCryptoKeygen.SecretKey(hmac384Key), &hmac384Alg, cryptoutilSharedMagic.DefaultEmailOTPLength},
+		{"HMAC512", cryptoutilSharedCryptoKeygen.SecretKey(hmac512Key), &hmac512Alg, cryptoutilSharedMagic.DefaultEmailOTPLength},
+		{"AES128", cryptoutilSharedCryptoKeygen.SecretKey(aes128Key), &aes128Alg, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
+		{"AES192", cryptoutilSharedCryptoKeygen.SecretKey(aes192Key), &aes192Alg, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
+		{cryptoutilSharedMagic.KeyTypeRSA, &cryptoutilSharedCryptoKeygen.KeyPair{Private: rsaPriv, Public: &rsaPriv.PublicKey}, &rsaAlg, 3},
 		{"EC", &cryptoutilSharedCryptoKeygen.KeyPair{Private: ecPriv, Public: &ecPriv.PublicKey}, &ecAlg, 3},
-		{"EdDSA", &cryptoutilSharedCryptoKeygen.KeyPair{Private: edPriv, Public: edPriv.Public()}, &edAlg, 3},
+		{cryptoutilSharedMagic.JoseAlgEdDSA, &cryptoutilSharedCryptoKeygen.KeyPair{Private: edPriv, Public: edPriv.Public()}, &edAlg, 3},
 	}
 
 	for _, tc := range tests {
@@ -480,7 +480,7 @@ func TestValidateOrGenerate_KeygenErrors(t *testing.T) {
 		generateEDDSAKeyPair = func(_ string) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
 			return nil, errInjected
 		}
-		_, err := validateOrGenerateEddsaJWK(nil, "Ed25519")
+		_, err := validateOrGenerateEddsaJWK(nil, cryptoutilSharedMagic.EdCurveEd25519)
 		require.Error(t, err)
 		require.True(t, errors.Is(err, errInjected))
 	})

@@ -3,6 +3,7 @@
 package server
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 
 	fiber "github.com/gofiber/fiber/v2"
@@ -85,7 +86,7 @@ func (s *PublicServer) handleCRLDistribution(c *fiber.Ctx) error {
 	crl, err := s.crlService.GenerateCRL()
 	if err != nil {
 		if jsonErr := c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "failed to generate CRL",
+			cryptoutilSharedMagic.StringError: "failed to generate CRL",
 		}); jsonErr != nil {
 			return fmt.Errorf("failed to send error response: %w", jsonErr)
 		}
@@ -112,7 +113,7 @@ func (s *PublicServer) handleOCSP(c *fiber.Ctx) error {
 	_, err := s.ocspService.ParseRequest(body)
 	if err != nil {
 		if jsonErr := c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "failed to parse OCSP request",
+			cryptoutilSharedMagic.StringError: "failed to parse OCSP request",
 		}); jsonErr != nil {
 			return fmt.Errorf("failed to send error response: %w", jsonErr)
 		}
@@ -124,7 +125,7 @@ func (s *PublicServer) handleOCSP(c *fiber.Ctx) error {
 	// A full implementation would look up the certificate and call RespondToRequest.
 	// The existing CA API handler has more complete OCSP handling.
 	if jsonErr := c.Status(fiber.StatusNotImplemented).JSON(fiber.Map{
-		"error": "OCSP endpoint uses /api/v1/ca/ocsp handler",
+		cryptoutilSharedMagic.StringError: "OCSP endpoint uses /api/v1/ca/ocsp handler",
 	}); jsonErr != nil {
 		return fmt.Errorf("failed to send response: %w", jsonErr)
 	}

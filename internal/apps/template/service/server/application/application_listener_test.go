@@ -34,17 +34,17 @@ func TestStartCoreWithServices_FullIntegration(t *testing.T) {
 		DatabaseURL:                cryptoutilSharedMagic.SQLiteInMemoryDSN,
 		OTLPService:                "test-service",
 		OTLPEnabled:                false,
-		OTLPEndpoint:               "grpc://127.0.0.1:4317",
-		LogLevel:                   "INFO",
-		BrowserSessionAlgorithm:    "JWS",
-		BrowserSessionJWSAlgorithm: "RS256",
-		BrowserSessionJWEAlgorithm: "RSA-OAEP",
+		OTLPEndpoint:               cryptoutilSharedMagic.DefaultOTLPEndpointDefault,
+		LogLevel:                   cryptoutilSharedMagic.DefaultLogLevelInfo,
+		BrowserSessionAlgorithm:    cryptoutilSharedMagic.DefaultServiceSessionAlgorithm,
+		BrowserSessionJWSAlgorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		BrowserSessionJWEAlgorithm: cryptoutilSharedMagic.JoseAlgRSAOAEP,
 		BrowserSessionExpiration:   15 * time.Minute,
-		ServiceSessionAlgorithm:    "JWS",
-		ServiceSessionJWSAlgorithm: "RS256",
-		ServiceSessionJWEAlgorithm: "RSA-OAEP",
+		ServiceSessionAlgorithm:    cryptoutilSharedMagic.DefaultServiceSessionAlgorithm,
+		ServiceSessionJWSAlgorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		ServiceSessionJWEAlgorithm: cryptoutilSharedMagic.JoseAlgRSAOAEP,
 		ServiceSessionExpiration:   1 * time.Hour,
-		SessionIdleTimeout:         30 * time.Minute,
+		SessionIdleTimeout:         cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Minute,
 		SessionCleanupInterval:     1 * time.Hour,
 	}
 
@@ -305,12 +305,12 @@ func TestHealthcheck_CompletesWithinTimeout(t *testing.T) {
 			})
 
 			// Simple healthcheck handlers mimicking admin server behavior.
-			api := app.Group("/admin/api/v1")
-			api.Get("/livez", func(c *fiber.Ctx) error {
-				return c.JSON(fiber.Map{"status": "alive"})
+			api := app.Group(cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath)
+			api.Get(cryptoutilSharedMagic.PrivateAdminLivezRequestPath, func(c *fiber.Ctx) error {
+				return c.JSON(fiber.Map{cryptoutilSharedMagic.StringStatus: "alive"})
 			})
-			api.Get("/readyz", func(c *fiber.Ctx) error {
-				return c.JSON(fiber.Map{"status": "ready"})
+			api.Get(cryptoutilSharedMagic.PrivateAdminReadyzRequestPath, func(c *fiber.Ctx) error {
+				return c.JSON(fiber.Map{cryptoutilSharedMagic.StringStatus: "ready"})
 			})
 
 			// Create test request.
@@ -328,7 +328,7 @@ func TestHealthcheck_CompletesWithinTimeout(t *testing.T) {
 			// Verify response.
 			require.Equal(t, tt.wantStatus, resp.StatusCode)
 
-			body := make([]byte, 1024)
+			body := make([]byte, cryptoutilSharedMagic.DefaultLogsBatchSize)
 			n, _ := resp.Body.Read(body)
 			require.Contains(t, string(body[:n]), tt.wantContains)
 		})
@@ -349,14 +349,14 @@ func TestHealthcheck_TimeoutExceeded(t *testing.T) {
 		{
 			name:        "livez timeout - handler too slow",
 			endpoint:    "/admin/api/v1/livez",
-			timeout:     10 * time.Millisecond,
-			handlerWait: 50 * time.Millisecond,
+			timeout:     cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond,
+			handlerWait: cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond,
 		},
 		{
 			name:        "readyz timeout - handler too slow",
 			endpoint:    "/admin/api/v1/readyz",
-			timeout:     10 * time.Millisecond,
-			handlerWait: 50 * time.Millisecond,
+			timeout:     cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond,
+			handlerWait: cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond,
 		},
 	}
 
@@ -370,16 +370,16 @@ func TestHealthcheck_TimeoutExceeded(t *testing.T) {
 			})
 
 			// Handler with artificial delay exceeding client timeout.
-			api := app.Group("/admin/api/v1")
-			api.Get("/livez", func(c *fiber.Ctx) error {
+			api := app.Group(cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath)
+			api.Get(cryptoutilSharedMagic.PrivateAdminLivezRequestPath, func(c *fiber.Ctx) error {
 				time.Sleep(tt.handlerWait)
 
-				return c.JSON(fiber.Map{"status": "alive"})
+				return c.JSON(fiber.Map{cryptoutilSharedMagic.StringStatus: "alive"})
 			})
-			api.Get("/readyz", func(c *fiber.Ctx) error {
+			api.Get(cryptoutilSharedMagic.PrivateAdminReadyzRequestPath, func(c *fiber.Ctx) error {
 				time.Sleep(tt.handlerWait)
 
-				return c.JSON(fiber.Map{"status": "ready"})
+				return c.JSON(fiber.Map{cryptoutilSharedMagic.StringStatus: "ready"})
 			})
 
 			// Create test request.

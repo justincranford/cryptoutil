@@ -4,6 +4,7 @@
 package server
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	http "net/http"
@@ -111,7 +112,7 @@ func TestJoseJAServer_ShutdownIdempotent(t *testing.T) {
 	ctx := context.Background()
 
 	// Create test configuration with different ports.
-	cfg := cryptoutilAppsJoseJaServerConfig.NewTestConfig("127.0.0.1", 0, true)
+	cfg := cryptoutilAppsJoseJaServerConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
 	// Create separate server instance.
 	server, err := NewFromConfig(ctx, cfg)
@@ -129,13 +130,13 @@ func TestJoseJAServer_ShutdownIdempotent(t *testing.T) {
 	// Wait for server to bind.
 	require.Eventually(t, func() bool {
 		return server.PublicPort() > 0 && server.AdminPort() > 0
-	}, 5*time.Second, 100*time.Millisecond, "server should bind to ports")
+	}, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond, "server should bind to ports")
 
 	// Mark server as ready.
 	server.SetReady(true)
 
 	// Shutdown the server - this should succeed.
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer cancel()
 
 	err = server.Shutdown(shutdownCtx)

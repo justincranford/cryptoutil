@@ -6,6 +6,7 @@
 package application
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 
@@ -35,7 +36,7 @@ func StartServerApplicationBasic(ctx context.Context, settings *cryptoutilAppsTe
 
 	unsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceFromSettings(ctx, serverApplicationBasic.TelemetryService, settings)
 	if err != nil {
-		serverApplicationBasic.TelemetryService.Slogger.Error("failed to create unseal repository", "error", err)
+		serverApplicationBasic.TelemetryService.Slogger.Error("failed to create unseal repository", cryptoutilSharedMagic.StringError, err)
 		serverApplicationBasic.Shutdown()
 
 		return nil, fmt.Errorf("failed to create unseal repository: %w", err)
@@ -45,7 +46,7 @@ func StartServerApplicationBasic(ctx context.Context, settings *cryptoutilAppsTe
 
 	jwkGenService, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetryService, settings.VerboseMode)
 	if err != nil {
-		telemetryService.Slogger.Error("failed to create JWK Gen Service", "error", err)
+		telemetryService.Slogger.Error("failed to create JWK Gen Service", cryptoutilSharedMagic.StringError, err)
 		serverApplicationBasic.Shutdown()
 
 		return nil, fmt.Errorf("failed to create JWK Gen Service: %w", err)

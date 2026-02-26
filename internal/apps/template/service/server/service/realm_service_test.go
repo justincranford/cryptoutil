@@ -15,6 +15,7 @@
 package service
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"fmt"
@@ -37,7 +38,7 @@ func setupRealmTestDB(t *testing.T) *gorm.DB {
 
 	// Create unique database name to avoid sharing between tests.
 	dbName := fmt.Sprintf("file:test_%s.db?mode=memory&cache=private", strings.ReplaceAll(t.Name(), "/", "_"))
-	sqlDB, err := sql.Open("sqlite", dbName)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dbName)
 	require.NoError(t, err)
 
 	// Enable WAL mode for better concurrency.
@@ -56,8 +57,8 @@ func setupRealmTestDB(t *testing.T) *gorm.DB {
 	// Configure connection pool.
 	sqlDB, err = db.DB()
 	require.NoError(t, err)
-	sqlDB.SetMaxOpenConns(5)
-	sqlDB.SetMaxIdleConns(5)
+	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	sqlDB.SetConnMaxLifetime(0)
 
 	// Auto-migrate all required tables.
@@ -103,10 +104,10 @@ func TestRealmService_CreateRealm_UsernamePassword(t *testing.T) {
 	svc, db := setupRealmService(t)
 	ctx := context.Background()
 
-	tenant := createRealmTestTenant(t, db, "realm-username-"+googleUuid.NewString()[:8])
+	tenant := createRealmTestTenant(t, db, "realm-username-"+googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
 
 	config := &UsernamePasswordConfig{
-		MinPasswordLength: 8,
+		MinPasswordLength: cryptoutilSharedMagic.IMMinPasswordLength,
 		RequireUppercase:  true,
 		RequireLowercase:  true,
 		RequireDigit:      true,
@@ -130,7 +131,7 @@ func TestRealmService_CreateRealm_LDAP(t *testing.T) {
 	svc, db := setupRealmService(t)
 	ctx := context.Background()
 
-	tenant := createRealmTestTenant(t, db, "realm-ldap-"+googleUuid.NewString()[:8])
+	tenant := createRealmTestTenant(t, db, "realm-ldap-"+googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
 
 	pwdGen, err := cryptoutilSharedPwdgen.NewPasswordGenerator(cryptoutilSharedPwdgen.BasicPolicy)
 	require.NoError(t, err)
@@ -161,7 +162,7 @@ func TestRealmService_CreateRealm_OAuth2(t *testing.T) {
 	svc, db := setupRealmService(t)
 	ctx := context.Background()
 
-	tenant := createRealmTestTenant(t, db, "realm-oauth2-"+googleUuid.NewString()[:8])
+	tenant := createRealmTestTenant(t, db, "realm-oauth2-"+googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
 
 	pwdGen, err := cryptoutilSharedPwdgen.NewPasswordGenerator(cryptoutilSharedPwdgen.StrongPolicy)
 	require.NoError(t, err)
@@ -172,7 +173,7 @@ func TestRealmService_CreateRealm_OAuth2(t *testing.T) {
 		ProviderURL:  "https://auth.example.com",
 		ClientID:     "my-client-id",
 		ClientSecret: clientSecret,
-		Scopes:       []string{"openid", "profile", "email"},
+		Scopes:       []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail},
 		RedirectURI:  "https://myapp.example.com/callback",
 		UseDiscovery: true,
 	}
@@ -190,7 +191,7 @@ func TestRealmService_CreateRealm_SAML(t *testing.T) {
 	svc, db := setupRealmService(t)
 	ctx := context.Background()
 
-	tenant := createRealmTestTenant(t, db, "realm-saml-"+googleUuid.NewString()[:8])
+	tenant := createRealmTestTenant(t, db, "realm-saml-"+googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
 
 	config := &SAMLConfig{
 		MetadataURL:  "https://idp.example.com/metadata",
@@ -212,7 +213,7 @@ func TestRealmService_CreateRealm_InvalidType(t *testing.T) {
 	svc, db := setupRealmService(t)
 	ctx := context.Background()
 
-	tenant := createRealmTestTenant(t, db, "realm-invalid-"+googleUuid.NewString()[:8])
+	tenant := createRealmTestTenant(t, db, "realm-invalid-"+googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
 
 	_, err := svc.CreateRealm(ctx, tenant.ID, "invalid_type", nil)
 	require.Error(t, err)
@@ -226,7 +227,7 @@ func TestRealmService_CreateRealm_InvalidConfig(t *testing.T) {
 	svc, db := setupRealmService(t)
 	ctx := context.Background()
 
-	tenant := createRealmTestTenant(t, db, "realm-invalid-config-"+googleUuid.NewString()[:8])
+	tenant := createRealmTestTenant(t, db, "realm-invalid-config-"+googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
 
 	// LDAP config without required URL.
 	config := &LDAPConfig{
@@ -246,9 +247,9 @@ func TestRealmService_GetRealm(t *testing.T) {
 	svc, db := setupRealmService(t)
 	ctx := context.Background()
 
-	tenant := createRealmTestTenant(t, db, "realm-get-"+googleUuid.NewString()[:8])
+	tenant := createRealmTestTenant(t, db, "realm-get-"+googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
 
-	config := &UsernamePasswordConfig{MinPasswordLength: 8}
+	config := &UsernamePasswordConfig{MinPasswordLength: cryptoutilSharedMagic.IMMinPasswordLength}
 	created, err := svc.CreateRealm(ctx, tenant.ID, string(RealmTypeUsernamePassword), config)
 	require.NoError(t, err)
 
@@ -267,10 +268,10 @@ func TestRealmService_GetRealm_WrongTenant(t *testing.T) {
 	svc, db := setupRealmService(t)
 	ctx := context.Background()
 
-	tenant1 := createRealmTestTenant(t, db, "realm-tenant1-"+googleUuid.NewString()[:8])
-	tenant2 := createRealmTestTenant(t, db, "realm-tenant2-"+googleUuid.NewString()[:8])
+	tenant1 := createRealmTestTenant(t, db, "realm-tenant1-"+googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
+	tenant2 := createRealmTestTenant(t, db, "realm-tenant2-"+googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
 
-	config := &UsernamePasswordConfig{MinPasswordLength: 8}
+	config := &UsernamePasswordConfig{MinPasswordLength: cryptoutilSharedMagic.IMMinPasswordLength}
 	created, err := svc.CreateRealm(ctx, tenant1.ID, string(RealmTypeUsernamePassword), config)
 	require.NoError(t, err)
 
@@ -286,10 +287,10 @@ func TestRealmService_ListRealms(t *testing.T) {
 	svc, db := setupRealmService(t)
 	ctx := context.Background()
 
-	tenant := createRealmTestTenant(t, db, "realm-list-"+googleUuid.NewString()[:8])
+	tenant := createRealmTestTenant(t, db, "realm-list-"+googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
 
 	// Create multiple realms.
-	config1 := &UsernamePasswordConfig{MinPasswordLength: 8}
+	config1 := &UsernamePasswordConfig{MinPasswordLength: cryptoutilSharedMagic.IMMinPasswordLength}
 	_, err := svc.CreateRealm(ctx, tenant.ID, string(RealmTypeUsernamePassword), config1)
 	require.NoError(t, err)
 
@@ -310,10 +311,10 @@ func TestRealmService_ListRealms_ActiveOnly(t *testing.T) {
 	svc, db := setupRealmService(t)
 	ctx := context.Background()
 
-	tenant := createRealmTestTenant(t, db, "realm-active-"+googleUuid.NewString()[:8])
+	tenant := createRealmTestTenant(t, db, "realm-active-"+googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
 
 	// Create active realm.
-	config1 := &UsernamePasswordConfig{MinPasswordLength: 8}
+	config1 := &UsernamePasswordConfig{MinPasswordLength: cryptoutilSharedMagic.IMMinPasswordLength}
 	_, err := svc.CreateRealm(ctx, tenant.ID, string(RealmTypeUsernamePassword), config1)
 	require.NoError(t, err)
 
@@ -339,15 +340,15 @@ func TestRealmService_UpdateRealm(t *testing.T) {
 	svc, db := setupRealmService(t)
 	ctx := context.Background()
 
-	tenant := createRealmTestTenant(t, db, "realm-update-"+googleUuid.NewString()[:8])
+	tenant := createRealmTestTenant(t, db, "realm-update-"+googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
 
-	config := &UsernamePasswordConfig{MinPasswordLength: 8}
+	config := &UsernamePasswordConfig{MinPasswordLength: cryptoutilSharedMagic.IMMinPasswordLength}
 	created, err := svc.CreateRealm(ctx, tenant.ID, string(RealmTypeUsernamePassword), config)
 	require.NoError(t, err)
 
 	// Update configuration.
 	newConfig := &UsernamePasswordConfig{
-		MinPasswordLength: 12,
+		MinPasswordLength: cryptoutilSharedMagic.HashPrefixLength,
 		RequireUppercase:  true,
 	}
 
@@ -361,7 +362,7 @@ func TestRealmService_UpdateRealm(t *testing.T) {
 
 	pwConfig, ok := parsedConfig.(*UsernamePasswordConfig)
 	require.True(t, ok)
-	require.Equal(t, 12, pwConfig.MinPasswordLength)
+	require.Equal(t, cryptoutilSharedMagic.HashPrefixLength, pwConfig.MinPasswordLength)
 	require.True(t, pwConfig.RequireUppercase)
 }
 
@@ -372,9 +373,9 @@ func TestRealmService_UpdateRealm_ActiveFlag(t *testing.T) {
 	svc, db := setupRealmService(t)
 	ctx := context.Background()
 
-	tenant := createRealmTestTenant(t, db, "realm-active-flag-"+googleUuid.NewString()[:8])
+	tenant := createRealmTestTenant(t, db, "realm-active-flag-"+googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
 
-	config := &UsernamePasswordConfig{MinPasswordLength: 8}
+	config := &UsernamePasswordConfig{MinPasswordLength: cryptoutilSharedMagic.IMMinPasswordLength}
 	created, err := svc.CreateRealm(ctx, tenant.ID, string(RealmTypeUsernamePassword), config)
 	require.NoError(t, err)
 	require.True(t, created.Active)
@@ -393,9 +394,9 @@ func TestRealmService_DeleteRealm(t *testing.T) {
 	svc, db := setupRealmService(t)
 	ctx := context.Background()
 
-	tenant := createRealmTestTenant(t, db, "realm-delete-"+googleUuid.NewString()[:8])
+	tenant := createRealmTestTenant(t, db, "realm-delete-"+googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength])
 
-	config := &UsernamePasswordConfig{MinPasswordLength: 8}
+	config := &UsernamePasswordConfig{MinPasswordLength: cryptoutilSharedMagic.IMMinPasswordLength}
 	created, err := svc.CreateRealm(ctx, tenant.ID, string(RealmTypeUsernamePassword), config)
 	require.NoError(t, err)
 

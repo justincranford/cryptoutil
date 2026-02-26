@@ -5,6 +5,7 @@
 package middleware
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -19,7 +20,7 @@ func TestNewClaimsExtractor(t *testing.T) {
 
 	require.NotNil(t, extractor)
 	require.NotEmpty(t, extractor.KnownClaims)
-	require.Contains(t, extractor.KnownClaims, "sub")
+	require.Contains(t, extractor.KnownClaims, cryptoutilSharedMagic.ClaimSub)
 	require.Contains(t, extractor.KnownClaims, "tenant_id")
 }
 
@@ -37,11 +38,11 @@ func TestClaimsExtractor_ExtractFromMap(t *testing.T) {
 		{
 			name: "standard claims",
 			rawClaims: map[string]any{
-				"sub":   "user-123",
-				"iss":   "https://issuer.example.com",
-				"aud":   []any{"api-1", "api-2"},
-				"email": "user@example.com",
-				"name":  "Test User",
+				cryptoutilSharedMagic.ClaimSub:   "user-123",
+				cryptoutilSharedMagic.ClaimIss:   "https://issuer.example.com",
+				cryptoutilSharedMagic.ClaimAud:   []any{"api-1", "api-2"},
+				cryptoutilSharedMagic.ClaimEmail: "user@example.com",
+				cryptoutilSharedMagic.ClaimName:  "Test User",
 			},
 			wantErr: false,
 			validate: func(t *testing.T, claims *OIDCClaims) {
@@ -55,8 +56,8 @@ func TestClaimsExtractor_ExtractFromMap(t *testing.T) {
 		{
 			name: "with scopes",
 			rawClaims: map[string]any{
-				"sub":   "service-123",
-				"scope": "kms:read kms:write",
+				cryptoutilSharedMagic.ClaimSub:   "service-123",
+				cryptoutilSharedMagic.ClaimScope: "kms:read kms:write",
 			},
 			wantErr: false,
 			validate: func(t *testing.T, claims *OIDCClaims) {
@@ -70,7 +71,7 @@ func TestClaimsExtractor_ExtractFromMap(t *testing.T) {
 		{
 			name: "with tenant claims",
 			rawClaims: map[string]any{
-				"sub":         "user-123",
+				cryptoutilSharedMagic.ClaimSub:         "user-123",
 				"tenant_id":   "tenant-abc",
 				"tenant_name": "ACME Corp",
 			},
@@ -84,10 +85,10 @@ func TestClaimsExtractor_ExtractFromMap(t *testing.T) {
 		{
 			name: "with groups and roles",
 			rawClaims: map[string]any{
-				"sub":         "user-123",
+				cryptoutilSharedMagic.ClaimSub:         "user-123",
 				"groups":      []any{"admins", "developers"},
 				"roles":       []any{"admin", "user"},
-				"permissions": []any{"read", "write"},
+				"permissions": []any{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
 			},
 			wantErr: false,
 			validate: func(t *testing.T, claims *OIDCClaims) {
@@ -102,7 +103,7 @@ func TestClaimsExtractor_ExtractFromMap(t *testing.T) {
 		{
 			name: "with custom claims",
 			rawClaims: map[string]any{
-				"sub":                      "user-123",
+				cryptoutilSharedMagic.ClaimSub:                      "user-123",
 				"custom_field":             "custom_value",
 				"urn:example:custom_claim": "namespaced_value",
 			},
@@ -121,7 +122,7 @@ func TestClaimsExtractor_ExtractFromMap(t *testing.T) {
 		},
 		{
 			name:      "marshal error - unsupported type",
-			rawClaims: map[string]any{"sub": "user-123", "bad": make(chan int)},
+			rawClaims: map[string]any{cryptoutilSharedMagic.ClaimSub: "user-123", "bad": make(chan int)},
 			wantErr:   true,
 		},
 	}
@@ -157,7 +158,7 @@ func TestConvertFromJWTClaims(t *testing.T) {
 				Subject:           "user-123",
 				Issuer:            "https://issuer.example.com",
 				Audience:          []string{"api-1"},
-				ExpiresAt:         time.Date(2025, 12, 31, 0, 0, 0, 0, time.UTC),
+				ExpiresAt:         time.Date(2025, cryptoutilSharedMagic.HashPrefixLength, 31, 0, 0, 0, 0, time.UTC),
 				Name:              "Test User",
 				PreferredUsername: "testuser",
 				Email:             "test@example.com",
@@ -170,7 +171,7 @@ func TestConvertFromJWTClaims(t *testing.T) {
 				Subject:           "user-123",
 				Issuer:            "https://issuer.example.com",
 				Audience:          []string{"api-1"},
-				ExpiresAt:         time.Date(2025, 12, 31, 0, 0, 0, 0, time.UTC),
+				ExpiresAt:         time.Date(2025, cryptoutilSharedMagic.HashPrefixLength, 31, 0, 0, 0, 0, time.UTC),
 				Name:              "Test User",
 				PreferredUsername: "testuser",
 				Email:             "test@example.com",
@@ -319,10 +320,10 @@ func TestOIDCClaims_HasPermission(t *testing.T) {
 	t.Parallel()
 
 	claims := &OIDCClaims{
-		Permissions: []string{"read", "write"},
+		Permissions: []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
 	}
 
-	require.True(t, claims.HasPermission("read"))
+	require.True(t, claims.HasPermission(cryptoutilSharedMagic.ScopeRead))
 	require.False(t, claims.HasPermission("delete"))
 }
 

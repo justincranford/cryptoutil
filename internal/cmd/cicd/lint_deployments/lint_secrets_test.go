@@ -1,6 +1,7 @@
 package lint_deployments
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -17,7 +18,7 @@ func TestValidateProductSecrets_AllPresent(t *testing.T) {
 	secretsDir := filepath.Join(tmpDir, "secrets")
 	require.NoError(t, os.MkdirAll(secretsDir, dirPermissions))
 
-	productName := "identity"
+	productName := cryptoutilSharedMagic.IdentityProductName
 
 	// Create hash_pepper secret.
 	require.NoError(t, os.WriteFile(
@@ -66,7 +67,7 @@ func TestValidateProductSecrets_Missing(t *testing.T) {
 	assert.NotEmpty(t, result.MissingSecrets, "expected missing secrets reported")
 
 	// Should report missing hash_pepper + 9 .never files = 10 total.
-	expectedMissing := 10
+	expectedMissing := cryptoutilSharedMagic.JoseJADefaultMaxMaterials
 	assert.Len(t, result.MissingSecrets, expectedMissing)
 }
 
@@ -123,7 +124,7 @@ func TestValidateSuiteSecrets_Missing(t *testing.T) {
 	assert.False(t, result.Valid, "expected invalid when suite secrets missing")
 
 	// Should report missing hash_pepper + 9 .never files = 10 total.
-	expectedMissing := 10
+	expectedMissing := cryptoutilSharedMagic.JoseJADefaultMaxMaterials
 	assert.Len(t, result.MissingSecrets, expectedMissing)
 }
 

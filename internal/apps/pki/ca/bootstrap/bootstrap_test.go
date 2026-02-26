@@ -27,7 +27,7 @@ func TestBootstrapper_Bootstrap_ECDSA(t *testing.T) {
 			Type:       cryptoutilCACrypto.KeyTypeECDSA,
 			ECDSACurve: "P-256",
 		},
-		ValidityDuration:  10 * 365 * 24 * time.Hour, // 10 years.
+		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour, // 10 years.
 		PathLenConstraint: 2,
 	}
 
@@ -69,7 +69,7 @@ func TestBootstrapper_Bootstrap_RSA(t *testing.T) {
 			Type:    cryptoutilCACrypto.KeyTypeRSA,
 			RSABits: cryptoutilCACrypto.MinRSAKeyBits,
 		},
-		ValidityDuration:  5 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 1,
 	}
 
@@ -81,7 +81,7 @@ func TestBootstrapper_Bootstrap_RSA(t *testing.T) {
 	require.Equal(t, "RSA Root CA", rootCA.Name)
 	require.True(t, rootCA.Certificate.IsCA)
 	require.Equal(t, 1, rootCA.Certificate.MaxPathLen)
-	require.Equal(t, "RSA", audit.KeyAlgorithm)
+	require.Equal(t, cryptoutilSharedMagic.KeyTypeRSA, audit.KeyAlgorithm)
 }
 
 func TestBootstrapper_Bootstrap_EdDSA(t *testing.T) {
@@ -94,9 +94,9 @@ func TestBootstrapper_Bootstrap_EdDSA(t *testing.T) {
 		Name: "EdDSA Root CA",
 		KeySpec: cryptoutilCACrypto.KeySpec{
 			Type:       cryptoutilCACrypto.KeyTypeEdDSA,
-			EdDSACurve: "Ed25519",
+			EdDSACurve: cryptoutilSharedMagic.EdCurveEd25519,
 		},
-		ValidityDuration:  3 * 365 * 24 * time.Hour,
+		ValidityDuration:  3 * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 0,
 	}
 
@@ -108,7 +108,7 @@ func TestBootstrapper_Bootstrap_EdDSA(t *testing.T) {
 	require.Equal(t, "EdDSA Root CA", rootCA.Name)
 	require.True(t, rootCA.Certificate.IsCA)
 	require.True(t, rootCA.Certificate.MaxPathLenZero)
-	require.Equal(t, "Ed25519", audit.KeyAlgorithm)
+	require.Equal(t, cryptoutilSharedMagic.EdCurveEd25519, audit.KeyAlgorithm)
 }
 
 func TestBootstrapper_Bootstrap_WithSubjectProfile(t *testing.T) {
@@ -135,7 +135,7 @@ func TestBootstrapper_Bootstrap_WithSubjectProfile(t *testing.T) {
 			Type:       cryptoutilCACrypto.KeyTypeECDSA,
 			ECDSACurve: "P-384",
 		},
-		ValidityDuration:  20 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.MaxErrorDisplay * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 3,
 	}
 
@@ -169,7 +169,7 @@ func TestBootstrapper_Bootstrap_WithPersistence(t *testing.T) {
 			Type:       cryptoutilCACrypto.KeyTypeECDSA,
 			ECDSACurve: "P-256",
 		},
-		ValidityDuration:  1 * 365 * 24 * time.Hour,
+		ValidityDuration:  1 * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 1,
 		OutputDir:         tempDir,
 	}
@@ -221,7 +221,7 @@ func TestBootstrapper_Bootstrap_InvalidConfig(t *testing.T) {
 					Type:       cryptoutilCACrypto.KeyTypeECDSA,
 					ECDSACurve: "P-256",
 				},
-				ValidityDuration: 1 * 365 * 24 * time.Hour,
+				ValidityDuration: 1 * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 			},
 			wantErr: "CA name is required",
 		},
@@ -245,7 +245,7 @@ func TestBootstrapper_Bootstrap_InvalidConfig(t *testing.T) {
 					Type:       cryptoutilCACrypto.KeyTypeECDSA,
 					ECDSACurve: "P-256",
 				},
-				ValidityDuration:  1 * 365 * 24 * time.Hour,
+				ValidityDuration:  1 * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 				PathLenConstraint: -1,
 			},
 			wantErr: "path length constraint cannot be negative",
@@ -271,7 +271,7 @@ func TestBootstrapper_Bootstrap_CertificateValidity(t *testing.T) {
 	provider := cryptoutilCACrypto.NewSoftwareProvider()
 	bootstrapper := NewBootstrapper(provider)
 
-	validityDuration := 5 * 365 * 24 * time.Hour
+	validityDuration := cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour
 
 	config := &RootCAConfig{
 		Name: "Validity Test CA",

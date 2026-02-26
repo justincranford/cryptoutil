@@ -3,6 +3,7 @@
 package cmd_main_pattern
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -27,7 +28,7 @@ cryptoutilAppsFoo "cryptoutil/internal/apps/foo"
 
 func main() { os.Exit(cryptoutilAppsFoo.InternalMain(os.Args, os.Stdin, os.Stdout, os.Stderr)) }
 `
-	err := os.WriteFile(mainFile, []byte(content), 0o600)
+	err := os.WriteFile(mainFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	err = CheckMainGoFile(mainFile)
@@ -49,7 +50,7 @@ cryptoutilAppsFoo "cryptoutil/internal/apps/foo"
 
 func main() { os.Exit(cryptoutilAppsFoo.InternalMain(os.Args[1:], os.Stdin, os.Stdout, os.Stderr)) }
 `
-	err := os.WriteFile(mainFile, []byte(content), 0o600)
+	err := os.WriteFile(mainFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	err = CheckMainGoFile(mainFile)
@@ -69,7 +70,7 @@ func main() {
 println("hello world")
 }
 `
-	err := os.WriteFile(mainFile, []byte(content), 0o600)
+	err := os.WriteFile(mainFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	err = CheckMainGoFile(mainFile)
@@ -145,7 +146,7 @@ func main() { os.Exit(myApp.Run(os.Args, os.Stdin, os.Stdout, os.Stderr)) }
 
 			tmpDir := t.TempDir()
 			mainFile := filepath.Join(tmpDir, "main.go")
-			err := os.WriteFile(mainFile, []byte(tc.content), 0o600)
+			err := os.WriteFile(mainFile, []byte(tc.content), cryptoutilSharedMagic.CacheFilePermissions)
 			require.NoError(t, err)
 
 			err = CheckMainGoFile(mainFile)
@@ -177,14 +178,14 @@ func TestCheckInDir_WithValidMainFiles(t *testing.T) {
 
 	// Create cmd/myapp/main.go with valid pattern.
 	cmdDir := filepath.Join(tmpDir, "cmd", "myapp")
-	require.NoError(t, os.MkdirAll(cmdDir, 0o755))
+	require.NoError(t, os.MkdirAll(cmdDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	content := `package main
 import "os"
 import cryptoutilAppsMyApp "cryptoutil/internal/apps/myapp"
 func main() { os.Exit(cryptoutilAppsMyApp.Run(os.Args, os.Stdin, os.Stdout, os.Stderr)) }
 `
-	err := os.WriteFile(filepath.Join(cmdDir, "main.go"), []byte(content), 0o600)
+	err := os.WriteFile(filepath.Join(cmdDir, "main.go"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	err = CheckInDir(logger, tmpDir)
@@ -199,7 +200,7 @@ func TestCheckInDir_WithInvalidMainFile(t *testing.T) {
 
 	// Create cmd/myapp/main.go with INVALID pattern.
 	cmdDir := filepath.Join(tmpDir, "cmd", "myapp")
-	require.NoError(t, os.MkdirAll(cmdDir, 0o755))
+	require.NoError(t, os.MkdirAll(cmdDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	content := `package main
 
@@ -207,7 +208,7 @@ func main() {
 println("bad pattern")
 }
 `
-	err := os.WriteFile(filepath.Join(cmdDir, "main.go"), []byte(content), 0o600)
+	err := os.WriteFile(filepath.Join(cmdDir, "main.go"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	err = CheckInDir(logger, tmpDir)
@@ -223,7 +224,7 @@ func TestCheckInDir_WalkError(t *testing.T) {
 
 	// Create cmd/ but with inaccessible subdirectory.
 	cmdDir := filepath.Join(tmpDir, "cmd")
-	require.NoError(t, os.MkdirAll(cmdDir, 0o755))
+	require.NoError(t, os.MkdirAll(cmdDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	badDir := filepath.Join(cmdDir, "badapp")
 	require.NoError(t, os.MkdirAll(badDir, 0o000))
@@ -242,13 +243,13 @@ func TestCheckInDir_IgnoresNonMainFiles(t *testing.T) {
 
 	// Create cmd/ with non-main.go files (should be ignored).
 	cmdDir := filepath.Join(tmpDir, "cmd", "myapp")
-	require.NoError(t, os.MkdirAll(cmdDir, 0o755))
+	require.NoError(t, os.MkdirAll(cmdDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	content := `package main
 
 func helper() {}
 `
-	err := os.WriteFile(filepath.Join(cmdDir, "helper.go"), []byte(content), 0o600)
+	err := os.WriteFile(filepath.Join(cmdDir, "helper.go"), []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	err = CheckInDir(logger, tmpDir)

@@ -1,6 +1,7 @@
 package lint_deployments
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 "os"
 "path/filepath"
 "testing"
@@ -15,7 +16,7 @@ t.Parallel()
 dir := createAdminTestDeployment(t,
 "services:\n  my-app:\n    ports:\n      - \"8700:8080\"\n",
 map[string]string{
-"bind-private-address": "127.0.0.1",
+"bind-private-address": cryptoutilSharedMagic.IPv4Loopback,
 "bind-private-port":    "9090",
 })
 
@@ -38,7 +39,7 @@ func TestValidateAdmin_PathIsFile(t *testing.T) {
 t.Parallel()
 
 f := filepath.Join(t.TempDir(), "file")
-require.NoError(t, os.WriteFile(f, []byte("x"), 0o600))
+require.NoError(t, os.WriteFile(f, []byte("x"), cryptoutilSharedMagic.CacheFilePermissions))
 
 result, err := ValidateAdmin(f)
 require.NoError(t, err)
@@ -87,14 +88,14 @@ func TestValidateAdmin_WrongAdminAddress(t *testing.T) {
 t.Parallel()
 
 dir := createAdminTestDeployment(t, "", map[string]string{
-"bind-private-address": "0.0.0.0",
+"bind-private-address": cryptoutilSharedMagic.IPv4AnyAddress,
 })
 
 result, err := ValidateAdmin(dir)
 require.NoError(t, err)
 assert.False(t, result.Valid)
 assert.Contains(t, result.Errors[0], "bind-private-address")
-assert.Contains(t, result.Errors[0], "0.0.0.0")
+assert.Contains(t, result.Errors[0], cryptoutilSharedMagic.IPv4AnyAddress)
 }
 
 func TestValidateAdmin_NoComposeFile(t *testing.T) {
@@ -112,7 +113,7 @@ t.Parallel()
 
 dir := t.TempDir()
 require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"),
-[]byte("services:\n  app:\n    ports:\n      - \"8080:8080\"\n"), 0o600))
+[]byte("services:\n  app:\n    ports:\n      - \"8080:8080\"\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 result, err := ValidateAdmin(dir)
 require.NoError(t, err)
@@ -124,7 +125,7 @@ t.Parallel()
 
 dir := t.TempDir()
 require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"),
-[]byte("{{invalid yaml"), 0o600))
+[]byte("{{invalid yaml"), cryptoutilSharedMagic.CacheFilePermissions))
 
 result, err := ValidateAdmin(dir)
 require.NoError(t, err)
@@ -136,9 +137,9 @@ t.Parallel()
 
 dir := t.TempDir()
 configDir := filepath.Join(dir, "config")
-require.NoError(t, os.MkdirAll(configDir, 0o755))
+require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 require.NoError(t, os.WriteFile(filepath.Join(configDir, "config.yml"),
-[]byte("{{invalid"), 0o600))
+[]byte("{{invalid"), cryptoutilSharedMagic.CacheFilePermissions))
 
 result, err := ValidateAdmin(dir)
 require.NoError(t, err)
@@ -162,9 +163,9 @@ t.Parallel()
 
 dir := t.TempDir()
 configDir := filepath.Join(dir, "config")
-require.NoError(t, os.MkdirAll(configDir, 0o755))
+require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 require.NoError(t, os.WriteFile(filepath.Join(configDir, "config.yml"),
-[]byte("bind-private-address: 12345\n"), 0o600))
+[]byte("bind-private-address: 12345\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 result, err := ValidateAdmin(dir)
 require.NoError(t, err)
@@ -176,7 +177,7 @@ t.Parallel()
 
 dir := t.TempDir()
 configDir := filepath.Join(dir, "config")
-require.NoError(t, os.MkdirAll(filepath.Join(configDir, "subdir"), 0o755))
+require.NoError(t, os.MkdirAll(filepath.Join(configDir, "subdir"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 result, err := ValidateAdmin(dir)
 require.NoError(t, err)
@@ -188,9 +189,9 @@ t.Parallel()
 
 dir := t.TempDir()
 configDir := filepath.Join(dir, "config")
-require.NoError(t, os.MkdirAll(configDir, 0o755))
+require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 require.NoError(t, os.WriteFile(filepath.Join(configDir, "readme.txt"),
-[]byte("not yaml"), 0o600))
+[]byte("not yaml"), cryptoutilSharedMagic.CacheFilePermissions))
 
 result, err := ValidateAdmin(dir)
 require.NoError(t, err)
@@ -202,7 +203,7 @@ t.Parallel()
 
 dir := t.TempDir()
 configDir := filepath.Join(dir, "config")
-require.NoError(t, os.MkdirAll(configDir, 0o755))
+require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 require.NoError(t, os.Symlink("/nonexistent/broken.yml",
 filepath.Join(configDir, "broken.yml")))
 
@@ -252,9 +253,9 @@ assert.True(t, result.Valid) // Non-numeric ports silently skipped.
 func TestValidateAdmin_RealSmIM(t *testing.T) {
 t.Parallel()
 
-deploymentDir := filepath.Join("testdata", "deployments", "sm-im")
+deploymentDir := filepath.Join("testdata", "deployments", cryptoutilSharedMagic.OTLPServiceSMIM)
 if _, err := os.Stat(deploymentDir); err != nil {
-deploymentDir = filepath.Join("..", "..", "..", "..", "deployments", "sm-im")
+deploymentDir = filepath.Join("..", "..", "..", "..", "deployments", cryptoutilSharedMagic.OTLPServiceSMIM)
 }
 
 if _, err := os.Stat(deploymentDir); err != nil {
@@ -292,7 +293,7 @@ Valid:    false,
 Errors:   []string{"err1"},
 Warnings: []string{"warn1"},
 },
-contains: []string{"FAILED", "ERROR: err1", "WARNING: warn1"},
+contains: []string{cryptoutilSharedMagic.TaskFailed, "ERROR: err1", "WARNING: warn1"},
 },
 }
 
@@ -316,12 +317,12 @@ dir := t.TempDir()
 
 if composeContent != "" {
 require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"),
-[]byte(composeContent), 0o600))
+[]byte(composeContent), cryptoutilSharedMagic.CacheFilePermissions))
 }
 
 if configFields != nil {
 configDir := filepath.Join(dir, "config")
-require.NoError(t, os.MkdirAll(configDir, 0o755))
+require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 var content string
 for k, v := range configFields {
@@ -329,7 +330,7 @@ content += k + ": " + v + "\n"
 }
 
 require.NoError(t, os.WriteFile(filepath.Join(configDir, "config.yml"),
-[]byte(content), 0o600))
+[]byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 }
 
 return dir

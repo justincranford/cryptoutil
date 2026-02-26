@@ -3,6 +3,7 @@
 package handler
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"testing"
 
@@ -46,7 +47,7 @@ func TestOamOasMapper_ToOasGetElastickeysResponse_Errors(t *testing.T) {
 		},
 		{
 			name:    testInternalError,
-			err:     cryptoutilSharedApperr.NewHTTP500InternalServerError(strPtr("error"), nil),
+			err:     cryptoutilSharedApperr.NewHTTP500InternalServerError(strPtr(cryptoutilSharedMagic.StringError), nil),
 			wantErr: false,
 		},
 		{
@@ -118,7 +119,7 @@ func TestOamOasMapper_ToOasGetMaterialKeysResponse_Errors(t *testing.T) {
 		},
 		{
 			name:    testInternalError,
-			err:     cryptoutilSharedApperr.NewHTTP500InternalServerError(strPtr("error"), nil),
+			err:     cryptoutilSharedApperr.NewHTTP500InternalServerError(strPtr(cryptoutilSharedMagic.StringError), nil),
 			wantErr: false,
 		},
 		{

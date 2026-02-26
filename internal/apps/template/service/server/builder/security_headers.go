@@ -53,7 +53,7 @@ func (c *SecurityHeadersConfig) CreateHelmetMiddleware() fiber.Handler {
 		ContentSecurityPolicy: csp,
 		XFrameOptions:         "DENY",
 		XSSProtection:         "1; mode=block",
-		ReferrerPolicy:        "same-origin",
+		ReferrerPolicy:        cryptoutilSharedMagic.CrossOriginOpenerPolicy,
 	})
 }
 
@@ -89,7 +89,7 @@ func (c *SecurityHeadersConfig) CreateAdditionalSecurityHeadersMiddleware() fibe
 			ctx.Set("X-Permitted-Cross-Domain-Policies", cryptoutilSharedMagic.XPermittedCrossDomainPolicies)
 
 			// Clear-Site-Data for logout endpoints.
-			if ctx.Method() == fiber.MethodPost && strings.HasSuffix(ctx.OriginalURL(), "/logout") {
+			if ctx.Method() == fiber.MethodPost && strings.HasSuffix(ctx.OriginalURL(), cryptoutilSharedMagic.PathLogout) {
 				ctx.Set("Clear-Site-Data", cryptoutilSharedMagic.ClearSiteDataLogout)
 			}
 		}

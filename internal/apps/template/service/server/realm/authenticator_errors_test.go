@@ -37,10 +37,10 @@ func TestAuthenticator_VerifyPasswordErrors(t *testing.T) {
 	require.NoError(t, err)
 
 	policy := &PasswordPolicyConfig{
-		Algorithm:  "SHA-256",
-		Iterations: 600000,
-		SaltBytes:  32,
-		HashBytes:  32,
+		Algorithm:  cryptoutilSharedMagic.PBKDF2DefaultAlgorithm,
+		Iterations: cryptoutilSharedMagic.IMPBKDF2Iterations,
+		SaltBytes:  cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes,
+		HashBytes:  cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes,
 	}
 
 	tests := []struct {

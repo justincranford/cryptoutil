@@ -49,7 +49,7 @@ func TestHashSecretPBKDF2(t *testing.T) {
 		},
 		{
 			name:    "long secret",
-			secret:  strings.Repeat("a", 1000),
+			secret:  strings.Repeat("a", cryptoutilSharedMagic.JoseJADefaultListLimit),
 			wantErr: false,
 		},
 		{
@@ -79,7 +79,7 @@ func TestHashSecretPBKDF2(t *testing.T) {
 				require.True(t, strings.HasPrefix(hash, "{1}$"+cryptoutilSharedMagic.PBKDF2DefaultHashName+"$"))
 
 				parts := strings.Split(hash, "$")
-				require.Len(t, parts, 5)
+				require.Len(t, parts, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 				require.Equal(t, "{1}", parts[0])
 				require.Equal(t, cryptoutilSharedMagic.PBKDF2DefaultHashName, parts[1])
 			}

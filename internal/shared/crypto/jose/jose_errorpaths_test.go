@@ -5,6 +5,7 @@
 package crypto
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
@@ -285,7 +286,7 @@ func TestLogJWSInfo_ExoticHeaders(t *testing.T) {
 	require.NoError(t, headers.Set("x5t", "dGVzdA"))      // base64 "test".
 	require.NoError(t, headers.Set("x5t#S256", "dGVzdA"))  // base64 "test".
 
-	key, err := GenerateHMACJWK(256)
+	key, err := GenerateHMACJWK(cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 	require.NoError(t, err)
 
 	jwsBytes, err := joseJws.Sign(

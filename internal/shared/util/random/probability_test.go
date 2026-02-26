@@ -3,6 +3,7 @@
 package random
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -11,7 +12,7 @@ import (
 func TestNormalizedRandomFloat32_Range(t *testing.T) {
 	t.Parallel()
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < cryptoutilSharedMagic.JoseJADefaultMaxMaterials; i++ {
 		v := normalizedRandomFloat32(t)
 		require.GreaterOrEqual(t, v, float32_0)
 		require.Less(t, v, float32_1)
@@ -27,10 +28,10 @@ func TestSkipByProbability_HappyPaths(t *testing.T) {
 		randValue  float32
 		shouldSkip bool
 	}{
-		{"AlwaysRun", 1.0, 0.0, false},
-		{"NeverRun", 0.0, 1.0, true},
-		{"HalfRun_Skip", 0.5, 0.6, true},
-		{"HalfRun_Run", 0.5, 0.4, false},
+		{"AlwaysRun", cryptoutilSharedMagic.TestProbAlways, cryptoutilSharedMagic.BaselineContributionZero, false},
+		{"NeverRun", cryptoutilSharedMagic.BaselineContributionZero, cryptoutilSharedMagic.TestProbAlways, true},
+		{"HalfRun_Skip", cryptoutilSharedMagic.Tolerance50Percent, cryptoutilSharedMagic.RiskScoreHigh, true},
+		{"HalfRun_Run", cryptoutilSharedMagic.Tolerance50Percent, cryptoutilSharedMagic.RiskScoreMedium, false},
 	}
 
 	for _, tc := range tests {
@@ -76,7 +77,7 @@ func TestSkipByProbability_SadPaths(t *testing.T) {
 		prob         float32
 		expectsPanic bool
 	}{
-		{"NegativeProb", -0.1, true},
+		{"NegativeProb", -cryptoutilSharedMagic.Tolerance10Percent, true},
 		{"GreaterThanOne", 1.1, true},
 	}
 

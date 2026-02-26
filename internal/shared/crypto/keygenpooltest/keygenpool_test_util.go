@@ -66,7 +66,7 @@ func RequireNewECDHP256GenElasticKeyForTest(telemetryService *cryptoutilSharedTe
 
 // RequireNewEd25519GenElasticKeyForTest creates an Ed25519 key pool for testing.
 func RequireNewEd25519GenElasticKeyForTest(telemetryService *cryptoutilSharedTelemetry.TelemetryService) *cryptoutilSharedPool.ValueGenPool[*cryptoutilSharedCryptoKeygen.KeyPair] {
-	return requireNewGenElasticKeyForTest(cryptoutilSharedPool.NewValueGenPoolConfig(context.Background(), telemetryService, "Test Ed25519", 1, cryptoutilSharedMagic.TestPoolMaxSize, cryptoutilSharedMagic.MaxPoolLifetimeValues, cryptoutilSharedMagic.MaxPoolLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPairFunction("Ed25519"), false))
+	return requireNewGenElasticKeyForTest(cryptoutilSharedPool.NewValueGenPoolConfig(context.Background(), telemetryService, "Test Ed25519", 1, cryptoutilSharedMagic.TestPoolMaxSize, cryptoutilSharedMagic.MaxPoolLifetimeValues, cryptoutilSharedMagic.MaxPoolLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPairFunction(cryptoutilSharedMagic.EdCurveEd25519), false))
 }
 
 // RequireNewAES256GcmGenElasticKeyForTest creates an AES-256-GCM key pool for testing.

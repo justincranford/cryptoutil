@@ -261,7 +261,7 @@ func TestHandler_ServeHTTP(t *testing.T) {
 
 			if tc.expectedStatus == http.StatusOK {
 				require.Equal(t, "application/json", resp.Header.Get("Content-Type"))
-				require.Contains(t, resp.Header.Get("Cache-Control"), "public")
+				require.Contains(t, resp.Header.Get("Cache-Control"), cryptoutilSharedMagic.SubjectTypePublic)
 			}
 		})
 	}

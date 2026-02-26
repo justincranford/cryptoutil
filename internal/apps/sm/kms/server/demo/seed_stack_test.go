@@ -1,6 +1,7 @@
 package demo
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"os"
 	"testing"
@@ -29,7 +30,7 @@ type demoTestStack struct {
 }
 
 func TestMain(m *testing.M) {
-	_ = os.Setenv("CRYPTOUTIL_DATABASE_URL", "file::memory:?cache=shared")
+	_ = os.Setenv("CRYPTOUTIL_DATABASE_URL", cryptoutilSharedMagic.SQLiteInMemoryDSN)
 
 	os.Exit(m.Run())
 }
@@ -51,7 +52,7 @@ func setupDemoTestStack(t *testing.T) *demoTestStack {
 		sqlDB,
 		cryptoutilAppsTemplateServiceServerRepository.MigrationsFS,
 		"migrations",
-		"sqlite",
+		cryptoutilSharedMagic.TestDatabaseSQLite,
 	)
 	testify.NoError(t, err)
 

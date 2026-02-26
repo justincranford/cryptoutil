@@ -5,6 +5,7 @@
 package config
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/base64"
 	"os"
 	"path/filepath"
@@ -29,7 +30,7 @@ bind-private-port: 9090
 
 	tmpDir := t.TempDir()
 	configPath := filepath.Join(tmpDir, "test-config.yml")
-	err := os.WriteFile(configPath, []byte(yamlContent), 0o600)
+	err := os.WriteFile(configPath, []byte(yamlContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// NewFromFile now correctly includes "start" subcommand
@@ -37,8 +38,8 @@ bind-private-port: 9090
 	require.NoError(t, err)
 	require.NotNil(t, settings)
 	require.True(t, settings.DevMode)
-	require.Equal(t, "127.0.0.1", settings.BindPublicAddress)
-	require.Equal(t, uint16(8080), settings.BindPublicPort)
+	require.Equal(t, cryptoutilSharedMagic.IPv4Loopback, settings.BindPublicAddress)
+	require.Equal(t, uint16(cryptoutilSharedMagic.DemoServerPort), settings.BindPublicPort)
 }
 
 // TestNewFromFile_FileNotFound tests behavior when config file does not exist.
@@ -64,7 +65,7 @@ bind-public-address: [this is invalid YAML syntax
 
 	tmpDir := t.TempDir()
 	configPath := filepath.Join(tmpDir, "invalid.yml")
-	err := os.WriteFile(configPath, []byte(invalidYAML), 0o600)
+	err := os.WriteFile(configPath, []byte(invalidYAML), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	_, err = NewFromFile(configPath)
@@ -232,17 +233,17 @@ func TestGetTLSPEMBytes_ValidBase64(t *testing.T) {
 func TestNewTestConfig_DevMode(t *testing.T) {
 	t.Parallel()
 
-	cfg := NewTestConfig("127.0.0.1", 8080, true)
+	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, cryptoutilSharedMagic.DemoServerPort, true)
 	require.NotNil(t, cfg)
 	require.True(t, cfg.DevMode)
-	require.Contains(t, cfg.DatabaseURL, ":memory:")
+	require.Contains(t, cfg.DatabaseURL, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
 }
 
 // TestNewTestConfig_ProdMode tests NewTestConfig with dev mode disabled.
 func TestNewTestConfig_ProdMode(t *testing.T) {
 	t.Parallel()
 
-	cfg := NewTestConfig("127.0.0.1", 8080, false)
+	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, cryptoutilSharedMagic.DemoServerPort, false)
 	require.NotNil(t, cfg)
 	require.False(t, cfg.DevMode)
 	require.Contains(t, cfg.DatabaseURL, "postgres://")

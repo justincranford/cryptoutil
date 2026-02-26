@@ -4,6 +4,7 @@
 package rs_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"context"
 	"io"
@@ -90,8 +91,8 @@ type mockTokenServiceContract struct{}
 
 func (m *mockTokenServiceContract) ValidateAccessToken(_ context.Context, _ string) (map[string]any, error) {
 	return map[string]any{
-		"sub":   "user123",
-		"scope": "read:resource",
+		cryptoutilSharedMagic.ClaimSub:   "user123",
+		cryptoutilSharedMagic.ClaimScope: "read:resource",
 	}, nil
 }
 

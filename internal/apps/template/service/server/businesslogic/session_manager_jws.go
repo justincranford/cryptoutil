@@ -18,6 +18,7 @@
 package businesslogic
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	json "encoding/json"
 	"errors"
@@ -91,10 +92,10 @@ func (sm *SessionManager) issueJWSSession(ctx context.Context, isBrowser bool, p
 	}
 
 	claims := map[string]any{
-		"jti":       jti.String(),
-		"iat":       now.Unix(),
-		"exp":       exp.Unix(),
-		"sub":       principalID,
+		cryptoutilSharedMagic.ClaimJti:       jti.String(),
+		cryptoutilSharedMagic.ClaimIat:       now.Unix(),
+		cryptoutilSharedMagic.ClaimExp:       exp.Unix(),
+		cryptoutilSharedMagic.ClaimSub:       principalID,
 		"tenant_id": tenantID.String(),
 		"realm_id":  realmID.String(),
 	}
@@ -228,7 +229,7 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 	}
 
 	// Validate expiration
-	expFloat, ok := claims["exp"].(float64)
+	expFloat, ok := claims[cryptoutilSharedMagic.ClaimExp].(float64)
 	if !ok {
 		summary := errMsgMissingInvalidExpClaim
 
@@ -243,7 +244,7 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 	}
 
 	// Extract jti and validate against database
-	jtiStr, ok := claims["jti"].(string)
+	jtiStr, ok := claims[cryptoutilSharedMagic.ClaimJti].(string)
 	if !ok {
 		summary := errMsgMissingInvalidJTIClaim
 

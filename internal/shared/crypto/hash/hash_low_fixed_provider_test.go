@@ -3,6 +3,7 @@
 package hash
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"strings"
 	"testing"
 
@@ -29,7 +30,7 @@ func TestHashLowEntropyDeterministic(t *testing.T) {
 		},
 		{
 			name:        "long_secret",
-			secret:      strings.Repeat("a", 1024),
+			secret:      strings.Repeat("a", cryptoutilSharedMagic.DefaultLogsBatchSize),
 			expectError: false,
 		},
 		{
@@ -60,7 +61,7 @@ func TestHashLowEntropyDeterministic(t *testing.T) {
 				// Verify format: hkdf-sha256-fixed$base64(dk)
 				parts := strings.Split(hash, "$")
 				require.Len(t, parts, 2, "hash should have 2 parts")
-				require.Equal(t, "hkdf-sha256-fixed", parts[0])
+				require.Equal(t, cryptoutilSharedMagic.HKDFFixedLowHashName, parts[0])
 				require.NotEmpty(t, parts[1], "derived key should not be empty")
 			}
 		})
@@ -87,7 +88,7 @@ func TestHashSecretHKDFFixed(t *testing.T) {
 		},
 		{
 			name:        "long_secret",
-			secret:      strings.Repeat("x", 2048),
+			secret:      strings.Repeat("x", cryptoutilSharedMagic.DefaultMetricsBatchSize),
 			expectError: false,
 		},
 		{
@@ -114,7 +115,7 @@ func TestHashSecretHKDFFixed(t *testing.T) {
 				// Verify format.
 				parts := strings.Split(hash, "$")
 				require.Len(t, parts, 2)
-				require.Equal(t, "hkdf-sha256-fixed", parts[0])
+				require.Equal(t, cryptoutilSharedMagic.HKDFFixedLowHashName, parts[0])
 			}
 		})
 	}
@@ -271,7 +272,7 @@ func TestConstantTimeCompareBytes(t *testing.T) {
 		{
 			name:   "different_slices",
 			a:      []byte{1, 2, 3, 4},
-			b:      []byte{1, 2, 3, 5},
+			b:      []byte{1, 2, 3, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
 			expect: false,
 		},
 		{
@@ -315,12 +316,12 @@ func TestSplitHKDFFixedParts(t *testing.T) {
 		{
 			name:   "valid_two_parts",
 			hash:   "hkdf-sha256-fixed$ZGVyaXZlZGtleQ==",
-			expect: []string{"hkdf-sha256-fixed", "ZGVyaXZlZGtleQ=="},
+			expect: []string{cryptoutilSharedMagic.HKDFFixedLowHashName, "ZGVyaXZlZGtleQ=="},
 		},
 		{
 			name:   "single_part",
-			hash:   "hkdf-sha256-fixed",
-			expect: []string{"hkdf-sha256-fixed"},
+			hash:   cryptoutilSharedMagic.HKDFFixedLowHashName,
+			expect: []string{cryptoutilSharedMagic.HKDFFixedLowHashName},
 		},
 		{
 			name:   "empty_string",

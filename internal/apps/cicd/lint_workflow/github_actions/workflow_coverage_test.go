@@ -3,6 +3,7 @@
 package github_actions
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -21,7 +22,7 @@ func TestValidateAndParseWorkflowFile_BranchPinned(t *testing.T) {
 	workflowFile := filepath.Join(tmpDir, "ci.yml")
 	content := []byte("uses: actions/checkout@main\n")
 
-	err := os.WriteFile(workflowFile, content, 0o600)
+	err := os.WriteFile(workflowFile, content, cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	actionDetails, validationErrors, err := validateAndParseWorkflowFile(workflowFile)
@@ -38,7 +39,7 @@ func TestValidateAndParseWorkflowFile_BranchPinned(t *testing.T) {
 func TestValidateAndParseWorkflowFile_BranchPinned_AllBranchNames(t *testing.T) {
 	t.Parallel()
 
-	branchNames := []string{"main", "master", "latest", "develop", "dev", "trunk", "MAIN", "MASTER"}
+	branchNames := []string{"main", "master", "latest", "develop", cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault, "trunk", "MAIN", "MASTER"}
 
 	for _, branch := range branchNames {
 		t.Run(branch, func(t *testing.T) {
@@ -48,7 +49,7 @@ func TestValidateAndParseWorkflowFile_BranchPinned_AllBranchNames(t *testing.T) 
 			workflowFile := filepath.Join(tmpDir, "ci.yml")
 			content := []byte("uses: actions/checkout@" + branch + "\n")
 
-			err := os.WriteFile(workflowFile, content, 0o600)
+			err := os.WriteFile(workflowFile, content, cryptoutilSharedMagic.CacheFilePermissions)
 			require.NoError(t, err)
 
 			_, validationErrors, err := validateAndParseWorkflowFile(workflowFile)
@@ -68,7 +69,7 @@ func TestValidateAndGetWorkflowActionsDetails_BranchPinned(t *testing.T) {
 	workflowFile := filepath.Join(tmpDir, "ci.yml")
 	content := []byte("uses: actions/checkout@main\n")
 
-	err := os.WriteFile(workflowFile, content, 0o600)
+	err := os.WriteFile(workflowFile, content, cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	details, err := validateAndGetWorkflowActionsDetails(logger, []string{workflowFile})
@@ -98,7 +99,7 @@ func TestLintGitHubWorkflows_BranchPinnedAction(t *testing.T) {
 	workflowFile := filepath.Join(tmpDir, "ci.yml")
 	content := []byte("uses: actions/checkout@main\n")
 
-	err = os.WriteFile(workflowFile, content, 0o600)
+	err = os.WriteFile(workflowFile, content, cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	err = Check(logger, []string{workflowFile})
@@ -116,13 +117,13 @@ func TestLintGitHubWorkflows_ExceptionVersionMismatch(t *testing.T) {
 	// Set up the .github directory with the exceptions file.
 	githubDir := filepath.Join(tmpDir, ".github")
 
-	err := os.MkdirAll(githubDir, 0o755)
+	err := os.MkdirAll(githubDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	exceptionsFile := filepath.Join(githubDir, "workflow-action-exceptions.json")
 	exceptionsContent := []byte(`{"exceptions":{"actions/checkout":{"version":"v3","reason":"Testing stale exception"}}}`)
 
-	err = os.WriteFile(exceptionsFile, exceptionsContent, 0o600)
+	err = os.WriteFile(exceptionsFile, exceptionsContent, cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Change working directory so loadWorkflowActionExceptions finds the file.
@@ -141,7 +142,7 @@ func TestLintGitHubWorkflows_ExceptionVersionMismatch(t *testing.T) {
 	workflowFile := filepath.Join(tmpDir, "ci.yml")
 	content := []byte("uses: actions/checkout@v4\n")
 
-	err = os.WriteFile(workflowFile, content, 0o600)
+	err = os.WriteFile(workflowFile, content, cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	err = Check(logger, []string{workflowFile})

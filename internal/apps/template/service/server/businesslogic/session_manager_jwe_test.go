@@ -53,13 +53,13 @@ func TestSessionManager_IssueBrowserSession_JWE_Success(t *testing.T) {
 	require.NoError(t, unmarshalErr)
 
 	// Validate JWT claims
-	require.Contains(t, claims, "jti")
-	require.Contains(t, claims, "iat")
-	require.Contains(t, claims, "exp")
-	require.Contains(t, claims, "sub")
+	require.Contains(t, claims, cryptoutilSharedMagic.ClaimJti)
+	require.Contains(t, claims, cryptoutilSharedMagic.ClaimIat)
+	require.Contains(t, claims, cryptoutilSharedMagic.ClaimExp)
+	require.Contains(t, claims, cryptoutilSharedMagic.ClaimSub)
 	require.Contains(t, claims, "tenant_id")
 	require.Contains(t, claims, "realm_id")
-	require.Equal(t, userID, claims["sub"])
+	require.Equal(t, userID, claims[cryptoutilSharedMagic.ClaimSub])
 	require.Equal(t, tenantID.String(), claims["tenant_id"])
 	require.Equal(t, realmID.String(), claims["realm_id"])
 }
@@ -117,10 +117,10 @@ func TestSessionManager_ValidateBrowserSession_JWE(t *testing.T) {
 				jti := googleUuid.Must(googleUuid.NewV7())
 
 				claims := map[string]any{
-					"jti":       jti.String(),
-					"iat":       now.Add(-2 * time.Hour).Unix(),
-					"exp":       exp.Unix(),
-					"sub":       googleUuid.Must(googleUuid.NewV7()).String(),
+					cryptoutilSharedMagic.ClaimJti:       jti.String(),
+					cryptoutilSharedMagic.ClaimIat:       now.Add(-2 * time.Hour).Unix(),
+					cryptoutilSharedMagic.ClaimExp:       exp.Unix(),
+					cryptoutilSharedMagic.ClaimSub:       googleUuid.Must(googleUuid.NewV7()).String(),
 					"tenant_id": googleUuid.Must(googleUuid.NewV7()).String(),
 					"realm_id":  googleUuid.Must(googleUuid.NewV7()).String(),
 				}
@@ -167,7 +167,7 @@ func TestSessionManager_ValidateBrowserSession_JWE(t *testing.T) {
 				unmarshalErr := json.Unmarshal(claimsBytes, &claims)
 				require.NoError(t, unmarshalErr)
 
-				jtiStr, ok := claims["jti"].(string)
+				jtiStr, ok := claims[cryptoutilSharedMagic.ClaimJti].(string)
 				require.True(t, ok, "jti claim should be string")
 
 				// Delete session from database (simulate revocation)
@@ -204,10 +204,10 @@ func TestSessionManager_ValidateBrowserSession_JWE(t *testing.T) {
 				jti := googleUuid.Must(googleUuid.NewV7())
 
 				claims := map[string]any{
-					"jti": jti.String(),
-					"iat": now.Unix(),
+					cryptoutilSharedMagic.ClaimJti: jti.String(),
+					cryptoutilSharedMagic.ClaimIat: now.Unix(),
 					// No exp claim - intentionally missing
-					"sub":       googleUuid.Must(googleUuid.NewV7()).String(),
+					cryptoutilSharedMagic.ClaimSub:       googleUuid.Must(googleUuid.NewV7()).String(),
 					"tenant_id": googleUuid.Must(googleUuid.NewV7()).String(),
 					"realm_id":  googleUuid.Must(googleUuid.NewV7()).String(),
 				}
@@ -240,13 +240,13 @@ func TestSessionManager_ValidateBrowserSession_JWE(t *testing.T) {
 
 				// Create JWT without jti claim
 				now := time.Now().UTC()
-				exp := now.Add(24 * time.Hour)
+				exp := now.Add(cryptoutilSharedMagic.HoursPerDay * time.Hour)
 
 				claims := map[string]any{
 					// No jti claim - intentionally missing
-					"iat":       now.Unix(),
-					"exp":       exp.Unix(),
-					"sub":       googleUuid.Must(googleUuid.NewV7()).String(),
+					cryptoutilSharedMagic.ClaimIat:       now.Unix(),
+					cryptoutilSharedMagic.ClaimExp:       exp.Unix(),
+					cryptoutilSharedMagic.ClaimSub:       googleUuid.Must(googleUuid.NewV7()).String(),
 					"tenant_id": googleUuid.Must(googleUuid.NewV7()).String(),
 					"realm_id":  googleUuid.Must(googleUuid.NewV7()).String(),
 				}
@@ -279,13 +279,13 @@ func TestSessionManager_ValidateBrowserSession_JWE(t *testing.T) {
 
 				// Create JWT with invalid jti format
 				now := time.Now().UTC()
-				exp := now.Add(24 * time.Hour)
+				exp := now.Add(cryptoutilSharedMagic.HoursPerDay * time.Hour)
 
 				claims := map[string]any{
-					"jti":       "not-a-valid-uuid",
-					"iat":       now.Unix(),
-					"exp":       exp.Unix(),
-					"sub":       googleUuid.Must(googleUuid.NewV7()).String(),
+					cryptoutilSharedMagic.ClaimJti:       "not-a-valid-uuid",
+					cryptoutilSharedMagic.ClaimIat:       now.Unix(),
+					cryptoutilSharedMagic.ClaimExp:       exp.Unix(),
+					cryptoutilSharedMagic.ClaimSub:       googleUuid.Must(googleUuid.NewV7()).String(),
 					"tenant_id": googleUuid.Must(googleUuid.NewV7()).String(),
 					"realm_id":  googleUuid.Must(googleUuid.NewV7()).String(),
 				}
@@ -321,10 +321,10 @@ func TestSessionManager_ValidateBrowserSession_JWE(t *testing.T) {
 				jti := googleUuid.Must(googleUuid.NewV7())
 
 				claims := map[string]any{
-					"jti":       jti.String(),
-					"iat":       now.Unix(),
-					"exp":       "not-a-number", // Invalid type
-					"sub":       googleUuid.Must(googleUuid.NewV7()).String(),
+					cryptoutilSharedMagic.ClaimJti:       jti.String(),
+					cryptoutilSharedMagic.ClaimIat:       now.Unix(),
+					cryptoutilSharedMagic.ClaimExp:       "not-a-number", // Invalid type
+					cryptoutilSharedMagic.ClaimSub:       googleUuid.Must(googleUuid.NewV7()).String(),
 					"tenant_id": googleUuid.Must(googleUuid.NewV7()).String(),
 					"realm_id":  googleUuid.Must(googleUuid.NewV7()).String(),
 				}
@@ -402,7 +402,7 @@ func TestSessionManager_IssueServiceSession_JWE_Success(t *testing.T) {
 	unmarshalErr := json.Unmarshal(claimsBytes, &claims)
 	require.NoError(t, unmarshalErr)
 
-	require.Equal(t, clientID, claims["sub"])
+	require.Equal(t, clientID, claims[cryptoutilSharedMagic.ClaimSub])
 	require.Equal(t, tenantID.String(), claims["tenant_id"])
 	require.Equal(t, realmID.String(), claims["realm_id"])
 }

@@ -5,6 +5,7 @@
 package realm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"encoding/base64"
@@ -91,10 +92,10 @@ func TestVerifyPassword_InvalidHashEncoding(t *testing.T) {
 	require.NoError(t, err)
 
 	policy := &PasswordPolicyConfig{
-		Algorithm:  "SHA-256",
-		Iterations: 600000,
-		SaltBytes:  32,
-		HashBytes:  32,
+		Algorithm:  cryptoutilSharedMagic.PBKDF2DefaultAlgorithm,
+		Iterations: cryptoutilSharedMagic.IMPBKDF2Iterations,
+		SaltBytes:  cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes,
+		HashBytes:  cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes,
 	}
 
 	// Valid salt (base64) but invalid hash (non-base64).
@@ -324,7 +325,7 @@ func TestMapTenantFromClaims_DefaultTypeConversion(t *testing.T) {
 
 	// Integer claim value — hits default case with fmt.Sprintf conversion.
 	claims := map[string]any{
-		"org_id": 42,
+		"org_id": cryptoutilSharedMagic.AnswerToLifeUniverseEverything,
 	}
 
 	tenantID, err := manager.MapTenantFromClaims("default-type-provider", claims)
@@ -360,7 +361,7 @@ func TestLoadConfig_PermissionError(t *testing.T) {
 	configPath := filepath.Join(tmpDir, "realms.yml")
 
 	// Create the file then make it unreadable.
-	err := os.WriteFile(configPath, []byte("test"), 0o600)
+	err := os.WriteFile(configPath, []byte("test"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	err = os.Chmod(configPath, 0o000)
@@ -379,7 +380,7 @@ func TestCreateTenantSchema_DBError(t *testing.T) {
 	// Open a real SQLite DB then close the underlying sql.DB to force errors.
 	dbName := fmt.Sprintf("file:%s?mode=memory&cache=shared", googleUuid.Must(googleUuid.NewV7()).String())
 
-	sqlDB, err := sql.Open("sqlite", dbName)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dbName)
 	require.NoError(t, err)
 
 	db, err := gorm.Open(gormsqlite.Dialector{Conn: sqlDB}, &gorm.Config{})
@@ -409,7 +410,7 @@ func TestDropTenantSchema_DBError(t *testing.T) {
 
 	dbName := fmt.Sprintf("file:%s?mode=memory&cache=shared", googleUuid.Must(googleUuid.NewV7()).String())
 
-	sqlDB, err := sql.Open("sqlite", dbName)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dbName)
 	require.NoError(t, err)
 
 	db, err := gorm.Open(gormsqlite.Dialector{Conn: sqlDB}, &gorm.Config{})

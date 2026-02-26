@@ -3,6 +3,7 @@
 package format_go
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -29,7 +30,7 @@ func TestFormat_WithFiles(t *testing.T) {
 	testFile := filepath.Join(tmpDir, "test.go")
 
 	// Create a file with loop var copy.
-	err := os.WriteFile(testFile, []byte(testGoContentWithLoopVarCopy), 0o600)
+	err := os.WriteFile(testFile, []byte(testGoContentWithLoopVarCopy), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -52,7 +53,7 @@ func TestFormat_ErrorPath(t *testing.T) {
 	testFile := filepath.Join(tmpDir, "invalid.go")
 
 	// Create invalid Go file to trigger parse error.
-	err := os.WriteFile(testFile, []byte(testGoContentInvalid), 0o600)
+	err := os.WriteFile(testFile, []byte(testGoContentInvalid), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -69,7 +70,7 @@ func TestFormat_ErrorPath(t *testing.T) {
 
 func TestFormat_FormatterWalkError(t *testing.T) {
 	// NOTE: Cannot use t.Parallel() - test changes working directory.
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
 		t.Skip("os.Chmod does not enforce POSIX permissions on Windows")
 	}
 
@@ -121,7 +122,7 @@ func TestFormat_WithEnforceAnyModification(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "server.go")
 
-	err := os.WriteFile(testFile, []byte(testGoContentWithInterfaceBraces), 0o600)
+	err := os.WriteFile(testFile, []byte(testGoContentWithInterfaceBraces), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")

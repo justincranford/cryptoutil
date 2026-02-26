@@ -5,6 +5,7 @@
 package jobs
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	"testing"
@@ -35,7 +36,7 @@ func TestScheduledRotation_NoExpiringSecrets(t *testing.T) {
 	require.Len(t, versions, 1, "Client should have 1 active secret after creation")
 
 	// Set expiration far in future (30 days).
-	futureExpiration := time.Now().UTC().Add(30 * 24 * time.Hour)
+	futureExpiration := time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * cryptoutilSharedMagic.HoursPerDay * time.Hour)
 	err = db.Model(&cryptoutilIdentityDomain.ClientSecretVersion{}).
 		Where("client_id = ? AND version = ?", client.ID, versions[0].Version).
 		Update("expires_at", futureExpiration).Error
@@ -43,7 +44,7 @@ func TestScheduledRotation_NoExpiringSecrets(t *testing.T) {
 
 	// Run scheduled rotation (threshold 7 days).
 	config := &ScheduledRotationConfig{
-		ExpirationThreshold: 7 * 24 * time.Hour,
+		ExpirationThreshold: cryptoutilSharedMagic.GitRecentActivityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		CheckInterval:       time.Hour,
 	}
 
@@ -74,7 +75,7 @@ func TestScheduledRotation_OneExpiringSecret(t *testing.T) {
 	require.Len(t, versions, 1, "Client should have 1 active secret after creation")
 
 	// Set expiration within threshold (3 days).
-	soonExpiration := time.Now().UTC().Add(3 * 24 * time.Hour)
+	soonExpiration := time.Now().UTC().Add(3 * cryptoutilSharedMagic.HoursPerDay * time.Hour)
 	err = db.Model(&cryptoutilIdentityDomain.ClientSecretVersion{}).
 		Where("client_id = ? AND version = ?", client.ID, versions[0].Version).
 		Update("expires_at", soonExpiration).Error
@@ -88,7 +89,7 @@ func TestScheduledRotation_OneExpiringSecret(t *testing.T) {
 
 	// Run scheduled rotation (threshold 7 days).
 	config := &ScheduledRotationConfig{
-		ExpirationThreshold: 7 * 24 * time.Hour,
+		ExpirationThreshold: cryptoutilSharedMagic.GitRecentActivityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		CheckInterval:       time.Hour,
 	}
 
@@ -116,7 +117,7 @@ func TestScheduledRotation_MultipleExpiringSecrets(t *testing.T) {
 	client3 := createTestClient(t, db)
 	rotationService := cryptoutilIdentityRotation.NewSecretRotationService(db)
 
-	soonExpiration := time.Now().UTC().Add(3 * 24 * time.Hour)
+	soonExpiration := time.Now().UTC().Add(3 * cryptoutilSharedMagic.HoursPerDay * time.Hour)
 
 	// Set expiration for all 3 clients.
 	for _, clientID := range []googleUuid.UUID{client1.ID, client2.ID, client3.ID} {
@@ -132,7 +133,7 @@ func TestScheduledRotation_MultipleExpiringSecrets(t *testing.T) {
 
 	// Run scheduled rotation (threshold 7 days).
 	config := &ScheduledRotationConfig{
-		ExpirationThreshold: 7 * 24 * time.Hour,
+		ExpirationThreshold: cryptoutilSharedMagic.GitRecentActivityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		CheckInterval:       time.Hour,
 	}
 
@@ -164,7 +165,7 @@ func TestScheduledRotation_SecretsOutsideThreshold(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, versions1, 1, "Client1 should have 1 active secret after creation")
 
-	soonExpiration := time.Now().UTC().Add(3 * 24 * time.Hour)
+	soonExpiration := time.Now().UTC().Add(3 * cryptoutilSharedMagic.HoursPerDay * time.Hour)
 	err = db.Model(&cryptoutilIdentityDomain.ClientSecretVersion{}).
 		Where("client_id = ? AND version = ?", client1.ID, versions1[0].Version).
 		Update("expires_at", soonExpiration).Error
@@ -175,7 +176,7 @@ func TestScheduledRotation_SecretsOutsideThreshold(t *testing.T) {
 	require.NoError(t, err2)
 	require.Len(t, versions2, 1, "Client2 should have 1 active secret after creation")
 
-	laterExpiration := time.Now().UTC().Add(10 * 24 * time.Hour)
+	laterExpiration := time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.HoursPerDay * time.Hour)
 	err = db.Model(&cryptoutilIdentityDomain.ClientSecretVersion{}).
 		Where("client_id = ? AND version = ?", client2.ID, versions2[0].Version).
 		Update("expires_at", laterExpiration).Error
@@ -183,7 +184,7 @@ func TestScheduledRotation_SecretsOutsideThreshold(t *testing.T) {
 
 	// Run scheduled rotation (threshold 7 days).
 	config := &ScheduledRotationConfig{
-		ExpirationThreshold: 7 * 24 * time.Hour,
+		ExpirationThreshold: cryptoutilSharedMagic.GitRecentActivityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		CheckInterval:       time.Hour,
 	}
 
@@ -217,7 +218,7 @@ func TestScheduledRotation_DefaultConfig(t *testing.T) {
 	require.Len(t, versions, 1, "Client should have 1 active secret after creation")
 
 	// Set expiration within default threshold (3 days < 7 days default).
-	soonExpiration := time.Now().UTC().Add(3 * 24 * time.Hour)
+	soonExpiration := time.Now().UTC().Add(3 * cryptoutilSharedMagic.HoursPerDay * time.Hour)
 	err = db.Model(&cryptoutilIdentityDomain.ClientSecretVersion{}).
 		Where("client_id = ? AND version = ?", client.ID, versions[0].Version).
 		Update("expires_at", soonExpiration).Error
@@ -249,7 +250,7 @@ func TestScheduledRotation_AlreadyRotatedSecrets(t *testing.T) {
 	require.Len(t, versions, 1, "Client should have 1 active secret after creation")
 
 	// Set version 1 to expire soon.
-	soonExpiration := time.Now().UTC().Add(3 * 24 * time.Hour)
+	soonExpiration := time.Now().UTC().Add(3 * cryptoutilSharedMagic.HoursPerDay * time.Hour)
 	err = db.Model(&cryptoutilIdentityDomain.ClientSecretVersion{}).
 		Where("client_id = ? AND version = ?", client.ID, versions[0].Version).
 		Update("expires_at", soonExpiration).Error
@@ -257,7 +258,7 @@ func TestScheduledRotation_AlreadyRotatedSecrets(t *testing.T) {
 
 	// Manually rotate (creates version 2, sets version 1 expiration to grace period end).
 	_, err = rotationService.RotateClientSecret(
-		ctx, client.ID, 24*time.Hour, "test-admin", "manual rotation")
+		ctx, client.ID, cryptoutilSharedMagic.HoursPerDay*time.Hour, "test-admin", "manual rotation")
 	require.NoError(t, err)
 
 	// Verify version 2 exists and version 1 has updated expiration.
@@ -270,7 +271,7 @@ func TestScheduledRotation_AlreadyRotatedSecrets(t *testing.T) {
 	// ScheduledRotation will find version 2 as the latest active secret with no expiration.
 	// Since version 2 has no expiration, it won't be rotated (not expiring within threshold).
 	config := &ScheduledRotationConfig{
-		ExpirationThreshold: 7 * 24 * time.Hour,
+		ExpirationThreshold: cryptoutilSharedMagic.GitRecentActivityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		CheckInterval:       time.Hour,
 	}
 
@@ -297,14 +298,14 @@ func createTestClient(t *testing.T, db *gorm.DB) *cryptoutilIdentityDomain.Clien
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                    "Test Client",
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
-		AllowedGrantTypes:       []string{"authorization_code"},
-		AllowedResponseTypes:    []string{"code"},
-		AllowedScopes:           []string{"openid"},
-		RedirectURIs:            []string{"https://example.com/callback"},
+		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
+		AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
+		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID},
+		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
 		RequirePKCE:             boolPtr(true),
-		AccessTokenLifetime:     3600,
-		RefreshTokenLifetime:    86400,
-		IDTokenLifetime:         3600,
+		AccessTokenLifetime:     cryptoutilSharedMagic.IMDefaultSessionTimeout,
+		RefreshTokenLifetime:    cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+		IDTokenLifetime:         cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		Enabled:                 boolPtr(true),
 	}
 
@@ -342,10 +343,10 @@ func createTestClient(t *testing.T, db *gorm.DB) *cryptoutilIdentityDomain.Clien
 		event := &cryptoutilIdentityDomain.KeyRotationEvent{
 			ID:            googleUuid.Must(googleUuid.NewV7()),
 			EventType:     "secret_created",
-			KeyType:       "client_secret",
+			KeyType:       cryptoutilSharedMagic.ParamClientSecret,
 			KeyID:         client.ID.String(),
 			Timestamp:     time.Now().UTC(),
-			Initiator:     "system",
+			Initiator:     cryptoutilSharedMagic.SystemInitiatorName,
 			OldKeyVersion: &oldVersion,
 			NewKeyVersion: &newVersion,
 			Reason:        "Initial client creation (test)",

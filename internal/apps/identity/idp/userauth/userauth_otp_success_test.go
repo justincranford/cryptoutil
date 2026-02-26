@@ -120,7 +120,7 @@ func TestSMSOTPAuthenticator_VerifyAuth_ExpiredOTP(t *testing.T) {
 	expiredChallenge := &cryptoutilIdentityIdpUserauth.AuthChallenge{
 		ID:        googleUuid.New(),
 		UserID:    userID.String(),
-		Method:    "sms_otp",
+		Method:    cryptoutilSharedMagic.AuthMethodSMSOTP,
 		ExpiresAt: time.Now().UTC().Add(-1 * time.Hour),
 	}
 	require.NoError(t, challengeStore.Store(ctx, expiredChallenge, hashedOTP))
@@ -358,7 +358,7 @@ func TestMagicLinkAuthenticator_VerifyAuth_UserNotFound(t *testing.T) {
 		UserID:    userID.String(),
 		Method:    "magic_link",
 		ExpiresAt: time.Now().UTC().Add(15 * time.Minute),
-		Metadata:  map[string]any{"email": user.Email},
+		Metadata:  map[string]any{cryptoutilSharedMagic.ClaimEmail: user.Email},
 	}
 	require.NoError(t, challengeStore.Store(ctx, challenge, hashedToken))
 

@@ -4,6 +4,7 @@
 package repository
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -89,11 +90,11 @@ func TestElasticJWKRepository_GetWithSpecialCharactersInKID(t *testing.T) {
 			jwk := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 				ID:           *id,
 				TenantID:     *tenantID,
-				KID:          tt.kid + "-" + id.String()[:8], // Make unique per test run.
+				KID:          tt.kid + "-" + id.String()[:cryptoutilSharedMagic.IMMinPasswordLength], // Make unique per test run.
 				KeyType:      cryptoutilAppsJoseJaDomain.KeyTypeRSA,
-				Algorithm:    "RS256",
-				Use:          "sig",
-				MaxMaterials: 10,
+				Algorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+				Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+				MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 				CreatedAt:    time.Now().UTC(),
 			}
 
@@ -124,7 +125,7 @@ func TestElasticJWKRepository_ListWithEmptyDatabase(t *testing.T) {
 	// Use a unique tenant ID that has no JWKs.
 	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 
-	jwks, total, err := repo.List(ctx, *tenantID, 0, 100)
+	jwks, total, err := repo.List(ctx, *tenantID, 0, cryptoutilSharedMagic.JoseJAMaxMaterials)
 	require.NoError(t, err)
 	require.Empty(t, jwks)
 	require.Equal(t, int64(0), total)
@@ -143,11 +144,11 @@ func TestElasticJWKRepository_UpdateNonExistentJWK(t *testing.T) {
 	nonExistentJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:           *id,
 		TenantID:     *tenantID,
-		KID:          "non-existent-" + id.String()[:8],
+		KID:          "non-existent-" + id.String()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		KeyType:      cryptoutilAppsJoseJaDomain.KeyTypeRSA,
-		Algorithm:    "RS256",
-		Use:          "sig",
-		MaxMaterials: 10,
+		Algorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 		CreatedAt:    time.Now().UTC(),
 	}
 
@@ -179,11 +180,11 @@ func TestElasticJWKRepository_DeleteAlreadyDeleted(t *testing.T) {
 	jwk := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:           *id,
 		TenantID:     *tenantID,
-		KID:          "test-double-delete-" + id.String()[:8],
+		KID:          "test-double-delete-" + id.String()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		KeyType:      cryptoutilAppsJoseJaDomain.KeyTypeRSA,
-		Algorithm:    "RS256",
-		Use:          "sig",
-		MaxMaterials: 10,
+		Algorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 		CreatedAt:    time.Now().UTC(),
 	}
 
@@ -244,11 +245,11 @@ func TestMaterialJWKRepository_GetByMaterialKIDWithSpecialChars(t *testing.T) {
 	parentJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:           *elasticID,
 		TenantID:     *tenantID,
-		KID:          "parent-" + elasticID.String()[:8],
+		KID:          "parent-" + elasticID.String()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		KeyType:      cryptoutilAppsJoseJaDomain.KeyTypeRSA,
-		Algorithm:    "RS256",
-		Use:          "sig",
-		MaxMaterials: 10,
+		Algorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 		CreatedAt:    time.Now().UTC(),
 	}
 	require.NoError(t, elasticRepo.Create(ctx, parentJWK))
@@ -285,7 +286,7 @@ func TestMaterialJWKRepository_GetByMaterialKIDWithSpecialChars(t *testing.T) {
 			material := &cryptoutilAppsJoseJaDomain.MaterialJWK{
 				ID:            *materialID,
 				ElasticJWKID:  parentJWK.ID,
-				MaterialKID:   tt.materialKID + "-" + materialID.String()[:8], // Make unique.
+				MaterialKID:   tt.materialKID + "-" + materialID.String()[:cryptoutilSharedMagic.IMMinPasswordLength], // Make unique.
 				PrivateJWKJWE: "sample-jwe-private-" + materialID.String(),
 				PublicJWKJWE:  "sample-jwe-public-" + materialID.String(),
 				Active:        true,
@@ -323,11 +324,11 @@ func TestMaterialJWKRepository_GetActiveMaterialWhenNoneActive(t *testing.T) {
 	parentJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:           *elasticID,
 		TenantID:     *tenantID,
-		KID:          "parent-no-active-" + elasticID.String()[:8],
+		KID:          "parent-no-active-" + elasticID.String()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		KeyType:      cryptoutilAppsJoseJaDomain.KeyTypeRSA,
-		Algorithm:    "RS256",
-		Use:          "sig",
-		MaxMaterials: 10,
+		Algorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 		CreatedAt:    time.Now().UTC(),
 	}
 	require.NoError(t, elasticRepo.Create(ctx, parentJWK))
@@ -341,7 +342,7 @@ func TestMaterialJWKRepository_GetActiveMaterialWhenNoneActive(t *testing.T) {
 	material := &cryptoutilAppsJoseJaDomain.MaterialJWK{
 		ID:            *materialID,
 		ElasticJWKID:  parentJWK.ID,
-		MaterialKID:   "inactive-material-" + materialID.String()[:8],
+		MaterialKID:   "inactive-material-" + materialID.String()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		PrivateJWKJWE: "sample-jwe-private-" + materialID.String(),
 		PublicJWKJWE:  "sample-jwe-public-" + materialID.String(),
 		Active:        false, // Not active.
@@ -371,7 +372,7 @@ func TestAuditConfigRepository_UpsertMultipleTimes(t *testing.T) {
 		TenantID:     *tenantID,
 		Operation:    "test-upsert-multi",
 		Enabled:      true,
-		SamplingRate: 0.5,
+		SamplingRate: cryptoutilSharedMagic.Tolerance50Percent,
 	}
 
 	// Upsert first time.
@@ -384,7 +385,7 @@ func TestAuditConfigRepository_UpsertMultipleTimes(t *testing.T) {
 	}()
 
 	// Upsert again with different sampling rate.
-	config.SamplingRate = 0.8
+	config.SamplingRate = cryptoutilSharedMagic.RiskScoreVeryHigh
 
 	err = repo.Upsert(ctx, config)
 	require.NoError(t, err)
@@ -392,7 +393,7 @@ func TestAuditConfigRepository_UpsertMultipleTimes(t *testing.T) {
 	// Verify the update.
 	retrieved, err := repo.Get(ctx, *tenantID, config.Operation)
 	require.NoError(t, err)
-	require.InDelta(t, 0.8, retrieved.SamplingRate, 0.01)
+	require.InDelta(t, cryptoutilSharedMagic.RiskScoreVeryHigh, retrieved.SamplingRate, cryptoutilSharedMagic.JoseJAAuditFallbackSamplingRate)
 
 	// Upsert third time with disabled.
 	config.Enabled = false
@@ -439,7 +440,7 @@ func TestAuditLogRepository_CreateMultipleEntries(t *testing.T) {
 	})
 
 	// List them.
-	entries, total, err := repo.List(ctx, *tenantID, 0, 100)
+	entries, total, err := repo.List(ctx, *tenantID, 0, cryptoutilSharedMagic.JoseJAMaxMaterials)
 	require.NoError(t, err)
 	require.Equal(t, int64(numEntries), total)
 	require.Len(t, entries, numEntries)

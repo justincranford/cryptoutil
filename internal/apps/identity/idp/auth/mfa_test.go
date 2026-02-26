@@ -3,6 +3,7 @@
 package auth
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	"log/slog"
@@ -181,7 +182,7 @@ func TestMFAOrchestrator_ValidateFactor(t *testing.T) {
 			setupRepo: func() *mockMFAFactorRepo {
 				return &mockMFAFactorRepo{factors: []*cryptoutilIdentityDomain.MFAFactor{}}
 			},
-			credentials: map[string]string{"code": "123456"},
+			credentials: map[string]string{cryptoutilSharedMagic.ResponseTypeCode: "123456"},
 			wantErr:     true,
 			errContains: "MFA factor not found",
 		},
@@ -190,7 +191,7 @@ func TestMFAOrchestrator_ValidateFactor(t *testing.T) {
 			factorType: string(cryptoutilIdentityDomain.MFAFactorTypeTOTP),
 			setupRepo: func() *mockMFAFactorRepo {
 				now := time.Now().UTC()
-				expiry := now.Add(-5 * time.Minute)
+				expiry := now.Add(-cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute)
 				factor := &cryptoutilIdentityDomain.MFAFactor{
 					ID:             googleUuid.New(),
 					Name:           "test-totp-expired",
@@ -202,7 +203,7 @@ func TestMFAOrchestrator_ValidateFactor(t *testing.T) {
 
 				return &mockMFAFactorRepo{factors: []*cryptoutilIdentityDomain.MFAFactor{factor}}
 			},
-			credentials: map[string]string{"code": "123456"},
+			credentials: map[string]string{cryptoutilSharedMagic.ResponseTypeCode: "123456"},
 			wantErr:     true,
 			errContains: "nonce already used or expired",
 		},
@@ -214,7 +215,7 @@ func TestMFAOrchestrator_ValidateFactor(t *testing.T) {
 					getByAuthProfileErr: fmt.Errorf("database unavailable"),
 				}
 			},
-			credentials: map[string]string{"code": "123456"},
+			credentials: map[string]string{cryptoutilSharedMagic.ResponseTypeCode: "123456"},
 			wantErr:     true,
 			errContains: "failed to fetch MFA factors",
 		},
@@ -223,7 +224,7 @@ func TestMFAOrchestrator_ValidateFactor(t *testing.T) {
 			factorType: "unknown_mfa_type",
 			setupRepo: func() *mockMFAFactorRepo {
 				now := time.Now().UTC()
-				expiry := now.Add(5 * time.Minute)
+				expiry := now.Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute)
 				factor := &cryptoutilIdentityDomain.MFAFactor{
 					ID:             googleUuid.New(),
 					Name:           "test-unknown",
@@ -235,7 +236,7 @@ func TestMFAOrchestrator_ValidateFactor(t *testing.T) {
 
 				return &mockMFAFactorRepo{factors: []*cryptoutilIdentityDomain.MFAFactor{factor}}
 			},
-			credentials: map[string]string{"code": "123456"},
+			credentials: map[string]string{cryptoutilSharedMagic.ResponseTypeCode: "123456"},
 			wantErr:     true,
 			errContains: "unsupported MFA factor type",
 		},

@@ -39,7 +39,7 @@ func TestMain(m *testing.M) {
 	var err error
 
 	// Generate test duration (1 year validity).
-	duration := time.Duration(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year) * 24 * time.Hour
+	duration := time.Duration(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year) * cryptoutilSharedMagic.HoursPerDay * time.Hour
 
 	// Generate 2-tier CA hierarchy (Root + Intermediate).
 	testCAKeyPairs = make([]*cryptoutilSharedCryptoKeygen.KeyPair, 2)
@@ -74,7 +74,7 @@ func TestMain(m *testing.M) {
 		testServerKeyPair,
 		"Test Server",
 		duration,
-		[]string{"localhost", "test-server"},
+		[]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault, "test-server"},
 		nil,
 		nil,
 		nil,
@@ -88,7 +88,7 @@ func TestMain(m *testing.M) {
 	// Serialize server certificate chain to PEM.
 	for _, cert := range testServerSubject.KeyMaterial.CertificateChain {
 		testServerCertPEM = append(testServerCertPEM, pem.EncodeToMemory(&pem.Block{
-			Type:  "CERTIFICATE",
+			Type:  cryptoutilSharedMagic.StringPEMTypeCertificate,
 			Bytes: cert.Raw,
 		})...)
 	}
@@ -100,7 +100,7 @@ func TestMain(m *testing.M) {
 	}
 
 	testServerKeyPEM = pem.EncodeToMemory(&pem.Block{
-		Type:  "PRIVATE KEY",
+		Type:  cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey,
 		Bytes: keyBytes,
 	})
 
@@ -118,7 +118,7 @@ func TestMain(m *testing.M) {
 		testECKeyPair,
 		"Test EC Server",
 		duration,
-		[]string{"localhost"},
+		[]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault},
 		nil,
 		nil,
 		nil,
@@ -132,7 +132,7 @@ func TestMain(m *testing.M) {
 	// Serialize EC server certificate chain to PEM.
 	for _, cert := range testECServerSubject.KeyMaterial.CertificateChain {
 		testECServerCertPEM = append(testECServerCertPEM, pem.EncodeToMemory(&pem.Block{
-			Type:  "CERTIFICATE",
+			Type:  cryptoutilSharedMagic.StringPEMTypeCertificate,
 			Bytes: cert.Raw,
 		})...)
 	}
@@ -144,7 +144,7 @@ func TestMain(m *testing.M) {
 	}
 
 	testECServerKeyPEM = pem.EncodeToMemory(&pem.Block{
-		Type:  "PRIVATE KEY",
+		Type:  cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey,
 		Bytes: ecKeyBytes,
 	})
 
@@ -180,7 +180,7 @@ func TestGenerateTLSMaterialStatic_HappyPath(t *testing.T) {
 	t.Parallel()
 
 	// Generate 3-tier CA hierarchy for testing.
-	duration := time.Duration(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year) * 24 * time.Hour
+	duration := time.Duration(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year) * cryptoutilSharedMagic.HoursPerDay * time.Hour
 
 	// Create 2 CA key pairs (Root + Intermediate).
 	caKeyPairs := make([]*cryptoutilSharedCryptoKeygen.KeyPair, 2)
@@ -207,7 +207,7 @@ func TestGenerateTLSMaterialStatic_HappyPath(t *testing.T) {
 		serverKeyPair,
 		"Test Server",
 		duration,
-		[]string{"localhost", "test-server"},
+		[]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault, "test-server"},
 		nil,
 		nil,
 		nil,
@@ -221,7 +221,7 @@ func TestGenerateTLSMaterialStatic_HappyPath(t *testing.T) {
 
 	for _, cert := range serverSubject.KeyMaterial.CertificateChain {
 		certPEM = append(certPEM, pem.EncodeToMemory(&pem.Block{
-			Type:  "CERTIFICATE",
+			Type:  cryptoutilSharedMagic.StringPEMTypeCertificate,
 			Bytes: cert.Raw,
 		})...)
 	}
@@ -231,7 +231,7 @@ func TestGenerateTLSMaterialStatic_HappyPath(t *testing.T) {
 	require.NoError(t, err)
 
 	keyPEM := pem.EncodeToMemory(&pem.Block{
-		Type:  "PRIVATE KEY",
+		Type:  cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey,
 		Bytes: keyBytes,
 	})
 
@@ -262,7 +262,7 @@ func TestGenerateTLSMaterialStatic_HappyPath(t *testing.T) {
 	require.Len(t, tlsCert.Certificate, 3)
 
 	// Verify DNS names.
-	require.Contains(t, tlsCert.Leaf.DNSNames, "localhost")
+	require.Contains(t, tlsCert.Leaf.DNSNames, cryptoutilSharedMagic.DefaultOTLPHostnameDefault)
 	require.Contains(t, tlsCert.Leaf.DNSNames, "test-server")
 
 	// Verify certificate pools populated.
@@ -321,7 +321,7 @@ func TestGenerateTLSMaterialMixed_HappyPath(t *testing.T) {
 	t.Parallel()
 
 	// Generate CA for testing.
-	duration := time.Duration(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year) * 24 * time.Hour
+	duration := time.Duration(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year) * cryptoutilSharedMagic.HoursPerDay * time.Hour
 
 	caKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(elliptic.P384())
 	require.NoError(t, err)
@@ -333,7 +333,7 @@ func TestGenerateTLSMaterialMixed_HappyPath(t *testing.T) {
 
 	// Serialize CA certificate to PEM.
 	caCertPEM := pem.EncodeToMemory(&pem.Block{
-		Type:  "CERTIFICATE",
+		Type:  cryptoutilSharedMagic.StringPEMTypeCertificate,
 		Bytes: caCert.Raw,
 	})
 
@@ -342,7 +342,7 @@ func TestGenerateTLSMaterialMixed_HappyPath(t *testing.T) {
 	require.NoError(t, err)
 
 	caKeyPEM := pem.EncodeToMemory(&pem.Block{
-		Type:  "PRIVATE KEY",
+		Type:  cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey,
 		Bytes: caKeyBytes,
 	})
 
@@ -357,7 +357,7 @@ func TestGenerateTLSMaterialMixed_HappyPath(t *testing.T) {
 	require.Nil(t, material)
 
 	// Use helper to generate server cert signed by CA and then generate TLS material.
-	mixedCfg, err := GenerateServerCertFromCA(caCertPEM, caKeyPEM, []string{"localhost", "mixed-test"}, []string{"127.0.0.1", "::1"}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
+	mixedCfg, err := GenerateServerCertFromCA(caCertPEM, caKeyPEM, []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault, "mixed-test"}, []string{cryptoutilSharedMagic.IPv4Loopback, cryptoutilSharedMagic.IPv6Loopback}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
 	require.NoError(t, err)
 	require.NotNil(t, mixedCfg)
 
@@ -379,15 +379,15 @@ func TestGenerateTLSMaterialMixed_HappyPath(t *testing.T) {
 	require.Equal(t, "Server Certificate", tlsCert.Leaf.Subject.CommonName)
 
 	// Verify DNS names.
-	require.Contains(t, tlsCert.Leaf.DNSNames, "localhost")
+	require.Contains(t, tlsCert.Leaf.DNSNames, cryptoutilSharedMagic.DefaultOTLPHostnameDefault)
 	require.Contains(t, tlsCert.Leaf.DNSNames, "mixed-test")
 
 	// Verify IP addresses.
 	require.Len(t, tlsCert.Leaf.IPAddresses, 2)
 
 	// Parse expected IPs.
-	expectedIP1 := parseIP(t, "127.0.0.1")
-	expectedIP2 := parseIP(t, "::1")
+	expectedIP1 := parseIP(t, cryptoutilSharedMagic.IPv4Loopback)
+	expectedIP2 := parseIP(t, cryptoutilSharedMagic.IPv6Loopback)
 
 	// Check if IPs match (handling IPv4-mapped IPv6).
 	foundIP1 := false

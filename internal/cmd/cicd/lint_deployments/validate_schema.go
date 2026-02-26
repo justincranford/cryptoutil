@@ -1,6 +1,7 @@
 package lint_deployments
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 "fmt"
 "os"
 "strings"
@@ -62,7 +63,7 @@ var configSchema = map[string]schemaField{
 "bind-public-protocol": {
 Type:        fieldTypeString,
 Required:    true,
-ValidValues: []string{"https"},
+ValidValues: []string{cryptoutilSharedMagic.ProtocolHTTPS},
 Description: "Public server protocol (MUST be https)",
 },
 // bind-public-address: IPv4 address to bind on (0.0.0.0 for containers, 127.0.0.1 for local dev).
@@ -83,14 +84,14 @@ Description: "Public server bind port (1-65535)",
 "bind-private-protocol": {
 Type:        fieldTypeString,
 Required:    true,
-ValidValues: []string{"https"},
+ValidValues: []string{cryptoutilSharedMagic.ProtocolHTTPS},
 Description: "Admin server protocol (MUST be https)",
 },
 // bind-private-address MUST be "127.0.0.1" (admin never exposed outside container).
 "bind-private-address": {
 Type:        fieldTypeString,
 Required:    true,
-ValidValues: []string{"127.0.0.1"},
+ValidValues: []string{cryptoutilSharedMagic.IPv4Loopback},
 Description: "Admin server bind address (MUST be 127.0.0.1)",
 },
 // bind-private-port: TCP port for admin API (typically 9090).
@@ -105,14 +106,14 @@ Description: "Admin server bind port (typically 9090)",
 "tls-public-mode": {
 Type:        fieldTypeString,
 Required:    true,
-ValidValues: []string{"auto", "manual"},
+ValidValues: []string{cryptoutilSharedMagic.DefaultTLSPublicMode, "manual"},
 Description: "TLS certificate mode for public endpoint",
 },
 // tls-private-mode: Certificate provisioning mode for admin endpoint.
 "tls-private-mode": {
 Type:        fieldTypeString,
 Required:    true,
-ValidValues: []string{"auto", "manual"},
+ValidValues: []string{cryptoutilSharedMagic.DefaultTLSPublicMode, "manual"},
 Description: "TLS certificate mode for admin endpoint",
 },
 
@@ -162,14 +163,14 @@ Description: "Allowed CORS origins",
 "browser-session-algorithm": {
 Type:        fieldTypeString,
 Required:    false,
-ValidValues: []string{"JWS", "JWE", "Opaque"},
+ValidValues: []string{cryptoutilSharedMagic.DefaultServiceSessionAlgorithm, string(cryptoutilSharedMagic.SessionAlgorithmJWE), "Opaque"},
 Description: "Browser session token format",
 },
 // browser-session-jws-algorithm: JWS signing algorithm (when browser-session-algorithm: JWS).
 "browser-session-jws-algorithm": {
 Type:        fieldTypeString,
 Required:    false,
-ValidValues: []string{"HS256", "HS384", "HS512"},
+ValidValues: []string{cryptoutilSharedMagic.JoseAlgHS256, cryptoutilSharedMagic.JoseAlgHS384, cryptoutilSharedMagic.JoseAlgHS512},
 Description: "Browser JWS signing algorithm",
 },
 // browser-session-jwe-algorithm: JWE encryption algorithm (when browser-session-algorithm: JWE).
@@ -182,14 +183,14 @@ Description: "Browser JWE encryption algorithm",
 "service-session-algorithm": {
 Type:        fieldTypeString,
 Required:    false,
-ValidValues: []string{"JWS", "JWE", "Opaque"},
+ValidValues: []string{cryptoutilSharedMagic.DefaultServiceSessionAlgorithm, string(cryptoutilSharedMagic.SessionAlgorithmJWE), "Opaque"},
 Description: "Service session token format",
 },
 // service-session-jws-algorithm: JWS signing algorithm (when service-session-algorithm: JWS).
 "service-session-jws-algorithm": {
 Type:        fieldTypeString,
 Required:    false,
-ValidValues: []string{"HS256", "HS384", "HS512"},
+ValidValues: []string{cryptoutilSharedMagic.JoseAlgHS256, cryptoutilSharedMagic.JoseAlgHS384, cryptoutilSharedMagic.JoseAlgHS512},
 Description: "Service JWS signing algorithm",
 },
 // service-session-jwe-algorithm: JWE encryption algorithm (when service-session-algorithm: JWE).

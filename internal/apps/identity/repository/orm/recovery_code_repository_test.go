@@ -5,6 +5,7 @@
 package orm_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"testing"
@@ -26,7 +27,7 @@ import (
 func setupRecoveryCodeTestDB(t *testing.T) cryptoutilIdentityRepository.RecoveryCodeRepository {
 	t.Helper()
 
-	sqlDB, err := sql.Open("sqlite", testDSNInMemory)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, testDSNInMemory)
 	require.NoError(t, err)
 
 	ctx := context.Background()
@@ -48,8 +49,8 @@ func setupRecoveryCodeTestDB(t *testing.T) cryptoutilIdentityRepository.Recovery
 	underlyingDB, err := db.DB()
 	require.NoError(t, err)
 
-	underlyingDB.SetMaxOpenConns(5)
-	underlyingDB.SetMaxIdleConns(5)
+	underlyingDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+	underlyingDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	underlyingDB.SetConnMaxLifetime(0)
 
 	return cryptoutilIdentityORM.NewRecoveryCodeRepository(db)
@@ -71,7 +72,7 @@ func TestRecoveryCodeRepository_Create(t *testing.T) {
 				CodeHash:  "hash-" + googleUuid.NewString(),
 				Used:      false,
 				CreatedAt: time.Now().UTC(),
-				ExpiresAt: time.Now().UTC().Add(24 * time.Hour).UTC(),
+				ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour).UTC(),
 			},
 			expectedError: "",
 		},
@@ -111,7 +112,7 @@ func TestRecoveryCodeRepository_CreateBatch(t *testing.T) {
 					CodeHash:  "hash-1",
 					Used:      false,
 					CreatedAt: time.Now().UTC(),
-					ExpiresAt: time.Now().UTC().Add(24 * time.Hour).UTC(),
+					ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour).UTC(),
 				},
 				{
 					ID:        googleUuid.New(),
@@ -119,7 +120,7 @@ func TestRecoveryCodeRepository_CreateBatch(t *testing.T) {
 					CodeHash:  "hash-2",
 					Used:      false,
 					CreatedAt: time.Now().UTC(),
-					ExpiresAt: time.Now().UTC().Add(24 * time.Hour).UTC(),
+					ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour).UTC(),
 				},
 			},
 			expectedError: "",
@@ -163,7 +164,7 @@ func TestRecoveryCodeRepository_GetByUserID(t *testing.T) {
 					CodeHash:  "hash-code-1",
 					Used:      false,
 					CreatedAt: time.Now().UTC(),
-					ExpiresAt: time.Now().UTC().Add(24 * time.Hour).UTC(),
+					ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour).UTC(),
 				},
 				{
 					ID:        googleUuid.New(),
@@ -171,7 +172,7 @@ func TestRecoveryCodeRepository_GetByUserID(t *testing.T) {
 					CodeHash:  "hash-code-2",
 					Used:      true,
 					CreatedAt: time.Now().UTC(),
-					ExpiresAt: time.Now().UTC().Add(24 * time.Hour).UTC(),
+					ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour).UTC(),
 				},
 			},
 			expectedError: "",
@@ -244,7 +245,7 @@ func TestRecoveryCodeRepository_GetByID(t *testing.T) {
 				CodeHash:  "hash-found-test",
 				Used:      false,
 				CreatedAt: time.Now().UTC(),
-				ExpiresAt: time.Now().UTC().Add(24 * time.Hour).UTC(),
+				ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour).UTC(),
 			},
 			expectedError: nil,
 			validateResult: func(t *testing.T, result *cryptoutilIdentityDomain.RecoveryCode) {
@@ -309,7 +310,7 @@ func TestRecoveryCodeRepository_Update(t *testing.T) {
 				CodeHash:  "hash-to-mark-used",
 				Used:      false,
 				CreatedAt: time.Now().UTC(),
-				ExpiresAt: time.Now().UTC().Add(24 * time.Hour).UTC(),
+				ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour).UTC(),
 			},
 			updateCode:    nil, // Populated below.
 			expectedError: "",

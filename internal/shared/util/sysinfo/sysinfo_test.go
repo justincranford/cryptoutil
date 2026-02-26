@@ -32,7 +32,7 @@ func TestSysInfo(t *testing.T) {
 
 				start := time.Now().UTC()
 				arch := provider.RuntimeGoArch()
-				fmt.Printf("Time: %.3f msec >>> RuntimeGoArch: %s\n", float32(time.Since(start).Microseconds())/1000, arch)
+				fmt.Printf("Time: %.3f msec >>> RuntimeGoArch: %s\n", float32(time.Since(start).Microseconds())/cryptoutilSharedMagic.JoseJADefaultListLimit, arch)
 				require.NotEmpty(t, arch)
 			},
 		},
@@ -43,7 +43,7 @@ func TestSysInfo(t *testing.T) {
 
 				start := time.Now().UTC()
 				os := provider.RuntimeGoOS()
-				fmt.Printf("Time: %.3f msec >>> RuntimeGoOS: %s\n", float32(time.Since(start).Microseconds())/1000, os)
+				fmt.Printf("Time: %.3f msec >>> RuntimeGoOS: %s\n", float32(time.Since(start).Microseconds())/cryptoutilSharedMagic.JoseJADefaultListLimit, os)
 				require.NotEmpty(t, os)
 			},
 		},
@@ -54,7 +54,7 @@ func TestSysInfo(t *testing.T) {
 
 				start := time.Now().UTC()
 				numCPU := provider.RuntimeNumCPU()
-				fmt.Printf("Time: %.3f msec >>> RuntimeNumCPU: %d\n", float32(time.Since(start).Microseconds())/1000, numCPU)
+				fmt.Printf("Time: %.3f msec >>> RuntimeNumCPU: %d\n", float32(time.Since(start).Microseconds())/cryptoutilSharedMagic.JoseJADefaultListLimit, numCPU)
 				require.NotZero(t, numCPU)
 			},
 		},
@@ -74,7 +74,7 @@ func TestSysInfo(t *testing.T) {
 
 				start := time.Now().UTC()
 				vendorID, family, physicalID, modelName, err := provider.CPUInfo()
-				fmt.Printf("Time: %.3f msec >>> CPUInfo: VendorID=%s, Family=%s, PhysicalID=%s, ModelName=%s\n", float32(time.Since(start).Microseconds())/1000, vendorID, family, physicalID, modelName)
+				fmt.Printf("Time: %.3f msec >>> CPUInfo: VendorID=%s, Family=%s, PhysicalID=%s, ModelName=%s\n", float32(time.Since(start).Microseconds())/cryptoutilSharedMagic.JoseJADefaultListLimit, vendorID, family, physicalID, modelName)
 				require.NoError(t, err)
 				require.NotEmpty(t, vendorID, "vendorID was empty")
 				require.NotEmpty(t, family, "family was empty")
@@ -90,7 +90,7 @@ func TestSysInfo(t *testing.T) {
 
 				start := time.Now().UTC()
 				ramSize, err := provider.RAMSize()
-				fmt.Printf("Time: %.3f msec >>> RAMSize: %d\n", float32(time.Since(start).Microseconds())/1000, ramSize)
+				fmt.Printf("Time: %.3f msec >>> RAMSize: %d\n", float32(time.Since(start).Microseconds())/cryptoutilSharedMagic.JoseJADefaultListLimit, ramSize)
 				require.NoError(t, err)
 				require.NotZero(t, ramSize)
 			},
@@ -114,7 +114,7 @@ func TestSysInfo(t *testing.T) {
 
 				start := time.Now().UTC()
 				hostname, err := provider.OSHostname()
-				fmt.Printf("Time: %.3f msec >>> OSHostname: %s\n", float32(time.Since(start).Microseconds())/1000, hostname)
+				fmt.Printf("Time: %.3f msec >>> OSHostname: %s\n", float32(time.Since(start).Microseconds())/cryptoutilSharedMagic.JoseJADefaultListLimit, hostname)
 				require.NoError(t, err)
 				require.NotEmpty(t, hostname)
 			},
@@ -138,7 +138,7 @@ func TestSysInfo(t *testing.T) {
 
 				start := time.Now().UTC()
 				hostID, err := provider.HostID()
-				fmt.Printf("Time: %.3f msec >>> HostID: %s\n", float32(time.Since(start).Microseconds())/1000, hostID)
+				fmt.Printf("Time: %.3f msec >>> HostID: %s\n", float32(time.Since(start).Microseconds())/cryptoutilSharedMagic.JoseJADefaultListLimit, hostID)
 				require.NoError(t, err)
 				require.NotEmpty(t, hostID)
 			},
@@ -162,7 +162,7 @@ func TestSysInfo(t *testing.T) {
 
 				start := time.Now().UTC()
 				userID, groupID, username, err := provider.UserInfo()
-				fmt.Printf("Time: %.3f msec >>> UserInfo: UserID=%s, GroupID=%s, Username=%s\n", float32(time.Since(start).Microseconds())/1000, userID, groupID, username)
+				fmt.Printf("Time: %.3f msec >>> UserInfo: UserID=%s, GroupID=%s, Username=%s\n", float32(time.Since(start).Microseconds())/cryptoutilSharedMagic.JoseJADefaultListLimit, userID, groupID, username)
 				require.NoError(t, err)
 				require.NotEmpty(t, userID)
 				require.NotEmpty(t, groupID)

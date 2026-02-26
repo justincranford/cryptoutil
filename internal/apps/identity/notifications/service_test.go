@@ -27,7 +27,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 	// Use unique in-memory database per test (no shared cache).
 	dsn := cryptoutilSharedMagic.SQLiteMemoryPlaceholder
-	sqlDB, err := sql.Open("sqlite", dsn)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	require.NoError(t, err)
 
 	ctx := context.Background()
@@ -48,8 +48,8 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	require.NoError(t, err)
 
 	// Configure connection pool.
-	sqlDB.SetMaxOpenConns(5)
-	sqlDB.SetMaxIdleConns(5)
+	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	sqlDB.SetConnMaxLifetime(0)
 	sqlDB.SetConnMaxIdleTime(0)
 
@@ -73,7 +73,7 @@ func createTestClient(t *testing.T, db *gorm.DB, name string, expiresAt *time.Ti
 		ID:            googleUuid.New(),
 		ClientID:      googleUuid.NewString(), // Unique OAuth 2.1 client identifier
 		Name:          name,
-		AllowedScopes: []string{"read", "write"},
+		AllowedScopes: []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
 	}
 
 	err := db.WithContext(ctx).Create(client).Error
@@ -101,12 +101,12 @@ func TestCheckExpiringSecrets_NoExpiringSecrets(t *testing.T) {
 	ctx := context.Background()
 
 	// Create client with secret expiring in 30 days (outside all thresholds).
-	farFutureExpiration := time.Now().UTC().Add(30 * 24 * time.Hour)
+	farFutureExpiration := time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * cryptoutilSharedMagic.HoursPerDay * time.Hour)
 	createTestClient(t, db, "test-client", &farFutureExpiration)
 
 	// Check for expiring secrets.
 	config := &cryptoutilIdentityNotifications.NotificationConfig{
-		Thresholds: []int{7, 3, 1},
+		Thresholds: []int{cryptoutilSharedMagic.GitRecentActivityDays, 3, 1},
 		Channels:   []cryptoutilIdentityNotifications.NotificationChannel{cryptoutilIdentityNotifications.ChannelLog},
 	}
 
@@ -124,12 +124,12 @@ func TestCheckExpiringSecrets_OneExpiringSecret_7DaysThreshold(t *testing.T) {
 	ctx := context.Background()
 
 	// Create client with secret expiring in 7 days (within 7-day threshold).
-	sevenDaysExpiration := time.Now().UTC().Add(7*24*time.Hour + 30*time.Minute)
+	sevenDaysExpiration := time.Now().UTC().Add(cryptoutilSharedMagic.GitRecentActivityDays*cryptoutilSharedMagic.HoursPerDay*time.Hour + cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Minute)
 	createTestClient(t, db, "test-client", &sevenDaysExpiration)
 
 	// Check for expiring secrets.
 	config := &cryptoutilIdentityNotifications.NotificationConfig{
-		Thresholds: []int{7, 3, 1},
+		Thresholds: []int{cryptoutilSharedMagic.GitRecentActivityDays, 3, 1},
 		Channels:   []cryptoutilIdentityNotifications.NotificationChannel{cryptoutilIdentityNotifications.ChannelLog},
 	}
 
@@ -147,12 +147,12 @@ func TestCheckExpiringSecrets_OneExpiringSecret_3DaysThreshold(t *testing.T) {
 	ctx := context.Background()
 
 	// Create client with secret expiring in 3 days (within 3-day threshold).
-	threeDaysExpiration := time.Now().UTC().Add(3*24*time.Hour + 30*time.Minute)
+	threeDaysExpiration := time.Now().UTC().Add(3*cryptoutilSharedMagic.HoursPerDay*time.Hour + cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Minute)
 	createTestClient(t, db, "test-client", &threeDaysExpiration)
 
 	// Check for expiring secrets.
 	config := &cryptoutilIdentityNotifications.NotificationConfig{
-		Thresholds: []int{7, 3, 1},
+		Thresholds: []int{cryptoutilSharedMagic.GitRecentActivityDays, 3, 1},
 		Channels:   []cryptoutilIdentityNotifications.NotificationChannel{cryptoutilIdentityNotifications.ChannelLog},
 	}
 
@@ -170,12 +170,12 @@ func TestCheckExpiringSecrets_OneExpiringSecret_1DayThreshold(t *testing.T) {
 	ctx := context.Background()
 
 	// Create client with secret expiring in 1 day (within 1-day threshold).
-	oneDayExpiration := time.Now().UTC().Add(24*time.Hour + 30*time.Minute)
+	oneDayExpiration := time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay*time.Hour + cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Minute)
 	createTestClient(t, db, "test-client", &oneDayExpiration)
 
 	// Check for expiring secrets.
 	config := &cryptoutilIdentityNotifications.NotificationConfig{
-		Thresholds: []int{7, 3, 1},
+		Thresholds: []int{cryptoutilSharedMagic.GitRecentActivityDays, 3, 1},
 		Channels:   []cryptoutilIdentityNotifications.NotificationChannel{cryptoutilIdentityNotifications.ChannelLog},
 	}
 
@@ -193,9 +193,9 @@ func TestCheckExpiringSecrets_MultipleClients(t *testing.T) {
 	ctx := context.Background()
 
 	// Create 3 clients with different expiration times.
-	sevenDaysExpiration := time.Now().UTC().Add(7*24*time.Hour + 30*time.Minute)
-	threeDaysExpiration := time.Now().UTC().Add(3*24*time.Hour + 30*time.Minute)
-	oneDayExpiration := time.Now().UTC().Add(24*time.Hour + 30*time.Minute)
+	sevenDaysExpiration := time.Now().UTC().Add(cryptoutilSharedMagic.GitRecentActivityDays*cryptoutilSharedMagic.HoursPerDay*time.Hour + cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Minute)
+	threeDaysExpiration := time.Now().UTC().Add(3*cryptoutilSharedMagic.HoursPerDay*time.Hour + cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Minute)
+	oneDayExpiration := time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay*time.Hour + cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Minute)
 
 	createTestClient(t, db, "client-1", &sevenDaysExpiration)
 	createTestClient(t, db, "client-2", &threeDaysExpiration)
@@ -203,7 +203,7 @@ func TestCheckExpiringSecrets_MultipleClients(t *testing.T) {
 
 	// Check for expiring secrets.
 	config := &cryptoutilIdentityNotifications.NotificationConfig{
-		Thresholds: []int{7, 3, 1},
+		Thresholds: []int{cryptoutilSharedMagic.GitRecentActivityDays, 3, 1},
 		Channels:   []cryptoutilIdentityNotifications.NotificationChannel{cryptoutilIdentityNotifications.ChannelLog},
 	}
 
@@ -221,12 +221,12 @@ func TestCheckExpiringSecrets_MultipleChannels(t *testing.T) {
 	ctx := context.Background()
 
 	// Create client with secret expiring in 7 days.
-	sevenDaysExpiration := time.Now().UTC().Add(7*24*time.Hour + 30*time.Minute)
+	sevenDaysExpiration := time.Now().UTC().Add(cryptoutilSharedMagic.GitRecentActivityDays*cryptoutilSharedMagic.HoursPerDay*time.Hour + cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Minute)
 	createTestClient(t, db, "test-client", &sevenDaysExpiration)
 
 	// Check with multiple channels (log + webhook).
 	config := &cryptoutilIdentityNotifications.NotificationConfig{
-		Thresholds: []int{7, 3, 1},
+		Thresholds: []int{cryptoutilSharedMagic.GitRecentActivityDays, 3, 1},
 		Channels: []cryptoutilIdentityNotifications.NotificationChannel{
 			cryptoutilIdentityNotifications.ChannelLog,
 			cryptoutilIdentityNotifications.ChannelWebhook,
@@ -248,7 +248,7 @@ func TestCheckExpiringSecrets_DefaultConfig(t *testing.T) {
 	ctx := context.Background()
 
 	// Create client with secret expiring in 7 days.
-	sevenDaysExpiration := time.Now().UTC().Add(7*24*time.Hour + 30*time.Minute)
+	sevenDaysExpiration := time.Now().UTC().Add(cryptoutilSharedMagic.GitRecentActivityDays*cryptoutilSharedMagic.HoursPerDay*time.Hour + cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Minute)
 	createTestClient(t, db, "test-client", &sevenDaysExpiration)
 
 	// Check with nil config (uses defaults).
@@ -270,7 +270,7 @@ func TestCheckExpiringSecrets_NoExpiration(t *testing.T) {
 
 	// Check for expiring secrets.
 	config := &cryptoutilIdentityNotifications.NotificationConfig{
-		Thresholds: []int{7, 3, 1},
+		Thresholds: []int{cryptoutilSharedMagic.GitRecentActivityDays, 3, 1},
 		Channels:   []cryptoutilIdentityNotifications.NotificationChannel{cryptoutilIdentityNotifications.ChannelLog},
 	}
 
@@ -288,12 +288,12 @@ func TestCheckExpiringSecrets_AlreadyExpiredSecrets(t *testing.T) {
 	ctx := context.Background()
 
 	// Create client with already-expired secret.
-	pastExpiration := time.Now().UTC().Add(-24 * time.Hour)
+	pastExpiration := time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour)
 	createTestClient(t, db, "test-client", &pastExpiration)
 
 	// Check for expiring secrets.
 	config := &cryptoutilIdentityNotifications.NotificationConfig{
-		Thresholds: []int{7, 3, 1},
+		Thresholds: []int{cryptoutilSharedMagic.GitRecentActivityDays, 3, 1},
 		Channels:   []cryptoutilIdentityNotifications.NotificationChannel{cryptoutilIdentityNotifications.ChannelLog},
 	}
 
@@ -313,14 +313,14 @@ func TestCheckExpiringSecrets_RevokedSecrets(t *testing.T) {
 	client := &cryptoutilIdentityDomain.Client{
 		ID:            googleUuid.New(),
 		Name:          "test-client",
-		AllowedScopes: []string{"read"},
+		AllowedScopes: []string{cryptoutilSharedMagic.ScopeRead},
 	}
 
 	err := db.WithContext(context.Background()).Create(client).Error
 	require.NoError(t, err)
 
 	// Create revoked secret version.
-	sevenDaysExpiration := time.Now().UTC().Add(7*24*time.Hour + 30*time.Minute)
+	sevenDaysExpiration := time.Now().UTC().Add(cryptoutilSharedMagic.GitRecentActivityDays*cryptoutilSharedMagic.HoursPerDay*time.Hour + cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Minute)
 	version := &cryptoutilIdentityDomain.ClientSecretVersion{
 		ClientID:   client.ID,
 		Version:    1,
@@ -334,7 +334,7 @@ func TestCheckExpiringSecrets_RevokedSecrets(t *testing.T) {
 
 	// Check for expiring secrets.
 	config := &cryptoutilIdentityNotifications.NotificationConfig{
-		Thresholds: []int{7, 3, 1},
+		Thresholds: []int{cryptoutilSharedMagic.GitRecentActivityDays, 3, 1},
 		Channels:   []cryptoutilIdentityNotifications.NotificationChannel{cryptoutilIdentityNotifications.ChannelLog},
 	}
 
@@ -351,7 +351,7 @@ func TestDefaultNotificationConfig(t *testing.T) {
 	config := cryptoutilIdentityNotifications.DefaultNotificationConfig()
 
 	require.NotNil(t, config)
-	require.Equal(t, []int{7, 3, 1}, config.Thresholds, "Default thresholds should be 7, 3, 1 days")
+	require.Equal(t, []int{cryptoutilSharedMagic.GitRecentActivityDays, 3, 1}, config.Thresholds, "Default thresholds should be 7, 3, 1 days")
 	require.Equal(t, []cryptoutilIdentityNotifications.NotificationChannel{cryptoutilIdentityNotifications.ChannelLog}, config.Channels, "Default channel should be log")
 	require.Empty(t, config.WebhookURL, "Default webhook URL should be empty")
 	require.Empty(t, config.EmailRecipients, "Default email recipients should be empty")
@@ -363,7 +363,7 @@ func TestNewNotificationService_WithWebhook(t *testing.T) {
 	db := setupTestDB(t)
 
 	config := &cryptoutilIdentityNotifications.NotificationConfig{
-		Thresholds: []int{7},
+		Thresholds: []int{cryptoutilSharedMagic.GitRecentActivityDays},
 		Channels:   []cryptoutilIdentityNotifications.NotificationChannel{cryptoutilIdentityNotifications.ChannelWebhook},
 		WebhookURL: "https://example.com/webhook",
 	}
@@ -378,7 +378,7 @@ func TestNewNotificationService_WithEmail(t *testing.T) {
 	db := setupTestDB(t)
 
 	config := &cryptoutilIdentityNotifications.NotificationConfig{
-		Thresholds:      []int{7},
+		Thresholds:      []int{cryptoutilSharedMagic.GitRecentActivityDays},
 		Channels:        []cryptoutilIdentityNotifications.NotificationChannel{cryptoutilIdentityNotifications.ChannelEmail},
 		EmailRecipients: []string{"admin@example.com"},
 	}
@@ -404,8 +404,8 @@ func TestEmailNotifier_Send(t *testing.T) {
 			notification: &cryptoutilIdentityNotifications.ExpirationNotification{
 				ClientID:      googleUuid.New(),
 				ClientName:    "Test Client",
-				DaysRemaining: 7,
-				ExpiresAt:     time.Now().UTC().Add(7 * 24 * time.Hour),
+				DaysRemaining: cryptoutilSharedMagic.GitRecentActivityDays,
+				ExpiresAt:     time.Now().UTC().Add(cryptoutilSharedMagic.GitRecentActivityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 			},
 			wantErr:     true,
 			errContains: "email notifications not yet implemented",
@@ -417,7 +417,7 @@ func TestEmailNotifier_Send(t *testing.T) {
 				ClientID:      googleUuid.New(),
 				ClientName:    "Critical Service",
 				DaysRemaining: 1,
-				ExpiresAt:     time.Now().UTC().Add(24 * time.Hour),
+				ExpiresAt:     time.Now().UTC().Add(cryptoutilSharedMagic.HoursPerDay * time.Hour),
 			},
 			wantErr:     true,
 			errContains: "email notifications not yet implemented",
@@ -429,7 +429,7 @@ func TestEmailNotifier_Send(t *testing.T) {
 				ClientID:      googleUuid.New(),
 				ClientName:    "Orphan Client",
 				DaysRemaining: 3,
-				ExpiresAt:     time.Now().UTC().Add(3 * 24 * time.Hour),
+				ExpiresAt:     time.Now().UTC().Add(3 * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 			},
 			wantErr:     true,
 			errContains: "email notifications not yet implemented",

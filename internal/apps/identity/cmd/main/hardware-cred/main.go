@@ -5,6 +5,7 @@
 package main
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"errors"
 	"flag"
@@ -108,7 +109,7 @@ func runEnroll(args []string) {
 	fs := flag.NewFlagSet("enroll", flag.ExitOnError)
 	userIDStr := fs.String("user-id", "", "User ID (UUID)")
 	deviceName := fs.String("device-name", "", "Device name")
-	credentialType := fs.String("credential-type", "passkey", "Credential type (passkey, smart_card, security_key)")
+	credentialType := fs.String("credential-type", cryptoutilSharedMagic.AMRPasskey, "Credential type (passkey, smart_card, security_key)")
 
 	err := fs.Parse(args)
 	if err != nil {
@@ -154,7 +155,7 @@ func runEnroll(args []string) {
 		UserID:          userID.String(),
 		Type:            parseCredentialType(*credentialType),
 		PublicKey:       generateMockPublicKey(),
-		AttestationType: "none",
+		AttestationType: cryptoutilSharedMagic.PromptNone,
 		AAGUID:          []byte{0x00, 0x00, 0x00, 0x00},
 		SignCount:       0,
 		Metadata: map[string]any{

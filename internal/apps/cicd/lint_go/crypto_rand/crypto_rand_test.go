@@ -1,6 +1,7 @@
 package crypto_rand
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"strings"
@@ -30,7 +31,7 @@ func main() {
 }
 `
 
-	err := os.WriteFile(cleanFile, []byte(content), 0o600)
+	err := os.WriteFile(cleanFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations, err := CheckFileForMathRand(cleanFile)
@@ -56,7 +57,7 @@ func main() {
 }
 `
 
-	err := os.WriteFile(badFile, []byte(content), 0o600)
+	err := os.WriteFile(badFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations, err := CheckFileForMathRand(badFile)
@@ -77,8 +78,8 @@ func TestPrintMathRandViolations(t *testing.T) {
 	t.Parallel()
 
 	violations := []lintGoCommon.CryptoViolation{
-		{File: "file1.go", Line: 10, Content: "import math/rand", Issue: "imports math/rand instead of crypto/rand"},
-		{File: "file1.go", Line: 20, Content: "rand.Float64()", Issue: "uses math/rand function"},
+		{File: "file1.go", Line: cryptoutilSharedMagic.JoseJADefaultMaxMaterials, Content: "import math/rand", Issue: "imports math/rand instead of crypto/rand"},
+		{File: "file1.go", Line: cryptoutilSharedMagic.MaxErrorDisplay, Content: "rand.Float64()", Issue: "uses math/rand function"},
 	}
 
 	// Just verify the print function does not panic.
@@ -125,7 +126,7 @@ func getNum() int {
 }
 `)
 
-	err := os.WriteFile(violationFile, content, 0o600)
+	err := os.WriteFile(violationFile, content, cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	err = CheckInDir(logger, tmpDir)
@@ -144,7 +145,7 @@ func TestCheckCryptoRandInDir_Clean(t *testing.T) {
 
 	content := []byte("package foo\n")
 
-	err := os.WriteFile(cleanFile, content, 0o600)
+	err := os.WriteFile(cleanFile, content, cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	err = CheckInDir(logger, tmpDir)
@@ -166,7 +167,7 @@ func TestHelper() int {
 }
 `)
 
-	err := os.WriteFile(testFile, content, 0o600)
+	err := os.WriteFile(testFile, content, cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations, err := FindMathRandViolationsInDir(tmpDir)
@@ -189,7 +190,7 @@ func get() int {
 }
 `)
 
-	err := os.WriteFile(nolintFile, content, 0o600)
+	err := os.WriteFile(nolintFile, content, cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations, err := FindMathRandViolationsInDir(tmpDir)
@@ -207,7 +208,7 @@ func TestCheckCryptoRandInDir_SkipsTestHelperDirs(t *testing.T) {
 
 	// Place violations only inside test helper directories (should be skipped).
 	testingDir := filepath.Join(tmpDir, "testing")
-	err := os.MkdirAll(testingDir, 0o755)
+	err := os.MkdirAll(testingDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	violationFile := filepath.Join(testingDir, "helper.go")
@@ -218,7 +219,7 @@ import "math/rand"
 func get() int { return rand.Intn(100) }
 `)
 
-	err = os.WriteFile(violationFile, content, 0o600)
+	err = os.WriteFile(violationFile, content, cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	err = CheckInDir(logger, tmpDir)
@@ -266,12 +267,12 @@ func TestFindMathRandViolationsInDir_VendorDirSkipped(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	vendorDir := filepath.Join(tmpDir, "vendor")
+	vendorDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDExcludeDirVendor)
 	require.NoError(t, os.MkdirAll(vendorDir, 0o700))
 
 	vendorFile := filepath.Join(vendorDir, "uses_rand.go")
 	content := []byte("package vendor\nimport \"math/rand\"\nvar x = rand.Intn(10)\n")
-	require.NoError(t, os.WriteFile(vendorFile, content, 0o600))
+	require.NoError(t, os.WriteFile(vendorFile, content, cryptoutilSharedMagic.CacheFilePermissions))
 
 	violations, err := FindMathRandViolationsInDir(tmpDir)
 	require.NoError(t, err)
@@ -283,7 +284,7 @@ func TestFindMathRandViolationsInDir_NonGoFileSkipped(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	txtFile := filepath.Join(tmpDir, "notes.txt")
-	require.NoError(t, os.WriteFile(txtFile, []byte("math/rand usage notes\n"), 0o600))
+	require.NoError(t, os.WriteFile(txtFile, []byte("math/rand usage notes\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	violations, err := FindMathRandViolationsInDir(tmpDir)
 	require.NoError(t, err)
@@ -303,7 +304,7 @@ func TestCheckFileForMathRand_CrandAlias(t *testing.T) {
 	tmpDir := t.TempDir()
 	goFile := filepath.Join(tmpDir, "crypto.go")
 	content := []byte("package foo\n\nimport (\n\tcrand \"math/rand\"\n)\n\nfunc seed() { crand.Seed(42) }\n")
-	require.NoError(t, os.WriteFile(goFile, content, 0o600))
+	require.NoError(t, os.WriteFile(goFile, content, cryptoutilSharedMagic.CacheFilePermissions))
 
 	violations, err := CheckFileForMathRand(goFile)
 	require.NoError(t, err)
@@ -316,10 +317,10 @@ func TestFindMathRandViolationsInDir_FileReadError(t *testing.T) {
 	tmpDir := t.TempDir()
 	goFile := filepath.Join(tmpDir, "impl.go")
 	content := []byte("package foo\n\nimport \"math/rand\"\n\nvar x = rand.Intn(10)\n")
-	require.NoError(t, os.WriteFile(goFile, content, 0o600))
+	require.NoError(t, os.WriteFile(goFile, content, cryptoutilSharedMagic.CacheFilePermissions))
 	// Make file unreadable so CheckFileForMathRand fails to open it.
 	require.NoError(t, os.Chmod(goFile, 0o000))
-	t.Cleanup(func() { _ = os.Chmod(goFile, 0o600) })
+	t.Cleanup(func() { _ = os.Chmod(goFile, cryptoutilSharedMagic.CacheFilePermissions) })
 
 	_, err := FindMathRandViolationsInDir(tmpDir)
 	require.Error(t, err, "Should return error when .go file cannot be opened")
@@ -333,7 +334,7 @@ func TestCheckFileForMathRand_UsageNolintSkipped(t *testing.T) {
 	// Import "math/rand" without any nolint on import line (adds import violation).
 	// Usage line has //nolint:revive (not gosec/math/rand) so usage continue fires.
 	content := []byte("package foo\n\nimport \"math/rand\"\n\nvar x = rand.Intn(10) //nolint:revive\n")
-	require.NoError(t, os.WriteFile(goFile, content, 0o600))
+	require.NoError(t, os.WriteFile(goFile, content, cryptoutilSharedMagic.CacheFilePermissions))
 
 	violations, err := CheckFileForMathRand(goFile)
 	require.NoError(t, err)
@@ -350,7 +351,7 @@ func TestCheckFileForMathRand_ScannerError(t *testing.T) {
 
 	// Create a file with a line exceeding bufio.MaxScanTokenSize (64KB) to trigger scanner.Err().
 	longLine := "package foo\n// " + strings.Repeat("x", 70000) + "\n"
-	require.NoError(t, os.WriteFile(goFile, []byte(longLine), 0o600))
+	require.NoError(t, os.WriteFile(goFile, []byte(longLine), cryptoutilSharedMagic.CacheFilePermissions))
 
 	_, err := CheckFileForMathRand(goFile)
 	require.Error(t, err)

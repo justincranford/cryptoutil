@@ -5,6 +5,7 @@
 package orm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"runtime"
 	"testing"
@@ -30,7 +31,7 @@ func TestConsentDecisionRepository_Create(t *testing.T) {
 	clientID := "client-id-123"
 	scope := "openid profile email"
 	grantedAt := time.Now().UTC()
-	expiresAt := grantedAt.Add(24 * time.Hour)
+	expiresAt := grantedAt.Add(cryptoutilSharedMagic.HoursPerDay * time.Hour)
 
 	consent := &cryptoutilIdentityDomain.ConsentDecision{
 		ID:        googleUuid.Must(googleUuid.NewV7()),
@@ -118,7 +119,7 @@ func TestConsentDecisionRepository_GetByUserClientScope(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			// Skip consent_expired on Windows - SQLite datetime comparison behaves differently
-			if tc.name == "consent_expired" && runtime.GOOS == "windows" {
+			if tc.name == "consent_expired" && runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
 				t.Skip("Skipping consent_expired test on Windows (SQLite datetime comparison issue)")
 			}
 
@@ -129,11 +130,11 @@ func TestConsentDecisionRepository_GetByUserClientScope(t *testing.T) {
 			ctx := context.Background()
 
 			if tc.setupConsent {
-				grantedAt := time.Now().UTC().Add(-10 * time.Second)
+				grantedAt := time.Now().UTC().Add(-cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second)
 
-				expiresAt := grantedAt.Add(24 * time.Hour)
+				expiresAt := grantedAt.Add(cryptoutilSharedMagic.HoursPerDay * time.Hour)
 				if tc.expired {
-					expiresAt = time.Now().UTC().Add(-10 * time.Minute) // Clearly expired (10 minutes ago)
+					expiresAt = time.Now().UTC().Add(-cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute) // Clearly expired (10 minutes ago)
 				}
 
 				consent := &cryptoutilIdentityDomain.ConsentDecision{
@@ -186,7 +187,7 @@ func TestConsentDecisionRepository_Update(t *testing.T) {
 	clientID := "client-id-789"
 	scope := "openid email"
 	grantedAt := time.Now().UTC()
-	expiresAt := grantedAt.Add(24 * time.Hour)
+	expiresAt := grantedAt.Add(cryptoutilSharedMagic.HoursPerDay * time.Hour)
 
 	consent := &cryptoutilIdentityDomain.ConsentDecision{
 		ID:        googleUuid.Must(googleUuid.NewV7()),
@@ -200,7 +201,7 @@ func TestConsentDecisionRepository_Update(t *testing.T) {
 	err := repo.Create(ctx, consent)
 	require.NoError(t, err, "Create should succeed")
 
-	newExpiresAt := expiresAt.Add(48 * time.Hour)
+	newExpiresAt := expiresAt.Add(cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour)
 	consent.ExpiresAt = newExpiresAt
 
 	err = repo.Update(ctx, consent)
@@ -220,9 +221,9 @@ func TestConsentDecisionRepository_Delete(t *testing.T) {
 
 	userID := googleUuid.Must(googleUuid.NewV7())
 	clientID := "client-id-delete"
-	scope := "openid"
+	scope := cryptoutilSharedMagic.ScopeOpenID
 	grantedAt := time.Now().UTC()
-	expiresAt := grantedAt.Add(24 * time.Hour)
+	expiresAt := grantedAt.Add(cryptoutilSharedMagic.HoursPerDay * time.Hour)
 
 	consent := &cryptoutilIdentityDomain.ConsentDecision{
 		ID:        googleUuid.Must(googleUuid.NewV7()),
@@ -255,7 +256,7 @@ func TestConsentDecisionRepository_RevokeByID(t *testing.T) {
 	clientID := "client-id-revoke"
 	scope := "openid profile"
 	grantedAt := time.Now().UTC()
-	expiresAt := grantedAt.Add(24 * time.Hour)
+	expiresAt := grantedAt.Add(cryptoutilSharedMagic.HoursPerDay * time.Hour)
 
 	consent := &cryptoutilIdentityDomain.ConsentDecision{
 		ID:        googleUuid.Must(googleUuid.NewV7()),
@@ -275,7 +276,7 @@ func TestConsentDecisionRepository_RevokeByID(t *testing.T) {
 	revoked, err := repo.GetByID(ctx, consent.ID)
 	require.NoError(t, err, "GetByID should still find revoked consent")
 	require.NotNil(t, revoked.RevokedAt, "RevokedAt should be set")
-	require.WithinDuration(t, time.Now().UTC(), *revoked.RevokedAt, 5*time.Second)
+	require.WithinDuration(t, time.Now().UTC(), *revoked.RevokedAt, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 }
 
 func TestConsentDecisionRepository_DeleteExpired(t *testing.T) {
@@ -294,9 +295,9 @@ func TestConsentDecisionRepository_DeleteExpired(t *testing.T) {
 			ID:        googleUuid.Must(googleUuid.NewV7()),
 			UserID:    userID,
 			ClientID:  clientID,
-			Scope:     "email",
+			Scope:     cryptoutilSharedMagic.ClaimEmail,
 			GrantedAt: now,
-			ExpiresAt: now.Add(24 * time.Hour),
+			ExpiresAt: now.Add(cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		},
 	}
 

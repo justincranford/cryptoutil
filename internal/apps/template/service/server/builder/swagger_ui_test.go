@@ -4,6 +4,7 @@
 package builder
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/base64"
 	"io"
 	"net/http/httptest"
@@ -39,7 +40,7 @@ func TestRegisterSwaggerUI_DocJSON(t *testing.T) {
 
 	err := RegisterSwaggerUI(app, &SwaggerUIConfig{
 		OpenAPISpecJSON:       spec,
-		BrowserAPIContextPath: "/browser/api/v1",
+		BrowserAPIContextPath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
 		CSRFTokenName:         "csrf_token",
 	})
 	require.NoError(t, err)
@@ -61,7 +62,7 @@ func TestRegisterSwaggerUI_CSRFTokenEndpoint(t *testing.T) {
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
 	err := RegisterSwaggerUI(app, &SwaggerUIConfig{
 		OpenAPISpecJSON:       []byte(`{"openapi":"3.0.3"}`),
-		BrowserAPIContextPath: "/browser/api/v1",
+		BrowserAPIContextPath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
 		CSRFTokenName:         "csrf_token",
 	})
 	require.NoError(t, err)
@@ -83,7 +84,7 @@ func TestRegisterSwaggerUI_AuthNoHeader(t *testing.T) {
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
 	err := RegisterSwaggerUI(app, &SwaggerUIConfig{
 		OpenAPISpecJSON:       []byte(`{"openapi":"3.0.3"}`),
-		BrowserAPIContextPath: "/browser/api/v1",
+		BrowserAPIContextPath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
 		CSRFTokenName:         "csrf_token",
 		Username:              "admin",
 		Password:              "secret",
@@ -104,7 +105,7 @@ func TestRegisterSwaggerUI_AuthInvalidMethod(t *testing.T) {
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
 	err := RegisterSwaggerUI(app, &SwaggerUIConfig{
 		OpenAPISpecJSON:       []byte(`{"openapi":"3.0.3"}`),
-		BrowserAPIContextPath: "/browser/api/v1",
+		BrowserAPIContextPath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
 		CSRFTokenName:         "csrf_token",
 		Username:              "admin",
 		Password:              "secret",
@@ -125,7 +126,7 @@ func TestRegisterSwaggerUI_AuthInvalidBase64(t *testing.T) {
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
 	err := RegisterSwaggerUI(app, &SwaggerUIConfig{
 		OpenAPISpecJSON:       []byte(`{"openapi":"3.0.3"}`),
-		BrowserAPIContextPath: "/browser/api/v1",
+		BrowserAPIContextPath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
 		CSRFTokenName:         "csrf_token",
 		Username:              "admin",
 		Password:              "secret",
@@ -146,7 +147,7 @@ func TestRegisterSwaggerUI_AuthNoColon(t *testing.T) {
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
 	err := RegisterSwaggerUI(app, &SwaggerUIConfig{
 		OpenAPISpecJSON:       []byte(`{"openapi":"3.0.3"}`),
-		BrowserAPIContextPath: "/browser/api/v1",
+		BrowserAPIContextPath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
 		CSRFTokenName:         "csrf_token",
 		Username:              "admin",
 		Password:              "secret",
@@ -169,7 +170,7 @@ func TestRegisterSwaggerUI_AuthWrongPassword(t *testing.T) {
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
 	err := RegisterSwaggerUI(app, &SwaggerUIConfig{
 		OpenAPISpecJSON:       []byte(`{"openapi":"3.0.3"}`),
-		BrowserAPIContextPath: "/browser/api/v1",
+		BrowserAPIContextPath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
 		CSRFTokenName:         "csrf_token",
 		Username:              "admin",
 		Password:              "secret",
@@ -192,7 +193,7 @@ func TestRegisterSwaggerUI_AuthSuccess(t *testing.T) {
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
 	err := RegisterSwaggerUI(app, &SwaggerUIConfig{
 		OpenAPISpecJSON:       spec,
-		BrowserAPIContextPath: "/browser/api/v1",
+		BrowserAPIContextPath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
 		CSRFTokenName:         "csrf_token",
 		Username:              "admin",
 		Password:              "secret",
@@ -218,7 +219,7 @@ func TestRegisterSwaggerUI_SwaggerPage(t *testing.T) {
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
 	err := RegisterSwaggerUI(app, &SwaggerUIConfig{
 		OpenAPISpecJSON:       []byte(`{"openapi":"3.0.3"}`),
-		BrowserAPIContextPath: "/browser/api/v1",
+		BrowserAPIContextPath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
 		CSRFTokenName:         "csrf_token",
 	})
 	require.NoError(t, err)
@@ -236,7 +237,7 @@ func TestRegisterSwaggerUI_SwaggerPageContentTypeHTML(t *testing.T) {
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
 	err := RegisterSwaggerUI(app, &SwaggerUIConfig{
 		OpenAPISpecJSON:       []byte(`{"openapi":"3.0.3"}`),
-		BrowserAPIContextPath: "/browser/api/v1",
+		BrowserAPIContextPath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
 		CSRFTokenName:         "csrf_token",
 	})
 	require.NoError(t, err)

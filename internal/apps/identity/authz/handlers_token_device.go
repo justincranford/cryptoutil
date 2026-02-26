@@ -25,14 +25,14 @@ func (s *Service) handleDeviceCodeGrant(c *fiber.Ctx) error {
 	// Validate required parameters.
 	if deviceCode == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "device_code is required",
 		})
 	}
 
 	if clientID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "client_id is required",
 		})
 	}
@@ -44,10 +44,10 @@ func (s *Service) handleDeviceCodeGrant(c *fiber.Ctx) error {
 
 	deviceAuth, err := deviceAuthRepo.GetByDeviceCode(ctx, deviceCode)
 	if err != nil {
-		slog.ErrorContext(ctx, "Device authorization not found", "device_code", deviceCode, "error", err)
+		slog.ErrorContext(ctx, "Device authorization not found", cryptoutilSharedMagic.ParamDeviceCode, deviceCode, cryptoutilSharedMagic.StringError, err)
 
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorInvalidGrant,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidGrant,
 			"error_description": "Invalid or expired device_code",
 		})
 	}
@@ -57,27 +57,27 @@ func (s *Service) handleDeviceCodeGrant(c *fiber.Ctx) error {
 		slog.ErrorContext(ctx, "Client ID mismatch for device authorization", "expected", deviceAuth.ClientID, "actual", clientID)
 
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorInvalidGrant,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidGrant,
 			"error_description": "client_id does not match device_code",
 		})
 	}
 
 	// Check if device code is expired (RFC 8628 Section 3.5).
 	if deviceAuth.IsExpired() {
-		slog.InfoContext(ctx, "Device code expired", "device_code", deviceCode, "expires_at", deviceAuth.ExpiresAt)
+		slog.InfoContext(ctx, "Device code expired", cryptoutilSharedMagic.ParamDeviceCode, deviceCode, "expires_at", deviceAuth.ExpiresAt)
 
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorExpiredToken,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorExpiredToken,
 			"error_description": "device_code has expired",
 		})
 	}
 
 	// Check if device code has already been used (RFC 8628 Section 3.5).
 	if deviceAuth.IsUsed() {
-		slog.WarnContext(ctx, "Device code already used", "device_code", deviceCode, "used_at", deviceAuth.UsedAt)
+		slog.WarnContext(ctx, "Device code already used", cryptoutilSharedMagic.ParamDeviceCode, deviceCode, "used_at", deviceAuth.UsedAt)
 
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorInvalidGrant,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidGrant,
 			"error_description": "device_code has already been used",
 		})
 	}
@@ -86,10 +86,10 @@ func (s *Service) handleDeviceCodeGrant(c *fiber.Ctx) error {
 	if deviceAuth.LastPolledAt != nil {
 		minPollTime := deviceAuth.LastPolledAt.Add(cryptoutilSharedMagic.DefaultPollingInterval)
 		if time.Now().UTC().Before(minPollTime) {
-			slog.DebugContext(ctx, "Polling too fast", "device_code", deviceCode, "last_polled_at", deviceAuth.LastPolledAt)
+			slog.DebugContext(ctx, "Polling too fast", cryptoutilSharedMagic.ParamDeviceCode, deviceCode, "last_polled_at", deviceAuth.LastPolledAt)
 
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error":             cryptoutilSharedMagic.ErrorSlowDown,
+				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorSlowDown,
 				"error_description": "Polling too fast, slow down",
 			})
 		}
@@ -100,10 +100,10 @@ func (s *Service) handleDeviceCodeGrant(c *fiber.Ctx) error {
 	deviceAuth.LastPolledAt = &now
 
 	if err := deviceAuthRepo.Update(ctx, deviceAuth); err != nil {
-		slog.ErrorContext(ctx, "Failed to update device authorization polling timestamp", "error", err)
+		slog.ErrorContext(ctx, "Failed to update device authorization polling timestamp", cryptoutilSharedMagic.StringError, err)
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorServerError,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Failed to update polling timestamp",
 		})
 	}
@@ -113,15 +113,15 @@ func (s *Service) handleDeviceCodeGrant(c *fiber.Ctx) error {
 	case deviceAuth.IsPending():
 		// User has not yet authorized - client should continue polling.
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorAuthorizationPending,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorAuthorizationPending,
 			"error_description": "Authorization pending, user has not yet authorized",
 		})
 	case deviceAuth.IsDenied():
 		// User explicitly denied authorization.
-		slog.InfoContext(ctx, "Device authorization denied by user", "device_code", deviceCode)
+		slog.InfoContext(ctx, "Device authorization denied by user", cryptoutilSharedMagic.ParamDeviceCode, deviceCode)
 
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorAccessDenied,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorAccessDenied,
 			"error_description": "User denied authorization",
 		})
 	case deviceAuth.IsAuthorized():
@@ -129,10 +129,10 @@ func (s *Service) handleDeviceCodeGrant(c *fiber.Ctx) error {
 		return s.issueDeviceCodeTokens(c, deviceAuth)
 	default:
 		// Unknown status - should never happen.
-		slog.ErrorContext(ctx, "Invalid device authorization status", "status", deviceAuth.Status)
+		slog.ErrorContext(ctx, "Invalid device authorization status", cryptoutilSharedMagic.StringStatus, deviceAuth.Status)
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorServerError,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Invalid device authorization status",
 		})
 	}
@@ -149,20 +149,20 @@ func (s *Service) issueDeviceCodeTokens(c *fiber.Ctx, deviceAuth *cryptoutilIden
 
 	deviceAuthRepo := s.repoFactory.DeviceAuthorizationRepository()
 	if err := deviceAuthRepo.Update(ctx, deviceAuth); err != nil {
-		slog.ErrorContext(ctx, "Failed to mark device code as used", "error", err)
+		slog.ErrorContext(ctx, "Failed to mark device code as used", cryptoutilSharedMagic.StringError, err)
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorServerError,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Failed to update device authorization status",
 		})
 	}
 
 	// Validate UserID is set (device must be authorized by a user).
 	if !deviceAuth.UserID.Valid {
-		slog.ErrorContext(ctx, "Device authorization missing user ID", "device_code", deviceAuth.DeviceCode)
+		slog.ErrorContext(ctx, "Device authorization missing user ID", cryptoutilSharedMagic.ParamDeviceCode, deviceAuth.DeviceCode)
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorServerError,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Device authorization missing user ID",
 		})
 	}
@@ -172,10 +172,10 @@ func (s *Service) issueDeviceCodeTokens(c *fiber.Ctx, deviceAuth *cryptoutilIden
 
 	client, err := clientRepo.GetByClientID(ctx, deviceAuth.ClientID)
 	if err != nil {
-		slog.ErrorContext(ctx, "Failed to retrieve client for device code token", "client_id", deviceAuth.ClientID, "error", err)
+		slog.ErrorContext(ctx, "Failed to retrieve client for device code token", cryptoutilSharedMagic.ClaimClientID, deviceAuth.ClientID, cryptoutilSharedMagic.StringError, err)
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorServerError,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Failed to retrieve client",
 		})
 	}
@@ -185,28 +185,28 @@ func (s *Service) issueDeviceCodeTokens(c *fiber.Ctx, deviceAuth *cryptoutilIden
 		slog.ErrorContext(ctx, "Token service not configured")
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorServerError,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Token service not configured",
 		})
 	}
 
 	// Generate access token with standard OAuth 2.1 claims.
 	accessTokenClaims := map[string]any{
-		"sub":       deviceAuth.UserID.UUID.String(),
-		"client_id": deviceAuth.ClientID,
-		"scope":     deviceAuth.Scope,
-		"exp":       time.Now().UTC().Add(time.Duration(client.AccessTokenLifetime) * time.Second).Unix(),
-		"iat":       time.Now().UTC().Unix(),
+		cryptoutilSharedMagic.ClaimSub:       deviceAuth.UserID.UUID.String(),
+		cryptoutilSharedMagic.ClaimClientID: deviceAuth.ClientID,
+		cryptoutilSharedMagic.ClaimScope:     deviceAuth.Scope,
+		cryptoutilSharedMagic.ClaimExp:       time.Now().UTC().Add(time.Duration(client.AccessTokenLifetime) * time.Second).Unix(),
+		cryptoutilSharedMagic.ClaimIat:       time.Now().UTC().Unix(),
 	}
 
 	accessToken, err := s.tokenSvc.IssueAccessToken(ctx, accessTokenClaims)
 	if err != nil {
 		appErr := cryptoutilIdentityAppErr.ErrTokenIssuanceFailed
 
-		slog.ErrorContext(ctx, "Access token issuance failed for device code", "error", err)
+		slog.ErrorContext(ctx, "Access token issuance failed for device code", cryptoutilSharedMagic.StringError, err)
 
 		return c.Status(appErr.HTTPStatus).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorServerError,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": appErr.Message,
 		})
 	}
@@ -219,31 +219,31 @@ func (s *Service) issueDeviceCodeTokens(c *fiber.Ctx, deviceAuth *cryptoutilIden
 		if err != nil {
 			appErr := cryptoutilIdentityAppErr.ErrTokenIssuanceFailed
 
-			slog.ErrorContext(ctx, "Refresh token issuance failed for device code", "error", err)
+			slog.ErrorContext(ctx, "Refresh token issuance failed for device code", cryptoutilSharedMagic.StringError, err)
 
 			return c.Status(appErr.HTTPStatus).JSON(fiber.Map{
-				"error":             cryptoutilSharedMagic.ErrorServerError,
+				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 				"error_description": appErr.Message,
 			})
 		}
 	}
 
 	slog.InfoContext(ctx, "Device code token exchange successful",
-		"client_id", deviceAuth.ClientID,
+		cryptoutilSharedMagic.ClaimClientID, deviceAuth.ClientID,
 		"user_id", deviceAuth.UserID.UUID.String(),
-		"scope", deviceAuth.Scope,
+		cryptoutilSharedMagic.ClaimScope, deviceAuth.Scope,
 	)
 
 	// Build token response (RFC 8628 Section 3.5).
 	tokenResponse := fiber.Map{
-		"access_token": accessToken,
-		"token_type":   "Bearer",
-		"expires_in":   client.AccessTokenLifetime,
-		"scope":        deviceAuth.Scope,
+		cryptoutilSharedMagic.TokenTypeAccessToken: accessToken,
+		cryptoutilSharedMagic.ParamTokenType:   cryptoutilSharedMagic.AuthorizationBearer,
+		cryptoutilSharedMagic.ParamExpiresIn:   client.AccessTokenLifetime,
+		cryptoutilSharedMagic.ClaimScope:        deviceAuth.Scope,
 	}
 
 	if refreshToken != "" {
-		tokenResponse["refresh_token"] = refreshToken
+		tokenResponse[cryptoutilSharedMagic.GrantTypeRefreshToken] = refreshToken
 	}
 
 	return c.Status(fiber.StatusOK).JSON(tokenResponse)

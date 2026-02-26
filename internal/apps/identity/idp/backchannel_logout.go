@@ -58,8 +58,8 @@ func (s *BackChannelLogoutService) SendBackChannelLogout(ctx context.Context, se
 		logoutToken, err := s.generateLogoutToken(ctx, session, client)
 		if err != nil {
 			s.logger.Error("Failed to generate logout token",
-				"client_id", client.ClientID,
-				"error", err,
+				cryptoutilSharedMagic.ClaimClientID, client.ClientID,
+				cryptoutilSharedMagic.StringError, err,
 			)
 
 			errors = append(errors, fmt.Errorf("failed to generate logout token for %s: %w", client.ClientID, err))
@@ -70,9 +70,9 @@ func (s *BackChannelLogoutService) SendBackChannelLogout(ctx context.Context, se
 		// Send logout token to client's back-channel logout URI.
 		if err := s.deliverLogoutToken(ctx, client.BackChannelLogoutURI, logoutToken); err != nil {
 			s.logger.Error("Failed to deliver logout token",
-				"client_id", client.ClientID,
+				cryptoutilSharedMagic.ClaimClientID, client.ClientID,
 				"uri", client.BackChannelLogoutURI,
-				"error", err,
+				cryptoutilSharedMagic.StringError, err,
 			)
 
 			errors = append(errors, fmt.Errorf("failed to deliver logout token to %s: %w", client.ClientID, err))
@@ -81,7 +81,7 @@ func (s *BackChannelLogoutService) SendBackChannelLogout(ctx context.Context, se
 		}
 
 		s.logger.Info("Back-channel logout successful",
-			"client_id", client.ClientID,
+			cryptoutilSharedMagic.ClaimClientID, client.ClientID,
 			"uri", client.BackChannelLogoutURI,
 		)
 
@@ -100,7 +100,7 @@ func (s *BackChannelLogoutService) generateLogoutToken(ctx context.Context, sess
 		cryptoutilSharedMagic.ClaimIss: s.issuer,
 		cryptoutilSharedMagic.ClaimAud: client.ClientID,
 		cryptoutilSharedMagic.ClaimIat: now.Unix(),
-		"jti":                          googleUuid.Must(googleUuid.NewV7()).String(),
+		cryptoutilSharedMagic.ClaimJti:                          googleUuid.Must(googleUuid.NewV7()).String(),
 		"events": map[string]any{
 			"http://schemas.openid.net/event/backchannel-logout": map[string]any{},
 		},

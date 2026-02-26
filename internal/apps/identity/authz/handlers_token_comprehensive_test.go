@@ -163,7 +163,7 @@ func TestHandleToken_InvalidGrant_AlreadyUsedCode(t *testing.T) {
 	testClient := createTestClientForToken(ctx, t, repoFactory)
 
 	// Create already-used authorization code.
-	usedTime := time.Now().UTC().Add(-10 * time.Minute)
+	usedTime := time.Now().UTC().Add(-cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute)
 	usedCode := &cryptoutilIdentityDomain.AuthorizationRequest{
 		ID:                  googleUuid.New(),
 		ClientID:            testClient.ClientID,
@@ -174,8 +174,8 @@ func TestHandleToken_InvalidGrant_AlreadyUsedCode(t *testing.T) {
 		Code:                googleUuid.Must(googleUuid.NewV7()).String(),
 		CodeChallenge:       "test-challenge",
 		CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
-		CreatedAt:           time.Now().UTC().Add(-30 * time.Minute),
-		ExpiresAt:           time.Now().UTC().Add(5 * time.Minute),
+		CreatedAt:           time.Now().UTC().Add(-cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Minute),
+		ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 		ConsentGranted:      true,
 		Used:                true,
 		UsedAt:              &usedTime,
@@ -287,16 +287,16 @@ func createTokenTestDependencies(t *testing.T) (*cryptoutilIdentityConfig.Config
 
 	config := &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type:        "sqlite",
+			Type:        cryptoutilSharedMagic.TestDatabaseSQLite,
 			DSN:         fmt.Sprintf("file::memory:?cache=private&mode=memory&_id=%s", googleUuid.New().String()),
 			AutoMigrate: true,
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			Issuer:               "https://localhost:8080",
-			AccessTokenLifetime:  3600,
-			RefreshTokenLifetime: 86400,
-			AccessTokenFormat:    "jws",
-			SigningAlgorithm:     "RS256",
+			AccessTokenLifetime:  cryptoutilSharedMagic.IMDefaultSessionTimeout,
+			RefreshTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+			AccessTokenFormat:    cryptoutilSharedMagic.DefaultBrowserSessionCookie,
+			SigningAlgorithm:     cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		},
 	}
 
@@ -359,16 +359,16 @@ func createTestClientForToken(ctx context.Context, t *testing.T, repoFactory *cr
 		ClientSecret:            "test-secret",
 		Name:                    "Test Token Client",
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
-		RedirectURIs:            []string{"https://example.com/callback"},
-		AllowedScopes:           []string{"openid", "profile", "email", "api:read", "api:write"},
-		AllowedGrantTypes:       []string{"authorization_code", "refresh_token", "client_credentials"},
-		AllowedResponseTypes:    []string{"code"},
+		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
+		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail, "api:read", "api:write"},
+		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode, cryptoutilSharedMagic.GrantTypeRefreshToken, cryptoutilSharedMagic.GrantTypeClientCredentials},
+		AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,
-		AccessTokenLifetime:     3600,
-		RefreshTokenLifetime:    86400,
-		IDTokenLifetime:         3600,
+		AccessTokenLifetime:     cryptoutilSharedMagic.IMDefaultSessionTimeout,
+		RefreshTokenLifetime:    cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+		IDTokenLifetime:         cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		RequirePKCE:             boolPtr(true),
-		PKCEChallengeMethod:     "S256",
+		PKCEChallengeMethod:     cryptoutilSharedMagic.PKCEMethodS256,
 		Enabled:                 boolPtr(true),
 		CreatedAt:               time.Now().UTC(),
 		UpdatedAt:               time.Now().UTC(),
@@ -388,7 +388,7 @@ func createTestAuthorizationCode(ctx context.Context, t *testing.T, repoFactory 
 	authCode := &cryptoutilIdentityDomain.AuthorizationRequest{
 		ID:                  googleUuid.New(),
 		ClientID:            clientID,
-		RedirectURI:         "https://example.com/callback",
+		RedirectURI:         cryptoutilSharedMagic.DemoRedirectURI,
 		ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
 		Scope:               "openid profile email",
 		State:               "test-state",
@@ -396,7 +396,7 @@ func createTestAuthorizationCode(ctx context.Context, t *testing.T, repoFactory 
 		CodeChallenge:       "UjvqC9mj0YVcV_IU0g-ZN4N3PCwI_ls67w8ToZVLJMA", // SHA256 of "test-verifier-12345678901234567890123456789012".
 		CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 		CreatedAt:           time.Now().UTC(),
-		ExpiresAt:           time.Now().UTC().Add(10 * time.Minute),
+		ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
 		ConsentGranted:      true,
 		Used:                false,
 		UserID: cryptoutilIdentityDomain.NullableUUID{

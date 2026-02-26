@@ -314,7 +314,7 @@ func IsValidTenantID(tenantID string) bool {
 	}
 
 	// Expected positions for hyphens: 8, 13, 18, 23.
-	hyphenPositions := []int{8, 13, 18, 23}
+	hyphenPositions := []int{cryptoutilSharedMagic.IMMinPasswordLength, 13, 18, 23}
 	for _, pos := range hyphenPositions {
 		if tenantID[pos] != '-' {
 			return false
@@ -323,7 +323,7 @@ func IsValidTenantID(tenantID string) bool {
 
 	// Validate hex characters at non-hyphen positions.
 	for i, r := range tenantID {
-		if i == 8 || i == 13 || i == 18 || i == 23 {
+		if i == cryptoutilSharedMagic.IMMinPasswordLength || i == 13 || i == 18 || i == 23 {
 			continue
 		}
 

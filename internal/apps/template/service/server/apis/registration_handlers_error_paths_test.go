@@ -36,7 +36,7 @@ func TestHandleRegisterUser_ValidationError(t *testing.T) {
 	handlers := NewRegistrationHandlers(registrationService)
 
 	app := fiber.New()
-	app.Post("/register", handlers.HandleRegisterUser)
+	app.Post(cryptoutilSharedMagic.PathRegistration, handlers.HandleRegisterUser)
 
 	// username too short — triggers validateRegistrationRequest error → 400
 	body := RegisterUserRequest{
@@ -48,7 +48,7 @@ func TestHandleRegisterUser_ValidationError(t *testing.T) {
 	bodyBytes, err := json.Marshal(body)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/register", bytes.NewReader(bodyBytes))
+	req := httptest.NewRequest("POST", cryptoutilSharedMagic.PathRegistration, bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, respErr := app.Test(req, -1)
@@ -79,7 +79,7 @@ func TestHandleRegisterUser_HashError(t *testing.T) {
 	handlers := NewRegistrationHandlers(registrationService)
 
 	app := fiber.New()
-	app.Post("/register", handlers.HandleRegisterUser)
+	app.Post(cryptoutilSharedMagic.PathRegistration, handlers.HandleRegisterUser)
 
 	body := RegisterUserRequest{
 		Username:   strings.Repeat("a", cryptoutilSharedMagic.IMMinUsernameLength),
@@ -90,7 +90,7 @@ func TestHandleRegisterUser_HashError(t *testing.T) {
 	bodyBytes, err := json.Marshal(body)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/register", bytes.NewReader(bodyBytes))
+	req := httptest.NewRequest("POST", cryptoutilSharedMagic.PathRegistration, bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, respErr := app.Test(req, -1)
@@ -98,7 +98,7 @@ func TestHandleRegisterUser_HashError(t *testing.T) {
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
 
-	require.Equal(t, 500, resp.StatusCode)
+	require.Equal(t, cryptoutilSharedMagic.TestDefaultRateLimitServiceIP, resp.StatusCode)
 }
 
 // TestHandleListJoinRequests_InvalidTenantIDType covers the type assertion
@@ -127,7 +127,7 @@ func TestHandleListJoinRequests_InvalidTenantIDType(t *testing.T) {
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
 
-	require.Equal(t, 500, resp.StatusCode)
+	require.Equal(t, cryptoutilSharedMagic.TestDefaultRateLimitServiceIP, resp.StatusCode)
 }
 
 // TestHandleRegisterUser_ServiceError covers the service error path at
@@ -160,7 +160,7 @@ func TestHandleRegisterUser_ServiceError(t *testing.T) {
 	handlers := NewRegistrationHandlers(registrationService)
 
 	app := fiber.New()
-	app.Post("/register", handlers.HandleRegisterUser)
+	app.Post(cryptoutilSharedMagic.PathRegistration, handlers.HandleRegisterUser)
 
 	body := RegisterUserRequest{
 		Username:     strings.Repeat("a", cryptoutilSharedMagic.IMMinUsernameLength),
@@ -173,7 +173,7 @@ func TestHandleRegisterUser_ServiceError(t *testing.T) {
 	bodyBytes, marshalErr := json.Marshal(body)
 	require.NoError(t, marshalErr)
 
-	req := httptest.NewRequest("POST", "/register", bytes.NewReader(bodyBytes))
+	req := httptest.NewRequest("POST", cryptoutilSharedMagic.PathRegistration, bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, respErr := app.Test(req, -1)
@@ -181,7 +181,7 @@ func TestHandleRegisterUser_ServiceError(t *testing.T) {
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
 
-	require.Equal(t, 500, resp.StatusCode)
+	require.Equal(t, cryptoutilSharedMagic.TestDefaultRateLimitServiceIP, resp.StatusCode)
 }
 
 // TestHandleListJoinRequests_ServiceError covers the service error path at
@@ -228,5 +228,5 @@ func TestHandleListJoinRequests_ServiceError(t *testing.T) {
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
 
-	require.Equal(t, 500, resp.StatusCode)
+	require.Equal(t, cryptoutilSharedMagic.TestDefaultRateLimitServiceIP, resp.StatusCode)
 }

@@ -5,6 +5,7 @@
 package idp_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	fiber "github.com/gofiber/fiber/v2"
@@ -100,7 +101,7 @@ func TestRegisterMiddleware_RateLimitEnabled(t *testing.T) {
 	config := &cryptoutilIdentityConfig.Config{
 		Security: &cryptoutilIdentityConfig.SecurityConfig{
 			RateLimitEnabled:  true,
-			RateLimitRequests: 100,
+			RateLimitRequests: cryptoutilSharedMagic.JoseJAMaxMaterials,
 		},
 	}
 

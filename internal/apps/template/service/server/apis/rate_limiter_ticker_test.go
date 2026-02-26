@@ -6,6 +6,7 @@
 package apis
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
 
@@ -18,7 +19,7 @@ import (
 func TestRateLimiter_CleanupTickerFires(t *testing.T) {
 	t.Parallel()
 
-	limiter := NewRateLimiter(60, 10)
+	limiter := NewRateLimiter(cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	ipAddress := "10.0.0.99"
 
 	// Create a bucket so cleanup has something to find.
@@ -41,7 +42,7 @@ func TestRateLimiter_CleanupTickerFires(t *testing.T) {
 	// The cleanup will remove our stale bucket.
 	deadline := time.Now().UTC().Add(2 * time.Second)
 	for time.Now().UTC().Before(deadline) {
-		time.Sleep(5 * time.Millisecond)
+		time.Sleep(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Millisecond)
 
 		limiter.mu.RLock()
 		_, exists := limiter.buckets[ipAddress]

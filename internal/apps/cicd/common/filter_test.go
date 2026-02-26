@@ -3,6 +3,7 @@
 package common
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -92,7 +93,7 @@ func TestFlattenFileMap(t *testing.T) {
 				"yaml": {"config.yaml"},
 				"md":   {"README.md", "CHANGELOG.md"},
 			},
-			expected: 5,
+			expected: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 		},
 	}
 

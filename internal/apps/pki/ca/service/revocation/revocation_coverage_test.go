@@ -3,6 +3,7 @@
 package revocation
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"math/big"
 	"testing"
 	"time"
@@ -23,7 +24,7 @@ func TestCRLService_GetRevokedCertificates(t *testing.T) {
 		Issuer:     caCert,
 		PrivateKey: caKey,
 		Provider:   provider,
-		Validity:   24 * time.Hour,
+		Validity:   cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 
 	svc, err := NewCRLService(config)

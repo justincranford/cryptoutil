@@ -3,6 +3,7 @@
 package apis
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
 
@@ -29,7 +30,7 @@ func TestRateLimiter_ExhaustTokens(t *testing.T) {
 func TestRateLimiter_CleanupStale(t *testing.T) {
 	t.Parallel()
 
-	limiter := NewRateLimiter(60, 10)
+	limiter := NewRateLimiter(cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	ipAddress := "192.168.1.300"
 
 	// Create bucket.
@@ -69,7 +70,7 @@ func TestRateLimiter_CleanupStale(t *testing.T) {
 func TestRateLimiter_StopCleanupLoop(t *testing.T) {
 	t.Parallel()
 
-	limiter := NewRateLimiter(60, 10)
+	limiter := NewRateLimiter(cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	ipAddress := "192.168.1.200"
 
 	// Generate some traffic.
@@ -90,7 +91,7 @@ func TestRateLimiter_TokenCapAfterLongIdle(t *testing.T) {
 	t.Parallel()
 
 	// Create limiter with burstSize=3 and requestsPerMin=60 (1 token/sec).
-	limiter := NewRateLimiter(60, 3)
+	limiter := NewRateLimiter(cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds, 3)
 	ipAddress := "192.168.1.400"
 
 	// First request creates bucket with full tokens (burstSize=3).
@@ -104,7 +105,7 @@ func TestRateLimiter_TokenCapAfterLongIdle(t *testing.T) {
 		// Set lastRefillTime to 10 seconds ago.
 		// With 60 req/min = 1 token/sec, this should add ~10 tokens.
 		// But bucket already has 2 tokens (3 - 1 used), so cap at 3.
-		bucket.lastRefillTime = time.Now().UTC().Add(-10 * time.Second)
+		bucket.lastRefillTime = time.Now().UTC().Add(-cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second)
 	}
 
 	limiter.mu.Unlock()

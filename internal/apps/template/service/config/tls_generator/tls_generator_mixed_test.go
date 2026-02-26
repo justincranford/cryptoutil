@@ -23,7 +23,7 @@ func TestGenerateTLSMaterialMixed_MissingCACertPEM(t *testing.T) {
 	t.Parallel()
 
 	// Expect GenerateServerCertFromCA to fail when CA cert PEM is missing.
-	_, err := GenerateServerCertFromCA(nil, []byte("dummy-key"), []string{"localhost"}, []string{"127.0.0.1"}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
+	_, err := GenerateServerCertFromCA(nil, []byte("dummy-key"), []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []string{cryptoutilSharedMagic.IPv4Loopback}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "CA certificate PEM")
 }
@@ -36,13 +36,13 @@ func TestGenerateTLSMaterialMixed_MissingCAKeyPEM(t *testing.T) {
 	caKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(elliptic.P384())
 	require.NoError(t, err)
 
-	caSubjects, err := cryptoutilSharedCryptoCertificate.CreateCASubjects([]*cryptoutilSharedCryptoKeygen.KeyPair{caKeyPair}, "Test CA", time.Duration(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)*24*time.Hour)
+	caSubjects, err := cryptoutilSharedCryptoCertificate.CreateCASubjects([]*cryptoutilSharedCryptoKeygen.KeyPair{caKeyPair}, "Test CA", time.Duration(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)*cryptoutilSharedMagic.HoursPerDay*time.Hour)
 	require.NoError(t, err)
 
 	caCert := caSubjects[0].KeyMaterial.CertificateChain[0]
-	caCertPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: caCert.Raw})
+	caCertPEM := pem.EncodeToMemory(&pem.Block{Type: cryptoutilSharedMagic.StringPEMTypeCertificate, Bytes: caCert.Raw})
 
-	_, err = GenerateServerCertFromCA(caCertPEM, nil, []string{"localhost"}, []string{"127.0.0.1"}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
+	_, err = GenerateServerCertFromCA(caCertPEM, nil, []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []string{cryptoutilSharedMagic.IPv4Loopback}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "CA private key PEM")
 }
@@ -52,7 +52,7 @@ func TestGenerateTLSMaterialMixed_InvalidIPAddress(t *testing.T) {
 	t.Parallel()
 
 	// Generate valid CA for test setup.
-	duration := time.Duration(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year) * 24 * time.Hour
+	duration := time.Duration(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year) * cryptoutilSharedMagic.HoursPerDay * time.Hour
 
 	caKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(elliptic.P384())
 	require.NoError(t, err)
@@ -63,7 +63,7 @@ func TestGenerateTLSMaterialMixed_InvalidIPAddress(t *testing.T) {
 	caCert := caSubjects[0].KeyMaterial.CertificateChain[0]
 
 	caCertPEM := pem.EncodeToMemory(&pem.Block{
-		Type:  "CERTIFICATE",
+		Type:  cryptoutilSharedMagic.StringPEMTypeCertificate,
 		Bytes: caCert.Raw,
 	})
 
@@ -71,12 +71,12 @@ func TestGenerateTLSMaterialMixed_InvalidIPAddress(t *testing.T) {
 	require.NoError(t, err)
 
 	caKeyPEM := pem.EncodeToMemory(&pem.Block{
-		Type:  "PRIVATE KEY",
+		Type:  cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey,
 		Bytes: caKeyBytes,
 	})
 
 	// Test with invalid IP address - GenerateServerCertFromCA should detect invalid IP.
-	_, err = GenerateServerCertFromCA(caCertPEM, caKeyPEM, []string{"localhost"}, []string{"invalid-ip"}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
+	_, err = GenerateServerCertFromCA(caCertPEM, caKeyPEM, []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []string{"invalid-ip"}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid IP address")
 }
@@ -85,7 +85,7 @@ func TestGenerateTLSMaterialMixed_ECPrivateKey(t *testing.T) {
 	t.Parallel()
 
 	// Generate EC CA for testing EC PRIVATE KEY format.
-	duration := time.Duration(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year) * 24 * time.Hour
+	duration := time.Duration(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year) * cryptoutilSharedMagic.HoursPerDay * time.Hour
 
 	caKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(elliptic.P384())
 	require.NoError(t, err)
@@ -96,7 +96,7 @@ func TestGenerateTLSMaterialMixed_ECPrivateKey(t *testing.T) {
 	caCert := caSubjects[0].KeyMaterial.CertificateChain[0]
 
 	caCertPEM := pem.EncodeToMemory(&pem.Block{
-		Type:  "CERTIFICATE",
+		Type:  cryptoutilSharedMagic.StringPEMTypeCertificate,
 		Bytes: caCert.Raw,
 	})
 
@@ -105,12 +105,12 @@ func TestGenerateTLSMaterialMixed_ECPrivateKey(t *testing.T) {
 	require.NoError(t, marshalErr)
 
 	caKeyPEM := pem.EncodeToMemory(&pem.Block{
-		Type:  "EC PRIVATE KEY",
+		Type:  cryptoutilSharedMagic.StringPEMTypeECPrivateKey,
 		Bytes: caKeyBytes,
 	})
 
 	// Generate server cert signed by EC CA and verify TLS material can be built.
-	mixedCfg, err := GenerateServerCertFromCA(caCertPEM, caKeyPEM, []string{"localhost", "ec-test"}, []string{"127.0.0.1", "::1"}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
+	mixedCfg, err := GenerateServerCertFromCA(caCertPEM, caKeyPEM, []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault, "ec-test"}, []string{cryptoutilSharedMagic.IPv4Loopback, cryptoutilSharedMagic.IPv6Loopback}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
 	require.NoError(t, err)
 	material, err := GenerateTLSMaterial(mixedCfg)
 	require.NoError(t, err)
@@ -124,7 +124,7 @@ func TestGenerateTLSMaterialAuto_HappyPath(t *testing.T) {
 	t.Parallel()
 
 	// Generate auto-mode TLSGeneratedSettings using helper and verify resulting TLS material.
-	cfg, err := GenerateAutoTLSGeneratedSettings([]string{"localhost", "auto-test"}, []string{"127.0.0.1", "::1"}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
+	cfg, err := GenerateAutoTLSGeneratedSettings([]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault, "auto-test"}, []string{cryptoutilSharedMagic.IPv4Loopback, cryptoutilSharedMagic.IPv6Loopback}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
 	require.NoError(t, err)
 	material, err := GenerateTLSMaterial(cfg)
 	require.NoError(t, err)
@@ -144,15 +144,15 @@ func TestGenerateTLSMaterialAuto_HappyPath(t *testing.T) {
 	require.Equal(t, "Auto-Generated Server Certificate", tlsCert.Leaf.Subject.CommonName)
 
 	// Verify DNS names.
-	require.Contains(t, tlsCert.Leaf.DNSNames, "localhost")
+	require.Contains(t, tlsCert.Leaf.DNSNames, cryptoutilSharedMagic.DefaultOTLPHostnameDefault)
 	require.Contains(t, tlsCert.Leaf.DNSNames, "auto-test")
 
 	// Verify IP addresses.
 	require.Len(t, tlsCert.Leaf.IPAddresses, 2)
 
 	// Parse expected IPs.
-	expectedIP1 := parseIP(t, "127.0.0.1")
-	expectedIP2 := parseIP(t, "::1")
+	expectedIP1 := parseIP(t, cryptoutilSharedMagic.IPv4Loopback)
+	expectedIP2 := parseIP(t, cryptoutilSharedMagic.IPv6Loopback)
 
 	// Check if IPs match (handling IPv4-mapped IPv6).
 	foundIP1 := false
@@ -188,7 +188,7 @@ func TestGenerateTLSMaterialAuto_HappyPath(t *testing.T) {
 func TestGenerateTLSMaterialAuto_DefaultValidity(t *testing.T) {
 	t.Parallel()
 
-	cfg, err := GenerateAutoTLSGeneratedSettings([]string{"localhost"}, []string{"127.0.0.1"}, 0) // validityDays=0 -> default
+	cfg, err := GenerateAutoTLSGeneratedSettings([]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []string{cryptoutilSharedMagic.IPv4Loopback}, 0) // validityDays=0 -> default
 	require.NoError(t, err)
 	material, err := GenerateTLSMaterial(cfg)
 	require.NoError(t, err)
@@ -203,8 +203,8 @@ func TestGenerateTLSMaterialAuto_DefaultValidity(t *testing.T) {
 
 	// Verify validity period is approximately 365 days (allow 1 day tolerance for time.Now() drift).
 	validityDuration := tlsCert.Leaf.NotAfter.Sub(tlsCert.Leaf.NotBefore)
-	expectedDuration := time.Duration(365) * 24 * time.Hour
-	tolerance := 24 * time.Hour
+	expectedDuration := time.Duration(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year) * cryptoutilSharedMagic.HoursPerDay * time.Hour
+	tolerance := cryptoutilSharedMagic.HoursPerDay * time.Hour
 
 	require.InDelta(t, expectedDuration.Seconds(), validityDuration.Seconds(), tolerance.Seconds())
 }
@@ -213,7 +213,7 @@ func TestGenerateTLSMaterialAuto_DefaultValidity(t *testing.T) {
 func TestGenerateTLSMaterialAuto_EmptyDNSNames(t *testing.T) {
 	t.Parallel()
 
-	cfg, err := GenerateAutoTLSGeneratedSettings(nil, []string{"127.0.0.1"}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
+	cfg, err := GenerateAutoTLSGeneratedSettings(nil, []string{cryptoutilSharedMagic.IPv4Loopback}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
 	require.NoError(t, err)
 	material, err := GenerateTLSMaterial(cfg)
 	require.NoError(t, err)
@@ -231,7 +231,7 @@ func TestGenerateTLSMaterialAuto_EmptyDNSNames(t *testing.T) {
 func TestGenerateTLSMaterialAuto_InvalidIPAddress(t *testing.T) {
 	t.Parallel()
 
-	_, err := GenerateAutoTLSGeneratedSettings([]string{"localhost"}, []string{"not-an-ip"}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
+	_, err := GenerateAutoTLSGeneratedSettings([]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []string{"not-an-ip"}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid IP address")
 }
@@ -258,7 +258,7 @@ func TestGenerateTestCA_HappyPath(t *testing.T) {
 	// Verify CA certificate is valid PEM.
 	certBlock, _ := pem.Decode(caCertPEM)
 	require.NotNil(t, certBlock, "CA cert should be valid PEM")
-	require.Equal(t, "CERTIFICATE", certBlock.Type)
+	require.Equal(t, cryptoutilSharedMagic.StringPEMTypeCertificate, certBlock.Type)
 
 	// Parse and verify certificate properties.
 	cert, err := x509.ParseCertificate(certBlock.Bytes)
@@ -269,7 +269,7 @@ func TestGenerateTestCA_HappyPath(t *testing.T) {
 	// Verify CA key is valid PEM.
 	keyBlock, _ := pem.Decode(caKeyPEM)
 	require.NotNil(t, keyBlock, "CA key should be valid PEM")
-	require.Equal(t, "PRIVATE KEY", keyBlock.Type)
+	require.Equal(t, cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey, keyBlock.Type)
 
 	// Parse and verify key is ECDSA P-384.
 	key, err := x509.ParsePKCS8PrivateKey(keyBlock.Bytes)
@@ -292,8 +292,8 @@ func TestGenerateTestCA_UsableForSigning(t *testing.T) {
 	tlsSettings, err := GenerateServerCertFromCA(
 		caCertPEM,
 		caKeyPEM,
-		[]string{"localhost"},
-		[]string{"127.0.0.1"},
+		[]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault},
+		[]string{cryptoutilSharedMagic.IPv4Loopback},
 		cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year,
 	)
 	require.NoError(t, err)
@@ -307,7 +307,7 @@ func TestGenerateTestCA_UsableForSigning(t *testing.T) {
 	serverCert, err := x509.ParseCertificate(certBlock.Bytes)
 	require.NoError(t, err)
 	require.False(t, serverCert.IsCA, "server cert should not be CA")
-	require.Contains(t, serverCert.DNSNames, "localhost")
+	require.Contains(t, serverCert.DNSNames, cryptoutilSharedMagic.DefaultOTLPHostnameDefault)
 }
 
 // TestGenerateTestCA_UniquePerCall verifies each call generates unique CA.

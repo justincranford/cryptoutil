@@ -5,6 +5,7 @@
 package idp_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -24,8 +25,8 @@ func TestService_RotateClientSecret_Success(t *testing.T) {
 
 	// Initialize database.
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
@@ -43,7 +44,7 @@ func TestService_RotateClientSecret_Success(t *testing.T) {
 		ClientID:     "test-rotate-client",
 		ClientSecret: "original-secret-hash",
 		Name:         "Test Rotate Client",
-		RedirectURIs: []string{"https://example.com/callback"},
+		RedirectURIs: []string{cryptoutilSharedMagic.DemoRedirectURI},
 	}
 
 	err = clientRepo.Create(ctx, testClient)
@@ -67,8 +68,8 @@ func TestService_RotateClientSecret_ClientNotFound(t *testing.T) {
 
 	// Initialize database.
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)

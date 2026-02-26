@@ -3,6 +3,7 @@
 package hash
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"os"
 	"strings"
@@ -39,8 +40,8 @@ func LoadPepperFromSecret(secretPath string) (string, error) {
 
 	// Strip "file://" prefix if present (consistency with other config patterns)
 	actualPath := secretPath
-	if strings.HasPrefix(secretPath, "file://") {
-		actualPath = strings.TrimPrefix(secretPath, "file://")
+	if strings.HasPrefix(secretPath, cryptoutilSharedMagic.FileURIScheme) {
+		actualPath = strings.TrimPrefix(secretPath, cryptoutilSharedMagic.FileURIScheme)
 	}
 
 	// Read secret file

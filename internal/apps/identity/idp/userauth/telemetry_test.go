@@ -3,6 +3,7 @@
 package userauth
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -52,25 +53,25 @@ func TestRecordRiskScore(t *testing.T) {
 	}{
 		{
 			name:       "low risk",
-			score:      0.1,
+			score:      cryptoutilSharedMagic.Tolerance10Percent,
 			level:      RiskLevelLow,
-			confidence: 0.8,
+			confidence: cryptoutilSharedMagic.RiskScoreVeryHigh,
 		},
 		{
 			name:       "medium risk",
 			score:      0.3,
 			level:      RiskLevelMedium,
-			confidence: 0.6,
+			confidence: cryptoutilSharedMagic.RiskScoreHigh,
 		},
 		{
 			name:       "high risk",
-			score:      0.6,
+			score:      cryptoutilSharedMagic.RiskScoreHigh,
 			level:      RiskLevelHigh,
-			confidence: 0.9,
+			confidence: cryptoutilSharedMagic.RiskScoreExtreme,
 		},
 		{
 			name:       "critical risk",
-			score:      0.9,
+			score:      cryptoutilSharedMagic.RiskScoreExtreme,
 			level:      RiskLevelCritical,
 			confidence: 0.95,
 		},
@@ -106,12 +107,12 @@ func TestRecordStepUpTriggered(t *testing.T) {
 			name:          "transfer requires step-up from basic to mfa",
 			operation:     "transfer_funds",
 			currentLevel:  "basic",
-			requiredLevel: "mfa",
+			requiredLevel: cryptoutilSharedMagic.AMRMultiFactor,
 		},
 		{
 			name:          "sensitive op requires strong mfa",
 			operation:     "change_password",
-			currentLevel:  "mfa",
+			currentLevel:  cryptoutilSharedMagic.AMRMultiFactor,
 			requiredLevel: "strong_mfa",
 		},
 	}
@@ -142,17 +143,17 @@ func TestRecordStepUpMethod(t *testing.T) {
 	}{
 		{
 			name:    "successful OTP",
-			method:  "otp",
+			method:  cryptoutilSharedMagic.AMRTOTP,
 			success: true,
 		},
 		{
 			name:    "failed TOTP",
-			method:  "totp",
+			method:  cryptoutilSharedMagic.MFATypeTOTP,
 			success: false,
 		},
 		{
 			name:    "successful WebAuthn",
-			method:  "webauthn",
+			method:  cryptoutilSharedMagic.MFATypeWebAuthn,
 			success: true,
 		},
 	}
@@ -184,12 +185,12 @@ func TestRecordPolicyEvaluation(t *testing.T) {
 		{
 			name:      "fast evaluation",
 			operation: "view_balance",
-			duration:  10 * time.Millisecond,
+			duration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond,
 		},
 		{
 			name:      "slow evaluation",
 			operation: "transfer_funds",
-			duration:  100 * time.Millisecond,
+			duration:  cryptoutilSharedMagic.JoseJAMaxMaterials * time.Millisecond,
 		},
 	}
 
@@ -221,13 +222,13 @@ func TestRecordPolicyLoad(t *testing.T) {
 		{
 			name:       "successful risk scoring policy load",
 			policyType: "risk_scoring",
-			duration:   50 * time.Millisecond,
+			duration:   cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond,
 			success:    true,
 		},
 		{
 			name:       "failed step-up policy load",
 			policyType: "step_up",
-			duration:   30 * time.Millisecond,
+			duration:   cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Millisecond,
 			success:    false,
 		},
 	}

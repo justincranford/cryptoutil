@@ -43,7 +43,7 @@ func SetupTestDatabase(t *testing.T) *gorm.DB {
 	// Initialize shared sql.DB once for all tests in this package.
 	globalSQLDBOnce.Do(func() {
 		// Use shared in-memory SQLite database for all tests in this package.
-		dsn := "file::memory:?cache=shared"
+		dsn := cryptoutilSharedMagic.SQLiteInMemoryDSN
 
 		// Open SQLite database with modernc driver (CGO-free) explicitly.
 		var err error
@@ -98,7 +98,7 @@ func CreateTestConfig(t *testing.T, authzPort, idpPort, rsPort int) *cryptoutilI
 	return &cryptoutilIdentityConfig.Config{
 		AuthZ: &cryptoutilIdentityConfig.ServerConfig{
 			Name:         "test-authz",
-			BindAddress:  "127.0.0.1",
+			BindAddress:  cryptoutilSharedMagic.IPv4Loopback,
 			Port:         authzPort,
 			TLSEnabled:   false,
 			ReadTimeout:  cryptoutilSharedMagic.TestReadTimeout,
@@ -107,7 +107,7 @@ func CreateTestConfig(t *testing.T, authzPort, idpPort, rsPort int) *cryptoutilI
 		},
 		IDP: &cryptoutilIdentityConfig.ServerConfig{
 			Name:         "test-idp",
-			BindAddress:  "127.0.0.1",
+			BindAddress:  cryptoutilSharedMagic.IPv4Loopback,
 			Port:         idpPort,
 			TLSEnabled:   false,
 			ReadTimeout:  cryptoutilSharedMagic.TestReadTimeout,
@@ -116,7 +116,7 @@ func CreateTestConfig(t *testing.T, authzPort, idpPort, rsPort int) *cryptoutilI
 		},
 		RS: &cryptoutilIdentityConfig.ServerConfig{
 			Name:         "test-rs",
-			BindAddress:  "127.0.0.1",
+			BindAddress:  cryptoutilSharedMagic.IPv4Loopback,
 			Port:         rsPort,
 			TLSEnabled:   false,
 			ReadTimeout:  cryptoutilSharedMagic.TestReadTimeout,
@@ -125,16 +125,16 @@ func CreateTestConfig(t *testing.T, authzPort, idpPort, rsPort int) *cryptoutilI
 		},
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
 			Type:        "sqlite",
-			DSN:         ":memory:",
+			DSN:         cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 			AutoMigrate: true,
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			AccessTokenLifetime:  time.Hour,
 			RefreshTokenLifetime: cryptoutilSharedMagic.TestRefreshTokenLifetime,
 			IDTokenLifetime:      time.Hour,
-			AccessTokenFormat:    "jws",
-			RefreshTokenFormat:   "uuid",
-			IDTokenFormat:        "jws",
+			AccessTokenFormat:    cryptoutilSharedMagic.DefaultBrowserSessionCookie,
+			RefreshTokenFormat:   cryptoutilSharedMagic.IdentityTokenFormatUUID,
+			IDTokenFormat:        cryptoutilSharedMagic.DefaultBrowserSessionCookie,
 		},
 	}
 }

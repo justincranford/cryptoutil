@@ -5,6 +5,7 @@
 package pool
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"sync"
 	"sync/atomic"
@@ -91,7 +92,7 @@ func TestGet_CanceledBeforeValue(t *testing.T) {
 
 	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(
 		context.Background(), testTelemetryService,
-		"get-canceled", 1, 1, 10, time.Minute, generateFn, false,
+		"get-canceled", 1, 1, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, time.Minute, generateFn, false,
 	))
 	require.NoError(t, err)
 	require.NotNil(t, poolInstance)
@@ -123,7 +124,7 @@ func TestGetMany_CanceledBeforeValue(t *testing.T) {
 
 	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(
 		context.Background(), testTelemetryService,
-		"getmany-canceled", 1, 1, 10, time.Minute, generateFn, false,
+		"getmany-canceled", 1, 1, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, time.Minute, generateFn, false,
 	))
 	require.NoError(t, err)
 	require.NotNil(t, poolInstance)
@@ -181,7 +182,7 @@ func TestWorker_TimeLimitReached(t *testing.T) {
 
 	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(
 		context.Background(), testTelemetryService,
-		"time-limit", 1, 1, 100, 1*time.Millisecond, generateFn, false,
+		"time-limit", 1, 1, cryptoutilSharedMagic.JoseJAMaxMaterials, 1*time.Millisecond, generateFn, false,
 	))
 	require.NoError(t, err)
 	require.NotNil(t, poolInstance)
@@ -214,7 +215,7 @@ func TestCloseChannelsThread_TickerPath(t *testing.T) {
 
 	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(
 		context.Background(), testTelemetryService,
-		"ticker-path", 1, 1, 100, 1*time.Millisecond, generateFn, false,
+		"ticker-path", 1, 1, cryptoutilSharedMagic.JoseJAMaxMaterials, 1*time.Millisecond, generateFn, false,
 	))
 	require.NoError(t, err)
 	require.NotNil(t, poolInstance)
@@ -264,7 +265,7 @@ func TestGet_CanceledVerbose(t *testing.T) {
 
 	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(
 		context.Background(), testTelemetryService,
-		"get-canceled-verbose", 1, 1, 10, time.Minute, generateFn, true,
+		"get-canceled-verbose", 1, 1, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, time.Minute, generateFn, true,
 	))
 	require.NoError(t, err)
 	require.NotNil(t, poolInstance)
@@ -297,7 +298,7 @@ func TestGetMany_CanceledVerbose(t *testing.T) {
 
 	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(
 		context.Background(), testTelemetryService,
-		"getmany-canceled-verbose", 1, 1, 10, time.Minute, generateFn, true,
+		"getmany-canceled-verbose", 1, 1, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, time.Minute, generateFn, true,
 	))
 	require.NoError(t, err)
 	require.NotNil(t, poolInstance)
@@ -351,7 +352,7 @@ func TestWorker_TimeLimitVerbose(t *testing.T) {
 
 	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(
 		context.Background(), testTelemetryService,
-		"time-limit-verbose", 1, 1, 100, 1*time.Millisecond, generateFn, true,
+		"time-limit-verbose", 1, 1, cryptoutilSharedMagic.JoseJAMaxMaterials, 1*time.Millisecond, generateFn, true,
 	))
 	require.NoError(t, err)
 	require.NotNil(t, poolInstance)
@@ -382,7 +383,7 @@ func TestWorker_PanicRecoveryInGeneratePublishRelease(t *testing.T) {
 
 	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(
 		context.Background(), testTelemetryService,
-		"panic-recovery-gpr", 1, 1, 10, time.Minute, generateFn, false,
+		"panic-recovery-gpr", 1, 1, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, time.Minute, generateFn, false,
 	))
 	require.NoError(t, err)
 	require.NotNil(t, poolInstance)
@@ -402,7 +403,7 @@ func TestWorker_TimeLimitInGeneratePublishRelease(t *testing.T) {
 
 	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(
 		context.Background(), testTelemetryService,
-		"time-limit-in-gpr", 1, 1, 100, 1*time.Nanosecond,
+		"time-limit-in-gpr", 1, 1, cryptoutilSharedMagic.JoseJAMaxMaterials, 1*time.Nanosecond,
 		cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), true,
 	))
 	require.NoError(t, err)

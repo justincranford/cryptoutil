@@ -4,6 +4,7 @@
 package host_port_ranges
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bufio"
 	"fmt"
 	"os"
@@ -102,7 +103,7 @@ func CheckHostPortRangesInFile(filePath string) []lintPortsCommon.Violation {
 
 		// Check for port mappings.
 		if match := portMappingPattern.FindStringSubmatch(line); match != nil {
-			hostPort, err := strconv.ParseUint(match[1], 10, 16)
+			hostPort, err := strconv.ParseUint(match[1], cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cryptoutilSharedMagic.RealmMinTokenLengthBytes)
 			if err != nil {
 				continue
 			}
@@ -163,7 +164,7 @@ func IsPortInValidRange(port uint16, cfg *lintPortsCommon.ServicePortConfig) boo
 	// Public ports define the base, allow up to +99 for the full range.
 	if len(cfg.PublicPorts) > 0 {
 		basePort := cfg.PublicPorts[0]
-		if port >= basePort && port < basePort+100 {
+		if port >= basePort && port < basePort+cryptoutilSharedMagic.JoseJAMaxMaterials {
 			return true
 		}
 	}

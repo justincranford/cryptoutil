@@ -5,6 +5,7 @@
 package cli_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"fmt"
 	http "net/http"
@@ -57,7 +58,7 @@ func TestHealthCommand_HelpFlag(t *testing.T) {
 
 			var stdout, stderr bytes.Buffer
 
-			exitCode := cryptoutilAppsTemplateCli.HealthCommand([]string{tt.arg}, &stdout, &stderr, "Usage: health", 8800)
+			exitCode := cryptoutilAppsTemplateCli.HealthCommand([]string{tt.arg}, &stdout, &stderr, "Usage: health", cryptoutilSharedMagic.JoseJAServicePort)
 			require.Equal(t, 0, exitCode)
 			require.Contains(t, stderr.String(), "Usage: health")
 		})
@@ -75,10 +76,10 @@ func TestHealthCommand_Success(t *testing.T) {
 		[]string{"--url", srv.URL},
 		&stdout, &stderr,
 		"Usage: health",
-		8800,
+		cryptoutilSharedMagic.JoseJAServicePort,
 	)
 	require.Equal(t, 0, exitCode)
-	require.Contains(t, stdout.String(), "✅")
+	require.Contains(t, stdout.String(), cryptoutilSharedMagic.TestStatusEmojiPass)
 }
 
 func TestHealthCommand_ServiceUnavailable(t *testing.T) {
@@ -92,10 +93,10 @@ func TestHealthCommand_ServiceUnavailable(t *testing.T) {
 		[]string{"--url", srv.URL},
 		&stdout, &stderr,
 		"Usage: health",
-		8800,
+		cryptoutilSharedMagic.JoseJAServicePort,
 	)
 	require.Equal(t, 1, exitCode)
-	require.Contains(t, stderr.String(), "❌")
+	require.Contains(t, stderr.String(), cryptoutilSharedMagic.TestStatusEmojiFail)
 }
 
 func TestHealthCommand_ConnectionRefused(t *testing.T) {
@@ -107,10 +108,10 @@ func TestHealthCommand_ConnectionRefused(t *testing.T) {
 		[]string{"--url", "https://127.0.0.1:1"},
 		&stdout, &stderr,
 		"Usage: health",
-		8800,
+		cryptoutilSharedMagic.JoseJAServicePort,
 	)
 	require.Equal(t, 1, exitCode)
-	require.Contains(t, stderr.String(), "❌")
+	require.Contains(t, stderr.String(), cryptoutilSharedMagic.TestStatusEmojiFail)
 }
 
 func TestLivezCommand_HelpFlag(t *testing.T) {
@@ -151,7 +152,7 @@ func TestLivezCommand_Success(t *testing.T) {
 		"Usage: livez",
 	)
 	require.Equal(t, 0, exitCode)
-	require.Contains(t, stdout.String(), "✅")
+	require.Contains(t, stdout.String(), cryptoutilSharedMagic.TestStatusEmojiPass)
 }
 
 func TestLivezCommand_Failure(t *testing.T) {
@@ -167,7 +168,7 @@ func TestLivezCommand_Failure(t *testing.T) {
 		"Usage: livez",
 	)
 	require.Equal(t, 1, exitCode)
-	require.Contains(t, stderr.String(), "❌")
+	require.Contains(t, stderr.String(), cryptoutilSharedMagic.TestStatusEmojiFail)
 }
 
 func TestLivezCommand_ConnectionRefused(t *testing.T) {
@@ -181,7 +182,7 @@ func TestLivezCommand_ConnectionRefused(t *testing.T) {
 		"Usage: livez",
 	)
 	require.Equal(t, 1, exitCode)
-	require.Contains(t, stderr.String(), "❌")
+	require.Contains(t, stderr.String(), cryptoutilSharedMagic.TestStatusEmojiFail)
 }
 
 func TestReadyzCommand_HelpFlag(t *testing.T) {
@@ -222,7 +223,7 @@ func TestReadyzCommand_Success(t *testing.T) {
 		"Usage: readyz",
 	)
 	require.Equal(t, 0, exitCode)
-	require.Contains(t, stdout.String(), "✅")
+	require.Contains(t, stdout.String(), cryptoutilSharedMagic.TestStatusEmojiPass)
 }
 
 func TestReadyzCommand_Failure(t *testing.T) {
@@ -238,7 +239,7 @@ func TestReadyzCommand_Failure(t *testing.T) {
 		"Usage: readyz",
 	)
 	require.Equal(t, 1, exitCode)
-	require.Contains(t, stderr.String(), "❌")
+	require.Contains(t, stderr.String(), cryptoutilSharedMagic.TestStatusEmojiFail)
 }
 
 func TestReadyzCommand_ConnectionRefused(t *testing.T) {
@@ -252,7 +253,7 @@ func TestReadyzCommand_ConnectionRefused(t *testing.T) {
 		"Usage: readyz",
 	)
 	require.Equal(t, 1, exitCode)
-	require.Contains(t, stderr.String(), "❌")
+	require.Contains(t, stderr.String(), cryptoutilSharedMagic.TestStatusEmojiFail)
 }
 
 func TestShutdownCommand_HelpFlag(t *testing.T) {
@@ -293,7 +294,7 @@ func TestShutdownCommand_Success(t *testing.T) {
 		"Usage: shutdown",
 	)
 	require.Equal(t, 0, exitCode)
-	require.Contains(t, stdout.String(), "✅")
+	require.Contains(t, stdout.String(), cryptoutilSharedMagic.TestStatusEmojiPass)
 }
 
 func TestShutdownCommand_SuccessWithAccepted(t *testing.T) {
@@ -309,13 +310,13 @@ func TestShutdownCommand_SuccessWithAccepted(t *testing.T) {
 		"Usage: shutdown",
 	)
 	require.Equal(t, 0, exitCode)
-	require.Contains(t, stdout.String(), "✅")
+	require.Contains(t, stdout.String(), cryptoutilSharedMagic.TestStatusEmojiPass)
 }
 
 func TestShutdownCommand_Failure(t *testing.T) {
 	t.Parallel()
 
-	srv := newHealthMockServer(t, "/admin/api/v1/shutdown", http.StatusInternalServerError, "error")
+	srv := newHealthMockServer(t, "/admin/api/v1/shutdown", http.StatusInternalServerError, cryptoutilSharedMagic.StringError)
 
 	var stdout, stderr bytes.Buffer
 
@@ -325,7 +326,7 @@ func TestShutdownCommand_Failure(t *testing.T) {
 		"Usage: shutdown",
 	)
 	require.Equal(t, 1, exitCode)
-	require.Contains(t, stderr.String(), "❌")
+	require.Contains(t, stderr.String(), cryptoutilSharedMagic.TestStatusEmojiFail)
 }
 
 func TestShutdownCommand_ConnectionRefused(t *testing.T) {
@@ -339,7 +340,7 @@ func TestShutdownCommand_ConnectionRefused(t *testing.T) {
 		"Usage: shutdown",
 	)
 	require.Equal(t, 1, exitCode)
-	require.Contains(t, stderr.String(), "❌")
+	require.Contains(t, stderr.String(), cryptoutilSharedMagic.TestStatusEmojiFail)
 }
 
 func TestLivezCommand_URLWithSuffix(t *testing.T) {
@@ -355,7 +356,7 @@ func TestLivezCommand_URLWithSuffix(t *testing.T) {
 		"Usage: livez",
 	)
 	require.Equal(t, 0, exitCode)
-	require.Contains(t, stdout.String(), "✅")
+	require.Contains(t, stdout.String(), cryptoutilSharedMagic.TestStatusEmojiPass)
 }
 
 func TestReadyzCommand_URLWithSuffix(t *testing.T) {
@@ -371,7 +372,7 @@ func TestReadyzCommand_URLWithSuffix(t *testing.T) {
 		"Usage: readyz",
 	)
 	require.Equal(t, 0, exitCode)
-	require.Contains(t, stdout.String(), "✅")
+	require.Contains(t, stdout.String(), cryptoutilSharedMagic.TestStatusEmojiPass)
 }
 
 func TestShutdownCommand_URLWithSuffix(t *testing.T) {
@@ -387,7 +388,7 @@ func TestShutdownCommand_URLWithSuffix(t *testing.T) {
 		"Usage: shutdown",
 	)
 	require.Equal(t, 0, exitCode)
-	require.Contains(t, stdout.String(), "✅")
+	require.Contains(t, stdout.String(), cryptoutilSharedMagic.TestStatusEmojiPass)
 }
 
 func TestRouteService_HealthSubcommand_Success(t *testing.T) {
@@ -399,7 +400,7 @@ func TestRouteService_HealthSubcommand_Success(t *testing.T) {
 
 	exitCode := cryptoutilAppsTemplateCli.RouteService(testServiceCfg, []string{"health", "--url", srv.URL}, &stdout, &stderr, noopSubcmd, noopSubcmd, noopSubcmd)
 	require.Equal(t, 0, exitCode)
-	require.Contains(t, stdout.String(), "✅")
+	require.Contains(t, stdout.String(), cryptoutilSharedMagic.TestStatusEmojiPass)
 }
 
 func TestRouteService_LivezSubcommand_Success(t *testing.T) {
@@ -411,7 +412,7 @@ func TestRouteService_LivezSubcommand_Success(t *testing.T) {
 
 	exitCode := cryptoutilAppsTemplateCli.RouteService(testServiceCfg, []string{"livez", "--url", srv.URL}, &stdout, &stderr, noopSubcmd, noopSubcmd, noopSubcmd)
 	require.Equal(t, 0, exitCode)
-	require.Contains(t, stdout.String(), "✅")
+	require.Contains(t, stdout.String(), cryptoutilSharedMagic.TestStatusEmojiPass)
 }
 
 func TestRouteService_ReadyzSubcommand_Success(t *testing.T) {
@@ -423,7 +424,7 @@ func TestRouteService_ReadyzSubcommand_Success(t *testing.T) {
 
 	exitCode := cryptoutilAppsTemplateCli.RouteService(testServiceCfg, []string{"readyz", "--url", srv.URL}, &stdout, &stderr, noopSubcmd, noopSubcmd, noopSubcmd)
 	require.Equal(t, 0, exitCode)
-	require.Contains(t, stdout.String(), "✅")
+	require.Contains(t, stdout.String(), cryptoutilSharedMagic.TestStatusEmojiPass)
 }
 
 func TestRouteService_ShutdownSubcommand_Success(t *testing.T) {
@@ -435,5 +436,5 @@ func TestRouteService_ShutdownSubcommand_Success(t *testing.T) {
 
 	exitCode := cryptoutilAppsTemplateCli.RouteService(testServiceCfg, []string{"shutdown", "--url", srv.URL}, &stdout, &stderr, noopSubcmd, noopSubcmd, noopSubcmd)
 	require.Equal(t, 0, exitCode)
-	require.Contains(t, stdout.String(), "✅")
+	require.Contains(t, stdout.String(), cryptoutilSharedMagic.TestStatusEmojiPass)
 }

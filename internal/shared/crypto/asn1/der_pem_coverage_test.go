@@ -31,9 +31,9 @@ func TestPEMWrite_MkdirFailure(t *testing.T) {
 	tmpDir := t.TempDir()
 	// Create a regular FILE where PEMWrite would need to create a DIRECTORY.
 	blockingFile := filepath.Join(tmpDir, "notadir")
-	require.NoError(t, os.WriteFile(blockingFile, []byte("block"), 0o600))
+	require.NoError(t, os.WriteFile(blockingFile, []byte("block"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	key, err := rsa.GenerateKey(crand.Reader, 2048)
+	key, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	// PEMWrite tries to MkdirAll(notadir), but notadir is a file -> fails.
@@ -52,9 +52,9 @@ func TestDERWrite_MkdirFailure(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	blockingFile := filepath.Join(tmpDir, "notadir")
-	require.NoError(t, os.WriteFile(blockingFile, []byte("block"), 0o600))
+	require.NoError(t, os.WriteFile(blockingFile, []byte("block"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	key, err := rsa.GenerateKey(crand.Reader, 2048)
+	key, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	err = DERWrite(key, filepath.Join(blockingFile, "key.der"))
@@ -72,11 +72,11 @@ func TestPEMWrite_WriteFileFailure(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	roDir := filepath.Join(tmpDir, "readonly")
-	require.NoError(t, os.MkdirAll(roDir, 0o755))
-	require.NoError(t, os.Chmod(roDir, 0o444))
-	t.Cleanup(func() { os.Chmod(roDir, 0o755) }) //nolint:errcheck,gosec // cleanup: chmod restore on cleanup, error ignored intentionally
+	require.NoError(t, os.MkdirAll(roDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.Chmod(roDir, cryptoutilSharedMagic.FilePermOwnerReadOnlyGroupOtherReadOnly))
+	t.Cleanup(func() { os.Chmod(roDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute) }) //nolint:errcheck,gosec // cleanup: chmod restore on cleanup, error ignored intentionally
 
-	key, err := rsa.GenerateKey(crand.Reader, 2048)
+	key, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	err = PEMWrite(key, filepath.Join(roDir, "key.pem"))
@@ -94,11 +94,11 @@ func TestDERWrite_WriteFileFailure(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	roDir := filepath.Join(tmpDir, "readonly")
-	require.NoError(t, os.MkdirAll(roDir, 0o755))
-	require.NoError(t, os.Chmod(roDir, 0o444))
-	t.Cleanup(func() { os.Chmod(roDir, 0o755) }) //nolint:errcheck,gosec // cleanup: chmod restore on cleanup, error ignored intentionally
+	require.NoError(t, os.MkdirAll(roDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.Chmod(roDir, cryptoutilSharedMagic.FilePermOwnerReadOnlyGroupOtherReadOnly))
+	t.Cleanup(func() { os.Chmod(roDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute) }) //nolint:errcheck,gosec // cleanup: chmod restore on cleanup, error ignored intentionally
 
-	key, err := rsa.GenerateKey(crand.Reader, 2048)
+	key, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	err = DERWrite(key, filepath.Join(roDir, "key.der"))
@@ -116,7 +116,7 @@ func TestDEREncode_PrivateKeyMarshalError(t *testing.T) {
 
 	defer func() { x509MarshalPKCS8PrivateKeyFn = orig }()
 
-	key, err := rsa.GenerateKey(crand.Reader, 2048)
+	key, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	_, _, err = DEREncode(key)
@@ -134,7 +134,7 @@ func TestDEREncode_PublicKeyMarshalError(t *testing.T) {
 
 	defer func() { x509MarshalPKIXPublicKeyFn = orig }()
 
-	key, err := rsa.GenerateKey(crand.Reader, 2048)
+	key, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	_, _, err = DEREncode(&key.PublicKey)
@@ -165,7 +165,7 @@ func TestDERRead_DecodesAllFail(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	filename := filepath.Join(tmpDir, "test.der")
-	require.NoError(t, os.WriteFile(filename, []byte("any bytes"), 0o600))
+	require.NoError(t, os.WriteFile(filename, []byte("any bytes"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	_, _, err := DERRead(filename)
 	require.Error(t, err)

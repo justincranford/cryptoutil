@@ -6,6 +6,7 @@
 package main
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"flag"
 	"testing"
@@ -105,9 +106,9 @@ func TestCredentialRotation(t *testing.T) {
 		UserID:          googleUuid.Must(googleUuid.NewV7()).String(),
 		Type:            cryptoutilIdentityORM.CredentialTypePasskey,
 		PublicKey:       oldPublicKey,
-		AttestationType: "none",
+		AttestationType: cryptoutilSharedMagic.PromptNone,
 		AAGUID:          []byte{},
-		SignCount:       42,
+		SignCount:       cryptoutilSharedMagic.AnswerToLifeUniverseEverything,
 		Metadata: map[string]any{
 			"device_name": "YubiKey 5C",
 		},
@@ -159,7 +160,7 @@ func TestInventoryStub(t *testing.T) {
 	ctx := context.Background()
 
 	// Verify audit event would be logged.
-	logAuditEvent(ctx, "INVENTORY_GENERATED", "system", "all", map[string]any{
+	logAuditEvent(ctx, "INVENTORY_GENERATED", cryptoutilSharedMagic.SystemInitiatorName, cryptoutilSharedMagic.ModeNameAll, map[string]any{
 		"timestamp": "2025-01-15T12:00:00Z",
 	})
 	// No assertions - this is a smoke test for audit logging.

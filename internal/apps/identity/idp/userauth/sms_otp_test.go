@@ -5,6 +5,7 @@
 package userauth_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	"testing"
@@ -21,9 +22,9 @@ func TestDefaultOTPGenerator_GenerateOTP(t *testing.T) {
 
 	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
 
-	otp, err := generator.GenerateOTP(6)
+	otp, err := generator.GenerateOTP(cryptoutilSharedMagic.DefaultEmailOTPLength)
 	require.NoError(t, err, "GenerateOTP should succeed")
-	require.Len(t, otp, 6, "OTP should be 6 digits")
+	require.Len(t, otp, cryptoutilSharedMagic.DefaultEmailOTPLength, "OTP should be 6 digits")
 
 	// Verify all characters are digits.
 	for _, c := range otp {
@@ -50,8 +51,8 @@ func TestDefaultOTPGenerator_GenerateOTPUniqueness(t *testing.T) {
 	otps := make(map[string]bool)
 
 	// Generate multiple OTPs - with 6 digits, duplicates are statistically very unlikely.
-	for range 20 {
-		otp, err := generator.GenerateOTP(8) // Use 8 digits to reduce collision chance.
+	for range cryptoutilSharedMagic.MaxErrorDisplay {
+		otp, err := generator.GenerateOTP(cryptoutilSharedMagic.IMMinPasswordLength) // Use 8 digits to reduce collision chance.
 		require.NoError(t, err, "GenerateOTP should succeed")
 
 		otps[otp] = true
@@ -66,9 +67,9 @@ func TestDefaultOTPGenerator_GenerateSecureToken(t *testing.T) {
 
 	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
 
-	token, err := generator.GenerateSecureToken(16)
+	token, err := generator.GenerateSecureToken(cryptoutilSharedMagic.RealmMinTokenLengthBytes)
 	require.NoError(t, err, "GenerateSecureToken should succeed")
-	require.Len(t, token, 32, "Token should be double the byte length (hex encoded)")
+	require.Len(t, token, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes, "Token should be double the byte length (hex encoded)")
 
 	// Verify all characters are hex.
 	for _, c := range token {
@@ -96,8 +97,8 @@ func TestDefaultOTPGenerator_GenerateSecureTokenUniqueness(t *testing.T) {
 	tokens := make(map[string]bool)
 
 	// Generate multiple tokens and ensure they're unique.
-	for range 10 {
-		token, err := generator.GenerateSecureToken(16)
+	for range cryptoutilSharedMagic.JoseJADefaultMaxMaterials {
+		token, err := generator.GenerateSecureToken(cryptoutilSharedMagic.RealmMinTokenLengthBytes)
 		require.NoError(t, err, "GenerateSecureToken should succeed")
 		require.False(t, tokens[token], "Token should be unique")
 		tokens[token] = true
@@ -115,7 +116,7 @@ func TestSMSOTPAuthenticator_Method(t *testing.T) {
 	t.Parallel()
 
 	auth := cryptoutilIdentityIdpUserauth.NewSMSOTPAuthenticator(nil, nil, nil, nil, nil)
-	require.Equal(t, "sms_otp", auth.Method(), "Method should return 'sms_otp'")
+	require.Equal(t, cryptoutilSharedMagic.AuthMethodSMSOTP, auth.Method(), "Method should return 'sms_otp'")
 }
 
 // mockSMSUserRepo implements UserRepository for SMS OTP testing.
@@ -228,7 +229,7 @@ func TestSMSOTPAuthenticator_InitiateAuth(t *testing.T) {
 	require.NoError(t, err, "InitiateAuth should succeed")
 	require.NotNil(t, challenge, "Challenge should not be nil")
 	require.Equal(t, userID.String(), challenge.UserID, "Challenge UserID should match")
-	require.Equal(t, "sms_otp", challenge.Method, "Challenge Method should match")
+	require.Equal(t, cryptoutilSharedMagic.AuthMethodSMSOTP, challenge.Method, "Challenge Method should match")
 
 	// Verify SMS was sent.
 	require.Len(t, delivery.sentMessages, 1, "One SMS should have been sent")

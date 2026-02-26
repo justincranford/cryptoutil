@@ -5,6 +5,7 @@
 package rotation
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"fmt"
@@ -26,7 +27,7 @@ func setupTestDBWithTables(t *testing.T) (*gorm.DB, *sql.DB) {
 
 	dbName := fmt.Sprintf("file:test_%s.db?mode=memory&cache=shared", t.Name())
 
-	sqlDB, err := sql.Open("sqlite", dbName)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dbName)
 	require.NoError(t, err, "Failed to open SQL database")
 
 	ctx := context.Background()
@@ -44,8 +45,8 @@ func setupTestDBWithTables(t *testing.T) (*gorm.DB, *sql.DB) {
 	})
 	require.NoError(t, gormErr, "Failed to create GORM database")
 
-	sqlDB.SetMaxOpenConns(5)
-	sqlDB.SetMaxIdleConns(5)
+	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	sqlDB.SetConnMaxLifetime(0)
 	sqlDB.SetConnMaxIdleTime(0)
 

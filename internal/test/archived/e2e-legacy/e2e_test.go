@@ -52,14 +52,14 @@ func (suite *SummaryTestSuite) SetupSuite() {
 	// Create assertions helper
 	suite.assertions = NewServiceAssertions(suite.T(), suite.fixture.logger)
 
-	suite.completeStep("PASS", "Summary test setup completed successfully")
+	suite.completeStep(cryptoutilSharedMagic.TestStatusPass, "Summary test setup completed successfully")
 }
 
 // TearDownSuite runs once after all tests in the suite.
 func (suite *SummaryTestSuite) TearDownSuite() {
 	suite.logStep("Summary Test Cleanup", "Cleaning up summary test suite")
 
-	suite.completeStep("PASS", "Summary test cleanup completed")
+	suite.completeStep(cryptoutilSharedMagic.TestStatusPass, "Summary test cleanup completed")
 
 	// Generate final summary report
 	suite.generateSummaryReport()
@@ -71,21 +71,21 @@ func (suite *SummaryTestSuite) TestQuickDemo() {
 
 	defer func() {
 		if r := recover(); r != nil {
-			suite.completeStep("FAIL", fmt.Sprintf("Quick demo test failed: %v", r))
+			suite.completeStep(cryptoutilSharedMagic.TestStatusFail, fmt.Sprintf("Quick demo test failed: %v", r))
 			panic(r)
 		}
 
-		suite.completeStep("PASS", "Quick demo test completed successfully")
+		suite.completeStep(cryptoutilSharedMagic.TestStatusPass, "Quick demo test completed successfully")
 	}()
 
 	// Simulate some quick operations
 	suite.logStep("Sub-operation 1", "Performing first sub-operation")
-	time.Sleep(100 * time.Millisecond)
-	suite.completeStep("PASS", "Sub-operation 1 completed")
+	time.Sleep(cryptoutilSharedMagic.JoseJAMaxMaterials * time.Millisecond)
+	suite.completeStep(cryptoutilSharedMagic.TestStatusPass, "Sub-operation 1 completed")
 
 	suite.logStep("Sub-operation 2", "Performing second sub-operation")
-	time.Sleep(50 * time.Millisecond)
-	suite.completeStep("PASS", "Sub-operation 2 completed")
+	time.Sleep(cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond)
+	suite.completeStep(cryptoutilSharedMagic.TestStatusPass, "Sub-operation 2 completed")
 }
 
 // Helper methods (same as E2ETestSuite).
@@ -135,9 +135,9 @@ func (suite *SummaryTestSuite) generateSummaryReport() {
 	totalDuration := suite.summary.EndTime.Sub(suite.summary.StartTime)
 
 	report := strings.Builder{}
-	report.WriteString("\n" + strings.Repeat("=", 80) + "\n")
+	report.WriteString("\n" + strings.Repeat("=", cryptoutilSharedMagic.LineWidth) + "\n")
 	report.WriteString("🎯 E2E TEST EXECUTION SUMMARY REPORT\n")
-	report.WriteString(strings.Repeat("=", 80) + "\n\n")
+	report.WriteString(strings.Repeat("=", cryptoutilSharedMagic.LineWidth) + "\n\n")
 
 	report.WriteString(fmt.Sprintf("📅 Execution Date: %s\n", suite.summary.StartTime.Format("2006-01-02 15:04:05")))
 	report.WriteString(fmt.Sprintf("⏱️  Total Duration: %v\n", totalDuration.Round(time.Millisecond)))
@@ -147,14 +147,14 @@ func (suite *SummaryTestSuite) generateSummaryReport() {
 	report.WriteString(fmt.Sprintf("⏭️  Skipped: %d\n", suite.summary.SkippedSteps))
 
 	if suite.summary.FailedSteps > 0 {
-		report.WriteString(fmt.Sprintf("📈 Success Rate: %.1f%%\n", float64(suite.summary.PassedSteps)/float64(suite.summary.TotalSteps)*100))
+		report.WriteString(fmt.Sprintf("📈 Success Rate: %.1f%%\n", float64(suite.summary.PassedSteps)/float64(suite.summary.TotalSteps)*cryptoutilSharedMagic.JoseJAMaxMaterials))
 	} else {
 		report.WriteString("📈 Success Rate: 100.0%\n")
 	}
 
-	report.WriteString("\n" + strings.Repeat("-", 80) + "\n")
+	report.WriteString("\n" + strings.Repeat("-", cryptoutilSharedMagic.LineWidth) + "\n")
 	report.WriteString("📋 DETAILED STEP BREAKDOWN\n")
-	report.WriteString(strings.Repeat("-", 80) + "\n")
+	report.WriteString(strings.Repeat("-", cryptoutilSharedMagic.LineWidth) + "\n")
 
 	for i, step := range suite.summary.Steps {
 		statusEmoji := GetStatusEmoji(step.Status)
@@ -163,7 +163,7 @@ func (suite *SummaryTestSuite) generateSummaryReport() {
 			i+1, statusEmoji, step.Name, step.Duration.Round(time.Millisecond), step.Description))
 	}
 
-	report.WriteString("\n" + strings.Repeat("=", 80) + "\n")
+	report.WriteString("\n" + strings.Repeat("=", cryptoutilSharedMagic.LineWidth) + "\n")
 
 	if suite.summary.FailedSteps > 0 {
 		report.WriteString("⚠️  EXECUTION STATUS: PARTIAL SUCCESS\n")
@@ -171,7 +171,7 @@ func (suite *SummaryTestSuite) generateSummaryReport() {
 		report.WriteString("🎉 EXECUTION STATUS: FULL SUCCESS\n")
 	}
 
-	report.WriteString(strings.Repeat("=", 80) + "\n")
+	report.WriteString(strings.Repeat("=", cryptoutilSharedMagic.LineWidth) + "\n")
 
 	if suite.fixture != nil {
 		Log(suite.fixture.logger, "%s", report.String())

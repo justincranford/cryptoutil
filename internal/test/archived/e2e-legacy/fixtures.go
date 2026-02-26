@@ -326,11 +326,11 @@ func (f *TestFixture) GetServiceURL(instanceName string) string {
 		return f.postgres2URL
 	case "ca":
 		return f.caURL
-	case "jose":
+	case cryptoutilSharedMagic.JoseProductName:
 		return f.joseURL
-	case "authz":
+	case cryptoutilSharedMagic.AuthzServiceName:
 		return f.authzURL
-	case "idp":
+	case cryptoutilSharedMagic.IDPServiceName:
 		return f.idpURL
 	case "grafana":
 		return f.grafanaURL

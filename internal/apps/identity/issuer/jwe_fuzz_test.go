@@ -5,6 +5,7 @@
 package issuer
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -17,7 +18,7 @@ func FuzzJWEEncryptionDecryption(f *testing.F) {
 	f.Add("short")
 	f.Add("")
 	f.Add("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.signature")
-	f.Add(string(make([]byte, 1000)))
+	f.Add(string(make([]byte, cryptoutilSharedMagic.JoseJADefaultListLimit)))
 	f.Add("special-chars-!@#$%^&*()[]{}|\\:;\"'<>,.?/~`")
 	f.Add("unicode-测试-test-🔐")
 
@@ -56,7 +57,7 @@ func FuzzJWEDecryptionInvalidInputs(f *testing.F) {
 	f.Add("")
 	f.Add("YWJjZGVm") // Valid base64 but invalid ciphertext.
 	f.Add("!!!!")
-	f.Add(string(make([]byte, 10)))
+	f.Add(string(make([]byte, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)))
 
 	// Create legacy JWE issuer.
 	encryptionKey := []byte("01234567890123456789012345678901") // 32 bytes.
@@ -81,9 +82,9 @@ func FuzzJWEDecryptionInvalidInputs(f *testing.F) {
 func FuzzJWEKeyIDHandling(f *testing.F) {
 	// Seed corpus with various key ID formats.
 	f.Add(uint8(0), uint8(0), "plaintext")
-	f.Add(uint8(1), uint8(5), "test")
-	f.Add(uint8(255), uint8(255), "data")
-	f.Add(uint8(0), uint8(255), "content")
+	f.Add(uint8(1), uint8(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries), "test")
+	f.Add(uint8(cryptoutilSharedMagic.HKDFMaxMultiplier), uint8(cryptoutilSharedMagic.HKDFMaxMultiplier), "data")
+	f.Add(uint8(0), uint8(cryptoutilSharedMagic.HKDFMaxMultiplier), "content")
 
 	// Create legacy JWE issuer.
 	encryptionKey := []byte("01234567890123456789012345678901") // 32 bytes.

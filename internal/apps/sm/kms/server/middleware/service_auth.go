@@ -395,7 +395,7 @@ func (m *ServiceAuthMiddleware) isAllowedValue(value string, allowed []string) b
 
 // unauthorizedError returns 401 error response.
 func (m *ServiceAuthMiddleware) unauthorizedError(c *fiber.Ctx, errorCode, message string) error {
-	response := fiber.Map{"error": errorCode}
+	response := fiber.Map{cryptoutilSharedMagic.StringError: errorCode}
 
 	if m.config.ErrorDetailLevel != errorDetailLevelMin {
 		response["message"] = message

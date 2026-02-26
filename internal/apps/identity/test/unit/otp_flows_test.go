@@ -32,7 +32,7 @@ func TestSMSOTPCompleteFlow(t *testing.T) {
 	challengeStore := newMockChallengeStore()
 
 	// Setup mock rate limiter (permissive for E2E test).
-	rateLimiter := newMockRateLimiter(100, 5*time.Minute) // 100 attempts per 5 minutes
+	rateLimiter := newMockRateLimiter(cryptoutilSharedMagic.JoseJAMaxMaterials, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute) // 100 attempts per 5 minutes
 
 	// Setup mock user repository with test user.
 	userRepo := newMockUserRepository()
@@ -60,7 +60,7 @@ func TestSMSOTPCompleteFlow(t *testing.T) {
 	challenge, err := authenticator.InitiateAuth(ctx, testUser.Sub)
 	require.NoError(t, err, "InitiateAuth should succeed")
 	require.NotNil(t, challenge)
-	require.Equal(t, "sms_otp", challenge.Method)
+	require.Equal(t, cryptoutilSharedMagic.AuthMethodSMSOTP, challenge.Method)
 	require.Equal(t, testUser.Sub, challenge.UserID)
 	require.True(t, time.Now().UTC().Before(challenge.ExpiresAt), "Challenge should not be expired")
 
@@ -97,7 +97,7 @@ func TestSMSOTPInvalidToken(t *testing.T) {
 
 	mockSMS := cryptoutilIdentityIdpUserauthMocks.NewSMSProvider()
 	challengeStore := newMockChallengeStore()
-	rateLimiter := newMockRateLimiter(100, 5*time.Minute)
+	rateLimiter := newMockRateLimiter(cryptoutilSharedMagic.JoseJAMaxMaterials, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)
 	userRepo := newMockUserRepository()
 
 	testUser := &cryptoutilIdentityDomain.User{
@@ -133,7 +133,7 @@ func TestSMSOTPExpiredChallenge(t *testing.T) {
 
 	mockSMS := cryptoutilIdentityIdpUserauthMocks.NewSMSProvider()
 	challengeStore := newMockChallengeStore()
-	rateLimiter := newMockRateLimiter(100, 5*time.Minute)
+	rateLimiter := newMockRateLimiter(cryptoutilSharedMagic.JoseJAMaxMaterials, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)
 	userRepo := newMockUserRepository()
 
 	testUser := &cryptoutilIdentityDomain.User{
@@ -212,7 +212,7 @@ func TestEmailMagicLinkCompleteFlow(t *testing.T) {
 
 	mockEmail := cryptoutilIdentityIdpUserauthMocks.NewEmailProvider()
 	challengeStore := newMockChallengeStore()
-	rateLimiter := newMockRateLimiter(100, 5*time.Minute)
+	rateLimiter := newMockRateLimiter(cryptoutilSharedMagic.JoseJAMaxMaterials, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)
 	userRepo := newMockUserRepository()
 
 	testUser := &cryptoutilIdentityDomain.User{

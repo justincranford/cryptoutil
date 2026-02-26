@@ -18,17 +18,17 @@ func validBaseSettings() *ServiceTemplateServerSettings {
 	return &ServiceTemplateServerSettings{
 		DevMode:             false,
 		BindPublicAddress:   cryptoutilSharedMagic.IPv4Loopback,
-		BindPublicPort:      8080,
+		BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
 		BindPrivateAddress:  cryptoutilSharedMagic.IPv4Loopback,
-		BindPrivatePort:     9090,
+		BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
 		BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
 		BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
-		LogLevel:            "INFO",
+		LogLevel:            cryptoutilSharedMagic.DefaultLogLevelInfo,
 		DatabaseURL:         "sqlite://file::memory:",
-		TLSPublicDNSNames:   []string{"localhost"},
-		TLSPrivateDNSNames:  []string{"localhost"},
-		BrowserIPRateLimit:  100,
-		ServiceIPRateLimit:  100,
+		TLSPublicDNSNames:   []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault},
+		TLSPrivateDNSNames:  []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault},
+		BrowserIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+		ServiceIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
 		OTLPEndpoint:        "http://localhost:4317",
 	}
 }
@@ -85,7 +85,7 @@ func TestValidateConfiguration(t *testing.T) {
 			name: "valid production PostgreSQL config",
 			modify: func(s *ServiceTemplateServerSettings) {
 				s.BindPublicAddress = "192.168.1.100"
-				s.BindPublicPort = 8080
+				s.BindPublicPort = cryptoutilSharedMagic.DemoServerPort
 				s.DatabaseURL = "postgres://user:pass@db.example.com:5432/production"
 				s.TLSPublicDNSNames = []string{"api.example.com"}
 				s.OTLPEndpoint = "http://otel-collector:4317"
@@ -134,8 +134,8 @@ func TestValidateConfiguration(t *testing.T) {
 		{
 			name: "same non-zero ports rejected",
 			modify: func(s *ServiceTemplateServerSettings) {
-				s.BindPublicPort = 8080
-				s.BindPrivatePort = 8080
+				s.BindPublicPort = cryptoutilSharedMagic.DemoServerPort
+				s.BindPrivatePort = cryptoutilSharedMagic.DemoServerPort
 			},
 			wantErrorMessage: "public port (8080) and private port (8080) cannot be the same",
 		},
@@ -143,7 +143,7 @@ func TestValidateConfiguration(t *testing.T) {
 			name: "public port 0 with non-zero private port is valid",
 			modify: func(s *ServiceTemplateServerSettings) {
 				s.BindPublicPort = 0
-				s.BindPrivatePort = 9090
+				s.BindPrivatePort = cryptoutilSharedMagic.JoseJAAdminPort
 			},
 			wantErrorMessage: "",
 		},

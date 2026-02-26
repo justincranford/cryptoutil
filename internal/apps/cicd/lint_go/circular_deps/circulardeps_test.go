@@ -251,7 +251,7 @@ func TestCheckCircularDeps_GoModChanged(t *testing.T) {
 	cacheFile := cryptoutilSharedMagic.CircularDepCacheFileName
 
 	// Create cache with old go.mod mod time.
-	oldModTime := time.Now().UTC().Add(-time.Hour * 24 * 365) // 1 year ago
+	oldModTime := time.Now().UTC().Add(-time.Hour * cryptoutilSharedMagic.HoursPerDay * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year) // 1 year ago
 	cache := cryptoutilSharedMagic.CircularDepCache{
 		LastCheck:       time.Now().UTC(),
 		GoModModTime:    oldModTime, // go.mod was "modified" since cache was created
@@ -295,7 +295,7 @@ go 1.21
 
 require nonexistent.example.com/fake/module v999.999.999
 `
-	require.NoError(t, os.WriteFile("go.mod", []byte(goModContent), 0o600))
+	require.NoError(t, os.WriteFile("go.mod", []byte(goModContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Create a Go file that imports the nonexistent module.
 	goFileContent := `package main
@@ -304,7 +304,7 @@ import "nonexistent.example.com/fake/module"
 
 func main() { module.Do() }
 `
-	require.NoError(t, os.WriteFile("main.go", []byte(goFileContent), 0o600))
+	require.NoError(t, os.WriteFile("main.go", []byte(goFileContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-circulardeps")
 
@@ -331,10 +331,10 @@ func TestCheckCircularDeps_FreshCheckWithActualCircularDeps(t *testing.T) {
 
 	// Create go.mod.
 	goModContent := "module testcircular\n\ngo 1.21\n"
-	require.NoError(t, os.WriteFile("go.mod", []byte(goModContent), 0o600))
+	require.NoError(t, os.WriteFile("go.mod", []byte(goModContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Create package a that imports package b.
-	require.NoError(t, os.MkdirAll("internal/a", 0o755))
+	require.NoError(t, os.MkdirAll("internal/a", cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	pkgAContent := `package a
 
@@ -342,10 +342,10 @@ import "testcircular/internal/b"
 
 func A() { b.B() }
 `
-	require.NoError(t, os.WriteFile("internal/a/a.go", []byte(pkgAContent), 0o600))
+	require.NoError(t, os.WriteFile("internal/a/a.go", []byte(pkgAContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Create package b that imports package a (circular!).
-	require.NoError(t, os.MkdirAll("internal/b", 0o755))
+	require.NoError(t, os.MkdirAll("internal/b", cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	pkgBContent := `package b
 
@@ -353,7 +353,7 @@ import "testcircular/internal/a"
 
 func B() { a.A() }
 `
-	require.NoError(t, os.WriteFile("internal/b/b.go", []byte(pkgBContent), 0o600))
+	require.NoError(t, os.WriteFile("internal/b/b.go", []byte(pkgBContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-circulardeps")
 
@@ -409,19 +409,19 @@ func TestSaveCircularDepCache_WriteFileError(t *testing.T) {
 	// Create a temp directory that we can make read-only.
 	tempDir := t.TempDir()
 	cacheDir := filepath.Join(tempDir, "subdir")
-	require.NoError(t, os.MkdirAll(cacheDir, 0o755))
+	require.NoError(t, os.MkdirAll(cacheDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	cacheFile := filepath.Join(cacheDir, "cache.json")
 
 	// Create an existing file to write to.
-	require.NoError(t, os.WriteFile(cacheFile, []byte("existing"), 0o600))
+	require.NoError(t, os.WriteFile(cacheFile, []byte("existing"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Make the cache file read-only.
 	require.NoError(t, os.Chmod(cacheFile, 0o000))
 
 	defer func() {
 		// Restore permissions for cleanup.
-		_ = os.Chmod(cacheFile, 0o600)
+		_ = os.Chmod(cacheFile, cryptoutilSharedMagic.CacheFilePermissions)
 	}()
 
 	// Try to save - MkdirAll succeeds (dir exists) but WriteFile should fail.
@@ -442,17 +442,17 @@ func TestCheck_SaveCacheError(t *testing.T) {
 
 	// Create go.mod so os.Stat("go.mod") succeeds.
 	goModContent := "module testmod\n\ngo 1.21\n"
-	require.NoError(t, os.WriteFile("go.mod", []byte(goModContent), 0o600))
+	require.NoError(t, os.WriteFile("go.mod", []byte(goModContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Create a valid package so go list succeeds.
-	require.NoError(t, os.MkdirAll("internal/pkg", 0o755))
+	require.NoError(t, os.MkdirAll("internal/pkg", cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	pkgContent := "package pkg\n\nfunc Hello() string { return \"hello\" }\n"
-	require.NoError(t, os.WriteFile("internal/pkg/hello.go", []byte(pkgContent), 0o600))
+	require.NoError(t, os.WriteFile("internal/pkg/hello.go", []byte(pkgContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Create .cicd as a regular FILE (not dir) to make SaveCircularDepCache's
 	// os.MkdirAll fail when trying to create the cache directory.
-	require.NoError(t, os.WriteFile(".cicd", []byte("blocker"), 0o600))
+	require.NoError(t, os.WriteFile(cryptoutilSharedMagic.CICDOutputDir, []byte("blocker"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 

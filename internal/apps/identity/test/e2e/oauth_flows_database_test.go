@@ -38,8 +38,8 @@ func TestAuthorizationCodeFlowWithDatabase(t *testing.T) {
 
 	// Create test database and repositories.
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
@@ -49,9 +49,9 @@ func TestAuthorizationCodeFlowWithDatabase(t *testing.T) {
 	userRepo := repoFactory.UserRepository()
 	testUser := &cryptoutilIdentityDomain.User{
 		ID:                googleUuid.Must(googleUuid.NewV7()),
-		Sub:               fmt.Sprintf("testuser-%s", googleUuid.New().String()[:8]),
-		PreferredUsername: fmt.Sprintf("testuser-%s", googleUuid.New().String()[:8]),
-		Email:             fmt.Sprintf("test-%s@example.com", googleUuid.New().String()[:8]),
+		Sub:               fmt.Sprintf("testuser-%s", googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength]),
+		PreferredUsername: fmt.Sprintf("testuser-%s", googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength]),
+		Email:             fmt.Sprintf("test-%s@example.com", googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength]),
 		PasswordHash:      "dummy-hash",
 	}
 	require.NoError(t, userRepo.Create(ctx, testUser), "Failed to create test user")
@@ -60,14 +60,14 @@ func TestAuthorizationCodeFlowWithDatabase(t *testing.T) {
 	clientRepo := repoFactory.ClientRepository()
 	testClient := &cryptoutilIdentityDomain.Client{
 		ID:                      googleUuid.Must(googleUuid.NewV7()),
-		ClientID:                fmt.Sprintf("test-client-%s", googleUuid.New().String()[:8]),
+		ClientID:                fmt.Sprintf("test-client-%s", googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength]),
 		ClientSecret:            "dummy-secret",
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                    "Test Client",
-		RedirectURIs:            []string{"https://example.com/callback"},
+		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
 		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
 		AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
-		AllowedScopes:           []string{"openid", "profile", "email"},
+		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail},
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,
 	}
 	require.NoError(t, clientRepo.Create(ctx, testClient), "Failed to create test client")

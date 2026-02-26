@@ -44,7 +44,7 @@ func TestGenerateServerCertFromCA_RSAPrivateKeyFormat(t *testing.T) {
 	t.Parallel()
 
 	// Generate RSA key pair for CA.
-	rsaKey, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
+	rsaKey, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	rsaPrivKey, ok := rsaKey.Private.(*rsa.PrivateKey)
@@ -52,10 +52,10 @@ func TestGenerateServerCertFromCA_RSAPrivateKeyFormat(t *testing.T) {
 
 	// Create a self-signed RSA CA certificate manually.
 	notBefore := time.Now().UTC()
-	notAfter := notBefore.Add(time.Duration(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year) * 24 * time.Hour)
+	notAfter := notBefore.Add(time.Duration(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year) * cryptoutilSharedMagic.HoursPerDay * time.Hour)
 
 	// Generate a random serial number (CA/Browser Forum compliant).
-	serialNumber, err := crand.Int(crand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
+	serialNumber, err := crand.Int(crand.Reader, new(big.Int).Lsh(big.NewInt(1), cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits))
 	require.NoError(t, err)
 
 	caTemplate := &x509.Certificate{
@@ -73,15 +73,15 @@ func TestGenerateServerCertFromCA_RSAPrivateKeyFormat(t *testing.T) {
 	caCertDER, err := x509.CreateCertificate(crand.Reader, caTemplate, caTemplate, &rsaPrivKey.PublicKey, rsaPrivKey)
 	require.NoError(t, err)
 
-	caCertPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: caCertDER})
+	caCertPEM := pem.EncodeToMemory(&pem.Block{Type: cryptoutilSharedMagic.StringPEMTypeCertificate, Bytes: caCertDER})
 
 	// Marshal RSA key as PKCS#1 (RSA PRIVATE KEY format) - this is the code path we're testing.
 	caKeyBytes := x509.MarshalPKCS1PrivateKey(rsaPrivKey)
-	caKeyPEM := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: caKeyBytes})
+	caKeyPEM := pem.EncodeToMemory(&pem.Block{Type: cryptoutilSharedMagic.StringPEMTypeRSAPrivateKey, Bytes: caKeyBytes})
 
 	// Call GenerateServerCertFromCA - will fail at server certificate creation stage
 	// (ECDSA signature algorithm mismatch), but RSA PRIVATE KEY parsing should succeed.
-	_, err = GenerateServerCertFromCA(caCertPEM, caKeyPEM, []string{"localhost"}, []string{"127.0.0.1"}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
+	_, err = GenerateServerCertFromCA(caCertPEM, caKeyPEM, []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []string{cryptoutilSharedMagic.IPv4Loopback}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
 
 	// The error should be about signature algorithm mismatch, NOT about RSA key parsing.
 	// This confirms the RSA PRIVATE KEY format was successfully parsed.
@@ -98,7 +98,7 @@ func TestGenerateServerCertFromCA_InvalidCACertPEM(t *testing.T) {
 	invalidCACertPEM := []byte("-----BEGIN INVALID-----\nYmFkZGF0YQ==\n-----END INVALID-----\n")
 	validCAKeyPEM := testServerKeyPEM // Just need something non-empty.
 
-	_, err := GenerateServerCertFromCA(invalidCACertPEM, validCAKeyPEM, []string{"localhost"}, []string{"127.0.0.1"}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
+	_, err := GenerateServerCertFromCA(invalidCACertPEM, validCAKeyPEM, []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []string{cryptoutilSharedMagic.IPv4Loopback}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to decode CA certificate PEM")
 }
@@ -111,7 +111,7 @@ func TestGenerateServerCertFromCA_MalformedCACert(t *testing.T) {
 	malformedCACertPEM := []byte("-----BEGIN CERTIFICATE-----\nbm90YXZhbGlkY2VydA==\n-----END CERTIFICATE-----\n")
 	validCAKeyPEM := testServerKeyPEM
 
-	_, err := GenerateServerCertFromCA(malformedCACertPEM, validCAKeyPEM, []string{"localhost"}, []string{"127.0.0.1"}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
+	_, err := GenerateServerCertFromCA(malformedCACertPEM, validCAKeyPEM, []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []string{cryptoutilSharedMagic.IPv4Loopback}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to parse CA certificate")
 }
@@ -127,7 +127,7 @@ func TestGenerateServerCertFromCA_InvalidCAKeyPEM(t *testing.T) {
 	// Use non-PEM data for key.
 	invalidCAKeyPEM := []byte("this is not valid PEM data")
 
-	_, err = GenerateServerCertFromCA(caCertPEM, invalidCAKeyPEM, []string{"localhost"}, []string{"127.0.0.1"}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
+	_, err = GenerateServerCertFromCA(caCertPEM, invalidCAKeyPEM, []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []string{cryptoutilSharedMagic.IPv4Loopback}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to decode CA private key PEM")
 }
@@ -143,7 +143,7 @@ func TestGenerateServerCertFromCA_UnsupportedKeyType(t *testing.T) {
 	// Use unsupported key type (e.g., "PUBLIC KEY" instead of private key).
 	unsupportedKeyPEM := []byte("-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEZe3P\n-----END PUBLIC KEY-----\n")
 
-	_, err = GenerateServerCertFromCA(caCertPEM, unsupportedKeyPEM, []string{"localhost"}, []string{"127.0.0.1"}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
+	_, err = GenerateServerCertFromCA(caCertPEM, unsupportedKeyPEM, []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []string{cryptoutilSharedMagic.IPv4Loopback}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "unsupported CA private key type")
 }
@@ -159,7 +159,7 @@ func TestGenerateServerCertFromCA_MalformedPrivateKey(t *testing.T) {
 	// Use PRIVATE KEY block with invalid data.
 	malformedKeyPEM := []byte("-----BEGIN PRIVATE KEY-----\nbm90YXZhbGlka2V5\n-----END PRIVATE KEY-----\n")
 
-	_, err = GenerateServerCertFromCA(caCertPEM, malformedKeyPEM, []string{"localhost"}, []string{"127.0.0.1"}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
+	_, err = GenerateServerCertFromCA(caCertPEM, malformedKeyPEM, []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []string{cryptoutilSharedMagic.IPv4Loopback}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to parse CA private key")
 }
@@ -173,7 +173,7 @@ func TestGenerateServerCertFromCA_DefaultValidity(t *testing.T) {
 	require.NoError(t, err)
 
 	// Generate server cert with validityDays=0 (should default to 365).
-	mixedCfg, err := GenerateServerCertFromCA(caCertPEM, caKeyPEM, []string{"localhost"}, []string{"127.0.0.1"}, 0)
+	mixedCfg, err := GenerateServerCertFromCA(caCertPEM, caKeyPEM, []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []string{cryptoutilSharedMagic.IPv4Loopback}, 0)
 	require.NoError(t, err)
 	require.NotNil(t, mixedCfg)
 
@@ -186,8 +186,8 @@ func TestGenerateServerCertFromCA_DefaultValidity(t *testing.T) {
 
 	// Verify validity period is approximately 365 days.
 	validityDuration := serverCert.NotAfter.Sub(serverCert.NotBefore)
-	expectedDuration := time.Duration(365) * 24 * time.Hour
-	tolerance := 24 * time.Hour
+	expectedDuration := time.Duration(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year) * cryptoutilSharedMagic.HoursPerDay * time.Hour
+	tolerance := cryptoutilSharedMagic.HoursPerDay * time.Hour
 
 	require.InDelta(t, expectedDuration.Seconds(), validityDuration.Seconds(), tolerance.Seconds())
 }

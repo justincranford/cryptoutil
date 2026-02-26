@@ -5,6 +5,7 @@
 package workflow
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -25,12 +26,12 @@ func TestStatusBadge(t *testing.T) {
 		{
 			name:     "Success badge",
 			success:  true,
-			expected: "✅ SUCCESS",
+			expected: cryptoutilSharedMagic.StatusSuccess,
 		},
 		{
 			name:     "Failure badge",
 			success:  false,
-			expected: "❌ FAILED",
+			expected: cryptoutilSharedMagic.StatusFailed,
 		},
 	}
 
@@ -57,13 +58,13 @@ func TestContains(t *testing.T) {
 	}{
 		{
 			name:     "Item exists in slice",
-			slice:    []string{"quality", "coverage", "dast"},
+			slice:    []string{"quality", "coverage", cryptoutilSharedMagic.WorkflowNameDAST},
 			item:     "coverage",
 			expected: true,
 		},
 		{
 			name:     "Item does not exist in slice",
-			slice:    []string{"quality", "coverage", "dast"},
+			slice:    []string{"quality", "coverage", cryptoutilSharedMagic.WorkflowNameDAST},
 			item:     "unknown",
 			expected: false,
 		},
@@ -137,7 +138,7 @@ func TestGetWorkflowFile(t *testing.T) {
 		},
 		{
 			name:         "DAST workflow",
-			workflowName: "dast",
+			workflowName: cryptoutilSharedMagic.WorkflowNameDAST,
 			expected:     ".github/workflows/ci-dast.yml",
 		},
 		{
@@ -180,7 +181,7 @@ func TestGetWorkflowLogFile(t *testing.T) {
 		{
 			name:         "DAST workflow in relative dir",
 			outputDir:    "../output",
-			workflowName: "dast",
+			workflowName: cryptoutilSharedMagic.WorkflowNameDAST,
 		},
 	}
 

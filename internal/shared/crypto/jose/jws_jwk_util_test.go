@@ -3,6 +3,7 @@
 package crypto
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
@@ -27,9 +28,9 @@ func TestCreateJWSJWKFromKey_HMAC(t *testing.T) {
 		alg     joseJwa.SignatureAlgorithm
 		keySize int
 	}{
-		{"HS256", joseJwa.HS256(), 32},
-		{"HS384", joseJwa.HS384(), 48},
-		{"HS512", joseJwa.HS512(), 64},
+		{cryptoutilSharedMagic.JoseAlgHS256, joseJwa.HS256(), cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes},
+		{cryptoutilSharedMagic.JoseAlgHS384, joseJwa.HS384(), cryptoutilSharedMagic.HMACSHA384KeySize},
+		{cryptoutilSharedMagic.JoseAlgHS512, joseJwa.HS512(), cryptoutilSharedMagic.MinSerialNumberBits},
 	}
 
 	for _, tt := range tests {
@@ -76,12 +77,12 @@ func TestCreateJWSJWKFromKey_RSA(t *testing.T) {
 		alg     joseJwa.SignatureAlgorithm
 		keySize int
 	}{
-		{"RS256", joseJwa.RS256(), 2048},
-		{"RS384", joseJwa.RS384(), 2048},
-		{"RS512", joseJwa.RS512(), 2048},
-		{"PS256", joseJwa.PS256(), 2048},
-		{"PS384", joseJwa.PS384(), 2048},
-		{"PS512", joseJwa.PS512(), 2048},
+		{cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, joseJwa.RS256(), cryptoutilSharedMagic.DefaultMetricsBatchSize},
+		{cryptoutilSharedMagic.JoseAlgRS384, joseJwa.RS384(), cryptoutilSharedMagic.DefaultMetricsBatchSize},
+		{cryptoutilSharedMagic.JoseAlgRS512, joseJwa.RS512(), cryptoutilSharedMagic.DefaultMetricsBatchSize},
+		{cryptoutilSharedMagic.JoseAlgPS256, joseJwa.PS256(), cryptoutilSharedMagic.DefaultMetricsBatchSize},
+		{cryptoutilSharedMagic.JoseAlgPS384, joseJwa.PS384(), cryptoutilSharedMagic.DefaultMetricsBatchSize},
+		{cryptoutilSharedMagic.JoseAlgPS512, joseJwa.PS512(), cryptoutilSharedMagic.DefaultMetricsBatchSize},
 	}
 
 	for _, tt := range tests {
@@ -132,9 +133,9 @@ func TestCreateJWSJWKFromKey_ECDSA(t *testing.T) {
 		alg   joseJwa.SignatureAlgorithm
 		curve elliptic.Curve
 	}{
-		{"ES256", joseJwa.ES256(), elliptic.P256()},
-		{"ES384", joseJwa.ES384(), elliptic.P384()},
-		{"ES512", joseJwa.ES512(), elliptic.P521()},
+		{cryptoutilSharedMagic.JoseAlgES256, joseJwa.ES256(), elliptic.P256()},
+		{cryptoutilSharedMagic.JoseAlgES384, joseJwa.ES384(), elliptic.P384()},
+		{cryptoutilSharedMagic.JoseAlgES512, joseJwa.ES512(), elliptic.P521()},
 	}
 
 	for _, tt := range tests {
@@ -239,7 +240,7 @@ func TestCreateJWSJWKFromKey_NilKid(t *testing.T) {
 	t.Parallel()
 
 	alg := joseJwa.RS256()
-	privateKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	privateKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	keyPair := &cryptoutilSharedCryptoKeygen.KeyPair{
@@ -259,7 +260,7 @@ func TestCreateJWSJWKFromKey_NilAlg(t *testing.T) {
 	kid := googleUuid.New()
 
 	// Use simple KeyPair with valid key type to test nil alg validation
-	privateKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	privateKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	keyPair := &cryptoutilSharedCryptoKeygen.KeyPair{
@@ -278,7 +279,7 @@ func TestCreateJWSJWKFromKey_SetKidError(t *testing.T) {
 
 	kid := googleUuid.New()
 	alg := joseJwa.HS256()
-	validKey, err := cryptoutilSharedCryptoKeygen.GenerateHMACKey(256)
+	validKey, err := cryptoutilSharedCryptoKeygen.GenerateHMACKey(cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 	require.NoError(t, err)
 
 	_, _, _, _, _, err = CreateJWSJWKFromKey(&kid, &alg, validKey)
@@ -301,7 +302,7 @@ func TestCreateJWSJWKFromKey_PublicKeyExtraction(t *testing.T) {
 	t.Parallel()
 
 	// Generate RSA key pair.
-	keyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
+	keyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	kid := googleUuid.New()
@@ -327,7 +328,7 @@ func TestCreateJWSJWKFromKey_HMACNoPublicKey(t *testing.T) {
 	// HMAC has no public key, so publicJWK should be nil and clearPublicBytes empty.
 	kid := googleUuid.New()
 	alg := joseJwa.HS256()
-	key := make(cryptoutilSharedCryptoKeygen.SecretKey, 32)
+	key := make(cryptoutilSharedCryptoKeygen.SecretKey, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 	_, _ = crand.Read(key)
 
 	_, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWSJWKFromKey(&kid, &alg, key)

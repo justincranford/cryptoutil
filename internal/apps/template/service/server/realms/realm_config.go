@@ -68,7 +68,7 @@ func EnterpriseRealm() *RealmConfig {
 		SessionAbsoluteMax:       cryptoutilSharedMagic.IMEnterpriseSessionAbsoluteMax,
 		SessionRefreshEnabled:    true,
 		MFARequired:              true,
-		MFAMethods:               []string{"totp", "webauthn"},
+		MFAMethods:               []string{cryptoutilSharedMagic.MFATypeTOTP, cryptoutilSharedMagic.MFATypeWebAuthn},
 		LoginRateLimit:           cryptoutilSharedMagic.IMEnterpriseLoginRateLimit,
 		MessageRateLimit:         cryptoutilSharedMagic.IMEnterpriseMessageRateLimit,
 	}

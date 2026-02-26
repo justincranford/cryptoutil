@@ -3,6 +3,7 @@
 package config
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -20,26 +21,26 @@ func TestPrivateBaseURL(t *testing.T) {
 		{
 			name: "https localhost 9090",
 			settings: ServiceTemplateServerSettings{
-				BindPrivateProtocol: "https",
-				BindPrivateAddress:  "localhost",
-				BindPrivatePort:     9090,
+				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
+				BindPrivateAddress:  cryptoutilSharedMagic.DefaultOTLPHostnameDefault,
+				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
 			},
 			expected: "https://localhost:9090",
 		},
 		{
 			name: "http 127.0.0.1 8080",
 			settings: ServiceTemplateServerSettings{
-				BindPrivateProtocol: "http",
-				BindPrivateAddress:  "127.0.0.1",
-				BindPrivatePort:     8080,
+				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTP,
+				BindPrivateAddress:  cryptoutilSharedMagic.IPv4Loopback,
+				BindPrivatePort:     cryptoutilSharedMagic.DemoServerPort,
 			},
-			expected: "http://127.0.0.1:8080",
+			expected: cryptoutilSharedMagic.DemoIssuer,
 		},
 		{
 			name: "https IPv6 9999",
 			settings: ServiceTemplateServerSettings{
-				BindPrivateProtocol: "https",
-				BindPrivateAddress:  "::1",
+				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
+				BindPrivateAddress:  cryptoutilSharedMagic.IPv6Loopback,
 				BindPrivatePort:     9999,
 			},
 			expected: "https://::1:9999",
@@ -68,27 +69,27 @@ func TestPublicBaseURL(t *testing.T) {
 		{
 			name: "https localhost 8080",
 			settings: ServiceTemplateServerSettings{
-				BindPublicProtocol: "https",
-				BindPublicAddress:  "localhost",
-				BindPublicPort:     8080,
+				BindPublicProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
+				BindPublicAddress:  cryptoutilSharedMagic.DefaultOTLPHostnameDefault,
+				BindPublicPort:     cryptoutilSharedMagic.DemoServerPort,
 			},
 			expected: "https://localhost:8080",
 		},
 		{
 			name: "http 0.0.0.0 3000",
 			settings: ServiceTemplateServerSettings{
-				BindPublicProtocol: "http",
-				BindPublicAddress:  "0.0.0.0",
-				BindPublicPort:     3000,
+				BindPublicProtocol: cryptoutilSharedMagic.ProtocolHTTP,
+				BindPublicAddress:  cryptoutilSharedMagic.IPv4AnyAddress,
+				BindPublicPort:     cryptoutilSharedMagic.JoseJAE2EGrafanaPort,
 			},
 			expected: "http://0.0.0.0:3000",
 		},
 		{
 			name: "https IPv6 443",
 			settings: ServiceTemplateServerSettings{
-				BindPublicProtocol: "https",
+				BindPublicProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
 				BindPublicAddress:  "[::]",
-				BindPublicPort:     443,
+				BindPublicPort:     cryptoutilSharedMagic.PortHTTPS,
 			},
 			expected: "https://[::]:443",
 		},

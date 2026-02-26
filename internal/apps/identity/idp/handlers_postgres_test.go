@@ -3,6 +3,7 @@
 package idp
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	"testing"
@@ -27,7 +28,7 @@ func TestPostgreSQLIntegration(t *testing.T) {
 
 	// PostgreSQL connection (shared database: identitytest).
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "postgres",
+		Type: cryptoutilSharedMagic.DockerServicePostgres,
 		DSN:  "postgres://testuser:testpass@localhost:5433/identitytest?sslmode=disable",
 	}
 
@@ -201,7 +202,7 @@ func testConcurrentOperations(t *testing.T, repoFactory *cryptoutilIdentityRepos
 				TokenFormat: cryptoutilIdentityDomain.TokenFormatJWS,
 				UserID:      cryptoutilIdentityDomain.NullableUUID{UUID: testUser.ID, Valid: true},
 				ClientID:    clientIDUUID,
-				Scopes:      []string{"openid", "profile"},
+				Scopes:      []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 				IssuedAt:    time.Now().UTC(),
 				ExpiresAt:   time.Now().UTC().Add(1 * time.Hour),
 			}

@@ -45,7 +45,7 @@ func newIdentityOrchestrator(logger *slog.Logger, composeFile, profile string, s
 func (o *identityOrchestrator) start(ctx context.Context) error {
 	o.logger.Info("Starting identity services",
 		"compose_file", o.composeFile,
-		"profile", o.profile,
+		cryptoutilSharedMagic.ClaimProfile, o.profile,
 		"scaling", o.scaling)
 
 	args := []string{"compose", "-f", o.composeFile, "--profile", o.profile, "up", "-d"}
@@ -208,7 +208,7 @@ func compose(args []string, stdout, stderr io.Writer) int {
 	// Command-line flags
 	var (
 		composeFile    = flag.String("compose-file", "deployments/identity/compose.advanced.yml", "Path to Docker Compose file")
-		profile        = flag.String("profile", "demo", "Docker Compose profile (demo, development, ci, production)")
+		profile        = flag.String(cryptoutilSharedMagic.ClaimProfile, "demo", "Docker Compose profile (demo, development, ci, production)")
 		scalingStr     = flag.String("scaling", "", "Service scaling (e.g., 'identity-authz=2,identity-idp=1')")
 		operation      = flag.String("operation", "start", "Operation: start, stop, health, logs")
 		removeVolumes  = flag.Bool("remove-volumes", false, "Remove volumes when stopping")
@@ -229,7 +229,7 @@ func compose(args []string, stdout, stderr io.Writer) int {
 	// Parse scaling
 	scaling, err := parseScaling(*scalingStr)
 	if err != nil {
-		logger.Error("Failed to parse scaling", "error", err)
+		logger.Error("Failed to parse scaling", cryptoutilSharedMagic.StringError, err)
 
 		return 1
 	}
@@ -243,31 +243,31 @@ func compose(args []string, stdout, stderr io.Writer) int {
 	switch *operation {
 	case "start":
 		if err := orchestrator.start(ctx); err != nil {
-			logger.Error("Start failed", "error", err)
+			logger.Error("Start failed", cryptoutilSharedMagic.StringError, err)
 
 			return 1
 		}
 		// Wait for services to become healthy
 		if err := orchestrator.waitForHealth(ctx, *healthRetries, *healthInterval); err != nil {
-			logger.Error("Health check failed", "error", err)
+			logger.Error("Health check failed", cryptoutilSharedMagic.StringError, err)
 
 			return 1
 		}
 	case "stop":
 		if err := orchestrator.stop(ctx, *removeVolumes); err != nil {
-			logger.Error("Stop failed", "error", err)
+			logger.Error("Stop failed", cryptoutilSharedMagic.StringError, err)
 
 			return 1
 		}
 	case "health":
 		if err := orchestrator.healthCheck(ctx); err != nil {
-			logger.Error("Health check failed", "error", err)
+			logger.Error("Health check failed", cryptoutilSharedMagic.StringError, err)
 
 			return 1
 		}
 	case "logs":
 		if err := orchestrator.logs(ctx, *service, *follow, *tail); err != nil {
-			logger.Error("Logs failed", "error", err)
+			logger.Error("Logs failed", cryptoutilSharedMagic.StringError, err)
 
 			return 1
 		}

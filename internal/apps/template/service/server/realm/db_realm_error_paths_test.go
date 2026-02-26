@@ -5,6 +5,7 @@
 package realm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 "context"
 "testing"
 
@@ -176,7 +177,7 @@ t.Parallel()
 
 repo, ctx := setupMigratedClosedDBRepo(t)
 
-_, err := repo.ListUsers(ctx, googleUuid.Must(googleUuid.NewV7()).String(), 10, 0)
+_, err := repo.ListUsers(ctx, googleUuid.Must(googleUuid.NewV7()).String(), cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 0)
 require.Error(t, err)
 require.Contains(t, err.Error(), "failed to list users")
 }

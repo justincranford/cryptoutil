@@ -3,6 +3,7 @@
 package mfa_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"testing"
@@ -20,7 +21,7 @@ import (
 func createWebAuthnTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	sqlDB, err := sql.Open("sqlite", "file::memory:?cache=private")
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, "file::memory:?cache=private")
 	require.NoError(t, err)
 
 	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
@@ -37,7 +38,7 @@ func createWebAuthnTestDB(t *testing.T) *gorm.DB {
 func createWebAuthnConfig() cryptoutilIdentityMfa.WebAuthnConfig {
 	return cryptoutilIdentityMfa.WebAuthnConfig{
 		RPDisplayName: "Test Application",
-		RPID:          "localhost",
+		RPID:          cryptoutilSharedMagic.DefaultOTLPHostnameDefault,
 		RPOrigins:     []string{"https://localhost:8080"},
 	}
 }
@@ -164,7 +165,7 @@ func TestWebAuthnCredential_BeforeCreate(t *testing.T) {
 		UserID:          googleUuid.Must(googleUuid.NewV7()),
 		CredentialID:    []byte("test-credential-id"),
 		PublicKey:       []byte("test-public-key"),
-		AttestationType: "none",
+		AttestationType: cryptoutilSharedMagic.PromptNone,
 		DisplayName:     "Test Key",
 	}
 
@@ -184,7 +185,7 @@ func TestWebAuthnSession_BeforeCreate(t *testing.T) {
 		UserID:       googleUuid.Must(googleUuid.NewV7()),
 		SessionData:  []byte("{}"),
 		CeremonyType: string(cryptoutilIdentityMfa.WebAuthnCeremonyRegistration),
-		ExpiresAt:    time.Now().UTC().Add(5 * time.Minute),
+		ExpiresAt:    time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 	}
 
 	err := db.Create(session).Error

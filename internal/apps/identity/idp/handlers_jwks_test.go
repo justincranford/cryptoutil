@@ -3,6 +3,7 @@
 package idp
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	json "encoding/json"
 	"net/http/httptest"
@@ -23,7 +24,7 @@ func TestHandleJWKS_EmptySet(t *testing.T) {
 
 	// Create test config and repository factory.
 	config := cryptoutilIdentityConfig.DefaultConfig()
-	config.Database.DSN = ":memory:"
+	config.Database.DSN = cryptoutilSharedMagic.SQLiteMemoryPlaceholder
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, config.Database)
 	require.NoError(t, err, "Failed to create repository factory")
@@ -40,7 +41,7 @@ func TestHandleJWKS_EmptySet(t *testing.T) {
 	service.RegisterRoutes(app)
 
 	// Make request to JWKS endpoint.
-	req := httptest.NewRequest("GET", "/.well-known/jwks.json", nil)
+	req := httptest.NewRequest("GET", cryptoutilSharedMagic.PathJWKS, nil)
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request failed")
 
@@ -83,8 +84,8 @@ func TestHandleJWKS_ErrorScenarios(t *testing.T) {
 
 				// Create repository with invalid DSN (will fail on operations).
 				config := &cryptoutilIdentityConfig.DatabaseConfig{
-					Type: "sqlite",
-					DSN:  ":memory:",
+					Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+					DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 				}
 
 				repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, config)
@@ -112,7 +113,7 @@ func TestHandleJWKS_ErrorScenarios(t *testing.T) {
 			app := fiber.New()
 			service.RegisterRoutes(app)
 
-			req := httptest.NewRequest("GET", "/.well-known/jwks.json", nil)
+			req := httptest.NewRequest("GET", cryptoutilSharedMagic.PathJWKS, nil)
 			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
 

@@ -3,6 +3,7 @@
 package handler
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"testing"
 
@@ -272,7 +273,7 @@ func TestOamOasMapper_ToOamPostGenerateQueryParams(t *testing.T) {
 
 	mapper := NewOasOamMapper()
 	context := testContext
-	alg := "RSA-OAEP"
+	alg := cryptoutilSharedMagic.JoseAlgRSAOAEP
 	openapiParams := &cryptoutilKmsServer.PostElastickeyElasticKeyIDGenerateParams{
 		Context: &context,
 		Alg:     &alg,

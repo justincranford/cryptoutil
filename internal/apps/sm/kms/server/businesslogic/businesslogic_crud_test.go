@@ -1,6 +1,7 @@
 package businesslogic
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"io/fs"
 	"os"
@@ -123,7 +124,7 @@ func setupTestStack(t *testing.T) *testStack {
 		domainPath:   "migrations",
 	}
 
-	err = cryptoutilAppsTemplateServiceServerRepository.ApplyMigrationsFromFS(sqlDB, mergedFS, "", "sqlite")
+	err = cryptoutilAppsTemplateServiceServerRepository.ApplyMigrationsFromFS(sqlDB, mergedFS, "", cryptoutilSharedMagic.TestDatabaseSQLite)
 	testify.NoError(t, err)
 
 	ormRepo, err := cryptoutilOrmRepository.NewOrmRepository(
@@ -392,7 +393,7 @@ func TestDeleteMaterialKey_NotImplemented(t *testing.T) {
 }
 
 func TestMain(m *testing.M) {
-	_ = os.Setenv("CRYPTOUTIL_DATABASE_URL", "file::memory:?cache=shared") //nolint:errcheck // TestMain cannot use t.Setenv
+	_ = os.Setenv("CRYPTOUTIL_DATABASE_URL", cryptoutilSharedMagic.SQLiteInMemoryDSN) //nolint:errcheck // TestMain cannot use t.Setenv
 
 	os.Exit(m.Run())
 }

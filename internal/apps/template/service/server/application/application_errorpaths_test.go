@@ -5,6 +5,7 @@
 package application
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"errors"
 	"testing"
@@ -53,7 +54,7 @@ func setupCoreWithMigrations(t *testing.T) (*Core, *cryptoutilAppsTemplateServic
 	t.Helper()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig("127.0.0.1", 0, true)
+	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
 	core, err := StartCore(ctx, settings)
 	require.NoError(t, err)
@@ -82,7 +83,7 @@ func TestStartBasic_JWKGenServiceFailure(t *testing.T) {
 	defer func() { newJWKGenServiceFn = orig }()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig("127.0.0.1", 0, true)
+	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
 	_, err := StartBasic(ctx, settings)
 	require.ErrorContains(t, err, "JWK Gen Service")
@@ -96,7 +97,7 @@ func TestStartCore_StartBasicViaJWKGenFailure(t *testing.T) {
 	defer func() { newJWKGenServiceFn = orig }()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig("127.0.0.1", 0, true)
+	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
 	_, err := StartCore(ctx, settings)
 	require.ErrorContains(t, err, "basic application")
@@ -110,7 +111,7 @@ func TestStartListener_StartCoreViaJWKGenFailure(t *testing.T) {
 	defer func() { newJWKGenServiceFn = orig }()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig("127.0.0.1", 0, true)
+	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	cfg := &ListenerConfig{Settings: settings, PublicServer: &mockPublicServer{}, AdminServer: &mockAdminServer{}}
 
 	_, err := StartListener(ctx, cfg)
@@ -125,7 +126,7 @@ func TestInitializeServicesOnCore_NewGormRepositoryFailure(t *testing.T) {
 	defer func() { newBarrierGormRepositoryFn = orig }()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig("127.0.0.1", 0, true)
+	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
 	core, err := StartCore(ctx, settings)
 	require.NoError(t, err)

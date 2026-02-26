@@ -3,6 +3,7 @@
 package userauth
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -24,7 +25,7 @@ func TestStubHSM(t *testing.T) {
 		{
 			name: "GenerateKey",
 			fn: func() error {
-				_, err := hsm.GenerateKey(ctx, "RSA", 2048)
+				_, err := hsm.GenerateKey(ctx, cryptoutilSharedMagic.KeyTypeRSA, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 
 				return err
 			},
@@ -114,7 +115,7 @@ func TestStubTPM(t *testing.T) {
 		{
 			name: "GenerateKey",
 			fn: func() error {
-				_, err := tpm.GenerateKey(ctx, "RSA")
+				_, err := tpm.GenerateKey(ctx, cryptoutilSharedMagic.KeyTypeRSA)
 
 				return err
 			},

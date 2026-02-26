@@ -6,6 +6,7 @@
 package apperr
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	http "net/http"
 )
@@ -65,7 +66,7 @@ var (
 	ErrClientNotFound        = NewIdentityError("client_not_found", "Client not found", http.StatusNotFound, nil)
 	ErrClientAlreadyExists   = NewIdentityError("client_already_exists", "Client already exists", http.StatusConflict, nil)
 	ErrClientDisabled        = NewIdentityError("client_disabled", "Client is disabled", http.StatusForbidden, nil)
-	ErrInvalidClientAuth     = NewIdentityError("invalid_client", "Invalid client authentication", http.StatusUnauthorized, nil)
+	ErrInvalidClientAuth     = NewIdentityError(cryptoutilSharedMagic.ErrorInvalidClient, "Invalid client authentication", http.StatusUnauthorized, nil)
 	ErrInvalidClientSecret   = NewIdentityError("invalid_client_secret", "Invalid client secret", http.StatusUnauthorized, nil)
 	ErrClientProfileNotFound = NewIdentityError("client_profile_not_found", "Client profile not found", http.StatusNotFound, nil)
 	ErrAuthFlowNotFound      = NewIdentityError("auth_flow_not_found", "Authorization flow not found", http.StatusNotFound, nil)
@@ -76,7 +77,7 @@ var (
 	ErrTokenNotFound         = NewIdentityError("token_not_found", "Token not found", http.StatusNotFound, nil)
 	ErrTokenExpired          = NewIdentityError("token_expired", "Token has expired", http.StatusUnauthorized, nil)
 	ErrTokenRevoked          = NewIdentityError("token_revoked", "Token has been revoked", http.StatusUnauthorized, nil)
-	ErrInvalidToken          = NewIdentityError("invalid_token", "Invalid token", http.StatusUnauthorized, nil)
+	ErrInvalidToken          = NewIdentityError(cryptoutilSharedMagic.ErrorInvalidToken, "Invalid token", http.StatusUnauthorized, nil)
 	ErrTokenIssuanceFailed   = NewIdentityError("token_issuance_failed", "Failed to issue token", http.StatusInternalServerError, nil)
 	ErrTokenValidationFailed = NewIdentityError("token_validation_failed", "Failed to validate token", http.StatusInternalServerError, nil)
 	ErrTokenRevocationFailed = NewIdentityError("token_revocation_failed", "Failed to revoke token", http.StatusInternalServerError, nil)
@@ -97,13 +98,13 @@ var (
 	ErrInvalidSession    = NewIdentityError("invalid_session", "Invalid session", http.StatusUnauthorized, nil)
 
 	// OAuth errors.
-	ErrInvalidRequest       = NewIdentityError("invalid_request", "Invalid OAuth request", http.StatusBadRequest, nil)
-	ErrInvalidGrant         = NewIdentityError("invalid_grant", "Invalid authorization grant", http.StatusBadRequest, nil)
-	ErrUnauthorizedClient   = NewIdentityError("unauthorized_client", "Client is not authorized", http.StatusUnauthorized, nil)
-	ErrAccessDenied         = NewIdentityError("access_denied", "Access denied", http.StatusForbidden, nil)
-	ErrUnsupportedGrantType = NewIdentityError("unsupported_grant_type", "Unsupported grant type", http.StatusBadRequest, nil)
-	ErrInvalidScope         = NewIdentityError("invalid_scope", "Invalid scope", http.StatusBadRequest, nil)
-	ErrServerError          = NewIdentityError("server_error", "Internal server error", http.StatusInternalServerError, nil)
+	ErrInvalidRequest       = NewIdentityError(cryptoutilSharedMagic.ErrorInvalidRequest, "Invalid OAuth request", http.StatusBadRequest, nil)
+	ErrInvalidGrant         = NewIdentityError(cryptoutilSharedMagic.ErrorInvalidGrant, "Invalid authorization grant", http.StatusBadRequest, nil)
+	ErrUnauthorizedClient   = NewIdentityError(cryptoutilSharedMagic.ErrorUnauthorizedClient, "Client is not authorized", http.StatusUnauthorized, nil)
+	ErrAccessDenied         = NewIdentityError(cryptoutilSharedMagic.ErrorAccessDenied, "Access denied", http.StatusForbidden, nil)
+	ErrUnsupportedGrantType = NewIdentityError(cryptoutilSharedMagic.ErrorUnsupportedGrantType, "Unsupported grant type", http.StatusBadRequest, nil)
+	ErrInvalidScope         = NewIdentityError(cryptoutilSharedMagic.ErrorInvalidScope, "Invalid scope", http.StatusBadRequest, nil)
+	ErrServerError          = NewIdentityError(cryptoutilSharedMagic.ErrorServerError, "Internal server error", http.StatusInternalServerError, nil)
 
 	// Authorization request errors.
 	ErrAuthorizationRequestNotFound       = NewIdentityError("authorization_request_not_found", "Authorization request not found", http.StatusNotFound, nil)

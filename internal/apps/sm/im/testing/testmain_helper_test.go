@@ -83,7 +83,7 @@ func TestStartSmIMService_SuccessfulStart(t *testing.T) {
 	require.NotNil(t, server)
 
 	defer func() {
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 		defer cancel()
 
 		_ = server.Shutdown(shutdownCtx)
@@ -139,7 +139,7 @@ func TestStartSmIMService_PortConflict(t *testing.T) {
 	_, portStr, err := net.SplitHostPort(listener.Addr().String())
 	require.NoError(t, err)
 
-	port, err := strconv.ParseUint(portStr, 10, 16)
+	port, err := strconv.ParseUint(portStr, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cryptoutilSharedMagic.RealmMinTokenLengthBytes)
 	require.NoError(t, err)
 
 	// Create config that binds to the occupied port — server Start() will fail.

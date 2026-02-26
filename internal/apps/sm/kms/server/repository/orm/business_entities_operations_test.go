@@ -6,6 +6,7 @@
 package orm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	cryptoutilKmsServer "cryptoutil/api/kms/server"
@@ -236,7 +237,7 @@ func TestMaterialKeyOperations(t *testing.T) {
 			require.NoError(t, err, "AddElasticKey should succeed")
 
 			// Create 5 material key versions.
-			for i := 0; i < 5; i++ {
+			for i := 0; i < cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries; i++ {
 				mkID := googleUuid.New()
 				materialKey := &MaterialKey{
 					ElasticKeyID:                  ekID,

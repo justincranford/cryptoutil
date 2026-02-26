@@ -54,8 +54,8 @@ func obtainIntegrationAccessToken(ctx context.Context, servers *integrationServe
 	clientSecret := cryptoutilSharedMagic.DemoClientSecret
 
 	form := url.Values{}
-	form.Set("grant_type", "client_credentials")
-	form.Set("scope", "read write")
+	form.Set(cryptoutilSharedMagic.ParamGrantType, cryptoutilSharedMagic.GrantTypeClientCredentials)
+	form.Set(cryptoutilSharedMagic.ClaimScope, "read write")
 
 	client := &http.Client{Timeout: integrationHTTPTimeout}
 
@@ -95,13 +95,13 @@ func obtainIntegrationAccessToken(ctx context.Context, servers *integrationServe
 		return "", fmt.Errorf("failed to parse token response: %w", err)
 	}
 
-	accessToken, ok := tokenResp["access_token"].(string)
+	accessToken, ok := tokenResp[cryptoutilSharedMagic.TokenTypeAccessToken].(string)
 	if !ok || accessToken == "" {
 		return "", fmt.Errorf("missing access_token in response")
 	}
 
-	tokenType, _ := tokenResp["token_type"].(string)
-	expiresIn, _ := tokenResp["expires_in"].(float64)
+	tokenType, _ := tokenResp[cryptoutilSharedMagic.ParamTokenType].(string)
+	expiresIn, _ := tokenResp[cryptoutilSharedMagic.ParamExpiresIn].(float64)
 
 	progress.Debug("Token response received:")
 	progress.Debug(fmt.Sprintf("  token_type: %s", tokenType))
@@ -134,7 +134,7 @@ func validateIntegrationToken(accessToken string, progress *ProgressDisplay) err
 
 	// Verify required claims for client_credentials flow.
 	// Note: client_credentials grant may not have 'sub' claim - it's optional.
-	requiredClaims := []string{"iss", "exp", "iat"}
+	requiredClaims := []string{cryptoutilSharedMagic.ClaimIss, cryptoutilSharedMagic.ClaimExp, cryptoutilSharedMagic.ClaimIat}
 	for _, claim := range requiredClaims {
 		if _, ok := claims[claim]; !ok {
 			return fmt.Errorf("missing required claim: %s", claim)
@@ -142,22 +142,22 @@ func validateIntegrationToken(accessToken string, progress *ProgressDisplay) err
 	}
 
 	progress.Debug("JWT claims validated:")
-	progress.Debug(fmt.Sprintf("  iss: %v", claims["iss"]))
+	progress.Debug(fmt.Sprintf("  iss: %v", claims[cryptoutilSharedMagic.ClaimIss]))
 
-	if sub, ok := claims["sub"]; ok {
+	if sub, ok := claims[cryptoutilSharedMagic.ClaimSub]; ok {
 		progress.Debug(fmt.Sprintf("  sub: %v", sub))
 	} else {
 		progress.Debug("  sub: (not present - normal for client_credentials)")
 	}
 
-	progress.Debug(fmt.Sprintf("  exp: %v", claims["exp"]))
-	progress.Debug(fmt.Sprintf("  iat: %v", claims["iat"]))
+	progress.Debug(fmt.Sprintf("  exp: %v", claims[cryptoutilSharedMagic.ClaimExp]))
+	progress.Debug(fmt.Sprintf("  iat: %v", claims[cryptoutilSharedMagic.ClaimIat]))
 
-	if clientID, ok := claims["client_id"]; ok {
+	if clientID, ok := claims[cryptoutilSharedMagic.ClaimClientID]; ok {
 		progress.Debug(fmt.Sprintf("  client_id: %v", clientID))
 	}
 
-	if scope, ok := claims["scope"]; ok {
+	if scope, ok := claims[cryptoutilSharedMagic.ClaimScope]; ok {
 		progress.Debug(fmt.Sprintf("  scope: %v", scope))
 	}
 

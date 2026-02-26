@@ -50,8 +50,8 @@ func (s *PublicServer) registerRoutes() error {
 
 	// Health endpoints (no auth required).
 	app.Get("/health", s.handleHealth)
-	app.Get("/livez", s.handleLivez)
-	app.Get("/readyz", s.handleReadyz)
+	app.Get(cryptoutilSharedMagic.PrivateAdminLivezRequestPath, s.handleLivez)
+	app.Get(cryptoutilSharedMagic.PrivateAdminReadyzRequestPath, s.handleReadyz)
 
 	// BFF OAuth 2.1 proxy endpoints.
 	// TODO: Add OAuth 2.1 authorization code flow endpoints:
@@ -75,8 +75,8 @@ func (s *PublicServer) registerRoutes() error {
 // handleHealth returns server health status.
 func (s *PublicServer) handleHealth(c *fiber.Ctx) error {
 	if err := c.JSON(fiber.Map{
-		"status": "healthy",
-		"time":   c.Context().Time().UTC().Format("2006-01-02T15:04:05Z"),
+		cryptoutilSharedMagic.StringStatus: cryptoutilSharedMagic.DockerServiceHealthHealthy,
+		"time":   c.Context().Time().UTC().Format(cryptoutilSharedMagic.StringUTCFormat),
 	}); err != nil {
 		return fmt.Errorf("failed to send health response: %w", err)
 	}
@@ -102,9 +102,9 @@ func (s *PublicServer) handleReadyz(c *fiber.Ctx) error {
 			c.Status(fiber.StatusServiceUnavailable)
 
 			if jsonErr := c.JSON(fiber.Map{
-				"status": "not ready",
+				cryptoutilSharedMagic.StringStatus: "not ready",
 				"reason": "authz server unavailable",
-				"error":  err.Error(),
+				cryptoutilSharedMagic.StringError:  err.Error(),
 			}); jsonErr != nil {
 				return fmt.Errorf("failed to send not ready response: %w", jsonErr)
 			}
@@ -138,7 +138,7 @@ func (s *PublicServer) checkAuthZServer() error {
 	}
 
 	// Build livez URL.
-	livezURL := s.cfg.AuthzServerURL + "/livez"
+	livezURL := s.cfg.AuthzServerURL + cryptoutilSharedMagic.PrivateAdminLivezRequestPath
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, livezURL, nil)
 	if err != nil {

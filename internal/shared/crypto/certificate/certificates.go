@@ -466,13 +466,13 @@ func deserializeKeyMaterial(keyMaterialEncoded *KeyMaterialEncoded) (*KeyMateria
 }
 
 func toCertificatePEM(certificateDER []byte) []byte {
-	return pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certificateDER})
+	return pem.EncodeToMemory(&pem.Block{Type: cryptoutilSharedMagic.StringPEMTypeCertificate, Bytes: certificateDER})
 }
 
 func toPrivateKeyPEM(privateKeyDER []byte) []byte {
-	return pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: privateKeyDER})
+	return pem.EncodeToMemory(&pem.Block{Type: cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey, Bytes: privateKeyDER})
 }
 
 func toPublicKeyPEM(publicKeyDER []byte) []byte {
-	return pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: publicKeyDER})
+	return pem.EncodeToMemory(&pem.Block{Type: cryptoutilSharedMagic.StringPEMTypePKIXPublicKey, Bytes: publicKeyDER})
 }

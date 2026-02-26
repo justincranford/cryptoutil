@@ -73,7 +73,7 @@ func (s *elasticJWKServiceImpl) CreateElasticJWK(ctx context.Context, tenantID g
 
 	// Set default max materials.
 	if maxMaterials <= 0 {
-		maxMaterials = 10
+		maxMaterials = cryptoutilSharedMagic.JoseJADefaultMaxMaterials
 	}
 
 	// Generate elastic JWK ID and KID.

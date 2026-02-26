@@ -3,6 +3,7 @@
 package handler
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	sha256 "crypto/sha256"
 	"encoding/asn1"
@@ -121,7 +122,7 @@ func createValidTimestampRequest(t *testing.T) []byte {
 	}
 
 	// SHA-256 OID.
-	sha256OID := asn1.ObjectIdentifier{2, 16, 840, 1, 101, 3, 4, 2, 1}
+	sha256OID := asn1.ObjectIdentifier{2, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 840, 1, 101, 3, 4, 2, 1}
 
 	// Hash some data.
 	data := []byte("test data for timestamp")

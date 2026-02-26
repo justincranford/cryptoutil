@@ -100,8 +100,8 @@ func TestAdminServer_Start_Success(t *testing.T) {
 	// Wait for server to be ready with retry logic.
 	var port int
 
-	for i := 0; i < 10; i++ {
-		time.Sleep(50 * time.Millisecond)
+	for i := 0; i < cryptoutilSharedMagic.JoseJADefaultMaxMaterials; i++ {
+		time.Sleep(cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond)
 
 		port = server.ActualPort()
 		if port > 0 {
@@ -112,7 +112,7 @@ func TestAdminServer_Start_Success(t *testing.T) {
 	require.Greater(t, port, 0, "Expected dynamic port allocation")
 
 	// Shutdown server.
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer shutdownCancel()
 
 	err = server.Shutdown(shutdownCtx)
@@ -128,7 +128,7 @@ func TestAdminServer_Start_Success(t *testing.T) {
 	}
 
 	// Wait for port to be fully released before next test.
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP * time.Millisecond)
 }
 
 // TestAdminServer_Readyz_NotReady tests that readyz returns 503 when server not marked ready.
@@ -164,11 +164,11 @@ func TestAdminServer_Readyz_NotReady(t *testing.T) {
 				InsecureSkipVerify: true, //nolint:gosec // Test environment with self-signed certs.
 			},
 		},
-		Timeout: 5 * time.Second,
+		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}
 
 	// Call readyz endpoint (should return 503 - not ready).
-	reqCtx, reqCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	reqCtx, reqCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer reqCancel()
 
 	url := fmt.Sprintf("https://%s:%d/admin/api/v1/readyz", cryptoutilSharedMagic.IPv4Loopback, port)
@@ -191,10 +191,10 @@ func TestAdminServer_Readyz_NotReady(t *testing.T) {
 	err = json.Unmarshal(body, &result)
 	require.NoError(t, err)
 
-	assert.Equal(t, "not ready", result["status"])
+	assert.Equal(t, "not ready", result[cryptoutilSharedMagic.StringStatus])
 
 	// Shutdown server.
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer shutdownCancel()
 
 	err = server.Shutdown(shutdownCtx)
@@ -203,7 +203,7 @@ func TestAdminServer_Readyz_NotReady(t *testing.T) {
 	wg.Wait()
 
 	// Wait for port to be fully released before next test.
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP * time.Millisecond)
 }
 
 // TestAdminServer_HealthChecks_DuringShutdown tests livez and readyz return 503 during shutdown.
@@ -239,14 +239,14 @@ func TestAdminServer_HealthChecks_DuringShutdown(t *testing.T) {
 				InsecureSkipVerify: true, //nolint:gosec // Test environment with self-signed certs.
 			},
 		},
-		Timeout: 5 * time.Second,
+		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}
 
 	// Mark server ready.
 	server.SetReady(true)
 
 	// Verify readyz returns 200 OK when ready.
-	reqCtx1, reqCancel1 := context.WithTimeout(context.Background(), 5*time.Second)
+	reqCtx1, reqCancel1 := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer reqCancel1()
 
 	url := fmt.Sprintf("https://%s:%d/admin/api/v1/readyz", cryptoutilSharedMagic.IPv4Loopback, port)
@@ -261,7 +261,7 @@ func TestAdminServer_HealthChecks_DuringShutdown(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp1.StatusCode)
 
 	// Initiate shutdown in background.
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer shutdownCancel()
 
 	go func() {
@@ -269,10 +269,10 @@ func TestAdminServer_HealthChecks_DuringShutdown(t *testing.T) {
 	}()
 
 	// Wait a bit for shutdown to start.
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.JoseJAMaxMaterials * time.Millisecond)
 
 	// Call livez endpoint during shutdown (should return 503 - shutting down).
-	reqCtx2, reqCancel2 := context.WithTimeout(context.Background(), 5*time.Second)
+	reqCtx2, reqCancel2 := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer reqCancel2()
 
 	livezURL := fmt.Sprintf("https://%s:%d/admin/api/v1/livez", cryptoutilSharedMagic.IPv4Loopback, port)
@@ -296,14 +296,14 @@ func TestAdminServer_HealthChecks_DuringShutdown(t *testing.T) {
 			unmarshalErr := json.Unmarshal(body, &result)
 			require.NoError(t, unmarshalErr)
 
-			assert.Equal(t, "shutting down", result["status"])
+			assert.Equal(t, "shutting down", result[cryptoutilSharedMagic.StringStatus])
 		}
 	}
 
 	wg.Wait()
 
 	// Wait for port to be fully released before next test.
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP * time.Millisecond)
 }
 
 // TestAdminServer_Start_NilContext tests that Start rejects nil context.
@@ -355,10 +355,10 @@ func TestAdminServer_Livez_Alive(t *testing.T) {
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //nolint:gosec // Self-signed cert in test.
 		},
-		Timeout: 5 * time.Second,
+		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}
 
-	reqCtx, reqCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	reqCtx, reqCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer reqCancel()
 
 	url := fmt.Sprintf("https://%s:%d/admin/api/v1/livez", cryptoutilSharedMagic.IPv4Loopback, port)
@@ -382,10 +382,10 @@ func TestAdminServer_Livez_Alive(t *testing.T) {
 	err = json.Unmarshal(body, &response)
 	require.NoError(t, err)
 
-	assert.Equal(t, "alive", response["status"])
+	assert.Equal(t, "alive", response[cryptoutilSharedMagic.StringStatus])
 
 	// Shutdown server.
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer shutdownCancel()
 
 	err = server.Shutdown(shutdownCtx)
@@ -433,10 +433,10 @@ func TestAdminServer_Readyz_Ready(t *testing.T) {
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //nolint:gosec // Self-signed cert in test.
 		},
-		Timeout: 5 * time.Second,
+		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}
 
-	reqCtx, reqCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	reqCtx, reqCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer reqCancel()
 
 	url := fmt.Sprintf("https://%s:%d/admin/api/v1/readyz", cryptoutilSharedMagic.IPv4Loopback, port)
@@ -460,10 +460,10 @@ func TestAdminServer_Readyz_Ready(t *testing.T) {
 	err = json.Unmarshal(body, &response)
 	require.NoError(t, err)
 
-	assert.Equal(t, "ready", response["status"])
+	assert.Equal(t, "ready", response[cryptoutilSharedMagic.StringStatus])
 
 	// Shutdown server.
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer shutdownCancel()
 
 	err = server.Shutdown(shutdownCtx)

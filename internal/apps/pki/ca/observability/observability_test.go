@@ -3,6 +3,7 @@
 package observability
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -33,8 +34,8 @@ func TestMetricsRegistry_Counter(t *testing.T) {
 	require.Equal(t, int64(1), registry.GetCounter("test_counter"))
 
 	// Add value.
-	registry.AddToCounter("test_counter", 5)
-	require.Equal(t, int64(6), registry.GetCounter("test_counter"))
+	registry.AddToCounter("test_counter", cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+	require.Equal(t, int64(cryptoutilSharedMagic.DefaultEmailOTPLength), registry.GetCounter("test_counter"))
 
 	// Get non-existent counter.
 	require.Equal(t, int64(0), registry.GetCounter("non_existent"))
@@ -49,16 +50,16 @@ func TestMetricsRegistry_Gauge(t *testing.T) {
 	require.Equal(t, int64(0), registry.GetGauge("test_gauge"))
 
 	// Set value.
-	registry.SetGauge("test_gauge", 42)
-	require.Equal(t, int64(42), registry.GetGauge("test_gauge"))
+	registry.SetGauge("test_gauge", cryptoutilSharedMagic.AnswerToLifeUniverseEverything)
+	require.Equal(t, int64(cryptoutilSharedMagic.AnswerToLifeUniverseEverything), registry.GetGauge("test_gauge"))
 
 	// Increment.
 	registry.IncrementGauge("test_gauge")
-	require.Equal(t, int64(43), registry.GetGauge("test_gauge"))
+	require.Equal(t, int64(cryptoutilSharedMagic.DefaultCodeChallengeLength), registry.GetGauge("test_gauge"))
 
 	// Decrement.
 	registry.DecrementGauge("test_gauge")
-	require.Equal(t, int64(42), registry.GetGauge("test_gauge"))
+	require.Equal(t, int64(cryptoutilSharedMagic.AnswerToLifeUniverseEverything), registry.GetGauge("test_gauge"))
 
 	// Get non-existent gauge.
 	require.Equal(t, int64(0), registry.GetGauge("non_existent"))
@@ -70,14 +71,14 @@ func TestMetricsRegistry_Histogram(t *testing.T) {
 	registry := NewMetricsRegistry()
 
 	// Record values.
-	registry.RecordHistogram("test_histogram", 10)
-	registry.RecordHistogram("test_histogram", 20)
-	registry.RecordHistogram("test_histogram", 30)
+	registry.RecordHistogram("test_histogram", cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+	registry.RecordHistogram("test_histogram", cryptoutilSharedMagic.MaxErrorDisplay)
+	registry.RecordHistogram("test_histogram", cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days)
 
 	histogram := registry.GetHistogram("test_histogram")
 	require.NotNil(t, histogram)
 	require.Equal(t, int64(3), histogram.Count())
-	require.InDelta(t, 60.0, histogram.Sum(), 0.001)
+	require.InDelta(t, cryptoutilSharedMagic.RateLimitSecondsPerMinute, histogram.Sum(), 0.001)
 
 	// Get non-existent histogram.
 	require.Nil(t, registry.GetHistogram("non_existent"))
@@ -89,13 +90,13 @@ func TestHistogram(t *testing.T) {
 	histogram := NewHistogram()
 
 	// Observe values.
-	histogram.Observe(5)
+	histogram.Observe(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	histogram.Observe(15)
-	histogram.Observe(50)
-	histogram.Observe(100)
-	histogram.Observe(500)
+	histogram.Observe(cryptoutilSharedMagic.IMMaxUsernameLength)
+	histogram.Observe(cryptoutilSharedMagic.JoseJAMaxMaterials)
+	histogram.Observe(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP)
 
-	require.Equal(t, int64(5), histogram.Count())
+	require.Equal(t, int64(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries), histogram.Count())
 	require.InDelta(t, 670.0, histogram.Sum(), 0.001)
 
 	buckets := histogram.GetBucketCounts()
@@ -105,20 +106,20 @@ func TestHistogram(t *testing.T) {
 func TestHistogramWithCustomBuckets(t *testing.T) {
 	t.Parallel()
 
-	buckets := []float64{10, 50, 100}
+	buckets := []float64{cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cryptoutilSharedMagic.IMMaxUsernameLength, cryptoutilSharedMagic.JoseJAMaxMaterials}
 	histogram := NewHistogramWithBuckets(buckets)
 
-	histogram.Observe(5)
-	histogram.Observe(25)
+	histogram.Observe(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+	histogram.Observe(cryptoutilSharedMagic.TLSMaxValidityCACertYears)
 	histogram.Observe(75)
 	histogram.Observe(200)
 
 	require.Equal(t, int64(4), histogram.Count())
 
 	bucketCounts := histogram.GetBucketCounts()
-	require.Equal(t, int64(1), bucketCounts[10])
-	require.Equal(t, int64(2), bucketCounts[50])
-	require.Equal(t, int64(3), bucketCounts[100])
+	require.Equal(t, int64(1), bucketCounts[cryptoutilSharedMagic.JoseJADefaultMaxMaterials])
+	require.Equal(t, int64(2), bucketCounts[cryptoutilSharedMagic.IMMaxUsernameLength])
+	require.Equal(t, int64(3), bucketCounts[cryptoutilSharedMagic.JoseJAMaxMaterials])
 }
 
 func TestMetricsRegistry_GetAllMetrics(t *testing.T) {
@@ -128,8 +129,8 @@ func TestMetricsRegistry_GetAllMetrics(t *testing.T) {
 
 	// Add various metrics.
 	registry.IncrementCounter("counter1")
-	registry.SetGauge("gauge1", 10)
-	registry.RecordHistogram("histogram1", 5)
+	registry.SetGauge("gauge1", cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+	registry.RecordHistogram("histogram1", cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 
 	metrics := registry.GetAllMetrics()
 	require.NotEmpty(t, metrics)
@@ -145,7 +146,7 @@ func TestMetricsRegistry_Reset(t *testing.T) {
 
 	// Add metrics.
 	registry.IncrementCounter("counter1")
-	registry.SetGauge("gauge1", 10)
+	registry.SetGauge("gauge1", cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 
 	// Reset.
 	registry.Reset()
@@ -350,7 +351,7 @@ func TestAuditLogger_Log(t *testing.T) {
 		Action:    "issue",
 		Resource:  "cert-123",
 		Outcome:   AuditOutcomeSuccess,
-		Details:   map[string]string{"profile": "tls-server"},
+		Details:   map[string]string{cryptoutilSharedMagic.ClaimProfile: "tls-server"},
 	}
 
 	logger.Log(event)
@@ -369,7 +370,7 @@ func TestAuditLogger_GetEventsByType(t *testing.T) {
 
 	// Log different event types.
 	logger.Log(AuditEvent{EventType: AuditTypeCertificate, Actor: "admin", Action: "issue"})
-	logger.Log(AuditEvent{EventType: AuditTypeAuthentication, Actor: "user", Action: "login"})
+	logger.Log(AuditEvent{EventType: AuditTypeAuthentication, Actor: "user", Action: cryptoutilSharedMagic.PromptLogin})
 	logger.Log(AuditEvent{EventType: AuditTypeCertificate, Actor: "admin", Action: "revoke"})
 
 	// Get by type.
@@ -404,7 +405,7 @@ func TestSpanStatus_Values(t *testing.T) {
 	}{
 		{SpanStatusUnset, "unset"},
 		{SpanStatusOK, "ok"},
-		{SpanStatusError, "error"},
+		{SpanStatusError, cryptoutilSharedMagic.StringError},
 	}
 
 	for _, tc := range tests {

@@ -20,11 +20,11 @@ func TestCheckAndUseDepCache_Expired(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	goModFile := filepath.Join(tmpDir, "go.mod")
-	err := os.WriteFile(goModFile, []byte("module test\ngo 1.25.5\n"), 0o600)
+	err := os.WriteFile(goModFile, []byte("module test\ngo 1.25.5\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	goSumFile := filepath.Join(tmpDir, "go.sum")
-	err = os.WriteFile(goSumFile, []byte(""), 0o600)
+	err = os.WriteFile(goSumFile, []byte(""), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	goModStat, err := os.Stat(goModFile)
@@ -39,12 +39,12 @@ func TestCheckAndUseDepCache_Expired(t *testing.T) {
 		GoModModTime: goModStat.ModTime(),
 		GoSumModTime: goSumStat.ModTime(),
 		OutdatedDeps: []string{},
-		Mode:         "direct",
+		Mode:         cryptoutilSharedMagic.ModeNameDirect,
 	}
 	err = saveDepCache(cacheFile, cache)
 	require.NoError(t, err)
 
-	used, state, err := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
+	used, state, err := checkAndUseDepCache(cacheFile, cryptoutilSharedMagic.ModeNameDirect, goModStat, goSumStat, logger)
 	require.NoError(t, err)
 	require.False(t, used)
 	require.Equal(t, "cache expired", state)
@@ -57,14 +57,14 @@ func TestCheckAndUseDepCache_GoModChanged(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	goModFile := filepath.Join(tmpDir, "go.mod")
-	err := os.WriteFile(goModFile, []byte("module test\ngo 1.25.5\n"), 0o600)
+	err := os.WriteFile(goModFile, []byte("module test\ngo 1.25.5\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	goSumFile := filepath.Join(tmpDir, "go.sum")
-	err = os.WriteFile(goSumFile, []byte(""), 0o600)
+	err = os.WriteFile(goSumFile, []byte(""), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond)
 
 	goModStat, err := os.Stat(goModFile)
 	require.NoError(t, err)
@@ -78,12 +78,12 @@ func TestCheckAndUseDepCache_GoModChanged(t *testing.T) {
 		GoModModTime: goModStat.ModTime().Add(-1 * time.Hour),
 		GoSumModTime: goSumStat.ModTime(),
 		OutdatedDeps: []string{},
-		Mode:         "direct",
+		Mode:         cryptoutilSharedMagic.ModeNameDirect,
 	}
 	err = saveDepCache(cacheFile, cache)
 	require.NoError(t, err)
 
-	used, state, err := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
+	used, state, err := checkAndUseDepCache(cacheFile, cryptoutilSharedMagic.ModeNameDirect, goModStat, goSumStat, logger)
 	require.NoError(t, err)
 	require.False(t, used)
 	require.Equal(t, "go.mod or go.sum changed", state)
@@ -96,11 +96,11 @@ func TestCheckAndUseDepCache_ValidCacheWithOutdated(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	goModFile := filepath.Join(tmpDir, "go.mod")
-	err := os.WriteFile(goModFile, []byte("module test\ngo 1.25.5\n"), 0o600)
+	err := os.WriteFile(goModFile, []byte("module test\ngo 1.25.5\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	goSumFile := filepath.Join(tmpDir, "go.sum")
-	err = os.WriteFile(goSumFile, []byte(""), 0o600)
+	err = os.WriteFile(goSumFile, []byte(""), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	goModStat, err := os.Stat(goModFile)
@@ -115,12 +115,12 @@ func TestCheckAndUseDepCache_ValidCacheWithOutdated(t *testing.T) {
 		GoModModTime: goModStat.ModTime(),
 		GoSumModTime: goSumStat.ModTime(),
 		OutdatedDeps: []string{"example.com/dep v1.0.0 [v1.1.0]"},
-		Mode:         "direct",
+		Mode:         cryptoutilSharedMagic.ModeNameDirect,
 	}
 	err = saveDepCache(cacheFile, cache)
 	require.NoError(t, err)
 
-	used, state, err := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
+	used, state, err := checkAndUseDepCache(cacheFile, cryptoutilSharedMagic.ModeNameDirect, goModStat, goSumStat, logger)
 	require.True(t, used)
 	require.Empty(t, state)
 	require.Error(t, err)
@@ -134,11 +134,11 @@ func TestCheckAndUseDepCache_ValidCacheClean(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	goModFile := filepath.Join(tmpDir, "go.mod")
-	err := os.WriteFile(goModFile, []byte("module test\ngo 1.25.5\n"), 0o600)
+	err := os.WriteFile(goModFile, []byte("module test\ngo 1.25.5\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	goSumFile := filepath.Join(tmpDir, "go.sum")
-	err = os.WriteFile(goSumFile, []byte(""), 0o600)
+	err = os.WriteFile(goSumFile, []byte(""), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	goModStat, err := os.Stat(goModFile)
@@ -153,12 +153,12 @@ func TestCheckAndUseDepCache_ValidCacheClean(t *testing.T) {
 		GoModModTime: goModStat.ModTime(),
 		GoSumModTime: goSumStat.ModTime(),
 		OutdatedDeps: []string{},
-		Mode:         "direct",
+		Mode:         cryptoutilSharedMagic.ModeNameDirect,
 	}
 	err = saveDepCache(cacheFile, cache)
 	require.NoError(t, err)
 
-	used, state, err := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
+	used, state, err := checkAndUseDepCache(cacheFile, cryptoutilSharedMagic.ModeNameDirect, goModStat, goSumStat, logger)
 	require.True(t, used)
 	require.Empty(t, state)
 	require.NoError(t, err)
@@ -175,7 +175,7 @@ func TestLoadDepCache_ValidCache(t *testing.T) {
 		GoModModTime: time.Now().UTC(),
 		GoSumModTime: time.Now().UTC(),
 		OutdatedDeps: []string{"example.com/dep v1.0.0 [v1.1.0]"},
-		Mode:         "direct",
+		Mode:         cryptoutilSharedMagic.ModeNameDirect,
 	}
 	err := saveDepCache(cacheFile, cache)
 	require.NoError(t, err)
@@ -183,7 +183,7 @@ func TestLoadDepCache_ValidCache(t *testing.T) {
 	loadedCache, err := loadDepCache(cacheFile)
 	require.NoError(t, err)
 	require.NotNil(t, loadedCache)
-	require.Equal(t, "direct", loadedCache.Mode)
+	require.Equal(t, cryptoutilSharedMagic.ModeNameDirect, loadedCache.Mode)
 	require.Len(t, loadedCache.OutdatedDeps, 1)
 }
 
@@ -198,7 +198,7 @@ func TestSaveDepCache_CreateDirectory(t *testing.T) {
 		GoModModTime: time.Now().UTC(),
 		GoSumModTime: time.Now().UTC(),
 		OutdatedDeps: []string{},
-		Mode:         "direct",
+		Mode:         cryptoutilSharedMagic.ModeNameDirect,
 	}
 
 	err := saveDepCache(cacheFile, cache)
@@ -329,7 +329,7 @@ github.com/indirect/dep v1.0.0 [v1.1.0]`
 	}
 
 	outdated := checkDependencyUpdates(goListOutput, directDeps)
-	require.Len(t, outdated, 5, "Should find all direct outdated dependencies")
+	require.Len(t, outdated, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, "Should find all direct outdated dependencies")
 }
 
 // TestCheckOutdatedDeps_NoGoMod tests checkOutdatedDeps when go.mod is missing.

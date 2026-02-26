@@ -3,6 +3,7 @@
 package storage
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"crypto/x509"
 	"crypto/x509/pkix"
@@ -48,7 +49,7 @@ func TestMemoryStore_Store(t *testing.T) {
 				SubjectDN:    "CN=test",
 				IssuerDN:     "CN=CA",
 				NotBefore:    time.Now().UTC(),
-				NotAfter:     time.Now().UTC().Add(365 * 24 * time.Hour),
+				NotAfter:     time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 				Status:       StatusActive,
 			},
 			wantErr: false,
@@ -165,7 +166,7 @@ func TestMemoryStore_List(t *testing.T) {
 	store := NewMemoryStore()
 
 	// Create test certificates.
-	for i := 0; i < 10; i++ {
+	for i := 0; i < cryptoutilSharedMagic.JoseJADefaultMaxMaterials; i++ {
 		status := StatusActive
 		if i%2 == 0 {
 			status = StatusRevoked
@@ -187,19 +188,19 @@ func TestMemoryStore_List(t *testing.T) {
 	// List all.
 	results, total, err := store.List(ctx, nil)
 	require.NoError(t, err)
-	require.Equal(t, 10, total)
-	require.Len(t, results, 10)
+	require.Equal(t, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, total)
+	require.Len(t, results, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 
 	// List with status filter.
 	activeStatus := StatusActive
 	_, total, err = store.List(ctx, &ListFilter{Status: &activeStatus})
 	require.NoError(t, err)
-	require.Equal(t, 5, total)
+	require.Equal(t, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, total)
 
 	// List with pagination.
 	results, total, err = store.List(ctx, &ListFilter{Limit: 3, Offset: 0})
 	require.NoError(t, err)
-	require.Equal(t, 10, total)
+	require.Equal(t, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, total)
 	require.Len(t, results, 3)
 }
 
@@ -317,7 +318,7 @@ func TestMemoryStore_GetRevoked(t *testing.T) {
 	store := NewMemoryStore()
 
 	// Create certificates with different issuers and statuses.
-	for i := 0; i < 6; i++ {
+	for i := 0; i < cryptoutilSharedMagic.DefaultEmailOTPLength; i++ {
 		issuer := "CN=CA1"
 		if i >= 3 {
 			issuer = "CN=CA2"
@@ -416,9 +417,9 @@ func TestNewStoredCertificateFromX509(t *testing.T) {
 					CommonName: "Test CA",
 				},
 				NotBefore:      time.Now().UTC(),
-				NotAfter:       time.Now().UTC().Add(365 * 24 * time.Hour),
+				NotAfter:       time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 				SubjectKeyId:   []byte{1, 2, 3, 4},
-				AuthorityKeyId: []byte{5, 6, 7, 8},
+				AuthorityKeyId: []byte{cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, cryptoutilSharedMagic.DefaultEmailOTPLength, cryptoutilSharedMagic.GitRecentActivityDays, cryptoutilSharedMagic.IMMinPasswordLength},
 				Raw:            []byte{0x30, 0x00}, // Minimal DER.
 			},
 			profileID:   "tls-server",
@@ -480,11 +481,11 @@ func TestRevocationReason_Values(t *testing.T) {
 		{ReasonCACompromise, 2},
 		{ReasonAffiliationChanged, 3},
 		{ReasonSuperseded, 4},
-		{ReasonCessationOfOperation, 5},
-		{ReasonCertificateHold, 6},
-		{ReasonRemoveFromCRL, 8},
+		{ReasonCessationOfOperation, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries},
+		{ReasonCertificateHold, cryptoutilSharedMagic.DefaultEmailOTPLength},
+		{ReasonRemoveFromCRL, cryptoutilSharedMagic.IMMinPasswordLength},
 		{ReasonPrivilegeWithdrawn, 9},
-		{ReasonAACompromise, 10},
+		{ReasonAACompromise, cryptoutilSharedMagic.JoseJADefaultMaxMaterials},
 	}
 
 	for _, tc := range tests {

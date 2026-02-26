@@ -5,6 +5,7 @@
 package orm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 
@@ -54,8 +55,8 @@ func (r *OrmRepository) GormDB() *gorm.DB {
 func (r *OrmRepository) HealthCheck(ctx context.Context) (map[string]any, error) {
 	if r.gormDB == nil {
 		return map[string]any{
-			"status": "error",
-			"error":  "database connection not initialized",
+			cryptoutilSharedMagic.StringStatus: cryptoutilSharedMagic.StringError,
+			cryptoutilSharedMagic.StringError:  "database connection not initialized",
 		}, fmt.Errorf("database connection not initialized")
 	}
 
@@ -63,8 +64,8 @@ func (r *OrmRepository) HealthCheck(ctx context.Context) (map[string]any, error)
 	sqlDB, err := r.gormDB.DB()
 	if err != nil {
 		return map[string]any{
-			"status": "error",
-			"error":  fmt.Sprintf("failed to get sql.DB from GORM: %v", err),
+			cryptoutilSharedMagic.StringStatus: cryptoutilSharedMagic.StringError,
+			cryptoutilSharedMagic.StringError:  fmt.Sprintf("failed to get sql.DB from GORM: %v", err),
 		}, fmt.Errorf("failed to get sql.DB from GORM: %w", err)
 	}
 
@@ -72,8 +73,8 @@ func (r *OrmRepository) HealthCheck(ctx context.Context) (map[string]any, error)
 	err = sqlDB.PingContext(ctx)
 	if err != nil {
 		return map[string]any{
-			"status": "error",
-			"error":  fmt.Sprintf("database ping failed: %v", err),
+			cryptoutilSharedMagic.StringStatus: cryptoutilSharedMagic.StringError,
+			cryptoutilSharedMagic.StringError:  fmt.Sprintf("database ping failed: %v", err),
 		}, fmt.Errorf("database ping failed: %w", err)
 	}
 
@@ -84,7 +85,7 @@ func (r *OrmRepository) HealthCheck(ctx context.Context) (map[string]any, error)
 	dbType := r.gormDB.Name()
 
 	return map[string]any{
-		"status":               "ok",
+		cryptoutilSharedMagic.StringStatus:               "ok",
 		"db_type":              dbType,
 		"open_connections":     stats.OpenConnections,
 		"idle_connections":     stats.Idle,

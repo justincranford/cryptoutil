@@ -5,6 +5,7 @@
 package orm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -24,17 +25,17 @@ func TestAuthorizationRequestRepository_Create(t *testing.T) {
 
 	request := &cryptoutilIdentityDomain.AuthorizationRequest{
 		ID:                  googleUuid.Must(googleUuid.NewV7()),
-		ClientID:            "test-client-id",
-		RedirectURI:         "https://example.com/callback",
-		ResponseType:        "code",
+		ClientID:            cryptoutilSharedMagic.TestClientID,
+		RedirectURI:         cryptoutilSharedMagic.DemoRedirectURI,
+		ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
 		Scope:               "openid profile email",
 		State:               "random-state",
 		Nonce:               "random-nonce",
 		CodeChallenge:       "challenge-hash",
-		CodeChallengeMethod: "S256",
+		CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 		Code:                "auth-code-12345",
 		CreatedAt:           time.Now().UTC(),
-		ExpiresAt:           time.Now().UTC().Add(10 * time.Minute),
+		ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
 		ConsentGranted:      false,
 		Used:                false,
 	}
@@ -78,13 +79,13 @@ func TestAuthorizationRequestRepository_GetByCode(t *testing.T) {
 				request := &cryptoutilIdentityDomain.AuthorizationRequest{
 					ID:                  googleUuid.Must(googleUuid.NewV7()),
 					ClientID:            "client-123",
-					RedirectURI:         "https://example.com/callback",
-					ResponseType:        "code",
+					RedirectURI:         cryptoutilSharedMagic.DemoRedirectURI,
+					ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
 					CodeChallenge:       "challenge",
-					CodeChallengeMethod: "S256",
+					CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 					Code:                "test-code-123",
 					CreatedAt:           time.Now().UTC(),
-					ExpiresAt:           time.Now().UTC().Add(10 * time.Minute),
+					ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
 				}
 				err := repo.Create(context.Background(), request)
 				require.NoError(t, err)
@@ -127,13 +128,13 @@ func TestAuthorizationRequestRepository_Update(t *testing.T) {
 	request := &cryptoutilIdentityDomain.AuthorizationRequest{
 		ID:                  googleUuid.Must(googleUuid.NewV7()),
 		ClientID:            "client-456",
-		RedirectURI:         "https://example.com/callback",
-		ResponseType:        "code",
+		RedirectURI:         cryptoutilSharedMagic.DemoRedirectURI,
+		ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
 		CodeChallenge:       "challenge",
-		CodeChallengeMethod: "S256",
+		CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 		Code:                "update-code",
 		CreatedAt:           time.Now().UTC(),
-		ExpiresAt:           time.Now().UTC().Add(10 * time.Minute),
+		ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
 		ConsentGranted:      false,
 	}
 	err := repo.Create(context.Background(), request)
@@ -159,13 +160,13 @@ func TestAuthorizationRequestRepository_Delete(t *testing.T) {
 	request := &cryptoutilIdentityDomain.AuthorizationRequest{
 		ID:                  googleUuid.Must(googleUuid.NewV7()),
 		ClientID:            "client-789",
-		RedirectURI:         "https://example.com/callback",
-		ResponseType:        "code",
+		RedirectURI:         cryptoutilSharedMagic.DemoRedirectURI,
+		ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
 		CodeChallenge:       "challenge",
-		CodeChallengeMethod: "S256",
+		CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 		Code:                "delete-code",
 		CreatedAt:           time.Now().UTC(),
-		ExpiresAt:           time.Now().UTC().Add(10 * time.Minute),
+		ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
 	}
 	err := repo.Create(context.Background(), request)
 	require.NoError(t, err)
@@ -188,13 +189,13 @@ func TestAuthorizationRequestRepository_DeleteExpired(t *testing.T) {
 		expiredRequest := &cryptoutilIdentityDomain.AuthorizationRequest{
 			ID:                  googleUuid.Must(googleUuid.NewV7()),
 			ClientID:            "client-expired",
-			RedirectURI:         "https://example.com/callback",
-			ResponseType:        "code",
+			RedirectURI:         cryptoutilSharedMagic.DemoRedirectURI,
+			ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
 			CodeChallenge:       "challenge",
-			CodeChallengeMethod: "S256",
+			CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 			Code:                "expired-code-" + string(rune('a'+i)),
-			CreatedAt:           time.Now().UTC().Add(-20 * time.Minute),
-			ExpiresAt:           time.Now().UTC().Add(-10 * time.Minute), // Expired.
+			CreatedAt:           time.Now().UTC().Add(-cryptoutilSharedMagic.MaxErrorDisplay * time.Minute),
+			ExpiresAt:           time.Now().UTC().Add(-cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute), // Expired.
 		}
 		err := repo.Create(context.Background(), expiredRequest)
 		require.NoError(t, err)
@@ -205,13 +206,13 @@ func TestAuthorizationRequestRepository_DeleteExpired(t *testing.T) {
 		validRequest := &cryptoutilIdentityDomain.AuthorizationRequest{
 			ID:                  googleUuid.Must(googleUuid.NewV7()),
 			ClientID:            "client-valid",
-			RedirectURI:         "https://example.com/callback",
-			ResponseType:        "code",
+			RedirectURI:         cryptoutilSharedMagic.DemoRedirectURI,
+			ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
 			CodeChallenge:       "challenge",
-			CodeChallengeMethod: "S256",
+			CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 			Code:                "valid-code-" + string(rune('a'+i)),
 			CreatedAt:           time.Now().UTC(),
-			ExpiresAt:           time.Now().UTC().Add(10 * time.Minute), // Not expired.
+			ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute), // Not expired.
 		}
 		err := repo.Create(context.Background(), validRequest)
 		require.NoError(t, err)

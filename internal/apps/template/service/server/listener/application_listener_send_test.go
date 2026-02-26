@@ -5,6 +5,7 @@
 package listener_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 "context"
 "sync"
 "testing"
@@ -44,8 +45,8 @@ _ = server.Start(ctx)
 // Wait for dynamic port assignment.
 var port int
 
-for i := 0; i < 10; i++ {
-time.Sleep(50 * time.Millisecond)
+for i := 0; i < cryptoutilSharedMagic.JoseJADefaultMaxMaterials; i++ {
+time.Sleep(cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond)
 
 port = server.ActualPort()
 if port > 0 {

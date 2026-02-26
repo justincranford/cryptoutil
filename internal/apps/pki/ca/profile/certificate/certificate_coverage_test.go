@@ -3,6 +3,7 @@
 package certificate
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -32,7 +33,7 @@ key_usage:
 
 	dir := t.TempDir()
 	path := filepath.Join(dir, "profile.yaml")
-	require.NoError(t, os.WriteFile(path, []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(path, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	profile, err := LoadProfile(path)
 	require.NoError(t, err)
@@ -44,7 +45,7 @@ func TestLoadProfile_InvalidYAML(t *testing.T) {
 
 	dir := t.TempDir()
 	path := filepath.Join(dir, "bad.yaml")
-	require.NoError(t, os.WriteFile(path, []byte("not: valid: yaml: :\n  - broken"), 0o600))
+	require.NoError(t, os.WriteFile(path, []byte("not: valid: yaml: :\n  - broken"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	_, err := LoadProfile(path)
 	require.Error(t, err)

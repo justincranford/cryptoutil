@@ -3,6 +3,7 @@
 package orm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -28,8 +29,8 @@ func TestKeyRepository_Create(t *testing.T) {
 			name: "create_signing_key",
 			key: &cryptoutilIdentityDomain.Key{
 				ID:         googleUuid.Must(googleUuid.NewV7()),
-				Usage:      "signing",
-				Algorithm:  "RS256",
+				Usage:      cryptoutilSharedMagic.KeyUsageSigning,
+				Algorithm:  cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 				PrivateKey: "test-private-key-data",
 				Active:     true,
 			},
@@ -39,8 +40,8 @@ func TestKeyRepository_Create(t *testing.T) {
 			name: "create_encryption_key",
 			key: &cryptoutilIdentityDomain.Key{
 				ID:         googleUuid.Must(googleUuid.NewV7()),
-				Usage:      "encryption",
-				Algorithm:  "RSA-OAEP-256",
+				Usage:      cryptoutilSharedMagic.KeyUsageEncryption,
+				Algorithm:  cryptoutilSharedMagic.JoseAlgRSAOAEP256,
 				PrivateKey: "test-encryption-key",
 				Active:     true,
 			},
@@ -77,8 +78,8 @@ func TestKeyRepository_FindByID(t *testing.T) {
 	// Create a test key.
 	key := &cryptoutilIdentityDomain.Key{
 		ID:         googleUuid.Must(googleUuid.NewV7()),
-		Usage:      "signing",
-		Algorithm:  "ES256",
+		Usage:      cryptoutilSharedMagic.KeyUsageSigning,
+		Algorithm:  cryptoutilSharedMagic.JoseAlgES256,
 		PrivateKey: "test-ec-key",
 		Active:     true,
 	}
@@ -133,8 +134,8 @@ func TestKeyRepository_Update(t *testing.T) {
 	// Create a test key.
 	key := &cryptoutilIdentityDomain.Key{
 		ID:         googleUuid.Must(googleUuid.NewV7()),
-		Usage:      "signing",
-		Algorithm:  "RS256",
+		Usage:      cryptoutilSharedMagic.KeyUsageSigning,
+		Algorithm:  cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		PrivateKey: "original-key-data",
 		Active:     true,
 	}
@@ -199,8 +200,8 @@ func TestKeyRepository_Delete(t *testing.T) {
 			setup: func() googleUuid.UUID {
 				key := &cryptoutilIdentityDomain.Key{
 					ID:         googleUuid.Must(googleUuid.NewV7()),
-					Usage:      "signing",
-					Algorithm:  "RS256",
+					Usage:      cryptoutilSharedMagic.KeyUsageSigning,
+					Algorithm:  cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 					PrivateKey: "to-be-deleted",
 					Active:     true,
 				}
@@ -247,11 +248,11 @@ func TestKeyRepository_List(t *testing.T) {
 	ctx := context.Background()
 
 	// Create 5 test keys.
-	for i := 0; i < 5; i++ {
+	for i := 0; i < cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries; i++ {
 		key := &cryptoutilIdentityDomain.Key{
 			ID:         googleUuid.Must(googleUuid.NewV7()),
-			Usage:      "signing",
-			Algorithm:  "RS256",
+			Usage:      cryptoutilSharedMagic.KeyUsageSigning,
+			Algorithm:  cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 			PrivateKey: "test-key",
 			Active:     true,
 		}
@@ -268,7 +269,7 @@ func TestKeyRepository_List(t *testing.T) {
 			name:          "all_keys",
 			limit:         0,
 			offset:        0,
-			expectedCount: 5,
+			expectedCount: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 		},
 		{
 			name:          "limit_2",
@@ -325,20 +326,20 @@ func TestKeyRepository_FindByUsage(t *testing.T) {
 			setupKeys: []*cryptoutilIdentityDomain.Key{
 				{
 					ID:         googleUuid.Must(googleUuid.NewV7()),
-					Usage:      "signing",
-					Algorithm:  "RS256",
+					Usage:      cryptoutilSharedMagic.KeyUsageSigning,
+					Algorithm:  cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 					PrivateKey: "signing-key-1",
 					Active:     true,
 				},
 				{
 					ID:         googleUuid.Must(googleUuid.NewV7()),
-					Usage:      "encryption",
-					Algorithm:  "RSA-OAEP-256",
+					Usage:      cryptoutilSharedMagic.KeyUsageEncryption,
+					Algorithm:  cryptoutilSharedMagic.JoseAlgRSAOAEP256,
 					PrivateKey: "encryption-key-1",
 					Active:     true,
 				},
 			},
-			usage:         "signing",
+			usage:         cryptoutilSharedMagic.KeyUsageSigning,
 			active:        true,
 			expectedCount: 1,
 		},
@@ -347,20 +348,20 @@ func TestKeyRepository_FindByUsage(t *testing.T) {
 			setupKeys: []*cryptoutilIdentityDomain.Key{
 				{
 					ID:         googleUuid.Must(googleUuid.NewV7()),
-					Usage:      "signing",
-					Algorithm:  "RS256",
+					Usage:      cryptoutilSharedMagic.KeyUsageSigning,
+					Algorithm:  cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 					PrivateKey: "signing-key-3",
 					Active:     true,
 				},
 				{
 					ID:         googleUuid.Must(googleUuid.NewV7()),
-					Usage:      "signing",
-					Algorithm:  "ES256",
+					Usage:      cryptoutilSharedMagic.KeyUsageSigning,
+					Algorithm:  cryptoutilSharedMagic.JoseAlgES256,
 					PrivateKey: "signing-key-4",
 					Active:     true,
 				},
 			},
-			usage:         "signing",
+			usage:         cryptoutilSharedMagic.KeyUsageSigning,
 			active:        false,
 			expectedCount: 2,
 		},
@@ -369,20 +370,20 @@ func TestKeyRepository_FindByUsage(t *testing.T) {
 			setupKeys: []*cryptoutilIdentityDomain.Key{
 				{
 					ID:         googleUuid.Must(googleUuid.NewV7()),
-					Usage:      "encryption",
-					Algorithm:  "RSA-OAEP-256",
+					Usage:      cryptoutilSharedMagic.KeyUsageEncryption,
+					Algorithm:  cryptoutilSharedMagic.JoseAlgRSAOAEP256,
 					PrivateKey: "encryption-key-1",
 					Active:     true,
 				},
 				{
 					ID:         googleUuid.Must(googleUuid.NewV7()),
-					Usage:      "encryption",
-					Algorithm:  "RSA-OAEP-256",
+					Usage:      cryptoutilSharedMagic.KeyUsageEncryption,
+					Algorithm:  cryptoutilSharedMagic.JoseAlgRSAOAEP256,
 					PrivateKey: "encryption-key-2",
 					Active:     false,
 				},
 			},
-			usage:         "encryption",
+			usage:         cryptoutilSharedMagic.KeyUsageEncryption,
 			active:        false,
 			expectedCount: 2,
 		},
@@ -466,8 +467,8 @@ func TestKeyRepository_Count(t *testing.T) {
 			for i := 0; i < tc.setupCount; i++ {
 				key := &cryptoutilIdentityDomain.Key{
 					ID:         googleUuid.Must(googleUuid.NewV7()),
-					Usage:      "signing",
-					Algorithm:  "RS256",
+					Usage:      cryptoutilSharedMagic.KeyUsageSigning,
+					Algorithm:  cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 					PrivateKey: "test-key",
 					Active:     true,
 				}

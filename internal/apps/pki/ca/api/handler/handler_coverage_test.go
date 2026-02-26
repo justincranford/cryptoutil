@@ -26,7 +26,7 @@ func TestGenerateKeyPairFromCSR_AllAlgorithms(t *testing.T) {
 		t.Parallel()
 
 		// Create RSA CSR template.
-		rsaKey, err := rsa.GenerateKey(crand.Reader, 2048)
+		rsaKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 		require.NoError(t, err)
 
 		csrTemplate := &x509.CertificateRequest{
@@ -90,7 +90,7 @@ func TestGenerateKeyPairFromCSR_AllAlgorithms(t *testing.T) {
 		require.True(t, isECDSAPublic, "public key should be *ecdsa.PublicKey")
 	})
 
-	t.Run("Ed25519", func(t *testing.T) {
+	t.Run(cryptoutilSharedMagic.EdCurveEd25519, func(t *testing.T) {
 		t.Parallel()
 
 		// Create Ed25519 CSR template.
@@ -158,7 +158,7 @@ func TestEncodePrivateKeyPEM_AllKeyTypes(t *testing.T) {
 		t.Parallel()
 
 		// Generate RSA private key.
-		rsaKey, err := rsa.GenerateKey(crand.Reader, 2048)
+		rsaKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 		require.NoError(t, err)
 
 		// Encode to PEM.
@@ -226,7 +226,7 @@ func TestCreateCSRWithKey_AllKeyTypes(t *testing.T) {
 		t.Parallel()
 
 		// Generate RSA key.
-		rsaKey, err := rsa.GenerateKey(crand.Reader, 2048)
+		rsaKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 		require.NoError(t, err)
 
 		// Create CSR template.

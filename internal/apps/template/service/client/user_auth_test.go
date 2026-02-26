@@ -5,6 +5,7 @@
 package client_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	json "encoding/json"
 	http "net/http"
 	httptest "net/http/httptest"
@@ -48,7 +49,7 @@ func TestRegisterServiceUser_Success(t *testing.T) {
 
 			w.WriteHeader(http.StatusOK)
 			_ = json.NewEncoder(w).Encode(map[string]string{
-				"token": token,
+				cryptoutilSharedMagic.ParamToken: token,
 			})
 
 		default:
@@ -102,7 +103,7 @@ func TestRegisterBrowserUser_Success(t *testing.T) {
 		case browserLoginPath:
 			w.WriteHeader(http.StatusOK)
 			_ = json.NewEncoder(w).Encode(map[string]string{
-				"token": token,
+				cryptoutilSharedMagic.ParamToken: token,
 			})
 
 		default:
@@ -133,7 +134,7 @@ func TestLoginUser_Success(t *testing.T) {
 
 		w.WriteHeader(http.StatusOK)
 		_ = json.NewEncoder(w).Encode(map[string]string{
-			"token": expectedToken,
+			cryptoutilSharedMagic.ParamToken: expectedToken,
 		})
 	}))
 	defer server.Close()
@@ -196,7 +197,7 @@ func TestRegisterTestUserService_Success(t *testing.T) {
 		case serviceLoginPath:
 			w.WriteHeader(http.StatusOK)
 			_ = json.NewEncoder(w).Encode(map[string]string{
-				"token": "random-user-token",
+				cryptoutilSharedMagic.ParamToken: "random-user-token",
 			})
 		}
 	}))
@@ -228,7 +229,7 @@ func TestRegisterTestUserBrowser_Success(t *testing.T) {
 		case browserLoginPath:
 			w.WriteHeader(http.StatusOK)
 			_ = json.NewEncoder(w).Encode(map[string]string{
-				"token": "browser-random-token",
+				cryptoutilSharedMagic.ParamToken: "browser-random-token",
 			})
 		}
 	}))

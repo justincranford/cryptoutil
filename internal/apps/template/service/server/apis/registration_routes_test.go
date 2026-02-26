@@ -6,6 +6,7 @@
 package apis
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"context"
 	"net/http/httptest"
@@ -42,7 +43,7 @@ func TestRegisterRegistrationRoutes_Integration(t *testing.T) {
 
 	app := fiber.New()
 
-	RegisterRegistrationRoutes(app, registrationService, 10)
+	RegisterRegistrationRoutes(app, registrationService, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 
 	// Verify routes were registered by checking that they exist
 	require.NotNil(t, app)
@@ -65,7 +66,7 @@ func TestRegisterRegistrationRoutes_RateLimiting(t *testing.T) {
 	// Make requests until we hit the rate limit
 	var lastStatus int
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < cryptoutilSharedMagic.JoseJADefaultMaxMaterials; i++ {
 		req := httptest.NewRequest("POST", "/browser/api/v1/auth/register", bytes.NewReader([]byte(`{}`)))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req, -1)

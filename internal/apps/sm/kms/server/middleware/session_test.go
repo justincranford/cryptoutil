@@ -15,6 +15,7 @@
 package middleware
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"errors"
 	"io"
@@ -110,8 +111,8 @@ func TestBrowserSessionMiddleware(t *testing.T) {
 		UserID:    googleUuid.New(),
 		TenantID:  googleUuid.New(),
 		RealmID:   googleUuid.New(),
-		Scopes:    []string{"read", "write"},
-		IssuedAt:  1000,
+		Scopes:    []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
+		IssuedAt:  cryptoutilSharedMagic.JoseJADefaultListLimit,
 		ExpiresAt: 2000,
 	}
 
@@ -196,7 +197,7 @@ func TestServiceSessionMiddleware(t *testing.T) {
 		TenantID:  googleUuid.New(),
 		RealmID:   googleUuid.New(),
 		Scopes:    []string{"admin"},
-		IssuedAt:  1000,
+		IssuedAt:  cryptoutilSharedMagic.JoseJADefaultListLimit,
 		ExpiresAt: 2000,
 	}
 
@@ -398,8 +399,8 @@ func TestSessionMiddleware_SetsRealmContext(t *testing.T) {
 		UserID:    googleUuid.New(),
 		TenantID:  googleUuid.New(),
 		RealmID:   googleUuid.New(),
-		Scopes:    []string{"read", "write"},
-		IssuedAt:  1000,
+		Scopes:    []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
+		IssuedAt:  cryptoutilSharedMagic.JoseJADefaultListLimit,
 		ExpiresAt: 2000,
 	}
 
@@ -413,41 +414,41 @@ func TestSessionMiddleware_SetsRealmContext(t *testing.T) {
 		// Verify SessionInfo is set
 		sessionInfo := GetSessionInfo(c.UserContext())
 		if sessionInfo == nil {
-			return c.Status(500).SendString("no session info")
+			return c.Status(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP).SendString("no session info")
 		}
 
 		// Verify RealmContext is set
 		realmCtx := GetRealmContext(c.UserContext())
 		if realmCtx == nil {
-			return c.Status(500).SendString("no realm context")
+			return c.Status(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP).SendString("no realm context")
 		}
 
 		// Verify values match
 		if realmCtx.TenantID != sessionInfo.TenantID {
-			return c.Status(500).SendString("tenant mismatch")
+			return c.Status(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP).SendString("tenant mismatch")
 		}
 
 		if realmCtx.RealmID != sessionInfo.RealmID {
-			return c.Status(500).SendString("realm mismatch")
+			return c.Status(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP).SendString("realm mismatch")
 		}
 
 		if realmCtx.UserID != sessionInfo.UserID {
-			return c.Status(500).SendString("user mismatch")
+			return c.Status(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP).SendString("user mismatch")
 		}
 
 		if realmCtx.Source != "session" {
-			return c.Status(500).SendString("source mismatch")
+			return c.Status(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP).SendString("source mismatch")
 		}
 
 		// Verify TenantContextKey is set
 		tenantStr := c.UserContext().Value(TenantContextKey{})
 		if tenantStr == nil {
-			return c.Status(500).SendString("no tenant key")
+			return c.Status(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP).SendString("no tenant key")
 		}
 
 		tenantStrVal, ok := tenantStr.(string)
 		if !ok || tenantStrVal != sessionInfo.TenantID.String() {
-			return c.Status(500).SendString("tenant key mismatch")
+			return c.Status(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP).SendString("tenant key mismatch")
 		}
 
 		return c.SendString("ok")

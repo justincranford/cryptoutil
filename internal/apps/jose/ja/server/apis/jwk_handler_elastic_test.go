@@ -72,9 +72,9 @@ func TestHandleCreateElasticJWK_Success(t *testing.T) {
 
 	// Prepare request.
 	reqBody := CreateElasticJWKRequest{
-		Algorithm:    "RSA/2048",
-		Use:          "sig",
-		MaxMaterials: 10,
+		Algorithm:    cryptoutilSharedMagic.JoseKeyTypeRSA2048,
+		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 	}
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
@@ -93,10 +93,10 @@ func TestHandleCreateElasticJWK_Success(t *testing.T) {
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&response))
 	require.NotEmpty(t, response.KID)
 	require.Equal(t, tenantID.String(), response.TenantID)
-	require.Equal(t, "RSA", response.KeyType)
-	require.Equal(t, "RSA/2048", response.Algorithm)
-	require.Equal(t, "sig", response.Use)
-	require.Equal(t, 10, response.MaxMaterials)
+	require.Equal(t, cryptoutilSharedMagic.KeyTypeRSA, response.KeyType)
+	require.Equal(t, cryptoutilSharedMagic.JoseKeyTypeRSA2048, response.Algorithm)
+	require.Equal(t, cryptoutilSharedMagic.JoseKeyUseSig, response.Use)
+	require.Equal(t, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, response.MaxMaterials)
 
 	elasticRepo.AssertExpectations(t)
 }
@@ -111,9 +111,9 @@ func TestHandleCreateElasticJWK_MissingTenantContext(t *testing.T) {
 	app.Post("/jwk", handler.HandleCreateElasticJWK())
 
 	reqBody := CreateElasticJWKRequest{
-		Algorithm:    "RSA/2048",
-		Use:          "sig",
-		MaxMaterials: 10,
+		Algorithm:    cryptoutilSharedMagic.JoseKeyTypeRSA2048,
+		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 	}
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
@@ -142,8 +142,8 @@ func TestHandleCreateElasticJWK_InvalidAlgorithm(t *testing.T) {
 
 	reqBody := CreateElasticJWKRequest{
 		Algorithm:    "INVALID",
-		Use:          "sig",
-		MaxMaterials: 10,
+		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 	}
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
@@ -175,9 +175,9 @@ func TestHandleCreateElasticJWK_RepositoryError(t *testing.T) {
 	}, handler.HandleCreateElasticJWK())
 
 	reqBody := CreateElasticJWKRequest{
-		Algorithm:    "RSA/2048",
-		Use:          "sig",
-		MaxMaterials: 10,
+		Algorithm:    cryptoutilSharedMagic.JoseKeyTypeRSA2048,
+		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 	}
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
@@ -206,10 +206,10 @@ func TestHandleGetElasticJWK_Success(t *testing.T) {
 		ID:                   kid,
 		TenantID:             tenantID,
 		KID:                  kid.String(),
-		KeyType:              "RSA",
-		Algorithm:            "RSA/2048",
-		Use:                  "sig",
-		MaxMaterials:         10,
+		KeyType:              cryptoutilSharedMagic.KeyTypeRSA,
+		Algorithm:            cryptoutilSharedMagic.JoseKeyTypeRSA2048,
+		Use:                  cryptoutilSharedMagic.JoseKeyUseSig,
+		MaxMaterials:         cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 		CurrentMaterialCount: 1,
 		CreatedAt:            time.Now().UTC(),
 	}
@@ -279,10 +279,10 @@ func TestHandleListElasticJWKs_Success(t *testing.T) {
 			ID:                   googleUuid.New(),
 			TenantID:             tenantID,
 			KID:                  "kid1",
-			KeyType:              "RSA",
-			Algorithm:            "RSA/2048",
-			Use:                  "sig",
-			MaxMaterials:         10,
+			KeyType:              cryptoutilSharedMagic.KeyTypeRSA,
+			Algorithm:            cryptoutilSharedMagic.JoseKeyTypeRSA2048,
+			Use:                  cryptoutilSharedMagic.JoseKeyUseSig,
+			MaxMaterials:         cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 			CurrentMaterialCount: 1,
 			CreatedAt:            time.Now().UTC(),
 		},
@@ -291,14 +291,14 @@ func TestHandleListElasticJWKs_Success(t *testing.T) {
 			TenantID:             tenantID,
 			KID:                  "kid2",
 			KeyType:              "EC",
-			Algorithm:            "EC/P256",
-			Use:                  "enc",
-			MaxMaterials:         5,
+			Algorithm:            cryptoutilSharedMagic.JoseKeyTypeECP256,
+			Use:                  cryptoutilSharedMagic.JoseKeyUseEnc,
+			MaxMaterials:         cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 			CurrentMaterialCount: 0,
 			CreatedAt:            time.Now().UTC(),
 		},
 	}
-	elasticRepo.On("List", mock.Anything, tenantID, 0, 100).
+	elasticRepo.On("List", mock.Anything, tenantID, 0, cryptoutilSharedMagic.JoseJAMaxMaterials).
 		Return(expectedJWKs, int64(2), nil)
 
 	app.Get("/jwks", func(c *fiber.Ctx) error {
@@ -371,7 +371,7 @@ func TestHandleCreateMaterialJWK_Success(t *testing.T) {
 		ID:                   googleUuid.New(),
 		TenantID:             tenantID,
 		KID:                  kid,
-		MaxMaterials:         5,
+		MaxMaterials:         cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 		CurrentMaterialCount: 2,
 	}
 
@@ -408,8 +408,8 @@ func TestHandleCreateMaterialJWK_MaxMaterialsReached(t *testing.T) {
 		ID:                   googleUuid.New(),
 		TenantID:             tenantID,
 		KID:                  kid,
-		MaxMaterials:         5,
-		CurrentMaterialCount: 5,
+		MaxMaterials:         cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
+		CurrentMaterialCount: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 	}
 
 	elasticRepo.On("Get", mock.Anything, tenantID, kid).Return(elasticJWK, nil)

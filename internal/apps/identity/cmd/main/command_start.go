@@ -5,6 +5,7 @@
 package cmd
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	"os"
@@ -98,7 +99,7 @@ Examples:
 				// Create repository factory to reset data
 				dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
 					Type: "sqlite",
-					DSN:  ":memory:", // TODO: Use actual database config from profile
+					DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder, // TODO: Use actual database config from profile
 				}
 
 				repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
@@ -147,8 +148,8 @@ Examples:
 				binary     string
 				configFile string
 			}{
-				{"authz", profileCfg.Services.AuthZ.Enabled, "bin/authz", "configs/identity/authz.yml"},
-				{"idp", profileCfg.Services.IDP.Enabled, "bin/idp", "configs/identity/idp.yml"},
+				{cryptoutilSharedMagic.AuthzServiceName, profileCfg.Services.AuthZ.Enabled, "bin/authz", "configs/identity/authz.yml"},
+				{cryptoutilSharedMagic.IDPServiceName, profileCfg.Services.IDP.Enabled, "bin/idp", "configs/identity/idp.yml"},
 				{"rs", profileCfg.Services.RS.Enabled, "bin/rs", "configs/identity/rs.yml"},
 			}
 
@@ -161,7 +162,7 @@ Examples:
 
 				fmt.Printf("Starting %s...\n", svc.name)
 
-				args := []string{"--config", svc.configFile}
+				args := []string{cryptoutilSharedMagic.IdentityCLIFlagConfig, svc.configFile}
 				if err := procManager.Start(ctx, svc.name, svc.binary, args); err != nil {
 					return fmt.Errorf("failed to start %s: %w", svc.name, err)
 				}
@@ -177,8 +178,8 @@ Examples:
 					name string
 					url  string
 				}{
-					{"authz", "https://" + profileCfg.Services.AuthZ.BindAddress + "/health"},
-					{"idp", "https://" + profileCfg.Services.IDP.BindAddress + "/health"},
+					{cryptoutilSharedMagic.AuthzServiceName, "https://" + profileCfg.Services.AuthZ.BindAddress + "/health"},
+					{cryptoutilSharedMagic.IDPServiceName, "https://" + profileCfg.Services.IDP.BindAddress + "/health"},
 					{"rs", "https://" + profileCfg.Services.RS.BindAddress + "/health"},
 				}
 
@@ -207,7 +208,7 @@ Examples:
 		},
 	}
 
-	cmd.Flags().StringVarP(&profile, "profile", "p", "demo", "Configuration profile (demo, authz-only, authz-idp, full-stack, ci)")
+	cmd.Flags().StringVarP(&profile, cryptoutilSharedMagic.ClaimProfile, "p", "demo", "Configuration profile (demo, authz-only, authz-idp, full-stack, ci)")
 	cmd.Flags().BoolVar(&useDocker, "docker", false, "Use Docker Compose orchestration")
 	cmd.Flags().BoolVar(&useLocal, "local", true, "Run services as local processes (default)")
 	cmd.Flags().StringVarP(&configFile, "config", "c", "", "Override with custom config file")

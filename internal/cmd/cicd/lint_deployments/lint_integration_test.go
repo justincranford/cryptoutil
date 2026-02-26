@@ -1,6 +1,7 @@
 package lint_deployments_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"strings"
@@ -28,14 +29,14 @@ func TestValidateAllDeployments(t *testing.T) {
 				t.Helper()
 
 				// Create a valid PRODUCT-SERVICE deployment.
-				svcDir := filepath.Join(rootDir, "jose-ja")
-				require.NoError(t, os.MkdirAll(svcDir, 0o755))
-				createValidProductServiceDeployment(t, svcDir, "jose-ja")
+				svcDir := filepath.Join(rootDir, cryptoutilSharedMagic.OTLPServiceJoseJA)
+				require.NoError(t, os.MkdirAll(svcDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				createValidProductServiceDeployment(t, svcDir, cryptoutilSharedMagic.OTLPServiceJoseJA)
 
 				// Create a valid template deployment.
 				tmplDir := filepath.Join(rootDir, "template")
-				require.NoError(t, os.MkdirAll(filepath.Join(tmplDir, "secrets"), 0o755))
-				require.NoError(t, os.WriteFile(filepath.Join(tmplDir, "compose.yml"), []byte("v"), 0o600))
+				require.NoError(t, os.MkdirAll(filepath.Join(tmplDir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				require.NoError(t, os.WriteFile(filepath.Join(tmplDir, "compose.yml"), []byte("v"), cryptoutilSharedMagic.CacheFilePermissions))
 				createRequiredSecrets(t, tmplDir)
 			},
 			wantCount: 2,
@@ -47,15 +48,15 @@ func TestValidateAllDeployments(t *testing.T) {
 				t.Helper()
 
 				// Create a valid PRODUCT-SERVICE deployment.
-				validDir := filepath.Join(rootDir, "sm-im")
-				require.NoError(t, os.MkdirAll(validDir, 0o755))
-				createValidProductServiceDeployment(t, validDir, "sm-im")
+				validDir := filepath.Join(rootDir, cryptoutilSharedMagic.OTLPServiceSMIM)
+				require.NoError(t, os.MkdirAll(validDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				createValidProductServiceDeployment(t, validDir, cryptoutilSharedMagic.OTLPServiceSMIM)
 
 				// Create an invalid deployment (missing secrets and config files).
-				invalidDir := filepath.Join(rootDir, "sm-kms")
-				require.NoError(t, os.MkdirAll(filepath.Join(invalidDir, "config"), 0o755))
-				require.NoError(t, os.WriteFile(filepath.Join(invalidDir, "compose.yml"), []byte("v"), 0o600))
-				require.NoError(t, os.WriteFile(filepath.Join(invalidDir, "Dockerfile"), []byte("F"), 0o600))
+				invalidDir := filepath.Join(rootDir, cryptoutilSharedMagic.OTLPServiceSMKMS)
+				require.NoError(t, os.MkdirAll(filepath.Join(invalidDir, "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+				require.NoError(t, os.WriteFile(filepath.Join(invalidDir, "compose.yml"), []byte("v"), cryptoutilSharedMagic.CacheFilePermissions))
+				require.NoError(t, os.WriteFile(filepath.Join(invalidDir, "Dockerfile"), []byte("F"), cryptoutilSharedMagic.CacheFilePermissions))
 			},
 			wantCount:  2,
 			wantValid:  1,
@@ -106,7 +107,7 @@ func TestFormatResults(t *testing.T) {
 					Valid: true,
 				},
 			},
-			contains:    []string{"✅ VALID", "jose-ja", "1 valid"},
+			contains:    []string{"✅ VALID", cryptoutilSharedMagic.OTLPServiceJoseJA, "1 valid"},
 			notContains: []string{"Missing directories", "Missing files", "Missing secrets", "ERROR:", "WARN:"},
 		},
 		{
@@ -122,7 +123,7 @@ func TestFormatResults(t *testing.T) {
 					Errors:         []string{"Config file error"},
 				},
 			},
-			contains: []string{"❌ INVALID", "sm-kms", "Missing directories", "Missing files", "Missing secrets", "ERROR: Config file error"},
+			contains: []string{"❌ INVALID", cryptoutilSharedMagic.OTLPServiceSMKMS, "Missing directories", "Missing files", "Missing secrets", "ERROR: Config file error"},
 		},
 		{
 			name: "result with warnings",
@@ -186,7 +187,7 @@ func TestGetExpectedStructures(t *testing.T) {
 	ps := structures["PRODUCT-SERVICE"]
 	assert.ElementsMatch(t, []string{"secrets", "config"}, ps.RequiredDirs)
 	assert.ElementsMatch(t, []string{"compose.yml", "Dockerfile"}, ps.RequiredFiles)
-	assert.Len(t, ps.RequiredSecrets, 10, "PRODUCT-SERVICE should require 10 secrets")
+	assert.Len(t, ps.RequiredSecrets, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, "PRODUCT-SERVICE should require 10 secrets")
 
 	// Verify template has correct requirements.
 	tmpl := structures["template"]
@@ -218,8 +219,8 @@ func TestValidateAllDeployments_WithInfrastructure(t *testing.T) {
 
 	// Create a valid infrastructure deployment (e.g., shared-postgres).
 	infraDir := filepath.Join(tmpDir, "shared-postgres")
-	require.NoError(t, os.MkdirAll(infraDir, 0o755))
-	require.NoError(t, os.WriteFile(filepath.Join(infraDir, "compose.yml"), []byte("version: '3'"), 0o600))
+	require.NoError(t, os.MkdirAll(infraDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.WriteFile(filepath.Join(infraDir, "compose.yml"), []byte("version: '3'"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	results, err := ValidateAllDeployments(tmpDir)
 	require.NoError(t, err)
@@ -232,12 +233,12 @@ func TestValidateConfigFiles_DirectoryEntry(t *testing.T) {
 
 	// Create a PRODUCT-SERVICE deployment with a subdirectory inside config/.
 	tmpDir := t.TempDir()
-	createValidProductServiceDeployment(t, tmpDir, "sm-kms")
+	createValidProductServiceDeployment(t, tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS)
 
 	// Add a subdirectory inside config/ (should be skipped, not cause errors).
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "config", "subdir"), 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "config", "subdir"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
-	result, err := ValidateDeploymentStructure(tmpDir, "sm-kms", "PRODUCT-SERVICE")
+	result, err := ValidateDeploymentStructure(tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS, "PRODUCT-SERVICE")
 	require.NoError(t, err)
 	assert.True(t, result.Valid, "subdirectory in config/ should be ignored")
 	assert.Empty(t, result.Errors, "no errors expected for config subdirectory")
@@ -249,9 +250,9 @@ func TestMain_ValidDeployments(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create a valid PRODUCT-SERVICE deployment.
-	svcDir := filepath.Join(tmpDir, "jose-ja")
-	require.NoError(t, os.MkdirAll(svcDir, 0o755))
-	createValidProductServiceDeployment(t, svcDir, "jose-ja")
+	svcDir := filepath.Join(tmpDir, cryptoutilSharedMagic.OTLPServiceJoseJA)
+	require.NoError(t, os.MkdirAll(svcDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	createValidProductServiceDeployment(t, svcDir, cryptoutilSharedMagic.OTLPServiceJoseJA)
 
 	exitCode := Main([]string{tmpDir})
 	assert.Equal(t, 0, exitCode, "should exit 0 for valid deployments")
@@ -263,9 +264,9 @@ func TestMain_InvalidDeployments(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create an invalid PRODUCT-SERVICE deployment (missing secrets and config).
-	svcDir := filepath.Join(tmpDir, "sm-kms")
-	require.NoError(t, os.MkdirAll(svcDir, 0o755))
-	require.NoError(t, os.WriteFile(filepath.Join(svcDir, "compose.yml"), []byte("version: '3'"), 0o600))
+	svcDir := filepath.Join(tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS)
+	require.NoError(t, os.MkdirAll(svcDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.WriteFile(filepath.Join(svcDir, "compose.yml"), []byte("version: '3'"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	exitCode := Main([]string{tmpDir})
 	assert.Equal(t, 1, exitCode, "should exit 1 for invalid deployments")

@@ -5,6 +5,7 @@
 package repository
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -51,7 +52,7 @@ func TestMessageRecipientJWKRepository_Create(t *testing.T) {
 				ID:           *testJWKGenService.GenerateUUIDv7(),
 				RecipientID:  *testJWKGenService.GenerateUUIDv7(),
 				MessageID:    *testJWKGenService.GenerateUUIDv7(),
-				EncryptedJWK: `{"kty":"RSA","n":"` + string(make([]byte, 2048)) + `","e":"AQAB"}`,
+				EncryptedJWK: `{"kty":"RSA","n":"` + string(make([]byte, cryptoutilSharedMagic.DefaultMetricsBatchSize)) + `","e":"AQAB"}`,
 			},
 			wantErr: false,
 		},

@@ -5,6 +5,7 @@
 package jobs
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 "context"
 "database/sql"
 "fmt"
@@ -35,7 +36,7 @@ t.Helper()
 dbID := googleUuid.Must(googleUuid.NewV7())
 dsn := fmt.Sprintf(testRawMemoryDSNFormat, dbID.String())
 
-sqlDB, err := sql.Open("sqlite", dsn)
+sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 require.NoError(t, err)
 
 dialector := sqlite.Dialector{Conn: sqlDB}
@@ -46,8 +47,8 @@ SkipDefaultTransaction: true,
 })
 require.NoError(t, err)
 
-sqlDB.SetMaxOpenConns(5) //nolint:mnd // SQLite GORM transaction pattern requires 5 connections.
-sqlDB.SetMaxIdleConns(5) //nolint:mnd // SQLite GORM transaction pattern requires 5 connections.
+sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries) //nolint:mnd // SQLite GORM transaction pattern requires 5 connections.
+sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries) //nolint:mnd // SQLite GORM transaction pattern requires 5 connections.
 
 t.Cleanup(func() {
 _ = sqlDB.Close() //nolint:errcheck // Test cleanup, error not critical.
@@ -125,7 +126,7 @@ ClientID:   clientID,
 Version:    1,
 SecretHash: testSecretHashCoverage,
 Status:     cryptoutilIdentityDomain.SecretStatusActive,
-CreatedAt:  time.Now().UTC().Add(-48 * time.Hour),
+CreatedAt:  time.Now().UTC().Add(-cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour),
 ExpiresAt:  &pastExpiry,
 }
 
@@ -133,7 +134,7 @@ require.NoError(t, db.Create(secret).Error)
 
 // Use large threshold so the already-expired secret is included in the rotation candidates.
 config := &ScheduledRotationConfig{
-ExpirationThreshold: 10 * time.Hour,
+ExpirationThreshold: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Hour,
 CheckInterval:       time.Hour,
 }
 

@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	http "net/http"
 	"net/http/httptest"
 	"testing"
@@ -32,7 +33,7 @@ func TestJWTMiddleware_HeaderValidation(t *testing.T) {
 		},
 		{
 			name:           "empty bearer token",
-			authHeader:     "Bearer ",
+			authHeader:     cryptoutilSharedMagic.AuthorizationBearerPrefix,
 			expectedStatus: http.StatusUnauthorized,
 		},
 	}

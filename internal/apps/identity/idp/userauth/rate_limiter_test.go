@@ -5,6 +5,7 @@
 package userauth
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -47,13 +48,13 @@ func TestDatabaseRateLimitStoreCountAttempts(t *testing.T) {
 	now := time.Now().UTC()
 
 	// Record 3 attempts: 2 within 1 hour, 1 older.
-	err = store.RecordAttempt(ctx, key, now.Add(-30*time.Minute))
+	err = store.RecordAttempt(ctx, key, now.Add(-cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Minute))
 	require.NoError(t, err)
 
 	err = store.RecordAttempt(ctx, key, now.Add(-45*time.Minute))
 	require.NoError(t, err)
 
-	err = store.RecordAttempt(ctx, key, now.Add(-90*time.Minute))
+	err = store.RecordAttempt(ctx, key, now.Add(-cryptoutilSharedMagic.StrictCertificateMaxAgeDays*time.Minute))
 	require.NoError(t, err)
 
 	// Count within 1 hour window.
@@ -82,11 +83,11 @@ func TestDatabaseRateLimitStoreCleanupExpired(t *testing.T) {
 	err = store.RecordAttempt(ctx, key, now.Add(-3*time.Hour))
 	require.NoError(t, err)
 
-	err = store.RecordAttempt(ctx, key, now.Add(-30*time.Minute))
+	err = store.RecordAttempt(ctx, key, now.Add(-cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Minute))
 	require.NoError(t, err)
 
 	// Before cleanup: 2 attempts.
-	count, err := store.CountAttempts(ctx, key, 24*time.Hour)
+	count, err := store.CountAttempts(ctx, key, cryptoutilSharedMagic.HoursPerDay*time.Hour)
 	require.NoError(t, err)
 	require.Equal(t, 2, count)
 
@@ -95,7 +96,7 @@ func TestDatabaseRateLimitStoreCleanupExpired(t *testing.T) {
 	require.NoError(t, err)
 
 	// After cleanup: only 1 recent attempt remains.
-	count, err = store.CountAttempts(ctx, key, 24*time.Hour)
+	count, err = store.CountAttempts(ctx, key, cryptoutilSharedMagic.HoursPerDay*time.Hour)
 	require.NoError(t, err)
 	require.Equal(t, 1, count, "Old attempts should be cleaned up")
 }
@@ -135,16 +136,16 @@ func TestPerUserRateLimiterConcurrent(t *testing.T) {
 	store, err := NewDatabaseRateLimitStore(noop.NewMeterProvider())
 	require.NoError(t, err)
 
-	limiter, err := NewPerUserRateLimiter(store, time.Hour, 10, noop.NewMeterProvider())
+	limiter, err := NewPerUserRateLimiter(store, time.Hour, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, noop.NewMeterProvider())
 	require.NoError(t, err)
 
 	ctx := context.Background()
 	userID := googleUuid.New()
 
 	// 5 concurrent goroutines each make 2 attempts (10 total).
-	done := make(chan bool, 5)
+	done := make(chan bool, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 
-	for range 5 {
+	for range cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries {
 		go func() {
 			defer func() { done <- true }()
 
@@ -158,14 +159,14 @@ func TestPerUserRateLimiterConcurrent(t *testing.T) {
 	}
 
 	// Wait for all goroutines.
-	for range 5 {
+	for range cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries {
 		<-done
 	}
 
 	// Total count should be 10 (at rate limit).
 	count, err := store.CountAttempts(ctx, userID.String(), time.Hour)
 	require.NoError(t, err)
-	require.LessOrEqual(t, count, 10, "Total attempts should not exceed rate limit")
+	require.LessOrEqual(t, count, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, "Total attempts should not exceed rate limit")
 
 	// Next attempt should fail.
 	err = limiter.CheckLimit(ctx, userID)
@@ -178,7 +179,7 @@ func TestPerUserRateLimiterWindowExpiration(t *testing.T) {
 	require.NoError(t, err)
 
 	// Use very short window for test: 100ms.
-	limiter, err := NewPerUserRateLimiter(store, 100*time.Millisecond, 2, noop.NewMeterProvider())
+	limiter, err := NewPerUserRateLimiter(store, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond, 2, noop.NewMeterProvider())
 	require.NoError(t, err)
 
 	ctx := context.Background()
@@ -212,7 +213,7 @@ func TestPerUserRateLimiterCleanup(t *testing.T) {
 	store, err := NewDatabaseRateLimitStore(noop.NewMeterProvider())
 	require.NoError(t, err)
 
-	limiter, err := NewPerUserRateLimiter(store, time.Hour, 5, otel.GetMeterProvider())
+	limiter, err := NewPerUserRateLimiter(store, time.Hour, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, otel.GetMeterProvider())
 	require.NoError(t, err)
 
 	ctx := context.Background()
@@ -223,7 +224,7 @@ func TestPerUserRateLimiterCleanup(t *testing.T) {
 	require.NoError(t, err)
 
 	// Before cleanup: 1 attempt.
-	count, err := store.CountAttempts(ctx, userID.String(), 24*time.Hour)
+	count, err := store.CountAttempts(ctx, userID.String(), cryptoutilSharedMagic.HoursPerDay*time.Hour)
 	require.NoError(t, err)
 	require.Equal(t, 1, count)
 
@@ -232,7 +233,7 @@ func TestPerUserRateLimiterCleanup(t *testing.T) {
 	require.NoError(t, err)
 
 	// After cleanup: 0 attempts (old attempt removed).
-	count, err = store.CountAttempts(ctx, userID.String(), 24*time.Hour)
+	count, err = store.CountAttempts(ctx, userID.String(), cryptoutilSharedMagic.HoursPerDay*time.Hour)
 	require.NoError(t, err)
 	require.Equal(t, 0, count, "Expired attempts should be cleaned up")
 }
@@ -244,14 +245,14 @@ func TestPerIPRateLimiterCheckLimit(t *testing.T) {
 	store, err := NewDatabaseRateLimitStore(noop.NewMeterProvider())
 	require.NoError(t, err)
 
-	limiter, err := NewPerIPRateLimiter(store, time.Hour, 5, noop.NewMeterProvider())
+	limiter, err := NewPerIPRateLimiter(store, time.Hour, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, noop.NewMeterProvider())
 	require.NoError(t, err)
 
 	ctx := context.Background()
 	ipAddress := "192.168.1.100"
 
 	// First 5 attempts should succeed.
-	for range 5 {
+	for range cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries {
 		err = limiter.CheckLimit(ctx, ipAddress)
 		require.NoError(t, err, "First 5 attempts should pass")
 
@@ -273,7 +274,7 @@ func TestPerIPRateLimiterEmptyIP(t *testing.T) {
 	store, err := NewDatabaseRateLimitStore(noop.NewMeterProvider())
 	require.NoError(t, err)
 
-	limiter, err := NewPerIPRateLimiter(store, time.Hour, 10, noop.NewMeterProvider())
+	limiter, err := NewPerIPRateLimiter(store, time.Hour, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, noop.NewMeterProvider())
 	require.NoError(t, err)
 
 	ctx := context.Background()
@@ -295,16 +296,16 @@ func TestPerIPRateLimiterConcurrent(t *testing.T) {
 	store, err := NewDatabaseRateLimitStore(noop.NewMeterProvider())
 	require.NoError(t, err)
 
-	limiter, err := NewPerIPRateLimiter(store, time.Hour, 20, noop.NewMeterProvider())
+	limiter, err := NewPerIPRateLimiter(store, time.Hour, cryptoutilSharedMagic.MaxErrorDisplay, noop.NewMeterProvider())
 	require.NoError(t, err)
 
 	ctx := context.Background()
 	ipAddress := "10.0.0.50"
 
 	// 10 concurrent goroutines each make 2 attempts (20 total).
-	done := make(chan bool, 10)
+	done := make(chan bool, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 
-	for range 10 {
+	for range cryptoutilSharedMagic.JoseJADefaultMaxMaterials {
 		go func() {
 			defer func() { done <- true }()
 
@@ -318,14 +319,14 @@ func TestPerIPRateLimiterConcurrent(t *testing.T) {
 	}
 
 	// Wait for all goroutines.
-	for range 10 {
+	for range cryptoutilSharedMagic.JoseJADefaultMaxMaterials {
 		<-done
 	}
 
 	// Total count should be 20 (at rate limit).
 	count, err := store.CountAttempts(ctx, ipAddress, time.Hour)
 	require.NoError(t, err)
-	require.LessOrEqual(t, count, 20, "Total attempts should not exceed rate limit")
+	require.LessOrEqual(t, count, cryptoutilSharedMagic.MaxErrorDisplay, "Total attempts should not exceed rate limit")
 
 	// Next attempt should fail.
 	err = limiter.CheckLimit(ctx, ipAddress)
@@ -428,7 +429,7 @@ func TestPerIPRateLimiterCleanup(t *testing.T) {
 	store, err := NewDatabaseRateLimitStore(meterProvider)
 	require.NoError(t, err, "NewDatabaseRateLimitStore should succeed")
 
-	limiter, err := NewPerIPRateLimiter(store, time.Hour, 100, meterProvider)
+	limiter, err := NewPerIPRateLimiter(store, time.Hour, cryptoutilSharedMagic.JoseJAMaxMaterials, meterProvider)
 	require.NoError(t, err, "NewPerIPRateLimiter should succeed")
 
 	// Record some test data.
@@ -440,7 +441,7 @@ func TestPerIPRateLimiterCleanup(t *testing.T) {
 	require.NoError(t, err, "RecordAttempt should succeed")
 
 	// Record a recent attempt (within window).
-	err = store.RecordAttempt(ctx, testIP, now.Add(-30*time.Minute))
+	err = store.RecordAttempt(ctx, testIP, now.Add(-cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Minute))
 	require.NoError(t, err, "RecordAttempt should succeed")
 
 	// Cleanup expired records.
@@ -448,7 +449,7 @@ func TestPerIPRateLimiterCleanup(t *testing.T) {
 	require.NoError(t, err, "Cleanup should succeed")
 
 	// After cleanup, only recent attempt should remain.
-	count, err := store.CountAttempts(ctx, testIP, 24*time.Hour)
+	count, err := store.CountAttempts(ctx, testIP, cryptoutilSharedMagic.HoursPerDay*time.Hour)
 	require.NoError(t, err, "CountAttempts should succeed")
 	require.Equal(t, 1, count, "Only recent attempt should remain after cleanup")
 }

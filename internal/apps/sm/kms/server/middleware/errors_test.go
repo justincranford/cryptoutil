@@ -5,6 +5,7 @@
 package middleware
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"io"
 	"net/http/httptest"
 	"testing"
@@ -130,7 +131,7 @@ func TestAuthErrorResponder_SendForbidden(t *testing.T) {
 
 	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
-	require.Contains(t, string(body), "insufficient_scope")
+	require.Contains(t, string(body), cryptoutilSharedMagic.ErrorInsufficientScope)
 }
 
 func TestAuthErrorResponder_SendBadRequest(t *testing.T) {
@@ -153,7 +154,7 @@ func TestAuthErrorResponder_SendBadRequest(t *testing.T) {
 
 	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
-	require.Contains(t, string(body), "invalid_request")
+	require.Contains(t, string(body), cryptoutilSharedMagic.ErrorInvalidRequest)
 }
 
 func TestAuthErrorResponder_SendServerError(t *testing.T) {
@@ -176,7 +177,7 @@ func TestAuthErrorResponder_SendServerError(t *testing.T) {
 
 	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
-	require.Contains(t, string(body), "server_error")
+	require.Contains(t, string(body), cryptoutilSharedMagic.ErrorServerError)
 }
 
 func TestAuthErrorResponder_MinimalDetail(t *testing.T) {
@@ -210,7 +211,7 @@ func TestAuthErrorResponder_WithExtensions(t *testing.T) {
 
 	app.Get("/test", func(c *fiber.Ctx) error {
 		extensions := map[string]any{
-			"retry_after": 60,
+			"retry_after": cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds,
 			"request_id":  "abc123",
 		}
 

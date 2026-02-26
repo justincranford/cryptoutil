@@ -1,5 +1,9 @@
 package lint_deployments
 
+import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+)
+
 const (
 	// RequiredFileStatus indicates a file MUST exist.
 	RequiredFileStatus = "REQUIRED"
@@ -19,23 +23,23 @@ func GetDeploymentDirectories() (suite []string, product []string, productServic
 
 	// PRODUCT-level deployments (aggregation of services within product)
 	product = []string{
-		"identity", // Multi-service product (5 identity services, more later)
-		"jose",     // Multi-service product (1 jose service at this time, more later)
-		"pki",      // Multi-service product (1 pki service at this time, more later)
+		cryptoutilSharedMagic.IdentityProductName, // Multi-service product (5 identity services, more later)
+		cryptoutilSharedMagic.JoseProductName,     // Multi-service product (1 jose service at this time, more later)
+		cryptoutilSharedMagic.PKIProductName,      // Multi-service product (1 pki service at this time, more later)
 		"sm",       // Multi-service product (2 sm services: sm-kms, sm-im)
 	}
 
 	// PRODUCT-SERVICE level deployments (individual services)
 	productService = []string{
-		"sm-im",
-		"identity-authz",
-		"identity-idp",
-		"identity-rp",
-		"identity-rs",
-		"identity-spa",
-		"jose-ja",
-		"pki-ca",
-		"sm-kms",
+		cryptoutilSharedMagic.OTLPServiceSMIM,
+		cryptoutilSharedMagic.OTLPServiceIdentityAuthz,
+		cryptoutilSharedMagic.OTLPServiceIdentityIDP,
+		cryptoutilSharedMagic.OTLPServiceIdentityRP,
+		cryptoutilSharedMagic.OTLPServiceIdentityRS,
+		cryptoutilSharedMagic.OTLPServiceIdentitySPA,
+		cryptoutilSharedMagic.OTLPServiceJoseJA,
+		cryptoutilSharedMagic.OTLPServicePKICA,
+		cryptoutilSharedMagic.OTLPServiceSMKMS,
 	}
 
 	// Infrastructure deployments (shared resources)
@@ -135,23 +139,23 @@ func GetExpectedDeploymentsContents() map[string]string {
 	contents["sm/secrets/sm-postgres_url.secret.never"] = RequiredFileStatus
 
 	// PRODUCT-SERVICE Level - sm-im
-	addProductServiceFiles(&contents, "sm-im")
+	addProductServiceFiles(&contents, cryptoutilSharedMagic.OTLPServiceSMIM)
 
 	// PRODUCT-SERVICE Level - identity services (5 services)
-	addProductServiceFiles(&contents, "identity-authz")
-	addProductServiceFiles(&contents, "identity-idp")
-	addProductServiceFiles(&contents, "identity-rp")
-	addProductServiceFiles(&contents, "identity-rs")
-	addProductServiceFiles(&contents, "identity-spa")
+	addProductServiceFiles(&contents, cryptoutilSharedMagic.OTLPServiceIdentityAuthz)
+	addProductServiceFiles(&contents, cryptoutilSharedMagic.OTLPServiceIdentityIDP)
+	addProductServiceFiles(&contents, cryptoutilSharedMagic.OTLPServiceIdentityRP)
+	addProductServiceFiles(&contents, cryptoutilSharedMagic.OTLPServiceIdentityRS)
+	addProductServiceFiles(&contents, cryptoutilSharedMagic.OTLPServiceIdentitySPA)
 
 	// PRODUCT-SERVICE Level - jose-ja
-	addProductServiceFiles(&contents, "jose-ja")
+	addProductServiceFiles(&contents, cryptoutilSharedMagic.OTLPServiceJoseJA)
 
 	// PRODUCT-SERVICE Level - pki-ca
-	addProductServiceFiles(&contents, "pki-ca")
+	addProductServiceFiles(&contents, cryptoutilSharedMagic.OTLPServicePKICA)
 
 	// PRODUCT-SERVICE Level - sm-kms
-	addProductServiceFiles(&contents, "sm-kms")
+	addProductServiceFiles(&contents, cryptoutilSharedMagic.OTLPServiceSMKMS)
 
 	// Infrastructure deployments
 	addInfrastructureFiles(&contents, "shared-citus")

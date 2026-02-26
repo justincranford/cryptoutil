@@ -5,6 +5,7 @@
 package orm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -335,7 +336,7 @@ func TestAuthFlowRepository_List(t *testing.T) {
 	}{
 		{
 			name:       "list first page",
-			setupCount: 5,
+			setupCount: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 			offset:     0,
 			limit:      3,
 			expectMin:  3,
@@ -343,7 +344,7 @@ func TestAuthFlowRepository_List(t *testing.T) {
 		},
 		{
 			name:       "list with offset",
-			setupCount: 5,
+			setupCount: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 			offset:     3,
 			limit:      3,
 			expectMin:  2,
@@ -397,8 +398,8 @@ func TestAuthFlowRepository_Count(t *testing.T) {
 		},
 		{
 			name:       "multiple items",
-			setupCount: 5,
-			expectMin:  5,
+			setupCount: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
+			expectMin:  cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 			wantError:  false,
 		},
 	}

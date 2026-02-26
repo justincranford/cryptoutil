@@ -110,9 +110,9 @@ func TestSessionManager_Integration_SessionLifecycle(t *testing.T) {
 		browserAlgorithm cryptoutilSharedMagic.SessionAlgorithmType
 		serviceAlgorithm cryptoutilSharedMagic.SessionAlgorithmType
 	}{
-		{"OPAQUE", cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE},
-		{"JWS", cryptoutilSharedMagic.SessionAlgorithmJWS, cryptoutilSharedMagic.SessionAlgorithmJWS},
-		{"JWE", cryptoutilSharedMagic.SessionAlgorithmJWE, cryptoutilSharedMagic.SessionAlgorithmJWE},
+		{cryptoutilSharedMagic.DefaultBrowserSessionAlgorithm, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE},
+		{cryptoutilSharedMagic.DefaultServiceSessionAlgorithm, cryptoutilSharedMagic.SessionAlgorithmJWS, cryptoutilSharedMagic.SessionAlgorithmJWS},
+		{string(cryptoutilSharedMagic.SessionAlgorithmJWE), cryptoutilSharedMagic.SessionAlgorithmJWE, cryptoutilSharedMagic.SessionAlgorithmJWE},
 		{"Mixed", cryptoutilSharedMagic.SessionAlgorithmJWS, cryptoutilSharedMagic.SessionAlgorithmJWE},
 	}
 
@@ -155,7 +155,7 @@ func TestSessionManager_Integration_SessionLifecycle(t *testing.T) {
 			require.NoError(t, err)
 
 			// Wait for expiration
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(cryptoutilSharedMagic.JoseJAMaxMaterials * time.Millisecond)
 
 			// Verify session is expired
 			var validationErr error
@@ -217,7 +217,7 @@ func TestSessionManager_Integration_MultiAlgorithmWorkflow(t *testing.T) {
 
 	testRealmID := googleUuid.Must(googleUuid.NewV7())
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < cryptoutilSharedMagic.JoseJADefaultMaxMaterials; i++ {
 		userID := googleUuid.Must(googleUuid.NewV7()).String()
 		clientID := googleUuid.Must(googleUuid.NewV7()).String()
 
@@ -271,14 +271,14 @@ func setupShortSessionManager(t *testing.T, browserAlg, serviceAlg cryptoutilSha
 	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		BrowserSessionAlgorithm:    string(browserAlg),
 		ServiceSessionAlgorithm:    string(serviceAlg),
-		BrowserSessionExpiration:   50 * time.Millisecond, // Very short
-		ServiceSessionExpiration:   50 * time.Millisecond, // Very short
-		SessionIdleTimeout:         25 * time.Millisecond,
-		SessionCleanupInterval:     10 * time.Millisecond,
-		BrowserSessionJWSAlgorithm: "RS256",
-		BrowserSessionJWEAlgorithm: "dir+A256GCM",
-		ServiceSessionJWSAlgorithm: "RS256",
-		ServiceSessionJWEAlgorithm: "dir+A256GCM",
+		BrowserSessionExpiration:   cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond, // Very short
+		ServiceSessionExpiration:   cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond, // Very short
+		SessionIdleTimeout:         cryptoutilSharedMagic.TLSMaxValidityCACertYears * time.Millisecond,
+		SessionCleanupInterval:     cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond,
+		BrowserSessionJWSAlgorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		BrowserSessionJWEAlgorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWEAlgorithm,
+		ServiceSessionJWSAlgorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		ServiceSessionJWEAlgorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWEAlgorithm,
 	}
 
 	// Use nil barrier service for tests (enables plain text JWK storage for testing)

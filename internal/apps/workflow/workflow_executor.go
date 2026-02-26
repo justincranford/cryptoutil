@@ -400,7 +400,7 @@ func createAnalysisFile(result WorkflowResult) {
 				artifacts = strings.Join(task.Artifacts, ", ")
 			}
 
-			analysis.WriteString(fmt.Sprintf("| %s | %s | %s |\n", task.Name, statusBadge(task.Status == "SUCCESS"), artifacts))
+			analysis.WriteString(fmt.Sprintf("| %s | %s | %s |\n", task.Name, statusBadge(task.Status == cryptoutilSharedMagic.TaskSuccess), artifacts))
 		}
 
 		analysis.WriteString("\n")
@@ -474,10 +474,10 @@ func createAnalysisFile(result WorkflowResult) {
 
 func statusBadge(success bool) string {
 	if success {
-		return "✅ SUCCESS"
+		return cryptoutilSharedMagic.StatusSuccess
 	}
 
-	return "❌ FAILED"
+	return cryptoutilSharedMagic.StatusFailed
 }
 
 func contains(slice []string, item string) bool {

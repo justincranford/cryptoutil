@@ -39,7 +39,7 @@ func TestCheckGoFilesForCGO_WithTempDir(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	// Create clean Go file.
-	require.NoError(t, os.WriteFile(testCleanGoFile, []byte(testCleanContent), 0o600))
+	require.NoError(t, os.WriteFile(testCleanGoFile, []byte(testCleanContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Test with clean file - should have no violations.
 	violations, err := CheckGoFilesForCGO()
@@ -71,7 +71,7 @@ func TestCheckGoFilesForCGO_WithBannedImport(t *testing.T) {
 	bannedFile := "banned.go"
 	bannedContent := "package main\n\nimport _ \"" + banned.String() + "\"\n\nfunc main() {}\n"
 
-	require.NoError(t, os.WriteFile(bannedFile, []byte(bannedContent), 0o600))
+	require.NoError(t, os.WriteFile(bannedFile, []byte(bannedContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Test - should find the violation.
 	violations, err := CheckGoFilesForCGO()
@@ -96,7 +96,7 @@ func TestCheckGoFilesForCGO_SkipsVendor(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	// Create vendor directory with file that would be flagged.
-	require.NoError(t, os.MkdirAll("vendor", 0o755))
+	require.NoError(t, os.MkdirAll(cryptoutilSharedMagic.CICDExcludeDirVendor, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	var banned strings.Builder
 	banned.WriteString("github.com/")
@@ -105,12 +105,12 @@ func TestCheckGoFilesForCGO_SkipsVendor(t *testing.T) {
 	vendorFile := "vendor/dep.go"
 	vendorContent := "package vendor\n\nimport _ \"" + banned.String() + "\"\n\nfunc init() {}\n"
 
-	require.NoError(t, os.WriteFile(vendorFile, []byte(vendorContent), 0o600))
+	require.NoError(t, os.WriteFile(vendorFile, []byte(vendorContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Create clean main file.
 	mainFile := "main.go"
 
-	require.NoError(t, os.WriteFile(mainFile, []byte(testMainContent), 0o600))
+	require.NoError(t, os.WriteFile(mainFile, []byte(testMainContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Test - vendor should be skipped, no violations.
 	violations, err := CheckGoFilesForCGO()
@@ -137,11 +137,11 @@ func TestCheckGoFilesForCGO_ErrorPath(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	// Create an unreadable Go file.
-	require.NoError(t, os.WriteFile("unreadable.go", []byte("package main\n"), 0o600))
+	require.NoError(t, os.WriteFile("unreadable.go", []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.Chmod("unreadable.go", 0o000))
 
 	defer func() {
-		_ = os.Chmod(filepath.Join(tempDir, "unreadable.go"), 0o600)
+		_ = os.Chmod(filepath.Join(tempDir, "unreadable.go"), cryptoutilSharedMagic.CacheFilePermissions)
 	}()
 
 	// Test - should get error.
@@ -157,7 +157,7 @@ func TestCheckGoFileForCGO_ScannerError(t *testing.T) {
 	// Create a Go file with a line longer than bufio.MaxScanTokenSize (64KB) to trigger scanner.Err().
 	longLine := "// " + strings.Repeat("x", 70000) + "\n"
 	goFile := filepath.Join(tempDir, "main.go")
-	require.NoError(t, os.WriteFile(goFile, []byte("package main\n"+longLine), 0o600))
+	require.NoError(t, os.WriteFile(goFile, []byte("package main\n"+longLine), cryptoutilSharedMagic.CacheFilePermissions))
 
 	_, err := CheckGoFileForCGO(goFile)
 	require.Error(t, err)

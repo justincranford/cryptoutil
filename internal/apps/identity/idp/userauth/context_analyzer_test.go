@@ -3,6 +3,7 @@
 package userauth
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -151,14 +152,14 @@ func TestDetectAnomalies(t *testing.T) {
 				Device: &DeviceFingerprint{
 					ID: "device-123",
 				},
-				Time: time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC),
+				Time: time.Date(2025, 1, 1, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 0, 0, 0, time.UTC),
 			},
 			baseline: &UserBaseline{
 				KnownLocations: []GeoLocation{
 					{Country: "US", City: "New York"},
 				},
 				KnownDevices: []string{"device-123"},
-				TypicalHours: []int{9, 10, 11, 12, 13, 14, 15, 16, 17},
+				TypicalHours: []int{9, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 11, cryptoutilSharedMagic.HashPrefixLength, 13, 14, 15, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 17},
 			},
 			expectAnomalies: 0,
 		},
@@ -169,13 +170,13 @@ func TestDetectAnomalies(t *testing.T) {
 					Country: "RU",
 					City:    "Moscow",
 				},
-				Time: time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC),
+				Time: time.Date(2025, 1, 1, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 0, 0, 0, time.UTC),
 			},
 			baseline: &UserBaseline{
 				KnownLocations: []GeoLocation{
 					{Country: "US", City: "New York"},
 				},
-				TypicalHours: []int{10},
+				TypicalHours: []int{cryptoutilSharedMagic.JoseJADefaultMaxMaterials},
 			},
 			expectAnomalies: 1,
 			anomalyTypes:    []string{"unknown_location"},
@@ -186,11 +187,11 @@ func TestDetectAnomalies(t *testing.T) {
 				Device: &DeviceFingerprint{
 					ID: "new-device-456",
 				},
-				Time: time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC),
+				Time: time.Date(2025, 1, 1, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 0, 0, 0, time.UTC),
 			},
 			baseline: &UserBaseline{
 				KnownDevices: []string{"device-123"},
-				TypicalHours: []int{10},
+				TypicalHours: []int{cryptoutilSharedMagic.JoseJADefaultMaxMaterials},
 			},
 			expectAnomalies: 1,
 			anomalyTypes:    []string{"unknown_device"},
@@ -201,7 +202,7 @@ func TestDetectAnomalies(t *testing.T) {
 				Time: time.Date(2025, 1, 1, 3, 0, 0, 0, time.UTC),
 			},
 			baseline: &UserBaseline{
-				TypicalHours: []int{9, 10, 11, 12, 13, 14, 15, 16, 17},
+				TypicalHours: []int{9, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 11, cryptoutilSharedMagic.HashPrefixLength, 13, 14, 15, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 17},
 			},
 			expectAnomalies: 1,
 			anomalyTypes:    []string{"unusual_time"},
@@ -209,11 +210,11 @@ func TestDetectAnomalies(t *testing.T) {
 		{
 			name: "high_velocity",
 			authContext: &AuthContext{
-				Time: time.Date(2025, 1, 1, 10, 0, 3, 0, time.UTC),
+				Time: time.Date(2025, 1, 1, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 0, 3, 0, time.UTC),
 			},
 			baseline: &UserBaseline{
-				TypicalHours: []int{10},
-				LastAuthTime: time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC),
+				TypicalHours: []int{cryptoutilSharedMagic.JoseJADefaultMaxMaterials},
+				LastAuthTime: time.Date(2025, 1, 1, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 0, 0, 0, time.UTC),
 			},
 			expectAnomalies: 1,
 			anomalyTypes:    []string{"high_velocity"},
@@ -235,7 +236,7 @@ func TestDetectAnomalies(t *testing.T) {
 					{Country: "US", City: "New York"},
 				},
 				KnownDevices: []string{"device-123"},
-				TypicalHours: []int{9, 10, 11},
+				TypicalHours: []int{9, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 11},
 				LastAuthTime: time.Date(2025, 1, 1, 3, 0, 0, 0, time.UTC),
 			},
 			expectAnomalies: 4,
@@ -280,13 +281,13 @@ func TestAnomalySeverities(t *testing.T) {
 					Country: "RU",
 					City:    "Moscow",
 				},
-				Time: time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC),
+				Time: time.Date(2025, 1, 1, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 0, 0, 0, time.UTC),
 			},
 			baseline: &UserBaseline{
 				KnownLocations: []GeoLocation{},
-				TypicalHours:   []int{10},
+				TypicalHours:   []int{cryptoutilSharedMagic.JoseJADefaultMaxMaterials},
 			},
-			expectedSeverity: 0.7,
+			expectedSeverity: cryptoutilSharedMagic.RiskScoreCritical,
 			anomalyType:      "unknown_location",
 		},
 		{
@@ -295,13 +296,13 @@ func TestAnomalySeverities(t *testing.T) {
 				Device: &DeviceFingerprint{
 					ID: "new-device",
 				},
-				Time: time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC),
+				Time: time.Date(2025, 1, 1, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 0, 0, 0, time.UTC),
 			},
 			baseline: &UserBaseline{
 				KnownDevices: []string{},
-				TypicalHours: []int{10},
+				TypicalHours: []int{cryptoutilSharedMagic.JoseJADefaultMaxMaterials},
 			},
-			expectedSeverity: 0.6,
+			expectedSeverity: cryptoutilSharedMagic.RiskScoreHigh,
 			anomalyType:      "unknown_device",
 		},
 		{
@@ -310,21 +311,21 @@ func TestAnomalySeverities(t *testing.T) {
 				Time: time.Date(2025, 1, 1, 3, 0, 0, 0, time.UTC),
 			},
 			baseline: &UserBaseline{
-				TypicalHours: []int{9, 10, 11, 12, 13, 14, 15, 16, 17},
+				TypicalHours: []int{9, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 11, cryptoutilSharedMagic.HashPrefixLength, 13, 14, 15, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 17},
 			},
-			expectedSeverity: 0.4,
+			expectedSeverity: cryptoutilSharedMagic.RiskScoreMedium,
 			anomalyType:      "unusual_time",
 		},
 		{
 			name: "high_velocity_severity",
 			authContext: &AuthContext{
-				Time: time.Date(2025, 1, 1, 10, 0, 1, 0, time.UTC),
+				Time: time.Date(2025, 1, 1, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 0, 1, 0, time.UTC),
 			},
 			baseline: &UserBaseline{
-				TypicalHours: []int{10},
-				LastAuthTime: time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC),
+				TypicalHours: []int{cryptoutilSharedMagic.JoseJADefaultMaxMaterials},
+				LastAuthTime: time.Date(2025, 1, 1, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 0, 0, 0, time.UTC),
 			},
-			expectedSeverity: 0.9,
+			expectedSeverity: cryptoutilSharedMagic.RiskScoreExtreme,
 			anomalyType:      "high_velocity",
 		},
 	}
@@ -374,7 +375,7 @@ func TestAnomalyMetadata(t *testing.T) {
 	baseline := &UserBaseline{
 		KnownLocations: []GeoLocation{},
 		KnownDevices:   []string{},
-		TypicalHours:   []int{10, 11, 12},
+		TypicalHours:   []int{cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 11, cryptoutilSharedMagic.HashPrefixLength},
 		LastAuthTime:   time.Date(2025, 1, 1, 3, 0, 0, 0, time.UTC),
 	}
 
@@ -387,7 +388,7 @@ func TestAnomalyMetadata(t *testing.T) {
 
 		switch anomaly.Type {
 		case "unknown_location":
-			require.Equal(t, "CN", anomaly.Metadata["country"])
+			require.Equal(t, "CN", anomaly.Metadata[cryptoutilSharedMagic.AddressCountry])
 			require.Equal(t, "Beijing", anomaly.Metadata["city"])
 		case "unknown_device":
 			require.Equal(t, "test-device-id", anomaly.Metadata["device_id"])

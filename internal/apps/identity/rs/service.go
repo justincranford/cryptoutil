@@ -76,7 +76,7 @@ func (s *Service) RegisterRoutes(app *fiber.App) {
 	// Swagger UI OpenAPI spec endpoint.
 	swaggerHandler, err := ServeOpenAPISpec()
 	if err != nil {
-		s.logger.Error("Failed to create Swagger UI handler", "error", err)
+		s.logger.Error("Failed to create Swagger UI handler", cryptoutilSharedMagic.StringError, err)
 	} else {
 		app.Get("/ui/swagger/doc.json", swaggerHandler)
 	}
@@ -116,7 +116,7 @@ func (s *Service) RequireScopes(requiredScopes ...string) fiber.Handler {
 				"method", c.Method())
 
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error":             cryptoutilSharedMagic.ErrorInvalidToken,
+				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
 				"error_description": "Token validation required",
 			})
 		}
@@ -125,11 +125,11 @@ func (s *Service) RequireScopes(requiredScopes ...string) fiber.Handler {
 		scopeStr, ok := claims[cryptoutilSharedMagic.ClaimScope].(string)
 		if !ok {
 			s.logger.Warn("Missing scope claim in token",
-				"client_id", claims[cryptoutilSharedMagic.ClaimClientID],
+				cryptoutilSharedMagic.ClaimClientID, claims[cryptoutilSharedMagic.ClaimClientID],
 				"path", c.Path())
 
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-				"error":             cryptoutilSharedMagic.ErrorInsufficientScope,
+				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInsufficientScope,
 				"error_description": "Token missing scope claim",
 			})
 		}
@@ -146,20 +146,20 @@ func (s *Service) RequireScopes(requiredScopes ...string) fiber.Handler {
 		for _, required := range requiredScopes {
 			if !scopeSet[required] {
 				s.logger.Warn("Insufficient scope for resource access",
-					"client_id", claims[cryptoutilSharedMagic.ClaimClientID],
+					cryptoutilSharedMagic.ClaimClientID, claims[cryptoutilSharedMagic.ClaimClientID],
 					"required_scopes", requiredScopes,
 					"granted_scopes", grantedScopes,
 					"path", c.Path())
 
 				return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-					"error":             cryptoutilSharedMagic.ErrorInsufficientScope,
+					cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInsufficientScope,
 					"error_description": fmt.Sprintf("Required scope missing: %s", required),
 				})
 			}
 		}
 
 		s.logger.Debug("Scope validation successful",
-			"client_id", claims[cryptoutilSharedMagic.ClaimClientID],
+			cryptoutilSharedMagic.ClaimClientID, claims[cryptoutilSharedMagic.ClaimClientID],
 			"required_scopes", requiredScopes,
 			"path", c.Path())
 
@@ -170,9 +170,9 @@ func (s *Service) RequireScopes(requiredScopes ...string) fiber.Handler {
 // handlePublicHealth handles GET /api/v1/public/health - public health check.
 func (s *Service) handlePublicHealth(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"status":  "healthy",
+		cryptoutilSharedMagic.StringStatus:  cryptoutilSharedMagic.DockerServiceHealthHealthy,
 		"service": "resource-server",
-		"version": "1.0.0",
+		"version": cryptoutilSharedMagic.ServiceVersion,
 	})
 }
 
@@ -181,22 +181,22 @@ func (s *Service) handleProtectedResource(c *fiber.Ctx) error {
 	claims, ok := c.Locals("token_claims").(map[string]any)
 	if !ok {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             "server_error",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Invalid token claims format",
 		})
 	}
 
 	s.logger.Info("Protected resource accessed",
-		"client_id", claims[cryptoutilSharedMagic.ClaimClientID],
-		"scope", claims[cryptoutilSharedMagic.ClaimScope])
+		cryptoutilSharedMagic.ClaimClientID, claims[cryptoutilSharedMagic.ClaimClientID],
+		cryptoutilSharedMagic.ClaimScope, claims[cryptoutilSharedMagic.ClaimScope])
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message":   "Protected resource accessed successfully",
-		"client_id": claims[cryptoutilSharedMagic.ClaimClientID],
-		"scope":     claims[cryptoutilSharedMagic.ClaimScope],
+		cryptoutilSharedMagic.ClaimClientID: claims[cryptoutilSharedMagic.ClaimClientID],
+		cryptoutilSharedMagic.ClaimScope:     claims[cryptoutilSharedMagic.ClaimScope],
 		"data": fiber.Map{
 			"id":   "resource-123",
-			"name": "Sample Protected Resource",
+			cryptoutilSharedMagic.ClaimName: "Sample Protected Resource",
 			"type": "example",
 		},
 	})
@@ -207,13 +207,13 @@ func (s *Service) handleCreateResource(c *fiber.Ctx) error {
 	claims, ok := c.Locals("token_claims").(map[string]any)
 	if !ok {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             "server_error",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Invalid token claims format",
 		})
 	}
 
 	s.logger.Info("Resource created",
-		"client_id", claims[cryptoutilSharedMagic.ClaimClientID])
+		cryptoutilSharedMagic.ClaimClientID, claims[cryptoutilSharedMagic.ClaimClientID])
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"message":     "Resource created successfully",
@@ -226,13 +226,13 @@ func (s *Service) handleDeleteResource(c *fiber.Ctx) error {
 	claims, ok := c.Locals("token_claims").(map[string]any)
 	if !ok {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             "server_error",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Invalid token claims format",
 		})
 	}
 
 	s.logger.Info("Resource deleted",
-		"client_id", claims[cryptoutilSharedMagic.ClaimClientID])
+		cryptoutilSharedMagic.ClaimClientID, claims[cryptoutilSharedMagic.ClaimClientID])
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "Resource deleted successfully",
@@ -244,13 +244,13 @@ func (s *Service) handleAdminUsers(c *fiber.Ctx) error {
 	claims, ok := c.Locals("token_claims").(map[string]any)
 	if !ok {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             "server_error",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Invalid token claims format",
 		})
 	}
 
 	s.logger.Info("Admin users accessed",
-		"client_id", claims[cryptoutilSharedMagic.ClaimClientID])
+		cryptoutilSharedMagic.ClaimClientID, claims[cryptoutilSharedMagic.ClaimClientID])
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "Admin user list",
@@ -266,13 +266,13 @@ func (s *Service) handleAdminMetrics(c *fiber.Ctx) error {
 	claims, ok := c.Locals("token_claims").(map[string]any)
 	if !ok {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             "server_error",
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Invalid token claims format",
 		})
 	}
 
 	s.logger.Info("Admin metrics accessed",
-		"client_id", claims[cryptoutilSharedMagic.ClaimClientID])
+		cryptoutilSharedMagic.ClaimClientID, claims[cryptoutilSharedMagic.ClaimClientID])
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "System metrics",

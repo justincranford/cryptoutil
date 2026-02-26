@@ -4,6 +4,7 @@
 package barrier_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"fmt"
@@ -25,7 +26,7 @@ func createIsolatedDB(t *testing.T) (*gorm.DB, func()) {
 	require.NoError(t, err)
 
 	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", dbUUID.String())
-	sqlDB, err := sql.Open("sqlite", dsn)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	require.NoError(t, err)
 
 	ctx := context.Background()
@@ -36,8 +37,8 @@ func createIsolatedDB(t *testing.T) (*gorm.DB, func()) {
 	_, err = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
 	require.NoError(t, err)
 
-	sqlDB.SetMaxOpenConns(10)
-	sqlDB.SetMaxIdleConns(10)
+	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	sqlDB.SetConnMaxLifetime(0) // In-memory: never close connections.
 
 	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{

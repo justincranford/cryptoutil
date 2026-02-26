@@ -60,7 +60,7 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 	logger.Log("Performing fresh dependency check")
 
 	// Run go list -u -m all to check for outdated dependencies.
-	cmd := exec.CommandContext(context.Background(), "go", "list", "-u", "-m", "all")
+	cmd := exec.CommandContext(context.Background(), "go", "list", "-u", "-m", cryptoutilSharedMagic.ModeNameAll)
 
 	output, err := cmd.Output()
 	if err != nil {
@@ -124,7 +124,7 @@ func checkDependencyUpdates(goListOutput string, directDeps map[string]bool) []s
 
 	lines := strings.Split(goListOutput, "\n")
 	// Preallocate with reasonable capacity to avoid multiple allocations.
-	allOutdated := make([]string, 0, 16)
+	allOutdated := make([]string, 0, cryptoutilSharedMagic.RealmMinTokenLengthBytes)
 
 	// Check for lines containing [v...] indicating available updates.
 	// Optimize: use single pass with minimal string operations.

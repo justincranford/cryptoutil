@@ -83,7 +83,7 @@ func (a *MagicLinkAuthenticator) InitiateAuth(ctx context.Context, userID string
 		UserID:    userID,
 		Method:    a.Method(),
 		ExpiresAt: time.Now().UTC().Add(a.linkExpiration),
-		Metadata:  map[string]any{"email": user.Email},
+		Metadata:  map[string]any{cryptoutilSharedMagic.ClaimEmail: user.Email},
 	}
 
 	// Hash token before storage (SECURITY: never store plaintext tokens).

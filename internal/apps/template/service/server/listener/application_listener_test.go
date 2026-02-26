@@ -5,6 +5,7 @@
 package listener_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -312,7 +313,7 @@ type mockPublicServerImpl struct{}
 
 func (m *mockPublicServerImpl) Start(_ context.Context) error    { return nil }
 func (m *mockPublicServerImpl) Shutdown(_ context.Context) error { return nil }
-func (m *mockPublicServerImpl) ActualPort() int                  { return 8080 }
+func (m *mockPublicServerImpl) ActualPort() int                  { return cryptoutilSharedMagic.DemoServerPort }
 func (m *mockPublicServerImpl) PublicBaseURL() string            { return "https://127.0.0.1:8080" }
 
 // mockAdminServerImpl implements IAdminServer for testing.
@@ -320,6 +321,6 @@ type mockAdminServerImpl struct{}
 
 func (m *mockAdminServerImpl) Start(_ context.Context) error    { return nil }
 func (m *mockAdminServerImpl) Shutdown(_ context.Context) error { return nil }
-func (m *mockAdminServerImpl) ActualPort() int                  { return 9090 }
+func (m *mockAdminServerImpl) ActualPort() int                  { return cryptoutilSharedMagic.JoseJAAdminPort }
 func (m *mockAdminServerImpl) SetReady(_ bool)                  {}
 func (m *mockAdminServerImpl) AdminBaseURL() string             { return "https://127.0.0.1:9090" }

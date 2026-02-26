@@ -4,6 +4,7 @@
 package repository
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -99,13 +100,13 @@ func TestMaterialJWKRepository_ListPaginationEdgeCases(t *testing.T) {
 		{
 			name:      "negative offset",
 			offset:    -1,
-			limit:     10,
+			limit:     cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 			wantError: false,
 		},
 		{
 			name:      "large limit",
 			offset:    0,
-			limit:     100000,
+			limit:     cryptoutilSharedMagic.PBKDF2Iterations,
 			wantError: false,
 		},
 	}

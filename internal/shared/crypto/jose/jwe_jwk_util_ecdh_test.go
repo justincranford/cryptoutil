@@ -5,6 +5,7 @@
 package crypto
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/ecdh"
 	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
@@ -23,7 +24,7 @@ func TestValidateOrGenerateJWEEcdhJWK_WrongPrivateKeyType(t *testing.T) {
 	t.Parallel()
 
 	// Generate RSA key instead of ECDH.
-	rsaKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	rsaKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	keyPair := &cryptoutilSharedCryptoKeygen.KeyPair{
@@ -175,7 +176,7 @@ func TestCreateJWEJWKFromKey_AESSecretKey(t *testing.T) {
 	kid := googleUuid.New()
 	enc := joseJwa.A256GCM()
 	alg := joseJwa.A256GCMKW()
-	key := make(cryptoutilSharedCryptoKeygen.SecretKey, 32)
+	key := make(cryptoutilSharedCryptoKeygen.SecretKey, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 	_, _ = crand.Read(key)
 
 	_, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWEJWKFromKey(&kid, &enc, &alg, key)
@@ -211,7 +212,7 @@ func TestCreateJWEJWKFromKey_RSAKeyPair(t *testing.T) {
 	kid := googleUuid.New()
 	enc := joseJwa.A256GCM()
 	alg := joseJwa.RSA_OAEP_256()
-	keyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
+	keyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
 	_, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWEJWKFromKey(&kid, &enc, &alg, keyPair)
@@ -247,7 +248,7 @@ func TestCreateJWEJWKFromKey_NilKid(t *testing.T) {
 
 	enc := joseJwa.A256GCM()
 	alg := joseJwa.DIRECT()
-	key := make(cryptoutilSharedCryptoKeygen.SecretKey, 32)
+	key := make(cryptoutilSharedCryptoKeygen.SecretKey, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 	_, _ = crand.Read(key)
 
 	_, _, _, _, _, err := CreateJWEJWKFromKey(nil, &enc, &alg, key)
@@ -260,7 +261,7 @@ func TestCreateJWEJWKFromKey_NilAlg(t *testing.T) {
 
 	kid := googleUuid.New()
 	enc := joseJwa.A256GCM()
-	key := make(cryptoutilSharedCryptoKeygen.SecretKey, 32)
+	key := make(cryptoutilSharedCryptoKeygen.SecretKey, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 	_, _ = crand.Read(key)
 
 	_, _, _, _, _, err := CreateJWEJWKFromKey(&kid, &enc, nil, key)
@@ -273,7 +274,7 @@ func TestCreateJWEJWKFromKey_NilEnc(t *testing.T) {
 
 	kid := googleUuid.New()
 	alg := joseJwa.DIRECT()
-	key := make(cryptoutilSharedCryptoKeygen.SecretKey, 32)
+	key := make(cryptoutilSharedCryptoKeygen.SecretKey, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 	_, _ = crand.Read(key)
 
 	_, _, _, _, _, err := CreateJWEJWKFromKey(&kid, nil, &alg, key)
@@ -331,7 +332,7 @@ func TestCreateJWEJWKFromKey_InvalidEnc(t *testing.T) {
 	// Create ContentEncryptionAlgorithm not in EncToBitsLength switch.
 	invalidEnc := joseJwa.NewContentEncryptionAlgorithm("INVALID_ENC")
 	alg := joseJwa.A256KW()
-	secretKey, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(256)
+	secretKey, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 	require.NoError(t, err)
 
 	_, _, _, _, _, err = CreateJWEJWKFromKey(&kid, &invalidEnc, &alg, secretKey)
@@ -346,7 +347,7 @@ func TestCreateJWEJWKFromKey_UnsupportedAlg(t *testing.T) {
 	enc := joseJwa.A256GCM()
 	// Create unsupported KeyEncryptionAlgorithm.
 	invalidAlg := joseJwa.NewKeyEncryptionAlgorithm("UNSUPPORTED_ALG")
-	secretKey, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(256)
+	secretKey, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(cryptoutilSharedMagic.MaxUnsealSharedSecrets)
 	require.NoError(t, err)
 
 	_, _, _, _, _, err = CreateJWEJWKFromKey(&kid, &enc, &invalidAlg, secretKey)

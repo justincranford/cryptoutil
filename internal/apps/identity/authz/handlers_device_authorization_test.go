@@ -59,20 +59,20 @@ func TestHandleDeviceAuthorization_HappyPath(t *testing.T) {
 	require.NoError(t, err, "Should decode JSON response")
 
 	// Validate response fields (RFC 8628 Section 3.2).
-	require.Contains(t, result, "device_code", "Response should include device_code")
-	require.Contains(t, result, "user_code", "Response should include user_code")
+	require.Contains(t, result, cryptoutilSharedMagic.ParamDeviceCode, "Response should include device_code")
+	require.Contains(t, result, cryptoutilSharedMagic.ParamUserCode, "Response should include user_code")
 	require.Contains(t, result, "verification_uri", "Response should include verification_uri")
 	require.Contains(t, result, "verification_uri_complete", "Response should include verification_uri_complete")
-	require.Contains(t, result, "expires_in", "Response should include expires_in")
+	require.Contains(t, result, cryptoutilSharedMagic.ParamExpiresIn, "Response should include expires_in")
 	require.Contains(t, result, "interval", "Response should include interval")
 
 	// Validate field types and values.
-	deviceCode, ok := result["device_code"].(string)
+	deviceCode, ok := result[cryptoutilSharedMagic.ParamDeviceCode].(string)
 	require.True(t, ok, "device_code should be string")
 	require.NotEmpty(t, deviceCode, "device_code should not be empty")
 	require.GreaterOrEqual(t, len(deviceCode), 40, "device_code should be at least 40 characters")
 
-	userCode, ok := result["user_code"].(string)
+	userCode, ok := result[cryptoutilSharedMagic.ParamUserCode].(string)
 	require.True(t, ok, "user_code should be string")
 	require.NotEmpty(t, userCode, "user_code should not be empty")
 	require.Len(t, userCode, 9, "user_code should be 9 characters (XXXX-YYYY)")
@@ -87,13 +87,13 @@ func TestHandleDeviceAuthorization_HappyPath(t *testing.T) {
 	require.Contains(t, verificationURIComplete, userCode, "verification_uri_complete should include user_code")
 	require.Contains(t, verificationURIComplete, "user_code=", "verification_uri_complete should include user_code parameter")
 
-	expiresIn, ok := result["expires_in"].(float64)
+	expiresIn, ok := result[cryptoutilSharedMagic.ParamExpiresIn].(float64)
 	require.True(t, ok, "expires_in should be number")
-	require.Equal(t, float64(1800), expiresIn, "expires_in should be 1800 seconds (30 minutes)")
+	require.Equal(t, float64(cryptoutilSharedMagic.IMEnterpriseSessionTimeout), expiresIn, "expires_in should be 1800 seconds (30 minutes)")
 
 	interval, ok := result["interval"].(float64)
 	require.True(t, ok, "interval should be number")
-	require.Equal(t, float64(5), interval, "interval should be 5 seconds")
+	require.Equal(t, float64(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries), interval, "interval should be 5 seconds")
 
 	// Verify device authorization stored in database.
 	deviceAuthRepo := repoFactory.DeviceAuthorizationRepository()
@@ -118,7 +118,7 @@ func TestHandleDeviceAuthorization_MissingClientID(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formData := url.Values{
-		cryptoutilSharedMagic.ParamScope: []string{"openid"},
+		cryptoutilSharedMagic.ParamScope: []string{cryptoutilSharedMagic.ScopeOpenID},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/device_authorization", strings.NewReader(formData.Encode()))
@@ -136,8 +136,8 @@ func TestHandleDeviceAuthorization_MissingClientID(t *testing.T) {
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err, "Should decode JSON response")
 
-	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidRequest, result["error"], "Error code should be invalid_request")
-	require.Contains(t, result["error_description"], "client_id", "Error description should mention client_id")
+	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidRequest, result[cryptoutilSharedMagic.StringError], "Error code should be invalid_request")
+	require.Contains(t, result["error_description"], cryptoutilSharedMagic.ClaimClientID, "Error description should mention client_id")
 }
 
 // TestHandleDeviceAuthorization_InvalidClientID validates invalid client_id.
@@ -154,7 +154,7 @@ func TestHandleDeviceAuthorization_InvalidClientID(t *testing.T) {
 
 	formData := url.Values{
 		cryptoutilSharedMagic.ParamClientID: []string{"invalid-client-id-12345"},
-		cryptoutilSharedMagic.ParamScope:    []string{"openid"},
+		cryptoutilSharedMagic.ParamScope:    []string{cryptoutilSharedMagic.ScopeOpenID},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/device_authorization", strings.NewReader(formData.Encode()))
@@ -172,7 +172,7 @@ func TestHandleDeviceAuthorization_InvalidClientID(t *testing.T) {
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err, "Should decode JSON response")
 
-	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidClient, result["error"], "Error code should be invalid_client")
+	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidClient, result[cryptoutilSharedMagic.StringError], "Error code should be invalid_client")
 }
 
 // TestHandleDeviceAuthorization_OptionalScope validates request without scope parameter.
@@ -209,8 +209,8 @@ func TestHandleDeviceAuthorization_OptionalScope(t *testing.T) {
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err, "Should decode JSON response")
 
-	require.Contains(t, result, "device_code", "Response should include device_code")
-	require.Contains(t, result, "user_code", "Response should include user_code")
+	require.Contains(t, result, cryptoutilSharedMagic.ParamDeviceCode, "Response should include device_code")
+	require.Contains(t, result, cryptoutilSharedMagic.ParamUserCode, "Response should include user_code")
 }
 
 // createDeviceAuthTestDependencies creates test dependencies for device authorization tests.
@@ -219,7 +219,7 @@ func createDeviceAuthTestDependencies(t *testing.T) (*cryptoutilIdentityConfig.C
 
 	config := &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
+			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
 			DSN:  "file::memory:?cache=private",
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
@@ -257,19 +257,19 @@ func createTestClientForDevice(ctx context.Context, t *testing.T, repoFactory *c
 
 	client := &cryptoutilIdentityDomain.Client{
 		ID:                      googleUuid.Must(googleUuid.NewV7()),
-		ClientID:                "test-device-client-" + googleUuid.NewString()[:8],
+		ClientID:                "test-device-client-" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		ClientSecret:            "$2a$10$examplehashedvalue",
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                    "Test Device Client",
-		RedirectURIs:            []string{"https://example.com/callback"},
-		AllowedScopes:           []string{"openid", "profile", "email"},
+		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
+		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail},
 		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode, cryptoutilSharedMagic.GrantTypeDeviceCode},
 		AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
 		TokenEndpointAuthMethod: cryptoutilSharedMagic.ClientAuthMethodSecretPost,
 		RequirePKCE:             &requirePKCE,
-		AccessTokenLifetime:     3600,
-		RefreshTokenLifetime:    86400,
-		IDTokenLifetime:         3600,
+		AccessTokenLifetime:     cryptoutilSharedMagic.IMDefaultSessionTimeout,
+		RefreshTokenLifetime:    cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+		IDTokenLifetime:         cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		Enabled:                 &enabled,
 	}
 

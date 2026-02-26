@@ -5,6 +5,7 @@
 package sm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"io"
 
 	cryptoutilAppsSmIm "cryptoutil/internal/apps/sm/im"
@@ -34,7 +35,7 @@ func Sm(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		args, stdin, stdout, stderr,
 		[]cryptoutilTemplateCli.ServiceEntry{
 			{Name: "im", Handler: cryptoutilAppsSmIm.Im},
-			{Name: "kms", Handler: cryptoutilAppsSmKms.Kms},
+			{Name: cryptoutilSharedMagic.KMSServiceName, Handler: cryptoutilAppsSmKms.Kms},
 		},
 	)
 }

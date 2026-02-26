@@ -3,6 +3,7 @@
 package health_paths
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -22,8 +23,8 @@ func TestIsLikelyHealthPath(t *testing.T) {
 	}{
 		{name: "health lowercase", path: "/health", want: true},
 		{name: "healthz", path: "/healthz", want: true},
-		{name: "livez", path: "/livez", want: true},
-		{name: "readyz", path: "/readyz", want: true},
+		{name: "livez", path: cryptoutilSharedMagic.PrivateAdminLivezRequestPath, want: true},
+		{name: "readyz", path: cryptoutilSharedMagic.PrivateAdminReadyzRequestPath, want: true},
 		{name: "alive", path: "/alive", want: true},
 		{name: "ready", path: "/ready", want: true},
 		{name: "standard path", path: "/admin/api/v1/livez", want: true},
@@ -51,7 +52,7 @@ func TestCheckHealthPathsInDockerfile_ValidPath(t *testing.T) {
 	err := os.WriteFile(dockerfile, []byte(`FROM alpine:3.19
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
   CMD wget --no-check-certificate -q -O /dev/null https://127.0.0.1:9090/admin/api/v1/livez || exit 1
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations := CheckHealthPathsInDockerfile(dockerfile)
@@ -66,7 +67,7 @@ func TestCheckHealthPathsInDockerfile_InvalidPath(t *testing.T) {
 	dockerfile := filepath.Join(tempDir, "Dockerfile")
 	err := os.WriteFile(dockerfile, []byte(`FROM alpine:3.19
 HEALTHCHECK CMD wget -q -O /dev/null http://127.0.0.1:8080/health || exit 1
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations := CheckHealthPathsInDockerfile(dockerfile)
@@ -86,7 +87,7 @@ func TestCheckHealthPathsInCompose_ValidPath(t *testing.T) {
       test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
       interval: 30s
       timeout: 5s
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations := CheckHealthPathsInCompose(composeFile)
@@ -104,7 +105,7 @@ func TestCheckHealthPathsInCompose_InvalidPath(t *testing.T) {
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations := CheckHealthPathsInCompose(composeFile)
@@ -120,7 +121,7 @@ func TestLintHealthPaths_NoViolations(t *testing.T) {
 	dockerfile := filepath.Join(tempDir, "Dockerfile")
 	err := os.WriteFile(dockerfile, []byte(`FROM alpine:3.19
 HEALTHCHECK CMD wget -q -O /dev/null https://127.0.0.1:9090/admin/api/v1/livez
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -140,7 +141,7 @@ func TestLintHealthPaths_WithViolations(t *testing.T) {
 	dockerfile := filepath.Join(tempDir, "Dockerfile")
 	err := os.WriteFile(dockerfile, []byte(`FROM alpine:3.19
 HEALTHCHECK CMD curl -f http://localhost:8080/health
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -178,7 +179,7 @@ func TestCheckHealthPathsInCompose_NoHealthcheck(t *testing.T) {
     image: nginx
     ports:
       - "8080:80"
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations := CheckHealthPathsInCompose(composeFile)
@@ -194,7 +195,7 @@ func TestCheckHealthPathsInDockerfile_CorrectPortDifferentPath(t *testing.T) {
 	dockerfile := filepath.Join(tempDir, "Dockerfile")
 	err := os.WriteFile(dockerfile, []byte(`FROM alpine:3.19
 HEALTHCHECK CMD wget -q -O /dev/null http://127.0.0.1:9090/healthz
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations := CheckHealthPathsInDockerfile(dockerfile)
@@ -213,7 +214,7 @@ func TestCheckHealthPathsInCompose_CorrectPathStandardPort(t *testing.T) {
     healthcheck:
       test: curl -f http://127.0.0.1:9090/admin/api/v1/livez
       interval: 30s
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations := CheckHealthPathsInCompose(composeFile)
@@ -227,7 +228,7 @@ func TestCheck_WithYamlFiles(t *testing.T) {
 
 	// Non-compose yml file (should be skipped, not a compose file).
 	configFile := filepath.Join(tmpDir, "config.yml")
-	require.NoError(t, os.WriteFile(configFile, []byte("key: value\n"), 0o600))
+	require.NoError(t, os.WriteFile(configFile, []byte("key: value\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Valid compose file with correct health path.
 	composeFile := filepath.Join(tmpDir, "compose.yml")
@@ -237,7 +238,7 @@ func TestCheck_WithYamlFiles(t *testing.T) {
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
 `
-	require.NoError(t, os.WriteFile(composeFile, []byte(composeContent), 0o600))
+	require.NoError(t, os.WriteFile(composeFile, []byte(composeContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
@@ -255,7 +256,7 @@ func TestCheck_WithOtelRelatedFiles(t *testing.T) {
 
 	// Otel-related dockerfile (should be skipped).
 	otelDockerfile := filepath.Join(tmpDir, "otel-collector.dockerfile")
-	require.NoError(t, os.WriteFile(otelDockerfile, []byte("FROM alpine:3.19\nHEALTHCHECK ...\n"), 0o600))
+	require.NoError(t, os.WriteFile(otelDockerfile, []byte("FROM alpine:3.19\nHEALTHCHECK ...\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
@@ -281,7 +282,7 @@ func TestCheckHealthPathsInCompose_HealthcheckSectionExit(t *testing.T) {
 volumes:
   data:
 `
-	require.NoError(t, os.WriteFile(composeFile, []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(composeFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	violations := CheckHealthPathsInCompose(composeFile)
 	require.Empty(t, violations)

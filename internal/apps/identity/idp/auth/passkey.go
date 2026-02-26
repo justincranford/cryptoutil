@@ -5,6 +5,7 @@
 package auth
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 
@@ -29,7 +30,7 @@ func NewPasskeyProfile(userRepo cryptoutilIdentityRepository.UserRepository, mfa
 
 // Name returns the profile name.
 func (p *PasskeyProfile) Name() string {
-	return "passkey"
+	return cryptoutilSharedMagic.AMRPasskey
 }
 
 // Authenticate performs WebAuthn passkey authentication.

@@ -24,7 +24,7 @@ func TestCAServer_HandleOCSP(t *testing.T) {
 	t.Parallel()
 
 	// Create and start test server.
-	cfg := cryptoutilAppsCaServerConfig.NewTestConfig("127.0.0.1", 0, true)
+	cfg := cryptoutilAppsCaServerConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	ctx := context.Background()
 	server, err := NewFromConfig(ctx, cfg)
 	require.NoError(t, err)
@@ -42,7 +42,7 @@ func TestCAServer_HandleOCSP(t *testing.T) {
 
 	// Create HTTP client.
 	client := &http.Client{
-		Timeout: 5 * time.Second,
+		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true, //nolint:gosec // G402: Test client for self-signed certs.
@@ -68,7 +68,7 @@ func TestCAServer_HandleOCSP(t *testing.T) {
 		"expected 501 or 400, got %d", resp.StatusCode)
 
 	// Cleanup.
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer cancel()
 
 	_ = server.Shutdown(shutdownCtx)
@@ -79,7 +79,7 @@ func TestCAServer_HandleOCSP_InvalidRequest(t *testing.T) {
 	t.Parallel()
 
 	// Create and start test server.
-	cfg := cryptoutilAppsCaServerConfig.NewTestConfig("127.0.0.1", 0, true)
+	cfg := cryptoutilAppsCaServerConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	ctx := context.Background()
 	server, err := NewFromConfig(ctx, cfg)
 	require.NoError(t, err)
@@ -97,7 +97,7 @@ func TestCAServer_HandleOCSP_InvalidRequest(t *testing.T) {
 
 	// Create HTTP client.
 	client := &http.Client{
-		Timeout: 5 * time.Second,
+		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true, //nolint:gosec // G402: Test client for self-signed certs.
@@ -123,7 +123,7 @@ func TestCAServer_HandleOCSP_InvalidRequest(t *testing.T) {
 	require.True(t, resp.StatusCode >= 400, "expected error status, got %d", resp.StatusCode)
 
 	// Cleanup.
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer cancel()
 
 	_ = server.Shutdown(shutdownCtx)
@@ -134,7 +134,7 @@ func TestCAServer_HandleCRLDistribution_Error(t *testing.T) {
 	t.Parallel()
 
 	// Create and start test server.
-	cfg := cryptoutilAppsCaServerConfig.NewTestConfig("127.0.0.1", 0, true)
+	cfg := cryptoutilAppsCaServerConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	ctx := context.Background()
 	server, err := NewFromConfig(ctx, cfg)
 	require.NoError(t, err)
@@ -152,7 +152,7 @@ func TestCAServer_HandleCRLDistribution_Error(t *testing.T) {
 
 	// Create HTTP client.
 	client := &http.Client{
-		Timeout: 5 * time.Second,
+		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true, //nolint:gosec // G402: Test client for self-signed certs.
@@ -186,11 +186,11 @@ func TestCAServer_HandleCRLDistribution_Error(t *testing.T) {
 
 		err = json.NewDecoder(resp.Body).Decode(&errResp)
 		require.NoError(t, err)
-		require.Contains(t, errResp, "error")
+		require.Contains(t, errResp, cryptoutilSharedMagic.StringError)
 	}
 
 	// Cleanup.
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer cancel()
 
 	_ = server.Shutdown(shutdownCtx)
@@ -204,7 +204,7 @@ func TestCAServer_HealthEndpoints_EdgeCases(t *testing.T) {
 	t.Parallel()
 
 	// Create and start test server.
-	cfg := cryptoutilAppsCaServerConfig.NewTestConfig("127.0.0.1", 0, true)
+	cfg := cryptoutilAppsCaServerConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	ctx := context.Background()
 	server, err := NewFromConfig(ctx, cfg)
 	require.NoError(t, err)
@@ -222,7 +222,7 @@ func TestCAServer_HealthEndpoints_EdgeCases(t *testing.T) {
 
 	// Create HTTP client.
 	client := &http.Client{
-		Timeout: 5 * time.Second,
+		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true, //nolint:gosec // G402: Test client for self-signed certs.
@@ -231,8 +231,8 @@ func TestCAServer_HealthEndpoints_EdgeCases(t *testing.T) {
 	}
 
 	// Test public health endpoint.
-	t.Run("/service/api/v1/health", func(t *testing.T) {
-		url := server.PublicBaseURL() + "/service/api/v1/health"
+	t.Run(cryptoutilSharedMagic.IdentityE2EHealthEndpoint, func(t *testing.T) {
+		url := server.PublicBaseURL() + cryptoutilSharedMagic.IdentityE2EHealthEndpoint
 		req, err := http.NewRequestWithContext(context.Background(), "GET", url, nil)
 		require.NoError(t, err)
 		resp, err := client.Do(req)
@@ -290,7 +290,7 @@ func TestCAServer_HealthEndpoints_EdgeCases(t *testing.T) {
 	})
 
 	// Cleanup.
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer cancel()
 
 	_ = server.Shutdown(shutdownCtx)

@@ -6,6 +6,7 @@
 package apis
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	json "encoding/json"
 	"net/http/httptest"
@@ -94,13 +95,13 @@ func TestHandleProcessJoinRequest_TableDriven(t *testing.T) {
 			name:           "Approve nonexistent request",
 			requestID:      googleUuid.New().String(),
 			requestBody:    `{"approved": true}`,
-			expectedStatus: 500,
+			expectedStatus: cryptoutilSharedMagic.TestDefaultRateLimitServiceIP,
 		},
 		{
 			name:           "Reject nonexistent request",
 			requestID:      googleUuid.New().String(),
 			requestBody:    `{"approved": false}`,
-			expectedStatus: 500,
+			expectedStatus: cryptoutilSharedMagic.TestDefaultRateLimitServiceIP,
 		},
 	}
 

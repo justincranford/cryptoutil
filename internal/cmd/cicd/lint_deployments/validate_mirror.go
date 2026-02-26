@@ -1,6 +1,7 @@
 package lint_deployments
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -118,10 +119,10 @@ func ValidateStructuralMirror(deploymentsDir string, configsDir string) (*Mirror
 // deploymentToConfigMapping maps deployment directory names to their expected configs directory names.
 // This handles naming differences between deployments/ and configs/ directories.
 var deploymentToConfigMapping = map[string]string{
-	"pki":    "ca",
-	"pki-ca": "ca",
+	cryptoutilSharedMagic.PKIProductName:    "ca",
+	cryptoutilSharedMagic.OTLPServicePKICA: "ca",
 	"sm":     "sm",
-	"sm-kms": "sm",
+	cryptoutilSharedMagic.OTLPServiceSMKMS: "sm",
 }
 
 // mapDeploymentToConfig maps a deployment directory name to its expected configs directory name.

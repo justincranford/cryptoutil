@@ -43,7 +43,7 @@ func TestMain(m *testing.M) {
 
 	var err error
 
-	testSQLDB, err = sql.Open("sqlite", dsn)
+	testSQLDB, err = sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	if err != nil {
 		panic("TestMain: failed to open SQLite: " + err.Error())
 	}
@@ -318,7 +318,7 @@ func TestService_Shutdown(t *testing.T) {
 	// Create isolated in-memory database for this test.
 	dbUUID, _ := googleUuid.NewV7()
 	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", dbUUID.String())
-	shutdownSQLDB, err := sql.Open("sqlite", dsn)
+	shutdownSQLDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	require.NoError(t, err)
 
 	defer func() {

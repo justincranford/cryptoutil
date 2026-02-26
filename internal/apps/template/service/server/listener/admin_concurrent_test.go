@@ -54,7 +54,7 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //nolint:gosec // Self-signed cert in test.
 		},
-		Timeout: 5 * time.Second,
+		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}
 
 	var (
@@ -62,12 +62,12 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 		port        int
 	)
 
-	for i := 0; i < 60; i++ { // Increased to 60 attempts (3 seconds total) to handle previous test shutdown.
-		time.Sleep(50 * time.Millisecond)
+	for i := 0; i < cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds; i++ { // Increased to 60 attempts (3 seconds total) to handle previous test shutdown.
+		time.Sleep(cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond)
 
 		// Check if Start() returned an error.
 		if startErr != nil {
-			require.FailNow(t, "server.Start() error after attempts", "attempt", i, "error", startErr)
+			require.FailNow(t, "server.Start() error after attempts", "attempt", i, cryptoutilSharedMagic.StringError, startErr)
 		}
 
 		port = server.ActualPort()
@@ -94,7 +94,7 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 			}
 
 			// Log startup failures for debugging.
-			if i%10 == 0 && healthErr != nil {
+			if i%cryptoutilSharedMagic.JoseJADefaultMaxMaterials == 0 && healthErr != nil {
 				t.Logf("Health check attempt %d failed: %v", i, healthErr)
 			}
 		}
@@ -156,7 +156,7 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 	}
 
 	// Shutdown server.
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer shutdownCancel()
 
 	err = server.Shutdown(shutdownCtx)
@@ -170,7 +170,7 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 	}
 
 	// Wait for port to be fully released before next test.
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP * time.Millisecond)
 }
 
 // TestAdminServer_TimeoutsConfigured tests that server timeouts are properly configured.
@@ -194,8 +194,8 @@ func TestAdminServer_TimeoutsConfigured(t *testing.T) {
 	// Wait for server to be ready with retry logic.
 	var port int
 
-	for i := 0; i < 20; i++ {
-		time.Sleep(50 * time.Millisecond)
+	for i := 0; i < cryptoutilSharedMagic.MaxErrorDisplay; i++ {
+		time.Sleep(cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond)
 
 		port = server.ActualPort()
 		if port > 0 {
@@ -235,10 +235,10 @@ func TestAdminServer_TimeoutsConfigured(t *testing.T) {
 
 	err = json.Unmarshal(body, &result)
 	require.NoError(t, err)
-	assert.Equal(t, "ready", result["status"])
+	assert.Equal(t, "ready", result[cryptoutilSharedMagic.StringStatus])
 
 	// Shutdown server.
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer shutdownCancel()
 
 	err = server.Shutdown(shutdownCtx)
@@ -247,7 +247,7 @@ func TestAdminServer_TimeoutsConfigured(t *testing.T) {
 	wg.Wait()
 
 	// Wait for port to be fully released.
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP * time.Millisecond)
 }
 
 // TestAdminServer_AdminBaseURL tests AdminBaseURL returns correct URL format.
@@ -274,8 +274,8 @@ func TestAdminServer_AdminBaseURL(t *testing.T) {
 	// Wait for server to be ready with retry logic.
 	var port int
 
-	for i := 0; i < 20; i++ {
-		time.Sleep(50 * time.Millisecond)
+	for i := 0; i < cryptoutilSharedMagic.MaxErrorDisplay; i++ {
+		time.Sleep(cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond)
 
 		port = server.ActualPort()
 		if port > 0 {
@@ -291,7 +291,7 @@ func TestAdminServer_AdminBaseURL(t *testing.T) {
 	assert.Equal(t, expectedURL, baseURL)
 
 	// Shutdown server.
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer shutdownCancel()
 
 	err = server.Shutdown(shutdownCtx)
@@ -300,7 +300,7 @@ func TestAdminServer_AdminBaseURL(t *testing.T) {
 	wg.Wait()
 
 	// Wait for port to be fully released.
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP * time.Millisecond)
 }
 
 // TestAdminServer_App tests App returns non-nil fiber.App instance.
@@ -325,7 +325,7 @@ func TestAdminServer_Livez_DuringShutdown_InMemory(t *testing.T) {
 	require.NoError(t, err)
 
 	// Trigger shutdown via context cancellation to set shutdown flag.
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer cancel()
 
 	err = server.Shutdown(shutdownCtx)
@@ -350,7 +350,7 @@ func TestAdminServer_Livez_DuringShutdown_InMemory(t *testing.T) {
 
 	err = json.Unmarshal(body, &result)
 	require.NoError(t, err)
-	assert.Equal(t, "shutting down", result["status"])
+	assert.Equal(t, "shutting down", result[cryptoutilSharedMagic.StringStatus])
 }
 
 // TestAdminServer_Readyz_DuringShutdown_InMemory tests readyz returns 503 during shutdown using app.Test().
@@ -365,7 +365,7 @@ func TestAdminServer_Readyz_DuringShutdown_InMemory(t *testing.T) {
 	server.SetReady(true)
 
 	// Trigger shutdown.
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer cancel()
 
 	err = server.Shutdown(shutdownCtx)
@@ -390,7 +390,7 @@ func TestAdminServer_Readyz_DuringShutdown_InMemory(t *testing.T) {
 
 	err = json.Unmarshal(body, &result)
 	require.NoError(t, err)
-	assert.Equal(t, "shutting down", result["status"])
+	assert.Equal(t, "shutting down", result[cryptoutilSharedMagic.StringStatus])
 }
 
 // TestAdminServer_Shutdown_Idempotent tests multiple shutdown calls are safe.

@@ -87,7 +87,7 @@ func TestAdminServerLifecycle(t *testing.T) {
 		}()
 
 		// Wait for server to start and get port (polling avoids race condition).
-		port := waitForAdminPort(t, server, 5*time.Second)
+		port := waitForAdminPort(t, server, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 		require.NotZero(t, port)
 
 		// Shutdown server.
@@ -97,7 +97,7 @@ func TestAdminServerLifecycle(t *testing.T) {
 		select {
 		case startErr := <-errChan:
 			require.NoError(t, startErr)
-		case <-time.After(100 * time.Millisecond):
+		case <-time.After(cryptoutilSharedMagic.JoseJAMaxMaterials * time.Millisecond):
 			// No error - success.
 		}
 	})
@@ -164,7 +164,7 @@ func TestAdminServerActualPort(t *testing.T) {
 		}()
 
 		// Wait for server to start and get port (polling avoids race condition).
-		port := waitForAdminPort(t, server, 5*time.Second)
+		port := waitForAdminPort(t, server, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 		require.NotZero(t, port)
 
 		// Cleanup.
@@ -189,7 +189,7 @@ func TestAdminEndpointLivez(t *testing.T) {
 	}()
 
 	// Wait for server to start and get port (polling avoids race condition).
-	port := waitForAdminPort(t, server, 5*time.Second)
+	port := waitForAdminPort(t, server, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 
 	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, port)
 
@@ -200,7 +200,7 @@ func TestAdminEndpointLivez(t *testing.T) {
 		var response map[string]any
 
 		require.NoError(t, json.Unmarshal(body, &response))
-		require.Equal(t, "alive", response["status"])
+		require.Equal(t, "alive", response[cryptoutilSharedMagic.StringStatus])
 	})
 
 	t.Run("LivezAfterShutdown", func(t *testing.T) {
@@ -247,7 +247,7 @@ func TestAdminEndpointReadyz(t *testing.T) {
 	}()
 
 	// Wait for server to start and get port (polling avoids race condition).
-	port := waitForAdminPort(t, server, 5*time.Second)
+	port := waitForAdminPort(t, server, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 
 	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, port)
 
@@ -262,9 +262,9 @@ func TestAdminEndpointReadyz(t *testing.T) {
 		// Expect either "not ready" (503) or "ready" (200) depending on timing.
 		switch statusCode {
 		case http.StatusServiceUnavailable:
-			require.Equal(t, "not ready", response["status"])
+			require.Equal(t, "not ready", response[cryptoutilSharedMagic.StringStatus])
 		case http.StatusOK:
-			require.Equal(t, "ready", response["status"])
+			require.Equal(t, "ready", response[cryptoutilSharedMagic.StringStatus])
 		default:
 			require.Fail(t, fmt.Sprintf("unexpected status code: %d", statusCode))
 		}
@@ -313,7 +313,7 @@ func TestAdminEndpointShutdown(t *testing.T) {
 	}()
 
 	// Wait for server to start and get port (polling avoids race condition).
-	port := waitForAdminPort(t, server, 5*time.Second)
+	port := waitForAdminPort(t, server, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 
 	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, port)
 
@@ -325,7 +325,7 @@ func TestAdminEndpointShutdown(t *testing.T) {
 		var response map[string]any
 
 		require.NoError(t, json.Unmarshal(body, &response))
-		require.Equal(t, "shutdown initiated", response["status"])
+		require.Equal(t, "shutdown initiated", response[cryptoutilSharedMagic.StringStatus])
 		// Server is shutting down asynchronously - don't test livez after shutdown.
 	})
 }
@@ -342,7 +342,7 @@ func waitForAdminPort(t *testing.T, server *AdminServer, timeout time.Duration) 
 			return port
 		}
 
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond)
 	}
 
 	t.Fatalf("admin server did not start within %v", timeout)
@@ -355,7 +355,7 @@ func doAdminGet(t *testing.T, url string) (int, []byte) {
 	t.Helper()
 
 	client := &http.Client{
-		Timeout: 5 * time.Second,
+		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				MinVersion:         tls.VersionTLS13,
@@ -385,7 +385,7 @@ func doAdminPost(t *testing.T, url string) (int, []byte) {
 	t.Helper()
 
 	client := &http.Client{
-		Timeout: 5 * time.Second,
+		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				MinVersion:         tls.VersionTLS13,

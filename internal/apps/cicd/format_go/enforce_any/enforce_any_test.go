@@ -3,6 +3,7 @@
 package enforce_any
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -28,7 +29,7 @@ func TestEnforceAny_NoModifications(t *testing.T) {
 
 	// File already using 'any' (no modifications needed).
 	// Using the same constant as TestProcessGoFile_NoChanges.
-	err := os.WriteFile(testFile, []byte(testGoContentClean), 0o600)
+	err := os.WriteFile(testFile, []byte(testGoContentClean), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -53,7 +54,7 @@ func Process(data interface{}) interface{} {
 	return data
 }
 `
-	err := os.WriteFile(testFile, []byte(oldContent), 0o600)
+	err := os.WriteFile(testFile, []byte(oldContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Test processGoFile directly (bypasses GetGoFiles filtering).
@@ -88,7 +89,7 @@ func TestProcessGoFile_NoChanges(t *testing.T) {
 	testFile := filepath.Join(tmpDir, "test.go")
 
 	// File with no any.
-	err := os.WriteFile(testFile, []byte(testGoContentClean), 0o600)
+	err := os.WriteFile(testFile, []byte(testGoContentClean), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	replacements, err := ProcessGoFile(testFile)
@@ -110,7 +111,7 @@ func TestProcessGoFile_WithChanges(t *testing.T) {
 
 	// File with any that should be replaced.
 	// Using testGoContentWithInterfaceEmpty constant to avoid self-modification during linting.
-	err := os.WriteFile(testFile, []byte(testGoContentWithInterfaceEmpty), 0o600)
+	err := os.WriteFile(testFile, []byte(testGoContentWithInterfaceEmpty), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	replacements, err := ProcessGoFile(testFile)
@@ -176,7 +177,7 @@ func TestEnforceAny_WithModificationsViaEnforceAny(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "server.go")
 
-	err := os.WriteFile(testFile, []byte(testGoContentWithInterfaceBraces), 0o600)
+	err := os.WriteFile(testFile, []byte(testGoContentWithInterfaceBraces), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -198,7 +199,7 @@ func TestProcessGoFile_WriteError(t *testing.T) {
 	testFile := filepath.Join(tmpDir, "readonly.go")
 
 	// Create file with interface{} that needs replacement.
-	err := os.WriteFile(testFile, []byte(testGoContentWithInterfaceBraces), 0o600)
+	err := os.WriteFile(testFile, []byte(testGoContentWithInterfaceBraces), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Make file read-only so WriteFile will fail.
@@ -211,5 +212,5 @@ func TestProcessGoFile_WriteError(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to write file")
 
 	// Restore write permission for cleanup.
-	_ = os.Chmod(testFile, 0o600)
+	_ = os.Chmod(testFile, cryptoutilSharedMagic.CacheFilePermissions)
 }

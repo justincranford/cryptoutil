@@ -64,7 +64,7 @@ func TestChan(t *testing.T) {
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	waitAndClose := runSendersReceivers(ctx, 100, 8, 4, sender, receiver)
+	waitAndClose := runSendersReceivers(ctx, cryptoutilSharedMagic.JoseJAMaxMaterials, cryptoutilSharedMagic.IMMinPasswordLength, 4, sender, receiver)
 
 	go func() {
 		time.Sleep(cryptoutilSharedMagic.TestSleepCancelChanContext)

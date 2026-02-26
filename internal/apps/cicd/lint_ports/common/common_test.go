@@ -3,6 +3,7 @@
 package common
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	
 	"github.com/stretchr/testify/require"
@@ -14,8 +15,8 @@ func TestAllLegacyPorts(t *testing.T) {
 	ports := AllLegacyPorts()
 
 	// Verify known legacy ports are included.
-	require.Contains(t, ports, uint16(8888)) // sm-im legacy
-	require.Contains(t, ports, uint16(8889)) // sm-im legacy
+	require.Contains(t, ports, uint16(cryptoutilSharedMagic.DefaultPublicPortInternalMetrics)) // sm-im legacy
+	require.Contains(t, ports, uint16(cryptoutilSharedMagic.PortOtelCollectorReceivedMetrics)) // sm-im legacy
 	require.Contains(t, ports, uint16(8890)) // sm-im legacy
 	require.Contains(t, ports, uint16(9443)) // jose-ja legacy
 	require.Contains(t, ports, uint16(8092)) // jose-ja legacy
@@ -28,19 +29,19 @@ func TestAllValidPublicPorts(t *testing.T) {
 	ports := AllValidPublicPorts()
 
 	// Verify standardized ports are included.
-	require.Contains(t, ports, uint16(8700)) // sm-im
-	require.Contains(t, ports, uint16(8701)) // sm-im
-	require.Contains(t, ports, uint16(8702)) // sm-im
-	require.Contains(t, ports, uint16(8800)) // jose-ja
-	require.Contains(t, ports, uint16(8100)) // pki-ca
-	require.Contains(t, ports, uint16(8000)) // sm-kms
-	require.Contains(t, ports, uint16(8001)) // sm-kms
-	require.Contains(t, ports, uint16(8002)) // sm-kms
-	require.Contains(t, ports, uint16(8200)) // identity-authz
-	require.Contains(t, ports, uint16(8300)) // identity-idp
+	require.Contains(t, ports, uint16(cryptoutilSharedMagic.IMServicePort)) // sm-im
+	require.Contains(t, ports, uint16(cryptoutilSharedMagic.IME2EPostgreSQL1PublicPort)) // sm-im
+	require.Contains(t, ports, uint16(cryptoutilSharedMagic.IME2EPostgreSQL2PublicPort)) // sm-im
+	require.Contains(t, ports, uint16(cryptoutilSharedMagic.JoseJAServicePort)) // jose-ja
+	require.Contains(t, ports, uint16(cryptoutilSharedMagic.PKICAServicePort)) // pki-ca
+	require.Contains(t, ports, uint16(cryptoutilSharedMagic.KMSServicePort)) // sm-kms
+	require.Contains(t, ports, uint16(cryptoutilSharedMagic.KMSE2EPostgreSQL1PublicPort)) // sm-kms
+	require.Contains(t, ports, uint16(cryptoutilSharedMagic.KMSE2EPostgreSQL2PublicPort)) // sm-kms
+	require.Contains(t, ports, uint16(cryptoutilSharedMagic.IdentityDefaultAuthZPort)) // identity-authz
+	require.Contains(t, ports, uint16(cryptoutilSharedMagic.IdentityDefaultIDPPort)) // identity-idp
 	require.Contains(t, ports, uint16(8301)) // identity-idp E2E (avoids conflict with authz)
-	require.Contains(t, ports, uint16(8400)) // identity-rs
-	require.Contains(t, ports, uint16(8500)) // identity-rp
+	require.Contains(t, ports, uint16(cryptoutilSharedMagic.IdentityDefaultRSPort)) // identity-rs
+	require.Contains(t, ports, uint16(cryptoutilSharedMagic.DefaultSPARPPort)) // identity-rp
 	require.Contains(t, ports, uint16(8600)) // identity-spa
 }
 
@@ -52,10 +53,10 @@ func TestIsOtelCollectorPort(t *testing.T) {
 		port uint16
 		want bool
 	}{
-		{name: "OTEL internal metrics", port: 8888, want: true},
-		{name: "OTEL Prometheus", port: 8889, want: true},
-		{name: "sm-im standardized", port: 8700, want: false}, // New standardized port
-		{name: "jose-ja standardized", port: 8800, want: false},   // New standardized port
+		{name: "OTEL internal metrics", port: cryptoutilSharedMagic.DefaultPublicPortInternalMetrics, want: true},
+		{name: "OTEL Prometheus", port: cryptoutilSharedMagic.PortOtelCollectorReceivedMetrics, want: true},
+		{name: "sm-im standardized", port: cryptoutilSharedMagic.IMServicePort, want: false}, // New standardized port
+		{name: "jose-ja standardized", port: cryptoutilSharedMagic.JoseJAServicePort, want: false},   // New standardized port
 		{name: "random port", port: 12345, want: false},
 	}
 
@@ -98,15 +99,15 @@ func TestServicePorts_AllServicesPresent(t *testing.T) {
 	t.Parallel()
 
 	expectedServices := []string{
-		"sm-im",
-		"jose-ja",
-		"pki-ca",
-		"sm-kms",
-		"identity-authz",
-		"identity-idp",
-		"identity-rs",
-		"identity-rp",
-		"identity-spa",
+		cryptoutilSharedMagic.OTLPServiceSMIM,
+		cryptoutilSharedMagic.OTLPServiceJoseJA,
+		cryptoutilSharedMagic.OTLPServicePKICA,
+		cryptoutilSharedMagic.OTLPServiceSMKMS,
+		cryptoutilSharedMagic.OTLPServiceIdentityAuthz,
+		cryptoutilSharedMagic.OTLPServiceIdentityIDP,
+		cryptoutilSharedMagic.OTLPServiceIdentityRS,
+		cryptoutilSharedMagic.OTLPServiceIdentityRP,
+		cryptoutilSharedMagic.OTLPServiceIdentitySPA,
 	}
 
 	for _, svc := range expectedServices {

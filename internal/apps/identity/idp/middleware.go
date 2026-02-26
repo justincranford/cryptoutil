@@ -28,12 +28,12 @@ func (s *Service) RegisterMiddleware(app *fiber.App) {
 	// Referrer-Policy, Content-Security-Policy, Permissions-Policy.
 	app.Use(helmet.New(helmet.Config{
 		XSSProtection:             "1; mode=block",
-		ContentTypeNosniff:        "nosniff",
+		ContentTypeNosniff:        cryptoutilSharedMagic.ContentTypeOptions,
 		XFrameOptions:             "DENY",
-		ReferrerPolicy:            "strict-origin-when-cross-origin",
-		CrossOriginEmbedderPolicy: "require-corp",
-		CrossOriginOpenerPolicy:   "same-origin",
-		CrossOriginResourcePolicy: "same-origin",
+		ReferrerPolicy:            cryptoutilSharedMagic.ReferrerPolicy,
+		CrossOriginEmbedderPolicy: cryptoutilSharedMagic.CrossOriginEmbedderPolicy,
+		CrossOriginOpenerPolicy:   cryptoutilSharedMagic.CrossOriginOpenerPolicy,
+		CrossOriginResourcePolicy: cryptoutilSharedMagic.CrossOriginOpenerPolicy,
 		PermissionPolicy:          "geolocation=(), microphone=(), camera=()",
 	}))
 
@@ -63,7 +63,7 @@ func (s *Service) RegisterMiddleware(app *fiber.App) {
 		Expiration: time.Duration(cryptoutilSharedMagic.RateLimitWindowSeconds) * time.Second,
 		LimitReached: func(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
-				"error":             "rate_limit_exceeded",
+				cryptoutilSharedMagic.StringError:             "rate_limit_exceeded",
 				"error_description": "Too many requests",
 			})
 		},
@@ -80,7 +80,7 @@ func (s *Service) AuthMiddleware() fiber.Handler {
 
 		if sessionID == "" {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error":             cryptoutilSharedMagic.ErrorAccessDenied,
+				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorAccessDenied,
 				"error_description": "Authentication required",
 			})
 		}
@@ -91,7 +91,7 @@ func (s *Service) AuthMiddleware() fiber.Handler {
 		session, err := sessionRepo.GetBySessionID(ctx, sessionID)
 		if err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error":             cryptoutilSharedMagic.ErrorAccessDenied,
+				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorAccessDenied,
 				"error_description": "Invalid or expired session",
 			})
 		}
@@ -99,7 +99,7 @@ func (s *Service) AuthMiddleware() fiber.Handler {
 		// Validate session is active.
 		if session.Active == nil || !*session.Active {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error":             cryptoutilSharedMagic.ErrorAccessDenied,
+				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorAccessDenied,
 				"error_description": "Session is no longer active",
 			})
 		}
@@ -107,7 +107,7 @@ func (s *Service) AuthMiddleware() fiber.Handler {
 		// Validate session not expired.
 		if session.IsExpired() {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error":             cryptoutilSharedMagic.ErrorAccessDenied,
+				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorAccessDenied,
 				"error_description": "Session has expired",
 			})
 		}
@@ -129,7 +129,7 @@ func (s *Service) TokenAuthMiddleware() fiber.Handler {
 
 		if authHeader == "" {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error":             cryptoutilSharedMagic.ErrorInvalidToken,
+				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
 				"error_description": "Missing Authorization header",
 			})
 		}
@@ -138,7 +138,7 @@ func (s *Service) TokenAuthMiddleware() fiber.Handler {
 		parts := strings.SplitN(authHeader, " ", 2)
 		if len(parts) != 2 || parts[0] != cryptoutilSharedMagic.AuthorizationBearer {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error":             cryptoutilSharedMagic.ErrorInvalidToken,
+				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
 				"error_description": "Invalid Authorization header format",
 			})
 		}
@@ -149,7 +149,7 @@ func (s *Service) TokenAuthMiddleware() fiber.Handler {
 		claims, err := s.tokenSvc.ValidateAccessToken(ctx, accessToken)
 		if err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error":             cryptoutilSharedMagic.ErrorInvalidToken,
+				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
 				"error_description": "Invalid or expired access token",
 			})
 		}
@@ -178,13 +178,13 @@ func (s *Service) HybridAuthMiddleware() fiber.Handler {
 				claims, err := s.tokenSvc.ValidateAccessToken(ctx, accessToken)
 				if err == nil {
 					c.Locals("claims", claims)
-					c.Locals("auth_method", "bearer_token")
+					c.Locals("auth_method", cryptoutilSharedMagic.ClientAuthMethodBearerToken)
 
 					return c.Next()
 				}
 				// If Bearer token is present but invalid, reject immediately.
 				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-					"error":             cryptoutilSharedMagic.ErrorInvalidToken,
+					cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
 					"error_description": "Invalid or expired access token",
 				})
 			}
@@ -201,8 +201,8 @@ func (s *Service) HybridAuthMiddleware() fiber.Handler {
 				claims := map[string]any{
 					cryptoutilSharedMagic.ClaimSub: session.UserID.String(),
 					"sid":                          session.SessionID,
-					"auth_time":                    session.AuthenticationTime.Unix(),
-					"amr":                          session.AuthenticationMethods,
+					cryptoutilSharedMagic.ClaimAuthTime:                    session.AuthenticationTime.Unix(),
+					cryptoutilSharedMagic.ClaimAmr:                          session.AuthenticationMethods,
 				}
 
 				c.Locals("claims", claims)
@@ -215,7 +215,7 @@ func (s *Service) HybridAuthMiddleware() fiber.Handler {
 
 		// Neither Bearer token nor valid session cookie.
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorAccessDenied,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorAccessDenied,
 			"error_description": "Authentication required (Bearer token or session cookie)",
 		})
 	}

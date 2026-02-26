@@ -144,7 +144,7 @@ func LoginUser(t *testing.T, client *http.Client, baseURL, loginPath, username, 
 	err = json.NewDecoder(resp.Body).Decode(&respBody)
 	require.NoError(t, err)
 
-	return respBody["token"]
+	return respBody[cryptoutilSharedMagic.ParamToken]
 }
 
 // RegisterTestUserService registers a test user with randomly generated credentials via /service paths.
@@ -251,7 +251,7 @@ func VerifyHealthEndpoint(t *testing.T, client *http.Client, baseURL, path strin
 	err = json.NewDecoder(resp.Body).Decode(&healthResp)
 	require.NoError(t, err)
 
-	status, ok := healthResp["status"]
+	status, ok := healthResp[cryptoutilSharedMagic.StringStatus]
 	require.True(t, ok, "health response should contain status field")
-	require.Equal(t, "healthy", status, "status should be 'healthy'")
+	require.Equal(t, cryptoutilSharedMagic.DockerServiceHealthHealthy, status, "status should be 'healthy'")
 }

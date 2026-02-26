@@ -40,7 +40,7 @@ func TestDeriveJWKsFromMChooseNCombinations_InvalidChooseN(t *testing.T) {
 		errMatch string
 	}{
 		{"negative-chooseN", -1, "failed to compute"},
-		{"chooseN-exceeds-m", 5, "failed to compute"},
+		{"chooseN-exceeds-m", cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, "failed to compute"},
 	}
 
 	for _, tc := range tests {
@@ -154,7 +154,7 @@ func TestNewUnsealKeysServiceSharedSecrets_MaxSecrets(t *testing.T) {
 	}
 
 	// This should fail because count >= MaxUnsealSharedSecrets
-	service, err := NewUnsealKeysServiceSharedSecrets(secrets, 10)
+	service, err := NewUnsealKeysServiceSharedSecrets(secrets, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.Error(t, err)
 	require.Nil(t, service)
 	// Use specific prefix to distinguish from downstream "m can't be greater than 255" in combinations.go.

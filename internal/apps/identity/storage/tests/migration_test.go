@@ -5,6 +5,7 @@
 package tests
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -27,8 +28,8 @@ func TestSQLiteMigrations(t *testing.T) {
 
 	// Create database config for in-memory SQLite
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type:            "sqlite",
-		DSN:             ":memory:",
+		Type:            cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:             cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 		MaxOpenConns:    1,
 		MaxIdleConns:    1,
 		ConnMaxLifetime: 0,
@@ -82,8 +83,8 @@ func TestMigrationIdempotency(t *testing.T) {
 
 	// Create database config for in-memory SQLite
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type:            "sqlite",
-		DSN:             ":memory:",
+		Type:            cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:             cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 		MaxOpenConns:    1,
 		MaxIdleConns:    1,
 		ConnMaxLifetime: 0,
@@ -114,8 +115,8 @@ func TestMigrationIdempotency(t *testing.T) {
 func isCGOAvailable() bool {
 	// Try to create a repository factory with SQLite - if it fails due to CGO, skip the test
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type:            "sqlite",
-		DSN:             ":memory:",
+		Type:            cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:             cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 		MaxOpenConns:    1,
 		MaxIdleConns:    1,
 		ConnMaxLifetime: 0,

@@ -5,6 +5,7 @@
 package userauth
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -26,9 +27,9 @@ func TestTelemetryAuditLoggerTokenGeneration(t *testing.T) {
 	event := TokenGenerationEvent{
 		UserID:       "user-123",
 		TokenID:      googleUuid.New(),
-		TokenType:    "sms_otp",
-		Provider:     "sms",
-		ExpiresAt:    time.Now().UTC().Add(5 * time.Minute),
+		TokenType:    cryptoutilSharedMagic.AuthMethodSMSOTP,
+		Provider:     cryptoutilSharedMagic.AMRSMS,
+		ExpiresAt:    time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 		PhoneNumber:  "+15551234567",
 		EmailAddress: "",
 	}
@@ -63,7 +64,7 @@ func TestTelemetryAuditLoggerValidationAttempt(t *testing.T) {
 	failedEvent := ValidationAttemptEvent{
 		UserID:            "user-789",
 		TokenID:           googleUuid.New(),
-		TokenType:         "sms_otp",
+		TokenType:         cryptoutilSharedMagic.AuthMethodSMSOTP,
 		Success:           false,
 		FailureReason:     "expired",
 		RemainingAttempts: 0,
@@ -188,10 +189,10 @@ func TestAuditLoggerConcurrent(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx := context.Background()
-	done := make(chan bool, 10)
+	done := make(chan bool, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 
 	// 10 concurrent goroutines logging events.
-	for range 10 {
+	for range cryptoutilSharedMagic.JoseJADefaultMaxMaterials {
 		go func() {
 			defer func() { done <- true }()
 
@@ -199,9 +200,9 @@ func TestAuditLoggerConcurrent(t *testing.T) {
 			genEvent := TokenGenerationEvent{
 				UserID:       "concurrent-user",
 				TokenID:      googleUuid.New(),
-				TokenType:    "sms_otp",
-				Provider:     "sms",
-				ExpiresAt:    time.Now().UTC().Add(5 * time.Minute),
+				TokenType:    cryptoutilSharedMagic.AuthMethodSMSOTP,
+				Provider:     cryptoutilSharedMagic.AMRSMS,
+				ExpiresAt:    time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 				PhoneNumber:  "+15551234567",
 				EmailAddress: "",
 			}
@@ -212,7 +213,7 @@ func TestAuditLoggerConcurrent(t *testing.T) {
 			valEvent := ValidationAttemptEvent{
 				UserID:            "concurrent-user",
 				TokenID:           googleUuid.New(),
-				TokenType:         "sms_otp",
+				TokenType:         cryptoutilSharedMagic.AuthMethodSMSOTP,
 				Success:           true,
 				RemainingAttempts: 3,
 				IPAddress:         "192.168.1.100",
@@ -224,7 +225,7 @@ func TestAuditLoggerConcurrent(t *testing.T) {
 			invEvent := TokenInvalidationEvent{
 				UserID:    "concurrent-user",
 				TokenID:   googleUuid.New(),
-				TokenType: "sms_otp",
+				TokenType: cryptoutilSharedMagic.AuthMethodSMSOTP,
 				Reason:    "used",
 			}
 
@@ -233,7 +234,7 @@ func TestAuditLoggerConcurrent(t *testing.T) {
 	}
 
 	// Wait for all goroutines.
-	for range 10 {
+	for range cryptoutilSharedMagic.JoseJADefaultMaxMaterials {
 		<-done
 	}
 	// No assertions needed - just verify no panics/crashes during concurrent logging.
@@ -252,9 +253,9 @@ func TestAuditLoggerPIIProtection(t *testing.T) {
 	genEvent := TokenGenerationEvent{
 		UserID:       "user-pii",
 		TokenID:      googleUuid.New(),
-		TokenType:    "sms_otp",
-		Provider:     "sms",
-		ExpiresAt:    time.Now().UTC().Add(5 * time.Minute),
+		TokenType:    cryptoutilSharedMagic.AuthMethodSMSOTP,
+		Provider:     cryptoutilSharedMagic.AMRSMS,
+		ExpiresAt:    time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 		PhoneNumber:  "+15551234567", // Full phone number (last 4 logged: "4567")
 		EmailAddress: "",
 	}
@@ -267,8 +268,8 @@ func TestAuditLoggerPIIProtection(t *testing.T) {
 		UserID:       "user-pii-2",
 		TokenID:      googleUuid.New(),
 		TokenType:    "email_otp",
-		Provider:     "email",
-		ExpiresAt:    time.Now().UTC().Add(5 * time.Minute),
+		Provider:     cryptoutilSharedMagic.ClaimEmail,
+		ExpiresAt:    time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 		PhoneNumber:  "",
 		EmailAddress: "sensitive@example.com", // Full email (domain logged: "example.com")
 	}
@@ -280,7 +281,7 @@ func TestAuditLoggerPIIProtection(t *testing.T) {
 	valEvent := ValidationAttemptEvent{
 		UserID:            "user-pii-3",
 		TokenID:           googleUuid.New(),
-		TokenType:         "sms_otp",
+		TokenType:         cryptoutilSharedMagic.AuthMethodSMSOTP,
 		Success:           false,
 		FailureReason:     "invalid",
 		RemainingAttempts: 2,

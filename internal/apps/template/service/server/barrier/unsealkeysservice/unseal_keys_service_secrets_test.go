@@ -3,6 +3,7 @@
 package unsealkeysservice
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
@@ -24,7 +25,7 @@ func TestUnsealKeysServiceSharedSecrets_EncryptDecryptKey(t *testing.T) {
 	for i := 0; i < sharedSecretCount; i++ {
 		sharedSecrets[i] = make([]byte, secretSize)
 		for j := 0; j < secretSize; j++ {
-			sharedSecrets[i][j] = byte(i*10 + j) // #nosec G602 -- bounds checked via make() calls.
+			sharedSecrets[i][j] = byte(i*cryptoutilSharedMagic.JoseJADefaultMaxMaterials + j) // #nosec G602 -- bounds checked via make() calls.
 		}
 	}
 
@@ -68,7 +69,7 @@ func TestUnsealKeysServiceSharedSecrets_EncryptDecryptData(t *testing.T) {
 	for i := 0; i < sharedSecretCount; i++ {
 		sharedSecrets[i] = make([]byte, secretSize)
 		for j := 0; j < secretSize; j++ {
-			sharedSecrets[i][j] = byte(i*10 + j) // #nosec G602 -- bounds checked via make() calls.
+			sharedSecrets[i][j] = byte(i*cryptoutilSharedMagic.JoseJADefaultMaxMaterials + j) // #nosec G602 -- bounds checked via make() calls.
 		}
 	}
 
@@ -131,8 +132,8 @@ func TestUnsealKeysServiceSharedSecrets_DifferentChooseN(t *testing.T) {
 		chooseN     int
 	}{
 		{"2 of 3", 3, 2},
-		{"3 of 5", 5, 3},
-		{"4 of 6", 6, 4},
+		{"3 of cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries", 5, 3},
+		{"4 of cryptoutilSharedMagic.DefaultEmailOTPLength", 6, 4},
 	}
 
 	for _, tc := range testCases {
@@ -145,7 +146,7 @@ func TestUnsealKeysServiceSharedSecrets_DifferentChooseN(t *testing.T) {
 			for i := 0; i < tc.secretCount; i++ {
 				sharedSecrets[i] = make([]byte, secretSize)
 				for j := 0; j < secretSize; j++ {
-					sharedSecrets[i][j] = byte(i*10 + j) // #nosec G602 -- bounds checked via make() calls.
+					sharedSecrets[i][j] = byte(i*cryptoutilSharedMagic.JoseJADefaultMaxMaterials + j) // #nosec G602 -- bounds checked via make() calls.
 				}
 			}
 
@@ -173,7 +174,7 @@ func TestUnsealKeysServiceSharedSecrets_MinimumSecretLength(t *testing.T) {
 
 	// Create secrets with one below minimum length
 	sharedSecrets := [][]byte{
-		make([]byte, 32), // Valid
+		make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes), // Valid
 		make([]byte, 31), // Below minimum (32 bytes)
 	}
 
@@ -284,8 +285,8 @@ func TestUnsealKeysServiceSharedSecrets_MaxSecretLength(t *testing.T) {
 
 	// Create secrets with one above maximum length
 	sharedSecrets := [][]byte{
-		make([]byte, 32),    // Valid
-		make([]byte, 10000), // Above maximum
+		make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes),    // Valid
+		make([]byte, cryptoutilSharedMagic.DBContainerRandSuffixMax), // Above maximum
 	}
 
 	service, err := NewUnsealKeysServiceSharedSecrets(sharedSecrets, 2)
@@ -309,7 +310,7 @@ func TestUnsealKeysServiceSharedSecrets_DeterministicKeyDerivation(t *testing.T)
 	for i := 0; i < sharedSecretCount; i++ {
 		sharedSecrets[i] = make([]byte, secretSize)
 		for j := 0; j < secretSize; j++ {
-			sharedSecrets[i][j] = byte(i*10 + j) // #nosec G602 -- bounds checked via make() calls.
+			sharedSecrets[i][j] = byte(i*cryptoutilSharedMagic.JoseJADefaultMaxMaterials + j) // #nosec G602 -- bounds checked via make() calls.
 		}
 	}
 
@@ -352,9 +353,9 @@ func TestUnsealKeysServiceSharedSecrets_SingleSecret(t *testing.T) {
 
 	// Create single shared secret
 	sharedSecrets := [][]byte{
-		make([]byte, 32),
+		make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes),
 	}
-	for j := 0; j < 32; j++ {
+	for j := 0; j < cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes; j++ {
 		sharedSecrets[0][j] = byte(j) // #nosec G602 -- bounds checked: slice sized to 32, loop bounded by 32.
 	}
 

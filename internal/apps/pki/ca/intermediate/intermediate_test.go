@@ -27,7 +27,7 @@ func createTestRootCA(t *testing.T, provider cryptoutilCACrypto.Provider) *crypt
 			Type:       cryptoutilCACrypto.KeyTypeECDSA,
 			ECDSACurve: "P-256",
 		},
-		ValidityDuration:  20 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.MaxErrorDisplay * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 2,
 	}
 
@@ -51,7 +51,7 @@ func TestProvisioner_Provision_ECDSA(t *testing.T) {
 			Type:       cryptoutilCACrypto.KeyTypeECDSA,
 			ECDSACurve: "P-256",
 		},
-		ValidityDuration:  10 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 1,
 		IssuerCertificate: rootCA.Certificate,
 		IssuerPrivateKey:  rootCA.PrivateKey,
@@ -99,7 +99,7 @@ func TestProvisioner_Provision_RSA(t *testing.T) {
 			Type:    cryptoutilCACrypto.KeyTypeRSA,
 			RSABits: cryptoutilCACrypto.MinRSAKeyBits,
 		},
-		ValidityDuration:  15 * 365 * 24 * time.Hour,
+		ValidityDuration:  15 * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 1,
 	}
 
@@ -114,7 +114,7 @@ func TestProvisioner_Provision_RSA(t *testing.T) {
 			Type:    cryptoutilCACrypto.KeyTypeRSA,
 			RSABits: cryptoutilCACrypto.MinRSAKeyBits,
 		},
-		ValidityDuration:  5 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 0,
 		IssuerCertificate: rootCA.Certificate,
 		IssuerPrivateKey:  rootCA.PrivateKey,
@@ -127,7 +127,7 @@ func TestProvisioner_Provision_RSA(t *testing.T) {
 	require.Equal(t, "RSA Intermediate CA", intermediateCA.Name)
 	require.True(t, intermediateCA.Certificate.IsCA)
 	require.True(t, intermediateCA.Certificate.MaxPathLenZero)
-	require.Equal(t, "RSA", audit.KeyAlgorithm)
+	require.Equal(t, cryptoutilSharedMagic.KeyTypeRSA, audit.KeyAlgorithm)
 }
 
 func TestProvisioner_Provision_WithSubjectProfile(t *testing.T) {
@@ -156,7 +156,7 @@ func TestProvisioner_Provision_WithSubjectProfile(t *testing.T) {
 			Type:       cryptoutilCACrypto.KeyTypeECDSA,
 			ECDSACurve: "P-384",
 		},
-		ValidityDuration:  10 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 1,
 		IssuerCertificate: rootCA.Certificate,
 		IssuerPrivateKey:  rootCA.PrivateKey,
@@ -194,7 +194,7 @@ func TestProvisioner_Provision_WithPersistence(t *testing.T) {
 			Type:       cryptoutilCACrypto.KeyTypeECDSA,
 			ECDSACurve: "P-256",
 		},
-		ValidityDuration:  5 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 0,
 		IssuerCertificate: rootCA.Certificate,
 		IssuerPrivateKey:  rootCA.PrivateKey,
@@ -253,7 +253,7 @@ func TestProvisioner_Provision_InvalidConfig(t *testing.T) {
 					Type:       cryptoutilCACrypto.KeyTypeECDSA,
 					ECDSACurve: "P-256",
 				},
-				ValidityDuration:  1 * 365 * 24 * time.Hour,
+				ValidityDuration:  1 * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 				IssuerCertificate: rootCA.Certificate,
 				IssuerPrivateKey:  rootCA.PrivateKey,
 			},
@@ -281,7 +281,7 @@ func TestProvisioner_Provision_InvalidConfig(t *testing.T) {
 					Type:       cryptoutilCACrypto.KeyTypeECDSA,
 					ECDSACurve: "P-256",
 				},
-				ValidityDuration:  1 * 365 * 24 * time.Hour,
+				ValidityDuration:  1 * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 				PathLenConstraint: -1,
 				IssuerCertificate: rootCA.Certificate,
 				IssuerPrivateKey:  rootCA.PrivateKey,
@@ -296,7 +296,7 @@ func TestProvisioner_Provision_InvalidConfig(t *testing.T) {
 					Type:       cryptoutilCACrypto.KeyTypeECDSA,
 					ECDSACurve: "P-256",
 				},
-				ValidityDuration: 1 * 365 * 24 * time.Hour,
+				ValidityDuration: 1 * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 				IssuerPrivateKey: rootCA.PrivateKey,
 			},
 			wantErr: "issuer certificate is required",
@@ -309,7 +309,7 @@ func TestProvisioner_Provision_InvalidConfig(t *testing.T) {
 					Type:       cryptoutilCACrypto.KeyTypeECDSA,
 					ECDSACurve: "P-256",
 				},
-				ValidityDuration:  1 * 365 * 24 * time.Hour,
+				ValidityDuration:  1 * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 				IssuerCertificate: rootCA.Certificate,
 			},
 			wantErr: "issuer private key is required",
@@ -342,7 +342,7 @@ func TestProvisioner_Provision_PathLenEnforcement(t *testing.T) {
 			Type:       cryptoutilCACrypto.KeyTypeECDSA,
 			ECDSACurve: "P-256",
 		},
-		ValidityDuration:  10 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 0,
 	}
 
@@ -357,7 +357,7 @@ func TestProvisioner_Provision_PathLenEnforcement(t *testing.T) {
 			Type:       cryptoutilCACrypto.KeyTypeECDSA,
 			ECDSACurve: "P-256",
 		},
-		ValidityDuration:  5 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 0,
 		IssuerCertificate: rootCA.Certificate,
 		IssuerPrivateKey:  rootCA.PrivateKey,
@@ -382,7 +382,7 @@ func TestProvisioner_Provision_ValidityTruncation(t *testing.T) {
 			Type:       cryptoutilCACrypto.KeyTypeECDSA,
 			ECDSACurve: "P-256",
 		},
-		ValidityDuration:  1 * 365 * 24 * time.Hour, // 1 year.
+		ValidityDuration:  1 * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour, // 1 year.
 		PathLenConstraint: 1,
 	}
 
@@ -397,7 +397,7 @@ func TestProvisioner_Provision_ValidityTruncation(t *testing.T) {
 			Type:       cryptoutilCACrypto.KeyTypeECDSA,
 			ECDSACurve: "P-256",
 		},
-		ValidityDuration:  10 * 365 * 24 * time.Hour, // Request 10 years.
+		ValidityDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour, // Request 10 years.
 		PathLenConstraint: 0,
 		IssuerCertificate: rootCA.Certificate,
 		IssuerPrivateKey:  rootCA.PrivateKey,
@@ -425,7 +425,7 @@ func TestProvisioner_Provision_ChainVerification(t *testing.T) {
 			Type:       cryptoutilCACrypto.KeyTypeECDSA,
 			ECDSACurve: "P-256",
 		},
-		ValidityDuration:  5 * 365 * 24 * time.Hour,
+		ValidityDuration:  cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		PathLenConstraint: 0,
 		IssuerCertificate: rootCA.Certificate,
 		IssuerPrivateKey:  rootCA.PrivateKey,

@@ -60,7 +60,7 @@ func setupTestService(t *testing.T) (*fiber.App, *mockTokenService) {
 
 	config := &cryptoutilIdentityConfig.Config{
 		RS: &cryptoutilIdentityConfig.ServerConfig{
-			BindAddress: "127.0.0.1",
+			BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 			Port:        9100,
 		},
 	}
@@ -83,7 +83,7 @@ func setupTestService(t *testing.T) (*fiber.App, *mockTokenService) {
 
 // createBearerToken creates a test Bearer token string.
 func createBearerToken(token string) string {
-	return "Bearer " + token
+	return cryptoutilSharedMagic.AuthorizationBearerPrefix + token
 }
 
 // TestPublicEndpoint tests that public endpoints don't require authentication.
@@ -108,7 +108,7 @@ func TestPublicEndpoint(t *testing.T) {
 	err = json.Unmarshal(body, &result)
 	testify.NoError(t, err)
 
-	testify.Equal(t, "healthy", result["status"])
+	testify.Equal(t, cryptoutilSharedMagic.DockerServiceHealthHealthy, result[cryptoutilSharedMagic.StringStatus])
 }
 
 // TestProtectedEndpoint_NoToken tests that protected endpoints reject requests without tokens.
@@ -133,7 +133,7 @@ func TestProtectedEndpoint_NoToken(t *testing.T) {
 	err = json.Unmarshal(body, &result)
 	testify.NoError(t, err)
 
-	testify.Equal(t, cryptoutilSharedMagic.ErrorInvalidToken, result["error"])
+	testify.Equal(t, cryptoutilSharedMagic.ErrorInvalidToken, result[cryptoutilSharedMagic.StringError])
 }
 
 // TestProtectedEndpoint_InvalidTokenFormat tests Bearer token format validation.
@@ -147,7 +147,7 @@ func TestProtectedEndpoint_InvalidTokenFormat(t *testing.T) {
 		header string
 	}{
 		{"Missing Bearer Prefix", "token123"},
-		{"Empty Token", "Bearer "},
+		{"Empty Token", cryptoutilSharedMagic.AuthorizationBearerPrefix},
 		{"Invalid Format", "Basic token123"},
 	}
 
@@ -204,7 +204,7 @@ func TestScopeEnforcement_MissingScope(t *testing.T) {
 	err = json.Unmarshal(body, &result)
 	testify.NoError(t, err)
 
-	testify.Equal(t, cryptoutilSharedMagic.ErrorInsufficientScope, result["error"])
+	testify.Equal(t, cryptoutilSharedMagic.ErrorInsufficientScope, result[cryptoutilSharedMagic.StringError])
 }
 
 // TestScopeEnforcement_ValidScope tests successful scope validation.

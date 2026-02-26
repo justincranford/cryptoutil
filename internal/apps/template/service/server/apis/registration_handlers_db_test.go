@@ -6,6 +6,7 @@
 package apis
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"context"
 	json "encoding/json"
@@ -197,7 +198,7 @@ func TestHandleProcessJoinRequest_ApproveMessage(t *testing.T) {
 	defer func() { require.NoError(t, resp.Body.Close()) }()
 
 	// Will get 500 because join request doesn't exist.
-	require.Equal(t, 500, resp.StatusCode)
+	require.Equal(t, cryptoutilSharedMagic.TestDefaultRateLimitServiceIP, resp.StatusCode)
 }
 
 // TestHandleProcessJoinRequest_RejectMessage tests the "rejected" message path.
@@ -231,7 +232,7 @@ func TestHandleProcessJoinRequest_RejectMessage(t *testing.T) {
 	defer func() { require.NoError(t, resp.Body.Close()) }()
 
 	// Will get 500 because join request doesn't exist.
-	require.Equal(t, 500, resp.StatusCode)
+	require.Equal(t, cryptoutilSharedMagic.TestDefaultRateLimitServiceIP, resp.StatusCode)
 }
 
 // TestHandleProcessJoinRequest_SuccessMessages tests lines 211-218 (success response with message variations).

@@ -93,7 +93,7 @@ func TestPoolRSA(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			keyGenPool, err := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateRSAKeyPairFunction(2048), false))
+			keyGenPool, err := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateRSAKeyPairFunction(cryptoutilSharedMagic.DefaultMetricsBatchSize), false))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPool)
 
@@ -147,7 +147,7 @@ func TestPoolECDH(t *testing.T) {
 func TestPoolEdDSA(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			keyGenPool, err := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPairFunction("Ed25519"), false))
+			keyGenPool, err := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPairFunction(cryptoutilSharedMagic.EdCurveEd25519), false))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPool)
 
@@ -165,7 +165,7 @@ func TestPoolEdDSA(t *testing.T) {
 func TestPoolAES(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			keyGenPool, err := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateAESKeyFunction(128), false))
+			keyGenPool, err := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateAESKeyFunction(cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits), false))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPool)
 
@@ -183,7 +183,7 @@ func TestPoolAES(t *testing.T) {
 func TestPoolAESHS(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			keyGenPool, err := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateAESHSKeyFunction(256), false))
+			keyGenPool, err := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateAESHSKeyFunction(cryptoutilSharedMagic.MaxUnsealSharedSecrets), false))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPool)
 
@@ -201,7 +201,7 @@ func TestPoolAESHS(t *testing.T) {
 func TestPoolHMAC(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			keyGenPool, err := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateHMACKeyFunction(256), false))
+			keyGenPool, err := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateHMACKeyFunction(cryptoutilSharedMagic.MaxUnsealSharedSecrets), false))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPool)
 

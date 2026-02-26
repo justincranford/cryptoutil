@@ -5,6 +5,7 @@
 package middleware
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"errors"
 	"fmt"
@@ -307,7 +308,7 @@ func RequireAllScopes(validator *ScopeValidator, requiredScopes ...string) fiber
 // insufficientScopeError returns a 403 error for insufficient scopes.
 func insufficientScopeError(c *fiber.Ctx, detailLevel, required string, provided []string) error {
 	response := fiber.Map{
-		"error": "insufficient_scope",
+		cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInsufficientScope,
 	}
 
 	if detailLevel == errorDetailLevelStd || detailLevel == errorDetailLevelDebug {

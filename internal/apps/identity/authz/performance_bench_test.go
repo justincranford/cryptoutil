@@ -3,6 +3,7 @@
 package authz_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	crand "crypto/rand"
 	rsa "crypto/rsa"
@@ -36,7 +37,7 @@ func BenchmarkUUIDTokenIssuance(b *testing.B) {
 // BenchmarkJWTSigning measures JWT signature creation performance.
 func BenchmarkJWTSigning(b *testing.B) {
 	// Generate RSA key for signing using crypto/rsa.
-	privateKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	privateKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	if err != nil {
 		b.Fatalf("failed to generate RSA key: %v", err)
 	}
@@ -83,7 +84,7 @@ func BenchmarkJWTSigning(b *testing.B) {
 // BenchmarkJWTValidation measures JWT signature validation performance.
 func BenchmarkJWTValidation(b *testing.B) {
 	// Generate RSA key pair for signing using crypto/rsa.
-	privateKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	privateKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	if err != nil {
 		b.Fatalf("failed to generate RSA key: %v", err)
 	}
@@ -150,7 +151,7 @@ func BenchmarkRSAKeyGeneration(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		// Benchmark RSA key generation using crypto/rsa.
-		privateKey, err := rsa.GenerateKey(crand.Reader, 2048)
+		privateKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 		if err != nil {
 			b.Fatalf("failed to generate RSA key: %v", err)
 		}

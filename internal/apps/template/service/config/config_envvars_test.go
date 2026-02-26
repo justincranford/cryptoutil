@@ -5,6 +5,7 @@
 package config
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"testing"
 
@@ -66,11 +67,11 @@ func TestResolveFileURL_WithFilePrefix(t *testing.T) {
 	// Create temporary file with secret content
 	tempFile := t.TempDir() + "/database_url.secret"
 	secretContent := "postgres://secretuser:secretpass@secrethost:5432/secretdb"
-	err := os.WriteFile(tempFile, []byte(secretContent), 0o600)
+	err := os.WriteFile(tempFile, []byte(secretContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Test file URL resolution
-	result := resolveFileURL("file://" + tempFile)
+	result := resolveFileURL(cryptoutilSharedMagic.FileURIScheme + tempFile)
 	require.Equal(t, secretContent, result, "file URL should resolve to file content")
 }
 
@@ -96,11 +97,11 @@ func TestResolveFileURL_WhitespaceTrimming(t *testing.T) {
 	// Create temporary file with whitespace around content
 	tempFile := t.TempDir() + "/whitespace.secret"
 	secretContent := "\n\t  postgres://trimmeduser:trimmedpass@trimmedhost:5432/trimmeddb  \t\n"
-	err := os.WriteFile(tempFile, []byte(secretContent), 0o600)
+	err := os.WriteFile(tempFile, []byte(secretContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Test whitespace trimming
-	result := resolveFileURL("file://" + tempFile)
+	result := resolveFileURL(cryptoutilSharedMagic.FileURIScheme + tempFile)
 	require.Equal(t, "postgres://trimmeduser:trimmedpass@trimmedhost:5432/trimmeddb", result, "file content should be trimmed")
 }
 
@@ -110,7 +111,7 @@ func TestParse_FileURL_DatabaseURL(t *testing.T) {
 	// Create temporary file with database URL
 	tempFile := t.TempDir() + "/database_url.secret"
 	secretContent := "postgres://fileuser:filepass@filehost:5432/filedb"
-	err := os.WriteFile(tempFile, []byte(secretContent), 0o600)
+	err := os.WriteFile(tempFile, []byte(secretContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Pass file URL via flag
@@ -127,7 +128,7 @@ func TestParse_Precedence_FullStack(t *testing.T) {
 	configDir := t.TempDir()
 	configFile := configDir + "/config.yml"
 	configContent := "database-url: postgres://configuser:configpass@confighost:5432/configdb\n"
-	err := os.WriteFile(configFile, []byte(configContent), 0o600)
+	err := os.WriteFile(configFile, []byte(configContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Set environment variable (should override config file)

@@ -7,6 +7,7 @@
 package userauth
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"math"
 	"testing"
 	"time"
@@ -62,13 +63,13 @@ func TestRiskScenario_HighRisk(t *testing.T) {
 				KnownDevices: []DeviceFingerprint{
 					{ID: "known-device-001"},
 				},
-				TypicalLoginHours: []int{9, 10, 11, 12, 13, 14, 15, 16, 17, 18},
-				LastLoginTime:     time.Now().UTC().Add(-48 * time.Hour),
-				EstablishedAt:     time.Now().UTC().Add(-30 * 24 * time.Hour),
-				EventCount:        50,
+				TypicalLoginHours: []int{9, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 11, cryptoutilSharedMagic.HashPrefixLength, 13, 14, 15, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 17, 18},
+				LastLoginTime:     time.Now().UTC().Add(-cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour),
+				EstablishedAt:     time.Now().UTC().Add(-cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * cryptoutilSharedMagic.HoursPerDay * time.Hour),
+				EventCount:        cryptoutilSharedMagic.IMMaxUsernameLength,
 			},
-			expectedMinScore: 0.5,
-			expectedMaxScore: 0.8,
+			expectedMinScore: cryptoutilSharedMagic.Tolerance50Percent,
+			expectedMaxScore: cryptoutilSharedMagic.RiskScoreVeryHigh,
 			expectedLevel:    RiskLevelHigh,
 		},
 		{
@@ -105,13 +106,13 @@ func TestRiskScenario_HighRisk(t *testing.T) {
 				KnownDevices: []DeviceFingerprint{
 					{ID: "known-device-001"},
 				},
-				TypicalLoginHours: []int{8, 9, 10, 11, 12, 13, 14, 15, 16, 17},
-				LastLoginTime:     time.Now().UTC().Add(-12 * time.Hour),
-				EstablishedAt:     time.Now().UTC().Add(-90 * 24 * time.Hour),
+				TypicalLoginHours: []int{cryptoutilSharedMagic.IMMinPasswordLength, 9, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 11, cryptoutilSharedMagic.HashPrefixLength, 13, 14, 15, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 17},
+				LastLoginTime:     time.Now().UTC().Add(-cryptoutilSharedMagic.HashPrefixLength * time.Hour),
+				EstablishedAt:     time.Now().UTC().Add(-cryptoutilSharedMagic.StrictCertificateMaxAgeDays * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 				EventCount:        150,
 			},
-			expectedMinScore: 0.4,
-			expectedMaxScore: 0.7,
+			expectedMinScore: cryptoutilSharedMagic.RiskScoreMedium,
+			expectedMaxScore: cryptoutilSharedMagic.RiskScoreCritical,
 			expectedLevel:    RiskLevelHigh,
 		},
 	}
@@ -190,12 +191,12 @@ func TestRiskScenario_CriticalRisk(t *testing.T) {
 				KnownDevices: []DeviceFingerprint{
 					{ID: "known-device-001"},
 				},
-				TypicalLoginHours: []int{8, 9, 10, 11, 12, 13, 14, 15, 16, 17},
+				TypicalLoginHours: []int{cryptoutilSharedMagic.IMMinPasswordLength, 9, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 11, cryptoutilSharedMagic.HashPrefixLength, 13, 14, 15, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 17},
 				LastLoginTime:     time.Now().UTC().Add(-72 * time.Hour),
-				EstablishedAt:     time.Now().UTC().Add(-120 * 24 * time.Hour),
+				EstablishedAt:     time.Now().UTC().Add(-cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes * cryptoutilSharedMagic.HoursPerDay * time.Hour),
 				EventCount:        200,
 			},
-			expectedMinScore: 0.8,
+			expectedMinScore: cryptoutilSharedMagic.RiskScoreVeryHigh,
 			expectedLevel:    RiskLevelCritical,
 		},
 		{
@@ -222,10 +223,10 @@ func TestRiskScenario_CriticalRisk(t *testing.T) {
 					IsProxy:   false,
 					IsTor:     false,
 				},
-				Timestamp: time.Date(2025, 1, 15, 10, 0, 0, 0, time.UTC),
+				Timestamp: time.Date(2025, 1, 15, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 0, 0, 0, time.UTC),
 				Metadata: map[string]any{
 					"velocity_anomaly": true,
-					"location_count":   5,
+					"location_count":   cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 					"time_window":      "1h",
 				},
 			},
@@ -237,10 +238,10 @@ func TestRiskScenario_CriticalRisk(t *testing.T) {
 				KnownDevices: []DeviceFingerprint{
 					{ID: "device-velocity-test"},
 				},
-				TypicalLoginHours: []int{7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
+				TypicalLoginHours: []int{cryptoutilSharedMagic.GitRecentActivityDays, cryptoutilSharedMagic.IMMinPasswordLength, 9, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 11, cryptoutilSharedMagic.HashPrefixLength, 13, 14, 15, cryptoutilSharedMagic.RealmMinTokenLengthBytes},
 				LastLoginTime:     time.Now().UTC().Add(-1 * time.Hour),
-				EstablishedAt:     time.Now().UTC().Add(-60 * 24 * time.Hour),
-				EventCount:        100,
+				EstablishedAt:     time.Now().UTC().Add(-cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds * cryptoutilSharedMagic.HoursPerDay * time.Hour),
+				EventCount:        cryptoutilSharedMagic.JoseJAMaxMaterials,
 			},
 			expectedMinScore: 0.85,
 			expectedLevel:    RiskLevelCritical,
@@ -278,13 +279,13 @@ func TestRiskScenario_CriticalRisk(t *testing.T) {
 // Helper functions for risk scoring tests.
 
 func calculateScore(factors []RiskFactor, engine *BehavioralRiskEngine) float64 {
-	score := 0.0
+	score := cryptoutilSharedMagic.BaselineContributionZero
 
 	for _, factor := range factors {
 		score += factor.Score * factor.Weight
 	}
 
-	return math.Min(score, 1.0)
+	return math.Min(score, cryptoutilSharedMagic.TestProbAlways)
 }
 
 func determineLevel(score float64) RiskLevel {
@@ -311,19 +312,19 @@ func calculateConfidence(baseline *UserBaseline) float64 {
 	)
 
 	// Factor 1: Event count (more events = higher confidence).
-	eventScore := math.Min(float64(baseline.EventCount)/float64(maxEvents), 1.0)
+	eventScore := math.Min(float64(baseline.EventCount)/float64(maxEvents), cryptoutilSharedMagic.TestProbAlways)
 
 	// Factor 2: Baseline age (older baseline = higher confidence).
-	ageDays := time.Since(baseline.EstablishedAt).Hours() / 24 //nolint:mnd
-	ageScore := math.Min(ageDays/float64(maxAgeDays), 1.0)
+	ageDays := time.Since(baseline.EstablishedAt).Hours() / cryptoutilSharedMagic.HoursPerDay //nolint:mnd
+	ageScore := math.Min(ageDays/float64(maxAgeDays), cryptoutilSharedMagic.TestProbAlways)
 
 	// Factor 3: Factor count (more known patterns = higher confidence).
-	factorCountScore := 0.5
+	factorCountScore := cryptoutilSharedMagic.Tolerance50Percent
 	if len(baseline.KnownLocations) > 0 && len(baseline.KnownDevices) > 0 && len(baseline.TypicalLoginHours) > 0 {
-		factorCountScore = 1.0
+		factorCountScore = cryptoutilSharedMagic.TestProbAlways
 	}
 
 	confidence := (eventScore * eventVolume) + (ageScore * baselineAge) + (factorCountScore * factorCount)
 
-	return math.Min(confidence, 1.0)
+	return math.Min(confidence, cryptoutilSharedMagic.TestProbAlways)
 }

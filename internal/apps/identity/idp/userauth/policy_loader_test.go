@@ -3,6 +3,7 @@
 package userauth
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"os"
 	"path/filepath"
@@ -110,7 +111,7 @@ time_risks: {}
 behavior_risks: {}
 `,
 			wantVersion:    "1.0",
-			wantFactors:    6,
+			wantFactors:    cryptoutilSharedMagic.DefaultEmailOTPLength,
 			wantThresholds: 2,
 			wantError:      false,
 		},
@@ -205,7 +206,7 @@ behavior_risks: {}
 			// Create temporary file.
 			tempDir := t.TempDir()
 			policyFile := filepath.Join(tempDir, "risk_scoring.yml")
-			err := os.WriteFile(policyFile, []byte(tc.yamlContent), 0o600)
+			err := os.WriteFile(policyFile, []byte(tc.yamlContent), cryptoutilSharedMagic.CacheFilePermissions)
 			require.NoError(t, err)
 
 			// Create loader.
@@ -233,7 +234,7 @@ behavior_risks: {}
 					weightSum += factor.Weight
 				}
 
-				require.InDelta(t, 1.0, weightSum, 0.001)
+				require.InDelta(t, cryptoutilSharedMagic.TestProbAlways, weightSum, 0.001)
 			}
 		})
 	}

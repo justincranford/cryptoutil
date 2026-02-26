@@ -78,7 +78,7 @@ func TestHandleAuthorizeGET_InvalidClientID(t *testing.T) {
 	query := url.Values{
 		cryptoutilSharedMagic.ParamClientID:            []string{"non-existent-client"},
 		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
-		cryptoutilSharedMagic.ParamRedirectURI:         []string{"https://example.com/callback"},
+		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.DemoRedirectURI},
 		cryptoutilSharedMagic.ParamScope:               []string{"openid profile"},
 		cryptoutilSharedMagic.ParamState:               []string{"test-state"},
 		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-challenge"},
@@ -153,7 +153,7 @@ func TestHandleAuthorizeGET_UnsupportedResponseType(t *testing.T) {
 
 	query := url.Values{
 		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
-		cryptoutilSharedMagic.ParamResponseType:        []string{"token"},
+		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ParamToken},
 		cryptoutilSharedMagic.ParamRedirectURI:         []string{testClient.RedirectURIs[0]},
 		cryptoutilSharedMagic.ParamScope:               []string{"openid profile"},
 		cryptoutilSharedMagic.ParamState:               []string{"test-state"},
@@ -234,7 +234,7 @@ func TestHandleAuthorizeGET_InvalidCodeChallengeMethod(t *testing.T) {
 		cryptoutilSharedMagic.ParamScope:               []string{"openid profile"},
 		cryptoutilSharedMagic.ParamState:               []string{"test-state"},
 		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-challenge"},
-		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{"plain"},
+		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodPlain},
 	}
 
 	req := httptest.NewRequest("GET", "/oauth2/v1/authorize?"+query.Encode(), nil)
@@ -333,8 +333,8 @@ func createAuthorizeComprehensiveTestConfig(t *testing.T) *cryptoutilIdentityCon
 
 	return &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
-			DSN:  "file::memory:?cache=shared",
+			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+			DSN:  cryptoutilSharedMagic.SQLiteInMemoryDSN,
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			Issuer: "https://localhost:8080",
@@ -371,16 +371,16 @@ func createTestClient(ctx context.Context, t *testing.T, repoFactory *cryptoutil
 		ClientSecret:            "test-secret",
 		Name:                    "Test Client",
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
-		RedirectURIs:            []string{"https://example.com/callback"},
-		AllowedScopes:           []string{"openid", "profile", "email"},
-		AllowedGrantTypes:       []string{"authorization_code", "refresh_token"},
-		AllowedResponseTypes:    []string{"code"},
+		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
+		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail},
+		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode, cryptoutilSharedMagic.GrantTypeRefreshToken},
+		AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
-		AccessTokenLifetime:     3600,
-		RefreshTokenLifetime:    86400,
-		IDTokenLifetime:         3600,
+		AccessTokenLifetime:     cryptoutilSharedMagic.IMDefaultSessionTimeout,
+		RefreshTokenLifetime:    cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+		IDTokenLifetime:         cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		RequirePKCE:             boolPtr(true),
-		PKCEChallengeMethod:     "S256",
+		PKCEChallengeMethod:     cryptoutilSharedMagic.PKCEMethodS256,
 		Enabled:                 boolPtr(true),
 		CreatedAt:               time.Now().UTC(),
 		UpdatedAt:               time.Now().UTC(),

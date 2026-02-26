@@ -218,7 +218,7 @@ func (h *Handler) encodePrivateKeyPEM(privateKey any) ([]byte, error) {
 	switch key := privateKey.(type) {
 	case *rsa.PrivateKey:
 		keyBytes = x509.MarshalPKCS1PrivateKey(key)
-		keyType = "RSA PRIVATE KEY"
+		keyType = cryptoutilSharedMagic.StringPEMTypeRSAPrivateKey
 
 	case *ecdsa.PrivateKey:
 		var err error
@@ -228,7 +228,7 @@ func (h *Handler) encodePrivateKeyPEM(privateKey any) ([]byte, error) {
 			return nil, fmt.Errorf("failed to marshal ECDSA key: %w", err)
 		}
 
-		keyType = "EC PRIVATE KEY"
+		keyType = cryptoutilSharedMagic.StringPEMTypeECPrivateKey
 
 	case ed25519.PrivateKey:
 		var err error
@@ -238,7 +238,7 @@ func (h *Handler) encodePrivateKeyPEM(privateKey any) ([]byte, error) {
 			return nil, fmt.Errorf("failed to marshal Ed25519 key: %w", err)
 		}
 
-		keyType = "PRIVATE KEY"
+		keyType = cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey
 
 	default:
 		return nil, fmt.Errorf("unsupported private key type: %T", privateKey)
@@ -311,7 +311,7 @@ func (h *Handler) TsaTimestamp(c *fiber.Ctx) error {
 	// Parse the DER-encoded TimeStampReq.
 	tsReq, err := cryptoutilCAServiceTimestamp.ParseTimestampRequest(requestBody)
 	if err != nil {
-		return h.errorResponse(c, fiber.StatusBadRequest, "invalid_request", fmt.Sprintf("failed to parse timestamp request: %v", err))
+		return h.errorResponse(c, fiber.StatusBadRequest, cryptoutilSharedMagic.ErrorInvalidRequest, fmt.Sprintf("failed to parse timestamp request: %v", err))
 	}
 
 	// Process the timestamp request.

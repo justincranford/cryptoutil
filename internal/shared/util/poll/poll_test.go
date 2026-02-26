@@ -5,6 +5,7 @@
 package poll_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"errors"
 	"testing"
@@ -31,7 +32,7 @@ func TestUntil(t *testing.T) {
 		{
 			name:     "immediate success",
 			timeout:  1 * time.Second,
-			interval: 10 * time.Millisecond,
+			interval: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond,
 			condFn: func() cryptoutilSharedUtilPoll.ConditionFunc {
 				return func(_ context.Context) (bool, error) {
 					return true, nil
@@ -43,7 +44,7 @@ func TestUntil(t *testing.T) {
 		{
 			name:     "success after retries",
 			timeout:  1 * time.Second,
-			interval: 10 * time.Millisecond,
+			interval: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond,
 			condFn: func() cryptoutilSharedUtilPoll.ConditionFunc {
 				callCount := 0
 
@@ -58,8 +59,8 @@ func TestUntil(t *testing.T) {
 		},
 		{
 			name:     "timeout exceeded",
-			timeout:  50 * time.Millisecond,
-			interval: 20 * time.Millisecond,
+			timeout:  cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond,
+			interval: cryptoutilSharedMagic.MaxErrorDisplay * time.Millisecond,
 			condFn: func() cryptoutilSharedUtilPoll.ConditionFunc {
 				return func(_ context.Context) (bool, error) {
 					return false, nil
@@ -73,7 +74,7 @@ func TestUntil(t *testing.T) {
 		{
 			name:     "fatal error stops polling",
 			timeout:  1 * time.Second,
-			interval: 10 * time.Millisecond,
+			interval: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond,
 			condFn: func() cryptoutilSharedUtilPoll.ConditionFunc {
 				return func(_ context.Context) (bool, error) {
 					return false, errors.New("fatal check error")
@@ -85,8 +86,8 @@ func TestUntil(t *testing.T) {
 		},
 		{
 			name:     "context canceled before first call",
-			timeout:  5 * time.Second,
-			interval: 10 * time.Millisecond,
+			timeout:  cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
+			interval: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond,
 			condFn: func() cryptoutilSharedUtilPoll.ConditionFunc {
 				return func(_ context.Context) (bool, error) {
 					return false, nil
@@ -104,7 +105,7 @@ func TestUntil(t *testing.T) {
 		{
 			name:        "nil conditionFn",
 			timeout:     1 * time.Second,
-			interval:    10 * time.Millisecond,
+			interval:    cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond,
 			condFn:      func() cryptoutilSharedUtilPoll.ConditionFunc { return nil },
 			ctxFn:       func() context.Context { return context.Background() },
 			wantErr:     true,
@@ -113,7 +114,7 @@ func TestUntil(t *testing.T) {
 		{
 			name:     "zero timeout",
 			timeout:  0,
-			interval: 10 * time.Millisecond,
+			interval: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond,
 			condFn: func() cryptoutilSharedUtilPoll.ConditionFunc {
 				return func(_ context.Context) (bool, error) {
 					return true, nil
@@ -126,7 +127,7 @@ func TestUntil(t *testing.T) {
 		{
 			name:     "negative timeout",
 			timeout:  -1 * time.Second,
-			interval: 10 * time.Millisecond,
+			interval: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond,
 			condFn: func() cryptoutilSharedUtilPoll.ConditionFunc {
 				return func(_ context.Context) (bool, error) {
 					return true, nil
@@ -164,15 +165,15 @@ func TestUntil(t *testing.T) {
 		},
 		{
 			name:     "context canceled during polling",
-			timeout:  5 * time.Second,
-			interval: 10 * time.Millisecond,
+			timeout:  cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
+			interval: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Millisecond,
 			condFn: func() cryptoutilSharedUtilPoll.ConditionFunc {
 				return func(_ context.Context) (bool, error) {
 					return false, nil
 				}
 			},
 			ctxFn: func() context.Context {
-				ctx, cancel := context.WithTimeout(context.Background(), 30*time.Millisecond)
+				ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Millisecond)
 				_ = cancel // let timeout handle cancellation.
 
 				return ctx

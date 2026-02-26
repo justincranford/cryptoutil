@@ -88,7 +88,7 @@ func (h *Handler) GetCA(c *fiber.Ctx, caID string) error {
 
 	// Encode certificate to PEM.
 	certPEM := pem.EncodeToMemory(&pem.Block{
-		Type:  "CERTIFICATE",
+		Type:  cryptoutilSharedMagic.StringPEMTypeCertificate,
 		Bytes: caCert.Raw,
 	})
 
@@ -194,9 +194,9 @@ func getKeyInfo(cert *x509.Certificate) (string, int) {
 	case *ecdsa.PublicKey:
 		return "ECDSA", pub.Curve.Params().BitSize
 	case *rsa.PublicKey:
-		return "RSA", pub.N.BitLen()
+		return cryptoutilSharedMagic.KeyTypeRSA, pub.N.BitLen()
 	case ed25519.PublicKey:
-		return "EdDSA", ed25519.PublicKeySize * cryptoutilSharedMagic.BitsPerByte
+		return cryptoutilSharedMagic.JoseAlgEdDSA, ed25519.PublicKeySize * cryptoutilSharedMagic.BitsPerByte
 	default:
 		return "unknown", 0
 	}
@@ -280,7 +280,7 @@ func (h *Handler) EstCACerts(c *fiber.Ctx) error {
 	// Encode CA certificate to PEM.
 	caCert := caConfig.Certificate
 	certPEM := pem.EncodeToMemory(&pem.Block{
-		Type:  "CERTIFICATE",
+		Type:  cryptoutilSharedMagic.StringPEMTypeCertificate,
 		Bytes: caCert.Raw,
 	})
 

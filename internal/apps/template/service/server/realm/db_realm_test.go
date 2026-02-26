@@ -29,7 +29,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	dbName := fmt.Sprintf("file:test_%d?mode=memory&cache=private", time.Now().UTC().UnixNano())
 
 	// Use database/sql with modernc.org/sqlite driver.
-	sqlDB, err := sql.Open("sqlite", dbName)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dbName)
 	require.NoError(t, err)
 
 	// Configure connection pool per instructions.
@@ -70,7 +70,7 @@ func TestNewDBRealmRepository(t *testing.T) {
 		{
 			name:    "valid database with custom policy",
 			db:      setupTestDB(t),
-			policy:  &PasswordPolicyConfig{Algorithm: "SHA-256", Iterations: 100000, SaltBytes: 32, HashBytes: 32},
+			policy:  &PasswordPolicyConfig{Algorithm: cryptoutilSharedMagic.PBKDF2DefaultAlgorithm, Iterations: cryptoutilSharedMagic.PBKDF2Iterations, SaltBytes: cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes, HashBytes: cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes},
 			wantErr: false,
 		},
 	}

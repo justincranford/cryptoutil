@@ -5,6 +5,7 @@
 package idp_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	http "net/http"
@@ -44,8 +45,8 @@ func TestOIDCFlow_IDPEndpointsIntegration(t *testing.T) {
 
 	// Create test database config.
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
@@ -94,11 +95,11 @@ func TestOIDCFlow_IDPEndpointsIntegration(t *testing.T) {
 	config := &cryptoutilIdentityConfig.Config{
 		Database: dbConfig,
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			AccessTokenLifetime: 3600 * time.Second,
+			AccessTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout * time.Second,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{
 			CookieName:      "identity_session",
-			SessionLifetime: 3600 * time.Second,
+			SessionLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout * time.Second,
 			CookieHTTPOnly:  true,
 		},
 		IDP: &cryptoutilIdentityConfig.ServerConfig{
@@ -132,13 +133,13 @@ func TestOIDCFlow_IDPEndpointsIntegration(t *testing.T) {
 		ClientID:                testClientID,
 		ClientSecret:            testClientSecretHash,
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
-		RedirectURIs:            []string{"https://example.com/callback"},
-		AllowedScopes:           []string{"openid", "profile", "email"},
-		AllowedGrantTypes:       []string{"authorization_code"},
-		AllowedResponseTypes:    []string{"code"},
+		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
+		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail},
+		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
+		AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
 		RequirePKCE:             boolPtr(true),
-		PKCEChallengeMethod:     "S256",
+		PKCEChallengeMethod:     cryptoutilSharedMagic.PKCEMethodS256,
 		Enabled:                 boolPtr(true),
 		Name:                    "Test Client",
 		CreatedAt:               time.Now().UTC(),
@@ -176,12 +177,12 @@ func TestOIDCFlow_IDPEndpointsIntegration(t *testing.T) {
 		ID:           googleUuid.Must(googleUuid.NewV7()),
 		ClientID:     testClient.ClientID,
 		RedirectURI:  testClient.RedirectURIs[0],
-		ResponseType: "code",
+		ResponseType: cryptoutilSharedMagic.ResponseTypeCode,
 		Scope:        "openid profile email",
 		State:        "test-state",
 		Nonce:        "test-nonce",
 		CreatedAt:    time.Now().UTC(),
-		ExpiresAt:    time.Now().UTC().Add(10 * time.Minute),
+		ExpiresAt:    time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
 	}
 
 	authzReqRepo := repoFactory.AuthorizationRequestRepository()
@@ -250,7 +251,7 @@ func TestOIDCFlow_IDPEndpointsIntegration(t *testing.T) {
 	callbackURL, err := url.Parse(callbackLocationHeader)
 	require.NoError(t, err, "Failed to parse callback Location header")
 
-	authorizationCode := callbackURL.Query().Get("code")
+	authorizationCode := callbackURL.Query().Get(cryptoutilSharedMagic.ResponseTypeCode)
 	require.NotEmpty(t, authorizationCode, "Authorization code is empty")
 
 	// Step 3: Simulate token issuance (normally done by authz service).
@@ -266,7 +267,7 @@ func TestOIDCFlow_IDPEndpointsIntegration(t *testing.T) {
 		TokenValue:  accessToken,
 		ClientID:    clientIDUUID,
 		UserID:      cryptoutilIdentityDomain.NullableUUID{UUID: testUser.ID, Valid: true},
-		Scopes:      []string{"openid", "profile", "email"},
+		Scopes:      []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail},
 		IssuedAt:    time.Now().UTC(),
 		ExpiresAt:   time.Now().UTC().Add(1 * time.Hour),
 	}

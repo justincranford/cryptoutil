@@ -1,6 +1,7 @@
 package lint_deployments
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -48,13 +49,13 @@ func TestGetDeploymentDirectories(t *testing.T) {
 	assert.Equal(t, "cryptoutil-suite", suite[0])
 
 	// Products should include all 4 products.
-	expectedProducts := []string{"identity", "sm", "pki", "jose"}
+	expectedProducts := []string{cryptoutilSharedMagic.IdentityProductName, "sm", cryptoutilSharedMagic.PKIProductName, cryptoutilSharedMagic.JoseProductName}
 	assert.ElementsMatch(t, expectedProducts, product)
 
 	// Product-services should include all 9 services.
 	expectedServices := []string{
-		"jose-ja", "sm-im", "pki-ca", "sm-kms",
-		"identity-authz", "identity-idp", "identity-rp", "identity-rs", "identity-spa",
+		cryptoutilSharedMagic.OTLPServiceJoseJA, cryptoutilSharedMagic.OTLPServiceSMIM, cryptoutilSharedMagic.OTLPServicePKICA, cryptoutilSharedMagic.OTLPServiceSMKMS,
+		cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP, cryptoutilSharedMagic.OTLPServiceIdentityRP, cryptoutilSharedMagic.OTLPServiceIdentityRS, cryptoutilSharedMagic.OTLPServiceIdentitySPA,
 	}
 	assert.ElementsMatch(t, expectedServices, productService)
 
@@ -75,8 +76,8 @@ func TestGetExpectedDeploymentsContents(t *testing.T) {
 
 	// Verify product-service entries exist with compose.yml.
 	services := []string{
-		"jose-ja", "sm-im", "pki-ca", "sm-kms",
-		"identity-authz", "identity-idp", "identity-rp", "identity-rs", "identity-spa",
+		cryptoutilSharedMagic.OTLPServiceJoseJA, cryptoutilSharedMagic.OTLPServiceSMIM, cryptoutilSharedMagic.OTLPServicePKICA, cryptoutilSharedMagic.OTLPServiceSMKMS,
+		cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP, cryptoutilSharedMagic.OTLPServiceIdentityRP, cryptoutilSharedMagic.OTLPServiceIdentityRS, cryptoutilSharedMagic.OTLPServiceIdentitySPA,
 	}
 
 	for _, svc := range services {
@@ -110,7 +111,7 @@ func TestAddProductServiceFiles(t *testing.T) {
 	t.Parallel()
 
 	contents := make(map[string]string)
-	addProductServiceFiles(&contents, "jose-ja")
+	addProductServiceFiles(&contents, cryptoutilSharedMagic.OTLPServiceJoseJA)
 
 	// Should have compose.yml as required.
 	assert.Equal(t, RequiredFileStatus, contents["jose-ja/compose.yml"])

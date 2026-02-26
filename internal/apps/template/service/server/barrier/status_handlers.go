@@ -5,6 +5,7 @@
 package barrier
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 
@@ -92,7 +93,7 @@ func HandleGetBarrierKeysStatus(statusService *StatusService) fiber.Handler {
 		status, err := statusService.GetBarrierKeysStatus(ctx)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to retrieve barrier keys status",
+				cryptoutilSharedMagic.StringError: "Failed to retrieve barrier keys status",
 			})
 		}
 

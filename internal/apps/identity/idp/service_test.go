@@ -3,6 +3,7 @@
 package idp
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -18,8 +19,8 @@ func TestNewService(t *testing.T) {
 
 	ctx := context.Background()
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  "file::memory:?cache=shared",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteInMemoryDSN,
 	}
 
 	config := &cryptoutilIdentityConfig.Config{}

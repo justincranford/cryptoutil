@@ -51,7 +51,7 @@ func performConcurrentReadinessChecks(serverApplicationCore *ServerApplicationCo
 	// Add readiness checks here
 	wg.Add(numReadinessChecks)
 
-	go doCheck("database", func() any {
+	go doCheck(cryptoutilSharedMagic.RealmStorageTypeDatabase, func() any {
 		return checkDatabaseHealth(serverApplicationCore)
 	})
 	go doCheck("memory", func() any {
@@ -112,7 +112,7 @@ func publicBrowserXSSMiddlewareFunction(settings *cryptoutilAppsTemplateServiceC
 		XSSProtection: "1; mode=block", // Enable XSS filter
 
 		// Allow same-origin referrers for CSRF protection
-		ReferrerPolicy: "same-origin",
+		ReferrerPolicy: cryptoutilSharedMagic.CrossOriginOpenerPolicy,
 	})
 }
 
@@ -197,7 +197,7 @@ func publicBrowserAdditionalSecurityHeadersMiddleware(telemetryService *cryptout
 		metric.WithUnit("1"),
 	)
 	if err != nil {
-		telemetryService.Slogger.Error("Failed to create security headers metric", "error", err)
+		telemetryService.Slogger.Error("Failed to create security headers metric", cryptoutilSharedMagic.StringError, err)
 	}
 
 	// Log active security policy on startup
@@ -233,7 +233,7 @@ func publicBrowserAdditionalSecurityHeadersMiddleware(telemetryService *cryptout
 			c.Set("X-Permitted-Cross-Domain-Policies", cryptoutilSharedMagic.XPermittedCrossDomainPolicies)
 
 			// Clear-Site-Data for logout endpoints only
-			if c.Method() == fiber.MethodPost && strings.HasSuffix(c.OriginalURL(), "/logout") {
+			if c.Method() == fiber.MethodPost && strings.HasSuffix(c.OriginalURL(), cryptoutilSharedMagic.PathLogout) {
 				c.Set("Clear-Site-Data", cryptoutilSharedMagic.ClearSiteDataLogout)
 			}
 		}
@@ -303,7 +303,7 @@ func publicBrowserCSRFMiddlewareFunction(settings *cryptoutilAppsTemplateService
 				}
 
 				return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-					"error":           "CSRF token validation failed",
+					cryptoutilSharedMagic.StringError:           "CSRF token validation failed",
 					"details":         err.Error(),
 					"url":             c.OriginalURL(),
 					"method":          c.Method(),
@@ -322,7 +322,7 @@ func publicBrowserCSRFMiddlewareFunction(settings *cryptoutilAppsTemplateService
 			}
 
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-				"error": "CSRF token validation failed",
+				cryptoutilSharedMagic.StringError: "CSRF token validation failed",
 			})
 		},
 	}

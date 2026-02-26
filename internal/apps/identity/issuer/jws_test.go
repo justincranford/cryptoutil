@@ -5,6 +5,7 @@
 package issuer_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -25,8 +26,8 @@ func TestNewJWSIssuer(t *testing.T) {
 	ctx := context.Background()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
@@ -46,7 +47,7 @@ func TestNewJWSIssuer(t *testing.T) {
 	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuer(
 		"https://localhost:8080",
 		keyRotationMgr,
-		"RS256",
+		cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		1*time.Hour,
 		1*time.Hour,
 	)
@@ -61,8 +62,8 @@ func TestNewJWSIssuer_MissingIssuer(t *testing.T) {
 	ctx := context.Background()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
@@ -82,7 +83,7 @@ func TestNewJWSIssuer_MissingIssuer(t *testing.T) {
 	_, err = cryptoutilIdentityIssuer.NewJWSIssuer(
 		"",
 		keyRotationMgr,
-		"RS256",
+		cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		1*time.Hour,
 		1*time.Hour,
 	)
@@ -96,8 +97,8 @@ func TestNewJWSIssuer_MissingAlgorithm(t *testing.T) {
 	ctx := context.Background()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
@@ -131,7 +132,7 @@ func TestNewJWSIssuer_NilKeyRotationManager(t *testing.T) {
 	_, err := cryptoutilIdentityIssuer.NewJWSIssuer(
 		"https://localhost:8080",
 		nil,
-		"RS256",
+		cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		1*time.Hour,
 		1*time.Hour,
 	)
@@ -145,8 +146,8 @@ func TestJWSIssueAccessToken(t *testing.T) {
 	ctx := context.Background()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
@@ -163,22 +164,22 @@ func TestJWSIssueAccessToken(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	err = keyRotationMgr.RotateSigningKey(ctx, "RS256")
+	err = keyRotationMgr.RotateSigningKey(ctx, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm)
 	require.NoError(t, err)
 
 	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuer(
 		"https://localhost:8080",
 		keyRotationMgr,
-		"RS256",
+		cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		1*time.Hour,
 		1*time.Hour,
 	)
 	require.NoError(t, err)
 
 	claims := map[string]any{
-		"sub":   googleUuid.Must(googleUuid.NewV7()).String(),
-		"email": "test@example.com",
-		"name":  "Test User",
+		cryptoutilSharedMagic.ClaimSub:   googleUuid.Must(googleUuid.NewV7()).String(),
+		cryptoutilSharedMagic.ClaimEmail: "test@example.com",
+		cryptoutilSharedMagic.ClaimName:  "Test User",
 	}
 
 	token, err := jwsIssuer.IssueAccessToken(ctx, claims)
@@ -193,8 +194,8 @@ func TestIssueIDToken(t *testing.T) {
 	ctx := context.Background()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
@@ -211,21 +212,21 @@ func TestIssueIDToken(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	err = keyRotationMgr.RotateSigningKey(ctx, "RS256")
+	err = keyRotationMgr.RotateSigningKey(ctx, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm)
 	require.NoError(t, err)
 
 	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuer(
 		"https://localhost:8080",
 		keyRotationMgr,
-		"RS256",
+		cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		1*time.Hour,
 		1*time.Hour,
 	)
 	require.NoError(t, err)
 
 	claims := map[string]any{
-		"sub": googleUuid.Must(googleUuid.NewV7()).String(),
-		"aud": "client123",
+		cryptoutilSharedMagic.ClaimSub: googleUuid.Must(googleUuid.NewV7()).String(),
+		cryptoutilSharedMagic.ClaimAud: "client123",
 	}
 
 	token, err := jwsIssuer.IssueIDToken(ctx, claims)
@@ -240,8 +241,8 @@ func TestIssueIDToken_MissingSub(t *testing.T) {
 	ctx := context.Background()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
@@ -258,20 +259,20 @@ func TestIssueIDToken_MissingSub(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	err = keyRotationMgr.RotateSigningKey(ctx, "RS256")
+	err = keyRotationMgr.RotateSigningKey(ctx, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm)
 	require.NoError(t, err)
 
 	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuer(
 		"https://localhost:8080",
 		keyRotationMgr,
-		"RS256",
+		cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		1*time.Hour,
 		1*time.Hour,
 	)
 	require.NoError(t, err)
 
 	claims := map[string]any{
-		"aud": "client123",
+		cryptoutilSharedMagic.ClaimAud: "client123",
 	}
 
 	_, err = jwsIssuer.IssueIDToken(ctx, claims)
@@ -285,8 +286,8 @@ func TestIssueIDToken_MissingAud(t *testing.T) {
 	ctx := context.Background()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
@@ -303,20 +304,20 @@ func TestIssueIDToken_MissingAud(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	err = keyRotationMgr.RotateSigningKey(ctx, "RS256")
+	err = keyRotationMgr.RotateSigningKey(ctx, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm)
 	require.NoError(t, err)
 
 	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuer(
 		"https://localhost:8080",
 		keyRotationMgr,
-		"RS256",
+		cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		1*time.Hour,
 		1*time.Hour,
 	)
 	require.NoError(t, err)
 
 	claims := map[string]any{
-		"sub": googleUuid.Must(googleUuid.NewV7()).String(),
+		cryptoutilSharedMagic.ClaimSub: googleUuid.Must(googleUuid.NewV7()).String(),
 	}
 
 	_, err = jwsIssuer.IssueIDToken(ctx, claims)

@@ -15,6 +15,7 @@
 package repository
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -56,7 +57,7 @@ func TestUserRepository_Create(t *testing.T) {
 			name: "user with long username",
 			user: &cryptoutilAppsTemplateServiceServerRepository.User{
 				ID:       *testJWKGenService.GenerateUUIDv7(),
-				Username: string(make([]byte, 512)),
+				Username: string(make([]byte, cryptoutilSharedMagic.DefaultTracesBatchSize)),
 			},
 			wantErr: false,
 		},

@@ -39,7 +39,7 @@ var (
 		Description: "Verbose mode",
 	})
 	devMode = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
-		Name:        "dev",
+		Name:        cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault,
 		Shorthand:   "d",
 		Value:       cryptoutilSharedMagic.DefaultDevMode,
 		Usage:       "run in development mode; enables in-memory SQLite",
@@ -67,7 +67,7 @@ var (
 		Description: "Dry run",
 	})
 	profile = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
-		Name:        "profile",
+		Name:        cryptoutilSharedMagic.ClaimProfile,
 		Shorthand:   "f",
 		Value:       cryptoutilSharedMagic.DefaultProfile,
 		Usage:       "configuration profile: dev, stg, prod, test",

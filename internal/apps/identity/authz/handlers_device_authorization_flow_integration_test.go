@@ -50,21 +50,21 @@ func TestDeviceAuthorizationFlow_HappyPath(t *testing.T) {
 	deviceAuthResp := requestDeviceAuthorization(t, app, testClient.ClientID)
 
 	// Validate response fields.
-	require.Contains(t, deviceAuthResp, "device_code", "Response should include device_code")
-	require.Contains(t, deviceAuthResp, "user_code", "Response should include user_code")
+	require.Contains(t, deviceAuthResp, cryptoutilSharedMagic.ParamDeviceCode, "Response should include device_code")
+	require.Contains(t, deviceAuthResp, cryptoutilSharedMagic.ParamUserCode, "Response should include user_code")
 	require.Contains(t, deviceAuthResp, "verification_uri", "Response should include verification_uri")
-	require.Contains(t, deviceAuthResp, "expires_in", "Response should include expires_in")
+	require.Contains(t, deviceAuthResp, cryptoutilSharedMagic.ParamExpiresIn, "Response should include expires_in")
 	require.Contains(t, deviceAuthResp, "interval", "Response should include interval")
 
-	deviceCode, ok := deviceAuthResp["device_code"].(string)
+	deviceCode, ok := deviceAuthResp[cryptoutilSharedMagic.ParamDeviceCode].(string)
 	require.True(t, ok, "device_code should be string")
 
-	userCode, ok := deviceAuthResp["user_code"].(string)
+	userCode, ok := deviceAuthResp[cryptoutilSharedMagic.ParamUserCode].(string)
 	require.True(t, ok, "user_code should be string")
 
 	// ========== STEP 2: Poll for Token (Should Return authorization_pending) ==========
 	pollResp1 := pollDeviceToken(t, app, testClient.ClientID, deviceCode, 400)
-	require.Equal(t, cryptoutilSharedMagic.ErrorAuthorizationPending, pollResp1["error"], "First poll should return authorization_pending")
+	require.Equal(t, cryptoutilSharedMagic.ErrorAuthorizationPending, pollResp1[cryptoutilSharedMagic.StringError], "First poll should return authorization_pending")
 
 	// ========== STEP 3: User Authorizes Device (Simulate User Consent) ==========
 	authorizeDevice(ctx, t, repoFactory, userCode, testUser.ID)
@@ -99,7 +99,7 @@ func TestDeviceAuthorizationFlow_ExpiredCode(t *testing.T) {
 	// Request device authorization.
 	deviceAuthResp := requestDeviceAuthorization(t, app, testClient.ClientID)
 
-	deviceCode, ok := deviceAuthResp["device_code"].(string)
+	deviceCode, ok := deviceAuthResp[cryptoutilSharedMagic.ParamDeviceCode].(string)
 	require.True(t, ok, "device_code should be string")
 
 	// Manually expire the device code in database.
@@ -114,7 +114,7 @@ func TestDeviceAuthorizationFlow_ExpiredCode(t *testing.T) {
 
 	// Poll for token (should return expired_token).
 	pollResp := pollDeviceToken(t, app, testClient.ClientID, deviceCode, 400)
-	require.Equal(t, cryptoutilSharedMagic.ErrorExpiredToken, pollResp["error"], "Should return expired_token error")
+	require.Equal(t, cryptoutilSharedMagic.ErrorExpiredToken, pollResp[cryptoutilSharedMagic.StringError], "Should return expired_token error")
 }
 
 // TestDeviceAuthorizationFlow_DeniedAuthorization validates user denial.
@@ -136,10 +136,10 @@ func TestDeviceAuthorizationFlow_DeniedAuthorization(t *testing.T) {
 	// Request device authorization.
 	deviceAuthResp := requestDeviceAuthorization(t, app, testClient.ClientID)
 
-	deviceCode, ok := deviceAuthResp["device_code"].(string)
+	deviceCode, ok := deviceAuthResp[cryptoutilSharedMagic.ParamDeviceCode].(string)
 	require.True(t, ok, "device_code should be string")
 
-	userCode, ok := deviceAuthResp["user_code"].(string)
+	userCode, ok := deviceAuthResp[cryptoutilSharedMagic.ParamUserCode].(string)
 	require.True(t, ok, "user_code should be string")
 
 	// User denies authorization.
@@ -147,7 +147,7 @@ func TestDeviceAuthorizationFlow_DeniedAuthorization(t *testing.T) {
 
 	// Poll for token (should return access_denied).
 	pollResp := pollDeviceToken(t, app, testClient.ClientID, deviceCode, 400)
-	require.Equal(t, cryptoutilSharedMagic.ErrorAccessDenied, pollResp["error"], "Should return access_denied error")
+	require.Equal(t, cryptoutilSharedMagic.ErrorAccessDenied, pollResp[cryptoutilSharedMagic.StringError], "Should return access_denied error")
 }
 
 // TestDeviceAuthorizationFlow_SlowDown validates polling rate limiting.
@@ -168,23 +168,23 @@ func TestDeviceAuthorizationFlow_SlowDown(t *testing.T) {
 	// Request device authorization.
 	deviceAuthResp := requestDeviceAuthorization(t, app, testClient.ClientID)
 
-	deviceCode, ok := deviceAuthResp["device_code"].(string)
+	deviceCode, ok := deviceAuthResp[cryptoutilSharedMagic.ParamDeviceCode].(string)
 	require.True(t, ok, "device_code should be string")
 
 	// Poll first time (should succeed with authorization_pending).
 	pollResp1 := pollDeviceToken(t, app, testClient.ClientID, deviceCode, 400)
-	require.Equal(t, cryptoutilSharedMagic.ErrorAuthorizationPending, pollResp1["error"], "First poll should return authorization_pending")
+	require.Equal(t, cryptoutilSharedMagic.ErrorAuthorizationPending, pollResp1[cryptoutilSharedMagic.StringError], "First poll should return authorization_pending")
 
 	// Poll immediately again (should return slow_down).
 	pollResp2 := pollDeviceToken(t, app, testClient.ClientID, deviceCode, 400)
-	require.Equal(t, cryptoutilSharedMagic.ErrorSlowDown, pollResp2["error"], "Second immediate poll should return slow_down")
+	require.Equal(t, cryptoutilSharedMagic.ErrorSlowDown, pollResp2[cryptoutilSharedMagic.StringError], "Second immediate poll should return slow_down")
 
 	// Wait for polling interval to elapse.
-	time.Sleep(cryptoutilSharedMagic.DefaultPollingInterval + 100*time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.DefaultPollingInterval + cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond)
 
 	// Poll again after interval (should succeed with authorization_pending).
 	pollResp3 := pollDeviceToken(t, app, testClient.ClientID, deviceCode, 400)
-	require.Equal(t, cryptoutilSharedMagic.ErrorAuthorizationPending, pollResp3["error"], "Third poll after interval should return authorization_pending")
+	require.Equal(t, cryptoutilSharedMagic.ErrorAuthorizationPending, pollResp3[cryptoutilSharedMagic.StringError], "Third poll after interval should return authorization_pending")
 }
 
 // ========== Helper Functions ==========
@@ -195,7 +195,7 @@ func createIntegrationTestDependencies(t *testing.T) (*cryptoutilIdentityConfig.
 
 	config := &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
+			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
 			DSN:  "file::memory:?cache=private",
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
@@ -231,7 +231,7 @@ func createIntegrationTestUser(ctx context.Context, t *testing.T, repoFactory *c
 	enabled := true
 	user := &cryptoutilIdentityDomain.User{
 		ID:           googleUuid.Must(googleUuid.NewV7()),
-		Sub:          "testuser-" + googleUuid.NewString()[:8],
+		Sub:          "testuser-" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		Email:        "testuser@example.com",
 		PasswordHash: "$2a$10$examplehash",
 		Enabled:      enabled,
@@ -253,19 +253,19 @@ func createIntegrationTestClient(ctx context.Context, t *testing.T, repoFactory 
 
 	client := &cryptoutilIdentityDomain.Client{
 		ID:                      googleUuid.Must(googleUuid.NewV7()),
-		ClientID:                "device-client-" + googleUuid.NewString()[:8],
+		ClientID:                "device-client-" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		ClientSecret:            "$2a$10$examplehashedvalue",
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                    "Integration Test Device Client",
-		RedirectURIs:            []string{"https://example.com/callback"},
-		AllowedScopes:           []string{"openid", "profile", "email"},
+		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
+		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail},
 		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeDeviceCode},
 		AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
 		TokenEndpointAuthMethod: cryptoutilSharedMagic.ClientAuthMethodSecretPost,
 		RequirePKCE:             &requirePKCE,
-		AccessTokenLifetime:     3600,
-		RefreshTokenLifetime:    86400,
-		IDTokenLifetime:         3600,
+		AccessTokenLifetime:     cryptoutilSharedMagic.IMDefaultSessionTimeout,
+		RefreshTokenLifetime:    cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+		IDTokenLifetime:         cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		Enabled:                 &enabled,
 	}
 

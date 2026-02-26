@@ -3,6 +3,7 @@
 package im
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"testing"
 
@@ -44,7 +45,7 @@ func TestIM_LivezSubcommand_NoBodySuccess(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Im([]string{"livez", "--url", testMockServerOK.URL + "/livez"}, nil, &stdout, &stderr)
+	exitCode := Im([]string{"livez", "--url", testMockServerOK.URL + cryptoutilSharedMagic.PrivateAdminLivezRequestPath}, nil, &stdout, &stderr)
 	require.Equal(t, 0, exitCode, "Livez should succeed with 200 even if no body")
 
 	output := stdout.String() + stderr.String()
@@ -57,7 +58,7 @@ func TestIM_LivezSubcommand_NotAliveNoBody(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Im([]string{"livez", "--url", testMockServerError.URL + "/livez"}, nil, &stdout, &stderr)
+	exitCode := Im([]string{"livez", "--url", testMockServerError.URL + cryptoutilSharedMagic.PrivateAdminLivezRequestPath}, nil, &stdout, &stderr)
 	require.Equal(t, 1, exitCode, "Livez should fail with 503")
 
 	output := stdout.String() + stderr.String()
@@ -71,7 +72,7 @@ func TestIM_ShutdownSubcommand_NoBodySuccess(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Im([]string{"shutdown", "--url", testMockServerOK.URL + "/shutdown"}, nil, &stdout, &stderr)
+	exitCode := Im([]string{"shutdown", "--url", testMockServerOK.URL + cryptoutilSharedMagic.PrivateAdminShutdownRequestPath}, nil, &stdout, &stderr)
 	require.Equal(t, 0, exitCode, "Shutdown should succeed with 200 even if no body")
 
 	output := stdout.String() + stderr.String()
@@ -84,7 +85,7 @@ func TestIM_ShutdownSubcommand_FailedNoBody(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Im([]string{"shutdown", "--url", testMockServerError.URL + "/shutdown"}, nil, &stdout, &stderr)
+	exitCode := Im([]string{"shutdown", "--url", testMockServerError.URL + cryptoutilSharedMagic.PrivateAdminShutdownRequestPath}, nil, &stdout, &stderr)
 	require.Equal(t, 1, exitCode, "Shutdown should fail with 503")
 
 	output := stdout.String() + stderr.String()
@@ -98,7 +99,7 @@ func TestIM_ShutdownSubcommand_PartialBodyRead(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Im([]string{"shutdown", "--url", testMockServerOK.URL + "/shutdown"}, nil, &stdout, &stderr)
+	exitCode := Im([]string{"shutdown", "--url", testMockServerOK.URL + cryptoutilSharedMagic.PrivateAdminShutdownRequestPath}, nil, &stdout, &stderr)
 	// Should still succeed because we got 200 status.
 	require.Equal(t, 0, exitCode, "Shutdown should succeed even with partial body")
 

@@ -5,6 +5,7 @@
 package orm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -30,9 +31,9 @@ func TestMFAFactorRepository_Create(t *testing.T) {
 		FactorType:    cryptoutilIdentityDomain.MFAFactorTypeTOTP,
 		Order:         1,
 		Required:      true,
-		TOTPAlgorithm: "SHA256",
-		TOTPDigits:    6,
-		TOTPPeriod:    30,
+		TOTPAlgorithm: cryptoutilSharedMagic.SHA256,
+		TOTPDigits:    cryptoutilSharedMagic.DefaultEmailOTPLength,
+		TOTPPeriod:    cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days,
 		AuthProfileID: authProfileID,
 		Enabled:       true,
 	}
@@ -169,7 +170,7 @@ func TestMFAFactorRepository_List(t *testing.T) {
 
 	authProfileID := googleUuid.Must(googleUuid.NewV7())
 
-	for i := 0; i < 5; i++ {
+	for i := 0; i < cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries; i++ {
 		factor := &cryptoutilIdentityDomain.MFAFactor{
 			Name:          googleUuid.Must(googleUuid.NewV7()).String(),
 			FactorType:    cryptoutilIdentityDomain.MFAFactorTypeTOTP,
@@ -203,7 +204,7 @@ func TestMFAFactorRepository_Count(t *testing.T) {
 
 	authProfileID := googleUuid.Must(googleUuid.NewV7())
 
-	for i := 0; i < 5; i++ {
+	for i := 0; i < cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries; i++ {
 		factor := &cryptoutilIdentityDomain.MFAFactor{
 			Name:          googleUuid.Must(googleUuid.NewV7()).String(),
 			FactorType:    cryptoutilIdentityDomain.MFAFactorTypeTOTP,
@@ -217,5 +218,5 @@ func TestMFAFactorRepository_Count(t *testing.T) {
 
 	count, err = repo.Count(ctx)
 	require.NoError(t, err, "Count should succeed")
-	require.Equal(t, int64(5), count, "Count should be 5 after creating 5 factors")
+	require.Equal(t, int64(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries), count, "Count should be 5 after creating 5 factors")
 }

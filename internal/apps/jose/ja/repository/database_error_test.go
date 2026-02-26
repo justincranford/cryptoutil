@@ -4,6 +4,7 @@
 package repository
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"fmt"
@@ -27,7 +28,7 @@ func createClosedDatabase() (*gorm.DB, error) {
 	dbID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
 
-	sqlDB, err := sql.Open("sqlite", dsn)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open SQLite: %w", err)
 	}
@@ -82,9 +83,9 @@ func TestElasticJWKRepository_CreateDatabaseError(t *testing.T) {
 		TenantID:     *tenantID,
 		KID:          "test-create-error",
 		KeyType:      cryptoutilAppsJoseJaDomain.KeyTypeRSA,
-		Algorithm:    "RS256",
-		Use:          "sig",
-		MaxMaterials: 10,
+		Algorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 	}
 
 	err = repo.Create(ctx, jwk)
@@ -129,7 +130,7 @@ func TestElasticJWKRepository_ListDatabaseError(t *testing.T) {
 	ctx := context.Background()
 	repo := NewElasticJWKRepository(closedDB)
 
-	_, _, err = repo.List(ctx, googleUuid.New(), 0, 10)
+	_, _, err = repo.List(ctx, googleUuid.New(), 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.Error(t, err)
 	// Could fail on Count or Find - either error path is valid.
 	require.True(t,
@@ -155,9 +156,9 @@ func TestElasticJWKRepository_UpdateDatabaseError(t *testing.T) {
 		TenantID:     *tenantID,
 		KID:          "test-update-error",
 		KeyType:      cryptoutilAppsJoseJaDomain.KeyTypeRSA,
-		Algorithm:    "RS256",
-		Use:          "sig",
-		MaxMaterials: 10,
+		Algorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 	}
 
 	err = repo.Update(ctx, jwk)
@@ -286,7 +287,7 @@ func TestMaterialJWKRepository_ListByElasticJWKDatabaseError(t *testing.T) {
 	ctx := context.Background()
 	repo := NewMaterialJWKRepository(closedDB)
 
-	_, _, err = repo.ListByElasticJWK(ctx, googleUuid.New(), 0, 10)
+	_, _, err = repo.ListByElasticJWK(ctx, googleUuid.New(), 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.Error(t, err)
 	// Could fail on Count or Find - either error path is valid.
 	require.True(t,

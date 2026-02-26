@@ -5,6 +5,7 @@
 package server
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"os"
 	"path/filepath"
@@ -45,11 +46,11 @@ func TestAdminServer_LoadTLSConfig_InvalidCertFile(t *testing.T) {
 
 	// Create invalid cert file (not a valid PEM).
 	certFile := filepath.Join(tmpDir, "invalid_cert.pem")
-	require.NoError(t, os.WriteFile(certFile, []byte("invalid certificate data"), 0o600))
+	require.NoError(t, os.WriteFile(certFile, []byte("invalid certificate data"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Create valid-looking key file (will fail at LoadX509KeyPair due to cert issue).
 	keyFile := filepath.Join(tmpDir, "invalid_key.pem")
-	require.NoError(t, os.WriteFile(keyFile, []byte("invalid key data"), 0o600))
+	require.NoError(t, os.WriteFile(keyFile, []byte("invalid key data"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Configure server to use invalid files.
 	cfg.AuthZ.TLSCertFile = certFile

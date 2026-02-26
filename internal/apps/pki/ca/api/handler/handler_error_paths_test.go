@@ -3,6 +3,7 @@
 package handler
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	http "net/http"
 	"net/http/httptest"
 	"testing"
@@ -51,7 +52,7 @@ func TestErrorResponsePaths(t *testing.T) {
 			statusCode:     fiber.StatusInternalServerError,
 			errorCode:      "internal_error",
 			errorMessage:   "server error occurred",
-			expectedStatus: 500,
+			expectedStatus: cryptoutilSharedMagic.TestDefaultRateLimitServiceIP,
 		},
 		{
 			name:           "Conflict_409",
@@ -90,7 +91,7 @@ func TestGetEnrollmentStatus_NotFound(t *testing.T) {
 	testSetup := createTestIssuer(t)
 	handler := &Handler{
 		issuer:            testSetup.Issuer,
-		enrollmentTracker: newEnrollmentTracker(100),
+		enrollmentTracker: newEnrollmentTracker(cryptoutilSharedMagic.JoseJAMaxMaterials),
 	}
 
 	app := fiber.New()

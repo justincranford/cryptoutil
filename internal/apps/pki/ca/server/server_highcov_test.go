@@ -1,6 +1,7 @@
 package server
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -16,7 +17,7 @@ func waitForServerReady(t *testing.T, server *CAServer) {
 
 	require.Eventually(t, func() bool {
 		return server.PublicPort() > 0 && server.AdminPort() > 0
-	}, 5*time.Second, 10*time.Millisecond, "server did not become ready")
+	}, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Millisecond, "server did not become ready")
 }
 
 // TestCAServer_Shutdown tests the Shutdown method.
@@ -24,7 +25,7 @@ func TestCAServer_Shutdown(t *testing.T) {
 	t.Parallel()
 
 	// Create test server.
-	cfg := cryptoutilAppsCaServerConfig.NewTestConfig("127.0.0.1", 0, true)
+	cfg := cryptoutilAppsCaServerConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	ctx := context.Background()
 	server, err := NewFromConfig(ctx, cfg)
 	require.NoError(t, err)
@@ -38,7 +39,7 @@ func TestCAServer_Shutdown(t *testing.T) {
 	waitForServerReady(t, server)
 
 	// Shutdown with timeout.
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer cancel()
 
 	err = server.Shutdown(shutdownCtx)
@@ -50,7 +51,7 @@ func TestCAServer_Shutdown_ContextCanceled(t *testing.T) {
 	t.Parallel()
 
 	// Create test server.
-	cfg := cryptoutilAppsCaServerConfig.NewTestConfig("127.0.0.1", 0, true)
+	cfg := cryptoutilAppsCaServerConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	ctx := context.Background()
 	server, err := NewFromConfig(ctx, cfg)
 	require.NoError(t, err)
@@ -80,7 +81,7 @@ func TestCAServer_App(t *testing.T) {
 	t.Parallel()
 
 	// Create test server.
-	cfg := cryptoutilAppsCaServerConfig.NewTestConfig("127.0.0.1", 0, true)
+	cfg := cryptoutilAppsCaServerConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	ctx := context.Background()
 	server, err := NewFromConfig(ctx, cfg)
 	require.NoError(t, err)
@@ -96,7 +97,7 @@ func TestCAServer_Start_Error(t *testing.T) {
 	t.Parallel()
 
 	// Create test server.
-	cfg := cryptoutilAppsCaServerConfig.NewTestConfig("127.0.0.1", 0, true)
+	cfg := cryptoutilAppsCaServerConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	ctx := context.Background()
 	server, err := NewFromConfig(ctx, cfg)
 	require.NoError(t, err)
@@ -120,10 +121,10 @@ func TestCAServer_Start_Error(t *testing.T) {
 	}()
 
 	// Allow second start attempt to execute.
-	require.Eventually(t, func() bool { return true }, 1*time.Second, 50*time.Millisecond)
+	require.Eventually(t, func() bool { return true }, 1*time.Second, cryptoutilSharedMagic.IMMaxUsernameLength*time.Millisecond)
 
 	// Cleanup.
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 	defer cancel()
 
 	_ = server.Shutdown(shutdownCtx)
@@ -133,7 +134,7 @@ func TestCAServer_Start_Error(t *testing.T) {
 func TestNewFromConfig_NilContext(t *testing.T) {
 	t.Parallel()
 
-	cfg := cryptoutilAppsCaServerConfig.NewTestConfig("127.0.0.1", 0, true)
+	cfg := cryptoutilAppsCaServerConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	server, err := NewFromConfig(nil, cfg) //nolint:staticcheck // SA1012 intentionally testing nil context handling
 	require.Error(t, err)
 	require.Nil(t, server)
@@ -168,7 +169,7 @@ func TestCreateSelfSignedCA_EdgeCases(t *testing.T) {
 	// This function is already 73.9% covered, so we'll add edge case tests.
 	// The function is internal and tested indirectly through NewFromConfig.
 	// Create test server to trigger self-signed CA creation.
-	cfg := cryptoutilAppsCaServerConfig.NewTestConfig("127.0.0.1", 0, true)
+	cfg := cryptoutilAppsCaServerConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	ctx := context.Background()
 	server, err := NewFromConfig(ctx, cfg)
 	require.NoError(t, err)

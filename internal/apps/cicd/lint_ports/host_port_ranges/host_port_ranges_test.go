@@ -3,6 +3,7 @@
 package host_port_ranges
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -30,7 +31,7 @@ func TestCheckHostPortRangesInFile_InvalidPorts(t *testing.T) {
   sm-im:
     ports:
       - "8070:8700"
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations := CheckHostPortRangesInFile(composeFile)
@@ -52,7 +53,7 @@ func TestCheckHostPortRangesInFile_TopLevelReset(t *testing.T) {
 networks:
   default:
     driver: bridge
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations := CheckHostPortRangesInFile(composeFile)
@@ -69,7 +70,7 @@ func TestCheckHostPortRangesInFile_UnknownService(t *testing.T) {
   unknown-service:
     ports:
       - "9999:8080"
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Unknown services should not cause violations (no config to validate against).
@@ -88,7 +89,7 @@ func TestCheckHostPortRangesInFile_ValidPorts(t *testing.T) {
     ports:
       - "8700:8700"
       - "9090:9090"
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations := CheckHostPortRangesInFile(composeFile)
@@ -104,11 +105,11 @@ func TestGetServiceConfig(t *testing.T) {
 		wantNil     bool
 		wantName    string
 	}{
-		{name: "exact match sm-im", serviceName: "sm-im", wantNil: false, wantName: "sm-im"},
-		{name: "exact match jose-ja", serviceName: "jose-ja", wantNil: false, wantName: "jose-ja"},
-		{name: "exact match sm-kms", serviceName: "sm-kms", wantNil: false, wantName: "sm-kms"},
-		{name: "prefix match sm-im-postgres", serviceName: "sm-im-postgres", wantNil: false, wantName: "sm-im"},
-		{name: "prefix match jose-ja-sqlite", serviceName: "jose-ja-sqlite", wantNil: false, wantName: "jose-ja"},
+		{name: "exact match sm-im", serviceName: cryptoutilSharedMagic.OTLPServiceSMIM, wantNil: false, wantName: cryptoutilSharedMagic.OTLPServiceSMIM},
+		{name: "exact match jose-ja", serviceName: cryptoutilSharedMagic.OTLPServiceJoseJA, wantNil: false, wantName: cryptoutilSharedMagic.OTLPServiceJoseJA},
+		{name: "exact match sm-kms", serviceName: cryptoutilSharedMagic.OTLPServiceSMKMS, wantNil: false, wantName: cryptoutilSharedMagic.OTLPServiceSMKMS},
+		{name: "prefix match sm-im-postgres", serviceName: "sm-im-postgres", wantNil: false, wantName: cryptoutilSharedMagic.OTLPServiceSMIM},
+		{name: "prefix match jose-ja-sqlite", serviceName: "jose-ja-sqlite", wantNil: false, wantName: cryptoutilSharedMagic.OTLPServiceJoseJA},
 		{name: "unknown service", serviceName: "unknown-service", wantNil: true, wantName: ""},
 		{name: "empty string", serviceName: "", wantNil: true, wantName: ""},
 	}
@@ -132,9 +133,9 @@ func TestIsPortInValidRange(t *testing.T) {
 	t.Parallel()
 
 	cipherConfig := &lintPortsCommon.ServicePortConfig{
-		Name:        "sm-im",
-		PublicPorts: []uint16{8700, 8701, 8702},
-		AdminPort:   9090,
+		Name:        cryptoutilSharedMagic.OTLPServiceSMIM,
+		PublicPorts: []uint16{cryptoutilSharedMagic.IMServicePort, cryptoutilSharedMagic.IME2EPostgreSQL1PublicPort, cryptoutilSharedMagic.IME2EPostgreSQL2PublicPort},
+		AdminPort:   cryptoutilSharedMagic.JoseJAAdminPort,
 	}
 
 	tests := []struct {
@@ -143,15 +144,15 @@ func TestIsPortInValidRange(t *testing.T) {
 		cfg  *lintPortsCommon.ServicePortConfig
 		want bool
 	}{
-		{name: "public port 8700", port: 8700, cfg: cipherConfig, want: true},
-		{name: "public port 8701", port: 8701, cfg: cipherConfig, want: true},
-		{name: "public port 8702", port: 8702, cfg: cipherConfig, want: true},
-		{name: "admin port 9090", port: 9090, cfg: cipherConfig, want: true},
+		{name: "public port cryptoutilSharedMagic.IMServicePort", port: 8700, cfg: cipherConfig, want: true},
+		{name: "public port cryptoutilSharedMagic.IME2EPostgreSQL1PublicPort", port: 8701, cfg: cipherConfig, want: true},
+		{name: "public port cryptoutilSharedMagic.IME2EPostgreSQL2PublicPort", port: 8702, cfg: cipherConfig, want: true},
+		{name: "admin port cryptoutilSharedMagic.JoseJAAdminPort", port: 9090, cfg: cipherConfig, want: true},
 		{name: "range port 8703", port: 8703, cfg: cipherConfig, want: true},    // In range 8700-8799
 		{name: "range port 8799", port: 8799, cfg: cipherConfig, want: true},    // Last in range
-		{name: "out of range 8800", port: 8800, cfg: cipherConfig, want: false}, // Out of range (jose-ja territory)
+		{name: "out of range cryptoutilSharedMagic.JoseJAServicePort", port: 8800, cfg: cipherConfig, want: false}, // Out of range (jose-ja territory)
 		{name: "out of range 8060", port: 8060, cfg: cipherConfig, want: false}, // Legacy jose-ja port
-		{name: "legacy port 8888", port: 8888, cfg: cipherConfig, want: false},  // Legacy
+		{name: "legacy port cryptoutilSharedMagic.DefaultPublicPortInternalMetrics", port: 8888, cfg: cipherConfig, want: false},  // Legacy
 	}
 
 	for _, tt := range tests {
@@ -175,7 +176,7 @@ func TestLintHostPortRanges_NoViolations(t *testing.T) {
     ports:
       - "8800:8800"
       - "9090:9090"
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -197,7 +198,7 @@ func TestLintHostPortRanges_WithViolations(t *testing.T) {
   jose-ja:
     ports:
       - "9443:8800"
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -218,7 +219,7 @@ func TestLintHostPortRanges_NonComposeYAMLSkipped(t *testing.T) {
 	// Create a YAML file that is NOT a compose file (should be skipped by IsComposeFile).
 	nonComposeFile := filepath.Join(tempDir, "config.yml")
 	err := os.WriteFile(nonComposeFile, []byte(`key: value
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -241,7 +242,7 @@ func TestCheckHostPortRangesInFile_PortParseUintError(t *testing.T) {
   sm-im:
     ports:
       - "99999:8700"
-`), 0o600)
+`), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations := CheckHostPortRangesInFile(composeFile)

@@ -86,7 +86,7 @@ func TestHttpGetTraceHead(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			statusCode, headers, body, err := cryptoutilSharedUtilNetwork.HTTPResponse(context.Background(), tc.method, tc.url, 10*time.Second, false, tc.tlsRootCAs, false)
+			statusCode, headers, body, err := cryptoutilSharedUtilNetwork.HTTPResponse(context.Background(), tc.method, tc.url, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second, false, tc.tlsRootCAs, false)
 			if tc.expectError {
 				require.Error(t, err, "expected request to fail")
 				return //nolint:nlreturn // gofumpt removes blank line required by nlreturn linter
@@ -135,14 +135,14 @@ func TestSecurityHeaders(t *testing.T) {
 			isBrowserPath: true,
 			tlsRootCAs:    startServerListenerApplication.PublicTLSServer.RootCAsPool,
 			expectedHeaders: map[string]string{
-				"X-Content-Type-Options":            "nosniff",
-				"Referrer-Policy":                   "strict-origin-when-cross-origin",
-				"Strict-Transport-Security":         "max-age=86400; includeSubDomains",
-				"Permissions-Policy":                "camera=(), microphone=(), geolocation=(), payment=(), usb=(), accelerometer=(), gyroscope=(), magnetometer=()",
-				"Cross-Origin-Opener-Policy":        "same-origin",
-				"Cross-Origin-Embedder-Policy":      "require-corp",
-				"Cross-Origin-Resource-Policy":      "same-origin",
-				"X-Permitted-Cross-Domain-Policies": "none",
+				"X-Content-Type-Options":            cryptoutilSharedMagic.ContentTypeOptions,
+				"Referrer-Policy":                   cryptoutilSharedMagic.ReferrerPolicy,
+				"Strict-Transport-Security":         cryptoutilSharedMagic.HSTSMaxAgeDev,
+				"Permissions-Policy":                cryptoutilSharedMagic.PermissionsPolicy,
+				"Cross-Origin-Opener-Policy":        cryptoutilSharedMagic.CrossOriginOpenerPolicy,
+				"Cross-Origin-Embedder-Policy":      cryptoutilSharedMagic.CrossOriginEmbedderPolicy,
+				"Cross-Origin-Resource-Policy":      cryptoutilSharedMagic.CrossOriginOpenerPolicy,
+				"X-Permitted-Cross-Domain-Policies": cryptoutilSharedMagic.PromptNone,
 			},
 			unexpectedHeaders: []string{"Clear-Site-Data"},
 		},
@@ -155,9 +155,9 @@ func TestSecurityHeaders(t *testing.T) {
 			tlsRootCAs:    startServerListenerApplication.PublicTLSServer.RootCAsPool,
 			expectedHeaders: map[string]string{
 				// Service API has minimal headers since Helmet and our security middleware are skipped
-				"X-Content-Type-Options":    "nosniff",
-				"Referrer-Policy":           "strict-origin-when-cross-origin",
-				"Strict-Transport-Security": "max-age=86400; includeSubDomains",
+				"X-Content-Type-Options":    cryptoutilSharedMagic.ContentTypeOptions,
+				"Referrer-Policy":           cryptoutilSharedMagic.ReferrerPolicy,
+				"Strict-Transport-Security": cryptoutilSharedMagic.HSTSMaxAgeDev,
 			},
 			unexpectedHeaders: []string{
 				"Permissions-Policy",
@@ -173,7 +173,7 @@ func TestSecurityHeaders(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			statusCode, headers, body, err := cryptoutilSharedUtilNetwork.HTTPResponse(context.Background(), "GET", tc.url, 10*time.Second, false, tc.tlsRootCAs, false)
+			statusCode, headers, body, err := cryptoutilSharedUtilNetwork.HTTPResponse(context.Background(), "GET", tc.url, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second, false, tc.tlsRootCAs, false)
 			require.NotNil(t, body, "response body should not be nil")
 			require.NotNil(t, headers, "response headers should not be nil")
 			require.NoError(t, err, "failed to get response headers")
@@ -243,13 +243,13 @@ func TestHealthChecks(t *testing.T) {
 				require.NoError(t, err, "should return valid JSON")
 
 				// Liveness should always be "ok"
-				require.Equal(t, "ok", response["status"], "liveness status should be 'ok'")
+				require.Equal(t, "ok", response[cryptoutilSharedMagic.StringStatus], "liveness status should be 'ok'")
 				require.Equal(t, "liveness", response["probe"], "probe should be 'liveness'")
 				require.NotEmpty(t, response["timestamp"], "should include timestamp")
-				require.Equal(t, "cryptoutil", response["service"], "service name should be 'cryptoutil'")
+				require.Equal(t, cryptoutilSharedMagic.DefaultOTLPServiceDefault, response["service"], "service name should be 'cryptoutil'")
 
 				// Liveness should not include detailed checks
-				require.NotContains(t, response, "database", "liveness should not include database checks")
+				require.NotContains(t, response, cryptoutilSharedMagic.RealmStorageTypeDatabase, "liveness should not include database checks")
 				require.NotContains(t, response, "memory", "liveness should not include memory checks")
 				require.NotContains(t, response, "dependencies", "liveness should not include dependency checks")
 			},
@@ -270,33 +270,33 @@ func TestHealthChecks(t *testing.T) {
 				require.NoError(t, err, "should return valid JSON")
 
 				// Readiness should be "ok" in healthy state
-				require.Equal(t, "ok", response["status"], "readiness status should be 'ok'")
+				require.Equal(t, "ok", response[cryptoutilSharedMagic.StringStatus], "readiness status should be 'ok'")
 				require.Equal(t, "readiness", response["probe"], "probe should be 'readiness'")
 				require.NotEmpty(t, response["timestamp"], "should include timestamp")
-				require.Equal(t, "cryptoutil", response["service"], "service name should be 'cryptoutil'")
+				require.Equal(t, cryptoutilSharedMagic.DefaultOTLPServiceDefault, response["service"], "service name should be 'cryptoutil'")
 
 				// Readiness should include detailed checks
-				require.Contains(t, response, "database", "readiness should include database checks")
+				require.Contains(t, response, cryptoutilSharedMagic.RealmStorageTypeDatabase, "readiness should include database checks")
 				require.Contains(t, response, "memory", "readiness should include memory checks")
 				require.Contains(t, response, "dependencies", "readiness should include dependency checks")
 
 				// Validate database structure
-				dbStatus, ok := response["database"].(map[string]any)
+				dbStatus, ok := response[cryptoutilSharedMagic.RealmStorageTypeDatabase].(map[string]any)
 				require.True(t, ok, "database should be an object")
-				require.Contains(t, dbStatus, "status", "database should have status")
+				require.Contains(t, dbStatus, cryptoutilSharedMagic.StringStatus, "database should have status")
 				require.Contains(t, dbStatus, "db_type", "database should have db_type")
 
 				// Validate memory structure
 				memStatus, ok := response["memory"].(map[string]any)
 				require.True(t, ok, "memory should be an object")
-				require.Equal(t, "ok", memStatus["status"], "memory status should be 'ok'")
+				require.Equal(t, "ok", memStatus[cryptoutilSharedMagic.StringStatus], "memory status should be 'ok'")
 				require.Contains(t, memStatus, "heap_alloc", "memory should include heap_alloc")
 				require.Contains(t, memStatus, "num_goroutines", "memory should include num_goroutines")
 
 				// Validate dependencies structure
 				depsStatus, ok := response["dependencies"].(map[string]any)
 				require.True(t, ok, "dependencies should be an object")
-				require.Contains(t, depsStatus, "status", "dependencies should have status")
+				require.Contains(t, depsStatus, cryptoutilSharedMagic.StringStatus, "dependencies should have status")
 				require.Contains(t, depsStatus, "services", "dependencies should have services")
 			},
 		},
@@ -305,7 +305,7 @@ func TestHealthChecks(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Increase timeout for health check requests to prevent flakiness
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 			defer cancel()
 
 			// Create HTTP client with timeout context
@@ -315,7 +315,7 @@ func TestHealthChecks(t *testing.T) {
 						RootCAs: startServerListenerApplication.PrivateTLSServer.RootCAsPool,
 					},
 				},
-				Timeout: 5 * time.Second,
+				Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 			}
 
 			req, err := http.NewRequestWithContext(ctx, "GET", testServerPrivateURL+tc.endpoint, nil)
@@ -365,13 +365,13 @@ func TestSendServerListenerLivenessCheck(t *testing.T) {
 	require.NoError(t, err, "should return valid JSON")
 
 	// Validate liveness response structure
-	require.Equal(t, "ok", response["status"], "liveness status should be 'ok'")
+	require.Equal(t, "ok", response[cryptoutilSharedMagic.StringStatus], "liveness status should be 'ok'")
 	require.Equal(t, "liveness", response["probe"], "probe should be 'liveness'")
 	require.NotEmpty(t, response["timestamp"], "should include timestamp")
-	require.Equal(t, "cryptoutil", response["service"], "service name should be 'cryptoutil'")
+	require.Equal(t, cryptoutilSharedMagic.DefaultOTLPServiceDefault, response["service"], "service name should be 'cryptoutil'")
 
 	// Liveness should not include detailed checks
-	require.NotContains(t, response, "database", "liveness should not include database checks")
+	require.NotContains(t, response, cryptoutilSharedMagic.RealmStorageTypeDatabase, "liveness should not include database checks")
 	require.NotContains(t, response, "memory", "liveness should not include memory checks")
 	require.NotContains(t, response, "dependencies", "liveness should not include dependency checks")
 

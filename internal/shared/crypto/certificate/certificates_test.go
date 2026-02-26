@@ -49,7 +49,7 @@ func TestMutualTLS(t *testing.T) {
 	tlsClientCASubjects, err := CreateCASubjects(tlsClientSubjectsKeyPairs[1:], "Test TLS Client CA", testCACertValidity10Years)
 	verifyCASubjects(t, err, tlsClientCASubjects)
 
-	tlsServerEndEntitySubject, err := CreateEndEntitySubject(tlsServerCASubjects[0], tlsServerSubjectsKeyPairs[0], "Test TLS Server End Entity", testEndEntityCertValidity396Days, []string{"localhost", "tlsserver.example.com"}, []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")}, nil, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth})
+	tlsServerEndEntitySubject, err := CreateEndEntitySubject(tlsServerCASubjects[0], tlsServerSubjectsKeyPairs[0], "Test TLS Server End Entity", testEndEntityCertValidity396Days, []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault, "tlsserver.example.com"}, []net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback), net.ParseIP(cryptoutilSharedMagic.IPv6Loopback)}, nil, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth})
 	verifyEndEntitySubject(t, err, tlsServerEndEntitySubject)
 	tlsClientEndEntitySubject, err := CreateEndEntitySubject(tlsClientCASubjects[0], tlsClientSubjectsKeyPairs[0], "Test TLS Client End Entity", testEndEntityCertValidity30Days, nil, nil, []string{"client1@tlsclient.example.com"}, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth})
 	verifyEndEntitySubject(t, err, tlsClientEndEntitySubject)
@@ -148,7 +148,7 @@ func TestMutualTLS(t *testing.T) {
 		httpsClientRequestBody := []byte("Hello Mutual HTTPS!")
 		httpsClient := &http.Client{
 			Transport: &http.Transport{TLSClientConfig: clientTLSConfig},
-			Timeout:   5 * time.Second, // Increase client timeout to prevent flaky failures
+			Timeout:   cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second, // Increase client timeout to prevent flaky failures
 		}
 
 		for i := 1; i <= clientConnections; i++ {
@@ -220,7 +220,7 @@ func TestSerializeEndEntitySubjects(t *testing.T) {
 	originalCASubjects, err := CreateCASubjects(subjectsKeyPairs[1:], "Round Trip CA", testCACertValidity10Years)
 	verifyCASubjects(t, err, originalCASubjects)
 
-	endEntitySubject, err := CreateEndEntitySubject(originalCASubjects[0], subjectsKeyPairs[0], "Round Trip End Entity", testEndEntityCertValidity1Year, []string{"example.com"}, []net.IP{net.ParseIP("127.0.0.1")}, []string{"test@example.com"}, []*url.URL{{Scheme: "https", Host: "example.com"}}, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}) // pragma: allowlist secret
+	endEntitySubject, err := CreateEndEntitySubject(originalCASubjects[0], subjectsKeyPairs[0], "Round Trip End Entity", testEndEntityCertValidity1Year, []string{"example.com"}, []net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)}, []string{"test@example.com"}, []*url.URL{{Scheme: cryptoutilSharedMagic.ProtocolHTTPS, Host: "example.com"}}, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}) // pragma: allowlist secret
 	verifyEndEntitySubject(t, err, endEntitySubject)
 
 	originalCASubjects[0].KeyMaterial.PrivateKey = nil

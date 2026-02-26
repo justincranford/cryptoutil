@@ -39,7 +39,7 @@ func createClosedDBHandler(t *testing.T) *MessageHandler {
 
 	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
 
-	tempSQLDB, err := sql.Open("sqlite", dsn)
+	tempSQLDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 	require.NoError(t, err)
 
 	_, err = tempSQLDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")

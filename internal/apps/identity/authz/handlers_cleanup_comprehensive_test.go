@@ -44,7 +44,7 @@ func TestCleanupService_DeletesExpiredTokens(t *testing.T) {
 		TokenType:   cryptoutilIdentityDomain.TokenTypeAccess,
 		TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 		TokenValue:  "expired-access-token-" + googleUuid.NewString(),
-		Scopes:      []string{"read", "write"},
+		Scopes:      []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
 		ExpiresAt:   time.Now().UTC().Add(-1 * time.Hour), // Expired 1 hour ago
 		IssuedAt:    time.Now().UTC().Add(-2 * time.Hour),
 		NotBefore:   time.Now().UTC().Add(-2 * time.Hour),
@@ -62,7 +62,7 @@ func TestCleanupService_DeletesExpiredTokens(t *testing.T) {
 		TokenType:   cryptoutilIdentityDomain.TokenTypeAccess,
 		TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 		TokenValue:  "valid-access-token-" + googleUuid.NewString(),
-		Scopes:      []string{"read"},
+		Scopes:      []string{cryptoutilSharedMagic.ScopeRead},
 		ExpiresAt:   time.Now().UTC().Add(1 * time.Hour), // Valid for 1 hour
 		IssuedAt:    time.Now().UTC(),
 		NotBefore:   time.Now().UTC(),
@@ -98,7 +98,7 @@ func TestCleanupService_IntervalConfiguration(t *testing.T) {
 	require.NotNil(t, cleanup, "Cleanup service should not be nil")
 
 	// Configure custom interval.
-	customInterval := 30 * time.Second
+	customInterval := cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second
 	cleanup = cleanup.WithInterval(customInterval)
 	require.NotNil(t, cleanup, "Cleanup service should support custom interval")
 }
@@ -112,7 +112,7 @@ func TestCleanupService_StartStopLifecycle(t *testing.T) {
 	service := createCleanupTestService(t, config, repoFactory)
 
 	// Create cleanup service with short interval for testing.
-	cleanup := cryptoutilIdentityAuthz.NewCleanupService(service).WithInterval(100 * time.Millisecond)
+	cleanup := cryptoutilIdentityAuthz.NewCleanupService(service).WithInterval(cryptoutilSharedMagic.JoseJAMaxMaterials * time.Millisecond)
 	require.NotNil(t, cleanup, "Cleanup service should not be nil")
 
 	// Start cleanup service.
@@ -132,7 +132,7 @@ func createCleanupTestConfig(t *testing.T) *cryptoutilIdentityConfig.Config {
 	return &cryptoutilIdentityConfig.Config{
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			AccessTokenLifetime:  15 * time.Minute,
-			RefreshTokenLifetime: 24 * time.Hour,
+			RefreshTokenLifetime: cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		},
 	}
 }
@@ -143,7 +143,7 @@ func createCleanupTestRepoFactory(t *testing.T) *cryptoutilIdentityRepository.Re
 	ctx := context.Background()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type:        "sqlite",
+		Type:        cryptoutilSharedMagic.TestDatabaseSQLite,
 		DSN:         "file::memory:?cache=private&_id=" + googleUuid.NewString(),
 		AutoMigrate: true, // Enable auto-migration for tests
 	}
@@ -184,8 +184,8 @@ func createCleanupTestClient(
 		ClientID:                clientID,
 		ClientSecret:            "cleanup-test-secret",
 		Name:                    "Cleanup Test Client",
-		RedirectURIs:            []string{"https://example.com/callback"},
-		AllowedScopes:           []string{"read", "write"},
+		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
+		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
 		ClientType:              "confidential",
 		TokenEndpointAuthMethod: cryptoutilSharedMagic.ClientAuthMethodSecretPost,
 		RequirePKCE:             boolPtr(true),

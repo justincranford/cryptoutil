@@ -6,6 +6,7 @@
 package cmd
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	"time"
@@ -43,8 +44,8 @@ Examples:
 				name string
 				url  string
 			}{
-				{"authz", "https://127.0.0.1:8080/health"},
-				{"idp", "https://127.0.0.1:8081/health"},
+				{cryptoutilSharedMagic.AuthzServiceName, "https://127.0.0.1:8080/health"},
+				{cryptoutilSharedMagic.IDPServiceName, "https://127.0.0.1:8081/health"},
 				{"rs", "https://127.0.0.1:8082/health"},
 			}
 
@@ -67,7 +68,7 @@ Examples:
 					continue
 				}
 
-				if resp.Status == "healthy" {
+				if resp.Status == cryptoutilSharedMagic.DockerServiceHealthHealthy {
 					fmt.Printf("✅ %s: %s", health.name, resp.Status)
 
 					if resp.Database != "" {

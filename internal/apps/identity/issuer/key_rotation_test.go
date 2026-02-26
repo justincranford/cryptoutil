@@ -131,7 +131,7 @@ func TestRotateSigningKey(t *testing.T) {
 	ctx := context.Background()
 
 	// First rotation.
-	err = manager.RotateSigningKey(ctx, "RS256")
+	err = manager.RotateSigningKey(ctx, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm)
 	require.NoError(t, err)
 
 	// Verify key was generated.
@@ -143,11 +143,11 @@ func TestRotateSigningKey(t *testing.T) {
 	require.NotNil(t, activeKey)
 	require.True(t, activeKey.Active)
 	require.True(t, activeKey.ValidForVerif)
-	require.Equal(t, "RS256", activeKey.Algorithm)
+	require.Equal(t, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, activeKey.Algorithm)
 
 	// Second rotation.
 	firstKeyID := activeKey.KeyID
-	err = manager.RotateSigningKey(ctx, "RS256")
+	err = manager.RotateSigningKey(ctx, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm)
 	require.NoError(t, err)
 
 	// Verify second key was generated.
@@ -219,7 +219,7 @@ func TestMaxActiveKeysEnforcement(t *testing.T) {
 	t.Parallel()
 
 	policy := &KeyRotationPolicy{
-		RotationInterval:    24 * time.Hour,
+		RotationInterval:    cryptoutilSharedMagic.HoursPerDay * time.Hour,
 		GracePeriod:         1 * time.Hour,
 		MaxActiveKeys:       2,
 		AutoRotationEnabled: false,
@@ -232,13 +232,13 @@ func TestMaxActiveKeysEnforcement(t *testing.T) {
 	ctx := context.Background()
 
 	// Generate 3 signing keys (exceeds max of 2).
-	err = manager.RotateSigningKey(ctx, "RS256")
+	err = manager.RotateSigningKey(ctx, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm)
 	require.NoError(t, err)
 
-	err = manager.RotateSigningKey(ctx, "RS256")
+	err = manager.RotateSigningKey(ctx, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm)
 	require.NoError(t, err)
 
-	err = manager.RotateSigningKey(ctx, "RS256")
+	err = manager.RotateSigningKey(ctx, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm)
 	require.NoError(t, err)
 
 	// Verify only 2 keys are kept (oldest removed).
@@ -267,7 +267,7 @@ func TestRotationCallback(t *testing.T) {
 	ctx := context.Background()
 
 	// Rotate signing key.
-	err = manager.RotateSigningKey(ctx, "RS256")
+	err = manager.RotateSigningKey(ctx, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm)
 	require.NoError(t, err)
 
 	// Verify callback was invoked.
@@ -350,7 +350,7 @@ func TestGetPublicKeys(t *testing.T) {
 	require.Empty(t, keys)
 
 	// Rotate signing key.
-	err = manager.RotateSigningKey(ctx, "RS256")
+	err = manager.RotateSigningKey(ctx, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm)
 	require.NoError(t, err)
 
 	// Should have one key now.
@@ -375,7 +375,7 @@ func TestGetAllValidVerificationKeys(t *testing.T) {
 	require.Empty(t, keys)
 
 	// Rotate signing key.
-	err = manager.RotateSigningKey(ctx, "RS256")
+	err = manager.RotateSigningKey(ctx, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm)
 	require.NoError(t, err)
 
 	// Should have one key.
@@ -384,7 +384,7 @@ func TestGetAllValidVerificationKeys(t *testing.T) {
 	require.True(t, keys[0].ValidForVerif)
 
 	// Rotate again.
-	err = manager.RotateSigningKey(ctx, "RS256")
+	err = manager.RotateSigningKey(ctx, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm)
 	require.NoError(t, err)
 
 	// Should have two keys now.
@@ -422,7 +422,7 @@ func TestStartAutoRotation(t *testing.T) {
 			t.Parallel()
 
 			policy := &KeyRotationPolicy{
-				RotationInterval:    100 * time.Millisecond,
+				RotationInterval:    cryptoutilSharedMagic.JoseJAMaxMaterials * time.Millisecond,
 				MaxActiveKeys:       3,
 				AutoRotationEnabled: tc.autoRotationEnabled,
 			}
@@ -435,14 +435,14 @@ func TestStartAutoRotation(t *testing.T) {
 			defer cancel()
 
 			if tc.expectRotation {
-				go manager.StartAutoRotation(ctx, "RS256")
+				go manager.StartAutoRotation(ctx, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm)
 
 				time.Sleep(350 * time.Millisecond)
 				cancel()
 
 				require.Greater(t, manager.GetSigningKeyCount(), 0, "Auto-rotation should generate keys")
 			} else {
-				go manager.StartAutoRotation(ctx, "RS256")
+				go manager.StartAutoRotation(ctx, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm)
 
 				time.Sleep(150 * time.Millisecond)
 				cancel()
@@ -462,17 +462,17 @@ func TestEcdsaCurveName(t *testing.T) {
 		expected string
 	}{
 		{
-			name:     "P256",
+			name:     cryptoutilSharedMagic.ECCurveP256,
 			curve:    elliptic.P256(),
 			expected: "P-256",
 		},
 		{
-			name:     "P384",
+			name:     cryptoutilSharedMagic.ECCurveP384,
 			curve:    elliptic.P384(),
 			expected: "P-384",
 		},
 		{
-			name:     "P521",
+			name:     cryptoutilSharedMagic.ECCurveP521,
 			curve:    elliptic.P521(),
 			expected: "P-521",
 		},

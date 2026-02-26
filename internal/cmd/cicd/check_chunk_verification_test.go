@@ -3,6 +3,7 @@
 package cicd
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"fmt"
 	"testing"
@@ -189,7 +190,7 @@ func TestFormatVerificationResults(t *testing.T) {
 				{Mapping: ChunkMapping{ArchSection: "2.2", Description: "B", DestFile: testFileB, MarkerText: "marker"}, Found: false},
 			},
 			allPassed: false,
-			wantParts: []string{"PASS [1.1] A", "FAIL [2.2] B", "Missing marker", "1 PASS, 1 FAIL", "FAILED"},
+			wantParts: []string{"PASS [1.1] A", "FAIL [2.2] B", "Missing marker", "1 PASS, 1 FAIL", cryptoutilSharedMagic.TaskFailed},
 		},
 		{
 			name: "error result",
@@ -197,7 +198,7 @@ func TestFormatVerificationResults(t *testing.T) {
 				{Mapping: ChunkMapping{ArchSection: "1.1", Description: "A"}, Found: false, Error: fmt.Errorf("read error")},
 			},
 			allPassed: false,
-			wantParts: []string{"FAIL [1.1] A", "read error", "0 PASS, 1 FAIL", "FAILED"},
+			wantParts: []string{"FAIL [1.1] A", "read error", "0 PASS, 1 FAIL", cryptoutilSharedMagic.TaskFailed},
 		},
 		{
 			name:      "empty results",
@@ -288,8 +289,8 @@ func TestCheckChunkVerificationWithRoot_Failure(t *testing.T) {
 	exitCode := checkChunkVerificationWithRoot(t.TempDir(), &stdout)
 
 	assert.Equal(t, 1, exitCode, "should fail when no instruction files present")
-	assert.Contains(t, stdout.String(), "FAIL")
-	assert.Contains(t, stdout.String(), "FAILED")
+	assert.Contains(t, stdout.String(), cryptoutilSharedMagic.TestStatusFail)
+	assert.Contains(t, stdout.String(), cryptoutilSharedMagic.TaskFailed)
 }
 
 func TestCheckChunkVerificationWithRoot_Success(t *testing.T) {

@@ -3,6 +3,7 @@
 package server_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	http "net/http"
@@ -18,7 +19,7 @@ func TestRPServer_Lifecycle(t *testing.T) {
 
 	requireTestSetup(t)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second)
 	defer cancel()
 
 	// Test /admin/api/v1/livez endpoint.
@@ -77,7 +78,7 @@ func TestRPServer_PublicHealth(t *testing.T) {
 
 	requireTestSetup(t)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second)
 	defer cancel()
 
 	// Test /health endpoint on public server.

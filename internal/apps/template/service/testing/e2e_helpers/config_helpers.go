@@ -34,7 +34,7 @@ func NewTestServerSettings() *cryptoutilAppsTemplateServiceConfig.ServiceTemplat
 		OTLPService:                 "test-service",
 		OTLPEndpoint:                "grpc://localhost:4317",
 		OTLPEnabled:                 false, // Disable actual OTLP export in tests
-		LogLevel:                    "error",
+		LogLevel:                    cryptoutilSharedMagic.StringError,
 		UnsealMode:                  cryptoutilSharedMagic.DefaultUnsealModeSysInfo, // Ignored when DevMode=true
 		// Session Manager settings - use OPAQUE for simplicity in tests (no JWK generation needed).
 		BrowserSessionAlgorithm:    cryptoutilSharedMagic.DefaultBrowserSessionAlgorithm,

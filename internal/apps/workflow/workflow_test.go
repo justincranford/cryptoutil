@@ -69,8 +69,8 @@ func TestGetAvailableWorkflows(t *testing.T) {
 	expectedWorkflows := map[string]bool{
 		"quality":  true,
 		"coverage": true,
-		"dast":     true,
-		"load":     true,
+		cryptoutilSharedMagic.WorkflowNameDAST:     true,
+		cryptoutilSharedMagic.WorkflowNameLoad:     true,
 		"race":     true,
 	}
 

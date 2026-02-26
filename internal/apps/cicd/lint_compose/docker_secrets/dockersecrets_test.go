@@ -3,6 +3,7 @@
 package docker_secrets
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"strings"
@@ -43,7 +44,7 @@ secrets:
   postgres_password:
     file: ./secrets/postgres_password.secret
 `
-	err := os.WriteFile(composeFile, []byte(validContent), 0o600)
+	err := os.WriteFile(composeFile, []byte(validContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -190,7 +191,7 @@ services:
 			tempDir := t.TempDir()
 			composeFile := filepath.Join(tempDir, "docker-compose.yml")
 
-			err := os.WriteFile(composeFile, []byte(tt.content), 0o600)
+			err := os.WriteFile(composeFile, []byte(tt.content), cryptoutilSharedMagic.CacheFilePermissions)
 			require.NoError(t, err)
 
 			logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -233,7 +234,7 @@ services:
       POSTGRES_PASSWORD: secretpass
       POSTGRES_DB: mydb
 `
-	err := os.WriteFile(composeFile, []byte(content), 0o600)
+	err := os.WriteFile(composeFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations, err := CheckComposeFileSecrets(composeFile)
@@ -261,7 +262,7 @@ secrets:
   postgres_password:
     file: ./secrets/postgres_password.secret
 `
-	err := os.WriteFile(composeFile, []byte(content), 0o600)
+	err := os.WriteFile(composeFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations, err := CheckComposeFileSecrets(composeFile)
@@ -301,7 +302,7 @@ networks:
   default:
     driver: bridge
 `
-	require.NoError(t, os.WriteFile(composeFile, []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(composeFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	violations, err := CheckComposeFileSecrets(composeFile)
 	require.NoError(t, err)
@@ -322,7 +323,7 @@ func TestCheckComposeFileSecrets_EnvironmentSectionExitNonKeyLine(t *testing.T) 
       - SAFE_VAR=safe
     NOTAKEY
 `
-	require.NoError(t, os.WriteFile(composeFile, []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(composeFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
 	violations, err := CheckComposeFileSecrets(composeFile)
 	require.NoError(t, err)
@@ -337,7 +338,7 @@ func TestCheckComposeFileSecrets_ScannerError(t *testing.T) {
 
 	// Create a file with a line exceeding bufio.MaxScanTokenSize to trigger scanner.Err().
 	longLine := "services:\n  myapp:\n    environment:\n      - " + strings.Repeat("x", 70000) + "\n"
-	require.NoError(t, os.WriteFile(composeFile, []byte(longLine), 0o600))
+	require.NoError(t, os.WriteFile(composeFile, []byte(longLine), cryptoutilSharedMagic.CacheFilePermissions))
 
 	_, err := CheckComposeFileSecrets(composeFile)
 	require.Error(t, err)

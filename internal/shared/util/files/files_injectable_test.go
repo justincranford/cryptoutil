@@ -3,6 +3,7 @@
 package files
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -23,9 +24,9 @@ func TestReadFileBytesLimit_StatError(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test.txt")
-	require.NoError(t, os.WriteFile(testFile, []byte("content"), 0o600))
+	require.NoError(t, os.WriteFile(testFile, []byte("content"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	_, err := ReadFileBytesLimit(testFile, 1024)
+	_, err := ReadFileBytesLimit(testFile, cryptoutilSharedMagic.DefaultLogsBatchSize)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to get file stats")
 }
@@ -42,9 +43,9 @@ func TestReadFileBytesLimit_ReadError(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test.txt")
-	require.NoError(t, os.WriteFile(testFile, []byte("content"), 0o600))
+	require.NoError(t, os.WriteFile(testFile, []byte("content"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	_, err := ReadFileBytesLimit(testFile, 1024)
+	_, err := ReadFileBytesLimit(testFile, cryptoutilSharedMagic.DefaultLogsBatchSize)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to read bytes from file")
 }
@@ -61,10 +62,10 @@ func TestReadFileBytesLimit_CloseError(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test.txt")
-	require.NoError(t, os.WriteFile(testFile, []byte("content"), 0o600))
+	require.NoError(t, os.WriteFile(testFile, []byte("content"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Close error only prints a warning, no error returned.
-	data, err := ReadFileBytesLimit(testFile, 1024)
+	data, err := ReadFileBytesLimit(testFile, cryptoutilSharedMagic.DefaultLogsBatchSize)
 	require.NoError(t, err)
 	require.Equal(t, []byte("content"), data)
 }

@@ -14,6 +14,7 @@
 package integration
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	crand "crypto/rand"
 	rsa "crypto/rsa"
@@ -119,40 +120,40 @@ func setupTestServers(t *testing.T) (*testServers, context.CancelFunc) {
 	authzConfig := &cryptoutilIdentityConfig.Config{
 		AuthZ: &cryptoutilIdentityConfig.ServerConfig{
 			Name:        "test-authz",
-			BindAddress: "127.0.0.1",
+			BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 			Port:        testAuthZPort,
 			TLSEnabled:  false,
 		},
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
+			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
 			DSN:  testDBName,
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			AccessTokenFormat: "jws",
+			AccessTokenFormat: cryptoutilSharedMagic.DefaultBrowserSessionCookie,
 			Issuer:            testAuthZBaseURL,
-			SigningAlgorithm:  "RS256",
+			SigningAlgorithm:  cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		},
 	}
 
 	idpConfig := &cryptoutilIdentityConfig.Config{
 		IDP: &cryptoutilIdentityConfig.ServerConfig{
 			Name:        "test-idp",
-			BindAddress: "127.0.0.1",
+			BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 			Port:        testIDPPort,
 			TLSEnabled:  false,
 		},
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
+			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
 			DSN:  testDBName,
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			AccessTokenFormat: "jws",
+			AccessTokenFormat: cryptoutilSharedMagic.DefaultBrowserSessionCookie,
 			Issuer:            testAuthZBaseURL,
-			SigningAlgorithm:  "RS256",
+			SigningAlgorithm:  cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{
-			SessionLifetime: 3600 * time.Second,
-			IdleTimeout:     1800 * time.Second,
+			SessionLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout * time.Second,
+			IdleTimeout:     cryptoutilSharedMagic.IMEnterpriseSessionTimeout * time.Second,
 			CookieName:      "session_id",
 			CookiePath:      "/",
 			CookieSecure:    false,
@@ -164,12 +165,12 @@ func setupTestServers(t *testing.T) (*testServers, context.CancelFunc) {
 	rsConfig := &cryptoutilIdentityConfig.Config{
 		RS: &cryptoutilIdentityConfig.ServerConfig{
 			Name:        "test-rs",
-			BindAddress: "127.0.0.1",
+			BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 			Port:        testRSPort,
 			TLSEnabled:  false,
 		},
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
+			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
 			DSN:  testDBName,
 		},
 	}
@@ -189,7 +190,7 @@ func setupTestServers(t *testing.T) (*testServers, context.CancelFunc) {
 
 	// TEMPORARY: Use legacy JWS issuer without key rotation for integration tests.
 	// TODO: Implement proper key rotation testing infrastructure.
-	privateKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	privateKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	testify.NoError(t, err, "Failed to generate RSA key")
 
 	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuerLegacy(
@@ -287,7 +288,7 @@ func shutdownTestServers(t *testing.T, servers *testServers) {
 	t.Helper()
 
 	// Use longer timeout to allow servers to clean up properly.
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second)
 	defer shutdownCancel()
 
 	// Shutdown servers in parallel to speed up test cleanup.
@@ -333,7 +334,7 @@ func shutdownTestServers(t *testing.T, servers *testServers) {
 	// CRITICAL: Add delay after shutdown to allow OS to release ports.
 	// Without this, next test may fail with "bind: address already in use".
 	// Increased from 100ms to 500ms to handle TCP TIME_WAIT state properly.
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP * time.Millisecond)
 }
 
 // seedTestData seeds the database with test client.
@@ -383,15 +384,15 @@ func seedTestData(t *testing.T, ctx context.Context, repoFactory *cryptoutilIden
 		Name:                    "Test Client",
 		Description:             "Test client for integration tests",
 		RedirectURIs:            []string{testRedirectURI},
-		AllowedGrantTypes:       []string{"authorization_code", "client_credentials", "refresh_token"},
-		AllowedResponseTypes:    []string{"code"},
+		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode, cryptoutilSharedMagic.GrantTypeClientCredentials, cryptoutilSharedMagic.GrantTypeRefreshToken},
+		AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
 		AllowedScopes:           []string{"read:resource", "write:resource", "delete:resource", "admin"},
-		TokenEndpointAuthMethod: "client_secret_post",
+		TokenEndpointAuthMethod: cryptoutilSharedMagic.ClientAuthMethodSecretPost,
 		RequirePKCE:             boolPtr(true),
-		PKCEChallengeMethod:     "S256",
-		AccessTokenLifetime:     3600,
-		RefreshTokenLifetime:    86400,
-		IDTokenLifetime:         3600,
+		PKCEChallengeMethod:     cryptoutilSharedMagic.PKCEMethodS256,
+		AccessTokenLifetime:     cryptoutilSharedMagic.IMDefaultSessionTimeout,
+		RefreshTokenLifetime:    cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+		IDTokenLifetime:         cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		Enabled:                 boolPtr(true),
 		CreatedAt:               now,
 		UpdatedAt:               now,

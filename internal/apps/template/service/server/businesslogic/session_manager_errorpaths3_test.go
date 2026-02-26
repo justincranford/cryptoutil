@@ -98,7 +98,7 @@ func TestValidateBrowserSessionJWE_UnsupportedAlgorithm(t *testing.T) {
 	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	sm.browserAlgorithm = testInvalidAlgorithm
 
-	_, err := sm.ValidateBrowserSession(context.Background(), "token")
+	_, err := sm.ValidateBrowserSession(context.Background(), cryptoutilSharedMagic.ParamToken)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "unsupported browser session algorithm")
 }
@@ -110,7 +110,7 @@ func TestValidateServiceSessionJWE_UnsupportedAlgorithm(t *testing.T) {
 	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	sm.serviceAlgorithm = testInvalidAlgorithm
 
-	_, err := sm.ValidateServiceSession(context.Background(), "token")
+	_, err := sm.ValidateServiceSession(context.Background(), cryptoutilSharedMagic.ParamToken)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "unsupported service session algorithm")
 }

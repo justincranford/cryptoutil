@@ -5,6 +5,7 @@
 package userauth
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"errors"
 	"testing"
@@ -29,14 +30,14 @@ func TestNewHardwareErrorValidator(t *testing.T) {
 		{
 			name:               "valid configuration",
 			maxPINRetries:      3,
-			authTimeout:        30 * time.Second,
+			authTimeout:        cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second,
 			devicePollInterval: 1 * time.Second,
 			wantErr:            false,
 		},
 		{
 			name:               "invalid maxPINRetries (zero)",
 			maxPINRetries:      0,
-			authTimeout:        30 * time.Second,
+			authTimeout:        cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second,
 			devicePollInterval: 1 * time.Second,
 			wantErr:            true,
 		},
@@ -50,7 +51,7 @@ func TestNewHardwareErrorValidator(t *testing.T) {
 		{
 			name:               "invalid devicePollInterval (zero)",
 			maxPINRetries:      3,
-			authTimeout:        30 * time.Second,
+			authTimeout:        cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second,
 			devicePollInterval: 0,
 			wantErr:            true,
 		},
@@ -80,7 +81,7 @@ func TestNewHardwareErrorValidator(t *testing.T) {
 func TestValidateAuthentication(t *testing.T) {
 	t.Parallel()
 
-	validator, err := NewHardwareErrorValidator(3, 30*time.Second, 100*time.Millisecond)
+	validator, err := NewHardwareErrorValidator(3, cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -112,7 +113,7 @@ func TestValidateAuthentication(t *testing.T) {
 		{
 			name: "authentication timeout",
 			authFunc: func(_ context.Context) error {
-				time.Sleep(50 * time.Millisecond)
+				time.Sleep(cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond)
 
 				return ErrAuthenticationTimeout
 			},
@@ -162,7 +163,7 @@ func TestValidateAuthentication(t *testing.T) {
 func TestRetryWithBackoff(t *testing.T) {
 	t.Parallel()
 
-	validator, err := NewHardwareErrorValidator(3, 30*time.Second, 10*time.Millisecond)
+	validator, err := NewHardwareErrorValidator(3, cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Millisecond)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -226,7 +227,7 @@ func TestRetryWithBackoff(t *testing.T) {
 func TestMonitorDevicePresence(t *testing.T) {
 	t.Parallel()
 
-	validator, err := NewHardwareErrorValidator(3, 30*time.Second, 50*time.Millisecond)
+	validator, err := NewHardwareErrorValidator(3, cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second, cryptoutilSharedMagic.IMMaxUsernameLength*time.Millisecond)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -290,7 +291,7 @@ func TestMonitorDevicePresence(t *testing.T) {
 func TestClassifyError(t *testing.T) {
 	t.Parallel()
 
-	validator, err := NewHardwareErrorValidator(3, 30*time.Second, 100*time.Millisecond)
+	validator, err := NewHardwareErrorValidator(3, cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond)
 	require.NoError(t, err)
 
 	tests := []struct {

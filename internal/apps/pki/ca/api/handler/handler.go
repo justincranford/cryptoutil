@@ -282,7 +282,7 @@ func (h *Handler) RevokeCertificate(c *fiber.Ctx, serialNumber string) error {
 	// Parse request body.
 	var req cryptoutilApiCaServer.RevocationRequest
 	if err := c.BodyParser(&req); err != nil {
-		return h.errorResponse(c, fiber.StatusBadRequest, "invalid_request", "failed to parse request body")
+		return h.errorResponse(c, fiber.StatusBadRequest, cryptoutilSharedMagic.ErrorInvalidRequest, "failed to parse request body")
 	}
 
 	// Look up certificate by serial number.
@@ -357,7 +357,7 @@ func mapAPIRevocationReasonToStorage(reason cryptoutilApiCaServer.RevocationReas
 func (h *Handler) SubmitEnrollment(c *fiber.Ctx) error {
 	var req cryptoutilApiCaServer.EnrollmentRequest
 	if err := c.BodyParser(&req); err != nil {
-		return h.errorResponse(c, fiber.StatusBadRequest, "invalid_request", "failed to parse request body")
+		return h.errorResponse(c, fiber.StatusBadRequest, cryptoutilSharedMagic.ErrorInvalidRequest, "failed to parse request body")
 	}
 
 	// Validate required fields.

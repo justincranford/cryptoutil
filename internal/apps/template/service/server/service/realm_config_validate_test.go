@@ -65,7 +65,7 @@ func TestRealmConfig_Validate_Errors(t *testing.T) {
 		{
 			name: "OAuth2Config_MissingProviderURL_WithDiscovery",
 			config: &OAuth2Config{
-				ClientID:     "test-client-id",
+				ClientID:     cryptoutilSharedMagic.TestClientID,
 				UseDiscovery: true,
 			},
 			expectedSubstr: "provider_url is required when use_discovery is true",
@@ -73,7 +73,7 @@ func TestRealmConfig_Validate_Errors(t *testing.T) {
 		{
 			name: "OAuth2Config_MissingURLs_WithoutDiscovery",
 			config: &OAuth2Config{
-				ClientID:     "test-client-id",
+				ClientID:     cryptoutilSharedMagic.TestClientID,
 				UseDiscovery: false,
 			},
 			expectedSubstr: "authorize_url and token_url are required when use_discovery is false",
@@ -113,7 +113,7 @@ func TestRealmConfig_Validate_Errors(t *testing.T) {
 		{
 			name: "OpaqueSessionCookieConfig_TokenLengthTooSmall",
 			config: &OpaqueSessionCookieConfig{
-				TokenLengthBytes:     8, // Below minimum
+				TokenLengthBytes:     cryptoutilSharedMagic.IMMinPasswordLength, // Below minimum
 				SessionExpiryMinutes: 15,
 				StorageType:          cryptoutilSharedMagic.RealmStorageTypeDatabase,
 			},
@@ -122,7 +122,7 @@ func TestRealmConfig_Validate_Errors(t *testing.T) {
 		{
 			name: "OpaqueSessionCookieConfig_SessionExpiryZero",
 			config: &OpaqueSessionCookieConfig{
-				TokenLengthBytes:     32,
+				TokenLengthBytes:     cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes,
 				SessionExpiryMinutes: 0,
 				StorageType:          cryptoutilSharedMagic.RealmStorageTypeDatabase,
 			},
@@ -131,7 +131,7 @@ func TestRealmConfig_Validate_Errors(t *testing.T) {
 		{
 			name: "OpaqueSessionCookieConfig_InvalidStorageType",
 			config: &OpaqueSessionCookieConfig{
-				TokenLengthBytes:     32,
+				TokenLengthBytes:     cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes,
 				SessionExpiryMinutes: 15,
 				StorageType:          "invalid",
 			},
@@ -150,15 +150,15 @@ func TestRealmConfig_Validate_Errors(t *testing.T) {
 			name: "BearerAPITokenConfig_TokenExpiryZero",
 			config: &BearerAPITokenConfig{
 				TokenExpiryDays:  0,
-				TokenLengthBytes: 64,
+				TokenLengthBytes: cryptoutilSharedMagic.MinSerialNumberBits,
 			},
 			expectedSubstr: "token_expiry_days must be at least 1",
 		},
 		{
 			name: "BearerAPITokenConfig_TokenLengthTooSmall",
 			config: &BearerAPITokenConfig{
-				TokenExpiryDays:  30,
-				TokenLengthBytes: 16, // Below minimum
+				TokenExpiryDays:  cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days,
+				TokenLengthBytes: cryptoutilSharedMagic.RealmMinTokenLengthBytes, // Below minimum
 			},
 			expectedSubstr: "token_length_bytes must be at least",
 		},
@@ -191,8 +191,8 @@ func TestRealmConfig_Validate_Errors(t *testing.T) {
 		{
 			name: "OpaqueSessionTokenConfig_TokenLengthTooSmall",
 			config: &OpaqueSessionTokenConfig{
-				TokenLengthBytes:   8, // Below minimum
-				TokenExpiryMinutes: 60,
+				TokenLengthBytes:   cryptoutilSharedMagic.IMMinPasswordLength, // Below minimum
+				TokenExpiryMinutes: cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds,
 				StorageType:        cryptoutilSharedMagic.RealmStorageTypeDatabase,
 			},
 			expectedSubstr: "token_length_bytes must be at least",
@@ -200,7 +200,7 @@ func TestRealmConfig_Validate_Errors(t *testing.T) {
 		{
 			name: "OpaqueSessionTokenConfig_TokenExpiryZero",
 			config: &OpaqueSessionTokenConfig{
-				TokenLengthBytes:   32,
+				TokenLengthBytes:   cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes,
 				TokenExpiryMinutes: 0,
 				StorageType:        cryptoutilSharedMagic.RealmStorageTypeDatabase,
 			},
@@ -209,8 +209,8 @@ func TestRealmConfig_Validate_Errors(t *testing.T) {
 		{
 			name: "OpaqueSessionTokenConfig_InvalidStorageType",
 			config: &OpaqueSessionTokenConfig{
-				TokenLengthBytes:   32,
-				TokenExpiryMinutes: 60,
+				TokenLengthBytes:   cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes,
+				TokenExpiryMinutes: cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds,
 				StorageType:        "invalid",
 			},
 			expectedSubstr: "storage_type must be",

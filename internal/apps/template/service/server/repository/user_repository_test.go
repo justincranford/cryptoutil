@@ -5,6 +5,7 @@
 package repository
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -15,7 +16,7 @@ import (
 
 // uniqueTenantName returns a unique tenant name for tests.
 func uniqueUserTenantName(base string) string {
-	return base + " " + googleUuid.New().String()[:8]
+	return base + " " + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength]
 }
 
 func TestUserRepository_Create(t *testing.T) {
@@ -37,7 +38,7 @@ func TestUserRepository_Create(t *testing.T) {
 	require.NoError(t, err)
 
 	// Generate a unique username for the duplicate test.
-	dupUsername := "testuser-" + googleUuid.New().String()[:8]
+	dupUsername := "testuser-" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength]
 
 	tests := []struct {
 		name      string
@@ -49,8 +50,8 @@ func TestUserRepository_Create(t *testing.T) {
 			user: &User{
 				ID:        googleUuid.New(),
 				TenantID:  tenant.ID,
-				Username:  "testuser-" + googleUuid.New().String()[:8],
-				Email:     "test-" + googleUuid.New().String()[:8] + "@example.com",
+				Username:  "testuser-" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength],
+				Email:     "test-" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength] + "@example.com",
 				Active: 1,
 				CreatedAt: time.Now().UTC(),
 			},
@@ -116,8 +117,8 @@ func TestUserRepository_GetByUsername(t *testing.T) {
 	user := &User{
 		ID:        googleUuid.New(),
 		TenantID:  tenant.ID,
-		Username:  "testuser-" + googleUuid.New().String()[:8],
-		Email:     "test-" + googleUuid.New().String()[:8] + "@example.com",
+		Username:  "testuser-" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength],
+		Email:     "test-" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength] + "@example.com",
 		Active: 1,
 		CreatedAt: time.Now().UTC(),
 	}
@@ -137,7 +138,7 @@ func TestUserRepository_GetByUsername(t *testing.T) {
 		},
 		{
 			name:      "user not found",
-			username:  "nonexistent-" + googleUuid.New().String()[:8],
+			username:  "nonexistent-" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength],
 			wantError: true,
 		},
 	}

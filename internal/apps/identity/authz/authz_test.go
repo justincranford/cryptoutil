@@ -28,14 +28,14 @@ func TestAuthorizationRequestStore_CRUD(t *testing.T) {
 	authRequest := &AuthorizationRequest{
 		RequestID:           requestID,
 		ClientID:            "test_client",
-		RedirectURI:         "https://example.com/callback",
-		ResponseType:        "code",
-		Scope:               "openid",
+		RedirectURI:         cryptoutilSharedMagic.DemoRedirectURI,
+		ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
+		Scope:               cryptoutilSharedMagic.ScopeOpenID,
 		State:               "state123",
 		CodeChallenge:       "challenge",
-		CodeChallengeMethod: "S256",
+		CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 		CreatedAt:           time.Now().UTC(),
-		ExpiresAt:           time.Now().UTC().Add(5 * time.Minute),
+		ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 	}
 
 	err := store.Store(ctx, authRequest)
@@ -78,15 +78,15 @@ func TestAuthorizationRequestStore_Expiration(t *testing.T) {
 	authRequest1 := &AuthorizationRequest{
 		RequestID:           requestID1,
 		ClientID:            "test_client",
-		RedirectURI:         "https://example.com/callback",
-		ResponseType:        "code",
-		Scope:               "openid",
+		RedirectURI:         cryptoutilSharedMagic.DemoRedirectURI,
+		ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
+		Scope:               cryptoutilSharedMagic.ScopeOpenID,
 		State:               "state123",
 		CodeChallenge:       "challenge",
-		CodeChallengeMethod: "S256",
+		CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 		Code:                "valid_code",
 		CreatedAt:           time.Now().UTC(),
-		ExpiresAt:           time.Now().UTC().Add(5 * time.Minute), // Valid.
+		ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute), // Valid.
 		ConsentGranted:      true,
 	}
 
@@ -111,7 +111,7 @@ func TestGenerateAuthorizationCode(t *testing.T) {
 	// Generate multiple codes and ensure uniqueness.
 	codes := make(map[string]bool)
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < cryptoutilSharedMagic.JoseJAMaxMaterials; i++ {
 		code, err := GenerateAuthorizationCode()
 		require.NoError(t, err)
 		require.NotEmpty(t, code)
@@ -139,28 +139,28 @@ func TestAuthorizationRequestStore_CodeIndexing(t *testing.T) {
 	authRequest1 := &AuthorizationRequest{
 		RequestID:           requestID1,
 		ClientID:            "test_client_1",
-		RedirectURI:         "https://example.com/callback",
-		ResponseType:        "code",
-		Scope:               "openid",
+		RedirectURI:         cryptoutilSharedMagic.DemoRedirectURI,
+		ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
+		Scope:               cryptoutilSharedMagic.ScopeOpenID,
 		State:               "state1",
 		CodeChallenge:       "challenge1",
 		CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 		CreatedAt:           time.Now().UTC(),
-		ExpiresAt:           time.Now().UTC().Add(5 * time.Minute),
+		ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 	}
 
 	requestID2 := googleUuid.Must(googleUuid.NewV7())
 	authRequest2 := &AuthorizationRequest{
 		RequestID:           requestID2,
 		ClientID:            "test_client_2",
-		RedirectURI:         "https://example.com/callback",
-		ResponseType:        "code",
+		RedirectURI:         cryptoutilSharedMagic.DemoRedirectURI,
+		ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
 		Scope:               "openid profile",
 		State:               "state2",
 		CodeChallenge:       "challenge2",
 		CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 		CreatedAt:           time.Now().UTC(),
-		ExpiresAt:           time.Now().UTC().Add(5 * time.Minute),
+		ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute),
 	}
 
 	// Store requests.

@@ -5,6 +5,7 @@
 package repository
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"fmt"
@@ -392,7 +393,7 @@ t.Helper()
 
 dsn := fmt.Sprintf("file:partial_%s?mode=memory&cache=shared", googleUuid.Must(googleUuid.NewV7()).String())
 
-sqlDB, err := sql.Open("sqlite", dsn)
+sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
 require.NoError(t, err)
 
 _, err = sqlDB.ExecContext(context.Background(), "PRAGMA journal_mode=WAL;")
@@ -408,8 +409,8 @@ require.NoError(t, err)
 sqlDB2, err := db.DB()
 require.NoError(t, err)
 
-sqlDB2.SetMaxOpenConns(5)
-sqlDB2.SetMaxIdleConns(5)
+sqlDB2.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+sqlDB2.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 sqlDB2.SetConnMaxLifetime(0)
 
 err = db.AutoMigrate(models...)

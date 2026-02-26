@@ -4,6 +4,7 @@
 package apis
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
 
@@ -14,13 +15,13 @@ func TestRateLimiter_Allow_UnderLimit(t *testing.T) {
 	t.Parallel()
 
 	// 10 requests/min, burst 5.
-	rl := NewRateLimiter(10, 5)
+	rl := NewRateLimiter(cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	defer rl.Stop()
 
 	ipAddress := "192.168.1.1"
 
 	// First 5 requests should succeed (burst size).
-	for i := 0; i < 5; i++ {
+	for i := 0; i < cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries; i++ {
 		allowed := rl.Allow(ipAddress)
 		require.True(t, allowed, "Request %d should be allowed", i+1)
 	}
@@ -30,13 +31,13 @@ func TestRateLimiter_Allow_ExceedsLimit(t *testing.T) {
 	t.Parallel()
 
 	// 10 requests/min, burst 5.
-	rl := NewRateLimiter(10, 5)
+	rl := NewRateLimiter(cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	defer rl.Stop()
 
 	ipAddress := "192.168.1.2"
 
 	// First 5 requests succeed (burst).
-	for i := 0; i < 5; i++ {
+	for i := 0; i < cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries; i++ {
 		allowed := rl.Allow(ipAddress)
 		require.True(t, allowed, "Request %d should be allowed (within burst)", i+1)
 	}
@@ -50,7 +51,7 @@ func TestRateLimiter_Allow_TokenRefill(t *testing.T) {
 	t.Parallel()
 
 	// 60 requests/min, burst 2 (1 token refilled per second).
-	rl := NewRateLimiter(60, 2)
+	rl := NewRateLimiter(cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds, 2)
 	defer rl.Stop()
 
 	ipAddress := "192.168.1.3"
@@ -72,7 +73,7 @@ func TestRateLimiter_Allow_PerIPIsolation(t *testing.T) {
 	t.Parallel()
 
 	// 10 requests/min, burst 3.
-	rl := NewRateLimiter(10, 3)
+	rl := NewRateLimiter(cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 3)
 	defer rl.Stop()
 
 	ip1 := "192.168.1.4"
@@ -94,7 +95,7 @@ func TestRateLimiter_Allow_PerIPIsolation(t *testing.T) {
 func TestRateLimiter_Cleanup(t *testing.T) {
 	t.Parallel()
 
-	rl := NewRateLimiter(10, 5)
+	rl := NewRateLimiter(cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	defer rl.Stop()
 
 	ipAddress := "192.168.1.6"
@@ -127,7 +128,7 @@ func TestRateLimiter_Cleanup(t *testing.T) {
 func TestRateLimiter_Stop(t *testing.T) {
 	t.Parallel()
 
-	rl := NewRateLimiter(10, 5)
+	rl := NewRateLimiter(cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 
 	// Call Stop to trigger cleanup loop termination.
 	rl.Stop()

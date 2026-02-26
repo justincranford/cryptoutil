@@ -4,6 +4,7 @@
 package database
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"fmt"
@@ -49,7 +50,7 @@ func TestMain(m *testing.M) {
 			testcontainers.WithWaitStrategy(
 				wait.ForLog("database system is ready to accept connections").
 					WithOccurrence(2).
-					WithStartupTimeout(60*time.Second),
+					WithStartupTimeout(cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds*time.Second),
 			),
 		)
 		if err != nil {
@@ -81,7 +82,7 @@ func TestMain(m *testing.M) {
 func setupTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	sqlDB, err := sql.Open("sqlite", ":memory:")
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
 	require.NoError(t, err)
 
 	dialector := sqlite.Dialector{Conn: sqlDB}
@@ -97,7 +98,7 @@ func TestDefaultShardConfig(t *testing.T) {
 	cfg := DefaultShardConfig()
 	require.Equal(t, StrategyRowLevel, cfg.Strategy)
 	require.Equal(t, "tenant_", cfg.SchemaPrefix)
-	require.Equal(t, "public", cfg.DefaultSchema)
+	require.Equal(t, cryptoutilSharedMagic.SubjectTypePublic, cfg.DefaultSchema)
 	require.True(t, cfg.EnableMigration)
 }
 
@@ -208,7 +209,7 @@ func TestShardManager_GetDB_SchemaLevel(t *testing.T) {
 	cfg := &ShardConfig{
 		Strategy:        StrategySchemaLevel,
 		SchemaPrefix:    "tenant_",
-		DefaultSchema:   "public",
+		DefaultSchema:   cryptoutilSharedMagic.SubjectTypePublic,
 		EnableMigration: true,
 	}
 	m := NewShardManager(testPostgresDB, cfg)
@@ -237,7 +238,7 @@ func TestShardManager_GetDB_SchemaLevel(t *testing.T) {
 		cfg2 := &ShardConfig{
 			Strategy:        StrategySchemaLevel,
 			SchemaPrefix:    "nomig_",
-			DefaultSchema:   "public",
+			DefaultSchema:   cryptoutilSharedMagic.SubjectTypePublic,
 			EnableMigration: false,
 		}
 		m2 := NewShardManager(testPostgresDB, cfg2)
@@ -261,7 +262,7 @@ func TestShardManager_DropTenantSchema(t *testing.T) {
 	cfg := &ShardConfig{
 		Strategy:        StrategySchemaLevel,
 		SchemaPrefix:    "droptenant_",
-		DefaultSchema:   "public",
+		DefaultSchema:   cryptoutilSharedMagic.SubjectTypePublic,
 		EnableMigration: true,
 	}
 	m := NewShardManager(testPostgresDB, cfg)
@@ -291,7 +292,7 @@ func TestShardManager_GetDB_SchemaLevel_InvalidCache(t *testing.T) {
 	cfg := &ShardConfig{
 		Strategy:        StrategySchemaLevel,
 		SchemaPrefix:    "invalid_cache_",
-		DefaultSchema:   "public",
+		DefaultSchema:   cryptoutilSharedMagic.SubjectTypePublic,
 		EnableMigration: false, // No migration needed — cache is pre-populated.
 	}
 	m := NewShardManager(db, cfg)
@@ -316,7 +317,7 @@ func TestShardManager_GetDB_SchemaLevel_EnsureSchemaError(t *testing.T) {
 	cfg := &ShardConfig{
 		Strategy:        StrategySchemaLevel,
 		SchemaPrefix:    "schema_err_",
-		DefaultSchema:   "public",
+		DefaultSchema:   cryptoutilSharedMagic.SubjectTypePublic,
 		EnableMigration: true, // Forces ensureSchema call — fails on SQLite.
 	}
 	m := NewShardManager(db, cfg)

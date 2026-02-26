@@ -97,7 +97,7 @@ func TestMultiTenantTokenIsolation(t *testing.T) {
 			require.True(t, ok, "Response should have active field")
 			require.True(t, active, "Token should be active")
 
-			clientID, ok := result["client_id"].(string)
+			clientID, ok := result[cryptoutilSharedMagic.ClaimClientID].(string)
 			require.True(t, ok, "Response should have client_id field")
 			require.Equal(t, tc.expectOwner.String(), clientID, "Token should belong to expected client")
 		})
@@ -161,14 +161,14 @@ func TestMultiTenantScopeIsolation(t *testing.T) {
 	repoFactory := createMultiTenantTestRepoFactory(t)
 
 	// Create client with limited scopes.
-	limitedClient := createMultiTenantTestClientWithScopes(t, repoFactory, "limited-client", []string{"openid"})
+	limitedClient := createMultiTenantTestClientWithScopes(t, repoFactory, "limited-client", []string{cryptoutilSharedMagic.ScopeOpenID})
 
 	// Create client with full scopes.
-	fullClient := createMultiTenantTestClientWithScopes(t, repoFactory, "full-client", []string{"openid", "profile", "email", "api:admin"})
+	fullClient := createMultiTenantTestClientWithScopes(t, repoFactory, "full-client", []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail, "api:admin"})
 
 	// Create tokens with their client's allowed scopes.
-	limitedToken := createMultiTenantTestTokenWithScopes(t, repoFactory, limitedClient.ID, "limited-token", []string{"openid"})
-	fullToken := createMultiTenantTestTokenWithScopes(t, repoFactory, fullClient.ID, "full-token", []string{"openid", "profile", "email", "api:admin"})
+	limitedToken := createMultiTenantTestTokenWithScopes(t, repoFactory, limitedClient.ID, "limited-token", []string{cryptoutilSharedMagic.ScopeOpenID})
+	fullToken := createMultiTenantTestTokenWithScopes(t, repoFactory, fullClient.ID, "full-token", []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail, "api:admin"})
 
 	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
@@ -259,7 +259,7 @@ func introspectToken(t *testing.T, app *fiber.App, tokenValue string) map[string
 
 // extractScopes extracts scopes from introspection response (handles both []any and string).
 func extractScopes(result map[string]any) []string {
-	scope, exists := result["scope"]
+	scope, exists := result[cryptoutilSharedMagic.ClaimScope]
 	if !exists {
 		return nil
 	}
@@ -293,7 +293,7 @@ func createMultiTenantTestConfig(t *testing.T) *cryptoutilIdentityConfig.Config 
 
 	return &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
+			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
 			DSN:  fmt.Sprintf("file:multitenant_test_%s.db?mode=memory&cache=shared", testID),
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
@@ -332,7 +332,7 @@ func createMultiTenantTestRepoFactory(t *testing.T) *cryptoutilIdentityRepositor
 func createMultiTenantTestClient(t *testing.T, repoFactory *cryptoutilIdentityRepository.RepositoryFactory, name string) *cryptoutilIdentityDomain.Client {
 	t.Helper()
 
-	return createMultiTenantTestClientWithScopes(t, repoFactory, name, []string{"openid", "profile", "email"})
+	return createMultiTenantTestClientWithScopes(t, repoFactory, name, []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail})
 }
 
 // createMultiTenantTestClientWithScopes creates a test client with specific allowed scopes.
@@ -352,7 +352,7 @@ func createMultiTenantTestClientWithScopes(t *testing.T, repoFactory *cryptoutil
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeClientCredentials},
 		AllowedScopes:           scopes,
-		RedirectURIs:            []string{"https://example.com/callback"},
+		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,
 	}
 
@@ -366,7 +366,7 @@ func createMultiTenantTestClientWithScopes(t *testing.T, repoFactory *cryptoutil
 func createMultiTenantTestToken(t *testing.T, repoFactory *cryptoutilIdentityRepository.RepositoryFactory, clientID googleUuid.UUID, name string) *cryptoutilIdentityDomain.Token {
 	t.Helper()
 
-	return createMultiTenantTestTokenWithScopes(t, repoFactory, clientID, name, []string{"openid", "profile"})
+	return createMultiTenantTestTokenWithScopes(t, repoFactory, clientID, name, []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile})
 }
 
 // createMultiTenantTestTokenWithScopes creates a test token with specific scopes.

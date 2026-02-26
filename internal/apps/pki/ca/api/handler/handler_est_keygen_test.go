@@ -3,6 +3,7 @@
 package handler
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 ecdsa "crypto/ecdsa"
 "crypto/ed25519"
 "crypto/elliptic"
@@ -48,7 +49,7 @@ return csrDER
 func createRSACSR(t *testing.T) []byte {
 t.Helper()
 
-key, err := rsa.GenerateKey(crand.Reader, 2048)
+key, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 require.NoError(t, err)
 
 csrTemplate := &x509.CertificateRequest{
@@ -146,7 +147,7 @@ csrDER := createECDSACSR(t)
 corrupted := make([]byte, len(csrDER))
 copy(corrupted, csrDER)
 
-for i := len(corrupted) - 5; i < len(corrupted); i++ {
+for i := len(corrupted) - cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries; i < len(corrupted); i++ {
 corrupted[i] ^= 0xFF
 }
 
@@ -177,7 +178,7 @@ key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 require.NoError(t, err)
 
 template := &x509.Certificate{
-SerialNumber: big.NewInt(42),
+SerialNumber: big.NewInt(cryptoutilSharedMagic.AnswerToLifeUniverseEverything),
 Subject: pkix.Name{
 CommonName: "test.example.com",
 },
@@ -188,7 +189,7 @@ NotAfter:  time.Now().UTC().Add(time.Hour),
 certDER, err := x509.CreateCertificate(crand.Reader, template, template, &key.PublicKey, key)
 require.NoError(t, err)
 
-certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certDER})
+certPEM := pem.EncodeToMemory(&pem.Block{Type: cryptoutilSharedMagic.StringPEMTypeCertificate, Bytes: certDER})
 keyPEM := []byte("-----BEGIN EC PRIVATE KEY-----\ntest\n-----END EC PRIVATE KEY-----")
 
 // Invalid x509 DER inside valid PEM will cause parse failure.

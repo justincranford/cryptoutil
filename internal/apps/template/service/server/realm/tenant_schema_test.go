@@ -5,6 +5,7 @@
 package realm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"strings"
 	"testing"
@@ -272,7 +273,7 @@ func TestSanitizeSchemaName_Truncation(t *testing.T) {
 	t.Parallel()
 
 	// Generate a name longer than 63 characters.
-	longName := strings.Repeat("abcdefghij", 7) // 70 chars.
+	longName := strings.Repeat("abcdefghij", cryptoutilSharedMagic.GitRecentActivityDays) // 70 chars.
 	result := sanitizeSchemaName(longName)
-	require.Equal(t, 63, len(result))
+	require.Equal(t, cryptoutilSharedMagic.FQDNLabelMaxLength, len(result))
 }

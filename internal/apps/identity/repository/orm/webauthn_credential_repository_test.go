@@ -5,6 +5,7 @@
 package orm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 	"time"
@@ -86,7 +87,7 @@ func TestWebAuthnCredentialRepository_StoreCredential(t *testing.T) {
 				UserID:          googleUuid.Must(googleUuid.NewV7()).String(),
 				Type:            CredentialTypePasskey,
 				PublicKey:       []byte("public-key-data"),
-				AttestationType: "none",
+				AttestationType: cryptoutilSharedMagic.PromptNone,
 				AAGUID:          []byte{1, 2, 3, 4},
 				SignCount:       0,
 				CreatedAt:       time.Now().UTC(),
@@ -110,7 +111,7 @@ func TestWebAuthnCredentialRepository_StoreCredential(t *testing.T) {
 				UserID:          invalidUserID,
 				Type:            CredentialTypePasskey,
 				PublicKey:       []byte("public-key-data"),
-				AttestationType: "none",
+				AttestationType: cryptoutilSharedMagic.PromptNone,
 				SignCount:       0,
 				CreatedAt:       time.Now().UTC(),
 				LastUsedAt:      time.Now().UTC(),
@@ -170,9 +171,9 @@ func TestWebAuthnCredentialRepository_UpdateCredential(t *testing.T) {
 		UserID:          userID,
 		Type:            CredentialTypePasskey,
 		PublicKey:       []byte("public-key-data"),
-		AttestationType: "none",
+		AttestationType: cryptoutilSharedMagic.PromptNone,
 		AAGUID:          []byte{1, 2, 3, 4},
-		SignCount:       5,
+		SignCount:       cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 		CreatedAt:       time.Now().UTC(),
 		LastUsedAt:      time.Now().UTC(),
 		Metadata: map[string]any{
@@ -184,7 +185,7 @@ func TestWebAuthnCredentialRepository_UpdateCredential(t *testing.T) {
 	require.NoError(t, err)
 
 	// Update sign counter (replay prevention).
-	cred.SignCount = 10
+	cred.SignCount = cryptoutilSharedMagic.JoseJADefaultMaxMaterials
 	cred.LastUsedAt = time.Now().UTC().Add(1 * time.Hour)
 
 	err = repo.StoreCredential(ctx, cred)
@@ -193,7 +194,7 @@ func TestWebAuthnCredentialRepository_UpdateCredential(t *testing.T) {
 	// Verify updated credential.
 	retrieved, err := repo.GetCredential(ctx, cred.ID)
 	require.NoError(t, err)
-	require.Equal(t, uint32(10), retrieved.SignCount)
+	require.Equal(t, uint32(cryptoutilSharedMagic.JoseJADefaultMaxMaterials), retrieved.SignCount)
 }
 
 func TestWebAuthnCredentialRepository_GetCredential(t *testing.T) {
@@ -215,7 +216,7 @@ func TestWebAuthnCredentialRepository_GetCredential(t *testing.T) {
 				UserID:          userID,
 				Type:            CredentialTypePasskey,
 				PublicKey:       []byte("public-key-data"),
-				AttestationType: "none",
+				AttestationType: cryptoutilSharedMagic.PromptNone,
 				SignCount:       0,
 				CreatedAt:       time.Now().UTC(),
 				LastUsedAt:      time.Now().UTC(),
@@ -285,7 +286,7 @@ func TestWebAuthnCredentialRepository_GetUserCredentials(t *testing.T) {
 					UserID:          userID1,
 					Type:            CredentialTypePasskey,
 					PublicKey:       []byte("public-key-1"),
-					AttestationType: "none",
+					AttestationType: cryptoutilSharedMagic.PromptNone,
 					SignCount:       0,
 					CreatedAt:       time.Now().UTC(),
 					LastUsedAt:      time.Now().UTC(),
@@ -295,7 +296,7 @@ func TestWebAuthnCredentialRepository_GetUserCredentials(t *testing.T) {
 					UserID:          userID1,
 					Type:            CredentialTypePasskey,
 					PublicKey:       []byte("public-key-2"),
-					AttestationType: "none",
+					AttestationType: cryptoutilSharedMagic.PromptNone,
 					SignCount:       0,
 					CreatedAt:       time.Now().UTC().Add(1 * time.Minute),
 					LastUsedAt:      time.Now().UTC().Add(1 * time.Minute),
@@ -378,7 +379,7 @@ func TestWebAuthnCredentialRepository_DeleteCredential(t *testing.T) {
 				UserID:          userID1,
 				Type:            CredentialTypePasskey,
 				PublicKey:       []byte("public-key-data"),
-				AttestationType: "none",
+				AttestationType: cryptoutilSharedMagic.PromptNone,
 				SignCount:       0,
 				CreatedAt:       time.Now().UTC(),
 				LastUsedAt:      time.Now().UTC(),
@@ -445,9 +446,9 @@ func TestWebAuthnCredentialRepository_CounterIncrement(t *testing.T) {
 		UserID:          userID,
 		Type:            CredentialTypePasskey,
 		PublicKey:       []byte("public-key-data"),
-		AttestationType: "none",
+		AttestationType: cryptoutilSharedMagic.PromptNone,
 		AAGUID:          []byte{1, 2, 3, 4},
-		SignCount:       5,
+		SignCount:       cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 		CreatedAt:       time.Now().UTC(),
 		LastUsedAt:      time.Now().UTC(),
 	}
@@ -456,7 +457,7 @@ func TestWebAuthnCredentialRepository_CounterIncrement(t *testing.T) {
 	require.NoError(t, err)
 
 	// Simulate authentication (counter increment).
-	for i := uint32(6); i <= 10; i++ {
+	for i := uint32(cryptoutilSharedMagic.DefaultEmailOTPLength); i <= cryptoutilSharedMagic.JoseJADefaultMaxMaterials; i++ {
 		cred.SignCount = i
 		cred.LastUsedAt = time.Now().UTC().Add(time.Duration(i) * time.Second)
 
@@ -472,5 +473,5 @@ func TestWebAuthnCredentialRepository_CounterIncrement(t *testing.T) {
 	// Final verification.
 	final, err := repo.GetCredential(ctx, cred.ID)
 	require.NoError(t, err)
-	require.Equal(t, uint32(10), final.SignCount)
+	require.Equal(t, uint32(cryptoutilSharedMagic.JoseJADefaultMaxMaterials), final.SignCount)
 }

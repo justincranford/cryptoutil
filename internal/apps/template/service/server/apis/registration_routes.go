@@ -33,7 +33,7 @@ func RegisterRegistrationRoutes(
 		ipAddress := c.IP()
 		if !rateLimiter.Allow(ipAddress) {
 			return c.Status(http.StatusTooManyRequests).JSON(fiber.Map{
-				"error": "Rate limit exceeded. Please try again later.",
+				cryptoutilSharedMagic.StringError: "Rate limit exceeded. Please try again later.",
 			})
 		}
 

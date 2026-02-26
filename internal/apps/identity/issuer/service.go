@@ -143,7 +143,7 @@ func (s *TokenService) IntrospectToken(ctx context.Context, token string) (*Toke
 	}
 
 	// Add expiration time.
-	if exp, ok := claims["exp"].(float64); ok {
+	if exp, ok := claims[cryptoutilSharedMagic.ClaimExp].(float64); ok {
 		expiresAt := time.Unix(int64(exp), 0)
 		metadata.ExpiresAt = &expiresAt
 	}

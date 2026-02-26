@@ -3,6 +3,7 @@
 package healthcheck
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	json "encoding/json"
 	http "net/http"
@@ -20,7 +21,7 @@ func TestPollerPollHealthy(t *testing.T) {
 		require.Equal(t, "/health", r.URL.Path)
 
 		resp := Response{
-			Status:   "healthy",
+			Status:   cryptoutilSharedMagic.DockerServiceHealthHealthy,
 			Database: "ok",
 		}
 
@@ -30,13 +31,13 @@ func TestPollerPollHealthy(t *testing.T) {
 	}))
 	defer server.Close()
 
-	poller := NewPoller(5*time.Second, 3, true) // skipTLSVerify=true for tests
+	poller := NewPoller(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second, 3, true) // skipTLSVerify=true for tests
 	ctx := context.Background()
 
 	resp, err := poller.Poll(ctx, server.URL+"/health")
 	require.NoError(t, err)
 	require.NotNil(t, resp)
-	require.Equal(t, "healthy", resp.Status)
+	require.Equal(t, cryptoutilSharedMagic.DockerServiceHealthHealthy, resp.Status)
 	require.Equal(t, "ok", resp.Database)
 }
 
@@ -54,7 +55,7 @@ func TestPollerPollUnhealthy(t *testing.T) {
 	}))
 	defer server.Close()
 
-	poller := NewPoller(5*time.Second, 2, true) // skipTLSVerify=true for tests
+	poller := NewPoller(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second, 2, true) // skipTLSVerify=true for tests
 	ctx := context.Background()
 
 	resp, err := poller.Poll(ctx, server.URL+"/health")
@@ -71,7 +72,7 @@ func TestPollerPollNotFound(t *testing.T) {
 	}))
 	defer server.Close()
 
-	poller := NewPoller(5*time.Second, 2, true) // skipTLSVerify=true for tests
+	poller := NewPoller(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second, 2, true) // skipTLSVerify=true for tests
 	ctx := context.Background()
 
 	resp, err := poller.Poll(ctx, server.URL+"/health")
@@ -90,7 +91,7 @@ func TestPollerPollInvalidJSON(t *testing.T) {
 	}))
 	defer server.Close()
 
-	poller := NewPoller(5*time.Second, 2, true) // skipTLSVerify=true for tests
+	poller := NewPoller(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second, 2, true) // skipTLSVerify=true for tests
 	ctx := context.Background()
 
 	resp, err := poller.Poll(ctx, server.URL+"/health")
@@ -105,12 +106,12 @@ func TestPollerPollContextCanceled(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		time.Sleep(2 * time.Second)
 
-		resp := Response{Status: "healthy"}
+		resp := Response{Status: cryptoutilSharedMagic.DockerServiceHealthHealthy}
 		_ = json.NewEncoder(w).Encode(resp) //nolint:errcheck // Test HTTP handler - encoding error in test response not critical
 	}))
 	defer server.Close()
 
-	poller := NewPoller(5*time.Second, 10, true) // skipTLSVerify=true for tests
+	poller := NewPoller(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, true) // skipTLSVerify=true for tests
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel() // Cancel immediately
 
@@ -134,7 +135,7 @@ func TestPollerPollEventuallyHealthy(t *testing.T) {
 			return
 		}
 		// Third attempt succeeds
-		resp := Response{Status: "healthy"}
+		resp := Response{Status: cryptoutilSharedMagic.DockerServiceHealthHealthy}
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
@@ -142,13 +143,13 @@ func TestPollerPollEventuallyHealthy(t *testing.T) {
 	}))
 	defer server.Close()
 
-	poller := NewPoller(5*time.Second, 5, true) // skipTLSVerify=true for tests
+	poller := NewPoller(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, true) // skipTLSVerify=true for tests
 	ctx := context.Background()
 
 	resp, err := poller.Poll(ctx, server.URL+"/health")
 	require.NoError(t, err)
 	require.NotNil(t, resp)
-	require.Equal(t, "healthy", resp.Status)
+	require.Equal(t, cryptoutilSharedMagic.DockerServiceHealthHealthy, resp.Status)
 	require.Equal(t, 3, attempts)
 }
 
@@ -157,11 +158,11 @@ func TestNewPoller_WithTLSVerification(t *testing.T) {
 	t.Parallel()
 
 	// Test skipTLSVerify=false (production setting).
-	poller := NewPoller(5*time.Second, 3, false)
+	poller := NewPoller(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second, 3, false)
 	require.NotNil(t, poller)
 	require.NotNil(t, poller.client)
 	require.Equal(t, 3*defaultInitialInterval, poller.timeout)
-	require.Equal(t, 5*time.Second, poller.client.Timeout)
+	require.Equal(t, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second, poller.client.Timeout)
 	require.Equal(t, defaultInitialInterval, poller.interval)
 }
 
@@ -170,10 +171,10 @@ func TestNewPoller_WithSkipTLSVerify(t *testing.T) {
 	t.Parallel()
 
 	// Test skipTLSVerify=true (development/testing setting).
-	poller := NewPoller(10*time.Second, 5, true)
+	poller := NewPoller(cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, true)
 	require.NotNil(t, poller)
 	require.NotNil(t, poller.client)
-	require.Equal(t, 5*defaultInitialInterval, poller.timeout)
-	require.Equal(t, 10*time.Second, poller.client.Timeout)
+	require.Equal(t, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*defaultInitialInterval, poller.timeout)
+	require.Equal(t, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second, poller.client.Timeout)
 	require.Equal(t, defaultInitialInterval, poller.interval)
 }

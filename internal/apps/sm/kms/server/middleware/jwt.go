@@ -171,12 +171,12 @@ func (v *JWTValidator) JWTMiddleware() fiber.Handler {
 
 		// Check Bearer prefix.
 		if !strings.HasPrefix(authHeader, cryptoutilSharedMagic.HTTPAuthorizationBearerPrefix) {
-			return v.unauthorizedError(c, "invalid_token", "Authorization header must use Bearer scheme")
+			return v.unauthorizedError(c, cryptoutilSharedMagic.ErrorInvalidToken, "Authorization header must use Bearer scheme")
 		}
 
 		tokenString := strings.TrimPrefix(authHeader, cryptoutilSharedMagic.HTTPAuthorizationBearerPrefix)
 		if tokenString == "" {
-			return v.unauthorizedError(c, "invalid_token", "Bearer token is empty")
+			return v.unauthorizedError(c, cryptoutilSharedMagic.ErrorInvalidToken, "Bearer token is empty")
 		}
 
 		// Validate token.

@@ -4,6 +4,7 @@
 package builder
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"testing"
@@ -24,7 +25,7 @@ func TestDatabaseConnection(t *testing.T) {
 		{
 			name: "valid gorm db",
 			setup: func() *gorm.DB {
-				db, _ := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+				db, _ := gorm.Open(sqlite.Open(cryptoutilSharedMagic.SQLiteMemoryPlaceholder), &gorm.Config{})
 
 				return db
 			},
@@ -90,16 +91,16 @@ func TestDatabaseConfig(t *testing.T) {
 		cfg := NewDatabaseConfig("postgres://localhost/db")
 		require.Equal(t, "postgres://localhost/db", cfg.URL)
 		require.False(t, cfg.VerboseMode)
-		require.Equal(t, "disabled", cfg.ContainerMode)
+		require.Equal(t, cryptoutilSharedMagic.DefaultDatabaseContainerDisabled, cfg.ContainerMode)
 	})
 
 	t.Run("memory config", func(t *testing.T) {
 		t.Parallel()
 
-		cfg := NewDatabaseConfig(":memory:")
-		require.Equal(t, ":memory:", cfg.URL)
+		cfg := NewDatabaseConfig(cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
+		require.Equal(t, cryptoutilSharedMagic.SQLiteMemoryPlaceholder, cfg.URL)
 		require.False(t, cfg.VerboseMode)
-		require.Equal(t, "disabled", cfg.ContainerMode)
+		require.Equal(t, cryptoutilSharedMagic.DefaultDatabaseContainerDisabled, cfg.ContainerMode)
 	})
 }
 

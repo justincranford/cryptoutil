@@ -3,6 +3,7 @@
 package magic_usage
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -77,7 +78,7 @@ const TestVal = "hello"
 	// The directory-level skip should catch this, but also exercises the code path
 	// where MagicShouldSkipPath is checked at the file level.
 	testOutputDir := filepath.Join(rootDir, "test-output")
-	require.NoError(t, os.MkdirAll(testOutputDir, 0o755))
+	require.NoError(t, os.MkdirAll(testOutputDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	// Write a file that uses the literal "hello" — if skip works, no violation is reported.
 	writeMagicFile(t, testOutputDir, "skipped.go", `package testoutput

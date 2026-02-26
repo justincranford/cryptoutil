@@ -1,6 +1,7 @@
 package lint_deployments_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -16,15 +17,15 @@ func TestValidateConfigFiles_MissingRequiredConfigs(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "secrets"), 0o755))
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "config"), 0o755))
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "compose.yml"), []byte("version: '3'"), 0o600))
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "Dockerfile"), []byte("FROM alpine"), 0o600))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "compose.yml"), []byte("version: '3'"), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "Dockerfile"), []byte("FROM alpine"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	createRequiredSecrets(t, tmpDir)
 
 	// Config dir exists but has no config files.
-	result, err := ValidateDeploymentStructure(tmpDir, "sm-kms", "PRODUCT-SERVICE")
+	result, err := ValidateDeploymentStructure(tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS, "PRODUCT-SERVICE")
 	require.NoError(t, err)
 
 	assert.False(t, result.Valid, "should be invalid with missing config files")
@@ -43,18 +44,18 @@ func TestValidateConfigFiles_WrongPrefix(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "secrets"), 0o755))
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "config"), 0o755))
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "compose.yml"), []byte("version: '3'"), 0o600))
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "Dockerfile"), []byte("FROM alpine"), 0o600))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "compose.yml"), []byte("version: '3'"), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "Dockerfile"), []byte("FROM alpine"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	createRequiredSecrets(t, tmpDir)
-	createRequiredConfigFiles(t, tmpDir, "sm-kms")
+	createRequiredConfigFiles(t, tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS)
 
 	// Add a file with wrong prefix (kms-app.yml instead of sm-kms-app.yml).
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "config", "kms-app.yml"), []byte("# wrong"), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "config", "kms-app.yml"), []byte("# wrong"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	result, err := ValidateDeploymentStructure(tmpDir, "sm-kms", "PRODUCT-SERVICE")
+	result, err := ValidateDeploymentStructure(tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS, "PRODUCT-SERVICE")
 	require.NoError(t, err)
 
 	assert.False(t, result.Valid, "should be invalid with wrong-prefix config file")
@@ -69,20 +70,20 @@ func TestValidateConfigFiles_WrongSuffix(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "secrets"), 0o755))
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "config"), 0o755))
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "compose.yml"), []byte("version: '3'"), 0o600))
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "Dockerfile"), []byte("FROM alpine"), 0o600))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "compose.yml"), []byte("version: '3'"), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "Dockerfile"), []byte("FROM alpine"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	createRequiredSecrets(t, tmpDir)
 
 	// Create config files with wrong suffix (no instance number).
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "config", "sm-kms-app-common.yml"), []byte("# cfg"), 0o600))
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "config", "sm-kms-app-sqlite.yml"), []byte("# wrong"), 0o600))
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "config", "sm-kms-app-postgresql-1.yml"), []byte("# cfg"), 0o600))
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "config", "sm-kms-app-postgresql-2.yml"), []byte("# cfg"), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "config", "sm-kms-app-common.yml"), []byte("# cfg"), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "config", "sm-kms-app-sqlite.yml"), []byte("# wrong"), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "config", "sm-kms-app-postgresql-1.yml"), []byte("# cfg"), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "config", "sm-kms-app-postgresql-2.yml"), []byte("# cfg"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	result, err := ValidateDeploymentStructure(tmpDir, "sm-kms", "PRODUCT-SERVICE")
+	result, err := ValidateDeploymentStructure(tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS, "PRODUCT-SERVICE")
 	require.NoError(t, err)
 
 	// Should be invalid because sm-kms-app-sqlite-1.yml is missing (sm-kms-app-sqlite.yml is not the right name).
@@ -96,12 +97,12 @@ func TestValidateConfigFiles_DeprecatedDemoSeed(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	createValidProductServiceDeployment(t, tmpDir, "sm-kms")
+	createValidProductServiceDeployment(t, tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS)
 
 	// Add deprecated demo-seed.yml.
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "config", "demo-seed.yml"), []byte("# deprecated"), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "config", "demo-seed.yml"), []byte("# deprecated"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	result, err := ValidateDeploymentStructure(tmpDir, "sm-kms", "PRODUCT-SERVICE")
+	result, err := ValidateDeploymentStructure(tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS, "PRODUCT-SERVICE")
 	require.NoError(t, err)
 
 	assert.False(t, result.Valid, "should be invalid with deprecated demo-seed.yml")
@@ -116,12 +117,12 @@ func TestValidateConfigFiles_DeprecatedIntegration(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	createValidProductServiceDeployment(t, tmpDir, "sm-kms")
+	createValidProductServiceDeployment(t, tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS)
 
 	// Add deprecated integration.yml.
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "config", "integration.yml"), []byte("# deprecated"), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "config", "integration.yml"), []byte("# deprecated"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	result, err := ValidateDeploymentStructure(tmpDir, "sm-kms", "PRODUCT-SERVICE")
+	result, err := ValidateDeploymentStructure(tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS, "PRODUCT-SERVICE")
 	require.NoError(t, err)
 
 	assert.False(t, result.Valid, "should be invalid with deprecated integration.yml")
@@ -137,15 +138,15 @@ func TestValidateConfigFiles_SinglePartDeploymentName(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "secrets"), 0o755))
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "config"), 0o755))
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "compose.yml"), []byte("version: '3'"), 0o600))
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "Dockerfile"), []byte("FROM alpine"), 0o600))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "compose.yml"), []byte("version: '3'"), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "Dockerfile"), []byte("FROM alpine"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	createRequiredSecrets(t, tmpDir)
 
 	// Single-part name (not PRODUCT-SERVICE pattern) should produce error.
-	result, err := ValidateDeploymentStructure(tmpDir, "kms", "PRODUCT-SERVICE")
+	result, err := ValidateDeploymentStructure(tmpDir, cryptoutilSharedMagic.KMSServiceName, "PRODUCT-SERVICE")
 	require.NoError(t, err)
 
 	assert.False(t, result.Valid, "should be invalid with single-part deployment name")
@@ -158,12 +159,12 @@ func TestValidateConfigFiles_WrongProductPrefix(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	createValidProductServiceDeployment(t, tmpDir, "sm-kms")
+	createValidProductServiceDeployment(t, tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS)
 
 	// Add a file with wrong product prefix (pki-kms instead of sm-kms).
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "config", "pki-kms-app-common.yml"), []byte("# wrong product"), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "config", "pki-kms-app-common.yml"), []byte("# wrong product"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	result, err := ValidateDeploymentStructure(tmpDir, "sm-kms", "PRODUCT-SERVICE")
+	result, err := ValidateDeploymentStructure(tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS, "PRODUCT-SERVICE")
 	require.NoError(t, err)
 
 	assert.False(t, result.Valid, "should be invalid with wrong product prefix")
@@ -177,14 +178,14 @@ func TestValidateConfigFiles_NonYAMLFilesIgnored(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	createValidProductServiceDeployment(t, tmpDir, "sm-kms")
+	createValidProductServiceDeployment(t, tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS)
 
 	// Add non-YAML files that should be ignored.
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "config", "README.md"), []byte("# readme"), 0o600))
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "config", ".gitkeep"), []byte(""), 0o600))
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "config", "notes.txt"), []byte("notes"), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "config", "README.md"), []byte("# readme"), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "config", ".gitkeep"), []byte(""), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "config", "notes.txt"), []byte("notes"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	result, err := ValidateDeploymentStructure(tmpDir, "sm-kms", "PRODUCT-SERVICE")
+	result, err := ValidateDeploymentStructure(tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS, "PRODUCT-SERVICE")
 	require.NoError(t, err)
 
 	assert.True(t, result.Valid, "non-YAML files should be ignored")
@@ -198,11 +199,11 @@ func TestValidateConfigFiles_IdentityMultiPartServiceName(t *testing.T) {
 		name           string
 		productService string
 	}{
-		{name: "identity-authz", productService: "identity-authz"},
-		{name: "identity-idp", productService: "identity-idp"},
-		{name: "identity-rp", productService: "identity-rp"},
-		{name: "identity-rs", productService: "identity-rs"},
-		{name: "identity-spa", productService: "identity-spa"},
+		{name: cryptoutilSharedMagic.OTLPServiceIdentityAuthz, productService: cryptoutilSharedMagic.OTLPServiceIdentityAuthz},
+		{name: cryptoutilSharedMagic.OTLPServiceIdentityIDP, productService: cryptoutilSharedMagic.OTLPServiceIdentityIDP},
+		{name: cryptoutilSharedMagic.OTLPServiceIdentityRP, productService: cryptoutilSharedMagic.OTLPServiceIdentityRP},
+		{name: cryptoutilSharedMagic.OTLPServiceIdentityRS, productService: cryptoutilSharedMagic.OTLPServiceIdentityRS},
+		{name: cryptoutilSharedMagic.OTLPServiceIdentitySPA, productService: cryptoutilSharedMagic.OTLPServiceIdentitySPA},
 	}
 
 	for _, tc := range tests {

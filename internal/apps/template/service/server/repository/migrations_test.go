@@ -5,6 +5,7 @@
 package repository_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"database/sql"
 	"embed"
@@ -31,7 +32,7 @@ func TestNewMigrationRunner(t *testing.T) {
 func TestMigrationRunner_Apply_SQLite(t *testing.T) {
 	t.Parallel()
 
-	db, err := sql.Open("sqlite", ":memory:")
+	db, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
 	require.NoError(t, err)
 
 	defer func() { _ = db.Close() }()
@@ -52,7 +53,7 @@ func TestMigrationRunner_Apply_SQLite(t *testing.T) {
 func TestMigrationRunner_Apply_InvalidPath(t *testing.T) {
 	t.Parallel()
 
-	db, err := sql.Open("sqlite", ":memory:")
+	db, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
 	require.NoError(t, err)
 
 	defer func() { _ = db.Close() }()
@@ -68,7 +69,7 @@ func TestMigrationRunner_Apply_InvalidPath(t *testing.T) {
 func TestMigrationRunner_Apply_UnsupportedDatabaseType(t *testing.T) {
 	t.Parallel()
 
-	db, err := sql.Open("sqlite", ":memory:")
+	db, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
 	require.NoError(t, err)
 
 	defer func() { _ = db.Close() }()
@@ -84,7 +85,7 @@ func TestMigrationRunner_Apply_UnsupportedDatabaseType(t *testing.T) {
 func TestMigrationRunner_Apply_NoChanges(t *testing.T) {
 	t.Parallel()
 
-	db, err := sql.Open("sqlite", ":memory:")
+	db, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
 	require.NoError(t, err)
 
 	defer func() { _ = db.Close() }()
@@ -104,12 +105,12 @@ func TestMigrationRunner_Apply_NoChanges(t *testing.T) {
 func TestApplyMigrationsFromFS_SQLite(t *testing.T) {
 	t.Parallel()
 
-	db, err := sql.Open("sqlite", ":memory:")
+	db, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
 	require.NoError(t, err)
 
 	defer func() { _ = db.Close() }()
 
-	err = cryptoutilAppsTemplateServiceServerRepository.ApplyMigrationsFromFS(db, testMigrationsFS, "test_migrations", "sqlite")
+	err = cryptoutilAppsTemplateServiceServerRepository.ApplyMigrationsFromFS(db, testMigrationsFS, "test_migrations", cryptoutilSharedMagic.TestDatabaseSQLite)
 	require.NoError(t, err)
 }
 
@@ -117,7 +118,7 @@ func TestApplyMigrationsFromFS_SQLite(t *testing.T) {
 func TestApplyMigrationsFromFS_Sqlite3(t *testing.T) {
 	t.Parallel()
 
-	db, err := sql.Open("sqlite", ":memory:")
+	db, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
 	require.NoError(t, err)
 
 	defer func() { _ = db.Close() }()
@@ -130,7 +131,7 @@ func TestApplyMigrationsFromFS_Sqlite3(t *testing.T) {
 func TestApplyMigrationsFromFS_UnsupportedType(t *testing.T) {
 	t.Parallel()
 
-	db, err := sql.Open("sqlite", ":memory:")
+	db, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
 	require.NoError(t, err)
 
 	defer func() { _ = db.Close() }()

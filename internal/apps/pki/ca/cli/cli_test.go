@@ -3,6 +3,7 @@
 package cli
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"context"
 	ecdsa "crypto/ecdsa"
@@ -79,7 +80,7 @@ func TestCLI_GenerateKey(t *testing.T) {
 		},
 		{
 			name:     "RSA 2048",
-			opts:     &KeyGenOptions{Algorithm: "RSA", KeySize: 2048},
+			opts:     &KeyGenOptions{Algorithm: cryptoutilSharedMagic.KeyTypeRSA, KeySize: cryptoutilSharedMagic.DefaultMetricsBatchSize},
 			wantType: keyTypeRSA,
 			wantErr:  false,
 		},
@@ -108,8 +109,8 @@ func TestCLI_GenerateKey(t *testing.T) {
 			wantErr:  false,
 		},
 		{
-			name:     "Ed25519",
-			opts:     &KeyGenOptions{Algorithm: "Ed25519"},
+			name:     cryptoutilSharedMagic.EdCurveEd25519,
+			opts:     &KeyGenOptions{Algorithm: cryptoutilSharedMagic.EdCurveEd25519},
 			wantType: keyTypeEd25519,
 			wantErr:  false,
 		},
@@ -121,7 +122,7 @@ func TestCLI_GenerateKey(t *testing.T) {
 		},
 		{
 			name:     "EdDSA alias",
-			opts:     &KeyGenOptions{Algorithm: "EdDSA"},
+			opts:     &KeyGenOptions{Algorithm: cryptoutilSharedMagic.JoseAlgEdDSA},
 			wantType: keyTypeEd25519,
 			wantErr:  false,
 		},
@@ -182,7 +183,7 @@ func TestCLI_GenerateKey_WriteToFile(t *testing.T) {
 			t.Parallel()
 
 			dir := filepath.Join(tmpDir, tc.format)
-			err := os.MkdirAll(dir, 0o755)
+			err := os.MkdirAll(dir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 			require.NoError(t, err)
 
 			cmdOpts := &CommandOptions{

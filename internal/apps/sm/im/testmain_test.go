@@ -5,6 +5,7 @@
 package im
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	http "net/http"
@@ -48,7 +49,7 @@ func TestMain(m *testing.M) {
 
 	// Defer shutdown.
 	defer func() {
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
 		defer cancel()
 
 		if err := testSmIMService.Shutdown(shutdownCtx); err != nil {

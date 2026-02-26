@@ -64,9 +64,9 @@ func TestGenerateECDSAJWK(t *testing.T) {
 		curve elliptic.Curve
 		prob  float32
 	}{
-		{"P256", elliptic.P256(), cryptoutilSharedMagic.TestProbAlways},
-		{"P384", elliptic.P384(), cryptoutilSharedMagic.TestProbTenth},
-		{"P521", elliptic.P521(), cryptoutilSharedMagic.TestProbTenth},
+		{cryptoutilSharedMagic.ECCurveP256, elliptic.P256(), cryptoutilSharedMagic.TestProbAlways},
+		{cryptoutilSharedMagic.ECCurveP384, elliptic.P384(), cryptoutilSharedMagic.TestProbTenth},
+		{cryptoutilSharedMagic.ECCurveP521, elliptic.P521(), cryptoutilSharedMagic.TestProbTenth},
 	}
 
 	for _, tc := range tests {
@@ -99,9 +99,9 @@ func TestGenerateECDHJWK(t *testing.T) {
 		curve ecdh.Curve
 		prob  float32
 	}{
-		{"P256", ecdh.P256(), cryptoutilSharedMagic.TestProbAlways},
-		{"P384", ecdh.P384(), cryptoutilSharedMagic.TestProbTenth},
-		{"P521", ecdh.P521(), cryptoutilSharedMagic.TestProbTenth},
+		{cryptoutilSharedMagic.ECCurveP256, ecdh.P256(), cryptoutilSharedMagic.TestProbAlways},
+		{cryptoutilSharedMagic.ECCurveP384, ecdh.P384(), cryptoutilSharedMagic.TestProbTenth},
+		{cryptoutilSharedMagic.ECCurveP521, ecdh.P521(), cryptoutilSharedMagic.TestProbTenth},
 	}
 
 	for _, tc := range tests {
@@ -129,13 +129,13 @@ func TestGenerateECDHJWK(t *testing.T) {
 func TestGenerateEDDSAJWK(t *testing.T) {
 	t.Parallel()
 
-	jwk, err := GenerateEDDSAJWK("Ed25519")
+	jwk, err := GenerateEDDSAJWK(cryptoutilSharedMagic.EdCurveEd25519)
 	require.NoError(t, err)
 	require.NotNil(t, jwk)
 	require.Equal(t, KtyOKP, jwk.KeyType())
 
 	// Test function generator.
-	genFunc := GenerateEDDSAJWKFunction("Ed25519")
+	genFunc := GenerateEDDSAJWKFunction(cryptoutilSharedMagic.EdCurveEd25519)
 	jwk2, err := genFunc()
 	require.NoError(t, err)
 	require.NotNil(t, jwk2)
@@ -257,7 +257,7 @@ func TestBuildJWK(t *testing.T) {
 		generateKey func() (any, error)
 	}{
 		{
-			name: "RSA",
+			name: cryptoutilSharedMagic.KeyTypeRSA,
 			kty:  KtyRSA,
 			generateKey: func() (any, error) {
 				keyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(cryptoutilSharedMagic.RSAKeySize2048)

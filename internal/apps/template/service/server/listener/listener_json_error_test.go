@@ -3,6 +3,7 @@
 package listener
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	http "net/http"
 	"net/http/httptest"
@@ -138,7 +139,7 @@ func TestPublicHTTPServer_HealthEndpoints_JSONSerializationErrors(t *testing.T) 
 	}{
 		{
 			name: "service health healthy JSON error",
-			path: "/service/api/v1/health",
+			path: cryptoutilSharedMagic.IdentityE2EHealthEndpoint,
 			setup: func(_ *PublicHTTPServer) {
 				// Default: not shutdown.
 			},
@@ -146,7 +147,7 @@ func TestPublicHTTPServer_HealthEndpoints_JSONSerializationErrors(t *testing.T) 
 		},
 		{
 			name: "service health shutdown JSON error",
-			path: "/service/api/v1/health",
+			path: cryptoutilSharedMagic.IdentityE2EHealthEndpoint,
 			setup: func(s *PublicHTTPServer) {
 				s.shutdown = true
 			},

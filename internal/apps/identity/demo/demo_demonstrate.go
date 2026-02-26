@@ -35,13 +35,13 @@ func demonstrateAuthorization(ctx context.Context, client *http.Client, codeChal
 	authURL := fmt.Sprintf("%s/oauth2/v1/authorize", cryptoutilSharedMagic.DemoIssuer)
 
 	params := url.Values{
-		"response_type":         {"code"},
-		"client_id":             {cryptoutilSharedMagic.DemoClientID},
-		"redirect_uri":          {cryptoutilSharedMagic.DemoRedirectURI},
-		"state":                 {state},
-		"code_challenge":        {codeChallenge},
-		"code_challenge_method": {"S256"},
-		"scope":                 {"openid profile email"},
+		cryptoutilSharedMagic.ParamResponseType:         {cryptoutilSharedMagic.ResponseTypeCode},
+		cryptoutilSharedMagic.ClaimClientID:             {cryptoutilSharedMagic.DemoClientID},
+		cryptoutilSharedMagic.ParamRedirectURI:          {cryptoutilSharedMagic.DemoRedirectURI},
+		cryptoutilSharedMagic.ParamState:                 {state},
+		cryptoutilSharedMagic.ParamCodeChallenge:        {codeChallenge},
+		cryptoutilSharedMagic.ParamCodeChallengeMethod: {cryptoutilSharedMagic.PKCEMethodS256},
+		cryptoutilSharedMagic.ClaimScope:                 {"openid profile email"},
 	}
 
 	fullURL := authURL + "?" + params.Encode()
@@ -75,8 +75,8 @@ func demonstrateTokenEndpoint(ctx context.Context, client *http.Client) (string,
 	tokenURL := fmt.Sprintf("%s/oauth2/v1/token", cryptoutilSharedMagic.DemoIssuer)
 
 	data := url.Values{
-		"grant_type": {"client_credentials"},
-		"scope":      {"openid profile email"},
+		cryptoutilSharedMagic.ParamGrantType: {cryptoutilSharedMagic.GrantTypeClientCredentials},
+		cryptoutilSharedMagic.ClaimScope:      {"openid profile email"},
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, strings.NewReader(data.Encode()))
@@ -112,18 +112,18 @@ func demonstrateTokenEndpoint(ctx context.Context, client *http.Client) (string,
 		var tokenResp map[string]any
 
 		if err := json.Unmarshal(body, &tokenResp); err == nil {
-			if at, ok := tokenResp["access_token"].(string); ok {
+			if at, ok := tokenResp[cryptoutilSharedMagic.TokenTypeAccessToken].(string); ok {
 				accessToken = at
 				_, _ = fmt.Fprintf(outWriter, "   ✅ Access Token (first %d): %s...\n",
 					cryptoutilSharedMagic.DemoMinTokenChars,
 					accessToken[:min(cryptoutilSharedMagic.DemoMinTokenChars, len(accessToken))])
 			}
 
-			if tokenType, ok := tokenResp["token_type"].(string); ok {
+			if tokenType, ok := tokenResp[cryptoutilSharedMagic.ParamTokenType].(string); ok {
 				_, _ = fmt.Fprintf(outWriter, "   ✅ Token Type: %s\n", tokenType)
 			}
 
-			if expiresIn, ok := tokenResp["expires_in"].(float64); ok {
+			if expiresIn, ok := tokenResp[cryptoutilSharedMagic.ParamExpiresIn].(float64); ok {
 				_, _ = fmt.Fprintf(outWriter, "   ✅ Expires In: %.0f seconds\n", expiresIn)
 			}
 		}
@@ -145,7 +145,7 @@ func demonstrateIntrospection(ctx context.Context, client *http.Client, accessTo
 	}
 
 	data := url.Values{
-		"token": {tokenToIntrospect},
+		cryptoutilSharedMagic.ParamToken: {tokenToIntrospect},
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, introspectURL, strings.NewReader(data.Encode()))
@@ -200,7 +200,7 @@ func demonstrateRevocation(ctx context.Context, client *http.Client, accessToken
 	}
 
 	data := url.Values{
-		"token": {tokenToRevoke},
+		cryptoutilSharedMagic.ParamToken: {tokenToRevoke},
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, revokeURL, strings.NewReader(data.Encode()))
@@ -238,7 +238,7 @@ func demonstrateIntrospectionAfterRevoke(ctx context.Context, client *http.Clien
 	}
 
 	data := url.Values{
-		"token": {tokenToIntrospect},
+		cryptoutilSharedMagic.ParamToken: {tokenToIntrospect},
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, introspectURL, strings.NewReader(data.Encode()))

@@ -5,6 +5,7 @@
 package userauth_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"testing"
 
@@ -27,7 +28,7 @@ func TestTOTPAuthenticator_Method(t *testing.T) {
 
 	store := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 	auth := cryptoutilIdentityIdpUserauth.NewTOTPAuthenticator("test-issuer", store, nil)
-	require.Equal(t, "totp", auth.Method(), "Method should return 'totp'")
+	require.Equal(t, cryptoutilSharedMagic.MFATypeTOTP, auth.Method(), "Method should return 'totp'")
 }
 
 func TestTOTPAuthenticator_GenerateSecret(t *testing.T) {
@@ -58,7 +59,7 @@ func TestTOTPAuthenticator_GenerateSecretUniqueness(t *testing.T) {
 	secrets := make(map[string]bool)
 
 	// Generate multiple secrets and ensure they're unique.
-	for range 10 {
+	for range cryptoutilSharedMagic.JoseJADefaultMaxMaterials {
 		secret, err := auth.GenerateSecret(ctx)
 		require.NoError(t, err, "GenerateSecret should succeed")
 		require.False(t, secrets[secret], "Secret should be unique")
@@ -80,7 +81,7 @@ func TestTOTPAuthenticator_GenerateTOTPAndValidate(t *testing.T) {
 	// Generate a TOTP code.
 	code, err := auth.GenerateTOTP(ctx, secret)
 	require.NoError(t, err, "GenerateTOTP should succeed")
-	require.Len(t, code, 6, "TOTP code should be 6 digits")
+	require.Len(t, code, cryptoutilSharedMagic.DefaultEmailOTPLength, "TOTP code should be 6 digits")
 
 	// Validate the code.
 	valid := auth.ValidateTOTP(ctx, secret, code)
@@ -198,7 +199,7 @@ func TestHOTPAuthenticator_GenerateSecretUniqueness(t *testing.T) {
 
 	secrets := make(map[string]bool)
 
-	for range 10 {
+	for range cryptoutilSharedMagic.JoseJADefaultMaxMaterials {
 		secret, err := auth.GenerateSecret(ctx)
 		require.NoError(t, err, "GenerateSecret should succeed")
 		require.False(t, secrets[secret], "Secret should be unique")
@@ -222,11 +223,11 @@ func TestHOTPAuthenticator_GenerateHOTP(t *testing.T) {
 	// Generate HOTP codes at different counters.
 	code0, err := auth.GenerateHOTP(ctx, secret, 0)
 	require.NoError(t, err, "GenerateHOTP should succeed for counter 0")
-	require.Len(t, code0, 6, "HOTP code should be 6 digits")
+	require.Len(t, code0, cryptoutilSharedMagic.DefaultEmailOTPLength, "HOTP code should be 6 digits")
 
 	code1, err := auth.GenerateHOTP(ctx, secret, 1)
 	require.NoError(t, err, "GenerateHOTP should succeed for counter 1")
-	require.Len(t, code1, 6, "HOTP code should be 6 digits")
+	require.Len(t, code1, cryptoutilSharedMagic.DefaultEmailOTPLength, "HOTP code should be 6 digits")
 
 	// Codes at different counters should be different (with high probability).
 	// Note: There's a tiny chance they could be the same, but it's astronomically unlikely.
@@ -319,7 +320,7 @@ func TestHOTPAuthenticator_ValidateHOTPLookahead(t *testing.T) {
 	userID := "test-user-hotp-lookahead"
 
 	// Generate HOTP code at counter 5 (within lookahead window of 10).
-	code, err := auth.GenerateHOTP(ctx, secret, 5)
+	code, err := auth.GenerateHOTP(ctx, secret, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 	require.NoError(t, err, "GenerateHOTP should succeed")
 
 	// Validate - should succeed due to lookahead.
@@ -330,7 +331,7 @@ func TestHOTPAuthenticator_ValidateHOTPLookahead(t *testing.T) {
 	// Counter should be set to 6 after validation.
 	counter, err := counterStore.GetCounter(ctx, userID)
 	require.NoError(t, err, "GetCounter should succeed")
-	require.Equal(t, uint64(6), counter, "Counter should be set to next value after validation")
+	require.Equal(t, uint64(cryptoutilSharedMagic.DefaultEmailOTPLength), counter, "Counter should be set to next value after validation")
 }
 
 // TestHOTPAuthenticator_InitiateAuth tests InitiateAuth.
@@ -365,7 +366,7 @@ func TestTOTPAuthenticator_InitiateAuth(t *testing.T) {
 	require.NoError(t, err, "InitiateAuth should succeed")
 	require.NotNil(t, challenge, "Challenge should not be nil")
 	require.Equal(t, userID, challenge.UserID, "Challenge UserID should match")
-	require.Equal(t, "totp", challenge.Method, "Challenge Method should be 'totp'")
+	require.Equal(t, cryptoutilSharedMagic.MFATypeTOTP, challenge.Method, "Challenge Method should be 'totp'")
 }
 
 // TestTOTPAuthenticator_VerifyAuth tests VerifyAuth.

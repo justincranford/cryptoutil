@@ -143,11 +143,11 @@ func TestCheckAndUseDepCache_CacheNotFound(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	goModFile := filepath.Join(tmpDir, "go.mod")
-	err := os.WriteFile(goModFile, []byte("module test\ngo 1.25.5\n"), 0o600)
+	err := os.WriteFile(goModFile, []byte("module test\ngo 1.25.5\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	goSumFile := filepath.Join(tmpDir, "go.sum")
-	err = os.WriteFile(goSumFile, []byte(""), 0o600)
+	err = os.WriteFile(goSumFile, []byte(""), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	goModStat, err := os.Stat(goModFile)
@@ -156,7 +156,7 @@ func TestCheckAndUseDepCache_CacheNotFound(t *testing.T) {
 	goSumStat, err := os.Stat(goSumFile)
 	require.NoError(t, err)
 
-	used, state, err := checkAndUseDepCache("nonexistent_cache.json", "direct", goModStat, goSumStat, logger)
+	used, state, err := checkAndUseDepCache("nonexistent_cache.json", cryptoutilSharedMagic.ModeNameDirect, goModStat, goSumStat, logger)
 	require.NoError(t, err)
 	require.False(t, used)
 	require.Equal(t, "cache not found", state)
@@ -176,7 +176,7 @@ func TestLoadDepCache_InvalidJSON(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	cacheFile := filepath.Join(tmpDir, "invalid_cache.json")
-	err := os.WriteFile(cacheFile, []byte("invalid json"), 0o600)
+	err := os.WriteFile(cacheFile, []byte("invalid json"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	cache, err := loadDepCache(cacheFile)
@@ -196,7 +196,7 @@ func TestSaveDepCache_Success(t *testing.T) {
 		GoModModTime: time.Now().UTC(),
 		GoSumModTime: time.Now().UTC(),
 		OutdatedDeps: []string{"example.com/dep v1.0.0 [v1.1.0]"},
-		Mode:         "direct",
+		Mode:         cryptoutilSharedMagic.ModeNameDirect,
 	}
 
 	err := saveDepCache(cacheFile, cache)
@@ -205,7 +205,7 @@ func TestSaveDepCache_Success(t *testing.T) {
 	content, err := os.ReadFile(cacheFile)
 	require.NoError(t, err)
 	require.Contains(t, string(content), "example.com/dep")
-	require.Contains(t, string(content), "direct")
+	require.Contains(t, string(content), cryptoutilSharedMagic.ModeNameDirect)
 }
 
 func TestCheckDependencyUpdates_MalformedLine(t *testing.T) {
@@ -319,11 +319,11 @@ func TestCheckAndUseDepCache_ModeMismatch(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	goModFile := filepath.Join(tmpDir, "go.mod")
-	err := os.WriteFile(goModFile, []byte("module test\ngo 1.25.5\n"), 0o600)
+	err := os.WriteFile(goModFile, []byte("module test\ngo 1.25.5\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	goSumFile := filepath.Join(tmpDir, "go.sum")
-	err = os.WriteFile(goSumFile, []byte(""), 0o600)
+	err = os.WriteFile(goSumFile, []byte(""), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	goModStat, err := os.Stat(goModFile)
@@ -343,7 +343,7 @@ func TestCheckAndUseDepCache_ModeMismatch(t *testing.T) {
 	err = saveDepCache(cacheFile, cache)
 	require.NoError(t, err)
 
-	used, state, err := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
+	used, state, err := checkAndUseDepCache(cacheFile, cryptoutilSharedMagic.ModeNameDirect, goModStat, goSumStat, logger)
 	require.NoError(t, err)
 	require.False(t, used)
 	require.Equal(t, "cache mode mismatch", state)

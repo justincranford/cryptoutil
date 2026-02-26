@@ -45,7 +45,7 @@ func TestCheckOutdatedDeps_NoGoSum(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create go.mod only (no go.sum).
-	err = os.WriteFile("go.mod", []byte("module test\ngo 1.25.5\n"), 0o600)
+	err = os.WriteFile("go.mod", []byte("module test\ngo 1.25.5\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -67,9 +67,9 @@ func TestCheckOutdatedDeps_CacheUsed(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create go.mod and go.sum.
-	err = os.WriteFile("go.mod", []byte("module test\ngo 1.25.5\n"), 0o600)
+	err = os.WriteFile("go.mod", []byte("module test\ngo 1.25.5\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
-	err = os.WriteFile("go.sum", []byte(""), 0o600)
+	err = os.WriteFile("go.sum", []byte(""), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Get file stats for cache.
@@ -107,9 +107,9 @@ func TestCheckOutdatedDeps_CacheWithError(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create go.mod and go.sum.
-	err = os.WriteFile("go.mod", []byte("module test\ngo 1.25.5\n"), 0o600)
+	err = os.WriteFile("go.mod", []byte("module test\ngo 1.25.5\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
-	err = os.WriteFile("go.sum", []byte(""), 0o600)
+	err = os.WriteFile("go.sum", []byte(""), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Get file stats for cache.
@@ -149,9 +149,9 @@ func TestCheckOutdatedDeps_GoListError(t *testing.T) {
 
 	// Create a malformed go.mod file that will make go list fail.
 	// Using invalid syntax to force a parsing error.
-	err = os.WriteFile("go.mod", []byte("invalid go.mod content without module directive\n"), 0o600)
+	err = os.WriteFile("go.mod", []byte("invalid go.mod content without module directive\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
-	err = os.WriteFile("go.sum", []byte(""), 0o600)
+	err = os.WriteFile("go.sum", []byte(""), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -174,9 +174,9 @@ func TestCheckOutdatedDeps_NoOutdatedDeps(t *testing.T) {
 
 	// Create a valid go module that go list can process.
 	// Using "example.com/test" which won't have any real dependencies.
-	err = os.WriteFile("go.mod", []byte("module example.com/test\ngo 1.25.5\n"), 0o600)
+	err = os.WriteFile("go.mod", []byte("module example.com/test\ngo 1.25.5\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
-	err = os.WriteFile("go.sum", []byte(""), 0o600)
+	err = os.WriteFile("go.sum", []byte(""), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -189,7 +189,7 @@ func TestCheckOutdatedDeps_NoOutdatedDeps(t *testing.T) {
 func TestSaveDepCache_WriteError(t *testing.T) {
 	t.Parallel()
 
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
 		t.Skip("os.Chmod does not enforce POSIX permissions on Windows")
 	}
 
@@ -207,7 +207,7 @@ func TestSaveDepCache_WriteError(t *testing.T) {
 		GoModModTime: time.Now().UTC(),
 		GoSumModTime: time.Now().UTC(),
 		OutdatedDeps: []string{},
-		Mode:         "direct",
+		Mode:         cryptoutilSharedMagic.ModeNameDirect,
 	}
 
 	err = saveDepCache(cacheFile, cache)
@@ -247,9 +247,9 @@ func TestLint_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create a valid go module setup.
-	err = os.WriteFile("go.mod", []byte("module example.com/test\ngo 1.25.5\n"), 0o600)
+	err = os.WriteFile("go.mod", []byte("module example.com/test\ngo 1.25.5\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
-	err = os.WriteFile("go.sum", []byte(""), 0o600)
+	err = os.WriteFile("go.sum", []byte(""), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -277,9 +277,9 @@ go 1.25.5
 
 require github.com/pkg/errors v0.8.0
 `
-	err = os.WriteFile("go.mod", []byte(goModContent), 0o600)
+	err = os.WriteFile("go.mod", []byte(goModContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
-	err = os.WriteFile("go.sum", []byte("github.com/pkg/errors v0.8.0 h1:WdK/asTD0HN+q6hsWO3/vpuAkAr+tw6aNJNDFFf0+qw=\ngithub.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=\n"), 0o600)
+	err = os.WriteFile("go.sum", []byte("github.com/pkg/errors v0.8.0 h1:WdK/asTD0HN+q6hsWO3/vpuAkAr+tw6aNJNDFFf0+qw=\ngithub.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -302,14 +302,14 @@ func TestCheckOutdatedDeps_SaveCacheError(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create a valid go module.
-	err = os.WriteFile("go.mod", []byte("module example.com/test\ngo 1.25.5\n"), 0o600)
+	err = os.WriteFile("go.mod", []byte("module example.com/test\ngo 1.25.5\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
-	err = os.WriteFile("go.sum", []byte(""), 0o600)
+	err = os.WriteFile("go.sum", []byte(""), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Create a file at the cache directory location to prevent directory creation.
 	cacheDir := filepath.Dir(cryptoutilSharedMagic.DepCacheFileName)
-	err = os.WriteFile(cacheDir, []byte("blocking file"), 0o600)
+	err = os.WriteFile(cacheDir, []byte("blocking file"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -328,7 +328,7 @@ func TestSaveDepCache_WriteFileError(t *testing.T) {
 	cacheFile := filepath.Join(tmpDir, "cache.json")
 
 	// Create a directory with the same name as the intended file.
-	err := os.Mkdir(cacheFile, 0o755)
+	err := os.Mkdir(cacheFile, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	cache := cryptoutilSharedMagic.DepCache{
@@ -336,7 +336,7 @@ func TestSaveDepCache_WriteFileError(t *testing.T) {
 		GoModModTime: time.Now().UTC(),
 		GoSumModTime: time.Now().UTC(),
 		OutdatedDeps: []string{},
-		Mode:         "direct",
+		Mode:         cryptoutilSharedMagic.ModeNameDirect,
 	}
 
 	err = saveDepCache(cacheFile, cache)

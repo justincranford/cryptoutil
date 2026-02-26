@@ -5,6 +5,7 @@
 package domain
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
 
@@ -31,12 +32,12 @@ func TestDeviceAuthorization_IsExpired(t *testing.T) {
 	}{
 		{
 			name:      "not expired - future expiration",
-			expiresAt: time.Now().UTC().Add(10 * time.Minute),
+			expiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
 			want:      false,
 		},
 		{
 			name:      "expired - past expiration",
-			expiresAt: time.Now().UTC().Add(-10 * time.Minute),
+			expiresAt: time.Now().UTC().Add(-cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
 			want:      true,
 		},
 		{
@@ -145,7 +146,7 @@ func TestDeviceAuthorization_FullLifecycle(t *testing.T) {
 		Scope:      "openid profile",
 		Status:     DeviceAuthStatusPending,
 		CreatedAt:  now,
-		ExpiresAt:  now.Add(30 * time.Minute),
+		ExpiresAt:  now.Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Minute),
 	}
 
 	// Initial state: pending, not expired.
@@ -187,7 +188,7 @@ func TestDeviceAuthorization_PollingMetadata(t *testing.T) {
 		UserCode:   "ABCD-1234",
 		Status:     DeviceAuthStatusPending,
 		CreatedAt:  time.Now().UTC(),
-		ExpiresAt:  time.Now().UTC().Add(30 * time.Minute),
+		ExpiresAt:  time.Now().UTC().Add(cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Minute),
 	}
 
 	// Initially no polling timestamp.
@@ -201,7 +202,7 @@ func TestDeviceAuthorization_PollingMetadata(t *testing.T) {
 	require.WithinDuration(t, firstPoll, *auth.LastPolledAt, 1*time.Second, "LastPolledAt should match first poll time")
 
 	// Second poll (5 seconds later).
-	time.Sleep(100 * time.Millisecond) // Simulate small delay for test.
+	time.Sleep(cryptoutilSharedMagic.JoseJAMaxMaterials * time.Millisecond) // Simulate small delay for test.
 
 	secondPoll := time.Now().UTC()
 	auth.LastPolledAt = &secondPoll

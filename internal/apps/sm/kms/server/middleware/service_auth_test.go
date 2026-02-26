@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	crand "crypto/rand"
 	rsa "crypto/rsa"
@@ -241,7 +242,7 @@ func TestServiceAuth_JWT(t *testing.T) {
 
 	require.NoError(t, pubJWK.Set(joseJwk.KeyIDKey, keyID))
 	require.NoError(t, pubJWK.Set(joseJwk.AlgorithmKey, joseJwa.RS256()))
-	require.NoError(t, pubJWK.Set(joseJwk.KeyUsageKey, "sig"))
+	require.NoError(t, pubJWK.Set(joseJwk.KeyUsageKey, cryptoutilSharedMagic.JoseKeyUseSig))
 
 	keySet := joseJwk.NewSet()
 
@@ -269,10 +270,10 @@ func TestServiceAuth_JWT(t *testing.T) {
 		now := time.Now().UTC()
 
 		token, buildErr := jwt.NewBuilder().
-			Claim("sub", sub).
-			Claim("iat", now.Unix()).
-			Claim("exp", exp.Unix()).
-			Claim("scope", "read").
+			Claim(cryptoutilSharedMagic.ClaimSub, sub).
+			Claim(cryptoutilSharedMagic.ClaimIat, now.Unix()).
+			Claim(cryptoutilSharedMagic.ClaimExp, exp.Unix()).
+			Claim(cryptoutilSharedMagic.ClaimScope, cryptoutilSharedMagic.ScopeRead).
 			Build()
 		require.NoError(t, buildErr)
 
@@ -299,12 +300,12 @@ func TestServiceAuth_JWT(t *testing.T) {
 	}{
 		{
 			name:           "valid JWT token",
-			authHeader:     "Bearer " + signToken(t, "svc-user", now.Add(1*time.Hour)),
+			authHeader:     cryptoutilSharedMagic.AuthorizationBearerPrefix + signToken(t, "svc-user", now.Add(1*time.Hour)),
 			expectedStatus: http.StatusOK,
 		},
 		{
 			name:           "expired JWT token",
-			authHeader:     "Bearer " + signToken(t, "svc-user", now.Add(-1*time.Hour)),
+			authHeader:     cryptoutilSharedMagic.AuthorizationBearerPrefix + signToken(t, "svc-user", now.Add(-1*time.Hour)),
 			expectedStatus: http.StatusUnauthorized,
 		},
 		{

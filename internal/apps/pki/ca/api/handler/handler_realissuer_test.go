@@ -3,6 +3,7 @@
 package handler
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
@@ -225,7 +226,7 @@ func TestSubmitEnrollmentWithRealIssuer(t *testing.T) {
 		storage:           mockStorage,
 		issuer:            testSetup.Issuer,
 		profiles:          profiles,
-		enrollmentTracker: newEnrollmentTracker(100),
+		enrollmentTracker: newEnrollmentTracker(cryptoutilSharedMagic.JoseJAMaxMaterials),
 	}
 
 	app.Post("/enrollments", func(c *fiber.Ctx) error {
@@ -247,7 +248,7 @@ func TestSubmitEnrollmentWithRealIssuer(t *testing.T) {
 	require.NoError(t, err)
 
 	csrPEM := pem.EncodeToMemory(&pem.Block{
-		Type:  "CERTIFICATE REQUEST",
+		Type:  cryptoutilSharedMagic.StringPEMTypeCSR,
 		Bytes: csrDER,
 	})
 

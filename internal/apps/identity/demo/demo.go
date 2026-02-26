@@ -25,7 +25,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-var demoClientSecret = "demo-secret-" + googleUuid.New().String()[:8]
+var demoClientSecret = "demo-secret-" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength]
 
 var (
 	outWriter io.Writer
@@ -183,7 +183,7 @@ func startAuthZServer(ctx context.Context) (*fiber.App, *cryptoutilIdentityRepos
 	config := &cryptoutilIdentityConfig.Config{
 		AuthZ: &cryptoutilIdentityConfig.ServerConfig{
 			Name:         "identity-authz-demo",
-			BindAddress:  "127.0.0.1",
+			BindAddress:  cryptoutilSharedMagic.IPv4Loopback,
 			Port:         cryptoutilSharedMagic.DemoServerPort,
 			TLSEnabled:   false,
 			ReadTimeout:  cryptoutilSharedMagic.DefaultReadTimeout,
@@ -194,7 +194,7 @@ func startAuthZServer(ctx context.Context) (*fiber.App, *cryptoutilIdentityRepos
 		},
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
 			Type:            "sqlite",
-			DSN:             "file::memory:?cache=shared",
+			DSN:             cryptoutilSharedMagic.SQLiteInMemoryDSN,
 			MaxOpenConns:    cryptoutilSharedMagic.DefaultMaxOpenConns,
 			MaxIdleConns:    cryptoutilSharedMagic.DefaultMaxIdleConns,
 			ConnMaxLifetime: cryptoutilSharedMagic.DefaultConnMaxLifetime,
@@ -205,7 +205,7 @@ func startAuthZServer(ctx context.Context) (*fiber.App, *cryptoutilIdentityRepos
 			AccessTokenLifetime:  cryptoutilSharedMagic.DefaultAccessTokenLifetime,
 			RefreshTokenLifetime: cryptoutilSharedMagic.DefaultRefreshTokenLifetime,
 			IDTokenLifetime:      cryptoutilSharedMagic.DefaultIDTokenLifetime,
-			SigningAlgorithm:     "RS256",
+			SigningAlgorithm:     cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 			AccessTokenFormat:    cryptoutilSharedMagic.TokenFormatJWS,
 		},
 	}
@@ -234,7 +234,7 @@ func startAuthZServer(ctx context.Context) (*fiber.App, *cryptoutilIdentityRepos
 	}
 
 	// Rotate to generate initial signing key.
-	if err := keyRotationMgr.RotateSigningKey(ctx, "RS256"); err != nil {
+	if err := keyRotationMgr.RotateSigningKey(ctx, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm); err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to rotate signing key: %w", err)
 	}
 
@@ -242,7 +242,7 @@ func startAuthZServer(ctx context.Context) (*fiber.App, *cryptoutilIdentityRepos
 	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuer(
 		cryptoutilSharedMagic.DemoIssuer,
 		keyRotationMgr,
-		"RS256",
+		cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		config.Tokens.AccessTokenLifetime,
 		config.Tokens.IDTokenLifetime,
 	)
@@ -298,12 +298,12 @@ func registerDemoClient(ctx context.Context, repoFactory *cryptoutilIdentityRepo
 		Name:                    cryptoutilSharedMagic.DemoClientName,
 		Description:             "Demo OAuth 2.1 client for testing",
 		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
-		AllowedGrantTypes:       []string{"authorization_code", "refresh_token", "client_credentials"},
-		AllowedResponseTypes:    []string{"code"},
-		AllowedScopes:           []string{"openid", "profile", "email", "offline_access"},
+		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode, cryptoutilSharedMagic.GrantTypeRefreshToken, cryptoutilSharedMagic.GrantTypeClientCredentials},
+		AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
+		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail, cryptoutilSharedMagic.ScopeOfflineAccess},
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,
 		RequirePKCE:             &trueVal,
-		PKCEChallengeMethod:     "S256",
+		PKCEChallengeMethod:     cryptoutilSharedMagic.PKCEMethodS256,
 		AccessTokenLifetime:     cryptoutilSharedMagic.AccessTokenExpirySeconds,
 		RefreshTokenLifetime:    cryptoutilSharedMagic.RefreshTokenExpirySeconds,
 		IDTokenLifetime:         cryptoutilSharedMagic.IDTokenExpirySeconds,

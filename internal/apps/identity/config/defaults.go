@@ -26,8 +26,8 @@ func DefaultConfig() *Config {
 
 func defaultAuthZConfig() *ServerConfig {
 	return &ServerConfig{
-		Name:             "authz",
-		BindAddress:      "127.0.0.1",
+		Name:             cryptoutilSharedMagic.AuthzServiceName,
+		BindAddress:      cryptoutilSharedMagic.IPv4Loopback,
 		Port:             cryptoutilSharedMagic.IdentityDefaultAuthZPort,
 		TLSEnabled:       false,
 		TLSCertFile:      "",
@@ -36,15 +36,15 @@ func defaultAuthZConfig() *ServerConfig {
 		WriteTimeout:     cryptoutilSharedMagic.IdentityDefaultWriteTimeoutSeconds * time.Second,
 		IdleTimeout:      cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds * time.Second,
 		AdminEnabled:     true,
-		AdminBindAddress: "127.0.0.1",
+		AdminBindAddress: cryptoutilSharedMagic.IPv4Loopback,
 		AdminPort:        cryptoutilSharedMagic.IdentityDefaultAuthZAdminPort,
 	}
 }
 
 func defaultIDPConfig() *ServerConfig {
 	return &ServerConfig{
-		Name:             "idp",
-		BindAddress:      "127.0.0.1",
+		Name:             cryptoutilSharedMagic.IDPServiceName,
+		BindAddress:      cryptoutilSharedMagic.IPv4Loopback,
 		Port:             cryptoutilSharedMagic.IdentityDefaultIDPPort,
 		TLSEnabled:       false,
 		TLSCertFile:      "",
@@ -53,7 +53,7 @@ func defaultIDPConfig() *ServerConfig {
 		WriteTimeout:     cryptoutilSharedMagic.IdentityDefaultWriteTimeoutSeconds * time.Second,
 		IdleTimeout:      cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds * time.Second,
 		AdminEnabled:     true,
-		AdminBindAddress: "127.0.0.1",
+		AdminBindAddress: cryptoutilSharedMagic.IPv4Loopback,
 		AdminPort:        cryptoutilSharedMagic.IdentityDefaultIDPAdminPort,
 	}
 }
@@ -61,7 +61,7 @@ func defaultIDPConfig() *ServerConfig {
 func defaultRSConfig() *ServerConfig {
 	return &ServerConfig{
 		Name:             "rs",
-		BindAddress:      "127.0.0.1",
+		BindAddress:      cryptoutilSharedMagic.IPv4Loopback,
 		Port:             cryptoutilSharedMagic.IdentityDefaultRSPort,
 		TLSEnabled:       false,
 		TLSCertFile:      "",
@@ -70,7 +70,7 @@ func defaultRSConfig() *ServerConfig {
 		WriteTimeout:     cryptoutilSharedMagic.IdentityDefaultWriteTimeoutSeconds * time.Second,
 		IdleTimeout:      cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds * time.Second,
 		AdminEnabled:     false,
-		AdminBindAddress: "127.0.0.1",
+		AdminBindAddress: cryptoutilSharedMagic.IPv4Loopback,
 		AdminPort:        cryptoutilSharedMagic.IdentityDefaultRSAdminPort,
 	}
 }
@@ -78,7 +78,7 @@ func defaultRSConfig() *ServerConfig {
 func defaultDatabaseConfig() *DatabaseConfig {
 	return &DatabaseConfig{
 		Type:            "sqlite",
-		DSN:             ":memory:",
+		DSN:             cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 		MaxOpenConns:    cryptoutilSharedMagic.IdentityDefaultMaxOpenConns,
 		MaxIdleConns:    cryptoutilSharedMagic.IdentityDefaultMaxIdleConns,
 		ConnMaxLifetime: cryptoutilSharedMagic.IdentityDefaultConnMaxLifetimeMin * time.Minute,
@@ -96,7 +96,7 @@ func defaultTokenConfig() *TokenConfig {
 		RefreshTokenFormat:   cryptoutilSharedMagic.IdentityTokenFormatUUID,
 		IDTokenFormat:        cryptoutilSharedMagic.IdentityTokenFormatJWS,
 		Issuer:               "https://identity.example.com",
-		SigningAlgorithm:     "RS256",
+		SigningAlgorithm:     cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		SigningKeyID:         "",
 		EncryptionEnabled:    false,
 	}
@@ -118,7 +118,7 @@ func defaultSessionConfig() *SessionConfig {
 func defaultSecurityConfig() *SecurityConfig {
 	return &SecurityConfig{
 		RequirePKCE:         true,
-		PKCEChallengeMethod: "S256",
+		PKCEChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 		RequireState:        true,
 		RateLimitEnabled:    true,
 		RateLimitRequests:   cryptoutilSharedMagic.IdentityDefaultRateLimitRequests,

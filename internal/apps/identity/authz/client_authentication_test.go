@@ -5,6 +5,7 @@
 package authz_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"encoding/base64"
 	"net/http/httptest"
@@ -33,7 +34,7 @@ func TestClientAuthentication_BasicAuth_InvalidFormat(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	reqBody := url.Values{
-		"grant_type": []string{"client_credentials"},
+		cryptoutilSharedMagic.ParamGrantType: []string{cryptoutilSharedMagic.GrantTypeClientCredentials},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(reqBody.Encode()))
@@ -67,7 +68,7 @@ func TestClientAuthentication_BasicAuth_InvalidClientID(t *testing.T) {
 	encoded := base64.StdEncoding.EncodeToString([]byte(credentials))
 
 	reqBody := url.Values{
-		"grant_type": []string{"client_credentials"},
+		cryptoutilSharedMagic.ParamGrantType: []string{cryptoutilSharedMagic.GrantTypeClientCredentials},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(reqBody.Encode()))
@@ -97,8 +98,8 @@ func TestClientAuthentication_PostAuth_MissingClientID(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	reqBody := url.Values{
-		"grant_type":    []string{"client_credentials"},
-		"client_secret": []string{"secret"},
+		cryptoutilSharedMagic.ParamGrantType:    []string{cryptoutilSharedMagic.GrantTypeClientCredentials},
+		cryptoutilSharedMagic.ParamClientSecret: []string{"secret"},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(reqBody.Encode()))
@@ -127,9 +128,9 @@ func TestClientAuthentication_PostAuth_InvalidClientID(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	reqBody := url.Values{
-		"grant_type":    []string{"client_credentials"},
-		"client_id":     []string{"invalid-client-id"},
-		"client_secret": []string{"secret"},
+		cryptoutilSharedMagic.ParamGrantType:    []string{cryptoutilSharedMagic.GrantTypeClientCredentials},
+		cryptoutilSharedMagic.ClaimClientID:     []string{"invalid-client-id"},
+		cryptoutilSharedMagic.ParamClientSecret: []string{"secret"},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(reqBody.Encode()))
@@ -150,7 +151,7 @@ func createClientAuthTestConfig(t *testing.T) *cryptoutilIdentityConfig.Config {
 
 	return &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
+			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
 			DSN:  "file::memory:?cache=private",
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{

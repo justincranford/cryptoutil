@@ -5,6 +5,7 @@
 package jose
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"io"
 
 	cryptoutilAppsJoseJa "cryptoutil/internal/apps/jose/ja"
@@ -26,7 +27,7 @@ const (
 func Jose(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	return cryptoutilTemplateCli.RouteProduct(
 		cryptoutilTemplateCli.ProductConfig{
-			ProductName: "jose",
+			ProductName: cryptoutilSharedMagic.JoseProductName,
 			UsageText:   usageText,
 			VersionText: versionText,
 		},

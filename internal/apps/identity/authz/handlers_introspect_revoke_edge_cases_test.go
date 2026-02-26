@@ -34,7 +34,7 @@ func TestHandleIntrospect_InvalidTokenFormat(t *testing.T) {
 	cryptoutilIdentityRepository.ResetMigrationStateForTesting()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type:        "sqlite",
+		Type:        cryptoutilSharedMagic.TestDatabaseSQLite,
 		DSN:         fmt.Sprintf("file:test_%s.db?mode=memory&cache=shared", testID),
 		AutoMigrate: true,
 	}
@@ -42,7 +42,7 @@ func TestHandleIntrospect_InvalidTokenFormat(t *testing.T) {
 	cfg := &cryptoutilIdentityConfig.Config{
 		Database: dbConfig,
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			AccessTokenLifetime: 3600,
+			AccessTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		},
 	}
 
@@ -86,7 +86,7 @@ func TestHandleRevoke_InvalidTokenFormat(t *testing.T) {
 	cryptoutilIdentityRepository.ResetMigrationStateForTesting()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type:        "sqlite",
+		Type:        cryptoutilSharedMagic.TestDatabaseSQLite,
 		DSN:         fmt.Sprintf("file:test_%s.db?mode=memory&cache=shared", testID),
 		AutoMigrate: true,
 	}
@@ -94,7 +94,7 @@ func TestHandleRevoke_InvalidTokenFormat(t *testing.T) {
 	cfg := &cryptoutilIdentityConfig.Config{
 		Database: dbConfig,
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			AccessTokenLifetime: 3600,
+			AccessTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		},
 	}
 
@@ -138,7 +138,7 @@ func TestHandleIntrospect_UnknownToken(t *testing.T) {
 	cryptoutilIdentityRepository.ResetMigrationStateForTesting()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type:        "sqlite",
+		Type:        cryptoutilSharedMagic.TestDatabaseSQLite,
 		DSN:         fmt.Sprintf("file:test_%s.db?mode=memory&cache=shared", testID),
 		AutoMigrate: true,
 	}
@@ -146,7 +146,7 @@ func TestHandleIntrospect_UnknownToken(t *testing.T) {
 	cfg := &cryptoutilIdentityConfig.Config{
 		Database: dbConfig,
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			AccessTokenLifetime: 3600,
+			AccessTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		},
 	}
 
@@ -201,7 +201,7 @@ func TestHandleRevoke_AlreadyRevokedToken(t *testing.T) {
 	cryptoutilIdentityRepository.ResetMigrationStateForTesting()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type:        "sqlite",
+		Type:        cryptoutilSharedMagic.TestDatabaseSQLite,
 		DSN:         fmt.Sprintf("file:test_%s.db?mode=memory&cache=shared", testID),
 		AutoMigrate: true,
 	}
@@ -209,7 +209,7 @@ func TestHandleRevoke_AlreadyRevokedToken(t *testing.T) {
 	cfg := &cryptoutilIdentityConfig.Config{
 		Database: dbConfig,
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			AccessTokenLifetime: 3600,
+			AccessTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		},
 	}
 
@@ -240,11 +240,11 @@ func TestHandleRevoke_AlreadyRevokedToken(t *testing.T) {
 		Name:                 "Test Client",
 		AllowedGrantTypes:    []string{cryptoutilSharedMagic.GrantTypeRefreshToken},
 		AllowedScopes:        []string{"test-scope"},
-		RedirectURIs:         []string{"https://example.com/callback"},
+		RedirectURIs:         []string{cryptoutilSharedMagic.DemoRedirectURI},
 		RequirePKCE:          boolPtr(false),
-		AccessTokenLifetime:  3600,
-		RefreshTokenLifetime: 86400,
-		IDTokenLifetime:      3600,
+		AccessTokenLifetime:  cryptoutilSharedMagic.IMDefaultSessionTimeout,
+		RefreshTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+		IDTokenLifetime:      cryptoutilSharedMagic.IMDefaultSessionTimeout,
 		Enabled:              boolPtr(true),
 		CreatedAt:            time.Now().UTC(),
 		UpdatedAt:            time.Now().UTC(),
@@ -261,14 +261,14 @@ func TestHandleRevoke_AlreadyRevokedToken(t *testing.T) {
 	revokedToken := &cryptoutilIdentityDomain.Token{
 		ID:          googleUuid.Must(googleUuid.NewV7()),
 		TokenType:   "refresh",
-		TokenFormat: "uuid",
+		TokenFormat: cryptoutilSharedMagic.IdentityTokenFormatUUID,
 		TokenValue:  tokenValue,
 		ClientID:    clientUUID,
 		UserID: cryptoutilIdentityDomain.NullableUUID{
 			UUID:  userUUID,
 			Valid: true,
 		},
-		ExpiresAt: now.Add(24 * time.Hour),
+		ExpiresAt: now.Add(cryptoutilSharedMagic.HoursPerDay * time.Hour),
 		IssuedAt:  now,
 		RevokedAt: &revokedAt,
 	}

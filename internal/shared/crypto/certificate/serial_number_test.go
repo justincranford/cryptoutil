@@ -51,9 +51,9 @@ func TestRandomizedNotBeforeNotAfterCA_HappyPath(t *testing.T) {
 	t.Parallel()
 
 	now := time.Now().UTC()
-	requestedDuration := 24 * time.Hour
-	minSubtract := 5 * time.Minute
-	maxSubtract := 10 * time.Minute
+	requestedDuration := cryptoutilSharedMagic.HoursPerDay * time.Hour
+	minSubtract := cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute
+	maxSubtract := cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute
 
 	notBefore, notAfter, err := randomizedNotBeforeNotAfterCA(now, requestedDuration, minSubtract, maxSubtract)
 	require.NoError(t, err)
@@ -75,8 +75,8 @@ func TestRandomizedNotBeforeNotAfterCA_ExceedsMaxDuration(t *testing.T) {
 
 	now := time.Now().UTC()
 	requestedDuration := cryptoutilSharedMagic.TLSMaxCACertDuration + time.Hour // Exceeds max.
-	minSubtract := 5 * time.Minute
-	maxSubtract := 10 * time.Minute
+	minSubtract := cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute
+	maxSubtract := cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute
 
 	_, _, err := randomizedNotBeforeNotAfterCA(now, requestedDuration, minSubtract, maxSubtract)
 	require.Error(t, err)
@@ -87,9 +87,9 @@ func TestRandomizedNotBeforeNotAfterEndEntity_HappyPath(t *testing.T) {
 	t.Parallel()
 
 	now := time.Now().UTC()
-	requestedDuration := 24 * time.Hour
-	minSubtract := 5 * time.Minute
-	maxSubtract := 10 * time.Minute
+	requestedDuration := cryptoutilSharedMagic.HoursPerDay * time.Hour
+	minSubtract := cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute
+	maxSubtract := cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute
 
 	notBefore, notAfter, err := randomizedNotBeforeNotAfterEndEntity(now, requestedDuration, minSubtract, maxSubtract)
 	require.NoError(t, err)
@@ -111,8 +111,8 @@ func TestRandomizedNotBeforeNotAfterEndEntity_ExceedsMaxDuration(t *testing.T) {
 
 	now := time.Now().UTC()
 	requestedDuration := cryptoutilSharedMagic.TLSDefaultSubscriberCertDuration + time.Hour // Exceeds max.
-	minSubtract := 5 * time.Minute
-	maxSubtract := 10 * time.Minute
+	minSubtract := cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute
+	maxSubtract := cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute
 
 	_, _, err := randomizedNotBeforeNotAfterEndEntity(now, requestedDuration, minSubtract, maxSubtract)
 	require.Error(t, err)
@@ -153,9 +153,9 @@ func TestGenerateNotBeforeNotAfter(t *testing.T) {
 	t.Parallel()
 
 	now := time.Now().UTC()
-	requestedDuration := 48 * time.Hour
-	minSubtract := 10 * time.Minute
-	maxSubtract := 20 * time.Minute
+	requestedDuration := cryptoutilSharedMagic.HMACSHA384KeySize * time.Hour
+	minSubtract := cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute
+	maxSubtract := cryptoutilSharedMagic.MaxErrorDisplay * time.Minute
 
 	notBefore, notAfter, err := generateNotBeforeNotAfter(now, requestedDuration, minSubtract, maxSubtract)
 	require.NoError(t, err)

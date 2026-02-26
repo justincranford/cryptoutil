@@ -1,6 +1,7 @@
 package lint_deployments
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -13,8 +14,8 @@ func ValidateAllDeployments(deploymentsRoot string) ([]ValidationResult, error) 
 	var results []ValidationResult
 	// Service deployments (PRODUCT-SERVICE pattern)
 	serviceNames := []string{
-		"jose-ja", "sm-im", "pki-ca", "sm-kms",
-		"identity-authz", "identity-idp", "identity-rp", "identity-rs", "identity-spa",
+		cryptoutilSharedMagic.OTLPServiceJoseJA, cryptoutilSharedMagic.OTLPServiceSMIM, cryptoutilSharedMagic.OTLPServicePKICA, cryptoutilSharedMagic.OTLPServiceSMKMS,
+		cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP, cryptoutilSharedMagic.OTLPServiceIdentityRP, cryptoutilSharedMagic.OTLPServiceIdentityRS, cryptoutilSharedMagic.OTLPServiceIdentitySPA,
 	}
 
 	for _, svc := range serviceNames {
@@ -30,7 +31,7 @@ func ValidateAllDeployments(deploymentsRoot string) ([]ValidationResult, error) 
 	}
 
 	// PRODUCT-level deployments
-	productNames := []string{"identity", "sm", "pki", "jose"}
+	productNames := []string{cryptoutilSharedMagic.IdentityProductName, "sm", cryptoutilSharedMagic.PKIProductName, cryptoutilSharedMagic.JoseProductName}
 	for _, product := range productNames {
 		productPath := filepath.Join(deploymentsRoot, product)
 		if _, err := os.Stat(productPath); err == nil {
@@ -221,12 +222,12 @@ func checkDelegationPattern(basePath string, deploymentName string, structType s
 			result.Valid = false
 		}
 
-		if deploymentName == "pki" && !strings.Contains(text, "../pki-ca/compose.yml") {
+		if deploymentName == cryptoutilSharedMagic.PKIProductName && !strings.Contains(text, "../pki-ca/compose.yml") {
 			result.Errors = append(result.Errors, "Product pki/compose.yml MUST include ../pki-ca/compose.yml")
 			result.Valid = false
 		}
 
-		if deploymentName == "jose" && !strings.Contains(text, "../jose-ja/compose.yml") {
+		if deploymentName == cryptoutilSharedMagic.JoseProductName && !strings.Contains(text, "../jose-ja/compose.yml") {
 			result.Errors = append(result.Errors, "Product jose/compose.yml MUST include ../jose-ja/compose.yml")
 			result.Valid = false
 		}
@@ -237,8 +238,8 @@ func checkDelegationPattern(basePath string, deploymentName string, structType s
 // CRITICAL: ALL services MUST have isolated database storage (unique db/username/password).
 func checkDatabaseIsolation(deploymentsList []string, deploymentsRoot string) []string {
 	serviceNames := []string{
-		"sm-kms", "pki-ca", "sm-im", "jose-ja",
-		"identity-authz", "identity-idp", "identity-rp", "identity-rs", "identity-spa",
+		cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServicePKICA, cryptoutilSharedMagic.OTLPServiceSMIM, cryptoutilSharedMagic.OTLPServiceJoseJA,
+		cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP, cryptoutilSharedMagic.OTLPServiceIdentityRP, cryptoutilSharedMagic.OTLPServiceIdentityRS, cryptoutilSharedMagic.OTLPServiceIdentitySPA,
 	}
 
 	databaseNames := make(map[string][]string)

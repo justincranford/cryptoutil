@@ -4,6 +4,7 @@
 package barrier
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	crand "crypto/rand"
 	"testing"
@@ -137,7 +138,7 @@ func TestRootKeysService_DecryptKey_ErrorPaths(t *testing.T) {
 		t.Parallel()
 
 		// Create a raw AES key without kid, encrypt to produce JWE without kid header.
-		rawKey := make([]byte, 32)
+		rawKey := make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 		_, err := crand.Read(rawKey)
 		require.NoError(t, err)
 
@@ -265,7 +266,7 @@ func TestIntermediateKeysService_DecryptKey_NoKidInJWE(t *testing.T) {
 	t.Cleanup(func() { intermediateKeysService.Shutdown() })
 
 	// Create a raw AES key without kid, then encrypt to produce JWE without kid header.
-	rawKey := make([]byte, 32)
+	rawKey := make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 	_, err = crand.Read(rawKey)
 	require.NoError(t, err)
 
@@ -289,7 +290,7 @@ func TestRotateContentKey_NoKidInIntermediateJWE(t *testing.T) {
 	jwkGenService, unsealService := setupRotationServiceTestHelper(t)
 
 	// Create a JWE without kid (raw key, no kid set).
-	rawKey := make([]byte, 32)
+	rawKey := make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 	_, err := crand.Read(rawKey)
 	require.NoError(t, err)
 

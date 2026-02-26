@@ -3,6 +3,7 @@
 package github_actions
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
@@ -19,7 +20,7 @@ func TestLint_WithActualWorkflow(t *testing.T) {
 	tmpDir := t.TempDir()
 	workflowDir := filepath.Join(tmpDir, ".github", "workflows")
 
-	err := os.MkdirAll(workflowDir, 0o755)
+	err := os.MkdirAll(workflowDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	workflowFile := filepath.Join(workflowDir, "test.yml")
@@ -35,7 +36,7 @@ jobs:
           go-version: '1.21'
       - run: go test ./...
 `
-	err = os.WriteFile(workflowFile, []byte(content), 0o600)
+	err = os.WriteFile(workflowFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	filesByExtension := map[string][]string{
@@ -161,7 +162,7 @@ jobs:
     steps:
       - run: echo "Hello"
 `
-	err := os.WriteFile(workflowFile, []byte(content), 0o600)
+	err := os.WriteFile(workflowFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	actionDetails, validationErrors, err := validateAndParseWorkflowFile(workflowFile)
@@ -184,7 +185,7 @@ jobs:
       - uses: actions/setup-go@v5-rc1
       - uses: custom/action@1.2.3-alpha
 `
-	err := os.WriteFile(workflowFile, []byte(content), 0o600)
+	err := os.WriteFile(workflowFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	actionDetails, validationErrors, err := validateAndParseWorkflowFile(workflowFile)
@@ -307,7 +308,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 `
-	err := os.WriteFile(workflowFile1, []byte(content1), 0o600)
+	err := os.WriteFile(workflowFile1, []byte(content1), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	workflowFiles := []string{workflowFile1, "nonexistent.yml"}
@@ -334,15 +335,15 @@ func TestLintGitHubWorkflows_ExceptionLoadWarning(t *testing.T) {
 	}()
 
 	githubDir := filepath.Join(tmpDir, ".github")
-	err = os.MkdirAll(githubDir, 0o755)
+	err = os.MkdirAll(githubDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	exceptionsFile := filepath.Join(githubDir, "workflow-action-exceptions.json")
-	err = os.WriteFile(exceptionsFile, []byte("invalid json"), 0o600)
+	err = os.WriteFile(exceptionsFile, []byte("invalid json"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	workflowDir := filepath.Join(githubDir, "workflows")
-	err = os.MkdirAll(workflowDir, 0o755)
+	err = os.MkdirAll(workflowDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	workflowFile := filepath.Join(workflowDir, "test.yml")
@@ -354,7 +355,7 @@ jobs:
     steps:
       - run: echo "Hello"
 `
-	err = os.WriteFile(workflowFile, []byte(content), 0o600)
+	err = os.WriteFile(workflowFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	err = Check(logger, []string{workflowFile})

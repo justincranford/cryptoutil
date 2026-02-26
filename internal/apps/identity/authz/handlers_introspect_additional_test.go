@@ -32,7 +32,7 @@ func TestHandleIntrospect_TokenTypeHint(t *testing.T) {
 
 	reqBody := url.Values{
 		cryptoutilSharedMagic.ParamToken:         []string{"non-existent-token"},
-		cryptoutilSharedMagic.ParamTokenTypeHint: []string{"access_token"},
+		cryptoutilSharedMagic.ParamTokenTypeHint: []string{cryptoutilSharedMagic.TokenTypeAccessToken},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/introspect", strings.NewReader(reqBody.Encode()))

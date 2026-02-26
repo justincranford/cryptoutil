@@ -5,6 +5,7 @@
 package idp_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	http "net/http"
@@ -45,8 +46,8 @@ func TestSecurityAttacks_CSRFProtection(t *testing.T) {
 
 	// 1. Create in-memory database.
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	// 2. Create repository factory.
@@ -92,11 +93,11 @@ func TestSecurityAttacks_CSRFProtection(t *testing.T) {
 	config := &cryptoutilIdentityConfig.Config{
 		Database: dbConfig,
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			AccessTokenLifetime: 3600 * time.Second,
+			AccessTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout * time.Second,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{
 			CookieName:      "identity_session",
-			SessionLifetime: 3600 * time.Second,
+			SessionLifetime: cryptoutilSharedMagic.IMDefaultSessionTimeout * time.Second,
 			CookieHTTPOnly:  true,
 		},
 		IDP: &cryptoutilIdentityConfig.ServerConfig{
@@ -130,13 +131,13 @@ func TestSecurityAttacks_CSRFProtection(t *testing.T) {
 		ClientID:                testClientID,
 		ClientSecret:            testClientSecretHash,
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
-		RedirectURIs:            []string{"https://example.com/callback"},
-		AllowedScopes:           []string{"openid", "profile", "email"},
-		AllowedGrantTypes:       []string{"authorization_code"},
-		AllowedResponseTypes:    []string{"code"},
+		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
+		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail},
+		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
+		AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
 		RequirePKCE:             boolPtr(true),
-		PKCEChallengeMethod:     "S256",
+		PKCEChallengeMethod:     cryptoutilSharedMagic.PKCEMethodS256,
 		Enabled:                 boolPtr(true),
 		Name:                    "Test Client",
 		CreatedAt:               time.Now().UTC(),
@@ -170,12 +171,12 @@ func TestSecurityAttacks_CSRFProtection(t *testing.T) {
 		ID:           googleUuid.Must(googleUuid.NewV7()),
 		ClientID:     testClient.ClientID,
 		RedirectURI:  testClient.RedirectURIs[0],
-		ResponseType: "code",
+		ResponseType: cryptoutilSharedMagic.ResponseTypeCode,
 		Scope:        "openid profile email",
 		State:        "", // MISSING STATE - CSRF vulnerability
 		Nonce:        "test-nonce",
 		CreatedAt:    time.Now().UTC(),
-		ExpiresAt:    time.Now().UTC().Add(10 * time.Minute),
+		ExpiresAt:    time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
 	}
 
 	authzReqRepo := repoFactory.AuthorizationRequestRepository()
@@ -222,8 +223,8 @@ func TestSecurityAttacks_SessionFixation(t *testing.T) {
 
 	// Create in-memory database.
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
+		Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+		DSN:  cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
 	}
 
 	// Create repository factory.
@@ -274,7 +275,7 @@ func TestSecurityAttacks_SessionFixation(t *testing.T) {
 		ExpiresAt:             time.Now().UTC().Add(1 * time.Hour),
 		LastSeenAt:            time.Now().UTC(),
 		Active:                boolPtr(true),
-		AuthenticationMethods: []string{"username_password"},
+		AuthenticationMethods: []string{cryptoutilSharedMagic.AuthMethodUsernamePassword},
 		AuthenticationTime:    time.Now().UTC(),
 	}
 

@@ -25,7 +25,7 @@ func TestValidateToken_MalformedInputs(t *testing.T) {
 	rsaKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.RSA2048KeySize)
 	testify.NoError(t, err)
 
-	jwsIssuer, err := NewJWSIssuerLegacy("test-issuer", rsaKey, "RS256", time.Hour, time.Hour)
+	jwsIssuer, err := NewJWSIssuerLegacy("test-issuer", rsaKey, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, time.Hour, time.Hour)
 	testify.NoError(t, err)
 
 	ctx := context.Background()
@@ -38,7 +38,7 @@ func TestValidateToken_MalformedInputs(t *testing.T) {
 		{
 			name:    "wrong number of parts",
 			token:   "only.two",
-			wantErr: "invalid_token",
+			wantErr: cryptoutilSharedMagic.ErrorInvalidToken,
 		},
 		{
 			name:    "invalid base64 header",
@@ -88,7 +88,7 @@ func TestVerifySignature_LegacyRSA(t *testing.T) {
 	rsaKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.RSA2048KeySize)
 	testify.NoError(t, err)
 
-	jwsIssuer, err := NewJWSIssuerLegacy("test-issuer", rsaKey, "RS256", time.Hour, time.Hour)
+	jwsIssuer, err := NewJWSIssuerLegacy("test-issuer", rsaKey, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, time.Hour, time.Hour)
 	testify.NoError(t, err)
 
 	ctx := context.Background()
@@ -112,7 +112,7 @@ func TestVerifySignature_LegacyECDSA(t *testing.T) {
 	ecKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	testify.NoError(t, err)
 
-	jwsIssuer, err := NewJWSIssuerLegacy("test-issuer", ecKey, "ES256", time.Hour, time.Hour)
+	jwsIssuer, err := NewJWSIssuerLegacy("test-issuer", ecKey, cryptoutilSharedMagic.JoseAlgES256, time.Hour, time.Hour)
 	testify.NoError(t, err)
 
 	ctx := context.Background()
@@ -135,7 +135,7 @@ func TestVerifySignature_NoSigningKey(t *testing.T) {
 
 	jwsIssuer := &JWSIssuer{
 		issuer:           "test-issuer",
-		defaultAlgorithm: "RS256",
+		defaultAlgorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		accessTokenTTL:   time.Hour,
 		idTokenTTL:       time.Hour,
 	}
@@ -144,8 +144,8 @@ func TestVerifySignature_NoSigningKey(t *testing.T) {
 
 	header := base64.RawURLEncoding.EncodeToString([]byte(`{"alg":"RS256","typ":"JWT"}`))
 	claimsJSON := base64.RawURLEncoding.EncodeToString(mustMarshalJSON(t, map[string]any{
-		"exp": time.Now().UTC().Add(time.Hour).Unix(),
-		"iss": "test-issuer",
+		cryptoutilSharedMagic.ClaimExp: time.Now().UTC().Add(time.Hour).Unix(),
+		cryptoutilSharedMagic.ClaimIss: "test-issuer",
 	}))
 	sig := base64.RawURLEncoding.EncodeToString([]byte("fake-signature"))
 
@@ -163,14 +163,14 @@ func TestBuildJWS_NoSigningKey(t *testing.T) {
 
 	jwsIssuer := &JWSIssuer{
 		issuer:           "test-issuer",
-		defaultAlgorithm: "RS256",
+		defaultAlgorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		accessTokenTTL:   time.Hour,
 		idTokenTTL:       time.Hour,
 	}
 
 	result, err := jwsIssuer.buildJWS(map[string]any{
-		"sub": "test",
-		"iss": "test-issuer",
+		cryptoutilSharedMagic.ClaimSub: "test",
+		cryptoutilSharedMagic.ClaimIss: "test-issuer",
 	})
 	testify.Error(t, err)
 	testify.Empty(t, result)
@@ -232,7 +232,7 @@ func TestIssueAccessToken_NoSigningKey(t *testing.T) {
 
 	jwsIssuer := &JWSIssuer{
 		issuer:           "test-issuer",
-		defaultAlgorithm: "RS256",
+		defaultAlgorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		accessTokenTTL:   time.Hour,
 		idTokenTTL:       time.Hour,
 	}
@@ -253,7 +253,7 @@ func TestIssueIDToken_MissingRequiredClaims(t *testing.T) {
 	rsaKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.RSA2048KeySize)
 	testify.NoError(t, err)
 
-	jwsIssuer, err := NewJWSIssuerLegacy("test-issuer", rsaKey, "RS256", time.Hour, time.Hour)
+	jwsIssuer, err := NewJWSIssuerLegacy("test-issuer", rsaKey, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, time.Hour, time.Hour)
 	testify.NoError(t, err)
 
 	ctx := context.Background()
@@ -301,7 +301,7 @@ func TestVerifySignature_RotationManagerNoKeys(t *testing.T) {
 	jwsIssuer := &JWSIssuer{
 		issuer:           "test-issuer",
 		keyRotationMgr:   mgr,
-		defaultAlgorithm: "RS256",
+		defaultAlgorithm: cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		accessTokenTTL:   time.Hour,
 		idTokenTTL:       time.Hour,
 	}
@@ -310,8 +310,8 @@ func TestVerifySignature_RotationManagerNoKeys(t *testing.T) {
 
 	header := base64.RawURLEncoding.EncodeToString([]byte(`{"alg":"RS256","typ":"JWT","kid":"nonexistent"}`))
 	claimsJSON := base64.RawURLEncoding.EncodeToString(mustMarshalJSON(t, map[string]any{
-		"exp": time.Now().UTC().Add(time.Hour).Unix(),
-		"iss": "test-issuer",
+		cryptoutilSharedMagic.ClaimExp: time.Now().UTC().Add(time.Hour).Unix(),
+		cryptoutilSharedMagic.ClaimIss: "test-issuer",
 	}))
 	sig := base64.RawURLEncoding.EncodeToString([]byte("fake-signature"))
 
@@ -413,7 +413,7 @@ func TestVerifyJWTSignature_WrongKeyType(t *testing.T) {
 		},
 		{
 			name:      "unsupported algorithm",
-			algorithm: "PS256",
+			algorithm: cryptoutilSharedMagic.JoseAlgPS256,
 			key:       "any-key",
 			wantErr:   "unsupported verification algorithm",
 		},
@@ -449,7 +449,7 @@ func TestValidateToken_ExpiredToken(t *testing.T) {
 	rsaKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.RSA2048KeySize)
 	testify.NoError(t, err)
 
-	jwsIssuer, err := NewJWSIssuerLegacy("test-issuer", rsaKey, "RS256", time.Hour, time.Hour)
+	jwsIssuer, err := NewJWSIssuerLegacy("test-issuer", rsaKey, cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, time.Hour, time.Hour)
 	testify.NoError(t, err)
 
 	ctx := context.Background()

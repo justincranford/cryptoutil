@@ -3,6 +3,7 @@
 package unit
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	"strings"
@@ -25,7 +26,7 @@ func TestMagicLinkInvalidToken(t *testing.T) {
 
 	mockEmail := cryptoutilIdentityIdpUserauthMocks.NewEmailProvider()
 	challengeStore := newMockChallengeStore()
-	rateLimiter := newMockRateLimiter(100, 5*time.Minute)
+	rateLimiter := newMockRateLimiter(cryptoutilSharedMagic.JoseJAMaxMaterials, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)
 	userRepo := newMockUserRepository()
 
 	testUser := &cryptoutilIdentityDomain.User{
@@ -62,7 +63,7 @@ func TestMagicLinkRateLimitEnforcement(t *testing.T) {
 
 	mockEmail := cryptoutilIdentityIdpUserauthMocks.NewEmailProvider()
 	challengeStore := newMockChallengeStore()
-	rateLimiter := newMockRateLimiter(5, 1*time.Minute) // Only 5 attempts per minute
+	rateLimiter := newMockRateLimiter(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, 1*time.Minute) // Only 5 attempts per minute
 	userRepo := newMockUserRepository()
 
 	testUser := &cryptoutilIdentityDomain.User{
@@ -80,7 +81,7 @@ func TestMagicLinkRateLimitEnforcement(t *testing.T) {
 	)
 
 	// First 5 attempts should succeed.
-	for i := 0; i < 5; i++ {
+	for i := 0; i < cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries; i++ {
 		_, err := authenticator.InitiateAuth(ctx, testUser.Sub)
 		require.NoError(t, err, "Attempt %d should succeed", i+1)
 	}

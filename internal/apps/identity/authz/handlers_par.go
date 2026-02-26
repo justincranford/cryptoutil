@@ -59,40 +59,40 @@ func (s *Service) handlePAR(c *fiber.Ctx) error {
 	state := c.FormValue(cryptoutilSharedMagic.ParamState)
 	codeChallenge := c.FormValue(cryptoutilSharedMagic.ParamCodeChallenge)
 	codeChallengeMethod := c.FormValue(cryptoutilSharedMagic.ParamCodeChallengeMethod)
-	nonce := c.FormValue("nonce")
+	nonce := c.FormValue(cryptoutilSharedMagic.ClaimNonce)
 
 	// Validate required parameters.
 	if clientIDStr == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Missing required parameter: client_id",
 		})
 	}
 
 	if responseType == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Missing required parameter: response_type",
 		})
 	}
 
 	if redirectURI == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Missing required parameter: redirect_uri",
 		})
 	}
 
 	if codeChallenge == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Missing required parameter: code_challenge",
 		})
 	}
 
 	if codeChallengeMethod == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Missing required parameter: code_challenge_method",
 		})
 	}
@@ -100,7 +100,7 @@ func (s *Service) handlePAR(c *fiber.Ctx) error {
 	// Validate response_type (only "code" supported).
 	if responseType != cryptoutilSharedMagic.ResponseTypeCode {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorUnsupportedResponseType,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorUnsupportedResponseType,
 			"error_description": fmt.Sprintf("Only response_type=%s is supported", cryptoutilSharedMagic.ResponseTypeCode),
 		})
 	}
@@ -108,7 +108,7 @@ func (s *Service) handlePAR(c *fiber.Ctx) error {
 	// Validate code_challenge_method (only S256 supported per PKCE).
 	if codeChallengeMethod != cryptoutilSharedMagic.PKCEMethodS256 {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": fmt.Sprintf("Only code_challenge_method=%s is supported", cryptoutilSharedMagic.PKCEMethodS256),
 		})
 	}
@@ -118,10 +118,10 @@ func (s *Service) handlePAR(c *fiber.Ctx) error {
 
 	client, err := clientRepo.GetByClientID(ctx, clientIDStr)
 	if err != nil {
-		slog.ErrorContext(ctx, "Client not found for PAR request", "client_id", clientIDStr, "error", err)
+		slog.ErrorContext(ctx, "Client not found for PAR request", cryptoutilSharedMagic.ClaimClientID, clientIDStr, cryptoutilSharedMagic.StringError, err)
 
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorInvalidClient,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidClient,
 			"error_description": "Invalid client_id",
 		})
 	}
@@ -138,10 +138,10 @@ func (s *Service) handlePAR(c *fiber.Ctx) error {
 	}
 
 	if !validRedirectURI {
-		slog.ErrorContext(ctx, "Invalid redirect_uri for client", "client_id", clientIDStr, "redirect_uri", redirectURI)
+		slog.ErrorContext(ctx, "Invalid redirect_uri for client", cryptoutilSharedMagic.ClaimClientID, clientIDStr, cryptoutilSharedMagic.ParamRedirectURI, redirectURI)
 
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "redirect_uri not registered for this client",
 		})
 	}
@@ -149,10 +149,10 @@ func (s *Service) handlePAR(c *fiber.Ctx) error {
 	// Generate cryptographically random request_uri.
 	requestURI, err := GenerateRequestURI()
 	if err != nil {
-		slog.ErrorContext(ctx, "Failed to generate request_uri", "error", err)
+		slog.ErrorContext(ctx, "Failed to generate request_uri", cryptoutilSharedMagic.StringError, err)
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorServerError,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Internal server error",
 		})
 	}
@@ -179,10 +179,10 @@ func (s *Service) handlePAR(c *fiber.Ctx) error {
 
 	parRepo := s.repoFactory.PushedAuthorizationRequestRepository()
 	if err := parRepo.Create(ctx, par); err != nil {
-		slog.ErrorContext(ctx, "Failed to create pushed authorization request", "error", err)
+		slog.ErrorContext(ctx, "Failed to create pushed authorization request", cryptoutilSharedMagic.StringError, err)
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             cryptoutilSharedMagic.ErrorServerError,
+			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Internal server error",
 		})
 	}
@@ -194,8 +194,8 @@ func (s *Service) handlePAR(c *fiber.Ctx) error {
 	}
 
 	slog.InfoContext(ctx, "Pushed authorization request created",
-		"request_uri", requestURI,
-		"client_id", clientIDStr,
+		cryptoutilSharedMagic.ParamRequestURI, requestURI,
+		cryptoutilSharedMagic.ClaimClientID, clientIDStr,
 		"expires_at", expiresAt)
 
 	return c.Status(fiber.StatusCreated).JSON(response)

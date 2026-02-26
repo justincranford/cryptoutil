@@ -311,7 +311,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 				}
 			}
 		case cryptoutilSharedMagic.JoseAlgEdDSA:
-			jwk, genErr = generateEdDSAJWKFn("Ed25519")
+			jwk, genErr = generateEdDSAJWKFn(cryptoutilSharedMagic.EdCurveEd25519)
 			if genErr == nil {
 				genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.EdDSA())
 				if genErr == nil {
@@ -328,7 +328,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 			jwk, genErr = generateAESJWKFn(cryptoutilSharedMagic.AESKeySize256)
 			if genErr == nil {
 				// Set 'enc' and 'alg' attributes for encryption
-				genErr = jwk.Set("enc", joseJwa.A256GCM())
+				genErr = jwk.Set(cryptoutilSharedMagic.JoseKeyUseEnc, joseJwa.A256GCM())
 				if genErr == nil {
 					genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.DIRECT())
 				}
@@ -336,7 +336,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 		case cryptoutilSharedMagic.SessionJWEAlgorithmA256GCMKWA256GCM:
 			jwk, genErr = generateAESJWKFn(cryptoutilSharedMagic.AESKeySize256)
 			if genErr == nil {
-				genErr = jwk.Set("enc", joseJwa.A256GCM())
+				genErr = jwk.Set(cryptoutilSharedMagic.JoseKeyUseEnc, joseJwa.A256GCM())
 				if genErr == nil {
 					genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.A256GCMKW())
 				}

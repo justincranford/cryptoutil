@@ -5,6 +5,7 @@
 package realm
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	json "encoding/json"
 	http "net/http"
@@ -305,7 +306,7 @@ func TestFederationManager_DiscoverOIDC(t *testing.T) {
 		}
 
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if r.URL.Path == "/.well-known/openid-configuration" {
+			if r.URL.Path == cryptoutilSharedMagic.PathDiscovery {
 				w.Header().Set("Content-Type", "application/json")
 
 				if err := json.NewEncoder(w).Encode(discoveryDoc); err != nil {

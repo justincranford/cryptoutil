@@ -28,7 +28,7 @@ func TestPostAuthenticator_MethodName(t *testing.T) {
 func TestPostAuthenticator_Authenticate(t *testing.T) {
 	t.Parallel()
 
-	testClientID := "test-client-id"
+	testClientID := cryptoutilSharedMagic.TestClientID
 	testClientSecret := "test-client-secret"
 	testClientIDUUID := googleUuid.New()
 
@@ -44,14 +44,14 @@ func TestPostAuthenticator_Authenticate(t *testing.T) {
 				ClientSecret:            hashedSecret,
 				ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 				TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
-				AllowedGrantTypes:       []string{"authorization_code"},
-				AllowedResponseTypes:    []string{"code"},
-				AllowedScopes:           []string{"openid"},
-				RedirectURIs:            []string{"https://example.com/callback"},
+				AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
+				AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
+				AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID},
+				RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
 				RequirePKCE:             boolPtr(true),
-				AccessTokenLifetime:     3600,
-				RefreshTokenLifetime:    86400,
-				IDTokenLifetime:         3600,
+				AccessTokenLifetime:     cryptoutilSharedMagic.IMDefaultSessionTimeout,
+				RefreshTokenLifetime:    cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+				IDTokenLifetime:         cryptoutilSharedMagic.IMDefaultSessionTimeout,
 			},
 		},
 	}

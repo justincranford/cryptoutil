@@ -124,7 +124,7 @@ func storePEM(subject *cryptoutilSharedCryptoCertificate.Subject, opts *StorageO
 
 	for _, cert := range subject.KeyMaterial.CertificateChain {
 		block := &pem.Block{
-			Type:  "CERTIFICATE",
+			Type:  cryptoutilSharedMagic.StringPEMTypeCertificate,
 			Bytes: cert.Raw,
 		}
 		certChainPEM = append(certChainPEM, pem.EncodeToMemory(block)...)
@@ -148,7 +148,7 @@ func storePEM(subject *cryptoutilSharedCryptoCertificate.Subject, opts *StorageO
 		}
 
 		keyPEM := pem.EncodeToMemory(&pem.Block{
-			Type:  "PRIVATE KEY",
+			Type:  cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey,
 			Bytes: keyDER,
 		})
 
@@ -206,7 +206,7 @@ func LoadCertificatePEM(certPath, keyPath string) (*cryptoutilSharedCryptoCertif
 			break
 		}
 
-		if block.Type == "CERTIFICATE" {
+		if block.Type == cryptoutilSharedMagic.StringPEMTypeCertificate {
 			cert, err := x509.ParseCertificate(block.Bytes)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse certificate: %w", err)

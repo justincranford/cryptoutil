@@ -3,6 +3,7 @@
 package timestamp
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/asn1"
 	"math/big"
 	"testing"
@@ -18,9 +19,9 @@ func TestParseTimestampRequest_TrailingData(t *testing.T) {
 		Version: 1,
 		MessageImprint: messageImprintASN1{
 			HashAlgorithm: algorithmIdentifierASN1{
-				Algorithm: asn1.ObjectIdentifier{2, 16, 840, 1, 101, 3, 4, 2, 1},
+				Algorithm: asn1.ObjectIdentifier{2, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 840, 1, 101, 3, 4, 2, 1},
 			},
-			HashedMessage: make([]byte, 32),
+			HashedMessage: make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes),
 		},
 	}
 	der, err := asn1.Marshal(req)
@@ -41,9 +42,9 @@ func TestParseTimestampRequest_UnsupportedHashOID(t *testing.T) {
 		Version: 1,
 		MessageImprint: messageImprintASN1{
 			HashAlgorithm: algorithmIdentifierASN1{
-				Algorithm: asn1.ObjectIdentifier{1, 2, 840, 113549, 2, 5}, // MD5
+				Algorithm: asn1.ObjectIdentifier{1, 2, 840, 113549, 2, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries}, // MD5
 			},
-			HashedMessage: make([]byte, 16),
+			HashedMessage: make([]byte, cryptoutilSharedMagic.RealmMinTokenLengthBytes),
 		},
 	}
 	der, err := asn1.Marshal(req)
@@ -62,16 +63,16 @@ func TestParseTimestampRequest_SuccessWithExtensions(t *testing.T) {
 		Version: 1,
 		MessageImprint: messageImprintASN1{
 			HashAlgorithm: algorithmIdentifierASN1{
-				Algorithm: asn1.ObjectIdentifier{2, 16, 840, 1, 101, 3, 4, 2, 1},
+				Algorithm: asn1.ObjectIdentifier{2, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 840, 1, 101, 3, 4, 2, 1},
 			},
-			HashedMessage: make([]byte, 32),
+			HashedMessage: make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes),
 		},
-		ReqPolicy: asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 99999, 1},
-		Nonce:     big.NewInt(42),
+		ReqPolicy: asn1.ObjectIdentifier{1, 3, cryptoutilSharedMagic.DefaultEmailOTPLength, 1, 4, 1, 99999, 1},
+		Nonce:     big.NewInt(cryptoutilSharedMagic.AnswerToLifeUniverseEverything),
 		CertReq:   true,
 		Extensions: []extensionASN1{
 			{
-				OID:      asn1.ObjectIdentifier{2, 5, 29, 14},
+				OID:      asn1.ObjectIdentifier{2, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, 29, 14},
 				Critical: false,
 				Value:    []byte("test-extension-value"),
 			},
@@ -114,16 +115,16 @@ func TestSerializeTimestampResponse_WithAccuracy(t *testing.T) {
 		TimeStampToken: &TimeStampToken{
 			TSTInfo: TSTInfo{
 				Version: 1,
-				Policy:  asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 99999, 1},
+				Policy:  asn1.ObjectIdentifier{1, 3, cryptoutilSharedMagic.DefaultEmailOTPLength, 1, 4, 1, 99999, 1},
 				MessageImprint: MessageImprint{
 					HashAlgorithm: HashAlgorithmSHA256,
-					HashedMessage: make([]byte, 32),
+					HashedMessage: make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes),
 				},
 				SerialNumber: big.NewInt(1),
 				Accuracy: &Accuracy{
 					Seconds: 1,
-					Millis:  500,
-					Micros:  100,
+					Millis:  cryptoutilSharedMagic.TestDefaultRateLimitServiceIP,
+					Micros:  cryptoutilSharedMagic.JoseJAMaxMaterials,
 				},
 			},
 		},

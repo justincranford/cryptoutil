@@ -5,6 +5,7 @@
 package auth_test
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"fmt"
 	"testing"
@@ -106,7 +107,7 @@ func TestUsernamePasswordProfile_Name(t *testing.T) {
 
 	userRepo := newMockUserRepo()
 	profile := cryptoutilIdentityAuth.NewUsernamePasswordProfile(userRepo)
-	require.Equal(t, "username_password", profile.Name(), "Name should return 'username_password'")
+	require.Equal(t, cryptoutilSharedMagic.AuthMethodUsernamePassword, profile.Name(), "Name should return 'username_password'")
 }
 
 // TestUsernamePasswordProfile_RequiresMFA tests RequiresMFA.

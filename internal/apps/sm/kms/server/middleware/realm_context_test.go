@@ -15,6 +15,7 @@
 package middleware
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"io"
 	"net/http/httptest"
@@ -55,7 +56,7 @@ func TestRealmContextMiddleware_FromJWT(t *testing.T) {
 	app.Get("/test", func(c *fiber.Ctx) error {
 		realmCtx := GetRealmContext(c.UserContext())
 		if realmCtx == nil {
-			return c.Status(500).SendString("no realm context")
+			return c.Status(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP).SendString("no realm context")
 		}
 
 		return c.JSON(fiber.Map{
@@ -107,7 +108,7 @@ func TestRealmContextMiddleware_FromOIDC(t *testing.T) {
 	app.Get("/test", func(c *fiber.Ctx) error {
 		realmCtx := GetRealmContext(c.UserContext())
 		if realmCtx == nil {
-			return c.Status(500).SendString("no realm context")
+			return c.Status(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP).SendString("no realm context")
 		}
 
 		return c.JSON(fiber.Map{
@@ -151,7 +152,7 @@ func TestRealmContextMiddleware_FromHeader(t *testing.T) {
 	app.Get("/test", func(c *fiber.Ctx) error {
 		realmCtx := GetRealmContext(c.UserContext())
 		if realmCtx == nil {
-			return c.Status(500).SendString("no realm context")
+			return c.Status(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP).SendString("no realm context")
 		}
 
 		return c.JSON(fiber.Map{
@@ -250,7 +251,7 @@ func TestRealmContextMiddleware_FromJWT_WithUserAndClient(t *testing.T) {
 				"tenant_id": tenantID.String(),
 				"realm_id":  realmID.String(),
 				"user_id":   userID.String(),
-				"client_id": clientID.String(),
+				cryptoutilSharedMagic.ClaimClientID: clientID.String(),
 			},
 		}
 		ctx := context.WithValue(c.UserContext(), JWTContextKey{}, claims)
@@ -264,14 +265,14 @@ func TestRealmContextMiddleware_FromJWT_WithUserAndClient(t *testing.T) {
 	app.Get("/test", func(c *fiber.Ctx) error {
 		realmCtx := GetRealmContext(c.UserContext())
 		if realmCtx == nil {
-			return c.Status(500).SendString("no realm context")
+			return c.Status(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP).SendString("no realm context")
 		}
 
 		return c.JSON(fiber.Map{
 			"tenant_id": realmCtx.TenantID.String(),
 			"realm_id":  realmCtx.RealmID.String(),
 			"user_id":   realmCtx.UserID.String(),
-			"client_id": realmCtx.ClientID.String(),
+			cryptoutilSharedMagic.ClaimClientID: realmCtx.ClientID.String(),
 			"source":    realmCtx.Source,
 		})
 	})
@@ -316,7 +317,7 @@ func TestRealmContextMiddleware_FromOIDC_WithTenantIDs(t *testing.T) {
 	app.Get("/test", func(c *fiber.Ctx) error {
 		realmCtx := GetRealmContext(c.UserContext())
 		if realmCtx == nil {
-			return c.Status(500).SendString("no realm context")
+			return c.Status(cryptoutilSharedMagic.TestDefaultRateLimitServiceIP).SendString("no realm context")
 		}
 
 		return c.JSON(fiber.Map{
