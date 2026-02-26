@@ -14,13 +14,40 @@ files.
 This plan captures the remaining open items and followup work identified during
 the fixes-v7 strategy review.
 
-## Phase 1: E2E Verification (Blocked — Docker Desktop)
+## Phase 1: E2E Verification ✅ COMPLETE
 
-Verify the OTel collector config fix (`detectors: [env, system]`) actually
-unblocks E2E tests. Requires Docker Desktop running.
+Deep research uncovered 13 root causes across all 4 E2E test suites. All fixed
+and committed.
 
-- Run `go test -tags=e2e -timeout=30m ./internal/apps/sm/im/e2e/...`
-- Verify sm-im E2E passes end-to-end
+### Root Causes Found
+
+| # | Root Cause | Impact | Fix |
+|---|-----------|--------|-----|
+| 1 | OTel Docker detector requires socket | All services | `detectors: [env, system]` (7b3b78c2) |
+| 2 | ComposeManager missing profile support | All E2E | Added Profiles field + --profile flags (da860dd8) |
+| 3 | CLI args bug — os.Args instead of os.Args[1:] | 12 binaries | Fixed all main.go files (da860dd8) |
+| 4 | Missing SQLite database URL | jose, identity | Added `-u sqlite://` to compose commands |
+| 5 | Config format + port override | All services | Added `--bind-public-port=8080` CLI flag |
+| 6 | browser_session_jwks test assumed rows | sm-im | Table-driven with `requireRow` flag (da860dd8) |
+| 7 | Docker image caching | All E2E | Added `--build` to ComposeManager.Start() |
+| 8 | "start" vs "server" subcommand | 8 compose + 3 Dockerfiles | Changed to "server" |
+| 9 | sm-kms wrong postgres hostname | sm-kms | Fixed postgres-url.secret |
+| 10 | GLOB CHECK in SQL migrations | sm-kms | Removed (app-layer validation) |
+| 11 | BLOB type not valid PostgreSQL | sm-kms | Changed to BYTEA |
+| 12 | DROP TABLE FK dependency | sm-kms | Added CASCADE via pre-drop |
+| 13 | Identity unseal secrets too short | identity | Regenerated to 53 bytes |
+
+### E2E Results
+
+- **sm-im**: PASS (committed da860dd8)
+- **jose-ja**: PASS (18.274s, committed 6086fb29)
+- **sm-kms**: PASS (41.609s, committed 6086fb29)
+- **identity**: PASS (6.823s, 5 services, committed 6086fb29)
+
+### Additional Fixes (Config Format)
+
+- Rewrote 20 identity config files from nested YAML to flat kebab-case
+- Added jose-ja sqlite/postgresql config files with flat kebab-case format
 
 ## Phase 2: Propagation Infrastructure
 

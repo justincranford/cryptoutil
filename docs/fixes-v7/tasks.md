@@ -3,11 +3,28 @@
 **Source**: Distilled from archived fixes-v7 (archive2/)
 **Status**: Active
 
-## Phase 1: E2E Verification (Blocked — Docker Desktop)
+## Phase 1: E2E Verification ✅ COMPLETE
 
-- [ ] Run `go test -tags=e2e -timeout=30m ./internal/apps/sm/im/e2e/...`
-- [ ] Verify sm-im E2E passes end-to-end with fixed OTel config
-- [ ] If E2E fails: diagnose and fix (OTel config change: `detectors: [env, system]`)
+- [x] Run sm-im E2E — PASS (committed da860dd8)
+- [x] Run jose-ja E2E — PASS (18.274s, committed 6086fb29)
+- [x] Run sm-kms E2E — PASS (41.609s, committed 6086fb29)
+- [x] Run identity E2E — PASS (6.823s, 5 services, committed 6086fb29)
+- [x] Deep research: identified 13 root causes (see plan.md for details)
+- [x] Fix root cause #1: OTel docker detector (committed 7b3b78c2)
+- [x] Fix root cause #2: ComposeManager profiles (committed da860dd8)
+- [x] Fix root cause #3: CLI args os.Args bug (committed da860dd8)
+- [x] Fix root cause #4: Missing SQLite database URL (committed 6086fb29)
+- [x] Fix root cause #5: Port override via CLI flag (committed 6086fb29)
+- [x] Fix root cause #6: browser_session_jwks test (committed da860dd8)
+- [x] Fix root cause #7: Docker image caching --build (committed 6086fb29)
+- [x] Fix root cause #8: "start" vs "server" subcommand (committed 6086fb29)
+- [x] Fix root cause #9: sm-kms postgres hostname (committed 6086fb29)
+- [x] Fix root cause #10: GLOB CHECK SQLite-only (committed 6086fb29)
+- [x] Fix root cause #11: BLOB type PostgreSQL (committed 6086fb29)
+- [x] Fix root cause #12: DROP TABLE FK cascade (committed 6086fb29)
+- [x] Fix root cause #13: Identity unseal secrets too short (committed 6086fb29)
+- [x] Rewrite 20 identity config files to flat kebab-case (committed 6086fb29)
+- [x] All 62 deployment validators pass
 
 ## Phase 2: Propagation Infrastructure
 
