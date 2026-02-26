@@ -7,7 +7,7 @@ inputs:
   endpoints:
     description: 'JSON array of endpoint objects with url and name properties'
     required: true
-    default: '[{"url": "https://127.0.0.1:8080/ui/swagger/doc.json", "name": "cryptoutil-sqlite"}, {"url": "https://127.0.0.1:8081/ui/swagger/doc.json", "name": "cryptoutil-postgres-1"}, {"url": "https://127.0.0.1:8082/ui/swagger/doc.json", "name": "cryptoutil-postgres-2"}]'
+    default: '[{"url": "https://127.0.0.1:8080/browser/api/v1/health", "name": "cryptoutil-sqlite"}, {"url": "https://127.0.0.1:8081/browser/api/v1/health", "name": "cryptoutil-postgres-1"}, {"url": "https://127.0.0.1:8082/browser/api/v1/health", "name": "cryptoutil-postgres-2"}]'
   max-attempts:
     description: 'Maximum number of attempts to check each endpoint'
     required: false

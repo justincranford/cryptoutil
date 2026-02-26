@@ -92,7 +92,7 @@ on:
       digest_fuzztime:
         description: 'Digest fuzz test duration (seconds)'
         required: false
-        default: '15'
+        default: '20'
         type: string
       digest_timeout:
         description: 'Digest fuzz test timeout (seconds)'
@@ -215,7 +215,7 @@ jobs:
     if: ${{ github.event.inputs.test_profile == 'all' || github.event_name != 'workflow_dispatch' }}
 
     env:
-      DIGEST_FUZZTIME: ${{ github.event.inputs.digest_fuzztime || '15' }}
+      DIGEST_FUZZTIME: ${{ github.event.inputs.digest_fuzztime || '20' }}
       DIGEST_TIMEOUT: ${{ github.event.inputs.digest_timeout || '120' }}
       GOMAXPROCS: ${{ github.event.inputs.gomaxprocs || '4' }}
 

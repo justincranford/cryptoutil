@@ -136,7 +136,7 @@ jobs:
     - name: Verify services are ready
       uses: ./.github/actions/docker-compose-verify
       with:
-        endpoints: '[{"url": "https://127.0.0.1:8001/ui/swagger/doc.json", "name": "sm-kms-postgres-1"}, {"url": "https://127.0.0.1:8002/ui/swagger/doc.json", "name": "sm-kms-postgres-2"}]'
+        endpoints: '[{"url": "https://127.0.0.1:8001/browser/api/v1/health", "name": "sm-kms-postgres-1"}, {"url": "https://127.0.0.1:8002/browser/api/v1/health", "name": "sm-kms-postgres-2"}]'
 
     - name: Set load test parameters
       id: load-params

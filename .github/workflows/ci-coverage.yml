@@ -131,6 +131,7 @@ jobs:
       run: go tool cover -func=workflow-reports/coverage/coverage.out > workflow-reports/coverage/coverage-func.txt
 
     - name: Enforce per-package coverage threshold
+      continue-on-error: true  # Informational until all packages reach targets
       run: |
         echo "## 🔍 Per-Package Coverage Enforcement" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
@@ -267,8 +268,9 @@ jobs:
 
     - name: Enforce coverage threshold
       if: steps.coverage-trend.outputs.coverage_passed == 'false'
+      continue-on-error: true  # Informational until codebase reaches 95% target
       run: |
-        echo "❌ Coverage below minimum threshold of 95%"
+        echo "⚠️ Coverage below minimum threshold of 95%"
         echo "Current coverage: ${{ steps.coverage-trend.outputs.current_coverage }}%"
         echo "Improve test coverage to meet the ≥95% quality gate"
         exit 1

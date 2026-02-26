@@ -10,14 +10,14 @@ name: CI - Identity Validation
 on:
   pull_request:
     paths:
-      - 'internal/identity/**'
+      - 'internal/apps/identity/**'
       - 'docs/02-identityV2/**'
       - '.github/workflows/ci-identity-validation.yml'
   push:
     branches:
       - main
     paths:
-      - 'internal/identity/**'
+      - 'internal/apps/identity/**'
       - 'docs/02-identityV2/**'
       - '.github/workflows/ci-identity-validation.yml'
   workflow_dispatch:
@@ -54,7 +54,7 @@ jobs:
       - name: Run tests with coverage
         run: |
           mkdir -p test-output
-          go test ./internal/identity/... -cover -coverprofile=test-output/identity-coverage.out -json > test-output/identity-test-results.json
+          go test ./internal/apps/identity/... -cover -coverprofile=test-output/identity-coverage.out -json > test-output/identity-test-results.json
 
       - name: Check coverage threshold
         run: |
@@ -106,7 +106,7 @@ jobs:
 
       - name: Check for CRITICAL/HIGH TODOs
         run: |
-          if grep -r "TODO.*CRITICAL\|TODO.*HIGH" internal/identity/ docs/02-identityV2/; then
+          if grep -r "TODO.*CRITICAL\|TODO.*HIGH" internal/apps/identity/ docs/02-identityV2/; then
             echo "::error::Found CRITICAL or HIGH severity TODOs - must be resolved before merge"
             exit 1
           fi
@@ -116,7 +116,7 @@ jobs:
         if: always()
         run: |
           mkdir -p test-output
-          grep -rn "TODO\|FIXME" internal/identity/ docs/02-identityV2/ > test-output/todo-scan.txt || true
+          grep -rn "TODO\|FIXME" internal/apps/identity/ docs/02-identityV2/ > test-output/todo-scan.txt || true
 
       - name: Upload TODO scan
         if: always()
