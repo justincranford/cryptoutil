@@ -13,6 +13,7 @@ import (
 	lintGoCryptoRand "cryptoutil/internal/apps/cicd/lint_go/crypto_rand"
 	lintGoInsecureSkipVerify "cryptoutil/internal/apps/cicd/lint_go/insecure_skip_verify"
 	lintGoLeftoverCoverage "cryptoutil/internal/apps/cicd/lint_go/leftover_coverage"
+	lintGoMagicAliases "cryptoutil/internal/apps/cicd/lint_go/magic_aliases"
 	lintGoMagicDuplicates "cryptoutil/internal/apps/cicd/lint_go/magic_duplicates"
 	lintGoMagicUsage "cryptoutil/internal/apps/cicd/lint_go/magic_usage"
 	lintGoNonFIPSAlgorithms "cryptoutil/internal/apps/cicd/lint_go/non_fips_algorithms"
@@ -36,6 +37,7 @@ var registeredLinters = []struct {
 	{"crypto-rand", lintGoCryptoRand.Check},
 	{"insecure-skip-verify", lintGoInsecureSkipVerify.Check},
 	{"leftover-coverage", lintGoLeftoverCoverage.Check},
+	{"magic-aliases", lintGoMagicAliases.Check},
 	{"magic-duplicates", lintGoMagicDuplicates.Check},
 	{"magic-usage", lintGoMagicUsage.Check},
 }

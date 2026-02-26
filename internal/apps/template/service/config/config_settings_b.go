@@ -4,7 +4,6 @@
 
 package config
 
-
 import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
