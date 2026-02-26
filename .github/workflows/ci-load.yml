@@ -235,9 +235,9 @@ jobs:
         # Configure JVM options for Gatling
         export MAVEN_OPTS="-Xmx2g -Xms1g"
 
-        # Run all simulations with configured parameters
+        # Run ServiceApiSimulation only (BrowserApiSimulation targets identity OAuth endpoints not available on sm-kms)
         if ./mvnw gatling:test \
-          -Dgatling.runMultipleSimulations=true \
+          -Dgatling.simulationClass=cryptoutil.ServiceApiSimulation \
           -Dprofile=${{ env.LOAD_PROFILE }} \
           -Dport=8001 \
           -Dvirtualclients=${{ steps.load-params.outputs.virtual_clients }} \
