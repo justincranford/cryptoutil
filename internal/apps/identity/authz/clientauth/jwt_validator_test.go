@@ -25,7 +25,6 @@ import (
 // Test constants.
 const (
 	testTokenEndpointURL = "https://auth.example.com/token"
-	testClientID         = "test-client-id"
 	testClientSecret     = "test-client-secret-very-long-for-hmac-sha256"
 )
 
@@ -61,15 +60,15 @@ func TestPrivateKeyJWTValidator_ValidateJWT_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	client := &cryptoutilIdentityDomain.Client{
-		ClientID: testClientID,
+		ClientID: cryptoutilSharedMagic.TestClientID,
 		JWKs:     string(publicKeySetBytes),
 	}
 
 	// Create valid JWT.
 	now := time.Now().UTC()
 	token := joseJwt.New()
-	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
-	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
+	require.NoError(t, token.Set(joseJwt.IssuerKey, cryptoutilSharedMagic.TestClientID))
+	require.NoError(t, token.Set(joseJwt.SubjectKey, cryptoutilSharedMagic.TestClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
 	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)))
 	require.NoError(t, token.Set(joseJwt.IssuedAtKey, now))
@@ -87,8 +86,8 @@ func TestPrivateKeyJWTValidator_ValidateJWT_Success(t *testing.T) {
 	// Extract and verify claims.
 	claims, err := validator.ExtractClaims(ctx, validatedToken)
 	require.NoError(t, err)
-	require.Equal(t, testClientID, claims.Issuer)
-	require.Equal(t, testClientID, claims.Subject)
+	require.Equal(t, cryptoutilSharedMagic.TestClientID, claims.Issuer)
+	require.Equal(t, cryptoutilSharedMagic.TestClientID, claims.Subject)
 	require.Contains(t, claims.Audience, testTokenEndpointURL)
 }
 
@@ -99,7 +98,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_NoJWKSet(t *testing.T) {
 	validator := NewPrivateKeyJWTValidator(testTokenEndpointURL, nil)
 
 	client := &cryptoutilIdentityDomain.Client{
-		ClientID: testClientID,
+		ClientID: cryptoutilSharedMagic.TestClientID,
 		JWKs:     "", // Empty JWK set.
 	}
 
@@ -115,7 +114,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_InvalidJWKSet(t *testing.T) {
 	validator := NewPrivateKeyJWTValidator(testTokenEndpointURL, nil)
 
 	client := &cryptoutilIdentityDomain.Client{
-		ClientID: testClientID,
+		ClientID: cryptoutilSharedMagic.TestClientID,
 		JWKs:     "invalid-json-not-a-jwk-set",
 	}
 
@@ -163,15 +162,15 @@ func TestPrivateKeyJWTValidator_ValidateJWT_InvalidSignature(t *testing.T) {
 	require.NoError(t, err)
 
 	client := &cryptoutilIdentityDomain.Client{
-		ClientID: testClientID,
+		ClientID: cryptoutilSharedMagic.TestClientID,
 		JWKs:     string(publicKeySetBytes),
 	}
 
 	// Create valid JWT but sign with DIFFERENT private key.
 	now := time.Now().UTC()
 	token := joseJwt.New()
-	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
-	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
+	require.NoError(t, token.Set(joseJwt.IssuerKey, cryptoutilSharedMagic.TestClientID))
+	require.NoError(t, token.Set(joseJwt.SubjectKey, cryptoutilSharedMagic.TestClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
 	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)))
 	require.NoError(t, token.Set(joseJwt.IssuedAtKey, now))
@@ -216,15 +215,15 @@ func TestPrivateKeyJWTValidator_ValidateJWT_ExpiredToken(t *testing.T) {
 	require.NoError(t, err)
 
 	client := &cryptoutilIdentityDomain.Client{
-		ClientID: testClientID,
+		ClientID: cryptoutilSharedMagic.TestClientID,
 		JWKs:     string(publicKeySetBytes),
 	}
 
 	// Create EXPIRED JWT.
 	now := time.Now().UTC()
 	token := joseJwt.New()
-	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
-	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
+	require.NoError(t, token.Set(joseJwt.IssuerKey, cryptoutilSharedMagic.TestClientID))
+	require.NoError(t, token.Set(joseJwt.SubjectKey, cryptoutilSharedMagic.TestClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
 	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(-time.Hour))) // Expired 1 hour ago.
 	require.NoError(t, token.Set(joseJwt.IssuedAtKey, now.Add(-2*time.Hour)))
@@ -268,7 +267,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_InvalidIssuer(t *testing.T) {
 	require.NoError(t, err)
 
 	client := &cryptoutilIdentityDomain.Client{
-		ClientID: testClientID,
+		ClientID: cryptoutilSharedMagic.TestClientID,
 		JWKs:     string(publicKeySetBytes),
 	}
 
@@ -276,7 +275,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_InvalidIssuer(t *testing.T) {
 	now := time.Now().UTC()
 	token := joseJwt.New()
 	require.NoError(t, token.Set(joseJwt.IssuerKey, "wrong-client-id")) // Wrong issuer.
-	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
+	require.NoError(t, token.Set(joseJwt.SubjectKey, cryptoutilSharedMagic.TestClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
 	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)))
 	require.NoError(t, token.Set(joseJwt.IssuedAtKey, now))
@@ -320,15 +319,15 @@ func TestPrivateKeyJWTValidator_ValidateJWT_InvalidAudience(t *testing.T) {
 	require.NoError(t, err)
 
 	client := &cryptoutilIdentityDomain.Client{
-		ClientID: testClientID,
+		ClientID: cryptoutilSharedMagic.TestClientID,
 		JWKs:     string(publicKeySetBytes),
 	}
 
 	// Create JWT with WRONG audience.
 	now := time.Now().UTC()
 	token := joseJwt.New()
-	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
-	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
+	require.NoError(t, token.Set(joseJwt.IssuerKey, cryptoutilSharedMagic.TestClientID))
+	require.NoError(t, token.Set(joseJwt.SubjectKey, cryptoutilSharedMagic.TestClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{"https://wrong.example.com/token"})) // Wrong audience.
 	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)))
 	require.NoError(t, token.Set(joseJwt.IssuedAtKey, now))

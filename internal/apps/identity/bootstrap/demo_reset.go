@@ -11,6 +11,7 @@ import (
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // ResetDemoData deletes all demo data from the repository.
@@ -42,9 +43,8 @@ func deleteDemoClient(
 ) error {
 	clientRepo := repoFactory.ClientRepository()
 
-	const demoClientID = "demo-client"
 
-	existingClient, err := clientRepo.GetByClientID(ctx, demoClientID)
+	existingClient, err := clientRepo.GetByClientID(ctx, cryptoutilSharedMagic.DemoClientID)
 	if err != nil {
 		if errors.Is(err, cryptoutilIdentityAppErr.ErrClientNotFound) {
 			fmt.Println("ℹ️  Demo client already deleted or never existed")

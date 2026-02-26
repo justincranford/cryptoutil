@@ -26,15 +26,15 @@ func TestClientSecretJWTValidator_ValidateJWT_Success(t *testing.T) {
 	validator := NewClientSecretJWTValidator(testTokenEndpointURL, nil)
 
 	client := &cryptoutilIdentityDomain.Client{
-		ClientID:     testClientID,
+		ClientID:     cryptoutilSharedMagic.TestClientID,
 		ClientSecret: testClientSecret,
 	}
 
 	// Create valid JWT.
 	now := time.Now().UTC()
 	token := joseJwt.New()
-	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
-	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
+	require.NoError(t, token.Set(joseJwt.IssuerKey, cryptoutilSharedMagic.TestClientID))
+	require.NoError(t, token.Set(joseJwt.SubjectKey, cryptoutilSharedMagic.TestClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
 	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)))
 	require.NoError(t, token.Set(joseJwt.IssuedAtKey, now))
@@ -59,8 +59,8 @@ func TestClientSecretJWTValidator_ValidateJWT_Success(t *testing.T) {
 	// Extract and verify claims.
 	claims, err := validator.ExtractClaims(ctx, validatedToken)
 	require.NoError(t, err)
-	require.Equal(t, testClientID, claims.Issuer)
-	require.Equal(t, testClientID, claims.Subject)
+	require.Equal(t, cryptoutilSharedMagic.TestClientID, claims.Issuer)
+	require.Equal(t, cryptoutilSharedMagic.TestClientID, claims.Subject)
 	require.Contains(t, claims.Audience, testTokenEndpointURL)
 }
 
@@ -71,7 +71,7 @@ func TestClientSecretJWTValidator_ValidateJWT_NoClientSecret(t *testing.T) {
 	validator := NewClientSecretJWTValidator(testTokenEndpointURL, nil)
 
 	client := &cryptoutilIdentityDomain.Client{
-		ClientID:     testClientID,
+		ClientID:     cryptoutilSharedMagic.TestClientID,
 		ClientSecret: "", // Empty client secret.
 	}
 
@@ -87,15 +87,15 @@ func TestClientSecretJWTValidator_ValidateJWT_InvalidSignature(t *testing.T) {
 	validator := NewClientSecretJWTValidator(testTokenEndpointURL, nil)
 
 	client := &cryptoutilIdentityDomain.Client{
-		ClientID:     testClientID,
+		ClientID:     cryptoutilSharedMagic.TestClientID,
 		ClientSecret: testClientSecret,
 	}
 
 	// Create JWT with WRONG secret for signing.
 	now := time.Now().UTC()
 	token := joseJwt.New()
-	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
-	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
+	require.NoError(t, token.Set(joseJwt.IssuerKey, cryptoutilSharedMagic.TestClientID))
+	require.NoError(t, token.Set(joseJwt.SubjectKey, cryptoutilSharedMagic.TestClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
 	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)))
 	require.NoError(t, token.Set(joseJwt.IssuedAtKey, now))
@@ -123,15 +123,15 @@ func TestClientSecretJWTValidator_ValidateJWT_ExpiredToken(t *testing.T) {
 	validator := NewClientSecretJWTValidator(testTokenEndpointURL, nil)
 
 	client := &cryptoutilIdentityDomain.Client{
-		ClientID:     testClientID,
+		ClientID:     cryptoutilSharedMagic.TestClientID,
 		ClientSecret: testClientSecret,
 	}
 
 	// Create EXPIRED JWT.
 	now := time.Now().UTC()
 	token := joseJwt.New()
-	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
-	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
+	require.NoError(t, token.Set(joseJwt.IssuerKey, cryptoutilSharedMagic.TestClientID))
+	require.NoError(t, token.Set(joseJwt.SubjectKey, cryptoutilSharedMagic.TestClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
 	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(-time.Hour))) // Expired 1 hour ago.
 	require.NoError(t, token.Set(joseJwt.IssuedAtKey, now.Add(-2*time.Hour)))
@@ -159,15 +159,15 @@ func TestClientSecretJWTValidator_ValidateJWT_MissingExpirationClaim(t *testing.
 	validator := NewClientSecretJWTValidator(testTokenEndpointURL, nil)
 
 	client := &cryptoutilIdentityDomain.Client{
-		ClientID:     testClientID,
+		ClientID:     cryptoutilSharedMagic.TestClientID,
 		ClientSecret: testClientSecret,
 	}
 
 	// Create JWT WITHOUT expiration claim.
 	now := time.Now().UTC()
 	token := joseJwt.New()
-	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
-	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
+	require.NoError(t, token.Set(joseJwt.IssuerKey, cryptoutilSharedMagic.TestClientID))
+	require.NoError(t, token.Set(joseJwt.SubjectKey, cryptoutilSharedMagic.TestClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
 	// No expiration set.
 	require.NoError(t, token.Set(joseJwt.IssuedAtKey, now))
@@ -195,15 +195,15 @@ func TestClientSecretJWTValidator_ValidateJWT_MissingIssuedAtClaim(t *testing.T)
 	validator := NewClientSecretJWTValidator(testTokenEndpointURL, nil)
 
 	client := &cryptoutilIdentityDomain.Client{
-		ClientID:     testClientID,
+		ClientID:     cryptoutilSharedMagic.TestClientID,
 		ClientSecret: testClientSecret,
 	}
 
 	// Create JWT WITHOUT issued at claim.
 	now := time.Now().UTC()
 	token := joseJwt.New()
-	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
-	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
+	require.NoError(t, token.Set(joseJwt.IssuerKey, cryptoutilSharedMagic.TestClientID))
+	require.NoError(t, token.Set(joseJwt.SubjectKey, cryptoutilSharedMagic.TestClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
 	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)))
 	// No issued at set.
@@ -231,7 +231,7 @@ func TestClientSecretJWTValidator_ValidateJWT_MalformedJWT(t *testing.T) {
 	validator := NewClientSecretJWTValidator(testTokenEndpointURL, nil)
 
 	client := &cryptoutilIdentityDomain.Client{
-		ClientID:     testClientID,
+		ClientID:     cryptoutilSharedMagic.TestClientID,
 		ClientSecret: testClientSecret,
 	}
 
@@ -253,8 +253,8 @@ func TestPrivateKeyJWTValidator_ExtractClaims_AllClaimsPresent(t *testing.T) {
 	now := time.Now().UTC()
 	jti := googleUuid.NewString()
 	token := joseJwt.New()
-	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
-	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
+	require.NoError(t, token.Set(joseJwt.IssuerKey, cryptoutilSharedMagic.TestClientID))
+	require.NoError(t, token.Set(joseJwt.SubjectKey, cryptoutilSharedMagic.TestClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
 	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)))
 	require.NoError(t, token.Set(joseJwt.IssuedAtKey, now))
@@ -262,8 +262,8 @@ func TestPrivateKeyJWTValidator_ExtractClaims_AllClaimsPresent(t *testing.T) {
 
 	claims, err := validator.ExtractClaims(ctx, token)
 	require.NoError(t, err)
-	require.Equal(t, testClientID, claims.Issuer)
-	require.Equal(t, testClientID, claims.Subject)
+	require.Equal(t, cryptoutilSharedMagic.TestClientID, claims.Issuer)
+	require.Equal(t, cryptoutilSharedMagic.TestClientID, claims.Subject)
 	require.Contains(t, claims.Audience, testTokenEndpointURL)
 	require.Equal(t, jti, claims.JWTID)
 }
@@ -278,8 +278,8 @@ func TestClientSecretJWTValidator_ExtractClaims_AllClaimsPresent(t *testing.T) {
 	now := time.Now().UTC()
 	jti := googleUuid.NewString()
 	token := joseJwt.New()
-	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
-	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
+	require.NoError(t, token.Set(joseJwt.IssuerKey, cryptoutilSharedMagic.TestClientID))
+	require.NoError(t, token.Set(joseJwt.SubjectKey, cryptoutilSharedMagic.TestClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
 	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Minute)))
 	require.NoError(t, token.Set(joseJwt.IssuedAtKey, now))
@@ -287,8 +287,8 @@ func TestClientSecretJWTValidator_ExtractClaims_AllClaimsPresent(t *testing.T) {
 
 	claims, err := validator.ExtractClaims(ctx, token)
 	require.NoError(t, err)
-	require.Equal(t, testClientID, claims.Issuer)
-	require.Equal(t, testClientID, claims.Subject)
+	require.Equal(t, cryptoutilSharedMagic.TestClientID, claims.Issuer)
+	require.Equal(t, cryptoutilSharedMagic.TestClientID, claims.Subject)
 	require.Contains(t, claims.Audience, testTokenEndpointURL)
 	require.Equal(t, jti, claims.JWTID)
 }

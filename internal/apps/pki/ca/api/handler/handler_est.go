@@ -49,7 +49,7 @@ func (h *Handler) buildESTIssueRequest(
 	return &cryptoutilCAServiceIssuer.CertificateRequest{
 		PublicKey:        csr.PublicKey,
 		SubjectRequest:   subjectReq,
-		ValidityDuration: time.Duration(defaultValidityDays) * hoursPerDay * time.Hour,
+		ValidityDuration: time.Duration(defaultValidityDays) * cryptoutilSharedMagic.HoursPerDay * time.Hour,
 	}
 }
 

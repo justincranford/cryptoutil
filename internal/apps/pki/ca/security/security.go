@@ -13,6 +13,8 @@ import (
 	"fmt"
 	"sync"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // ThreatCategory represents a category in the STRIDE threat model.
@@ -45,7 +47,6 @@ const (
 	defaultMinRSAKeySize       = 2048
 	defaultMinECKeySize        = 256
 	defaultMaxCertValidityDays = 398
-	hoursPerDay                = 24
 )
 
 // Threat represents a security threat in the threat model.
@@ -283,7 +284,7 @@ func (v *Validator) validateSignatureAlgorithm(cert *x509.Certificate, config *C
 
 // validateValidityPeriod validates the certificate's validity period.
 func (v *Validator) validateValidityPeriod(cert *x509.Certificate, config *Config, result *ValidationResult) {
-	validityDays := int(cert.NotAfter.Sub(cert.NotBefore).Hours() / hoursPerDay)
+	validityDays := int(cert.NotAfter.Sub(cert.NotBefore).Hours() / cryptoutilSharedMagic.HoursPerDay)
 
 	if validityDays > config.MaxCertValidityDays {
 		result.Valid = false

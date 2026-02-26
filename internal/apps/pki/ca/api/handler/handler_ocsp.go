@@ -122,7 +122,7 @@ func (h *Handler) buildIssueRequest(
 		validityDays = *req.ValidityDays
 	}
 
-	validity := time.Duration(validityDays) * hoursPerDay * time.Hour
+	validity := time.Duration(validityDays) * cryptoutilSharedMagic.HoursPerDay * time.Hour
 
 	return &cryptoutilCAServiceIssuer.CertificateRequest{
 		PublicKey:        csr.PublicKey,
@@ -274,7 +274,7 @@ func (h *Handler) buildProfileResponse(profile *ProfileConfig) *cryptoutilApiCaS
 	if profile.CertificateProfile != nil && profile.CertificateProfile.Validity.MaxDuration != "" {
 		duration, err := time.ParseDuration(profile.CertificateProfile.Validity.MaxDuration)
 		if err == nil {
-			days := int(duration.Hours() / hoursPerDay)
+			days := int(duration.Hours() / cryptoutilSharedMagic.HoursPerDay)
 			maxValidityDays = &days
 		}
 	}
@@ -461,7 +461,6 @@ var _ cryptoutilApiCaServer.ServerInterface = (*Handler)(nil)
 // Constants.
 const (
 	defaultValidityDays   = 365
-	hoursPerDay           = 24
 	maxTrackedEnrollments = 1000
 	pemTypeCertificateReq = "CERTIFICATE REQUEST"
 )

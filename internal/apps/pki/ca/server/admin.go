@@ -264,11 +264,10 @@ func (s *AdminServer) generateTLSConfig() (*tls.Config, error) {
 	// Create certificate template.
 	const (
 		validityDays     = 365
-		hoursPerDay      = 24
 		serialNumberBits = 128
 	)
 
-	validityDuration := validityDays * hoursPerDay * time.Hour
+	validityDuration := validityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour
 
 	serialNumber, err := crand.Int(crand.Reader, new(big.Int).Lsh(big.NewInt(1), serialNumberBits))
 	if err != nil {

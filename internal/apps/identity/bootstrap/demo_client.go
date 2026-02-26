@@ -29,16 +29,15 @@ func CreateDemoClient(
 	clientRepo := repoFactory.ClientRepository()
 
 	// Check if demo-client already exists.
-	const demoClientID = "demo-client"
 
-	existingClient, err := clientRepo.GetByClientID(ctx, demoClientID)
+	existingClient, err := clientRepo.GetByClientID(ctx, cryptoutilSharedMagic.DemoClientID)
 	if err != nil && !errors.Is(err, cryptoutilIdentityAppErr.ErrClientNotFound) {
 		return "", "", false, fmt.Errorf("failed to check for existing demo-client: %w", err)
 	}
 
 	if existingClient != nil {
 		// Client exists, return without secret.
-		return demoClientID, "", false, nil
+		return cryptoutilSharedMagic.DemoClientID, "", false, nil
 	}
 
 	// Generate demo client secret.
@@ -58,7 +57,7 @@ func CreateDemoClient(
 
 	demoClient := &cryptoutilIdentityDomain.Client{
 		ID:           googleUuid.Must(googleUuid.NewV7()),
-		ClientID:     demoClientID,
+		ClientID:     cryptoutilSharedMagic.DemoClientID,
 		ClientSecret: secretHash,
 		ClientType:   cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:         cryptoutilSharedMagic.DemoClientName,
@@ -98,7 +97,7 @@ func CreateDemoClient(
 		)
 	}
 
-	return demoClientID, plainSecret, true, nil
+	return cryptoutilSharedMagic.DemoClientID, plainSecret, true, nil
 }
 
 // BootstrapClients creates all bootstrap clients for the identity server.

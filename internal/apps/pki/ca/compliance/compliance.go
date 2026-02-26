@@ -342,10 +342,9 @@ func (c *Checker) checkValidityPeriod(cert *x509.Certificate) Requirement {
 	// BR limits subscriber certificates to 398 days.
 	const (
 		maxValidityDays = 398
-		hoursPerDay     = 24
 	)
 
-	validityDays := int(cert.NotAfter.Sub(cert.NotBefore).Hours() / hoursPerDay)
+	validityDays := int(cert.NotAfter.Sub(cert.NotBefore).Hours() / cryptoutilSharedMagic.HoursPerDay)
 
 	if !cert.IsCA && validityDays > maxValidityDays {
 		status = StatusNonCompliant
