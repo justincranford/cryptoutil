@@ -263,12 +263,7 @@ func TestFindMagicImportAlias_DefaultName(t *testing.T) {
 
 	writeDir := t.TempDir()
 
-	err := os.WriteFile(filepath.Join(writeDir, "test.go"), []byte(`package a
-
-import "cryptoutil/internal/shared/magic"
-
-const x = magic.EmptyString
-`), 0o600)
+	err := os.WriteFile(filepath.Join(writeDir, "test.go"), []byte("package a\n\nimport \"cryptoutil/internal/shared/magic\"\n\nconst x = magic.EmptyString\n"), 0o600)
 	require.NoError(t, err)
 
 	violations := findAliasesInFile(filepath.Join(writeDir, "test.go"), "test.go")
