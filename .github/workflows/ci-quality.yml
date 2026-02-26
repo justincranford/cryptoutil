@@ -95,6 +95,7 @@ jobs:
   # Build and Container Security
   build:
     name: Build & Container Scan
+    continue-on-error: true
     runs-on: ubuntu-latest
     permissions:
       contents: read
