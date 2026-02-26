@@ -264,7 +264,7 @@ jobs:
         uses: ./.github/actions/go-setup
         with:
           go-version: ${{ steps.begin-workflow-job.outputs.go-version }}
-          go-mod-download: false  # SAST only needs Go tools, not module operations
+go-mod-download: true   # govulncheck needs modules to load packages
           go-mod-verify: false    # SAST only needs Go tools, not module operations
           go-mod-tidy: false      # SAST only needs Go tools, not module operations
 
