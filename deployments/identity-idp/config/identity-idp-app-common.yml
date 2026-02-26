@@ -1,41 +1,26 @@
-# IdP Server Configuration for Docker Deployment
+# CRITICAL: This file contains COMMON settings used by ALL identity-idp services in compose.yml
+# ALL identity-idp instances MUST use this file for shared configuration.
 
-idp:
-  name: idp-server
-  bind_address: 0.0.0.0  # Listen on all interfaces for container access.
-  port: 8080
-  tls_enabled: false
-  read_timeout: 30s
-  write_timeout: 30s
-  idle_timeout: 120s
-  admin_enabled: true
-  admin_bind_address: 0.0.0.0
-  admin_port: 9090
+# Binding address - 0.0.0.0 allows connections from any NIC within the container
+bind-public-address: "0.0.0.0"
 
-database:
-  type: postgres
-  # DSN is overridden by -u flag at runtime from Docker secrets.
-  # This default is used for local development only.
-  dsn: "postgres://identity_user:identity_pass@localhost:5433/identity_db?sslmode=disable"
-  max_open_conns: 10
-  max_idle_conns: 5
-  conn_max_lifetime: 60m
-  conn_max_idle_time: 10m
-  auto_migrate: true
+unseal-mode: "3-of-5"
 
-auth:
-  authz_url: "http://identity-authz:8080"  # OAuth 2.1 Authorization Server URL.
+unseal-files:
+  - /run/secrets/unseal-1of5.secret
+  - /run/secrets/unseal-2of5.secret
+  - /run/secrets/unseal-3of5.secret
+  - /run/secrets/unseal-4of5.secret
+  - /run/secrets/unseal-5of5.secret
 
-telemetry:
-  enabled: true
-  otlp_endpoint: "opentelemetry-collector-contrib:4317"
-  service_name: idp-server
+# Allow all IPs for development/testing
+allowed-ips:
+  - "127.0.0.1"
+  - "::1"
+  - "::ffff:127.0.0.1"
+allowed-cidrs:
+  - "0.0.0.0/0"
+  - "::/0"
 
-# Authentication credentials (Docker secrets)
-# Browser credentials for web UI access
-browser-username-file: /run/secrets/browser-username.secret
-browser-password-file: /run/secrets/browser-password.secret
-
-# Service credentials for headless/API access
-service-username-file: /run/secrets/service-username.secret
-service-password-file: /run/secrets/service-password.secret
+# Disable CSRF for API testing
+csrf-token-single-use-token: false

@@ -14,7 +14,8 @@ CREATE TABLE IF NOT EXISTS elastic_keys_old (
     elastic_key_import_allowed INTEGER NOT NULL,
     elastic_key_status TEXT NOT NULL,
     CHECK (length(elastic_key_name) >= 1),
-    CHECK (elastic_key_name GLOB '[A-Za-z0-9_-]*'),
+    -- Name pattern validation (alphanumeric, hyphens, underscores) enforced at application layer.
+    -- GLOB is SQLite-only; removed for cross-database (PostgreSQL + SQLite) compatibility.
     CHECK (length(elastic_key_description) >= 1),
     CHECK (elastic_key_provider = 'Internal'),
     CHECK (elastic_key_versioning_allowed IN (0, 1)),

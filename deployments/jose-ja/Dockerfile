@@ -142,4 +142,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
 
 # Default entrypoint.
 ENTRYPOINT ["/app/jose-ja"]
-CMD ["start", "--config=/etc/jose/jose.yml"]
+CMD ["server", "--config=/etc/jose/jose.yml"]

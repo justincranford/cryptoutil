@@ -142,4 +142,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
 
 # Default entrypoint.
 ENTRYPOINT ["/app/pki-ca"]
-CMD ["start", "--config=/etc/pki-ca/ca.yml"]
+CMD ["server", "--config=/etc/pki-ca/ca.yml"]

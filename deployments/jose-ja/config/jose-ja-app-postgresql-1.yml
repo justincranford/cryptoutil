@@ -1,5 +1,8 @@
-# JOSE Common Configuration
-# Shared settings across all JOSE environments.
+# JOSE E2E Configuration - PostgreSQL Instance 1
+
+# Server binding - 0.0.0.0 to accept connections from Docker network.
+bind-public-address: "0.0.0.0"
+bind-public-port: 8080
 
 # OTLP telemetry - connects to otel-collector sidecar.
 otlp-enabled: true

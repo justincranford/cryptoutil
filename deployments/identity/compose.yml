@@ -119,7 +119,7 @@ services:
   identity-authz-app-sqlite-1:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil:dev
-    command: ["identity", "authz", "start", "--config=/app/config/identity-authz-app-sqlite-1.yml", "--config=/app/config/identity-authz-app-common.yml", "--config=/app/otel/otel.yml"]
+    command: ["identity", "authz", "server", "--bind-public-port=8080", "--config=/app/config/identity-authz-app-sqlite-1.yml", "--config=/app/config/identity-authz-app-common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "18200:8080"
@@ -160,7 +160,7 @@ services:
   identity-authz-app-postgres-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["identity", "authz", "start", "--config=/app/config/identity-authz-app-postgresql-1.yml", "--config=/app/config/identity-authz-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    command: ["identity", "authz", "server", "--bind-public-port=8080", "--config=/app/config/identity-authz-app-postgresql-1.yml", "--config=/app/config/identity-authz-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
       - "18201:8080"
@@ -204,7 +204,7 @@ services:
   identity-authz-app-postgres-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["identity", "authz", "start", "--config=/app/config/identity-authz-app-postgresql-2.yml", "--config=/app/config/identity-authz-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    command: ["identity", "authz", "server", "--bind-public-port=8080", "--config=/app/config/identity-authz-app-postgresql-2.yml", "--config=/app/config/identity-authz-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
       - "18202:8080"
@@ -254,7 +254,7 @@ services:
   identity-idp-app-sqlite-1:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil:dev
-    command: ["identity", "idp", "start", "--config=/app/config/identity-idp-app-sqlite-1.yml", "--config=/app/config/identity-idp-app-common.yml", "--config=/app/otel/otel.yml"]
+    command: ["identity", "idp", "server", "--bind-public-port=8080", "--config=/app/config/identity-idp-app-sqlite-1.yml", "--config=/app/config/identity-idp-app-common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "18300:8080"
@@ -295,7 +295,7 @@ services:
   identity-idp-app-postgres-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["identity", "idp", "start", "--config=/app/config/identity-idp-app-postgresql-1.yml", "--config=/app/config/identity-idp-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    command: ["identity", "idp", "server", "--bind-public-port=8080", "--config=/app/config/identity-idp-app-postgresql-1.yml", "--config=/app/config/identity-idp-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
       - "18301:8080"
@@ -339,7 +339,7 @@ services:
   identity-idp-app-postgres-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["identity", "idp", "start", "--config=/app/config/identity-idp-app-postgresql-2.yml", "--config=/app/config/identity-idp-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    command: ["identity", "idp", "server", "--bind-public-port=8080", "--config=/app/config/identity-idp-app-postgresql-2.yml", "--config=/app/config/identity-idp-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
       - "18302:8080"
@@ -389,7 +389,7 @@ services:
   identity-rs-app-sqlite-1:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil:dev
-    command: ["identity", "rs", "start", "--config=/app/config/identity-rs-app-sqlite-1.yml", "--config=/app/config/identity-rs-app-common.yml", "--config=/app/otel/otel.yml"]
+    command: ["identity", "rs", "server", "--bind-public-port=8080", "--config=/app/config/identity-rs-app-sqlite-1.yml", "--config=/app/config/identity-rs-app-common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "18400:8080"
@@ -430,7 +430,7 @@ services:
   identity-rs-app-postgres-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["identity", "rs", "start", "--config=/app/config/identity-rs-app-postgresql-1.yml", "--config=/app/config/identity-rs-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    command: ["identity", "rs", "server", "--bind-public-port=8080", "--config=/app/config/identity-rs-app-postgresql-1.yml", "--config=/app/config/identity-rs-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
       - "18401:8080"
@@ -474,7 +474,7 @@ services:
   identity-rs-app-postgres-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["identity", "rs", "start", "--config=/app/config/identity-rs-app-postgresql-2.yml", "--config=/app/config/identity-rs-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    command: ["identity", "rs", "server", "--bind-public-port=8080", "--config=/app/config/identity-rs-app-postgresql-2.yml", "--config=/app/config/identity-rs-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
       - "18402:8080"
@@ -524,7 +524,7 @@ services:
   identity-rp-app-sqlite-1:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil:dev
-    command: ["identity", "rp", "start", "--config=/app/config/identity-rp-app-sqlite-1.yml", "--config=/app/config/identity-rp-app-common.yml", "--config=/app/otel/otel.yml"]
+    command: ["identity", "rp", "server", "--bind-public-port=8080", "--config=/app/config/identity-rp-app-sqlite-1.yml", "--config=/app/config/identity-rp-app-common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "18500:8080"
@@ -565,7 +565,7 @@ services:
   identity-rp-app-postgres-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["identity", "rp", "start", "--config=/app/config/identity-rp-app-postgresql-1.yml", "--config=/app/config/identity-rp-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    command: ["identity", "rp", "server", "--bind-public-port=8080", "--config=/app/config/identity-rp-app-postgresql-1.yml", "--config=/app/config/identity-rp-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
       - "18501:8080"
@@ -609,7 +609,7 @@ services:
   identity-rp-app-postgres-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["identity", "rp", "start", "--config=/app/config/identity-rp-app-postgresql-2.yml", "--config=/app/config/identity-rp-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    command: ["identity", "rp", "server", "--bind-public-port=8080", "--config=/app/config/identity-rp-app-postgresql-2.yml", "--config=/app/config/identity-rp-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
       - "18502:8080"
@@ -659,7 +659,7 @@ services:
   identity-spa-app-sqlite-1:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil:dev
-    command: ["identity", "spa", "start", "--config=/app/config/identity-spa-app-sqlite-1.yml", "--config=/app/config/identity-spa-app-common.yml", "--config=/app/otel/otel.yml"]
+    command: ["identity", "spa", "server", "--bind-public-port=8080", "--config=/app/config/identity-spa-app-sqlite-1.yml", "--config=/app/config/identity-spa-app-common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "18600:8080"
@@ -700,7 +700,7 @@ services:
   identity-spa-app-postgres-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["identity", "spa", "start", "--config=/app/config/identity-spa-app-postgresql-1.yml", "--config=/app/config/identity-spa-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    command: ["identity", "spa", "server", "--bind-public-port=8080", "--config=/app/config/identity-spa-app-postgresql-1.yml", "--config=/app/config/identity-spa-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
       - "18601:8080"
@@ -744,7 +744,7 @@ services:
   identity-spa-app-postgres-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["identity", "spa", "start", "--config=/app/config/identity-spa-app-postgresql-2.yml", "--config=/app/config/identity-spa-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    command: ["identity", "spa", "server", "--bind-public-port=8080", "--config=/app/config/identity-spa-app-postgresql-2.yml", "--config=/app/config/identity-spa-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
       - "18602:8080"

@@ -142,4 +142,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
 
 # Default entrypoint.
 ENTRYPOINT ["/app/cryptoutil"]
-CMD ["start", "--config=/etc/cryptoutil/ca.yml"]
+CMD ["server", "--config=/etc/cryptoutil/ca.yml"]

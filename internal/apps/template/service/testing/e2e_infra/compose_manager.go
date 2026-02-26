@@ -52,7 +52,7 @@ func NewComposeManager(composeFile string, profiles ...string) *ComposeManager {
 func (cm *ComposeManager) Start(ctx context.Context) error {
 	fmt.Println("Starting docker compose stack...")
 
-	args := cm.buildComposeArgs("up", "-d")
+	args := cm.buildComposeArgs("up", "-d", "--build")
 	startCmd := exec.CommandContext(ctx, "docker", args...)
 	startCmd.Stdout = os.Stdout
 	startCmd.Stderr = os.Stderr

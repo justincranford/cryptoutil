@@ -1,11 +1,26 @@
-server:
-  port: 8080
+# CRITICAL: This file contains COMMON settings used by ALL identity-spa services in compose.yml
+# ALL identity-spa instances MUST use this file for shared configuration.
 
-# Authentication credentials (Docker secrets)
-# Browser credentials for web UI access
-browser-username-file: /run/secrets/browser-username.secret
-browser-password-file: /run/secrets/browser-password.secret
+# Binding address - 0.0.0.0 allows connections from any NIC within the container
+bind-public-address: "0.0.0.0"
 
-# Service credentials for headless/API access
-service-username-file: /run/secrets/service-username.secret
-service-password-file: /run/secrets/service-password.secret
+unseal-mode: "3-of-5"
+
+unseal-files:
+  - /run/secrets/unseal-1of5.secret
+  - /run/secrets/unseal-2of5.secret
+  - /run/secrets/unseal-3of5.secret
+  - /run/secrets/unseal-4of5.secret
+  - /run/secrets/unseal-5of5.secret
+
+# Allow all IPs for development/testing
+allowed-ips:
+  - "127.0.0.1"
+  - "::1"
+  - "::ffff:127.0.0.1"
+allowed-cidrs:
+  - "0.0.0.0/0"
+  - "::/0"
+
+# Disable CSRF for API testing
+csrf-token-single-use-token: false

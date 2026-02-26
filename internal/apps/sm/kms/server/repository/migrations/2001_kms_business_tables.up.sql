@@ -18,7 +18,8 @@ CREATE TABLE IF NOT EXISTS elastic_keys (
     elastic_key_status TEXT NOT NULL,
     -- Constraints
     CHECK (length(elastic_key_name) >= 1),
-    CHECK (elastic_key_name GLOB '[A-Za-z0-9_-]*'),
+    -- Name pattern validation (alphanumeric, hyphens, underscores) enforced at application layer.
+    -- GLOB is SQLite-only; removed for cross-database (PostgreSQL + SQLite) compatibility.
     CHECK (length(elastic_key_description) >= 1),
     CHECK (elastic_key_provider = 'Internal'),
     CHECK (elastic_key_versioning_allowed IN (0, 1)),
@@ -40,8 +41,8 @@ CREATE INDEX IF NOT EXISTS idx_elastic_keys_status ON elastic_keys(elastic_key_s
 CREATE TABLE IF NOT EXISTS material_keys (
     elastic_key_id TEXT NOT NULL,
     material_key_id TEXT NOT NULL,
-    material_key_clear_public BLOB,
-    material_key_encrypted_non_public BLOB NOT NULL,
+    material_key_clear_public BYTEA,
+    material_key_encrypted_non_public BYTEA NOT NULL,
     material_key_generate_date BIGINT,
     material_key_import_date BIGINT,
     material_key_expiration_date BIGINT,

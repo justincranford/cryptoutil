@@ -102,7 +102,7 @@ services:
   jose-ja-app-sqlite-1:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil:dev
-    command: ["start", "--config=/app/config/jose-ja-app-sqlite-1.yml", "--config=/app/config/jose-ja-app-common.yml", "--config=/app/otel/otel.yml"]
+    command: ["server", "--config=/app/config/jose-ja-app-sqlite-1.yml", "--config=/app/config/jose-ja-app-common.yml", "--config=/app/otel/otel.yml", "-u", "sqlite://file::memory:?cache=shared", "--bind-public-port=8080"]
     working_dir: /tmp
     ports:
       - "8800:8080"  # HTTPS public
@@ -145,7 +145,7 @@ services:
   jose-ja-app-postgres-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["start", "--config=/app/config/jose-ja-app-postgresql-1.yml", "--config=/app/config/jose-ja-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    command: ["server", "--config=/app/config/jose-ja-app-postgresql-1.yml", "--config=/app/config/jose-ja-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret", "--bind-public-port=8080"]
     working_dir: /tmp
     ports:
       - "8801:8080"  # HTTPS public
@@ -191,7 +191,7 @@ services:
   jose-ja-app-postgres-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["start", "--config=/app/config/jose-ja-app-postgresql-2.yml", "--config=/app/config/jose-ja-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    command: ["server", "--config=/app/config/jose-ja-app-postgresql-2.yml", "--config=/app/config/jose-ja-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret", "--bind-public-port=8080"]
     working_dir: /tmp
     ports:
       - "8802:8080"  # HTTPS public

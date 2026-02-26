@@ -102,7 +102,7 @@ services:
   pki-ca-app-sqlite-1:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil:dev
-    command: ["pki", "ca", "start", "--config=/app/config/pki-ca-app-sqlite-1.yml", "--config=/app/config/pki-ca-app-common.yml", "--config=/app/otel/otel.yml"]
+    command: ["pki", "ca", "server", "--bind-public-port=8080", "--config=/app/config/pki-ca-app-sqlite-1.yml", "--config=/app/config/pki-ca-app-common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "18100:8080"
@@ -143,7 +143,7 @@ services:
   pki-ca-app-postgres-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["pki", "ca", "start", "--config=/app/config/pki-ca-app-postgresql-1.yml", "--config=/app/config/pki-ca-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    command: ["pki", "ca", "server", "--bind-public-port=8080", "--config=/app/config/pki-ca-app-postgresql-1.yml", "--config=/app/config/pki-ca-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
       - "18101:8080"
@@ -187,7 +187,7 @@ services:
   pki-ca-app-postgres-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["pki", "ca", "start", "--config=/app/config/pki-ca-app-postgresql-2.yml", "--config=/app/config/pki-ca-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    command: ["pki", "ca", "server", "--bind-public-port=8080", "--config=/app/config/pki-ca-app-postgresql-2.yml", "--config=/app/config/pki-ca-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
       - "18102:8080"

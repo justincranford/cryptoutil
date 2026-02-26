@@ -1,1 +1,26 @@
-server:\n  port: 8080\n\n# Authentication credentials (Docker secrets)\n# Browser credentials for web UI access\nbrowser-username-file: /run/secrets/browser-username.secret\nbrowser-password-file: /run/secrets/browser-password.secret\n\n# Service credentials for headless/API access\nservice-username-file: /run/secrets/service-username.secret\nservice-password-file: /run/secrets/service-password.secret\n
+# CRITICAL: This file contains COMMON settings used by ALL identity-rp services in compose.yml
+# ALL identity-rp instances MUST use this file for shared configuration.
+
+# Binding address - 0.0.0.0 allows connections from any NIC within the container
+bind-public-address: "0.0.0.0"
+
+unseal-mode: "3-of-5"
+
+unseal-files:
+  - /run/secrets/unseal-1of5.secret
+  - /run/secrets/unseal-2of5.secret
+  - /run/secrets/unseal-3of5.secret
+  - /run/secrets/unseal-4of5.secret
+  - /run/secrets/unseal-5of5.secret
+
+# Allow all IPs for development/testing
+allowed-ips:
+  - "127.0.0.1"
+  - "::1"
+  - "::ffff:127.0.0.1"
+allowed-cidrs:
+  - "0.0.0.0/0"
+  - "::/0"
+
+# Disable CSRF for API testing
+csrf-token-single-use-token: false
