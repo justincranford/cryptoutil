@@ -14,7 +14,6 @@ references:
   - .github/instructions/*.instructions.md
   - .github/agents/*.agent.md
   - .github/workflows/*.yml
-  - docs/speckit/constitution.md
 maintainers:
   - cryptoutil Development Team
 tags:
@@ -411,28 +410,28 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 
 **cryptoutil** comprises five independent products, each providing specialized cryptographic capabilities:
 
-#### 1. Private Key Infrastructure (PKI)
+#### 3.1.1 Private Key Infrastructure (PKI)
 
 - **Service**: Certificate Authority (CA)
 - **Capabilities**: X.509 certificate lifecycle management, EST, SCEP, OCSP, CRL
 - **Use Cases**: TLS certificate issuance, client authentication, code signing
 - **Architecture**: 3-tier CA hierarchy (Offline Root → Online Root → Issuing CA)
 
-#### 2. JSON Object Signing and Encryption (JOSE)
+#### 3.1.2 JSON Object Signing and Encryption (JOSE)
 
 - **Service**: JWK Authority (JA)
 - **Capabilities**: JWK/JWS/JWE/JWT cryptographic operations, elastic key rotation
 - **Use Cases**: API token generation, data encryption, digital signatures
 - **Key Features**: Per-message key rotation, automatic key versioning
 
-#### 3. Secrets Manager (SM)
+#### 3.1.3 Secrets Manager (SM)
 
-- **Services**: Key Management Service (KMS), Instant Messenger (IM; renamed from sm-im)
+- **Services**: Key Management Service (KMS), Instant Messenger (IM)
 - **Capabilities**: Elastic key management, hierarchical key barriers, encryption-at-rest, end-to-end encrypted messaging
 - **Use Cases**: Application secrets, database encryption keys, API key management, secure communications
 - **Key Features**: Unseal-based bootstrapping, automatic key rotation, message-level JWKs
 
-#### 4. Identity
+#### 3.1.4 Identity
 
 - **Services**: Authorization Server (Authz), Identity Provider (IdP), Resource Server (RS), Relying Party (RP), Single Page Application (SPA)
 - **Capabilities**: OAuth 2.1, OIDC 1.0, WebAuthn, Passkeys, multi-factor authentication
@@ -450,7 +449,7 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 | **Identity** | **Resource Server (RS)** | **identity-rs** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8400-8499 | 18400-18499 | 28400-28499 | OAuth 2.1 Resource Server |
 | **Identity** | **Relying Party (RP)** | **identity-rp** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8500-8599 | 18500-18599 | 28500-28599 | OAuth 2.1 Relying Party |
 | **Identity** | **Single Page Application (SPA)** | **identity-spa** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8600-8699 | 18600-18699 | 28600-28699 | OAuth 2.1 Single Page Application |
-| **Secrets Manager (SM)** | **Instant Messenger (IM)** | **sm-im** (renamed from sm-im) | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8700-8799 | 18700-18799 | 28700-28799 | E2E encrypted messaging, encryption-at-rest |
+| **Secrets Manager (SM)** | **Instant Messenger (IM)** | **sm-im** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8700-8799 | 18700-18799 | 28700-28799 | E2E encrypted messaging, encryption-at-rest |
 | **JSON Object Signing and Encryption (JOSE)** | **JWK Authority (JA)** | **jose-ja** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8800-8899 | 18800-18899 | 28800-28899 | JWK/JWS/JWE/JWT operations |
 
 **Implementation Status**:
@@ -460,7 +459,7 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 | **sm-kms** | ✅ Complete | 100% | Reference implementation with dual servers, Docker Compose |
 | **pki-ca** | ⚠️ Partial | ~85% | Missing admin server, Docker Compose needs update |
 | **jose-ja** | ⚠️ Partial | ~85% | Missing admin server, Docker Compose needs update |
-| **sm-im** | ✅ Complete | 100% | Phase 8: renamed from sm-im |
+| **sm-im** | ✅ Complete | 100% | E2E encrypted messaging, Docker Compose working |
 | **identity-authz** | ✅ Complete | 100% | Dual servers, Docker Compose working |
 | **identity-idp** | ✅ Complete | 100% | Dual servers, Docker Compose working |
 | **identity-rs** | ✅ Complete | 100% | Dual servers, Docker Compose working |
@@ -468,8 +467,6 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 | **identity-spa** | ❌ Not Started | 0% | Planned for Phase 6 of implementation |
 
 **Legend**: ✅ Complete (production-ready), ⚠️ Partial (functional but missing features), ❌ Not Started
-
-**See Also**: [docs/fixes-v1/](../fixes-v1/) for current implementation work and [docs/speckit/specs-002-cryptoutil/](../speckit/specs-002-cryptoutil/) for detailed specifications.
 
 #### 3.2.1 Secrets Manager (SM) Product (2 Services)
 
@@ -487,13 +484,23 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 - Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18000-18099
 - Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28000-28099
 
-#### 3.2.2 SM Instant Messenger (IM) Service (moved from former Cipher product (now SM))
+##### 3.2.1.2 Instant Messenger (IM) Service
 
-##### 3.2.2.1 Instant Messenger (IM) Service
+- Product-Service (Unique Identifier): sm-im
+- Service Name: Instant Messenger (IM)
+- Service Description: E2E encrypted messaging, encryption-at-rest
+- Address (Container): Private Admin Compose+K8s APIs: 127.0.0.1 (container loopback only, IPv4 only)
+- Address (Container): Public Browser+Service APIs: 0.0.0.0 (all interfaces, IPv4 only)
+- Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
+- Port Value (Container): Private Admin Compose+K8s APIs: 9090
+- Port Value (Container): Public Browser+Service APIs: 8080
+- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8700-8799
+- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18700-18799
+- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28700-28799
 
-- Product-Service (Unique Identifier): sm-im (renamed from sm-im) JSON Object Signing & Encryption (JOSE) Product
+#### 3.2.2 JSON Object Signing and Encryption (JOSE) Product (1 Service)
 
-##### 3.2.3.1 JWK Authority (JA) Service
+##### 3.2.2.1 JWK Authority (JA) Service
 
 - Product-Service (Unique Identifier): jose-ja
 - Service Name: JWK Authority (JA)
@@ -507,9 +514,9 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 - Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18800-18899
 - Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28800-28899
 
-#### 3.2.4 Public Key Infrastructure (PKI) Product
+#### 3.2.3 Public Key Infrastructure (PKI) Product
 
-##### 3.2.4.1 Certificate Authority (CA) Service
+##### 3.2.3.1 Certificate Authority (CA) Service
 
 - Product-Service (Unique Identifier): pki-ca
 - Service Name: Certificate Authority (CA)
@@ -523,9 +530,9 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 - Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18100-18199
 - Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28100-28199
 
-#### 3.2.5 Identity Product
+#### 3.2.4 Identity Product
 
-##### 3.2.5.1 OAuth 2.1 Authorization Server (Authz) Service
+##### 3.2.4.1 OAuth 2.1 Authorization Server (Authz) Service
 
 - Product-Service (Unique Identifier): identity-authz
 - Service Name: OAuth 2.1 Authorization Server (Authz)
@@ -539,7 +546,7 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 - Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18200-18299
 - Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28200-28299
 
-##### 3.2.5.2 OIDC 1.0 Identity Provider (IdP) Service
+##### 3.2.4.2 OIDC 1.0 Identity Provider (IdP) Service
 
 - Product-Service (Unique Identifier): identity-idp
 - Service Name: OIDC 1.0 Identity Provider (IdP)
@@ -553,7 +560,7 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 - Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18300-18399
 - Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28300-28399
 
-##### 3.2.5.3 OAuth 2.1 Resource Server (RS) Service
+##### 3.2.4.3 OAuth 2.1 Resource Server (RS) Service
 
 - Product-Service (Unique Identifier): identity-rs
 - Service Name: OAuth 2.1 Resource Server (RS)
@@ -567,7 +574,7 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 - Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18400-18499
 - Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28400-28499
 
-##### 3.2.5.4 OAuth 2.1 Relying Party (RP) Service
+##### 3.2.4.4 OAuth 2.1 Relying Party (RP) Service
 
 - Product-Service (Unique Identifier): identity-rp
 - Service Name: OAuth 2.1 Relying Party (RP)
@@ -581,7 +588,7 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 - Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18500-18599
 - Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28500-28599
 
-##### 3.2.5.5 OAuth 2.1 Single Page Application (SPA) Service
+##### 3.2.4.5 OAuth 2.1 Single Page Application (SPA) Service
 
 - Product-Service (Unique Identifier): identity-spa
 - Service Name: OAuth 2.1 Single Page Application (SPA)
@@ -3551,7 +3558,7 @@ configs/
 │   │   ├── config-pg-1.yml      # PostgreSQL instance 1 (flat kebab-case)
 │   │   ├── config-pg-2.yml      # PostgreSQL instance 2 (flat kebab-case)
 │   │   └── config-sqlite.yml    # SQLite development (flat kebab-case)
-│   └── im/                      # SM IM service configs (renamed from sm-im)
+│   └── im/                      # SM IM service configs
 │       ├── config-pg-1.yml      # PostgreSQL instance 1 (flat kebab-case)
 │       ├── config-pg-2.yml      # PostgreSQL instance 2 (flat kebab-case)
 │       └── config-sqlite.yml    # SQLite development (flat kebab-case)
@@ -4210,8 +4217,8 @@ Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATO
 **Related Documents**:
 - `.github/copilot-instructions.md` - Copilot configuration
 - `.github/instructions/*.instructions.md` - Detailed instructions
-- `docs/speckit/constitution.md` - Project constitution
-- `docs/ARCHITECTURE.md` - Legacy architecture document
+- `docs/ARCHITECTURE-INDEX.md` - Agent lookup reference
+- `docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md` - Multi-deployment compose patterns
 
 **Cross-References**:
 - All sections maintain stable anchor links for referencing

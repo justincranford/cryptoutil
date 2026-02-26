@@ -24,8 +24,8 @@ type composeFile struct {
 	Include  []composeInclude          `yaml:"include"`
 	Services map[string]composeService `yaml:"services"`
 	Secrets  map[string]composeSecret  `yaml:"secrets"`
-	Networks map[string]any    `yaml:"networks"`
-	Volumes  map[string]any    `yaml:"volumes"`
+	Networks map[string]any            `yaml:"networks"`
+	Volumes  map[string]any            `yaml:"volumes"`
 }
 
 // composeInclude represents an include directive.
@@ -36,29 +36,29 @@ type composeInclude struct {
 // composeService represents a service in a compose file.
 type composeService struct {
 	Image       string              `yaml:"image"`
-	Build       any         `yaml:"build"`
+	Build       any                 `yaml:"build"`
 	Ports       []string            `yaml:"ports"`
 	Volumes     []string            `yaml:"volumes"`
-	Environment any         `yaml:"environment"`
-	Secrets     []any       `yaml:"secrets"`
-	DependsOn   any         `yaml:"depends_on"`
+	Environment any                 `yaml:"environment"`
+	Secrets     []any               `yaml:"secrets"`
+	DependsOn   any                 `yaml:"depends_on"`
 	Healthcheck *composeHealthcheck `yaml:"healthcheck"`
-	Networks    any         `yaml:"networks"`
-	Command     any         `yaml:"command"`
-	Deploy      any         `yaml:"deploy"`
+	Networks    any                 `yaml:"networks"`
+	Command     any                 `yaml:"command"`
+	Deploy      any                 `yaml:"deploy"`
 	Profiles    []string            `yaml:"profiles"`
 	WorkingDir  string              `yaml:"working_dir"`
-	Entrypoint  any         `yaml:"entrypoint"`
+	Entrypoint  any                 `yaml:"entrypoint"`
 	ShmSize     string              `yaml:"shm_size"`
 }
 
 // composeHealthcheck represents a healthcheck configuration.
 type composeHealthcheck struct {
-	Test        any `yaml:"test"`
-	Interval    string      `yaml:"interval"`
-	Timeout     string      `yaml:"timeout"`
-	Retries     int         `yaml:"retries"`
-	StartPeriod string      `yaml:"start_period"`
+	Test        any    `yaml:"test"`
+	Interval    string `yaml:"interval"`
+	Timeout     string `yaml:"timeout"`
+	Retries     int    `yaml:"retries"`
+	StartPeriod string `yaml:"start_period"`
 }
 
 // composeSecret represents a secret definition.
@@ -340,9 +340,9 @@ func extractSecretName(secretRef any) string {
 // infrastructureServices are services excluded from credential checks per ARCHITECTURE.md Section 12.6.
 // "Infrastructure deployments excluded" from Docker secrets requirement.
 var infrastructureServices = map[string]bool{
-	"grafana-otel-lgtm":                             true,
-	"opentelemetry-collector-contrib":                true,
-	"healthcheck-opentelemetry-collector-contrib":    true,
+	"grafana-otel-lgtm":                           true,
+	"opentelemetry-collector-contrib":             true,
+	"healthcheck-opentelemetry-collector-contrib": true,
 }
 
 // validateNoHardcodedCredentials checks for hardcoded credentials in env vars.

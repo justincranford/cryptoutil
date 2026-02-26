@@ -8,11 +8,12 @@
 package integration
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	http "net/http"
 	"os"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilAppsSmImServer "cryptoutil/internal/apps/sm/im/server"
 	cryptoutilAppsSmImServerConfig "cryptoutil/internal/apps/sm/im/server/config"
@@ -24,8 +25,8 @@ import (
 // Shared test resources (initialized once per package).
 var (
 	sharedHTTPClient     *http.Client
-	smIMServer       *cryptoutilAppsSmImServer.SmIMServer
-	testSmIMServer   *cryptoutilAppsSmImServerConfig.SmIMServerSettings
+	smIMServer           *cryptoutilAppsSmImServer.SmIMServer
+	testSmIMServer       *cryptoutilAppsSmImServerConfig.SmIMServerSettings
 	publicBaseURL        string
 	adminBaseURL         string
 	sharedServiceBaseURL string // Deprecated: use publicBaseURL.

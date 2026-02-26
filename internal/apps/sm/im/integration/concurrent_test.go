@@ -8,13 +8,14 @@
 package integration
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/tls"
 	"fmt"
 	http "net/http"
 	"sync"
 	"testing"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -67,7 +68,7 @@ func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 			name:            "N=5 users, Q=2 concurrent sends (all recipients broadcast)",
 			numUsers:        cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries,
 			concurrentSends: 2,
-			recipientsEach:  4,                // All other users (broadcast)
+			recipientsEach:  4,                                                             // All other users (broadcast)
 			targetDuration:  cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second, // Adjusted from 6s (observed ~7s)
 		},
 	}
