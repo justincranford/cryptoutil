@@ -19,16 +19,6 @@ import (
 )
 
 // Database error code constants (SQLite numeric codes and Postgres SQLSTATE strings).
-const (
-	sqliteErrUniqueConstraint = cryptoutilSharedMagic.SQLiteErrUniqueConstraint
-	sqliteErrForeignKey       = cryptoutilSharedMagic.SQLiteErrForeignKey
-	sqliteErrCheckConstraint  = cryptoutilSharedMagic.SQLiteErrCheckConstraint
-
-	pgCodeUniqueViolation      = cryptoutilSharedMagic.PGCodeUniqueViolation
-	pgCodeForeignKeyViolation  = cryptoutilSharedMagic.PGCodeForeignKeyViolation
-	pgCodeCheckViolation       = cryptoutilSharedMagic.PGCodeCheckViolation
-	pgCodeStringDataTruncation = cryptoutilSharedMagic.PGCodeStringDataTruncation
-)
 
 // Service-Repository calls
 
@@ -251,11 +241,11 @@ func (tx *OrmTransaction) toAppErr(msg *string, err error) error {
 	var sqliteErr *sqlite.Error
 	if errors.As(err, &sqliteErr) {
 		switch sqliteErr.Code() {
-		case sqliteErrUniqueConstraint: // UNIQUE constraint failed
+		case cryptoutilSharedMagic.SQLiteErrUniqueConstraint: // UNIQUE constraint failed
 			return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
-		case sqliteErrForeignKey: // FOREIGN KEY constraint failed
+		case cryptoutilSharedMagic.SQLiteErrForeignKey: // FOREIGN KEY constraint failed
 			return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
-		case sqliteErrCheckConstraint: // CHECK constraint failed
+		case cryptoutilSharedMagic.SQLiteErrCheckConstraint: // CHECK constraint failed
 			return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
 		}
 	}
@@ -264,13 +254,13 @@ func (tx *OrmTransaction) toAppErr(msg *string, err error) error {
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {
 		switch pgErr.Code {
-		case pgCodeUniqueViolation: // unique_violation
+		case cryptoutilSharedMagic.PGCodeUniqueViolation: // unique_violation
 			return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
-		case pgCodeForeignKeyViolation: // foreign_key_violation
+		case cryptoutilSharedMagic.PGCodeForeignKeyViolation: // foreign_key_violation
 			return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
-		case pgCodeCheckViolation: // check_violation
+		case cryptoutilSharedMagic.PGCodeCheckViolation: // check_violation
 			return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
-		case pgCodeStringDataTruncation: // string_data_right_truncation
+		case cryptoutilSharedMagic.PGCodeStringDataTruncation: // string_data_right_truncation
 			return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
 		}
 	}

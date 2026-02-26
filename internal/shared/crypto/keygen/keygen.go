@@ -58,20 +58,12 @@ const (
 	ECCurveP521 = cryptoutilSharedMagic.ECCurveP521
 
 	// AES key sizes in bits.
-	aesKeySize128 = cryptoutilSharedMagic.AESKeySize128
-	aesKeySize192 = cryptoutilSharedMagic.AESKeySize192
-	aesKeySize256 = cryptoutilSharedMagic.AESKeySize256
 
 	// AES HMAC-SHA2 key sizes in bits.
-	aesHsKeySize256 = cryptoutilSharedMagic.AESHSKeySize256
-	aesHsKeySize384 = cryptoutilSharedMagic.AESHSKeySize384
-	aesHsKeySize512 = cryptoutilSharedMagic.AESHSKeySize512
 
 	// Minimum HMAC key size in bits.
-	minHMACKeySize = cryptoutilSharedMagic.MinHMACKeySize
 
 	// Bits to bytes conversion factor.
-	bitsToBytes = cryptoutilSharedMagic.BitsToBytes
 )
 
 // GenerateRSAKeyPairFunction returns a function that generates an RSA key pair with the specified bit size.
@@ -153,11 +145,11 @@ func GenerateAESKeyFunction(aesBits int) func() (SecretKey, error) {
 
 // GenerateAESKey generates an AES key with the specified bit size (128, 192, or 256).
 func GenerateAESKey(aesBits int) (SecretKey, error) {
-	if aesBits != aesKeySize128 && aesBits != aesKeySize192 && aesBits != aesKeySize256 {
-		return nil, fmt.Errorf("invalid AES key size: %d (must be %d, %d, or %d bits)", aesBits, aesKeySize128, aesKeySize192, aesKeySize256)
+	if aesBits != cryptoutilSharedMagic.AESKeySize128 && aesBits != cryptoutilSharedMagic.AESKeySize192 && aesBits != cryptoutilSharedMagic.AESKeySize256 {
+		return nil, fmt.Errorf("invalid AES key size: %d (must be %d, %d, or %d bits)", aesBits, cryptoutilSharedMagic.AESKeySize128, cryptoutilSharedMagic.AESKeySize192, cryptoutilSharedMagic.AESKeySize256)
 	}
 
-	aesSecretKeyBytes, err := keygenGenerateBytesFn(aesBits / bitsToBytes)
+	aesSecretKeyBytes, err := keygenGenerateBytesFn(aesBits / cryptoutilSharedMagic.BitsToBytes)
 	if err != nil {
 		return nil, fmt.Errorf("generate AES %d key failed: %w", aesBits, err)
 	}
@@ -172,11 +164,11 @@ func GenerateAESHSKeyFunction(aesHsBits int) func() (SecretKey, error) {
 
 // GenerateAESHSKey generates an AES-HMAC-SHA2 key with the specified bit size (256, 384, or 512).
 func GenerateAESHSKey(aesHsBits int) (SecretKey, error) {
-	if aesHsBits != aesHsKeySize256 && aesHsBits != aesHsKeySize384 && aesHsBits != aesHsKeySize512 {
-		return nil, fmt.Errorf("invalid AES HAMC-SHA2 key size: %d (must be %d, %d, or %d bits)", aesHsBits, aesHsKeySize256, aesHsKeySize384, aesHsKeySize512)
+	if aesHsBits != cryptoutilSharedMagic.AESHSKeySize256 && aesHsBits != cryptoutilSharedMagic.AESHSKeySize384 && aesHsBits != cryptoutilSharedMagic.AESHSKeySize512 {
+		return nil, fmt.Errorf("invalid AES HAMC-SHA2 key size: %d (must be %d, %d, or %d bits)", aesHsBits, cryptoutilSharedMagic.AESHSKeySize256, cryptoutilSharedMagic.AESHSKeySize384, cryptoutilSharedMagic.AESHSKeySize512)
 	}
 
-	aesHsSecretKeyBytes, err := keygenGenerateBytesFn(aesHsBits / bitsToBytes)
+	aesHsSecretKeyBytes, err := keygenGenerateBytesFn(aesHsBits / cryptoutilSharedMagic.BitsToBytes)
 	if err != nil {
 		return nil, fmt.Errorf("generate AES HAMC-SHA2 %d key failed: %w", aesHsBits, err)
 	}
@@ -191,11 +183,11 @@ func GenerateHMACKeyFunction(hmacBits int) func() (SecretKey, error) {
 
 // GenerateHMACKey generates an HMAC key with the specified bit size.
 func GenerateHMACKey(hmacBits int) (SecretKey, error) {
-	if hmacBits < minHMACKeySize {
-		return nil, fmt.Errorf("invalid HMAC key size: %d (must be %d bits or higher)", hmacBits, minHMACKeySize)
+	if hmacBits < cryptoutilSharedMagic.MinHMACKeySize {
+		return nil, fmt.Errorf("invalid HMAC key size: %d (must be %d bits or higher)", hmacBits, cryptoutilSharedMagic.MinHMACKeySize)
 	}
 
-	hmacSecretKeyBytes, err := keygenGenerateBytesFn(hmacBits / bitsToBytes)
+	hmacSecretKeyBytes, err := keygenGenerateBytesFn(hmacBits / cryptoutilSharedMagic.BitsToBytes)
 	if err != nil {
 		return nil, fmt.Errorf("generate HMAC %d key failed: %w", hmacBits, err)
 	}

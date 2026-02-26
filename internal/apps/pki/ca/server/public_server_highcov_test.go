@@ -18,10 +18,6 @@ import (
 )
 
 // pollServerReady timeout and interval for waiting on server port allocation.
-const (
-	pollServerReadyTimeout  = cryptoutilSharedMagic.TestPollReadyTimeout
-	pollServerReadyInterval = cryptoutilSharedMagic.TestPollReadyInterval
-)
 
 // TestCAServer_HandleOCSP tests the OCSP endpoint.
 func TestCAServer_HandleOCSP(t *testing.T) {
@@ -39,7 +35,7 @@ func TestCAServer_HandleOCSP(t *testing.T) {
 	}()
 
 	// Wait for server to be ready and ports to be allocated.
-	err = cryptoutilSharedUtilPoll.Until(ctx, pollServerReadyTimeout, pollServerReadyInterval, func(_ context.Context) (bool, error) {
+	err = cryptoutilSharedUtilPoll.Until(ctx, cryptoutilSharedMagic.TestPollReadyTimeout, cryptoutilSharedMagic.TestPollReadyInterval, func(_ context.Context) (bool, error) {
 		return server.PublicPort() > 0, nil
 	})
 	require.NoError(t, err, "server did not bind to port")
@@ -94,7 +90,7 @@ func TestCAServer_HandleOCSP_InvalidRequest(t *testing.T) {
 	}()
 
 	// Wait for server to be ready and ports to be allocated.
-	err = cryptoutilSharedUtilPoll.Until(ctx, pollServerReadyTimeout, pollServerReadyInterval, func(_ context.Context) (bool, error) {
+	err = cryptoutilSharedUtilPoll.Until(ctx, cryptoutilSharedMagic.TestPollReadyTimeout, cryptoutilSharedMagic.TestPollReadyInterval, func(_ context.Context) (bool, error) {
 		return server.PublicPort() > 0, nil
 	})
 	require.NoError(t, err, "server did not bind to port")
@@ -149,7 +145,7 @@ func TestCAServer_HandleCRLDistribution_Error(t *testing.T) {
 	}()
 
 	// Wait for server to be ready and ports to be allocated.
-	err = cryptoutilSharedUtilPoll.Until(ctx, pollServerReadyTimeout, pollServerReadyInterval, func(_ context.Context) (bool, error) {
+	err = cryptoutilSharedUtilPoll.Until(ctx, cryptoutilSharedMagic.TestPollReadyTimeout, cryptoutilSharedMagic.TestPollReadyInterval, func(_ context.Context) (bool, error) {
 		return server.PublicPort() > 0, nil
 	})
 	require.NoError(t, err, "server did not bind to port")
@@ -219,7 +215,7 @@ func TestCAServer_HealthEndpoints_EdgeCases(t *testing.T) {
 	}()
 
 	// Wait for server to be ready and ports to be allocated.
-	err = cryptoutilSharedUtilPoll.Until(ctx, pollServerReadyTimeout, pollServerReadyInterval, func(_ context.Context) (bool, error) {
+	err = cryptoutilSharedUtilPoll.Until(ctx, cryptoutilSharedMagic.TestPollReadyTimeout, cryptoutilSharedMagic.TestPollReadyInterval, func(_ context.Context) (bool, error) {
 		return server.PublicPort() > 0 && server.AdminPort() > 0, nil
 	})
 	require.NoError(t, err, "server did not bind to ports")

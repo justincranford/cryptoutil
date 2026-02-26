@@ -81,34 +81,8 @@ const (
 	defaultDatabaseInitTotalTimeout    = cryptoutilSharedMagic.DefaultDatabaseInitTotalTimeout    // 5 minutes allows for container startup while preventing indefinite waits
 	defaultDatabaseInitRetryWait       = cryptoutilSharedMagic.DefaultDataInitRetryWait           // 1 second retry interval balances responsiveness and resource usage
 	defaultServerShutdownTimeout       = cryptoutilSharedMagic.DefaultDataServerShutdownTimeout   // 5 seconds allows graceful shutdown while preventing indefinite waits
-	defaultHelp                        = cryptoutilSharedMagic.DefaultHelp
-	defaultVerboseMode                 = cryptoutilSharedMagic.DefaultVerboseMode
-	defaultDevMode                     = cryptoutilSharedMagic.DefaultDevMode
-	defaultDemoMode                    = cryptoutilSharedMagic.DefaultDemoMode
-	defaultResetDemoMode               = cryptoutilSharedMagic.DefaultResetDemoMode
-	defaultDryRun                      = cryptoutilSharedMagic.DefaultDryRun
-	defaultProfile                     = cryptoutilSharedMagic.DefaultProfile
-	defaultOTLPEnabled                 = cryptoutilSharedMagic.DefaultOTLPEnabled
-	defaultOTLPConsole                 = cryptoutilSharedMagic.DefaultOTLPConsole
-	defaultOTLPService                 = cryptoutilSharedMagic.DefaultOTLPServiceDefault
-	defaultOTLPVersion                 = cryptoutilSharedMagic.DefaultOTLPVersionDefault
-	defaultOTLPEnvironment             = cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault
-	defaultOTLPHostname                = cryptoutilSharedMagic.DefaultOTLPHostnameDefault
-	defaultOTLPEndpoint                = cryptoutilSharedMagic.DefaultOTLPEndpointDefault
-	defaultUnsealMode                  = cryptoutilSharedMagic.DefaultUnsealModeSysInfo
 	defaultTLSPublicMode               = TLSMode(cryptoutilSharedMagic.DefaultTLSPublicMode)
 	defaultTLSPrivateMode              = TLSMode(cryptoutilSharedMagic.DefaultTLSPrivateMode)
-	defaultBrowserSessionCookie        = cryptoutilSharedMagic.DefaultBrowserSessionCookie
-	defaultBrowserSessionAlgorithm     = cryptoutilSharedMagic.DefaultBrowserSessionAlgorithm
-	defaultBrowserSessionJWSAlgorithm  = cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm
-	defaultBrowserSessionJWEAlgorithm  = cryptoutilSharedMagic.DefaultBrowserSessionJWEAlgorithm
-	defaultBrowserSessionExpiration    = cryptoutilSharedMagic.DefaultBrowserSessionExpiration
-	defaultServiceSessionAlgorithm     = cryptoutilSharedMagic.DefaultServiceSessionAlgorithm
-	defaultServiceSessionJWSAlgorithm  = cryptoutilSharedMagic.DefaultServiceSessionJWSAlgorithm
-	defaultServiceSessionJWEAlgorithm  = cryptoutilSharedMagic.DefaultServiceSessionJWEAlgorithm
-	defaultServiceSessionExpiration    = cryptoutilSharedMagic.DefaultServiceSessionExpiration
-	defaultSessionIdleTimeout          = cryptoutilSharedMagic.DefaultSessionIdleTimeout
-	defaultSessionCleanupInterval      = cryptoutilSharedMagic.DefaultSessionCleanupInterval
 )
 
 var (
@@ -124,7 +98,7 @@ var (
 var profiles = map[string]map[string]any{
 	"test": {
 		"log-level":                "ERROR",
-		"dev":                      defaultDevMode,
+		"dev":                      cryptoutilSharedMagic.DefaultDevMode,
 		"bind-public-protocol":     defaultBindPublicProtocol,
 		"bind-public-address":      defaultBindPublicAddress,
 		"bind-public-port":         defaultBindPublicPort,
@@ -140,7 +114,7 @@ var profiles = map[string]map[string]any{
 	},
 	"dev": {
 		"log-level":                "DEBUG",
-		"dev":                      defaultDevMode,
+		"dev":                      cryptoutilSharedMagic.DefaultDevMode,
 		"bind-public-protocol":     defaultBindPrivateProtocol,
 		"bind-public-address":      defaultBindPublicAddress,
 		"bind-public-port":         defaultBindPublicPort,

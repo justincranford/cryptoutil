@@ -20,7 +20,6 @@ import (
 	cryptoutilIdentityServer "cryptoutil/internal/apps/identity/server"
 	cryptoutilServerApplication "cryptoutil/internal/apps/sm/kms/server/application"
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
 )
 
@@ -69,8 +68,6 @@ const (
 	integrationTokenTruncateLen = 50
 
 	// Demo client credentials.
-	integrationDemoClientID     = cryptoutilSharedMagic.DemoClientID
-	integrationDemoClientSecret = cryptoutilSharedMagic.DemoClientSecret
 )
 
 // integrationServers holds running server instances for integration demo.

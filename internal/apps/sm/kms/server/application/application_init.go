@@ -25,7 +25,6 @@ const (
 	tlsServerKeyPairsNeeded  = 2                                                   // number of keypairs requested for server TLS
 
 	// File mode for written PEM files.
-	defaultPEMFileMode = cryptoutilSharedMagic.FilePermOwnerReadWriteOnly
 )
 
 // ServerInit initializes the server by generating TLS certificates and other required configuration.
@@ -91,7 +90,7 @@ func generateTLSServerSubject(serverApplicationBasic *ServerApplicationBasic, pr
 
 	for i, certPEM := range tlsServerCertificateChainPEMs {
 		filename := fmt.Sprintf("%scertificate_%d.pem", prefix, i)
-		if err := os.WriteFile(filename, certPEM, defaultPEMFileMode); err != nil {
+		if err := os.WriteFile(filename, certPEM, cryptoutilSharedMagic.FilePermOwnerReadWriteOnly); err != nil {
 			return nil, fmt.Errorf("failed to write TLS server certificate PEM file %s: %w", filename, err)
 		}
 	}
@@ -107,7 +106,7 @@ func generateTLSServerSubject(serverApplicationBasic *ServerApplicationBasic, pr
 		return nil, fmt.Errorf("failed to encrypt TLS server private key PEM: %w", err)
 	}
 
-	err = os.WriteFile(fmt.Sprintf("%sprivate_key.pem", prefix), encryptedTLSPrivateKeyPEM, defaultPEMFileMode)
+	err = os.WriteFile(fmt.Sprintf("%sprivate_key.pem", prefix), encryptedTLSPrivateKeyPEM, cryptoutilSharedMagic.FilePermOwnerReadWriteOnly)
 	if err != nil {
 		return nil, fmt.Errorf("failed to write encrypted TLS server private key PEM file: %w", err)
 	}

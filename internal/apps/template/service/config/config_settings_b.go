@@ -4,6 +4,11 @@
 
 package config
 
+
+import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+)
+
 var (
 	csrfTokenCookieSecure = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "csrf-token-cookie-secure",
@@ -122,49 +127,49 @@ var (
 	otlpEnabled = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "otlp",
 		Shorthand:   "z",
-		Value:       defaultOTLPEnabled,
+		Value:       cryptoutilSharedMagic.DefaultOTLPEnabled,
 		Usage:       "enable OTLP export",
 		Description: "OTLP Export",
 	})
 	otlpConsole = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "otlp-console",
 		Shorthand:   "q",
-		Value:       defaultOTLPConsole,
+		Value:       cryptoutilSharedMagic.DefaultOTLPConsole,
 		Usage:       "enable OTLP logging to console (STDOUT)",
 		Description: "OTLP Console",
 	})
 	otlpService = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "otlp-service",
 		Shorthand:   "s",
-		Value:       defaultOTLPService,
+		Value:       cryptoutilSharedMagic.DefaultOTLPServiceDefault,
 		Usage:       "OTLP service",
 		Description: "OTLP Service",
 	})
 	otlpVersion = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "otlp-version",
 		Shorthand:   "B",
-		Value:       defaultOTLPVersion,
+		Value:       cryptoutilSharedMagic.DefaultOTLPVersionDefault,
 		Usage:       "OTLP version",
 		Description: "OTLP Version",
 	})
 	otlpEnvironment = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "otlp-environment",
 		Shorthand:   "K",
-		Value:       defaultOTLPEnvironment,
+		Value:       cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault,
 		Usage:       "OTLP environment",
 		Description: "OTLP Environment",
 	})
 	otlpHostname = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "otlp-hostname",
 		Shorthand:   "O",
-		Value:       defaultOTLPHostname,
+		Value:       cryptoutilSharedMagic.DefaultOTLPHostnameDefault,
 		Usage:       "OTLP hostname",
 		Description: "OTLP Hostname",
 	})
 	otlpEndpoint = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "otlp-endpoint",
 		Shorthand:   "",
-		Value:       defaultOTLPEndpoint,
+		Value:       cryptoutilSharedMagic.DefaultOTLPEndpointDefault,
 		Usage:       "OTLP endpoint (grpc://host:port or http://host:port)",
 		Description: "OTLP Endpoint",
 	})
@@ -178,7 +183,7 @@ var (
 	unsealMode = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "unseal-mode",
 		Shorthand:   "5",
-		Value:       defaultUnsealMode,
+		Value:       cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 		Usage:       "unseal mode: N, M-of-N, sysinfo; N keys, or M-of-N derived keys from shared secrets, or X-of-Y custom sysinfo as shared secrets",
 		Description: "Unseal Mode",
 	})
@@ -212,77 +217,77 @@ var (
 	browserSessionCookie = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "browser-session-cookie",
 		Shorthand:   "Q",
-		Value:       defaultBrowserSessionCookie,
+		Value:       cryptoutilSharedMagic.DefaultBrowserSessionCookie,
 		Usage:       "browser session cookie type: jwe (encrypted), jws (signed), opaque (database); defaults to jws for stateless signed tokens [DEPRECATED: use browser-session-algorithm]",
 		Description: "Browser Session Cookie Type",
 	})
 	browserSessionAlgorithm = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "browser-session-algorithm",
 		Shorthand:   "",
-		Value:       defaultBrowserSessionAlgorithm,
+		Value:       cryptoutilSharedMagic.DefaultBrowserSessionAlgorithm,
 		Usage:       "browser session algorithm: OPAQUE (hashed UUIDv7), JWS (signed JWT), JWE (encrypted JWT)",
 		Description: "Browser Session Algorithm",
 	})
 	browserSessionJWSAlgorithm = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "browser-session-jws-algorithm",
 		Shorthand:   "",
-		Value:       defaultBrowserSessionJWSAlgorithm,
+		Value:       cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		Usage:       "JWS algorithm for browser sessions (e.g., RS256, RS384, RS512, ES256, ES384, ES512, EdDSA)",
 		Description: "Browser Session JWS Algorithm",
 	})
 	browserSessionJWEAlgorithm = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "browser-session-jwe-algorithm",
 		Shorthand:   "",
-		Value:       defaultBrowserSessionJWEAlgorithm,
+		Value:       cryptoutilSharedMagic.DefaultBrowserSessionJWEAlgorithm,
 		Usage:       "JWE algorithm for browser sessions (e.g., dir+A256GCM, A256GCMKW+A256GCM)",
 		Description: "Browser Session JWE Algorithm",
 	})
 	browserSessionExpiration = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "browser-session-expiration",
 		Shorthand:   "",
-		Value:       defaultBrowserSessionExpiration,
+		Value:       cryptoutilSharedMagic.DefaultBrowserSessionExpiration,
 		Usage:       "browser session expiration duration (e.g., 24h, 48h)",
 		Description: "Browser Session Expiration",
 	})
 	serviceSessionAlgorithm = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "service-session-algorithm",
 		Shorthand:   "",
-		Value:       defaultServiceSessionAlgorithm,
+		Value:       cryptoutilSharedMagic.DefaultServiceSessionAlgorithm,
 		Usage:       "service session algorithm: OPAQUE (hashed UUIDv7), JWS (signed JWT), JWE (encrypted JWT)",
 		Description: "Service Session Algorithm",
 	})
 	serviceSessionJWSAlgorithm = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "service-session-jws-algorithm",
 		Shorthand:   "",
-		Value:       defaultServiceSessionJWSAlgorithm,
+		Value:       cryptoutilSharedMagic.DefaultServiceSessionJWSAlgorithm,
 		Usage:       "JWS algorithm for service sessions (e.g., RS256, RS384, RS512, ES256, ES384, ES512, EdDSA)",
 		Description: "Service Session JWS Algorithm",
 	})
 	serviceSessionJWEAlgorithm = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "service-session-jwe-algorithm",
 		Shorthand:   "",
-		Value:       defaultServiceSessionJWEAlgorithm,
+		Value:       cryptoutilSharedMagic.DefaultServiceSessionJWEAlgorithm,
 		Usage:       "JWE algorithm for service sessions (e.g., dir+A256GCM, A256GCMKW+A256GCM)",
 		Description: "Service Session JWE Algorithm",
 	})
 	serviceSessionExpiration = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "service-session-expiration",
 		Shorthand:   "",
-		Value:       defaultServiceSessionExpiration,
+		Value:       cryptoutilSharedMagic.DefaultServiceSessionExpiration,
 		Usage:       "service session expiration duration (e.g., 168h for 7 days)",
 		Description: "Service Session Expiration",
 	})
 	sessionIdleTimeout = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "session-idle-timeout",
 		Shorthand:   "",
-		Value:       defaultSessionIdleTimeout,
+		Value:       cryptoutilSharedMagic.DefaultSessionIdleTimeout,
 		Usage:       "session idle timeout duration (e.g., 2h)",
 		Description: "Session Idle Timeout",
 	})
 	sessionCleanupInterval = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "session-cleanup-interval",
 		Shorthand:   "",
-		Value:       defaultSessionCleanupInterval,
+		Value:       cryptoutilSharedMagic.DefaultSessionCleanupInterval,
 		Usage:       "interval for cleaning up expired sessions (e.g., 1h)",
 		Description: "Session Cleanup Interval",
 	})

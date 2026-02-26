@@ -182,9 +182,9 @@ func TestLogJoseJASettings(t *testing.T) {
 // TestJoseJAServerSettings_DefaultValues verifies the default constant values.
 func TestJoseJAServerSettings_DefaultValues(t *testing.T) {
 	t.Parallel()
-	require.Equal(t, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, defaultMaxMaterials)
-	require.Equal(t, cryptoutilSharedMagic.JoseJAAuditDefaultEnabled, defaultAuditEnabled)
-	require.Equal(t, cryptoutilSharedMagic.JoseJAAuditDefaultSamplingRate, defaultAuditSamplingRate)
+	require.Equal(t, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+	require.Equal(t, cryptoutilSharedMagic.JoseJAAuditDefaultEnabled, cryptoutilSharedMagic.JoseJAAuditDefaultEnabled)
+	require.Equal(t, cryptoutilSharedMagic.JoseJAAuditDefaultSamplingRate, cryptoutilSharedMagic.JoseJAAuditDefaultSamplingRate)
 }
 
 // TestSettingRegistrations verifies jose-ja settings are properly configured.

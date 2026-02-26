@@ -12,7 +12,7 @@ var (
 	help = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:      "help",
 		Shorthand: "h",
-		Value:     defaultHelp,
+		Value:     cryptoutilSharedMagic.DefaultHelp,
 		Usage: "print help; you can run the server with parameters like this:\n" +
 			"cmd -l=INFO -v -M -u=postgres://USR:PWD@localhost:5432/DB?sslmode=disable\n", // pragma: allowlist secret
 		Description: "Help",
@@ -34,42 +34,42 @@ var (
 	verboseMode = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "verbose",
 		Shorthand:   "v",
-		Value:       defaultVerboseMode,
+		Value:       cryptoutilSharedMagic.DefaultVerboseMode,
 		Usage:       "verbose modifier for log level",
 		Description: "Verbose mode",
 	})
 	devMode = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "dev",
 		Shorthand:   "d",
-		Value:       defaultDevMode,
+		Value:       cryptoutilSharedMagic.DefaultDevMode,
 		Usage:       "run in development mode; enables in-memory SQLite",
 		Description: "Dev mode",
 	})
 	demoMode = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "demo",
 		Shorthand:   "X",
-		Value:       defaultDemoMode,
+		Value:       cryptoutilSharedMagic.DefaultDemoMode,
 		Usage:       "run in demo mode; auto-seeds demo data on startup",
 		Description: "Demo mode",
 	})
 	resetDemoMode = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "reset-demo",
 		Shorthand:   "g",
-		Value:       defaultResetDemoMode,
+		Value:       cryptoutilSharedMagic.DefaultResetDemoMode,
 		Usage:       "reset demo mode; clears and re-seeds demo data on startup",
 		Description: "Reset demo mode",
 	})
 	dryRun = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "dry-run",
 		Shorthand:   "Y",
-		Value:       defaultDryRun,
+		Value:       cryptoutilSharedMagic.DefaultDryRun,
 		Usage:       "validate configuration and exit without starting server",
 		Description: "Dry run",
 	})
 	profile = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "profile",
 		Shorthand:   "f",
-		Value:       defaultProfile,
+		Value:       cryptoutilSharedMagic.DefaultProfile,
 		Usage:       "configuration profile: dev, stg, prod, test",
 		Description: "Configuration profile",
 	})

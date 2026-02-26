@@ -20,6 +20,7 @@ import (
 
 	cryptoutilServerApplication "cryptoutil/internal/apps/sm/kms/server/application"
 	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Integration demo step counts.
@@ -49,8 +50,8 @@ func obtainIntegrationAccessToken(ctx context.Context, servers *integrationServe
 	tokenURL := servers.identityBaseURL + "/oauth2/v1/token"
 
 	// Use demo client credentials.
-	clientID := integrationDemoClientID
-	clientSecret := integrationDemoClientSecret
+	clientID := cryptoutilSharedMagic.DemoClientID
+	clientSecret := cryptoutilSharedMagic.DemoClientSecret
 
 	form := url.Values{}
 	form.Set("grant_type", "client_credentials")

@@ -22,22 +22,22 @@ import (
 
 func printEndpointSummary() {
 	_, _ = fmt.Fprintln(outWriter, "   OAuth 2.1 / OpenID Connect Endpoints:")
-	_, _ = fmt.Fprintf(outWriter, "   • Discovery:     %s/.well-known/oauth-authorization-server\n", demoIssuer)
-	_, _ = fmt.Fprintf(outWriter, "   • OIDC Config:   %s/.well-known/openid-configuration\n", demoIssuer)
-	_, _ = fmt.Fprintf(outWriter, "   • Authorization: %s/oauth2/v1/authorize\n", demoIssuer)
-	_, _ = fmt.Fprintf(outWriter, "   • Token:         %s/oauth2/v1/token\n", demoIssuer)
-	_, _ = fmt.Fprintf(outWriter, "   • Introspect:    %s/oauth2/v1/introspect\n", demoIssuer)
-	_, _ = fmt.Fprintf(outWriter, "   • Revoke:        %s/oauth2/v1/revoke\n", demoIssuer)
-	_, _ = fmt.Fprintf(outWriter, "   • JWKS:          %s/oauth2/v1/jwks\n", demoIssuer)
+	_, _ = fmt.Fprintf(outWriter, "   • Discovery:     %s/.well-known/oauth-authorization-server\n", cryptoutilSharedMagic.DemoIssuer)
+	_, _ = fmt.Fprintf(outWriter, "   • OIDC Config:   %s/.well-known/openid-configuration\n", cryptoutilSharedMagic.DemoIssuer)
+	_, _ = fmt.Fprintf(outWriter, "   • Authorization: %s/oauth2/v1/authorize\n", cryptoutilSharedMagic.DemoIssuer)
+	_, _ = fmt.Fprintf(outWriter, "   • Token:         %s/oauth2/v1/token\n", cryptoutilSharedMagic.DemoIssuer)
+	_, _ = fmt.Fprintf(outWriter, "   • Introspect:    %s/oauth2/v1/introspect\n", cryptoutilSharedMagic.DemoIssuer)
+	_, _ = fmt.Fprintf(outWriter, "   • Revoke:        %s/oauth2/v1/revoke\n", cryptoutilSharedMagic.DemoIssuer)
+	_, _ = fmt.Fprintf(outWriter, "   • JWKS:          %s/oauth2/v1/jwks\n", cryptoutilSharedMagic.DemoIssuer)
 }
 
 func demonstrateAuthorization(ctx context.Context, client *http.Client, codeChallenge, state string) error {
-	authURL := fmt.Sprintf("%s/oauth2/v1/authorize", demoIssuer)
+	authURL := fmt.Sprintf("%s/oauth2/v1/authorize", cryptoutilSharedMagic.DemoIssuer)
 
 	params := url.Values{
 		"response_type":         {"code"},
-		"client_id":             {demoClientID},
-		"redirect_uri":          {demoRedirectURI},
+		"client_id":             {cryptoutilSharedMagic.DemoClientID},
+		"redirect_uri":          {cryptoutilSharedMagic.DemoRedirectURI},
 		"state":                 {state},
 		"code_challenge":        {codeChallenge},
 		"code_challenge_method": {"S256"},
@@ -72,7 +72,7 @@ func demonstrateAuthorization(ctx context.Context, client *http.Client, codeChal
 }
 
 func demonstrateTokenEndpoint(ctx context.Context, client *http.Client) (string, error) {
-	tokenURL := fmt.Sprintf("%s/oauth2/v1/token", demoIssuer)
+	tokenURL := fmt.Sprintf("%s/oauth2/v1/token", cryptoutilSharedMagic.DemoIssuer)
 
 	data := url.Values{
 		"grant_type": {"client_credentials"},
@@ -87,7 +87,7 @@ func demonstrateTokenEndpoint(ctx context.Context, client *http.Client) (string,
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	// Use Basic authentication with registered client credentials.
-	req.SetBasicAuth(demoClientID, demoClientSecret)
+	req.SetBasicAuth(cryptoutilSharedMagic.DemoClientID, demoClientSecret)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -103,7 +103,7 @@ func demonstrateTokenEndpoint(ctx context.Context, client *http.Client) (string,
 
 	_, _ = fmt.Fprintf(outWriter, "   Request: POST %s\n", tokenURL)
 	_, _ = fmt.Fprintf(outWriter, "   Grant:   client_credentials\n")
-	_, _ = fmt.Fprintf(outWriter, "   Client:  %s (Basic Auth)\n", demoClientID)
+	_, _ = fmt.Fprintf(outWriter, "   Client:  %s (Basic Auth)\n", cryptoutilSharedMagic.DemoClientID)
 	_, _ = fmt.Fprintf(outWriter, "   Status:  %d %s\n", resp.StatusCode, http.StatusText(resp.StatusCode))
 
 	var accessToken string
@@ -136,12 +136,12 @@ func demonstrateTokenEndpoint(ctx context.Context, client *http.Client) (string,
 }
 
 func demonstrateIntrospection(ctx context.Context, client *http.Client, accessToken string) error {
-	introspectURL := fmt.Sprintf("%s/oauth2/v1/introspect", demoIssuer)
+	introspectURL := fmt.Sprintf("%s/oauth2/v1/introspect", cryptoutilSharedMagic.DemoIssuer)
 
 	// Use the actual access token if available, otherwise use a sample.
 	tokenToIntrospect := accessToken
 	if tokenToIntrospect == "" {
-		tokenToIntrospect = sampleAccessTokenFmt
+		tokenToIntrospect = cryptoutilSharedMagic.DemoSampleAccessToken
 	}
 
 	data := url.Values{
@@ -156,7 +156,7 @@ func demonstrateIntrospection(ctx context.Context, client *http.Client, accessTo
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	// Use Basic authentication with registered client credentials.
-	req.SetBasicAuth(demoClientID, demoClientSecret)
+	req.SetBasicAuth(cryptoutilSharedMagic.DemoClientID, demoClientSecret)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -171,7 +171,7 @@ func demonstrateIntrospection(ctx context.Context, client *http.Client, accessTo
 	}
 
 	_, _ = fmt.Fprintf(outWriter, "   Request: POST %s\n", introspectURL)
-	_, _ = fmt.Fprintf(outWriter, "   Client:  %s (Basic Auth)\n", demoClientID)
+	_, _ = fmt.Fprintf(outWriter, "   Client:  %s (Basic Auth)\n", cryptoutilSharedMagic.DemoClientID)
 	_, _ = fmt.Fprintf(outWriter, "   Status:  %d %s\n", resp.StatusCode, http.StatusText(resp.StatusCode))
 
 	var introspectResp map[string]any
@@ -191,7 +191,7 @@ func demonstrateIntrospection(ctx context.Context, client *http.Client, accessTo
 }
 
 func demonstrateRevocation(ctx context.Context, client *http.Client, accessToken string) error {
-	revokeURL := fmt.Sprintf("%s/oauth2/v1/revoke", demoIssuer)
+	revokeURL := fmt.Sprintf("%s/oauth2/v1/revoke", cryptoutilSharedMagic.DemoIssuer)
 
 	// Use the actual access token if available, otherwise use a sample.
 	tokenToRevoke := accessToken
@@ -211,7 +211,7 @@ func demonstrateRevocation(ctx context.Context, client *http.Client, accessToken
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	// Use Basic authentication with registered client credentials.
-	req.SetBasicAuth(demoClientID, demoClientSecret)
+	req.SetBasicAuth(cryptoutilSharedMagic.DemoClientID, demoClientSecret)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -221,7 +221,7 @@ func demonstrateRevocation(ctx context.Context, client *http.Client, accessToken
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Demo cleanup
 
 	_, _ = fmt.Fprintf(outWriter, "   Request: POST %s\n", revokeURL)
-	_, _ = fmt.Fprintf(outWriter, "   Client:  %s (Basic Auth)\n", demoClientID)
+	_, _ = fmt.Fprintf(outWriter, "   Client:  %s (Basic Auth)\n", cryptoutilSharedMagic.DemoClientID)
 	_, _ = fmt.Fprintf(outWriter, "   Status:  %d %s\n", resp.StatusCode, http.StatusText(resp.StatusCode))
 	_, _ = fmt.Fprintln(outWriter, "   ✅ Revocation endpoint returns 200 per RFC 7009")
 
@@ -229,12 +229,12 @@ func demonstrateRevocation(ctx context.Context, client *http.Client, accessToken
 }
 
 func demonstrateIntrospectionAfterRevoke(ctx context.Context, client *http.Client, accessToken string) error {
-	introspectURL := fmt.Sprintf("%s/oauth2/v1/introspect", demoIssuer)
+	introspectURL := fmt.Sprintf("%s/oauth2/v1/introspect", cryptoutilSharedMagic.DemoIssuer)
 
 	// Use the revoked access token.
 	tokenToIntrospect := accessToken
 	if tokenToIntrospect == "" {
-		tokenToIntrospect = sampleAccessTokenFmt
+		tokenToIntrospect = cryptoutilSharedMagic.DemoSampleAccessToken
 	}
 
 	data := url.Values{
@@ -249,7 +249,7 @@ func demonstrateIntrospectionAfterRevoke(ctx context.Context, client *http.Clien
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	// Use Basic authentication with registered client credentials.
-	req.SetBasicAuth(demoClientID, demoClientSecret)
+	req.SetBasicAuth(cryptoutilSharedMagic.DemoClientID, demoClientSecret)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -264,7 +264,7 @@ func demonstrateIntrospectionAfterRevoke(ctx context.Context, client *http.Clien
 	}
 
 	_, _ = fmt.Fprintf(outWriter, "   Request: POST %s\n", introspectURL)
-	_, _ = fmt.Fprintf(outWriter, "   Client:  %s (Basic Auth)\n", demoClientID)
+	_, _ = fmt.Fprintf(outWriter, "   Client:  %s (Basic Auth)\n", cryptoutilSharedMagic.DemoClientID)
 	_, _ = fmt.Fprintf(outWriter, "   Status:  %d %s\n", resp.StatusCode, http.StatusText(resp.StatusCode))
 
 	var introspectResp map[string]any

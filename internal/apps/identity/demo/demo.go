@@ -25,15 +25,6 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-const (
-	demoIssuer           = cryptoutilSharedMagic.DemoIssuer
-	demoPort             = cryptoutilSharedMagic.DemoPort
-	demoClientID         = cryptoutilSharedMagic.DemoClientID
-	demoClientName       = cryptoutilSharedMagic.DemoClientName
-	demoRedirectURI      = cryptoutilSharedMagic.DemoRedirectURI
-	sampleAccessTokenFmt = cryptoutilSharedMagic.DemoSampleAccessToken
-)
-
 var demoClientSecret = "demo-secret-" + googleUuid.New().String()[:8]
 
 var (
@@ -93,7 +84,7 @@ func runDemo(ctx context.Context) error {
 
 	// Start Fiber in background.
 	go func() {
-		if listenErr := app.Listen(demoPort); listenErr != nil {
+		if listenErr := app.Listen(cryptoutilSharedMagic.DemoPort); listenErr != nil {
 			_, _ = fmt.Fprintf(outWriter, "Server error: %v\n", listenErr)
 		}
 	}()
@@ -111,9 +102,9 @@ func runDemo(ctx context.Context) error {
 		return fmt.Errorf("failed to register client: %w", err)
 	}
 
-	_, _ = fmt.Fprintf(outWriter, "   ✅ Client ID: %s\n", demoClientID)
-	_, _ = fmt.Fprintf(outWriter, "   ✅ Client Name: %s\n", demoClientName)
-	_, _ = fmt.Fprintf(outWriter, "   ✅ Redirect URI: %s\n", demoRedirectURI)
+	_, _ = fmt.Fprintf(outWriter, "   ✅ Client ID: %s\n", cryptoutilSharedMagic.DemoClientID)
+	_, _ = fmt.Fprintf(outWriter, "   ✅ Client Name: %s\n", cryptoutilSharedMagic.DemoClientName)
+	_, _ = fmt.Fprintf(outWriter, "   ✅ Redirect URI: %s\n", cryptoutilSharedMagic.DemoRedirectURI)
 	_, _ = fmt.Fprintln(outWriter)
 
 	// Create HTTP client for requests.
@@ -210,7 +201,7 @@ func startAuthZServer(ctx context.Context) (*fiber.App, *cryptoutilIdentityRepos
 			AutoMigrate:     true,
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer:               demoIssuer,
+			Issuer:               cryptoutilSharedMagic.DemoIssuer,
 			AccessTokenLifetime:  cryptoutilSharedMagic.DefaultAccessTokenLifetime,
 			RefreshTokenLifetime: cryptoutilSharedMagic.DefaultRefreshTokenLifetime,
 			IDTokenLifetime:      cryptoutilSharedMagic.DefaultIDTokenLifetime,
@@ -249,7 +240,7 @@ func startAuthZServer(ctx context.Context) (*fiber.App, *cryptoutilIdentityRepos
 
 	// Create JWS issuer for token signing with key rotation.
 	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuer(
-		demoIssuer,
+		cryptoutilSharedMagic.DemoIssuer,
 		keyRotationMgr,
 		"RS256",
 		config.Tokens.AccessTokenLifetime,
@@ -301,12 +292,12 @@ func registerDemoClient(ctx context.Context, repoFactory *cryptoutilIdentityRepo
 	// Create demo client.
 	client := &cryptoutilIdentityDomain.Client{
 		ID:                      googleUuid.Must(googleUuid.NewV7()),
-		ClientID:                demoClientID,
+		ClientID:                cryptoutilSharedMagic.DemoClientID,
 		ClientSecret:            hashedSecret,
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
-		Name:                    demoClientName,
+		Name:                    cryptoutilSharedMagic.DemoClientName,
 		Description:             "Demo OAuth 2.1 client for testing",
-		RedirectURIs:            []string{demoRedirectURI},
+		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
 		AllowedGrantTypes:       []string{"authorization_code", "refresh_token", "client_credentials"},
 		AllowedResponseTypes:    []string{"code"},
 		AllowedScopes:           []string{"openid", "profile", "email", "offline_access"},
@@ -340,7 +331,7 @@ func createHTTPClient() *http.Client {
 
 func checkDiscoveryEndpoints(ctx context.Context, client *http.Client) error {
 	// Check OAuth metadata.
-	oauthURL := fmt.Sprintf("%s/.well-known/oauth-authorization-server", demoIssuer)
+	oauthURL := fmt.Sprintf("%s/.well-known/oauth-authorization-server", cryptoutilSharedMagic.DemoIssuer)
 
 	oauthMeta, err := getJSON(ctx, client, oauthURL)
 	if err != nil {
@@ -353,7 +344,7 @@ func checkDiscoveryEndpoints(ctx context.Context, client *http.Client) error {
 	_, _ = fmt.Fprintf(outWriter, "   ✅ Grant Types: %v\n", grantTypes)
 
 	// Check OIDC discovery.
-	oidcURL := fmt.Sprintf("%s/.well-known/openid-configuration", demoIssuer)
+	oidcURL := fmt.Sprintf("%s/.well-known/openid-configuration", cryptoutilSharedMagic.DemoIssuer)
 
 	oidcMeta, err := getJSON(ctx, client, oidcURL)
 	if err != nil {
@@ -363,7 +354,7 @@ func checkDiscoveryEndpoints(ctx context.Context, client *http.Client) error {
 	_, _ = fmt.Fprintf(outWriter, "   ✅ OIDC Discovery: issuer=%s\n", oidcMeta["issuer"])
 
 	// Check JWKS.
-	jwksURL := fmt.Sprintf("%s/oauth2/v1/jwks", demoIssuer)
+	jwksURL := fmt.Sprintf("%s/oauth2/v1/jwks", cryptoutilSharedMagic.DemoIssuer)
 
 	jwks, err := getJSON(ctx, client, jwksURL)
 	if err != nil {

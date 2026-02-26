@@ -174,18 +174,6 @@ func buildContentSecurityPolicy(settings *cryptoutilAppsTemplateServiceConfig.Se
 }
 
 // Security header policy constants - Last reviewed: 2025-10-01.
-const (
-	hstsMaxAge                    = cryptoutilSharedMagic.HSTSMaxAge
-	hstsMaxAgeDev                 = cryptoutilSharedMagic.HSTSMaxAgeDev
-	referrerPolicy                = cryptoutilSharedMagic.ReferrerPolicy
-	permissionsPolicy             = cryptoutilSharedMagic.PermissionsPolicy
-	crossOriginOpenerPolicy       = cryptoutilSharedMagic.CrossOriginOpenerPolicy
-	crossOriginEmbedderPolicy     = cryptoutilSharedMagic.CrossOriginEmbedderPolicy
-	crossOriginResourcePolicy     = cryptoutilSharedMagic.CrossOriginResourcePolicy
-	xPermittedCrossDomainPolicies = cryptoutilSharedMagic.XPermittedCrossDomainPolicies
-	contentTypeOptions            = cryptoutilSharedMagic.ContentTypeOptions
-	clearSiteDataLogout           = cryptoutilSharedMagic.ClearSiteDataLogout
-)
 
 // Expected browser security headers for runtime validation.
 var expectedBrowserHeaders = map[string]string{
@@ -215,8 +203,8 @@ func publicBrowserAdditionalSecurityHeadersMiddleware(telemetryService *cryptout
 	// Log active security policy on startup
 	logger := telemetryService.Slogger.With("component", "security-headers")
 	logger.Debug("Active browser security header policy",
-		"referrer_policy", referrerPolicy,
-		"permissions_policy", permissionsPolicy,
+		"referrer_policy", cryptoutilSharedMagic.ReferrerPolicy,
+		"permissions_policy", cryptoutilSharedMagic.PermissionsPolicy,
 		"isolation_enabled", true,
 		"hsts_preload", !settings.DevMode,
 		"clear_site_data_logout", true,
@@ -224,29 +212,29 @@ func publicBrowserAdditionalSecurityHeadersMiddleware(telemetryService *cryptout
 
 	return func(c *fiber.Ctx) error {
 		// Apply common security headers to all requests
-		c.Set("X-Content-Type-Options", contentTypeOptions)
-		c.Set("Referrer-Policy", referrerPolicy)
+		c.Set("X-Content-Type-Options", cryptoutilSharedMagic.ContentTypeOptions)
+		c.Set("Referrer-Policy", cryptoutilSharedMagic.ReferrerPolicy)
 
 		if c.Protocol() == cryptoutilSharedMagic.ProtocolHTTPS {
 			if settings.DevMode {
-				c.Set("Strict-Transport-Security", hstsMaxAgeDev)
+				c.Set("Strict-Transport-Security", cryptoutilSharedMagic.HSTSMaxAgeDev)
 			} else {
-				c.Set("Strict-Transport-Security", hstsMaxAge)
+				c.Set("Strict-Transport-Security", cryptoutilSharedMagic.HSTSMaxAge)
 			}
 		}
 
 		// Skip browser-specific headers for non-browser API requests
 		if !isNonBrowserUserAPIRequestFunc(settings)(c) {
 			// Apply browser-specific security headers
-			c.Set("Permissions-Policy", permissionsPolicy)
-			c.Set("Cross-Origin-Opener-Policy", crossOriginOpenerPolicy)
-			c.Set("Cross-Origin-Embedder-Policy", crossOriginEmbedderPolicy)
-			c.Set("Cross-Origin-Resource-Policy", crossOriginResourcePolicy)
-			c.Set("X-Permitted-Cross-Domain-Policies", xPermittedCrossDomainPolicies)
+			c.Set("Permissions-Policy", cryptoutilSharedMagic.PermissionsPolicy)
+			c.Set("Cross-Origin-Opener-Policy", cryptoutilSharedMagic.CrossOriginOpenerPolicy)
+			c.Set("Cross-Origin-Embedder-Policy", cryptoutilSharedMagic.CrossOriginEmbedderPolicy)
+			c.Set("Cross-Origin-Resource-Policy", cryptoutilSharedMagic.CrossOriginResourcePolicy)
+			c.Set("X-Permitted-Cross-Domain-Policies", cryptoutilSharedMagic.XPermittedCrossDomainPolicies)
 
 			// Clear-Site-Data for logout endpoints only
 			if c.Method() == fiber.MethodPost && strings.HasSuffix(c.OriginalURL(), "/logout") {
-				c.Set("Clear-Site-Data", clearSiteDataLogout)
+				c.Set("Clear-Site-Data", cryptoutilSharedMagic.ClearSiteDataLogout)
 			}
 		}
 

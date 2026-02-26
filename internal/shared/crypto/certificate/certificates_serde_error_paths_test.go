@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // serdeTestFakePrivKey is a private key type unknown to x509.MarshalPKCS8PrivateKey.
@@ -35,7 +37,7 @@ func TestSerializeSubjects_AdditionalErrors(t *testing.T) {
 			subjects: []*Subject{{
 				SubjectName: "Test CA",
 				IssuerName:  "", // Empty IssuerName should fail.
-				Duration:    testHourDuration,
+				Duration:    cryptoutilSharedMagic.TestHourDuration,
 			}},
 			wantErrContain: "has empty IssuerName",
 		},
@@ -53,7 +55,7 @@ func TestSerializeSubjects_AdditionalErrors(t *testing.T) {
 			subjects: []*Subject{{
 				SubjectName: "Test Subject",
 				IssuerName:  "Root CA",
-				Duration:    testHourDuration,
+				Duration:    cryptoutilSharedMagic.TestHourDuration,
 				IsCA:        false,
 				MaxPathLen:  0,
 				KeyMaterial: KeyMaterial{

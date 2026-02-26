@@ -27,11 +27,6 @@ type JoseJAServerSettings struct {
 }
 
 // Jose-JA specific default values.
-const (
-	defaultMaxMaterials      = cryptoutilSharedMagic.JoseJADefaultMaxMaterials
-	defaultAuditEnabled      = cryptoutilSharedMagic.JoseJAAuditDefaultEnabled
-	defaultAuditSamplingRate = cryptoutilSharedMagic.JoseJAAuditDefaultSamplingRate
-)
 
 var allJoseJAServerRegisteredSettings []*cryptoutilAppsTemplateServiceConfig.Setting
 
@@ -40,21 +35,21 @@ var (
 	maxMaterialsSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allJoseJAServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "max-materials",
 		Shorthand:   "",
-		Value:       defaultMaxMaterials,
+		Value:       cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 		Usage:       "default maximum material keys per elastic key",
 		Description: "Max Materials Per Elastic Key",
 	})
 	auditEnabledSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allJoseJAServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "audit-enabled",
 		Shorthand:   "",
-		Value:       defaultAuditEnabled,
+		Value:       cryptoutilSharedMagic.JoseJAAuditDefaultEnabled,
 		Usage:       "enable audit logging for JWK operations",
 		Description: "Audit Enabled",
 	})
 	auditSamplingRateSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allJoseJAServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "audit-sampling-rate",
 		Shorthand:   "",
-		Value:       defaultAuditSamplingRate,
+		Value:       cryptoutilSharedMagic.JoseJAAuditDefaultSamplingRate,
 		Usage:       "audit sampling rate (0-100, percentage of operations to log)",
 		Description: "Audit Sampling Rate",
 	})

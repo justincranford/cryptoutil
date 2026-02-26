@@ -12,6 +12,8 @@ import (
 
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // getTLSPEMBytes safely retrieves PEM bytes from viper for BytesBase64 flags.
@@ -381,7 +383,7 @@ func ParseWithFlagSet(fs *pflag.FlagSet, commandParameters []string, exitIfHelp 
 		fmt.Println("  -k, --tls-private-ip-addresses strings TLS private IP addresses (default " + formatDefault(defaultTLSPrivateIPAddresses) + ")")
 		fmt.Println()
 		fmt.Println("BARRIER ENCRYPTION SECURITY SETTINGS:")
-		fmt.Println("  -U, --unseal-mode string            unseal mode: N, M-of-N, sysinfo (default " + formatDefault(defaultUnsealMode) + ")")
+		fmt.Println("  -U, --unseal-mode string            unseal mode: N, M-of-N, sysinfo (default " + formatDefault(cryptoutilSharedMagic.DefaultUnsealModeSysInfo) + ")")
 		fmt.Println("  -F, --unseal-files strings          unseal files")
 		fmt.Println()
 		fmt.Println("OBSERVABILITY SETTINGS:")
@@ -389,12 +391,12 @@ func ParseWithFlagSet(fs *pflag.FlagSet, commandParameters []string, exitIfHelp 
 		fmt.Println("  -v, --verbose                       verbose modifier for log level")
 		fmt.Println("  -z, --otlp                          enable OTLP export")
 		fmt.Println("  -q, --otlp-console                  enable OTLP logging to console (STDOUT)")
-		fmt.Println("  -s, --otlp-service string           OTLP service (default " + formatDefault(defaultOTLPService) + ")")
-		fmt.Println("  -B, --otlp-version string           OTLP version (default " + formatDefault(defaultOTLPVersion) + ")")
+		fmt.Println("  -s, --otlp-service string           OTLP service (default " + formatDefault(cryptoutilSharedMagic.DefaultOTLPServiceDefault) + ")")
+		fmt.Println("  -B, --otlp-version string           OTLP version (default " + formatDefault(cryptoutilSharedMagic.DefaultOTLPVersionDefault) + ")")
 		fmt.Println("  -I, --otlp-instance string          OTLP instance id (default " + formatDefault(defaultOTLPInstance) + ")")
-		fmt.Println("  -K, --otlp-environment string       OTLP environment (default " + formatDefault(defaultOTLPEnvironment) + ")")
-		fmt.Println("  -O, --otlp-hostname string          OTLP hostname (default " + formatDefault(defaultOTLPHostname) + ")")
-		fmt.Println("  -Q, --otlp-endpoint string          OTLP endpoint (default " + formatDefault(defaultOTLPEndpoint) + ")")
+		fmt.Println("  -K, --otlp-environment string       OTLP environment (default " + formatDefault(cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault) + ")")
+		fmt.Println("  -O, --otlp-hostname string          OTLP hostname (default " + formatDefault(cryptoutilSharedMagic.DefaultOTLPHostnameDefault) + ")")
+		fmt.Println("  -Q, --otlp-endpoint string          OTLP endpoint (default " + formatDefault(cryptoutilSharedMagic.DefaultOTLPEndpointDefault) + ")")
 		fmt.Println()
 		fmt.Println("ENVIRONMENT VARIABLES:")
 		fmt.Println("  All flags can be set via environment variables using the CRYPTOUTIL_ prefix.")

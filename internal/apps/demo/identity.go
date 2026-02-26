@@ -16,7 +16,6 @@ import (
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
 	cryptoutilIdentityServer "cryptoutil/internal/apps/identity/server"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
 )
 
@@ -51,8 +50,6 @@ const (
 	identityStepsAfterHealth = 3
 
 	// Demo client credentials (shared with integration demo).
-	identityDemoClientID     = cryptoutilSharedMagic.DemoClientID
-	identityDemoClientSecret = cryptoutilSharedMagic.DemoClientSecret
 )
 
 // identityDemoServer holds the running Identity server instance.

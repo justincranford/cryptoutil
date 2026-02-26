@@ -268,9 +268,9 @@ func TestGenerateAESKey(t *testing.T) {
 		expectedSize int
 		prob         float32
 	}{
-		{"AES-128", aesKeySize128, aesKeySize128 / bitsToBytes, cryptoutilSharedMagic.TestProbAlways},
-		{"AES-192", aesKeySize192, aesKeySize192 / bitsToBytes, cryptoutilSharedMagic.TestProbQuarter},
-		{"AES-256", aesKeySize256, aesKeySize256 / bitsToBytes, cryptoutilSharedMagic.TestProbQuarter},
+		{"AES-128", cryptoutilSharedMagic.AESKeySize128, cryptoutilSharedMagic.AESKeySize128 / cryptoutilSharedMagic.BitsToBytes, cryptoutilSharedMagic.TestProbAlways},
+		{"AES-192", cryptoutilSharedMagic.AESKeySize192, cryptoutilSharedMagic.AESKeySize192 / cryptoutilSharedMagic.BitsToBytes, cryptoutilSharedMagic.TestProbQuarter},
+		{"AES-256", cryptoutilSharedMagic.AESKeySize256, cryptoutilSharedMagic.AESKeySize256 / cryptoutilSharedMagic.BitsToBytes, cryptoutilSharedMagic.TestProbQuarter},
 	}
 
 	for _, tc := range testCases {
@@ -313,13 +313,13 @@ func TestGenerateAESKey_InvalidSize(t *testing.T) {
 func TestGenerateAESKeyFunction(t *testing.T) {
 	t.Parallel()
 
-	genFunc := GenerateAESKeyFunction(aesKeySize256)
+	genFunc := GenerateAESKeyFunction(cryptoutilSharedMagic.AESKeySize256)
 	require.NotNil(t, genFunc)
 
 	key, err := genFunc()
 	require.NoError(t, err)
 	require.NotNil(t, key)
-	require.Len(t, key, aesKeySize256/bitsToBytes)
+	require.Len(t, key, cryptoutilSharedMagic.AESKeySize256/cryptoutilSharedMagic.BitsToBytes)
 }
 
 // TestGenerateAESHSKey tests AES-HMAC-SHA2 key generation.
@@ -332,9 +332,9 @@ func TestGenerateAESHSKey(t *testing.T) {
 		expectedSize int
 		prob         float32
 	}{
-		{"AES-HS-256", aesHsKeySize256, aesHsKeySize256 / bitsToBytes, cryptoutilSharedMagic.TestProbAlways},
-		{"AES-HS-384", aesHsKeySize384, aesHsKeySize384 / bitsToBytes, cryptoutilSharedMagic.TestProbQuarter},
-		{"AES-HS-512", aesHsKeySize512, aesHsKeySize512 / bitsToBytes, cryptoutilSharedMagic.TestProbQuarter},
+		{"AES-HS-256", cryptoutilSharedMagic.AESHSKeySize256, cryptoutilSharedMagic.AESHSKeySize256 / cryptoutilSharedMagic.BitsToBytes, cryptoutilSharedMagic.TestProbAlways},
+		{"AES-HS-384", cryptoutilSharedMagic.AESHSKeySize384, cryptoutilSharedMagic.AESHSKeySize384 / cryptoutilSharedMagic.BitsToBytes, cryptoutilSharedMagic.TestProbQuarter},
+		{"AES-HS-512", cryptoutilSharedMagic.AESHSKeySize512, cryptoutilSharedMagic.AESHSKeySize512 / cryptoutilSharedMagic.BitsToBytes, cryptoutilSharedMagic.TestProbQuarter},
 	}
 
 	for _, tc := range testCases {
@@ -377,13 +377,13 @@ func TestGenerateAESHSKey_InvalidSize(t *testing.T) {
 func TestGenerateAESHSKeyFunction(t *testing.T) {
 	t.Parallel()
 
-	genFunc := GenerateAESHSKeyFunction(aesHsKeySize256)
+	genFunc := GenerateAESHSKeyFunction(cryptoutilSharedMagic.AESHSKeySize256)
 	require.NotNil(t, genFunc)
 
 	key, err := genFunc()
 	require.NoError(t, err)
 	require.NotNil(t, key)
-	require.Len(t, key, aesHsKeySize256/bitsToBytes)
+	require.Len(t, key, cryptoutilSharedMagic.AESHSKeySize256/cryptoutilSharedMagic.BitsToBytes)
 }
 
 // TestGenerateHMACKey tests HMAC key generation.
@@ -396,9 +396,9 @@ func TestGenerateHMACKey(t *testing.T) {
 		expectedSize int
 		prob         float32
 	}{
-		{"HMAC 256", 256, 256 / bitsToBytes, cryptoutilSharedMagic.TestProbAlways},
-		{"HMAC 512", 512, 512 / bitsToBytes, cryptoutilSharedMagic.TestProbQuarter},
-		{"HMAC 1024", 1024, 1024 / bitsToBytes, cryptoutilSharedMagic.TestProbQuarter},
+		{"HMAC 256", 256, 256 / cryptoutilSharedMagic.BitsToBytes, cryptoutilSharedMagic.TestProbAlways},
+		{"HMAC 512", 512, 512 / cryptoutilSharedMagic.BitsToBytes, cryptoutilSharedMagic.TestProbQuarter},
+		{"HMAC 1024", 1024, 1024 / cryptoutilSharedMagic.BitsToBytes, cryptoutilSharedMagic.TestProbQuarter},
 	}
 
 	for _, tc := range testCases {
@@ -432,7 +432,7 @@ func TestGenerateHMACKey(t *testing.T) {
 func TestGenerateHMACKey_BelowMinimum(t *testing.T) {
 	t.Parallel()
 
-	_, err := GenerateHMACKey(minHMACKeySize - 8) // Below minimum
+	_, err := GenerateHMACKey(cryptoutilSharedMagic.MinHMACKeySize - 8) // Below minimum
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid HMAC key size")
 }
@@ -447,7 +447,7 @@ func TestGenerateHMACKeyFunction(t *testing.T) {
 	key, err := genFunc()
 	require.NoError(t, err)
 	require.NotNil(t, key)
-	require.Len(t, key, 512/bitsToBytes)
+	require.Len(t, key, 512/cryptoutilSharedMagic.BitsToBytes)
 }
 
 // TestKeyPair_isKey tests KeyPair implements Key interface.
@@ -470,7 +470,7 @@ func TestKeyPair_isKey(t *testing.T) {
 func TestSecretKey_isKey(t *testing.T) {
 	t.Parallel()
 
-	secretKey, err := GenerateAESKey(aesKeySize256)
+	secretKey, err := GenerateAESKey(cryptoutilSharedMagic.AESKeySize256)
 	require.NoError(t, err)
 
 	// Verify it implements Key interface by calling isKey

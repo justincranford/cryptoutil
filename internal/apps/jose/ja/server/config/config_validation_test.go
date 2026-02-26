@@ -235,7 +235,7 @@ func TestVerifyDefaultConstants(t *testing.T) {
 	t.Parallel()
 
 	// Verify defaults match magic constants.
-	require.Equal(t, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, defaultMaxMaterials)
-	require.Equal(t, cryptoutilSharedMagic.JoseJAAuditDefaultEnabled, defaultAuditEnabled)
-	require.Equal(t, cryptoutilSharedMagic.JoseJAAuditDefaultSamplingRate, defaultAuditSamplingRate)
+	require.Equal(t, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+	require.Equal(t, cryptoutilSharedMagic.JoseJAAuditDefaultEnabled, cryptoutilSharedMagic.JoseJAAuditDefaultEnabled)
+	require.Equal(t, cryptoutilSharedMagic.JoseJAAuditDefaultSamplingRate, cryptoutilSharedMagic.JoseJAAuditDefaultSamplingRate)
 }

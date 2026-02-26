@@ -29,13 +29,6 @@ type SmIMServerSettings struct {
 }
 
 // SM-IM specific default values.
-const (
-	defaultMessageJWEAlgorithm = cryptoutilSharedMagic.IMJWEAlgorithm
-	defaultMessageMinLength    = cryptoutilSharedMagic.IMMessageMinLength
-	defaultMessageMaxLength    = cryptoutilSharedMagic.IMMessageMaxLength
-	defaultRecipientsMinCount  = cryptoutilSharedMagic.IMRecipientsMinCount
-	defaultRecipientsMaxCount  = cryptoutilSharedMagic.IMRecipientsMaxCount
-)
 
 var allSmIMServerRegisteredSettings []*cryptoutilAppsTemplateServiceConfig.Setting
 
@@ -44,35 +37,35 @@ var (
 	messageJWEAlgorithm = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allSmIMServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "message-jwe-algorithm",
 		Shorthand:   "",
-		Value:       defaultMessageJWEAlgorithm,
+		Value:       cryptoutilSharedMagic.IMJWEAlgorithm,
 		Usage:       "JWE algorithm for message encryption (e.g., dir+A256GCM)",
 		Description: "Message JWE Algorithm",
 	})
 	messageMinLength = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allSmIMServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "message-min-length",
 		Shorthand:   "",
-		Value:       defaultMessageMinLength,
+		Value:       cryptoutilSharedMagic.IMMessageMinLength,
 		Usage:       "minimum message length in characters",
 		Description: "Message Min Length",
 	})
 	messageMaxLength = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allSmIMServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "message-max-length",
 		Shorthand:   "",
-		Value:       defaultMessageMaxLength,
+		Value:       cryptoutilSharedMagic.IMMessageMaxLength,
 		Usage:       "maximum message length in characters",
 		Description: "Message Max Length",
 	})
 	recipientsMinCount = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allSmIMServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "recipients-min-count",
 		Shorthand:   "",
-		Value:       defaultRecipientsMinCount,
+		Value:       cryptoutilSharedMagic.IMRecipientsMinCount,
 		Usage:       "minimum recipients per message",
 		Description: "Recipients Min Count",
 	})
 	recipientsMaxCount = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allSmIMServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "recipients-max-count",
 		Shorthand:   "",
-		Value:       defaultRecipientsMaxCount,
+		Value:       cryptoutilSharedMagic.IMRecipientsMaxCount,
 		Usage:       "maximum recipients per message",
 		Description: "Recipients Max Count",
 	})

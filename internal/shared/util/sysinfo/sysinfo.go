@@ -24,9 +24,6 @@ const (
 	EmptyString = cryptoutilSharedMagic.EmptyString
 
 	// Timeouts for system info queries to prevent hanging.
-	cpuInfoTimeout = cryptoutilSharedMagic.DefaultSysInfoCPUTimeout
-	memoryTimeout  = cryptoutilSharedMagic.DefaultSysInfoMemoryTimeout
-	hostIDTimeout  = cryptoutilSharedMagic.DefaultSysInfoHostTimeout
 )
 
 // RuntimeGoArch returns the GOARCH runtime architecture.
@@ -55,7 +52,7 @@ var (
 
 // CPUInfo Returns VendorID, Family, Model, PhysicalID, ModelName.
 func CPUInfo() (string, string, string, string, error) {
-        ctx, cancel := context.WithTimeout(context.Background(), cpuInfoTimeout)
+        ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSysInfoCPUTimeout)
         defer cancel()
 
         cpuInfo, err := sysinfoGetCPUInfoFn(ctx)
@@ -72,7 +69,7 @@ func CPUInfo() (string, string, string, string, error) {
 
 // RAMSize returns the total RAM size in bytes.
 func RAMSize() (uint64, error) {
-        ctx, cancel := context.WithTimeout(context.Background(), memoryTimeout)
+        ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSysInfoMemoryTimeout)
         defer cancel()
 
         vmStats, err := sysinfoGetVirtualMemoryFn(ctx)
@@ -95,7 +92,7 @@ func OSHostname() (string, error) {
 
 // HostID returns the unique host identifier.
 func HostID() (string, error) {
-        ctx, cancel := context.WithTimeout(context.Background(), hostIDTimeout)
+        ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSysInfoHostTimeout)
         defer cancel()
 
         hostID, err := sysinfoGetHostIDFn(ctx)

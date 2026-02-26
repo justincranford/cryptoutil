@@ -18,6 +18,7 @@ import (
 	"time"
 
 	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func stopIdentityServer(demoServer *identityDemoServer) {
@@ -110,8 +111,8 @@ func demonstrateClientCredentialsFlow(ctx context.Context, demoServer *identityD
 	tokenURL := demoServer.baseURL + "/oauth2/v1/token"
 
 	// Build token request using demo client credentials.
-	clientID := identityDemoClientID
-	clientSecret := identityDemoClientSecret
+	clientID := cryptoutilSharedMagic.DemoClientID
+	clientSecret := cryptoutilSharedMagic.DemoClientSecret
 
 	form := url.Values{}
 	form.Set("grant_type", "client_credentials")

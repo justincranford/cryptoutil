@@ -24,18 +24,8 @@ import (
 
 const (
 	// Server timeouts for Raw TLS echo server.
-	testTLSServerStartupDelay = cryptoutilSharedMagic.TestTLSServerStartupDelay
-	testTLSServerWriteTimeout = cryptoutilSharedMagic.TestTLSServerWriteTimeout
-	testTLSServerReadTimeout  = cryptoutilSharedMagic.TestTLSServerReadTimeout
-	testTLSRetryBaseDelay     = cryptoutilSharedMagic.TestTLSRetryBaseDelay
-	testTLSMaxRetries         = cryptoutilSharedMagic.TestTLSMaxRetries
 
 	// Server timeouts for HTTPS echo server.
-	testHTTPServerStartupDelay = cryptoutilSharedMagic.TestHTTPServerStartupDelay
-	testHTTPServerWriteTimeout = cryptoutilSharedMagic.TestHTTPServerWriteTimeout
-	testHTTPServerReadTimeout  = cryptoutilSharedMagic.TestHTTPServerReadTimeout
-	testHTTPRetryBaseDelay     = cryptoutilSharedMagic.TestHTTPRetryBaseDelay
-	testHTTPMaxRetries         = cryptoutilSharedMagic.TestHTTPMaxRetries
 
 	// Certificate validity durations.
 	testCACertValidity10Years        = cryptoutilSharedMagic.TLSDefaultValidityCACertYears * cryptoutilSharedMagic.Days365
@@ -46,9 +36,6 @@ const (
 	testEndEntityCertValidity1Year   = cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.Days1
 
 	// Test constants.
-	testNegativeInt      = cryptoutilSharedMagic.TestNegativeInt
-	testNegativeDuration = cryptoutilSharedMagic.TestNegativeDuration
-	testHourDuration     = cryptoutilSharedMagic.TestHourDuration
 )
 
 func TestMutualTLS(t *testing.T) {
@@ -90,13 +77,13 @@ func TestMutualTLS(t *testing.T) {
 
 	t.Run("Raw mTLS", func(t *testing.T) {
 		callerShutdownSignalCh := make(chan struct{})
-		tlsListenerAddress, err := startTLSEchoServer("127.0.0.1:0", testTLSServerReadTimeout, testTLSServerWriteTimeout, serverTLSConfig, callerShutdownSignalCh) // or "0.0.0.0:0" for all interfaces
+		tlsListenerAddress, err := startTLSEchoServer("127.0.0.1:0", cryptoutilSharedMagic.TestTLSServerReadTimeout, cryptoutilSharedMagic.TestTLSServerWriteTimeout, serverTLSConfig, callerShutdownSignalCh) // or "0.0.0.0:0" for all interfaces
 		require.NoError(t, err, "failed to start TLS Echo Server")
 
 		defer close(callerShutdownSignalCh)
 
 		// Brief delay to ensure server goroutine is ready to accept connections
-		time.Sleep(testTLSServerStartupDelay)
+		time.Sleep(cryptoutilSharedMagic.TestTLSServerStartupDelay)
 
 		tlsClientRequestBody := []byte("Hello Mutual TLS!")
 
@@ -106,7 +93,7 @@ func TestMutualTLS(t *testing.T) {
 
 				var err error
 				// Retry connection up to testTLSMaxRetries times with backoff to handle timing issues under load
-				for retry := 0; retry < testTLSMaxRetries; retry++ {
+				for retry := 0; retry < cryptoutilSharedMagic.TestTLSMaxRetries; retry++ {
 					conn, dialErr := (&tls.Dialer{Config: clientTLSConfig}).DialContext(context.Background(), "tcp", tlsListenerAddress)
 					if dialErr == nil {
 						var ok bool
@@ -123,7 +110,7 @@ func TestMutualTLS(t *testing.T) {
 						err = dialErr
 					}
 
-					time.Sleep(time.Duration(retry+1) * testTLSRetryBaseDelay)
+					time.Sleep(time.Duration(retry+1) * cryptoutilSharedMagic.TestTLSRetryBaseDelay)
 				}
 
 				require.NoError(t, err, "client failed to connect to TLS Echo Server after retries")
@@ -146,7 +133,7 @@ func TestMutualTLS(t *testing.T) {
 	})
 
 	t.Run("HTTP mTLS", func(t *testing.T) {
-		httpsServer, serverURL, err := startHTTPSEchoServer("127.0.0.1:0", testHTTPServerReadTimeout, testHTTPServerWriteTimeout, serverTLSConfig) // or "0.0.0.0:0" for all interfaces
+		httpsServer, serverURL, err := startHTTPSEchoServer("127.0.0.1:0", cryptoutilSharedMagic.TestHTTPServerReadTimeout, cryptoutilSharedMagic.TestHTTPServerWriteTimeout, serverTLSConfig) // or "0.0.0.0:0" for all interfaces
 		require.NoError(t, err, "failed to start HTTPS Echo Server")
 
 		defer func() {
@@ -156,7 +143,7 @@ func TestMutualTLS(t *testing.T) {
 		}()
 
 		// Brief delay to ensure server goroutine is ready to accept connections
-		time.Sleep(testHTTPServerStartupDelay)
+		time.Sleep(cryptoutilSharedMagic.TestHTTPServerStartupDelay)
 
 		httpsClientRequestBody := []byte("Hello Mutual HTTPS!")
 		httpsClient := &http.Client{
@@ -171,7 +158,7 @@ func TestMutualTLS(t *testing.T) {
 
 			var httpsServerResponse *http.Response
 			// Retry HTTP request up to testHTTPMaxRetries times with backoff to handle timing issues under load
-			for retry := 0; retry < testHTTPMaxRetries; retry++ {
+			for retry := 0; retry < cryptoutilSharedMagic.TestHTTPMaxRetries; retry++ {
 				httpsServerResponse, err = httpsClient.Do(req)
 				if err == nil && httpsServerResponse.StatusCode == http.StatusOK {
 					break
@@ -181,7 +168,7 @@ func TestMutualTLS(t *testing.T) {
 					httpsServerResponse.Body.Close() //nolint:errcheck,gosec // G104: Retry loop cleanup, error ignored intentionally
 				}
 
-				time.Sleep(time.Duration(retry+1) * testHTTPRetryBaseDelay)
+				time.Sleep(time.Duration(retry+1) * cryptoutilSharedMagic.TestHTTPRetryBaseDelay)
 			}
 
 			require.NoError(t, err, "client failed to POST to HTTPS Echo Server after retries (%d of %d)", i, clientConnections)
@@ -334,7 +321,7 @@ func TestSerializeSubjectsSadPaths(t *testing.T) {
 		subjects := []*Subject{{
 			SubjectName: "Test Subject",
 			IssuerName:  "Test Issuer",
-			Duration:    testHourDuration,
+			Duration:    cryptoutilSharedMagic.TestHourDuration,
 			IsCA:        false,
 			MaxPathLen:  1, // Invalid for end entity
 			KeyMaterial: KeyMaterial{
@@ -350,7 +337,7 @@ func TestSerializeSubjectsSadPaths(t *testing.T) {
 		subjects := []*Subject{{
 			SubjectName: "Test Subject",
 			IssuerName:  "Test Issuer",
-			Duration:    testHourDuration,
+			Duration:    cryptoutilSharedMagic.TestHourDuration,
 			IsCA:        true,
 			MaxPathLen:  0,
 			DNSNames:    []string{"example.com"}, // Invalid for CA
@@ -363,9 +350,9 @@ func TestSerializeSubjectsSadPaths(t *testing.T) {
 		subjects := []*Subject{{
 			SubjectName: "Test CA",
 			IssuerName:  "Test Issuer",
-			Duration:    testHourDuration,
+			Duration:    cryptoutilSharedMagic.TestHourDuration,
 			IsCA:        true,
-			MaxPathLen:  testNegativeInt, // Invalid negative MaxPathLen
+			MaxPathLen:  cryptoutilSharedMagic.TestNegativeInt, // Invalid negative MaxPathLen
 		}}
 		_, err := SerializeSubjects(subjects, false)
 		require.Error(t, err)
@@ -422,6 +409,6 @@ func TestSerializeKeyMaterialSadPaths(t *testing.T) {
 func TestNegativeDuration(t *testing.T) {
 	t.Parallel()
 
-	_, err := CertificateTemplateCA("Root CA", "Root CA", testNegativeDuration, 1)
+	_, err := CertificateTemplateCA("Root CA", "Root CA", cryptoutilSharedMagic.TestNegativeDuration, 1)
 	require.Error(t, err, "Creating a certificate with negative duration should fail")
 }
