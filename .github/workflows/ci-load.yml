@@ -12,7 +12,7 @@ name: CI - Load Testing
 # CROSS-PLATFORM COMPATIBILITY: All file references in this workflow MUST use relative paths
 # to support both GitHub Actions Ubuntu runners and Windows `act` local runner testing.
 # Absolute paths (e.g., C:\...) break cross-platform compatibility.
-# Example: Use './deployments/cryptoutil-suite/compose.yml'
+# Example: Use './deployments/sm-kms/compose.yml'
 
 on:
   push:
@@ -118,22 +118,25 @@ jobs:
         images: |
           postgres:18
           alpine:3.19
-            golang:1.25.5
+          golang:1.25.5
           otel/opentelemetry-collector-contrib:latest
           grafana/otel-lgtm:latest
 
     - name: Build Docker images
       uses: ./.github/actions/docker-compose-build
+      with:
+        compose-file: './deployments/sm-kms/compose.yml'
 
     - name: Start Docker Compose services
       uses: ./.github/actions/docker-compose-up
       with:
+        compose-file: './deployments/sm-kms/compose.yml'
         profiles: 'postgres'
 
     - name: Verify services are ready
       uses: ./.github/actions/docker-compose-verify
       with:
-        endpoints: '[{"url": "https://127.0.0.1:8080/ui/swagger/doc.json", "name": "cryptoutil-sqlite"}, {"url": "https://127.0.0.1:8081/ui/swagger/doc.json", "name": "cryptoutil-postgres-1"}, {"url": "https://127.0.0.1:8082/ui/swagger/doc.json", "name": "cryptoutil-postgres-2"}]'
+        endpoints: '[{"url": "https://127.0.0.1:8001/ui/swagger/doc.json", "name": "sm-kms-postgres-1"}, {"url": "https://127.0.0.1:8002/ui/swagger/doc.json", "name": "sm-kms-postgres-2"}]'
 
     - name: Set load test parameters
       id: load-params
@@ -236,7 +239,7 @@ jobs:
         if ./mvnw gatling:test \
           -Dgatling.runMultipleSimulations=true \
           -Dprofile=${{ env.LOAD_PROFILE }} \
-          -Dport=8080 \
+          -Dport=8001 \
           -Dvirtualclients=${{ steps.load-params.outputs.virtual_clients }} \
           -DdurationSeconds=${{ steps.load-params.outputs.duration }} \
           -Dgatling.runDescription="CI Load Test - Profile: ${{ env.LOAD_PROFILE }}"; then
@@ -276,9 +279,10 @@ jobs:
         mkdir -p ./load-reports/service-logs
 
         # Collect logs from all cryptoutil services
-        docker compose -f ./deployments/cryptoutil-suite/compose.yml logs sm-kms > ./load-reports/service-logs/sm-kms.log 2>&1 || true
-        docker compose -f ./deployments/cryptoutil-suite/compose.yml logs postgres > ./load-reports/service-logs/postgres.log 2>&1 || true
-        docker compose -f ./deployments/cryptoutil-suite/compose.yml logs opentelemetry-collector-contrib > ./load-reports/service-logs/otel-collector.log 2>&1 || true
+        docker compose -f ./deployments/sm-kms/compose.yml logs sm-kms-app-postgres-1 > ./load-reports/service-logs/sm-kms-postgres-1.log 2>&1 || true
+        docker compose -f ./deployments/sm-kms/compose.yml logs sm-kms-app-postgres-2 > ./load-reports/service-logs/sm-kms-postgres-2.log 2>&1 || true
+        docker compose -f ./deployments/sm-kms/compose.yml logs sm-kms-db-postgres-1 > ./load-reports/service-logs/postgres.log 2>&1 || true
+        docker compose -f ./deployments/sm-kms/compose.yml logs opentelemetry-collector-contrib > ./load-reports/service-logs/otel-collector.log 2>&1 || true
 
         echo "✅ Service logs collected"
         END_TIME=$(date +%s)
@@ -309,13 +313,12 @@ jobs:
         | Load Profile | ${{ env.LOAD_PROFILE }} |
         | Virtual Clients | ${{ steps.load-params.outputs.virtual_clients }} |
         | Test Duration | ${{ steps.load-params.outputs.duration }}s |
-        | Target Services | cryptoutil-sqlite, cryptoutil-postgres-1, cryptoutil-postgres-2 |
+        | Target Services | sm-kms-postgres-1, sm-kms-postgres-2 |
 
         ## Services Tested
 
-        - **cryptoutil-sqlite** - https://127.0.0.1:8080/service/api/v1
-        - **cryptoutil-postgres-1** - https://127.0.0.1:8081/service/api/v1
-        - **cryptoutil-postgres-2** - https://127.0.0.1:8082/service/api/v1
+        - **sm-kms-postgres-1** - https://127.0.0.1:8001/service/api/v1
+        - **sm-kms-postgres-2** - https://127.0.0.1:8002/service/api/v1
 
         ## Artifacts Generated
 

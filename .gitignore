@@ -62,6 +62,12 @@ $out*
 .pytest_cache/
 orm_coverage
 *_functions.txt
+
+# Un-ignore Go source files in leftover_coverage linter package
+# (overrides coverage_*, *_coverage patterns above)
+!internal/apps/cicd/lint_go/leftover_coverage/
+!internal/apps/cicd/lint_go/leftover_coverage/**
+
 test_*.db
 test_*.db-journal
 test_*.db-shm
