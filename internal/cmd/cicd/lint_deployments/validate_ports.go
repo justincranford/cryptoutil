@@ -1,12 +1,13 @@
 package lint_deployments
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"gopkg.in/yaml.v3"
 )
@@ -195,13 +196,13 @@ func getPortRange(deploymentLevel string) (int, int) {
 // should be excluded from deployment level range checks.
 func isInfrastructurePort(port int) bool {
 	infraPorts := map[int]bool{
-		cryptoutilSharedMagic.JoseJAE2EGrafanaPort:  true, // Grafana UI.
-		cryptoutilSharedMagic.JoseJAE2EOtelCollectorGRPCPort:  true, // OTLP gRPC (collector).
-		cryptoutilSharedMagic.JoseJAE2EOtelCollectorHTTPPort:  true, // OTLP HTTP (collector).
-		int(cryptoutilSharedMagic.DefaultPublicPortPostgres):  true, // PostgreSQL.
+		cryptoutilSharedMagic.JoseJAE2EGrafanaPort:                      true, // Grafana UI.
+		cryptoutilSharedMagic.JoseJAE2EOtelCollectorGRPCPort:            true, // OTLP gRPC (collector).
+		cryptoutilSharedMagic.JoseJAE2EOtelCollectorHTTPPort:            true, // OTLP HTTP (collector).
+		int(cryptoutilSharedMagic.DefaultPublicPortPostgres):            true, // PostgreSQL.
 		int(cryptoutilSharedMagic.DefaultPublicPortOtelCollectorHealth): true, // OTel collector health.
-		int(cryptoutilSharedMagic.PortGrafanaOTLPGRPC): true, // OTLP gRPC (forwarded).
-		int(cryptoutilSharedMagic.PortGrafanaOTLPHTTP): true, // OTLP HTTP (forwarded).
+		int(cryptoutilSharedMagic.PortGrafanaOTLPGRPC):                  true, // OTLP gRPC (forwarded).
+		int(cryptoutilSharedMagic.PortGrafanaOTLPHTTP):                  true, // OTLP HTTP (forwarded).
 	}
 
 	return infraPorts[port]

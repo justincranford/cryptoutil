@@ -16,9 +16,9 @@ import (
 	cryptoutilKmsServer "cryptoutil/api/kms/server"
 	cryptoutilKmsServerHandler "cryptoutil/internal/apps/sm/kms/server/handler"
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedCryptoTls "cryptoutil/internal/shared/crypto/tls"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedUtilNetwork "cryptoutil/internal/shared/util/network"
 
 	"github.com/getkin/kin-openapi/openapi3"

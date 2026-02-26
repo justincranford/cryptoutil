@@ -43,7 +43,6 @@ func deleteDemoClient(
 ) error {
 	clientRepo := repoFactory.ClientRepository()
 
-
 	existingClient, err := clientRepo.GetByClientID(ctx, cryptoutilSharedMagic.DemoClientID)
 	if err != nil {
 		if errors.Is(err, cryptoutilIdentityAppErr.ErrClientNotFound) {

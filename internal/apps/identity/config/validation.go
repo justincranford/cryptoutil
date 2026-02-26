@@ -213,9 +213,9 @@ func (oc *ObservabilityConfig) Validate() error {
 	}
 
 	validLogLevels := map[string]bool{
-		"debug": true,
-		"info":  true,
-		"warn":  true,
+		"debug":                           true,
+		"info":                            true,
+		"warn":                            true,
 		cryptoutilSharedMagic.StringError: true,
 	}
 
