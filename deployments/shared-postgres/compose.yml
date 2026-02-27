@@ -8,7 +8,7 @@
 #   - postgres-follower: PostgreSQL 18 OLAP (read-only replica, analytics with grouped schemas)
 #
 # Logical Database Architecture (Leader - OLTP):
-#   Suite-level (9 databases):
+#   Suite-level (10 databases):
 #     - suitedeployment-pki-ca
 #     - suitedeployment-jose-ja
 #     - suitedeployment-sm-im
@@ -18,8 +18,9 @@
 #     - suitedeployment-identity-rs
 #     - suitedeployment-identity-rp
 #     - suitedeployment-identity-spa
+#     - suitedeployment-skeleton-template
 #
-#   Product-level (9 databases):
+#   Product-level (10 databases):
 #     - productdeployment-pki-ca
 #     - productdeployment-jose-ja
 #     - productdeployment-sm-im
@@ -29,8 +30,9 @@
 #     - productdeployment-identity-rs
 #     - productdeployment-identity-rp
 #     - productdeployment-identity-spa
+#     - productdeployment-skeleton-template
 #
-#   Service-level (9 databases):
+#   Service-level (10 databases):
 #     - servicedeployment-pki-ca
 #     - servicedeployment-jose-ja
 #     - servicedeployment-sm-im
@@ -40,19 +42,20 @@
 #     - servicedeployment-identity-rs
 #     - servicedeployment-identity-rp
 #     - servicedeployment-identity-spa
+#     - servicedeployment-skeleton-template
 #
 # Logical Database Architecture (Follower - OLAP):
-#   Suite-level (1 database with 9 schemas):
-#     - cryptoutil (schemas: pki_ca, jose_ja, sm_im, sm_kms, identity_authz, identity_idp, identity_rs, identity_rp, identity_spa)
+#   Suite-level (1 database with 10 schemas):
+#     - cryptoutil (schemas: pki_ca, jose_ja, sm_im, sm_kms, identity_authz, identity_idp, identity_rs, identity_rp, identity_spa, skeleton_template)
 #
-#   Product-level (5 databases with schemas):
+#   Product-level (5 product databases with schemas):
 #     - pki (schemas: ca)
 #     - jose (schemas: ja)
 #     - sm (schemas: kms, im)
-#     - sm (schemas: kms)
 #     - identity (schemas: authz, idp, rs, rp, spa)
+#     - skeleton (schemas: template)
 #
-#   Service-level (9 databases with 1 schema each):
+#   Service-level (10 databases with 1 schema each):
 #     - pki-ca (schema: ca)
 #     - jose-ja (schema: ja)
 #     - sm-im (schema: im)
@@ -62,6 +65,7 @@
 #     - identity-rs (schema: rs)
 #     - identity-rp (schema: rp)
 #     - identity-spa (schema: spa)
+#     - skeleton-template (schema: template)
 #
 # Usage: Include this in your product compose.yml:
 #   include:
