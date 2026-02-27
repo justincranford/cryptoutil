@@ -544,8 +544,8 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 ### Testing
 - [x] Unit tests ≥95% coverage (production), ≥98% (infrastructure)
 - [x] Integration tests pass
-- [ ] E2E tests pass (Docker Compose) for skeleton-template
-- [ ] Mutation testing ≥95% minimum
+- [x] E2E tests pass (Docker Compose) for skeleton-template
+- [x] Mutation testing ≥95% minimum
 - [x] No skipped tests
 - [x] Race detector clean: `go test -race ./...`
 
@@ -563,7 +563,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 
 ### Deployment
 - [x] Docker Compose configs for skeleton-template — commit aa0098704
-- [ ] Health checks pass
+- [x] Health checks pass
 - [x] Deployment validators pass (68/68) — commit 92af55c09, aa0098704
 - [x] Config files validated
 

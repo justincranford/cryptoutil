@@ -102,7 +102,7 @@ services:
   skeleton-template-app-sqlite-1:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil:dev
-    command: ["skeleton", "ja", "server", "--config=/app/config/skeleton-template-app-sqlite-1.yml", "--config=/app/config/skeleton-template-app-common.yml", "--config=/app/otel/otel.yml", "-u", "sqlite://file::memory:?cache=shared", "--bind-public-port=8080"]
+    command: ["skeleton", "template", "server", "--config=/app/config/skeleton-template-app-sqlite-1.yml", "--config=/app/config/skeleton-template-app-common.yml", "--config=/app/otel/otel.yml", "-u", "sqlite://file::memory:?cache=shared", "--bind-public-port=8080"]
     working_dir: /tmp
     ports:
       - "18900:8080"
@@ -143,7 +143,7 @@ services:
   skeleton-template-app-postgres-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["skeleton", "ja", "server", "--config=/app/config/skeleton-template-app-postgresql-1.yml", "--config=/app/config/skeleton-template-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret", "--bind-public-port=8080"]
+    command: ["skeleton", "template", "server", "--config=/app/config/skeleton-template-app-postgresql-1.yml", "--config=/app/config/skeleton-template-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret", "--bind-public-port=8080"]
     working_dir: /tmp
     ports:
       - "18901:8080"
@@ -187,7 +187,7 @@ services:
   skeleton-template-app-postgres-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["skeleton", "ja", "server", "--config=/app/config/skeleton-template-app-postgresql-2.yml", "--config=/app/config/skeleton-template-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret", "--bind-public-port=8080"]
+    command: ["skeleton", "template", "server", "--config=/app/config/skeleton-template-app-postgresql-2.yml", "--config=/app/config/skeleton-template-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret", "--bind-public-port=8080"]
     working_dir: /tmp
     ports:
       - "18902:8080"
