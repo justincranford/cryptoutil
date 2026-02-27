@@ -14,8 +14,8 @@ import (
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-	_ "github.com/lib/pq" // PostgreSQL driver.
 	googleUuid "github.com/google/uuid"
+	_ "github.com/lib/pq" // PostgreSQL driver.
 	"github.com/stretchr/testify/require"
 )
 

@@ -1,10 +1,11 @@
 package lint_deployments
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -153,7 +154,7 @@ func TestValidateStructuralMirror(t *testing.T) {
 			t.Error("expected valid when only excluded dirs exist")
 		}
 
-require.Len(t, result.Excluded, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+		require.Len(t, result.Excluded, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 
 		require.Empty(t, result.MissingMirrors)
 	})

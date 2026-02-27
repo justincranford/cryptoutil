@@ -1,11 +1,12 @@
 package lint_deployments
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	json "encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -38,7 +39,7 @@ func TestClassifyFileType(t *testing.T) {
 			t.Parallel()
 
 			got := classifyFileType(tc.filename)
-				require.Equal(t, tc.want, got, "classifyFileType(%q)", tc.filename)
+			require.Equal(t, tc.want, got, "classifyFileType(%q)", tc.filename)
 		})
 	}
 }
@@ -64,7 +65,7 @@ func TestClassifyFileStatus(t *testing.T) {
 			t.Parallel()
 
 			got := classifyFileStatus(tc.relPath)
-				require.Equal(t, tc.want, got, "classifyFileStatus(%q)", tc.relPath)
+			require.Equal(t, tc.want, got, "classifyFileStatus(%q)", tc.relPath)
 		})
 	}
 }
@@ -122,17 +123,17 @@ func TestGenerateDirectoryListing(t *testing.T) {
 		entry, ok = listing["Dockerfile"]
 		if !ok {
 			t.Error("missing Dockerfile in listing")
-			} else {
-				require.Equal(t, fileTypeDocker, entry.Type)
-			}
+		} else {
+			require.Equal(t, fileTypeDocker, entry.Type)
+		}
 
 		// Verify secret classification.
 		entry, ok = listing["secrets/db.secret"]
 		if !ok {
 			t.Error("missing secrets/db.secret in listing")
-} else {
-				require.Equal(t, fileTypeSecret, entry.Type)
-			}
+		} else {
+			require.Equal(t, fileTypeSecret, entry.Type)
+		}
 	})
 
 	t.Run("skips generated listing files", func(t *testing.T) {
@@ -249,9 +250,9 @@ func TestMarshalListing(t *testing.T) {
 			}
 		}
 
-			require.True(t, aIdx < mIdx && mIdx < zIdx, "keys not sorted: a=%d m=%d z=%d", aIdx, mIdx, zIdx)
-		})
-	}
+		require.True(t, aIdx < mIdx && mIdx < zIdx, "keys not sorted: a=%d m=%d z=%d", aIdx, mIdx, zIdx)
+	})
+}
 
 func TestWriteListingFile(t *testing.T) {
 	t.Parallel()

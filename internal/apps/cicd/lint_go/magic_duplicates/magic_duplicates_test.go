@@ -3,10 +3,11 @@
 package magic_duplicates
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
 
@@ -167,64 +168,64 @@ const (
 
 // writeGoFile creates a .go file inside a subdirectory of dir.
 func writeGoFile(t *testing.T, dir, subPkg, name, content string) {
-t.Helper()
+	t.Helper()
 
-pkgDir := filepath.Join(dir, subPkg)
-require.NoError(t, os.MkdirAll(pkgDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
+	pkgDir := filepath.Join(dir, subPkg)
+	require.NoError(t, os.MkdirAll(pkgDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
 
-require.NoError(t, os.WriteFile(filepath.Join(pkgDir, name), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(pkgDir, name), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 }
 
 func TestCheckCrossFileDuplicatesInDir_NoDuplicates(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-magicDir := t.TempDir()
-rootDir := t.TempDir()
+	magicDir := t.TempDir()
+	rootDir := t.TempDir()
 
-writeGoFile(t, rootDir, "pkg/a", "a.go", `package a
+	writeGoFile(t, rootDir, "pkg/a", "a.go", `package a
 
 const AlgoRSA = "RSA"
 `)
-writeGoFile(t, rootDir, "pkg/b", "b.go", `package b
+	writeGoFile(t, rootDir, "pkg/b", "b.go", `package b
 
 const ProtoHTTPS = "https"
 `)
 
-logger := cryptoutilCmdCicdCommon.NewLogger("cross-dup-test")
-err := CheckCrossFileDuplicatesInDir(logger, magicDir, rootDir)
-require.NoError(t, err)
+	logger := cryptoutilCmdCicdCommon.NewLogger("cross-dup-test")
+	err := CheckCrossFileDuplicatesInDir(logger, magicDir, rootDir)
+	require.NoError(t, err)
 }
 
 func TestCheckCrossFileDuplicatesInDir_FindsDuplicates(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-magicDir := t.TempDir()
-rootDir := t.TempDir()
+	magicDir := t.TempDir()
+	rootDir := t.TempDir()
 
-// Same value "https" declared in two different packages.
-writeGoFile(t, rootDir, "pkg/a", "a.go", `package a
+	// Same value "https" declared in two different packages.
+	writeGoFile(t, rootDir, "pkg/a", "a.go", `package a
 
 const ProtoHTTPS = "https"
 `)
-writeGoFile(t, rootDir, "pkg/b", "b.go", `package b
+	writeGoFile(t, rootDir, "pkg/b", "b.go", `package b
 
 const SchemeHTTPS = "https"
 `)
 
-logger := cryptoutilCmdCicdCommon.NewLogger("cross-dup-test")
-// magic-cross-duplicates is informational: violations are logged but do not return an error.
-err := CheckCrossFileDuplicatesInDir(logger, magicDir, rootDir)
-require.NoError(t, err)
+	logger := cryptoutilCmdCicdCommon.NewLogger("cross-dup-test")
+	// magic-cross-duplicates is informational: violations are logged but do not return an error.
+	err := CheckCrossFileDuplicatesInDir(logger, magicDir, rootDir)
+	require.NoError(t, err)
 }
 
 func TestCheckCrossFileDuplicatesInDir_SameFileTwice_NotCrossDuplicate(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-magicDir := t.TempDir()
-rootDir := t.TempDir()
+	magicDir := t.TempDir()
+	rootDir := t.TempDir()
 
-// Same value in one file does not count as a cross-file duplicate.
-writeGoFile(t, rootDir, "pkg/a", "a.go", `package a
+	// Same value in one file does not count as a cross-file duplicate.
+	writeGoFile(t, rootDir, "pkg/a", "a.go", `package a
 
 const (
 ProtoHTTPS  = "https"
@@ -232,94 +233,94 @@ SchemeHTTPS = "https"
 )
 `)
 
-logger := cryptoutilCmdCicdCommon.NewLogger("cross-dup-test")
-err := CheckCrossFileDuplicatesInDir(logger, magicDir, rootDir)
-require.NoError(t, err)
+	logger := cryptoutilCmdCicdCommon.NewLogger("cross-dup-test")
+	err := CheckCrossFileDuplicatesInDir(logger, magicDir, rootDir)
+	require.NoError(t, err)
 }
 
 func TestCheckCrossFileDuplicatesInDir_SkipsMagicDir(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-rootDir := t.TempDir()
-magicDir := filepath.Join(rootDir, "shared", "magic")
+	rootDir := t.TempDir()
+	magicDir := filepath.Join(rootDir, "shared", "magic")
 
-require.NoError(t, os.MkdirAll(magicDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
+	require.NoError(t, os.MkdirAll(magicDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
 
-// Constant in magic dir should not be reported.
-require.NoError(t, os.WriteFile(filepath.Join(magicDir, "magic_net.go"), []byte(`package magic
+	// Constant in magic dir should not be reported.
+	require.NoError(t, os.WriteFile(filepath.Join(magicDir, "magic_net.go"), []byte(`package magic
 
 const ProtoHTTPS = "https"
 `), cryptoutilSharedMagic.CacheFilePermissions))
 
-// Same value in a non-magic file.
-writeGoFile(t, rootDir, "pkg/a", "a.go", `package a
+	// Same value in a non-magic file.
+	writeGoFile(t, rootDir, "pkg/a", "a.go", `package a
 
 const SchemeHTTPS = "https"
 `)
 
-logger := cryptoutilCmdCicdCommon.NewLogger("cross-dup-test")
-// Only one non-magic file has the value, so no cross-file duplicate.
-err := CheckCrossFileDuplicatesInDir(logger, magicDir, rootDir)
-require.NoError(t, err)
+	logger := cryptoutilCmdCicdCommon.NewLogger("cross-dup-test")
+	// Only one non-magic file has the value, so no cross-file duplicate.
+	err := CheckCrossFileDuplicatesInDir(logger, magicDir, rootDir)
+	require.NoError(t, err)
 }
 
 func TestCheckCrossFileDuplicatesInDir_AbsMagicDirError(t *testing.T) {
-// NOTE: Cannot use t.Parallel() - test replaces package-level injectable function.
-// Force magicDuplicatesAbsFn to error on the magicDir call.
-callCount := 0
-origFn := magicDuplicatesAbsFn
+	// NOTE: Cannot use t.Parallel() - test replaces package-level injectable function.
+	// Force magicDuplicatesAbsFn to error on the magicDir call.
+	callCount := 0
+	origFn := magicDuplicatesAbsFn
 
-t.Cleanup(func() { magicDuplicatesAbsFn = origFn })
+	t.Cleanup(func() { magicDuplicatesAbsFn = origFn })
 
-magicDuplicatesAbsFn = func(path string) (string, error) {
-callCount++
-if callCount == 1 {
-return "", os.ErrInvalid
-}
+	magicDuplicatesAbsFn = func(path string) (string, error) {
+		callCount++
+		if callCount == 1 {
+			return "", os.ErrInvalid
+		}
 
-return origFn(path)
-}
+		return origFn(path)
+	}
 
-logger := cryptoutilCmdCicdCommon.NewLogger("cross-dup-test")
-err := CheckCrossFileDuplicatesInDir(logger, "/some/magic", "/some/root")
-require.Error(t, err)
-require.Contains(t, err.Error(), "cannot resolve magic dir")
+	logger := cryptoutilCmdCicdCommon.NewLogger("cross-dup-test")
+	err := CheckCrossFileDuplicatesInDir(logger, "/some/magic", "/some/root")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "cannot resolve magic dir")
 }
 
 func TestCheckCrossFileDuplicatesInDir_AbsRootDirError(t *testing.T) {
-// NOTE: Cannot use t.Parallel() - test replaces package-level injectable function.
-callCount := 0
-origFn := magicDuplicatesAbsFn
+	// NOTE: Cannot use t.Parallel() - test replaces package-level injectable function.
+	callCount := 0
+	origFn := magicDuplicatesAbsFn
 
-t.Cleanup(func() { magicDuplicatesAbsFn = origFn })
+	t.Cleanup(func() { magicDuplicatesAbsFn = origFn })
 
-magicDuplicatesAbsFn = func(path string) (string, error) {
-callCount++
-if callCount == 2 {
-return "", os.ErrInvalid
-}
+	magicDuplicatesAbsFn = func(path string) (string, error) {
+		callCount++
+		if callCount == 2 {
+			return "", os.ErrInvalid
+		}
 
-return origFn(path)
-}
+		return origFn(path)
+	}
 
-logger := cryptoutilCmdCicdCommon.NewLogger("cross-dup-test")
-err := CheckCrossFileDuplicatesInDir(logger, "/some/magic", "/some/root")
-require.Error(t, err)
-require.Contains(t, err.Error(), "cannot resolve root dir")
+	logger := cryptoutilCmdCicdCommon.NewLogger("cross-dup-test")
+	err := CheckCrossFileDuplicatesInDir(logger, "/some/magic", "/some/root")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "cannot resolve root dir")
 }
 
 func TestCheckCrossFileDuplicatesInDir_WalkError(t *testing.T) {
-// NOTE: Cannot use t.Parallel() - test replaces package-level injectable function.
-origFn := magicDuplicatesWalkFn
+	// NOTE: Cannot use t.Parallel() - test replaces package-level injectable function.
+	origFn := magicDuplicatesWalkFn
 
-t.Cleanup(func() { magicDuplicatesWalkFn = origFn })
+	t.Cleanup(func() { magicDuplicatesWalkFn = origFn })
 
-magicDuplicatesWalkFn = func(root string, fn filepath.WalkFunc) error {
-return os.ErrPermission
-}
+	magicDuplicatesWalkFn = func(root string, fn filepath.WalkFunc) error {
+		return os.ErrPermission
+	}
 
-logger := cryptoutilCmdCicdCommon.NewLogger("cross-dup-test")
-err := CheckCrossFileDuplicatesInDir(logger, t.TempDir(), t.TempDir())
-require.Error(t, err)
-require.Contains(t, err.Error(), "directory walk failed")
+	logger := cryptoutilCmdCicdCommon.NewLogger("cross-dup-test")
+	err := CheckCrossFileDuplicatesInDir(logger, t.TempDir(), t.TempDir())
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "directory walk failed")
 }

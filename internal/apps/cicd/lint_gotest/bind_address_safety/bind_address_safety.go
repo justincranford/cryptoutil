@@ -30,8 +30,8 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger, testFiles []string) error {
 			strings.Contains(path, "lint_gotest") ||
 			strings.HasSuffix(path, "url_test.go") ||
 			strings.HasSuffix(path, "_validation_test.go") ||
-				strings.HasSuffix(path, "config_test.go") ||
-				strings.HasSuffix(path, "config_validate_test.go") {
+			strings.HasSuffix(path, "config_test.go") ||
+			strings.HasSuffix(path, "config_validate_test.go") {
 			continue
 		}
 
