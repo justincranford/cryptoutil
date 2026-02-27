@@ -35,13 +35,13 @@ func demonstrateAuthorization(ctx context.Context, client *http.Client, codeChal
 	authURL := fmt.Sprintf("%s/oauth2/v1/authorize", cryptoutilSharedMagic.DemoIssuer)
 
 	params := url.Values{
-		cryptoutilSharedMagic.ParamResponseType:         {cryptoutilSharedMagic.ResponseTypeCode},
-		cryptoutilSharedMagic.ClaimClientID:             {cryptoutilSharedMagic.DemoClientID},
-		cryptoutilSharedMagic.ParamRedirectURI:          {cryptoutilSharedMagic.DemoRedirectURI},
-		cryptoutilSharedMagic.ParamState:                 {state},
-		cryptoutilSharedMagic.ParamCodeChallenge:        {codeChallenge},
+		cryptoutilSharedMagic.ParamResponseType:        {cryptoutilSharedMagic.ResponseTypeCode},
+		cryptoutilSharedMagic.ClaimClientID:            {cryptoutilSharedMagic.DemoClientID},
+		cryptoutilSharedMagic.ParamRedirectURI:         {cryptoutilSharedMagic.DemoRedirectURI},
+		cryptoutilSharedMagic.ParamState:               {state},
+		cryptoutilSharedMagic.ParamCodeChallenge:       {codeChallenge},
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: {cryptoutilSharedMagic.PKCEMethodS256},
-		cryptoutilSharedMagic.ClaimScope:                 {"openid profile email"},
+		cryptoutilSharedMagic.ClaimScope:               {"openid profile email"},
 	}
 
 	fullURL := authURL + "?" + params.Encode()
@@ -76,7 +76,7 @@ func demonstrateTokenEndpoint(ctx context.Context, client *http.Client) (string,
 
 	data := url.Values{
 		cryptoutilSharedMagic.ParamGrantType: {cryptoutilSharedMagic.GrantTypeClientCredentials},
-		cryptoutilSharedMagic.ClaimScope:      {"openid profile email"},
+		cryptoutilSharedMagic.ClaimScope:     {"openid profile email"},
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, strings.NewReader(data.Encode()))

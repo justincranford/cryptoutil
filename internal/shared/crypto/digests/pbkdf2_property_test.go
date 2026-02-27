@@ -3,8 +3,8 @@
 package digests
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	"github.com/leanovate/gopter"

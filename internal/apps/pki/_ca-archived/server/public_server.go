@@ -9,10 +9,10 @@ import (
 	fiber "github.com/gofiber/fiber/v2"
 
 	cryptoutilApiCaServer "cryptoutil/api/ca/server"
-	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/pki/ca/server/config"
-	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilCAHandler "cryptoutil/internal/apps/pki/ca/api/handler"
+	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/pki/ca/server/config"
 	cryptoutilCAServiceRevocation "cryptoutil/internal/apps/pki/ca/service/revocation"
+	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
 )
 
 // PublicServer implements the pki-ca public server by embedding PublicServerBase.

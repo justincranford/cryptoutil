@@ -23,8 +23,8 @@ func (s *Service) handleLogout(c *fiber.Ctx) error {
 
 	if sessionID == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description": "No active session found",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
+			"error_description":               "No active session found",
 		})
 	}
 
@@ -34,16 +34,16 @@ func (s *Service) handleLogout(c *fiber.Ctx) error {
 	session, err := sessionRepo.GetBySessionID(ctx, sessionID)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description": "Session not found",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
+			"error_description":               "Session not found",
 		})
 	}
 
 	// Delete session from database.
 	if err := sessionRepo.Delete(ctx, session.ID); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
-			"error_description": "Failed to delete session",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
+			"error_description":               "Failed to delete session",
 		})
 	}
 
@@ -76,8 +76,8 @@ func (s *Service) handleEndSession(c *fiber.Ctx) error {
 	// Validate: either id_token_hint or client_id must be provided.
 	if idTokenHint == "" && clientID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description": "Either id_token_hint or client_id is required",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
+			"error_description":               "Either id_token_hint or client_id is required",
 		})
 	}
 
@@ -104,8 +104,8 @@ func (s *Service) handleEndSession(c *fiber.Ctx) error {
 		parsedURI, parseErr := url.Parse(postLogoutRedirectURI)
 		if parseErr != nil || parsedURI.Scheme == "" || parsedURI.Host == "" {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
-				"error_description": "Invalid post_logout_redirect_uri",
+				cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
+				"error_description":               "Invalid post_logout_redirect_uri",
 			})
 		}
 
@@ -116,8 +116,8 @@ func (s *Service) handleEndSession(c *fiber.Ctx) error {
 			client, err := clientRepo.GetByClientID(ctx, clientID)
 			if err != nil {
 				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-					cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
-					"error_description": "Client not found",
+					cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
+					"error_description":               "Client not found",
 				})
 			}
 
@@ -134,8 +134,8 @@ func (s *Service) handleEndSession(c *fiber.Ctx) error {
 
 			if !uriAllowed {
 				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-					cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
-					"error_description": "post_logout_redirect_uri not registered for client",
+					cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
+					"error_description":               "post_logout_redirect_uri not registered for client",
 				})
 			}
 		}

@@ -184,8 +184,8 @@ func (s *UserServiceImpl) HandleLoginUser(jwtSecret string) fiber.Handler {
 		}
 
 		return c.JSON(fiber.Map{
-			cryptoutilSharedMagic.ParamToken:      token,
-			"expires_at": expiresAt.Format(time.RFC3339),
+			cryptoutilSharedMagic.ParamToken: token,
+			"expires_at":                     expiresAt.Format(time.RFC3339),
 		})
 	}
 }
@@ -327,8 +327,8 @@ func (s *UserServiceImpl) HandleLoginUserWithSession(sessionManager any, isBrows
 		expiresAt := time.Now().UTC().Add(cryptoutilSharedMagic.DefaultCompatibilitySessionExpiration)
 
 		return c.JSON(fiber.Map{
-			cryptoutilSharedMagic.ParamToken:      token,
-			"expires_at": expiresAt.Format(time.RFC3339),
+			cryptoutilSharedMagic.ParamToken: token,
+			"expires_at":                     expiresAt.Format(time.RFC3339),
 		})
 	}
 }

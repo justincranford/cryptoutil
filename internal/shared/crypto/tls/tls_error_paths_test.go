@@ -5,10 +5,10 @@
 package tls
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/elliptic"
 	"crypto/tls"
 	"crypto/x509"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"net"
 	"net/url"

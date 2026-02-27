@@ -4,9 +4,9 @@
 package server
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"crypto/tls"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	http "net/http"
 	"os"

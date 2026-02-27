@@ -12,6 +12,7 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
 )
+
 func TestContains_EmptyStrings(t *testing.T) {
 	t.Parallel()
 
@@ -223,6 +224,7 @@ jobs:
 
 // TestLintGitHubWorkflows_WithExemptedActions tests the exempted actions reporting path
 // by setting up an exceptions file and a workflow with matching exempted actions.
+// Sequential: uses os.Chdir (global process state).
 func TestLintGitHubWorkflows_WithExemptedActions(t *testing.T) {
 	// Note: Not parallel - modifies working directory.
 	tmpDir := t.TempDir()
@@ -279,6 +281,7 @@ jobs:
 
 // TestLintGitHubWorkflows_SuccessPath tests the success message path when
 // there are actions but none are exempted or outdated.
+// Sequential: uses os.Chdir (global process state).
 func TestLintGitHubWorkflows_SuccessPath(t *testing.T) {
 	// Note: Not parallel - modifies working directory.
 	tmpDir := t.TempDir()
@@ -319,6 +322,7 @@ jobs:
 
 // TestLintGitHubWorkflows_ExemptedAndNonExemptedMixed tests when some actions
 // are exempted and others are not.
+// Sequential: uses os.Chdir (global process state).
 func TestLintGitHubWorkflows_ExemptedAndNonExemptedMixed(t *testing.T) {
 	// Note: Not parallel - modifies working directory.
 	tmpDir := t.TempDir()

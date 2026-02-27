@@ -5,8 +5,8 @@
 package integration
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	googleUuid "github.com/google/uuid"
@@ -18,6 +18,7 @@ import (
 )
 
 // TestDatabaseSetup tests basic database setup and teardown.
+// Sequential: calls CleanupTestDatabase which truncates the shared SQLite in-memory database.
 func TestDatabaseSetup(t *testing.T) {
 	// Setup test database.
 	db := cryptoutilIdentityTestTestutils.SetupTestDatabase(t)
@@ -29,6 +30,7 @@ func TestDatabaseSetup(t *testing.T) {
 
 // TestConfigCreation tests test configuration creation.
 func TestConfigCreation(t *testing.T) {
+	t.Parallel()
 	config := cryptoutilIdentityTestTestutils.CreateTestConfig(t, cryptoutilSharedMagic.PKICAServicePort, cryptoutilSharedMagic.PKICAServicePort, 8110)
 
 	require.NotNil(t, config, "config should be created")

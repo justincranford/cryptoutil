@@ -5,8 +5,8 @@
 package application
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"testing"
 
@@ -18,8 +18,8 @@ import (
 	cryptoutilUnsealKeysService "cryptoutil/internal/apps/template/service/server/barrier/unsealkeysservice"
 	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 var errInjectFailure = errors.New("injected test failure")

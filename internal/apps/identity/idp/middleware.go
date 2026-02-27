@@ -63,8 +63,8 @@ func (s *Service) RegisterMiddleware(app *fiber.App) {
 		Expiration: time.Duration(cryptoutilSharedMagic.RateLimitWindowSeconds) * time.Second,
 		LimitReached: func(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:             "rate_limit_exceeded",
-				"error_description": "Too many requests",
+				cryptoutilSharedMagic.StringError: "rate_limit_exceeded",
+				"error_description":               "Too many requests",
 			})
 		},
 	}))
@@ -80,8 +80,8 @@ func (s *Service) AuthMiddleware() fiber.Handler {
 
 		if sessionID == "" {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorAccessDenied,
-				"error_description": "Authentication required",
+				cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorAccessDenied,
+				"error_description":               "Authentication required",
 			})
 		}
 
@@ -91,24 +91,24 @@ func (s *Service) AuthMiddleware() fiber.Handler {
 		session, err := sessionRepo.GetBySessionID(ctx, sessionID)
 		if err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorAccessDenied,
-				"error_description": "Invalid or expired session",
+				cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorAccessDenied,
+				"error_description":               "Invalid or expired session",
 			})
 		}
 
 		// Validate session is active.
 		if session.Active == nil || !*session.Active {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorAccessDenied,
-				"error_description": "Session is no longer active",
+				cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorAccessDenied,
+				"error_description":               "Session is no longer active",
 			})
 		}
 
 		// Validate session not expired.
 		if session.IsExpired() {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorAccessDenied,
-				"error_description": "Session has expired",
+				cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorAccessDenied,
+				"error_description":               "Session has expired",
 			})
 		}
 
@@ -129,8 +129,8 @@ func (s *Service) TokenAuthMiddleware() fiber.Handler {
 
 		if authHeader == "" {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
-				"error_description": "Missing Authorization header",
+				cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidToken,
+				"error_description":               "Missing Authorization header",
 			})
 		}
 
@@ -138,8 +138,8 @@ func (s *Service) TokenAuthMiddleware() fiber.Handler {
 		parts := strings.SplitN(authHeader, " ", 2)
 		if len(parts) != 2 || parts[0] != cryptoutilSharedMagic.AuthorizationBearer {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
-				"error_description": "Invalid Authorization header format",
+				cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidToken,
+				"error_description":               "Invalid Authorization header format",
 			})
 		}
 
@@ -149,8 +149,8 @@ func (s *Service) TokenAuthMiddleware() fiber.Handler {
 		claims, err := s.tokenSvc.ValidateAccessToken(ctx, accessToken)
 		if err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
-				"error_description": "Invalid or expired access token",
+				cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidToken,
+				"error_description":               "Invalid or expired access token",
 			})
 		}
 
@@ -184,8 +184,8 @@ func (s *Service) HybridAuthMiddleware() fiber.Handler {
 				}
 				// If Bearer token is present but invalid, reject immediately.
 				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-					cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
-					"error_description": "Invalid or expired access token",
+					cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidToken,
+					"error_description":               "Invalid or expired access token",
 				})
 			}
 		}
@@ -199,10 +199,10 @@ func (s *Service) HybridAuthMiddleware() fiber.Handler {
 			if err == nil && session.Active != nil && *session.Active && !session.IsExpired() {
 				// Convert session to claims format for consistency.
 				claims := map[string]any{
-					cryptoutilSharedMagic.ClaimSub: session.UserID.String(),
-					"sid":                          session.SessionID,
-					cryptoutilSharedMagic.ClaimAuthTime:                    session.AuthenticationTime.Unix(),
-					cryptoutilSharedMagic.ClaimAmr:                          session.AuthenticationMethods,
+					cryptoutilSharedMagic.ClaimSub:      session.UserID.String(),
+					"sid":                               session.SessionID,
+					cryptoutilSharedMagic.ClaimAuthTime: session.AuthenticationTime.Unix(),
+					cryptoutilSharedMagic.ClaimAmr:      session.AuthenticationMethods,
 				}
 
 				c.Locals("claims", claims)
@@ -215,8 +215,8 @@ func (s *Service) HybridAuthMiddleware() fiber.Handler {
 
 		// Neither Bearer token nor valid session cookie.
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorAccessDenied,
-			"error_description": "Authentication required (Bearer token or session cookie)",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorAccessDenied,
+			"error_description":               "Authentication required (Bearer token or session cookie)",
 		})
 	}
 }

@@ -225,9 +225,9 @@ func (tms *TestableMockServices) startAuthZServer(ctx context.Context) error {
 		// Simulate token exchange
 		response := map[string]any{
 			cryptoutilSharedMagic.TokenTypeAccessToken:  generateRandomString(cryptoutilSharedMagic.TestRandomStringLength32),
-			cryptoutilSharedMagic.ParamTokenType:    cryptoutilSharedMagic.AuthorizationBearer,
-			cryptoutilSharedMagic.ParamExpiresIn:    tokenExpirySeconds,
-			cryptoutilSharedMagic.ParamIDToken:      generateRandomString(cryptoutilSharedMagic.TestRandomStringLength64),
+			cryptoutilSharedMagic.ParamTokenType:        cryptoutilSharedMagic.AuthorizationBearer,
+			cryptoutilSharedMagic.ParamExpiresIn:        tokenExpirySeconds,
+			cryptoutilSharedMagic.ParamIDToken:          generateRandomString(cryptoutilSharedMagic.TestRandomStringLength64),
 			cryptoutilSharedMagic.GrantTypeRefreshToken: generateRandomString(cryptoutilSharedMagic.TestRandomStringLength32),
 		}
 
@@ -245,11 +245,11 @@ func (tms *TestableMockServices) startAuthZServer(ctx context.Context) error {
 	mux.HandleFunc("/oauth2/v1/introspect", corsHandler(func(w http.ResponseWriter, r *http.Request) {
 		// Simulate token introspection
 		response := map[string]any{
-			"active":     true,
+			"active":                             true,
 			cryptoutilSharedMagic.ClaimClientID:  "spa-client",
 			cryptoutilSharedMagic.ParamTokenType: cryptoutilSharedMagic.AuthorizationBearer,
-			cryptoutilSharedMagic.ClaimExp:        time.Now().UTC().Add(time.Hour).Unix(),
-			cryptoutilSharedMagic.ClaimIat:        time.Now().UTC().Unix(),
+			cryptoutilSharedMagic.ClaimExp:       time.Now().UTC().Add(time.Hour).Unix(),
+			cryptoutilSharedMagic.ClaimIat:       time.Now().UTC().Unix(),
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -266,8 +266,8 @@ func (tms *TestableMockServices) startAuthZServer(ctx context.Context) error {
 	mux.HandleFunc(cryptoutilSharedMagic.PathAuthorize, corsHandler(func(w http.ResponseWriter, r *http.Request) {
 		// Simulate OAuth 2.1 authorization code flow
 		response := map[string]any{
-			cryptoutilSharedMagic.ResponseTypeCode:  generateRandomString(cryptoutilSharedMagic.TestRandomStringLength16),
-			cryptoutilSharedMagic.ParamState: r.URL.Query().Get(cryptoutilSharedMagic.ParamState),
+			cryptoutilSharedMagic.ResponseTypeCode: generateRandomString(cryptoutilSharedMagic.TestRandomStringLength16),
+			cryptoutilSharedMagic.ParamState:       r.URL.Query().Get(cryptoutilSharedMagic.ParamState),
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -284,9 +284,9 @@ func (tms *TestableMockServices) startAuthZServer(ctx context.Context) error {
 		// Simulate token exchange
 		response := map[string]any{
 			cryptoutilSharedMagic.TokenTypeAccessToken:  generateRandomString(cryptoutilSharedMagic.TestRandomStringLength32),
-			cryptoutilSharedMagic.ParamTokenType:    cryptoutilSharedMagic.AuthorizationBearer,
-			cryptoutilSharedMagic.ParamExpiresIn:    tokenExpirySeconds,
-			cryptoutilSharedMagic.ParamIDToken:      generateRandomString(cryptoutilSharedMagic.TestRandomStringLength64),
+			cryptoutilSharedMagic.ParamTokenType:        cryptoutilSharedMagic.AuthorizationBearer,
+			cryptoutilSharedMagic.ParamExpiresIn:        tokenExpirySeconds,
+			cryptoutilSharedMagic.ParamIDToken:          generateRandomString(cryptoutilSharedMagic.TestRandomStringLength64),
 			cryptoutilSharedMagic.GrantTypeRefreshToken: generateRandomString(cryptoutilSharedMagic.TestRandomStringLength32),
 		}
 

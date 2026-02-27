@@ -5,8 +5,8 @@
 package cli_test
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"io"
 	"testing"
 

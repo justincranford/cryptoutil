@@ -5,8 +5,8 @@
 package repository
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
 
@@ -30,7 +30,7 @@ func TestUserRepository_Create(t *testing.T) {
 		ID:          googleUuid.New(),
 		Name:        uniqueUserTenantName("UserCreate"),
 		Description: "Test tenant",
-		Active: 1,
+		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
 
@@ -52,7 +52,7 @@ func TestUserRepository_Create(t *testing.T) {
 				TenantID:  tenant.ID,
 				Username:  "testuser-" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength],
 				Email:     "test-" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength] + "@example.com",
-				Active: 1,
+				Active:    1,
 				CreatedAt: time.Now().UTC(),
 			},
 			wantError: false,
@@ -64,7 +64,7 @@ func TestUserRepository_Create(t *testing.T) {
 				TenantID:  tenant.ID,
 				Username:  dupUsername,
 				Email:     "different@example.com",
-				Active: 1,
+				Active:    1,
 				CreatedAt: time.Now().UTC(),
 			},
 			wantError: true,
@@ -77,7 +77,7 @@ func TestUserRepository_Create(t *testing.T) {
 		TenantID:  tenant.ID,
 		Username:  dupUsername,
 		Email:     "first@example.com",
-		Active: 1,
+		Active:    1,
 		CreatedAt: time.Now().UTC(),
 	}
 	err = userRepo.Create(ctx, firstUser)
@@ -107,7 +107,7 @@ func TestUserRepository_GetByUsername(t *testing.T) {
 		ID:          googleUuid.New(),
 		Name:        uniqueUserTenantName("Test"),
 		Description: "Test tenant",
-		Active: 1,
+		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
 
@@ -119,7 +119,7 @@ func TestUserRepository_GetByUsername(t *testing.T) {
 		TenantID:  tenant.ID,
 		Username:  "testuser-" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength],
 		Email:     "test-" + googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength] + "@example.com",
-		Active: 1,
+		Active:    1,
 		CreatedAt: time.Now().UTC(),
 	}
 
@@ -171,7 +171,7 @@ func TestUserRepository_ListByTenant(t *testing.T) {
 		ID:          googleUuid.New(),
 		Name:        "Tenant 1",
 		Description: "First tenant",
-		Active: 1,
+		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
 
@@ -179,7 +179,7 @@ func TestUserRepository_ListByTenant(t *testing.T) {
 		ID:          googleUuid.New(),
 		Name:        "Tenant 2",
 		Description: "Second tenant",
-		Active: 1,
+		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
 
@@ -194,7 +194,7 @@ func TestUserRepository_ListByTenant(t *testing.T) {
 		TenantID:  tenant1.ID,
 		Username:  "user1",
 		Email:     "user1@example.com",
-		Active: 1,
+		Active:    1,
 		CreatedAt: time.Now().UTC(),
 	}
 
@@ -203,7 +203,7 @@ func TestUserRepository_ListByTenant(t *testing.T) {
 		TenantID:  tenant1.ID,
 		Username:  "user2",
 		Email:     "user2@example.com",
-		Active: 1,
+		Active:    1,
 		CreatedAt: time.Now().UTC(),
 	}
 
@@ -212,7 +212,7 @@ func TestUserRepository_ListByTenant(t *testing.T) {
 		TenantID:  tenant2.ID,
 		Username:  "user3",
 		Email:     "user3@example.com",
-		Active: 1,
+		Active:    1,
 		CreatedAt: time.Now().UTC(),
 	}
 
@@ -245,7 +245,7 @@ func TestClientRepository_Create(t *testing.T) {
 		ID:          googleUuid.New(),
 		Name:        uniqueUserTenantName("Test"),
 		Description: "Test tenant",
-		Active: 1,
+		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
 
@@ -263,7 +263,7 @@ func TestClientRepository_Create(t *testing.T) {
 				ID:        googleUuid.New(),
 				TenantID:  tenant.ID,
 				ClientID:  "client123",
-				Active: 1,
+				Active:    1,
 				CreatedAt: time.Now().UTC(),
 			},
 			wantError: false,
@@ -274,7 +274,7 @@ func TestClientRepository_Create(t *testing.T) {
 				ID:        googleUuid.New(),
 				TenantID:  tenant.ID,
 				ClientID:  "client123",
-				Active: 1,
+				Active:    1,
 				CreatedAt: time.Now().UTC(),
 			},
 			wantError: true,
@@ -305,7 +305,7 @@ func TestUnverifiedUserRepository_Create(t *testing.T) {
 		ID:          googleUuid.New(),
 		Name:        uniqueUserTenantName("Test"),
 		Description: "Test tenant",
-		Active: 1,
+		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
 
@@ -340,7 +340,7 @@ func TestUnverifiedUserRepository_DeleteExpired(t *testing.T) {
 		ID:          googleUuid.New(),
 		Name:        uniqueUserTenantName("Test"),
 		Description: "Test tenant",
-		Active: 1,
+		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
 
@@ -394,7 +394,7 @@ func TestUnverifiedClientRepository_DeleteExpired(t *testing.T) {
 		ID:          googleUuid.New(),
 		Name:        uniqueUserTenantName("Test"),
 		Description: "Test tenant",
-		Active: 1,
+		Active:      1,
 		CreatedAt:   time.Now().UTC(),
 	}
 

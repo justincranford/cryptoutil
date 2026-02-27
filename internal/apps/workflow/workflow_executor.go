@@ -29,24 +29,24 @@ import (
 // pipes from an exec.Cmd. It is defined as a variable to allow injection during
 // testing to exercise the error handling paths that are otherwise unreachable.
 var setupCmdPipes = func(cmd *exec.Cmd) (io.ReadCloser, io.ReadCloser, error) {
-stdout, err := cmd.StdoutPipe()
-if err != nil {
-return nil, nil, fmt.Errorf("create stdout pipe: %w", err)
-}
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return nil, nil, fmt.Errorf("create stdout pipe: %w", err)
+	}
 
-stderr, err := cmd.StderrPipe()
-if err != nil {
-return nil, nil, fmt.Errorf("create stderr pipe: %w", err)
-}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return nil, nil, fmt.Errorf("create stderr pipe: %w", err)
+	}
 
-return stdout, stderr, nil
+	return stdout, stderr, nil
 }
 
 // doCloseFile is a package-level function variable for closing a file.
 // It is defined as a variable to allow injection during testing to exercise
 // the close error handling path that is otherwise unreachable.
 var doCloseFile = func(f *os.File) error {
-return f.Close()
+	return f.Close()
 }
 
 // WorkflowConfig defines a GitHub Actions workflow that can be run locally with act.

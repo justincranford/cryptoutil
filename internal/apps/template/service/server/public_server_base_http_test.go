@@ -6,8 +6,8 @@
 package server
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/tls"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	http "net/http"
 	"testing"
 	"time"

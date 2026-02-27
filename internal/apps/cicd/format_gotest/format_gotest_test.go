@@ -97,6 +97,7 @@ func setupTest(t *testing.T) {
 
 // TestFormat tests the Format function which wraps FormatDir with current directory.
 func TestFormat(t *testing.T) {
+	t.Parallel()
 	// Note: Not parallel - Format uses current working directory.
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	err := cryptoutilCmdCicdFormatGotest.Format(logger)
@@ -123,6 +124,7 @@ func setupData() string {
 }
 
 func TestExample(t *testing.T) {
+	t.Parallel()
 	data := setupData()
 	_ = data
 }
@@ -259,6 +261,7 @@ func (s *TestSuite) setupHelper(t *testing.T) {
 func doSomething() {}
 
 func TestExample(t *testing.T) {
+	t.Parallel()
 	s := &TestSuite{}
 	s.setupHelper(t)
 }
@@ -302,6 +305,7 @@ func setupHelper(t *testing.T) {
 func doSomething() {}
 
 func TestExample(t *testing.T) {
+	t.Parallel()
 	setupHelper(t)
 }
 `
@@ -339,6 +343,7 @@ func setupByValue(t testing.T) {
 func doSomething() {}
 
 func TestExample(t *testing.T) {
+	t.Parallel()
 	setupByValue(*t)
 }
 `
@@ -401,6 +406,7 @@ func setupNoParams() {
 func doSomething() {}
 
 func TestExample(t *testing.T) {
+	t.Parallel()
 	setupNoParams()
 }
 `
@@ -440,6 +446,7 @@ func setupWithPointer(m *MyType) {
 func doSomething() {}
 
 func TestExample(t *testing.T) {
+	t.Parallel()
 	m := &MyType{Name: "test"}
 	setupWithPointer(m)
 }
@@ -478,6 +485,7 @@ func setupWithArray(arr *[3]int) {
 func doSomething() {}
 
 func TestExample(t *testing.T) {
+	t.Parallel()
 	arr := [3]int{1, 2, 3}
 	setupWithArray(&arr)
 }

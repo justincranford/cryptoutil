@@ -3,8 +3,8 @@
 package digests
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"testing"
 
@@ -37,10 +37,10 @@ func TestHKDFInvariants(t *testing.T) {
 			// Outputs must be identical
 			return bytes.Equal(output1, output2)
 		},
-		gen.SliceOf(gen.UInt8()), // IKM
-		gen.SliceOf(gen.UInt8()), // Salt
-		gen.SliceOf(gen.UInt8()), // Info
-		gen.UIntRange(1, cryptoutilSharedMagic.MinSerialNumberBits),     // Output length 1-64 bytes
+		gen.SliceOf(gen.UInt8()),                                    // IKM
+		gen.SliceOf(gen.UInt8()),                                    // Salt
+		gen.SliceOf(gen.UInt8()),                                    // Info
+		gen.UIntRange(1, cryptoutilSharedMagic.MinSerialNumberBits), // Output length 1-64 bytes
 	))
 
 	// Property 2: HKDF output length correctness

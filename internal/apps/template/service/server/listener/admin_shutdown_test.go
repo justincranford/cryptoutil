@@ -23,6 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Sequential: uses shared state (not safe for parallel execution).
 func TestAdminServer_Shutdown_Endpoint(t *testing.T) {
 	// NOT parallel - all admin server tests compete for port 9090.
 	tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PrivateTLS()
@@ -96,6 +97,7 @@ func TestAdminServer_Shutdown_Endpoint(t *testing.T) {
 }
 
 // TestAdminServer_Shutdown_NilContext tests Shutdown accepts nil context and uses Background().
+// Sequential: uses shared state (not safe for parallel execution).
 func TestAdminServer_Shutdown_NilContext(t *testing.T) {
 	// NOT parallel - all admin server tests compete for port 9090.
 	createServer := func(t *testing.T) cryptoutilAppsTemplateServiceTestingHttpservertests.HTTPServer {

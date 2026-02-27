@@ -15,6 +15,8 @@ import (
 )
 
 func Test_SadPath_EncryptBytes_NilKey(t *testing.T) {
+	t.Parallel()
+
 	_, _, err := EncryptBytes(nil, []byte("cleartext"))
 	require.Error(t, err)
 }
@@ -93,6 +95,8 @@ func Test_EncryptBytesWithContext_MultipleEnc(t *testing.T) {
 }
 
 func Test_SadPath_DecryptBytes_NilKey(t *testing.T) {
+	t.Parallel()
+
 	_, err := DecryptBytes(nil, []byte("cleartext"))
 	require.Error(t, err)
 }
@@ -140,6 +144,8 @@ func Test_DecryptBytesWithContext_EmptyJWEMessageBytes(t *testing.T) {
 }
 
 func Test_SadPath_DecryptBytes_InvalidJWEMessage(t *testing.T) {
+	t.Parallel()
+
 	kid, nonPublicJWEJWK, _, clearNonPublicJWEJWKBytes, _, err := GenerateJWEJWKForEncAndAlg(&EncA256GCM, &AlgA256KW)
 	require.NoError(t, err)
 	require.NotNil(t, kid)
@@ -154,6 +160,8 @@ func Test_SadPath_DecryptBytes_InvalidJWEMessage(t *testing.T) {
 }
 
 func Test_SadPath_GenerateJWEJWK_UnsupportedEnc(t *testing.T) {
+	t.Parallel()
+
 	kid, nonPublicJWEJWK, publicJWEJWK, clearNonPublicJWEJWKBytes, clearPublicJWEJWKBytes, err := GenerateJWEJWKForEncAndAlg(&EncInvalid, &AlgA256KW)
 	require.Error(t, err)
 	require.Equal(t, "invalid JWE JWK headers: JWE JWK length error: unsupported JWE JWK enc invalid", err.Error())
@@ -165,6 +173,8 @@ func Test_SadPath_GenerateJWEJWK_UnsupportedEnc(t *testing.T) {
 }
 
 func Test_SadPath_GenerateJWEJWK_UnsupportedAlg(t *testing.T) {
+	t.Parallel()
+
 	kid, nonPublicJWEJWK, publicJWEJWK, clearNonPublicJWEJWKBytes, clearPublicJWEJWKBytes, err := GenerateJWEJWKForEncAndAlg(&EncA256GCM, &AlgEncInvalid)
 	require.Error(t, err)
 	require.Equal(t, "invalid JWE JWK headers: unsupported JWE JWK alg invalid", err.Error())
@@ -176,6 +186,7 @@ func Test_SadPath_GenerateJWEJWK_UnsupportedAlg(t *testing.T) {
 }
 
 func Test_SadPath_ConcurrentGenerateJWEJWK_UnsupportedEnc(t *testing.T) {
+	t.Parallel()
 	nonPublicJWEJWKs, publicJWEJWKs, err := GenerateJWEJWKsForTest(t, 2, &EncInvalid, &AlgA256KW)
 	require.Error(t, err)
 	require.Equal(t, "unexpected 2 errors: invalid JWE JWK headers: JWE JWK length error: unsupported JWE JWK enc invalid\ninvalid JWE JWK headers: JWE JWK length error: unsupported JWE JWK enc invalid", err.Error())
@@ -184,6 +195,7 @@ func Test_SadPath_ConcurrentGenerateJWEJWK_UnsupportedEnc(t *testing.T) {
 }
 
 func Test_SadPath_ConcurrentGenerateJWEJWK_UnsupportedAlg(t *testing.T) {
+	t.Parallel()
 	nonPublicJWEJWKs, publicJWEJWKs, err := GenerateJWEJWKsForTest(t, 2, &EncA256GCM, &AlgEncInvalid)
 	require.Error(t, err)
 	require.Equal(t, "unexpected 2 errors: invalid JWE JWK headers: unsupported JWE JWK alg invalid\ninvalid JWE JWK headers: unsupported JWE JWK alg invalid", err.Error())

@@ -68,6 +68,7 @@ func TestFormat_ErrorPath(t *testing.T) {
 	_ = err
 }
 
+// Sequential: uses os.Chdir (global process state).
 func TestFormat_FormatterWalkError(t *testing.T) {
 	// NOTE: Cannot use t.Parallel() - test changes working directory.
 	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {

@@ -6,9 +6,9 @@
 package authz
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/base64"
 	"errors"
 	"net/url"
@@ -31,8 +31,8 @@ type BeginWebAuthnRegistrationRequest struct {
 }
 
 type BeginWebAuthnRegistrationResponse struct {
-	Options   any `json:"options"`
-	SessionID string      `json:"session_id"`
+	Options   any    `json:"options"`
+	SessionID string `json:"session_id"`
 }
 
 type FinishWebAuthnRegistrationRequest struct {
@@ -54,8 +54,8 @@ type BeginWebAuthnAuthenticationRequest struct {
 }
 
 type BeginWebAuthnAuthenticationResponse struct {
-	Options   any `json:"options"`
-	SessionID string      `json:"session_id"`
+	Options   any    `json:"options"`
+	SessionID string `json:"session_id"`
 }
 
 type FinishWebAuthnAuthenticationRequest struct {

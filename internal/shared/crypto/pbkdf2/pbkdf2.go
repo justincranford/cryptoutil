@@ -5,9 +5,9 @@
 package pbkdf2
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	crand "crypto/rand"
 	"crypto/subtle"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/base64"
 	"fmt"
 	"strings"

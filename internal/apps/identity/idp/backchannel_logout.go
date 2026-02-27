@@ -100,7 +100,7 @@ func (s *BackChannelLogoutService) generateLogoutToken(ctx context.Context, sess
 		cryptoutilSharedMagic.ClaimIss: s.issuer,
 		cryptoutilSharedMagic.ClaimAud: client.ClientID,
 		cryptoutilSharedMagic.ClaimIat: now.Unix(),
-		cryptoutilSharedMagic.ClaimJti:                          googleUuid.Must(googleUuid.NewV7()).String(),
+		cryptoutilSharedMagic.ClaimJti: googleUuid.Must(googleUuid.NewV7()).String(),
 		"events": map[string]any{
 			"http://schemas.openid.net/event/backchannel-logout": map[string]any{},
 		},

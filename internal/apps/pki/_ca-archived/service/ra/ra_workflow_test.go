@@ -3,9 +3,9 @@
 package ra
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"crypto/x509/pkix"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/pem"
 	"testing"
 

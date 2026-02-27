@@ -19,8 +19,8 @@ import (
 	"time"
 
 	cryptoutilServerApplication "cryptoutil/internal/apps/sm/kms/server/application"
-	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
 )
 
 // Integration demo step counts.

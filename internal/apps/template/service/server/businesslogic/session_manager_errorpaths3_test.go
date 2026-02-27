@@ -22,6 +22,8 @@ const testInvalidAlgorithm = "INVALID_ALGO"
 
 // TestIssueOPAQUESession_HashError covers the hash error in OPAQUE issue.
 func TestIssueOPAQUESession_HashError(t *testing.T) {
+	t.Parallel()
+
 	orig := hashHighEntropyDeterministicFn
 
 	defer func() { hashHighEntropyDeterministicFn = orig }()
@@ -54,6 +56,8 @@ func TestIssueOPAQUESession_CreateDBError(t *testing.T) {
 
 // TestValidateOPAQUESession_HashError covers the hash error in OPAQUE validate.
 func TestValidateOPAQUESession_HashError(t *testing.T) {
+	t.Parallel()
+
 	orig := hashHighEntropyDeterministicFn
 
 	defer func() { hashHighEntropyDeterministicFn = orig }()

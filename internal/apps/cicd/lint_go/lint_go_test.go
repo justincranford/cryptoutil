@@ -14,6 +14,8 @@ import (
 )
 
 func TestLint(t *testing.T) {
+	t.Parallel()
+
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	err := Lint(logger)
 
@@ -44,6 +46,7 @@ func findProjectRoot() (string, error) {
 	}
 }
 
+// Sequential: uses os.Chdir (global process state).
 func TestLint_Integration(t *testing.T) {
 	// NOTE: Cannot use t.Parallel() - test changes working directory.
 

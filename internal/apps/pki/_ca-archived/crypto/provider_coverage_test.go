@@ -3,13 +3,13 @@
 package crypto
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto"
 	"crypto/ed25519"
 	"crypto/elliptic"
 	crand "crypto/rand"
 	rsa "crypto/rsa"
 	sha256 "crypto/sha256"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"io"
 	"testing"
@@ -448,6 +448,7 @@ func TestGenerateRSAKeyPair_KeygenError(t *testing.T) {
 // TestGenerateECDSAKeyPair_KeygenError tests generateECDSAKeyPair when keygen fails.
 // NOTE: Must NOT use t.Parallel() - modifies package-level pkiCryptoGenerateECDSAKeyPairFn.
 func TestGenerateECDSAKeyPair_KeygenError(t *testing.T) {
+	t.Parallel()
 	orig := pkiCryptoGenerateECDSAKeyPairFn
 	pkiCryptoGenerateECDSAKeyPairFn = func(_ elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
 		return nil, errSignFailed

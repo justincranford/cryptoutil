@@ -3,9 +3,9 @@
 package handler
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	sha256 "crypto/sha256"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/asn1"
 	"math/big"
 	http "net/http"

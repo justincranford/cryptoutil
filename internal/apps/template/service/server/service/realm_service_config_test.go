@@ -15,14 +15,13 @@
 package service
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
-
 )
 
 func TestRealmService_GetRealmConfig(t *testing.T) {

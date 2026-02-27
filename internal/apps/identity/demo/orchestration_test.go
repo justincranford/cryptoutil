@@ -5,8 +5,8 @@
 package demo
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"os"
 	"os/exec"
@@ -100,9 +100,9 @@ func TestDockerComposeScaling(t *testing.T) {
 		{
 			name: "2x2x2x2",
 			scaling: map[string]int{
-				cryptoutilSharedMagic.OTLPServiceIdentityAuthz:  cryptoutilMagic.IdentityScaling2x,
-				cryptoutilSharedMagic.OTLPServiceIdentityIDP:    cryptoutilMagic.IdentityScaling2x,
-				cryptoutilSharedMagic.OTLPServiceIdentityRS:     cryptoutilMagic.IdentityScaling2x,
+				cryptoutilSharedMagic.OTLPServiceIdentityAuthz: cryptoutilMagic.IdentityScaling2x,
+				cryptoutilSharedMagic.OTLPServiceIdentityIDP:   cryptoutilMagic.IdentityScaling2x,
+				cryptoutilSharedMagic.OTLPServiceIdentityRS:    cryptoutilMagic.IdentityScaling2x,
 				"identity-spa-rp": cryptoutilMagic.IdentityScaling2x,
 			},
 			expected: cryptoutilSharedMagic.IMMinPasswordLength, // 2x4 services
@@ -110,9 +110,9 @@ func TestDockerComposeScaling(t *testing.T) {
 		{
 			name: "3x3x3x3",
 			scaling: map[string]int{
-				cryptoutilSharedMagic.OTLPServiceIdentityAuthz:  cryptoutilMagic.IdentityScaling3x,
-				cryptoutilSharedMagic.OTLPServiceIdentityIDP:    cryptoutilMagic.IdentityScaling3x,
-				cryptoutilSharedMagic.OTLPServiceIdentityRS:     cryptoutilMagic.IdentityScaling3x,
+				cryptoutilSharedMagic.OTLPServiceIdentityAuthz: cryptoutilMagic.IdentityScaling3x,
+				cryptoutilSharedMagic.OTLPServiceIdentityIDP:   cryptoutilMagic.IdentityScaling3x,
+				cryptoutilSharedMagic.OTLPServiceIdentityRS:    cryptoutilMagic.IdentityScaling3x,
 				"identity-spa-rp": cryptoutilMagic.IdentityScaling3x,
 			},
 			expected: cryptoutilSharedMagic.HashPrefixLength, // 3x4 services

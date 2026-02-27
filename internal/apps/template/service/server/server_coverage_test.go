@@ -19,9 +19,9 @@ import (
 
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // TestPublicServerBase_StartContextCancellation tests Start when context is canceled before server runs.
@@ -164,6 +164,7 @@ func TestNewServiceTemplate_TelemetryInitError(t *testing.T) {
 
 // TestNewServiceTemplate_JWKGenInitError tests NewServiceTemplate when JWK gen service init fails.
 // Cannot use t.Parallel() because it modifies the package-level injectable var.
+// Sequential: modifies package-level injectable function variable.
 func TestNewServiceTemplate_JWKGenInitError(t *testing.T) {
 	originalFn := newJWKGenServiceFn
 	newJWKGenServiceFn = func(_ context.Context, _ *cryptoutilSharedTelemetry.TelemetryService, _ bool) (*cryptoutilSharedCryptoJose.JWKGenService, error) {
@@ -406,6 +407,7 @@ func TestPublicServerBase_ErrChanPath(t *testing.T) {
 // TestPublicServerBase_ListenerError tests Start when app.Listener returns an error.
 // Covers public_server_base.go:141-143 (app.Listener error inside goroutine).
 // Cannot use t.Parallel() because it modifies the package-level injectable var.
+// Sequential: modifies package-level injectable function variable.
 func TestPublicServerBase_ListenerError(t *testing.T) {
 	original := appListenerFn
 	appListenerFn = func(_ *fiber.App, ln net.Listener) error {

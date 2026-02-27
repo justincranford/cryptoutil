@@ -27,9 +27,9 @@ func TestVerifyPassword_FormatErrors(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name     string
-		stored   string
-		wantErr  string
+		name    string
+		stored  string
+		wantErr string
 	}{
 		{
 			name:    "non-empty first part",

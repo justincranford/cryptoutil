@@ -4,8 +4,8 @@
 package legacy_ports
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bufio"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"os"
 	"regexp"

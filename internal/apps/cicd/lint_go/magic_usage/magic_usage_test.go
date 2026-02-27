@@ -242,6 +242,7 @@ func TestCheck_UsesMagicDefaultDir(t *testing.T) {
 }
 
 func TestCheckMagicUsageInDir_MagicDirInsideRoot(t *testing.T) {
+	t.Parallel()
 	// Non-parallel: uses controlled directory structure.
 	rootDir := t.TempDir()
 
@@ -276,6 +277,7 @@ func TestCheckMagicUsageInDir_VendorDirSkipped(t *testing.T) {
 }
 
 func TestCheckMagicUsageInDir_WalkError(t *testing.T) {
+	t.Parallel()
 	// Non-parallel: modifies directory permissions.
 	magicDir, rootDir := setupMagicUsageDirs(t)
 	writeMagicFile(t, magicDir, "magic.go", "package magic\n\nconst Timeout = 30\n")
@@ -321,6 +323,7 @@ func TestCheckMagicUsageInDir_WalkErrNonExistentRoot(t *testing.T) {
 	require.Contains(t, err.Error(), "walk errors")
 }
 
+// Sequential: uses os.Chdir (global process state).
 func TestCheckMagicUsageInDir_AbsErrorDeletedCWD(t *testing.T) {
 	// NOTE: Cannot use t.Parallel() - test changes and deletes CWD.
 	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {

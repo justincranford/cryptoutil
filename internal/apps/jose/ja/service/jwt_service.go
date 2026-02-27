@@ -5,8 +5,8 @@
 package service
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/base64"
 	json "encoding/json"
 	"fmt"
@@ -23,13 +23,13 @@ import (
 
 // JWTClaims represents standard JWT claims.
 type JWTClaims struct {
-	Issuer    string                 `json:"iss,omitempty"`
-	Subject   string                 `json:"sub,omitempty"`
-	Audience  []string               `json:"aud,omitempty"`
-	ExpiresAt *time.Time             `json:"exp,omitempty"`
-	NotBefore *time.Time             `json:"nbf,omitempty"`
-	IssuedAt  *time.Time             `json:"iat,omitempty"`
-	JTI       string                 `json:"jti,omitempty"`
+	Issuer    string         `json:"iss,omitempty"`
+	Subject   string         `json:"sub,omitempty"`
+	Audience  []string       `json:"aud,omitempty"`
+	ExpiresAt *time.Time     `json:"exp,omitempty"`
+	NotBefore *time.Time     `json:"nbf,omitempty"`
+	IssuedAt  *time.Time     `json:"iat,omitempty"`
+	JTI       string         `json:"jti,omitempty"`
 	Custom    map[string]any `json:"-"` // Additional custom claims.
 }
 

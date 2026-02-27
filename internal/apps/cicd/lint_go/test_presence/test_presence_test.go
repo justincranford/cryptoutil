@@ -258,6 +258,7 @@ func TestCheckInDir_MultiplePackages(t *testing.T) {
 	require.Contains(t, err.Error(), "prod2")
 }
 
+// Sequential: uses os.Chdir (global process state).
 func TestCheck_FromProjectRoot(t *testing.T) {
 	root, err := findProjectRoot()
 	if err != nil {
@@ -309,6 +310,7 @@ func saveRestoreSeams(t *testing.T) {
 	})
 }
 
+// Sequential: modifies package-level seam variables.
 func TestSeam_CheckInDir_RelError(t *testing.T) {
 	saveRestoreSeams(t)
 

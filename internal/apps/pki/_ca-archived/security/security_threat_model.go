@@ -4,9 +4,9 @@
 package security
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"crypto/x509"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"fmt"
 	"time"

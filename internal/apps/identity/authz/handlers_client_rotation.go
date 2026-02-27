@@ -30,8 +30,8 @@ func (s *Service) handleClientSecretRotation(c *fiber.Ctx) error {
 	authenticatedClient, err := s.authenticateClient(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidClient,
-			"error_description": "Client authentication failed",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidClient,
+			"error_description":               "Client authentication failed",
 		})
 	}
 
@@ -39,8 +39,8 @@ func (s *Service) handleClientSecretRotation(c *fiber.Ctx) error {
 	// In production, you might also allow admin clients to rotate any client's secret.
 	if authenticatedClient.ClientID != clientIDParam {
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorAccessDenied,
-			"error_description": "Client can only rotate its own secret",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorAccessDenied,
+			"error_description":               "Client can only rotate its own secret",
 		})
 	}
 
@@ -51,14 +51,14 @@ func (s *Service) handleClientSecretRotation(c *fiber.Ctx) error {
 	if err != nil {
 		if errors.Is(err, cryptoutilIdentityAppErr.ErrClientNotFound) {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
-				"error_description": "Client not found",
+				cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
+				"error_description":               "Client not found",
 			})
 		}
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
-			"error_description": "Failed to retrieve client",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
+			"error_description":               "Failed to retrieve client",
 		})
 	}
 
@@ -66,8 +66,8 @@ func (s *Service) handleClientSecretRotation(c *fiber.Ctx) error {
 	secretBytes := make([]byte, cryptoutilSharedMagic.ClientSecretLength)
 	if _, err := crand.Read(secretBytes); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
-			"error_description": "Failed to generate new secret",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
+			"error_description":               "Failed to generate new secret",
 		})
 	}
 
@@ -77,8 +77,8 @@ func (s *Service) handleClientSecretRotation(c *fiber.Ctx) error {
 	hashedSecret, err := cryptoutilSharedCryptoHash.HashLowEntropyNonDeterministic(newSecretPlaintext)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
-			"error_description": "Failed to hash new secret",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
+			"error_description":               "Failed to hash new secret",
 		})
 	}
 
@@ -89,8 +89,8 @@ func (s *Service) handleClientSecretRotation(c *fiber.Ctx) error {
 	err = clientRepo.RotateSecret(ctx, client.ID, hashedSecret, rotatedBy, reason)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
-			"error_description": "Failed to rotate secret",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
+			"error_description":               "Failed to rotate secret",
 		})
 	}
 
@@ -98,7 +98,7 @@ func (s *Service) handleClientSecretRotation(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		cryptoutilSharedMagic.ClaimClientID:     client.ClientID,
 		cryptoutilSharedMagic.ParamClientSecret: newSecretPlaintext,
-		"rotated_at":    time.Now().UTC(),
-		"message":       "Client secret rotated successfully. Store this secret securely - it will not be shown again.",
+		"rotated_at":                            time.Now().UTC(),
+		"message":                               "Client secret rotated successfully. Store this secret securely - it will not be shown again.",
 	})
 }

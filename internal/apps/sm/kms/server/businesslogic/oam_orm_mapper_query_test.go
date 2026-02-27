@@ -108,7 +108,7 @@ func TestToOrmGetElasticKeysQueryParams(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-				t.Parallel()
+			t.Parallel()
 
 			tenantID := googleUuid.New()
 			result, err := mapper.toOrmGetElasticKeysQueryParams(tenantID, tc.params)
@@ -211,7 +211,7 @@ func TestToOrmGetMaterialKeysForElasticKeyQueryParams(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-				t.Parallel()
+			t.Parallel()
 
 			result, err := mapper.toOrmGetMaterialKeysForElasticKeyQueryParams(tc.params)
 
@@ -325,7 +325,7 @@ func TestToOrmGetMaterialKeysQueryParams(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-				t.Parallel()
+			t.Parallel()
 
 			result, err := mapper.toOrmGetMaterialKeysQueryParams(tc.params)
 

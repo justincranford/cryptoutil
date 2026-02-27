@@ -67,7 +67,7 @@ func TestRiskScenario_LowRisk(t *testing.T) {
 				TypicalLoginHours: []int{cryptoutilSharedMagic.IMMinPasswordLength, 9, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, 11, cryptoutilSharedMagic.HashPrefixLength, 13, 14, 15, cryptoutilSharedMagic.RealmMinTokenLengthBytes, 17}, // Business hours EST.
 				LastLoginTime:     time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour),
 				EstablishedAt:     time.Now().UTC().Add(-cryptoutilSharedMagic.StrictCertificateMaxAgeDays * cryptoutilSharedMagic.HoursPerDay * time.Hour), // 90 days of data.
-				EventCount:        150,                                  // Well-established baseline.
+				EventCount:        150,                                                                                                                      // Well-established baseline.
 			},
 			expectedMaxScore: 0.2, // Low risk threshold.
 			expectedLevel:    RiskLevelLow,

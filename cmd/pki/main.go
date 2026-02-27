@@ -5,11 +5,11 @@
 package main
 
 import (
-"os"
+	"os"
 
-cryptoutilAppsPki "cryptoutil/internal/apps/pki"
+	cryptoutilAppsPki "cryptoutil/internal/apps/pki"
 )
 
 func main() {
-os.Exit(cryptoutilAppsPki.Pki(os.Args[1:], os.Stdin, os.Stdout, os.Stderr))
+	os.Exit(cryptoutilAppsPki.Pki(os.Args[1:], os.Stdin, os.Stdout, os.Stderr))
 }

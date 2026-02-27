@@ -248,11 +248,11 @@ func (h *Handler) ptrSlice(s []string) *[]string {
 // mapCategory maps category string to API enum.
 func (h *Handler) mapCategory(category string) cryptoutilApiCaServer.ProfileSummaryCategory {
 	categoryMap := map[string]cryptoutilApiCaServer.ProfileSummaryCategory{
-		"tls":              cryptoutilApiCaServer.TLS,
-		cryptoutilSharedMagic.ClaimEmail:            cryptoutilApiCaServer.Email,
-		"code_signing":     cryptoutilApiCaServer.CodeSigning,
-		"document_signing": cryptoutilApiCaServer.DocumentSigning,
-		"ca":               cryptoutilApiCaServer.CA,
+		"tls":                            cryptoutilApiCaServer.TLS,
+		cryptoutilSharedMagic.ClaimEmail: cryptoutilApiCaServer.Email,
+		"code_signing":                   cryptoutilApiCaServer.CodeSigning,
+		"document_signing":               cryptoutilApiCaServer.DocumentSigning,
+		"ca":                             cryptoutilApiCaServer.CA,
 	}
 
 	if cat, ok := categoryMap[category]; ok {

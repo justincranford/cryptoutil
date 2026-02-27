@@ -153,7 +153,7 @@ func TestProtectedEndpoint_InvalidTokenFormat(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-				t.Parallel()
+			t.Parallel()
 
 			req := httptest.NewRequest(http.MethodGet, "/api/v1/protected/resource", nil)
 			req.Header.Set("Authorization", tc.header)

@@ -3,13 +3,13 @@
 package timestamp
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
 	crand "crypto/rand"
 	sha256 "crypto/sha256"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/asn1"
 	"math/big"
 	"testing"

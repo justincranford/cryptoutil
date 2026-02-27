@@ -3,8 +3,8 @@
 package issuer
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/x509"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
 

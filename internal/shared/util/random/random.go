@@ -5,8 +5,8 @@
 package random
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	crand "crypto/rand"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"

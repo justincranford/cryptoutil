@@ -5,12 +5,12 @@
 package asn1
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/ecdh"
 	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
 	crand "crypto/rand"
 	"crypto/x509"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/pem"
 	"fmt"
 	"testing"

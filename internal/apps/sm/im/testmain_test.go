@@ -5,8 +5,8 @@
 package im
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	http "net/http"
 	"os"
@@ -22,10 +22,10 @@ import (
 )
 
 var (
-	testSmIMService *cryptoutilAppsSmImServer.SmIMServer
-	sharedHTTPClient    *http.Client
-	publicBaseURL       string
-	adminBaseURL        string
+	testSmIMService  *cryptoutilAppsSmImServer.SmIMServer
+	sharedHTTPClient *http.Client
+	publicBaseURL    string
+	adminBaseURL     string
 )
 
 // Shared mock servers from template testutil.

@@ -20,9 +20,9 @@ import (
 )
 
 var (
-	chainGenerateECDSAKeyPairFn       = cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair
-	chainCreateCASubjectsFn           = cryptoutilSharedCryptoCertificate.CreateCASubjects
-	chainCreateEndEntitySubjectFn     = cryptoutilSharedCryptoCertificate.CreateEndEntitySubject
+	chainGenerateECDSAKeyPairFn   = cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair
+	chainCreateCASubjectsFn       = cryptoutilSharedCryptoCertificate.CreateCASubjects
+	chainCreateEndEntitySubjectFn = cryptoutilSharedCryptoCertificate.CreateEndEntitySubject
 )
 
 // fqdnPattern validates FQDN-style names (per Session 3 Q3).

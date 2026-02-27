@@ -18,8 +18,8 @@
 package businesslogic
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	json "encoding/json"
 	"errors"
 	"fmt"
@@ -92,12 +92,12 @@ func (sm *SessionManager) issueJWSSession(ctx context.Context, isBrowser bool, p
 	}
 
 	claims := map[string]any{
-		cryptoutilSharedMagic.ClaimJti:       jti.String(),
-		cryptoutilSharedMagic.ClaimIat:       now.Unix(),
-		cryptoutilSharedMagic.ClaimExp:       exp.Unix(),
-		cryptoutilSharedMagic.ClaimSub:       principalID,
-		"tenant_id": tenantID.String(),
-		"realm_id":  realmID.String(),
+		cryptoutilSharedMagic.ClaimJti: jti.String(),
+		cryptoutilSharedMagic.ClaimIat: now.Unix(),
+		cryptoutilSharedMagic.ClaimExp: exp.Unix(),
+		cryptoutilSharedMagic.ClaimSub: principalID,
+		"tenant_id":                    tenantID.String(),
+		"realm_id":                     realmID.String(),
 	}
 
 	claimsBytes, err := jsonMarshalFn(claims)

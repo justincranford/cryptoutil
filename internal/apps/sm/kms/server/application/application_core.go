@@ -5,20 +5,20 @@
 package application
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"io/fs"
 	"strings"
 
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilAppsTemplateServiceServerApplication "cryptoutil/internal/apps/template/service/server/application"
-	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilKmsServerBusinesslogic "cryptoutil/internal/apps/sm/kms/server/businesslogic"
 	cryptoutilKmsServerDemo "cryptoutil/internal/apps/sm/kms/server/demo"
 	cryptoutilKmsServerRepository "cryptoutil/internal/apps/sm/kms/server/repository"
 	cryptoutilOrmRepository "cryptoutil/internal/apps/sm/kms/server/repository/orm"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceServerApplication "cryptoutil/internal/apps/template/service/server/application"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 
 	"gorm.io/gorm"
 )

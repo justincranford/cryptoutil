@@ -314,4 +314,3 @@ func TestHandleCheckMFAStepUp_InvalidUserIDFormat(t *testing.T) {
 }
 
 // handleGenerateTOTPBackupCodes tests.
-

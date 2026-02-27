@@ -6,8 +6,8 @@
 package container
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"

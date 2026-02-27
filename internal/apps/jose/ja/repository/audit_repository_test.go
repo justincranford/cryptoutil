@@ -5,8 +5,8 @@
 package repository
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
 
@@ -289,4 +289,3 @@ func TestAuditLogRepository_List(t *testing.T) {
 	require.Equal(t, int64(0), total)
 	require.Empty(t, entries)
 }
-

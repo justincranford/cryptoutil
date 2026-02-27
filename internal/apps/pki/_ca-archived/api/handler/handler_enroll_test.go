@@ -3,7 +3,6 @@
 package handler
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"crypto"
 	ecdsa "crypto/ecdsa"
@@ -11,6 +10,7 @@ import (
 	crand "crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/base64"
 	"encoding/pem"
 	"io"
@@ -27,6 +27,7 @@ import (
 	cryptoutilCAServiceTimestamp "cryptoutil/internal/apps/pki/ca/service/timestamp"
 	cryptoutilCAStorage "cryptoutil/internal/apps/pki/ca/storage"
 )
+
 func TestEstSimpleEnrollWithRealIssuer(t *testing.T) {
 	t.Parallel()
 

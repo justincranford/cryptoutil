@@ -4,9 +4,9 @@
 package barrier
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	crand "crypto/rand"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"

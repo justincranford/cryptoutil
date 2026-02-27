@@ -5,8 +5,8 @@
 package repository
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	googleUuid "github.com/google/uuid"

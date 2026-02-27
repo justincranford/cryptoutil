@@ -4,8 +4,8 @@
 package template
 
 const (
-// TemplateUsageMain is the main usage message for the skeleton template command.
-TemplateUsageMain = `Usage: skeleton template <subcommand> [options]
+	// TemplateUsageMain is the main usage message for the skeleton template command.
+	TemplateUsageMain = `Usage: skeleton template <subcommand> [options]
 
 Available subcommands:
   version     Print version information
@@ -20,8 +20,8 @@ Available subcommands:
 Use "skeleton template <subcommand> help" for subcommand-specific help.
 Version information is available via Docker image tags.`
 
-// TemplateUsageServer is the usage message for the server subcommand.
-TemplateUsageServer = `Usage: skeleton template server [options]
+	// TemplateUsageServer is the usage message for the server subcommand.
+	TemplateUsageServer = `Usage: skeleton template server [options]
 
 Description:
   Start the Skeleton Template server with database initialization.
@@ -37,8 +37,8 @@ Examples:
   skeleton template server
   skeleton template server --database-url file:/tmp/skeleton.db`
 
-// TemplateUsageClient is the usage message for the client subcommand.
-TemplateUsageClient = `Usage: skeleton template client [options]
+	// TemplateUsageClient is the usage message for the client subcommand.
+	TemplateUsageClient = `Usage: skeleton template client [options]
 
 Description:
   Run client operations for the Skeleton Template service.
@@ -49,8 +49,8 @@ Options:
 Examples:
   skeleton template client`
 
-// TemplateUsageInit is the usage message for the init subcommand.
-TemplateUsageInit = `Usage: skeleton template init [options]
+	// TemplateUsageInit is the usage message for the init subcommand.
+	TemplateUsageInit = `Usage: skeleton template init [options]
 
 Description:
   Initialize database schema and configuration for the Skeleton Template service.
@@ -63,8 +63,8 @@ Examples:
   skeleton template init
   skeleton template init --config configs/skeleton/template/config.yml`
 
-// TemplateUsageHealth is the usage message for the health subcommand.
-TemplateUsageHealth = `Usage: skeleton template health [options]
+	// TemplateUsageHealth is the usage message for the health subcommand.
+	TemplateUsageHealth = `Usage: skeleton template health [options]
 
 Description:
   Check service health via public API endpoint.
@@ -80,8 +80,8 @@ Examples:
   skeleton template health --url https://localhost:8900
   skeleton template health --cacert /path/to/ca.pem`
 
-// TemplateUsageLivez is the usage message for the livez subcommand.
-TemplateUsageLivez = `Usage: skeleton template livez [options]
+	// TemplateUsageLivez is the usage message for the livez subcommand.
+	TemplateUsageLivez = `Usage: skeleton template livez [options]
 
 Description:
   Check service liveness via admin API endpoint.
@@ -96,8 +96,8 @@ Examples:
   skeleton template livez
   skeleton template livez --url https://localhost:9090`
 
-// TemplateUsageReadyz is the usage message for the readyz subcommand.
-TemplateUsageReadyz = `Usage: skeleton template readyz [options]
+	// TemplateUsageReadyz is the usage message for the readyz subcommand.
+	TemplateUsageReadyz = `Usage: skeleton template readyz [options]
 
 Description:
   Check service readiness via admin API endpoint.
@@ -112,8 +112,8 @@ Examples:
   skeleton template readyz
   skeleton template readyz --url https://localhost:9090`
 
-// TemplateUsageShutdown is the usage message for the shutdown subcommand.
-TemplateUsageShutdown = `Usage: skeleton template shutdown [options]
+	// TemplateUsageShutdown is the usage message for the shutdown subcommand.
+	TemplateUsageShutdown = `Usage: skeleton template shutdown [options]
 
 Description:
   Trigger graceful shutdown via admin API endpoint.

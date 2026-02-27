@@ -22,24 +22,23 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-
 // Authz implements the Authorization Server service subcommand handler.
 // Handles subcommands: server, client, init, health, livez, readyz, shutdown.
 func Authz(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 	return cryptoutilTemplateCli.RouteService(
 		cryptoutilTemplateCli.ServiceConfig{
-			ServiceID:        cryptoutilSharedMagic.IdentityAuthzServiceID,
-			ProductName:      cryptoutilSharedMagic.IdentityProductName,
-			ServiceName:      cryptoutilSharedMagic.AuthzServiceName,
+			ServiceID:         cryptoutilSharedMagic.IdentityAuthzServiceID,
+			ProductName:       cryptoutilSharedMagic.IdentityProductName,
+			ServiceName:       cryptoutilSharedMagic.AuthzServiceName,
 			DefaultPublicPort: cryptoutilSharedMagic.IdentityAuthzServicePort,
-			UsageMain:        AUTHZUsageMain,
-			UsageServer:      AUTHZUsageServer,
-			UsageClient:      AUTHZUsageClient,
-			UsageInit:        AUTHZUsageInit,
-			UsageHealth:      AUTHZUsageHealth,
-			UsageLivez:       AUTHZUsageLivez,
-			UsageReadyz:      AUTHZUsageReadyz,
-			UsageShutdown:    AUTHZUsageShutdown,
+			UsageMain:         AUTHZUsageMain,
+			UsageServer:       AUTHZUsageServer,
+			UsageClient:       AUTHZUsageClient,
+			UsageInit:         AUTHZUsageInit,
+			UsageHealth:       AUTHZUsageHealth,
+			UsageLivez:        AUTHZUsageLivez,
+			UsageReadyz:       AUTHZUsageReadyz,
+			UsageShutdown:     AUTHZUsageShutdown,
 		},
 		args, stdout, stderr,
 		authzServerStart,

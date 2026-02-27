@@ -15,8 +15,8 @@
 package service
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"database/sql"
 	"fmt"
 	"strings"

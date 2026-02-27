@@ -5,13 +5,13 @@
 package crypto
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto"
 	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
 	rsa "crypto/rsa"
 	sha256 "crypto/sha256"
 	"crypto/x509"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	"github.com/stretchr/testify/require"

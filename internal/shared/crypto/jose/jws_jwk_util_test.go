@@ -3,12 +3,12 @@
 package crypto
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
 	crand "crypto/rand"
 	rsa "crypto/rsa"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"

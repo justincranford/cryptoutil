@@ -29,6 +29,7 @@ func TestParseWithFlagSet_ProfileUnknown(t *testing.T) {
 }
 
 // TestGetTLSPEMBytes_UnsupportedType tests getTLSPEMBytes with unsupported type (not string, not []byte).
+// Sequential: uses viper/pflag global state.
 func TestGetTLSPEMBytes_UnsupportedType(t *testing.T) {
 	// Set a non-string, non-[]byte value in viper (e.g., an integer).
 	viper.Set("test-unsupported-type", 12345)
@@ -40,6 +41,7 @@ func TestGetTLSPEMBytes_UnsupportedType(t *testing.T) {
 }
 
 // TestGetTLSPEMBytes_MapType tests getTLSPEMBytes with map type (unsupported).
+// Sequential: uses viper/pflag global state.
 func TestGetTLSPEMBytes_MapType(t *testing.T) {
 	// Set a map value in viper (unsupported type).
 	viper.Set("test-map-type", map[string]string{"key": "value"})
@@ -221,6 +223,7 @@ func TestNewForJOSEServer_HappyPath(t *testing.T) {
 }
 
 // TestParseWithFlagSet_ValidationError tests that validation errors propagate correctly.
+// Sequential: uses viper/pflag global state.
 func TestParseWithFlagSet_ValidationError(t *testing.T) {
 	resetFlags()
 
@@ -232,6 +235,7 @@ func TestParseWithFlagSet_ValidationError(t *testing.T) {
 }
 
 // TestParseWithFlagSet_EmptyTLSMode tests that empty TLS mode gets default.
+// Sequential: uses viper/pflag global state.
 func TestParseWithFlagSet_EmptyTLSMode(t *testing.T) {
 	resetFlags()
 

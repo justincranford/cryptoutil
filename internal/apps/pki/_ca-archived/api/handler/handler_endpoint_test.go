@@ -3,13 +3,13 @@
 package handler
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
 	crand "crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/pem"
 	"io"
 	"math/big"
@@ -28,6 +28,7 @@ import (
 	cryptoutilCAServiceIssuer "cryptoutil/internal/apps/pki/ca/service/issuer"
 	cryptoutilCAStorage "cryptoutil/internal/apps/pki/ca/storage"
 )
+
 func TestApplySubjectOverrides(t *testing.T) {
 	t.Parallel()
 

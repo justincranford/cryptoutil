@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	http "net/http"
 	"net/http/httptest"
 	"testing"
@@ -244,11 +244,11 @@ func TestServiceAuth_ClientCredentialsWithJWT(t *testing.T) {
 	})
 
 	tokenString := jwksServer.signToken(t, map[string]any{
-		cryptoutilSharedMagic.ClaimSub:                "client-creds-service",
-		cryptoutilSharedMagic.ClaimExp:                now.Add(1 * time.Hour).Unix(),
-		cryptoutilSharedMagic.ClaimIat:                now.Unix(),
+		cryptoutilSharedMagic.ClaimSub:               "client-creds-service",
+		cryptoutilSharedMagic.ClaimExp:               now.Add(1 * time.Hour).Unix(),
+		cryptoutilSharedMagic.ClaimIat:               now.Unix(),
 		cryptoutilSharedMagic.ClaimPreferredUsername: "my-service",
-		cryptoutilSharedMagic.ClaimScope:              cryptoutilSharedMagic.ScopeRead,
+		cryptoutilSharedMagic.ClaimScope:             cryptoutilSharedMagic.ScopeRead,
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)

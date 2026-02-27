@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Sequential: uses viper/pflag global state.
 func TestParseWithMultipleConfigFiles(t *testing.T) {
 	resetFlags()
 
@@ -113,6 +114,7 @@ func TestFormatDefault_EmptyStringSlice(t *testing.T) {
 
 // TestParse_BooleanEnvironmentVariableBinding tests that boolean settings are bound to environment variables.
 // Kills mutation: config.go:949 (CONDITIONALS_NEGATION: if _, ok := setting.Value.(bool); ok).
+// Sequential: uses viper/pflag global state.
 func TestParse_BooleanEnvironmentVariableBinding(t *testing.T) {
 	resetFlags()
 

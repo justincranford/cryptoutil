@@ -3,7 +3,6 @@
 package issuer
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
@@ -11,6 +10,7 @@ import (
 	rsa "crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"math/big"
 	"testing"
 	"time"

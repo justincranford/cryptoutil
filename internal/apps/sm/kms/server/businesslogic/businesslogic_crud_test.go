@@ -1,8 +1,8 @@
 package businesslogic
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"io/fs"
 	"os"
 	"testing"
@@ -384,6 +384,7 @@ func TestRevokeMaterialKey_NotFound(t *testing.T) {
 
 func TestDeleteMaterialKey_NotImplemented(t *testing.T) {
 	t.Parallel()
+
 	stack := setupTestStack(t)
 	ekID := googleUuid.New()
 	mkID := googleUuid.New()

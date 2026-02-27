@@ -22,7 +22,6 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-
 // Spa implements the Single Page Application service subcommand handler.
 // Handles subcommands: server, client, init, health, livez, readyz, shutdown.
 func Spa(args []string, _ io.Reader, stdout, stderr io.Writer) int {

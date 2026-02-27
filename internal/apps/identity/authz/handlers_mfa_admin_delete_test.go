@@ -3,8 +3,8 @@
 package authz_test
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	json "encoding/json"
 	"fmt"
 	"net/http/httptest"

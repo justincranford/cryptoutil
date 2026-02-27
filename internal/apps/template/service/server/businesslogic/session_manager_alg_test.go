@@ -17,6 +17,7 @@ import (
 )
 
 func TestSessionManager_GenerateJWEKey(t *testing.T) {
+	t.Parallel()
 	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 
 	privateKey, err := sm.generateJWEKey(cryptoutilSharedMagic.SessionJWEAlgorithmDirA256GCM)
@@ -250,6 +251,7 @@ func TestSessionManager_Initialize_ExistingJWK(t *testing.T) {
 
 // TestSessionManager_StartCleanupTask tests the cleanup task startup.
 func TestSessionManager_StartCleanupTask(t *testing.T) {
+	t.Parallel()
 	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 
 	// Create a context that we can cancel to stop the cleanup task
@@ -281,6 +283,7 @@ func TestSessionManager_StartCleanupTask(t *testing.T) {
 
 // TestSessionManager_ErrorCases tests various error scenarios for better coverage.
 func TestSessionManager_ErrorCases(t *testing.T) {
+	t.Parallel()
 	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 

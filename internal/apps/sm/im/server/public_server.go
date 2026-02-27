@@ -29,7 +29,7 @@ type PublicServer struct {
 
 	userRepo                *cryptoutilAppsSmImRepository.UserRepository
 	messageRepo             *cryptoutilAppsSmImRepository.MessageRepository
-	messageRecipientJWKRepo *cryptoutilAppsSmImRepository.MessageRecipientJWKRepository             // Per-recipient decryption keys
+	messageRecipientJWKRepo *cryptoutilAppsSmImRepository.MessageRecipientJWKRepository                 // Per-recipient decryption keys
 	jwkGenService           *cryptoutilSharedCryptoJose.JWKGenService                                   // JWK generation for message encryption
 	sessionManagerService   *cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService     // Session management service
 	realmService            cryptoutilAppsTemplateServiceServerService.RealmService                     // Realm management service
@@ -108,11 +108,11 @@ func NewPublicServer(
 		tenant, err := s.registrationService.RegisterUserWithTenant(
 			ctx,
 			dummyUserID,
-			"demo-user",             // username
+			"demo-user",         // username
 			"demo@sm-im.local",  // email
-			"",                      // passwordHash (not used for demo tenant)
+			"",                  // passwordHash (not used for demo tenant)
 			"SM-IM Demo Tenant", // tenantName
-			true,                    // createTenant = true
+			true,                // createTenant = true
 		)
 		if err != nil {
 			// Log error but continue with zero UUID (will fail later with better error).

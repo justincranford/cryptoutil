@@ -54,12 +54,12 @@ func (tms *TestableMockServices) startIDPServer(ctx context.Context) error {
 		}
 
 		response := map[string]any{
-			cryptoutilSharedMagic.ClaimSub:            "test_user",
-			cryptoutilSharedMagic.ClaimName:           "Test User",
-			cryptoutilSharedMagic.ClaimEmail:          "test@example.com",
+			cryptoutilSharedMagic.ClaimSub:           "test_user",
+			cryptoutilSharedMagic.ClaimName:          "Test User",
+			cryptoutilSharedMagic.ClaimEmail:         "test@example.com",
 			cryptoutilSharedMagic.ClaimEmailVerified: true,
-			cryptoutilSharedMagic.ClaimProfile:        "https://example.com/profile/test_user",
-			cryptoutilSharedMagic.ClaimPicture:        "https://example.com/avatar/test_user.jpg",
+			cryptoutilSharedMagic.ClaimProfile:       "https://example.com/profile/test_user",
+			cryptoutilSharedMagic.ClaimPicture:       "https://example.com/avatar/test_user.jpg",
 			cryptoutilSharedMagic.ClaimUpdatedAt:     time.Now().UTC().Unix(),
 		}
 
@@ -185,9 +185,9 @@ func (tms *TestableMockServices) startSPARPServer(ctx context.Context) error {
 		state := r.URL.Query().Get(cryptoutilSharedMagic.ParamState)
 
 		response := map[string]any{
-			cryptoutilSharedMagic.ResponseTypeCode:        code,
+			cryptoutilSharedMagic.ResponseTypeCode: code,
 			cryptoutilSharedMagic.ParamState:       state,
-			"received_at": time.Now().UTC().Format(time.RFC3339),
+			"received_at":                          time.Now().UTC().Format(time.RFC3339),
 		}
 
 		w.Header().Set("Content-Type", "application/json")

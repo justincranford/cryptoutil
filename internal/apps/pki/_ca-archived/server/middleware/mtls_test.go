@@ -3,12 +3,12 @@
 package middleware
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
 	crand "crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"math/big"
 	"net/http/httptest"
 	"testing"

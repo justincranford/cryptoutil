@@ -56,10 +56,10 @@ type TelemetryService struct {
 	MetricsProvider    metricApi.MeterProvider
 	TracesProvider     traceApi.TracerProvider
 	TextMapPropagator  *propagationApi.TextMapPropagator
-	logsProviderSdk    *logSdk.LoggerProvider                                             // Not exported, but still needed to do shutdown
-	metricsProviderSdk *metricSdk.MeterProvider                                           // Not exported, but still needed to do shutdown
-	tracesProviderSdk  *traceSdk.TracerProvider                                           // Not exported, but still needed to do shutdown
-	settings           *TelemetrySettings // Store settings for health checks
+	logsProviderSdk    *logSdk.LoggerProvider   // Not exported, but still needed to do shutdown
+	metricsProviderSdk *metricSdk.MeterProvider // Not exported, but still needed to do shutdown
+	tracesProviderSdk  *traceSdk.TracerProvider // Not exported, but still needed to do shutdown
+	settings           *TelemetrySettings       // Store settings for health checks
 }
 
 // Timeout constants for telemetry operations.

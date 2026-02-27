@@ -5,8 +5,8 @@
 package demo
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"testing"
 	"time"

@@ -76,7 +76,7 @@ func (s *PublicServer) registerRoutes() error {
 func (s *PublicServer) handleHealth(c *fiber.Ctx) error {
 	if err := c.JSON(fiber.Map{
 		cryptoutilSharedMagic.StringStatus: cryptoutilSharedMagic.DockerServiceHealthHealthy,
-		"time":   c.Context().Time().UTC().Format(cryptoutilSharedMagic.StringUTCFormat),
+		"time":                             c.Context().Time().UTC().Format(cryptoutilSharedMagic.StringUTCFormat),
 	}); err != nil {
 		return fmt.Errorf("failed to send health response: %w", err)
 	}
@@ -103,7 +103,7 @@ func (s *PublicServer) handleReadyz(c *fiber.Ctx) error {
 
 			if jsonErr := c.JSON(fiber.Map{
 				cryptoutilSharedMagic.StringStatus: "not ready",
-				"reason": "authz server unavailable",
+				"reason":                           "authz server unavailable",
 				cryptoutilSharedMagic.StringError:  err.Error(),
 			}); jsonErr != nil {
 				return fmt.Errorf("failed to send not ready response: %w", jsonErr)

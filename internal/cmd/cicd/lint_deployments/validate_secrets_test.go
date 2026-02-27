@@ -152,7 +152,9 @@ func TestValidateSecrets_UnreadableSecretsDir(t *testing.T) {
 	require.NoError(t, os.Mkdir(secretsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.Chmod(secretsDir, 0o000))
 
-	t.Cleanup(func() { _ = os.Chmod(secretsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute) })
+	t.Cleanup(func() {
+		_ = os.Chmod(secretsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
+	})
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -294,7 +296,9 @@ func TestValidateSecrets_UnreadableConfigsDir(t *testing.T) {
 	require.NoError(t, os.Mkdir(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.Chmod(configsDir, 0o000))
 
-	t.Cleanup(func() { _ = os.Chmod(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute) })
+	t.Cleanup(func() {
+		_ = os.Chmod(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
+	})
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
@@ -408,4 +412,3 @@ func TestValidateSecrets_ComposeNonMapEnv(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, result.Valid)
 }
-

@@ -3,9 +3,9 @@
 package crypto
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	crand "crypto/rand"
 	rsa "crypto/rsa"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	googleUuid "github.com/google/uuid"

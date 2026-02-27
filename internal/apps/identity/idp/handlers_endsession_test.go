@@ -5,8 +5,8 @@
 package idp_test
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	http "net/http"
 	"net/http/httptest"
 	"net/url"
@@ -133,8 +133,8 @@ func TestHandleEndSession_GET(t *testing.T) {
 		{
 			name: "Valid redirect URI redirects",
 			queryParams: map[string]string{
-				cryptoutilSharedMagic.ClaimClientID:                testClient.ClientID,
-				"post_logout_redirect_uri": "https://client.example.com/logged-out",
+				cryptoutilSharedMagic.ClaimClientID: testClient.ClientID,
+				"post_logout_redirect_uri":          "https://client.example.com/logged-out",
 			},
 			expectedStatus:      http.StatusFound,
 			expectRedirect:      true,
@@ -143,9 +143,9 @@ func TestHandleEndSession_GET(t *testing.T) {
 		{
 			name: "Valid redirect URI with state includes state in redirect",
 			queryParams: map[string]string{
-				cryptoutilSharedMagic.ClaimClientID:                testClient.ClientID,
-				"post_logout_redirect_uri": "https://client.example.com/logged-out",
-				cryptoutilSharedMagic.ParamState:                    "test-state-123",
+				cryptoutilSharedMagic.ClaimClientID: testClient.ClientID,
+				"post_logout_redirect_uri":          "https://client.example.com/logged-out",
+				cryptoutilSharedMagic.ParamState:    "test-state-123",
 			},
 			expectedStatus: http.StatusFound,
 			expectRedirect: true,
@@ -153,8 +153,8 @@ func TestHandleEndSession_GET(t *testing.T) {
 		{
 			name: "Invalid redirect URI returns error",
 			queryParams: map[string]string{
-				cryptoutilSharedMagic.ClaimClientID:                testClient.ClientID,
-				"post_logout_redirect_uri": "https://malicious.com/callback",
+				cryptoutilSharedMagic.ClaimClientID: testClient.ClientID,
+				"post_logout_redirect_uri":          "https://malicious.com/callback",
 			},
 			expectedStatus: http.StatusBadRequest,
 		},
@@ -170,8 +170,8 @@ func TestHandleEndSession_GET(t *testing.T) {
 		{
 			name: "Unknown client returns error for redirect validation",
 			queryParams: map[string]string{
-				cryptoutilSharedMagic.ClaimClientID:                "unknown-client",
-				"post_logout_redirect_uri": "https://unknown.com/callback",
+				cryptoutilSharedMagic.ClaimClientID: "unknown-client",
+				"post_logout_redirect_uri":          "https://unknown.com/callback",
 			},
 			expectedStatus: http.StatusBadRequest,
 		},

@@ -16,8 +16,8 @@ import (
 )
 
 var (
-	storageMkdirAllFn    = os.MkdirAll
-	storageWriteFileFn   = os.WriteFile
+	storageMkdirAllFn     = os.MkdirAll
+	storageWriteFileFn    = os.WriteFile
 	storageMarshalPKCS8Fn = func(key any) ([]byte, error) { return x509.MarshalPKCS8PrivateKey(key) }
 )
 

@@ -73,7 +73,7 @@ func TestAuthorizationCodeFlow(t *testing.T) {
 
 	tokenReqData := url.Values{
 		cryptoutilSharedMagic.ParamGrantType:    {cryptoutilSharedMagic.GrantTypeAuthorizationCode},
-		cryptoutilSharedMagic.ResponseTypeCode:          {authCode},
+		cryptoutilSharedMagic.ResponseTypeCode:  {authCode},
 		cryptoutilSharedMagic.ParamRedirectURI:  {redirectURI},
 		cryptoutilSharedMagic.ClaimClientID:     {"test-client"},
 		cryptoutilSharedMagic.ParamClientSecret: {"test-secret"},
@@ -145,7 +145,7 @@ func TestClientCredentialsFlow(t *testing.T) {
 		cryptoutilSharedMagic.ParamGrantType:    {cryptoutilSharedMagic.GrantTypeClientCredentials},
 		cryptoutilSharedMagic.ClaimClientID:     {"test-client-m2m"},
 		cryptoutilSharedMagic.ParamClientSecret: {"test-secret-m2m"},
-		cryptoutilSharedMagic.ClaimScope:         {"api:read api:write"},
+		cryptoutilSharedMagic.ClaimScope:        {"api:read api:write"},
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, strings.NewReader(tokenReqData.Encode()))
@@ -219,7 +219,7 @@ func TestTokenIntrospection(t *testing.T) {
 	introspectURL := fmt.Sprintf("%s/introspect", suite.AuthZURL)
 
 	introspectReqData := url.Values{
-		cryptoutilSharedMagic.ParamToken:         {token},
+		cryptoutilSharedMagic.ParamToken:        {token},
 		cryptoutilSharedMagic.ClaimClientID:     {"test-client-introspect"},
 		cryptoutilSharedMagic.ParamClientSecret: {"test-secret-introspect"},
 	}
@@ -289,10 +289,10 @@ func TestTokenRefresh(t *testing.T) {
 	tokenURL := fmt.Sprintf("%s/token", suite.AuthZURL)
 
 	tokenReqData := url.Values{
-		cryptoutilSharedMagic.ParamGrantType:    {cryptoutilSharedMagic.GrantTypeRefreshToken},
+		cryptoutilSharedMagic.ParamGrantType:        {cryptoutilSharedMagic.GrantTypeRefreshToken},
 		cryptoutilSharedMagic.GrantTypeRefreshToken: {refreshToken},
-		cryptoutilSharedMagic.ClaimClientID:     {"test-client-refresh"},
-		cryptoutilSharedMagic.ParamClientSecret: {"test-secret-refresh"},
+		cryptoutilSharedMagic.ClaimClientID:         {"test-client-refresh"},
+		cryptoutilSharedMagic.ParamClientSecret:     {"test-secret-refresh"},
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, strings.NewReader(tokenReqData.Encode()))

@@ -5,12 +5,12 @@
 package keygen
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/ecdh"
 	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
 	rsa "crypto/rsa"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	"github.com/leanovate/gopter"

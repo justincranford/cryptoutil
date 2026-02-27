@@ -3,10 +3,10 @@
 package dpop
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
 	crand "crypto/rand"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/base64"
 	"testing"
 	"time"

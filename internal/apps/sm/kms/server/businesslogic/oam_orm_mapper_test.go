@@ -92,7 +92,7 @@ func TestToOamElasticKeyStatus(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-				t.Parallel()
+			t.Parallel()
 
 			result := toOamElasticKeyStatus(&tc.importAllowed)
 			testify.NotNil(t, result)
@@ -253,7 +253,7 @@ func TestToOamMaterialKey(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-				t.Parallel()
+			t.Parallel()
 
 			result, err := mapper.toOamMaterialKey(tc.ormKey)
 
@@ -327,7 +327,7 @@ func TestToOamMaterialKeys(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-				t.Parallel()
+			t.Parallel()
 
 			results, err := mapper.toOamMaterialKeys(tc.ormKeys)
 
@@ -341,4 +341,3 @@ func TestToOamMaterialKeys(t *testing.T) {
 		})
 	}
 }
-

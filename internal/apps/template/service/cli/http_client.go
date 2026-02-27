@@ -4,10 +4,10 @@
 package cli
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/pem"
 	"fmt"
 	"io"

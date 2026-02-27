@@ -113,9 +113,9 @@ func (s *ServiceConfig) validate(serviceName string) error {
 
 	// Validate log level is recognized.
 	validLogLevels := map[string]bool{
-		"debug": true,
-		"info":  true,
-		"warn":  true,
+		"debug":                           true,
+		"info":                            true,
+		"warn":                            true,
 		cryptoutilSharedMagic.StringError: true,
 	}
 

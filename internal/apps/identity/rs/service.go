@@ -116,8 +116,8 @@ func (s *Service) RequireScopes(requiredScopes ...string) fiber.Handler {
 				"method", c.Method())
 
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
-				"error_description": "Token validation required",
+				cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidToken,
+				"error_description":               "Token validation required",
 			})
 		}
 
@@ -129,8 +129,8 @@ func (s *Service) RequireScopes(requiredScopes ...string) fiber.Handler {
 				"path", c.Path())
 
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInsufficientScope,
-				"error_description": "Token missing scope claim",
+				cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInsufficientScope,
+				"error_description":               "Token missing scope claim",
 			})
 		}
 
@@ -152,8 +152,8 @@ func (s *Service) RequireScopes(requiredScopes ...string) fiber.Handler {
 					"path", c.Path())
 
 				return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-					cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInsufficientScope,
-					"error_description": fmt.Sprintf("Required scope missing: %s", required),
+					cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInsufficientScope,
+					"error_description":               fmt.Sprintf("Required scope missing: %s", required),
 				})
 			}
 		}
@@ -170,9 +170,9 @@ func (s *Service) RequireScopes(requiredScopes ...string) fiber.Handler {
 // handlePublicHealth handles GET /api/v1/public/health - public health check.
 func (s *Service) handlePublicHealth(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		cryptoutilSharedMagic.StringStatus:  cryptoutilSharedMagic.DockerServiceHealthHealthy,
-		"service": "resource-server",
-		"version": cryptoutilSharedMagic.ServiceVersion,
+		cryptoutilSharedMagic.StringStatus: cryptoutilSharedMagic.DockerServiceHealthHealthy,
+		"service":                          "resource-server",
+		"version":                          cryptoutilSharedMagic.ServiceVersion,
 	})
 }
 
@@ -181,8 +181,8 @@ func (s *Service) handleProtectedResource(c *fiber.Ctx) error {
 	claims, ok := c.Locals("token_claims").(map[string]any)
 	if !ok {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
-			"error_description": "Invalid token claims format",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
+			"error_description":               "Invalid token claims format",
 		})
 	}
 
@@ -191,13 +191,13 @@ func (s *Service) handleProtectedResource(c *fiber.Ctx) error {
 		cryptoutilSharedMagic.ClaimScope, claims[cryptoutilSharedMagic.ClaimScope])
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message":   "Protected resource accessed successfully",
+		"message":                           "Protected resource accessed successfully",
 		cryptoutilSharedMagic.ClaimClientID: claims[cryptoutilSharedMagic.ClaimClientID],
-		cryptoutilSharedMagic.ClaimScope:     claims[cryptoutilSharedMagic.ClaimScope],
+		cryptoutilSharedMagic.ClaimScope:    claims[cryptoutilSharedMagic.ClaimScope],
 		"data": fiber.Map{
-			"id":   "resource-123",
+			"id":                            "resource-123",
 			cryptoutilSharedMagic.ClaimName: "Sample Protected Resource",
-			"type": "example",
+			"type":                          "example",
 		},
 	})
 }
@@ -207,8 +207,8 @@ func (s *Service) handleCreateResource(c *fiber.Ctx) error {
 	claims, ok := c.Locals("token_claims").(map[string]any)
 	if !ok {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
-			"error_description": "Invalid token claims format",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
+			"error_description":               "Invalid token claims format",
 		})
 	}
 
@@ -226,8 +226,8 @@ func (s *Service) handleDeleteResource(c *fiber.Ctx) error {
 	claims, ok := c.Locals("token_claims").(map[string]any)
 	if !ok {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
-			"error_description": "Invalid token claims format",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
+			"error_description":               "Invalid token claims format",
 		})
 	}
 
@@ -244,8 +244,8 @@ func (s *Service) handleAdminUsers(c *fiber.Ctx) error {
 	claims, ok := c.Locals("token_claims").(map[string]any)
 	if !ok {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
-			"error_description": "Invalid token claims format",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
+			"error_description":               "Invalid token claims format",
 		})
 	}
 
@@ -266,8 +266,8 @@ func (s *Service) handleAdminMetrics(c *fiber.Ctx) error {
 	claims, ok := c.Locals("token_claims").(map[string]any)
 	if !ok {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
-			"error_description": "Invalid token claims format",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
+			"error_description":               "Invalid token claims format",
 		})
 	}
 

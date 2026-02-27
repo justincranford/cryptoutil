@@ -14,10 +14,10 @@
 package integration
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	crand "crypto/rand"
 	rsa "crypto/rsa"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"log/slog"
 	http "net/http"

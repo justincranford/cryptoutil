@@ -4,8 +4,8 @@
 package host_port_ranges
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bufio"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"os"
 	"regexp"
@@ -46,7 +46,6 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][
 
 	return nil
 }
-
 
 // checkHostPortRangesInFile checks a single compose file for host port range violations.
 func CheckHostPortRangesInFile(filePath string) []lintPortsCommon.Violation {

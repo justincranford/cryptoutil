@@ -5,9 +5,9 @@
 package clientauth
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	rsa "crypto/rsa"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"database/sql"
 	json "encoding/json"
 	"fmt"

@@ -6,9 +6,9 @@
 package apis
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	json "encoding/json"
 	"errors"
 	"fmt"

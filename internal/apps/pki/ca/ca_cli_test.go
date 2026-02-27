@@ -4,139 +4,139 @@
 package ca
 
 import (
-"bytes"
-"testing"
+	"bytes"
+	"testing"
 
-"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCA_SubcommandHelpFlags(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-tests := []struct {
-subcommand string
-helpTexts  []string
-}{
-{subcommand: "client", helpTexts: []string{"pki ca client", "Run client operations"}},
-{subcommand: "init", helpTexts: []string{"pki ca init", "Initialize database schema"}},
-{subcommand: "health", helpTexts: []string{"pki ca health", "Check service health"}},
-{subcommand: "livez", helpTexts: []string{"pki ca livez", "Check service liveness"}},
-{subcommand: "readyz", helpTexts: []string{"pki ca readyz", "Check service readiness"}},
-{subcommand: "shutdown", helpTexts: []string{"pki ca shutdown", "Trigger graceful shutdown"}},
-}
+	tests := []struct {
+		subcommand string
+		helpTexts  []string
+	}{
+		{subcommand: "client", helpTexts: []string{"pki ca client", "Run client operations"}},
+		{subcommand: "init", helpTexts: []string{"pki ca init", "Initialize database schema"}},
+		{subcommand: "health", helpTexts: []string{"pki ca health", "Check service health"}},
+		{subcommand: "livez", helpTexts: []string{"pki ca livez", "Check service liveness"}},
+		{subcommand: "readyz", helpTexts: []string{"pki ca readyz", "Check service readiness"}},
+		{subcommand: "shutdown", helpTexts: []string{"pki ca shutdown", "Trigger graceful shutdown"}},
+	}
 
-for _, tc := range tests {
-t.Run(tc.subcommand, func(t *testing.T) {
-t.Parallel()
+	for _, tc := range tests {
+		t.Run(tc.subcommand, func(t *testing.T) {
+			t.Parallel()
 
-for _, flag := range []string{"--help", "-h", "help"} {
-var stdout, stderr bytes.Buffer
+			for _, flag := range []string{"--help", "-h", "help"} {
+				var stdout, stderr bytes.Buffer
 
-exitCode := Ca([]string{tc.subcommand, flag}, nil, &stdout, &stderr)
-require.Equal(t, 0, exitCode, "%s %s should succeed", tc.subcommand, flag)
+				exitCode := Ca([]string{tc.subcommand, flag}, nil, &stdout, &stderr)
+				require.Equal(t, 0, exitCode, "%s %s should succeed", tc.subcommand, flag)
 
-combined := stdout.String() + stderr.String()
-for _, expected := range tc.helpTexts {
-require.Contains(t, combined, expected, "%s output should contain: %s", flag, expected)
-}
-}
-})
-}
+				combined := stdout.String() + stderr.String()
+				for _, expected := range tc.helpTexts {
+					require.Contains(t, combined, expected, "%s output should contain: %s", flag, expected)
+				}
+			}
+		})
+	}
 }
 
 func TestCA_MainHelp(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-var stdout, stderr bytes.Buffer
+	var stdout, stderr bytes.Buffer
 
-exitCode := Ca([]string{"--help"}, nil, &stdout, &stderr)
-require.Equal(t, 0, exitCode)
+	exitCode := Ca([]string{"--help"}, nil, &stdout, &stderr)
+	require.Equal(t, 0, exitCode)
 
-combined := stdout.String() + stderr.String()
-require.Contains(t, combined, "pki ca")
+	combined := stdout.String() + stderr.String()
+	require.Contains(t, combined, "pki ca")
 }
 
 func TestCA_Version(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-var stdout, stderr bytes.Buffer
+	var stdout, stderr bytes.Buffer
 
-exitCode := Ca([]string{"version"}, nil, &stdout, &stderr)
-require.Equal(t, 0, exitCode)
+	exitCode := Ca([]string{"version"}, nil, &stdout, &stderr)
+	require.Equal(t, 0, exitCode)
 }
 
 func TestCA_SubcommandNotImplemented(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-tests := []struct {
-subcommand string
-errorText  string
-}{
-{subcommand: "client", errorText: "not yet implemented"},
-{subcommand: "init", errorText: "not yet implemented"},
-}
+	tests := []struct {
+		subcommand string
+		errorText  string
+	}{
+		{subcommand: "client", errorText: "not yet implemented"},
+		{subcommand: "init", errorText: "not yet implemented"},
+	}
 
-for _, tc := range tests {
-t.Run(tc.subcommand, func(t *testing.T) {
-t.Parallel()
+	for _, tc := range tests {
+		t.Run(tc.subcommand, func(t *testing.T) {
+			t.Parallel()
 
-var stdout, stderr bytes.Buffer
+			var stdout, stderr bytes.Buffer
 
-exitCode := Ca([]string{tc.subcommand}, nil, &stdout, &stderr)
-require.Equal(t, 1, exitCode, "%s should exit with 1", tc.subcommand)
+			exitCode := Ca([]string{tc.subcommand}, nil, &stdout, &stderr)
+			require.Equal(t, 1, exitCode, "%s should exit with 1", tc.subcommand)
 
-combined := stdout.String() + stderr.String()
-require.Contains(t, combined, tc.errorText)
-})
-}
+			combined := stdout.String() + stderr.String()
+			require.Contains(t, combined, tc.errorText)
+		})
+	}
 }
 
 func TestCA_ServerHelp(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-var stdout, stderr bytes.Buffer
+	var stdout, stderr bytes.Buffer
 
-exitCode := Ca([]string{"server", "--help"}, nil, &stdout, &stderr)
-require.Equal(t, 0, exitCode)
+	exitCode := Ca([]string{"server", "--help"}, nil, &stdout, &stderr)
+	require.Equal(t, 0, exitCode)
 
-combined := stdout.String() + stderr.String()
-require.Contains(t, combined, "pki ca server")
+	combined := stdout.String() + stderr.String()
+	require.Contains(t, combined, "pki ca server")
 }
 
 func TestCA_UnknownSubcommand(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-var stdout, stderr bytes.Buffer
+	var stdout, stderr bytes.Buffer
 
-exitCode := Ca([]string{"unknown-subcommand"}, nil, &stdout, &stderr)
-require.Equal(t, 1, exitCode)
+	exitCode := Ca([]string{"unknown-subcommand"}, nil, &stdout, &stderr)
+	require.Equal(t, 1, exitCode)
 
-combined := stdout.String() + stderr.String()
-require.Contains(t, combined, "Unknown subcommand")
+	combined := stdout.String() + stderr.String()
+	require.Contains(t, combined, "Unknown subcommand")
 }
 
 // TestCA_ServerParseError verifies the Parse error path in caServerStart.
 // Sequential: uses viper global state via ParseWithFlagSet.
 func TestCA_ServerParseError(t *testing.T) {
-var stdout, stderr bytes.Buffer
+	var stdout, stderr bytes.Buffer
 
-//nolint:goconst // Test-specific invalid flag, not a magic string.
-exitCode := caServerStart([]string{"--this-flag-does-not-exist"}, &stdout, &stderr)
-require.Equal(t, 1, exitCode)
+	//nolint:goconst // Test-specific invalid flag, not a magic string.
+	exitCode := caServerStart([]string{"--this-flag-does-not-exist"}, &stdout, &stderr)
+	require.Equal(t, 1, exitCode)
 
-combined := stdout.String() + stderr.String()
-require.Contains(t, combined, "Failed to parse configuration")
+	combined := stdout.String() + stderr.String()
+	require.Contains(t, combined, "Failed to parse configuration")
 }
 
 // TestCA_ServerCreateError verifies the NewFromConfig error path.
 // Sequential: uses viper global state via ParseWithFlagSet.
 func TestCA_ServerCreateError(t *testing.T) {
-var stdout, stderr bytes.Buffer
+	var stdout, stderr bytes.Buffer
 
-// Server creation fails because PostgreSQL is not running on the default port.
-exitCode := caServerStart([]string{}, &stdout, &stderr)
-require.Equal(t, 1, exitCode)
+	// Server creation fails because PostgreSQL is not running on the default port.
+	exitCode := caServerStart([]string{}, &stdout, &stderr)
+	require.Equal(t, 1, exitCode)
 
-combined := stdout.String() + stderr.String()
-require.Contains(t, combined, "Failed to create server")
+	combined := stdout.String() + stderr.String()
+	require.Contains(t, combined, "Failed to create server")
 }

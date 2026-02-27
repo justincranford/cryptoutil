@@ -5,7 +5,6 @@
 package asn1
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"crypto/ecdh"
 	ecdsa "crypto/ecdsa"
@@ -14,6 +13,7 @@ import (
 	crand "crypto/rand"
 	rsa "crypto/rsa"
 	"crypto/x509"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"math/big"
 	"os"
 	"testing"
@@ -116,6 +116,7 @@ func TestPEMEncodeDecodeECDSA(t *testing.T) {
 }
 
 func TestPEMEncodeDecodeECDH(t *testing.T) {
+	t.Parallel()
 	t.Skip("Blocked by bug: https://github.com/golang/go/issues/71919")
 
 	keyPairOriginal, err := ecdh.P256().GenerateKey(crand.Reader)
@@ -186,6 +187,8 @@ func TestPEMEncodeDecodeEdDSA(t *testing.T) {
 }
 
 func TestPEMEncodeDecodeCertificate(t *testing.T) {
+	t.Parallel()
+
 	privateKeyOriginal, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 

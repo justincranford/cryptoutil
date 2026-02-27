@@ -25,9 +25,9 @@ import (
 	cryptoutilAppsSmImDomain "cryptoutil/internal/apps/sm/im/domain"
 	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm/im/repository"
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 )
 

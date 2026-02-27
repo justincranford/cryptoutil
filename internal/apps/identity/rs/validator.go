@@ -52,8 +52,8 @@ func (v *TokenValidator) ValidateToken() fiber.Handler {
 				"method", c.Method())
 
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
-				"error_description": "Missing Authorization header",
+				cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidToken,
+				"error_description":               "Missing Authorization header",
 			})
 		}
 
@@ -65,8 +65,8 @@ func (v *TokenValidator) ValidateToken() fiber.Handler {
 				"auth_header", authHeader)
 
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
-				"error_description": "Invalid Authorization header format",
+				cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidToken,
+				"error_description":               "Invalid Authorization header format",
 			})
 		}
 
@@ -80,8 +80,8 @@ func (v *TokenValidator) ValidateToken() fiber.Handler {
 				cryptoutilSharedMagic.StringError, err.Error())
 
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
-				"error_description": "Token validation failed",
+				cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidToken,
+				"error_description":               "Token validation failed",
 			})
 		}
 
@@ -92,8 +92,8 @@ func (v *TokenValidator) ValidateToken() fiber.Handler {
 				cryptoutilSharedMagic.ClaimClientID, claims[cryptoutilSharedMagic.ClaimClientID])
 
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
-				"error_description": "Token expired",
+				cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidToken,
+				"error_description":               "Token expired",
 			})
 		}
 

@@ -3,8 +3,8 @@
 package idp
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	json "encoding/json"
 	"testing"
 	"time"
@@ -46,15 +46,15 @@ func TestUserInfoClaims(t *testing.T) {
 				UpdatedAt:         time.Now().UTC(),
 			},
 			expectedClaims: map[string]any{
-				cryptoutilSharedMagic.ClaimSub:                nil, // Value validated separately
+				cryptoutilSharedMagic.ClaimSub:               nil, // Value validated separately
 				cryptoutilSharedMagic.ClaimPreferredUsername: "testuser_standard",
-				cryptoutilSharedMagic.ClaimEmail:              "standard@example.com",
+				cryptoutilSharedMagic.ClaimEmail:             "standard@example.com",
 				cryptoutilSharedMagic.ClaimEmailVerified:     true,
 				cryptoutilSharedMagic.ClaimGivenName:         "Test",
 				cryptoutilSharedMagic.ClaimFamilyName:        "User",
-				cryptoutilSharedMagic.ClaimName:               "Test User",
-				cryptoutilSharedMagic.ClaimLocale:             "en-US",
-				cryptoutilSharedMagic.ClaimZoneinfo:           "America/New_York",
+				cryptoutilSharedMagic.ClaimName:              "Test User",
+				cryptoutilSharedMagic.ClaimLocale:            "en-US",
+				cryptoutilSharedMagic.ClaimZoneinfo:          "America/New_York",
 				cryptoutilSharedMagic.ClaimUpdatedAt:         nil, // Timestamp validation
 			},
 			verifyClaimValues: true,
@@ -69,9 +69,9 @@ func TestUserInfoClaims(t *testing.T) {
 				EmailVerified:     false,
 			},
 			expectedClaims: map[string]any{
-				cryptoutilSharedMagic.ClaimSub:                nil,
+				cryptoutilSharedMagic.ClaimSub:               nil,
 				cryptoutilSharedMagic.ClaimPreferredUsername: "testuser_minimal",
-				cryptoutilSharedMagic.ClaimEmail:              "minimal@example.com",
+				cryptoutilSharedMagic.ClaimEmail:             "minimal@example.com",
 				cryptoutilSharedMagic.ClaimEmailVerified:     false,
 			},
 			unexpectedClaims: []string{
@@ -144,15 +144,15 @@ func TestUserInfoClaims(t *testing.T) {
 
 			// Convert user to UserInfo claims (JSON representation).
 			claimsJSON, err := json.Marshal(map[string]any{
-				cryptoutilSharedMagic.ClaimSub:                retrievedUser.Sub,
+				cryptoutilSharedMagic.ClaimSub:               retrievedUser.Sub,
 				cryptoutilSharedMagic.ClaimPreferredUsername: retrievedUser.PreferredUsername,
-				cryptoutilSharedMagic.ClaimEmail:              retrievedUser.Email,
+				cryptoutilSharedMagic.ClaimEmail:             retrievedUser.Email,
 				cryptoutilSharedMagic.ClaimEmailVerified:     retrievedUser.EmailVerified,
 				cryptoutilSharedMagic.ClaimGivenName:         retrievedUser.GivenName,
 				cryptoutilSharedMagic.ClaimFamilyName:        retrievedUser.FamilyName,
-				cryptoutilSharedMagic.ClaimName:               retrievedUser.Name,
-				cryptoutilSharedMagic.ClaimLocale:             retrievedUser.Locale,
-				cryptoutilSharedMagic.ClaimZoneinfo:           retrievedUser.Zoneinfo,
+				cryptoutilSharedMagic.ClaimName:              retrievedUser.Name,
+				cryptoutilSharedMagic.ClaimLocale:            retrievedUser.Locale,
+				cryptoutilSharedMagic.ClaimZoneinfo:          retrievedUser.Zoneinfo,
 				cryptoutilSharedMagic.ClaimUpdatedAt:         retrievedUser.UpdatedAt.Unix(),
 			})
 			require.NoError(t, err, "failed to marshal claims to JSON")

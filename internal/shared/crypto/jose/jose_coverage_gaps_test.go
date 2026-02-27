@@ -3,10 +3,10 @@
 package crypto
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/ed25519"
 	crand "crypto/rand"
 	rsa "crypto/rsa"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"

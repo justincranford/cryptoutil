@@ -264,14 +264,14 @@ func TestParseClaimsMap_AllBranches(t *testing.T) {
 		{
 			name: "all claims combined",
 			claimsMap: map[string]any{
-				cryptoutilSharedMagic.ClaimIss:    "combined-issuer",
-				cryptoutilSharedMagic.ClaimSub:    "combined-subject",
-				cryptoutilSharedMagic.ClaimAud:    []any{"aud1", "aud2"},
-				cryptoutilSharedMagic.ClaimExp:    json.Number("1700000000"),
-				cryptoutilSharedMagic.ClaimNbf:    float64(1699990000),
-				cryptoutilSharedMagic.ClaimIat:    float64(1699980000),
-				cryptoutilSharedMagic.ClaimJti:    "combined-jti",
-				"custom": "custom-value",
+				cryptoutilSharedMagic.ClaimIss: "combined-issuer",
+				cryptoutilSharedMagic.ClaimSub: "combined-subject",
+				cryptoutilSharedMagic.ClaimAud: []any{"aud1", "aud2"},
+				cryptoutilSharedMagic.ClaimExp: json.Number("1700000000"),
+				cryptoutilSharedMagic.ClaimNbf: float64(1699990000),
+				cryptoutilSharedMagic.ClaimIat: float64(1699980000),
+				cryptoutilSharedMagic.ClaimJti: "combined-jti",
+				"custom":                       "custom-value",
 			},
 			verify: func(t *testing.T, claims *JWTClaims) {
 				require.Equal(t, "combined-issuer", claims.Issuer)

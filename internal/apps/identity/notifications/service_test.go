@@ -20,7 +20,6 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-
 // setupTestDB creates an in-memory SQLite database for testing.
 func setupTestDB(t *testing.T) *gorm.DB {
 	t.Helper()

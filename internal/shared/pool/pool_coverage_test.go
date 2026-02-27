@@ -5,8 +5,8 @@
 package pool
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -200,6 +200,8 @@ func TestWorker_TimeLimitReached(t *testing.T) {
 // TestCloseChannelsThread_TickerPath covers the ticker-based close path in
 // closeChannelsThread (line 375). NOT parallel — modifies package-level var.
 func TestCloseChannelsThread_TickerPath(t *testing.T) {
+	t.Parallel()
+
 	origInterval := poolMaintenanceInterval
 	poolMaintenanceInterval = 1 * time.Millisecond
 

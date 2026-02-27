@@ -20,9 +20,8 @@ import (
 )
 
 // TestServerInit_HappyPath tests ServerInit with valid configuration.
+// Sequential: uses os.Chdir (global process state)
 func TestServerInit_HappyPath(t *testing.T) {
-	t.Parallel()
-
 	// Create temporary directory for PEM file outputs
 	tempDir, err := os.MkdirTemp("", "serverinit_test_*")
 	require.NoError(t, err)

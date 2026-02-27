@@ -4,47 +4,47 @@
 package ca
 
 import (
-"context"
-"fmt"
-"net"
-"testing"
+	"context"
+	"fmt"
+	"net"
+	"testing"
 
-"github.com/spf13/viper"
-"github.com/stretchr/testify/require"
+	"github.com/spf13/viper"
+	"github.com/stretchr/testify/require"
 
-cryptoutilSharedTestutil "cryptoutil/internal/shared/testutil"
+	cryptoutilSharedTestutil "cryptoutil/internal/shared/testutil"
 )
 
 // TestCA_ServerStartPortConflict verifies the server error path through errChan when
 // the public port is already occupied and srv.Start(ctx) fails to bind.
 // Sequential: uses viper global state via ParseWithFlagSet.
 func TestCA_ServerStartPortConflict(t *testing.T) {
-t.Cleanup(func() { viper.Reset() })
+	t.Cleanup(func() { viper.Reset() })
 
-// Occupy a TCP port so the server's public listener fails to bind.
-var lc net.ListenConfig
+	// Occupy a TCP port so the server's public listener fails to bind.
+	var lc net.ListenConfig
 
-ln, err := lc.Listen(context.Background(), "tcp", "127.0.0.1:0")
-require.NoError(t, err)
+	ln, err := lc.Listen(context.Background(), "tcp", "127.0.0.1:0")
+	require.NoError(t, err)
 
-defer func() { require.NoError(t, ln.Close()) }()
+	defer func() { require.NoError(t, ln.Close()) }()
 
-tcpAddr, ok := ln.Addr().(*net.TCPAddr)
-require.True(t, ok, "expected *net.TCPAddr")
+	tcpAddr, ok := ln.Addr().(*net.TCPAddr)
+	require.True(t, ok, "expected *net.TCPAddr")
 
-occupiedPort := tcpAddr.Port
+	occupiedPort := tcpAddr.Port
 
-var stdout, stderr cryptoutilSharedTestutil.SafeBuffer
+	var stdout, stderr cryptoutilSharedTestutil.SafeBuffer
 
-exitCode := caServerStart(
-[]string{
-"--profile=test",
-fmt.Sprintf("--bind-public-port=%d", occupiedPort),
-"--bind-private-port=0",
-},
-&stdout, &stderr,
-)
+	exitCode := caServerStart(
+		[]string{
+			"--profile=test",
+			fmt.Sprintf("--bind-public-port=%d", occupiedPort),
+			"--bind-private-port=0",
+		},
+		&stdout, &stderr,
+	)
 
-require.Equal(t, 1, exitCode, "server should return exit code 1 when port is occupied")
-require.Contains(t, stderr.String(), "Server error", "stderr should contain server error message")
+	require.Equal(t, 1, exitCode, "server should return exit code 1 when port is occupied")
+	require.Contains(t, stderr.String(), "Server error", "stderr should contain server error message")
 }

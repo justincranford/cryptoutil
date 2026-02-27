@@ -256,6 +256,7 @@ func helper() {}
 	require.NoError(t, err)
 }
 
+// Sequential: uses os.Chdir (global process state).
 func TestCheck_DelegatesCheckInDir(t *testing.T) {
 	// NOTE: Cannot use t.Parallel() - test changes working directory.
 	origDir, err := os.Getwd()

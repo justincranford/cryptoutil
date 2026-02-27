@@ -5,8 +5,8 @@
 package realm
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"database/sql"
 	"encoding/base64"
 	json "encoding/json"

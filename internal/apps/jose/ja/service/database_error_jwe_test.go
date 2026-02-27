@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	_ "modernc.org/sqlite" // CGO-free SQLite driver.
-
 )
 
 func TestJWEService_EncryptDatabaseError(t *testing.T) {

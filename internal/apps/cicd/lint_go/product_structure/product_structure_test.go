@@ -121,6 +121,7 @@ func TestCheckInDir_NoAppsDir(t *testing.T) {
 	require.Contains(t, err.Error(), "internal/apps directory not found")
 }
 
+// Sequential: uses os.Chdir (global process state).
 func TestCheck_FromProjectRoot(t *testing.T) {
 	root, err := findProjectRoot()
 	if err != nil {

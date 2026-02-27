@@ -3,8 +3,8 @@
 package mfa_test
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"database/sql"
 	"testing"
 	"time"

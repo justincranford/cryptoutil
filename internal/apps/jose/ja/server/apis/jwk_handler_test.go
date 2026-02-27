@@ -4,8 +4,8 @@
 package apis
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
 	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"

@@ -4,8 +4,8 @@
 package tenant
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"database/sql"
 	"database/sql/driver"
 	"errors"
@@ -226,7 +226,7 @@ func TestListSchemas_UnsupportedType(t *testing.T) {
 // ----------------------------------------------------------------------------
 
 // TestCreatePostgresSchema_Success tests successful schema creation.
-// Cannot be parallel because it configures the global pgDriver.
+// Sequential: modifies global pgDriver state (package-level mock driver).
 func TestCreatePostgresSchema_Success(t *testing.T) {
 	pgDriver.setFail(false)
 
@@ -237,7 +237,7 @@ func TestCreatePostgresSchema_Success(t *testing.T) {
 }
 
 // TestCreatePostgresSchema_Error tests error path in schema creation.
-// Cannot be parallel because it configures the global pgDriver.
+// Sequential: modifies global pgDriver state (package-level mock driver).
 func TestCreatePostgresSchema_Error(t *testing.T) {
 	pgDriver.setFail(true)
 
@@ -251,7 +251,7 @@ func TestCreatePostgresSchema_Error(t *testing.T) {
 }
 
 // TestDropPostgresSchema_Success tests successful schema drop.
-// Cannot be parallel because it configures the global pgDriver.
+// Sequential: modifies global pgDriver state (package-level mock driver).
 func TestDropPostgresSchema_Success(t *testing.T) {
 	pgDriver.setFail(false)
 
@@ -262,7 +262,7 @@ func TestDropPostgresSchema_Success(t *testing.T) {
 }
 
 // TestDropPostgresSchema_Error tests error path in schema drop.
-// Cannot be parallel because it configures the global pgDriver.
+// Sequential: modifies global pgDriver state (package-level mock driver).
 func TestDropPostgresSchema_Error(t *testing.T) {
 	pgDriver.setFail(true)
 
@@ -276,7 +276,7 @@ func TestDropPostgresSchema_Error(t *testing.T) {
 }
 
 // TestPostgresSchemaExists_ExistsTrue tests schema existence returning true.
-// Cannot be parallel because it configures the global pgDriver.
+// Sequential: modifies global pgDriver state (package-level mock driver).
 func TestPostgresSchemaExists_ExistsTrue(t *testing.T) {
 	pgDriver.setFail(false)
 	pgDriver.setRows([]string{"exists"}, [][]driver.Value{{true}})
@@ -291,7 +291,7 @@ func TestPostgresSchemaExists_ExistsTrue(t *testing.T) {
 }
 
 // TestPostgresSchemaExists_ExistsFalse tests schema existence returning false.
-// Cannot be parallel because it configures the global pgDriver.
+// Sequential: modifies global pgDriver state (package-level mock driver).
 func TestPostgresSchemaExists_ExistsFalse(t *testing.T) {
 	pgDriver.setFail(false)
 	pgDriver.setRows([]string{"exists"}, [][]driver.Value{{false}})
@@ -306,7 +306,7 @@ func TestPostgresSchemaExists_ExistsFalse(t *testing.T) {
 }
 
 // TestPostgresSchemaExists_Error tests error path in schema existence check.
-// Cannot be parallel because it configures the global pgDriver.
+// Sequential: modifies global pgDriver state (package-level mock driver).
 func TestPostgresSchemaExists_Error(t *testing.T) {
 	pgDriver.setFail(true)
 
@@ -320,7 +320,7 @@ func TestPostgresSchemaExists_Error(t *testing.T) {
 }
 
 // TestListPostgresSchemas_Success tests listing schemas with results.
-// Cannot be parallel because it configures the global pgDriver.
+// Sequential: modifies global pgDriver state (package-level mock driver).
 func TestListPostgresSchemas_Success(t *testing.T) {
 	pgDriver.setFail(false)
 	pgDriver.setRows([]string{"schema_name"}, [][]driver.Value{
@@ -339,7 +339,7 @@ func TestListPostgresSchemas_Success(t *testing.T) {
 }
 
 // TestListPostgresSchemas_Error tests error path when listing schemas fails.
-// Cannot be parallel because it configures the global pgDriver.
+// Sequential: modifies global pgDriver state (package-level mock driver).
 func TestListPostgresSchemas_Error(t *testing.T) {
 	pgDriver.setFail(true)
 
@@ -353,7 +353,7 @@ func TestListPostgresSchemas_Error(t *testing.T) {
 }
 
 // TestListPostgresSchemas_ScanError tests error path when rows.Scan fails.
-// Cannot be parallel because it configures the global pgDriver.
+// Sequential: modifies global pgDriver state (package-level mock driver).
 func TestListPostgresSchemas_ScanError(t *testing.T) {
 	pgDriver.setFail(false)
 	pgDriver.setFailScan(true)
@@ -374,7 +374,7 @@ func TestListPostgresSchemas_ScanError(t *testing.T) {
 }
 
 // TestListPostgresSchemas_IterError tests error path when rows.Err() returns an error.
-// Cannot be parallel because it configures the global pgDriver.
+// Sequential: modifies global pgDriver state (package-level mock driver).
 func TestListPostgresSchemas_IterError(t *testing.T) {
 	pgDriver.setFail(false)
 	pgDriver.setFailIter(true)

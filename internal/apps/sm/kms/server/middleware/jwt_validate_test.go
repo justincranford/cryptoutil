@@ -1,9 +1,9 @@
 package middleware
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	crand "crypto/rand"
 	rsa "crypto/rsa"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	json "encoding/json"
 	http "net/http"
 	"net/http/httptest"
@@ -295,94 +295,93 @@ func TestJWTMiddleware_FullFlow(t *testing.T) {
 }
 
 func TestValidateToken_WithRevocationCheck(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-jwksServer := newTestJWKSServer(t)
+	jwksServer := newTestJWKSServer(t)
 
-introspectionServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-w.WriteHeader(http.StatusOK)
+	introspectionServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
 
-_, writeErr := w.Write([]byte(`{"active":true}`))
-require.NoError(t, writeErr)
-}))
-t.Cleanup(introspectionServer.Close)
+		_, writeErr := w.Write([]byte(`{"active":true}`))
+		require.NoError(t, writeErr)
+	}))
+	t.Cleanup(introspectionServer.Close)
 
-now := time.Now().UTC()
+	now := time.Now().UTC()
 
-validator, err := NewJWTValidator(JWTValidatorConfig{
-JWKSURL:             jwksServer.server.URL,
-RevocationCheckMode: RevocationCheckEveryRequest,
-IntrospectionURL:    introspectionServer.URL,
-})
-require.NoError(t, err)
+	validator, err := NewJWTValidator(JWTValidatorConfig{
+		JWKSURL:             jwksServer.server.URL,
+		RevocationCheckMode: RevocationCheckEveryRequest,
+		IntrospectionURL:    introspectionServer.URL,
+	})
+	require.NoError(t, err)
 
-tokenString := jwksServer.signToken(t, map[string]any{
-cryptoutilSharedMagic.ClaimSub:   "user-revcheck",
-cryptoutilSharedMagic.ClaimExp:   now.Add(1 * time.Hour).Unix(),
-cryptoutilSharedMagic.ClaimIat:   now.Unix(),
-cryptoutilSharedMagic.ClaimScope: "read write",
-})
+	tokenString := jwksServer.signToken(t, map[string]any{
+		cryptoutilSharedMagic.ClaimSub:   "user-revcheck",
+		cryptoutilSharedMagic.ClaimExp:   now.Add(1 * time.Hour).Unix(),
+		cryptoutilSharedMagic.ClaimIat:   now.Unix(),
+		cryptoutilSharedMagic.ClaimScope: "read write",
+	})
 
-claims, err := validator.ValidateToken(t.Context(), tokenString)
-require.NoError(t, err)
-require.NotNil(t, claims)
-require.Equal(t, "user-revcheck", claims.Subject)
+	claims, err := validator.ValidateToken(t.Context(), tokenString)
+	require.NoError(t, err)
+	require.NotNil(t, claims)
+	require.Equal(t, "user-revcheck", claims.Subject)
 }
 
 func TestValidateToken_RevokedDuringCheck(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-jwksServer := newTestJWKSServer(t)
+	jwksServer := newTestJWKSServer(t)
 
-introspectionServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-w.WriteHeader(http.StatusOK)
+	introspectionServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
 
-_, writeErr := w.Write([]byte(`{"active":false}`))
-require.NoError(t, writeErr)
-}))
-t.Cleanup(introspectionServer.Close)
+		_, writeErr := w.Write([]byte(`{"active":false}`))
+		require.NoError(t, writeErr)
+	}))
+	t.Cleanup(introspectionServer.Close)
 
-now := time.Now().UTC()
+	now := time.Now().UTC()
 
-validator, err := NewJWTValidator(JWTValidatorConfig{
-JWKSURL:             jwksServer.server.URL,
-RevocationCheckMode: RevocationCheckEveryRequest,
-IntrospectionURL:    introspectionServer.URL,
-})
-require.NoError(t, err)
+	validator, err := NewJWTValidator(JWTValidatorConfig{
+		JWKSURL:             jwksServer.server.URL,
+		RevocationCheckMode: RevocationCheckEveryRequest,
+		IntrospectionURL:    introspectionServer.URL,
+	})
+	require.NoError(t, err)
 
-tokenString := jwksServer.signToken(t, map[string]any{
-cryptoutilSharedMagic.ClaimSub: "revoked-user",
-cryptoutilSharedMagic.ClaimExp: now.Add(1 * time.Hour).Unix(),
-cryptoutilSharedMagic.ClaimIat: now.Unix(),
-})
+	tokenString := jwksServer.signToken(t, map[string]any{
+		cryptoutilSharedMagic.ClaimSub: "revoked-user",
+		cryptoutilSharedMagic.ClaimExp: now.Add(1 * time.Hour).Unix(),
+		cryptoutilSharedMagic.ClaimIat: now.Unix(),
+	})
 
-claims, err := validator.ValidateToken(t.Context(), tokenString)
-require.Error(t, err)
-require.Nil(t, claims)
-require.Contains(t, err.Error(), "revoked")
+	claims, err := validator.ValidateToken(t.Context(), tokenString)
+	require.Error(t, err)
+	require.Nil(t, claims)
+	require.Contains(t, err.Error(), "revoked")
 }
 
 func TestValidateToken_WithAllowedAlgorithms(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-jwksServer := newTestJWKSServer(t)
-now := time.Now().UTC()
+	jwksServer := newTestJWKSServer(t)
+	now := time.Now().UTC()
 
-validator, err := NewJWTValidator(JWTValidatorConfig{
-JWKSURL:           jwksServer.server.URL,
-AllowedAlgorithms: DefaultAllowedAlgorithms(),
-})
-require.NoError(t, err)
+	validator, err := NewJWTValidator(JWTValidatorConfig{
+		JWKSURL:           jwksServer.server.URL,
+		AllowedAlgorithms: DefaultAllowedAlgorithms(),
+	})
+	require.NoError(t, err)
 
-tokenString := jwksServer.signToken(t, map[string]any{
-cryptoutilSharedMagic.ClaimSub: "user-alg",
-cryptoutilSharedMagic.ClaimExp: now.Add(1 * time.Hour).Unix(),
-cryptoutilSharedMagic.ClaimIat: now.Unix(),
-})
+	tokenString := jwksServer.signToken(t, map[string]any{
+		cryptoutilSharedMagic.ClaimSub: "user-alg",
+		cryptoutilSharedMagic.ClaimExp: now.Add(1 * time.Hour).Unix(),
+		cryptoutilSharedMagic.ClaimIat: now.Unix(),
+	})
 
-claims, err := validator.ValidateToken(t.Context(), tokenString)
-require.NoError(t, err)
-require.NotNil(t, claims)
+	claims, err := validator.ValidateToken(t.Context(), tokenString)
+	require.NoError(t, err)
+	require.NotNil(t, claims)
 }
-

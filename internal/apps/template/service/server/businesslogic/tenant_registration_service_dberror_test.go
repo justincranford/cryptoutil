@@ -4,8 +4,8 @@
 package businesslogic
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"database/sql"
 	"fmt"
 	"testing"
@@ -79,6 +79,7 @@ func TestRegisterUserWithTenant_JoinFlow(t *testing.T) {
 
 // TestRegisterUserWithTenant_CreateTenant_DBError tests that RegisterUserWithTenant returns error when DB is closed.
 func TestRegisterUserWithTenant_CreateTenant_DBError(t *testing.T) {
+	t.Parallel()
 	// Create fresh database for this test.
 	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteInMemoryDSN)
 	require.NoError(t, err)
@@ -116,6 +117,7 @@ func TestRegisterUserWithTenant_CreateTenant_DBError(t *testing.T) {
 
 // TestRegisterClientWithTenant_DBError tests that RegisterClientWithTenant returns error when DB is closed.
 func TestRegisterClientWithTenant_DBError(t *testing.T) {
+	t.Parallel()
 	// Create fresh database for this test.
 	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteInMemoryDSN)
 	require.NoError(t, err)
@@ -185,6 +187,7 @@ func TestRegisterClientWithTenant_JoinRequestCreateError(t *testing.T) {
 
 // TestAuthorizeJoinRequest_GetByID_DBError tests that AuthorizeJoinRequest returns error when GetByID fails.
 func TestAuthorizeJoinRequest_GetByID_DBError(t *testing.T) {
+	t.Parallel()
 	// Create fresh database for this test.
 	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteInMemoryDSN)
 	require.NoError(t, err)
@@ -222,6 +225,7 @@ func TestAuthorizeJoinRequest_GetByID_DBError(t *testing.T) {
 
 // TestAuthorizeJoinRequest_Update_DBError tests that AuthorizeJoinRequest returns error when Update fails.
 func TestAuthorizeJoinRequest_Update_DBError(t *testing.T) {
+	t.Parallel()
 	// Create fresh database for this test.
 	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteInMemoryDSN)
 	require.NoError(t, err)
@@ -273,6 +277,7 @@ func TestAuthorizeJoinRequest_Update_DBError(t *testing.T) {
 
 // TestListJoinRequests_DBError tests that ListJoinRequests returns error when ListByTenant fails.
 func TestListJoinRequests_DBError(t *testing.T) {
+	t.Parallel()
 	// Create fresh database for this test.
 	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteInMemoryDSN)
 	require.NoError(t, err)

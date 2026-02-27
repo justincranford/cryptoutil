@@ -285,8 +285,8 @@ func TestUnsealKeysServiceSharedSecrets_MaxSecretLength(t *testing.T) {
 
 	// Create secrets with one above maximum length
 	sharedSecrets := [][]byte{
-		make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes),    // Valid
-		make([]byte, cryptoutilSharedMagic.DBContainerRandSuffixMax), // Above maximum
+		make([]byte, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes), // Valid
+		make([]byte, cryptoutilSharedMagic.DBContainerRandSuffixMax),       // Above maximum
 	}
 
 	service, err := NewUnsealKeysServiceSharedSecrets(sharedSecrets, 2)

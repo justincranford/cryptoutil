@@ -3,7 +3,6 @@
 package cli
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"context"
 	ecdsa "crypto/ecdsa"
@@ -11,6 +10,7 @@ import (
 	rsa "crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"

@@ -5,8 +5,8 @@
 package ja
 
 const (
-// JAUsageMain is the main usage message for the jose ja command.
-JAUsageMain = `Usage: jose ja <subcommand> [options]
+	// JAUsageMain is the main usage message for the jose ja command.
+	JAUsageMain = `Usage: jose ja <subcommand> [options]
 
 Available subcommands:
   version     Print version information
@@ -21,8 +21,8 @@ Available subcommands:
 Use "jose ja <subcommand> help" for subcommand-specific help.
 Version information is available via Docker image tags.`
 
-// JAUsageServer is the usage message for the server subcommand.
-JAUsageServer = `Usage: jose ja server [options]
+	// JAUsageServer is the usage message for the server subcommand.
+	JAUsageServer = `Usage: jose ja server [options]
 
 Description:
   Start the JWK Authority server with database initialization.
@@ -41,8 +41,8 @@ Examples:
   jose ja server
   jose ja server --database-url file:/tmp/jose.db`
 
-// JAUsageClient is the usage message for the client subcommand.
-JAUsageClient = `Usage: jose ja client [options]
+	// JAUsageClient is the usage message for the client subcommand.
+	JAUsageClient = `Usage: jose ja client [options]
 
 Description:
   Run client operations for the JWK Authority service.
@@ -53,8 +53,8 @@ Options:
 Examples:
   jose ja client`
 
-// JAUsageInit is the usage message for the init subcommand.
-JAUsageInit = `Usage: jose ja init [options]
+	// JAUsageInit is the usage message for the init subcommand.
+	JAUsageInit = `Usage: jose ja init [options]
 
 Description:
   Initialize database schema and configuration for the JWK Authority service.
@@ -67,8 +67,8 @@ Examples:
   jose ja init
   jose ja init --config configs/jose/ja/config.yml`
 
-// JAUsageHealth is the usage message for the health subcommand.
-JAUsageHealth = `Usage: jose ja health [options]
+	// JAUsageHealth is the usage message for the health subcommand.
+	JAUsageHealth = `Usage: jose ja health [options]
 
 Description:
   Check service health via public API endpoint.
@@ -84,8 +84,8 @@ Examples:
   jose ja health --url https://localhost:8800
   jose ja health --cacert /path/to/ca.pem`
 
-// JAUsageLivez is the usage message for the livez subcommand.
-JAUsageLivez = `Usage: jose ja livez [options]
+	// JAUsageLivez is the usage message for the livez subcommand.
+	JAUsageLivez = `Usage: jose ja livez [options]
 
 Description:
   Check service liveness via admin API endpoint.
@@ -100,8 +100,8 @@ Examples:
   jose ja livez
   jose ja livez --url https://localhost:9090`
 
-// JAUsageReadyz is the usage message for the readyz subcommand.
-JAUsageReadyz = `Usage: jose ja readyz [options]
+	// JAUsageReadyz is the usage message for the readyz subcommand.
+	JAUsageReadyz = `Usage: jose ja readyz [options]
 
 Description:
   Check service readiness via admin API endpoint.
@@ -116,8 +116,8 @@ Examples:
   jose ja readyz
   jose ja readyz --url https://localhost:9090`
 
-// JAUsageShutdown is the usage message for the shutdown subcommand.
-JAUsageShutdown = `Usage: jose ja shutdown [options]
+	// JAUsageShutdown is the usage message for the shutdown subcommand.
+	JAUsageShutdown = `Usage: jose ja shutdown [options]
 
 Description:
   Trigger graceful shutdown via admin API endpoint.

@@ -3,8 +3,8 @@
 package network
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	http "net/http"
 	"net/http/httptest"
 	"os"

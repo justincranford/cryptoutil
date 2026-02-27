@@ -2,11 +2,11 @@ package businesslogic
 
 import (
 	"context"
-	"testing"
 	cryptoutilKmsServer "cryptoutil/api/kms/server"
 	cryptoutilOpenapiModel "cryptoutil/api/model"
-	testify "github.com/stretchr/testify/require"
 	googleUuid "github.com/google/uuid"
+	testify "github.com/stretchr/testify/require"
+	"testing"
 )
 
 func TestNoTenantContext(t *testing.T) {
@@ -124,4 +124,3 @@ func TestPostGenerate_NoMaterialKey(t *testing.T) {
 }
 
 func ptr[T any](v T) *T { return &v }
-

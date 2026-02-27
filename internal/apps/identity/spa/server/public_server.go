@@ -54,8 +54,8 @@ func (s *PublicServer) handleHealth(c *fiber.Ctx) error {
 	c.Status(http.StatusOK)
 
 	if err := c.JSON(fiber.Map{
-		cryptoutilSharedMagic.StringStatus:  cryptoutilSharedMagic.DockerServiceHealthHealthy,
-		"service": cryptoutilSharedMagic.OTLPServiceIdentitySPA,
+		cryptoutilSharedMagic.StringStatus: cryptoutilSharedMagic.DockerServiceHealthHealthy,
+		"service":                          cryptoutilSharedMagic.OTLPServiceIdentitySPA,
 	}); err != nil {
 		return fmt.Errorf("failed to send health response: %w", err)
 	}

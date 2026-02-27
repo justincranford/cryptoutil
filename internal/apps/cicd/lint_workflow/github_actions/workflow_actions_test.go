@@ -319,9 +319,8 @@ jobs:
 	require.Contains(t, err.Error(), "workflow validation errors")
 }
 
+// Sequential: uses os.Chdir (global process state).
 func TestLintGitHubWorkflows_ExceptionLoadWarning(t *testing.T) {
-	t.Parallel()
-
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	tmpDir := t.TempDir()
 	originalWd, err := os.Getwd()

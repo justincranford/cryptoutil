@@ -5,12 +5,11 @@
 package tls
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/tls"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"net"
 	"testing"
 	"time"
-
 
 	"github.com/stretchr/testify/require"
 )

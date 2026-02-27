@@ -5,11 +5,11 @@
 package main
 
 import (
-"os"
+	"os"
 
-cryptoutilAppsSkeletonTemplate "cryptoutil/internal/apps/skeleton/template"
+	cryptoutilAppsSkeletonTemplate "cryptoutil/internal/apps/skeleton/template"
 )
 
 func main() {
-os.Exit(cryptoutilAppsSkeletonTemplate.Template(os.Args[1:], os.Stdin, os.Stdout, os.Stderr))
+	os.Exit(cryptoutilAppsSkeletonTemplate.Template(os.Args[1:], os.Stdin, os.Stdout, os.Stderr))
 }

@@ -14,6 +14,7 @@ import (
 
 // TestGetTLSPEMBytes tests getTLSPEMBytes with various inputs.
 // NOTE: Cannot use t.Parallel() - this test accesses global viper state.
+// Sequential: uses viper/pflag global state.
 func TestGetTLSPEMBytes(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -51,6 +52,7 @@ func TestGetTLSPEMBytes(t *testing.T) {
 
 // TestNewForServer tests NewForJOSEServer and NewForCAServer factory functions.
 // NOTE: These tests cannot run in parallel due to global flag state.
+// Sequential: uses viper/pflag global state.
 func TestNewForServer(t *testing.T) {
 	tests := []struct {
 		name        string

@@ -5,8 +5,8 @@
 package tests
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"

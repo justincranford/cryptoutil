@@ -159,4 +159,3 @@ func TestCheckComposeFile_DifferentHostPort(t *testing.T) {
 	require.Len(t, violations, 1, "Mapping 19090->9090 exposes admin port")
 	require.Contains(t, violations[0].Content, "9090")
 }
-

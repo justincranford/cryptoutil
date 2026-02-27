@@ -26,7 +26,7 @@ func TestValidateRegistrationRequest_Table(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		body        RegisterUserRequest
+		body       RegisterUserRequest
 		wantErrMsg string
 	}{
 		{

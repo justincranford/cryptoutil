@@ -6,9 +6,9 @@
 package apis
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	json "encoding/json"
 	"fmt"
 	http "net/http"
@@ -223,6 +223,7 @@ func TestIntegration_DuplicateUsername_SameTenant(t *testing.T) {
 // TestIntegration_PostgreSQL tests with real PostgreSQL container (slow, only run with -tags=integration).
 // NOTE: Disabled on Windows due to testcontainers "rootless Docker" error. Run on Linux/Mac instead.
 func TestIntegration_PostgreSQL(t *testing.T) {
+	t.Parallel()
 	t.Skip("PostgreSQL container test disabled on Windows - rootless Docker not supported")
 
 	ctx := context.Background()

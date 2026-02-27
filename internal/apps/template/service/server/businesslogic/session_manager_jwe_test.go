@@ -117,12 +117,12 @@ func TestSessionManager_ValidateBrowserSession_JWE(t *testing.T) {
 				jti := googleUuid.Must(googleUuid.NewV7())
 
 				claims := map[string]any{
-					cryptoutilSharedMagic.ClaimJti:       jti.String(),
-					cryptoutilSharedMagic.ClaimIat:       now.Add(-2 * time.Hour).Unix(),
-					cryptoutilSharedMagic.ClaimExp:       exp.Unix(),
-					cryptoutilSharedMagic.ClaimSub:       googleUuid.Must(googleUuid.NewV7()).String(),
-					"tenant_id": googleUuid.Must(googleUuid.NewV7()).String(),
-					"realm_id":  googleUuid.Must(googleUuid.NewV7()).String(),
+					cryptoutilSharedMagic.ClaimJti: jti.String(),
+					cryptoutilSharedMagic.ClaimIat: now.Add(-2 * time.Hour).Unix(),
+					cryptoutilSharedMagic.ClaimExp: exp.Unix(),
+					cryptoutilSharedMagic.ClaimSub: googleUuid.Must(googleUuid.NewV7()).String(),
+					"tenant_id":                    googleUuid.Must(googleUuid.NewV7()).String(),
+					"realm_id":                     googleUuid.Must(googleUuid.NewV7()).String(),
 				}
 
 				claimsBytes, _ := json.Marshal(claims)
@@ -207,9 +207,9 @@ func TestSessionManager_ValidateBrowserSession_JWE(t *testing.T) {
 					cryptoutilSharedMagic.ClaimJti: jti.String(),
 					cryptoutilSharedMagic.ClaimIat: now.Unix(),
 					// No exp claim - intentionally missing
-					cryptoutilSharedMagic.ClaimSub:       googleUuid.Must(googleUuid.NewV7()).String(),
-					"tenant_id": googleUuid.Must(googleUuid.NewV7()).String(),
-					"realm_id":  googleUuid.Must(googleUuid.NewV7()).String(),
+					cryptoutilSharedMagic.ClaimSub: googleUuid.Must(googleUuid.NewV7()).String(),
+					"tenant_id":                    googleUuid.Must(googleUuid.NewV7()).String(),
+					"realm_id":                     googleUuid.Must(googleUuid.NewV7()).String(),
 				}
 
 				claimsBytes, _ := json.Marshal(claims)
@@ -244,11 +244,11 @@ func TestSessionManager_ValidateBrowserSession_JWE(t *testing.T) {
 
 				claims := map[string]any{
 					// No jti claim - intentionally missing
-					cryptoutilSharedMagic.ClaimIat:       now.Unix(),
-					cryptoutilSharedMagic.ClaimExp:       exp.Unix(),
-					cryptoutilSharedMagic.ClaimSub:       googleUuid.Must(googleUuid.NewV7()).String(),
-					"tenant_id": googleUuid.Must(googleUuid.NewV7()).String(),
-					"realm_id":  googleUuid.Must(googleUuid.NewV7()).String(),
+					cryptoutilSharedMagic.ClaimIat: now.Unix(),
+					cryptoutilSharedMagic.ClaimExp: exp.Unix(),
+					cryptoutilSharedMagic.ClaimSub: googleUuid.Must(googleUuid.NewV7()).String(),
+					"tenant_id":                    googleUuid.Must(googleUuid.NewV7()).String(),
+					"realm_id":                     googleUuid.Must(googleUuid.NewV7()).String(),
 				}
 
 				claimsBytes, _ := json.Marshal(claims)
@@ -282,12 +282,12 @@ func TestSessionManager_ValidateBrowserSession_JWE(t *testing.T) {
 				exp := now.Add(cryptoutilSharedMagic.HoursPerDay * time.Hour)
 
 				claims := map[string]any{
-					cryptoutilSharedMagic.ClaimJti:       "not-a-valid-uuid",
-					cryptoutilSharedMagic.ClaimIat:       now.Unix(),
-					cryptoutilSharedMagic.ClaimExp:       exp.Unix(),
-					cryptoutilSharedMagic.ClaimSub:       googleUuid.Must(googleUuid.NewV7()).String(),
-					"tenant_id": googleUuid.Must(googleUuid.NewV7()).String(),
-					"realm_id":  googleUuid.Must(googleUuid.NewV7()).String(),
+					cryptoutilSharedMagic.ClaimJti: "not-a-valid-uuid",
+					cryptoutilSharedMagic.ClaimIat: now.Unix(),
+					cryptoutilSharedMagic.ClaimExp: exp.Unix(),
+					cryptoutilSharedMagic.ClaimSub: googleUuid.Must(googleUuid.NewV7()).String(),
+					"tenant_id":                    googleUuid.Must(googleUuid.NewV7()).String(),
+					"realm_id":                     googleUuid.Must(googleUuid.NewV7()).String(),
 				}
 
 				claimsBytes, _ := json.Marshal(claims)
@@ -321,12 +321,12 @@ func TestSessionManager_ValidateBrowserSession_JWE(t *testing.T) {
 				jti := googleUuid.Must(googleUuid.NewV7())
 
 				claims := map[string]any{
-					cryptoutilSharedMagic.ClaimJti:       jti.String(),
-					cryptoutilSharedMagic.ClaimIat:       now.Unix(),
-					cryptoutilSharedMagic.ClaimExp:       "not-a-number", // Invalid type
-					cryptoutilSharedMagic.ClaimSub:       googleUuid.Must(googleUuid.NewV7()).String(),
-					"tenant_id": googleUuid.Must(googleUuid.NewV7()).String(),
-					"realm_id":  googleUuid.Must(googleUuid.NewV7()).String(),
+					cryptoutilSharedMagic.ClaimJti: jti.String(),
+					cryptoutilSharedMagic.ClaimIat: now.Unix(),
+					cryptoutilSharedMagic.ClaimExp: "not-a-number", // Invalid type
+					cryptoutilSharedMagic.ClaimSub: googleUuid.Must(googleUuid.NewV7()).String(),
+					"tenant_id":                    googleUuid.Must(googleUuid.NewV7()).String(),
+					"realm_id":                     googleUuid.Must(googleUuid.NewV7()).String(),
 				}
 
 				claimsBytes, _ := json.Marshal(claims)

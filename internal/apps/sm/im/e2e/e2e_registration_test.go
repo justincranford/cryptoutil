@@ -190,5 +190,6 @@ func TestE2E_RegistrationFlowWithJoinRequest(t *testing.T) {
 // 2. Call RegisterJoinRequestManagementRoutes() in admin server setup
 // 3. Re-enable this test and update URLs to use adminURL (port 9090).
 func TestE2E_AdminJoinRequestManagement(t *testing.T) {
+	t.Parallel()
 	t.Skip("Sm-im demo service does not implement admin server (admin routes registered on separate admin server, not public server with /service or /browser prefixes)")
 }

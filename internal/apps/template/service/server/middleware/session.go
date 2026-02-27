@@ -53,6 +53,7 @@ type SessionValidator interface {
 //	sessionValidator := businesslogic.NewSessionManager(...)
 //	app.Get("/browser/api/v1/messages", middleware.BrowserSessionMiddleware(sessionValidator), handleMessages)
 //	app.Get("/service/api/v1/messages", middleware.ServiceSessionMiddleware(sessionValidator), handleMessages)
+//
 // sessionMiddlewareStringsSplitNFn allows overriding strings.SplitN for testing.
 var sessionMiddlewareStringsSplitNFn = strings.SplitN
 

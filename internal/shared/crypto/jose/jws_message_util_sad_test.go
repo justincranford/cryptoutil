@@ -15,7 +15,6 @@ import (
 	joseJws "github.com/lestrrat-go/jwx/v3/jws"
 
 	"github.com/stretchr/testify/require"
-
 )
 
 func Test_SadPath_SignBytes_NilKey(t *testing.T) {
@@ -175,6 +174,8 @@ func Test_VerifyBytes_NonVerifyJWK(t *testing.T) {
 }
 
 func Test_SadPath_GenerateJWSJWK_UnsupportedAlg(t *testing.T) {
+	t.Parallel()
+
 	kid, nonPublicJWSJWK, publicJWSJWK, clearNonPublicJWSJWKBytes, clearPublicJWSJWKBytes, err := GenerateJWSJWKForAlg(&AlgSigInvalid)
 	require.Error(t, err)
 	require.Equal(t, "invalid JWS JWK headers: unsupported JWS JWK alg: invalid", err.Error())
@@ -186,6 +187,7 @@ func Test_SadPath_GenerateJWSJWK_UnsupportedAlg(t *testing.T) {
 }
 
 func Test_SadPath_ConcurrentGenerateJWSJWK_UnsupportedAlg(t *testing.T) {
+	t.Parallel()
 	nonPublicJWEJWKs, publicJWEJWKs, err := GenerateJWSJWKsForTest(t, 2, &AlgSigInvalid)
 	require.Error(t, err)
 	require.Equal(t, "unexpected 2 errors: invalid JWS JWK headers: unsupported JWS JWK alg: invalid\ninvalid JWS JWK headers: unsupported JWS JWK alg: invalid", err.Error())

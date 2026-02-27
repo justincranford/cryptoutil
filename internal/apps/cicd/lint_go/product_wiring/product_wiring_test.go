@@ -141,6 +141,7 @@ func TestCheckInDir_NoCmdDir(t *testing.T) {
 	require.Contains(t, err.Error(), "cmd directory not found")
 }
 
+// Sequential: uses os.Chdir (global process state).
 func TestCheck_FromProjectRoot(t *testing.T) {
 	root, err := findProjectRoot()
 	if err != nil {

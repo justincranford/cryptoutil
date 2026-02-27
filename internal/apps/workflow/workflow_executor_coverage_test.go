@@ -24,6 +24,7 @@ var varMu sync.Mutex
 
 // TestRun_DirectCall exercises the run() wrapper (0% coverage baseline).
 // Not parallel: run() uses ".github/workflows" relative to CWD; no .github here.
+// Sequential: uses os.Chdir (global process state).
 func TestRun_DirectCall(t *testing.T) {
 	result := run([]string{})
 	require.Equal(t, 1, result) // Fails: no .github/workflows in package dir.
@@ -121,6 +122,7 @@ func TestExecuteWorkflow_WorkflowLogCreationFailure(t *testing.T) {
 // TestExecuteWorkflow_PipeSetupFailure tests the setupCmdPipes error path.
 // Injects a mock that returns an error from setupCmdPipes.
 // Not parallel: modifies package-level setupCmdPipes variable.
+// Sequential: modifies package-level setupCmdPipes function variable.
 func TestExecuteWorkflow_PipeSetupFailure(t *testing.T) {
 	varMu.Lock()
 
@@ -155,6 +157,7 @@ func TestExecuteWorkflow_PipeSetupFailure(t *testing.T) {
 // TestExecuteWorkflow_WorkflowLogCloseError tests the deferred workflowLog.Close error.
 // Injects a doCloseFile mock that returns an error on the first call.
 // Not parallel: modifies package-level doCloseFile variable.
+// Sequential: modifies package-level doCloseFile function variable.
 func TestExecuteWorkflow_WorkflowLogCloseError(t *testing.T) {
 	var closeCallCount int
 
@@ -199,6 +202,7 @@ func TestExecuteWorkflow_WorkflowLogCloseError(t *testing.T) {
 // TestExecuteWorkflow_CombinedLogCloseError tests the deferred combinedLog.Close error.
 // Exercises the doCloseFile path for combinedLog in workflow.go.
 // Not parallel: modifies package-level doCloseFile variable.
+// Sequential: modifies package-level doCloseFile function variable.
 func TestExecuteWorkflow_CombinedLogCloseError(t *testing.T) {
 	var closeCallCount int
 
@@ -241,6 +245,7 @@ func TestExecuteWorkflow_CombinedLogCloseError(t *testing.T) {
 
 // TestGetWorkflowDescription_WithFile exercises the file-reading path.
 // Not parallel: requires CWD change via os.Chdir.
+// Sequential: uses os.Chdir (global process state).
 func TestGetWorkflowDescription_WithFile(t *testing.T) {
 	tempDir := t.TempDir()
 	wfDir := filepath.Join(tempDir, ".github", "workflows")

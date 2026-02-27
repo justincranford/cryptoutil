@@ -219,6 +219,7 @@ func setupRotationTestEnvironment(t *testing.T) (*fiber.App, *RotationService, *
 }
 
 func TestRotateRootKey_Success(t *testing.T) {
+	t.Parallel()
 	app, rotationService, barrierService := setupRotationTestEnvironment(t)
 
 	// Encrypt data before rotation
@@ -274,6 +275,7 @@ func TestRotateRootKey_Success(t *testing.T) {
 }
 
 func TestRotateIntermediateKey_Success(t *testing.T) {
+	t.Parallel()
 	app, _, barrierService := setupRotationTestEnvironment(t)
 
 	// Encrypt data before rotation
@@ -326,6 +328,7 @@ func TestRotateIntermediateKey_Success(t *testing.T) {
 }
 
 func TestRotateContentKey_Success(t *testing.T) {
+	t.Parallel()
 	app, _, barrierService := setupRotationTestEnvironment(t)
 
 	// Encrypt data before rotation
@@ -376,6 +379,7 @@ func TestRotateContentKey_Success(t *testing.T) {
 }
 
 func TestRotateKey_MissingReason(t *testing.T) {
+	t.Parallel()
 	app, _, _ := setupRotationTestEnvironment(t)
 
 	// Test all three endpoints
@@ -409,6 +413,7 @@ func TestRotateKey_MissingReason(t *testing.T) {
 }
 
 func TestRotateKey_ShortReason(t *testing.T) {
+	t.Parallel()
 	app, _, _ := setupRotationTestEnvironment(t)
 
 	// Test all three endpoints

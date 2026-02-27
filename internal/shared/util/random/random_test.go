@@ -13,15 +13,17 @@ import (
 )
 
 func TestValidInputs(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		count       int
 		bytesLength int
 	}{
-		{1, 1},       // min count, min length
-		{1, cryptoutilSharedMagic.DefaultLogsBatchSize},    // min count, high length
-		{cryptoutilSharedMagic.DefaultLogsBatchSize, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes},   // high count, min length
-		{cryptoutilSharedMagic.DefaultLogsBatchSize, cryptoutilSharedMagic.DefaultLogsBatchSize}, // high count, high length
-		{cryptoutilSharedMagic.MaxUnsealSharedSecrets, cryptoutilSharedMagic.MaxUnsealSharedSecrets},   // intermediate values
+		{1, 1}, // min count, min length
+		{1, cryptoutilSharedMagic.DefaultLogsBatchSize},                                                    // min count, high length
+		{cryptoutilSharedMagic.DefaultLogsBatchSize, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes}, // high count, min length
+		{cryptoutilSharedMagic.DefaultLogsBatchSize, cryptoutilSharedMagic.DefaultLogsBatchSize},           // high count, high length
+		{cryptoutilSharedMagic.MaxUnsealSharedSecrets, cryptoutilSharedMagic.MaxUnsealSharedSecrets},       // intermediate values
 	}
 	for _, testCase := range testCases {
 		t.Run(
@@ -39,24 +41,32 @@ func TestValidInputs(t *testing.T) {
 }
 
 func TestZeroCount(t *testing.T) {
+	t.Parallel()
+
 	_, err := GenerateMultipleBytes(0, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 	require.Error(t, err)
 	require.Equal(t, "count can't be less than 1", err.Error())
 }
 
 func TestNegativeCount(t *testing.T) {
+	t.Parallel()
+
 	_, err := GenerateMultipleBytes(-1, cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 	require.Error(t, err)
 	require.Equal(t, "count can't be less than 1", err.Error())
 }
 
 func TestZeroLength(t *testing.T) {
+	t.Parallel()
+
 	_, err := GenerateMultipleBytes(cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes, 0)
 	require.Error(t, err)
 	require.Equal(t, "length can't be less than 1", err.Error())
 }
 
 func TestNegativeLength(t *testing.T) {
+	t.Parallel()
+
 	_, err := GenerateMultipleBytes(cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes, -1)
 	require.Error(t, err)
 	require.Equal(t, "length can't be less than 1", err.Error())

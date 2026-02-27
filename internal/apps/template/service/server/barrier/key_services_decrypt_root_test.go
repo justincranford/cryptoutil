@@ -22,6 +22,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
+
 func TestRootKeysService_DecryptKey_ErrorPaths(t *testing.T) {
 	t.Parallel()
 

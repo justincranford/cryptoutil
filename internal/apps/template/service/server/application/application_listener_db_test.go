@@ -49,6 +49,7 @@ func TestListener_Start_NilContext(t *testing.T) {
 }
 
 // TestListener_Start_PublicServerError tests Start when public server fails immediately.
+// Sequential: uses shared SQLite in-memory database.
 func TestListener_Start_PublicServerError(t *testing.T) {
 	// NOT parallel - uses shared SQLite database.
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
@@ -88,6 +89,7 @@ func TestListener_Start_PublicServerError(t *testing.T) {
 }
 
 // TestListener_Start_AdminServerError tests Start when admin server fails immediately.
+// Sequential: uses shared SQLite in-memory database.
 func TestListener_Start_AdminServerError(t *testing.T) {
 	// NOT parallel - uses shared SQLite database.
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
@@ -127,6 +129,7 @@ func TestListener_Start_AdminServerError(t *testing.T) {
 }
 
 // TestListener_Start_ContextCancelled tests Start when context is cancelled.
+// Sequential: uses shared SQLite in-memory database.
 func TestListener_Start_ContextCancelled(t *testing.T) {
 	// NOT parallel - uses shared SQLite database.
 	ctx, cancel := context.WithCancel(context.Background())

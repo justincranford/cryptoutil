@@ -196,7 +196,7 @@ func TestDetermineServiceHealthStatus_MixedUseCases(t *testing.T) {
 	}
 
 	services := []ServiceAndJob{
-		{Service: "", Job: cryptoutilSharedMagic.DockerJobHealthcheckSecrets},                                                        // Use case 1
+		{Service: "", Job: cryptoutilSharedMagic.DockerJobHealthcheckSecrets},                                                            // Use case 1
 		{Service: cryptoutilSharedMagic.DockerServiceCryptoutilSqlite, Job: ""},                                                          // Use case 2
 		{Service: cryptoutilSharedMagic.DockerServiceOtelCollector, Job: cryptoutilSharedMagic.DockerJobHealthcheckOtelCollectorContrib}, // Use case 3
 	}

@@ -19,8 +19,8 @@ import (
 	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilAppsTemplateServiceServerService "cryptoutil/internal/apps/template/service/server/service"
-	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // ServiceResources contains all initialized service resources available to domain-specific code.

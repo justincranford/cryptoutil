@@ -5,8 +5,8 @@
 package middleware
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
 
@@ -71,9 +71,9 @@ func TestClaimsExtractor_ExtractFromMap(t *testing.T) {
 		{
 			name: "with tenant claims",
 			rawClaims: map[string]any{
-				cryptoutilSharedMagic.ClaimSub:         "user-123",
-				"tenant_id":   "tenant-abc",
-				"tenant_name": "ACME Corp",
+				cryptoutilSharedMagic.ClaimSub: "user-123",
+				"tenant_id":                    "tenant-abc",
+				"tenant_name":                  "ACME Corp",
 			},
 			wantErr: false,
 			validate: func(t *testing.T, claims *OIDCClaims) {
@@ -85,10 +85,10 @@ func TestClaimsExtractor_ExtractFromMap(t *testing.T) {
 		{
 			name: "with groups and roles",
 			rawClaims: map[string]any{
-				cryptoutilSharedMagic.ClaimSub:         "user-123",
-				"groups":      []any{"admins", "developers"},
-				"roles":       []any{"admin", "user"},
-				"permissions": []any{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
+				cryptoutilSharedMagic.ClaimSub: "user-123",
+				"groups":                       []any{"admins", "developers"},
+				"roles":                        []any{"admin", "user"},
+				"permissions":                  []any{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
 			},
 			wantErr: false,
 			validate: func(t *testing.T, claims *OIDCClaims) {
@@ -103,9 +103,9 @@ func TestClaimsExtractor_ExtractFromMap(t *testing.T) {
 		{
 			name: "with custom claims",
 			rawClaims: map[string]any{
-				cryptoutilSharedMagic.ClaimSub:                      "user-123",
-				"custom_field":             "custom_value",
-				"urn:example:custom_claim": "namespaced_value",
+				cryptoutilSharedMagic.ClaimSub: "user-123",
+				"custom_field":                 "custom_value",
+				"urn:example:custom_claim":     "namespaced_value",
 			},
 			wantErr: false,
 			validate: func(t *testing.T, claims *OIDCClaims) {

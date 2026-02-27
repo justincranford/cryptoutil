@@ -4,9 +4,9 @@
 package rs_test
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"io"
 	http "net/http"
 	"net/http/httptest"

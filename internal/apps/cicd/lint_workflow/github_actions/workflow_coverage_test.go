@@ -81,6 +81,7 @@ func TestValidateAndGetWorkflowActionsDetails_BranchPinned(t *testing.T) {
 // TestLintGitHubWorkflows_BranchPinnedAction verifies that Check
 // returns an error when a workflow has branch-pinned actions.
 // Note: Not parallel - changes working directory.
+// Sequential: uses os.Chdir (global process state).
 func TestLintGitHubWorkflows_BranchPinnedAction(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	tmpDir := t.TempDir()
@@ -110,6 +111,7 @@ func TestLintGitHubWorkflows_BranchPinnedAction(t *testing.T) {
 // TestLintGitHubWorkflows_ExceptionVersionMismatch verifies that
 // Check prints warnings when exception version mismatches.
 // Note: Not parallel - changes working directory to set up exceptions file.
+// Sequential: uses os.Chdir (global process state).
 func TestLintGitHubWorkflows_ExceptionVersionMismatch(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	tmpDir := t.TempDir()

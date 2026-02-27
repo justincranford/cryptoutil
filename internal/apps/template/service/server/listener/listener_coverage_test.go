@@ -99,6 +99,7 @@ func TestAdminServer_Start_InvalidPort(t *testing.T) {
 // TestAdminServer_Start_AppListenerError tests Start when app.Listener returns an error.
 // Covers admin.go:240-242 (app.Listener error in goroutine).
 // Cannot use t.Parallel() because it modifies the package-level injectable var.
+// Sequential: modifies package-level injectable function variable.
 func TestAdminServer_Start_AppListenerError(t *testing.T) {
 	original := adminAppListenerFn
 	adminAppListenerFn = func(_ *fiber.App, ln net.Listener) error {
@@ -182,6 +183,7 @@ func TestPublicServer_Start_NonTCPAddr(t *testing.T) {
 // TestPublicServer_Start_AppListenerError tests Start when app.Listener returns an error.
 // Covers public.go app.Listener error in goroutine.
 // Cannot use t.Parallel() because it modifies the package-level injectable var.
+// Sequential: modifies package-level injectable function variable.
 func TestPublicServer_Start_AppListenerError(t *testing.T) {
 	original := publicAppListenerFn
 	publicAppListenerFn = func(_ *fiber.App, ln net.Listener) error {

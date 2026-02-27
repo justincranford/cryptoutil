@@ -18,6 +18,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
+
 func TestContentKeysService_EncryptContent_ErrorPaths(t *testing.T) {
 	t.Parallel()
 

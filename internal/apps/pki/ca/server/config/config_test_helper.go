@@ -5,8 +5,8 @@
 package config
 
 import (
-cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // NewTestConfig creates a PKICAServerSettings instance for testing without calling Parse().
@@ -22,20 +22,20 @@ cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 //
 // Returns directly populated PKICAServerSettings matching Parse() behavior.
 func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *PKICAServerSettings {
-// Get base template config.
-baseConfig := cryptoutilAppsTemplateServiceConfig.NewTestConfig(bindAddr, bindPort, devMode)
+	// Get base template config.
+	baseConfig := cryptoutilAppsTemplateServiceConfig.NewTestConfig(bindAddr, bindPort, devMode)
 
-// Override template defaults with pki-ca specific values.
-baseConfig.BindPublicPort = bindPort
-baseConfig.OTLPService = cryptoutilSharedMagic.OTLPServicePKICA
+	// Override template defaults with pki-ca specific values.
+	baseConfig.BindPublicPort = bindPort
+	baseConfig.OTLPService = cryptoutilSharedMagic.OTLPServicePKICA
 
-return &PKICAServerSettings{
-ServiceTemplateServerSettings: baseConfig,
-}
+	return &PKICAServerSettings{
+		ServiceTemplateServerSettings: baseConfig,
+	}
 }
 
 // DefaultTestConfig creates a default test configuration suitable for most unit tests.
 // Uses loopback address, dynamic port allocation, and dev mode.
 func DefaultTestConfig() *PKICAServerSettings {
-return NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+	return NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 }

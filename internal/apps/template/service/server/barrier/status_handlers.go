@@ -5,8 +5,8 @@
 package barrier
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 
 	fiber "github.com/gofiber/fiber/v2"

@@ -5,8 +5,8 @@
 package kms
 
 const (
-// KMSUsageMain is the main usage message for the sm kms command.
-KMSUsageMain = `Usage: sm kms <subcommand> [options]
+	// KMSUsageMain is the main usage message for the sm kms command.
+	KMSUsageMain = `Usage: sm kms <subcommand> [options]
 
 Available subcommands:
   version     Print version information
@@ -21,8 +21,8 @@ Available subcommands:
 Use "sm kms <subcommand> help" for subcommand-specific help.
 Version information is available via Docker image tags.`
 
-// KMSUsageServer is the usage message for the server subcommand.
-KMSUsageServer = `Usage: sm kms server [options]
+	// KMSUsageServer is the usage message for the server subcommand.
+	KMSUsageServer = `Usage: sm kms server [options]
 
 Description:
   Start the Key Management Service server with database initialization.
@@ -39,8 +39,8 @@ Examples:
   sm kms server
   sm kms server --config configs/sm/kms/config.yml`
 
-// KMSUsageClient is the usage message for the client subcommand.
-KMSUsageClient = `Usage: sm kms client [options]
+	// KMSUsageClient is the usage message for the client subcommand.
+	KMSUsageClient = `Usage: sm kms client [options]
 
 Description:
   Run client operations for the Key Management Service.
@@ -51,8 +51,8 @@ Options:
 Examples:
   sm kms client`
 
-// KMSUsageInit is the usage message for the init subcommand.
-KMSUsageInit = `Usage: sm kms init [options]
+	// KMSUsageInit is the usage message for the init subcommand.
+	KMSUsageInit = `Usage: sm kms init [options]
 
 Description:
   Initialize database schema and configuration for the Key Management Service.
@@ -65,8 +65,8 @@ Examples:
   sm kms init
   sm kms init --config configs/sm/kms/config.yml`
 
-// KMSUsageHealth is the usage message for the health subcommand.
-KMSUsageHealth = `Usage: sm kms health [options]
+	// KMSUsageHealth is the usage message for the health subcommand.
+	KMSUsageHealth = `Usage: sm kms health [options]
 
 Description:
   Check service health via public API endpoint.
@@ -82,8 +82,8 @@ Examples:
   sm kms health --url https://localhost:8000
   sm kms health --cacert /path/to/ca.pem`
 
-// KMSUsageLivez is the usage message for the livez subcommand.
-KMSUsageLivez = `Usage: sm kms livez [options]
+	// KMSUsageLivez is the usage message for the livez subcommand.
+	KMSUsageLivez = `Usage: sm kms livez [options]
 
 Description:
   Check service liveness via admin API endpoint.
@@ -98,8 +98,8 @@ Examples:
   sm kms livez
   sm kms livez --url https://localhost:9090`
 
-// KMSUsageReadyz is the usage message for the readyz subcommand.
-KMSUsageReadyz = `Usage: sm kms readyz [options]
+	// KMSUsageReadyz is the usage message for the readyz subcommand.
+	KMSUsageReadyz = `Usage: sm kms readyz [options]
 
 Description:
   Check service readiness via admin API endpoint.
@@ -114,8 +114,8 @@ Examples:
   sm kms readyz
   sm kms readyz --url https://localhost:9090`
 
-// KMSUsageShutdown is the usage message for the shutdown subcommand.
-KMSUsageShutdown = `Usage: sm kms shutdown [options]
+	// KMSUsageShutdown is the usage message for the shutdown subcommand.
+	KMSUsageShutdown = `Usage: sm kms shutdown [options]
 
 Description:
   Trigger graceful shutdown via admin API endpoint.

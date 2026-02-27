@@ -23,24 +23,24 @@ import (
 type RotationService struct {
 	jwkGenService     *cryptoutilSharedCryptoJose.JWKGenService
 	repository        Repository
-unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService
+	unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService
 }
 
 // Injectable vars for testing error path coverage.
 var (
-rotationGenerateRootJWEJWKFn = func(svc *cryptoutilSharedCryptoJose.JWKGenService) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
-return svc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgDir)
-}
-rotationGenerateIntermediateJWEJWKFn = func(svc *cryptoutilSharedCryptoJose.JWKGenService) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
-return svc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
-}
-rotationGenerateContentJWEJWKFn = func(svc *cryptoutilSharedCryptoJose.JWKGenService) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
-return svc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
-}
-rotationUnsealEncryptKeyFn = func(svc cryptoutilUnsealKeysService.UnsealKeysService, clearKey joseJwk.Key) ([]byte, error) {
-return svc.EncryptKey(clearKey)
-}
-rotationEncryptKeyFn = cryptoutilSharedCryptoJose.EncryptKey
+	rotationGenerateRootJWEJWKFn = func(svc *cryptoutilSharedCryptoJose.JWKGenService) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
+		return svc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgDir)
+	}
+	rotationGenerateIntermediateJWEJWKFn = func(svc *cryptoutilSharedCryptoJose.JWKGenService) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
+		return svc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	}
+	rotationGenerateContentJWEJWKFn = func(svc *cryptoutilSharedCryptoJose.JWKGenService) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
+		return svc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	}
+	rotationUnsealEncryptKeyFn = func(svc cryptoutilUnsealKeysService.UnsealKeysService, clearKey joseJwk.Key) ([]byte, error) {
+		return svc.EncryptKey(clearKey)
+	}
+	rotationEncryptKeyFn = cryptoutilSharedCryptoJose.EncryptKey
 )
 
 // NewRotationService creates a new rotation service.

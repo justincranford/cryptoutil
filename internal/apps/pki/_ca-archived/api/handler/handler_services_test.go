@@ -3,7 +3,6 @@
 package handler
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"context"
 	"crypto"
@@ -12,6 +11,7 @@ import (
 	crand "crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/pem"
 	"math/big"
 	http "net/http"
@@ -26,6 +26,7 @@ import (
 	cryptoutilCAServiceRevocation "cryptoutil/internal/apps/pki/ca/service/revocation"
 	cryptoutilCAStorage "cryptoutil/internal/apps/pki/ca/storage"
 )
+
 func TestHandleOCSPWithService(t *testing.T) {
 	t.Parallel()
 

@@ -15,6 +15,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+// Sequential: uses os.Chdir (global process state).
 func TestCheckOutdatedDeps_NoGoMod(t *testing.T) {
 	// This test cannot be parallel because it changes working directory.
 	tmpDir := t.TempDir()
@@ -33,6 +34,7 @@ func TestCheckOutdatedDeps_NoGoMod(t *testing.T) {
 }
 
 // TestCheckOutdatedDeps_NoGoSum tests Check when go.sum is missing.
+// Sequential: uses os.Chdir (global process state).
 func TestCheckOutdatedDeps_NoGoSum(t *testing.T) {
 	// This test cannot be parallel because it changes working directory.
 	tmpDir := t.TempDir()
@@ -55,6 +57,7 @@ func TestCheckOutdatedDeps_NoGoSum(t *testing.T) {
 }
 
 // TestCheckOutdatedDeps_CacheUsed tests Check when valid cache exists.
+// Sequential: uses os.Chdir (global process state).
 func TestCheckOutdatedDeps_CacheUsed(t *testing.T) {
 	// This test cannot be parallel because it changes working directory.
 	tmpDir := t.TempDir()
@@ -95,6 +98,7 @@ func TestCheckOutdatedDeps_CacheUsed(t *testing.T) {
 }
 
 // TestCheckOutdatedDeps_CacheWithError tests Check when cache has outdated deps.
+// Sequential: uses os.Chdir (global process state).
 func TestCheckOutdatedDeps_CacheWithError(t *testing.T) {
 	// This test cannot be parallel because it changes working directory.
 	tmpDir := t.TempDir()
@@ -136,6 +140,7 @@ func TestCheckOutdatedDeps_CacheWithError(t *testing.T) {
 }
 
 // TestCheckOutdatedDeps_GoListError tests Check when go list command fails.
+// Sequential: uses os.Chdir (global process state).
 func TestCheckOutdatedDeps_GoListError(t *testing.T) {
 	// This test cannot be parallel because it changes working directory.
 	tmpDir := t.TempDir()
@@ -161,6 +166,7 @@ func TestCheckOutdatedDeps_GoListError(t *testing.T) {
 }
 
 // TestCheckOutdatedDeps_NoOutdatedDeps tests Check with up-to-date deps (fresh check).
+// Sequential: uses os.Chdir (global process state).
 func TestCheckOutdatedDeps_NoOutdatedDeps(t *testing.T) {
 	// This test cannot be parallel because it changes working directory.
 	tmpDir := t.TempDir()
@@ -216,6 +222,7 @@ func TestSaveDepCache_WriteError(t *testing.T) {
 }
 
 // TestLint_WithLinterError tests the Lint function when a linter returns an error.
+// Sequential: uses os.Chdir (global process state).
 func TestLint_WithLinterError(t *testing.T) {
 	// This test cannot be parallel because it changes working directory.
 	tmpDir := t.TempDir()
@@ -235,6 +242,7 @@ func TestLint_WithLinterError(t *testing.T) {
 }
 
 // TestLint_Success tests the Lint function when all linters pass.
+// Sequential: uses os.Chdir (global process state).
 func TestLint_Success(t *testing.T) {
 	// This test cannot be parallel because it changes working directory.
 	tmpDir := t.TempDir()
@@ -258,6 +266,7 @@ func TestLint_Success(t *testing.T) {
 }
 
 // TestCheckOutdatedDeps_WithOutdatedDeps tests Check finding outdated deps (fresh check).
+// Sequential: uses os.Chdir (global process state).
 func TestCheckOutdatedDeps_WithOutdatedDeps(t *testing.T) {
 	// This test cannot be parallel because it changes working directory.
 	tmpDir := t.TempDir()
@@ -290,6 +299,7 @@ require github.com/pkg/errors v0.8.0
 }
 
 // TestCheckOutdatedDeps_SaveCacheError tests warning when cache save fails.
+// Sequential: uses os.Chdir (global process state).
 func TestCheckOutdatedDeps_SaveCacheError(t *testing.T) {
 	// This test cannot be parallel because it changes working directory.
 	tmpDir := t.TempDir()

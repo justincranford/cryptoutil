@@ -5,15 +5,14 @@
 package telemetry
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	crand "crypto/rand"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"math/big"
 	"os"
 	"testing"
 	"time"
-
 )
 
 var (

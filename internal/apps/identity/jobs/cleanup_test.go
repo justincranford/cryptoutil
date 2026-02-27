@@ -5,8 +5,8 @@
 package jobs
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"log/slog"
 	"os"
 	"testing"

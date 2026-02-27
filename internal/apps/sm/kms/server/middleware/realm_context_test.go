@@ -15,8 +15,8 @@
 package middleware
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"io"
 	"net/http/httptest"
 	"testing"
@@ -248,9 +248,9 @@ func TestRealmContextMiddleware_FromJWT_WithUserAndClient(t *testing.T) {
 		claims := &JWTClaims{
 			Scopes: []string{"kms:read"},
 			Custom: map[string]any{
-				"tenant_id": tenantID.String(),
-				"realm_id":  realmID.String(),
-				"user_id":   userID.String(),
+				"tenant_id":                         tenantID.String(),
+				"realm_id":                          realmID.String(),
+				"user_id":                           userID.String(),
 				cryptoutilSharedMagic.ClaimClientID: clientID.String(),
 			},
 		}
@@ -269,11 +269,11 @@ func TestRealmContextMiddleware_FromJWT_WithUserAndClient(t *testing.T) {
 		}
 
 		return c.JSON(fiber.Map{
-			"tenant_id": realmCtx.TenantID.String(),
-			"realm_id":  realmCtx.RealmID.String(),
-			"user_id":   realmCtx.UserID.String(),
+			"tenant_id":                         realmCtx.TenantID.String(),
+			"realm_id":                          realmCtx.RealmID.String(),
+			"user_id":                           realmCtx.UserID.String(),
 			cryptoutilSharedMagic.ClaimClientID: realmCtx.ClientID.String(),
-			"source":    realmCtx.Source,
+			"source":                            realmCtx.Source,
 		})
 	})
 

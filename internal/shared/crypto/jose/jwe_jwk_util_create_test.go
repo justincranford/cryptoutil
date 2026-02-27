@@ -5,8 +5,8 @@
 package crypto
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/ecdh"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"

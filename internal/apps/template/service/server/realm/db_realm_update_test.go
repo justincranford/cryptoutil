@@ -5,8 +5,8 @@
 package realm
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"testing"
 	"time"
@@ -14,7 +14,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	_ "modernc.org/sqlite" // Use modernc CGO-free SQLite.
-
 )
 
 func TestDBRealmRepository_UpdatePassword(t *testing.T) {

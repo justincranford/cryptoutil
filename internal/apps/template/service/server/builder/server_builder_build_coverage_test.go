@@ -3,8 +3,8 @@
 package builder
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"testing"
 	"time"
@@ -179,6 +179,7 @@ func TestBuild_NewApplicationError(t *testing.T) {
 // TestBuild_GormDBError tests Build when applicationCore.DB.DB() fails.
 // Covers server_builder_build.go L73-77 (sql.DB from GORM error path).
 // Cannot use t.Parallel() because it modifies the package-level injectable var.
+// Sequential: modifies package-level injectable function variable.
 func TestBuild_GormDBError(t *testing.T) {
 	original := startCoreFn
 	startCoreFn = func(

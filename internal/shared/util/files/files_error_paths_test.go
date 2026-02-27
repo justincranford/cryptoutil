@@ -10,12 +10,10 @@ import (
 
 	cryptoutilSharedUtilFiles "cryptoutil/internal/shared/util/files"
 
-
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
-
 
 // TestWriteFile_OSError covers the os.WriteFile error path.
 func TestWriteFile_OSError(t *testing.T) {

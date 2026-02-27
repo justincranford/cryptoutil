@@ -3,7 +3,6 @@
 package security
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
@@ -12,6 +11,7 @@ import (
 	rsa "crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"math/big"
 	"testing"
 	"time"

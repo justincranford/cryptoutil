@@ -227,6 +227,7 @@ func TestFindInsecureSkipVerifyViolationsInDir_WalkDirError(t *testing.T) {
 	require.Nil(t, violations)
 }
 
+// Sequential: uses os.Chdir (global process state).
 func TestCheck_DelegatesCheckInDir(t *testing.T) {
 	// NOTE: Cannot use t.Parallel() - test changes working directory.
 	origDir, err := os.Getwd()

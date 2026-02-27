@@ -258,6 +258,8 @@ var happyPathSymmetricTestCases = []SymmetricTestCase{
 }
 
 func Test_HappyPath_Split(t *testing.T) {
+	t.Parallel()
+
 	for _, testCase := range happyPathSplitTestCases {
 		actualAndExpected := fmt.Sprintf("%s  %s", string(testCase.actualElasticKeyAlgorithm), testCase.expectedSplitString)
 		t.Run(strings.ReplaceAll(actualAndExpected, "/", "_"), func(t *testing.T) {
@@ -267,6 +269,8 @@ func Test_HappyPath_Split(t *testing.T) {
 }
 
 func Test_ElasticKeyAlgorithm_Symmetric(t *testing.T) {
+	t.Parallel()
+
 	for _, alg := range happyPathSymmetricTestCases {
 		t.Run(strings.ReplaceAll(string(alg.actualElasticKeyAlgorithm), "/", "_"), func(t *testing.T) {
 			isSymmetric, err := IsSymmetric(&alg.actualElasticKeyAlgorithm)
@@ -277,6 +281,8 @@ func Test_ElasticKeyAlgorithm_Symmetric(t *testing.T) {
 }
 
 func Test_ElasticKeyAlgorithmAsymmetric(t *testing.T) {
+	t.Parallel()
+
 	for _, alg := range happyPathSymmetricTestCases {
 		t.Run(strings.ReplaceAll(string(alg.actualElasticKeyAlgorithm), "/", "_"), func(t *testing.T) {
 			isAsymmetric, err := IsAsymmetric(&alg.actualElasticKeyAlgorithm)

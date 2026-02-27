@@ -3,9 +3,9 @@
 package authz_test
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	json "encoding/json"
 	"fmt"
 	"net/http/httptest"
@@ -79,10 +79,10 @@ func TestHandleEnrollMFA_HappyPath(t *testing.T) {
 
 	// Prepare enrollment request.
 	reqBody := map[string]any{
-		"user_id":     user.ID.String(),
-		"factor_type": cryptoutilSharedMagic.MFATypeTOTP,
-		cryptoutilSharedMagic.ClaimName:        "My TOTP",
-		"required":    true,
+		"user_id":                       user.ID.String(),
+		"factor_type":                   cryptoutilSharedMagic.MFATypeTOTP,
+		cryptoutilSharedMagic.ClaimName: "My TOTP",
+		"required":                      true,
 	}
 	bodyBytes, err := json.Marshal(reqBody)
 	require.NoError(t, err)
@@ -121,10 +121,10 @@ func TestHandleEnrollMFA_InvalidUserID(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	reqBody := map[string]any{
-		"user_id":     "not-a-uuid",
-		"factor_type": cryptoutilSharedMagic.MFATypeTOTP,
-		cryptoutilSharedMagic.ClaimName:        "My TOTP",
-		"required":    true,
+		"user_id":                       "not-a-uuid",
+		"factor_type":                   cryptoutilSharedMagic.MFATypeTOTP,
+		cryptoutilSharedMagic.ClaimName: "My TOTP",
+		"required":                      true,
 	}
 	bodyBytes, err := json.Marshal(reqBody)
 	require.NoError(t, err)
@@ -159,10 +159,10 @@ func TestHandleEnrollMFA_UserNotFound(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	reqBody := map[string]any{
-		"user_id":     googleUuid.Must(googleUuid.NewV7()).String(),
-		"factor_type": cryptoutilSharedMagic.MFATypeTOTP,
-		cryptoutilSharedMagic.ClaimName:        "My TOTP",
-		"required":    false,
+		"user_id":                       googleUuid.Must(googleUuid.NewV7()).String(),
+		"factor_type":                   cryptoutilSharedMagic.MFATypeTOTP,
+		cryptoutilSharedMagic.ClaimName: "My TOTP",
+		"required":                      false,
 	}
 	bodyBytes, err := json.Marshal(reqBody)
 	require.NoError(t, err)
@@ -206,10 +206,10 @@ func TestHandleEnrollMFA_InvalidFactorType(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	reqBody := map[string]any{
-		"user_id":     user.ID.String(),
-		"factor_type": "invalid_type",
-		cryptoutilSharedMagic.ClaimName:        "My Factor",
-		"required":    false,
+		"user_id":                       user.ID.String(),
+		"factor_type":                   "invalid_type",
+		cryptoutilSharedMagic.ClaimName: "My Factor",
+		"required":                      false,
 	}
 	bodyBytes, err := json.Marshal(reqBody)
 	require.NoError(t, err)

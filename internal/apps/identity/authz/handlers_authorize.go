@@ -32,37 +32,37 @@ func (s *Service) handleAuthorizeGET(c *fiber.Ctx) error {
 	// Validate required parameters.
 	if clientID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description": "client_id is required",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
+			"error_description":               "client_id is required",
 		})
 	}
 
 	if redirectURI == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description": "redirect_uri is required",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
+			"error_description":               "redirect_uri is required",
 		})
 	}
 
 	if responseType == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description": "response_type is required",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
+			"error_description":               "response_type is required",
 		})
 	}
 
 	if responseType != cryptoutilSharedMagic.ResponseTypeCode {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorUnsupportedResponseType,
-			"error_description": "Only 'code' response_type is supported (OAuth 2.1 - no implicit flow)",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorUnsupportedResponseType,
+			"error_description":               "Only 'code' response_type is supported (OAuth 2.1 - no implicit flow)",
 		})
 	}
 
 	// Validate PKCE parameters (required in OAuth 2.1).
 	if codeChallenge == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description": "code_challenge is required (OAuth 2.1 requires PKCE)",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
+			"error_description":               "code_challenge is required (OAuth 2.1 requires PKCE)",
 		})
 	}
 
@@ -72,8 +72,8 @@ func (s *Service) handleAuthorizeGET(c *fiber.Ctx) error {
 
 	if codeChallengeMethod != cryptoutilSharedMagic.PKCEMethodS256 {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description": "Only 'S256' code_challenge_method is supported",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
+			"error_description":               "Only 'S256' code_challenge_method is supported",
 		})
 	}
 
@@ -86,8 +86,8 @@ func (s *Service) handleAuthorizeGET(c *fiber.Ctx) error {
 		appErr := cryptoutilIdentityAppErr.ErrClientNotFound
 
 		return c.Status(appErr.HTTPStatus).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidClient,
-			"error_description": appErr.Message,
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidClient,
+			"error_description":               appErr.Message,
 		})
 	}
 
@@ -104,8 +104,8 @@ func (s *Service) handleAuthorizeGET(c *fiber.Ctx) error {
 
 	if !validRedirectURI {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description": "redirect_uri does not match registered URIs",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
+			"error_description":               "redirect_uri does not match registered URIs",
 		})
 	}
 
@@ -115,8 +115,8 @@ func (s *Service) handleAuthorizeGET(c *fiber.Ctx) error {
 		slog.ErrorContext(ctx, "Failed to generate request ID", cryptoutilSharedMagic.StringError, err)
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
-			"error_description": "Failed to generate request ID",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
+			"error_description":               "Failed to generate request ID",
 		})
 	}
 
@@ -140,8 +140,8 @@ func (s *Service) handleAuthorizeGET(c *fiber.Ctx) error {
 		slog.ErrorContext(ctx, "Failed to store authorization request", cryptoutilSharedMagic.StringError, err, "request_id", requestID)
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
-			"error_description": "Failed to store authorization request",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
+			"error_description":               "Failed to store authorization request",
 		})
 	}
 
@@ -171,37 +171,37 @@ func (s *Service) handleAuthorizePOST(c *fiber.Ctx) error {
 	// Validate required parameters (same as GET).
 	if clientID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description": "client_id is required",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
+			"error_description":               "client_id is required",
 		})
 	}
 
 	if redirectURI == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description": "redirect_uri is required",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
+			"error_description":               "redirect_uri is required",
 		})
 	}
 
 	if responseType == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description": "response_type is required",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
+			"error_description":               "response_type is required",
 		})
 	}
 
 	if responseType != cryptoutilSharedMagic.ResponseTypeCode {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorUnsupportedResponseType,
-			"error_description": "Only 'code' response_type is supported (OAuth 2.1 - no implicit flow)",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorUnsupportedResponseType,
+			"error_description":               "Only 'code' response_type is supported (OAuth 2.1 - no implicit flow)",
 		})
 	}
 
 	// Validate PKCE parameters.
 	if codeChallenge == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description": "code_challenge is required (OAuth 2.1 requires PKCE)",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
+			"error_description":               "code_challenge is required (OAuth 2.1 requires PKCE)",
 		})
 	}
 
@@ -211,8 +211,8 @@ func (s *Service) handleAuthorizePOST(c *fiber.Ctx) error {
 
 	if codeChallengeMethod != cryptoutilSharedMagic.PKCEMethodS256 {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description": "Only 'S256' code_challenge_method is supported",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
+			"error_description":               "Only 'S256' code_challenge_method is supported",
 		})
 	}
 
@@ -225,8 +225,8 @@ func (s *Service) handleAuthorizePOST(c *fiber.Ctx) error {
 		appErr := cryptoutilIdentityAppErr.ErrClientNotFound
 
 		return c.Status(appErr.HTTPStatus).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidClient,
-			"error_description": appErr.Message,
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidClient,
+			"error_description":               appErr.Message,
 		})
 	}
 
@@ -243,8 +243,8 @@ func (s *Service) handleAuthorizePOST(c *fiber.Ctx) error {
 
 	if !validRedirectURI {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description": "redirect_uri does not match registered URIs",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
+			"error_description":               "redirect_uri does not match registered URIs",
 		})
 	}
 
@@ -254,8 +254,8 @@ func (s *Service) handleAuthorizePOST(c *fiber.Ctx) error {
 		slog.ErrorContext(ctx, "Failed to generate request ID", cryptoutilSharedMagic.StringError, err)
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
-			"error_description": "Failed to generate request ID",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
+			"error_description":               "Failed to generate request ID",
 		})
 	}
 
@@ -279,8 +279,8 @@ func (s *Service) handleAuthorizePOST(c *fiber.Ctx) error {
 		slog.ErrorContext(ctx, "Failed to store authorization request", cryptoutilSharedMagic.StringError, err, "request_id", requestID)
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
-			"error_description": "Failed to store authorization request",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
+			"error_description":               "Failed to store authorization request",
 		})
 	}
 

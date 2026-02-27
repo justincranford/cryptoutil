@@ -1,13 +1,13 @@
 package middleware
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
 	crand "crypto/rand"
 	rsa "crypto/rsa"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"fmt"
 	http "net/http"

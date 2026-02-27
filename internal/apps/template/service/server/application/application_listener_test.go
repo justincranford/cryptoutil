@@ -25,6 +25,7 @@ const testPostgresDSN = "postgres://user:pass@localhost:5432/testdb?sslmode=disa
 
 // TestStartCoreWithServices_FullIntegration tests the complete service initialization path.
 // IMPORTANT: StartCoreWithServices doesn't run migrations (Phase W TODO), so we test the components separately.
+// Sequential: uses shared SQLite in-memory database.
 func TestStartCoreWithServices_FullIntegration(t *testing.T) {
 	// NOT parallel - shares SQLite in-memory database with other tests.
 	ctx := context.Background()

@@ -24,8 +24,8 @@ var (
 	testSQLDB *sql.DB
 
 	testSmIMServer *cryptoutilAppsSmImServer.SmIMServer
-	baseURL            string
-	adminURL           string
+	baseURL        string
+	adminURL       string
 
 	testJWKGenService    *cryptoutilSharedCryptoJose.JWKGenService
 	testTelemetryService *cryptoutilSharedTelemetry.TelemetryService

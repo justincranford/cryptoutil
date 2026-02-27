@@ -179,8 +179,8 @@ func (r *DBRealmRepository) UpdatePassword(ctx context.Context, userID, newPassw
 	}
 
 	if err := r.db.WithContext(ctx).Model(&DBRealmUser{}).Where("id = ?", userID).Updates(map[string]any{
-		"password_hash": hash,
-		cryptoutilSharedMagic.ClaimUpdatedAt:    time.Now().UTC(),
+		"password_hash":                      hash,
+		cryptoutilSharedMagic.ClaimUpdatedAt: time.Now().UTC(),
 	}).Error; err != nil {
 		return fmt.Errorf("failed to update password: %w", err)
 	}
@@ -319,7 +319,7 @@ func (r *DBRealmRepository) CountUsers(ctx context.Context, realmID string) (int
 // EnableUser enables a user account.
 func (r *DBRealmRepository) EnableUser(ctx context.Context, userID string) error {
 	if err := r.db.WithContext(ctx).Model(&DBRealmUser{}).Where("id = ?", userID).Updates(map[string]any{
-		"enabled":    true,
+		"enabled":                            true,
 		cryptoutilSharedMagic.ClaimUpdatedAt: time.Now().UTC(),
 	}).Error; err != nil {
 		return fmt.Errorf("failed to enable user: %w", err)
@@ -331,7 +331,7 @@ func (r *DBRealmRepository) EnableUser(ctx context.Context, userID string) error
 // DisableUser disables a user account.
 func (r *DBRealmRepository) DisableUser(ctx context.Context, userID string) error {
 	if err := r.db.WithContext(ctx).Model(&DBRealmUser{}).Where("id = ?", userID).Updates(map[string]any{
-		"enabled":    false,
+		"enabled":                            false,
 		cryptoutilSharedMagic.ClaimUpdatedAt: time.Now().UTC(),
 	}).Error; err != nil {
 		return fmt.Errorf("failed to disable user: %w", err)

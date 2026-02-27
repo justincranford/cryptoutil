@@ -26,7 +26,6 @@ import (
 // ErrInvalidJWSJWKKidUUID indicates the JWS JWK key ID is not a valid UUID.
 var ErrInvalidJWSJWKKidUUID = "invalid JWS JWK kid UUID"
 
-
 // GenerateJWSJWKForAlg generates a JWS JWK for the specified signature algorithm.
 func GenerateJWSJWKForAlg(alg *joseJwa.SignatureAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	kid := googleUuid.Must(googleUuid.NewV7())

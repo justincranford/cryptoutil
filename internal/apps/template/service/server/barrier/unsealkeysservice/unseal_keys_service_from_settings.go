@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedUtilFiles "cryptoutil/internal/shared/util/files"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 	cryptoutilSharedUtilSysinfo "cryptoutil/internal/shared/util/sysinfo"

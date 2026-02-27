@@ -27,6 +27,8 @@ import (
 
 // TestIssueJWSSession_ParseJWKError covers the JWK parse error in JWS issue.
 func TestIssueJWSSession_ParseJWKError(t *testing.T) {
+	t.Parallel()
+
 	orig := jwkParseKeyFn
 
 	defer func() { jwkParseKeyFn = orig }()
@@ -44,6 +46,8 @@ func TestIssueJWSSession_ParseJWKError(t *testing.T) {
 
 // TestValidateJWESession_ParseJWKError covers the JWK parse error in JWE validate.
 func TestValidateJWESession_ParseJWKError(t *testing.T) {
+	t.Parallel()
+
 	orig := jwkParseKeyFn
 
 	defer func() { jwkParseKeyFn = orig }()
@@ -65,6 +69,8 @@ func TestValidateJWESession_ParseJWKError(t *testing.T) {
 
 // TestValidateJWSSession_ParseJWKError covers the JWK parse error in JWS validate.
 func TestValidateJWSSession_ParseJWKError(t *testing.T) {
+	t.Parallel()
+
 	orig := jwkParseKeyFn
 
 	defer func() { jwkParseKeyFn = orig }()
@@ -88,6 +94,8 @@ func TestValidateJWSSession_ParseJWKError(t *testing.T) {
 
 // TestValidateJWESession_UnmarshalError covers the claims unmarshal error in JWE validate.
 func TestValidateJWESession_UnmarshalError(t *testing.T) {
+	t.Parallel()
+
 	orig := decryptBytesFn
 
 	defer func() { decryptBytesFn = orig }()
@@ -108,6 +116,8 @@ func TestValidateJWESession_UnmarshalError(t *testing.T) {
 
 // TestValidateJWSSession_UnmarshalError covers the claims unmarshal error in JWS validate.
 func TestValidateJWSSession_UnmarshalError(t *testing.T) {
+	t.Parallel()
+
 	orig := verifyBytesFn
 
 	defer func() { verifyBytesFn = orig }()
@@ -132,6 +142,8 @@ func TestValidateJWSSession_UnmarshalError(t *testing.T) {
 
 // TestValidateJWSSession_PublicKeyError covers the PublicKey extraction error.
 func TestValidateJWSSession_PublicKeyError(t *testing.T) {
+	t.Parallel()
+
 	orig := jwkParseKeyFn
 
 	defer func() { jwkParseKeyFn = orig }()
@@ -337,6 +349,8 @@ var (
 
 // TestGenerateJWSKey_RSAKeygenError covers RSA keygen failure in generateJWSKey.
 func TestGenerateJWSKey_RSAKeygenError(t *testing.T) {
+	t.Parallel()
+
 	orig := generateRSAKeyPairSessionFn
 
 	defer func() { generateRSAKeyPairSessionFn = orig }()
@@ -354,6 +368,8 @@ func TestGenerateJWSKey_RSAKeygenError(t *testing.T) {
 
 // TestGenerateJWEKey_AESKeygenError covers AES keygen failure in generateJWEKey.
 func TestGenerateJWEKey_AESKeygenError(t *testing.T) {
+	t.Parallel()
+
 	orig := generateAESKeySessionFn
 
 	defer func() { generateAESKeySessionFn = orig }()

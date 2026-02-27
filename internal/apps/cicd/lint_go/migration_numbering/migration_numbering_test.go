@@ -280,6 +280,7 @@ func TestFindDomainMigrationDirs_NoAppsDir(t *testing.T) {
 	require.Empty(t, dirs)
 }
 
+// Sequential: uses os.Chdir (global process state).
 func TestCheck_FromProjectRoot(t *testing.T) {
 	root, err := findProjectRoot()
 	if err != nil {
@@ -409,6 +410,7 @@ func TestFindDomainMigrationDirs_WalkPermissionError(t *testing.T) {
 // Seam tests below: NOT parallel because they modify package-level seam variables.
 // They must run after all parallel tests complete to avoid data races.
 
+// Sequential: modifies package-level seam variables.
 func TestSeam_FindDomainMigrationDirs_AbsTemplateError(t *testing.T) {
 	saveRestoreSeams(t)
 
@@ -424,6 +426,7 @@ func TestSeam_FindDomainMigrationDirs_AbsTemplateError(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to get absolute path for template dir")
 }
 
+// Sequential: modifies package-level seam variables.
 func TestSeam_FindDomainMigrationDirs_WalkAbsError(t *testing.T) {
 	saveRestoreSeams(t)
 
@@ -454,6 +457,7 @@ func TestSeam_FindDomainMigrationDirs_WalkAbsError(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to walk apps directory")
 }
 
+// Sequential: modifies package-level seam variables.
 func TestSeam_CheckInDir_FindDomainDirsError(t *testing.T) {
 	saveRestoreSeams(t)
 
@@ -471,6 +475,7 @@ func TestSeam_CheckInDir_FindDomainDirsError(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to find domain migration directories")
 }
 
+// Sequential: modifies package-level seam variables.
 func TestSeam_CheckMigrationDir_AtoiError(t *testing.T) {
 	saveRestoreSeams(t)
 

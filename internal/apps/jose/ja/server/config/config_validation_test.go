@@ -178,6 +178,7 @@ func TestParseWithFlagSet_OverrideDefaults(t *testing.T) {
 }
 
 // TestParse_DefaultValues tests Parse returns correct default values using global pflag.
+// Sequential: uses viper/pflag global state.
 func TestParse_DefaultValues(t *testing.T) {
 	// Use ParseWithFlagSet instead - Parse modifies global pflag.CommandLine.
 	// Tests should use ParseWithFlagSet for isolation.
@@ -185,15 +186,15 @@ func TestParse_DefaultValues(t *testing.T) {
 }
 
 // TestParse_OverrideDefaults tests Parse with command line overrides using global pflag.
+// Sequential: uses viper/pflag global state.
 func TestParse_OverrideDefaults(t *testing.T) {
 	// Use ParseWithFlagSet instead - Parse modifies global pflag.CommandLine.
 	t.Skip("Use TestParseWithFlagSet_OverrideDefaults instead - this test would modify global pflag state")
 }
 
 // TestPublicBaseURL tests URL construction for public server.
+// Sequential: uses viper/pflag global state.
 func TestPublicBaseURL(t *testing.T) {
-	t.Parallel()
-
 	settings := DefaultTestConfig()
 
 	url := settings.PublicBaseURL()

@@ -33,8 +33,8 @@ func TenantMiddleware() fiber.Handler {
 			// Validate UUID format.
 			if !isValidUUID(tenantID) {
 				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-					cryptoutilSharedMagic.StringError:   "invalid_tenant_id",
-					"message": "Tenant ID must be a valid UUID",
+					cryptoutilSharedMagic.StringError: "invalid_tenant_id",
+					"message":                         "Tenant ID must be a valid UUID",
 				})
 			}
 
@@ -62,8 +62,8 @@ func RequireTenantMiddleware() fiber.Handler {
 		tenantID := GetTenantID(c.UserContext())
 		if tenantID == "" {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:   "missing_tenant_id",
-				"message": "X-Tenant-ID header is required",
+				cryptoutilSharedMagic.StringError: "missing_tenant_id",
+				"message":                         "X-Tenant-ID header is required",
 			})
 		}
 

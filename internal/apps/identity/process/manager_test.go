@@ -5,8 +5,8 @@
 package process
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"

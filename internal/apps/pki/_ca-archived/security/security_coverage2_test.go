@@ -3,20 +3,20 @@
 package security
 
 import (
+	"context"
+	ecdsa "crypto/ecdsa"
+	"crypto/ed25519"
+	"crypto/elliptic"
+	crand "crypto/rand"
+	rsa "crypto/rsa"
+	"crypto/x509"
+	"crypto/x509/pkix"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-"context"
-ecdsa "crypto/ecdsa"
-"crypto/ed25519"
-"crypto/elliptic"
-crand "crypto/rand"
-rsa "crypto/rsa"
-"crypto/x509"
-"crypto/x509/pkix"
-"math/big"
-"testing"
-"time"
+	"math/big"
+	"testing"
+	"time"
 
-"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 )
 
 // ─── ValidateCSR ─────────────────────────────────────────────────────────────

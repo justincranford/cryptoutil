@@ -30,8 +30,8 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 
 	if authHeader == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
-			"error_description": "Missing Authorization header",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidToken,
+			"error_description":               "Missing Authorization header",
 		})
 	}
 
@@ -39,8 +39,8 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 	parts := strings.SplitN(authHeader, " ", 2)
 	if len(parts) != 2 || parts[0] != cryptoutilSharedMagic.AuthorizationBearer {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
-			"error_description": "Invalid Authorization header format",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidToken,
+			"error_description":               "Invalid Authorization header format",
 		})
 	}
 
@@ -50,8 +50,8 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 	claims, err := s.tokenSvc.ValidateAccessToken(ctx, accessToken)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
-			"error_description": "Invalid or expired access token",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidToken,
+			"error_description":               "Invalid or expired access token",
 		})
 	}
 
@@ -67,8 +67,8 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 		// JWT tokens don't exist in database, so this is expected for JWT format.
 		if len(claims) == 0 {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
-				"error_description": "Token not found",
+				cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidToken,
+				"error_description":               "Token not found",
 			})
 		}
 
@@ -80,8 +80,8 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 		// Check token expiration for UUID tokens.
 		if time.Now().UTC().After(dbToken.ExpiresAt) {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
-				"error_description": "Token has expired",
+				cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidToken,
+				"error_description":               "Token has expired",
 			})
 		}
 
@@ -101,8 +101,8 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 	sub, ok := claims[cryptoutilSharedMagic.ClaimSub].(string)
 	if !ok || sub == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
-			"error_description": "Token missing sub claim",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidToken,
+			"error_description":               "Token missing sub claim",
 		})
 	}
 
@@ -112,8 +112,8 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 	user, err := userRepo.GetBySub(ctx, sub)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidToken,
-			"error_description": "User not found",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidToken,
+			"error_description":               "User not found",
 		})
 	}
 
@@ -177,12 +177,12 @@ func addScopeBasedClaims(userInfo map[string]any, scopeList []string, user *cryp
 		case cryptoutilSharedMagic.ClaimAddress:
 			if user.Address != nil {
 				userInfo[cryptoutilSharedMagic.ClaimAddress] = map[string]any{
-					cryptoutilSharedMagic.AddressFormatted:      user.Address.Formatted,
+					cryptoutilSharedMagic.AddressFormatted:     user.Address.Formatted,
 					cryptoutilSharedMagic.AddressStreetAddress: user.Address.StreetAddress,
-					cryptoutilSharedMagic.AddressLocality:       user.Address.Locality,
-					cryptoutilSharedMagic.AddressRegion:         user.Address.Region,
+					cryptoutilSharedMagic.AddressLocality:      user.Address.Locality,
+					cryptoutilSharedMagic.AddressRegion:        user.Address.Region,
 					cryptoutilSharedMagic.AddressPostalCode:    user.Address.PostalCode,
-					cryptoutilSharedMagic.AddressCountry:        user.Address.Country,
+					cryptoutilSharedMagic.AddressCountry:       user.Address.Country,
 				}
 			}
 

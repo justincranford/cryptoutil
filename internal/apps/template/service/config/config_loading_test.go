@@ -67,6 +67,7 @@ tls-private-ip-addresses:
 // correctly map to PascalCase struct fields (DevMode, BindPublicAddress).
 // Priority: P1.3 (Critical - Must Have).
 func TestYAMLFieldMapping_CamelCase(t *testing.T) {
+	t.Parallel()
 	// NOTE: Viper does NOT support camelCase YAML keys - only kebab-case.
 	// This test verifies that camelCase keys are NOT recognized.
 	yamlContent := `
@@ -98,6 +99,7 @@ bind-private-port: 9999
 // correctly map to PascalCase struct fields (DevMode, BindPublicAddress).
 // Priority: P1.3 (Critical - Must Have).
 func TestYAMLFieldMapping_PascalCase(t *testing.T) {
+	t.Parallel()
 	// NOTE: Viper does NOT support PascalCase YAML keys - only kebab-case.
 	// This test verifies that PascalCase keys are NOT recognized.
 	yamlContent := `

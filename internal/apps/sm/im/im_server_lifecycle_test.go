@@ -9,13 +9,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
 )
 
 // TestIM_ServerHelp verifies that server --help prints usage and returns 0.
 func TestIM_ServerHelp(t *testing.T) {
-	t.Parallel()
-
 	var stdout, stderr bytes.Buffer
 
 	exitCode := Im([]string{"server", "--help"}, nil, &stdout, &stderr)
@@ -50,4 +47,3 @@ func TestIM_ServerCreateError(t *testing.T) {
 	combined := stdout.String() + stderr.String()
 	require.Contains(t, combined, "Failed to create server")
 }
-

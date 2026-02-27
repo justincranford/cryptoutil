@@ -27,6 +27,7 @@ import (
 )
 
 func TestRotateKey_TooLongReason(t *testing.T) {
+	t.Parallel()
 	app, _, _ := setupRotationTestEnvironment(t)
 
 	// Create a reason that exceeds MaxRotationReasonLength (500 characters).
@@ -68,6 +69,7 @@ func TestRotateKey_TooLongReason(t *testing.T) {
 
 // TestRotateKey_InvalidJSON tests that rotation requests fail with invalid JSON body.
 func TestRotateKey_InvalidJSON(t *testing.T) {
+	t.Parallel()
 	app, _, _ := setupRotationTestEnvironment(t)
 
 	// Test all three endpoints.

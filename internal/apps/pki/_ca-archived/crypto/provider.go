@@ -6,13 +6,13 @@
 package crypto
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto"
 	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
 	rsa "crypto/rsa"
 	"crypto/x509"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 
 	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"

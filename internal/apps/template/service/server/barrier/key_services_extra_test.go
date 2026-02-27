@@ -17,6 +17,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
+
 func TestEncryptContent_InvalidInput(t *testing.T) {
 	t.Parallel()
 

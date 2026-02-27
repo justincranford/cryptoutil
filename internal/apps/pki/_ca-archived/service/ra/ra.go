@@ -6,8 +6,8 @@
 package ra
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"fmt"
 	"sync"

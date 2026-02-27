@@ -16,8 +16,8 @@
 package middleware
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
@@ -152,8 +152,8 @@ func RequireRealmMiddleware() fiber.Handler {
 		realmCtx := GetRealmContext(c.UserContext())
 		if realmCtx == nil || realmCtx.TenantID == googleUuid.Nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:   "unauthorized",
-				"message": "tenant context required",
+				cryptoutilSharedMagic.StringError: "unauthorized",
+				"message":                         "tenant context required",
 			})
 		}
 

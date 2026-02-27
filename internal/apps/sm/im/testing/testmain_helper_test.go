@@ -64,6 +64,7 @@ func TestSetupTestServer_SuccessfulSetup(t *testing.T) {
 // TestSetupTestServer_CancelledContext tests that SetupTestServer returns an error
 // when given a cancelled context (covers NewFromConfig error path).
 // NOT parallel: uses file::memory:?cache=shared which is process-wide.
+// Sequential: uses shared SQLite in-memory database.
 func TestSetupTestServer_CancelledContext(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel() // Cancel immediately.
@@ -127,6 +128,7 @@ func TestStartSmIMService_NilConfig(t *testing.T) {
 // TestStartSmIMService_PortConflict tests that StartSmIMService panics
 // when the configured port is already in use (covers errChan server start error path).
 // NOT parallel: uses file::memory:?cache=shared which is process-wide.
+// Sequential: uses shared SQLite in-memory database.
 func TestStartSmIMService_PortConflict(t *testing.T) {
 	// Occupy a port to create a conflict.
 	lc := net.ListenConfig{}

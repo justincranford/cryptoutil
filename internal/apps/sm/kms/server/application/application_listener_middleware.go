@@ -16,8 +16,8 @@ import (
 	"time"
 
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	"github.com/gofiber/contrib/otelfiber"
 	fiber "github.com/gofiber/fiber/v2"
@@ -213,9 +213,9 @@ func checkMemoryHealth() map[string]any {
 	runtime.ReadMemStats(&m)
 
 	return map[string]any{
-		cryptoutilSharedMagic.StringStatus:         "ok",
-		"heap_alloc":     m.Alloc,
-		"num_goroutines": runtime.NumGoroutine(),
+		cryptoutilSharedMagic.StringStatus: "ok",
+		"heap_alloc":                       m.Alloc,
+		"num_goroutines":                   runtime.NumGoroutine(),
 	}
 }
 
@@ -224,7 +224,7 @@ func checkSidecarHealth(serverApplicationCore *ServerApplicationCore) map[string
 	if !serverApplicationCore.Settings.OTLPEnabled {
 		return map[string]any{
 			cryptoutilSharedMagic.StringStatus: cryptoutilSharedMagic.DefaultDatabaseContainerDisabled,
-			"note":   "OTLP export is disabled",
+			"note":                             "OTLP export is disabled",
 		}
 	}
 
@@ -241,8 +241,8 @@ func checkSidecarHealth(serverApplicationCore *ServerApplicationCore) map[string
 	}
 
 	return map[string]any{
-		cryptoutilSharedMagic.StringStatus:   "ok",
-		"endpoint": serverApplicationCore.Settings.OTLPEndpoint,
+		cryptoutilSharedMagic.StringStatus: "ok",
+		"endpoint":                         serverApplicationCore.Settings.OTLPEndpoint,
 	}
 }
 
@@ -252,9 +252,9 @@ func checkDependenciesHealth(_ *ServerApplicationCore) map[string]any {
 	services := map[string]any{}
 
 	return map[string]any{
-		cryptoutilSharedMagic.StringStatus:   "ok",
-		"services": services,
-		"note":     "No external dependencies configured",
+		cryptoutilSharedMagic.StringStatus: "ok",
+		"services":                         services,
+		"note":                             "No external dependencies configured",
 	}
 }
 

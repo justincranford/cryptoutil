@@ -5,12 +5,12 @@
 package crypto
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto/ecdh"
 	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
 	rsa "crypto/rsa"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"sync"
 	"testing"
@@ -62,7 +62,7 @@ func TestIsPrivateJWK(t *testing.T) {
 	tests := getTestCases(t)
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-				t.Parallel()
+			t.Parallel()
 
 			isPrivate, err := IsPrivateJWK(tc.jwk)
 			if tc.wantErr != nil {
@@ -81,7 +81,7 @@ func TestIsPublicJWK(t *testing.T) {
 	tests := getTestCases(t)
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-				t.Parallel()
+			t.Parallel()
 
 			isPublic, err := IsPublicJWK(tc.jwk)
 			if tc.wantErr != nil {
@@ -100,7 +100,7 @@ func TestIsAsymmetricJWK(t *testing.T) {
 	tests := getTestCases(t)
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-				t.Parallel()
+			t.Parallel()
 
 			isAsymmetric, err := IsAsymmetricJWK(tc.jwk)
 			if tc.wantErr != nil {
@@ -119,7 +119,7 @@ func TestIsSymmetricJWK(t *testing.T) {
 	tests := getTestCases(t)
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-				t.Parallel()
+			t.Parallel()
 
 			isSymmetric, err := IsSymmetricJWK(tc.jwk)
 			if tc.wantErr != nil {
@@ -138,7 +138,7 @@ func TestIsEncryptJWK(t *testing.T) {
 	tests := getTestCases(t)
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-				t.Parallel()
+			t.Parallel()
 
 			isEncrypt, err := IsEncryptJWK(tc.jwk)
 			if tc.wantErr != nil {
@@ -157,7 +157,7 @@ func TestIsDecryptJWK(t *testing.T) {
 	tests := getTestCases(t)
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-				t.Parallel()
+			t.Parallel()
 
 			isDecrypt, err := IsDecryptJWK(tc.jwk)
 			if tc.wantErr != nil {
@@ -176,7 +176,7 @@ func TestIsSignJWK(t *testing.T) {
 	tests := getTestCases(t)
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-				t.Parallel()
+			t.Parallel()
 
 			isSign, err := IsSignJWK(tc.jwk)
 			if tc.wantErr != nil {
@@ -195,7 +195,7 @@ func TestIsVerifyJWK(t *testing.T) {
 	tests := getTestCases(t)
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-				t.Parallel()
+			t.Parallel()
 
 			isVerify, err := IsVerifyJWK(tc.jwk)
 			if tc.wantErr != nil {

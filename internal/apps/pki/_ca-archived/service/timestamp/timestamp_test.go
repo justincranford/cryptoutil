@@ -3,9 +3,9 @@
 package timestamp
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"crypto"
 	sha256 "crypto/sha256"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/asn1"
 	"math/big"
 	"testing"

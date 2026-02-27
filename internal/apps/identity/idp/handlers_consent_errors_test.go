@@ -3,8 +3,8 @@
 package idp_test
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	http "net/http"
 	"net/http/httptest"
 	"testing"

@@ -4,8 +4,8 @@
 package dpop
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	sha256 "crypto/sha256"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/base64"
 	json "encoding/json"
 	"fmt"

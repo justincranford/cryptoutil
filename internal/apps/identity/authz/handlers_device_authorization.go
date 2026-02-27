@@ -40,8 +40,8 @@ func (s *Service) handleDeviceAuthorization(c *fiber.Ctx) error {
 	// Validate required parameters.
 	if clientID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description": "client_id is required",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
+			"error_description":               "client_id is required",
 		})
 	}
 
@@ -55,8 +55,8 @@ func (s *Service) handleDeviceAuthorization(c *fiber.Ctx) error {
 		slog.ErrorContext(ctx, "Client not found for device authorization", cryptoutilSharedMagic.ClaimClientID, clientID, cryptoutilSharedMagic.StringError, err)
 
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidClient,
-			"error_description": "Invalid client_id",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidClient,
+			"error_description":               "Invalid client_id",
 		})
 	}
 
@@ -66,8 +66,8 @@ func (s *Service) handleDeviceAuthorization(c *fiber.Ctx) error {
 		slog.ErrorContext(ctx, "Failed to generate device code", cryptoutilSharedMagic.StringError, err)
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
-			"error_description": "Failed to generate device code",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
+			"error_description":               "Failed to generate device code",
 		})
 	}
 
@@ -77,8 +77,8 @@ func (s *Service) handleDeviceAuthorization(c *fiber.Ctx) error {
 		slog.ErrorContext(ctx, "Failed to generate user code", cryptoutilSharedMagic.StringError, err)
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
-			"error_description": "Failed to generate user code",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
+			"error_description":               "Failed to generate user code",
 		})
 	}
 
@@ -101,8 +101,8 @@ func (s *Service) handleDeviceAuthorization(c *fiber.Ctx) error {
 		slog.ErrorContext(ctx, "Failed to store device authorization", cryptoutilSharedMagic.StringError, err, cryptoutilSharedMagic.ParamDeviceCode, deviceCode[:cryptoutilSharedMagic.IMMinPasswordLength]+"...")
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
-			"error_description": "Failed to store device authorization",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
+			"error_description":               "Failed to store device authorization",
 		})
 	}
 
@@ -127,11 +127,11 @@ func (s *Service) handleDeviceAuthorization(c *fiber.Ctx) error {
 
 	// Return RFC 8628 Section 3.2 response.
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		cryptoutilSharedMagic.ParamDeviceCode:               deviceCode,
-		cryptoutilSharedMagic.ParamUserCode:                 userCode,
-		"verification_uri":          verificationURI,
-		"verification_uri_complete": verificationURIComplete,
-		cryptoutilSharedMagic.ParamExpiresIn:                int(cryptoutilSharedMagic.DefaultDeviceCodeLifetime.Seconds()),
-		"interval":                  int(cryptoutilSharedMagic.DefaultPollingInterval.Seconds()),
+		cryptoutilSharedMagic.ParamDeviceCode: deviceCode,
+		cryptoutilSharedMagic.ParamUserCode:   userCode,
+		"verification_uri":                    verificationURI,
+		"verification_uri_complete":           verificationURIComplete,
+		cryptoutilSharedMagic.ParamExpiresIn:  int(cryptoutilSharedMagic.DefaultDeviceCodeLifetime.Seconds()),
+		"interval":                            int(cryptoutilSharedMagic.DefaultPollingInterval.Seconds()),
 	})
 }

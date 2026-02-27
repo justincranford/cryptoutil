@@ -6,8 +6,8 @@
 package common
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"os"
 	"strings"
@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Sequential: captures os.Stderr (global OS handle).
 func TestPrintExecutionSummary(t *testing.T) {
 	results := []CommandResult{
 		{Command: "test-command-1", Duration: cryptoutilSharedMagic.JoseJAMaxMaterials * time.Millisecond, Error: nil},
@@ -29,7 +30,7 @@ func TestPrintExecutionSummary(t *testing.T) {
 	r, w, _ := os.Pipe()
 	os.Stderr = w
 
-	PrintExecutionSummary(results, cryptoutilSharedMagic.TestDefaultRateLimitServiceIP * time.Millisecond)
+	PrintExecutionSummary(results, cryptoutilSharedMagic.TestDefaultRateLimitServiceIP*time.Millisecond)
 
 	if err := w.Close(); err != nil {
 		t.Logf("Warning: failed to close write pipe: %v", err)
@@ -54,6 +55,7 @@ func TestPrintExecutionSummary(t *testing.T) {
 	require.Contains(t, output, "0.50s", "Output should show total duration")
 }
 
+// Sequential: captures os.Stderr (global OS handle).
 func TestPrintExecutionSummary_AllSuccess(t *testing.T) {
 	results := []CommandResult{
 		{Command: "cmd1", Duration: cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond, Error: nil},
@@ -82,6 +84,7 @@ func TestPrintExecutionSummary_AllSuccess(t *testing.T) {
 	require.Contains(t, output, "Failed: 0", "No failed commands")
 }
 
+// Sequential: captures os.Stderr (global OS handle).
 func TestPrintExecutionSummary_AllFailure(t *testing.T) {
 	results := []CommandResult{
 		{Command: "cmd1", Duration: cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond, Error: errors.New("error1")},
@@ -110,6 +113,7 @@ func TestPrintExecutionSummary_AllFailure(t *testing.T) {
 	require.Contains(t, output, "Failed: 2", "All commands should fail")
 }
 
+// Sequential: captures os.Stderr (global OS handle).
 func TestPrintExecutionSummary_Empty(t *testing.T) {
 	results := []CommandResult{}
 
@@ -136,8 +140,8 @@ func TestPrintExecutionSummary_Empty(t *testing.T) {
 	require.Contains(t, output, "Failed: 0", "No failed commands")
 }
 
-func TestPrintCommandSeparator(t *testing.T) {
-	// Capture stderr
+// Sequential: captures os.Stderr (global OS handle).
+func TestPrintCommandSeparator(t *testing.T) { // Capture stderr
 	oldStderr := os.Stderr
 	r, w, _ := os.Pipe()
 	os.Stderr = w

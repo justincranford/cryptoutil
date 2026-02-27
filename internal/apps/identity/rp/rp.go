@@ -22,7 +22,6 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-
 // Rp implements the Relying Party service subcommand handler.
 // Handles subcommands: server, client, init, health, livez, readyz, shutdown.
 func Rp(args []string, _ io.Reader, stdout, stderr io.Writer) int {

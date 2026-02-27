@@ -14,9 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetAvailableWorkflows(t *testing.T) {
-	t.Parallel()
-	// Create a temporary directory structure to simulate .github/workflows/
+// Sequential: uses os.Chdir (global process state).
+func TestGetAvailableWorkflows(t *testing.T) { // Create a temporary directory structure to simulate .github/workflows/
 	tempDir := t.TempDir()
 	workflowsDir := filepath.Join(tempDir, "test_workflows")
 
@@ -67,11 +66,11 @@ func TestGetAvailableWorkflows(t *testing.T) {
 
 	// Verify expected workflows are found
 	expectedWorkflows := map[string]bool{
-		"quality":  true,
-		"coverage": true,
-		cryptoutilSharedMagic.WorkflowNameDAST:     true,
-		cryptoutilSharedMagic.WorkflowNameLoad:     true,
-		"race":     true,
+		"quality":                              true,
+		"coverage":                             true,
+		cryptoutilSharedMagic.WorkflowNameDAST: true,
+		cryptoutilSharedMagic.WorkflowNameLoad: true,
+		"race":                                 true,
 	}
 
 	require.Equal(t, len(expectedWorkflows), len(workflows))

@@ -11,8 +11,8 @@ import (
 	"sync"
 
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	"go.opentelemetry.io/otel/metric"
 
@@ -303,21 +303,21 @@ func publicBrowserCSRFMiddlewareFunction(settings *cryptoutilAppsTemplateService
 				}
 
 				return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-					cryptoutilSharedMagic.StringError:           "CSRF token validation failed",
-					"details":         err.Error(),
-					"url":             c.OriginalURL(),
-					"method":          c.Method(),
-					"headers":         c.GetReqHeaders(),
-					"cookies":         c.GetReqHeaders()["Cookie"],
-					"csrf_token_name": settings.CSRFTokenName,
-					"origin":          c.Get("Origin"),
-					"referer":         c.Get("Referer"),
-					"cookie_token":    cookieToken,
-					"header_token":    headerToken,
-					"tokens_match":    cookieToken == headerToken,
-					"user_agent":      c.Get("User-Agent"),
-					"content_type":    c.Get("Content-Type"),
-					"request_id":      c.Locals("requestid"),
+					cryptoutilSharedMagic.StringError: "CSRF token validation failed",
+					"details":                         err.Error(),
+					"url":                             c.OriginalURL(),
+					"method":                          c.Method(),
+					"headers":                         c.GetReqHeaders(),
+					"cookies":                         c.GetReqHeaders()["Cookie"],
+					"csrf_token_name":                 settings.CSRFTokenName,
+					"origin":                          c.Get("Origin"),
+					"referer":                         c.Get("Referer"),
+					"cookie_token":                    cookieToken,
+					"header_token":                    headerToken,
+					"tokens_match":                    cookieToken == headerToken,
+					"user_agent":                      c.Get("User-Agent"),
+					"content_type":                    c.Get("Content-Type"),
+					"request_id":                      c.Locals("requestid"),
 				})
 			}
 

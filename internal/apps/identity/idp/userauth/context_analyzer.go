@@ -5,8 +5,8 @@
 package userauth
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"time"
 )
 
@@ -226,7 +226,7 @@ func (a *DefaultContextAnalyzer) detectLocationAnomaly(location *GeoLocation, ba
 		Description: "Authentication from unknown location",
 		Metadata: map[string]any{
 			cryptoutilSharedMagic.AddressCountry: location.Country,
-			"city":    location.City,
+			"city":                               location.City,
 		},
 	}
 }

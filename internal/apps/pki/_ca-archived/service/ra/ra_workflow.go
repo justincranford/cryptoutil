@@ -6,7 +6,6 @@
 package ra
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"crypto"
 	ecdsa "crypto/ecdsa"
@@ -16,6 +15,7 @@ import (
 	rsa "crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/pem"
 	"errors"
 	"fmt"

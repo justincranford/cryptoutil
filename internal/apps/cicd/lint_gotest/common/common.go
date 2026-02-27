@@ -34,7 +34,8 @@ func FilterExcludedTestFiles(testFiles []string) []string {
 			strings.HasSuffix(path, "_errors_test.go") ||
 			strings.HasSuffix(path, "_empty_token_test.go") ||
 			strings.HasSuffix(path, "_metric_test.go") ||
-			strings.HasSuffix(path, "_sequential_test.go") {
+			strings.HasSuffix(path, "_sequential_test.go") ||
+			strings.HasSuffix(path, "_viper_test.go") {
 			continue
 		}
 

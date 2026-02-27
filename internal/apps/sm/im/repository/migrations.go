@@ -40,7 +40,7 @@ var MigrationsFS embed.FS
 // This allows golang-migrate to see all migrations (1001-1006) in sequence.
 type mergedFS struct {
 	templateFS embed.FS
-	smIMFS embed.FS
+	smIMFS     embed.FS
 }
 
 func (m *mergedFS) Open(name string) (fs.File, error) {
@@ -119,7 +119,7 @@ func (m *mergedFS) Stat(name string) (fs.FileInfo, error) {
 func GetMergedMigrationsFS() fs.FS {
 	return &mergedFS{
 		templateFS: cryptoutilAppsTemplateServiceServerRepository.MigrationsFS,
-		smIMFS: MigrationsFS,
+		smIMFS:     MigrationsFS,
 	}
 }
 

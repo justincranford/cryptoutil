@@ -5,8 +5,8 @@
 package ca
 
 const (
-// CAUsageMain is the main usage message for the pki ca command.
-CAUsageMain = `Usage: pki ca <subcommand> [options]
+	// CAUsageMain is the main usage message for the pki ca command.
+	CAUsageMain = `Usage: pki ca <subcommand> [options]
 
 Available subcommands:
   version     Print version information
@@ -21,8 +21,8 @@ Available subcommands:
 Use "pki ca <subcommand> help" for subcommand-specific help.
 Version information is available via Docker image tags.`
 
-// CAUsageServer is the usage message for the server subcommand.
-CAUsageServer = `Usage: pki ca server [options]
+	// CAUsageServer is the usage message for the server subcommand.
+	CAUsageServer = `Usage: pki ca server [options]
 
 Description:
   Start the Certificate Authority server with database initialization.
@@ -41,8 +41,8 @@ Examples:
   pki ca server --config configs/pki/ca/config.yml
   pki ca server --dev`
 
-// CAUsageClient is the usage message for the client subcommand.
-CAUsageClient = `Usage: pki ca client [options]
+	// CAUsageClient is the usage message for the client subcommand.
+	CAUsageClient = `Usage: pki ca client [options]
 
 Description:
   Run client operations for the Certificate Authority service.
@@ -53,8 +53,8 @@ Options:
 Examples:
   pki ca client`
 
-// CAUsageInit is the usage message for the init subcommand.
-CAUsageInit = `Usage: pki ca init [options]
+	// CAUsageInit is the usage message for the init subcommand.
+	CAUsageInit = `Usage: pki ca init [options]
 
 Description:
   Initialize database schema and configuration for the Certificate Authority service.
@@ -67,8 +67,8 @@ Examples:
   pki ca init
   pki ca init --config configs/pki/ca/config.yml`
 
-// CAUsageHealth is the usage message for the health subcommand.
-CAUsageHealth = `Usage: pki ca health [options]
+	// CAUsageHealth is the usage message for the health subcommand.
+	CAUsageHealth = `Usage: pki ca health [options]
 
 Description:
   Check service health via public API endpoint.
@@ -84,8 +84,8 @@ Examples:
   pki ca health --url https://localhost:8100
   pki ca health --cacert /path/to/ca.pem`
 
-// CAUsageLivez is the usage message for the livez subcommand.
-CAUsageLivez = `Usage: pki ca livez [options]
+	// CAUsageLivez is the usage message for the livez subcommand.
+	CAUsageLivez = `Usage: pki ca livez [options]
 
 Description:
   Check service liveness via admin API endpoint.
@@ -100,8 +100,8 @@ Examples:
   pki ca livez
   pki ca livez --url https://localhost:9090`
 
-// CAUsageReadyz is the usage message for the readyz subcommand.
-CAUsageReadyz = `Usage: pki ca readyz [options]
+	// CAUsageReadyz is the usage message for the readyz subcommand.
+	CAUsageReadyz = `Usage: pki ca readyz [options]
 
 Description:
   Check service readiness via admin API endpoint.
@@ -116,8 +116,8 @@ Examples:
   pki ca readyz
   pki ca readyz --url https://localhost:9090`
 
-// CAUsageShutdown is the usage message for the shutdown subcommand.
-CAUsageShutdown = `Usage: pki ca shutdown [options]
+	// CAUsageShutdown is the usage message for the shutdown subcommand.
+	CAUsageShutdown = `Usage: pki ca shutdown [options]
 
 Description:
   Trigger graceful shutdown via admin API endpoint.

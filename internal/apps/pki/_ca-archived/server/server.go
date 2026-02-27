@@ -4,30 +4,30 @@
 package server
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"crypto"
 	crand "crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"math/big"
 	"time"
 
 	"gorm.io/gorm"
 
+	cryptoutilCAHandler "cryptoutil/internal/apps/pki/ca/api/handler"
+	cryptoutilCACrypto "cryptoutil/internal/apps/pki/ca/crypto"
 	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/pki/ca/server/config"
+	cryptoutilCAServiceIssuer "cryptoutil/internal/apps/pki/ca/service/issuer"
+	cryptoutilCAServiceRevocation "cryptoutil/internal/apps/pki/ca/service/revocation"
+	cryptoutilCAStorage "cryptoutil/internal/apps/pki/ca/storage"
 	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilAppsTemplateServiceServerBuilder "cryptoutil/internal/apps/template/service/server/builder"
 	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilAppsTemplateServiceServerService "cryptoutil/internal/apps/template/service/server/service"
-	cryptoutilCAHandler "cryptoutil/internal/apps/pki/ca/api/handler"
-	cryptoutilCACrypto "cryptoutil/internal/apps/pki/ca/crypto"
-	cryptoutilCAServiceIssuer "cryptoutil/internal/apps/pki/ca/service/issuer"
-	cryptoutilCAServiceRevocation "cryptoutil/internal/apps/pki/ca/service/revocation"
-	cryptoutilCAStorage "cryptoutil/internal/apps/pki/ca/storage"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )

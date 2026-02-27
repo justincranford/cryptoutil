@@ -117,10 +117,10 @@ type ClientAuthPolicyManager struct {
 func NewClientAuthPolicyManager() *ClientAuthPolicyManager {
 	return &ClientAuthPolicyManager{
 		policies: map[string]*ClientAuthPolicy{
-			"default":     DefaultClientAuthPolicy(),
-			"strict":      StrictClientAuthPolicy(),
-			cryptoutilSharedMagic.SubjectTypePublic:      PublicClientAuthPolicy(),
-			"development": DevelopmentClientAuthPolicy(),
+			"default":                               DefaultClientAuthPolicy(),
+			"strict":                                StrictClientAuthPolicy(),
+			cryptoutilSharedMagic.SubjectTypePublic: PublicClientAuthPolicy(),
+			"development":                           DevelopmentClientAuthPolicy(),
 		},
 	}
 }

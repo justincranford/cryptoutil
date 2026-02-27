@@ -3,9 +3,9 @@
 package handler
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	http "net/http"
 	"net/http/httptest"

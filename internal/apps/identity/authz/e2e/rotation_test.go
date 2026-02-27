@@ -3,8 +3,8 @@
 package e2e
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"database/sql"
 	"fmt"
 	"testing"
@@ -263,9 +263,9 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	// Configure connection pool for concurrent transactions
 	dbSQL, err := db.DB()
 	require.NoError(t, err)
-	dbSQL.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)    // Allow concurrent transactions
-	dbSQL.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)    // Match max open
-	dbSQL.SetConnMaxLifetime(0) // In-memory DB: never close connections
+	dbSQL.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries) // Allow concurrent transactions
+	dbSQL.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries) // Match max open
+	dbSQL.SetConnMaxLifetime(0)                                                      // In-memory DB: never close connections
 	dbSQL.SetConnMaxIdleTime(0)
 
 	// Apply migrations

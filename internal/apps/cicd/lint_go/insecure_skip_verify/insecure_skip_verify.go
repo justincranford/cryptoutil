@@ -16,7 +16,6 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-
 // Check verifies that code doesn't disable TLS certificate verification.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 	return CheckInDir(logger, ".")

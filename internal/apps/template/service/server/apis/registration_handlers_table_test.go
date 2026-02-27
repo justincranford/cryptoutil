@@ -6,8 +6,8 @@
 package apis
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	json "encoding/json"
 	"net/http/httptest"
 	"testing"
@@ -21,6 +21,8 @@ import (
 )
 
 func TestHandleListJoinRequests_TableDriven(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name           string
 		expectedStatus int
@@ -71,6 +73,8 @@ func TestHandleListJoinRequests_TableDriven(t *testing.T) {
 
 // TestHandleProcessJoinRequest_TableDriven uses table-driven tests for comprehensive coverage.
 func TestHandleProcessJoinRequest_TableDriven(t *testing.T) {
+	t.Parallel()
+
 	validID := googleUuid.New().String()
 
 	tests := []struct {

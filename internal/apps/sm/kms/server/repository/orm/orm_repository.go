@@ -5,8 +5,8 @@
 package orm
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
@@ -85,13 +85,13 @@ func (r *OrmRepository) HealthCheck(ctx context.Context) (map[string]any, error)
 	dbType := r.gormDB.Name()
 
 	return map[string]any{
-		cryptoutilSharedMagic.StringStatus:               "ok",
-		"db_type":              dbType,
-		"open_connections":     stats.OpenConnections,
-		"idle_connections":     stats.Idle,
-		"in_use_connections":   stats.InUse,
-		"max_open_connections": stats.MaxOpenConnections,
-		"wait_count":           stats.WaitCount,
-		"wait_duration":        stats.WaitDuration.String(),
+		cryptoutilSharedMagic.StringStatus: "ok",
+		"db_type":                          dbType,
+		"open_connections":                 stats.OpenConnections,
+		"idle_connections":                 stats.Idle,
+		"in_use_connections":               stats.InUse,
+		"max_open_connections":             stats.MaxOpenConnections,
+		"wait_count":                       stats.WaitCount,
+		"wait_duration":                    stats.WaitDuration.String(),
 	}, nil
 }

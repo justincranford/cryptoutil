@@ -66,9 +66,8 @@ func startAdminServerWithClient(t *testing.T) (*cryptoutilAppsTemplateServiceSer
 // the shutdown JSON response when s.shutdown=true via the HTTP endpoint.
 // The HTTP /admin/api/v1/shutdown endpoint sets s.shutdown=true but leaves Fiber running
 // (scheduled goroutine is a no-op), providing a reliable window to test livez.
+// Sequential: starts a real HTTPS server (port reuse issues).
 func TestAdminServer_Livez_DuringHTTPShutdown(t *testing.T) {
-	t.Parallel()
-
 	// NOT parallel: starts admin server.
 	_, client, port, cancel, wg := startAdminServerWithClient(t)
 
@@ -103,9 +102,8 @@ func TestAdminServer_Livez_DuringHTTPShutdown(t *testing.T) {
 
 // TestAdminServer_Readyz_DuringHTTPShutdown covers handleReadyz's "return nil" after
 // the shutdown JSON response when s.shutdown=true via the HTTP endpoint.
+// Sequential: starts a real HTTPS server (port reuse issues).
 func TestAdminServer_Readyz_DuringHTTPShutdown(t *testing.T) {
-	t.Parallel()
-
 	// NOT parallel: starts admin server.
 	server, client, port, cancel, wg := startAdminServerWithClient(t)
 

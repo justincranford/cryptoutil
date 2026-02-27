@@ -15,8 +15,8 @@ import (
 	cryptoutilKmsMiddleware "cryptoutil/internal/apps/sm/kms/server/middleware"
 	cryptoutilOrmRepository "cryptoutil/internal/apps/sm/kms/server/repository/orm"
 	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	googleUuid "github.com/google/uuid"
 )

@@ -24,10 +24,10 @@ import (
 )
 
 const (
-	exampleNumWorkersRSA       = 3
-	exampleNumWorkersOther     = 1
-	examplePoolSize            = 3
-	exampleMaxLifetimeKeys     = 3
+	exampleNumWorkersRSA   = 3
+	exampleNumWorkersOther = 1
+	examplePoolSize        = 3
+	exampleMaxLifetimeKeys = 3
 )
 
 func TestPoolsExample(t *testing.T) {

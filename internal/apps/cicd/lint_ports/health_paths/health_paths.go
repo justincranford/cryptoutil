@@ -4,8 +4,8 @@
 package health_paths
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bufio"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"os"
 	"regexp"

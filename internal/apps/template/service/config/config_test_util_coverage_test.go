@@ -168,6 +168,7 @@ func TestRequireNewForTest_DatabaseURLBranches(t *testing.T) {
 // TestNewTestConfig_ValidationPanic verifies that NewTestConfig panics when
 // invalid arguments cause validation failure.
 func TestNewTestConfig_ValidationPanic(t *testing.T) {
+	t.Parallel()
 	// In dev mode, IPv4AnyAddress is rejected by validateConfiguration.
 	require.Panics(t, func() {
 		NewTestConfig(cryptoutilSharedMagic.IPv4AnyAddress, 0, true)
@@ -189,6 +190,8 @@ func TestRequireNewForTest_DatabaseURLEnvOverride(t *testing.T) {
 
 // TestRequireNewForTest_HappyPath verifies normal operation with default settings.
 func TestRequireNewForTest_HappyPath(t *testing.T) {
+	t.Parallel()
+
 	settings := RequireNewForTest("test-happy")
 	require.NotNil(t, settings)
 	require.Equal(t, "test-happy", settings.OTLPService)

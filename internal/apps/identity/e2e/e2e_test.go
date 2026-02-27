@@ -16,7 +16,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-
 // TestE2E_HealthChecks validates /health endpoint for all instances.
 func TestE2E_HealthChecks(t *testing.T) {
 	t.Parallel()

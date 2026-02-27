@@ -4,22 +4,22 @@
 package repository
 
 import (
-"database/sql"
-"embed"
-"fmt"
-"io/fs"
+	"database/sql"
+	"embed"
+	"fmt"
+	"io/fs"
 
-cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 // DatabaseType represents supported database types for skeleton-template.
 type DatabaseType = cryptoutilAppsTemplateServiceServerRepository.DatabaseType
 
 const (
-// DatabaseTypeSQLite represents SQLite database.
-DatabaseTypeSQLite = cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite
-// DatabaseTypePostgreSQL represents PostgreSQL database.
-DatabaseTypePostgreSQL = cryptoutilAppsTemplateServiceServerRepository.DatabaseTypePostgreSQL
+	// DatabaseTypeSQLite represents SQLite database.
+	DatabaseTypeSQLite = cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite
+	// DatabaseTypePostgreSQL represents PostgreSQL database.
+	DatabaseTypePostgreSQL = cryptoutilAppsTemplateServiceServerRepository.DatabaseTypePostgreSQL
 )
 
 // MigrationsFS contains embedded skeleton-template specific migrations (2001+ only).
@@ -38,88 +38,88 @@ var MigrationsFS embed.FS
 // mergedFS combines template and skeleton-template migrations into a single filesystem view.
 // This allows golang-migrate to see all migrations (1001-1004 + 2001+) in sequence.
 type mergedFS struct {
-templateFS   embed.FS
-skeletonTplFS embed.FS
+	templateFS    embed.FS
+	skeletonTplFS embed.FS
 }
 
 func (m *mergedFS) Open(name string) (fs.File, error) {
-// Try skeleton-template filesystem first (2001+).
-file, err := m.skeletonTplFS.Open(name)
-if err == nil {
-return file, nil
-}
+	// Try skeleton-template filesystem first (2001+).
+	file, err := m.skeletonTplFS.Open(name)
+	if err == nil {
+		return file, nil
+	}
 
-// Fall back to template filesystem (1001-1004).
-file, err = m.templateFS.Open(name)
-if err != nil {
-return nil, fmt.Errorf("failed to open from template: %w", err)
-}
+	// Fall back to template filesystem (1001-1004).
+	file, err = m.templateFS.Open(name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open from template: %w", err)
+	}
 
-return file, nil
+	return file, nil
 }
 
 func (m *mergedFS) ReadDir(name string) ([]fs.DirEntry, error) {
-// Read both directories and merge results.
-var entries []fs.DirEntry
+	// Read both directories and merge results.
+	var entries []fs.DirEntry
 
-// Read template migrations (1001-1004).
-templateEntries, err := m.templateFS.ReadDir(name)
-if err == nil {
-entries = append(entries, templateEntries...)
-}
+	// Read template migrations (1001-1004).
+	templateEntries, err := m.templateFS.ReadDir(name)
+	if err == nil {
+		entries = append(entries, templateEntries...)
+	}
 
-// Read skeleton-template migrations (2001+).
-skeletonTplEntries, err := m.skeletonTplFS.ReadDir(name)
-if err == nil {
-entries = append(entries, skeletonTplEntries...)
-}
+	// Read skeleton-template migrations (2001+).
+	skeletonTplEntries, err := m.skeletonTplFS.ReadDir(name)
+	if err == nil {
+		entries = append(entries, skeletonTplEntries...)
+	}
 
-if len(entries) == 0 {
-return nil, fmt.Errorf("directory not found: %s", name)
-}
+	if len(entries) == 0 {
+		return nil, fmt.Errorf("directory not found: %s", name)
+	}
 
-return entries, nil
+	return entries, nil
 }
 
 func (m *mergedFS) ReadFile(name string) ([]byte, error) {
-// Try skeleton-template filesystem first (2001+).
-data, err := fs.ReadFile(m.skeletonTplFS, name)
-if err == nil {
-return data, nil
-}
+	// Try skeleton-template filesystem first (2001+).
+	data, err := fs.ReadFile(m.skeletonTplFS, name)
+	if err == nil {
+		return data, nil
+	}
 
-// Fall back to template filesystem (1001-1004).
-data, err = fs.ReadFile(m.templateFS, name)
-if err != nil {
-return nil, fmt.Errorf("failed to read from template: %w", err)
-}
+	// Fall back to template filesystem (1001-1004).
+	data, err = fs.ReadFile(m.templateFS, name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read from template: %w", err)
+	}
 
-return data, nil
+	return data, nil
 }
 
 func (m *mergedFS) Stat(name string) (fs.FileInfo, error) {
-// Try skeleton-template filesystem first.
-info, err := fs.Stat(m.skeletonTplFS, name)
-if err == nil {
-return info, nil
-}
+	// Try skeleton-template filesystem first.
+	info, err := fs.Stat(m.skeletonTplFS, name)
+	if err == nil {
+		return info, nil
+	}
 
-// Fall back to template filesystem.
-info, err = fs.Stat(m.templateFS, name)
-if err != nil {
-return nil, fmt.Errorf("failed to stat from template: %w", err)
-}
+	// Fall back to template filesystem.
+	info, err = fs.Stat(m.templateFS, name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to stat from template: %w", err)
+	}
 
-return info, nil
+	return info, nil
 }
 
 // GetMergedMigrationsFS returns a filesystem combining template and skeleton-template migrations.
 // This is used by tests to access all migrations (1001-1999 template + 2001+ skeleton-template) in sequence.
 func GetMergedMigrationsFS() fs.FS {
-return &mergedFS{
-templateFS:   cryptoutilAppsTemplateServiceServerRepository.MigrationsFS,
-skeletonTplFS: MigrationsFS,
-}
+	return &mergedFS{
+		templateFS:    cryptoutilAppsTemplateServiceServerRepository.MigrationsFS,
+		skeletonTplFS: MigrationsFS,
+	}
 }
 
 // ApplySkeletonTemplateMigrations runs database migrations for skeleton-template service.
@@ -135,12 +135,12 @@ skeletonTplFS: MigrationsFS,
 // Phase 2 - skeleton-template specific tables (2001+):
 // - 2001_template_items: Minimal template demonstration table.
 func ApplySkeletonTemplateMigrations(db *sql.DB, dbType DatabaseType) error {
-// Apply all migrations in sequence (1001-1999 template + 2001+ skeleton-template) using merged filesystem.
-runner := cryptoutilAppsTemplateServiceServerRepository.NewMigrationRunner(GetMergedMigrationsFS(), "migrations")
+	// Apply all migrations in sequence (1001-1999 template + 2001+ skeleton-template) using merged filesystem.
+	runner := cryptoutilAppsTemplateServiceServerRepository.NewMigrationRunner(GetMergedMigrationsFS(), "migrations")
 
-if err := runner.Apply(db, dbType); err != nil {
-return fmt.Errorf("failed to apply skeleton-template migrations (1001-1999 + 2001+): %w", err)
-}
+	if err := runner.Apply(db, dbType); err != nil {
+		return fmt.Errorf("failed to apply skeleton-template migrations (1001-1999 + 2001+): %w", err)
+	}
 
-return nil
+	return nil
 }

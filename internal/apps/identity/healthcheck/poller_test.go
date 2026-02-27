@@ -3,8 +3,8 @@
 package healthcheck
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	json "encoding/json"
 	http "net/http"
 	"net/http/httptest"

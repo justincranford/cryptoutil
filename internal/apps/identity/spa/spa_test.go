@@ -5,78 +5,78 @@
 package spa
 
 import (
-"bytes"
-"testing"
+	"bytes"
+	"testing"
 
-testify "github.com/stretchr/testify/require"
+	testify "github.com/stretchr/testify/require"
 )
 
 func TestSpa_HelpFlag(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-tests := []struct {
-name string
-args []string
-}{
-{name: "help flag", args: []string{"--help"}},
-{name: "h flag", args: []string{"-h"}},
-{name: "help command", args: []string{"help"}},
-}
-for _, tc := range tests {
-t.Run(tc.name, func(t *testing.T) {
-t.Parallel()
+	tests := []struct {
+		name string
+		args []string
+	}{
+		{name: "help flag", args: []string{"--help"}},
+		{name: "h flag", args: []string{"-h"}},
+		{name: "help command", args: []string{"help"}},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-var stdout, stderr bytes.Buffer
+			var stdout, stderr bytes.Buffer
 
-exitCode := Spa(tc.args, nil, &stdout, &stderr)
-testify.Equal(t, 0, exitCode)
-})
-}
+			exitCode := Spa(tc.args, nil, &stdout, &stderr)
+			testify.Equal(t, 0, exitCode)
+		})
+	}
 }
 
 func TestSpa_UnknownSubcommand(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-var stdout, stderr bytes.Buffer
+	var stdout, stderr bytes.Buffer
 
-exitCode := Spa([]string{"unknown-subcommand"}, nil, &stdout, &stderr)
-testify.Equal(t, 1, exitCode)
+	exitCode := Spa([]string{"unknown-subcommand"}, nil, &stdout, &stderr)
+	testify.Equal(t, 1, exitCode)
 }
 
 func TestSpaClient_HelpFlag(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-var stderr bytes.Buffer
+	var stderr bytes.Buffer
 
-exitCode := spaClient([]string{"--help"}, nil, &stderr)
-testify.Equal(t, 0, exitCode)
+	exitCode := spaClient([]string{"--help"}, nil, &stderr)
+	testify.Equal(t, 0, exitCode)
 }
 
 func TestSpaClient_NotImplemented(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-var stderr bytes.Buffer
+	var stderr bytes.Buffer
 
-exitCode := spaClient([]string{}, nil, &stderr)
-testify.Equal(t, 1, exitCode)
-testify.Contains(t, stderr.String(), "not yet implemented")
+	exitCode := spaClient([]string{}, nil, &stderr)
+	testify.Equal(t, 1, exitCode)
+	testify.Contains(t, stderr.String(), "not yet implemented")
 }
 
 func TestSpaServiceInit_HelpFlag(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-var stderr bytes.Buffer
+	var stderr bytes.Buffer
 
-exitCode := spaServiceInit([]string{"--help"}, nil, &stderr)
-testify.Equal(t, 0, exitCode)
+	exitCode := spaServiceInit([]string{"--help"}, nil, &stderr)
+	testify.Equal(t, 0, exitCode)
 }
 
 func TestSpaServiceInit_NotImplemented(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-var stderr bytes.Buffer
+	var stderr bytes.Buffer
 
-exitCode := spaServiceInit([]string{}, nil, &stderr)
-testify.Equal(t, 1, exitCode)
-testify.Contains(t, stderr.String(), "not yet implemented")
+	exitCode := spaServiceInit([]string{}, nil, &stderr)
+	testify.Equal(t, 1, exitCode)
+	testify.Contains(t, stderr.String(), "not yet implemented")
 }

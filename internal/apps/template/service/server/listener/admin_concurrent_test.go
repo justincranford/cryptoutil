@@ -22,6 +22,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Sequential: uses shared state (not safe for parallel execution).
 func TestAdminServer_ConcurrentRequests(t *testing.T) {
 	// NOT parallel - all admin server tests compete for port 9090.
 	// Wait for port to be fully released from previous test.
@@ -173,6 +174,7 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 }
 
 // TestAdminServer_TimeoutsConfigured tests that server timeouts are properly configured.
+// Sequential: uses shared state (not safe for parallel execution).
 func TestAdminServer_TimeoutsConfigured(t *testing.T) {
 	// NOT parallel - server startup timing is unpredictable when running with other tests.
 	tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PrivateTLS()
@@ -250,6 +252,7 @@ func TestAdminServer_TimeoutsConfigured(t *testing.T) {
 }
 
 // TestAdminServer_AdminBaseURL tests AdminBaseURL returns correct URL format.
+// Sequential: uses shared state (not safe for parallel execution).
 func TestAdminServer_AdminBaseURL(t *testing.T) {
 	// NOT parallel - server startup timing is unpredictable when running with other tests.
 	tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PrivateTLS()

@@ -6,9 +6,9 @@
 package authz_test
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	json "encoding/json"
 	"net/http/httptest"
 	"strings"
@@ -104,8 +104,8 @@ func verifyTOTP(t *testing.T, app *fiber.App, userID googleUuid.UUID, code strin
 	t.Helper()
 
 	reqBody := map[string]any{
-		"user_id": userID.String(),
-		cryptoutilSharedMagic.ResponseTypeCode:    code,
+		"user_id":                              userID.String(),
+		cryptoutilSharedMagic.ResponseTypeCode: code,
 	}
 
 	reqBytes, err := json.Marshal(reqBody)
@@ -184,8 +184,8 @@ func verifyBackupCode(t *testing.T, app *fiber.App, userID googleUuid.UUID, code
 	t.Helper()
 
 	reqBody := map[string]any{
-		"user_id": userID.String(),
-		cryptoutilSharedMagic.ResponseTypeCode:    code,
+		"user_id":                              userID.String(),
+		cryptoutilSharedMagic.ResponseTypeCode: code,
 	}
 
 	reqBytes, err := json.Marshal(reqBody)

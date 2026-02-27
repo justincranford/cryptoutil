@@ -50,12 +50,12 @@ func NewRegistry(repoFactory *cryptoutilIdentityRepository.RepositoryFactory, co
 
 	return &Registry{
 		authenticators: map[string]ClientAuthenticator{
-			cryptoutilSharedMagic.ClientAuthMethodSecretBasic:         secretAuth,
-			cryptoutilSharedMagic.ClientAuthMethodSecretPost:          secretAuth,
-			cryptoutilSharedMagic.ClientAuthMethodTLSClientAuth:             NewTLSClientAuthenticator(clientRepo, caValidator),
+			cryptoutilSharedMagic.ClientAuthMethodSecretBasic:       secretAuth,
+			cryptoutilSharedMagic.ClientAuthMethodSecretPost:        secretAuth,
+			cryptoutilSharedMagic.ClientAuthMethodTLSClientAuth:     NewTLSClientAuthenticator(clientRepo, caValidator),
 			cryptoutilSharedMagic.ClientAuthMethodSelfSignedTLSAuth: NewSelfSignedAuthenticator(clientRepo, selfSignedValidator),
-			cryptoutilSharedMagic.ClientAuthMethodPrivateKeyJWT:             NewPrivateKeyJWTAuthenticator(tokenEndpointURL, clientRepo, jtiRepoCache),
-			cryptoutilSharedMagic.ClientAuthMethodSecretJWT:           NewClientSecretJWTAuthenticator(tokenEndpointURL, clientRepo, jtiRepoCache),
+			cryptoutilSharedMagic.ClientAuthMethodPrivateKeyJWT:     NewPrivateKeyJWTAuthenticator(tokenEndpointURL, clientRepo, jtiRepoCache),
+			cryptoutilSharedMagic.ClientAuthMethodSecretJWT:         NewClientSecretJWTAuthenticator(tokenEndpointURL, clientRepo, jtiRepoCache),
 		},
 		hasher: secretAuth,
 	}

@@ -22,7 +22,6 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-
 // Idp implements the Identity Provider service subcommand handler.
 // Handles subcommands: server, client, init, health, livez, readyz, shutdown.
 func Idp(args []string, _ io.Reader, stdout, stderr io.Writer) int {

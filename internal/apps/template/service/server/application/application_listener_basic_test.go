@@ -258,6 +258,7 @@ func (m *mockAdminServer) AdminBaseURL() string {
 }
 
 // TestStartListener tests creation and initialization of Listener.
+// Sequential: uses shared SQLite in-memory database.
 func TestStartListener(t *testing.T) {
 	// NOT parallel - uses shared SQLite database.
 	ctx := context.Background()
@@ -431,6 +432,7 @@ func TestListener_AdminPort_NilServer(t *testing.T) {
 }
 
 // TestListener_Shutdown tests graceful shutdown of Listener.
+// Sequential: uses shared SQLite in-memory database.
 func TestListener_Shutdown(t *testing.T) {
 	// NOT parallel - uses shared SQLite database.
 	ctx := context.Background()
@@ -461,6 +463,7 @@ func TestListener_Shutdown(t *testing.T) {
 }
 
 // TestListener_Shutdown_NilContext tests Shutdown with nil context.
+// Sequential: uses shared SQLite in-memory database.
 func TestListener_Shutdown_NilContext(t *testing.T) {
 	// NOT parallel - uses shared SQLite database.
 	ctx := context.Background()

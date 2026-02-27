@@ -3,8 +3,8 @@
 package idp
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"database/sql"
 	json "encoding/json"
 	"fmt"
@@ -99,8 +99,8 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 				return accessToken
 			},
 			requiredFields: []string{
-				cryptoutilSharedMagic.ClaimSub,            // OIDC required
-				cryptoutilSharedMagic.ClaimEmail,          // OIDC standard
+				cryptoutilSharedMagic.ClaimSub,           // OIDC required
+				cryptoutilSharedMagic.ClaimEmail,         // OIDC standard
 				cryptoutilSharedMagic.ClaimEmailVerified, // OIDC standard
 			},
 			optionalFields: []string{
@@ -332,14 +332,14 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 			switch tc.endpoint {
 			case endpointUserInfo:
 				respBody = map[string]any{
-					cryptoutilSharedMagic.ClaimSub:            testUUID,
-					cryptoutilSharedMagic.ClaimEmail:          "test@example.com",
+					cryptoutilSharedMagic.ClaimSub:           testUUID,
+					cryptoutilSharedMagic.ClaimEmail:         "test@example.com",
 					cryptoutilSharedMagic.ClaimEmailVerified: true,
-					cryptoutilSharedMagic.ClaimName:           "Test User",
+					cryptoutilSharedMagic.ClaimName:          "Test User",
 					cryptoutilSharedMagic.ClaimGivenName:     "Test",
 					cryptoutilSharedMagic.ClaimFamilyName:    "User",
-					cryptoutilSharedMagic.ClaimLocale:         "en-US",
-					cryptoutilSharedMagic.ClaimZoneinfo:       "America/New_York",
+					cryptoutilSharedMagic.ClaimLocale:        "en-US",
+					cryptoutilSharedMagic.ClaimZoneinfo:      "America/New_York",
 				}
 			case endpointDiscovery:
 				respBody = map[string]any{
@@ -357,9 +357,9 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 			case endpointToken:
 				respBody = map[string]any{
 					cryptoutilSharedMagic.TokenTypeAccessToken: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
-					cryptoutilSharedMagic.ParamTokenType:   cryptoutilSharedMagic.AuthorizationBearer,
-					cryptoutilSharedMagic.ParamExpiresIn:   float64(cryptoutilSharedMagic.IMDefaultSessionTimeout),
-					cryptoutilSharedMagic.ParamIDToken:     "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+					cryptoutilSharedMagic.ParamTokenType:       cryptoutilSharedMagic.AuthorizationBearer,
+					cryptoutilSharedMagic.ParamExpiresIn:       float64(cryptoutilSharedMagic.IMDefaultSessionTimeout),
+					cryptoutilSharedMagic.ParamIDToken:         "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
 				}
 			}
 

@@ -3,7 +3,6 @@
 package handler
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"context"
 	ecdsa "crypto/ecdsa"
@@ -11,6 +10,7 @@ import (
 	crand "crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	http "net/http"
 	"net/http/httptest"
 	"testing"
@@ -23,6 +23,7 @@ import (
 	cryptoutilApiCaServer "cryptoutil/api/ca/server"
 	cryptoutilCAStorage "cryptoutil/internal/apps/pki/ca/storage"
 )
+
 func TestBuildESTIssueRequest(t *testing.T) {
 	t.Parallel()
 

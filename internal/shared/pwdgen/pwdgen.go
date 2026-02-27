@@ -5,8 +5,8 @@
 package pwdgen
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	crand "crypto/rand"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"fmt"
 	"math/big"

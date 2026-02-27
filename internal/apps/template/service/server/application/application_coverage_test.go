@@ -14,8 +14,8 @@ import (
 	"gorm.io/gorm"
 
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // TestProvisionDatabase_FileMemoryNamedFormat tests the file::memory:NAME format.
@@ -189,6 +189,7 @@ func TestOpenSQLite_SqlOpenError(t *testing.T) {
 // TestOpenSQLite_GormOpenError tests the gorm.Open error path.
 // Covers application_core.go:373-377 (gorm.Open failure).
 // Cannot use t.Parallel() because it modifies the package-level injectable var.
+// Sequential: modifies package-level injectable function variable.
 func TestOpenSQLite_GormOpenError(t *testing.T) {
 	origGormOpen := gormOpenSQLiteFn
 	gormOpenSQLiteFn = func(_ gorm.Dialector, _ *gorm.Config) (*gorm.DB, error) {

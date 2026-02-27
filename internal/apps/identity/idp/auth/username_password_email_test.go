@@ -5,8 +5,8 @@
 package auth_test
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	googleUuid "github.com/google/uuid"
@@ -88,8 +88,8 @@ func TestEmailPasswordProfile_AuthenticateUserNotFound(t *testing.T) {
 	profile := cryptoutilIdentityAuth.NewEmailPasswordProfile(userRepo)
 
 	credentials := map[string]string{
-		cryptoutilSharedMagic.ClaimEmail:    "nonexistent@example.com",
-		"password": "SecurePassword123!",
+		cryptoutilSharedMagic.ClaimEmail: "nonexistent@example.com",
+		"password":                       "SecurePassword123!",
 	}
 
 	user, err := profile.Authenticate(ctx, credentials)
@@ -122,8 +122,8 @@ func TestEmailPasswordProfile_AuthenticateInvalidPassword(t *testing.T) {
 	profile := cryptoutilIdentityAuth.NewEmailPasswordProfile(userRepo)
 
 	credentials := map[string]string{
-		cryptoutilSharedMagic.ClaimEmail:    "testuser@example.com",
-		"password": "WrongPassword456!",
+		cryptoutilSharedMagic.ClaimEmail: "testuser@example.com",
+		"password":                       "WrongPassword456!",
 	}
 
 	user, err := profile.Authenticate(ctx, credentials)
@@ -156,8 +156,8 @@ func TestEmailPasswordProfile_AuthenticateSuccess(t *testing.T) {
 	profile := cryptoutilIdentityAuth.NewEmailPasswordProfile(userRepo)
 
 	credentials := map[string]string{
-		cryptoutilSharedMagic.ClaimEmail:    "testuser@example.com",
-		"password": correctPassword,
+		cryptoutilSharedMagic.ClaimEmail: "testuser@example.com",
+		"password":                       correctPassword,
 	}
 
 	user, err := profile.Authenticate(ctx, credentials)

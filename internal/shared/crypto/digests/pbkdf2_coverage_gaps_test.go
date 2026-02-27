@@ -3,8 +3,8 @@
 package digests
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	sha256 "crypto/sha256"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"hash"
 	"strings"
@@ -276,6 +276,8 @@ func TestPBKDF2WithParams_RandReadError(t *testing.T) {
 // TestHKDF_ReadError tests HKDF when the internal Read call fails.
 // NOTE: Must NOT use t.Parallel() - modifies package-level var.
 func TestHKDF_ReadError(t *testing.T) {
+	t.Parallel()
+
 	orig := digestsHKDFReadFn
 	digestsHKDFReadFn = func(_ interface{ Read([]byte) (int, error) }, _ []byte) (int, error) {
 		return 0, errTestInjectFailure

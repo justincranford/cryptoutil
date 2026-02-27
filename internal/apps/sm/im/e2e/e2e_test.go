@@ -20,7 +20,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-
 // generateTestPassword creates a cryptographically secure random password for testing.
 // Uses shared utility to ensure consistency across all services.
 func generateTestPassword(t *testing.T) string {

@@ -65,7 +65,7 @@ func TestHandleTokenAuthorizationCodeGrant_MissingParameters(t *testing.T) {
 			name: "missing redirect_uri",
 			formData: map[string]string{
 				cryptoutilSharedMagic.ParamGrantType:    cryptoutilSharedMagic.GrantTypeAuthorizationCode,
-				cryptoutilSharedMagic.ResponseTypeCode:          "test-code",
+				cryptoutilSharedMagic.ResponseTypeCode:  "test-code",
 				cryptoutilSharedMagic.ClaimClientID:     "test-client",
 				cryptoutilSharedMagic.ParamCodeVerifier: "test-verifier",
 			},
@@ -76,7 +76,7 @@ func TestHandleTokenAuthorizationCodeGrant_MissingParameters(t *testing.T) {
 			name: "missing client_id",
 			formData: map[string]string{
 				cryptoutilSharedMagic.ParamGrantType:    cryptoutilSharedMagic.GrantTypeAuthorizationCode,
-				cryptoutilSharedMagic.ResponseTypeCode:          "test-code",
+				cryptoutilSharedMagic.ResponseTypeCode:  "test-code",
 				cryptoutilSharedMagic.ParamRedirectURI:  "https://client.example.com/callback",
 				cryptoutilSharedMagic.ParamCodeVerifier: "test-verifier",
 			},
@@ -87,7 +87,7 @@ func TestHandleTokenAuthorizationCodeGrant_MissingParameters(t *testing.T) {
 			name: "missing code_verifier (PKCE required)",
 			formData: map[string]string{
 				cryptoutilSharedMagic.ParamGrantType:   cryptoutilSharedMagic.GrantTypeAuthorizationCode,
-				cryptoutilSharedMagic.ResponseTypeCode:         "test-code",
+				cryptoutilSharedMagic.ResponseTypeCode: "test-code",
 				cryptoutilSharedMagic.ParamRedirectURI: "https://client.example.com/callback",
 				cryptoutilSharedMagic.ClaimClientID:    "test-client",
 			},

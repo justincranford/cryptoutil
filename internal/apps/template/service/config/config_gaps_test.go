@@ -14,7 +14,6 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
-
 )
 
 // TestNewFromFile_Success tests successful config loading from file.
@@ -57,6 +56,7 @@ func TestNewFromFile_FileNotFound(t *testing.T) {
 
 // TestNewFromFile_InvalidYAML tests error when config file has invalid YAML.
 // NOTE: Cannot use t.Parallel() - NewFromFile accesses global viper state.
+// Sequential: uses viper/pflag global state.
 func TestNewFromFile_InvalidYAML(t *testing.T) {
 	invalidYAML := `
 dev: true
@@ -185,9 +185,8 @@ func TestRegisterAsIntSetting_WrongType(t *testing.T) {
 }
 
 // TestGetTLSPEMBytes_Base64DecodeError tests getTLSPEMBytes with invalid base64 string.
+// Sequential: uses viper/pflag global state.
 func TestGetTLSPEMBytes_Base64DecodeError(t *testing.T) {
-	t.Parallel()
-
 	viper.Set("test-invalid-base64", "!!!invalid-base64!!!")
 
 	defer viper.Reset()
@@ -197,6 +196,7 @@ func TestGetTLSPEMBytes_Base64DecodeError(t *testing.T) {
 }
 
 // TestGetTLSPEMBytes_EmptyString tests getTLSPEMBytes with empty string.
+// Sequential: uses viper/pflag global state.
 func TestGetTLSPEMBytes_EmptyString(t *testing.T) {
 	viper.Set("test-empty-string", "")
 
@@ -207,6 +207,7 @@ func TestGetTLSPEMBytes_EmptyString(t *testing.T) {
 }
 
 // TestGetTLSPEMBytes_ByteSliceValue tests getTLSPEMBytes with []byte value.
+// Sequential: uses viper/pflag global state.
 func TestGetTLSPEMBytes_ByteSliceValue(t *testing.T) {
 	expected := []byte("test-bytes")
 	viper.Set("test-byte-slice", expected)
@@ -218,6 +219,7 @@ func TestGetTLSPEMBytes_ByteSliceValue(t *testing.T) {
 }
 
 // TestGetTLSPEMBytes_ValidBase64 tests getTLSPEMBytes with valid base64 string.
+// Sequential: uses viper/pflag global state.
 func TestGetTLSPEMBytes_ValidBase64(t *testing.T) {
 	original := []byte("test-pem-content")
 	encoded := base64.StdEncoding.EncodeToString(original)
@@ -230,9 +232,8 @@ func TestGetTLSPEMBytes_ValidBase64(t *testing.T) {
 }
 
 // TestNewTestConfig_DevMode tests NewTestConfig with dev mode enabled.
+// Sequential: uses viper/pflag global state.
 func TestNewTestConfig_DevMode(t *testing.T) {
-	t.Parallel()
-
 	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, cryptoutilSharedMagic.DemoServerPort, true)
 	require.NotNil(t, cfg)
 	require.True(t, cfg.DevMode)

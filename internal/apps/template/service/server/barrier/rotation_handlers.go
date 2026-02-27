@@ -53,31 +53,31 @@ func HandleRotateRootKey(rotationService *RotationService) fiber.Handler {
 		var req RotateKeyRequest
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:   "invalid_request_body",
-				"message": "Failed to parse request body",
+				cryptoutilSharedMagic.StringError: "invalid_request_body",
+				"message":                         "Failed to parse request body",
 			})
 		}
 
 		// Validate reason length
 		if len(req.Reason) < MinRotationReasonLength {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:   "validation_error",
-				"message": "Reason must be at least 10 characters",
+				cryptoutilSharedMagic.StringError: "validation_error",
+				"message":                         "Reason must be at least 10 characters",
 			})
 		}
 
 		if len(req.Reason) > MaxRotationReasonLength {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:   "validation_error",
-				"message": "Reason must be at most 500 characters",
+				cryptoutilSharedMagic.StringError: "validation_error",
+				"message":                         "Reason must be at most 500 characters",
 			})
 		}
 
 		result, err := rotationService.RotateRootKey(c.Context(), req.Reason)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:   "rotation_failed",
-				"message": fmt.Sprintf("Failed to rotate root key: %v", err),
+				cryptoutilSharedMagic.StringError: "rotation_failed",
+				"message":                         fmt.Sprintf("Failed to rotate root key: %v", err),
 			})
 		}
 
@@ -96,31 +96,31 @@ func HandleRotateIntermediateKey(rotationService *RotationService) fiber.Handler
 		var req RotateKeyRequest
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:   "invalid_request_body",
-				"message": "Failed to parse request body",
+				cryptoutilSharedMagic.StringError: "invalid_request_body",
+				"message":                         "Failed to parse request body",
 			})
 		}
 
 		// Validate reason length
 		if len(req.Reason) < MinRotationReasonLength {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:   "validation_error",
-				"message": "Reason must be at least 10 characters",
+				cryptoutilSharedMagic.StringError: "validation_error",
+				"message":                         "Reason must be at least 10 characters",
 			})
 		}
 
 		if len(req.Reason) > MaxRotationReasonLength {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:   "validation_error",
-				"message": "Reason must be at most 500 characters",
+				cryptoutilSharedMagic.StringError: "validation_error",
+				"message":                         "Reason must be at most 500 characters",
 			})
 		}
 
 		result, err := rotationService.RotateIntermediateKey(c.Context(), req.Reason)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:   "rotation_failed",
-				"message": fmt.Sprintf("Failed to rotate intermediate key: %v", err),
+				cryptoutilSharedMagic.StringError: "rotation_failed",
+				"message":                         fmt.Sprintf("Failed to rotate intermediate key: %v", err),
 			})
 		}
 
@@ -139,31 +139,31 @@ func HandleRotateContentKey(rotationService *RotationService) fiber.Handler {
 		var req RotateKeyRequest
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:   "invalid_request_body",
-				"message": "Failed to parse request body",
+				cryptoutilSharedMagic.StringError: "invalid_request_body",
+				"message":                         "Failed to parse request body",
 			})
 		}
 
 		// Validate reason length
 		if len(req.Reason) < MinRotationReasonLength {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:   "validation_error",
-				"message": "Reason must be at least 10 characters",
+				cryptoutilSharedMagic.StringError: "validation_error",
+				"message":                         "Reason must be at least 10 characters",
 			})
 		}
 
 		if len(req.Reason) > MaxRotationReasonLength {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:   "validation_error",
-				"message": "Reason must be at most 500 characters",
+				cryptoutilSharedMagic.StringError: "validation_error",
+				"message":                         "Reason must be at most 500 characters",
 			})
 		}
 
 		result, err := rotationService.RotateContentKey(c.Context(), req.Reason)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:   "rotation_failed",
-				"message": fmt.Sprintf("Failed to rotate content key: %v", err),
+				cryptoutilSharedMagic.StringError: "rotation_failed",
+				"message":                         fmt.Sprintf("Failed to rotate content key: %v", err),
 			})
 		}
 

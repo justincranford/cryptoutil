@@ -219,6 +219,7 @@ func TestCheck_NoGoMod(t *testing.T) {
 // TestCheck_FreshCheckFindsCircularDeps covers the code path where CheckDependencies
 // returns an error inside Check() (lines 101-104, 110-115). NOT parallel — modifies
 // package-level var and changes working directory.
+// Sequential: uses os.Chdir (global process state).
 func TestCheck_FreshCheckFindsCircularDeps(t *testing.T) {
 	origDir, err := os.Getwd()
 	require.NoError(t, err)

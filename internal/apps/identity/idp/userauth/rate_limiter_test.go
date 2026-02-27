@@ -5,8 +5,8 @@
 package userauth
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
 
@@ -175,6 +175,8 @@ func TestPerUserRateLimiterConcurrent(t *testing.T) {
 
 // TestPerUserRateLimiterWindowExpiration tests rate limit window expiration.
 func TestPerUserRateLimiterWindowExpiration(t *testing.T) {
+	t.Parallel()
+
 	store, err := NewDatabaseRateLimitStore(noop.NewMeterProvider())
 	require.NoError(t, err)
 

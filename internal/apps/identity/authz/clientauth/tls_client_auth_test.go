@@ -3,10 +3,10 @@
 package clientauth
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	sha256 "crypto/sha256"
 	"crypto/x509"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/hex"
 	"encoding/pem"
 	"testing"

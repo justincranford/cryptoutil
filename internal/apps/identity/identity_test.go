@@ -5,8 +5,8 @@
 package identity
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -117,9 +117,9 @@ func TestIdentity_ServiceRouting(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name            string
-		serviceName     string
-		expectedUsage   string
+		name          string
+		serviceName   string
+		expectedUsage string
 	}{
 		{name: "authz service", serviceName: cryptoutilSharedMagic.AuthzServiceName, expectedUsage: "Usage: identity authz <subcommand>"},
 		{name: "idp service", serviceName: cryptoutilSharedMagic.IDPServiceName, expectedUsage: "Usage: identity idp <subcommand>"},

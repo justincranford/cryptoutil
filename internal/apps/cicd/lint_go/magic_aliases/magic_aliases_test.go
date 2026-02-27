@@ -176,6 +176,7 @@ func TestCheckMagicAliasesInDir_InvalidRootDir(t *testing.T) {
 	require.Error(t, err)
 }
 
+// Sequential: modifies package-level seam variables.
 func TestCheckMagicAliasesInDir_AbsMagicDirError(t *testing.T) {
 	origAbs := magicAliasesAbsFn
 	callCount := 0
@@ -196,6 +197,7 @@ func TestCheckMagicAliasesInDir_AbsMagicDirError(t *testing.T) {
 	require.Contains(t, err.Error(), "cannot resolve magic dir")
 }
 
+// Sequential: modifies package-level seam variables.
 func TestCheckMagicAliasesInDir_AbsRootDirError(t *testing.T) {
 	origAbs := magicAliasesAbsFn
 	callCount := 0
@@ -216,6 +218,7 @@ func TestCheckMagicAliasesInDir_AbsRootDirError(t *testing.T) {
 	require.Contains(t, err.Error(), "cannot resolve root dir")
 }
 
+// Sequential: modifies package-level seam variables.
 func TestCheckMagicAliasesInDir_WalkError(t *testing.T) {
 	origWalk := magicAliasesWalkFn
 	magicAliasesWalkFn = func(_ string, _ filepath.WalkFunc) error {

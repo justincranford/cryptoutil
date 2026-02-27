@@ -9,9 +9,9 @@ import (
 	"testing"
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
+	cryptoutilOrmRepository "cryptoutil/internal/apps/sm/kms/server/repository/orm"
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilOrmRepository "cryptoutil/internal/apps/sm/kms/server/repository/orm"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"

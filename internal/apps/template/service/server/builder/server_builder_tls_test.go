@@ -6,10 +6,10 @@ package builder
 
 import (
 	"crypto/elliptic"
-	"fmt"
-	"strings"
 	"crypto/x509"
 	"encoding/pem"
+	"fmt"
+	"strings"
 	"testing"
 	"testing/fstest"
 	"time"

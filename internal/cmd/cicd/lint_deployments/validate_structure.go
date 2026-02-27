@@ -299,4 +299,3 @@ func checkHardcodedCredentials(basePath string, result *ValidationResult) {
 		}
 	}
 }
-

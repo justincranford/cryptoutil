@@ -6,32 +6,32 @@ package config
 
 import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-"os"
-"path/filepath"
-"testing"
+	"os"
+	"path/filepath"
+	"testing"
 
-"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 )
 
 // writeConfigFile writes config content to a temp file for testing.
 func writeConfigFile(t *testing.T, content string) string {
-t.Helper()
+	t.Helper()
 
-tmpDir := t.TempDir()
-path := filepath.Join(tmpDir, "config.yaml")
+	tmpDir := t.TempDir()
+	path := filepath.Join(tmpDir, "config.yaml")
 
-err := os.WriteFile(path, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
-require.NoError(t, err)
+	err := os.WriteFile(path, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
+	require.NoError(t, err)
 
-return path
+	return path
 }
 
 // TestLoadCAConfig_EmptyCommonName tests that ValidateCAConfig returns an error
 // when the CA subject common name is empty.
 func TestLoadCAConfig_EmptyCommonName(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-content := `ca:
+	content := `ca:
   name: "test-ca"
   type: "root"
   subject:
@@ -43,20 +43,20 @@ content := `ca:
     days: 3650
 `
 
-path := writeConfigFile(t, content)
+	path := writeConfigFile(t, content)
 
-_, err := LoadCAConfig(path)
+	_, err := LoadCAConfig(path)
 
-require.Error(t, err)
-require.Contains(t, err.Error(), "subject common name is required")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "subject common name is required")
 }
 
 // TestLoadCAConfig_InvalidValidityDays tests that ValidateCAConfig returns an error
 // when the validity days is zero or negative.
 func TestLoadCAConfig_InvalidValidityDays(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-content := `ca:
+	content := `ca:
   name: "test-ca"
   type: "root"
   subject:
@@ -68,20 +68,20 @@ content := `ca:
     days: 0
 `
 
-path := writeConfigFile(t, content)
+	path := writeConfigFile(t, content)
 
-_, err := LoadCAConfig(path)
+	_, err := LoadCAConfig(path)
 
-require.Error(t, err)
-require.Contains(t, err.Error(), "validity days must be positive")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "validity days must be positive")
 }
 
 // TestLoadCAConfig_InvalidEdDSACurve tests that validateKeyConfig returns an error
 // when an invalid EdDSA curve is specified.
 func TestLoadCAConfig_InvalidEdDSACurve(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-content := `ca:
+	content := `ca:
   name: "test-ca"
   type: "root"
   subject:
@@ -93,20 +93,20 @@ content := `ca:
     days: 3650
 `
 
-path := writeConfigFile(t, content)
+	path := writeConfigFile(t, content)
 
-_, err := LoadCAConfig(path)
+	_, err := LoadCAConfig(path)
 
-require.Error(t, err)
-require.Contains(t, err.Error(), "invalid EdDSA curve")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid EdDSA curve")
 }
 
 // TestLoadCAConfig_InvalidKeyAlgorithm tests that validateKeyConfig returns an error
 // when an unrecognized key algorithm is specified.
 func TestLoadCAConfig_InvalidKeyAlgorithm(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-content := `ca:
+	content := `ca:
   name: "test-ca"
   type: "root"
   subject:
@@ -118,10 +118,10 @@ content := `ca:
     days: 3650
 `
 
-path := writeConfigFile(t, content)
+	path := writeConfigFile(t, content)
 
-_, err := LoadCAConfig(path)
+	_, err := LoadCAConfig(path)
 
-require.Error(t, err)
-require.Contains(t, err.Error(), "invalid algorithm")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid algorithm")
 }

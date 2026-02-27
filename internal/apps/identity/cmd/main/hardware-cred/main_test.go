@@ -5,8 +5,8 @@
 package main
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"flag"
 	"os"
 	"testing"
@@ -247,8 +247,6 @@ func TestGenerateMockPublicKey(t *testing.T) {
 
 // TestParseCredentialType tests credential type parsing.
 func TestParseCredentialType(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name     string
 		typeStr  string
@@ -278,8 +276,6 @@ func TestParseCredentialType(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
 			credType := parseCredentialType(tc.typeStr)
 			require.Equal(t, tc.wantType, credType)
 		})

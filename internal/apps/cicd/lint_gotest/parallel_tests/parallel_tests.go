@@ -13,6 +13,11 @@ import (
 	lintGoTestCommon "cryptoutil/internal/apps/cicd/lint_gotest/common"
 )
 
+const defaultSequentialCommentWindow = 10
+
+// sequentialCommentPattern matches explicit sequential documentation in test functions.
+var sequentialCommentPattern = regexp.MustCompile(`//\s*Sequential:`)
+
 // enforceParallelTests enforces that test functions call t.Parallel().
 func Check(logger *cryptoutilCmdCicdCommon.Logger, testFiles []string) error {
 	logger.Log("Enforcing t.Parallel() in tests...")
@@ -57,40 +62,67 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger, testFiles []string) error {
 	return nil
 }
 
-// testFuncPattern matches test function declarations.
+// testFuncPattern matches test function declarations (captures the function name).
 var testFuncPattern = regexp.MustCompile(`func\s+(Test\w+)\s*\(\s*t\s+\*testing\.T\s*\)`)
 
 // parallelPattern matches t.Parallel() calls.
 var parallelPattern = regexp.MustCompile(`t\.Parallel\(\)`)
 
-// checkParallelUsage checks a test file for missing t.Parallel() calls.
+// CheckParallelUsage checks a test file for missing t.Parallel() calls.
+// Each Test function is checked individually: t.Parallel() must appear in that
+// function's own body section (text between its declaration and the next top-level
+// Test function declaration, or EOF).
 func CheckParallelUsage(filePath string) []string {
-	content, err := os.ReadFile(filePath)
-	if err != nil {
-		return []string{fmt.Sprintf("Error reading file: %v", err)}
-	}
+content, err := os.ReadFile(filePath)
+if err != nil {
+return []string{fmt.Sprintf("Error reading file: %v", err)}
+}
 
-	var issues []string
+contentStr := string(content)
 
-	contentStr := string(content)
+// Find all test function declarations with their positions.
+funcMatches := testFuncPattern.FindAllStringSubmatchIndex(contentStr, -1)
 
-	// Find all test function declarations.
-	testFuncs := testFuncPattern.FindAllStringSubmatch(contentStr, -1)
+if len(funcMatches) == 0 {
+return nil
+}
 
-	// Check if t.Parallel() is called at least once.
-	hasParallel := parallelPattern.MatchString(contentStr)
+var issues []string
 
-	// If there are test functions but no t.Parallel(), flag it.
-	if len(testFuncs) > 0 && !hasParallel {
-		funcNames := make([]string, 0, len(testFuncs))
-		for _, match := range testFuncs {
-			if len(match) > 1 {
-				funcNames = append(funcNames, match[1])
-			}
-		}
+for i, match := range funcMatches {
+funcName := contentStr[match[2]:match[3]]
+funcBodyStart := match[1] // Position right after the function signature.
 
-		issues = append(issues, fmt.Sprintf("No t.Parallel() found in file with %d test functions: %s", len(testFuncs), strings.Join(funcNames, ", ")))
-	}
+// Body ends just before the next top-level Test function or at EOF.
+var funcBodyEnd int
 
-	return issues
+if i+1 < len(funcMatches) {
+funcBodyEnd = funcMatches[i+1][0]
+} else {
+funcBodyEnd = len(contentStr)
+}
+
+funcSection := contentStr[funcBodyStart:funcBodyEnd]
+
+if !parallelPattern.MatchString(funcSection) {
+// Skip if function is explicitly documented as sequential.
+// Check 10 lines before the function declaration for a "// Sequential:" comment.
+funcLineNum := strings.Count(contentStr[:match[0]], "\n")
+commentStart := max(0, strings.LastIndex(contentStr[:match[0]], "func "))
+// Find the 10-line window before the function
+allLines := strings.Split(contentStr[:match[0]], "\n")
+lineCount := len(allLines)
+windowStart := max(0, lineCount-defaultSequentialCommentWindow)
+commentWindow := strings.Join(allLines[windowStart:], "\n")
+
+if sequentialCommentPattern.MatchString(commentWindow) {
+continue
+}
+
+issues = append(issues, fmt.Sprintf("Test function %s (line %d) is missing t.Parallel()", funcName, funcLineNum+1))
+_ = commentStart // suppress unused var warning
+}
+}
+
+return issues
 }

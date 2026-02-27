@@ -6,8 +6,8 @@
 package common
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"fmt"
 	"os"

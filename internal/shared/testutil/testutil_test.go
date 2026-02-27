@@ -275,8 +275,6 @@ func TestIntegrationTimeout(t *testing.T) {
 	t.Parallel()
 
 	t.Run("default timeout", func(t *testing.T) {
-		t.Parallel()
-
 		timeout := cryptoutilSharedTestutil.IntegrationTimeout()
 		require.Equal(t, cryptoutilSharedTestutil.DefaultIntegrationTimeout, timeout)
 	})

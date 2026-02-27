@@ -102,6 +102,7 @@ func setupSessionManager(t *testing.T, browserAlg, serviceAlg cryptoutilSharedMa
 }
 
 func TestSessionManager_NewSessionManager(t *testing.T) {
+	t.Parallel()
 	db := setupTestDB(t)
 	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		BrowserSessionAlgorithm: string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
@@ -116,6 +117,7 @@ func TestSessionManager_NewSessionManager(t *testing.T) {
 }
 
 func TestSessionManager_Initialize_OPAQUE(t *testing.T) {
+	t.Parallel()
 	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 
 	require.Equal(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, sm.browserAlgorithm)
@@ -156,6 +158,7 @@ func TestSessionManager_Initialize_EmptyAlgorithm_UsesDefaults(t *testing.T) {
 }
 
 func TestSessionManager_IssueBrowserSession_OPAQUE_Success(t *testing.T) {
+	t.Parallel()
 	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
@@ -185,6 +188,7 @@ func TestSessionManager_IssueBrowserSession_OPAQUE_Success(t *testing.T) {
 }
 
 func TestSessionManager_ValidateBrowserSession_OPAQUE_Success(t *testing.T) {
+	t.Parallel()
 	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
@@ -207,6 +211,7 @@ func TestSessionManager_ValidateBrowserSession_OPAQUE_Success(t *testing.T) {
 }
 
 func TestSessionManager_ValidateBrowserSession_OPAQUE_InvalidToken(t *testing.T) {
+	t.Parallel()
 	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
@@ -218,6 +223,7 @@ func TestSessionManager_ValidateBrowserSession_OPAQUE_InvalidToken(t *testing.T)
 }
 
 func TestSessionManager_ValidateBrowserSession_OPAQUE_ExpiredSession(t *testing.T) {
+	t.Parallel()
 	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
@@ -246,6 +252,7 @@ func TestSessionManager_ValidateBrowserSession_OPAQUE_ExpiredSession(t *testing.
 }
 
 func TestSessionManager_IssueServiceSession_OPAQUE_Success(t *testing.T) {
+	t.Parallel()
 	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
@@ -275,6 +282,7 @@ func TestSessionManager_IssueServiceSession_OPAQUE_Success(t *testing.T) {
 }
 
 func TestSessionManager_ValidateServiceSession_OPAQUE_Success(t *testing.T) {
+	t.Parallel()
 	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
@@ -297,6 +305,7 @@ func TestSessionManager_ValidateServiceSession_OPAQUE_Success(t *testing.T) {
 }
 
 func TestSessionManager_CleanupExpiredSessions_ExpiredByTime(t *testing.T) {
+	t.Parallel()
 	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
@@ -333,6 +342,7 @@ func TestSessionManager_CleanupExpiredSessions_ExpiredByTime(t *testing.T) {
 }
 
 func TestSessionManager_CleanupExpiredSessions_IdleTimeout(t *testing.T) {
+	t.Parallel()
 	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
@@ -365,6 +375,7 @@ func TestSessionManager_CleanupExpiredSessions_IdleTimeout(t *testing.T) {
 }
 
 func TestSessionManager_MultipleSessionsPerUser(t *testing.T) {
+	t.Parallel()
 	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
@@ -400,6 +411,7 @@ func TestSessionManager_MultipleSessionsPerUser(t *testing.T) {
 
 // TestSessionManager_GenerateSessionJWK tests JWK generation.
 func TestSessionManager_GenerateSessionJWK(t *testing.T) {
+	t.Parallel()
 	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 
 	// Test browser JWK generation for JWS
@@ -420,6 +432,7 @@ func TestSessionManager_GenerateSessionJWK(t *testing.T) {
 
 // TestSessionManager_GenerateJWSKey tests JWS key generation.
 func TestSessionManager_GenerateJWSKey(t *testing.T) {
+	t.Parallel()
 	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 
 	privateKey, err := sm.generateJWSKey(cryptoutilSharedMagic.SessionJWSAlgorithmRS256)

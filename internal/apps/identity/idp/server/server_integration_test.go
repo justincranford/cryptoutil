@@ -3,9 +3,9 @@
 package server
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"crypto/tls"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"io"
 	http "net/http"
 	"testing"

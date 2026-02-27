@@ -108,8 +108,8 @@ func (m *MTLSMiddleware) Handler() fiber.Handler {
 		if tlsState == nil {
 			if m.config.RequireClientCert {
 				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-					cryptoutilSharedMagic.StringError:   "unauthorized",
-					"message": "TLS connection required",
+					cryptoutilSharedMagic.StringError: "unauthorized",
+					"message":                         "TLS connection required",
 				})
 			}
 
@@ -120,8 +120,8 @@ func (m *MTLSMiddleware) Handler() fiber.Handler {
 		if len(tlsState.PeerCertificates) == 0 {
 			if m.config.RequireClientCert {
 				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-					cryptoutilSharedMagic.StringError:   "unauthorized",
-					"message": "client certificate required",
+					cryptoutilSharedMagic.StringError: "unauthorized",
+					"message":                         "client certificate required",
 				})
 			}
 
@@ -134,8 +134,8 @@ func (m *MTLSMiddleware) Handler() fiber.Handler {
 		// Validate certificate.
 		if err := m.validateCertificate(clientCert); err != nil {
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:   "forbidden",
-				"message": fmt.Sprintf("certificate validation failed: %v", err),
+				cryptoutilSharedMagic.StringError: "forbidden",
+				"message":                         fmt.Sprintf("certificate validation failed: %v", err),
 			})
 		}
 

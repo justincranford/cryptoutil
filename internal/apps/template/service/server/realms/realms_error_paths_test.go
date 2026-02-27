@@ -6,8 +6,8 @@ package realms
 import (
 	"bytes"
 	"context"
-	"errors"
 	json "encoding/json"
+	"errors"
 	"net/http/httptest"
 	"testing"
 	"time"

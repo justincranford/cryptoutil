@@ -126,9 +126,9 @@ func TestParseArgs_AllFlags(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name   string
-		args   []string
-		check  func(t *testing.T, c *Config)
+		name  string
+		args  []string
+		check func(t *testing.T, c *Config)
 	}{
 		{
 			name: "output json",

@@ -3,7 +3,6 @@
 package handler
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
@@ -11,6 +10,7 @@ import (
 	rsa "crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/pem"
 	"io"
 	http "net/http"
@@ -25,6 +25,7 @@ import (
 	cryptoutilApiCaServer "cryptoutil/api/ca/server"
 	cryptoutilCAStorage "cryptoutil/internal/apps/pki/ca/storage"
 )
+
 func TestEstEndpoints(t *testing.T) {
 	t.Parallel()
 

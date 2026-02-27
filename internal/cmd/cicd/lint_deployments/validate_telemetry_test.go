@@ -2,442 +2,442 @@ package lint_deployments
 
 import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-"os"
-"path/filepath"
-"testing"
-"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
+	"os"
+	"path/filepath"
+	"testing"
 )
 
 func TestValidateTelemetry_ValidConfigs(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-dir := t.TempDir()
-writeConfig(t, dir, "config-1.yml", map[string]string{
-"otlp":             "true",
-"otlp-service":     "svc-1",
-"otlp-endpoint":    "http://collector:4317",
-"otlp-environment": "development",
-})
-writeConfig(t, dir, "config-2.yml", map[string]string{
-"otlp":             "true",
-"otlp-service":     "svc-2",
-"otlp-endpoint":    "http://collector:4317",
-"otlp-environment": "development",
-})
+	dir := t.TempDir()
+	writeConfig(t, dir, "config-1.yml", map[string]string{
+		"otlp":             "true",
+		"otlp-service":     "svc-1",
+		"otlp-endpoint":    "http://collector:4317",
+		"otlp-environment": "development",
+	})
+	writeConfig(t, dir, "config-2.yml", map[string]string{
+		"otlp":             "true",
+		"otlp-service":     "svc-2",
+		"otlp-endpoint":    "http://collector:4317",
+		"otlp-environment": "development",
+	})
 
-result, err := ValidateTelemetry(dir)
-require.NoError(t, err)
-require.NotNil(t, result)
-require.True(t, result.Valid)
-require.Empty(t, result.Errors)
+	result, err := ValidateTelemetry(dir)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	require.True(t, result.Valid)
+	require.Empty(t, result.Errors)
 }
 
 func TestValidateTelemetry_PathNotFound(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-result, err := ValidateTelemetry("/nonexistent/path")
-require.NoError(t, err)
-require.NotNil(t, result)
-require.False(t, result.Valid)
-require.Len(t, result.Errors, 1)
-require.Contains(t, result.Errors[0], "not found")
+	result, err := ValidateTelemetry("/nonexistent/path")
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	require.False(t, result.Valid)
+	require.Len(t, result.Errors, 1)
+	require.Contains(t, result.Errors[0], "not found")
 }
 
 func TestValidateTelemetry_PathIsFile(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-f := filepath.Join(t.TempDir(), "file.yml")
-require.NoError(t, os.WriteFile(f, []byte("test"), cryptoutilSharedMagic.CacheFilePermissions))
+	f := filepath.Join(t.TempDir(), "file.yml")
+	require.NoError(t, os.WriteFile(f, []byte("test"), cryptoutilSharedMagic.CacheFilePermissions))
 
-result, err := ValidateTelemetry(f)
-require.NoError(t, err)
-require.NotNil(t, result)
-require.False(t, result.Valid)
-require.Contains(t, result.Errors[0], "not a directory")
+	result, err := ValidateTelemetry(f)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	require.False(t, result.Valid)
+	require.Contains(t, result.Errors[0], "not a directory")
 }
 
 func TestValidateTelemetry_EmptyEndpoint(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-dir := t.TempDir()
-writeConfig(t, dir, "config.yml", map[string]string{
-"otlp":         "true",
-"otlp-service": "svc-1",
-})
+	dir := t.TempDir()
+	writeConfig(t, dir, "config.yml", map[string]string{
+		"otlp":         "true",
+		"otlp-service": "svc-1",
+	})
 
-result, err := ValidateTelemetry(dir)
-require.NoError(t, err)
-require.False(t, result.Valid)
-require.Contains(t, result.Errors[0], "empty")
+	result, err := ValidateTelemetry(dir)
+	require.NoError(t, err)
+	require.False(t, result.Valid)
+	require.Contains(t, result.Errors[0], "empty")
 }
 
 func TestValidateTelemetry_InvalidEndpointURL(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-dir := t.TempDir()
-writeConfig(t, dir, "config.yml", map[string]string{
-"otlp":          "true",
-"otlp-service":  "svc-1",
-"otlp-endpoint": "://bad-url",
-})
+	dir := t.TempDir()
+	writeConfig(t, dir, "config.yml", map[string]string{
+		"otlp":          "true",
+		"otlp-service":  "svc-1",
+		"otlp-endpoint": "://bad-url",
+	})
 
-result, err := ValidateTelemetry(dir)
-require.NoError(t, err)
-require.False(t, result.Valid)
-require.Contains(t, result.Errors[0], "invalid")
+	result, err := ValidateTelemetry(dir)
+	require.NoError(t, err)
+	require.False(t, result.Valid)
+	require.Contains(t, result.Errors[0], "invalid")
 }
 
 func TestValidateTelemetry_EndpointMissingHost(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-dir := t.TempDir()
-writeConfig(t, dir, "config.yml", map[string]string{
-"otlp":          "true",
-"otlp-service":  "svc-1",
-"otlp-endpoint": "http://:4317",
-})
+	dir := t.TempDir()
+	writeConfig(t, dir, "config.yml", map[string]string{
+		"otlp":          "true",
+		"otlp-service":  "svc-1",
+		"otlp-endpoint": "http://:4317",
+	})
 
-result, err := ValidateTelemetry(dir)
-require.NoError(t, err)
-require.False(t, result.Valid)
-require.Contains(t, result.Errors[0], "missing host")
+	result, err := ValidateTelemetry(dir)
+	require.NoError(t, err)
+	require.False(t, result.Valid)
+	require.Contains(t, result.Errors[0], "missing host")
 }
 
 func TestValidateTelemetry_EndpointMissingPort(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-dir := t.TempDir()
-writeConfig(t, dir, "config.yml", map[string]string{
-"otlp":          "true",
-"otlp-service":  "svc-1",
-"otlp-endpoint": "http://collector",
-})
+	dir := t.TempDir()
+	writeConfig(t, dir, "config.yml", map[string]string{
+		"otlp":          "true",
+		"otlp-service":  "svc-1",
+		"otlp-endpoint": "http://collector",
+	})
 
-result, err := ValidateTelemetry(dir)
-require.NoError(t, err)
-require.True(t, result.Valid)
-require.Contains(t, result.Warnings[0], "missing port")
+	result, err := ValidateTelemetry(dir)
+	require.NoError(t, err)
+	require.True(t, result.Valid)
+	require.Contains(t, result.Warnings[0], "missing port")
 }
 
 func TestValidateTelemetry_UnusualScheme(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-dir := t.TempDir()
-writeConfig(t, dir, "config.yml", map[string]string{
-"otlp":          "true",
-"otlp-service":  "svc-1",
-"otlp-endpoint": "ftp://collector:4317",
-})
+	dir := t.TempDir()
+	writeConfig(t, dir, "config.yml", map[string]string{
+		"otlp":          "true",
+		"otlp-service":  "svc-1",
+		"otlp-endpoint": "ftp://collector:4317",
+	})
 
-result, err := ValidateTelemetry(dir)
-require.NoError(t, err)
-require.True(t, result.Valid)
-require.Contains(t, result.Warnings[0], "unusual scheme")
+	result, err := ValidateTelemetry(dir)
+	require.NoError(t, err)
+	require.True(t, result.Valid)
+	require.Contains(t, result.Warnings[0], "unusual scheme")
 }
 
 func TestValidateTelemetry_AcceptedSchemes(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-tests := []struct {
-name     string
-endpoint string
-}{
-{name: cryptoutilSharedMagic.ProtocolHTTP, endpoint: "http://collector:4317"},
-{name: cryptoutilSharedMagic.ProtocolHTTPS, endpoint: "https://collector:4318"},
-{name: "grpc", endpoint: "grpc://collector:4317"},
-}
+	tests := []struct {
+		name     string
+		endpoint string
+	}{
+		{name: cryptoutilSharedMagic.ProtocolHTTP, endpoint: "http://collector:4317"},
+		{name: cryptoutilSharedMagic.ProtocolHTTPS, endpoint: "https://collector:4318"},
+		{name: "grpc", endpoint: "grpc://collector:4317"},
+	}
 
-for _, tc := range tests {
-t.Run(tc.name, func(t *testing.T) {
-t.Parallel()
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-dir := t.TempDir()
-writeConfig(t, dir, "config.yml", map[string]string{
-"otlp":          "true",
-"otlp-service":  "svc-1",
-"otlp-endpoint": tc.endpoint,
-})
+			dir := t.TempDir()
+			writeConfig(t, dir, "config.yml", map[string]string{
+				"otlp":          "true",
+				"otlp-service":  "svc-1",
+				"otlp-endpoint": tc.endpoint,
+			})
 
-result, err := ValidateTelemetry(dir)
-require.NoError(t, err)
-require.True(t, result.Valid)
+			result, err := ValidateTelemetry(dir)
+			require.NoError(t, err)
+			require.True(t, result.Valid)
 
-// No "unusual scheme" warnings for accepted schemes.
-for _, w := range result.Warnings {
-require.NotContains(t, w, "unusual scheme")
-}
-})
-}
+			// No "unusual scheme" warnings for accepted schemes.
+			for _, w := range result.Warnings {
+				require.NotContains(t, w, "unusual scheme")
+			}
+		})
+	}
 }
 
 func TestValidateTelemetry_DuplicateServiceNames(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-dir := t.TempDir()
-writeConfig(t, dir, "config-1.yml", map[string]string{
-"otlp":          "true",
-"otlp-service":  "same-name",
-"otlp-endpoint": "http://collector:4317",
-})
-writeConfig(t, dir, "config-2.yml", map[string]string{
-"otlp":          "true",
-"otlp-service":  "same-name",
-"otlp-endpoint": "http://collector:4317",
-})
+	dir := t.TempDir()
+	writeConfig(t, dir, "config-1.yml", map[string]string{
+		"otlp":          "true",
+		"otlp-service":  "same-name",
+		"otlp-endpoint": "http://collector:4317",
+	})
+	writeConfig(t, dir, "config-2.yml", map[string]string{
+		"otlp":          "true",
+		"otlp-service":  "same-name",
+		"otlp-endpoint": "http://collector:4317",
+	})
 
-result, err := ValidateTelemetry(dir)
-require.NoError(t, err)
-require.True(t, result.Valid) // Duplicates are warnings, not errors.
-require.NotEmpty(t, result.Warnings)
-require.Contains(t, result.Warnings[0], "Duplicate otlp-service")
+	result, err := ValidateTelemetry(dir)
+	require.NoError(t, err)
+	require.True(t, result.Valid) // Duplicates are warnings, not errors.
+	require.NotEmpty(t, result.Warnings)
+	require.Contains(t, result.Warnings[0], "Duplicate otlp-service")
 }
 
 func TestValidateTelemetry_InconsistentEndpoints(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-dir := t.TempDir()
-writeConfig(t, dir, "config-1.yml", map[string]string{
-"otlp":          "true",
-"otlp-service":  "svc-1",
-"otlp-endpoint": "http://collector-a:4317",
-})
-writeConfig(t, dir, "config-2.yml", map[string]string{
-"otlp":          "true",
-"otlp-service":  "svc-2",
-"otlp-endpoint": "http://collector-b:4317",
-})
+	dir := t.TempDir()
+	writeConfig(t, dir, "config-1.yml", map[string]string{
+		"otlp":          "true",
+		"otlp-service":  "svc-1",
+		"otlp-endpoint": "http://collector-a:4317",
+	})
+	writeConfig(t, dir, "config-2.yml", map[string]string{
+		"otlp":          "true",
+		"otlp-service":  "svc-2",
+		"otlp-endpoint": "http://collector-b:4317",
+	})
 
-result, err := ValidateTelemetry(dir)
-require.NoError(t, err)
-require.True(t, result.Valid) // Inconsistency is a warning.
-require.NotEmpty(t, result.Warnings)
-require.Contains(t, result.Warnings[0], "Inconsistent")
+	result, err := ValidateTelemetry(dir)
+	require.NoError(t, err)
+	require.True(t, result.Valid) // Inconsistency is a warning.
+	require.NotEmpty(t, result.Warnings)
+	require.Contains(t, result.Warnings[0], "Inconsistent")
 }
 
 func TestValidateTelemetry_DisabledOTLP(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-dir := t.TempDir()
-writeConfig(t, dir, "config.yml", map[string]string{
-"otlp": "false",
-})
+	dir := t.TempDir()
+	writeConfig(t, dir, "config.yml", map[string]string{
+		"otlp": "false",
+	})
 
-result, err := ValidateTelemetry(dir)
-require.NoError(t, err)
-require.True(t, result.Valid)
-require.Empty(t, result.Errors)
+	result, err := ValidateTelemetry(dir)
+	require.NoError(t, err)
+	require.True(t, result.Valid)
+	require.Empty(t, result.Errors)
 }
 
 func TestValidateTelemetry_NonBoolOTLP(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-dir := t.TempDir()
-require.NoError(t, os.WriteFile(
-filepath.Join(dir, "config.yml"),
-[]byte("otlp: \"yes\"\n"), cryptoutilSharedMagic.CacheFilePermissions))
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(
+		filepath.Join(dir, "config.yml"),
+		[]byte("otlp: \"yes\"\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
-result, err := ValidateTelemetry(dir)
-require.NoError(t, err)
-require.True(t, result.Valid) // Non-bool otlp skipped entirely.
+	result, err := ValidateTelemetry(dir)
+	require.NoError(t, err)
+	require.True(t, result.Valid) // Non-bool otlp skipped entirely.
 }
 
 func TestValidateTelemetry_NoOTLPField(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-dir := t.TempDir()
-require.NoError(t, os.WriteFile(
-filepath.Join(dir, "config.yml"),
-[]byte("bind-public-port: 8080\n"), cryptoutilSharedMagic.CacheFilePermissions))
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(
+		filepath.Join(dir, "config.yml"),
+		[]byte("bind-public-port: 8080\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
-result, err := ValidateTelemetry(dir)
-require.NoError(t, err)
-require.True(t, result.Valid)
+	result, err := ValidateTelemetry(dir)
+	require.NoError(t, err)
+	require.True(t, result.Valid)
 }
 
 func TestValidateTelemetry_InvalidYAML(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-dir := t.TempDir()
-require.NoError(t, os.WriteFile(
-filepath.Join(dir, "config.yml"),
-[]byte("{{invalid yaml"), cryptoutilSharedMagic.CacheFilePermissions))
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(
+		filepath.Join(dir, "config.yml"),
+		[]byte("{{invalid yaml"), cryptoutilSharedMagic.CacheFilePermissions))
 
-result, err := ValidateTelemetry(dir)
-require.NoError(t, err)
-require.True(t, result.Valid) // Invalid YAML skipped.
+	result, err := ValidateTelemetry(dir)
+	require.NoError(t, err)
+	require.True(t, result.Valid) // Invalid YAML skipped.
 }
 
 func TestValidateTelemetry_UnreadableFile(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-dir := t.TempDir()
-require.NoError(t, os.Symlink("/nonexistent/broken.yml",
-filepath.Join(dir, "broken.yml")))
+	dir := t.TempDir()
+	require.NoError(t, os.Symlink("/nonexistent/broken.yml",
+		filepath.Join(dir, "broken.yml")))
 
-result, err := ValidateTelemetry(dir)
-require.NoError(t, err)
-require.True(t, result.Valid) // Unreadable files skipped.
+	result, err := ValidateTelemetry(dir)
+	require.NoError(t, err)
+	require.True(t, result.Valid) // Unreadable files skipped.
 }
 
 func TestValidateTelemetry_SubdirectorySkipped(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-dir := t.TempDir()
-require.NoError(t, os.MkdirAll(filepath.Join(dir, "subdir"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-writeConfig(t, dir, "config.yml", map[string]string{
-"otlp":          "true",
-"otlp-service":  "svc-1",
-"otlp-endpoint": "http://collector:4317",
-})
+	dir := t.TempDir()
+	require.NoError(t, os.MkdirAll(filepath.Join(dir, "subdir"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	writeConfig(t, dir, "config.yml", map[string]string{
+		"otlp":          "true",
+		"otlp-service":  "svc-1",
+		"otlp-endpoint": "http://collector:4317",
+	})
 
-result, err := ValidateTelemetry(dir)
-require.NoError(t, err)
-require.True(t, result.Valid)
+	result, err := ValidateTelemetry(dir)
+	require.NoError(t, err)
+	require.True(t, result.Valid)
 }
 
 func TestValidateTelemetry_NonYAMLSkipped(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-dir := t.TempDir()
-require.NoError(t, os.WriteFile(
-filepath.Join(dir, "readme.txt"),
-[]byte("not yaml"), cryptoutilSharedMagic.CacheFilePermissions))
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(
+		filepath.Join(dir, "readme.txt"),
+		[]byte("not yaml"), cryptoutilSharedMagic.CacheFilePermissions))
 
-result, err := ValidateTelemetry(dir)
-require.NoError(t, err)
-require.True(t, result.Valid)
+	result, err := ValidateTelemetry(dir)
+	require.NoError(t, err)
+	require.True(t, result.Valid)
 }
 
 func TestValidateTelemetry_UnreadableDir(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-result := &TelemetryValidationResult{Valid: true}
-entries := collectOTLPEntries("/nonexistent/dir", result)
-require.Nil(t, entries)
-require.True(t, result.Valid)
+	result := &TelemetryValidationResult{Valid: true}
+	entries := collectOTLPEntries("/nonexistent/dir", result)
+	require.Nil(t, entries)
+	require.True(t, result.Valid)
 }
 
 func TestValidateTelemetry_EndpointNormalization(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-dir := t.TempDir()
-writeConfig(t, dir, "config-1.yml", map[string]string{
-"otlp":          "true",
-"otlp-service":  "svc-1",
-"otlp-endpoint": "http://collector:4317/",
-})
-writeConfig(t, dir, "config-2.yml", map[string]string{
-"otlp":          "true",
-"otlp-service":  "svc-2",
-"otlp-endpoint": "http://collector:4317",
-})
+	dir := t.TempDir()
+	writeConfig(t, dir, "config-1.yml", map[string]string{
+		"otlp":          "true",
+		"otlp-service":  "svc-1",
+		"otlp-endpoint": "http://collector:4317/",
+	})
+	writeConfig(t, dir, "config-2.yml", map[string]string{
+		"otlp":          "true",
+		"otlp-service":  "svc-2",
+		"otlp-endpoint": "http://collector:4317",
+	})
 
-result, err := ValidateTelemetry(dir)
-require.NoError(t, err)
-require.True(t, result.Valid)
+	result, err := ValidateTelemetry(dir)
+	require.NoError(t, err)
+	require.True(t, result.Valid)
 
-// After normalization, trailing slash should not cause inconsistency.
-for _, w := range result.Warnings {
-require.NotContains(t, w, "Inconsistent")
-}
+	// After normalization, trailing slash should not cause inconsistency.
+	for _, w := range result.Warnings {
+		require.NotContains(t, w, "Inconsistent")
+	}
 }
 
 func TestNormalizeEndpoint(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-tests := []struct {
-name     string
-input    string
-expected string
-}{
-{name: "no trailing slash", input: "http://host:4317", expected: "http://host:4317"},
-{name: "single trailing slash", input: "http://host:4317/", expected: "http://host:4317"},
-{name: "multiple trailing slashes", input: "http://host:4317///", expected: "http://host:4317"},
-{name: "empty", input: "", expected: ""},
-}
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{name: "no trailing slash", input: "http://host:4317", expected: "http://host:4317"},
+		{name: "single trailing slash", input: "http://host:4317/", expected: "http://host:4317"},
+		{name: "multiple trailing slashes", input: "http://host:4317///", expected: "http://host:4317"},
+		{name: "empty", input: "", expected: ""},
+	}
 
-for _, tc := range tests {
-t.Run(tc.name, func(t *testing.T) {
-t.Parallel()
-require.Equal(t, tc.expected, normalizeEndpoint(tc.input))
-})
-}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			require.Equal(t, tc.expected, normalizeEndpoint(tc.input))
+		})
+	}
 }
 
 func TestFormatTelemetryValidationResult(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-tests := []struct {
-name     string
-result   *TelemetryValidationResult
-contains []string
-}{
-{
-name:     "nil result",
-result:   nil,
-contains: []string{"No telemetry validation result"},
-},
-{
-name:     "valid",
-result:   &TelemetryValidationResult{Valid: true},
-contains: []string{"PASSED"},
-},
-{
-name: "errors and warnings",
-result: &TelemetryValidationResult{
-Valid:    false,
-Errors:   []string{"err1"},
-Warnings: []string{"warn1"},
-},
-contains: []string{cryptoutilSharedMagic.TaskFailed, "ERROR: err1", "WARNING: warn1"},
-},
-}
+	tests := []struct {
+		name     string
+		result   *TelemetryValidationResult
+		contains []string
+	}{
+		{
+			name:     "nil result",
+			result:   nil,
+			contains: []string{"No telemetry validation result"},
+		},
+		{
+			name:     "valid",
+			result:   &TelemetryValidationResult{Valid: true},
+			contains: []string{"PASSED"},
+		},
+		{
+			name: "errors and warnings",
+			result: &TelemetryValidationResult{
+				Valid:    false,
+				Errors:   []string{"err1"},
+				Warnings: []string{"warn1"},
+			},
+			contains: []string{cryptoutilSharedMagic.TaskFailed, "ERROR: err1", "WARNING: warn1"},
+		},
+	}
 
-for _, tc := range tests {
-t.Run(tc.name, func(t *testing.T) {
-t.Parallel()
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-output := FormatTelemetryValidationResult(tc.result)
-for _, want := range tc.contains {
-require.Contains(t, output, want)
-}
-})
-}
+			output := FormatTelemetryValidationResult(tc.result)
+			for _, want := range tc.contains {
+				require.Contains(t, output, want)
+			}
+		})
+	}
 }
 
 func TestValidateTelemetry_RealSmIM(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-configDir := filepath.Join("testdata", "configs", "sm", "im")
-if _, err := os.Stat(configDir); err != nil {
-configDir = filepath.Join("..", "..", "..", "..", "configs", "sm", "im")
-}
+	configDir := filepath.Join("testdata", "configs", "sm", "im")
+	if _, err := os.Stat(configDir); err != nil {
+		configDir = filepath.Join("..", "..", "..", "..", "configs", "sm", "im")
+	}
 
-if _, err := os.Stat(configDir); err != nil {
-t.Skip("Real sm-im configs not found")
-}
+	if _, err := os.Stat(configDir); err != nil {
+		t.Skip("Real sm-im configs not found")
+	}
 
-result, err := ValidateTelemetry(configDir)
-require.NoError(t, err)
-require.NotNil(t, result)
+	result, err := ValidateTelemetry(configDir)
+	require.NoError(t, err)
+	require.NotNil(t, result)
 
-// Real configs should be valid (may have warnings).
-require.True(t, result.Valid, "Real sm-im OTLP config validation failed: %v", result.Errors)
+	// Real configs should be valid (may have warnings).
+	require.True(t, result.Valid, "Real sm-im OTLP config validation failed: %v", result.Errors)
 }
 
 // writeConfig creates a YAML config file from key-value pairs.
 func writeConfig(t *testing.T, dir, name string, fields map[string]string) {
-t.Helper()
+	t.Helper()
 
-var content string
+	var content string
 
-for k, v := range fields {
-if v == "true" || v == "false" {
-content += k + ": " + v + "\n"
-} else {
-content += k + ": \"" + v + "\"\n"
-}
-}
+	for k, v := range fields {
+		if v == "true" || v == "false" {
+			content += k + ": " + v + "\n"
+		} else {
+			content += k + ": \"" + v + "\"\n"
+		}
+	}
 
-require.NoError(t, os.WriteFile(filepath.Join(dir, name), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, name), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 }

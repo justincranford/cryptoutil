@@ -13,12 +13,10 @@ import (
 	crand "crypto/rand"
 	rsa "crypto/rsa"
 
-
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
-
 
 // TestPEMWrite_MkdirFailure covers PEMWrite's mkdir error path.
 func TestPEMWrite_MkdirFailure(t *testing.T) {
@@ -107,7 +105,7 @@ func TestDERWrite_WriteFileFailure(t *testing.T) {
 }
 
 // TestDEREncode_PrivateKeyMarshalError covers DEREncode's MarshalPKCS8PrivateKey error path.
-// NOTE: Must NOT use t.Parallel() - modifies package-level x509MarshalPKCS8PrivateKeyFn.
+// Sequential: modifies package-level x509MarshalPKCS8PrivateKeyFn injectable variable.
 func TestDEREncode_PrivateKeyMarshalError(t *testing.T) {
 	orig := x509MarshalPKCS8PrivateKeyFn
 	x509MarshalPKCS8PrivateKeyFn = func(_ any) ([]byte, error) {
@@ -125,7 +123,7 @@ func TestDEREncode_PrivateKeyMarshalError(t *testing.T) {
 }
 
 // TestDEREncode_PublicKeyMarshalError covers DEREncode's MarshalPKIXPublicKey error path.
-// NOTE: Must NOT use t.Parallel() - modifies package-level x509MarshalPKIXPublicKeyFn.
+// Sequential: modifies package-level x509MarshalPKIXPublicKeyFn injectable variable.
 func TestDEREncode_PublicKeyMarshalError(t *testing.T) {
 	orig := x509MarshalPKIXPublicKeyFn
 	x509MarshalPKIXPublicKeyFn = func(_ any) ([]byte, error) {
@@ -143,7 +141,7 @@ func TestDEREncode_PublicKeyMarshalError(t *testing.T) {
 }
 
 // TestDERDecodes_AllDecodersFail covers DERDecodes' "decode failed" path when types list is empty.
-// NOTE: Must NOT use t.Parallel() - modifies package-level derDecodesPEMTypes.
+// Sequential: modifies package-level derDecodesPEMTypes injectable variable.
 func TestDERDecodes_AllDecodersFail(t *testing.T) {
 	orig := derDecodesPEMTypes
 	derDecodesPEMTypes = []string{}
@@ -156,7 +154,7 @@ func TestDERDecodes_AllDecodersFail(t *testing.T) {
 }
 
 // TestDERRead_DecodesAllFail covers DERRead's error path when DERDecodes fails.
-// NOTE: Must NOT use t.Parallel() - modifies package-level derDecodesPEMTypes.
+// Sequential: modifies package-level derDecodesPEMTypes injectable variable.
 func TestDERRead_DecodesAllFail(t *testing.T) {
 	orig := derDecodesPEMTypes
 	derDecodesPEMTypes = []string{}
@@ -172,6 +170,7 @@ func TestDERRead_DecodesAllFail(t *testing.T) {
 	require.ErrorContains(t, err, "decode failed")
 }
 
+// Sequential: uses shared state (not safe for parallel execution).
 func TestPEMEncodes_EncodeError(t *testing.T) {
 	// Cannot be parallel: modifies package-level injectable var.
 	originalFn := pemEncodeInternalFn
@@ -189,6 +188,7 @@ func TestPEMEncodes_EncodeError(t *testing.T) {
 	require.ErrorContains(t, err, "encode failed")
 }
 
+// Sequential: uses shared state (not safe for parallel execution).
 func TestDEREncodes_EncodeError(t *testing.T) {
 	// Cannot be parallel: modifies package-level injectable var.
 	originalFn := derEncodeInternalFn

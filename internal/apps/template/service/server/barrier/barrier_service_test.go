@@ -312,6 +312,7 @@ func TestService_DecryptInvalidCiphertext(t *testing.T) {
 
 // TestService_Shutdown tests service shutdown behavior.
 func TestService_Shutdown(t *testing.T) {
+	t.Parallel()
 	// NOTE: Cannot run parallel - creates isolated database but takes exclusive test time.
 	ctx := context.Background()
 

@@ -50,24 +50,24 @@ func (s *Service) handleGenerateRecoveryCodes(c *fiber.Ctx) error {
 
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description": "Invalid request body",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
+			"error_description":               "Invalid request body",
 		})
 	}
 
 	// Validate user_id.
 	if req.UserID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description": "Missing user_id parameter",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
+			"error_description":               "Missing user_id parameter",
 		})
 	}
 
 	userID, err := googleUuid.Parse(req.UserID)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description": "Invalid user_id format (must be UUID)",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
+			"error_description":               "Invalid user_id format (must be UUID)",
 		})
 	}
 
@@ -76,14 +76,14 @@ func (s *Service) handleGenerateRecoveryCodes(c *fiber.Ctx) error {
 	if err != nil {
 		if errors.Is(err, cryptoutilIdentityAppErr.ErrUserNotFound) {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:             "user_not_found",
-				"error_description": "User not found",
+				cryptoutilSharedMagic.StringError: "user_not_found",
+				"error_description":               "User not found",
 			})
 		}
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
-			"error_description": "Internal server error",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
+			"error_description":               "Internal server error",
 		})
 	}
 
@@ -93,8 +93,8 @@ func (s *Service) handleGenerateRecoveryCodes(c *fiber.Ctx) error {
 	codes, err := service.GenerateForUser(c.Context(), userID, cryptoutilSharedMagic.DefaultRecoveryCodeCount)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
-			"error_description": "Failed to generate recovery codes",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
+			"error_description":               "Failed to generate recovery codes",
 		})
 	}
 
@@ -113,16 +113,16 @@ func (s *Service) handleGetRecoveryCodeCount(c *fiber.Ctx) error {
 	userIDStr := c.Query("user_id")
 	if userIDStr == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description": "Missing user_id query parameter",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
+			"error_description":               "Missing user_id query parameter",
 		})
 	}
 
 	userID, err := googleUuid.Parse(userIDStr)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description": "Invalid user_id format (must be UUID)",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
+			"error_description":               "Invalid user_id format (must be UUID)",
 		})
 	}
 
@@ -132,8 +132,8 @@ func (s *Service) handleGetRecoveryCodeCount(c *fiber.Ctx) error {
 	remaining, err := service.GetRemainingCount(c.Context(), userID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
-			"error_description": "Failed to get recovery code count",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
+			"error_description":               "Failed to get recovery code count",
 		})
 	}
 
@@ -150,24 +150,24 @@ func (s *Service) handleRegenerateRecoveryCodes(c *fiber.Ctx) error {
 
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description": "Invalid request body",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
+			"error_description":               "Invalid request body",
 		})
 	}
 
 	// Validate user_id.
 	if req.UserID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description": "Missing user_id parameter",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
+			"error_description":               "Missing user_id parameter",
 		})
 	}
 
 	userID, err := googleUuid.Parse(req.UserID)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description": "Invalid user_id format (must be UUID)",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
+			"error_description":               "Invalid user_id format (must be UUID)",
 		})
 	}
 
@@ -176,14 +176,14 @@ func (s *Service) handleRegenerateRecoveryCodes(c *fiber.Ctx) error {
 	if err != nil {
 		if errors.Is(err, cryptoutilIdentityAppErr.ErrUserNotFound) {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:             "user_not_found",
-				"error_description": "User not found",
+				cryptoutilSharedMagic.StringError: "user_not_found",
+				"error_description":               "User not found",
 			})
 		}
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
-			"error_description": "Internal server error",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
+			"error_description":               "Internal server error",
 		})
 	}
 
@@ -193,8 +193,8 @@ func (s *Service) handleRegenerateRecoveryCodes(c *fiber.Ctx) error {
 	codes, err := service.RegenerateForUser(c.Context(), userID, cryptoutilSharedMagic.DefaultRecoveryCodeCount)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
-			"error_description": "Failed to regenerate recovery codes",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
+			"error_description":               "Failed to regenerate recovery codes",
 		})
 	}
 
@@ -214,16 +214,16 @@ func (s *Service) handleVerifyRecoveryCode(c *fiber.Ctx) error {
 
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description": "Invalid request body",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
+			"error_description":               "Invalid request body",
 		})
 	}
 
 	// Validate code.
 	if req.Code == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description": "Missing code parameter",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
+			"error_description":               "Missing code parameter",
 		})
 	}
 
@@ -232,16 +232,16 @@ func (s *Service) handleVerifyRecoveryCode(c *fiber.Ctx) error {
 	userIDStr := c.Get("X-User-ID")
 	if userIDStr == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             "unauthorized",
-			"error_description": "Missing user authentication",
+			cryptoutilSharedMagic.StringError: "unauthorized",
+			"error_description":               "Missing user authentication",
 		})
 	}
 
 	userID, err := googleUuid.Parse(userIDStr)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorInvalidRequest,
-			"error_description": "Invalid user_id format",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorInvalidRequest,
+			"error_description":               "Invalid user_id format",
 		})
 	}
 
@@ -252,14 +252,14 @@ func (s *Service) handleVerifyRecoveryCode(c *fiber.Ctx) error {
 	if err != nil {
 		if errors.Is(err, cryptoutilIdentityAppErr.ErrRecoveryCodeNotFound) {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				cryptoutilSharedMagic.StringError:             "invalid_code",
-				"error_description": "Invalid or expired recovery code",
+				cryptoutilSharedMagic.StringError: "invalid_code",
+				"error_description":               "Invalid or expired recovery code",
 			})
 		}
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:             cryptoutilSharedMagic.ErrorServerError,
-			"error_description": "Failed to verify recovery code",
+			cryptoutilSharedMagic.StringError: cryptoutilSharedMagic.ErrorServerError,
+			"error_description":               "Failed to verify recovery code",
 		})
 	}
 

@@ -68,8 +68,8 @@ func (s *PublicServer) handleListResources(c *fiber.Ctx) error {
 	authHeader := c.Get("Authorization")
 	if authHeader == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError:   "unauthorized",
-			"message": "Authorization header required",
+			cryptoutilSharedMagic.StringError: "unauthorized",
+			"message":                         "Authorization header required",
 		})
 	}
 
@@ -85,7 +85,7 @@ func (s *PublicServer) handleListResources(c *fiber.Ctx) error {
 func (s *PublicServer) handleHealth(c *fiber.Ctx) error {
 	if err := c.JSON(fiber.Map{
 		cryptoutilSharedMagic.StringStatus: cryptoutilSharedMagic.DockerServiceHealthHealthy,
-		"time":   c.Context().Time().UTC().Format(cryptoutilSharedMagic.StringUTCFormat),
+		"time":                             c.Context().Time().UTC().Format(cryptoutilSharedMagic.StringUTCFormat),
 	}); err != nil {
 		return fmt.Errorf("failed to send health response: %w", err)
 	}

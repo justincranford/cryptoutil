@@ -3,10 +3,9 @@
 package telemetry
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
-
 
 	"github.com/stretchr/testify/require"
 )

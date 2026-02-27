@@ -17,8 +17,8 @@ import (
 	"strings"
 	"time"
 
-	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
 )
 
 func stopIdentityServer(demoServer *identityDemoServer) {

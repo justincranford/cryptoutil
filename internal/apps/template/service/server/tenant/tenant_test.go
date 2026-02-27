@@ -5,8 +5,8 @@
 package tenant
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"database/sql"
 	"strings"
 	"testing"
@@ -394,4 +394,3 @@ func TestIsValidTenantID(t *testing.T) {
 		})
 	}
 }
-

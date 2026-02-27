@@ -409,6 +409,7 @@ func TestFixCopyLoopVarInFile_ReadOnlyFile(t *testing.T) {
 }
 
 func TestFix_WalkDirError(t *testing.T) {
+	t.Parallel()
 	// Non-parallel: modifies directory permissions.
 	tmpDir := t.TempDir()
 	// Create an unreadable subdirectory - Walk will call callback with OS error.

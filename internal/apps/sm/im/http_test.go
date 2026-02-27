@@ -5,9 +5,9 @@
 package im
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
 	"crypto/tls"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	http "net/http"
 	"testing"

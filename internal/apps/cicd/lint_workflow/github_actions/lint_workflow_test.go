@@ -245,6 +245,7 @@ func TestLintGitHubWorkflows_WithActions(t *testing.T) {
 	require.NoError(t, err, "Lint should succeed with actions (no outdated check)")
 }
 
+// Sequential: uses os.Chdir (global process state).
 func TestLoadWorkflowActionExceptions_NotExists(t *testing.T) {
 	// Note: Not parallel - uses relative path from current working directory.
 	exceptions, err := loadWorkflowActionExceptions()
@@ -253,6 +254,7 @@ func TestLoadWorkflowActionExceptions_NotExists(t *testing.T) {
 	require.Empty(t, exceptions.Exceptions)
 }
 
+// Sequential: uses os.Chdir (global process state).
 func TestLoadWorkflowActionExceptions_InvalidJSON(t *testing.T) {
 	tmpDir := t.TempDir()
 	originalWd, err := os.Getwd()
@@ -279,6 +281,7 @@ func TestLoadWorkflowActionExceptions_InvalidJSON(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to parse exceptions file")
 }
 
+// Sequential: uses os.Chdir (global process state).
 func TestLoadWorkflowActionExceptions_ValidJSON(t *testing.T) {
 	tmpDir := t.TempDir()
 	originalWd, err := os.Getwd()
@@ -309,6 +312,7 @@ func TestLoadWorkflowActionExceptions_ValidJSON(t *testing.T) {
 	require.Equal(t, "Test exception", exceptions.Exceptions["actions/checkout"].Reason)
 }
 
+// Sequential: uses os.Chdir (global process state).
 func TestLoadWorkflowActionExceptions_UnreadableFile(t *testing.T) {
 	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
 		t.Skip("os.Chmod does not enforce POSIX permissions on Windows")

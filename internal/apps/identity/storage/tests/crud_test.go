@@ -5,8 +5,8 @@
 package tests
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
 
@@ -381,4 +381,3 @@ func TestAuthFlowRepositoryCRUD(t *testing.T) {
 	err = flowRepo.Delete(ctx, flow.ID)
 	require.NoError(t, err)
 }
-

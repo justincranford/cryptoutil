@@ -149,27 +149,28 @@ func TestNewPublicServer_NilBarrierService(t *testing.T) {
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "barrier service cannot be nil")
 }
+
 // TestNewPublicServer_ValidCreationAndPublicBaseURL tests successful PublicServer
 // creation and that PublicBaseURL delegates to the base.
 func TestNewPublicServer_ValidCreationAndPublicBaseURL(t *testing.T) {
-        t.Parallel()
+	t.Parallel()
 
-        base := testSmIMServer.PublicServerBase()
-        sessionMgr := testSmIMServer.SessionManager()
-        realmSvc := testSmIMServer.RealmService()
-        regSvc := testSmIMServer.RegistrationService()
-        userRepo := testSmIMServer.UserRepo()
-        msgRepo := testSmIMServer.MessageRepo()
-        jwkRepo := testSmIMServer.MessageRecipientJWKRepo()
-        jwkGenSvc := testSmIMServer.JWKGen()
-        barrierSvc := testSmIMServer.BarrierService()
+	base := testSmIMServer.PublicServerBase()
+	sessionMgr := testSmIMServer.SessionManager()
+	realmSvc := testSmIMServer.RealmService()
+	regSvc := testSmIMServer.RegistrationService()
+	userRepo := testSmIMServer.UserRepo()
+	msgRepo := testSmIMServer.MessageRepo()
+	jwkRepo := testSmIMServer.MessageRecipientJWKRepo()
+	jwkGenSvc := testSmIMServer.JWKGen()
+	barrierSvc := testSmIMServer.BarrierService()
 
-        ps, err := cryptoutilAppsSmImServer.NewPublicServer(base, sessionMgr, realmSvc, regSvc, userRepo, msgRepo, jwkRepo, jwkGenSvc, barrierSvc)
-        require.NoError(t, err)
-        require.NotNil(t, ps)
+	ps, err := cryptoutilAppsSmImServer.NewPublicServer(base, sessionMgr, realmSvc, regSvc, userRepo, msgRepo, jwkRepo, jwkGenSvc, barrierSvc)
+	require.NoError(t, err)
+	require.NotNil(t, ps)
 
-        // Call PublicBaseURL() to cover the delegation in public_server.go:184.
-        url := ps.PublicBaseURL()
-        require.NotEmpty(t, url)
-        require.Contains(t, url, "https://")
+	// Call PublicBaseURL() to cover the delegation in public_server.go:184.
+	url := ps.PublicBaseURL()
+	require.NotEmpty(t, url)
+	require.Contains(t, url, "https://")
 }

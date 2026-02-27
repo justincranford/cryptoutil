@@ -54,6 +54,7 @@ func TestGenerate_NoStartEndCharacters(t *testing.T) {
 
 // TestGenerate_1000AttemptsExhausted tests the error path when all attempts fail.
 // Cannot be parallel because it modifies package-level vars.
+// Sequential: uses shared state (not safe for parallel execution).
 func TestGenerate_1000AttemptsExhausted(t *testing.T) {
 	gen, err := NewPasswordGenerator(impossiblePolicy)
 	require.NoError(t, err)
@@ -65,6 +66,7 @@ func TestGenerate_1000AttemptsExhausted(t *testing.T) {
 
 // TestGenerate_RandomLengthError tests error when crand.Int fails in randomLength.
 // Cannot be parallel because it modifies package-level vars.
+// Sequential: uses shared state (not safe for parallel execution).
 func TestGenerate_RandomLengthError(t *testing.T) {
 	orig := pwdgenCrandIntFn
 	pwdgenCrandIntFn = func(_ *big.Int) (*big.Int, error) {
@@ -90,6 +92,7 @@ func TestGenerate_RandomLengthError(t *testing.T) {
 
 // TestGenerateCandidate_StartCharIndexError tests crand.Int error in start char selection.
 // Cannot be parallel because it modifies package-level vars.
+// Sequential: uses shared state (not safe for parallel execution).
 func TestGenerateCandidate_StartCharIndexError(t *testing.T) {
 	orig := pwdgenCrandIntFn
 	pwdgenCrandIntFn = func(_ *big.Int) (*big.Int, error) {
@@ -115,6 +118,7 @@ func TestGenerateCandidate_StartCharIndexError(t *testing.T) {
 
 // TestGenerateCandidate_FirstCharIndexError tests crand.Int error when no StartCharacters.
 // Cannot be parallel because it modifies package-level vars.
+// Sequential: uses shared state (not safe for parallel execution).
 func TestGenerateCandidate_FirstCharIndexError(t *testing.T) {
 	orig := pwdgenCrandIntFn
 	pwdgenCrandIntFn = func(_ *big.Int) (*big.Int, error) {
@@ -133,6 +137,7 @@ func TestGenerateCandidate_FirstCharIndexError(t *testing.T) {
 
 // TestGenerateCandidate_EndCharIndexError tests crand.Int error in end char selection.
 // Cannot be parallel because it modifies package-level vars.
+// Sequential: uses shared state (not safe for parallel execution).
 func TestGenerateCandidate_EndCharIndexError(t *testing.T) {
 	// First call succeeds (for start), subsequent calls fail.
 	callCount := 0
@@ -166,6 +171,7 @@ func TestGenerateCandidate_EndCharIndexError(t *testing.T) {
 
 // TestGenerateCandidate_MiddleCharIndexError tests crand.Int error in middle char selection.
 // Cannot be parallel because it modifies package-level vars.
+// Sequential: uses shared state (not safe for parallel execution).
 func TestGenerateCandidate_MiddleCharIndexError(t *testing.T) {
 	// First few calls succeed, then fail.
 	callCount := 0

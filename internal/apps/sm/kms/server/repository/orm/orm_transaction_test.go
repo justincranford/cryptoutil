@@ -9,8 +9,8 @@
 package orm
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"context"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"os"
 	"testing"
@@ -19,9 +19,9 @@ import (
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceServerApplication "cryptoutil/internal/apps/template/service/server/application"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	cryptoutilKmsServer "cryptoutil/api/kms/server"
