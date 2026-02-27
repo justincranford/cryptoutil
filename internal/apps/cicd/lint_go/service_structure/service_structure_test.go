@@ -260,3 +260,23 @@ func replaceService(tmpl, service string) string {
 		)...),
 	))
 }
+
+func TestCheck_FromProjectRoot(t *testing.T) {
+	root, err := findProjectRoot()
+	if err != nil {
+		t.Skip("Skipping - cannot find project root")
+	}
+
+	origDir, wdErr := os.Getwd()
+	require.NoError(t, wdErr)
+
+	require.NoError(t, os.Chdir(root))
+
+	t.Cleanup(func() {
+		require.NoError(t, os.Chdir(origDir))
+	})
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err = Check(logger)
+	require.NoError(t, err)
+}

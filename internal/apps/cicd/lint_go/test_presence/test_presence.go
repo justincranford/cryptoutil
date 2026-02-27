@@ -38,6 +38,9 @@ var excludedPrefixes = []string{
 	"_", // Archived or ignored directories.
 }
 
+// Test seams: replaceable in tests for error path coverage.
+var relFunc = filepath.Rel
+
 // Check validates test presence from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 	return CheckInDir(logger, ".")
@@ -86,7 +89,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 		hasLogicFiles, hasTestFiles := checkDirForGoFiles(path)
 
 		if hasLogicFiles && !hasTestFiles {
-			relPath, relErr := filepath.Rel(rootDir, path)
+			relPath, relErr := relFunc(rootDir, path)
 			if relErr != nil {
 				relPath = path
 			}

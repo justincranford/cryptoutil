@@ -3,15 +3,15 @@
 package product_structure
 
 import (
-"fmt"
-"os"
-"path/filepath"
-"testing"
+	"fmt"
+	"os"
+	"path/filepath"
+	"testing"
 
-cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
-cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 )
 
 func findProjectRoot() (string, error) {
@@ -48,75 +48,95 @@ func TestCheck_RealWorkspace(t *testing.T) {
 }
 
 func TestCheckInDir_AllValid(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-tmpDir := t.TempDir()
+	tmpDir := t.TempDir()
 
-for _, product := range knownProducts {
-productDir := filepath.Join(tmpDir, "internal", "apps", product)
-require.NoError(t, os.MkdirAll(productDir, 0o755))
-require.NoError(t, os.WriteFile(filepath.Join(productDir, product+".go"), []byte("package "+product), cryptoutilSharedMagic.CacheFilePermissions))
-require.NoError(t, os.WriteFile(filepath.Join(productDir, product+"_test.go"), []byte("package "+product), cryptoutilSharedMagic.CacheFilePermissions))
-}
+	for _, product := range knownProducts {
+		productDir := filepath.Join(tmpDir, "internal", "apps", product)
+		require.NoError(t, os.MkdirAll(productDir, 0o755))
+		require.NoError(t, os.WriteFile(filepath.Join(productDir, product+".go"), []byte("package "+product), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(filepath.Join(productDir, product+"_test.go"), []byte("package "+product), cryptoutilSharedMagic.CacheFilePermissions))
+	}
 
-logger := cryptoutilCmdCicdCommon.NewLogger("test")
-err := CheckInDir(logger, tmpDir)
-require.NoError(t, err)
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err := CheckInDir(logger, tmpDir)
+	require.NoError(t, err)
 }
 
 func TestCheckInDir_MissingEntryFile(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-tmpDir := t.TempDir()
+	tmpDir := t.TempDir()
 
-for _, product := range knownProducts {
-productDir := filepath.Join(tmpDir, "internal", "apps", product)
-require.NoError(t, os.MkdirAll(productDir, 0o755))
-require.NoError(t, os.WriteFile(filepath.Join(productDir, product+"_test.go"), []byte("package "+product), cryptoutilSharedMagic.CacheFilePermissions))
-}
+	for _, product := range knownProducts {
+		productDir := filepath.Join(tmpDir, "internal", "apps", product)
+		require.NoError(t, os.MkdirAll(productDir, 0o755))
+		require.NoError(t, os.WriteFile(filepath.Join(productDir, product+"_test.go"), []byte("package "+product), cryptoutilSharedMagic.CacheFilePermissions))
+	}
 
-logger := cryptoutilCmdCicdCommon.NewLogger("test")
-err := CheckInDir(logger, tmpDir)
-require.Error(t, err)
-require.Contains(t, err.Error(), "missing entry file")
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err := CheckInDir(logger, tmpDir)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "missing entry file")
 }
 
 func TestCheckInDir_MissingTestFile(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-tmpDir := t.TempDir()
+	tmpDir := t.TempDir()
 
-for _, product := range knownProducts {
-productDir := filepath.Join(tmpDir, "internal", "apps", product)
-require.NoError(t, os.MkdirAll(productDir, 0o755))
-require.NoError(t, os.WriteFile(filepath.Join(productDir, product+".go"), []byte("package "+product), cryptoutilSharedMagic.CacheFilePermissions))
-}
+	for _, product := range knownProducts {
+		productDir := filepath.Join(tmpDir, "internal", "apps", product)
+		require.NoError(t, os.MkdirAll(productDir, 0o755))
+		require.NoError(t, os.WriteFile(filepath.Join(productDir, product+".go"), []byte("package "+product), cryptoutilSharedMagic.CacheFilePermissions))
+	}
 
-logger := cryptoutilCmdCicdCommon.NewLogger("test")
-err := CheckInDir(logger, tmpDir)
-require.Error(t, err)
-require.Contains(t, err.Error(), "missing test file")
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err := CheckInDir(logger, tmpDir)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "missing test file")
 }
 
 func TestCheckInDir_MissingProductDir(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-tmpDir := t.TempDir()
-require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "internal", "apps"), 0o755))
+	tmpDir := t.TempDir()
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "internal", "apps"), 0o755))
 
-logger := cryptoutilCmdCicdCommon.NewLogger("test")
-err := CheckInDir(logger, tmpDir)
-require.Error(t, err)
-require.Contains(t, err.Error(), "product directory missing")
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err := CheckInDir(logger, tmpDir)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "product directory missing")
 }
 
 func TestCheckInDir_NoAppsDir(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-tmpDir := t.TempDir()
+	tmpDir := t.TempDir()
 
-logger := cryptoutilCmdCicdCommon.NewLogger("test")
-err := CheckInDir(logger, tmpDir)
-require.Error(t, err)
-require.Contains(t, err.Error(), "internal/apps directory not found")
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err := CheckInDir(logger, tmpDir)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "internal/apps directory not found")
+}
+
+func TestCheck_FromProjectRoot(t *testing.T) {
+	root, err := findProjectRoot()
+	if err != nil {
+		t.Skip("Skipping - cannot find project root")
+	}
+
+	origDir, wdErr := os.Getwd()
+	require.NoError(t, wdErr)
+
+	require.NoError(t, os.Chdir(root))
+
+	t.Cleanup(func() {
+		require.NoError(t, os.Chdir(origDir))
+	})
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err = Check(logger)
+	require.NoError(t, err)
 }
