@@ -16,7 +16,7 @@ type ServicePortConfig struct {
 	PublicPorts   []uint16 // Expected public ports (can have multiple for SQLite/PG variants).
 	AdminPort     uint16   // Expected admin port (always 9090).
 	LegacyPorts   []uint16 // Old ports that should be flagged as violations.
-	MagicConstant string   // Magic constant name (e.g., "CipherServicePort").
+	MagicConstant string   // Magic constant name (e.g., "SMKMSServicePort").
 }
 
 // Violation represents a port configuration violation.

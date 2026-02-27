@@ -29,10 +29,10 @@ CREATE SUBSCRIPTION suite_jose_ja_sub
   PUBLICATION suite_jose_ja_pub
   WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'suite_jose_ja_slot');
 
-CREATE SUBSCRIPTION suite_cipher_im_sub
-  CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres_password.secret) dbname=suitedeployment-cipher-im'
-  PUBLICATION suite_cipher_im_pub
-  WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'suite_cipher_im_slot');
+CREATE SUBSCRIPTION suite_sm_im_sub
+  CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres_password.secret) dbname=suitedeployment-sm-im'
+  PUBLICATION suite_sm_im_pub
+  WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'suite_sm_im_slot');
 
 CREATE SUBSCRIPTION suite_sm_kms_sub
   CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres_password.secret) dbname=suitedeployment-sm-kms'
@@ -80,11 +80,11 @@ CREATE SUBSCRIPTION product_jose_ja_sub
   WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'product_jose_ja_slot');
 EOF
 
-psql -h localhost -U cryptoutil_admin -d cipher <<EOF
-CREATE SUBSCRIPTION product_cipher_im_sub
-  CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres_password.secret) dbname=productdeployment-cipher-im'
-  PUBLICATION product_cipher_im_pub
-  WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'product_cipher_im_slot');
+psql -h localhost -U cryptoutil_admin -d sm <<EOF
+CREATE SUBSCRIPTION product_sm_im_sub
+  CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres_password.secret) dbname=productdeployment-sm-im'
+  PUBLICATION product_sm_im_pub
+  WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'product_sm_im_slot');
 EOF
 
 psql -h localhost -U cryptoutil_admin -d sm <<EOF
@@ -130,6 +130,6 @@ CREATE SUBSCRIPTION service_pki_ca_sub
   WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'service_pki_ca_slot');
 EOF
 
-# Add remaining service subscriptions (jose-ja, cipher-im, sm-kms, identity-*, etc.)
+# Add remaining service subscriptions (jose-ja, sm-im, sm-kms, identity-*, etc.)
 
 echo "Logical replication setup complete"
