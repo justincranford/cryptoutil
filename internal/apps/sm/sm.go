@@ -28,13 +28,13 @@ const (
 func Sm(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	return cryptoutilTemplateCli.RouteProduct(
 		cryptoutilTemplateCli.ProductConfig{
-			ProductName: "sm",
+			ProductName: cryptoutilSharedMagic.SMProductName,
 			UsageText:   usageText,
 			VersionText: versionText,
 		},
 		args, stdin, stdout, stderr,
 		[]cryptoutilTemplateCli.ServiceEntry{
-			{Name: "im", Handler: cryptoutilAppsSmIm.Im},
+			{Name: cryptoutilSharedMagic.IMServiceName, Handler: cryptoutilAppsSmIm.Im},
 			{Name: cryptoutilSharedMagic.KMSServiceName, Handler: cryptoutilAppsSmKms.Kms},
 		},
 	)

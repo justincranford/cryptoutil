@@ -39,8 +39,8 @@ func Identity(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		[]cryptoutilTemplateCli.ServiceEntry{
 			{Name: cryptoutilSharedMagic.AuthzServiceName, Handler: cryptoutilAppsIdentityAuthz.Authz},
 			{Name: cryptoutilSharedMagic.IDPServiceName, Handler: cryptoutilAppsIdentityIdp.Idp},
-			{Name: "rp", Handler: cryptoutilAppsIdentityRp.Rp},
-			{Name: "rs", Handler: cryptoutilAppsIdentityRs.Rs},
+			{Name: cryptoutilSharedMagic.RPServiceName, Handler: cryptoutilAppsIdentityRp.Rp},
+			{Name: cryptoutilSharedMagic.RSServiceName, Handler: cryptoutilAppsIdentityRs.Rs},
 			{Name: cryptoutilSharedMagic.SPAServiceName, Handler: cryptoutilAppsIdentitySpa.Spa},
 		},
 	)

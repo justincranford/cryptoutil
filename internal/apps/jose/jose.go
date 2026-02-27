@@ -33,7 +33,7 @@ func Jose(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		},
 		args, stdin, stdout, stderr,
 		[]cryptoutilTemplateCli.ServiceEntry{
-			{Name: "ja", Handler: cryptoutilAppsJoseJa.Ja},
+			{Name: cryptoutilSharedMagic.JoseJAServiceName, Handler: cryptoutilAppsJoseJa.Ja},
 		},
 	)
 }

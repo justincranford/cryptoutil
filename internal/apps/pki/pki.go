@@ -34,7 +34,7 @@ func Pki(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		},
 		args, stdin, stdout, stderr,
 		[]cryptoutilTemplateCli.ServiceEntry{
-			{Name: "ca", Handler: cryptoutilAppsPkiCa.Ca},
+			{Name: cryptoutilSharedMagic.PKICAServiceName, Handler: cryptoutilAppsPkiCa.Ca},
 		},
 	)
 }

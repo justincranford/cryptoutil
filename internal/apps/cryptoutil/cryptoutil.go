@@ -40,7 +40,7 @@ func Suite(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return cryptoutilAppsPki.Pki(parameters, stdin, stdout, stderr)
 	case cryptoutilSharedMagic.SkeletonProductName:
 		return cryptoutilAppsSkeleton.Skeleton(parameters, stdin, stdout, stderr)
-	case "sm":
+	case cryptoutilSharedMagic.SMProductName:
 		return cryptoutilAppsSm.Sm(parameters, stdin, stdout, stderr)
 	case "help", "--help", "-h":
 		printUsage(stderr)
