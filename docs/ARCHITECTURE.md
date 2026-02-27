@@ -99,12 +99,13 @@ This document is structured to serve multiple audiences:
 
 ### 1.1 Vision Statement
 
-**cryptoutil** is a production-ready suite of four cryptographic-based products, designed with enterprise-grade security, **FIPS 140-3** standards compliance, Zero-Trust principles, and security-on-by-default:
+**cryptoutil** is a production-ready suite of five cryptographic-based products, designed with enterprise-grade security, **FIPS 140-3** standards compliance, Zero-Trust principles, and security-on-by-default:
 
 1. **Private Key Infrastructure (PKI)** - X.509 certificate management with EST, SCEP, OCSP, and CRL support
 2. **JSON Object Signing and Encryption (JOSE)** - JWK/JWS/JWE/JWT cryptographic operations
 3. **Secrets Manager (SM)** - Elastic key management service with hierarchical key barriers; also hosts the encrypted messaging service
 4. **Identity** - OAuth 2.1, OIDC 1.0, WebAuthn, and Passkeys authentication and authorization
+5. **Skeleton** - Best-practice stereotype product-service template for service-template usage demonstration
 
 **Purpose**: This project is **for fun** while providing a comprehensive learning experience with LLM agents for Spec-Driven Development (SDD) and delivering modern, enterprise-ready security products.
 
@@ -260,14 +261,14 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 
 #### Service Template Pattern
 
-- **Single Reusable Template**: All 9 services across 5 products inherit from `internal/apps/template/`
+- **Single Reusable Template**: All 10 services across 5 products inherit from `internal/apps/template/`
 - **Eliminates 48,000+ lines per service**: TLS setup, dual HTTPS servers, database, migrations, sessions, barrier
 - **Merged Migrations**: Template (1001-1999) + Domain (2001+) for golang-migrate validation
 - **Builder Pattern**: Fluent API with `NewServerBuilder(ctx, cfg).WithDomainMigrations(...).Build()`
 
 #### Microservices Architecture
 
-- **9 Services across 5 Products**: Independent deployment, scaling, and lifecycle
+- **10 Services across 5 Products**: Independent deployment, scaling, and lifecycle
 - **Dual HTTPS Endpoints**: Public (0.0.0.0:8080) for business APIs, Private (127.0.0.1:9090) for admin operations
 - **Service Discovery**: Config file → Docker Compose → Kubernetes DNS (no caching)
 - **Multi-Level Failover**: Services attempt credential validators in priority order (FEDERATED → DATABASE → FILE), with FILE realms as CRITICAL failsafe guaranteeing admin access
@@ -438,6 +439,13 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 - **Use Cases**: User authentication, API authorization, SSO, passwordless login
 - **Key Features**: 41 authentication methods (13 headless + 28 browser), multi-tenancy
 
+#### 3.1.5 Skeleton
+
+- **Service**: Template
+- **Capabilities**: Best-practice stereotype product-service demonstrating all service-template patterns
+- **Use Cases**: Reference implementation for new product-service creation, developer onboarding
+- **Key Features**: Minimal domain logic, full service-template integration, deployment and config examples
+
 ### 3.2 Service Catalog
 
 | Product | Service | Product-Service Identifier | Address (Container) [Admin] | Address (Container) [Public] | Address (Host) [Public] | Port Value (Container) [Admin] | Port Value (Container) [Public] | Port Range (Host) [Service Deployment] | Port Range (Host) [Product Deployment] | Port Range (Host) [Suite Deployment] | Description |
@@ -451,6 +459,7 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 | **Identity** | **Single Page Application (SPA)** | **identity-spa** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8600-8699 | 18600-18699 | 28600-28699 | OAuth 2.1 Single Page Application |
 | **Secrets Manager (SM)** | **Instant Messenger (IM)** | **sm-im** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8700-8799 | 18700-18799 | 28700-28799 | E2E encrypted messaging, encryption-at-rest |
 | **JSON Object Signing and Encryption (JOSE)** | **JWK Authority (JA)** | **jose-ja** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8800-8899 | 18800-18899 | 28800-28899 | JWK/JWS/JWE/JWT operations |
+| **Skeleton** | **Template** | **skeleton-template** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8900-8999 | 18900-18999 | 28900-28999 | Best-practice stereotype product-service template |
 
 **Implementation Status**:
 
@@ -465,6 +474,7 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 | **identity-rs** | ✅ Complete | 100% | Dual servers, Docker Compose working |
 | **identity-rp** | ❌ Not Started | 0% | Planned for Phase 6 of implementation |
 | **identity-spa** | ❌ Not Started | 0% | Planned for Phase 6 of implementation |
+| **skeleton-template** | ❌ Not Started | 0% | Best-practice stereotype product-service template |
 
 **Legend**: ✅ Complete (production-ready), ⚠️ Partial (functional but missing features), ❌ Not Started
 
@@ -602,6 +612,25 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 - Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18600-18699
 - Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28600-28699
 
+#### 3.2.5 Skeleton Product
+
+##### 3.2.5.1 Template Service
+
+- **Product-Service Identifier**: skeleton-template
+- **Purpose**: Best-practice stereotype product-service template for service-template usage demonstration
+- **Capabilities**: Demonstrates all service-template patterns with minimal domain logic
+- **Use Cases**: Reference implementation for new product-service creation, developer onboarding, service-template validation
+- **Status**: ❌ Not Started
+- **Network Configuration**:
+  - Address (Container): Private Admin Compose+K8s APIs: 127.0.0.1 (IPv4 only)
+  - Address (Container): Public Browser+Service APIs: 0.0.0.0 (all interfaces, IPv4 only)
+  - Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
+  - Port Value (Container): Private Admin Compose+K8s APIs: 9090
+  - Port Value (Container): Public Browser+Service APIs: 8080
+  - Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8900-8999
+  - Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18900-18999
+  - Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28900-28999
+
 ### 3.3 Product-Service Relationships
 
 **Federation Patterns**:
@@ -659,7 +688,7 @@ Three deployment scenarios each use distinct host port ranges to enable concurre
 3. **Suite Deployment** (28XXX): All services across all products
    - Port Range: Service-specific base + 20000 offset (e.g., 28100-28199 for pki-ca)
    - Use Case: Full system integration, E2E testing, complete production suite
-   - Example: All 9 services across 5 products use host ports 28000-28899
+   - Example: All 10 services across 5 products use host ports 28000-28999
 
 **Port Allocation Benefits**:
 
@@ -680,6 +709,7 @@ Three deployment scenarios each use distinct host port ranges to enable concurre
 | **identity-rs** | 127.0.0.1 | 54326 | 0.0.0.0 | 5432 |
 | **identity-rp** | 127.0.0.1 | 54327 | 0.0.0.0 | 5432 |
 | **identity-spa** | 127.0.0.1 | 54328 | 0.0.0.0 | 5432 |
+| **skeleton-template** | 127.0.0.1 | 54329 | 0.0.0.0 | 5432 |
 
 #### 3.4.3 Telemetry Ports (Shared)
 
@@ -777,6 +807,8 @@ cmd/
 ├── identity-rp/main.go        # Service-level Identity-RP CLI: Thin main() call to `internal/apps/identity/rp/rp.go`
 ├── identity-rs/main.go        # Service-level Identity-RS CLI: Thin main() call to `internal/apps/identity/rs/rs.go`
 ├── identity-spa/main.go       # Service-level Identity-SPA CLI: Thin main() call to `internal/apps/identity/spa/spa.go`
+├── skeleton/main.go           # Product-level Skeleton CLI: Thin main() call to `internal/apps/skeleton/skeleton.go`
+├── skeleton-template/main.go  # Service-level Skeleton-Template CLI: Thin main() call to `internal/apps/skeleton/template/template.go`
 └── sm-kms/main.go             # Service-level SM-KMS CLI (legacy): Thin main() call to `internal/apps/sm/kms/kms.go`
 ```
 
@@ -805,7 +837,7 @@ func main() {
 
 ```
 internal/apps/
-├── template/                  # REUSABLE product-service template (all 9 services for all 5 products MUST reuse this template for maximum consistency and minimum duplication)
+├── template/                  # REUSABLE product-service template (all 10 services for all 5 products MUST reuse this template for maximum consistency and minimum duplication)
 │   ├── service/
 │   │   ├── config/            # ServiceTemplateServerSettings
 │   │   ├── server/            # Application, PublicServerBase, AdminServer
@@ -841,6 +873,8 @@ internal/apps/
     ├── rs/                    # OAuth 2.1 Resource Server (same structure)
     ├── rp/                    # OAuth 2.1 Relying Party (same structure)
     └── spa/                   # OAuth 2.1 Single Page Application (same structure)
+├── skeleton/
+│   └── template/              # Skeleton-Template service (same structure)
 ```
 
 #### 4.4.5 Shared Utilities
@@ -943,7 +977,7 @@ cryptoutil sm kms server --config=/etc/sm/kms.yml
 
 ### CLI Subcommand
 
-All CLIs for all 9 services MUST support these subcommands, with consistent behavior and config parsing and flag parsing.
+All CLIs for all 10 services MUST support these subcommands, with consistent behavior and config parsing and flag parsing.
 Consistency MUST be guaranteed by inheriting from service-template, which will reuse `internal/apps/template/service/<SUBCOMMAND>/` packages:
 
 | Subcommand | Description |
@@ -953,7 +987,7 @@ Consistency MUST be guaranteed by inheriting from service-template, which will r
 | `livez` | CLI client for Private liveness endpoint API check |
 | `readyz` | CLI client for Private readiness endpoint API check |
 | `shutdown` | CLI client for Private graceful shutdown endpoint API trigger |
-| `client` | CLI client for Business Logic API interaction (n.b. domain-specific for each of the 9 services) |
+| `client` | CLI client for Business Logic API interaction (n.b. domain-specific for each of the 10 services) |
 | `init` | CLI client for Initialize static config, like TLS certificates |
 | `demo` | CLI client for start server, inject Demo data, and run clients |
 
@@ -977,7 +1011,7 @@ Consistency MUST be guaranteed by inheriting from service-template, which will r
 #### 5.1.2 Template Benefits
 
 - Eliminates 48,000+ lines of boilerplate per service
-- Consistent infrastructure across all 9 services
+- Consistent infrastructure across all 10 services
 - Proven patterns: TLS setup, middleware stacks, health checks, graceful shutdown
 - Parameterization: OpenAPI specs, handlers, middleware chains injected via constructor
 
@@ -1485,7 +1519,7 @@ db.Where("tenant_id = ? AND user_id = ?", tenantID, userID).Find(&messages)
 4. Clear ownership boundaries and access control
 
 **Requirements** (enforced by linter):
-- **Unique Database Name**: Each of 9 services MUST have unique `postgres_database.secret`
+- **Unique Database Name**: Each of 10 services MUST have unique `postgres_database.secret`
   - Example: `authz_db`, `idp_db`, `rp_db`, `rs_db`, `spa_db` (NOT shared `identity_db`)
 - **Unique Username**: Each service MUST have unique `postgres_username.secret`
   - Example: `authz_user`, `idp_user`, `rp_user`, `rs_user`, `spa_user`
@@ -1493,7 +1527,7 @@ db.Where("tenant_id = ? AND user_id = ?", tenantID, userID).Find(&messages)
 - **Unique Connection URL**: Each service MUST have unique `postgres_url.secret`
 
 **Linter Enforcement** (`cicd lint-deployments`):
-- Scans ALL 9 service directories for database credential secrets
+- Scans ALL 10 service directories for database credential secrets
 - ERRORS on duplicate database names or usernames across services
 - Validates credentials are isolated regardless of deployment level (SUITE/PRODUCT/SERVICE)
 
@@ -1554,7 +1588,7 @@ db.Where("tenant_id = ? AND user_id = ?", tenantID, userID).Find(&messages)
 
 ### 7.3 Dual Database Strategy
 
-All 9 services MUST support using one of PostgreSQL or SQLite, specified via configuration at startup.
+All 10 services MUST support using one of PostgreSQL or SQLite, specified via configuration at startup.
 
 Typical usages for each database for different purposes:
 - Unit tests, Fuzz tests, Benchmark tests, Mutations tests => Ephemeral SQLite instance (e.g. in-memory)
@@ -2966,9 +3000,9 @@ healthcheck-otel-collector:
 
 **Consistency Requirements**:
 
-- **hash_pepper_v3.secret**: SAME value across ALL 9 services (enables cross-service PII deduplication, SSO username lookup)
+- **hash_pepper_v3.secret**: SAME value across ALL 10 services (enables cross-service PII deduplication, SSO username lookup)
 - **unseal_*.secret**: UNIQUE per service (barrier encryption independence, security isolation)
-- **postgres_*.secret**: Service-specific (27 logical databases: 9 suite + 9 product + 9 service)
+- **postgres_*.secret**: Service-specific (30 logical databases: 10 suite + 10 product + 10 service)
 
 **Rationale**: Unified hash pepper allows username@domain lookups across identity services while maintaining per-service encryption boundaries.
 
@@ -3119,7 +3153,7 @@ secrets:
     file: ./secrets/cryptoutil-hash_pepper.secret
 ```
 
-**Purpose**: Deploy all 9 services with unified hash pepper for cross-product SSO and PII deduplication.
+**Purpose**: Deploy all 10 services with unified hash pepper for cross-product SSO and PII deduplication.
 
 **Secret Sharing**: `cryptoutil-hash_pepper.secret` shared by ALL services enables username@domain lookups across identity-authz, identity-idp, jose-ja, etc.
 
@@ -3189,7 +3223,7 @@ secrets:
 
 1. **SERVICE pepper** (`{PRODUCT}-{SERVICE}-hash_pepper.secret`): Unique per service, NO cross-service lookups
 2. **PRODUCT pepper** (`{PRODUCT}-hash_pepper.secret`): Shared within product services (e.g., 5 identity services)
-3. **SUITE pepper** (`cryptoutil-hash_pepper.secret`): Shared by ALL 9 services for cross-product federation
+3. **SUITE pepper** (`cryptoutil-hash_pepper.secret`): Shared by ALL 10 services for cross-product federation
 
 **Selection Logic** (service configures which pepper to use):
 
@@ -3259,12 +3293,12 @@ HASH_PEPPER_FILE: /run/secrets/cryptoutil-hash_pepper.secret
 
 #### 12.4.1 Deployment Types
 
-**SUITE** (e.g., cryptoutil - all 9 services):
+**SUITE** (e.g., cryptoutil - all 10 services):
 - Required directories: `secrets/`
 - Required files: `compose.yml`
 - Optional files: `README.md`
 - Required secrets: 1 file (hash pepper ONLY, NO unseal keys)
-  - `cryptoutil-hash_pepper.secret` (shared by all 9 services)
+  - `cryptoutil-hash_pepper.secret` (shared by all 10 services)
 - Forbidden secrets (documented by `.never` files):
   - `unseal_1of5-SUITEONLY.never` through `unseal_5of5-SUITEONLY.never`
   - Rationale: Unseal keys MUST be unique per service (security isolation)
@@ -3321,8 +3355,8 @@ HASH_PEPPER_FILE: /run/secrets/cryptoutil-hash_pepper.secret
 - **Failure Mode**: Violations are ERRORS that block CI/CD
 
 **Database Isolation** (NEW - enforced 2026-02-16):
-- Each of 9 services MUST have unique `postgres_database.secret` value
-- Each of 9 services MUST have unique `postgres_username.secret` value
+- Each of 10 services MUST have unique `postgres_database.secret` value
+- Each of 10 services MUST have unique `postgres_username.secret` value
 - Duplicate database names or usernames across services are ERRORS
 - **Validation Function**: `checkDatabaseIsolation()` in lint_deployments.go
 - **Cross-Service Check**: Runs after all deployments validated to detect sharing violations
@@ -4073,7 +4107,7 @@ Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATO
 
 **See Section 3.4.2 PostgreSQL Ports** for complete table
 
-**Summary**: Host ports 54320-54328 map to container port 5432 for 9 services
+**Summary**: Host ports 54320-54329 map to container port 5432 for 10 services
 
 ### B.3 Technology Stack
 
