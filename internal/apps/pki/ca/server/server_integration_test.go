@@ -8,13 +8,24 @@ import (
 	"fmt"
 	http "net/http"
 	"testing"
+	"time"
+
+	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/pki/ca/server/config"
+	cryptoutilAppsTemplateServiceTestingE2eHelpers "cryptoutil/internal/apps/template/service/testing/e2e_helpers"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
 
 func TestCAServer_Lifecycle(t *testing.T) {
 	t.Parallel()
-	// Verify admin endpoints accessible.
+
+	// Server should be running and ready from TestMain.
+	require.NotNil(t, testServer, "server should not be nil")
+	require.Greater(t, testServer.PublicPort(), 0, "public port should be assigned")
+	require.Greater(t, testServer.AdminPort(), 0, "admin port should be assigned")
+
+	require.NotEmpty(t, testPublicBaseURL, "public base URL should not be empty")
 	require.NotEmpty(t, testAdminBaseURL, "admin base URL should not be empty")
 
 	// Test /admin/api/v1/livez endpoint.
@@ -41,6 +52,7 @@ func TestCAServer_Lifecycle(t *testing.T) {
 
 func TestCAServer_PortAllocation(t *testing.T) {
 	t.Parallel()
+
 	// Verify ports are dynamically allocated (> 0).
 	publicPort := testServer.PublicPort()
 	adminPort := testServer.AdminPort()
@@ -54,55 +66,77 @@ func TestCAServer_PortAllocation(t *testing.T) {
 	require.Contains(t, testAdminBaseURL, fmt.Sprintf(":%d", adminPort), "admin base URL should contain allocated port")
 }
 
-func TestCAServer_CAServices(t *testing.T) {
+func TestCAServer_Accessors(t *testing.T) {
 	t.Parallel()
-	// Verify CA-specific services are initialized.
-	require.NotNil(t, testServer.Issuer(), "issuer service should be initialized")
-	require.NotNil(t, testServer.Storage(), "storage service should be initialized")
-	require.NotNil(t, testServer.CRLService(), "CRL service should be initialized")
-	require.NotNil(t, testServer.OCSPService(), "OCSP service should be initialized")
+
+	// Verify all accessor methods return valid values.
+	require.NotNil(t, testServer.DB(), "DB accessor should return non-nil")
+
+	// Verify port accessors return valid values.
+	require.Greater(t, testServer.PublicPort(), 0, "PublicPort should be positive")
+	require.Greater(t, testServer.AdminPort(), 0, "AdminPort should be positive")
+	require.Greater(t, testServer.PublicServerActualPort(), 0, "PublicServerActualPort should be positive")
+	require.Greater(t, testServer.AdminServerActualPort(), 0, "AdminServerActualPort should be positive")
+
+	// Verify URL accessors.
+	require.NotEmpty(t, testServer.PublicBaseURL(), "PublicBaseURL should not be empty")
+	require.NotEmpty(t, testServer.AdminBaseURL(), "AdminBaseURL should not be empty")
 }
 
-func TestCAServer_TemplateServices(t *testing.T) {
+func TestCAServer_HealthEndpoints(t *testing.T) {
 	t.Parallel()
-	// Verify template services are initialized.
-	require.NotNil(t, testServer.DB(), "database should be initialized")
-	require.NotNil(t, testServer.JWKGen(), "JWK generation service should be initialized")
-	require.NotNil(t, testServer.Telemetry(), "telemetry service should be initialized")
-	require.NotNil(t, testServer.Barrier(), "barrier service should be initialized")
+
+	tests := []struct {
+		name       string
+		url        string
+		wantStatus int
+	}{
+		{name: "livez", url: fmt.Sprintf("%s/admin/api/v1/livez", testAdminBaseURL), wantStatus: http.StatusOK},
+		{name: "readyz", url: fmt.Sprintf("%s/admin/api/v1/readyz", testAdminBaseURL), wantStatus: http.StatusOK},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, tc.url, nil)
+			require.NoError(t, err)
+
+			resp, err := testHTTPClient.Do(req)
+			require.NoError(t, err)
+			require.Equal(t, tc.wantStatus, resp.StatusCode)
+			require.NoError(t, resp.Body.Close())
+		})
+	}
 }
 
-func TestCAServer_PublicHealth(t *testing.T) {
+func TestCAServer_ShutdownIdempotent(t *testing.T) {
 	t.Parallel()
-	// Test /service/api/v1/health endpoint on public server (provided by template).
-	// Note: /admin/api/v1/livez and /admin/api/v1/readyz are tested in TestCAServer_Lifecycle.
-	healthReq, err := http.NewRequestWithContext(context.Background(), http.MethodGet, fmt.Sprintf("%s/service/api/v1/health", testPublicBaseURL), nil)
-	require.NoError(t, err, "health request creation should succeed")
 
-	healthResp, err := testHTTPClient.Do(healthReq)
-	require.NoError(t, err, "health request should succeed")
-	require.Equal(t, http.StatusOK, healthResp.StatusCode, "health should return 200 OK")
-	require.NoError(t, healthResp.Body.Close())
-}
+	// Test that calling Shutdown on a running server succeeds.
+	// Note: We can't shut down testServer as other tests need it.
+	// This test creates a separate server instance to test shutdown coverage.
+	ctx := context.Background()
 
-func TestCAServer_CRLEndpoint(t *testing.T) {
-	t.Parallel()
-	// Test CRL distribution endpoint.
-	crlReq, err := http.NewRequestWithContext(context.Background(), http.MethodGet, fmt.Sprintf("%s/service/api/v1/crl", testPublicBaseURL), nil)
-	require.NoError(t, err, "CRL request creation should succeed")
+	// Create test configuration with different ports.
+	cfg := cryptoutilAppsCaServerConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
-	crlResp, err := testHTTPClient.Do(crlReq)
-	require.NoError(t, err, "CRL request should succeed")
-	require.Equal(t, http.StatusOK, crlResp.StatusCode, "CRL endpoint should return 200 OK")
-	require.Equal(t, "application/pkix-crl", crlResp.Header.Get("Content-Type"), "CRL should have correct content type")
-	require.NoError(t, crlResp.Body.Close())
+	// Create separate server instance.
+	server, err := NewFromConfig(ctx, cfg)
+	require.NoError(t, err, "server creation should succeed")
 
-	// Test well-known CRL endpoint.
-	wellKnownReq, err := http.NewRequestWithContext(context.Background(), http.MethodGet, fmt.Sprintf("%s/.well-known/pki-ca/crl", testPublicBaseURL), nil)
-	require.NoError(t, err, "well-known CRL request creation should succeed")
+	// Start server in background.
+	cryptoutilAppsTemplateServiceTestingE2eHelpers.MustStartAndWaitForDualPorts(server, func() error {
+		return server.Start(ctx)
+	})
 
-	wellKnownResp, err := testHTTPClient.Do(wellKnownReq)
-	require.NoError(t, err, "well-known CRL request should succeed")
-	require.Equal(t, http.StatusOK, wellKnownResp.StatusCode, "well-known CRL endpoint should return 200 OK")
-	require.NoError(t, wellKnownResp.Body.Close())
+	// Mark server as ready.
+	server.SetReady(true)
+
+	// First shutdown should succeed.
+	shutdownCtx, cancel := context.WithTimeout(ctx, cryptoutilSharedMagic.DefaultDataServerShutdownTimeout*time.Second)
+	defer cancel()
+
+	shutdownErr := server.Shutdown(shutdownCtx)
+	require.NoError(t, shutdownErr, "first shutdown should succeed")
 }

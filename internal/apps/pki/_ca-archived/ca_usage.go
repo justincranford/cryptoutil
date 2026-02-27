@@ -1,4 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
+//
+//
 
 package ca
 
@@ -8,7 +10,7 @@ CAUsageMain = `Usage: pki ca <subcommand> [options]
 
 Available subcommands:
   version     Print version information
-  server      Start the PKI CA server (default)
+  server      Start the Certificate Authority server (default)
   client      Run client operations
   init        Initialize database and configuration
   health      Check service health (public API)
@@ -23,24 +25,27 @@ Version information is available via Docker image tags.`
 CAUsageServer = `Usage: pki ca server [options]
 
 Description:
-  Start the PKI CA server with database initialization.
+  Start the Certificate Authority server with database initialization.
   Supports both SQLite (default) and PostgreSQL databases.
 
 Options:
-  --database-url URL       Database URL (default: SQLite in-memory)
-                           SQLite: file::memory:?cache=shared
-                           PostgreSQL: postgres://user:pass@host:port/dbname?sslmode=disable
-  --help, -h               Show this help message
+  --database-url URL    Database URL (default: SQLite in-memory)
+                        SQLite: file::memory:?cache=shared
+                        PostgreSQL: postgres://user:pass@host:port/dbname?sslmode=disable
+  --config PATH         Configuration file path
+  --dev                 Enable development mode (relaxed security)
+  --help, -h            Show this help message
 
 Examples:
   pki ca server
-  pki ca server --database-url file:/tmp/pki-ca.db`
+  pki ca server --config configs/pki/ca/config.yml
+  pki ca server --dev`
 
 // CAUsageClient is the usage message for the client subcommand.
 CAUsageClient = `Usage: pki ca client [options]
 
 Description:
-  Run client operations for the PKI CA service.
+  Run client operations for the Certificate Authority service.
 
 Options:
   --help, -h    Show this help message
@@ -52,7 +57,7 @@ Examples:
 CAUsageInit = `Usage: pki ca init [options]
 
 Description:
-  Initialize database schema and configuration for the PKI CA service.
+  Initialize database schema and configuration for the Certificate Authority service.
 
 Options:
   --config PATH    Configuration file path
@@ -60,7 +65,7 @@ Options:
 
 Examples:
   pki ca init
-  pki ca init --config configs/ca/pki-ca/config.yml`
+  pki ca init --config configs/pki/ca/config.yml`
 
 // CAUsageHealth is the usage message for the health subcommand.
 CAUsageHealth = `Usage: pki ca health [options]
