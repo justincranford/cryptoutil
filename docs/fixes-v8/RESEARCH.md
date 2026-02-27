@@ -319,7 +319,7 @@ The first 4 are migrated. Identity services are the final frontier.
    - If skeleton breaks → fix base or skeleton
    - If skeleton passes → proceed
    ↓
-3. Roll out to service tier (all 9 business services)
+3. Roll out to service tier (all 9 other business services)
    - CICD linters catch structural non-compliance
    - Per-service tests catch functional regressions
 ```

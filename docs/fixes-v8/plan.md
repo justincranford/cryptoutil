@@ -25,7 +25,7 @@ ALL deliverables MUST satisfy:
 fixes-v8 focuses on five priorities:
 
 1. **Architecture Doc Quality** - Complete cleanup from fixes-v8 analysis (CONFIG-SCHEMA.md created, structural fixes committed)
-2. **Service-Template Readiness Evaluation** - Evidence-based assessment of all 9 services against the service template pattern
+2. **Service-Template Readiness Evaluation** - Evidence-based assessment of all 9 pre-existing services against the service template pattern
 3. **Skeleton-Template (10th Product-Service)** - Permanent stereotype service demonstrating best-practice use of service-template; empty of business logic except absolute minimum for stereotype purposes
 4. **PKI-CA Clean-Slate** - Archive existing pki-ca, create clean-slate skeleton using skeleton-template as starting reference
 5. **CICD Linter Enhancements** - New linter rules for PRODUCT and PRODUCT-SERVICE structural best practices
@@ -72,7 +72,7 @@ These renames are tracked for future work but **not executed in fixes-v8** to li
 
 1. Make structural/content change to base or stereotype first
 2. Codify validation of the change via CICD linters
-3. Create plan.md/tasks.md to roll out change to all 9 (or more) services
+3. Create plan.md/tasks.md to roll out change to all 10 services
 4. Execute rollout efficiently with automated validation
 
 ---
@@ -104,11 +104,11 @@ This is the only remaining available port range in the 8xxx block.
 
 ### Template Builder Adoption
 
-ALL 9 existing services use `NewServerBuilder`. The SM/JOSE/PKI services are standalone (each has its own domain + migrations). The identity services share a common domain layer.
+All 10 services use `NewServerBuilder`. The SM/JOSE/PKI services are standalone (each has its own domain + migrations). The identity services share a common domain layer.
 
 ### Deployment Infrastructure
 
-All 9 services have deployment directories in `deployments/` and config directories in `configs/`. skeleton-template will follow the same pattern.
+All 10 services have deployment directories in `deployments/` and config directories in `configs/`.
 
 ### Migration Priority (from ARCHITECTURE.md)
 
@@ -133,7 +133,7 @@ The first 4 are already migrated. Identity services are the final frontier. skel
 
 ## Phase 2: Service-Template Readiness Evaluation ✅ COMPLETE
 
-**Goal**: Generate evidence-based readiness scores for all 9 services.
+**Goal**: Generate evidence-based readiness scores for all 9 pre-existing services.
 
 ### Consolidated Readiness Scorecard
 
@@ -142,7 +142,7 @@ The first 4 are already migrated. Identity services are the final frontier. skel
 | **Total** | **50** | **48** | **50** | **44** | **43** | **43** | **40** | **38** | **35** |
 | **Grade** | **A** | **A** | **A** | **B+** | **B** | **B** | **C+** | **C** | **C-** |
 
-**Quality Gate**: ✅ All 9 services scored, gaps documented.
+**Quality Gate**: ✅ All 9 pre-existing services scored, gaps documented.
 
 ---
 
@@ -353,7 +353,7 @@ Full project validation: build, lint, test, deployment validators, propagation c
 |------|----------|-------|
 | QG-1 | Zero broken links in ARCHITECTURE.md | Phase 1 ✅ |
 | QG-2 | Propagation markers valid | Phase 1 ✅ |
-| QG-3 | All 9 services scored on 10 dimensions | Phase 2 ✅ |
+| QG-3 | All 9 pre-existing services scored on 10 dimensions | Phase 2 ✅ |
 | QG-4 | Identity migration strategy documented | Phase 3 ✅ |
 | QG-5 | At least one service improvement committed | Phase 4 ✅ |
 | QG-6 | skeleton-template is functional 10th product-service | Phase 5 |
