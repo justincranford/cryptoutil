@@ -1,6 +1,6 @@
 # Tasks - Architecture Evolution (fixes-v8)
 
-**Status**: 73 of 104 tasks complete (70%) — Phase 8 COMPLETE
+**Status**: 78 of 104 tasks complete (75%) — Phase 9 COMPLETE
 **Last Updated**: 2026-02-27
 **Created**: 2026-02-26
 
@@ -428,72 +428,72 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 - **Dependencies**: Task 8.3
 - **Description**: Run new validators against all 10 services, fix non-conformance
 - **Acceptance Criteria**:
-  - [ ] All 10 services pass new validators (or documented exceptions)
-  - [ ] No regressions in existing validators
-  - [ ] `go run ./cmd/cicd lint-deployments validate-all` — all pass
-  - [ ] Conventional commit
+  - [x] All 10 services pass new validators (or documented exceptions)
+  - [x] No regressions in existing validators
+  - [x] `go run ./cmd/cicd lint-deployments validate-all` — all pass
+  - [x] Conventional commit
 
 ---
 
-## Phase 9: Documentation & Research
+## Phase 9: Documentation & Research ✅ COMPLETE
 
 **Phase Objective**: Consolidate findings into RESEARCH.md.
 
 ### Task 9.1: Skeleton Patterns
-- **Status**: ❌
+- **Status**: ✅ DONE
 - **Estimated**: 1h
 - **Dependencies**: Phases 5-6 complete
 - **Description**: Document skeleton creation process and patterns
 - **Acceptance Criteria**:
-  - [ ] Step-by-step guide for creating a new product-service
-  - [ ] Minimal file set with purpose annotations
-  - [ ] Common pitfalls and solutions
-  - [ ] Document in docs/fixes-v8/RESEARCH.md
+  - [x] Step-by-step guide for creating a new product-service
+  - [x] Minimal file set with purpose annotations
+  - [x] Common pitfalls and solutions
+  - [x] Document in docs/fixes-v8/RESEARCH.md
 
 ### Task 9.2: Template Learnings
-- **Status**: ❌
+- **Status**: ✅ DONE
 - **Estimated**: 1h
 - **Dependencies**: Phase 7 complete
 - **Description**: Document template strengths, weaknesses, improvements
 - **Acceptance Criteria**:
-  - [ ] Import Phase 7 findings
-  - [ ] Strengths analysis (what works well)
-  - [ ] Weakness analysis (what needs improvement)
-  - [ ] Enhancement roadmap with priorities
-  - [ ] Document in RESEARCH.md
+  - [x] Import Phase 7 findings
+  - [x] Strengths analysis (what works well)
+  - [x] Weakness analysis (what needs improvement)
+  - [x] Enhancement roadmap with priorities
+  - [x] Document in RESEARCH.md
 
 ### Task 9.3: Identity Roadmap
-- **Status**: ❌
+- **Status**: ✅ DONE
 - **Estimated**: 0.5h
 - **Dependencies**: Phase 3 findings
 - **Description**: Document planned identity services approach
 - **Acceptance Criteria**:
-  - [ ] Archive + skeleton approach (following pki-ca pattern)
-  - [ ] Independent deployability plan (ED-7)
-  - [ ] Shared E2E strategy (ED-10)
-  - [ ] Document in RESEARCH.md
+  - [x] Archive + skeleton approach (following pki-ca pattern)
+  - [x] Independent deployability plan (ED-7)
+  - [x] Shared E2E strategy (ED-10)
+  - [x] Document in RESEARCH.md
 
 ### Task 9.4: Three-Tier Architecture
-- **Status**: ❌
+- **Status**: ✅ DONE
 - **Estimated**: 1h
 - **Dependencies**: Phases 5-8 complete
 - **Description**: Document base/stereotype/service architecture vision
 - **Acceptance Criteria**:
-  - [ ] Base tier: service-template (current), product-service-base (future)
-  - [ ] Stereotype tier: skeleton-template (current), product-service-stereotype (future)
-  - [ ] Service tier: all 9 business services
-  - [ ] Long-term workflow: change base → validate stereotype → roll out
-  - [ ] Document in RESEARCH.md
+  - [x] Base tier: service-template (current), product-service-base (future)
+  - [x] Stereotype tier: skeleton-template (current), product-service-stereotype (future)
+  - [x] Service tier: all 9 business services
+  - [x] Long-term workflow: change base → validate stereotype → roll out
+  - [x] Document in RESEARCH.md
 
 ### Task 9.5: RESEARCH.md Publication
-- **Status**: ❌
+- **Status**: ✅ DONE
 - **Estimated**: 0.5h
 - **Dependencies**: Tasks 9.1-9.4
 - **Description**: Finalize and commit RESEARCH.md
 - **Acceptance Criteria**:
-  - [ ] All sections complete
-  - [ ] Cross-references to ARCHITECTURE.md
-  - [ ] Conventional commit
+  - [x] All sections complete
+  - [x] Cross-references to ARCHITECTURE.md
+  - [x] Conventional commit
 
 ---
 
