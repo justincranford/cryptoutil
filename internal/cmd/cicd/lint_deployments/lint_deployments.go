@@ -52,7 +52,7 @@ func GetExpectedStructures() map[string]DeploymentStructure {
 			AllowedExtensions: []string{".yml", ".yaml", ".secret", ".md"},
 		},
 		DeploymentTypeProduct: {
-			Name:              "PRODUCT-level deployment (e.g., identity, sm, pki, jose)",
+			Name:              "PRODUCT-level deployment (e.g., identity, sm, pki, jose, skeleton)",
 			RequiredDirs:      []string{"secrets"},
 			RequiredFiles:     []string{"compose.yml"},
 			OptionalFiles:     []string{}, // no optional files

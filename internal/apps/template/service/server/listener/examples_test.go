@@ -205,7 +205,7 @@ func _testMainAfter(m *testing.M) {
 // _createInMemoryDB creates an in-memory SQLite database configured for concurrent operations.
 // Returns GORM DB, sql.DB (for migrations), and error.
 //
-// This helper is REUSABLE across all services (sm-im, jose-ja, identity-*, pki-ca).
+// This helper is REUSABLE across all services (sm-im, jose-ja, identity-*, sm-kms, pki-ca, skeleton-template).
 // Extract to internal/template/testing/database/ for shared usage.
 //
 //nolint:unused // Example function for documentation
