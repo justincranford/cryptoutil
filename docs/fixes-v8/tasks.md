@@ -1,6 +1,6 @@
 # Tasks - Architecture Evolution (fixes-v8)
 
-**Status**: 65 of 104 tasks complete (63%) — Phase 6 COMPLETE
+**Status**: 69 of 104 tasks complete (66%) — Phase 7 COMPLETE
 **Last Updated**: 2026-02-27
 **Created**: 2026-02-26
 
@@ -337,48 +337,48 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 **Phase Objective**: Analyze skeleton creation experience. Document minimal file set, friction points, and enhancement proposals.
 
 ### Task 7.1: Minimal File Set Documentation
-- **Status**: ❌
+- **Status**: ✅ COMPLETE
 - **Estimated**: 1h
 - **Dependencies**: Phases 5-6 complete
 - **Description**: Document the minimal file set required for a conforming product-service
 - **Acceptance Criteria**:
-  - [ ] List ALL files created for skeleton-template with purpose
-  - [ ] Compare against sm-kms (reference, 50/50 score)
-  - [ ] Identify files that could be auto-generated vs hand-written
-  - [ ] Document in RESEARCH.md
+  - [x] List ALL files created for skeleton-template with purpose (7 source + 10-12 test + 2 SQL)
+  - [x] Compare against sm-kms (reference: 41 source + 78 test + 4 SQL = 123 total)
+  - [x] Identify files that could be auto-generated vs hand-written (90%+ is template boilerplate)
+  - [x] Document in RESEARCH.md
 
 ### Task 7.2: Template Friction Points
-- **Status**: ❌
+- **Status**: ✅ COMPLETE
 - **Estimated**: 1h
 - **Dependencies**: Phases 5-6 complete
 - **Description**: Catalog friction, boilerplate, missing abstractions from skeleton creation
 - **Acceptance Criteria**:
-  - [ ] List boilerplate code that was copy-pasted
-  - [ ] Identify missing helper functions or utilities
-  - [ ] Document API surface confusion or unclear patterns
-  - [ ] Document in RESEARCH.md
+  - [x] Listed 5 categories of boilerplate (mergedFS, server wrapper, usage strings, serverStart, tests)
+  - [x] Identified 3 missing helpers (shared mergedFS, server base struct, test generator)
+  - [x] Documented 3 API surface confusion points (fields vs methods, Shutdown signature, port types)
+  - [x] Document in RESEARCH.md
 
 ### Task 7.3: Product Wiring Analysis
-- **Status**: ❌
+- **Status**: ✅ COMPLETE
 - **Estimated**: 0.5h
 - **Dependencies**: Task 7.1
 - **Description**: Analyze product-level wiring for simplification
 - **Acceptance Criteria**:
-  - [ ] Assess RouteProduct/RouteService patterns for boilerplate reduction
-  - [ ] Document suite router scalability (currently switch statement)
-  - [ ] Document in RESEARCH.md
+  - [x] RouteProduct/RouteService patterns assessed — clean, scalable, no changes needed
+  - [x] Suite router scalability assessed — switch scales to ~20 products, fine as-is
+  - [x] Document in RESEARCH.md
 
 ### Task 7.4: Enhancement Proposals
-- **Status**: ❌
+- **Status**: ✅ COMPLETE
 - **Estimated**: 1h
 - **Dependencies**: Tasks 7.1-7.3
 - **Description**: Concrete, prioritized proposals for template improvements
 - **Acceptance Criteria**:
-  - [ ] P0: Must-fix friction points
-  - [ ] P1: Should-fix improvements
-  - [ ] P2: Nice-to-have enhancements
-  - [ ] Each proposal: problem, solution, LOE, impact
-  - [ ] Document in RESEARCH.md
+  - [x] P0: 2 must-fix items (shared mergedFS saves 800 lines, ServiceResources godoc)
+  - [x] P1: 3 should-fix items (server base struct, usage generator, shared server runner)
+  - [x] P2: 2 nice-to-have items (test code generator, generic config factory)
+  - [x] Each proposal has: problem, solution, LOE, impact
+  - [x] Document in RESEARCH.md
 
 ---
 
