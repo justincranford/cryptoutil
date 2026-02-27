@@ -5,8 +5,9 @@
 package sm
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"io"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilAppsSmIm "cryptoutil/internal/apps/sm/im"
 	cryptoutilAppsSmKms "cryptoutil/internal/apps/sm/kms"

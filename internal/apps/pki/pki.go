@@ -6,8 +6,9 @@
 package pki
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"io"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilAppsPkiCa "cryptoutil/internal/apps/pki/ca"
 	cryptoutilTemplateCli "cryptoutil/internal/apps/template/service/cli"

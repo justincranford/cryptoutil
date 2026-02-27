@@ -5,8 +5,9 @@
 package identity
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"io"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilAppsIdentityAuthz "cryptoutil/internal/apps/identity/authz"
 	cryptoutilAppsIdentityIdp "cryptoutil/internal/apps/identity/idp"

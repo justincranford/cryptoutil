@@ -5,8 +5,9 @@
 package jose
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"io"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilAppsJoseJa "cryptoutil/internal/apps/jose/ja"
 	cryptoutilTemplateCli "cryptoutil/internal/apps/template/service/cli"
