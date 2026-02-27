@@ -12,7 +12,7 @@ This document defines the Docker Compose composition patterns for deploying cryp
 |-------|-------|---------|----------|
 | **SERVICE** | Single service | `sm-kms` | 1 service (3 instances: 1 SQLite + 2 PostgreSQL) |
 | **PRODUCT** | Product group | `identity` | 1-5 services per product |
-| **SUITE** | All services | `cryptoutil` | All 9 services across 5 products |
+| **SUITE** | All services | `cryptoutil` | All 10 services across 5 products |
 
 Each level is independently deployable while sharing infrastructure and secrets through compose `include` directives.
 
@@ -78,7 +78,7 @@ SUITE compose.yml
 Each level can be deployed independently:
 - `cd deployments/sm-kms && docker compose up` — single service
 - `cd deployments/identity && docker compose up` — all identity services
-- `cd deployments/cryptoutil-suite && docker compose up` — all 9 services
+- `cd deployments/cryptoutil-suite && docker compose up` — all 10 services
 
 ### 2.5 Compose `extends` for Templates
 
@@ -100,7 +100,7 @@ services:
 
 **Finding**: Docker resolves secret file paths relative to the compose file that defines them, then converts to absolute paths. These absolute paths must be accessible to the Docker daemon.
 
-**Complete Secret Hierarchy** (all 5 products, all 9 services):
+**Complete Secret Hierarchy** (all 5 products, all 10 services):
 
 **Key Changes**:
 - PRODUCT/SUITE levels use `.never` files for postgres secrets (documents prohibition)
@@ -112,7 +112,7 @@ deployments/
 ├── cryptoutil/                                    # SUITE-level deployment
 │   ├── compose.yml                                # Includes all PRODUCT compose files
 │   └── secrets/
-│       ├── cryptoutil-hash_pepper.secret          # SUITE pepper: shared by ALL 9 services
+│       ├── cryptoutil-hash_pepper.secret          # SUITE pepper: shared by ALL 10 services
 │       ├── cryptoutil-unseal_1of5.secret.never    # Documents: unseal keys MUST NOT be shared
 │       ├── cryptoutil-unseal_2of5.secret.never
 │       ├── cryptoutil-unseal_3of5.secret.never
@@ -192,6 +192,20 @@ deployments/
 │       ├── jose-postgres_username.secret.never
 │       ├── jose-postgres_password.secret.never
 │       └── jose-postgres_database.secret.never
+│
+├── skeleton/                                      # PRODUCT-level (currently one service: template)
+│   ├── compose.yml → ../skeleton-template/compose.yml
+│   └── secrets/
+│       ├── skeleton-hash_pepper.secret            # PRODUCT pepper: shared by all Skeleton services (currently just skeleton-template)
+│       ├── skeleton-unseal_1of5.secret.never      # Documents: unseal keys MUST NOT be shared
+│       ├── skeleton-unseal_2of5.secret.never
+│       ├── skeleton-unseal_3of5.secret.never
+│       ├── skeleton-unseal_4of5.secret.never
+│       ├── skeleton-unseal_5of5.secret.never
+│       ├── skeleton-postgres_url.secret.never     # Documents: postgres secrets MUST NOT be shared
+│       ├── skeleton-postgres_username.secret.never
+│       ├── skeleton-postgres_password.secret.never
+│       └── skeleton-postgres_database.secret.never
 │
 ├── sm-kms/                                        # SERVICE-level (sm product, kms service)
 │   ├── compose.yml
@@ -305,6 +319,20 @@ deployments/
 │       ├── sm-im-postgres_password.secret
 │       └── sm-im-postgres_database.secret
 │
+├── skeleton-template/                             # SERVICE-level (skeleton product, template service)
+│   ├── compose.yml
+│   └── secrets/
+│       ├── skeleton-template-hash_pepper.secret   # SERVICE pepper: unique to skeleton-template
+│       ├── skeleton-template-unseal_1of5.secret
+│       ├── skeleton-template-unseal_2of5.secret
+│       ├── skeleton-template-unseal_3of5.secret
+│       ├── skeleton-template-unseal_4of5.secret
+│       ├── skeleton-template-unseal_5of5.secret
+│       ├── skeleton-template-postgres_url.secret
+│       ├── skeleton-template-postgres_username.secret
+│       ├── skeleton-template-postgres_password.secret
+│       └── skeleton-template-postgres_database.secret
+│
 └── jose-ja/                                       # SERVICE-level (jose product, ja service)
     ├── compose.yml
     └── secrets/
@@ -327,8 +355,10 @@ deployments/
 | `cd sm-kms && docker compose up` | `sm-kms-hash_pepper.secret` | sm-kms only | SERVICE-only: unique pepper |
 | `cd pki-ca && docker compose up` | `pki-ca-hash_pepper.secret` | pki-ca only | SERVICE-only: unique pepper |
 | `cd identity-authz && docker compose up` | `identity-authz-hash_pepper.secret` | identity-authz only | SERVICE-only: unique pepper |
+| `cd skeleton-template && docker compose up` | `skeleton-template-hash_pepper.secret` | skeleton-template only | SERVICE-only: unique pepper |
 | `cd identity && docker compose up` | `identity-hash_pepper.secret` | All 5 identity services (authz, idp, rp, rs, spa) | PRODUCT-level: shared within product |
-| `cd cryptoutil && docker compose up` | `cryptoutil-hash_pepper.secret` | ALL 9 services across 5 products | SUITE-level: shared globally |
+| `cd skeleton && docker compose up` | `skeleton-hash_pepper.secret` | All Skeleton services (currently just skeleton-template) | PRODUCT-level: shared within product |
+| `cd cryptoutil && docker compose up` | `cryptoutil-hash_pepper.secret` | ALL 10 services across 5 products | SUITE-level: shared globally |
 
 **Key Rules:**
 
@@ -336,7 +366,7 @@ deployments/
 
 2. **PRODUCT-level deployment**: All services within a product share `{PRODUCT}-hash_pepper.secret` from the PRODUCT directory's `secrets/` folder. The PRODUCT compose.yml defines this secret and it overrides the SERVICE-level secrets via Docker Compose merging rules.
 
-3. **SUITE-level deployment**: All 9 services across all 5 products share `cryptoutil-hash_pepper.secret` from `deployments/cryptoutil-suite/secrets/`. The SUITE compose.yml defines this secret at the top level, overriding both PRODUCT and SERVICE secrets.
+3. **SUITE-level deployment**: All 10 services across all 5 products share `cryptoutil-hash_pepper.secret` from `deployments/cryptoutil-suite/secrets/`. The SUITE compose.yml defines this secret at the top level, overriding both PRODUCT and SERVICE secrets.
 
 4. **Secret precedence**: SUITE > PRODUCT > SERVICE (compose merging gives precedence to the parent that includes children).
 
@@ -352,7 +382,7 @@ deployments/{PRODUCT}-{SERVICE}/config/
 └── {PRODUCT}-{SERVICE}-app-postgresql-2.yml  # PostgreSQL instance #2 settings
 ```
 
-**Complete Config Hierarchy** (all 9 services):
+**Complete Config Hierarchy** (all 10 services):
 
 ```
 deployments/
@@ -411,7 +441,7 @@ deployments/
     └── identity-spa-app-postgresql-2.yml
 ```
 
-**Total**: 36 deployment config files (9 services × 4 files each)
+**Total**: 40 deployment config files (10 services × 4 files each)
 
 **Config File Content**: Deployment configs are minimal Docker Compose-specific settings, typically just:
 - Server port overrides for instance isolation
@@ -550,7 +580,7 @@ cors-allowed-origins:
 - **./deployments/{SERVICE}/config/**: 4 files per service (common, sqlite-1, postgresql-1, postgresql-2)
   - Minimal configs: mainly port overrides for instance isolation
   - Docker Compose-specific: mounted as volumes into containers
-  - Total: 36 files (9 services × 4 files)
+  - Total: 40 files (10 services × 4 files)
 
 - **./configs/**: Rich hierarchy with profiles and policies
   - Comprehensive configs: complete application settings
@@ -643,14 +673,27 @@ deployments/
 │   └── secrets/
 │       └── identity-hash_pepper.secret  # PRODUCT pepper: shared by 5 identity services
 │
+├── skeleton-template/                   # SERVICE level (skeleton product, template service)
+│   ├── compose.yml
+│   ├── Dockerfile
+│   ├── secrets/
+│   │   ├── skeleton-template-unseal_1of5.secret
+│   │   └── ...
+│   └── config/
+│
+├── skeleton/                            # PRODUCT level (currently one service: template)
+│   ├── compose.yml                      # include: ../skeleton-template/compose.yml
+│   └── secrets/
+│       └── skeleton-hash_pepper.secret  # PRODUCT pepper: shared by all Skeleton services
+│
 └── cryptoutil/                          # SUITE level (future)
     ├── compose.yml                      # include: ../sm/compose.yml
     │                                    #          ../pki/compose.yml
     │                                    #          ../identity/compose.yml
-    │                                    #          ../sm/compose.yml
+    │                                    #          ../skeleton/compose.yml
     │                                    #          ../jose/compose.yml
     └── secrets/
-        └── cryptoutil-hash_pepper.secret # SUITE pepper: shared by ALL 9 services
+        └── cryptoutil-hash_pepper.secret # SUITE pepper: shared by ALL 10 services
 ```
 
 ## 4. Composition Patterns
@@ -731,7 +774,7 @@ To avoid secret name conflicts in multi-level composition:
 | Unseal keys | `{PRODUCT}-{SERVICE}-unseal_{N}of5.secret` | `sm-kms-unseal_1of5.secret` |
 | Hash pepper (SERVICE) | `{PRODUCT}-{SERVICE}-hash_pepper.secret` | `sm-kms-hash_pepper.secret` |
 | Hash pepper (PRODUCT) | `{PRODUCT}-hash_pepper.secret` | `identity-hash_pepper.secret` (shared by 5 services) |
-| Hash pepper (SUITE) | `cryptoutil-hash_pepper.secret` | `cryptoutil-hash_pepper.secret` (shared by all 9) |
+| Hash pepper (SUITE) | `cryptoutil-hash_pepper.secret` | `cryptoutil-hash_pepper.secret` (shared by all 10) |
 | PostgreSQL URL | `{PRODUCT}-{SERVICE}-postgres_url.secret` | `sm-kms-postgres_url.secret` |
 | PostgreSQL user | `{PRODUCT}-{SERVICE}-postgres_username.secret` | `jose-ja-postgres_username.secret` |
 | PostgreSQL pass | `{PRODUCT}-{SERVICE}-postgres_password.secret` | `identity-authz-postgres_password.secret` |
@@ -751,11 +794,11 @@ To avoid secret name conflicts in multi-level composition:
 **PRODUCT-level deployment** (`cd {PRODUCT} && docker compose up`):
 - All services within product share pepper: `{PRODUCT}-hash_pepper.secret`
 - Example: All 5 identity services (authz, idp, rp, rs, spa) share `identity-hash_pepper.secret`
-- Single-service products (sm, pki, cipher, jose): `{PRODUCT}-hash_pepper.secret` = alias to SERVICE pepper
+- Single-service products (sm, pki, skeleton, jose): `{PRODUCT}-hash_pepper.secret` = alias to SERVICE pepper
 - **Use case**: Shared SSO/federation within product boundary
 
 **SUITE-level deployment** (`cd cryptoutil && docker compose up`):
-- All 9 services across 5 products share pepper: `cryptoutil-hash_pepper.secret`
+- All 10 services across 5 products share pepper: `cryptoutil-hash_pepper.secret`
 - **Use case**: Cross-product SSO, unified identity federation
 
 **Other Secrets (NEVER shared)**:
@@ -769,7 +812,7 @@ To avoid secret name conflicts in multi-level composition:
 
 ### Phase 1: Current State (SERVICE-only)
 
-All 9 services deploy independently. Each has its own compose.yml with included telemetry. Secret names are NOT prefixed (e.g., `unseal_1of5.secret`).
+All 10 services deploy independently. Each has its own compose.yml with included telemetry. Secret names are NOT prefixed (e.g., `unseal_1of5.secret`).
 
 ### Phase 2: Secret Prefixing
 

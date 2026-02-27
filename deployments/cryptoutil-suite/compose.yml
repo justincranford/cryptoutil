@@ -2,7 +2,7 @@
 #
 # CRYPTOUTIL SUITE Deployment (SUITE-Level)
 #
-# Purpose: Complete suite deployment with ALL 9 services across 5 products.
+# Purpose: Complete suite deployment with ALL 10 services across 5 products.
 # Deployment Level: SUITE (port range 28000-28999, SERVICE base + 20000 offset)
 # Each service has 3 instances (1 SQLite + 2 PostgreSQL).
 #

@@ -61,7 +61,7 @@ func GetExpectedStructures() map[string]DeploymentStructure {
 			AllowedExtensions: []string{".yml", ".yaml", ".secret", ".never", ".md"},
 		},
 		DeploymentTypeSuite: {
-			Name:              "SUITE-level deployment (cryptoutil-suite - all 9 services)",
+			Name:              "SUITE-level deployment (cryptoutil-suite - all 10 services)",
 			RequiredDirs:      []string{"secrets"},
 			RequiredFiles:     []string{"compose.yml", "Dockerfile"},
 			OptionalFiles:     []string{}, // no optional files

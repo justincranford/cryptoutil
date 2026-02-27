@@ -4,7 +4,7 @@
 # Include this file from product-specific compose files using Docker Compose includes.
 #
 # Architecture:
-#   - postgres-leader:   PostgreSQL 18 OLTP (read-write, 27 logical databases)
+#   - postgres-leader:   PostgreSQL 18 OLTP (read-write, 30 logical databases)
 #   - postgres-follower: PostgreSQL 18 OLAP (read-only replica, analytics with grouped schemas)
 #
 # Logical Database Architecture (Leader - OLTP):
@@ -69,7 +69,7 @@
 #
 services:
   # PostgreSQL 18 Leader (OLTP - Read/Write)
-  # Hosts 27 logical databases (9 services × 3 deployment types)
+  # Hosts 30 logical databases (10 services × 3 deployment types)
   postgres-leader:
     image: postgres:18
     container_name: cryptoutil-postgres-leader

@@ -22,7 +22,7 @@ This directory contains deprecated deployment configurations that have been arch
 
 **Migration Path**:
 - Migrate E2E tests to use ComposeManager from `internal/apps/template/testing/e2e/`
-- Follow cipher-im or identity E2E patterns (RECOMMENDED)
+- Follow sm-im or identity E2E patterns (RECOMMENDED)
 - See `test-output/phase1/e2e-patterns.txt` for analysis
 
 **DO NOT DELETE**: May be needed for reference during E2E migration (Phase 6)

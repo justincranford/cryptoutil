@@ -861,7 +861,7 @@ Running frequent Unit + integration + E2E tests locally:
 - ❌ NEVER treat issues as "non-blocking" or "minor"
 - ❌ NEVER continue to next task with known issues
 
-**Rationale**: Maintaining maximum quality is absolutely paramount. Example: Treating cipher-im E2E timeouts as non-blocking was WRONG.
+**Rationale**: Maintaining maximum quality is absolutely paramount. Example: Treating sm-im E2E timeouts as non-blocking was WRONG.
 
 ### Quizme File Purpose
 

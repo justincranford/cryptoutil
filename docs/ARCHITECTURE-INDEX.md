@@ -50,7 +50,7 @@
 **Topics**: Product overview, service catalog (PKI, JOSE, SM, Identity), product-service relationships, port assignments
 
 **Subsections**:
-- 3.1 Product Overview (410-441): 4 products, 9 services
+- 3.1 Product Overview (410-441): 5 products, 10 services
 - 3.2 Service Catalog (442-597): PKI-CA, JOSE-JA, SM-IM, SM-KMS, Identity (Authz, IdP, RS, RP, SPA)
 - 3.3 Product-Service Relationships (598-620): 1-to-1, 1-to-N, N-to-N patterns
 - 3.4 Port Assignments & Networking (621-687): Port design, PostgreSQL ports, telemetry ports

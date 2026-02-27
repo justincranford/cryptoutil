@@ -72,7 +72,7 @@ func GetDeploymentDirectories() (suite []string, product []string, productServic
 func GetExpectedDeploymentsContents() map[string]string {
 	contents := make(map[string]string)
 
-	// SUITE Level (cryptoutil-suite) - ALL 9 services
+	// SUITE Level (cryptoutil-suite) - ALL 10 services
 	// Required: compose.yml, Dockerfile, hash_pepper only
 	// Forbidden (via .never): unseal keys, postgres secrets (MUST be service-specific)
 	contents["cryptoutil-suite/compose.yml"] = RequiredFileStatus

@@ -98,7 +98,7 @@ func TestRegistrationFlow_E2E(t *testing.T) {
 - `AuthorizeJoinRequest` does NOT assign user/client to tenant on approval.
 - **TODO**: Implement tenant assignment when user-tenant association implemented.
 
-## Example: cipher-im Service
+## Example: sm-im Service
 
 See `internal/apps/cipher/im/server/server.go` for complete route registration example:
 
@@ -107,7 +107,7 @@ builder.WithPublicRouteRegistration(func(
     base *cryptoutilTemplateServer.PublicServerBase,
     res *cryptoutilTemplateBuilder.ServiceResources,
 ) error {
-    // Create cipher-im specific repositories.
+    // Create sm-im specific repositories.
     userRepo := repository.NewUserRepository(res.DB)
     messageRepo := repository.NewMessageRepository(res.DB)
     messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(res.DB, res.BarrierService)

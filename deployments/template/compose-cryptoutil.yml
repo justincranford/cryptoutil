@@ -2,7 +2,7 @@
 #
 # CRYPTOUTIL Suite Docker Compose Configuration
 #
-# This is the COMPLETE SUITE deployment with ALL 9 services across 5 products.
+# This is the COMPLETE SUITE deployment with ALL 10 services across 5 products.
 # Each service has 3 instances (1 SQLite + 2 PostgreSQL).
 #
 # Services (9 total):

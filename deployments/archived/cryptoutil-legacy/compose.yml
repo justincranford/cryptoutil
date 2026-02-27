@@ -1,10 +1,10 @@
-# SUITE-level deployment - All 9 services across 5 products
+# SUITE-level deployment - All 10 services across 5 products
 # See: docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md Section 4.3
 #
 # Usage: cd deployments/cryptoutil && docker compose up
 #
 # This compose file includes all PRODUCT-level compose files to deploy
-# the complete cryptoutil suite (all 9 services).
+# the complete cryptoutil suite (all 10 services).
 #
 # MANDATORY: Suite MUST delegate to PRODUCT-level, which delegates to SERVICE-level.
 # This rigid delegation pattern (SUITE → PRODUCT → SERVICE) ensures scalability:
@@ -23,7 +23,7 @@ include:
   - path: ../jose/compose.yml       # jose product (ja service)
   - path: ../identity/compose.yml   # identity product (authz, idp, rp, rs, spa services)
 
-# SUITE-level secrets (shared by ALL 9 services)
+# SUITE-level secrets (shared by ALL 10 services)
 # See: docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md Section 5.2 "Layered Pepper Strategy"
 #
 # When this SUITE compose file is used, the cryptoutil-hash-pepper.secret
