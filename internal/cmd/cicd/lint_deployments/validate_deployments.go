@@ -1,12 +1,13 @@
 package lint_deployments
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // ValidateAllDeployments validates all deployments in the given root directory.
@@ -175,25 +176,25 @@ func checkDelegationPattern(basePath string, deploymentName string, structType s
 		// Suite MUST include product-level compose files, NOT service-level
 		invalidPatterns := []string{
 			"../sm-kms/compose.yml",
-				"../sm-im/compose.yml",
-				"../pki-ca/compose.yml",
-				"../jose-ja/compose.yml",
-				"../identity-authz/compose.yml",
-				"../identity-idp/compose.yml",
-				"../identity-rp/compose.yml",
-				"../identity-rs/compose.yml",
-				"../identity-spa/compose.yml",
-				"../skeleton-template/compose.yml",
-			}
-			validPatterns := []string{
-				"../sm/compose.yml",
-				"../pki/compose.yml",
-				"../jose/compose.yml",
-				"../identity/compose.yml",
-				"../skeleton/compose.yml",
-			}
+			"../sm-im/compose.yml",
+			"../pki-ca/compose.yml",
+			"../jose-ja/compose.yml",
+			"../identity-authz/compose.yml",
+			"../identity-idp/compose.yml",
+			"../identity-rp/compose.yml",
+			"../identity-rs/compose.yml",
+			"../identity-spa/compose.yml",
+			"../skeleton-template/compose.yml",
+		}
+		validPatterns := []string{
+			"../sm/compose.yml",
+			"../pki/compose.yml",
+			"../jose/compose.yml",
+			"../identity/compose.yml",
+			"../skeleton/compose.yml",
+		}
 
-			for _, invalid := range invalidPatterns {
+		for _, invalid := range invalidPatterns {
 			if strings.Contains(text, invalid) {
 				result.Errors = append(result.Errors,
 					fmt.Sprintf("Suite compose.yml MUST delegate to PRODUCT-level (use %s, not %s)",
@@ -212,9 +213,9 @@ func checkDelegationPattern(basePath string, deploymentName string, structType s
 			}
 		}
 
-			if foundProducts < productCount {
-				result.Warnings = append(result.Warnings,
-					"Suite should include all 5 products (sm, pki, jose, identity, skeleton) via PRODUCT-level compose")
+		if foundProducts < productCount {
+			result.Warnings = append(result.Warnings,
+				"Suite should include all 5 products (sm, pki, jose, identity, skeleton) via PRODUCT-level compose")
 		}
 	}
 
