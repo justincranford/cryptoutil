@@ -111,6 +111,13 @@ var ServicePorts = map[string]ServicePortConfig{
 		LegacyPorts:   []uint16{8060, 9443, 8092},
 		MagicConstant: "JoseJAServicePort",
 	},
+	cryptoutilSharedMagic.OTLPServiceSkeletonTemplate: {
+		Name:          cryptoutilSharedMagic.OTLPServiceSkeletonTemplate,
+		PublicPorts:   []uint16{cryptoutilSharedMagic.SkeletonTemplateServicePort},
+		AdminPort:     StandardAdminPort,
+		LegacyPorts:   []uint16{},
+		MagicConstant: "SkeletonTemplateServicePort",
+	},
 }
 
 // AllLegacyPorts returns all legacy ports that should be flagged as violations.

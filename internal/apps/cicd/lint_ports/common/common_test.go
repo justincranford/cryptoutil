@@ -109,6 +109,7 @@ func TestServicePorts_AllServicesPresent(t *testing.T) {
 		cryptoutilSharedMagic.OTLPServiceIdentityRS,
 		cryptoutilSharedMagic.OTLPServiceIdentityRP,
 		cryptoutilSharedMagic.OTLPServiceIdentitySPA,
+		cryptoutilSharedMagic.OTLPServiceSkeletonTemplate,
 	}
 
 	for _, svc := range expectedServices {
