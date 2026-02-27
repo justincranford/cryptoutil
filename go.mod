@@ -29,7 +29,6 @@ require (
 	github.com/spf13/viper v1.21.0
 	github.com/testcontainers/testcontainers-go v0.40.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.40.0
-	go.mozilla.org/pkcs7 v0.9.0
 	go.opentelemetry.io/otel v1.40.0
 	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc v0.16.0
 	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp v0.16.0
