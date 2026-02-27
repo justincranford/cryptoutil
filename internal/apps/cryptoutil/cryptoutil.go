@@ -27,7 +27,7 @@ func Suite(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 
-	product := args[1]     // Example products: sm, identity, jose, pki
+	product := args[1]     // Example products: sm, identity, jose, pki, skeleton
 	parameters := args[2:] // Example parameters: service names, --config-file, --port, --host, etc.
 
 	// Route to product command.

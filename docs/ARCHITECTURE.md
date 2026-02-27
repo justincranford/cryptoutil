@@ -917,16 +917,36 @@ deployments/
 |   │   └──hash_pepper.secret       # Docker Compose secret shared by 3 instances of sm-kms; hash registries of hash algorithms
 │   ├── compose.yml                 # Docker Compose config: `builder-cryptoutil` builds Dockerfile, 3 instances of sm-kms depend on it
 │   └── Dockerfile                  # Dockerfile: compose.yml `builder-cryptoutil` builds this Dockerfile
-├── <PRODUCT>/
-│   └── ... (same structure)
-├── jose/
-│   └── ... (same structure)
-├── ca/
-│   └── ... (same structure)
-├── identity/
-│   └── ... (same structure)
-
-    └── ... (same structure)
+├── sm-im/
+│   └── ... (same structure as sm-kms)
+├── jose-ja/
+│   └── ... (same structure as sm-kms)
+├── pki-ca/
+│   └── ... (same structure as sm-kms)
+├── identity-authz/
+│   └── ... (same structure as sm-kms)
+├── identity-idp/
+│   └── ... (same structure as sm-kms)
+├── identity-rp/
+│   └── ... (same structure as sm-kms)
+├── identity-rs/
+│   └── ... (same structure as sm-kms)
+├── identity-spa/
+│   └── ... (same structure as sm-kms)
+├── skeleton-template/
+│   └── ... (same structure as sm-kms)
+├── sm/                      # Product-level: includes sm-kms + sm-im
+│   └── compose.yml
+├── jose/                    # Product-level: includes jose-ja
+│   └── compose.yml
+├── pki/                     # Product-level: includes pki-ca
+│   └── compose.yml
+├── identity/                # Product-level: includes identity-authz, -idp, -rp, -rs, -spa
+│   └── compose.yml
+├── skeleton/                # Product-level: includes skeleton-template
+│   └── compose.yml
+└── cryptoutil-suite/        # Suite-level: includes all products
+    └── compose.yml
 ```
 
 #### 4.4.7 CLI Patterns
@@ -3133,7 +3153,7 @@ healthcheck-secrets:
 |-------|-----------|-------|----------|-----------|
 | **SERVICE** | `deployments/{PRODUCT}-{SERVICE}/` | Single service | 1 | Development, testing, isolated deployment |
 | **PRODUCT** | `deployments/{PRODUCT}/` | Product services | 1-5 | Product-level testing, SSO within product |
-| **SUITE** | `deployments/cryptoutil-suite/` | All services | 9 | Full integration, cross-product federation |
+| **SUITE** | `deployments/cryptoutil-suite/` | All services | 10 | Full integration, cross-product federation |
 
 ##### SUITE-Level Deployment (cryptoutil)
 
@@ -3147,6 +3167,7 @@ include:
   - path: ../pki/compose.yml         # pki-ca service
   - path: ../jose/compose.yml        # jose-ja service
   - path: ../identity/compose.yml    # identity-authz, -idp, -rp, -rs, -spa
+  - path: ../skeleton/compose.yml    # skeleton-template service
 
 secrets:
   cryptoutil-hash_pepper.secret:
@@ -3315,7 +3336,7 @@ HASH_PEPPER_FILE: /run/secrets/cryptoutil-hash_pepper.secret
   - Rationale: Unseal keys MUST be unique per service (security isolation)
 - Validation function: `validateProductSecrets()` in lint_deployments.go
 
-**PRODUCT-SERVICE** (e.g., sm-im, jose-ja, pki-ca, sm-kms, identity-authz/idp/rp/rs/spa):
+**PRODUCT-SERVICE** (e.g., sm-im, jose-ja, pki-ca, sm-kms, identity-authz/idp/rp/rs/spa, skeleton-template):
 - Required directories: `secrets/`, `config/`
 - Required files: `compose.yml`, `Dockerfile`
 - Optional files: `compose.demo.yml`, `otel-collector-config.yaml`, `README.md`
@@ -4101,7 +4122,7 @@ Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATO
 
 **See Section 3.2 Product-Service Port Assignments** for complete table
 
-**Summary**: pki-ca (8050-8059), jose-ja (8060-8069), sm-im (8070-8079), sm-kms (8080-8089), identity-authz (8100-8109), identity-idp (8110-8119), identity-rs (8120-8129), identity-rp (8130-8139), identity-spa (8140-8149)
+**Summary**: sm-kms (8000-8099), pki-ca (8100-8199), identity-authz (8200-8299), identity-idp (8300-8399), identity-rs (8400-8499), identity-rp (8500-8599), identity-spa (8600-8699), sm-im (8700-8799), jose-ja (8800-8899), skeleton-template (8900-8999)
 
 ### B.2 Database Port Assignments
 

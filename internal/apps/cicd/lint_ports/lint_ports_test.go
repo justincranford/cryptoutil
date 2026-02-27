@@ -3,10 +3,11 @@
 package lint_ports
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
 	lintPortsCommon "cryptoutil/internal/apps/cicd/lint_ports/common"

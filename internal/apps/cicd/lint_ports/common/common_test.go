@@ -3,9 +3,10 @@
 package common
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
-	
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -17,10 +18,10 @@ func TestAllLegacyPorts(t *testing.T) {
 	// Verify known legacy ports are included.
 	require.Contains(t, ports, uint16(cryptoutilSharedMagic.DefaultPublicPortInternalMetrics)) // sm-im legacy
 	require.Contains(t, ports, uint16(cryptoutilSharedMagic.PortOtelCollectorReceivedMetrics)) // sm-im legacy
-	require.Contains(t, ports, uint16(8890)) // sm-im legacy
-	require.Contains(t, ports, uint16(9443)) // jose-ja legacy
-	require.Contains(t, ports, uint16(8092)) // jose-ja legacy
-	require.Contains(t, ports, uint16(8443)) // pki-ca legacy
+	require.Contains(t, ports, uint16(8890))                                                   // sm-im legacy
+	require.Contains(t, ports, uint16(9443))                                                   // jose-ja legacy
+	require.Contains(t, ports, uint16(8092))                                                   // jose-ja legacy
+	require.Contains(t, ports, uint16(8443))                                                   // pki-ca legacy
 }
 
 func TestAllValidPublicPorts(t *testing.T) {
@@ -29,20 +30,20 @@ func TestAllValidPublicPorts(t *testing.T) {
 	ports := AllValidPublicPorts()
 
 	// Verify standardized ports are included.
-	require.Contains(t, ports, uint16(cryptoutilSharedMagic.IMServicePort)) // sm-im
-	require.Contains(t, ports, uint16(cryptoutilSharedMagic.IME2EPostgreSQL1PublicPort)) // sm-im
-	require.Contains(t, ports, uint16(cryptoutilSharedMagic.IME2EPostgreSQL2PublicPort)) // sm-im
-	require.Contains(t, ports, uint16(cryptoutilSharedMagic.JoseJAServicePort)) // jose-ja
-	require.Contains(t, ports, uint16(cryptoutilSharedMagic.PKICAServicePort)) // pki-ca
-	require.Contains(t, ports, uint16(cryptoutilSharedMagic.KMSServicePort)) // sm-kms
+	require.Contains(t, ports, uint16(cryptoutilSharedMagic.IMServicePort))               // sm-im
+	require.Contains(t, ports, uint16(cryptoutilSharedMagic.IME2EPostgreSQL1PublicPort))  // sm-im
+	require.Contains(t, ports, uint16(cryptoutilSharedMagic.IME2EPostgreSQL2PublicPort))  // sm-im
+	require.Contains(t, ports, uint16(cryptoutilSharedMagic.JoseJAServicePort))           // jose-ja
+	require.Contains(t, ports, uint16(cryptoutilSharedMagic.PKICAServicePort))            // pki-ca
+	require.Contains(t, ports, uint16(cryptoutilSharedMagic.KMSServicePort))              // sm-kms
 	require.Contains(t, ports, uint16(cryptoutilSharedMagic.KMSE2EPostgreSQL1PublicPort)) // sm-kms
 	require.Contains(t, ports, uint16(cryptoutilSharedMagic.KMSE2EPostgreSQL2PublicPort)) // sm-kms
-	require.Contains(t, ports, uint16(cryptoutilSharedMagic.IdentityDefaultAuthZPort)) // identity-authz
-	require.Contains(t, ports, uint16(cryptoutilSharedMagic.IdentityDefaultIDPPort)) // identity-idp
-	require.Contains(t, ports, uint16(8301)) // identity-idp E2E (avoids conflict with authz)
-	require.Contains(t, ports, uint16(cryptoutilSharedMagic.IdentityDefaultRSPort)) // identity-rs
-	require.Contains(t, ports, uint16(cryptoutilSharedMagic.DefaultSPARPPort)) // identity-rp
-	require.Contains(t, ports, uint16(8600)) // identity-spa
+	require.Contains(t, ports, uint16(cryptoutilSharedMagic.IdentityDefaultAuthZPort))    // identity-authz
+	require.Contains(t, ports, uint16(cryptoutilSharedMagic.IdentityDefaultIDPPort))      // identity-idp
+	require.Contains(t, ports, uint16(8301))                                              // identity-idp E2E (avoids conflict with authz)
+	require.Contains(t, ports, uint16(cryptoutilSharedMagic.IdentityDefaultRSPort))       // identity-rs
+	require.Contains(t, ports, uint16(cryptoutilSharedMagic.DefaultSPARPPort))            // identity-rp
+	require.Contains(t, ports, uint16(8600))                                              // identity-spa
 }
 
 func TestIsOtelCollectorPort(t *testing.T) {
@@ -55,8 +56,8 @@ func TestIsOtelCollectorPort(t *testing.T) {
 	}{
 		{name: "OTEL internal metrics", port: cryptoutilSharedMagic.DefaultPublicPortInternalMetrics, want: true},
 		{name: "OTEL Prometheus", port: cryptoutilSharedMagic.PortOtelCollectorReceivedMetrics, want: true},
-		{name: "sm-im standardized", port: cryptoutilSharedMagic.IMServicePort, want: false}, // New standardized port
-		{name: "jose-ja standardized", port: cryptoutilSharedMagic.JoseJAServicePort, want: false},   // New standardized port
+		{name: "sm-im standardized", port: cryptoutilSharedMagic.IMServicePort, want: false},       // New standardized port
+		{name: "jose-ja standardized", port: cryptoutilSharedMagic.JoseJAServicePort, want: false}, // New standardized port
 		{name: "random port", port: 12345, want: false},
 	}
 
@@ -136,7 +137,7 @@ func TestIsOtelRelatedContent(t *testing.T) {
 		{name: "opentelemetry in text", content: "// Use OpenTelemetry for observability", want: true},
 		{name: "OTEL uppercase", content: "const OTEL_PORT = 8888", want: true},
 		{name: "no otel terms", content: "const port = 8080", want: false},
-			{name: "sm-im port", content: "const smIMPort = 8888", want: false},
+		{name: "sm-im port", content: "const smIMPort = 8888", want: false},
 		{name: "empty line", content: "", want: false},
 	}
 
