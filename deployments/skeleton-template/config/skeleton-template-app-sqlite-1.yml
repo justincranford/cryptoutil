@@ -1,0 +1,30 @@
+# JOSE E2E Test Configuration - SQLite In-Memory
+# Configuration for JOSE service in E2E testing environment.
+
+# Server binding - 0.0.0.0 to accept connections from test containers.
+bind-public-address: "0.0.0.0"
+bind-public-port: 8080
+bind-admin-address: "0.0.0.0"
+bind-admin-port: 9090
+
+# TLS configuration - self-signed for E2E.
+tls-enabled: true
+tls-cert-file: ""
+tls-key-file: ""
+
+# CORS configuration - allow localhost and container access.
+cors-origins:
+  - "https://localhost:8900"
+  - "https://127.0.0.1:8900"
+  - "https://skeleton-template:8080"
+
+# Key storage - in-memory for E2E tests.
+key-storage:
+  type: "memory"
+
+# API authentication disabled for E2E.
+api-key-auth:
+  enabled: false
+
+# Logging.
+log-level: "DEBUG"

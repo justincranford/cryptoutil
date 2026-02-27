@@ -1,0 +1,262 @@
+# $schema: https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
+#
+# SKELETON Product Docker Compose Configuration
+#
+# PRODUCT-level deployment for SKELETON product (1 service: ja).
+# Supports 3 instances: 1 SQLite + 2 PostgreSQL.
+#
+# Port allocation:
+#   - skeleton-template-app-sqlite-1:    18900 (SQLite, dev/demo/ci)
+#   - skeleton-template-app-postgres-1:  18901 (PostgreSQL instance 1)
+#   - skeleton-template-app-postgres-2:  18902 (PostgreSQL instance 2)
+#
+# Usage:
+#   docker compose -f compose.yml up -d                        # SQLite (default: dev profile)
+#   docker compose -f compose.yml --profile postgres up -d     # All instances
+#   docker compose -f compose.yml --profile demo up -d         # Demo mode
+#   docker compose -f compose.yml --profile ci up -d           # CI mode
+#   docker compose -f compose.yml logs -f                      # View logs
+#   docker compose -f compose.yml down -v                      # Stop and clean up
+#
+# Health Checks:
+#   - Public:  https://localhost:18900/browser/api/v1/health
+#   - Admin:   https://127.0.0.1:9090/admin/api/v1/livez (container-internal only)
+#
+
+include:
+  - path: ../shared-telemetry/compose.yml
+
+services:
+  # Healthcheck for Docker secrets availability.
+  healthcheck-secrets:
+    image: alpine:latest
+    secrets:
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - hash-pepper-v3.secret
+      - postgres-url.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
+    command: ["sh", "-c", "ls -l /run/secrets/*.secret"]
+    networks:
+      - skeleton-network
+
+  # Build cryptoutil image from source.
+  builder-skeleton:
+    image: cryptoutil:dev
+    build:
+      context: ../..
+      dockerfile: deployments/cryptoutil-suite/Dockerfile
+      args:
+        APP_VERSION: "dev"
+        VCS_REF: "local"
+        BUILD_DATE: "2026-02-14T00:00:00Z"
+    entrypoint: ["sh", "-c"]
+    command: ["echo 'Build completed successfully'"]
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+
+  # PostgreSQL database for SKELETON persistence (shared by all services and instances).
+  skeleton-db-postgres-1:
+    profiles: ["postgres"]
+    image: postgres:18
+    container_name: skeleton-postgres
+    hostname: skeleton-postgres
+    environment:
+      POSTGRES_USER_FILE: /run/secrets/postgres-username.secret
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password.secret
+      POSTGRES_DB_FILE: /run/secrets/postgres-database.secret
+    shm_size: 256mb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    secrets:
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres-username.secret) -d $(cat /run/secrets/postgres-database.secret)"]
+      start_period: 5s
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - skeleton-network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  # JA server with SQLite backend (dev/demo/ci mode).
+  skeleton-template-app-sqlite-1:
+    profiles: ["dev", "demo", "ci"]
+    image: cryptoutil:dev
+    command: ["skeleton", "ja", "server", "--config=/app/config/skeleton-template-app-sqlite-1.yml", "--config=/app/config/skeleton-template-app-common.yml", "--config=/app/otel/otel.yml", "-u", "sqlite://file::memory:?cache=shared", "--bind-public-port=8080"]
+    working_dir: /tmp
+    ports:
+      - "18900:8080"
+    volumes:
+      - ../skeleton-template/config/skeleton-template-app-sqlite-1.yml:/app/config/skeleton-template-app-sqlite-1.yml:ro
+      - ../skeleton-template/config/skeleton-template-app-common.yml:/app/config/skeleton-template-app-common.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+    secrets:
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-skeleton:
+        condition: service_completed_successfully
+      opentelemetry-collector-contrib:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      start_period: 60s
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - skeleton-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  # JA server with PostgreSQL backend (instance 1).
+  skeleton-template-app-postgres-1:
+    profiles: ["postgres"]
+    image: cryptoutil:dev
+    command: ["skeleton", "ja", "server", "--config=/app/config/skeleton-template-app-postgresql-1.yml", "--config=/app/config/skeleton-template-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret", "--bind-public-port=8080"]
+    working_dir: /tmp
+    ports:
+      - "18901:8080"
+    volumes:
+      - ../skeleton-template/config/skeleton-template-app-postgresql-1.yml:/app/config/skeleton-template-app-postgresql-1.yml:ro
+      - ../skeleton-template/config/skeleton-template-app-common.yml:/app/config/skeleton-template-app-common.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+    secrets:
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - postgres-url.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-skeleton:
+        condition: service_completed_successfully
+      skeleton-db-postgres-1:
+        condition: service_healthy
+      opentelemetry-collector-contrib:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      start_period: 60s
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - skeleton-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  # JA server with PostgreSQL backend (instance 2 - shared DB with instance 1).
+  skeleton-template-app-postgres-2:
+    profiles: ["postgres"]
+    image: cryptoutil:dev
+    command: ["skeleton", "ja", "server", "--config=/app/config/skeleton-template-app-postgresql-2.yml", "--config=/app/config/skeleton-template-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret", "--bind-public-port=8080"]
+    working_dir: /tmp
+    ports:
+      - "18902:8080"
+    volumes:
+      - ../skeleton-template/config/skeleton-template-app-postgresql-2.yml:/app/config/skeleton-template-app-postgresql-2.yml:ro
+      - ../skeleton-template/config/skeleton-template-app-common.yml:/app/config/skeleton-template-app-common.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+    secrets:
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - postgres-url.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-skeleton:
+        condition: service_completed_successfully
+      skeleton-db-postgres-1:
+        condition: service_healthy
+      opentelemetry-collector-contrib:
+        condition: service_started
+      skeleton-template-app-postgres-1:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      start_period: 60s
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - skeleton-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+networks:
+  skeleton-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    name: skeleton-postgres-volume
+
+secrets:
+  postgres-username.secret:
+    file: ./secrets/postgres-username.secret
+  postgres-password.secret:
+    file: ./secrets/postgres-password.secret
+  postgres-database.secret:
+    file: ./secrets/postgres-database.secret
+  postgres-url.secret:
+    file: ./secrets/postgres-url.secret
+
+  unseal-1of5.secret:
+    file: ./secrets/unseal-1of5.secret
+  unseal-2of5.secret:
+    file: ./secrets/unseal-2of5.secret
+  unseal-3of5.secret:
+    file: ./secrets/unseal-3of5.secret
+  unseal-4of5.secret:
+    file: ./secrets/unseal-4of5.secret
+  unseal-5of5.secret:
+    file: ./secrets/unseal-5of5.secret
+
+  hash-pepper-v3.secret:
+    file: ./secrets/hash-pepper-v3.secret

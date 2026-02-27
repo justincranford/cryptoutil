@@ -1,0 +1,31 @@
+# JOSE E2E Configuration - PostgreSQL Instance 2
+
+# Server binding - 0.0.0.0 to accept connections from Docker network.
+bind-public-address: "0.0.0.0"
+bind-public-port: 8080
+
+# OTLP telemetry - connects to otel-collector sidecar.
+otlp-enabled: true
+otlp-endpoint: "opentelemetry-collector-contrib:4317"
+otlp-service: "jose-e2e"
+otlp-hostname: "jose-e2e"
+
+# Security headers.
+security-headers:
+  hsts: true
+  hsts-max-age: 31536000
+  hsts-include-subdomains: true
+  hsts-preload: true
+  content-security-policy: "default-src 'self'; frame-ancestors 'none'"
+  x-frame-options: "DENY"
+  x-content-type-options: "nosniff"
+
+# Rate limiting.
+rate-limiting:
+  enabled: true
+  requests-per-second: 100
+  burst: 200
+
+# IP allowlist - allow all for E2E.
+ip-allowlist:
+  enabled: false

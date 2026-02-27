@@ -1,0 +1,37 @@
+# JOSE Common Configuration
+# Shared settings across all JOSE environments.
+
+# OTLP telemetry - connects to otel-collector sidecar.
+otlp-enabled: true
+otlp-endpoint: "opentelemetry-collector-contrib:4317"
+otlp-service: "jose-e2e"
+otlp-hostname: "jose-e2e"
+
+# Security headers.
+security-headers:
+  hsts: true
+  hsts-max-age: 31536000
+  hsts-include-subdomains: true
+  hsts-preload: true
+  content-security-policy: "default-src 'self'; frame-ancestors 'none'"
+  x-frame-options: "DENY"
+  x-content-type-options: "nosniff"
+
+# Rate limiting.
+rate-limiting:
+  enabled: true
+  requests-per-second: 100
+  burst: 200
+
+# IP allowlist - allow all for E2E.
+ip-allowlist:
+  enabled: false
+
+# Authentication credentials (Docker secrets)
+# Browser credentials for web UI access
+browser-username-file: /run/secrets/browser-username.secret
+browser-password-file: /run/secrets/browser-password.secret
+
+# Service credentials for headless/API access
+service-username-file: /run/secrets/service-username.secret
+service-password-file: /run/secrets/service-password.secret

@@ -1,0 +1,42 @@
+# JOSE Authority Server Configuration
+# This file provides the default configuration for the JOSE Authority Server.
+# Override with environment-specific configs in deployments/skeleton-template/config/
+
+# Server binding
+bind-public-address: "127.0.0.1"
+bind-public-port: 8060
+bind-admin-address: "127.0.0.1"
+bind-admin-port: 9092
+
+# TLS configuration for HTTPS
+tls-enabled: true
+tls-cert-file: ""   # Set in deployment config
+tls-key-file: ""    # Set in deployment config
+
+# CORS configuration - HTTPS origins only
+cors-origins:
+  - "https://localhost:8060"
+  - "https://127.0.0.1:8060"
+
+# OTLP telemetry
+otlp-enabled: false
+otlp-endpoint: ""
+otlp-service: "skeleton-template-ja"
+otlp-hostname: "localhost"
+
+# Logging
+log-level: "INFO"
+
+# Key storage (in-memory by default)
+key-storage:
+  type: "memory"
+  # For file-based: path: "/var/lib/skeleton-template/keys"
+  # For database: dsn: "file:skeleton-template.db?cache=shared&mode=rwc"
+
+# API key authentication (disabled by default)
+api-key-auth:
+  enabled: false
+  # keys:
+  #   - name: "admin"
+  #     key: "generate-secure-key-here"
+  #     scopes: ["read", "write", "delete"]
