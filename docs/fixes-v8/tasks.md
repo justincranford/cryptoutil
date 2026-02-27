@@ -1,6 +1,6 @@
 # Tasks - Architecture Evolution (fixes-v8)
 
-**Status**: 69 of 104 tasks complete (66%) — Phase 7 COMPLETE
+**Status**: 73 of 104 tasks complete (70%) — Phase 8 COMPLETE
 **Last Updated**: 2026-02-27
 **Created**: 2026-02-26
 
@@ -79,7 +79,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 
 ---
 
-## Phase 5: skeleton-template Product-Service (10th Service)
+## Phase 5: skeleton-template Product-Service (10th Service) ✅ COMPLETE
 
 **Phase Objective**: Create skeleton-template as a fully functional 10th product-service. Product name: `skeleton`. Service name: `template`. Port: 8900. PostgreSQL port: 54329. Permanent service — demonstrates best-practice service-template usage, empty of business logic.
 
@@ -254,7 +254,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 
 ---
 
-## Phase 6: PKI-CA Archive & Clean-Slate Skeleton
+## Phase 6: PKI-CA Archive & Clean-Slate Skeleton ✅ COMPLETE
 
 **Phase Objective**: Archive existing pki-ca (111 Go files, 27 directories). Create new empty pki-ca skeleton following skeleton-template patterns. Validates that the skeleton pattern is reproducible.
 
@@ -332,7 +332,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 
 ---
 
-## Phase 7: Service-Template Reusability Analysis
+## Phase 7: Service-Template Reusability Analysis ✅ COMPLETE
 
 **Phase Objective**: Analyze skeleton creation experience. Document minimal file set, friction points, and enhancement proposals.
 
@@ -382,48 +382,48 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 
 ---
 
-## Phase 8: CICD Linter Enhancements
+## Phase 8: CICD Linter Enhancements ✅ COMPLETE
 
 **Phase Objective**: Implement CICD linters enforcing structural best practices for PRODUCT and PRODUCT-SERVICE directories.
 
 ### Task 8.1: Linter Gap Analysis
-- **Status**: ❌
+- **Status**: ✅ DONE
 - **Estimated**: 1h
 - **Dependencies**: Phase 7 complete
 - **Description**: Compare existing 65+ validators against Phase 7 findings
 - **Acceptance Criteria**:
-  - [ ] List existing validators relevant to structural validation
-  - [ ] Identify gaps: what structural rules are NOT currently enforced?
-  - [ ] Prioritize new validators by impact
-  - [ ] Document findings
+  - [x] List existing validators relevant to structural validation
+  - [x] Identify gaps: what structural rules are NOT currently enforced?
+  - [x] Prioritize new validators by impact
+  - [x] Document findings
 
 ### Task 8.2: Validator Design
-- **Status**: ❌
+- **Status**: ✅ DONE
 - **Estimated**: 1.5h
 - **Dependencies**: Task 8.1
 - **Description**: Design new validators for structural best practices
 - **Acceptance Criteria**:
-  - [ ] Design: ValidateProductStructure (required dirs, files per product)
-  - [ ] Design: ValidateServiceStructure (required dirs, files per service)
-  - [ ] Design: ValidateMigrationNumbering (2001+ range, up/down pairs)
-  - [ ] Design: ValidateProductWiring (suite router, cmd entries)
-  - [ ] Design: ValidateTestPresence (test files for each package)
-  - [ ] Document expected pass/fail for all 10 services
+  - [x] Design: ValidateProductStructure (required dirs, files per product)
+  - [x] Design: ValidateServiceStructure (required dirs, files per service)
+  - [x] Design: ValidateMigrationNumbering (2001+ range, up/down pairs)
+  - [x] Design: ValidateProductWiring (suite router, cmd entries)
+  - [x] Design: ValidateTestPresence (test files for each package)
+  - [x] Document expected pass/fail for all 10 services
 
 ### Task 8.3: Validator Implementation
-- **Status**: ❌
+- **Status**: ✅ DONE
 - **Estimated**: 4h
 - **Dependencies**: Task 8.2
 - **Description**: Implement validators in cmd/cicd/
 - **Acceptance Criteria**:
-  - [ ] Implement each validator with comprehensive tests
-  - [ ] Coverage ≥98% (infrastructure code)
-  - [ ] Mutation testing ≥98%
-  - [ ] All validators follow aggregation pattern (run all, report all)
-  - [ ] Build and lint clean
+  - [x] Implement each validator with comprehensive tests
+  - [x] Coverage ≥98% (infrastructure code)
+  - [x] Mutation testing ≥98%
+  - [x] All validators follow aggregation pattern (run all, report all)
+  - [x] Build and lint clean
 
 ### Task 8.4: Apply to All 10 Services
-- **Status**: ❌
+- **Status**: ✅ DONE
 - **Estimated**: 1h
 - **Dependencies**: Task 8.3
 - **Description**: Run new validators against all 10 services, fix non-conformance
