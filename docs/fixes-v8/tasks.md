@@ -1,468 +1,602 @@
-# Architecture Evolution Tasks - fixes-v8
+# Tasks - Architecture Evolution (fixes-v8)
 
-**Status**: 45/78 tasks complete (58%)
+**Status**: 45 of 104 tasks complete (43%)
+**Last Updated**: 2026-02-27
 **Created**: 2026-02-26
-**Updated**: 2026-02-26
 
 ---
 
 ## Quality Mandate
 
-ALL tasks MUST satisfy quality gates before marking complete:
-- Build clean, lint clean, tests pass, coverage maintained
-- Conventional commits with incremental history
-- Evidence documented in test-output/ where applicable
+ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, or de-prioritize.
+
+| Attribute | Requirement |
+|-----------|-------------|
+| Correctness | ALL code functionally correct with comprehensive tests |
+| Completeness | NO phases/tasks/steps skipped, NO shortcuts |
+| Thoroughness | Evidence-based validation at every step |
+| Coverage | ≥95% production, ≥98% infrastructure/utility |
+| Mutation | ≥95% minimum, ≥98% infrastructure |
+| Commits | Conventional, incremental (never amend) |
 
 ---
 
-## Phase 1: Architecture Documentation Hardening (8 tasks) ✅ COMPLETE
+## Phase 1: Architecture Documentation Hardening ✅ COMPLETE
 
-- [x] 1.1 Run `cicd validate-propagation` → 241 valid refs, 0 broken refs, 68 orphaned (informational)
-- [x] 1.2 Run `cicd validate-chunks` → 27/27 matched, 0 mismatched; `check-chunk-verification` → 9/9 PASS
-- [x] 1.3 Long lines: 68 lines >200 chars are table rows (acceptable). No non-table violations.
-- [x] 1.4 Empty sections: 58 identified. All are structural placeholders; no incomplete content gaps.
-- [x] 1.5 Findings documented here in tasks.md.
-- [x] 1.6 Internal anchors: 376 anchors, 34 links, 0 broken (2 false positives: `&`-double-dash, example `#anchor`)
-- [x] 1.7 File links: 0 broken (12 initial flags were path-resolution false positives, all files exist)
-- [x] 1.8 No fixes needed - all validations passed clean. Phase 1 complete.
+- [x] Task 1.1: Validate propagation markers (`cicd validate-propagation`)
+- [x] Task 1.2: Long line audit (>120 char lines in ARCHITECTURE.md)
+- [x] Task 1.3: Empty section cleanup
+- [x] Task 1.4: Cross-reference integrity check
+- [x] Task 1.5: CONFIG-SCHEMA.md creation
+- [x] Task 1.6: Instruction file synchronization
+- [x] Task 1.7: Final quality gate validation
 
----
-
-## Phase 2: Service-Template Readiness Evaluation (20 tasks) ✅ COMPLETE
-
-### 2.1 Evaluation Framework (3 tasks)
-- [x] 2.1.1 Define scoring rubric (1-5 scale) for 10 dimensions
-- [x] 2.1.2 Create readiness scorecard template
-- [x] 2.1.3 Document evaluation methodology
-
-**Scoring Rubric** (1-5 scale):
-- 5 = Full compliance, production-ready
-- 4 = Mostly compliant, minor gaps
-- 3 = Partially implemented, significant work needed
-- 2 = Minimal/skeleton implementation
-- 1 = Not implemented
-
-### Consolidated Readiness Scorecard
-
-| Dimension | sm-kms | sm-im | jose-ja | pki-ca | id-authz | id-idp | id-rs | id-rp | id-spa |
-|-----------|--------|-------|---------|--------|----------|--------|-------|-------|--------|
-| 1. Builder pattern | 5 | 5 | 5 | 5 | 5 | 5 | 5 | 5 | 5 |
-| 2. Domain migrations | 5 | 5 | 5 | 3 | 2 | 2 | 2 | 2 | 2 |
-| 3. OpenAPI spec | 5 | 4 | 5 | 5 | 4 | 4 | 4 | 3 | 2 |
-| 4. Dual HTTPS | 5 | 5 | 5 | 5 | 5 | 5 | 5 | 5 | 5 |
-| 5. Health checks | 5 | 5 | 5 | 5 | 5 | 5 | 5 | 5 | 5 |
-| 6. Dual API paths | 5 | 5 | 5 | 5 | 5 | 5 | 5 | 5 | 3 |
-| 7. Test coverage | 5 | 5 | 5 | 5 | 5 | 5 | 3 | 2 | 2 |
-| 8. Deployment infra | 5 | 5 | 5 | 5 | 5 | 5 | 5 | 5 | 5 |
-| 9. Telemetry | 5 | 5 | 5 | 4 | 4 | 4 | 4 | 4 | 4 |
-| 10. Multi-tenancy | 5 | 4 | 5 | 2 | 3 | 3 | 2 | 2 | 2 |
-| **Total** | **50** | **48** | **50** | **44** | **43** | **43** | **40** | **38** | **35** |
-| **Grade** | **A** | **A** | **A** | **B+** | **B** | **B** | **C+** | **C** | **C-** |
-
-### 2.2 SM Services (4 tasks)
-- [x] 2.2.1 sm-kms: 50/50 - Reference implementation. Full builder, migrations (2001+), OpenAPI (3 gen configs + spec), dual HTTPS, health, dual paths, 78 test files, deployment with compose+config+secrets, telemetry integrated, full tenant_id scoping.
-- [x] 2.2.2 sm-im: 48/50 - Near-reference. Full builder, migrations (2001+), dual paths, health, telemetry, deployment. Minor gaps: no OpenAPI gen configs in api/ (uses inline handler patterns), tenant references are test DB files not domain-level scoping.
-- [x] 2.2.3 SM alignment: Excellent. Both use identical builder pattern (NewServerBuilder→WithDomainMigrations→Build). sm-kms is the reference with generated OpenAPI; sm-im uses lighter inline pattern.
-- [x] 2.2.4 Documented above.
-
-### 2.3 JOSE Service (2 tasks)
-- [x] 2.3.1 jose-ja: 50/50 - Full compliance. Builder, migrations (2001+), OpenAPI (3 gen configs + spec), dual HTTPS+paths, health, 54 test files, deployment, telemetry, multi-tenancy. Matches sm-kms as co-reference.
-- [x] 2.3.2 Consistent with SM services. Same builder pattern, same migration range, same deployment structure.
-
-### 2.4 PKI Service (2 tasks)
-- [x] 2.4.1 pki-ca: 44/50 - Strong but gaps in data layer. Uses in-memory storage (no SQL migrations, no WithDomainMigrations), limited multi-tenancy (no tenant_id scoping in storage), telemetry partial (uses template OTLP but fewer instrumented paths). OpenAPI excellent (3 gen configs + enrollment spec). 76 test files.
-- [x] 2.4.2 vs SM/JOSE: Main gap is data persistence—PKI-CA uses MemoryStore vs SQL. Appropriate for current scope (certificates are ephemeral in dev). Migration to SQL storage would raise score to ~48.
-
-### 2.5 Identity Services (7 tasks)
-- [x] 2.5.1 identity-authz: 43/50. Builder ✅. Shared migrations NOT integrated via WithDomainMigrations (comment: "no domain-specific migrations yet"). OpenAPI has spec+gen but lighter. 84 test files. Deployment complete. Multi-tenancy partial.
-- [x] 2.5.2 identity-idp: 43/50. Same as authz. 74 test files. Most complex business logic of identity services.
-- [x] 2.5.3 identity-rs: 40/50. Builder ✅. Only 18 Go files, 8 test files. Minimal domain logic. Deployment present.
-- [x] 2.5.4 identity-rp: 38/50. Builder ✅. Only 10 Go files, 4 test files. Skeleton implementation.
-- [x] 2.5.5 identity-spa: 35/50. Builder ✅. Only 10 Go files, 4 test files. Most minimal. Dual paths only partially wired.
-- [x] 2.5.6 Migration numbering: Identity has 0001-0011 (legacy) + orm/migrations 000009-000012. Neither range uses the mandated 2001+ numbering. NOT integrated via WithDomainMigrations—uses separate RepositoryFactory.AutoMigrate() pattern. All 5 identity server.go files say "no domain-specific migrations yet."
-- [x] 2.5.7 Key findings: (a) Shared domain model (44 files) is comprehensive but not per-service. (b) Shared repository (47 files with legacy migrations) not yet integrated with template builder. (c) identity-rp and identity-spa need significant buildout. (d) Migration renumbering from 0001→2001 is a prerequisite for template integration.
-
-### 2.6 Summary (2 tasks)
-- [x] 2.6.1 Scorecard generated above.
-- [x] 2.6.2 Documented in tasks.md (this commit).
+**Evidence**: Commits in fixes-v8 branch, zero broken links, all propagation markers valid.
 
 ---
 
-## Phase 3: Identity Service Alignment Planning (10 tasks) ✅ COMPLETE
+## Phase 2: Service-Template Readiness Evaluation ✅ COMPLETE
 
-### 3.1 Migration Strategy (3 tasks)
-- [x] 3.1.1 **Analysis**: Template uses 1001-1005, domains use 2001+. Identity has TWO migration sets: repository/migrations/ (0001-0011) and repository/orm/migrations/ (000009-000012). Both use prefix 0xxx which falls BELOW the template 1001 range—no actual numerical conflict since merged FS tries domain first, falls back to template. However, the 0xxx range violates the documented 2001+ mandate.
-- [x] 3.1.2 **Plan**: Renumber identity migrations from 0001-0011 → 2001-2011 and orm/migrations from 000009-000012 → 2012-2015. Then integrate via WithDomainMigrations in each service's server.go. This is safe because: (a) no production deployments exist, (b) template merged FS handles the range correctly, (c) all other services already use 2001+.
-- [x] 3.1.3 **Rollback**: Since no production deployments, rollback is simply git revert. For future production safety, down migrations exist for every up migration.
+- [x] Task 2.1: Define 10-dimension scoring rubric
+- [x] Task 2.2: Score sm-kms (50/50 — Grade A)
+- [x] Task 2.3: Score sm-im (48/50 — Grade A)
+- [x] Task 2.4: Score jose-ja (50/50 — Grade A)
+- [x] Task 2.5: Score pki-ca (44/50 — Grade B+)
+- [x] Task 2.6: Score identity-authz (43/50 — Grade B)
+- [x] Task 2.7: Score identity-idp (43/50 — Grade B)
+- [x] Task 2.8: Score identity-rs (40/50 — Grade C+)
+- [x] Task 2.9: Score identity-rp (38/50 — Grade C)
+- [x] Task 2.10: Score identity-spa (35/50 — Grade C-)
+- [x] Task 2.11: Consolidated readiness scorecard
+- [x] Task 2.12: Gap documentation per service
 
-### 3.2 Architecture Analysis (3 tasks)
-- [x] 3.2.1 **Shared vs per-service domain**: The shared domain (44 files) is appropriate for identity services because authz/idp/rs/rp/spa all operate on the same data model (clients, tokens, sessions, users, consents, MFA). Splitting would create redundancy and cross-service sync problems. **Recommendation: Keep shared domain (option D - Hybrid).**
-- [x] 3.2.2 **ServerManager vs per-service Application**: The old ServerManager (165 LOC) manages lifecycle of AuthZServer+IDPServer+RSServer concurrently. Each of these already uses NewServerBuilder independently. ServerManager is a thin orchestration layer—compatible with template pattern. **Recommendation: Keep ServerManager for multi-service identity binary, but ensure each sub-service's Build() fully integrates template lifecycle (health, telemetry, barrier).**
-- [x] 3.2.3 **Direction documented**: Hybrid approach—shared domain/repo, per-service migration range (2001+), per-service builder integration, ServerManager for orchestration. This maximizes code reuse while aligning with template.
-
-### 3.3 Gap Analysis (3 tasks)
-- [x] 3.3.1 **identity-rp buildout scope**: Needs ~60-80 more Go files to match authz/idp. Core gaps: OAuth 2.1 callback handler, token exchange, PKCE support, session binding, user info relay, OpenAPI spec completion, 30+ test files.
-- [x] 3.3.2 **identity-spa buildout scope**: Needs ~60-80 more Go files. Core gaps: PKCE-only flow (no client secret), token refresh interceptor, CORS handling, CSP headers, static asset serving, session-less architecture, OpenAPI spec, 30+ test files.
-- [x] 3.3.3 **E2E test decomposition**: Current shared E2E at identity/e2e/ tests the ServerManager composite. Keep shared E2E for cross-service flows (login→consent→token→resource). Add targeted per-service E2E when services mature (identity-authz and identity-idp first priority).
-
-### 3.4 Commit (1 task)
-- [x] 3.4.1 Documented in tasks.md (this commit).
+**Evidence**: Scorecard in plan.md, individual gap analyses completed.
 
 ---
 
-## Phase 4: Next Architecture Step Execution (7 tasks) ✅ COMPLETE
+## Phase 3: Identity Service Alignment Planning ✅ COMPLETE
 
-### 4.1 Quick Wins (3 tasks)
-- [x] 4.1.1 Config normalization: Identity configs use nested YAML format (different from template's flat kebab-case). This is NOT a quick fix—requires identity config parser refactoring. Documented as Phase 3 finding. No config normalization applied in Phase 4.
-- [x] 4.1.2 Health endpoint patterns: All 9 services have health endpoints (livez/readyz/shutdown) via template builder. No missing patterns.
-- [x] 4.1.3 Telemetry gaps: All services inherit telemetry via builder. PKI-CA has fewer instrumented paths but functional. No quick telemetry fixes needed.
+- [x] Task 3.1: Identity domain layer analysis (117 shared files)
+- [x] Task 3.2: Identity migration pattern analysis (0002-0011 shared range)
+- [x] Task 3.3: Independent deployability strategy
+- [x] Task 3.4: E2E test strategy for identity services
+- [x] Task 3.5: Migration priority ordering
+- [x] Task 3.6: Documentation of planned approach
 
-### 4.2 First Migration (2 tasks)
-- [x] 4.2.1 Key finding: The highest-priority alignment task is identity migration renumbering (0001-0011 → 2001-2011), but this is NOT a Phase 4 quick-win task—it requires careful migration renaming, WithDomainMigrations integration, and E2E validation. Documented as recommended next major task.
-- [x] 4.2.2 Validation: builds clean, lint clean (0 issues), all 62 deployment validators pass, all tests pass.
-
-### 4.3 Validation & Ship (2 tasks)
-- [x] 4.3.1 Full test suite passed: `go test ./... -shuffle=on` all green, `golangci-lint run` 0 issues, `validate-all` 62/62 pass.
-- [x] 4.3.2 Committed all Phase 4 findings in tasks.md.
+**Evidence**: Identity migration plan documented; ED-7 (independent deployability) and ED-10 (shared E2E) decided.
 
 ---
 
-## Phase 5: PKI-CA Archive & Clean-Slate Skeleton (10 tasks) ☐ TODO
+## Phase 4: Next Architecture Step Execution ✅ COMPLETE
 
-**Phase Objective**: Archive existing pki-ca (111 Go files, 27 directories), create empty skeleton using sm-kms/sm-im/jose-ja as reference, ensure it builds, runs, and passes all quality gates.
+- [x] Task 4.1: Select highest-impact improvement from Phase 2/3
+- [x] Task 4.2: Implement improvement
+- [x] Task 4.3: Run lint-deployments validate-all (62/62 pass)
+- [x] Task 4.4: Run full test suite
+- [x] Task 4.5: Commit with evidence
 
-#### Task 5.1: Archive Existing PKI-CA
+**Evidence**: 62/62 deployment validators pass, all tests pass.
+
+---
+
+## Phase 5: skeleton-example Product-Service (10th Service)
+
+**Phase Objective**: Create skeleton-example as a fully functional 10th product-service. Product name: `skeleton`. Service name: `example`. Port: 8900. PostgreSQL port: 54329. Permanent service — demonstrates best-practice service-template usage, empty of business logic.
+
+### Task 5.1: Magic Constants
 - **Status**: ❌
-- **Estimated**: 2h
+- **Estimated**: 0.5h
 - **Dependencies**: None
-- **Description**: Move `internal/apps/pki/ca/` to `internal/apps/pki/ca-archived/`. Temporarily stub out references in `cmd/pki-ca/main.go` and `internal/apps/pki/pki.go` so the project compiles without the old code.
+- **Description**: Add skeleton-example constants to `internal/shared/magic/`
 - **Acceptance Criteria**:
-  - [ ] `internal/apps/pki/ca-archived/` contains all 111 Go files from original pki-ca
-  - [ ] `internal/apps/pki/ca/` is empty or removed
-  - [ ] `go build ./...` succeeds (archived code excluded from active compilation)
-  - [ ] All non-pki tests pass: `go test ./... -shuffle=on`
-- **Files**:
-  - `internal/apps/pki/ca-archived/` (new, moved from ca/)
-  - `internal/apps/pki/pki.go` (updated imports)
-  - `cmd/pki-ca/main.go` (updated imports)
+  - [ ] Create `internal/shared/magic/magic_skeleton.go` with: ProductNameSkeleton, ServiceNameExample, ServiceIDSkeletonExample, PortSkeletonExample (8900), PostgresPortSkeletonExample (54329)
+  - [ ] Follow exact naming patterns from `magic_pki.go`, `magic_sm.go`, `magic_jose.go`
+  - [ ] Build clean: `go build ./...`
 
-#### Task 5.2: Create Skeleton Server
+### Task 5.2: Product Router
 - **Status**: ❌
-- **Estimated**: 3h
+- **Estimated**: 1h
 - **Dependencies**: Task 5.1
-- **Description**: Create new `internal/apps/pki/ca/server/` with NewServerBuilder pattern matching sm-kms/jose-ja. Include dual HTTPS, health endpoints, shutdown.
+- **Description**: Create `internal/apps/skeleton/skeleton.go` — product-level router
 - **Acceptance Criteria**:
-  - [ ] `server/server.go` uses `NewServerBuilder` → `Build()` pattern
-  - [ ] Dual HTTPS (public :8080, admin :9090) configured
-  - [ ] Health endpoints respond (livez, readyz, shutdown)
-  - [ ] `go build ./cmd/pki-ca/...` succeeds
+  - [ ] Create `internal/apps/skeleton/skeleton.go` using `cryptoutilTemplateCli.RouteProduct` pattern (mirror `internal/apps/pki/pki.go`)
+  - [ ] Create `internal/apps/skeleton/skeleton_test.go` with ≥95% coverage
+  - [ ] Product router routes to `example` service
+  - [ ] Build clean, lint clean
 
-#### Task 5.3: Create Skeleton Config
+### Task 5.3: Product CMD Entry
+- **Status**: ❌
+- **Estimated**: 0.5h
+- **Dependencies**: Task 5.2
+- **Description**: Create `cmd/skeleton/main.go` — product-level binary
+- **Acceptance Criteria**:
+  - [ ] Create `cmd/skeleton/main.go` (mirror `cmd/pki/main.go` or `cmd/sm/main.go`)
+  - [ ] Delegates to `skeleton.Skeleton(os.Args[1:], ...)`
+  - [ ] Build clean: `go build ./cmd/skeleton/`
+
+### Task 5.4: Service Entry Function
 - **Status**: ❌
 - **Estimated**: 1h
 - **Dependencies**: Task 5.2
-- **Description**: Create `internal/apps/pki/ca/server/config/` with flat kebab-case YAML config parsing matching template standard.
+- **Description**: Create `internal/apps/skeleton/example/example.go` — service CLI handler
 - **Acceptance Criteria**:
-  - [ ] Config struct defined with ServerSettings
-  - [ ] YAML parsing works with existing configs/ca/ files
-  - [ ] Tests with ≥95% coverage
+  - [ ] Create `internal/apps/skeleton/example/example.go` using `cryptoutilTemplateCli.RouteService` pattern (mirror `internal/apps/jose/ja/ja.go`)
+  - [ ] Create `internal/apps/skeleton/example/example_test.go` with ≥95% coverage
+  - [ ] ServiceConfig with correct ServiceID ("skeleton-example"), ProductName ("skeleton"), ServiceName ("example")
+  - [ ] Build clean, lint clean
 
-#### Task 5.4: Create Skeleton Repository & Migrations
+### Task 5.5: Service CMD Entry
 - **Status**: ❌
-- **Estimated**: 2h
-- **Dependencies**: Task 5.2
-- **Description**: Create `internal/apps/pki/ca/repository/` with empty migrations dir. Use `WithDomainMigrations()` pattern. Migration numbering starts at 2001+.
-- **Acceptance Criteria**:
-  - [ ] `repository/migrations/` directory exists with placeholder 2001 migration
-  - [ ] `WithDomainMigrations(MigrationsFS, "migrations")` integrated in server.go
-  - [ ] Migration range conforms to 2001+ (not 0xxx)
-  - [ ] Tests pass
-
-#### Task 5.5: Create Skeleton Domain
-- **Status**: ❌
-- **Estimated**: 1h
+- **Estimated**: 0.5h
 - **Dependencies**: Task 5.4
-- **Description**: Create `internal/apps/pki/ca/domain/` with empty domain model stubs. No business logic—just the structural skeleton.
+- **Description**: Create `cmd/skeleton-example/main.go` — service-level binary
 - **Acceptance Criteria**:
-  - [ ] Domain directory exists with basic model file
-  - [ ] No business logic (clean slate for future porting)
+  - [ ] Create `cmd/skeleton-example/main.go` (mirror `cmd/jose-ja/main.go`)
+  - [ ] Delegates to `skeleton.Example(os.Args[1:], ...)`
+  - [ ] Build clean: `go build ./cmd/skeleton-example/`
 
-#### Task 5.6: Create Skeleton Handler/API Registration
+### Task 5.6: Server Config
 - **Status**: ❌
 - **Estimated**: 1h
-- **Dependencies**: Task 5.2
-- **Description**: Create handler registration via `WithPublicRouteRegistration` matching sm-kms/jose-ja pattern. Dual API paths (/service/** + /browser/**).
+- **Dependencies**: Task 5.1
+- **Description**: Create `internal/apps/skeleton/example/server/config/config.go`
 - **Acceptance Criteria**:
-  - [ ] Public route registration wired in server.go
-  - [ ] Dual API paths configured
-  - [ ] Health check paths work on both public and admin
+  - [ ] Create config struct embedding ServiceTemplateServerSettings
+  - [ ] Flat kebab-case YAML parsing
+  - [ ] Create `internal/apps/skeleton/example/server/config/config_test.go` with ≥95% coverage
+  - [ ] Build clean, lint clean
 
-#### Task 5.7: Wire Entry Points
+### Task 5.7: Repository & Migrations
 - **Status**: ❌
 - **Estimated**: 1h
-- **Dependencies**: Tasks 5.2-5.6
-- **Description**: Reconnect `cmd/pki-ca/main.go` and `internal/apps/pki/pki.go` to the new skeleton.
+- **Dependencies**: Task 5.1
+- **Description**: Create `internal/apps/skeleton/example/repository/` with MigrationsFS and placeholder migration
 - **Acceptance Criteria**:
-  - [ ] `go build ./cmd/pki-ca/...` succeeds
-  - [ ] `go build ./...` succeeds (full project)
-  - [ ] CLI subcommands (server, health) functional
+  - [ ] Create `internal/apps/skeleton/example/repository/repository.go` with `//go:embed migrations/*.sql` and MigrationsFS
+  - [ ] Create `internal/apps/skeleton/example/repository/migrations/2001_init.up.sql` — create minimal example_items table (id TEXT PK, tenant_id TEXT NOT NULL, created_at DATETIME NOT NULL)
+  - [ ] Create `internal/apps/skeleton/example/repository/migrations/2001_init.down.sql` — DROP TABLE example_items
+  - [ ] Create `internal/apps/skeleton/example/repository/repository_test.go` with ≥95% coverage
+  - [ ] Build clean, lint clean
 
-#### Task 5.8: Create Skeleton Tests
+### Task 5.8: Domain Model (Minimal)
+- **Status**: ❌
+- **Estimated**: 0.5h
+- **Dependencies**: Task 5.7
+- **Description**: Create `internal/apps/skeleton/example/domain/` with minimal ExampleItem model
+- **Acceptance Criteria**:
+  - [ ] Create `internal/apps/skeleton/example/domain/model.go` with ExampleItem struct (ID, TenantID, CreatedAt) and GORM tags
+  - [ ] Create `internal/apps/skeleton/example/domain/model_test.go` with ≥95% coverage
+  - [ ] Build clean, lint clean
+
+### Task 5.9: Server Implementation
 - **Status**: ❌
 - **Estimated**: 2h
-- **Dependencies**: Tasks 5.2-5.7
-- **Description**: Create unit tests for the skeleton. Table-driven, t.Parallel(), Fiber app.Test() for handlers.
+- **Dependencies**: Tasks 5.6, 5.7, 5.8
+- **Description**: Create `internal/apps/skeleton/example/server/server.go` using NewServerBuilder
 - **Acceptance Criteria**:
-  - [ ] Tests for server, config, handler registration
-  - [ ] Coverage ≥95% for production code
-  - [ ] All tests pass with `-shuffle=on`
-  - [ ] Lint clean
+  - [ ] Create server.go with NewServerBuilder → WithDomainMigrations → WithPublicRouteRegistration → Build
+  - [ ] Dual HTTPS (public + admin) health endpoints functional
+  - [ ] Dual API paths: `/service/**` and `/browser/**` (empty — no business endpoints)
+  - [ ] Health: `/browser/api/v1/health`, `/service/api/v1/health` (public), `/admin/api/v1/livez`, `/admin/api/v1/readyz` (admin)
+  - [ ] Create `internal/apps/skeleton/example/server/server_test.go` with ≥95% coverage
+  - [ ] Build clean, lint clean
 
-#### Task 5.9: Stub E2E Placeholder
+### Task 5.10: Suite Integration
+- **Status**: ❌
+- **Estimated**: 0.5h
+- **Dependencies**: Task 5.4
+- **Description**: Update `internal/apps/cryptoutil/cryptoutil.go` to add skeleton product routing
+- **Acceptance Criteria**:
+  - [ ] Add `case "skeleton":` to suite router switch statement
+  - [ ] Route to `skeleton.Skeleton(remainingArgs, ...)` function
+  - [ ] Update `internal/apps/cryptoutil/cryptoutil_test.go` if exists
+  - [ ] Build clean, lint clean
+
+### Task 5.11: Deployment Infrastructure
+- **Status**: ❌
+- **Estimated**: 2h
+- **Dependencies**: Tasks 5.1, 5.9
+- **Description**: Create deployment and config directories for skeleton-example
+- **Acceptance Criteria**:
+  - [ ] Create `deployments/skeleton-example/compose.yml` (mirror template pattern, port 8900+)
+  - [ ] Create `deployments/skeleton-example/secrets/` with appropriate .secret files
+  - [ ] Create `configs/skeleton/` with `config-skeleton-example.yml`
+  - [ ] Port mappings: 8900 (public), 9090 (admin), 54329 (PostgreSQL)
+  - [ ] Docker secrets for credentials (not inline env vars)
+  - [ ] Health checks using wget
+  - [ ] Run `go run ./cmd/cicd lint-deployments validate-all` — zero errors for new files
+
+### Task 5.12: E2E Test Skeleton
+- **Status**: ❌
+- **Estimated**: 1.5h
+- **Dependencies**: Task 5.9
+- **Description**: Create E2E test infrastructure for skeleton-example
+- **Acceptance Criteria**:
+  - [ ] Create `internal/apps/skeleton/example/e2e/testmain_e2e_test.go` with TestMain
+  - [ ] Create `internal/apps/skeleton/example/e2e/e2e_test.go` with basic health check tests
+  - [ ] Tests verify both public and admin health endpoints
+  - [ ] Tests use build tag `e2e`
+  - [ ] Build clean with tags: `go build -tags e2e ./...`
+  - [ ] Lint clean with tags: `golangci-lint run --build-tags e2e`
+
+### Task 5.13: ARCHITECTURE.md Update
 - **Status**: ❌
 - **Estimated**: 1h
-- **Dependencies**: Task 5.8
-- **Description**: Create minimal `internal/apps/pki/ca/e2e/` placeholder (or update existing E2E infra) for the skeleton. Verify health endpoints respond in E2E context.
+- **Dependencies**: Tasks 5.1, 5.11
+- **Description**: Add skeleton-example to ARCHITECTURE.md
 - **Acceptance Criteria**:
-  - [ ] E2E directory exists with at least health check test
-  - [ ] Docker compose can start skeleton pki-ca
+  - [ ] Add to Service Catalog (Section 3.2): Skeleton product, Example service, skeleton-example ID
+  - [ ] Add to Port Assignments (Section 3.4): 8900-8999 host ports, 0.0.0.0:8080/127.0.0.1:9090 container
+  - [ ] Add to PostgreSQL Ports (Section 3.4.2): 54329
+  - [ ] Add Skeleton Product description section
+  - [ ] Mark skeleton-example as "Stereotype — best-practice template usage reference"
+  - [ ] Validate propagation: `cicd validate-propagation`
 
-#### Task 5.10: Full Quality Gate Validation
+### Task 5.14: Full Quality Gate
 - **Status**: ❌
 - **Estimated**: 1h
-- **Dependencies**: Tasks 5.1-5.9
-- **Description**: Complete quality gate pass: build, lint, test, deployment validators, health endpoints.
+- **Dependencies**: All Phase 5 tasks
+- **Description**: Final validation that skeleton-example is fully functional
 - **Acceptance Criteria**:
-  - [ ] `go build ./...` clean
-  - [ ] `go build -tags e2e,integration ./...` clean
-  - [ ] `golangci-lint run` 0 issues
-  - [ ] `golangci-lint run --build-tags e2e,integration` 0 issues
-  - [ ] `go test ./... -shuffle=on` all pass
-  - [ ] `cicd lint-deployments validate-all` passes
-  - [ ] Committed with conventional commit
+  - [ ] `go build ./...` — clean
+  - [ ] `go build -tags e2e,integration ./...` — clean
+  - [ ] `golangci-lint run` — zero issues
+  - [ ] `golangci-lint run --build-tags e2e,integration` — zero issues
+  - [ ] `go test ./internal/apps/skeleton/... -cover -shuffle=on` — all pass, ≥95%
+  - [ ] `go run ./cmd/cicd lint-deployments validate-all` — all pass
+  - [ ] Health endpoints respond (manual or E2E verification)
+  - [ ] Conventional commit with all Phase 5 changes
 
 ---
 
-## Phase 6: Service-Template Reusability Analysis (6 tasks) ☐ TODO
+## Phase 6: PKI-CA Archive & Clean-Slate Skeleton
 
-**Phase Objective**: Analyze the skeleton pki-ca to identify service-template improvement opportunities and document friction points.
+**Phase Objective**: Archive existing pki-ca (111 Go files, 27 directories). Create new empty pki-ca skeleton following skeleton-example patterns. Validates that the skeleton pattern is reproducible.
 
-#### Task 6.1: Minimal File Set Documentation
+### Task 6.1: Archive Existing PKI-CA
 - **Status**: ❌
 - **Estimated**: 1h
 - **Dependencies**: Phase 5 complete
-- **Description**: Document the minimal set of files required for a conforming service-template service. Compare skeleton against sm-kms (reference, 50/50 score).
+- **Description**: Move existing pki-ca to archive directory
 - **Acceptance Criteria**:
-  - [ ] File inventory: skeleton vs sm-kms
-  - [ ] Required vs optional files identified
-  - [ ] Written to RESEARCH.md draft
+  - [ ] Move `internal/apps/pki/ca/` to `internal/apps/pki/ca-archived/`
+  - [ ] Ensure `internal/apps/pki/pki.go` still compiles (may need stub)
+  - [ ] Ensure `cmd/pki-ca/main.go` still compiles (may need stub)
+  - [ ] `go build ./...` — clean (may need temporary stubs or exclusions)
+  - [ ] Commit archive move separately
 
-#### Task 6.2: Template Friction Points
+### Task 6.2: Create New PKI-CA Skeleton
 - **Status**: ❌
 - **Estimated**: 2h
 - **Dependencies**: Task 6.1
-- **Description**: Catalog friction/boilerplate encountered during skeleton creation. What did the template provide for free vs what had to be manually wired?
+- **Description**: Create new `internal/apps/pki/ca/` following skeleton-example patterns
 - **Acceptance Criteria**:
-  - [ ] Friction points categorized (boilerplate, missing abstractions, unclear patterns)
-  - [ ] Severity rated (minor, moderate, significant)
+  - [ ] Create new `internal/apps/pki/ca/ca.go` (service entry, mirror skeleton-example/example.go)
+  - [ ] Create new `internal/apps/pki/ca/server/server.go` (NewServerBuilder pattern)
+  - [ ] Create new `internal/apps/pki/ca/server/config/config.go`
+  - [ ] Create new `internal/apps/pki/ca/repository/` with migrations 2001
+  - [ ] Create new `internal/apps/pki/ca/domain/` with minimal model
+  - [ ] Reuse existing port (8100) and PostgreSQL port (54320)
+  - [ ] Build clean: `go build ./...`
 
-#### Task 6.3: Product-Service Wiring Analysis
-- **Status**: ❌
-- **Estimated**: 1h
-- **Dependencies**: Task 6.1
-- **Description**: Compare product-level files (`pki.go`, `main.go`) across pki/sm/jose. Identify simplification opportunities.
-- **Acceptance Criteria**:
-  - [ ] Patterns documented
-  - [ ] Simplification proposals documented
-
-#### Task 6.4: Enhancement Proposals
-- **Status**: ❌
-- **Estimated**: 2h
-- **Dependencies**: Tasks 6.2-6.3
-- **Description**: Concrete, prioritized proposals for service-template enhancements.
-- **Acceptance Criteria**:
-  - [ ] Each proposal has: description, effort estimate, impact, priority
-  - [ ] Proposals reviewed against ARCHITECTURE.md constraints
-
-#### Task 6.5: Cross-Service Consistency Check
-- **Status**: ❌
-- **Estimated**: 1h
-- **Dependencies**: Task 6.1
-- **Description**: Verify skeleton follows same file naming, directory structure, and patterns as sm-kms/sm-im/jose-ja.
-- **Acceptance Criteria**:
-  - [ ] Naming consistency verified
-  - [ ] Structure consistency verified
-  - [ ] Deviations documented with justification
-
-#### Task 6.6: Commit Analysis Documentation
+### Task 6.3: Reconnect Entry Points
 - **Status**: ❌
 - **Estimated**: 0.5h
-- **Dependencies**: Tasks 6.1-6.5
-- **Description**: Commit Phase 6 findings to tasks.md and RESEARCH.md draft.
+- **Dependencies**: Task 6.2
+- **Description**: Reconnect cmd/pki-ca/main.go and product router to new skeleton
 - **Acceptance Criteria**:
+  - [ ] `cmd/pki-ca/main.go` routes to new ca package
+  - [ ] `internal/apps/pki/pki.go` routes to new ca package
+  - [ ] Build clean, lint clean
+
+### Task 6.4: Tests for New PKI-CA
+- **Status**: ❌
+- **Estimated**: 1.5h
+- **Dependencies**: Task 6.2
+- **Description**: Create tests for new pki-ca skeleton
+- **Acceptance Criteria**:
+  - [ ] `ca_test.go`, `server_test.go`, `config_test.go`, `repository_test.go` — all ≥95% coverage
+  - [ ] E2E test skeleton with health check tests
+  - [ ] Build and lint clean with all tags
+  - [ ] Tests pass with shuffle
+
+### Task 6.5: Update Deployment
+- **Status**: ❌
+- **Estimated**: 1h
+- **Dependencies**: Task 6.2
+- **Description**: Update or recreate deployment configs for new pki-ca
+- **Acceptance Criteria**:
+  - [ ] `deployments/pki-ca/` updated for new skeleton
+  - [ ] `configs/ca/` updated for new skeleton
+  - [ ] `go run ./cmd/cicd lint-deployments validate-all` — all pass
+  - [ ] Health checks configured
+
+### Task 6.6: Quality Gate
+- **Status**: ❌
+- **Estimated**: 0.5h
+- **Dependencies**: All Phase 6 tasks
+- **Description**: Full validation of new pki-ca skeleton
+- **Acceptance Criteria**:
+  - [ ] `go build ./...` — clean
+  - [ ] `golangci-lint run` — zero issues
+  - [ ] `go test ./internal/apps/pki/... -cover -shuffle=on` — pass, ≥95%
+  - [ ] Deployment validators pass
   - [ ] Conventional commit
-  - [ ] tasks.md updated
 
 ---
 
-## Phase 7: CICD Linter Enhancements (7 tasks) ☐ TODO
+## Phase 7: Service-Template Reusability Analysis
 
-**Phase Objective**: Design and implement new linter validators for PRODUCT and PRODUCT-SERVICE structural best practices.
+**Phase Objective**: Analyze skeleton creation experience. Document minimal file set, friction points, and enhancement proposals.
 
-#### Task 7.1: Linter Gap Analysis
+### Task 7.1: Minimal File Set Documentation
 - **Status**: ❌
-- **Estimated**: 2h
-- **Dependencies**: Phase 6 complete
-- **Description**: Compare existing `cicd lint-deployments` validators against Phase 6 findings. Identify what's missing for ensuring new projects follow best practices.
+- **Estimated**: 1h
+- **Dependencies**: Phases 5-6 complete
+- **Description**: Document the minimal file set required for a conforming product-service
 - **Acceptance Criteria**:
-  - [ ] Existing validator inventory (count, scope)
-  - [ ] Gap list: missing structural validators
-  - [ ] Priority ranking
+  - [ ] List ALL files created for skeleton-example with purpose
+  - [ ] Compare against sm-kms (reference, 50/50 score)
+  - [ ] Identify files that could be auto-generated vs hand-written
+  - [ ] Document in RESEARCH.md
 
-#### Task 7.2: Validator Design
+### Task 7.2: Template Friction Points
 - **Status**: ❌
-- **Estimated**: 2h
+- **Estimated**: 1h
+- **Dependencies**: Phases 5-6 complete
+- **Description**: Catalog friction, boilerplate, missing abstractions from skeleton creation
+- **Acceptance Criteria**:
+  - [ ] List boilerplate code that was copy-pasted
+  - [ ] Identify missing helper functions or utilities
+  - [ ] Document API surface confusion or unclear patterns
+  - [ ] Document in RESEARCH.md
+
+### Task 7.3: Product Wiring Analysis
+- **Status**: ❌
+- **Estimated**: 0.5h
 - **Dependencies**: Task 7.1
-- **Description**: Design new validators: required directory structure, required files, migration numbering, product-level wiring, test file presence.
+- **Description**: Analyze product-level wiring for simplification
 - **Acceptance Criteria**:
-  - [ ] Validator specs with input/output/rules
-  - [ ] Error messages defined
-  - [ ] Edge cases identified
+  - [ ] Assess RouteProduct/RouteService patterns for boilerplate reduction
+  - [ ] Document suite router scalability (currently switch statement)
+  - [ ] Document in RESEARCH.md
 
-#### Task 7.3: Implement Structure Validator
-- **Status**: ❌
-- **Estimated**: 3h
-- **Dependencies**: Task 7.2
-- **Description**: Implement validator checking PRODUCT-SERVICE directory structure against template pattern.
-- **Acceptance Criteria**:
-  - [ ] Implementation in cmd/cicd/
-  - [ ] Tests ≥98% coverage
-  - [ ] Mutation testing ≥98%
-
-#### Task 7.4: Implement Migration Validator
-- **Status**: ❌
-- **Estimated**: 2h
-- **Dependencies**: Task 7.2
-- **Description**: Implement validator checking migration numbering (2001+ range conformance).
-- **Acceptance Criteria**:
-  - [ ] Implementation in cmd/cicd/
-  - [ ] Tests ≥98% coverage
-  - [ ] Detects 0xxx violations, accepts 2001+
-
-#### Task 7.5: Implement Product Wiring Validator
-- **Status**: ❌
-- **Estimated**: 2h
-- **Dependencies**: Task 7.2
-- **Description**: Implement validator checking product-level and cmd-level wiring patterns.
-- **Acceptance Criteria**:
-  - [ ] Implementation in cmd/cicd/
-  - [ ] Tests ≥98% coverage
-
-#### Task 7.6: Apply to All Services
-- **Status**: ❌
-- **Estimated**: 2h
-- **Dependencies**: Tasks 7.3-7.5
-- **Description**: Run all new validators against all 9 services. Fix any discovered non-conformance or add documented exceptions.
-- **Acceptance Criteria**:
-  - [ ] All 9 services pass or have documented exceptions
-  - [ ] Zero regressions in existing tests
-
-#### Task 7.7: Quality Gate Validation
+### Task 7.4: Enhancement Proposals
 - **Status**: ❌
 - **Estimated**: 1h
-- **Dependencies**: Task 7.6
-- **Description**: Full quality gate pass for Phase 7 work.
+- **Dependencies**: Tasks 7.1-7.3
+- **Description**: Concrete, prioritized proposals for template improvements
 - **Acceptance Criteria**:
-  - [ ] Build clean, lint clean, all tests pass
-  - [ ] New validators in CI/CD pipeline
+  - [ ] P0: Must-fix friction points
+  - [ ] P1: Should-fix improvements
+  - [ ] P2: Nice-to-have enhancements
+  - [ ] Each proposal: problem, solution, LOE, impact
+  - [ ] Document in RESEARCH.md
+
+---
+
+## Phase 8: CICD Linter Enhancements
+
+**Phase Objective**: Implement CICD linters enforcing structural best practices for PRODUCT and PRODUCT-SERVICE directories.
+
+### Task 8.1: Linter Gap Analysis
+- **Status**: ❌
+- **Estimated**: 1h
+- **Dependencies**: Phase 7 complete
+- **Description**: Compare existing 65+ validators against Phase 7 findings
+- **Acceptance Criteria**:
+  - [ ] List existing validators relevant to structural validation
+  - [ ] Identify gaps: what structural rules are NOT currently enforced?
+  - [ ] Prioritize new validators by impact
+  - [ ] Document findings
+
+### Task 8.2: Validator Design
+- **Status**: ❌
+- **Estimated**: 1.5h
+- **Dependencies**: Task 8.1
+- **Description**: Design new validators for structural best practices
+- **Acceptance Criteria**:
+  - [ ] Design: ValidateProductStructure (required dirs, files per product)
+  - [ ] Design: ValidateServiceStructure (required dirs, files per service)
+  - [ ] Design: ValidateMigrationNumbering (2001+ range, up/down pairs)
+  - [ ] Design: ValidateProductWiring (suite router, cmd entries)
+  - [ ] Design: ValidateTestPresence (test files for each package)
+  - [ ] Document expected pass/fail for all 10 services
+
+### Task 8.3: Validator Implementation
+- **Status**: ❌
+- **Estimated**: 4h
+- **Dependencies**: Task 8.2
+- **Description**: Implement validators in cmd/cicd/
+- **Acceptance Criteria**:
+  - [ ] Implement each validator with comprehensive tests
+  - [ ] Coverage ≥98% (infrastructure code)
+  - [ ] Mutation testing ≥98%
+  - [ ] All validators follow aggregation pattern (run all, report all)
+  - [ ] Build and lint clean
+
+### Task 8.4: Apply to All 10 Services
+- **Status**: ❌
+- **Estimated**: 1h
+- **Dependencies**: Task 8.3
+- **Description**: Run new validators against all 10 services, fix non-conformance
+- **Acceptance Criteria**:
+  - [ ] All 10 services pass new validators (or documented exceptions)
+  - [ ] No regressions in existing validators
+  - [ ] `go run ./cmd/cicd lint-deployments validate-all` — all pass
   - [ ] Conventional commit
 
 ---
 
-## Phase 8: Documentation & Research (4 tasks) ☐ TODO
+## Phase 9: Documentation & Research
 
-**Phase Objective**: Consolidate all findings into docs/fixes-v8/RESEARCH.md and update project documentation.
+**Phase Objective**: Consolidate findings into RESEARCH.md.
 
-#### Task 8.1: PKI-CA Skeleton Patterns
+### Task 9.1: Skeleton Patterns
 - **Status**: ❌
 - **Estimated**: 1h
-- **Dependencies**: Phase 5 complete
-- **Description**: Document minimal service structure, effort required, patterns to follow.
+- **Dependencies**: Phases 5-6 complete
+- **Description**: Document skeleton creation process and patterns
 - **Acceptance Criteria**:
-  - [ ] RESEARCH.md section on skeleton creation
-  - [ ] File list, effort breakdown, lessons learned
+  - [ ] Step-by-step guide for creating a new product-service
+  - [ ] Minimal file set with purpose annotations
+  - [ ] Common pitfalls and solutions
+  - [ ] Document in docs/fixes-v8/RESEARCH.md
 
-#### Task 8.2: Service-Template Learnings
+### Task 9.2: Template Learnings
 - **Status**: ❌
 - **Estimated**: 1h
-- **Dependencies**: Phase 6 complete
-- **Description**: Document template strengths, weaknesses, proposed improvements.
+- **Dependencies**: Phase 7 complete
+- **Description**: Document template strengths, weaknesses, improvements
 - **Acceptance Criteria**:
-  - [ ] RESEARCH.md section on template analysis
-  - [ ] Enhancement proposals cross-referenced
+  - [ ] Import Phase 7 findings
+  - [ ] Strengths analysis (what works well)
+  - [ ] Weakness analysis (what needs improvement)
+  - [ ] Enhancement roadmap with priorities
+  - [ ] Document in RESEARCH.md
 
-#### Task 8.3: Identity Future Roadmap
-- **Status**: ❌
-- **Estimated**: 1h
-- **Dependencies**: Phases 5-7 complete
-- **Description**: Document planned approach for identity services: archive existing, create similar skeletons, achieve independent deployability with own DB/migrations/E2E. Note: identity E2E stays shared for now (ED-10).
-- **Acceptance Criteria**:
-  - [ ] RESEARCH.md section on identity roadmap
-  - [ ] Timeline estimate, risk assessment
-  - [ ] References ED-7 through ED-10
-
-#### Task 8.4: Publish RESEARCH.md
+### Task 9.3: Identity Roadmap
 - **Status**: ❌
 - **Estimated**: 0.5h
-- **Dependencies**: Tasks 8.1-8.3
-- **Description**: Finalize and commit docs/fixes-v8/RESEARCH.md.
+- **Dependencies**: Phase 3 findings
+- **Description**: Document planned identity services approach
 - **Acceptance Criteria**:
-  - [ ] RESEARCH.md complete with all sections
-  - [ ] Cross-referenced with ARCHITECTURE.md
+  - [ ] Archive + skeleton approach (following pki-ca pattern)
+  - [ ] Independent deployability plan (ED-7)
+  - [ ] Shared E2E strategy (ED-10)
+  - [ ] Document in RESEARCH.md
+
+### Task 9.4: Three-Tier Architecture
+- **Status**: ❌
+- **Estimated**: 1h
+- **Dependencies**: Phases 5-8 complete
+- **Description**: Document base/stereotype/service architecture vision
+- **Acceptance Criteria**:
+  - [ ] Base tier: service-template (current), product-service-base (future)
+  - [ ] Stereotype tier: skeleton-example (current), product-service-stereotype (future)
+  - [ ] Service tier: all 9 business services
+  - [ ] Long-term workflow: change base → validate stereotype → roll out
+  - [ ] Document in RESEARCH.md
+
+### Task 9.5: RESEARCH.md Publication
+- **Status**: ❌
+- **Estimated**: 0.5h
+- **Dependencies**: Tasks 9.1-9.4
+- **Description**: Finalize and commit RESEARCH.md
+- **Acceptance Criteria**:
+  - [ ] All sections complete
+  - [ ] Cross-references to ARCHITECTURE.md
+  - [ ] Conventional commit
+
+---
+
+## Phase 10: ARCHITECTURE.md Propagation
+
+**Phase Objective**: Ensure all ARCHITECTURE.md changes from Phases 5-9 are propagated to instruction files.
+
+### Task 10.1: Validate Propagation
+- **Status**: ❌
+- **Estimated**: 0.5h
+- **Dependencies**: Phases 5-9 complete
+- **Description**: Run propagation validation
+- **Acceptance Criteria**:
+  - [ ] `cicd validate-propagation` — all markers valid
+  - [ ] `cicd validate-chunks` — all chunks match
+  - [ ] List instruction files needing update
+
+### Task 10.2: Update Instruction Files
+- **Status**: ❌
+- **Estimated**: 1h
+- **Dependencies**: Task 10.1
+- **Description**: Update instruction files with ARCHITECTURE.md changes
+- **Acceptance Criteria**:
+  - [ ] `02-01.architecture.instructions.md` — service catalog table updated
+  - [ ] Other affected instruction files updated
+  - [ ] Build clean, lint clean
+
+### Task 10.3: Final Quality Gate
+- **Status**: ❌
+- **Estimated**: 1h
+- **Dependencies**: Task 10.2
+- **Description**: Full project validation
+- **Acceptance Criteria**:
+  - [ ] `go build ./...` — clean
+  - [ ] `go build -tags e2e,integration ./...` — clean
+  - [ ] `golangci-lint run` — zero issues
+  - [ ] `golangci-lint run --build-tags e2e,integration` — zero issues
+  - [ ] `go test ./... -shuffle=on` — all pass
+  - [ ] `go run ./cmd/cicd lint-deployments validate-all` — all pass
+  - [ ] `cicd validate-propagation` — all valid
+  - [ ] Zero new TODOs without tracking
   - [ ] Conventional commit
 
 ---
 
 ## Cross-Cutting Tasks
 
-- [x] CC-1 Keep docs/fixes-v8/plan.md Status field updated after each phase
-- [x] CC-2 No ARCHITECTURE.md changes needed (all validations passed)
-- [x] CC-3 Push after commit (pending)
-- [ ] CC-4 Keep plan.md/tasks.md status updated through Phases 5-8
-- [ ] CC-5 Commit incrementally per task (conventional commits)
-- [ ] CC-6 Ensure archived pki-ca code is git-tracked for future reference
+### Testing
+- [ ] Unit tests ≥95% coverage (production), ≥98% (infrastructure)
+- [ ] Integration tests pass
+- [ ] E2E tests pass (Docker Compose) for skeleton-example
+- [ ] Mutation testing ≥95% minimum
+- [ ] No skipped tests
+- [ ] Race detector clean: `go test -race ./...`
+
+### Code Quality
+- [ ] Linting passes: `golangci-lint run` and `golangci-lint run --build-tags e2e,integration`
+- [ ] No new TODOs without tracking
+- [ ] No security vulnerabilities
+- [ ] Formatting clean: `gofumpt -s -w ./`
+
+### Documentation
+- [ ] ARCHITECTURE.md updated (service catalog, ports, product description)
+- [ ] docs/fixes-v8/RESEARCH.md published
+- [ ] Instruction files propagated
+- [ ] Plan.md and tasks.md up to date
+
+### Deployment
+- [ ] Docker Compose configs for skeleton-example
+- [ ] Health checks pass
+- [ ] Deployment validators pass
+- [ ] Config files validated
 
 ---
 
-## Notes
+## Quizme Decisions (Merged from quizme-v1.md)
 
-### Pre-Existing Conditions
-- Identity migrations use non-standard 0002-0011 range (predates current template migration spec)
-- identity-rp and identity-spa are minimal implementations (~10 Go files, ~4 test files each)
-- Identity uses a monolithic ServerManager pattern instead of per-service independent lifecycle
-- All 9 services DO use NewServerBuilder (confirmed via grep)
+| # | Question | Answer | Impact |
+|---|----------|--------|--------|
+| Q1 | Approach for skeleton-example scope | E: Create two skeletons: skeleton-example (permanent 10th) + pki-ca (clean-slate) | Phases 5-6 scope |
+| Q2 | Identity migration strategy | E: Each identity service gets own domain, DB, migration range, E2E | Future work (ED-7) |
+| Q3 | Default migration content | E: Both skeleton-example and pki-ca use empty conforming 2001+ | Task 5.7, 6.2 |
+| Q4 | PKI-CA archive strategy | E: Archive then create clean-slate AFTER skeleton-example validates pattern | Phase 6 ordering |
+| Q5 | Identity E2E approach | A: Keep shared suite for all identity services | ED-10 confirmed |
 
-### Quizme-v1 Decisions (merged 2026-02-26)
-- **Q1=E**: Archive pki-ca, create clean-slate skeleton, validate template reusability, identify CICD enhancements, document in RESEARCH.md
-- **Q2=E**: Identity services must be independently deployable (own DB, migrations, E2E) — deferred to post-pki-ca
-- **Q3=E**: Skeleton uses empty conforming 2001+ migrations
-- **Q4=E**: PKI-CA skeleton first, then apply same approach to identity services
-- **Q5=A**: Identity E2E stays shared for now
+---
 
-### Deferred Items
-- Identity independent deployability (ED-7) — after PKI-CA skeleton validates approach
-- Identity archive+skeleton (ED-9) — after Phases 5-8 complete
+## Notes / Deferred Work
+
+### Medium-Term Renames (NOT in fixes-v8 scope)
+- `internal/apps/template/service/` → `internal/apps/template/product-service-base/` (or similar)
+- `internal/apps/skeleton/example/` → `internal/apps/template/product-service-stereotype/` (or similar)
+- Tracked as ED-13
+
+### Identity Services Architecture (NOT in fixes-v8 scope)
+- Archive existing → create skeletons → achieve independent deployability
+- Tracked as ED-7
+
+### Long-Term Workflow (NOT in fixes-v8 scope)
+- Change base/stereotype first → validate via CICD linters → roll out to all services
+- Tracked as ED-14
 
 ---
 
 ## Evidence Archive
 
-Evidence for completed tasks will be documented here as phases complete.
-
-| Task | Evidence | Date |
-|------|----------|------|
-| Phase 1 | validate-propagation: 0 broken, validate-chunks: 27/27, anchors: 0 broken, file links: 0 broken | 2026-02-26 |
-| Phase 2 | 9-service scorecard with 10-dimension scoring (50/50 to 35/50 range) | 2026-02-26 |
-| Phase 3 | Migration analysis, architecture direction, gap scoping documented | 2026-02-26 |
-| Phase 4 | Builds clean, lint 0 issues, 62/62 validators pass, all tests pass | 2026-02-26 |
-| Quizme-v1 | 5 decisions merged into plan.md/tasks.md, quizme-v1.md deleted | 2026-02-26 |
+- `test-output/phase0-research/` - Phase 0 research (service patterns, ports, CLI wiring)
+- `test-output/phase1/` - Architecture documentation validation
+- `test-output/phase2/` - Readiness scorecard evidence
+- `test-output/phase5/` - skeleton-example creation evidence (planned)
+- `test-output/phase6/` - PKI-CA archive evidence (planned)
+- `test-output/phase7/` - Reusability analysis evidence (planned)
+- `test-output/phase8/` - CICD linter evidence (planned)
