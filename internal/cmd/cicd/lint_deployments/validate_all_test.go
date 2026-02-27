@@ -8,7 +8,6 @@ import (
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -49,7 +48,7 @@ func TestClassifyDeployment(t *testing.T) {
 			t.Parallel()
 
 			got := classifyDeployment(tc.input)
-			assert.Equal(t, tc.expected, got)
+			require.Equal(t, tc.expected, got)
 		})
 	}
 }
@@ -68,24 +67,24 @@ func TestDiscoverDeploymentDirs(t *testing.T) {
 		require.NoError(t, os.WriteFile(filepath.Join(dir, "README.md"), []byte("readme"), cryptoutilSharedMagic.CacheFilePermissions))
 
 		result := discoverDeploymentDirs(dir)
-		assert.Len(t, result, 4)
+		require.Len(t, result, 4)
 
 		nameMap := make(map[string]string)
 		for _, d := range result {
 			nameMap[d.name] = d.level
 		}
 
-		assert.Equal(t, DeploymentTypeProductService, nameMap[cryptoutilSharedMagic.OTLPServiceJoseJA])
-		assert.Equal(t, DeploymentTypeProduct, nameMap[cryptoutilSharedMagic.IdentityProductName])
-		assert.Equal(t, DeploymentTypeSuite, nameMap["cryptoutil-suite"])
-		assert.Equal(t, DeploymentTypeInfrastructure, nameMap["shared-postgres"])
+		require.Equal(t, DeploymentTypeProductService, nameMap[cryptoutilSharedMagic.OTLPServiceJoseJA])
+		require.Equal(t, DeploymentTypeProduct, nameMap[cryptoutilSharedMagic.IdentityProductName])
+		require.Equal(t, DeploymentTypeSuite, nameMap["cryptoutil-suite"])
+		require.Equal(t, DeploymentTypeInfrastructure, nameMap["shared-postgres"])
 	})
 
 	t.Run("nonexistent directory returns empty", func(t *testing.T) {
 		t.Parallel()
 
 		result := discoverDeploymentDirs("/nonexistent/path/abc123")
-		assert.Empty(t, result)
+		require.Empty(t, result)
 	})
 
 	t.Run("empty directory", func(t *testing.T) {
@@ -93,7 +92,7 @@ func TestDiscoverDeploymentDirs(t *testing.T) {
 
 		dir := t.TempDir()
 		result := discoverDeploymentDirs(dir)
-		assert.Empty(t, result)
+		require.Empty(t, result)
 	})
 }
 
@@ -110,14 +109,14 @@ func TestDiscoverConfigFiles(t *testing.T) {
 		require.NoError(t, os.WriteFile(filepath.Join(dir, "readme.md"), []byte("readme"), cryptoutilSharedMagic.CacheFilePermissions))
 
 		files := discoverConfigFiles(dir)
-		assert.Len(t, files, 2)
+		require.Len(t, files, 2)
 	})
 
 	t.Run("nonexistent directory returns empty", func(t *testing.T) {
 		t.Parallel()
 
 		files := discoverConfigFiles("/nonexistent/path/xyz789")
-		assert.Empty(t, files)
+		require.Empty(t, files)
 	})
 
 	t.Run("no yaml files", func(t *testing.T) {
@@ -127,7 +126,7 @@ func TestDiscoverConfigFiles(t *testing.T) {
 		require.NoError(t, os.WriteFile(filepath.Join(dir, "data.json"), []byte("{}"), cryptoutilSharedMagic.CacheFilePermissions))
 
 		files := discoverConfigFiles(dir)
-		assert.Empty(t, files)
+		require.Empty(t, files)
 	})
 }
 
@@ -138,7 +137,7 @@ func TestAllValidationResult_AllPassed(t *testing.T) {
 		t.Parallel()
 
 		r := &AllValidationResult{}
-		assert.True(t, r.AllPassed())
+		require.True(t, r.AllPassed())
 	})
 
 	t.Run("all passed returns true", func(t *testing.T) {
@@ -150,7 +149,7 @@ func TestAllValidationResult_AllPassed(t *testing.T) {
 				{Name: "b", Passed: true},
 			},
 		}
-		assert.True(t, r.AllPassed())
+		require.True(t, r.AllPassed())
 	})
 
 	t.Run("one failed returns false", func(t *testing.T) {
@@ -163,7 +162,7 @@ func TestAllValidationResult_AllPassed(t *testing.T) {
 				{Name: "c", Passed: true},
 			},
 		}
-		assert.False(t, r.AllPassed())
+		require.False(t, r.AllPassed())
 	})
 
 	t.Run("first failed returns false", func(t *testing.T) {
@@ -174,7 +173,7 @@ func TestAllValidationResult_AllPassed(t *testing.T) {
 				{Name: "a", Passed: false},
 			},
 		}
-		assert.False(t, r.AllPassed())
+		require.False(t, r.AllPassed())
 	})
 }
 
@@ -185,11 +184,11 @@ func TestAllValidationResult_AddResult(t *testing.T) {
 	r.addResult("test-validator", "/tmp/target", true, "output text", cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond)
 
 	require.Len(t, r.Results, 1)
-	assert.Equal(t, "test-validator", r.Results[0].Name)
-	assert.Equal(t, "/tmp/target", r.Results[0].Target)
-	assert.True(t, r.Results[0].Passed)
-	assert.Equal(t, "output text", r.Results[0].Output)
-	assert.Equal(t, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond, r.Results[0].Duration)
+	require.Equal(t, "test-validator", r.Results[0].Name)
+	require.Equal(t, "/tmp/target", r.Results[0].Target)
+	require.True(t, r.Results[0].Passed)
+	require.Equal(t, "output text", r.Results[0].Output)
+	require.Equal(t, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond, r.Results[0].Duration)
 }
 
 func TestFormatAllValidationResult(t *testing.T) {
@@ -207,13 +206,13 @@ func TestFormatAllValidationResult(t *testing.T) {
 		}
 
 		output := FormatAllValidationResult(r)
-		assert.Contains(t, output, "=== Validate All: Aggregated Results ===")
-		assert.Contains(t, output, "[PASS] naming")
-		assert.Contains(t, output, "[PASS] schema")
-		assert.Contains(t, output, "Passed:   2")
-		assert.Contains(t, output, "Failed:   0")
-		assert.Contains(t, output, "ALL VALIDATORS PASSED")
-		assert.NotContains(t, output, "VALIDATION FAILED")
+		require.Contains(t, output, "=== Validate All: Aggregated Results ===")
+		require.Contains(t, output, "[PASS] naming")
+		require.Contains(t, output, "[PASS] schema")
+		require.Contains(t, output, "Passed:   2")
+		require.Contains(t, output, "Failed:   0")
+		require.Contains(t, output, "ALL VALIDATORS PASSED")
+		require.NotContains(t, output, "VALIDATION FAILED")
 	})
 
 	t.Run("some failed", func(t *testing.T) {
@@ -229,16 +228,16 @@ func TestFormatAllValidationResult(t *testing.T) {
 		}
 
 		output := FormatAllValidationResult(r)
-		assert.Contains(t, output, "[PASS] naming")
-		assert.Contains(t, output, "[FAIL] ports")
-		assert.Contains(t, output, "[FAIL] admin")
-		assert.Contains(t, output, "Passed:   1")
-		assert.Contains(t, output, "Failed:   2")
-		assert.Contains(t, output, "VALIDATION FAILED")
-		assert.Contains(t, output, "Failed validators:")
-		assert.Contains(t, output, "- ports (deployments/jose-ja)")
-		assert.Contains(t, output, "- admin (deployments/sm-im)")
-		assert.NotContains(t, output, "ALL VALIDATORS PASSED")
+		require.Contains(t, output, "[PASS] naming")
+		require.Contains(t, output, "[FAIL] ports")
+		require.Contains(t, output, "[FAIL] admin")
+		require.Contains(t, output, "Passed:   1")
+		require.Contains(t, output, "Failed:   2")
+		require.Contains(t, output, "VALIDATION FAILED")
+		require.Contains(t, output, "Failed validators:")
+		require.Contains(t, output, "- ports (deployments/jose-ja)")
+		require.Contains(t, output, "- admin (deployments/sm-im)")
+		require.NotContains(t, output, "ALL VALIDATORS PASSED")
 	})
 
 	t.Run("empty results", func(t *testing.T) {
@@ -249,8 +248,8 @@ func TestFormatAllValidationResult(t *testing.T) {
 		}
 
 		output := FormatAllValidationResult(r)
-		assert.Contains(t, output, "Total:    0 validators")
-		assert.Contains(t, output, "ALL VALIDATORS PASSED")
+		require.Contains(t, output, "Total:    0 validators")
+		require.Contains(t, output, "ALL VALIDATORS PASSED")
 	})
 }
 
@@ -261,9 +260,9 @@ func TestValidateAll_EmptyDirs(t *testing.T) {
 	configsDir := t.TempDir()
 
 	result := ValidateAll(deploymentsDir, configsDir)
-	assert.NotNil(t, result)
-	assert.True(t, result.AllPassed())
-	assert.Greater(t, len(result.Results), 0)
+	require.NotNil(t, result)
+	require.True(t, result.AllPassed())
+	require.Greater(t, len(result.Results), 0)
 }
 
 func TestValidateAll_WithDeployments(t *testing.T) {
@@ -282,9 +281,9 @@ func TestValidateAll_WithDeployments(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(configsDir, "test.yml"), []byte("bind-public-port: 8080\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result := ValidateAll(deploymentsDir, configsDir)
-	assert.NotNil(t, result)
-	assert.Greater(t, len(result.Results), 0)
-	assert.Greater(t, result.TotalDuration, time.Duration(0))
+	require.NotNil(t, result)
+	require.Greater(t, len(result.Results), 0)
+	require.Greater(t, result.TotalDuration, time.Duration(0))
 }
 
 func TestValidateAll_RealDeployments(t *testing.T) {
@@ -306,12 +305,12 @@ func TestValidateAll_RealDeployments(t *testing.T) {
 	result := ValidateAll(deploymentsDir, configsDir)
 	elapsed := time.Since(start)
 
-	assert.NotNil(t, result)
-	assert.Greater(t, len(result.Results), 0)
+	require.NotNil(t, result)
+	require.Greater(t, len(result.Results), 0)
 
 	// Performance target: <5s (Decision 5:C).
 	maxDuration := cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second
-	assert.Less(t, elapsed, maxDuration, "validate-all should complete in <5s, took %s", elapsed)
+	require.Less(t, elapsed, maxDuration, "validate-all should complete in <5s, took %s", elapsed)
 
 	// Log results for debugging.
 	t.Logf("Total validators: %d, Duration: %s", len(result.Results), elapsed)
@@ -335,7 +334,7 @@ func TestMainValidateAll(t *testing.T) {
 		t.Parallel()
 
 		exitCode := mainValidateAll([]string{"/nonexistent/deployments", "/nonexistent/configs"})
-		assert.Equal(t, 1, exitCode)
+		require.Equal(t, 1, exitCode)
 	})
 
 	t.Run("missing configs dir", func(t *testing.T) {
@@ -343,7 +342,7 @@ func TestMainValidateAll(t *testing.T) {
 
 		deploymentsDir := t.TempDir()
 		exitCode := mainValidateAll([]string{deploymentsDir, "/nonexistent/configs"})
-		assert.Equal(t, 1, exitCode)
+		require.Equal(t, 1, exitCode)
 	})
 
 	t.Run("empty dirs succeed", func(t *testing.T) {
@@ -352,7 +351,7 @@ func TestMainValidateAll(t *testing.T) {
 		deploymentsDir := t.TempDir()
 		configsDir := t.TempDir()
 		exitCode := mainValidateAll([]string{deploymentsDir, configsDir})
-		assert.Equal(t, 0, exitCode)
+		require.Equal(t, 0, exitCode)
 	})
 
 	t.Run("defaults used when no args", func(t *testing.T) {
@@ -362,7 +361,7 @@ func TestMainValidateAll(t *testing.T) {
 		// This tests the default path logic.
 		exitCode := mainValidateAll([]string{})
 		// May return 0 or 1 depending on whether deployments/ and configs/ exist from CWD.
-		assert.Contains(t, []int{0, 1}, exitCode)
+		require.Contains(t, []int{0, 1}, exitCode)
 	})
 
 	t.Run("only one arg uses defaults for configs", func(t *testing.T) {
@@ -372,7 +371,7 @@ func TestMainValidateAll(t *testing.T) {
 		// Only 1 arg: deploymentsDir provided but configsDir defaults.
 		exitCode := mainValidateAll([]string{deploymentsDir})
 		// configsDir defaults to "configs" which may not exist.
-		assert.Contains(t, []int{0, 1}, exitCode)
+		require.Contains(t, []int{0, 1}, exitCode)
 	})
 }
 
@@ -387,11 +386,11 @@ func TestValidatorResultFields(t *testing.T) {
 		Duration: cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond,
 	}
 
-	assert.Equal(t, "naming", vr.Name)
-	assert.Equal(t, "/tmp/test", vr.Target)
-	assert.True(t, vr.Passed)
-	assert.Equal(t, "sample output", vr.Output)
-	assert.Equal(t, cryptoutilSharedMagic.IMMaxUsernameLength*time.Millisecond, vr.Duration)
+	require.Equal(t, "naming", vr.Name)
+	require.Equal(t, "/tmp/test", vr.Target)
+	require.True(t, vr.Passed)
+	require.Equal(t, "sample output", vr.Output)
+	require.Equal(t, cryptoutilSharedMagic.IMMaxUsernameLength*time.Millisecond, vr.Duration)
 }
 
 func TestValidatorNameConstants(t *testing.T) {
@@ -415,7 +414,7 @@ func TestValidatorNameConstants(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, tc.expected, tc.constant)
+			require.Equal(t, tc.expected, tc.constant)
 		})
 	}
 }

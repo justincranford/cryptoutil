@@ -19,7 +19,6 @@ import (
 	cryptoutilAppsTemplateServiceServerTestutil "cryptoutil/internal/apps/template/service/server/testutil"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -235,7 +234,7 @@ func TestAdminServer_TimeoutsConfigured(t *testing.T) {
 
 	err = json.Unmarshal(body, &result)
 	require.NoError(t, err)
-	assert.Equal(t, "ready", result[cryptoutilSharedMagic.StringStatus])
+	require.Equal(t, "ready", result[cryptoutilSharedMagic.StringStatus])
 
 	// Shutdown server.
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
@@ -288,7 +287,7 @@ func TestAdminServer_AdminBaseURL(t *testing.T) {
 	// Test AdminBaseURL returns correct format.
 	baseURL := server.AdminBaseURL()
 	expectedURL := fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, port)
-	assert.Equal(t, expectedURL, baseURL)
+	require.Equal(t, expectedURL, baseURL)
 
 	// Shutdown server.
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
@@ -341,7 +340,7 @@ func TestAdminServer_Livez_DuringShutdown_InMemory(t *testing.T) {
 	defer func() { _ = resp.Body.Close() }()
 
 	// During shutdown, livez should return 503.
-	assert.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
+	require.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
 
 	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
@@ -350,7 +349,7 @@ func TestAdminServer_Livez_DuringShutdown_InMemory(t *testing.T) {
 
 	err = json.Unmarshal(body, &result)
 	require.NoError(t, err)
-	assert.Equal(t, "shutting down", result[cryptoutilSharedMagic.StringStatus])
+	require.Equal(t, "shutting down", result[cryptoutilSharedMagic.StringStatus])
 }
 
 // TestAdminServer_Readyz_DuringShutdown_InMemory tests readyz returns 503 during shutdown using app.Test().
@@ -381,7 +380,7 @@ func TestAdminServer_Readyz_DuringShutdown_InMemory(t *testing.T) {
 	defer func() { _ = resp.Body.Close() }()
 
 	// During shutdown, readyz should return 503.
-	assert.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
+	require.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
 
 	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
@@ -390,7 +389,7 @@ func TestAdminServer_Readyz_DuringShutdown_InMemory(t *testing.T) {
 
 	err = json.Unmarshal(body, &result)
 	require.NoError(t, err)
-	assert.Equal(t, "shutting down", result[cryptoutilSharedMagic.StringStatus])
+	require.Equal(t, "shutting down", result[cryptoutilSharedMagic.StringStatus])
 }
 
 // TestAdminServer_Shutdown_Idempotent tests multiple shutdown calls are safe.

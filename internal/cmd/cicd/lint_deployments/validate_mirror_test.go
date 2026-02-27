@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -36,9 +35,7 @@ func TestMapDeploymentToConfig(t *testing.T) {
 			t.Parallel()
 
 			got := mapDeploymentToConfig(tc.deployment)
-			if got != tc.want {
-				t.Errorf("mapDeploymentToConfig(%q) = %q, want %q", tc.deployment, got, tc.want)
-			}
+			require.Equal(t, tc.want, got, "mapDeploymentToConfig(%q)", tc.deployment)
 		})
 	}
 }
@@ -65,13 +62,9 @@ func TestGetSubdirectories(t *testing.T) {
 		tmpDir := t.TempDir()
 
 		dirs, err := getSubdirectories(tmpDir)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+		require.NoError(t, err)
 
-		if len(dirs) != 0 {
-			t.Errorf("expected 0 subdirectories, got %d", len(dirs))
-		}
+		require.Empty(t, dirs, "expected 0 subdirectories")
 	})
 
 	t.Run("directories and files", func(t *testing.T) {
@@ -83,13 +76,9 @@ func TestGetSubdirectories(t *testing.T) {
 		createTestFile(t, tmpDir, "file.txt", "")
 
 		dirs, err := getSubdirectories(tmpDir)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+		require.NoError(t, err)
 
-		if len(dirs) != 2 {
-			t.Errorf("expected 2 subdirectories, got %d: %v", len(dirs), dirs)
-		}
+		require.Len(t, dirs, 2)
 	})
 }
 
@@ -106,17 +95,13 @@ func TestValidateStructuralMirror(t *testing.T) {
 		createTestDir(t, tmpDir, "configs")
 
 		result, err := ValidateStructuralMirror(deploymentsDir, configsDir)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+		require.NoError(t, err)
 
 		if !result.Valid {
 			t.Error("expected valid for empty directories")
 		}
 
-		if len(result.MissingMirrors) != 0 {
-			t.Errorf("expected 0 missing, got %d", len(result.MissingMirrors))
-		}
+		require.Empty(t, result.MissingMirrors)
 	})
 
 	t.Run("nonexistent deployments directory", func(t *testing.T) {
@@ -162,21 +147,15 @@ func TestValidateStructuralMirror(t *testing.T) {
 		createTestDir(t, deploymentsDir, "template")
 
 		result, err := ValidateStructuralMirror(deploymentsDir, configsDir)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+		require.NoError(t, err)
 
 		if !result.Valid {
 			t.Error("expected valid when only excluded dirs exist")
 		}
 
-		if len(result.Excluded) != cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries {
-			t.Errorf("expected 5 excluded, got %d: %v", len(result.Excluded), result.Excluded)
-		}
+require.Len(t, result.Excluded, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
 
-		if len(result.MissingMirrors) != 0 {
-			t.Errorf("expected 0 missing, got %d", len(result.MissingMirrors))
-		}
+		require.Empty(t, result.MissingMirrors)
 	})
 
 	t.Run("missing config directory detected", func(t *testing.T) {
@@ -192,21 +171,15 @@ func TestValidateStructuralMirror(t *testing.T) {
 		createTestDir(t, deploymentsDir, cryptoutilSharedMagic.OTLPServiceSMIM)
 
 		result, err := ValidateStructuralMirror(deploymentsDir, configsDir)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+		require.NoError(t, err)
 
 		if result.Valid {
 			t.Error("expected invalid when config mirror missing")
 		}
 
-		if len(result.MissingMirrors) != 1 {
-			t.Fatalf("expected 1 missing, got %d", len(result.MissingMirrors))
-		}
+		require.Len(t, result.MissingMirrors, 1)
 
-		if result.MissingMirrors[0] != cryptoutilSharedMagic.OTLPServiceSMIM {
-			t.Errorf("expected missing mirror 'sm-im', got %q", result.MissingMirrors[0])
-		}
+		require.Equal(t, cryptoutilSharedMagic.OTLPServiceSMIM, result.MissingMirrors[0])
 	})
 
 	t.Run("matching config directory passes", func(t *testing.T) {
@@ -223,13 +196,9 @@ func TestValidateStructuralMirror(t *testing.T) {
 		createTestDir(t, configsDir, "sm")
 
 		result, err := ValidateStructuralMirror(deploymentsDir, configsDir)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+		require.NoError(t, err)
 
-		if !result.Valid {
-			t.Errorf("expected valid, got errors: %v, missing: %v", result.Errors, result.MissingMirrors)
-		}
+		require.True(t, result.Valid, "expected valid, got errors: %v, missing: %v", result.Errors, result.MissingMirrors)
 	})
 
 	t.Run("orphaned config directory warns", func(t *testing.T) {
@@ -245,21 +214,15 @@ func TestValidateStructuralMirror(t *testing.T) {
 		createTestDir(t, configsDir, "orphaned-service")
 
 		result, err := ValidateStructuralMirror(deploymentsDir, configsDir)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+		require.NoError(t, err)
 
 		if !result.Valid {
 			t.Error("orphaned configs should not invalidate result")
 		}
 
-		if len(result.Orphans) != 1 {
-			t.Fatalf("expected 1 orphan, got %d", len(result.Orphans))
-		}
+		require.Len(t, result.Orphans, 1)
 
-		if result.Orphans[0] != "orphaned-service" {
-			t.Errorf("expected orphan 'orphaned-service', got %q", result.Orphans[0])
-		}
+		require.Equal(t, "orphaned-service", result.Orphans[0])
 	})
 
 	t.Run("deduplication of config names", func(t *testing.T) {
@@ -277,17 +240,11 @@ func TestValidateStructuralMirror(t *testing.T) {
 		createTestDir(t, configsDir, cryptoutilSharedMagic.IdentityProductName)
 
 		result, err := ValidateStructuralMirror(deploymentsDir, configsDir)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+		require.NoError(t, err)
 
-		if !result.Valid {
-			t.Errorf("expected valid when both product and service map to same config, errors: %v, missing: %v", result.Errors, result.MissingMirrors)
-		}
+		require.True(t, result.Valid, "expected valid when both product and service map to same config, errors: %v, missing: %v", result.Errors, result.MissingMirrors)
 
-		if len(result.MissingMirrors) != 0 {
-			t.Errorf("expected 0 missing, got %d: %v", len(result.MissingMirrors), result.MissingMirrors)
-		}
+		require.Empty(t, result.MissingMirrors)
 	})
 
 	t.Run("explicit mapping pki to ca", func(t *testing.T) {
@@ -303,13 +260,9 @@ func TestValidateStructuralMirror(t *testing.T) {
 		createTestDir(t, configsDir, "ca")
 
 		result, err := ValidateStructuralMirror(deploymentsDir, configsDir)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+		require.NoError(t, err)
 
-		if !result.Valid {
-			t.Errorf("expected valid for pki-ca -> ca mapping, errors: %v, missing: %v", result.Errors, result.MissingMirrors)
-		}
+		require.True(t, result.Valid, "expected valid for pki-ca -> ca mapping, errors: %v, missing: %v", result.Errors, result.MissingMirrors)
 	})
 
 	t.Run("warnings for orphaned configs", func(t *testing.T) {
@@ -325,13 +278,9 @@ func TestValidateStructuralMirror(t *testing.T) {
 		createTestDir(t, configsDir, "orphan2")
 
 		result, err := ValidateStructuralMirror(deploymentsDir, configsDir)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+		require.NoError(t, err)
 
-		if len(result.Warnings) < 2 {
-			t.Errorf("expected at least 2 warnings, got %d", len(result.Warnings))
-		}
+		require.GreaterOrEqual(t, len(result.Warnings), 2)
 	})
 }
 
@@ -350,11 +299,11 @@ func TestFormatMirrorResult(t *testing.T) {
 
 		output := FormatMirrorResult(result)
 
-		assert.Contains(t, output, cryptoutilSharedMagic.TestStatusPass)
-		assert.Contains(t, output, "Excluded (1)")
-		assert.Contains(t, output, "shared-postgres")
-		assert.NotContains(t, output, "Errors")
-		assert.NotContains(t, output, "Warnings")
+		require.Contains(t, output, cryptoutilSharedMagic.TestStatusPass)
+		require.Contains(t, output, "Excluded (1)")
+		require.Contains(t, output, "shared-postgres")
+		require.NotContains(t, output, "Errors")
+		require.NotContains(t, output, "Warnings")
 	})
 
 	t.Run("invalid result with all sections", func(t *testing.T) {
@@ -371,15 +320,15 @@ func TestFormatMirrorResult(t *testing.T) {
 
 		output := FormatMirrorResult(result)
 
-		assert.Contains(t, output, cryptoutilSharedMagic.TestStatusFail)
-		assert.Contains(t, output, "Excluded (1)")
-		assert.Contains(t, output, "template")
-		assert.Contains(t, output, "Errors (1)")
-		assert.Contains(t, output, "some error")
-		assert.Contains(t, output, "Warnings (1)")
-		assert.Contains(t, output, "orphaned: orphan1")
-		assert.Contains(t, output, "missing=2")
-		assert.Contains(t, output, "orphans=1")
+		require.Contains(t, output, cryptoutilSharedMagic.TestStatusFail)
+		require.Contains(t, output, "Excluded (1)")
+		require.Contains(t, output, "template")
+		require.Contains(t, output, "Errors (1)")
+		require.Contains(t, output, "some error")
+		require.Contains(t, output, "Warnings (1)")
+		require.Contains(t, output, "orphaned: orphan1")
+		require.Contains(t, output, "missing=2")
+		require.Contains(t, output, "orphans=1")
 	})
 
 	t.Run("empty result no optional sections", func(t *testing.T) {
@@ -391,10 +340,10 @@ func TestFormatMirrorResult(t *testing.T) {
 
 		output := FormatMirrorResult(result)
 
-		assert.Contains(t, output, cryptoutilSharedMagic.TestStatusPass)
-		assert.NotContains(t, output, "Excluded")
-		assert.NotContains(t, output, "Errors")
-		assert.NotContains(t, output, "Warnings")
+		require.Contains(t, output, cryptoutilSharedMagic.TestStatusPass)
+		require.NotContains(t, output, "Excluded")
+		require.NotContains(t, output, "Errors")
+		require.NotContains(t, output, "Warnings")
 	})
 }
 
@@ -419,9 +368,9 @@ func TestValidateStructuralMirror_ExcludedWithConfigs(t *testing.T) {
 
 	result, err := ValidateStructuralMirror(deploymentsDir, configsDir)
 	require.NoError(t, err)
-	assert.True(t, result.Valid)
-	assert.Len(t, result.Excluded, 1, "shared-postgres should be excluded")
-	assert.Len(t, result.Orphans, 1, "orphaned config should be reported")
+	require.True(t, result.Valid)
+	require.Len(t, result.Excluded, 1, "shared-postgres should be excluded")
+	require.Len(t, result.Orphans, 1, "orphaned config should be reported")
 }
 
 // TestValidateStructuralMirror_MatchedAndOrphaned verifies orphan detection correctly
@@ -447,10 +396,10 @@ func TestValidateStructuralMirror_MatchedAndOrphaned(t *testing.T) {
 	require.NoError(t, err)
 
 	// sm should NOT be in orphans (it matches sm-im).
-	assert.NotContains(t, result.Orphans, "sm", "matched config should not be orphaned")
+	require.NotContains(t, result.Orphans, "sm", "matched config should not be orphaned")
 	// orphan-svc should be in orphans.
-	assert.Contains(t, result.Orphans, "orphan-svc", "unmatched config should be orphaned")
-	assert.Len(t, result.Orphans, 1, "only unmatched config should be orphaned")
+	require.Contains(t, result.Orphans, "orphan-svc", "unmatched config should be orphaned")
+	require.Len(t, result.Orphans, 1, "only unmatched config should be orphaned")
 }
 
 // TestValidateStructuralMirror_UnreadableDeployments tests error when deployment dirs unreadable.
@@ -473,7 +422,7 @@ func TestValidateStructuralMirror_UnreadableDeployments(t *testing.T) {
 
 	_, err := ValidateStructuralMirror(deploymentsDir, configsDir)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to list deployment directories")
+	require.Contains(t, err.Error(), "failed to list deployment directories")
 }
 
 // TestValidateStructuralMirror_UnreadableConfigs tests error when config dirs unreadable.
@@ -496,5 +445,5 @@ func TestValidateStructuralMirror_UnreadableConfigs(t *testing.T) {
 
 	_, err := ValidateStructuralMirror(deploymentsDir, configsDir)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to list config directories")
+	require.Contains(t, err.Error(), "failed to list config directories")
 }

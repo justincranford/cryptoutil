@@ -8,6 +8,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
+	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	joseJws "github.com/lestrrat-go/jwx/v3/jws"
@@ -278,7 +279,7 @@ func TestLogJWSInfo_ExoticHeaders(t *testing.T) {
 	// Build a JWS with exotic headers set to cover optional header branches.
 	headers := joseJws.NewHeaders()
 	require.NoError(t, headers.Set(joseJwk.AlgorithmKey, joseJwa.HS256()))
-	require.NoError(t, headers.Set(joseJwk.KeyIDKey, "019c0000-0000-7000-8000-000000000001"))
+	require.NoError(t, headers.Set(joseJwk.KeyIDKey, googleUuid.Must(googleUuid.NewV7()).String()))
 	require.NoError(t, headers.Set("typ", "JWT"))
 	require.NoError(t, headers.Set("cty", "jwt"))
 	require.NoError(t, headers.Set("jku", "https://example.com/.well-known/jwks.json"))

@@ -7,7 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	. "cryptoutil/internal/cmd/cicd/lint_deployments"
@@ -74,7 +73,7 @@ func TestValidateAllDeployments(t *testing.T) {
 			results, err := ValidateAllDeployments(tmpDir)
 			require.NoError(t, err)
 
-			assert.Len(t, results, tc.wantCount, "deployment count mismatch")
+			require.Len(t, results, tc.wantCount, "deployment count mismatch")
 
 			validCount := 0
 
@@ -84,7 +83,7 @@ func TestValidateAllDeployments(t *testing.T) {
 				}
 			}
 
-			assert.Equal(t, tc.wantValid, validCount, "valid count mismatch")
+			require.Equal(t, tc.wantValid, validCount, "valid count mismatch")
 		})
 	}
 }
@@ -156,18 +155,18 @@ func TestFormatResults(t *testing.T) {
 			output := FormatResults(tc.results)
 
 			for _, expected := range tc.contains {
-				assert.Contains(t, output, expected, "output should contain: %s", expected)
+				require.Contains(t, output, expected, "output should contain: %s", expected)
 			}
 
 			for _, unexpected := range tc.notContains {
-				assert.NotContains(t, output, unexpected, "output should not contain: %s", unexpected)
+				require.NotContains(t, output, unexpected, "output should not contain: %s", unexpected)
 			}
 
 			// Verify sort order: invalid results should appear before valid ones.
 			if tc.name == "mixed valid and invalid sorted correctly" {
 				invalidIdx := strings.Index(output, "❌ INVALID")
 				validIdx := strings.Index(output, "✅ VALID")
-				assert.Greater(t, validIdx, invalidIdx, "invalid results should appear before valid results in output")
+				require.Greater(t, validIdx, invalidIdx, "invalid results should appear before valid results in output")
 			}
 		})
 	}
@@ -179,26 +178,26 @@ func TestGetExpectedStructures(t *testing.T) {
 	structures := GetExpectedStructures()
 
 	// Verify all expected structure types exist.
-	assert.Contains(t, structures, "PRODUCT-SERVICE")
-	assert.Contains(t, structures, "template")
-	assert.Contains(t, structures, "infrastructure")
+	require.Contains(t, structures, "PRODUCT-SERVICE")
+	require.Contains(t, structures, "template")
+	require.Contains(t, structures, "infrastructure")
 
 	// Verify PRODUCT-SERVICE has correct requirements.
 	ps := structures["PRODUCT-SERVICE"]
-	assert.ElementsMatch(t, []string{"secrets", "config"}, ps.RequiredDirs)
-	assert.ElementsMatch(t, []string{"compose.yml", "Dockerfile"}, ps.RequiredFiles)
-	assert.Len(t, ps.RequiredSecrets, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, "PRODUCT-SERVICE should require 10 secrets")
+	require.ElementsMatch(t, []string{"secrets", "config"}, ps.RequiredDirs)
+	require.ElementsMatch(t, []string{"compose.yml", "Dockerfile"}, ps.RequiredFiles)
+	require.Len(t, ps.RequiredSecrets, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, "PRODUCT-SERVICE should require 10 secrets")
 
 	// Verify template has correct requirements.
 	tmpl := structures["template"]
-	assert.ElementsMatch(t, []string{"secrets"}, tmpl.RequiredDirs)
-	assert.ElementsMatch(t, []string{"compose.yml"}, tmpl.RequiredFiles)
+	require.ElementsMatch(t, []string{"secrets"}, tmpl.RequiredDirs)
+	require.ElementsMatch(t, []string{"compose.yml"}, tmpl.RequiredFiles)
 
 	// Verify infrastructure has minimal requirements.
 	infra := structures["infrastructure"]
-	assert.Empty(t, infra.RequiredDirs)
-	assert.ElementsMatch(t, []string{"compose.yml"}, infra.RequiredFiles)
-	assert.Empty(t, infra.RequiredSecrets)
+	require.Empty(t, infra.RequiredDirs)
+	require.ElementsMatch(t, []string{"compose.yml"}, infra.RequiredFiles)
+	require.Empty(t, infra.RequiredSecrets)
 }
 
 // joinErrors concatenates error strings for assertion convenience.
@@ -225,7 +224,7 @@ func TestValidateAllDeployments_WithInfrastructure(t *testing.T) {
 	results, err := ValidateAllDeployments(tmpDir)
 	require.NoError(t, err)
 	require.Len(t, results, 1)
-	assert.True(t, results[0].Valid, "infrastructure deployment should be valid")
+	require.True(t, results[0].Valid, "infrastructure deployment should be valid")
 }
 
 func TestValidateConfigFiles_DirectoryEntry(t *testing.T) {
@@ -240,8 +239,8 @@ func TestValidateConfigFiles_DirectoryEntry(t *testing.T) {
 
 	result, err := ValidateDeploymentStructure(tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS, "PRODUCT-SERVICE")
 	require.NoError(t, err)
-	assert.True(t, result.Valid, "subdirectory in config/ should be ignored")
-	assert.Empty(t, result.Errors, "no errors expected for config subdirectory")
+	require.True(t, result.Valid, "subdirectory in config/ should be ignored")
+	require.Empty(t, result.Errors, "no errors expected for config subdirectory")
 }
 
 func TestMain_ValidDeployments(t *testing.T) {
@@ -255,7 +254,7 @@ func TestMain_ValidDeployments(t *testing.T) {
 	createValidProductServiceDeployment(t, svcDir, cryptoutilSharedMagic.OTLPServiceJoseJA)
 
 	exitCode := Main([]string{tmpDir})
-	assert.Equal(t, 0, exitCode, "should exit 0 for valid deployments")
+	require.Equal(t, 0, exitCode, "should exit 0 for valid deployments")
 }
 
 func TestMain_InvalidDeployments(t *testing.T) {
@@ -269,14 +268,14 @@ func TestMain_InvalidDeployments(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(svcDir, "compose.yml"), []byte("version: '3'"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	exitCode := Main([]string{tmpDir})
-	assert.Equal(t, 1, exitCode, "should exit 1 for invalid deployments")
+	require.Equal(t, 1, exitCode, "should exit 1 for invalid deployments")
 }
 
 func TestMain_NonexistentDirectory(t *testing.T) {
 	t.Parallel()
 
 	exitCode := Main([]string{"/nonexistent/path/that/does/not/exist"})
-	assert.Equal(t, 1, exitCode, "should exit 1 for nonexistent directory")
+	require.Equal(t, 1, exitCode, "should exit 1 for nonexistent directory")
 }
 
 func TestMain_DefaultDirectory(t *testing.T) {
@@ -287,7 +286,7 @@ func TestMain_DefaultDirectory(t *testing.T) {
 	// If "deployments" dir doesn't exist from CWD, it returns 1.
 	// If it does exist (running from project root), it returns 0 or 1 depending on state.
 	// Either way, it exercises the default directory path.
-	assert.Contains(t, []int{0, 1}, exitCode)
+	require.Contains(t, []int{0, 1}, exitCode)
 }
 
 func TestMain_EmptyArg(t *testing.T) {
@@ -295,5 +294,5 @@ func TestMain_EmptyArg(t *testing.T) {
 
 	// Empty string arg should use default "deployments" directory.
 	exitCode := Main([]string{""})
-	assert.Contains(t, []int{0, 1}, exitCode)
+	require.Contains(t, []int{0, 1}, exitCode)
 }

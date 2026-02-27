@@ -170,13 +170,9 @@ func writeGoFile(t *testing.T, dir, subPkg, name, content string) {
 t.Helper()
 
 pkgDir := filepath.Join(dir, subPkg)
-if err := os.MkdirAll(pkgDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute); err != nil {
-t.Fatalf("MkdirAll: %v", err)
-}
+require.NoError(t, os.MkdirAll(pkgDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
 
-if err := os.WriteFile(filepath.Join(pkgDir, name), []byte(content), cryptoutilSharedMagic.CacheFilePermissions); err != nil {
-t.Fatalf("WriteFile: %v", err)
-}
+require.NoError(t, os.WriteFile(filepath.Join(pkgDir, name), []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 }
 
 func TestCheckCrossFileDuplicatesInDir_NoDuplicates(t *testing.T) {
@@ -247,17 +243,13 @@ t.Parallel()
 rootDir := t.TempDir()
 magicDir := filepath.Join(rootDir, "shared", "magic")
 
-if err := os.MkdirAll(magicDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute); err != nil {
-t.Fatalf("MkdirAll: %v", err)
-}
+require.NoError(t, os.MkdirAll(magicDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
 
 // Constant in magic dir should not be reported.
-if err := os.WriteFile(filepath.Join(magicDir, "magic_net.go"), []byte(`package magic
+require.NoError(t, os.WriteFile(filepath.Join(magicDir, "magic_net.go"), []byte(`package magic
 
 const ProtoHTTPS = "https"
-`), cryptoutilSharedMagic.CacheFilePermissions); err != nil {
-t.Fatalf("WriteFile: %v", err)
-}
+`), cryptoutilSharedMagic.CacheFilePermissions))
 
 // Same value in a non-magic file.
 writeGoFile(t, rootDir, "pkg/a", "a.go", `package a

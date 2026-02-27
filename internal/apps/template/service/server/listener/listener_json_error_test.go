@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	fiber "github.com/gofiber/fiber/v2"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
@@ -122,7 +121,7 @@ func TestAdminServer_HealthEndpoints_JSONSerializationErrors(t *testing.T) {
 
 			defer func() { require.NoError(t, resp.Body.Close()) }()
 
-			assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+			require.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 		})
 	}
 }
@@ -185,7 +184,7 @@ func TestPublicHTTPServer_HealthEndpoints_JSONSerializationErrors(t *testing.T) 
 
 			defer func() { require.NoError(t, resp.Body.Close()) }()
 
-			assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+			require.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 		})
 	}
 }

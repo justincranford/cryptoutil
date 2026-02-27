@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -39,9 +38,7 @@ func TestClassifyFileType(t *testing.T) {
 			t.Parallel()
 
 			got := classifyFileType(tc.filename)
-			if got != tc.want {
-				t.Errorf("classifyFileType(%q) = %q, want %q", tc.filename, got, tc.want)
-			}
+				require.Equal(t, tc.want, got, "classifyFileType(%q)", tc.filename)
 		})
 	}
 }
@@ -67,9 +64,7 @@ func TestClassifyFileStatus(t *testing.T) {
 			t.Parallel()
 
 			got := classifyFileStatus(tc.relPath)
-			if got != tc.want {
-				t.Errorf("classifyFileStatus(%q) = %q, want %q", tc.relPath, got, tc.want)
-			}
+				require.Equal(t, tc.want, got, "classifyFileStatus(%q)", tc.relPath)
 		})
 	}
 }
@@ -81,9 +76,7 @@ func TestGenerateDirectoryListing(t *testing.T) {
 		t.Parallel()
 
 		_, err := GenerateDirectoryListing("/nonexistent/path")
-		if err == nil {
-			t.Error("expected error for nonexistent directory")
-		}
+		require.Error(t, err, "expected error for nonexistent directory")
 	})
 
 	t.Run("empty directory", func(t *testing.T) {
@@ -92,13 +85,9 @@ func TestGenerateDirectoryListing(t *testing.T) {
 		tmpDir := t.TempDir()
 
 		listing, err := GenerateDirectoryListing(tmpDir)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+		require.NoError(t, err)
 
-		if len(listing) != 0 {
-			t.Errorf("expected empty listing, got %d entries", len(listing))
-		}
+		require.Empty(t, listing)
 	})
 
 	t.Run("directory with files", func(t *testing.T) {
@@ -115,43 +104,35 @@ func TestGenerateDirectoryListing(t *testing.T) {
 		createTestFile(t, tmpDir, "config/app.yml", "")
 
 		listing, err := GenerateDirectoryListing(tmpDir)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+		require.NoError(t, err)
 
-		if len(listing) != 4 {
-			t.Errorf("expected 4 entries, got %d", len(listing))
-		}
+		require.Len(t, listing, 4)
 
 		// Verify compose.yml classification.
 		entry, ok := listing["compose.yml"]
 		if !ok {
 			t.Error("missing compose.yml in listing")
 		} else {
-			if entry.Type != fileTypeCompose {
-				t.Errorf("compose.yml type = %q, want %s", entry.Type, fileTypeCompose)
-			}
+			require.Equal(t, fileTypeCompose, entry.Type)
 
-			if entry.Status != RequiredFileStatus {
-				t.Errorf("compose.yml status = %q, want %s", entry.Status, RequiredFileStatus)
-			}
+			require.Equal(t, RequiredFileStatus, entry.Status)
 		}
 
 		// Verify Dockerfile classification.
 		entry, ok = listing["Dockerfile"]
 		if !ok {
 			t.Error("missing Dockerfile in listing")
-		} else if entry.Type != fileTypeDocker {
-			t.Errorf("Dockerfile type = %q, want %s", entry.Type, fileTypeDocker)
-		}
+			} else {
+				require.Equal(t, fileTypeDocker, entry.Type)
+			}
 
 		// Verify secret classification.
 		entry, ok = listing["secrets/db.secret"]
 		if !ok {
 			t.Error("missing secrets/db.secret in listing")
-		} else if entry.Type != fileTypeSecret {
-			t.Errorf("secret type = %q, want %s", entry.Type, fileTypeSecret)
-		}
+} else {
+				require.Equal(t, fileTypeSecret, entry.Type)
+			}
 	})
 
 	t.Run("skips generated listing files", func(t *testing.T) {
@@ -162,17 +143,13 @@ func TestGenerateDirectoryListing(t *testing.T) {
 		createTestFile(t, tmpDir, "deployments-all-files.json", "{}")
 
 		listing, err := GenerateDirectoryListing(tmpDir)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+		require.NoError(t, err)
 
 		if _, ok := listing["deployments-all-files.json"]; ok {
 			t.Error("generated listing file should be skipped")
 		}
 
-		if len(listing) != 1 {
-			t.Errorf("expected 1 entry, got %d", len(listing))
-		}
+		require.Len(t, listing, 1)
 	})
 }
 
@@ -188,28 +165,20 @@ func TestGenerateDeploymentsListing(t *testing.T) {
 		createTestFile(t, tmpDir, "secrets/db.secret", "")
 
 		data, err := GenerateDeploymentsListing(tmpDir)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+		require.NoError(t, err)
 
 		// Verify valid JSON.
 		var result map[string]json.RawMessage
-		if jsonErr := json.Unmarshal(data, &result); jsonErr != nil {
-			t.Fatalf("invalid JSON output: %v", jsonErr)
-		}
+		require.NoError(t, json.Unmarshal(data, &result), "invalid JSON output")
 
-		if len(result) != 2 {
-			t.Errorf("expected 2 entries, got %d", len(result))
-		}
+		require.Len(t, result, 2)
 	})
 
 	t.Run("nonexistent directory", func(t *testing.T) {
 		t.Parallel()
 
 		_, err := GenerateDeploymentsListing("/nonexistent")
-		if err == nil {
-			t.Error("expected error for nonexistent directory")
-		}
+		require.Error(t, err, "expected error for nonexistent directory")
 	})
 }
 
@@ -223,14 +192,10 @@ func TestGenerateConfigsListing(t *testing.T) {
 		createTestFile(t, tmpDir, "app.yml", "")
 
 		data, err := GenerateConfigsListing(tmpDir)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+		require.NoError(t, err)
 
 		var result map[string]json.RawMessage
-		if jsonErr := json.Unmarshal(data, &result); jsonErr != nil {
-			t.Fatalf("invalid JSON output: %v", jsonErr)
-		}
+		require.NoError(t, json.Unmarshal(data, &result), "invalid JSON output")
 	})
 }
 
@@ -243,19 +208,13 @@ func TestMarshalListing(t *testing.T) {
 		listing := make(DirectoryListing)
 
 		data, err := marshalListing(listing)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+		require.NoError(t, err)
 
 		// Verify empty JSON object.
 		var result map[string]json.RawMessage
-		if jsonErr := json.Unmarshal(data, &result); jsonErr != nil {
-			t.Fatalf("invalid JSON: %v", jsonErr)
-		}
+		require.NoError(t, json.Unmarshal(data, &result), "invalid JSON")
 
-		if len(result) != 0 {
-			t.Errorf("expected empty map, got %d entries", len(result))
-		}
+		require.Empty(t, result)
 	})
 
 	t.Run("sorted output", func(t *testing.T) {
@@ -268,9 +227,7 @@ func TestMarshalListing(t *testing.T) {
 		}
 
 		data, err := marshalListing(listing)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+		require.NoError(t, err)
 
 		// Verify "a/" appears before "m/" and "m/" before "z/".
 		output := string(data)
@@ -292,11 +249,9 @@ func TestMarshalListing(t *testing.T) {
 			}
 		}
 
-		if aIdx >= mIdx || mIdx >= zIdx {
-			t.Errorf("keys not sorted: a=%d m=%d z=%d", aIdx, mIdx, zIdx)
-		}
-	})
-}
+			require.True(t, aIdx < mIdx && mIdx < zIdx, "keys not sorted: a=%d m=%d z=%d", aIdx, mIdx, zIdx)
+		})
+	}
 
 func TestWriteListingFile(t *testing.T) {
 	t.Parallel()
@@ -310,29 +265,21 @@ func TestWriteListingFile(t *testing.T) {
 		outputPath := filepath.Join(tmpDir, "listing.json")
 
 		err := WriteListingFile(tmpDir, outputPath)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+		require.NoError(t, err)
 
 		// Read and verify.
 		data, readErr := os.ReadFile(outputPath)
-		if readErr != nil {
-			t.Fatalf("failed to read output file: %v", readErr)
-		}
+		require.NoError(t, readErr, "failed to read output file")
 
 		var result map[string]json.RawMessage
-		if jsonErr := json.Unmarshal(data, &result); jsonErr != nil {
-			t.Fatalf("invalid JSON: %v", jsonErr)
-		}
+		require.NoError(t, json.Unmarshal(data, &result), "invalid JSON")
 	})
 
 	t.Run("nonexistent base directory", func(t *testing.T) {
 		t.Parallel()
 
 		err := WriteListingFile("/nonexistent", "/tmp/output.json")
-		if err == nil {
-			t.Error("expected error for nonexistent directory")
-		}
+		require.Error(t, err, "expected error for nonexistent directory")
 	})
 }
 
@@ -344,11 +291,11 @@ func createTestFile(t *testing.T, dir string, name string, content string) {
 
 	dirPath := filepath.Dir(path)
 	if err := os.MkdirAll(dirPath, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute); err != nil {
-		t.Fatalf("failed to create directory %s: %v", dirPath, err)
+		require.NoError(t, err, "failed to create directory %s", dirPath)
 	}
 
 	if err := os.WriteFile(path, []byte(content), cryptoutilSharedMagic.CacheFilePermissions); err != nil {
-		t.Fatalf("failed to create file %s: %v", path, err)
+		require.NoError(t, err, "failed to create file %s", path)
 	}
 }
 
@@ -358,7 +305,7 @@ func createTestDir(t *testing.T, dir string, name string) {
 
 	path := filepath.Join(dir, name)
 	if err := os.MkdirAll(path, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute); err != nil {
-		t.Fatalf("failed to create directory %s: %v", path, err)
+		require.NoError(t, err, "failed to create directory %s", path)
 	}
 }
 
@@ -368,7 +315,7 @@ func TestGenerateConfigsListing_Error(t *testing.T) {
 
 	_, err := GenerateConfigsListing("/nonexistent-configs-dir-xyz")
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to generate configs listing")
+	require.Contains(t, err.Error(), "failed to generate configs listing")
 }
 
 // TestWriteListingFile_WriteError tests write failure in WriteListingFile.
@@ -384,7 +331,7 @@ func TestWriteListingFile_WriteError(t *testing.T) {
 	badOutput := filepath.Join("/nonexistent-dir-xyz", "output.json")
 	err := WriteListingFile(tmpDir, badOutput)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to write listing file")
+	require.Contains(t, err.Error(), "failed to write listing file")
 }
 
 // TestGenerateDirectoryListing_WalkError tests walk error in GenerateDirectoryListing.
@@ -408,5 +355,5 @@ func TestGenerateDirectoryListing_WalkError(t *testing.T) {
 
 	_, err := GenerateDirectoryListing(tmpDir)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to walk directory")
+	require.Contains(t, err.Error(), "failed to walk directory")
 }

@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	. "cryptoutil/internal/cmd/cicd/lint_deployments"
@@ -92,19 +91,19 @@ database-url: "file:///run/secrets/db_url"
 	err = WriteListingFile(configsDir, configsOutput)
 	require.NoError(t, err, "generate configs listing")
 
-	assert.FileExists(t, deploymentsOutput)
-	assert.FileExists(t, configsOutput)
+	require.FileExists(t, deploymentsOutput)
+	require.FileExists(t, configsOutput)
 
 	// Step 2: Validate mirror.
 	mirrorResult, err := ValidateStructuralMirror(deploymentsDir, configsDir)
 	require.NoError(t, err, "validate mirror")
-	assert.True(t, mirrorResult.Valid, "mirror should be valid: %v", mirrorResult.Errors)
+	require.True(t, mirrorResult.Valid, "mirror should be valid: %v", mirrorResult.Errors)
 
 	// Step 3: Validate compose.
 	composePath := filepath.Join(svcDeployDir, "compose.yml")
 	composeResult, err := ValidateComposeFile(composePath)
 	require.NoError(t, err, "validate compose")
-	assert.True(t, composeResult.Valid,
+	require.True(t, composeResult.Valid,
 		"compose should be valid: errors=%v warnings=%v",
 		composeResult.Errors, composeResult.Warnings)
 
@@ -112,7 +111,7 @@ database-url: "file:///run/secrets/db_url"
 	configPath := filepath.Join(svcConfigDir, "config", "config.yml")
 	configResult, err := ValidateConfigFile(configPath)
 	require.NoError(t, err, "validate config")
-	assert.True(t, configResult.Valid,
+	require.True(t, configResult.Valid,
 		"config should be valid: errors=%v warnings=%v",
 		configResult.Errors, configResult.Warnings)
 }
@@ -139,7 +138,7 @@ func TestIntegrationFullPipeline_DetectsErrors(t *testing.T) {
 
 		result, err := ValidateComposeFile(composePath)
 		require.NoError(t, err)
-		assert.False(t, result.Valid, "should detect hardcoded credentials")
+		require.False(t, result.Valid, "should detect hardcoded credentials")
 	})
 
 	t.Run("config errors detected", func(t *testing.T) {
@@ -156,8 +155,8 @@ database-url: "postgres://user:pass@db:5432/mydb"
 
 		result, err := ValidateConfigFile(configPath)
 		require.NoError(t, err)
-		assert.False(t, result.Valid, "should detect config violations")
-		assert.GreaterOrEqual(t, len(result.Errors), 3,
+		require.False(t, result.Valid, "should detect config violations")
+		require.GreaterOrEqual(t, len(result.Errors), 3,
 			"should have at least 3 errors (protocol, admin, db)")
 	})
 
@@ -178,7 +177,7 @@ database-url: "postgres://user:pass@db:5432/mydb"
 		result, err := ValidateStructuralMirror(deploymentsDir, configsDir)
 		require.NoError(t, err)
 		// Missing config dir for deployment should generate warning or error.
-		assert.True(t, len(result.Warnings) > 0 || len(result.Errors) > 0,
+		require.True(t, len(result.Warnings) > 0 || len(result.Errors) > 0,
 			"should detect missing config mirror")
 	})
 }

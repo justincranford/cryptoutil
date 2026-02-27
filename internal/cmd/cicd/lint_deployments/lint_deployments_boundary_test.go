@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -51,7 +50,7 @@ func TestValidatePorts_ExactBoundaryPorts(t *testing.T) {
 			result, err := ValidatePorts(dir, "test-svc", tc.level)
 			require.NoError(t, err)
 			require.NotNil(t, result)
-			assert.Equal(t, tc.valid, result.Valid, "port %d in %s range", tc.port, tc.level)
+			require.Equal(t, tc.valid, result.Valid, "port %d in %s range", tc.port, tc.level)
 		})
 	}
 }
@@ -81,7 +80,7 @@ func TestValidateConfigPortValue_ExactBoundary(t *testing.T) {
 			result := &PortValidationResult{Valid: true}
 
 			validateConfigPortValue(config, "/fake/config.yml", "test-svc", tc.level, result)
-			assert.Equal(t, tc.valid, result.Valid, "config port %d in %s range", tc.port, tc.level)
+			require.Equal(t, tc.valid, result.Valid, "config port %d in %s range", tc.port, tc.level)
 		})
 	}
 }
@@ -132,7 +131,7 @@ func TestCheckOTLPProtocolOverride_LineNumber(t *testing.T) {
 			checkOTLPProtocolOverride(dir, "test-svc", DeploymentTypeProductService, result)
 
 			if tc.wantNoWarnings {
-				assert.Empty(t, result.Warnings)
+				require.Empty(t, result.Warnings)
 
 				return
 			}
@@ -140,7 +139,7 @@ func TestCheckOTLPProtocolOverride_LineNumber(t *testing.T) {
 			require.Len(t, result.Warnings, 1)
 
 			expectedLineRef := fmt.Sprintf("config-test.yml:%d:", tc.wantLine)
-			assert.Contains(t, result.Warnings[0], expectedLineRef,
+			require.Contains(t, result.Warnings[0], expectedLineRef,
 				"warning should reference exact line %d", tc.wantLine)
 		})
 	}
@@ -164,16 +163,16 @@ func TestFormatResults_SortOrderBoundary(t *testing.T) {
 	// All invalid items must appear before all valid items.
 	firstValid := strings.Index(output, "a-valid")
 	lastInvalid := strings.LastIndex(output, "z-invalid")
-	assert.Greater(t, firstValid, lastInvalid, "all invalid items must come before all valid items")
+	require.Greater(t, firstValid, lastInvalid, "all invalid items must come before all valid items")
 
 	// Within each group, items should be sorted alphabetically by path.
 	mInvalidIdx := strings.Index(output, "m-invalid")
 	zInvalidIdx := strings.Index(output, "z-invalid")
-	assert.Less(t, mInvalidIdx, zInvalidIdx, "invalid items should be sorted by path")
+	require.Less(t, mInvalidIdx, zInvalidIdx, "invalid items should be sorted by path")
 
 	aValidIdx := strings.Index(output, "a-valid")
 	bValidIdx := strings.Index(output, "b-valid")
-	assert.Less(t, aValidIdx, bValidIdx, "valid items should be sorted by path")
+	require.Less(t, aValidIdx, bValidIdx, "valid items should be sorted by path")
 }
 
 // TestFormatResults_EmptySlicesSectionsOmitted verifies that empty MissingDirs
@@ -197,9 +196,9 @@ func TestFormatResults_EmptySlicesSectionsOmitted(t *testing.T) {
 
 	output := FormatResults(results)
 
-	assert.NotContains(t, output, "Missing directories")
-	assert.NotContains(t, output, "Missing files")
-	assert.NotContains(t, output, "Missing secrets")
-	assert.NotContains(t, output, "ERROR:")
-	assert.NotContains(t, output, "WARN:")
+	require.NotContains(t, output, "Missing directories")
+	require.NotContains(t, output, "Missing files")
+	require.NotContains(t, output, "Missing secrets")
+	require.NotContains(t, output, "ERROR:")
+	require.NotContains(t, output, "WARN:")
 }

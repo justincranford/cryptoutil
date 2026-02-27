@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	fiber "github.com/gofiber/fiber/v2"
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
 
@@ -82,12 +83,13 @@ func TestRegisterSwaggerUI_AuthNoHeader(t *testing.T) {
 	t.Parallel()
 
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	password := googleUuid.Must(googleUuid.NewV7()).String()
 	err := RegisterSwaggerUI(app, &SwaggerUIConfig{
 		OpenAPISpecJSON:       []byte(`{"openapi":"3.0.3"}`),
 		BrowserAPIContextPath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
 		CSRFTokenName:         "csrf_token",
 		Username:              "admin",
-		Password:              "secret",
+		Password:              password,
 	})
 	require.NoError(t, err)
 
@@ -103,12 +105,13 @@ func TestRegisterSwaggerUI_AuthInvalidMethod(t *testing.T) {
 	t.Parallel()
 
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	password := googleUuid.Must(googleUuid.NewV7()).String()
 	err := RegisterSwaggerUI(app, &SwaggerUIConfig{
 		OpenAPISpecJSON:       []byte(`{"openapi":"3.0.3"}`),
 		BrowserAPIContextPath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
 		CSRFTokenName:         "csrf_token",
 		Username:              "admin",
-		Password:              "secret",
+		Password:              password,
 	})
 	require.NoError(t, err)
 
@@ -124,12 +127,13 @@ func TestRegisterSwaggerUI_AuthInvalidBase64(t *testing.T) {
 	t.Parallel()
 
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	password := googleUuid.Must(googleUuid.NewV7()).String()
 	err := RegisterSwaggerUI(app, &SwaggerUIConfig{
 		OpenAPISpecJSON:       []byte(`{"openapi":"3.0.3"}`),
 		BrowserAPIContextPath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
 		CSRFTokenName:         "csrf_token",
 		Username:              "admin",
-		Password:              "secret",
+		Password:              password,
 	})
 	require.NoError(t, err)
 
@@ -145,12 +149,13 @@ func TestRegisterSwaggerUI_AuthNoColon(t *testing.T) {
 	t.Parallel()
 
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	password := googleUuid.Must(googleUuid.NewV7()).String()
 	err := RegisterSwaggerUI(app, &SwaggerUIConfig{
 		OpenAPISpecJSON:       []byte(`{"openapi":"3.0.3"}`),
 		BrowserAPIContextPath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
 		CSRFTokenName:         "csrf_token",
 		Username:              "admin",
-		Password:              "secret",
+		Password:              password,
 	})
 	require.NoError(t, err)
 
@@ -168,12 +173,13 @@ func TestRegisterSwaggerUI_AuthWrongPassword(t *testing.T) {
 	t.Parallel()
 
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	password := googleUuid.Must(googleUuid.NewV7()).String()
 	err := RegisterSwaggerUI(app, &SwaggerUIConfig{
 		OpenAPISpecJSON:       []byte(`{"openapi":"3.0.3"}`),
 		BrowserAPIContextPath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
 		CSRFTokenName:         "csrf_token",
 		Username:              "admin",
-		Password:              "secret",
+		Password:              password,
 	})
 	require.NoError(t, err)
 
@@ -191,16 +197,17 @@ func TestRegisterSwaggerUI_AuthSuccess(t *testing.T) {
 
 	spec := []byte(`{"openapi":"3.0.3"}`)
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	password := googleUuid.Must(googleUuid.NewV7()).String()
 	err := RegisterSwaggerUI(app, &SwaggerUIConfig{
 		OpenAPISpecJSON:       spec,
 		BrowserAPIContextPath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
 		CSRFTokenName:         "csrf_token",
 		Username:              "admin",
-		Password:              "secret",
+		Password:              password,
 	})
 	require.NoError(t, err)
 
-	encoded := base64.StdEncoding.EncodeToString([]byte("admin:secret"))
+	encoded := base64.StdEncoding.EncodeToString([]byte("admin:" + password))
 	req := httptest.NewRequest("GET", "/ui/swagger/doc.json", nil)
 	req.Header.Set("Authorization", "Basic "+encoded)
 	resp, err := app.Test(req, -1)

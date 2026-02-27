@@ -5,8 +5,6 @@ import (
 "os"
 "path/filepath"
 "testing"
-
-"github.com/stretchr/testify/assert"
 "github.com/stretchr/testify/require"
 )
 
@@ -30,8 +28,8 @@ writeConfig(t, dir, "config-2.yml", map[string]string{
 result, err := ValidateTelemetry(dir)
 require.NoError(t, err)
 require.NotNil(t, result)
-assert.True(t, result.Valid)
-assert.Empty(t, result.Errors)
+require.True(t, result.Valid)
+require.Empty(t, result.Errors)
 }
 
 func TestValidateTelemetry_PathNotFound(t *testing.T) {
@@ -40,9 +38,9 @@ t.Parallel()
 result, err := ValidateTelemetry("/nonexistent/path")
 require.NoError(t, err)
 require.NotNil(t, result)
-assert.False(t, result.Valid)
-assert.Len(t, result.Errors, 1)
-assert.Contains(t, result.Errors[0], "not found")
+require.False(t, result.Valid)
+require.Len(t, result.Errors, 1)
+require.Contains(t, result.Errors[0], "not found")
 }
 
 func TestValidateTelemetry_PathIsFile(t *testing.T) {
@@ -54,8 +52,8 @@ require.NoError(t, os.WriteFile(f, []byte("test"), cryptoutilSharedMagic.CacheFi
 result, err := ValidateTelemetry(f)
 require.NoError(t, err)
 require.NotNil(t, result)
-assert.False(t, result.Valid)
-assert.Contains(t, result.Errors[0], "not a directory")
+require.False(t, result.Valid)
+require.Contains(t, result.Errors[0], "not a directory")
 }
 
 func TestValidateTelemetry_EmptyEndpoint(t *testing.T) {
@@ -69,8 +67,8 @@ writeConfig(t, dir, "config.yml", map[string]string{
 
 result, err := ValidateTelemetry(dir)
 require.NoError(t, err)
-assert.False(t, result.Valid)
-assert.Contains(t, result.Errors[0], "empty")
+require.False(t, result.Valid)
+require.Contains(t, result.Errors[0], "empty")
 }
 
 func TestValidateTelemetry_InvalidEndpointURL(t *testing.T) {
@@ -85,8 +83,8 @@ writeConfig(t, dir, "config.yml", map[string]string{
 
 result, err := ValidateTelemetry(dir)
 require.NoError(t, err)
-assert.False(t, result.Valid)
-assert.Contains(t, result.Errors[0], "invalid")
+require.False(t, result.Valid)
+require.Contains(t, result.Errors[0], "invalid")
 }
 
 func TestValidateTelemetry_EndpointMissingHost(t *testing.T) {
@@ -101,8 +99,8 @@ writeConfig(t, dir, "config.yml", map[string]string{
 
 result, err := ValidateTelemetry(dir)
 require.NoError(t, err)
-assert.False(t, result.Valid)
-assert.Contains(t, result.Errors[0], "missing host")
+require.False(t, result.Valid)
+require.Contains(t, result.Errors[0], "missing host")
 }
 
 func TestValidateTelemetry_EndpointMissingPort(t *testing.T) {
@@ -117,8 +115,8 @@ writeConfig(t, dir, "config.yml", map[string]string{
 
 result, err := ValidateTelemetry(dir)
 require.NoError(t, err)
-assert.True(t, result.Valid)
-assert.Contains(t, result.Warnings[0], "missing port")
+require.True(t, result.Valid)
+require.Contains(t, result.Warnings[0], "missing port")
 }
 
 func TestValidateTelemetry_UnusualScheme(t *testing.T) {
@@ -133,8 +131,8 @@ writeConfig(t, dir, "config.yml", map[string]string{
 
 result, err := ValidateTelemetry(dir)
 require.NoError(t, err)
-assert.True(t, result.Valid)
-assert.Contains(t, result.Warnings[0], "unusual scheme")
+require.True(t, result.Valid)
+require.Contains(t, result.Warnings[0], "unusual scheme")
 }
 
 func TestValidateTelemetry_AcceptedSchemes(t *testing.T) {
@@ -162,11 +160,11 @@ writeConfig(t, dir, "config.yml", map[string]string{
 
 result, err := ValidateTelemetry(dir)
 require.NoError(t, err)
-assert.True(t, result.Valid)
+require.True(t, result.Valid)
 
 // No "unusual scheme" warnings for accepted schemes.
 for _, w := range result.Warnings {
-assert.NotContains(t, w, "unusual scheme")
+require.NotContains(t, w, "unusual scheme")
 }
 })
 }
@@ -189,9 +187,9 @@ writeConfig(t, dir, "config-2.yml", map[string]string{
 
 result, err := ValidateTelemetry(dir)
 require.NoError(t, err)
-assert.True(t, result.Valid) // Duplicates are warnings, not errors.
-assert.NotEmpty(t, result.Warnings)
-assert.Contains(t, result.Warnings[0], "Duplicate otlp-service")
+require.True(t, result.Valid) // Duplicates are warnings, not errors.
+require.NotEmpty(t, result.Warnings)
+require.Contains(t, result.Warnings[0], "Duplicate otlp-service")
 }
 
 func TestValidateTelemetry_InconsistentEndpoints(t *testing.T) {
@@ -211,9 +209,9 @@ writeConfig(t, dir, "config-2.yml", map[string]string{
 
 result, err := ValidateTelemetry(dir)
 require.NoError(t, err)
-assert.True(t, result.Valid) // Inconsistency is a warning.
-assert.NotEmpty(t, result.Warnings)
-assert.Contains(t, result.Warnings[0], "Inconsistent")
+require.True(t, result.Valid) // Inconsistency is a warning.
+require.NotEmpty(t, result.Warnings)
+require.Contains(t, result.Warnings[0], "Inconsistent")
 }
 
 func TestValidateTelemetry_DisabledOTLP(t *testing.T) {
@@ -226,8 +224,8 @@ writeConfig(t, dir, "config.yml", map[string]string{
 
 result, err := ValidateTelemetry(dir)
 require.NoError(t, err)
-assert.True(t, result.Valid)
-assert.Empty(t, result.Errors)
+require.True(t, result.Valid)
+require.Empty(t, result.Errors)
 }
 
 func TestValidateTelemetry_NonBoolOTLP(t *testing.T) {
@@ -240,7 +238,7 @@ filepath.Join(dir, "config.yml"),
 
 result, err := ValidateTelemetry(dir)
 require.NoError(t, err)
-assert.True(t, result.Valid) // Non-bool otlp skipped entirely.
+require.True(t, result.Valid) // Non-bool otlp skipped entirely.
 }
 
 func TestValidateTelemetry_NoOTLPField(t *testing.T) {
@@ -253,7 +251,7 @@ filepath.Join(dir, "config.yml"),
 
 result, err := ValidateTelemetry(dir)
 require.NoError(t, err)
-assert.True(t, result.Valid)
+require.True(t, result.Valid)
 }
 
 func TestValidateTelemetry_InvalidYAML(t *testing.T) {
@@ -266,7 +264,7 @@ filepath.Join(dir, "config.yml"),
 
 result, err := ValidateTelemetry(dir)
 require.NoError(t, err)
-assert.True(t, result.Valid) // Invalid YAML skipped.
+require.True(t, result.Valid) // Invalid YAML skipped.
 }
 
 func TestValidateTelemetry_UnreadableFile(t *testing.T) {
@@ -278,7 +276,7 @@ filepath.Join(dir, "broken.yml")))
 
 result, err := ValidateTelemetry(dir)
 require.NoError(t, err)
-assert.True(t, result.Valid) // Unreadable files skipped.
+require.True(t, result.Valid) // Unreadable files skipped.
 }
 
 func TestValidateTelemetry_SubdirectorySkipped(t *testing.T) {
@@ -294,7 +292,7 @@ writeConfig(t, dir, "config.yml", map[string]string{
 
 result, err := ValidateTelemetry(dir)
 require.NoError(t, err)
-assert.True(t, result.Valid)
+require.True(t, result.Valid)
 }
 
 func TestValidateTelemetry_NonYAMLSkipped(t *testing.T) {
@@ -307,7 +305,7 @@ filepath.Join(dir, "readme.txt"),
 
 result, err := ValidateTelemetry(dir)
 require.NoError(t, err)
-assert.True(t, result.Valid)
+require.True(t, result.Valid)
 }
 
 func TestValidateTelemetry_UnreadableDir(t *testing.T) {
@@ -315,8 +313,8 @@ t.Parallel()
 
 result := &TelemetryValidationResult{Valid: true}
 entries := collectOTLPEntries("/nonexistent/dir", result)
-assert.Nil(t, entries)
-assert.True(t, result.Valid)
+require.Nil(t, entries)
+require.True(t, result.Valid)
 }
 
 func TestValidateTelemetry_EndpointNormalization(t *testing.T) {
@@ -336,11 +334,11 @@ writeConfig(t, dir, "config-2.yml", map[string]string{
 
 result, err := ValidateTelemetry(dir)
 require.NoError(t, err)
-assert.True(t, result.Valid)
+require.True(t, result.Valid)
 
 // After normalization, trailing slash should not cause inconsistency.
 for _, w := range result.Warnings {
-assert.NotContains(t, w, "Inconsistent")
+require.NotContains(t, w, "Inconsistent")
 }
 }
 
@@ -361,7 +359,7 @@ expected string
 for _, tc := range tests {
 t.Run(tc.name, func(t *testing.T) {
 t.Parallel()
-assert.Equal(t, tc.expected, normalizeEndpoint(tc.input))
+require.Equal(t, tc.expected, normalizeEndpoint(tc.input))
 })
 }
 }
@@ -401,7 +399,7 @@ t.Parallel()
 
 output := FormatTelemetryValidationResult(tc.result)
 for _, want := range tc.contains {
-assert.Contains(t, output, want)
+require.Contains(t, output, want)
 }
 })
 }
@@ -424,7 +422,7 @@ require.NoError(t, err)
 require.NotNil(t, result)
 
 // Real configs should be valid (may have warnings).
-assert.True(t, result.Valid, "Real sm-im OTLP config validation failed: %v", result.Errors)
+require.True(t, result.Valid, "Real sm-im OTLP config validation failed: %v", result.Errors)
 }
 
 // writeConfig creates a YAML config file from key-value pairs.

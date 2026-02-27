@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -241,15 +240,15 @@ otlp: true
 
 			result, err := ValidateConfigFile(configFile)
 			require.NoError(t, err)
-			assert.Equal(t, tc.wantValid, result.Valid, "Valid mismatch")
+			require.Equal(t, tc.wantValid, result.Valid, "Valid mismatch")
 
 			for _, wantErr := range tc.wantErrors {
-				assert.True(t, containsSubstring(result.Errors, wantErr),
+				require.True(t, containsSubstring(result.Errors, wantErr),
 					"expected error containing %q in %v", wantErr, result.Errors)
 			}
 
 			for _, wantWarn := range tc.wantWarns {
-				assert.True(t, containsSubstring(result.Warnings, wantWarn),
+				require.True(t, containsSubstring(result.Warnings, wantWarn),
 					"expected warning containing %q in %v", wantWarn, result.Warnings)
 			}
 		})
@@ -261,8 +260,8 @@ func TestValidateConfigFile_FileNotFound(t *testing.T) {
 
 	result, err := ValidateConfigFile("/nonexistent/path/config.yml")
 	require.NoError(t, err)
-	assert.False(t, result.Valid)
-	assert.True(t, containsSubstring(result.Errors, "cannot read file"))
+	require.False(t, result.Valid)
+	require.True(t, containsSubstring(result.Errors, "cannot read file"))
 }
 
 func TestToInt(t *testing.T) {
@@ -287,8 +286,8 @@ func TestToInt(t *testing.T) {
 			t.Parallel()
 
 			val, ok := toInt(tc.input)
-			assert.Equal(t, tc.wantVal, val)
-			assert.Equal(t, tc.wantOK, ok)
+			require.Equal(t, tc.wantVal, val)
+			require.Equal(t, tc.wantOK, ok)
 		})
 	}
 }
@@ -331,13 +330,13 @@ func TestFormatConfigValidationResult(t *testing.T) {
 			output := FormatConfigValidationResult(tc.result)
 
 			if tc.wantPASS {
-				assert.Contains(t, output, "[PASS]")
+				require.Contains(t, output, "[PASS]")
 			} else {
-				assert.Contains(t, output, "[FAIL]")
+				require.Contains(t, output, "[FAIL]")
 			}
 
 			for _, s := range tc.wantSubstr {
-				assert.Contains(t, output, s)
+				require.Contains(t, output, s)
 			}
 		})
 	}
@@ -347,14 +346,14 @@ func TestMainValidateConfig_NoArgs(t *testing.T) {
 	t.Parallel()
 
 	exitCode := mainValidateConfig(nil)
-	assert.Equal(t, 1, exitCode)
+	require.Equal(t, 1, exitCode)
 }
 
 func TestMainValidateConfig_NonexistentFile(t *testing.T) {
 	t.Parallel()
 
 	exitCode := mainValidateConfig([]string{"/nonexistent/config.yml"})
-	assert.Equal(t, 1, exitCode)
+	require.Equal(t, 1, exitCode)
 }
 
 func TestMainValidateConfig_ValidFile(t *testing.T) {
@@ -369,7 +368,7 @@ bind-private-address: 127.0.0.1
 	require.NoError(t, os.WriteFile(configFile, []byte(content), filePermissions))
 
 	exitCode := mainValidateConfig([]string{configFile})
-	assert.Equal(t, 0, exitCode)
+	require.Equal(t, 0, exitCode)
 }
 
 func TestMainValidateConfig_InvalidFile(t *testing.T) {
@@ -382,7 +381,7 @@ func TestMainValidateConfig_InvalidFile(t *testing.T) {
 	require.NoError(t, os.WriteFile(configFile, []byte(content), filePermissions))
 
 	exitCode := mainValidateConfig([]string{configFile})
-	assert.Equal(t, 1, exitCode)
+	require.Equal(t, 1, exitCode)
 }
 
 func TestValidateAdminBindPolicy_NonStringType(t *testing.T) {
@@ -397,8 +396,8 @@ func TestValidateAdminBindPolicy_NonStringType(t *testing.T) {
 	result, err := ValidateConfigFile(configFile)
 	require.NoError(t, err)
 	// Non-string type error is caught by validateBindAddresses, not duplicated by admin policy.
-	assert.False(t, result.Valid)
-	assert.True(t, containsSubstring(result.Errors, "must be a string"))
+	require.False(t, result.Valid)
+	require.True(t, containsSubstring(result.Errors, "must be a string"))
 }
 
 func TestValidateConfigSecretRefs_NonStringType(t *testing.T) {
@@ -413,7 +412,7 @@ func TestValidateConfigSecretRefs_NonStringType(t *testing.T) {
 	result, err := ValidateConfigFile(configFile)
 	require.NoError(t, err)
 	// Non-string database-url is silently skipped.
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidateConfigSecretRefs_NoDatabaseURL(t *testing.T) {
@@ -427,5 +426,5 @@ func TestValidateConfigSecretRefs_NoDatabaseURL(t *testing.T) {
 
 	result, err := ValidateConfigFile(configFile)
 	require.NoError(t, err)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }

@@ -10,7 +10,6 @@ import (
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -111,19 +110,19 @@ func TestExtractPropagateBlocks(t *testing.T) {
 			require.Len(t, blocks, tc.wantCount)
 
 			if tc.wantFirst != nil && tc.wantCount >= 1 {
-				assert.Equal(t, tc.wantFirst.TargetFile, blocks[0].TargetFile)
-				assert.Equal(t, tc.wantFirst.ChunkID, blocks[0].ChunkID)
-				assert.Equal(t, tc.wantFirst.Content, blocks[0].Content)
+				require.Equal(t, tc.wantFirst.TargetFile, blocks[0].TargetFile)
+				require.Equal(t, tc.wantFirst.ChunkID, blocks[0].ChunkID)
+				require.Equal(t, tc.wantFirst.Content, blocks[0].Content)
 
 				if tc.wantFirst.LineNumber > 0 {
-					assert.Equal(t, tc.wantFirst.LineNumber, blocks[0].LineNumber)
+					require.Equal(t, tc.wantFirst.LineNumber, blocks[0].LineNumber)
 				}
 			}
 
 			if tc.wantSecond != nil && tc.wantCount >= 2 {
-				assert.Equal(t, tc.wantSecond.TargetFile, blocks[1].TargetFile)
-				assert.Equal(t, tc.wantSecond.ChunkID, blocks[1].ChunkID)
-				assert.Equal(t, tc.wantSecond.Content, blocks[1].Content)
+				require.Equal(t, tc.wantSecond.TargetFile, blocks[1].TargetFile)
+				require.Equal(t, tc.wantSecond.ChunkID, blocks[1].ChunkID)
+				require.Equal(t, tc.wantSecond.Content, blocks[1].Content)
 			}
 		})
 	}
@@ -191,17 +190,17 @@ func TestExtractSourceBlocks(t *testing.T) {
 			require.Len(t, blocks, tc.wantCount)
 
 			if tc.wantFirst != nil && tc.wantCount >= 1 {
-				assert.Equal(t, tc.wantFirst.ChunkID, blocks[0].ChunkID)
-				assert.Equal(t, tc.wantFirst.Content, blocks[0].Content)
+				require.Equal(t, tc.wantFirst.ChunkID, blocks[0].ChunkID)
+				require.Equal(t, tc.wantFirst.Content, blocks[0].Content)
 
 				if tc.wantFirst.LineNumber > 0 {
-					assert.Equal(t, tc.wantFirst.LineNumber, blocks[0].LineNumber)
+					require.Equal(t, tc.wantFirst.LineNumber, blocks[0].LineNumber)
 				}
 			}
 
 			if tc.wantSecond != nil && tc.wantCount >= 2 {
-				assert.Equal(t, tc.wantSecond.ChunkID, blocks[1].ChunkID)
-				assert.Equal(t, tc.wantSecond.Content, blocks[1].Content)
+				require.Equal(t, tc.wantSecond.ChunkID, blocks[1].ChunkID)
+				require.Equal(t, tc.wantSecond.Content, blocks[1].Content)
 			}
 		})
 	}
@@ -344,10 +343,10 @@ func TestValidateChunks(t *testing.T) {
 			}
 
 			require.NoError(t, err)
-			assert.Equal(t, tc.wantMatched, result.Matched)
-			assert.Equal(t, tc.wantMismatched, result.Mismatched)
-			assert.Equal(t, tc.wantMissing, result.Missing)
-			assert.Equal(t, tc.wantFileErrors, result.FileErrors)
+			require.Equal(t, tc.wantMatched, result.Matched)
+			require.Equal(t, tc.wantMismatched, result.Mismatched)
+			require.Equal(t, tc.wantMissing, result.Missing)
+			require.Equal(t, tc.wantFileErrors, result.FileErrors)
 		})
 	}
 }
@@ -425,11 +424,11 @@ func TestFormatChunkResults(t *testing.T) {
 			output := FormatChunkResults(tc.result)
 
 			for _, s := range tc.wantContains {
-				assert.Contains(t, output, s)
+				require.Contains(t, output, s)
 			}
 
 			for _, s := range tc.wantExcludes {
-				assert.NotContains(t, output, s)
+				require.NotContains(t, output, s)
 			}
 		})
 	}
@@ -444,10 +443,10 @@ func TestValidateChunksCommand_Integration(t *testing.T) {
 
 	exitCode := validateChunksWithRoot(rootDir, &stdout, &stderr)
 
-	assert.Equal(t, 0, exitCode, "validate-chunks should pass on real project: stderr=%s", stderr.String())
-	assert.Contains(t, stdout.String(), "chunks")
-	assert.Contains(t, stdout.String(), "All propagated chunks are in sync.")
-	assert.Empty(t, stderr.String())
+	require.Equal(t, 0, exitCode, "validate-chunks should pass on real project: stderr=%s", stderr.String())
+	require.Contains(t, stdout.String(), "chunks")
+	require.Contains(t, stdout.String(), "All propagated chunks are in sync.")
+	require.Empty(t, stderr.String())
 }
 
 func TestValidateChunksWithRoot_BadRoot(t *testing.T) {
@@ -457,8 +456,8 @@ func TestValidateChunksWithRoot_BadRoot(t *testing.T) {
 
 	exitCode := validateChunksWithRoot("/nonexistent/path", &stdout, &stderr)
 
-	assert.Equal(t, 1, exitCode)
-	assert.NotEmpty(t, stderr.String())
+	require.Equal(t, 1, exitCode)
+	require.NotEmpty(t, stderr.String())
 }
 
 // join is a test helper to join lines with newlines.

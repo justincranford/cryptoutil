@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -47,9 +46,9 @@ func TestValidateProductSecrets_AllPresent(t *testing.T) {
 	result := &ValidationResult{Valid: true}
 	validateProductSecrets(tmpDir, productName, result)
 
-	assert.True(t, result.Valid, "expected valid when all product secrets present")
-	assert.Empty(t, result.MissingSecrets, "expected no missing secrets")
-	assert.Empty(t, result.Errors, "expected no errors")
+	require.True(t, result.Valid, "expected valid when all product secrets present")
+	require.Empty(t, result.MissingSecrets, "expected no missing secrets")
+	require.Empty(t, result.Errors, "expected no errors")
 }
 
 // TestValidateProductSecrets_Missing verifies errors when product secrets are missing.
@@ -63,12 +62,12 @@ func TestValidateProductSecrets_Missing(t *testing.T) {
 	result := &ValidationResult{Valid: true}
 	validateProductSecrets(tmpDir, "sm", result)
 
-	assert.False(t, result.Valid, "expected invalid when secrets missing")
-	assert.NotEmpty(t, result.MissingSecrets, "expected missing secrets reported")
+	require.False(t, result.Valid, "expected invalid when secrets missing")
+	require.NotEmpty(t, result.MissingSecrets, "expected missing secrets reported")
 
 	// Should report missing hash_pepper + 9 .never files = 10 total.
 	expectedMissing := cryptoutilSharedMagic.JoseJADefaultMaxMaterials
-	assert.Len(t, result.MissingSecrets, expectedMissing)
+	require.Len(t, result.MissingSecrets, expectedMissing)
 }
 
 // TestValidateSuiteSecrets_AllPresent verifies no errors when all suite secrets exist.
@@ -106,8 +105,8 @@ func TestValidateSuiteSecrets_AllPresent(t *testing.T) {
 	result := &ValidationResult{Valid: true}
 	validateSuiteSecrets(tmpDir, result)
 
-	assert.True(t, result.Valid, "expected valid when all suite secrets present")
-	assert.Empty(t, result.MissingSecrets, "expected no missing secrets")
+	require.True(t, result.Valid, "expected valid when all suite secrets present")
+	require.Empty(t, result.MissingSecrets, "expected no missing secrets")
 }
 
 // TestValidateSuiteSecrets_Missing verifies errors when suite secrets are missing.
@@ -121,11 +120,11 @@ func TestValidateSuiteSecrets_Missing(t *testing.T) {
 	result := &ValidationResult{Valid: true}
 	validateSuiteSecrets(tmpDir, result)
 
-	assert.False(t, result.Valid, "expected invalid when suite secrets missing")
+	require.False(t, result.Valid, "expected invalid when suite secrets missing")
 
 	// Should report missing hash_pepper + 9 .never files = 10 total.
 	expectedMissing := cryptoutilSharedMagic.JoseJADefaultMaxMaterials
-	assert.Len(t, result.MissingSecrets, expectedMissing)
+	require.Len(t, result.MissingSecrets, expectedMissing)
 }
 
 // TestCheckHardcodedCredentials tests credential detection in compose files.
@@ -249,12 +248,12 @@ services:
 			result := &ValidationResult{Valid: true}
 			checkHardcodedCredentials(tmpDir, result)
 
-			assert.Equal(t, tc.wantValid, result.Valid)
-			assert.Len(t, result.Errors, tc.wantErrs)
+			require.Equal(t, tc.wantValid, result.Valid)
+			require.Len(t, result.Errors, tc.wantErrs)
 
 			if tc.name == "line numbers are correct" {
-				assert.Contains(t, result.Errors[0], ":3:", "POSTGRES_USER should be on line 3")
-				assert.Contains(t, result.Errors[1], ":5:", "POSTGRES_DB should be on line 5")
+				require.Contains(t, result.Errors[0], ":3:", "POSTGRES_USER should be on line 3")
+				require.Contains(t, result.Errors[1], ":5:", "POSTGRES_DB should be on line 5")
 			}
 		})
 	}
@@ -269,6 +268,6 @@ func TestCheckHardcodedCredentials_NoComposeFile(t *testing.T) {
 
 	checkHardcodedCredentials(tmpDir, result)
 
-	assert.True(t, result.Valid, "should remain valid when no compose file exists")
-	assert.Empty(t, result.Errors)
+	require.True(t, result.Valid, "should remain valid when no compose file exists")
+	require.Empty(t, result.Errors)
 }

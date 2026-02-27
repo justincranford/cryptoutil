@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	. "cryptoutil/internal/cmd/cicd/lint_deployments"
@@ -234,10 +233,10 @@ func TestValidateDeploymentStructure(t *testing.T) {
 			result, err := ValidateDeploymentStructure(tmpDir, tc.deploymentName, tc.structType)
 			require.NoError(t, err)
 
-			assert.Equal(t, tc.wantValid, result.Valid, "validity mismatch")
-			assert.ElementsMatch(t, tc.wantMissingDirs, result.MissingDirs, "missing dirs mismatch")
-			assert.ElementsMatch(t, tc.wantMissingFiles, result.MissingFiles, "missing files mismatch")
-			assert.ElementsMatch(t, tc.wantMissingSecrets, result.MissingSecrets, "missing secrets mismatch")
+			require.Equal(t, tc.wantValid, result.Valid, "validity mismatch")
+			require.ElementsMatch(t, tc.wantMissingDirs, result.MissingDirs, "missing dirs mismatch")
+			require.ElementsMatch(t, tc.wantMissingFiles, result.MissingFiles, "missing files mismatch")
+			require.ElementsMatch(t, tc.wantMissingSecrets, result.MissingSecrets, "missing secrets mismatch")
 		})
 	}
 }
@@ -249,8 +248,8 @@ func TestValidateDeploymentStructure_UnknownType(t *testing.T) {
 
 	result, err := ValidateDeploymentStructure(tmpDir, "test", "UNKNOWN-TYPE")
 	require.Error(t, err)
-	assert.Nil(t, result)
-	assert.Contains(t, err.Error(), "unknown structure type")
+	require.Nil(t, result)
+	require.Contains(t, err.Error(), "unknown structure type")
 }
 
 // TestValidateAllDeployments_ProductAndSuiteAndTemplate tests PRODUCT, SUITE, template paths.
@@ -328,7 +327,7 @@ func TestValidateAllDeployments_ProductAndSuiteAndTemplate(t *testing.T) {
 			root := tc.setup(t)
 			results, err := ValidateAllDeployments(root)
 			require.NoError(t, err)
-			assert.Len(t, results, tc.wantCount)
+			require.Len(t, results, tc.wantCount)
 		})
 	}
 }
@@ -346,7 +345,7 @@ func TestValidateDeploymentStructure_ProductType(t *testing.T) {
 	require.NotNil(t, result)
 
 	// Missing product secrets should cause invalid.
-	assert.False(t, result.Valid)
+	require.False(t, result.Valid)
 }
 
 // TestValidateDeploymentStructure_SuiteType tests SUITE type triggers suite secrets.
@@ -362,5 +361,5 @@ func TestValidateDeploymentStructure_SuiteType(t *testing.T) {
 	require.NotNil(t, result)
 
 	// Missing suite secrets should cause invalid.
-	assert.False(t, result.Valid)
+	require.False(t, result.Valid)
 }

@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,8 +22,8 @@ func TestValidateKebabCase_ValidServiceName(t *testing.T) {
 	result, err := ValidateKebabCase(dir)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, result.Valid)
-	assert.Empty(t, result.Errors)
+	require.True(t, result.Valid)
+	require.Empty(t, result.Errors)
 }
 
 func TestValidateKebabCase_InvalidServiceName(t *testing.T) {
@@ -53,10 +52,10 @@ func TestValidateKebabCase_InvalidServiceName(t *testing.T) {
 			result, err := ValidateKebabCase(dir)
 			require.NoError(t, err)
 			require.NotNil(t, result)
-			assert.False(t, result.Valid)
-			assert.True(t, len(result.Errors) > 0)
-			assert.Contains(t, result.Errors[0], tc.wantErr)
-			assert.Contains(t, result.Errors[0], "kebab-case")
+			require.False(t, result.Valid)
+			require.True(t, len(result.Errors) > 0)
+			require.Contains(t, result.Errors[0], tc.wantErr)
+			require.Contains(t, result.Errors[0], "kebab-case")
 		})
 	}
 }
@@ -67,8 +66,8 @@ func TestValidateKebabCase_PathDoesNotExist(t *testing.T) {
 	result, err := ValidateKebabCase(filepath.Join(t.TempDir(), "nonexistent"))
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.False(t, result.Valid)
-	assert.Contains(t, result.Errors[0], "does not exist")
+	require.False(t, result.Valid)
+	require.Contains(t, result.Errors[0], "does not exist")
 }
 
 func TestValidateKebabCase_PathIsFile(t *testing.T) {
@@ -81,8 +80,8 @@ func TestValidateKebabCase_PathIsFile(t *testing.T) {
 	result, err := ValidateKebabCase(filePath)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.False(t, result.Valid)
-	assert.Contains(t, result.Errors[0], "not a directory")
+	require.False(t, result.Valid)
+	require.Contains(t, result.Errors[0], "not a directory")
 }
 
 func TestValidateKebabCase_MissingServiceNameField(t *testing.T) {
@@ -95,8 +94,8 @@ func TestValidateKebabCase_MissingServiceNameField(t *testing.T) {
 	result, err := ValidateKebabCase(dir)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, result.Valid, "Missing field should not fail validation")
-	assert.Empty(t, result.Errors)
+	require.True(t, result.Valid, "Missing field should not fail validation")
+	require.Empty(t, result.Errors)
 }
 
 func TestValidateKebabCase_NonYAMLFilesIgnored(t *testing.T) {
@@ -109,7 +108,7 @@ func TestValidateKebabCase_NonYAMLFilesIgnored(t *testing.T) {
 	result, err := ValidateKebabCase(dir)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidateKebabCase_ComposeFilesSkipped(t *testing.T) {
@@ -124,7 +123,7 @@ func TestValidateKebabCase_ComposeFilesSkipped(t *testing.T) {
 	result, err := ValidateKebabCase(dir)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, result.Valid, "Compose files should be skipped by ValidateKebabCase")
+	require.True(t, result.Valid, "Compose files should be skipped by ValidateKebabCase")
 }
 
 func TestValidateKebabCase_InvalidYAML(t *testing.T) {
@@ -136,8 +135,8 @@ func TestValidateKebabCase_InvalidYAML(t *testing.T) {
 	result, err := ValidateKebabCase(dir)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, len(result.Warnings) > 0)
-	assert.Contains(t, result.Warnings[0], "Failed to parse")
+	require.True(t, len(result.Warnings) > 0)
+	require.Contains(t, result.Warnings[0], "Failed to parse")
 }
 
 func TestValidateKebabCase_UnreadableFile(t *testing.T) {
@@ -155,8 +154,8 @@ func TestValidateKebabCase_UnreadableFile(t *testing.T) {
 	result, err := ValidateKebabCase(dir)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, len(result.Warnings) > 0)
-	assert.Contains(t, result.Warnings[0], "Failed to read")
+	require.True(t, len(result.Warnings) > 0)
+	require.Contains(t, result.Warnings[0], "Failed to read")
 }
 
 func TestValidateKebabCase_NestedDirectories(t *testing.T) {
@@ -172,7 +171,7 @@ func TestValidateKebabCase_NestedDirectories(t *testing.T) {
 	result, err := ValidateKebabCase(dir)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidateKebabCase_EmptyDirectory(t *testing.T) {
@@ -181,7 +180,7 @@ func TestValidateKebabCase_EmptyDirectory(t *testing.T) {
 	result, err := ValidateKebabCase(t.TempDir())
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidateKebabCase_WalkError(t *testing.T) {
@@ -200,8 +199,8 @@ func TestValidateKebabCase_WalkError(t *testing.T) {
 	result, err := ValidateKebabCase(dir)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, len(result.Warnings) > 0)
-	assert.Contains(t, result.Warnings[0], "error accessing")
+	require.True(t, len(result.Warnings) > 0)
+	require.Contains(t, result.Warnings[0], "error accessing")
 }
 
 func TestValidateKebabCase_ServiceNameNotString(t *testing.T) {
@@ -215,7 +214,7 @@ func TestValidateKebabCase_ServiceNameNotString(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	// Integer value should be silently skipped (not a string).
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestGetNestedField(t *testing.T) {
@@ -276,7 +275,7 @@ func TestGetNestedField(t *testing.T) {
 			t.Parallel()
 
 			got := getNestedField(tc.config, tc.fieldPath)
-			assert.Equal(t, tc.want, got)
+			require.Equal(t, tc.want, got)
 		})
 	}
 }
@@ -311,7 +310,7 @@ func TestFormatKebabCaseValidationResult(t *testing.T) {
 
 			output := FormatKebabCaseValidationResult(tc.result)
 			for _, s := range tc.contains {
-				assert.Contains(t, output, s)
+				require.Contains(t, output, s)
 			}
 		})
 	}

@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -16,7 +15,7 @@ func TestValidateSecrets_NoSecretsDir(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidateSecrets_NoConfigsDir(t *testing.T) {
@@ -25,7 +24,7 @@ func TestValidateSecrets_NoConfigsDir(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidateSecrets_NoComposeFile(t *testing.T) {
@@ -34,7 +33,7 @@ func TestValidateSecrets_NoComposeFile(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidateSecrets_RealSmIM(t *testing.T) {
@@ -47,7 +46,7 @@ func TestValidateSecrets_RealSmIM(t *testing.T) {
 
 	result, err := ValidateSecrets(deploymentPath)
 	require.NoError(t, err)
-	assert.NotNil(t, result)
+	require.NotNil(t, result)
 }
 
 func TestValidateSecrets_DotNeverSecretFile(t *testing.T) {
@@ -60,10 +59,10 @@ func TestValidateSecrets_DotNeverSecretFile(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.True(t, result.Valid)
-	assert.NotEmpty(t, result.Warnings)
-	assert.Contains(t, result.Warnings[0], "has 5 bytes")
-	assert.Contains(t, result.Warnings[0], "minimum recommended: 32")
+	require.True(t, result.Valid)
+	require.NotEmpty(t, result.Warnings)
+	require.Contains(t, result.Warnings[0], "has 5 bytes")
+	require.Contains(t, result.Warnings[0], "minimum recommended: 32")
 }
 
 func TestValidateSecrets_ComposeDockerComposeYml(t *testing.T) {
@@ -79,8 +78,8 @@ func TestValidateSecrets_ComposeDockerComposeYml(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.False(t, result.Valid)
-	assert.Contains(t, result.Errors[0], "inline secret")
+	require.False(t, result.Valid)
+	require.Contains(t, result.Errors[0], "inline secret")
 }
 
 func TestValidateSecrets_ConfigNonStringValue(t *testing.T) {
@@ -94,7 +93,7 @@ func TestValidateSecrets_ConfigNonStringValue(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidateSecrets_ConfigSqliteURL(t *testing.T) {
@@ -108,7 +107,7 @@ func TestValidateSecrets_ConfigSqliteURL(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidateSecrets_ConfigMemoryRef(t *testing.T) {
@@ -122,14 +121,14 @@ func TestValidateSecrets_ConfigMemoryRef(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestFormatSecretValidationResult_Nil(t *testing.T) {
 	t.Parallel()
 
 	output := FormatSecretValidationResult(nil)
-	assert.Contains(t, output, cryptoutilSharedMagic.TestStatusSkip)
+	require.Contains(t, output, cryptoutilSharedMagic.TestStatusSkip)
 }
 
 func TestFormatSecretValidationResult_Valid(t *testing.T) {
@@ -137,7 +136,7 @@ func TestFormatSecretValidationResult_Valid(t *testing.T) {
 
 	result := &SecretValidationResult{Valid: true}
 	output := FormatSecretValidationResult(result)
-	assert.Contains(t, output, cryptoutilSharedMagic.TestStatusPass)
+	require.Contains(t, output, cryptoutilSharedMagic.TestStatusPass)
 }
 
 func TestFormatSecretValidationResult_Errors(t *testing.T) {
@@ -149,9 +148,9 @@ func TestFormatSecretValidationResult_Errors(t *testing.T) {
 		Warnings: []string{"short secret"},
 	}
 	output := FormatSecretValidationResult(result)
-	assert.Contains(t, output, cryptoutilSharedMagic.TestStatusFail)
-	assert.Contains(t, output, "ERROR: inline secret found")
-	assert.Contains(t, output, "WARN: short secret")
+	require.Contains(t, output, cryptoutilSharedMagic.TestStatusFail)
+	require.Contains(t, output, "ERROR: inline secret found")
+	require.Contains(t, output, "WARN: short secret")
 }
 
 func TestIsSecretFile(t *testing.T) {
@@ -171,7 +170,7 @@ func TestIsSecretFile(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, tc.expect, isSecretFile(tc.input))
+			require.Equal(t, tc.expect, isSecretFile(tc.input))
 		})
 	}
 }
@@ -197,7 +196,7 @@ func TestIsHighEntropySecretFile(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, tc.expect, isHighEntropySecretFile(tc.input))
+			require.Equal(t, tc.expect, isHighEntropySecretFile(tc.input))
 		})
 	}
 }
@@ -225,7 +224,7 @@ func TestIsSecretFieldName(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, tc.expect, isSecretFieldName(tc.input))
+			require.Equal(t, tc.expect, isSecretFieldName(tc.input))
 		})
 	}
 }
@@ -249,7 +248,7 @@ func TestIsSafeReference(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, tc.expect, isSafeReference(tc.input))
+			require.Equal(t, tc.expect, isSafeReference(tc.input))
 		})
 	}
 }
@@ -280,10 +279,10 @@ func TestFindComposeFile(t *testing.T) {
 
 			result := findComposeFile(dir)
 			if tc.found {
-				assert.NotEmpty(t, result)
-				assert.Contains(t, result, tc.filename)
+				require.NotEmpty(t, result)
+				require.Contains(t, result, tc.filename)
 			} else {
-				assert.Empty(t, result)
+				require.Empty(t, result)
 			}
 		})
 	}
@@ -314,19 +313,19 @@ func TestCheckSecretLength_BoundaryValues(t *testing.T) {
 			checkSecretLength("test.secret", tc.value, result)
 
 			if tc.wantError {
-				assert.False(t, result.Valid)
-				assert.NotEmpty(t, result.Errors)
+				require.False(t, result.Valid)
+				require.NotEmpty(t, result.Errors)
 			} else {
-				assert.True(t, result.Valid)
+				require.True(t, result.Valid)
 			}
 
 			if tc.wantWarning {
-				assert.NotEmpty(t, result.Warnings)
+				require.NotEmpty(t, result.Warnings)
 			}
 
 			if !tc.wantError && !tc.wantWarning {
-				assert.Empty(t, result.Errors)
-				assert.Empty(t, result.Warnings)
+				require.Empty(t, result.Errors)
+				require.Empty(t, result.Warnings)
 			}
 		})
 	}
@@ -345,7 +344,7 @@ func TestValidateSecrets_ComposeEnvNonStringValue(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidateSecrets_ComposeEnvSafeFileRef(t *testing.T) {
@@ -361,7 +360,7 @@ func TestValidateSecrets_ComposeEnvSafeFileRef(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidateSecrets_ComposeEnvRunSecretsRef(t *testing.T) {
@@ -377,7 +376,7 @@ func TestValidateSecrets_ComposeEnvRunSecretsRef(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidateSecrets_ComposeEnvNonSecretKey(t *testing.T) {
@@ -393,7 +392,7 @@ func TestValidateSecrets_ComposeEnvNonSecretKey(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func findRealDeploymentPath(name string) string {

@@ -5,15 +5,13 @@ import (
 "os"
 "path/filepath"
 "testing"
-
-"github.com/stretchr/testify/assert"
 "github.com/stretchr/testify/require"
 )
 
 // validConfigContent returns a minimal valid flat kebab-case config.
 func validConfigContent() string {
 return `bind-public-protocol: "https"
-bind-public-address: "0.0.0.0"
+bind-public-address: "127.0.0.1"
 bind-public-port: 8080
 bind-private-protocol: "https"
 bind-private-address: "127.0.0.1"
@@ -36,8 +34,8 @@ require.NoError(t, os.WriteFile(path, []byte(validConfigContent()), cryptoutilSh
 result, err := ValidateSchema(path)
 require.NoError(t, err)
 require.NotNil(t, result)
-assert.True(t, result.Valid)
-assert.Empty(t, result.Errors)
+require.True(t, result.Valid)
+require.Empty(t, result.Errors)
 }
 
 func TestValidateSchema_MissingRequiredFields(t *testing.T) {
@@ -75,8 +73,8 @@ require.NoError(t, os.WriteFile(path, []byte(tc.content), cryptoutilSharedMagic.
 result, err := ValidateSchema(path)
 require.NoError(t, err)
 require.NotNil(t, result)
-assert.False(t, result.Valid)
-assert.True(t, containsSubstring(result.Errors, tc.wantErr))
+require.False(t, result.Valid)
+require.True(t, containsSubstring(result.Errors, tc.wantErr))
 })
 }
 }
@@ -128,10 +126,10 @@ require.NoError(t, err)
 require.NotNil(t, result)
 
 if tc.wantErr == "" {
-assert.True(t, result.Valid)
+require.True(t, result.Valid)
 } else {
-assert.False(t, result.Valid)
-assert.True(t, containsSubstring(result.Errors, tc.wantErr))
+require.False(t, result.Valid)
+require.True(t, containsSubstring(result.Errors, tc.wantErr))
 }
 })
 }
@@ -182,8 +180,8 @@ require.NoError(t, os.WriteFile(path, []byte(tc.content), cryptoutilSharedMagic.
 result, err := ValidateSchema(path)
 require.NoError(t, err)
 require.NotNil(t, result)
-assert.False(t, result.Valid)
-assert.True(t, containsSubstring(result.Errors, tc.wantErr))
+require.False(t, result.Valid)
+require.True(t, containsSubstring(result.Errors, tc.wantErr))
 })
 }
 }
@@ -199,10 +197,10 @@ result, err := ValidateSchema(path)
 require.NoError(t, err)
 require.NotNil(t, result)
 // Unknown fields produce warnings, not errors.
-assert.True(t, result.Valid)
-assert.True(t, len(result.Warnings) >= 2)
-assert.True(t, containsSubstring(result.Warnings, "unknown-field"))
-assert.True(t, containsSubstring(result.Warnings, "another-unknown"))
+require.True(t, result.Valid)
+require.True(t, len(result.Warnings) >= 2)
+require.True(t, containsSubstring(result.Warnings, "unknown-field"))
+require.True(t, containsSubstring(result.Warnings, "another-unknown"))
 }
 
 func TestValidateSchema_FileNotFound(t *testing.T) {
@@ -211,8 +209,8 @@ t.Parallel()
 result, err := ValidateSchema(filepath.Join(t.TempDir(), "nonexistent.yml"))
 require.NoError(t, err)
 require.NotNil(t, result)
-assert.False(t, result.Valid)
-assert.True(t, containsSubstring(result.Errors, "cannot read file"))
+require.False(t, result.Valid)
+require.True(t, containsSubstring(result.Errors, "cannot read file"))
 }
 
 func TestValidateSchema_InvalidYAML(t *testing.T) {
@@ -224,8 +222,8 @@ require.NoError(t, os.WriteFile(path, []byte("invalid: [yaml: {broken"), cryptou
 result, err := ValidateSchema(path)
 require.NoError(t, err)
 require.NotNil(t, result)
-assert.False(t, result.Valid)
-assert.True(t, containsSubstring(result.Errors, "YAML parse error"))
+require.False(t, result.Valid)
+require.True(t, containsSubstring(result.Errors, "YAML parse error"))
 }
 
 func TestValidateSchema_EmptyFile(t *testing.T) {
@@ -237,8 +235,8 @@ require.NoError(t, os.WriteFile(path, []byte(""), cryptoutilSharedMagic.CacheFil
 result, err := ValidateSchema(path)
 require.NoError(t, err)
 require.NotNil(t, result)
-assert.True(t, result.Valid, "empty file should produce warning, not error")
-assert.True(t, containsSubstring(result.Warnings, "empty"))
+require.True(t, result.Valid, "empty file should produce warning, not error")
+require.True(t, containsSubstring(result.Warnings, "empty"))
 }
 
 func TestValidateSchema_CORSArrayWithNonString(t *testing.T) {
@@ -251,8 +249,8 @@ require.NoError(t, os.WriteFile(path, []byte(content), cryptoutilSharedMagic.Cac
 result, err := ValidateSchema(path)
 require.NoError(t, err)
 require.NotNil(t, result)
-assert.False(t, result.Valid)
-assert.True(t, containsSubstring(result.Errors, "must be a string"))
+require.False(t, result.Valid)
+require.True(t, containsSubstring(result.Errors, "must be a string"))
 }
 
 func TestValidateSchema_OptionalFieldsValid(t *testing.T) {
@@ -272,8 +270,8 @@ require.NoError(t, os.WriteFile(path, []byte(content), cryptoutilSharedMagic.Cac
 result, err := ValidateSchema(path)
 require.NoError(t, err)
 require.NotNil(t, result)
-assert.True(t, result.Valid)
-assert.Empty(t, result.Errors)
+require.True(t, result.Valid)
+require.Empty(t, result.Errors)
 }
 
 func TestIsIntLike(t *testing.T) {
@@ -296,7 +294,7 @@ for _, tc := range tests {
 t.Run(tc.name, func(t *testing.T) {
 t.Parallel()
 
-assert.Equal(t, tc.want, isIntLike(tc.val))
+require.Equal(t, tc.want, isIntLike(tc.val))
 })
 }
 }
@@ -331,7 +329,7 @@ t.Parallel()
 
 output := FormatSchemaValidationResult(tc.result)
 for _, s := range tc.contains {
-assert.Contains(t, output, s)
+require.Contains(t, output, s)
 }
 })
 }

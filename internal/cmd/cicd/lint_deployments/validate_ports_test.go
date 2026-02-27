@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -31,8 +30,8 @@ func TestValidatePorts_ServiceLevelValid(t *testing.T) {
 	result, err := ValidatePorts(dir, cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, result.Valid)
-	assert.Empty(t, result.Errors)
+	require.True(t, result.Valid)
+	require.Empty(t, result.Errors)
 }
 
 func TestValidatePorts_ServiceLevelOutOfRange(t *testing.T) {
@@ -44,8 +43,8 @@ func TestValidatePorts_ServiceLevelOutOfRange(t *testing.T) {
 	result, err := ValidatePorts(dir, cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.False(t, result.Valid)
-	assert.True(t, containsSubstring(result.Errors, "outside PRODUCT-SERVICE range"))
+	require.False(t, result.Valid)
+	require.True(t, containsSubstring(result.Errors, "outside PRODUCT-SERVICE range"))
 }
 
 func TestValidatePorts_ProductLevelValid(t *testing.T) {
@@ -57,7 +56,7 @@ func TestValidatePorts_ProductLevelValid(t *testing.T) {
 	result, err := ValidatePorts(dir, "sm", DeploymentTypeProduct)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidatePorts_ProductLevelOutOfRange(t *testing.T) {
@@ -69,8 +68,8 @@ func TestValidatePorts_ProductLevelOutOfRange(t *testing.T) {
 	result, err := ValidatePorts(dir, "sm", DeploymentTypeProduct)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.False(t, result.Valid)
-	assert.True(t, containsSubstring(result.Errors, "outside PRODUCT range"))
+	require.False(t, result.Valid)
+	require.True(t, containsSubstring(result.Errors, "outside PRODUCT range"))
 }
 
 func TestValidatePorts_SuiteLevelValid(t *testing.T) {
@@ -82,7 +81,7 @@ func TestValidatePorts_SuiteLevelValid(t *testing.T) {
 	result, err := ValidatePorts(dir, "cryptoutil-suite", DeploymentTypeSuite)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidatePorts_SuiteLevelOutOfRange(t *testing.T) {
@@ -94,8 +93,8 @@ func TestValidatePorts_SuiteLevelOutOfRange(t *testing.T) {
 	result, err := ValidatePorts(dir, "cryptoutil-suite", DeploymentTypeSuite)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.False(t, result.Valid)
-	assert.True(t, containsSubstring(result.Errors, "outside SUITE range"))
+	require.False(t, result.Valid)
+	require.True(t, containsSubstring(result.Errors, "outside SUITE range"))
 }
 
 func TestValidatePorts_InfrastructurePortsSkipped(t *testing.T) {
@@ -107,7 +106,7 @@ func TestValidatePorts_InfrastructurePortsSkipped(t *testing.T) {
 	result, err := ValidatePorts(dir, cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidatePorts_ConfigPortValidation(t *testing.T) {
@@ -125,7 +124,7 @@ func TestValidatePorts_ConfigPortValidation(t *testing.T) {
 	result, err := ValidatePorts(dir, cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidatePorts_ConfigPortOutOfRange(t *testing.T) {
@@ -142,8 +141,8 @@ func TestValidatePorts_ConfigPortOutOfRange(t *testing.T) {
 	result, err := ValidatePorts(dir, cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.False(t, result.Valid)
-	assert.True(t, containsSubstring(result.Errors, "bind-public-port"))
+	require.False(t, result.Valid)
+	require.True(t, containsSubstring(result.Errors, "bind-public-port"))
 }
 
 func TestValidatePorts_PathNotFound(t *testing.T) {
@@ -152,8 +151,8 @@ func TestValidatePorts_PathNotFound(t *testing.T) {
 	result, err := ValidatePorts(filepath.Join(t.TempDir(), "nonexistent"), "x", DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.False(t, result.Valid)
-	assert.True(t, containsSubstring(result.Errors, "does not exist"))
+	require.False(t, result.Valid)
+	require.True(t, containsSubstring(result.Errors, "does not exist"))
 }
 
 func TestValidatePorts_PathIsFile(t *testing.T) {
@@ -165,8 +164,8 @@ func TestValidatePorts_PathIsFile(t *testing.T) {
 	result, err := ValidatePorts(f, "x", DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.False(t, result.Valid)
-	assert.True(t, containsSubstring(result.Errors, "not a directory"))
+	require.False(t, result.Valid)
+	require.True(t, containsSubstring(result.Errors, "not a directory"))
 }
 
 func TestValidatePorts_NoComposeFile(t *testing.T) {
@@ -177,7 +176,7 @@ func TestValidatePorts_NoComposeFile(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	// No compose.yml -> no port validation errors (compose existence checked by other validators).
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidatePorts_InvalidComposeYAML(t *testing.T) {
@@ -188,8 +187,8 @@ func TestValidatePorts_InvalidComposeYAML(t *testing.T) {
 	result, err := ValidatePorts(dir, cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, result.Valid)
-	assert.True(t, containsSubstring(result.Warnings, "Cannot parse"))
+	require.True(t, result.Valid)
+	require.True(t, containsSubstring(result.Warnings, "Cannot parse"))
 }
 
 func TestValidatePorts_NonNumericPortSkipped(t *testing.T) {
@@ -201,7 +200,7 @@ func TestValidatePorts_NonNumericPortSkipped(t *testing.T) {
 	result, err := ValidatePorts(dir, cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidatePorts_ContainerOnlyPortSkipped(t *testing.T) {
@@ -213,7 +212,7 @@ func TestValidatePorts_ContainerOnlyPortSkipped(t *testing.T) {
 	result, err := ValidatePorts(dir, cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidatePorts_ConfigDirWithNonYAML(t *testing.T) {
@@ -230,7 +229,7 @@ func TestValidatePorts_ConfigDirWithNonYAML(t *testing.T) {
 	result, err := ValidatePorts(dir, cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidatePorts_ConfigInvalidYAML(t *testing.T) {
@@ -247,7 +246,7 @@ func TestValidatePorts_ConfigInvalidYAML(t *testing.T) {
 	result, err := ValidatePorts(dir, cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidatePorts_ConfigNonIntPort(t *testing.T) {
@@ -264,7 +263,7 @@ func TestValidatePorts_ConfigNonIntPort(t *testing.T) {
 	result, err := ValidatePorts(dir, cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, result.Valid) // String not parseable, skip validation.
+	require.True(t, result.Valid) // String not parseable, skip validation.
 }
 
 func TestValidatePorts_ConfigUnreadableFile(t *testing.T) {
@@ -282,7 +281,7 @@ func TestValidatePorts_ConfigUnreadableFile(t *testing.T) {
 	result, err := ValidatePorts(dir, cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, result.Valid) // Unreadable files are silently skipped.
+	require.True(t, result.Valid) // Unreadable files are silently skipped.
 }
 
 func TestValidatePorts_ConfigDirWithSubdirectory(t *testing.T) {
@@ -299,7 +298,7 @@ func TestValidatePorts_ConfigDirWithSubdirectory(t *testing.T) {
 	result, err := ValidatePorts(dir, cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, result.Valid) // Subdirectory skipped, valid port accepted.
+	require.True(t, result.Valid) // Subdirectory skipped, valid port accepted.
 }
 
 func TestValidateConfigPortRanges_UnreadableDir(t *testing.T) {
@@ -307,7 +306,7 @@ func TestValidateConfigPortRanges_UnreadableDir(t *testing.T) {
 
 	result := &PortValidationResult{Valid: true}
 	validateConfigPortRanges("/nonexistent/path", cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService, result)
-	assert.True(t, result.Valid) // ReadDir error is silently handled.
+	require.True(t, result.Valid) // ReadDir error is silently handled.
 }
 
 func TestGetPortRange(t *testing.T) {
@@ -330,8 +329,8 @@ func TestGetPortRange(t *testing.T) {
 			t.Parallel()
 
 			gotMin, gotMax := getPortRange(tc.level)
-			assert.Equal(t, tc.wantMin, gotMin)
-			assert.Equal(t, tc.wantMax, gotMax)
+			require.Equal(t, tc.wantMin, gotMin)
+			require.Equal(t, tc.wantMax, gotMax)
 		})
 	}
 }
@@ -359,7 +358,7 @@ func TestIsInfrastructurePort(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			assert.Equal(t, tc.want, isInfrastructurePort(tc.port))
+			require.Equal(t, tc.want, isInfrastructurePort(tc.port))
 		})
 	}
 }
@@ -394,7 +393,7 @@ func TestFormatPortValidationResult(t *testing.T) {
 
 			output := FormatPortValidationResult(tc.result)
 			for _, s := range tc.contains {
-				assert.Contains(t, output, s)
+				require.Contains(t, output, s)
 			}
 		})
 	}
@@ -413,5 +412,5 @@ func TestValidatePorts_RealSmIM(t *testing.T) {
 	result, err := ValidatePorts(deplPath, cryptoutilSharedMagic.OTLPServiceSMIM, DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, result.Valid, "Real sm-im should pass port validation. Errors: %v", result.Errors)
+	require.True(t, result.Valid, "Real sm-im should pass port validation. Errors: %v", result.Errors)
 }

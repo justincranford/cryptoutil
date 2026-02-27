@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -29,7 +28,7 @@ func TestExtractHostPort(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, tc.expected, extractHostPort(tc.input))
+			require.Equal(t, tc.expected, extractHostPort(tc.input))
 		})
 	}
 }
@@ -60,7 +59,7 @@ func TestExtractDependencies(t *testing.T) {
 			t.Parallel()
 
 			result := extractDependencies(&tc.svc)
-			assert.Equal(t, tc.expected, result)
+			require.Equal(t, tc.expected, result)
 		})
 	}
 }
@@ -83,7 +82,7 @@ func TestExtractSecretName(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, tc.expected, extractSecretName(tc.input))
+			require.Equal(t, tc.expected, extractSecretName(tc.input))
 		})
 	}
 }
@@ -114,7 +113,7 @@ func TestExtractEnvironmentVars(t *testing.T) {
 			t.Parallel()
 
 			result := extractEnvironmentVars(&tc.svc)
-			assert.Equal(t, tc.expected, result)
+			require.Equal(t, tc.expected, result)
 		})
 	}
 }
@@ -138,7 +137,7 @@ func TestIsExemptFromHealthcheck(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, tc.expected, isExemptFromHealthcheck(tc.svcName, &tc.svc))
+			require.Equal(t, tc.expected, isExemptFromHealthcheck(tc.svcName, &tc.svc))
 		})
 	}
 }
@@ -172,7 +171,7 @@ func TestFormatComposeValidationResult(t *testing.T) {
 
 			output := FormatComposeValidationResult(tc.result)
 			for _, s := range tc.contains {
-				assert.Contains(t, output, s)
+				require.Contains(t, output, s)
 			}
 		})
 	}
@@ -185,7 +184,7 @@ func TestSortedServiceNames(t *testing.T) {
 		Services: map[string]composeService{"zulu": {}, "alpha": {}, "mike": {}},
 	}
 	names := sortedServiceNames(compose)
-	assert.Equal(t, []string{"alpha", "mike", "zulu"}, names)
+	require.Equal(t, []string{"alpha", "mike", "zulu"}, names)
 }
 
 func TestParseComposeWithIncludes_MissingInclude(t *testing.T) {
@@ -204,7 +203,7 @@ services:
 	compose, err := parseComposeWithIncludes(composePath)
 	require.NoError(t, err)
 	require.NotNil(t, compose)
-	assert.Len(t, compose.Services, 1)
+	require.Len(t, compose.Services, 1)
 }
 
 func TestParseComposeWithIncludes_InvalidIncludeYAML(t *testing.T) {
@@ -236,7 +235,7 @@ func TestMergeIncludedFile_EmptyPath(t *testing.T) {
 
 	compose := &composeFile{}
 	mergeIncludedFile("/tmp", "", compose)
-	assert.Nil(t, compose.Secrets)
+	require.Nil(t, compose.Secrets)
 }
 
 func TestMergeIncludedFile_NilMaps(t *testing.T) {
@@ -258,10 +257,10 @@ services:
 	compose := &composeFile{}
 
 	mergeIncludedFile(dir, "include.yml", compose)
-	assert.NotNil(t, compose.Secrets)
-	assert.NotNil(t, compose.Services)
-	assert.Equal(t, "./secrets/new.secret", compose.Secrets["new.secret"].File)
-	assert.Equal(t, "new:latest", compose.Services["new-svc"].Image)
+	require.NotNil(t, compose.Secrets)
+	require.NotNil(t, compose.Services)
+	require.Equal(t, "./secrets/new.secret", compose.Secrets["new.secret"].File)
+	require.Equal(t, "new:latest", compose.Services["new-svc"].Image)
 }
 
 func TestMergeIncludedFile_OverlappingSecrets(t *testing.T) {
@@ -291,12 +290,12 @@ services:
 	mergeIncludedFile(dir, "include.yml", compose)
 
 	// Existing should NOT be overwritten.
-	assert.Equal(t, "./original.secret", compose.Secrets["existing.secret"].File)
-	assert.Equal(t, "original:latest", compose.Services["existing-svc"].Image)
+	require.Equal(t, "./original.secret", compose.Secrets["existing.secret"].File)
+	require.Equal(t, "original:latest", compose.Services["existing-svc"].Image)
 
 	// New should be added.
-	assert.Equal(t, "./secrets/new.secret", compose.Secrets["new.secret"].File)
-	assert.Equal(t, "new:latest", compose.Services["new-svc"].Image)
+	require.Equal(t, "./secrets/new.secret", compose.Secrets["new.secret"].File)
+	require.Equal(t, "new:latest", compose.Services["new-svc"].Image)
 }
 
 func TestValidateComposeFile_ContainerOnlyPort(t *testing.T) {
@@ -316,7 +315,7 @@ func TestValidateComposeFile_ContainerOnlyPort(t *testing.T) {
 
 	result, err := ValidateComposeFile(composePath)
 	require.NoError(t, err)
-	assert.True(t, result.Valid, "container-only port should not cause conflicts: %v", result.Errors)
+	require.True(t, result.Valid, "container-only port should not cause conflicts: %v", result.Errors)
 }
 
 func TestValidateComposeFile_EmptySecretNameSkipped(t *testing.T) {
@@ -339,5 +338,5 @@ secrets:
 
 	result, err := ValidateComposeFile(composePath)
 	require.NoError(t, err)
-	assert.True(t, result.Valid, "integer secret refs should be skipped: %v", result.Errors)
+	require.True(t, result.Valid, "integer secret refs should be skipped: %v", result.Errors)
 }

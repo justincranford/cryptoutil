@@ -15,6 +15,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	_ "github.com/lib/pq" // PostgreSQL driver.
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
 
@@ -147,7 +148,7 @@ func TestE2E_RegistrationFlowWithJoinRequest(t *testing.T) {
 			// Step 2: Second user attempts to join the tenant (creates join request).
 			joinerUsername := fmt.Sprintf("joiner_%d", time.Now().UTC().UnixNano())
 			joinerPassword := generateTestPassword(t)
-			placeholderTenantID := "00000000-0000-0000-0000-000000000000" // Placeholder until we parse response.
+			placeholderTenantID := googleUuid.Nil.String() // Placeholder until we parse response.
 
 			joinerRegisterURL := tt.publicURL + pathPrefix + cryptoutilSharedMagic.IMAPV1AuthRegister
 			joinerRegisterBody := fmt.Sprintf(`{

@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -241,15 +240,15 @@ secrets:
 			result, err := ValidateComposeFile(composePath)
 			require.NoError(t, err)
 			require.NotNil(t, result)
-			assert.Equal(t, tc.wantValid, result.Valid, "validity mismatch; errors=%v warnings=%v", result.Errors, result.Warnings)
+			require.Equal(t, tc.wantValid, result.Valid, "validity mismatch; errors=%v warnings=%v", result.Errors, result.Warnings)
 
 			for _, wantErr := range tc.wantErrors {
-				assert.True(t, containsSubstring(result.Errors, wantErr),
+				require.True(t, containsSubstring(result.Errors, wantErr),
 					"expected error containing %q in %v", wantErr, result.Errors)
 			}
 
 			for _, wantWarn := range tc.wantWarns {
-				assert.True(t, containsSubstring(result.Warnings, wantWarn),
+				require.True(t, containsSubstring(result.Warnings, wantWarn),
 					"expected warning containing %q in %v", wantWarn, result.Warnings)
 			}
 		})
@@ -262,8 +261,8 @@ func TestValidateComposeFile_FileNotFound(t *testing.T) {
 	result, err := ValidateComposeFile("/nonexistent/compose.yml")
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.False(t, result.Valid)
-	assert.True(t, containsSubstring(result.Errors, "YAML parse error"))
+	require.False(t, result.Valid)
+	require.True(t, containsSubstring(result.Errors, "YAML parse error"))
 }
 
 func TestValidateComposeFile_WithIncludes(t *testing.T) {
@@ -301,7 +300,7 @@ services:
 
 	result, err := ValidateComposeFile(mainPath)
 	require.NoError(t, err)
-	assert.True(t, result.Valid, "should be valid with included secrets: %v", result.Errors)
+	require.True(t, result.Valid, "should be valid with included secrets: %v", result.Errors)
 }
 
 // containsSubstring checks if any string in slice contains the given substring.

@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	. "cryptoutil/internal/cmd/cicd/lint_deployments"
@@ -28,15 +27,15 @@ func TestValidateConfigFiles_MissingRequiredConfigs(t *testing.T) {
 	result, err := ValidateDeploymentStructure(tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS, "PRODUCT-SERVICE")
 	require.NoError(t, err)
 
-	assert.False(t, result.Valid, "should be invalid with missing config files")
-	assert.GreaterOrEqual(t, len(result.Errors), 4, "should have at least 4 errors for missing config files")
+	require.False(t, result.Valid, "should be invalid with missing config files")
+	require.GreaterOrEqual(t, len(result.Errors), 4, "should have at least 4 errors for missing config files")
 
 	// Verify specific missing files mentioned in errors.
 	errorStr := joinErrors(result.Errors)
-	assert.Contains(t, errorStr, "sm-kms-app-common.yml")
-	assert.Contains(t, errorStr, "sm-kms-app-sqlite-1.yml")
-	assert.Contains(t, errorStr, "sm-kms-app-postgresql-1.yml")
-	assert.Contains(t, errorStr, "sm-kms-app-postgresql-2.yml")
+	require.Contains(t, errorStr, "sm-kms-app-common.yml")
+	require.Contains(t, errorStr, "sm-kms-app-sqlite-1.yml")
+	require.Contains(t, errorStr, "sm-kms-app-postgresql-1.yml")
+	require.Contains(t, errorStr, "sm-kms-app-postgresql-2.yml")
 }
 
 func TestValidateConfigFiles_WrongPrefix(t *testing.T) {
@@ -58,11 +57,11 @@ func TestValidateConfigFiles_WrongPrefix(t *testing.T) {
 	result, err := ValidateDeploymentStructure(tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS, "PRODUCT-SERVICE")
 	require.NoError(t, err)
 
-	assert.False(t, result.Valid, "should be invalid with wrong-prefix config file")
+	require.False(t, result.Valid, "should be invalid with wrong-prefix config file")
 
 	errorStr := joinErrors(result.Errors)
-	assert.Contains(t, errorStr, "kms-app.yml")
-	assert.Contains(t, errorStr, "does not match required pattern")
+	require.Contains(t, errorStr, "kms-app.yml")
+	require.Contains(t, errorStr, "does not match required pattern")
 }
 
 func TestValidateConfigFiles_WrongSuffix(t *testing.T) {
@@ -87,10 +86,10 @@ func TestValidateConfigFiles_WrongSuffix(t *testing.T) {
 	require.NoError(t, err)
 
 	// Should be invalid because sm-kms-app-sqlite-1.yml is missing (sm-kms-app-sqlite.yml is not the right name).
-	assert.False(t, result.Valid, "should be invalid with missing sqlite-1 config file")
+	require.False(t, result.Valid, "should be invalid with missing sqlite-1 config file")
 
 	errorStr := joinErrors(result.Errors)
-	assert.Contains(t, errorStr, "sm-kms-app-sqlite-1.yml")
+	require.Contains(t, errorStr, "sm-kms-app-sqlite-1.yml")
 }
 
 func TestValidateConfigFiles_DeprecatedDemoSeed(t *testing.T) {
@@ -105,12 +104,12 @@ func TestValidateConfigFiles_DeprecatedDemoSeed(t *testing.T) {
 	result, err := ValidateDeploymentStructure(tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS, "PRODUCT-SERVICE")
 	require.NoError(t, err)
 
-	assert.False(t, result.Valid, "should be invalid with deprecated demo-seed.yml")
+	require.False(t, result.Valid, "should be invalid with deprecated demo-seed.yml")
 
 	errorStr := joinErrors(result.Errors)
-	assert.Contains(t, errorStr, "demo-seed.yml")
-	assert.Contains(t, errorStr, "DEPRECATED")
-	assert.Contains(t, errorStr, "sm-kms-demo.yml")
+	require.Contains(t, errorStr, "demo-seed.yml")
+	require.Contains(t, errorStr, "DEPRECATED")
+	require.Contains(t, errorStr, "sm-kms-demo.yml")
 }
 
 func TestValidateConfigFiles_DeprecatedIntegration(t *testing.T) {
@@ -125,12 +124,12 @@ func TestValidateConfigFiles_DeprecatedIntegration(t *testing.T) {
 	result, err := ValidateDeploymentStructure(tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS, "PRODUCT-SERVICE")
 	require.NoError(t, err)
 
-	assert.False(t, result.Valid, "should be invalid with deprecated integration.yml")
+	require.False(t, result.Valid, "should be invalid with deprecated integration.yml")
 
 	errorStr := joinErrors(result.Errors)
-	assert.Contains(t, errorStr, "integration.yml")
-	assert.Contains(t, errorStr, "DEPRECATED")
-	assert.Contains(t, errorStr, "sm-kms-e2e.yml")
+	require.Contains(t, errorStr, "integration.yml")
+	require.Contains(t, errorStr, "DEPRECATED")
+	require.Contains(t, errorStr, "sm-kms-e2e.yml")
 }
 
 func TestValidateConfigFiles_SinglePartDeploymentName(t *testing.T) {
@@ -149,10 +148,10 @@ func TestValidateConfigFiles_SinglePartDeploymentName(t *testing.T) {
 	result, err := ValidateDeploymentStructure(tmpDir, cryptoutilSharedMagic.KMSServiceName, "PRODUCT-SERVICE")
 	require.NoError(t, err)
 
-	assert.False(t, result.Valid, "should be invalid with single-part deployment name")
+	require.False(t, result.Valid, "should be invalid with single-part deployment name")
 
 	errorStr := joinErrors(result.Errors)
-	assert.Contains(t, errorStr, "does not match PRODUCT-SERVICE pattern")
+	require.Contains(t, errorStr, "does not match PRODUCT-SERVICE pattern")
 }
 
 func TestValidateConfigFiles_WrongProductPrefix(t *testing.T) {
@@ -167,11 +166,11 @@ func TestValidateConfigFiles_WrongProductPrefix(t *testing.T) {
 	result, err := ValidateDeploymentStructure(tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS, "PRODUCT-SERVICE")
 	require.NoError(t, err)
 
-	assert.False(t, result.Valid, "should be invalid with wrong product prefix")
+	require.False(t, result.Valid, "should be invalid with wrong product prefix")
 
 	errorStr := joinErrors(result.Errors)
-	assert.Contains(t, errorStr, "pki-kms-app-common.yml")
-	assert.Contains(t, errorStr, "does not match required pattern")
+	require.Contains(t, errorStr, "pki-kms-app-common.yml")
+	require.Contains(t, errorStr, "does not match required pattern")
 }
 
 func TestValidateConfigFiles_NonYAMLFilesIgnored(t *testing.T) {
@@ -188,8 +187,8 @@ func TestValidateConfigFiles_NonYAMLFilesIgnored(t *testing.T) {
 	result, err := ValidateDeploymentStructure(tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS, "PRODUCT-SERVICE")
 	require.NoError(t, err)
 
-	assert.True(t, result.Valid, "non-YAML files should be ignored")
-	assert.Empty(t, result.Errors, "should have no errors for valid deployment with non-YAML files")
+	require.True(t, result.Valid, "non-YAML files should be ignored")
+	require.Empty(t, result.Errors, "should have no errors for valid deployment with non-YAML files")
 }
 
 func TestValidateConfigFiles_IdentityMultiPartServiceName(t *testing.T) {
@@ -216,8 +215,8 @@ func TestValidateConfigFiles_IdentityMultiPartServiceName(t *testing.T) {
 			result, err := ValidateDeploymentStructure(tmpDir, tc.productService, "PRODUCT-SERVICE")
 			require.NoError(t, err)
 
-			assert.True(t, result.Valid, "identity service %s should be valid", tc.productService)
-			assert.Empty(t, result.Errors, "should have no errors for valid %s deployment", tc.productService)
+			require.True(t, result.Valid, "identity service %s should be valid", tc.productService)
+			require.Empty(t, result.Errors, "should have no errors for valid %s deployment", tc.productService)
 		})
 	}
 }

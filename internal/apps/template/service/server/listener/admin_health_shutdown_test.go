@@ -18,7 +18,7 @@ cryptoutilAppsTemplateServiceServerListener "cryptoutil/internal/apps/template/s
 cryptoutilAppsTemplateServiceServerTestutil "cryptoutil/internal/apps/template/service/server/testutil"
 cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-"github.com/stretchr/testify/assert"
+
 "github.com/stretchr/testify/require"
 )
 
@@ -99,7 +99,7 @@ require.NoError(t, err)
 
 defer func() { _ = livezResp.Body.Close() }()
 
-assert.Equal(t, http.StatusServiceUnavailable, livezResp.StatusCode)
+require.Equal(t, http.StatusServiceUnavailable, livezResp.StatusCode)
 }
 
 // TestAdminServer_Readyz_DuringHTTPShutdown covers handleReadyz's "return nil" after
@@ -139,5 +139,5 @@ require.NoError(t, err)
 
 defer func() { _ = readyzResp.Body.Close() }()
 
-assert.Equal(t, http.StatusServiceUnavailable, readyzResp.StatusCode)
+require.Equal(t, http.StatusServiceUnavailable, readyzResp.StatusCode)
 }

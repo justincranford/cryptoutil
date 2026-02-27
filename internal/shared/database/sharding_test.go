@@ -359,7 +359,7 @@ func TestValidateSchemaName(t *testing.T) {
 		wantErr bool
 	}{
 		{name: "valid alphanumeric", input: "tenant_abc123", wantErr: false},
-		{name: "valid with hyphens", input: "tenant-550e8400-e29b-41d4-a716-446655440000", wantErr: false},
+		{name: "valid with hyphens", input: fmt.Sprintf("tenant-%s", googleUuid.Must(googleUuid.NewV7())), wantErr: false},
 		{name: "valid underscores", input: "schema_prefix_test", wantErr: false},
 		{name: "invalid dollar sign", input: "tenant$bad", wantErr: true},
 		{name: "invalid space", input: "tenant bad", wantErr: true},

@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,10 +24,10 @@ func TestChunkMappings(t *testing.T) {
 	require.NotEmpty(t, mappings, "chunkMappings must not be empty")
 
 	for _, m := range mappings {
-		assert.NotEmpty(t, m.ArchSection, "ArchSection must not be empty")
-		assert.NotEmpty(t, m.Description, "Description must not be empty")
-		assert.NotEmpty(t, m.DestFile, "DestFile must not be empty")
-		assert.NotEmpty(t, m.MarkerText, "MarkerText must not be empty")
+		require.NotEmpty(t, m.ArchSection, "ArchSection must not be empty")
+		require.NotEmpty(t, m.Description, "Description must not be empty")
+		require.NotEmpty(t, m.DestFile, "DestFile must not be empty")
+		require.NotEmpty(t, m.MarkerText, "MarkerText must not be empty")
 	}
 }
 
@@ -149,16 +148,16 @@ func TestVerifyChunks(t *testing.T) {
 
 			results, allPassed := VerifyChunks(tc.mappings, tc.readFile)
 
-			assert.Equal(t, tc.wantPass, allPassed, "allPassed mismatch")
+			require.Equal(t, tc.wantPass, allPassed, "allPassed mismatch")
 			require.Len(t, results, len(tc.wantFound), "result count mismatch")
 
 			for i, r := range results {
-				assert.Equal(t, tc.wantFound[i], r.Found, "Found mismatch at index %d", i)
+				require.Equal(t, tc.wantFound[i], r.Found, "Found mismatch at index %d", i)
 
 				if tc.wantErrors[i] {
-					assert.Error(t, r.Error, "expected error at index %d", i)
+					require.Error(t, r.Error, "expected error at index %d", i)
 				} else {
-					assert.NoError(t, r.Error, "unexpected error at index %d", i)
+					require.NoError(t, r.Error, "unexpected error at index %d", i)
 				}
 			}
 		})
@@ -215,7 +214,7 @@ func TestFormatVerificationResults(t *testing.T) {
 			output := FormatVerificationResults(tc.results, tc.allPassed)
 
 			for _, part := range tc.wantParts {
-				assert.Contains(t, output, part, "missing expected part: %s", part)
+				require.Contains(t, output, part, "missing expected part: %s", part)
 			}
 		})
 	}
@@ -229,9 +228,9 @@ func TestCheckChunkVerification_Integration(t *testing.T) {
 	exitCode := CheckChunkVerification(&stdout, &stderr)
 
 	output := stdout.String()
-	assert.Contains(t, output, "Chunk Verification Report")
-	assert.Contains(t, output, "Summary")
-	assert.Equal(t, 0, exitCode, "all chunks should pass in real project: %s", output)
+	require.Contains(t, output, "Chunk Verification Report")
+	require.Contains(t, output, "Summary")
+	require.Equal(t, 0, exitCode, "all chunks should pass in real project: %s", output)
 }
 
 func TestCheckChunkVerification_AllMappingsValid(t *testing.T) {
@@ -249,8 +248,8 @@ func TestCheckChunkVerification_AllMappingsValid(t *testing.T) {
 		t.Run(r.Mapping.ArchSection+"_"+r.Mapping.Description, func(t *testing.T) {
 			t.Parallel()
 
-			assert.True(t, r.Found, "marker %q not found in %s", r.Mapping.MarkerText, r.Mapping.DestFile)
-			assert.NoError(t, r.Error)
+			require.True(t, r.Found, "marker %q not found in %s", r.Mapping.MarkerText, r.Mapping.DestFile)
+			require.NoError(t, r.Error)
 		})
 	}
 }
@@ -266,10 +265,10 @@ func TestCheckChunkVerification_MissingChunkDetection(t *testing.T) {
 		return []byte("no match here"), nil
 	})
 
-	assert.False(t, allPassed)
+	require.False(t, allPassed)
 	require.Len(t, results, 1)
-	assert.False(t, results[0].Found)
-	assert.NoError(t, results[0].Error)
+	require.False(t, results[0].Found)
+	require.NoError(t, results[0].Error)
 }
 
 func TestFindProjectRoot(t *testing.T) {
@@ -277,8 +276,8 @@ func TestFindProjectRoot(t *testing.T) {
 
 	root, err := findProjectRoot()
 	require.NoError(t, err)
-	assert.NotEmpty(t, root)
-	assert.FileExists(t, root+"/go.mod")
+	require.NotEmpty(t, root)
+	require.FileExists(t, root+"/go.mod")
 }
 
 func TestCheckChunkVerificationWithRoot_Failure(t *testing.T) {
@@ -288,9 +287,9 @@ func TestCheckChunkVerificationWithRoot_Failure(t *testing.T) {
 
 	exitCode := checkChunkVerificationWithRoot(t.TempDir(), &stdout)
 
-	assert.Equal(t, 1, exitCode, "should fail when no instruction files present")
-	assert.Contains(t, stdout.String(), cryptoutilSharedMagic.TestStatusFail)
-	assert.Contains(t, stdout.String(), cryptoutilSharedMagic.TaskFailed)
+	require.Equal(t, 1, exitCode, "should fail when no instruction files present")
+	require.Contains(t, stdout.String(), cryptoutilSharedMagic.TestStatusFail)
+	require.Contains(t, stdout.String(), cryptoutilSharedMagic.TaskFailed)
 }
 
 func TestCheckChunkVerificationWithRoot_Success(t *testing.T) {
@@ -303,8 +302,8 @@ func TestCheckChunkVerificationWithRoot_Success(t *testing.T) {
 
 	exitCode := checkChunkVerificationWithRoot(rootDir, &stdout)
 
-	assert.Equal(t, 0, exitCode, "should pass when using real project root: %s", stdout.String())
-	assert.Contains(t, stdout.String(), "verified successfully")
+	require.Equal(t, 0, exitCode, "should pass when using real project root: %s", stdout.String())
+	require.Contains(t, stdout.String(), "verified successfully")
 }
 
 func TestRootedReadFile(t *testing.T) {
@@ -332,9 +331,9 @@ func TestRootedReadFile(t *testing.T) {
 			_, err := readFn(tc.path)
 
 			if tc.wantErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			}
 		})
 	}

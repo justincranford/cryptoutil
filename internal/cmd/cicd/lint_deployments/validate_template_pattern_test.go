@@ -5,8 +5,6 @@ import (
 "os"
 "path/filepath"
 "testing"
-
-"github.com/stretchr/testify/assert"
 "github.com/stretchr/testify/require"
 )
 
@@ -51,8 +49,8 @@ dir := createValidTemplateDir(t)
 result, err := ValidateTemplatePattern(dir)
 require.NoError(t, err)
 require.NotNil(t, result)
-assert.True(t, result.Valid)
-assert.Empty(t, result.Errors)
+require.True(t, result.Valid)
+require.Empty(t, result.Errors)
 }
 
 func TestValidateTemplatePattern_PathNotFound(t *testing.T) {
@@ -61,8 +59,8 @@ t.Parallel()
 result, err := ValidateTemplatePattern(filepath.Join(t.TempDir(), "nonexistent"))
 require.NoError(t, err)
 require.NotNil(t, result)
-assert.False(t, result.Valid)
-assert.True(t, containsSubstring(result.Errors, "does not exist"))
+require.False(t, result.Valid)
+require.True(t, containsSubstring(result.Errors, "does not exist"))
 }
 
 func TestValidateTemplatePattern_PathIsFile(t *testing.T) {
@@ -74,8 +72,8 @@ require.NoError(t, os.WriteFile(f, []byte("data"), cryptoutilSharedMagic.CacheFi
 result, err := ValidateTemplatePattern(f)
 require.NoError(t, err)
 require.NotNil(t, result)
-assert.False(t, result.Valid)
-assert.True(t, containsSubstring(result.Errors, "not a directory"))
+require.False(t, result.Valid)
+require.True(t, containsSubstring(result.Errors, "not a directory"))
 }
 
 func TestValidateTemplatePattern_MissingComposeFiles(t *testing.T) {
@@ -88,9 +86,9 @@ require.NoError(t, os.Remove(filepath.Join(dir, "compose-cryptoutil-PRODUCT-SERV
 result, err := ValidateTemplatePattern(dir)
 require.NoError(t, err)
 require.NotNil(t, result)
-assert.False(t, result.Valid)
-assert.True(t, containsSubstring(result.Errors, "compose.yml"))
-assert.True(t, containsSubstring(result.Errors, "compose-cryptoutil-PRODUCT-SERVICE.yml"))
+require.False(t, result.Valid)
+require.True(t, containsSubstring(result.Errors, "compose.yml"))
+require.True(t, containsSubstring(result.Errors, "compose-cryptoutil-PRODUCT-SERVICE.yml"))
 }
 
 func TestValidateTemplatePattern_MissingConfigDir(t *testing.T) {
@@ -102,8 +100,8 @@ require.NoError(t, os.RemoveAll(filepath.Join(dir, "config")))
 result, err := ValidateTemplatePattern(dir)
 require.NoError(t, err)
 require.NotNil(t, result)
-assert.False(t, result.Valid)
-assert.True(t, containsSubstring(result.Errors, "config/ directory"))
+require.False(t, result.Valid)
+require.True(t, containsSubstring(result.Errors, "config/ directory"))
 }
 
 func TestValidateTemplatePattern_MissingConfigFile(t *testing.T) {
@@ -115,8 +113,8 @@ require.NoError(t, os.Remove(filepath.Join(dir, "config", "template-app-common.y
 result, err := ValidateTemplatePattern(dir)
 require.NoError(t, err)
 require.NotNil(t, result)
-assert.False(t, result.Valid)
-assert.True(t, containsSubstring(result.Errors, "template-app-common.yml"))
+require.False(t, result.Valid)
+require.True(t, containsSubstring(result.Errors, "template-app-common.yml"))
 }
 
 func TestValidateTemplatePattern_MissingSecretsDir(t *testing.T) {
@@ -128,8 +126,8 @@ require.NoError(t, os.RemoveAll(filepath.Join(dir, "secrets")))
 result, err := ValidateTemplatePattern(dir)
 require.NoError(t, err)
 require.NotNil(t, result)
-assert.False(t, result.Valid)
-assert.True(t, containsSubstring(result.Errors, "secrets/ directory"))
+require.False(t, result.Valid)
+require.True(t, containsSubstring(result.Errors, "secrets/ directory"))
 }
 
 func TestValidateTemplatePattern_MissingSecretFile(t *testing.T) {
@@ -141,8 +139,8 @@ require.NoError(t, os.Remove(filepath.Join(dir, "secrets", "unseal_3of5.secret")
 result, err := ValidateTemplatePattern(dir)
 require.NoError(t, err)
 require.NotNil(t, result)
-assert.False(t, result.Valid)
-assert.True(t, containsSubstring(result.Errors, "unseal_3of5.secret"))
+require.False(t, result.Valid)
+require.True(t, containsSubstring(result.Errors, "unseal_3of5.secret"))
 }
 
 func TestValidateTemplatePattern_MissingServicePlaceholder(t *testing.T) {
@@ -156,8 +154,8 @@ require.NoError(t, os.WriteFile(filepath.Join(dir, "compose-cryptoutil-PRODUCT-S
 result, err := ValidateTemplatePattern(dir)
 require.NoError(t, err)
 require.NotNil(t, result)
-assert.False(t, result.Valid)
-assert.True(t, containsSubstring(result.Errors, "XXXX"))
+require.False(t, result.Valid)
+require.True(t, containsSubstring(result.Errors, "XXXX"))
 }
 
 func TestValidateTemplatePattern_MissingProductPlaceholder(t *testing.T) {
@@ -171,8 +169,8 @@ require.NoError(t, os.WriteFile(filepath.Join(dir, "compose-cryptoutil-PRODUCT.y
 result, err := ValidateTemplatePattern(dir)
 require.NoError(t, err)
 require.NotNil(t, result)
-assert.False(t, result.Valid)
-assert.True(t, containsSubstring(result.Errors, "PRODUCT"))
+require.False(t, result.Valid)
+require.True(t, containsSubstring(result.Errors, "PRODUCT"))
 }
 
 func TestValidateTemplatePattern_ConfigNonStandardNaming(t *testing.T) {
@@ -185,8 +183,8 @@ require.NoError(t, os.WriteFile(filepath.Join(dir, "config", "custom-config.yml"
 result, err := ValidateTemplatePattern(dir)
 require.NoError(t, err)
 require.NotNil(t, result)
-assert.True(t, result.Valid) // Warnings don't affect validity.
-assert.True(t, containsSubstring(result.Warnings, "custom-config.yml"))
+require.True(t, result.Valid) // Warnings don't affect validity.
+require.True(t, containsSubstring(result.Warnings, "custom-config.yml"))
 }
 
 func TestValidateTemplatePattern_NonYAMLConfigIgnored(t *testing.T) {
@@ -199,8 +197,8 @@ require.NoError(t, os.WriteFile(filepath.Join(dir, "config", "README.md"), []byt
 result, err := ValidateTemplatePattern(dir)
 require.NoError(t, err)
 require.NotNil(t, result)
-assert.True(t, result.Valid)
-assert.Empty(t, result.Warnings)
+require.True(t, result.Valid)
+require.Empty(t, result.Warnings)
 }
 
 func TestValidateTemplatePattern_ConfigSubdirIgnored(t *testing.T) {
@@ -213,7 +211,7 @@ require.NoError(t, os.MkdirAll(filepath.Join(dir, "config", "subdir"), cryptouti
 result, err := ValidateTemplatePattern(dir)
 require.NoError(t, err)
 require.NotNil(t, result)
-assert.True(t, result.Valid)
+require.True(t, result.Valid)
 }
 
 func TestFormatTemplatePatternResult(t *testing.T) {
@@ -246,7 +244,7 @@ t.Parallel()
 
 output := FormatTemplatePatternResult(tc.result)
 for _, s := range tc.contains {
-assert.Contains(t, output, s)
+require.Contains(t, output, s)
 }
 })
 }
@@ -266,7 +264,7 @@ t.Skip("Real template directory not found - skipping integration test")
 result, err := ValidateTemplatePattern(templatePath)
 require.NoError(t, err)
 require.NotNil(t, result)
-assert.True(t, result.Valid, "Real template should pass validation. Errors: %v", result.Errors)
+require.True(t, result.Valid, "Real template should pass validation. Errors: %v", result.Errors)
 }
 
 func TestValidateTemplatePattern_MissingProductComposeForPlaceholders(t *testing.T) {
@@ -280,8 +278,8 @@ result, err := ValidateTemplatePattern(dir)
 require.NoError(t, err)
 require.NotNil(t, result)
 // Missing file reported by validateRequiredTemplateFiles, placeholder check skipped.
-assert.False(t, result.Valid)
-assert.True(t, containsSubstring(result.Errors, "compose-cryptoutil-PRODUCT.yml"))
+require.False(t, result.Valid)
+require.True(t, containsSubstring(result.Errors, "compose-cryptoutil-PRODUCT.yml"))
 }
 
 func TestValidateTemplatePattern_MissingServiceComposeForPlaceholders(t *testing.T) {
@@ -294,6 +292,6 @@ require.NoError(t, os.Remove(filepath.Join(dir, "compose-cryptoutil-PRODUCT-SERV
 result, err := ValidateTemplatePattern(dir)
 require.NoError(t, err)
 require.NotNil(t, result)
-assert.False(t, result.Valid)
-assert.True(t, containsSubstring(result.Errors, "compose-cryptoutil-PRODUCT-SERVICE.yml"))
+require.False(t, result.Valid)
+require.True(t, containsSubstring(result.Errors, "compose-cryptoutil-PRODUCT-SERVICE.yml"))
 }

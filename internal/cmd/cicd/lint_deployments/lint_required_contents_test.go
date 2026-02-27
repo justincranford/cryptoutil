@@ -5,7 +5,6 @@ import (
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,7 +18,7 @@ func TestGetExpectedConfigsContents(t *testing.T) {
 
 	// All entries should be OPTIONAL (configs are less strict than deployments).
 	for path, status := range contents {
-		assert.Equal(t, OptionalFileStatus, status, "config path %s should be OPTIONAL", path)
+		require.Equal(t, OptionalFileStatus, status, "config path %s should be OPTIONAL", path)
 	}
 
 	// Verify expected config directories exist.
@@ -34,10 +33,10 @@ func TestGetExpectedConfigsContents(t *testing.T) {
 
 	for _, dir := range expectedDirs {
 		_, ok := contents[dir]
-		assert.True(t, ok, "expected config directory %q not found", dir)
+		require.True(t, ok, "expected config directory %q not found", dir)
 	}
 
-	assert.Len(t, contents, len(expectedDirs), "unexpected extra entries in configs contents")
+	require.Len(t, contents, len(expectedDirs), "unexpected extra entries in configs contents")
 }
 
 // TestGetDeploymentDirectories validates deployment directory lists.
@@ -48,11 +47,11 @@ func TestGetDeploymentDirectories(t *testing.T) {
 
 	// Suite should contain exactly cryptoutil-suite.
 	require.Len(t, suite, 1)
-	assert.Equal(t, "cryptoutil-suite", suite[0])
+	require.Equal(t, "cryptoutil-suite", suite[0])
 
 	// Products should include all 5 products.
 	expectedProducts := []string{cryptoutilSharedMagic.IdentityProductName, cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.PKIProductName, cryptoutilSharedMagic.JoseProductName, cryptoutilSharedMagic.SkeletonProductName}
-	assert.ElementsMatch(t, expectedProducts, product)
+	require.ElementsMatch(t, expectedProducts, product)
 
 	// Product-services should include all 10 services.
 	expectedServices := []string{
@@ -60,14 +59,14 @@ func TestGetDeploymentDirectories(t *testing.T) {
 		cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP, cryptoutilSharedMagic.OTLPServiceIdentityRP, cryptoutilSharedMagic.OTLPServiceIdentityRS, cryptoutilSharedMagic.OTLPServiceIdentitySPA,
 		cryptoutilSharedMagic.OTLPServiceSkeletonTemplate,
 	}
-	assert.ElementsMatch(t, expectedServices, productService)
+	require.ElementsMatch(t, expectedServices, productService)
 
 	// Infrastructure should have at least one entry.
 	require.NotEmpty(t, infrastructure, "infrastructure deployments must not be empty")
 
 	// Template should have exactly one entry.
 	require.Len(t, template, 1)
-	assert.Equal(t, "template", template[0])
+	require.Equal(t, "template", template[0])
 }
 
 // TestGetExpectedDeploymentsContents validates the full deployments contents map.
@@ -87,15 +86,15 @@ func TestGetExpectedDeploymentsContents(t *testing.T) {
 	for _, svc := range services {
 		key := svc + "/compose.yml"
 		status, ok := contents[key]
-		assert.True(t, ok, "expected deployment entry %q not found", key)
-		assert.Equal(t, RequiredFileStatus, status, "compose.yml for %s should be REQUIRED", svc)
+		require.True(t, ok, "expected deployment entry %q not found", key)
+		require.Equal(t, RequiredFileStatus, status, "compose.yml for %s should be REQUIRED", svc)
 	}
 
 	// Verify template compose.yml.
 	templateKey := "template/compose.yml"
 	status, ok := contents[templateKey]
-	assert.True(t, ok, "expected template compose.yml entry not found")
-	assert.Equal(t, RequiredFileStatus, status, "template compose.yml should be REQUIRED")
+	require.True(t, ok, "expected template compose.yml entry not found")
+	require.Equal(t, RequiredFileStatus, status, "template compose.yml should be REQUIRED")
 
 	// Verify only valid statuses are used.
 	validStatuses := map[string]bool{
@@ -105,7 +104,7 @@ func TestGetExpectedDeploymentsContents(t *testing.T) {
 	}
 
 	for path, fileStatus := range contents {
-		assert.True(t, validStatuses[fileStatus],
+		require.True(t, validStatuses[fileStatus],
 			"invalid status %q for path %q", fileStatus, path)
 	}
 }
@@ -118,25 +117,25 @@ func TestAddProductServiceFiles(t *testing.T) {
 	addProductServiceFiles(&contents, cryptoutilSharedMagic.OTLPServiceJoseJA)
 
 	// Should have compose.yml as required.
-	assert.Equal(t, RequiredFileStatus, contents["jose-ja/compose.yml"])
+	require.Equal(t, RequiredFileStatus, contents["jose-ja/compose.yml"])
 
 	// Should have Dockerfile as required.
-	assert.Equal(t, RequiredFileStatus, contents["jose-ja/Dockerfile"])
+	require.Equal(t, RequiredFileStatus, contents["jose-ja/Dockerfile"])
 
 	// Should have hash_pepper secret.
-	assert.Equal(t, RequiredFileStatus, contents["jose-ja/secrets/jose-ja-hash_pepper.secret"])
+	require.Equal(t, RequiredFileStatus, contents["jose-ja/secrets/jose-ja-hash_pepper.secret"])
 
 	// Should have unseal secrets.
-	assert.Equal(t, RequiredFileStatus, contents["jose-ja/secrets/jose-ja-unseal_1of5.secret"])
+	require.Equal(t, RequiredFileStatus, contents["jose-ja/secrets/jose-ja-unseal_1of5.secret"])
 
 	// Should have postgres secrets.
-	assert.Equal(t, RequiredFileStatus, contents["jose-ja/secrets/jose-ja-postgres_username.secret"])
+	require.Equal(t, RequiredFileStatus, contents["jose-ja/secrets/jose-ja-postgres_username.secret"])
 
 	// Should have config files.
-	assert.Equal(t, RequiredFileStatus, contents["jose-ja/config/jose-ja-app-common.yml"])
+	require.Equal(t, RequiredFileStatus, contents["jose-ja/config/jose-ja-app-common.yml"])
 
 	// Should have forbidden deprecated files.
-	assert.Equal(t, ForbiddenFileStatus, contents["jose-ja/config/demo-seed.yml"])
+	require.Equal(t, ForbiddenFileStatus, contents["jose-ja/config/demo-seed.yml"])
 }
 
 // TestAddInfrastructureFiles validates infrastructure file entries.
@@ -172,11 +171,11 @@ func TestAddInfrastructureFiles(t *testing.T) {
 			addInfrastructureFiles(&contents, tc.infraName)
 
 			// All infra should have compose.yml.
-			assert.Equal(t, RequiredFileStatus, contents[tc.infraName+"/compose.yml"])
+			require.Equal(t, RequiredFileStatus, contents[tc.infraName+"/compose.yml"])
 
 			if tc.wantExtra != "" {
 				_, ok := contents[tc.wantExtra]
-				assert.True(t, ok, "expected extra file %q not found", tc.wantExtra)
+				require.True(t, ok, "expected extra file %q not found", tc.wantExtra)
 			}
 		})
 	}
@@ -190,11 +189,11 @@ func TestAddTemplateFiles(t *testing.T) {
 	addTemplateFiles(&contents)
 
 	// Should have template compose.yml as required.
-	assert.Equal(t, RequiredFileStatus, contents["template/compose.yml"])
+	require.Equal(t, RequiredFileStatus, contents["template/compose.yml"])
 
 	// Should have template secrets.
-	assert.Equal(t, RequiredFileStatus, contents["template/secrets/hash_pepper_v3.secret"])
-	assert.Equal(t, RequiredFileStatus, contents["template/secrets/unseal_1of5.secret"])
-	assert.Equal(t, RequiredFileStatus, contents["template/secrets/postgres_username.secret"])
-	assert.Equal(t, RequiredFileStatus, contents["template/secrets/postgres_url.secret"])
+	require.Equal(t, RequiredFileStatus, contents["template/secrets/hash_pepper_v3.secret"])
+	require.Equal(t, RequiredFileStatus, contents["template/secrets/unseal_1of5.secret"])
+	require.Equal(t, RequiredFileStatus, contents["template/secrets/postgres_username.secret"])
+	require.Equal(t, RequiredFileStatus, contents["template/secrets/postgres_url.secret"])
 }

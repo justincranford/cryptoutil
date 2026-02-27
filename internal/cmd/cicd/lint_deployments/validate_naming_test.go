@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,7 +18,7 @@ func TestValidateNaming_Simple(t *testing.T) {
 	result, err := ValidateNaming(dir)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidateNaming_InvalidPascalCase(t *testing.T) {
@@ -31,10 +30,10 @@ func TestValidateNaming_InvalidPascalCase(t *testing.T) {
 	result, err := ValidateNaming(dir)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.False(t, result.Valid)
-	assert.True(t, len(result.Errors) > 0)
-	assert.Contains(t, result.Errors[0], "ServiceOne")
-	assert.Contains(t, result.Errors[0], "kebab-case")
+	require.False(t, result.Valid)
+	require.True(t, len(result.Errors) > 0)
+	require.Contains(t, result.Errors[0], "ServiceOne")
+	require.Contains(t, result.Errors[0], "kebab-case")
 }
 
 func TestValidateNaming_InvalidSnakeCase(t *testing.T) {
@@ -46,7 +45,7 @@ func TestValidateNaming_InvalidSnakeCase(t *testing.T) {
 	result, err := ValidateNaming(dir)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.False(t, result.Valid)
+	require.False(t, result.Valid)
 }
 
 func TestValidateNaming_InvalidComposeServiceNames(t *testing.T) {
@@ -64,40 +63,40 @@ func TestValidateNaming_InvalidComposeServiceNames(t *testing.T) {
 	result, err := ValidateNaming(dir)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.False(t, result.Valid)
-	assert.True(t, len(result.Errors) >= 2)
+	require.False(t, result.Valid)
+	require.True(t, len(result.Errors) >= 2)
 }
 
 func TestIsKebabCase(t *testing.T) {
 	t.Parallel()
 
-	assert.True(t, isKebabCase("hello"))
-	assert.True(t, isKebabCase("hello-world"))
-	assert.True(t, isKebabCase("service-123"))
-	assert.False(t, isKebabCase("HelloWorld"))
-	assert.False(t, isKebabCase("hello_world"))
-	assert.False(t, isKebabCase("-hello"))
-	assert.False(t, isKebabCase("hello-"))
-	assert.False(t, isKebabCase("hello--world"))
+	require.True(t, isKebabCase("hello"))
+	require.True(t, isKebabCase("hello-world"))
+	require.True(t, isKebabCase("service-123"))
+	require.False(t, isKebabCase("HelloWorld"))
+	require.False(t, isKebabCase("hello_world"))
+	require.False(t, isKebabCase("-hello"))
+	require.False(t, isKebabCase("hello-"))
+	require.False(t, isKebabCase("hello--world"))
 }
 
 func TestToKebabCase(t *testing.T) {
 	t.Parallel()
 
-	assert.Equal(t, "helloworld", toKebabCase("HelloWorld"))
-	assert.Equal(t, "hello-world", toKebabCase("hello_world"))
-	assert.Equal(t, "hello", toKebabCase("HELLO"))
-	assert.Equal(t, "myconfig.yml", toKebabCase("MyConfig.yml"))
-	assert.Equal(t, "my-config.yaml", toKebabCase("My_Config.yaml"))
+	require.Equal(t, "helloworld", toKebabCase("HelloWorld"))
+	require.Equal(t, "hello-world", toKebabCase("hello_world"))
+	require.Equal(t, "hello", toKebabCase("HELLO"))
+	require.Equal(t, "myconfig.yml", toKebabCase("MyConfig.yml"))
+	require.Equal(t, "my-config.yaml", toKebabCase("My_Config.yaml"))
 }
 
 func TestIsYAMLFile(t *testing.T) {
 	t.Parallel()
 
-	assert.True(t, isYAMLFile("config.yml"))
-	assert.True(t, isYAMLFile("config.yaml"))
-	assert.False(t, isYAMLFile("readme.txt"))
-	assert.False(t, isYAMLFile("config"))
+	require.True(t, isYAMLFile("config.yml"))
+	require.True(t, isYAMLFile("config.yaml"))
+	require.False(t, isYAMLFile("readme.txt"))
+	require.False(t, isYAMLFile("config"))
 }
 
 func TestFormatNamingValidationResult(t *testing.T) {
@@ -105,8 +104,8 @@ func TestFormatNamingValidationResult(t *testing.T) {
 
 	result := &NamingValidationResult{Path: "/test", Valid: true}
 	output := FormatNamingValidationResult(result)
-	assert.Contains(t, output, "/test")
-	assert.Contains(t, output, cryptoutilSharedMagic.TestStatusPass)
+	require.Contains(t, output, "/test")
+	require.Contains(t, output, cryptoutilSharedMagic.TestStatusPass)
 
 	result2 := &NamingValidationResult{
 		Path: "/test", Valid: false,
@@ -114,9 +113,9 @@ func TestFormatNamingValidationResult(t *testing.T) {
 		Warnings: []string{"warning1"},
 	}
 	output2 := FormatNamingValidationResult(result2)
-	assert.Contains(t, output2, cryptoutilSharedMagic.TestStatusFail)
-	assert.Contains(t, output2, "error1")
-	assert.Contains(t, output2, "warning1")
+	require.Contains(t, output2, cryptoutilSharedMagic.TestStatusFail)
+	require.Contains(t, output2, "error1")
+	require.Contains(t, output2, "warning1")
 }
 
 func TestValidateNaming_PathDoesNotExist(t *testing.T) {
@@ -127,9 +126,9 @@ func TestValidateNaming_PathDoesNotExist(t *testing.T) {
 	result, err := ValidateNaming(dir)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.False(t, result.Valid)
-	assert.True(t, len(result.Errors) > 0)
-	assert.Contains(t, result.Errors[0], "does not exist")
+	require.False(t, result.Valid)
+	require.True(t, len(result.Errors) > 0)
+	require.Contains(t, result.Errors[0], "does not exist")
 }
 
 func TestValidateNaming_PathIsFile(t *testing.T) {
@@ -142,9 +141,9 @@ func TestValidateNaming_PathIsFile(t *testing.T) {
 	result, err := ValidateNaming(filePath)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.False(t, result.Valid)
-	assert.True(t, len(result.Errors) > 0)
-	assert.Contains(t, result.Errors[0], "not a directory")
+	require.False(t, result.Valid)
+	require.True(t, len(result.Errors) > 0)
+	require.Contains(t, result.Errors[0], "not a directory")
 }
 
 func TestValidateNaming_ComposeFileReadError(t *testing.T) {
@@ -159,7 +158,7 @@ func TestValidateNaming_ComposeFileReadError(t *testing.T) {
 	require.NotNil(t, result)
 	// Directory named compose.yml violates kebab-case validation, so result should be invalid.
 	// The compose service name validation won't run because it can't read a directory as a file.
-	assert.False(t, result.Valid)
+	require.False(t, result.Valid)
 }
 
 func TestValidateNaming_InvalidFileNames(t *testing.T) {
@@ -172,8 +171,8 @@ func TestValidateNaming_InvalidFileNames(t *testing.T) {
 	result, err := ValidateNaming(dir)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.False(t, result.Valid)
-	assert.True(t, len(result.Errors) >= 2)
+	require.False(t, result.Valid)
+	require.True(t, len(result.Errors) >= 2)
 }
 
 func TestValidateNaming_ValidComposeFile(t *testing.T) {
@@ -191,7 +190,7 @@ func TestValidateNaming_ValidComposeFile(t *testing.T) {
 	result, err := ValidateNaming(dir)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidateNaming_EdgeCases(t *testing.T) {
@@ -218,7 +217,7 @@ func TestValidateNaming_EdgeCases(t *testing.T) {
 			result, err := ValidateNaming(dir)
 			require.NoError(t, err)
 			require.NotNil(t, result)
-			assert.Equal(t, tc.wantValid, result.Valid)
+			require.Equal(t, tc.wantValid, result.Valid)
 		})
 	}
 }
@@ -226,9 +225,9 @@ func TestValidateNaming_EdgeCases(t *testing.T) {
 func TestToKebabCase_EdgeCases(t *testing.T) {
 	t.Parallel()
 
-	assert.Equal(t, "hello-world", toKebabCase("hello  world"))
-	assert.Equal(t, "hello", toKebabCase("__hello__"))
-	assert.Equal(t, "hello-world", toKebabCase("___hello___world___"))
+	require.Equal(t, "hello-world", toKebabCase("hello  world"))
+	require.Equal(t, "hello", toKebabCase("__hello__"))
+	require.Equal(t, "hello-world", toKebabCase("___hello___world___"))
 }
 
 func TestValidateNaming_WalkErrorPermission(t *testing.T) {
@@ -251,9 +250,9 @@ func TestValidateNaming_WalkErrorPermission(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	// Walk error should be recorded.
-	assert.False(t, result.Valid)
-	assert.True(t, len(result.Errors) > 0)
-	assert.Contains(t, result.Errors[0], "error accessing path")
+	require.False(t, result.Valid)
+	require.True(t, len(result.Errors) > 0)
+	require.Contains(t, result.Errors[0], "error accessing path")
 }
 
 func TestValidateNaming_ComposeInvalidYAML(t *testing.T) {
@@ -267,8 +266,8 @@ func TestValidateNaming_ComposeInvalidYAML(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	// Invalid YAML produces warning, not error.
-	assert.True(t, len(result.Warnings) > 0)
-	assert.Contains(t, result.Warnings[0], "Failed to parse")
+	require.True(t, len(result.Warnings) > 0)
+	require.Contains(t, result.Warnings[0], "Failed to parse")
 }
 
 func TestValidateNaming_NonYAMLFilesIgnored(t *testing.T) {
@@ -283,8 +282,8 @@ func TestValidateNaming_NonYAMLFilesIgnored(t *testing.T) {
 	result, err := ValidateNaming(dir)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, result.Valid)
-	assert.Empty(t, result.Errors)
+	require.True(t, result.Valid)
+	require.Empty(t, result.Errors)
 }
 
 func TestValidateNaming_MixedValidInvalidDirs(t *testing.T) {
@@ -298,9 +297,9 @@ func TestValidateNaming_MixedValidInvalidDirs(t *testing.T) {
 	result, err := ValidateNaming(dir)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.False(t, result.Valid)
-	assert.Equal(t, 1, len(result.Errors))
-	assert.Contains(t, result.Errors[0], "Invalid_Name")
+	require.False(t, result.Valid)
+	require.Equal(t, 1, len(result.Errors))
+	require.Contains(t, result.Errors[0], "Invalid_Name")
 }
 
 func TestValidateNaming_NestedDirectories(t *testing.T) {
@@ -315,8 +314,8 @@ func TestValidateNaming_NestedDirectories(t *testing.T) {
 	result, err := ValidateNaming(dir)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, result.Valid)
-	assert.Empty(t, result.Errors)
+	require.True(t, result.Valid)
+	require.Empty(t, result.Errors)
 }
 
 func TestValidateNaming_EmptyDirectory(t *testing.T) {
@@ -327,8 +326,8 @@ func TestValidateNaming_EmptyDirectory(t *testing.T) {
 	result, err := ValidateNaming(dir)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, result.Valid)
-	assert.Empty(t, result.Errors)
+	require.True(t, result.Valid)
+	require.Empty(t, result.Errors)
 }
 
 func TestValidateNaming_ComposeWithEmptyServices(t *testing.T) {
@@ -341,8 +340,8 @@ func TestValidateNaming_ComposeWithEmptyServices(t *testing.T) {
 	result, err := ValidateNaming(dir)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, result.Valid)
-	assert.Empty(t, result.Errors)
+	require.True(t, result.Valid)
+	require.Empty(t, result.Errors)
 }
 
 func TestValidateNaming_UPPERCASEDir(t *testing.T) {
@@ -354,9 +353,9 @@ func TestValidateNaming_UPPERCASEDir(t *testing.T) {
 	result, err := ValidateNaming(dir)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.False(t, result.Valid)
-	assert.Contains(t, result.Errors[0], "UPPER")
-	assert.Contains(t, result.Errors[0], "kebab-case")
+	require.False(t, result.Valid)
+	require.Contains(t, result.Errors[0], "UPPER")
+	require.Contains(t, result.Errors[0], "kebab-case")
 }
 
 func TestValidateNaming_ComposeReadableFileError(t *testing.T) {
@@ -377,5 +376,5 @@ func TestValidateNaming_ComposeReadableFileError(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	// Should have warning about failed read.
-	assert.True(t, len(result.Warnings) > 0 || len(result.Errors) > 0)
+	require.True(t, len(result.Warnings) > 0 || len(result.Errors) > 0)
 }

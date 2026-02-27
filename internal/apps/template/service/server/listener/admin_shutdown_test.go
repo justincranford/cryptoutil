@@ -20,7 +20,6 @@ import (
 	cryptoutilAppsTemplateServiceTestingHttpservertests "cryptoutil/internal/apps/template/service/testing/httpservertests"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -74,7 +73,7 @@ func TestAdminServer_Shutdown_Endpoint(t *testing.T) {
 	defer func() { require.NoError(t, resp.Body.Close()) }()
 
 	// Verify response.
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
@@ -84,7 +83,7 @@ func TestAdminServer_Shutdown_Endpoint(t *testing.T) {
 	err = json.Unmarshal(body, &response)
 	require.NoError(t, err)
 
-	assert.Equal(t, "shutdown initiated", response[cryptoutilSharedMagic.StringStatus])
+	require.Equal(t, "shutdown initiated", response[cryptoutilSharedMagic.StringStatus])
 
 	// The endpoint triggers shutdown in a goroutine with 100ms delay.
 	// Cancel context to let Start() exit cleanly, then wait for goroutine.
@@ -126,7 +125,7 @@ func TestAdminServer_ActualPort_BeforeStart(t *testing.T) {
 
 	port := server.ActualPort()
 
-	assert.Equal(t, 0, port, "Expected port 0 before server starts")
+	require.Equal(t, 0, port, "Expected port 0 before server starts")
 }
 
 // TestAdminServer_ConcurrentRequests tests multiple concurrent requests to admin endpoints.

@@ -8,7 +8,6 @@ import (
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -28,9 +27,9 @@ func TestCheckDelegationPattern_SuiteValid(t *testing.T) {
 	result := &ValidationResult{Valid: true}
 	checkDelegationPattern(dir, "cryptoutil-suite", DeploymentTypeSuite, result)
 
-	assert.True(t, result.Valid, "expected valid for proper delegation")
-	assert.Empty(t, result.Errors)
-	assert.Empty(t, result.Warnings)
+	require.True(t, result.Valid, "expected valid for proper delegation")
+	require.Empty(t, result.Errors)
+	require.Empty(t, result.Warnings)
 }
 
 func TestCheckDelegationPattern_SuiteInvalidServiceLevel(t *testing.T) {
@@ -54,8 +53,8 @@ func TestCheckDelegationPattern_SuiteInvalidServiceLevel(t *testing.T) {
 	result := &ValidationResult{Valid: true}
 	checkDelegationPattern(dir, "cryptoutil-suite", DeploymentTypeSuite, result)
 
-	assert.False(t, result.Valid, "expected invalid for service-level delegation")
-	assert.Len(t, result.Errors, 10, "expected 10 errors for 10 invalid patterns")
+	require.False(t, result.Valid, "expected invalid for service-level delegation")
+	require.Len(t, result.Errors, 10, "expected 10 errors for 10 invalid patterns")
 }
 
 func TestCheckDelegationPattern_SuiteMissingProducts(t *testing.T) {
@@ -70,8 +69,8 @@ func TestCheckDelegationPattern_SuiteMissingProducts(t *testing.T) {
 	result := &ValidationResult{Valid: true}
 	checkDelegationPattern(dir, "cryptoutil-suite", DeploymentTypeSuite, result)
 
-	assert.True(t, result.Valid, "should still be valid, missing products is a warning")
-	assert.NotEmpty(t, result.Warnings, "expected warning about missing products")
+	require.True(t, result.Valid, "should still be valid, missing products is a warning")
+	require.NotEmpty(t, result.Warnings, "expected warning about missing products")
 }
 
 func TestCheckDelegationPattern_ProductValid(t *testing.T) {
@@ -119,8 +118,8 @@ func TestCheckDelegationPattern_ProductValid(t *testing.T) {
 			result := &ValidationResult{Valid: true}
 			checkDelegationPattern(dir, tc.deploymentName, DeploymentTypeProduct, result)
 
-			assert.True(t, result.Valid)
-			assert.Empty(t, result.Errors)
+			require.True(t, result.Valid)
+			require.Empty(t, result.Errors)
 		})
 	}
 }
@@ -155,8 +154,8 @@ func TestCheckDelegationPattern_ProductMissingService(t *testing.T) {
 			result := &ValidationResult{Valid: true}
 			checkDelegationPattern(dir, tc.deploymentName, DeploymentTypeProduct, result)
 
-			assert.False(t, result.Valid)
-			assert.NotEmpty(t, result.Errors)
+			require.False(t, result.Valid)
+			require.NotEmpty(t, result.Errors)
 
 			found := false
 
@@ -168,7 +167,7 @@ func TestCheckDelegationPattern_ProductMissingService(t *testing.T) {
 				}
 			}
 
-			assert.True(t, found, "expected error containing %q in %v", tc.wantError, result.Errors)
+			require.True(t, found, "expected error containing %q in %v", tc.wantError, result.Errors)
 		})
 	}
 }
@@ -179,8 +178,8 @@ func TestCheckDelegationPattern_SkipsNonSuiteProduct(t *testing.T) {
 	result := &ValidationResult{Valid: true}
 	checkDelegationPattern(t.TempDir(), cryptoutilSharedMagic.OTLPServiceJoseJA, DeploymentTypeProductService, result)
 
-	assert.True(t, result.Valid, "should skip non-suite/product types")
-	assert.Empty(t, result.Errors)
+	require.True(t, result.Valid, "should skip non-suite/product types")
+	require.Empty(t, result.Errors)
 }
 
 func TestCheckDelegationPattern_NoComposeFile(t *testing.T) {
@@ -189,8 +188,8 @@ func TestCheckDelegationPattern_NoComposeFile(t *testing.T) {
 	result := &ValidationResult{Valid: true}
 	checkDelegationPattern(t.TempDir(), "cryptoutil-suite", DeploymentTypeSuite, result)
 
-	assert.True(t, result.Valid, "should skip when no compose file exists")
-	assert.Empty(t, result.Errors)
+	require.True(t, result.Valid, "should skip when no compose file exists")
+	require.Empty(t, result.Errors)
 }
 
 func TestCheckOTLPProtocolOverride_NonServiceSkipped(t *testing.T) {
@@ -199,8 +198,8 @@ func TestCheckOTLPProtocolOverride_NonServiceSkipped(t *testing.T) {
 	result := &ValidationResult{Valid: true}
 	checkOTLPProtocolOverride(t.TempDir(), "sm", DeploymentTypeProduct, result)
 
-	assert.True(t, result.Valid, "should skip non-product-service types")
-	assert.Empty(t, result.Warnings)
+	require.True(t, result.Valid, "should skip non-product-service types")
+	require.Empty(t, result.Warnings)
 }
 
 func TestCheckOTLPProtocolOverride_WithProtocolPrefix(t *testing.T) {
@@ -218,7 +217,7 @@ func TestCheckOTLPProtocolOverride_WithProtocolPrefix(t *testing.T) {
 	result := &ValidationResult{Valid: true}
 	checkOTLPProtocolOverride(dir, cryptoutilSharedMagic.OTLPServiceJoseJA, DeploymentTypeProductService, result)
 
-	assert.NotEmpty(t, result.Warnings, "expected warning about protocol prefix")
+	require.NotEmpty(t, result.Warnings, "expected warning about protocol prefix")
 }
 
 func TestCheckOTLPProtocolOverride_NoProtocolPrefix(t *testing.T) {
@@ -236,7 +235,7 @@ func TestCheckOTLPProtocolOverride_NoProtocolPrefix(t *testing.T) {
 	result := &ValidationResult{Valid: true}
 	checkOTLPProtocolOverride(dir, cryptoutilSharedMagic.OTLPServiceJoseJA, DeploymentTypeProductService, result)
 
-	assert.Empty(t, result.Warnings, "should not warn when no protocol prefix")
+	require.Empty(t, result.Warnings, "should not warn when no protocol prefix")
 }
 
 func TestCheckOTLPProtocolOverride_NoConfigDir(t *testing.T) {
@@ -245,8 +244,8 @@ func TestCheckOTLPProtocolOverride_NoConfigDir(t *testing.T) {
 	result := &ValidationResult{Valid: true}
 	checkOTLPProtocolOverride(t.TempDir(), cryptoutilSharedMagic.OTLPServiceJoseJA, DeploymentTypeProductService, result)
 
-	assert.True(t, result.Valid)
-	assert.Empty(t, result.Warnings)
+	require.True(t, result.Valid)
+	require.Empty(t, result.Warnings)
 }
 
 func TestCheckBrowserServiceCredentials_AllPresent(t *testing.T) {
@@ -267,8 +266,8 @@ func TestCheckBrowserServiceCredentials_AllPresent(t *testing.T) {
 	result := &ValidationResult{Valid: true}
 	checkBrowserServiceCredentials(dir, cryptoutilSharedMagic.OTLPServiceJoseJA, DeploymentTypeProductService, result)
 
-	assert.True(t, result.Valid)
-	assert.Empty(t, result.Errors)
+	require.True(t, result.Valid)
+	require.Empty(t, result.Errors)
 }
 
 func TestCheckBrowserServiceCredentials_Missing(t *testing.T) {
@@ -280,8 +279,8 @@ func TestCheckBrowserServiceCredentials_Missing(t *testing.T) {
 	result := &ValidationResult{Valid: true}
 	checkBrowserServiceCredentials(dir, cryptoutilSharedMagic.OTLPServiceJoseJA, DeploymentTypeProductService, result)
 
-	assert.False(t, result.Valid)
-	assert.Len(t, result.Errors, 4, "expected 4 missing credential files")
+	require.False(t, result.Valid)
+	require.Len(t, result.Errors, 4, "expected 4 missing credential files")
 }
 
 func TestCheckBrowserServiceCredentials_SkipsNonService(t *testing.T) {
@@ -290,6 +289,6 @@ func TestCheckBrowserServiceCredentials_SkipsNonService(t *testing.T) {
 	result := &ValidationResult{Valid: true}
 	checkBrowserServiceCredentials(t.TempDir(), "sm", DeploymentTypeProduct, result)
 
-	assert.True(t, result.Valid)
-	assert.Empty(t, result.Errors)
+	require.True(t, result.Valid)
+	require.Empty(t, result.Errors)
 }

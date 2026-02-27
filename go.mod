@@ -20,7 +20,7 @@ require (
 	github.com/lestrrat-go/jwx/v3 v3.0.13
 	github.com/lib/pq v1.11.2
 	github.com/oapi-codegen/fiber-middleware v1.0.2
-	github.com/oapi-codegen/runtime v1.1.2
+	github.com/oapi-codegen/runtime v1.2.0
 	github.com/pquerna/otp v1.5.0
 	github.com/samber/slog-multi v1.7.1
 	github.com/shirou/gopsutil v3.21.11+incompatible

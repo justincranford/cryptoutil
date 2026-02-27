@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -20,8 +19,8 @@ func TestValidateSecrets_ValidDeployment(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.True(t, result.Valid)
-	assert.Empty(t, result.Errors)
+	require.True(t, result.Valid)
+	require.Empty(t, result.Errors)
 }
 
 func TestValidateSecrets_PathNotFound(t *testing.T) {
@@ -29,9 +28,9 @@ func TestValidateSecrets_PathNotFound(t *testing.T) {
 
 	result, err := ValidateSecrets("/nonexistent/path/xyz")
 	require.NoError(t, err)
-	assert.False(t, result.Valid)
-	assert.NotEmpty(t, result.Errors)
-	assert.Contains(t, result.Errors[0], "path not found")
+	require.False(t, result.Valid)
+	require.NotEmpty(t, result.Errors)
+	require.Contains(t, result.Errors[0], "path not found")
 }
 
 func TestValidateSecrets_PathIsFile(t *testing.T) {
@@ -41,8 +40,8 @@ func TestValidateSecrets_PathIsFile(t *testing.T) {
 
 	result, err := ValidateSecrets(f)
 	require.NoError(t, err)
-	assert.False(t, result.Valid)
-	assert.Contains(t, result.Errors[0], "not a directory")
+	require.False(t, result.Valid)
+	require.Contains(t, result.Errors[0], "not a directory")
 }
 
 func TestValidateSecrets_EmptySecretFile(t *testing.T) {
@@ -54,9 +53,9 @@ func TestValidateSecrets_EmptySecretFile(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.False(t, result.Valid)
-	assert.NotEmpty(t, result.Errors)
-	assert.Contains(t, result.Errors[0], "is empty")
+	require.False(t, result.Valid)
+	require.NotEmpty(t, result.Errors)
+	require.Contains(t, result.Errors[0], "is empty")
 }
 
 func TestValidateSecrets_ShortSecretFile(t *testing.T) {
@@ -68,10 +67,10 @@ func TestValidateSecrets_ShortSecretFile(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.True(t, result.Valid)
-	assert.NotEmpty(t, result.Warnings)
-	assert.Contains(t, result.Warnings[0], "has 5 bytes")
-	assert.Contains(t, result.Warnings[0], "minimum recommended: 32")
+	require.True(t, result.Valid)
+	require.NotEmpty(t, result.Warnings)
+	require.Contains(t, result.Warnings[0], "has 5 bytes")
+	require.Contains(t, result.Warnings[0], "minimum recommended: 32")
 }
 
 func TestValidateSecrets_Base64LengthOK(t *testing.T) {
@@ -85,9 +84,9 @@ func TestValidateSecrets_Base64LengthOK(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.True(t, result.Valid)
-	assert.Empty(t, result.Errors)
-	assert.Empty(t, result.Warnings)
+	require.True(t, result.Valid)
+	require.Empty(t, result.Errors)
+	require.Empty(t, result.Warnings)
 }
 
 func TestValidateSecrets_NonSecretFileIgnored(t *testing.T) {
@@ -99,8 +98,8 @@ func TestValidateSecrets_NonSecretFileIgnored(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.True(t, result.Valid)
-	assert.Empty(t, result.Errors)
+	require.True(t, result.Valid)
+	require.Empty(t, result.Errors)
 }
 
 func TestValidateSecrets_NonHighEntropySecretIgnored(t *testing.T) {
@@ -112,9 +111,9 @@ func TestValidateSecrets_NonHighEntropySecretIgnored(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.True(t, result.Valid)
-	assert.Empty(t, result.Errors)
-	assert.Empty(t, result.Warnings)
+	require.True(t, result.Valid)
+	require.Empty(t, result.Errors)
+	require.Empty(t, result.Warnings)
 }
 
 func TestValidateSecrets_SecretDirSubdirectorySkipped(t *testing.T) {
@@ -126,7 +125,7 @@ func TestValidateSecrets_SecretDirSubdirectorySkipped(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidateSecrets_UnreadableSecretFile(t *testing.T) {
@@ -142,8 +141,8 @@ func TestValidateSecrets_UnreadableSecretFile(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.NotEmpty(t, result.Warnings)
-	assert.Contains(t, result.Warnings[0], "cannot read secret file")
+	require.NotEmpty(t, result.Warnings)
+	require.Contains(t, result.Warnings[0], "cannot read secret file")
 }
 
 func TestValidateSecrets_UnreadableSecretsDir(t *testing.T) {
@@ -157,8 +156,8 @@ func TestValidateSecrets_UnreadableSecretsDir(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.NotEmpty(t, result.Warnings)
-	assert.Contains(t, result.Warnings[0], "cannot read secrets directory")
+	require.NotEmpty(t, result.Warnings)
+	require.Contains(t, result.Warnings[0], "cannot read secrets directory")
 }
 
 func TestValidateSecrets_ConfigInlineSecret(t *testing.T) {
@@ -172,9 +171,9 @@ func TestValidateSecrets_ConfigInlineSecret(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.False(t, result.Valid)
-	assert.NotEmpty(t, result.Errors)
-	assert.Contains(t, result.Errors[0], "inline secret")
+	require.False(t, result.Valid)
+	require.NotEmpty(t, result.Errors)
+	require.Contains(t, result.Errors[0], "inline secret")
 }
 
 func TestValidateSecrets_ConfigSafeReference(t *testing.T) {
@@ -188,8 +187,8 @@ func TestValidateSecrets_ConfigSafeReference(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.True(t, result.Valid)
-	assert.Empty(t, result.Errors)
+	require.True(t, result.Valid)
+	require.Empty(t, result.Errors)
 }
 
 func TestValidateSecrets_ConfigNestedInlineSecret(t *testing.T) {
@@ -203,8 +202,8 @@ func TestValidateSecrets_ConfigNestedInlineSecret(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.False(t, result.Valid)
-	assert.Contains(t, result.Errors[0], "auth.api-key")
+	require.False(t, result.Valid)
+	require.Contains(t, result.Errors[0], "auth.api-key")
 }
 
 func TestValidateSecrets_ConfigEmptySecretValue(t *testing.T) {
@@ -218,7 +217,7 @@ func TestValidateSecrets_ConfigEmptySecretValue(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidateSecrets_ConfigNonSecretField(t *testing.T) {
@@ -232,7 +231,7 @@ func TestValidateSecrets_ConfigNonSecretField(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidateSecrets_ConfigInvalidYAML(t *testing.T) {
@@ -244,7 +243,7 @@ func TestValidateSecrets_ConfigInvalidYAML(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidateSecrets_ConfigUnreadableFile(t *testing.T) {
@@ -260,8 +259,8 @@ func TestValidateSecrets_ConfigUnreadableFile(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.NotEmpty(t, result.Warnings)
-	assert.Contains(t, result.Warnings[0], "cannot read config file")
+	require.NotEmpty(t, result.Warnings)
+	require.Contains(t, result.Warnings[0], "cannot read config file")
 }
 
 func TestValidateSecrets_ConfigNonYAMLIgnored(t *testing.T) {
@@ -273,7 +272,7 @@ func TestValidateSecrets_ConfigNonYAMLIgnored(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidateSecrets_ConfigSubdirIgnored(t *testing.T) {
@@ -285,7 +284,7 @@ func TestValidateSecrets_ConfigSubdirIgnored(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidateSecrets_UnreadableConfigsDir(t *testing.T) {
@@ -299,8 +298,8 @@ func TestValidateSecrets_UnreadableConfigsDir(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.NotEmpty(t, result.Warnings)
-	assert.Contains(t, result.Warnings[0], "cannot read configs directory")
+	require.NotEmpty(t, result.Warnings)
+	require.Contains(t, result.Warnings[0], "cannot read configs directory")
 }
 
 func TestValidateSecrets_ComposeInlineSecret(t *testing.T) {
@@ -316,9 +315,9 @@ func TestValidateSecrets_ComposeInlineSecret(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.False(t, result.Valid)
-	assert.NotEmpty(t, result.Errors)
-	assert.Contains(t, result.Errors[0], "inline secret")
+	require.False(t, result.Valid)
+	require.NotEmpty(t, result.Errors)
+	require.Contains(t, result.Errors[0], "inline secret")
 }
 
 func TestValidateSecrets_ComposeSecretFileRef(t *testing.T) {
@@ -334,7 +333,7 @@ func TestValidateSecrets_ComposeSecretFileRef(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidateSecrets_ComposeNonSecretEnv(t *testing.T) {
@@ -350,7 +349,7 @@ func TestValidateSecrets_ComposeNonSecretEnv(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidateSecrets_ComposeEmptySecretValue(t *testing.T) {
@@ -366,7 +365,7 @@ func TestValidateSecrets_ComposeEmptySecretValue(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidateSecrets_ComposeInvalidYAML(t *testing.T) {
@@ -376,7 +375,7 @@ func TestValidateSecrets_ComposeInvalidYAML(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
 func TestValidateSecrets_ComposeUnreadable(t *testing.T) {
@@ -390,8 +389,8 @@ func TestValidateSecrets_ComposeUnreadable(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.NotEmpty(t, result.Warnings)
-	assert.Contains(t, result.Warnings[0], "cannot read compose file")
+	require.NotEmpty(t, result.Warnings)
+	require.Contains(t, result.Warnings[0], "cannot read compose file")
 }
 
 func TestValidateSecrets_ComposeNonMapEnv(t *testing.T) {
@@ -407,6 +406,6 @@ func TestValidateSecrets_ComposeNonMapEnv(t *testing.T) {
 
 	result, err := ValidateSecrets(dir)
 	require.NoError(t, err)
-	assert.True(t, result.Valid)
+	require.True(t, result.Valid)
 }
 
