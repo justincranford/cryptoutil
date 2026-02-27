@@ -10,7 +10,7 @@ import (
 
 // ProductConfig holds configuration for a product CLI entrypoint.
 type ProductConfig struct {
-	// ProductName is the product name (e.g., "cipher", "jose", "sm", "identity", "pki").
+	// ProductName is the product name (e.g., "sm", "jose", "pki", "identity", "skeleton").
 	ProductName string
 	// UsageText is the complete usage message displayed for --help.
 	UsageText string

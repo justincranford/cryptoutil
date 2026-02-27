@@ -20,11 +20,11 @@
         // SERVICE LAUNCHES
         // ═══════════════════════════════════════════════════════════════════════
         {
-            "name": "Cipher-IM: SQLite (dev mode)",
+            "name": "sm-im: SQLite (dev mode)",
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceFolder}/cmd/cipher-im",
+            "program": "${workspaceFolder}/cmd/sm-im",
             "args": ["server", "--dev=true"]
         },
         {
@@ -44,12 +44,12 @@
             "args": ["server", "--dev=true"]
         },
         {
-            "name": "Identity-Unified: SQLite (dev mode)",
+            "name": "skeleton-template: SQLite (dev mode)",
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceFolder}/cmd/identity-unified",
-            "args": ["--dev=true"]
+            "program": "${workspaceFolder}/cmd/skeleton-template",
+            "args": ["server", "--dev=true"]
         },
 
         // ═══════════════════════════════════════════════════════════════════════

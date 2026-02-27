@@ -100,7 +100,7 @@ func TestRegistrationFlow_E2E(t *testing.T) {
 
 ## Example: sm-im Service
 
-See `internal/apps/cipher/im/server/server.go` for complete route registration example:
+See `internal/apps/sm/im/server/server.go` for complete route registration example:
 
 ```go
 builder.WithPublicRouteRegistration(func(
