@@ -22,13 +22,13 @@ func GetExpectedConfigsContents() map[string]string {
 	contents["identity/spa"] = OptionalFileStatus   // service: identity-spa
 	contents["identity/policies/"] = OptionalFileStatus
 	contents["identity/profiles/"] = OptionalFileStatus
-	contents["jose/"] = OptionalFileStatus    // product: jose
-	contents["jose/ja/"] = OptionalFileStatus // service: jose-ja
-	contents["pki/"] = OptionalFileStatus     // product: pki
-	contents["pki/ca/"] = OptionalFileStatus  // service: pki-ca
-	contents["sm/"] = OptionalFileStatus      // product: sm
-	contents["sm/im/"] = OptionalFileStatus   // service: sm-im
-	contents["sm/kms/"] = OptionalFileStatus  // service: sm-kms
+	contents["jose/"] = OptionalFileStatus              // product: jose
+	contents["jose/ja/"] = OptionalFileStatus           // service: jose-ja
+	contents["pki/"] = OptionalFileStatus               // product: pki
+	contents["pki/ca/"] = OptionalFileStatus            // service: pki-ca
+	contents["sm/"] = OptionalFileStatus                // product: sm
+	contents["sm/im/"] = OptionalFileStatus             // service: sm-im
+	contents["sm/kms/"] = OptionalFileStatus            // service: sm-kms
 	contents["skeleton/"] = OptionalFileStatus          // product: skeleton
 	contents["skeleton/template/"] = OptionalFileStatus // service: skeleton-template
 

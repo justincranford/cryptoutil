@@ -1,12 +1,13 @@
 package lint_deployments
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Validator name constants for identification in aggregated results.

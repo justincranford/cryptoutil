@@ -6,13 +6,15 @@
 package cryptoutil
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"io"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilAppsIdentity "cryptoutil/internal/apps/identity"
 	cryptoutilAppsJose "cryptoutil/internal/apps/jose"
 	cryptoutilAppsPki "cryptoutil/internal/apps/pki"
+	cryptoutilAppsSkeleton "cryptoutil/internal/apps/skeleton"
 	cryptoutilAppsSm "cryptoutil/internal/apps/sm"
 )
 
@@ -36,6 +38,8 @@ func Suite(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return cryptoutilAppsJose.Jose(parameters, stdin, stdout, stderr)
 	case cryptoutilSharedMagic.PKIProductName:
 		return cryptoutilAppsPki.Pki(parameters, stdin, stdout, stderr)
+	case cryptoutilSharedMagic.SkeletonProductName:
+		return cryptoutilAppsSkeleton.Skeleton(parameters, stdin, stdout, stderr)
 	case "sm":
 		return cryptoutilAppsSm.Sm(parameters, stdin, stdout, stderr)
 	case "help", "--help", "-h":
@@ -58,6 +62,7 @@ Available products:
   identity    Identity product (OAuth 2.1, OIDC 1.0)
   jose        JOSE product (JWK/JWS/JWE/JWT operations)
   pki         PKI product (X.509 certificates, CA)
+  skeleton    Skeleton product (service template demonstration)
   sm          Secrets Manager product (KMS, IM)
 
 Use "cryptoutil <product> help" for product-specific help.`)

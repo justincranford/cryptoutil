@@ -1,8 +1,9 @@
 package lint_deployments
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

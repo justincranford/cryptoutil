@@ -5,9 +5,10 @@
 package cryptoutil
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -64,6 +65,7 @@ func TestSuite_HelpCommand(t *testing.T) {
 			require.Contains(t, output, cryptoutilSharedMagic.IdentityProductName)
 			require.Contains(t, output, cryptoutilSharedMagic.JoseProductName)
 			require.Contains(t, output, cryptoutilSharedMagic.PKIProductName)
+			require.Contains(t, output, cryptoutilSharedMagic.SkeletonProductName)
 			require.Contains(t, output, "sm")
 		})
 	}
@@ -93,6 +95,7 @@ func TestSuite_ProductRouting(t *testing.T) {
 		{name: "identity help", product: cryptoutilSharedMagic.IdentityProductName, expectedStr: "Usage: identity"},
 		{name: "jose help", product: cryptoutilSharedMagic.JoseProductName, expectedStr: "Usage: jose"},
 		{name: "pki help", product: cryptoutilSharedMagic.PKIProductName, expectedStr: "Usage: pki"},
+		{name: "skeleton help", product: cryptoutilSharedMagic.SkeletonProductName, expectedStr: "Usage: skeleton"},
 		{name: "sm help", product: "sm", expectedStr: "Usage: sm"},
 	}
 
@@ -123,6 +126,7 @@ func TestSuite_ProductVersion(t *testing.T) {
 		{name: "identity version", product: cryptoutilSharedMagic.IdentityProductName, expectedStr: "identity product"},
 		{name: "jose version", product: cryptoutilSharedMagic.JoseProductName, expectedStr: "jose product"},
 		{name: "pki version", product: cryptoutilSharedMagic.PKIProductName, expectedStr: "pki product"},
+		{name: "skeleton version", product: cryptoutilSharedMagic.SkeletonProductName, expectedStr: "skeleton product"},
 		{name: "sm version", product: "sm", expectedStr: "sm product"},
 	}
 
