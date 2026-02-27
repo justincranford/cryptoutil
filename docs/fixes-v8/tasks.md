@@ -79,15 +79,15 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 
 ---
 
-## Phase 5: skeleton-example Product-Service (10th Service)
+## Phase 5: skeleton-template Product-Service (10th Service)
 
-**Phase Objective**: Create skeleton-example as a fully functional 10th product-service. Product name: `skeleton`. Service name: `example`. Port: 8900. PostgreSQL port: 54329. Permanent service — demonstrates best-practice service-template usage, empty of business logic.
+**Phase Objective**: Create skeleton-template as a fully functional 10th product-service. Product name: `skeleton`. Service name: `example`. Port: 8900. PostgreSQL port: 54329. Permanent service — demonstrates best-practice service-template usage, empty of business logic.
 
 ### Task 5.1: Magic Constants
 - **Status**: ❌
 - **Estimated**: 0.5h
 - **Dependencies**: None
-- **Description**: Add skeleton-example constants to `internal/shared/magic/`
+- **Description**: Add skeleton-template constants to `internal/shared/magic/`
 - **Acceptance Criteria**:
   - [ ] Create `internal/shared/magic/magic_skeleton.go` with: ProductNameSkeleton, ServiceNameExample, ServiceIDSkeletonExample, PortSkeletonExample (8900), PostgresPortSkeletonExample (54329)
   - [ ] Follow exact naming patterns from `magic_pki.go`, `magic_sm.go`, `magic_jose.go`
@@ -122,18 +122,18 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 - **Acceptance Criteria**:
   - [ ] Create `internal/apps/skeleton/example/example.go` using `cryptoutilTemplateCli.RouteService` pattern (mirror `internal/apps/jose/ja/ja.go`)
   - [ ] Create `internal/apps/skeleton/example/example_test.go` with ≥95% coverage
-  - [ ] ServiceConfig with correct ServiceID ("skeleton-example"), ProductName ("skeleton"), ServiceName ("example")
+  - [ ] ServiceConfig with correct ServiceID ("skeleton-template"), ProductName ("skeleton"), ServiceName ("example")
   - [ ] Build clean, lint clean
 
 ### Task 5.5: Service CMD Entry
 - **Status**: ❌
 - **Estimated**: 0.5h
 - **Dependencies**: Task 5.4
-- **Description**: Create `cmd/skeleton-example/main.go` — service-level binary
+- **Description**: Create `cmd/skeleton-template/main.go` — service-level binary
 - **Acceptance Criteria**:
-  - [ ] Create `cmd/skeleton-example/main.go` (mirror `cmd/jose-ja/main.go`)
+  - [ ] Create `cmd/skeleton-template/main.go` (mirror `cmd/jose-ja/main.go`)
   - [ ] Delegates to `skeleton.Example(os.Args[1:], ...)`
-  - [ ] Build clean: `go build ./cmd/skeleton-example/`
+  - [ ] Build clean: `go build ./cmd/skeleton-template/`
 
 ### Task 5.6: Server Config
 - **Status**: ❌
@@ -196,11 +196,11 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 - **Status**: ❌
 - **Estimated**: 2h
 - **Dependencies**: Tasks 5.1, 5.9
-- **Description**: Create deployment and config directories for skeleton-example
+- **Description**: Create deployment and config directories for skeleton-template
 - **Acceptance Criteria**:
-  - [ ] Create `deployments/skeleton-example/compose.yml` (mirror template pattern, port 8900+)
-  - [ ] Create `deployments/skeleton-example/secrets/` with appropriate .secret files
-  - [ ] Create `configs/skeleton/` with `config-skeleton-example.yml`
+  - [ ] Create `deployments/skeleton-template/compose.yml` (mirror template pattern, port 8900+)
+  - [ ] Create `deployments/skeleton-template/secrets/` with appropriate .secret files
+  - [ ] Create `configs/skeleton/` with `config-skeleton-template.yml`
   - [ ] Port mappings: 8900 (public), 9090 (admin), 54329 (PostgreSQL)
   - [ ] Docker secrets for credentials (not inline env vars)
   - [ ] Health checks using wget
@@ -210,7 +210,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 - **Status**: ❌
 - **Estimated**: 1.5h
 - **Dependencies**: Task 5.9
-- **Description**: Create E2E test infrastructure for skeleton-example
+- **Description**: Create E2E test infrastructure for skeleton-template
 - **Acceptance Criteria**:
   - [ ] Create `internal/apps/skeleton/example/e2e/testmain_e2e_test.go` with TestMain
   - [ ] Create `internal/apps/skeleton/example/e2e/e2e_test.go` with basic health check tests
@@ -223,20 +223,20 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 - **Status**: ❌
 - **Estimated**: 1h
 - **Dependencies**: Tasks 5.1, 5.11
-- **Description**: Add skeleton-example to ARCHITECTURE.md
+- **Description**: Add skeleton-template to ARCHITECTURE.md
 - **Acceptance Criteria**:
-  - [ ] Add to Service Catalog (Section 3.2): Skeleton product, Example service, skeleton-example ID
+  - [ ] Add to Service Catalog (Section 3.2): Skeleton product, Example service, skeleton-template ID
   - [ ] Add to Port Assignments (Section 3.4): 8900-8999 host ports, 0.0.0.0:8080/127.0.0.1:9090 container
   - [ ] Add to PostgreSQL Ports (Section 3.4.2): 54329
   - [ ] Add Skeleton Product description section
-  - [ ] Mark skeleton-example as "Stereotype — best-practice template usage reference"
+  - [ ] Mark skeleton-template as "Stereotype — best-practice template usage reference"
   - [ ] Validate propagation: `cicd validate-propagation`
 
 ### Task 5.14: Full Quality Gate
 - **Status**: ❌
 - **Estimated**: 1h
 - **Dependencies**: All Phase 5 tasks
-- **Description**: Final validation that skeleton-example is fully functional
+- **Description**: Final validation that skeleton-template is fully functional
 - **Acceptance Criteria**:
   - [ ] `go build ./...` — clean
   - [ ] `go build -tags e2e,integration ./...` — clean
@@ -251,7 +251,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 
 ## Phase 6: PKI-CA Archive & Clean-Slate Skeleton
 
-**Phase Objective**: Archive existing pki-ca (111 Go files, 27 directories). Create new empty pki-ca skeleton following skeleton-example patterns. Validates that the skeleton pattern is reproducible.
+**Phase Objective**: Archive existing pki-ca (111 Go files, 27 directories). Create new empty pki-ca skeleton following skeleton-template patterns. Validates that the skeleton pattern is reproducible.
 
 ### Task 6.1: Archive Existing PKI-CA
 - **Status**: ❌
@@ -269,9 +269,9 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 - **Status**: ❌
 - **Estimated**: 2h
 - **Dependencies**: Task 6.1
-- **Description**: Create new `internal/apps/pki/ca/` following skeleton-example patterns
+- **Description**: Create new `internal/apps/pki/ca/` following skeleton-template patterns
 - **Acceptance Criteria**:
-  - [ ] Create new `internal/apps/pki/ca/ca.go` (service entry, mirror skeleton-example/example.go)
+  - [ ] Create new `internal/apps/pki/ca/ca.go` (service entry, mirror skeleton-template/example.go)
   - [ ] Create new `internal/apps/pki/ca/server/server.go` (NewServerBuilder pattern)
   - [ ] Create new `internal/apps/pki/ca/server/config/config.go`
   - [ ] Create new `internal/apps/pki/ca/repository/` with migrations 2001
@@ -335,7 +335,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 - **Dependencies**: Phases 5-6 complete
 - **Description**: Document the minimal file set required for a conforming product-service
 - **Acceptance Criteria**:
-  - [ ] List ALL files created for skeleton-example with purpose
+  - [ ] List ALL files created for skeleton-template with purpose
   - [ ] Compare against sm-kms (reference, 50/50 score)
   - [ ] Identify files that could be auto-generated vs hand-written
   - [ ] Document in RESEARCH.md
@@ -473,7 +473,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 - **Description**: Document base/stereotype/service architecture vision
 - **Acceptance Criteria**:
   - [ ] Base tier: service-template (current), product-service-base (future)
-  - [ ] Stereotype tier: skeleton-example (current), product-service-stereotype (future)
+  - [ ] Stereotype tier: skeleton-template (current), product-service-stereotype (future)
   - [ ] Service tier: all 9 business services
   - [ ] Long-term workflow: change base → validate stereotype → roll out
   - [ ] Document in RESEARCH.md
@@ -537,7 +537,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 ### Testing
 - [ ] Unit tests ≥95% coverage (production), ≥98% (infrastructure)
 - [ ] Integration tests pass
-- [ ] E2E tests pass (Docker Compose) for skeleton-example
+- [ ] E2E tests pass (Docker Compose) for skeleton-template
 - [ ] Mutation testing ≥95% minimum
 - [ ] No skipped tests
 - [ ] Race detector clean: `go test -race ./...`
@@ -555,7 +555,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 - [ ] Plan.md and tasks.md up to date
 
 ### Deployment
-- [ ] Docker Compose configs for skeleton-example
+- [ ] Docker Compose configs for skeleton-template
 - [ ] Health checks pass
 - [ ] Deployment validators pass
 - [ ] Config files validated
@@ -566,10 +566,10 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 
 | # | Question | Answer | Impact |
 |---|----------|--------|--------|
-| Q1 | Approach for skeleton-example scope | E: Create two skeletons: skeleton-example (permanent 10th) + pki-ca (clean-slate) | Phases 5-6 scope |
+| Q1 | Approach for skeleton-template scope | E: Create two skeletons: skeleton-template (permanent 10th) + pki-ca (clean-slate) | Phases 5-6 scope |
 | Q2 | Identity migration strategy | E: Each identity service gets own domain, DB, migration range, E2E | Future work (ED-7) |
-| Q3 | Default migration content | E: Both skeleton-example and pki-ca use empty conforming 2001+ | Task 5.7, 6.2 |
-| Q4 | PKI-CA archive strategy | E: Archive then create clean-slate AFTER skeleton-example validates pattern | Phase 6 ordering |
+| Q3 | Default migration content | E: Both skeleton-template and pki-ca use empty conforming 2001+ | Task 5.7, 6.2 |
+| Q4 | PKI-CA archive strategy | E: Archive then create clean-slate AFTER skeleton-template validates pattern | Phase 6 ordering |
 | Q5 | Identity E2E approach | A: Keep shared suite for all identity services | ED-10 confirmed |
 
 ---
@@ -596,7 +596,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 - `test-output/phase0-research/` - Phase 0 research (service patterns, ports, CLI wiring)
 - `test-output/phase1/` - Architecture documentation validation
 - `test-output/phase2/` - Readiness scorecard evidence
-- `test-output/phase5/` - skeleton-example creation evidence (planned)
+- `test-output/phase5/` - skeleton-template creation evidence (planned)
 - `test-output/phase6/` - PKI-CA archive evidence (planned)
 - `test-output/phase7/` - Reusability analysis evidence (planned)
 - `test-output/phase8/` - CICD linter evidence (planned)

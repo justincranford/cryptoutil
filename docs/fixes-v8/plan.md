@@ -3,7 +3,7 @@
 **Status**: 4/10 phases complete (45 tasks done, 0 in progress; Phases 5-10 planned)
 **Created**: 2026-02-26
 **Updated**: 2026-02-27
-**Purpose**: Architecture documentation quality + service-template readiness evaluation + skeleton-example (10th product-service stereotype) + PKI-CA clean-slate + CICD linter enhancements
+**Purpose**: Architecture documentation quality + service-template readiness evaluation + skeleton-template (10th product-service stereotype) + PKI-CA clean-slate + CICD linter enhancements
 
 ---
 
@@ -26,8 +26,8 @@ fixes-v8 focuses on five priorities:
 
 1. **Architecture Doc Quality** - Complete cleanup from fixes-v8 analysis (CONFIG-SCHEMA.md created, structural fixes committed)
 2. **Service-Template Readiness Evaluation** - Evidence-based assessment of all 9 services against the service template pattern
-3. **Skeleton-Example (10th Product-Service)** - Permanent stereotype service demonstrating best-practice use of service-template; empty of business logic except absolute minimum for stereotype purposes
-4. **PKI-CA Clean-Slate** - Archive existing pki-ca, create clean-slate skeleton using skeleton-example as starting reference
+3. **Skeleton-Template (10th Product-Service)** - Permanent stereotype service demonstrating best-practice use of service-template; empty of business logic except absolute minimum for stereotype purposes
+4. **PKI-CA Clean-Slate** - Archive existing pki-ca, create clean-slate skeleton using skeleton-template as starting reference
 5. **CICD Linter Enhancements** - New linter rules for PRODUCT and PRODUCT-SERVICE structural best practices
 
 ---
@@ -51,7 +51,7 @@ fixes-v8 focuses on five priorities:
 
 ## Executive Summary
 
-The cryptoutil project has 4 products containing 9 services. The service-template (`internal/apps/template/service/`) is the reusable base for all services, but there is **no stereotype skeleton service** to demonstrate best practice for how to use it. This plan creates a 10th product-service called **skeleton-example** as a permanent, empty-of-business-logic reference implementation.
+The cryptoutil project has 4 products containing 9 services. The service-template (`internal/apps/template/service/`) is the reusable base for all services, but there is **no stereotype skeleton service** to demonstrate best practice for how to use it. This plan creates a 10th product-service called **skeleton-template** as a permanent, empty-of-business-logic reference implementation.
 
 ### Three-Tier Architecture Vision
 
@@ -92,13 +92,13 @@ These renames are tracked for future work but **not executed in fixes-v8** to li
 | identity-rs | 18 | 8 | ✅ NewServerBuilder | Shared | ✅ Shared | Early |
 | identity-rp | 10 | 4 | ✅ NewServerBuilder | Shared | ✅ Shared | Minimal |
 | identity-spa | 10 | 4 | ✅ NewServerBuilder | Shared | ✅ Shared | Minimal |
-| **skeleton-example** | **0** | **0** | **Planned** | **Planned** | **Planned** | **New** |
+| **skeleton-template** | **0** | **0** | **Planned** | **Planned** | **Planned** | **New** |
 
-### Port Assignment for skeleton-example
+### Port Assignment for skeleton-template
 
 | Service | Public Port Range (Host) | Product Port Range | Suite Port Range | PostgreSQL Host Port |
 |---------|--------------------------|-------------------|------------------|---------------------|
-| skeleton-example | 8900-8999 | 18900-18999 | 28900-28999 | 54329 |
+| skeleton-template | 8900-8999 | 18900-18999 | 28900-28999 | 54329 |
 
 This is the only remaining available port range in the 8xxx block.
 
@@ -108,13 +108,13 @@ ALL 9 existing services use `NewServerBuilder`. The SM/JOSE/PKI services are sta
 
 ### Deployment Infrastructure
 
-All 9 services have deployment directories in `deployments/` and config directories in `configs/`. skeleton-example will follow the same pattern.
+All 9 services have deployment directories in `deployments/` and config directories in `configs/`. skeleton-template will follow the same pattern.
 
 ### Migration Priority (from ARCHITECTURE.md)
 
 > sm-im -> jose-ja -> sm-kms -> pki-ca -> identity services
 
-The first 4 are already migrated. Identity services are the final frontier. skeleton-example is additive (no migration).
+The first 4 are already migrated. Identity services are the final frontier. skeleton-template is additive (no migration).
 
 ---
 
@@ -162,12 +162,12 @@ The first 4 are already migrated. Identity services are the final frontier. skel
 
 ---
 
-## Phase 5: skeleton-example Product-Service (10th Service)
+## Phase 5: skeleton-template Product-Service (10th Service)
 
-**Goal**: Create `skeleton-example` as the 10th product-service. Permanent, empty of business logic, demonstrates best-practice use of service-template. On equal footing with all 9 other services throughout ARCHITECTURE.md, deployments, configs, magic constants, CICD, and the entire repository.
+**Goal**: Create `skeleton-template` as the 10th product-service. Permanent, empty of business logic, demonstrates best-practice use of service-template. On equal footing with all 9 other services throughout ARCHITECTURE.md, deployments, configs, magic constants, CICD, and the entire repository.
 
 ### 5.1 Magic Constants
-Add to `internal/shared/magic/`: product name `skeleton`, service name `example`, service ID `skeleton-example`, port 8900, PostgreSQL port 54329.
+Add to `internal/shared/magic/`: product name `skeleton`, service name `example`, service ID `skeleton-template`, port 8900, PostgreSQL port 54329.
 
 ### 5.2 Product-Level Wiring
 Create `internal/apps/skeleton/skeleton.go` (product router) and `internal/apps/skeleton/skeleton_test.go`. Pattern: identical to `internal/apps/pki/pki.go`.
@@ -188,13 +188,13 @@ Create `internal/apps/skeleton/example/repository/` with MigrationsFS and empty 
 Create `internal/apps/skeleton/example/domain/` with minimal placeholder model (e.g., `ExampleItem` with ID + tenant_id + created_at).
 
 ### 5.8 CMD Entry Point
-Create `cmd/skeleton-example/main.go`. Pattern: identical to `cmd/jose-ja/main.go`.
+Create `cmd/skeleton-template/main.go`. Pattern: identical to `cmd/jose-ja/main.go`.
 
 ### 5.9 Suite Integration
 Update `internal/apps/cryptoutil/cryptoutil.go` to add skeleton product routing.
 
 ### 5.10 Deployment Infrastructure
-Create `deployments/skeleton-example/` with compose.yml, secrets, and include files. Create `deployments/skeleton/` for product-level deployment. Create `configs/example/` for service config files.
+Create `deployments/skeleton-template/` with compose.yml, secrets, and include files. Create `deployments/skeleton/` for product-level deployment. Create `configs/example/` for service config files.
 
 ### 5.11 Tests
 Create comprehensive tests for all new code: server_test.go, config_test.go, example_test.go, skeleton_test.go. Coverage ≥95%.
@@ -203,24 +203,24 @@ Create comprehensive tests for all new code: server_test.go, config_test.go, exa
 Create `internal/apps/skeleton/example/e2e/` with testmain_e2e_test.go and basic health check E2E test.
 
 ### 5.13 ARCHITECTURE.md Update
-Add skeleton-example to: Service Catalog (3.2), Port Assignments (3.4), PostgreSQL Ports (3.4.2), Implementation Status table. Add section 3.2.X for Skeleton product.
+Add skeleton-template to: Service Catalog (3.2), Port Assignments (3.4), PostgreSQL Ports (3.4.2), Implementation Status table. Add section 3.2.X for Skeleton product.
 
 ### 5.14 Quality Gate Validation
 Full validation: build, lint, test, deployment validators, health endpoints respond.
 
-**Quality Gate**: skeleton-example is a fully functional 10th product-service demonstrating service-template best practices. Builds, runs, serves health endpoints, passes all quality gates.
+**Quality Gate**: skeleton-template is a fully functional 10th product-service demonstrating service-template best practices. Builds, runs, serves health endpoints, passes all quality gates.
 
 ---
 
 ## Phase 6: PKI-CA Archive & Clean-Slate Skeleton
 
-**Goal**: Archive existing pki-ca (111 Go files, 27 directories), create new empty pki-ca using skeleton-example as the starting reference. Validates that the skeleton-example pattern is reproducible.
+**Goal**: Archive existing pki-ca (111 Go files, 27 directories), create new empty pki-ca using skeleton-template as the starting reference. Validates that the skeleton-template pattern is reproducible.
 
 ### 6.1 Archive Existing PKI-CA
 Move `internal/apps/pki/ca/` to `internal/apps/pki/ca-archived/`. Temporarily stub references.
 
 ### 6.2 Create New PKI-CA from Skeleton Pattern
-Create new `internal/apps/pki/ca/` by following the exact same patterns established in skeleton-example (Phase 5). The server, config, repository, domain, and tests should follow the same structure.
+Create new `internal/apps/pki/ca/` by following the exact same patterns established in skeleton-template (Phase 5). The server, config, repository, domain, and tests should follow the same structure.
 
 ### 6.3 Wire Entry Points
 Reconnect `cmd/pki-ca/main.go` and `internal/apps/pki/pki.go` to new skeleton.
@@ -234,7 +234,7 @@ Full validation: build, lint, test, deployment validators, health endpoints.
 
 ## Phase 7: Service-Template Reusability Analysis
 
-**Goal**: Analyze both skeletons (skeleton-example and new pki-ca) to assess service-template reusability and identify improvements.
+**Goal**: Analyze both skeletons (skeleton-template and new pki-ca) to assess service-template reusability and identify improvements.
 
 ### 7.1 Minimal File Set Documentation
 Document the minimal file set required for a conforming product-service. Compare against sm-kms (reference, 50/50).
@@ -266,7 +266,7 @@ Design validators for: directory structure, required files, migration numbering,
 Implement in `cmd/cicd/`. Tests ≥98% coverage, mutation testing.
 
 ### 8.4 Apply to All 10 Services
-Run against all 10 services (including skeleton-example). Fix non-conformance.
+Run against all 10 services (including skeleton-template). Fix non-conformance.
 
 **Quality Gate**: New validators implemented, tested, passing for all 10 services. Zero regressions.
 
@@ -276,7 +276,7 @@ Run against all 10 services (including skeleton-example). Fix non-conformance.
 
 **Goal**: Consolidate findings into docs/fixes-v8/RESEARCH.md.
 
-### 9.1 Skeleton-Example Patterns
+### 9.1 Skeleton-Template Patterns
 Document the creation process, minimal file set, patterns to follow.
 
 ### 9.2 Service-Template Learnings
@@ -321,14 +321,14 @@ Full project validation: build, lint, test, deployment validators, propagation c
 | ED-3 | Identity uses shared domain layer | 44 domain + 47 repo files shared | ✅ Documented |
 | ED-4 | Identity migration numbering non-standard (0002-0011) | Evaluated Phase 2 | ✅ Evaluated |
 | ED-5 | identity-rp and identity-spa minimal (10 files each) | Scoped Phase 3 | ✅ Scoped |
-| ED-6 | **Create skeleton-example as 10th product-service** (quizme Q1=E, expanded) | Permanent stereotype: demonstrates best-practice template usage. No business logic. | ⏳ Phase 5 |
+| ED-6 | **Create skeleton-template as 10th product-service** (quizme Q1=E, expanded) | Permanent stereotype: demonstrates best-practice template usage. No business logic. | ⏳ Phase 5 |
 | ED-7 | **Identity services must be independently deployable** (quizme Q2=E) | Each gets own DB, migration range, E2E. Deferred to post-fixes-v8. | 📋 Future |
-| ED-8 | **Skeleton uses empty conforming 2001+ migrations** (quizme Q3=E) | Both skeleton-example and new pki-ca use 2001+ range. | ⏳ Phase 5-6 |
-| ED-9 | **PKI-CA archive + clean-slate after skeleton-example** (quizme Q4=E, refined) | skeleton-example validates pattern; pki-ca follows same pattern. | ⏳ Phase 5-6 |
+| ED-8 | **Skeleton uses empty conforming 2001+ migrations** (quizme Q3=E) | Both skeleton-template and new pki-ca use 2001+ range. | ⏳ Phase 5-6 |
+| ED-9 | **PKI-CA archive + clean-slate after skeleton-template** (quizme Q4=E, refined) | skeleton-template validates pattern; pki-ca follows same pattern. | ⏳ Phase 5-6 |
 | ED-10 | **Identity E2E stays shared** (quizme Q5=A) | Single suite tests all 5 services together. | ✅ Decided |
-| ED-11 | **Port 8900-8999 for skeleton-example** | Only remaining port range in 8xxx block; PostgreSQL port 54329. | ⏳ Phase 5 |
-| ED-12 | **Product name "skeleton", service name "example"** | Follows PRODUCT-SERVICE pattern (skeleton-example). Short-term name; medium-term rename to product-service-stereotype. | ⏳ Phase 5 |
-| ED-13 | **Medium-term renames deferred** | service-template → product-service-base, skeleton-example → product-service-stereotype. NOT in fixes-v8 scope. | 📋 Future |
+| ED-11 | **Port 8900-8999 for skeleton-template** | Only remaining port range in 8xxx block; PostgreSQL port 54329. | ⏳ Phase 5 |
+| ED-12 | **Product name "skeleton", service name "example"** | Follows PRODUCT-SERVICE pattern (skeleton-template). Short-term name; medium-term rename to product-service-stereotype. | ⏳ Phase 5 |
+| ED-13 | **Medium-term renames deferred** | service-template → product-service-base, skeleton-template → product-service-stereotype. NOT in fixes-v8 scope. | 📋 Future |
 | ED-14 | **Long-term: change base/stereotype first, validate, roll out** | Changes made in base+stereotype → codified in CICD linters → plan.md/tasks.md for 9-service rollout. | 📋 Future |
 
 ---
@@ -337,13 +337,13 @@ Full project validation: build, lint, test, deployment validators, propagation c
 
 | Risk | Impact | Probability | Mitigation |
 |------|--------|-------------|------------|
-| skeleton-example adds maintenance burden | Low | Low | Zero business logic; validates template patterns automatically via CICD |
+| skeleton-template adds maintenance burden | Low | Low | Zero business logic; validates template patterns automatically via CICD |
 | Port 8900 range conflicts with future services | Low | Low | 8900 is last available 8xxx range; next services use 9xxx |
 | ARCHITECTURE.md changes break propagation markers | Medium | Medium | Phase 10 validates all propagation |
 | Archived pki-ca business logic difficult to port | Medium | Medium | Archive preserves original; skeleton validates pattern first |
 | New CICD linters false-positive on existing services | Medium | Medium | Test against all 10 services before merging |
-| Identity archive+skeleton reveals deep coupling | High | Low | PKI-CA + skeleton-example validate approach first |
-| skeleton-example naming awkward | Low | Low | Medium-term rename to product-service-stereotype planned (ED-13) |
+| Identity archive+skeleton reveals deep coupling | High | Low | PKI-CA + skeleton-template validate approach first |
+| skeleton-template naming awkward | Low | Low | Medium-term rename to product-service-stereotype planned (ED-13) |
 
 ---
 
@@ -356,7 +356,7 @@ Full project validation: build, lint, test, deployment validators, propagation c
 | QG-3 | All 9 services scored on 10 dimensions | Phase 2 ✅ |
 | QG-4 | Identity migration strategy documented | Phase 3 ✅ |
 | QG-5 | At least one service improvement committed | Phase 4 ✅ |
-| QG-6 | skeleton-example is functional 10th product-service | Phase 5 |
+| QG-6 | skeleton-template is functional 10th product-service | Phase 5 |
 | QG-7 | PKI-CA clean-slate skeleton builds and runs | Phase 6 |
 | QG-8 | RESEARCH.md documents template reusability analysis | Phase 7 |
 | QG-9 | New CICD linters implemented, tested (≥98% coverage) | Phase 8 |
@@ -369,7 +369,7 @@ Full project validation: build, lint, test, deployment validators, propagation c
 
 1. **Documentation**: ARCHITECTURE.md has zero known issues, CONFIG-SCHEMA.md complete
 2. **Visibility**: All 9+1 services have quantified readiness scores
-3. **Stereotype**: skeleton-example exists as 10th product-service demonstrating best-practice template usage
+3. **Stereotype**: skeleton-template exists as 10th product-service demonstrating best-practice template usage
 4. **PKI-CA Clean-Slate**: Archived existing, new skeleton builds and passes quality gates
 5. **Template Reusability**: Friction points identified with concrete enhancement proposals
 6. **CICD Enhancements**: New linter validators for project structure best practices
@@ -380,8 +380,8 @@ Full project validation: build, lint, test, deployment validators, propagation c
 
 ## ARCHITECTURE.md Cross-References
 
-- [Section 3 Product Suite Architecture](../../docs/ARCHITECTURE.md#3-product-suite-architecture) - Service catalog (skeleton-example added)
-- [Section 3.4 Port Assignments](../../docs/ARCHITECTURE.md#34-port-assignments--networking) - Port 8900 for skeleton-example
+- [Section 3 Product Suite Architecture](../../docs/ARCHITECTURE.md#3-product-suite-architecture) - Service catalog (skeleton-template added)
+- [Section 3.4 Port Assignments](../../docs/ARCHITECTURE.md#34-port-assignments--networking) - Port 8900 for skeleton-template
 - [Section 4.4.1 Go Project Structure](../../docs/ARCHITECTURE.md#441-go-project-structure) - Directory layout
 - [Section 5.1 Service Template Pattern](../../docs/ARCHITECTURE.md#51-service-template-pattern) - Template components (base tier)
 - [Section 5.2 Service Builder Pattern](../../docs/ARCHITECTURE.md#52-service-builder-pattern) - Builder usage, merged migrations
