@@ -19,6 +19,8 @@ func TestCheckDelegationPattern_SuiteValid(t *testing.T) {
   - path: ../sm/compose.yml
   - path: ../pki/compose.yml
   - path: ../jose/compose.yml
+  - path: ../identity/compose.yml
+  - path: ../skeleton/compose.yml
 `
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(compose), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -39,6 +41,12 @@ func TestCheckDelegationPattern_SuiteInvalidServiceLevel(t *testing.T) {
   - path: ../pki-ca/compose.yml
   - path: ../sm-im/compose.yml
   - path: ../jose-ja/compose.yml
+  - path: ../identity-authz/compose.yml
+  - path: ../identity-idp/compose.yml
+  - path: ../identity-rp/compose.yml
+  - path: ../identity-rs/compose.yml
+  - path: ../identity-spa/compose.yml
+  - path: ../skeleton-template/compose.yml
 `
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(compose), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -46,7 +54,7 @@ func TestCheckDelegationPattern_SuiteInvalidServiceLevel(t *testing.T) {
 	checkDelegationPattern(dir, "cryptoutil-suite", DeploymentTypeSuite, result)
 
 	assert.False(t, result.Valid, "expected invalid for service-level delegation")
-	assert.Len(t, result.Errors, 4, "expected 4 errors for 4 invalid patterns")
+	assert.Len(t, result.Errors, 10, "expected 10 errors for 10 invalid patterns")
 }
 
 func TestCheckDelegationPattern_SuiteMissingProducts(t *testing.T) {
@@ -88,6 +96,16 @@ func TestCheckDelegationPattern_ProductValid(t *testing.T) {
 			deploymentName: cryptoutilSharedMagic.JoseProductName,
 			composeContent: "include:\n  - path: ../jose-ja/compose.yml\n",
 		},
+		{
+			name:           "identity includes all identity services",
+			deploymentName: cryptoutilSharedMagic.IdentityProductName,
+			composeContent: "include:\n  - path: ../identity-authz/compose.yml\n  - path: ../identity-idp/compose.yml\n  - path: ../identity-rp/compose.yml\n  - path: ../identity-rs/compose.yml\n  - path: ../identity-spa/compose.yml\n",
+		},
+		{
+			name:           "skeleton includes skeleton-template",
+			deploymentName: cryptoutilSharedMagic.SkeletonProductName,
+			composeContent: "include:\n  - path: ../skeleton-template/compose.yml\n",
+		},
 	}
 
 	for _, tc := range tests {
@@ -118,6 +136,12 @@ func TestCheckDelegationPattern_ProductMissingService(t *testing.T) {
 		{name: "sm missing sm-im", deploymentName: "sm", wantError: cryptoutilSharedMagic.OTLPServiceSMIM},
 		{name: "pki missing pki-ca", deploymentName: cryptoutilSharedMagic.PKIProductName, wantError: cryptoutilSharedMagic.OTLPServicePKICA},
 		{name: "jose missing jose-ja", deploymentName: cryptoutilSharedMagic.JoseProductName, wantError: cryptoutilSharedMagic.OTLPServiceJoseJA},
+		{name: "identity missing identity-authz", deploymentName: cryptoutilSharedMagic.IdentityProductName, wantError: "identity-authz"},
+		{name: "identity missing identity-idp", deploymentName: cryptoutilSharedMagic.IdentityProductName, wantError: "identity-idp"},
+		{name: "identity missing identity-rp", deploymentName: cryptoutilSharedMagic.IdentityProductName, wantError: "identity-rp"},
+		{name: "identity missing identity-rs", deploymentName: cryptoutilSharedMagic.IdentityProductName, wantError: "identity-rs"},
+		{name: "identity missing identity-spa", deploymentName: cryptoutilSharedMagic.IdentityProductName, wantError: "identity-spa"},
+		{name: "skeleton missing skeleton-template", deploymentName: cryptoutilSharedMagic.SkeletonProductName, wantError: "skeleton-template"},
 	}
 
 	for _, tc := range tests {

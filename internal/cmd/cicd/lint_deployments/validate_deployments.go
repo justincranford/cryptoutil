@@ -175,16 +175,25 @@ func checkDelegationPattern(basePath string, deploymentName string, structType s
 		// Suite MUST include product-level compose files, NOT service-level
 		invalidPatterns := []string{
 			"../sm-kms/compose.yml",
-			"../pki-ca/compose.yml",
-			"../sm-im/compose.yml",
-			"../jose-ja/compose.yml",
-		}
-		validPatterns := []string{
-			"../sm/compose.yml",
-			"../pki/compose.yml", "../jose/compose.yml",
-		}
+				"../sm-im/compose.yml",
+				"../pki-ca/compose.yml",
+				"../jose-ja/compose.yml",
+				"../identity-authz/compose.yml",
+				"../identity-idp/compose.yml",
+				"../identity-rp/compose.yml",
+				"../identity-rs/compose.yml",
+				"../identity-spa/compose.yml",
+				"../skeleton-template/compose.yml",
+			}
+			validPatterns := []string{
+				"../sm/compose.yml",
+				"../pki/compose.yml",
+				"../jose/compose.yml",
+				"../identity/compose.yml",
+				"../skeleton/compose.yml",
+			}
 
-		for _, invalid := range invalidPatterns {
+			for _, invalid := range invalidPatterns {
 			if strings.Contains(text, invalid) {
 				result.Errors = append(result.Errors,
 					fmt.Sprintf("Suite compose.yml MUST delegate to PRODUCT-level (use %s, not %s)",
@@ -203,9 +212,9 @@ func checkDelegationPattern(basePath string, deploymentName string, structType s
 			}
 		}
 
-		if foundProducts < productsWithOneServiceCount {
-			result.Warnings = append(result.Warnings,
-				"Suite should include all 3 products (sm, pki, jose) via PRODUCT-level compose")
+			if foundProducts < productCount {
+				result.Warnings = append(result.Warnings,
+					"Suite should include all 5 products (sm, pki, jose, identity, skeleton) via PRODUCT-level compose")
 		}
 	}
 
@@ -231,6 +240,24 @@ func checkDelegationPattern(basePath string, deploymentName string, structType s
 			result.Errors = append(result.Errors, "Product jose/compose.yml MUST include ../jose-ja/compose.yml")
 			result.Valid = false
 		}
+
+		identityProduct := cryptoutilSharedMagic.IdentityProductName
+		identityServices := []string{"identity-authz", "identity-idp", "identity-rp", "identity-rs", "identity-spa"}
+
+		if deploymentName == identityProduct {
+			for _, svc := range identityServices {
+				if !strings.Contains(text, "../"+svc+"/compose.yml") {
+					result.Errors = append(result.Errors,
+						fmt.Sprintf("Product identity/compose.yml MUST include ../%s/compose.yml", svc))
+					result.Valid = false
+				}
+			}
+		}
+
+		if deploymentName == cryptoutilSharedMagic.SkeletonProductName && !strings.Contains(text, "../skeleton-template/compose.yml") {
+			result.Errors = append(result.Errors, "Product skeleton/compose.yml MUST include ../skeleton-template/compose.yml")
+			result.Valid = false
+		}
 	}
 }
 
@@ -240,6 +267,7 @@ func checkDatabaseIsolation(deploymentsList []string, deploymentsRoot string) []
 	serviceNames := []string{
 		cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServicePKICA, cryptoutilSharedMagic.OTLPServiceSMIM, cryptoutilSharedMagic.OTLPServiceJoseJA,
 		cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP, cryptoutilSharedMagic.OTLPServiceIdentityRP, cryptoutilSharedMagic.OTLPServiceIdentityRS, cryptoutilSharedMagic.OTLPServiceIdentitySPA,
+		cryptoutilSharedMagic.OTLPServiceSkeletonTemplate,
 	}
 
 	databaseNames := make(map[string][]string)

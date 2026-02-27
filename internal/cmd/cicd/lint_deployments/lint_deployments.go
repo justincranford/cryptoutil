@@ -9,9 +9,8 @@ const (
 	DeploymentTypeTemplate       = "template"
 )
 
-// Product count for products that currently have one service (sm, pki, jose).
-// Note: These products may have multiple services in the future.
-const productsWithOneServiceCount = 3
+// productCount is the total number of products (sm, pki, jose, identity, skeleton).
+const productCount = 5
 
 // DeploymentStructure defines expected directory structure for each deployment type.
 type DeploymentStructure struct {
