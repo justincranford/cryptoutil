@@ -5,7 +5,7 @@
 --
 -- CRITICAL: This is a template table structure. Service-specific
 -- realm tables should use service_name_realms naming convention
--- (e.g., cipher_im_realms, identity_realms, etc.)
+-- (e.g., sm_im_realms, identity_realms, etc.)
 --
 
 -- Template Realms table (services should create their own with service_name_realms)
