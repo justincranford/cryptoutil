@@ -75,6 +75,22 @@ func TestCheckInDir_ValidTemplateMigrations(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestCheckInDir_TemplateAtMaxBoundary(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	templateDir := filepath.Join(tmpDir, "internal", "apps", "template", "service", "server", "repository", "migrations")
+	require.NoError(t, os.MkdirAll(templateDir, 0o755))
+
+	// Version 1999 is the maximum template version — must be accepted.
+	require.NoError(t, os.WriteFile(filepath.Join(templateDir, "1999_last_template.up.sql"), []byte("OK"), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(templateDir, "1999_last_template.down.sql"), []byte("OK"), cryptoutilSharedMagic.CacheFilePermissions))
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err := CheckInDir(logger, tmpDir)
+	require.NoError(t, err)
+}
+
 func TestCheckInDir_DomainVersionBelowMinimum(t *testing.T) {
 	t.Parallel()
 

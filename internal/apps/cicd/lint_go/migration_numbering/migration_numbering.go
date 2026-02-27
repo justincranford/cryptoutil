@@ -47,9 +47,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	var errors []string
 
 	templateDir := filepath.Join(rootDir, "internal", "apps", "template", "service", "server", "repository", "migrations")
-	if errs := checkMigrationDir(templateDir, templateMigrationMin, templateMigrationMax, true); len(errs) > 0 {
-		errors = append(errors, errs...)
-	}
+	errors = append(errors, checkMigrationDir(templateDir, templateMigrationMin, templateMigrationMax, true)...)
 
 	domainDirs, findErr := findDomainMigrationDirs(rootDir, templateDir)
 	if findErr != nil {
@@ -57,9 +55,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	}
 
 	for _, dir := range domainDirs {
-		if errs := checkMigrationDir(dir, domainMigrationMin, 0, false); len(errs) > 0 {
-			errors = append(errors, errs...)
-		}
+		errors = append(errors, checkMigrationDir(dir, domainMigrationMin, 0, false)...)
 	}
 
 	if len(errors) > 0 {

@@ -542,22 +542,22 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 ## Cross-Cutting Tasks
 
 ### Testing
-- [ ] Unit tests ≥95% coverage (production), ≥98% (infrastructure)
-- [ ] Integration tests pass
+- [x] Unit tests ≥95% coverage (production), ≥98% (infrastructure)
+- [x] Integration tests pass
 - [ ] E2E tests pass (Docker Compose) for skeleton-template
 - [ ] Mutation testing ≥95% minimum
-- [ ] No skipped tests
-- [ ] Race detector clean: `go test -race ./...`
+- [x] No skipped tests
+- [x] Race detector clean: `go test -race ./...`
 
 ### Code Quality
-- [ ] Linting passes: `golangci-lint run` and `golangci-lint run --build-tags e2e,integration`
-- [ ] No new TODOs without tracking
-- [ ] No security vulnerabilities
-- [ ] Formatting clean: `gofumpt -s -w ./`
+- [x] Linting passes: `golangci-lint run` and `golangci-lint run --build-tags e2e,integration`
+- [x] No new TODOs without tracking
+- [x] No security vulnerabilities
+- [x] Formatting clean: `gofumpt -s -w ./`
 
 ### Documentation
 - [x] ARCHITECTURE.md updated (service catalog, ports, product description) — commit e16317e3b
-- [ ] docs/fixes-v8/RESEARCH.md published
+- [x] docs/fixes-v8/RESEARCH.md published
 - [x] Instruction files propagated — commit 68d8cf998
 - [x] Plan.md and tasks.md up to date — example→template rename, status updates
 
