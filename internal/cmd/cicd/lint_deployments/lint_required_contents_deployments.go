@@ -16,7 +16,7 @@ const (
 // GetDeploymentDirectories returns lists of deployment directories by level.
 // See: docs/ARCHITECTURE.md Section 12.4 "Deployment Structure Validation".
 func GetDeploymentDirectories() (suite []string, product []string, productService []string, infrastructure []string, template []string) {
-	// SUITE-level deployment (all 9 services)
+	// SUITE-level deployment (all 10 services)
 	suite = []string{
 		"cryptoutil-suite",
 	}
@@ -26,7 +26,8 @@ func GetDeploymentDirectories() (suite []string, product []string, productServic
 		cryptoutilSharedMagic.IdentityProductName, // Multi-service product (5 identity services, more later)
 		cryptoutilSharedMagic.JoseProductName,     // Multi-service product (1 jose service at this time, more later)
 		cryptoutilSharedMagic.PKIProductName,      // Multi-service product (1 pki service at this time, more later)
-		"sm",       // Multi-service product (2 sm services: sm-kms, sm-im)
+		cryptoutilSharedMagic.SMProductName,       // Multi-service product (2 sm services: sm-kms, sm-im)
+		cryptoutilSharedMagic.SkeletonProductName, // Single-service product (1 skeleton service: skeleton-template)
 	}
 
 	// PRODUCT-SERVICE level deployments (individual services)
@@ -40,6 +41,7 @@ func GetDeploymentDirectories() (suite []string, product []string, productServic
 		cryptoutilSharedMagic.OTLPServiceJoseJA,
 		cryptoutilSharedMagic.OTLPServicePKICA,
 		cryptoutilSharedMagic.OTLPServiceSMKMS,
+		cryptoutilSharedMagic.OTLPServiceSkeletonTemplate,
 	}
 
 	// Infrastructure deployments (shared resources)
@@ -138,6 +140,19 @@ func GetExpectedDeploymentsContents() map[string]string {
 	contents["sm/secrets/sm-postgres_database.secret.never"] = RequiredFileStatus
 	contents["sm/secrets/sm-postgres_url.secret.never"] = RequiredFileStatus
 
+	// PRODUCT Level - skeleton (single service: skeleton-template)
+	contents["skeleton/compose.yml"] = RequiredFileStatus
+	contents["skeleton/secrets/skeleton-hash_pepper.secret"] = RequiredFileStatus
+	contents["skeleton/secrets/skeleton-unseal_1of5.secret.never"] = RequiredFileStatus
+	contents["skeleton/secrets/skeleton-unseal_2of5.secret.never"] = RequiredFileStatus
+	contents["skeleton/secrets/skeleton-unseal_3of5.secret.never"] = RequiredFileStatus
+	contents["skeleton/secrets/skeleton-unseal_4of5.secret.never"] = RequiredFileStatus
+	contents["skeleton/secrets/skeleton-unseal_5of5.secret.never"] = RequiredFileStatus
+	contents["skeleton/secrets/skeleton-postgres_username.secret.never"] = RequiredFileStatus
+	contents["skeleton/secrets/skeleton-postgres_password.secret.never"] = RequiredFileStatus
+	contents["skeleton/secrets/skeleton-postgres_database.secret.never"] = RequiredFileStatus
+	contents["skeleton/secrets/skeleton-postgres_url.secret.never"] = RequiredFileStatus
+
 	// PRODUCT-SERVICE Level - sm-im
 	addProductServiceFiles(&contents, cryptoutilSharedMagic.OTLPServiceSMIM)
 
@@ -156,6 +171,9 @@ func GetExpectedDeploymentsContents() map[string]string {
 
 	// PRODUCT-SERVICE Level - sm-kms
 	addProductServiceFiles(&contents, cryptoutilSharedMagic.OTLPServiceSMKMS)
+
+	// PRODUCT-SERVICE Level - skeleton-template
+	addProductServiceFiles(&contents, cryptoutilSharedMagic.OTLPServiceSkeletonTemplate)
 
 	// Infrastructure deployments
 	addInfrastructureFiles(&contents, "shared-citus")

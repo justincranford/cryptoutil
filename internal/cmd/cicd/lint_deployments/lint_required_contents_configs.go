@@ -29,6 +29,8 @@ func GetExpectedConfigsContents() map[string]string {
 	contents["sm/"] = OptionalFileStatus      // product: sm
 	contents["sm/im/"] = OptionalFileStatus   // service: sm-im
 	contents["sm/kms/"] = OptionalFileStatus  // service: sm-kms
+	contents["skeleton/"] = OptionalFileStatus          // product: skeleton
+	contents["skeleton/template/"] = OptionalFileStatus // service: skeleton-template
 
 	// Future: add specific required files once config patterns are established
 	// For now, configs/ validation is minimal to allow experimentation

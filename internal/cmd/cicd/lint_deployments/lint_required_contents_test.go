@@ -28,6 +28,7 @@ func TestGetExpectedConfigsContents(t *testing.T) {
 		"jose/", "jose/ja/",
 		"pki/", "pki/ca/",
 		"sm/", "sm/im/", "sm/kms/",
+		"skeleton/", "skeleton/template/",
 	}
 
 	for _, dir := range expectedDirs {
@@ -48,14 +49,15 @@ func TestGetDeploymentDirectories(t *testing.T) {
 	require.Len(t, suite, 1)
 	assert.Equal(t, "cryptoutil-suite", suite[0])
 
-	// Products should include all 4 products.
-	expectedProducts := []string{cryptoutilSharedMagic.IdentityProductName, "sm", cryptoutilSharedMagic.PKIProductName, cryptoutilSharedMagic.JoseProductName}
+	// Products should include all 5 products.
+	expectedProducts := []string{cryptoutilSharedMagic.IdentityProductName, cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.PKIProductName, cryptoutilSharedMagic.JoseProductName, cryptoutilSharedMagic.SkeletonProductName}
 	assert.ElementsMatch(t, expectedProducts, product)
 
-	// Product-services should include all 9 services.
+	// Product-services should include all 10 services.
 	expectedServices := []string{
 		cryptoutilSharedMagic.OTLPServiceJoseJA, cryptoutilSharedMagic.OTLPServiceSMIM, cryptoutilSharedMagic.OTLPServicePKICA, cryptoutilSharedMagic.OTLPServiceSMKMS,
 		cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP, cryptoutilSharedMagic.OTLPServiceIdentityRP, cryptoutilSharedMagic.OTLPServiceIdentityRS, cryptoutilSharedMagic.OTLPServiceIdentitySPA,
+		cryptoutilSharedMagic.OTLPServiceSkeletonTemplate,
 	}
 	assert.ElementsMatch(t, expectedServices, productService)
 
@@ -78,6 +80,7 @@ func TestGetExpectedDeploymentsContents(t *testing.T) {
 	services := []string{
 		cryptoutilSharedMagic.OTLPServiceJoseJA, cryptoutilSharedMagic.OTLPServiceSMIM, cryptoutilSharedMagic.OTLPServicePKICA, cryptoutilSharedMagic.OTLPServiceSMKMS,
 		cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP, cryptoutilSharedMagic.OTLPServiceIdentityRP, cryptoutilSharedMagic.OTLPServiceIdentityRS, cryptoutilSharedMagic.OTLPServiceIdentitySPA,
+		cryptoutilSharedMagic.OTLPServiceSkeletonTemplate,
 	}
 
 	for _, svc := range services {
