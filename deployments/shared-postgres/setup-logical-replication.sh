@@ -17,7 +17,7 @@ done
 
 echo "Setting up logical replication subscriptions..."
 
-# Suite-level subscriptions (cryptoutil database, 9 schemas)
+# Suite-level subscriptions (cryptoutil database, 10 schemas)
 psql -h localhost -U cryptoutil_admin -d cryptoutil <<EOF
 CREATE SUBSCRIPTION suite_pki_ca_sub
   CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres_password.secret) dbname=suitedeployment-pki-ca'
@@ -63,6 +63,11 @@ CREATE SUBSCRIPTION suite_identity_spa_sub
   CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres_password.secret) dbname=suitedeployment-identity-spa'
   PUBLICATION suite_identity_spa_pub
   WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'suite_identity_spa_slot');
+
+CREATE SUBSCRIPTION suite_skeleton_template_sub
+  CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres_password.secret) dbname=suitedeployment-skeleton-template'
+  PUBLICATION suite_skeleton_template_pub
+  WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'suite_skeleton_template_slot');
 EOF
 
 # Product-level subscriptions (5 product databases)
@@ -121,8 +126,15 @@ CREATE SUBSCRIPTION product_identity_spa_sub
   WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'product_identity_spa_slot');
 EOF
 
-# Service-level subscriptions (9 service databases)
-# Note: Simplified example - expand similarly for all 9 services
+psql -h localhost -U cryptoutil_admin -d skeleton <<EOF
+CREATE SUBSCRIPTION product_skeleton_template_sub
+  CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres_password.secret) dbname=productdeployment-skeleton-template'
+  PUBLICATION product_skeleton_template_pub
+  WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'product_skeleton_template_slot');
+EOF
+
+# Service-level subscriptions (10 service databases)
+# Note: Simplified example - expand similarly for all 10 services
 psql -h localhost -U cryptoutil_admin -d "pki-ca" <<EOF
 CREATE SUBSCRIPTION service_pki_ca_sub
   CONNECTION 'host=$LEADER_HOST port=$LEADER_PORT user=$LEADER_USER password=$(cat /run/secrets/postgres_password.secret) dbname=servicedeployment-pki-ca'
@@ -130,6 +142,6 @@ CREATE SUBSCRIPTION service_pki_ca_sub
   WITH (copy_data = true, create_slot = true, enabled = true, slot_name = 'service_pki_ca_slot');
 EOF
 
-# Add remaining service subscriptions (jose-ja, sm-im, sm-kms, identity-*, etc.)
+# Add remaining service subscriptions (jose-ja, sm-im, sm-kms, identity-*, skeleton-template, etc.)
 
 echo "Logical replication setup complete"

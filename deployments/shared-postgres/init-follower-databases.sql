@@ -2,20 +2,21 @@
 -- Creates grouped databases for OLAP analytics with schemas
 -- Read-only replica with logical replication from leader
 
--- Suite-level: 1 database with 9 schemas (all services across all products)
+-- Suite-level: 1 database with 10 schemas (all services across all products)
 CREATE DATABASE cryptoutil OWNER cryptoutil_admin;
 \c cryptoutil
 CREATE SCHEMA pki_ca;
 CREATE SCHEMA jose_ja;
-CREATE SCHEMA cipher_im;
+CREATE SCHEMA sm_im;
 CREATE SCHEMA sm_kms;
 CREATE SCHEMA identity_authz;
 CREATE SCHEMA identity_idp;
 CREATE SCHEMA identity_rs;
 CREATE SCHEMA identity_rp;
 CREATE SCHEMA identity_spa;
+CREATE SCHEMA skeleton_template;
 
--- Product-level: 5 databases with schemas grouped by product
+-- Product-level: 5 product databases with schemas grouped by product
 CREATE DATABASE pki OWNER cryptoutil_admin;
 \c pki
 CREATE SCHEMA ca;
@@ -24,12 +25,9 @@ CREATE DATABASE jose OWNER cryptoutil_admin;
 \c jose
 CREATE SCHEMA ja;
 
-CREATE DATABASE cipher OWNER cryptoutil_admin;
-\c cipher
-CREATE SCHEMA im;
-
 CREATE DATABASE sm OWNER cryptoutil_admin;
 \c sm
+CREATE SCHEMA im;
 CREATE SCHEMA kms;
 
 CREATE DATABASE identity OWNER cryptoutil_admin;
@@ -40,7 +38,11 @@ CREATE SCHEMA rs;
 CREATE SCHEMA rp;
 CREATE SCHEMA spa;
 
--- Service-level: 9 databases with 1:1 schema mapping
+CREATE DATABASE skeleton OWNER cryptoutil_admin;
+\c skeleton
+CREATE SCHEMA template;
+
+-- Service-level: 10 databases with 1:1 schema mapping
 CREATE DATABASE "pki-ca" OWNER cryptoutil_admin;
 \c "pki-ca"
 CREATE SCHEMA ca;
@@ -49,8 +51,8 @@ CREATE DATABASE "jose-ja" OWNER cryptoutil_admin;
 \c "jose-ja"
 CREATE SCHEMA ja;
 
-CREATE DATABASE "cipher-im" OWNER cryptoutil_admin;
-\c "cipher-im"
+CREATE DATABASE "sm-im" OWNER cryptoutil_admin;
+\c "sm-im"
 CREATE SCHEMA im;
 
 CREATE DATABASE "sm-kms" OWNER cryptoutil_admin;
@@ -76,6 +78,10 @@ CREATE SCHEMA rp;
 CREATE DATABASE "identity-spa" OWNER cryptoutil_admin;
 \c "identity-spa"
 CREATE SCHEMA spa;
+
+CREATE DATABASE "skeleton-template" OWNER cryptoutil_admin;
+\c "skeleton-template"
+CREATE SCHEMA template;
 
 -- Note: Logical replication subscriptions will be created by setup-logical-replication.sh
 -- after tables are created in the leader databases
