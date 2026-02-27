@@ -17,6 +17,7 @@ func ValidateAllDeployments(deploymentsRoot string) ([]ValidationResult, error) 
 	serviceNames := []string{
 		cryptoutilSharedMagic.OTLPServiceJoseJA, cryptoutilSharedMagic.OTLPServiceSMIM, cryptoutilSharedMagic.OTLPServicePKICA, cryptoutilSharedMagic.OTLPServiceSMKMS,
 		cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP, cryptoutilSharedMagic.OTLPServiceIdentityRP, cryptoutilSharedMagic.OTLPServiceIdentityRS, cryptoutilSharedMagic.OTLPServiceIdentitySPA,
+		cryptoutilSharedMagic.OTLPServiceSkeletonTemplate,
 	}
 
 	for _, svc := range serviceNames {
@@ -32,7 +33,7 @@ func ValidateAllDeployments(deploymentsRoot string) ([]ValidationResult, error) 
 	}
 
 	// PRODUCT-level deployments
-	productNames := []string{cryptoutilSharedMagic.IdentityProductName, "sm", cryptoutilSharedMagic.PKIProductName, cryptoutilSharedMagic.JoseProductName}
+	productNames := []string{cryptoutilSharedMagic.IdentityProductName, cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.PKIProductName, cryptoutilSharedMagic.JoseProductName, cryptoutilSharedMagic.SkeletonProductName}
 	for _, product := range productNames {
 		productPath := filepath.Join(deploymentsRoot, product)
 		if _, err := os.Stat(productPath); err == nil {
