@@ -70,8 +70,8 @@ func TestLint_DetectsMultipleLegacyPorts(t *testing.T) {
 	goFile := filepath.Join(tempDir, "main.go")
 	err := os.WriteFile(goFile, []byte(`package main
 
-const cipherPort = 8888 // legacy
-const josePort = 9443   // legacy
+const smIMPort = 8888 // legacy
+const josePort = 9443  // legacy
 `), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 

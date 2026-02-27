@@ -136,7 +136,7 @@ func TestIsOtelRelatedContent(t *testing.T) {
 		{name: "opentelemetry in text", content: "// Use OpenTelemetry for observability", want: true},
 		{name: "OTEL uppercase", content: "const OTEL_PORT = 8888", want: true},
 		{name: "no otel terms", content: "const port = 8080", want: false},
-		{name: "sm-im port", content: "const cipherPort = 8888", want: false},
+			{name: "sm-im port", content: "const smIMPort = 8888", want: false},
 		{name: "empty line", content: "", want: false},
 	}
 

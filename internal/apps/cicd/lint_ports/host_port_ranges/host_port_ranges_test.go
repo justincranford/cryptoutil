@@ -132,7 +132,7 @@ func TestGetServiceConfig(t *testing.T) {
 func TestIsPortInValidRange(t *testing.T) {
 	t.Parallel()
 
-	cipherConfig := &lintPortsCommon.ServicePortConfig{
+	smIMConfig := &lintPortsCommon.ServicePortConfig{
 		Name:        cryptoutilSharedMagic.OTLPServiceSMIM,
 		PublicPorts: []uint16{cryptoutilSharedMagic.IMServicePort, cryptoutilSharedMagic.IME2EPostgreSQL1PublicPort, cryptoutilSharedMagic.IME2EPostgreSQL2PublicPort},
 		AdminPort:   cryptoutilSharedMagic.JoseJAAdminPort,
@@ -144,15 +144,15 @@ func TestIsPortInValidRange(t *testing.T) {
 		cfg  *lintPortsCommon.ServicePortConfig
 		want bool
 	}{
-		{name: "public port cryptoutilSharedMagic.IMServicePort", port: 8700, cfg: cipherConfig, want: true},
-		{name: "public port cryptoutilSharedMagic.IME2EPostgreSQL1PublicPort", port: 8701, cfg: cipherConfig, want: true},
-		{name: "public port cryptoutilSharedMagic.IME2EPostgreSQL2PublicPort", port: 8702, cfg: cipherConfig, want: true},
-		{name: "admin port cryptoutilSharedMagic.JoseJAAdminPort", port: 9090, cfg: cipherConfig, want: true},
-		{name: "range port 8703", port: 8703, cfg: cipherConfig, want: true},    // In range 8700-8799
-		{name: "range port 8799", port: 8799, cfg: cipherConfig, want: true},    // Last in range
-		{name: "out of range cryptoutilSharedMagic.JoseJAServicePort", port: 8800, cfg: cipherConfig, want: false}, // Out of range (jose-ja territory)
-		{name: "out of range 8060", port: 8060, cfg: cipherConfig, want: false}, // Legacy jose-ja port
-		{name: "legacy port cryptoutilSharedMagic.DefaultPublicPortInternalMetrics", port: 8888, cfg: cipherConfig, want: false},  // Legacy
+		{name: "public port cryptoutilSharedMagic.IMServicePort", port: 8700, cfg: smIMConfig, want: true},
+		{name: "public port cryptoutilSharedMagic.IME2EPostgreSQL1PublicPort", port: 8701, cfg: smIMConfig, want: true},
+		{name: "public port cryptoutilSharedMagic.IME2EPostgreSQL2PublicPort", port: 8702, cfg: smIMConfig, want: true},
+		{name: "admin port cryptoutilSharedMagic.JoseJAAdminPort", port: 9090, cfg: smIMConfig, want: true},
+		{name: "range port 8703", port: 8703, cfg: smIMConfig, want: true},    // In range 8700-8799
+		{name: "range port 8799", port: 8799, cfg: smIMConfig, want: true},    // Last in range
+		{name: "out of range cryptoutilSharedMagic.JoseJAServicePort", port: 8800, cfg: smIMConfig, want: false}, // Out of range (jose-ja territory)
+		{name: "out of range 8060", port: 8060, cfg: smIMConfig, want: false}, // Legacy jose-ja port
+		{name: "legacy port cryptoutilSharedMagic.DefaultPublicPortInternalMetrics", port: 8888, cfg: smIMConfig, want: false},  // Legacy
 	}
 
 	for _, tt := range tests {
