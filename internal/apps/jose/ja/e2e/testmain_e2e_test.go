@@ -29,9 +29,9 @@ var (
 	postgres2Container = cryptoutilSharedMagic.JoseJAE2EPostgreSQL2Container // "jose-ja-app-postgres-2"
 
 	// Service URLs (mapped from container ports to host ports).
-	sqlitePublicURL    = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.JoseJAE2ESQLitePublicPort)      // "https://127.0.0.1:18800"
-	postgres1PublicURL = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.JoseJAE2EPostgreSQL1PublicPort) // "https://127.0.0.1:18801"
-	postgres2PublicURL = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.JoseJAE2EPostgreSQL2PublicPort) // "https://127.0.0.1:18802"
+	sqlitePublicURL    = cryptoutilSharedMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilSharedMagic.JoseJAE2ESQLitePublicPort)      // "https://127.0.0.1:18800"
+	postgres1PublicURL = cryptoutilSharedMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilSharedMagic.JoseJAE2EPostgreSQL1PublicPort) // "https://127.0.0.1:18801"
+	postgres2PublicURL = cryptoutilSharedMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilSharedMagic.JoseJAE2EPostgreSQL2PublicPort) // "https://127.0.0.1:18802"
 
 	healthChecks = map[string]string{
 		sqliteContainer:    sqlitePublicURL + cryptoutilSharedMagic.JoseJAE2EHealthEndpoint,

@@ -29,9 +29,9 @@ var (
 	postgres2Container = cryptoutilSharedMagic.KMSE2EPostgreSQL2Container // "sm-kms-app-postgres-2"
 
 	// Service URLs (mapped from container ports to host ports).
-	sqlitePublicURL    = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.KMSE2ESQLitePublicPort)      // "https://127.0.0.1:8000"
-	postgres1PublicURL = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.KMSE2EPostgreSQL1PublicPort) // "https://127.0.0.1:8001"
-	postgres2PublicURL = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.KMSE2EPostgreSQL2PublicPort) // "https://127.0.0.1:8002"
+	sqlitePublicURL    = cryptoutilSharedMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilSharedMagic.KMSE2ESQLitePublicPort)      // "https://127.0.0.1:8000"
+	postgres1PublicURL = cryptoutilSharedMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilSharedMagic.KMSE2EPostgreSQL1PublicPort) // "https://127.0.0.1:8001"
+	postgres2PublicURL = cryptoutilSharedMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilSharedMagic.KMSE2EPostgreSQL2PublicPort) // "https://127.0.0.1:8002"
 
 	healthChecks = map[string]string{
 		sqliteContainer:    sqlitePublicURL + cryptoutilSharedMagic.KMSE2EHealthEndpoint,

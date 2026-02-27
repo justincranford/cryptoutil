@@ -27,9 +27,9 @@ var (
 	postgres2Container = cryptoutilSharedMagic.SkeletonTemplateE2EPostgreSQL2Container // "skeleton-template-app-postgres-2"
 
 	// Service URLs (mapped from container ports to host ports).
-	sqlitePublicURL    = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.SkeletonTemplateE2ESQLitePublicPort)      // "https://127.0.0.1:18900"
-	postgres1PublicURL = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.SkeletonTemplateE2EPostgreSQL1PublicPort) // "https://127.0.0.1:18901"
-	postgres2PublicURL = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.SkeletonTemplateE2EPostgreSQL2PublicPort) // "https://127.0.0.1:18902"
+	sqlitePublicURL    = cryptoutilSharedMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilSharedMagic.SkeletonTemplateE2ESQLitePublicPort)      // "https://127.0.0.1:18900"
+	postgres1PublicURL = cryptoutilSharedMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilSharedMagic.SkeletonTemplateE2EPostgreSQL1PublicPort) // "https://127.0.0.1:18901"
+	postgres2PublicURL = cryptoutilSharedMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilSharedMagic.SkeletonTemplateE2EPostgreSQL2PublicPort) // "https://127.0.0.1:18902"
 
 	healthChecks = map[string]string{
 		sqliteContainer:    sqlitePublicURL + cryptoutilSharedMagic.SkeletonTemplateE2EHealthEndpoint,

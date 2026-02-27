@@ -74,7 +74,7 @@ func TestHTTPGet(t *testing.T) {
 
 	// Test public health endpoint.
 	t.Run("public_health_endpoint", func(t *testing.T) {
-		url := fmt.Sprintf("https://127.0.0.1:%d/service/api/v1/health", publicPort)
+		url := fmt.Sprintf("%s%d/service/api/v1/health", cryptoutilSharedMagic.URLPrefixLocalhostHTTPS, publicPort)
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 		require.NoError(t, err)
 
@@ -88,7 +88,7 @@ func TestHTTPGet(t *testing.T) {
 
 	// Test admin livez endpoint.
 	t.Run("admin_livez_endpoint", func(t *testing.T) {
-		url := fmt.Sprintf("https://127.0.0.1:%d/admin/api/v1/livez", adminPort)
+		url := fmt.Sprintf("%s%d/admin/api/v1/livez", cryptoutilSharedMagic.URLPrefixLocalhostHTTPS, adminPort)
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 		require.NoError(t, err)
 
@@ -102,7 +102,7 @@ func TestHTTPGet(t *testing.T) {
 
 	// Test admin readyz endpoint.
 	t.Run("admin_readyz_endpoint", func(t *testing.T) {
-		url := fmt.Sprintf("https://127.0.0.1:%d/admin/api/v1/readyz", adminPort)
+		url := fmt.Sprintf("%s%d/admin/api/v1/readyz", cryptoutilSharedMagic.URLPrefixLocalhostHTTPS, adminPort)
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 		require.NoError(t, err)
 
@@ -162,7 +162,7 @@ func TestHTTPPost(t *testing.T) {
 
 	// Test admin shutdown endpoint (triggers async shutdown).
 	t.Run("admin_shutdown_endpoint", func(t *testing.T) {
-		url := fmt.Sprintf("https://127.0.0.1:%d/admin/api/v1/shutdown", adminPort)
+		url := fmt.Sprintf("%s%d/admin/api/v1/shutdown", cryptoutilSharedMagic.URLPrefixLocalhostHTTPS, adminPort)
 		req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
 		require.NoError(t, err)
 
