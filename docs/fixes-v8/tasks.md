@@ -1,6 +1,6 @@
 # Tasks - Architecture Evolution (fixes-v8)
 
-**Status**: 78 of 104 tasks complete (75%) — Phase 9 COMPLETE
+**Status**: 81 of 104 tasks complete (78%) — Phase 10 COMPLETE
 **Last Updated**: 2026-02-27
 **Created**: 2026-02-26
 
@@ -497,45 +497,45 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 
 ---
 
-## Phase 10: ARCHITECTURE.md Propagation
+## Phase 10: ARCHITECTURE.md Propagation ✅ COMPLETE
 
 **Phase Objective**: Ensure all ARCHITECTURE.md changes from Phases 5-9 are propagated to instruction files.
 
 ### Task 10.1: Validate Propagation
-- **Status**: ❌
+- **Status**: ✅ DONE
 - **Estimated**: 0.5h
 - **Dependencies**: Phases 5-9 complete
 - **Description**: Run propagation validation
 - **Acceptance Criteria**:
-  - [ ] `cicd validate-propagation` — all markers valid
-  - [ ] `cicd validate-chunks` — all chunks match
-  - [ ] List instruction files needing update
+  - [x] `cicd validate-propagation` — all markers valid
+  - [x] `cicd validate-chunks` — all chunks match
+  - [x] List instruction files needing update
 
 ### Task 10.2: Update Instruction Files
-- **Status**: ❌
+- **Status**: ✅ DONE (no changes needed — skeleton-template already in service catalog)
 - **Estimated**: 1h
 - **Dependencies**: Task 10.1
 - **Description**: Update instruction files with ARCHITECTURE.md changes
 - **Acceptance Criteria**:
-  - [ ] `02-01.architecture.instructions.md` — service catalog table updated
-  - [ ] Other affected instruction files updated
-  - [ ] Build clean, lint clean
+  - [x] `02-01.architecture.instructions.md` — service catalog table updated
+  - [x] Other affected instruction files updated
+  - [x] Build clean, lint clean
 
 ### Task 10.3: Final Quality Gate
-- **Status**: ❌
+- **Status**: ✅ DONE
 - **Estimated**: 1h
 - **Dependencies**: Task 10.2
 - **Description**: Full project validation
 - **Acceptance Criteria**:
-  - [ ] `go build ./...` — clean
-  - [ ] `go build -tags e2e,integration ./...` — clean
-  - [ ] `golangci-lint run` — zero issues
-  - [ ] `golangci-lint run --build-tags e2e,integration` — zero issues
-  - [ ] `go test ./... -shuffle=on` — all pass
-  - [ ] `go run ./cmd/cicd lint-deployments validate-all` — all pass
-  - [ ] `cicd validate-propagation` — all valid
-  - [ ] Zero new TODOs without tracking
-  - [ ] Conventional commit
+  - [x] `go build ./...` — clean
+  - [x] `go build -tags e2e,integration ./...` — clean
+  - [x] `golangci-lint run` — zero issues
+  - [x] `golangci-lint run --build-tags e2e,integration` — zero issues
+  - [x] `go test ./... -shuffle=on` — all pass
+  - [x] `go run ./cmd/cicd lint-deployments validate-all` — all pass
+  - [x] `cicd validate-propagation` — all valid
+  - [x] Zero new TODOs without tracking
+  - [x] Conventional commit
 
 ---
 
