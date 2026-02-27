@@ -1,6 +1,6 @@
 # Architecture Evolution Plan - fixes-v8
 
-**Status**: 4/10 phases complete (45 tasks done, 0 in progress; Phases 5-10 planned)
+**Status**: 4/10 phases complete, Phase 5 in progress (48 tasks done, 3 in this session; Phases 5-10 active)
 **Created**: 2026-02-26
 **Updated**: 2026-02-27
 **Purpose**: Architecture documentation quality + service-template readiness evaluation + skeleton-template (10th product-service stereotype) + PKI-CA clean-slate + CICD linter enhancements
@@ -51,20 +51,20 @@ fixes-v8 focuses on five priorities:
 
 ## Executive Summary
 
-The cryptoutil project has 4 products containing 9 services. The service-template (`internal/apps/template/service/`) is the reusable base for all services, but there is **no stereotype skeleton service** to demonstrate best practice for how to use it. This plan creates a 10th product-service called **skeleton-template** as a permanent, empty-of-business-logic reference implementation.
+The cryptoutil project has 5 products containing 10 services. The service-template (`internal/apps/template/service/`) is the reusable base for all services. This plan creates a 10th product-service called **skeleton-template** as a permanent, empty-of-business-logic reference implementation demonstrating best-practice template usage.
 
 ### Three-Tier Architecture Vision
 
 | Tier | Directory | Purpose | Changes First? |
 |------|-----------|---------|----------------|
 | **Base** | `internal/apps/template/service/` | Reusable infrastructure (HTTPS, health, DB, telemetry, barrier, sessions) | Yes (infrastructure) |
-| **Stereotype** | `internal/apps/skeleton/example/` | Best-practice demonstration of base usage; permanent 10th product-service | Yes (patterns) |
+| **Stereotype** | `internal/apps/skeleton/template/` | Best-practice demonstration of base usage; permanent 10th product-service | Yes (patterns) |
 | **Services** | `internal/apps/{sm,pki,jose,identity}/...` | Business logic services building on base | Roll out after base+stereotype |
 
 ### Medium-Term Renames (NOT in fixes-v8 scope)
 
 - `internal/apps/template/service/` → `internal/apps/template/product-service-base/` (or similar)
-- `internal/apps/skeleton/example/` → `internal/apps/template/product-service-stereotype/` (or similar)
+- `internal/apps/skeleton/template/` → `internal/apps/template/product-service-stereotype/` (or similar)
 
 These renames are tracked for future work but **not executed in fixes-v8** to limit scope.
 
@@ -167,25 +167,25 @@ The first 4 are already migrated. Identity services are the final frontier. skel
 **Goal**: Create `skeleton-template` as the 10th product-service. Permanent, empty of business logic, demonstrates best-practice use of service-template. On equal footing with all 9 other services throughout ARCHITECTURE.md, deployments, configs, magic constants, CICD, and the entire repository.
 
 ### 5.1 Magic Constants
-Add to `internal/shared/magic/`: product name `skeleton`, service name `example`, service ID `skeleton-template`, port 8900, PostgreSQL port 54329.
+Add to `internal/shared/magic/`: product name `skeleton`, service name `template`, service ID `skeleton-template`, port 8900, PostgreSQL port 54329.
 
 ### 5.2 Product-Level Wiring
 Create `internal/apps/skeleton/skeleton.go` (product router) and `internal/apps/skeleton/skeleton_test.go`. Pattern: identical to `internal/apps/pki/pki.go`.
 
 ### 5.3 Service Entry Point
-Create `internal/apps/skeleton/example/example.go` (service CLI handler). Pattern: identical to `internal/apps/jose/ja/ja.go`.
+Create `internal/apps/skeleton/template/template.go` (service CLI handler). Pattern: identical to `internal/apps/jose/ja/ja.go`.
 
 ### 5.4 Server Implementation
-Create `internal/apps/skeleton/example/server/server.go` using NewServerBuilder pattern. Minimal: dual HTTPS, health endpoints, empty handler registration with dual API paths.
+Create `internal/apps/skeleton/template/server/server.go` using NewServerBuilder pattern. Minimal: dual HTTPS, health endpoints, empty handler registration with dual API paths.
 
 ### 5.5 Server Config
-Create `internal/apps/skeleton/example/server/config/config.go`. Flat kebab-case YAML parsing with ServiceTemplateServerSettings embedding.
+Create `internal/apps/skeleton/template/server/config/config.go`. Flat kebab-case YAML parsing with ServiceTemplateServerSettings embedding.
 
 ### 5.6 Repository & Migrations
-Create `internal/apps/skeleton/example/repository/` with MigrationsFS and empty 2001 placeholder migration. Use `WithDomainMigrations()`.
+Create `internal/apps/skeleton/template/repository/` with MigrationsFS and empty 2001 placeholder migration. Use `WithDomainMigrations()`.
 
 ### 5.7 Domain (Empty)
-Create `internal/apps/skeleton/example/domain/` with minimal placeholder model (e.g., `ExampleItem` with ID + tenant_id + created_at).
+Create `internal/apps/skeleton/template/domain/` with minimal placeholder model (e.g., `TemplateItem` with ID + tenant_id + created_at).
 
 ### 5.8 CMD Entry Point
 Create `cmd/skeleton-template/main.go`. Pattern: identical to `cmd/jose-ja/main.go`.
@@ -194,13 +194,13 @@ Create `cmd/skeleton-template/main.go`. Pattern: identical to `cmd/jose-ja/main.
 Update `internal/apps/cryptoutil/cryptoutil.go` to add skeleton product routing.
 
 ### 5.10 Deployment Infrastructure
-Create `deployments/skeleton-template/` with compose.yml, secrets, and include files. Create `deployments/skeleton/` for product-level deployment. Create `configs/example/` for service config files.
+Create `deployments/skeleton-template/` with compose.yml, secrets, and include files. Create `deployments/skeleton/` for product-level deployment. Create `configs/skeleton/` for service config files.
 
 ### 5.11 Tests
-Create comprehensive tests for all new code: server_test.go, config_test.go, example_test.go, skeleton_test.go. Coverage ≥95%.
+Create comprehensive tests for all new code: server_test.go, config_test.go, template_test.go, skeleton_test.go. Coverage ≥95%.
 
 ### 5.12 E2E Test Skeleton
-Create `internal/apps/skeleton/example/e2e/` with testmain_e2e_test.go and basic health check E2E test.
+Create `internal/apps/skeleton/template/e2e/` with testmain_e2e_test.go and basic health check E2E test.
 
 ### 5.13 ARCHITECTURE.md Update
 Add skeleton-template to: Service Catalog (3.2), Port Assignments (3.4), PostgreSQL Ports (3.4.2), Implementation Status table. Add section 3.2.X for Skeleton product.
@@ -327,7 +327,7 @@ Full project validation: build, lint, test, deployment validators, propagation c
 | ED-9 | **PKI-CA archive + clean-slate after skeleton-template** (quizme Q4=E, refined) | skeleton-template validates pattern; pki-ca follows same pattern. | ⏳ Phase 5-6 |
 | ED-10 | **Identity E2E stays shared** (quizme Q5=A) | Single suite tests all 5 services together. | ✅ Decided |
 | ED-11 | **Port 8900-8999 for skeleton-template** | Only remaining port range in 8xxx block; PostgreSQL port 54329. | ⏳ Phase 5 |
-| ED-12 | **Product name "skeleton", service name "example"** | Follows PRODUCT-SERVICE pattern (skeleton-template). Short-term name; medium-term rename to product-service-stereotype. | ⏳ Phase 5 |
+| ED-12 | **Product name "skeleton", service name "template"** | Follows PRODUCT-SERVICE pattern (skeleton-template). Short-term name; medium-term rename to product-service-stereotype. | ⏳ Phase 5 |
 | ED-13 | **Medium-term renames deferred** | service-template → product-service-base, skeleton-template → product-service-stereotype. NOT in fixes-v8 scope. | 📋 Future |
 | ED-14 | **Long-term: change base/stereotype first, validate, roll out** | Changes made in base+stereotype → codified in CICD linters → plan.md/tasks.md for 9-service rollout. | 📋 Future |
 

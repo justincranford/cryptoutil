@@ -1,6 +1,6 @@
 # Tasks - Architecture Evolution (fixes-v8)
 
-**Status**: 45 of 104 tasks complete (43%)
+**Status**: 48 of 104 tasks complete (46%) — Phase 5 in progress
 **Last Updated**: 2026-02-27
 **Created**: 2026-02-26
 
@@ -81,17 +81,17 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 
 ## Phase 5: skeleton-template Product-Service (10th Service)
 
-**Phase Objective**: Create skeleton-template as a fully functional 10th product-service. Product name: `skeleton`. Service name: `example`. Port: 8900. PostgreSQL port: 54329. Permanent service — demonstrates best-practice service-template usage, empty of business logic.
+**Phase Objective**: Create skeleton-template as a fully functional 10th product-service. Product name: `skeleton`. Service name: `template`. Port: 8900. PostgreSQL port: 54329. Permanent service — demonstrates best-practice service-template usage, empty of business logic.
 
 ### Task 5.1: Magic Constants
-- **Status**: ❌
+- **Status**: ✅ DONE (commit 556109221)
 - **Estimated**: 0.5h
 - **Dependencies**: None
 - **Description**: Add skeleton-template constants to `internal/shared/magic/`
 - **Acceptance Criteria**:
-  - [ ] Create `internal/shared/magic/magic_skeleton.go` with: ProductNameSkeleton, ServiceNameExample, ServiceIDSkeletonExample, PortSkeletonExample (8900), PostgresPortSkeletonExample (54329)
-  - [ ] Follow exact naming patterns from `magic_pki.go`, `magic_sm.go`, `magic_jose.go`
-  - [ ] Build clean: `go build ./...`
+  - [x] Create `internal/shared/magic/magic_skeleton.go` with: OTLPServiceSkeletonTemplate, SkeletonProductName, SkeletonTemplateServiceName, SkeletonTemplateServicePort (8900), SkeletonTemplatePostgresPort (54329)
+  - [x] Follow exact naming patterns from `magic_pki.go`, `magic_sm.go`, `magic_jose.go`
+  - [x] Build clean: `go build ./...`
 
 ### Task 5.2: Product Router
 - **Status**: ❌
@@ -101,7 +101,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 - **Acceptance Criteria**:
   - [ ] Create `internal/apps/skeleton/skeleton.go` using `cryptoutilTemplateCli.RouteProduct` pattern (mirror `internal/apps/pki/pki.go`)
   - [ ] Create `internal/apps/skeleton/skeleton_test.go` with ≥95% coverage
-  - [ ] Product router routes to `example` service
+  - [ ] Product router routes to `template` service
   - [ ] Build clean, lint clean
 
 ### Task 5.3: Product CMD Entry
@@ -118,11 +118,11 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 - **Status**: ❌
 - **Estimated**: 1h
 - **Dependencies**: Task 5.2
-- **Description**: Create `internal/apps/skeleton/example/example.go` — service CLI handler
+- **Description**: Create `internal/apps/skeleton/template/template.go` — service CLI handler
 - **Acceptance Criteria**:
-  - [ ] Create `internal/apps/skeleton/example/example.go` using `cryptoutilTemplateCli.RouteService` pattern (mirror `internal/apps/jose/ja/ja.go`)
-  - [ ] Create `internal/apps/skeleton/example/example_test.go` with ≥95% coverage
-  - [ ] ServiceConfig with correct ServiceID ("skeleton-template"), ProductName ("skeleton"), ServiceName ("example")
+  - [ ] Create `internal/apps/skeleton/template/template.go` using `cryptoutilTemplateCli.RouteService` pattern (mirror `internal/apps/jose/ja/ja.go`)
+  - [ ] Create `internal/apps/skeleton/template/template_test.go` with ≥95% coverage
+  - [ ] ServiceConfig with correct ServiceID ("skeleton-template"), ProductName ("skeleton"), ServiceName ("template")
   - [ ] Build clean, lint clean
 
 ### Task 5.5: Service CMD Entry
@@ -132,53 +132,53 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 - **Description**: Create `cmd/skeleton-template/main.go` — service-level binary
 - **Acceptance Criteria**:
   - [ ] Create `cmd/skeleton-template/main.go` (mirror `cmd/jose-ja/main.go`)
-  - [ ] Delegates to `skeleton.Example(os.Args[1:], ...)`
+  - [ ] Delegates to `skeleton.Template(os.Args[1:], ...)`
   - [ ] Build clean: `go build ./cmd/skeleton-template/`
 
 ### Task 5.6: Server Config
 - **Status**: ❌
 - **Estimated**: 1h
 - **Dependencies**: Task 5.1
-- **Description**: Create `internal/apps/skeleton/example/server/config/config.go`
+- **Description**: Create `internal/apps/skeleton/template/server/config/config.go`
 - **Acceptance Criteria**:
   - [ ] Create config struct embedding ServiceTemplateServerSettings
   - [ ] Flat kebab-case YAML parsing
-  - [ ] Create `internal/apps/skeleton/example/server/config/config_test.go` with ≥95% coverage
+  - [ ] Create `internal/apps/skeleton/template/server/config/config_test.go` with ≥95% coverage
   - [ ] Build clean, lint clean
 
 ### Task 5.7: Repository & Migrations
 - **Status**: ❌
 - **Estimated**: 1h
 - **Dependencies**: Task 5.1
-- **Description**: Create `internal/apps/skeleton/example/repository/` with MigrationsFS and placeholder migration
+- **Description**: Create `internal/apps/skeleton/template/repository/` with MigrationsFS and placeholder migration
 - **Acceptance Criteria**:
-  - [ ] Create `internal/apps/skeleton/example/repository/repository.go` with `//go:embed migrations/*.sql` and MigrationsFS
-  - [ ] Create `internal/apps/skeleton/example/repository/migrations/2001_init.up.sql` — create minimal example_items table (id TEXT PK, tenant_id TEXT NOT NULL, created_at DATETIME NOT NULL)
-  - [ ] Create `internal/apps/skeleton/example/repository/migrations/2001_init.down.sql` — DROP TABLE example_items
-  - [ ] Create `internal/apps/skeleton/example/repository/repository_test.go` with ≥95% coverage
+  - [ ] Create `internal/apps/skeleton/template/repository/repository.go` with `//go:embed migrations/*.sql` and MigrationsFS
+  - [ ] Create `internal/apps/skeleton/template/repository/migrations/2001_init.up.sql` — create minimal template_items table (id TEXT PK, tenant_id TEXT NOT NULL, created_at DATETIME NOT NULL)
+  - [ ] Create `internal/apps/skeleton/template/repository/migrations/2001_init.down.sql` — DROP TABLE template_items
+  - [ ] Create `internal/apps/skeleton/template/repository/repository_test.go` with ≥95% coverage
   - [ ] Build clean, lint clean
 
 ### Task 5.8: Domain Model (Minimal)
 - **Status**: ❌
 - **Estimated**: 0.5h
 - **Dependencies**: Task 5.7
-- **Description**: Create `internal/apps/skeleton/example/domain/` with minimal ExampleItem model
+- **Description**: Create `internal/apps/skeleton/template/domain/` with minimal TemplateItem model
 - **Acceptance Criteria**:
-  - [ ] Create `internal/apps/skeleton/example/domain/model.go` with ExampleItem struct (ID, TenantID, CreatedAt) and GORM tags
-  - [ ] Create `internal/apps/skeleton/example/domain/model_test.go` with ≥95% coverage
+  - [ ] Create `internal/apps/skeleton/template/domain/model.go` with TemplateItem struct (ID, TenantID, CreatedAt) and GORM tags
+  - [ ] Create `internal/apps/skeleton/template/domain/model_test.go` with ≥95% coverage
   - [ ] Build clean, lint clean
 
 ### Task 5.9: Server Implementation
 - **Status**: ❌
 - **Estimated**: 2h
 - **Dependencies**: Tasks 5.6, 5.7, 5.8
-- **Description**: Create `internal/apps/skeleton/example/server/server.go` using NewServerBuilder
+- **Description**: Create `internal/apps/skeleton/template/server/server.go` using NewServerBuilder
 - **Acceptance Criteria**:
   - [ ] Create server.go with NewServerBuilder → WithDomainMigrations → WithPublicRouteRegistration → Build
   - [ ] Dual HTTPS (public + admin) health endpoints functional
   - [ ] Dual API paths: `/service/**` and `/browser/**` (empty — no business endpoints)
   - [ ] Health: `/browser/api/v1/health`, `/service/api/v1/health` (public), `/admin/api/v1/livez`, `/admin/api/v1/readyz` (admin)
-  - [ ] Create `internal/apps/skeleton/example/server/server_test.go` with ≥95% coverage
+  - [ ] Create `internal/apps/skeleton/template/server/server_test.go` with ≥95% coverage
   - [ ] Build clean, lint clean
 
 ### Task 5.10: Suite Integration
@@ -193,18 +193,21 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
   - [ ] Build clean, lint clean
 
 ### Task 5.11: Deployment Infrastructure
-- **Status**: ❌
+- **Status**: ✅ DONE (commit aa0098704, 92af55c09)
 - **Estimated**: 2h
 - **Dependencies**: Tasks 5.1, 5.9
 - **Description**: Create deployment and config directories for skeleton-template
 - **Acceptance Criteria**:
-  - [ ] Create `deployments/skeleton-template/compose.yml` (mirror template pattern, port 8900+)
-  - [ ] Create `deployments/skeleton-template/secrets/` with appropriate .secret files
-  - [ ] Create `configs/skeleton/` with `config-skeleton-template.yml`
-  - [ ] Port mappings: 8900 (public), 9090 (admin), 54329 (PostgreSQL)
-  - [ ] Docker secrets for credentials (not inline env vars)
-  - [ ] Health checks using wget
-  - [ ] Run `go run ./cmd/cicd lint-deployments validate-all` — zero errors for new files
+  - [x] Create `deployments/skeleton-template/compose.yml` (ports 8900/8901/8902, PostgreSQL 54329)
+  - [x] Create `deployments/skeleton-template/secrets/` with 14 .secret files
+  - [x] Create `deployments/skeleton/compose.yml` (product-level deployment)
+  - [x] Create `deployments/skeleton/secrets/` with shared + .never files
+  - [x] Create `configs/skeleton/skeleton-server.yml` and `configs/skeleton/template/template-server.yml`
+  - [x] Port mappings: 8900 (public), 9090 (admin), 54329 (PostgreSQL)
+  - [x] Docker secrets for credentials (not inline env vars)
+  - [x] Health checks using wget
+  - [x] CICD lint_deployments code updated: classifyDeployment, expected contents, tests
+  - [x] Run `go run ./cmd/cicd lint-deployments validate-all` — 68/68 pass
 
 ### Task 5.12: E2E Test Skeleton
 - **Status**: ❌
@@ -212,25 +215,27 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 - **Dependencies**: Task 5.9
 - **Description**: Create E2E test infrastructure for skeleton-template
 - **Acceptance Criteria**:
-  - [ ] Create `internal/apps/skeleton/example/e2e/testmain_e2e_test.go` with TestMain
-  - [ ] Create `internal/apps/skeleton/example/e2e/e2e_test.go` with basic health check tests
+  - [ ] Create `internal/apps/skeleton/template/e2e/testmain_e2e_test.go` with TestMain
+  - [ ] Create `internal/apps/skeleton/template/e2e/e2e_test.go` with basic health check tests
   - [ ] Tests verify both public and admin health endpoints
   - [ ] Tests use build tag `e2e`
   - [ ] Build clean with tags: `go build -tags e2e ./...`
   - [ ] Lint clean with tags: `golangci-lint run --build-tags e2e`
 
 ### Task 5.13: ARCHITECTURE.md Update
-- **Status**: ❌
+- **Status**: ✅ DONE (commits e16317e3b, 68d8cf998)
 - **Estimated**: 1h
 - **Dependencies**: Tasks 5.1, 5.11
-- **Description**: Add skeleton-template to ARCHITECTURE.md
+- **Description**: Add skeleton-template to ARCHITECTURE.md and instruction files
 - **Acceptance Criteria**:
-  - [ ] Add to Service Catalog (Section 3.2): Skeleton product, Example service, skeleton-template ID
-  - [ ] Add to Port Assignments (Section 3.4): 8900-8999 host ports, 0.0.0.0:8080/127.0.0.1:9090 container
-  - [ ] Add to PostgreSQL Ports (Section 3.4.2): 54329
-  - [ ] Add Skeleton Product description section
-  - [ ] Mark skeleton-template as "Stereotype — best-practice template usage reference"
-  - [ ] Validate propagation: `cicd validate-propagation`
+  - [x] Add to Service Catalog (Section 3.2): Skeleton product, Template service, skeleton-template ID
+  - [x] Add to Port Assignments (Section 3.4): 8900-8999 host ports, 0.0.0.0:8080/127.0.0.1:9090 container
+  - [x] Add to PostgreSQL Ports (Section 3.4.2): 54329
+  - [x] Add Skeleton Product description section (3.1.5 and 3.2.5)
+  - [x] Mark skeleton-template as "Stereotype — best-practice template usage reference"
+  - [x] Update ALL "9 services" → "10 services" (20+ occurrences)
+  - [x] Update instruction files (02-01.architecture, 03-03.golang)
+  - [x] Update suite port range, database counts, PostgreSQL port summaries
 
 ### Task 5.14: Full Quality Gate
 - **Status**: ❌
@@ -271,7 +276,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 - **Dependencies**: Task 6.1
 - **Description**: Create new `internal/apps/pki/ca/` following skeleton-template patterns
 - **Acceptance Criteria**:
-  - [ ] Create new `internal/apps/pki/ca/ca.go` (service entry, mirror skeleton-template/example.go)
+  - [ ] Create new `internal/apps/pki/ca/ca.go` (service entry, mirror skeleton-template/template.go)
   - [ ] Create new `internal/apps/pki/ca/server/server.go` (NewServerBuilder pattern)
   - [ ] Create new `internal/apps/pki/ca/server/config/config.go`
   - [ ] Create new `internal/apps/pki/ca/repository/` with migrations 2001
@@ -549,16 +554,16 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 - [ ] Formatting clean: `gofumpt -s -w ./`
 
 ### Documentation
-- [ ] ARCHITECTURE.md updated (service catalog, ports, product description)
+- [x] ARCHITECTURE.md updated (service catalog, ports, product description) — commit e16317e3b
 - [ ] docs/fixes-v8/RESEARCH.md published
-- [ ] Instruction files propagated
-- [ ] Plan.md and tasks.md up to date
+- [x] Instruction files propagated — commit 68d8cf998
+- [x] Plan.md and tasks.md up to date — example→template rename, status updates
 
 ### Deployment
-- [ ] Docker Compose configs for skeleton-template
+- [x] Docker Compose configs for skeleton-template — commit aa0098704
 - [ ] Health checks pass
-- [ ] Deployment validators pass
-- [ ] Config files validated
+- [x] Deployment validators pass (68/68) — commit 92af55c09, aa0098704
+- [x] Config files validated
 
 ---
 
@@ -578,7 +583,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 
 ### Medium-Term Renames (NOT in fixes-v8 scope)
 - `internal/apps/template/service/` → `internal/apps/template/product-service-base/` (or similar)
-- `internal/apps/skeleton/example/` → `internal/apps/template/product-service-stereotype/` (or similar)
+- `internal/apps/skeleton/template/` → `internal/apps/template/product-service-stereotype/` (or similar)
 - Tracked as ED-13
 
 ### Identity Services Architecture (NOT in fixes-v8 scope)
