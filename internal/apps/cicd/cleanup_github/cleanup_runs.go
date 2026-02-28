@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"strconv"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // apiRun is the REST API response format for workflow runs.
@@ -37,7 +39,7 @@ func CleanupRuns(cfg *CleanupConfig) error {
 
 	cfg.Logger.Log(fmt.Sprintf("Total workflow runs fetched: %d", len(runs)))
 
-	cutoff := time.Now().AddDate(0, 0, -cfg.MaxAgeDays)
+	cutoff := time.Now().UTC().AddDate(0, 0, -cfg.MaxAgeDays)
 
 	// Count successful runs per workflow for protection.
 	successCountByWorkflow := make(map[string]int)
@@ -170,7 +172,7 @@ func deleteWorkflowRun(cfg *CleanupConfig, runID int64) error {
 	args := append([]string{"api"}, repoArgs(cfg)...)
 	args = append(args,
 		"-X", "DELETE",
-		"/repos/{owner}/{repo}/actions/runs/"+strconv.FormatInt(runID, 10),
+		"/repos/{owner}/{repo}/actions/runs/"+strconv.FormatInt(runID, cryptoutilSharedMagic.DecimalRadix),
 	)
 
 	if _, err := ghExec(args...); err != nil {

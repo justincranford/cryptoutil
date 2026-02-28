@@ -11,7 +11,10 @@ cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
 
 "github.com/stretchr/testify/require"
 )
-
+const (
+	testMaxAgeDays  = 7
+	testKeepMinRuns = 5
+)
 func TestNewDefaultConfig(t *testing.T) {
 t.Parallel()
 
@@ -60,7 +63,7 @@ wantErr:     false,
 name:        "max age days",
 args:        []string{"--max-age-days=7"},
 wantConfirm: false,
-wantMaxAge:  7,
+wantMaxAge:  testMaxAgeDays,
 wantKeepMin: defaultKeepMinRuns,
 wantRepo:    "",
 wantErr:     false,
@@ -70,7 +73,7 @@ name:        "keep min runs",
 args:        []string{"--keep-min-runs=5"},
 wantConfirm: false,
 wantMaxAge:  defaultMaxAgeDays,
-wantKeepMin: 5,
+wantKeepMin: testKeepMinRuns,
 wantRepo:    "",
 wantErr:     false,
 },
