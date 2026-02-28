@@ -134,9 +134,23 @@ func CheckMagicUsageInDir(logger *cryptoutilCmdCicdCommon.Logger, magicDir, root
 		return nil
 	}
 
+	var (
+		literalUseViolations   []magicUsageViolation
+		constRedefineViolations []magicUsageViolation
+	)
+
+	for _, v := range violations {
+		if v.Kind == magicUsageKindLiteral {
+			literalUseViolations = append(literalUseViolations, v)
+		} else {
+			constRedefineViolations = append(constRedefineViolations, v)
+		}
+	}
+
 	var sb strings.Builder
 
-	fmt.Fprintf(&sb, "magic-usage: %d violation(s) found\n\n", len(violations))
+	fmt.Fprintf(&sb, "magic-usage: %d violation(s) found (%d literal-use [blocking], %d const-redefine [informational])\n\n",
+		len(violations), len(literalUseViolations), len(constRedefineViolations))
 
 	for _, v := range violations {
 		fmt.Fprintf(&sb, "  %s:%d  [%s]  literal %s  →  use magic.%s\n",
@@ -145,9 +159,14 @@ func CheckMagicUsageInDir(logger *cryptoutilCmdCicdCommon.Logger, magicDir, root
 
 	logger.Log(sb.String())
 
-	// magic-usage is informational: it logs violations but does not block CI.
-	// The codebase has accumulated violations that need incremental cleanup.
-	// Run 'cicd lint-go' to measure progress as violations are addressed.
+	if len(literalUseViolations) > 0 {
+		return fmt.Errorf("found %d literal-use violations: inline magic constant values must reference magic.XXX instead of repeating the literal", len(literalUseViolations))
+	}
+
+	// const-redefine violations are informational: numeric literals may coincidentally
+	// share a value with a magic constant but have different semantics (e.g., step counts,
+	// timeouts, and buffer sizes that happen to equal port numbers or pool sizes).
+	// Run 'cicd lint-go' to track progress as true const-redefine violations are addressed.
 	return nil
 }
 

@@ -52,7 +52,7 @@ func TestCheckInDir_AllValid(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	pkgDir := filepath.Join(tmpDir, "internal", "apps", "myproduct")
-	require.NoError(t, os.MkdirAll(pkgDir, 0o755))
+	require.NoError(t, os.MkdirAll(pkgDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(pkgDir, "logic.go"), []byte("package myproduct\nfunc Hello() {}"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(pkgDir, "logic_test.go"), []byte("package myproduct"), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -66,7 +66,7 @@ func TestCheckInDir_MissingTestFile(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	pkgDir := filepath.Join(tmpDir, "internal", "apps", "myproduct")
-	require.NoError(t, os.MkdirAll(pkgDir, 0o755))
+	require.NoError(t, os.MkdirAll(pkgDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(pkgDir, "logic.go"), []byte("package myproduct\nfunc Hello() {}"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -80,7 +80,7 @@ func TestCheckInDir_ExcludedMagicDir(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	magicDir := filepath.Join(tmpDir, "internal", "apps", "shared", "magic")
-	require.NoError(t, os.MkdirAll(magicDir, 0o755))
+	require.NoError(t, os.MkdirAll(magicDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(magicDir, "constants.go"), []byte("package magic\nfunc X() {}"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -92,8 +92,8 @@ func TestCheckInDir_ExcludedUnifiedDir(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	unifiedDir := filepath.Join(tmpDir, "internal", "apps", "jose", "ja", "unified")
-	require.NoError(t, os.MkdirAll(unifiedDir, 0o755))
+	unifiedDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.JoseProductName, "ja", "unified")
+	require.NoError(t, os.MkdirAll(unifiedDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(unifiedDir, "server.go"), []byte("package unified\nfunc X() {}"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -105,8 +105,8 @@ func TestCheckInDir_ExcludedArchivedDir(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	archivedDir := filepath.Join(tmpDir, "internal", "apps", "pki", "_ca-archived", "server")
-	require.NoError(t, os.MkdirAll(archivedDir, 0o755))
+	archivedDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.PKIProductName, "_ca-archived", "server")
+	require.NoError(t, os.MkdirAll(archivedDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(archivedDir, "server.go"), []byte("package server\nfunc X() {}"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -118,8 +118,8 @@ func TestCheckInDir_ExcludedTestingDir(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	testingDir := filepath.Join(tmpDir, "internal", "apps", "template", "service", "testing", "helpers")
-	require.NoError(t, os.MkdirAll(testingDir, 0o755))
+	testingDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.SkeletonTemplateServiceName, "service", "testing", "helpers")
+	require.NoError(t, os.MkdirAll(testingDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(testingDir, "helpers.go"), []byte("package helpers\nfunc X() {}"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -131,8 +131,8 @@ func TestCheckInDir_ExcludedCmdMainDir(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	cmdMainDir := filepath.Join(tmpDir, "internal", "apps", "identity", "cmd", "main", "authz")
-	require.NoError(t, os.MkdirAll(cmdMainDir, 0o755))
+	cmdMainDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.IdentityProductName, "cmd", "main", cryptoutilSharedMagic.AuthzServiceName)
+	require.NoError(t, os.MkdirAll(cmdMainDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(cmdMainDir, "authz.go"), []byte("package authz\nfunc X() {}"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -145,7 +145,7 @@ func TestCheckInDir_GeneratedFilesIgnored(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	pkgDir := filepath.Join(tmpDir, "internal", "apps", "myproduct")
-	require.NoError(t, os.MkdirAll(pkgDir, 0o755))
+	require.NoError(t, os.MkdirAll(pkgDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(pkgDir, "server.gen.go"), []byte("package myproduct\nfunc X() {}"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(pkgDir, "models_gen.go"), []byte("package myproduct\nfunc X() {}"), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -159,7 +159,7 @@ func TestCheckInDir_EmbedOnlyPackageSkipped(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	pkgDir := filepath.Join(tmpDir, "internal", "apps", "myproduct", "repository")
-	require.NoError(t, os.MkdirAll(pkgDir, 0o755))
+	require.NoError(t, os.MkdirAll(pkgDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	// File with only embed.FS variable declaration (no func declarations).
 	content := "package repository\nimport \"embed\"\n//go:embed migrations/*.sql\nvar MigrationsFS embed.FS\n"
@@ -243,13 +243,13 @@ func TestCheckInDir_MultiplePackages(t *testing.T) {
 
 	// Package with logic and tests.
 	pkg1 := filepath.Join(tmpDir, "internal", "apps", "prod1")
-	require.NoError(t, os.MkdirAll(pkg1, 0o755))
+	require.NoError(t, os.MkdirAll(pkg1, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(pkg1, "code.go"), []byte("package prod1\nfunc X() {}"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(pkg1, "code_test.go"), []byte("package prod1"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Package with logic but missing tests.
 	pkg2 := filepath.Join(tmpDir, "internal", "apps", "prod2")
-	require.NoError(t, os.MkdirAll(pkg2, 0o755))
+	require.NoError(t, os.MkdirAll(pkg2, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(pkg2, "code.go"), []byte("package prod2\nfunc Y() {}"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -285,11 +285,11 @@ func TestCheckInDir_WalkPermissionError(t *testing.T) {
 	tmpDir := t.TempDir()
 	appsDir := filepath.Join(tmpDir, "internal", "apps")
 	badDir := filepath.Join(appsDir, "badpackage")
-	require.NoError(t, os.MkdirAll(badDir, 0o755))
+	require.NoError(t, os.MkdirAll(badDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.Chmod(badDir, 0o000))
 
 	t.Cleanup(func() {
-		_ = os.Chmod(badDir, 0o755)
+		_ = os.Chmod(badDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	})
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -321,7 +321,7 @@ func TestSeam_CheckInDir_RelError(t *testing.T) {
 	tmpDir := t.TempDir()
 	appsDir := filepath.Join(tmpDir, "internal", "apps")
 	pkgDir := filepath.Join(appsDir, "myservice")
-	require.NoError(t, os.MkdirAll(pkgDir, 0o755))
+	require.NoError(t, os.MkdirAll(pkgDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(pkgDir, "handler.go"), []byte("package myservice\nfunc Handle() {}\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")

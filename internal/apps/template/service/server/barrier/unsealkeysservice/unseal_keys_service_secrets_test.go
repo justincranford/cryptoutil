@@ -132,8 +132,8 @@ func TestUnsealKeysServiceSharedSecrets_DifferentChooseN(t *testing.T) {
 		chooseN     int
 	}{
 		{"2 of 3", 3, 2},
-		{"3 of cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries", 5, 3},
-		{"4 of cryptoutilSharedMagic.DefaultEmailOTPLength", 6, 4},
+		{"3 of cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries", cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, 3},
+		{"4 of cryptoutilSharedMagic.DefaultEmailOTPLength", cryptoutilSharedMagic.DefaultEmailOTPLength, 4},
 	}
 
 	for _, tc := range testCases {

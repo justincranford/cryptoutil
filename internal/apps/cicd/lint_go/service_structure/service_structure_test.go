@@ -62,7 +62,7 @@ func TestCheckInDir_AllValid(t *testing.T) {
 	// Create all 8 services with required files.
 	for _, svc := range knownServices {
 		serviceDir := filepath.Join(tmpDir, "internal", "apps", svc.Product, svc.Service)
-		require.NoError(t, os.MkdirAll(filepath.Join(serviceDir, "server", "config"), 0o755))
+		require.NoError(t, os.MkdirAll(filepath.Join(serviceDir, "server", "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 		required := svc.Required
 		if required == nil {
@@ -71,7 +71,7 @@ func TestCheckInDir_AllValid(t *testing.T) {
 
 		for _, tmpl := range required {
 			relPath := filepath.Join(serviceDir, replaceService(tmpl, svc.Service))
-			require.NoError(t, os.MkdirAll(filepath.Dir(relPath), 0o755))
+			require.NoError(t, os.MkdirAll(filepath.Dir(relPath), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 			require.NoError(t, os.WriteFile(relPath, []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		}
 	}
@@ -85,7 +85,7 @@ func TestCheckInDir_MissingServiceDir(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "internal", "apps"), 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "internal", "apps"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	err := CheckInDir(logger, tmpDir)
@@ -98,7 +98,7 @@ func TestCheckInDir_MissingEntryFile(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	serviceDir := filepath.Join(tmpDir, "internal", "apps", testProductSkeleton, testServiceTemplate)
-	require.NoError(t, os.MkdirAll(filepath.Join(serviceDir, "server", "config"), 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Join(serviceDir, "server", "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	// Create all required files except the entry file.
 	require.NoError(t, os.WriteFile(filepath.Join(serviceDir, "template_usage.go"), []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -120,7 +120,7 @@ func TestCheckInDir_MissingEntryFile(t *testing.T) {
 
 		for _, tmpl := range required {
 			relPath := filepath.Join(svcDir, replaceService(tmpl, svc.Service))
-			require.NoError(t, os.MkdirAll(filepath.Dir(relPath), 0o755))
+			require.NoError(t, os.MkdirAll(filepath.Dir(relPath), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 			require.NoError(t, os.WriteFile(relPath, []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		}
 	}
@@ -136,7 +136,7 @@ func TestCheckInDir_MissingUsageFile(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	serviceDir := filepath.Join(tmpDir, "internal", "apps", testProductSkeleton, testServiceTemplate)
-	require.NoError(t, os.MkdirAll(filepath.Join(serviceDir, "server", "config"), 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Join(serviceDir, "server", "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	require.NoError(t, os.WriteFile(filepath.Join(serviceDir, "template.go"), []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(serviceDir, "server", "server.go"), []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -156,7 +156,7 @@ func TestCheckInDir_MissingUsageFile(t *testing.T) {
 
 		for _, tmpl := range required {
 			relPath := filepath.Join(svcDir, replaceService(tmpl, svc.Service))
-			require.NoError(t, os.MkdirAll(filepath.Dir(relPath), 0o755))
+			require.NoError(t, os.MkdirAll(filepath.Dir(relPath), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 			require.NoError(t, os.WriteFile(relPath, []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		}
 	}
@@ -172,7 +172,7 @@ func TestCheckInDir_MissingServerGo(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	serviceDir := filepath.Join(tmpDir, "internal", "apps", testProductSkeleton, testServiceTemplate)
-	require.NoError(t, os.MkdirAll(filepath.Join(serviceDir, "server", "config"), 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Join(serviceDir, "server", "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	require.NoError(t, os.WriteFile(filepath.Join(serviceDir, "template.go"), []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(serviceDir, "template_usage.go"), []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -192,7 +192,7 @@ func TestCheckInDir_MissingServerGo(t *testing.T) {
 
 		for _, tmpl := range required {
 			relPath := filepath.Join(svcDir, replaceService(tmpl, svc.Service))
-			require.NoError(t, os.MkdirAll(filepath.Dir(relPath), 0o755))
+			require.NoError(t, os.MkdirAll(filepath.Dir(relPath), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 			require.NoError(t, os.WriteFile(relPath, []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		}
 	}
@@ -208,7 +208,7 @@ func TestCheckInDir_MissingConfigGo(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	serviceDir := filepath.Join(tmpDir, "internal", "apps", testProductSkeleton, testServiceTemplate)
-	require.NoError(t, os.MkdirAll(filepath.Join(serviceDir, "server"), 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Join(serviceDir, "server"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	require.NoError(t, os.WriteFile(filepath.Join(serviceDir, "template.go"), []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(serviceDir, "template_usage.go"), []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -228,7 +228,7 @@ func TestCheckInDir_MissingConfigGo(t *testing.T) {
 
 		for _, tmpl := range required {
 			relPath := filepath.Join(svcDir, replaceService(tmpl, svc.Service))
-			require.NoError(t, os.MkdirAll(filepath.Dir(relPath), 0o755))
+			require.NoError(t, os.MkdirAll(filepath.Dir(relPath), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 			require.NoError(t, os.WriteFile(relPath, []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
 		}
 	}

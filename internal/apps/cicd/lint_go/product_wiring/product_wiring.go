@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // productServicePair defines a product and its expected service.
@@ -19,20 +20,20 @@ type productServicePair struct {
 }
 
 // knownProducts lists all products that must have cmd/PRODUCT/main.go.
-var knownProducts = []string{"identity", "jose", "pki", "skeleton", "sm"}
+var knownProducts = []string{cryptoutilSharedMagic.IdentityProductName, cryptoutilSharedMagic.JoseProductName, cryptoutilSharedMagic.PKIProductName, cryptoutilSharedMagic.SkeletonProductName, "sm"}
 
 // knownServices lists all product-service pairs that must have cmd/PRODUCT-SERVICE/main.go.
 var knownServices = []productServicePair{
-	{product: "skeleton", service: "template"},
-	{product: "pki", service: "ca"},
-	{product: "jose", service: "ja"},
+	{product: cryptoutilSharedMagic.SkeletonProductName, service: cryptoutilSharedMagic.SkeletonTemplateServiceName},
+	{product: cryptoutilSharedMagic.PKIProductName, service: "ca"},
+	{product: cryptoutilSharedMagic.JoseProductName, service: "ja"},
 	{product: "sm", service: "im"},
-	{product: "sm", service: "kms"},
-	{product: "identity", service: "authz"},
-	{product: "identity", service: "idp"},
-	{product: "identity", service: "rp"},
-	{product: "identity", service: "rs"},
-	{product: "identity", service: "spa"},
+	{product: "sm", service: cryptoutilSharedMagic.KMSServiceName},
+	{product: cryptoutilSharedMagic.IdentityProductName, service: cryptoutilSharedMagic.AuthzServiceName},
+	{product: cryptoutilSharedMagic.IdentityProductName, service: cryptoutilSharedMagic.IDPServiceName},
+	{product: cryptoutilSharedMagic.IdentityProductName, service: "rp"},
+	{product: cryptoutilSharedMagic.IdentityProductName, service: "rs"},
+	{product: cryptoutilSharedMagic.IdentityProductName, service: cryptoutilSharedMagic.SPAServiceName},
 }
 
 // Check validates product wiring from the workspace root.

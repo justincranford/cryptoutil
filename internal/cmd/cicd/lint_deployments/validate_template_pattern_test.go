@@ -254,7 +254,7 @@ func TestValidateTemplatePattern_RealTemplate(t *testing.T) {
 	t.Parallel()
 
 	// Validate the actual template directory in the repository.
-	templatePath := filepath.Join(".", "..", "..", "..", "..", "deployments", "template")
+	templatePath := filepath.Join(".", "..", "..", "..", "..", "deployments", cryptoutilSharedMagic.SkeletonTemplateServiceName)
 
 	info, err := os.Stat(templatePath)
 	if err != nil || !info.IsDir() {

@@ -35,7 +35,7 @@ func TestClassifyDeployment(t *testing.T) {
 		{name: "product jose", input: cryptoutilSharedMagic.JoseProductName, expected: DeploymentTypeProduct},
 		{name: "product skeleton", input: cryptoutilSharedMagic.SkeletonProductName, expected: DeploymentTypeProduct},
 		{name: "suite cryptoutil-suite", input: "cryptoutil-suite", expected: DeploymentTypeSuite},
-		{name: "template", input: "template", expected: DeploymentTypeTemplate},
+		{name: cryptoutilSharedMagic.SkeletonTemplateServiceName, input: cryptoutilSharedMagic.SkeletonTemplateServiceName, expected: DeploymentTypeTemplate},
 		{name: "infrastructure shared-postgres", input: "shared-postgres", expected: DeploymentTypeInfrastructure},
 		{name: "infrastructure shared-citus", input: "shared-citus", expected: DeploymentTypeInfrastructure},
 		{name: "infrastructure shared-telemetry", input: "shared-telemetry", expected: DeploymentTypeInfrastructure},

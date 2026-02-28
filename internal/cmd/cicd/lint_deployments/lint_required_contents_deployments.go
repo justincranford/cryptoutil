@@ -53,7 +53,7 @@ func GetDeploymentDirectories() (suite []string, product []string, productServic
 
 	// Template deployment (for creating new services)
 	template = []string{
-		"template",
+		cryptoutilSharedMagic.SkeletonTemplateServiceName,
 	}
 
 	return suite, product, productService, infrastructure, template

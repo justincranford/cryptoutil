@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
@@ -33,8 +34,8 @@ var (
 // legacyMigrationPaths contains migration directories that use legacy numbering (pre-2001 convention).
 // These are excluded from domain migration validation until they are migrated to the 2001+ scheme.
 var legacyMigrationPaths = []string{
-	filepath.Join("internal", "apps", "identity", "repository", "migrations"),
-	filepath.Join("internal", "apps", "identity", "repository", "orm", "migrations"),
+	filepath.Join("internal", "apps", cryptoutilSharedMagic.IdentityProductName, "repository", "migrations"),
+	filepath.Join("internal", "apps", cryptoutilSharedMagic.IdentityProductName, "repository", "orm", "migrations"),
 }
 
 // Check validates migration numbering from the workspace root.
@@ -46,7 +47,7 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	var errors []string
 
-	templateDir := filepath.Join(rootDir, "internal", "apps", "template", "service", "server", "repository", "migrations")
+	templateDir := filepath.Join(rootDir, "internal", "apps", cryptoutilSharedMagic.SkeletonTemplateServiceName, "service", "server", "repository", "migrations")
 	errors = append(errors, checkMigrationDir(templateDir, templateMigrationMin, templateMigrationMax, true)...)
 
 	domainDirs, findErr := findDomainMigrationDirs(rootDir, templateDir)
@@ -175,7 +176,7 @@ func checkMigrationDir(dir string, minVersion, maxVersion int, isTemplate bool) 
 
 		label := "domain"
 		if isTemplate {
-			label = "template"
+			label = cryptoutilSharedMagic.SkeletonTemplateServiceName
 		}
 
 		if version < minVersion {

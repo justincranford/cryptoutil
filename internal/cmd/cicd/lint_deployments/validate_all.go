@@ -156,7 +156,7 @@ func runSchemaValidation(configsDir string, result *AllValidationResult) {
 
 // runTemplatePatternValidation runs ValidateTemplatePattern on deployments/template/.
 func runTemplatePatternValidation(deploymentsDir string, result *AllValidationResult) {
-	templatePath := filepath.Join(deploymentsDir, "template")
+	templatePath := filepath.Join(deploymentsDir, cryptoutilSharedMagic.SkeletonTemplateServiceName)
 
 	if _, err := os.Stat(templatePath); os.IsNotExist(err) {
 		return
@@ -269,7 +269,7 @@ func classifyDeployment(name string) string {
 		return DeploymentTypeProduct
 	case name == "cryptoutil-suite":
 		return DeploymentTypeSuite
-	case name == "template":
+	case name == cryptoutilSharedMagic.SkeletonTemplateServiceName:
 		return DeploymentTypeTemplate
 	default:
 		return DeploymentTypeInfrastructure

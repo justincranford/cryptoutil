@@ -66,7 +66,7 @@ func TestGetDeploymentDirectories(t *testing.T) {
 
 	// Template should have exactly one entry.
 	require.Len(t, template, 1)
-	require.Equal(t, "template", template[0])
+	require.Equal(t, cryptoutilSharedMagic.SkeletonTemplateServiceName, template[0])
 }
 
 // TestGetExpectedDeploymentsContents validates the full deployments contents map.

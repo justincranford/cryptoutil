@@ -76,8 +76,9 @@ func scheme() string { return "https" }
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
 	err = CheckMagicUsageInDir(logger, magicDir, rootDir)
-	// magic-usage is informational: violations are logged but do not return an error.
-	require.NoError(t, err)
+	// literal-use violations are blocking: inline literals must reference magic.XXX.
+	require.Error(t, err)
+	require.ErrorContains(t, err, "literal-use")
 }
 
 func TestCheckMagicUsageInDir_ConstRedefine(t *testing.T) {
@@ -251,8 +252,8 @@ func TestCheckMagicUsageInDir_MagicDirInsideRoot(t *testing.T) {
 	require.NoError(t, os.MkdirAll(magicDir, 0o700))
 	writeMagicFile(t, magicDir, "magic.go", "package magic\n\nconst Timeout = 30\n")
 
-	// Regular go file outside the magic dir.
-	require.NoError(t, os.WriteFile(filepath.Join(rootDir, "app.go"), []byte("package app\n\nfunc f() { _ = 30 }\n"), cryptoutilSharedMagic.CacheFilePermissions))
+	// Regular go file outside the magic dir (uses no literal from magic constants).
+	require.NoError(t, os.WriteFile(filepath.Join(rootDir, "app.go"), []byte("package app\n\nfunc f() {}\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	err := CheckMagicUsageInDir(logger, magicDir, rootDir)

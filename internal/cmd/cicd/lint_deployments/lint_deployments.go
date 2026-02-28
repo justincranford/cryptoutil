@@ -1,5 +1,9 @@
 package lint_deployments
 
+import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+)
+
 // Deployment type constants.
 const (
 	DeploymentTypeSuite          = "SUITE"
@@ -26,7 +30,7 @@ type DeploymentStructure struct {
 // See: docs/ARCHITECTURE.md Section 12.4 "Deployment Structure Validation".
 func GetExpectedStructures() map[string]DeploymentStructure {
 	return map[string]DeploymentStructure{
-		"template": {
+		cryptoutilSharedMagic.SkeletonTemplateServiceName: {
 			Name:          "Template deployment (deployments/template/)",
 			RequiredDirs:  []string{"secrets"},
 			RequiredFiles: []string{"compose.yml"},

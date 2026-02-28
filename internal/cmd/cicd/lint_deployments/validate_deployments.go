@@ -57,9 +57,9 @@ func ValidateAllDeployments(deploymentsRoot string) ([]ValidationResult, error) 
 		results = append(results, *result)
 	}
 	// Template deployment
-	templatePath := filepath.Join(deploymentsRoot, "template")
+	templatePath := filepath.Join(deploymentsRoot, cryptoutilSharedMagic.SkeletonTemplateServiceName)
 	if _, err := os.Stat(templatePath); err == nil {
-		result, err := ValidateDeploymentStructure(templatePath, "template", "template")
+		result, err := ValidateDeploymentStructure(templatePath, cryptoutilSharedMagic.SkeletonTemplateServiceName, cryptoutilSharedMagic.SkeletonTemplateServiceName)
 		if err != nil {
 			return nil, fmt.Errorf("failed to validate template: %w", err)
 		}
@@ -244,7 +244,7 @@ func checkDelegationPattern(basePath string, deploymentName string, structType s
 		}
 
 		identityProduct := cryptoutilSharedMagic.IdentityProductName
-		identityServices := []string{"identity-authz", "identity-idp", "identity-rp", "identity-rs", "identity-spa"}
+		identityServices := []string{cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP, cryptoutilSharedMagic.OTLPServiceIdentityRP, cryptoutilSharedMagic.OTLPServiceIdentityRS, cryptoutilSharedMagic.OTLPServiceIdentitySPA}
 
 		if deploymentName == identityProduct {
 			for _, svc := range identityServices {

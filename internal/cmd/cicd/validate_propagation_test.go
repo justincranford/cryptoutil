@@ -119,8 +119,8 @@ func TestTruncateRef(t *testing.T) {
 		expected string
 	}{
 		{name: "short line", input: "short", expected: "short"},
-		{name: "exact cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes", input: strings.Repeat("a", cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes), expected: strings.Repeat("a", 120)},
-		{name: "over cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes", input: strings.Repeat("b", 130), expected: strings.Repeat("b", 120) + "..."},
+		{name: "exact cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes", input: strings.Repeat("a", cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes), expected: strings.Repeat("a", cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes)},
+		{name: "over cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes", input: strings.Repeat("b", 130), expected: strings.Repeat("b", cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes) + "..."},
 		{name: "with leading spaces", input: "  trimmed  ", expected: "trimmed"},
 	}
 

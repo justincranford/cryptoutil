@@ -10,10 +10,11 @@ import (
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // knownProducts lists all product names that must follow structural conventions.
-var knownProducts = []string{"identity", "jose", "pki", "skeleton", "sm"}
+var knownProducts = []string{cryptoutilSharedMagic.IdentityProductName, cryptoutilSharedMagic.JoseProductName, cryptoutilSharedMagic.PKIProductName, cryptoutilSharedMagic.SkeletonProductName, "sm"}
 
 // Check validates product structure from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {

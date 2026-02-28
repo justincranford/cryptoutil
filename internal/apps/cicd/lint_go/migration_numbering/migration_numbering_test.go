@@ -52,7 +52,7 @@ func TestCheckInDir_ValidDomainMigrations(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	migrationsDir := filepath.Join(tmpDir, "internal", "apps", "myproduct", "myservice", "repository", "migrations")
-	require.NoError(t, os.MkdirAll(migrationsDir, 0o755))
+	require.NoError(t, os.MkdirAll(migrationsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(migrationsDir, "2001_init.up.sql"), []byte("CREATE TABLE t;"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(migrationsDir, "2001_init.down.sql"), []byte("DROP TABLE t;"), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -65,8 +65,8 @@ func TestCheckInDir_ValidTemplateMigrations(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	templateDir := filepath.Join(tmpDir, "internal", "apps", "template", "service", "server", "repository", "migrations")
-	require.NoError(t, os.MkdirAll(templateDir, 0o755))
+	templateDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.SkeletonTemplateServiceName, "service", "server", "repository", "migrations")
+	require.NoError(t, os.MkdirAll(templateDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(templateDir, "1001_sessions.up.sql"), []byte("CREATE TABLE s;"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(templateDir, "1001_sessions.down.sql"), []byte("DROP TABLE s;"), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -79,8 +79,8 @@ func TestCheckInDir_TemplateAtMaxBoundary(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	templateDir := filepath.Join(tmpDir, "internal", "apps", "template", "service", "server", "repository", "migrations")
-	require.NoError(t, os.MkdirAll(templateDir, 0o755))
+	templateDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.SkeletonTemplateServiceName, "service", "server", "repository", "migrations")
+	require.NoError(t, os.MkdirAll(templateDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	// Version 1999 is the maximum template version — must be accepted.
 	require.NoError(t, os.WriteFile(filepath.Join(templateDir, "1999_last_template.up.sql"), []byte("OK"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -96,7 +96,7 @@ func TestCheckInDir_DomainVersionBelowMinimum(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	migrationsDir := filepath.Join(tmpDir, "internal", "apps", "myproduct", "myservice", "repository", "migrations")
-	require.NoError(t, os.MkdirAll(migrationsDir, 0o755))
+	require.NoError(t, os.MkdirAll(migrationsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(migrationsDir, "0001_init.up.sql"), []byte("CREATE TABLE t;"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(migrationsDir, "0001_init.down.sql"), []byte("DROP TABLE t;"), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -110,8 +110,8 @@ func TestCheckInDir_TemplateVersionAboveMaximum(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	templateDir := filepath.Join(tmpDir, "internal", "apps", "template", "service", "server", "repository", "migrations")
-	require.NoError(t, os.MkdirAll(templateDir, 0o755))
+	templateDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.SkeletonTemplateServiceName, "service", "server", "repository", "migrations")
+	require.NoError(t, os.MkdirAll(templateDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(templateDir, "2001_too_high.up.sql"), []byte("CREATE TABLE t;"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(templateDir, "2001_too_high.down.sql"), []byte("DROP TABLE t;"), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -126,7 +126,7 @@ func TestCheckInDir_MissingDownFile(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	migrationsDir := filepath.Join(tmpDir, "internal", "apps", "myproduct", "myservice", "repository", "migrations")
-	require.NoError(t, os.MkdirAll(migrationsDir, 0o755))
+	require.NoError(t, os.MkdirAll(migrationsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(migrationsDir, "2001_init.up.sql"), []byte("CREATE TABLE t;"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -140,7 +140,7 @@ func TestCheckInDir_MissingUpFile(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	migrationsDir := filepath.Join(tmpDir, "internal", "apps", "myproduct", "myservice", "repository", "migrations")
-	require.NoError(t, os.MkdirAll(migrationsDir, 0o755))
+	require.NoError(t, os.MkdirAll(migrationsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(migrationsDir, "2001_init.down.sql"), []byte("DROP TABLE t;"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -154,7 +154,7 @@ func TestCheckInDir_InvalidFilename(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	migrationsDir := filepath.Join(tmpDir, "internal", "apps", "myproduct", "myservice", "repository", "migrations")
-	require.NoError(t, os.MkdirAll(migrationsDir, 0o755))
+	require.NoError(t, os.MkdirAll(migrationsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(migrationsDir, "bad_file.sql"), []byte("INVALID"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -178,7 +178,7 @@ func TestCheckInDir_EmptyMigrationsDir(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	migrationsDir := filepath.Join(tmpDir, "internal", "apps", "myproduct", "myservice", "repository", "migrations")
-	require.NoError(t, os.MkdirAll(migrationsDir, 0o755))
+	require.NoError(t, os.MkdirAll(migrationsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	err := CheckInDir(logger, tmpDir)
@@ -189,8 +189,8 @@ func TestCheckInDir_ArchivedDirsSkipped(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	archivedDir := filepath.Join(tmpDir, "internal", "apps", "pki", "_ca-archived", "repository", "migrations")
-	require.NoError(t, os.MkdirAll(archivedDir, 0o755))
+	archivedDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.PKIProductName, "_ca-archived", "repository", "migrations")
+	require.NoError(t, os.MkdirAll(archivedDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(archivedDir, "0001_bad.up.sql"), []byte("BAD"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -204,12 +204,12 @@ func TestCheckInDir_MultipleDomainDirs(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	dir1 := filepath.Join(tmpDir, "internal", "apps", "product1", "svc1", "repository", "migrations")
-	require.NoError(t, os.MkdirAll(dir1, 0o755))
+	require.NoError(t, os.MkdirAll(dir1, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(dir1, "2001_init.up.sql"), []byte("OK"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(dir1, "2001_init.down.sql"), []byte("OK"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	dir2 := filepath.Join(tmpDir, "internal", "apps", "product2", "svc2", "repository", "migrations")
-	require.NoError(t, os.MkdirAll(dir2, 0o755))
+	require.NoError(t, os.MkdirAll(dir2, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(dir2, "2002_tables.up.sql"), []byte("OK"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(dir2, "2002_tables.down.sql"), []byte("OK"), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -222,8 +222,8 @@ func TestCheckInDir_TemplateBelowMinimum(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	templateDir := filepath.Join(tmpDir, "internal", "apps", "template", "service", "server", "repository", "migrations")
-	require.NoError(t, os.MkdirAll(templateDir, 0o755))
+	templateDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.SkeletonTemplateServiceName, "service", "server", "repository", "migrations")
+	require.NoError(t, os.MkdirAll(templateDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(templateDir, "0500_too_low.up.sql"), []byte("BAD"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(templateDir, "0500_too_low.down.sql"), []byte("BAD"), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -238,7 +238,7 @@ func TestCheckInDir_MultipleVersions(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	migrationsDir := filepath.Join(tmpDir, "internal", "apps", "myproduct", "myservice", "repository", "migrations")
-	require.NoError(t, os.MkdirAll(migrationsDir, 0o755))
+	require.NoError(t, os.MkdirAll(migrationsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(migrationsDir, "2001_init.up.sql"), []byte("OK"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(migrationsDir, "2001_init.down.sql"), []byte("OK"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(migrationsDir, "2002_add_column.up.sql"), []byte("OK"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -254,8 +254,8 @@ func TestCheckMigrationDir_SubdirectoriesIgnored(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	migrationsDir := filepath.Join(tmpDir, "migrations")
-	require.NoError(t, os.MkdirAll(migrationsDir, 0o755))
-	require.NoError(t, os.MkdirAll(filepath.Join(migrationsDir, "subdir"), 0o755))
+	require.NoError(t, os.MkdirAll(migrationsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.MkdirAll(filepath.Join(migrationsDir, "subdir"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(migrationsDir, "2001_init.up.sql"), []byte("OK"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(migrationsDir, "2001_init.down.sql"), []byte("OK"), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -275,7 +275,7 @@ func TestFindDomainMigrationDirs_NoAppsDir(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	dirs, err := findDomainMigrationDirs(tmpDir, filepath.Join(tmpDir, "internal", "apps", "template", "service", "server", "repository", "migrations"))
+	dirs, err := findDomainMigrationDirs(tmpDir, filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.SkeletonTemplateServiceName, "service", "server", "repository", "migrations"))
 	require.NoError(t, err)
 	require.Empty(t, dirs)
 }
@@ -307,14 +307,14 @@ func TestCheckMigrationDir_ReadDirError(t *testing.T) {
 	// Create a directory with a permissions issue.
 	tmpDir := t.TempDir()
 	migrationsDir := filepath.Join(tmpDir, "migrations")
-	require.NoError(t, os.MkdirAll(migrationsDir, 0o755))
+	require.NoError(t, os.MkdirAll(migrationsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	// Write a valid file, then make the dir unreadable.
 	require.NoError(t, os.WriteFile(filepath.Join(migrationsDir, "2001_init.up.sql"), []byte("OK"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.Chmod(migrationsDir, 0o000))
 
 	t.Cleanup(func() {
-		_ = os.Chmod(migrationsDir, 0o755)
+		_ = os.Chmod(migrationsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	})
 
 	errs := checkMigrationDir(migrationsDir, domainMigrationMin, 0, false)
@@ -327,7 +327,7 @@ func TestCheckMigrationDir_DomainAboveMax(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	migrationsDir := filepath.Join(tmpDir, "migrations")
-	require.NoError(t, os.MkdirAll(migrationsDir, 0o755))
+	require.NoError(t, os.MkdirAll(migrationsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(migrationsDir, "9999_too_high.up.sql"), []byte("OK"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(migrationsDir, "9999_too_high.down.sql"), []byte("OK"), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -341,8 +341,8 @@ func TestCheckInDir_TemplateExceedsMax(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	templateDir := filepath.Join(tmpDir, "internal", "apps", "template", "service", "server", "repository", "migrations")
-	require.NoError(t, os.MkdirAll(templateDir, 0o755))
+	templateDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.SkeletonTemplateServiceName, "service", "server", "repository", "migrations")
+	require.NoError(t, os.MkdirAll(templateDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(templateDir, "2500_above_range.up.sql"), []byte("BAD"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(templateDir, "2500_above_range.down.sql"), []byte("BAD"), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -358,17 +358,17 @@ func TestFindDomainMigrationDirs_LegacyExcluded(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create a legacy dir that matches the exclusion list.
-	legacyDir := filepath.Join(tmpDir, "internal", "apps", "identity", "repository", "migrations")
-	require.NoError(t, os.MkdirAll(legacyDir, 0o755))
+	legacyDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.IdentityProductName, "repository", "migrations")
+	require.NoError(t, os.MkdirAll(legacyDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(legacyDir, "0001_legacy.up.sql"), []byte("OK"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Create a non-legacy domain dir.
 	domainDir := filepath.Join(tmpDir, "internal", "apps", "myservice", "repository", "migrations")
-	require.NoError(t, os.MkdirAll(domainDir, 0o755))
+	require.NoError(t, os.MkdirAll(domainDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(domainDir, "2001_init.up.sql"), []byte("OK"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(domainDir, "2001_init.down.sql"), []byte("OK"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	dirs, err := findDomainMigrationDirs(tmpDir, filepath.Join(tmpDir, "internal", "apps", "template", "service", "server", "repository", "migrations"))
+	dirs, err := findDomainMigrationDirs(tmpDir, filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.SkeletonTemplateServiceName, "service", "server", "repository", "migrations"))
 	require.NoError(t, err)
 	require.Len(t, dirs, 1)
 	require.Contains(t, dirs[0], "myservice")
@@ -393,14 +393,14 @@ func TestFindDomainMigrationDirs_WalkPermissionError(t *testing.T) {
 	tmpDir := t.TempDir()
 	appsDir := filepath.Join(tmpDir, "internal", "apps")
 	badDir := filepath.Join(appsDir, "badservice")
-	require.NoError(t, os.MkdirAll(badDir, 0o755))
+	require.NoError(t, os.MkdirAll(badDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.Chmod(badDir, 0o000))
 
 	t.Cleanup(func() {
-		_ = os.Chmod(badDir, 0o755)
+		_ = os.Chmod(badDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	})
 
-	templateDir := filepath.Join(tmpDir, "internal", "apps", "template", "service", "server", "repository", "migrations")
+	templateDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.SkeletonTemplateServiceName, "service", "server", "repository", "migrations")
 
 	_, err := findDomainMigrationDirs(tmpDir, templateDir)
 	require.Error(t, err)
@@ -419,7 +419,7 @@ func TestSeam_FindDomainMigrationDirs_AbsTemplateError(t *testing.T) {
 	}
 
 	tmpDir := t.TempDir()
-	templateDir := filepath.Join(tmpDir, "internal", "apps", "template", "service", "server", "repository", "migrations")
+	templateDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.SkeletonTemplateServiceName, "service", "server", "repository", "migrations")
 
 	_, err := findDomainMigrationDirs(tmpDir, templateDir)
 	require.Error(t, err)
@@ -446,11 +446,11 @@ func TestSeam_FindDomainMigrationDirs_WalkAbsError(t *testing.T) {
 	tmpDir := t.TempDir()
 	appsDir := filepath.Join(tmpDir, "internal", "apps")
 	migDir := filepath.Join(appsDir, "myservice", "repository", "migrations")
-	require.NoError(t, os.MkdirAll(migDir, 0o755))
+	require.NoError(t, os.MkdirAll(migDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(migDir, "2001_init.up.sql"), []byte("OK"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	templateDir := filepath.Join(tmpDir, "internal", "apps", "template", "service", "server", "repository", "migrations")
-	require.NoError(t, os.MkdirAll(templateDir, 0o755))
+	templateDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.SkeletonTemplateServiceName, "service", "server", "repository", "migrations")
+	require.NoError(t, os.MkdirAll(templateDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	_, err := findDomainMigrationDirs(tmpDir, templateDir)
 	require.Error(t, err)
@@ -466,8 +466,8 @@ func TestSeam_CheckInDir_FindDomainDirsError(t *testing.T) {
 	}
 
 	tmpDir := t.TempDir()
-	templateDir := filepath.Join(tmpDir, "internal", "apps", "template", "service", "server", "repository", "migrations")
-	require.NoError(t, os.MkdirAll(templateDir, 0o755))
+	templateDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.SkeletonTemplateServiceName, "service", "server", "repository", "migrations")
+	require.NoError(t, os.MkdirAll(templateDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	err := CheckInDir(logger, tmpDir)
@@ -485,7 +485,7 @@ func TestSeam_CheckMigrationDir_AtoiError(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	migrationsDir := filepath.Join(tmpDir, "migrations")
-	require.NoError(t, os.MkdirAll(migrationsDir, 0o755))
+	require.NoError(t, os.MkdirAll(migrationsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(migrationsDir, "2001_init.up.sql"), []byte("OK"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	errs := checkMigrationDir(migrationsDir, domainMigrationMin, 0, false)

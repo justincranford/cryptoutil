@@ -69,7 +69,7 @@ func TestRunTemplatePatternValidation_ErrorPath(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	templateDir := filepath.Join(dir, "template")
+	templateDir := filepath.Join(dir, cryptoutilSharedMagic.SkeletonTemplateServiceName)
 	require.NoError(t, os.MkdirAll(templateDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	result := &AllValidationResult{}
@@ -100,7 +100,7 @@ func TestRunPortsValidation_SkipsInfrastructure(t *testing.T) {
 
 	deployments := []deploymentEntry{
 		{path: "/tmp/shared-postgres", name: "shared-postgres", level: DeploymentTypeInfrastructure},
-		{path: "/tmp/template", name: "template", level: DeploymentTypeTemplate},
+		{path: "/tmp/template", name: cryptoutilSharedMagic.SkeletonTemplateServiceName, level: DeploymentTypeTemplate},
 	}
 
 	result := &AllValidationResult{}

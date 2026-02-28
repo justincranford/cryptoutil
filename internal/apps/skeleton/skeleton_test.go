@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func TestSkeleton_NoArguments(t *testing.T) {
@@ -22,7 +23,7 @@ func TestSkeleton_NoArguments(t *testing.T) {
 	output := stdout.String() + stderr.String()
 	require.Contains(t, output, "Usage: skeleton <service> <subcommand> [options]")
 	require.Contains(t, output, "Available services:")
-	require.Contains(t, output, "template")
+	require.Contains(t, output, cryptoutilSharedMagic.SkeletonTemplateServiceName)
 }
 
 func TestSkeleton_HelpCommand(t *testing.T) {
@@ -49,7 +50,7 @@ func TestSkeleton_HelpCommand(t *testing.T) {
 			output := stdout.String() + stderr.String()
 			require.Contains(t, output, "Usage: skeleton <service> <subcommand> [options]")
 			require.Contains(t, output, "Available services:")
-			require.Contains(t, output, "template")
+			require.Contains(t, output, cryptoutilSharedMagic.SkeletonTemplateServiceName)
 		})
 	}
 }
@@ -113,7 +114,7 @@ func TestSkeleton_TemplateService_RoutesCorrectly(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Skeleton([]string{"template", "help"}, nil, &stdout, &stderr)
+	exitCode := Skeleton([]string{cryptoutilSharedMagic.SkeletonTemplateServiceName, "help"}, nil, &stdout, &stderr)
 	require.Equal(t, 0, exitCode)
 
 	combinedOutput := stdout.String() + stderr.String()
@@ -128,7 +129,7 @@ func TestSkeleton_TemplateService_InvalidSubcommand(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Skeleton([]string{"template", "invalid-subcommand"}, nil, &stdout, &stderr)
+	exitCode := Skeleton([]string{cryptoutilSharedMagic.SkeletonTemplateServiceName, "invalid-subcommand"}, nil, &stdout, &stderr)
 	require.Equal(t, 1, exitCode)
 
 	output := stdout.String() + stderr.String()

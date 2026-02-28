@@ -54,7 +54,7 @@ func TestCheckDelegationPattern_SuiteInvalidServiceLevel(t *testing.T) {
 	checkDelegationPattern(dir, "cryptoutil-suite", DeploymentTypeSuite, result)
 
 	require.False(t, result.Valid, "expected invalid for service-level delegation")
-	require.Len(t, result.Errors, 10, "expected 10 errors for 10 invalid patterns")
+	require.Len(t, result.Errors, cryptoutilSharedMagic.SuiteServiceCount, "expected 10 errors for 10 invalid patterns")
 }
 
 func TestCheckDelegationPattern_SuiteMissingProducts(t *testing.T) {
@@ -136,12 +136,12 @@ func TestCheckDelegationPattern_ProductMissingService(t *testing.T) {
 		{name: "sm missing sm-im", deploymentName: "sm", wantError: cryptoutilSharedMagic.OTLPServiceSMIM},
 		{name: "pki missing pki-ca", deploymentName: cryptoutilSharedMagic.PKIProductName, wantError: cryptoutilSharedMagic.OTLPServicePKICA},
 		{name: "jose missing jose-ja", deploymentName: cryptoutilSharedMagic.JoseProductName, wantError: cryptoutilSharedMagic.OTLPServiceJoseJA},
-		{name: "identity missing identity-authz", deploymentName: cryptoutilSharedMagic.IdentityProductName, wantError: "identity-authz"},
-		{name: "identity missing identity-idp", deploymentName: cryptoutilSharedMagic.IdentityProductName, wantError: "identity-idp"},
-		{name: "identity missing identity-rp", deploymentName: cryptoutilSharedMagic.IdentityProductName, wantError: "identity-rp"},
-		{name: "identity missing identity-rs", deploymentName: cryptoutilSharedMagic.IdentityProductName, wantError: "identity-rs"},
-		{name: "identity missing identity-spa", deploymentName: cryptoutilSharedMagic.IdentityProductName, wantError: "identity-spa"},
-		{name: "skeleton missing skeleton-template", deploymentName: cryptoutilSharedMagic.SkeletonProductName, wantError: "skeleton-template"},
+		{name: "identity missing identity-authz", deploymentName: cryptoutilSharedMagic.IdentityProductName, wantError: cryptoutilSharedMagic.OTLPServiceIdentityAuthz},
+		{name: "identity missing identity-idp", deploymentName: cryptoutilSharedMagic.IdentityProductName, wantError: cryptoutilSharedMagic.OTLPServiceIdentityIDP},
+		{name: "identity missing identity-rp", deploymentName: cryptoutilSharedMagic.IdentityProductName, wantError: cryptoutilSharedMagic.OTLPServiceIdentityRP},
+		{name: "identity missing identity-rs", deploymentName: cryptoutilSharedMagic.IdentityProductName, wantError: cryptoutilSharedMagic.OTLPServiceIdentityRS},
+		{name: "identity missing identity-spa", deploymentName: cryptoutilSharedMagic.IdentityProductName, wantError: cryptoutilSharedMagic.OTLPServiceIdentitySPA},
+		{name: "skeleton missing skeleton-template", deploymentName: cryptoutilSharedMagic.SkeletonProductName, wantError: cryptoutilSharedMagic.OTLPServiceSkeletonTemplate},
 	}
 
 	for _, tc := range tests {

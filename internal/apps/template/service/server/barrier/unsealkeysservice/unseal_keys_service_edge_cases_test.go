@@ -88,8 +88,8 @@ func TestNewUnsealKeysServiceSharedSecrets_EdgeCaseBoundaries(t *testing.T) {
 		errMatch  string
 	}{
 		{"min-length-31", 31, true, "can't be less than"},
-		{"min-length-cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes", 32, false, ""},
-		{"max-length-cryptoutilSharedMagic.MinSerialNumberBits", 64, false, ""},
+		{"min-length-cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes", cryptoutilSharedMagic.MinSharedSecretLength, false, ""},
+		{"max-length-cryptoutilSharedMagic.MinSerialNumberBits", cryptoutilSharedMagic.MaxSharedSecretLength, false, ""},
 		{"max-length-65", 65, true, "can't be greater than"},
 	}
 

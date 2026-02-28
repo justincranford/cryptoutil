@@ -145,7 +145,7 @@ func TestValidateStructuralMirror(t *testing.T) {
 		createTestDir(t, deploymentsDir, "shared-citus")
 		createTestDir(t, deploymentsDir, "shared-telemetry")
 		createTestDir(t, deploymentsDir, "archived")
-		createTestDir(t, deploymentsDir, "template")
+		createTestDir(t, deploymentsDir, cryptoutilSharedMagic.SkeletonTemplateServiceName)
 
 		result, err := ValidateStructuralMirror(deploymentsDir, configsDir)
 		require.NoError(t, err)
@@ -314,7 +314,7 @@ func TestFormatMirrorResult(t *testing.T) {
 			Valid:          false,
 			MissingMirrors: []string{"sm", cryptoutilSharedMagic.JoseProductName},
 			Orphans:        []string{"orphan1"},
-			Excluded:       []string{"template"},
+			Excluded:       []string{cryptoutilSharedMagic.SkeletonTemplateServiceName},
 			Errors:         []string{"some error"},
 			Warnings:       []string{"orphaned: orphan1"},
 		}
@@ -323,7 +323,7 @@ func TestFormatMirrorResult(t *testing.T) {
 
 		require.Contains(t, output, cryptoutilSharedMagic.TestStatusFail)
 		require.Contains(t, output, "Excluded (1)")
-		require.Contains(t, output, "template")
+		require.Contains(t, output, cryptoutilSharedMagic.SkeletonTemplateServiceName)
 		require.Contains(t, output, "Errors (1)")
 		require.Contains(t, output, "some error")
 		require.Contains(t, output, "Warnings (1)")

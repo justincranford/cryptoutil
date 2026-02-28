@@ -153,7 +153,7 @@ func TestApplySkeletonTemplateMigrations(t *testing.T) {
 	t.Parallel()
 
 	// Open in-memory SQLite database.
-	sqlDB, err := sql.Open("sqlite", "file::memory:?cache=shared")
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteInMemoryDSN)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, sqlDB.Close()) }()
@@ -187,7 +187,7 @@ func TestApplySkeletonTemplateMigrations_Error(t *testing.T) {
 	t.Parallel()
 
 	// Open in-memory SQLite database and immediately close it.
-	sqlDB, err := sql.Open("sqlite", "file::memory:")
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, "file::memory:")
 	require.NoError(t, err)
 	require.NoError(t, sqlDB.Close())
 

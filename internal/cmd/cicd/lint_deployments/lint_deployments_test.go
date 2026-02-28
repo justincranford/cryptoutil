@@ -189,8 +189,8 @@ func TestValidateDeploymentStructure(t *testing.T) {
 		},
 		{
 			name:           "valid template deployment",
-			deploymentName: "template",
-			structType:     "template",
+			deploymentName: cryptoutilSharedMagic.SkeletonTemplateServiceName,
+			structType:     cryptoutilSharedMagic.SkeletonTemplateServiceName,
 			setupFunc: func(t *testing.T, baseDir string) {
 				t.Helper()
 				require.NoError(t, os.MkdirAll(filepath.Join(baseDir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
@@ -299,7 +299,7 @@ func TestValidateAllDeployments_ProductAndSuiteAndTemplate(t *testing.T) {
 				t.Helper()
 
 				tmpDir := t.TempDir()
-				templateDir := filepath.Join(tmpDir, "template")
+				templateDir := filepath.Join(tmpDir, cryptoutilSharedMagic.SkeletonTemplateServiceName)
 				require.NoError(t, os.MkdirAll(filepath.Join(templateDir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
 				require.NoError(t, os.WriteFile(
 					filepath.Join(templateDir, "compose.yml"),

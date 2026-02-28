@@ -33,7 +33,7 @@ func TestValidateAllDeployments(t *testing.T) {
 				createValidProductServiceDeployment(t, svcDir, cryptoutilSharedMagic.OTLPServiceJoseJA)
 
 				// Create a valid template deployment.
-				tmplDir := filepath.Join(rootDir, "template")
+				tmplDir := filepath.Join(rootDir, cryptoutilSharedMagic.SkeletonTemplateServiceName)
 				require.NoError(t, os.MkdirAll(filepath.Join(tmplDir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 				require.NoError(t, os.WriteFile(filepath.Join(tmplDir, "compose.yml"), []byte("v"), cryptoutilSharedMagic.CacheFilePermissions))
 				createRequiredSecrets(t, tmplDir)
@@ -179,7 +179,7 @@ func TestGetExpectedStructures(t *testing.T) {
 
 	// Verify all expected structure types exist.
 	require.Contains(t, structures, "PRODUCT-SERVICE")
-	require.Contains(t, structures, "template")
+	require.Contains(t, structures, cryptoutilSharedMagic.SkeletonTemplateServiceName)
 	require.Contains(t, structures, "infrastructure")
 
 	// Verify PRODUCT-SERVICE has correct requirements.
@@ -189,7 +189,7 @@ func TestGetExpectedStructures(t *testing.T) {
 	require.Len(t, ps.RequiredSecrets, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, "PRODUCT-SERVICE should require 10 secrets")
 
 	// Verify template has correct requirements.
-	tmpl := structures["template"]
+	tmpl := structures[cryptoutilSharedMagic.SkeletonTemplateServiceName]
 	require.ElementsMatch(t, []string{"secrets"}, tmpl.RequiredDirs)
 	require.ElementsMatch(t, []string{"compose.yml"}, tmpl.RequiredFiles)
 

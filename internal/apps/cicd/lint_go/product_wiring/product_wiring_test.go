@@ -56,14 +56,14 @@ func TestCheckInDir_AllValid(t *testing.T) {
 	// Create product entry points.
 	for _, product := range knownProducts {
 		dir := filepath.Join(cmdDir, product)
-		require.NoError(t, os.MkdirAll(dir, 0o755))
+		require.NoError(t, os.MkdirAll(dir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.WriteFile(filepath.Join(dir, "main.go"), []byte("package main"), cryptoutilSharedMagic.CacheFilePermissions))
 	}
 
 	// Create service entry points.
 	for _, pair := range knownServices {
 		dir := filepath.Join(cmdDir, pair.product+"-"+pair.service)
-		require.NoError(t, os.MkdirAll(dir, 0o755))
+		require.NoError(t, os.MkdirAll(dir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.WriteFile(filepath.Join(dir, "main.go"), []byte("package main"), cryptoutilSharedMagic.CacheFilePermissions))
 	}
 
@@ -85,13 +85,13 @@ func TestCheckInDir_MissingProductEntry(t *testing.T) {
 		}
 
 		dir := filepath.Join(cmdDir, product)
-		require.NoError(t, os.MkdirAll(dir, 0o755))
+		require.NoError(t, os.MkdirAll(dir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.WriteFile(filepath.Join(dir, "main.go"), []byte("package main"), cryptoutilSharedMagic.CacheFilePermissions))
 	}
 
 	for _, pair := range knownServices {
 		dir := filepath.Join(cmdDir, pair.product+"-"+pair.service)
-		require.NoError(t, os.MkdirAll(dir, 0o755))
+		require.NoError(t, os.MkdirAll(dir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.WriteFile(filepath.Join(dir, "main.go"), []byte("package main"), cryptoutilSharedMagic.CacheFilePermissions))
 	}
 
@@ -109,7 +109,7 @@ func TestCheckInDir_MissingServiceEntry(t *testing.T) {
 
 	for _, product := range knownProducts {
 		dir := filepath.Join(cmdDir, product)
-		require.NoError(t, os.MkdirAll(dir, 0o755))
+		require.NoError(t, os.MkdirAll(dir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.WriteFile(filepath.Join(dir, "main.go"), []byte("package main"), cryptoutilSharedMagic.CacheFilePermissions))
 	}
 
@@ -120,7 +120,7 @@ func TestCheckInDir_MissingServiceEntry(t *testing.T) {
 		}
 
 		dir := filepath.Join(cmdDir, pair.product+"-"+pair.service)
-		require.NoError(t, os.MkdirAll(dir, 0o755))
+		require.NoError(t, os.MkdirAll(dir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.WriteFile(filepath.Join(dir, "main.go"), []byte("package main"), cryptoutilSharedMagic.CacheFilePermissions))
 	}
 

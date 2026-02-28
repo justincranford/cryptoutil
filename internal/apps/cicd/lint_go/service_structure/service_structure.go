@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // ServiceDef defines a product-service pair and its required files.
@@ -22,14 +23,14 @@ type ServiceDef struct {
 // knownServices lists all product-service pairs that must follow structural conventions.
 // identity/authz and identity/idp are intentionally excluded (legacy, don't follow service template pattern).
 var knownServices = []ServiceDef{
-	{Product: "skeleton", Service: "template"},
-	{Product: "pki", Service: "ca"},
-	{Product: "jose", Service: "ja"},
+	{Product: cryptoutilSharedMagic.SkeletonProductName, Service: cryptoutilSharedMagic.SkeletonTemplateServiceName},
+	{Product: cryptoutilSharedMagic.PKIProductName, Service: "ca"},
+	{Product: cryptoutilSharedMagic.JoseProductName, Service: "ja"},
 	{Product: "sm", Service: "im"},
-	{Product: "sm", Service: "kms", Required: kmsRequiredFiles},
-	{Product: "identity", Service: "rp"},
-	{Product: "identity", Service: "rs"},
-	{Product: "identity", Service: "spa"},
+	{Product: "sm", Service: cryptoutilSharedMagic.KMSServiceName, Required: kmsRequiredFiles},
+	{Product: cryptoutilSharedMagic.IdentityProductName, Service: "rp"},
+	{Product: cryptoutilSharedMagic.IdentityProductName, Service: "rs"},
+	{Product: cryptoutilSharedMagic.IdentityProductName, Service: cryptoutilSharedMagic.SPAServiceName},
 }
 
 // defaultRequiredFiles are files that every service must have (relative to service dir).

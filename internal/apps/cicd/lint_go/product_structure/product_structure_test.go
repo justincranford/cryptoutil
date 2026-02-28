@@ -54,7 +54,7 @@ func TestCheckInDir_AllValid(t *testing.T) {
 
 	for _, product := range knownProducts {
 		productDir := filepath.Join(tmpDir, "internal", "apps", product)
-		require.NoError(t, os.MkdirAll(productDir, 0o755))
+		require.NoError(t, os.MkdirAll(productDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.WriteFile(filepath.Join(productDir, product+".go"), []byte("package "+product), cryptoutilSharedMagic.CacheFilePermissions))
 		require.NoError(t, os.WriteFile(filepath.Join(productDir, product+"_test.go"), []byte("package "+product), cryptoutilSharedMagic.CacheFilePermissions))
 	}
@@ -71,7 +71,7 @@ func TestCheckInDir_MissingEntryFile(t *testing.T) {
 
 	for _, product := range knownProducts {
 		productDir := filepath.Join(tmpDir, "internal", "apps", product)
-		require.NoError(t, os.MkdirAll(productDir, 0o755))
+		require.NoError(t, os.MkdirAll(productDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.WriteFile(filepath.Join(productDir, product+"_test.go"), []byte("package "+product), cryptoutilSharedMagic.CacheFilePermissions))
 	}
 
@@ -88,7 +88,7 @@ func TestCheckInDir_MissingTestFile(t *testing.T) {
 
 	for _, product := range knownProducts {
 		productDir := filepath.Join(tmpDir, "internal", "apps", product)
-		require.NoError(t, os.MkdirAll(productDir, 0o755))
+		require.NoError(t, os.MkdirAll(productDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.WriteFile(filepath.Join(productDir, product+".go"), []byte("package "+product), cryptoutilSharedMagic.CacheFilePermissions))
 	}
 
@@ -102,7 +102,7 @@ func TestCheckInDir_MissingProductDir(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "internal", "apps"), 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "internal", "apps"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	err := CheckInDir(logger, tmpDir)

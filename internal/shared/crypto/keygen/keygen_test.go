@@ -26,9 +26,9 @@ func TestGenerateRSAKeyPair(t *testing.T) {
 		rsaBits int
 		prob    float32
 	}{
-		{"RSA cryptoutilSharedMagic.DefaultMetricsBatchSize", 2048, cryptoutilSharedMagic.TestProbAlways},
-		{"RSA cryptoutilSharedMagic.RSA3072KeySize", 3072, cryptoutilSharedMagic.TestProbTenth},
-		{"RSA cryptoutilSharedMagic.RSA4096KeySize", 4096, cryptoutilSharedMagic.TestProbTenth},
+		{"RSA cryptoutilSharedMagic.DefaultMetricsBatchSize", cryptoutilSharedMagic.RSAKeySize2048, cryptoutilSharedMagic.TestProbAlways},
+		{"RSA cryptoutilSharedMagic.RSA3072KeySize", cryptoutilSharedMagic.RSAKeySize3072, cryptoutilSharedMagic.TestProbTenth},
+		{"RSA cryptoutilSharedMagic.RSA4096KeySize", cryptoutilSharedMagic.RSAKeySize4096, cryptoutilSharedMagic.TestProbTenth},
 	}
 
 	for _, tc := range testCases {
@@ -396,9 +396,9 @@ func TestGenerateHMACKey(t *testing.T) {
 		expectedSize int
 		prob         float32
 	}{
-		{"HMAC cryptoutilSharedMagic.MaxUnsealSharedSecrets", cryptoutilSharedMagic.MaxUnsealSharedSecrets, 256 / cryptoutilSharedMagic.BitsToBytes, cryptoutilSharedMagic.TestProbAlways},
-		{"HMAC cryptoutilSharedMagic.DefaultTracesBatchSize", cryptoutilSharedMagic.DefaultTracesBatchSize, 512 / cryptoutilSharedMagic.BitsToBytes, cryptoutilSharedMagic.TestProbQuarter},
-		{"HMAC cryptoutilSharedMagic.DefaultLogsBatchSize", cryptoutilSharedMagic.DefaultLogsBatchSize, 1024 / cryptoutilSharedMagic.BitsToBytes, cryptoutilSharedMagic.TestProbQuarter},
+		{"HMAC cryptoutilSharedMagic.MaxUnsealSharedSecrets", cryptoutilSharedMagic.MaxUnsealSharedSecrets, cryptoutilSharedMagic.MaxUnsealSharedSecrets / cryptoutilSharedMagic.BitsToBytes, cryptoutilSharedMagic.TestProbAlways},
+		{"HMAC cryptoutilSharedMagic.DefaultTracesBatchSize", cryptoutilSharedMagic.DefaultTracesBatchSize, cryptoutilSharedMagic.SymmetricKeySize512 / cryptoutilSharedMagic.BitsToBytes, cryptoutilSharedMagic.TestProbQuarter},
+		{"HMAC cryptoutilSharedMagic.DefaultLogsBatchSize", cryptoutilSharedMagic.DefaultLogsBatchSize, cryptoutilSharedMagic.DefaultLogsBatchSize / cryptoutilSharedMagic.BitsToBytes, cryptoutilSharedMagic.TestProbQuarter},
 	}
 
 	for _, tc := range testCases {

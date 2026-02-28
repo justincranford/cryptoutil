@@ -154,6 +154,11 @@ const (
 	ModeNameDirect = "direct"
 	// ModeNameAll is the dependency check mode name for all dependencies.
 	ModeNameAll = "all"
+
+        // SuiteServiceCount is the total number of individual services in the cryptoutil suite.
+        // Services: sm-kms, sm-im, jose-ja, pki-ca, identity-authz, identity-idp,
+        // identity-rp, identity-rs, identity-spa, skeleton-template.
+        SuiteServiceCount = 10
 )
 
 // ListAllFilesStartDirectory is the ListAllFiles start directory.

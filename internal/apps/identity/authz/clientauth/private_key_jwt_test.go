@@ -177,8 +177,8 @@ func TestPrivateKeyJWTValidator_AssertionLifetimeValidation(t *testing.T) {
 		lifetime  time.Duration
 		wantError bool
 	}{
-		{"valid lifetime (cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries minutes)", 5 * time.Minute, false},
-		{"valid lifetime (maximum cryptoutilSharedMagic.JoseJADefaultMaxMaterials minutes)", 10 * time.Minute, false},
+		{"valid lifetime (cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries minutes)", cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Minute, false},
+		{"valid lifetime (maximum cryptoutilSharedMagic.JoseJADefaultMaxMaterials minutes)", cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute, false},
 		{"invalid lifetime (15 minutes)", 15 * time.Minute, true},
 		{"invalid lifetime (1 hour)", time.Hour, true},
 	}
