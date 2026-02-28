@@ -34,91 +34,10 @@ const (
 //go:embed migrations/*.sql
 var MigrationsFS embed.FS
 
-// mergedFS combines template and pki-ca migrations into a single filesystem view.
-// This allows golang-migrate to see all migrations (1001-1004 + 2001+) in sequence.
-type mergedFS struct {
-	templateFS embed.FS
-	pkiCaFS    embed.FS
-}
-
-func (m *mergedFS) Open(name string) (fs.File, error) {
-	// Try pki-ca filesystem first (2001+).
-	file, err := m.pkiCaFS.Open(name)
-	if err == nil {
-		return file, nil
-	}
-
-	// Fall back to template filesystem (1001-1004).
-	file, err = m.templateFS.Open(name)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open from template: %w", err)
-	}
-
-	return file, nil
-}
-
-func (m *mergedFS) ReadDir(name string) ([]fs.DirEntry, error) {
-	// Read both directories and merge results.
-	var entries []fs.DirEntry
-
-	// Read template migrations (1001-1004).
-	templateEntries, err := m.templateFS.ReadDir(name)
-	if err == nil {
-		entries = append(entries, templateEntries...)
-	}
-
-	// Read pki-ca migrations (2001+).
-	pkiCaEntries, err := m.pkiCaFS.ReadDir(name)
-	if err == nil {
-		entries = append(entries, pkiCaEntries...)
-	}
-
-	if len(entries) == 0 {
-		return nil, fmt.Errorf("directory not found: %s", name)
-	}
-
-	return entries, nil
-}
-
-func (m *mergedFS) ReadFile(name string) ([]byte, error) {
-	// Try pki-ca filesystem first (2001+).
-	data, err := fs.ReadFile(m.pkiCaFS, name)
-	if err == nil {
-		return data, nil
-	}
-
-	// Fall back to template filesystem (1001-1004).
-	data, err = fs.ReadFile(m.templateFS, name)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read from template: %w", err)
-	}
-
-	return data, nil
-}
-
-func (m *mergedFS) Stat(name string) (fs.FileInfo, error) {
-	// Try pki-ca filesystem first.
-	info, err := fs.Stat(m.pkiCaFS, name)
-	if err == nil {
-		return info, nil
-	}
-
-	// Fall back to template filesystem.
-	info, err = fs.Stat(m.templateFS, name)
-	if err != nil {
-		return nil, fmt.Errorf("failed to stat from template: %w", err)
-	}
-
-	return info, nil
-}
-
 // GetMergedMigrationsFS returns a filesystem combining template and pki-ca migrations.
 // This is used by tests to access all migrations (1001-1999 template + 2001+ pki-ca) in sequence.
 func GetMergedMigrationsFS() fs.FS {
-	return &mergedFS{
-		templateFS: cryptoutilAppsTemplateServiceServerRepository.MigrationsFS,
-		pkiCaFS:    MigrationsFS,
-	}
+	return cryptoutilAppsTemplateServiceServerRepository.NewMergedMigrationsFS(MigrationsFS)
 }
 
 // ApplyPKICAMigrations runs database migrations for pki-ca service.

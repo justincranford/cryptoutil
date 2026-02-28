@@ -36,91 +36,10 @@ const (
 //go:embed migrations/*.sql
 var MigrationsFS embed.FS
 
-// mergedFS combines template and jose-ja migrations into a single filesystem view.
-// This allows golang-migrate to see all migrations (1001-1004 + 2001+) in sequence.
-type mergedFS struct {
-	templateFS embed.FS
-	joseJAFS   embed.FS
-}
-
-func (m *mergedFS) Open(name string) (fs.File, error) {
-	// Try jose-ja filesystem first (2001+).
-	file, err := m.joseJAFS.Open(name)
-	if err == nil {
-		return file, nil
-	}
-
-	// Fall back to template filesystem (1001-1004).
-	file, err = m.templateFS.Open(name)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open from template: %w", err)
-	}
-
-	return file, nil
-}
-
-func (m *mergedFS) ReadDir(name string) ([]fs.DirEntry, error) {
-	// Read both directories and merge results.
-	var entries []fs.DirEntry
-
-	// Read template migrations (1001-1004).
-	templateEntries, err := m.templateFS.ReadDir(name)
-	if err == nil {
-		entries = append(entries, templateEntries...)
-	}
-
-	// Read jose-ja migrations (2001+).
-	joseJAEntries, err := m.joseJAFS.ReadDir(name)
-	if err == nil {
-		entries = append(entries, joseJAEntries...)
-	}
-
-	if len(entries) == 0 {
-		return nil, fmt.Errorf("directory not found: %s", name)
-	}
-
-	return entries, nil
-}
-
-func (m *mergedFS) ReadFile(name string) ([]byte, error) {
-	// Try jose-ja filesystem first (2001+).
-	data, err := fs.ReadFile(m.joseJAFS, name)
-	if err == nil {
-		return data, nil
-	}
-
-	// Fall back to template filesystem (1001-1004).
-	data, err = fs.ReadFile(m.templateFS, name)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read from template: %w", err)
-	}
-
-	return data, nil
-}
-
-func (m *mergedFS) Stat(name string) (fs.FileInfo, error) {
-	// Try jose-ja filesystem first.
-	info, err := fs.Stat(m.joseJAFS, name)
-	if err == nil {
-		return info, nil
-	}
-
-	// Fall back to template filesystem.
-	info, err = fs.Stat(m.templateFS, name)
-	if err != nil {
-		return nil, fmt.Errorf("failed to stat from template: %w", err)
-	}
-
-	return info, nil
-}
-
-// GetMergedMigrationsFS returns a filesystem combining template and jose-ja migrations.
-// This is used by tests to access all migrations (1001-1999 template + 2001+ jose-ja) in sequence.
+// GetMergedMigrationsFS returns a filesystem combining template and JOSE-JA migrations.
+// This is used by tests to access all migrations (1001-1999 template + 2001+ JOSE-JA) in sequence.
 func GetMergedMigrationsFS() fs.FS {
-	return &mergedFS{
-		templateFS: cryptoutilAppsTemplateServiceServerRepository.MigrationsFS,
-		joseJAFS:   MigrationsFS,
-	}
+	return cryptoutilAppsTemplateServiceServerRepository.NewMergedMigrationsFS(MigrationsFS)
 }
 
 // ApplyJoseJAMigrations runs database migrations for jose-ja service.
