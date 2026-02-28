@@ -7,6 +7,8 @@ import (
 	"io"
 
 	cryptoutilAppsCicd "cryptoutil/internal/apps/cicd"
+	cryptoutilCleanupGitHub "cryptoutil/internal/apps/cicd/cleanup_github"
+	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
 	cryptoutilLintDeployments "cryptoutil/internal/cmd/cicd/lint_deployments"
 )
 
@@ -41,6 +43,14 @@ func Cicd(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return ValidatePropagationCommand(stdout, stderr)
 	case "validate-chunks":
 		return ValidateChunksCommand(stdout, stderr)
+	case "cleanup-runs":
+		return runCleanup(args[2:], stderr, cryptoutilCleanupGitHub.CleanupRuns)
+	case "cleanup-artifacts":
+		return runCleanup(args[2:], stderr, cryptoutilCleanupGitHub.CleanupArtifacts)
+	case "cleanup-caches":
+		return runCleanup(args[2:], stderr, cryptoutilCleanupGitHub.CleanupCaches)
+	case "cleanup-all":
+		return runCleanup(args[2:], stderr, cryptoutilCleanupGitHub.CleanupAll)
 	case "lint-text", "lint-go", "lint-go-test", "lint-compose", "lint-ports",
 		"lint-workflow", "lint-go-mod", "lint-golangci", "format-go", "format-go-test":
 		return cryptoutilAppsCicd.Cicd(args, stdin, stdout, stderr)
@@ -87,6 +97,18 @@ Documentation Commands:
   validate-propagation      Validate all ARCHITECTURE.md section references
   validate-chunks           Compare @propagate/@source marker content for staleness
 
+Cleanup Commands (GitHub Actions storage):
+  cleanup-runs              Delete old workflow runs (default: >30 days)
+  cleanup-artifacts         Delete old artifacts (default: >30 days)
+  cleanup-caches            Delete stale caches (default: not accessed in 30 days)
+  cleanup-all               Run all cleanup operations
+
+  Cleanup flags:
+    --confirm               Execute deletions (default: dry-run preview only)
+    --max-age-days=N        Age threshold in days (default: 30)
+    --keep-min-runs=N       Min successful runs to keep per workflow (default: 10)
+    --repo=owner/repo       Target repo (default: auto-detect from cwd)
+
   help, --help, -h          Show this help message
 
 Examples:
@@ -94,7 +116,30 @@ Examples:
   cicd lint-go lint-go-test format-go
   cicd lint-deployments
   cicd validate-all deployments configs
+  cicd cleanup-all                          # Dry-run preview
+  cicd cleanup-all --confirm                # Execute deletions
+  cicd cleanup-runs --max-age-days=7        # Preview runs older than 7 days
 
 See: docs/ARCHITECTURE-TODO.md for architectural documentation (pending).
 `)
+}
+
+// runCleanup initializes config from args and runs the specified cleanup function.
+func runCleanup(args []string, stderr io.Writer, cleanupFn func(*cryptoutilCleanupGitHub.CleanupConfig) error) int {
+	logger := cryptoutilCmdCicdCommon.NewLogger("cleanup")
+	cfg := cryptoutilCleanupGitHub.NewDefaultConfig(logger)
+
+	if err := cryptoutilCleanupGitHub.ParseArgs(args, cfg); err != nil {
+		_, _ = fmt.Fprintf(stderr, "Error: %v\n", err)
+
+		return 1
+	}
+
+	if err := cleanupFn(cfg); err != nil {
+		_, _ = fmt.Fprintf(stderr, "Error: %v\n", err)
+
+		return 1
+	}
+
+	return 0
 }

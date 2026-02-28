@@ -3,11 +3,12 @@
 package magic_usage
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
 

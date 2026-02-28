@@ -135,7 +135,7 @@ func CheckMagicUsageInDir(logger *cryptoutilCmdCicdCommon.Logger, magicDir, root
 	}
 
 	var (
-		literalUseViolations   []magicUsageViolation
+		literalUseViolations    []magicUsageViolation
 		constRedefineViolations []magicUsageViolation
 	)
 
