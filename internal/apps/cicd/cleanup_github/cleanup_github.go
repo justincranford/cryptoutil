@@ -18,11 +18,9 @@ import (
 
 const (
 	// defaultMaxAgeDays is the default age threshold for cleanup operations.
-	defaultMaxAgeDays = 30
-
+        defaultMaxAgeDays = 7
 	// defaultKeepMinRuns is the minimum number of successful runs to keep per workflow.
-	defaultKeepMinRuns = 10
-
+        defaultKeepMinRuns = 3
 	// defaultRepo is the default repository (auto-detected by gh CLI).
 	defaultRepo = ""
 

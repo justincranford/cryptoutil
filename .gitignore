@@ -130,6 +130,13 @@ Thumbs.db
 # CI/CD cache
 .cicd/
 
+# Mutation testing results (gremlins)
+.gremlins/
+gremlins-report.*
+
+# SARIF security reports
+*.sarif
+
 # Go workspace file
 go.work
 go.work.sum

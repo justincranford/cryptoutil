@@ -55,9 +55,9 @@ Each workflow run stores: job logs, step outputs, annotations, `GITHUB_STEP_SUMM
 
 ### Best practices
 
-1. **Set retention to 30 days** (repo Settings > Actions > General) — 90 days is rarely needed
-2. **Delete failed runs older than 7 days** — Failed runs from development iterations have no archival value
-3. **Keep only last N successful runs** per workflow (e.g., 10) — For audit trail and comparison
+1. **Set retention to 7 days** (repo Settings > Actions > General) — 90 days is never needed
+2. **Delete failed runs older than 3 days** — Failed runs from development iterations have no archival value
+3. **Keep only last 3 successful runs** per workflow — For audit trail and comparison
 4. **Add concurrency groups** to all workflows — Prevents superseded run accumulation
 5. **Never delete runs from release tags** — May be needed for audit/compliance
 
@@ -86,12 +86,14 @@ Each workflow run stores: job logs, step outputs, annotations, `GITHUB_STEP_SUMM
 
 | Artifact Type | Retention | Rationale |
 |---------------|-----------|-----------|
-| Coverage profiles | 3 days | Only needed for immediate PR review |
-| Mutation results | 3 days | Same as coverage |
-| SARIF reports | 14 days | Security compliance; also stored in Code Scanning |
-| Benchmark results | 7 days | Comparison window |
+| Coverage profiles | 1 day | Only needed for immediate PR review |
+| Mutation results | 1 day | Same as coverage |
+| SARIF reports | 7 days | Security compliance; also stored in Code Scanning |
+| Benchmark results | 1 day | Comparison window |
+| Benchmark baseline | 7 days | Comparison across runs |
 | Docker/compose logs | 1 day | Only useful for debugging recent failures |
-| Load test results | 7 days | Comparison window |
+| Load test results | 1 day | Comparison window |
+| Gatling HTML reports | 1 day | Detailed perf analysis for recent runs only |
 | Build outputs | 1 day | Rebuilt on each run |
 
 ## 5. Caches
@@ -155,8 +157,8 @@ Navigate to: **Settings > Actions > General > Artifact and log retention**
 
 | Setting | Current (default) | Recommended |
 |---------|-------------------|-------------|
-| Artifact retention | 90 days | **14 days** |
-| Log retention | 90 days | **30 days** |
+| Artifact retention | 90 days | **7 days** |
+| Log retention | 90 days | **7 days** |
 
 ### Per-workflow artifact overrides
 
@@ -170,8 +172,8 @@ Navigate to: **Settings > Actions > General > Artifact and log retention**
 
 | Resource | Dev/Feature branches | Main branch | Release tags |
 |----------|---------------------|-------------|--------------|
-| Workflow runs | 7 days | 30 days | Indefinite |
-| Artifacts | 1-3 days | 7-14 days | 30 days |
+| Workflow runs | 3 days | 7 days | Indefinite |
+| Artifacts | 1 day | 1-7 days | 7 days |
 | Caches | Auto-evict | Keep | N/A |
 
 ## 9. Automated Cleanup Strategy
@@ -185,10 +187,10 @@ Navigate to: **Settings > Actions > General > Artifact and log retention**
 
 ### Tier 2: Reactive (delete existing)
 
-1. Delete workflow runs older than 30 days (script)
-2. Delete all artifacts older than 14 days (script)
+1. Delete workflow runs older than 7 days (script)
+2. Delete all artifacts older than 7 days (script)
 3. Delete caches for deleted/merged branches (script)
-4. Delete failed workflow runs older than 7 days (script)
+4. Delete failed workflow runs older than 3 days (script)
 
 ### Tier 3: Monitoring
 
@@ -235,7 +237,7 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
-      - run: go run ./cmd/cicd cleanup-all --confirm --max-age-days=30
+      - run: go run ./cmd/cicd cleanup-all --confirm --max-age-days=7
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```

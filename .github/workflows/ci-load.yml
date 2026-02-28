@@ -353,6 +353,15 @@ jobs:
         path: load-reports/infrastructure/
         retention-days: 1
 
+    - name: Upload Gatling HTML reports
+      if: always()
+      # https://github.com/actions/upload-artifact/releases (v5.0.0, 2025-04-21)
+      uses: actions/upload-artifact@v5.0.0
+      with:
+        name: gatling-reports-${{ env.LOAD_PROFILE }}
+        path: test/load/target/gatling/
+        retention-days: 1
+
     - name: Upload service logs
       if: always()
       # https://github.com/actions/upload-artifact/releases (v5.0.0, 2025-04-21)

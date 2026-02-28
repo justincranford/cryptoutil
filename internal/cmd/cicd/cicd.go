@@ -98,15 +98,15 @@ Documentation Commands:
   validate-chunks           Compare @propagate/@source marker content for staleness
 
 Cleanup Commands (GitHub Actions storage):
-  cleanup-runs              Delete old workflow runs (default: >30 days)
-  cleanup-artifacts         Delete old artifacts (default: >30 days)
-  cleanup-caches            Delete stale caches (default: not accessed in 30 days)
+  cleanup-runs              Delete old workflow runs (default: >7 days)
+  cleanup-artifacts         Delete old artifacts (default: >7 days)
+  cleanup-caches            Delete stale caches (default: not accessed in 7 days)
   cleanup-all               Run all cleanup operations
 
   Cleanup flags:
     --confirm               Execute deletions (default: dry-run preview only)
-    --max-age-days=N        Age threshold in days (default: 30)
-    --keep-min-runs=N       Min successful runs to keep per workflow (default: 10)
+    --max-age-days=N        Age threshold in days (default: 7)
+    --keep-min-runs=N       Min successful runs to keep per workflow (default: 3)
     --repo=owner/repo       Target repo (default: auto-detect from cwd)
 
   help, --help, -h          Show this help message

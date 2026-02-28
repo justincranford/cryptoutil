@@ -73,7 +73,7 @@ jobs:
         with:
           name: identity-test-results
           path: test-output/identity-test-results.json
-          retention-days: 30
+          retention-days: 7
 
       - name: Upload coverage report
         if: always()
@@ -82,7 +82,7 @@ jobs:
         with:
           name: identity-coverage-report
           path: test-output/identity-coverage.out
-          retention-days: 30
+          retention-days: 7
 
   validate-todos:
     name: Validate TODO Severity
