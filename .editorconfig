@@ -1,27 +1,88 @@
-# EditorConfig is a file format and collection of text editor plugins
-# that allow developers to define and maintain consistent coding styles
-# between different editors and IDEs.
-# http://editorconfig.org/
+# EditorConfig: https://editorconfig.org
+# Enforces consistent coding styles across editors and tools.
 
 root = true
 
+# Default settings for all files
 [*]
-charset = utf-8
 end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
 indent_style = space
 indent_size = 4
-insert_final_newline = true
-trim_trailing_whitespace = true
 
-[*.{json,yaml,yml}]
-indent_size = 2
-
-[*.md]
-trim_trailing_whitespace = false
-
-[*.{go,sql}]
+# Go source files
+[*.go]
 indent_style = tab
 indent_size = 4
 
+# Go template files
+[*.go.tpl]
+indent_style = tab
+indent_size = 4
+
+# YAML configuration files (2-space indent)
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+
+# JSON files (2-space indent)
+[*.json]
+indent_style = space
+indent_size = 2
+
+# TOML configuration files (2-space indent)
+[*.toml]
+indent_style = space
+indent_size = 2
+
+# SQL files (2-space indent)
+[*.sql]
+indent_style = space
+indent_size = 2
+
+# Markdown files (4-space indent for lists)
+[*.{md,markdown}]
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = false
+
+# Shell scripts
+[*.{sh,bash}]
+indent_style = space
+indent_size = 4
+
+# Python files
+[*.py]
+indent_style = space
+indent_size = 4
+max_line_length = 200
+
+# XML files (2-space indent)
+[*.xml]
+indent_style = space
+indent_size = 2
+
+# Maven POM files (2-space indent)
+[pom.xml]
+indent_style = space
+indent_size = 2
+
+# Makefiles (tabs required)
 [Makefile]
 indent_style = tab
+
+# Dockerfile
+[Dockerfile*]
+indent_style = space
+indent_size = 4
+
+# Configuration files with no trailing whitespace enforcement
+[*.{key,crt,pem}]
+trim_trailing_whitespace = false
+insert_final_newline = false
+
+# Batch files (Windows line endings)
+[*.{bat,cmd}]
+end_of_line = crlf

@@ -379,6 +379,71 @@ repos:
         require_serial: false
         stages: [commit-msg]
 
+  # IaC / Container security scanning (Dockerfiles, Docker Compose, Kubernetes)
+  - repo: https://github.com/bridgecrewio/checkov
+    rev: 3.2.506
+    hooks:
+      - id: checkov
+        name: Checkov IaC security scan
+        args:
+          - --skip-check=CKV_DOCKER_2,CKV_DOCKER_3  # Skip HEALTHCHECK rules (using wget in compose instead)
+          - --quiet
+        files: '(deployments/.*\.(yml|yaml)$|Dockerfile.*|Dockerfile$)'
+        require_serial: false
+        stages: [pre-commit]
+
+  # SQL migration linting (PostgreSQL dialect)
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 4.0.4
+    hooks:
+      - id: sqlfluff-fix
+        name: SQLFluff fix SQL migrations
+        args: [--dialect, postgres]
+        files: '\.sql$'
+        require_serial: false
+        stages: [pre-commit]
+
+  # TOML file formatting (pyproject.toml, .gofumpt.toml, .gitleaks.toml)
+  - repo: local
+    hooks:
+      - id: taplo-format
+        name: Format TOML files with taplo
+        entry: taplo
+        args: [fmt]
+        language: system
+        files: '\.toml$'
+        require_serial: false
+        stages: [pre-commit]
+
+  # pyproject.toml normalization (consistent key ordering, whitespace)
+  - repo: https://github.com/tox-dev/pyproject-fmt
+    rev: v2.16.2
+    hooks:
+      - id: pyproject-fmt
+        name: Normalize pyproject.toml
+        require_serial: false
+        stages: [pre-commit]
+
+  # pyproject.toml schema validation (PEP 517/518/621 compliance)
+  - repo: https://github.com/abravalheri/validate-pyproject
+    rev: v0.25
+    hooks:
+      - id: validate-pyproject
+        name: Validate pyproject.toml schema
+        require_serial: false
+        stages: [pre-commit]
+
+  # EditorConfig compliance checker
+  - repo: https://github.com/editorconfig-checker/editorconfig-checker.python
+    rev: 3.6.0
+    hooks:
+      - id: editorconfig-checker
+        name: Check EditorConfig compliance
+        alias: ec
+        exclude: '\.(exe|dll|so|dylib|key|crt|pem)$'
+        require_serial: false
+        stages: [pre-commit]
+
 # Global configuration
 default_stages: [pre-commit]
 minimum_pre_commit_version: '2.20.0'

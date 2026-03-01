@@ -171,31 +171,31 @@ Every task: ALL 8 quality attributes verified each review pass. All issues are b
 **Status**: Decisions confirmed from quizme-v3. Ready for implementation.
 
 ### Task 6.1: Add checkov (IaC/Container Security)
-- [ ] Add `bridgecrewio/checkov` hook to `.pre-commit-config.yaml`
-- [ ] Configure to scan `deployments/` and Dockerfiles
-- [ ] Verify runs cleanly on existing codebase (`pre-commit run checkov --all-files`)
+- [x] Add `bridgecrewio/checkov` hook to `.pre-commit-config.yaml`
+- [x] Configure to scan `deployments/` and Dockerfiles
+- [x] Verify runs cleanly on existing codebase (`pre-commit run checkov --all-files`)
 
 ### Task 6.2: Add sqlfluff (SQL Migration Linting)
-- [ ] Add `sqlfluff-pre-commit` hook to `.pre-commit-config.yaml`
-- [ ] Create `.sqlfluff` config: `dialect = postgres`, consistent SQL style rules
-- [ ] Verify all existing `.sql` migration files pass (`pre-commit run sqlfluff-lint --all-files`)
+- [x] Add `sqlfluff-pre-commit` hook to `.pre-commit-config.yaml`
+- [x] Create `.sqlfluff` config: `dialect = postgres`, consistent SQL style rules
+- [x] Verify all existing `.sql` migration files pass (`pre-commit run sqlfluff-lint --all-files`)
 
 ### Task 6.3: Add taplo (TOML Formatter)
-- [ ] Add `CommaNet/taplo-pre-commit` hook to `.pre-commit-config.yaml`, hook id: `taplo-format`
-- [ ] Verify any TOML files format cleanly
+- [x] Add `CommaNet/taplo-pre-commit` hook to `.pre-commit-config.yaml`, hook id: `taplo-format`
+- [x] Verify any TOML files format cleanly
 
 ### Task 6.4: Add pyproject-fmt (pyproject.toml Normalizer)
-- [ ] Add `tox-dev/pyproject-fmt` hook to `.pre-commit-config.yaml`
-- [ ] Verify `pyproject.toml` formats cleanly (run after Phase 7 ruff migration)
+- [x] Add `tox-dev/pyproject-fmt` hook to `.pre-commit-config.yaml`
+- [x] Verify `pyproject.toml` formats cleanly (run after Phase 7 ruff migration)
 
 ### Task 6.5: Add validate-pyproject (Schema Validation)
-- [ ] Add `abravalheri/validate-pyproject` hook to `.pre-commit-config.yaml`
-- [ ] Verify `pyproject.toml` passes schema validation
+- [x] Add `abravalheri/validate-pyproject` hook to `.pre-commit-config.yaml`
+- [x] Verify `pyproject.toml` passes schema validation
 
 ### Task 6.6: Create .editorconfig + add editorconfig-checker (quizme-v4 YES)
-- [ ] Create `.editorconfig` in project root with rules matching current editor standards (indent_style=space, indent_size=4 for Go, end_of_line=lf, charset=utf-8, trim_trailing_whitespace=true, insert_final_newline=true)
-- [ ] Add `editorconfig-checker/editorconfig-checker` hook to `.pre-commit-config.yaml`
-- [ ] Verify all existing files pass (`pre-commit run editorconfig-checker --all-files`); fix any violations
+- [x] Create `.editorconfig` in project root with rules matching current editor standards (indent_style=space, indent_size=4 for Go, end_of_line=lf, charset=utf-8, trim_trailing_whitespace=true, insert_final_newline=true)
+- [x] Add `editorconfig-checker/editorconfig-checker` hook to `.pre-commit-config.yaml`
+- [x] Verify all existing files pass (`pre-commit run editorconfig-checker --all-files`); fix any violations
 
 **Note**: ruff-check and ruff-format hooks implemented in Phase 7 (Python migration)
 
