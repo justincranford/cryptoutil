@@ -7,12 +7,11 @@ import (
 	"io"
 
 	cryptoutilAppsCicd "cryptoutil/internal/apps/cicd"
-	cryptoutilGitHubCleanup "cryptoutil/internal/apps/cicd/github_cleanup"
-	cryptoutilLintDeployments "cryptoutil/internal/cmd/cicd/lint_deployments"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// Cicd is the main entry point for the cicd command.
-// It parses the command from args and delegates to the appropriate subcommand.
+// Cicd is the thin entry point for the cicd command.
+// It validates the command and delegates to internal/apps/cicd for all processing.
 // Returns exit code: 0 for success, 1 for failure.
 func Cicd(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	if len(args) < 2 {
@@ -22,41 +21,12 @@ func Cicd(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	}
 
 	command := args[1]
-	extraArgs := getExtraArgs(args)
 
-	switch command {
-	// Lint/format commands routed to internal/apps/cicd batch processor.
-	case "lint-text", "lint-go", "lint-go-test", "lint-compose", "lint-ports",
-		"lint-workflow", "lint-go-mod", "lint-golangci", "format-go", "format-go-test":
+	switch {
+	case cryptoutilSharedMagic.ValidCommands[command]:
+		// ALL valid commands route to apps/cicd for processing.
 		return cryptoutilAppsCicd.Cicd(args, stdin, stdout, stderr)
-
-	// GitHub cleanup commands routed to internal/apps/cicd/github_cleanup.
-	case "github-cleanup-runs", "github-cleanup-artifacts", "github-cleanup-caches", "github-cleanup-all":
-		return cryptoutilGitHubCleanup.Main(command, extraArgs, stderr)
-
-	// Deployment validators (TODO: migrate to internal/apps/cicd/lint_deployments).
-	case "lint-deployments":
-		return cryptoutilLintDeployments.Main(extraArgs)
-	case "generate-listings":
-		return cryptoutilLintDeployments.Main([]string{"generate-listings"})
-	case "validate-mirror":
-		return cryptoutilLintDeployments.Main([]string{"validate-mirror"})
-	case "validate-compose":
-		return cryptoutilLintDeployments.Main(append([]string{"validate-compose"}, extraArgs...))
-	case "validate-config":
-		return cryptoutilLintDeployments.Main(append([]string{"validate-config"}, extraArgs...))
-	case "validate-all":
-		return cryptoutilLintDeployments.Main(append([]string{"validate-all"}, extraArgs...))
-
-	// Documentation validators (TODO: migrate to internal/apps/cicd/).
-	case "check-chunk-verification":
-		return CheckChunkVerification(stdout, stderr)
-	case "validate-propagation":
-		return ValidatePropagationCommand(stdout, stderr)
-	case "validate-chunks":
-		return ValidateChunksCommand(stdout, stderr)
-
-	case "help", "--help", "-h":
+	case command == "help" || command == "--help" || command == "-h":
 		printUsage(stdout)
 
 		return 0
@@ -124,16 +94,4 @@ Examples:
 
 See: docs/ARCHITECTURE-TODO.md for architectural documentation (pending).
 `)
-}
-
-// getExtraArgs safely extracts arguments after the command name.
-// Returns empty slice if args has fewer than 3 elements (binary + command + extra).
-func getExtraArgs(args []string) []string {
-	const minArgsWithExtra = 3 // binary name + command + at least one extra arg
-
-	if len(args) < minArgsWithExtra {
-		return []string{}
-	}
-
-	return args[2:]
 }

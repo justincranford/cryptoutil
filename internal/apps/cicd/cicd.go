@@ -13,9 +13,12 @@ import (
 	"time"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	cryptoutilDocsValidation "cryptoutil/internal/apps/cicd/docs_validation"
 	cryptoutilCmdCicdFormatGo "cryptoutil/internal/apps/cicd/format_go"
 	cryptoutilCmdCicdFormatGotest "cryptoutil/internal/apps/cicd/format_gotest"
+	cryptoutilGitHubCleanup "cryptoutil/internal/apps/cicd/github_cleanup"
 	cryptoutilCmdCicdLintCompose "cryptoutil/internal/apps/cicd/lint_compose"
+	cryptoutilLintDeployments "cryptoutil/internal/apps/cicd/lint_deployments"
 	cryptoutilCmdCicdLintGo "cryptoutil/internal/apps/cicd/lint_go"
 	cryptoutilCmdCicdLintGoMod "cryptoutil/internal/apps/cicd/lint_go_mod"
 	cryptoutilCmdCicdLintGolangci "cryptoutil/internal/apps/cicd/lint_golangci"
@@ -43,13 +46,47 @@ const (
 // Cicd executes the specified CI/CD check commands.
 // Commands are executed sequentially, collecting results for each.
 // Returns exit code: 0 for success, 1 for failure.
-func Cicd(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
-	commands := args[1:]
-	if len(commands) == 0 {
+func Cicd(args []string, _ io.Reader, stdout, stderr io.Writer) int {
+	if len(args) < 2 {
 		_, _ = fmt.Fprint(stderr, cryptoutilSharedMagic.UsageCICD)
 
 		return 1
 	}
+
+	command := args[1]
+	extraArgs := getExtraArgs(args)
+
+	// Route special commands that have different dispatch patterns.
+	switch command {
+	// GitHub cleanup commands - immediate dispatch.
+	case "github-cleanup-runs", "github-cleanup-artifacts", "github-cleanup-caches", "github-cleanup-all":
+		return cryptoutilGitHubCleanup.Main(command, extraArgs, stderr)
+
+	// Lint deployments commands - immediate dispatch.
+	case "lint-deployments":
+		return cryptoutilLintDeployments.Main(extraArgs)
+	case "generate-listings":
+		return cryptoutilLintDeployments.Main([]string{"generate-listings"})
+	case "validate-mirror":
+		return cryptoutilLintDeployments.Main([]string{"validate-mirror"})
+	case "validate-compose":
+		return cryptoutilLintDeployments.Main(append([]string{"validate-compose"}, extraArgs...))
+	case "validate-config":
+		return cryptoutilLintDeployments.Main(append([]string{"validate-config"}, extraArgs...))
+	case "validate-all":
+		return cryptoutilLintDeployments.Main(append([]string{"validate-all"}, extraArgs...))
+
+	// Documentation validation commands - immediate dispatch.
+	case "check-chunk-verification":
+		return cryptoutilDocsValidation.CheckChunkVerification(stdout, stderr)
+	case "validate-propagation":
+		return cryptoutilDocsValidation.ValidatePropagationCommand(stdout, stderr)
+	case "validate-chunks":
+		return cryptoutilDocsValidation.ValidateChunksCommand(stdout, stderr)
+	}
+
+	// File-based lint/format commands that need file collection.
+	commands := args[1:]
 
 	if err := run(commands); err != nil {
 		_, _ = fmt.Fprintf(stderr, "Error: %v\n", err)
@@ -58,6 +95,18 @@ func Cicd(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	}
 
 	return 0
+}
+
+// getExtraArgs safely extracts arguments after the command name.
+// Returns empty slice if args has fewer than 3 elements (binary + command + extra).
+func getExtraArgs(args []string) []string {
+	const minArgsWithExtra = 3 // binary name + command + at least one extra arg
+
+	if len(args) < minArgsWithExtra {
+		return []string{}
+	}
+
+	return args[2:]
 }
 
 // run executes the specified CI/CD check commands.

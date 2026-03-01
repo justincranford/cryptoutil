@@ -1,4 +1,4 @@
-package cicd
+package docs_validation
 
 import (
 	"bytes"

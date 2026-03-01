@@ -33,7 +33,7 @@ func ValidateAdmin(deploymentPath string) (*AdminValidationResult, error) {
 			fmt.Sprintf("[ValidateAdmin] Deployment path not found: %s", deploymentPath))
 		result.Valid = false
 
-		return result, nil
+		return result, nil //nolint:nilerr // Error aggregation pattern: validation errors collected in result.Errors, nil Go error allows validator pipeline to continue.
 	}
 
 	if !info.IsDir() {

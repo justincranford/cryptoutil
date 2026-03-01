@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	. "cryptoutil/internal/cmd/cicd/lint_deployments"
+	. "cryptoutil/internal/apps/cicd/lint_deployments"
 )
 
 // TestIntegrationFullPipeline tests the complete CICD validation pipeline:

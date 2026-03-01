@@ -4,12 +4,8 @@ package cicd
 
 import (
 	"bytes"
-	"os"
-	"path/filepath"
 	"strings"
 	"testing"
-
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -141,104 +137,3 @@ func TestPrintUsage(t *testing.T) {
 	require.Contains(t, output, "github-cleanup-all")
 }
 
-func TestCheckChunkVerification_NoGoMod(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() - test changes working directory.
-	origDir, err := os.Getwd()
-	require.NoError(t, err)
-
-	defer func() { require.NoError(t, os.Chdir(origDir)) }()
-
-	tmpDir := t.TempDir()
-
-	// Remove any stale go.mod files in the parent chain to ensure findProjectRoot fails.
-	var cleanups []func()
-
-	dir := tmpDir
-	for {
-		gomodPath := filepath.Join(dir, "go.mod")
-		if data, readErr := os.ReadFile(gomodPath); readErr == nil {
-			backup := gomodPath + ".test-backup"
-			require.NoError(t, os.Rename(gomodPath, backup))
-
-			savedPath := gomodPath
-			savedData := data
-
-			cleanups = append(cleanups, func() {
-				_ = os.Remove(savedPath) // Remove any test artifact.
-				_ = os.WriteFile(savedPath, savedData, cryptoutilSharedMagic.CacheFilePermissions)
-				_ = os.Remove(savedPath + ".test-backup")
-			})
-		}
-
-		parent := filepath.Dir(dir)
-		if parent == dir {
-			break
-		}
-
-		dir = parent
-	}
-
-	defer func() {
-		for _, cleanup := range cleanups {
-			cleanup()
-		}
-	}()
-
-	require.NoError(t, os.Chdir(tmpDir))
-
-	var stdout, stderr bytes.Buffer
-
-	exitCode := CheckChunkVerification(&stdout, &stderr)
-	require.Equal(t, 1, exitCode)
-	require.Contains(t, stderr.String(), "go.mod not found")
-}
-
-func TestFindProjectRoot_NoGoMod(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() - test changes working directory.
-	origDir, err := os.Getwd()
-	require.NoError(t, err)
-
-	defer func() { require.NoError(t, os.Chdir(origDir)) }()
-
-	tmpDir := t.TempDir()
-
-	// Remove any stale go.mod files in the parent chain.
-	var cleanups []func()
-
-	dir := tmpDir
-	for {
-		gomodPath := filepath.Join(dir, "go.mod")
-		if data, readErr := os.ReadFile(gomodPath); readErr == nil {
-			backup := gomodPath + ".test-backup"
-			require.NoError(t, os.Rename(gomodPath, backup))
-
-			savedPath := gomodPath
-			savedData := data
-
-			cleanups = append(cleanups, func() {
-				_ = os.Remove(savedPath)
-				_ = os.WriteFile(savedPath, savedData, cryptoutilSharedMagic.CacheFilePermissions)
-				_ = os.Remove(savedPath + ".test-backup")
-			})
-		}
-
-		parent := filepath.Dir(dir)
-		if parent == dir {
-			break
-		}
-
-		dir = parent
-	}
-
-	defer func() {
-		for _, cleanup := range cleanups {
-			cleanup()
-		}
-	}()
-
-	require.NoError(t, os.Chdir(tmpDir))
-
-	_, err = findProjectRoot()
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "go.mod not found")
-}

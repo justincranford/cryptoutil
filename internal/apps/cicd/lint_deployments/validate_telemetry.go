@@ -38,7 +38,7 @@ func ValidateTelemetry(configDir string) (*TelemetryValidationResult, error) {
 			fmt.Sprintf("[ValidateTelemetry] Config directory not found: %s", configDir))
 		result.Valid = false
 
-		return result, nil
+		return result, nil //nolint:nilerr // Error aggregation pattern: validation errors collected in result.Errors, nil Go error allows validator pipeline to continue.
 	}
 
 	if !info.IsDir() {

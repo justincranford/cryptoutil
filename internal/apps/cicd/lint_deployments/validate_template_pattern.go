@@ -79,7 +79,7 @@ func ValidateTemplatePattern(templatePath string) (*TemplatePatternResult, error
 		result.Errors = append(result.Errors,
 			fmt.Sprintf("[ValidateTemplatePattern] Template path does not exist: %s", templatePath))
 
-		return result, nil
+		return result, nil //nolint:nilerr // Error aggregation pattern: validation errors collected in result.Errors, nil Go error allows validator pipeline to continue.
 	}
 
 	if !info.IsDir() {

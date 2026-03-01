@@ -1,6 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
-package cicd
+package docs_validation
 
 import (
 	"bytes"

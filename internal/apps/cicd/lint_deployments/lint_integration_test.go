@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	. "cryptoutil/internal/cmd/cicd/lint_deployments"
+	. "cryptoutil/internal/apps/cicd/lint_deployments"
 )
 
 func TestValidateAllDeployments(t *testing.T) {

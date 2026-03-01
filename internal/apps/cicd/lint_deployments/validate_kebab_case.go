@@ -38,7 +38,7 @@ func ValidateKebabCase(rootPath string) (*KebabCaseValidationResult, error) {
 		result.Errors = append(result.Errors, fmt.Sprintf("path does not exist: %s", rootPath))
 		result.Valid = false
 
-		return result, nil
+		return result, nil //nolint:nilerr // Error aggregation pattern: validation errors collected in result.Errors, nil Go error allows validator pipeline to continue.
 	}
 
 	// Root must be a directory.
