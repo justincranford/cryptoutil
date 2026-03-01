@@ -774,13 +774,23 @@ permissions:
 
 ## Mandatory Review Passes
 
-**MANDATORY: Minimum 3 review passes before marking any task complete.**
+**MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
 
-1. **Pass 1 — Completeness**: Verify ALL requested items were addressed. Check every bullet, every sub-task, every file mentioned.
-2. **Pass 2 — Correctness**: Verify each change is functionally correct. Build, lint, test. Check for regressions.
-3. **Pass 3 — Quality**: Verify changes meet quality standards (coverage, mutation, documentation, propagation). Check for edge cases missed.
+Every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
 
-If any pass discovers gaps, fix them immediately and restart the 3-pass cycle.
+**Each pass checks ALL 8 attributes** (fresh perspective per pass):
+1. ✅ **Correctness** — code/docs correct, no regressions
+2. ✅ **Completeness** — all tasks/steps/items addressed, nothing skipped
+3. ✅ **Thoroughness** — evidence-based validation, all edge cases covered
+4. ✅ **Reliability** — build, lint, test, coverage, mutation all pass
+5. ✅ **Efficiency** — optimized for maintainability, not implementation speed
+6. ✅ **Accuracy** — root cause addressed, not just symptoms
+7. ❌ **NO Time Pressure** — NEVER rushed, NEVER cutting corners
+8. ❌ **NO Premature Completion** — objective evidence required before marking complete
+
+**Continuation rule**: If pass 3 finds ANY issue, continue to pass 4. If pass 4 still finds issues, continue to pass 5. Diminishing returns = done.
+
+**Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
 
 See [ARCHITECTURE.md Section 2.5 Quality Strategy](/docs/ARCHITECTURE.md#25-quality-strategy) for mandatory review pass requirements.
 
