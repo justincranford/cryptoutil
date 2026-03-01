@@ -207,31 +207,31 @@ Every task: ALL 8 quality attributes verified each review pass. All issues are b
 
 ### Task 7.1: Remove redundant Python tools from pyproject.toml
 (Confirmed for removal per quizme-v3)
-- [ ] Remove `black` (replaced by `ruff format`)
-- [ ] Remove `isort` (replaced by ruff I rules)
-- [ ] Remove `flake8` (replaced by ruff E/W/F rules)
+- [x] Remove `black` (replaced by `ruff format`)
+- [x] Remove `isort` (replaced by ruff I rules)
+- [x] Remove `flake8` (replaced by ruff E/W/F rules)
 
 ### Task 7.2: Add ruff to pyproject.toml
-- [ ] Add `ruff>=0.9.0` to dependencies
-- [ ] Add `[tool.ruff]` section: `line-length = 200`, `target-version = "py314"`, `select = ["E", "W", "F", "I", "B", "UP", "SIM", "C90"]`
-- [ ] Add `[tool.ruff.format]` section (black-compatible settings)
-- [ ] Review/adjust rule set based on existing code
+- [x] Add `ruff>=0.9.0` to dependencies
+- [x] Add `[tool.ruff]` section: `line-length = 200`, `target-version = "py314"`, `select = ["E", "W", "F", "I", "B", "UP", "SIM", "C90"]`
+- [x] Add `[tool.ruff.format]` section (black-compatible settings)
+- [x] Review/adjust rule set based on existing code
 
 ### Task 7.3: Update pre-commit hooks
-- [ ] Remove: black hook, isort hook, flake8 hook
-- [ ] Add: `astral-sh/ruff-pre-commit` ruff (lint) hook
-- [ ] Add: `astral-sh/ruff-pre-commit` ruff-format hook
-- [ ] Verify all Python files pass ruff check + ruff format
+- [x] Remove: black hook, isort hook, flake8 hook
+- [x] Add: `astral-sh/ruff-pre-commit` ruff (lint) hook
+- [x] Add: `astral-sh/ruff-pre-commit` ruff-format hook
+- [x] Verify all Python files pass ruff check + ruff format
 
 ### Task 7.4: Update CI/CD workflows for Python
-- [ ] Replace `black --check` / `isort --check` / `flake8` with `ruff check` + `ruff format --check`
-- [ ] Update `.github/workflows/*.yml` as applicable
+- [x] Replace `black --check` / `isort --check` / `flake8` with `ruff check` + `ruff format --check`
+- [x] Update `.github/workflows/*.yml` as applicable
 
 ### Task 7.5: Migrate to uvx for CLI tool execution
-- [ ] Update scripts that run ruff → `uvx ruff`
-- [ ] Update scripts that run mypy → `uvx mypy`
-- [ ] Update any pip-install-then-run patterns to uvx
-- [ ] Verify `uv` / `uvx` available in CI/CD (add to workflow setup if needed)
+- [x] Update scripts that run ruff → `uvx ruff`
+- [x] Update scripts that run mypy → `uvx mypy`
+- [x] Update any pip-install-then-run patterns to uvx
+- [x] Verify `uv` / `uvx` available in CI/CD (add to workflow setup if needed)
 
 ---
 

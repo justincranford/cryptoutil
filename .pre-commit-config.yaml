@@ -358,6 +358,20 @@ repos:
         files: '\.py$'
         require_serial: false
 
+  # Python linting and formatting with ruff (replaces black, isort, flake8)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.4
+    hooks:
+      - id: ruff
+        name: Ruff Python linter (auto-fix)
+        args: [--fix, --exit-non-zero-on-fix]
+        files: '\.py$'
+        require_serial: false
+      - id: ruff-format
+        name: Ruff Python formatter
+        files: '\.py$'
+        require_serial: false
+
   # Markdown linting with auto-fix
   - repo: https://github.com/DavidAnson/markdownlint-cli2
     rev: v0.20.0
