@@ -371,10 +371,14 @@ git log --oneline -20
 
 ## Quality Gates (Per Task)
 
-**Quality Checks (MANDATORY before every commit):**
+**Generic Principle**: Before marking any task complete, verify: build is clean, linting reports zero issues, all tests pass, coverage is maintained, and objective evidence exists.
+
+#### Quality Gate Commands (Go Projects)
+
+**MANDATORY Pre-Commit Quality Gates:**
 
 ```bash
-# MANDATORY Pre-Commit Quality Gates
+# Quality Gate Commands (Go Projects) — MANDATORY before every commit
 go build ./...                            # Must be clean
 go build -tags e2e,integration ./...      # Build-tagged files must be clean
 golangci-lint run --fix                   # Auto-fix then verify clean
@@ -383,7 +387,7 @@ go test ./... -shuffle=on                 # All tests pass (unit + integration),
 go run ./cmd/cicd lint-deployments              # Deployment validation (when deployments/configs changed)
 ```
 
-**Additional Quality Gates (Context-Dependent):**
+**Additional Quality Gate Commands (Context-Dependent, Go Projects):**
 
 ```bash
 # When E2E code/tests changed (MANDATORY)
@@ -395,11 +399,11 @@ govulncheck ./...                         # Vulnerability scan
 go test -race -count=3 ./...              # Race detection
 ```
 
-**Coverage Targets:**
+**Coverage Targets (Go Projects):**
 - ≥95% production code, ≥98% infrastructure/utility code
 - Mutation testing: ≥95% (when applicable)
 
-**Before marking task complete:**
+**Before marking task complete (Go Projects):**
 - Build clean (`go build ./...` AND `go build -tags e2e,integration ./...`)
 - Linting clean (`golangci-lint run` AND `golangci-lint run --build-tags e2e,integration`)
 - Tests pass (100%, zero skips, `go test ./... -shuffle=on`)
