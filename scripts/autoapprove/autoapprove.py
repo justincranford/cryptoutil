@@ -15,27 +15,22 @@ Reference:
 """
 
 import argparse
+import contextlib
 import ipaddress
 import os
 import re
 import subprocess
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Optional
 from types import ModuleType
 from urllib.parse import urlparse
 
-from typing import Optional
-from types import ModuleType
-
 # Import resource module only on Unix (not available on Windows).
-resource: Optional[ModuleType] = None
-try:
+resource: ModuleType | None = None
+with contextlib.suppress(ImportError):
     import resource
-except ImportError:
-    pass
 
 
 # Allowed loopback addresses and hostnames.
@@ -75,7 +70,7 @@ def is_allowed_host(host: str) -> bool:
     return is_loopback_address(host)
 
 
-def extract_host_from_url(url: str) -> Optional[str]:
+def extract_host_from_url(url: str) -> str | None:
     """Extract hostname from a URL."""
     try:
         parsed = urlparse(url)
@@ -84,7 +79,7 @@ def extract_host_from_url(url: str) -> Optional[str]:
         return None
 
 
-def extract_host_from_address(address: str) -> Optional[str]:
+def extract_host_from_address(address: str) -> str | None:
     """Extract hostname/IP from an address string (host:port format)."""
     # Remove port if present.
     if address.startswith("["):
@@ -149,7 +144,7 @@ def validate_network_args(args: list[str]) -> tuple[bool, str]:
 
 def get_timestamp() -> str:
     """Get current timestamp in ISO 8601 format for directory naming."""
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%S.%f")[:-3]
+    return datetime.now(UTC).strftime("%Y-%m-%dT%H-%M-%S.%f")[:-3]
 
 
 def create_report_directory(command_name: str) -> Path:
@@ -178,7 +173,7 @@ def get_resource_usage() -> dict[str, float]:
     }
 
 
-def run_command(command: list[str], report_dir: Path, stdin_data: Optional[bytes] = None) -> int:
+def run_command(command: list[str], report_dir: Path, stdin_data: bytes | None = None) -> int:
     """
     Run the command and capture all I/O to report files.
 
@@ -186,7 +181,7 @@ def run_command(command: list[str], report_dir: Path, stdin_data: Optional[bytes
         int: Exit code of the command.
     """
     start_time = time.perf_counter()
-    start_datetime = datetime.now(timezone.utc)
+    start_datetime = datetime.now(UTC)
 
     # Log STDIN if provided.
     stdin_log = report_dir / "STDIN.log"
@@ -220,7 +215,7 @@ def run_command(command: list[str], report_dir: Path, stdin_data: Optional[bytes
         exit_code = 1
 
     end_time = time.perf_counter()
-    end_datetime = datetime.now(timezone.utc)
+    end_datetime = datetime.now(UTC)
     duration = end_time - start_time
 
     # Write STDOUT and STDERR logs.
@@ -234,15 +229,15 @@ def run_command(command: list[str], report_dir: Path, stdin_data: Optional[bytes
 
     # Write result.log.
     result_log = report_dir / "result.log"
-    result_content = f"""command: {' '.join(command)}
+    result_content = f"""command: {" ".join(command)}
 working_directory: {os.getcwd()}
 exit_code: {exit_code}
 start_time: {start_datetime.isoformat()}
 end_time: {end_datetime.isoformat()}
 duration_seconds: {duration:.6f}
-cpu_user_time_seconds: {usage['user_time_seconds']:.6f}
-cpu_system_time_seconds: {usage['system_time_seconds']:.6f}
-max_memory_kb: {usage['max_memory_kb']}
+cpu_user_time_seconds: {usage["user_time_seconds"]:.6f}
+cpu_system_time_seconds: {usage["system_time_seconds"]:.6f}
+max_memory_kb: {usage["max_memory_kb"]}
 """
     result_log.write_text(result_content)
 

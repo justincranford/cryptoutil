@@ -13,46 +13,46 @@ Every task: ALL 8 quality attributes verified each review pass. All issues are b
 ## Phase 1: Quality Review Passes Rework
 
 ### Task 1.1: Update ARCHITECTURE.md Section 2.5 (canonical source)
-- [ ] Rewrite review passes: each pass checks ALL 8 attributes
-- [ ] Add continuation rule: "If pass 3 finds ANY issue, continue to pass 4"
-- [ ] Add pass 4–5 rules and "diminishing returns" stop condition
-- [ ] Change phrasing to "minimum 3, maximum 5"
-- [ ] Confirm @propagate markers correctly placed
+- [x] Rewrite review passes: each pass checks ALL 8 attributes
+- [x] Add continuation rule: "If pass 3 finds ANY issue, continue to pass 4"
+- [x] Add pass 4–5 rules and "diminishing returns" stop condition
+- [x] Change phrasing to "minimum 3, maximum 5"
+- [x] Confirm @propagate markers correctly placed
 - **Files**: `docs/ARCHITECTURE.md` Section 2.5
 
 ### Task 1.2: Update beast-mode.instructions.md @source
-- [ ] Update @source block to match new Section 2.5 verbatim
+- [x] Update @source block to match new Section 2.5 verbatim
 - [x] Run lint-docs to verify chain
 - **Files**: `.github/instructions/01-02.beast-mode.instructions.md`
 
 ### Task 1.3: Update evidence-based.instructions.md @source
-- [ ] Update @source block to match new Section 2.5 verbatim
+- [x] Update @source block to match new Section 2.5 verbatim
 - **Files**: `.github/instructions/06-01.evidence-based.instructions.md`
 
 ### Task 1.4–1.8: Update all 5 agent files
-- [ ] `beast-mode.agent.md` — update review passes section
-- [ ] `doc-sync.agent.md` — update review passes section
-- [ ] `fix-workflows.agent.md` — update review passes section
-- [ ] `implementation-execution.agent.md` — update review passes section
-- [ ] `implementation-planning.agent.md` — update review passes section
+- [x] `beast-mode.agent.md` — update review passes section
+- [x] `doc-sync.agent.md` — update review passes section
+- [x] `fix-workflows.agent.md` — update review passes section
+- [x] `implementation-execution.agent.md` — update review passes section
+- [x] `implementation-planning.agent.md` — update review passes section
 
 ### Task 1.9: Sweep for stale "3 passes" mentions
-- [ ] `grep -rn "3 review passes\|3 sequential\|exactly 3\|three review" .github/ docs/ARCHITECTURE.md`
-- [ ] Update all stale mentions
+- [x] `grep -rn "3 review passes\|3 sequential\|exactly 3\|three review" .github/ docs/ARCHITECTURE.md`
+- [x] Update all stale mentions
 
 ---
 
 ## Phase 2: Agent Semantic Analysis
 
 ### Task 2.1: beast-mode.agent.md dual labeling
-- [ ] Add "Quality Gate Commands (Go Projects)" label/heading before Go-specific examples
-- [ ] Verify generic execution principles use generic language ("build", "lint", "test")
-- [ ] No Go-isms in generic sections
+- [x] Add "Quality Gate Commands (Go Projects)" label/heading before Go-specific examples
+- [x] Verify generic execution principles use generic language ("build", "lint", "test")
+- [x] No Go-isms in generic sections
 - **Files**: `.github/agents/beast-mode.agent.md`
 
 ### Task 2.2: Confirm other agents correctly scoped (read-only verify, no changes)
-- [ ] doc-sync, fix-workflows, implementation-execution, implementation-planning — confirm domain-specific
-- [ ] Document: confirmed, no scope changes needed
+- [x] doc-sync, fix-workflows, implementation-execution, implementation-planning — confirm domain-specific
+- [x] Document: confirmed, no scope changes needed
 
 ---
 
@@ -61,7 +61,7 @@ Every task: ALL 8 quality attributes verified each review pass. All issues are b
 ### Task 3.1: Consolidate quality attributes → Section 11.1
 - [x] Add @propagate marker in Section 11.1 around full quality attributes list
 - [x] Replace quality attribute lists in 1.3 + 2.5 with @source blocks
-- [ ] Run lint-docs to verify chain
+- [x] Run lint-docs to verify chain
 - **Expected**: ~40–60 lines saved
 
 ### Task 3.2: CLI patterns canonical → Section 4.4.7
@@ -294,66 +294,66 @@ Every task: ALL 8 quality attributes verified each review pass. All issues are b
 ## Phase 10: skeleton-template Improvements
 
 ### Task 10.1: Add template comment headers to skeleton source files
-- [ ] Add `// TEMPLATE: Copy and rename 'skeleton' → your-service-name before use` to key skeleton source files
-- [ ] Target files: `internal/apps/skeleton/template/*.go` and `cmd/skeleton-template/main.go`
-- [ ] Verify comments are clear and discoverable
+- [x] Add `// TEMPLATE: Copy and rename 'skeleton' → your-service-name before use` to key skeleton source files
+- [x] Target files: `internal/apps/skeleton/template/*.go` and `cmd/skeleton-template/main.go`
+- [x] Verify comments are clear and discoverable
 
 ### Task 10.2: Add CICD placeholder detection lint rule
-- [ ] Add new `validate-skeleton` validator in `internal/apps/cicd/lint_skeleton/` (following existing validator pattern)
-- [ ] Validator scans all non-skeleton directories for unreplaced `skeleton`/`Skeleton`/`SKELETON` strings in `.go` source files
-- [ ] Register command as `cicd lint-skeleton` in the CICD command dispatcher
-- [ ] Add pre-commit hook for `cicd lint-skeleton`
-- [ ] Add tests for the validator (≥98% coverage)
-- [ ] Verify runs cleanly (`go run ./cmd/cicd lint-skeleton`)
+- [x] Add new `validate-skeleton` validator in `internal/apps/cicd/lint_skeleton/` (following existing validator pattern)
+- [x] Validator scans all non-skeleton directories for unreplaced `skeleton`/`Skeleton`/`SKELETON` strings in `.go` source files
+- [x] Register command as `cicd lint-skeleton` in the CICD command dispatcher
+- [x] Add pre-commit hook for `cicd lint-skeleton`
+- [x] Add tests for the validator (≥98% coverage)
+- [x] Verify runs cleanly (`go run ./cmd/cicd lint-skeleton`)
 
 ### Task 10.3: Add example domain pattern to skeleton-template (commented out)
-- [ ] Add example: entity model (GORM), repository, service, handler — as commented reference
-- [ ] Shows correct patterns without running code
+- [x] Add example: entity model (GORM), repository, service, handler — as commented reference
+- [x] Shows correct patterns without running code
 
 ---
 
 ## Phase 11: Validation
 
 ### Task 11.1: Build
-- [ ] `go build ./...` — clean
-- [ ] `go build -tags e2e,integration ./...` — clean
+- [x] `go build ./...` — clean
+- [x] `go build -tags e2e,integration ./...` — clean
 
 ### Task 11.2: Lint
-- [ ] `golangci-lint run --fix && golangci-lint run` — 0 issues
-- [ ] `golangci-lint run --build-tags e2e,integration --fix` — 0 issues
+- [x] `golangci-lint run --fix && golangci-lint run` — 0 issues
+- [x] `golangci-lint run --build-tags e2e,integration --fix` — 0 issues
 
 ### Task 11.3: Tests
-- [ ] `go test ./... -shuffle=on -count=1` — exit 0
+- [x] `go test ./... -shuffle=on -count=1` — exit 0
 
 ### Task 11.4: Documentation validation
-- [ ] `go run ./cmd/cicd lint-docs` — all propagation verified
-- [ ] `go run ./cmd/cicd lint-text` — UTF-8 clean
-- [ ] `go run ./cmd/cicd lint-deployments validate-all` — all validators pass
+- [x] `go run ./cmd/cicd lint-docs` — all propagation verified
+- [x] `go run ./cmd/cicd lint-text` — UTF-8 clean
+- [x] `go run ./cmd/cicd lint-deployments validate-all` — all validators pass
 
 ### Task 11.5: Python validation (after Phase 7)
-- [ ] `uvx ruff check .` — 0 issues
-- [ ] `uvx ruff format --check .` — 0 issues
-- [ ] `uvx mypy .` — 0 type errors
+- [x] `uvx ruff check .` — 0 issues
+- [x] `uvx ruff format --check .` — 0 issues
+- [x] `uvx mypy .` — 0 type errors
 
 ### Task 11.6: Review passes (1 of minimum 3)
 
 **Pass 1** — ALL 8 quality attributes:
-- [ ] Correctness, Completeness, Thoroughness, Reliability, Efficiency, Accuracy, NO Time Pressure, NO Premature Completion
+- [x] Correctness, Completeness, Thoroughness, Reliability, Efficiency, Accuracy, NO Time Pressure, NO Premature Completion
 
 **Pass 2** — ALL 8 quality attributes (repeat)
-- [ ] (Same 8 attributes; fresh perspective)
+- [x] (Same 8 attributes; fresh perspective)
 
 **Pass 3** — ALL 8 quality attributes
-- [ ] (Same 8)
-- [ ] ANY issue found? → Continue to Pass 4
+- [x] (Same 8)
+- [x] ANY issue found? → Continue to Pass 4
 
 **Pass 4** (if ANY issue in Pass 3):
-- [ ] (Same 8)
+- [x] (Same 8)
 
 **Pass 5** (if Pass 4 still has issues):
-- [ ] (Same 8) — Diminishing returns → complete
+- [x] (Same 8) — Diminishing returns → complete
 
 ### Task 11.7: Git commit
-- [ ] `git add -A`
-- [ ] `git commit -m "feat: v9 improvements (review passes, arch optimization, skills, toolchain)"`
-- [ ] `git push`
+- [x] `git add -A`
+- [x] `git commit -m "feat: v9 improvements (review passes, arch optimization, skills, toolchain)"`
+- [x] `git push`

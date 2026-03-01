@@ -7,8 +7,6 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
-
 # Add the parent directory to path for imports.
 sys.path.insert(0, str(Path(__file__).parent.parent))
 

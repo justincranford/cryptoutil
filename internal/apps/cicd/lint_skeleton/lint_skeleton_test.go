@@ -12,8 +12,7 @@ import (
 )
 
 func TestLint_AllLintersPass(t *testing.T) {
-	t.Parallel()
-
+	// NOT parallel: modifies the package-level registeredLinters seam variable.
 	// Override registeredLinters with a no-op linter that always succeeds.
 	origLinters := registeredLinters
 
@@ -31,8 +30,7 @@ func TestLint_AllLintersPass(t *testing.T) {
 }
 
 func TestLint_OneFailure(t *testing.T) {
-	t.Parallel()
-
+	// NOT parallel: modifies the package-level registeredLinters seam variable.
 	// Override registeredLinters with one failing linter.
 	origLinters := registeredLinters
 
@@ -55,8 +53,7 @@ func TestLint_OneFailure(t *testing.T) {
 }
 
 func TestLint_MultipleFailuresCombined(t *testing.T) {
-	t.Parallel()
-
+	// NOT parallel: modifies the package-level registeredLinters seam variable.
 	// Override registeredLinters with two failing linters to verify error aggregation.
 	origLinters := registeredLinters
 
@@ -77,8 +74,7 @@ func TestLint_MultipleFailuresCombined(t *testing.T) {
 }
 
 func TestLint_EmptyLinterList(t *testing.T) {
-	t.Parallel()
-
+	// NOT parallel: modifies the package-level registeredLinters seam variable.
 	// An empty linter list should succeed with no errors.
 	origLinters := registeredLinters
 
