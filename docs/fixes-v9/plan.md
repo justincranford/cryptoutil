@@ -2,7 +2,7 @@
 
 **Status**: Planning → Ready for Execution
 **Created**: 2026-03-01
-**Last Updated**: 2026-03-01 (quizme-v1 + quizme-v2 answers merged)
+**Last Updated**: 2026-03-01 (quizme-v1 + quizme-v2 + quizme-v3 answers merged)
 
 ## Quality Mandate - MANDATORY
 
@@ -27,10 +27,10 @@ Eleven phases of improvement, all to be implemented:
 2. **Phase 2: Agent Semantics** — beast-mode dual: generic principles + Go-specific Quality Gate examples (labeled); other agents confirmed domain-specific
 3. **Phase 3: ARCHITECTURE.md Optimization** — Consolidate duplications, fill omissions (skills section, agent/skill/instruction matrix); target <4,000 lines
 4. **Phase 4: doc-sync Propagation** — Add 12.7, 11.4, B.6 @source blocks to doc-sync.agent.md
-5. **Phase 5: Copilot Skills** — Create 12 skills + infrastructure (all YES from quizme-v2)
-6. **Phase 6: Pre-commit/Pre-push Linters** — Add new linters/formatters (gated by quizme-v3)
-7. **Phase 7: Python Toolchain Modernization** — Migrate to ruff (replaces black+isort+flake8) + uvx (replaces pip-installed CLI tools); gated by quizme-v3
-8. **Phase 8: Java Toolchain Additions** — Add missing Maven plugins for Gatling load tests (gated by quizme-v3)
+5. **Phase 5: Copilot Skills** — Create 13 skills + infrastructure (12 from quizme-v2 + `new-service` from quizme-v3 S4-Item4)
+6. **Phase 6: Pre-commit/Pre-push Linters** — 7 approved: ruff-check, ruff-format, checkov, sqlfluff, taplo, pyproject-fmt, validate-pyproject; 2 skipped: govulncheck, vale; 4 deferred to quizme-v4
+7. **Phase 7: Python Toolchain Modernization** — All 5 items confirmed YES: remove black+isort+flake8, add ruff, migrate to uvx
+8. **Phase 8: Java Toolchain Additions** — 6 approved: Spotless, Checkstyle, Error Prone, NullAway, maven-enforcer, JaCoCo (mandatory + high threshold); PMD skipped (SpotBugs preferred); ArchUnit deferred to quizme-v4
 9. **Phase 9: lint-deployments Error Messages** — Analyze and improve all validator error messages for clarity and actionability (Q4 from quizme-v2)
 10. **Phase 10: skeleton-template Improvements** — Research-driven improvements to naming, content, placeholder detection, auto-discovery (Q6 from quizme-v2)
 11. **Phase 11: Validation** — lint-docs, build, lint, tests; 3–5 review passes
@@ -151,6 +151,7 @@ Note: `compose-validator` skill deferred (Q4 = B: fix lint-deployments error mes
 | `agent-scaffold` | Create conformant `.github/agents/NAME.agent.md` with all mandatory sections |
 | `instruction-scaffold` | Create conformant `.github/instructions/NN-NN.name.instructions.md` |
 | `skill-scaffold` | Create conformant `.github/skills/NAME.md` (3rd Copilot customization type — was missing from quizme-v2) |
+| `new-service` | Guide service creation from skeleton-template: copy, rename, register, migrate, test (quizme-v3 S4-Item4: create skill, not agent) |
 
 ### Three Copilot Customization Types
 VS Code Copilot has exactly 3 customization file types:
@@ -170,11 +171,33 @@ Skills section added in Phase 3.5 will include catalogue table.
 
 ## Phase 6: Pre-commit / Pre-push Linter Additions
 
-**Status**: Candidates listed below. Individual decisions in quizme-v3.
+**Status**: Decisions confirmed from quizme-v3. Ready for implementation.
+
+### Decisions
+
+| Candidate | Decision | Action |
+|-----------|----------|--------|
+| govulncheck | B — SKIP | Already covered by OWASP check + gosec; CI-only sufficient |
+| ruff check | A — YES | Part of Phase 7 Python migration; add `astral-sh/ruff-pre-commit` ruff hook |
+| ruff format | A — YES | Part of Phase 7 Python migration; add `astral-sh/ruff-pre-commit` ruff-format hook |
+| checkov | A — YES | Add `bridgecrewio/checkov` for Dockerfile + Compose security |
+| trivy | C — DEFER | Move to quizme-v4 |
+| semgrep | C — DEFER | Move to quizme-v4 |
+| sqlfluff | A — YES | Add for SQL migration files (`.sql`), dialect=postgres |
+| vale | B — SKIP | markdownlint-cli2 sufficient; prose linting not needed |
+| codespell | C — DEFER | Move to quizme-v4 |
+| taplo | A — YES | Add for TOML file formatting |
+| pyproject-fmt | A — YES | Add for `pyproject.toml` normalization |
+| validate-pyproject | A — YES | Add schema validation for `pyproject.toml` |
+| editorconfig-checker | C — DEFER | Move to quizme-v4 |
+
+**7 approved** (ruff-check+format in Phase 7): ruff-check, ruff-format, checkov, sqlfluff, taplo, pyproject-fmt, validate-pyproject
+**2 skipped**: govulncheck, vale
+**4 deferred to quizme-v4**: trivy, semgrep, codespell, editorconfig-checker
 
 ### Current Hooks Inventory (already have)
-**Go**: golangci-lint (full + incremental), go build, cicd custom lint (lint-docs, lint-go, lint-text, lint-workflow, lint-deployments, lint-ports, etc.), go mod tidy  
-**Python**: bandit (security)  
+**Go**: golangci-lint (full + incremental), go build, cicd custom lint (lint-docs, lint-go, lint-text, lint-workflow, lint-deployments, lint-ports, etc.), go mod tidy
+**Python**: bandit (security)
 **Other**: gitleaks (secrets), yamllint, actionlint (GitHub Actions YAML), hadolint (Dockerfile), shellcheck, markdownlint-cli2, commitizen (conventional commits), pre-commit-hooks (yaml, json, toml, xml, end-of-file, trailing-whitespace, merge-conflict, etc.)
 
 ### Candidate Additions (numbered list for quizme-v3 review)
@@ -232,7 +255,7 @@ Skills section added in Phase 3.5 will include catalogue table.
 | `autoflake` | F401 (unused imports) | Full replacement |
 
 **Ruff does NOT replace**:
-- `mypy` — static type checking (ruff has some UP rules but not full type analysis)  
+- `mypy` — static type checking (ruff has some UP rules but not full type analysis)
 - `bandit` — security linting (ruff has partial S rules, bandit is more comprehensive for security)
 - `pytest` — test runner
 
@@ -266,7 +289,26 @@ pip install black && black .        →   uvx black .      (after ruff migration
 ### Current State
 Already has: spotbugs + findsecbugs, owasp-dependency-check, versions-maven-plugin, maven-compiler-plugin
 
-### Missing Tools (candidates for quizme-v3 review)
+### Decisions (from quizme-v3)
+
+| Tool | Decision | Action |
+|------|----------|--------|
+| Spotless + google-java-format | A — YES | Add `spotless-maven-plugin` with google-java-format, phase=validate |
+| Checkstyle | A — YES | Add `maven-checkstyle-plugin` with Google rules, phase=validate |
+| PMD | B — SKIP | SpotBugs already provides analysis; PMD overlaps too much; prefer SpotBugs |
+| Error Prone | A — YES | Add to `maven-compiler-plugin` config as annotation processor |
+| NullAway | A — YES | Add as Error Prone plugin (requires Error Prone) |
+| maven-enforcer | A — YES | Add with `dependencyConvergence` + `requireJavaVersion` + `requireMavenVersion` rules |
+| JaCoCo | A — YES (MANDATORY, high threshold) | Add with high coverage thresholds matching Go standards (≥95%); absolutely mandatory |
+| ArchUnit | C — DEFER | Valuable but high effort; defer to quizme-v4 |
+
+**6 approved**: Spotless, Checkstyle, Error Prone, NullAway, maven-enforcer, JaCoCo
+**1 skipped**: PMD (SpotBugs preferred)
+**1 deferred to quizme-v4**: ArchUnit
+
+**JaCoCo note**: User specified "absolutely mandatory, with high threshold like Go coverage thresholds" — configure with ≥95% line coverage minimum, failing build on threshold breach.
+
+### Reference Table (Java ↔ Go equivalents)
 
 **Note**: "Ruff for Java" does not exist — ruff is a Python-only tool. These are Java-specific equivalents:
 
@@ -327,26 +369,26 @@ Review all 8 validators' error messages for:
 
 **Best practices for service scaffolding templates:**
 
-#### 10.1 Naming and Discoverability
-- Current: Service name "skeleton-template" may not be obvious as "this is your starting point"
-- Add: `SCAFFOLDING.md` in project root clearly explaining the skeleton-template pattern
-- Add: Prominent comment at top of skeleton-template source files: `// TEMPLATE — copy to create a new service. See SCAFFOLDING.md`
-- Add: `.github/agents/new-service.agent.md` — agent dedicated to creating new services via skeleton-template copy
+#### 10.1 Naming and Discoverability — quizme-v3 decisions
+- ❌ SKIP: `SCAFFOLDING.md` in project root — user: "no more doc bloat and doc sprawl" (quizme-v3 S4-Item1 answer C/B)
+- ✅ YES: Template comment headers in skeleton source files (quizme-v3 S4-Item2 answer A)
+- ❌ DEFER: `cicd validate-skeleton` placeholder detection lint rule (quizme-v3 S4-Item3 blank → quizme-v4)
+- ❌ SKIP agent, ADD SKILL: `new-service.agent.md` replaced by `new-service` skill in Phase 5 Group E (quizme-v3 S4-Item4 answer C: "make it a skill")
 
-#### 10.2 Placeholder Detection
-- Current: No automatic detection if someone runs skeleton-template without renaming
-- Add: CICD lint rule: validate skeleton-template service names follow naming convention
-- Add: Placeholder marker comments in template files: `// TODO: rename to your service name`
-- Add: `cicd validate-skeleton` command that checks for unreplaced placeholders
+#### 10.2 Placeholder Detection (DEFERRED to quizme-v4)
+- `cicd validate-skeleton` command — not decided yet, in quizme-v4
 
-#### 10.3 Content Improvements
+#### 10.3 Content Improvements (unchanged from research)
 - Add: Example domain model, repository, service, handler in skeleton-template as comments
 - Add: Step-by-step MIGRATION.md: "How to create a new service from this template"
 - Add: Example OpenAPI paths/components for CRUD patterns (as commented-out reference)
 
-#### 10.4 Agent Auto-Discovery
-- Add: Skills frontmatter in `new-service.agent.md`: reference `service-scaffold` skill (Phase 5)
-- Consider: `service-scaffold` skill that automates find+replace of `skeleton` → actual service name
+#### 10.4 Implementation Plan (from decisions above)
+**Phase 10 scope** (only approved items):
+1. Add template comment headers to skeleton source files (Item 2 YES)
+2. Create `new-service` skill in `.github/skills/new-service.md` (moved to Phase 5 Group E)
+3. Add commented example patterns (domain/repo/service/handler) — content improvement
+4. Add MIGRATION.md step-by-step guide inside `internal/apps/skeleton/` (scope: skeleton dir only, not root)
 
 ---
 
@@ -397,7 +439,42 @@ Review all 8 validators' error messages for:
 | Q15 | A — YES update agents with skills: refs | Phase 5 |
 | +   | skill-scaffold skill (user identified missing 3rd type) | Phase 5, Group E |
 
-### Phases Gated by quizme-v3
-- Phase 6: Pre-commit/pre-push linter additions — numbered list in quizme-v3 Sections 1–2
-- Phase 7: Python ruff + uvx — numbered list in quizme-v3 Section 3
-- Phase 8: Java toolchain — numbered list in quizme-v3 Section 4
+### From quizme-v3
+| Q | Decision | Phase |
+|---|----------|-------|
+| S0-Q0 | A — skill-scaffold skill YES | Phase 5, Group E |
+| S1-C1 | B — govulncheck SKIP | Phase 6 |
+| S1-C2 | A — ruff check YES | Phase 6 + 7 |
+| S1-C3 | A — ruff format YES | Phase 6 + 7 |
+| S1-C4 | A — checkov YES | Phase 6 |
+| S1-C5 | C — trivy DEFER | quizme-v4 |
+| S1-C6 | C — semgrep DEFER | quizme-v4 |
+| S1-C7 | A — sqlfluff YES | Phase 6 |
+| S1-C8 | B — vale SKIP | Phase 6 |
+| S1-C9 | C — codespell DEFER | quizme-v4 |
+| S1-C10 | A — taplo YES | Phase 6 |
+| S1-C11 | A — pyproject-fmt YES | Phase 6 |
+| S1-C12 | A — validate-pyproject YES | Phase 6 |
+| S1-C13 | C — editorconfig-checker DEFER | quizme-v4 |
+| S2-Item1 | A — remove black YES | Phase 7 |
+| S2-Item2 | A — remove isort YES | Phase 7 |
+| S2-Item3 | A — remove flake8 YES | Phase 7 |
+| S2-Item4 | A — add ruff full config YES | Phase 7 |
+| S2-Item5 | A — migrate to uvx YES | Phase 7 |
+| S3-Tool1 | A — Spotless+google-java-format YES | Phase 8 |
+| S3-Tool2 | A — Checkstyle YES | Phase 8 |
+| S3-Tool3 | B — PMD SKIP (SpotBugs preferred) | Phase 8 |
+| S3-Tool4 | A — Error Prone YES | Phase 8 |
+| S3-Tool5 | A — NullAway YES | Phase 8 |
+| S3-Tool6 | A — maven-enforcer YES | Phase 8 |
+| S3-Tool7 | A — JaCoCo YES (mandatory + high threshold ≥95%) | Phase 8 |
+| S3-Tool8 | C — ArchUnit DEFER | quizme-v4 |
+| S4-Item1 | B — SCAFFOLDING.md SKIP (no doc bloat) | Phase 10 |
+| S4-Item2 | A — template comment headers YES | Phase 10 |
+| S4-Item3 | blank — CICD placeholder detection DEFER | quizme-v4 |
+| S4-Item4 | C — new-service.agent.md SKIP; create skill instead | Phase 5 Group E |
+
+### Phases Deferred to quizme-v4
+- Phase 6 deferred: trivy, semgrep, codespell, editorconfig-checker
+- Phase 8 deferred: ArchUnit
+- Phase 10 deferred: CICD placeholder detection lint rule

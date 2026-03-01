@@ -2,7 +2,7 @@
 
 **Status**: 0 of N tasks complete
 **Created**: 2026-03-01
-**Last Updated**: 2026-03-01 (quizme-v1 + quizme-v2 answers merged)
+**Last Updated**: 2026-03-01 (quizme-v1 + quizme-v2 + quizme-v3 answers merged)
 
 ## Quality Mandate - MANDATORY
 
@@ -151,13 +151,14 @@ Every task: ALL 8 quality attributes verified each review pass. All issues are b
 - [ ] Create `.github/skills/propagation-check.md` (detect drift, generate corrected @source text)
 - [ ] Create `.github/skills/openapi-codegen.md` (3 config files + OpenAPI spec skeleton for any service)
 
-### Task 5.5: Group E — Scaffolding Skills (all 3 Copilot customization types)
+### Task 5.5: Group E — Scaffolding Skills (all 4: covers all 3 Copilot types + new-service)
 - [ ] Create `.github/skills/agent-scaffold.md` (creates .github/agents/NAME.agent.md with mandatory sections)
 - [ ] Create `.github/skills/instruction-scaffold.md` (creates .github/instructions/NN-NN.name.instructions.md)
 - [ ] Create `.github/skills/skill-scaffold.md` (creates .github/skills/NAME.md — 3rd type, was missing from v2)
+- [ ] Create `.github/skills/new-service.md` (guides service creation from skeleton-template; replaces new-service.agent.md per quizme-v3 S4-Item4)
 
 ### Task 5.6: Update ARCHITECTURE.md skills catalogue
-- [ ] Add all 12 skills to the catalogue table in Phase 3.5 section
+- [ ] Add all 13 skills to the catalogue table in Phase 3.5 section
 
 ### Task 5.7: Update relevant agents with skills: frontmatter
 - [ ] After all skills created, identify which agents benefit from skills: references
@@ -167,30 +168,33 @@ Every task: ALL 8 quality attributes verified each review pass. All issues are b
 
 ## Phase 6: Pre-commit / Pre-push Linter Additions
 
-**Status**: Gated by quizme-v3. Each item below = one numbered candidate in quizme-v3.
+**Status**: Decisions confirmed from quizme-v3. Ready for implementation.
 
-### Task 6.0: Review quizme-v3 Section 1 answers
-- [ ] User approves/rejects/defers each candidate
+### Task 6.1: Add checkov (IaC/Container Security)
+- [ ] Add `bridgecrewio/checkov` hook to `.pre-commit-config.yaml`
+- [ ] Configure to scan `deployments/` and Dockerfiles
+- [ ] Verify runs cleanly on existing codebase (`pre-commit run checkov --all-files`)
 
-### Task 6.1: Implement approved candidates
-(Tasks auto-populated from quizme-v3 answers — placeholder until decisions made)
-- [ ] Candidate 1: govulncheck (Go CVE scanning)
-- [ ] Candidate 4: checkov (IaC/container security)
-- [ ] Candidate 5: trivy (dependency vulnerability)
-- [ ] Candidate 6: semgrep (multi-language SAST)
-- [ ] Candidate 7: sqlfluff (SQL migration linting)
-- [ ] Candidate 8: vale (prose linting for .md)
-- [ ] Candidate 9: codespell (typo detection)
-- [ ] Candidate 10: taplo (TOML formatter)
-- [ ] Candidate 11: pyproject-fmt (pyproject.toml formatter)
-- [ ] Candidate 12: validate-pyproject (schema validation)
-- [ ] Candidate 13: editorconfig-checker
+### Task 6.2: Add sqlfluff (SQL Migration Linting)
+- [ ] Add `sqlfluff-pre-commit` hook to `.pre-commit-config.yaml`
+- [ ] Create `.sqlfluff` config: `dialect = postgres`, consistent SQL style rules
+- [ ] Verify all existing `.sql` migration files pass (`pre-commit run sqlfluff-lint --all-files`)
 
-Each implementation:
-- [ ] Add hook to `.pre-commit-config.yaml`
-- [ ] Add configuration to relevant config file
-- [ ] Verify hook runs cleanly on existing codebase
-- [ ] Update ARCHITECTURE.md if hook is project-standard
+### Task 6.3: Add taplo (TOML Formatter)
+- [ ] Add `CommaNet/taplo-pre-commit` hook to `.pre-commit-config.yaml`, hook id: `taplo-format`
+- [ ] Verify any TOML files format cleanly
+
+### Task 6.4: Add pyproject-fmt (pyproject.toml Normalizer)
+- [ ] Add `tox-dev/pyproject-fmt` hook to `.pre-commit-config.yaml`
+- [ ] Verify `pyproject.toml` formats cleanly (run after Phase 7 ruff migration)
+
+### Task 6.5: Add validate-pyproject (Schema Validation)
+- [ ] Add `abravalheri/validate-pyproject` hook to `.pre-commit-config.yaml`
+- [ ] Verify `pyproject.toml` passes schema validation
+
+**Skipped** (quizme-v3): govulncheck (B), vale (B)
+**Deferred to quizme-v4**: trivy (C), semgrep (C), codespell (C), editorconfig-checker (C)
+**Note**: ruff-check and ruff-format hooks implemented in Phase 7 (Python migration)
 
 ---
 
@@ -231,27 +235,37 @@ Each implementation:
 
 ## Phase 8: Java Toolchain Additions (Gatling Load Tests)
 
-**Status**: Gated by quizme-v3 Section 4. Items pending per-tool approval.
+**Status**: Decisions confirmed from quizme-v3. Ready for implementation.
 
-### Task 8.0: Review quizme-v3 Section 4 answers
-- [ ] User approves/rejects/defers each Java tool
+### Task 8.1: Add Spotless + google-java-format
+- [ ] Add `spotless-maven-plugin` to `test/load/pom.xml`
+- [ ] Configure: google-java-format, phase=`validate`, apply on `mvn spotless:apply`
+- [ ] Run `cd test/load && mvn spotless:check` — verify all `.java` files pass
 
-### Task 8.1: Implement approved Java tools in test/load/pom.xml
-(Tasks auto-populated from quizme-v3 answers — placeholder until decisions made)
-- [ ] google-java-format via Spotless plugin
-- [ ] Checkstyle plugin + Google config
-- [ ] PMD plugin
-- [ ] Error Prone via compiler plugin
-- [ ] NullAway (if Error Prone approved)
-- [ ] maven-enforcer-plugin with dependency convergence rule
-- [ ] JaCoCo
-- [ ] ArchUnit
+### Task 8.2: Add Checkstyle
+- [ ] Add `maven-checkstyle-plugin` to `test/load/pom.xml`
+- [ ] Configure: Google Checkstyle rules, phase=`validate`, fail on violations
+- [ ] Run `cd test/load && mvn checkstyle:check` — verify pass
 
-Each implementation:
-- [ ] Add plugin to `test/load/pom.xml`
-- [ ] Add configuration (style config, rules, threshold)
-- [ ] Verify plugin runs cleanly: `cd test/load && mvn verify`
-- [ ] Update CI/CD workflow to run Java checks
+### Task 8.3: Add Error Prone + NullAway
+- [ ] Add Error Prone annotation processor to `maven-compiler-plugin` config
+- [ ] Add NullAway as Error Prone plugin
+- [ ] Run `cd test/load && mvn compile` — verify zero Error Prone violations
+
+### Task 8.4: Add maven-enforcer-plugin
+- [ ] Add `maven-enforcer-plugin` to `test/load/pom.xml`
+- [ ] Rules: `dependencyConvergence`, `requireJavaVersion` (21+), `requireMavenVersion` (3.9+)
+- [ ] Run `cd test/load && mvn enforcer:enforce` — verify pass
+
+### Task 8.5: Add JaCoCo (MANDATORY, high threshold)
+- [ ] Add `jacoco-maven-plugin` to `test/load/pom.xml`
+- [ ] Configure: `prepare-agent` goal + `report` goal + `check` goal with `≥95%` line coverage threshold
+- [ ] Coverage threshold is MANDATORY — build MUST fail below 95% (user: "absolutely mandatory, with high threshold like Go coverage thresholds")
+- [ ] Run `cd test/load && mvn verify` — verify coverage report generated and threshold passes
+- [ ] Add CI/CD workflow step to upload JaCoCo coverage report as artifact
+
+**Skipped** (quizme-v3): PMD (B — SpotBugs already present and preferred)
+**Deferred to quizme-v4**: ArchUnit (C)
 
 ---
 
@@ -278,25 +292,19 @@ Each implementation:
 
 ## Phase 10: skeleton-template Improvements
 
-### Task 10.1: Add SCAFFOLDING.md to project root
-- [ ] Write: purpose of skeleton-template, step-by-step how to create a new service from it
-- [ ] Include: find+replace commands for renaming skeleton → your-service-name
-- [ ] Include: checklist of files to update after copy
+### Task 10.1: ~~SCAFFOLDING.md in project root~~ — SKIPPED (quizme-v3 S4-Item1)
+**Decision**: No — no more doc bloat and doc sprawl (user quizme-v3 answer). Omit this task.
 
 ### Task 10.2: Add template comment headers to skeleton source files
-- [ ] Add `// TEMPLATE: Copy and rename skeleton → your-service-name. See SCAFFOLDING.md` to key files
-- [ ] Internal/apps/skeleton/template/*.go files
+- [ ] Add `// TEMPLATE: Copy and rename 'skeleton' → your-service-name before use` to key skeleton source files
+- [ ] Target files: `internal/apps/skeleton/template/*.go` and `cmd/skeleton-template/main.go`
+- [ ] Verify comments are clear and discoverable
 
-### Task 10.3: Placeholder detection lint rule
-- [ ] Add `cicd validate-skeleton` lint check: detect unreplaced placeholder strings ("skeleton", "Skeleton", "SKELETON") in non-skeleton directories
-- [ ] Integrate into `cicd lint-go` or as separate lint command
-- [ ] Add pre-commit hook for validate-skeleton
+### Task 10.3: ~~Placeholder detection lint rule~~ — DEFERRED (quizme-v3 S4-Item3)
+**Decision**: Blank answer = not decided. Deferred to quizme-v4.
 
-### Task 10.4: Create new-service.agent.md
-- [ ] Create `.github/agents/new-service.agent.md`
-- [ ] Purpose: guide through creating a new service from skeleton-template
-- [ ] Reference: `service-scaffold` skill (Phase 5, if approved), SCAFFOLDING.md
-- [ ] Steps: copy, rename, register, migrate, test
+### Task 10.4: ~~new-service.agent.md~~ — SKIPPED (create skill instead per quizme-v3 S4-Item4)
+**Decision**: "NO — make it a skill". Moved to Phase 5: `new-service.md` in `.github/skills/`.
 
 ### Task 10.5: Add example domain pattern to skeleton-template (commented out)
 - [ ] Add example: entity model (GORM), repository, service, handler — as commented reference
