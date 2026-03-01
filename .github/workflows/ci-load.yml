@@ -362,6 +362,16 @@ jobs:
         path: test/load/target/gatling/
         retention-days: 1
 
+    - name: Upload JaCoCo coverage report
+      if: always()
+      # https://github.com/actions/upload-artifact/releases (v5.0.0, 2025-04-21)
+      uses: actions/upload-artifact@v5.0.0
+      with:
+        name: jacoco-coverage-report-${{ env.LOAD_PROFILE }}
+        path: test/load/target/site/jacoco/
+        retention-days: 7
+        if-no-files-found: ignore
+
     - name: Upload service logs
       if: always()
       # https://github.com/actions/upload-artifact/releases (v5.0.0, 2025-04-21)
