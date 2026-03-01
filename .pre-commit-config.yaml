@@ -223,6 +223,16 @@ repos:
         require_serial: false # linters are read-only, so they can run concurrently
         stages: [pre-commit]
 
+      - id: cicd-lint-skeleton
+        name: Detect unreplaced skeleton template placeholder strings
+        entry: go
+        args: [run, cmd/cicd/main.go, lint-skeleton]
+        language: system
+        files: '\.go$'
+        pass_filenames: false
+        require_serial: false
+        stages: [pre-commit]
+
       - id: docker-compose-config
         name: Validate docker compose files with schema
         entry: bash

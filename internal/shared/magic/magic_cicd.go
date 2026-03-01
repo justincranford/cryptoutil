@@ -203,8 +203,7 @@ const (
 	  lint-go-mod         - [Linter]    Check direct Go dependencies for updates
 	  lint-go-test        - [Linter]    Enforce test patterns (UUIDv7 usage, testify assertions)
 	  lint-golangci       - [Linter]    Validate golangci-lint config files for v2 compatibility
-	  lint-ports          - [Linter]    Enforce standardized port assignments (no legacy ports)
-	  lint-text           - [Linter]    Enforce UTF-8 encoding without BOM for text files
+	  lint-ports          - [Linter]    Enforce standardized port assignments (no legacy ports)		  lint-skeleton       - [Linter]    Detect unreplaced skeleton template placeholder strings	  lint-text           - [Linter]    Enforce UTF-8 encoding without BOM for text files
 	  lint-workflow       - [Linter]    Validate GitHub Actions workflow naming and versions`
 )
 
@@ -221,6 +220,7 @@ var ValidCommands = map[string]bool{
 	"lint-go-test":     true,
 	"lint-golangci":    true,
 	"lint-ports":       true,
+	"lint-skeleton":    true,
 	"lint-text":        true,
 	"lint-workflow":    true,
 }

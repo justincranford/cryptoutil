@@ -1,5 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 //
+// TEMPLATE: Copy and rename 'skeleton' → your-service-name before use.
 
 // Package server implements the skeleton-template HTTPS server using the service template.
 package server

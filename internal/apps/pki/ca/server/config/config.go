@@ -14,7 +14,7 @@ import (
 )
 
 // PKICAServerSettings contains pki-ca specific configuration.
-// The pki-ca skeleton service has no domain-specific settings beyond the base template.
+// The pki-ca service has no domain-specific settings beyond the base template.
 type PKICAServerSettings struct {
 	*cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 }

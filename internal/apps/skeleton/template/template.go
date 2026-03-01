@@ -1,5 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 //
+// TEMPLATE: Copy and rename 'skeleton' → your-service-name before use.
 
 // Package template provides the Skeleton Template service entry point.
 package template

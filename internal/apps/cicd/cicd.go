@@ -19,6 +19,7 @@ import (
 	cryptoutilCmdCicdLintCompose "cryptoutil/internal/apps/cicd/lint_compose"
 	cryptoutilLintDeployments "cryptoutil/internal/apps/cicd/lint_deployments"
 	cryptoutilLintDocs "cryptoutil/internal/apps/cicd/lint_docs"
+	cryptoutilLintSkeleton "cryptoutil/internal/apps/cicd/lint_skeleton"
 	cryptoutilCmdCicdLintGo "cryptoutil/internal/apps/cicd/lint_go"
 	cryptoutilCmdCicdLintGoMod "cryptoutil/internal/apps/cicd/lint_go_mod"
 	cryptoutilCmdCicdLintGolangci "cryptoutil/internal/apps/cicd/lint_golangci"
@@ -43,6 +44,7 @@ const (
 	cmdFormatGoTest    = "format-go-test"   // [Formatter] Go test file formatters (t.Helper).
 	cmdLintDocs        = "lint-docs"        // [Linter] Documentation linters (chunk verification, propagation).
 	cmdLintDeployments = "lint-deployments" // [Linter] Deployment structure and config file validation.
+	cmdLintSkeleton    = "lint-skeleton"    // [Linter] Skeleton template placeholder detection.
 	cmdGitHubCleanup   = "github-cleanup"   // [Script] GitHub Actions storage cleanup (runs, artifacts, caches).
 )
 
@@ -141,6 +143,8 @@ func run(commands []string, extraArgs []string) error {
 			cmdErr = cryptoutilLintDocs.Lint(logger)
 		case cmdLintDeployments:
 			cmdErr = cryptoutilLintDeployments.Lint(logger)
+		case cmdLintSkeleton:
+			cmdErr = cryptoutilLintSkeleton.Lint(logger)
 		case cmdGitHubCleanup:
 			cmdErr = cryptoutilGitHubCleanup.Cleanup(logger, extraArgs)
 		}

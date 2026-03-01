@@ -12,8 +12,14 @@ const (
 	// SkeletonTemplateServiceID is the canonical service identifier for skeleton-template.
 	SkeletonTemplateServiceID = OTLPServiceSkeletonTemplate
 
-	// SkeletonProductName is the product name component of the Skeleton product.
+	// SkeletonProductName is the product name component of the Skeleton product (lowercase).
 	SkeletonProductName = "skeleton"
+
+	// SkeletonProductNameTitleCase is the title-case variant used for type/symbol naming conventions.
+	SkeletonProductNameTitleCase = "Skeleton"
+
+	// SkeletonProductNameUpperCase is the upper-case variant used for constant/environment variable naming.
+	SkeletonProductNameUpperCase = "SKELETON"
 
 	// SkeletonTemplateServiceName is the service name component of the skeleton-template service.
 	SkeletonTemplateServiceName = "template"
