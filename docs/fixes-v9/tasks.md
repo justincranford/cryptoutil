@@ -129,40 +129,40 @@ Every task: ALL 8 quality attributes verified each review pass. All issues are b
 ## Phase 5: Copilot Skills
 
 ### Task 5.0: Create .github/skills/ infrastructure
-- [ ] Create `.github/skills/` directory
-- [ ] Create `.github/skills/README.md` (naming convention, how to reference skills)
-- [ ] Create `.github/skills/SKILL-TEMPLATE.md` (reference template for new skills)
-- [ ] Add skills section to ARCHITECTURE.md if not done in Phase 3 (coordinate with 3.5)
+- [x] Create `.github/skills/` directory
+- [x] Create `.github/skills/README.md` (naming convention, how to reference skills)
+- [x] Create `.github/skills/SKILL-TEMPLATE.md` (reference template for new skills)
+- [x] Add skills section to ARCHITECTURE.md if not done in Phase 3 (coordinate with 3.5)
 
 ### Task 5.1: Group A — Test Generation Skills
-- [ ] Create `.github/skills/test-table-driven.md`
-- [ ] Create `.github/skills/test-fuzz-gen.md`
-- [ ] Create `.github/skills/test-benchmark-gen.md`
-- [ ] Each skill: conventions, examples, required imports, project-specific rules
+- [x] Create `.github/skills/test-table-driven.md`
+- [x] Create `.github/skills/test-fuzz-gen.md`
+- [x] Create `.github/skills/test-benchmark-gen.md`
+- [x] Each skill: conventions, examples, required imports, project-specific rules
 
 ### Task 5.2: Group B — Infrastructure Skills
-- [ ] Create `.github/skills/migration-create.md` (numbered SQL files: template 1001-1999, domain 2001+)
+- [x] Create `.github/skills/migration-create.md` (numbered SQL files: template 1001-1999, domain 2001+)
 
 ### Task 5.3: Group C — Code Quality Skills
-- [ ] Create `.github/skills/coverage-analysis.md` (coverprofile analysis, categorize RED lines, test suggestions)
-- [ ] Create `.github/skills/fips-audit.md` (detect violations + fix guidance, not just detection)
+- [x] Create `.github/skills/coverage-analysis.md` (coverprofile analysis, categorize RED lines, test suggestions)
+- [x] Create `.github/skills/fips-audit.md` (detect violations + fix guidance, not just detection)
 
 ### Task 5.4: Group D — Documentation Skills
-- [ ] Create `.github/skills/propagation-check.md` (detect drift, generate corrected @source text)
-- [ ] Create `.github/skills/openapi-codegen.md` (3 config files + OpenAPI spec skeleton for any service)
+- [x] Create `.github/skills/propagation-check.md` (detect drift, generate corrected @source text)
+- [x] Create `.github/skills/openapi-codegen.md` (3 config files + OpenAPI spec skeleton for any service)
 
 ### Task 5.5: Group E — Scaffolding Skills (all 4: covers all 3 Copilot types + new-service)
-- [ ] Create `.github/skills/agent-scaffold.md` (creates .github/agents/NAME.agent.md with mandatory sections)
-- [ ] Create `.github/skills/instruction-scaffold.md` (creates .github/instructions/NN-NN.name.instructions.md)
-- [ ] Create `.github/skills/skill-scaffold.md` (creates .github/skills/NAME.md — 3rd type, was missing from v2)
-- [ ] Create `.github/skills/new-service.md` (guides service creation from skeleton-template; replaces new-service.agent.md per quizme-v3 S4-Item4)
+- [x] Create `.github/skills/agent-scaffold.md` (creates .github/agents/NAME.agent.md with mandatory sections)
+- [x] Create `.github/skills/instruction-scaffold.md` (creates .github/instructions/NN-NN.name.instructions.md)
+- [x] Create `.github/skills/skill-scaffold.md` (creates .github/skills/NAME.md — 3rd type, was missing from v2)
+- [x] Create `.github/skills/new-service.md` (guides service creation from skeleton-template; replaces new-service.agent.md per quizme-v3 S4-Item4)
 
 ### Task 5.6: Update ARCHITECTURE.md skills catalogue
-- [ ] Add all 13 skills to the catalogue table in Phase 3.5 section
+- [x] Add all 13 skills to the catalogue table in Phase 3.5 section
 
 ### Task 5.7: Update relevant agents with skills: frontmatter
-- [ ] After all skills created, identify which agents benefit from skills: references
-- [ ] Update agent YAML frontmatter accordingly
+- [x] After all skills created, identify which agents benefit from skills: references
+- [x] Update agent YAML frontmatter accordingly
 
 ---
 

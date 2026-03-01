@@ -9,6 +9,10 @@ tools:
   - search/codebase
   - search/usages
   - search/changes
+skills:
+  - propagation-check
+  - instruction-scaffold
+  - skill-scaffold
 argument-hint: "[source-of-truth-file]"
 ---
 

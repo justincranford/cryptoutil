@@ -1,6 +1,10 @@
 ---
 name: implementation-execution
 description: Execute plan/tasks autonomously without asking permission - continuous execution
+skills:
+  - test-table-driven
+  - coverage-analysis
+  - migration-create
 argument-hint: "<directory-path>"
 tools:
   - edit/editFiles
