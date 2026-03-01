@@ -73,7 +73,6 @@ func TestCicd_LintDeployments(t *testing.T) {
 	require.Contains(t, []int{0, 1}, exitCode)
 }
 
-
 func TestPrintUsage(t *testing.T) {
 	t.Parallel()
 

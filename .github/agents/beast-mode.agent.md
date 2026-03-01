@@ -380,7 +380,7 @@ go build -tags e2e,integration ./...      # Build-tagged files must be clean
 golangci-lint run --fix                   # Auto-fix then verify clean
 golangci-lint run --build-tags e2e,integration  # Build-tagged files lint-clean
 go test ./... -shuffle=on                 # All tests pass (unit + integration), zero skips
-go run ./cmd/cicd lint-deployments validate-all  # Deployment validation (when deployments/configs changed)
+go run ./cmd/cicd lint-deployments              # Deployment validation (when deployments/configs changed)
 ```
 
 **Additional Quality Gates (Context-Dependent):**
@@ -404,7 +404,7 @@ go test -race -count=3 ./...              # Race detection
 - Linting clean (`golangci-lint run` AND `golangci-lint run --build-tags e2e,integration`)
 - Tests pass (100%, zero skips, `go test ./... -shuffle=on`)
 - Integration tests pass (included in go test ./...)
-- Deployment validators pass (`cicd lint-deployments validate-all` - when deployments/ or configs/ changed)
+- Deployment validators pass (`cicd lint-deployments` - when deployments/ or configs/ changed)
 - E2E tests pass (`go run ./cmd/workflow -workflows=e2e` - when E2E code/tests changed, requires Docker Desktop)
 - Coverage maintained
 - Git commit with conventional commit message
@@ -413,6 +413,20 @@ go test -race -count=3 ./...              # Race detection
 - **E2E Changes**: Docker Desktop must be running; E2E workflow must pass
 - **Deployment/Config Changes**: All 65 deployment validators must pass
 - **Security-Sensitive Changes**: SAST/DAST scans may be required
+
+## Mandatory Review Passes
+
+**MANDATORY: Minimum 3 review passes before marking any task complete.**
+
+Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 sequential review passes:
+
+1. **Pass 1 — Completeness**: Verify ALL requested items were addressed. Check every bullet, every sub-task, every file mentioned.
+2. **Pass 2 — Correctness**: Verify each change is functionally correct. Build, lint, test. Check for regressions.
+3. **Pass 3 — Quality**: Verify changes meet quality standards (coverage, mutation, documentation, propagation). Check for edge cases missed.
+
+If any pass discovers gaps, fix them immediately and restart the 3-pass cycle. This is NOT a redundant loop — each pass systematically catches different categories of omissions.
+
+See [ARCHITECTURE.md Section 2.5 Quality Strategy](/docs/ARCHITECTURE.md#25-quality-strategy) for mandatory review pass requirements.
 
 ---
 

@@ -5,12 +5,13 @@ package legacy_ports
 
 import (
 	"bufio"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
 	lintPortsCommon "cryptoutil/internal/apps/cicd/lint_ports/common"

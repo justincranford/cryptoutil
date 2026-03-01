@@ -403,6 +403,32 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 - **UTF-8 without BOM**: All text files mandatory enforcement
 - **Hook Documentation**: Update `docs/pre-commit-hooks.md` with config changes
 
+#### Mandatory Review Passes
+
+<!-- @propagate to=".github/instructions/01-02.beast-mode.instructions.md" as="mandatory-review-passes" -->
+**MANDATORY: Minimum 3 review passes before marking any task complete.**
+
+Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 sequential review passes:
+
+1. **Pass 1 — Completeness**: Verify ALL requested items were addressed. Check every bullet, every sub-task, every file mentioned.
+2. **Pass 2 — Correctness**: Verify each change is functionally correct. Build, lint, test. Check for regressions.
+3. **Pass 3 — Quality**: Verify changes meet quality standards (coverage, mutation, documentation, propagation). Check for edge cases missed.
+
+If any pass discovers gaps, fix them immediately and restart the 3-pass cycle. This is NOT a redundant loop — each pass systematically catches different categories of omissions.
+<!-- @/propagate -->
+
+<!-- @propagate to=".github/instructions/06-01.evidence-based.instructions.md" as="mandatory-review-passes" -->
+**MANDATORY: Minimum 3 review passes before marking any task complete.**
+
+Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 sequential review passes:
+
+1. **Pass 1 — Completeness**: Verify ALL requested items were addressed. Check every bullet, every sub-task, every file mentioned.
+2. **Pass 2 — Correctness**: Verify each change is functionally correct. Build, lint, test. Check for regressions.
+3. **Pass 3 — Quality**: Verify changes meet quality standards (coverage, mutation, documentation, propagation). Check for edge cases missed.
+
+If any pass discovers gaps, fix them immediately and restart the 3-pass cycle. This is NOT a redundant loop — each pass systematically catches different categories of omissions.
+<!-- @/propagate -->
+
 ---
 
 ## 3. Product Suite Architecture
@@ -809,7 +835,8 @@ cmd/
 ├── identity-spa/main.go       # Service-level Identity-SPA CLI: Thin main() call to `internal/apps/identity/spa/spa.go`
 ├── skeleton/main.go           # Product-level Skeleton CLI: Thin main() call to `internal/apps/skeleton/skeleton.go`
 ├── skeleton-template/main.go  # Service-level Skeleton-Template CLI: Thin main() call to `internal/apps/skeleton/template/template.go`
-└── sm-kms/main.go             # Service-level SM-KMS CLI (legacy): Thin main() call to `internal/apps/sm/kms/kms.go`
+├── sm-kms/main.go             # Service-level SM-KMS CLI (legacy): Thin main() call to `internal/apps/sm/kms/kms.go`
+└── cicd/main.go               # CICD CLI: Thin main() call to `internal/cmd/cicd/cicd.go` → `internal/apps/cicd/cicd.go`
 ```
 
 **Pattern**: Thin `main()` pattern for all cmd/ CLIs, with all logic in `internal/apps/` for maximum code reuse and testability.
@@ -1503,7 +1530,7 @@ Non-Deterministic Example: {n2}nonce:aad#{R5}HKDF-HMAC-SHA256:abc123...:def456..
 
 **Trade-offs**: Length threshold catches most real secrets (UUIDs, tokens, hashes) while allowing short developer passwords (`admin`, `dev123`). Infrastructure deployments (Grafana, OTLP collector) are excluded since they intentionally use inline dev credentials.
 
-**Cross-References**: Implementation in [validate_secrets.go](/internal/cmd/cicd/lint_deployments/validate_secrets.go). Deployment secrets management in [Section 12.6](#126-secrets-management-in-deployments).
+**Cross-References**: Implementation in [validate_secrets.go](/internal/apps/cicd/lint_deployments/validate_secrets.go). Deployment secrets management in [Section 12.6](#126-secrets-management-in-deployments).
 
 ---
 
@@ -2102,6 +2129,143 @@ COPY --from=validator /app/cryptoutil /app/cryptoutil
 - Language-specific hooks
 - Skip patterns and exclusions
 - Fail-fast vs continue-on-error strategies
+
+### 9.10 CICD Command Architecture
+
+The `cicd` CLI tool implements a strict directory-driven code organization pattern. Every command is enforced through a consistent four-layer dispatch, with three command naming categories.
+
+#### 9.10.1 Code Flow
+
+```
+cmd/cicd/main.go                          # Layer 1: Thin main(), os.Exit(Cicd(...))
+  → internal/cmd/cicd/cicd.go             # Layer 2: Validates command name, delegates to apps
+    → internal/apps/cicd/cicd.go          # Layer 3: Unified dispatch switch, run()
+      → internal/apps/cicd/<command>/     # Layer 4: Registered linters/formatters/scripts
+        → internal/apps/cicd/<command>/<sub>/  # Sub-linters/formatters/scripts
+```
+
+**Strict Enforcement Rules**:
+
+- Layer 1 (`cmd/cicd/main.go`): ONLY `os.Exit()` + delegate. Zero logic.
+- Layer 2 (`internal/cmd/cicd/cicd.go`): ONLY command validation + usage display + delegate to Layer 3. Zero business logic.
+- Layer 3 (`internal/apps/cicd/cicd.go`): Unified `run()` switch for ALL commands. Each command has a `const` declaration. `ValidCommands` in `internal/shared/magic/magic_cicd.go` MUST match the switch cases 1:1.
+- Layer 4 (`internal/apps/cicd/<command>/`): Package-per-command. Entry point is `Lint()`, `Format()`, or `Cleanup()`/script-specific. Internal sub-linters/formatters registered in a `registeredLinters`/`registeredFormatters`/`registeredCleaners` slice.
+
+#### 9.10.2 Command Naming Patterns
+
+<!-- @propagate to=".github/instructions/04-01.deployment.instructions.md" as="cicd-command-naming" -->
+**Three command categories** with strict naming and directory conventions:
+
+| Category | Naming Pattern | Directory Pattern | Entry Function | Registration |
+|----------|---------------|-------------------|----------------|-------------|
+| **Linters** | `lint-<target>` | `lint_<target>/` | `Lint(logger)` | `registeredLinters` |
+| **Formatters** | `format-<target>` | `format_<target>/` | `Format(logger, ...)` | `registeredFormatters` |
+| **Scripts** | `<action>-<target>` | `<action>_<target>/` | Script-specific | `registeredCleaners` etc. |
+
+**Linter commands** (10): `lint-text`, `lint-go`, `lint-go-test`, `lint-go-mod`, `lint-golangci`, `lint-compose`, `lint-ports`, `lint-workflow`, `lint-deployments`, `lint-docs`
+**Formatter commands** (2): `format-go`, `format-go-test`
+**Script commands** (1): `github-cleanup`
+<!-- @/propagate -->
+
+#### 9.10.3 Registered Sub-Command Pattern
+
+Each command package follows the **registered sub-command pattern**:
+
+```go
+// Type alias for sub-command functions.
+type LinterFunc func(logger *common.Logger) error
+
+// Registered sub-commands executed sequentially.
+var registeredLinters = []struct {
+    name   string
+    linter LinterFunc
+}{
+    {"sub-linter-name", subPackage.Check},
+}
+
+// Entry point aggregates errors from all registered sub-commands.
+func Lint(logger *common.Logger) error {
+    var errors []error
+    for _, l := range registeredLinters {
+        if err := l.linter(logger); err != nil {
+            errors = append(errors, err)
+        }
+    }
+    // Return aggregated errors
+}
+```
+
+**Sub-command packages**: Each sub-linter/formatter/script lives in its own subdirectory with a single `Check()` or `Fix()` or equivalent entry point. Example: `lint_go/circular_deps/circular_deps.go` exports `Check(logger) error`.
+
+#### 9.10.4 Directory Structure
+
+```
+cmd/cicd/main.go                                    # Thin main()
+internal/cmd/cicd/cicd.go                           # Validation + delegation
+internal/apps/cicd/
+├── cicd.go                                         # Unified dispatch (ALL commands)
+├── common/                                         # Shared logger, summary, filter
+├── docs_validation/                                # Core docs validation logic
+├── lint_text/                                       # lint-text command
+│   ├── lint_text.go                                # Lint() + registeredLinters
+│   └── utf8/utf8.go                                # Sub-linter: UTF-8 enforcement
+├── lint_go/                                          # lint-go command
+│   ├── lint_go.go                                  # Lint() + registeredLinters (16 sub-linters)
+│   ├── circular_deps/                              # Sub-linter
+│   ├── cgo_free_sqlite/                            # Sub-linter
+│   └── ... (14 more sub-linters)
+├── lint_go_mod/                                      # lint-go-mod command
+│   ├── lint_go_mod.go                              # Lint() + registeredLinters
+│   └── outdated_deps/                              # Sub-linter
+├── lint_gotest/                                      # lint-go-test command
+│   ├── lint_gotest.go                              # Lint() + registeredLinters
+│   └── ... (sub-linters)
+├── lint_golangci/                                    # lint-golangci command
+│   ├── lint_golangci.go                            # Lint() + registeredLinters
+│   └── golangci_config/                            # Sub-linter
+├── lint_compose/                                     # lint-compose command
+│   ├── lint_compose.go                             # Lint() + registeredLinters
+│   └── admin_port_exposure/                        # Sub-linter
+├── lint_ports/                                       # lint-ports command
+│   ├── lint_ports.go                               # Lint() + registeredLinters
+│   ├── health_paths/                               # Sub-linter
+│   ├── host_port_ranges/                           # Sub-linter
+│   └── legacy_ports/                               # Sub-linter
+├── lint_workflow/                                     # lint-workflow command
+│   ├── lint_workflow.go                            # Lint() + registeredLinters
+│   └── github_actions/                             # Sub-linter
+├── lint_deployments/                                 # lint-deployments command
+│   ├── lint.go                                     # Lint() entry point
+│   ├── validate_all.go                             # ValidateAll() orchestrator
+│   └── validate_*.go                               # 8 registered validators
+├── lint_docs/                                         # lint-docs command
+│   ├── lint_docs.go                                # Lint() + registeredLinters
+│   ├── check_chunk_verification/                   # Sub-linter
+│   ├── validate_chunks/                            # Sub-linter
+│   └── validate_propagation/                       # Sub-linter
+├── format_go/                                        # format-go command
+│   ├── format_go.go                                # Format() + registeredFormatters
+│   ├── copyloopvar/                                # Sub-formatter
+│   ├── enforce_any/                                # Sub-formatter
+│   └── enforce_time_now_utc/                       # Sub-formatter
+├── format_gotest/                                    # format-go-test command
+│   ├── format_gotest.go                            # Format() + registeredFormatters
+│   └── thelper/                                    # Sub-formatter
+└── github_cleanup/                                   # github-cleanup command
+    ├── cleanup_api.go                              # Cleanup() + registeredCleaners
+    ├── cleanup_runs.go                             # Sub-script
+    ├── cleanup_artifacts.go                        # Sub-script
+    └── cleanup_caches.go                           # Sub-script
+```
+
+#### 9.10.5 Enforcement Invariants
+
+1. **1:1 mapping**: Every `const cmd*` in `cicd.go` MUST have a matching `switch case` in `run()`, a matching entry in `ValidCommands`, and a matching directory under `internal/apps/cicd/`.
+2. **No scattered commands**: ALL cicd commands MUST be dispatched through the single `run()` function. No secondary dispatch paths.
+3. **Directory = Command**: Directory name (with underscores) MUST match command name (with hyphens). Example: command `lint-go` → directory `lint_go/`.
+4. **Entry point naming**: Linters export `Lint()`, formatters export `Format()`, scripts export their action verb (e.g., `Cleanup()`).
+5. **Sub-commands are registered**: Sub-linters/formatters MUST be registered in a slice within the parent command's entry point file. No ad-hoc invocations.
+6. **Test presence**: Every package under `internal/apps/cicd/` MUST have at least one `_test.go` file (enforced by `lint_go/test_presence` sub-linter).
 
 ---
 
@@ -3124,7 +3288,7 @@ healthcheck-secrets:
 
 ##### Cross-Reference Documentation
 
-- Secrets generation scripts: `internal/cmd/cicd/secrets/` (Python secrets module)
+- Secrets generation scripts: `internal/apps/cicd/secrets/` (Python secrets module)
 - Security architecture: [02-05.security.instructions.md](../.github/instructions/02-05.security.instructions.md#secret-management---mandatory)
 - Hash service patterns: [02-05.security.instructions.md](../.github/instructions/02-05.security.instructions.md#hash-service-architecture)
 - Docker Compose templates: `deployments/template/compose-cryptoutil*.yml`
@@ -3295,7 +3459,7 @@ HASH_PEPPER_FILE: /run/secrets/cryptoutil-hash_pepper.secret
 
 **Enforcement**: Linter validates ALL 19 deployments (9 SERVICE, 5 PRODUCT, 1 SUITE, 1 template, 3 infrastructure).
 
-**Implementation**: [internal/cmd/cicd/lint_deployments/lint_deployments.go](/internal/cmd/cicd/lint_deployments/) with `validateProductSecrets()` and `validateSuiteSecrets()` functions.
+**Implementation**: [internal/apps/cicd/lint_deployments/lint_deployments.go](/internal/apps/cicd/lint_deployments/) with `validateProductSecrets()` and `validateSuiteSecrets()` functions.
 
 ##### Cross-Reference Documentation
 
@@ -3310,7 +3474,7 @@ HASH_PEPPER_FILE: /run/secrets/cryptoutil-hash_pepper.secret
 
 **Linter Tool**: `cicd lint-deployments <directory>` validates all deployments in a directory tree.
 
-**Implementation**: [internal/cmd/cicd/lint_deployments](/internal/cmd/cicd/lint_deployments/) package with comprehensive table-driven tests.
+**Implementation**: [internal/apps/cicd/lint_deployments](/internal/apps/cicd/lint_deployments/) package with comprehensive table-driven tests.
 
 #### 12.4.1 Deployment Types
 
@@ -3507,7 +3671,7 @@ if file == "demo-seed.yml" || file == "integration.yml" {
 
 #### 12.4.8 Config File Content Validation
 
-**Implementation**: `ValidateConfigFile()` in [internal/cmd/cicd/lint_deployments/validate_config.go](/internal/cmd/cicd/lint_deployments/validate_config.go)
+**Implementation**: `ValidateConfigFile()` in [internal/apps/cicd/lint_deployments/validate_config.go](/internal/apps/cicd/lint_deployments/validate_config.go)
 
 **Schema Reference**: See [CONFIG-SCHEMA.md](/docs/CONFIG-SCHEMA.md) for complete config file schema with all supported keys, types, and valid values.
 
@@ -3525,7 +3689,7 @@ if file == "demo-seed.yml" || file == "integration.yml" {
 
 #### 12.4.9 Compose File Content Validation
 
-**Implementation**: `ValidateComposeFile()` in [internal/cmd/cicd/lint_deployments/validate_compose.go](/internal/cmd/cicd/lint_deployments/validate_compose.go)
+**Implementation**: `ValidateComposeFile()` in [internal/apps/cicd/lint_deployments/validate_compose.go](/internal/apps/cicd/lint_deployments/validate_compose.go)
 
 **Validation Rules**:
 
@@ -3541,7 +3705,7 @@ if file == "demo-seed.yml" || file == "integration.yml" {
 
 #### 12.4.10 Structural Mirror Validation
 
-**Implementation**: `ValidateStructuralMirror()` in [internal/cmd/cicd/lint_deployments/validate_mirror.go](/internal/cmd/cicd/lint_deployments/validate_mirror.go)
+**Implementation**: `ValidateStructuralMirror()` in [internal/apps/cicd/lint_deployments/validate_mirror.go](/internal/apps/cicd/lint_deployments/validate_mirror.go)
 
 **Direction**: `deployments/` → `configs/` (one-way). Every deployment directory MUST have a `configs/` counterpart.
 
@@ -3589,7 +3753,7 @@ if file == "demo-seed.yml" || file == "integration.yml" {
 | 7 | **ValidateAdmin** | `deployments/` compose files | Validate admin endpoint bind policy | Admin port must bind to `127.0.0.1:9090` (never `0.0.0.0`); ensures admin API never exposed outside container. |
 | 8 | **ValidateSecrets** | `deployments/` compose files | Detect inline secrets in environment variables | Secret-pattern env vars (PASSWORD, SECRET, TOKEN, KEY, API_KEY) must use Docker secrets (`/run/secrets/`); length threshold ≥32/43 chars for non-reference values. Infrastructure deployments excluded. |
 
-**Cross-References**: Each validator is implemented in `internal/cmd/cicd/lint_deployments/validate_<name>.go` with comprehensive table-driven tests in `validate_<name>_test.go`. See code comments for detailed validation rules (per Decision 9:A minimal docs, comprehensive code comments).
+**Cross-References**: Each validator is implemented in `internal/apps/cicd/lint_deployments/validate_<name>.go` with comprehensive table-driven tests in `validate_<name>_test.go`. See code comments for detailed validation rules (per Decision 9:A minimal docs, comprehensive code comments).
 
 ### 12.5 Config File Architecture
 
@@ -3647,7 +3811,7 @@ configs/
 | Certificate profile | `profiles/*.yaml` | X.509 certificate definitions | `tls-server.yaml` |
 | Auth policy | `policies/*.yml` | Authentication/authorization rules | `adaptive-auth.yml` |
 
-**Cross-References**: Schema validation rules in [validate_schema.go](/internal/cmd/cicd/lint_deployments/validate_schema.go). Config naming in [Section 12.4.5](#1245-config-file-naming-strategy).
+**Cross-References**: Schema validation rules in [validate_schema.go](/internal/apps/cicd/lint_deployments/validate_schema.go). Config naming in [Section 12.4.5](#1245-config-file-naming-strategy).
 
 ### 12.6 Secrets Management in Deployments
 
@@ -3659,7 +3823,7 @@ configs/
 
 **Detection Strategy**: Length-based threshold (≥32 bytes / ≥43 base64 chars) identifies high-entropy inline values. Safe references (`/run/secrets/`, Docker secret names, short dev defaults) are excluded. No entropy calculation (too many false positives). Infrastructure deployments (Grafana, OTLP collector) are excluded from secrets validation since they use intentional inline dev credentials.
 
-**Cross-References**: Secrets coordination strategy in [Section 12.3.3](#1233-secrets-coordination-strategy). Validator implementation in [validate_secrets.go](/internal/cmd/cicd/lint_deployments/validate_secrets.go).
+**Cross-References**: Secrets coordination strategy in [Section 12.3.3](#1233-secrets-coordination-strategy). Validator implementation in [validate_secrets.go](/internal/apps/cicd/lint_deployments/validate_secrets.go).
 
 ### 12.7 Documentation Propagation Strategy
 

@@ -84,6 +84,24 @@ func chunkMappings() []ChunkMapping {
 			DestFile:    ".github/instructions/03-01.coding.instructions.md",
 			MarkerText:  "Validator Error Aggregation",
 		},
+		{
+			ArchSection: "9.10",
+			Description: "CICD Command Architecture",
+			DestFile:    ".github/instructions/04-01.deployment.instructions.md",
+			MarkerText:  "cicd-command-naming",
+		},
+		{
+			ArchSection: "2.5",
+			Description: "Mandatory Review Passes (beast-mode)",
+			DestFile:    ".github/instructions/01-02.beast-mode.instructions.md",
+			MarkerText:  "mandatory-review-passes",
+		},
+		{
+			ArchSection: "2.5",
+			Description: "Mandatory Review Passes (evidence-based)",
+			DestFile:    ".github/instructions/06-01.evidence-based.instructions.md",
+			MarkerText:  "mandatory-review-passes",
+		},
 	}
 }
 
