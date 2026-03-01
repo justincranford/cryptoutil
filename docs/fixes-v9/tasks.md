@@ -22,7 +22,7 @@ Every task: ALL 8 quality attributes verified each review pass. All issues are b
 
 ### Task 1.2: Update beast-mode.instructions.md @source
 - [ ] Update @source block to match new Section 2.5 verbatim
-- [ ] Run lint-docs to verify chain
+- [x] Run lint-docs to verify chain
 - **Files**: `.github/instructions/01-02.beast-mode.instructions.md`
 
 ### Task 1.3: Update evidence-based.instructions.md @source
@@ -59,49 +59,49 @@ Every task: ALL 8 quality attributes verified each review pass. All issues are b
 ## Phase 3: ARCHITECTURE.md Optimization
 
 ### Task 3.1: Consolidate quality attributes → Section 11.1
-- [ ] Add @propagate marker in Section 11.1 around full quality attributes list
-- [ ] Replace quality attribute lists in 1.3 + 2.5 with @source blocks
+- [x] Add @propagate marker in Section 11.1 around full quality attributes list
+- [x] Replace quality attribute lists in 1.3 + 2.5 with @source blocks
 - [ ] Run lint-docs to verify chain
 - **Expected**: ~40–60 lines saved
 
 ### Task 3.2: CLI patterns canonical → Section 4.4.7
-- [ ] Section 4.4.7 → KEEP all CLI content (canonical)
-- [ ] Section 9.1 → remove duplicated HOW content; add cross-reference to 4.4.7
-- [ ] Check all instruction files referencing 9.1 for CLI patterns — update cross-references if needed
+- [x] Section 4.4.7 → KEEP all CLI content (canonical)
+- [x] Section 9.1 → remove duplicated HOW content; add cross-reference to 4.4.7
+- [x] Check all instruction files referencing 9.1 for CLI patterns — update cross-references if needed
 - **Expected**: ~30–50 lines saved
 
 ### Task 3.3: Port assignments → Section 3.4, DELETE Appendix B.1 + B.2
-- [ ] Read Section 3.4 — ensure it has complete service AND database port tables
-- [ ] Merge any rows from B.1/B.2 not yet in 3.4
-- [ ] DELETE Appendix B.1 (Service Port Assignments)
-- [ ] DELETE Appendix B.2 (Database Port Assignments)
-- [ ] Resequence: old B.3 → B.1, B.4 → B.2, etc.
-- [ ] Update TOC and all cross-references to old B.1/B.2 → Section 3.4
-- [ ] Update all cross-references to old B.3+ → new B.# numbers
+- [x] Read Section 3.4 — ensure it has complete service AND database port tables
+- [x] Merge any rows from B.1/B.2 not yet in 3.4
+- [x] DELETE Appendix B.1 (Service Port Assignments)
+- [x] DELETE Appendix B.2 (Database Port Assignments)
+- [x] Resequence: old B.3 → B.1, B.4 → B.2, etc.
+- [x] Update TOC and all cross-references to old B.1/B.2 → Section 3.4
+- [x] Update all cross-references to old B.3+ → new B.# numbers
 - **Expected**: ~80–120 lines saved
 
 ### Task 3.4: Verify infrastructure blocker in both 13.7 and 2.5 (no deletion)
-- [ ] Read both sections — confirm consistent, no contradictions
+- [x] Read both sections — confirm consistent, no contradictions
 
 ### Task 3.5: Add new Copilot Skills section to ARCHITECTURE.md
-- [ ] Determine section number (new subsection in 2.X area)
-- [ ] Write section: VS Code Skills overview, `.github/skills/` organization, `SKILLNAME.md` naming, skill catalogue table (name, purpose, link), reference to VS Code docs
-- [ ] Add to TOC
+- [x] Determine section number (new subsection in 2.X area)
+- [x] Write section: VS Code Skills overview, `.github/skills/` organization, `SKILLNAME.md` naming, skill catalogue table (name, purpose, link), reference to VS Code docs
+- [x] Add to TOC
 - **Adds**: ~30–50 lines
 
 ### Task 3.6: Add agent/skill/instruction matrix to Section 2.1
-- [ ] Add concise 4-row decision table: Instructions / Agents / Skills — scope, trigger, best for
-- [ ] Cross-reference to skills section
+- [x] Add concise 4-row decision table: Instructions / Agents / Skills — scope, trigger, best for
+- [x] Cross-reference to skills section
 - **Adds**: ~10–15 lines
 
 ### Task 3.7: Review pass count sweep (any missed occurrences)
-- [ ] `grep -n "3 passes\|3 review\|exactly 3\|minimum 3" docs/ARCHITECTURE.md`
-- [ ] Update remaining stale mentions
+- [x] `grep -n "3 passes\|3 review\|exactly 3\|minimum 3" docs/ARCHITECTURE.md`
+- [x] Update remaining stale mentions
 
 ### Task 3.8: Verify line count target
-- [ ] `wc -l docs/ARCHITECTURE.md` — record before and after
-- [ ] Target: <4,000 lines
-- [ ] If not reached: identify additional prose candidates (no semantic loss)
+- [x] `wc -l docs/ARCHITECTURE.md` — record before and after
+- [x] Target: <4,000 lines
+- [x] If not reached: identify additional prose candidates (no semantic loss)
 
 ---
 

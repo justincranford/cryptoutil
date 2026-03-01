@@ -157,10 +157,7 @@ This document is structured to serve multiple audiences:
 
 #### Maximum Quality Strategy
 
-- **NO EXCEPTIONS**: Quality, correctness, completeness, thoroughness, reliability, efficiency, and accuracy are ALL mandatory
-- **Evidence-based validation**: Objective proof required for task completion
-- **Reliability and efficiency**: Optimized for maintainability and performance, NOT implementation speed
-- **Time/token pressure does NOT exist**: Work spans hours/days/weeks as needed
+See [Section 11.1 Maximum Quality Strategy](#111-maximum-quality-strategy---mandatory) for complete quality attributes (NO EXCEPTIONS). Evidence-based validation is mandatory for all task completion.
 
 #### Microservices Architecture
 
@@ -212,6 +209,18 @@ This document is structured to serve multiple audiences:
 
 ### 2.1 Agent Orchestration Strategy
 
+#### Copilot Customization Types Decision Matrix
+
+VS Code Copilot supports exactly 3 customization file types:
+
+| Type | Pattern | Trigger | Best For |
+|------|---------|---------|----------|
+| **Instructions** | `.github/instructions/*.instructions.md` | Always loaded automatically | Passive context, standards, constraints |
+| **Agents** | `.github/agents/*.agent.md` | `/agent-name` invocation | Complex multi-step autonomous tasks |
+| **Skills** | `.github/skills/*.md` | `#skill-name` in chat | On-demand templates, code generation, analysis |
+
+See [Section 2.1.5 Copilot Skills](#215-copilot-skills) for skill catalogue and `.github/skills/` organization.
+
 #### 2.1.1 Agent Architecture
 
 - Agent isolation principle (agents do NOT inherit copilot instructions)
@@ -256,6 +265,27 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 - Auto-discovery and alphanumeric ordering
 - Single responsibility per file
 - Cross-reference patterns
+
+#### 2.1.5 Copilot Skills
+
+Skills live in `.github/skills/SKILLNAME.md`. Referenced via `#skill-name` in VS Code Copilot Chat. Each skill provides targeted context for a specific task type (test generation, code analysis, scaffolding). See [VS Code Copilot Chat Skills reference](https://code.visualstudio.com/docs/copilot/chat/chat-skills).
+
+**Skill Catalogue**:
+
+| Skill | Purpose | File |
+|-------|---------|------|
+| `test-table-driven` | Generate table-driven Go tests (t.Parallel, UUIDv7 data, subtests) | [test-table-driven.md](.github/skills/test-table-driven.md) |
+| `test-fuzz-gen` | Generate `_fuzz_test.go` (15s fuzz time, corpus examples, build tags) | [test-fuzz-gen.md](.github/skills/test-fuzz-gen.md) |
+| `test-benchmark-gen` | Generate `_bench_test.go` (mandatory for crypto, reset timer pattern) | [test-benchmark-gen.md](.github/skills/test-benchmark-gen.md) |
+| `migration-create` | Create numbered golang-migrate SQL files (template 1001-1999, domain 2001+) | [migration-create.md](.github/skills/migration-create.md) |
+| `coverage-analysis` | Analyze coverprofile output, categorize uncovered lines, suggest tests | [coverage-analysis.md](.github/skills/coverage-analysis.md) |
+| `fips-audit` | Detect FIPS 140-3 violations and provide fix guidance | [fips-audit.md](.github/skills/fips-audit.md) |
+| `propagation-check` | Detect @propagate/@source drift, generate corrected @source blocks | [propagation-check.md](.github/skills/propagation-check.md) |
+| `openapi-codegen` | Generate three oapi-codegen configs (server/model/client) + OpenAPI spec skeleton | [openapi-codegen.md](.github/skills/openapi-codegen.md) |
+| `agent-scaffold` | Create conformant `.github/agents/NAME.agent.md` with all mandatory sections | [agent-scaffold.md](.github/skills/agent-scaffold.md) |
+| `instruction-scaffold` | Create conformant `.github/instructions/NN-NN.name.instructions.md` | [instruction-scaffold.md](.github/skills/instruction-scaffold.md) |
+| `skill-scaffold` | Create conformant `.github/skills/NAME.md` | [skill-scaffold.md](.github/skills/skill-scaffold.md) |
+| `new-service` | Guide service creation from skeleton-template: copy, rename, register, migrate, test | [new-service.md](.github/skills/new-service.md) |
 
 ### 2.2 Architecture Strategy
 
@@ -372,6 +402,8 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 - **Blocker Resolution**: Document in tracking doc, continue with ALL unblocked tasks, maximize progress, return to blocker when resolved; NO waiting for external dependencies
 
 ### 2.5 Quality Strategy
+
+**Quality Attributes**: See [Section 11.1 Maximum Quality Strategy](#111-maximum-quality-strategy---mandatory) for the complete quality attributes list (NO EXCEPTIONS).
 
 #### Coverage Targets
 
@@ -1827,23 +1859,9 @@ cryptoutil follows an OpenAPI-first design approach, ensuring all APIs are defin
 
 ### 9.1 CLI Patterns & Strategy
 
-#### 9.1.1 Suite-Level CLI Pattern
+Three hierarchical levels: Suite (`cmd/cryptoutil/`), Product (`cmd/PRODUCT/`), Service (`cmd/PRODUCT-SERVICE/`). All delegate to `internal/apps/` layers with subcommands: server, client, health, livez, readyz, shutdown, init, compose, demo, e2e.
 
-- Unified cryptoutil executable
-- Product → Service → Subcommand routing
-- Zero-dependency binary distribution
-
-#### 9.1.2 Product-Level CLI Pattern
-
-- Separate executable per product
-- Service delegation patterns
-- Multi-service orchestration
-
-#### 9.1.3 Service-Level CLI Pattern
-
-- Standalone service executables
-- Direct subcommand execution
-- Container deployment patterns
+See [Section 4.4.7 CLI Patterns](#447-cli-patterns) for complete hierarchy, routing rules, and anti-patterns (no executables for subcommands).
 
 ### 9.2 Configuration Architecture & Strategy
 
@@ -2813,6 +2831,7 @@ func BenchmarkAESEncrypt(b *testing.B) {
 
 ### 11.1 Maximum Quality Strategy - MANDATORY
 
+<!-- @propagate to=".github/instructions/01-02.beast-mode.instructions.md" as="quality-attributes" -->
 **Quality Attributes (NO EXCEPTIONS)**:
 - ✅ Correctness: ALL code functionally correct with comprehensive tests
 - ✅ Completeness: NO phases or tasks or steps skipped, NO features de-prioritized, NO shortcuts
@@ -2822,6 +2841,7 @@ func BenchmarkAESEncrypt(b *testing.B) {
 - ✅ Accuracy: Changes must address root cause, not just symptoms
 - ❌ Time Pressure: NEVER rush, NEVER skip validation, NEVER defer quality checks
 - ❌ Premature Completion: NEVER mark phases or tasks or steps complete without objective evidence
+<!-- @/propagate -->
 
 **ALL issues are blockers - NO exceptions:**
 
@@ -3968,7 +3988,7 @@ Propagation markers are added incrementally:
 | abbreviations | Document Conventions | 01-01.terminology |
 | infrastructure-blocker-escalation | 13.7 | 01-02.beast-mode, 06-01.evidence-based |
 | service-template-components | 5.1.1 | 02-01.architecture |
-| minimum-versions | B.3 | 02-02.versions |
+| minimum-versions | B.1 | 02-02.versions |
 | otel-collector-constraints | 9.4.1 | 02-03.observability |
 | http-status-codes | 8.4 | 02-04.openapi |
 | secrets-detection-strategy | 6.10 | 02-05.security |
@@ -4298,19 +4318,7 @@ Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATO
 
 ## Appendix B: Reference Tables
 
-### B.1 Service Port Assignments
-
-**See Section 3.2 Product-Service Port Assignments** for complete table
-
-**Summary**: sm-kms (8000-8099), pki-ca (8100-8199), identity-authz (8200-8299), identity-idp (8300-8399), identity-rs (8400-8499), identity-rp (8500-8599), identity-spa (8600-8699), sm-im (8700-8799), jose-ja (8800-8899), skeleton-template (8900-8999)
-
-### B.2 Database Port Assignments
-
-**See Section 3.4.2 PostgreSQL Ports** for complete table
-
-**Summary**: Host ports 54320-54329 map to container port 5432 for 10 services
-
-### B.3 Technology Stack
+### B.1 Technology Stack
 
 <!-- @propagate to=".github/instructions/02-02.versions.instructions.md" as="minimum-versions" -->
 **CRITICAL: ALWAYS use the same version everywhere** (dev, CI/CD, Docker, workflows, docs)
@@ -4333,7 +4341,7 @@ Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATO
 **Security**: FIPS 140-3 approved algorithms, Docker/Kubernetes secrets
 **Testing**: testify, gremlins (mutation), Nuclei/ZAP (DAST), Gatling (load)
 
-### B.4 Dependency Matrix
+### B.2 Dependency Matrix
 
 **Core Dependencies**:
 
@@ -4345,7 +4353,7 @@ Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATO
 
 **Test Dependencies**: testify, testcontainers-go, httptest
 
-### B.5 Configuration Reference
+### B.3 Configuration Reference
 
 **Priority Order**: Docker secrets > YAML > CLI parameters (NO env vars for secrets)
 
@@ -4354,13 +4362,13 @@ Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATO
 - config.yml: Main configuration
 - secrets/*.secret: Credentials (chmod 440)
 
-### B.6 Instruction File Reference
+### B.4 Instruction File Reference
 
 **See .github/copilot-instructions.md** for complete table of 18 instruction files
 
 **Summary**: 01-terminology/beast-mode, 02-architecture (5 files), 03-development (4 files), 04-deployment (1 file), 05-platform (2 files), 06-evidence (2 files)
 
-### B.7 Agent Catalog & Handoff Matrix
+### B.5 Agent Catalog & Handoff Matrix
 
 | Agent | Description | Tools | Handoffs |
 |-------|-------------|-------|----------|
@@ -4370,7 +4378,7 @@ Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATO
 | fix-workflows | Workflow repair and validation | TBD | TBD |
 | beast-mode | Continuous execution mode | TBD | TBD |
 
-### B.8 CI/CD Workflow Catalog
+### B.6 CI/CD Workflow Catalog
 
 | Workflow | Purpose | Dependencies | Duration | Timeout |
 |----------|---------|--------------|----------|---------|
@@ -4386,14 +4394,14 @@ Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATO
 | ci-gitleaks | Secret detection | None | 2-3min | 10min |
 | release | Automated release workflows | ci-* passing | TBD | 30min |
 
-### B.9 Reusable Action Catalog
+### B.7 Reusable Action Catalog
 
 | Action | Description | Inputs | Outputs |
 |--------|-------------|--------|---------|
 | docker-images-pull | Parallel Docker image pre-fetching | images (newline-separated list) | None |
 | Additional actions | TBD | TBD | TBD |
 
-### B.10 Linter Rule Reference
+### B.8 Linter Rule Reference
 
 | Linter | Purpose | Enabled | Auto-Fix | Exclusions |
 |--------|---------|---------|----------|------------|

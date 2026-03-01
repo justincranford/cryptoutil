@@ -231,7 +231,7 @@
 
 **Subsections**:
 - Appendix A: Decision Records (4026-4055): ADRs, technology selection, pattern selection
-- Appendix B: Reference Tables (4057-4166): Service ports, DB ports, tech stack, dependencies, config reference, instruction files, agents, CI/CD workflows, reusable actions, linter rules
+- Appendix B: Reference Tables: Tech stack (B.1), dependency matrix (B.2), config reference (B.3), instruction files (B.4), agents (B.5), CI/CD workflows (B.6), reusable actions (B.7), linter rules (B.8) — port assignments now in Section 3.4
 - Appendix C: Compliance Matrix (4168-4202): FIPS 140-3, PKI standards, OAuth 2.1/OIDC 1.0, security standards
 
 ---
