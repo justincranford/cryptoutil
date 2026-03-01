@@ -197,8 +197,6 @@ Every task: ALL 8 quality attributes verified each review pass. All issues are b
 - [ ] Add `editorconfig-checker/editorconfig-checker` hook to `.pre-commit-config.yaml`
 - [ ] Verify all existing files pass (`pre-commit run editorconfig-checker --all-files`); fix any violations
 
-**Skipped** (final): govulncheck (B), vale (B), codespell (B quizme-v4)
-**Deferred to quizme-v5**: trivy (C again), semgrep (C again)
 **Note**: ruff-check and ruff-format hooks implemented in Phase 7 (Python migration)
 
 ---
@@ -268,7 +266,7 @@ Every task: ALL 8 quality attributes verified each review pass. All issues are b
 - [ ] Run `cd test/load && mvn verify` — verify coverage report generated and threshold passes
 - [ ] Add CI/CD workflow step to upload JaCoCo coverage report as artifact
 
-**Skipped** (final): PMD (B — SpotBugs already present and preferred), ArchUnit (B quizme-v4 — load test arch is simple)
+
 
 ---
 
@@ -295,15 +293,12 @@ Every task: ALL 8 quality attributes verified each review pass. All issues are b
 
 ## Phase 10: skeleton-template Improvements
 
-### Task 10.1: ~~SCAFFOLDING.md in project root~~ — SKIPPED (quizme-v3 S4-Item1)
-**Decision**: No — no more doc bloat and doc sprawl (user quizme-v3 answer). Omit this task.
-
-### Task 10.2: Add template comment headers to skeleton source files
+### Task 10.1: Add template comment headers to skeleton source files
 - [ ] Add `// TEMPLATE: Copy and rename 'skeleton' → your-service-name before use` to key skeleton source files
 - [ ] Target files: `internal/apps/skeleton/template/*.go` and `cmd/skeleton-template/main.go`
 - [ ] Verify comments are clear and discoverable
 
-### Task 10.3: Add CICD placeholder detection lint rule (quizme-v4 YES)
+### Task 10.2: Add CICD placeholder detection lint rule
 - [ ] Add new `validate-skeleton` validator in `internal/apps/cicd/lint_skeleton/` (following existing validator pattern)
 - [ ] Validator scans all non-skeleton directories for unreplaced `skeleton`/`Skeleton`/`SKELETON` strings in `.go` source files
 - [ ] Register command as `cicd lint-skeleton` in the CICD command dispatcher
@@ -311,10 +306,7 @@ Every task: ALL 8 quality attributes verified each review pass. All issues are b
 - [ ] Add tests for the validator (≥98% coverage)
 - [ ] Verify runs cleanly (`go run ./cmd/cicd lint-skeleton`)
 
-### Task 10.4: ~~new-service.agent.md~~ — SKIPPED (create skill instead per quizme-v3 S4-Item4)
-**Decision**: "NO — make it a skill". Moved to Phase 5: `new-service.md` in `.github/skills/`.
-
-### Task 10.5: Add example domain pattern to skeleton-template (commented out)
+### Task 10.3: Add example domain pattern to skeleton-template (commented out)
 - [ ] Add example: entity model (GORM), repository, service, handler — as commented reference
 - [ ] Shows correct patterns without running code
 

@@ -28,9 +28,9 @@ Eleven phases of improvement, all to be implemented:
 3. **Phase 3: ARCHITECTURE.md Optimization** — Consolidate duplications, fill omissions (skills section, agent/skill/instruction matrix); target <4,000 lines
 4. **Phase 4: doc-sync Propagation** — Add 12.7, 11.4, B.6 @source blocks to doc-sync.agent.md
 5. **Phase 5: Copilot Skills** — Create 13 skills + infrastructure (12 from quizme-v2 + `new-service` from quizme-v3 S4-Item4)
-6. **Phase 6: Pre-commit/Pre-push Linters** — 8 approved: ruff-check, ruff-format, checkov, sqlfluff, taplo, pyproject-fmt, validate-pyproject, editorconfig-checker; 3 skipped: govulncheck, vale, codespell; 2 deferred to quizme-v5: trivy, semgrep
+6. **Phase 6: Pre-commit/Pre-push Linters** — Add 8 approved hooks: ruff-check, ruff-format, checkov, sqlfluff, taplo, pyproject-fmt, validate-pyproject, editorconfig-checker
 7. **Phase 7: Python Toolchain Modernization** — All 5 items confirmed YES: remove black+isort+flake8, add ruff, migrate to uvx
-8. **Phase 8: Java Toolchain Additions** — 6 approved: Spotless, Checkstyle, Error Prone, NullAway, maven-enforcer, JaCoCo (mandatory + high threshold); PMD skipped (SpotBugs preferred); ArchUnit skipped (load test arch is simple, B quizme-v4)
+8. **Phase 8: Java Toolchain Additions** — Add 6 tools to load tests: Spotless, Checkstyle, Error Prone, NullAway, maven-enforcer, JaCoCo (mandatory + ≥95% coverage threshold)
 9. **Phase 9: lint-deployments Error Messages** — Analyze and improve all validator error messages for clarity and actionability (Q4 from quizme-v2)
 10. **Phase 10: skeleton-template Improvements** — Research-driven improvements to naming, content, placeholder detection, auto-discovery (Q6 from quizme-v2)
 11. **Phase 11: Validation** — lint-docs, build, lint, tests; 3–5 review passes
@@ -173,63 +173,23 @@ Skills section added in Phase 3.5 will include catalogue table.
 
 **Status**: Decisions confirmed from quizme-v3. Ready for implementation.
 
-### Decisions
+### Approved Hooks to Add
 
-| Candidate | Decision | Action |
-|-----------|----------|--------|
-| govulncheck | B — SKIP | Already covered by OWASP check + gosec; CI-only sufficient |
-| ruff check | A — YES | Part of Phase 7 Python migration; add `astral-sh/ruff-pre-commit` ruff hook |
-| ruff format | A — YES | Part of Phase 7 Python migration; add `astral-sh/ruff-pre-commit` ruff-format hook |
-| checkov | A — YES | Add `bridgecrewio/checkov` for Dockerfile + Compose security |
-| trivy | C — DEFER | Deferred again; move to quizme-v5 |
-| semgrep | C — DEFER | Deferred again; move to quizme-v5 |
-| sqlfluff | A — YES | Add for SQL migration files (`.sql`), dialect=postgres |
-| vale | B — SKIP | markdownlint-cli2 sufficient; prose linting not needed |
-| codespell | B — SKIP | Not a significant problem in this project (quizme-v4 B) |
-| taplo | A — YES | Add for TOML file formatting |
-| pyproject-fmt | A — YES | Add for `pyproject.toml` normalization |
-| validate-pyproject | A — YES | Add schema validation for `pyproject.toml` |
-| editorconfig-checker | A — YES | Create `.editorconfig` first; then add hook (quizme-v4 A) |
+| Hook | Tool | Action |
+|------|------|--------|
+| ruff check | astral-sh/ruff-pre-commit | Python linting (replacing flake8+isort+pyupgrade) |
+| ruff format | astral-sh/ruff-pre-commit | Python formatting (replacing black) |
+| checkov | bridgecrewio/checkov | Deep Docker/compose security scanning |
+| sqlfluff | sqlfluff-pre-commit | SQL migration file linting, dialect=postgres |
+| taplo | CommaNet/taplo-pre-commit | TOML file formatting |
+| pyproject-fmt | tox-dev/pyproject-fmt | Auto-format `pyproject.toml` |
+| validate-pyproject | abravalheri/validate-pyproject | Schema validation for `pyproject.toml` |
+| editorconfig-checker | editorconfig-checker | All-file editorconfig compliance (requires `.editorconfig` first) |
 
-**8 approved** (ruff-check+format in Phase 7): ruff-check, ruff-format, checkov, sqlfluff, taplo, pyproject-fmt, validate-pyproject, editorconfig-checker
-**3 skipped**: govulncheck, vale, codespell
-**2 deferred to quizme-v5**: trivy, semgrep
-
-### Current Hooks Inventory (already have)
+### Current Hooks Inventory (already in place)
 **Go**: golangci-lint (full + incremental), go build, cicd custom lint (lint-docs, lint-go, lint-text, lint-workflow, lint-deployments, lint-ports, etc.), go mod tidy
 **Python**: bandit (security)
 **Other**: gitleaks (secrets), yamllint, actionlint (GitHub Actions YAML), hadolint (Dockerfile), shellcheck, markdownlint-cli2, commitizen (conventional commits), pre-commit-hooks (yaml, json, toml, xml, end-of-file, trailing-whitespace, merge-conflict, etc.)
-
-### Candidate Additions (decisions complete — historical reference)
-
-#### Go / Security
-1. **govulncheck** — Scans `go.sum` against Go module vulnerability database (CVE detection). Critical gap — different from gosec (runtime security patterns) vs. CVE database.
-
-#### Python Linting (superseded by Phase 7 ruff migration — see below)
-2. **ruff check** (pre-commit via `astral-sh/ruff-pre-commit`) — Replaces flake8+isort+pyupgrade. Included in Phase 7.
-3. **ruff format** (pre-commit via `astral-sh/ruff-pre-commit`) — Replaces black. Included in Phase 7.
-
-#### IaC / Container Security
-4. **checkov** (`bridgecrewio/checkov` pre-commit) — Deep Docker/docker-compose security scanning. Complements hadolint (syntax) with security policy checks (CIS benchmarks, OWASP).
-5. **trivy** — Container image + dependency vulnerability scanning. Broader than govulncheck.
-6. **semgrep** — Multi-language SAST (Go, Python, YAML rules). Complements bandit (Python-only) and gosec (Go-only).
-
-#### SQL / Migrations
-7. **sqlfluff** — SQL linter/formatter for migration files (`*.sql`). Enforces consistent SQL style and catches common query issues.
-
-#### Documentation
-8. **vale** — Prose linter for `.md` files. Configurable writing style rules (Microsoft, Google, custom). Complements markdownlint-cli2 (structure) with prose quality checking.
-9. **codespell** — Typo detection in code comments, strings, docs. Faster than cspell for pre-commit.
-
-#### Config / Formatting
-10. **taplo** — TOML formatter (`*.toml`). Ensures consistent formatting of pyproject.toml, Cargo.toml style files.
-11. **pyproject-fmt** — Auto-formats `pyproject.toml` (sorts dependencies, normalizes structure).
-12. **validate-pyproject** — JSON Schema validation for `pyproject.toml`. Catches malformed project metadata.
-13. **editorconfig-checker** — Validates all files conform to `.editorconfig` rules (indent style, line endings, etc.).
-
-#### Java (pre-commit hooks for Maven-based load tests)
-14. **spotless:check** (via Maven lifecycle, not pre-commit hook) — Enforces google-java-format style on Java source files.
-15. **checkstyle** (Maven plugin) — Java code style validation (Google or custom style config).
 
 ---
 
@@ -291,20 +251,14 @@ Already has: spotbugs + findsecbugs, owasp-dependency-check, versions-maven-plug
 
 ### Decisions (from quizme-v3)
 
-| Tool | Decision | Action |
-|------|----------|--------|
-| Spotless + google-java-format | A — YES | Add `spotless-maven-plugin` with google-java-format, phase=validate |
-| Checkstyle | A — YES | Add `maven-checkstyle-plugin` with Google rules, phase=validate |
-| PMD | B — SKIP | SpotBugs already provides analysis; PMD overlaps too much; prefer SpotBugs |
-| Error Prone | A — YES | Add to `maven-compiler-plugin` config as annotation processor |
-| NullAway | A — YES | Add as Error Prone plugin (requires Error Prone) |
-| maven-enforcer | A — YES | Add with `dependencyConvergence` + `requireJavaVersion` + `requireMavenVersion` rules |
-| JaCoCo | A — YES (MANDATORY, high threshold) | Add with high coverage thresholds matching Go standards (≥95%); absolutely mandatory |
-| ArchUnit | B — SKIP | Load test architecture is simple; ArchUnit is overkill (quizme-v4 B) |
-
-**6 approved**: Spotless, Checkstyle, Error Prone, NullAway, maven-enforcer, JaCoCo
-**1 skipped**: PMD (SpotBugs preferred)
-**1 skipped (quizme-v4 final)**: ArchUnit (load test arch is simple)
+| Tool | Action |
+|------|--------|
+| Spotless + google-java-format | Add `spotless-maven-plugin` with google-java-format, phase=validate |
+| Checkstyle | Add `maven-checkstyle-plugin` with Google rules, phase=validate |
+| Error Prone | Add to `maven-compiler-plugin` config as annotation processor |
+| NullAway | Add as Error Prone plugin (requires Error Prone) |
+| maven-enforcer | Add with `dependencyConvergence` + `requireJavaVersion` + `requireMavenVersion` rules |
+| JaCoCo | Add with high coverage thresholds matching Go standards (≥95%); absolutely mandatory, failing build on threshold breach |
 
 **JaCoCo note**: User specified "absolutely mandatory, with high threshold like Go coverage thresholds" — configure with ≥95% line coverage minimum, failing build on threshold breach.
 
@@ -316,14 +270,10 @@ Already has: spotbugs + findsecbugs, owasp-dependency-check, versions-maven-plug
 |------|---------|---------------|
 | **google-java-format** (via Spotless) | Java code formatter — consistent style | ruff format (Python) |
 | **Checkstyle** | Java style enforcement (Google/Sun style guide) | golangci-lint stylecheck (Go) |
-| **PMD** | Java code quality (dead code, complexity, best practices) | golangci-lint staticcheck (Go) |
 | **Error Prone** | Compile-time bug detection via annotation processor | go vet (Go) |
 | **NullAway** | Null safety analysis, works with Error Prone | N/A (Go has nil checks) |
 | **maven-enforcer** | Enforce Maven version constraints, dependency convergence | go.mod (Go modules) |
 | **JaCoCo** | Java code coverage | go test -coverprofile (Go) |
-| **ArchUnit** | Architecture rule enforcement (e.g., simulation class conventions) | cicd circular_deps (Go) |
-
-All 8 candidates are in quizme-v3 as numbered list for per-tool decision.
 
 ---
 
