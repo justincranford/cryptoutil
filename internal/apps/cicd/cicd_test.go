@@ -26,7 +26,7 @@ func TestRunInvalidCommand(t *testing.T) {
 	t.Parallel()
 
 	// Test with invalid command.
-	err := run([]string{"invalid-command"})
+	err := run([]string{"invalid-command"}, []string{})
 	require.Error(t, err, "Expected error for invalid command")
 	require.Contains(t, err.Error(), "unknown command: invalid-command", "Error message should indicate unknown command")
 }
@@ -106,7 +106,7 @@ func TestRun_AllCommands_HappyPath(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			err := run(tc.commands)
+			err := run(tc.commands, []string{})
 			// Note: Some commands may fail due to project state (e.g., outdated dependencies).
 			// We're testing that the switch cases execute without panic, not that they pass.
 			if err != nil {
@@ -325,7 +325,7 @@ func TestGetFailedCommands_NoFailures(t *testing.T) {
 func TestRun_LintComposeCommand(t *testing.T) {
 	t.Parallel()
 
-	err := run([]string{"lint-compose"})
+	err := run([]string{"lint-compose"}, []string{})
 	// Command may pass or fail depending on compose files in project.
 	// We're testing that the switch case executes without panic.
 	if err != nil {

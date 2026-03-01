@@ -53,27 +53,15 @@ Lint Commands:
   lint-compose              Docker Compose file linters (admin port exposure)
   lint-ports                Port assignment validation (standardized ports)
   lint-workflow             Workflow file linters (GitHub Actions)
+  lint-deployments          Deployment structure and config file validation
+  lint-docs                 Documentation chunk verification and propagation validation
 
 Format Commands:
   format-go                 Go file formatters (any, copyloopvar)
   format-go-test            Go test file formatters (t.Helper)
 
-Deployment Commands:
-  lint-deployments [dir]    Validate deployment directory structures
-                            Default dir: deployments/
-  validate-all [dirs...]    Run all 8 deployment validators sequentially
-                            Defaults: deployments/ configs/
-
-Documentation Commands:
-  check-chunk-verification  Verify ARCHITECTURE.md chunks propagated to instruction files
-  validate-propagation      Validate all ARCHITECTURE.md section references
-  validate-chunks           Compare @propagate/@source marker content for staleness
-
-GitHub Cleanup Commands:
-  github-cleanup-runs       Delete old workflow runs (default: >7 days)
-  github-cleanup-artifacts  Delete old artifacts (default: >7 days)
-  github-cleanup-caches     Delete stale caches (default: not accessed in 7 days)
-  github-cleanup-all        Run all cleanup operations
+Script Commands:
+  github-cleanup            GitHub Actions storage cleanup (runs, artifacts, caches)
 
   GitHub Cleanup Flags:
     --confirm               Execute deletions (default: dry-run preview only)
@@ -87,11 +75,9 @@ Examples:
   cicd lint-text
   cicd lint-go lint-go-test format-go
   cicd lint-deployments
-  cicd validate-all deployments configs
-  cicd github-cleanup-all                   # Dry-run preview
-  cicd github-cleanup-all --confirm         # Execute deletions
-  cicd github-cleanup-runs --max-age-days=7 # Preview runs older than 7 days
-
-See: docs/ARCHITECTURE-TODO.md for architectural documentation (pending).
+  cicd lint-docs
+  cicd github-cleanup                   # Dry-run preview
+  cicd github-cleanup --confirm         # Execute deletions
+  cicd github-cleanup --max-age-days=7  # Preview runs older than 7 days
 `)
 }

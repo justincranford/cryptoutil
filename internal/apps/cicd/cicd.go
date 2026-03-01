@@ -13,12 +13,12 @@ import (
 	"time"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
-	cryptoutilDocsValidation "cryptoutil/internal/apps/cicd/docs_validation"
 	cryptoutilCmdCicdFormatGo "cryptoutil/internal/apps/cicd/format_go"
 	cryptoutilCmdCicdFormatGotest "cryptoutil/internal/apps/cicd/format_gotest"
 	cryptoutilGitHubCleanup "cryptoutil/internal/apps/cicd/github_cleanup"
 	cryptoutilCmdCicdLintCompose "cryptoutil/internal/apps/cicd/lint_compose"
 	cryptoutilLintDeployments "cryptoutil/internal/apps/cicd/lint_deployments"
+	cryptoutilLintDocs "cryptoutil/internal/apps/cicd/lint_docs"
 	cryptoutilCmdCicdLintGo "cryptoutil/internal/apps/cicd/lint_go"
 	cryptoutilCmdCicdLintGoMod "cryptoutil/internal/apps/cicd/lint_go_mod"
 	cryptoutilCmdCicdLintGolangci "cryptoutil/internal/apps/cicd/lint_golangci"
@@ -31,16 +31,19 @@ import (
 )
 
 const (
-	cmdLintText     = "lint-text"      // [Linter] Text file linters (UTF-8 encoding).
-	cmdLintGo       = "lint-go"        // [Linter] Go package linters (circular dependencies, CGO-free SQLite).
-	cmdLintGoTest   = "lint-go-test"   // [Linter] Go test file linters (test patterns).
-	cmdLintCompose  = "lint-compose"   // [Linter] Docker Compose file linters (admin port exposure).
-	cmdLintPorts    = "lint-ports"     // [Linter] Port assignment validation (standardized ports).
-	cmdLintWorkflow = "lint-workflow"  // [Linter] Workflow file linters (GitHub Actions).
-	cmdLintGoMod    = "lint-go-mod"    // [Linter] Go module linters (dependency updates).
-	cmdLintGolangci = "lint-golangci"  // [Linter] golangci-lint config validation (v2 compatibility).
-	cmdFormatGo     = "format-go"      // [Formatter] Go file formatters (any, copyloopvar).
-	cmdFormatGoTest = "format-go-test" // [Formatter] Go test file formatters (t.Helper).
+	cmdLintText        = "lint-text"        // [Linter] Text file linters (UTF-8 encoding).
+	cmdLintGo          = "lint-go"          // [Linter] Go package linters (circular dependencies, CGO-free SQLite).
+	cmdLintGoTest      = "lint-go-test"     // [Linter] Go test file linters (test patterns).
+	cmdLintCompose     = "lint-compose"     // [Linter] Docker Compose file linters (admin port exposure).
+	cmdLintPorts       = "lint-ports"       // [Linter] Port assignment validation (standardized ports).
+	cmdLintWorkflow    = "lint-workflow"    // [Linter] Workflow file linters (GitHub Actions).
+	cmdLintGoMod       = "lint-go-mod"      // [Linter] Go module linters (dependency updates).
+	cmdLintGolangci    = "lint-golangci"    // [Linter] golangci-lint config validation (v2 compatibility).
+	cmdFormatGo        = "format-go"        // [Formatter] Go file formatters (any, copyloopvar).
+	cmdFormatGoTest    = "format-go-test"   // [Formatter] Go test file formatters (t.Helper).
+	cmdLintDocs        = "lint-docs"        // [Linter] Documentation linters (chunk verification, propagation).
+	cmdLintDeployments = "lint-deployments" // [Linter] Deployment structure and config file validation.
+	cmdGitHubCleanup   = "github-cleanup"   // [Script] GitHub Actions storage cleanup (runs, artifacts, caches).
 )
 
 // Cicd executes the specified CI/CD check commands.
@@ -53,42 +56,10 @@ func Cicd(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 
-	command := args[1]
+	commands := args[1:]
 	extraArgs := getExtraArgs(args)
 
-	// Route special commands that have different dispatch patterns.
-	switch command {
-	// GitHub cleanup commands - immediate dispatch.
-	case "github-cleanup-runs", "github-cleanup-artifacts", "github-cleanup-caches", "github-cleanup-all":
-		return cryptoutilGitHubCleanup.Main(command, extraArgs, stderr)
-
-	// Lint deployments commands - immediate dispatch.
-	case "lint-deployments":
-		return cryptoutilLintDeployments.Main(extraArgs)
-	case "generate-listings":
-		return cryptoutilLintDeployments.Main([]string{"generate-listings"})
-	case "validate-mirror":
-		return cryptoutilLintDeployments.Main([]string{"validate-mirror"})
-	case "validate-compose":
-		return cryptoutilLintDeployments.Main(append([]string{"validate-compose"}, extraArgs...))
-	case "validate-config":
-		return cryptoutilLintDeployments.Main(append([]string{"validate-config"}, extraArgs...))
-	case "validate-all":
-		return cryptoutilLintDeployments.Main(append([]string{"validate-all"}, extraArgs...))
-
-	// Documentation validation commands - immediate dispatch.
-	case "check-chunk-verification":
-		return cryptoutilDocsValidation.CheckChunkVerification(stdout, stderr)
-	case "validate-propagation":
-		return cryptoutilDocsValidation.ValidatePropagationCommand(stdout, stderr)
-	case "validate-chunks":
-		return cryptoutilDocsValidation.ValidateChunksCommand(stdout, stderr)
-	}
-
-	// File-based lint/format commands that need file collection.
-	commands := args[1:]
-
-	if err := run(commands); err != nil {
+	if err := run(commands, extraArgs); err != nil {
 		_, _ = fmt.Fprintf(stderr, "Error: %v\n", err)
 
 		return 1
@@ -112,7 +83,7 @@ func getExtraArgs(args []string) []string {
 // run executes the specified CI/CD check commands.
 // Commands are executed sequentially, collecting results for each.
 // Returns an error if any command fails, but continues executing all commands.
-func run(commands []string) error {
+func run(commands []string, extraArgs []string) error {
 	logger := cryptoutilCmdCicdCommon.NewLogger("Run")
 	startTime := time.Now().UTC()
 
@@ -123,9 +94,14 @@ func run(commands []string) error {
 
 	logger.Log("validateCommands completed")
 
-	filesByExtension, err := cryptoutilSharedUtilFiles.ListAllFiles(cryptoutilSharedMagic.ListAllFilesStartDirectory)
-	if err != nil {
-		return fmt.Errorf("failed to collect files: %w", err)
+	// Collect files lazily: only if at least one command needs file-based scanning.
+	var filesByExtension map[string][]string
+
+	if commandsNeedFiles(actualCommands) {
+		filesByExtension, err = cryptoutilSharedUtilFiles.ListAllFiles(cryptoutilSharedMagic.ListAllFilesStartDirectory)
+		if err != nil {
+			return fmt.Errorf("failed to collect files: %w", err)
+		}
 	}
 
 	logger.Log(fmt.Sprintf("Executing %d commands", len(actualCommands)))
@@ -161,6 +137,12 @@ func run(commands []string) error {
 			cmdErr = cryptoutilCmdCicdLintPorts.Lint(logger, filesByExtension)
 		case cmdLintGolangci:
 			cmdErr = cryptoutilCmdCicdLintGolangci.Lint(logger, filesByExtension)
+		case cmdLintDocs:
+			cmdErr = cryptoutilLintDocs.Lint(logger)
+		case cmdLintDeployments:
+			cmdErr = cryptoutilLintDeployments.Lint(logger)
+		case cmdGitHubCleanup:
+			cmdErr = cryptoutilGitHubCleanup.Cleanup(logger, extraArgs)
 		}
 
 		cmdDuration := time.Since(cmdStart)
@@ -192,6 +174,20 @@ func run(commands []string) error {
 	logger.Log("Run completed successfully")
 
 	return nil
+}
+
+// commandsNeedFiles returns true if any command in the list requires file-based scanning.
+func commandsNeedFiles(commands []string) bool {
+	for _, cmd := range commands {
+		switch cmd {
+		case cmdLintText, cmdLintGo, cmdLintCompose, cmdFormatGo,
+			cmdLintGoTest, cmdFormatGoTest, cmdLintWorkflow,
+			cmdLintGoMod, cmdLintPorts, cmdLintGolangci:
+			return true
+		}
+	}
+
+	return false
 }
 
 func validateCommands(commands []string) ([]string, error) {

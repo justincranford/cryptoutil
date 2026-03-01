@@ -55,12 +55,12 @@ func TestCicd_UnknownCommand(t *testing.T) {
 	require.Contains(t, stderr.String(), "Unknown command: nonexistent-cmd")
 }
 
-func TestCicd_CheckChunkVerification(t *testing.T) {
+func TestCicd_LintDocs(t *testing.T) {
 	t.Parallel()
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Cicd([]string{"cicd", "check-chunk-verification"}, strings.NewReader(""), &stdout, &stderr)
+	exitCode := Cicd([]string{"cicd", "lint-docs"}, strings.NewReader(""), &stdout, &stderr)
 	require.Contains(t, []int{0, 1}, exitCode)
 }
 
@@ -73,50 +73,6 @@ func TestCicd_LintDeployments(t *testing.T) {
 	require.Contains(t, []int{0, 1}, exitCode)
 }
 
-func TestCicd_GenerateListings(t *testing.T) {
-	t.Parallel()
-
-	var stdout, stderr bytes.Buffer
-
-	exitCode := Cicd([]string{"cicd", "generate-listings"}, strings.NewReader(""), &stdout, &stderr)
-	require.Contains(t, []int{0, 1}, exitCode)
-}
-
-func TestCicd_ValidateMirror(t *testing.T) {
-	t.Parallel()
-
-	var stdout, stderr bytes.Buffer
-
-	exitCode := Cicd([]string{"cicd", "validate-mirror"}, strings.NewReader(""), &stdout, &stderr)
-	require.Contains(t, []int{0, 1}, exitCode)
-}
-
-func TestCicd_ValidateCompose(t *testing.T) {
-	t.Parallel()
-
-	var stdout, stderr bytes.Buffer
-
-	exitCode := Cicd([]string{"cicd", "validate-compose", "nonexistent.yml"}, strings.NewReader(""), &stdout, &stderr)
-	require.Contains(t, []int{0, 1}, exitCode)
-}
-
-func TestCicd_ValidateConfig(t *testing.T) {
-	t.Parallel()
-
-	var stdout, stderr bytes.Buffer
-
-	exitCode := Cicd([]string{"cicd", "validate-config", "nonexistent.yml"}, strings.NewReader(""), &stdout, &stderr)
-	require.Contains(t, []int{0, 1}, exitCode)
-}
-
-func TestCicd_ValidateAll(t *testing.T) {
-	t.Parallel()
-
-	var stdout, stderr bytes.Buffer
-
-	exitCode := Cicd([]string{"cicd", "validate-all"}, strings.NewReader(""), &stdout, &stderr)
-	require.Contains(t, []int{0, 1}, exitCode)
-}
 
 func TestPrintUsage(t *testing.T) {
 	t.Parallel()
@@ -129,11 +85,6 @@ func TestPrintUsage(t *testing.T) {
 	require.Contains(t, output, "Usage:")
 	require.Contains(t, output, "Commands:")
 	require.Contains(t, output, "lint-deployments")
-	require.Contains(t, output, "validate-all")
-	require.Contains(t, output, "check-chunk-verification")
-	require.Contains(t, output, "github-cleanup-runs")
-	require.Contains(t, output, "github-cleanup-artifacts")
-	require.Contains(t, output, "github-cleanup-caches")
-	require.Contains(t, output, "github-cleanup-all")
+	require.Contains(t, output, "lint-docs")
+	require.Contains(t, output, "github-cleanup")
 }
-

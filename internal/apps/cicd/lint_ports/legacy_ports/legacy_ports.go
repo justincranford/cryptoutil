@@ -80,6 +80,21 @@ func CheckFile(filePath string, legacyPorts []uint16) []lintPortsCommon.Violatio
 		return nil
 	}
 
+	// Skip cicd linter implementation files - they may reference legacy ports as test data or comments.
+	if strings.Contains(filePath, "internal/apps/cicd/") {
+		return nil
+	}
+
+	// Skip magic constant files - they define port values by design.
+	if strings.Contains(filePath, "internal/shared/magic/") {
+		return nil
+	}
+
+	// Skip test files - they use ports in mock/fake URLs that are not real bindings.
+	if strings.HasSuffix(filePath, "_test.go") {
+		return nil
+	}
+
 	file, err := os.Open(filePath)
 	if err != nil {
 		return nil

@@ -193,43 +193,36 @@ const (
 	UsageCICD = `Usage: cicd <command> [command...]
 
 	Commands:
-	  format-go       - [Formatter] Auto-fix Go files (any -> any, loop var copies)
-	  format-go-test  - [Formatter] Auto-fix Go test files (add t.Helper() to helpers)
-	  lint-compose    - [Linter] Detect admin port 9090 exposure in Docker Compose files
-	  lint-go         - [Linter] Check for circular dependencies in Go packages
-	  lint-go-mod     - [Linter] Check direct Go dependencies for updates
-	  lint-go-test    - [Linter] Enforce test patterns (UUIDv7 usage, testify assertions)
-	  lint-golangci   - [Linter] Validate golangci-lint config files for v2 compatibility
-	  lint-ports      - [Linter] Enforce standardized port assignments (no legacy ports)
-	  lint-text       - [Linter] Enforce UTF-8 encoding without BOM for text files
-	  lint-workflow   - [Linter] Validate GitHub Actions workflow naming and versions`
+	  format-go           - [Formatter] Auto-fix Go files (any -> any, loop var copies)
+	  format-go-test      - [Formatter] Auto-fix Go test files (add t.Helper() to helpers)
+	  github-cleanup      - [Script]    GitHub Actions storage cleanup (runs, artifacts, caches)
+	  lint-compose        - [Linter]    Detect admin port 9090 exposure in Docker Compose files
+	  lint-deployments    - [Linter]    Deployment structure and config file validation
+	  lint-docs           - [Linter]    Documentation chunk verification and propagation validation
+	  lint-go             - [Linter]    Check for circular dependencies in Go packages
+	  lint-go-mod         - [Linter]    Check direct Go dependencies for updates
+	  lint-go-test        - [Linter]    Enforce test patterns (UUIDv7 usage, testify assertions)
+	  lint-golangci       - [Linter]    Validate golangci-lint config files for v2 compatibility
+	  lint-ports          - [Linter]    Enforce standardized port assignments (no legacy ports)
+	  lint-text           - [Linter]    Enforce UTF-8 encoding without BOM for text files
+	  lint-workflow       - [Linter]    Validate GitHub Actions workflow naming and versions`
 )
 
 // ValidCommands defines the set of valid cicd commands.
 var ValidCommands = map[string]bool{
-	"check-chunk-verification":  true,
-	"format-go":                 true,
-	"format-go-test":            true,
-	"generate-listings":         true,
-	"github-cleanup-all":        true,
-	"github-cleanup-artifacts":  true,
-	"github-cleanup-caches":     true,
-	"github-cleanup-runs":       true,
-	"lint-compose":              true,
-	"lint-deployments":          true,
-	"lint-go":                   true,
-	"lint-go-mod":               true,
-	"lint-go-test":              true,
-	"lint-golangci":             true,
-	"lint-ports":                true,
-	"lint-text":                 true,
-	"lint-workflow":             true,
-	"validate-all":              true,
-	"validate-chunks":           true,
-	"validate-compose":          true,
-	"validate-config":           true,
-	"validate-mirror":           true,
-	"validate-propagation":      true,
+	"format-go":        true,
+	"format-go-test":   true,
+	"github-cleanup":   true,
+	"lint-compose":     true,
+	"lint-deployments": true,
+	"lint-docs":        true,
+	"lint-go":          true,
+	"lint-go-mod":      true,
+	"lint-go-test":     true,
+	"lint-golangci":    true,
+	"lint-ports":       true,
+	"lint-text":        true,
+	"lint-workflow":    true,
 }
 
 // Regex patterns for test enforcement.
