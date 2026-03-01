@@ -35,7 +35,7 @@ func ValidateKebabCase(rootPath string) (*KebabCaseValidationResult, error) {
 	// Check if root path exists.
 	info, statErr := os.Stat(rootPath)
 	if statErr != nil {
-		result.Errors = append(result.Errors, fmt.Sprintf("path does not exist: %s", rootPath))
+		result.Errors = append(result.Errors, fmt.Sprintf("[ValidateKebabCase] path does not exist: %s", rootPath))
 		result.Valid = false
 
 		return result, nil //nolint:nilerr // Error aggregation pattern: validation errors collected in result.Errors, nil Go error allows validator pipeline to continue.
@@ -43,7 +43,7 @@ func ValidateKebabCase(rootPath string) (*KebabCaseValidationResult, error) {
 
 	// Root must be a directory.
 	if !info.IsDir() {
-		result.Errors = append(result.Errors, fmt.Sprintf("path is not a directory: %s", rootPath))
+		result.Errors = append(result.Errors, fmt.Sprintf("[ValidateKebabCase] path is not a directory: %s", rootPath))
 		result.Valid = false
 
 		return result, nil
@@ -103,7 +103,7 @@ func validateConfigFieldKebabCase(configPath, relPath string, result *KebabCaseV
 
 		if !isKebabCase(value) {
 			result.Errors = append(result.Errors, fmt.Sprintf(
-				"[ValidateKebabCase] Field '%s' value '%s' violates kebab-case - use '%s' (file: %s)",
+				"[ValidateKebabCase] Field '%s' value '%s' violates kebab-case - use '%s' (file: %s) | See: ARCHITECTURE.md Section 4.4.1",
 				fieldPath, value, toKebabCase(value), relPath))
 			result.Valid = false
 		}

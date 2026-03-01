@@ -78,7 +78,7 @@ func ValidateStructuralMirror(deploymentsDir string, configsDir string) (*Mirror
 		if !configDirSet[configName] {
 			result.MissingMirrors = append(result.MissingMirrors, deployDir)
 			result.Errors = append(result.Errors,
-				fmt.Sprintf("deployment '%s' has no configs counterpart (expected configs/%s/)", deployDir, configName))
+				fmt.Sprintf("[ValidateMirror] deployment '%s' has no configs counterpart (expected configs/%s/) | See: ARCHITECTURE.md Section 12.4.11", deployDir, configName))
 			result.Valid = false
 		}
 	}
@@ -103,7 +103,7 @@ func ValidateStructuralMirror(deploymentsDir string, configsDir string) (*Mirror
 		if !found {
 			result.Orphans = append(result.Orphans, configDir)
 			result.Warnings = append(result.Warnings,
-				fmt.Sprintf("config directory '%s' has no corresponding deployment (orphaned)", configDir))
+				fmt.Sprintf("[ValidateMirror] config directory '%s' has no corresponding deployment (orphaned) | See: ARCHITECTURE.md Section 12.4.11", configDir))
 		}
 	}
 

@@ -240,31 +240,31 @@ Every task: ALL 8 quality attributes verified each review pass. All issues are b
 **Status**: Decisions confirmed from quizme-v3. Ready for implementation.
 
 ### Task 8.1: Add Spotless + google-java-format
-- [ ] Add `spotless-maven-plugin` to `test/load/pom.xml`
-- [ ] Configure: google-java-format, phase=`validate`, apply on `mvn spotless:apply`
-- [ ] Run `cd test/load && mvn spotless:check` — verify all `.java` files pass
+- [x] Add `spotless-maven-plugin` to `test/load/pom.xml`
+- [x] Configure: google-java-format, phase=`validate`, apply on `mvn spotless:apply`
+- [x] Run `cd test/load && mvn spotless:check` — verify all `.java` files pass
 
 ### Task 8.2: Add Checkstyle
-- [ ] Add `maven-checkstyle-plugin` to `test/load/pom.xml`
-- [ ] Configure: Google Checkstyle rules, phase=`validate`, fail on violations
-- [ ] Run `cd test/load && mvn checkstyle:check` — verify pass
+- [x] Add `maven-checkstyle-plugin` to `test/load/pom.xml`
+- [x] Configure: Google Checkstyle rules, phase=`validate`, fail on violations
+- [x] Run `cd test/load && mvn checkstyle:check` — verify pass
 
 ### Task 8.3: Add Error Prone + NullAway
-- [ ] Add Error Prone annotation processor to `maven-compiler-plugin` config
-- [ ] Add NullAway as Error Prone plugin
-- [ ] Run `cd test/load && mvn compile` — verify zero Error Prone violations
+- [x] Add Error Prone annotation processor to `maven-compiler-plugin` config
+- [x] Add NullAway as Error Prone plugin
+- [x] Run `cd test/load && mvn compile` — verify zero Error Prone violations
 
 ### Task 8.4: Add maven-enforcer-plugin
-- [ ] Add `maven-enforcer-plugin` to `test/load/pom.xml`
-- [ ] Rules: `dependencyConvergence`, `requireJavaVersion` (21+), `requireMavenVersion` (3.9+)
-- [ ] Run `cd test/load && mvn enforcer:enforce` — verify pass
+- [x] Add `maven-enforcer-plugin` to `test/load/pom.xml`
+- [x] Rules: `dependencyConvergence`, `requireJavaVersion` (21+), `requireMavenVersion` (3.9+)
+- [x] Run `cd test/load && mvn enforcer:enforce` — verify pass
 
 ### Task 8.5: Add JaCoCo (MANDATORY, high threshold)
-- [ ] Add `jacoco-maven-plugin` to `test/load/pom.xml`
-- [ ] Configure: `prepare-agent` goal + `report` goal + `check` goal with `≥95%` line coverage threshold
-- [ ] Coverage threshold is MANDATORY — build MUST fail below 95% (user: "absolutely mandatory, with high threshold like Go coverage thresholds")
-- [ ] Run `cd test/load && mvn verify` — verify coverage report generated and threshold passes
-- [ ] Add CI/CD workflow step to upload JaCoCo coverage report as artifact
+- [x] Add `jacoco-maven-plugin` to `test/load/pom.xml`
+- [x] Configure: `prepare-agent` goal + `report` goal + `check` goal with `≥95%` line coverage threshold
+- [x] Coverage threshold is MANDATORY — build MUST fail below 95% (user: "absolutely mandatory, with high threshold like Go coverage thresholds")
+- [x] Run `cd test/load && mvn verify` — verify coverage report generated and threshold passes
+- [x] Add CI/CD workflow step to upload JaCoCo coverage report as artifact
 
 
 
@@ -273,21 +273,21 @@ Every task: ALL 8 quality attributes verified each review pass. All issues are b
 ## Phase 9: lint-deployments Error Message Improvements
 
 ### Task 9.1: Audit all validator error messages
-- [ ] Run `go run ./cmd/cicd lint-deployments validate-all` against real violations (create test cases)
-- [ ] Collect ALL error message outputs from all 8 validators
-- [ ] Grade each: Clarity (1–5), Actionability (1–5), Context (1–5)
+- [x] Run `go run ./cmd/cicd lint-deployments validate-all` against real violations (create test cases)
+- [x] Collect ALL error message outputs from all 8 validators
+- [x] Grade each: Clarity (1–5), Actionability (1–5), Context (1–5)
 
 ### Task 9.2: Standardize error message format
-- [ ] Design target format: `[VALIDATOR] path: description | Expected: X | Found: Y | Fix: Z | See: Arch Section N.N`
-- [ ] Implement format in all validators that score below threshold
+- [x] Design target format: `[VALIDATOR] path: description | Expected: X | Found: Y | Fix: Z | See: Arch Section N.N`
+- [x] Implement format in all validators that score below threshold
 
 ### Task 9.3: Add "See ARCHITECTURE.md Section" references to errors
-- [ ] Each validator error → reference the ARCHITECTURE.md section explaining the rule
-- [ ] ValidateAdmin → Section 5.3 Dual HTTPS; ValidateSecrets → Section 12.6; ValidatePorts → Section 3.4; etc.
+- [x] Each validator error → reference the ARCHITECTURE.md section explaining the rule
+- [x] ValidateAdmin → Section 5.3 Dual HTTPS; ValidateSecrets → Section 12.6; ValidatePorts → Section 3.4; etc.
 
 ### Task 9.4: Tests for error message quality
-- [ ] Update validator tests to assert specific error message content (not just error presence)
-- [ ] Verify test coverage ≥98% maintained
+- [x] Update validator tests to assert specific error message content (not just error presence)
+- [x] Verify test coverage ≥98% maintained
 
 ---
 

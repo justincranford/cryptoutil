@@ -50,14 +50,14 @@ func ValidateSecrets(deploymentPath string) (*SecretValidationResult, error) {
 	info, statErr := os.Stat(deploymentPath)
 	if statErr != nil {
 		result.Valid = false
-		result.Errors = append(result.Errors, fmt.Sprintf("path not found: %s", deploymentPath))
+		result.Errors = append(result.Errors, fmt.Sprintf("[ValidateSecrets] path not found: %s", deploymentPath))
 
 		return result, nil //nolint:nilerr // Error aggregation pattern: validation errors collected in result.Errors, nil Go error allows validator pipeline to continue.
 	}
 
 	if !info.IsDir() {
 		result.Valid = false
-		result.Errors = append(result.Errors, fmt.Sprintf("path is not a directory: %s", deploymentPath))
+		result.Errors = append(result.Errors, fmt.Sprintf("[ValidateSecrets] path is not a directory: %s", deploymentPath))
 
 		return result, nil
 	}
@@ -147,7 +147,7 @@ func checkSecretLength(name string, value string, result *SecretValidationResult
 	if rawLen == 0 {
 		result.Valid = false
 		result.Errors = append(result.Errors,
-			fmt.Sprintf("secret file '%s' is empty", name))
+fmt.Sprintf("[ValidateSecrets] secret file '%s' is empty | Fix: add content to secret file | See: ARCHITECTURE.md Section 12.6", name))
 
 		return
 	}
@@ -236,8 +236,7 @@ func scanConfigMapForSecrets(config map[string]any, fileName string, prefix stri
 
 		result.Valid = false
 		result.Errors = append(result.Errors,
-			fmt.Sprintf("config '%s': field '%s' appears to contain an inline secret; "+
-				"use 'file:///run/secrets/' reference or move to external vault", fileName, fullKey))
+				fmt.Sprintf("[ValidateSecrets] config '%s': field '%s' contains inline secret | Fix: use 'file:///run/secrets/' reference or move to external vault | See: ARCHITECTURE.md Section 12.6", fileName, fullKey))
 	}
 }
 
@@ -332,8 +331,7 @@ func checkServiceEnvForInlineSecrets(svcName string, env map[string]any, fileNam
 
 		result.Valid = false
 		result.Errors = append(result.Errors,
-			fmt.Sprintf("compose '%s': service '%s' env '%s' contains inline secret; "+
-				"use Docker secrets with _FILE suffix", fileName, svcName, key))
+				fmt.Sprintf("[ValidateSecrets] compose '%s': service '%s' env '%s' contains inline secret | Fix: use Docker secrets with _FILE suffix | See: ARCHITECTURE.md Section 12.6", fileName, svcName, key))
 	}
 }
 

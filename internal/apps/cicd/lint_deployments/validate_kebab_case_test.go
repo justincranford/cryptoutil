@@ -54,8 +54,10 @@ func TestValidateKebabCase_InvalidServiceName(t *testing.T) {
 			require.NotNil(t, result)
 			require.False(t, result.Valid)
 			require.True(t, len(result.Errors) > 0)
+			require.Contains(t, result.Errors[0], "[ValidateKebabCase]")
 			require.Contains(t, result.Errors[0], tc.wantErr)
 			require.Contains(t, result.Errors[0], "kebab-case")
+			require.Contains(t, result.Errors[0], "ARCHITECTURE.md Section 4.4.1")
 		})
 	}
 }
@@ -67,6 +69,7 @@ func TestValidateKebabCase_PathDoesNotExist(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	require.False(t, result.Valid)
+	require.Contains(t, result.Errors[0], "[ValidateKebabCase]")
 	require.Contains(t, result.Errors[0], "does not exist")
 }
 
@@ -81,6 +84,7 @@ func TestValidateKebabCase_PathIsFile(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	require.False(t, result.Valid)
+	require.Contains(t, result.Errors[0], "[ValidateKebabCase]")
 	require.Contains(t, result.Errors[0], "not a directory")
 }
 

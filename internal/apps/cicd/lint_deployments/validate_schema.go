@@ -223,7 +223,7 @@ func ValidateSchema(configPath string) (*SchemaValidationResult, error) {
 	data, err := os.ReadFile(configPath)
 	if err != nil {
 		result.Valid = false
-		result.Errors = append(result.Errors, fmt.Sprintf("cannot read file: %s", err))
+		result.Errors = append(result.Errors, fmt.Sprintf("[ValidateSchema] cannot read file: %s", err))
 
 		return result, nil
 	}
@@ -231,7 +231,7 @@ func ValidateSchema(configPath string) (*SchemaValidationResult, error) {
 	var config map[string]any
 	if err := yaml.Unmarshal(data, &config); err != nil {
 		result.Valid = false
-		result.Errors = append(result.Errors, fmt.Sprintf("YAML parse error: %s", err))
+		result.Errors = append(result.Errors, fmt.Sprintf("[ValidateSchema] YAML parse error: %s", err))
 
 		return result, nil
 	}
@@ -263,7 +263,7 @@ func validateRequiredFields(config map[string]any, result *SchemaValidationResul
 
 		if _, exists := config[fieldName]; !exists {
 			result.Errors = append(result.Errors, fmt.Sprintf(
-				"[ValidateSchema] Required field '%s' missing (%s)", fieldName, schema.Description))
+				"[ValidateSchema] Required field '%s' missing (%s) | See: ARCHITECTURE.md Section 12.5", fieldName, schema.Description))
 			result.Valid = false
 		}
 	}
@@ -282,7 +282,7 @@ func validateFieldTypes(config map[string]any, result *SchemaValidationResult) {
 			s, ok := value.(string)
 			if !ok {
 				result.Errors = append(result.Errors, fmt.Sprintf(
-					"[ValidateSchema] Field '%s' must be a string, got %T", fieldName, value))
+					"[ValidateSchema] Field '%s' must be a string, got %T | See: ARCHITECTURE.md Section 12.5", fieldName, value))
 				result.Valid = false
 
 				continue
@@ -292,13 +292,13 @@ func validateFieldTypes(config map[string]any, result *SchemaValidationResult) {
 		case fieldTypeInt:
 			if !isIntLike(value) {
 				result.Errors = append(result.Errors, fmt.Sprintf(
-					"[ValidateSchema] Field '%s' must be an integer, got %T", fieldName, value))
+					"[ValidateSchema] Field '%s' must be an integer, got %T | See: ARCHITECTURE.md Section 12.5", fieldName, value))
 				result.Valid = false
 			}
 		case fieldTypeBool:
 			if _, ok := value.(bool); !ok {
 				result.Errors = append(result.Errors, fmt.Sprintf(
-					"[ValidateSchema] Field '%s' must be a boolean, got %T", fieldName, value))
+					"[ValidateSchema] Field '%s' must be a boolean, got %T | See: ARCHITECTURE.md Section 12.5", fieldName, value))
 				result.Valid = false
 			}
 		case fieldTypeStringArray:
@@ -320,7 +320,7 @@ func validateStringEnum(fieldName, value string, schema schemaField, result *Sch
 	}
 
 	result.Errors = append(result.Errors, fmt.Sprintf(
-		"[ValidateSchema] Field '%s' value '%s' not in allowed values: [%s]",
+		"[ValidateSchema] Field '%s' value '%s' not in allowed values: [%s] | See: ARCHITECTURE.md Section 12.5",
 		fieldName, value, strings.Join(schema.ValidValues, ", ")))
 	result.Valid = false
 }
@@ -330,7 +330,7 @@ func validateStringArray(fieldName string, value any, result *SchemaValidationRe
 	arr, ok := value.([]any)
 	if !ok {
 		result.Errors = append(result.Errors, fmt.Sprintf(
-			"[ValidateSchema] Field '%s' must be a string array, got %T", fieldName, value))
+			"[ValidateSchema] Field '%s' must be a string array, got %T | See: ARCHITECTURE.md Section 12.5", fieldName, value))
 		result.Valid = false
 
 		return
@@ -339,7 +339,7 @@ func validateStringArray(fieldName string, value any, result *SchemaValidationRe
 	for i, item := range arr {
 		if _, ok := item.(string); !ok {
 			result.Errors = append(result.Errors, fmt.Sprintf(
-				"[ValidateSchema] Field '%s[%d]' must be a string, got %T", fieldName, i, item))
+				"[ValidateSchema] Field '%s[%d]' must be a string, got %T | See: ARCHITECTURE.md Section 12.5", fieldName, i, item))
 			result.Valid = false
 		}
 	}
@@ -350,7 +350,7 @@ func validateUnknownFields(config map[string]any, result *SchemaValidationResult
 	for fieldName := range config {
 		if _, known := configSchema[fieldName]; !known {
 			result.Warnings = append(result.Warnings, fmt.Sprintf(
-				"[ValidateSchema] Unknown field '%s' (not in schema)", fieldName))
+				"[ValidateSchema] Unknown field '%s' (not in schema) | See: ARCHITECTURE.md Section 12.5", fieldName))
 		}
 	}
 }

@@ -30,6 +30,7 @@ func TestValidateSecrets_PathNotFound(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, result.Valid)
 	require.NotEmpty(t, result.Errors)
+	require.Contains(t, result.Errors[0], "[ValidateSecrets]")
 	require.Contains(t, result.Errors[0], "path not found")
 }
 
@@ -41,6 +42,7 @@ func TestValidateSecrets_PathIsFile(t *testing.T) {
 	result, err := ValidateSecrets(f)
 	require.NoError(t, err)
 	require.False(t, result.Valid)
+	require.Contains(t, result.Errors[0], "[ValidateSecrets]")
 	require.Contains(t, result.Errors[0], "not a directory")
 }
 
@@ -55,7 +57,9 @@ func TestValidateSecrets_EmptySecretFile(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, result.Valid)
 	require.NotEmpty(t, result.Errors)
+	require.Contains(t, result.Errors[0], "[ValidateSecrets]")
 	require.Contains(t, result.Errors[0], "is empty")
+	require.Contains(t, result.Errors[0], "ARCHITECTURE.md Section 12.6")
 }
 
 func TestValidateSecrets_ShortSecretFile(t *testing.T) {

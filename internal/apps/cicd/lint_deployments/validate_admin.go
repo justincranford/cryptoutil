@@ -83,7 +83,7 @@ func validateAdminNotExposed(composePath string, result *AdminValidationResult) 
 
 			if port == adminPort {
 				result.Errors = append(result.Errors,
-					fmt.Sprintf("[ValidateAdmin] Service '%s' exposes admin port %d to host in compose (SECURITY VIOLATION)",
+					fmt.Sprintf("[ValidateAdmin] Service '%s' exposes admin port %d to host in compose (SECURITY VIOLATION) | See: ARCHITECTURE.md Section 5.3",
 						svcName, adminPort))
 				result.Valid = false
 			}
@@ -134,7 +134,7 @@ func validateAdminPort(config map[string]any, configPath string, result *AdminVa
 
 	if port != adminPort {
 		result.Errors = append(result.Errors,
-			fmt.Sprintf("[ValidateAdmin] '%s': bind-private-port is %d, MUST be %d",
+			fmt.Sprintf("[ValidateAdmin] '%s': bind-private-port is %d, MUST be %d | See: ARCHITECTURE.md Section 5.3",
 				filepath.Base(configPath), port, adminPort))
 		result.Valid = false
 	}
@@ -154,7 +154,7 @@ func validateAdminAddress(config map[string]any, configPath string, result *Admi
 
 	if strVal != cryptoutilSharedMagic.IPv4Loopback {
 		result.Errors = append(result.Errors,
-			fmt.Sprintf("[ValidateAdmin] '%s': bind-private-address is %q, MUST be %q",
+			fmt.Sprintf("[ValidateAdmin] '%s': bind-private-address is %q, MUST be %q | See: ARCHITECTURE.md Section 5.3",
 				filepath.Base(configPath), strVal, cryptoutilSharedMagic.IPv4Loopback))
 		result.Valid = false
 	}

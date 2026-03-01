@@ -121,7 +121,7 @@ func validateComposePortRanges(composePath, deploymentLevel string, result *Port
 			if port < minPort || port > maxPort {
 				result.Valid = false
 				result.Errors = append(result.Errors,
-					fmt.Sprintf("[ValidatePorts] Service '%s' host port %d outside %s range [%d-%d]",
+					fmt.Sprintf("[ValidatePorts] Service '%s' host port %d outside %s range [%d-%d] | See: ARCHITECTURE.md Section 3.4",
 						serviceName, port, deploymentLevel, minPort, maxPort))
 			}
 		}
@@ -174,7 +174,7 @@ func validateConfigPortValue(config map[string]any, configPath, deploymentName, 
 	if port < minPort || port > maxPort {
 		result.Valid = false
 		result.Errors = append(result.Errors,
-			fmt.Sprintf("[ValidatePorts] Config '%s' bind-public-port %d outside %s range [%d-%d]",
+			fmt.Sprintf("[ValidatePorts] Config '%s' bind-public-port %d outside %s range [%d-%d] | See: ARCHITECTURE.md Section 3.4",
 				filepath.Base(configPath), port, deploymentLevel, minPort, maxPort))
 	}
 }

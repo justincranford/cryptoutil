@@ -44,7 +44,9 @@ func TestValidatePorts_ServiceLevelOutOfRange(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	require.False(t, result.Valid)
+	require.True(t, containsSubstring(result.Errors, "[ValidatePorts]"))
 	require.True(t, containsSubstring(result.Errors, "outside PRODUCT-SERVICE range"))
+	require.True(t, containsSubstring(result.Errors, "ARCHITECTURE.md Section 3.4"))
 }
 
 func TestValidatePorts_ProductLevelValid(t *testing.T) {
@@ -69,7 +71,9 @@ func TestValidatePorts_ProductLevelOutOfRange(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	require.False(t, result.Valid)
+	require.True(t, containsSubstring(result.Errors, "[ValidatePorts]"))
 	require.True(t, containsSubstring(result.Errors, "outside PRODUCT range"))
+	require.True(t, containsSubstring(result.Errors, "ARCHITECTURE.md Section 3.4"))
 }
 
 func TestValidatePorts_SuiteLevelValid(t *testing.T) {
@@ -94,7 +98,9 @@ func TestValidatePorts_SuiteLevelOutOfRange(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	require.False(t, result.Valid)
+	require.True(t, containsSubstring(result.Errors, "[ValidatePorts]"))
 	require.True(t, containsSubstring(result.Errors, "outside SUITE range"))
+	require.True(t, containsSubstring(result.Errors, "ARCHITECTURE.md Section 3.4"))
 }
 
 func TestValidatePorts_InfrastructurePortsSkipped(t *testing.T) {
@@ -142,7 +148,9 @@ func TestValidatePorts_ConfigPortOutOfRange(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	require.False(t, result.Valid)
+	require.True(t, containsSubstring(result.Errors, "[ValidatePorts]"))
 	require.True(t, containsSubstring(result.Errors, "bind-public-port"))
+	require.True(t, containsSubstring(result.Errors, "ARCHITECTURE.md Section 3.4"))
 }
 
 func TestValidatePorts_PathNotFound(t *testing.T) {
@@ -152,6 +160,7 @@ func TestValidatePorts_PathNotFound(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	require.False(t, result.Valid)
+	require.True(t, containsSubstring(result.Errors, "[ValidatePorts]"))
 	require.True(t, containsSubstring(result.Errors, "does not exist"))
 }
 
@@ -165,6 +174,7 @@ func TestValidatePorts_PathIsFile(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	require.False(t, result.Valid)
+	require.True(t, containsSubstring(result.Errors, "[ValidatePorts]"))
 	require.True(t, containsSubstring(result.Errors, "not a directory"))
 }
 

@@ -84,14 +84,14 @@ func ValidateComposeFile(composePath string) (*ComposeValidationResult, error) {
 	// Validation 1: Schema validation (YAML parsing + include resolution).
 	compose, parseErr := parseComposeWithIncludes(composePath)
 	if parseErr != nil {
-		result.Errors = append(result.Errors, fmt.Sprintf("YAML parse error: %v", parseErr))
+		result.Errors = append(result.Errors, fmt.Sprintf("[ValidateCompose] YAML parse error: %v", parseErr))
 		result.Valid = false
 
 		return result, nil
 	}
 
 	if len(compose.Services) == 0 {
-		result.Errors = append(result.Errors, "no services defined in compose file")
+		result.Errors = append(result.Errors, "[ValidateCompose] no services defined in compose file")
 		result.Valid = false
 
 		return result, nil
@@ -184,7 +184,7 @@ func validatePortConflicts(compose *composeFile, result *ComposeValidationResult
 
 			if existingService, exists := hostPorts[hostPort]; exists {
 				result.Errors = append(result.Errors,
-					fmt.Sprintf("port conflict: host port %s used by both '%s' and '%s'",
+					fmt.Sprintf("[ValidateCompose] port conflict: host port %s used by both '%s' and '%s' | See: ARCHITECTURE.md Section 3.4",
 						hostPort, existingService, name))
 				result.Valid = false
 			} else {
@@ -224,7 +224,7 @@ func validateHealthChecks(compose *composeFile, result *ComposeValidationResult)
 
 		if svc.Healthcheck == nil {
 			result.Errors = append(result.Errors,
-				fmt.Sprintf("service '%s' missing healthcheck", name))
+				fmt.Sprintf("[ValidateCompose] service '%s' missing healthcheck | See: ARCHITECTURE.md Section 5.5", name))
 			result.Valid = false
 		}
 	}
@@ -305,7 +305,7 @@ func validateSecretReferences(compose *composeFile, result *ComposeValidationRes
 
 			if compose.Secrets == nil {
 				result.Errors = append(result.Errors,
-					fmt.Sprintf("service '%s' references secret '%s' but no secrets section defined",
+					fmt.Sprintf("service '%s' references secret '%s' but no secrets section defined | See: ARCHITECTURE.md Section 12.6",
 						name, secretName))
 				result.Valid = false
 
@@ -314,7 +314,7 @@ func validateSecretReferences(compose *composeFile, result *ComposeValidationRes
 
 			if _, defined := compose.Secrets[secretName]; !defined {
 				result.Errors = append(result.Errors,
-					fmt.Sprintf("service '%s' references undefined secret '%s'",
+					fmt.Sprintf("service '%s' references undefined secret '%s' | See: ARCHITECTURE.md Section 12.6",
 						name, secretName))
 				result.Valid = false
 			}
@@ -363,7 +363,7 @@ func validateNoHardcodedCredentials(compose *composeFile, result *ComposeValidat
 			if credentialKeyPatterns.MatchString(key) && value != "" &&
 				!strings.HasPrefix(value, "$") && !strings.HasPrefix(value, "/run/secrets/") {
 				result.Errors = append(result.Errors,
-					fmt.Sprintf("service '%s': environment variable '%s' appears to contain hardcoded credentials",
+					fmt.Sprintf("service '%s': environment variable '%s' appears to contain hardcoded credentials | See: ARCHITECTURE.md Section 12.6",
 						name, key))
 				result.Valid = false
 			}
@@ -420,7 +420,7 @@ func validateBindMountSecurity(compose *composeFile, result *ComposeValidationRe
 			for _, dangerous := range dangerousMounts {
 				if strings.Contains(volume, dangerous) {
 					result.Errors = append(result.Errors,
-						fmt.Sprintf("service '%s': dangerous bind mount detected: %s",
+						fmt.Sprintf("service '%s': dangerous bind mount detected: %s | See: ARCHITECTURE.md Section 12",
 							name, volume))
 					result.Valid = false
 				}

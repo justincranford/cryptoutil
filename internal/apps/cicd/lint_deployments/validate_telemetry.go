@@ -142,7 +142,7 @@ func validateOTLPEndpoints(entries []otlpConfigEntry, result *TelemetryValidatio
 
 		if entry.Endpoint == "" {
 			result.Errors = append(result.Errors,
-				fmt.Sprintf("[ValidateTelemetry] '%s': otlp-endpoint is empty but otlp is enabled",
+				fmt.Sprintf("[ValidateTelemetry] '%s': otlp-endpoint is empty but otlp is enabled | See: ARCHITECTURE.md Section 9.4",
 					filepath.Base(entry.FilePath)))
 			result.Valid = false
 
@@ -158,7 +158,7 @@ func validateEndpointFormat(entry otlpConfigEntry, result *TelemetryValidationRe
 	parsed, err := url.Parse(entry.Endpoint)
 	if err != nil {
 		result.Errors = append(result.Errors,
-			fmt.Sprintf("[ValidateTelemetry] '%s': invalid otlp-endpoint URL: %s",
+			fmt.Sprintf("[ValidateTelemetry] '%s': invalid otlp-endpoint URL: %s | See: ARCHITECTURE.md Section 9.4",
 				filepath.Base(entry.FilePath), entry.Endpoint))
 		result.Valid = false
 
@@ -170,7 +170,7 @@ func validateEndpointFormat(entry otlpConfigEntry, result *TelemetryValidationRe
 
 	if host == "" {
 		result.Errors = append(result.Errors,
-			fmt.Sprintf("[ValidateTelemetry] '%s': otlp-endpoint missing host: %s",
+			fmt.Sprintf("[ValidateTelemetry] '%s': otlp-endpoint missing host: %s | See: ARCHITECTURE.md Section 9.4",
 				filepath.Base(entry.FilePath), entry.Endpoint))
 		result.Valid = false
 	}
@@ -199,7 +199,7 @@ func validateOTLPServiceNames(entries []otlpConfigEntry, result *TelemetryValida
 
 		if firstFile, exists := seen[entry.Service]; exists {
 			result.Warnings = append(result.Warnings,
-				fmt.Sprintf("[ValidateTelemetry] Duplicate otlp-service '%s' in '%s' and '%s'",
+				fmt.Sprintf("[ValidateTelemetry] Duplicate otlp-service '%s' in '%s' and '%s' | See: ARCHITECTURE.md Section 9.4",
 					entry.Service, filepath.Base(firstFile), filepath.Base(entry.FilePath)))
 		} else {
 			seen[entry.Service] = entry.FilePath
@@ -228,7 +228,7 @@ func validateOTLPConsistency(entries []otlpConfigEntry, result *TelemetryValidat
 		}
 
 		result.Warnings = append(result.Warnings,
-			fmt.Sprintf("[ValidateTelemetry] Inconsistent otlp-endpoints across configs:\n%s",
+			fmt.Sprintf("[ValidateTelemetry] Inconsistent otlp-endpoints across configs:\n%s | See: ARCHITECTURE.md Section 9.4",
 				strings.Join(details, "\n")))
 	}
 }

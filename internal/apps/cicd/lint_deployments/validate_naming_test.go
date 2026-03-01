@@ -32,8 +32,10 @@ func TestValidateNaming_InvalidPascalCase(t *testing.T) {
 	require.NotNil(t, result)
 	require.False(t, result.Valid)
 	require.True(t, len(result.Errors) > 0)
+	require.Contains(t, result.Errors[0], "[ValidateNaming]")
 	require.Contains(t, result.Errors[0], "ServiceOne")
 	require.Contains(t, result.Errors[0], "kebab-case")
+	require.Contains(t, result.Errors[0], "ARCHITECTURE.md Section 4.4.1")
 }
 
 func TestValidateNaming_InvalidSnakeCase(t *testing.T) {
@@ -128,6 +130,7 @@ func TestValidateNaming_PathDoesNotExist(t *testing.T) {
 	require.NotNil(t, result)
 	require.False(t, result.Valid)
 	require.True(t, len(result.Errors) > 0)
+	require.Contains(t, result.Errors[0], "[ValidateNaming]")
 	require.Contains(t, result.Errors[0], "does not exist")
 }
 
@@ -143,6 +146,7 @@ func TestValidateNaming_PathIsFile(t *testing.T) {
 	require.NotNil(t, result)
 	require.False(t, result.Valid)
 	require.True(t, len(result.Errors) > 0)
+	require.Contains(t, result.Errors[0], "[ValidateNaming]")
 	require.Contains(t, result.Errors[0], "not a directory")
 }
 
@@ -252,6 +256,7 @@ func TestValidateNaming_WalkErrorPermission(t *testing.T) {
 	// Walk error should be recorded.
 	require.False(t, result.Valid)
 	require.True(t, len(result.Errors) > 0)
+	require.Contains(t, result.Errors[0], "[ValidateNaming]")
 	require.Contains(t, result.Errors[0], "error accessing path")
 }
 
@@ -354,8 +359,10 @@ func TestValidateNaming_UPPERCASEDir(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	require.False(t, result.Valid)
+	require.Contains(t, result.Errors[0], "[ValidateNaming]")
 	require.Contains(t, result.Errors[0], "UPPER")
 	require.Contains(t, result.Errors[0], "kebab-case")
+	require.Contains(t, result.Errors[0], "ARCHITECTURE.md Section 4.4.1")
 }
 
 func TestValidateNaming_ComposeReadableFileError(t *testing.T) {
