@@ -135,10 +135,10 @@ func TestPrintUsage(t *testing.T) {
 	require.Contains(t, output, "lint-deployments")
 	require.Contains(t, output, "validate-all")
 	require.Contains(t, output, "check-chunk-verification")
-	require.Contains(t, output, "cleanup-runs")
-	require.Contains(t, output, "cleanup-artifacts")
-	require.Contains(t, output, "cleanup-caches")
-	require.Contains(t, output, "cleanup-all")
+	require.Contains(t, output, "github-cleanup-runs")
+	require.Contains(t, output, "github-cleanup-artifacts")
+	require.Contains(t, output, "github-cleanup-caches")
+	require.Contains(t, output, "github-cleanup-all")
 }
 
 func TestCheckChunkVerification_NoGoMod(t *testing.T) {

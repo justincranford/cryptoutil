@@ -1,6 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
-package cleanup_github
+package github_cleanup
 
 import (
 	"errors"

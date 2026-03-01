@@ -1,14 +1,15 @@
 // Copyright (c) 2025 Justin Cranford
 
-// Package cleanup_github provides GitHub Actions storage cleanup automation.
+// Package github_cleanup provides GitHub Actions storage cleanup automation.
 // It uses the gh CLI to delete old workflow runs, artifacts, and caches.
 //
 // IMPORTANT: All destructive operations require --confirm flag.
 // Default mode is dry-run (preview only).
-package cleanup_github
+package github_cleanup
 
 import (
 	"fmt"
+	"io"
 	"strconv"
 	"strings"
 	"time"
@@ -16,11 +17,50 @@ import (
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
 )
 
+// Main is the entry point for github-cleanup-* commands.
+// It parses subCommand to dispatch to the appropriate cleanup function.
+// Returns exit code: 0 for success, 1 for failure.
+func Main(subCommand string, args []string, stderr io.Writer) int {
+	logger := cryptoutilCmdCicdCommon.NewLogger("github-cleanup")
+	cfg := NewDefaultConfig(logger)
+
+	if err := ParseArgs(args, cfg); err != nil {
+		_, _ = fmt.Fprintf(stderr, "Error: %v\n", err)
+
+		return 1
+	}
+
+	var cleanupFn func(*CleanupConfig) error
+
+	switch subCommand {
+	case "github-cleanup-runs":
+		cleanupFn = CleanupRuns
+	case "github-cleanup-artifacts":
+		cleanupFn = CleanupArtifacts
+	case "github-cleanup-caches":
+		cleanupFn = CleanupCaches
+	case "github-cleanup-all":
+		cleanupFn = CleanupAll
+	default:
+		_, _ = fmt.Fprintf(stderr, "Unknown github-cleanup subcommand: %s\n", subCommand)
+
+		return 1
+	}
+
+	if err := cleanupFn(cfg); err != nil {
+		_, _ = fmt.Fprintf(stderr, "Error: %v\n", err)
+
+		return 1
+	}
+
+	return 0
+}
+
 const (
 	// defaultMaxAgeDays is the default age threshold for cleanup operations.
-        defaultMaxAgeDays = 7
+	defaultMaxAgeDays = 7
 	// defaultKeepMinRuns is the minimum number of successful runs to keep per workflow.
-        defaultKeepMinRuns = 3
+	defaultKeepMinRuns = 3
 	// defaultRepo is the default repository (auto-detected by gh CLI).
 	defaultRepo = ""
 

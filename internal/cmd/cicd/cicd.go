@@ -7,8 +7,7 @@ import (
 	"io"
 
 	cryptoutilAppsCicd "cryptoutil/internal/apps/cicd"
-	cryptoutilCleanupGitHub "cryptoutil/internal/apps/cicd/cleanup_github"
-	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	cryptoutilGitHubCleanup "cryptoutil/internal/apps/cicd/github_cleanup"
 	cryptoutilLintDeployments "cryptoutil/internal/cmd/cicd/lint_deployments"
 )
 
@@ -23,37 +22,40 @@ func Cicd(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	}
 
 	command := args[1]
+	extraArgs := getExtraArgs(args)
 
 	switch command {
+	// Lint/format commands routed to internal/apps/cicd batch processor.
+	case "lint-text", "lint-go", "lint-go-test", "lint-compose", "lint-ports",
+		"lint-workflow", "lint-go-mod", "lint-golangci", "format-go", "format-go-test":
+		return cryptoutilAppsCicd.Cicd(args, stdin, stdout, stderr)
+
+	// GitHub cleanup commands routed to internal/apps/cicd/github_cleanup.
+	case "github-cleanup-runs", "github-cleanup-artifacts", "github-cleanup-caches", "github-cleanup-all":
+		return cryptoutilGitHubCleanup.Main(command, extraArgs, stderr)
+
+	// Deployment validators (TODO: migrate to internal/apps/cicd/lint_deployments).
 	case "lint-deployments":
-		return cryptoutilLintDeployments.Main(args[2:])
+		return cryptoutilLintDeployments.Main(extraArgs)
 	case "generate-listings":
 		return cryptoutilLintDeployments.Main([]string{"generate-listings"})
 	case "validate-mirror":
 		return cryptoutilLintDeployments.Main([]string{"validate-mirror"})
 	case "validate-compose":
-		return cryptoutilLintDeployments.Main(append([]string{"validate-compose"}, args[2:]...))
+		return cryptoutilLintDeployments.Main(append([]string{"validate-compose"}, extraArgs...))
 	case "validate-config":
-		return cryptoutilLintDeployments.Main(append([]string{"validate-config"}, args[2:]...))
+		return cryptoutilLintDeployments.Main(append([]string{"validate-config"}, extraArgs...))
 	case "validate-all":
-		return cryptoutilLintDeployments.Main(append([]string{"validate-all"}, args[2:]...))
+		return cryptoutilLintDeployments.Main(append([]string{"validate-all"}, extraArgs...))
+
+	// Documentation validators (TODO: migrate to internal/apps/cicd/).
 	case "check-chunk-verification":
 		return CheckChunkVerification(stdout, stderr)
 	case "validate-propagation":
 		return ValidatePropagationCommand(stdout, stderr)
 	case "validate-chunks":
 		return ValidateChunksCommand(stdout, stderr)
-	case "cleanup-runs":
-		return runCleanup(args[2:], stderr, cryptoutilCleanupGitHub.CleanupRuns)
-	case "cleanup-artifacts":
-		return runCleanup(args[2:], stderr, cryptoutilCleanupGitHub.CleanupArtifacts)
-	case "cleanup-caches":
-		return runCleanup(args[2:], stderr, cryptoutilCleanupGitHub.CleanupCaches)
-	case "cleanup-all":
-		return runCleanup(args[2:], stderr, cryptoutilCleanupGitHub.CleanupAll)
-	case "lint-text", "lint-go", "lint-go-test", "lint-compose", "lint-ports",
-		"lint-workflow", "lint-go-mod", "lint-golangci", "format-go", "format-go-test":
-		return cryptoutilAppsCicd.Cicd(args, stdin, stdout, stderr)
+
 	case "help", "--help", "-h":
 		printUsage(stdout)
 
@@ -97,13 +99,13 @@ Documentation Commands:
   validate-propagation      Validate all ARCHITECTURE.md section references
   validate-chunks           Compare @propagate/@source marker content for staleness
 
-Cleanup Commands (GitHub Actions storage):
-  cleanup-runs              Delete old workflow runs (default: >7 days)
-  cleanup-artifacts         Delete old artifacts (default: >7 days)
-  cleanup-caches            Delete stale caches (default: not accessed in 7 days)
-  cleanup-all               Run all cleanup operations
+GitHub Cleanup Commands:
+  github-cleanup-runs       Delete old workflow runs (default: >7 days)
+  github-cleanup-artifacts  Delete old artifacts (default: >7 days)
+  github-cleanup-caches     Delete stale caches (default: not accessed in 7 days)
+  github-cleanup-all        Run all cleanup operations
 
-  Cleanup flags:
+  GitHub Cleanup Flags:
     --confirm               Execute deletions (default: dry-run preview only)
     --max-age-days=N        Age threshold in days (default: 7)
     --keep-min-runs=N       Min successful runs to keep per workflow (default: 3)
@@ -116,30 +118,22 @@ Examples:
   cicd lint-go lint-go-test format-go
   cicd lint-deployments
   cicd validate-all deployments configs
-  cicd cleanup-all                          # Dry-run preview
-  cicd cleanup-all --confirm                # Execute deletions
-  cicd cleanup-runs --max-age-days=7        # Preview runs older than 7 days
+  cicd github-cleanup-all                   # Dry-run preview
+  cicd github-cleanup-all --confirm         # Execute deletions
+  cicd github-cleanup-runs --max-age-days=7 # Preview runs older than 7 days
 
 See: docs/ARCHITECTURE-TODO.md for architectural documentation (pending).
 `)
 }
 
-// runCleanup initializes config from args and runs the specified cleanup function.
-func runCleanup(args []string, stderr io.Writer, cleanupFn func(*cryptoutilCleanupGitHub.CleanupConfig) error) int {
-	logger := cryptoutilCmdCicdCommon.NewLogger("cleanup")
-	cfg := cryptoutilCleanupGitHub.NewDefaultConfig(logger)
+// getExtraArgs safely extracts arguments after the command name.
+// Returns empty slice if args has fewer than 3 elements (binary + command + extra).
+func getExtraArgs(args []string) []string {
+	const minArgsWithExtra = 3 // binary name + command + at least one extra arg
 
-	if err := cryptoutilCleanupGitHub.ParseArgs(args, cfg); err != nil {
-		_, _ = fmt.Fprintf(stderr, "Error: %v\n", err)
-
-		return 1
+	if len(args) < minArgsWithExtra {
+		return []string{}
 	}
 
-	if err := cleanupFn(cfg); err != nil {
-		_, _ = fmt.Fprintf(stderr, "Error: %v\n", err)
-
-		return 1
-	}
-
-	return 0
+	return args[2:]
 }
