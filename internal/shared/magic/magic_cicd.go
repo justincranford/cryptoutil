@@ -207,20 +207,20 @@ const (
 
 // ValidCommands defines the set of valid cicd commands.
 var ValidCommands = map[string]bool{
-	"format-go":              true,
-	"format-go-test":         true,
-	"github-cleanup-all":     true,
+	"format-go":                true,
+	"format-go-test":           true,
+	"github-cleanup-all":       true,
 	"github-cleanup-artifacts": true,
-	"github-cleanup-caches":  true,
-	"github-cleanup-runs":    true,
-	"lint-compose":           true,
-	"lint-go":                true,
-	"lint-go-mod":            true,
-	"lint-go-test":           true,
-	"lint-golangci":          true,
-	"lint-ports":             true,
-	"lint-text":              true,
-	"lint-workflow":          true,
+	"github-cleanup-caches":    true,
+	"github-cleanup-runs":      true,
+	"lint-compose":             true,
+	"lint-go":                  true,
+	"lint-go-mod":              true,
+	"lint-go-test":             true,
+	"lint-golangci":            true,
+	"lint-ports":               true,
+	"lint-text":                true,
+	"lint-workflow":            true,
 }
 
 // Regex patterns for test enforcement.
