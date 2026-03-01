@@ -2,7 +2,7 @@
 
 **Status**: 0 of N tasks complete
 **Created**: 2026-03-01
-**Last Updated**: 2026-03-01 (quizme-v1 + quizme-v2 + quizme-v3 answers merged)
+**Last Updated**: 2026-03-01 (quizme-v1 + quizme-v2 + quizme-v3 + quizme-v4 answers merged)
 
 ## Quality Mandate - MANDATORY
 
@@ -192,18 +192,23 @@ Every task: ALL 8 quality attributes verified each review pass. All issues are b
 - [ ] Add `abravalheri/validate-pyproject` hook to `.pre-commit-config.yaml`
 - [ ] Verify `pyproject.toml` passes schema validation
 
-**Skipped** (quizme-v3): govulncheck (B), vale (B)
-**Deferred to quizme-v4**: trivy (C), semgrep (C), codespell (C), editorconfig-checker (C)
+### Task 6.6: Create .editorconfig + add editorconfig-checker (quizme-v4 YES)
+- [ ] Create `.editorconfig` in project root with rules matching current editor standards (indent_style=space, indent_size=4 for Go, end_of_line=lf, charset=utf-8, trim_trailing_whitespace=true, insert_final_newline=true)
+- [ ] Add `editorconfig-checker/editorconfig-checker` hook to `.pre-commit-config.yaml`
+- [ ] Verify all existing files pass (`pre-commit run editorconfig-checker --all-files`); fix any violations
+
+**Skipped** (final): govulncheck (B), vale (B), codespell (B quizme-v4)
+**Deferred to quizme-v5**: trivy (C again), semgrep (C again)
 **Note**: ruff-check and ruff-format hooks implemented in Phase 7 (Python migration)
 
 ---
 
 ## Phase 7: Python Toolchain Modernization
 
-**Status**: Gated by quizme-v3 Section 3 for per-item confirmation.
+**Status**: Decisions confirmed from quizme-v3. Ready for implementation.
 
 ### Task 7.1: Remove redundant Python tools from pyproject.toml
-(Gated by quizme-v3 — items confirmed for removal)
+(Confirmed for removal per quizme-v3)
 - [ ] Remove `black` (replaced by `ruff format`)
 - [ ] Remove `isort` (replaced by ruff I rules)
 - [ ] Remove `flake8` (replaced by ruff E/W/F rules)
@@ -225,7 +230,6 @@ Every task: ALL 8 quality attributes verified each review pass. All issues are b
 - [ ] Update `.github/workflows/*.yml` as applicable
 
 ### Task 7.5: Migrate to uvx for CLI tool execution
-(Gated by quizme-v3 Section 3 items)
 - [ ] Update scripts that run ruff → `uvx ruff`
 - [ ] Update scripts that run mypy → `uvx mypy`
 - [ ] Update any pip-install-then-run patterns to uvx
@@ -264,8 +268,7 @@ Every task: ALL 8 quality attributes verified each review pass. All issues are b
 - [ ] Run `cd test/load && mvn verify` — verify coverage report generated and threshold passes
 - [ ] Add CI/CD workflow step to upload JaCoCo coverage report as artifact
 
-**Skipped** (quizme-v3): PMD (B — SpotBugs already present and preferred)
-**Deferred to quizme-v4**: ArchUnit (C)
+**Skipped** (final): PMD (B — SpotBugs already present and preferred), ArchUnit (B quizme-v4 — load test arch is simple)
 
 ---
 
@@ -300,8 +303,13 @@ Every task: ALL 8 quality attributes verified each review pass. All issues are b
 - [ ] Target files: `internal/apps/skeleton/template/*.go` and `cmd/skeleton-template/main.go`
 - [ ] Verify comments are clear and discoverable
 
-### Task 10.3: ~~Placeholder detection lint rule~~ — DEFERRED (quizme-v3 S4-Item3)
-**Decision**: Blank answer = not decided. Deferred to quizme-v4.
+### Task 10.3: Add CICD placeholder detection lint rule (quizme-v4 YES)
+- [ ] Add new `validate-skeleton` validator in `internal/apps/cicd/lint_skeleton/` (following existing validator pattern)
+- [ ] Validator scans all non-skeleton directories for unreplaced `skeleton`/`Skeleton`/`SKELETON` strings in `.go` source files
+- [ ] Register command as `cicd lint-skeleton` in the CICD command dispatcher
+- [ ] Add pre-commit hook for `cicd lint-skeleton`
+- [ ] Add tests for the validator (≥98% coverage)
+- [ ] Verify runs cleanly (`go run ./cmd/cicd lint-skeleton`)
 
 ### Task 10.4: ~~new-service.agent.md~~ — SKIPPED (create skill instead per quizme-v3 S4-Item4)
 **Decision**: "NO — make it a skill". Moved to Phase 5: `new-service.md` in `.github/skills/`.

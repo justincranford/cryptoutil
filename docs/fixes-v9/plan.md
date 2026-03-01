@@ -2,7 +2,7 @@
 
 **Status**: Planning → Ready for Execution
 **Created**: 2026-03-01
-**Last Updated**: 2026-03-01 (quizme-v1 + quizme-v2 + quizme-v3 answers merged)
+**Last Updated**: 2026-03-01 (quizme-v1 + quizme-v2 + quizme-v3 + quizme-v4 answers merged)
 
 ## Quality Mandate - MANDATORY
 
@@ -28,9 +28,9 @@ Eleven phases of improvement, all to be implemented:
 3. **Phase 3: ARCHITECTURE.md Optimization** — Consolidate duplications, fill omissions (skills section, agent/skill/instruction matrix); target <4,000 lines
 4. **Phase 4: doc-sync Propagation** — Add 12.7, 11.4, B.6 @source blocks to doc-sync.agent.md
 5. **Phase 5: Copilot Skills** — Create 13 skills + infrastructure (12 from quizme-v2 + `new-service` from quizme-v3 S4-Item4)
-6. **Phase 6: Pre-commit/Pre-push Linters** — 7 approved: ruff-check, ruff-format, checkov, sqlfluff, taplo, pyproject-fmt, validate-pyproject; 2 skipped: govulncheck, vale; 4 deferred to quizme-v4
+6. **Phase 6: Pre-commit/Pre-push Linters** — 8 approved: ruff-check, ruff-format, checkov, sqlfluff, taplo, pyproject-fmt, validate-pyproject, editorconfig-checker; 3 skipped: govulncheck, vale, codespell; 2 deferred to quizme-v5: trivy, semgrep
 7. **Phase 7: Python Toolchain Modernization** — All 5 items confirmed YES: remove black+isort+flake8, add ruff, migrate to uvx
-8. **Phase 8: Java Toolchain Additions** — 6 approved: Spotless, Checkstyle, Error Prone, NullAway, maven-enforcer, JaCoCo (mandatory + high threshold); PMD skipped (SpotBugs preferred); ArchUnit deferred to quizme-v4
+8. **Phase 8: Java Toolchain Additions** — 6 approved: Spotless, Checkstyle, Error Prone, NullAway, maven-enforcer, JaCoCo (mandatory + high threshold); PMD skipped (SpotBugs preferred); ArchUnit skipped (load test arch is simple, B quizme-v4)
 9. **Phase 9: lint-deployments Error Messages** — Analyze and improve all validator error messages for clarity and actionability (Q4 from quizme-v2)
 10. **Phase 10: skeleton-template Improvements** — Research-driven improvements to naming, content, placeholder detection, auto-discovery (Q6 from quizme-v2)
 11. **Phase 11: Validation** — lint-docs, build, lint, tests; 3–5 review passes
@@ -181,26 +181,26 @@ Skills section added in Phase 3.5 will include catalogue table.
 | ruff check | A — YES | Part of Phase 7 Python migration; add `astral-sh/ruff-pre-commit` ruff hook |
 | ruff format | A — YES | Part of Phase 7 Python migration; add `astral-sh/ruff-pre-commit` ruff-format hook |
 | checkov | A — YES | Add `bridgecrewio/checkov` for Dockerfile + Compose security |
-| trivy | C — DEFER | Move to quizme-v4 |
-| semgrep | C — DEFER | Move to quizme-v4 |
+| trivy | C — DEFER | Deferred again; move to quizme-v5 |
+| semgrep | C — DEFER | Deferred again; move to quizme-v5 |
 | sqlfluff | A — YES | Add for SQL migration files (`.sql`), dialect=postgres |
 | vale | B — SKIP | markdownlint-cli2 sufficient; prose linting not needed |
-| codespell | C — DEFER | Move to quizme-v4 |
+| codespell | B — SKIP | Not a significant problem in this project (quizme-v4 B) |
 | taplo | A — YES | Add for TOML file formatting |
 | pyproject-fmt | A — YES | Add for `pyproject.toml` normalization |
 | validate-pyproject | A — YES | Add schema validation for `pyproject.toml` |
-| editorconfig-checker | C — DEFER | Move to quizme-v4 |
+| editorconfig-checker | A — YES | Create `.editorconfig` first; then add hook (quizme-v4 A) |
 
-**7 approved** (ruff-check+format in Phase 7): ruff-check, ruff-format, checkov, sqlfluff, taplo, pyproject-fmt, validate-pyproject
-**2 skipped**: govulncheck, vale
-**4 deferred to quizme-v4**: trivy, semgrep, codespell, editorconfig-checker
+**8 approved** (ruff-check+format in Phase 7): ruff-check, ruff-format, checkov, sqlfluff, taplo, pyproject-fmt, validate-pyproject, editorconfig-checker
+**3 skipped**: govulncheck, vale, codespell
+**2 deferred to quizme-v5**: trivy, semgrep
 
 ### Current Hooks Inventory (already have)
 **Go**: golangci-lint (full + incremental), go build, cicd custom lint (lint-docs, lint-go, lint-text, lint-workflow, lint-deployments, lint-ports, etc.), go mod tidy
 **Python**: bandit (security)
 **Other**: gitleaks (secrets), yamllint, actionlint (GitHub Actions YAML), hadolint (Dockerfile), shellcheck, markdownlint-cli2, commitizen (conventional commits), pre-commit-hooks (yaml, json, toml, xml, end-of-file, trailing-whitespace, merge-conflict, etc.)
 
-### Candidate Additions (numbered list for quizme-v3 review)
+### Candidate Additions (decisions complete — historical reference)
 
 #### Go / Security
 1. **govulncheck** — Scans `go.sum` against Go module vulnerability database (CVE detection). Critical gap — different from gosec (runtime security patterns) vs. CVE database.
@@ -300,11 +300,11 @@ Already has: spotbugs + findsecbugs, owasp-dependency-check, versions-maven-plug
 | NullAway | A — YES | Add as Error Prone plugin (requires Error Prone) |
 | maven-enforcer | A — YES | Add with `dependencyConvergence` + `requireJavaVersion` + `requireMavenVersion` rules |
 | JaCoCo | A — YES (MANDATORY, high threshold) | Add with high coverage thresholds matching Go standards (≥95%); absolutely mandatory |
-| ArchUnit | C — DEFER | Valuable but high effort; defer to quizme-v4 |
+| ArchUnit | B — SKIP | Load test architecture is simple; ArchUnit is overkill (quizme-v4 B) |
 
 **6 approved**: Spotless, Checkstyle, Error Prone, NullAway, maven-enforcer, JaCoCo
 **1 skipped**: PMD (SpotBugs preferred)
-**1 deferred to quizme-v4**: ArchUnit
+**1 skipped (quizme-v4 final)**: ArchUnit (load test arch is simple)
 
 **JaCoCo note**: User specified "absolutely mandatory, with high threshold like Go coverage thresholds" — configure with ≥95% line coverage minimum, failing build on threshold breach.
 
@@ -372,11 +372,13 @@ Review all 8 validators' error messages for:
 #### 10.1 Naming and Discoverability — quizme-v3 decisions
 - ❌ SKIP: `SCAFFOLDING.md` in project root — user: "no more doc bloat and doc sprawl" (quizme-v3 S4-Item1 answer C/B)
 - ✅ YES: Template comment headers in skeleton source files (quizme-v3 S4-Item2 answer A)
-- ❌ DEFER: `cicd validate-skeleton` placeholder detection lint rule (quizme-v3 S4-Item3 blank → quizme-v4)
+- ✅ YES: `cicd validate-skeleton` placeholder detection lint rule (quizme-v4 A — YES)
 - ❌ SKIP agent, ADD SKILL: `new-service.agent.md` replaced by `new-service` skill in Phase 5 Group E (quizme-v3 S4-Item4 answer C: "make it a skill")
 
-#### 10.2 Placeholder Detection (DEFERRED to quizme-v4)
-- `cicd validate-skeleton` command — not decided yet, in quizme-v4
+#### 10.2 Placeholder Detection — YES (quizme-v4 A)
+- `cicd validate-skeleton` command: scan non-skeleton directories for unreplaced `skeleton`/`Skeleton`/`SKELETON` strings
+- Add new validator in `cmd/cicd/` following same pattern as existing validators
+- Add pre-commit hook for validate-skeleton
 
 #### 10.3 Content Improvements (unchanged from research)
 - Add: Example domain model, repository, service, handler in skeleton-template as comments
@@ -384,11 +386,12 @@ Review all 8 validators' error messages for:
 - Add: Example OpenAPI paths/components for CRUD patterns (as commented-out reference)
 
 #### 10.4 Implementation Plan (from decisions above)
-**Phase 10 scope** (only approved items):
-1. Add template comment headers to skeleton source files (Item 2 YES)
+**Phase 10 scope** (approved items including quizme-v4):
+1. Add template comment headers to skeleton source files (quizme-v3 Item 2 YES)
 2. Create `new-service` skill in `.github/skills/new-service.md` (moved to Phase 5 Group E)
 3. Add commented example patterns (domain/repo/service/handler) — content improvement
 4. Add MIGRATION.md step-by-step guide inside `internal/apps/skeleton/` (scope: skeleton dir only, not root)
+5. Add `cicd validate-skeleton` placeholder detection lint rule + pre-commit hook (quizme-v4 Item 1 YES)
 
 ---
 
@@ -474,7 +477,15 @@ Review all 8 validators' error messages for:
 | S4-Item3 | blank — CICD placeholder detection DEFER | quizme-v4 |
 | S4-Item4 | C — new-service.agent.md SKIP; create skill instead | Phase 5 Group E |
 
-### Phases Deferred to quizme-v4
-- Phase 6 deferred: trivy, semgrep, codespell, editorconfig-checker
-- Phase 8 deferred: ArchUnit
-- Phase 10 deferred: CICD placeholder detection lint rule
+### From quizme-v4
+| Q | Decision | Phase |
+|---|----------|-------|
+| S1-C1 | C — trivy DEFER again | quizme-v5 |
+| S1-C2 | C — semgrep DEFER again | quizme-v5 |
+| S1-C3 | B — codespell SKIP | Phase 6 |
+| S1-C4 | A — editorconfig-checker YES (create .editorconfig first) | Phase 6 |
+| S2-Tool1 | B — ArchUnit SKIP (load test arch is simple; overkill) | Phase 8 |
+| S3-Item1 | A — CICD placeholder detection YES | Phase 10 |
+
+### Phases Deferred to quizme-v5
+- Phase 6 deferred: trivy, semgrep
