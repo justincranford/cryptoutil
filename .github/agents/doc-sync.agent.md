@@ -88,6 +88,32 @@ Systematically identify and synchronize related documentation across the cryptou
 - **NEVER skip**: Cannot mark phase or task or step complete with known issues
 - **NEVER defer**: No "we'll fix later", no "non-critical", no "nice-to-have"
 
+
+## Architecture Context
+
+See [ARCHITECTURE.md Section 12.7](../../docs/ARCHITECTURE.md#127-documentation-propagation-strategy) for complete documentation propagation system design.
+
+<!-- @source from="docs/ARCHITECTURE.md" as="documentation-propagation-strategy" -->
+**MANDATORY**: Changes to ARCHITECTURE.md MUST be propagated to ALL downstream files in the SAME commit. Infrastructure changes (Docker, OTel, testcontainers, CI/CD) are ALWAYS BLOCKING — NEVER deferred.
+<!-- @/source -->
+
+See [ARCHITECTURE.md Section 11.4](../../docs/ARCHITECTURE.md#114-documentation-standards) for documentation organization standards.
+
+<!-- @source from="docs/ARCHITECTURE.md" as="documentation-standards" -->
+- Primary: README.md and docs/README.md (keep in 2 files)
+- Spec structure: plan.md and tasks.md patterns
+- NEVER create standalone session/analysis docs
+- Append to existing docs instead of creating new files
+<!-- @/source -->
+
+See [ARCHITECTURE.md Appendix B.4](../../docs/ARCHITECTURE.md#b4-instruction-file-reference) for instruction file catalog.
+
+<!-- @source from="docs/ARCHITECTURE.md" as="instruction-file-catalog" -->
+**See .github/copilot-instructions.md** for complete table of 18 instruction files
+
+**Summary**: 01-terminology/beast-mode, 02-architecture (5 files), 03-development (4 files), 04-deployment (1 file), 05-platform (2 files), 06-evidence (2 files)
+<!-- @/source -->
+
 ---
 
 ## Documentation Hierarchy and Ownership

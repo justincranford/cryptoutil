@@ -108,21 +108,21 @@ Every task: ALL 8 quality attributes verified each review pass. All issues are b
 ## Phase 4: doc-sync Agent Propagation
 
 ### Task 4.1: Add Section 12.7 Documentation Propagation Strategy
-- [ ] Read ARCHITECTURE.md Section 12.7 — identify @propagate markers
-- [ ] Add @source block for 12.7 into doc-sync.agent.md
-- [ ] Add cross-reference header
+- [x] Read ARCHITECTURE.md Section 12.7 — identify @propagate markers
+- [x] Add @source block for 12.7 into doc-sync.agent.md
+- [x] Add cross-reference header
 
 ### Task 4.2: Add Section 11.4 Documentation Standards
-- [ ] Read ARCHITECTURE.md Section 11.4 — identify @propagate markers
-- [ ] Add @source block for 11.4 into doc-sync.agent.md
+- [x] Read ARCHITECTURE.md Section 11.4 — identify @propagate markers
+- [x] Add @source block for 11.4 into doc-sync.agent.md
 
 ### Task 4.3: Add Appendix B.6 Instruction File Reference
-- [ ] Complete Task 3.3 first (Appendix B resequencing)
-- [ ] Verify new B.# number for Instruction File Reference
-- [ ] Add @source block or cross-reference into doc-sync.agent.md
+- [x] Complete Task 3.3 first (Appendix B resequencing)
+- [x] Verify new B.# number for Instruction File Reference
+- [x] Add @source block or cross-reference into doc-sync.agent.md
 
 ### Task 4.4: Verify Section 2.5 reference is current (after Phase 1)
-- [ ] Confirm doc-sync Section 2.5 reference is up to date
+- [x] Confirm doc-sync Section 2.5 reference is up to date
 
 ---
 

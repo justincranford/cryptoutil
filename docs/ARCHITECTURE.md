@@ -3038,10 +3038,12 @@ Here are local convenience commands to run the workflows locally for Development
 
 #### 11.4.1 Documentation Organization
 
+<!-- @propagate to=".github/agents/doc-sync.agent.md" as="documentation-standards" -->
 - Primary: README.md and docs/README.md (keep in 2 files)
 - Spec structure: plan.md and tasks.md patterns
 - NEVER create standalone session/analysis docs
 - Append to existing docs instead of creating new files
+<!-- @/propagate -->
 
 #### 11.4.2 Documentation Frontmatter
 
@@ -3869,7 +3871,9 @@ configs/
 
 **Solution**: ARCHITECTURE.md is the **absolute single source of truth**. Content is propagated to downstream files using **chunk-based verbatim copying** with HTML comment markers. A deterministic CI/CD validator verifies propagation integrity.
 
+<!-- @propagate to=".github/agents/doc-sync.agent.md" as="documentation-propagation-strategy" -->
 **MANDATORY**: Changes to ARCHITECTURE.md MUST be propagated to ALL downstream files in the SAME commit. Infrastructure changes (Docker, OTel, testcontainers, CI/CD) are ALWAYS BLOCKING — NEVER deferred.
+<!-- @/propagate -->
 
 #### 12.7.2 Propagation Marker System
 
@@ -4364,9 +4368,11 @@ Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATO
 
 ### B.4 Instruction File Reference
 
+<!-- @propagate to=".github/agents/doc-sync.agent.md" as="instruction-file-catalog" -->
 **See .github/copilot-instructions.md** for complete table of 18 instruction files
 
 **Summary**: 01-terminology/beast-mode, 02-architecture (5 files), 03-development (4 files), 04-deployment (1 file), 05-platform (2 files), 06-evidence (2 files)
+<!-- @/propagate -->
 
 ### B.5 Agent Catalog & Handoff Matrix
 
