@@ -3,7 +3,7 @@
 spa:
   name: spa-server
   bind_address: 127.0.0.1
-  port: 8130
+  port: 8600
   tls_enabled: false
   read_timeout: 30s
   write_timeout: 30s

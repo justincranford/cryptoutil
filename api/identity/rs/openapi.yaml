@@ -15,7 +15,7 @@ info:
     url: https://www.apache.org/licenses/LICENSE-2.0.html
 
 servers:
-  - url: https://localhost:8082
+  - url: https://localhost:8400
     description: Local Development (SQLite or PostgreSQL)
   - url: https://rs.cryptoutil.local
     description: Production

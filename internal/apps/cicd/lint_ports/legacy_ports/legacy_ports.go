@@ -96,6 +96,16 @@ func CheckFile(filePath string, legacyPorts []uint16) []lintPortsCommon.Violatio
 		return nil
 	}
 
+	// Skip archived deployments - these are historical reference files only.
+	if strings.Contains(filePath, "deployments/archived/") {
+		return nil
+	}
+
+	// Skip orphaned configs - these are deprecated configuration files.
+	if strings.Contains(filePath, "configs/orphaned/") {
+		return nil
+	}
+
 	file, err := os.Open(filePath)
 	if err != nil {
 		return nil

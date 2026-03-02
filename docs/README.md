@@ -262,65 +262,65 @@ docker compose down -v
 docker compose up -d
 
 # Verify services are ready
-curl -k https://localhost:8080/ui/swagger/doc.json  # SQLite instance (port 8080)
-curl -k https://localhost:8081/ui/swagger/doc.json  # PostgreSQL instance 1 (port 8081)
-curl -k https://localhost:8082/ui/swagger/doc.json  # PostgreSQL instance 2 (port 8082)
+curl -k https://localhost:8000/ui/swagger/doc.json  # SQLite instance (port 8000)
+curl -k https://localhost:8001/ui/swagger/doc.json  # PostgreSQL instance 1 (port 8001)
+curl -k https://localhost:8002/ui/swagger/doc.json  # PostgreSQL instance 2 (port 8002)
 ```
 
 #### Manual Nuclei Scan Commands
 
 **Service Configuration:**
 
-- **cryptoutil-sqlite**: `https://localhost:8080/` (SQLite backend, development instance)
-- **cryptoutil-postgres-1**: `https://localhost:8081/` (PostgreSQL backend, production-like instance)
-- **cryptoutil-postgres-2**: `https://localhost:8082/` (PostgreSQL backend, production-like instance)
+- **cryptoutil-sqlite**: `https://localhost:8000/` (SQLite backend, development instance)
+- **cryptoutil-postgres-1**: `https://localhost:8001/` (PostgreSQL backend, production-like instance)
+- **cryptoutil-postgres-2**: `https://localhost:8002/` (PostgreSQL backend, production-like instance)
 
 **Basic Security Scans:**
 
 ```sh
 # Quick scan - Info and Low severity issues only (fast, ~5-10 seconds)
-nuclei -target https://localhost:8080/ -severity info,low
-nuclei -target https://localhost:8081/ -severity info,low
-nuclei -target https://localhost:8082/ -severity info,low
+nuclei -target https://localhost:8000/ -severity info,low
+nuclei -target https://localhost:8001/ -severity info,low
+nuclei -target https://localhost:8002/ -severity info,low
 
 # Standard scan - Medium, High, and Critical severity (comprehensive, ~10-30 seconds)
-nuclei -target https://localhost:8080/ -severity medium,high,critical
-nuclei -target https://localhost:8081/ -severity medium,high,critical
-nuclei -target https://localhost:8082/ -severity medium,high,critical
+nuclei -target https://localhost:8000/ -severity medium,high,critical
+nuclei -target https://localhost:8001/ -severity medium,high,critical
+nuclei -target https://localhost:8002/ -severity medium,high,critical
 
 # Full scan - All severity levels (thorough, ~20-60 seconds)
-nuclei -target https://localhost:8080/ -severity info,low,medium,high,critical
-nuclei -target https://localhost:8081/ -severity info,low,medium,high,critical
-nuclei -target https://localhost:8082/ -severity info,low,medium,high,critical
+nuclei -target https://localhost:8000/ -severity info,low,medium,high,critical
+nuclei -target https://localhost:8001/ -severity info,low,medium,high,critical
+nuclei -target https://localhost:8002/ -severity info,low,medium,high,critical
 ```
 
 **Targeted Vulnerability Scans:**
 
 ```sh
 # CVE scanning (recent and historical vulnerabilities)
-nuclei -target https://localhost:8080/ -tags cves -severity high,critical
+nuclei -target https://localhost:8000/ -tags cves -severity high,critical
 
 # Security misconfigurations
-nuclei -target https://localhost:8080/ -tags security-misconfiguration
+nuclei -target https://localhost:8000/ -tags security-misconfiguration
 
 # Information disclosure and exposure
-nuclei -target https://localhost:8080/ -tags exposure,misc
+nuclei -target https://localhost:8000/ -tags exposure,misc
 
 # Technology detection and fingerprinting
-nuclei -target https://localhost:8080/ -tags tech-detect
+nuclei -target https://localhost:8000/ -tags tech-detect
 
 # Default credentials and weak authentication
-nuclei -target https://localhost:8080/ -tags default-logins
+nuclei -target https://localhost:8000/ -tags default-logins
 ```
 
 **Performance-Optimized Scans:**
 
 ```sh
 # High-performance scanning (adjust concurrency and rate limiting as needed)
-nuclei -target https://localhost:8080/ -c 25 -rl 100 -severity high,critical
+nuclei -target https://localhost:8000/ -c 25 -rl 100 -severity high,critical
 
 # Conservative scanning (lower resource usage)
-nuclei -target https://localhost:8080/ -c 10 -rl 25 -severity medium,high,critical
+nuclei -target https://localhost:8000/ -c 10 -rl 25 -severity medium,high,critical
 ```
 
 **Batch Scanning Script (PowerShell):**
@@ -328,9 +328,9 @@ nuclei -target https://localhost:8080/ -c 10 -rl 25 -severity medium,high,critic
 ```powershell
 # Scan all three cryptoutil instances
 $targets = @(
-    "https://localhost:8080/",  # SQLite instance
-    "https://localhost:8081/",  # PostgreSQL instance 1
-    "https://localhost:8082/"   # PostgreSQL instance 2
+    "https://localhost:8000/",  # SQLite instance
+    "https://localhost:8001/",  # PostgreSQL instance 1
+    "https://localhost:8002/"   # PostgreSQL instance 2
 )
 
 foreach ($target in $targets) {
@@ -346,9 +346,9 @@ foreach ($target in $targets) {
 ```bash
 # Scan all three cryptoutil instances
 targets=(
-    "https://localhost:8080/"  # SQLite instance
-    "https://localhost:8081/"  # PostgreSQL instance 1
-    "https://localhost:8082/"  # PostgreSQL instance 2
+    "https://localhost:8000/"  # SQLite instance
+    "https://localhost:8001/"  # PostgreSQL instance 1
+    "https://localhost:8002/"  # PostgreSQL instance 2
 )
 
 for target in "${targets[@]}"; do
@@ -395,7 +395,7 @@ ls ~/nuclei-templates                     # Linux/macOS
 
 ```sh
 # Check service health
-curl -k https://localhost:8080/ui/swagger/doc.json
+curl -k https://localhost:8000/ui/swagger/doc.json
 curl -k https://localhost:9090/admin/v1/livez  # Admin health endpoint
 
 # Check Docker containers
@@ -415,7 +415,7 @@ docker compose up -d
 
 # Wait for services to be ready
 sleep 30
-curl -k https://localhost:8080/ui/swagger/doc.json
+curl -k https://localhost:8000/ui/swagger/doc.json
 ```
 
 #### Interpreting Scan Results
@@ -510,7 +510,7 @@ This system is well-suited for:
 
 2. **Access Swagger UI:**
 
-   Open `https://localhost:8080/ui/swagger/` in your browser.
+   Open `https://localhost:8000/ui/swagger/` in your browser.
 
 3. **Authenticate with demo credentials:**
    - Username: `demo`
@@ -613,7 +613,7 @@ The project includes a comprehensive multi-service Docker Compose setup for loca
 │                                                                                        │
 │  ┌─────────────────────────┐   ┌─────────────────────────┐   ┌───────────────────────┐ │
 │  │    cryptoutil-sqlite    │   │   cryptoutil-postgres1  │   │  cryptoutil-postgres2 │ │
-│  │ Port:      0.0.0.0:8080 │   │ Port:      0.0.0.0:8081 │   │ Port:    0.0.0.0:8082 │ │
+│  │ Port:      0.0.0.0:8000 │   │ Port:      0.0.0.0:8001 │   │ Port:    0.0.0.0:8002 │ │
 │  │ Admin:   127.0.0.1:9090 │   │ Admin:   127.0.0.1:9090 │   │ Admin: 127.0.0.1:9090 │ │
 │  │ Backend: SQLite         │   │ Backend: PostgreSQL     │   │ Backend: PostgreSQL   │ │
 │  └─────────┬───────────────┘   └──────────┬────────────┬─┘   └─┬─────────┬───────────┘ │
@@ -626,7 +626,7 @@ The project includes a comprehensive multi-service Docker Compose setup for loca
 │  │ OTEL Healthcheck   │─────>│  OTEL Collector    │     │  PostgreSQL  │               |
 │  │ (Alpine Sidecar)   │      │  GRPC: 4317        │     │ Port: 5432   │               |
 │  └────────────────────┘      │  HTTP: 4318        │     │ Database: DB │               |
-│                              │  Metrics: 8070     │     │ User: USR    │               |
+│                              │  OTEL Metrics:8888     │     │ User: USR    │               |
 │                              │  Health: 13133     │     └──────────────┘               |
 │                              │  pprof: 1777       │                                    |
 │                              │  zPages: 55679     │                                    |
@@ -650,7 +650,7 @@ Dependencies Flow:
 
 Telemetry Flow:
 cryptoutil services → OTEL Collector (4317/4318) → Grafana LGTM (14317/14318)
-OTEL Collector self-metrics → Prometheus scraping (8070)
+OTEL Collector self-metrics → Prometheus scraping ( 8888)
 
 **Health Checks:**
 - cryptoutil services: wget https://127.0.0.1:9090/admin/v1/livez
@@ -663,11 +663,11 @@ OTEL Collector self-metrics → Prometheus scraping (8070)
 
 | Service | Public Port(s) | Admin Port | Protocol | Purpose |
 |---------|---------------|------------|----------|---------|
-| cryptoutil-sqlite | 8080 | 9090 | HTTPS | SQLite backend instance |
-| cryptoutil-postgres-1 | 8081 | 9090 | HTTPS | PostgreSQL backend instance #1 |
-| cryptoutil-postgres-2 | 8082 | 9090 | HTTPS | PostgreSQL backend instance #2 |
+| cryptoutil-sqlite | 8000 | 9090 | HTTPS | SQLite backend instance |
+| cryptoutil-postgres-1 | 8001 | 9090 | HTTPS | PostgreSQL backend instance #1 |
+| cryptoutil-postgres-2 | 8002 | 9090 | HTTPS | PostgreSQL backend instance #2 |
 | postgres | 5432 | - | TCP | PostgreSQL database |
-| opentelemetry-collector | 4317 (GRPC), 4318 (HTTP) | 8070 (metrics), 13133 (health) | OTLP | Telemetry collection |
+| opentelemetry-collector | 4317 (GRPC), 4318 (HTTP) | 8888 (metrics), 13133 (health) | OTLP | Telemetry collection |
 | grafana-otel-lgtm | 3000 | 14317 (GRPC), 14318 (HTTP) | HTTP | Observability stack |
 
 ### Resource Allocation

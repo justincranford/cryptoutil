@@ -32,6 +32,11 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][
 			continue
 		}
 
+		// Skip archived deployments - these are historical reference files only.
+		if strings.Contains(filePath, "deployments/archived/") {
+			continue
+		}
+
 		fileViolations := CheckHostPortRangesInFile(filePath)
 		violations = append(violations, fileViolations...)
 	}
@@ -111,6 +116,11 @@ func CheckHostPortRangesInFile(filePath string) []lintPortsCommon.Violation {
 
 			// Validate host port is in valid range for the service.
 			if currentService != "" {
+				// Skip database containers - they use PostgreSQL/other DB ports, not service ports.
+				if strings.Contains(currentService, "-db-") {
+					continue
+				}
+
 				serviceCfg := GetServiceConfig(currentService)
 				if serviceCfg != nil && !IsPortInValidRange(port, serviceCfg) {
 					violations = append(violations, lintPortsCommon.Violation{
@@ -164,6 +174,16 @@ func IsPortInValidRange(port uint16, cfg *lintPortsCommon.ServicePortConfig) boo
 	if len(cfg.PublicPorts) > 0 {
 		basePort := cfg.PublicPorts[0]
 		if port >= basePort && port < basePort+cryptoutilSharedMagic.JoseJAMaxMaterials {
+			return true
+		}
+
+		// Check product-level ports (service port + 10000) within the same range.
+		if port >= basePort+cryptoutilSharedMagic.ServiceToProductPortOffset && port < basePort+cryptoutilSharedMagic.ServiceToProductPortOffset+cryptoutilSharedMagic.JoseJAMaxMaterials {
+			return true
+		}
+
+		// Check suite-level ports (service port + 20000) within the same range.
+		if port >= basePort+cryptoutilSharedMagic.ServiceToSuitePortOffset && port < basePort+cryptoutilSharedMagic.ServiceToSuitePortOffset+cryptoutilSharedMagic.JoseJAMaxMaterials {
 			return true
 		}
 	}

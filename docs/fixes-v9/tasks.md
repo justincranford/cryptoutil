@@ -380,4 +380,3 @@ Every task: ALL 8 quality attributes verified each review pass. All issues are b
 - **Scope**: 623 violations across multiple files; also HOST PORT RANGE violations, HEALTH PATH violations
 - **Root Cause**: Old port assignments not updated after port catalog migration
 - **Priority**: P1 (breaks lint-ports in CI/CD)
-

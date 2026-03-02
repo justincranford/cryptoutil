@@ -56,7 +56,7 @@ Finally, this project has given me a much greater appreciation for the breadth o
 ```
 cryptoutil Server Applications
 │
-├── 🌐 Public Fiber App (Port 8080 - HTTPS)
+├── 🌐 Public Fiber App (Port 8000 - HTTPS)
 │   │
 │   ├── 📋 Swagger UI Routes
 │   │   ├── GET /ui/swagger/doc.json              # OpenAPI spec JSON
@@ -170,10 +170,10 @@ Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8888/me
 
 - **3000**: Grafana UI
 - **5432**: PostgreSQL database
-- **8080**: cryptoutil public API (HTTPS)
-- **8081-8082**: Additional cryptoutil instances in Docker Compose (HTTPS)
-- **8060**: JOSE Authority Server (HTTPS)
-- **8050**: Certificate Authority Server (HTTPS)
+- **8000**: sm-kms public API (HTTPS)
+- **8001-8002**: Additional sm-kms instances in Docker Compose (HTTPS)
+- **8800**: JOSE Authority Server (HTTPS)
+- **8100**: Certificate Authority Server (HTTPS)
 - **9090**: cryptoutil private admin API (health checks, graceful shutdown) on all instances
 - **14317**: Grafana OTLP gRPC receiver (telemetry ingress)
 - **14318**: Grafana OTLP HTTP receiver (telemetry ingress)
@@ -185,8 +185,8 @@ Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8888/me
 - **Loki**: Integrated log aggregation
 - **Tempo**: Integrated trace storage
 - **OpenTelemetry Collector**: Receives telemetry from cryptoutil services
-- **JOSE Authority Server**: <https://localhost:8060> (cryptographic operations)
-- **Certificate Authority**: <https://localhost:8050> (X.509 certificate management)
+- **JOSE Authority Server**: <https://localhost:8800> (cryptographic operations)
+- **Certificate Authority**: <https://localhost:8100> (X.509 certificate management)
 
 ### 🏗️ Production Ready
 
@@ -257,8 +257,8 @@ docker compose logs -f cryptoutil-postgres-1
 
 # Access services
 # Grafana UI: http://localhost:3000 (admin/admin)
-# cryptoutil API: https://localhost:8081 (PostgreSQL instance 1), https://localhost:8082 (PostgreSQL instance 2), or https://localhost:8080 (SQLite)
-# Swagger UI: https://localhost:8081/ui/swagger, https://localhost:8082/ui/swagger, or https://localhost:8080/ui/swagger
+# sm-kms API: https://localhost:8001 (PostgreSQL instance 1), https://localhost:8002 (PostgreSQL instance 2), or https://localhost:8000 (SQLite)
+# Swagger UI: https://localhost:8001/ui/swagger, https://localhost:8002/ui/swagger, or https://localhost:8000/ui/swagger
 ```
 
 #### Docker Secrets Example
@@ -320,34 +320,34 @@ go run main.go --dev --config=./configs/sm/config-sqlite-1.yml
 
 #### KMS Server APIs
 
-- **Swagger UI**: <https://localhost:8081/ui/swagger> (PostgreSQL instance 1), <https://localhost:8082/ui/swagger> (PostgreSQL instance 2), or <https://localhost:8080/ui/swagger> (SQLite)
-- **OpenAPI Spec JSON**: <https://localhost:8081/ui/swagger/doc.json>, <https://localhost:8082/ui/swagger/doc.json>, or <https://localhost:8080/ui/swagger/doc.json>
-- **Browser API**: <https://localhost:8081/browser/api/v1/*>, <https://localhost:8082/browser/api/v1/*>, or <https://localhost:8080/browser/api/v1/*>
-- **Service API**: <https://localhost:8081/service/api/v1/*>, <https://localhost:8082/service/api/v1/*>, or <https://localhost:8080/service/api/v1/*>
+- **Swagger UI**: <https://localhost:8001/ui/swagger> (PostgreSQL instance 1), <https://localhost:8002/ui/swagger> (PostgreSQL instance 2), or <https://localhost:8000/ui/swagger> (SQLite)
+- **OpenAPI Spec JSON**: <https://localhost:8001/ui/swagger/doc.json>, <https://localhost:8002/ui/swagger/doc.json>, or <https://localhost:8000/ui/swagger/doc.json>
+- **Browser API**: <https://localhost:8001/browser/api/v1/*>, <https://localhost:8002/browser/api/v1/*>, or <https://localhost:8000/browser/api/v1/*>
+- **Service API**: <https://localhost:8001/service/api/v1/*>, <https://localhost:8002/service/api/v1/*>, or <https://localhost:8000/service/api/v1/*>
 - **Health Checks**: <https://localhost:9090/admin/v1/livez>, <https://localhost:9090/admin/v1/readyz>
 
 #### Identity System APIs
 
 - **AuthZ Service** (OAuth 2.1 Authorization Server):
-  - **Base URL**: <https://localhost:8080>
-  - **Swagger UI**: <https://localhost:8080/ui/swagger>
-  - **OpenAPI Spec**: <https://localhost:8080/ui/swagger/doc.json>
+  - **Base URL**: <https://localhost:8200>
+  - **Swagger UI**: <https://localhost:8200/ui/swagger>
+  - **OpenAPI Spec**: <https://localhost:8200/ui/swagger/doc.json>
   - **OAuth 2.1 Endpoints**: `/oauth2/v1/authorize`, `/oauth2/v1/token`, `/oauth2/v1/introspect`, `/oauth2/v1/revoke`
   - **Health**: `/health`
   - **Documentation**: See [OpenAPI Guide](docs/02-identityV2/historical/openapi-guide.md) for detailed API documentation
 
 - **IdP Service** (OpenID Connect Identity Provider):
-  - **Base URL**: <https://localhost:8081>
-  - **Swagger UI**: <https://localhost:8081/ui/swagger>
-  - **OpenAPI Spec**: <https://localhost:8081/ui/swagger/doc.json>
+  - **Base URL**: <https://localhost:8300>
+  - **Swagger UI**: <https://localhost:8300/ui/swagger>
+  - **OpenAPI Spec**: <https://localhost:8300/ui/swagger/doc.json>
   - **OIDC Endpoints**: `/oidc/v1/login`, `/oidc/v1/consent`, `/oidc/v1/userinfo`, `/oidc/v1/logout`
   - **Health**: `/health`
   - **Documentation**: See [OpenAPI Guide](docs/02-identityV2/historical/openapi-guide.md) for detailed API documentation
 
 - **RS Service** (OAuth 2.1 Resource Server):
-  - **Base URL**: <https://localhost:8082>
-  - **Swagger UI**: <https://localhost:8082/ui/swagger>
-  - **OpenAPI Spec**: <https://localhost:8082/ui/swagger/doc.json>
+  - **Base URL**: <https://localhost:8400>
+  - **Swagger UI**: <https://localhost:8400/ui/swagger>
+  - **OpenAPI Spec**: <https://localhost:8400/ui/swagger/doc.json>
   - **API Endpoints**: `/api/v1/public/health`, `/api/v1/protected/resource`, `/api/v1/admin/*`
   - **Health**: `/api/v1/public/health`
   - **Documentation**: See [OpenAPI Guide](docs/02-identityV2/historical/openapi-guide.md) for detailed API documentation
@@ -355,9 +355,9 @@ go run main.go --dev --config=./configs/sm/config-sqlite-1.yml
 #### JOSE Authority Server APIs
 
 - **JOSE Authority Service** (JOSE Cryptographic Operations):
-  - **Base URL**: <https://localhost:8060>
-  - **Swagger UI**: <https://localhost:8060/ui/swagger>
-  - **OpenAPI Spec**: <https://localhost:8060/ui/swagger/doc.json>
+  - **Base URL**: <https://localhost:8800>
+  - **Swagger UI**: <https://localhost:8800/ui/swagger>
+  - **OpenAPI Spec**: <https://localhost:8800/ui/swagger/doc.json>
   - **API Endpoints**:
     - `/jose/v1/sign` - Sign data with JWS
     - `/jose/v1/verify` - Verify JWS signatures
@@ -369,9 +369,9 @@ go run main.go --dev --config=./configs/sm/config-sqlite-1.yml
 #### Certificate Authority APIs
 
 - **CA Service** (X.509 Certificate Authority):
-  - **Base URL**: <https://localhost:8050>
-  - **Swagger UI**: <https://localhost:8050/ui/swagger>
-  - **OpenAPI Spec**: <https://localhost:8050/ui/swagger/doc.json>
+  - **Base URL**: <https://localhost:8100>
+  - **Swagger UI**: <https://localhost:8100/ui/swagger>
+  - **OpenAPI Spec**: <https://localhost:8100/ui/swagger/doc.json>
   - **API Endpoints**:
     - `/ca/v1/certificates` - Certificate lifecycle management
     - `/ca/v1/csr` - Certificate signing request operations
@@ -396,15 +396,15 @@ go run main.go --dev --config=./configs/sm/config-sqlite-1.yml
 
 ```sh
 # Get CSRF token (for browser API)
-curl -k https://localhost:8080/browser/api/v1/csrf-token
+curl -k https://localhost:8000/browser/api/v1/csrf-token
 
 # Create an elastic key (service API)
-curl -k -X POST https://localhost:8080/service/api/v1/elastickey \
+curl -k -X POST https://localhost:8000/service/api/v1/elastickey \
   -H "Content-Type: application/json" \
   -d '{"name": "test-key", "algorithm": "A256GCM/A256KW", "provider": "Internal", "description": "Test key"}'
 
 # Encrypt data
-curl -k -X POST https://localhost:8080/elastickey/{elasticKeyID}/encrypt \
+curl -k -X POST https://localhost:8000/elastickey/{elasticKeyID}/encrypt \
   -H "Content-Type: text/plain" \
   -d 'Hello World'
 ```
@@ -418,7 +418,7 @@ cryptoutil uses hierarchical configuration supporting multiple sources:
 ```yaml
 # Example: postgresql.yml
 bind_public_address: "0.0.0.0"
-bind_public_port: 8080
+bind_public_port: 8000
 bind_private_address: "127.0.0.1"
 bind_private_port: 9090
 browser_api_context_path: "/browser/api/v1"
@@ -451,7 +451,7 @@ go run main.go \
   --config=config.yaml \
   --dev \
   --verbose \
-  --bind-public-port=8080 \
+  --bind-public-port=8000 \
   --bind-private-port=9090 \
   --database-url="postgres://..." \
   --log-level=DEBUG
@@ -489,12 +489,12 @@ go run main.go --dev --verbose
 
 # Test with Swagger UI (includes CSRF handling)
 # Open in browser:
-start https://localhost:8080/ui/swagger      # Windows
-open https://localhost:8080/ui/swagger       # macOS
-xdg-open https://localhost:8080/ui/swagger   # Linux
+start https://localhost:8000/ui/swagger      # Windows
+open https://localhost:8000/ui/swagger       # macOS
+xdg-open https://localhost:8000/ui/swagger   # Linux
 
 # Test with curl (service API - no CSRF needed)
-curl -k -X GET https://localhost:8080/service/api/v1/elastickeys
+curl -k -X GET https://localhost:8000/service/api/v1/elastickeys
 
 # Test health endpoints
 curl -k https://localhost:9090/admin/v1/livez
@@ -645,7 +645,7 @@ Three distinct techniques are used across the workflows for service readiness ve
 - **Health Verification Flow**:
   1. Retry loop with exponential backoff (max 30 attempts, 5s max backoff)
   2. Verify response body is non-empty (successful connection indicator)
-  3. Check all cryptoutil instances: `https://127.0.0.1:8080`, `8081`, `8082`
+  3. Check all sm-kms instances: `https://127.0.0.1:8000`, `8001`, `8002`
 - **Key Features**:
   - Works with self-signed TLS certificates (`-k` flag)
   - Verifies actual response data (not just HTTP status codes)
@@ -803,9 +803,9 @@ docker compose -f ./deployments/compose/compose.yml down -v
 docker compose -f ./deployments/compose/compose.yml up -d
 
 # Wait for services to be ready (check health endpoints)
-curl -k https://localhost:8080/ui/swagger/doc.json  # SQLite instance
-curl -k https://localhost:8081/ui/swagger/doc.json  # PostgreSQL instance 1
-curl -k https://localhost:8082/ui/swagger/doc.json  # PostgreSQL instance 2
+curl -k https://localhost:8000/ui/swagger/doc.json  # SQLite instance
+curl -k https://localhost:8001/ui/swagger/doc.json  # PostgreSQL instance 1
+curl -k https://localhost:8002/ui/swagger/doc.json  # PostgreSQL instance 2
 ```
 
 #### Manual Nuclei Scan Examples
@@ -814,37 +814,37 @@ curl -k https://localhost:8082/ui/swagger/doc.json  # PostgreSQL instance 2
 
 ```sh
 # Scan all three cryptoutil instances
-nuclei -target https://localhost:8080/ -severity info,low
-nuclei -target https://localhost:8081/ -severity info,low
-nuclei -target https://localhost:8082/ -severity info,low
+nuclei -target https://localhost:8000/ -severity info,low
+nuclei -target https://localhost:8001/ -severity info,low
+nuclei -target https://localhost:8002/ -severity info,low
 ```
 
 **Comprehensive Security Scan (All severities):**
 
 ```sh
 # Full vulnerability assessment
-nuclei -target https://localhost:8080/ -severity info,low,medium,high,critical
-nuclei -target https://localhost:8081/ -severity info,low,medium,high,critical
-nuclei -target https://localhost:8082/ -severity info,low,medium,high,critical
+nuclei -target https://localhost:8000/ -severity info,low,medium,high,critical
+nuclei -target https://localhost:8001/ -severity info,low,medium,high,critical
+nuclei -target https://localhost:8002/ -severity info,low,medium,high,critical
 ```
 
 **Targeted Scan Examples:**
 
 ```sh
 # Scan for specific vulnerability types
-nuclei -target https://localhost:8080/ -tags cves,vulnerabilities
-nuclei -target https://localhost:8081/ -tags security-misconfiguration,exposure
-nuclei -target https://localhost:8082/ -tags tech-detect,misc
+nuclei -target https://localhost:8000/ -tags cves,vulnerabilities
+nuclei -target https://localhost:8001/ -tags security-misconfiguration,exposure
+nuclei -target https://localhost:8002/ -tags tech-detect,misc
 
 # Scan with custom concurrency and rate limiting
-nuclei -target https://localhost:8080/ -c 10 -rl 50 -severity high,critical
+nuclei -target https://localhost:8000/ -c 10 -rl 50 -severity high,critical
 ```
 
 **Batch Scan All Services:**
 
 ```sh
 # PowerShell: Scan all three services sequentially
-foreach ($port in @(8080, 8081, 8082)) {
+foreach ($port in @(8000, 8001, 8002)) {
     Write-Host "Scanning https://localhost:$port/" -ForegroundColor Green
     nuclei -target "https://localhost:$port/" -severity medium,high,critical
 }
@@ -854,9 +854,9 @@ foreach ($port in @(8080, 8081, 8082)) {
 
 | Service | Port | Backend | Purpose |
 |---------|------|---------|---------|
-| cryptoutil-sqlite | 8080 | SQLite | Development/testing instance |
-| cryptoutil-postgres-1 | 8081 | PostgreSQL | Production-like instance #1 |
-| cryptoutil-postgres-2 | 8082 | PostgreSQL | Production-like instance #2 |
+| cryptoutil-sqlite | 8000 | SQLite | Development/testing instance |
+| cryptoutil-postgres-1 | 8001 | PostgreSQL | Production-like instance #1 |
+| cryptoutil-postgres-2 | 8002 | PostgreSQL | Production-like instance #2 |
 
 #### Expected Results
 

@@ -44,9 +44,9 @@ Examples:
 				name string
 				url  string
 			}{
-				{cryptoutilSharedMagic.AuthzServiceName, "https://127.0.0.1:8080/health"},
-				{cryptoutilSharedMagic.IDPServiceName, "https://127.0.0.1:8081/health"},
-				{"rs", "https://127.0.0.1:8082/health"},
+				{cryptoutilSharedMagic.AuthzServiceName, "https://127.0.0.1:8200/health"},
+								{cryptoutilSharedMagic.IDPServiceName, "https://127.0.0.1:8300/health"},
+								{"rs", "https://127.0.0.1:8400/health"},
 			}
 
 			// In development/local environments, skip TLS verification for self-signed certs.

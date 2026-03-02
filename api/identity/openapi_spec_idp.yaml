@@ -10,7 +10,7 @@ info:
     email: identity@cryptoutil.local
 
 servers:
-  - url: https://localhost:8081
+  - url: https://localhost:8300
     description: Local Development (PostgreSQL)
   - url: https://localhost:8080
     description: Local Development (SQLite)

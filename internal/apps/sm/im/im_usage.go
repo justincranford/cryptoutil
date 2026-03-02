@@ -72,13 +72,13 @@ Description:
   Calls GET /health endpoint on the public server.
 
 Options:
-  --url URL      Service URL (default: https://127.0.0.1:8070)
+  --url URL      Service URL (default: https://127.0.0.1:8700)
   --cacert FILE  CA certificate file for TLS validation
   --help, -h     Show this help message
 
 Examples:
   learn im health
-  learn im health --url https://localhost:8070
+  learn im health --url https://localhost:8700
   learn im health --cacert /path/to/ca.pem`
 
 	// IMUsageLivez is the usage message for the livez subcommand.

@@ -5,12 +5,12 @@
 services:
   authz:
     enabled: true
-    bind_address: "127.0.0.1:8080"
+    bind_address: "127.0.0.1:8200"
     database_url: "file:~/.identity/authz-idp.db"
     log_level: "info"
   idp:
     enabled: true
-    bind_address: "127.0.0.1:8081"
+    bind_address: "127.0.0.1:8300"
     database_url: "file:~/.identity/authz-idp.db"  # Shared with authz
     log_level: "info"
   rs:

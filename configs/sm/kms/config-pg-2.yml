@@ -28,10 +28,10 @@ otlp-endpoint: "http://sm-kms-otel-collector:4317"
 # CORS Configuration
 cors-max-age: 3600
 cors-allowed-origins:
-  - "http://localhost:8082"
-  - "http://127.0.0.1:8082"
-  - "https://localhost:8082"
-  - "https://127.0.0.1:8082"
+  - "http://localhost:8002"
+  - "http://127.0.0.1:8002"
+  - "https://localhost:8002"
+  - "https://127.0.0.1:8002"
 
 # Session Configuration (flat keys, not nested)
 browser-session-algorithm: "JWS"

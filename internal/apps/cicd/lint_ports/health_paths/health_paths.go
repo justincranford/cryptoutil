@@ -53,6 +53,11 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][
 			continue
 		}
 
+		// Skip archived deployments - these are historical reference files only.
+		if strings.Contains(filePath, "deployments/archived/") {
+			continue
+		}
+
 		fileViolations := CheckHealthPathsInCompose(filePath)
 		violations = append(violations, fileViolations...)
 	}

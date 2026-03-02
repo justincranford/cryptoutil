@@ -92,7 +92,7 @@ func runDemo(ctx context.Context) error {
 	// Give server time to start.
 	time.Sleep(cryptoutilSharedMagic.DemoStartupDelay)
 
-	_, _ = fmt.Fprintln(outWriter, "✅ Authorization server started on http://127.0.0.1:8080")
+	_, _ = fmt.Fprintln(outWriter, "✅ Authorization server started on http://127.0.0.1:8200")
 	_, _ = fmt.Fprintln(outWriter)
 
 	// Step 2: Register demo client.

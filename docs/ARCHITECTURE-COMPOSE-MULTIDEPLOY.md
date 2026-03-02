@@ -542,7 +542,7 @@ configs/
 ```yaml
 bind-public-protocol: "https"
 bind-public-address: "0.0.0.0"
-bind-public-port: 8070
+bind-public-port: 8700
 bind-private-protocol: "https"
 bind-private-address: "127.0.0.1"
 bind-private-port: 9090
@@ -554,8 +554,8 @@ otlp-environment: "development"
 otlp-endpoint: "http://sm-im-otel-collector:4317"
 cors-max-age: 3600
 cors-allowed-origins:
-  - "https://localhost:8070"
-  - "https://127.0.0.1:8070"
+  - "https://localhost:8700"
+  - "https://127.0.0.1:8700"
 # ... many more settings ...
 ```
 

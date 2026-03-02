@@ -149,6 +149,11 @@ const (
 
 	// DefaultPublicPortPostgres - Default PostgreSQL port.
 	DefaultPublicPortPostgres uint16 = 5432
+
+	// ServiceToProductPortOffset - Port offset between service-level and product-level deployments (base + 10000).
+	ServiceToProductPortOffset uint16 = 10000
+	// ServiceToSuitePortOffset - Port offset between service-level and suite-level deployments (base + 20000).
+	ServiceToSuitePortOffset uint16 = 20000
 )
 
 // Telemetry ports. See https://opentelemetry.io/docs/collector/configuration/.

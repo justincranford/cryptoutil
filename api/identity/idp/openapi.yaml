@@ -22,7 +22,7 @@ info:
 servers:
   - url: https://idp.cryptoutil.local
     description: Identity Provider (Production)
-  - url: http://localhost:8081
+  - url: http://localhost:8300
     description: Identity Provider (Development)
 
 tags:

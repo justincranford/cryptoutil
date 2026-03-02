@@ -5,15 +5,15 @@
 services:
   authz:
     enabled: true
-    bind_address: "127.0.0.1:8080"
+    bind_address: "127.0.0.1:8200"
     database_url: "file:~/.identity/demo.db"
     log_level: "debug"
   idp:
     enabled: true
-    bind_address: "127.0.0.1:8081"
+    bind_address: "127.0.0.1:8300"
     database_url: "file:~/.identity/demo.db"  # Shared with authz
     log_level: "debug"
   rs:
     enabled: true
-    bind_address: "127.0.0.1:8082"
+    bind_address: "127.0.0.1:8400"
     log_level: "debug"

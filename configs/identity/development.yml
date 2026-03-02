@@ -4,7 +4,7 @@
 authz:
   name: authz-dev
   bind_address: 127.0.0.1
-  port: 8100
+  port: 8200
   tls_enabled: false
   read_timeout: 30s
   write_timeout: 30s
@@ -76,7 +76,7 @@ security:
   cors_enabled: true
   cors_allowed_origins:
     - http://localhost:3000
-    - http://localhost:8100
+    - http://localhost:8200
     - http://localhost:8101
     - http://localhost:8102
   csrf_enabled: false

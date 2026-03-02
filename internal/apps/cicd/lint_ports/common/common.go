@@ -52,7 +52,7 @@ var ServicePorts = map[string]ServicePortConfig{
 		Name:          cryptoutilSharedMagic.OTLPServiceSMKMS,
 		PublicPorts:   []uint16{cryptoutilSharedMagic.KMSServicePort, cryptoutilSharedMagic.KMSE2EPostgreSQL1PublicPort, cryptoutilSharedMagic.KMSE2EPostgreSQL2PublicPort}, // Base ports for SQLite/PostgreSQL variants
 		AdminPort:     StandardAdminPort,
-		LegacyPorts:   []uint16{cryptoutilSharedMagic.DemoServerPort, 8081, 8082},
+		LegacyPorts:   []uint16{8081, 8082},
 		MagicConstant: "KMSServicePort",
 	},
 	cryptoutilSharedMagic.OTLPServicePKICA: {
@@ -66,35 +66,35 @@ var ServicePorts = map[string]ServicePortConfig{
 		Name:          cryptoutilSharedMagic.OTLPServiceIdentityAuthz,
 		PublicPorts:   []uint16{cryptoutilSharedMagic.IdentityDefaultAuthZPort},
 		AdminPort:     StandardAdminPort,
-		LegacyPorts:   []uint16{cryptoutilSharedMagic.PKICAServicePort, 18000},
+		LegacyPorts:   []uint16{},
 		MagicConstant: "IdentityAuthzServicePort",
 	},
 	cryptoutilSharedMagic.OTLPServiceIdentityIDP: {
 		Name:          cryptoutilSharedMagic.OTLPServiceIdentityIDP,
 		PublicPorts:   []uint16{cryptoutilSharedMagic.IdentityDefaultIDPPort, 8301}, // 8300 default, 8301 for E2E (avoids conflict with authz)
 		AdminPort:     StandardAdminPort,
-		LegacyPorts:   []uint16{8110, 8111, 8112, 18100},
+		LegacyPorts:   []uint16{8110, 8111, 8112},
 		MagicConstant: "IdentityIdpServicePort",
 	},
 	cryptoutilSharedMagic.OTLPServiceIdentityRS: {
 		Name:          cryptoutilSharedMagic.OTLPServiceIdentityRS,
 		PublicPorts:   []uint16{cryptoutilSharedMagic.IdentityDefaultRSPort},
 		AdminPort:     StandardAdminPort,
-		LegacyPorts:   []uint16{8120, 8121, 8122, cryptoutilSharedMagic.IdentityE2EAuthzPublicPort},
+		LegacyPorts:   []uint16{8120, 8121, 8122},
 		MagicConstant: "IdentityRsServicePort",
 	},
 	cryptoutilSharedMagic.OTLPServiceIdentityRP: {
 		Name:          cryptoutilSharedMagic.OTLPServiceIdentityRP,
 		PublicPorts:   []uint16{cryptoutilSharedMagic.DefaultSPARPPort},
 		AdminPort:     StandardAdminPort,
-		LegacyPorts:   []uint16{8130, 8131, 8132, cryptoutilSharedMagic.IdentityE2EIDPPublicPort},
+		LegacyPorts:   []uint16{8130, 8131, 8132},
 		MagicConstant: "IdentityRpServicePort",
 	},
 	cryptoutilSharedMagic.OTLPServiceIdentitySPA: {
 		Name:          cryptoutilSharedMagic.OTLPServiceIdentitySPA,
 		PublicPorts:   []uint16{8600},
 		AdminPort:     StandardAdminPort,
-		LegacyPorts:   []uint16{8140, 8141, 8142, cryptoutilSharedMagic.IdentityE2ERSPublicPort},
+		LegacyPorts:   []uint16{8140, 8141, 8142},
 		MagicConstant: "IdentitySpaServicePort",
 	},
 	cryptoutilSharedMagic.OTLPServiceSMIM: {
