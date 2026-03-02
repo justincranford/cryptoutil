@@ -74,56 +74,56 @@ var parallelPattern = regexp.MustCompile(`t\.Parallel\(\)`)
 // function's own body section (text between its declaration and the next top-level
 // Test function declaration, or EOF).
 func CheckParallelUsage(filePath string) []string {
-content, err := os.ReadFile(filePath)
-if err != nil {
-return []string{fmt.Sprintf("Error reading file: %v", err)}
-}
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		return []string{fmt.Sprintf("Error reading file: %v", err)}
+	}
 
-contentStr := string(content)
+	contentStr := string(content)
 
-// Find all test function declarations with their positions.
-funcMatches := testFuncPattern.FindAllStringSubmatchIndex(contentStr, -1)
+	// Find all test function declarations with their positions.
+	funcMatches := testFuncPattern.FindAllStringSubmatchIndex(contentStr, -1)
 
-if len(funcMatches) == 0 {
-return nil
-}
+	if len(funcMatches) == 0 {
+		return nil
+	}
 
-var issues []string
+	var issues []string
 
-for i, match := range funcMatches {
-funcName := contentStr[match[2]:match[3]]
-funcBodyStart := match[1] // Position right after the function signature.
+	for i, match := range funcMatches {
+		funcName := contentStr[match[2]:match[3]]
+		funcBodyStart := match[1] // Position right after the function signature.
 
-// Body ends just before the next top-level Test function or at EOF.
-var funcBodyEnd int
+		// Body ends just before the next top-level Test function or at EOF.
+		var funcBodyEnd int
 
-if i+1 < len(funcMatches) {
-funcBodyEnd = funcMatches[i+1][0]
-} else {
-funcBodyEnd = len(contentStr)
-}
+		if i+1 < len(funcMatches) {
+			funcBodyEnd = funcMatches[i+1][0]
+		} else {
+			funcBodyEnd = len(contentStr)
+		}
 
-funcSection := contentStr[funcBodyStart:funcBodyEnd]
+		funcSection := contentStr[funcBodyStart:funcBodyEnd]
 
-if !parallelPattern.MatchString(funcSection) {
-// Skip if function is explicitly documented as sequential.
-// Check 10 lines before the function declaration for a "// Sequential:" comment.
-funcLineNum := strings.Count(contentStr[:match[0]], "\n")
-commentStart := max(0, strings.LastIndex(contentStr[:match[0]], "func "))
-// Find the 10-line window before the function
-allLines := strings.Split(contentStr[:match[0]], "\n")
-lineCount := len(allLines)
-windowStart := max(0, lineCount-defaultSequentialCommentWindow)
-commentWindow := strings.Join(allLines[windowStart:], "\n")
+		if !parallelPattern.MatchString(funcSection) {
+			// Skip if function is explicitly documented as sequential.
+			// Check 10 lines before the function declaration for a "// Sequential:" comment.
+			funcLineNum := strings.Count(contentStr[:match[0]], "\n")
+			commentStart := max(0, strings.LastIndex(contentStr[:match[0]], "func "))
+			// Find the 10-line window before the function
+			allLines := strings.Split(contentStr[:match[0]], "\n")
+			lineCount := len(allLines)
+			windowStart := max(0, lineCount-defaultSequentialCommentWindow)
+			commentWindow := strings.Join(allLines[windowStart:], "\n")
 
-if sequentialCommentPattern.MatchString(commentWindow) {
-continue
-}
+			if sequentialCommentPattern.MatchString(commentWindow) {
+				continue
+			}
 
-issues = append(issues, fmt.Sprintf("Test function %s (line %d) is missing t.Parallel()", funcName, funcLineNum+1))
-_ = commentStart // suppress unused var warning
-}
-}
+			issues = append(issues, fmt.Sprintf("Test function %s (line %d) is missing t.Parallel()", funcName, funcLineNum+1))
+			_ = commentStart // suppress unused var warning
+		}
+	}
 
-return issues
+	return issues
 }
