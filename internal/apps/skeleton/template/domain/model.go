@@ -73,4 +73,3 @@ func (TemplateItem) TableName() string {
 // 	if err != nil { return nil, err }
 // 	return CreateItem201JSONResponse{ID: item.ID, Name: item.Name}, nil
 // }
-

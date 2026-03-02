@@ -36,7 +36,7 @@ func ValidateNaming(rootPath string) (*NamingValidationResult, error) {
 	// Check if root path exists.
 	info, statErr := os.Stat(rootPath)
 	if statErr != nil {
-			result.Errors = append(result.Errors, fmt.Sprintf("[ValidateNaming] path does not exist: %s", rootPath))
+		result.Errors = append(result.Errors, fmt.Sprintf("[ValidateNaming] path does not exist: %s", rootPath))
 		result.Valid = false
 
 		return result, nil //nolint:nilerr // Error aggregation pattern: validation errors collected in result.Errors, nil Go error allows validator pipeline to continue.
@@ -44,7 +44,7 @@ func ValidateNaming(rootPath string) (*NamingValidationResult, error) {
 
 	// Root must be a directory.
 	if !info.IsDir() {
-			result.Errors = append(result.Errors, fmt.Sprintf("[ValidateNaming] path is not a directory: %s", rootPath))
+		result.Errors = append(result.Errors, fmt.Sprintf("[ValidateNaming] path is not a directory: %s", rootPath))
 		result.Valid = false
 
 		return result, nil
@@ -54,7 +54,7 @@ func ValidateNaming(rootPath string) (*NamingValidationResult, error) {
 	// walking, so Walk itself will not return an error (root was verified above).
 	_ = filepath.Walk(rootPath, func(path string, fInfo os.FileInfo, walkErr error) error {
 		if walkErr != nil {
-				result.Errors = append(result.Errors, fmt.Sprintf("[ValidateNaming] error accessing path %s: %v", path, walkErr))
+			result.Errors = append(result.Errors, fmt.Sprintf("[ValidateNaming] error accessing path %s: %v", path, walkErr))
 			result.Valid = false
 
 			return nil // Continue walking.
@@ -175,7 +175,7 @@ func validateComposeServiceNames(composePath, relPath string, result *NamingVali
 	for serviceName := range compose.Services {
 		if !isKebabCase(serviceName) {
 			result.Errors = append(result.Errors, fmt.Sprintf(
-						"[ValidateNaming] Compose service '%s' violates kebab-case - rename to '%s' (file: %s) | See: ARCHITECTURE.md Section 4.4.1",
+				"[ValidateNaming] Compose service '%s' violates kebab-case - rename to '%s' (file: %s) | See: ARCHITECTURE.md Section 4.4.1",
 				serviceName, toKebabCase(serviceName), relPath))
 			result.Valid = false
 		}
