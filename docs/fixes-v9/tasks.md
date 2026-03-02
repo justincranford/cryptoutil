@@ -357,3 +357,27 @@ Every task: ALL 8 quality attributes verified each review pass. All issues are b
 - [x] `git add -A`
 - [x] `git commit -m "feat: v9 improvements (review passes, arch optimization, skills, toolchain)"`
 - [x] `git push`
+
+---
+
+## GAP Phase: Pre-existing Infrastructure Issues (Discovered During Re-verification)
+
+*Discovered during session re-verification. These issues existed at origin/main before this session. Per three-encounter rule (1st encounter = document).*
+
+### GAP-01: lint-go-mod — Outdated webauthn dependency
+
+- **Status**: Pre-existing at origin/main (1st encounter documented)
+- **Blocker**: `github.com/go-webauthn/webauthn v0.15.0` has update available `[v0.16.0]`
+- **Scope**: 1 module upgrade
+- **Root Cause**: Dependency not updated in prior sessions
+- **Fix**: `go get github.com/go-webauthn/webauthn@v0.16.0 && go mod tidy`
+- **Priority**: P2 (security patch, update monthly per version instructions)
+
+### GAP-02: lint-ports — 623 legacy port violations in non-migration code
+
+- **Status**: Pre-existing at origin/main (1st encounter documented)
+- **Blocker**: `demo/script.go`, `identity/cmd/main/command_health.go`, `identity/demo/demo.go`, `pki/ca/ca_usage.go`, `sm/im/im_usage.go` use old port numbers
+- **Scope**: 623 violations across multiple files; also HOST PORT RANGE violations, HEALTH PATH violations
+- **Root Cause**: Old port assignments not updated after port catalog migration
+- **Priority**: P1 (breaks lint-ports in CI/CD)
+
