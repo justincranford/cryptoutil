@@ -375,8 +375,9 @@ Every task: ALL 8 quality attributes verified each review pass. All issues are b
 
 ### GAP-02: lint-ports — 623 legacy port violations in non-migration code
 
-- **Status**: Pre-existing at origin/main (1st encounter documented)
+- **Status**: ✅ FIXED — commit 6198052d2
 - **Blocker**: `demo/script.go`, `identity/cmd/main/command_health.go`, `identity/demo/demo.go`, `pki/ca/ca_usage.go`, `sm/im/im_usage.go` use old port numbers
 - **Scope**: 623 violations across multiple files; also HOST PORT RANGE violations, HEALTH PATH violations
 - **Root Cause**: Old port assignments not updated after port catalog migration
 - **Priority**: P1 (breaks lint-ports in CI/CD)
+- **Fix Applied**: Updated all config, source, API spec, and doc files to canonical port assignments; fixed checker loop structures; added magic constants ServiceToProductPortOffset/ServiceToSuitePortOffset
