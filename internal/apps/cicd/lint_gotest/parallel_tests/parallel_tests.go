@@ -62,8 +62,9 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger, testFiles []string) error {
 	return nil
 }
 
-// testFuncPattern matches test function declarations (captures the function name).
-var testFuncPattern = regexp.MustCompile(`func\s+(Test\w+)\s*\(\s*t\s+\*testing\.T\s*\)`)
+// testFuncPattern matches test function declarations at the start of a line (captures the function name).
+// The (?m)^ anchor ensures only real top-level declarations are matched, not occurrences inside string literals.
+var testFuncPattern = regexp.MustCompile(`(?m)^func\s+(Test\w+)\s*\(\s*t\s+\*testing\.T\s*\)`)
 
 // parallelPattern matches t.Parallel() calls.
 var parallelPattern = regexp.MustCompile(`t\.Parallel\(\)`)

@@ -11,8 +11,9 @@ import (
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
 )
 
+// Sequential: modifies package-level registeredLinters seam variable.
 func TestLint_AllLintersPass(t *testing.T) {
-	// NOT parallel: modifies the package-level registeredLinters seam variable.
+	// Sequential: modifies package-level registeredLinters seam variable.
 	// Override registeredLinters with a no-op linter that always succeeds.
 	origLinters := registeredLinters
 
@@ -29,8 +30,9 @@ func TestLint_AllLintersPass(t *testing.T) {
 	require.NoError(t, Lint(logger))
 }
 
+// Sequential: modifies package-level registeredLinters seam variable.
 func TestLint_OneFailure(t *testing.T) {
-	// NOT parallel: modifies the package-level registeredLinters seam variable.
+	// Sequential: modifies package-level registeredLinters seam variable.
 	// Override registeredLinters with one failing linter.
 	origLinters := registeredLinters
 
@@ -52,8 +54,9 @@ func TestLint_OneFailure(t *testing.T) {
 	require.Contains(t, err.Error(), "mock-fail-linter")
 }
 
+// Sequential: modifies package-level registeredLinters seam variable.
 func TestLint_MultipleFailuresCombined(t *testing.T) {
-	// NOT parallel: modifies the package-level registeredLinters seam variable.
+	// Sequential: modifies package-level registeredLinters seam variable.
 	// Override registeredLinters with two failing linters to verify error aggregation.
 	origLinters := registeredLinters
 
@@ -73,8 +76,9 @@ func TestLint_MultipleFailuresCombined(t *testing.T) {
 	require.Contains(t, err.Error(), "lint-skeleton failed")
 }
 
+// Sequential: modifies package-level registeredLinters seam variable.
 func TestLint_EmptyLinterList(t *testing.T) {
-	// NOT parallel: modifies the package-level registeredLinters seam variable.
+	// Sequential: modifies package-level registeredLinters seam variable.
 	// An empty linter list should succeed with no errors.
 	origLinters := registeredLinters
 

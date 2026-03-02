@@ -447,7 +447,7 @@ func TestFindViolations_ErrorWrapping(t *testing.T) {
 }
 
 // TestFindViolations_AbsError exercises the filepath.Abs error path via test seam injection.
-// NOT parallel: modifies a package-level seam variable — see ARCHITECTURE.md Section 10.2.4.
+// Sequential: modifies a package-level seam variable — see ARCHITECTURE.md Section 10.2.4.
 func TestFindViolations_AbsError(t *testing.T) {
 	orig := filepathAbs
 
@@ -461,7 +461,7 @@ func TestFindViolations_AbsError(t *testing.T) {
 }
 
 // TestFindViolations_RelError exercises the filepath.Rel error path via test seam injection.
-// NOT parallel: modifies a package-level seam variable — see ARCHITECTURE.md Section 10.2.4.
+// Sequential: modifies a package-level seam variable — see ARCHITECTURE.md Section 10.2.4.
 func TestFindViolations_RelError(t *testing.T) {
 	orig := filepathRel
 

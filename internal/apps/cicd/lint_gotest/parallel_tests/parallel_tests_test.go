@@ -116,6 +116,27 @@ func TestA(t *testing.T) { t.Log("test") }
 `,
 			wantIssues: true,
 		},
+		{
+			name: "func_in_string_literal_not_flagged",
+			fileContent: `package test
+import "testing"
+func TestA(t *testing.T) {
+	t.Parallel()
+	content := "func TestInsideString(t *testing.T) {}"
+	_ = content
+}
+`,
+			wantIssues: false,
+		},
+		{
+			name: "sequential_comment_exempts_function",
+			fileContent: `package test
+import "testing"
+// Sequential: modifies package-level seam variable.
+func TestB(t *testing.T) { t.Log("seam test") }
+`,
+			wantIssues: false,
+		},
 	}
 
 	for _, tc := range tests {
