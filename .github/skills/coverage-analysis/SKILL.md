@@ -1,4 +1,8 @@
-# coverage-analysis
+---
+name: coverage-analysis
+description: "Analyze Go test coverage profiles to identify gaps and generate targeted test suggestions. Use after running go test -coverprofile to systematically categorize uncovered lines, identify error paths and seam injection opportunities, and prioritize which tests to write."
+argument-hint: "[./internal/... or package path]"
+---
 
 Analyze Go test coverage profiles to identify gaps and generate targeted test suggestions.
 
@@ -61,5 +65,5 @@ func TestShutdownError(t *testing.T) {
 
 ## References
 
-See [ARCHITECTURE.md Section 10.2.3 Coverage Targets](../../docs/ARCHITECTURE.md#1023-coverage-targets) for per-package targets.
-See [ARCHITECTURE.md Section 10.2.4 Test Seam Injection Pattern](../../docs/ARCHITECTURE.md#1024-test-seam-injection-pattern) for unreachable code.
+See [ARCHITECTURE.md Section 10.2.3 Coverage Targets](../../../docs/ARCHITECTURE.md#1023-coverage-targets) for per-package targets.
+See [ARCHITECTURE.md Section 10.2.4 Test Seam Injection Pattern](../../../docs/ARCHITECTURE.md#1024-test-seam-injection-pattern) for unreachable code.

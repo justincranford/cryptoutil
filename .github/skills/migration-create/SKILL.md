@@ -1,4 +1,8 @@
-# migration-create
+---
+name: migration-create
+description: "Create numbered golang-migrate SQL migration files for cryptoutil services. Use when adding database schema changes to ensure correct version ranges (template 1001-1999, domain 2001+), paired up/down files, and cross-DB SQL idioms."
+argument-hint: "[NNN description of change]"
+---
 
 Create numbered golang-migrate SQL migration files for cryptoutil services.
 
@@ -70,5 +74,5 @@ builder.WithDomainMigrations(repository.MigrationsFS, "migrations")
 
 ## References
 
-See [ARCHITECTURE.md Section 7 Data Architecture](../../docs/ARCHITECTURE.md#7-data-architecture) for migration versioning and naming.
-See [ARCHITECTURE.md Section 5.2 Service Builder Pattern](../../docs/ARCHITECTURE.md#52-service-builder-pattern) for migration registration.
+See [ARCHITECTURE.md Section 7 Data Architecture](../../../docs/ARCHITECTURE.md#7-data-architecture) for migration versioning and naming.
+See [ARCHITECTURE.md Section 5.2 Service Builder Pattern](../../../docs/ARCHITECTURE.md#52-service-builder-pattern) for migration registration.

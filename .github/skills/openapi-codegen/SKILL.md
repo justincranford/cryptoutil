@@ -1,4 +1,8 @@
-# openapi-codegen
+---
+name: openapi-codegen
+description: "Generate oapi-codegen configuration files and OpenAPI 3.0.3 spec skeletons for cryptoutil services. Use when creating or extending service APIs to produce the three standard configs (server/model/client) and a baseline spec with dual /service/ and /browser/ paths."
+argument-hint: "[service-name]"
+---
 
 Generate oapi-codegen configuration files and OpenAPI spec skeletons for cryptoutil services.
 
@@ -117,5 +121,5 @@ oapi-codegen -config openapi-gen_config_client.yaml openapi_spec_paths.yaml
 
 ## References
 
-See [ARCHITECTURE.md Section 8.1 OpenAPI-First Design](../../docs/ARCHITECTURE.md#81-openapi-first-design) for strict-server requirements and code generation patterns.
-See [ARCHITECTURE.md Section 8.4 Error Handling](../../docs/ARCHITECTURE.md#84-error-handling) for HTTP status codes and error schema.
+See [ARCHITECTURE.md Section 8.1 OpenAPI-First Design](../../../docs/ARCHITECTURE.md#81-openapi-first-design) for strict-server requirements and code generation patterns.
+See [ARCHITECTURE.md Section 8.4 Error Handling](../../../docs/ARCHITECTURE.md#84-error-handling) for HTTP status codes and error schema.

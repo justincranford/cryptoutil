@@ -1,4 +1,7 @@
-# propagation-check
+---
+name: propagation-check
+description: "Detect @propagate/@source drift between ARCHITECTURE.md and instruction files, and generate corrected @source block content. Use before committing instruction file changes to ensure lint-docs passes and verbatim doc chunks stay synchronized."
+---
 
 Detect @propagate/@source drift and generate corrected @source block content.
 
@@ -57,4 +60,4 @@ EOF
 
 ## References
 
-See [ARCHITECTURE.md Section 12.7 Documentation Propagation Strategy](../../docs/ARCHITECTURE.md#127-documentation-propagation-strategy) for full marker system documentation.
+See [ARCHITECTURE.md Section 12.7 Documentation Propagation Strategy](../../../docs/ARCHITECTURE.md#127-documentation-propagation-strategy) for full marker system documentation.

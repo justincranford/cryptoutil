@@ -1,0 +1,79 @@
+---
+name: skill-scaffold
+description: "Create a conformant .github/skills/NAME/SKILL.md Agent Skill with proper YAML frontmatter. Use when adding a new Copilot skill to ensure correct subdirectory structure, required name/description fields, and skill catalogue registration in ARCHITECTURE.md and README.md."
+argument-hint: "[skill-name description]"
+---
+
+## Purpose
+
+Use when adding a new Copilot skill to the project. Ensures correct VS Code Agent
+Skills structure: each skill lives in its own subdirectory with a `SKILL.md` file
+containing YAML frontmatter. The `name` field **must match** the subdirectory name.
+
+## Key Rules
+
+- **Subdirectory structure**: `.github/skills/kebab-case-name/SKILL.md`
+- **`name` must match directory**: `name: kebab-case-name` = directory `kebab-case-name/`
+- **`name` constraints**: lowercase, hyphens for spaces, max 64 chars
+- **`description` required**: specific about both capabilities AND use cases, max 1024 chars
+- **`argument-hint` optional**: shown in chat when invoked as `/skill-name`
+- Content: purpose, key rules, templates/examples, ARCHITECTURE.md references
+- No YAML frontmatter duplicates from instructions (skills are on-demand, instructions always-on)
+
+## Template
+
+```markdown
+---
+name: kebab-case-name
+description: "What it does AND when to use it. Max 1024 chars. Be specific."
+argument-hint: "[optional hint text]"
+---
+
+## Purpose
+
+When and why to use this skill (2-3 sentences with concrete context).
+
+## Key Rules
+
+- Rule 1: description
+- Rule 2: description
+
+## Template / Pattern
+
+\`\`\`go
+// actual code template for the task
+\`\`\`
+
+## Examples
+
+Brief before/after or input/output example.
+
+## References
+
+See [ARCHITECTURE.md Section X.Y](../../../docs/ARCHITECTURE.md#xy-anchor) for related standards.
+```
+
+## Directory Structure
+
+```
+.github/skills/
+└── my-new-skill/          # Directory name MUST match `name` in SKILL.md
+    └── SKILL.md           # Required, contains frontmatter + instructions
+    └── example.go         # Optional: scripts, templates, examples
+    └── examples/          # Optional: additional resources
+```
+
+## After Creating
+
+1. Add entry to `.github/skills/README.md` skill table
+2. Add entry to ARCHITECTURE.md Section 2.1.5 skill catalogue table (update path `skills/NAME/SKILL.md`)
+3. Update relevant agents' frontmatter `skills:` list (if agents reference skills)
+4. Run `go run ./cmd/cicd lint-docs` to validate cross-references
+
+## Reference Quality
+
+Each skill MUST reference at least one ARCHITECTURE.md section relevant to its domain.
+
+## References
+
+See [ARCHITECTURE.md Section 2.1.5 Copilot Skills](../../../docs/ARCHITECTURE.md#215-copilot-skills) for the skill catalogue and naming conventions.

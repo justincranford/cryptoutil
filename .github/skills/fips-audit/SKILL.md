@@ -1,4 +1,8 @@
-# fips-audit
+---
+name: fips-audit
+description: "Detect FIPS 140-3 violations in Go cryptographic code and provide fix guidance. Use to audit crypto usage for FIPS 140-3 compliance, checking algorithm choices, key sizes, and random number generation beyond what static linters enforce."
+argument-hint: "[./... or specific package path]"
+---
 
 Detect FIPS 140-3 violations in Go code and provide fix guidance.
 
@@ -73,5 +77,5 @@ grep -rn "GenerateKey.*1024\|GenerateKey.*512" --include="*.go" .
 
 ## References
 
-See [ARCHITECTURE.md Section 6.1 FIPS 140-3 Compliance Strategy](../../docs/ARCHITECTURE.md#61-fips-140-3-compliance-strategy) for full requirements.
-See [ARCHITECTURE.md Section 6.4 Cryptographic Architecture](../../docs/ARCHITECTURE.md#64-cryptographic-architecture) for approved implementations.
+See [ARCHITECTURE.md Section 6.1 FIPS 140-3 Compliance Strategy](../../../docs/ARCHITECTURE.md#61-fips-140-3-compliance-strategy) for full requirements.
+See [ARCHITECTURE.md Section 6.4 Cryptographic Architecture](../../../docs/ARCHITECTURE.md#64-cryptographic-architecture) for approved implementations.

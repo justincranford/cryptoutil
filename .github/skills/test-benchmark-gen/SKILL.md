@@ -1,4 +1,8 @@
-# test-benchmark-gen
+---
+name: test-benchmark-gen
+description: "Generate _bench_test.go benchmark tests conforming to cryptoutil standards. Use when adding performance benchmarks, especially for crypto operations where benchmarking is mandatory, to ensure correct ResetTimer/StopTimer patterns and sub-benchmark structure."
+argument-hint: "[package or function name]"
+---
 
 Generate `_bench_test.go` benchmark tests — mandatory for crypto operations.
 
@@ -62,4 +66,4 @@ _ = generateKey(tc.bits)
 
 ## References
 
-See [ARCHITECTURE.md Section 10.8 Benchmark Testing Strategy](../../docs/ARCHITECTURE.md#108-benchmark-testing-strategy) for benchmarking requirements.
+See [ARCHITECTURE.md Section 10.8 Benchmark Testing Strategy](../../../docs/ARCHITECTURE.md#108-benchmark-testing-strategy) for benchmarking requirements.

@@ -25,6 +25,26 @@
 
 See [ARCHITECTURE.md Section 12.7 Documentation Propagation Strategy](docs/ARCHITECTURE.md#127-documentation-propagation-strategy) for marker system design, rules, and CI/CD validation.
 
+## Available Skills
+
+Use `/skill-name` in chat to invoke a skill, or Copilot auto-loads when relevant.
+See [.github/skills/README.md](.github/skills/README.md) for the full catalogue.
+
+| Skill | When to Use |
+|-------|-------------|
+| `/test-table-driven` | Writing or reviewing Go tests |
+| `/test-fuzz-gen` | Adding fuzz coverage for parsers or crypto inputs |
+| `/test-benchmark-gen` | Adding performance benchmarks (mandatory for crypto) |
+| `/coverage-analysis` | Identifying coverage gaps after `go test -coverprofile` |
+| `/migration-create` | Adding database schema changes |
+| `/fips-audit` | Auditing Go code for FIPS 140-3 compliance |
+| `/propagation-check` | Checking @propagate/@source drift before committing docs |
+| `/openapi-codegen` | Creating or extending service APIs |
+| `/agent-scaffold` | Creating a new `.github/agents/NAME.agent.md` |
+| `/instruction-scaffold` | Creating a new `.github/instructions/NN-NN.name.instructions.md` |
+| `/skill-scaffold` | Creating a new `.github/skills/NAME/SKILL.md` |
+| `/new-service` | Creating a new service from skeleton-template |
+
 ## Instruction Files Reference
 
 **Note**: Maintain as a single concise table. DO NOT split into category subsections.

@@ -1,4 +1,8 @@
-# agent-scaffold
+---
+name: agent-scaffold
+description: "Create a conformant .github/agents/NAME.agent.md with all mandatory sections. Use when adding a new Copilot agent to ensure correct YAML frontmatter, autonomous execution mode, quality gates, and ARCHITECTURE.md self-containment references."
+argument-hint: "[agent-name]"
+---
 
 Create a conformant `.github/agents/NAME.agent.md` with all mandatory sections.
 
@@ -34,19 +38,19 @@ What this agent does and when to invoke it.
 
 ## AUTONOMOUS EXECUTION MODE
 
-This agent executes autonomously. See [ARCHITECTURE.md Section 2.4](../../docs/ARCHITECTURE.md#24-implementation-strategy) for continuous execution patterns.
+This agent executes autonomously. See [ARCHITECTURE.md Section 2.4](../../../docs/ARCHITECTURE.md#24-implementation-strategy) for continuous execution patterns.
 
 ## Quality Gates (Per Task)
 
 Before marking complete: Build clean → Lint clean → Tests pass → Coverage maintained.
 
-See [ARCHITECTURE.md Section 11.2 Quality Gates](../../docs/ARCHITECTURE.md#112-quality-gates) for mandatory quality gate requirements.
+See [ARCHITECTURE.md Section 11.2 Quality Gates](../../../docs/ARCHITECTURE.md#112-quality-gates) for mandatory quality gate requirements.
 
 ## Mandatory Review Passes
 
 **MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
 
-See [ARCHITECTURE.md Section 2.5 Quality Strategy](../../docs/ARCHITECTURE.md#25-quality-strategy) for mandatory review pass requirements.
+See [ARCHITECTURE.md Section 2.5 Quality Strategy](../../../docs/ARCHITECTURE.md#25-quality-strategy) for mandatory review pass requirements.
 ```
 
 ## Mandatory Checklist
@@ -70,5 +74,5 @@ ALL relevant context MUST be in the agent file itself.
 
 ## References
 
-See [ARCHITECTURE.md Section 2.1.1 Agent Architecture](../../docs/ARCHITECTURE.md#211-agent-architecture) for agent self-containment checklist.
+See [ARCHITECTURE.md Section 2.1.1 Agent Architecture](../../../docs/ARCHITECTURE.md#211-agent-architecture) for agent self-containment checklist.
 See [docs/ARCHITECTURE.md Section 06-02.agent-format](../../.github/instructions/06-02.agent-format.instructions.md) for format requirements.

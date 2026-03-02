@@ -1,4 +1,8 @@
-# test-fuzz-gen
+---
+name: test-fuzz-gen
+description: "Generate _fuzz_test.go fuzz tests conforming to cryptoutil project standards. Use when adding fuzz coverage for parsers, decoders, or crypto input handling to ensure correct build tags, 15s minimum fuzz time, seed corpus, and safe assertion patterns."
+argument-hint: "[package or function name]"
+---
 
 Generate `_fuzz_test.go` fuzz tests conforming to cryptoutil project standards.
 
@@ -46,4 +50,4 @@ _ = result
 
 ## References
 
-See [ARCHITECTURE.md Section 10.7 Fuzz Testing Strategy](../../docs/ARCHITECTURE.md#107-fuzz-testing-strategy) for fuzz testing requirements.
+See [ARCHITECTURE.md Section 10.7 Fuzz Testing Strategy](../../../docs/ARCHITECTURE.md#107-fuzz-testing-strategy) for fuzz testing requirements.

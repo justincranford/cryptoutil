@@ -1,4 +1,8 @@
-# instruction-scaffold
+---
+name: instruction-scaffold
+description: "Create a conformant .github/instructions/NN-NN.name.instructions.md file. Use when adding project-specific instruction files to ensure correct YAML frontmatter, numbering scheme, @source propagation blocks, and ARCHITECTURE.md cross-references."
+argument-hint: "[NN-NN.name description]"
+---
 
 Create a conformant `.github/instructions/NN-NN.name.instructions.md` file.
 
@@ -37,7 +41,7 @@ Content here.
 Content verbatim from ARCHITECTURE.md
 <!-- @/source -->
 
-See [ARCHITECTURE.md Section X.Y](../../docs/ARCHITECTURE.md#xy-anchor) for complete documentation.
+See [ARCHITECTURE.md Section X.Y](../../../docs/ARCHITECTURE.md#xy-anchor) for complete documentation.
 ```
 
 ## Mandatory Checklist
@@ -56,5 +60,5 @@ See [ARCHITECTURE.md Section X.Y](../../docs/ARCHITECTURE.md#xy-anchor) for comp
 
 ## References
 
-See [ARCHITECTURE.md Section 2.1.4 Instruction File Organization](../../docs/ARCHITECTURE.md#214-instruction-file-organization) for numbering scheme.
-See [ARCHITECTURE.md Section 12.7 Documentation Propagation Strategy](../../docs/ARCHITECTURE.md#127-documentation-propagation-strategy) for @source/@propagate system.
+See [ARCHITECTURE.md Section 2.1.4 Instruction File Organization](../../../docs/ARCHITECTURE.md#214-instruction-file-organization) for numbering scheme.
+See [ARCHITECTURE.md Section 12.7 Documentation Propagation Strategy](../../../docs/ARCHITECTURE.md#127-documentation-propagation-strategy) for @source/@propagate system.

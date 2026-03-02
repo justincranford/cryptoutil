@@ -1,42 +1,57 @@
 # Copilot Skills
 
-Skills provide targeted context for specific tasks in VS Code Copilot Chat. Reference a skill using `#skill-name` in any Copilot Chat message.
+Skills provide targeted context for specific tasks in VS Code Copilot Chat.
+Each skill lives in its own subdirectory with a `SKILL.md` file defining its
+behavior. VS Code loads skill metadata (name + description) for discovery, then
+loads the full `SKILL.md` body only when the skill is relevant or invoked.
 
-## File Naming Convention
+## Structure
 
-- All skills use flat, kebab-case filenames: `SKILLNAME.md` in `.github/skills/`
-- Skill names use hyphens: `test-table-driven`, `migration-create`
-- Referenced in chat as: `#test-table-driven`, `#migration-create`
+```
+.github/skills/
+└── skill-name/        # Directory name must match `name` in SKILL.md frontmatter
+    └── SKILL.md       # Required: YAML frontmatter + instructions
+    └── ...            # Optional: scripts, templates, examples
+```
 
-## Available Skills
+## Invoking Skills
 
-| Skill | Purpose |
-|-------|---------|
-| `#test-table-driven` | Generate table-driven Go tests (t.Parallel, UUIDv7 data, subtests) |
-| `#test-fuzz-gen` | Generate `_fuzz_test.go` with 15s fuzz time and corpus examples |
-| `#test-benchmark-gen` | Generate `_bench_test.go` (mandatory for crypto operations) |
-| `#migration-create` | Create numbered golang-migrate SQL files (template 1001+, domain 2001+) |
-| `#coverage-analysis` | Analyze coverprofile output, categorize uncovered lines, suggest targeted tests |
-| `#fips-audit` | Detect FIPS 140-3 violations and provide fix guidance |
-| `#propagation-check` | Detect @propagate/@source drift, generate corrected @source blocks |
-| `#openapi-codegen` | Generate oapi-codegen configs (server/model/client) + OpenAPI spec skeleton |
-| `#agent-scaffold` | Create conformant `.github/agents/NAME.agent.md` with all mandatory sections |
-| `#instruction-scaffold` | Create conformant `.github/instructions/NN-NN.name.instructions.md` |
-| `#skill-scaffold` | Create conformant `.github/skills/NAME.md` |
-| `#new-service` | Guide service creation from skeleton-template: copy, rename, register, migrate, test |
+Reference a skill using `/skill-name` as a slash command in Copilot Chat, or let
+Copilot auto-load it when your request matches the skill description.
 
-## Three Copilot Customization Types
+## Skill Catalogue
 
-VS Code Copilot has exactly 3 customization file types:
+| Skill | Purpose | File |
+|-------|---------|------|
+| `test-table-driven` | Generate table-driven Go tests (t.Parallel, UUIDv7 data, subtests) | [SKILL.md](test-table-driven/SKILL.md) |
+| `test-fuzz-gen` | Generate `_fuzz_test.go` (15s fuzz time, corpus examples, build tags) | [SKILL.md](test-fuzz-gen/SKILL.md) |
+| `test-benchmark-gen` | Generate `_bench_test.go` (mandatory for crypto, reset timer pattern) | [SKILL.md](test-benchmark-gen/SKILL.md) |
+| `migration-create` | Create numbered golang-migrate SQL files (template 1001-1999, domain 2001+) | [SKILL.md](migration-create/SKILL.md) |
+| `coverage-analysis` | Analyze coverprofile output, categorize uncovered lines, suggest tests | [SKILL.md](coverage-analysis/SKILL.md) |
+| `fips-audit` | Detect FIPS 140-3 violations and provide fix guidance | [SKILL.md](fips-audit/SKILL.md) |
+| `propagation-check` | Detect @propagate/@source drift, generate corrected @source blocks | [SKILL.md](propagation-check/SKILL.md) |
+| `openapi-codegen` | Generate three oapi-codegen configs (server/model/client) + OpenAPI spec skeleton | [SKILL.md](openapi-codegen/SKILL.md) |
+| `agent-scaffold` | Create conformant `.github/agents/NAME.agent.md` with all mandatory sections | [SKILL.md](agent-scaffold/SKILL.md) |
+| `instruction-scaffold` | Create conformant `.github/instructions/NN-NN.name.instructions.md` | [SKILL.md](instruction-scaffold/SKILL.md) |
+| `skill-scaffold` | Create conformant `.github/skills/NAME/SKILL.md` with proper frontmatter | [SKILL.md](skill-scaffold/SKILL.md) |
+| `new-service` | Guide service creation from skeleton-template: copy, rename, register, migrate, test | [SKILL.md](new-service/SKILL.md) |
 
-| Type | Pattern | Trigger |
-|------|---------|---------|
-| Instructions | `.github/instructions/*.instructions.md` | Always loaded |
-| Agents | `.github/agents/*.agent.md` | `/agent-name` invocation |
-| Skills | `.github/skills/*.md` | `#skill-name` in chat |
+## Skills vs Custom Instructions vs Agents
 
-See [ARCHITECTURE.md Section 2.1.5](../../../docs/ARCHITECTURE.md#215-copilot-skills) for the complete skill catalogue.
+| Type | File | How Used | Scope |
+|------|------|----------|-------|
+| **Skills** | `.github/skills/NAME/SKILL.md` | `/skill-name` slash command or auto-load | On-demand, task-specific |
+| **Instructions** | `.github/instructions/NN-NN.name.instructions.md` | Auto-applied by file pattern | Always-on (or pattern-based) |
+| **Agents** | `.github/agents/NAME.agent.md` | `/agent-name` slash command | Specialized autonomous workflows |
 
-## Creating New Skills
+Use **skills** for:
+- Reusable templates and code generation patterns
+- Task-specific guidance (test writing, crypto auditing, migrations)
+- Capabilities that work across different sessions without loading always
 
-Use `#skill-scaffold` to create a new skill, or copy `SKILL-TEMPLATE.md`.
+Use **instructions** instead for:
+- Always-on coding standards (architecture patterns, naming conventions)
+- Rules that apply to every chat response (formatting, error handling)
+
+Use `/skill-scaffold` to create new skills, `/instruction-scaffold` for new instructions,
+`/agent-scaffold` for new agents.

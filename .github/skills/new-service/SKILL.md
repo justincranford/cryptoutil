@@ -1,4 +1,8 @@
-# new-service
+---
+name: new-service
+description: "Guide service creation from skeleton-template including copy, rename, port assignment, migration, and test setup. Use when creating a new cryptoutil service to cover all steps from copying the skeleton source to CI/CD registration."
+argument-hint: "[PRODUCT SERVICE port-prefix]"
+---
 
 Guide service creation from skeleton-template: copy, rename, register, migrate, test.
 
@@ -89,6 +93,6 @@ go run ./cmd/cicd lint-deployments
 
 ## References
 
-See [ARCHITECTURE.md Section 3.4 Port Assignments](../../docs/ARCHITECTURE.md#34-port-assignments--networking) for port catalog.
-See [ARCHITECTURE.md Section 5.1 Service Template Pattern](../../docs/ARCHITECTURE.md#51-service-template-pattern) for template components.
-See [ARCHITECTURE.md Section 5.2 Service Builder Pattern](../../docs/ARCHITECTURE.md#52-service-builder-pattern) for builder usage.
+See [ARCHITECTURE.md Section 3.4 Port Assignments](../../../docs/ARCHITECTURE.md#34-port-assignments--networking) for port catalog.
+See [ARCHITECTURE.md Section 5.1 Service Template Pattern](../../../docs/ARCHITECTURE.md#51-service-template-pattern) for template components.
+See [ARCHITECTURE.md Section 5.2 Service Builder Pattern](../../../docs/ARCHITECTURE.md#52-service-builder-pattern) for builder usage.
