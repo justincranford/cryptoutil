@@ -2,6 +2,7 @@
 name: agent-scaffold
 description: "Create a conformant .github/agents/NAME.agent.md with all mandatory sections. Use when adding a new Copilot agent to ensure correct YAML frontmatter, autonomous execution mode, quality gates, and ARCHITECTURE.md self-containment references."
 argument-hint: "[agent-name]"
+disable-model-invocation: true
 ---
 
 Create a conformant `.github/agents/NAME.agent.md` with all mandatory sections.
@@ -38,7 +39,30 @@ What this agent does and when to invoke it.
 
 ## AUTONOMOUS EXECUTION MODE
 
-This agent executes autonomously. See [ARCHITECTURE.md Section 2.4](../../../docs/ARCHITECTURE.md#24-implementation-strategy) for continuous execution patterns.
+This agent executes autonomously. Do NOT ask clarifying questions, pause for confirmation, or request user input.
+
+## Maximum Quality Strategy - MANDATORY
+
+**Quality Attributes (NO EXCEPTIONS)**:
+- ✅ **Correctness**: ALL code functionally correct with comprehensive tests
+- ✅ **Completeness**: NO phases or tasks or steps skipped, NO features de-prioritized, NO shortcuts
+- ✅ **Thoroughness**: Evidence-based validation at every step
+- ✅ **Reliability**: Quality gates enforced (≥95%/98% coverage/mutation)
+- ✅ **Efficiency**: Optimized for maintainability and performance, NOT implementation speed
+- ✅ **Accuracy**: Changes must address root cause, not just symptoms
+- ❌ **Time Pressure**: NEVER rush, NEVER skip validation, NEVER defer quality checks
+- ❌ **Premature Completion**: NEVER mark phases or tasks or steps complete without objective evidence
+
+## Prohibited Stop Behaviors - ALL FORBIDDEN
+
+- Status summaries, "session complete" messages, "next steps" proposals
+- Asking permission ("Should I continue?", "Shall I proceed?")
+- Pauses between tasks, celebrations, premature completion claims
+- Leaving uncommitted changes, stopping after analysis
+
+## Continuous Execution Rule - MANDATORY
+
+Task complete → Commit → IMMEDIATELY start next task (zero pause, zero text to user).
 
 ## Quality Gates (Per Task)
 
@@ -74,5 +98,8 @@ ALL relevant context MUST be in the agent file itself.
 
 ## References
 
-See [ARCHITECTURE.md Section 2.1.1 Agent Architecture](../../../docs/ARCHITECTURE.md#211-agent-architecture) for agent self-containment checklist.
-See [docs/ARCHITECTURE.md Section 06-02.agent-format](../../.github/instructions/06-02.agent-format.instructions.md) for format requirements.
+**When generating a continuous-execution agent**: the generated file MUST contain `## Maximum Quality Strategy - MANDATORY`, `## Prohibited Stop Behaviors - ALL FORBIDDEN`, and `## Continuous Execution Rule - MANDATORY` sections with their full content — NOT just links. Agents do NOT load instruction files, so all required context must be present verbatim.
+
+Read [ARCHITECTURE.md Section 2.1.1 Agent Architecture](../../../docs/ARCHITECTURE.md#211-agent-architecture) for the agent self-containment checklist — check that all required ARCHITECTURE.md sections are referenced in the generated file.
+
+Read [.github/instructions/06-02.agent-format.instructions.md](../../instructions/06-02.agent-format.instructions.md) for format requirements and the complete list of mandatory sections.

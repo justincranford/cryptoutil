@@ -1,5 +1,6 @@
 ---
 name: new-service
+disable-model-invocation: true
 description: "Guide service creation from skeleton-template including copy, rename, port assignment, migration, and test setup. Use when creating a new cryptoutil service to cover all steps from copying the skeleton source to CI/CD registration."
 argument-hint: "[PRODUCT SERVICE port-prefix]"
 ---

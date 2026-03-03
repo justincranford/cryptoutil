@@ -2,6 +2,7 @@
 name: skill-scaffold
 description: "Create a conformant .github/skills/NAME/SKILL.md Agent Skill with proper YAML frontmatter. Use when adding a new Copilot skill to ensure correct subdirectory structure, required name/description fields, and skill catalogue registration in ARCHITECTURE.md and README.md."
 argument-hint: "[skill-name description]"
+disable-model-invocation: true
 ---
 
 ## Purpose

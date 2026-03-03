@@ -1,5 +1,6 @@
 ---
 name: migration-create
+disable-model-invocation: true
 description: "Create numbered golang-migrate SQL migration files for cryptoutil services. Use when adding database schema changes to ensure correct version ranges (template 1001-1999, domain 2001+), paired up/down files, and cross-DB SQL idioms."
 argument-hint: "[NNN description of change]"
 ---
