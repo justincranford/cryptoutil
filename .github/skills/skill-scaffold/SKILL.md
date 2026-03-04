@@ -5,6 +5,8 @@ argument-hint: "[skill-name description]"
 disable-model-invocation: true
 ---
 
+Create a conformant `.github/skills/NAME/SKILL.md` Agent Skill with proper YAML frontmatter.
+
 ## Purpose
 
 Use when adding a new Copilot skill to the project. Ensures correct VS Code Agent
@@ -64,16 +66,20 @@ Read [ARCHITECTURE.md Section X.Y](../../../docs/ARCHITECTURE.md#xy-anchor) for 
     └── examples/          # Optional: additional resources
 ```
 
+## Mandatory Checklist
+
+- [ ] YAML frontmatter with `name` (matches directory name exactly), `description`, optional `argument-hint`
+- [ ] `disable-model-invocation: true` for scaffold/ops-only skills; omit for auto-loadable general skills
+- [ ] At least one `Read [ARCHITECTURE.md ...]` reference relevant to the skill domain
+- [ ] Entry added to `.github/skills/README.md` skill table
+- [ ] Entry added to ARCHITECTURE.md Section 2.1.5 skill catalogue table
+
 ## After Creating
 
 1. Add entry to `.github/skills/README.md` skill table
 2. Add entry to ARCHITECTURE.md Section 2.1.5 skill catalogue table (update path `skills/NAME/SKILL.md`)
 3. Update relevant agents' frontmatter `skills:` list (if agents reference skills)
 4. Run `go run ./cmd/cicd lint-docs` to validate cross-references
-
-## Reference Quality
-
-Each skill MUST reference at least one ARCHITECTURE.md section relevant to its domain.
 
 ## References
 

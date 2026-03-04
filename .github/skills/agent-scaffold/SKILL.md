@@ -68,13 +68,13 @@ Task complete → Commit → IMMEDIATELY start next task (zero pause, zero text 
 
 Before marking complete: Build clean → Lint clean → Tests pass → Coverage maintained.
 
-See [ARCHITECTURE.md Section 11.2 Quality Gates](../../../docs/ARCHITECTURE.md#112-quality-gates) for mandatory quality gate requirements.
+Read [ARCHITECTURE.md Section 11.2 Quality Gates](../../../docs/ARCHITECTURE.md#112-quality-gates) for mandatory quality gate requirements — apply all pre-commit quality gate commands from this section before marking any task complete.
 
 ## Mandatory Review Passes
 
 **MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
 
-See [ARCHITECTURE.md Section 2.5 Quality Strategy](../../../docs/ARCHITECTURE.md#25-quality-strategy) for mandatory review pass requirements.
+Read [ARCHITECTURE.md Section 2.5 Quality Strategy](../../../docs/ARCHITECTURE.md#25-quality-strategy) for mandatory review pass requirements — perform minimum 3, maximum 5 passes checking all 8 quality attributes before marking complete.
 ```
 
 ## Mandatory Checklist
@@ -95,6 +95,11 @@ ALL relevant context MUST be in the agent file itself.
 - Section 11 (Code Quality Standards)
 - Section 13 (Development Practices)
 - Section 2.5 (Quality Strategy — for coverage/mutation targets)
+
+## After Creating
+
+1. Add entry to ARCHITECTURE.md Section 2.1.2 Agent Catalog table
+2. Run `go run ./cmd/cicd lint-docs` to validate cross-references
 
 ## References
 
