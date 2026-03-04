@@ -2,6 +2,8 @@
 name: openapi-codegen
 description: "Generate oapi-codegen configuration files and OpenAPI 3.0.3 spec skeletons for cryptoutil services. Use when creating or extending service APIs to produce the three standard configs (server/model/client) and a baseline spec with dual /service/ and /browser/ paths."
 argument-hint: "[service-name]"
+metadata:
+  domain: api
 ---
 
 Generate oapi-codegen configuration files and OpenAPI spec skeletons for cryptoutil services.
@@ -108,6 +110,16 @@ components:
         application/json:
           schema: {$ref: "#/components/schemas/Error"}
 ```
+
+## Mandatory Checklist
+
+- [ ] `openapi-gen_config_server.yaml` created with `strict-server: true`, output `api/server/server.gen.go`
+- [ ] `openapi-gen_config_model.yaml` created with `models: true`, output `api/model/models.gen.go`
+- [ ] `openapi-gen_config_client.yaml` created with `client: true`, output `api/client/client.gen.go`
+- [ ] `openapi_spec_paths.yaml` — both `/service/api/v1/` and `/browser/api/v1/` path prefixes present
+- [ ] `openapi_spec_components.yaml` — `Error` schema with `code`, `message`, `details`, `requestId` present
+- [ ] All list endpoints include `page` (default 1) and `size` (default 50, max 1000) query params
+- [ ] `go generate ./api/...` exits 0 cleanly after files are created
 
 ## Generate Code
 

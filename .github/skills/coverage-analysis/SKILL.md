@@ -2,6 +2,8 @@
 name: coverage-analysis
 description: "Analyze Go test coverage profiles to identify gaps and generate targeted test suggestions. Use after running go test -coverprofile to systematically categorize uncovered lines, identify error paths and seam injection opportunities, and prioritize which tests to write."
 argument-hint: "[./internal/... or package path]"
+metadata:
+  domain: testing
 ---
 
 Analyze Go test coverage profiles to identify gaps and generate targeted test suggestions.

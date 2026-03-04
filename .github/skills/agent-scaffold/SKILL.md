@@ -3,6 +3,8 @@ name: agent-scaffold
 description: "Create a conformant .github/agents/NAME.agent.md with all mandatory sections. Use when adding a new Copilot agent to ensure correct YAML frontmatter, autonomous execution mode, quality gates, and ARCHITECTURE.md self-containment references."
 argument-hint: "[agent-name]"
 disable-model-invocation: true
+metadata:
+  domain: tooling
 ---
 
 Create a conformant `.github/agents/NAME.agent.md` with all mandatory sections.

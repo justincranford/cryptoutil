@@ -2,6 +2,8 @@
 name: test-table-driven
 description: "Generate table-driven Go tests conforming to cryptoutil project standards. Use when writing or reviewing Go tests to ensure correct t.Parallel() usage, UUIDv7 test data, require over assert, proper subtest structure, and TestMain for heavyweight resources."
 argument-hint: "[package or function name]"
+metadata:
+  domain: testing
 ---
 
 Generate table-driven Go tests conforming to cryptoutil project standards.

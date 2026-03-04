@@ -21,20 +21,20 @@ Copilot auto-load it when your request matches the skill description.
 
 ## Skill Catalogue
 
-| Skill | Purpose | File |
-|-------|---------|------|
-| `test-table-driven` | Generate table-driven Go tests (t.Parallel, UUIDv7 data, subtests) | [SKILL.md](test-table-driven/SKILL.md) |
-| `test-fuzz-gen` | Generate `_fuzz_test.go` (15s fuzz time, corpus examples, build tags) | [SKILL.md](test-fuzz-gen/SKILL.md) |
-| `test-benchmark-gen` | Generate `_bench_test.go` (mandatory for crypto, reset timer pattern) | [SKILL.md](test-benchmark-gen/SKILL.md) |
-| `migration-create` | Create numbered golang-migrate SQL files (template 1001-1999, domain 2001+) | [SKILL.md](migration-create/SKILL.md) |
-| `coverage-analysis` | Analyze coverprofile output, categorize uncovered lines, suggest tests | [SKILL.md](coverage-analysis/SKILL.md) |
-| `fips-audit` | Detect FIPS 140-3 violations and provide fix guidance | [SKILL.md](fips-audit/SKILL.md) |
-| `propagation-check` | Detect @propagate/@source drift, generate corrected @source blocks | [SKILL.md](propagation-check/SKILL.md) |
-| `openapi-codegen` | Generate three oapi-codegen configs (server/model/client) + OpenAPI spec skeleton | [SKILL.md](openapi-codegen/SKILL.md) |
-| `agent-scaffold` | Create conformant `.github/agents/NAME.agent.md` with all mandatory sections | [SKILL.md](agent-scaffold/SKILL.md) |
-| `instruction-scaffold` | Create conformant `.github/instructions/NN-NN.name.instructions.md` | [SKILL.md](instruction-scaffold/SKILL.md) |
-| `skill-scaffold` | Create conformant `.github/skills/NAME/SKILL.md` with proper frontmatter | [SKILL.md](skill-scaffold/SKILL.md) |
-| `new-service` | Guide service creation from skeleton-template: copy, rename, register, migrate, test | [SKILL.md](new-service/SKILL.md) |
+| Skill | Domain | Purpose | File |
+|-------|--------|---------|------|
+| `test-table-driven` | testing | Generate table-driven Go tests (t.Parallel, UUIDv7 data, subtests) | [SKILL.md](test-table-driven/SKILL.md) |
+| `test-fuzz-gen` | testing | Generate `_fuzz_test.go` (15s fuzz time, corpus examples, build tags) | [SKILL.md](test-fuzz-gen/SKILL.md) |
+| `test-benchmark-gen` | testing | Generate `_bench_test.go` (mandatory for crypto, reset timer pattern) | [SKILL.md](test-benchmark-gen/SKILL.md) |
+| `coverage-analysis` | testing | Analyze coverprofile output, categorize uncovered lines, suggest tests | [SKILL.md](coverage-analysis/SKILL.md) |
+| `fips-audit` | security | Detect FIPS 140-3 violations and provide fix guidance | [SKILL.md](fips-audit/SKILL.md) |
+| `openapi-codegen` | api | Generate three oapi-codegen configs (server/model/client) + OpenAPI spec skeleton | [SKILL.md](openapi-codegen/SKILL.md) |
+| `migration-create` | data | Create numbered golang-migrate SQL files (template 1001-1999, domain 2001+) | [SKILL.md](migration-create/SKILL.md) |
+| `new-service` | architecture | Guide service creation from skeleton-template: copy, rename, register, migrate, test | [SKILL.md](new-service/SKILL.md) |
+| `propagation-check` | docs | Detect @propagate/@source drift, generate corrected @source blocks | [SKILL.md](propagation-check/SKILL.md) |
+| `agent-scaffold` | tooling | Create conformant `.github/agents/NAME.agent.md` with all mandatory sections | [SKILL.md](agent-scaffold/SKILL.md) |
+| `instruction-scaffold` | tooling | Create conformant `.github/instructions/NN-NN.name.instructions.md` | [SKILL.md](instruction-scaffold/SKILL.md) |
+| `skill-scaffold` | tooling | Create conformant `.github/skills/NAME/SKILL.md` with proper frontmatter | [SKILL.md](skill-scaffold/SKILL.md) |
 
 ## Skills vs Custom Instructions vs Agents
 
