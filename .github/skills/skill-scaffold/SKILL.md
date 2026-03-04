@@ -51,7 +51,7 @@ Brief before/after or input/output example.
 
 ## References
 
-See [ARCHITECTURE.md Section X.Y](../../../docs/ARCHITECTURE.md#xy-anchor) for related standards.
+Read [ARCHITECTURE.md Section X.Y](../../../docs/ARCHITECTURE.md#xy-anchor) for related standards — follow all requirements from this section when implementing the skill's functionality.
 ```
 
 ## Directory Structure
@@ -77,4 +77,4 @@ Each skill MUST reference at least one ARCHITECTURE.md section relevant to its d
 
 ## References
 
-See [ARCHITECTURE.md Section 2.1.5 Copilot Skills](../../../docs/ARCHITECTURE.md#215-copilot-skills) for the skill catalogue and naming conventions.
+Read [ARCHITECTURE.md Section 2.1.5 Copilot Skills](../../../docs/ARCHITECTURE.md#215-copilot-skills) for the skill catalogue and naming conventions — add the new skill to both the skill catalogue table and `.github/skills/README.md` using the format established in this section.

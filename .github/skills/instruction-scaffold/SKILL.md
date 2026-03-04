@@ -61,5 +61,5 @@ See [ARCHITECTURE.md Section X.Y](../../../docs/ARCHITECTURE.md#xy-anchor) for c
 
 ## References
 
-See [ARCHITECTURE.md Section 2.1.4 Instruction File Organization](../../../docs/ARCHITECTURE.md#214-instruction-file-organization) for numbering scheme.
-See [ARCHITECTURE.md Section 12.7 Documentation Propagation Strategy](../../../docs/ARCHITECTURE.md#127-documentation-propagation-strategy) for @source/@propagate system.
+Read [ARCHITECTURE.md Section 2.1.4 Instruction File Organization](../../../docs/ARCHITECTURE.md#214-instruction-file-organization) for numbering scheme — use the correct category prefix and next available two-digit number when naming the new file.
+Read [ARCHITECTURE.md Section 12.7 Documentation Propagation Strategy](../../../docs/ARCHITECTURE.md#127-documentation-propagation-strategy) for @source/@propagate system — include correct `@source` markers for any ARCHITECTURE.md content copied into the instruction file.

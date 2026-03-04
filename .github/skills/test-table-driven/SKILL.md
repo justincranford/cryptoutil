@@ -71,4 +71,4 @@ os.Exit(m.Run())
 
 ## References
 
-See [ARCHITECTURE.md Section 10.2 Unit Testing Strategy](../../../docs/ARCHITECTURE.md#102-unit-testing-strategy) for full testing requirements.
+Read [ARCHITECTURE.md Section 10.2 Unit Testing Strategy](../../../docs/ARCHITECTURE.md#102-unit-testing-strategy) for full testing requirements — apply all forbidden patterns, `t.Parallel()` rules, `TestMain` requirements, and coverage targets from this section.

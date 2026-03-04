@@ -50,4 +50,4 @@ _ = result
 
 ## References
 
-See [ARCHITECTURE.md Section 10.7 Fuzz Testing Strategy](../../../docs/ARCHITECTURE.md#107-fuzz-testing-strategy) for fuzz testing requirements.
+Read [ARCHITECTURE.md Section 10.7 Fuzz Testing Strategy](../../../docs/ARCHITECTURE.md#107-fuzz-testing-strategy) for fuzz testing requirements — apply the 15s minimum fuzz time, `_fuzz_test.go` file suffix, and seed corpus requirements from this section.

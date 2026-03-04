@@ -22,7 +22,7 @@ paired up/down files, and proper SQL idioms.
 ## Key Rules
 
 - ALWAYS create both `.up.sql` and `.down.sql` files
-- Filenames: `NNNN_description.up.sql` / `NNNN_description.down.sql`  
+- Filenames: `NNNN_description.up.sql` / `NNNN_description.down.sql`
 - Domain migrations START at 2001 (never overlap with template 1001-1999)
 - `.down.sql` must fully reverse `.up.sql` (idempotent rollback)
 - Use `IF NOT EXISTS` / `IF EXISTS` for safety
@@ -75,5 +75,5 @@ builder.WithDomainMigrations(repository.MigrationsFS, "migrations")
 
 ## References
 
-See [ARCHITECTURE.md Section 7 Data Architecture](../../../docs/ARCHITECTURE.md#7-data-architecture) for migration versioning and naming.
-See [ARCHITECTURE.md Section 5.2 Service Builder Pattern](../../../docs/ARCHITECTURE.md#52-service-builder-pattern) for migration registration.
+Read [ARCHITECTURE.md Section 7 Data Architecture](../../../docs/ARCHITECTURE.md#7-data-architecture) for migration versioning and naming — apply the version range rules (template 1001–1999, domain 2001+) and `NNNN_description.up.sql` / `.down.sql` naming format.
+Read [ARCHITECTURE.md Section 5.2 Service Builder Pattern](../../../docs/ARCHITECTURE.md#52-service-builder-pattern) for migration registration — use the `WithDomainMigrations` and merged FS patterns from this section.

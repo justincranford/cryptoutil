@@ -66,4 +66,4 @@ _ = generateKey(tc.bits)
 
 ## References
 
-See [ARCHITECTURE.md Section 10.8 Benchmark Testing Strategy](../../../docs/ARCHITECTURE.md#108-benchmark-testing-strategy) for benchmarking requirements.
+Read [ARCHITECTURE.md Section 10.8 Benchmark Testing Strategy](../../../docs/ARCHITECTURE.md#108-benchmark-testing-strategy) for benchmarking requirements — apply all benchmark standards including mandatory `_bench_test.go` suffix, `ResetTimer`/`StopTimer` patterns, and crypto operation requirements.

@@ -77,5 +77,5 @@ grep -rn "GenerateKey.*1024\|GenerateKey.*512" --include="*.go" .
 
 ## References
 
-See [ARCHITECTURE.md Section 6.1 FIPS 140-3 Compliance Strategy](../../../docs/ARCHITECTURE.md#61-fips-140-3-compliance-strategy) for full requirements.
-See [ARCHITECTURE.md Section 6.4 Cryptographic Architecture](../../../docs/ARCHITECTURE.md#64-cryptographic-architecture) for approved implementations.
+Read [ARCHITECTURE.md Section 6.1 FIPS 140-3 Compliance Strategy](../../../docs/ARCHITECTURE.md#61-fips-140-3-compliance-strategy) for full requirements — apply the FIPS-approved and BANNED algorithm lists when classifying violations and generating findings.
+Read [ARCHITECTURE.md Section 6.4 Cryptographic Architecture](../../../docs/ARCHITECTURE.md#64-cryptographic-architecture) for approved implementations — use the approved algorithm table when suggesting fixes for each violation category.

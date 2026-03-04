@@ -65,5 +65,5 @@ func TestShutdownError(t *testing.T) {
 
 ## References
 
-See [ARCHITECTURE.md Section 10.2.3 Coverage Targets](../../../docs/ARCHITECTURE.md#1023-coverage-targets) for per-package targets.
-See [ARCHITECTURE.md Section 10.2.4 Test Seam Injection Pattern](../../../docs/ARCHITECTURE.md#1024-test-seam-injection-pattern) for unreachable code.
+Read [ARCHITECTURE.md Section 10.2.3 Coverage Targets](../../../docs/ARCHITECTURE.md#1023-coverage-targets) for per-package targets — apply these targets when categorizing uncovered lines and setting package-specific coverage ceiling exceptions.
+Read [ARCHITECTURE.md Section 10.2.4 Test Seam Injection Pattern](../../../docs/ARCHITECTURE.md#1024-test-seam-injection-pattern) for unreachable code — use the seam injection pattern when suggesting how to cover structurally unreachable lines.

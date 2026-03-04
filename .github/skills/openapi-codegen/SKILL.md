@@ -121,5 +121,5 @@ oapi-codegen -config openapi-gen_config_client.yaml openapi_spec_paths.yaml
 
 ## References
 
-See [ARCHITECTURE.md Section 8.1 OpenAPI-First Design](../../../docs/ARCHITECTURE.md#81-openapi-first-design) for strict-server requirements and code generation patterns.
-See [ARCHITECTURE.md Section 8.4 Error Handling](../../../docs/ARCHITECTURE.md#84-error-handling) for HTTP status codes and error schema.
+Read [ARCHITECTURE.md Section 8.1 OpenAPI-First Design](../../../docs/ARCHITECTURE.md#81-openapi-first-design) for strict-server requirements and code generation patterns — ensure all three config files (server/model/client) are generated with `strict-server: true` and correct output paths.
+Read [ARCHITECTURE.md Section 8.4 Error Handling](../../../docs/ARCHITECTURE.md#84-error-handling) for HTTP status codes and error schema — apply the standard error schema and status code table when generating response definitions.

@@ -47,7 +47,7 @@ EOF
 ## Fix Workflow
 
 1. Find the @propagate block in ARCHITECTURE.md
-2. Copy its content verbatim  
+2. Copy its content verbatim
 3. Paste between @source markers in the target file
 4. Run `go run ./cmd/cicd lint-docs` to verify match
 
@@ -60,4 +60,4 @@ EOF
 
 ## References
 
-See [ARCHITECTURE.md Section 12.7 Documentation Propagation Strategy](../../../docs/ARCHITECTURE.md#127-documentation-propagation-strategy) for full marker system documentation.
+Read [ARCHITECTURE.md Section 12.7 Documentation Propagation Strategy](../../../docs/ARCHITECTURE.md#127-documentation-propagation-strategy) for full marker system documentation — apply all marker system rules (byte-for-byte match, no headings inside markers, same-commit propagation) when checking and fixing drift.
