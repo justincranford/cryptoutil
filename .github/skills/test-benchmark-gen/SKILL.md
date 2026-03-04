@@ -18,8 +18,11 @@ Benchmarks go in a separate `_bench_test.go` file.
 - File suffix: `_bench_test.go` (ONLY benchmark functions)
 - **MANDATORY** for: RSA/ECDSA/AES/HMAC operations, key generation, hashing
 - `b.ResetTimer()` AFTER setup, BEFORE the benchmarked loop
+- `b.StopTimer()` / `b.StartTimer()` when per-iteration setup is needed inside the loop
 - `b.ReportAllocs()` for allocation-sensitive code
+- `b.SetBytes(n)` for throughput measurement on crypto operations (AES, HMAC, etc.)
 - Use `UUIDv7` for unique test identifiers per iteration
+- Run benchmarks: `go test -bench=. -benchmem ./pkg/crypto/...`
 
 ## Template
 
@@ -46,6 +49,31 @@ _, err := svc.DoOperation(ctx, id)
 if err != nil {
 b.Fatal(err)
 }
+}
+}
+
+// Throughput benchmark for streaming crypto operations (AES, HMAC)
+func BenchmarkAESEncrypt(b *testing.B) {
+const msgSize = 1024
+key := make([]byte, 32)
+plaintext := make([]byte, msgSize)
+b.SetBytes(msgSize) // enables MB/s reporting
+b.ReportAllocs()
+b.ResetTimer()
+
+for i := 0; i < b.N; i++ {
+_, _ = encrypt(key, plaintext)
+}
+}
+
+// Benchmark with per-iteration setup (use StopTimer/StartTimer)
+func BenchmarkWithSetup(b *testing.B) {
+b.ResetTimer()
+for i := 0; i < b.N; i++ {
+b.StopTimer()
+input := prepareInput() // per-iteration setup NOT measured
+b.StartTimer()
+_, _ = processInput(input)
 }
 }
 

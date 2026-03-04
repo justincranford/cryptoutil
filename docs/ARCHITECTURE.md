@@ -2768,6 +2768,8 @@ type ServiceAndJob struct {
 - Minimum fuzz time: 15 seconds per test
 - Always run from project root: go test -fuzz=FuzzXXX -fuzztime=15s ./path
 - Unique function names: MUST NOT be substrings of others (e.g., FuzzHKDFAllVariants not FuzzHKDF)
+- Build tag: `//go:build fuzz` is an optional marker; fuzz tests run without it using `-fuzz=FuzzXxx` directly
+- Property tests that must not run during fuzzing: use `//go:build !fuzz` at the top of `_property_test.go`
 
 ### 10.8 Benchmark Testing Strategy
 
@@ -2777,9 +2779,22 @@ type ServiceAndJob struct {
 func BenchmarkAESEncrypt(b *testing.B) {
     key := make([]byte, 32)
     plaintext := make([]byte, 1024)
-    b.ResetTimer()
+    b.SetBytes(1024)     // enables MB/s throughput reporting
+    b.ReportAllocs()     // report allocations per op
+    b.ResetTimer()       // exclude setup time
     for i := 0; i < b.N; i++ {
         _, _ = encrypt(key, plaintext)
+    }
+}
+
+// Per-iteration setup (use StopTimer/StartTimer)
+func BenchmarkWithSetup(b *testing.B) {
+    b.ResetTimer()
+    for i := 0; i < b.N; i++ {
+        b.StopTimer()               // pause timer for setup
+        input := prepareInput()
+        b.StartTimer()              // resume timer for measured work
+        _, _ = processInput(input)
     }
 }
 ```

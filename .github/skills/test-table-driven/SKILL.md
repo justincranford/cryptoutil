@@ -21,6 +21,9 @@ Use this skill when writing or reviewing Go tests. Ensures correct patterns:
 - Table-driven for ALL multi-case tests (happy path AND sad path)
 - TestMain for heavyweight resources (DB, servers, containers) — one per package
 - Fiber `app.Test()` for ALL HTTP handler tests (no real network listeners)
+- SQLite DateTime: ALWAYS use `time.Now().UTC()` when comparing timestamps
+- Timing: unit tests MUST complete in <15s per package; full suite <180s
+- Probability-based execution: use `TestProbAlways=100`, `TestProbQuarter=25`, `TestProbTenth=10` for expensive algorithm variant tests (RSA sizes, ECDSA curves)
 
 ## Template
 
@@ -51,6 +54,32 @@ require.Equal(t, tc.want, got)
 }
 ```
 
+## Fiber Handler Testing Pattern
+
+**ALWAYS** use Fiber's in-memory testing for HTTP handler tests — never start real listeners:
+
+```go
+func TestListMessages_Handler(t *testing.T) {
+	t.Parallel()
+
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	msgRepo := repository.NewMessageRepository(testDB)
+	handler := NewPublicServer(nil, msgRepo, nil, nil, nil)
+	app.Get("/browser/api/v1/messages", handler.ListMessages)
+
+	req := httptest.NewRequest("GET", "/browser/api/v1/messages", nil)
+	req.Header.Set("X-Tenant-ID", testTenantID.String())
+
+	resp, err := app.Test(req, -1) // in-memory, <1ms, no network binding
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	require.Equal(t, 200, resp.StatusCode)
+}
+```
+
+Benefits: no port conflicts, no Windows Firewall popups, tests run in <1ms.
+
 ## TestMain Pattern (heavyweight resources)
 
 ```go
@@ -74,3 +103,7 @@ os.Exit(m.Run())
 ## References
 
 Read [ARCHITECTURE.md Section 10.2 Unit Testing Strategy](../../../docs/ARCHITECTURE.md#102-unit-testing-strategy) for full testing requirements — apply all forbidden patterns, `t.Parallel()` rules, `TestMain` requirements, and coverage targets from this section.
+
+Read [ARCHITECTURE.md Section 10.2.2 Fiber Handler Testing](../../../docs/ARCHITECTURE.md#1022-fiber-handler-testing-apptest) for handler test patterns — apply `app.Test()` for ALL HTTP handler tests.
+
+Read [ARCHITECTURE.md Section 10.3.2 Test Isolation](../../../docs/ARCHITECTURE.md#1032-test-isolation-with-tparallel) for parallelism requirements — ensure `t.Parallel()` is applied correctly at all levels.
