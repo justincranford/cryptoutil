@@ -6,9 +6,11 @@ Each recommendation includes rationale, effort estimate, and expected return.
 ---
 
 ## Priority 0 — Do These First (High ROI, Modest Effort)
+
 These items unblock everything else and have the best effort-to-value ratio.
 
 ### P0-1: ServiceContract Interface
+
 File: internal/apps/template/service/framework/contract.go (new)
 
 What: Define a Go interface every cryptoutil service must implement.
@@ -21,15 +23,16 @@ Minimum viable interface:
   ServiceID() string
   ProductID() string
   DomainMigrations() fs.FS
-  RegisterPublicRoutes(app *fiber.App, res *ServiceResources) error
+  RegisterPublicRoutes(app *fiber.App, res*ServiceResources) error
 
 Extended interface (optional, for hook-capable services):
   PostStart(res *ServiceResources) error
-  RegisterAdminRoutes(app *fiber.App, res *ServiceResources) error
+  RegisterAdminRoutes(app*fiber.App, res *ServiceResources) error
 
 ---
 
 ### P0-2: air Live Reload Configuration
+
 File: .air.toml (new, per service or one root file with service targets)
 
 What: Install and configure air for hot reload during development.
@@ -44,6 +47,7 @@ Config: .air.toml with cmd = 'go build -o tmp/{service} ./cmd/{service}'
 ---
 
 ### P0-3: Promote Skeleton to Full CRUD Reference
+
 Files: internal/apps/skeleton/template/ (expand from 21 to ~60 files)
 
 What: Add complete domain layer (item entity, repository, service, handlers)
@@ -67,6 +71,7 @@ What to add to skeleton:
 ## Priority 1 — High Value (Medium Effort, Enables Scaling)
 
 ### P1-1: cicd new-service Scaffolding Tool
+
 Files: cmd/cicd/new_service/ (new), skeleton/**/*.tmpl (new templates)
 
 What: CLI tool that generates a complete new service from skeleton templates.
@@ -88,6 +93,7 @@ Implementation approach:
 ---
 
 ### P1-2: Cross-Service Contract Test Suite
+
 Files: internal/framework/contract_test.go (new)
 
 What: Test suite run against all services to verify consistent behavior.
@@ -97,17 +103,18 @@ Effort: 1 week
 Return: Catches behavioral regressions across all services. Documents expected behavior.
 
 Tests to include:
-  - /admin/api/v1/livez returns 200
-  - /admin/api/v1/readyz returns 200 when DB ready, 503 when not
-  - /admin/api/v1/shutdown drains and stops
-  - /service/api/v1/* rejects unauthenticated requests with 401
-  - /browser/api/v1/* rejects cross-origin requests appropriately
-  - Error responses always contain code + message fields
-  - All services include trace_id in error responses
+- /admin/api/v1/livez returns 200
+- /admin/api/v1/readyz returns 200 when DB ready, 503 when not
+- /admin/api/v1/shutdown drains and stops
+- /service/api/v1/* rejects unauthenticated requests with 401
+- /browser/api/v1/* rejects cross-origin requests appropriately
+- Error responses always contain code + message fields
+- All services include trace_id in error responses
 
 ---
 
 ### P1-3: cicd diff-skeleton Conformance Tool
+
 Files: cmd/cicd/diff_skeleton/ (new)
 
 What: Tool that shows structural differences between a service and skeleton.
@@ -120,13 +127,14 @@ Command: go run ./cmd/cicd diff-skeleton --service sm-im
 Command: go run ./cmd/cicd diff-skeleton --all-services
 
 Output shows:
-  - Files present in skeleton but missing from service (possibly required)
-  - Pattern drift (e.g., session middleware not applied to route group)
-  - Outdated API usage (e.g., old WithBarrier() vs new BarrierModule usage)
+- Files present in skeleton but missing from service (possibly required)
+- Pattern drift (e.g., session middleware not applied to route group)
+- Outdated API usage (e.g., old WithBarrier() vs new BarrierModule usage)
 
 ---
 
 ### P1-4: Shared Test Infrastructure Package
+
 Files: internal/framework/testing/ (new) or expand internal/apps/skeleton/testing/
 
 What: Common test utilities shared by all 10 services.
@@ -137,17 +145,18 @@ Effort: 1 week
 Return: 2x test writing speed. Pattern changes propagate automatically.
 
 Package includes:
-  - NewInMemorySQLiteDB() for unit tests
-  - NewPostgresTestContainer() for integration tests
-  - StandardHealthClient for contract tests
-  - StandardFixtures{} for test data creation (tenant, realm, user)
-  - StandardAssertions for HTTP response validation
+- NewInMemorySQLiteDB() for unit tests
+- NewPostgresTestContainer() for integration tests
+- StandardHealthClient for contract tests
+- StandardFixtures{} for test data creation (tenant, realm, user)
+- StandardAssertions for HTTP response validation
 
 ---
 
 ## Priority 2 — Strategic Improvements (Medium-High Effort)
 
 ### P2-1: Service Manifest Declaration
+
 Files: internal/apps/template/service/framework/manifest.go (new)
 
 What: ServiceManifest struct that declares service capabilities.
@@ -159,6 +168,7 @@ Effort: 2-3 weeks (framework changes + update all services)
 Return: Reduces server.go boilerplate by 50%. Clearer intent per service.
 
 ### P2-2: Architecture Fitness Functions
+
 Files: internal/arch/ (new), .github/workflows/ci-fitness.yml (new)
 
 What: Automated tests that verify architectural properties never regress.
@@ -168,14 +178,15 @@ Effort: 2-3 weeks
 Return: Architectural constraints enforced automatically in CI. Documentation stays accurate.
 
 Initial fitness functions (see 07-fitness-functions.md for full list):
-  - No cross-service imports
-  - All services have required directory structure
-  - No file exceeds 500 lines
-  - All services have health endpoints
-  - All TLS configs use minimum TLS 1.3
-  - Migration version ranges are correct
+- No cross-service imports
+- All services have required directory structure
+- No file exceeds 500 lines
+- All services have health endpoints
+- All TLS configs use minimum TLS 1.3
+- Migration version ranges are correct
 
 ### P2-3: OpenAPI-to-Repository Code Generation
+
 Files: cmd/cicd/generate/ (new), templates for repository + service layers
 
 What: Generate repository CRUD and service stubs from OpenAPI spec.
@@ -234,25 +245,25 @@ Return: Framework becomes independently testable and publishable.
 ## First 30 Days Action Plan
 
 Week 1:
-  - Install and configure air live reload for sm-im and jose-ja
-  - Write ServiceContract interface (draft)
-  - Make skeleton compile with ServiceContract
-  - Review if sm-im, jose-ja, sm-kms satisfy ServiceContract
+- Install and configure air live reload for sm-im and jose-ja
+- Write ServiceContract interface (draft)
+- Make skeleton compile with ServiceContract
+- Review if sm-im, jose-ja, sm-kms satisfy ServiceContract
 
 Week 2:
-  - Add full CRUD domain layer to skeleton-template (Item entity)
-  - Write skeleton OpenAPI spec for Item CRUD
-  - Start shared test infrastructure package
+- Add full CRUD domain layer to skeleton-template (Item entity)
+- Write skeleton OpenAPI spec for Item CRUD
+- Start shared test infrastructure package
 
 Week 3:
-  - Complete shared test infrastructure
-  - Write first 5 cross-service contract tests (health endpoints)
-  - Begin cicd diff-skeleton tool design
+- Complete shared test infrastructure
+- Write first 5 cross-service contract tests (health endpoints)
+- Begin cicd diff-skeleton tool design
 
 Week 4:
-  - Complete cicd diff-skeleton tool
-  - Run diff-skeleton on sm-im, jose-ja, sm-kms
-  - Fix identified divergence
-  - Begin cicd new-service scaffolding tool
+- Complete cicd diff-skeleton tool
+- Run diff-skeleton on sm-im, jose-ja, sm-kms
+- Fix identified divergence
+- Begin cicd new-service scaffolding tool
 
 End of Day 30: Foundation is set for 10x migration velocity for remaining 7 services.

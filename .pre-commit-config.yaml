@@ -361,7 +361,7 @@ repos:
 
   # Specialized file linting: Python security linting
   - repo: https://github.com/PyCQA/bandit
-    rev: 1.9.3
+    rev: 1.9.4
     hooks:
       - id: bandit
         name: Python security linting
@@ -384,7 +384,7 @@ repos:
 
   # Markdown linting with auto-fix
   - repo: https://github.com/DavidAnson/markdownlint-cli2
-    rev: v0.20.0
+    rev: v0.21.0
     hooks:
       - id: markdownlint-cli2
         name: Lint and fix markdown files
@@ -396,7 +396,7 @@ repos:
 
   # Conventional commit validation
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.13.7
+    rev: v4.13.9
     hooks:
       - id: commitizen
         name: Check conventional commit message
@@ -459,7 +459,7 @@ repos:
 
   # EditorConfig compliance checker
   - repo: https://github.com/editorconfig-checker/editorconfig-checker.python
-    rev: 3.6.0
+    rev: 3.6.1
     hooks:
       - id: editorconfig-checker
         name: Check EditorConfig compliance

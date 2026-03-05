@@ -1,4 +1,4 @@
-﻿# Architecture Fitness Functions
+# Architecture Fitness Functions
 
 ## What Are Fitness Functions?
 
@@ -28,7 +28,6 @@ Without fitness functions, the following happen silently:
 - An admin endpoint bound to 0.0.0.0 instead of 127.0.0.1
 
 Fitness functions catch these at commit-time, not code-review-time.
-
 
 ## Category 1: Dependency Isolation
 
@@ -204,4 +203,3 @@ Phase 4 (2 weeks): Security constraints (127.0.0.1, TLS config, auth patterns)
 
 Total: ~5 weeks for a comprehensive fitness function suite.
 Return: automated enforcement of every architectural constraint in ARCHITECTURE.md.
-

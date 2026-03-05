@@ -40,11 +40,11 @@ Applicable lesson: Java interfaces, Rust traits, Go io.Reader + TestReader patte
 Effort: 1 week. Return: 2x per service + catches behavioral regressions.
 
 One test suite, run against all 10 services:
-  - All services return livez 200
-  - All services return readyz 200 when DB is ready
-  - All services handle shutdown gracefully
-  - All public endpoints reject unauthenticated requests appropriately
-  - All services have consistent error response format
+- All services return livez 200
+- All services return readyz 200 when DB is ready
+- All services handle shutdown gracefully
+- All public endpoints reject unauthenticated requests appropriately
+- All services have consistent error response format
 
 When a new contract test is added, it tests all services automatically.
 Divergence surfaces in CI immediately.
@@ -56,9 +56,9 @@ Applicable lesson: Go io.Reader test suite in testing/iotest package.
 Effort: 1 week. Return: 3x cheaper maintenance long-term.
 
 Shows exactly what changed between a service and the skeleton:
-  - Missing files
-  - Pattern drift (session middleware not applied)
-  - Outdated patterns (old API vs new framework API)
+- Missing files
+- Pattern drift (session middleware not applied)
+- Outdated patterns (old API vs new framework API)
 
 Run weekly to catch drift before it compounds.
 
@@ -76,10 +76,10 @@ Configure .air.toml per service (or one shared with service-specific targets).
 Effort: 1 week. Return: 2x test code productivity.
 
 Create internal/framework/testing or expand skeleton/testing/:
-  - Standard TestMain setup (SQLite in-memory, PostgreSQL testcontainer)
-  - Standard fixture helpers (create tenant, realm, user)
-  - Standard assertion helpers (assert HTTP response format, error format)
-  - Standard mock patterns for common interfaces
+- Standard TestMain setup (SQLite in-memory, PostgreSQL testcontainer)
+- Standard fixture helpers (create tenant, realm, user)
+- Standard assertion helpers (assert HTTP response format, error format)
+- Standard mock patterns for common interfaces
 
 Every service gets a working TestMain in 5 lines instead of 50.
 Any TestMain pattern change propagates to all services automatically.
@@ -91,9 +91,9 @@ Applicable lesson: Django test fixtures, pytest conftest.py, Ruby on Rails share
 Effort: 2 weeks. Return: eliminates future upgrade debt.
 
 When framework v1.3 adds a new API, a tool generates the upgrade plan:
-  - What files need to change
-  - What the new code should look like (diff vs skeleton)
-  - Which changes are safe to auto-apply vs require manual review
+- What files need to change
+- What the new code should look like (diff vs skeleton)
+- Which changes are safe to auto-apply vs require manual review
 
 Applicable lesson: go fix, Rector (PHP), codemods (JavaScript).
 
@@ -118,11 +118,11 @@ Applicable lesson: Rails scaffold, Django makemigrations, buf protoc-gen-go.
 Effort: 3-4 weeks. Return: architectural drift becomes impossible.
 
 ARCHITECTURE.md constraints become running tests:
-  - All services have dual HTTPS: tested
-  - No cross-service imports: tested
-  - All services have migrations: tested
-  - All services have health endpoints: tested
-  - All services use same framework version: tested
+- All services have dual HTTPS: tested
+- No cross-service imports: tested
+- All services have migrations: tested
+- All services have health endpoints: tested
+- All services use same framework version: tested
 
 Run in CI on every push. Architecture never drifts silently.
 
@@ -133,9 +133,9 @@ Applicable lesson: ArchUnit (Java), Dependency Cruiser (JS), Fitness Functions (
 Effort: exploratory. Return: variable but potentially huge.
 
 With OpenAPI spec + skeleton as context, AI generates:
-  - Service layer implementations
-  - Unit tests for generated code
-  - Integration test scenarios
+- Service layer implementations
+- Unit tests for generated code
+- Integration test scenarios
 
 Developer reviews, adjusts, approves. Not replacing the developer:
 replacing the copy-paste grunge work so developer focuses on design.
@@ -150,10 +150,10 @@ Extract internal/apps/template/service/ to its own Go module.
 Services import it: go get github.com/justincranford/cryptoutil-framework
 
 Benefits:
-  - Framework versioning: services can be on different versions during migration
-  - Compile-time enforcement across module boundary
-  - Framework can be reused by other projects
-  - Framework tests are separate from service tests
+- Framework versioning: services can be on different versions during migration
+- Compile-time enforcement across module boundary
+- Framework can be reused by other projects
+- Framework tests are separate from service tests
 
 Downside: higher complexity for a single-person project.
 Consider after 10 services are migrated and framework stabilizes.

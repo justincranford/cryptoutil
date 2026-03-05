@@ -8,6 +8,7 @@ to cryptoutil's framework evolution goals.
 ## Dependency Injection in Go
 
 ### The Problem
+
 Go does not have annotations or decorators. Frameworks like Spring rely on
 reflection + annotations for DI. Go's philosophy is explicit over implicit.
 Two viable approaches: compile-time DI (Wire) and runtime DI (fx).
@@ -16,7 +17,7 @@ Two viable approaches: compile-time DI (Wire) and runtime DI (fx).
 
 ### Google Wire — Compile-Time Dependency Injection
 
-Wire (https://github.com/google/wire) generates wiring code at compile time.
+Wire (<https://github.com/google/wire>) generates wiring code at compile time.
 
 How it works:
 1. You declare provider functions: NewDB(cfg Config) (*DB, error)
@@ -28,7 +29,7 @@ How it works:
 // providers.go
 func NewDB(cfg *Config) (*gorm.DB, error) { ... }
 func NewBarrierService(db *gorm.DB, keys UnsealKeysService) (*BarrierService, error) { ... }
-func NewKeyHandler(barrier *BarrierService) *KeyHandler { ... }
+func NewKeyHandler(barrier *BarrierService)*KeyHandler { ... }
 
 // wire_injector.go (build tag: wireinject)
 func InitializeApp(cfg *Config) (*App, error) {
@@ -63,7 +64,7 @@ Especially valuable for the identity services which have complex cross-dependenc
 
 ### Uber fx — Runtime Dependency Injection
 
-fx (https://github.com/uber-go/fx) uses reflection-based DI similar to Spring,
+fx (<https://github.com/uber-go/fx>) uses reflection-based DI similar to Spring,
 but with explicit registration:
 
 `go
@@ -246,7 +247,7 @@ func (s *ServiceContractSuite) TestHealthEndpointAvailable() {
 }
 
 func (s *ServiceContractSuite) TestReadyzReturnsOKWhenReady() { ... }
-func (s *ServiceContractSuite) TestShutdownEndpointGraceful() { ... }
+func (s*ServiceContractSuite) TestShutdownEndpointGraceful() { ... }
 
 // Run the same suite against all services:
 suite.Run(t, &ServiceContractSuite{client: smIMClient})
@@ -286,18 +287,20 @@ Consider extending for:
 
 go-arch-lint enforces import rules:
 `yaml
+
 # .arch-lint.yml
+
 components:
   framework:   { files: ['internal/apps/template/**'] }
   domain-sm:   { files: ['internal/apps/sm/**'] }
   domain-jose: { files: ['internal/apps/jose/**'] }
 
 rules:
-  - component: domain-sm
+- component: domain-sm
     allow: [framework]     # sm can import template
     deny: [domain-jose]    # sm cannot import jose
-    
-  - component: domain-jose
+
+- component: domain-jose
     allow: [framework]
     deny: [domain-sm]
 `
@@ -350,15 +353,17 @@ Custom fitness function tests fill the gaps.
 
 ### air — Live Reload for Go
 
-air (https://github.com/air-verse/air) watches for file changes and restarts:
-`	oml
+air (<https://github.com/air-verse/air>) watches for file changes and restarts:
+` oml
+
 # .air.toml
+
 [build]
   cmd = "go build -o ./tmp/main ./cmd/sm-im/"
   bin = "./tmp/main"
   include_ext = ["go", "yaml"]
   exclude_dir = ["vendor", "tmp", "testdata"]
-  
+
 [run]
   args = ["server", "--config", "configs/sm-im/development.yml"]
 `

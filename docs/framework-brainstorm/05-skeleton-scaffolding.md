@@ -1,4 +1,4 @@
-﻿# Skeleton Stereotype and Scaffolding
+# Skeleton Stereotype and Scaffolding
 
 ## The Problem
 
@@ -12,7 +12,6 @@ The skeleton-template today is 21 files, mostly stubs. A developer looking at it
 
 Every new service migration requires reading 50-60 files in sm-im/jose-ja to extract conventions.
 That knowledge must be re-derived every time, costing days per service.
-
 
 ## Spring Boot Initializr Model (Reference)
 
@@ -152,4 +151,3 @@ This is the same approach used by:
 4. How to keep generated code in sync as skeleton evolves?
    diff-skeleton tool identifies drift; developer migrates with guidance.
    Long-term: regenerate boilerplate files, keep domain files untouched.
-

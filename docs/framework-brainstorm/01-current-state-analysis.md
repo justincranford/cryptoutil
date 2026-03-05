@@ -3,6 +3,7 @@
 ## What Works Well
 
 ### 1. ServerBuilder Fluent API
+
 The builder pattern in internal/apps/template/service/server/builder/ is solid:
 - NewServerBuilder() -> WithDomainMigrations() -> WithPublicRouteRegistration() -> Build()
 - Error accumulation (railway-oriented) prevents partial construction
@@ -12,6 +13,7 @@ The builder pattern in internal/apps/template/service/server/builder/ is solid:
 This is the right pattern. The problem is not the pattern — it is what surrounds it.
 
 ### 2. ServiceResources Dependency Injection
+
 The ServiceResources struct provides clean constructor injection:
 - DB (GORM), TelemetryService, JWKGenService, BarrierService
 - UnsealKeysService, SessionManager, RealmService, RealmRepository
@@ -19,18 +21,21 @@ The ServiceResources struct provides clean constructor injection:
 Services receive all dependencies ready-to-use without knowing how they were created.
 
 ### 3. Infrastructure Quality
+
 - Dual HTTPS (public :8080 + admin :9090) separation is production-grade
 - Health checks (livez/readyz/shutdown) are automatic
 - TLS auto-generation for tests; real certs in production
 - Migration merging (template 1001-1004 + domain 2001+) works
 
 ### 4. Security-First Design
+
 - FIPS 140-3 compliance built into the framework, not added later
 - Barrier (hierarchical encryption at rest) is mandatory, not optional
 - Multi-tenancy via tenant_id filters baked into the pattern
 - JWT/session authentication modes are configurable
 
 ### 5. OpenAPI-First
+
 - oapi-codegen strict server ensures type safety
 - Client generation available
 - Consistent API patterns across services
@@ -40,6 +45,7 @@ Services receive all dependencies ready-to-use without knowing how they were cre
 ## What Hurts
 
 ### Pain Point 1: Skeleton Is a Stub (21 files)
+
 The skeleton-template exists but has almost no substance. It demonstrates that
 the builder CAN be used, but does not show HOW a full domain service should be
 structured. When starting a new service, a developer must:
@@ -51,6 +57,7 @@ structured. When starting a new service, a developer must:
 A real stereotype would SHORT-CIRCUIT steps 1-4.
 
 ### Pain Point 2: No Compile-Time Contract Enforcement
+
 There is no Go interface that a service MUST implement to be a valid framework
 service. A service can forget to:
 - Register health check routes (caught at runtime, not compile time)
@@ -62,6 +69,7 @@ Compare with Spring Boot: if you do not implement ApplicationRunner, you simply
 do not get that lifecycle hook. Missing it is a choice, not an accident.
 
 ### Pain Point 3: Framework Evolution Requires Manual Updates
+
 When the template framework changes (e.g., a new WithStrictServer() method),
 every service that uses the old pattern must be manually updated. There is no:
 - Automated diff tool to show what changed
@@ -69,6 +77,7 @@ every service that uses the old pattern must be manually updated. There is no:
 - Automated migration tool from old pattern to new
 
 ### Pain Point 4: Each Service Migration Is a Full Deep-Dive
+
 Migrating a service to the template requires understanding ALL of:
 - TLS configuration options
 - BarrierConfig vs default barrier
@@ -78,6 +87,7 @@ Migrating a service to the template requires understanding ALL of:
 This knowledge is not encoded in code — it is in ARCHITECTURE.md and comments.
 
 ### Pain Point 5: No Cross-Service Conformance Checking
+
 Services drift apart silently:
 - sm-im may handle sessions differently than jose-ja
 - jose-ja may have a different CORS policy than pki-ca
@@ -85,6 +95,7 @@ Services drift apart silently:
 There is no automated check that says "all 10 services have consistent X".
 
 ### Pain Point 6: No Scaffolding
+
 A solo developer with 10 services to build needs:
 - cicd new-service --product sm --service newservice
 - Outputs a fully-wired, compiling, passing-tests skeleton
@@ -107,6 +118,7 @@ But the surrounding ecosystem — skeleton, contracts, scaffolding, conformance 
 is still in library mode.
 
 ### The Spring Boot Lesson
+
 Spring Boot's genius was not the DI container (that was Spring 2.x).
 The genius was AUTO-CONFIGURATION: "if you have a DataSource bean, I will
 auto-configure a JdbcTemplate. If you have spring-security on the classpath,
@@ -118,6 +130,7 @@ Service code should not select options — the manifest declares capabilities,
 the framework configures them.
 
 ### The Identity Services Challenge
+
 Identity has 5 services (authz, idp, rp, rs, spa) that are the hardest to migrate:
 - They share auth flows (OAuth 2.1, OIDC)  
 - They have complex cross-service dependencies
@@ -133,7 +146,7 @@ needs a MODULE SYSTEM for this.
 ## The Divergence Math Problem
 
 With 10 services each with 50-100 files, any shared pattern change multiplies:
-- 1 pattern change * 10 services * 2 hours/service = 20 hours to propagate
+- 1 pattern change *10 services* 2 hours/service = 20 hours to propagate
 - 10 pattern changes per month = 200 hours/month maintenance overhead
 
 This is unsustainable for a solo developer. The solution is not to work harder —

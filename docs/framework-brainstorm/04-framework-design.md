@@ -8,16 +8,16 @@ true application framework equivalent to Spring Boot's @SpringBootApplication.
 ## The Core Insight: Framework vs Library
 
 Current: cryptoutil ServerBuilder is a LIBRARY.
-  - You call ServerBuilder
-  - You configure it
-  - You get back ServiceResources
-  - You set up everything else yourself
+- You call ServerBuilder
+- You configure it
+- You get back ServiceResources
+- You set up everything else yourself
 
 Target: cryptoutil framework is a FRAMEWORK.
-  - Framework calls you via interfaces
-  - You declare capabilities via a manifest or interface
-  - Framework configures everything
-  - You fill in domain logic only
+- Framework calls you via interfaces
+- You declare capabilities via a manifest or interface
+- Framework configures everything
+- You fill in domain logic only
 
 ---
 
@@ -35,14 +35,14 @@ type ServiceContract interface {
     // Metadata
     ServiceID() string   // e.g., "sm-im"
     ProductID() string   // e.g., "sm"
-    
+
     // Domain migrations (2001+). Return nil if no domain tables needed.
     DomainMigrations() fs.FS
-    
+
     // RegisterPublicRoutes adds domain-specific routes to the public server.
     // Called after all framework infrastructure is initialized.
     RegisterPublicRoutes(app *fiber.App, res *ServiceResources) error
-    
+
     // OpenAPISpec returns the embedded OpenAPI spec. Return nil if not using OpenAPI.
     OpenAPISpec() []byte
 }
@@ -52,13 +52,13 @@ type ServiceContract interface {
 type ExtendedServiceContract interface {
     ServiceContract
     PostStart(res *ServiceResources) error
-    PreStop(res *ServiceResources) error
+    PreStop(res*ServiceResources) error
 }
 
 // AdminServiceContract adds admin route registration.
 type AdminServiceContract interface {
     ServiceContract
-    RegisterAdminRoutes(app *fiber.App, res *ServiceResources) error
+    RegisterAdminRoutes(app *fiber.App, res*ServiceResources) error
 }
 `
 
@@ -88,25 +88,25 @@ type ServiceManifest struct {
     // Identity
     ServiceID string
     ProductID string
-    
+
     // Infrastructure capabilities (auto-configured when true)
     Barrier  bool   // Encryption-at-rest barrier (default: true)
     Sessions bool   // Session management (default: true)
     Realms   bool   // Authentication realm management (default: true)
-    
+
     // Database
     DatabaseMode DatabaseMode   // GORM, RawSQL, or Both (default: GORM)
-    
+
     // Authentication mode
     AuthMode AuthMode   // Session (default), JWT, or Both
-    
+
     // API
     OpenAPI bool   // Register OpenAPI strict server (default: false)
     SwaggerUI bool // Register Swagger UI (default: false)
-    
+
     // Migrations
     MigrationMode MigrationMode  // TemplateWithDomain (default) or DomainOnly
-    
+
     // Paths
     PublicPaths  []string  // custom paths beyond /browser/** and /service/**
 }
@@ -189,19 +189,19 @@ type ServiceHooks struct {
     // OnDBReady: called after DB is connected and migrations applied.
     // Use for: database seeding, pre-warming caches.
     OnDBReady func(db *gorm.DB) error
-    
+
     // OnReady: called after public server is listening.
     // Use for: health check warmup, initial data load.
     OnReady func(res *ServiceResources) error
-    
+
     // OnBarrierSealed: called when barrier becomes sealed (unseal keys unavailable).
     // Use for: graceful degradation, alerts.
     OnBarrierSealed func() error
-    
+
     // OnBarrierUnsealed: called when barrier unseals successfully.
     // Use for: triggering key rotation checks, audit log entries.
     OnBarrierUnsealed func(res *ServiceResources) error
-    
+
     // OnShutdown: called before servers stop accepting connections.
     // Use for: draining in-progress operations, flushing caches.
     OnShutdown func() error
@@ -275,7 +275,7 @@ builder.WithAdminRouteRegistration(func(
 `
 
 This mirrors WithPublicRouteRegistration but for the admin server.
-Consider: all routes under /admin/api/v1/domain/* reserved for domain services;
+Consider: all routes under /admin/api/v1/domain/*reserved for domain services;
 /admin/api/v1/framework/* reserved for framework infrastructure.
 
 ---
@@ -310,22 +310,22 @@ Before starting any service, the framework should validate its own configuration
 // framework/validation.go
 func (b *ServerBuilder) Validate() []ValidationError {
     var errors []ValidationError
-    
+
     // Validate service manifest
     if b.manifest.ServiceID == "" {
         errors = append(errors, ValidationError{"manifest.service_id", "required"})
     }
-    
+
     // Validate module dependencies
     if b.manifest.Sessions && !b.manifest.Barrier {
         errors = append(errors, ValidationError{"barrier", "required when sessions=true"})  
     }
-    
+
     // Validate TLS configuration
     if b.config.BindPublicPort > 0 && !b.config.TLSEnabled {
         errors = append(errors, ValidationError{"tls", "required for public port"})
     }
-    
+
     return errors
 }
 `
@@ -371,16 +371,16 @@ func New(ctx context.Context, cfg *Config) (*Service, error) {
 
 // RegisterRoutes is called by the framework after infrastructure is ready.
 // This is the ONLY place domain logic is wired.
-func RegisterRoutes(app *fiber.App, res *framework.ServiceResources) error {
+func RegisterRoutes(app *fiber.App, res*framework.ServiceResources) error {
     repo := NewItemRepository(res.DB)
     svc := NewItemService(repo, res.BarrierService)
     h := NewItemHandler(svc, res.SessionManager)
-    
+
     g := app.Group("/service/api/v1", res.SessionManager.Middleware())
     g.Get("/items", h.List)
     g.Post("/items", h.Create)
     g.Get("/items/:id", h.Get)
-    
+
     return nil
 }
 `

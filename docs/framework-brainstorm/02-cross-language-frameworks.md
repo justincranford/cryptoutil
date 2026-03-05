@@ -13,12 +13,14 @@ Spring Boot is the most influential application framework in modern software.
 Its innovations are directly applicable to cryptoutil:
 
 #### Auto-Configuration
+
 Mechanism: @ConditionalOnClass, @ConditionalOnBean, @ConditionalOnProperty
 Result: Add spring-security to classpath -> security is auto-wired. No boilerplate.
 cryptoutil equivalent: ServiceManifest.barriers = true -> BarrierService auto-wired.
 ServiceManifest.openapi = true -> StrictServer auto-wired.
 
 #### Spring Boot Starters
+
 A starter is a curated dependency bundle + auto-configuration.
 spring-boot-starter-web -> Tomcat + Spring MVC + Jackson, pre-configured.
 spring-boot-starter-data-jpa -> Hibernate + DataSource + TransactionManager.
@@ -27,22 +29,26 @@ cryptoutil equivalent: A framework.BarrierModule could bundle:
 - All wired together, service just enables it via manifest
 
 #### Spring Initializr (start.spring.io)
+
 Web form: select Spring Web, Spring Data JPA, Spring Security -> download ZIP.
 The ZIP is a WORKING project with all selected modules wired.
 cryptoutil equivalent: cicd new-service --product sm --name myservice --with barrier,openapi,sessions
 Outputs: a fully compiling service with all the right files, ready for domain logic.
 
 #### ApplicationRunner / CommandLineRunner
+
 Interface a bean implements to run code after context is fully initialized.
 Analogous to: WithPostStartHook(func(res *ServiceResources) error)
 cryptoutil does not have this — services cannot easily run post-start without hacks.
 
 #### Spring Boot Actuator
+
 Exposes /actuator/health, /actuator/metrics, /actuator/info automatically.
 Pluggable health indicators: implement HealthIndicator -> appears in /health.
 cryptoutil has this (livez/readyz) but DB health is not pluggable per-service.
 
 #### @Profile("test", "dev", "prod")
+
 Different beans activated per environment profile.
 cryptoutil equivalent: build tags (test vs production), but no runtime profile mechanism.
 Could be powerful: Profile("dev") -> in-memory SQLite; Profile("prod") -> PostgreSQL.
@@ -86,7 +92,7 @@ Less relevant for Go since Go has no annotation processors, but Wire provides it
 ### Quarkus — Developer Mode + Live Reload
 
 Quarkus dev mode: save a file -> server reloads in <1s (JVM warm path).
-cryptoutil equivalent: air (https://github.com/air-verse/air):
+cryptoutil equivalent: air (<https://github.com/air-verse/air>):
 - air watches for file changes -> go build -> restart server
 - This is immediately applicable, requires zero framework changes
 - Would significantly speed up the inner development loop
@@ -126,6 +132,7 @@ suite := framework.NewSuite(
 `
 
 #### Django management commands
+
 python manage.py makemigrations — generates SQL from model changes.
 python manage.py migrate — applies migrations.
 python manage.py createsuperuser — creates admin.
@@ -137,6 +144,7 @@ cryptoutil equivalent: the cicd command already exists! The missing pieces are:
 - cicd diff-skeleton --service pki-ca
 
 #### Django Signal System
+
 Decoupled observer pattern: code in billing app listens to auth events.
 cryptoutil equivalent: post-startup hooks, barrier rotation events, etc.
 Could be useful for cross-service event notification within the suite.
@@ -211,7 +219,7 @@ NestJS uses decorators and modules, mapping almost 1:1 to Spring Boot:
 - Dependency injection in constructors
 
 NestJS modules are the most explicit module system in any JS framework:
-`	ypescript
+` ypescript
 @Module({
   imports: [DatabaseModule, AuthModule],
   controllers: [KeysController],
@@ -276,7 +284,8 @@ consistent middleware stacks defined in ONE place (framework) not per-service.
 ### Axum — Extractors and Typed Routing
 
 Axum's extractor system is the most elegant dependency injection in any HTTP framework:
-`ust
+`
+ust
 async fn create_key(
     State(db): State<Database>,       // extracted from app state
     Json(body): Json<CreateKeyRequest>, // extracted and validated from body
@@ -294,7 +303,8 @@ is generated from the OpenAPI spec. The types enforce correctness.
 ### Tower — Service Trait and Layers
 
 Tower defines Service<Request> as the core abstraction:
-`ust
+`
+ust
 trait Service<Request> {
     type Response;
     type Error;
@@ -317,7 +327,7 @@ Go analogy: net/http.Handler interface + middleware pattern (already in use).
 
 ### Buffalo — Closest to Rails in Go
 
-Buffalo (https://gobuffalo.io) attempts to be Rails for Go:
+Buffalo (<https://gobuffalo.io>) attempts to be Rails for Go:
 - buffalo new myapp -> fully scaffolded project
 - buffalo generate resource user name:text email:text -> CRUD + migrations + tests
 - buffalo dev -> live reload
@@ -347,7 +357,7 @@ not into a proprietary format.
 
 ### go-kit — Microservice Toolkit
 
-go-kit (https://gokit.io) takes a different approach: not a framework but a toolkit.
+go-kit (<https://gokit.io>) takes a different approach: not a framework but a toolkit.
 Each service is composed from:
 - Transport layer (HTTP, gRPC, AMQP)
 - Endpoint layer (request/response)
@@ -378,6 +388,7 @@ Generates: handler stubs, client, test stubs, mock.
 ## Key Cross-Language Synthesis
 
 ### Pattern 1: Module/Bundle System (Universal)
+
 Every mature framework has modules: Spring Starters, Django apps, NestJS modules,
 Fastify plugins, Dropwizard bundles. These share:
 - Clear interface: what a module provides and requires
@@ -388,27 +399,32 @@ Fastify plugins, Dropwizard bundles. These share:
 Current cryptoutil: single ServerBuilder with options. Should become: modules.
 
 ### Pattern 2: Convention Over Configuration (Universal)
+
 Rails, Django, Spring Boot all: if it is named the right way in the right place,
 it works automatically. No wiring needed.
 cryptoutil opportunity: if a service has migrations/2001_*.sql, auto-register.
 If it has api/openapi_spec.yaml, auto-configure strict server.
 
 ### Pattern 3: Scaffolding / Code Generation (Universal)
+
 Rails scaffold, Django startapp, Spring Initializr, buffalo generate, bee generate.
 A solo developer with 10 services NEEDS: cicd new-service.
 It is not optional. Without it, every service is a full manual effort.
 
 ### Pattern 4: Fitness Functions / Architecture Tests (Emerging)
+
 ArchUnit (Java), Dependency Cruiser (JS), Conform (Go, see next doc).
 Automated tests that verify architectural constraints do not regress.
 Cross-service: every service has a health endpoint, no cross-service imports, etc.
 
 ### Pattern 5: Live Reload / Fast Iteration (Universal)
+
 air (Go), buffalo dev, quarkus dev, nodemon (Node), flask --debug.
 Inner loop speed matters enormously for a solo developer. 5s restart vs 30s restart
 over 8 hours = significant productivity difference.
 
 ### Pattern 6: OpenAPI-First + Full Generation (Modern Trend)
+
 Not just stubs: generate models, handlers, clients, mocks, tests.
 buf (protobuf), oapi-codegen, openapi-generator.
 More generation = less manual code = less divergence.
