@@ -42,10 +42,12 @@ indent_size = 2
 indent_style = space
 indent_size = 2
 
-# Markdown files (4-space indent for lists)
+# Markdown files — indent_size=1 allows any amount of whitespace indentation
+# (list sub-items use 2-space, numbered-list continuation uses 3-space,
+# both are valid markdown and editorconfig-checker accepts any multiple of 1)
 [*.{md,markdown}]
 indent_style = space
-indent_size = 4
+indent_size = 1
 trim_trailing_whitespace = false
 
 # Shell scripts

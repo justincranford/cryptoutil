@@ -1,7 +1,7 @@
 # Tasks - Framework v1
 
-**Status**: 0 of 47 tasks complete (0%)
-**Last Updated**: 2026-03-06
+**Status**: 5 of 48 tasks complete (10%)
+**Last Updated**: 2026-03-07
 **Created**: 2026-03-06
 
 ## Quality Mandate - MANDATORY
@@ -37,52 +37,52 @@
 
 #### Task 1.1: Audit All Service Method Signatures
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 2h
-- **Actual**: [Fill when complete]
+- **Actual**: ~1h (prior research session)
 - **Dependencies**: None
 - **Description**: Produce a definitive matrix of methods across all 10 services, categorizing them as universal (in interface), common (most services), or service-specific (excluded from interface).
 - **Acceptance Criteria**:
-  - [ ] All 10 services surveyed: method name, signature, return types
-  - [ ] Methods categorized: universal / common / service-specific
-  - [ ] KMS divergences documented (Start/Shutdown signatures, IsReady vs SetReady)
-  - [ ] Decision: which methods go in the core interface vs optional interfaces
+  - [x] All 10 services surveyed: method name, signature, return types
+  - [x] Methods categorized: universal / common / service-specific
+  - [x] KMS divergences documented (Start/Shutdown signatures, IsReady vs SetReady)
+  - [x] Decision: which methods go in the core interface vs optional interfaces
 - **Files**:
   - Evidence collected in `test-output/framework-v1/phase1/method-matrix.md`
 
 #### Task 1.2: Define ServiceServer Interface
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 3h
-- **Actual**: [Fill when complete]
+- **Actual**: ~2h
 - **Dependencies**: Task 1.1
 - **Description**: Create the Go interface file with compile-time enforcement.
 - **Acceptance Criteria**:
-  - [ ] Interface defined in `internal/apps/template/service/server/contract.go`
-  - [ ] Core interface covers universal methods (Start, Shutdown, DB, PublicPort, AdminPort, SetReady, PublicBaseURL, AdminBaseURL, PublicServerActualPort, AdminServerActualPort)
-  - [ ] Optional interface(s) for common-but-not-universal methods (JWKGen, Telemetry, Barrier)
-  - [ ] Documentation comments reference ARCHITECTURE.md Section 5.1
-  - [ ] Interface is minimal — no methods that only 1-2 services need
-  - [ ] File ≤300 lines
+  - [x] Interface defined in `internal/apps/template/service/server/contract.go`
+  - [x] Core interface covers universal methods (Start, Shutdown, DB, PublicPort, AdminPort, SetReady, PublicBaseURL, AdminBaseURL, PublicServerActualPort, AdminServerActualPort)
+  - [x] Optional interface(s) for common-but-not-universal methods (JWKGen, Telemetry, Barrier)
+  - [x] Documentation comments reference ARCHITECTURE.md Section 5.1
+  - [x] Interface is minimal — no methods that only 1-2 services need
+  - [x] File ≤300 lines
 - **Files**:
   - `internal/apps/template/service/server/contract.go` (new)
 
 #### Task 1.3: Add Compile-Time Assertions to All Services
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 2h
-- **Actual**: [Fill when complete]
+- **Actual**: ~3h (incl. KMS method additions, PKI-CA App() fix, files.go bugfix)
 - **Dependencies**: Task 1.2
 - **Description**: Add `var _ ServiceServer = (*XxxServer)(nil)` compile-time assertions to all 10 services. Fix any signature mismatches.
 - **Acceptance Criteria**:
-  - [ ] All 10 services have `var _ ServiceServer = (*XxxServer)(nil)` assertions
-  - [ ] KMS has all standard interface methods added (Start/Shutdown with ctx, SetReady setter, DB/App/JWKGen/Telemetry/PublicServerActualPort/AdminServerActualPort delegates)
-  - [ ] 1 call site updated in `internal/apps/sm/kms/kms.go`
-  - [ ] `go build ./...` passes (compile-time proof)
-  - [ ] Any signature fixes documented (e.g., adding missing methods)
+  - [x] All 10 services have `var _ ServiceServer = (*XxxServer)(nil)` assertions
+  - [x] KMS has all standard interface methods added (Start/Shutdown with ctx, SetReady setter, DB/App/JWKGen/Telemetry/PublicServerActualPort/AdminServerActualPort delegates)
+  - [x] 1 call site updated in `internal/apps/sm/kms/kms.go`
+  - [x] `go build ./...` passes (compile-time proof)
+  - [x] Any signature fixes documented (e.g., adding missing methods)
 - **Files**:
   - `internal/apps/skeleton/template/server/server.go` (modify)
   - `internal/apps/sm/im/server/server.go` (modify)
@@ -97,37 +97,37 @@
 
 #### Task 1.4: Write Contract Interface Tests
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 2h
-- **Actual**: [Fill when complete]
+- **Actual**: ~1h
 - **Dependencies**: Task 1.3
 - **Description**: Write tests that verify all services satisfy the interface, including type assertions in test code.
 - **Acceptance Criteria**:
-  - [ ] Test file in `internal/apps/template/service/server/contract_test.go`
-  - [ ] Table-driven test iterating over all implementations
-  - [ ] `t.Parallel()` on all tests and subtests
-  - [ ] Tests pass: `go test ./internal/apps/template/service/server/...`
-  - [ ] Coverage ≥95% for the contract file
+  - [x] Test file in `internal/apps/template/service/server/contract_test.go`
+  - [x] Table-driven test iterating over all implementations
+  - [x] `t.Parallel()` on all tests and subtests
+  - [x] Tests pass: `go test ./internal/apps/template/service/server/...`
+  - [x] Coverage ≥95% for the contract file
 - **Files**:
   - `internal/apps/template/service/server/contract_test.go` (new)
 
 #### Task 1.5: Phase 1 Quality Gate
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 1h
-- **Actual**: [Fill when complete]
+- **Actual**: ~30min
 - **Dependencies**: Tasks 1.1-1.4
 - **Description**: Run all quality gates for Phase 1 and collect evidence.
 - **Acceptance Criteria**:
-  - [ ] `go build ./...` clean
-  - [ ] `go build -tags e2e,integration ./...` clean
-  - [ ] `go test ./internal/apps/template/service/server/...` passing
-  - [ ] `golangci-lint run ./internal/apps/template/service/server/...` clean
-  - [ ] No new TODOs
-  - [ ] Evidence in `test-output/framework-v1/phase1/`
-  - [ ] Git commit: `feat(framework): add ServiceContract interface`
+  - [x] `go build ./...` clean
+  - [x] `go build -tags e2e,integration ./...` clean
+  - [x] `go test ./internal/apps/template/service/server/...` passing
+  - [x] `golangci-lint run ./internal/apps/template/service/server/...` clean
+  - [x] No new TODOs
+  - [x] Evidence in `test-output/framework-v1/phase1/`
+  - [x] Git commit: `feat(framework): add ServiceContract interface` → `fab3252ef`
 
 ---
 
