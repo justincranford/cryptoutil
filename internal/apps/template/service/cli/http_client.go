@@ -68,7 +68,7 @@ func HTTPGet(url, cacertPath string) (int, string, error) {
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				MinVersion:         tls.VersionTLS12,
+				MinVersion:         tls.VersionTLS13,
 				RootCAs:            caCertPool,
 				InsecureSkipVerify: caCertPool == nil, //nolint:gosec // Skip verification if no CA cert provided (backward compatibility)
 			},
@@ -110,7 +110,7 @@ func HTTPPost(url, cacertPath string) (int, string, error) {
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				MinVersion:         tls.VersionTLS12,
+				MinVersion:         tls.VersionTLS13,
 				RootCAs:            caCertPool,
 				InsecureSkipVerify: caCertPool == nil, //nolint:gosec // Skip verification if no CA cert provided (backward compatibility)
 			},

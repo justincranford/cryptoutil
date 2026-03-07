@@ -52,8 +52,9 @@ func FindUnaliasedCryptoutilImports() ([]string, error) {
 			return filepath.SkipDir
 		}
 
-		// Only check .go files.
-		if !info.IsDir() && strings.HasSuffix(path, ".go") {
+		// Only check .go files (skip lint_fitness - contains embedded Go code as test data).
+		normalizedPath := filepath.ToSlash(path)
+		if !info.IsDir() && strings.HasSuffix(path, ".go") && !strings.Contains(normalizedPath, "lint_fitness/") {
 			fileViolations, err := CheckGoFileForUnaliasedCryptoutilImports(path)
 			if err != nil {
 				return fmt.Errorf("error checking %s: %w", path, err)

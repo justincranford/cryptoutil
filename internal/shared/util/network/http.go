@@ -98,9 +98,9 @@ func HTTPResponse(ctx context.Context, method, url string, timeout time.Duration
 	if strings.HasPrefix(url, "https://") {
 		transport := &http.Transport{}
 		if rootCAsPool == nil && !insecureSkipVerify {
-			transport.TLSClientConfig = &tls.Config{MinVersion: tls.VersionTLS12}
+			transport.TLSClientConfig = &tls.Config{MinVersion: tls.VersionTLS13}
 		} else {
-			tlsConfig := &tls.Config{MinVersion: tls.VersionTLS12}
+			tlsConfig := &tls.Config{MinVersion: tls.VersionTLS13}
 			if rootCAsPool != nil {
 				tlsConfig.RootCAs = rootCAsPool
 			}

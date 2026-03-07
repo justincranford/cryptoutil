@@ -1,6 +1,6 @@
 # Tasks - Framework v1
 
-**Status**: 5 of 48 tasks complete (10%)
+**Status**: 28 of 48 tasks complete (58%)
 **Last Updated**: 2026-03-07
 **Created**: 2026-03-06
 
@@ -281,235 +281,235 @@
 
 ---
 
-### Phase 4: Architecture Fitness Functions
+### Phase 4: Architecture Fitness Functions ? COMPLETE
 
 **Phase Objective**: Create `cicd lint-fitness` command with 23 fitness sub-linters (8 new + 15 migrated from lint_go/lint_gotest/lint_skeleton), integrated into pre-commit hooks and CI. Dissolve lint_skeleton command.
 
 #### Task 4.1: Create lint_fitness Package Structure
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 2h
-- **Actual**: [Fill when complete]
+- **Actual**: ~completed (session 2026-03-07)
 - **Dependencies**: Phase 1 complete (for service-contract-compliance check)
 - **Description**: Create the `lint_fitness/` package following CICD command architecture (ARCHITECTURE.md Section 9.10).
 - **Acceptance Criteria**:
-  - [ ] Directory: `internal/apps/cicd/lint_fitness/`
-  - [ ] Entry: `lint_fitness.go` with `Lint(logger)` function + `registeredLinters` slice
-  - [ ] Follows same pattern as `lint_go/`, `lint_gotest/`, etc.
-  - [ ] Empty linter slice initially (sub-linters added in subsequent tasks)
+  - [x] Directory: `internal/apps/cicd/lint_fitness/`
+  - [x] Entry: `lint_fitness.go` with `Lint(logger)` function + `registeredLinters` slice
+  - [x] Follows same pattern as `lint_go/`, `lint_gotest/`, etc.
+  - [x] Empty linter slice initially (sub-linters added in subsequent tasks)
 - **Files**:
   - `internal/apps/cicd/lint_fitness/lint_fitness.go` (new)
 
 #### Task 4.2: Register lint-fitness in CICD Dispatch
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 1h
-- **Actual**: [Fill when complete]
+- **Actual**: ~completed (session 2026-03-07)
 - **Dependencies**: Task 4.1
 - **Description**: Register `lint-fitness` in the CICD command dispatch chain: magic constants, switch cases, imports.
 - **Acceptance Criteria**:
-  - [ ] `internal/shared/magic/magic_cicd.go` — Add `lint-fitness` to ValidCommands
-  - [ ] `internal/apps/cicd/cicd.go` — Add case `"lint-fitness"` in switch, import lint_fitness package
-  - [ ] `go run ./cmd/cicd lint-fitness` runs successfully (zero sub-linters, no errors)
-  - [ ] `go run ./cmd/cicd all` includes lint-fitness in the linter run
+  - [x] `internal/shared/magic/magic_cicd.go` — Add `lint-fitness` to ValidCommands
+  - [x] `internal/apps/cicd/cicd.go` — Add case `"lint-fitness"` in switch, import lint_fitness package
+  - [x] `go run ./cmd/cicd lint-fitness` runs successfully (zero sub-linters, no errors)
+  - [x] `go run ./cmd/cicd all` includes lint-fitness in the linter run
 - **Files**:
   - `internal/shared/magic/magic_cicd.go` (modify)
   - `internal/apps/cicd/cicd.go` (modify)
 
 #### Task 4.3: Fitness Sub-Linter: Cross-Service Import Isolation
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 3h
-- **Actual**: [Fill when complete]
+- **Actual**: ~completed (session 2026-03-07)
 - **Dependencies**: Task 4.2
 - **Description**: Generalize the existing `go-check-identity-imports` to all services. No service package may import another service's internal package.
 - **Acceptance Criteria**:
-  - [ ] Sub-linter: `internal/apps/cicd/lint_fitness/cross_service_import_isolation/`
-  - [ ] Checks: `internal/apps/<product>/<service>/` must not import `internal/apps/<other-product>/<other-service>/`
-  - [ ] Template imports are allowed (all services import template)
-  - [ ] Shared imports are allowed (all services import shared)
-  - [ ] Tests: ≥95% coverage, table-driven, t.Parallel()
-  - [ ] Passes on current codebase
+  - [x] Sub-linter: `internal/apps/cicd/lint_fitness/cross_service_import_isolation/`
+  - [x] Checks: `internal/apps/<product>/<service>/` must not import `internal/apps/<other-product>/<other-service>/`
+  - [x] Template imports are allowed (all services import template)
+  - [x] Shared imports are allowed (all services import shared)
+  - [x] Tests: ≥95% coverage, table-driven, t.Parallel()
+  - [x] Passes on current codebase
 - **Files**:
   - `internal/apps/cicd/lint_fitness/cross_service_import_isolation/cross_service_import_isolation.go` (new)
   - `internal/apps/cicd/lint_fitness/cross_service_import_isolation/cross_service_import_isolation_test.go` (new)
 
 #### Task 4.4: Fitness Sub-Linter: Domain Layer Isolation
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 2h
-- **Actual**: [Fill when complete]
+- **Actual**: ~completed (session 2026-03-07)
 - **Dependencies**: Task 4.2
 - **Description**: Verify `domain/` packages don't import `server/`, `client/`, or `api/`.
 - **Acceptance Criteria**:
-  - [ ] Sub-linter: `internal/apps/cicd/lint_fitness/domain_layer_isolation/`
-  - [ ] Checks: `*/domain/` must not import `*/server/`, `*/client/`, `*/api/`
-  - [ ] Tests: ≥95% coverage, table-driven, t.Parallel()
-  - [ ] Passes on current codebase
+  - [x] Sub-linter: `internal/apps/cicd/lint_fitness/domain_layer_isolation/`
+  - [x] Checks: `*/domain/` must not import `*/server/`, `*/client/`, `*/api/`
+  - [x] Tests: ≥95% coverage, table-driven, t.Parallel()
+  - [x] Passes on current codebase
 - **Files**:
   - `internal/apps/cicd/lint_fitness/domain_layer_isolation/domain_layer_isolation.go` (new)
   - `internal/apps/cicd/lint_fitness/domain_layer_isolation/domain_layer_isolation_test.go` (new)
 
 #### Task 4.5: Fitness Sub-Linter: File Size Limits
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 2h
-- **Actual**: [Fill when complete]
+- **Actual**: ~completed (session 2026-03-07)
 - **Dependencies**: Task 4.2
 - **Description**: Enforce ARCHITECTURE.md Section 11.2.6 file size limits (soft: 300, medium: 400, hard: 500).
 - **Acceptance Criteria**:
-  - [ ] Sub-linter: `internal/apps/cicd/lint_fitness/file_size_limits/`
-  - [ ] Reports: warning at >300 lines, error at >500 lines
-  - [ ] Excludes: generated files (`*_gen.go`), test files, magic constants (`internal/shared/magic/`)
-  - [ ] Tests: ≥95% coverage, table-driven, t.Parallel()
-  - [ ] Documents any existing violations (without failing) for future remediation
+  - [x] Sub-linter: `internal/apps/cicd/lint_fitness/file_size_limits/`
+  - [x] Reports: warning at >300 lines, error at >500 lines
+  - [x] Excludes: generated files (`*_gen.go`), test files, magic constants (`internal/shared/magic/`)
+  - [x] Tests: ≥95% coverage, table-driven, t.Parallel()
+  - [x] Documents any existing violations (without failing) for future remediation
 - **Files**:
   - `internal/apps/cicd/lint_fitness/file_size_limits/file_size_limits.go` (new)
   - `internal/apps/cicd/lint_fitness/file_size_limits/file_size_limits_test.go` (new)
 
 #### Task 4.6: Fitness Sub-Linter: Health Endpoint Presence
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 2h
-- **Actual**: [Fill when complete]
+- **Actual**: ~completed (session 2026-03-07)
 - **Dependencies**: Task 4.2
 - **Description**: Verify all services register health endpoints.
 - **Acceptance Criteria**:
-  - [ ] Sub-linter: `internal/apps/cicd/lint_fitness/health_endpoint_presence/`
-  - [ ] Checks: each service under `internal/apps/` has references to livez, readyz, health paths
-  - [ ] Tests: ≥95% coverage, table-driven, t.Parallel()
-  - [ ] Passes on current codebase
+  - [x] Sub-linter: `internal/apps/cicd/lint_fitness/health_endpoint_presence/`
+  - [x] Checks: each service under `internal/apps/` has references to livez, readyz, health paths
+  - [x] Tests: ≥95% coverage, table-driven, t.Parallel()
+  - [x] Passes on current codebase
 - **Files**:
   - `internal/apps/cicd/lint_fitness/health_endpoint_presence/health_endpoint_presence.go` (new)
   - `internal/apps/cicd/lint_fitness/health_endpoint_presence/health_endpoint_presence_test.go` (new)
 
 #### Task 4.7: Fitness Sub-Linter: TLS Minimum Version
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 2h
-- **Actual**: [Fill when complete]
+- **Actual**: ~completed (session 2026-03-07)
 - **Dependencies**: Task 4.2
 - **Description**: Verify all TLS configurations use TLS 1.3+ minimum.
 - **Acceptance Criteria**:
-  - [ ] Sub-linter: `internal/apps/cicd/lint_fitness/tls_minimum_version/`
-  - [ ] Checks: scan Go files for `tls.Config` with `MinVersion` < `tls.VersionTLS13`
-  - [ ] Tests: ≥95% coverage, table-driven, t.Parallel()
-  - [ ] Passes on current codebase
+  - [x] Sub-linter: `internal/apps/cicd/lint_fitness/tls_minimum_version/`
+  - [x] Checks: scan Go files for `tls.Config` with `MinVersion` < `tls.VersionTLS13`
+  - [x] Tests: ≥95% coverage, table-driven, t.Parallel()
+  - [x] Passes on current codebase
 - **Files**:
   - `internal/apps/cicd/lint_fitness/tls_minimum_version/tls_minimum_version.go` (new)
   - `internal/apps/cicd/lint_fitness/tls_minimum_version/tls_minimum_version_test.go` (new)
 
 #### Task 4.8: Fitness Sub-Linter: Admin Bind Address
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 2h
-- **Actual**: [Fill when complete]
+- **Actual**: ~completed (session 2026-03-07)
 - **Dependencies**: Task 4.2
 - **Description**: Verify all admin server bindings use 127.0.0.1 (not 0.0.0.0).
 - **Acceptance Criteria**:
-  - [ ] Sub-linter: `internal/apps/cicd/lint_fitness/admin_bind_address/`
-  - [ ] Checks: scan config files and Go code for admin bind address patterns
-  - [ ] Tests: ≥95% coverage, table-driven, t.Parallel()
-  - [ ] Passes on current codebase
+  - [x] Sub-linter: `internal/apps/cicd/lint_fitness/admin_bind_address/`
+  - [x] Checks: scan config files and Go code for admin bind address patterns
+  - [x] Tests: ≥95% coverage, table-driven, t.Parallel()
+  - [x] Passes on current codebase
 - **Files**:
   - `internal/apps/cicd/lint_fitness/admin_bind_address/admin_bind_address.go` (new)
   - `internal/apps/cicd/lint_fitness/admin_bind_address/admin_bind_address_test.go` (new)
 
 #### Task 4.9: Fitness Sub-Linter: Service Contract Compliance
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 2h
-- **Actual**: [Fill when complete]
+- **Actual**: ~completed (session 2026-03-07)
 - **Dependencies**: Task 4.2, Phase 1 (ServiceContract interface exists)
 - **Description**: Verify all services have `var _ ServiceServer = (*XxxServer)(nil)` compile-time assertion.
 - **Acceptance Criteria**:
-  - [ ] Sub-linter: `internal/apps/cicd/lint_fitness/service_contract_compliance/`
-  - [ ] Checks: scan each service's server.go for compile-time interface assertion
-  - [ ] Tests: ≥95% coverage, table-driven, t.Parallel()
-  - [ ] Passes on current codebase (after Phase 1)
+  - [x] Sub-linter: `internal/apps/cicd/lint_fitness/service_contract_compliance/`
+  - [x] Checks: scan each service's server.go for compile-time interface assertion
+  - [x] Tests: ≥95% coverage, table-driven, t.Parallel()
+  - [x] Passes on current codebase (after Phase 1)
 - **Files**:
   - `internal/apps/cicd/lint_fitness/service_contract_compliance/service_contract_compliance.go` (new)
   - `internal/apps/cicd/lint_fitness/service_contract_compliance/service_contract_compliance_test.go` (new)
 
 #### Task 4.10: Fitness Sub-Linter: Migration Range Compliance
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 2h
-- **Actual**: [Fill when complete]
+- **Actual**: ~completed (session 2026-03-07)
 - **Dependencies**: Task 4.2
 - **Description**: Verify template migrations are 1001-1999, domain migrations are 2001+.
 - **Acceptance Criteria**:
-  - [ ] Sub-linter: `internal/apps/cicd/lint_fitness/migration_range_compliance/`
-  - [ ] Checks: template migration files are numbered 1001-1999, domain migration files are 2001+
-  - [ ] Extends existing `migration_numbering` check in lint_go (complementary, not duplicate)
-  - [ ] Tests: ≥95% coverage, table-driven, t.Parallel()
-  - [ ] Passes on current codebase
+  - [x] Sub-linter: `internal/apps/cicd/lint_fitness/migration_range_compliance/`
+  - [x] Checks: template migration files are numbered 1001-1999, domain migration files are 2001+
+  - [x] Extends existing `migration_numbering` check in lint_go (complementary, not duplicate)
+  - [x] Tests: ≥95% coverage, table-driven, t.Parallel()
+  - [x] Passes on current codebase
 - **Files**:
   - `internal/apps/cicd/lint_fitness/migration_range_compliance/migration_range_compliance.go` (new)
   - `internal/apps/cicd/lint_fitness/migration_range_compliance/migration_range_compliance_test.go` (new)
 
 #### Task 4.11: Add Pre-Commit Hook for lint-fitness
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 1h
-- **Actual**: [Fill when complete]
+- **Actual**: ~completed (session 2026-03-07)
 - **Dependencies**: Tasks 4.3-4.10 (at least some sub-linters exist)
 - **Description**: Add `go run ./cmd/cicd lint-fitness` to `.pre-commit-config.yaml`.
 - **Acceptance Criteria**:
-  - [ ] Hook added to `.pre-commit-config.yaml` following existing patterns
-  - [ ] Hook runs on relevant file types (`.go`, `.sql`, `.yml`)
-  - [ ] `pre-commit run lint-fitness --all-files` passes
+  - [x] Hook added to `.pre-commit-config.yaml` following existing patterns
+  - [x] Hook runs on relevant file types (`.go`, `.sql`, `.yml`)
+  - [x] `pre-commit run lint-fitness --all-files` passes
 - **Files**:
   - `.pre-commit-config.yaml` (modify)
 
 #### Task 4.12: Phase 4 Quality Gate
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 2h
-- **Actual**: [Fill when complete]
+- **Actual**: ~completed (session 2026-03-07)
 - **Dependencies**: Tasks 4.1-4.11, 4.13-4.15
 - **Description**: Run all quality gates for Phase 4 and collect evidence.
 - **Acceptance Criteria**:
   - [x] `go build ./...` clean
   - [x] `go build -tags e2e,integration ./...` clean
-  - [ ] `go test ./internal/apps/cicd/lint_fitness/...` passing (≥98% coverage for cicd utility)
+  - [x] `go test ./internal/apps/cicd/lint_fitness/...` passing (≥98% coverage for cicd utility)
   - [x] `golangci-lint run` clean (0 issues)
-  - [ ] `go run ./cmd/cicd lint-fitness` passes on current codebase
-  - [ ] All 23 sub-linters have ≥95% test coverage
-  - [ ] lint_skeleton dissolved (command removed, check migrated)
-  - [ ] No new TODOs without tracking
-  - [ ] Evidence in `test-output/framework-v1/phase4/`
-  - [ ] Git commit: `feat(cicd): add lint-fitness command with 23 architecture fitness sub-linters`
+  - [x] `go run ./cmd/cicd lint-fitness` passes on current codebase
+  - [x] All 23 sub-linters have ≥95% test coverage
+  - [x] lint_skeleton dissolved (command removed, check migrated)
+  - [x] No new TODOs without tracking
+  - [x] Evidence in `test-output/framework-v1/phase4/`
+  - [x] Git commit: `feat(cicd): add lint-fitness command with 23 architecture fitness sub-linters`
 
 ---
 
 #### Task 4.13: Migrate lint_go Architecture Checks to lint_fitness
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 4h
-- **Actual**: [Fill when complete]
+- **Actual**: ~completed (session 2026-03-07)
 - **Dependencies**: Tasks 4.1-4.2 (lint_fitness package structure exists)
 - **Description**: Move 10 architecture-enforcement sub-linters from lint_go to lint_fitness. Keep only Go language quality checks in lint_go.
 - **Acceptance Criteria**:
-  - [ ] Moved from lint_go: `cgo_free_sqlite`, `circular_deps`, `cmd_main_pattern`, `crypto_rand`, `insecure_skip_verify`, `migration_numbering`, `non_fips_algorithms`, `product_structure`, `product_wiring`, `service_structure`
-  - [ ] lint_go `registeredLinters` slice updated (10 checks removed)
-  - [ ] lint_fitness `registeredLinters` slice updated (10 checks added)
-  - [ ] All existing tests for migrated sub-linters moved to lint_fitness packages
-  - [ ] All tests pass after migration
-  - [ ] `go run ./cmd/cicd lint-go` still works (uses remaining 7 language-quality checks)
+  - [x] Moved from lint_go: `cgo_free_sqlite`, `circular_deps`, `cmd_main_pattern`, `crypto_rand`, `insecure_skip_verify`, `migration_numbering`, `non_fips_algorithms`, `product_structure`, `product_wiring`, `service_structure`
+  - [x] lint_go `registeredLinters` slice updated (10 checks removed)
+  - [x] lint_fitness `registeredLinters` slice updated (10 checks added)
+  - [x] All existing tests for migrated sub-linters moved to lint_fitness packages
+  - [x] All tests pass after migration
+  - [x] `go run ./cmd/cicd lint-go` still works (uses remaining 7 language-quality checks)
 - **Files**:
   - `internal/apps/cicd/lint_go/lint_go.go` (modify: remove 10 from registeredLinters)
   - `internal/apps/cicd/lint_fitness/lint_fitness.go` (modify: add 10 to registeredLinters)
@@ -517,18 +517,18 @@
 
 #### Task 4.14: Migrate lint_gotest Architecture Checks to lint_fitness
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 2h
-- **Actual**: [Fill when complete]
+- **Actual**: ~completed (session 2026-03-07)
 - **Dependencies**: Task 4.13
 - **Description**: Move 4 architecture-enforcement sub-linters from lint_gotest to lint_fitness. Keep only test quality checks in lint_gotest.
 - **Acceptance Criteria**:
-  - [ ] Moved from lint_gotest: `bind_address_safety`, `no_hardcoded_passwords`, `parallel_tests`, `test_patterns`
-  - [ ] lint_gotest `registeredLinters` slice updated (4 checks removed)
-  - [ ] lint_fitness `registeredLinters` slice updated (4 checks added)
-  - [ ] All existing tests for migrated sub-linters moved to lint_fitness packages
-  - [ ] `go run ./cmd/cicd lint-gotest` still works (uses remaining 2: require_over_assert, common)
+  - [x] Moved from lint_gotest: `bind_address_safety`, `no_hardcoded_passwords`, `parallel_tests`, `test_patterns`
+  - [x] lint_gotest `registeredLinters` slice updated (4 checks removed)
+  - [x] lint_fitness `registeredLinters` slice updated (4 checks added)
+  - [x] All existing tests for migrated sub-linters moved to lint_fitness packages
+  - [x] `go run ./cmd/cicd lint-gotest` still works (uses remaining 2: require_over_assert, common)
 - **Files**:
   - `internal/apps/cicd/lint_gotest/lint_gotest.go` (modify: remove 4)
   - `internal/apps/cicd/lint_fitness/lint_fitness.go` (modify: add 4)
@@ -536,19 +536,19 @@
 
 #### Task 4.15: Dissolve lint_skeleton (Migrate to lint_fitness)
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 1h
-- **Actual**: [Fill when complete]
+- **Actual**: ~completed (session 2026-03-07)
 - **Dependencies**: Task 4.13
 - **Description**: Move `check_skeleton_placeholders` from lint_skeleton to lint_fitness, then remove the lint_skeleton command entirely.
 - **Acceptance Criteria**:
-  - [ ] `check_skeleton_placeholders` sub-linter moved to `internal/apps/cicd/lint_fitness/`
-  - [ ] `internal/apps/cicd/lint_skeleton/` directory removed
-  - [ ] `cmd/cicd/*.go` updated to remove lint-skeleton registration
-  - [ ] `.pre-commit-config.yaml` updated: remove lint-skeleton hook
-  - [ ] `go run ./cmd/cicd lint-fitness` includes skeleton placeholder check
-  - [ ] Tests pass after removal
+  - [x] `check_skeleton_placeholders` sub-linter moved to `internal/apps/cicd/lint_fitness/`
+  - [x] `internal/apps/cicd/lint_skeleton/` directory removed
+  - [x] `cmd/cicd/*.go` updated to remove lint-skeleton registration
+  - [x] `.pre-commit-config.yaml` updated: remove lint-skeleton hook
+  - [x] `go run ./cmd/cicd lint-fitness` includes skeleton placeholder check
+  - [x] Tests pass after removal
 - **Files**:
   - `internal/apps/cicd/lint_skeleton/` (remove entire directory)
   - `internal/apps/cicd/lint_fitness/lint_fitness.go` (add check_skeleton_placeholders)
@@ -556,6 +556,1224 @@
   - `.pre-commit-config.yaml` (replace lint-skeleton with lint-fitness)
 
 ### Phase 5: Shared Test Infrastructure
+
+**Phase Objective**: Consolidate duplicated test setup patterns into shared packages, drastically reducing TestMain boilerplate across services.
+
+#### Task 5.1: Audit Current Test Helpers
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [Fill when complete]
+- **Dependencies**: None (independent of Phase 4)
+- **Description**: Catalog all existing test helpers across services, identify duplication, and plan consolidation.
+- **Acceptance Criteria**:
+  - [ ] All test helper files listed across all services
+  - [ ] Duplication identified (similar setup code in multiple TestMain functions)
+  - [ ] Consolidation targets documented: what moves where
+  - [ ] Evidence in `test-output/framework-v1/phase5/test-helper-audit.md`
+
+#### Task 5.2: Create Shared Database Test Helpers
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 3h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 5.1
+- **Description**: Create shared helpers for SQLite in-memory DB setup and PostgreSQL test containers.
+- **Acceptance Criteria**:
+  - [ ] `NewInMemorySQLiteDB(t)` — Returns `*gorm.DB` with WAL mode, configured for tests
+  - [ ] `NewPostgresTestContainer(ctx, t)` — Returns `*gorm.DB` with test container
+  - [ ] Both helpers handle cleanup via `t.Cleanup()`
+  - [ ] Tests: ≥98% coverage (infrastructure utility)
+  - [ ] Located in appropriate package under `internal/apps/template/service/testing/`
+- **Files**:
+  - `internal/apps/template/service/testing/testdb/testdb.go` (new)
+  - `internal/apps/template/service/testing/testdb/testdb_test.go` (new)
+
+#### Task 5.3: Create Shared Server Test Helper
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 3h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 5.2, Phase 1 (ServiceServer interface)
+- **Description**: Create a helper that sets up a test server using port 0, SQLite in-memory, and all standard infrastructure.
+- **Acceptance Criteria**:
+  - [ ] `NewTestServer(t, opts...)` — Returns a running server for testing (port 0)
+  - [ ] Uses `ServiceServer` interface as return type
+  - [ ] Handles server shutdown via `t.Cleanup()`
+  - [ ] Default opts: SQLite in-memory, dev TLS certs, port 0
+  - [ ] Tests: ≥98% coverage (infrastructure utility)
+- **Files**:
+  - `internal/apps/template/service/testing/testserver/testserver.go` (new)
+  - `internal/apps/template/service/testing/testserver/testserver_test.go` (new)
+
+#### Task 5.4: Create Shared Fixture Helpers
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 5.2
+- **Description**: Create helpers for common test fixtures (tenants, realms, users).
+- **Acceptance Criteria**:
+  - [ ] `CreateTestTenant(t, db)` — Creates and returns a test tenant
+  - [ ] `CreateTestRealm(t, db, tenantID)` — Creates and returns a test realm
+  - [ ] `CreateTestUser(t, db, tenantID, realmID)` — Creates and returns a test user
+  - [ ] All use `googleUuid.NewV7()` for unique IDs (no hardcoded data)
+  - [ ] Tests: ≥98% coverage (infrastructure utility)
+- **Files**:
+  - `internal/apps/template/service/testing/fixtures/fixtures.go` (new)
+  - `internal/apps/template/service/testing/fixtures/fixtures_test.go` (new)
+
+#### Task 5.5: Create Shared Assertion Helpers
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [Fill when complete]
+- **Dependencies**: None
+- **Description**: Create helpers for common test assertions (HTTP response validation, error format, health check).
+- **Acceptance Criteria**:
+  - [ ] `AssertHealthy(t, resp)` — Validates 200 OK health response
+  - [ ] `AssertErrorResponse(t, resp, expectedCode)` — Validates error JSON (code, message)
+  - [ ] `AssertTraceID(t, resp)` — Validates trace_id in response headers/body
+  - [ ] `AssertJSONContentType(t, resp)` — Validates Content-Type: application/json
+  - [ ] Tests: ≥98% coverage (infrastructure utility)
+- **Files**:
+  - `internal/apps/template/service/testing/assertions/assertions.go` (new)
+  - `internal/apps/template/service/testing/assertions/assertions_test.go` (new)
+
+#### Task 5.6: Create Health Client Helper
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 5.5
+- **Description**: Create a reusable HTTPS client for testing health endpoints across services.
+- **Acceptance Criteria**:
+  - [ ] `NewHealthClient(baseURL)` — Returns configured HTTP client (TLS skip verify for test certs)
+  - [ ] Methods: `Livez()`, `Readyz()`, `PublicHealth()`, `ServiceHealth()`, `BrowserHealth()`
+  - [ ] Returns structured responses for easy assertion
+  - [ ] Tests: ≥98% coverage (infrastructure utility)
+- **Files**:
+  - `internal/apps/template/service/testing/healthclient/healthclient.go` (new)
+  - `internal/apps/template/service/testing/healthclient/healthclient_test.go` (new)
+
+#### Task 5.7: Migrate Existing Services to Shared Helpers
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 4h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Tasks 5.2-5.6
+- **Description**: Update existing service TestMain functions and test helpers to use the new shared packages.
+- **Acceptance Criteria**:
+  - [ ] At least sm-im, jose-ja, sm-kms, skeleton-template migrated to shared helpers (Core 4)
+  - [ ] sm-kms migration enabled by KMS unification from Phase 1
+  - [ ] Remaining 6 services documented for future migration
+  - [ ] All migrated tests pass
+  - [ ] Net line reduction measured and documented
+  - [x] No regressions in any existing test
+
+#### Task 5.8: Phase 5 Quality Gate
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Tasks 5.1-5.7
+- **Description**: Run all quality gates for Phase 5 and collect evidence.
+- **Acceptance Criteria**:
+  - [x] `go build ./...` clean
+  - [x] `go build -tags e2e,integration ./...` clean
+  - [ ] `go test ./internal/apps/template/service/testing/...` passing (≥98% coverage)
+  - [ ] All migrated services' tests still pass
+  - [x] `golangci-lint run` clean (0 issues)
+  - [ ] Evidence in `test-output/framework-v1/phase5/`
+  - [ ] Git commit: `feat(testing): add shared test infrastructure package`
+
+---
+
+### Phase 6: Cross-Service Contract Test Suite
+
+**Phase Objective**: One test suite verifying ALL services behave consistently for core framework behavior.
+
+#### Task 6.1: Design Contract Test Architecture
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Phase 1 (ServiceServer interface), Phase 5 (shared test helpers)
+- **Description**: Design the contract test package structure and identify contracts to verify.
+- **Acceptance Criteria**:
+  - [ ] 21+ contracts identified and grouped (Infrastructure: 9, Auth: 6, Domain patterns: 6+)
+  - [ ] Contract groups: `RunHealthContracts`, `RunAuthContracts`, `RunDomainPatternContracts`
+  - [ ] API: `RunContractTests(t *testing.T, server ServiceServer)` designed
+  - [ ] Test execution strategy documented (SQLite in-memory, port 0, app.Test())
+  - [ ] Evidence in `test-output/framework-v1/phase6/contract-design.md`
+
+#### Task 6.2: Implement Health Contract Tests
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 3h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 6.1
+- **Description**: Implement contract tests for health endpoints.
+- **Acceptance Criteria**:
+  - [ ] `/admin/api/v1/livez` returns 200 OK
+  - [ ] `/admin/api/v1/readyz` returns 200 OK when ready, 503 when not
+  - [ ] `/browser/api/v1/health` returns 200 OK (if registered)
+  - [ ] `/service/api/v1/health` returns 200 OK (if registered)
+  - [ ] Table-driven with t.Parallel()
+  - [ ] Tests: ≥95% coverage
+- **Files**:
+  - `internal/apps/template/service/testing/contract/health_contracts.go` (new)
+  - `internal/apps/template/service/testing/contract/health_contracts_test.go` (new)
+
+#### Task 6.3: Implement Auth Contract Tests
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 3h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 6.1
+- **Description**: Implement contract tests for authentication behavior.
+- **Acceptance Criteria**:
+  - [ ] `/service/api/v1/*` rejects unauthenticated requests with 401
+  - [ ] `/browser/api/v1/*` rejects unauthenticated requests with 401
+  - [ ] CORS preflight (OPTIONS) to `/browser/api/v1/*` with allowed origin returns 200
+  - [ ] CSRF token absent on POST to `/browser/api/v1/*` returns 403
+  - [ ] Error response contains `code` and `message` fields
+  - [ ] Table-driven with t.Parallel()
+  - [ ] Tests: ≥95% coverage
+- **Files**:
+  - `internal/apps/template/service/testing/contract/auth_contracts.go` (new)
+  - `internal/apps/template/service/testing/contract/auth_contracts_test.go` (new)
+
+#### Task 6.4: Implement Error Format Contract Tests
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 6.1
+- **Description**: Implement contract tests for error response format consistency.
+- **Acceptance Criteria**:
+  - [ ] All error responses contain `code` (string) and `message` (string)
+  - [ ] All error responses include `requestId` (UUID)
+  - [ ] All responses include `trace_id` in headers or body
+  - [ ] Content-Type is application/json for all error responses
+  - [ ] Table-driven with t.Parallel()
+  - [ ] Tests: ≥95% coverage
+- **Files**:
+  - `internal/apps/template/service/testing/contract/error_contracts.go` (new)
+  - `internal/apps/template/service/testing/contract/error_contracts_test.go` (new)
+
+#### Task 6.5: Integrate Contract Tests with Services
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 3h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Tasks 6.2-6.4
+- **Description**: Add `RunContractTests(t, server)` call to Core 4 services' existing test suites.
+- **Acceptance Criteria**:
+  - [ ] Contract tests integrated into Core 4: sm-im, jose-ja, sm-kms, skeleton-template
+  - [ ] Contract tests pass for all 4 integrated services
+  - [ ] Remaining 6 services documented for future integration
+  - [ ] Evidence of behavioral consistency across Core 4 services
+
+#### Task 6.6: Phase 6 Quality Gate
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Tasks 6.1-6.5
+- **Description**: Run all quality gates for Phase 6 and collect evidence.
+- **Acceptance Criteria**:
+  - [x] `go build ./...` clean
+  - [x] `go build -tags e2e,integration ./...` clean
+  - [ ] `go test ./internal/apps/template/service/testing/contract/...` passing
+  - [ ] All integrated services' contract tests passing
+  - [x] `golangci-lint run` clean (0 issues)
+  - [ ] Evidence in `test-output/framework-v1/phase6/`
+  - [ ] Git commit: `feat(testing): add cross-service contract test suite`
+
+---
+
+### Phase 7: Final Quality Gates & Evidence
+
+**Phase Objective**: Verify ALL phases meet quality gates, collect comprehensive evidence, final commit.
+
+#### Task 7.1: Full Build Verification
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Actual**: [Fill when complete]
+- **Dependencies**: All previous phases
+- **Description**: Full build and test verification.
+- **Acceptance Criteria**:
+  - [x] `go build ./...` clean
+  - [x] `go build -tags e2e,integration ./...` clean
+  - [ ] `go test ./...` passing (100%, zero skips)
+  - [ ] `go test -race -count=2 ./...` clean
+  - [x] `golangci-lint run` clean (0 issues)
+  - [ ] `golangci-lint run --build-tags e2e,integration` clean
+
+#### Task 7.2: Coverage Verification
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 7.1
+- **Description**: Verify coverage targets.
+- **Acceptance Criteria**:
+  - [ ] New production code: ≥95% line coverage
+  - [ ] New infrastructure code (test helpers, cicd): ≥98% line coverage
+  - [ ] No coverage regressions in existing packages
+  - [ ] Coverage report in `test-output/framework-v1/phase7/coverage/`
+
+#### Task 7.3: Mutation Testing
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 7.2
+- **Description**: Run mutation testing on new packages.
+- **Acceptance Criteria**:
+  - [ ] `gremlins unleash --tags=!integration` on new packages
+  - [ ] ≥95% mutation score for production packages
+  - [ ] ≥98% mutation score for infrastructure/utility packages
+  - [ ] Results in `test-output/framework-v1/phase7/mutation/`
+
+#### Task 7.4: Fitness Functions Self-Check
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 30m
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 7.1
+- **Description**: Run the new fitness functions against the entire codebase.
+- **Acceptance Criteria**:
+  - [ ] `go run ./cmd/cicd lint-fitness` passes with zero errors
+  - [ ] All 8+ sub-linters executed
+  - [ ] Results in `test-output/framework-v1/phase7/fitness-check.log`
+
+#### Task 7.5: Pre-Commit Hook Verification
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 30m
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 7.4
+- **Description**: Verify pre-commit hooks work end-to-end.
+- **Acceptance Criteria**:
+  - [ ] `pre-commit run --all-files` passes
+  - [ ] lint-fitness hook executes as part of pre-commit
+  - [ ] Results in `test-output/framework-v1/phase7/pre-commit.log`
+
+#### Task 7.6: Final Git Commit & Evidence Archive
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 30m
+- **Actual**: [Fill when complete]
+- **Dependencies**: Tasks 7.1-7.5
+- **Description**: Final commit with all evidence archived.
+- **Acceptance Criteria**:
+  - [ ] All evidence collected in `test-output/framework-v1/`
+  - [ ] Plan.md updated with final status
+  - [ ] Tasks.md updated with completion percentages and actual LOE
+  - [ ] Clean working tree
+  - [ ] Git commit: `docs(framework-v1): complete framework v1 implementation`
+
+---
+
+## Cross-Cutting Tasks
+
+### Testing
+
+- [ ] Unit tests ≥95% coverage (production), ≥98% (infrastructure/utility)
+- [ ] Integration tests pass
+- [ ] No skipped tests (except documented exceptions)
+- [ ] Race detector clean: `go test -race -count=2 ./...`
+- [ ] All tests use t.Parallel()
+- [ ] All tests are table-driven (multi-case)
+- [ ] No hardcoded UUIDs (use googleUuid.NewV7())
+
+### Code Quality
+
+- [ ] Linting passes: `golangci-lint run ./...` and `golangci-lint run --build-tags e2e,integration ./...`
+- [ ] No new TODOs without tracking
+- [ ] No security vulnerabilities
+- [ ] Formatting clean: `gofumpt -s -w ./`
+- [ ] Imports organized: `goimports -w ./`
+- [ ] All files ≤500 lines
+
+### Documentation
+
+- [ ] air usage documented
+- [ ] ServiceContract interface documented
+- [ ] Fitness functions documented (what each checks)
+- [ ] Shared test infrastructure usage documented
+
+### Deployment
+
+- [ ] No deployment changes required (all changes are build-time/test-time)
+- [ ] Pre-commit hooks updated for lint-fitness
+
+---
+
+## Notes / Deferred Work
+
+### Items Explicitly Excluded (User Decision)
+
+- P0-3: Skeleton CRUD reference implementation — Not needed with contract + fitness enforcement
+- P1-1: cicd new-service scaffolding — Only 9 services exist, unlikely to add more
+- P1-3: cicd diff-skeleton conformance — Superseded by fitness functions
+- P2-1: Service manifest declaration — Replaced by simplified builder defaults
+- P2-3: OpenAPI-to-Repository codegen — Not wanted
+- P3-1: Module system (fx/Wire) — Overkill
+- P3-2: Extract framework module — Premature
+
+### Future Considerations
+
+- If a 10th+ service is added, revisit P1-1 scaffolding decision
+- If fitness function false positives are high, add severity levels (warn vs error)
+- Consider moving more lint_go/lint_gotest checks into lint-fitness for cleaner organization
+
+---
+
+## Evidence Archive
+
+- `test-output/framework-v1/phase1/` - ServiceContract interface evidence
+- `test-output/framework-v1/phase2/` - Builder simplification evidence
+- `test-output/framework-v1/phase3/` - air live reload evidence
+- `test-output/framework-v1/phase4/` - Fitness functions evidence
+- `test-output/framework-v1/phase5/` - Shared test infrastructure evidence
+- `test-output/framework-v1/phase6/` - Contract test suite evidence
+- `test-output/framework-v1/phase7/` - Final quality gates evidence### Phase 5: Shared Test Infrastructure
+
+**Phase Objective**: Consolidate duplicated test setup patterns into shared packages, drastically reducing TestMain boilerplate across services.
+
+#### Task 5.1: Audit Current Test Helpers
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [Fill when complete]
+- **Dependencies**: None (independent of Phase 4)
+- **Description**: Catalog all existing test helpers across services, identify duplication, and plan consolidation.
+- **Acceptance Criteria**:
+  - [ ] All test helper files listed across all services
+  - [ ] Duplication identified (similar setup code in multiple TestMain functions)
+  - [ ] Consolidation targets documented: what moves where
+  - [ ] Evidence in `test-output/framework-v1/phase5/test-helper-audit.md`
+
+#### Task 5.2: Create Shared Database Test Helpers
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 3h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 5.1
+- **Description**: Create shared helpers for SQLite in-memory DB setup and PostgreSQL test containers.
+- **Acceptance Criteria**:
+  - [ ] `NewInMemorySQLiteDB(t)` — Returns `*gorm.DB` with WAL mode, configured for tests
+  - [ ] `NewPostgresTestContainer(ctx, t)` — Returns `*gorm.DB` with test container
+  - [ ] Both helpers handle cleanup via `t.Cleanup()`
+  - [ ] Tests: ≥98% coverage (infrastructure utility)
+  - [ ] Located in appropriate package under `internal/apps/template/service/testing/`
+- **Files**:
+  - `internal/apps/template/service/testing/testdb/testdb.go` (new)
+  - `internal/apps/template/service/testing/testdb/testdb_test.go` (new)
+
+#### Task 5.3: Create Shared Server Test Helper
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 3h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 5.2, Phase 1 (ServiceServer interface)
+- **Description**: Create a helper that sets up a test server using port 0, SQLite in-memory, and all standard infrastructure.
+- **Acceptance Criteria**:
+  - [ ] `NewTestServer(t, opts...)` — Returns a running server for testing (port 0)
+  - [ ] Uses `ServiceServer` interface as return type
+  - [ ] Handles server shutdown via `t.Cleanup()`
+  - [ ] Default opts: SQLite in-memory, dev TLS certs, port 0
+  - [ ] Tests: ≥98% coverage (infrastructure utility)
+- **Files**:
+  - `internal/apps/template/service/testing/testserver/testserver.go` (new)
+  - `internal/apps/template/service/testing/testserver/testserver_test.go` (new)
+
+#### Task 5.4: Create Shared Fixture Helpers
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 5.2
+- **Description**: Create helpers for common test fixtures (tenants, realms, users).
+- **Acceptance Criteria**:
+  - [ ] `CreateTestTenant(t, db)` — Creates and returns a test tenant
+  - [ ] `CreateTestRealm(t, db, tenantID)` — Creates and returns a test realm
+  - [ ] `CreateTestUser(t, db, tenantID, realmID)` — Creates and returns a test user
+  - [ ] All use `googleUuid.NewV7()` for unique IDs (no hardcoded data)
+  - [ ] Tests: ≥98% coverage (infrastructure utility)
+- **Files**:
+  - `internal/apps/template/service/testing/fixtures/fixtures.go` (new)
+  - `internal/apps/template/service/testing/fixtures/fixtures_test.go` (new)
+
+#### Task 5.5: Create Shared Assertion Helpers
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [Fill when complete]
+- **Dependencies**: None
+- **Description**: Create helpers for common test assertions (HTTP response validation, error format, health check).
+- **Acceptance Criteria**:
+  - [ ] `AssertHealthy(t, resp)` — Validates 200 OK health response
+  - [ ] `AssertErrorResponse(t, resp, expectedCode)` — Validates error JSON (code, message)
+  - [ ] `AssertTraceID(t, resp)` — Validates trace_id in response headers/body
+  - [ ] `AssertJSONContentType(t, resp)` — Validates Content-Type: application/json
+  - [ ] Tests: ≥98% coverage (infrastructure utility)
+- **Files**:
+  - `internal/apps/template/service/testing/assertions/assertions.go` (new)
+  - `internal/apps/template/service/testing/assertions/assertions_test.go` (new)
+
+#### Task 5.6: Create Health Client Helper
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 5.5
+- **Description**: Create a reusable HTTPS client for testing health endpoints across services.
+- **Acceptance Criteria**:
+  - [ ] `NewHealthClient(baseURL)` — Returns configured HTTP client (TLS skip verify for test certs)
+  - [ ] Methods: `Livez()`, `Readyz()`, `PublicHealth()`, `ServiceHealth()`, `BrowserHealth()`
+  - [ ] Returns structured responses for easy assertion
+  - [ ] Tests: ≥98% coverage (infrastructure utility)
+- **Files**:
+  - `internal/apps/template/service/testing/healthclient/healthclient.go` (new)
+  - `internal/apps/template/service/testing/healthclient/healthclient_test.go` (new)
+
+#### Task 5.7: Migrate Existing Services to Shared Helpers
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 4h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Tasks 5.2-5.6
+- **Description**: Update existing service TestMain functions and test helpers to use the new shared packages.
+- **Acceptance Criteria**:
+  - [ ] At least sm-im, jose-ja, sm-kms, skeleton-template migrated to shared helpers (Core 4)
+  - [ ] sm-kms migration enabled by KMS unification from Phase 1
+  - [ ] Remaining 6 services documented for future migration
+  - [ ] All migrated tests pass
+  - [ ] Net line reduction measured and documented
+  - [x] No regressions in any existing test
+
+#### Task 5.8: Phase 5 Quality Gate
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Tasks 5.1-5.7
+- **Description**: Run all quality gates for Phase 5 and collect evidence.
+- **Acceptance Criteria**:
+  - [x] `go build ./...` clean
+  - [x] `go build -tags e2e,integration ./...` clean
+  - [ ] `go test ./internal/apps/template/service/testing/...` passing (≥98% coverage)
+  - [ ] All migrated services' tests still pass
+  - [x] `golangci-lint run` clean (0 issues)
+  - [ ] Evidence in `test-output/framework-v1/phase5/`
+  - [ ] Git commit: `feat(testing): add shared test infrastructure package`
+
+---
+
+### Phase 6: Cross-Service Contract Test Suite
+
+**Phase Objective**: One test suite verifying ALL services behave consistently for core framework behavior.
+
+#### Task 6.1: Design Contract Test Architecture
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Phase 1 (ServiceServer interface), Phase 5 (shared test helpers)
+- **Description**: Design the contract test package structure and identify contracts to verify.
+- **Acceptance Criteria**:
+  - [ ] 21+ contracts identified and grouped (Infrastructure: 9, Auth: 6, Domain patterns: 6+)
+  - [ ] Contract groups: `RunHealthContracts`, `RunAuthContracts`, `RunDomainPatternContracts`
+  - [ ] API: `RunContractTests(t *testing.T, server ServiceServer)` designed
+  - [ ] Test execution strategy documented (SQLite in-memory, port 0, app.Test())
+  - [ ] Evidence in `test-output/framework-v1/phase6/contract-design.md`
+
+#### Task 6.2: Implement Health Contract Tests
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 3h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 6.1
+- **Description**: Implement contract tests for health endpoints.
+- **Acceptance Criteria**:
+  - [ ] `/admin/api/v1/livez` returns 200 OK
+  - [ ] `/admin/api/v1/readyz` returns 200 OK when ready, 503 when not
+  - [ ] `/browser/api/v1/health` returns 200 OK (if registered)
+  - [ ] `/service/api/v1/health` returns 200 OK (if registered)
+  - [ ] Table-driven with t.Parallel()
+  - [ ] Tests: ≥95% coverage
+- **Files**:
+  - `internal/apps/template/service/testing/contract/health_contracts.go` (new)
+  - `internal/apps/template/service/testing/contract/health_contracts_test.go` (new)
+
+#### Task 6.3: Implement Auth Contract Tests
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 3h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 6.1
+- **Description**: Implement contract tests for authentication behavior.
+- **Acceptance Criteria**:
+  - [ ] `/service/api/v1/*` rejects unauthenticated requests with 401
+  - [ ] `/browser/api/v1/*` rejects unauthenticated requests with 401
+  - [ ] CORS preflight (OPTIONS) to `/browser/api/v1/*` with allowed origin returns 200
+  - [ ] CSRF token absent on POST to `/browser/api/v1/*` returns 403
+  - [ ] Error response contains `code` and `message` fields
+  - [ ] Table-driven with t.Parallel()
+  - [ ] Tests: ≥95% coverage
+- **Files**:
+  - `internal/apps/template/service/testing/contract/auth_contracts.go` (new)
+  - `internal/apps/template/service/testing/contract/auth_contracts_test.go` (new)
+
+#### Task 6.4: Implement Error Format Contract Tests
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 6.1
+- **Description**: Implement contract tests for error response format consistency.
+- **Acceptance Criteria**:
+  - [ ] All error responses contain `code` (string) and `message` (string)
+  - [ ] All error responses include `requestId` (UUID)
+  - [ ] All responses include `trace_id` in headers or body
+  - [ ] Content-Type is application/json for all error responses
+  - [ ] Table-driven with t.Parallel()
+  - [ ] Tests: ≥95% coverage
+- **Files**:
+  - `internal/apps/template/service/testing/contract/error_contracts.go` (new)
+  - `internal/apps/template/service/testing/contract/error_contracts_test.go` (new)
+
+#### Task 6.5: Integrate Contract Tests with Services
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 3h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Tasks 6.2-6.4
+- **Description**: Add `RunContractTests(t, server)` call to Core 4 services' existing test suites.
+- **Acceptance Criteria**:
+  - [ ] Contract tests integrated into Core 4: sm-im, jose-ja, sm-kms, skeleton-template
+  - [ ] Contract tests pass for all 4 integrated services
+  - [ ] Remaining 6 services documented for future integration
+  - [ ] Evidence of behavioral consistency across Core 4 services
+
+#### Task 6.6: Phase 6 Quality Gate
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Tasks 6.1-6.5
+- **Description**: Run all quality gates for Phase 6 and collect evidence.
+- **Acceptance Criteria**:
+  - [x] `go build ./...` clean
+  - [x] `go build -tags e2e,integration ./...` clean
+  - [ ] `go test ./internal/apps/template/service/testing/contract/...` passing
+  - [ ] All integrated services' contract tests passing
+  - [x] `golangci-lint run` clean (0 issues)
+  - [ ] Evidence in `test-output/framework-v1/phase6/`
+  - [ ] Git commit: `feat(testing): add cross-service contract test suite`
+
+---
+
+### Phase 7: Final Quality Gates & Evidence
+
+**Phase Objective**: Verify ALL phases meet quality gates, collect comprehensive evidence, final commit.
+
+#### Task 7.1: Full Build Verification
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Actual**: [Fill when complete]
+- **Dependencies**: All previous phases
+- **Description**: Full build and test verification.
+- **Acceptance Criteria**:
+  - [x] `go build ./...` clean
+  - [x] `go build -tags e2e,integration ./...` clean
+  - [ ] `go test ./...` passing (100%, zero skips)
+  - [ ] `go test -race -count=2 ./...` clean
+  - [x] `golangci-lint run` clean (0 issues)
+  - [ ] `golangci-lint run --build-tags e2e,integration` clean
+
+#### Task 7.2: Coverage Verification
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 7.1
+- **Description**: Verify coverage targets.
+- **Acceptance Criteria**:
+  - [ ] New production code: ≥95% line coverage
+  - [ ] New infrastructure code (test helpers, cicd): ≥98% line coverage
+  - [ ] No coverage regressions in existing packages
+  - [ ] Coverage report in `test-output/framework-v1/phase7/coverage/`
+
+#### Task 7.3: Mutation Testing
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 7.2
+- **Description**: Run mutation testing on new packages.
+- **Acceptance Criteria**:
+  - [ ] `gremlins unleash --tags=!integration` on new packages
+  - [ ] ≥95% mutation score for production packages
+  - [ ] ≥98% mutation score for infrastructure/utility packages
+  - [ ] Results in `test-output/framework-v1/phase7/mutation/`
+
+#### Task 7.4: Fitness Functions Self-Check
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 30m
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 7.1
+- **Description**: Run the new fitness functions against the entire codebase.
+- **Acceptance Criteria**:
+  - [ ] `go run ./cmd/cicd lint-fitness` passes with zero errors
+  - [ ] All 8+ sub-linters executed
+  - [ ] Results in `test-output/framework-v1/phase7/fitness-check.log`
+
+#### Task 7.5: Pre-Commit Hook Verification
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 30m
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 7.4
+- **Description**: Verify pre-commit hooks work end-to-end.
+- **Acceptance Criteria**:
+  - [ ] `pre-commit run --all-files` passes
+  - [ ] lint-fitness hook executes as part of pre-commit
+  - [ ] Results in `test-output/framework-v1/phase7/pre-commit.log`
+
+#### Task 7.6: Final Git Commit & Evidence Archive
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 30m
+- **Actual**: [Fill when complete]
+- **Dependencies**: Tasks 7.1-7.5
+- **Description**: Final commit with all evidence archived.
+- **Acceptance Criteria**:
+  - [ ] All evidence collected in `test-output/framework-v1/`
+  - [ ] Plan.md updated with final status
+  - [ ] Tasks.md updated with completion percentages and actual LOE
+  - [ ] Clean working tree
+  - [ ] Git commit: `docs(framework-v1): complete framework v1 implementation`
+
+---
+
+## Cross-Cutting Tasks
+
+### Testing
+
+- [ ] Unit tests ≥95% coverage (production), ≥98% (infrastructure/utility)
+- [ ] Integration tests pass
+- [ ] No skipped tests (except documented exceptions)
+- [ ] Race detector clean: `go test -race -count=2 ./...`
+- [ ] All tests use t.Parallel()
+- [ ] All tests are table-driven (multi-case)
+- [ ] No hardcoded UUIDs (use googleUuid.NewV7())
+
+### Code Quality
+
+- [ ] Linting passes: `golangci-lint run ./...` and `golangci-lint run --build-tags e2e,integration ./...`
+- [ ] No new TODOs without tracking
+- [ ] No security vulnerabilities
+- [ ] Formatting clean: `gofumpt -s -w ./`
+- [ ] Imports organized: `goimports -w ./`
+- [ ] All files ≤500 lines
+
+### Documentation
+
+- [ ] air usage documented
+- [ ] ServiceContract interface documented
+- [ ] Fitness functions documented (what each checks)
+- [ ] Shared test infrastructure usage documented
+
+### Deployment
+
+- [ ] No deployment changes required (all changes are build-time/test-time)
+- [ ] Pre-commit hooks updated for lint-fitness
+
+---
+
+## Notes / Deferred Work
+
+### Items Explicitly Excluded (User Decision)
+
+- P0-3: Skeleton CRUD reference implementation — Not needed with contract + fitness enforcement
+- P1-1: cicd new-service scaffolding — Only 9 services exist, unlikely to add more
+- P1-3: cicd diff-skeleton conformance — Superseded by fitness functions
+- P2-1: Service manifest declaration — Replaced by simplified builder defaults
+- P2-3: OpenAPI-to-Repository codegen — Not wanted
+- P3-1: Module system (fx/Wire) — Overkill
+- P3-2: Extract framework module — Premature
+
+### Future Considerations
+
+- If a 10th+ service is added, revisit P1-1 scaffolding decision
+- If fitness function false positives are high, add severity levels (warn vs error)
+- Consider moving more lint_go/lint_gotest checks into lint-fitness for cleaner organization
+
+---
+
+## Evidence Archive
+
+- `test-output/framework-v1/phase1/` - ServiceContract interface evidence
+- `test-output/framework-v1/phase2/` - Builder simplification evidence
+- `test-output/framework-v1/phase3/` - air live reload evidence
+- `test-output/framework-v1/phase4/` - Fitness functions evidence
+- `test-output/framework-v1/phase5/` - Shared test infrastructure evidence
+- `test-output/framework-v1/phase6/` - Contract test suite evidence
+- `test-output/framework-v1/phase7/` - Final quality gates evidence### Phase 5: Shared Test Infrastructure
+
+**Phase Objective**: Consolidate duplicated test setup patterns into shared packages, drastically reducing TestMain boilerplate across services.
+
+#### Task 5.1: Audit Current Test Helpers
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [Fill when complete]
+- **Dependencies**: None (independent of Phase 4)
+- **Description**: Catalog all existing test helpers across services, identify duplication, and plan consolidation.
+- **Acceptance Criteria**:
+  - [ ] All test helper files listed across all services
+  - [ ] Duplication identified (similar setup code in multiple TestMain functions)
+  - [ ] Consolidation targets documented: what moves where
+  - [ ] Evidence in `test-output/framework-v1/phase5/test-helper-audit.md`
+
+#### Task 5.2: Create Shared Database Test Helpers
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 3h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 5.1
+- **Description**: Create shared helpers for SQLite in-memory DB setup and PostgreSQL test containers.
+- **Acceptance Criteria**:
+  - [ ] `NewInMemorySQLiteDB(t)` — Returns `*gorm.DB` with WAL mode, configured for tests
+  - [ ] `NewPostgresTestContainer(ctx, t)` — Returns `*gorm.DB` with test container
+  - [ ] Both helpers handle cleanup via `t.Cleanup()`
+  - [ ] Tests: ≥98% coverage (infrastructure utility)
+  - [ ] Located in appropriate package under `internal/apps/template/service/testing/`
+- **Files**:
+  - `internal/apps/template/service/testing/testdb/testdb.go` (new)
+  - `internal/apps/template/service/testing/testdb/testdb_test.go` (new)
+
+#### Task 5.3: Create Shared Server Test Helper
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 3h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 5.2, Phase 1 (ServiceServer interface)
+- **Description**: Create a helper that sets up a test server using port 0, SQLite in-memory, and all standard infrastructure.
+- **Acceptance Criteria**:
+  - [ ] `NewTestServer(t, opts...)` — Returns a running server for testing (port 0)
+  - [ ] Uses `ServiceServer` interface as return type
+  - [ ] Handles server shutdown via `t.Cleanup()`
+  - [ ] Default opts: SQLite in-memory, dev TLS certs, port 0
+  - [ ] Tests: ≥98% coverage (infrastructure utility)
+- **Files**:
+  - `internal/apps/template/service/testing/testserver/testserver.go` (new)
+  - `internal/apps/template/service/testing/testserver/testserver_test.go` (new)
+
+#### Task 5.4: Create Shared Fixture Helpers
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 5.2
+- **Description**: Create helpers for common test fixtures (tenants, realms, users).
+- **Acceptance Criteria**:
+  - [ ] `CreateTestTenant(t, db)` — Creates and returns a test tenant
+  - [ ] `CreateTestRealm(t, db, tenantID)` — Creates and returns a test realm
+  - [ ] `CreateTestUser(t, db, tenantID, realmID)` — Creates and returns a test user
+  - [ ] All use `googleUuid.NewV7()` for unique IDs (no hardcoded data)
+  - [ ] Tests: ≥98% coverage (infrastructure utility)
+- **Files**:
+  - `internal/apps/template/service/testing/fixtures/fixtures.go` (new)
+  - `internal/apps/template/service/testing/fixtures/fixtures_test.go` (new)
+
+#### Task 5.5: Create Shared Assertion Helpers
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [Fill when complete]
+- **Dependencies**: None
+- **Description**: Create helpers for common test assertions (HTTP response validation, error format, health check).
+- **Acceptance Criteria**:
+  - [ ] `AssertHealthy(t, resp)` — Validates 200 OK health response
+  - [ ] `AssertErrorResponse(t, resp, expectedCode)` — Validates error JSON (code, message)
+  - [ ] `AssertTraceID(t, resp)` — Validates trace_id in response headers/body
+  - [ ] `AssertJSONContentType(t, resp)` — Validates Content-Type: application/json
+  - [ ] Tests: ≥98% coverage (infrastructure utility)
+- **Files**:
+  - `internal/apps/template/service/testing/assertions/assertions.go` (new)
+  - `internal/apps/template/service/testing/assertions/assertions_test.go` (new)
+
+#### Task 5.6: Create Health Client Helper
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 5.5
+- **Description**: Create a reusable HTTPS client for testing health endpoints across services.
+- **Acceptance Criteria**:
+  - [ ] `NewHealthClient(baseURL)` — Returns configured HTTP client (TLS skip verify for test certs)
+  - [ ] Methods: `Livez()`, `Readyz()`, `PublicHealth()`, `ServiceHealth()`, `BrowserHealth()`
+  - [ ] Returns structured responses for easy assertion
+  - [ ] Tests: ≥98% coverage (infrastructure utility)
+- **Files**:
+  - `internal/apps/template/service/testing/healthclient/healthclient.go` (new)
+  - `internal/apps/template/service/testing/healthclient/healthclient_test.go` (new)
+
+#### Task 5.7: Migrate Existing Services to Shared Helpers
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 4h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Tasks 5.2-5.6
+- **Description**: Update existing service TestMain functions and test helpers to use the new shared packages.
+- **Acceptance Criteria**:
+  - [ ] At least sm-im, jose-ja, sm-kms, skeleton-template migrated to shared helpers (Core 4)
+  - [ ] sm-kms migration enabled by KMS unification from Phase 1
+  - [ ] Remaining 6 services documented for future migration
+  - [ ] All migrated tests pass
+  - [ ] Net line reduction measured and documented
+  - [x] No regressions in any existing test
+
+#### Task 5.8: Phase 5 Quality Gate
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Tasks 5.1-5.7
+- **Description**: Run all quality gates for Phase 5 and collect evidence.
+- **Acceptance Criteria**:
+  - [x] `go build ./...` clean
+  - [x] `go build -tags e2e,integration ./...` clean
+  - [ ] `go test ./internal/apps/template/service/testing/...` passing (≥98% coverage)
+  - [ ] All migrated services' tests still pass
+  - [x] `golangci-lint run` clean (0 issues)
+  - [ ] Evidence in `test-output/framework-v1/phase5/`
+  - [ ] Git commit: `feat(testing): add shared test infrastructure package`
+
+---
+
+### Phase 6: Cross-Service Contract Test Suite
+
+**Phase Objective**: One test suite verifying ALL services behave consistently for core framework behavior.
+
+#### Task 6.1: Design Contract Test Architecture
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Phase 1 (ServiceServer interface), Phase 5 (shared test helpers)
+- **Description**: Design the contract test package structure and identify contracts to verify.
+- **Acceptance Criteria**:
+  - [ ] 21+ contracts identified and grouped (Infrastructure: 9, Auth: 6, Domain patterns: 6+)
+  - [ ] Contract groups: `RunHealthContracts`, `RunAuthContracts`, `RunDomainPatternContracts`
+  - [ ] API: `RunContractTests(t *testing.T, server ServiceServer)` designed
+  - [ ] Test execution strategy documented (SQLite in-memory, port 0, app.Test())
+  - [ ] Evidence in `test-output/framework-v1/phase6/contract-design.md`
+
+#### Task 6.2: Implement Health Contract Tests
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 3h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 6.1
+- **Description**: Implement contract tests for health endpoints.
+- **Acceptance Criteria**:
+  - [ ] `/admin/api/v1/livez` returns 200 OK
+  - [ ] `/admin/api/v1/readyz` returns 200 OK when ready, 503 when not
+  - [ ] `/browser/api/v1/health` returns 200 OK (if registered)
+  - [ ] `/service/api/v1/health` returns 200 OK (if registered)
+  - [ ] Table-driven with t.Parallel()
+  - [ ] Tests: ≥95% coverage
+- **Files**:
+  - `internal/apps/template/service/testing/contract/health_contracts.go` (new)
+  - `internal/apps/template/service/testing/contract/health_contracts_test.go` (new)
+
+#### Task 6.3: Implement Auth Contract Tests
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 3h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 6.1
+- **Description**: Implement contract tests for authentication behavior.
+- **Acceptance Criteria**:
+  - [ ] `/service/api/v1/*` rejects unauthenticated requests with 401
+  - [ ] `/browser/api/v1/*` rejects unauthenticated requests with 401
+  - [ ] CORS preflight (OPTIONS) to `/browser/api/v1/*` with allowed origin returns 200
+  - [ ] CSRF token absent on POST to `/browser/api/v1/*` returns 403
+  - [ ] Error response contains `code` and `message` fields
+  - [ ] Table-driven with t.Parallel()
+  - [ ] Tests: ≥95% coverage
+- **Files**:
+  - `internal/apps/template/service/testing/contract/auth_contracts.go` (new)
+  - `internal/apps/template/service/testing/contract/auth_contracts_test.go` (new)
+
+#### Task 6.4: Implement Error Format Contract Tests
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 6.1
+- **Description**: Implement contract tests for error response format consistency.
+- **Acceptance Criteria**:
+  - [ ] All error responses contain `code` (string) and `message` (string)
+  - [ ] All error responses include `requestId` (UUID)
+  - [ ] All responses include `trace_id` in headers or body
+  - [ ] Content-Type is application/json for all error responses
+  - [ ] Table-driven with t.Parallel()
+  - [ ] Tests: ≥95% coverage
+- **Files**:
+  - `internal/apps/template/service/testing/contract/error_contracts.go` (new)
+  - `internal/apps/template/service/testing/contract/error_contracts_test.go` (new)
+
+#### Task 6.5: Integrate Contract Tests with Services
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 3h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Tasks 6.2-6.4
+- **Description**: Add `RunContractTests(t, server)` call to Core 4 services' existing test suites.
+- **Acceptance Criteria**:
+  - [ ] Contract tests integrated into Core 4: sm-im, jose-ja, sm-kms, skeleton-template
+  - [ ] Contract tests pass for all 4 integrated services
+  - [ ] Remaining 6 services documented for future integration
+  - [ ] Evidence of behavioral consistency across Core 4 services
+
+#### Task 6.6: Phase 6 Quality Gate
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Tasks 6.1-6.5
+- **Description**: Run all quality gates for Phase 6 and collect evidence.
+- **Acceptance Criteria**:
+  - [x] `go build ./...` clean
+  - [x] `go build -tags e2e,integration ./...` clean
+  - [ ] `go test ./internal/apps/template/service/testing/contract/...` passing
+  - [ ] All integrated services' contract tests passing
+  - [x] `golangci-lint run` clean (0 issues)
+  - [ ] Evidence in `test-output/framework-v1/phase6/`
+  - [ ] Git commit: `feat(testing): add cross-service contract test suite`
+
+---
+
+### Phase 7: Final Quality Gates & Evidence
+
+**Phase Objective**: Verify ALL phases meet quality gates, collect comprehensive evidence, final commit.
+
+#### Task 7.1: Full Build Verification
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Actual**: [Fill when complete]
+- **Dependencies**: All previous phases
+- **Description**: Full build and test verification.
+- **Acceptance Criteria**:
+  - [x] `go build ./...` clean
+  - [x] `go build -tags e2e,integration ./...` clean
+  - [ ] `go test ./...` passing (100%, zero skips)
+  - [ ] `go test -race -count=2 ./...` clean
+  - [x] `golangci-lint run` clean (0 issues)
+  - [ ] `golangci-lint run --build-tags e2e,integration` clean
+
+#### Task 7.2: Coverage Verification
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 7.1
+- **Description**: Verify coverage targets.
+- **Acceptance Criteria**:
+  - [ ] New production code: ≥95% line coverage
+  - [ ] New infrastructure code (test helpers, cicd): ≥98% line coverage
+  - [ ] No coverage regressions in existing packages
+  - [ ] Coverage report in `test-output/framework-v1/phase7/coverage/`
+
+#### Task 7.3: Mutation Testing
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 7.2
+- **Description**: Run mutation testing on new packages.
+- **Acceptance Criteria**:
+  - [ ] `gremlins unleash --tags=!integration` on new packages
+  - [ ] ≥95% mutation score for production packages
+  - [ ] ≥98% mutation score for infrastructure/utility packages
+  - [ ] Results in `test-output/framework-v1/phase7/mutation/`
+
+#### Task 7.4: Fitness Functions Self-Check
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 30m
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 7.1
+- **Description**: Run the new fitness functions against the entire codebase.
+- **Acceptance Criteria**:
+  - [ ] `go run ./cmd/cicd lint-fitness` passes with zero errors
+  - [ ] All 8+ sub-linters executed
+  - [ ] Results in `test-output/framework-v1/phase7/fitness-check.log`
+
+#### Task 7.5: Pre-Commit Hook Verification
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 30m
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 7.4
+- **Description**: Verify pre-commit hooks work end-to-end.
+- **Acceptance Criteria**:
+  - [ ] `pre-commit run --all-files` passes
+  - [ ] lint-fitness hook executes as part of pre-commit
+  - [ ] Results in `test-output/framework-v1/phase7/pre-commit.log`
+
+#### Task 7.6: Final Git Commit & Evidence Archive
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 30m
+- **Actual**: [Fill when complete]
+- **Dependencies**: Tasks 7.1-7.5
+- **Description**: Final commit with all evidence archived.
+- **Acceptance Criteria**:
+  - [ ] All evidence collected in `test-output/framework-v1/`
+  - [ ] Plan.md updated with final status
+  - [ ] Tasks.md updated with completion percentages and actual LOE
+  - [ ] Clean working tree
+  - [ ] Git commit: `docs(framework-v1): complete framework v1 implementation`
+
+---
+
+## Cross-Cutting Tasks
+
+### Testing
+
+- [ ] Unit tests ≥95% coverage (production), ≥98% (infrastructure/utility)
+- [ ] Integration tests pass
+- [ ] No skipped tests (except documented exceptions)
+- [ ] Race detector clean: `go test -race -count=2 ./...`
+- [ ] All tests use t.Parallel()
+- [ ] All tests are table-driven (multi-case)
+- [ ] No hardcoded UUIDs (use googleUuid.NewV7())
+
+### Code Quality
+
+- [ ] Linting passes: `golangci-lint run ./...` and `golangci-lint run --build-tags e2e,integration ./...`
+- [ ] No new TODOs without tracking
+- [ ] No security vulnerabilities
+- [ ] Formatting clean: `gofumpt -s -w ./`
+- [ ] Imports organized: `goimports -w ./`
+- [ ] All files ≤500 lines
+
+### Documentation
+
+- [ ] air usage documented
+- [ ] ServiceContract interface documented
+- [ ] Fitness functions documented (what each checks)
+- [ ] Shared test infrastructure usage documented
+
+### Deployment
+
+- [ ] No deployment changes required (all changes are build-time/test-time)
+- [ ] Pre-commit hooks updated for lint-fitness
+
+---
+
+## Notes / Deferred Work
+
+### Items Explicitly Excluded (User Decision)
+
+- P0-3: Skeleton CRUD reference implementation — Not needed with contract + fitness enforcement
+- P1-1: cicd new-service scaffolding — Only 9 services exist, unlikely to add more
+- P1-3: cicd diff-skeleton conformance — Superseded by fitness functions
+- P2-1: Service manifest declaration — Replaced by simplified builder defaults
+- P2-3: OpenAPI-to-Repository codegen — Not wanted
+- P3-1: Module system (fx/Wire) — Overkill
+- P3-2: Extract framework module — Premature
+
+### Future Considerations
+
+- If a 10th+ service is added, revisit P1-1 scaffolding decision
+- If fitness function false positives are high, add severity levels (warn vs error)
+- Consider moving more lint_go/lint_gotest checks into lint-fitness for cleaner organization
+
+---
+
+## Evidence Archive
+
+- `test-output/framework-v1/phase1/` - ServiceContract interface evidence
+- `test-output/framework-v1/phase2/` - Builder simplification evidence
+- `test-output/framework-v1/phase3/` - air live reload evidence
+- `test-output/framework-v1/phase4/` - Fitness functions evidence
+- `test-output/framework-v1/phase5/` - Shared test infrastructure evidence
+- `test-output/framework-v1/phase6/` - Contract test suite evidence
+- `test-output/framework-v1/phase7/` - Final quality gates evidence### Phase 5: Shared Test Infrastructure
 
 **Phase Objective**: Consolidate duplicated test setup patterns into shared packages, drastically reducing TestMain boilerplate across services.
 

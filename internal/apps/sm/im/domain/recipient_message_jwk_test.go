@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsSmImDomain "cryptoutil/internal/apps/sm/im/domain"
-	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 func TestMessageRecipientJWK_TableName(t *testing.T) {
@@ -37,10 +36,6 @@ func TestMessageRecipientJWK_FieldTypes(t *testing.T) {
 		MessageID:    messageID,
 		EncryptedJWK: encryptedJWK,
 		CreatedAt:    createdAt,
-		Recipient: cryptoutilAppsTemplateServiceServerRepository.User{
-			ID:       recipientID,
-			Username: "recipient",
-		},
 		Message: cryptoutilAppsSmImDomain.Message{
 			ID:       messageID,
 			SenderID: googleUuid.New(),
@@ -53,8 +48,6 @@ func TestMessageRecipientJWK_FieldTypes(t *testing.T) {
 	require.Equal(t, messageID, mrj.MessageID)
 	require.Equal(t, encryptedJWK, mrj.EncryptedJWK)
 	require.Equal(t, createdAt.Unix(), mrj.CreatedAt.Unix())
-	require.Equal(t, recipientID, mrj.Recipient.ID)
-	require.Equal(t, "recipient", mrj.Recipient.Username)
 	require.Equal(t, messageID, mrj.Message.ID)
 	require.Equal(t, "test-message-jwe", mrj.Message.JWE)
 }
@@ -69,7 +62,6 @@ func TestMessageRecipientJWK_ZeroValue(t *testing.T) {
 	require.Equal(t, googleUuid.Nil, mrj.MessageID)
 	require.Empty(t, mrj.EncryptedJWK)
 	require.True(t, mrj.CreatedAt.IsZero())
-	require.Equal(t, googleUuid.Nil, mrj.Recipient.ID)
 	require.Equal(t, googleUuid.Nil, mrj.Message.ID)
 }
 

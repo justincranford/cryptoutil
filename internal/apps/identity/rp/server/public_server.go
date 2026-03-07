@@ -131,7 +131,7 @@ func (s *PublicServer) checkAuthZServer() error {
 		Timeout: cryptoutilSharedMagic.AuthorizationCheckTimeout,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				MinVersion:         tls.VersionTLS12,
+				MinVersion:         tls.VersionTLS13,
 				InsecureSkipVerify: s.cfg.DevMode, //nolint:gosec // Dev mode only
 			},
 		},

@@ -193,18 +193,19 @@ const (
 	UsageCICD = `Usage: cicd <command> [command...]
 
 	Commands:
-	  format-go           - [Formatter] Auto-fix Go files (any -> any, loop var copies)
-	  format-go-test      - [Formatter] Auto-fix Go test files (add t.Helper() to helpers)
-	  github-cleanup      - [Script]    GitHub Actions storage cleanup (runs, artifacts, caches)
-	  lint-compose        - [Linter]    Detect admin port 9090 exposure in Docker Compose files
-	  lint-deployments    - [Linter]    Deployment structure and config file validation
-	  lint-docs           - [Linter]    Documentation chunk verification and propagation validation
-	  lint-go             - [Linter]    Check for circular dependencies in Go packages
-	  lint-go-mod         - [Linter]    Check direct Go dependencies for updates
-	  lint-go-test        - [Linter]    Enforce test patterns (UUIDv7 usage, testify assertions)
-	  lint-golangci       - [Linter]    Validate golangci-lint config files for v2 compatibility
-	  lint-ports          - [Linter]    Enforce standardized port assignments (no legacy ports)		  lint-skeleton       - [Linter]    Detect unreplaced skeleton template placeholder strings	  lint-text           - [Linter]    Enforce UTF-8 encoding without BOM for text files
-	  lint-workflow       - [Linter]    Validate GitHub Actions workflow naming and versions`
+		format-go           - [Formatter] Auto-fix Go files (any -> any, loop var copies)
+		format-go-test      - [Formatter] Auto-fix Go test files (add t.Helper() to helpers)
+		github-cleanup      - [Script]    GitHub Actions storage cleanup (runs, artifacts, caches)
+		lint-compose        - [Linter]    Detect admin port 9090 exposure in Docker Compose files
+		lint-deployments    - [Linter]    Deployment structure and config file validation
+		lint-docs           - [Linter]    Documentation chunk verification and propagation validation
+		lint-fitness          - [Linter]    Architecture fitness functions (cross-service isolation, file sizes, etc.)
+			lint-go             - [Linter]    Check for circular dependencies in Go packages
+		lint-go-mod         - [Linter]    Check direct Go dependencies for updates
+		lint-go-test        - [Linter]    Enforce test patterns (UUIDv7 usage, testify assertions)
+		lint-golangci       - [Linter]    Validate golangci-lint config files for v2 compatibility
+		lint-ports          - [Linter]    Enforce standardized port assignments (no legacy ports)	  lint-text           - [Linter]    Enforce UTF-8 encoding without BOM for text files
+		lint-workflow       - [Linter]    Validate GitHub Actions workflow naming and versions`
 )
 
 // ValidCommands defines the set of valid cicd commands.
@@ -215,12 +216,12 @@ var ValidCommands = map[string]bool{
 	"lint-compose":     true,
 	"lint-deployments": true,
 	"lint-docs":        true,
+	"lint-fitness":     true,
 	"lint-go":          true,
 	"lint-go-mod":      true,
 	"lint-go-test":     true,
 	"lint-golangci":    true,
 	"lint-ports":       true,
-	"lint-skeleton":    true,
 	"lint-text":        true,
 	"lint-workflow":    true,
 }
@@ -247,6 +248,7 @@ var (
 		"format-go":      `internal[/\\]apps[/\\]cicd[/\\]format_go[/\\].*\.go$`,
 		"format-go-test": `internal[/\\]apps[/\\]cicd[/\\]format_gotest[/\\].*\.go$`,
 		"lint-compose":   `internal[/\\]apps[/\\]cicd[/\\]lint_compose[/\\].*\.go$`,
+		"lint-fitness":   `internal[/\\]apps[/\\]cicd[/\\]lint_fitness[/\\].*\.go$`,
 		"lint-go":        `internal[/\\]apps[/\\]cicd[/\\]lint_go[/\\].*\.go$`,
 		"lint-go-mod":    `internal[/\\]apps[/\\]cicd[/\\]lint_go_mod[/\\].*\.go$`,
 		"lint-go-test":   `internal[/\\]apps[/\\]cicd[/\\]lint_gotest[/\\].*\.go$`,

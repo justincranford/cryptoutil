@@ -154,7 +154,7 @@ Additional common methods (sm-im, jose-ja, skeleton):
 
 **Success**: `SERVICE=sm-im air` watches code changes and auto-rebuilds in <3s.
 
-### Phase 4: Architecture Fitness Functions (~2 weeks) [Status: ☐ TODO]
+### Phase 4: Architecture Fitness Functions (~2 weeks) [Status: ✅ COMPLETE 2026-03-07]
 
 **Objective**: Automated enforcement of ARCHITECTURE.md constraints as a `cicd lint-fitness` command, integrated into pre-commit hooks and CI.
 

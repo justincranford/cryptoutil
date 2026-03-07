@@ -7,21 +7,11 @@ import (
 	"fmt"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
-	lintGoCGOFreeSQLite "cryptoutil/internal/apps/cicd/lint_go/cgo_free_sqlite"
-	lintGoCircularDeps "cryptoutil/internal/apps/cicd/lint_go/circular_deps"
-	lintGoCmdMainPattern "cryptoutil/internal/apps/cicd/lint_go/cmd_main_pattern"
-	lintGoCryptoRand "cryptoutil/internal/apps/cicd/lint_go/crypto_rand"
-	lintGoInsecureSkipVerify "cryptoutil/internal/apps/cicd/lint_go/insecure_skip_verify"
 	lintGoLeftoverCoverage "cryptoutil/internal/apps/cicd/lint_go/leftover_coverage"
 	lintGoMagicAliases "cryptoutil/internal/apps/cicd/lint_go/magic_aliases"
 	lintGoMagicDuplicates "cryptoutil/internal/apps/cicd/lint_go/magic_duplicates"
 	lintGoMagicUsage "cryptoutil/internal/apps/cicd/lint_go/magic_usage"
-	lintGoMigrationNumbering "cryptoutil/internal/apps/cicd/lint_go/migration_numbering"
 	lintGoNoUnaliasedCryptoutilImports "cryptoutil/internal/apps/cicd/lint_go/no_unaliased_cryptoutil_imports"
-	lintGoNonFIPSAlgorithms "cryptoutil/internal/apps/cicd/lint_go/non_fips_algorithms"
-	lintGoProductStructure "cryptoutil/internal/apps/cicd/lint_go/product_structure"
-	lintGoProductWiring "cryptoutil/internal/apps/cicd/lint_go/product_wiring"
-	lintGoServiceStructure "cryptoutil/internal/apps/cicd/lint_go/service_structure"
 	lintGoTestPresence "cryptoutil/internal/apps/cicd/lint_go/test_presence"
 )
 
@@ -34,21 +24,11 @@ var registeredLinters = []struct {
 	name   string
 	linter LinterFunc
 }{
-	{"circular-deps", lintGoCircularDeps.Check},
-	{"cgo-free-sqlite", lintGoCGOFreeSQLite.Check},
-	{"cmd-main-pattern", lintGoCmdMainPattern.Check},
-	{"non-fips-algorithms", lintGoNonFIPSAlgorithms.Check},
-	{"no-unaliased-cryptoutil-imports", lintGoNoUnaliasedCryptoutilImports.Check},
-	{"crypto-rand", lintGoCryptoRand.Check},
-	{"insecure-skip-verify", lintGoInsecureSkipVerify.Check},
 	{"leftover-coverage", lintGoLeftoverCoverage.Check},
 	{"magic-aliases", lintGoMagicAliases.Check},
 	{"magic-duplicates", lintGoMagicDuplicates.Check},
 	{"magic-usage", lintGoMagicUsage.Check},
-	{"migration-numbering", lintGoMigrationNumbering.Check},
-	{"product-structure", lintGoProductStructure.Check},
-	{"product-wiring", lintGoProductWiring.Check},
-	{"service-structure", lintGoServiceStructure.Check},
+	{"no-unaliased-cryptoutil-imports", lintGoNoUnaliasedCryptoutilImports.Check},
 	{"test-presence", lintGoTestPresence.Check},
 }
 

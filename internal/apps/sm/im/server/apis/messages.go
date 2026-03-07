@@ -254,7 +254,7 @@ func (h *MessageHandler) HandleReceiveMessages() fiber.Handler {
 
 			response.Messages = append(response.Messages, MessageResponse{
 				MessageID:        msg.ID.String(),
-				SenderPubKey:     msg.Sender.Username,
+				SenderPubKey:     msg.SenderID.String(),
 				EncryptedContent: string(plaintext),
 				Nonce:            "",
 				CreatedAt:        msg.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),

@@ -20,6 +20,8 @@ func FilterExcludedTestFiles(testFiles []string) []string {
 			strings.HasSuffix(path, "cicd_enforce_test_patterns_integration_test.go") ||
 			strings.HasSuffix(path, "cicd_run_integration_test.go") ||
 			strings.Contains(path, "lint_gotest") ||
+				strings.Contains(path, "lint_fitness") ||
+				strings.Contains(path, "lint_fitness") ||
 			strings.HasSuffix(path, "_edge_cases_test.go") ||
 			strings.HasSuffix(path, "testmain_test.go") ||
 			strings.HasSuffix(path, "e2e_test.go") ||

@@ -70,7 +70,7 @@ func httpGet(url *string, timeout time.Duration, rootCAsPool *x509.CertPool) err
 
 	if strings.HasPrefix(*url, "https://") {
 		tlsConfig := &tls.Config{
-			MinVersion: tls.VersionTLS12,
+			MinVersion: tls.VersionTLS13,
 		}
 
 		if rootCAsPool != nil {
@@ -120,7 +120,7 @@ func RequireClientWithResponses(t *testing.T, baseURL *string, rootCAsPool *x509
 	if strings.HasPrefix(*baseURL, "https://") {
 		// For HTTPS URLs, configure TLS
 		tlsConfig := &tls.Config{
-			MinVersion: tls.VersionTLS12,
+			MinVersion: tls.VersionTLS13,
 		}
 
 		if rootCAsPool != nil {

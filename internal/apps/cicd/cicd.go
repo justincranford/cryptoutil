@@ -19,12 +19,12 @@ import (
 	cryptoutilCmdCicdLintCompose "cryptoutil/internal/apps/cicd/lint_compose"
 	cryptoutilLintDeployments "cryptoutil/internal/apps/cicd/lint_deployments"
 	cryptoutilLintDocs "cryptoutil/internal/apps/cicd/lint_docs"
+	cryptoutilLintFitness "cryptoutil/internal/apps/cicd/lint_fitness"
 	cryptoutilCmdCicdLintGo "cryptoutil/internal/apps/cicd/lint_go"
 	cryptoutilCmdCicdLintGoMod "cryptoutil/internal/apps/cicd/lint_go_mod"
 	cryptoutilCmdCicdLintGolangci "cryptoutil/internal/apps/cicd/lint_golangci"
 	cryptoutilCmdCicdLintGotest "cryptoutil/internal/apps/cicd/lint_gotest"
 	cryptoutilCmdCicdLintPorts "cryptoutil/internal/apps/cicd/lint_ports"
-	cryptoutilLintSkeleton "cryptoutil/internal/apps/cicd/lint_skeleton"
 	cryptoutilCmdCicdLintText "cryptoutil/internal/apps/cicd/lint_text"
 	cryptoutilCmdCicdLintWorkflow "cryptoutil/internal/apps/cicd/lint_workflow"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -32,6 +32,7 @@ import (
 )
 
 const (
+	cmdLintFitness     = "lint-fitness"     // [Linter] Architecture fitness functions (cross-service isolation, file limits, etc.).
 	cmdLintText        = "lint-text"        // [Linter] Text file linters (UTF-8 encoding).
 	cmdLintGo          = "lint-go"          // [Linter] Go package linters (circular dependencies, CGO-free SQLite).
 	cmdLintGoTest      = "lint-go-test"     // [Linter] Go test file linters (test patterns).
@@ -44,7 +45,6 @@ const (
 	cmdFormatGoTest    = "format-go-test"   // [Formatter] Go test file formatters (t.Helper).
 	cmdLintDocs        = "lint-docs"        // [Linter] Documentation linters (chunk verification, propagation).
 	cmdLintDeployments = "lint-deployments" // [Linter] Deployment structure and config file validation.
-	cmdLintSkeleton    = "lint-skeleton"    // [Linter] Skeleton template placeholder detection.
 	cmdGitHubCleanup   = "github-cleanup"   // [Script] GitHub Actions storage cleanup (runs, artifacts, caches).
 )
 
@@ -143,8 +143,9 @@ func run(commands []string, extraArgs []string) error {
 			cmdErr = cryptoutilLintDocs.Lint(logger)
 		case cmdLintDeployments:
 			cmdErr = cryptoutilLintDeployments.Lint(logger)
-		case cmdLintSkeleton:
-			cmdErr = cryptoutilLintSkeleton.Lint(logger)
+		case cmdLintFitness:
+			cmdErr = cryptoutilLintFitness.Lint(logger)
+
 		case cmdGitHubCleanup:
 			cmdErr = cryptoutilGitHubCleanup.Cleanup(logger, extraArgs)
 		}

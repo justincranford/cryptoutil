@@ -13,7 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsSmImDomain "cryptoutil/internal/apps/sm/im/domain"
-	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 func TestMessage_TableName(t *testing.T) {
@@ -38,10 +37,6 @@ func TestMessage_FieldTypes(t *testing.T) {
 		JWE:       jwe,
 		CreatedAt: createdAt,
 		ReadAt:    &readAt,
-		Sender: cryptoutilAppsTemplateServiceServerRepository.User{
-			ID:       senderID,
-			Username: "testuser",
-		},
 	}
 
 	require.Equal(t, messageID, m.ID)
@@ -50,8 +45,6 @@ func TestMessage_FieldTypes(t *testing.T) {
 	require.Equal(t, createdAt.Unix(), m.CreatedAt.Unix())
 	require.NotNil(t, m.ReadAt)
 	require.Equal(t, readAt.Unix(), m.ReadAt.Unix())
-	require.Equal(t, senderID, m.Sender.ID)
-	require.Equal(t, "testuser", m.Sender.Username)
 }
 
 func TestMessage_NilReadAt(t *testing.T) {
@@ -78,5 +71,4 @@ func TestMessage_ZeroValue(t *testing.T) {
 	require.Empty(t, m.JWE)
 	require.True(t, m.CreatedAt.IsZero())
 	require.Nil(t, m.ReadAt)
-	require.Equal(t, googleUuid.Nil, m.Sender.ID)
 }
