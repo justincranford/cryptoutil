@@ -112,6 +112,9 @@ func SetupTestServer(ctx context.Context, _ bool) (*TestServerResources, error) 
 
 	resources.BaseURL, resources.AdminURL = cryptoutilAppsTemplateServiceTestingE2eHelpers.DualPortBaseURLs(resources.SmIMServer)
 
+	// Mark server as ready.
+	resources.SmIMServer.SetReady(true)
+
 	// Create HTTP client with test TLS config.
 	resources.HTTPClient = &http.Client{
 		Transport: &http.Transport{

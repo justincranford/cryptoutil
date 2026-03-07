@@ -3,7 +3,15 @@
 // Tests for RunHealthContracts and RunReadyzNotReadyContract.
 package contract
 
-import "testing"
+import (
+	"context"
+	"testing"
+
+	cryptoutilAppsSkeletonTemplateServer "cryptoutil/internal/apps/skeleton/template/server"
+	cryptoutilAppsSkeletonTemplateServerConfig "cryptoutil/internal/apps/skeleton/template/server/config"
+	cryptoutilAppsTemplateServiceTestingE2eHelpers "cryptoutil/internal/apps/template/service/testing/e2e_helpers"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+)
 
 func TestRunHealthContracts(t *testing.T) {
 	t.Parallel()
@@ -12,7 +20,30 @@ func TestRunHealthContracts(t *testing.T) {
 }
 
 // TestRunReadyzNotReadyContract tests that readyz returns 503 when server is not ready.
-// Not parallel: temporarily modifies server ready state.
+// Uses a dedicated fresh server that starts NOT ready to avoid state pollution
+// with the shared testContractServer used by other parallel tests.
 func TestRunReadyzNotReadyContract(t *testing.T) {
-	RunReadyzNotReadyContract(t, testContractServer)
+	t.Parallel()
+
+	ctx := context.Background()
+	cfg := cryptoutilAppsSkeletonTemplateServerConfig.DefaultTestConfig()
+
+	srv, err := cryptoutilAppsSkeletonTemplateServer.NewFromConfig(ctx, cfg)
+	if err != nil {
+		t.Fatalf("failed to create dedicated not-ready server: %v", err)
+	}
+
+	cryptoutilAppsTemplateServiceTestingE2eHelpers.MustStartAndWaitForDualPorts(srv, func() error {
+		return srv.Start(ctx)
+	})
+
+	// Intentionally NOT calling srv.SetReady(true) — server starts not ready.
+	t.Cleanup(func() {
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultDataServerShutdownTimeout)
+		defer cancel()
+
+		_ = srv.Shutdown(shutdownCtx)
+	})
+
+	RunReadyzNotReadyContract(t, srv)
 }
