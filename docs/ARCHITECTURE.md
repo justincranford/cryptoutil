@@ -4092,6 +4092,8 @@ feat(api)!: remove deprecated v1 endpoints  # Breaking change
 - ALWAYS commit incrementally (NOT amend) - preserves history for bisect, selective revert.
 - NEVER repeatedly amend - loses context, hard to bisect.
 - Amend ONLY for immediate typo fixes (<1 min, before push).
+- **Semantic Grouping**: Commit each semantically coherent unit of work as it completes. NEVER accumulate changes for different semantic groups into a bulk commit. Semantic boundaries: one feature, one bug fix, one refactor, one test suite, one doc update = each gets its own commit.
+- **Periodic Commits**: Prefer frequent small commits over rare large commits. A completed task = a commit. Push every 5-10 commits.
 <!-- @/propagate -->
 
 #### 13.2.3 Restore from Clean Baseline Pattern
@@ -4234,6 +4236,11 @@ See [Section 9.4.2 Docker Desktop and Testcontainers API Compatibility](#942-doc
 - `plan.md`: Strategy, architecture decisions, phase descriptions (NO checkboxes)
 - Analysis results go in `research/` subdirectory, NOT in plan or task files
 
+**Knowledge Propagation — Every Plan MUST**:
+- Include a final "Knowledge Propagation" phase that updates ARCHITECTURE.md, agents, skills, and instructions with new patterns discovered
+- Conduct post-mortems after EVERY phase to self-evaluate artifacts for contradictions or omissions
+- Document all architectural decisions in plan.md before archiving the plan
+
 ### 13.7 Infrastructure Blocker Escalation
 
 <!-- @propagate to=".github/instructions/06-01.evidence-based.instructions.md" as="infrastructure-blocker-escalation" -->
@@ -4268,6 +4275,38 @@ Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATO
 - TLS certificate generation failures
 
 **Resolution Priority**: Infrastructure blockers take priority over feature work. A broken test infrastructure means ALL test results are unreliable.
+
+### 13.8 Phase Post-Mortem & Knowledge Propagation
+
+#### 13.8.1 Phase Post-Mortem — MANDATORY
+
+At the end of EVERY phase's quality gates, conduct a post-mortem **before starting the next phase**:
+
+1. **lessons.md** (in `<work-dir>/`): Record lessons learned — what worked, what didn't, root causes, patterns observed.
+2. **categories.md** (in `<work-dir>/`): Update recurring pattern analysis across the plan.
+3. **issues.md** (in `<work-dir>/`): Document all issues encountered with root cause + resolution.
+4. **Artifact Self-Evaluation**: Actively evaluate whether phase lessons expose contradictions or omissions in:
+   - `docs/ARCHITECTURE.md` — architecture decisions, patterns, strategies
+   - `.github/agents/*.agent.md` — agent guidance and workflows
+   - `.github/skills/*/SKILL.md` — skill templates and guidance
+   - `.github/instructions/*.instructions.md` — coding, testing, security guidelines
+5. **Create Fix Tasks**: If contradictions or omissions are found, create new phase tasks to fix them — NEVER defer artifact updates.
+6. **Identify new phases**: Create follow-up phases for any blockers, gaps, or artifact fixes discovered.
+
+Skipping post-mortems is FORBIDDEN. This is continuous self-improvement.
+
+#### 13.8.2 Plan Completion Knowledge Propagation — MANDATORY
+
+After ALL plan tasks are complete, apply accumulated lessons to permanent artifacts:
+
+1. **ARCHITECTURE.md**: Update with new patterns, strategies, and architectural decisions discovered.
+2. **Agents**: Update `.github/agents/*.agent.md` with improved guidance and workflows.
+3. **Skills**: Add or update `.github/skills/*/SKILL.md` to capture new patterns and templates.
+4. **Instructions**: Update `.github/instructions/*.instructions.md` with new coding/testing patterns.
+5. **Verify propagation**: Run `go run ./cmd/cicd lint-docs validate-propagation` to ensure `@source` blocks are in sync with `@propagate` blocks.
+6. Commit all artifact updates with separate semantic commits per artifact type.
+
+**Every plan MUST include a final "Knowledge Propagation" phase** that executes these steps. This phase is NOT optional.
 
 ---
 
