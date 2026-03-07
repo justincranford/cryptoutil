@@ -37,6 +37,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Temporary root-level Python helper scripts (session temp files, not project code)
+/*.py
+
 # Unit test / coverage reports
 htmlcov/
 .tox/
