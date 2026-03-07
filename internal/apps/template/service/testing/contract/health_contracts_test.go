@@ -11,6 +11,7 @@ import (
 	cryptoutilAppsSkeletonTemplateServerConfig "cryptoutil/internal/apps/skeleton/template/server/config"
 	cryptoutilAppsTemplateServiceTestingE2eHelpers "cryptoutil/internal/apps/template/service/testing/e2e_helpers"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	"github.com/stretchr/testify/require"
 )
 
 func TestRunHealthContracts(t *testing.T) {
@@ -29,9 +30,7 @@ func TestRunReadyzNotReadyContract(t *testing.T) {
 	cfg := cryptoutilAppsSkeletonTemplateServerConfig.DefaultTestConfig()
 
 	srv, err := cryptoutilAppsSkeletonTemplateServer.NewFromConfig(ctx, cfg)
-	if err != nil {
-		t.Fatalf("failed to create dedicated not-ready server: %v", err)
-	}
+	require.NoError(t, err, "failed to create dedicated not-ready server")
 
 	cryptoutilAppsTemplateServiceTestingE2eHelpers.MustStartAndWaitForDualPorts(srv, func() error {
 		return srv.Start(ctx)
