@@ -8,7 +8,6 @@ import (
 	"fmt"
 	http "net/http"
 	"testing"
-	"time"
 
 	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/pki/ca/server/config"
 	cryptoutilAppsTemplateServiceTestingE2eHelpers "cryptoutil/internal/apps/template/service/testing/e2e_helpers"
@@ -134,7 +133,7 @@ func TestCAServer_ShutdownIdempotent(t *testing.T) {
 	server.SetReady(true)
 
 	// First shutdown should succeed.
-	shutdownCtx, cancel := context.WithTimeout(ctx, cryptoutilSharedMagic.DefaultDataServerShutdownTimeout*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(ctx, cryptoutilSharedMagic.DefaultDataServerShutdownTimeout)
 	defer cancel()
 
 	shutdownErr := server.Shutdown(shutdownCtx)

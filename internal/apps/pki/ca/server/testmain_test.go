@@ -63,7 +63,7 @@ func TestMain(m *testing.M) {
 	exitCode := m.Run()
 
 	// Cleanup: Shutdown server.
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultDataServerShutdownTimeout*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultDataServerShutdownTimeout)
 	defer cancel()
 
 	_ = testServer.Shutdown(shutdownCtx)
