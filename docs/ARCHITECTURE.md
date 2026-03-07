@@ -2479,6 +2479,28 @@ func TestErrorPath(t *testing.T) {
 
 **Helper Pattern**: Use `saveRestoreSeams(t)` to automatically save and restore all seam variables via `t.Cleanup()`, preventing test pollution.
 
+#### 10.2.5 Sequential Test Exemption
+
+Tests that mutate **package-level state** (e.g., `os.Chdir()`, global registries, seam variables) MUST NOT call `t.Parallel()`. Add a `// Sequential:` comment within 10 lines before the function declaration to exempt it from the `parallel_tests` linter:
+
+```go
+// Sequential: uses os.Chdir (global process state, cannot run in parallel).
+func TestMyFunction_ChangeDir(t *testing.T) {
+    // no t.Parallel() here
+    // ...
+}
+```
+
+```go
+// Sequential: mutates registeredHandlers package-level state.
+func TestRegisterHandler_Duplicate(t *testing.T) {
+    // no t.Parallel() here
+    // ...
+}
+```
+
+**Rule**: The comment MUST appear within 10 lines before the function declaration. Include a clear reason after the colon to document *why* the test is sequential.
+
 ### 10.3 Integration Testing Strategy
 
 #### 10.3.1 TestMain Pattern
@@ -2542,6 +2564,58 @@ func TestMain(m *testing.M) {
 - SQLite WAL mode + busy_timeout for concurrent writes
 - MaxOpenConns=5 for GORM (transaction wrapper needs separate connection)
 - Cross-database compatibility (PostgreSQL + SQLite)
+
+#### 10.3.4 Test HTTP Client Patterns
+
+**MANDATORY: `DisableKeepAlives: true` on ALL test HTTP transports**
+
+When integration or contract tests call a real running server, the HTTP transport MUST disable keep-alives:
+
+```go
+client := &http.Client{
+    Transport: &http.Transport{
+        TLSClientConfig:   &tls.Config{InsecureSkipVerify: true}, // test certs only
+        DisableKeepAlives: true, // REQUIRED: prevents 90-second shutdown hang
+    },
+    Timeout: 5 * time.Second,
+}
+```
+
+**Root cause**: Fasthttp (used by Fiber) tracks open connections. `ShutdownWithContext` loops until the open-connection counter reaches zero. Persistent keep-alive connections keep the counter above zero indefinitely, causing `TestMain` teardown to hang for 90 seconds (the server-side shutdown timeout).
+
+**Symptom**: Tests pass but teardown is extremely slow (≥90s per test binary); `TestMain` never completes in a reasonable time.
+
+**Note on `time.Duration` constants**: Service timeout constants are already `time.Duration` values. NEVER multiply them by `time.Second`. Use them directly: `server.Shutdown(ctx)` where the server internally uses the constant.
+
+#### 10.3.5 Cross-Service Contract Test Pattern
+
+**Purpose**: Validate that all services conform to shared behavioral contracts (health endpoints, dual-server isolation, response format) without duplicating test code in each service.
+
+**Entry Point**:
+
+```go
+import cryptoutilContract "cryptoutil/internal/apps/template/service/testing/contract"
+
+func TestMyService_ContractCompliance(t *testing.T) {
+    t.Parallel()
+    cryptoutilContract.RunContractTests(t, testServer)
+}
+```
+
+**`ServiceServer` Interface** (required by `RunContractTests`):
+
+```go
+type ServiceServer interface {
+    PublicBaseURL() string // returns base URL e.g. "https://127.0.0.1:8080"
+    AdminBaseURL() string  // returns base URL e.g. "https://127.0.0.1:9090"
+    SetReady(ready bool)   // used by RunReadyzNotReadyContract
+    // ... (full interface: see internal/apps/template/service/server/contract.go)
+}
+```
+
+**What contracts are verified**: health endpoint liveness, readiness, dual-server isolation (public vs. admin port separation), and response format correctness.
+
+**`SetReady(true)` Requirement**: If using `MustStartAndWaitForDualPorts` in a manual `TestMain`, you MUST call `server.SetReady(true)` explicitly after the server starts. The `SetupTestServer` helper does this automatically.
 
 ### 10.4 E2E Testing Strategy
 

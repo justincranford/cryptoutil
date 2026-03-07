@@ -35,6 +35,8 @@ Copilot auto-load it when your request matches the skill description.
 | `agent-scaffold` | tooling | Create conformant `.github/agents/NAME.agent.md` with all mandatory sections | [SKILL.md](agent-scaffold/SKILL.md) |
 | `instruction-scaffold` | tooling | Create conformant `.github/instructions/NN-NN.name.instructions.md` | [SKILL.md](instruction-scaffold/SKILL.md) |
 | `skill-scaffold` | tooling | Create conformant `.github/skills/NAME/SKILL.md` with proper frontmatter | [SKILL.md](skill-scaffold/SKILL.md) |
+| `contract-test-gen` | testing | Generate cross-service contract compliance tests (RunContractTests, ServiceServer, SetReady) | [SKILL.md](contract-test-gen/SKILL.md) |
+| `fitness-function-gen` | testing | Generate architecture fitness functions for lint-fitness (Check, CheckInDir, registration) | [SKILL.md](fitness-function-gen/SKILL.md) |
 
 ## Skills vs Custom Instructions vs Agents
 
