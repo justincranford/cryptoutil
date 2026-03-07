@@ -188,3 +188,6 @@ func (s *RPServer) PublicServerActualPort() int {
 func (s *RPServer) AdminServerActualPort() int {
 	return s.app.AdminPort()
 }
+
+// Compile-time assertion: RPServer must implement ServiceServer.
+var _ cryptoutilAppsTemplateServiceServer.ServiceServer = (*RPServer)(nil)

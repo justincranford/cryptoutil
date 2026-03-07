@@ -120,3 +120,11 @@ func (s *PKICAServer) AdminServerActualPort() int {
 func (s *PKICAServer) DB() *gorm.DB {
 	return s.db
 }
+
+// App returns the application wrapper (for tests).
+func (s *PKICAServer) App() *cryptoutilAppsTemplateServiceServer.Application {
+	return s.app
+}
+
+// Compile-time assertion: PKICAServer must implement ServiceServer.
+var _ cryptoutilAppsTemplateServiceServer.ServiceServer = (*PKICAServer)(nil)

@@ -80,9 +80,20 @@ func ListAllFilesWithOptions(startDirectory string, inclusions []string, exclusi
 		normalizedPath := filepath.ToSlash(path)
 
 		if info.IsDir() {
+			// Use relative path for exclusion matching so that both absolute
+			// and relative startDirectory values work correctly with relative
+			// exclusion names (e.g., "test-output"). Also keep the absolute
+			// normalizedPath check for callers that pass absolute exclusions.
+			relPath, relErr := filepath.Rel(startDirectory, path)
+			relSlash := ""
+
+			if relErr == nil {
+				relSlash = filepath.ToSlash(relPath)
+			}
+
 			for _, excl := range exclusions {
-				// Check if the path matches the exclusion (exact match or prefix).
-				if normalizedPath == excl || strings.HasPrefix(normalizedPath, excl+"/") {
+				if relSlash == excl || strings.HasPrefix(relSlash, excl+"/") ||
+					normalizedPath == excl || strings.HasPrefix(normalizedPath, excl+"/") {
 					return filepath.SkipDir
 				}
 			}

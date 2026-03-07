@@ -181,3 +181,18 @@ func (s *RSServer) PublicBaseURL() string {
 func (s *RSServer) AdminBaseURL() string {
 	return s.app.AdminBaseURL()
 }
+
+// PublicServerActualPort returns the actual port the public server is listening on.
+// Alias for PublicPort() — both return the same value.
+func (s *RSServer) PublicServerActualPort() int {
+	return s.app.PublicPort()
+}
+
+// AdminServerActualPort returns the actual port the admin server is listening on.
+// Alias for AdminPort() — both return the same value.
+func (s *RSServer) AdminServerActualPort() int {
+	return s.app.AdminPort()
+}
+
+// Compile-time assertion: RSServer must implement ServiceServer.
+var _ cryptoutilAppsTemplateServiceServer.ServiceServer = (*RSServer)(nil)

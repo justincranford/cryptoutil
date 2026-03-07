@@ -87,7 +87,7 @@ func kmsServerStart(args []string, stdout, stderr io.Writer) int {
 		_, _ = fmt.Fprintf(stdout, "   Public Server: https://%s:%d\n", settings.BindPublicAddress, settings.BindPublicPort)
 		_, _ = fmt.Fprintf(stdout, "   Admin Server:  https://%s:%d\n", settings.BindPrivateAddress, settings.BindPrivatePort)
 
-		errChan <- srv.Start()
+			errChan <- srv.Start(ctx)
 	}()
 
 	// Wait for interrupt signal.
@@ -104,7 +104,7 @@ func kmsServerStart(args []string, stdout, stderr io.Writer) int {
 	case sig := <-sigChan:
 		_, _ = fmt.Fprintf(stdout, "\n⏹️  Received signal %v, shutting down gracefully...\n", sig)
 
-		srv.Shutdown()
+		_ = srv.Shutdown(ctx)
 	}
 
 	signal.Stop(sigChan)

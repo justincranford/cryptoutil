@@ -98,7 +98,7 @@ func TestKMSServer_StartNotInitialized(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			err := tc.server.Start()
+			err := tc.server.Start(context.Background())
 			require.Error(t, err)
 			require.Contains(t, err.Error(), "server not initialized")
 		})
@@ -130,7 +130,7 @@ func TestKMSServer_ShutdownNilFields(t *testing.T) {
 
 			// Should not panic with nil fields.
 			require.NotPanics(t, func() {
-				tc.server.Shutdown()
+				_ = tc.server.Shutdown(context.Background())
 			})
 		})
 	}
@@ -193,13 +193,12 @@ func TestKMSServer_StartError(t *testing.T) {
 	require.NoError(t, err)
 
 	srv := &KMSServer{
-		ctx: context.Background(),
-		resources: &cryptoutilAppsTemplateServiceServerBuilder.ServiceResources{
+				resources: &cryptoutilAppsTemplateServiceServerBuilder.ServiceResources{
 			Application: app,
 		},
 	}
 
-	err = srv.Start()
+	err = srv.Start(context.Background())
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to start KMS server")
 	require.True(t, srv.IsReady()) // ready was set before Application.Start blocked
@@ -213,8 +212,7 @@ func TestKMSServer_ShutdownWithResources(t *testing.T) {
 	shutdownContainerCalled := false
 
 	srv := &KMSServer{
-		ctx: context.Background(),
-		resources: &cryptoutilAppsTemplateServiceServerBuilder.ServiceResources{
+				resources: &cryptoutilAppsTemplateServiceServerBuilder.ServiceResources{
 			Application:       app,
 			ShutdownCore:      func() { shutdownCoreCalled = true },
 			ShutdownContainer: func() { shutdownContainerCalled = true },
@@ -222,7 +220,7 @@ func TestKMSServer_ShutdownWithResources(t *testing.T) {
 	}
 
 	srv.ready.Store(true)
-	require.NotPanics(t, func() { srv.Shutdown() })
+	require.NotPanics(t, func() { _ = srv.Shutdown(context.Background()) })
 	require.False(t, srv.IsReady())
 	require.True(t, shutdownCoreCalled)
 	require.True(t, shutdownContainerCalled)
@@ -235,7 +233,7 @@ func TestKMSServer_ShutdownWithPartialResources(t *testing.T) {
 		resources: &cryptoutilAppsTemplateServiceServerBuilder.ServiceResources{},
 	}
 
-	require.NotPanics(t, func() { srv.Shutdown() })
+	require.NotPanics(t, func() { _ = srv.Shutdown(context.Background()) })
 }
 
 func TestRegisterKMSRoutes(t *testing.T) {

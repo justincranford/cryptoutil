@@ -167,3 +167,6 @@ func (s *SkeletonTemplateServer) PublicServerActualPort() int {
 func (s *SkeletonTemplateServer) AdminServerActualPort() int {
 	return s.app.AdminPort()
 }
+
+// Compile-time assertion: SkeletonTemplateServer must implement ServiceServer.
+var _ cryptoutilAppsTemplateServiceServer.ServiceServer = (*SkeletonTemplateServer)(nil)

@@ -41,9 +41,8 @@ func TestMain(m *testing.M) {
 	}
 
 	// Use generic template helper for goroutine start + dual port polling + panic-on-failure.
-	// KMSServer.Start() has no ctx parameter, so closure wraps accordingly.
 	cryptoutilAppsTemplateServiceTestingE2eHelpers.MustStartAndWaitForDualPorts(testIntegrationServer, func() error {
-		return testIntegrationServer.Start()
+		return testIntegrationServer.Start(ctx)
 	})
 
 	// Store base URLs for tests.
@@ -63,7 +62,7 @@ func TestMain(m *testing.M) {
 	exitCode := m.Run()
 
 	// Cleanup: Shutdown server.
-	testIntegrationServer.Shutdown()
+	_ = testIntegrationServer.Shutdown(ctx)
 
 	os.Exit(exitCode)
 }

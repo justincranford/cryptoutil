@@ -11,6 +11,7 @@ import (
 	"sync/atomic"
 
 	cryptoutilKmsServer "cryptoutil/api/kms/server"
+	"gorm.io/gorm"
 	cryptoutilServerApplication "cryptoutil/internal/apps/sm/kms/server/application"
 	cryptoutilKmsServerHandler "cryptoutil/internal/apps/sm/kms/server/handler"
 	cryptoutilAppsSmKmsServerRepository "cryptoutil/internal/apps/sm/kms/server/repository"
@@ -23,7 +24,6 @@ import (
 
 // KMSServer wraps the template's ServerBuilder infrastructure with KMS-specific services.
 type KMSServer struct {
-	ctx       context.Context
 	settings  *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 	resources *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources
 	kmsCore   *cryptoutilServerApplication.ServerApplicationCore
@@ -86,7 +86,6 @@ func NewKMSServer(
 	}
 
 	server := &KMSServer{
-		ctx:       ctx,
 		settings:  settings,
 		resources: resources,
 		kmsCore:   kmsCore,
@@ -123,7 +122,7 @@ func registerKMSRoutes(
 }
 
 // Start starts the KMS server.
-func (s *KMSServer) Start() error {
+func (s *KMSServer) Start(ctx context.Context) error {
 	if s.resources == nil || s.resources.Application == nil {
 		return fmt.Errorf("server not initialized")
 	}
@@ -131,7 +130,7 @@ func (s *KMSServer) Start() error {
 	s.ready.Store(true)
 	s.resources.Application.SetReady(true)
 
-	if err := s.resources.Application.Start(s.ctx); err != nil {
+	if err := s.resources.Application.Start(ctx); err != nil {
 		return fmt.Errorf("failed to start KMS server: %w", err)
 	}
 
@@ -139,7 +138,7 @@ func (s *KMSServer) Start() error {
 }
 
 // Shutdown gracefully shuts down the KMS server.
-func (s *KMSServer) Shutdown() {
+func (s *KMSServer) Shutdown(ctx context.Context) error {
 	s.ready.Store(false)
 
 	// Shutdown KMS-specific services.
@@ -150,7 +149,7 @@ func (s *KMSServer) Shutdown() {
 	// Shutdown server infrastructure.
 	if s.resources != nil {
 		if s.resources.Application != nil {
-			_ = s.resources.Application.Shutdown(s.ctx)
+			_ = s.resources.Application.Shutdown(ctx)
 		}
 
 		if s.resources.ShutdownCore != nil {
@@ -161,6 +160,8 @@ func (s *KMSServer) Shutdown() {
 			s.resources.ShutdownContainer()
 		}
 	}
+
+	return nil
 }
 
 // IsReady returns whether the server is ready to serve requests.
@@ -218,3 +219,45 @@ func (s *KMSServer) KMSCore() *cryptoutilServerApplication.ServerApplicationCore
 func (s *KMSServer) Settings() *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings {
 	return s.settings
 }
+
+// SetReady marks the server as ready (enables /admin/api/v1/readyz to return 200 OK).
+func (s *KMSServer) SetReady(ready bool) {
+	if s.resources != nil && s.resources.Application != nil {
+		s.resources.Application.SetReady(ready)
+	}
+
+	s.ready.Store(ready)
+}
+
+// DB returns the GORM database connection (for tests).
+func (s *KMSServer) DB() *gorm.DB {
+	if s.resources != nil {
+		return s.resources.DB
+	}
+
+	return nil
+}
+
+// App returns the application wrapper (for tests).
+func (s *KMSServer) App() *cryptoutilAppsTemplateServiceServer.Application {
+	if s.resources != nil {
+		return s.resources.Application
+	}
+
+	return nil
+}
+
+// PublicServerActualPort returns the actual port the public server is listening on.
+// Alias for PublicPort() — both return the same value.
+func (s *KMSServer) PublicServerActualPort() int {
+	return s.PublicPort()
+}
+
+// AdminServerActualPort returns the actual port the admin server is listening on.
+// Alias for AdminPort() — both return the same value.
+func (s *KMSServer) AdminServerActualPort() int {
+	return s.AdminPort()
+}
+
+// Compile-time assertion: KMSServer must implement ServiceServer.
+var _ cryptoutilAppsTemplateServiceServer.ServiceServer = (*KMSServer)(nil)

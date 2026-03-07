@@ -206,3 +206,6 @@ func (s *JoseJAServer) PublicServerActualPort() int {
 func (s *JoseJAServer) AdminServerActualPort() int {
 	return s.app.AdminPort()
 }
+
+// Compile-time assertion: JoseJAServer must implement ServiceServer.
+var _ cryptoutilAppsTemplateServiceServer.ServiceServer = (*JoseJAServer)(nil)

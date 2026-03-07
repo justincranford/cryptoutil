@@ -181,3 +181,18 @@ func (s *AuthzServer) PublicBaseURL() string {
 func (s *AuthzServer) AdminBaseURL() string {
 	return s.app.AdminBaseURL()
 }
+
+// PublicServerActualPort returns the actual port the public server is listening on.
+// Alias for PublicPort() — both return the same value.
+func (s *AuthzServer) PublicServerActualPort() int {
+	return s.app.PublicPort()
+}
+
+// AdminServerActualPort returns the actual port the admin server is listening on.
+// Alias for AdminPort() — both return the same value.
+func (s *AuthzServer) AdminServerActualPort() int {
+	return s.app.AdminPort()
+}
+
+// Compile-time assertion: AuthzServer must implement ServiceServer.
+var _ cryptoutilAppsTemplateServiceServer.ServiceServer = (*AuthzServer)(nil)

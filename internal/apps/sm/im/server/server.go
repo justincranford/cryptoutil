@@ -240,3 +240,6 @@ func (s *SmIMServer) MessageRecipientJWKRepo() *cryptoutilAppsSmImRepository.Mes
 func (s *SmIMServer) PublicServerBase() *cryptoutilAppsTemplateServiceServer.PublicServerBase {
 	return s.app.PublicServerBase()
 }
+
+// Compile-time assertion: SmIMServer must implement ServiceServer.
+var _ cryptoutilAppsTemplateServiceServer.ServiceServer = (*SmIMServer)(nil)
