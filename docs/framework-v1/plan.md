@@ -286,6 +286,27 @@ Additional common methods (sm-im, jose-ja, skeleton):
 
 **Success**: All quality gates pass with evidence collected in `test-output/framework-v1/`.
 
+### Phase 8: Knowledge Propagation (~1 day) [Status: ☐ TODO]
+
+**Objective**: Apply lessons and patterns from Phases 1-7 to permanent project artifacts, ensuring nothing is lost after this session.
+
+- Review `docs/framework-v1/lessons.md` accumulated during all prior phase post-mortems
+- Update `docs/ARCHITECTURE.md` with new patterns discovered:
+  - ServiceServer interface pattern (Section 5.1 or new section)
+  - Architecture fitness functions strategy (add to CI/CD or quality sections)
+  - Cross-service contract test suite pattern (Section 10.3)
+  - Shared test infrastructure pattern (Section 10.2 or 10.3)
+  - Builder simplification patterns (Section 5.2)
+- Update or create skills:
+  - Consider `contract-test-gen` skill for cross-service contract testing
+  - Consider `fitness-function-gen` skill for new fitness function checks
+- Update agents if lessons identified improved guidance
+- Update instruction files if new coding/testing guidelines discovered
+- Run `go run ./cmd/cicd lint-docs validate-propagation` — propagation check passes
+- Commit all artifact updates with separate semantic commits
+
+**Success**: All lessons from this plan preserved in permanent artifacts; propagation check passes; no session knowledge lost.
+
 ## Executive Decisions
 
 ### Decision 1: Builder Simplification Strategy

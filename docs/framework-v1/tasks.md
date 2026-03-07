@@ -1710,6 +1710,68 @@
 
 ---
 
+### Phase 8: Knowledge Propagation
+
+**Phase Objective**: Apply patterns and lessons from Phases 1-7 to permanent project artifacts.
+
+#### Task 8.1: Review lessons.md and Prepare Artifact Updates
+
+- **Status**: X
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Acceptance Criteria**:
+  - [ ] lessons.md reviewed for all artifacts needing updates
+  - [ ] List of ARCHITECTURE.md sections to update documented
+  - [ ] List of agents/skills/instructions to update documented
+  - [ ] Evidence in test-output/framework-v1/phase8/artifact-update-plan.md
+
+#### Task 8.2: Update ARCHITECTURE.md
+
+- **Status**: X
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Acceptance Criteria**:
+  - [ ] ServiceServer interface pattern documented
+  - [ ] Architecture fitness functions strategy documented
+  - [ ] Cross-service contract test suite pattern documented (Section 10.3)
+  - [ ] Shared test infrastructure pattern documented
+  - [ ] Builder simplification patterns updated (Section 5.2)
+  - [ ] go run ./cmd/cicd lint-docs validate-propagation passes
+  - [ ] git commit docs(arch): add framework-v1 patterns
+
+#### Task 8.3: Update or Create Skills
+
+- **Status**: X
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Acceptance Criteria**:
+  - [ ] Evaluate whether contract-test-gen skill should be created
+  - [ ] Evaluate whether fitness-function-gen skill should be created
+  - [ ] git commit feat(skills): add framework-v1 derived skills
+
+#### Task 8.4: Update Agents and Instructions
+
+- **Status**: X
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Acceptance Criteria**:
+  - [ ] implementation-execution.agent.md updated if lessons exposed gaps
+  - [ ] implementation-planning.agent.md updated if lessons exposed gaps
+  - [ ] Any relevant instructions files updated
+  - [ ] git commit feat(agents): update agents with framework-v1 lessons
+
+#### Task 8.5: Verify Propagation and Final Commit
+
+- **Status**: X
+- **Owner**: LLM Agent
+- **Estimated**: 30m
+- **Acceptance Criteria**:
+  - [ ] go run ./cmd/cicd lint-docs validate-propagation passes
+  - [ ] go build ./... clean
+  - [ ] Evidence in test-output/framework-v1/phase8/
+  - [ ] git commit docs(framework-v1): phase 8 knowledge propagation complete
+
+
 ## Cross-Cutting Tasks
 
 ### Testing
@@ -2115,6 +2177,68 @@
   - [ ] Git commit: `docs(framework-v1): complete framework v1 implementation`
 
 ---
+
+### Phase 8: Knowledge Propagation
+
+**Phase Objective**: Apply patterns and lessons from Phases 1-7 to permanent project artifacts.
+
+#### Task 8.1: Review lessons.md and Prepare Artifact Updates
+
+- **Status**: X
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Acceptance Criteria**:
+  - [ ] lessons.md reviewed for all artifacts needing updates
+  - [ ] List of ARCHITECTURE.md sections to update documented
+  - [ ] List of agents/skills/instructions to update documented
+  - [ ] Evidence in test-output/framework-v1/phase8/artifact-update-plan.md
+
+#### Task 8.2: Update ARCHITECTURE.md
+
+- **Status**: X
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Acceptance Criteria**:
+  - [ ] ServiceServer interface pattern documented
+  - [ ] Architecture fitness functions strategy documented
+  - [ ] Cross-service contract test suite pattern documented (Section 10.3)
+  - [ ] Shared test infrastructure pattern documented
+  - [ ] Builder simplification patterns updated (Section 5.2)
+  - [ ] go run ./cmd/cicd lint-docs validate-propagation passes
+  - [ ] git commit docs(arch): add framework-v1 patterns
+
+#### Task 8.3: Update or Create Skills
+
+- **Status**: X
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Acceptance Criteria**:
+  - [ ] Evaluate whether contract-test-gen skill should be created
+  - [ ] Evaluate whether fitness-function-gen skill should be created
+  - [ ] git commit feat(skills): add framework-v1 derived skills
+
+#### Task 8.4: Update Agents and Instructions
+
+- **Status**: X
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Acceptance Criteria**:
+  - [ ] implementation-execution.agent.md updated if lessons exposed gaps
+  - [ ] implementation-planning.agent.md updated if lessons exposed gaps
+  - [ ] Any relevant instructions files updated
+  - [ ] git commit feat(agents): update agents with framework-v1 lessons
+
+#### Task 8.5: Verify Propagation and Final Commit
+
+- **Status**: X
+- **Owner**: LLM Agent
+- **Estimated**: 30m
+- **Acceptance Criteria**:
+  - [ ] go run ./cmd/cicd lint-docs validate-propagation passes
+  - [ ] go build ./... clean
+  - [ ] Evidence in test-output/framework-v1/phase8/
+  - [ ] git commit docs(framework-v1): phase 8 knowledge propagation complete
+
 
 ## Cross-Cutting Tasks
 
