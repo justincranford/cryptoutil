@@ -722,6 +722,8 @@ permissions:
 
 **Iterative Testing**: Test locally before push, fix one issue at a time, verify before next, commit each fix independently
 
+**Semantic Grouping & Periodic Commits**: Each commit represents ONE semantically coherent unit (one workflow fixed, one security issue resolved, one test pattern fixed). NEVER accumulate fixes across unrelated workflows into one bulk commit. Prefer frequent small commits — one workflow fixed = one commit. Push every 5–10 commits.
+
 **Log Analysis**: Download artifacts first, grep for errors/patterns, compare working vs failing workflows, analyze timing/resource usage
 
 **Evidence-Based Debugging**: Reproduce locally (cmd/workflow), collect diagnostic data (logs, configs, screenshots), verify fix with before/after comparison

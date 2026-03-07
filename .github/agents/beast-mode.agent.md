@@ -215,6 +215,12 @@ problem without needing to ask the user for further input.
 
 **Pattern**: Work → Commit → Next tool invocation (ZERO text, ZERO questions)
 
+**Semantic Grouping & Periodic Commits**:
+- Each commit represents ONE semantically coherent unit (one feature, one bug fix, one refactor, one test suite, one doc update)
+- NEVER accumulate changes across different semantic groups into one bulk commit
+- Prefer frequent small commits: completed task = commit, section revised = commit, phase done = commit
+- Push every 5–10 commits so CI/CD validates incrementally
+
 **Todo List Empty?**
 - ✅ Read tracking documents
 - ✅ Find next incomplete task

@@ -253,6 +253,11 @@ grep -r "<old-value>" docs/ .github/ | wc -l  # Should be 0
 
 ### Step 5: Commit with Audit Trail
 
+**Semantic Grouping & Periodic Commits**:
+- Each doc-sync commit represents ONE propagated change (one ARCHITECTURE.md section = one commit)
+- NEVER accumulate multiple unrelated section changes into one bulk commit
+- Prefer frequent small commits: one section synced = commit, one file updated = commit
+
 **Conventional Commit Format**:
 
 ```
