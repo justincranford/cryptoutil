@@ -101,34 +101,45 @@ Additional common methods (sm-im, jose-ja, skeleton):
 - `Telemetry() *TelemetryService`
 - `Barrier() *Service` (barrier)
 
-KMS is the exception: `Start()` has no ctx, `Shutdown()` has no error return, `IsReady()` instead of `SetReady()`.
+**KMS divergence (from quizme-v1 Q1 analysis — confirmed minimal):**
+- Current: `Start() error` → Target: `Start(ctx context.Context) error` (ctx ignored, uses stored s.ctx)
+- Current: `Shutdown()` → Target: `Shutdown(ctx context.Context) error` (ctx ignored, always returns nil)
+- Current: `IsReady() bool` (getter) → Needs: `SetReady(bool)` (setter) added alongside
+- Missing wrappers (delegate to s.resources): `DB()`, `App()`, `JWKGen()`, `Telemetry()`, `PublicServerActualPort()`, `AdminServerActualPort()`
+- 1 call site update in `internal/apps/sm/kms/kms.go` (add ctx arg to Start/Shutdown calls)
+- **Decision (quizme-v1 Q1)**: C — Unify KMS (changes confirmed minimal)
 
 **Approach**:
 1. Define `ServiceServer` interface in `internal/apps/template/service/server/contract.go`
-2. Interface covers the universal set of methods ALL services share
-3. Add compile-time assertion `var _ ServiceServer = (*SkeletonTemplateServer)(nil)` in each service
-4. KMS gets special treatment (adaptor or extended interface) until it can be unified
+2. Interface covers the universal set (Start, Shutdown, DB, App, PublicPort, AdminPort, SetReady, PublicBaseURL, AdminBaseURL, PublicServerActualPort, AdminServerActualPort)
+3. Add compile-time assertion `var _ ServiceServer = (*SkeletonTemplateServer)(nil)` in all 10 services
+4. KMS gets 8 new/modified methods to achieve full conformance (see above)
 5. Tests verify all services satisfy the interface
 
 **Success**: All 10 services satisfy `ServiceServer` interface at compile time. Adding a new required method forces all services to implement it.
 
 ### Phase 2: Simplified Builder Pattern (~2 days) [Status: ☐ TODO]
 
-**Objective**: Remove explicit `WithBarrier()`, `WithJWTAuth()`, `WithStrictServer()` calls from services. Make all standard infrastructure automatic. Services declare ONLY domain-specific add-ons.
+**Objective**: Remove ALL explicit `WithBarrier()`, `WithJWTAuth()`, `WithStrictServer()` calls from services. `Build()` auto-configures EVERYTHING. Services declare ONLY domain-specific add-ons.
+
+**Decision (quizme-v1 Q2)**: A — Aggressive. Only `WithDomainMigrations()` and `WithPublicRouteRegistration()` survive as standard service calls. JWTAuth defaults to session mode. StrictServer is auto-configured with default paths from settings.
 
 **Current state** (from codebase):
 - `barrierEnabled := true` is already hardcoded in `server_builder_build.go:90`
-- sm-im and jose-ja only call `WithDomainMigrations()` and `WithPublicRouteRegistration()` (minimal)
-- sm-kms additionally calls `WithJWTAuth()` and `WithStrictServer()` (it has specialized needs)
+- sm-im and jose-ja only call `WithDomainMigrations()` and `WithPublicRouteRegistration()` (already close)
+- sm-kms calls `WithJWTAuth()` and `WithStrictServer()` — these become auto-configured
 - Identity services only call `WithPublicRouteRegistration()` (no domain migrations yet)
 
-**Target state**:
-- `NewServerBuilder(ctx, cfg)` auto-configures EVERYTHING (barrier, sessions, TLS, health, realm, registration)
-- Services call only: `WithDomainMigrations()` (if they have domain tables), `WithPublicRouteRegistration()` (always, for domain routes), `WithSwaggerUI()` (if enabled)
-- `WithJWTAuth()` and `WithStrictServer()` remain for services that NEED non-default behavior (KMS)
-- No removal of existing methods — just change defaults so most services don't need them
+**Target state (aggressive)**:
+- `NewServerBuilder(ctx, cfg)` auto-configures EVERYTHING: barrier, sessions, TLS, health, realm, registration, JWTAuth (session mode default), StrictServer (paths from settings)
+- Services call ONLY: `WithDomainMigrations()` (if domain tables), `WithPublicRouteRegistration()` (always)
+- No explicit `WithJWTAuth()` or `WithStrictServer()` calls in any service
+- Existing `With*()` methods stay for backward compat but are no longer called by services
+- `Build()` internally calls equivalent of `WithJWTAuth(NewDefaultJWTAuthConfig())` + `WithStrictServer(NewDefaultStrictServerConfig().WithPaths(settings))` if not already set
 
-**Success**: Standard services (sm-im, jose-ja, skeleton, pki-ca, identity-*) need only 2-3 builder calls. Builder auto-configures sensible defaults for all core infrastructure.
+**Structural approach**: Track a `configured` flag per With*() call. `Build()` applies defaults for any not-yet-configured aspects.
+
+**Success**: Every standard service's `NewFromConfig` is ≤10 lines. Only 2 builder calls: `WithDomainMigrations()` (optional) + `WithPublicRouteRegistration()`.
 
 ### Phase 3: air Live Reload (~0.5 days) [Status: ☐ TODO]
 
@@ -161,15 +172,46 @@ KMS is the exception: `Start()` has no ctx, `Shutdown()` has no error return, `I
 - `lint-gotest/no_hardcoded_passwords` → Security
 - `lint-skeleton/check_skeleton_placeholders` → Service conformance
 
-**NEW fitness functions to add** (in `internal/apps/cicd/lint_fitness/`):
-1. **cross-service-import-isolation** — No service package may import another service's internal package (generalize `go-check-identity-imports` to all services)
-2. **domain-layer-isolation** — `domain/` must not import `server/`, `client/`, `api/`
-3. **file-size-limits** — No file exceeds 500 lines (ARCHITECTURE.md hard limit)
-4. **health-endpoint-presence** — All services have health endpoints in their route registration
-5. **tls-minimum-version** — All TLS configs use TLS 1.3+
-6. **admin-bind-address** — All admin binds use 127.0.0.1 (not 0.0.0.0)
-7. **service-contract-compliance** — All services satisfy `ServiceServer` interface (compile-time verified via `var _` assertions, runtime-verified by this linter scanning for the assertion)
-8. **migration-range-compliance** — Template migrations 1001-1999, domain migrations 2001+ (extends existing `migration_numbering`)
+**Decision (quizme-v1 Q3)**: A — Full migration. ALL architecture-enforcement checks move from lint_go/lint_gotest/lint_skeleton to lint_fitness. lint_go/lint_gotest keep only Go language quality checks. lint_skeleton is dissolved.
+
+**Complete inventory: 23 sub-linters total (15 migrated + 8 new)**
+
+**Existing checks MIGRATING to lint_fitness** (from lint_go):
+1. `cgo_free_sqlite` — Architecture: CGO ban enforcement
+2. `circular_deps` — Architecture: dependency isolation
+3. `cmd_main_pattern` — Architecture: thin main() pattern
+4. `crypto_rand` — Security/FIPS: use crypto/rand, not math/rand
+5. `insecure_skip_verify` — Security: TLS hardening
+6. `migration_numbering` — Architecture: migration file naming
+7. `non_fips_algorithms` — Security/FIPS: banned algorithm detection
+8. `product_structure` — Architecture: service directory layout
+9. `product_wiring` — Architecture: service wiring patterns
+10. `service_structure` — Architecture: service layer patterns
+
+**Existing checks MIGRATING to lint_fitness** (from lint_gotest):
+11. `bind_address_safety` — Architecture: port 0 in tests, loopback binding
+12. `no_hardcoded_passwords` — Security: no secrets in tests
+13. `parallel_tests` — Architecture: t.Parallel() usage
+14. `test_patterns` — Architecture: table-driven test patterns
+
+**Existing checks MIGRATING to lint_fitness** (from lint_skeleton — dissolves):
+15. `check_skeleton_placeholders` — Architecture: placeholder detection in new services
+
+**NEW fitness sub-linters** (in `internal/apps/cicd/lint_fitness/`):
+16. `cross_service_import_isolation` — No service package imports another service's internal package
+17. `domain_layer_isolation` — `domain/` must not import `server/`, `client/`, `api/`
+18. `file_size_limits` — No file exceeds 500 lines (ARCHITECTURE.md Section 11.2.6 hard limit)
+19. `health_endpoint_presence` — All services register health endpoints
+20. `tls_minimum_version` — All TLS configs use TLS 1.3+
+21. `admin_bind_address` — All admin binds use 127.0.0.1 (not 0.0.0.0)
+22. `service_contract_compliance` — All services have `var _ ServiceServer = (*XxxServer)(nil)` assertion
+23. `migration_range_compliance` — Template 1001-1999, domain 2001+ (extends migrated migration_numbering)
+
+**Checks REMAINING in lint_go** (language quality only — 7 checks):
+- `leftover_coverage`, `magic_aliases`, `magic_duplicates`, `magic_usage`, `no_unaliased_cryptoutil_imports`, `test_presence`, `common`
+
+**Checks REMAINING in lint_gotest** (language quality only — 2 checks):
+- `require_over_assert`, `common`
 
 **CICD Integration** (per ARCHITECTURE.md Section 9.10):
 - New command: `lint-fitness`
@@ -177,9 +219,9 @@ KMS is the exception: `Start()` has no ctx, `Shutdown()` has no error return, `I
 - Entry: `Lint(logger)` with `registeredLinters` slice
 - Sub-linters: one package per fitness function
 - Pre-commit hook: `go run ./cmd/cicd lint-fitness`
-- CI workflow: `.github/workflows/ci-fitness.yml`
+- Migration order: New checks first, then existing checks migrate
 
-**Success**: `go run ./cmd/cicd lint-fitness` passes on current codebase. New violations caught at pre-commit time.
+**Success**: `go run ./cmd/cicd lint-fitness` passes on current codebase. New violations caught at pre-commit time. lint_skeleton command removed from all invocation paths.
 
 ### Phase 5: Shared Test Infrastructure (~1 week) [Status: ☐ TODO]
 
@@ -249,30 +291,32 @@ KMS is the exception: `Start()` has no ctx, `Shutdown()` has no error return, `I
 ### Decision 1: Builder Simplification Strategy
 
 **Options**:
-- A: Remove `WithBarrier()`, `WithJWTAuth()`, `WithStrictServer()` entirely — barrier always on, sessions always on, OpenAPI strict server always on
+- A: Aggressive — `Build()` auto-configures everything. Only `WithDomainMigrations()` and `WithPublicRouteRegistration()` survive. JWTAuth defaults to session mode. StrictServer auto-configured from settings. ✓ **SELECTED**
 - B: Keep methods but change defaults — barrier always on (already is), sessions default on, JWT auth default to session mode, strict server default on
-- C: Two-tier builder — `NewServerBuilder()` for standard services (everything on), `NewCustomServerBuilder()` for KMS-style services that need opt-out ✓ **SELECTED**
+- C: Two-tier builder — `NewServerBuilder()` for standard services (everything on), `NewCustomServerBuilder()` for KMS-style services that need opt-out
 - D: Leave builder as-is, enforce via fitness function that all services call the same With*() methods
 - E:
 
-**Decision**: Option C selected — Two-tier builder approach
+**Decision**: Option A selected — Aggressive simplification (quizme-v1 Q2, Answer A)
 
-**Rationale**: Standard services (9 out of 10) get everything automatically. KMS is the only exception that needs custom configuration. Two-tier keeps the escape hatch without cluttering the standard path. The `NewServerBuilder()` method stays the same but auto-configures all standard infrastructure. Services that need to opt-out use explicit methods.
+**Rationale**: User's core philosophy: all services have identical core. No service should need to think about infrastructure configuration. `Build()` applies all defaults. `configured` flags in builder prevent double-application. Existing `With*()` methods kept for backward compat but no service calls them.
 
-**Impact**: Simplifies standard service `NewFromConfig()` from ~20 builder calls to 2-3. KMS pattern unchanged.
+**Impact**: Every standard service's `NewFromConfig` reduces to 1-2 builder calls. KMS aligns with standard after Q1 unification.
 
-### Decision 2: Fitness Functions Location
+### Decision 2: Fitness Functions Migration Strategy
 
 **Options**:
-- A: New top-level command `fitness-check` (as proposed in brainstorm)
-- B: New linter `lint-fitness` following existing naming convention ✓ **SELECTED**
-- C: Merge into existing `lint-go` as additional sub-linters
-- D: Separate binary `cmd/fitness/main.go`
+- A: Full migration — ALL architecture-enforcement checks move from lint_go/lint_gotest/lint_skeleton to lint_fitness. lint_skeleton dissolved. ✓ **SELECTED**
+- B: Dual home — leave existing checks in place, add only new checks to lint_fitness
+- C: Reference only — lint_fitness calls into lint_go/lint_gotest for shared implementation
+- D: New only — lint_fitness contains ONLY checks that don't exist yet
 - E:
 
-**Decision**: Option B selected — `lint-fitness` as new cicd linter command
+**Decision**: Option A selected — Full migration (quizme-v1 Q3, Answer A)
 
-**Rationale**: Follows established CICD command architecture (Section 9.10): `lint-<target>` naming, `lint_fitness/` directory, `Lint(logger)` entry, `registeredLinters` slice. Consistent with existing 10 linters. Can be independently invoked or included in `all` command.
+**Rationale**: Architecture fitness checks belong together in one place. Having them split across lint_go, lint_gotest, lint_skeleton is confusing. Full migration provides clean separation: lint_go = Go language quality, lint_fitness = architecture constraints. lint_skeleton dissolves (its 1 check migrates).
+
+**Implementation order**: New checks added first (Phase 4 tasks 4.3-4.10), existing checks migrate after (Phase 4 tasks 4.13-4.15). Pre-commit hooks updated at end (Phase 4 task 4.11).
 
 ### Decision 3: ServiceContract Interface Location
 
@@ -299,6 +343,52 @@ KMS is the exception: `Start()` has no ctx, `Shutdown()` has no error return, `I
 **Decision**: Option C selected — Skip, enforce via contract + fitness functions
 
 **Rationale**: User's 9 services already exist. ServiceContract provides compile-time enforcement. Fitness functions provide pre-commit enforcement. Contract tests provide behavioral enforcement. Adding new services is a nice-to-have only. The combination of Phases 1, 4, 5, and 6 provides stronger conformance guarantees than a reference implementation alone.
+
+### Decision 5: KMS Interface Compliance Strategy
+
+**Options**:
+- A: Adapter pattern — `KMSAdapter` wrapper forwards calls with expected signatures
+- B: Two interfaces — `ServiceServer` (core) + `ServiceServerWithContext` (extended)
+- C: Unify KMS — Modify KMS to match standard signatures ✓ **SELECTED**
+- D: Exclude KMS from ServiceServer contract entirely
+- E:
+
+**Decision**: Option C selected — Unify KMS (quizme-v1 Q1, Answer C; confirmed minimal after analysis)
+
+**KMS changes required** (all minimal, 1 file each):
+1. `Start(ctx context.Context) error` — add ctx param (ctx stored as s.ctx, ignored)
+2. `Shutdown(ctx context.Context) error` — add ctx + error return (return nil)
+3. `SetReady(bool)` — add setter alongside existing `IsReady()` getter
+4. Delegate methods (7 additions): `DB()`, `App()`, `JWKGen()`, `Telemetry()`, `PublicServerActualPort()`, `AdminServerActualPort()`
+5. Update 1 call site in `internal/apps/sm/kms/kms.go`
+
+**Rationale**: Changes are truly minimal — no architectural change to KMS. KMS internal behavior unchanged; only the external method signatures conform to the standard contract.
+
+### Decision 6: Shared Test Infrastructure Migration Scope
+
+**Options**:
+- A: All 10 services
+- B: Core 3 (sm-im, jose-ja, skeleton-template)
+- C: Template + 1
+- D: Create only — no migration
+- E: Core 4 — sm-im, jose-ja, sm-kms, skeleton-template ✓ **SELECTED**
+
+**Decision**: Option E selected — Core 4 services (quizme-v1 Q4, Answer E)
+
+**Rationale**: sm-kms included because it benefits from KMS unification (Phase 1) and shared DB helpers. skeleton-template is the reference. sm-im is the most feature-complete. jose-ja validates the JWK-heavy path.
+
+### Decision 7: Contract Test Depth
+
+**Options**:
+- A: Shallow (6-8 tests, health only)
+- B: Medium (12-15 tests, health + auth)
+- C: Deep (20+ tests, health + auth + domain patterns) ✓ **SELECTED**
+- D: Progressive (shallow now, more later)
+- E:
+
+**Decision**: Option C selected — Deep 21+ contracts (quizme-v1 Q5, Answer C)
+
+**Rationale**: The contract test framework itself is the main investment. Writing 21 contracts vs 8 is marginal additional effort once the framework is in place. Deep contracts catch the most divergence and provide full validation of framework behavioral guarantees.
 
 ## Risk Assessment
 

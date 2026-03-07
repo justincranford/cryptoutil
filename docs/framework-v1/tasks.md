@@ -1,6 +1,6 @@
 # Tasks - Framework v1
 
-**Status**: 0 of 44 tasks complete (0%)
+**Status**: 0 of 47 tasks complete (0%)
 **Last Updated**: 2026-03-06
 **Created**: 2026-03-06
 
@@ -78,8 +78,9 @@
 - **Dependencies**: Task 1.2
 - **Description**: Add `var _ ServiceServer = (*XxxServer)(nil)` compile-time assertions to all 10 services. Fix any signature mismatches.
 - **Acceptance Criteria**:
-  - [ ] All 9 standard services have `var _ ServiceServer = (*XxxServer)(nil)`
-  - [ ] KMS handled appropriately (adapter or separate interface assertion)
+  - [ ] All 10 services have `var _ ServiceServer = (*XxxServer)(nil)` assertions
+  - [ ] KMS has all standard interface methods added (Start/Shutdown with ctx, SetReady setter, DB/App/JWKGen/Telemetry/PublicServerActualPort/AdminServerActualPort delegates)
+  - [ ] 1 call site updated in `internal/apps/sm/kms/kms.go`
   - [ ] `go build ./...` passes (compile-time proof)
   - [ ] Any signature fixes documented (e.g., adding missing methods)
 - **Files**:
@@ -282,7 +283,7 @@
 
 ### Phase 4: Architecture Fitness Functions
 
-**Phase Objective**: Create `cicd lint-fitness` command with 8+ fitness sub-linters, integrated into pre-commit hooks and CI.
+**Phase Objective**: Create `cicd lint-fitness` command with 23 fitness sub-linters (8 new + 15 migrated from lint_go/lint_gotest/lint_skeleton), integrated into pre-commit hooks and CI. Dissolve lint_skeleton command.
 
 #### Task 4.1: Create lint_fitness Package Structure
 
@@ -478,7 +479,7 @@
 - **Owner**: LLM Agent
 - **Estimated**: 2h
 - **Actual**: [Fill when complete]
-- **Dependencies**: Tasks 4.1-4.11
+- **Dependencies**: Tasks 4.1-4.11, 4.13-4.15
 - **Description**: Run all quality gates for Phase 4 and collect evidence.
 - **Acceptance Criteria**:
   - [ ] `go build ./...` clean
@@ -486,12 +487,73 @@
   - [ ] `go test ./internal/apps/cicd/lint_fitness/...` passing (≥98% coverage for cicd utility)
   - [ ] `golangci-lint run` clean
   - [ ] `go run ./cmd/cicd lint-fitness` passes on current codebase
-  - [ ] All 8 sub-linters have ≥95% test coverage
+  - [ ] All 23 sub-linters have ≥95% test coverage
+  - [ ] lint_skeleton dissolved (command removed, check migrated)
   - [ ] No new TODOs without tracking
   - [ ] Evidence in `test-output/framework-v1/phase4/`
-  - [ ] Git commit: `feat(cicd): add lint-fitness command with 8 architecture fitness sub-linters`
+  - [ ] Git commit: `feat(cicd): add lint-fitness command with 23 architecture fitness sub-linters`
 
 ---
+
+#### Task 4.13: Migrate lint_go Architecture Checks to lint_fitness
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 4h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Tasks 4.1-4.2 (lint_fitness package structure exists)
+- **Description**: Move 10 architecture-enforcement sub-linters from lint_go to lint_fitness. Keep only Go language quality checks in lint_go.
+- **Acceptance Criteria**:
+  - [ ] Moved from lint_go: `cgo_free_sqlite`, `circular_deps`, `cmd_main_pattern`, `crypto_rand`, `insecure_skip_verify`, `migration_numbering`, `non_fips_algorithms`, `product_structure`, `product_wiring`, `service_structure`
+  - [ ] lint_go `registeredLinters` slice updated (10 checks removed)
+  - [ ] lint_fitness `registeredLinters` slice updated (10 checks added)
+  - [ ] All existing tests for migrated sub-linters moved to lint_fitness packages
+  - [ ] All tests pass after migration
+  - [ ] `go run ./cmd/cicd lint-go` still works (uses remaining 7 language-quality checks)
+- **Files**:
+  - `internal/apps/cicd/lint_go/lint_go.go` (modify: remove 10 from registeredLinters)
+  - `internal/apps/cicd/lint_fitness/lint_fitness.go` (modify: add 10 to registeredLinters)
+  - Move each sub-linter directory: `internal/apps/cicd/lint_go/<X>/` → `internal/apps/cicd/lint_fitness/<X>/`
+
+#### Task 4.14: Migrate lint_gotest Architecture Checks to lint_fitness
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 4.13
+- **Description**: Move 4 architecture-enforcement sub-linters from lint_gotest to lint_fitness. Keep only test quality checks in lint_gotest.
+- **Acceptance Criteria**:
+  - [ ] Moved from lint_gotest: `bind_address_safety`, `no_hardcoded_passwords`, `parallel_tests`, `test_patterns`
+  - [ ] lint_gotest `registeredLinters` slice updated (4 checks removed)
+  - [ ] lint_fitness `registeredLinters` slice updated (4 checks added)
+  - [ ] All existing tests for migrated sub-linters moved to lint_fitness packages
+  - [ ] `go run ./cmd/cicd lint-gotest` still works (uses remaining 2: require_over_assert, common)
+- **Files**:
+  - `internal/apps/cicd/lint_gotest/lint_gotest.go` (modify: remove 4)
+  - `internal/apps/cicd/lint_fitness/lint_fitness.go` (modify: add 4)
+  - Move each sub-linter directory: `internal/apps/cicd/lint_gotest/<X>/` → `internal/apps/cicd/lint_fitness/<X>/`
+
+#### Task 4.15: Dissolve lint_skeleton (Migrate to lint_fitness)
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 4.13
+- **Description**: Move `check_skeleton_placeholders` from lint_skeleton to lint_fitness, then remove the lint_skeleton command entirely.
+- **Acceptance Criteria**:
+  - [ ] `check_skeleton_placeholders` sub-linter moved to `internal/apps/cicd/lint_fitness/`
+  - [ ] `internal/apps/cicd/lint_skeleton/` directory removed
+  - [ ] `cmd/cicd/*.go` updated to remove lint-skeleton registration
+  - [ ] `.pre-commit-config.yaml` updated: remove lint-skeleton hook
+  - [ ] `go run ./cmd/cicd lint-fitness` includes skeleton placeholder check
+  - [ ] Tests pass after removal
+- **Files**:
+  - `internal/apps/cicd/lint_skeleton/` (remove entire directory)
+  - `internal/apps/cicd/lint_fitness/lint_fitness.go` (add check_skeleton_placeholders)
+  - `cmd/cicd/*.go` (remove lint-skeleton entry)
+  - `.pre-commit-config.yaml` (replace lint-skeleton with lint-fitness)
 
 ### Phase 5: Shared Test Infrastructure
 
@@ -609,8 +671,9 @@
 - **Dependencies**: Tasks 5.2-5.6
 - **Description**: Update existing service TestMain functions and test helpers to use the new shared packages.
 - **Acceptance Criteria**:
-  - [ ] At least 2-3 services migrated to use shared helpers (sm-im, skeleton, jose-ja)
-  - [ ] Remaining services documented for future migration
+  - [ ] At least sm-im, jose-ja, sm-kms, skeleton-template migrated to shared helpers (Core 4)
+  - [ ] sm-kms migration enabled by KMS unification from Phase 1
+  - [ ] Remaining 6 services documented for future migration
   - [ ] All migrated tests pass
   - [ ] Net line reduction measured and documented
   - [ ] No regressions in any existing test
@@ -647,9 +710,9 @@
 - **Dependencies**: Phase 1 (ServiceServer interface), Phase 5 (shared test helpers)
 - **Description**: Design the contract test package structure and identify contracts to verify.
 - **Acceptance Criteria**:
-  - [ ] Package location decided: `internal/apps/template/service/testing/contract/`
+  - [ ] 21+ contracts identified and grouped (Infrastructure: 9, Auth: 6, Domain patterns: 6+)
+  - [ ] Contract groups: `RunHealthContracts`, `RunAuthContracts`, `RunDomainPatternContracts`
   - [ ] API: `RunContractTests(t *testing.T, server ServiceServer)` designed
-  - [ ] 8+ contracts identified (health, auth rejection, error format, trace_id, etc.)
   - [ ] Test execution strategy documented (SQLite in-memory, port 0, app.Test())
   - [ ] Evidence in `test-output/framework-v1/phase6/contract-design.md`
 
@@ -682,6 +745,9 @@
 - **Description**: Implement contract tests for authentication behavior.
 - **Acceptance Criteria**:
   - [ ] `/service/api/v1/*` rejects unauthenticated requests with 401
+  - [ ] `/browser/api/v1/*` rejects unauthenticated requests with 401
+  - [ ] CORS preflight (OPTIONS) to `/browser/api/v1/*` with allowed origin returns 200
+  - [ ] CSRF token absent on POST to `/browser/api/v1/*` returns 403
   - [ ] Error response contains `code` and `message` fields
   - [ ] Table-driven with t.Parallel()
   - [ ] Tests: ≥95% coverage
@@ -715,12 +781,12 @@
 - **Estimated**: 3h
 - **Actual**: [Fill when complete]
 - **Dependencies**: Tasks 6.2-6.4
-- **Description**: Add `RunContractTests(t, server)` call to at least 3 services' existing test suites.
+- **Description**: Add `RunContractTests(t, server)` call to Core 4 services' existing test suites.
 - **Acceptance Criteria**:
-  - [ ] Contract tests integrated into sm-im, skeleton-template, jose-ja test suites
-  - [ ] Contract tests pass for all integrated services
-  - [ ] Remaining services documented for future integration
-  - [ ] Evidence of behavioral consistency across services
+  - [ ] Contract tests integrated into Core 4: sm-im, jose-ja, sm-kms, skeleton-template
+  - [ ] Contract tests pass for all 4 integrated services
+  - [ ] Remaining 6 services documented for future integration
+  - [ ] Evidence of behavioral consistency across Core 4 services
 
 #### Task 6.6: Phase 6 Quality Gate
 
