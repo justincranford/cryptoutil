@@ -2,8 +2,6 @@
 name: test-benchmark-gen
 description: "Generate _bench_test.go benchmark tests conforming to cryptoutil standards. Use when adding performance benchmarks, especially for crypto operations where benchmarking is mandatory, to ensure correct ResetTimer/StopTimer patterns and sub-benchmark structure."
 argument-hint: "[package or function name]"
-metadata:
-  domain: testing
 ---
 
 Generate `_bench_test.go` benchmark tests — mandatory for crypto operations.

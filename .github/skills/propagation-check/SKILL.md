@@ -2,8 +2,6 @@
 name: propagation-check
 description: "Detect @propagate/@source drift between ARCHITECTURE.md and instruction files, and generate corrected @source block content. Use before committing instruction file changes to ensure lint-docs passes and verbatim doc chunks stay synchronized."
 argument-hint: "[instruction file or omit for full project check]"
-metadata:
-  domain: docs
 ---
 
 Detect @propagate/@source drift and generate corrected @source block content.

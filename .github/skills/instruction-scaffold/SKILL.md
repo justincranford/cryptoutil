@@ -3,8 +3,6 @@ name: instruction-scaffold
 description: "Create a conformant .github/instructions/NN-NN.name.instructions.md file. Use when adding project-specific instruction files to ensure correct YAML frontmatter, numbering scheme, @source propagation blocks, and ARCHITECTURE.md cross-references."
 argument-hint: "[NN-NN.name description]"
 disable-model-invocation: true
-metadata:
-  domain: tooling
 ---
 
 Create a conformant `.github/instructions/NN-NN.name.instructions.md` file.

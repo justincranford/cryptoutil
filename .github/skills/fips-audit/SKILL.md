@@ -2,8 +2,6 @@
 name: fips-audit
 description: "Detect FIPS 140-3 violations in Go cryptographic code and provide fix guidance. Use to audit crypto usage for FIPS 140-3 compliance, checking algorithm choices, key sizes, and random number generation beyond what static linters enforce."
 argument-hint: "[./... or specific package path]"
-metadata:
-  domain: security
 ---
 
 Detect FIPS 140-3 violations in Go code and provide fix guidance.

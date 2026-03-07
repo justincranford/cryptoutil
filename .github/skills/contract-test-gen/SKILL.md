@@ -2,8 +2,6 @@
 name: contract-test-gen
 description: "Generate cross-service contract compliance tests for cryptoutil services. Use when adding a new service or integration test suite to verify it conforms to all shared framework behavioral contracts (health endpoints, dual-server isolation, response format)."
 argument-hint: "[service name or package path]"
-metadata:
-  domain: testing
 ---
 
 Generate cross-service contract compliance tests for cryptoutil services.
@@ -38,9 +36,9 @@ var _ cryptoutilTemplateServiceServer.ServiceServer = (*YourServiceServer)(nil)
 `
 
 The key contract methods used by RunContractTests:
-- PublicBaseURL() string — returns "https://127.0.0.1:<port>"
-- AdminBaseURL() string — returns "https://127.0.0.1:<port>"
-- SetReady(bool) — used by RunReadyzNotReadyContract
+- PublicBaseURL() string ï¿½ returns "https://127.0.0.1:<port>"
+- AdminBaseURL() string ï¿½ returns "https://127.0.0.1:<port>"
+- SetReady(bool) ï¿½ used by RunReadyzNotReadyContract
 
 ## TestMain Template (Manual)
 
@@ -103,7 +101,7 @@ cryptoutilContract.RunContractTests(t, testServer)
 
 - **SetReady(true)**: MANDATORY after MustStartAndWaitForDualPorts returns. Without it, readyz returns 503 and the readyz contract fails.
 - **DisableKeepAlives: true**: The contract package's built-in HTTP client already sets this. For custom HTTP clients in other integration tests, set it manually.
-- **DefaultDataServerShutdownTimeout**: A 	ime.Duration constant — NEVER multiply by 	ime.Second.
+- **DefaultDataServerShutdownTimeout**: A 	ime.Duration constant ï¿½ NEVER multiply by 	ime.Second.
 - RunReadyzNotReadyContract is NOT included in RunContractTests; call it separately in a sequential (non-parallel) test if needed.
 
 ## References

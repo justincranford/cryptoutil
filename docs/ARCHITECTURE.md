@@ -270,7 +270,7 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 
 Skills live in `.github/skills/NAME/SKILL.md` — each skill in its own subdirectory where the directory name matches the `name` field in the SKILL.md YAML frontmatter. Invoked via `/skill-name` slash command or auto-loaded by Copilot when the request matches the skill description. See [VS Code Agent Skills reference](https://code.visualstudio.com/docs/copilot/customization/agent-skills).
 
-**SKILL.md Frontmatter Requirements**: `name` (required, matches directory name, max 64 chars, lowercase-hyphens), `description` (required, max 1024 chars, specific about both capabilities and use cases), `argument-hint` (optional, hint shown in chat input), `metadata.domain` (required, one of: `testing`, `security`, `api`, `data`, `architecture`, `docs`, `tooling`).
+**SKILL.md Frontmatter Requirements**: `name` (required, matches directory name, max 64 chars, lowercase-hyphens), `description` (required, max 1024 chars, specific about both capabilities and use cases), `argument-hint` (optional, hint shown in chat input), `user-invocable` (optional, defaults true; set false to hide from / menu), `disable-model-invocation` (optional, defaults false; set true to require manual /skill invocation only). The `metadata:` sub-key is NOT a valid SKILL.md frontmatter field and MUST NOT be used.
 
 **Skill Catalogue**:
 

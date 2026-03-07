@@ -3,8 +3,6 @@ name: skill-scaffold
 description: "Create a conformant .github/skills/NAME/SKILL.md Agent Skill with proper YAML frontmatter. Use when adding a new Copilot skill to ensure correct subdirectory structure, required name/description fields, and skill catalogue registration in ARCHITECTURE.md and README.md."
 argument-hint: "[skill-name description]"
 disable-model-invocation: true
-metadata:
-  domain: tooling
 ---
 
 Create a conformant `.github/skills/NAME/SKILL.md` Agent Skill with proper YAML frontmatter.
@@ -32,8 +30,8 @@ containing YAML frontmatter. The `name` field **must match** the subdirectory na
 name: kebab-case-name
 description: "What it does AND when to use it. Max 1024 chars. Be specific."
 argument-hint: "[optional hint text]"
-metadata:
-  domain: testing|security|api|data|architecture|docs|tooling
+# Optional: disable-model-invocation: true  # for scaffold/ops-only skills
+# Optional: user-invocable: false          # for background knowledge skills
 ---
 
 ## Purpose
@@ -73,8 +71,8 @@ Read [ARCHITECTURE.md Section X.Y](../../../docs/ARCHITECTURE.md#xy-anchor) for 
 ## Mandatory Checklist
 
 - [ ] YAML frontmatter with `name` (matches directory name exactly), `description`, optional `argument-hint`
-- [ ] `metadata.domain` set to one of: `testing`, `security`, `api`, `data`, `architecture`, `docs`, `tooling`
 - [ ] `disable-model-invocation: true` for scaffold/ops-only skills; omit for auto-loadable general skills
+- [ ] `user-invocable: false` only for background knowledge skills hidden from / menu
 - [ ] At least one `Read [ARCHITECTURE.md ...]` reference relevant to the skill domain
 - [ ] Entry added to `.github/skills/README.md` skill table
 - [ ] Entry added to ARCHITECTURE.md Section 2.1.5 skill catalogue table

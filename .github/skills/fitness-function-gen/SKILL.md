@@ -2,8 +2,6 @@
 name: fitness-function-gen
 description: "Generate a new architecture fitness function (linter) for the cryptoutil lint-fitness framework. Use when adding a new architectural invariant that should be enforced via go run ./cmd/cicd lint-fitness across every service."
 argument-hint: "[linter-name] [architectural rule description]"
-metadata:
-  domain: testing
 ---
 
 Generate a new architecture fitness function for the cryptoutil lint-fitness framework.
@@ -77,7 +75,8 @@ return nil
 
 ## Registration in lint_fitness.go
 
-Add to the egisteredLinters slice in internal/apps/cicd/lint_fitness/lint_fitness.go:
+Add to the 
+egisteredLinters slice in internal/apps/cicd/lint_fitness/lint_fitness.go:
 
 `go
 import (
@@ -155,8 +154,8 @@ require.NoError(t, Check(newTestLogger()))
 
 ## After Creation
 
-1. Run go run ./cmd/cicd lint-fitness — must pass with your new linter included.
-2. Run tests: go test ./internal/apps/cicd/lint_fitness/... — must achieve =98% coverage.
+1. Run go run ./cmd/cicd lint-fitness ï¿½ must pass with your new linter included.
+2. Run tests: go test ./internal/apps/cicd/lint_fitness/... ï¿½ must achieve =98% coverage.
 3. Update lint_fitness_test.go TestLint_Success count if it has a hardcoded linter count.
 4. Commit with ci(cicd): add [linter-name] fitness function.
 

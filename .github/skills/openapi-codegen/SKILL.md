@@ -2,8 +2,6 @@
 name: openapi-codegen
 description: "Generate oapi-codegen configuration files and OpenAPI 3.0.3 spec skeletons for cryptoutil services. Use when creating or extending service APIs to produce the three standard configs (server/model/client) and a baseline spec with dual /service/ and /browser/ paths."
 argument-hint: "[service-name]"
-metadata:
-  domain: api
 ---
 
 Generate oapi-codegen configuration files and OpenAPI spec skeletons for cryptoutil services.
