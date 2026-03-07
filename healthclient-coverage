@@ -1,0 +1,19 @@
+mode: set
+cryptoutil/internal/apps/template/service/testing/healthclient/healthclient.go:24.72,31.16 3 1
+cryptoutil/internal/apps/template/service/testing/healthclient/healthclient.go:31.16,33.3 1 1
+cryptoutil/internal/apps/template/service/testing/healthclient/healthclient.go:35.2,42.3 1 1
+cryptoutil/internal/apps/template/service/testing/healthclient/healthclient.go:46.56,50.16 3 1
+cryptoutil/internal/apps/template/service/testing/healthclient/healthclient.go:50.16,52.3 1 1
+cryptoutil/internal/apps/template/service/testing/healthclient/healthclient.go:54.2,54.18 1 1
+cryptoutil/internal/apps/template/service/testing/healthclient/healthclient.go:58.57,62.16 3 1
+cryptoutil/internal/apps/template/service/testing/healthclient/healthclient.go:62.16,64.3 1 0
+cryptoutil/internal/apps/template/service/testing/healthclient/healthclient.go:66.2,66.18 1 1
+cryptoutil/internal/apps/template/service/testing/healthclient/healthclient.go:70.64,74.16 3 1
+cryptoutil/internal/apps/template/service/testing/healthclient/healthclient.go:74.16,76.3 1 0
+cryptoutil/internal/apps/template/service/testing/healthclient/healthclient.go:78.2,78.18 1 1
+cryptoutil/internal/apps/template/service/testing/healthclient/healthclient.go:82.64,86.16 3 1
+cryptoutil/internal/apps/template/service/testing/healthclient/healthclient.go:86.16,88.3 1 0
+cryptoutil/internal/apps/template/service/testing/healthclient/healthclient.go:90.2,90.18 1 1
+cryptoutil/internal/apps/template/service/testing/healthclient/healthclient.go:94.63,96.2 1 1
+cryptoutil/internal/apps/template/service/testing/healthclient/healthclient.go:100.41,101.37 1 1
+cryptoutil/internal/apps/template/service/testing/healthclient/healthclient.go:101.37,104.3 2 1
