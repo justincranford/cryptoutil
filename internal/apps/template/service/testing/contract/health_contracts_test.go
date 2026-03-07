@@ -7,11 +7,12 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	cryptoutilAppsSkeletonTemplateServer "cryptoutil/internal/apps/skeleton/template/server"
 	cryptoutilAppsSkeletonTemplateServerConfig "cryptoutil/internal/apps/skeleton/template/server/config"
 	cryptoutilAppsTemplateServiceTestingE2eHelpers "cryptoutil/internal/apps/template/service/testing/e2e_helpers"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-	"github.com/stretchr/testify/require"
 )
 
 func TestRunHealthContracts(t *testing.T) {
