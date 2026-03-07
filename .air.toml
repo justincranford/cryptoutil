@@ -1,0 +1,58 @@
+# Air - Live Reload Configuration
+# Usage: SERVICE=sm-im air
+# Prerequisites: go install github.com/air-verse/air@latest
+#
+# SERVICE env var must match a directory under cmd/, e.g.:
+#   sm-im, sm-kms, jose-ja, pki-ca, skeleton-template,
+#   identity-authz, identity-idp, identity-rp, identity-rs, identity-spa
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  # Binary output path
+  bin = "./tmp/main"
+  # Build command - SERVICE env var selects the target service
+  cmd = "go build -o ./tmp/main ./cmd/${SERVICE}"
+  # Run the compiled binary with dev mode flag
+  args_bin = ["server", "--dev"]
+  # Graceful shutdown: send interrupt first, then kill after delay
+  send_interrupt = true
+  kill_delay = "500ms"
+  kill_signal = "SIGTERM"
+  # Stop rebuilding on error - surface problems immediately
+  stop_on_error = false
+  rerun = false
+  rerun_delay = 500
+  delay = 1000
+  # Only watch these directories for changes
+  include_dir = ["internal", "cmd", "pkg", "api"]
+  # Only trigger on Go source changes
+  include_ext = ["go", "tpl", "tmpl", "html"]
+  # Exclude test files and generated code from triggering rebuilds
+  exclude_regex = ["_test\\.go$"]
+  # Exclude directories that don't affect service binaries
+  exclude_dir = ["tmp", "test-output", "docs", ".git", "node_modules", "vendor"]
+  follow_symlinks = false
+  log = "build-errors.log"
+  poll = false
+  poll_interval = 0
+  pre_cmd = []
+  post_cmd = []
+
+[color]
+  app = ""
+  build = "yellow"
+  main = "magenta"
+  runner = "green"
+  watcher = "cyan"
+
+[log]
+  main_only = false
+  time = true
+
+[misc]
+  clean_on_exit = true
+
+[screen]
+  clear_on_rebuild = false
+  keep_scroll = true

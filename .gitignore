@@ -89,6 +89,7 @@ load-reports/
 test-results/
 test-output/
 workflow-reports/
+tmp/
 
 # Virtual environments
 venv/

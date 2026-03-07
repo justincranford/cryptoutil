@@ -45,6 +45,7 @@ This guide covers setting up a complete development environment for the cryptout
 | **govulncheck** | `go install golang.org/x/vuln/cmd/govulncheck@latest` | Go vulnerability scanning |
 | **gremlins** | `go install github.com/go-gremlins/gremlins/cmd/gremlins@latest` | Mutation testing |
 | **oapi-codegen** | `go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest` | OpenAPI code generation |
+| **air** | `go install github.com/air-verse/air@latest` | Live reload for development (hot-rebuild on Save) |
 
 ### Security & Testing Tools
 
@@ -682,6 +683,47 @@ docker compose up -d postgres
 # Run with PostgreSQL config
 go run ./cmd/cryptoutil/main.go --config=configs/dev/postgresql.yml
 ```
+
+### Live Reload with air (Recommended for Active Development)
+
+Install air once:
+
+```bash
+go install github.com/air-verse/air@latest
+```
+
+Run a service with live reload — air rebuilds and restarts on every `.go` file save:
+
+```bash
+# Syntax: SERVICE=<service-name> air
+# SERVICE must match a directory under cmd/
+
+# SM Instant Messenger
+SERVICE=sm-im air
+
+# JOSE JWK Authority
+SERVICE=jose-ja air
+
+# SM Key Management Service
+SERVICE=sm-kms air
+
+# PKI Certificate Authority
+SERVICE=pki-ca air
+
+# Identity services
+SERVICE=identity-authz air
+SERVICE=identity-idp air
+SERVICE=identity-rp air
+SERVICE=identity-rs air
+SERVICE=identity-spa air
+```
+
+Air watches `internal/`, `cmd/`, `pkg/`, and `api/` directories.
+Build output goes to `tmp/main` (excluded from git).
+The server automatically runs with `--dev` flag (SQLite in-memory, debug logging).
+
+> **Note**: air requires the `SERVICE` environment variable to be set.
+> On Windows PowerShell use: `$env:SERVICE="sm-im"; air`
 
 ### Access the Application
 
