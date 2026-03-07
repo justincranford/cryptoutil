@@ -402,6 +402,14 @@ EOF
 - Performance testing
 - **Success**: [What E2E success looks like]
 
+### Phase N: Knowledge Propagation (Xh) [Status: ☐ TODO]
+**Objective**: Apply lessons learned to permanent artifacts — NEVER skip this phase
+- Review lessons.md from all prior phases
+- Update ARCHITECTURE.md with new patterns and decisions
+- Update agents, skills, and instructions where warranted
+- Verify propagation integrity (`go run ./cmd/cicd lint-docs validate-propagation`)
+- **Success**: All artifact updates committed; propagation check passes
+
 ## Executive Decisions (for complex work with multiple strategic options)
 
 **Format**: Document decisions made during planning with alternatives considered
@@ -513,6 +521,7 @@ EOF
 | API Architecture | [Section 8](../../docs/ARCHITECTURE.md#8-api-architecture) | Plans with API changes |
 | OTel/Telemetry | [Section 9.4](../../docs/ARCHITECTURE.md#94-telemetry-strategy) | Plans involving telemetry |
 | Plan Lifecycle | [Section 13.6](../../docs/ARCHITECTURE.md#136-plan-lifecycle-management) | ALL plans (mandatory) |
+| Post-Mortem & Knowledge Propagation | [Section 13.8](../../docs/ARCHITECTURE.md#138-phase-post-mortem--knowledge-propagation) | ALL plans (every phase post-mortem + final propagation phase) |
 
 **NON-COMPLIANT plans**: Any plan that does not reference relevant ARCHITECTURE.md sections for its scope is NON-COMPLIANT and MUST be updated before execution begins.
 - [ ] Evidence archived (test output, logs, analysis)
@@ -863,6 +872,29 @@ Running frequent Unit + integration + E2E tests locally:
 
 **Rationale**: Maintaining maximum quality is absolutely paramount. Example: Treating sm-im E2E timeouts as non-blocking was WRONG.
 
+### Knowledge Propagation Phase — MANDATORY
+
+**Every plan MUST include a final "Knowledge Propagation" phase** as the last phase, which:
+
+1. **Reviews lessons.md** collected during all prior phase post-mortems
+2. **Updates ARCHITECTURE.md** with new patterns, strategies, and architectural decisions discovered
+3. **Updates agents** (`.github/agents/*.agent.md`) with improved guidance and workflows
+4. **Updates skills** (`.github/skills/*/SKILL.md`) with new patterns and templates
+5. **Updates instructions** (`.github/instructions/*.instructions.md`) with new coding/testing patterns
+6. **Verifies propagation** by running `go run ./cmd/cicd lint-docs validate-propagation`
+7. Commits all artifact updates with separate semantic commits per artifact type
+
+**Phase Post-Mortem Self-Evaluation (EVERY phase)**:
+After each phase's quality gates, before starting the next phase, evaluate whether lessons expose contradictions or omissions in:
+- `docs/ARCHITECTURE.md` — architecture decisions, patterns, strategies
+- `.github/agents/*.agent.md` — agent guidance and workflows
+- `.github/skills/*/SKILL.md` — skill templates and guidance
+- `.github/instructions/*.instructions.md` — coding, testing, security guidelines
+
+If contradictions or omissions are found, create new phase tasks to fix them immediately.
+
+**When creating a plan**: Always include the Knowledge Propagation phase in the plan template at the end. Label it "Phase N: Knowledge Propagation" where N is one after the last implementation phase.
+
 ### Quizme File Purpose
 
 **Only create `<work-dir>/quizme-v#.md` for**:
@@ -986,6 +1018,10 @@ This is a key architectural decision in VS Code Copilot that explains why copilo
 - Use conventional commit format: `docs(<work-dir>): create/update plan-tasks`
 - Include list of files created/updated in commit message
 - NEVER leave uncommitted changes when agent stops
+
+**Semantic Grouping Rule:**
+- Each commit represents one semantically coherent unit (one plan created, one phase updated, one section revised)
+- NEVER bulk-accumulate changes across different semantic groups into one commit
 
 **After create/update/review action:**
 1. Stage all changes: `git add -A`

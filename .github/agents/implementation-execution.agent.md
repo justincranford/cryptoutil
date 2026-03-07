@@ -537,10 +537,13 @@ MUST commit after EVERY completed task:
 - Conventional commit format: type(scope): description
 - Include evidence in commit message
 - Push every 5-10 commits to enable monitoring
+- **Semantic Grouping**: Each commit MUST represent one semantically coherent unit of work (one feature, one fix, one refactor, one test suite, one doc update). NEVER batch changes across different semantic groups into a bulk commit.
+- **Periodic Commits**: A completed task = a commit. Prefer frequent small commits.
 
 NEVER:
 
 - Accumulate uncommitted changes across multiple tasks
+- Accumulate changes across different semantic groups into one bulk commit
 - Use --amend repeatedly (loses history)
 - Skip commits to "save time"
 
@@ -778,6 +781,7 @@ MUST commit after EVERY completed task (as defined in INCREMENTAL COMMITS sectio
 - Conventional commit format: `type(scope): description`
 - Include evidence in commit message
 - Push every 5-10 commits to enable monitoring
+- **Semantic Grouping**: Each commit = one semantically coherent unit. NEVER bulk-accumulate changes for different semantic groups.
 
 MUST commit at END of each agent invocation:
 - Before stopping, commit ALL uncommitted changes
@@ -812,14 +816,20 @@ Execute continuously until finished.
 **Phase-Based Post-Mortem - MANDATORY:**
 
 - Tasks in tasks.md are grouped by phase
-- At end of EVERY phase, conduct post-mortem:
+- At end of EVERY phase (after quality gates pass), conduct post-mortem BEFORE starting next phase:
   1. Update issues.md with all issues discovered in phase
   2. Update categories.md with pattern analysis
-  3. Update lessons.md with lessons learned
-  4. **CRITICAL**: Identify new phases and/or tasks to insert or append
-  5. Update plan.md with new phases
-  6. Update tasks.md with new tasks (insert or append after current phase)
-  7. This is self-learning and automated fixing
+  3. Update lessons.md with lessons learned (what worked, what didn't, root causes, patterns)
+  4. **CRITICAL: Artifact Self-Evaluation** — evaluate whether phase lessons expose contradictions or omissions in:
+     - `docs/ARCHITECTURE.md` — architecture decisions, patterns, strategies
+     - `.github/agents/*.agent.md` — agent guidance and workflows
+     - `.github/skills/*/SKILL.md` — skill templates and guidance
+     - `.github/instructions/*.instructions.md` — coding, testing, security guidelines
+  5. **CRITICAL**: If any artifact needs updating, create new phase tasks to fix them IMMEDIATELY (NEVER defer)
+  6. **CRITICAL**: Identify new phases and/or tasks for blockers, gaps, or artifact fixes
+  7. Update plan.md with new phases
+  8. Update tasks.md with new tasks (insert or append after current phase)
+  9. This is self-learning and automated fixing — skipping post-mortems is FORBIDDEN
 
 **MANDATORY: When Encountering BLOCKED/SKIPPED/DEFERRED Tasks:**
 
@@ -890,9 +900,17 @@ If a task cannot be completed due to architectural limitations, missing infrastr
 **Analysis Deliverables:**
 
 1. **Finalize The 5 Docs**: Ensure issues.md, categories.md, and lessons.md are complete and committed. plan.md and tasks.md should already exist with all tasks marked `[x]`.
-2. **Extract Lessons to Permanent Homes**: From lessons.md to permanent copilot instructions, READMEs, DEV-SETUP, agent-prompt-best-practices
-3. **Document Patterns and Prevention Strategies**: Ensure categories.md contains all recurring patterns, add prevention strategies to copilot instructions
-4. **Commit with Audit Trail**: Use detailed conventional commit message listing all changes, related task IDs from tasks.md, metrics
+2. **Extract Lessons to Permanent Homes**: From lessons.md, update permanent artifacts as warranted:
+   - `docs/ARCHITECTURE.md` — Add/update patterns, strategies, and architectural decisions
+   - `.github/agents/*.agent.md` — Improve agent guidance and workflows
+   - `.github/skills/*/SKILL.md` — Add/update skill templates for new patterns
+   - `.github/instructions/*.instructions.md` — Update coding/testing/security guidelines
+   - `README.md`, `docs/DEV-SETUP.md` — Developer-facing documentation
+3. **Artifact Self-Evaluation**: Review ALL of the following for contradictions or omissions introduced by this plan:
+   - Every `@source` block in instruction files must match its `@propagate` block in ARCHITECTURE.md
+   - Run `go run ./cmd/cicd lint-docs validate-propagation` to verify propagation integrity
+4. **Document Patterns and Prevention Strategies**: Ensure categories.md contains all recurring patterns, add prevention strategies to copilot instructions
+5. **Commit with Audit Trail**: Use separate semantic commits per artifact type: (1) ARCHITECTURE.md, (2) agents, (3) skills, (4) instructions
 
 **Anti-Patterns:**
 
