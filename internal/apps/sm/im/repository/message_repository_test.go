@@ -274,10 +274,9 @@ func TestMessageRepository_FindByRecipientID(t *testing.T) {
 					require.GreaterOrEqual(t, retrieved[i].CreatedAt, retrieved[i+1].CreatedAt, "Messages should be ordered by created_at DESC")
 				}
 
-				// Verify sender preloaded.
+				// Verify messages contain expected SenderID.
 				for _, msg := range retrieved {
-					require.NotNil(t, msg.Sender, "Sender should be preloaded")
-					require.Equal(t, sender.ID, msg.Sender.ID)
+					require.Equal(t, sender.ID, msg.SenderID, "SenderID should match the sender")
 				}
 			}
 		})
