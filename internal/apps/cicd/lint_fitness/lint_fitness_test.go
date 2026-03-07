@@ -40,6 +40,29 @@ func findProjectRoot() (string, error) {
 	}
 }
 
+// TestLint_ErrorPropagation verifies that Lint aggregates and returns errors from failing linters.
+//
+// Sequential: mutates registeredLinters package-level state.
+func TestLint_ErrorPropagation(t *testing.T) {
+	origLinters := registeredLinters
+
+	defer func() { registeredLinters = origLinters }()
+
+	registeredLinters = []struct {
+		name   string
+		linter LinterFunc
+	}{
+		{"always-ok", func(_ *cryptoutilCmdCicdCommon.Logger) error { return nil }},
+		{"always-fail", func(_ *cryptoutilCmdCicdCommon.Logger) error { return fmt.Errorf("mock linter failure") }},
+	}
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test-lint-fitness-error")
+
+	err := Lint(logger)
+	require.Error(t, err, "Lint should return error when a linter fails")
+	require.Contains(t, err.Error(), "lint-fitness failed with 1 errors")
+}
+
 // Sequential: uses os.Chdir (global process state).
 func TestLint_Integration(t *testing.T) {
 	// NOTE: Cannot use t.Parallel() - test changes working directory.

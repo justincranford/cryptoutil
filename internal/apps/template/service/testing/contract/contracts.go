@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2025 Justin Cranford
+// Copyright (c) 2025 Justin Cranford
 //
 
 // Package contract provides cross-service contract tests for the cryptoutil framework.
