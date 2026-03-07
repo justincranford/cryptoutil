@@ -125,7 +125,7 @@ func TestFindDomainMigrationDirs_WithIdentity_ExcludesIt(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, d := range dirs {
-			require.NotContains(t, d, cryptoutilSharedMagic.IdentityProductName)
+		require.NotContains(t, d, cryptoutilSharedMagic.IdentityProductName)
 	}
 }
 

@@ -6,13 +6,13 @@
 package health_endpoint_presence
 
 import (
-"fmt"
-"os"
-"path/filepath"
-"strings"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
 
-cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
-cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // healthRequirements are string patterns that must appear somewhere in a service.
@@ -20,49 +20,49 @@ var healthRequirements = []string{"livez", "readyz"}
 
 // Check verifies health endpoint presence from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
-return CheckInDir(logger, ".")
+	return CheckInDir(logger, ".")
 }
 
 // CheckInDir verifies health endpoint presence under rootDir.
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
-logger.Log("Checking health endpoint presence in services...")
+	logger.Log("Checking health endpoint presence in services...")
 
-projectRoot, err := filepath.Abs(rootDir)
-if err != nil {
-return fmt.Errorf("failed to resolve root dir: %w", err)
-}
+	projectRoot, err := filepath.Abs(rootDir)
+	if err != nil {
+		return fmt.Errorf("failed to resolve root dir: %w", err)
+	}
 
-appsDir := filepath.Join(projectRoot, "internal", "apps")
+	appsDir := filepath.Join(projectRoot, "internal", "apps")
 
-services, err := discoverServices(appsDir)
-if err != nil {
-return fmt.Errorf("failed to discover services: %w", err)
-}
+	services, err := discoverServices(appsDir)
+	if err != nil {
+		return fmt.Errorf("failed to discover services: %w", err)
+	}
 
-var violations []string
+	var violations []string
 
-for _, svc := range services {
-svcViolations := checkServiceHealth(svc, appsDir)
-violations = append(violations, svcViolations...)
-}
+	for _, svc := range services {
+		svcViolations := checkServiceHealth(svc, appsDir)
+		violations = append(violations, svcViolations...)
+	}
 
-if len(violations) > 0 {
-for _, v := range violations {
-fmt.Fprintln(os.Stderr, v)
-}
+	if len(violations) > 0 {
+		for _, v := range violations {
+			fmt.Fprintln(os.Stderr, v)
+		}
 
-return fmt.Errorf("found %d health endpoint presence violations", len(violations))
-}
+		return fmt.Errorf("found %d health endpoint presence violations", len(violations))
+	}
 
-logger.Log("Health endpoint presence check passed")
+	logger.Log("Health endpoint presence check passed")
 
-return nil
+	return nil
 }
 
 // serviceID holds product/service name pair.
 type serviceID struct {
-product string
-service string
+	product string
+	service string
 }
 
 // discoverServices returns all product/service pairs under appsDir.
@@ -116,12 +116,12 @@ func discoverServices(appsDir string) ([]serviceID, error) {
 
 // checkServiceHealth checks that a service references all required health patterns.
 func checkServiceHealth(svc serviceID, appsDir string) []string {
-svcDir := filepath.Join(appsDir, svc.product, svc.service)
+	svcDir := filepath.Join(appsDir, svc.product, svc.service)
 
-// Collect all Go file content in the service directory.
-foundPatterns := make(map[string]bool)
+	// Collect all Go file content in the service directory.
+	foundPatterns := make(map[string]bool)
 
-_ = filepath.Walk(svcDir, func(path string, info os.FileInfo, err error) error {
+	_ = filepath.Walk(svcDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -135,23 +135,23 @@ _ = filepath.Walk(svcDir, func(path string, info os.FileInfo, err error) error {
 			return fmt.Errorf("reading file %s: %w", path, readErr)
 		}
 
-for _, pattern := range healthRequirements {
-if strings.Contains(string(content), pattern) {
-foundPatterns[pattern] = true
-}
-}
+		for _, pattern := range healthRequirements {
+			if strings.Contains(string(content), pattern) {
+				foundPatterns[pattern] = true
+			}
+		}
 
-return nil
-})
+		return nil
+	})
 
-var violations []string
+	var violations []string
 
-for _, pattern := range healthRequirements {
-if !foundPatterns[pattern] {
-violations = append(violations, fmt.Sprintf(
-"internal/apps/%s/%s: missing health pattern %q", svc.product, svc.service, pattern))
-}
-}
+	for _, pattern := range healthRequirements {
+		if !foundPatterns[pattern] {
+			violations = append(violations, fmt.Sprintf(
+				"internal/apps/%s/%s: missing health pattern %q", svc.product, svc.service, pattern))
+		}
+	}
 
-return violations
+	return violations
 }

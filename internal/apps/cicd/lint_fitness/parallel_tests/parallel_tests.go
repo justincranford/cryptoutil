@@ -5,15 +5,15 @@ package parallel_tests
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
-	"io/fs"
-	"path/filepath"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	lintGoTestCommon "cryptoutil/internal/apps/cicd/lint_gotest/common"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const defaultSequentialCommentWindow = 10
@@ -134,30 +134,30 @@ func CheckParallelUsage(filePath string) []string {
 // Check runs the linter by discovering all _test.go files in the repository.
 // Returns an error if any violations are found.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
-var testFiles []string
+	var testFiles []string
 
-err := filepath.WalkDir(".", func(path string, d fs.DirEntry, walkErr error) error {
-if walkErr != nil {
-return walkErr
-}
+	err := filepath.WalkDir(".", func(path string, d fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
 
-if d.IsDir() {
-if d.Name() == cryptoutilSharedMagic.CICDExcludeDirVendor || d.Name() == cryptoutilSharedMagic.CICDExcludeDirGit {
-return filepath.SkipDir
-}
+		if d.IsDir() {
+			if d.Name() == cryptoutilSharedMagic.CICDExcludeDirVendor || d.Name() == cryptoutilSharedMagic.CICDExcludeDirGit {
+				return filepath.SkipDir
+			}
 
-return nil
-}
+			return nil
+		}
 
-if strings.HasSuffix(path, "_test.go") {
-testFiles = append(testFiles, path)
-}
+		if strings.HasSuffix(path, "_test.go") {
+			testFiles = append(testFiles, path)
+		}
 
-return nil
-})
-if err != nil {
-return fmt.Errorf("walking test files: %w", err)
-}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("walking test files: %w", err)
+	}
 
-return CheckFiles(logger, testFiles)
+	return CheckFiles(logger, testFiles)
 }

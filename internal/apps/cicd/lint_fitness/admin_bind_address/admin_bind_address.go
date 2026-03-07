@@ -39,7 +39,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 		if info.IsDir() {
 			name := info.Name()
-				if name == cryptoutilSharedMagic.CICDExcludeDirGit || name == cryptoutilSharedMagic.CICDExcludeDirVendor || name == "test-output" || name == "deployments" {
+			if name == cryptoutilSharedMagic.CICDExcludeDirGit || name == cryptoutilSharedMagic.CICDExcludeDirVendor || name == "test-output" || name == "deployments" {
 				return filepath.SkipDir
 			}
 
@@ -110,7 +110,7 @@ func scanForAdminBindViolations(filePath, projectRoot string) ([]string, error) 
 
 		// Check for patterns like BindPrivateAddress set to 0.0.0.0.
 		for _, pattern := range adminBindPatterns {
-				if strings.Contains(line, pattern) && strings.Contains(line, cryptoutilSharedMagic.IPv4AnyAddress) {
+			if strings.Contains(line, pattern) && strings.Contains(line, cryptoutilSharedMagic.IPv4AnyAddress) {
 				violations = append(violations, fmt.Sprintf(
 					"%s:%d: admin bind address is 0.0.0.0 (use 127.0.0.1): %s",
 					rel, lineNum, strings.TrimSpace(line)))

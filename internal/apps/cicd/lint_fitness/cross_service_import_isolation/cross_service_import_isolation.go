@@ -9,15 +9,15 @@
 package cross_service_import_isolation
 
 import (
-"bufio"
-"fmt"
-"os"
-"path/filepath"
-"regexp"
-"strings"
+	"bufio"
+	"fmt"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
 
-cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
-cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
@@ -32,52 +32,52 @@ var importLinePattern = regexp.MustCompile(`^\s+(?:\w+ )?"([^"]+)"`)
 
 // Check verifies cross-service import isolation from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
-return CheckInDir(logger, ".")
+	return CheckInDir(logger, ".")
 }
 
 // CheckInDir verifies cross-service import isolation under rootDir.
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
-logger.Log("Checking cross-service import isolation...")
+	logger.Log("Checking cross-service import isolation...")
 
-projectRoot, err := filepath.Abs(rootDir)
-if err != nil {
-return fmt.Errorf("failed to resolve root dir: %w", err)
-}
+	projectRoot, err := filepath.Abs(rootDir)
+	if err != nil {
+		return fmt.Errorf("failed to resolve root dir: %w", err)
+	}
 
-appsDir := filepath.Join(projectRoot, "internal", "apps")
+	appsDir := filepath.Join(projectRoot, "internal", "apps")
 
-services, err := collectServices(appsDir)
-if err != nil {
-return fmt.Errorf("failed to collect services: %w", err)
-}
+	services, err := collectServices(appsDir)
+	if err != nil {
+		return fmt.Errorf("failed to collect services: %w", err)
+	}
 
-var violations []string
+	var violations []string
 
-for _, svc := range services {
-svcDir := filepath.Join(appsDir, svc.product, svc.service)
+	for _, svc := range services {
+		svcDir := filepath.Join(appsDir, svc.product, svc.service)
 
-if walkErr := walkServiceImports(projectRoot, svcDir, svc, services, &violations); walkErr != nil {
-return fmt.Errorf("failed to scan service %s/%s: %w", svc.product, svc.service, walkErr)
-}
-}
+		if walkErr := walkServiceImports(projectRoot, svcDir, svc, services, &violations); walkErr != nil {
+			return fmt.Errorf("failed to scan service %s/%s: %w", svc.product, svc.service, walkErr)
+		}
+	}
 
-if len(violations) > 0 {
-for _, v := range violations {
-fmt.Fprintln(os.Stderr, v)
-}
+	if len(violations) > 0 {
+		for _, v := range violations {
+			fmt.Fprintln(os.Stderr, v)
+		}
 
-return fmt.Errorf("found %d cross-service import isolation violations", len(violations))
-}
+		return fmt.Errorf("found %d cross-service import isolation violations", len(violations))
+	}
 
-logger.Log("Cross-service import isolation check passed")
+	logger.Log("Cross-service import isolation check passed")
 
-return nil
+	return nil
 }
 
 // serviceRef identifies a product+service pair.
 type serviceRef struct {
-product string
-service string
+	product string
+	service string
 }
 
 // collectServices discovers all product/service directories under appsDir.
@@ -85,54 +85,54 @@ service string
 // Directories starting with _ (archived) are excluded.
 // The cicd and skeleton products are excluded as they are tooling/templates.
 func collectServices(appsDir string) ([]serviceRef, error) {
-var services []serviceRef
+	var services []serviceRef
 
-products, err := os.ReadDir(appsDir)
-if err != nil {
-return nil, fmt.Errorf("read apps dir: %w", err)
-}
+	products, err := os.ReadDir(appsDir)
+	if err != nil {
+		return nil, fmt.Errorf("read apps dir: %w", err)
+	}
 
-for _, productEntry := range products {
-if !productEntry.IsDir() {
-continue
-}
+	for _, productEntry := range products {
+		if !productEntry.IsDir() {
+			continue
+		}
 
-product := productEntry.Name()
+		product := productEntry.Name()
 
-// Skip archived directories, cicd tooling, and skeleton templates.
-			if strings.HasPrefix(product, "_") || product == cicdProductName || product == cryptoutilSharedMagic.SkeletonProductName {
-continue
-}
+		// Skip archived directories, cicd tooling, and skeleton templates.
+		if strings.HasPrefix(product, "_") || product == cicdProductName || product == cryptoutilSharedMagic.SkeletonProductName {
+			continue
+		}
 
-productDir := filepath.Join(appsDir, product)
+		productDir := filepath.Join(appsDir, product)
 
-serviceEntries, err := os.ReadDir(productDir)
-if err != nil {
-return nil, fmt.Errorf("read product dir %s: %w", product, err)
-}
+		serviceEntries, err := os.ReadDir(productDir)
+		if err != nil {
+			return nil, fmt.Errorf("read product dir %s: %w", product, err)
+		}
 
-for _, svcEntry := range serviceEntries {
-if !svcEntry.IsDir() {
-continue
-}
+		for _, svcEntry := range serviceEntries {
+			if !svcEntry.IsDir() {
+				continue
+			}
 
-// Skip archived service directories.
-if strings.HasPrefix(svcEntry.Name(), "_") {
-continue
-}
+			// Skip archived service directories.
+			if strings.HasPrefix(svcEntry.Name(), "_") {
+				continue
+			}
 
-// Only directories with server/ are real services.
-// Shared packages (identity/domain, identity/config, etc.) lack server/.
-serverDir := filepath.Join(productDir, svcEntry.Name(), "server")
-if _, statErr := os.Stat(serverDir); os.IsNotExist(statErr) {
-continue
-}
+			// Only directories with server/ are real services.
+			// Shared packages (identity/domain, identity/config, etc.) lack server/.
+			serverDir := filepath.Join(productDir, svcEntry.Name(), "server")
+			if _, statErr := os.Stat(serverDir); os.IsNotExist(statErr) {
+				continue
+			}
 
-services = append(services, serviceRef{product: product, service: svcEntry.Name()})
-}
-}
+			services = append(services, serviceRef{product: product, service: svcEntry.Name()})
+		}
+	}
 
-return services, nil
+	return services, nil
 }
 
 func walkServiceImports(projectRoot, svcDir string, self serviceRef, allServices []serviceRef, violations *[]string) error {
@@ -217,38 +217,38 @@ func extractImports(filePath string) ([]string, error) {
 // may share packages (e.g., identity/idp importing identity/authz/clientauth).
 // Cross-product imports are forbidden: e.g., jose/ja importing pki/ca internals.
 func isViolation(importPath string, self serviceRef, allServices []serviceRef) bool {
-const appsPrefix = "cryptoutil/internal/apps/"
+	const appsPrefix = "cryptoutil/internal/apps/"
 
-if !strings.HasPrefix(importPath, appsPrefix) {
-return false
-}
+	if !strings.HasPrefix(importPath, appsPrefix) {
+		return false
+	}
 
-rest := strings.TrimPrefix(importPath, appsPrefix)
-parts := strings.SplitN(rest, "/", importPrefixSplitN)
+	rest := strings.TrimPrefix(importPath, appsPrefix)
+	parts := strings.SplitN(rest, "/", importPrefixSplitN)
 
-if len(parts) < importPrefixSplitN-1 {
-return false
-}
+	if len(parts) < importPrefixSplitN-1 {
+		return false
+	}
 
-importProduct := parts[0]
-importService := parts[1]
+	importProduct := parts[0]
+	importService := parts[1]
 
-// Allow template imports (all services may import template) and cicd (tooling).
+	// Allow template imports (all services may import template) and cicd (tooling).
 	if importProduct == cryptoutilSharedMagic.SkeletonTemplateServiceName || importProduct == cicdProductName {
-return false
-}
+		return false
+	}
 
-// Allow self-imports and same-product imports.
-if importProduct == self.product {
-return false
-}
+	// Allow self-imports and same-product imports.
+	if importProduct == self.product {
+		return false
+	}
 
-// Cross-product: check if the import points to another product's service.
-for _, svc := range allServices {
-if svc.product == importProduct && svc.service == importService {
-return true
-}
-}
+	// Cross-product: check if the import points to another product's service.
+	for _, svc := range allServices {
+		if svc.product == importProduct && svc.service == importService {
+			return true
+		}
+	}
 
-return false
+	return false
 }
