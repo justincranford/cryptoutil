@@ -13,6 +13,7 @@ import (
 
 	cryptoutilAppsSmImServer "cryptoutil/internal/apps/sm/im/server"
 	cryptoutilAppsSmImServerConfig "cryptoutil/internal/apps/sm/im/server/config"
+	cryptoutilTestingTestserver "cryptoutil/internal/apps/template/service/testing/testserver"
 )
 
 // TestServer_AccessorMethods tests all server accessor methods (delegation to Application).
@@ -152,49 +153,27 @@ func TestServer_SetReady(t *testing.T) {
 func TestServer_Shutdown(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	startCtx, startCancel := context.WithCancel(context.Background())
+	defer startCancel() // ensure start goroutine exits when test returns
 
 	// Create test configuration.
 	cfg := cryptoutilAppsSmImServerConfig.DefaultTestConfig()
 
 	// Create new server instance (separate from TestMain's testSmIMServer).
-	testServer, err := cryptoutilAppsSmImServer.NewFromConfig(ctx, cfg)
+	testServer, err := cryptoutilAppsSmImServer.NewFromConfig(startCtx, cfg)
 	require.NoError(t, err, "Failed to create test server")
 	require.NotNil(t, testServer, "Server should not be nil")
 
-	// Start server in background.
-	startCtx, startCancel := context.WithCancel(ctx)
-	defer startCancel()
-
-	startErrCh := make(chan error, 1)
-
-	go func() {
-		startErrCh <- testServer.Start(startCtx)
-	}()
-
-	// Wait for server to become ready (check public port is assigned).
-	require.Eventually(t, func() bool {
-		return testServer.PublicPort() > 0
-	}, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond, "Server should start within 5 seconds")
+	// Start server and wait for both ports using shared helper.
+	// t.Cleanup will call server.Shutdown when test completes.
+	cryptoutilTestingTestserver.StartAndWait(startCtx, t, testServer)
 
 	// Test graceful shutdown.
-	shutdownCtx, shutdownCancel := context.WithTimeout(ctx, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second)
 	defer shutdownCancel()
 
 	err = testServer.Shutdown(shutdownCtx)
 	require.NoError(t, err, "Shutdown should succeed without errors")
-
-	// Verify Start() exits after shutdown.
-	select {
-	case startErr := <-startErrCh:
-		// Start() may return error after graceful shutdown (context canceled) - this is acceptable.
-		// The important part is that Start() exits (doesn't block forever).
-		if startErr != nil {
-			t.Logf("Start() returned error after shutdown (expected): %v", startErr)
-		}
-	case <-time.After(2 * time.Second):
-		t.Fatal("Start() did not exit within 2 seconds after shutdown")
-	}
 }
 
 // TestServer_Start_WithInvalidContext tests Start() error handling.

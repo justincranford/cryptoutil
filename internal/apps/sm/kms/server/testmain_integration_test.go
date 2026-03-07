@@ -17,13 +17,15 @@ import (
 
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceTestingE2eHelpers "cryptoutil/internal/apps/template/service/testing/e2e_helpers"
+	cryptoutilTestingHealthclient "cryptoutil/internal/apps/template/service/testing/healthclient"
 )
 
 var (
-	testIntegrationServer    *KMSServer
-	testIntegrationClient    *http.Client
-	testIntegrationPublicURL string
-	testIntegrationAdminURL  string
+	testIntegrationServer       *KMSServer
+	testIntegrationClient       *http.Client
+	testIntegrationHealthClient *cryptoutilTestingHealthclient.HealthClient
+	testIntegrationPublicURL   string
+	testIntegrationAdminURL    string
 )
 
 func TestMain(m *testing.M) {
@@ -47,6 +49,9 @@ func TestMain(m *testing.M) {
 
 	// Store base URLs for tests.
 	testIntegrationPublicURL, testIntegrationAdminURL = cryptoutilAppsTemplateServiceTestingE2eHelpers.DualPortBaseURLs(testIntegrationServer)
+
+	// Create shared health client.
+	testIntegrationHealthClient = cryptoutilTestingHealthclient.NewHealthClient(testIntegrationPublicURL, testIntegrationAdminURL)
 
 	// Create HTTP client that accepts self-signed certificates.
 	testIntegrationClient = &http.Client{

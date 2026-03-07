@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsJoseJaServerConfig "cryptoutil/internal/apps/jose/ja/server/config"
+	cryptoutilTestingTestserver "cryptoutil/internal/apps/template/service/testing/testserver"
 )
 
 func TestJoseJAServer_Lifecycle(t *testing.T) {
@@ -22,17 +23,13 @@ func TestJoseJAServer_Lifecycle(t *testing.T) {
 	require.NotEmpty(t, testAdminBaseURL, "admin base URL should not be empty")
 
 	// Test /admin/api/v1/livez endpoint.
-	livezReq, err := http.NewRequestWithContext(context.Background(), http.MethodGet, fmt.Sprintf("%s/admin/api/v1/livez", testAdminBaseURL), nil)
-	require.NoError(t, err, "livez request creation should succeed")
-	livezResp, err := testHTTPClient.Do(livezReq)
+	livezResp, err := testHealthClient.Livez()
 	require.NoError(t, err, "livez request should succeed")
 	require.Equal(t, http.StatusOK, livezResp.StatusCode, "livez should return 200 OK")
 	require.NoError(t, livezResp.Body.Close())
 
 	// Test /admin/api/v1/readyz endpoint.
-	readyzReq, err := http.NewRequestWithContext(context.Background(), http.MethodGet, fmt.Sprintf("%s/admin/api/v1/readyz", testAdminBaseURL), nil)
-	require.NoError(t, err, "readyz request creation should succeed")
-	readyzResp, err := testHTTPClient.Do(readyzReq)
+	readyzResp, err := testHealthClient.Readyz()
 	require.NoError(t, err, "readyz request should succeed")
 	require.Equal(t, http.StatusOK, readyzResp.StatusCode, "readyz should return 200 OK")
 	require.NoError(t, readyzResp.Body.Close())
@@ -106,10 +103,9 @@ func TestJoseJAServer_Accessors(t *testing.T) {
 
 func TestJoseJAServer_ShutdownIdempotent(t *testing.T) {
 	t.Parallel()
-	// Test that calling Shutdown on an already-running server is idempotent.
-	// Note: We can't actually shut down testServer as other tests need it.
-	// This test creates a separate server instance to test shutdown coverage.
-	ctx := context.Background()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel() // ensure start goroutine exits when test returns
 
 	// Create test configuration with different ports.
 	cfg := cryptoutilAppsJoseJaServerConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
@@ -118,26 +114,14 @@ func TestJoseJAServer_ShutdownIdempotent(t *testing.T) {
 	server, err := NewFromConfig(ctx, cfg)
 	require.NoError(t, err, "server creation should succeed")
 
-	// Start server in background.
-	errChan := make(chan error, 1)
+	// Start server and wait for both ports using shared helper.
+	// t.Cleanup will call server.Shutdown when test completes.
+	cryptoutilTestingTestserver.StartAndWait(ctx, t, server)
 
-	go func() {
-		if startErr := server.Start(ctx); startErr != nil {
-			errChan <- startErr
-		}
-	}()
-
-	// Wait for server to bind.
-	require.Eventually(t, func() bool {
-		return server.PublicPort() > 0 && server.AdminPort() > 0
-	}, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond, "server should bind to ports")
-
-	// Mark server as ready.
-	server.SetReady(true)
-
-	// Shutdown the server - this should succeed.
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
-	defer cancel()
+	// Shutdown the server explicitly (covers Shutdown happy path).
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(),
+		cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
+	defer shutdownCancel()
 
 	err = server.Shutdown(shutdownCtx)
 	require.NoError(t, err, "shutdown should succeed")

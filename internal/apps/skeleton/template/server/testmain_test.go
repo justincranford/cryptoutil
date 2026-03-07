@@ -15,11 +15,13 @@ import (
 	cryptoutilAppsSkeletonTemplateServerConfig "cryptoutil/internal/apps/skeleton/template/server/config"
 	cryptoutilAppsTemplateServiceTestingE2eHelpers "cryptoutil/internal/apps/template/service/testing/e2e_helpers"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilTestingHealthclient "cryptoutil/internal/apps/template/service/testing/healthclient"
 )
 
 var (
 	testServer        *SkeletonTemplateServer
 	testHTTPClient    *http.Client
+	testHealthClient  *cryptoutilTestingHealthclient.HealthClient
 	testPublicBaseURL string
 	testAdminBaseURL  string
 )
@@ -48,6 +50,7 @@ func TestMain(m *testing.M) {
 
 	// Store base URLs for tests.
 	testPublicBaseURL, testAdminBaseURL = cryptoutilAppsTemplateServiceTestingE2eHelpers.DualPortBaseURLs(testServer)
+	testHealthClient = cryptoutilTestingHealthclient.NewHealthClient(testPublicBaseURL, testAdminBaseURL)
 
 	// Create HTTP client that accepts self-signed certificates.
 	testHTTPClient = &http.Client{

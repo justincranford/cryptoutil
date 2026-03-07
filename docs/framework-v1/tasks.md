@@ -664,18 +664,18 @@
 
 #### Task 5.7: Migrate Existing Services to Shared Helpers
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 4h
-- **Actual**: [Fill when complete]
+- **Actual**: 4h
 - **Dependencies**: Tasks 5.2-5.6
 - **Description**: Update existing service TestMain functions and test helpers to use the new shared packages.
 - **Acceptance Criteria**:
-  - [ ] At least sm-im, jose-ja, sm-kms, skeleton-template migrated to shared helpers (Core 4)
-  - [ ] sm-kms migration enabled by KMS unification from Phase 1
-  - [ ] Remaining 6 services documented for future migration
-  - [ ] All migrated tests pass
-  - [ ] Net line reduction measured and documented
+  - [x] At least sm-im, jose-ja, sm-kms, skeleton-template migrated to shared helpers (Core 4)
+  - [x] sm-kms migration enabled by KMS unification from Phase 1
+  - [x] Remaining 6 services documented for future migration (see test-output/framework-v1/phase5/task-5.7-migration-evidence.md)
+  - [x] All migrated tests pass
+  - [x] Net line reduction measured and documented (-58 net lines: +49/-107)
   - [x] No regressions in any existing test
 
 #### Task 5.8: Phase 5 Quality Gate
@@ -1070,18 +1070,18 @@
 
 #### Task 5.7: Migrate Existing Services to Shared Helpers
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 4h
-- **Actual**: [Fill when complete]
+- **Actual**: 4h
 - **Dependencies**: Tasks 5.2-5.6
 - **Description**: Update existing service TestMain functions and test helpers to use the new shared packages.
 - **Acceptance Criteria**:
-  - [ ] At least sm-im, jose-ja, sm-kms, skeleton-template migrated to shared helpers (Core 4)
-  - [ ] sm-kms migration enabled by KMS unification from Phase 1
-  - [ ] Remaining 6 services documented for future migration
-  - [ ] All migrated tests pass
-  - [ ] Net line reduction measured and documented
+  - [x] At least sm-im, jose-ja, sm-kms, skeleton-template migrated to shared helpers (Core 4)
+  - [x] sm-kms migration enabled by KMS unification from Phase 1
+  - [x] Remaining 6 services documented for future migration (see test-output/framework-v1/phase5/task-5.7-migration-evidence.md)
+  - [x] All migrated tests pass
+  - [x] Net line reduction measured and documented (-58 net lines: +49/-107)
   - [x] No regressions in any existing test
 
 #### Task 5.8: Phase 5 Quality Gate
@@ -1476,18 +1476,18 @@
 
 #### Task 5.7: Migrate Existing Services to Shared Helpers
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 4h
-- **Actual**: [Fill when complete]
+- **Actual**: 4h
 - **Dependencies**: Tasks 5.2-5.6
 - **Description**: Update existing service TestMain functions and test helpers to use the new shared packages.
 - **Acceptance Criteria**:
-  - [ ] At least sm-im, jose-ja, sm-kms, skeleton-template migrated to shared helpers (Core 4)
-  - [ ] sm-kms migration enabled by KMS unification from Phase 1
-  - [ ] Remaining 6 services documented for future migration
-  - [ ] All migrated tests pass
-  - [ ] Net line reduction measured and documented
+  - [x] At least sm-im, jose-ja, sm-kms, skeleton-template migrated to shared helpers (Core 4)
+  - [x] sm-kms migration enabled by KMS unification from Phase 1
+  - [x] Remaining 6 services documented for future migration (see test-output/framework-v1/phase5/task-5.7-migration-evidence.md)
+  - [x] All migrated tests pass
+  - [x] Net line reduction measured and documented (-58 net lines: +49/-107)
   - [x] No regressions in any existing test
 
 #### Task 5.8: Phase 5 Quality Gate
@@ -1882,18 +1882,18 @@
 
 #### Task 5.7: Migrate Existing Services to Shared Helpers
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 4h
-- **Actual**: [Fill when complete]
+- **Actual**: 4h
 - **Dependencies**: Tasks 5.2-5.6
 - **Description**: Update existing service TestMain functions and test helpers to use the new shared packages.
 - **Acceptance Criteria**:
-  - [ ] At least sm-im, jose-ja, sm-kms, skeleton-template migrated to shared helpers (Core 4)
-  - [ ] sm-kms migration enabled by KMS unification from Phase 1
-  - [ ] Remaining 6 services documented for future migration
-  - [ ] All migrated tests pass
-  - [ ] Net line reduction measured and documented
+  - [x] At least sm-im, jose-ja, sm-kms, skeleton-template migrated to shared helpers (Core 4)
+  - [x] sm-kms migration enabled by KMS unification from Phase 1
+  - [x] Remaining 6 services documented for future migration (see test-output/framework-v1/phase5/task-5.7-migration-evidence.md)
+  - [x] All migrated tests pass
+  - [x] Net line reduction measured and documented (-58 net lines: +49/-107)
   - [x] No regressions in any existing test
 
 #### Task 5.8: Phase 5 Quality Gate
