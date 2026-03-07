@@ -819,18 +819,16 @@ Execute continuously until finished.
 - At end of EVERY phase (after quality gates pass), conduct post-mortem BEFORE starting next phase:
   1. Update issues.md with all issues discovered in phase
   2. Update categories.md with pattern analysis
-  3. Update lessons.md with lessons learned (what worked, what didn't, root causes, patterns)
-  4. **CRITICAL: Artifact Self-Evaluation** — evaluate whether phase lessons expose contradictions or omissions in:
-     - `docs/ARCHITECTURE.md` — architecture decisions, patterns, strategies
-     - `.github/agents/*.agent.md` — agent guidance and workflows
-     - `.github/skills/*/SKILL.md` — skill templates and guidance
-     - `.github/instructions/*.instructions.md` — coding, testing, security guidelines
-  5. **CRITICAL**: If any artifact needs updating, create new phase tasks to fix them IMMEDIATELY (NEVER defer)
-  6. **CRITICAL**: Identify new phases and/or tasks for blockers, gaps, or artifact fixes
-  7. Update plan.md with new phases
-  8. Update tasks.md with new tasks (insert or append after current phase)
-  9. This is self-learning and automated fixing — skipping post-mortems is FORBIDDEN
-
+    3. Update lessons.md with lessons learned (what worked, what didn't, root causes, patterns) — this is the persistent memory for the entire plan
+    4. **CRITICAL: Artifact Self-Evaluation** — evaluate whether phase lessons expose contradictions or omissions in:
+       - `docs/ARCHITECTURE.md` — architecture decisions, patterns, strategies
+       - `.github/agents/*.agent.md` — agent guidance and workflows
+       - `.github/skills/*/SKILL.md` — skill templates and guidance
+       - `.github/instructions/*.instructions.md` — coding, testing, security guidelines
+       - Production code — missed abstractions, incorrect patterns, technical debt introduced
+       - Tests — missing coverage, weak assertions, test patterns that need updating
+       - CI/CD workflows — missing steps, incorrect gates, outdated tooling
+       - Project documentation — README, docs/, inline comments that need updating
 **MANDATORY: When Encountering BLOCKED/SKIPPED/DEFERRED Tasks:**
 
 **NEVER mark a task as "BLOCKED", "SKIPPED", "DEFERRED", or "SATISFIED BY EXISTING" without creating follow-up phases**
@@ -905,7 +903,10 @@ If a task cannot be completed due to architectural limitations, missing infrastr
    - `.github/agents/*.agent.md` — Improve agent guidance and workflows
    - `.github/skills/*/SKILL.md` — Add/update skill templates for new patterns
    - `.github/instructions/*.instructions.md` — Update coding/testing/security guidelines
-   - `README.md`, `docs/DEV-SETUP.md` — Developer-facing documentation
+     - Production code — Apply patterns discovered; fix technical debt identified during plan
+     - Tests — Improve test suites for coverage or assertion gaps identified during plan
+     - CI/CD workflows — Add new quality gates or tooling; fix incorrect steps discovered
+     - `README.md`, `docs/DEV-SETUP.md`, inline comments — Developer-facing documentation
 3. **Artifact Self-Evaluation**: Review ALL of the following for contradictions or omissions introduced by this plan:
    - Every `@source` block in instruction files must match its `@propagate` block in ARCHITECTURE.md
    - Run `go run ./cmd/cicd lint-docs validate-propagation` to verify propagation integrity

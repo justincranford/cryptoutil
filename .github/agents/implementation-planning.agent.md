@@ -86,7 +86,7 @@ This agent helps you create, update, and maintain **simple custom plans** autono
 
 **Implementation Plan Composition**:
 
-Custom plans are composed of **4 files in `<work-dir>/`**:
+Custom plans are composed of **5 files in `<work-dir>/`**:
 
 1. **`<work-dir>/quizme-v#.md`** - Ephemeral, ONLY during implementation-planning.agent.md
    - Created by this agent to clarify unknowns/risks/inefficiencies
@@ -103,7 +103,13 @@ Custom plans are composed of **4 files in `<work-dir>/`**:
    - Implemented during implementation-execution.agent.md
    - Phases and tasks as checkboxes, updated continuously during execution
 
-4. **`<work-dir>/memory.md`** - Execution context (NOT created by this agent)
+4. **`<work-dir>/lessons.md`** - Phase post-mortem lessons (persistent memory for the plan)
+   - Created/updated by implementation-execution agent after EVERY phase's quality gates
+   - Records what worked, what didn't, root causes, patterns observed
+   - Used as memory throughout the entire plan execution
+   - After plan complete: evaluated to apply insights to ARCHITECTURE.md, agents, skills, instructions, code, tests, workflows, documents
+
+5. **`<work-dir>/memory.md`** - Execution context (NOT created by this agent)
    - Ephemeral, ONLY during implementation-execution.agent.md
    - NOT a copilot instruction file (.github/instructions/ files not loaded by agents)
    - Created/updated by implementation-execution agent for session context
@@ -380,6 +386,7 @@ EOF
 - Domain model implementation
 - Repository layer with tests
 - **Success**: [What we expect to be true after]
+- **Post-Mortem**: After quality gates pass, update lessons.md with lessons learned — what worked, what didn't, root causes, patterns. Evaluate artifacts for contradictions/omissions; create fix tasks immediately.
 
 ### Phase 2: Business Logic (Xh) [Status: ☐ TODO]
 **Objective**: [What business logic will be implemented]
@@ -387,6 +394,7 @@ EOF
 - Validation rules
 - Unit tests (≥95% coverage)
 - **Success**: [Verification criteria]
+- **Post-Mortem**: After quality gates pass, update lessons.md with lessons learned — what worked, what didn't, root causes, patterns. Evaluate artifacts for contradictions/omissions; create fix tasks immediately.
 
 ### Phase 3: API Layer (Xh) [Status: ☐ TODO]
 **Objective**: [What API will be implemented]
@@ -394,6 +402,7 @@ EOF
 - OpenAPI spec
 - Integration tests
 - **Success**: [How API completeness is verified]
+- **Post-Mortem**: After quality gates pass, update lessons.md with lessons learned — what worked, what didn't, root causes, patterns. Evaluate artifacts for contradictions/omissions; create fix tasks immediately.
 
 ### Phase 4: E2E Testing (Xh) [Status: ☐ TODO]
 **Objective**: [What end-to-end scenarios will be tested]
@@ -401,12 +410,13 @@ EOF
 - E2E test scenarios
 - Performance testing
 - **Success**: [What E2E success looks like]
+- **Post-Mortem**: After quality gates pass, update lessons.md with lessons learned — what worked, what didn't, root causes, patterns. Evaluate artifacts for contradictions/omissions; create fix tasks immediately.
 
 ### Phase N: Knowledge Propagation (Xh) [Status: ☐ TODO]
 **Objective**: Apply lessons learned to permanent artifacts — NEVER skip this phase
 - Review lessons.md from all prior phases
 - Update ARCHITECTURE.md with new patterns and decisions
-- Update agents, skills, and instructions where warranted
+- Update agents, skills, instructions, code, tests, workflows, and docs where warranted
 - Verify propagation integrity (`go run ./cmd/cicd lint-docs validate-propagation`)
 - **Success**: All artifact updates committed; propagation check passes
 
@@ -881,8 +891,12 @@ Running frequent Unit + integration + E2E tests locally:
 3. **Updates agents** (`.github/agents/*.agent.md`) with improved guidance and workflows
 4. **Updates skills** (`.github/skills/*/SKILL.md`) with new patterns and templates
 5. **Updates instructions** (`.github/instructions/*.instructions.md`) with new coding/testing patterns
-6. **Verifies propagation** by running `go run ./cmd/cicd lint-docs validate-propagation`
-7. Commits all artifact updates with separate semantic commits per artifact type
+6. **Updates code** — applies patterns discovered during the plan back to production code where appropriate
+7. **Updates tests** — improves test suites where plan work exposed incomplete coverage or weak assertions
+8. **Updates workflows** — updates CI/CD workflows to reflect any new quality gates or tooling discovered
+9. **Updates documentation** — updates README, inline comments, and docs/ to reflect new patterns
+10. **Verifies propagation** by running `go run ./cmd/cicd lint-docs validate-propagation`
+11. Commits all artifact updates with separate semantic commits per artifact type
 
 **Phase Post-Mortem Self-Evaluation (EVERY phase)**:
 After each phase's quality gates, before starting the next phase, evaluate whether lessons expose contradictions or omissions in:
@@ -890,6 +904,10 @@ After each phase's quality gates, before starting the next phase, evaluate wheth
 - `.github/agents/*.agent.md` — agent guidance and workflows
 - `.github/skills/*/SKILL.md` — skill templates and guidance
 - `.github/instructions/*.instructions.md` — coding, testing, security guidelines
+- Production code — missed abstractions, incorrect patterns, technical debt
+- Tests — missing coverage, weak assertions, deprecated test patterns
+- CI/CD workflows — missing steps, incorrect gates, outdated tooling
+- Project documentation — README, docs/, comments that contradict new patterns
 
 If contradictions or omissions are found, create new phase tasks to fix them immediately.
 
@@ -1022,6 +1040,8 @@ This is a key architectural decision in VS Code Copilot that explains why copilo
 **Semantic Grouping Rule:**
 - Each commit represents one semantically coherent unit (one plan created, one phase updated, one section revised)
 - NEVER bulk-accumulate changes across different semantic groups into one commit
+- **Periodic Commits**: Do NOT save all planning work for one bulk commit. Prefer frequent small commits: plan created = commit, tasks created = commit, phase added = commit, section revised = commit.
+- **ALWAYS commit at end of each agent invocation** — NEVER leave uncommitted planning changes when stopping
 
 **After create/update/review action:**
 1. Stage all changes: `git add -A`

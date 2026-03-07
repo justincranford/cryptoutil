@@ -4364,6 +4364,10 @@ At the end of EVERY phase's quality gates, conduct a post-mortem **before starti
    - `.github/agents/*.agent.md` — agent guidance and workflows
    - `.github/skills/*/SKILL.md` — skill templates and guidance
    - `.github/instructions/*.instructions.md` — coding, testing, security guidelines
+   - Production code — missed abstractions, incorrect patterns, technical debt
+   - Tests — missing coverage, weak assertions, deprecated test patterns
+   - CI/CD workflows — missing steps, incorrect gates, outdated tooling
+   - Project documentation — README, docs/, comments that contradict new patterns
 5. **Create Fix Tasks**: If contradictions or omissions are found, create new phase tasks to fix them — NEVER defer artifact updates.
 6. **Identify new phases**: Create follow-up phases for any blockers, gaps, or artifact fixes discovered.
 
@@ -4377,8 +4381,12 @@ After ALL plan tasks are complete, apply accumulated lessons to permanent artifa
 2. **Agents**: Update `.github/agents/*.agent.md` with improved guidance and workflows.
 3. **Skills**: Add or update `.github/skills/*/SKILL.md` to capture new patterns and templates.
 4. **Instructions**: Update `.github/instructions/*.instructions.md` with new coding/testing patterns.
-5. **Verify propagation**: Run `go run ./cmd/cicd lint-docs validate-propagation` to ensure `@source` blocks are in sync with `@propagate` blocks.
-6. Commit all artifact updates with separate semantic commits per artifact type.
+5. **Code**: Apply patterns discovered during the plan back to production code where appropriate.
+6. **Tests**: Improve test suites where plan work exposed incomplete coverage or weak assertions.
+7. **Workflows**: Update CI/CD workflows to reflect any new quality gates or tooling discovered.
+8. **Documentation**: Update README, inline comments, and docs/ to reflect new patterns.
+9. **Verify propagation**: Run `go run ./cmd/cicd lint-docs validate-propagation` to ensure `@source` blocks are in sync with `@propagate` blocks.
+10. Commit all artifact updates with separate semantic commits per artifact type.
 
 **Every plan MUST include a final "Knowledge Propagation" phase** that executes these steps. This phase is NOT optional.
 
