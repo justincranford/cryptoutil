@@ -370,7 +370,7 @@ repos:
 
   # Python linting and formatting with ruff (replaces black, isort, flake8)
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.4
+    rev: v0.15.5
     hooks:
       - id: ruff
         name: Ruff Python linter (auto-fix)
@@ -405,7 +405,7 @@ repos:
 
   # IaC / Container security scanning (Dockerfiles, Docker Compose, Kubernetes)
   - repo: https://github.com/bridgecrewio/checkov
-    rev: 3.2.506
+    rev: 3.2.507
     hooks:
       - id: checkov
         name: Checkov IaC security scan
