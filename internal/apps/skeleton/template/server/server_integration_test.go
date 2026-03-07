@@ -11,6 +11,7 @@ import (
 	"time"
 
 	cryptoutilAppsSkeletonTemplateServerConfig "cryptoutil/internal/apps/skeleton/template/server/config"
+	cryptoutilContract "cryptoutil/internal/apps/template/service/testing/contract"
 	cryptoutilTestingTestserver "cryptoutil/internal/apps/template/service/testing/testserver"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
@@ -131,4 +132,9 @@ func TestSkeletonTemplateServer_ShutdownIdempotent(t *testing.T) {
 
 	err = server.Shutdown(shutdownCtx)
 	require.NoError(t, err, "shutdown should succeed")
+}
+
+func TestSkeletonTemplateServer_ContractCompliance(t *testing.T) {
+t.Parallel()
+cryptoutilContract.RunContractTests(t, testServer)
 }
