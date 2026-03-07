@@ -38,6 +38,27 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 		return nil, b.err
 	}
 
+	// Auto-configure JWT auth if not explicitly set (default: session-based auth).
+	// Services that need custom JWT auth (e.g., KMS-style JWKS-based) call WithJWTAuth() explicitly.
+	if b.jwtAuthConfig == nil {
+		b.jwtAuthConfig = NewDefaultJWTAuthConfig()
+	}
+
+	// Auto-configure strict server if not explicitly set (default: standard paths from config).
+	// Services that need custom paths call WithStrictServer() explicitly.
+	if b.strictServerConfig == nil {
+		strictConfig := NewDefaultStrictServerConfig()
+		if b.config.PublicBrowserAPIContextPath != "" {
+			strictConfig = strictConfig.WithBrowserBasePath(b.config.PublicBrowserAPIContextPath)
+		}
+
+		if b.config.PublicServiceAPIContextPath != "" {
+			strictConfig = strictConfig.WithServiceBasePath(b.config.PublicServiceAPIContextPath)
+		}
+
+		b.strictServerConfig = strictConfig
+	}
+
 	// Generate admin TLS configuration.
 	adminTLSCfg, err := b.generateTLSConfig(
 		b.config.TLSPrivateMode,

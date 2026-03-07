@@ -423,3 +423,136 @@ func TestBuild_Success(t *testing.T) {
 }
 
 // TestMergedMigrations_Open tests mergedMigrations.Open method.
+
+// TestBuild_AutoConfigJWTAuth tests that Build auto-populates JWTAuthConfig when WithJWTAuth is not called.
+func TestBuild_AutoConfigJWTAuth(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second)
+	defer cancel()
+
+	settings := getMinimalSettings()
+
+	// Build without calling WithJWTAuth — auto-config must populate JWTAuthConfig.
+	builder := NewServerBuilder(ctx, settings)
+	resources, err := builder.Build()
+
+	require.NoError(t, err)
+	require.NotNil(t, resources)
+	require.NotNil(t, resources.JWTAuthConfig, "JWTAuthConfig must be auto-configured when WithJWTAuth is not called")
+	require.Equal(t, JWTAuthModeSession, resources.JWTAuthConfig.Mode)
+
+	// Cleanup.
+	if resources.ShutdownCore != nil {
+		resources.ShutdownCore()
+	}
+
+	if resources.ShutdownContainer != nil {
+		resources.ShutdownContainer()
+	}
+}
+
+// TestBuild_AutoConfigStrictServer tests that Build auto-populates StrictServerConfig when WithStrictServer is not called.
+func TestBuild_AutoConfigStrictServer(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second)
+	defer cancel()
+
+	settings := getMinimalSettings()
+
+	// Build without calling WithStrictServer — auto-config must populate StrictServerConfig.
+	builder := NewServerBuilder(ctx, settings)
+	resources, err := builder.Build()
+
+	require.NoError(t, err)
+	require.NotNil(t, resources)
+	require.NotNil(t, resources.StrictServerConfig, "StrictServerConfig must be auto-configured when WithStrictServer is not called")
+	// Default paths come from magic constants when config fields are empty.
+	require.Equal(t, cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath, resources.StrictServerConfig.BrowserAPIBasePath)
+	require.Equal(t, cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath, resources.StrictServerConfig.ServiceAPIBasePath)
+
+	// Cleanup.
+	if resources.ShutdownCore != nil {
+		resources.ShutdownCore()
+	}
+
+	if resources.ShutdownContainer != nil {
+		resources.ShutdownContainer()
+	}
+}
+
+// TestBuild_ExplicitJWTAuthPreserved tests that Build preserves explicitly-set JWTAuthConfig (not overwritten by auto-config).
+func TestBuild_ExplicitJWTAuthPreserved(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second)
+	defer cancel()
+
+	settings := getMinimalSettings()
+
+	// Use KMS-style config to distinguish from the default session-based config.
+	explicitConfig := NewKMSJWTAuthConfig("https://example.com/.well-known/jwks.json", "https://auth.example.com", "kms-service")
+
+	builder := NewServerBuilder(ctx, settings)
+	builder.WithJWTAuth(explicitConfig)
+
+	resources, err := builder.Build()
+
+	require.NoError(t, err)
+	require.NotNil(t, resources)
+	require.NotNil(t, resources.JWTAuthConfig)
+	// Explicit config must be preserved — NOT overwritten by auto-config default.
+	require.Equal(t, JWTAuthModeRequired, resources.JWTAuthConfig.Mode, "explicit JWTAuthMode must be preserved")
+	require.Equal(t, "https://example.com/.well-known/jwks.json", resources.JWTAuthConfig.JWKSURL)
+
+	// Cleanup.
+	if resources.ShutdownCore != nil {
+		resources.ShutdownCore()
+	}
+
+	if resources.ShutdownContainer != nil {
+		resources.ShutdownContainer()
+	}
+}
+
+// TestBuild_ExplicitStrictServerPreserved tests that Build preserves explicitly-set StrictServerConfig (not overwritten by auto-config).
+func TestBuild_ExplicitStrictServerPreserved(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second)
+	defer cancel()
+
+	settings := getMinimalSettings()
+
+	// Custom strict server config with known non-default paths.
+	const (
+		customBrowserPath = "/custom/browser/v99"
+		customServicePath = "/custom/service/v99"
+	)
+
+	explicitStrictConfig := NewDefaultStrictServerConfig().
+		WithBrowserBasePath(customBrowserPath).
+		WithServiceBasePath(customServicePath)
+
+	builder := NewServerBuilder(ctx, settings)
+	builder.WithStrictServer(explicitStrictConfig)
+
+	resources, err := builder.Build()
+
+	require.NoError(t, err)
+	require.NotNil(t, resources)
+	require.NotNil(t, resources.StrictServerConfig)
+	// Explicit config must be preserved — NOT overwritten by auto-config.
+	require.Equal(t, customBrowserPath, resources.StrictServerConfig.BrowserAPIBasePath, "explicit BrowserAPIBasePath must be preserved")
+	require.Equal(t, customServicePath, resources.StrictServerConfig.ServiceAPIBasePath, "explicit ServiceAPIBasePath must be preserved")
+
+	// Cleanup.
+	if resources.ShutdownCore != nil {
+		resources.ShutdownCore()
+	}
+
+	if resources.ShutdownContainer != nil {
+		resources.ShutdownContainer()
+	}
+}

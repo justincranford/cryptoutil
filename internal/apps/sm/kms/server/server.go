@@ -58,17 +58,6 @@ func NewKMSServer(
 	// Configure domain migrations (KMS business tables 2001+).
 	builder.WithDomainMigrations(cryptoutilAppsSmKmsServerRepository.MigrationsFS, "migrations")
 
-	// Configure JWT auth as session-based (KMS uses template sessions).
-	builder.WithJWTAuth(
-		cryptoutilAppsTemplateServiceServerBuilder.NewDefaultJWTAuthConfig(),
-	)
-
-	// Configure strict server for OpenAPI.
-	strictConfig := cryptoutilAppsTemplateServiceServerBuilder.NewDefaultStrictServerConfig().
-		WithBrowserBasePath(settings.PublicBrowserAPIContextPath).
-		WithServiceBasePath(settings.PublicServiceAPIContextPath)
-	builder.WithStrictServer(strictConfig)
-
 	// Register KMS-specific routes.
 	builder.WithPublicRouteRegistration(func(
 		publicServerBase *cryptoutilAppsTemplateServiceServer.PublicServerBase,
