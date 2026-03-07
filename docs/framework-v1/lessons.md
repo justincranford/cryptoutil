@@ -1,4 +1,4 @@
-﻿# Framework V1 - Lessons Learned
+# Framework V1 - Lessons Learned
 
 This file captures lessons from each phase, used as:
 1. Memory for the entire plan.md / tasks.md execution
