@@ -26,7 +26,9 @@ func NewHealthClient(publicBaseURL, adminBaseURL string) *HealthClient {
 		SkipVerify: true, //nolint:gosec // test-only: auto-generated self-signed test certificates
 	})
 
-	transport := &http.Transport{}
+	transport := &http.Transport{
+		DisableKeepAlives: true, // Close connection after each request to prevent server shutdown hang
+	}
 
 	if err == nil {
 		transport.TLSClientConfig = tlsConfig.TLSConfig
