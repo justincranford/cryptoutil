@@ -217,10 +217,12 @@ grep -r "<search-term>" docs/ .github/
 
 **Update Order** (source of truth → derived → implementation → reference):
 
-1. **Source of Truth**: Copilot instructions, architecture (ALREADY UPDATED - this is the trigger)
-2. **Derived Documents**: Plans, tasks, analysis docs
-3. **Implementation Docs**: DETAILED.md
-4. **Reference Docs**: READMEs, guides
+1. **Source of Truth**: `docs/ARCHITECTURE.md`, `.github/copilot-instructions.md` (ALREADY UPDATED — this is the trigger)
+2. **Instruction Files**: `.github/instructions/*.instructions.md` — update `@source` blocks to match `@propagate` content
+3. **Agent Files**: `.github/agents/*.agent.md` — update any `@source` blocks; update agent guidance that depends on changed patterns
+4. **Skill Files**: `.github/skills/*/SKILL.md` — update skill templates and references for changed patterns
+5. **Derived Documents**: Plans, tasks, analysis docs
+6. **Reference Docs**: READMEs, guides (`README.md`, `docs/DEV-SETUP.md`)
 
 **For Each Document**:
 

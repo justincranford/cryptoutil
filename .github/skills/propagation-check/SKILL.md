@@ -20,12 +20,14 @@ content here
 <!-- @/propagate -->
 ```
 
-**Target (instruction/agent file)**:
+**Target (instruction file OR agent file)**:
 ```html
 <!-- @source from="docs/ARCHITECTURE.md" as="chunk-id" -->
 content here (MUST be byte-for-byte identical)
 <!-- @/source -->
 ```
+
+> Note: Both `.github/instructions/*.instructions.md` files AND `.github/agents/*.agent.md` files can contain `@source` blocks. Agents do not inherit instruction files, so propagated content must be embedded directly in the agent file.
 
 ## Checking for Drift
 
@@ -62,3 +64,5 @@ EOF
 ## References
 
 Read [ARCHITECTURE.md Section 12.7 Documentation Propagation Strategy](../../../docs/ARCHITECTURE.md#127-documentation-propagation-strategy) for full marker system documentation — apply all marker system rules (byte-for-byte match, no headings inside markers, same-commit propagation) when checking and fixing drift.
+
+See the `doc-sync` agent (`.github/agents/doc-sync.agent.md`) for orchestrating full documentation synchronization across ARCHITECTURE.md, instruction files, and agent files.

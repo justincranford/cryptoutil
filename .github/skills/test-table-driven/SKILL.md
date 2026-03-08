@@ -105,3 +105,5 @@ Read [ARCHITECTURE.md Section 10.2 Unit Testing Strategy](../../../docs/ARCHITEC
 Read [ARCHITECTURE.md Section 10.2.2 Fiber Handler Testing](../../../docs/ARCHITECTURE.md#1022-fiber-handler-testing-apptest) for handler test patterns — apply `app.Test()` for ALL HTTP handler tests.
 
 Read [ARCHITECTURE.md Section 10.3.2 Test Isolation](../../../docs/ARCHITECTURE.md#1032-test-isolation-with-tparallel) for parallelism requirements — ensure `t.Parallel()` is applied correctly at all levels.
+
+Read [ARCHITECTURE.md Section 10.3.6 Shared Test Infrastructure](../../../docs/ARCHITECTURE.md#1036-shared-test-infrastructure) for shared test helpers — use `testdb.NewInMemorySQLiteDB(t)`, `testserver.StartAndWait`, `fixtures.CreateTestTenant/Realm/User`, `assertions.AssertHealthy`, and `healthclient.NewHealthClient` when these test patterns apply to test infrastructure packages.

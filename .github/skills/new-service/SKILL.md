@@ -86,6 +86,17 @@ go test ./internal/apps/PRODUCT/SERVICE/...
 go run ./cmd/cicd lint-deployments
 ```
 
+### Step 9: Update Documentation
+
+```bash
+# Update ARCHITECTURE.md Section 3.4 Service Catalog table
+# Add row: | PRODUCT | SERVICE | PRODUCT-SERVICE | HOST_PORT_RANGE | 0.0.0.0:8080 | 127.0.0.1:9090 |
+```
+
+- Update service catalog in `docs/ARCHITECTURE.md` Section 3.4 Port Assignments & Networking
+- Update service catalog table in `.github/instructions/02-01.architecture.instructions.md`
+- Update `README.md` if it lists services
+
 ## Port Assignment Rules
 
 - **Service deployment**: PORT (8000–8999 range)

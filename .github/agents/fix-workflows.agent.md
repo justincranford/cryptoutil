@@ -29,6 +29,17 @@ Fix and optimize GitHub Actions workflows with:
 
 Every workflow fix must be validated locally, committed with evidence, and monitored in CI/CD.
 
+## Scope
+
+**Primary**: `.github/workflows/ci-*.yml` — GitHub Actions workflow files.
+
+**Related CI/CD Artifacts** (apply the same analyze-fix-test-commit pattern when changes are needed):
+- `Dockerfile` and `Dockerfile.*` — base image versions, build stages, multi-stage patterns
+- `deployments/*/compose.yml` — service port bindings, health check commands, secret references
+- `.pre-commit-config.yaml` — hook versions, new hooks required by workflow fixes
+
+When a workflow fix requires changes to Dockerfiles, compose files, or pre-commit hooks, commit those changes separately using semantic grouping: one artifact type = one commit.
+
 ## Core Directive - AUTONOMOUS EXECUTION MODE
 
 You are in **continuous autonomous execution mode**. This means:

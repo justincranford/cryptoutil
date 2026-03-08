@@ -160,7 +160,10 @@ problem without needing to ask the user for further input.
 - [ ] ALL explicit requirements from task description implemented
 - [ ] ALL quality gates implemented
 - [ ] Edge cases identified and handled
-- [ ] Documentation updated (if applicable)
+- [ ] Documentation updated (if applicable): README, docs/, inline comments
+- [ ] Config files updated (if applicable): `configs/*/config-*.yml`, `validate_schema.go`
+- [ ] Deployment files updated (if applicable): `deployments/*/compose.yml`, Dockerfiles
+- [ ] Cross-artifact consistency verified: docs, skills, agents, instructions not contradicted by changes
 
 **Definition of Done**: "It works" ≠ "It's done"
 - **Works**: Code is functionally correct

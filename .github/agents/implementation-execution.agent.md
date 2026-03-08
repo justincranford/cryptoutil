@@ -827,6 +827,8 @@ Execute continuously until finished.
        - `.github/instructions/*.instructions.md` — coding, testing, security guidelines
        - Production code — missed abstractions, incorrect patterns, technical debt introduced
        - Tests — missing coverage, weak assertions, test patterns that need updating
+       - Config files (`configs/*/config-*.yml`, `validate_schema.go`) — new config keys needed, schema changes required
+       - Deployment files (`deployments/*/compose.yml`, Dockerfiles) — new services, port changes, secrets updates needed
        - CI/CD workflows — missing steps, incorrect gates, outdated tooling
        - Project documentation — README, docs/, inline comments that need updating
 **MANDATORY: When Encountering BLOCKED/SKIPPED/DEFERRED Tasks:**

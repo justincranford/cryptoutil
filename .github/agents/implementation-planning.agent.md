@@ -906,6 +906,8 @@ After each phase's quality gates, before starting the next phase, evaluate wheth
 - `.github/instructions/*.instructions.md` — coding, testing, security guidelines
 - Production code — missed abstractions, incorrect patterns, technical debt
 - Tests — missing coverage, weak assertions, deprecated test patterns
+- Config files (`configs/*/config-*.yml`, `validate_schema.go`) — new config keys needed, schema changes required
+- Deployment files (`deployments/*/compose.yml`, Dockerfiles) — new services, port changes, secrets updates needed
 - CI/CD workflows — missing steps, incorrect gates, outdated tooling
 - Project documentation — README, docs/, comments that contradict new patterns
 

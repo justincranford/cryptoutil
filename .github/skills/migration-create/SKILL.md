@@ -73,6 +73,14 @@ var MigrationsFS embed.FS
 builder.WithDomainMigrations(repository.MigrationsFS, "migrations")
 ```
 
+## Config Schema Updates (if applicable)
+
+If the new domain table requires new service configuration keys, also update:
+- `configs/SERVICE/config-*.yml` — add the new keys with appropriate defaults
+- `validate_schema.go` — update the hardcoded Go schema with the new key definitions
+
+Reference [docs/CONFIG-SCHEMA.md](../../../docs/CONFIG-SCHEMA.md) for flat kebab-case YAML key naming conventions.
+
 ## References
 
 Read [ARCHITECTURE.md Section 7 Data Architecture](../../../docs/ARCHITECTURE.md#7-data-architecture) for migration versioning and naming — apply the version range rules (template 1001–1999, domain 2001+) and `NNNN_description.up.sql` / `.down.sql` naming format.
