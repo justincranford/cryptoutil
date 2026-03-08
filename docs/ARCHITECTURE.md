@@ -241,6 +241,7 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 - Agents generating implementation plans MUST reference ARCHITECTURE.md testing (Section 10), quality gates (Section 11), coding standards (Section 13)
 - Agents modifying code MUST reference coding standards (Sections 11, 13)
 - Agents modifying deployments MUST reference deployment architecture (Section 12)
+- Agents modifying documentation or copilot artifacts (skills, instructions, agents) MUST reference Section 2.1 (Agent/Skill/Instruction catalog) and Section 12.7 (Documentation Propagation)
 - ALL agents MUST reference Section 2.5 (Quality Strategy) for coverage and mutation targets
 - Agents with ZERO ARCHITECTURE.md references are NON-COMPLIANT and MUST be updated
 <!-- @/propagate -->
