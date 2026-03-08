@@ -2198,7 +2198,7 @@ cmd/cicd/main.go                          # Layer 1: Thin main(), os.Exit(Cicd(.
 | **Formatters** | `format-<target>` | `format_<target>/` | `Format(logger, ...)` | `registeredFormatters` |
 | **Scripts** | `<action>-<target>` | `<action>_<target>/` | Script-specific | `registeredCleaners` etc. |
 
-**Linter commands** (10): `lint-text`, `lint-go`, `lint-go-test`, `lint-go-mod`, `lint-golangci`, `lint-compose`, `lint-ports`, `lint-workflow`, `lint-deployments`, `lint-docs`
+**Linter commands** (11): `lint-text`, `lint-go`, `lint-go-test`, `lint-go-mod`, `lint-golangci`, `lint-compose`, `lint-ports`, `lint-workflow`, `lint-deployments`, `lint-docs`, `lint-fitness`
 **Formatter commands** (2): `format-go`, `format-go-test`
 **Script commands** (1): `github-cleanup`
 <!-- @/propagate -->
@@ -2279,6 +2279,9 @@ internal/apps/cicd/
 │   ├── check_chunk_verification/                   # Sub-linter
 │   ├── validate_chunks/                            # Sub-linter
 │   └── validate_propagation/                       # Sub-linter
+├── lint_fitness/                                      # lint-fitness command
+│   ├── lint_fitness.go                             # Lint() + registeredLinters (23 sub-linters)
+│   └── ... (23 sub-linters, see Section 9.11)
 ├── format_go/                                        # format-go command
 │   ├── format_go.go                                # Format() + registeredFormatters
 │   ├── copyloopvar/                                # Sub-formatter
@@ -2302,6 +2305,58 @@ internal/apps/cicd/
 4. **Entry point naming**: Linters export `Lint()`, formatters export `Format()`, scripts export their action verb (e.g., `Cleanup()`).
 5. **Sub-commands are registered**: Sub-linters/formatters MUST be registered in a slice within the parent command's entry point file. No ad-hoc invocations.
 6. **Test presence**: Every package under `internal/apps/cicd/` MUST have at least one `_test.go` file (enforced by `lint_go/test_presence` sub-linter).
+
+---
+
+### 9.11 Architecture Fitness Functions
+
+Architecture fitness functions are automated checks that enforce ARCHITECTURE.md invariants on every commit via `go run ./cmd/cicd lint-fitness`. Violations are caught at pre-commit time and in CI, preventing architectural drift.
+
+**Command**: `go run ./cmd/cicd lint-fitness`
+**Pre-commit hook**: `lint-fitness` (runs on `.go`, `.yml`, `.sql` changes)
+**CI/CD integration**: `ci-quality` workflow includes lint-fitness
+
+**Adding new fitness functions**: Use the `fitness-function-gen` Copilot skill — see `.github/skills/fitness-function-gen/SKILL.md`.
+
+#### 9.11.1 Fitness Sub-Linter Catalog (23 total)
+
+**Migrated from lint_go (10)**:
+
+| Sub-Linter | Rule Enforced |
+|-----------|--------------|
+| `cgo-free-sqlite` | Use `modernc.org/sqlite` not `mattn/go-sqlite3` (CGO banned) |
+| `circular-deps` | No circular imports between packages |
+| `cmd-main-pattern` | `cmd/*/main.go` must delegate to `internalMain()`, no logic |
+| `crypto-rand` | Use `crypto/rand`, NEVER `math/rand` |
+| `insecure-skip-verify` | No `InsecureSkipVerify: true` in production TLS config |
+| `migration-numbering` | Migration files must use `NNNN_name.up.sql` format |
+| `non-fips-algorithms` | No bcrypt, scrypt, argon2, MD5, SHA-1 |
+| `product-structure` | Product packages must follow PRODUCT/SERVICE hierarchy |
+| `product-wiring` | Product wiring must delegate to service entry points |
+| `service-structure` | Service packages must follow PRODUCT/SERVICE layout convention |
+
+**Migrated from lint_gotest (5)**:
+
+| Sub-Linter | Rule Enforced |
+|-----------|--------------|
+| `bind-address-safety` | Tests bind to `127.0.0.1`, never `0.0.0.0` |
+| `no-hardcoded-passwords` | No hardcoded credentials in test files |
+| `parallel-tests` | All tests must call `t.Parallel()` (with `// Sequential:` exemption) |
+| `test-patterns` | Test file naming, table-driven structure compliance |
+| `check-skeleton-placeholders` | No skeleton placeholder text left in service code |
+
+**New checks (8)**:
+
+| Sub-Linter | Rule Enforced |
+|-----------|--------------|
+| `cross-service-import-isolation` | Service packages must not import other service packages |
+| `domain-layer-isolation` | Domain layer must not import server/client/API packages |
+| `file-size-limits` | Files ≤500 lines (warning at >300, error at >500) |
+| `health-endpoint-presence` | Services must expose `/admin/api/v1/livez` and `/admin/api/v1/readyz` |
+| `tls-minimum-version` | TLS config must specify `tls.VersionTLS13` minimum |
+| `admin-bind-address` | Admin server must bind to `127.0.0.1:9090`, never `0.0.0.0` |
+| `service-contract-compliance` | Services must implement `ServiceServer` interface (`PublicBaseURL`, `AdminBaseURL`, `SetReady`) |
+| `migration-range-compliance` | Template migrations use 1001-1999; domain migrations use 2001+ |
 
 ---
 
@@ -2615,7 +2670,68 @@ type ServiceServer interface {
 
 **What contracts are verified**: health endpoint liveness, readiness, dual-server isolation (public vs. admin port separation), and response format correctness.
 
-**`SetReady(true)` Requirement**: If using `MustStartAndWaitForDualPorts` in a manual `TestMain`, you MUST call `server.SetReady(true)` explicitly after the server starts. The `SetupTestServer` helper does this automatically.
+**`SetReady(true)` Requirement**: If using `MustStartAndWaitForDualPorts` in a manual `TestMain`, you MUST call `server.SetReady(true)` explicitly after the server starts. The `testserver.StartAndWait` helper does this automatically.
+
+#### 10.3.6 Shared Test Infrastructure
+
+Shared test packages in `internal/apps/template/service/testing/` eliminate TestMain boilerplate by providing reusable setup helpers.
+
+**testdb** — Database setup helpers:
+
+```go
+import cryptoutilTestdb "cryptoutil/internal/apps/template/service/testing/testdb"
+
+// In-memory SQLite (fast, no cleanup needed)
+db := cryptoutilTestdb.NewInMemorySQLiteDB(t)
+
+// With auto-migrate for given models
+db := cryptoutilTestdb.RequireNewInMemorySQLiteDB(t, &MyModel{})
+
+// PostgreSQL test container (Docker required)
+db := cryptoutilTestdb.RequireNewPostgresTestContainer(ctx, t, &MyModel{})
+```
+
+**testserver** — Test server lifecycle:
+
+```go
+import cryptoutilTestserver "cryptoutil/internal/apps/template/service/testing/testserver"
+
+// Start server with port 0 (dynamic), wait for ready, register cleanup
+srv := cryptoutilTestserver.StartAndWait(ctx, t, myServiceServer)
+```
+
+**fixtures** — Test data creation:
+
+```go
+import cryptoutilFixtures "cryptoutil/internal/apps/template/service/testing/fixtures"
+
+tenant := cryptoutilFixtures.CreateTestTenant(t, db)
+realm  := cryptoutilFixtures.CreateTestRealm(t, db, tenant.ID)
+user   := cryptoutilFixtures.CreateTestUser(t, db, tenant.ID)
+```
+
+**assertions** — HTTP response assertions:
+
+```go
+import cryptoutilAssertions "cryptoutil/internal/apps/template/service/testing/assertions"
+
+cryptoutilAssertions.AssertHealthy(t, resp)                         // 200 OK
+cryptoutilAssertions.AssertErrorResponse(t, resp, http.StatusBadRequest)
+cryptoutilAssertions.AssertJSONContentType(t, resp)
+cryptoutilAssertions.AssertTraceID(t, resp)
+```
+
+**healthclient** — HTTPS health endpoint client:
+
+```go
+import cryptoutilHealthclient "cryptoutil/internal/apps/template/service/testing/healthclient"
+
+client := cryptoutilHealthclient.NewHealthClient(srv.PublicBaseURL(), srv.AdminBaseURL())
+livezResp, err  := client.Livez()
+readyzResp, err := client.Readyz()
+```
+
+**coverage ceiling**: `testdb` (57.5%) and `e2e_infra` (37.3%) have documented ceilings due to Docker-dependent code paths unreachable in unit tests. All other packages: ≥95% production, ≥98% infrastructure.
 
 ### 10.4 E2E Testing Strategy
 
@@ -4218,6 +4334,31 @@ feat(api)!: remove deprecated v1 endpoints  # Breaking change
 - Format: `### YYYY-MM-DD: Title`
 - NEVER create standalone session docs
 - DELETE completed tasks immediately from todos-*.md
+
+#### 13.5.5 Air Live Reload
+
+Use `air` for live-reload development of individual services. Air watches Go source files and automatically rebuilds/restarts the service binary on changes.
+
+**Prerequisites**: `go install github.com/air-verse/air@latest`
+
+**Usage**: `SERVICE=<service-name> air`
+
+- Example: `SERVICE=sm-im air` — starts the sm-im service with live reload
+- Valid SERVICE values: `sm-im`, `sm-kms`, `jose-ja`, `pki-ca`, `skeleton-template`, `identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`, `identity-spa`
+
+**Configuration** (`.air.toml` at repo root):
+
+- Binary output: `./tmp/main`; tmp dir: `./tmp/`
+- Watch directories: `internal/`, `cmd/`, `pkg/`, `api/`
+- Watch extensions: `.go`, `.tpl`, `.tmpl`, `.html`
+- Excludes: `_test.go` files (test changes don't trigger rebuild)
+- Service args: `server --dev` (enables dev mode)
+- Graceful shutdown: SIGTERM with 500ms kill delay
+
+**Anti-patterns**:
+
+- NEVER use `air` for running tests — use `go test ./...`
+- NEVER hard-code SERVICE in scripts — `SERVICE` env var is required
 
 #### 13.5.4 Docker Desktop Startup - CRITICAL
 
