@@ -75,8 +75,7 @@ return nil
 
 ## Registration in lint_fitness.go
 
-Add to the 
-egisteredLinters slice in internal/apps/cicd/lint_fitness/lint_fitness.go:
+Add to the `registeredLinters` slice in `internal/apps/cicd/lint_fitness/lint_fitness.go`:
 
 `go
 import (
