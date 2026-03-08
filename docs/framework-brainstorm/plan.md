@@ -1,4 +1,4 @@
-﻿# Implementation Plan - Framework Brainstorm Execution
+# Implementation Plan - Framework Brainstorm Execution
 
 **Status**: Phase 1 In Progress
 **Created**: 2026-03-07
@@ -193,7 +193,7 @@ to code, tests, config, deployments, workflows, and documentation.
 with enough context that a future agent can execute without re-reading all brainstorm docs.
 
 **Deferred items** (from framework-v1 explicit exclusions, re-evaluated):
-1. **cicd new-service scaffolding** (P1-1): Low priority unless 10th+ service added. 
+1. **cicd new-service scaffolding** (P1-1): Low priority unless 10th+ service added.
    When revisited: use `text/template` + skeleton-template as source, generate into
    `internal/apps/PRODUCT/SERVICE/`.
 2. **OpenAPI-to-Repository codegen** (P2-3): User said "not wanted" in framework-v1.
@@ -243,4 +243,3 @@ If it only applies to code, that should be explicitly noted."
 **Decision**: Keep in framework-brainstorm/ until a concrete v2 emerges. This plan adds
 artifact sync + documentation closure. If concrete new framework features are needed
 (new skills, new fitness functions), create docs/framework-v2/ at that time.
-

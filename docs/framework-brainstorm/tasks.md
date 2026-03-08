@@ -1,6 +1,6 @@
 # Tasks - Framework Brainstorm Execution
 
-**Status**: 7 of 38 tasks complete (18%)
+**Status**: 38 of 38 tasks complete (100%)
 **Created**: 2026-03-07
 **References**: docs/framework-brainstorm/plan.md, docs/framework-v1/tasks.md
 
@@ -118,19 +118,19 @@
 
 #### Task 2.1: Audit test-table-driven, test-fuzz-gen, test-benchmark-gen
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 45m
 - **Description**: Check if these testing skills mention when their patterns apply to
   test helper code (not just domain code tests). Verify they don't assume code-only context.
 - **Acceptance Criteria**:
-  - [ ] Each skill reviewed against checklist: code ✓, tests ✓, implicit code-only assumptions identified
-  - [ ] Skills updated where cross-artifact implications are missing
-  - [ ] Rationale documented for code-only skills
+  - [x] Each skill reviewed against checklist: code ✓, tests ✓, implicit code-only assumptions identified
+  - [x] Skills updated where cross-artifact implications are missing
+  - [x] Rationale documented for code-only skills
 
 #### Task 2.2: Audit coverage-analysis, migration-create, fips-audit
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 45m
 - **Description**: Check these workflow/utility skills for cross-artifact scope.
@@ -138,24 +138,24 @@
   - migration-create: does it reference docs/CONFIG-SCHEMA.md updates?
   - fips-audit: is it clearly scoped to Go code only?
 - **Acceptance Criteria**:
-  - [ ] Each skill reviewed and updated where needed
-  - [ ] migration-create explicitly mentions CONFIG-SCHEMA.md cross-update if applicable
+  - [x] Each skill reviewed and updated where needed
+  - [x] migration-create explicitly mentions CONFIG-SCHEMA.md cross-update if applicable
 
 #### Task 2.3: Audit propagation-check, openapi-codegen
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 45m
 - **Description**: These skills span multiple artifact types already. Verify they're complete.
   - propagation-check: covers ARCHITECTURE.md → instruction files → agents?
   - openapi-codegen: covers spec, server gen, model gen, client gen?
 - **Acceptance Criteria**:
-  - [ ] Each skill reviewed for completeness across artifact types it claims to cover
-  - [ ] Cross-references to related skills present (e.g., propagation-check → doc-sync agent)
+  - [x] Each skill reviewed for completeness across artifact types it claims to cover
+  - [x] Cross-references to related skills present (e.g., propagation-check → doc-sync agent)
 
 #### Task 2.4: Audit agent-scaffold, instruction-scaffold, skill-scaffold
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 45m
 - **Description**: These scaffolding skills create artifacts. Verify they cross-reference:
@@ -163,12 +163,12 @@
   - instruction-scaffold: mentions updating copilot-instructions.md instruction table?
   - skill-scaffold: mentions updating copilot-instructions.md skills table + ARCHITECTURE.md skills catalogue?
 - **Acceptance Criteria**:
-  - [ ] Each scaffolding skill has explicit post-creation checklist for cross-artifact updates
-  - [ ] Skills updated where checklist is missing
+  - [x] Each scaffolding skill has explicit post-creation checklist for cross-artifact updates
+  - [x] Skills updated where checklist is missing
 
 #### Task 2.5: Audit new-service, contract-test-gen, fitness-function-gen
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 45m
 - **Description**: These are framework-specific skills. Verify completeness:
@@ -176,28 +176,28 @@
   - contract-test-gen: covers all 3 contract groups (health, server isolation, response format)?
   - fitness-function-gen: covers all 8 fitness function categories?
 - **Acceptance Criteria**:
-  - [ ] new-service skill has explicit checklist covering: service code, tests, compose, config, CI workflow, docs
-  - [ ] contract-test-gen references all 3 RunContractTests contract groups
-  - [ ] fitness-function-gen references all 8 fitness function categories
+  - [x] new-service skill has explicit checklist covering: service code, tests, compose, config, CI workflow, docs
+  - [x] contract-test-gen references all 3 RunContractTests contract groups
+  - [x] fitness-function-gen references all 8 fitness function categories
 
 #### Task 2.6: Phase 2 Quality Gate
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 30m
 - **Acceptance Criteria**:
-  - [ ] All 14 skills reviewed (Tasks 2.1-2.5)
-  - [ ] All updates committed with conventional commits
-  - [ ] `go run ./cmd/cicd lint-docs validate-propagation` passes (if ARCHITECTURE.md skills catalogue updated)
+  - [x] All 14 skills reviewed (Tasks 2.1-2.5)
+  - [x] All updates committed with conventional commits
+  - [x] `go run ./cmd/cicd lint-docs validate-propagation` passes (if ARCHITECTURE.md skills catalogue updated)
 
 #### Task 2.7: Phase 2 Post-Mortem
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 15m
 - **Acceptance Criteria**:
-  - [ ] lessons.md updated with Phase 2 observations
-  - [ ] Contradictions/omissions identified → fix tasks created immediately
+  - [x] lessons.md updated with Phase 2 observations
+  - [x] Contradictions/omissions identified → fix tasks created immediately
 
 ---
 
@@ -207,68 +207,68 @@
 
 #### Task 3.1: Audit beast-mode.agent.md
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 30m
 - **Description**: Verify beast-mode covers all artifact types in quality gate checklist
   and commit strategy. Note: Semantic Grouping & Periodic Commits added this session.
 - **Acceptance Criteria**:
-  - [ ] Quality gate checklist includes: code, tests, config, deployments, docs
-  - [ ] Commit strategy mentions: one artifact type changed = one commit (not just code commits)
-  - [ ] Self-evaluation criteria mention checking docs/skills/agents/instructions for consistency
+  - [x] Quality gate checklist includes: code, tests, config, deployments, docs
+  - [x] Commit strategy mentions: one artifact type changed = one commit (not just code commits)
+  - [x] Self-evaluation criteria mention checking docs/skills/agents/instructions for consistency
 
 #### Task 3.2: Audit doc-sync.agent.md
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 30m
 - **Description**: Verify doc-sync covers all document types in its sync workflow.
 - **Acceptance Criteria**:
-  - [ ] Sync workflow explicitly covers: ARCHITECTURE.md → instruction files → agent files → skill files
-  - [ ] Step 5 commit guidance includes per-type semantic grouping
-  - [ ] Anti-patterns section covers common doc-sync failure modes
+  - [x] Sync workflow explicitly covers: ARCHITECTURE.md → instruction files → agent files → skill files
+  - [x] Step 5 commit guidance includes per-type semantic grouping
+  - [x] Anti-patterns section covers common doc-sync failure modes
 
 #### Task 3.3: Audit fix-workflows.agent.md
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 30m
 - **Description**: Verify fix-workflows covers all CI/CD artifact types (not just workflow .yml files).
 - **Acceptance Criteria**:
-  - [ ] Scope covers: workflow files, docker files, compose files, pre-commit config
-  - [ ] Semantic Grouping guidance covers config file changes, not just workflow file changes
+  - [x] Scope covers: workflow files, docker files, compose files, pre-commit config
+  - [x] Semantic Grouping guidance covers config file changes, not just workflow file changes
 
 #### Task 3.4: Audit implementation-execution.agent.md
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 30m
 - **Description**: Verify post-mortem and knowledge extraction cover all artifact types.
   Note: expanded this session to include code/tests/workflows/docs.
 - **Acceptance Criteria**:
-  - [ ] Phase-Based Post-Mortem covers: code, tests, config, deployments, workflows, docs, agents, skills, instructions
-  - [ ] Extract Lessons covers: ARCHITECTURE.md, agents, skills, instructions, code, tests, workflows
+  - [x] Phase-Based Post-Mortem covers: code, tests, config, deployments, workflows, docs, agents, skills, instructions
+  - [x] Extract Lessons covers: ARCHITECTURE.md, agents, skills, instructions, code, tests, workflows
 
 #### Task 3.5: Audit implementation-planning.agent.md
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 30m
 - **Description**: Verify phase templates and knowledge propagation cover all artifact types.
   Note: expanded this session to include code/tests/workflows/docs.
 - **Acceptance Criteria**:
-  - [ ] Every phase template post-mortem step mentions: code, tests, config, deployments, workflows, docs
-  - [ ] Knowledge Propagation Phase covers all 9 artifact types
+  - [x] Every phase template post-mortem step mentions: code, tests, config, deployments, workflows, docs
+  - [x] Knowledge Propagation Phase covers all 9 artifact types
 
 #### Task 3.6: Phase 3 Quality Gate + Post-Mortem
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 30m
 - **Acceptance Criteria**:
-  - [ ] All 5 agents reviewed (Tasks 3.1-3.5) and updated where needed
-  - [ ] All updates committed
-  - [ ] lessons.md updated with Phase 3 observations
+  - [x] All 5 agents reviewed (Tasks 3.1-3.5) and updated where needed
+  - [x] All updates committed
+  - [x] lessons.md updated with Phase 3 observations
 
 ---
 
@@ -278,51 +278,51 @@
 
 #### Task 4.1: Audit architecture + security + authn + observability + openapi + versions
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 1h
 - **Description**: Review 6 instruction files for implicit code-only rules that should
   apply to config/docs/deployments but don't.
 - **Acceptance Criteria**:
-  - [ ] 02-01.architecture: patterns apply to ALL service artifacts (code, config, compose, docs)
-  - [ ] 02-05.security: secret rules cover config files, not just code
-  - [ ] 02-03.observability: telemetry patterns documented for config AND code
-  - [ ] No implicit code-only assumptions found without explicit scope
+  - [x] 02-01.architecture: patterns apply to ALL service artifacts (code, config, compose, docs)
+  - [x] 02-05.security: secret rules cover config files, not just code
+  - [x] 02-03.observability: telemetry patterns documented for config AND code
+  - [x] No implicit code-only assumptions found without explicit scope
 
 #### Task 4.2: Audit coding + testing + golang + data-infrastructure + linting
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 1h
 - **Description**: Review 5 instruction files for gaps in test helper/infra coverage.
 - **Acceptance Criteria**:
-  - [ ] 03-02.testing: shared test infrastructure packages mentioned (testdb, testserver, fixtures, assertions, healthclient)
-  - [ ] 03-02.testing: cross-service contract test pattern documented
-  - [ ] 03-02.testing: TestMain integration pattern mentions SetupTestServer helper
-  - [ ] 03-04.data-infrastructure: testdb helper referenced
+  - [x] 03-02.testing: shared test infrastructure packages mentioned (testdb, testserver, fixtures, assertions, healthclient)
+  - [x] 03-02.testing: cross-service contract test pattern documented
+  - [x] 03-02.testing: TestMain integration pattern mentions SetupTestServer helper
+  - [x] 03-04.data-infrastructure: testdb helper referenced
 
 #### Task 4.3: Audit deployment + git + cross-platform + evidence-based + beast-mode + agent-format
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 45m
 - **Description**: Review remaining instruction files for cross-artifact gaps.
 - **Acceptance Criteria**:
-  - [ ] 04-01.deployment: config schema validation documented (lint-deployments)
-  - [ ] 05-02.git: periodic commits language propagated from ARCHITECTURE.md 13.2.2
-  - [ ] 06-01.evidence-based: evidence checklist covers docs/config/deployments not just code
-  - [ ] 06-02.agent-format: agent self-containment checklist references all artifact types
+  - [x] 04-01.deployment: config schema validation documented (lint-deployments)
+  - [x] 05-02.git: periodic commits language propagated from ARCHITECTURE.md 13.2.2
+  - [x] 06-01.evidence-based: evidence checklist covers docs/config/deployments not just code
+  - [x] 06-02.agent-format: agent self-containment checklist references all artifact types
 
 #### Task 4.4: Phase 4 Quality Gate + Post-Mortem
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 30m
 - **Acceptance Criteria**:
-  - [ ] All 18 instruction files reviewed (Tasks 4.1-4.3) and updated where needed
-  - [ ] `go run ./cmd/cicd lint-docs validate-propagation` passes
-  - [ ] All updates committed
-  - [ ] lessons.md updated with Phase 4 observations
+  - [x] All 18 instruction files reviewed (Tasks 4.1-4.3) and updated where needed
+  - [x] `go run ./cmd/cicd lint-docs validate-propagation` passes
+  - [x] All updates committed
+  - [x] lessons.md updated with Phase 4 observations
 
 ---
 
@@ -333,56 +333,55 @@ patterns cover ALL artifact types.
 
 #### Task 5.1: Document Architecture Fitness Functions
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 1h
 - **Description**: Add lint-fitness documentation to ARCHITECTURE.md.
 - **Files**: ARCHITECTURE.md Section 9.10 or new Section 11.4
 - **Acceptance Criteria**:
-  - [ ] lint-fitness command documented: `go run ./cmd/cicd lint-fitness`
-  - [ ] All 8 sub-linters described: service-contract-compliance, parallel-tests,
-    sequential-test-comment, admin-bind-policy, health-endpoints, port-assignments,
-    import-isolation, file-size
-  - [ ] Pre-commit hook integration documented
-  - [ ] CI/CD workflow integration mentioned
-  - [ ] @propagate markers added for propagation to relevant instruction files
-
+  - [x] lint-fitness command documented: `go run ./cmd/cicd lint-fitness`
+  - [x] All 8 sub-linters described: service-contract-compliance, parallel-tests,
+      sequential-test-comment, admin-bind-policy, health-endpoints, port-assignments,
+      import-isolation, file-size
+  - [x] Pre-commit hook integration documented
+  - [x] CI/CD workflow integration mentioned
+  - [x] @propagate markers added for propagation to relevant instruction files
 #### Task 5.2: Document Shared Test Infrastructure
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 1h
 - **Description**: Add shared test infrastructure packages to ARCHITECTURE.md Section 10.3.
 - **Acceptance Criteria**:
-  - [ ] `testdb.NewInMemorySQLiteDB(t *testing.T) *gorm.DB` documented
-  - [ ] `testdb.NewPostgresTestContainer(ctx, t)` documented
-  - [ ] `testserver.SetupTestServer(t, constructor)` documented
-  - [ ] `fixtures.CreateTestTenant/Realm/User` documented
-  - [ ] `assertions.AssertHealthy/AssertErrorResponse/AssertJSONContentType` documented
-  - [ ] `healthclient.NewHealthClient` documented
+  - [x] `testdb.NewInMemorySQLiteDB(t *testing.T) *gorm.DB` documented
+  - [x] `testdb.NewPostgresTestContainer(ctx, t)` documented
+  - [x] `testserver.SetupTestServer(t, constructor)` documented
+  - [x] `fixtures.CreateTestTenant/Realm/User` documented
+  - [x] `assertions.AssertHealthy/AssertErrorResponse/AssertJSONContentType` documented
+  - [x] `healthclient.NewHealthClient` documented
 
 #### Task 5.3: Document Air Live Reload
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 30m
 - **Description**: Add air live reload to ARCHITECTURE.md Section 13 (Development Practices).
 - **Acceptance Criteria**:
-  - [ ] Brief section explaining air live reload
-  - [ ] Command: `SERVICE=sm-im air` documented
-  - [ ] `.air.toml` structure mentioned
-  - [ ] Link to air live reload docs
+  - [x] Brief section explaining air live reload
+  - [x] Command: `SERVICE=sm-im air` documented
+  - [x] `.air.toml` structure mentioned
+  - [x] Link to air live reload docs
 
 #### Task 5.4: Phase 5 Quality Gate + Post-Mortem
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 30m
 - **Acceptance Criteria**:
-  - [ ] `go run ./cmd/cicd lint-docs validate-propagation` passes
-  - [ ] `go build ./...` clean
-  - [ ] Updates committed with semantic commits
-  - [ ] lessons.md updated
+  - [x] `go run ./cmd/cicd lint-docs validate-propagation` passes
+  - [x] `go build ./...` clean
+  - [x] Updates committed with semantic commits
+  - [x] lessons.md updated
 
 ---
 
@@ -393,34 +392,34 @@ to @source blocks in instruction files.
 
 #### Task 6.1: Run validate-propagation and Fix Drift
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 1h
 - **Acceptance Criteria**:
-  - [ ] `go run ./cmd/cicd lint-docs validate-propagation` passes with 0 errors
-  - [ ] Any drift in @source blocks corrected to match ARCHITECTURE.md
-  - [ ] All fixes committed
+  - [x] `go run ./cmd/cicd lint-docs validate-propagation` passes with 0 errors
+  - [x] Any drift in @source blocks corrected to match ARCHITECTURE.md
+  - [x] All fixes committed
 
 #### Task 6.2: Final Quality Gates
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 30m
 - **Acceptance Criteria**:
-  - [ ] `go build ./...` exits 0
-  - [ ] `golangci-lint run` exits 0
-  - [ ] `go test ./...` exits 0 (100%, zero skips)
-  - [ ] plan.md success criteria all checked
-  - [ ] Git commit: `docs(framework-brainstorm): complete execution plan phases 1-6`
+  - [x] `go build ./...` exits 0
+  - [x] `golangci-lint run` exits 0
+  - [x] `go test ./...` exits 0 (100%, zero skips)
+  - [x] plan.md success criteria all checked
+  - [x] Git commit: `docs(framework-brainstorm): complete execution plan phases 1-6`
 
 #### Task 6.3: Phase 6 Post-Mortem
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 15m
 - **Acceptance Criteria**:
-  - [ ] lessons.md final update
-  - [ ] Remaining deferred items documented in Phase 7
+  - [x] lessons.md final update
+  - [x] Remaining deferred items documented in Phase 7
 
 ---
 
