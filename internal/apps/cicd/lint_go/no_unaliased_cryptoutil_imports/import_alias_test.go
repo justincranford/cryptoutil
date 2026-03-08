@@ -12,7 +12,6 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
 
-
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
@@ -20,7 +19,6 @@ import (
 
 // Test constants for repeated string literals.
 const (
-
 	testCleanGoFile  = "clean.go"
 	testCleanContent = "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"hello\") }\n"
 )

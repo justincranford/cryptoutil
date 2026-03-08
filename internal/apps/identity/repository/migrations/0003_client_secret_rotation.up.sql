@@ -14,8 +14,8 @@ CREATE TABLE IF NOT EXISTS client_secret_history (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     -- Foreign key constraint
-    FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
+    FOREIGN KEY (client_id) REFERENCES clients (id) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_client_secret_history_client_id ON client_secret_history(client_id);
-CREATE INDEX IF NOT EXISTS idx_client_secret_history_rotated_at ON client_secret_history(rotated_at);
+CREATE INDEX IF NOT EXISTS idx_client_secret_history_client_id ON client_secret_history (client_id);
+CREATE INDEX IF NOT EXISTS idx_client_secret_history_rotated_at ON client_secret_history (rotated_at);

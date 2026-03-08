@@ -92,7 +92,6 @@ Systematically identify and synchronize related documentation across the cryptou
 - **NEVER skip**: Cannot mark phase or task or step complete with known issues
 - **NEVER defer**: No "we'll fix later", no "non-critical", no "nice-to-have"
 
-
 ## Architecture Context
 
 See [ARCHITECTURE.md Section 12.7](../../docs/ARCHITECTURE.md#127-documentation-propagation-strategy) for complete documentation propagation system design.

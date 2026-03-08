@@ -12,8 +12,8 @@ CREATE TABLE IF NOT EXISTS tenant_audit_config (
     enabled BOOLEAN NOT NULL DEFAULT TRUE,          -- Whether auditing is enabled for this operation
     sampling_rate REAL NOT NULL DEFAULT 0.01,       -- Sampling rate (0.0 to 1.0, default 1%)
     PRIMARY KEY (tenant_id, operation),
-    FOREIGN KEY (tenant_id) REFERENCES tenants(id)
+    FOREIGN KEY (tenant_id) REFERENCES tenants (id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_tenant_audit_config_tenant ON tenant_audit_config(tenant_id);
-CREATE INDEX IF NOT EXISTS idx_tenant_audit_config_operation ON tenant_audit_config(operation);
+CREATE INDEX IF NOT EXISTS idx_tenant_audit_config_tenant ON tenant_audit_config (tenant_id);
+CREATE INDEX IF NOT EXISTS idx_tenant_audit_config_operation ON tenant_audit_config (operation);

@@ -34,9 +34,9 @@ type DemoEndpoints struct {
 // DefaultDemoEndpoints returns the default demo endpoints.
 func DefaultDemoEndpoints() *DemoEndpoints {
 	return &DemoEndpoints{
-			TokenEndpoint:     "https://localhost:8200/oauth2/token",
-				JWKSEndpoint:      "https://localhost:8200/.well-known/jwks.json",
-				KMSAPIEndpoint:    "https://localhost:8000/api/v1",
+		TokenEndpoint:     "https://localhost:8200/oauth2/token",
+		JWKSEndpoint:      "https://localhost:8200/.well-known/jwks.json",
+		KMSAPIEndpoint:    "https://localhost:8000/api/v1",
 		KMSHealthEndpoint: "https://localhost:9090/admin/api/v1/livez",
 	}
 }

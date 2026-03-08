@@ -13,10 +13,10 @@ CREATE TABLE IF NOT EXISTS elastic_keys_old (
     elastic_key_versioning_allowed INTEGER NOT NULL,
     elastic_key_import_allowed INTEGER NOT NULL,
     elastic_key_status TEXT NOT NULL,
-    CHECK (length(elastic_key_name) >= 1),
+    CHECK (LENGTH(elastic_key_name) >= 1),
     -- Name pattern validation (alphanumeric, hyphens, underscores) enforced at application layer.
     -- GLOB is SQLite-only; removed for cross-database (PostgreSQL + SQLite) compatibility.
-    CHECK (length(elastic_key_description) >= 1),
+    CHECK (LENGTH(elastic_key_description) >= 1),
     CHECK (elastic_key_provider = 'Internal'),
     CHECK (elastic_key_versioning_allowed IN (0, 1)),
     CHECK (elastic_key_import_allowed IN (0, 1)),
@@ -36,9 +36,14 @@ INSERT INTO elastic_keys_old (
     elastic_key_import_allowed, elastic_key_status
 )
 SELECT
-    elastic_key_id, elastic_key_name, elastic_key_description,
-    elastic_key_provider, elastic_key_algorithm, elastic_key_versioning_allowed,
-    elastic_key_import_allowed, elastic_key_status
+    elastic_key_id,
+    elastic_key_name,
+    elastic_key_description,
+    elastic_key_provider,
+    elastic_key_algorithm,
+    elastic_key_versioning_allowed,
+    elastic_key_import_allowed,
+    elastic_key_status
 FROM elastic_keys;
 
 -- Drop new table and rename old
@@ -46,5 +51,5 @@ DROP TABLE elastic_keys;
 ALTER TABLE elastic_keys_old RENAME TO elastic_keys;
 
 -- Recreate original indexes
-CREATE UNIQUE INDEX IF NOT EXISTS idx_elastic_keys_name ON elastic_keys(elastic_key_name);
-CREATE INDEX IF NOT EXISTS idx_elastic_keys_status ON elastic_keys(elastic_key_status);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_elastic_keys_name ON elastic_keys (elastic_key_name);
+CREATE INDEX IF NOT EXISTS idx_elastic_keys_status ON elastic_keys (elastic_key_status);

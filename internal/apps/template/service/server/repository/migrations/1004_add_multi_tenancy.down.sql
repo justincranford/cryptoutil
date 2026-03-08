@@ -92,10 +92,10 @@ CREATE TABLE IF NOT EXISTS browser_sessions (
     user_id TEXT
 );
 
-CREATE INDEX IF NOT EXISTS idx_browser_sessions_token_hash ON browser_sessions(token_hash);
-CREATE INDEX IF NOT EXISTS idx_browser_sessions_expiration ON browser_sessions(expiration);
-CREATE INDEX IF NOT EXISTS idx_browser_sessions_last_activity ON browser_sessions(last_activity);
-CREATE INDEX IF NOT EXISTS idx_browser_sessions_user_id ON browser_sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_browser_sessions_token_hash ON browser_sessions (token_hash);
+CREATE INDEX IF NOT EXISTS idx_browser_sessions_expiration ON browser_sessions (expiration);
+CREATE INDEX IF NOT EXISTS idx_browser_sessions_last_activity ON browser_sessions (last_activity);
+CREATE INDEX IF NOT EXISTS idx_browser_sessions_user_id ON browser_sessions (user_id);
 
 -- Recreate old service_sessions table (without tenant_id)
 CREATE TABLE IF NOT EXISTS service_sessions (
@@ -108,7 +108,7 @@ CREATE TABLE IF NOT EXISTS service_sessions (
     client_id TEXT
 );
 
-CREATE INDEX IF NOT EXISTS idx_service_sessions_token_hash ON service_sessions(token_hash);
-CREATE INDEX IF NOT EXISTS idx_service_sessions_expiration ON service_sessions(expiration);
-CREATE INDEX IF NOT EXISTS idx_service_sessions_last_activity ON service_sessions(last_activity);
-CREATE INDEX IF NOT EXISTS idx_service_sessions_client_id ON service_sessions(client_id);
+CREATE INDEX IF NOT EXISTS idx_service_sessions_token_hash ON service_sessions (token_hash);
+CREATE INDEX IF NOT EXISTS idx_service_sessions_expiration ON service_sessions (expiration);
+CREATE INDEX IF NOT EXISTS idx_service_sessions_last_activity ON service_sessions (last_activity);
+CREATE INDEX IF NOT EXISTS idx_service_sessions_client_id ON service_sessions (client_id);

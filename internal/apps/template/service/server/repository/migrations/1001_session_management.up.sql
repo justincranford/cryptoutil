@@ -14,8 +14,8 @@ CREATE TABLE IF NOT EXISTS browser_session_jwks (
     active BOOLEAN NOT NULL DEFAULT TRUE             -- Active key for signing, historical keys for verification
 );
 
-CREATE INDEX IF NOT EXISTS idx_browser_session_jwks_created_at ON browser_session_jwks(created_at);
-CREATE INDEX IF NOT EXISTS idx_browser_session_jwks_active ON browser_session_jwks(active);
+CREATE INDEX IF NOT EXISTS idx_browser_session_jwks_created_at ON browser_session_jwks (created_at);
+CREATE INDEX IF NOT EXISTS idx_browser_session_jwks_active ON browser_session_jwks (active);
 
 -- Service Session JWKs table
 -- Stores encrypted JWKs for JWE/JWS session token signing/encryption
@@ -28,8 +28,8 @@ CREATE TABLE IF NOT EXISTS service_session_jwks (
     active BOOLEAN NOT NULL DEFAULT TRUE             -- Active key for signing, historical keys for verification
 );
 
-CREATE INDEX IF NOT EXISTS idx_service_session_jwks_created_at ON service_session_jwks(created_at);
-CREATE INDEX IF NOT EXISTS idx_service_session_jwks_active ON service_session_jwks(active);
+CREATE INDEX IF NOT EXISTS idx_service_session_jwks_created_at ON service_session_jwks (created_at);
+CREATE INDEX IF NOT EXISTS idx_service_session_jwks_active ON service_session_jwks (active);
 
 -- Browser Sessions table
 -- Stores session identifiers and metadata for browser users
@@ -45,9 +45,9 @@ CREATE TABLE IF NOT EXISTS browser_sessions (
     realm TEXT                                       -- Realm identifier for multi-tenancy
 );
 
-CREATE INDEX IF NOT EXISTS idx_browser_sessions_expiration ON browser_sessions(expiration);
-CREATE INDEX IF NOT EXISTS idx_browser_sessions_token_hash ON browser_sessions(token_hash);
-CREATE INDEX IF NOT EXISTS idx_browser_sessions_user_id ON browser_sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_browser_sessions_expiration ON browser_sessions (expiration);
+CREATE INDEX IF NOT EXISTS idx_browser_sessions_token_hash ON browser_sessions (token_hash);
+CREATE INDEX IF NOT EXISTS idx_browser_sessions_user_id ON browser_sessions (user_id);
 
 -- Service Sessions table
 -- Stores session identifiers and metadata for service-to-service clients
@@ -63,6 +63,6 @@ CREATE TABLE IF NOT EXISTS service_sessions (
     realm TEXT                                       -- Realm identifier for multi-tenancy
 );
 
-CREATE INDEX IF NOT EXISTS idx_service_sessions_expiration ON service_sessions(expiration);
-CREATE INDEX IF NOT EXISTS idx_service_sessions_token_hash ON service_sessions(token_hash);
-CREATE INDEX IF NOT EXISTS idx_service_sessions_client_id ON service_sessions(client_id);
+CREATE INDEX IF NOT EXISTS idx_service_sessions_expiration ON service_sessions (expiration);
+CREATE INDEX IF NOT EXISTS idx_service_sessions_token_hash ON service_sessions (token_hash);
+CREATE INDEX IF NOT EXISTS idx_service_sessions_client_id ON service_sessions (client_id);

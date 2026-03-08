@@ -1,66 +1,60 @@
 [build-system]
-requires = ["setuptools>=75.1.0", "wheel"]
 build-backend = "setuptools.build_meta"
+requires = [ "setuptools>=75.1", "wheel" ]
 
 [project]
 name = "cryptoutil"
 version = "0.1.0"
 description = "Cryptographic utilities"
 readme = "README.md"
+authors = [ { name = "Justin Cranford" } ]
 requires-python = ">=3.14"
-authors = [
-    {name = "Justin Cranford"}
+classifiers = [
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.14",
 ]
-
-[project.optional-dependencies]
-dev = [
-    "golangci-lint>=2.7.2",  # Minimum version enforced - always use latest
+optional-dependencies.dependencies = [
+  "bandit>=1.8",
+  "codecov>=2.1.13",
+  "mypy>=1.18.2",
+  "pre-commit>=4.4",
+  "pytest>=9",
+  "pytest-benchmark>=5.2.3",
+  "pytest-cov>=5",
+  "pytest-mock>=3.14",
+  "ruff>=0.9",
+  "sphinx>=8.2.3",
+  "types-requests>=2.32",
 ]
-dependencies = [
-    "pytest>=9.0.0",
-    "pytest-cov>=5.0.0",
-    "pytest-mock>=3.14.0",
-    "pytest-benchmark>=5.2.3",
-    "codecov>=2.1.13",
-    "ruff>=0.9.0",
-    "mypy>=1.18.2",
-    "bandit>=1.8.0",
-    "sphinx>=8.2.3",
-    "pre-commit>=4.4.0",
-    "types-requests>=2.32.0",
+optional-dependencies.dev = [
+  "golangci-lint>=2.7.2", # Minimum version enforced - always use latest
 ]
-
-[tool.pytest.ini_options]
-minversion = "7.0"
-addopts = "-ra -q -strict-markers --cov=. --cov-report=term-missing --cov-report=xml --cov-fail-under=96"
-testpaths = ["tests"]
-
-[tool.coverage.run]
-precision = 2
-source = ["."]
-omit = ["*/tests/*", "*/venv/*", "*/test_*.py", "*/__pycache__/*"]
 
 [tool.ruff]
-line-length = 200
 target-version = "py314"
-
-[tool.ruff.lint]
-select = ["E", "W", "F", "I", "B", "UP", "SIM", "C90"]
-ignore = [
-    "E203",   # whitespace before ':' (black-compatible)
-    "B008",   # do not perform function calls in argument defaults
-]
-
-[tool.ruff.lint.mccabe]
-# Increased from default 10 to accommodate security validation functions.
-max-complexity = 12
-
-[tool.ruff.format]
+line-length = 200
+format.indent-style = "space"
 # Black-compatible formatting settings
-quote-style = "double"
-indent-style = "space"
-skip-magic-trailing-comma = false
-line-ending = "auto"
+format.quote-style = "double"
+format.line-ending = "auto"
+format.skip-magic-trailing-comma = false
+lint.select = [ "B", "C90", "E", "F", "I", "SIM", "UP", "W" ]
+lint.ignore = [
+  "B008", # do not perform function calls in argument defaults
+  "E203", # whitespace before ':' (black-compatible)
+]
+# Increased from default 10 to accommodate security validation functions.
+lint.mccabe.max-complexity = 12
+
+[tool.pytest]
+ini_options.minversion = "7.0"
+ini_options.addopts = "-ra -q -strict-markers --cov=. --cov-report=term-missing --cov-report=xml --cov-fail-under=96"
+ini_options.testpaths = [ "tests" ]
+
+[tool.coverage]
+run.omit = [ "*/__pycache__/*", "*/test_*.py", "*/tests/*", "*/venv/*" ]
+run.precision = 2
+run.source = [ "." ]
 
 [tool.mypy]
 python_version = "3.14"
@@ -71,7 +65,7 @@ ignore_missing_imports = true
 
 [tool.node]
 dependencies = [
-    "nvm-windows>=1.2.2",
-    "node>=24.11.1",
-    "cspell>=9.0.0",
+  "nvm-windows>=1.2.2",
+  "node>=24.11.1",
+  "cspell>=9.0.0",
 ]

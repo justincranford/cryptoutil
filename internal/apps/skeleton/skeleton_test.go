@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/require"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSkeleton_NoArguments(t *testing.T) {

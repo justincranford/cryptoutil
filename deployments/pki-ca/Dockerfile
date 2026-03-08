@@ -69,17 +69,17 @@ COPY go.mod go.sum ./
 
 # Download modules using BuildKit cache mounts when available.
 RUN --mount=type=cache,target=/go/pkg/mod \
-	--mount=type=cache,target=/root/.cache/go-build \
-	go mod download
+    --mount=type=cache,target=/root/.cache/go-build \
+    go mod download
 
 # Copy the remainder of the source.
 COPY . .
 
 # Build the static, trimmed binary.
 RUN --mount=type=cache,target=/go/pkg/mod \
-	--mount=type=cache,target=/root/.cache/go-build \
-	CGO_ENABLED=${CGO_ENABLED} GOOS=${GOOS} GOARCH=${GOARCH} \
-	go build -a -tags netgo -trimpath -ldflags="${LDFLAGS}" -o /app/pki-ca ./cmd/pki-ca
+    --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=${CGO_ENABLED} GOOS=${GOOS} GOARCH=${GOARCH} \
+    go build -a -tags netgo -trimpath -ldflags="${LDFLAGS}" -o /app/pki-ca ./cmd/pki-ca
 
 # Validate that the binary is statically linked.
 SHELL ["/bin/bash", "-c"]
@@ -107,12 +107,12 @@ ARG BUILD_DATE
 
 # OCI Image spec labels.
 LABEL org.opencontainers.image.title="CA Server" \
-      org.opencontainers.image.description="Certificate Authority REST API Server" \
-      org.opencontainers.image.version="${APP_VERSION}" \
-      org.opencontainers.image.revision="${VCS_REF}" \
-      org.opencontainers.image.created="${BUILD_DATE}" \
-      org.opencontainers.image.source="https://github.com/justincranford/cryptoutil" \
-      org.opencontainers.image.licenses="MIT"
+    org.opencontainers.image.description="Certificate Authority REST API Server" \
+    org.opencontainers.image.version="${APP_VERSION}" \
+    org.opencontainers.image.revision="${VCS_REF}" \
+    org.opencontainers.image.created="${BUILD_DATE}" \
+    org.opencontainers.image.source="https://github.com/justincranford/cryptoutil" \
+    org.opencontainers.image.licenses="MIT"
 
 # Install ca-certificates for TLS and busybox for wget (healthchecks).
 # Create non-root user for security.

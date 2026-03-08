@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS recovery_codes (
     expires_at TIMESTAMP NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_recovery_codes_user_id ON recovery_codes(user_id);
-CREATE INDEX IF NOT EXISTS idx_recovery_codes_used ON recovery_codes(used);
-CREATE INDEX IF NOT EXISTS idx_recovery_codes_expires_at ON recovery_codes(expires_at);
-CREATE INDEX IF NOT EXISTS idx_recovery_codes_used_at ON recovery_codes(used_at);
+CREATE INDEX IF NOT EXISTS idx_recovery_codes_user_id ON recovery_codes (user_id);
+CREATE INDEX IF NOT EXISTS idx_recovery_codes_used ON recovery_codes (used);
+CREATE INDEX IF NOT EXISTS idx_recovery_codes_expires_at ON recovery_codes (expires_at);
+CREATE INDEX IF NOT EXISTS idx_recovery_codes_used_at ON recovery_codes (used_at);

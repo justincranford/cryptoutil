@@ -58,21 +58,21 @@ require.Equal(t, tc.want, got)
 
 ```go
 func TestListMessages_Handler(t *testing.T) {
-	t.Parallel()
+ t.Parallel()
 
-	app := fiber.New(fiber.Config{DisableStartupMessage: true})
-	msgRepo := repository.NewMessageRepository(testDB)
-	handler := NewPublicServer(nil, msgRepo, nil, nil, nil)
-	app.Get("/browser/api/v1/messages", handler.ListMessages)
+ app := fiber.New(fiber.Config{DisableStartupMessage: true})
+ msgRepo := repository.NewMessageRepository(testDB)
+ handler := NewPublicServer(nil, msgRepo, nil, nil, nil)
+ app.Get("/browser/api/v1/messages", handler.ListMessages)
 
-	req := httptest.NewRequest("GET", "/browser/api/v1/messages", nil)
-	req.Header.Set("X-Tenant-ID", testTenantID.String())
+ req := httptest.NewRequest("GET", "/browser/api/v1/messages", nil)
+ req.Header.Set("X-Tenant-ID", testTenantID.String())
 
-	resp, err := app.Test(req, -1) // in-memory, <1ms, no network binding
-	require.NoError(t, err)
-	defer resp.Body.Close()
+ resp, err := app.Test(req, -1) // in-memory, <1ms, no network binding
+ require.NoError(t, err)
+ defer resp.Body.Close()
 
-	require.Equal(t, 200, resp.StatusCode)
+ require.Equal(t, 200, resp.StatusCode)
 }
 ```
 

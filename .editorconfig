@@ -13,8 +13,11 @@ indent_style = space
 indent_size = 4
 
 # Go source files
+# indent_style is intentionally omitted: editorconfig-checker cannot distinguish
+# real Go indentation from spaces inside raw string literals (embedded YAML,
+# HTML, shell text, etc), causing false positives. Tab enforcement is handled
+# exclusively by gofmt/golangci-lint pre-commit hooks.
 [*.go]
-indent_style = tab
 indent_size = 4
 
 # Go template files
@@ -29,6 +32,11 @@ indent_size = 2
 
 # JSON files (2-space indent)
 [*.json]
+indent_style = space
+indent_size = 2
+
+# JSONC files (JSON with comments — VS Code settings, markdownlint config)
+[*.jsonc]
 indent_style = space
 indent_size = 2
 

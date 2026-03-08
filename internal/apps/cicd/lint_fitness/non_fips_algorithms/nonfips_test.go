@@ -11,7 +11,6 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
 
-
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
@@ -239,7 +238,6 @@ func TestPrintNonFIPSViolations(t *testing.T) {
 
 // Test constants for repeated string literals.
 const (
-
 	testPackageMainDef = "package main\n"
 )
 
@@ -405,7 +403,9 @@ func TestCheck_FindGoFilesError(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(subDir, "file.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.Chmod(subDir, 0o000))
 
-	defer func() { _ = os.Chmod(filepath.Join(tempDir, subDir), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute) }()
+	defer func() {
+		_ = os.Chmod(filepath.Join(tempDir, subDir), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
+	}()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	err = Check(logger)

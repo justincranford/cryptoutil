@@ -16,7 +16,6 @@ import (
 // Sequential: uses viper/pflag global state
 func TestParse_HappyPath(t *testing.T) {
 
-
 	// Not parallel: pflag FlagSets may share global viper state.
 	fs := pflag.NewFlagSet("test-pki-happy-path", pflag.ContinueOnError)
 	args := []string{

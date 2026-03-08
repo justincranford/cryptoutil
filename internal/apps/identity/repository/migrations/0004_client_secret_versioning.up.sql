@@ -17,15 +17,17 @@ CREATE TABLE IF NOT EXISTS client_secret_versions (
     revoked_by TEXT,
 
     -- Foreign key constraint
-    FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
+    FOREIGN KEY (client_id) REFERENCES clients (id) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_client_secret_versions_client_id ON client_secret_versions(client_id);
-CREATE INDEX IF NOT EXISTS idx_client_secret_versions_status ON client_secret_versions(status);
-CREATE INDEX IF NOT EXISTS idx_client_secret_versions_expires_at ON client_secret_versions(expires_at);
-CREATE INDEX IF NOT EXISTS idx_client_secret_versions_revoked_at ON client_secret_versions(revoked_at);
-CREATE INDEX IF NOT EXISTS idx_client_secret_versions_deleted_at ON client_secret_versions(deleted_at);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_client_secret_versions_client_version ON client_secret_versions(client_id, version) WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_client_secret_versions_client_id ON client_secret_versions (client_id);
+CREATE INDEX IF NOT EXISTS idx_client_secret_versions_status ON client_secret_versions (status);
+CREATE INDEX IF NOT EXISTS idx_client_secret_versions_expires_at ON client_secret_versions (expires_at);
+CREATE INDEX IF NOT EXISTS idx_client_secret_versions_revoked_at ON client_secret_versions (revoked_at);
+CREATE INDEX IF NOT EXISTS idx_client_secret_versions_deleted_at ON client_secret_versions (deleted_at);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_client_secret_versions_client_version ON client_secret_versions (
+    client_id, version
+) WHERE deleted_at IS NULL;
 
 CREATE TABLE IF NOT EXISTS key_rotation_events (
     id TEXT PRIMARY KEY NOT NULL,
@@ -39,14 +41,14 @@ CREATE TABLE IF NOT EXISTS key_rotation_events (
     grace_period TEXT,
     reason TEXT,
     metadata TEXT,
-    success BOOLEAN NOT NULL DEFAULT true,
+    success BOOLEAN NOT NULL DEFAULT TRUE,
     error_message TEXT,
     deleted_at TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_key_rotation_events_event_type ON key_rotation_events(event_type);
-CREATE INDEX IF NOT EXISTS idx_key_rotation_events_key_type ON key_rotation_events(key_type);
-CREATE INDEX IF NOT EXISTS idx_key_rotation_events_key_id ON key_rotation_events(key_id);
-CREATE INDEX IF NOT EXISTS idx_key_rotation_events_timestamp ON key_rotation_events(timestamp);
-CREATE INDEX IF NOT EXISTS idx_key_rotation_events_initiator ON key_rotation_events(initiator);
-CREATE INDEX IF NOT EXISTS idx_key_rotation_events_deleted_at ON key_rotation_events(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_key_rotation_events_event_type ON key_rotation_events (event_type);
+CREATE INDEX IF NOT EXISTS idx_key_rotation_events_key_type ON key_rotation_events (key_type);
+CREATE INDEX IF NOT EXISTS idx_key_rotation_events_key_id ON key_rotation_events (key_id);
+CREATE INDEX IF NOT EXISTS idx_key_rotation_events_timestamp ON key_rotation_events (timestamp);
+CREATE INDEX IF NOT EXISTS idx_key_rotation_events_initiator ON key_rotation_events (initiator);
+CREATE INDEX IF NOT EXISTS idx_key_rotation_events_deleted_at ON key_rotation_events (deleted_at);

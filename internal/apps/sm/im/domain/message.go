@@ -29,7 +29,6 @@ type Message struct {
 	JWE       string          `gorm:"type:text;not null"`       // JWE JSON format (multi-recipient)
 	CreatedAt time.Time       `gorm:"autoCreateTime"`
 	ReadAt    *time.Time      `gorm:"default:null;index"`
-
 }
 
 // TableName returns the database table name for Message.

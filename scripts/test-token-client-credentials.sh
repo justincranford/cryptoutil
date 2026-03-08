@@ -7,11 +7,11 @@
 
 # Test client_credentials grant
 curl -X POST http://127.0.0.1:8080/oauth2/v1/token \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "grant_type=client_credentials" \
-  -d "client_id=demo-client" \
-  -d "client_secret=demo-secret" \
-  -d "scope=openid profile email read write"
+    -H "Content-Type: application/x-www-form-urlencoded" \
+    -d "grant_type=client_credentials" \
+    -d "client_id=demo-client" \
+    -d "client_secret=demo-secret" \
+    -d "scope=openid profile email read write"
 
 # Expected response:
 # {

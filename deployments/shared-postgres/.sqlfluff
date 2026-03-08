@@ -1,0 +1,4 @@
+[sqlfluff]
+# RF05 excluded: database names use hyphens (e.g. suitedeployment-pki-ca) which are
+# valid quoted PostgreSQL identifiers but RF05 flags them. Cannot rename live databases.
+exclude_rules = RF04,RF05

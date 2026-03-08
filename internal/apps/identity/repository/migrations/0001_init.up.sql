@@ -51,10 +51,12 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- Create unique indexes for OIDC identifier fields
-CREATE UNIQUE INDEX IF NOT EXISTS idx_users_sub ON users(sub);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email) WHERE email IS NOT NULL;
-CREATE UNIQUE INDEX IF NOT EXISTS idx_users_preferred_username ON users(preferred_username) WHERE preferred_username IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_users_deleted_at ON users(deleted_at);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_sub ON users (sub);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users (email) WHERE email IS NOT null;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_preferred_username ON users (
+    preferred_username
+) WHERE preferred_username IS NOT null;
+CREATE INDEX IF NOT EXISTS idx_users_deleted_at ON users (deleted_at);
 
 -- Client profiles table (must exist before clients table for foreign keys)
 CREATE TABLE IF NOT EXISTS client_profiles (
@@ -86,8 +88,8 @@ CREATE TABLE IF NOT EXISTS client_profiles (
     deleted_at TIMESTAMP
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_client_profiles_name ON client_profiles(name);
-CREATE INDEX IF NOT EXISTS idx_client_profiles_deleted_at ON client_profiles(deleted_at);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_client_profiles_name ON client_profiles (name);
+CREATE INDEX IF NOT EXISTS idx_client_profiles_deleted_at ON client_profiles (deleted_at);
 
 -- Clients table for OAuth 2.1 client configuration
 CREATE TABLE IF NOT EXISTS clients (
@@ -141,14 +143,18 @@ CREATE TABLE IF NOT EXISTS clients (
     deleted_at TIMESTAMP,
 
     -- Foreign key constraint
-    FOREIGN KEY (client_profile_id) REFERENCES client_profiles(id) ON DELETE SET NULL
+    FOREIGN KEY (client_profile_id) REFERENCES client_profiles (id) ON DELETE SET NULL
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_clients_client_id ON clients(client_id);
-CREATE INDEX IF NOT EXISTS idx_clients_certificate_subject ON clients(certificate_subject) WHERE certificate_subject IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_clients_certificate_fingerprint ON clients(certificate_fingerprint) WHERE certificate_fingerprint IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_clients_client_profile_id ON clients(client_profile_id);
-CREATE INDEX IF NOT EXISTS idx_clients_deleted_at ON clients(deleted_at);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_clients_client_id ON clients (client_id);
+CREATE INDEX IF NOT EXISTS idx_clients_certificate_subject ON clients (
+    certificate_subject
+) WHERE certificate_subject IS NOT null;
+CREATE INDEX IF NOT EXISTS idx_clients_certificate_fingerprint ON clients (
+    certificate_fingerprint
+) WHERE certificate_fingerprint IS NOT null;
+CREATE INDEX IF NOT EXISTS idx_clients_client_profile_id ON clients (client_profile_id);
+CREATE INDEX IF NOT EXISTS idx_clients_deleted_at ON clients (deleted_at);
 
 -- Tokens table for OAuth 2.1 / OIDC tokens
 CREATE TABLE IF NOT EXISTS tokens (
@@ -186,20 +192,20 @@ CREATE TABLE IF NOT EXISTS tokens (
     deleted_at TIMESTAMP,
 
     -- Foreign key constraints
-    FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (refresh_token_id) REFERENCES tokens(id) ON DELETE SET NULL
+    FOREIGN KEY (client_id) REFERENCES clients (id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (refresh_token_id) REFERENCES tokens (id) ON DELETE SET NULL
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_tokens_token_value ON tokens(token_value);
-CREATE INDEX IF NOT EXISTS idx_tokens_token_type ON tokens(token_type);
-CREATE INDEX IF NOT EXISTS idx_tokens_client_id ON tokens(client_id);
-CREATE INDEX IF NOT EXISTS idx_tokens_user_id ON tokens(user_id);
-CREATE INDEX IF NOT EXISTS idx_tokens_refresh_token_id ON tokens(refresh_token_id);
-CREATE INDEX IF NOT EXISTS idx_tokens_issued_at ON tokens(issued_at);
-CREATE INDEX IF NOT EXISTS idx_tokens_expires_at ON tokens(expires_at);
-CREATE INDEX IF NOT EXISTS idx_tokens_revoked ON tokens(revoked);
-CREATE INDEX IF NOT EXISTS idx_tokens_deleted_at ON tokens(deleted_at);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_tokens_token_value ON tokens (token_value);
+CREATE INDEX IF NOT EXISTS idx_tokens_token_type ON tokens (token_type);
+CREATE INDEX IF NOT EXISTS idx_tokens_client_id ON tokens (client_id);
+CREATE INDEX IF NOT EXISTS idx_tokens_user_id ON tokens (user_id);
+CREATE INDEX IF NOT EXISTS idx_tokens_refresh_token_id ON tokens (refresh_token_id);
+CREATE INDEX IF NOT EXISTS idx_tokens_issued_at ON tokens (issued_at);
+CREATE INDEX IF NOT EXISTS idx_tokens_expires_at ON tokens (expires_at);
+CREATE INDEX IF NOT EXISTS idx_tokens_revoked ON tokens (revoked);
+CREATE INDEX IF NOT EXISTS idx_tokens_deleted_at ON tokens (deleted_at);
 
 -- Sessions table for user authentication sessions
 CREATE TABLE IF NOT EXISTS sessions (
@@ -240,17 +246,17 @@ CREATE TABLE IF NOT EXISTS sessions (
     deleted_at TIMESTAMP,
 
     -- Foreign key constraints
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (client_id) REFERENCES clients (id) ON DELETE CASCADE
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_session_id ON sessions(session_id);
-CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
-CREATE INDEX IF NOT EXISTS idx_sessions_client_id ON sessions(client_id);
-CREATE INDEX IF NOT EXISTS idx_sessions_issued_at ON sessions(issued_at);
-CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
-CREATE INDEX IF NOT EXISTS idx_sessions_active ON sessions(active);
-CREATE INDEX IF NOT EXISTS idx_sessions_deleted_at ON sessions(deleted_at);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_session_id ON sessions (session_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions (user_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_client_id ON sessions (client_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_issued_at ON sessions (issued_at);
+CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions (expires_at);
+CREATE INDEX IF NOT EXISTS idx_sessions_active ON sessions (active);
+CREATE INDEX IF NOT EXISTS idx_sessions_deleted_at ON sessions (deleted_at);
 
 -- Auth profiles table (must exist before mfa_factors table for foreign keys)
 CREATE TABLE IF NOT EXISTS auth_profiles (
@@ -277,8 +283,8 @@ CREATE TABLE IF NOT EXISTS auth_profiles (
     deleted_at TIMESTAMP
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_auth_profiles_name ON auth_profiles(name);
-CREATE INDEX IF NOT EXISTS idx_auth_profiles_deleted_at ON auth_profiles(deleted_at);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_auth_profiles_name ON auth_profiles (name);
+CREATE INDEX IF NOT EXISTS idx_auth_profiles_deleted_at ON auth_profiles (deleted_at);
 
 -- MFA factors table for multi-factor authentication factor configuration
 CREATE TABLE IF NOT EXISTS mfa_factors (
@@ -317,15 +323,15 @@ CREATE TABLE IF NOT EXISTS mfa_factors (
     deleted_at TIMESTAMP,
 
     -- Foreign key constraint
-    FOREIGN KEY (auth_profile_id) REFERENCES auth_profiles(id) ON DELETE CASCADE
+    FOREIGN KEY (auth_profile_id) REFERENCES auth_profiles (id) ON DELETE CASCADE
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_mfa_factors_name ON mfa_factors(name);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_mfa_factors_nonce ON mfa_factors(nonce);
-CREATE INDEX IF NOT EXISTS idx_mfa_factors_auth_profile_id ON mfa_factors(auth_profile_id);
-CREATE INDEX IF NOT EXISTS idx_mfa_factors_nonce_expires_at ON mfa_factors(nonce_expires_at);
-CREATE INDEX IF NOT EXISTS idx_mfa_factors_nonce_used_at ON mfa_factors(nonce_used_at);
-CREATE INDEX IF NOT EXISTS idx_mfa_factors_deleted_at ON mfa_factors(deleted_at);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_mfa_factors_name ON mfa_factors (name);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_mfa_factors_nonce ON mfa_factors (nonce);
+CREATE INDEX IF NOT EXISTS idx_mfa_factors_auth_profile_id ON mfa_factors (auth_profile_id);
+CREATE INDEX IF NOT EXISTS idx_mfa_factors_nonce_expires_at ON mfa_factors (nonce_expires_at);
+CREATE INDEX IF NOT EXISTS idx_mfa_factors_nonce_used_at ON mfa_factors (nonce_used_at);
+CREATE INDEX IF NOT EXISTS idx_mfa_factors_deleted_at ON mfa_factors (deleted_at);
 
 -- Auth flows table for authorization code flow configuration
 CREATE TABLE IF NOT EXISTS auth_flows (
@@ -363,9 +369,9 @@ CREATE TABLE IF NOT EXISTS auth_flows (
     deleted_at TIMESTAMP,
 
     -- Foreign key constraint
-    FOREIGN KEY (client_profile_id) REFERENCES client_profiles(id) ON DELETE SET NULL
+    FOREIGN KEY (client_profile_id) REFERENCES client_profiles (id) ON DELETE SET NULL
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_auth_flows_name ON auth_flows(name);
-CREATE INDEX IF NOT EXISTS idx_auth_flows_client_profile_id ON auth_flows(client_profile_id);
-CREATE INDEX IF NOT EXISTS idx_auth_flows_deleted_at ON auth_flows(deleted_at);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_auth_flows_name ON auth_flows (name);
+CREATE INDEX IF NOT EXISTS idx_auth_flows_client_profile_id ON auth_flows (client_profile_id);
+CREATE INDEX IF NOT EXISTS idx_auth_flows_deleted_at ON auth_flows (deleted_at);

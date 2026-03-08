@@ -35,6 +35,7 @@ fixes-v8 focuses on five priorities:
 ## Background
 
 ### Prior Work (fixes-v7)
+
 - 220/220 tasks across 11 phases completed (docs/fixes-v7/ deleted — all complete)
 - All 13 CI/CD workflows now green
 - E2E tests passing for all 4 implemented services (sm-kms, sm-im, jose-ja, identity)
@@ -42,6 +43,7 @@ fixes-v8 focuses on five priorities:
 - 13 root causes identified and fixed in E2E test suites
 
 ### Current State (commit 0adf04af1)
+
 - ARCHITECTURE.md structural issues fixed
 - docs/CONFIG-SCHEMA.md created
 - All builds clean, all tests passing, clean working tree
@@ -123,8 +125,11 @@ The first 4 are already migrated. Identity services are the final frontier. skel
 **Goal**: Close remaining low-priority items from ARCHITECTURE.md analysis.
 
 ### 1.1 Validate Propagation Markers
+
 ### 1.2 Long Line Audit
+
 ### 1.3 Empty Section Cleanup
+
 ### 1.4 Cross-Reference Integrity
 
 **Quality Gate**: ✅ Zero broken links, zero stale propagation markers, all intentional gaps documented.
@@ -167,45 +172,59 @@ The first 4 are already migrated. Identity services are the final frontier. skel
 **Goal**: Create `skeleton-template` as the 10th product-service. Permanent, empty of business logic, demonstrates best-practice use of service-template. On equal footing with all 9 other services throughout ARCHITECTURE.md, deployments, configs, magic constants, CICD, and the entire repository.
 
 ### 5.1 Magic Constants
+
 Add to `internal/shared/magic/`: product name `skeleton`, service name `template`, service ID `skeleton-template`, port 8900, PostgreSQL port 54329.
 
 ### 5.2 Product-Level Wiring
+
 Create `internal/apps/skeleton/skeleton.go` (product router) and `internal/apps/skeleton/skeleton_test.go`. Pattern: identical to `internal/apps/pki/pki.go`.
 
 ### 5.3 Service Entry Point
+
 Create `internal/apps/skeleton/template/template.go` (service CLI handler). Pattern: identical to `internal/apps/jose/ja/ja.go`.
 
 ### 5.4 Server Implementation
+
 Create `internal/apps/skeleton/template/server/server.go` using NewServerBuilder pattern. Minimal: dual HTTPS, health endpoints, empty handler registration with dual API paths.
 
 ### 5.5 Server Config
+
 Create `internal/apps/skeleton/template/server/config/config.go`. Flat kebab-case YAML parsing with ServiceTemplateServerSettings embedding.
 
 ### 5.6 Repository & Migrations
+
 Create `internal/apps/skeleton/template/repository/` with MigrationsFS and empty 2001 placeholder migration. Use `WithDomainMigrations()`.
 
 ### 5.7 Domain (Empty)
+
 Create `internal/apps/skeleton/template/domain/` with minimal placeholder model (e.g., `TemplateItem` with ID + tenant_id + created_at).
 
 ### 5.8 CMD Entry Point
+
 Create `cmd/skeleton-template/main.go`. Pattern: identical to `cmd/jose-ja/main.go`.
 
 ### 5.9 Suite Integration
+
 Update `internal/apps/cryptoutil/cryptoutil.go` to add skeleton product routing.
 
 ### 5.10 Deployment Infrastructure
+
 Create `deployments/skeleton-template/` with compose.yml, secrets, and include files. Create `deployments/skeleton/` for product-level deployment. Create `configs/skeleton/` for service config files.
 
 ### 5.11 Tests
+
 Create comprehensive tests for all new code: server_test.go, config_test.go, template_test.go, skeleton_test.go. Coverage ≥95%.
 
 ### 5.12 E2E Test Skeleton
+
 Create `internal/apps/skeleton/template/e2e/` with testmain_e2e_test.go and basic health check E2E test.
 
 ### 5.13 ARCHITECTURE.md Update
+
 Add skeleton-template to: Service Catalog (3.2), Port Assignments (3.4), PostgreSQL Ports (3.4.2), Implementation Status table. Add section 3.2.X for Skeleton product.
 
 ### 5.14 Quality Gate Validation
+
 Full validation: build, lint, test, deployment validators, health endpoints respond.
 
 **Quality Gate**: skeleton-template is a fully functional 10th product-service demonstrating service-template best practices. Builds, runs, serves health endpoints, passes all quality gates.
@@ -217,15 +236,19 @@ Full validation: build, lint, test, deployment validators, health endpoints resp
 **Goal**: Archive existing pki-ca (111 Go files, 27 directories), create new empty pki-ca using skeleton-template as the starting reference. Validates that the skeleton-template pattern is reproducible.
 
 ### 6.1 Archive Existing PKI-CA
+
 Move `internal/apps/pki/ca/` to `internal/apps/pki/ca-archived/`. Temporarily stub references.
 
 ### 6.2 Create New PKI-CA from Skeleton Pattern
+
 Create new `internal/apps/pki/ca/` by following the exact same patterns established in skeleton-template (Phase 5). The server, config, repository, domain, and tests should follow the same structure.
 
 ### 6.3 Wire Entry Points
+
 Reconnect `cmd/pki-ca/main.go` and `internal/apps/pki/pki.go` to new skeleton.
 
 ### 6.4 Quality Gate Validation
+
 Full validation: build, lint, test, deployment validators, health endpoints.
 
 **Quality Gate**: New pki-ca skeleton builds, runs, passes all quality gates. Archived code preserved for future porting.
@@ -237,15 +260,19 @@ Full validation: build, lint, test, deployment validators, health endpoints.
 **Goal**: Analyze both skeletons (skeleton-template and new pki-ca) to assess service-template reusability and identify improvements.
 
 ### 7.1 Minimal File Set Documentation
+
 Document the minimal file set required for a conforming product-service. Compare against sm-kms (reference, 50/50).
 
 ### 7.2 Template Friction Points
+
 Catalog friction, boilerplate, or missing abstractions encountered during skeleton creation.
 
 ### 7.3 Product-Service Pattern Improvements
+
 Analyze product-level wiring for simplification opportunities.
 
 ### 7.4 Enhancement Proposals
+
 Concrete, prioritized proposals for service-template improvements.
 
 **Quality Gate**: Analysis documented in RESEARCH.md with actionable proposals.
@@ -257,15 +284,19 @@ Concrete, prioritized proposals for service-template improvements.
 **Goal**: Implement new CICD linter rules enforcing structural best practices for all PRODUCT and PRODUCT-SERVICE directories.
 
 ### 8.1 Linter Gap Analysis
+
 Compare existing validators against Phase 7 findings.
 
 ### 8.2 Validator Design
+
 Design validators for: directory structure, required files, migration numbering, product wiring, test presence.
 
 ### 8.3 Validator Implementation
+
 Implement in `cmd/cicd/`. Tests ≥98% coverage, mutation testing.
 
 ### 8.4 Apply to All 10 Services
+
 Run against all 10 services (including skeleton-template). Fix non-conformance.
 
 **Quality Gate**: New validators implemented, tested, passing for all 10 services. Zero regressions.
@@ -277,18 +308,23 @@ Run against all 10 services (including skeleton-template). Fix non-conformance.
 **Goal**: Consolidate findings into docs/fixes-v8/RESEARCH.md.
 
 ### 9.1 Skeleton-Template Patterns
+
 Document the creation process, minimal file set, patterns to follow.
 
 ### 9.2 Service-Template Learnings
+
 Document strengths, weaknesses, proposed improvements.
 
 ### 9.3 Identity Future Roadmap
+
 Document planned approach: archive existing identity services, create skeletons, achieve independent deployability. Identity E2E stays shared (ED-10).
 
 ### 9.4 Three-Tier Architecture Documentation
+
 Document the base/stereotype/service architecture vision and long-term workflow.
 
 ### 9.5 RESEARCH.md Publication
+
 Finalize and commit.
 
 **Quality Gate**: RESEARCH.md complete, cross-referenced with ARCHITECTURE.md.
@@ -300,12 +336,15 @@ Finalize and commit.
 **Goal**: Ensure all ARCHITECTURE.md changes from Phase 5 are propagated to instruction files via `@source`/`@propagate` markers.
 
 ### 10.1 Validate Propagation
+
 Run `cicd validate-propagation` and `cicd validate-chunks`.
 
 ### 10.2 Update Instruction Files
+
 Update any instruction files affected by service catalog changes (02-01.architecture.instructions.md).
 
 ### 10.3 Final Quality Gate
+
 Full project validation: build, lint, test, deployment validators, propagation check.
 
 **Quality Gate**: All propagation markers valid. Full project quality gates pass.

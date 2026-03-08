@@ -346,6 +346,7 @@ patterns cover ALL artifact types.
   - [x] Pre-commit hook integration documented
   - [x] CI/CD workflow integration mentioned
   - [x] @propagate markers added for propagation to relevant instruction files
+
 #### Task 5.2: Document Shared Test Infrastructure
 
 - **Status**: ✅

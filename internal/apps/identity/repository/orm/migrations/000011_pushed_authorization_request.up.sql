@@ -24,6 +24,6 @@ CREATE TABLE IF NOT EXISTS pushed_authorization_requests (
 );
 
 -- Indexes for performance.
-CREATE INDEX IF NOT EXISTS idx_par_client_id ON pushed_authorization_requests(client_id);
-CREATE INDEX IF NOT EXISTS idx_par_expires_at ON pushed_authorization_requests(expires_at);
-CREATE INDEX IF NOT EXISTS idx_par_used ON pushed_authorization_requests(used);
+CREATE INDEX IF NOT EXISTS idx_par_client_id ON pushed_authorization_requests (client_id);
+CREATE INDEX IF NOT EXISTS idx_par_expires_at ON pushed_authorization_requests (expires_at);
+CREATE INDEX IF NOT EXISTS idx_par_used ON pushed_authorization_requests (used);

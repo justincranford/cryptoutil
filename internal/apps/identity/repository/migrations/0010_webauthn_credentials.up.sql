@@ -19,9 +19,9 @@ CREATE TABLE webauthn_credentials (
 );
 
 -- Indexes for efficient queries
-CREATE INDEX idx_webauthn_credentials_user_id ON webauthn_credentials(user_id);
-CREATE INDEX idx_webauthn_credentials_last_used_at ON webauthn_credentials(last_used_at);
-CREATE INDEX idx_webauthn_credentials_deleted_at ON webauthn_credentials(deleted_at);
+CREATE INDEX idx_webauthn_credentials_user_id ON webauthn_credentials (user_id);
+CREATE INDEX idx_webauthn_credentials_last_used_at ON webauthn_credentials (last_used_at);
+CREATE INDEX idx_webauthn_credentials_deleted_at ON webauthn_credentials (deleted_at);
 
 -- Unique constraint on credential_id per user
-CREATE UNIQUE INDEX idx_webauthn_credentials_user_credential ON webauthn_credentials(user_id, credential_id);
+CREATE UNIQUE INDEX idx_webauthn_credentials_user_credential ON webauthn_credentials (user_id, credential_id);

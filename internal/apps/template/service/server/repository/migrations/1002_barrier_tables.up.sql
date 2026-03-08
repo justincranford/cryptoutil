@@ -21,8 +21,8 @@ CREATE TABLE IF NOT EXISTS barrier_root_keys (
     rotated_at BIGINT            -- Unix epoch milliseconds (NULL = still active)
 );
 
-CREATE INDEX IF NOT EXISTS idx_barrier_root_keys_kek_uuid ON barrier_root_keys(kek_uuid);
-CREATE INDEX IF NOT EXISTS idx_barrier_root_keys_rotated_at ON barrier_root_keys(rotated_at);
+CREATE INDEX IF NOT EXISTS idx_barrier_root_keys_kek_uuid ON barrier_root_keys (kek_uuid);
+CREATE INDEX IF NOT EXISTS idx_barrier_root_keys_rotated_at ON barrier_root_keys (rotated_at);
 
 -- Barrier Intermediate Keys table
 -- Intermediate keys are wrapped by root keys
@@ -35,11 +35,11 @@ CREATE TABLE IF NOT EXISTS barrier_intermediate_keys (
     created_at BIGINT NOT NULL,   -- Unix epoch milliseconds (BIGINT for PostgreSQL compat)
     updated_at BIGINT NOT NULL,   -- Unix epoch milliseconds (BIGINT for PostgreSQL compat)
     rotated_at BIGINT,            -- Unix epoch milliseconds (NULL = still active)
-    FOREIGN KEY (kek_uuid) REFERENCES barrier_root_keys(uuid)
+    FOREIGN KEY (kek_uuid) REFERENCES barrier_root_keys (uuid)
 );
 
-CREATE INDEX IF NOT EXISTS idx_barrier_intermediate_keys_kek_uuid ON barrier_intermediate_keys(kek_uuid);
-CREATE INDEX IF NOT EXISTS idx_barrier_intermediate_keys_rotated_at ON barrier_intermediate_keys(rotated_at);
+CREATE INDEX IF NOT EXISTS idx_barrier_intermediate_keys_kek_uuid ON barrier_intermediate_keys (kek_uuid);
+CREATE INDEX IF NOT EXISTS idx_barrier_intermediate_keys_rotated_at ON barrier_intermediate_keys (rotated_at);
 
 -- Barrier Content Keys table
 -- Content keys are wrapped by intermediate keys
@@ -52,8 +52,8 @@ CREATE TABLE IF NOT EXISTS barrier_content_keys (
     created_at BIGINT NOT NULL,   -- Unix epoch milliseconds (BIGINT for PostgreSQL compat)
     updated_at BIGINT NOT NULL,   -- Unix epoch milliseconds (BIGINT for PostgreSQL compat)
     rotated_at BIGINT,            -- Unix epoch milliseconds (NULL = still active)
-    FOREIGN KEY (kek_uuid) REFERENCES barrier_intermediate_keys(uuid)
+    FOREIGN KEY (kek_uuid) REFERENCES barrier_intermediate_keys (uuid)
 );
 
-CREATE INDEX IF NOT EXISTS idx_barrier_content_keys_kek_uuid ON barrier_content_keys(kek_uuid);
-CREATE INDEX IF NOT EXISTS idx_barrier_content_keys_rotated_at ON barrier_content_keys(rotated_at);
+CREATE INDEX IF NOT EXISTS idx_barrier_content_keys_kek_uuid ON barrier_content_keys (kek_uuid);
+CREATE INDEX IF NOT EXISTS idx_barrier_content_keys_rotated_at ON barrier_content_keys (rotated_at);

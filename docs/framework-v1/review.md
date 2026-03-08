@@ -146,7 +146,7 @@ SM-IM was ALREADY nearly conformant. Only change:
 
 **Other SM-IM changes** (from other phases):
 - contracts_test.go (new) - calls `RunContractTests(t, testSmIMServer)`
--  esting/testmain_helper.go (modified) - calls `SetReady(true)` after startup
+- esting/testmain_helper.go (modified) - calls `SetReady(true)` after startup
 - domain/message.go and related - fix for non-existent `Message.Sender` field (use `SenderID`)
 
 **Effectiveness**: **STRONG** - SM-IM was already well-conformant; the assertion ensures it stays that way.
@@ -162,7 +162,7 @@ JOSE-JA was ALREADY nearly conformant. Only change:
 
 **Other JOSE-JA changes** (from other phases):
 - server_integration_test.go (modified) - now calls `RunContractTests(t, testServer)`
--  estmain_test.go (modified) - uses shared test helpers, fixed shutdown timeout bug
+- estmain_test.go (modified) - uses shared test helpers, fixed shutdown timeout bug
 
 **Effectiveness**: **STRONG** - same as SM-IM.
 

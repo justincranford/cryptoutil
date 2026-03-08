@@ -22,9 +22,9 @@ func TestGetServiceForLegacyPort(t *testing.T) {
 		port uint16
 		want string
 	}{
-			{name: "sm-im cryptoutilSharedMagic.DefaultPublicPortInternalMetrics", port: cryptoutilSharedMagic.DefaultPublicPortInternalMetrics, want: cryptoutilSharedMagic.OTLPServiceSMIM},
-			{name: "sm-im cryptoutilSharedMagic.PortOtelCollectorReceivedMetrics", port: cryptoutilSharedMagic.PortOtelCollectorReceivedMetrics, want: cryptoutilSharedMagic.OTLPServiceSMIM},
-			{name: "sm-im 8890", port: 8890, want: cryptoutilSharedMagic.OTLPServiceSMIM},		{name: "jose-ja 9443", port: 9443, want: cryptoutilSharedMagic.OTLPServiceJoseJA},
+		{name: "sm-im cryptoutilSharedMagic.DefaultPublicPortInternalMetrics", port: cryptoutilSharedMagic.DefaultPublicPortInternalMetrics, want: cryptoutilSharedMagic.OTLPServiceSMIM},
+		{name: "sm-im cryptoutilSharedMagic.PortOtelCollectorReceivedMetrics", port: cryptoutilSharedMagic.PortOtelCollectorReceivedMetrics, want: cryptoutilSharedMagic.OTLPServiceSMIM},
+		{name: "sm-im 8890", port: 8890, want: cryptoutilSharedMagic.OTLPServiceSMIM}, {name: "jose-ja 9443", port: 9443, want: cryptoutilSharedMagic.OTLPServiceJoseJA},
 		{name: "jose-ja 8092", port: 8092, want: cryptoutilSharedMagic.OTLPServiceJoseJA},
 		{name: "pki-ca 8443", port: 8443, want: cryptoutilSharedMagic.OTLPServicePKICA},
 		{name: "unknown port", port: 12345, want: "unknown"},

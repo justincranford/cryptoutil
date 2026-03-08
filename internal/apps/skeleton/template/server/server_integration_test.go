@@ -135,6 +135,6 @@ func TestSkeletonTemplateServer_ShutdownIdempotent(t *testing.T) {
 }
 
 func TestSkeletonTemplateServer_ContractCompliance(t *testing.T) {
-t.Parallel()
-cryptoutilContract.RunContractTests(t, testServer)
+	t.Parallel()
+	cryptoutilContract.RunContractTests(t, testServer)
 }

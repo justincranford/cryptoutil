@@ -71,9 +71,7 @@ services:
     volumes:
       - ../../configs/PRODUCT/SERVICE-sqlite.yml:/etc/PRODUCT-SERVICE/config-sqlite.yml:ro
     healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "--quiet",
-             "--tries=1", "--spider",
-             "https://127.0.0.1:9090/admin/api/v1/livez"]
+      test: ["CMD", "wget", "--no-check-certificate", "--quiet", "--tries=1", "--spider", "https://127.0.0.1:9090/admin/api/v1/livez"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -124,9 +122,7 @@ services:
     volumes:
       - ../../configs/PRODUCT/SERVICE-pg-1.yml:/etc/PRODUCT-SERVICE/config-pg-1.yml:ro
     healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "--quiet",
-             "--tries=1", "--spider",
-             "https://127.0.0.1:9090/admin/api/v1/livez"]
+      test: ["CMD", "wget", "--no-check-certificate", "--quiet", "--tries=1", "--spider", "https://127.0.0.1:9090/admin/api/v1/livez"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -182,9 +178,7 @@ services:
     volumes:
       - ../../configs/PRODUCT/SERVICE-pg-2.yml:/etc/PRODUCT-SERVICE/config-pg-2.yml:ro
     healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "--quiet",
-             "--tries=1", "--spider",
-             "https://127.0.0.1:9090/admin/api/v1/livez"]
+      test: ["CMD", "wget", "--no-check-certificate", "--quiet", "--tries=1", "--spider", "https://127.0.0.1:9090/admin/api/v1/livez"]
       interval: 10s
       timeout: 5s
       retries: 5

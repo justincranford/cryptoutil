@@ -11,5 +11,5 @@ CREATE TABLE webauthn_sessions (
 );
 
 -- Indexes for efficient queries
-CREATE INDEX idx_webauthn_sessions_user_id ON webauthn_sessions(user_id);
-CREATE INDEX idx_webauthn_sessions_expires_at ON webauthn_sessions(expires_at);
+CREATE INDEX idx_webauthn_sessions_user_id ON webauthn_sessions (user_id);
+CREATE INDEX idx_webauthn_sessions_expires_at ON webauthn_sessions (expires_at);

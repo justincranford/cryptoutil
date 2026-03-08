@@ -193,7 +193,7 @@ func TestKMSServer_StartError(t *testing.T) {
 	require.NoError(t, err)
 
 	srv := &KMSServer{
-				resources: &cryptoutilAppsTemplateServiceServerBuilder.ServiceResources{
+		resources: &cryptoutilAppsTemplateServiceServerBuilder.ServiceResources{
 			Application: app,
 		},
 	}
@@ -212,7 +212,7 @@ func TestKMSServer_ShutdownWithResources(t *testing.T) {
 	shutdownContainerCalled := false
 
 	srv := &KMSServer{
-				resources: &cryptoutilAppsTemplateServiceServerBuilder.ServiceResources{
+		resources: &cryptoutilAppsTemplateServiceServerBuilder.ServiceResources{
 			Application:       app,
 			ShutdownCore:      func() { shutdownCoreCalled = true },
 			ShutdownContainer: func() { shutdownContainerCalled = true },

@@ -62,6 +62,7 @@ After 50+ tool calls in a single session, the conversation context can exceed VS
 ## Specific Trigger Patterns to Avoid
 
 ### Pattern A: Batch Gremlins in For Loops
+
 ```bash
 # DANGEROUS - produces massive output, #1 crash cause
 for pkg in $(find . -name '*_test.go' -exec dirname {} \; | sort -u); do
@@ -70,12 +71,14 @@ done
 ```
 
 ### Pattern B: Gremlins Without Output Limiting
+
 ```bash
 # DANGEROUS - single package can produce 500+ lines
 gremlins unleash --timeout-coefficient=60 ./internal/apps/template/service/...
 ```
 
 ### Pattern C: Reading Entire Large Files
+
 ```bash
 # Context accumulates when reading many 400+ line files in sequence
 # Read only the specific lines needed instead

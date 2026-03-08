@@ -149,6 +149,7 @@ The suite router (`cryptoutil.go`) uses a `switch` statement for product routing
 **Prerequisites**: Product name (kebab-case), service name (kebab-case), assigned port range from ARCHITECTURE.md Section 3.4.
 
 #### Step 1: Magic Constants
+
 Add constants to `internal/shared/magic/magic_PRODUCT.go`:
 - Service ID, product name, service name
 - Public port, admin port, PostgreSQL port
@@ -156,17 +157,21 @@ Add constants to `internal/shared/magic/magic_PRODUCT.go`:
 - Default bind addresses
 
 #### Step 2: Product Entry Point
+
 Create `cmd/PRODUCT/main.go` — 5-line delegation to `internal/apps/PRODUCT/PRODUCT.go`.
 
 #### Step 3: Service Entry Point
+
 Create `cmd/PRODUCT-SERVICE/main.go` — 5-line delegation to `internal/apps/PRODUCT/SERVICE/SERVICE.go`.
 
 #### Step 4: Product Router
+
 Create `internal/apps/PRODUCT/PRODUCT.go` with `RouteProduct()` registering the service via `cli.RouteProduct()`.
 
 Create `internal/apps/PRODUCT/PRODUCT_test.go` with product routing tests.
 
 #### Step 5: Service Implementation (7 files)
+
 1. `internal/apps/PRODUCT/SERVICE/SERVICE.go` — CLI routing, `serverStart()`, `client()`
 2. `internal/apps/PRODUCT/SERVICE/SERVICE_usage.go` — 8 usage string constants
 3. `internal/apps/PRODUCT/SERVICE/server/server.go` — Server struct, builder integration
@@ -176,15 +181,19 @@ Create `internal/apps/PRODUCT/PRODUCT_test.go` with product routing tests.
 7. `internal/apps/PRODUCT/SERVICE/repository/migrations/2001_*.{up,down}.sql` — SQL migrations
 
 #### Step 6: Test Files (10-12 files)
+
 Follow the test file inventory from Task 7.1 (see above). All tests follow established patterns — copy from skeleton-template or pki-ca and search/replace names.
 
 #### Step 7: Suite Wiring
+
 Add product case to `internal/apps/cryptoutil/cryptoutil.go` switch statement.
 
 #### Step 8: Deployments & Configs
+
 Create `deployments/PRODUCT-SERVICE/compose.yml` and `configs/PRODUCT/config-SERVICE.yml`.
 
 #### Step 9: Validation
+
 - `go build ./...` — clean
 - `go test ./... -shuffle=on` — all pass
 - `golangci-lint run` — zero issues
@@ -207,6 +216,7 @@ Create `deployments/PRODUCT-SERVICE/compose.yml` and `configs/PRODUCT/config-SER
 ## Task 9.2: Template Learnings (Consolidated)
 
 ### Strengths
+
 1. **Builder pattern** (`NewServerBuilder`) eliminates ~48,000 lines of boilerplate per service
 2. **Dual HTTPS** (public + admin) is cleanly separated
 3. **Health checks** (livez/readyz/shutdown) are automatic
@@ -215,11 +225,13 @@ Create `deployments/PRODUCT-SERVICE/compose.yml` and `configs/PRODUCT/config-SER
 6. **GORM cross-DB** compatibility (PostgreSQL + SQLite) works with `type:text` pattern
 
 ### Weaknesses (from Task 7.2)
+
 1. **Copy-paste boilerplate**: `mergedFS` (~80 lines), server wrapper (~90 lines), usage strings, `serverStart()` — all duplicated per service
 2. **API surface confusion**: Field vs method on `ServiceResources`, `Shutdown` signature, port return types
 3. **No code generation**: 90%+ of test files are algorithmically derivable but hand-written
 
 ### Enhancement Roadmap (from Task 7.4)
+
 - **P0 (immediate)**: Extract shared `mergedFS` helper, improve `ServiceResources` godoc
 - **P1 (next iteration)**: `ServerBase` embed, usage string generator, shared `RunServer()`
 - **P2 (future)**: Code generator for test scaffolding
@@ -229,6 +241,7 @@ Create `deployments/PRODUCT-SERVICE/compose.yml` and `configs/PRODUCT/config-SER
 ## Task 9.3: Identity Services Roadmap
 
 ### Current State
+
 - 5 identity services: authz, idp, rs, rp, spa
 - All use `NewServerBuilder` (confirmed in Phase 2 scoring)
 - Shared domain layer: 44 domain files + 47 repository files (Phase 3 finding)
@@ -247,22 +260,26 @@ Following the proven pki-ca pattern (Phase 6):
 5. **Shared E2E** (ED-10): Single E2E suite tests all 5 services together (decided)
 
 ### Migration Priority
+
 Per ARCHITECTURE.md: `sm-im -> jose-ja -> sm-kms -> pki-ca -> identity services`
 
 The first 4 are migrated. Identity services are the final frontier.
 
 ### Independent Deployability Requirements (ED-7)
+
 - Separate PostgreSQL databases per service
 - Migration numbering in 2001+ range (replace legacy 0002-0011)
 - Individual `deployments/identity-SERVICE/compose.yml` configs
 - Per-service health endpoints
 
 ### Shared E2E Strategy (ED-10)
+
 - Single E2E test suite exercising all 5 identity services
 - Tests verify cross-service flows (authn → authz → resource access)
 - Docker Compose brings up all 5 services + shared PostgreSQL
 
 ### Timeline
+
 - **Post-fixes-v8**: Identity migration is deferred to dedicated work phase
 - **Estimated effort**: 2-4 weeks (archiving + skeleton + restore per service)
 
@@ -290,6 +307,7 @@ The first 4 are migrated. Identity services are the final frontier.
 ```
 
 ### Base Tier: service-template
+
 - **Location**: `internal/apps/template/service/`
 - **Purpose**: Core infrastructure shared by ALL services
 - **Components**: ServerBuilder, Application, dual HTTPS listeners, health checks, barrier/unseal, session management, realm management, telemetry, GORM database
@@ -297,6 +315,7 @@ The first 4 are migrated. Identity services are the final frontier.
 - **Impact of change**: ALL services affected
 
 ### Stereotype Tier: skeleton-template
+
 - **Location**: `internal/apps/skeleton/template/`
 - **Purpose**: Reference implementation demonstrating correct template usage
 - **Components**: Minimal domain model, standard file layout, full test coverage
@@ -304,6 +323,7 @@ The first 4 are migrated. Identity services are the final frontier.
 - **Validation role**: If skeleton-template breaks, the template change is wrong
 
 ### Service Tier: Business Services
+
 - **Location**: `internal/apps/{sm,jose,pki,identity}/SERVICE/`
 - **Purpose**: Domain-specific business logic
 - **Components**: Domain models, handlers, middleware, business logic, domain migrations
@@ -325,6 +345,7 @@ The first 4 are migrated. Identity services are the final frontier.
 ```
 
 ### Benefits
+
 - **Canary validation**: skeleton-template is the first consumer of any template change
 - **Structural enforcement**: CICD linters (Phase 8) prevent drift from template patterns
 - **Independent evolution**: Services add domain logic without breaking template compliance

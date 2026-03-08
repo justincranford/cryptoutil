@@ -32,7 +32,7 @@ var (
 	sqlitePublicURL    = cryptoutilSharedMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilSharedMagic.IME2ESQLitePublicPort)      // "https://127.0.0.1:8700"
 	postgres1PublicURL = cryptoutilSharedMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilSharedMagic.IME2EPostgreSQL1PublicPort) // "https://127.0.0.1:8701"
 	postgres2PublicURL = cryptoutilSharedMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilSharedMagic.IME2EPostgreSQL2PublicPort) // "https://127.0.0.1:8702"
-	grafanaURL         = fmt.Sprintf("http://127.0.0.1:%d", cryptoutilSharedMagic.IME2EGrafanaPort)            // "http://127.0.0.1:3000"
+	grafanaURL         = fmt.Sprintf("http://127.0.0.1:%d", cryptoutilSharedMagic.IME2EGrafanaPort)                                          // "http://127.0.0.1:3000"
 
 	healthChecks = map[string]string{
 		sqliteContainer:    sqlitePublicURL + cryptoutilSharedMagic.IME2EHealthEndpoint,

@@ -38,11 +38,13 @@ CREATE TABLE IF NOT EXISTS authorization_requests (
     used_at TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_authorization_requests_client_id ON authorization_requests(client_id);
-CREATE INDEX IF NOT EXISTS idx_authorization_requests_user_id ON authorization_requests(user_id);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_authorization_requests_code ON authorization_requests(code) WHERE code IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_authorization_requests_expires_at ON authorization_requests(expires_at);
-CREATE INDEX IF NOT EXISTS idx_authorization_requests_used ON authorization_requests(used);
+CREATE INDEX IF NOT EXISTS idx_authorization_requests_client_id ON authorization_requests (client_id);
+CREATE INDEX IF NOT EXISTS idx_authorization_requests_user_id ON authorization_requests (user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_authorization_requests_code ON authorization_requests (
+    code
+) WHERE code IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_authorization_requests_expires_at ON authorization_requests (expires_at);
+CREATE INDEX IF NOT EXISTS idx_authorization_requests_used ON authorization_requests (used);
 
 -- Consent decisions table
 CREATE TABLE IF NOT EXISTS consent_decisions (
@@ -63,8 +65,8 @@ CREATE TABLE IF NOT EXISTS consent_decisions (
     revoked_at TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_consent_decisions_user_id ON consent_decisions(user_id);
-CREATE INDEX IF NOT EXISTS idx_consent_decisions_client_id ON consent_decisions(client_id);
-CREATE INDEX IF NOT EXISTS idx_consent_decisions_expires_at ON consent_decisions(expires_at);
-CREATE INDEX IF NOT EXISTS idx_consent_decisions_revoked_at ON consent_decisions(revoked_at);
-CREATE INDEX IF NOT EXISTS idx_consent_decisions_user_client_scope ON consent_decisions(user_id, client_id, scope);
+CREATE INDEX IF NOT EXISTS idx_consent_decisions_user_id ON consent_decisions (user_id);
+CREATE INDEX IF NOT EXISTS idx_consent_decisions_client_id ON consent_decisions (client_id);
+CREATE INDEX IF NOT EXISTS idx_consent_decisions_expires_at ON consent_decisions (expires_at);
+CREATE INDEX IF NOT EXISTS idx_consent_decisions_revoked_at ON consent_decisions (revoked_at);
+CREATE INDEX IF NOT EXISTS idx_consent_decisions_user_client_scope ON consent_decisions (user_id, client_id, scope);

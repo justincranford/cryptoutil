@@ -24,8 +24,8 @@ var (
 	testIntegrationServer       *KMSServer
 	testIntegrationClient       *http.Client
 	testIntegrationHealthClient *cryptoutilTestingHealthclient.HealthClient
-	testIntegrationPublicURL   string
-	testIntegrationAdminURL    string
+	testIntegrationPublicURL    string
+	testIntegrationAdminURL     string
 )
 
 func TestMain(m *testing.M) {

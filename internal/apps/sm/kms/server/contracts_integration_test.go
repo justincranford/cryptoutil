@@ -6,14 +6,14 @@
 package server
 
 import (
-"testing"
+	"testing"
 
-cryptoutilContract "cryptoutil/internal/apps/template/service/testing/contract"
+	cryptoutilContract "cryptoutil/internal/apps/template/service/testing/contract"
 )
 
 // TestKMSServer_ContractCompliance verifies sm-kms implements all service template contracts.
 // Ensures behavioral consistency between sm-kms and other cryptoutil services.
 func TestKMSServer_ContractCompliance(t *testing.T) {
-t.Parallel()
-cryptoutilContract.RunContractTests(t, testIntegrationServer)
+	t.Parallel()
+	cryptoutilContract.RunContractTests(t, testIntegrationServer)
 }

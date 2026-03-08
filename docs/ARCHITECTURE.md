@@ -3368,14 +3368,14 @@ cryptoutil-service:
     interval: 5s
 ```
 
-2. **Job-only** (validation job, ExitCode=0 required):
+1. **Job-only** (validation job, ExitCode=0 required):
 ```yaml
 healthcheck-secrets:
   image: alpine:latest
   command: ["sh", "-c", "test -f /run/secrets/unseal_1.secret || exit 1"]
 ```
 
-3. **Service with healthcheck job** (external sidecar):
+1. **Service with healthcheck job** (external sidecar):
 ```yaml
 otel-collector:
   image: otel/opentelemetry-collector-contrib:latest

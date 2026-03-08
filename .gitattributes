@@ -1,3 +1,17 @@
-*.yaml text eol=lf
-*.yml text eol=lf
-*.md text eol=lf
+# Normalize all text files to LF in the repository
+* text=auto eol=lf
+
+# Windows-specific files that must remain CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary files — do not attempt line ending conversion
+*.exe binary
+*.dll binary
+*.so binary
+*.dylib binary
+*.key binary
+*.crt binary
+*.pem binary
+*.der binary
+*.bin binary

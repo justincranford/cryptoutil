@@ -13,6 +13,6 @@ CREATE TABLE IF NOT EXISTS email_otps (
     expires_at TIMESTAMP NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_email_otps_user_id ON email_otps(user_id);
-CREATE INDEX IF NOT EXISTS idx_email_otps_expires_at ON email_otps(expires_at);
-CREATE INDEX IF NOT EXISTS idx_email_otps_used ON email_otps(used);
+CREATE INDEX IF NOT EXISTS idx_email_otps_user_id ON email_otps (user_id);
+CREATE INDEX IF NOT EXISTS idx_email_otps_expires_at ON email_otps (expires_at);
+CREATE INDEX IF NOT EXISTS idx_email_otps_used ON email_otps (used);

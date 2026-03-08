@@ -55,7 +55,6 @@ func TestParseWithFlagSet_InvalidFlag(t *testing.T) {
 func TestNewTestConfig(t *testing.T) {
 	t.Parallel()
 
-
 	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	require.NotNil(t, cfg)
 	require.NotNil(t, cfg.ServiceTemplateServerSettings)
@@ -74,7 +73,6 @@ func TestDefaultTestConfig(t *testing.T) {
 
 func TestValidateSettings_NilBase(t *testing.T) {
 	t.Parallel()
-
 
 	err := validateSettings(&PKICAServerSettings{
 		ServiceTemplateServerSettings: nil,

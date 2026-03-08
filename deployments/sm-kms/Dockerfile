@@ -71,17 +71,17 @@ COPY go.mod go.sum ./
 
 # Download modules using BuildKit cache mounts when available
 RUN --mount=type=cache,target=/go/pkg/mod \
-	--mount=type=cache,target=/root/.cache/go-build \
-	go mod download
+    --mount=type=cache,target=/root/.cache/go-build \
+    go mod download
 
 # Copy the remainder of the source
 COPY . .
 
 # Build the static, trimmed binary. Uses BuildKit cache mounts for faster incremental builds.
 RUN --mount=type=cache,target=/go/pkg/mod \
-	--mount=type=cache,target=/root/.cache/go-build \
-	CGO_ENABLED=${CGO_ENABLED} GOOS=${GOOS} GOARCH=${GOARCH} \
-	go build -a -tags netgo -trimpath -ldflags="${LDFLAGS}" -o /app/cryptoutil ./cmd/cryptoutil
+    --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=${CGO_ENABLED} GOOS=${GOOS} GOARCH=${GOARCH} \
+    go build -a -tags netgo -trimpath -ldflags="${LDFLAGS}" -o /app/cryptoutil ./cmd/cryptoutil
 
 # Validate that the binary is statically linked
 SHELL ["/bin/bash", "-c"]
@@ -158,7 +158,7 @@ EXPOSE 8080
 
 # Healthcheck available with Alpine base image
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD /app/cryptoutil kms server ready --dev || exit 1
+    CMD /app/cryptoutil kms server ready --dev || exit 1
 
 # For Kubernetes: Use liveness/readiness probes like:
 #   livenessProbe:

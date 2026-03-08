@@ -25,7 +25,7 @@ var excludedDeployments = map[string]bool{
 	"shared-citus":     true,
 	"shared-telemetry": true,
 	"archived":         true,
-	cryptoutilSharedMagic.SkeletonTemplateServiceName:         true,
+	cryptoutilSharedMagic.SkeletonTemplateServiceName: true,
 }
 
 // ValidateStructuralMirror validates that every deployment directory has a corresponding configs directory.

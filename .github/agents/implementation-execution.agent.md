@@ -819,8 +819,8 @@ Execute continuously until finished.
 - At end of EVERY phase (after quality gates pass), conduct post-mortem BEFORE starting next phase:
   1. Update issues.md with all issues discovered in phase
   2. Update categories.md with pattern analysis
-    3. Update lessons.md with lessons learned (what worked, what didn't, root causes, patterns) — this is the persistent memory for the entire plan
-    4. **CRITICAL: Artifact Self-Evaluation** — evaluate whether phase lessons expose contradictions or omissions in:
+  3. Update lessons.md with lessons learned (what worked, what didn't, root causes, patterns) — this is the persistent memory for the entire plan
+  4. **CRITICAL: Artifact Self-Evaluation** — evaluate whether phase lessons expose contradictions or omissions in:
        - `docs/ARCHITECTURE.md` — architecture decisions, patterns, strategies
        - `.github/agents/*.agent.md` — agent guidance and workflows
        - `.github/skills/*/SKILL.md` — skill templates and guidance

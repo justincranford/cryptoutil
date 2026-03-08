@@ -84,6 +84,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 **Phase Objective**: Create skeleton-template as a fully functional 10th product-service. Product name: `skeleton`. Service name: `template`. Port: 8900. PostgreSQL port: 54329. Permanent service — demonstrates best-practice service-template usage, empty of business logic.
 
 ### Task 5.1: Magic Constants
+
 - **Status**: ✅ DONE (commit 556109221)
 - **Estimated**: 0.5h
 - **Dependencies**: None
@@ -94,6 +95,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
   - [x] Build clean: `go build ./...`
 
 ### Task 5.2: Product Router
+
 - **Status**: ✅ DONE (commit 8f3e88995)
 - **Estimated**: 1h
 - **Dependencies**: Task 5.1
@@ -105,6 +107,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
   - [x] Build clean, lint clean
 
 ### Task 5.3: Product CMD Entry
+
 - **Status**: ✅ DONE (commit 8f3e88995)
 - **Estimated**: 0.5h
 - **Dependencies**: Task 5.2
@@ -115,6 +118,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
   - [x] Build clean: `go build ./cmd/skeleton/`
 
 ### Task 5.4: Service Entry Function
+
 - **Status**: ✅ DONE (commit 8f3e88995)
 - **Estimated**: 1h
 - **Dependencies**: Task 5.2
@@ -126,6 +130,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
   - [x] Build clean, lint clean
 
 ### Task 5.5: Service CMD Entry
+
 - **Status**: ✅ DONE (commit 8f3e88995)
 - **Estimated**: 0.5h
 - **Dependencies**: Task 5.4
@@ -136,6 +141,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
   - [x] Build clean: `go build ./cmd/skeleton-template/`
 
 ### Task 5.6: Server Config
+
 - **Status**: ✅ DONE (commit 8f3e88995)
 - **Estimated**: 1h
 - **Dependencies**: Task 5.1
@@ -147,6 +153,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
   - [x] Build clean, lint clean
 
 ### Task 5.7: Repository & Migrations
+
 - **Status**: ✅ DONE (commits 8f3e88995, f64f107f2)
 - **Estimated**: 1h
 - **Dependencies**: Task 5.1
@@ -159,6 +166,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
   - [x] Build clean, lint clean
 
 ### Task 5.8: Domain Model (Minimal)
+
 - **Status**: ✅ DONE (commit 8f3e88995)
 - **Estimated**: 0.5h
 - **Dependencies**: Task 5.7
@@ -169,6 +177,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
   - [x] Build clean, lint clean
 
 ### Task 5.9: Server Implementation
+
 - **Status**: ✅ DONE (commits 8f3e88995, f64f107f2)
 - **Estimated**: 2h
 - **Dependencies**: Tasks 5.6, 5.7, 5.8
@@ -182,6 +191,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
   - [x] Build clean, lint clean
 
 ### Task 5.10: Suite Integration
+
 - **Status**: ✅ DONE (commit 8f3e88995)
 - **Estimated**: 0.5h
 - **Dependencies**: Task 5.4
@@ -193,6 +203,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
   - [x] Build clean, lint clean
 
 ### Task 5.11: Deployment Infrastructure
+
 - **Status**: ✅ DONE (commit aa0098704, 92af55c09)
 - **Estimated**: 2h
 - **Dependencies**: Tasks 5.1, 5.9
@@ -210,6 +221,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
   - [x] Run `go run ./cmd/cicd lint-deployments validate-all` — 68/68 pass
 
 ### Task 5.12: E2E Test Skeleton
+
 - **Status**: ✅ DONE (commit 9557247bb)
 - **Estimated**: 1.5h
 - **Dependencies**: Task 5.9
@@ -223,6 +235,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
   - [x] Lint clean with tags: `golangci-lint run --build-tags e2e`
 
 ### Task 5.13: ARCHITECTURE.md Update
+
 - **Status**: ✅ DONE (commits e16317e3b, 68d8cf998)
 - **Estimated**: 1h
 - **Dependencies**: Tasks 5.1, 5.11
@@ -238,6 +251,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
   - [x] Update suite port range, database counts, PostgreSQL port summaries
 
 ### Task 5.14: Full Quality Gate
+
 - **Status**: ✅ DONE
 - **Estimated**: 1h
 - **Dependencies**: All Phase 5 tasks
@@ -259,6 +273,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 **Phase Objective**: Archive existing pki-ca (111 Go files, 27 directories). Create new empty pki-ca skeleton following skeleton-template patterns. Validates that the skeleton pattern is reproducible.
 
 ### Task 6.1: Archive Existing PKI-CA
+
 - **Status**: ✅ COMPLETE
 - **Estimated**: 1h
 - **Dependencies**: Phase 5 complete
@@ -271,6 +286,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
   - [x] Committed as part of combined archive + skeleton commit
 
 ### Task 6.2: Create New PKI-CA Skeleton
+
 - **Status**: ✅ COMPLETE
 - **Estimated**: 2h
 - **Dependencies**: Task 6.1
@@ -286,6 +302,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
   - [x] Build clean: `go build ./...`
 
 ### Task 6.3: Reconnect Entry Points
+
 - **Status**: ✅ COMPLETE
 - **Estimated**: 0.5h
 - **Dependencies**: Task 6.2
@@ -296,6 +313,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
   - [x] Build clean, lint clean
 
 ### Task 6.4: Tests for New PKI-CA
+
 - **Status**: ✅ COMPLETE
 - **Estimated**: 1.5h
 - **Dependencies**: Task 6.2
@@ -307,6 +325,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
   - [x] Tests pass with shuffle
 
 ### Task 6.5: Update Deployment
+
 - **Status**: ✅ COMPLETE
 - **Estimated**: 1h
 - **Dependencies**: Task 6.2
@@ -318,6 +337,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
   - [x] Health checks configured (via service template builder)
 
 ### Task 6.6: Quality Gate
+
 - **Status**: ✅ COMPLETE
 - **Estimated**: 0.5h
 - **Dependencies**: All Phase 6 tasks
@@ -337,6 +357,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 **Phase Objective**: Analyze skeleton creation experience. Document minimal file set, friction points, and enhancement proposals.
 
 ### Task 7.1: Minimal File Set Documentation
+
 - **Status**: ✅ COMPLETE
 - **Estimated**: 1h
 - **Dependencies**: Phases 5-6 complete
@@ -348,6 +369,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
   - [x] Document in RESEARCH.md
 
 ### Task 7.2: Template Friction Points
+
 - **Status**: ✅ COMPLETE
 - **Estimated**: 1h
 - **Dependencies**: Phases 5-6 complete
@@ -359,6 +381,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
   - [x] Document in RESEARCH.md
 
 ### Task 7.3: Product Wiring Analysis
+
 - **Status**: ✅ COMPLETE
 - **Estimated**: 0.5h
 - **Dependencies**: Task 7.1
@@ -369,6 +392,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
   - [x] Document in RESEARCH.md
 
 ### Task 7.4: Enhancement Proposals
+
 - **Status**: ✅ COMPLETE
 - **Estimated**: 1h
 - **Dependencies**: Tasks 7.1-7.3
@@ -387,6 +411,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 **Phase Objective**: Implement CICD linters enforcing structural best practices for PRODUCT and PRODUCT-SERVICE directories.
 
 ### Task 8.1: Linter Gap Analysis
+
 - **Status**: ✅ DONE
 - **Estimated**: 1h
 - **Dependencies**: Phase 7 complete
@@ -398,6 +423,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
   - [x] Document findings
 
 ### Task 8.2: Validator Design
+
 - **Status**: ✅ DONE
 - **Estimated**: 1.5h
 - **Dependencies**: Task 8.1
@@ -411,6 +437,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
   - [x] Document expected pass/fail for all 10 services
 
 ### Task 8.3: Validator Implementation
+
 - **Status**: ✅ DONE
 - **Estimated**: 4h
 - **Dependencies**: Task 8.2
@@ -423,6 +450,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
   - [x] Build and lint clean
 
 ### Task 8.4: Apply to All 10 Services
+
 - **Status**: ✅ DONE
 - **Estimated**: 1h
 - **Dependencies**: Task 8.3
@@ -440,6 +468,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 **Phase Objective**: Consolidate findings into RESEARCH.md.
 
 ### Task 9.1: Skeleton Patterns
+
 - **Status**: ✅ DONE
 - **Estimated**: 1h
 - **Dependencies**: Phases 5-6 complete
@@ -451,6 +480,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
   - [x] Document in docs/fixes-v8/RESEARCH.md
 
 ### Task 9.2: Template Learnings
+
 - **Status**: ✅ DONE
 - **Estimated**: 1h
 - **Dependencies**: Phase 7 complete
@@ -463,6 +493,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
   - [x] Document in RESEARCH.md
 
 ### Task 9.3: Identity Roadmap
+
 - **Status**: ✅ DONE
 - **Estimated**: 0.5h
 - **Dependencies**: Phase 3 findings
@@ -474,6 +505,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
   - [x] Document in RESEARCH.md
 
 ### Task 9.4: Three-Tier Architecture
+
 - **Status**: ✅ DONE
 - **Estimated**: 1h
 - **Dependencies**: Phases 5-8 complete
@@ -486,6 +518,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
   - [x] Document in RESEARCH.md
 
 ### Task 9.5: RESEARCH.md Publication
+
 - **Status**: ✅ DONE
 - **Estimated**: 0.5h
 - **Dependencies**: Tasks 9.1-9.4
@@ -502,6 +535,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 **Phase Objective**: Ensure all ARCHITECTURE.md changes from Phases 5-9 are propagated to instruction files.
 
 ### Task 10.1: Validate Propagation
+
 - **Status**: ✅ DONE
 - **Estimated**: 0.5h
 - **Dependencies**: Phases 5-9 complete
@@ -512,6 +546,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
   - [x] List instruction files needing update
 
 ### Task 10.2: Update Instruction Files
+
 - **Status**: ✅ DONE (no changes needed — skeleton-template already in service catalog)
 - **Estimated**: 1h
 - **Dependencies**: Task 10.1
@@ -522,6 +557,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
   - [x] Build clean, lint clean
 
 ### Task 10.3: Final Quality Gate
+
 - **Status**: ✅ DONE
 - **Estimated**: 1h
 - **Dependencies**: Task 10.2
@@ -542,6 +578,7 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 ## Cross-Cutting Tasks
 
 ### Testing
+
 - [x] Unit tests ≥95% coverage (production), ≥98% (infrastructure)
 - [x] Integration tests pass
 - [x] E2E tests pass (Docker Compose) for skeleton-template
@@ -550,18 +587,21 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 - [x] Race detector clean: `go test -race ./...`
 
 ### Code Quality
+
 - [x] Linting passes: `golangci-lint run` and `golangci-lint run --build-tags e2e,integration`
 - [x] No new TODOs without tracking
 - [x] No security vulnerabilities
 - [x] Formatting clean: `gofumpt -s -w ./`
 
 ### Documentation
+
 - [x] ARCHITECTURE.md updated (service catalog, ports, product description) — commit e16317e3b
 - [x] docs/fixes-v8/RESEARCH.md published
 - [x] Instruction files propagated — commit 68d8cf998
 - [x] Plan.md and tasks.md up to date — example→template rename, status updates
 
 ### Deployment
+
 - [x] Docker Compose configs for skeleton-template — commit aa0098704
 - [x] Health checks pass
 - [x] Deployment validators pass (68/68) — commit 92af55c09, aa0098704
@@ -584,15 +624,18 @@ ALL issues are blockers — NO exceptions. Fix immediately. NEVER defer, skip, o
 ## Notes / Deferred Work
 
 ### Medium-Term Renames (NOT in fixes-v8 scope)
+
 - `internal/apps/template/service/` → `internal/apps/template/product-service-base/` (or similar)
 - `internal/apps/skeleton/template/` → `internal/apps/template/product-service-stereotype/` (or similar)
 - Tracked as ED-13
 
 ### Identity Services Architecture (NOT in fixes-v8 scope)
+
 - Archive existing → create skeletons → achieve independent deployability
 - Tracked as ED-7
 
 ### Long-Term Workflow (NOT in fixes-v8 scope)
+
 - Change base/stereotype first → validate via CICD linters → roll out to all services
 - Tracked as ED-14
 

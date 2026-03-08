@@ -18,8 +18,8 @@ CREATE TABLE IF NOT EXISTS elastic_jwks (
     max_materials INTEGER NOT NULL DEFAULT 1000,    -- Maximum material versions allowed
     current_material_count INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (tenant_id) REFERENCES tenants(id),
-    UNIQUE(tenant_id, kid)
+    FOREIGN KEY (tenant_id) REFERENCES tenants (id),
+    UNIQUE (tenant_id, kid)
 );
 
-CREATE INDEX IF NOT EXISTS idx_elastic_jwks_tenant ON elastic_jwks(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_elastic_jwks_tenant ON elastic_jwks (tenant_id);

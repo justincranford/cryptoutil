@@ -24,8 +24,8 @@ CREATE TABLE IF NOT EXISTS template_realms (
 );
 
 -- Indexes for efficient lookups.
-CREATE UNIQUE INDEX IF NOT EXISTS idx_template_realms_realm_id ON template_realms(realm_id);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_template_realms_name ON template_realms(name);
-CREATE INDEX IF NOT EXISTS idx_template_realms_type ON template_realms(type);
-CREATE INDEX IF NOT EXISTS idx_template_realms_active ON template_realms(active);
-CREATE INDEX IF NOT EXISTS idx_template_realms_priority ON template_realms(priority);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_template_realms_realm_id ON template_realms (realm_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_template_realms_name ON template_realms (name);
+CREATE INDEX IF NOT EXISTS idx_template_realms_type ON template_realms (type);
+CREATE INDEX IF NOT EXISTS idx_template_realms_active ON template_realms (active);
+CREATE INDEX IF NOT EXISTS idx_template_realms_priority ON template_realms (priority);

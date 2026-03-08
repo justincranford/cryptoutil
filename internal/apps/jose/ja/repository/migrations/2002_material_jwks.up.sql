@@ -18,11 +18,11 @@ CREATE TABLE IF NOT EXISTS material_jwks (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     retired_at TIMESTAMP,                           -- When material was retired (rotated out)
     barrier_version INTEGER NOT NULL,               -- Barrier key version used for encryption
-    FOREIGN KEY (elastic_jwk_id) REFERENCES elastic_jwks(id),
-    UNIQUE(elastic_jwk_id, material_kid)
+    FOREIGN KEY (elastic_jwk_id) REFERENCES elastic_jwks (id),
+    UNIQUE (elastic_jwk_id, material_kid)
 );
 
-CREATE INDEX IF NOT EXISTS idx_material_jwks_elastic ON material_jwks(elastic_jwk_id);
-CREATE INDEX IF NOT EXISTS idx_material_jwks_active ON material_jwks(elastic_jwk_id, active);
-CREATE INDEX IF NOT EXISTS idx_material_jwks_material_kid ON material_jwks(material_kid);
-CREATE INDEX IF NOT EXISTS idx_material_jwks_barrier_version ON material_jwks(barrier_version);
+CREATE INDEX IF NOT EXISTS idx_material_jwks_elastic ON material_jwks (elastic_jwk_id);
+CREATE INDEX IF NOT EXISTS idx_material_jwks_active ON material_jwks (elastic_jwk_id, active);
+CREATE INDEX IF NOT EXISTS idx_material_jwks_material_kid ON material_jwks (material_kid);
+CREATE INDEX IF NOT EXISTS idx_material_jwks_barrier_version ON material_jwks (barrier_version);

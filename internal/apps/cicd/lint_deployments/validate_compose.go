@@ -8,8 +8,8 @@ import (
 	"sort"
 	"strings"
 
-	"gopkg.in/yaml.v3"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	"gopkg.in/yaml.v3"
 )
 
 // ComposeValidationResult holds the outcome of compose file validation.
@@ -341,8 +341,8 @@ func extractSecretName(secretRef any) string {
 // infrastructureServices are services excluded from credential checks per ARCHITECTURE.md Section 12.6.
 // "Infrastructure deployments excluded" from Docker secrets requirement.
 var infrastructureServices = map[string]bool{
-	cryptoutilSharedMagic.DockerServiceGrafanaOtelLgtm:                           true,
-	cryptoutilSharedMagic.IME2EOtelCollectorContainer:             true,
+	cryptoutilSharedMagic.DockerServiceGrafanaOtelLgtm:             true,
+	cryptoutilSharedMagic.IME2EOtelCollectorContainer:              true,
 	cryptoutilSharedMagic.DockerJobHealthcheckOtelCollectorContrib: true,
 }
 

@@ -9,4 +9,4 @@ CREATE TABLE jti_replay_cache (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_jti_replay_cache_expires_at ON jti_replay_cache(expires_at);
+CREATE INDEX idx_jti_replay_cache_expires_at ON jti_replay_cache (expires_at);

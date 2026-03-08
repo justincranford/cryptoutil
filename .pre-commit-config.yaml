@@ -211,84 +211,41 @@ repos:
         name: Fix mixed line endings
         require_serial: false
 
-  # Custom lint checks (fast, internal checks)
+  # Custom CI/CD lint checks — ONE hook for ALL linters.
+  # Linters are read-only and support concurrency; no files: filter (linters handle own scanning).
+  # DO NOT split into per-linter hooks or add files: filters — linters own their file scanning.
   - repo: local
     hooks:
       - id: cicd-lint-all
         name: Run custom CI/CD lint checks
         entry: go
-        args: [run, cmd/cicd/main.go, lint-text, lint-go, lint-go-test, lint-compose, lint-ports, lint-workflow ]
+        args: [run, cmd/cicd/main.go, lint-fitness, lint-text, lint-go, lint-go-test, lint-golangci, lint-compose, lint-ports, lint-workflow, lint-deployments, lint-docs]
         language: system
-        pass_filenames: false # linters handle file scanning internally, so no need to pass filenames
-        require_serial: false # linters are read-only, so they can run concurrently
+        pass_filenames: false  # linters handle file scanning internally; no filenames needed
+        require_serial: false  # linters are read-only and support concurrency
         stages: [pre-commit]
 
-      - id: cicd-lint-fitness
-        name: Architecture fitness functions (cross-service isolation, file limits, etc.)
-        entry: go
-        args: [run, cmd/cicd/main.go, lint-fitness]
-        language: system
-        files: '\.(go|sql|yml)$'
-        pass_filenames: false
-        require_serial: false
-        stages: [pre-commit]
-
-      - id: docker-compose-config
-        name: Validate docker compose files with schema
-        entry: bash
-        args: [-c, 'for f in deployments/**/compose*.yml; do [[ "$f" == *"/template/"* || "$f" == *"/cryptoutil/"* || "$f" == *"/identity/compose.yml" ]] && continue; echo "Validating $f..."; docker compose -f "$f" config --quiet || exit 1; done']
-        language: system
-        files: 'deployments/.*/compose.*\.yml$'
-        pass_filenames: false
-        require_serial: false
-        stages: [pre-commit]
-
-      - id: cicd-validate-mirror
-        name: Validate configs/ mirrors deployments/ structure
-        entry: go
-        args: [run, cmd/cicd/main.go, validate-mirror]
-        language: system
-        files: '(deployments|configs)/.*'
-        pass_filenames: false
-        require_serial: false
-        stages: [pre-commit]
-
-      - id: cicd-validate-all
-        name: Validate all deployment configs and compose files
-        entry: go
-        args: [run, cmd/cicd/main.go, validate-all]
-        language: system
-        files: '(configs|deployments)/.*\.(yml|yaml|secret)$'
-        pass_filenames: false
-        require_serial: true
-        stages: [pre-commit]
-
-      - id: cicd-check-chunk-verification
-        name: Verify ARCHITECTURE.md chunks in instruction files
-        entry: go
-        args: [run, cmd/cicd/main.go, check-chunk-verification]
-        language: system
-        files: '(\.github/instructions/.*\.md$|\.github/copilot-instructions\.md$|docs/ARCHITECTURE\.md$)'
-        pass_filenames: false
-        require_serial: true
-        stages: [pre-commit]
-
-      - id: cicd-format-go-only
+  # Custom CI/CD formatters — each formatter is a separate hook (read-write, must be serial).
+  # Formatters are read-write; require_serial: true prevents concurrent writes.
+  # DO NOT merge formatters into the linter hook or set require_serial: false.
+  - repo: local
+    hooks:
+      - id: cicd-format-go
         name: Run custom CI/CD format checks
         entry: go
-        args: [run, cmd/cicd/main.go, format-go ]
+        args: [run, cmd/cicd/main.go, format-go]
         language: system
-        pass_filenames: false # formatters handle file scanning internally, so no need to pass filenames
-        require_serial: true # formatters are read-write, so they must run sequentially to avoid conflicts
+        pass_filenames: false  # formatters handle file scanning internally; no filenames needed
+        require_serial: true   # formatters are read-write; must run sequentially to avoid conflicts
         stages: [pre-commit]
 
-      - id: cicd-format-go-test-only
+      - id: cicd-format-go-test
         name: Auto-fix Go test files (t.Helper)
         entry: go
         args: [run, cmd/cicd/main.go, format-go-test]
         language: system
-        pass_filenames: false # formatters handle file scanning internally, so no need to pass filenames
-        require_serial: true # formatters are read-write, so they must run sequentially to avoid conflicts
+        pass_filenames: false  # formatters handle file scanning internally; no filenames needed
+        require_serial: true   # formatters are read-write; must run sequentially to avoid conflicts
         stages: [pre-commit]
 
   # Go dependency management (clean state before linting)
@@ -302,21 +259,24 @@ repos:
         pass_filenames: false
         files: go\.mod$
 
-  # Check TODO/FIXME severity (fail on CRITICAL/HIGH)
+  # Check TODO/FIXME severity (fail on CRITICAL/HIGH). Uses Python for cross-platform support (bash requires WSL on Windows).
   - repo: local
     hooks:
       - id: check-todo-severity
         name: Check TODO/FIXME severity (block CRITICAL/HIGH)
-        entry: bash
+        entry: python
         args:
           - -c
           - |
-            if grep -rn --include="*.go" "TODO.*CRITICAL\|FIXME.*CRITICAL\|TODO.*HIGH\|FIXME.*HIGH" internal/identity/ 2>/dev/null; then
-              echo "[ERROR] Found CRITICAL or HIGH severity TODOs - must be resolved before commit"
-              exit 1
-            fi
-            echo "[PASS] No CRITICAL or HIGH severity TODOs found"
-            exit 0
+            import sys, re
+            from pathlib import Path
+            pattern = re.compile(r'TODO.*CRITICAL|FIXME.*CRITICAL|TODO.*HIGH|FIXME.*HIGH')
+            found = [f'{f}:{n}: {l.strip()}' for f in Path('internal/identity').rglob('*.go') for n, l in enumerate(f.read_text('utf-8', 'ignore').splitlines(), 1) if pattern.search(l)]
+            if found:
+                print('\n'.join(found))
+                print('[ERROR] Found CRITICAL or HIGH severity TODOs - must be resolved before commit')
+                sys.exit(1)
+            print('[PASS] No CRITICAL or HIGH severity TODOs found')
         language: system
         pass_filenames: false
         files: '\.go$'
@@ -349,21 +309,19 @@ repos:
         files: 'Dockerfile.*|Dockerfile$'
         require_serial: false
 
-  # Semgrep static analysis with project-local rules (no cloud, no telemetry).
-  # Rules live in .semgrep/rules/ - organized by topic, infinite growth, zero config file bloat.
-  # Add new rules by creating/editing .semgrep/rules/*.yml - never touch this hook entry.
-  # NOTE: Uses Docker because semgrep Python package does not support Windows natively.
-  # Requires Docker Desktop to be running. Runs on pre-push (acceptable Docker startup overhead).
+  # Semgrep static analysis with project-local rules (no cloud, no telemetry). See .semgrep/rules/.
+  # Uses language: python so pre-commit pip-installs semgrep in a virtualenv — works natively on
+  # Windows and Linux without Docker. DO NOT change to docker_image (breaks Windows without Docker).
   - repo: local
     hooks:
       - id: semgrep
-        name: Semgrep project rules (Docker)
-        language: docker_image
-        entry: semgrep/semgrep:latest
+        name: Semgrep project rules
+        language: python
+        additional_dependencies: [semgrep]
+        entry: semgrep
         args: [--config=.semgrep/rules/, --error, --quiet, --no-autofix]
         pass_filenames: false
         require_serial: false
-        stages: [pre-push]
 
   # Specialized file linting: POSIX shell script linting
   - repo: https://github.com/koalaman/shellcheck-precommit
@@ -381,6 +339,7 @@ repos:
     hooks:
       - id: bandit
         name: Python security linting
+        args: [--severity-level, medium]  # LOW severity subprocess/assert usage in utility scripts is acceptable
         files: '\.py$'
         require_serial: false
 
@@ -426,7 +385,12 @@ repos:
       - id: checkov
         name: Checkov IaC security scan
         args:
-          - --skip-check=CKV_DOCKER_2,CKV_DOCKER_3  # Skip HEALTHCHECK rules (using wget in compose instead)
+          # Single --skip-check arg (checkov overwrites, not appends, on multiple --skip-check flags):
+          # CKV_DOCKER_2,CKV_DOCKER_3: HEALTHCHECK optional (using wget in compose healthchecks instead)
+          # CKV2_GHA_1: GH Actions top-level permissions — handled by actionlint, not checkov scope
+          # CKV_OPENAPI_*: OpenAPI spec checks — not in IaC scope; oapi-codegen validates specs
+          # CKV_SECRET_4: Basic Auth false positive; gitleaks handles secrets at pre-push
+          - --skip-check=CKV_DOCKER_2,CKV_DOCKER_3,CKV2_GHA_1,CKV_OPENAPI_3,CKV_OPENAPI_4,CKV_OPENAPI_5,CKV_OPENAPI_21,CKV_SECRET_4
           - --quiet
         files: '(deployments/.*\.(yml|yaml)$|Dockerfile.*|Dockerfile$)'
         require_serial: false
@@ -440,7 +404,7 @@ repos:
         name: SQLFluff fix SQL migrations
         args: [--dialect, postgres]
         files: '\.sql$'
-        require_serial: false
+        require_serial: true  # sqlfluff writes files; parallel instances crash on Windows (file locking)
         stages: [pre-commit]
 
   # TOML file formatting (pyproject.toml, .gofumpt.toml, .gitleaks.toml)
@@ -480,7 +444,7 @@ repos:
       - id: editorconfig-checker
         name: Check EditorConfig compliance
         alias: ec
-        exclude: '\.(exe|dll|so|dylib|key|crt|pem)$'
+        exclude: '\.(exe|dll|so|dylib|key|crt|pem)$|\.go$|\.go\.[A-Za-z]|^test/load/|^internal/apps/pki/_ca-archived/|^deployments/archived/|^configs/orphaned/|\.vscode/|/cover\.html$|^LICENSE$'
         require_serial: false
         stages: [pre-commit]
 

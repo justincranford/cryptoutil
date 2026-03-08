@@ -18,10 +18,12 @@ CREATE TABLE IF NOT EXISTS client_secret_versions (
 );
 
 -- Indexes for client_secret_versions.
-CREATE INDEX IF NOT EXISTS idx_client_secret_versions_client_id ON client_secret_versions(client_id);
-CREATE INDEX IF NOT EXISTS idx_client_secret_versions_expires_at ON client_secret_versions(expires_at);
-CREATE INDEX IF NOT EXISTS idx_client_secret_versions_deleted_at ON client_secret_versions(deleted_at);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_client_secret_versions_client_version ON client_secret_versions(client_id, version) WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_client_secret_versions_client_id ON client_secret_versions (client_id);
+CREATE INDEX IF NOT EXISTS idx_client_secret_versions_expires_at ON client_secret_versions (expires_at);
+CREATE INDEX IF NOT EXISTS idx_client_secret_versions_deleted_at ON client_secret_versions (deleted_at);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_client_secret_versions_client_version ON client_secret_versions (
+    client_id, version
+) WHERE deleted_at IS NULL;
 
 -- Create key_rotation_events table for audit trail.
 CREATE TABLE IF NOT EXISTS key_rotation_events (
@@ -42,9 +44,9 @@ CREATE TABLE IF NOT EXISTS key_rotation_events (
 );
 
 -- Indexes for key_rotation_events.
-CREATE INDEX IF NOT EXISTS idx_key_rotation_events_event_type ON key_rotation_events(event_type);
-CREATE INDEX IF NOT EXISTS idx_key_rotation_events_key_type ON key_rotation_events(key_type);
-CREATE INDEX IF NOT EXISTS idx_key_rotation_events_key_id ON key_rotation_events(key_id);
-CREATE INDEX IF NOT EXISTS idx_key_rotation_events_timestamp ON key_rotation_events(timestamp);
-CREATE INDEX IF NOT EXISTS idx_key_rotation_events_initiator ON key_rotation_events(initiator);
-CREATE INDEX IF NOT EXISTS idx_key_rotation_events_deleted_at ON key_rotation_events(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_key_rotation_events_event_type ON key_rotation_events (event_type);
+CREATE INDEX IF NOT EXISTS idx_key_rotation_events_key_type ON key_rotation_events (key_type);
+CREATE INDEX IF NOT EXISTS idx_key_rotation_events_key_id ON key_rotation_events (key_id);
+CREATE INDEX IF NOT EXISTS idx_key_rotation_events_timestamp ON key_rotation_events (timestamp);
+CREATE INDEX IF NOT EXISTS idx_key_rotation_events_initiator ON key_rotation_events (initiator);
+CREATE INDEX IF NOT EXISTS idx_key_rotation_events_deleted_at ON key_rotation_events (deleted_at);

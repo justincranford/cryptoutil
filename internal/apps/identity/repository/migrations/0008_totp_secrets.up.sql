@@ -16,6 +16,6 @@ CREATE TABLE totp_secrets (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_totp_secrets_user_id ON totp_secrets(user_id);
-CREATE INDEX idx_totp_secrets_locked_until ON totp_secrets(locked_until);
-CREATE INDEX idx_totp_secrets_last_used_at ON totp_secrets(last_used_at);
+CREATE INDEX idx_totp_secrets_user_id ON totp_secrets (user_id);
+CREATE INDEX idx_totp_secrets_locked_until ON totp_secrets (locked_until);
+CREATE INDEX idx_totp_secrets_last_used_at ON totp_secrets (last_used_at);

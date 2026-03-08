@@ -430,9 +430,9 @@ components:
         - "EdDSA"
       example: "A256GCM/A256KW"
       description: Cryptographic algorithm(s) used for Material Keys in the Elastic Key. The first is the content encryption algorithm, and the second is the optional key encryption algorithm.
-                   If key encryption algorithm is 'dir', the Elastic Key Key is directly used on values. direct encryption is useful for small values.
-                   If key encryption algorithm is 'K*W', a random Content Encryption Key (CEK) is used directly on values, and the Elastic Key Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc).
-                   If in doubt, it is safe to use 'A256GCM/A256KW' for all values; it is the default.
+                    If key encryption algorithm is 'dir', the Elastic Key Key is directly used on values. direct encryption is useful for small values.
+                    If key encryption algorithm is 'K*W', a random Content Encryption Key (CEK) is used directly on values, and the Elastic Key Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc).
+                    If in doubt, it is safe to use 'A256GCM/A256KW' for all values; it is the default.
     ElasticKeyProvider:
       type: string
       enum: [ Internal ]

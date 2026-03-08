@@ -1,6 +1,6 @@
 import os
 
-healthclient_go = '''\
+healthclient_go = """\
 // Copyright (c) 2025 Justin Cranford
 //
 
@@ -102,7 +102,7 @@ _, _ = io.Copy(io.Discard, resp.Body)
 _ = resp.Body.Close()
 }
 }
-'''
+"""
 
 base = "internal/apps/template/service/testing/healthclient"
 os.makedirs(base, exist_ok=True)

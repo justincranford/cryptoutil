@@ -22,11 +22,11 @@ CREATE TABLE IF NOT EXISTS audit_log (
     ip_address TEXT,                                -- Client IP address
     user_agent TEXT,                                -- Client user agent
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (tenant_id) REFERENCES tenants(id),
-    FOREIGN KEY (elastic_jwk_id) REFERENCES elastic_jwks(id)
+    FOREIGN KEY (tenant_id) REFERENCES tenants (id),
+    FOREIGN KEY (elastic_jwk_id) REFERENCES elastic_jwks (id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_audit_log_tenant ON audit_log(tenant_id);
-CREATE INDEX IF NOT EXISTS idx_audit_log_session ON audit_log(session_id);
-CREATE INDEX IF NOT EXISTS idx_audit_log_request_id ON audit_log(request_id);
-CREATE INDEX IF NOT EXISTS idx_audit_log_success ON audit_log(success);
+CREATE INDEX IF NOT EXISTS idx_audit_log_tenant ON audit_log (tenant_id);
+CREATE INDEX IF NOT EXISTS idx_audit_log_session ON audit_log (session_id);
+CREATE INDEX IF NOT EXISTS idx_audit_log_request_id ON audit_log (request_id);
+CREATE INDEX IF NOT EXISTS idx_audit_log_success ON audit_log (success);
