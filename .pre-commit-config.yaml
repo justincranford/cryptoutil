@@ -349,6 +349,22 @@ repos:
         files: 'Dockerfile.*|Dockerfile$'
         require_serial: false
 
+  # Semgrep static analysis with project-local rules (no cloud, no telemetry).
+  # Rules live in .semgrep/rules/ - organized by topic, infinite growth, zero config file bloat.
+  # Add new rules by creating/editing .semgrep/rules/*.yml - never touch this hook entry.
+  # NOTE: Uses Docker because semgrep Python package does not support Windows natively.
+  # Requires Docker Desktop to be running. Runs on pre-push (acceptable Docker startup overhead).
+  - repo: local
+    hooks:
+      - id: semgrep
+        name: Semgrep project rules (Docker)
+        language: docker_image
+        entry: semgrep/semgrep:latest
+        args: [--config=.semgrep/rules/, --error, --quiet, --no-autofix]
+        pass_filenames: false
+        require_serial: false
+        stages: [pre-push]
+
   # Specialized file linting: POSIX shell script linting
   - repo: https://github.com/koalaman/shellcheck-precommit
     rev: v0.11.0

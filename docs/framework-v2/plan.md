@@ -53,6 +53,13 @@
 
 ## Goals for Framework v2
 
+### Goal 0: Tooling & Security Infrastructure
+
+Foundation work that unblocks Goals 1-3:
+
+- [x] **Semgrep in pre-commit** - `.semgrep/rules/` directory, initial rules for `DisableKeepAlives` and per-test DB violations
+- [ ] **Remove InsecureSkipVerify (G402)** - Generate TLS cert chains in `service-template/testing/testserver`, expose CA cert for test clients, remove `InsecureSkipVerify: true` across all 10 services, remove G402 from `gosec.excludes` in `.golangci.yml`
+
 ### Goal 1: Framework Iteration - Close v1 Gaps
 
 Iterate on the framework to close gaps identified in v1:
@@ -103,31 +110,44 @@ Scale up the volume and speed of completing all products-services:
 - Integrate contract tests into remaining services
 - Verify lint_fitness coverage/mutation
 
-### Phase 2: PKI-CA Domain Completion
+### Phase 2: Remove InsecureSkipVerify (G402)
+
+**Prerequisite for all service integration/E2E tests without TLS bypass.**
+
+- Add `NewTestTLSBundle()` to `internal/apps/template/service/testing/testserver/` that generates a self-signed CA + server cert pair at test startup
+- Add `TLSClientConfig(t)` helper that returns `*tls.Config` trusting the test CA cert (replaces `InsecureSkipVerify: true`)
+- Update `testserver.StartAndWait()` to accept and expose the TLS bundle
+- For each of the 10 services: replace `InsecureSkipVerify: true` test HTTP clients with `TLSClientConfig(t)`
+- Remove `G402` from `gosec.excludes` in `.golangci.yml`
+- Uncomment `no-tls-insecure-skip-verify` rule in `.semgrep/rules/go-testing.yml`
+- **Success**: `golangci-lint run` passes with G402 enabled, zero InsecureSkipVerify in production code, all integration/E2E tests pass with real TLS
+- **Post-Mortem**: lessons.md updated
+
+### Phase 3: PKI-CA Domain Completion
 
 - Certificate issuance, renewal, revocation
 - CRL distribution, OCSP responder
 - CA hierarchy (root > intermediate > issuing)
 
-### Phase 3: Identity Foundation (authz)
+### Phase 4: Identity Foundation (authz)
 
 - OAuth 2.1 authorization server core
 - Token issuance, validation, introspection
 - Client registration
 
-### Phase 4: Identity Provider (idp)
+### Phase 5: Identity Provider (idp)
 
 - OIDC provider
 - User authentication flows
 - Session management
 
-### Phase 5: Identity Services (rp, rs, spa)
+### Phase 6: Identity Services (rp, rs, spa)
 
 - Relying party implementation
 - Resource server implementation
 - Single page application
 
-### Phase 6: Quality & Polish
+### Phase 7: Quality & Polish
 
 - Coverage and mutation testing enforcement
 - Performance benchmarking

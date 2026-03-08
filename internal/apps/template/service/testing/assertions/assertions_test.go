@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	cryptoutilTestingAssertions "cryptoutil/internal/apps/template/service/testing/assertions"
 )
@@ -49,7 +49,7 @@ func TestAssertHealthy_WrongStatus(t *testing.T) {
 
 	cryptoutilTestingAssertions.AssertHealthy(mockT, resp)
 
-	assert.True(t, mockT.hasFailure(), "should fail for non-200 status")
+	require.True(t, mockT.hasFailure(), "should fail for non-200 status")
 }
 
 func TestAssertErrorResponse_MatchingCode(t *testing.T) {
@@ -72,7 +72,7 @@ func TestAssertErrorResponse_WrongCode(t *testing.T) {
 
 	cryptoutilTestingAssertions.AssertErrorResponse(mockT, resp, http.StatusBadRequest)
 
-	assert.True(t, mockT.hasFailure(), "should fail when status code does not match")
+	require.True(t, mockT.hasFailure(), "should fail when status code does not match")
 }
 
 func TestAssertTraceID_Present(t *testing.T) {
@@ -96,7 +96,7 @@ func TestAssertTraceID_Missing(t *testing.T) {
 
 	cryptoutilTestingAssertions.AssertTraceID(mockT, resp)
 
-	assert.True(t, mockT.hasFailure(), "should fail when X-Request-Id header is absent")
+	require.True(t, mockT.hasFailure(), "should fail when X-Request-Id header is absent")
 }
 
 func TestAssertJSONContentType_Present(t *testing.T) {
@@ -119,7 +119,7 @@ func TestAssertJSONContentType_Missing(t *testing.T) {
 
 	cryptoutilTestingAssertions.AssertJSONContentType(mockT, resp)
 
-	assert.True(t, mockT.hasFailure(), "should fail when Content-Type is not application/json")
+	require.True(t, mockT.hasFailure(), "should fail when Content-Type is not application/json")
 }
 
 // mockTB captures assertion failures without aborting the test.

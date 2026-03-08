@@ -1,0 +1,53 @@
+# Semgrep rules for Go test code patterns.
+# Enforces requirements from docs/ARCHITECTURE.md Sections 10.2-10.3.
+rules:
+  # ARCHITECTURE.md Section 10.3.4: Test HTTP Client Patterns
+  # Fasthttp keeps open counter > 0 while keep-alive connections remain.
+  # ShutdownWithContext hangs 90 seconds waiting for the counter to reach zero.
+  - id: test-http-transport-missing-disable-keepalives
+    message: >
+      Test HTTP transports MUST set DisableKeepAlives: true.
+      Fasthttp ShutdownWithContext hangs 90 seconds waiting for keep-alive connections to close.
+      See: docs/ARCHITECTURE.md Section 10.3.4 Test HTTP Client Patterns.
+    languages: [go]
+    severity: ERROR
+    patterns:
+      - pattern: "&http.Transport{...}"
+      - pattern-not: "&http.Transport{..., DisableKeepAlives: true, ...}"
+    paths:
+      include:
+        - "*_test.go"
+        - "*_integration_test.go"
+        - "*_e2e_test.go"
+
+  # ARCHITECTURE.md Section 10.3: Integration Testing Strategy - TestMain Pattern
+  # Per-test gorm.Open() creates a DB per test - violates shared-setup pattern.
+  # Use TestMain with shared DB container to avoid per-test container overhead.
+  - id: no-per-test-db-gorm-open
+    message: >
+      Never call gorm.Open() in individual test functions. Use TestMain with a shared DB setup.
+      See: docs/ARCHITECTURE.md Section 10.3 Integration Testing Strategy.
+    languages: [go]
+    severity: ERROR
+    pattern: |
+      func $TESTFN(t *testing.T) {
+        ...
+        gorm.Open(...)
+        ...
+      }
+    paths:
+      include:
+        - "*_test.go"
+        - "*_integration_test.go"
+
+  # FUTURE: InsecureSkipVerify - pending framework-v2 Phase 2 TLS init work.
+  # When test TLS cert chains are generated in service-template and gosec G402
+  # is removed from exclusions, uncomment this rule:
+  #
+  # - id: no-tls-insecure-skip-verify
+  #   message: >
+  #     InsecureSkipVerify: true MUST NOT be used. Use proper TLS cert chains.
+  #     See: docs/ARCHITECTURE.md Section 6.4 Cryptographic Architecture.
+  #   languages: [go]
+  #   severity: ERROR
+  #   pattern: "InsecureSkipVerify: true"

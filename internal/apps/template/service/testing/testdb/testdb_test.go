@@ -8,8 +8,9 @@ import (
 "context"
 "testing"
 
-"github.com/stretchr/testify/assert"
-"github.com/stretchr/testify/require"
+cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
+	"github.com/stretchr/testify/require"
 
 cryptoutilTestingTestdb "cryptoutil/internal/apps/template/service/testing/testdb"
 )
@@ -59,7 +60,7 @@ require.NoError(t, db1.AutoMigrate(&simpleModel{}))
 var count int64
 
 err := db2.Model(&simpleModel{}).Count(&count).Error
-assert.Error(t, err, "db2 should not have the table created in db1")
+require.Error(t, err, "db2 should not have the table created in db1")
 }
 
 func TestRequireNewInMemorySQLiteDB_NoModels(t *testing.T) {
@@ -86,7 +87,7 @@ require.NoError(t, result.Error)
 var found simpleModel
 
 require.NoError(t, db.First(&found, "id = ?", "test-id").Error)
-assert.Equal(t, "test-name", found.Name)
+require.Equal(t, "test-name", found.Name)
 }
 
 func TestFormatDSN(t *testing.T) {
@@ -103,7 +104,7 @@ wantDSN string
 }{
 {
 name:    "standard postgres dsn",
-host:    "localhost",
+host:    cryptoutilSharedMagic.HostnameLocalhost,
 port:    "5432",
 user:    "admin",
 pass:    "secret",
@@ -112,7 +113,7 @@ wantDSN: "postgres://admin:secret@localhost:5432/mydb?sslmode=disable",
 },
 {
 name:    "empty password",
-host:    "127.0.0.1",
+host:    cryptoutilSharedMagic.IPv4Loopback,
 port:    "5433",
 user:    "testuser",
 pass:    "",
@@ -126,7 +127,7 @@ t.Run(tc.name, func(t *testing.T) {
 t.Parallel()
 
 got := cryptoutilTestingTestdb.FormatDSN(tc.host, tc.port, tc.user, tc.pass, tc.dbName)
-assert.Equal(t, tc.wantDSN, got)
+require.Equal(t, tc.wantDSN, got)
 })
 }
 }
@@ -165,5 +166,5 @@ require.NoError(t, result.Error)
 var found simpleModel
 
 require.NoError(t, db.First(&found, "id = ?", "pg-test-id").Error)
-assert.Equal(t, "pg-test-name", found.Name)
+require.Equal(t, "pg-test-name", found.Name)
 }

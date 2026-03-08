@@ -8,7 +8,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	cryptoutilTestingHealthclient "cryptoutil/internal/apps/template/service/testing/healthclient"
@@ -54,7 +53,7 @@ func TestHealthClient_Livez_Success(t *testing.T) {
 	require.NotNil(t, resp)
 	t.Cleanup(func() { _ = resp.Body.Close() })
 
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
 func TestHealthClient_Readyz_Success(t *testing.T) {
@@ -68,7 +67,7 @@ func TestHealthClient_Readyz_Success(t *testing.T) {
 	require.NotNil(t, resp)
 	t.Cleanup(func() { _ = resp.Body.Close() })
 
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
 func TestHealthClient_ServiceHealth_Success(t *testing.T) {
@@ -82,7 +81,7 @@ func TestHealthClient_ServiceHealth_Success(t *testing.T) {
 	require.NotNil(t, resp)
 	t.Cleanup(func() { _ = resp.Body.Close() })
 
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
 func TestHealthClient_BrowserHealth_Success(t *testing.T) {
@@ -96,7 +95,7 @@ func TestHealthClient_BrowserHealth_Success(t *testing.T) {
 	require.NotNil(t, resp)
 	t.Cleanup(func() { _ = resp.Body.Close() })
 
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
 func TestHealthClient_PublicHealth_Success(t *testing.T) {
@@ -110,7 +109,7 @@ func TestHealthClient_PublicHealth_Success(t *testing.T) {
 	require.NotNil(t, resp)
 	t.Cleanup(func() { _ = resp.Body.Close() })
 
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
 func TestHealthClient_Livez_ServerError(t *testing.T) {
@@ -124,7 +123,7 @@ func TestHealthClient_Livez_ServerError(t *testing.T) {
 	require.NotNil(t, resp)
 	t.Cleanup(func() { _ = resp.Body.Close() })
 
-	assert.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
+	require.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
 }
 
 func TestHealthClient_Readyz_ServerError(t *testing.T) {
@@ -138,7 +137,7 @@ func TestHealthClient_Readyz_ServerError(t *testing.T) {
 	require.NotNil(t, resp)
 	t.Cleanup(func() { _ = resp.Body.Close() })
 
-	assert.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
+	require.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
 }
 
 func TestHealthClient_DrainAndClose_NilResp(t *testing.T) {
@@ -172,8 +171,8 @@ func TestHealthClient_ConnectionError(t *testing.T) {
 		t.Cleanup(func() { _ = resp.Body.Close() })
 	}
 
-	assert.Error(t, err)
-	assert.Nil(t, resp)
+	require.Error(t, err)
+	require.Nil(t, resp)
 }
 
 func TestHealthClient_Readyz_ConnectionError(t *testing.T) {
@@ -186,8 +185,8 @@ func TestHealthClient_Readyz_ConnectionError(t *testing.T) {
 		t.Cleanup(func() { _ = resp.Body.Close() })
 	}
 
-	assert.Error(t, err)
-	assert.Nil(t, resp)
+	require.Error(t, err)
+	require.Nil(t, resp)
 }
 
 func TestHealthClient_ServiceHealth_ConnectionError(t *testing.T) {
@@ -200,8 +199,8 @@ func TestHealthClient_ServiceHealth_ConnectionError(t *testing.T) {
 		t.Cleanup(func() { _ = resp.Body.Close() })
 	}
 
-	assert.Error(t, err)
-	assert.Nil(t, resp)
+	require.Error(t, err)
+	require.Nil(t, resp)
 }
 
 func TestHealthClient_BrowserHealth_ConnectionError(t *testing.T) {
@@ -214,6 +213,6 @@ func TestHealthClient_BrowserHealth_ConnectionError(t *testing.T) {
 		t.Cleanup(func() { _ = resp.Body.Close() })
 	}
 
-	assert.Error(t, err)
-	assert.Nil(t, resp)
+	require.Error(t, err)
+	require.Nil(t, resp)
 }

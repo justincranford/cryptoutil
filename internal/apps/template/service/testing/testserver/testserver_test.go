@@ -11,7 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 
@@ -47,8 +48,8 @@ func (m *mockServer) Start(_ context.Context) error {
 
 	m.mu.Lock()
 	m.startCalled = true
-	m.publicPort = 8080
-	m.adminPort = 9090
+	m.publicPort = cryptoutilSharedMagic.DemoServerPort
+	m.adminPort = cryptoutilSharedMagic.DemoAdminPort
 	m.mu.Unlock()
 
 	return nil
@@ -175,12 +176,12 @@ func TestStartAndWait_Success(t *testing.T) {
 	result := cryptoutilTestingTestserver.StartAndWait(ctx, t, srv)
 
 	require.NotNil(t, result)
-	assert.True(t, srv.isStartCalled(), "Start should have been called")
-	assert.True(t, srv.isReady(), "SetReady(true) should have been called")
+	require.True(t, srv.isStartCalled(), "Start should have been called")
+	require.True(t, srv.isReady(), "SetReady(true) should have been called")
 
 	castedResult, ok := result.(*mockServer)
 	require.True(t, ok, "returned server should be *mockServer")
-	assert.Same(t, srv, castedResult, "returned server should be the same instance")
+	require.Same(t, srv, castedResult, "returned server should be the same instance")
 }
 
 func TestStartAndWait_RegistersCleanup(t *testing.T) {
@@ -204,8 +205,8 @@ func TestStartAndWait_ReturnsOriginalServer(t *testing.T) {
 	srv := newMockServer()
 
 	returned := cryptoutilTestingTestserver.StartAndWait(ctx, t, srv)
-	assert.Equal(t, "https://127.0.0.1:8080", returned.PublicBaseURL())
-	assert.Equal(t, "https://127.0.0.1:9090", returned.AdminBaseURL())
+	require.Equal(t, "https://127.0.0.1:8080", returned.PublicBaseURL())
+	require.Equal(t, "https://127.0.0.1:9090", returned.AdminBaseURL())
 }
 
 func TestStartAndWait_PortsReady(t *testing.T) {
@@ -216,8 +217,8 @@ func TestStartAndWait_PortsReady(t *testing.T) {
 
 	cryptoutilTestingTestserver.StartAndWait(ctx, t, srv)
 
-	assert.Equal(t, 8080, srv.PublicPort())
-	assert.Equal(t, 9090, srv.AdminPort())
+	require.Equal(t, cryptoutilSharedMagic.DemoServerPort, srv.PublicPort())
+	require.Equal(t, cryptoutilSharedMagic.DemoAdminPort, srv.AdminPort())
 }
 
 func TestStartAndWait_StartError(t *testing.T) {
@@ -231,7 +232,7 @@ func TestStartAndWait_StartError(t *testing.T) {
 	_ = cryptoutilTestingTestserver.StartAndWait(ctx, ctb, srv)
 	ctb.runCleanups()
 
-	assert.True(t, ctb.hasFatal(), "Fatalf should have been called for start error")
+	require.True(t, ctb.hasFatal(), "Fatalf should have been called for start error")
 }
 
 func TestStartAndWait_ShutdownError(t *testing.T) {

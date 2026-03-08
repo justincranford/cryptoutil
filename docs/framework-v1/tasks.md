@@ -1,4 +1,4 @@
-﻿# Tasks - Framework v1
+# Tasks - Framework v1
 
 **Status**: 48 of 48 tasks complete (100%)
 **Last Updated**: 2026-03-08
@@ -1770,7 +1770,6 @@
   - [ ] go build ./... clean
   - [ ] Evidence in test-output/framework-v1/phase8/
   - [ ] git commit docs(framework-v1): phase 8 knowledge propagation complete
-
 
 ## Cross-Cutting Tasks
 
