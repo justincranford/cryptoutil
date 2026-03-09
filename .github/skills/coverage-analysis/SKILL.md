@@ -81,6 +81,11 @@ For expensive algorithm variant tests (RSA sizes, ECDSA curves, AES key sizes), 
 
 Apply this when coverage analysis reveals uncovered algorithm branches: add the appropriate probability gate rather than testing all variants unconditionally.
 
+## Common Pitfalls
+
+- **Timeout double-multiplication**: Magic constants of type `time.Duration` (e.g., `DefaultDataServerShutdownTimeout = 5 * time.Second`) MUST NOT be multiplied by `time.Second` again. This creates ~158-year timeout values. Use them directly.
+- **Missing DisableKeepAlives**: ALL test HTTP transports calling real servers MUST set `DisableKeepAlives: true` to prevent 90-second shutdown hangs.
+
 ## References
 
 Read [ARCHITECTURE.md Section 10.2.3 Coverage Targets](../../../docs/ARCHITECTURE.md#1023-coverage-targets) for per-package targets — apply these targets when categorizing uncovered lines and setting package-specific coverage ceiling exceptions.
