@@ -59,6 +59,15 @@ func RunContractTests(t *testing.T, server ServiceServer) {
 
 		RunResponseFormatContracts(t, server)
 	})
+
+	// Auth contracts are opt-in: only run if server implements AuthContractServer.
+	if authServer, ok := server.(AuthContractServer); ok {
+		t.Run("auth_contracts", func(t *testing.T) {
+			t.Parallel()
+
+			RunAuthContracts(t, server.PublicBaseURL(), authServer)
+		})
+	}
 }
 
 // newTLSHTTPClient creates a TLS-skipping HTTP client for contract tests.
