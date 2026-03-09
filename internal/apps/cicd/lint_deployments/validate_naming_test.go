@@ -4,6 +4,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -237,6 +238,10 @@ func TestToKebabCase_EdgeCases(t *testing.T) {
 func TestValidateNaming_WalkErrorPermission(t *testing.T) {
 	t.Parallel()
 
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
+	}
+
 	dir := t.TempDir()
 	subDir := filepath.Join(dir, "sub-dir")
 	require.NoError(t, os.MkdirAll(subDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
@@ -367,6 +372,10 @@ func TestValidateNaming_UPPERCASEDir(t *testing.T) {
 
 func TestValidateNaming_ComposeReadableFileError(t *testing.T) {
 	t.Parallel()
+
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
+	}
 
 	dir := t.TempDir()
 	composePath := filepath.Join(dir, "compose.yml")

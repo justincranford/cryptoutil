@@ -3,6 +3,7 @@ package lint_deployments
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -407,6 +408,10 @@ func TestValidateStructuralMirror_MatchedAndOrphaned(t *testing.T) {
 func TestValidateStructuralMirror_UnreadableDeployments(t *testing.T) {
 	t.Parallel()
 
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
+	}
+
 	tmpDir := t.TempDir()
 	deploymentsDir := filepath.Join(tmpDir, "deployments")
 	configsDir := filepath.Join(tmpDir, "configs")
@@ -429,6 +434,10 @@ func TestValidateStructuralMirror_UnreadableDeployments(t *testing.T) {
 // TestValidateStructuralMirror_UnreadableConfigs tests error when config dirs unreadable.
 func TestValidateStructuralMirror_UnreadableConfigs(t *testing.T) {
 	t.Parallel()
+
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
+	}
 
 	tmpDir := t.TempDir()
 	deploymentsDir := filepath.Join(tmpDir, "deployments")

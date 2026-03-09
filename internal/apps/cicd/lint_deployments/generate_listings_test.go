@@ -4,6 +4,7 @@ import (
 	json "encoding/json"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -338,6 +339,10 @@ func TestWriteListingFile_WriteError(t *testing.T) {
 // TestGenerateDirectoryListing_WalkError tests walk error in GenerateDirectoryListing.
 func TestGenerateDirectoryListing_WalkError(t *testing.T) {
 	t.Parallel()
+
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
+	}
 
 	tmpDir := t.TempDir()
 

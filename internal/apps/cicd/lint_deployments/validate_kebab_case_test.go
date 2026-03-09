@@ -4,6 +4,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -146,6 +147,10 @@ func TestValidateKebabCase_InvalidYAML(t *testing.T) {
 func TestValidateKebabCase_UnreadableFile(t *testing.T) {
 	t.Parallel()
 
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
+	}
+
 	dir := t.TempDir()
 	filePath := filepath.Join(dir, "config.yml")
 	require.NoError(t, os.WriteFile(filePath, []byte("service:\n  name: ok\n"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -189,6 +194,10 @@ func TestValidateKebabCase_EmptyDirectory(t *testing.T) {
 
 func TestValidateKebabCase_WalkError(t *testing.T) {
 	t.Parallel()
+
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
+	}
 
 	dir := t.TempDir()
 	subDir := filepath.Join(dir, "locked")

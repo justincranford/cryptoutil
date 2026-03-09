@@ -4,6 +4,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -134,6 +135,11 @@ func TestValidateSecrets_SecretDirSubdirectorySkipped(t *testing.T) {
 
 func TestValidateSecrets_UnreadableSecretFile(t *testing.T) {
 	t.Parallel()
+
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
+	}
+
 	dir := t.TempDir()
 	secretsDir := filepath.Join(dir, "secrets")
 	require.NoError(t, os.Mkdir(secretsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
@@ -151,6 +157,11 @@ func TestValidateSecrets_UnreadableSecretFile(t *testing.T) {
 
 func TestValidateSecrets_UnreadableSecretsDir(t *testing.T) {
 	t.Parallel()
+
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
+	}
+
 	dir := t.TempDir()
 	secretsDir := filepath.Join(dir, "secrets")
 	require.NoError(t, os.Mkdir(secretsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
@@ -254,6 +265,11 @@ func TestValidateSecrets_ConfigInvalidYAML(t *testing.T) {
 
 func TestValidateSecrets_ConfigUnreadableFile(t *testing.T) {
 	t.Parallel()
+
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
+	}
+
 	dir := t.TempDir()
 	configsDir := filepath.Join(dir, "configs")
 	require.NoError(t, os.Mkdir(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
@@ -295,6 +311,11 @@ func TestValidateSecrets_ConfigSubdirIgnored(t *testing.T) {
 
 func TestValidateSecrets_UnreadableConfigsDir(t *testing.T) {
 	t.Parallel()
+
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
+	}
+
 	dir := t.TempDir()
 	configsDir := filepath.Join(dir, "configs")
 	require.NoError(t, os.Mkdir(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
@@ -388,6 +409,11 @@ func TestValidateSecrets_ComposeInvalidYAML(t *testing.T) {
 
 func TestValidateSecrets_ComposeUnreadable(t *testing.T) {
 	t.Parallel()
+
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
+	}
+
 	dir := t.TempDir()
 	f := filepath.Join(dir, "compose.yml")
 	require.NoError(t, os.WriteFile(f, []byte("data"), cryptoutilSharedMagic.CacheFilePermissions))

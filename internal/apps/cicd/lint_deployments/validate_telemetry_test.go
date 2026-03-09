@@ -5,6 +5,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -269,6 +270,10 @@ func TestValidateTelemetry_InvalidYAML(t *testing.T) {
 
 func TestValidateTelemetry_UnreadableFile(t *testing.T) {
 	t.Parallel()
+
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
+	}
 
 	dir := t.TempDir()
 	require.NoError(t, os.Symlink("/nonexistent/broken.yml",

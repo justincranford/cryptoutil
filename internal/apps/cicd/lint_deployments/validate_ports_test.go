@@ -4,6 +4,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -278,6 +279,10 @@ func TestValidatePorts_ConfigNonIntPort(t *testing.T) {
 
 func TestValidatePorts_ConfigUnreadableFile(t *testing.T) {
 	t.Parallel()
+
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
+	}
 
 	compose := testComposeServicePort
 	dir := createDeploymentWithCompose(t, compose)

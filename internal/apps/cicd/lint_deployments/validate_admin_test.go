@@ -4,6 +4,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -208,6 +209,10 @@ func TestValidateAdmin_ConfigNonYAMLSkipped(t *testing.T) {
 
 func TestValidateAdmin_ConfigUnreadableFile(t *testing.T) {
 	t.Parallel()
+
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
+	}
 
 	dir := t.TempDir()
 	configDir := filepath.Join(dir, "config")

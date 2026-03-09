@@ -6,6 +6,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -90,6 +91,10 @@ func TestMatchesCoveragePattern_CoverageOut(t *testing.T) {
 func TestCheckLeftoverCoverageInDir_UnreadableSubdir(t *testing.T) {
 	t.Parallel()
 
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
+	}
+
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	tmpDir := t.TempDir()
 
@@ -113,6 +118,10 @@ func TestCheckLeftoverCoverageInDir_UnreadableSubdir(t *testing.T) {
 // (since no files were successfully deleted, deletedFiles remains empty).
 func TestCheckLeftoverCoverageInDir_RemoveError(t *testing.T) {
 	t.Parallel()
+
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
+	}
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	tmpDir := t.TempDir()

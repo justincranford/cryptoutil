@@ -5,11 +5,12 @@ package server
 import (
 	"context"
 	"crypto/tls"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"io"
 	http "net/http"
 	"testing"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilContract "cryptoutil/internal/apps/template/service/testing/contract"
 

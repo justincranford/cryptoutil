@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
@@ -281,6 +282,10 @@ func TestCheck_FromProjectRoot(t *testing.T) {
 
 func TestCheckInDir_WalkPermissionError(t *testing.T) {
 	t.Parallel()
+
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
+	}
 
 	tmpDir := t.TempDir()
 	appsDir := filepath.Join(tmpDir, "internal", "apps")

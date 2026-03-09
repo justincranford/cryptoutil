@@ -9,6 +9,7 @@ import (
 	"go/token"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -410,6 +411,11 @@ func TestFixCopyLoopVarInFile_ReadOnlyFile(t *testing.T) {
 
 func TestFix_WalkDirError(t *testing.T) {
 	t.Parallel()
+
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
+	}
+
 	// Non-parallel: modifies directory permissions.
 	tmpDir := t.TempDir()
 	// Create an unreadable subdirectory - Walk will call callback with OS error.
