@@ -43,7 +43,6 @@ linters:
     - dupl
     - gocyclo
     - godox
-    - prealloc
 
   exclusions:
     paths:
