@@ -1,7 +1,7 @@
 # Tasks - Framework v2
 
-**Status**: 0 of 67 tasks complete
-**Last Updated**: 2026-03-08
+**Status**: 3 of 67 tasks complete
+**Last Updated**: 2026-03-09
 **Created**: 2026-03-08
 
 ## Quality Mandate - MANDATORY
@@ -26,32 +26,32 @@
 
 #### Task 1.1: Fix lessons.md auth contracts item
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: None
 - **Description**: Correct the inherited lesson that says "auth contracts belong in service-specific tests" - auth is 100% service-template owned
 - **Acceptance Criteria**:
-  - [ ] lessons.md item 4 updated to reflect auth is service-template owned
-  - [ ] No references to "auth belongs in service-specific tests" remain
+  - [x] lessons.md item 4 updated to reflect auth is service-template owned
+  - [x] No references to "auth belongs in service-specific tests" remain
 
 #### Task 1.2: Propagate timeout double-multiplication lesson
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: None
 - **Description**: The lesson about `time.Duration` constants NOT being multiplied by `time.Second` is only in ARCHITECTURE.md and lessons.md. Propagate to skills and instructions.
 - **Acceptance Criteria**:
-  - [ ] `03-02.testing.instructions.md` includes timeout double-multiplication warning
-  - [ ] `coverage-analysis` skill includes timeout pattern check
-  - [ ] `contract-test-gen` skill includes timeout warning
-  - [ ] Verify ARCHITECTURE.md Section 10.3.4 already documents this
+  - [x] `03-02.testing.instructions.md` includes timeout double-multiplication warning (Forbidden Pattern #7)
+  - [x] `coverage-analysis` skill includes timeout pattern check (Common Pitfalls section)
+  - [x] `contract-test-gen` skill includes timeout warning (Critical Notes section, fixed garbled encoding)
+  - [x] Verify ARCHITECTURE.md Section 10.3.4 already documents this (confirmed)
 
 #### Task 1.3: Clean up temp research files
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: None
 - **Description**: Remove temp_sequential_results.txt and any other research artifacts from repo root
 - **Acceptance Criteria**:
-  - [ ] No temp research files in repo root
-  - [ ] `git status` clean after cleanup
+  - [x] No temp research files in repo root
+  - [x] `git status` clean after cleanup
 
 #### Task 1.4: Add ci-fitness.yml GitHub Actions workflow
 

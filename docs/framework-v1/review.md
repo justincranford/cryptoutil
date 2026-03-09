@@ -317,7 +317,7 @@ The `docs/framework-v1/lessons.md` file captures real implementation lessons:
 **Key patterns discovered**:
 - `RunContractTests(t, server)` entry point is clean and scalable
 - `SetReady(true)` must be called explicitly after `MustStartAndWaitForDualPorts`
-- Auth contracts (401 rejection) belong in service-specific tests, not cross-service contracts
+- ~~Auth contracts (401 rejection) belong in service-specific tests, not cross-service contracts~~ **CORRECTED in v2**: Auth is 100% service-template owned. Auth contract tests (401/403) belong in `RunContractTests`.
 - Contract test integration is minimal friction (one function call per service)
 
 ---
@@ -481,7 +481,7 @@ All quality gate evidence is in `test-output/framework-v1/` with per-phase subdi
 ### Risk Areas
 
 1. **lint_fitness test mocking** - Some sub-linters test against synthetic file content rather than real project files. Changes to project structure could bypass the fitness checks.
-2. **Contract test coverage** - Currently tests health, server isolation, and response format. Does NOT test auth (401 rejection) - that's deferred to service-specific tests.
+2. **Contract test coverage** - Currently tests health, server isolation, and response format. ~~Does NOT test auth (401 rejection) - that's deferred to service-specific tests.~~ **CORRECTED in v2**: Auth contract tests (401/403) will be added to `RunContractTests` in service-template.
 3. **Builder backward compatibility** - `With*()` methods still exist but are no longer called. If internal behavior depends on call order, auto-defaults might behave differently than explicit calls.
 
 ---
