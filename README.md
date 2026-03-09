@@ -199,7 +199,7 @@ Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8888/me
 
 ### Prerequisites
 
-- Go 1.25.7+
+- Go 1.26.1+
 - Docker Desktop (required for integration tests using testcontainers)
 - Docker and Docker Compose (for PostgreSQL)
 

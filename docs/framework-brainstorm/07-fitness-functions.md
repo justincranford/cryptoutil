@@ -183,7 +183,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v6
-        with: {go-version: '1.25.7', cache: true}
+        with: {go-version: '1.26.1', cache: true}
       - name: Run architecture fitness functions
         run: go run ./cmd/cicd fitness-check
 ```n

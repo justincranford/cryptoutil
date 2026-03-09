@@ -363,7 +363,7 @@ MUST run tests BEFORE EVERY COMMIT:
 
 1. **Build Health**: `go build ./...` AND `go build -tags e2e,integration ./...`
 2. **Module Cache**: `go list -m all`
-3. **Go Version**: `go version` (1.25.7+)
+3. **Go Version**: `go version` (1.26.1+)
 
 **If fails**: Report, DO NOT proceed
 

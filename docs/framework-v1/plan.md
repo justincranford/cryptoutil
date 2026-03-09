@@ -61,7 +61,7 @@ The framework brainstorm (`docs/framework-brainstorm/`) analyzed the current sta
 
 ## Technical Context
 
-- **Language**: Go 1.25.7
+- **Language**: Go 1.26.1
 - **Framework**: Service template at `internal/apps/template/service/`
 - **Database**: PostgreSQL OR SQLite with GORM
 - **Existing Services**: 10 total (sm-im, sm-kms, jose-ja, pki-ca, skeleton-template, identity-authz/idp/rp/rs/spa)
