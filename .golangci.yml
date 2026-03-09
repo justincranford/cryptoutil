@@ -28,7 +28,6 @@ linters:
     - testpackage
     - gomodguard
     - gomoddirectives
-    - prealloc
     - bodyclose
     - mnd
     - wsl_v5
@@ -43,6 +42,7 @@ linters:
     - dupl
     - gocyclo
     - godox
+    - prealloc
 
   exclusions:
     paths:
