@@ -121,6 +121,9 @@
     "**/coverage.html": true, // Coverage HTML
     "**/coverage.json": true, // Coverage JSON
     "**/coverage.lcov": true, // Coverage LCOV
+    "**/cover": true, // Go coverprofile artifact
+    "**/cover.html": true, // Go HTML coverage artifact
+    "**/*coverage": true, // Coverage artifact file
     "**/orm_coverage": true, // ORM coverage
     "**/*_coverage": true, // Coverage files with suffix
     "**/*_functions.txt": true, // Function list files
@@ -150,6 +153,8 @@
     "**/.hypothesis": true, // Hypothesis testing cache
     "**/.pytest_cache": true, // Pytest cache
     "**/.nox": true, // Nox sessions
+    "**/.cache": true, // Generic cache directory
+    "**/.mypy_cache": true, // Mypy cache directory
     "**/.semgrep/**": true, // Semgrep runtime artifacts
     "**/.zap/**": true, // ZAP runtime artifacts
     "**/htmlcov": true, // HTML coverage reports
@@ -220,6 +225,9 @@
     "**/coverage.html": true, // Coverage HTML
     "**/coverage.json": true, // Coverage JSON
     "**/coverage.lcov": true, // Coverage LCOV
+    "**/cover": true, // Go coverprofile artifact
+    "**/cover.html": true, // Go HTML coverage artifact
+    "**/*coverage": true, // Coverage artifact file
     "**/orm_coverage": true, // ORM coverage
     "**/*_coverage": true, // Coverage files with suffix
     "**/*_functions.txt": true, // Function list files
@@ -252,6 +260,8 @@
     "**/.hypothesis": true, // Hypothesis testing cache
     "**/.pytest_cache": true, // Pytest cache
     "**/.nox": true, // Nox sessions
+    "**/.cache": true, // Generic cache directory
+    "**/.mypy_cache": true, // Mypy cache directory
     "**/.semgrep/**": true, // Semgrep runtime artifacts
     "**/.zap/**": true, // ZAP runtime artifacts
     "**/htmlcov": true, // HTML coverage reports
@@ -333,6 +343,9 @@
     "**/coverage.html": true, // Coverage HTML
     "**/coverage.json": true, // Coverage JSON
     "**/coverage.lcov": true, // Coverage LCOV
+    "**/cover": true, // Go coverprofile artifact
+    "**/cover.html": true, // Go HTML coverage artifact
+    "**/*coverage": true, // Coverage artifact file
     "**/orm_coverage": true, // ORM coverage
     "**/*_coverage": true, // Coverage files with suffix
     "**/*_functions.txt": true, // Function list files
@@ -365,6 +378,8 @@
     "**/.hypothesis/**": true, // Hypothesis testing cache directory
     "**/.pytest_cache/**": true, // Pytest cache directory
     "**/.nox/**": true, // Nox sessions directory
+    "**/.cache/**": true, // Generic cache directory
+    "**/.mypy_cache/**": true, // Mypy cache directory
     "**/.semgrep/**": true, // Semgrep runtime artifacts
     "**/.zap/**": true, // ZAP runtime artifacts
     "**/htmlcov/**": true, // HTML coverage reports directory

@@ -75,7 +75,10 @@ scripts/
 *_integration_test.go
 coverage.*
 coverage_*
+cover
+cover.html
 all_coverage
+*coverage
 /cov
 /cov_*
 /v8

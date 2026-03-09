@@ -2,6 +2,9 @@ test-output/
 workflow-reports/
 coverage*
 coverage_*
+cover
+cover.html
 *_coverage
 all_coverage
+*coverage
 *.test.exe
