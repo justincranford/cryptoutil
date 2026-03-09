@@ -100,6 +100,10 @@ func TestPrintInsecureSkipVerifyViolations(t *testing.T) {
 func TestCheckInsecureSkipVerifyInDir_WalkError(t *testing.T) {
 	t.Parallel()
 
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
+	}
+
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	tmpDir := t.TempDir()
 
@@ -213,6 +217,10 @@ func Helper() *tls.Config { return &tls.Config{InsecureSkipVerify: true} }
 // TestFindInsecureSkipVerifyViolationsInDir_WalkDirError verifies error on inaccessible dir.
 func TestFindInsecureSkipVerifyViolationsInDir_WalkDirError(t *testing.T) {
 	t.Parallel()
+
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
+	}
 
 	tmpDir := t.TempDir()
 

@@ -6,6 +6,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -218,6 +219,10 @@ println("bad pattern")
 
 func TestCheckInDir_WalkError(t *testing.T) {
 	t.Parallel()
+
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
+	}
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	tmpDir := t.TempDir()

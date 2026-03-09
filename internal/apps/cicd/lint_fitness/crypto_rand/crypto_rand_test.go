@@ -4,6 +4,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -93,6 +94,10 @@ func TestPrintMathRandViolations(t *testing.T) {
 // returns error when FindMathRandViolationsInDir returns a walk error.
 func TestCheckCryptoRandInDir_WalkError(t *testing.T) {
 	t.Parallel()
+
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
+	}
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	tmpDir := t.TempDir()
@@ -231,6 +236,10 @@ func get() int { return rand.Intn(100) }
 func TestFindMathRandViolationsInDir_WalkDirError(t *testing.T) {
 	t.Parallel()
 
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
+	}
+
 	tmpDir := t.TempDir()
 
 	// Create an inaccessible subdirectory.
@@ -314,6 +323,10 @@ func TestCheckFileForMathRand_CrandAlias(t *testing.T) {
 
 func TestFindMathRandViolationsInDir_FileReadError(t *testing.T) {
 	t.Parallel()
+
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
+	}
 
 	tmpDir := t.TempDir()
 	goFile := filepath.Join(tmpDir, "impl.go")

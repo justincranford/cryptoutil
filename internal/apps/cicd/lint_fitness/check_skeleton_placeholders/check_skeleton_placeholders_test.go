@@ -6,6 +6,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -389,6 +390,10 @@ func TestFindViolations_WalkError(t *testing.T) {
 
 func TestFindViolations_ReadError(t *testing.T) {
 	t.Parallel()
+
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
+	}
 
 	// Create a temp dir with a .go file we then make unreadable to trigger a read error.
 	tempDir := t.TempDir()
