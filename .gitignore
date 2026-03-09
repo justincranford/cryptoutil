@@ -40,6 +40,10 @@ __pycache__/
 # Temporary root-level Python helper scripts (session temp files, not project code)
 /*.py
 
+# Generic temporary artifacts
+*.tmp
+*.bak
+
 # Unit test / coverage reports
 htmlcov/
 .tox/
@@ -130,9 +134,17 @@ Thumbs.db
 
 # Spell checker cache
 .cspellcache
+.ruff_cache/
+.mypy_cache/
 
 # CI/CD cache
 .cicd/
+
+# Scanner runtime output (keep tracked rule files under .semgrep/ and .zap/)
+.semgrep/tmp/
+.semgrep/results/
+.zap/reports/
+.zap/session/
 
 # Mutation testing results (gremlins)
 .gremlins/

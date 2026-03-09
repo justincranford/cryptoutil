@@ -1,0 +1,7 @@
+test-output/
+workflow-reports/
+coverage*
+coverage_*
+*_coverage
+all_coverage
+*.test.exe

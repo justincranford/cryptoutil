@@ -107,8 +107,13 @@
 
     // Test artifacts - CRITICAL for OOM prevention
     "**/test-output/**": true, // Test output directory
+    "**/workflow-reports/**": true, // Workflow reports directory
+    "**/load-reports/**": true, // Load test reports directory
+    "**/e2e-reports/**": true, // E2E reports directory
+    "**/dast-reports/**": true, // DAST reports directory
     "**/*.test": true, // Go test files
     "**/coverage": true, // Coverage directory
+    "**/all_coverage": true, // Root all_coverage artifact
     "**/coverage_*": true, // Coverage files with prefix
     "**/coverage*.out": true, // Coverage output files
     "**/coverage*.txt": true, // Coverage text files
@@ -146,6 +151,8 @@
     "**/.pytest_cache": true, // Pytest cache
     "**/.mypy_cache": true, // MyPy cache
     "**/.nox": true, // Nox sessions
+    "**/.semgrep/**": true, // Semgrep runtime artifacts
+    "**/.zap/**": true, // ZAP runtime artifacts
     "**/htmlcov": true, // HTML coverage reports
     "**/.python-version": true, // Python version file
     "**/Pipfile.lock": true, // Pipenv lock file
@@ -202,8 +209,13 @@
 
     // Test artifacts - CRITICAL for OOM prevention
     "**/test-output/**": true, // Test output directory
+    "**/workflow-reports/**": true, // Workflow reports directory
+    "**/load-reports/**": true, // Load test reports directory
+    "**/e2e-reports/**": true, // E2E reports directory
+    "**/dast-reports/**": true, // DAST reports directory
     "**/*.test": true, // Go test files
     "**/coverage": true, // Coverage directory
+    "**/all_coverage": true, // Root all_coverage artifact
     "**/coverage_*": true, // Coverage files with prefix
     "**/coverage*.out": true, // Coverage output files
     "**/coverage*.txt": true, // Coverage text files
@@ -244,6 +256,8 @@
     "**/.pytest_cache": true, // Pytest cache
     "**/.mypy_cache": true, // MyPy cache
     "**/.nox": true, // Nox sessions
+    "**/.semgrep/**": true, // Semgrep runtime artifacts
+    "**/.zap/**": true, // ZAP runtime artifacts
     "**/htmlcov": true, // HTML coverage reports
     "**/.python-version": true, // Python version file
     "**/Pipfile.lock": true, // Pipenv lock file
@@ -278,6 +292,10 @@
     "**/*.ear": true, // Enterprise archives
     "**/testdata/**": true // Test data directory
   },
+  "search.useIgnoreFiles": true,
+  "search.useGlobalIgnoreFiles": true,
+  "search.useParentIgnoreFiles": true,
+  "search.followSymlinks": false,
   "files.watcherExclude": {
     // Git internal files
     "**/.git/objects/**": true, // Git objects directory
@@ -309,7 +327,12 @@
     // Test artifacts - CRITICAL for OOM prevention
     "**/test-output/**": true, // Test output directory
     "**/test-results/**": true, // Test results directory
+    "**/workflow-reports/**": true, // Workflow reports directory
+    "**/load-reports/**": true, // Load test reports directory
+    "**/e2e-reports/**": true, // E2E reports directory
+    "**/dast-reports/**": true, // DAST reports directory
     "**/coverage": true, // Coverage directory
+    "**/all_coverage": true, // Root all_coverage artifact
     "**/coverage_*": true, // Coverage files with prefix
     "**/coverage*.out": true, // Coverage output files
     "**/coverage*.txt": true, // Coverage text files
@@ -349,6 +372,8 @@
     "**/.pytest_cache/**": true, // Pytest cache directory
     "**/.mypy_cache/**": true, // MyPy cache directory
     "**/.nox/**": true, // Nox sessions directory
+    "**/.semgrep/**": true, // Semgrep runtime artifacts
+    "**/.zap/**": true, // ZAP runtime artifacts
     "**/htmlcov/**": true, // HTML coverage reports directory
     "**/.python-version": true, // Python version file
     "**/Pipfile.lock": true, // Pipenv lock file

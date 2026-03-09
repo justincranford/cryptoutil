@@ -22,8 +22,6 @@ worktree/
 # Editor/IDE files
 .vscode/
 .idea/
-.vscode/
-.idea/
 
 # Build artifacts
 bin/
@@ -38,7 +36,6 @@ __pycache__/
 .Python
 venv/
 .venv/
-env/
 .env/
 ENV/
 pyproject.toml
@@ -57,18 +54,7 @@ mvnw.cmd
 .classpath
 *.iml
 
-# OS/Temp files (Project Root Directory)
-./*.swp
-./*.log
-./*.tmp
-./*.bak
-./.DS_Store
-./Thumbs.db
-./coverage/
-./test/
-./docs/
-./scripts/
-# OS/Temp files (Subdirectories)
+# OS/Temp files
 *.swp
 *.log
 *.tmp
@@ -88,10 +74,13 @@ scripts/
 *_property_test.go
 *_integration_test.go
 coverage.*
+coverage_*
+all_coverage
 /cov
 /cov_*
 /v8
 /cipher_im_server_baseline
+*.test.exe
 testdata/
 test-output/
 
