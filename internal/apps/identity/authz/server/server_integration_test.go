@@ -11,6 +11,8 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilContract "cryptoutil/internal/apps/template/service/testing/contract"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -187,3 +189,10 @@ func TestAuthzServer_AccessorMethods(t *testing.T) {
 
 // HTTP timeout for test requests.
 const httpTimeout = 5 * time.Second
+
+func TestAuthzServer_ContractCompliance(t *testing.T) {
+	t.Parallel()
+	requireTestSetup(t)
+
+	cryptoutilContract.RunContractTests(t, testServer)
+}

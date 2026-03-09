@@ -1,6 +1,6 @@
 # Tasks - Framework v2
 
-**Status**: 5 of 67 tasks complete
+**Status**: 10 of 67 tasks complete
 **Last Updated**: 2026-03-09
 **Created**: 2026-03-08
 
@@ -80,53 +80,53 @@
 
 #### Task 1.6: Integrate contract tests into identity-authz
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: Task 1.5
 - **Description**: Add `RunContractTests(t, server)` to identity-authz integration tests
 - **Acceptance Criteria**:
-  - [ ] identity-authz calls `RunContractTests`
-  - [ ] All contract tests pass including auth contracts
-  - [ ] `go test ./internal/apps/identity/authz/...` passes
+  - [x] identity-authz calls `RunContractTests`
+  - [x] All contract tests pass including auth contracts
+  - [x] `go test ./internal/apps/identity/authz/...` passes
 
 #### Task 1.7: Integrate contract tests into identity-idp
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: Task 1.5
 - **Description**: Add `RunContractTests(t, server)` to identity-idp integration tests
 - **Acceptance Criteria**:
-  - [ ] identity-idp calls `RunContractTests`
-  - [ ] All contract tests pass
-  - [ ] `go test ./internal/apps/identity/idp/...` passes
+  - [x] identity-idp calls `RunContractTests`
+  - [x] All contract tests pass
+  - [x] `go test ./internal/apps/identity/idp/...` passes
 
 #### Task 1.8: Integrate contract tests into identity-rp
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: Task 1.5
 - **Description**: Add `RunContractTests(t, server)` to identity-rp integration tests
 - **Acceptance Criteria**:
-  - [ ] identity-rp calls `RunContractTests`
-  - [ ] All contract tests pass
-  - [ ] `go test ./internal/apps/identity/rp/...` passes
+  - [x] identity-rp calls `RunContractTests`
+  - [x] All contract tests pass
+  - [x] `go test ./internal/apps/identity/rp/...` passes
 
 #### Task 1.9: Integrate contract tests into identity-rs
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: Task 1.5
 - **Description**: Add `RunContractTests(t, server)` to identity-rs integration tests
 - **Acceptance Criteria**:
-  - [ ] identity-rs calls `RunContractTests`
-  - [ ] All contract tests pass
-  - [ ] `go test ./internal/apps/identity/rs/...` passes
+  - [x] identity-rs calls `RunContractTests`
+  - [x] All contract tests pass
+  - [x] `go test ./internal/apps/identity/rs/...` passes
 
 #### Task 1.10: Integrate contract tests into identity-spa
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: Task 1.5
 - **Description**: Add `RunContractTests(t, server)` to identity-spa integration tests
 - **Acceptance Criteria**:
-  - [ ] identity-spa calls `RunContractTests`
-  - [ ] All contract tests pass
-  - [ ] `go test ./internal/apps/identity/spa/...` passes
+  - [x] identity-spa calls `RunContractTests`
+  - [x] All contract tests pass (required SPA fallback fix for reserved path prefixes)
+  - [x] `go test ./internal/apps/identity/spa/...` passes
 
 #### Task 1.11: Verify lint-fitness coverage and mutation
 

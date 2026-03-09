@@ -10,6 +10,8 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilContract "cryptoutil/internal/apps/template/service/testing/contract"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -141,4 +143,11 @@ func TestRPServer_AccessorMethods(t *testing.T) {
 	adminActualPort := testServer.AdminServerActualPort()
 	require.Equal(t, testServer.AdminPort(), adminActualPort,
 		"AdminServerActualPort should match AdminPort")
+}
+
+func TestRPServer_ContractCompliance(t *testing.T) {
+	t.Parallel()
+	requireTestSetup(t)
+
+	cryptoutilContract.RunContractTests(t, testServer)
 }

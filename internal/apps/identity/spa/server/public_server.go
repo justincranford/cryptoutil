@@ -6,6 +6,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	http "net/http"
+	"strings"
 
 	fiber "github.com/gofiber/fiber/v2"
 
@@ -121,21 +122,24 @@ func (s *PublicServer) handleSPAFallback(c *fiber.Ctx) error {
 	// For the reference implementation, we return a placeholder response.
 	// The actual static files would be mounted via Fiber's static middleware.
 
-	// Check if this is an API request (should return 404, not SPA).
+	// Framework-reserved path prefixes must return 404, not the SPA fallback.
+	// These prefixes are used by the service template for API and admin routes.
 	path := c.Path()
-	if len(path) >= apiPrefixLen && path[:apiPrefixLen] == "/api/" {
-		c.Status(http.StatusNotFound)
+	for _, prefix := range reservedPathPrefixes {
+		if strings.HasPrefix(path, prefix) {
+			c.Status(http.StatusNotFound)
 
-		if err := c.JSON(fiber.Map{
-			cryptoutilSharedMagic.StringError: "API endpoint not found",
-		}); err != nil {
-			return fmt.Errorf("failed to send API not found response: %w", err)
+			if err := c.JSON(fiber.Map{
+				cryptoutilSharedMagic.StringError: "endpoint not found",
+			}); err != nil {
+				return fmt.Errorf("failed to send not found response: %w", err)
+			}
+
+			return nil
 		}
-
-		return nil
 	}
 
-	// For non-API routes, return SPA placeholder.
+	// For non-reserved routes, return SPA placeholder.
 	// In production, use: c.SendFile(s.cfg.StaticFilesPath + "/" + s.cfg.IndexFile)
 	c.Status(http.StatusOK)
 
@@ -151,5 +155,6 @@ func (s *PublicServer) handleSPAFallback(c *fiber.Ctx) error {
 	return nil
 }
 
-// API path prefix length for checking API routes.
-const apiPrefixLen = 5 // len("/api/")
+// reservedPathPrefixes are framework-reserved path prefixes that must not be
+// caught by the SPA fallback handler. These return 404 for unregistered routes.
+var reservedPathPrefixes = []string{"/admin/", "/service/", "/browser/", "/api/"}

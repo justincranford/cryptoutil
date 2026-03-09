@@ -45,6 +45,9 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
+	// Mark server as ready after startup.
+	testServer.SetReady(true)
+
 	// Set base URL after server starts (uses dynamic port).
 	testBaseURL = testServer.PublicBaseURL()
 
