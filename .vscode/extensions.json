@@ -11,6 +11,8 @@
     "golang.go",                                         // Go language support and tooling
 
     // Python Development
+    "ms-python.python",                                  // Python language support
+    "ms-python.debugpy",                                 // Python debugger (debugpy)
     "charliermarsh.ruff",                                // Ruff linter/formatter
 
     // Java Development (for Gatling load tests)
@@ -62,8 +64,6 @@
     "formulahendry.auto-close-tag",                        // Not needed for Go/YAML
     "formulahendry.auto-rename-tag",                       // Not needed for Go/YAML
     "humao.rest-client",                                   // REST API client
-    "ms-python.python",                                    // Python extension not required for Ruff-only workflow
-    "ms-python.debugpy",                                   // Python debugger not required for Ruff-only workflow
     "ms-python.vscode-pylance",                            // Pylance not required for Ruff-only workflow
     "ms-python.vscode-python-envs",                        // Python env manager not required for Ruff-only workflow
     "timonwong.shellcheck",                                // Shell script linting
