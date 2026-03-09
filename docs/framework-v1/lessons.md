@@ -37,8 +37,8 @@ This file captures lessons from each phase, used as:
 **Task naming drift**:
 - Tasks 6.3 and 6.4 were planned as "Auth" and "Error Format" contracts
 - Actually implemented as "Server Isolation" and "Response Format" contracts
-- Auth contracts need auth middleware to be configured - not portable across all services
-- **Lesson**: Auth contracts belong in service-specific tests, not cross-service contracts
+- Auth contracts were wrongly deferred to service-specific tests. AuthN/AuthZ is 100% owned by service-template.
+- **Lesson (CORRECTED in framework-v2)**: Auth contracts (401/403 rejection) belong in `RunContractTests` in service-template. Product-services only pass config objects.
 
 **Design deviation - acceptable**:
 - Original design did not account for keep-alive / shutdown hang

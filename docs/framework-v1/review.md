@@ -44,7 +44,7 @@ The docs/framework-brainstorm/ research (8 documents) analyzed your service fram
 | 14 | **Shared test infra: fixtures** | `fixtures.CreateTestTenant/Realm/User(t, db, ...)` | 2 new files | **LOW** - reduces test boilerplate |
 | 15 | **Shared test infra: assertions** | `assertions.AssertHealthy/AssertErrorResponse(t, resp)` | 2 new files | **LOW** - standardized HTTP response validation |
 | 16 | **Shared test infra: healthclient** | `healthclient.NewHealthClient(baseURL)` for health endpoint testing | 2 new files | **LOW** - reusable health check client |
-| 17 | **Cross-service contract tests** | `RunContractTests(t, server)` - health, server isolation, response format contracts | 9 new files under  esting/contract/ | **HIGH** - behavioral consistency enforced across services |
+| 17 | **Cross-service contract tests** | `RunContractTests(t, server)` - health, server isolation, response format contracts | 9 new files under testing/contract/ | **HIGH** - behavioral consistency enforced across services |
 | 18 | **Contract tests integrated** | 4 services (sm-im, sm-kms, jose-ja, skeleton) call `RunContractTests` | 4 new/modified test files | **HIGH** - divergence caught in CI |
 | 19 | **Bug fix: keep-alive shutdown hang** | `DisableKeepAlives: true` on all test HTTP transports | Multiple test files | **CRITICAL** - prevented 90-second test hangs |
 | 20 | **Bug fix: timeout double-multiplication** | `DefaultDataServerShutdownTimeout * time.Second` > just `DefaultDataServerShutdownTimeout` (already a Duration) | Multiple TestMain files | **CRITICAL** - prevented ~158-year timeout values |
