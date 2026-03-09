@@ -1,6 +1,6 @@
 # Tasks - Framework v2
 
-**Status**: 12 of 67 tasks complete
+**Status**: 11 of 47 tasks complete (23%)
 **Last Updated**: 2026-03-09
 **Created**: 2026-03-08
 
@@ -326,7 +326,7 @@
 
 ### Phase 4: Sequential Exemption Reduction
 
-**Phase Objective**: Reduce 173 `// Sequential:` exemptions via SEAM PATTERN and dependency injection.
+**Phase Objective**: Reduce 173 `// Sequential:` exemptions via SEAM PATTERN and dependency injection. **Smallest-first ordering** (D10) to build momentum.
 
 #### Task 4.1: Categorize and triage all 173 exemptions
 
@@ -336,19 +336,39 @@
 - **Acceptance Criteria**:
   - [ ] Spreadsheet/doc with all 173 exemptions categorized
   - [ ] Each marked: necessary, refactorable, or questionable
-  - [ ] Priority order for refactoring (viper first = highest impact)
+  - [ ] Priority order: smallest categories first (os.Stderr, pgDriver, seams, os.Chdir, viper/pflag)
 
-#### Task 4.2: SEAM PATTERN for viper/pflag tests (58 exemptions)
+#### Task 4.2: Inject io.Writer for os.Stderr tests (5 exemptions)
 
 - **Status**: TODO
 - **Dependencies**: Task 4.1
-- **Description**: Inject config reader instead of relying on global viper state
+- **Description**: Inject `io.Writer` instead of capturing os.Stderr. Smallest category — quick win.
 - **Acceptance Criteria**:
-  - [ ] Config tests no longer use global viper state
-  - [ ] Sequential exemptions reduced by ~30-50
+  - [ ] os.Stderr capture tests use injected io.Writer
+  - [ ] Sequential exemptions removed for these tests
   - [ ] All tests pass
 
-#### Task 4.3: Evaluate os.Chdir exemptions (37 exemptions)
+#### Task 4.3: pgDriver registration exemptions (11 exemptions)
+
+- **Status**: TODO
+- **Dependencies**: Task 4.1
+- **Description**: Evaluate test isolation approach for pgDriver registration
+- **Acceptance Criteria**:
+  - [ ] Each pgDriver exemption evaluated
+  - [ ] Avoidable exemptions removed
+  - [ ] All tests pass
+
+#### Task 4.4: Seam variables audit (11 exemptions)
+
+- **Status**: TODO
+- **Dependencies**: Task 4.1
+- **Description**: These ARE the SEAM PATTERN already. Align documentation. Verify all are truly necessary.
+- **Acceptance Criteria**:
+  - [ ] Each seam exemption verified as correct pattern usage
+  - [ ] Documentation aligned with seam pattern
+  - [ ] Unnecessary exemptions removed if any
+
+#### Task 4.5: Evaluate os.Chdir exemptions (37 exemptions)
 
 - **Status**: TODO
 - **Dependencies**: Task 4.1
@@ -358,30 +378,30 @@
   - [ ] Unnecessary exemptions removed
   - [ ] All tests pass
 
-#### Task 4.4: Inject io.Writer for os.Stderr tests (5 exemptions)
+#### Task 4.6: SEAM PATTERN for viper/pflag tests (58 exemptions)
 
 - **Status**: TODO
 - **Dependencies**: Task 4.1
-- **Description**: Inject `io.Writer` instead of capturing os.Stderr
+- **Description**: Inject config reader instead of relying on global viper state. Largest category — most complex.
 - **Acceptance Criteria**:
-  - [ ] os.Stderr capture tests use injected io.Writer
-  - [ ] Sequential exemptions removed for these tests
+  - [ ] Config tests no longer use global viper state
+  - [ ] Sequential exemptions reduced by ~30-50
   - [ ] All tests pass
 
-#### Task 4.5: Remaining exemption categories
+#### Task 4.7: Remaining exemption categories
 
 - **Status**: TODO
 - **Dependencies**: Task 4.1
-- **Description**: Address seam variables (11), pgDriver mock (11), SQLite in-memory (10), shared state (13), injectable function variables (16), signals (6), port reuse (5)
+- **Description**: Address SQLite in-memory (10), shared state (13), injectable function variables (16), signals (6), port reuse (5)
 - **Acceptance Criteria**:
   - [ ] Each category evaluated
   - [ ] Avoidable exemptions removed
   - [ ] Target: total <100 exemptions remaining
 
-#### Task 4.6: Phase 4 validation and post-mortem
+#### Task 4.8: Phase 4 validation and post-mortem
 
 - **Status**: TODO
-- **Dependencies**: Tasks 4.2-4.5
+- **Dependencies**: Tasks 4.2-4.7
 - **Description**: Full quality gate run
 - **Acceptance Criteria**:
   - [ ] Total exemptions documented (target: <100)
@@ -510,15 +530,15 @@
   - [ ] All infrastructure code >=98% coverage
   - [ ] Mutation >=95%
 
-#### Task 9.2: Fix agent semantic commit enforcement
+#### Task 9.2: Improve agent semantic commit instructions (D11)
 
 - **Status**: TODO
 - **Dependencies**: None
-- **Description**: Agent guidance currently allows bulk commits (last v1 commit was a bulk commit). Fix agent guidance.
+- **Description**: Improve agent instructions for Multi-Category Fix Commit Rule. NO automated tooling (no commitlint, no CI validation). Instructions-only approach per D11.
 - **Acceptance Criteria**:
-  - [ ] Agent instructions updated to enforce semantic commits
-  - [ ] beast-mode.agent.md updated
-  - [ ] implementation-execution.agent.md updated
+  - [ ] Agent instructions updated to better enforce semantic commits
+  - [ ] beast-mode.agent.md updated with commit grouping examples
+  - [ ] implementation-execution.agent.md updated with commit checkpoint pattern
 
 #### Task 9.3: Propagate all lessons to permanent artifacts
 

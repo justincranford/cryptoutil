@@ -1,6 +1,6 @@
 # Framework v2 - Iteration Plan
 
-**Status**: PLANNING
+**Status**: IN PROGRESS (Phase 1 near completion, quizme-v2 pending for Phases 2/6/7/8)
 **Created**: 2026-03-08
 **Depends On**: `docs/framework-v1/` (complete), `docs/framework-brainstorm/08-recommendations.md`
 **Purpose**: Aggressive standardization of all 10 product-services as thin domain-only wrappers around service-template. Service-template owns 100% of reusable infrastructure (servers, clients, authn, authz, middleware, health, TLS, barrier, telemetry, tests). Product-services inject ONLY domain-specific: OpenAPI add-ons, DB migrations, business logic, config overrides.
@@ -96,6 +96,32 @@ skeleton-template's purpose needs analysis: given lint-fitness (23 sub-linters e
 - **Integration tests**: ONE server per service (via TestMain)
 - **E2E tests**: ONE docker-compose file
 - Violations of these rules MUST be bubbled up to lint-fitness
+
+### D8: lint-fitness is Full Investment (quizme-v1 Q2=A)
+
+lint-fitness (23 sub-linters, 10,500 lines) gets FULL investment: >=98% coverage, >=95% mutation, all synthetic test fixtures evaluated. The value of automated ARCHITECTURE.md enforcement is proven and worth the maintenance cost.
+
+### D9: Single Domain Config Struct for Builder (quizme-v1 Q3=A)
+
+Builder refactoring uses a SINGLE domain config struct (not per-With()-call options). Product-services pass one config object; service-template picks what it needs. This is the cleanest API and aligns with D3 (thin wrappers).
+
+### D10: Sequential Exemption Reduction Starts Smallest-First (quizme-v1 Q4=D)
+
+Phase 4 starts with the smallest exemption categories (os.Stderr=5, pgDriver=11) to build momentum before tackling larger categories (os.Chdir=37, viper/pflag=58). Quick wins first establish patterns before the complex refactoring.
+
+### D11: Agent Semantic Commits via Instructions Only (quizme-v1 Q7=C)
+
+No automated commit linting enforcement (no commitlint, no CI validation). Improve agent instructions to better enforce the Multi-Category Fix Commit Rule. Trust the AI instructions, avoid tooling overhead for an alpha repo.
+
+### D12-D14: Pending quizme-v2 Decisions
+
+Three quizme-v1 answers were "E" (deep analysis required). Analysis completed in `test-output/framework-v2-quizme-analysis/analysis.md`. Follow-up decision questions in `docs/framework-v2/quizme-v2.md`:
+
+- **D12 (Q1 → quizme-v2 Q1)**: Skeleton-template purpose and investment level
+- **D13 (Q5 → quizme-v2 Q2)**: Identity domain extraction vs in-place refactoring approach
+- **D14 (Q6 → quizme-v2 Q3-Q4)**: InsecureSkipVerify phased removal scope and ARCHITECTURE.md TLS gap fixes
+
+Phases 2, 6, 7, 8 may be restructured after quizme-v2 answers are merged.
 
 ---
 
@@ -193,12 +219,14 @@ Following migration priority (sm-im > jose-ja > sm-kms > pki-ca > identity):
 
 ### Phase 4: Sequential Exemption Reduction [Status: TODO]
 
-**Objective**: Reduce 173 `// Sequential:` exemptions by applying SEAM PATTERN and dependency injection.
+**Objective**: Reduce 173 `// Sequential:` exemptions by applying SEAM PATTERN and dependency injection. **Smallest-first** ordering per D10.
 
-- Deep-dive each category: viper (58), os.Chdir (37), seam variables (11), pgDriver (11), etc.
-- Implement SEAM PATTERN for viper/pflag tests (inject config reader)
-- Evaluate os.Chdir exemptions in lint_fitness (CheckInDir already parameterized)
-- Inject `io.Writer` for os.Stderr capture tests
+- Start with smallest categories to build momentum and establish patterns:
+  1. os.Stderr capture (5) - inject `io.Writer` seam
+  2. pgDriver registration (11) - evaluate test isolation approach
+  3. seam variables (11) - already correct pattern, align documentation
+  4. os.Chdir (37) - evaluate t.TempDir() + relative paths, lint_fitness CheckInDir
+  5. viper/pflag (58) - inject config reader, largest category last
 - Target: reduce from 173 to <100 exemptions
 - **Success**: Each remaining exemption has justified `// Sequential:` comment
 - **Post-Mortem**: lessons.md updated
@@ -255,11 +283,41 @@ Following migration priority (sm-im > jose-ja > sm-kms > pki-ca > identity):
 
 - Full coverage and mutation testing enforcement across all services
 - Performance benchmarking for crypto operations
-- Fix agent semantic commit enforcement
+- Improve agent instructions for semantic commit grouping (D11: instructions only, no automated tooling)
 - Propagate ALL lessons to ARCHITECTURE.md, agents, skills, instructions
 - Simplify review document format for future iterations
 - **Success**: All quality gates pass, all knowledge propagated, clean lessons.md
 - **Post-Mortem**: lessons.md updated
+
+---
+
+## Known ARCHITECTURE.md Gaps (from quizme-v1 analysis)
+
+**Evidence**: `test-output/framework-v2-quizme-analysis/analysis.md`
+
+These gaps were identified during deep analysis. Resolution depends on quizme-v2 answers:
+
+### TLS Gaps (from Q6/D14 analysis)
+
+1. **TLS Certificate Configuration table** — exists in instructions (02-01) but NOT in ARCHITECTURE.md Section 6
+2. **Secrets Coordination Strategy (12.3.3)** — no TLS CA/cert/key secrets documented (only unseal/DB/API secrets)
+3. **No TLS test bundle pattern** — Section 10.3 lacks integration test TLS bundle documentation
+4. **No ServiceServer.TLSBundle() accessor** — Section 10.3.5 contract test pattern missing TLS accessor
+5. **No mTLS deployment architecture** — Section 6.3 mentions mTLS but no implementation strategy
+6. **TLS mode taxonomy missing** — Code has Static/Mixed/Auto modes (`tls_generator.go`) but ARCHITECTURE.md does not document them
+
+### Identity/Skeleton Gaps (from Q1/Q5 analysis)
+
+1. **Section 3.1.5** — doesn't define skeleton-template vs lint-fitness vs `/new-service` skill relationship
+2. **Section 9.11** — doesn't mention skeleton as lint-fitness validation target
+3. **Section 3.2 status table STALE** — shows identity-authz/idp/rs as "Complete 100%" but they lack contract tests, auth tests, and latest builder patterns
+4. **No service domain extraction strategy** — no documented approach for archiving and reintroducing domain logic
+5. **Archival naming inconsistency** — pki-ca uses `_ca-archived/` but no standard naming convention documented
+
+### Resolution
+
+Gaps 1-8, 10-11 are addressed by quizme-v2 Q1-Q5 answers → merged into implementation phases.
+Gap 9 (status table) is addressed by quizme-v2 Q5 answer directly.
 
 ---
 
