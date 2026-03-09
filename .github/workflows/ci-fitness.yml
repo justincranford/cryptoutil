@@ -1,0 +1,93 @@
+# $schema: https://json.schemastore.org/github-workflow.json
+# https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
+# WORKFLOW: CI - Architecture Fitness Testing
+# PURPOSE: Enforce architecture fitness functions via cicd lint-fitness
+# DEPENDENCIES: None (runs independently without external services)
+# EXPECTED DURATION: 1-3 minutes (Go build + lint-fitness execution)
+# TIMEOUT: 15 minutes (generous for GitHub Actions shared CPU latency)
+# CRITICAL PATH: lint-fitness execution (~1-2 minutes)
+
+name: CI - Architecture Fitness Testing
+# CROSS-PLATFORM COMPATIBILITY: All file references in this workflow MUST use relative paths
+# to support both GitHub Actions Ubuntu runners and Windows `act` local runner testing.
+# Absolute paths (e.g., C:\...) break cross-platform compatibility.
+
+on:
+  push:
+    branches: [ main, develop ]
+    # SHARED PATHS-IGNORE CONFIGURATION - Keep synchronized with pull_request below
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '.github/copilot-instructions.md'
+      - '.github/instructions/**'
+      - 'workflow-reports/**'
+      - 'nohup.out'
+      - 'LICENSE'
+      - '.editorconfig'
+      - '.gitignore'
+      - '.gitattributes'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/pull_request_template.md'
+      - '.github/dependabot.yml'
+      - '**/*.log'
+      - '**/*.sarif'
+  pull_request:
+    branches: [ main, develop ]
+    # SHARED PATHS-IGNORE CONFIGURATION - Keep synchronized with push above
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '.github/copilot-instructions.md'
+      - '.github/instructions/**'
+      - 'workflow-reports/**'
+      - 'nohup.out'
+      - 'LICENSE'
+      - '.editorconfig'
+      - '.gitignore'
+      - '.gitattributes'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/pull_request_template.md'
+      - '.github/dependabot.yml'
+      - '**/*.log'
+      - '**/*.sarif'
+  workflow_dispatch:
+
+jobs:
+  fitness:
+    name: Architecture Fitness
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      # https://github.com/actions/checkout/releases (v6.0.0, 2025-11-11)
+      uses: actions/checkout@v6.0.0
+      with:
+        sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
+
+    - name: Begin Workflow Job
+      id: begin-workflow-job
+      uses: ./.github/actions/workflow-job-begin
+
+    - name: Set up Go and validate dependencies
+      uses: ./.github/actions/go-setup
+      with:
+        go-version: ${{ steps.begin-workflow-job.outputs.go-version }}
+        go-mod-download: true
+        go-mod-verify: false
+        go-mod-tidy: false
+
+    - name: Run architecture fitness checks
+      shell: bash
+      run: |
+        echo "Running architecture fitness checks..."
+        START_TIME=$(date +%s)
+        echo "Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        go run ./cmd/cicd lint-fitness
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "Architecture fitness checks completed in: ${DURATION}s"
+
+    - name: Architecture fitness summary
+      if: always()
+      uses: ./.github/actions/workflow-job-end

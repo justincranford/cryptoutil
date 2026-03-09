@@ -1,6 +1,6 @@
 # Tasks - Framework v2
 
-**Status**: 3 of 67 tasks complete
+**Status**: 4 of 67 tasks complete
 **Last Updated**: 2026-03-09
 **Created**: 2026-03-08
 
@@ -55,15 +55,15 @@
 
 #### Task 1.4: Add ci-fitness.yml GitHub Actions workflow
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: None
 - **Description**: Add CI workflow for `cicd lint-fitness` so fitness checks run in CI, not just pre-commit
 - **Acceptance Criteria**:
-  - [ ] `.github/workflows/ci-fitness.yml` created
-  - [ ] Triggers on push/PR for relevant file changes (.go, .sql, .yml)
-  - [ ] Runs `go run ./cmd/cicd lint-fitness`
-  - [ ] Uses `actions/setup-go@v6` with `cache: true`
-  - [ ] Follows existing workflow conventions (see ci-quality.yml for reference)
+  - [x] `.github/workflows/ci-fitness.yml` created
+  - [x] Triggers on push/PR for relevant file changes (.go, .sql, .yml)
+  - [x] Runs `go run ./cmd/cicd lint-fitness`
+  - [x] Uses `actions/setup-go@v6` with `cache: true`
+  - [x] Follows existing workflow conventions (see ci-quality.yml for reference)
 
 #### Task 1.5: Add auth contract tests to RunContractTests
 
