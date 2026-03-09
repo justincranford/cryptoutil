@@ -22,46 +22,29 @@ classifiers = [
 # Minimal dependencies - only stdlib is needed for core functionality
 dependencies = []
 optional-dependencies.dev = [
-  # https://pypi.org/project/bandit/ - Latest: 1.9.2 (2025-01-10)
-  "bandit>=1.9.2",
-  # https://pypi.org/project/black/ - Latest: 25.11.0 (2025-01-11)
-  "black>=25.11",
-  # https://pypi.org/project/flake8/ - Latest: 7.3.0 (2025-01-10)
-  "flake8>=7.3",
-  # https://pypi.org/project/isort/ - Latest: 7.0.0 (2025-01-09)
-  "isort>=7",
-  # https://pypi.org/project/mypy/ - Latest: 1.18.2 (2025-01-12)
-  "mypy>=1.18.2",
   # https://pypi.org/project/pytest/ - Latest: 9.0.1 (2025-01-12)
   "pytest>=9.0.1",
   # https://pypi.org/project/pytest-cov/ - Latest: 7.0.0 (2025-01-10)
   "pytest-cov>=7",
+  # https://pypi.org/project/ruff/ - Latest: 0.15.1 (2025-12-31)
+  "ruff>=0.15.1",
 ]
 scripts.autoapprove = "autoapprove:main"
 
 [tool.setuptools]
 packages.find.include = [ "autoapprove" ]
 
-[tool.black]
+[tool.ruff]
+target-version = "py314"
 line-length = 200
-target-version = [ "py314" ]
-include = "\\.pyi?$"
-
-[tool.isort]
-profile = "black"
-line_length = 200
-multi_line_output = 3
-
-[tool.flake8]
-max-line-length = 200
-extend-ignore = [ "E203", "W503" ]
-exclude = [
-  "./venv",
-  "./.venv",
-  "./.git",
-  "./.mypy_cache",
-  "./.pytest_cache",
-  "./__pycache__",
+format.indent-style = "space"
+format.quote-style = "double"
+format.line-ending = "auto"
+format.skip-magic-trailing-comma = false
+lint.select = [ "B", "C90", "E", "F", "I", "SIM", "UP", "W" ]
+lint.ignore = [
+  "B008",
+  "E203",
 ]
 
 [tool.pytest]
@@ -94,10 +77,3 @@ report.exclude_lines = [
   "raise NotImplementedError",
 ]
 report.precision = 2
-
-[tool.mypy]
-python_version = "3.14"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
-ignore_missing_imports = true

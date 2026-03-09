@@ -149,7 +149,6 @@
     "**/*.cover": true, // Python coverage files
     "**/.hypothesis": true, // Hypothesis testing cache
     "**/.pytest_cache": true, // Pytest cache
-    "**/.mypy_cache": true, // MyPy cache
     "**/.nox": true, // Nox sessions
     "**/.semgrep/**": true, // Semgrep runtime artifacts
     "**/.zap/**": true, // ZAP runtime artifacts
@@ -159,8 +158,6 @@
     "**/poetry.lock": true, // Poetry lock file
     "**/__pypackages__": true, // PEP 582 packages
     "**/.ruff_cache": true, // Ruff linter cache
-    "**/.dmypy.json": true, // MyPy daemon config
-    "**/pyrightconfig.json": true, // Pyright config
     "**/.pdm.toml": true, // PDM config
     "**/.pdm-python": true, // PDM Python
     "**/*.manifest": true, // Manifest files
@@ -254,7 +251,6 @@
     "**/*.cover": true, // Python coverage files
     "**/.hypothesis": true, // Hypothesis testing cache
     "**/.pytest_cache": true, // Pytest cache
-    "**/.mypy_cache": true, // MyPy cache
     "**/.nox": true, // Nox sessions
     "**/.semgrep/**": true, // Semgrep runtime artifacts
     "**/.zap/**": true, // ZAP runtime artifacts
@@ -264,8 +260,6 @@
     "**/poetry.lock": true, // Poetry lock file
     "**/__pypackages__": true, // PEP 582 packages
     "**/.ruff_cache": true, // Ruff linter cache
-    "**/.dmypy.json": true, // MyPy daemon config
-    "**/pyrightconfig.json": true, // Pyright config
     "**/.pdm.toml": true, // PDM config
     "**/.pdm-python": true, // PDM Python
     "**/.worktree/**": true, // Git worktree directory
@@ -370,7 +364,6 @@
     "**/*.cover": true, // Python coverage files
     "**/.hypothesis/**": true, // Hypothesis testing cache directory
     "**/.pytest_cache/**": true, // Pytest cache directory
-    "**/.mypy_cache/**": true, // MyPy cache directory
     "**/.nox/**": true, // Nox sessions directory
     "**/.semgrep/**": true, // Semgrep runtime artifacts
     "**/.zap/**": true, // ZAP runtime artifacts
@@ -380,8 +373,6 @@
     "**/poetry.lock": true, // Poetry lock file
     "**/__pypackages__/**": true, // PEP 582 packages directory
     "**/.ruff_cache/**": true, // Ruff linter cache directory
-    "**/.dmypy.json": true, // MyPy daemon config
-    "**/pyrightconfig.json": true, // Pyright config
     "**/.pdm.toml": true, // PDM config
     "**/.pdm-python": true, // PDM Python
     "**/.worktree/**": true, // Git worktree directory
@@ -589,14 +580,6 @@
     "speckit.implement": true
   },
 
-  // Python Extension Settings https://code.visualstudio.com/docs/python/settings-reference
-  "python.terminal.activateEnvironment": true, // Re-enable auto-activation for venv
-  "python.defaultInterpreterPath": "/usr/bin/python3",
-  "python.terminal.activateEnvInCurrentTerminal": true,
-  "python.testing.pytestArgs": ["."],
-  "python.testing.unittestEnabled": false,
-  "python.testing.pytestEnabled": true,
-
   // Java Extension Settings
   "maven.terminal.useJavaHome": true, // Use JAVA_HOME in Maven terminal - Default: false, Recommended: true (consistent Java version)
   "java.import.maven.enabled": true, // Enable Maven import - Default: true, Recommended: true (standard Maven support)
@@ -645,6 +628,5 @@
       "rangeVariableTypes": true // Show range variable types - Default: false, Recommended: true
     } // Configure inlay hints - Default: {}, Recommended: all enabled
   },
-  "python-envs.defaultEnvManager": "ms-python.python:system",
-  "python-envs.pythonProjects": [] // gopls language server configuration - Default: {}, Recommended: configured settings
+  // gopls language server configuration - Default: {}, Recommended: configured settings
 }
