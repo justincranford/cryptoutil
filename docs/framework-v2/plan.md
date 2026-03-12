@@ -1,6 +1,6 @@
 # Framework v2 - Iteration Plan
 
-**Status**: IN PROGRESS (Phase 1 near completion, Phases 2-9 planned)
+**Status**: IN PROGRESS — Phase 1 near completion. **quizme-v3 pending** (D12, D14 tentative until confirmed)
 **Created**: 2026-03-08
 **Last Updated**: 2026-03-12
 **Depends On**: `docs/framework-v1/` (complete), `docs/framework-brainstorm/08-recommendations.md`
