@@ -1,7 +1,8 @@
 # Framework v2 - Iteration Plan
 
-**Status**: IN PROGRESS (Phase 1 near completion, quizme-v2 pending for Phases 2/6/7/8)
+**Status**: IN PROGRESS (Phase 1 near completion, Phases 2-9 planned)
 **Created**: 2026-03-08
+**Last Updated**: 2026-03-12
 **Depends On**: `docs/framework-v1/` (complete), `docs/framework-brainstorm/08-recommendations.md`
 **Purpose**: Aggressive standardization of all 10 product-services as thin domain-only wrappers around service-template. Service-template owns 100% of reusable infrastructure (servers, clients, authn, authz, middleware, health, TLS, barrier, telemetry, tests). Product-services inject ONLY domain-specific: OpenAPI add-ons, DB migrations, business logic, config overrides.
 
@@ -113,15 +114,27 @@ Phase 4 starts with the smallest exemption categories (os.Stderr=5, pgDriver=11)
 
 No automated commit linting enforcement (no commitlint, no CI validation). Improve agent instructions to better enforce the Multi-Category Fix Commit Rule. Trust the AI instructions, avoid tooling overhead for an alpha repo.
 
-### D12-D14: Pending quizme-v2 Decisions
+### D12: Skeleton-Template Stays Minimal (quizme-v2 Q1 → A recommended)
 
-Three quizme-v1 answers were "E" (deep analysis required). Analysis completed in `test-output/framework-v2-quizme-analysis/analysis.md`. Follow-up decision questions in `docs/framework-v2/quizme-v2.md`:
+skeleton-template (19 Go files, 61KB) keeps its triple role: human reference, `/new-service` scaffolding source, lint-fitness validation target. NO CRUD endpoint added (sm-im at 61 files/357KB already IS the CRUD reference). NO code generation engine (over-engineered for ~10 services). Cost: ~2h/quarter to keep current.
 
-- **D12 (Q1 → quizme-v2 Q1)**: Skeleton-template purpose and investment level
-- **D13 (Q5 → quizme-v2 Q2)**: Identity domain extraction vs in-place refactoring approach
-- **D14 (Q6 → quizme-v2 Q3-Q4)**: InsecureSkipVerify phased removal scope and ARCHITECTURE.md TLS gap fixes
+### D13: Identity Full Extraction + Staged Reintegration (quizme-v2 Q2=A)
 
-Phases 2, 6, 7, 8 may be restructured after quizme-v2 answers are merged.
+All 5 identity services + pki-ca get clean-slate treatment: archive domain logic to `_archived/`, replace with fresh skeletons, stage reintegration (rp/rs/spa first → authz → idp → pki-ca). Precondition: service-template MUST be fully proven first (able to stand up 5 thin services that work with minimal effort).
+
+### D14: InsecureSkipVerify Phase 2A Only (quizme-v2 Q3 → A recommended)
+
+Phase 2 scope = integration + contract tests only. Add `TLSBundle()` accessor to `ServiceServer`, migrate test HTTP clients to trust server's auto-generated CA. Eliminates ~90% of InsecureSkipVerify (38 of 47 files). E2E Docker TLS (2B), mTLS (2C), and PostgreSQL TLS (2D) deferred. The 1 production InsecureSkipVerify (identity-rp) gets fixed by D13 extraction.
+
+### D15: Fix ALL 6 ARCHITECTURE.md TLS Gaps in Phase 2 (quizme-v2 Q4=A)
+
+All 6 TLS gaps fixed as part of Phase 2 when InsecureSkipVerify removal provides implementation context: (1) TLS Certificate Configuration table, (2) TLS secrets in 12.3.3, (3) TLS test bundle pattern in 10.3, (4) ServiceServer.TLSBundle() in 10.3.5, (5) mTLS deployment architecture, (6) TLS mode taxonomy (Static/Mixed/Auto).
+
+### D16: Architecture Status Table Set to 0% for Identity (quizme-v2 Q5=E)
+
+All 5 identity-* services marked "⚠️ Extraction Pending 0%" in ARCHITECTURE.md Section 3.2 status table. Current "Complete 100%" entries are false. Domain code must be extracted to archive, services replaced with skeleton code. Update table again after extraction completes.
+
+Phases 2, 6, 7, 8 restructured per these decisions.
 
 ---
 
@@ -193,17 +206,18 @@ Following migration priority (sm-im > jose-ja > sm-kms > pki-ca > identity):
 - **Success**: All 10 services have `RunContractTests`, auth contracts in cross-service suite, ci-fitness.yml in CI
 - **Post-Mortem**: lessons.md updated
 
-### Phase 2: Remove InsecureSkipVerify (G402) [Status: TODO]
+### Phase 2: Remove InsecureSkipVerify — Integration Tests Only (D14) [Status: TODO]
 
-**Objective**: Generate real TLS cert chains for all test servers, eliminate TLS bypass.
+**Objective**: Eliminate InsecureSkipVerify from integration + contract tests (~90% of 47 files). Fix all 6 ARCHITECTURE.md TLS gaps (D15).
 
-- Add `NewTestTLSBundle()` to testserver (self-signed CA + server cert)
-- Add `TLSClientConfig(t)` helper trusting test CA cert
-- Update `testserver.StartAndWait()` to accept/expose TLS bundle
-- Migrate all 10 services from `InsecureSkipVerify: true` to `TLSClientConfig(t)`
-- Remove `G402` from `gosec.excludes` in `.golangci.yml`
-- Uncomment `no-tls-insecure-skip-verify` semgrep rule
-- **Success**: Zero `InsecureSkipVerify` in codebase, G402 enabled, all tests pass
+- Add `TLSBundle()` accessor to `ServiceServer` interface (exposes server's auto-generated CA cert)
+- Add `TLSClientConfig(t)` helper that trusts the test server's CA
+- Migrate all 10 services' test HTTP clients from `InsecureSkipVerify: true` to `TLSClientConfig(t)`
+- Document TLS mode taxonomy (Static/Mixed/Auto) in ARCHITECTURE.md Section 6
+- Document TLS test bundle pattern in ARCHITECTURE.md Section 10.3
+- Document TLS secrets in ARCHITECTURE.md Section 12.3.3
+- E2E/Docker TLS (Phase 2B), mTLS (2C), PostgreSQL TLS (2D) explicitly deferred
+- **Success**: Zero `InsecureSkipVerify` in integration/contract tests, 6 ARCHITECTURE.md TLS gaps fixed
 - **Post-Mortem**: lessons.md updated
 
 ### Phase 3: Builder Refactoring [Status: TODO]
@@ -249,32 +263,34 @@ Following migration priority (sm-im > jose-ja > sm-kms > pki-ca > identity):
 - Coverage and mutation testing of all 23 sub-linters
 - Identify any sub-linters testing synthetic content vs real project files
 - Evaluate whether 10,500 lines are justified or can be reduced
-- Assess skeleton-template's continued purpose given lint-fitness
+- skeleton-template stays minimal per D12 (no CRUD, no code generation). Verify current as scaffolding source.
 - Add test infrastructure rule enforcement (unit-test-starts-server detection)
 - **Success**: >=98% coverage, >=95% mutation, documented value assessment
 - **Post-Mortem**: lessons.md updated
 
-### Phase 7: PKI-CA Domain Completion [Status: TODO]
+### Phase 7: Domain Extraction and Fresh Skeletons (D13) [Status: TODO]
 
-**Objective**: Full certificate lifecycle for pki-ca.
+**Objective**: Extract domain logic from identity-* and pki-ca, replace with fresh skeleton-template copies.
 
-- Certificate issuance, renewal, revocation
-- CRL distribution, OCSP responder
-- CA hierarchy (root > intermediate > issuing)
-- **Success**: Full PKI lifecycle tests pass, domain logic complete
+- Archive all identity shared packages to `internal/apps/identity/_archived/`
+- Archive each per-service domain code (authz, idp, rp, rs, spa) to `_archived/`
+- Archive pki-ca domain code to `internal/apps/pki/_ca-archived/` (already exists, verify complete)
+- Replace all 6 services with fresh skeleton-template copies (builder + contract tests + health)
+- Update ARCHITECTURE.md status table: all 6 services → "⚠️ Extraction Pending 0%" (D16)
+- **Precondition**: Phases 1-5 complete (service-template patterns proven on sm-im, jose-ja, sm-kms)
+- **Success**: 6 clean skeleton services pass `RunContractTests`, all domain logic safely archived
 - **Post-Mortem**: lessons.md updated
 
-### Phase 8: Identity Services - Aggressive Migration [Status: TODO]
+### Phase 8: Staged Domain Reintegration (D13) [Status: TODO]
 
-**Objective**: All 5 identity services on latest framework with domain stubs.
+**Objective**: Reintroduce archived domain logic into fresh skeletons, smallest-first.
 
-- identity-authz: OAuth 2.1 authorization server core
-- identity-idp: OIDC provider, user authentication flows
-- identity-rp: relying party
-- identity-rs: resource server
-- identity-spa: single page application
-- All using latest builder, all with contract tests, all with auth contract tests
-- **Success**: All 5 identity services pass `RunContractTests` including auth contracts
+- Stage 1: rp, rs, spa (10-18 files each, trivial domain, quick proof-of-pattern)
+- Stage 2: authz (133 files/916KB, OAuth 2.1 core — largest complexity)
+- Stage 3: idp (129 files/862KB, OIDC provider — second largest)
+- Stage 4: pki-ca (48KB active + 880KB archived, certificate lifecycle)
+- Each stage: extract relevant domain from archive → adapt to latest builder → test → commit
+- **Success**: All 6 services have working domain + latest framework patterns
 - **Post-Mortem**: lessons.md updated
 
 ### Phase 9: Quality and Knowledge Propagation [Status: TODO]
@@ -295,9 +311,9 @@ Following migration priority (sm-im > jose-ja > sm-kms > pki-ca > identity):
 
 **Evidence**: `test-output/framework-v2-quizme-analysis/analysis.md`
 
-These gaps were identified during deep analysis. Resolution depends on quizme-v2 answers:
+All gaps resolved by quizme-v2 decisions. Assigned to implementation phases:
 
-### TLS Gaps (from Q6/D14 analysis)
+### TLS Gaps → Phase 2 (D14, D15)
 
 1. **TLS Certificate Configuration table** — exists in instructions (02-01) but NOT in ARCHITECTURE.md Section 6
 2. **Secrets Coordination Strategy (12.3.3)** — no TLS CA/cert/key secrets documented (only unseal/DB/API secrets)
@@ -306,7 +322,7 @@ These gaps were identified during deep analysis. Resolution depends on quizme-v2
 5. **No mTLS deployment architecture** — Section 6.3 mentions mTLS but no implementation strategy
 6. **TLS mode taxonomy missing** — Code has Static/Mixed/Auto modes (`tls_generator.go`) but ARCHITECTURE.md does not document them
 
-### Identity/Skeleton Gaps (from Q1/Q5 analysis)
+### Identity/Skeleton Gaps → Phases 6-8 (D12, D13, D16)
 
 1. **Section 3.1.5** — doesn't define skeleton-template vs lint-fitness vs `/new-service` skill relationship
 2. **Section 9.11** — doesn't mention skeleton as lint-fitness validation target
@@ -316,8 +332,10 @@ These gaps were identified during deep analysis. Resolution depends on quizme-v2
 
 ### Resolution
 
-Gaps 1-8, 10-11 are addressed by quizme-v2 Q1-Q5 answers → merged into implementation phases.
-Gap 9 (status table) is addressed by quizme-v2 Q5 answer directly.
+- **TLS gaps 1-6**: Fixed in Phase 2 (D15)
+- **Identity/Skeleton gaps 1-2**: Addressed in Phase 6 (D12 — skeleton stays minimal, document relationship)
+- **Gap 3 (status table)**: Fixed in Phase 7 (D16 — identity-* → 0%)
+- **Gaps 4-5 (extraction/archival)**: Addressed in Phases 7-8 (D13 — extraction + staged reintegration)
 
 ---
 

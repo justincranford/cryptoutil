@@ -1,7 +1,7 @@
 # Tasks - Framework v2
 
-**Status**: 11 of 47 tasks complete (23%)
-**Last Updated**: 2026-03-09
+**Status**: 11 of 58 tasks complete (19%)
+**Last Updated**: 2026-03-12
 **Created**: 2026-03-08
 
 ## Quality Mandate - MANDATORY
@@ -161,9 +161,9 @@
 
 ---
 
-### Phase 2: Remove InsecureSkipVerify (G402)
+### Phase 2: Remove InsecureSkipVerify — Integration Tests Only (D14, D15)
 
-**Phase Objective**: Generate real TLS cert chains for all test servers, replace InsecureSkipVerify: true with proper CA-trusting TLS configs, remove G402 from gosec.excludes.
+**Phase Objective**: Eliminate InsecureSkipVerify from integration + contract tests (~90% of 47 files). Fix all 6 ARCHITECTURE.md TLS gaps. E2E/Docker TLS (2B), mTLS (2C), PostgreSQL TLS (2D) explicitly deferred.
 
 #### Task 2.1: Add TLS Test Bundle to service-template testserver
 
@@ -250,10 +250,24 @@
   - [ ] `golangci-lint run ./...` passes with G402 enabled
   - [ ] `go test ./... -shuffle=on` passes
 
-#### Task 2.9: Phase 2 validation and post-mortem
+#### Task 2.9: Fix ARCHITECTURE.md TLS gaps (D15)
 
 - **Status**: TODO
-- **Dependencies**: Task 2.8
+- **Dependencies**: Task 2.1
+- **Description**: Fix all 6 identified TLS documentation gaps in ARCHITECTURE.md
+- **Acceptance Criteria**:
+  - [ ] Gap 1: TLS Certificate Configuration table added to ARCHITECTURE.md Section 6
+  - [ ] Gap 2: TLS CA/cert/key secrets documented in Section 12.3.3
+  - [ ] Gap 3: TLS test bundle pattern documented in Section 10.3
+  - [ ] Gap 4: ServiceServer.TLSBundle() accessor documented in Section 10.3.5
+  - [ ] Gap 5: mTLS deployment architecture documented in Section 6.3
+  - [ ] Gap 6: TLS mode taxonomy (Static/Mixed/Auto) documented in Section 6
+  - [ ] `cicd lint-docs validate-propagation` passes
+
+#### Task 2.10: Phase 2 validation and post-mortem
+
+- **Status**: TODO
+- **Dependencies**: Tasks 2.8-2.9
 - **Description**: Full quality gate run, phase post-mortem
 - **Acceptance Criteria**:
   - [ ] `go build ./...` and `go build -tags e2e,integration ./...` clean
@@ -470,14 +484,15 @@
   - [ ] Each sub-linter classified: real vs synthetic testing
   - [ ] Plan to convert synthetic tests to real-project tests where feasible
 
-#### Task 6.3: Skeleton-template purpose analysis
+#### Task 6.3: Verify skeleton-template as scaffolding source (D12)
 
 - **Status**: TODO
 - **Dependencies**: None
-- **Description**: Evaluate whether skeleton-template is needed given lint-fitness enforcement
+- **Description**: Skeleton stays minimal per D12 (no CRUD, no code generation). Verify it's current as `/new-service` scaffolding source.
 - **Acceptance Criteria**:
-  - [ ] Decision documented: keep as reference, repurpose for scaffolding, or deprecate
-  - [ ] If kept: purpose clearly documented
+  - [ ] skeleton-template uses latest builder API patterns
+  - [ ] `/new-service` skill generates valid services from skeleton
+  - [ ] Document skeleton vs lint-fitness vs `/new-service` relationship in ARCHITECTURE.md Section 3.1.5
 
 #### Task 6.4: Add test infrastructure rule linter
 
@@ -500,19 +515,119 @@
 
 ---
 
-### Phase 7: PKI-CA Domain Completion
+### Phase 7: Domain Extraction and Fresh Skeletons (D13, D16)
 
-**Phase Objective**: Full certificate lifecycle.
+**Phase Objective**: Extract domain logic from identity-* and pki-ca, replace with fresh skeleton-template copies. Update status table.
 
-> Tasks to be detailed when this phase begins execution. See plan.md Phase 7.
+#### Task 7.1: Archive identity shared packages
+
+- **Status**: TODO
+- **Dependencies**: Phases 1-5 complete
+- **Description**: Archive all shared packages under `internal/apps/identity/` to `_archived/`
+- **Acceptance Criteria**:
+  - [ ] All shared identity packages moved to `internal/apps/identity/_archived/`
+  - [ ] Build passes (broken imports expected — services replaced in Task 7.3)
+
+#### Task 7.2: Archive per-service domain code
+
+- **Status**: TODO
+- **Dependencies**: Task 7.1
+- **Description**: Archive domain code for authz, idp, rp, rs, spa, pki-ca
+- **Acceptance Criteria**:
+  - [ ] authz domain → `internal/apps/identity/_authz-archived/`
+  - [ ] idp domain → `internal/apps/identity/_idp-archived/`
+  - [ ] rp domain → `internal/apps/identity/_rp-archived/`
+  - [ ] rs domain → `internal/apps/identity/_rs-archived/`
+  - [ ] spa domain → `internal/apps/identity/_spa-archived/`
+  - [ ] pki-ca archive verified complete (`internal/apps/pki/_ca-archived/`)
+
+#### Task 7.3: Replace services with fresh skeletons
+
+- **Status**: TODO
+- **Dependencies**: Task 7.2
+- **Description**: Replace all 6 services with fresh skeleton-template copies (builder + contract tests + health)
+- **Acceptance Criteria**:
+  - [ ] All 6 services use latest builder pattern
+  - [ ] All 6 services pass `RunContractTests`
+  - [ ] `go build ./...` clean
+  - [ ] `go test ./... -shuffle=on` passes
+
+#### Task 7.4: Update ARCHITECTURE.md status table (D16)
+
+- **Status**: TODO
+- **Dependencies**: Task 7.3
+- **Description**: Update Section 3.2 status table: all 5 identity-* services → "⚠️ Extraction Pending 0%"
+- **Acceptance Criteria**:
+  - [ ] identity-authz/idp/rp/rs/spa marked "⚠️ Extraction Pending 0%"
+  - [ ] pki-ca status updated appropriately
+
+#### Task 7.5: Phase 7 validation and post-mortem
+
+- **Status**: TODO
+- **Dependencies**: Tasks 7.1-7.4
+- **Description**: Full quality gate run, phase post-mortem
+- **Acceptance Criteria**:
+  - [ ] All 6 skeleton services pass contract tests
+  - [ ] All domain logic safely archived
+  - [ ] `go build ./...` and `golangci-lint run` clean
+  - [ ] lessons.md updated
 
 ---
 
-### Phase 8: Identity Services - Aggressive Migration
+### Phase 8: Staged Domain Reintegration (D13)
 
-**Phase Objective**: All 5 identity services on latest framework.
+**Phase Objective**: Reintroduce archived domain logic into fresh skeletons, smallest-first.
 
-> Tasks to be detailed when this phase begins execution. See plan.md Phase 8.
+#### Task 8.1: Reintegrate rp, rs, spa (Stage 1)
+
+- **Status**: TODO
+- **Dependencies**: Phase 7 complete
+- **Description**: Smallest services first (10-18 files each). Extract from archive, adapt to latest builder, test.
+- **Acceptance Criteria**:
+  - [ ] rp domain reintegrated and tests pass
+  - [ ] rs domain reintegrated and tests pass
+  - [ ] spa domain reintegrated and tests pass
+  - [ ] Coverage >=95% for each
+
+#### Task 8.2: Reintegrate authz (Stage 2)
+
+- **Status**: TODO
+- **Dependencies**: Task 8.1
+- **Description**: OAuth 2.1 core (133 files/916KB — largest complexity)
+- **Acceptance Criteria**:
+  - [ ] authz domain reintegrated with latest builder patterns
+  - [ ] All authz tests pass
+  - [ ] Coverage >=95%
+
+#### Task 8.3: Reintegrate idp (Stage 3)
+
+- **Status**: TODO
+- **Dependencies**: Task 8.2
+- **Description**: OIDC provider (129 files/862KB — second largest)
+- **Acceptance Criteria**:
+  - [ ] idp domain reintegrated with latest builder patterns
+  - [ ] All idp tests pass
+  - [ ] Coverage >=95%
+
+#### Task 8.4: Reintegrate pki-ca (Stage 4)
+
+- **Status**: TODO
+- **Dependencies**: Task 8.3
+- **Description**: Certificate lifecycle (48KB active + 880KB archived)
+- **Acceptance Criteria**:
+  - [ ] pki-ca domain reintegrated with latest builder patterns
+  - [ ] All pki-ca tests pass
+  - [ ] Coverage >=95%
+
+#### Task 8.5: Phase 8 validation and post-mortem
+
+- **Status**: TODO
+- **Dependencies**: Tasks 8.1-8.4
+- **Description**: Full quality gate run, phase post-mortem
+- **Acceptance Criteria**:
+  - [ ] All 6 services have working domain + latest framework patterns
+  - [ ] Coverage >=95% across all reintegrated services
+  - [ ] lessons.md updated
 
 ---
 
