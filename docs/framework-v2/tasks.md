@@ -86,18 +86,18 @@
 
 #### Task 2.1: Replace hand-rolled handler DTOs with generated models
 
-- **Status**: TODO
+- **Status**: ✅ DONE
 - **Owner**: LLM Agent
 - **Estimated**: 3h
-- **Actual**: [fill when complete]
+- **Actual**: 2h
 - **Dependencies**: None (can start independently of Phase 1)
 - **Description**: `server/apis/jwk_handler.go` defines `CreateElasticJWKRequest`, `ElasticJWKResponse`, `MaterialJWKResponse` instead of using `api/jose/models/models.gen.go`. Replace with generated types and add explicit mapping functions.
 - **Acceptance Criteria**:
-  - [ ] `server/apis/jwk_handler.go` imports `api/jose/models` — zero hand-rolled request/response structs
-  - [ ] Explicit mapping functions `toElasticJWKResponse`, `toMaterialJWKResponse` added as unexported helpers
-  - [ ] Handler tests updated to use generated types
-  - [ ] `go test ./internal/apps/jose/ja/server/...` passes
-  - [ ] No API behavior change (all existing tests still pass)
+  - [x] `server/apis/jwk_handler.go` imports `api/jose/models` — zero hand-rolled request/response structs
+  - [x] Explicit mapping functions `toElasticJWKResponse`, `toMaterialJWKResponse` added as unexported helpers
+  - [x] Handler tests updated to use generated types
+  - [x] `go test ./internal/apps/jose/ja/server/...` passes
+  - [x] No API behavior change (all existing tests still pass)
 - **Files**:
   - `internal/apps/jose/ja/server/apis/jwk_handler.go` (modify)
   - `internal/apps/jose/ja/server/apis/jwk_handler_test.go` (modify)
@@ -105,18 +105,18 @@
 
 #### Task 2.2: Migrate closed-DB helpers to testdb.NewClosedSQLiteDB
 
-- **Status**: TODO
+- **Status**: ✅ DONE
 - **Owner**: LLM Agent
 - **Estimated**: 2h
-- **Actual**: [fill when complete]
+- **Actual**: 1.5h
 - **Dependencies**: Task 1.1
 - **Description**: Replace `createClosedDatabase()` in `repository/database_error_test.go` and `createClosedServiceDependencies()` in `service/database_error_test.go` with calls to `testdb.NewClosedSQLiteDB(t, applyMigrations)`.
 - **Acceptance Criteria**:
-  - [ ] No `createClosedDatabase` function in `jose/ja/repository/` package
-  - [ ] No `createClosedServiceDependencies` function in `jose/ja/service/` package
-  - [ ] All error-path tests use `testdb.NewClosedSQLiteDB()`
-  - [ ] `go test ./internal/apps/jose/ja/repository/... ./internal/apps/jose/ja/service/...` passes
-  - [ ] Fitness rule passes (no more violations in jose-ja)
+  - [x] No `createClosedDatabase` function in `jose/ja/repository/` package
+  - [x] No `createClosedServiceDependencies` function in `jose/ja/service/` package
+  - [x] All error-path tests use `testdb.NewClosedSQLiteDB()`
+  - [x] `go test ./internal/apps/jose/ja/repository/... ./internal/apps/jose/ja/service/...` passes
+  - [x] Fitness rule passes (no more violations in jose-ja)
 
 #### Task 2.3: Merge repository/ error-path test files
 

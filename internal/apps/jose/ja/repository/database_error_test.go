@@ -5,61 +5,27 @@ package repository
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"database/sql"
-	"fmt"
 	"strings"
 	"testing"
 
+	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilTestdb "cryptoutil/internal/apps/template/service/testing/testdb"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
+
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-
-	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
-	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 )
 
-// createClosedDatabase creates a new in-memory SQLite database, applies migrations,
-// closes the connection, and returns a GORM DB with the closed connection.
-// This enables testing database error paths.
-func createClosedDatabase() (*gorm.DB, error) {
-	ctx := context.Background()
-	dbID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
+// newClosedDB creates a closed SQLite DB using the shared testdb helper.
+func newClosedDB(t *testing.T) *gorm.DB {
+	t.Helper()
 
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open SQLite: %w", err)
-	}
-
-	// Configure SQLite.
-	_, _ = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
-	_, _ = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
-
-	// Create GORM DB.
-	gormDB, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
-		SkipDefaultTransaction: true,
+	return cryptoutilTestdb.NewClosedSQLiteDB(t, func(sqlDB *sql.DB) error {
+		return ApplyJoseJAMigrations(sqlDB, DatabaseTypeSQLite)
 	})
-	if err != nil {
-		_ = sqlDB.Close()
-
-		return nil, fmt.Errorf("failed to create GORM DB: %w", err)
-	}
-
-	// Apply migrations.
-	if err := ApplyJoseJAMigrations(sqlDB, DatabaseTypeSQLite); err != nil {
-		_ = sqlDB.Close()
-
-		return nil, err
-	}
-
-	// Close the underlying connection to force errors.
-	if err := sqlDB.Close(); err != nil {
-		return nil, fmt.Errorf("failed to close database: %w", err)
-	}
-
-	return gormDB, nil
 }
 
 // ====================
@@ -69,8 +35,7 @@ func createClosedDatabase() (*gorm.DB, error) {
 func TestElasticJWKRepository_CreateDatabaseError(t *testing.T) {
 	t.Parallel()
 
-	closedDB, err := createClosedDatabase()
-	require.NoError(t, err)
+	closedDB := newClosedDB(t)
 
 	ctx := context.Background()
 	repo := NewElasticJWKRepository(closedDB)
@@ -88,7 +53,7 @@ func TestElasticJWKRepository_CreateDatabaseError(t *testing.T) {
 		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 	}
 
-	err = repo.Create(ctx, jwk)
+	err := repo.Create(ctx, jwk)
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "failed to create elastic JWK"))
 }
@@ -96,13 +61,12 @@ func TestElasticJWKRepository_CreateDatabaseError(t *testing.T) {
 func TestElasticJWKRepository_GetDatabaseError(t *testing.T) {
 	t.Parallel()
 
-	closedDB, err := createClosedDatabase()
-	require.NoError(t, err)
+	closedDB := newClosedDB(t)
 
 	ctx := context.Background()
 	repo := NewElasticJWKRepository(closedDB)
 
-	_, err = repo.Get(ctx, googleUuid.New(), "test-kid")
+	_, err := repo.Get(ctx, googleUuid.New(), "test-kid")
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "failed to get elastic JWK"))
 }
@@ -110,13 +74,12 @@ func TestElasticJWKRepository_GetDatabaseError(t *testing.T) {
 func TestElasticJWKRepository_GetByIDDatabaseError(t *testing.T) {
 	t.Parallel()
 
-	closedDB, err := createClosedDatabase()
-	require.NoError(t, err)
+	closedDB := newClosedDB(t)
 
 	ctx := context.Background()
 	repo := NewElasticJWKRepository(closedDB)
 
-	_, err = repo.GetByID(ctx, googleUuid.New())
+	_, err := repo.GetByID(ctx, googleUuid.New())
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "failed to get elastic JWK by ID"))
 }
@@ -124,13 +87,12 @@ func TestElasticJWKRepository_GetByIDDatabaseError(t *testing.T) {
 func TestElasticJWKRepository_ListDatabaseError(t *testing.T) {
 	t.Parallel()
 
-	closedDB, err := createClosedDatabase()
-	require.NoError(t, err)
+	closedDB := newClosedDB(t)
 
 	ctx := context.Background()
 	repo := NewElasticJWKRepository(closedDB)
 
-	_, _, err = repo.List(ctx, googleUuid.New(), 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+	_, _, err := repo.List(ctx, googleUuid.New(), 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.Error(t, err)
 	// Could fail on Count or Find - either error path is valid.
 	require.True(t,
@@ -142,8 +104,7 @@ func TestElasticJWKRepository_ListDatabaseError(t *testing.T) {
 func TestElasticJWKRepository_UpdateDatabaseError(t *testing.T) {
 	t.Parallel()
 
-	closedDB, err := createClosedDatabase()
-	require.NoError(t, err)
+	closedDB := newClosedDB(t)
 
 	ctx := context.Background()
 	repo := NewElasticJWKRepository(closedDB)
@@ -161,7 +122,7 @@ func TestElasticJWKRepository_UpdateDatabaseError(t *testing.T) {
 		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 	}
 
-	err = repo.Update(ctx, jwk)
+	err := repo.Update(ctx, jwk)
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "failed to update elastic JWK"))
 }
@@ -169,13 +130,12 @@ func TestElasticJWKRepository_UpdateDatabaseError(t *testing.T) {
 func TestElasticJWKRepository_DeleteDatabaseError(t *testing.T) {
 	t.Parallel()
 
-	closedDB, err := createClosedDatabase()
-	require.NoError(t, err)
+	closedDB := newClosedDB(t)
 
 	ctx := context.Background()
 	repo := NewElasticJWKRepository(closedDB)
 
-	err = repo.Delete(ctx, googleUuid.New())
+	err := repo.Delete(ctx, googleUuid.New())
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "failed to delete elastic JWK"))
 }
@@ -183,13 +143,12 @@ func TestElasticJWKRepository_DeleteDatabaseError(t *testing.T) {
 func TestElasticJWKRepository_IncrementMaterialCountDatabaseError(t *testing.T) {
 	t.Parallel()
 
-	closedDB, err := createClosedDatabase()
-	require.NoError(t, err)
+	closedDB := newClosedDB(t)
 
 	ctx := context.Background()
 	repo := NewElasticJWKRepository(closedDB)
 
-	err = repo.IncrementMaterialCount(ctx, googleUuid.New())
+	err := repo.IncrementMaterialCount(ctx, googleUuid.New())
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "failed to increment material count"))
 }
@@ -197,13 +156,12 @@ func TestElasticJWKRepository_IncrementMaterialCountDatabaseError(t *testing.T) 
 func TestElasticJWKRepository_DecrementMaterialCountDatabaseError(t *testing.T) {
 	t.Parallel()
 
-	closedDB, err := createClosedDatabase()
-	require.NoError(t, err)
+	closedDB := newClosedDB(t)
 
 	ctx := context.Background()
 	repo := NewElasticJWKRepository(closedDB)
 
-	err = repo.DecrementMaterialCount(ctx, googleUuid.New())
+	err := repo.DecrementMaterialCount(ctx, googleUuid.New())
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "failed to decrement material count"))
 }
@@ -215,8 +173,7 @@ func TestElasticJWKRepository_DecrementMaterialCountDatabaseError(t *testing.T) 
 func TestMaterialJWKRepository_CreateDatabaseError(t *testing.T) {
 	t.Parallel()
 
-	closedDB, err := createClosedDatabase()
-	require.NoError(t, err)
+	closedDB := newClosedDB(t)
 
 	ctx := context.Background()
 	repo := NewMaterialJWKRepository(closedDB)
@@ -231,7 +188,7 @@ func TestMaterialJWKRepository_CreateDatabaseError(t *testing.T) {
 		Active:       true,
 	}
 
-	err = repo.Create(ctx, material)
+	err := repo.Create(ctx, material)
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "failed to create material JWK"))
 }
@@ -239,13 +196,12 @@ func TestMaterialJWKRepository_CreateDatabaseError(t *testing.T) {
 func TestMaterialJWKRepository_GetByMaterialKIDDatabaseError(t *testing.T) {
 	t.Parallel()
 
-	closedDB, err := createClosedDatabase()
-	require.NoError(t, err)
+	closedDB := newClosedDB(t)
 
 	ctx := context.Background()
 	repo := NewMaterialJWKRepository(closedDB)
 
-	_, err = repo.GetByMaterialKID(ctx, "test-kid")
+	_, err := repo.GetByMaterialKID(ctx, "test-kid")
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "failed to get material JWK by KID"))
 }
@@ -253,13 +209,12 @@ func TestMaterialJWKRepository_GetByMaterialKIDDatabaseError(t *testing.T) {
 func TestMaterialJWKRepository_GetByIDDatabaseError(t *testing.T) {
 	t.Parallel()
 
-	closedDB, err := createClosedDatabase()
-	require.NoError(t, err)
+	closedDB := newClosedDB(t)
 
 	ctx := context.Background()
 	repo := NewMaterialJWKRepository(closedDB)
 
-	_, err = repo.GetByID(ctx, googleUuid.New())
+	_, err := repo.GetByID(ctx, googleUuid.New())
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "failed to get material JWK by ID"))
 }
@@ -267,13 +222,12 @@ func TestMaterialJWKRepository_GetByIDDatabaseError(t *testing.T) {
 func TestMaterialJWKRepository_GetActiveMaterialDatabaseError(t *testing.T) {
 	t.Parallel()
 
-	closedDB, err := createClosedDatabase()
-	require.NoError(t, err)
+	closedDB := newClosedDB(t)
 
 	ctx := context.Background()
 	repo := NewMaterialJWKRepository(closedDB)
 
-	_, err = repo.GetActiveMaterial(ctx, googleUuid.New())
+	_, err := repo.GetActiveMaterial(ctx, googleUuid.New())
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "failed to get active material JWK"))
 }
@@ -281,13 +235,12 @@ func TestMaterialJWKRepository_GetActiveMaterialDatabaseError(t *testing.T) {
 func TestMaterialJWKRepository_ListByElasticJWKDatabaseError(t *testing.T) {
 	t.Parallel()
 
-	closedDB, err := createClosedDatabase()
-	require.NoError(t, err)
+	closedDB := newClosedDB(t)
 
 	ctx := context.Background()
 	repo := NewMaterialJWKRepository(closedDB)
 
-	_, _, err = repo.ListByElasticJWK(ctx, googleUuid.New(), 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+	_, _, err := repo.ListByElasticJWK(ctx, googleUuid.New(), 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.Error(t, err)
 	// Could fail on Count or Find - either error path is valid.
 	require.True(t,

@@ -19,8 +19,7 @@ import (
 func TestMaterialJWKRepository_RotateMaterialDatabaseError(t *testing.T) {
 	t.Parallel()
 
-	closedDB, err := createClosedDatabase()
-	require.NoError(t, err)
+	closedDB := newClosedDB(t)
 
 	ctx := context.Background()
 	repo := NewMaterialJWKRepository(closedDB)
@@ -35,7 +34,7 @@ func TestMaterialJWKRepository_RotateMaterialDatabaseError(t *testing.T) {
 		Active:       true,
 	}
 
-	err = repo.RotateMaterial(ctx, *elasticJWKID, newMaterial)
+	err := repo.RotateMaterial(ctx, *elasticJWKID, newMaterial)
 	require.Error(t, err)
 	// Transaction or any step could fail.
 	require.True(t,
@@ -108,13 +107,12 @@ func TestMaterialJWKRepository_RotateMaterialCreateError(t *testing.T) {
 func TestMaterialJWKRepository_RetireMaterialDatabaseError(t *testing.T) {
 	t.Parallel()
 
-	closedDB, err := createClosedDatabase()
-	require.NoError(t, err)
+	closedDB := newClosedDB(t)
 
 	ctx := context.Background()
 	repo := NewMaterialJWKRepository(closedDB)
 
-	err = repo.RetireMaterial(ctx, googleUuid.New())
+	err := repo.RetireMaterial(ctx, googleUuid.New())
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "failed to retire material JWK"))
 }
@@ -122,13 +120,12 @@ func TestMaterialJWKRepository_RetireMaterialDatabaseError(t *testing.T) {
 func TestMaterialJWKRepository_DeleteDatabaseError(t *testing.T) {
 	t.Parallel()
 
-	closedDB, err := createClosedDatabase()
-	require.NoError(t, err)
+	closedDB := newClosedDB(t)
 
 	ctx := context.Background()
 	repo := NewMaterialJWKRepository(closedDB)
 
-	err = repo.Delete(ctx, googleUuid.New())
+	err := repo.Delete(ctx, googleUuid.New())
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "failed to delete material JWK"))
 }
@@ -136,13 +133,12 @@ func TestMaterialJWKRepository_DeleteDatabaseError(t *testing.T) {
 func TestMaterialJWKRepository_CountMaterialsDatabaseError(t *testing.T) {
 	t.Parallel()
 
-	closedDB, err := createClosedDatabase()
-	require.NoError(t, err)
+	closedDB := newClosedDB(t)
 
 	ctx := context.Background()
 	repo := NewMaterialJWKRepository(closedDB)
 
-	_, err = repo.CountMaterials(ctx, googleUuid.New())
+	_, err := repo.CountMaterials(ctx, googleUuid.New())
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "failed to count material JWKs"))
 }
@@ -154,13 +150,12 @@ func TestMaterialJWKRepository_CountMaterialsDatabaseError(t *testing.T) {
 func TestAuditConfigRepository_GetDatabaseError(t *testing.T) {
 	t.Parallel()
 
-	closedDB, err := createClosedDatabase()
-	require.NoError(t, err)
+	closedDB := newClosedDB(t)
 
 	ctx := context.Background()
 	repo := NewAuditConfigRepository(closedDB)
 
-	_, err = repo.Get(ctx, googleUuid.New(), cryptoutilAppsJoseJaDomain.OperationSign)
+	_, err := repo.Get(ctx, googleUuid.New(), cryptoutilAppsJoseJaDomain.OperationSign)
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "failed to get audit config"))
 }
@@ -168,13 +163,12 @@ func TestAuditConfigRepository_GetDatabaseError(t *testing.T) {
 func TestAuditConfigRepository_GetAllForTenantDatabaseError(t *testing.T) {
 	t.Parallel()
 
-	closedDB, err := createClosedDatabase()
-	require.NoError(t, err)
+	closedDB := newClosedDB(t)
 
 	ctx := context.Background()
 	repo := NewAuditConfigRepository(closedDB)
 
-	_, err = repo.GetAllForTenant(ctx, googleUuid.New())
+	_, err := repo.GetAllForTenant(ctx, googleUuid.New())
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "failed to get audit configs for tenant"))
 }
@@ -182,8 +176,7 @@ func TestAuditConfigRepository_GetAllForTenantDatabaseError(t *testing.T) {
 func TestAuditConfigRepository_UpsertDatabaseError(t *testing.T) {
 	t.Parallel()
 
-	closedDB, err := createClosedDatabase()
-	require.NoError(t, err)
+	closedDB := newClosedDB(t)
 
 	ctx := context.Background()
 	repo := NewAuditConfigRepository(closedDB)
@@ -197,7 +190,7 @@ func TestAuditConfigRepository_UpsertDatabaseError(t *testing.T) {
 		SamplingRate: cryptoutilSharedMagic.Tolerance50Percent,
 	}
 
-	err = repo.Upsert(ctx, config)
+	err := repo.Upsert(ctx, config)
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "failed to upsert audit config"))
 }
@@ -205,13 +198,12 @@ func TestAuditConfigRepository_UpsertDatabaseError(t *testing.T) {
 func TestAuditConfigRepository_DeleteDatabaseError(t *testing.T) {
 	t.Parallel()
 
-	closedDB, err := createClosedDatabase()
-	require.NoError(t, err)
+	closedDB := newClosedDB(t)
 
 	ctx := context.Background()
 	repo := NewAuditConfigRepository(closedDB)
 
-	err = repo.Delete(ctx, googleUuid.New(), cryptoutilAppsJoseJaDomain.OperationSign)
+	err := repo.Delete(ctx, googleUuid.New(), cryptoutilAppsJoseJaDomain.OperationSign)
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "failed to delete audit config"))
 }
@@ -219,13 +211,12 @@ func TestAuditConfigRepository_DeleteDatabaseError(t *testing.T) {
 func TestAuditConfigRepository_ShouldAuditDatabaseError(t *testing.T) {
 	t.Parallel()
 
-	closedDB, err := createClosedDatabase()
-	require.NoError(t, err)
+	closedDB := newClosedDB(t)
 
 	ctx := context.Background()
 	repo := NewAuditConfigRepository(closedDB)
 
-	_, err = repo.ShouldAudit(ctx, googleUuid.New(), cryptoutilAppsJoseJaDomain.OperationSign)
+	_, err := repo.ShouldAudit(ctx, googleUuid.New(), cryptoutilAppsJoseJaDomain.OperationSign)
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "failed to") ||
 		strings.Contains(err.Error(), "sql: database is closed"))

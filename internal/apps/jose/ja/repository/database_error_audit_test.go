@@ -21,8 +21,7 @@ import (
 func TestAuditLogRepository_CreateDatabaseError(t *testing.T) {
 	t.Parallel()
 
-	closedDB, err := createClosedDatabase()
-	require.NoError(t, err)
+	closedDB := newClosedDB(t)
 
 	ctx := context.Background()
 	repo := NewAuditLogRepository(closedDB)
@@ -38,7 +37,7 @@ func TestAuditLogRepository_CreateDatabaseError(t *testing.T) {
 		RequestID: googleUuid.NewString(),
 	}
 
-	err = repo.Create(ctx, entry)
+	err := repo.Create(ctx, entry)
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "failed to create audit log entry"))
 }
@@ -46,13 +45,12 @@ func TestAuditLogRepository_CreateDatabaseError(t *testing.T) {
 func TestAuditLogRepository_ListDatabaseError(t *testing.T) {
 	t.Parallel()
 
-	closedDB, err := createClosedDatabase()
-	require.NoError(t, err)
+	closedDB := newClosedDB(t)
 
 	ctx := context.Background()
 	repo := NewAuditLogRepository(closedDB)
 
-	_, _, err = repo.List(ctx, googleUuid.New(), 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+	_, _, err := repo.List(ctx, googleUuid.New(), 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.Error(t, err)
 	// Could fail on Count or Find - either error path is valid.
 	require.True(t,
@@ -64,13 +62,12 @@ func TestAuditLogRepository_ListDatabaseError(t *testing.T) {
 func TestAuditLogRepository_ListByElasticJWKDatabaseError(t *testing.T) {
 	t.Parallel()
 
-	closedDB, err := createClosedDatabase()
-	require.NoError(t, err)
+	closedDB := newClosedDB(t)
 
 	ctx := context.Background()
 	repo := NewAuditLogRepository(closedDB)
 
-	_, _, err = repo.ListByElasticJWK(ctx, googleUuid.New(), 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+	_, _, err := repo.ListByElasticJWK(ctx, googleUuid.New(), 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.Error(t, err)
 	// Could fail on Count or Find - either error path is valid.
 	require.True(t,
@@ -82,13 +79,12 @@ func TestAuditLogRepository_ListByElasticJWKDatabaseError(t *testing.T) {
 func TestAuditLogRepository_ListByOperationDatabaseError(t *testing.T) {
 	t.Parallel()
 
-	closedDB, err := createClosedDatabase()
-	require.NoError(t, err)
+	closedDB := newClosedDB(t)
 
 	ctx := context.Background()
 	repo := NewAuditLogRepository(closedDB)
 
-	_, _, err = repo.ListByOperation(ctx, googleUuid.New(), cryptoutilAppsJoseJaDomain.OperationSign, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+	_, _, err := repo.ListByOperation(ctx, googleUuid.New(), cryptoutilAppsJoseJaDomain.OperationSign, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 	require.Error(t, err)
 	// Could fail on Count or Find - either error path is valid.
 	require.True(t,
@@ -100,13 +96,12 @@ func TestAuditLogRepository_ListByOperationDatabaseError(t *testing.T) {
 func TestAuditLogRepository_GetByRequestIDDatabaseError(t *testing.T) {
 	t.Parallel()
 
-	closedDB, err := createClosedDatabase()
-	require.NoError(t, err)
+	closedDB := newClosedDB(t)
 
 	ctx := context.Background()
 	repo := NewAuditLogRepository(closedDB)
 
-	_, err = repo.GetByRequestID(ctx, googleUuid.NewString())
+	_, err := repo.GetByRequestID(ctx, googleUuid.NewString())
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "failed to get audit log entry by request ID"))
 }
@@ -114,13 +109,12 @@ func TestAuditLogRepository_GetByRequestIDDatabaseError(t *testing.T) {
 func TestAuditLogRepository_DeleteOlderThanDatabaseError(t *testing.T) {
 	t.Parallel()
 
-	closedDB, err := createClosedDatabase()
-	require.NoError(t, err)
+	closedDB := newClosedDB(t)
 
 	ctx := context.Background()
 	repo := NewAuditLogRepository(closedDB)
 
-	_, err = repo.DeleteOlderThan(ctx, googleUuid.New(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days)
+	_, err := repo.DeleteOlderThan(ctx, googleUuid.New(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days)
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "failed to delete old audit log entries"))
 }

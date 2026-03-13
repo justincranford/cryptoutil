@@ -138,14 +138,13 @@ func TestElasticJWKService_DeleteElasticJWK_WithMultipleMaterials(t *testing.T) 
 func TestElasticJWKService_DeleteElasticJWK_GetError(t *testing.T) {
 	t.Parallel()
 
-	_, elasticRepo, materialRepo, _, _, err := createClosedServiceDependencies()
-	require.NoError(t, err)
+	elasticRepo, materialRepo, _, _ := newClosedServiceDeps(t)
 
 	ctx := context.Background()
 	svc := NewElasticJWKService(elasticRepo, materialRepo, testJWKGenService, testBarrierService)
 
 	// Database is closed - GetElasticJWK should fail.
-	err = svc.DeleteElasticJWK(ctx, googleUuid.New(), googleUuid.New())
+	err := svc.DeleteElasticJWK(ctx, googleUuid.New(), googleUuid.New())
 	require.Error(t, err)
 	// Error should propagate from GetElasticJWK.
 	require.True(t, strings.Contains(err.Error(), "failed to") || strings.Contains(err.Error(), cryptoutilSharedMagic.RealmStorageTypeDatabase))
@@ -160,13 +159,12 @@ func TestElasticJWKService_DeleteElasticJWK_ListMaterialsError(t *testing.T) {
 	ctx := context.Background()
 
 	// Create a service with closed database to force errors.
-	_, elasticRepo, materialRepo, _, _, err := createClosedServiceDependencies()
-	require.NoError(t, err)
+	elasticRepo, materialRepo, _, _ := newClosedServiceDeps(t)
 
 	elasticSvc := NewElasticJWKService(elasticRepo, materialRepo, testJWKGenService, testBarrierService)
 
 	// Try to delete with closed database - will fail on GetElasticJWK (first operation).
-	err = elasticSvc.DeleteElasticJWK(ctx, googleUuid.New(), googleUuid.New())
+	err := elasticSvc.DeleteElasticJWK(ctx, googleUuid.New(), googleUuid.New())
 	require.Error(t, err)
 	// Error will be from GetElasticJWK (earlier step), not ListByElasticJWK.
 	// This documents the limitation: Can't easily isolate ListByElasticJWK error with closed DB.
@@ -182,13 +180,12 @@ func TestElasticJWKService_DeleteElasticJWK_MaterialDeleteError(t *testing.T) {
 	ctx := context.Background()
 
 	// Create a service with closed database to force material deletion to fail.
-	_, elasticRepo, materialRepo, _, _, err := createClosedServiceDependencies()
-	require.NoError(t, err)
+	elasticRepo, materialRepo, _, _ := newClosedServiceDeps(t)
 
 	elasticSvc := NewElasticJWKService(elasticRepo, materialRepo, testJWKGenService, testBarrierService)
 
 	// Try to delete with closed database - will fail on GetElasticJWK (first operation).
-	err = elasticSvc.DeleteElasticJWK(ctx, googleUuid.New(), googleUuid.New())
+	err := elasticSvc.DeleteElasticJWK(ctx, googleUuid.New(), googleUuid.New())
 	require.Error(t, err)
 	// Error will be from GetElasticJWK (earlier step), not material deletion.
 	// This documents the limitation: Can't easily isolate material deletion error with closed DB.
