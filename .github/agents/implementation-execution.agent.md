@@ -813,13 +813,25 @@ Execute continuously until finished.
 - Checkboxes are sufficient for tracking progress
 - NO additional "Session Tracking System" or separate tracking mechanisms
 
+**File Encoding - MANDATORY (PowerShell):**
+
+When writing ANY file via PowerShell terminal commands, use UTF-8 without BOM. The `cicd all-enforce-utf8` pre-commit hook rejects BOM-prefixed files.
+
+```powershell
+# CORRECT — UTF-8 without BOM
+[System.IO.File]::WriteAllText($path, $content, [System.Text.UTF8Encoding]::new($false))
+
+# WRONG — adds BOM in PowerShell 5.1
+Set-Content -Path $path -Value $content -Encoding UTF8  # ❌ BOM
+```
+
 **Phase-Based Post-Mortem - MANDATORY:**
 
 - Tasks in tasks.md are grouped by phase
 - At end of EVERY phase (after quality gates pass), conduct post-mortem BEFORE starting next phase:
   1. Update issues.md with all issues discovered in phase
   2. Update categories.md with pattern analysis
-  3. Update lessons.md with lessons learned (what worked, what didn't, root causes, patterns) — this is the persistent memory for the entire plan
+  3. Create `lessons.md` if it does not yet exist (empty file with a `## Phase N: <name>` stub per plan phase), then update the current phase's section with lessons learned (what worked, what didn't, root causes, patterns) — this is the persistent memory for the entire plan
   4. **CRITICAL: Artifact Self-Evaluation** — evaluate whether phase lessons expose contradictions or omissions in:
        - `docs/ARCHITECTURE.md` — architecture decisions, patterns, strategies
        - `.github/agents/*.agent.md` — agent guidance and workflows

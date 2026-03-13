@@ -104,10 +104,12 @@ Custom plans are composed of **5 files in `<work-dir>/`**:
    - Phases and tasks as checkboxes, updated continuously during execution
 
 4. **`<work-dir>/lessons.md`** - Phase post-mortem lessons (persistent memory for the plan)
-   - Created/updated by implementation-execution agent after EVERY phase's quality gates
+   - Empty scaffold created by this agent (implementation-planning) during CREATE action
+   - Populated/updated by implementation-execution agent after EVERY phase's quality gates
    - Records what worked, what didn't, root causes, patterns observed
    - Used as memory throughout the entire plan execution
    - After plan complete: evaluated to apply insights to ARCHITECTURE.md, agents, skills, instructions, code, tests, workflows, documents
+   - NEVER includes "Inherited from" sections — lessons are written by the execution agent, not carried over
 
 5. **`<work-dir>/memory.md`** - Execution context (NOT created by this agent)
    - Ephemeral, ONLY during implementation-execution.agent.md
@@ -116,6 +118,9 @@ Custom plans are composed of **5 files in `<work-dir>/`**:
 
 **Files created/updated by this agent**:
 
+- **`<work-dir>/lessons.md`** - Empty scaffold with one heading stub per plan phase
+  - Created during CREATE action with phase headings matching plan.md
+  - NO "Inherited from" content — clean slate for the execution agent to fill
 - **`<work-dir>/quizme-v#.md`** - Questions to clarify unknowns, risks, inefficiencies ONLY
   - Format: A-D options + E (blank) + **Answer:** field (blank)
   - Questions ask USER for decisions, NOT LLM to discover tasks
@@ -750,6 +755,18 @@ Before creating plan.md/tasks.md, the agent MUST execute research:
 
 ### Step 4: Execute Action
 
+#### File Encoding - MANDATORY (PowerShell)
+
+**ALL files written via PowerShell MUST be UTF-8 without BOM.** The `cicd all-enforce-utf8` pre-commit hook rejects BOM-prefixed files.
+
+```powershell
+# CORRECT — UTF-8 without BOM
+[System.IO.File]::WriteAllText($path, $content, [System.Text.UTF8Encoding]::new($false))
+
+# WRONG — Set-Content -Encoding UTF8 adds BOM in PowerShell 5.1
+Set-Content -Path $path -Value $content -Encoding UTF8  # ❌ BOM
+```
+
 #### CREATE Action
 
 1. Create directory if needed
@@ -758,6 +775,7 @@ Before creating plan.md/tasks.md, the agent MUST execute research:
    <work-dir>/
    ├── plan.md
    ├── tasks.md
+   ├── lessons.md
    └── quizme-v1.md (optional, ephemeral)
    ```
 
@@ -765,7 +783,12 @@ Before creating plan.md/tasks.md, the agent MUST execute research:
 
 3. Create `<work-dir>/tasks.md` from template
 
-4. Optionally create `<work-dir>/quizme-v#.md` for unknowns/risks/inefficiencies ONLY
+4. Create `<work-dir>/lessons.md` as empty scaffold:
+   - One `## Phase N: <name>` heading per phase defined in plan.md
+   - Each heading followed by: `*(To be filled during Phase N execution)*`
+   - NO "Inherited from" sections — clean slate, execution agent fills lessons in
+
+5. Optionally create `<work-dir>/quizme-v#.md` for unknowns/risks/inefficiencies ONLY
    - Contains A-D options + E (blank) + **Answer:** field (blank)
    - Questions ask USER for decisions, NOT LLM to discover tasks
    - E option: BLANK (no text, no underscores)
@@ -773,7 +796,7 @@ Before creating plan.md/tasks.md, the agent MUST execute research:
    - ONLY for: unknowns, risks, gaps, inefficiencies that need clarification
    - Ephemeral - deleted after answers merged into plan.md/tasks.md
 
-5. Initialize with placeholders
+6. Initialize plan.md and tasks.md with placeholders
 
 #### UPDATE Action
 
