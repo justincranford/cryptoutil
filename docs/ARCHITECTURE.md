@@ -833,7 +833,7 @@ Three deployment scenarios each use distinct host port ranges to enable concurre
 
 #### 4.3.1 Layered Architecture
 
-- main() `cmd/` → Application `internal/*/application/` → Business Logic `internal/*/service/`, `internal/*/domain/` → Repositories `internal/*/repository/` → Database/External Systems
+- main() `cmd/` → Application `internal/*/application/` → Business Logic `internal/*/service/`, `internal/*/model/` → Repositories `internal/*/repository/` → Database/External Systems
 - Dependency flow: One-way only (top → bottom)
 - Cross-cutting concerns: Telemetry, logging, error handling
 
@@ -865,6 +865,7 @@ Based on golang-standards/project-layout:
 - ❌ Avoid deep nesting (>8 levels indicates design issue)
 - ✅ Use /internal for private code (enforced by compiler)
 - ✅ Use /pkg for public libraries (safe for external import - currently empty by design)
+- ✅ Use `model/` (not `domain/`) for packages containing GORM-tagged structs — these are persistence models, not pure domain types
 
 #### 4.4.3 CLI Entry Points
 
@@ -931,7 +932,7 @@ internal/apps/
 │       └── e2e/               # ComposeManager for E2E orchestration
 
 │   └── im/                    # SM-IM service
-│       ├── domain/            # Domain models (Message, Recipient)
+│       ├── model/             # GORM-tagged models (Message, Recipient)
 │       ├── repository/        # Domain repos + migrations (2001+)
 │       ├── server/            # SMIMServer, PublicServer
 │       │   ├── config/        # SMImServerSettings embeds template
@@ -1747,6 +1748,7 @@ cryptoutil follows an OpenAPI-first design approach, ensuring all APIs are defin
 - Three config files: Server, Model, Client
 - strict-server: true (type safety + validation)
 - Single source of truth for models (prevents drift)
+- **MANDATORY**: Handler DTOs MUST come from generated `api/*/server/` and `api/model/` packages. NEVER hand-roll request/response structs that duplicate generated models.
 
 #### 8.1.3 Validation Rules
 
@@ -2573,6 +2575,14 @@ func TestRegisterHandler_Duplicate(t *testing.T) {
 
 **Rule**: The comment MUST appear within 10 lines before the function declaration. Include a clear reason after the colon to document *why* the test is sequential.
 
+#### 10.2.6 Test File Consolidation
+
+**MANDATORY**: Prefer one test file per source file. Avoid proliferating small error-path test files (e.g., `*_error_mapping_test.go`, `*_gorm_errors_test.go`, `*_postgres_errors_test.go`). Instead, consolidate related error-path tests into thematic files grouped by error category.
+
+**500-line hard limit per file**: When merging would exceed 500 lines, keep files separate with clear thematic grouping.
+
+**Naming**: Use descriptive thematic names (`*_error_paths_test.go`, `*_db_errors_test.go`, `*_coverage_gaps_test.go`) rather than implementation-detail names.
+
 ### 10.3 Integration Testing Strategy
 
 #### 10.3.1 TestMain Pattern
@@ -2703,6 +2713,10 @@ db := cryptoutilTestdb.NewInMemorySQLiteDB(t)
 
 // With auto-migrate for given models
 db := cryptoutilTestdb.RequireNewInMemorySQLiteDB(t, &MyModel{})
+
+// Pre-closed SQLite DB for error-path testing (returns already-closed *gorm.DB)
+db := cryptoutilTestdb.NewClosedSQLiteDB(t, nil) // nil = no migrations
+db := cryptoutilTestdb.NewClosedSQLiteDB(t, func(sqlDB *sql.DB) error { return migrate(sqlDB) })
 
 // PostgreSQL test container (Docker required)
 db := cryptoutilTestdb.RequireNewPostgresTestContainer(ctx, t, &MyModel{})
