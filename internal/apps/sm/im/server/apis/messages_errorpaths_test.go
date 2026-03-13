@@ -25,6 +25,7 @@ import (
 	cryptoutilAppsSmImDomain "cryptoutil/internal/apps/sm/im/domain"
 	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm/im/repository"
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilTestdb "cryptoutil/internal/apps/template/service/testing/testdb"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
@@ -35,38 +36,11 @@ import (
 func createMixedHandler(t *testing.T) *MessageHandler {
 	t.Helper()
 
-	ctx := context.Background()
-
-	dbID, err := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-	require.NoError(t, err)
-
-	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
-
-	tempSQLDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-	require.NoError(t, err)
-
-	_, err = tempSQLDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
-	require.NoError(t, err)
-
-	_, err = tempSQLDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
-	require.NoError(t, err)
-
-	tempSQLDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-	tempSQLDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-	tempSQLDB.SetConnMaxLifetime(0)
-
-	tempDB, err := gorm.Open(sqlite.Dialector{Conn: tempSQLDB}, &gorm.Config{
-		SkipDefaultTransaction: true,
+	closedDB := cryptoutilTestdb.NewClosedSQLiteDB(t, func(sqlDB *sql.DB) error {
+		return cryptoutilAppsSmImRepository.ApplySmIMMigrations(sqlDB, cryptoutilAppsSmImRepository.DatabaseTypeSQLite)
 	})
-	require.NoError(t, err)
 
-	err = cryptoutilAppsSmImRepository.ApplySmIMMigrations(tempSQLDB, cryptoutilAppsSmImRepository.DatabaseTypeSQLite)
-	require.NoError(t, err)
-
-	err = tempSQLDB.Close()
-	require.NoError(t, err)
-
-	brokenRecipientRepo := cryptoutilAppsSmImRepository.NewMessageRecipientJWKRepository(tempDB, testBarrierService)
+	brokenRecipientRepo := cryptoutilAppsSmImRepository.NewMessageRecipientJWKRepository(closedDB, testBarrierService)
 
 	return NewMessageHandler(testMessageRepo, brokenRecipientRepo, testJWKGenService, testBarrierService)
 }

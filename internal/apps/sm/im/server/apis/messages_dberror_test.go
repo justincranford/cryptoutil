@@ -17,15 +17,10 @@ import (
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
-
-	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
 	cryptoutilAppsSmImDomain "cryptoutil/internal/apps/sm/im/domain"
 	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm/im/repository"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
+	cryptoutilTestdb "cryptoutil/internal/apps/template/service/testing/testdb"
 )
 
 // createClosedDBHandler creates a MessageHandler with a closed database to trigger repository errors.
@@ -33,41 +28,12 @@ import (
 func createClosedDBHandler(t *testing.T) *MessageHandler {
 	t.Helper()
 
-	ctx := context.Background()
-	dbID, err := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-	require.NoError(t, err)
-
-	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
-
-	tempSQLDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
-	require.NoError(t, err)
-
-	_, err = tempSQLDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
-	require.NoError(t, err)
-
-	_, err = tempSQLDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
-	require.NoError(t, err)
-
-	tempSQLDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-	tempSQLDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-	tempSQLDB.SetConnMaxLifetime(0)
-
-	tempDB, err := gorm.Open(sqlite.Dialector{Conn: tempSQLDB}, &gorm.Config{
-		SkipDefaultTransaction: true,
+	closedDB := cryptoutilTestdb.NewClosedSQLiteDB(t, func(sqlDB *sql.DB) error {
+		return cryptoutilAppsSmImRepository.ApplySmIMMigrations(sqlDB, cryptoutilAppsSmImRepository.DatabaseTypeSQLite)
 	})
-	require.NoError(t, err)
 
-	// Apply migrations so tables exist, then close the DB.
-	err = cryptoutilAppsSmImRepository.ApplySmIMMigrations(tempSQLDB, cryptoutilAppsSmImRepository.DatabaseTypeSQLite)
-	require.NoError(t, err)
-
-	// Close the underlying SQL connection to trigger errors on all operations.
-	err = tempSQLDB.Close()
-	require.NoError(t, err)
-
-	// Create repositories with the closed database.
-	closedMsgRepo := cryptoutilAppsSmImRepository.NewMessageRepository(tempDB)
-	closedRecipientRepo := cryptoutilAppsSmImRepository.NewMessageRecipientJWKRepository(tempDB, testBarrierService)
+	closedMsgRepo := cryptoutilAppsSmImRepository.NewMessageRepository(closedDB)
+	closedRecipientRepo := cryptoutilAppsSmImRepository.NewMessageRecipientJWKRepository(closedDB, testBarrierService)
 
 	return NewMessageHandler(closedMsgRepo, closedRecipientRepo, testJWKGenService, testBarrierService)
 }

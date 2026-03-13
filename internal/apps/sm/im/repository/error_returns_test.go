@@ -2,16 +2,15 @@ package repository
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"database/sql"
 	"testing"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilTestdb "cryptoutil/internal/apps/template/service/testing/testdb"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestErrorReturns_DatabaseErrors tests error paths when database operations fail.
@@ -21,19 +20,8 @@ func TestErrorReturns_DatabaseErrors(t *testing.T) {
 
 	ctx := context.Background()
 
-	// Create a SEPARATE closed database for error testing (don't touch testDB).
-	closedSQLDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
-	require.NoError(t, err)
-
-	// Create GORM instance on this separate connection.
-	closedGormDB, err := gorm.Open(sqlite.Dialector{Conn: closedSQLDB}, &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
-	require.NoError(t, err)
-
-	// NOW close it to force errors (isolated, doesn't affect testDB).
-	err = closedSQLDB.Close()
-	require.NoError(t, err)
+	// Create a closed database for error testing using the shared testdb helper.
+	closedGormDB := cryptoutilTestdb.NewClosedSQLiteDB(t, nil)
 
 	t.Run("MessageRepository.FindByRecipientID error", func(t *testing.T) {
 		repo := NewMessageRepository(closedGormDB)
@@ -100,9 +88,10 @@ func TestErrorReturns_DatabaseErrors(t *testing.T) {
 func TestApplySmIMMigrations_Error(t *testing.T) {
 	t.Parallel()
 
-	// Create closed database.
+	// Create a closed raw database to trigger migration errors.
 	closedDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
 	require.NoError(t, err)
+
 	err = closedDB.Close()
 	require.NoError(t, err)
 
