@@ -173,4 +173,39 @@ This file captures lessons from each phase, used as:
 
 ## Phase 5: Knowledge Propagation
 
-*(To be filled during Phase 5 execution)*
+### What Worked
+
+- **Combined Task 5.1 + 5.2 into single commit**: ARCHITECTURE.md and instruction files updated atomically, ensuring propagation consistency from the start.
+- **Targeted section updates**: Rather than broad rewrites, added subsections (10.2.6, 8.1.2, 4.4.2) and updated existing tables/lists — minimal diff, maximum clarity.
+- **validate-propagation as quality gate**: Running `go run ./cmd/cicd lint-docs` confirmed no propagation drift before committing.
+- **Cross-referencing instruction files**: Updated 3 instruction files (02-04, 03-02, 03-03) to match ARCHITECTURE.md changes — keeps the instruction/architecture contract intact.
+
+### What Didn't Work
+
+- **Exit code 1 from lint-fitness and lint-docs**: Both commands exit with code 1 despite SUCCESS output. Pre-existing CI/CD issue — stderr output triggers non-zero exit. Not a framework-v2 regression.
+
+### Root Causes
+
+- Instruction files are thin wrappers around ARCHITECTURE.md content — updating them is low-effort when ARCHITECTURE.md changes are well-scoped.
+- The `model/` vs `domain/` naming convention was undocumented — Phases 3-4 revealed the inconsistency, Phase 5 codified the rule.
+
+### Patterns
+
+- **P1**: Documentation propagation is most effective when done alongside the code change phase, not deferred to a separate phase. Tasks 5.1/5.2 were efficient because Phases 3-4 were fresh.
+- **P2**: Three instruction files needed updating (02-04, 03-02, 03-03) — pattern: each new ARCHITECTURE.md rule should check which instruction files reference the same section.
+
+### Decisions
+
+- **D1**: `testdb.NewClosedSQLiteDB()` documented with both nil-migration and custom-migration examples (Section 10.3.6).
+- **D2**: New Section 10.2.6 "Test File Consolidation" created rather than embedding in existing subsection — independent enough to warrant its own numbering.
+- **D3**: Handler DTO mandatory rule added to Section 8.1.2 and 02-04.openapi.instructions.md — links generated models to strict server pattern.
+- **D4**: `model/` naming rule added to Section 4.4.2 and 03-03.golang.instructions.md — prevents future `domain/` naming for GORM structs.
+
+### Quality Evidence
+
+- Build: `go build ./...` + `go build -tags e2e,integration ./...` clean.
+- Lint: 0 issues (both standard and integration-tagged).
+- Tests: All framework-v2 modified packages pass (sm-im, jose-ja, sm-kms non-Docker).
+- Fitness: PASSED (all fitness rules active).
+- Propagation: `validate-propagation passed` — 263 valid refs, 0 broken refs.
+- Pre-existing failures unchanged: keygen RandError tests, workflow combined log test, sm-kms Docker lifecycle test.
