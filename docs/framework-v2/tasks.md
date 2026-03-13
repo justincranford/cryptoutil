@@ -295,30 +295,30 @@
 
 #### Task 4.1: server/application/ audit
 
-- **Status**: TODO
+- **Status**: ✅ DONE
 - **Owner**: LLM Agent
 - **Estimated**: 1h
-- **Actual**: [fill when complete]
+- **Actual**: 0.3h
 - **Dependencies**: None
 - **Description**: Determine if `server/application/` is dead code (replaced by service-template builder) or still active. Use call graph tracing from `kms.go` / `server.go` entrypoints.
 - **Acceptance Criteria**:
-  - [ ] Audit documented in `test-output/framework-v2/sm-kms-application-audit.md`
-  - [ ] If dead: create Task 4.1b (remove with tests)
-  - [ ] If active: document as v3 Phase 3 tech debt
+  - [x] Audit documented in `test-output/framework-v2/sm-kms-application-audit.md`
+  - [ ] If dead: create Task 4.1b (remove with tests) — N/A (active)
+  - [x] If active: document as v3 Phase 3 tech debt — ACTIVE: `NewKMSServer` calls `StartServerApplicationCore()` for OrmRepository, BarrierService, BusinessLogicService. 12 files, ~117KB. v3 Phase 3 migration.
 
 #### Task 4.2: server/middleware/ documentation (NO CODE CHANGES)
 
-- **Status**: TODO
+- **Status**: ✅ DONE
 - **Owner**: LLM Agent
 - **Estimated**: 1h
-- **Actual**: [fill when complete]
+- **Actual**: 0.3h
 - **Dependencies**: None
 - **Description**: Catalog sm-kms `server/middleware/` files. Map each to its future home in service-template (per v3 D1). Document in plan — do NOT change code.
 - **Acceptance Criteria**:
-  - [ ] Catalog written to `test-output/framework-v2/sm-kms-middleware-debt.md`
-  - [ ] Each middleware file mapped to service-template counterpart (or "no counterpart yet")
-  - [ ] v3 tasks.md updated with findings (Phase 3 task notes)
-  - [ ] Zero code changes in this task
+  - [x] Catalog written to `test-output/framework-v2/sm-kms-middleware-debt.md` — 10 source files + 15 test files cataloged
+  - [x] Each middleware file mapped to service-template counterpart (or "no counterpart yet") — 5/10 have partial counterparts, 5/10 need new template capabilities
+  - [x] v3 tasks.md updated with findings (Phase 3 task notes) — added note to Task 3.1
+  - [x] Zero code changes in this task
 
 #### Task 4.3: repository/orm/ file proliferation cleanup
 

@@ -289,6 +289,7 @@
 - **Status**: TODO
 - **Dependencies**: None
 - **Description**: Audit all 10 services to document current builder usage patterns
+  - **Note (from framework-v2 Task 4.2)**: sm-kms has 10 custom middleware files (claims, errors, introspection, jwt, jwt_revocation, realm_context, scopes, service_auth, session, tenant). 5 have partial template counterparts, 5 need new template capabilities. See `test-output/framework-v2/sm-kms-middleware-debt.md` for full catalog.
 - **Acceptance Criteria**:
   - [ ] Document which With*() methods each service calls
   - [ ] Identify redundant per-service path setup (WithBrowserBasePath, WithServiceBasePath)
