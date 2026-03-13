@@ -131,6 +131,52 @@ func NewPostgresTestContainer(ctx context.Context, t *testing.T) *gorm.DB {
 	return db
 }
 
+// NewClosedSQLiteDB creates an in-memory SQLite DB, applies optional migrations,
+// then closes the underlying connection before returning.
+// All subsequent GORM operations on the returned DB will fail.
+// Used to test repository and service database error paths without hand-rolled setup.
+func NewClosedSQLiteDB(t *testing.T, applyMigrations func(*sql.DB) error) *gorm.DB {
+	t.Helper()
+
+	dbID, err := googleUuid.NewV7()
+	if err != nil {
+		t.Fatalf("testdb: uuid: %v", err)
+	}
+
+	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
+
+	db, err := buildClosedSQLiteDB(context.Background(), sql.Open, dsn, applyMigrations)
+	if err != nil {
+		t.Fatalf("testdb: %v", err)
+	}
+
+	t.Cleanup(func() {}) // noop: connection already closed, nothing more to release.
+
+	return db
+}
+
+// buildClosedSQLiteDB opens a SQLite DB, applies optional migrations, then closes
+// the underlying connection. Returns the GORM handle with a broken connection.
+// openFn is injected to allow testing of all code paths including error scenarios.
+func buildClosedSQLiteDB(ctx context.Context, openFn func(driver, dsn string) (*sql.DB, error), dsn string, applyMigrations func(*sql.DB) error) (*gorm.DB, error) {
+	db, sqlDB, err := buildInMemorySQLiteDB(ctx, openFn, dsn)
+	if err != nil {
+		return nil, err
+	}
+
+	if applyMigrations != nil {
+		if err = applyMigrations(sqlDB); err != nil {
+			_ = sqlDB.Close()
+
+			return nil, fmt.Errorf("migrations: %w", err)
+		}
+	}
+
+	_ = sqlDB.Close() // Close to force errors on subsequent DB operations.
+
+	return db, nil
+}
+
 // RequireNewInMemorySQLiteDB creates an in-memory SQLite DB and auto-migrates the given models.
 // Convenience wrapper for tests that use GORM AutoMigrate.
 func RequireNewInMemorySQLiteDB(t *testing.T, models ...any) *gorm.DB {

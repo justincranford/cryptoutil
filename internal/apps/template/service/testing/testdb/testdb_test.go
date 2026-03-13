@@ -6,6 +6,7 @@ package testdb_test
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -41,7 +42,7 @@ func TestNewInMemorySQLiteDB(t *testing.T) {
 			sqlDB, err := db.DB()
 			require.NoError(t, err)
 
-			require.NoError(t, sqlDB.Ping())
+			require.NoError(t, sqlDB.PingContext(t.Context()))
 		})
 	}
 }
@@ -72,7 +73,7 @@ func TestRequireNewInMemorySQLiteDB_NoModels(t *testing.T) {
 	sqlDB, err := db.DB()
 	require.NoError(t, err)
 
-	require.NoError(t, sqlDB.Ping())
+	require.NoError(t, sqlDB.PingContext(t.Context()))
 }
 
 func TestRequireNewInMemorySQLiteDB_WithModels(t *testing.T) {
@@ -147,7 +148,7 @@ func TestNewPostgresTestContainer_SkipsWhenUnavailable(t *testing.T) {
 	sqlDB, err := db.DB()
 	require.NoError(t, err)
 
-	require.NoError(t, sqlDB.Ping())
+	require.NoError(t, sqlDB.PingContext(ctx))
 }
 
 func TestRequireNewPostgresTestContainer_SkipsWhenUnavailable(t *testing.T) {
@@ -167,4 +168,31 @@ func TestRequireNewPostgresTestContainer_SkipsWhenUnavailable(t *testing.T) {
 
 	require.NoError(t, db.First(&found, "id = ?", "pg-test-id").Error)
 	require.Equal(t, "pg-test-name", found.Name)
+}
+
+func TestNewClosedSQLiteDB_NoMigrations(t *testing.T) {
+	t.Parallel()
+
+	db := cryptoutilTestingTestdb.NewClosedSQLiteDB(t, nil)
+	require.NotNil(t, db)
+
+	// All operations should fail because the underlying connection is closed.
+	require.Error(t, db.Exec("SELECT 1").Error)
+}
+
+func TestNewClosedSQLiteDB_WithMigrations(t *testing.T) {
+	t.Parallel()
+
+	migrationsCalled := false
+
+	db := cryptoutilTestingTestdb.NewClosedSQLiteDB(t, func(_ *sql.DB) error {
+		migrationsCalled = true
+
+		return nil
+	})
+	require.NotNil(t, db)
+	require.True(t, migrationsCalled)
+
+	// All operations should fail because the underlying connection is closed.
+	require.Error(t, db.Exec("SELECT 1").Error)
 }

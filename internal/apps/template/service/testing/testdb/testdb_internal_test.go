@@ -101,3 +101,63 @@ func TestBuildInMemorySQLiteDB_CloseOnWALError(t *testing.T) {
 	require.Error(t, err)
 	require.True(t, closed, "openThenClose should have been called")
 }
+// TestBuildClosedSQLiteDB_Success verifies the happy path with no migrations.
+func TestBuildClosedSQLiteDB_Success(t *testing.T) {
+t.Parallel()
+
+ctx := context.Background()
+
+db, err := buildClosedSQLiteDB(ctx, sql.Open, "file:closed-success?mode=memory&cache=shared", nil)
+require.NoError(t, err)
+require.NotNil(t, db)
+
+// All operations should fail because the connection is closed.
+execErr := db.Exec("SELECT 1").Error
+require.Error(t, execErr)
+}
+
+// TestBuildClosedSQLiteDB_WithMigrations verifies migrations are called before closing.
+func TestBuildClosedSQLiteDB_WithMigrations(t *testing.T) {
+t.Parallel()
+
+ctx := context.Background()
+called := false
+
+db, err := buildClosedSQLiteDB(ctx, sql.Open, "file:closed-mig?mode=memory&cache=shared", func(_ *sql.DB) error {
+called = true
+
+return nil
+})
+require.NoError(t, err)
+require.NotNil(t, db)
+require.True(t, called)
+}
+
+// TestBuildClosedSQLiteDB_OpenFails covers openFn failure propagation.
+func TestBuildClosedSQLiteDB_OpenFails(t *testing.T) {
+t.Parallel()
+
+ctx := context.Background()
+failOpen := func(_, _ string) (*sql.DB, error) {
+return nil, fmt.Errorf("injected open failure")
+}
+
+db, err := buildClosedSQLiteDB(ctx, failOpen, "any", nil)
+require.Error(t, err)
+require.Nil(t, db)
+require.Contains(t, err.Error(), "sql.Open")
+}
+
+// TestBuildClosedSQLiteDB_MigrationsFails covers the migrations error path.
+func TestBuildClosedSQLiteDB_MigrationsFails(t *testing.T) {
+t.Parallel()
+
+ctx := context.Background()
+
+db, err := buildClosedSQLiteDB(ctx, sql.Open, "file:closed-mig-fail?mode=memory&cache=shared", func(_ *sql.DB) error {
+return fmt.Errorf("injected migration failure")
+})
+require.Error(t, err)
+require.Nil(t, db)
+require.Contains(t, err.Error(), "migrations")
+}
