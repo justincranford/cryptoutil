@@ -1,4 +1,4 @@
-﻿# Tasks - Framework v2: Service Code Quality Refactoring
+# Tasks - Framework v2: Service Code Quality Refactoring
 
 **Status**: 0 of 34 tasks complete (0%)
 **Last Updated**: 2026-03-12
@@ -435,17 +435,20 @@
 ## Cross-Cutting Tasks
 
 ### Testing
+
 - [ ] Unit tests ≥95% coverage (production), ≥98% (infrastructure/utility)
 - [ ] No skipped tests
 - [ ] Race detector clean: `go test -race ./...`
 - [ ] Test count before == test count after for all file merges
 
 ### Code Quality
+
 - [ ] Linting passes across all modified packages
 - [ ] No new TODOs without tracking
 - [ ] Fitness rules pass: `go run ./cmd/cicd lint-fitness`
 
 ### Documentation
+
 - [ ] ARCHITECTURE.md updated (Task 5.1)
 - [ ] Instruction files updated (Task 5.2)
 - [ ] framework-v3 updated (Task 5.3)

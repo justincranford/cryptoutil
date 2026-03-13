@@ -1,4 +1,4 @@
-﻿# Implementation Plan - Framework v2: Service Code Quality Refactoring
+# Implementation Plan - Framework v2: Service Code Quality Refactoring
 
 **Status**: Planning
 **Created**: 2026-03-12
