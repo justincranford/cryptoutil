@@ -7,7 +7,7 @@ package apis
 import (
 	"time"
 
-	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose/ja/model"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilJoseModels "cryptoutil/api/jose/models"
@@ -167,7 +167,7 @@ func (h *JWKHandler) HandleRotateMaterialJWK() fiber.Handler {
 
 		// Create new material key.
 		newMaterialKID := googleUuid.New()
-		newMaterial := &cryptoutilAppsJoseJaDomain.MaterialJWK{
+		newMaterial := &cryptoutilAppsJoseJaModel.MaterialJWK{
 			ID:             newMaterialKID,
 			ElasticJWKID:   elasticJWK.ID,
 			MaterialKID:    newMaterialKID.String(),
@@ -251,13 +251,13 @@ func (h *JWKHandler) HandleDecrypt() fiber.Handler {
 func mapAlgorithmToKeyType(algorithm string) string {
 	switch algorithm {
 	case cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilSharedMagic.JoseKeyTypeRSA3072, cryptoutilSharedMagic.JoseKeyTypeRSA4096:
-		return cryptoutilAppsJoseJaDomain.KeyTypeRSA
+		return cryptoutilAppsJoseJaModel.KeyTypeRSA
 	case cryptoutilSharedMagic.JoseKeyTypeECP256, cryptoutilSharedMagic.JoseKeyTypeECP384, cryptoutilSharedMagic.JoseKeyTypeECP521:
-		return cryptoutilAppsJoseJaDomain.KeyTypeEC
+		return cryptoutilAppsJoseJaModel.KeyTypeEC
 	case cryptoutilSharedMagic.JoseKeyTypeOKPEd25519, "OKP/Ed448":
-		return cryptoutilAppsJoseJaDomain.KeyTypeOKP
+		return cryptoutilAppsJoseJaModel.KeyTypeOKP
 	case cryptoutilSharedMagic.JoseKeyTypeOct256, cryptoutilSharedMagic.JoseKeyTypeOct384, cryptoutilSharedMagic.JoseKeyTypeOct512:
-		return cryptoutilAppsJoseJaDomain.KeyTypeOct
+		return cryptoutilAppsJoseJaModel.KeyTypeOct
 	default:
 		return ""
 	}

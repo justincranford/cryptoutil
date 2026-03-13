@@ -11,7 +11,7 @@ import (
 	"time"
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
-	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose/ja/model"
 	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose/ja/repository"
 	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
@@ -23,13 +23,13 @@ import (
 // ElasticJWKService provides business logic for Elastic JWK operations.
 type ElasticJWKService interface {
 	// CreateElasticJWK creates a new elastic JWK container and initial material.
-	CreateElasticJWK(ctx context.Context, tenantID googleUuid.UUID, algorithm, use string, maxMaterials int) (*cryptoutilAppsJoseJaDomain.ElasticJWK, *cryptoutilAppsJoseJaDomain.MaterialJWK, error)
+	CreateElasticJWK(ctx context.Context, tenantID googleUuid.UUID, algorithm, use string, maxMaterials int) (*cryptoutilAppsJoseJaModel.ElasticJWK, *cryptoutilAppsJoseJaModel.MaterialJWK, error)
 
 	// GetElasticJWK retrieves an elastic JWK by ID.
-	GetElasticJWK(ctx context.Context, tenantID, id googleUuid.UUID) (*cryptoutilAppsJoseJaDomain.ElasticJWK, error)
+	GetElasticJWK(ctx context.Context, tenantID, id googleUuid.UUID) (*cryptoutilAppsJoseJaModel.ElasticJWK, error)
 
 	// ListElasticJWKs lists elastic JWKs for a tenant with pagination.
-	ListElasticJWKs(ctx context.Context, tenantID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaDomain.ElasticJWK, int64, error)
+	ListElasticJWKs(ctx context.Context, tenantID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaModel.ElasticJWK, int64, error)
 
 	// DeleteElasticJWK deletes an elastic JWK and all its materials.
 	DeleteElasticJWK(ctx context.Context, tenantID, id googleUuid.UUID) error
@@ -59,7 +59,7 @@ func NewElasticJWKService(
 }
 
 // CreateElasticJWK creates a new elastic JWK container with initial material key.
-func (s *elasticJWKServiceImpl) CreateElasticJWK(ctx context.Context, tenantID googleUuid.UUID, algorithm, use string, maxMaterials int) (*cryptoutilAppsJoseJaDomain.ElasticJWK, *cryptoutilAppsJoseJaDomain.MaterialJWK, error) {
+func (s *elasticJWKServiceImpl) CreateElasticJWK(ctx context.Context, tenantID googleUuid.UUID, algorithm, use string, maxMaterials int) (*cryptoutilAppsJoseJaModel.ElasticJWK, *cryptoutilAppsJoseJaModel.MaterialJWK, error) {
 	// Validate algorithm and derive key type.
 	keyType := mapAlgorithmToKeyType(algorithm)
 	if keyType == "" {
@@ -67,7 +67,7 @@ func (s *elasticJWKServiceImpl) CreateElasticJWK(ctx context.Context, tenantID g
 	}
 
 	// Validate use.
-	if use != cryptoutilAppsJoseJaDomain.KeyUseSig && use != cryptoutilAppsJoseJaDomain.KeyUseEnc {
+	if use != cryptoutilAppsJoseJaModel.KeyUseSig && use != cryptoutilAppsJoseJaModel.KeyUseEnc {
 		return nil, nil, fmt.Errorf("invalid key use: %s (must be 'sig' or 'enc')", use)
 	}
 
@@ -81,7 +81,7 @@ func (s *elasticJWKServiceImpl) CreateElasticJWK(ctx context.Context, tenantID g
 	elasticKID := elasticID.String()
 
 	// Create elastic JWK record.
-	elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
+	elasticJWK := &cryptoutilAppsJoseJaModel.ElasticJWK{
 		ID:                   elasticID,
 		TenantID:             tenantID,
 		KID:                  elasticKID,
@@ -111,7 +111,7 @@ func (s *elasticJWKServiceImpl) CreateElasticJWK(ctx context.Context, tenantID g
 }
 
 // GetElasticJWK retrieves an elastic JWK by ID.
-func (s *elasticJWKServiceImpl) GetElasticJWK(ctx context.Context, tenantID, id googleUuid.UUID) (*cryptoutilAppsJoseJaDomain.ElasticJWK, error) {
+func (s *elasticJWKServiceImpl) GetElasticJWK(ctx context.Context, tenantID, id googleUuid.UUID) (*cryptoutilAppsJoseJaModel.ElasticJWK, error) {
 	elasticJWK, err := s.elasticRepo.GetByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get elastic JWK: %w", err)
@@ -126,7 +126,7 @@ func (s *elasticJWKServiceImpl) GetElasticJWK(ctx context.Context, tenantID, id 
 }
 
 // ListElasticJWKs lists elastic JWKs for a tenant with pagination.
-func (s *elasticJWKServiceImpl) ListElasticJWKs(ctx context.Context, tenantID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaDomain.ElasticJWK, int64, error) {
+func (s *elasticJWKServiceImpl) ListElasticJWKs(ctx context.Context, tenantID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaModel.ElasticJWK, int64, error) {
 	elasticJWKs, total, err := s.elasticRepo.List(ctx, tenantID, offset, limit)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to list elastic JWKs: %w", err)
@@ -164,7 +164,7 @@ func (s *elasticJWKServiceImpl) DeleteElasticJWK(ctx context.Context, tenantID, 
 }
 
 // createMaterialJWK generates and stores a new material key for an elastic JWK.
-func (s *elasticJWKServiceImpl) createMaterialJWK(ctx context.Context, elasticJWK *cryptoutilAppsJoseJaDomain.ElasticJWK, active bool) (*cryptoutilAppsJoseJaDomain.MaterialJWK, error) {
+func (s *elasticJWKServiceImpl) createMaterialJWK(ctx context.Context, elasticJWK *cryptoutilAppsJoseJaModel.ElasticJWK, active bool) (*cryptoutilAppsJoseJaModel.MaterialJWK, error) {
 	// Generate material ID.
 	materialID := googleUuid.New()
 	materialKID := materialID.String()
@@ -223,7 +223,7 @@ func (s *elasticJWKServiceImpl) createMaterialJWK(ctx context.Context, elasticJW
 
 	// Create material JWK record.
 	// Note: MaterialJWK.PrivateJWKJWE and PublicJWKJWE are strings.
-	materialJWK := &cryptoutilAppsJoseJaDomain.MaterialJWK{
+	materialJWK := &cryptoutilAppsJoseJaModel.MaterialJWK{
 		ID:             materialID,
 		ElasticJWKID:   elasticJWK.ID,
 		MaterialKID:    materialKID,
@@ -248,17 +248,17 @@ func mapAlgorithmToKeyType(algorithm string) string {
 	case cryptoutilSharedMagic.JoseAlgRS256, cryptoutilSharedMagic.JoseAlgRS384, cryptoutilSharedMagic.JoseAlgRS512,
 		cryptoutilSharedMagic.JoseAlgPS256, cryptoutilSharedMagic.JoseAlgPS384, cryptoutilSharedMagic.JoseAlgPS512,
 		cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilSharedMagic.JoseKeyTypeRSA3072, cryptoutilSharedMagic.JoseKeyTypeRSA4096:
-		return cryptoutilAppsJoseJaDomain.KeyTypeRSA
+		return cryptoutilAppsJoseJaModel.KeyTypeRSA
 	case cryptoutilSharedMagic.JoseAlgES256, cryptoutilSharedMagic.JoseAlgES384, cryptoutilSharedMagic.JoseAlgES512,
 		cryptoutilSharedMagic.JoseKeyTypeECP256, cryptoutilSharedMagic.JoseKeyTypeECP384, cryptoutilSharedMagic.JoseKeyTypeECP521:
-		return cryptoutilAppsJoseJaDomain.KeyTypeEC
+		return cryptoutilAppsJoseJaModel.KeyTypeEC
 	case cryptoutilSharedMagic.JoseAlgEdDSA, cryptoutilSharedMagic.JoseKeyTypeOKPEd25519:
-		return cryptoutilAppsJoseJaDomain.KeyTypeOKP
+		return cryptoutilAppsJoseJaModel.KeyTypeOKP
 	case cryptoutilSharedMagic.JoseEncA128GCM, cryptoutilSharedMagic.JoseEncA192GCM, cryptoutilSharedMagic.JoseEncA256GCM,
 		cryptoutilSharedMagic.JoseEncA128CBCHS256, cryptoutilSharedMagic.JoseEncA192CBCHS384, cryptoutilSharedMagic.JoseEncA256CBCHS512,
 		cryptoutilSharedMagic.JoseKeyTypeOct128, cryptoutilSharedMagic.JoseKeyTypeOct192, cryptoutilSharedMagic.JoseKeyTypeOct256,
 		cryptoutilSharedMagic.JoseKeyTypeOct384, cryptoutilSharedMagic.JoseKeyTypeOct512:
-		return cryptoutilAppsJoseJaDomain.KeyTypeOct
+		return cryptoutilAppsJoseJaModel.KeyTypeOct
 	default:
 		return ""
 	}

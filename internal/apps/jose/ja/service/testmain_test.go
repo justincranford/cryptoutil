@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"os"
 	"testing"
+	"time"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"gorm.io/driver/sqlite"
@@ -18,6 +19,7 @@ import (
 	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose/ja/repository"
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilTestdb "cryptoutil/internal/apps/template/service/testing/testdb"
 	cryptoutilUnsealKeysService "cryptoutil/internal/apps/template/service/server/barrier/unsealkeysservice"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -141,4 +143,33 @@ func TestMain(m *testing.M) {
 
 	// Cleanup happens via defer.
 	os.Exit(exitCode)
+}
+
+func newClosedServiceDeps(t *testing.T) (cryptoutilAppsJoseJaRepository.ElasticJWKRepository, cryptoutilAppsJoseJaRepository.MaterialJWKRepository, cryptoutilAppsJoseJaRepository.AuditLogRepository, cryptoutilAppsJoseJaRepository.AuditConfigRepository) {
+	t.Helper()
+
+	closedDB := cryptoutilTestdb.NewClosedSQLiteDB(t, func(sqlDB *sql.DB) error {
+		return cryptoutilAppsJoseJaRepository.ApplyJoseJAMigrations(sqlDB, cryptoutilAppsJoseJaRepository.DatabaseTypeSQLite)
+	})
+
+	elasticRepo := cryptoutilAppsJoseJaRepository.NewElasticJWKRepository(closedDB)
+	materialRepo := cryptoutilAppsJoseJaRepository.NewMaterialJWKRepository(closedDB)
+	auditLogRepo := cryptoutilAppsJoseJaRepository.NewAuditLogRepository(closedDB)
+	auditConfigRepo := cryptoutilAppsJoseJaRepository.NewAuditConfigRepository(closedDB)
+
+	return elasticRepo, materialRepo, auditLogRepo, auditConfigRepo
+}
+
+func closedDBMaterialRepo(t *testing.T) cryptoutilAppsJoseJaRepository.MaterialJWKRepository {
+	t.Helper()
+
+	closedDB := cryptoutilTestdb.NewClosedSQLiteDB(t, func(sqlDB *sql.DB) error {
+		return cryptoutilAppsJoseJaRepository.ApplyJoseJAMigrations(sqlDB, cryptoutilAppsJoseJaRepository.DatabaseTypeSQLite)
+	})
+
+	return cryptoutilAppsJoseJaRepository.NewMaterialJWKRepository(closedDB)
+}
+
+func timePtr(t time.Time) *time.Time {
+	return &t
 }

@@ -7,7 +7,7 @@ import (
 	"context"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose/ja/model"
 	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 
@@ -21,40 +21,40 @@ type MockElasticJWKRepository struct {
 	mock.Mock
 }
 
-func (m *MockElasticJWKRepository) Create(ctx context.Context, jwk *cryptoutilAppsJoseJaDomain.ElasticJWK) error {
+func (m *MockElasticJWKRepository) Create(ctx context.Context, jwk *cryptoutilAppsJoseJaModel.ElasticJWK) error {
 	args := m.Called(ctx, jwk)
 
 	return args.Error(0) //nolint:wrapcheck // Mock returns test-controlled error
 }
 
-func (m *MockElasticJWKRepository) Get(ctx context.Context, tenantID googleUuid.UUID, kid string) (*cryptoutilAppsJoseJaDomain.ElasticJWK, error) {
+func (m *MockElasticJWKRepository) Get(ctx context.Context, tenantID googleUuid.UUID, kid string) (*cryptoutilAppsJoseJaModel.ElasticJWK, error) {
 	args := m.Called(ctx, tenantID, kid)
 	if args.Get(0) == nil {
 		return nil, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 	}
 
-	return args.Get(0).(*cryptoutilAppsJoseJaDomain.ElasticJWK), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	return args.Get(0).(*cryptoutilAppsJoseJaModel.ElasticJWK), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 }
 
-func (m *MockElasticJWKRepository) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilAppsJoseJaDomain.ElasticJWK, error) {
+func (m *MockElasticJWKRepository) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilAppsJoseJaModel.ElasticJWK, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 	}
 
-	return args.Get(0).(*cryptoutilAppsJoseJaDomain.ElasticJWK), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	return args.Get(0).(*cryptoutilAppsJoseJaModel.ElasticJWK), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 }
 
-func (m *MockElasticJWKRepository) List(ctx context.Context, tenantID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaDomain.ElasticJWK, int64, error) {
+func (m *MockElasticJWKRepository) List(ctx context.Context, tenantID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaModel.ElasticJWK, int64, error) {
 	args := m.Called(ctx, tenantID, offset, limit)
 	if args.Get(0) == nil {
 		return nil, args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 	}
 
-	return args.Get(0).([]*cryptoutilAppsJoseJaDomain.ElasticJWK), args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	return args.Get(0).([]*cryptoutilAppsJoseJaModel.ElasticJWK), args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 }
 
-func (m *MockElasticJWKRepository) Update(ctx context.Context, jwk *cryptoutilAppsJoseJaDomain.ElasticJWK) error {
+func (m *MockElasticJWKRepository) Update(ctx context.Context, jwk *cryptoutilAppsJoseJaModel.ElasticJWK) error {
 	args := m.Called(ctx, jwk)
 
 	return args.Error(0) //nolint:wrapcheck // Mock returns test-controlled error
@@ -83,49 +83,49 @@ type MockMaterialJWKRepository struct {
 	mock.Mock
 }
 
-func (m *MockMaterialJWKRepository) Create(ctx context.Context, jwk *cryptoutilAppsJoseJaDomain.MaterialJWK) error {
+func (m *MockMaterialJWKRepository) Create(ctx context.Context, jwk *cryptoutilAppsJoseJaModel.MaterialJWK) error {
 	args := m.Called(ctx, jwk)
 
 	return args.Error(0) //nolint:wrapcheck // Mock returns test-controlled error
 }
 
-func (m *MockMaterialJWKRepository) GetByMaterialKID(ctx context.Context, materialKID string) (*cryptoutilAppsJoseJaDomain.MaterialJWK, error) {
+func (m *MockMaterialJWKRepository) GetByMaterialKID(ctx context.Context, materialKID string) (*cryptoutilAppsJoseJaModel.MaterialJWK, error) {
 	args := m.Called(ctx, materialKID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 	}
 
-	return args.Get(0).(*cryptoutilAppsJoseJaDomain.MaterialJWK), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	return args.Get(0).(*cryptoutilAppsJoseJaModel.MaterialJWK), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 }
 
-func (m *MockMaterialJWKRepository) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilAppsJoseJaDomain.MaterialJWK, error) {
+func (m *MockMaterialJWKRepository) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilAppsJoseJaModel.MaterialJWK, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 	}
 
-	return args.Get(0).(*cryptoutilAppsJoseJaDomain.MaterialJWK), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	return args.Get(0).(*cryptoutilAppsJoseJaModel.MaterialJWK), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 }
 
-func (m *MockMaterialJWKRepository) GetActiveMaterial(ctx context.Context, elasticJWKID googleUuid.UUID) (*cryptoutilAppsJoseJaDomain.MaterialJWK, error) {
+func (m *MockMaterialJWKRepository) GetActiveMaterial(ctx context.Context, elasticJWKID googleUuid.UUID) (*cryptoutilAppsJoseJaModel.MaterialJWK, error) {
 	args := m.Called(ctx, elasticJWKID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 	}
 
-	return args.Get(0).(*cryptoutilAppsJoseJaDomain.MaterialJWK), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	return args.Get(0).(*cryptoutilAppsJoseJaModel.MaterialJWK), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 }
 
-func (m *MockMaterialJWKRepository) ListByElasticJWK(ctx context.Context, elasticJWKID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaDomain.MaterialJWK, int64, error) {
+func (m *MockMaterialJWKRepository) ListByElasticJWK(ctx context.Context, elasticJWKID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaModel.MaterialJWK, int64, error) {
 	args := m.Called(ctx, elasticJWKID, offset, limit)
 	if args.Get(0) == nil {
 		return nil, args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 	}
 
-	return args.Get(0).([]*cryptoutilAppsJoseJaDomain.MaterialJWK), args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	return args.Get(0).([]*cryptoutilAppsJoseJaModel.MaterialJWK), args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 }
 
-func (m *MockMaterialJWKRepository) RotateMaterial(ctx context.Context, elasticJWKID googleUuid.UUID, newMaterial *cryptoutilAppsJoseJaDomain.MaterialJWK) error {
+func (m *MockMaterialJWKRepository) RotateMaterial(ctx context.Context, elasticJWKID googleUuid.UUID, newMaterial *cryptoutilAppsJoseJaModel.MaterialJWK) error {
 	args := m.Called(ctx, elasticJWKID, newMaterial)
 
 	return args.Error(0) //nolint:wrapcheck // Mock returns test-controlled error
@@ -154,25 +154,25 @@ type MockAuditConfigRepository struct {
 	mock.Mock
 }
 
-func (m *MockAuditConfigRepository) Get(ctx context.Context, tenantID googleUuid.UUID, operation string) (*cryptoutilAppsJoseJaDomain.AuditConfig, error) {
+func (m *MockAuditConfigRepository) Get(ctx context.Context, tenantID googleUuid.UUID, operation string) (*cryptoutilAppsJoseJaModel.AuditConfig, error) {
 	args := m.Called(ctx, tenantID, operation)
 	if args.Get(0) == nil {
 		return nil, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 	}
 
-	return args.Get(0).(*cryptoutilAppsJoseJaDomain.AuditConfig), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	return args.Get(0).(*cryptoutilAppsJoseJaModel.AuditConfig), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 }
 
-func (m *MockAuditConfigRepository) GetAllForTenant(ctx context.Context, tenantID googleUuid.UUID) ([]*cryptoutilAppsJoseJaDomain.AuditConfig, error) {
+func (m *MockAuditConfigRepository) GetAllForTenant(ctx context.Context, tenantID googleUuid.UUID) ([]*cryptoutilAppsJoseJaModel.AuditConfig, error) {
 	args := m.Called(ctx, tenantID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 	}
 
-	return args.Get(0).([]*cryptoutilAppsJoseJaDomain.AuditConfig), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	return args.Get(0).([]*cryptoutilAppsJoseJaModel.AuditConfig), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 }
 
-func (m *MockAuditConfigRepository) Upsert(ctx context.Context, config *cryptoutilAppsJoseJaDomain.AuditConfig) error {
+func (m *MockAuditConfigRepository) Upsert(ctx context.Context, config *cryptoutilAppsJoseJaModel.AuditConfig) error {
 	args := m.Called(ctx, config)
 
 	return args.Error(0) //nolint:wrapcheck // Mock returns test-controlled error
@@ -195,46 +195,46 @@ type MockAuditLogRepository struct {
 	mock.Mock
 }
 
-func (m *MockAuditLogRepository) Create(ctx context.Context, entry *cryptoutilAppsJoseJaDomain.AuditLogEntry) error {
+func (m *MockAuditLogRepository) Create(ctx context.Context, entry *cryptoutilAppsJoseJaModel.AuditLogEntry) error {
 	args := m.Called(ctx, entry)
 
 	return args.Error(0) //nolint:wrapcheck // Mock returns test-controlled error
 }
 
-func (m *MockAuditLogRepository) List(ctx context.Context, tenantID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaDomain.AuditLogEntry, int64, error) {
+func (m *MockAuditLogRepository) List(ctx context.Context, tenantID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaModel.AuditLogEntry, int64, error) {
 	args := m.Called(ctx, tenantID, offset, limit)
 	if args.Get(0) == nil {
 		return nil, args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 	}
 
-	return args.Get(0).([]*cryptoutilAppsJoseJaDomain.AuditLogEntry), args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	return args.Get(0).([]*cryptoutilAppsJoseJaModel.AuditLogEntry), args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 }
 
-func (m *MockAuditLogRepository) ListByElasticJWK(ctx context.Context, elasticJWKID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaDomain.AuditLogEntry, int64, error) {
+func (m *MockAuditLogRepository) ListByElasticJWK(ctx context.Context, elasticJWKID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaModel.AuditLogEntry, int64, error) {
 	args := m.Called(ctx, elasticJWKID, offset, limit)
 	if args.Get(0) == nil {
 		return nil, args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 	}
 
-	return args.Get(0).([]*cryptoutilAppsJoseJaDomain.AuditLogEntry), args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	return args.Get(0).([]*cryptoutilAppsJoseJaModel.AuditLogEntry), args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 }
 
-func (m *MockAuditLogRepository) ListByOperation(ctx context.Context, tenantID googleUuid.UUID, operation string, offset, limit int) ([]*cryptoutilAppsJoseJaDomain.AuditLogEntry, int64, error) {
+func (m *MockAuditLogRepository) ListByOperation(ctx context.Context, tenantID googleUuid.UUID, operation string, offset, limit int) ([]*cryptoutilAppsJoseJaModel.AuditLogEntry, int64, error) {
 	args := m.Called(ctx, tenantID, operation, offset, limit)
 	if args.Get(0) == nil {
 		return nil, args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 	}
 
-	return args.Get(0).([]*cryptoutilAppsJoseJaDomain.AuditLogEntry), args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	return args.Get(0).([]*cryptoutilAppsJoseJaModel.AuditLogEntry), args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 }
 
-func (m *MockAuditLogRepository) GetByRequestID(ctx context.Context, requestID string) (*cryptoutilAppsJoseJaDomain.AuditLogEntry, error) {
+func (m *MockAuditLogRepository) GetByRequestID(ctx context.Context, requestID string) (*cryptoutilAppsJoseJaModel.AuditLogEntry, error) {
 	args := m.Called(ctx, requestID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 	}
 
-	return args.Get(0).(*cryptoutilAppsJoseJaDomain.AuditLogEntry), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	return args.Get(0).(*cryptoutilAppsJoseJaModel.AuditLogEntry), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 }
 
 func (m *MockAuditLogRepository) DeleteOlderThan(ctx context.Context, tenantID googleUuid.UUID, days int) (int64, error) {

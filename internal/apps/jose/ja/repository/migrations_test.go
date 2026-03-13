@@ -3,8 +3,13 @@
 package repository
 
 import (
+	"database/sql"
 	"io/fs"
+	"strings"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	"github.com/stretchr/testify/require"
 )
@@ -194,4 +199,88 @@ func TestMergedFS_Stat_Directory(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, info)
 	require.True(t, info.IsDir())
+}
+
+func TestApplyJoseJAMigrations_Error(t *testing.T) {
+	t.Parallel()
+
+	// Create a closed database to force migration error.
+	dbID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
+
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dsn)
+	require.NoError(t, err)
+
+	// Close immediately without applying migrations.
+	err = sqlDB.Close()
+	require.NoError(t, err)
+
+	// Now try to apply migrations to the closed DB.
+	err = ApplyJoseJAMigrations(sqlDB, DatabaseTypeSQLite)
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "failed to apply jose-ja migrations"))
+}
+
+func TestMergedFS_OpenError(t *testing.T) {
+	t.Parallel()
+
+	// Get the merged FS.
+	mergedFS := GetMergedMigrationsFS()
+
+	// Try to open a file that doesn't exist.
+	_, err := mergedFS.Open("nonexistent_file.sql")
+
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "failed to open from template"))
+}
+
+func TestMergedFS_ReadDirEmpty(t *testing.T) {
+	t.Parallel()
+
+	// Get the merged FS.
+	mergedFS := GetMergedMigrationsFS()
+
+	// Try to read a directory that doesn't exist.
+	readDirFS, ok := mergedFS.(interface {
+		ReadDir(name string) ([]fs.DirEntry, error)
+	})
+	require.True(t, ok, "mergedFS does not implement ReadDir")
+
+	_, err := readDirFS.ReadDir("nonexistent_directory")
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "directory not found"))
+}
+
+func TestMergedFS_ReadFileError(t *testing.T) {
+	t.Parallel()
+
+	// Get the merged FS.
+	mergedFS := GetMergedMigrationsFS()
+
+	// Try to read a file that doesn't exist.
+	readFileFS, ok := mergedFS.(interface {
+		ReadFile(name string) ([]byte, error)
+	})
+	require.True(t, ok, "mergedFS does not implement ReadFile")
+
+	_, err := readFileFS.ReadFile("nonexistent_file.sql")
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "failed to read from template"))
+}
+
+func TestMergedFS_StatError(t *testing.T) {
+	t.Parallel()
+
+	// Get the merged FS.
+	mergedFS := GetMergedMigrationsFS()
+
+	// Try to stat a file that doesn't exist.
+	statFS, ok := mergedFS.(interface {
+		Stat(name string) (fs.FileInfo, error)
+	})
+	require.True(t, ok, "mergedFS does not implement Stat")
+
+	_, err := statFS.Stat("nonexistent_file.sql")
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "failed to stat from template"))
 }

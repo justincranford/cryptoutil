@@ -7,7 +7,7 @@ package apis
 import (
 	"time"
 
-	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose/ja/model"
 	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose/ja/repository"
 	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
@@ -49,7 +49,7 @@ func NewJWKHandler(
 }
 
 // toElasticJWKResponse maps a domain ElasticJWK to a generated ElasticJWKResponse.
-func toElasticJWKResponse(ejwk *cryptoutilAppsJoseJaDomain.ElasticJWK) cryptoutilJoseModels.ElasticJWKResponse {
+func toElasticJWKResponse(ejwk *cryptoutilAppsJoseJaModel.ElasticJWK) cryptoutilJoseModels.ElasticJWKResponse {
 	return cryptoutilJoseModels.ElasticJWKResponse{
 		Kid:                  ejwk.KID,
 		TenantID:             ejwk.TenantID.String(),
@@ -63,7 +63,7 @@ func toElasticJWKResponse(ejwk *cryptoutilAppsJoseJaDomain.ElasticJWK) cryptouti
 }
 
 // toMaterialJWKResponse maps a domain MaterialJWK to a generated MaterialJWKResponse.
-func toMaterialJWKResponse(mat *cryptoutilAppsJoseJaDomain.MaterialJWK) cryptoutilJoseModels.MaterialJWKResponse {
+func toMaterialJWKResponse(mat *cryptoutilAppsJoseJaModel.MaterialJWK) cryptoutilJoseModels.MaterialJWKResponse {
 	resp := cryptoutilJoseModels.MaterialJWKResponse{
 		MaterialKid:    mat.MaterialKID,
 		ElasticJWKID:   mat.ElasticJWKID.String(),
@@ -131,7 +131,7 @@ func (h *JWKHandler) HandleCreateElasticJWK() fiber.Handler {
 		kid := googleUuid.New()
 
 		// Create elastic JWK record.
-		elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
+		elasticJWK := &cryptoutilAppsJoseJaModel.ElasticJWK{
 			ID:                   kid,
 			TenantID:             tenantUUID,
 			KID:                  kid.String(),
@@ -332,7 +332,7 @@ func (h *JWKHandler) HandleCreateMaterialJWK() fiber.Handler {
 
 		// TODO: Implement actual JWK generation based on elastic JWK algorithm.
 		// For now, create placeholder material with string JWE placeholders.
-		material := &cryptoutilAppsJoseJaDomain.MaterialJWK{
+		material := &cryptoutilAppsJoseJaModel.MaterialJWK{
 			ID:             materialKID,
 			ElasticJWKID:   elasticJWK.ID,
 			MaterialKID:    materialKID.String(),

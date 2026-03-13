@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose/ja/model"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	googleUuid "github.com/google/uuid"
@@ -26,11 +26,11 @@ func TestMaterialJWKRepository_Create(t *testing.T) {
 	// Create parent ElasticJWK first.
 	elasticJWKID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-	elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
+	elasticJWK := &cryptoutilAppsJoseJaModel.ElasticJWK{
 		ID:                   *elasticJWKID,
 		TenantID:             *tenantID,
 		KID:                  "test-elastic-" + elasticJWKID.String()[:cryptoutilSharedMagic.IMMinPasswordLength],
-		KeyType:              cryptoutilAppsJoseJaDomain.KeyTypeRSA,
+		KeyType:              cryptoutilAppsJoseJaModel.KeyTypeRSA,
 		Algorithm:            cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		Use:                  cryptoutilSharedMagic.JoseKeyUseSig,
 		MaxMaterials:         cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
@@ -46,7 +46,7 @@ func TestMaterialJWKRepository_Create(t *testing.T) {
 
 	// Create MaterialJWK.
 	id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-	testMaterial := &cryptoutilAppsJoseJaDomain.MaterialJWK{
+	testMaterial := &cryptoutilAppsJoseJaModel.MaterialJWK{
 		ID:             *id,
 		ElasticJWKID:   *elasticJWKID,
 		MaterialKID:    "material-" + id.String()[:cryptoutilSharedMagic.IMMinPasswordLength],
@@ -81,11 +81,11 @@ func TestMaterialJWKRepository_GetByMaterialKID(t *testing.T) {
 	// Setup parent ElasticJWK.
 	elasticJWKID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-	elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
+	elasticJWK := &cryptoutilAppsJoseJaModel.ElasticJWK{
 		ID:                   *elasticJWKID,
 		TenantID:             *tenantID,
 		KID:                  "test-elastic-" + elasticJWKID.String()[:cryptoutilSharedMagic.IMMinPasswordLength],
-		KeyType:              cryptoutilAppsJoseJaDomain.KeyTypeRSA,
+		KeyType:              cryptoutilAppsJoseJaModel.KeyTypeRSA,
 		Algorithm:            cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		Use:                  cryptoutilSharedMagic.JoseKeyUseSig,
 		MaxMaterials:         cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
@@ -102,7 +102,7 @@ func TestMaterialJWKRepository_GetByMaterialKID(t *testing.T) {
 	// Create MaterialJWK.
 	id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	materialKID := "material-kid-" + id.String()[:cryptoutilSharedMagic.IMMinPasswordLength]
-	testMaterial := &cryptoutilAppsJoseJaDomain.MaterialJWK{
+	testMaterial := &cryptoutilAppsJoseJaModel.MaterialJWK{
 		ID:             *id,
 		ElasticJWKID:   *elasticJWKID,
 		MaterialKID:    materialKID,
@@ -138,11 +138,11 @@ func TestMaterialJWKRepository_GetByID(t *testing.T) {
 	// Setup parent ElasticJWK.
 	elasticJWKID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-	elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
+	elasticJWK := &cryptoutilAppsJoseJaModel.ElasticJWK{
 		ID:                   *elasticJWKID,
 		TenantID:             *tenantID,
 		KID:                  "test-elastic-" + elasticJWKID.String()[:cryptoutilSharedMagic.IMMinPasswordLength],
-		KeyType:              cryptoutilAppsJoseJaDomain.KeyTypeRSA,
+		KeyType:              cryptoutilAppsJoseJaModel.KeyTypeRSA,
 		Algorithm:            cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		Use:                  cryptoutilSharedMagic.JoseKeyUseSig,
 		MaxMaterials:         cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
@@ -158,7 +158,7 @@ func TestMaterialJWKRepository_GetByID(t *testing.T) {
 
 	// Create MaterialJWK.
 	id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-	testMaterial := &cryptoutilAppsJoseJaDomain.MaterialJWK{
+	testMaterial := &cryptoutilAppsJoseJaModel.MaterialJWK{
 		ID:             *id,
 		ElasticJWKID:   *elasticJWKID,
 		MaterialKID:    "material-" + id.String()[:cryptoutilSharedMagic.IMMinPasswordLength],
@@ -195,11 +195,11 @@ func TestMaterialJWKRepository_GetActiveMaterial(t *testing.T) {
 	// Setup parent ElasticJWK.
 	elasticJWKID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-	elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
+	elasticJWK := &cryptoutilAppsJoseJaModel.ElasticJWK{
 		ID:                   *elasticJWKID,
 		TenantID:             *tenantID,
 		KID:                  "test-elastic-" + elasticJWKID.String()[:cryptoutilSharedMagic.IMMinPasswordLength],
-		KeyType:              cryptoutilAppsJoseJaDomain.KeyTypeRSA,
+		KeyType:              cryptoutilAppsJoseJaModel.KeyTypeRSA,
 		Algorithm:            cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		Use:                  cryptoutilSharedMagic.JoseKeyUseSig,
 		MaxMaterials:         cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
@@ -215,7 +215,7 @@ func TestMaterialJWKRepository_GetActiveMaterial(t *testing.T) {
 
 	// Create inactive material.
 	inactiveID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-	inactiveMaterial := &cryptoutilAppsJoseJaDomain.MaterialJWK{
+	inactiveMaterial := &cryptoutilAppsJoseJaModel.MaterialJWK{
 		ID:             *inactiveID,
 		ElasticJWKID:   *elasticJWKID,
 		MaterialKID:    "inactive-" + inactiveID.String()[:cryptoutilSharedMagic.IMMinPasswordLength],
@@ -233,7 +233,7 @@ func TestMaterialJWKRepository_GetActiveMaterial(t *testing.T) {
 
 	// Create active material.
 	activeID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-	activeMaterial := &cryptoutilAppsJoseJaDomain.MaterialJWK{
+	activeMaterial := &cryptoutilAppsJoseJaModel.MaterialJWK{
 		ID:             *activeID,
 		ElasticJWKID:   *elasticJWKID,
 		MaterialKID:    "active-" + activeID.String()[:cryptoutilSharedMagic.IMMinPasswordLength],
@@ -271,11 +271,11 @@ func TestMaterialJWKRepository_ListByElasticJWK(t *testing.T) {
 	// Setup parent ElasticJWK.
 	elasticJWKID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-	elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
+	elasticJWK := &cryptoutilAppsJoseJaModel.ElasticJWK{
 		ID:                   *elasticJWKID,
 		TenantID:             *tenantID,
 		KID:                  "test-elastic-" + elasticJWKID.String()[:cryptoutilSharedMagic.IMMinPasswordLength],
-		KeyType:              cryptoutilAppsJoseJaDomain.KeyTypeRSA,
+		KeyType:              cryptoutilAppsJoseJaModel.KeyTypeRSA,
 		Algorithm:            cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
 		Use:                  cryptoutilSharedMagic.JoseKeyUseSig,
 		MaxMaterials:         cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
@@ -296,7 +296,7 @@ func TestMaterialJWKRepository_ListByElasticJWK(t *testing.T) {
 		id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 		materialKID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 		materialIDs[i] = *id
-		material := &cryptoutilAppsJoseJaDomain.MaterialJWK{
+		material := &cryptoutilAppsJoseJaModel.MaterialJWK{
 			ID:             *id,
 			ElasticJWKID:   *elasticJWKID,
 			MaterialKID:    "material-" + materialKID.String(),

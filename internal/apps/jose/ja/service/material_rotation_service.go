@@ -11,7 +11,7 @@ import (
 	"time"
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
-	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose/ja/model"
 	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose/ja/repository"
 	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
@@ -23,19 +23,19 @@ import (
 // MaterialRotationService provides business logic for material JWK rotation.
 type MaterialRotationService interface {
 	// RotateMaterial creates a new active material and marks previous as inactive.
-	RotateMaterial(ctx context.Context, tenantID, elasticJWKID googleUuid.UUID) (*cryptoutilAppsJoseJaDomain.MaterialJWK, error)
+	RotateMaterial(ctx context.Context, tenantID, elasticJWKID googleUuid.UUID) (*cryptoutilAppsJoseJaModel.MaterialJWK, error)
 
 	// RetireMaterial marks a material JWK as retired (no longer usable for signing/encryption).
 	RetireMaterial(ctx context.Context, tenantID, elasticJWKID, materialID googleUuid.UUID) error
 
 	// ListMaterials lists all materials for an elastic JWK.
-	ListMaterials(ctx context.Context, tenantID, elasticJWKID googleUuid.UUID) ([]*cryptoutilAppsJoseJaDomain.MaterialJWK, error)
+	ListMaterials(ctx context.Context, tenantID, elasticJWKID googleUuid.UUID) ([]*cryptoutilAppsJoseJaModel.MaterialJWK, error)
 
 	// GetActiveMaterial gets the currently active material for an elastic JWK.
-	GetActiveMaterial(ctx context.Context, tenantID, elasticJWKID googleUuid.UUID) (*cryptoutilAppsJoseJaDomain.MaterialJWK, error)
+	GetActiveMaterial(ctx context.Context, tenantID, elasticJWKID googleUuid.UUID) (*cryptoutilAppsJoseJaModel.MaterialJWK, error)
 
 	// GetMaterialByKID gets a material by its KID (for decryption/verification).
-	GetMaterialByKID(ctx context.Context, tenantID, elasticJWKID googleUuid.UUID, kid string) (*cryptoutilAppsJoseJaDomain.MaterialJWK, error)
+	GetMaterialByKID(ctx context.Context, tenantID, elasticJWKID googleUuid.UUID, kid string) (*cryptoutilAppsJoseJaModel.MaterialJWK, error)
 }
 
 // materialRotationServiceImpl implements MaterialRotationService.
@@ -62,7 +62,7 @@ func NewMaterialRotationService(
 }
 
 // RotateMaterial creates a new active material and marks previous as inactive.
-func (s *materialRotationServiceImpl) RotateMaterial(ctx context.Context, tenantID, elasticJWKID googleUuid.UUID) (*cryptoutilAppsJoseJaDomain.MaterialJWK, error) {
+func (s *materialRotationServiceImpl) RotateMaterial(ctx context.Context, tenantID, elasticJWKID googleUuid.UUID) (*cryptoutilAppsJoseJaModel.MaterialJWK, error) {
 	// Verify tenant ownership and get elastic JWK.
 	elasticJWK, err := s.elasticRepo.GetByID(ctx, elasticJWKID)
 	if err != nil {
@@ -134,7 +134,7 @@ func (s *materialRotationServiceImpl) RetireMaterial(ctx context.Context, tenant
 }
 
 // ListMaterials lists all materials for an elastic JWK.
-func (s *materialRotationServiceImpl) ListMaterials(ctx context.Context, tenantID, elasticJWKID googleUuid.UUID) ([]*cryptoutilAppsJoseJaDomain.MaterialJWK, error) {
+func (s *materialRotationServiceImpl) ListMaterials(ctx context.Context, tenantID, elasticJWKID googleUuid.UUID) ([]*cryptoutilAppsJoseJaModel.MaterialJWK, error) {
 	// Verify tenant ownership.
 	elasticJWK, err := s.elasticRepo.GetByID(ctx, elasticJWKID)
 	if err != nil {
@@ -155,7 +155,7 @@ func (s *materialRotationServiceImpl) ListMaterials(ctx context.Context, tenantI
 }
 
 // GetActiveMaterial gets the currently active material for an elastic JWK.
-func (s *materialRotationServiceImpl) GetActiveMaterial(ctx context.Context, tenantID, elasticJWKID googleUuid.UUID) (*cryptoutilAppsJoseJaDomain.MaterialJWK, error) {
+func (s *materialRotationServiceImpl) GetActiveMaterial(ctx context.Context, tenantID, elasticJWKID googleUuid.UUID) (*cryptoutilAppsJoseJaModel.MaterialJWK, error) {
 	// Verify tenant ownership.
 	elasticJWK, err := s.elasticRepo.GetByID(ctx, elasticJWKID)
 	if err != nil {
@@ -176,7 +176,7 @@ func (s *materialRotationServiceImpl) GetActiveMaterial(ctx context.Context, ten
 }
 
 // GetMaterialByKID gets a material by its KID.
-func (s *materialRotationServiceImpl) GetMaterialByKID(ctx context.Context, tenantID, elasticJWKID googleUuid.UUID, kid string) (*cryptoutilAppsJoseJaDomain.MaterialJWK, error) {
+func (s *materialRotationServiceImpl) GetMaterialByKID(ctx context.Context, tenantID, elasticJWKID googleUuid.UUID, kid string) (*cryptoutilAppsJoseJaModel.MaterialJWK, error) {
 	// Verify tenant ownership.
 	elasticJWK, err := s.elasticRepo.GetByID(ctx, elasticJWKID)
 	if err != nil {
@@ -202,7 +202,7 @@ func (s *materialRotationServiceImpl) GetMaterialByKID(ctx context.Context, tena
 }
 
 // createMaterialJWK generates a new material JWK.
-func (s *materialRotationServiceImpl) createMaterialJWK(ctx context.Context, elasticJWK *cryptoutilAppsJoseJaDomain.ElasticJWK) (*cryptoutilAppsJoseJaDomain.MaterialJWK, error) {
+func (s *materialRotationServiceImpl) createMaterialJWK(ctx context.Context, elasticJWK *cryptoutilAppsJoseJaModel.ElasticJWK) (*cryptoutilAppsJoseJaModel.MaterialJWK, error) {
 	// Generate material ID.
 	materialID := googleUuid.New()
 	materialKID := materialID.String()
@@ -260,7 +260,7 @@ func (s *materialRotationServiceImpl) createMaterialJWK(ctx context.Context, ela
 	publicJWE := base64.StdEncoding.EncodeToString(publicJWEBytes)
 
 	// Create material JWK record.
-	materialJWK := &cryptoutilAppsJoseJaDomain.MaterialJWK{
+	materialJWK := &cryptoutilAppsJoseJaModel.MaterialJWK{
 		ID:             materialID,
 		ElasticJWKID:   elasticJWK.ID,
 		MaterialKID:    materialKID,

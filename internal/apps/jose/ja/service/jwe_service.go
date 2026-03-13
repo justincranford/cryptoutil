@@ -9,7 +9,7 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose/ja/model"
 	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose/ja/repository"
 	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -64,7 +64,7 @@ func (s *jweServiceImpl) Encrypt(ctx context.Context, tenantID, elasticJWKID goo
 	}
 
 	// Verify key use is for encryption.
-	if elasticJWK.Use != cryptoutilAppsJoseJaDomain.KeyUseEnc {
+	if elasticJWK.Use != cryptoutilAppsJoseJaModel.KeyUseEnc {
 		return "", fmt.Errorf("elastic JWK is not configured for encryption (use=%s)", elasticJWK.Use)
 	}
 
@@ -168,7 +168,7 @@ func (s *jweServiceImpl) EncryptWithKID(ctx context.Context, tenantID, elasticJW
 	}
 
 	// Verify key use is for encryption.
-	if elasticJWK.Use != cryptoutilAppsJoseJaDomain.KeyUseEnc {
+	if elasticJWK.Use != cryptoutilAppsJoseJaModel.KeyUseEnc {
 		return "", fmt.Errorf("elastic JWK is not configured for encryption (use=%s)", elasticJWK.Use)
 	}
 
@@ -229,7 +229,7 @@ func (s *jweServiceImpl) EncryptWithKID(ctx context.Context, tenantID, elasticJW
 }
 
 // decryptWithMaterial attempts to decrypt a JWE with a specific material key.
-func (s *jweServiceImpl) decryptWithMaterial(ctx context.Context, jweObject *jose.JSONWebEncryption, material *cryptoutilAppsJoseJaDomain.MaterialJWK) ([]byte, error) {
+func (s *jweServiceImpl) decryptWithMaterial(ctx context.Context, jweObject *jose.JSONWebEncryption, material *cryptoutilAppsJoseJaModel.MaterialJWK) ([]byte, error) {
 	// Decode base64 encoded JWE string.
 	privateJWKEncrypted, err := base64.StdEncoding.DecodeString(material.PrivateJWKJWE)
 	if err != nil {

@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose/ja/model"
 
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
@@ -26,17 +26,17 @@ func TestMapAlgorithmToKeyType(t *testing.T) {
 		algorithm string
 		expected  string
 	}{
-		{"RSA 2048", cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
-		{"RSA 3072", cryptoutilSharedMagic.JoseKeyTypeRSA3072, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
-		{"RSA 4096", cryptoutilSharedMagic.JoseKeyTypeRSA4096, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
-		{"EC P256", cryptoutilSharedMagic.JoseKeyTypeECP256, cryptoutilAppsJoseJaDomain.KeyTypeEC},
-		{"EC P384", cryptoutilSharedMagic.JoseKeyTypeECP384, cryptoutilAppsJoseJaDomain.KeyTypeEC},
-		{"EC P521", cryptoutilSharedMagic.JoseKeyTypeECP521, cryptoutilAppsJoseJaDomain.KeyTypeEC},
-		{"OKP Ed25519", cryptoutilSharedMagic.JoseKeyTypeOKPEd25519, cryptoutilAppsJoseJaDomain.KeyTypeOKP},
-		{"OKP Ed448", "OKP/Ed448", cryptoutilAppsJoseJaDomain.KeyTypeOKP},
-		{"oct 256", cryptoutilSharedMagic.JoseKeyTypeOct256, cryptoutilAppsJoseJaDomain.KeyTypeOct},
-		{"oct 384", cryptoutilSharedMagic.JoseKeyTypeOct384, cryptoutilAppsJoseJaDomain.KeyTypeOct},
-		{"oct 512", cryptoutilSharedMagic.JoseKeyTypeOct512, cryptoutilAppsJoseJaDomain.KeyTypeOct},
+		{"RSA 2048", cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaModel.KeyTypeRSA},
+		{"RSA 3072", cryptoutilSharedMagic.JoseKeyTypeRSA3072, cryptoutilAppsJoseJaModel.KeyTypeRSA},
+		{"RSA 4096", cryptoutilSharedMagic.JoseKeyTypeRSA4096, cryptoutilAppsJoseJaModel.KeyTypeRSA},
+		{"EC P256", cryptoutilSharedMagic.JoseKeyTypeECP256, cryptoutilAppsJoseJaModel.KeyTypeEC},
+		{"EC P384", cryptoutilSharedMagic.JoseKeyTypeECP384, cryptoutilAppsJoseJaModel.KeyTypeEC},
+		{"EC P521", cryptoutilSharedMagic.JoseKeyTypeECP521, cryptoutilAppsJoseJaModel.KeyTypeEC},
+		{"OKP Ed25519", cryptoutilSharedMagic.JoseKeyTypeOKPEd25519, cryptoutilAppsJoseJaModel.KeyTypeOKP},
+		{"OKP Ed448", "OKP/Ed448", cryptoutilAppsJoseJaModel.KeyTypeOKP},
+		{"oct 256", cryptoutilSharedMagic.JoseKeyTypeOct256, cryptoutilAppsJoseJaModel.KeyTypeOct},
+		{"oct 384", cryptoutilSharedMagic.JoseKeyTypeOct384, cryptoutilAppsJoseJaModel.KeyTypeOct},
+		{"oct 512", cryptoutilSharedMagic.JoseKeyTypeOct512, cryptoutilAppsJoseJaModel.KeyTypeOct},
 		{"unknown", "unknown", ""},
 		{"empty", "", ""},
 	}

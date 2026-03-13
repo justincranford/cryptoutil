@@ -10,7 +10,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose/ja/model"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 )
@@ -392,34 +392,34 @@ func TestMapAlgorithmToKeyType(t *testing.T) {
 		algorithm string
 		expected  string
 	}{
-		{cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
-		{cryptoutilSharedMagic.JoseAlgRS384, cryptoutilSharedMagic.JoseAlgRS384, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
-		{cryptoutilSharedMagic.JoseAlgRS512, cryptoutilSharedMagic.JoseAlgRS512, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
-		{cryptoutilSharedMagic.JoseAlgPS256, cryptoutilSharedMagic.JoseAlgPS256, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
-		{cryptoutilSharedMagic.JoseAlgPS384, cryptoutilSharedMagic.JoseAlgPS384, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
-		{cryptoutilSharedMagic.JoseAlgPS512, cryptoutilSharedMagic.JoseAlgPS512, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
-		{cryptoutilSharedMagic.JoseAlgES256, cryptoutilSharedMagic.JoseAlgES256, cryptoutilAppsJoseJaDomain.KeyTypeEC},
-		{cryptoutilSharedMagic.JoseAlgES384, cryptoutilSharedMagic.JoseAlgES384, cryptoutilAppsJoseJaDomain.KeyTypeEC},
-		{cryptoutilSharedMagic.JoseAlgES512, cryptoutilSharedMagic.JoseAlgES512, cryptoutilAppsJoseJaDomain.KeyTypeEC},
-		{cryptoutilSharedMagic.JoseAlgEdDSA, cryptoutilSharedMagic.JoseAlgEdDSA, cryptoutilAppsJoseJaDomain.KeyTypeOKP},
-		{cryptoutilSharedMagic.JoseEncA128GCM, cryptoutilSharedMagic.JoseEncA128GCM, cryptoutilAppsJoseJaDomain.KeyTypeOct},
-		{cryptoutilSharedMagic.JoseEncA192GCM, cryptoutilSharedMagic.JoseEncA192GCM, cryptoutilAppsJoseJaDomain.KeyTypeOct},
-		{cryptoutilSharedMagic.JoseEncA256GCM, cryptoutilSharedMagic.JoseEncA256GCM, cryptoutilAppsJoseJaDomain.KeyTypeOct},
-		{cryptoutilSharedMagic.JoseEncA128CBCHS256, cryptoutilSharedMagic.JoseEncA128CBCHS256, cryptoutilAppsJoseJaDomain.KeyTypeOct},
-		{cryptoutilSharedMagic.JoseEncA192CBCHS384, cryptoutilSharedMagic.JoseEncA192CBCHS384, cryptoutilAppsJoseJaDomain.KeyTypeOct},
-		{cryptoutilSharedMagic.JoseEncA256CBCHS512, cryptoutilSharedMagic.JoseEncA256CBCHS512, cryptoutilAppsJoseJaDomain.KeyTypeOct},
-		{cryptoutilSharedMagic.JoseKeyTypeOct128, cryptoutilSharedMagic.JoseKeyTypeOct128, cryptoutilAppsJoseJaDomain.KeyTypeOct},
-		{cryptoutilSharedMagic.JoseKeyTypeOct192, cryptoutilSharedMagic.JoseKeyTypeOct192, cryptoutilAppsJoseJaDomain.KeyTypeOct},
-		{cryptoutilSharedMagic.JoseKeyTypeOct256, cryptoutilSharedMagic.JoseKeyTypeOct256, cryptoutilAppsJoseJaDomain.KeyTypeOct},
-		{cryptoutilSharedMagic.JoseKeyTypeOct384, cryptoutilSharedMagic.JoseKeyTypeOct384, cryptoutilAppsJoseJaDomain.KeyTypeOct},
-		{cryptoutilSharedMagic.JoseKeyTypeOct512, cryptoutilSharedMagic.JoseKeyTypeOct512, cryptoutilAppsJoseJaDomain.KeyTypeOct},
-		{cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
-		{cryptoutilSharedMagic.JoseKeyTypeRSA3072, cryptoutilSharedMagic.JoseKeyTypeRSA3072, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
-		{cryptoutilSharedMagic.JoseKeyTypeRSA4096, cryptoutilSharedMagic.JoseKeyTypeRSA4096, cryptoutilAppsJoseJaDomain.KeyTypeRSA},
-		{cryptoutilSharedMagic.JoseKeyTypeECP256, cryptoutilSharedMagic.JoseKeyTypeECP256, cryptoutilAppsJoseJaDomain.KeyTypeEC},
-		{cryptoutilSharedMagic.JoseKeyTypeECP384, cryptoutilSharedMagic.JoseKeyTypeECP384, cryptoutilAppsJoseJaDomain.KeyTypeEC},
-		{cryptoutilSharedMagic.JoseKeyTypeECP521, cryptoutilSharedMagic.JoseKeyTypeECP521, cryptoutilAppsJoseJaDomain.KeyTypeEC},
-		{cryptoutilSharedMagic.JoseKeyTypeOKPEd25519, cryptoutilSharedMagic.JoseKeyTypeOKPEd25519, cryptoutilAppsJoseJaDomain.KeyTypeOKP},
+		{cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyTypeRSA},
+		{cryptoutilSharedMagic.JoseAlgRS384, cryptoutilSharedMagic.JoseAlgRS384, cryptoutilAppsJoseJaModel.KeyTypeRSA},
+		{cryptoutilSharedMagic.JoseAlgRS512, cryptoutilSharedMagic.JoseAlgRS512, cryptoutilAppsJoseJaModel.KeyTypeRSA},
+		{cryptoutilSharedMagic.JoseAlgPS256, cryptoutilSharedMagic.JoseAlgPS256, cryptoutilAppsJoseJaModel.KeyTypeRSA},
+		{cryptoutilSharedMagic.JoseAlgPS384, cryptoutilSharedMagic.JoseAlgPS384, cryptoutilAppsJoseJaModel.KeyTypeRSA},
+		{cryptoutilSharedMagic.JoseAlgPS512, cryptoutilSharedMagic.JoseAlgPS512, cryptoutilAppsJoseJaModel.KeyTypeRSA},
+		{cryptoutilSharedMagic.JoseAlgES256, cryptoutilSharedMagic.JoseAlgES256, cryptoutilAppsJoseJaModel.KeyTypeEC},
+		{cryptoutilSharedMagic.JoseAlgES384, cryptoutilSharedMagic.JoseAlgES384, cryptoutilAppsJoseJaModel.KeyTypeEC},
+		{cryptoutilSharedMagic.JoseAlgES512, cryptoutilSharedMagic.JoseAlgES512, cryptoutilAppsJoseJaModel.KeyTypeEC},
+		{cryptoutilSharedMagic.JoseAlgEdDSA, cryptoutilSharedMagic.JoseAlgEdDSA, cryptoutilAppsJoseJaModel.KeyTypeOKP},
+		{cryptoutilSharedMagic.JoseEncA128GCM, cryptoutilSharedMagic.JoseEncA128GCM, cryptoutilAppsJoseJaModel.KeyTypeOct},
+		{cryptoutilSharedMagic.JoseEncA192GCM, cryptoutilSharedMagic.JoseEncA192GCM, cryptoutilAppsJoseJaModel.KeyTypeOct},
+		{cryptoutilSharedMagic.JoseEncA256GCM, cryptoutilSharedMagic.JoseEncA256GCM, cryptoutilAppsJoseJaModel.KeyTypeOct},
+		{cryptoutilSharedMagic.JoseEncA128CBCHS256, cryptoutilSharedMagic.JoseEncA128CBCHS256, cryptoutilAppsJoseJaModel.KeyTypeOct},
+		{cryptoutilSharedMagic.JoseEncA192CBCHS384, cryptoutilSharedMagic.JoseEncA192CBCHS384, cryptoutilAppsJoseJaModel.KeyTypeOct},
+		{cryptoutilSharedMagic.JoseEncA256CBCHS512, cryptoutilSharedMagic.JoseEncA256CBCHS512, cryptoutilAppsJoseJaModel.KeyTypeOct},
+		{cryptoutilSharedMagic.JoseKeyTypeOct128, cryptoutilSharedMagic.JoseKeyTypeOct128, cryptoutilAppsJoseJaModel.KeyTypeOct},
+		{cryptoutilSharedMagic.JoseKeyTypeOct192, cryptoutilSharedMagic.JoseKeyTypeOct192, cryptoutilAppsJoseJaModel.KeyTypeOct},
+		{cryptoutilSharedMagic.JoseKeyTypeOct256, cryptoutilSharedMagic.JoseKeyTypeOct256, cryptoutilAppsJoseJaModel.KeyTypeOct},
+		{cryptoutilSharedMagic.JoseKeyTypeOct384, cryptoutilSharedMagic.JoseKeyTypeOct384, cryptoutilAppsJoseJaModel.KeyTypeOct},
+		{cryptoutilSharedMagic.JoseKeyTypeOct512, cryptoutilSharedMagic.JoseKeyTypeOct512, cryptoutilAppsJoseJaModel.KeyTypeOct},
+		{cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaModel.KeyTypeRSA},
+		{cryptoutilSharedMagic.JoseKeyTypeRSA3072, cryptoutilSharedMagic.JoseKeyTypeRSA3072, cryptoutilAppsJoseJaModel.KeyTypeRSA},
+		{cryptoutilSharedMagic.JoseKeyTypeRSA4096, cryptoutilSharedMagic.JoseKeyTypeRSA4096, cryptoutilAppsJoseJaModel.KeyTypeRSA},
+		{cryptoutilSharedMagic.JoseKeyTypeECP256, cryptoutilSharedMagic.JoseKeyTypeECP256, cryptoutilAppsJoseJaModel.KeyTypeEC},
+		{cryptoutilSharedMagic.JoseKeyTypeECP384, cryptoutilSharedMagic.JoseKeyTypeECP384, cryptoutilAppsJoseJaModel.KeyTypeEC},
+		{cryptoutilSharedMagic.JoseKeyTypeECP521, cryptoutilSharedMagic.JoseKeyTypeECP521, cryptoutilAppsJoseJaModel.KeyTypeEC},
+		{cryptoutilSharedMagic.JoseKeyTypeOKPEd25519, cryptoutilSharedMagic.JoseKeyTypeOKPEd25519, cryptoutilAppsJoseJaModel.KeyTypeOKP},
 		{"INVALID", "INVALID", ""},
 		{"empty", "", ""},
 	}

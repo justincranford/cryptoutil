@@ -10,7 +10,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose/ja/model"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -27,37 +27,37 @@ func TestAuditLogService_LogOperation(t *testing.T) {
 	}{
 		{
 			name:         "log successful generate operation",
-			operation:    cryptoutilAppsJoseJaDomain.OperationGenerate,
+			operation:    cryptoutilAppsJoseJaModel.OperationGenerate,
 			success:      true,
 			errorMessage: nil,
 		},
 		{
 			name:         "log successful sign operation",
-			operation:    cryptoutilAppsJoseJaDomain.OperationSign,
+			operation:    cryptoutilAppsJoseJaModel.OperationSign,
 			success:      true,
 			errorMessage: nil,
 		},
 		{
 			name:         "log failed verify operation",
-			operation:    cryptoutilAppsJoseJaDomain.OperationVerify,
+			operation:    cryptoutilAppsJoseJaModel.OperationVerify,
 			success:      false,
 			errorMessage: stringPtr("verification failed"),
 		},
 		{
 			name:         "log successful encrypt operation",
-			operation:    cryptoutilAppsJoseJaDomain.OperationEncrypt,
+			operation:    cryptoutilAppsJoseJaModel.OperationEncrypt,
 			success:      true,
 			errorMessage: nil,
 		},
 		{
 			name:         "log failed decrypt operation",
-			operation:    cryptoutilAppsJoseJaDomain.OperationDecrypt,
+			operation:    cryptoutilAppsJoseJaModel.OperationDecrypt,
 			success:      false,
 			errorMessage: stringPtr("decryption failed"),
 		},
 		{
 			name:         "log successful rotate operation",
-			operation:    cryptoutilAppsJoseJaDomain.OperationRotate,
+			operation:    cryptoutilAppsJoseJaModel.OperationRotate,
 			success:      true,
 			errorMessage: nil,
 		},
@@ -71,7 +71,7 @@ func TestAuditLogService_LogOperation(t *testing.T) {
 			tenantID := googleUuid.New()
 
 			// Set up 100% audit config for reliable testing.
-			config := &cryptoutilAppsJoseJaDomain.AuditConfig{
+			config := &cryptoutilAppsJoseJaModel.AuditConfig{
 				TenantID:     tenantID,
 				Operation:    tt.operation,
 				Enabled:      true,
@@ -148,9 +148,9 @@ func TestAuditLogService_ListAuditLogs(t *testing.T) {
 
 			// Set up 100% audit config for reliable testing.
 			if tt.numLogs > 0 {
-				config := &cryptoutilAppsJoseJaDomain.AuditConfig{
+				config := &cryptoutilAppsJoseJaModel.AuditConfig{
 					TenantID:     tenantID,
-					Operation:    cryptoutilAppsJoseJaDomain.OperationGenerate,
+					Operation:    cryptoutilAppsJoseJaModel.OperationGenerate,
 					Enabled:      true,
 					SamplingRate: cryptoutilSharedMagic.TestProbAlways,
 				}
@@ -161,7 +161,7 @@ func TestAuditLogService_ListAuditLogs(t *testing.T) {
 			// Create test logs.
 			for i := 0; i < tt.numLogs; i++ {
 				requestID := googleUuid.New().String()
-				err := svc.LogOperation(ctx, tenantID, nil, cryptoutilAppsJoseJaDomain.OperationGenerate, requestID, true, nil)
+				err := svc.LogOperation(ctx, tenantID, nil, cryptoutilAppsJoseJaModel.OperationGenerate, requestID, true, nil)
 				require.NoError(t, err)
 			}
 
@@ -187,9 +187,9 @@ func TestAuditLogService_ListAuditLogsByElasticJWK(t *testing.T) {
 		tenantID := googleUuid.New()
 
 		// Set up 100% audit config for reliable testing.
-		config := &cryptoutilAppsJoseJaDomain.AuditConfig{
+		config := &cryptoutilAppsJoseJaModel.AuditConfig{
 			TenantID:     tenantID,
-			Operation:    cryptoutilAppsJoseJaDomain.OperationSign,
+			Operation:    cryptoutilAppsJoseJaModel.OperationSign,
 			Enabled:      true,
 			SamplingRate: cryptoutilSharedMagic.TestProbAlways,
 		}
@@ -197,13 +197,13 @@ func TestAuditLogService_ListAuditLogsByElasticJWK(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create elastic JWK.
-		elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+		elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 		require.NoError(t, err)
 
 		// Log operations for this JWK.
 		for i := 0; i < 3; i++ {
 			requestID := googleUuid.New().String()
-			err := auditSvc.LogOperation(ctx, tenantID, &elasticJWK.ID, cryptoutilAppsJoseJaDomain.OperationSign, requestID, true, nil)
+			err := auditSvc.LogOperation(ctx, tenantID, &elasticJWK.ID, cryptoutilAppsJoseJaModel.OperationSign, requestID, true, nil)
 			require.NoError(t, err)
 		}
 
@@ -227,7 +227,7 @@ func TestAuditLogService_ListAuditLogsByElasticJWK(t *testing.T) {
 		tenantID := googleUuid.New()
 
 		// Create elastic JWK.
-		elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+		elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 		require.NoError(t, err)
 
 		// Try to list with wrong tenant.
@@ -251,8 +251,8 @@ func TestAuditLogService_ListAuditLogsByOperation(t *testing.T) {
 		tenantID := googleUuid.New()
 
 		// Set up 100% audit config for all operations.
-		for _, op := range []string{cryptoutilAppsJoseJaDomain.OperationGenerate, cryptoutilAppsJoseJaDomain.OperationSign, cryptoutilAppsJoseJaDomain.OperationVerify} {
-			config := &cryptoutilAppsJoseJaDomain.AuditConfig{
+		for _, op := range []string{cryptoutilAppsJoseJaModel.OperationGenerate, cryptoutilAppsJoseJaModel.OperationSign, cryptoutilAppsJoseJaModel.OperationVerify} {
+			config := &cryptoutilAppsJoseJaModel.AuditConfig{
 				TenantID:     tenantID,
 				Operation:    op,
 				Enabled:      true,
@@ -264,11 +264,11 @@ func TestAuditLogService_ListAuditLogsByOperation(t *testing.T) {
 
 		// Create various operations.
 		operations := []string{
-			cryptoutilAppsJoseJaDomain.OperationGenerate,
-			cryptoutilAppsJoseJaDomain.OperationSign,
-			cryptoutilAppsJoseJaDomain.OperationSign,
-			cryptoutilAppsJoseJaDomain.OperationVerify,
-			cryptoutilAppsJoseJaDomain.OperationSign,
+			cryptoutilAppsJoseJaModel.OperationGenerate,
+			cryptoutilAppsJoseJaModel.OperationSign,
+			cryptoutilAppsJoseJaModel.OperationSign,
+			cryptoutilAppsJoseJaModel.OperationVerify,
+			cryptoutilAppsJoseJaModel.OperationSign,
 		}
 
 		for _, op := range operations {
@@ -278,13 +278,13 @@ func TestAuditLogService_ListAuditLogsByOperation(t *testing.T) {
 		}
 
 		// List by sign operation.
-		logs, total, err := svc.ListAuditLogsByOperation(ctx, tenantID, cryptoutilAppsJoseJaDomain.OperationSign, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+		logs, total, err := svc.ListAuditLogsByOperation(ctx, tenantID, cryptoutilAppsJoseJaModel.OperationSign, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 		require.NoError(t, err)
 		require.Equal(t, int64(3), total)
 		require.Len(t, logs, 3)
 
 		for _, log := range logs {
-			require.Equal(t, cryptoutilAppsJoseJaDomain.OperationSign, log.Operation)
+			require.Equal(t, cryptoutilAppsJoseJaModel.OperationSign, log.Operation)
 		}
 	})
 }
@@ -315,9 +315,9 @@ func TestAuditLogService_GetAuditConfig(t *testing.T) {
 		tenantID := googleUuid.New()
 
 		// Create custom config.
-		customConfig := &cryptoutilAppsJoseJaDomain.AuditConfig{
+		customConfig := &cryptoutilAppsJoseJaModel.AuditConfig{
 			TenantID:     tenantID,
-			Operation:    cryptoutilAppsJoseJaDomain.OperationSign,
+			Operation:    cryptoutilAppsJoseJaModel.OperationSign,
 			Enabled:      false,
 			SamplingRate: cryptoutilSharedMagic.Tolerance50Percent,
 		}
@@ -344,9 +344,9 @@ func TestAuditLogService_UpdateAuditConfig(t *testing.T) {
 		tenantID := googleUuid.New()
 
 		// Create config.
-		config := &cryptoutilAppsJoseJaDomain.AuditConfig{
+		config := &cryptoutilAppsJoseJaModel.AuditConfig{
 			TenantID:     tenantID,
-			Operation:    cryptoutilAppsJoseJaDomain.OperationEncrypt,
+			Operation:    cryptoutilAppsJoseJaModel.OperationEncrypt,
 			Enabled:      true,
 			SamplingRate: 0.75,
 		}
@@ -362,8 +362,8 @@ func TestAuditLogService_UpdateAuditConfig(t *testing.T) {
 		tenantID := googleUuid.New()
 
 		// Create config without tenant ID.
-		config := &cryptoutilAppsJoseJaDomain.AuditConfig{
-			Operation:    cryptoutilAppsJoseJaDomain.OperationDecrypt,
+		config := &cryptoutilAppsJoseJaModel.AuditConfig{
+			Operation:    cryptoutilAppsJoseJaModel.OperationDecrypt,
 			Enabled:      false,
 			SamplingRate: cryptoutilSharedMagic.TestProbQuarter,
 		}
@@ -388,9 +388,9 @@ func TestAuditLogService_CleanupOldLogs(t *testing.T) {
 		tenantID := googleUuid.New()
 
 		// Set up 100% audit config for reliable testing.
-		config := &cryptoutilAppsJoseJaDomain.AuditConfig{
+		config := &cryptoutilAppsJoseJaModel.AuditConfig{
 			TenantID:     tenantID,
-			Operation:    cryptoutilAppsJoseJaDomain.OperationGenerate,
+			Operation:    cryptoutilAppsJoseJaModel.OperationGenerate,
 			Enabled:      true,
 			SamplingRate: cryptoutilSharedMagic.TestProbAlways,
 		}
@@ -400,7 +400,7 @@ func TestAuditLogService_CleanupOldLogs(t *testing.T) {
 		// Create some recent logs.
 		for i := 0; i < 3; i++ {
 			requestID := googleUuid.New().String()
-			err := svc.LogOperation(ctx, tenantID, nil, cryptoutilAppsJoseJaDomain.OperationGenerate, requestID, true, nil)
+			err := svc.LogOperation(ctx, tenantID, nil, cryptoutilAppsJoseJaModel.OperationGenerate, requestID, true, nil)
 			require.NoError(t, err)
 		}
 
@@ -429,9 +429,9 @@ func TestAuditLogService_LogOperation_AuditDisabled(t *testing.T) {
 		tenantID := googleUuid.New()
 
 		// Disable audit for the operation.
-		config := &cryptoutilAppsJoseJaDomain.AuditConfig{
+		config := &cryptoutilAppsJoseJaModel.AuditConfig{
 			TenantID:     tenantID,
-			Operation:    cryptoutilAppsJoseJaDomain.OperationSign,
+			Operation:    cryptoutilAppsJoseJaModel.OperationSign,
 			Enabled:      false,
 			SamplingRate: cryptoutilSharedMagic.BaselineContributionZero,
 		}
@@ -440,7 +440,7 @@ func TestAuditLogService_LogOperation_AuditDisabled(t *testing.T) {
 
 		// Log operation - should return nil without creating log.
 		requestID := googleUuid.New().String()
-		err = svc.LogOperation(ctx, tenantID, nil, cryptoutilAppsJoseJaDomain.OperationSign, requestID, true, nil)
+		err = svc.LogOperation(ctx, tenantID, nil, cryptoutilAppsJoseJaModel.OperationSign, requestID, true, nil)
 		require.NoError(t, err)
 
 		// Verify no log was created.
@@ -464,7 +464,7 @@ func TestAuditLogService_ListAuditLogsByElasticJWK_WrongTenant(t *testing.T) {
 		tenantID := googleUuid.New()
 
 		// Create an elastic JWK.
-		elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+		elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaModel.KeyUseSig, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
 		require.NoError(t, err)
 
 		// Try to list logs with wrong tenant - should fail.

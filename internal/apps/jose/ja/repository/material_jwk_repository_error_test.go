@@ -5,8 +5,12 @@ package repository
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	"strings"
 	"testing"
+
+	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose/ja/model"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -168,4 +172,208 @@ func TestMaterialJWKRepository_NilContextHandling(t *testing.T) {
 
 	_, err := repo.GetByMaterialKID(nil, "test-kid") //nolint:staticcheck // Testing nil context.
 	require.Error(t, err)
+}
+
+func TestMaterialJWKRepository_CountMaterialsDatabaseError(t *testing.T) {
+	t.Parallel()
+
+	closedDB := newClosedDB(t)
+
+	ctx := context.Background()
+	repo := NewMaterialJWKRepository(closedDB)
+
+	_, err := repo.CountMaterials(ctx, googleUuid.New())
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "failed to count material JWKs"))
+}
+
+func TestMaterialJWKRepository_CreateDatabaseError(t *testing.T) {
+	t.Parallel()
+
+	closedDB := newClosedDB(t)
+
+	ctx := context.Background()
+	repo := NewMaterialJWKRepository(closedDB)
+
+	id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	elasticJWKID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+
+	material := &cryptoutilAppsJoseJaModel.MaterialJWK{
+		ID:           *id,
+		ElasticJWKID: *elasticJWKID,
+		MaterialKID:  "test-material-error",
+		Active:       true,
+	}
+
+	err := repo.Create(ctx, material)
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "failed to create material JWK"))
+}
+
+func TestMaterialJWKRepository_DeleteDatabaseError(t *testing.T) {
+	t.Parallel()
+
+	closedDB := newClosedDB(t)
+
+	ctx := context.Background()
+	repo := NewMaterialJWKRepository(closedDB)
+
+	err := repo.Delete(ctx, googleUuid.New())
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "failed to delete material JWK"))
+}
+
+func TestMaterialJWKRepository_GetActiveMaterialDatabaseError(t *testing.T) {
+	t.Parallel()
+
+	closedDB := newClosedDB(t)
+
+	ctx := context.Background()
+	repo := NewMaterialJWKRepository(closedDB)
+
+	_, err := repo.GetActiveMaterial(ctx, googleUuid.New())
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "failed to get active material JWK"))
+}
+
+func TestMaterialJWKRepository_GetByIDDatabaseError(t *testing.T) {
+	t.Parallel()
+
+	closedDB := newClosedDB(t)
+
+	ctx := context.Background()
+	repo := NewMaterialJWKRepository(closedDB)
+
+	_, err := repo.GetByID(ctx, googleUuid.New())
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "failed to get material JWK by ID"))
+}
+
+func TestMaterialJWKRepository_GetByMaterialKIDDatabaseError(t *testing.T) {
+	t.Parallel()
+
+	closedDB := newClosedDB(t)
+
+	ctx := context.Background()
+	repo := NewMaterialJWKRepository(closedDB)
+
+	_, err := repo.GetByMaterialKID(ctx, "test-kid")
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "failed to get material JWK by KID"))
+}
+
+func TestMaterialJWKRepository_ListByElasticJWKDatabaseError(t *testing.T) {
+	t.Parallel()
+
+	closedDB := newClosedDB(t)
+
+	ctx := context.Background()
+	repo := NewMaterialJWKRepository(closedDB)
+
+	_, _, err := repo.ListByElasticJWK(ctx, googleUuid.New(), 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+	require.Error(t, err)
+	// Could fail on Count or Find - either error path is valid.
+	require.True(t,
+		strings.Contains(err.Error(), "failed to count material JWKs") ||
+			strings.Contains(err.Error(), "failed to list material JWKs"),
+		"Expected count or list error, got: %v", err)
+}
+
+func TestMaterialJWKRepository_RetireMaterialDatabaseError(t *testing.T) {
+	t.Parallel()
+
+	closedDB := newClosedDB(t)
+
+	ctx := context.Background()
+	repo := NewMaterialJWKRepository(closedDB)
+
+	err := repo.RetireMaterial(ctx, googleUuid.New())
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "failed to retire material JWK"))
+}
+
+func TestMaterialJWKRepository_RotateMaterialCreateError(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	repo := NewMaterialJWKRepository(testDB)
+	elasticRepo := NewElasticJWKRepository(testDB)
+
+	// Create unique test data.
+	elasticJWKID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	materialKID := googleUuid.NewString() // Use UUID for uniqueness.
+
+	// First create an ElasticJWK to satisfy foreign key constraint.
+	elasticJWK := &cryptoutilAppsJoseJaModel.ElasticJWK{
+		ID:           *elasticJWKID,
+		TenantID:     *tenantID,
+		KID:          googleUuid.NewString(),
+		KeyType:      cryptoutilAppsJoseJaModel.KeyTypeRSA,
+		Algorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
+	}
+	err := elasticRepo.Create(ctx, elasticJWK)
+	require.NoError(t, err)
+
+	// Create first material with a specific MaterialKID.
+	firstMaterialID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	firstMaterial := &cryptoutilAppsJoseJaModel.MaterialJWK{
+		ID:            *firstMaterialID,
+		ElasticJWKID:  *elasticJWKID,
+		MaterialKID:   materialKID, // This KID will be duplicated.
+		PrivateJWKJWE: "encrypted-private-1",
+		PublicJWKJWE:  "encrypted-public-1",
+		Active:        false,
+	}
+	err = repo.Create(ctx, firstMaterial)
+	require.NoError(t, err)
+
+	// Now try to rotate with a NEW material that uses the SAME MaterialKID (duplicate).
+	secondMaterialID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	duplicateMaterial := &cryptoutilAppsJoseJaModel.MaterialJWK{
+		ID:            *secondMaterialID,
+		ElasticJWKID:  *elasticJWKID,
+		MaterialKID:   materialKID, // DUPLICATE - should cause UNIQUE constraint violation.
+		PrivateJWKJWE: "encrypted-private-2",
+		PublicJWKJWE:  "encrypted-public-2",
+		Active:        true,
+	}
+
+	// This should fail on the "Create" inside the transaction due to duplicate MaterialKID.
+	err = repo.RotateMaterial(ctx, *elasticJWKID, duplicateMaterial)
+	require.Error(t, err)
+	// Should hit the "failed to create new material" error path.
+	require.True(t,
+		strings.Contains(err.Error(), "failed to create new material") ||
+			strings.Contains(err.Error(), "UNIQUE constraint failed"),
+		"Expected create material error, got: %v", err)
+}
+
+func TestMaterialJWKRepository_RotateMaterialDatabaseError(t *testing.T) {
+	t.Parallel()
+
+	closedDB := newClosedDB(t)
+
+	ctx := context.Background()
+	repo := NewMaterialJWKRepository(closedDB)
+
+	id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	elasticJWKID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+
+	newMaterial := &cryptoutilAppsJoseJaModel.MaterialJWK{
+		ID:           *id,
+		ElasticJWKID: *elasticJWKID,
+		MaterialKID:  "new-material",
+		Active:       true,
+	}
+
+	err := repo.RotateMaterial(ctx, *elasticJWKID, newMaterial)
+	require.Error(t, err)
+	// Transaction or any step could fail.
+	require.True(t,
+		strings.Contains(err.Error(), "failed to") ||
+			strings.Contains(err.Error(), "sql: database is closed"),
+		"Expected database error, got: %v", err)
 }

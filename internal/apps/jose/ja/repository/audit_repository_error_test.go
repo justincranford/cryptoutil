@@ -10,6 +10,9 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+	"strings"
+	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose/ja/model"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 )
 
 // testNonExistentOperation is a test constant to satisfy goconst linter.
@@ -253,4 +256,180 @@ func TestAuditLogRepository_ContextCancellation(t *testing.T) {
 	}
 
 	require.Error(t, err)
+}
+
+func TestAuditConfigRepository_DeleteDatabaseError(t *testing.T) {
+	t.Parallel()
+
+	closedDB := newClosedDB(t)
+
+	ctx := context.Background()
+	repo := NewAuditConfigRepository(closedDB)
+
+	err := repo.Delete(ctx, googleUuid.New(), cryptoutilAppsJoseJaModel.OperationSign)
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "failed to delete audit config"))
+}
+
+func TestAuditConfigRepository_GetAllForTenantDatabaseError(t *testing.T) {
+	t.Parallel()
+
+	closedDB := newClosedDB(t)
+
+	ctx := context.Background()
+	repo := NewAuditConfigRepository(closedDB)
+
+	_, err := repo.GetAllForTenant(ctx, googleUuid.New())
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "failed to get audit configs for tenant"))
+}
+
+func TestAuditConfigRepository_GetDatabaseError(t *testing.T) {
+	t.Parallel()
+
+	closedDB := newClosedDB(t)
+
+	ctx := context.Background()
+	repo := NewAuditConfigRepository(closedDB)
+
+	_, err := repo.Get(ctx, googleUuid.New(), cryptoutilAppsJoseJaModel.OperationSign)
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "failed to get audit config"))
+}
+
+func TestAuditConfigRepository_ShouldAuditDatabaseError(t *testing.T) {
+	t.Parallel()
+
+	closedDB := newClosedDB(t)
+
+	ctx := context.Background()
+	repo := NewAuditConfigRepository(closedDB)
+
+	_, err := repo.ShouldAudit(ctx, googleUuid.New(), cryptoutilAppsJoseJaModel.OperationSign)
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "failed to") ||
+		strings.Contains(err.Error(), "sql: database is closed"))
+}
+
+func TestAuditConfigRepository_UpsertDatabaseError(t *testing.T) {
+	t.Parallel()
+
+	closedDB := newClosedDB(t)
+
+	ctx := context.Background()
+	repo := NewAuditConfigRepository(closedDB)
+
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+
+	config := &cryptoutilAppsJoseJaModel.AuditConfig{
+		TenantID:     *tenantID,
+		Operation:    cryptoutilAppsJoseJaModel.OperationSign,
+		Enabled:      true,
+		SamplingRate: cryptoutilSharedMagic.Tolerance50Percent,
+	}
+
+	err := repo.Upsert(ctx, config)
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "failed to upsert audit config"))
+}
+
+func TestAuditLogRepository_CreateDatabaseError(t *testing.T) {
+	t.Parallel()
+
+	closedDB := newClosedDB(t)
+
+	ctx := context.Background()
+	repo := NewAuditLogRepository(closedDB)
+
+	id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+
+	entry := &cryptoutilAppsJoseJaModel.AuditLogEntry{
+		ID:        *id,
+		TenantID:  *tenantID,
+		Operation: cryptoutilAppsJoseJaModel.OperationSign,
+		Success:   true,
+		RequestID: googleUuid.NewString(),
+	}
+
+	err := repo.Create(ctx, entry)
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "failed to create audit log entry"))
+}
+
+func TestAuditLogRepository_DeleteOlderThanDatabaseError(t *testing.T) {
+	t.Parallel()
+
+	closedDB := newClosedDB(t)
+
+	ctx := context.Background()
+	repo := NewAuditLogRepository(closedDB)
+
+	_, err := repo.DeleteOlderThan(ctx, googleUuid.New(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days)
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "failed to delete old audit log entries"))
+}
+
+func TestAuditLogRepository_GetByRequestIDDatabaseError(t *testing.T) {
+	t.Parallel()
+
+	closedDB := newClosedDB(t)
+
+	ctx := context.Background()
+	repo := NewAuditLogRepository(closedDB)
+
+	_, err := repo.GetByRequestID(ctx, googleUuid.NewString())
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "failed to get audit log entry by request ID"))
+}
+
+func TestAuditLogRepository_ListByElasticJWKDatabaseError(t *testing.T) {
+	t.Parallel()
+
+	closedDB := newClosedDB(t)
+
+	ctx := context.Background()
+	repo := NewAuditLogRepository(closedDB)
+
+	_, _, err := repo.ListByElasticJWK(ctx, googleUuid.New(), 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+	require.Error(t, err)
+	// Could fail on Count or Find - either error path is valid.
+	require.True(t,
+		strings.Contains(err.Error(), "failed to count audit log entries") ||
+			strings.Contains(err.Error(), "failed to list audit log entries"),
+		"Expected count or list error, got: %v", err)
+}
+
+func TestAuditLogRepository_ListByOperationDatabaseError(t *testing.T) {
+	t.Parallel()
+
+	closedDB := newClosedDB(t)
+
+	ctx := context.Background()
+	repo := NewAuditLogRepository(closedDB)
+
+	_, _, err := repo.ListByOperation(ctx, googleUuid.New(), cryptoutilAppsJoseJaModel.OperationSign, 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+	require.Error(t, err)
+	// Could fail on Count or Find - either error path is valid.
+	require.True(t,
+		strings.Contains(err.Error(), "failed to count audit log entries") ||
+			strings.Contains(err.Error(), "failed to list audit log entries"),
+		"Expected count or list error, got: %v", err)
+}
+
+func TestAuditLogRepository_ListDatabaseError(t *testing.T) {
+	t.Parallel()
+
+	closedDB := newClosedDB(t)
+
+	ctx := context.Background()
+	repo := NewAuditLogRepository(closedDB)
+
+	_, _, err := repo.List(ctx, googleUuid.New(), 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+	require.Error(t, err)
+	// Could fail on Count or Find - either error path is valid.
+	require.True(t,
+		strings.Contains(err.Error(), "failed to count audit log entries") ||
+			strings.Contains(err.Error(), "failed to list audit log entries"),
+		"Expected count or list error, got: %v", err)
 }

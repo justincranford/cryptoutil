@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"time"
 
-	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose/ja/model"
 	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose/ja/repository"
 	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 
@@ -78,7 +78,7 @@ func (s *jwtServiceImpl) CreateJWT(ctx context.Context, tenantID, elasticJWKID g
 	}
 
 	// Validate key use for signing.
-	if elasticJWK.Use != cryptoutilAppsJoseJaDomain.KeyUseSig {
+	if elasticJWK.Use != cryptoutilAppsJoseJaModel.KeyUseSig {
 		return "", fmt.Errorf("key is not configured for signing (use=%s)", elasticJWK.Use)
 	}
 
@@ -158,7 +158,7 @@ func (s *jwtServiceImpl) ValidateJWT(ctx context.Context, tenantID, elasticJWKID
 	kid := parsedJWT.Headers[0].KeyID
 
 	// Get material by KID.
-	var material *cryptoutilAppsJoseJaDomain.MaterialJWK
+	var material *cryptoutilAppsJoseJaModel.MaterialJWK
 
 	if kid != "" {
 		material, err = s.materialRepo.GetByMaterialKID(ctx, kid)
@@ -238,7 +238,7 @@ func (s *jwtServiceImpl) CreateEncryptedJWT(ctx context.Context, tenantID, signi
 	}
 
 	// Validate key use for encryption.
-	if encryptionKey.Use != cryptoutilAppsJoseJaDomain.KeyUseEnc {
+	if encryptionKey.Use != cryptoutilAppsJoseJaModel.KeyUseEnc {
 		return "", fmt.Errorf("key is not configured for encryption (use=%s)", encryptionKey.Use)
 	}
 

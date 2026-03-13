@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose/ja/model"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	fiber "github.com/gofiber/fiber/v2"
@@ -29,13 +29,13 @@ func TestHandleGetActiveMaterialJWK_Success(t *testing.T) {
 	kid := testElasticKID
 	elasticID := googleUuid.New()
 
-	elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
+	elasticJWK := &cryptoutilAppsJoseJaModel.ElasticJWK{
 		ID:       elasticID,
 		TenantID: tenantID,
 		KID:      kid,
 	}
 
-	activeMaterial := &cryptoutilAppsJoseJaDomain.MaterialJWK{
+	activeMaterial := &cryptoutilAppsJoseJaModel.MaterialJWK{
 		ID:           googleUuid.New(),
 		ElasticJWKID: elasticID,
 		MaterialKID:  "active-material",
@@ -72,7 +72,7 @@ func TestHandleRotateMaterialJWK_Success(t *testing.T) {
 	kid := testElasticKID
 	elasticID := googleUuid.New()
 
-	elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
+	elasticJWK := &cryptoutilAppsJoseJaModel.ElasticJWK{
 		ID:                   elasticID,
 		TenantID:             tenantID,
 		KID:                  kid,
@@ -81,7 +81,7 @@ func TestHandleRotateMaterialJWK_Success(t *testing.T) {
 	}
 
 	elasticRepo.On("Get", mock.Anything, tenantID, kid).Return(elasticJWK, nil)
-	materialRepo.On("RotateMaterial", mock.Anything, elasticID, mock.AnythingOfType("*domain.MaterialJWK")).Return(nil)
+	materialRepo.On("RotateMaterial", mock.Anything, elasticID, mock.AnythingOfType("*model.MaterialJWK")).Return(nil)
 	elasticRepo.On("IncrementMaterialCount", mock.Anything, elasticID).Return(nil)
 
 	app.Post("/elastic-jwks/:kid/materials/rotate", func(c *fiber.Ctx) error {
@@ -109,7 +109,7 @@ func TestHandleRotateMaterialJWK_MaxMaterialsReached(t *testing.T) {
 	tenantID := googleUuid.New()
 	kid := testElasticKID
 
-	elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
+	elasticJWK := &cryptoutilAppsJoseJaModel.ElasticJWK{
 		ID:                   googleUuid.New(),
 		TenantID:             tenantID,
 		KID:                  kid,
@@ -244,7 +244,7 @@ func TestHandleDeleteElasticJWK_RepositoryDeleteError(t *testing.T) {
 	tenantID := googleUuid.New()
 	kid := "test-delete-error"
 
-	elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
+	elasticJWK := &cryptoutilAppsJoseJaModel.ElasticJWK{
 		ID:       googleUuid.New(),
 		TenantID: tenantID,
 		KID:      kid,
@@ -277,7 +277,7 @@ func TestHandleCreateMaterialJWK_CreateRepositoryError(t *testing.T) {
 	tenantID := googleUuid.New()
 	kid := "test-create-error"
 
-	elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
+	elasticJWK := &cryptoutilAppsJoseJaModel.ElasticJWK{
 		ID:                   googleUuid.New(),
 		TenantID:             tenantID,
 		KID:                  kid,
@@ -286,7 +286,7 @@ func TestHandleCreateMaterialJWK_CreateRepositoryError(t *testing.T) {
 	}
 
 	elasticRepo.On("Get", mock.Anything, tenantID, kid).Return(elasticJWK, nil)
-	materialRepo.On("Create", mock.Anything, mock.AnythingOfType("*domain.MaterialJWK")).Return(errors.New("create failed"))
+	materialRepo.On("Create", mock.Anything, mock.AnythingOfType("*model.MaterialJWK")).Return(errors.New("create failed"))
 
 	app.Post("/elastic-jwks/:kid/materials", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
@@ -313,7 +313,7 @@ func TestHandleCreateMaterialJWK_IncrementCountError(t *testing.T) {
 	tenantID := googleUuid.New()
 	kid := testIncrementError
 
-	elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
+	elasticJWK := &cryptoutilAppsJoseJaModel.ElasticJWK{
 		ID:                   googleUuid.New(),
 		TenantID:             tenantID,
 		KID:                  kid,
@@ -322,7 +322,7 @@ func TestHandleCreateMaterialJWK_IncrementCountError(t *testing.T) {
 	}
 
 	elasticRepo.On("Get", mock.Anything, tenantID, kid).Return(elasticJWK, nil)
-	materialRepo.On("Create", mock.Anything, mock.AnythingOfType("*domain.MaterialJWK")).Return(nil)
+	materialRepo.On("Create", mock.Anything, mock.AnythingOfType("*model.MaterialJWK")).Return(nil)
 	elasticRepo.On("IncrementMaterialCount", mock.Anything, elasticJWK.ID).Return(errors.New("increment failed"))
 
 	app.Post("/elastic-jwks/:kid/materials", func(c *fiber.Ctx) error {
@@ -350,7 +350,7 @@ func TestHandleListMaterialJWKs_RepositoryError(t *testing.T) {
 	tenantID := googleUuid.New()
 	kid := "test-list-error"
 
-	elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
+	elasticJWK := &cryptoutilAppsJoseJaModel.ElasticJWK{
 		ID:       googleUuid.New(),
 		TenantID: tenantID,
 		KID:      kid,
@@ -384,7 +384,7 @@ func TestHandleGetActiveMaterialJWK_NoActiveMaterial(t *testing.T) {
 	tenantID := googleUuid.New()
 	kid := "test-no-active"
 
-	elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
+	elasticJWK := &cryptoutilAppsJoseJaModel.ElasticJWK{
 		ID:       googleUuid.New(),
 		TenantID: tenantID,
 		KID:      kid,
@@ -418,7 +418,7 @@ func TestHandleRotateMaterialJWK_RotateRepositoryError(t *testing.T) {
 	tenantID := googleUuid.New()
 	kid := "test-rotate-error"
 
-	elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
+	elasticJWK := &cryptoutilAppsJoseJaModel.ElasticJWK{
 		ID:                   googleUuid.New(),
 		TenantID:             tenantID,
 		KID:                  kid,
@@ -427,7 +427,7 @@ func TestHandleRotateMaterialJWK_RotateRepositoryError(t *testing.T) {
 	}
 
 	elasticRepo.On("Get", mock.Anything, tenantID, kid).Return(elasticJWK, nil)
-	materialRepo.On("RotateMaterial", mock.Anything, elasticJWK.ID, mock.AnythingOfType("*domain.MaterialJWK")).Return(errors.New("rotate failed"))
+	materialRepo.On("RotateMaterial", mock.Anything, elasticJWK.ID, mock.AnythingOfType("*model.MaterialJWK")).Return(errors.New("rotate failed"))
 
 	app.Post("/elastic-jwks/:kid/materials/rotate", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)

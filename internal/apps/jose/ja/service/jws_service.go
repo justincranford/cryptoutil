@@ -9,7 +9,7 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose/ja/model"
 	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose/ja/repository"
 	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -64,7 +64,7 @@ func (s *jwsServiceImpl) Sign(ctx context.Context, tenantID, elasticJWKID google
 	}
 
 	// Verify key use is for signing.
-	if elasticJWK.Use != cryptoutilAppsJoseJaDomain.KeyUseSig {
+	if elasticJWK.Use != cryptoutilAppsJoseJaModel.KeyUseSig {
 		return "", fmt.Errorf("elastic JWK is not configured for signing (use=%s)", elasticJWK.Use)
 	}
 
@@ -134,7 +134,7 @@ func (s *jwsServiceImpl) SignWithKID(ctx context.Context, tenantID, elasticJWKID
 	}
 
 	// Verify key use is for signing.
-	if elasticJWK.Use != cryptoutilAppsJoseJaDomain.KeyUseSig {
+	if elasticJWK.Use != cryptoutilAppsJoseJaModel.KeyUseSig {
 		return "", fmt.Errorf("elastic JWK is not configured for signing (use=%s)", elasticJWK.Use)
 	}
 
@@ -153,7 +153,7 @@ func (s *jwsServiceImpl) SignWithKID(ctx context.Context, tenantID, elasticJWKID
 }
 
 // signWithMaterial signs payload using a specific material key.
-func (s *jwsServiceImpl) signWithMaterial(ctx context.Context, elasticJWK *cryptoutilAppsJoseJaDomain.ElasticJWK, material *cryptoutilAppsJoseJaDomain.MaterialJWK, payload []byte) (string, error) {
+func (s *jwsServiceImpl) signWithMaterial(ctx context.Context, elasticJWK *cryptoutilAppsJoseJaModel.ElasticJWK, material *cryptoutilAppsJoseJaModel.MaterialJWK, payload []byte) (string, error) {
 	// Decode base64 encoded JWE string.
 	privateJWKEncrypted, err := base64.StdEncoding.DecodeString(material.PrivateJWKJWE)
 	if err != nil {
@@ -203,7 +203,7 @@ func (s *jwsServiceImpl) signWithMaterial(ctx context.Context, elasticJWK *crypt
 }
 
 // verifyWithMaterial verifies a JWS with a specific material key.
-func (s *jwsServiceImpl) verifyWithMaterial(ctx context.Context, jwsObject *jose.JSONWebSignature, material *cryptoutilAppsJoseJaDomain.MaterialJWK) ([]byte, error) {
+func (s *jwsServiceImpl) verifyWithMaterial(ctx context.Context, jwsObject *jose.JSONWebSignature, material *cryptoutilAppsJoseJaModel.MaterialJWK) ([]byte, error) {
 	// Decode base64 encoded JWE string.
 	publicJWKEncrypted, err := base64.StdEncoding.DecodeString(material.PublicJWKJWE)
 	if err != nil {

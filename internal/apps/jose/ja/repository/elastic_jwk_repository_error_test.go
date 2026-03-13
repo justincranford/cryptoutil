@@ -11,6 +11,9 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
+	"strings"
+	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose/ja/model"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 )
 
 // TestElasticJWKRepository_CreateDuplicateError tests duplicate key insertion error handling.
@@ -205,4 +208,138 @@ func TestElasticJWKRepository_SQLInjectionPrevention(t *testing.T) {
 	// Should fail to find record, NOT execute SQL injection.
 	require.Error(t, err)
 	require.ErrorIs(t, err, gorm.ErrRecordNotFound)
+}
+
+func TestElasticJWKRepository_CreateDatabaseError(t *testing.T) {
+	t.Parallel()
+
+	closedDB := newClosedDB(t)
+
+	ctx := context.Background()
+	repo := NewElasticJWKRepository(closedDB)
+
+	id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+
+	jwk := &cryptoutilAppsJoseJaModel.ElasticJWK{
+		ID:           *id,
+		TenantID:     *tenantID,
+		KID:          "test-create-error",
+		KeyType:      cryptoutilAppsJoseJaModel.KeyTypeRSA,
+		Algorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
+	}
+
+	err := repo.Create(ctx, jwk)
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "failed to create elastic JWK"))
+}
+
+func TestElasticJWKRepository_DecrementMaterialCountDatabaseError(t *testing.T) {
+	t.Parallel()
+
+	closedDB := newClosedDB(t)
+
+	ctx := context.Background()
+	repo := NewElasticJWKRepository(closedDB)
+
+	err := repo.DecrementMaterialCount(ctx, googleUuid.New())
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "failed to decrement material count"))
+}
+
+func TestElasticJWKRepository_DeleteDatabaseError(t *testing.T) {
+	t.Parallel()
+
+	closedDB := newClosedDB(t)
+
+	ctx := context.Background()
+	repo := NewElasticJWKRepository(closedDB)
+
+	err := repo.Delete(ctx, googleUuid.New())
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "failed to delete elastic JWK"))
+}
+
+func TestElasticJWKRepository_GetByIDDatabaseError(t *testing.T) {
+	t.Parallel()
+
+	closedDB := newClosedDB(t)
+
+	ctx := context.Background()
+	repo := NewElasticJWKRepository(closedDB)
+
+	_, err := repo.GetByID(ctx, googleUuid.New())
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "failed to get elastic JWK by ID"))
+}
+
+func TestElasticJWKRepository_GetDatabaseError(t *testing.T) {
+	t.Parallel()
+
+	closedDB := newClosedDB(t)
+
+	ctx := context.Background()
+	repo := NewElasticJWKRepository(closedDB)
+
+	_, err := repo.Get(ctx, googleUuid.New(), "test-kid")
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "failed to get elastic JWK"))
+}
+
+func TestElasticJWKRepository_IncrementMaterialCountDatabaseError(t *testing.T) {
+	t.Parallel()
+
+	closedDB := newClosedDB(t)
+
+	ctx := context.Background()
+	repo := NewElasticJWKRepository(closedDB)
+
+	err := repo.IncrementMaterialCount(ctx, googleUuid.New())
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "failed to increment material count"))
+}
+
+func TestElasticJWKRepository_ListDatabaseError(t *testing.T) {
+	t.Parallel()
+
+	closedDB := newClosedDB(t)
+
+	ctx := context.Background()
+	repo := NewElasticJWKRepository(closedDB)
+
+	_, _, err := repo.List(ctx, googleUuid.New(), 0, cryptoutilSharedMagic.JoseJADefaultMaxMaterials)
+	require.Error(t, err)
+	// Could fail on Count or Find - either error path is valid.
+	require.True(t,
+		strings.Contains(err.Error(), "failed to count elastic JWKs") ||
+			strings.Contains(err.Error(), "failed to list elastic JWKs"),
+		"Expected count or list error, got: %v", err)
+}
+
+func TestElasticJWKRepository_UpdateDatabaseError(t *testing.T) {
+	t.Parallel()
+
+	closedDB := newClosedDB(t)
+
+	ctx := context.Background()
+	repo := NewElasticJWKRepository(closedDB)
+
+	id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+
+	jwk := &cryptoutilAppsJoseJaModel.ElasticJWK{
+		ID:           *id,
+		TenantID:     *tenantID,
+		KID:          "test-update-error",
+		KeyType:      cryptoutilAppsJoseJaModel.KeyTypeRSA,
+		Algorithm:    cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm,
+		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
+		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
+	}
+
+	err := repo.Update(ctx, jwk)
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "failed to update elastic JWK"))
 }

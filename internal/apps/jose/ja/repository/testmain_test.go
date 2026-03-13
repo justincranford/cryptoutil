@@ -14,6 +14,7 @@ import (
 
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
+	cryptoutilTestdb "cryptoutil/internal/apps/template/service/testing/testdb"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 )
@@ -77,4 +78,14 @@ func TestMain(m *testing.M) {
 
 	// Cleanup happens via defer.
 	os.Exit(exitCode)
+}
+
+// newClosedDB creates a closed SQLite DB using the shared testdb helper.
+// Used by error-path tests to force database errors.
+func newClosedDB(t *testing.T) *gorm.DB {
+	t.Helper()
+
+	return cryptoutilTestdb.NewClosedSQLiteDB(t, func(sqlDB *sql.DB) error {
+		return ApplyJoseJAMigrations(sqlDB, DatabaseTypeSQLite)
+	})
 }

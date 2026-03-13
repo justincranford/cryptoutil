@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose/ja/model"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	googleUuid "github.com/google/uuid"
@@ -33,7 +33,7 @@ func TestAuditConfigRepository_Get(t *testing.T) {
 	// Create config.
 	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	operation := testOperation
-	config := &cryptoutilAppsJoseJaDomain.AuditConfig{
+	config := &cryptoutilAppsJoseJaModel.AuditConfig{
 		TenantID:     *tenantID,
 		Operation:    operation,
 		Enabled:      true,
@@ -70,7 +70,7 @@ func TestAuditConfigRepository_GetAllForTenant(t *testing.T) {
 	operations := []string{"sign", "verify", "encrypt"}
 
 	for _, op := range operations {
-		config := &cryptoutilAppsJoseJaDomain.AuditConfig{
+		config := &cryptoutilAppsJoseJaModel.AuditConfig{
 			TenantID:     *tenantID,
 			Operation:    op,
 			Enabled:      true,
@@ -105,7 +105,7 @@ func TestAuditConfigRepository_Upsert(t *testing.T) {
 	operation := "test-upsert"
 
 	// Test create (insert).
-	config := &cryptoutilAppsJoseJaDomain.AuditConfig{
+	config := &cryptoutilAppsJoseJaModel.AuditConfig{
 		TenantID:     *tenantID,
 		Operation:    operation,
 		Enabled:      true,
@@ -145,7 +145,7 @@ func TestAuditConfigRepository_Delete(t *testing.T) {
 	// Create config to delete.
 	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	operation := "test-delete"
-	config := &cryptoutilAppsJoseJaDomain.AuditConfig{
+	config := &cryptoutilAppsJoseJaModel.AuditConfig{
 		TenantID:     *tenantID,
 		Operation:    operation,
 		Enabled:      true,
@@ -176,7 +176,7 @@ func TestAuditConfigRepository_ShouldAudit(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create config with enabled=true and sampling=1.0 (always audit).
-	config := &cryptoutilAppsJoseJaDomain.AuditConfig{
+	config := &cryptoutilAppsJoseJaModel.AuditConfig{
 		TenantID:     *tenantID,
 		Operation:    operation,
 		Enabled:      true,
@@ -227,7 +227,7 @@ func TestAuditLogRepository_Create(t *testing.T) {
 	id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	requestID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-	entry := &cryptoutilAppsJoseJaDomain.AuditLogEntry{
+	entry := &cryptoutilAppsJoseJaModel.AuditLogEntry{
 		ID:        *id,
 		TenantID:  *tenantID,
 		Operation: "sign",
@@ -259,7 +259,7 @@ func TestAuditLogRepository_List(t *testing.T) {
 	for i := 0; i < 3; i++ {
 		id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 		requestID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-		entry := &cryptoutilAppsJoseJaDomain.AuditLogEntry{
+		entry := &cryptoutilAppsJoseJaModel.AuditLogEntry{
 			ID:        *id,
 			TenantID:  *tenantID,
 			Operation: "verify",
@@ -288,4 +288,89 @@ func TestAuditLogRepository_List(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, int64(0), total)
 	require.Empty(t, entries)
+}
+
+func TestAuditConfigRepository_UpsertMultipleTimes(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	repo := NewAuditConfigRepository(testDB)
+
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+
+	config := &cryptoutilAppsJoseJaModel.AuditConfig{
+		TenantID:     *tenantID,
+		Operation:    "test-upsert-multi",
+		Enabled:      true,
+		SamplingRate: cryptoutilSharedMagic.Tolerance50Percent,
+	}
+
+	// Upsert first time.
+	err := repo.Upsert(ctx, config)
+	require.NoError(t, err)
+
+	// Cleanup.
+	defer func() {
+		_ = repo.Delete(ctx, *tenantID, config.Operation)
+	}()
+
+	// Upsert again with different sampling rate.
+	config.SamplingRate = cryptoutilSharedMagic.RiskScoreVeryHigh
+
+	err = repo.Upsert(ctx, config)
+	require.NoError(t, err)
+
+	// Verify the update.
+	retrieved, err := repo.Get(ctx, *tenantID, config.Operation)
+	require.NoError(t, err)
+	require.InDelta(t, cryptoutilSharedMagic.RiskScoreVeryHigh, retrieved.SamplingRate, cryptoutilSharedMagic.JoseJAAuditFallbackSamplingRate)
+
+	// Upsert third time with disabled.
+	config.Enabled = false
+
+	err = repo.Upsert(ctx, config)
+	require.NoError(t, err)
+
+	// Verify.
+	retrieved, err = repo.Get(ctx, *tenantID, config.Operation)
+	require.NoError(t, err)
+	require.False(t, retrieved.Enabled)
+}
+
+func TestAuditLogRepository_CreateMultipleEntries(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	repo := NewAuditLogRepository(testDB)
+
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+
+	const numEntries = 20
+
+	// Create many audit log entries.
+	for i := 0; i < numEntries; i++ {
+		id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+		entry := &cryptoutilAppsJoseJaModel.AuditLogEntry{
+			ID:        *id,
+			TenantID:  *tenantID,
+			Operation: "bulk-test",
+			Success:   true,
+			RequestID: id.String(),
+			CreatedAt: time.Now().UTC().Add(time.Duration(-i) * time.Minute), // Different timestamps.
+		}
+
+		err := repo.Create(ctx, entry)
+		require.NoError(t, err)
+	}
+
+	// Cleanup.
+	t.Cleanup(func() {
+		_, _ = repo.DeleteOlderThan(ctx, *tenantID, -1) // Delete all.
+	})
+
+	// List them.
+	entries, total, err := repo.List(ctx, *tenantID, 0, cryptoutilSharedMagic.JoseJAMaxMaterials)
+	require.NoError(t, err)
+	require.Equal(t, int64(numEntries), total)
+	require.Len(t, entries, numEntries)
 }

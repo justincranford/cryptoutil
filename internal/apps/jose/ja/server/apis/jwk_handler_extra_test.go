@@ -14,7 +14,7 @@ import (
 	"time"
 
 	cryptoutilJoseModels "cryptoutil/api/jose/models"
-	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose/ja/model"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	fiber "github.com/gofiber/fiber/v2"
@@ -33,14 +33,14 @@ func TestHandleListMaterialJWKs_WithRetiredMaterial(t *testing.T) {
 	kid := "test-retired-material"
 	elasticID := googleUuid.New()
 
-	elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
+	elasticJWK := &cryptoutilAppsJoseJaModel.ElasticJWK{
 		ID:       elasticID,
 		TenantID: tenantID,
 		KID:      kid,
 	}
 
 	retiredAt := time.Now().UTC().Add(-cryptoutilSharedMagic.HoursPerDay * time.Hour)
-	materials := []*cryptoutilAppsJoseJaDomain.MaterialJWK{
+	materials := []*cryptoutilAppsJoseJaModel.MaterialJWK{
 		{
 			ID:           googleUuid.New(),
 			ElasticJWKID: elasticID,
@@ -84,7 +84,7 @@ func TestHandleRotateMaterialJWK_IncrementCountError(t *testing.T) {
 	kid := testIncrementError
 	elasticID := googleUuid.New()
 
-	elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
+	elasticJWK := &cryptoutilAppsJoseJaModel.ElasticJWK{
 		ID:                   elasticID,
 		TenantID:             tenantID,
 		KID:                  kid,
@@ -93,7 +93,7 @@ func TestHandleRotateMaterialJWK_IncrementCountError(t *testing.T) {
 	}
 
 	elasticRepo.On("Get", mock.Anything, tenantID, kid).Return(elasticJWK, nil)
-	materialRepo.On("RotateMaterial", mock.Anything, elasticID, mock.AnythingOfType("*domain.MaterialJWK")).Return(nil)
+	materialRepo.On("RotateMaterial", mock.Anything, elasticID, mock.AnythingOfType("*model.MaterialJWK")).Return(nil)
 	elasticRepo.On("IncrementMaterialCount", mock.Anything, elasticID).Return(errors.New("increment failed"))
 
 	app.Post("/elastic-jwks/:kid/materials/rotate", func(c *fiber.Ctx) error {
@@ -166,7 +166,7 @@ func TestHandleCreateElasticJWK_DefaultMaxMaterials(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Mock repository.
-	elasticRepo.On("Create", mock.Anything, mock.AnythingOfType("*domain.ElasticJWK")).
+	elasticRepo.On("Create", mock.Anything, mock.AnythingOfType("*model.ElasticJWK")).
 		Return(nil)
 
 	app.Post("/elastic-jwks", func(c *fiber.Ctx) error {

@@ -1,6 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
-package domain
+package model
 
 import (
 	"testing"
