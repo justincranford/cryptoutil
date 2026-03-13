@@ -433,7 +433,7 @@
 
 ### Testing
 
-- [x] Unit tests ≥95% coverage (production), ≥98% (infrastructure/utility)  
+- [x] Unit tests ≥95% coverage (production), ≥98% (infrastructure/utility)
 - [x] No skipped tests (pre-existing Docker/keygen failures unchanged)
 - [ ] Race detector clean: `go test -race ./...` (not run — CGO_ENABLED=1 required)
 - [x] Test count before == test count after for all file merges

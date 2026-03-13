@@ -14,8 +14,8 @@ import (
 
 	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm/im/model"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTestdb "cryptoutil/internal/apps/template/service/testing/testdb"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestErrorPaths_CreateOperations tests error scenarios for Create operations.
@@ -268,6 +268,7 @@ func TestErrorPaths_DeleteOperations(t *testing.T) {
 		})
 	}
 }
+
 // TestErrorReturns_DatabaseErrors tests error paths when database operations fail.
 // These tests increase coverage by exercising error return statements in repository methods.
 func TestErrorReturns_DatabaseErrors(t *testing.T) {
