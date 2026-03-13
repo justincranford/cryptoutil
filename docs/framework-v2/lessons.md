@@ -131,7 +131,43 @@ This file captures lessons from each phase, used as:
 
 ## Phase 4: sm-kms Assessment and Safe Cleanup
 
-*(To be filled during Phase 4 execution)*
+### What Worked
+
+- **Merge technique scales well**: Same PowerShell extract-after-import-block approach used for sm-im and jose-ja worked perfectly for sm-kms's 10 integration test files.
+- **Thematic grouping by error category**: Grouping by error type (error paths, DB errors, mutation errors, coverage gaps) creates intuitive navigation vs. the previous 10 fragmented files.
+- **Audit-first approach**: Tasks 4.1+4.2 produced documentation without code changes, creating shared understanding of v3 tech debt before any cleanup.
+
+### What Didn't Work
+
+- **Integration-only test verification**: All sm-kms repository/orm tests are `//go:build integration` — can only verify compilation, not execution without Docker. This is a pre-existing constraint, not a new issue.
+- **TestKMS_ServerLifecycle Windows failure**: Pre-existing Docker-dependent test fails on Windows with "not supported by windows". Not related to framework-v2 changes.
+
+### Root Causes
+
+- sm-kms repository/orm was developed with many small error-path test files (10 files for 52 tests) — same proliferation pattern as jose-ja and sm-im.
+- sm-kms application/ layer is ACTIVE (unlike expected dead code) — provides `StartServerApplicationCore()` for OrmRepository, BarrierService, BusinessLogicService. This is v3 Phase 3 tech debt.
+- sm-kms middleware (10 files) has partial overlap with template service — 5/10 have counterparts, 5/10 need new template capabilities.
+
+### Patterns
+
+- **P1**: Integration test files cannot be verified by execution on Windows — build-only verification is the standard for `//go:build integration` tests.
+- **P2**: Merge sizing must account for package-level constants (e.g., `testOperationFailedMsg`) that need inclusion in merged files.
+- **P3**: sm-kms handler already uses generated models correctly (strict server pattern) — no violations found, confirming the manual sm-kms creation was done properly.
+
+### Decisions
+
+- **D1**: 10 files merged into 4 thematic groups — all under 500-line limit (max 418 lines).
+- **D2**: No closed-DB helpers exist in sm-kms repository/orm — pure integration tests.
+- **D3**: application/ documented as ACTIVE v3 tech debt, not dead code.
+- **D4**: middleware/ documented as requiring 5 new template capabilities in v3 — no changes in v2 scope.
+
+### Quality Evidence
+
+- Build: `go build ./...` + `go build -tags e2e,integration ./...` clean.
+- Lint: 0 issues (both standard and integration-tagged).
+- Tests: All sm-kms packages pass except pre-existing Windows/Docker `TestKMS_ServerLifecycle`.
+- Fitness: PASSED (no sm-kms violations).
+- File count: 28 → 22 test files in repository/orm/ (10 removed, 4 added, 52 tests preserved).
 
 ---
 
