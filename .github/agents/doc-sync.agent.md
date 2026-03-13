@@ -254,6 +254,18 @@ grep -r "<old-value>" docs/ .github/ | wc -l  # Should be 0
 
 ### Step 5: Commit with Audit Trail
 
+#### File Encoding - MANDATORY (PowerShell)
+
+When writing ANY file via PowerShell terminal commands, use UTF-8 without BOM. The `fix-byte-order-marker` pre-commit hook and `lint-text` (in `cicd-lint-all`) enforce this.
+
+```powershell
+# CORRECT — UTF-8 without BOM
+[System.IO.File]::WriteAllText($path, $content, [System.Text.UTF8Encoding]::new($false))
+
+# WRONG — adds BOM in PowerShell 5.1
+Set-Content -Path $path -Value $content -Encoding UTF8  # ❌ BOM
+```
+
 **Semantic Grouping & Periodic Commits**:
 - Each doc-sync commit represents ONE propagated change (one ARCHITECTURE.md section = one commit)
 - NEVER accumulate multiple unrelated section changes into one bulk commit

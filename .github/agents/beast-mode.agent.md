@@ -376,6 +376,18 @@ git log --oneline -20
 - Make small, testable, incremental changes
 - Root cause analysis: Use `get_errors`, debug thoroughly, add logging/tests as needed
 
+#### File Encoding - MANDATORY (PowerShell)
+
+When writing ANY file via PowerShell terminal commands, use UTF-8 without BOM. The `fix-byte-order-marker` pre-commit hook and `lint-text` (in `cicd-lint-all`) enforce this.
+
+```powershell
+# CORRECT — UTF-8 without BOM
+[System.IO.File]::WriteAllText($path, $content, [System.Text.UTF8Encoding]::new($false))
+
+# WRONG — adds BOM in PowerShell 5.1
+Set-Content -Path $path -Value $content -Encoding UTF8  # ❌ BOM
+```
+
 ---
 
 ## Quality Gates (Per Task)

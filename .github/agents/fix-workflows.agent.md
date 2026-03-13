@@ -330,6 +330,18 @@ MUST run tests BEFORE EVERY COMMIT:
 - Focus on Unit + integration + E2E + workflow validation for high-quality commits
 - Workflow agents focus on CI/CD correctness, not mutation coverage
 
+#### File Encoding - MANDATORY (PowerShell)
+
+When writing ANY file via PowerShell terminal commands, use UTF-8 without BOM. The `fix-byte-order-marker` pre-commit hook and `lint-text` (in `cicd-lint-all`) enforce this.
+
+```powershell
+# CORRECT — UTF-8 without BOM
+[System.IO.File]::WriteAllText($path, $content, [System.Text.UTF8Encoding]::new($false))
+
+# WRONG — adds BOM in PowerShell 5.1
+Set-Content -Path $path -Value $content -Encoding UTF8  # ❌ BOM
+```
+
 ## Quality Gates - MANDATORY
 
 **ALWAYS verify workflow fixes with these steps before committing:**

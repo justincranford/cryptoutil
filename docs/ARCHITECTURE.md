@@ -2167,6 +2167,22 @@ COPY --from=validator /app/cryptoutil /app/cryptoutil
 - Skip patterns and exclusions
 - Fail-fast vs continue-on-error strategies
 
+#### 9.9.3 UTF-8 Without BOM Enforcement
+
+<!-- @propagate to=".github/instructions/03-05.linting.instructions.md" as="utf8-without-bom" -->
+**MANDATORY**: UTF-8 without BOM for ALL text files. Enforcement via pre-commit hook `fix-byte-order-marker` (auto-fix) and `lint-text` sub-linter (in `cicd-lint-all` hook).
+
+**PowerShell file writing MUST use UTF-8 without BOM — `Set-Content -Encoding UTF8` adds BOM in PowerShell 5.1:**
+
+```powershell
+# CORRECT — UTF-8 without BOM
+[System.IO.File]::WriteAllText($path, $content, [System.Text.UTF8Encoding]::new($false))
+
+# WRONG — adds BOM in PowerShell 5.1
+Set-Content -Path $path -Value $content -Encoding UTF8  # ❌ BOM
+```
+<!-- @/propagate -->
+
 ### 9.10 CICD Command Architecture
 
 The `cicd` CLI tool implements a strict directory-driven code organization pattern. Every command is enforced through a consistent four-layer dispatch, with three command naming categories.
