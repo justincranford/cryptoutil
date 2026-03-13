@@ -1,12 +1,11 @@
-# Framework v2 - Iteration Plan
+﻿# Implementation Plan - Framework v2: Service Code Quality Refactoring
 
-**Status**: IN PROGRESS — Phase 1 near completion. **quizme-v3 pending** (D12, D14 tentative until confirmed)
-**Created**: 2026-03-08
+**Status**: Planning
+**Created**: 2026-03-12
 **Last Updated**: 2026-03-12
-**Depends On**: `docs/framework-v1/` (complete), `docs/framework-brainstorm/08-recommendations.md`
-**Purpose**: Aggressive standardization of all 10 product-services as thin domain-only wrappers around service-template. Service-template owns 100% of reusable infrastructure (servers, clients, authn, authz, middleware, health, TLS, barrier, telemetry, tests). Product-services inject ONLY domain-specific: OpenAPI add-ons, DB migrations, business logic, config overrides.
-
-**Guiding Principle**: This repo is alpha development. NO backward compatibility. NO legacy code. All 10 product-services MUST use latest-and-greatest framework patterns.
+**Depends On**: `docs/framework-v1/` (complete)
+**Prerequisite For**: `docs/framework-v3/` (v3 phases 3, 4, 6, 7 build on v2 outcomes)
+**Purpose**: Systematic code-quality and structural refactoring of three mature services (sm-im, jose-ja, sm-kms) to eliminate patterns that accumulated before service-template existed. Establishes correct target structure for all future services. Runs BEFORE framework-v3 to remove tech debt that would otherwise complicate v3's builder/fitness/extraction work.
 
 ---
 
@@ -18,335 +17,302 @@
 
 ---
 
-## Context: Where We Are After Framework v1
+## Context: Why This Exists
 
-### What Framework v1 Delivered
+sm-im was implemented first, then used to shape jose-ja, and sm-kms was the original manual implementation later AI-migrated to service-template. All three carry patterns that were reasonable at the time but are now wrong given the service-template and testdb infrastructure that exists.
 
-1. **ServiceServer interface** - compile-time contract for all 10 services (11 methods)
-2. **Builder auto-defaults** - `Build()` auto-configures JWTAuth + StrictServer, services declare only add-ons
-3. **23 fitness sub-linters** - automated ARCHITECTURE.md enforcement via `cicd lint-fitness`
-4. **Cross-service contract tests** - `RunContractTests(t, server)` for behavioral consistency (4 of 10 services)
-5. **Shared test infrastructure** - testdb, testserver, fixtures, assertions, healthclient
-6. **air live reload** - `SERVICE=sm-im air` for 2-3x faster dev loop
+### Identified Problems
 
-### What Framework v1 Did NOT Do
+#### Problem 1: Duplicated `createClosedDatabase()` helper (all 3 services)
 
-1. **No GitHub Workflows updated** - `lint-fitness` only runs via pre-commit, not CI
-2. **Identity services** - only got compile-time assertions, no contract tests, minimal conformance work
-3. **PKI-CA** - minimal treatment (assertion + contract tests), domain still partial
-4. **No auth contract tests** - 401 rejection tests wrongly deferred to service-specific tests (auth is 100% service-template owned)
-5. **Contract tests incomplete** - only 4 of 10 services have `RunContractTests` (missing: identity-authz/idp/rp/rs/spa, pki-ca)
-6. **Builder still has redundant config logic** - services pass paths that service-template already knows
-7. **Sequential test exemptions** - 173 total, many avoidable (58 viper/pflag, 37 os.Chdir)
-8. **Lessons not fully propagated** - timeout double-multiplication not in skills/instructions
-9. **Agent semantic commit grouping not working** - last v1 commit was a bulk commit mixing unrelated changes
-10. **No skeleton CRUD reference** - skeleton-template still minimal (but may not be needed given lint-fitness)
+Every service that wants to test repository error paths re-implements the same boilerplate:
+open SQLite → PRAGMA WAL → PRAGMA busy_timeout → GORM → apply migrations → close connection → return broken GORM handle.
 
-### Service Maturity After v1
+| Service | File | Function |
+|---------|------|----------|
+| jose-ja | `repository/database_error_test.go` | `createClosedDatabase()` |
+| jose-ja | `service/database_error_test.go` | `createClosedServiceDependencies()` |
+| sm-im | `server/apis/messages_dberror_test.go` | `createClosedDBHandler()` |
+| sm-im | `server/apis/messages_errorpaths_test.go` | `createMixedHandler()` |
 
-| Service | Interface | Contract Tests | Builder Simplified | Domain Logic | Migration Status |
-|---------|-----------|---------------|-------------------|-------------|-----------------|
-| sm-im | Yes | Yes | Yes (already was) | Working CRUD | Complete |
-| jose-ja | Yes | Yes | Yes (already was) | Working CRUD | Complete |
-| sm-kms | Yes | Yes | Yes (v1 simplified) | Working CRUD | Complete |
-| pki-ca | Yes | Yes | Yes (already was) | Partial | In Progress |
-| skeleton-template | Yes | Yes | Yes (already was) | Minimal | Reference only |
-| identity-authz | Yes | No | Yes | Stub | Not Started |
-| identity-idp | Yes | No | Yes | Stub | Not Started |
-| identity-rp | Yes | No | Yes | Stub | Not Started |
-| identity-rs | Yes | No | Yes | Stub | Not Started |
-| identity-spa | Yes | No | Yes | Stub | Not Started |
+This belongs in `internal/apps/template/service/testing/testdb` as `NewClosedSQLiteDB(t, applyMigrations)`.
 
----
+#### Problem 2: Hand-rolled handler DTOs instead of generated models (jose-ja)
 
-## Guiding Decisions (From v1 Review)
+`internal/apps/jose/ja/server/apis/jwk_handler.go` defines its own request/response structs
+(`CreateElasticJWKRequest`, `ElasticJWKResponse`, `MaterialJWKResponse`) instead of using
+`api/jose/models/models.gen.go`. The OpenAPI contract is already code-generated and correct.
+Handlers must map between generated DTOs ↔ domain layer; they must NOT invent new DTOs.
 
-### D1: Auth is 100% Service-Template Owned
+sm-kms does this correctly (`cryptoutilKmsServer` from `api/kms/server`). sm-im needs verification.
 
-AuthN/AuthZ are NOT domain-specific. They are 100% owned by service-template. Auth contract tests (401/403 rejection) belong in `RunContractTests`, NOT in service-specific tests. The v1 lesson "auth contracts belong in service-specific tests" was WRONG and is corrected here.
+#### Problem 3: File proliferation via error-path file splitting (jose-ja, sm-kms)
 
-### D2: NO Builder Backward Compatibility
+Error-path coverage was achieved by creating separate files per error scenario instead of
+table-driven subtests in the same file as the domain component under test:
 
-This repo is alpha. NO backward compatibility for the builder API. If the builder interface needs to change, it changes. All 10 services update immediately. No deprecation period, no migration path.
+**jose-ja repository/**:
+- `database_error_test.go` - ElasticJWK repo errors
+- `database_error_material_test.go` - MaterialJWK repo errors
+- `database_error_audit_test.go` - Audit repo errors
+- `additional_edge_cases_test.go`, `audit_log_list_test.go` - more splits
 
-### D3: Product-Services Are Thin Wrappers
+**jose-ja service/**:
+- `database_error_test.go`, `database_error_corrupt_test.go`, `database_error_corrupt2_test.go`
+- `database_error_extra_test.go`, `database_error_jwe_test.go`
+- `error_coverage_jwe_jws_test.go`, `error_coverage_jwks_rotation_test.go`, `error_coverage_jwt_test.go`
+- `mapping_functions_test.go`, `mapping_functions_parse_test.go`
 
-Product-services MUST be thin domain-only wrappers (like Spring Boot `@SpringBootApplication`). They inject ONLY:
-- Domain OpenAPI spec addons
-- Domain DB migrations
-- Domain business logic handlers
-- Domain config overrides (via config object, not redundant `With*()` calls)
+**sm-kms repository/orm/**:
+- `business_entities_additional_errors_test.go`, `business_entities_dead_code_test.go`
+- `business_entities_error_mapping_test.go`, `business_entities_get_errors_test.go`
+- `business_entities_gorm_errors_test.go`, `business_entities_materialkey_errors_test.go`
+- `business_entities_postgres_errors_test.go`, `business_entities_toapperr_test.go`
+- `business_entities_update_errors_test.go`, +more
 
-ALL reusable infrastructure (servers, clients, authn, authz, middleware, health, TLS, barrier, telemetry, sessions, tests) lives in service-template. If code is duplicated across >1 service, it belongs in service-template.
+Each domain file (`elastic_jwk_service.go`) should have exactly ONE test file (`elastic_jwk_service_test.go`) containing ALL test cases including error paths as table-driven subtests. Extra files bloat the package and make navigation harder.
 
-### D4: ARCHITECTURE.md is THE Single Source of Truth
+#### Problem 4: domain/models.go is a GORM file, not a domain file (jose-ja)
 
-ALL knowledge propagates FROM `docs/ARCHITECTURE.md`. Agents, skills, instructions, and plan docs are downstream consumers. Propagation is enforced by `cicd lint-docs validate-propagation`.
+`internal/apps/jose/ja/domain/models.go` contains GORM struct definitions with table annotations
+(`gorm:"type:text;primaryKey"`, `TableName()` methods, etc.). These are persistence layer types,
+not domain types. In a service with NO separate service/ layer, the domain/ package can hold them
+ONLY if the package is renamed to reflect its actual nature (e.g., `model/` or `repository/model/`).
+The jose-ja domain/ package currently has GORM types co-located with operation constants — this
+needs clarification of intent given v3 D3 (thin wrappers inject only domain logic).
 
-### D5: No Legacy Code
+#### Problem 5: sm-kms has pre-template application layer (scope boundary investigation)
 
-All 10 product-services MUST use the latest framework patterns. No service gets to stay on an old pattern because "it works."
+sm-kms has `server/application/` with `application_basic.go`, `application_core.go`,
+`application_init.go`, `application_listener*.go`, `fiber_middleware_otel_request_logger.go`.
+This looks like infrastructure that predates service-template. After framework-v1 builder
+migration, this may be dead code or it may still be wired in.
 
-### D6: Skeleton-Template Purpose
+**v2 action**: Audit only. If dead → remove. If still active → flag as v3 Phase 3 work
+(builder refactoring eliminates service-owned application layers per D3).
 
-skeleton-template's purpose needs analysis: given lint-fitness (23 sub-linters enforcing conformance), is skeleton still needed as a reference? It may serve as a minimal working example for `cicd new-service` scaffolding, or it may be redundant.
+#### Problem 6: sm-kms has auth middleware (v3-owned, do NOT touch)
 
-### D7: Test Infrastructure Rules
-
-- **Unit tests**: NEVER start servers, NEVER start DBs
-- **Integration tests**: ONE server per service (via TestMain)
-- **E2E tests**: ONE docker-compose file
-- Violations of these rules MUST be bubbled up to lint-fitness
-
-### D8: lint-fitness is Full Investment (quizme-v1 Q2=A)
-
-lint-fitness (23 sub-linters, 10,500 lines) gets FULL investment: >=98% coverage, >=95% mutation, all synthetic test fixtures evaluated. The value of automated ARCHITECTURE.md enforcement is proven and worth the maintenance cost.
-
-### D9: Single Domain Config Struct for Builder (quizme-v1 Q3=A)
-
-Builder refactoring uses a SINGLE domain config struct (not per-With()-call options). Product-services pass one config object; service-template picks what it needs. This is the cleanest API and aligns with D3 (thin wrappers).
-
-### D10: Sequential Exemption Reduction Starts Smallest-First (quizme-v1 Q4=D)
-
-Phase 4 starts with the smallest exemption categories (os.Stderr=5, pgDriver=11) to build momentum before tackling larger categories (os.Chdir=37, viper/pflag=58). Quick wins first establish patterns before the complex refactoring.
-
-### D11: Agent Semantic Commits via Instructions Only (quizme-v1 Q7=C)
-
-No automated commit linting enforcement (no commitlint, no CI validation). Improve agent instructions to better enforce the Multi-Category Fix Commit Rule. Trust the AI instructions, avoid tooling overhead for an alpha repo.
-
-### D12: Skeleton-Template Stays Minimal (quizme-v2 Q1 → A recommended)
-
-skeleton-template (19 Go files, 61KB) keeps its triple role: human reference, `/new-service` scaffolding source, lint-fitness validation target. NO CRUD endpoint added (sm-im at 61 files/357KB already IS the CRUD reference). NO code generation engine (over-engineered for ~10 services). Cost: ~2h/quarter to keep current.
-
-### D13: Identity Full Extraction + Staged Reintegration (quizme-v2 Q2=A)
-
-All 5 identity services + pki-ca get clean-slate treatment: archive domain logic to `_archived/`, replace with fresh skeletons, stage reintegration (rp/rs/spa first → authz → idp → pki-ca). Precondition: service-template MUST be fully proven first (able to stand up 5 thin services that work with minimal effort).
-
-### D14: InsecureSkipVerify Phase 2A Only (quizme-v2 Q3 → A recommended)
-
-Phase 2 scope = integration + contract tests only. Add `TLSBundle()` accessor to `ServiceServer`, migrate test HTTP clients to trust server's auto-generated CA. Eliminates ~90% of InsecureSkipVerify (38 of 47 files). E2E Docker TLS (2B), mTLS (2C), and PostgreSQL TLS (2D) deferred. The 1 production InsecureSkipVerify (identity-rp) gets fixed by D13 extraction.
-
-### D15: Fix ALL 6 ARCHITECTURE.md TLS Gaps in Phase 2 (quizme-v2 Q4=A)
-
-All 6 TLS gaps fixed as part of Phase 2 when InsecureSkipVerify removal provides implementation context: (1) TLS Certificate Configuration table, (2) TLS secrets in 12.3.3, (3) TLS test bundle pattern in 10.3, (4) ServiceServer.TLSBundle() in 10.3.5, (5) mTLS deployment architecture, (6) TLS mode taxonomy (Static/Mixed/Auto).
-
-### D16: Architecture Status Table Set to 0% for Identity (quizme-v2 Q5=E)
-
-All 5 identity-* services marked "⚠️ Extraction Pending 0%" in ARCHITECTURE.md Section 3.2 status table. Current "Complete 100%" entries are false. Domain code must be extracted to archive, services replaced with skeleton code. Update table again after extraction completes.
-
-Phases 2, 6, 7, 8 restructured per these decisions.
+sm-kms `server/middleware/` contains: JWT validation, claims extraction, revocation checking,
+realm context, scopes enforcement, session handling, tenant extraction. Per v3 D1, auth is
+100% service-template owned. v2 MUST NOT touch these — they are v3 Phase 3/4/5 scope.
 
 ---
 
-## Goals for Framework v2
+## Guiding Principles / Decisions
 
-### Goal 1: Service-Template Standardization
+### D1: testdb.NewClosedSQLiteDB is the ONLY accepted pattern
 
-Make service-template the single source of ALL reusable infrastructure:
+No service package may contain its own `createClosedDatabase`-style helper function.
+All closed-DB error path testing uses `testdb.NewClosedSQLiteDB(t, applyMigrations)`.
+After v2, a lint-fitness rule enforces this (see v3 Phase 6 dependency below).
 
-- [ ] **Auth contract tests in RunContractTests** - 401/403 rejection tests as cross-service contracts
-- [ ] **Contract tests for ALL 10 services** - identity-authz/idp/rp/rs/spa + pki-ca
-- [ ] **Contract tests for ALL 5 products** - parameterized product-level contract tests
-- [ ] **Contract test for the suite** - suite-level contract test
-- [ ] **Builder refactoring** - services pass config objects, service-template picks what it needs (eliminate redundant `WithBrowserBasePath`/`WithServiceBasePath` logic in each service)
-- [ ] **ServiceServer interface expansion analysis** - determine what integration tests need beyond current 11 methods (telemetry? JWK? barrier? TLS bundle? config?)
+### D2: Handler types come from api/PRODUCT/models/models.gen.go only
 
-### Goal 2: CI/CD and Quality Infrastructure
+Handler request/response structs must NOT be hand-rolled in service packages.
+The generated models are the API contract. Handlers map: generated DTO ↔ domain struct.
 
-- [ ] **ci-fitness.yml** - GitHub Actions workflow for `cicd lint-fitness`
-- [ ] **lint-fitness coverage/mutation** - verify 10,500 lines meet >=98% quality gates
-- [ ] **lint-fitness value assessment** - confirm 10,500 lines truly standardize services (not waste)
-- [ ] **Test infrastructure rule enforcement** - add fitness linter for unit-test-starts-server violations
+### D3: One test file per source file, all cases in one file
 
-### Goal 3: Sequential Exemption Reduction
+`elastic_jwk_repository.go` → `elastic_jwk_repository_test.go` only.
+Error paths, edge cases, closed-DB paths are all table-driven subtests in the same file.
+No `_error_test.go`, `_edge_cases_test.go`, `_corrupt_test.go` split files.
 
-Deep analysis and reduction of 173 `// Sequential:` exemptions:
+### D4: domain/ packages contain ZERO GORM annotations
 
-- [ ] **viper/pflag global state (58)** - SEAM PATTERN to inject config instead of global viper
-- [ ] **os.Chdir (37)** - many in lint_fitness use `CheckInDir` pattern; verify which are truly needed
-- [ ] **os.Stderr capture (5)** - inject `io.Writer` instead of capturing stderr
-- [ ] **Other categories** - seam variable (11), pgDriver mock (11), SQLite in-memory (10), shared state (13), injectable function variables (16), signals (6), port reuse (5)
+If a `domain/` package contains GORM struct tags or `TableName()`, it is a persistence
+package and should be named accordingly (e.g., `repository/model/` or just `model/`).
+True domain types are API+business agnostic (no GORM, no fiber, no generated models).
 
-### Goal 4: Knowledge Propagation Completion
+### D5: sm-kms middleware is v3-owned, not v2
 
-- [ ] **Timeout double-multiplication lesson** - propagate to skills and instructions (currently only in ARCHITECTURE.md and lessons.md)
-- [ ] **DisableKeepAlives** - verify propagation complete (already in 03-02.testing and contract-test-gen)
-- [ ] **Review doc simplification** - framework-v1/review.md is overwhelming; future reviews should be concise
-- [ ] **Agent semantic commit enforcement** - fix agent guidance so bulk commits don't happen
+v2 MUST NOT refactor `server/middleware/`. Touching it in v2 would conflict with v3
+D1 (auth service-template migration) and create churn. v2 documents the debt and flags it.
 
-### Goal 5: Security Infrastructure
+### D6: No scope creep into v3 territory
 
-- [x] **Semgrep in pre-commit** - `.semgrep/rules/` directory, initial rules
-- [ ] **Remove InsecureSkipVerify (G402)** - generate TLS cert chains in testserver, remove G402 from gosec.excludes
+v2 scope = test infrastructure helpers, file naming, file count reduction, generated models.
+v2 MUST NOT: change builder API, move middleware, change auth flows, touch identity services.
 
-### Goal 6: Product-Service Domain Logic
+---
 
-Following migration priority (sm-im > jose-ja > sm-kms > pki-ca > identity):
+## v2 ↔ v3 Relationship Analysis
 
-- [ ] **pki-ca domain completion** - certificate issuance, revocation, CRL, OCSP
-- [ ] **identity-authz** - OAuth 2.1 authorization server
-- [ ] **identity-idp** - identity provider (OIDC)
-- [ ] **identity-rp, identity-rs, identity-spa** - remaining identity services
+### Overlap Inventory
+
+| v2 Work | v3 Phase | Relationship | Risk |
+|---------|----------|-------------|------|
+| `testdb.NewClosedSQLiteDB` helper | v3 P6 Task 6.4 (test infra fitness rule) | v2 establishes pattern; v3 enforces via linter | **Low** - pattern defined in v2, rule added in v3 |
+| jose-ja handler uses generated models | v3 D3 (thin wrappers) | v2 aligns with v3 goal | **Low** - no conflict, v2 reduces v3 work |
+| File proliferation cleanup (jose-ja service/) | v3 P3 (builder refactoring touches same files) | v3 changes registration; v2 changes test organization | **Medium** - same files touched; **v2 must complete before v3 Phase 3** |
+| sm-kms `server/application/` audit | v3 P3 (builder refactoring) | v2 audits; v3 removes | **Low** - v2 only reads; v3 writes |
+| sm-kms `server/middleware/` | v3 D1 + P3/P4 | v2 MUST NOT touch; v3 owns | **Zero** if v2 respects D5 above |
+| jose-ja `domain/` naming | v3 D3 + P7 (extract/reintegrate) | v2 clarifies intent; v3 may extract | **Low** - naming fix is non-breaking |
+
+### Conflicts to Avoid
+
+1. **v2 MUST complete jose-ja service/ test cleanup BEFORE v3 Phase 3** begins builder refactoring.
+   Builder refactoring changes how routes are registered in the same handler files v2 is cleaning.
+   Parallel work = merge conflicts.
+
+2. **v2 MUST NOT change sm-kms server/middleware/ filenames or move files.**
+   v3 D1 migration will delete these entire packages. File renaming creates ghost merges.
+
+3. **v2's handler DTO fix (jose-ja) establishes the pattern for v3 Phase 7/8 reintegration.**
+   Document the mapping pattern clearly so identity service reintegration adopts the same approach.
+
+### v3 Adjustments Required After v2 Completes
+
+1. v3 `tasks.md` Phase 3 should note: "jose-ja service/ test cleanup completed in v2, no test migration needed"
+2. v3 `tasks.md` Phase 6 Task 6.4: "Enforce testdb.NewClosedSQLiteDB pattern (established in v2)"
+3. v3 `plan.md` header: "**Depends On**: `docs/framework-v2/` (complete)"
+
+### Opportunities: Pull v3 Work into v2 (Evaluated)
+
+| v3 Item | Pull into v2? | Decision | Rationale |
+|---------|--------------|----------|-----------|
+| v3 P6 T6.4: Add test infrastructure fitness rule | YES — partial | Add the `new_closed_sqlite_db_pattern` fitness rule in v2 Phase 1 after helper is established | Rule is tiny, test pattern is defined in v2, natural fit |
+| v3 D3: sm-kms `server/application/` removal | NO | v2 audits; v3 Phase 3 removes (builder context needed) | Needs builder context from v3 P3 |
+| v3 D1: sm-kms `server/middleware/` migration | NO | Too large, wrong context | v3 owns all auth infra |
+| v3 P2: InsecureSkipVerify removal | NO | Out of scope | TLS work is separate concern |
+
+---
+
+## Technical Context
+
+- **Language**: Go 1.26.1
+- **Framework**: Fiber v2, service-template builder, GORM
+- **Database**: SQLite in-memory (tests), PostgreSQL (production)
+- **Generated Code**: `api/PRODUCT/models/models.gen.go` via oapi-codegen
+- **Test DB Helper**: `internal/apps/template/service/testing/testdb/testdb.go`
+- **Related Plans**: `docs/framework-v3/` (downstream — must coordinate)
 
 ---
 
 ## Phases
 
-### Phase 1: Close v1 Gaps and Knowledge Propagation [Status: TODO]
+### Phase 1: testdb.NewClosedSQLiteDB Helper (0.5d) [Status: TODO]
 
-**Objective**: Fix immediate gaps from v1 review. Small items implemented immediately.
+**Objective**: Add `NewClosedSQLiteDB(t, applyMigrations)` to service-template testdb package. This is infrastructure work that unlocks all three service cleanups.
 
-- Fix lessons.md auth contracts item (auth is service-template owned, not service-specific)
-- Propagate timeout double-multiplication lesson to skills and instructions
-- Clean up temp files from research
-- Add ci-fitness.yml GitHub Actions workflow
-- Integrate contract tests into remaining 6 services (identity-authz/idp/rp/rs/spa, pki-ca)
-- Add auth contract tests (401/403 rejection) to `RunContractTests`
-- Verify lint-fitness coverage/mutation meets >=98%
-- **Success**: All 10 services have `RunContractTests`, auth contracts in cross-service suite, ci-fitness.yml in CI
-- **Post-Mortem**: lessons.md updated
+- Add `NewClosedSQLiteDB(t *testing.T, applyMigrations func(*sql.DB) error) *gorm.DB` to `testdb/testdb.go`
+- Uses same open → PRAGMA WAL → PRAGMA busy_timeout → GORM → apply migrations → close pattern
+- Returns `*gorm.DB` with closed underlying connection (for error path tests)
+- Cleanup registered via `t.Cleanup()` (noop - DB already closed, but consistent)
+- Unit tests: ≥98% coverage (infrastructure utility)
+- Add lint-fitness rule `no_local_create_closed_database` (checks for private `createClosedDatabase`, `createClosedDB`, `createClosedServiceDependencies` functions in non-testdb packages)
+- Document in ARCHITECTURE.md Section 10.3.6 Shared Test Infrastructure table
+- **Success**: Build + tests clean; fitness rule passes on new helper; fitness rule FAILS on current jose-ja (confirmed before cleanup)
+- **Post-Mortem**: Update lessons.md.
 
-### Phase 2: Remove InsecureSkipVerify — Integration Tests Only (D14) [Status: TODO]
+### Phase 2: jose-ja Cleanup (1.5d) [Status: TODO]
 
-**Objective**: Eliminate InsecureSkipVerify from integration + contract tests (~90% of 47 files). Fix all 6 ARCHITECTURE.md TLS gaps (D15).
+**Objective**: Fix all four identified problems in jose-ja (handler DTOs, closed-DB helpers, file proliferation, domain naming).
 
-- Add `TLSBundle()` accessor to `ServiceServer` interface (exposes server's auto-generated CA cert)
-- Add `TLSClientConfig(t)` helper that trusts the test server's CA
-- Migrate all 10 services' test HTTP clients from `InsecureSkipVerify: true` to `TLSClientConfig(t)`
-- Document TLS mode taxonomy (Static/Mixed/Auto) in ARCHITECTURE.md Section 6
-- Document TLS test bundle pattern in ARCHITECTURE.md Section 10.3
-- Document TLS secrets in ARCHITECTURE.md Section 12.3.3
-- E2E/Docker TLS (Phase 2B), mTLS (2C), PostgreSQL TLS (2D) explicitly deferred
-- **Success**: Zero `InsecureSkipVerify` in integration/contract tests, 6 ARCHITECTURE.md TLS gaps fixed
-- **Post-Mortem**: lessons.md updated
+- **2.1 Handler DTOs**: Replace hand-rolled `CreateElasticJWKRequest`, `ElasticJWKResponse`, `MaterialJWKResponse` in `server/apis/jwk_handler.go` with types from `api/jose/models/models.gen.go`. Add explicit mapping functions (`toElasticJWKResponse`, `toMaterialJWKResponse`) in the handler.
+- **2.2 Migrate closed-DB helpers**: Replace `createClosedDatabase()` (repository) and `createClosedServiceDependencies()` (service) with `testdb.NewClosedSQLiteDB()`.
+- **2.3 Merge repository error-path files**: Consolidate `database_error_test.go`, `database_error_material_test.go`, `database_error_audit_test.go`, `additional_edge_cases_test.go`, `audit_log_list_test.go` → error-path subtests in `elastic_jwk_repository_test.go`, `material_jwk_repository_test.go`, `audit_repository_test.go`.
+- **2.4 Merge service error-path files**: Consolidate `database_error_test.go`, `database_error_corrupt_test.go`, `database_error_corrupt2_test.go`, `database_error_extra_test.go`, `database_error_jwe_test.go`, `error_coverage_jwe_jws_test.go`, `error_coverage_jwks_rotation_test.go`, `error_coverage_jwt_test.go`, `mapping_functions_test.go`, `mapping_functions_parse_test.go` → subtests in `elastic_jwk_service_test.go`, `jwe_service_test.go`, `jws_service_test.go`, `jwt_service_test.go`, etc.
+- **2.5 domain/ naming**: Rename `internal/apps/jose/ja/domain/` → `internal/apps/jose/ja/model/` and update all import aliases. (GORM structs belong in a persistence-aware package, not "domain".)
+- **2.6 Quality gates**: lint + tests + coverage ≥95% + fitness rule passes.
+- **Success**: jose-ja repository/ ≤5 test files; service/ ≤1 test file per service file; handler uses generated models; fitness rule passes.
+- **Post-Mortem**: Update lessons.md.
 
-### Phase 3: Builder Refactoring [Status: TODO]
+### Phase 3: sm-im Cleanup (1d) [Status: TODO]
 
-**Objective**: Product-services pass config objects; service-template picks what it needs.
+**Objective**: Apply the same cleanup to sm-im (fewer issues than jose-ja, no hand-rolled DTOs).
 
-- Analyze current builder `With*()` call patterns across all 10 services
-- Refactor builder to accept domain config struct (OpenAPI spec, migrations FS, route registration)
-- Eliminate redundant `WithBrowserBasePath`/`WithServiceBasePath` per-service logic
-- All 10 services updated to new builder API (NO backward compatibility)
-- **Success**: Product-service `NewFromConfig` is <=10 lines, zero duplicated path setup
-- **Post-Mortem**: lessons.md updated
+- **3.1 Verify generated models**: Confirm sm-im handlers use `api/sm/im/models/models.gen.go` (or equivalent). Document result.
+- **3.2 Migrate closed-DB helpers**: Replace `createClosedDBHandler()` (`server/apis/messages_dberror_test.go`) and `createMixedHandler()` (`server/apis/messages_errorpaths_test.go`) with `testdb.NewClosedSQLiteDB()` + inline service construction.
+- **3.3 Merge repository error-path files**: Evaluate `repository/error_paths_test.go`, `repository/error_returns_test.go`, `repository/concurrent_access_test.go` — merge into `message_repository_test.go` and `message_recipient_jwk_repository_test.go` as table subtests.
+- **3.4 Merge handler error-path files**: Evaluate `server/apis/messages_dberror_test.go` and `server/apis/messages_errorpaths_test.go` — merge into `messages_test.go` where appropriate.
+- **3.5 domain/ audit**: Confirm sm-im `domain/` contains true domain types (no GORM tags). Document.
+- **3.6 Quality gates**: lint + tests + coverage ≥95% + fitness rule passes.
+- **Success**: No createClosedDB* functions in sm-im; repository/ and server/apis/ have ≤1 test file per source file; fitness rule passes.
+- **Post-Mortem**: Update lessons.md.
 
-### Phase 4: Sequential Exemption Reduction [Status: TODO]
+### Phase 4: sm-kms Assessment and Safe Cleanup (1d) [Status: TODO]
 
-**Objective**: Reduce 173 `// Sequential:` exemptions by applying SEAM PATTERN and dependency injection. **Smallest-first** ordering per D10.
+**Objective**: Audit sm-kms, remove clearly dead code, flag v3-owned items. Do NOT touch middleware or auth.
 
-- Start with smallest categories to build momentum and establish patterns:
-  1. os.Stderr capture (5) - inject `io.Writer` seam
-  2. pgDriver registration (11) - evaluate test isolation approach
-  3. seam variables (11) - already correct pattern, align documentation
-  4. os.Chdir (37) - evaluate t.TempDir() + relative paths, lint_fitness CheckInDir
-  5. viper/pflag (58) - inject config reader, largest category last
-- Target: reduce from 173 to <100 exemptions
-- **Success**: Each remaining exemption has justified `// Sequential:` comment
-- **Post-Mortem**: lessons.md updated
+- **4.1 server/application/ audit**: Compare `server/application/` to what the service-template builder now provides. Determine if it's dead (builder replaced it) or still active. If dead → remove with tests. If active → document as tech debt with v3 Phase 3 as the fix.
+- **4.2 server/middleware/ documentation only**: Catalog all middleware files, confirm they replicate service-template auth functionality. Create `docs/framework-v2/sm-kms-middleware-debt.md` documenting what moves where in v3. DO NOT CHANGE CODE.
+- **4.3 repository/orm/ file proliferation**: Same pattern as jose-ja. Evaluate merging split error-path files. Apply D3 rule (one test file per source file). Migrate any closed-DB helpers to `testdb.NewClosedSQLiteDB()`.
+- **4.4 Verify generated models**: Confirm handler uses `api/kms/server` generated types (expect: already correct). Document.
+- **4.5 Quality gates**: lint + tests + coverage ≥95% + fitness rule passes for touched packages.
+- **Success**: server/application/ either removed or documented; repository/orm/ file count reduced by ≥30%; no custom closed-DB helpers; fitness rule passes.
+- **Post-Mortem**: Update lessons.md.
 
-### Phase 5: ServiceServer Interface Expansion [Status: TODO]
+### Phase 5: Knowledge Propagation (0.5d) [Status: TODO]
 
-**Objective**: Analyze and expand the interface to cover integration test needs.
+**Objective**: Apply lessons to permanent artifacts. Never skip this phase.
 
-- Audit what integration tests need beyond current 11 methods
-- Candidates: TelemetryService, JWKGenService, BarrierService, TLS bundle, Config accessor
-- Expand interface (NO backward compatibility - all services update immediately)
-- Update contract tests to exercise new interface methods
-- **Success**: Integration tests can access all framework services through the interface
-- **Post-Mortem**: lessons.md updated
-
-### Phase 6: lint-fitness Value Assessment [Status: TODO]
-
-**Objective**: Confirm 10,500 lines of lint-fitness truly standardize services.
-
-- Coverage and mutation testing of all 23 sub-linters
-- Identify any sub-linters testing synthetic content vs real project files
-- Evaluate whether 10,500 lines are justified or can be reduced
-- skeleton-template stays minimal per D12 (no CRUD, no code generation). Verify current as scaffolding source.
-- Add test infrastructure rule enforcement (unit-test-starts-server detection)
-- **Success**: >=98% coverage, >=95% mutation, documented value assessment
-- **Post-Mortem**: lessons.md updated
-
-### Phase 7: Domain Extraction and Fresh Skeletons (D13) [Status: TODO]
-
-**Objective**: Extract domain logic from identity-* and pki-ca, replace with fresh skeleton-template copies.
-
-- Archive all identity shared packages to `internal/apps/identity/_archived/`
-- Archive each per-service domain code (authz, idp, rp, rs, spa) to `_archived/`
-- Archive pki-ca domain code to `internal/apps/pki/_ca-archived/` (already exists, verify complete)
-- Replace all 6 services with fresh skeleton-template copies (builder + contract tests + health)
-- Update ARCHITECTURE.md status table: all 6 services → "⚠️ Extraction Pending 0%" (D16)
-- **Precondition**: Phases 1-5 complete (service-template patterns proven on sm-im, jose-ja, sm-kms)
-- **Success**: 6 clean skeleton services pass `RunContractTests`, all domain logic safely archived
-- **Post-Mortem**: lessons.md updated
-
-### Phase 8: Staged Domain Reintegration (D13) [Status: TODO]
-
-**Objective**: Reintroduce archived domain logic into fresh skeletons, smallest-first.
-
-- Stage 1: rp, rs, spa (10-18 files each, trivial domain, quick proof-of-pattern)
-- Stage 2: authz (133 files/916KB, OAuth 2.1 core — largest complexity)
-- Stage 3: idp (129 files/862KB, OIDC provider — second largest)
-- Stage 4: pki-ca (48KB active + 880KB archived, certificate lifecycle)
-- Each stage: extract relevant domain from archive → adapt to latest builder → test → commit
-- **Success**: All 6 services have working domain + latest framework patterns
-- **Post-Mortem**: lessons.md updated
-
-### Phase 9: Quality and Knowledge Propagation [Status: TODO]
-
-**Objective**: Final quality sweep and knowledge propagation.
-
-- Full coverage and mutation testing enforcement across all services
-- Performance benchmarking for crypto operations
-- Improve agent instructions for semantic commit grouping (D11: instructions only, no automated tooling)
-- Propagate ALL lessons to ARCHITECTURE.md, agents, skills, instructions
-- Simplify review document format for future iterations
-- **Success**: All quality gates pass, all knowledge propagated, clean lessons.md
-- **Post-Mortem**: lessons.md updated
+- Review lessons.md from all prior phases
+- Update ARCHITECTURE.md:
+  - Section 10.3.6: Add `testdb.NewClosedSQLiteDB()` to shared test infrastructure table
+  - Section 10.2 or 11.2: Document "one test file per source file" rule with example
+  - Section 4.4.1 or 3.3: Document that handler types MUST come from `api/PRODUCT/models/models.gen.go`
+  - Section 11.2: Document `domain/` naming vs `model/` (GORM structs go in persistence package)
+- Update `03-02.testing.instructions.md`: Add "no local createClosedDatabase" rule
+- Update `03-03.golang.instructions.md`: Add "no hand-rolled handler DTOs" rule
+- Update framework-v3 plan.md + tasks.md: Add "Depends On: framework-v2" header and task notes
+- Propagation check: `go run ./cmd/cicd lint-docs validate-propagation`
+- **Success**: All artifact updates committed; propagation check passes; v3 plan updated.
+- **Post-Mortem**: Update lessons.md.
 
 ---
 
-## Known ARCHITECTURE.md Gaps (from quizme-v1 analysis)
+## Risk Assessment
 
-**Evidence**: `test-output/framework-v2-quizme-analysis/analysis.md`
-
-All gaps resolved by quizme-v2 decisions. Assigned to implementation phases:
-
-### TLS Gaps → Phase 2 (D14, D15)
-
-1. **TLS Certificate Configuration table** — exists in instructions (02-01) but NOT in ARCHITECTURE.md Section 6
-2. **Secrets Coordination Strategy (12.3.3)** — no TLS CA/cert/key secrets documented (only unseal/DB/API secrets)
-3. **No TLS test bundle pattern** — Section 10.3 lacks integration test TLS bundle documentation
-4. **No ServiceServer.TLSBundle() accessor** — Section 10.3.5 contract test pattern missing TLS accessor
-5. **No mTLS deployment architecture** — Section 6.3 mentions mTLS but no implementation strategy
-6. **TLS mode taxonomy missing** — Code has Static/Mixed/Auto modes (`tls_generator.go`) but ARCHITECTURE.md does not document them
-
-### Identity/Skeleton Gaps → Phases 6-8 (D12, D13, D16)
-
-1. **Section 3.1.5** — doesn't define skeleton-template vs lint-fitness vs `/new-service` skill relationship
-2. **Section 9.11** — doesn't mention skeleton as lint-fitness validation target
-3. **Section 3.2 status table STALE** — shows identity-authz/idp/rs as "Complete 100%" but they lack contract tests, auth tests, and latest builder patterns
-4. **No service domain extraction strategy** — no documented approach for archiving and reintroducing domain logic
-5. **Archival naming inconsistency** — pki-ca uses `_ca-archived/` but no standard naming convention documented
-
-### Resolution
-
-- **TLS gaps 1-6**: Fixed in Phase 2 (D15)
-- **Identity/Skeleton gaps 1-2**: Addressed in Phase 6 (D12 — skeleton stays minimal, document relationship)
-- **Gap 3 (status table)**: Fixed in Phase 7 (D16 — identity-* → 0%)
-- **Gaps 4-5 (extraction/archival)**: Addressed in Phases 7-8 (D13 — extraction + staged reintegration)
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Merging jose-ja service/ test files misses a test case | Medium | High | Verify line-count and test-count before/after merge; run with -v and compare |
+| Handler DTO fix breaks jose-ja API contract (wrong field names/types) | Medium | High | Compare generated model fields against hand-rolled structs before removing; add mapping tests |
+| sm-kms server/application/ is still active (not dead code) | Medium | Medium | Audit via call graph before touching; if active, document only |
+| v3 Phase 3 starts before v2 Phase 2 completes | Low | Medium | Coordinate start; v3 Phase 3 should reference v2 completion as prerequisite |
+| Fitness rule false-positives in testdb package itself | Low | Low | Add exclusion for `testdb` package in fitness rule |
 
 ---
 
-## Cross-References
+## Quality Gates - MANDATORY
 
-- **Framework v1**: `docs/framework-v1/` (plan.md, tasks.md, lessons.md, review.md)
-- **Framework Brainstorm**: `docs/framework-brainstorm/` (00-overview through 08-recommendations)
-- **Architecture**: `docs/ARCHITECTURE.md` (single source of truth)
-- **Migration Priority**: ARCHITECTURE.md Section 2.2 (sm-im > jose-ja > sm-kms > pki-ca > identity)
-- **Service Template**: ARCHITECTURE.md Section 5.1 (template pattern), Section 5.2 (builder pattern)
-- **Testing Strategy**: ARCHITECTURE.md Section 10 (testing architecture)
-- **Quality Gates**: ARCHITECTURE.md Section 11.2 (quality gates)
-- **Fitness Functions**: ARCHITECTURE.md Section 9.11 (fitness function catalog)
-- **Sequential Exemptions**: ARCHITECTURE.md Section 10.2.5 (sequential test exemption)
+**Per-Phase Gates**:
+- ✅ `go build ./...` clean
+- ✅ `go build -tags e2e,integration ./...` clean
+- ✅ `golangci-lint run` clean
+- ✅ `golangci-lint run --build-tags e2e,integration` clean
+- ✅ `go test ./... -shuffle=on` passes (100%, zero skips)
+- ✅ Coverage maintained or improved (production ≥95%, infra ≥98%)
+- ✅ Fitness rules pass: `go run ./cmd/cicd lint-fitness`
+- ✅ `go test -race -count=2 ./...` clean
+
+---
+
+## Success Criteria
+
+- [ ] `testdb.NewClosedSQLiteDB()` exists in service-template testing package with ≥98% coverage
+- [ ] Zero `createClosedDatabase`/`createClosedDB`/`createClosedServiceDependencies` functions outside testdb package (fitness rule enforced)
+- [ ] jose-ja `server/apis/jwk_handler.go` imports `api/jose/models` — zero hand-rolled DTOs
+- [ ] jose-ja `repository/` and `service/` have ≤1 test file per source file
+- [ ] sm-im has zero custom closed-DB helpers
+- [ ] sm-kms `server/application/` either removed or documented as v3 tech debt
+- [ ] ARCHITECTURE.md updated with new patterns
+- [ ] framework-v3 plan updated to reference v2 as prerequisite
+- [ ] All fitness rules pass
+
+---
+
+## ARCHITECTURE.md Cross-References
+
+| Topic | Section | When to Reference |
+|-------|---------|-------------------|
+| Testing Strategy | [Section 10](../../docs/ARCHITECTURE.md#10-testing-architecture) | ALL phases |
+| Shared Test Infrastructure | [Section 10.3.6](../../docs/ARCHITECTURE.md#1036-shared-test-infrastructure) | Phase 1 (new helper) |
+| Unit Testing (file per test) | [Section 10.2](../../docs/ARCHITECTURE.md#102-unit-testing-strategy) | Phase 2-4 (file merging) |
+| Quality Gates | [Section 11.2](../../docs/ARCHITECTURE.md#112-quality-gates) | ALL phases (mandatory) |
+| Coding Standards | [Section 13.1](../../docs/ARCHITECTURE.md#131-coding-standards) | Phase 2-4 (file naming) |
+| OpenAPI-First Design | [Section 8.1](../../docs/ARCHITECTURE.md#81-openapi-first-design) | Phase 2.1 (handler DTOs) |
+| Service Template Pattern | [Section 5.1](../../docs/ARCHITECTURE.md#51-service-template-pattern) | Phase 1, 4 |
+| Infrastructure Blockers | [Section 13.7](../../docs/ARCHITECTURE.md#137-infrastructure-blocker-escalation) | ALL phases |
+| Post-Mortem & Knowledge Propagation | [Section 13.8](../../docs/ARCHITECTURE.md#138-phase-post-mortem--knowledge-propagation) | Phase 5 (mandatory) |
+| Plan Lifecycle | [Section 13.6](../../docs/ARCHITECTURE.md#136-plan-lifecycle-management) | ALL (mandatory) |

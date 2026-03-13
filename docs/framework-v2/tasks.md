@@ -1,720 +1,473 @@
-# Tasks - Framework v2
+﻿# Tasks - Framework v2: Service Code Quality Refactoring
 
-**Status**: 11 of 58 tasks complete (19%)
+**Status**: 0 of 34 tasks complete (0%)
 **Last Updated**: 2026-03-12
-**Created**: 2026-03-08
+**Created**: 2026-03-12
 
 ## Quality Mandate - MANDATORY
 
 **Quality Attributes (NO EXCEPTIONS)**:
-- OK **Correctness**: ALL code must be functionally correct with comprehensive tests
-- OK **Completeness**: NO phases or tasks or steps skipped, NO features de-prioritized, NO shortcuts
-- OK **Thoroughness**: Evidence-based validation at every step
-- OK **Reliability**: Quality gates enforced (>=95%/98% coverage/mutation)
-- OK **Efficiency**: Optimized for maintainability and performance, NOT implementation speed
-- OK **Accuracy**: Changes must address root cause, not just symptoms
-- NO **Time Pressure**: NEVER rush, NEVER skip validation, NEVER defer quality checks
-- NO **Premature Completion**: NEVER mark phases or tasks or steps complete without objective evidence
+- ✅ **Correctness**: ALL code must be functionally correct with comprehensive tests
+- ✅ **Completeness**: NO phases or tasks or steps skipped, NO features de-prioritized, NO shortcuts
+- ✅ **Thoroughness**: Evidence-based validation at every step
+- ✅ **Reliability**: Quality gates enforced (≥95%/98% coverage/mutation)
+- ✅ **Efficiency**: Optimized for maintainability and performance, NOT implementation speed
+- ✅ **Accuracy**: Changes must address root cause, not just symptoms
+- ❌ **Time Pressure**: NEVER rush, NEVER skip validation, NEVER defer quality checks
+- ❌ **Premature Completion**: NEVER mark phases or tasks or steps complete without objective evidence
+
+**ALL issues are blockers - NO exceptions.**
 
 ---
 
 ## Task Checklist
 
-### Phase 1: Close v1 Gaps and Knowledge Propagation
+### Phase 1: testdb.NewClosedSQLiteDB Helper
 
-**Phase Objective**: Fix immediate gaps from v1 review, propagate knowledge, add CI workflow, complete contract test coverage.
+**Phase Objective**: Add shared closed-DB helper to service-template testdb package and add a fitness rule to enforce its use.
 
-#### Task 1.1: Fix lessons.md auth contracts item
-
-- **Status**: DONE
-- **Dependencies**: None
-- **Description**: Correct the inherited lesson that says "auth contracts belong in service-specific tests" - auth is 100% service-template owned
-- **Acceptance Criteria**:
-  - [x] lessons.md item 4 updated to reflect auth is service-template owned
-  - [x] No references to "auth belongs in service-specific tests" remain
-
-#### Task 1.2: Propagate timeout double-multiplication lesson
-
-- **Status**: DONE
-- **Dependencies**: None
-- **Description**: The lesson about `time.Duration` constants NOT being multiplied by `time.Second` is only in ARCHITECTURE.md and lessons.md. Propagate to skills and instructions.
-- **Acceptance Criteria**:
-  - [x] `03-02.testing.instructions.md` includes timeout double-multiplication warning (Forbidden Pattern #7)
-  - [x] `coverage-analysis` skill includes timeout pattern check (Common Pitfalls section)
-  - [x] `contract-test-gen` skill includes timeout warning (Critical Notes section, fixed garbled encoding)
-  - [x] Verify ARCHITECTURE.md Section 10.3.4 already documents this (confirmed)
-
-#### Task 1.3: Clean up temp research files
-
-- **Status**: DONE
-- **Dependencies**: None
-- **Description**: Remove temp_sequential_results.txt and any other research artifacts from repo root
-- **Acceptance Criteria**:
-  - [x] No temp research files in repo root
-  - [x] `git status` clean after cleanup
-
-#### Task 1.4: Add ci-fitness.yml GitHub Actions workflow
-
-- **Status**: DONE
-- **Dependencies**: None
-- **Description**: Add CI workflow for `cicd lint-fitness` so fitness checks run in CI, not just pre-commit
-- **Acceptance Criteria**:
-  - [x] `.github/workflows/ci-fitness.yml` created
-  - [x] Triggers on push/PR for relevant file changes (.go, .sql, .yml)
-  - [x] Runs `go run ./cmd/cicd lint-fitness`
-  - [x] Uses `actions/setup-go@v6` with `cache: true`
-  - [x] Follows existing workflow conventions (see ci-quality.yml for reference)
-
-#### Task 1.5: Add auth contract tests to RunContractTests
-
-- **Status**: DONE
-- **Dependencies**: None
-- **Description**: Add 401/403 rejection contract tests to the cross-service contract suite. Auth is 100% service-template owned.
-- **Acceptance Criteria**:
-  - [x] New `auth_contracts.go` in `internal/apps/template/service/testing/contract/`
-  - [x] Tests unauthenticated requests get 401 on protected endpoints
-  - [x] Tests unauthorized requests get 403 (note: 403 requires authorization infrastructure not yet built; 401 is fully tested)
-  - [x] Tests both `/service/**` and `/browser/**` paths
-  - [x] Unit tests for auth contract tests (>=95% coverage)
-  - [x] `RunContractTests` calls new auth contracts (opt-in via AuthContractServer interface)
-
-#### Task 1.6: Integrate contract tests into identity-authz
-
-- **Status**: DONE
-- **Dependencies**: Task 1.5
-- **Description**: Add `RunContractTests(t, server)` to identity-authz integration tests
-- **Acceptance Criteria**:
-  - [x] identity-authz calls `RunContractTests`
-  - [x] All contract tests pass including auth contracts
-  - [x] `go test ./internal/apps/identity/authz/...` passes
-
-#### Task 1.7: Integrate contract tests into identity-idp
-
-- **Status**: DONE
-- **Dependencies**: Task 1.5
-- **Description**: Add `RunContractTests(t, server)` to identity-idp integration tests
-- **Acceptance Criteria**:
-  - [x] identity-idp calls `RunContractTests`
-  - [x] All contract tests pass
-  - [x] `go test ./internal/apps/identity/idp/...` passes
-
-#### Task 1.8: Integrate contract tests into identity-rp
-
-- **Status**: DONE
-- **Dependencies**: Task 1.5
-- **Description**: Add `RunContractTests(t, server)` to identity-rp integration tests
-- **Acceptance Criteria**:
-  - [x] identity-rp calls `RunContractTests`
-  - [x] All contract tests pass
-  - [x] `go test ./internal/apps/identity/rp/...` passes
-
-#### Task 1.9: Integrate contract tests into identity-rs
-
-- **Status**: DONE
-- **Dependencies**: Task 1.5
-- **Description**: Add `RunContractTests(t, server)` to identity-rs integration tests
-- **Acceptance Criteria**:
-  - [x] identity-rs calls `RunContractTests`
-  - [x] All contract tests pass
-  - [x] `go test ./internal/apps/identity/rs/...` passes
-
-#### Task 1.10: Integrate contract tests into identity-spa
-
-- **Status**: DONE
-- **Dependencies**: Task 1.5
-- **Description**: Add `RunContractTests(t, server)` to identity-spa integration tests
-- **Acceptance Criteria**:
-  - [x] identity-spa calls `RunContractTests`
-  - [x] All contract tests pass (required SPA fallback fix for reserved path prefixes)
-  - [x] `go test ./internal/apps/identity/spa/...` passes
-
-#### Task 1.11: Verify lint-fitness coverage and mutation
-
-- **Status**: DONE (verified and documented; coverage improvement deferred)
-- **Dependencies**: None
-- **Description**: Run coverage and mutation testing on 10,500 lines of lint_fitness code
-- **Acceptance Criteria**:
-  - [x] Coverage verified for `internal/apps/cicd/lint_fitness/`
-  - [ ] Coverage >=98% for all packages (19 of 24 below target — pre-existing gap)
-  - [ ] Mutation testing >=95% (gremlins panics on Windows; CI-only)
-  - [x] Document any uncovered lines with justification
-- **Coverage Report** (24 packages):
-  - ≥98%: lint_fitness(100%), product_structure(100%), product_wiring(100%), service_structure(100%), circular_deps(99%)
-  - 95-98%: migration_numbering(97.7%), check_skeleton_placeholders(96.8%), crypto_rand(96.1%), insecure_skip_verify(96.1%), cgo_free_sqlite(95.2%)
-  - 90-95%: non_fips_algorithms(94.4%), cmd_main_pattern(91.3%)
-  - 80-90%: file_size_limits(89.2%), tls_minimum_version(88.5%), cross_service_import_isolation(88%), admin_bind_address(87.8%), domain_layer_isolation(86.8%), health_endpoint_presence(85.5%), service_contract_compliance(83%), bind_address_safety(80.6%)
-  - <80%: migration_range_compliance(79.3%), test_patterns(76.7%), parallel_tests(76.2%), no_hardcoded_passwords(68.9%)
-- **Note**: Fixed 9 pre-existing Windows NTFS test failures (os.Chmod 0o000). Coverage improvement is a dedicated task for Phase 2+.
-
-#### Task 1.12: Phase 1 validation and post-mortem
+#### Task 1.1: Implement testdb.NewClosedSQLiteDB
 
 - **Status**: TODO
-- **Dependencies**: Tasks 1.1-1.11
-- **Description**: Full quality gate run, coverage verification, phase post-mortem
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [fill when complete]
+- **Dependencies**: None
+- **Description**: Add `NewClosedSQLiteDB(t *testing.T, applyMigrations func(*sql.DB) error) *gorm.DB` to `testdb/testdb.go`. Follows same open/PRAGMA/GORM pattern as `NewInMemorySQLiteDB` but closes the underlying connection before returning.
+- **Acceptance Criteria**:
+  - [ ] Function added to `internal/apps/template/service/testing/testdb/testdb.go`
+  - [ ] Accepts `applyMigrations func(*sql.DB) error` (domain-specific injection)
+  - [ ] Registers noop `t.Cleanup()` for consistency
+  - [ ] Unit tests: injection of mock openFn for error paths; ≥98% coverage
+  - [ ] `go test ./internal/apps/template/service/testing/testdb/...` passes
+- **Files**:
+  - `internal/apps/template/service/testing/testdb/testdb.go` (modify)
+  - `internal/apps/template/service/testing/testdb/testdb_test.go` (modify)
+
+#### Task 1.2: Add no_local_create_closed_database fitness rule
+
+- **Status**: TODO
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [fill when complete]
+- **Dependencies**: Task 1.1
+- **Description**: Add a lint-fitness sub-linter that detects private `createClosedDatabase`, `createClosedDB`, `createClosedServiceDependencies` functions defined outside the `testdb` package. Confirm it FAILS on current jose-ja BEFORE the cleanup, proving the rule works.
+- **Acceptance Criteria**:
+  - [ ] New sub-linter added to `cmd/cicd/lint_fitness/`
+  - [ ] Rule fires on jose-ja `repository/database_error_test.go` (confirmed pre-cleanup)
+  - [ ] Rule does NOT fire on `testdb/testdb.go` (allowlist for testdb package)
+  - [ ] Rule passes after Phase 2/3/4 cleanups
+  - [ ] `go run ./cmd/cicd lint-fitness` includes new rule
+  - [ ] Sub-linter tests ≥98% coverage
+- **Files**:
+  - New file in `cmd/cicd/lint_fitness/` (e.g., `lint_closed_db_pattern.go`)
+  - Corresponding test file
+
+#### Task 1.3: Phase 1 quality gate
+
+- **Status**: TODO
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: [fill when complete]
+- **Dependencies**: Tasks 1.1, 1.2
+- **Description**: Full quality gate + post-mortem.
 - **Acceptance Criteria**:
   - [ ] `go build ./...` clean
-  - [ ] `golangci-lint run` clean
-  - [ ] `go test ./... -shuffle=on` passes
-  - [ ] All 10 services have `RunContractTests`
+  - [ ] `go test ./internal/apps/template/service/testing/testdb/... -cover` ≥98%
+  - [ ] `golangci-lint run ./internal/apps/template/service/testing/testdb/...` clean
+  - [ ] `go run ./cmd/cicd lint-fitness` passes (new rule present, fires on jose-ja as expected)
   - [ ] lessons.md updated with Phase 1 post-mortem
-  - [ ] Git commit with conventional commit message
 
 ---
 
-### Phase 2: Remove InsecureSkipVerify — Integration Tests Only (D14, D15)
+### Phase 2: jose-ja Cleanup
 
-**Phase Objective**: Eliminate InsecureSkipVerify from integration + contract tests (~90% of 47 files). Fix all 6 ARCHITECTURE.md TLS gaps. E2E/Docker TLS (2B), mTLS (2C), PostgreSQL TLS (2D) explicitly deferred.
+**Phase Objective**: Fix all four problems in jose-ja (handler DTOs, closed-DB helpers, file proliferation in repository/ and service/, domain naming).
 
-#### Task 2.1: Add TLS Test Bundle to service-template testserver
-
-- **Status**: TODO
-- **Dependencies**: None
-- **Description**: Add TLS cert bundle generation to the shared testserver infrastructure
-- **Acceptance Criteria**:
-  - [ ] `NewTestTLSBundle(t)` in `internal/apps/template/service/testing/testserver/` generates self-signed CA + server cert
-  - [ ] `TLSClientConfig(t *testing.T, bundle *TestTLSBundle) *tls.Config` returns config trusting the test CA cert
-  - [ ] `testserver.StartAndWait()` accepts optional TLS bundle or auto-generates one
-  - [ ] Server exposes `TLSBundle()` accessor so test setup can retrieve the CA cert
-  - [ ] Unit tests for TLS bundle generation (>=95% coverage)
-  - [ ] Build clean: `go build ./internal/apps/template/service/testing/...`
-  - [ ] No linting errors
-
-#### Task 2.2: Migrate sm-im test HTTP clients
+#### Task 2.1: Replace hand-rolled handler DTOs with generated models
 
 - **Status**: TODO
-- **Dependencies**: Task 2.1
-- **Description**: Replace InsecureSkipVerify: true with TLSClientConfig(t) in sm-im tests
+- **Owner**: LLM Agent
+- **Estimated**: 3h
+- **Actual**: [fill when complete]
+- **Dependencies**: None (can start independently of Phase 1)
+- **Description**: `server/apis/jwk_handler.go` defines `CreateElasticJWKRequest`, `ElasticJWKResponse`, `MaterialJWKResponse` instead of using `api/jose/models/models.gen.go`. Replace with generated types and add explicit mapping functions.
 - **Acceptance Criteria**:
-  - [ ] Zero `InsecureSkipVerify: true` in sm-im test files
-  - [ ] All sm-im tests pass
-  - [ ] No linting errors
+  - [ ] `server/apis/jwk_handler.go` imports `api/jose/models` — zero hand-rolled request/response structs
+  - [ ] Explicit mapping functions `toElasticJWKResponse`, `toMaterialJWKResponse` added as unexported helpers
+  - [ ] Handler tests updated to use generated types
+  - [ ] `go test ./internal/apps/jose/ja/server/...` passes
+  - [ ] No API behavior change (all existing tests still pass)
+- **Files**:
+  - `internal/apps/jose/ja/server/apis/jwk_handler.go` (modify)
+  - `internal/apps/jose/ja/server/apis/jwk_handler_test.go` (modify)
+  - `internal/apps/jose/ja/server/apis/jwk_handler_material.go` (modify)
 
-#### Task 2.3: Migrate jose-ja test HTTP clients
+#### Task 2.2: Migrate closed-DB helpers to testdb.NewClosedSQLiteDB
 
 - **Status**: TODO
-- **Dependencies**: Task 2.1
-- **Description**: Replace InsecureSkipVerify: true with TLSClientConfig(t) in jose-ja tests
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [fill when complete]
+- **Dependencies**: Task 1.1
+- **Description**: Replace `createClosedDatabase()` in `repository/database_error_test.go` and `createClosedServiceDependencies()` in `service/database_error_test.go` with calls to `testdb.NewClosedSQLiteDB(t, applyMigrations)`.
 - **Acceptance Criteria**:
-  - [ ] Zero `InsecureSkipVerify: true` in jose-ja test files
-  - [ ] All jose-ja tests pass
-  - [ ] No linting errors
+  - [ ] No `createClosedDatabase` function in `jose/ja/repository/` package
+  - [ ] No `createClosedServiceDependencies` function in `jose/ja/service/` package
+  - [ ] All error-path tests use `testdb.NewClosedSQLiteDB()`
+  - [ ] `go test ./internal/apps/jose/ja/repository/... ./internal/apps/jose/ja/service/...` passes
+  - [ ] Fitness rule passes (no more violations in jose-ja)
 
-#### Task 2.4: Migrate sm-kms test HTTP clients
+#### Task 2.3: Merge repository/ error-path test files
 
 - **Status**: TODO
-- **Dependencies**: Task 2.1
-- **Description**: Replace InsecureSkipVerify: true with TLSClientConfig(t) in sm-kms tests
+- **Owner**: LLM Agent
+- **Estimated**: 3h
+- **Actual**: [fill when complete]
+- **Dependencies**: Task 2.2
+- **Description**: Consolidate split error-path files into domain-named test files as table subtests. Files to merge: `database_error_test.go`, `database_error_material_test.go`, `database_error_audit_test.go`, `additional_edge_cases_test.go`, `audit_log_list_test.go`.
 - **Acceptance Criteria**:
-  - [ ] Zero `InsecureSkipVerify: true` in sm-kms test files
-  - [ ] All sm-kms tests pass
-  - [ ] No linting errors
+  - [ ] `database_error_test.go` deleted; cases in `elastic_jwk_repository_test.go`
+  - [ ] `database_error_material_test.go` deleted; cases in `material_jwk_repository_test.go`
+  - [ ] `database_error_audit_test.go` deleted; cases in `audit_repository_test.go`
+  - [ ] `additional_edge_cases_test.go` and `audit_log_list_test.go` deleted; cases distributed to appropriate domain test files
+  - [ ] Test count before == test count after (no test loss)
+  - [ ] `go test ./internal/apps/jose/ja/repository/...` passes
 
-#### Task 2.5: Migrate pki-ca test HTTP clients
+#### Task 2.4: Merge service/ error-path test files
 
 - **Status**: TODO
-- **Dependencies**: Task 2.1
-- **Description**: Replace InsecureSkipVerify: true with TLSClientConfig(t) in pki-ca tests
+- **Owner**: LLM Agent
+- **Estimated**: 4h
+- **Actual**: [fill when complete]
+- **Dependencies**: Task 2.2
+- **Description**: Merge 10+ split service error-path files into the relevant service test files.
+- Target merges:
+  - `database_error_test.go` → `elastic_jwk_service_test.go`
+  - `database_error_corrupt_test.go` + `database_error_corrupt2_test.go` → `elastic_jwk_service_test.go`
+  - `database_error_extra_test.go` → relevant service test file
+  - `database_error_jwe_test.go` → `jwe_service_test.go`
+  - `error_coverage_jwe_jws_test.go` → `jwe_service_test.go` + `jws_service_test.go`
+  - `error_coverage_jwks_rotation_test.go` → `jwks_service_test.go` or `material_rotation_service_test.go`
+  - `error_coverage_jwt_test.go` → `jwt_service_test.go`
+  - `mapping_functions_test.go` + `mapping_functions_parse_test.go` → appropriate service test file
 - **Acceptance Criteria**:
-  - [ ] Zero `InsecureSkipVerify: true` in pki-ca test files
-  - [ ] All pki-ca tests pass
-  - [ ] No linting errors
+  - [ ] All merged source files deleted
+  - [ ] Test count before == test count after (no test loss)
+  - [ ] Each test file name matches its source file name
+  - [ ] `go test ./internal/apps/jose/ja/service/...` passes
 
-#### Task 2.6: Migrate identity service test HTTP clients (all 5)
+#### Task 2.5: Rename domain/ → model/
 
 - **Status**: TODO
-- **Dependencies**: Task 2.1
-- **Description**: Replace InsecureSkipVerify: true with TLSClientConfig(t) in identity-authz/idp/rp/rs/spa tests
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Actual**: [fill when complete]
+- **Dependencies**: Tasks 2.1, 2.3, 2.4 (all files that import domain package must be updated simultaneously)
+- **Description**: `internal/apps/jose/ja/domain/` contains GORM structs, not true domain types. Rename to `model/` and update all import paths and aliases.
 - **Acceptance Criteria**:
-  - [ ] Zero `InsecureSkipVerify: true` in identity service test files
-  - [ ] All identity tests pass
-  - [ ] No linting errors
+  - [ ] `internal/apps/jose/ja/domain/` replaced by `internal/apps/jose/ja/model/`
+  - [ ] All import paths updated across jose-ja packages
+  - [ ] Import alias updated: `cryptoutilAppsJoseJaModel` (was `cryptoutilAppsJoseJaDomain`)
+  - [ ] `go build ./internal/apps/jose/ja/...` clean
+  - [ ] `go test ./internal/apps/jose/ja/...` passes
 
-#### Task 2.7: Migrate skeleton-template test HTTP clients
+#### Task 2.6: Phase 2 quality gate
 
 - **Status**: TODO
-- **Dependencies**: Task 2.1
-- **Description**: Replace InsecureSkipVerify: true with TLSClientConfig(t) in skeleton-template tests
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: [fill when complete]
+- **Dependencies**: Tasks 2.1-2.5
+- **Description**: Full quality gate + post-mortem.
 - **Acceptance Criteria**:
-  - [ ] Zero `InsecureSkipVerify: true` in skeleton-template test files
-  - [ ] All template and skeleton tests pass
-  - [ ] No linting errors
-
-#### Task 2.8: Remove G402 from gosec.excludes and activate semgrep rule
-
-- **Status**: TODO
-- **Dependencies**: Tasks 2.2-2.7
-- **Description**: Remove G402 exclusion from .golangci.yml, activate the semgrep rule
-- **Acceptance Criteria**:
-  - [ ] `G402` removed from `gosec.excludes` in `.golangci.yml`
-  - [ ] `no-tls-insecure-skip-verify` rule uncommented in `.semgrep/rules/go-testing.yml`
-  - [ ] `golangci-lint run ./...` passes with G402 enabled
-  - [ ] `go test ./... -shuffle=on` passes
-
-#### Task 2.9: Fix ARCHITECTURE.md TLS gaps (D15)
-
-- **Status**: TODO
-- **Dependencies**: Task 2.1
-- **Description**: Fix all 6 identified TLS documentation gaps in ARCHITECTURE.md
-- **Acceptance Criteria**:
-  - [ ] Gap 1: TLS Certificate Configuration table added to ARCHITECTURE.md Section 6
-  - [ ] Gap 2: TLS CA/cert/key secrets documented in Section 12.3.3
-  - [ ] Gap 3: TLS test bundle pattern documented in Section 10.3
-  - [ ] Gap 4: ServiceServer.TLSBundle() accessor documented in Section 10.3.5
-  - [ ] Gap 5: mTLS deployment architecture documented in Section 6.3
-  - [ ] Gap 6: TLS mode taxonomy (Static/Mixed/Auto) documented in Section 6
-  - [ ] `cicd lint-docs validate-propagation` passes
-
-#### Task 2.10: Phase 2 validation and post-mortem
-
-- **Status**: TODO
-- **Dependencies**: Tasks 2.8-2.9
-- **Description**: Full quality gate run, phase post-mortem
-- **Acceptance Criteria**:
-  - [ ] `go build ./...` and `go build -tags e2e,integration ./...` clean
-  - [ ] `golangci-lint run` and `golangci-lint run --build-tags e2e,integration` clean
-  - [ ] `go test ./... -shuffle=on` passes
-  - [ ] `go test -race -count=2 ./...` clean
-  - [ ] Coverage maintained
+  - [ ] `go build ./...` clean
+  - [ ] `go test ./internal/apps/jose/ja/... -shuffle=on` passes
+  - [ ] `golangci-lint run ./internal/apps/jose/ja/...` clean
+  - [ ] Coverage maintained: `go test -cover ./internal/apps/jose/ja/...` ≥95%
+  - [ ] `go run ./cmd/cicd lint-fitness` passes (no jose-ja violations)
+  - [ ] jose-ja repository/ has ≤5 test files total
+  - [ ] jose-ja service/ has ≤1 test file per source file
   - [ ] lessons.md updated with Phase 2 post-mortem
-  - [ ] Git commit
 
 ---
 
-### Phase 3: Builder Refactoring
+### Phase 3: sm-im Cleanup
 
-**Phase Objective**: Product-services pass config objects; service-template picks what it needs.
+**Phase Objective**: Apply same cleanup to sm-im (fewer issues, no hand-rolled DTOs expected).
 
-#### Task 3.1: Analyze current builder With*() call patterns
+#### Task 3.1: Verify sm-im handler uses generated models
 
 - **Status**: TODO
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: [fill when complete]
 - **Dependencies**: None
-- **Description**: Audit all 10 services to document current builder usage patterns
+- **Description**: Confirm `server/apis/messages.go` uses `api/sm/im/` generated models exclusively. Document result.
 - **Acceptance Criteria**:
-  - [ ] Document which With*() methods each service calls
-  - [ ] Identify redundant per-service path setup (WithBrowserBasePath, WithServiceBasePath)
-  - [ ] Identify what a minimal domain config struct needs
+  - [ ] Audit results documented in `test-output/framework-v2/sm-im-model-audit.md`
+  - [ ] If violations found: create new task 3.1b to fix (block Phase 3)
 
-#### Task 3.2: Design new builder domain config API
+#### Task 3.2: Migrate sm-im closed-DB helpers
 
 - **Status**: TODO
-- **Dependencies**: Task 3.1
-- **Description**: Design the new builder API where services pass a config struct, not individual With*() calls
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [fill when complete]
+- **Dependencies**: Task 1.1
+- **Description**: Replace `createClosedDBHandler()` and `createMixedHandler()` with `testdb.NewClosedSQLiteDB()` + inline service construction.
 - **Acceptance Criteria**:
-  - [ ] Domain config struct defined
-  - [ ] Builder accepts config struct
-  - [ ] API reviewed for simplicity (NewFromConfig <=10 lines)
+  - [ ] No `createClosedDBHandler` function in `sm/im/server/apis/`
+  - [ ] No `createMixedHandler` function in `sm/im/server/apis/`
+  - [ ] All error-path tests use `testdb.NewClosedSQLiteDB()` or inline setup
+  - [ ] `go test ./internal/apps/sm/im/server/apis/...` passes
+  - [ ] Fitness rule passes (no sm-im violations)
 
-#### Task 3.3: Implement builder refactoring
+#### Task 3.3: Merge sm-im repository/ error-path files
 
 - **Status**: TODO
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [fill when complete]
 - **Dependencies**: Task 3.2
-- **Description**: Implement the new builder API in service-template
+- **Description**: Merge `repository/error_paths_test.go`, `repository/error_returns_test.go`, `repository/concurrent_access_test.go` into domain-named test files.
 - **Acceptance Criteria**:
-  - [ ] New builder API implemented
-  - [ ] Old With*() methods removed (NO backward compatibility)
-  - [ ] Unit tests updated
+  - [ ] `error_paths_test.go` deleted; cases in `message_repository_test.go`
+  - [ ] `error_returns_test.go` deleted; cases distributed to domain test files
+  - [ ] `concurrent_access_test.go` cases merged into appropriate domain test file
+  - [ ] Test count before == test count after
+  - [ ] `go test ./internal/apps/sm/im/repository/...` passes
 
-#### Task 3.4: Migrate all 10 services to new builder API
+#### Task 3.4: Merge sm-im server/apis/ error-path files
 
 - **Status**: TODO
-- **Dependencies**: Task 3.3
-- **Description**: Update all 10 services to use new builder API
+- **Owner**: LLM Agent
+- **Estimated**: 1.5h
+- **Actual**: [fill when complete]
+- **Dependencies**: Task 3.2
+- **Description**: Evaluate `messages_dberror_test.go` and `messages_errorpaths_test.go` — merge error cases into `messages_test.go`.
 - **Acceptance Criteria**:
-  - [ ] All 10 services use new builder API
-  - [ ] NewFromConfig is <=10 lines per service
-  - [ ] Zero duplicated path setup
-  - [ ] All tests pass
+  - [ ] `messages_dberror_test.go` deleted; cases in `messages_test.go`
+  - [ ] `messages_errorpaths_test.go` deleted; cases in `messages_test.go`
+  - [ ] Test count before == test count after
+  - [ ] `go test ./internal/apps/sm/im/server/apis/...` passes
 
-#### Task 3.5: Phase 3 validation and post-mortem
+#### Task 3.5: sm-im domain/ audit
 
 - **Status**: TODO
-- **Dependencies**: Task 3.4
-- **Description**: Full quality gate run
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: [fill when complete]
+- **Dependencies**: None
+- **Description**: Confirm sm-im `domain/` contains only true domain types (no GORM tags, no fiber, no generated models). If violations: extend this task or create 3.5b.
+- **Acceptance Criteria**:
+  - [ ] Audit results documented
+  - [ ] If domain is clean: mark done. If GORM present: rename to `model/` (same as jose-ja task 2.5).
+
+#### Task 3.6: Phase 3 quality gate
+
+- **Status**: TODO
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: [fill when complete]
+- **Dependencies**: Tasks 3.1-3.5
+- **Description**: Full quality gate + post-mortem.
 - **Acceptance Criteria**:
   - [ ] `go build ./...` clean
-  - [ ] `golangci-lint run` clean
-  - [ ] `go test ./... -shuffle=on` passes
-  - [ ] lessons.md updated
+  - [ ] `go test ./internal/apps/sm/im/... -shuffle=on` passes
+  - [ ] `golangci-lint run ./internal/apps/sm/im/...` clean
+  - [ ] Coverage maintained ≥95%
+  - [ ] `go run ./cmd/cicd lint-fitness` passes (no sm-im violations)
+  - [ ] lessons.md updated with Phase 3 post-mortem
 
 ---
 
-### Phase 4: Sequential Exemption Reduction
+### Phase 4: sm-kms Assessment and Safe Cleanup
 
-**Phase Objective**: Reduce 173 `// Sequential:` exemptions via SEAM PATTERN and dependency injection. **Smallest-first ordering** (D10) to build momentum.
+**Phase Objective**: Audit sm-kms, remove dead code, document v3-owned debt. No middleware changes.
 
-#### Task 4.1: Categorize and triage all 173 exemptions
+#### Task 4.1: server/application/ audit
 
 - **Status**: TODO
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Actual**: [fill when complete]
 - **Dependencies**: None
-- **Description**: Categorize each exemption, determine which are truly necessary vs. avoidable
+- **Description**: Determine if `server/application/` is dead code (replaced by service-template builder) or still active. Use call graph tracing from `kms.go` / `server.go` entrypoints.
 - **Acceptance Criteria**:
-  - [ ] Spreadsheet/doc with all 173 exemptions categorized
-  - [ ] Each marked: necessary, refactorable, or questionable
-  - [ ] Priority order: smallest categories first (os.Stderr, pgDriver, seams, os.Chdir, viper/pflag)
+  - [ ] Audit documented in `test-output/framework-v2/sm-kms-application-audit.md`
+  - [ ] If dead: create Task 4.1b (remove with tests)
+  - [ ] If active: document as v3 Phase 3 tech debt
 
-#### Task 4.2: Inject io.Writer for os.Stderr tests (5 exemptions)
+#### Task 4.2: server/middleware/ documentation (NO CODE CHANGES)
 
 - **Status**: TODO
-- **Dependencies**: Task 4.1
-- **Description**: Inject `io.Writer` instead of capturing os.Stderr. Smallest category — quick win.
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Actual**: [fill when complete]
+- **Dependencies**: None
+- **Description**: Catalog sm-kms `server/middleware/` files. Map each to its future home in service-template (per v3 D1). Document in plan — do NOT change code.
 - **Acceptance Criteria**:
-  - [ ] os.Stderr capture tests use injected io.Writer
-  - [ ] Sequential exemptions removed for these tests
-  - [ ] All tests pass
+  - [ ] Catalog written to `test-output/framework-v2/sm-kms-middleware-debt.md`
+  - [ ] Each middleware file mapped to service-template counterpart (or "no counterpart yet")
+  - [ ] v3 tasks.md updated with findings (Phase 3 task notes)
+  - [ ] Zero code changes in this task
 
-#### Task 4.3: pgDriver registration exemptions (11 exemptions)
+#### Task 4.3: repository/orm/ file proliferation cleanup
 
 - **Status**: TODO
-- **Dependencies**: Task 4.1
-- **Description**: Evaluate test isolation approach for pgDriver registration
+- **Owner**: LLM Agent
+- **Estimated**: 3h
+- **Actual**: [fill when complete]
+- **Dependencies**: Task 1.1
+- **Description**: Apply D3 rule to `repository/orm/` — merge split error-path files into domain-named test files. Migrate any closed-DB helpers to `testdb.NewClosedSQLiteDB()`.
+- Files to evaluate (merge into domain-named test files):
+  - `business_entities_additional_errors_test.go`
+  - `business_entities_dead_code_test.go`
+  - `business_entities_error_mapping_test.go`
+  - `business_entities_get_errors_test.go`
+  - `business_entities_gorm_errors_test.go`
+  - `business_entities_materialkey_errors_test.go`
+  - `business_entities_postgres_errors_test.go`
+  - `business_entities_toapperr_test.go`
+  - `business_entities_update_errors_test.go`
+  - `business_entities_filters_uncovered_test.go`
 - **Acceptance Criteria**:
-  - [ ] Each pgDriver exemption evaluated
-  - [ ] Avoidable exemptions removed
-  - [ ] All tests pass
+  - [ ] Each merged file deleted
+  - [ ] Test count before == test count after
+  - [ ] `go test ./internal/apps/sm/kms/server/repository/orm/...` passes
+  - [ ] Fitness rule passes (no sm-kms violations)
 
-#### Task 4.4: Seam variables audit (11 exemptions)
+#### Task 4.4: Verify sm-kms handler uses generated models
 
 - **Status**: TODO
-- **Dependencies**: Task 4.1
-- **Description**: These ARE the SEAM PATTERN already. Align documentation. Verify all are truly necessary.
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: [fill when complete]
+- **Dependencies**: None
+- **Description**: Confirm `server/handler/` imports from `api/kms/server` generated types. Expected to already be correct (sm-kms was manually created with this in mind). Document.
 - **Acceptance Criteria**:
-  - [ ] Each seam exemption verified as correct pattern usage
-  - [ ] Documentation aligned with seam pattern
-  - [ ] Unnecessary exemptions removed if any
+  - [ ] Audit results documented
+  - [ ] If violations found: create Task 4.4b to fix
 
-#### Task 4.5: Evaluate os.Chdir exemptions (37 exemptions)
+#### Task 4.5: Phase 4 quality gate
 
 - **Status**: TODO
-- **Dependencies**: Task 4.1
-- **Description**: Many os.Chdir exemptions in lint_fitness use CheckInDir which is already parameterized
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: [fill when complete]
+- **Dependencies**: Tasks 4.1-4.4
+- **Description**: Full quality gate + post-mortem.
 - **Acceptance Criteria**:
-  - [ ] Each os.Chdir exemption evaluated
-  - [ ] Unnecessary exemptions removed
-  - [ ] All tests pass
-
-#### Task 4.6: SEAM PATTERN for viper/pflag tests (58 exemptions)
-
-- **Status**: TODO
-- **Dependencies**: Task 4.1
-- **Description**: Inject config reader instead of relying on global viper state. Largest category — most complex.
-- **Acceptance Criteria**:
-  - [ ] Config tests no longer use global viper state
-  - [ ] Sequential exemptions reduced by ~30-50
-  - [ ] All tests pass
-
-#### Task 4.7: Remaining exemption categories
-
-- **Status**: TODO
-- **Dependencies**: Task 4.1
-- **Description**: Address SQLite in-memory (10), shared state (13), injectable function variables (16), signals (6), port reuse (5)
-- **Acceptance Criteria**:
-  - [ ] Each category evaluated
-  - [ ] Avoidable exemptions removed
-  - [ ] Target: total <100 exemptions remaining
-
-#### Task 4.8: Phase 4 validation and post-mortem
-
-- **Status**: TODO
-- **Dependencies**: Tasks 4.2-4.7
-- **Description**: Full quality gate run
-- **Acceptance Criteria**:
-  - [ ] Total exemptions documented (target: <100)
-  - [ ] Each remaining exemption has justified comment
-  - [ ] All tests pass
-  - [ ] lessons.md updated
+  - [ ] `go build ./...` clean
+  - [ ] `go test ./internal/apps/sm/kms/... -shuffle=on` passes
+  - [ ] `golangci-lint run ./internal/apps/sm/kms/...` clean
+  - [ ] Coverage maintained ≥95%
+  - [ ] `go run ./cmd/cicd lint-fitness` passes (no sm-kms violations in scope)
+  - [ ] lessons.md updated with Phase 4 post-mortem
 
 ---
 
-### Phase 5: ServiceServer Interface Expansion
+### Phase 5: Knowledge Propagation
 
-**Phase Objective**: Expand interface to cover integration test needs.
+**Phase Objective**: Propagate all lessons and patterns to permanent artifacts. NEVER skip.
 
-#### Task 5.1: Audit integration test needs
+#### Task 5.1: Update ARCHITECTURE.md
 
 - **Status**: TODO
-- **Dependencies**: None
-- **Description**: Survey all integration tests to determine what framework services they need access to
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Actual**: [fill when complete]
+- **Dependencies**: Phases 1-4 complete
+- **Description**: Update ARCHITECTURE.md with all new patterns.
 - **Acceptance Criteria**:
-  - [ ] List of methods integration tests currently access
-  - [ ] List of methods integration tests need but don't have
-  - [ ] Recommendation for interface expansion
+  - [ ] Section 10.3.6: `testdb.NewClosedSQLiteDB()` added to shared infra table
+  - [ ] Section 10.2 or new subsection: "one test file per source file" rule with example
+  - [ ] Section 8.1 or 11.2: "Handler DTOs must come from api/PRODUCT/models/models.gen.go"
+  - [ ] Note clarifying `domain/` vs `model/` naming for GORM structs
+  - [ ] `go run ./cmd/cicd lint-docs validate-propagation` passes
 
-#### Task 5.2: Expand ServiceServer interface
+#### Task 5.2: Update instruction files
 
 - **Status**: TODO
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: [fill when complete]
 - **Dependencies**: Task 5.1
-- **Description**: Add new methods to ServiceServer interface (NO backward compatibility)
+- **Description**: Propagate new rules to instruction files.
 - **Acceptance Criteria**:
-  - [ ] Interface expanded with needed methods
-  - [ ] All 10 services implement new methods
-  - [ ] Contract tests exercise new methods
+  - [ ] `03-02.testing.instructions.md`: No-local-createClosedDatabase rule added
+  - [ ] `03-03.golang.instructions.md`: Handler DTOs from generated models rule added (or `02-04.openapi.instructions.md`)
+  - [ ] Propagation markers consistent with ARCHITECTURE.md
 
-#### Task 5.3: Phase 5 validation and post-mortem
+#### Task 5.3: Update framework-v3 plan and tasks
 
 - **Status**: TODO
-- **Dependencies**: Task 5.2
-- **Description**: Full quality gate run
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: [fill when complete]
+- **Dependencies**: Phases 1-4 complete
+- **Description**: Update framework-v3 documents to reference v2 as completed prerequisite and adjust affected tasks.
+- **Acceptance Criteria**:
+  - [ ] `docs/framework-v3/plan.md` header: "**Depends On**: `docs/framework-v2/` (complete)"
+  - [ ] `docs/framework-v3/tasks.md` Phase 3 notes: jose-ja/sm-im/sm-kms test cleanup done in v2
+  - [ ] `docs/framework-v3/tasks.md` Phase 6 Task 6.4: references `no_local_create_closed_database` rule established in v2
+
+#### Task 5.4: Phase 5 quality gate (final)
+
+- **Status**: TODO
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: [fill when complete]
+- **Dependencies**: Tasks 5.1-5.3
+- **Description**: Final quality gate for entire plan.
 - **Acceptance Criteria**:
   - [ ] `go build ./...` clean
-  - [ ] All tests pass
-  - [ ] lessons.md updated
-
----
-
-### Phase 6: lint-fitness Value Assessment
-
-**Phase Objective**: Verify 10,500 lines of lint-fitness truly standardize services.
-
-#### Task 6.1: Coverage and mutation testing of lint-fitness
-
-- **Status**: TODO
-- **Dependencies**: None
-- **Description**: Run coverage and mutation on all 23 sub-linters
-- **Acceptance Criteria**:
-  - [ ] Coverage >=98%
-  - [ ] Mutation >=95%
-  - [ ] Document any gaps
-
-#### Task 6.2: Synthetic vs real content audit
-
-- **Status**: TODO
-- **Dependencies**: None
-- **Description**: Identify sub-linters testing synthetic file content instead of real project structure
-- **Acceptance Criteria**:
-  - [ ] Each sub-linter classified: real vs synthetic testing
-  - [ ] Plan to convert synthetic tests to real-project tests where feasible
-
-#### Task 6.3: Verify skeleton-template as scaffolding source (D12)
-
-- **Status**: TODO
-- **Dependencies**: None
-- **Description**: Skeleton stays minimal per D12 (no CRUD, no code generation). Verify it's current as `/new-service` scaffolding source.
-- **Acceptance Criteria**:
-  - [ ] skeleton-template uses latest builder API patterns
-  - [ ] `/new-service` skill generates valid services from skeleton
-  - [ ] Document skeleton vs lint-fitness vs `/new-service` relationship in ARCHITECTURE.md Section 3.1.5
-
-#### Task 6.4: Add test infrastructure rule linter
-
-- **Status**: TODO
-- **Dependencies**: None
-- **Description**: Add fitness linter detecting unit tests that start servers or DBs
-- **Acceptance Criteria**:
-  - [ ] New sub-linter detects unit tests starting real servers
-  - [ ] New sub-linter detects unit tests starting real databases
-  - [ ] Tests for the new sub-linter
-
-#### Task 6.5: Phase 6 validation and post-mortem
-
-- **Status**: TODO
-- **Dependencies**: Tasks 6.1-6.4
-- **Description**: Full quality gate run
-- **Acceptance Criteria**:
-  - [ ] Value assessment documented
-  - [ ] lessons.md updated
-
----
-
-### Phase 7: Domain Extraction and Fresh Skeletons (D13, D16)
-
-**Phase Objective**: Extract domain logic from identity-* and pki-ca, replace with fresh skeleton-template copies. Update status table.
-
-#### Task 7.1: Archive identity shared packages
-
-- **Status**: TODO
-- **Dependencies**: Phases 1-5 complete
-- **Description**: Archive all shared packages under `internal/apps/identity/` to `_archived/`
-- **Acceptance Criteria**:
-  - [ ] All shared identity packages moved to `internal/apps/identity/_archived/`
-  - [ ] Build passes (broken imports expected — services replaced in Task 7.3)
-
-#### Task 7.2: Archive per-service domain code
-
-- **Status**: TODO
-- **Dependencies**: Task 7.1
-- **Description**: Archive domain code for authz, idp, rp, rs, spa, pki-ca
-- **Acceptance Criteria**:
-  - [ ] authz domain → `internal/apps/identity/_authz-archived/`
-  - [ ] idp domain → `internal/apps/identity/_idp-archived/`
-  - [ ] rp domain → `internal/apps/identity/_rp-archived/`
-  - [ ] rs domain → `internal/apps/identity/_rs-archived/`
-  - [ ] spa domain → `internal/apps/identity/_spa-archived/`
-  - [ ] pki-ca archive verified complete (`internal/apps/pki/_ca-archived/`)
-
-#### Task 7.3: Replace services with fresh skeletons
-
-- **Status**: TODO
-- **Dependencies**: Task 7.2
-- **Description**: Replace all 6 services with fresh skeleton-template copies (builder + contract tests + health)
-- **Acceptance Criteria**:
-  - [ ] All 6 services use latest builder pattern
-  - [ ] All 6 services pass `RunContractTests`
-  - [ ] `go build ./...` clean
-  - [ ] `go test ./... -shuffle=on` passes
-
-#### Task 7.4: Update ARCHITECTURE.md status table (D16)
-
-- **Status**: TODO
-- **Dependencies**: Task 7.3
-- **Description**: Update Section 3.2 status table: all 5 identity-* services → "⚠️ Extraction Pending 0%"
-- **Acceptance Criteria**:
-  - [ ] identity-authz/idp/rp/rs/spa marked "⚠️ Extraction Pending 0%"
-  - [ ] pki-ca status updated appropriately
-
-#### Task 7.5: Phase 7 validation and post-mortem
-
-- **Status**: TODO
-- **Dependencies**: Tasks 7.1-7.4
-- **Description**: Full quality gate run, phase post-mortem
-- **Acceptance Criteria**:
-  - [ ] All 6 skeleton services pass contract tests
-  - [ ] All domain logic safely archived
-  - [ ] `go build ./...` and `golangci-lint run` clean
-  - [ ] lessons.md updated
-
----
-
-### Phase 8: Staged Domain Reintegration (D13)
-
-**Phase Objective**: Reintroduce archived domain logic into fresh skeletons, smallest-first.
-
-#### Task 8.1: Reintegrate rp, rs, spa (Stage 1)
-
-- **Status**: TODO
-- **Dependencies**: Phase 7 complete
-- **Description**: Smallest services first (10-18 files each). Extract from archive, adapt to latest builder, test.
-- **Acceptance Criteria**:
-  - [ ] rp domain reintegrated and tests pass
-  - [ ] rs domain reintegrated and tests pass
-  - [ ] spa domain reintegrated and tests pass
-  - [ ] Coverage >=95% for each
-
-#### Task 8.2: Reintegrate authz (Stage 2)
-
-- **Status**: TODO
-- **Dependencies**: Task 8.1
-- **Description**: OAuth 2.1 core (133 files/916KB — largest complexity)
-- **Acceptance Criteria**:
-  - [ ] authz domain reintegrated with latest builder patterns
-  - [ ] All authz tests pass
-  - [ ] Coverage >=95%
-
-#### Task 8.3: Reintegrate idp (Stage 3)
-
-- **Status**: TODO
-- **Dependencies**: Task 8.2
-- **Description**: OIDC provider (129 files/862KB — second largest)
-- **Acceptance Criteria**:
-  - [ ] idp domain reintegrated with latest builder patterns
-  - [ ] All idp tests pass
-  - [ ] Coverage >=95%
-
-#### Task 8.4: Reintegrate pki-ca (Stage 4)
-
-- **Status**: TODO
-- **Dependencies**: Task 8.3
-- **Description**: Certificate lifecycle (48KB active + 880KB archived)
-- **Acceptance Criteria**:
-  - [ ] pki-ca domain reintegrated with latest builder patterns
-  - [ ] All pki-ca tests pass
-  - [ ] Coverage >=95%
-
-#### Task 8.5: Phase 8 validation and post-mortem
-
-- **Status**: TODO
-- **Dependencies**: Tasks 8.1-8.4
-- **Description**: Full quality gate run, phase post-mortem
-- **Acceptance Criteria**:
-  - [ ] All 6 services have working domain + latest framework patterns
-  - [ ] Coverage >=95% across all reintegrated services
-  - [ ] lessons.md updated
-
----
-
-### Phase 9: Quality and Knowledge Propagation
-
-**Phase Objective**: Final quality sweep and knowledge propagation.
-
-#### Task 9.1: Full coverage and mutation enforcement
-
-- **Status**: TODO
-- **Dependencies**: None
-- **Description**: Run coverage and mutation across entire codebase
-- **Acceptance Criteria**:
-  - [ ] All production code >=95% coverage
-  - [ ] All infrastructure code >=98% coverage
-  - [ ] Mutation >=95%
-
-#### Task 9.2: Improve agent semantic commit instructions (D11)
-
-- **Status**: TODO
-- **Dependencies**: None
-- **Description**: Improve agent instructions for Multi-Category Fix Commit Rule. NO automated tooling (no commitlint, no CI validation). Instructions-only approach per D11.
-- **Acceptance Criteria**:
-  - [ ] Agent instructions updated to better enforce semantic commits
-  - [ ] beast-mode.agent.md updated with commit grouping examples
-  - [ ] implementation-execution.agent.md updated with commit checkpoint pattern
-
-#### Task 9.3: Propagate all lessons to permanent artifacts
-
-- **Status**: TODO
-- **Dependencies**: None
-- **Description**: Review lessons.md and propagate all lessons to ARCHITECTURE.md, agents, skills, instructions
-- **Acceptance Criteria**:
-  - [ ] Every lesson in lessons.md has corresponding entry in permanent artifact
-  - [ ] `cicd lint-docs validate-propagation` passes
-  - [ ] No lessons orphaned in plan docs only
-
-#### Task 9.4: Simplify review document format
-
-- **Status**: TODO
-- **Dependencies**: None
-- **Description**: framework-v1/review.md was overwhelming. Design a simpler format for future reviews.
-- **Acceptance Criteria**:
-  - [ ] Review template documented (concise format)
-  - [ ] Future reviews follow simpler format
-
-#### Task 9.5: Phase 9 validation and post-mortem
-
-- **Status**: TODO
-- **Dependencies**: Tasks 9.1-9.4
-- **Description**: Final quality gate run
-- **Acceptance Criteria**:
-  - [ ] All quality gates pass
-  - [ ] lessons.md finalized
-  - [ ] Git working tree clean
+  - [ ] `go test ./... -shuffle=on` passes (zero regressions across all services)
+  - [ ] `golangci-lint run ./...` clean
+  - [ ] `go run ./cmd/cicd lint-fitness` passes (all new rules active)
+  - [ ] `go run ./cmd/cicd lint-docs validate-propagation` passes
+  - [ ] lessons.md updated with Phase 5 post-mortem
+  - [ ] Git: all changes committed in semantic groups
 
 ---
 
 ## Cross-Cutting Tasks
 
-### Semgrep Rules Maintenance
+### Testing
+- [ ] Unit tests ≥95% coverage (production), ≥98% (infrastructure/utility)
+- [ ] No skipped tests
+- [ ] Race detector clean: `go test -race ./...`
+- [ ] Test count before == test count after for all file merges
 
-- [ ] After each phase: review `.semgrep/rules/go-testing.yml` for new relevant patterns
-- [ ] After Phase 2 complete: uncomment `no-tls-insecure-skip-verify` in go-testing.yml
+### Code Quality
+- [ ] Linting passes across all modified packages
+- [ ] No new TODOs without tracking
+- [ ] Fitness rules pass: `go run ./cmd/cicd lint-fitness`
 
-### Product-Level and Suite-Level Contract Tests
-
-- [ ] Design parameterized product-level contract tests (5 products)
-- [ ] Design suite-level contract test (1 suite)
-- [ ] Implement after Phase 1 service-level contracts are complete
+### Documentation
+- [ ] ARCHITECTURE.md updated (Task 5.1)
+- [ ] Instruction files updated (Task 5.2)
+- [ ] framework-v3 updated (Task 5.3)
 
 ---
 
-## ARCHITECTURE.md Cross-References
+## Notes / Deferred Work
 
-| Topic | Section |
-|-------|---------|
-| TLS Configuration | [Section 6.4](../../docs/ARCHITECTURE.md#64-cryptographic-architecture) |
-| Test HTTP Client Patterns | [Section 10.3.4](../../docs/ARCHITECTURE.md#1034-test-http-client-patterns) |
-| Integration Testing | [Section 10.3](../../docs/ARCHITECTURE.md#103-integration-testing-strategy) |
-| Shared Test Infrastructure | [Section 10.3.6](../../docs/ARCHITECTURE.md#1036-shared-test-infrastructure) |
-| Quality Gates | [Section 11.2](../../docs/ARCHITECTURE.md#112-quality-gates) |
-| Security Architecture | [Section 6](../../docs/ARCHITECTURE.md#6-security-architecture) |
-| Service Template | [Section 5.1](../../docs/ARCHITECTURE.md#51-service-template-pattern) |
-| Service Builder | [Section 5.2](../../docs/ARCHITECTURE.md#52-service-builder-pattern) |
-| Fitness Functions | [Section 9.11](../../docs/ARCHITECTURE.md#911-architecture-fitness-functions) |
-| Sequential Test Exemption | [Section 10.2.5](../../docs/ARCHITECTURE.md#1025-sequential-test-exemption) |
-| Contract Test Pattern | [Section 10.3.5](../../docs/ARCHITECTURE.md#1035-cross-service-contract-test-pattern) |
-| Post-Mortem and Knowledge Propagation | [Section 13.8](../../docs/ARCHITECTURE.md#138-phase-post-mortem--knowledge-propagation) |
-| Authentication and Authorization | [Section 6.9](../../docs/ARCHITECTURE.md#69-authentication--authorization) |
+- **sm-kms server/middleware/**: Cataloged in Phase 4, NOT changed. Owned by framework-v3 D1.
+- **sm-kms server/application/**: Audited in Phase 4. Either removed (if dead) or flagged for v3 Phase 3.
+- **identity services**: Not in scope for v2. framework-v3 Phase 7/8 handles identity restructuring.
+- **pki-ca**: Not in scope; its domain is still partial (framework-v3 Phase 8 Stage 4).
+
+---
+
+## Evidence Archive
+
+- `test-output/framework-v2/sm-im-model-audit.md` - Task 3.1
+- `test-output/framework-v2/sm-kms-application-audit.md` - Task 4.1
+- `test-output/framework-v2/sm-kms-middleware-debt.md` - Task 4.2
+- `test-output/framework-v2/phase1/` - testdb helper evidence
+- `test-output/framework-v2/phase2/` - jose-ja cleanup evidence
+- `test-output/framework-v2/phase3/` - sm-im cleanup evidence
+- `test-output/framework-v2/phase4/` - sm-kms assessment evidence
+- `test-output/framework-v2/phase5/` - knowledge propagation evidence
