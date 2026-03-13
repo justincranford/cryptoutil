@@ -400,26 +400,13 @@
   - [ ] `03-03.golang.instructions.md`: Handler DTOs from generated models rule added (or `02-04.openapi.instructions.md`)
   - [ ] Propagation markers consistent with ARCHITECTURE.md
 
-#### Task 5.3: Update framework-v3 plan and tasks
-
-- **Status**: TODO
-- **Owner**: LLM Agent
-- **Estimated**: 0.5h
-- **Actual**: [fill when complete]
-- **Dependencies**: Phases 1-4 complete
-- **Description**: Update framework-v3 documents to reference v2 as completed prerequisite and adjust affected tasks.
-- **Acceptance Criteria**:
-  - [ ] `docs/framework-v3/plan.md` header: "**Depends On**: `docs/framework-v2/` (complete)"
-  - [ ] `docs/framework-v3/tasks.md` Phase 3 notes: jose-ja/sm-im/sm-kms test cleanup done in v2
-  - [ ] `docs/framework-v3/tasks.md` Phase 6 Task 6.4: references `no_local_create_closed_database` rule established in v2
-
 #### Task 5.4: Phase 5 quality gate (final)
 
 - **Status**: TODO
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
 - **Actual**: [fill when complete]
-- **Dependencies**: Tasks 5.1-5.3
+- **Dependencies**: Tasks 5.1-5.2
 - **Description**: Final quality gate for entire plan.
 - **Acceptance Criteria**:
   - [ ] `go build ./...` clean
@@ -451,7 +438,6 @@
 
 - [ ] ARCHITECTURE.md updated (Task 5.1)
 - [ ] Instruction files updated (Task 5.2)
-- [ ] framework-v3 updated (Task 5.3)
 
 ---
 

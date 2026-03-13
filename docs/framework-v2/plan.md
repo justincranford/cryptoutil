@@ -3,9 +3,7 @@
 **Status**: Planning
 **Created**: 2026-03-12
 **Last Updated**: 2026-03-12
-**Depends On**: `docs/framework-v1/` (complete)
-**Prerequisite For**: `docs/framework-v3/` (v3 phases 3, 4, 6, 7 build on v2 outcomes)
-**Purpose**: Systematic code-quality and structural refactoring of three mature services (sm-im, jose-ja, sm-kms) to eliminate patterns that accumulated before service-template existed. Establishes correct target structure for all future services. Runs BEFORE framework-v3 to remove tech debt that would otherwise complicate v3's builder/fitness/extraction work.
+**Purpose**: Systematic code-quality and structural refactoring of three mature services (sm-im, jose-ja, sm-kms) to eliminate patterns that accumulated before service-template existed. Establishes correct target structure for all future services.
 
 ---
 
@@ -161,12 +159,6 @@ v2 MUST NOT: change builder API, move middleware, change auth flows, touch ident
 3. **v2's handler DTO fix (jose-ja) establishes the pattern for v3 Phase 7/8 reintegration.**
    Document the mapping pattern clearly so identity service reintegration adopts the same approach.
 
-### v3 Adjustments Required After v2 Completes
-
-1. v3 `tasks.md` Phase 3 should note: "jose-ja service/ test cleanup completed in v2, no test migration needed"
-2. v3 `tasks.md` Phase 6 Task 6.4: "Enforce testdb.NewClosedSQLiteDB pattern (established in v2)"
-3. v3 `plan.md` header: "**Depends On**: `docs/framework-v2/` (complete)"
-
 ### Opportunities: Pull v3 Work into v2 (Evaluated)
 
 | v3 Item | Pull into v2? | Decision | Rationale |
@@ -185,7 +177,6 @@ v2 MUST NOT: change builder API, move middleware, change auth flows, touch ident
 - **Database**: SQLite in-memory (tests), PostgreSQL (production)
 - **Generated Code**: `api/PRODUCT/models/models.gen.go` via oapi-codegen
 - **Test DB Helper**: `internal/apps/template/service/testing/testdb/testdb.go`
-- **Related Plans**: `docs/framework-v3/` (downstream — must coordinate)
 
 ---
 
@@ -255,9 +246,8 @@ v2 MUST NOT: change builder API, move middleware, change auth flows, touch ident
   - Section 11.2: Document `domain/` naming vs `model/` (GORM structs go in persistence package)
 - Update `03-02.testing.instructions.md`: Add "no local createClosedDatabase" rule
 - Update `03-03.golang.instructions.md`: Add "no hand-rolled handler DTOs" rule
-- Update framework-v3 plan.md + tasks.md: Add "Depends On: framework-v2" header and task notes
 - Propagation check: `go run ./cmd/cicd lint-docs validate-propagation`
-- **Success**: All artifact updates committed; propagation check passes; v3 plan updated.
+- **Success**: All artifact updates committed; propagation check passes.
 - **Post-Mortem**: Update lessons.md.
 
 ---
@@ -269,7 +259,6 @@ v2 MUST NOT: change builder API, move middleware, change auth flows, touch ident
 | Merging jose-ja service/ test files misses a test case | Medium | High | Verify line-count and test-count before/after merge; run with -v and compare |
 | Handler DTO fix breaks jose-ja API contract (wrong field names/types) | Medium | High | Compare generated model fields against hand-rolled structs before removing; add mapping tests |
 | sm-kms server/application/ is still active (not dead code) | Medium | Medium | Audit via call graph before touching; if active, document only |
-| v3 Phase 3 starts before v2 Phase 2 completes | Low | Medium | Coordinate start; v3 Phase 3 should reference v2 completion as prerequisite |
 | Fitness rule false-positives in testdb package itself | Low | Low | Add exclusion for `testdb` package in fitness rule |
 
 ---
@@ -297,7 +286,6 @@ v2 MUST NOT: change builder API, move middleware, change auth flows, touch ident
 - [ ] sm-im has zero custom closed-DB helpers
 - [ ] sm-kms `server/application/` either removed or documented as v3 tech debt
 - [ ] ARCHITECTURE.md updated with new patterns
-- [ ] framework-v3 plan updated to reference v2 as prerequisite
 - [ ] All fitness rules pass
 
 ---

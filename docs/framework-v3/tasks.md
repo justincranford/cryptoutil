@@ -3,7 +3,6 @@
 **Status**: 11 of 58 tasks complete (19%)
 **Last Updated**: 2026-03-12
 **Created**: 2026-03-08
-**Prerequisite**: `docs/framework-v2/` must be fully complete before Phase 3 begins.
 
 ## Quality Mandate - MANDATORY
 
@@ -285,13 +284,6 @@
 
 **Phase Objective**: Product-services pass config objects; service-template picks what it needs.
 
-**Prerequisite**: `docs/framework-v2/` must be complete. v2 cleaned up jose-ja, sm-im, and sm-kms test files and handler DTOs. Phase 3 touches the same handler files — parallel work causes merge conflicts.
-
-**v2 completed (no rework needed)**:
-- jose-ja/sm-im/sm-kms repository error-path test files merged into domain-named test files
-- `createClosedDatabase`/`createClosedDBHandler` replaced with `testdb.NewClosedSQLiteDB()`
-- jose-ja handler DTOs replaced with `api/jose/models/models.gen.go` generated types
-
 #### Task 3.1: Analyze current builder With*() call patterns
 
 - **Status**: TODO
@@ -507,11 +499,10 @@
 - **Status**: TODO
 - **Dependencies**: None
 - **Description**: Add fitness linters detecting unit tests that start servers or DBs, and other test infrastructure anti-patterns.
-- **Note**: v2 already added `no_local_create_closed_database` rule (detects `createClosedDatabase`/`createClosedDBHandler` outside testdb package). That rule is active. This task extends coverage.
 - **Acceptance Criteria**:
   - [ ] New sub-linter detects unit tests starting real servers
-  - [ ] New sub-linter detects unit tests starting real databases (distinct from v2 closed-DB rule)
-  - [ ] `no_local_create_closed_database` rule from v2 confirmed active (do not re-add)
+  - [ ] New sub-linter detects unit tests starting real databases
+  - [ ] `no_local_create_closed_database` rule added (detects `createClosedDatabase`/`createClosedDBHandler` outside testdb package)
   - [ ] Tests for the new sub-linters
 
 #### Task 6.5: Phase 6 validation and post-mortem

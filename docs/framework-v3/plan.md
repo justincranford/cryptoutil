@@ -3,7 +3,7 @@
 **Status**: IN PROGRESS — Phase 1 near completion. **quizme-v3 pending** (D12, D14 tentative until confirmed)
 **Created**: 2026-03-08
 **Last Updated**: 2026-03-12
-**Depends On**: `docs/framework-v1/` (complete), `docs/framework-v2/` (must complete first), `docs/framework-brainstorm/08-recommendations.md`
+**Depends On**: `docs/framework-v1/` (complete), `docs/framework-brainstorm/08-recommendations.md`
 **Purpose**: Aggressive standardization of all 10 product-services as thin domain-only wrappers around service-template. Service-template owns 100% of reusable infrastructure (servers, clients, authn, authz, middleware, health, TLS, barrier, telemetry, tests). Product-services inject ONLY domain-specific: OpenAPI add-ons, DB migrations, business logic, config overrides.
 
 **Guiding Principle**: This repo is alpha development. NO backward compatibility. NO legacy code. All 10 product-services MUST use latest-and-greatest framework patterns.
