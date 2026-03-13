@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilJoseModels "cryptoutil/api/jose/models"
 	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
 	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
@@ -71,10 +72,13 @@ func TestHandleCreateElasticJWK_Success(t *testing.T) {
 	}, handler.HandleCreateElasticJWK())
 
 	// Prepare request.
-	reqBody := CreateElasticJWKRequest{
+	useVal := cryptoutilJoseModels.ElasticJWKCreateRequestUse(cryptoutilSharedMagic.JoseKeyUseSig)
+	maxMat := cryptoutilSharedMagic.JoseJADefaultMaxMaterials
+
+	reqBody := cryptoutilJoseModels.ElasticJWKCreateRequest{
 		Algorithm:    cryptoutilSharedMagic.JoseKeyTypeRSA2048,
-		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
-		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
+		Use:          &useVal,
+		MaxMaterials: &maxMat,
 	}
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
@@ -88,14 +92,14 @@ func TestHandleCreateElasticJWK_Success(t *testing.T) {
 	require.Equal(t, fiber.StatusCreated, resp.StatusCode)
 
 	// Parse response.
-	var response ElasticJWKResponse
+	var response cryptoutilJoseModels.ElasticJWKResponse
 
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&response))
-	require.NotEmpty(t, response.KID)
+	require.NotEmpty(t, response.Kid)
 	require.Equal(t, tenantID.String(), response.TenantID)
-	require.Equal(t, cryptoutilSharedMagic.KeyTypeRSA, response.KeyType)
-	require.Equal(t, cryptoutilSharedMagic.JoseKeyTypeRSA2048, response.Algorithm)
-	require.Equal(t, cryptoutilSharedMagic.JoseKeyUseSig, response.Use)
+	require.Equal(t, cryptoutilSharedMagic.KeyTypeRSA, response.Kty)
+	require.Equal(t, cryptoutilSharedMagic.JoseKeyTypeRSA2048, response.Alg)
+	require.Equal(t, cryptoutilSharedMagic.JoseKeyUseSig, string(response.Use))
 	require.Equal(t, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, response.MaxMaterials)
 
 	elasticRepo.AssertExpectations(t)
@@ -110,10 +114,13 @@ func TestHandleCreateElasticJWK_MissingTenantContext(t *testing.T) {
 	// No tenant/realm context set.
 	app.Post("/jwk", handler.HandleCreateElasticJWK())
 
-	reqBody := CreateElasticJWKRequest{
+	useVal := cryptoutilJoseModels.ElasticJWKCreateRequestUse(cryptoutilSharedMagic.JoseKeyUseSig)
+	maxMat := cryptoutilSharedMagic.JoseJADefaultMaxMaterials
+
+	reqBody := cryptoutilJoseModels.ElasticJWKCreateRequest{
 		Algorithm:    cryptoutilSharedMagic.JoseKeyTypeRSA2048,
-		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
-		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
+		Use:          &useVal,
+		MaxMaterials: &maxMat,
 	}
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
@@ -140,10 +147,13 @@ func TestHandleCreateElasticJWK_InvalidAlgorithm(t *testing.T) {
 		return c.Next()
 	}, handler.HandleCreateElasticJWK())
 
-	reqBody := CreateElasticJWKRequest{
+	useVal := cryptoutilJoseModels.ElasticJWKCreateRequestUse(cryptoutilSharedMagic.JoseKeyUseSig)
+	maxMat := cryptoutilSharedMagic.JoseJADefaultMaxMaterials
+
+	reqBody := cryptoutilJoseModels.ElasticJWKCreateRequest{
 		Algorithm:    "INVALID",
-		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
-		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
+		Use:          &useVal,
+		MaxMaterials: &maxMat,
 	}
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
@@ -174,10 +184,13 @@ func TestHandleCreateElasticJWK_RepositoryError(t *testing.T) {
 		return c.Next()
 	}, handler.HandleCreateElasticJWK())
 
-	reqBody := CreateElasticJWKRequest{
+	useVal := cryptoutilJoseModels.ElasticJWKCreateRequestUse(cryptoutilSharedMagic.JoseKeyUseSig)
+	maxMat := cryptoutilSharedMagic.JoseJADefaultMaxMaterials
+
+	reqBody := cryptoutilJoseModels.ElasticJWKCreateRequest{
 		Algorithm:    cryptoutilSharedMagic.JoseKeyTypeRSA2048,
-		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
-		MaxMaterials: cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
+		Use:          &useVal,
+		MaxMaterials: &maxMat,
 	}
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
@@ -228,10 +241,10 @@ func TestHandleGetElasticJWK_Success(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
-	var response ElasticJWKResponse
+	var response cryptoutilJoseModels.ElasticJWKResponse
 
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&response))
-	require.Equal(t, kid.String(), response.KID)
+	require.Equal(t, kid.String(), response.Kid)
 	require.Equal(t, tenantID.String(), response.TenantID)
 
 	elasticRepo.AssertExpectations(t)
@@ -313,7 +326,7 @@ func TestHandleListElasticJWKs_Success(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
-	var response ListResponse
+	var response cryptoutilJoseModels.ElasticJWKListResponse
 
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&response))
 	require.Equal(t, int64(2), response.Total)

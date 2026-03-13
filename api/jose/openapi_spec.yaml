@@ -168,6 +168,253 @@ paths:
               schema:
                 $ref: '#/components/schemas/JWKS'
 
+  # Elastic JWK Endpoints
+  /elastic-jwks:
+    post:
+      summary: Create an elastic JWK
+      description: |
+        Create a new elastic JWK container that supports key rotation.
+        Each elastic JWK can hold multiple material JWKs (key versions).
+      operationId: createElasticJWK
+      tags: [ElasticJWK]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ElasticJWKCreateRequest'
+      responses:
+        '201':
+          description: Elastic JWK created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ElasticJWKResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          description: Missing tenant context.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    get:
+      summary: List elastic JWKs
+      description: List all elastic JWKs for the current tenant.
+      operationId: listElasticJWKs
+      tags: [ElasticJWK]
+      parameters:
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 50
+      responses:
+        '200':
+          description: Elastic JWK list retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ElasticJWKListResponse'
+        '401':
+          description: Missing tenant context.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /elastic-jwks/{kid}:
+    parameters:
+      - name: kid
+        in: path
+        required: true
+        description: Elastic JWK Key ID.
+        schema:
+          type: string
+    get:
+      summary: Get an elastic JWK
+      description: Retrieve an elastic JWK by its Key ID.
+      operationId: getElasticJWK
+      tags: [ElasticJWK]
+      responses:
+        '200':
+          description: Elastic JWK retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ElasticJWKResponse'
+        '401':
+          description: Missing tenant context.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete an elastic JWK
+      description: Delete an elastic JWK and all its material JWKs.
+      operationId: deleteElasticJWK
+      tags: [ElasticJWK]
+      responses:
+        '204':
+          description: Elastic JWK deleted successfully.
+        '401':
+          description: Missing tenant context.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /elastic-jwks/{kid}/materials:
+    parameters:
+      - name: kid
+        in: path
+        required: true
+        description: Elastic JWK Key ID.
+        schema:
+          type: string
+    post:
+      summary: Create a material JWK
+      description: Create a new material JWK for an elastic JWK.
+      operationId: createMaterialJWK
+      tags: [MaterialJWK]
+      responses:
+        '201':
+          description: Material JWK created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaterialJWKResponse'
+        '401':
+          description: Missing tenant context.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Maximum material keys reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    get:
+      summary: List material JWKs
+      description: List all material JWKs for an elastic JWK.
+      operationId: listMaterialJWKs
+      tags: [MaterialJWK]
+      parameters:
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 50
+      responses:
+        '200':
+          description: Material JWK list retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaterialJWKListResponse'
+        '401':
+          description: Missing tenant context.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /elastic-jwks/{kid}/materials/active:
+    parameters:
+      - name: kid
+        in: path
+        required: true
+        description: Elastic JWK Key ID.
+        schema:
+          type: string
+    get:
+      summary: Get active material JWK
+      description: Get the currently active material JWK for an elastic JWK.
+      operationId: getActiveMaterialJWK
+      tags: [MaterialJWK]
+      responses:
+        '200':
+          description: Active material JWK retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaterialJWKResponse'
+        '401':
+          description: Missing tenant context.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /elastic-jwks/{kid}/rotate:
+    parameters:
+      - name: kid
+        in: path
+        required: true
+        description: Elastic JWK Key ID.
+        schema:
+          type: string
+    post:
+      summary: Rotate material JWK
+      description: Create a new active material JWK and retire the current one.
+      operationId: rotateMaterialJWK
+      tags: [MaterialJWK]
+      responses:
+        '201':
+          description: Material JWK rotated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaterialJWKResponse'
+        '401':
+          description: Missing tenant context.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Maximum material keys reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   # JWS Endpoints
   /jws/sign:
     post:
@@ -419,6 +666,126 @@ components:
             type: object
             description: JWK public key.
 
+    # Elastic JWK Schemas
+    ElasticJWKCreateRequest:
+      type: object
+      required: [algorithm]
+      properties:
+        algorithm:
+          type: string
+          description: Algorithm for key generation (e.g., RSA/2048, EC/P256).
+          example: RSA/2048
+        use:
+          type: string
+          description: Intended use of the key (sig=signing, enc=encryption).
+          enum: [sig, enc]
+          example: sig
+        max_materials:
+          type: integer
+          description: Maximum number of material keys (default server-side).
+          minimum: 1
+          example: 10
+
+    ElasticJWKResponse:
+      type: object
+      required: [kid, tenant_id, kty, alg, use, max_materials, current_material_count, created_at]
+      properties:
+        kid:
+          type: string
+          description: Key ID.
+          example: "019377a8-4f00-7000-8000-000000000001"
+        tenant_id:
+          type: string
+          description: Tenant ID for data scoping.
+          example: "019377a8-4f00-7000-8000-000000000002"
+        kty:
+          type: string
+          description: Key type (RSA, EC, OKP, oct).
+          example: RSA
+        alg:
+          type: string
+          description: Algorithm.
+          example: RSA/2048
+        use:
+          type: string
+          description: Key use (sig or enc).
+          enum: [sig, enc]
+          example: sig
+        max_materials:
+          type: integer
+          description: Maximum material key versions.
+          example: 10
+        current_material_count:
+          type: integer
+          description: Current number of material keys.
+          example: 3
+        created_at:
+          type: integer
+          format: int64
+          description: Unix timestamp when the elastic JWK was created.
+          example: 1733313600
+
+    ElasticJWKListResponse:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ElasticJWKResponse'
+        total:
+          type: integer
+          format: int64
+          description: Total number of elastic JWKs.
+          example: 5
+
+    # Material JWK Schemas
+    MaterialJWKResponse:
+      type: object
+      required: [material_kid, elastic_jwk_id, active, barrier_version, created_at]
+      properties:
+        material_kid:
+          type: string
+          description: Material key ID.
+          example: "019377a8-4f00-7000-8000-000000000003"
+        elastic_jwk_id:
+          type: string
+          description: Parent elastic JWK ID.
+          example: "019377a8-4f00-7000-8000-000000000001"
+        public_jwk:
+          description: Public key in JWK format (when decrypted).
+        active:
+          type: boolean
+          description: Whether this material key is currently active.
+          example: true
+        barrier_version:
+          type: integer
+          description: Barrier encryption version.
+          example: 1
+        created_at:
+          type: integer
+          format: int64
+          description: Unix timestamp when the material JWK was created.
+          example: 1733313600
+        retired_at:
+          type: integer
+          format: int64
+          description: Unix timestamp when the material JWK was retired (null if active).
+
+    MaterialJWKListResponse:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MaterialJWKResponse'
+        total:
+          type: integer
+          format: int64
+          description: Total number of material JWKs.
+          example: 5
+
     # JWS Schemas
     JWSSignRequest:
       type: object
@@ -628,6 +995,10 @@ tags:
     description: Health check endpoints
   - name: JWK
     description: JSON Web Key management operations
+  - name: ElasticJWK
+    description: Elastic JWK container operations (key rotation support)
+  - name: MaterialJWK
+    description: Material JWK operations (key versions within elastic JWKs)
   - name: JWS
     description: JSON Web Signature operations
   - name: JWE

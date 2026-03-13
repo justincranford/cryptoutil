@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilJoseModels "cryptoutil/api/jose/models"
 	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
@@ -64,7 +65,7 @@ func TestHandleListMaterialJWKs_WithRetiredMaterial(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
-	var response ListResponse
+	var response cryptoutilJoseModels.MaterialJWKListResponse
 
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&response))
 	require.Equal(t, int64(1), response.Total)
@@ -175,10 +176,13 @@ func TestHandleCreateElasticJWK_DefaultMaxMaterials(t *testing.T) {
 	}, handler.HandleCreateElasticJWK())
 
 	// Request with max_materials = 0 (should default to 10).
-	reqBody := CreateElasticJWKRequest{
+	useVal := cryptoutilJoseModels.ElasticJWKCreateRequestUse(cryptoutilSharedMagic.JoseKeyUseSig)
+	zeroMaxMat := 0
+
+	reqBody := cryptoutilJoseModels.ElasticJWKCreateRequest{
 		Algorithm:    cryptoutilSharedMagic.JoseKeyTypeRSA2048,
-		Use:          cryptoutilSharedMagic.JoseKeyUseSig,
-		MaxMaterials: 0,
+		Use:          &useVal,
+		MaxMaterials: &zeroMaxMat,
 	}
 	body, err := json.Marshal(reqBody)
 	require.NoError(t, err)
@@ -190,7 +194,7 @@ func TestHandleCreateElasticJWK_DefaultMaxMaterials(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusCreated, resp.StatusCode)
 
-	var response ElasticJWKResponse
+	var response cryptoutilJoseModels.ElasticJWKResponse
 
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&response))
 	require.Equal(t, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, response.MaxMaterials)

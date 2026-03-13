@@ -10,6 +10,8 @@ import (
 	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
+	cryptoutilJoseModels "cryptoutil/api/jose/models"
+
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 )
@@ -61,23 +63,12 @@ func (h *JWKHandler) HandleListMaterialJWKs() fiber.Handler {
 			})
 		}
 
-		responses := make([]MaterialJWKResponse, len(materials))
-		for i, mat := range materials {
-			responses[i] = MaterialJWKResponse{
-				MaterialKID:    mat.MaterialKID,
-				ElasticJWKID:   mat.ElasticJWKID.String(),
-				Active:         mat.Active,
-				BarrierVersion: mat.BarrierVersion,
-				CreatedAt:      mat.CreatedAt.Unix(),
-			}
-
-			if mat.RetiredAt != nil {
-				retiredUnix := mat.RetiredAt.Unix()
-				responses[i].RetiredAt = &retiredUnix
-			}
+		responses := make([]cryptoutilJoseModels.MaterialJWKResponse, len(materials))
+		for i := range materials {
+			responses[i] = toMaterialJWKResponse(materials[i])
 		}
 
-		return c.JSON(ListResponse{
+		return c.JSON(cryptoutilJoseModels.MaterialJWKListResponse{
 			Items: responses,
 			Total: total,
 		})
@@ -127,13 +118,7 @@ func (h *JWKHandler) HandleGetActiveMaterialJWK() fiber.Handler {
 			})
 		}
 
-		return c.JSON(MaterialJWKResponse{
-			MaterialKID:    material.MaterialKID,
-			ElasticJWKID:   material.ElasticJWKID.String(),
-			Active:         material.Active,
-			BarrierVersion: material.BarrierVersion,
-			CreatedAt:      material.CreatedAt.Unix(),
-		})
+		return c.JSON(toMaterialJWKResponse(material))
 	}
 }
 
@@ -207,13 +192,7 @@ func (h *JWKHandler) HandleRotateMaterialJWK() fiber.Handler {
 			})
 		}
 
-		return c.Status(fiber.StatusCreated).JSON(MaterialJWKResponse{
-			MaterialKID:    newMaterial.MaterialKID,
-			ElasticJWKID:   newMaterial.ElasticJWKID.String(),
-			Active:         newMaterial.Active,
-			BarrierVersion: newMaterial.BarrierVersion,
-			CreatedAt:      newMaterial.CreatedAt.Unix(),
-		})
+		return c.Status(fiber.StatusCreated).JSON(toMaterialJWKResponse(newMaterial))
 	}
 }
 

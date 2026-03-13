@@ -5,7 +5,6 @@
 package apis
 
 import (
-	json "encoding/json"
 	"time"
 
 	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
@@ -13,6 +12,8 @@ import (
 	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
+	cryptoutilJoseModels "cryptoutil/api/jose/models"
 
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
@@ -47,48 +48,43 @@ func NewJWKHandler(
 	}
 }
 
-// CreateElasticJWKRequest represents the request to create an elastic JWK.
-type CreateElasticJWKRequest struct {
-	Algorithm    string `json:"algorithm"`               // Algorithm (e.g., "RSA/2048", "EC/P256").
-	Use          string `json:"use"`                     // Key use: "sig" or "enc".
-	MaxMaterials int    `json:"max_materials,omitempty"` // Max material keys (default: 10).
+// toElasticJWKResponse maps a domain ElasticJWK to a generated ElasticJWKResponse.
+func toElasticJWKResponse(ejwk *cryptoutilAppsJoseJaDomain.ElasticJWK) cryptoutilJoseModels.ElasticJWKResponse {
+	return cryptoutilJoseModels.ElasticJWKResponse{
+		Kid:                  ejwk.KID,
+		TenantID:             ejwk.TenantID.String(),
+		Kty:                  ejwk.KeyType,
+		Alg:                  ejwk.Algorithm,
+		Use:                  cryptoutilJoseModels.ElasticJWKResponseUse(ejwk.Use),
+		MaxMaterials:         ejwk.MaxMaterials,
+		CurrentMaterialCount: ejwk.CurrentMaterialCount,
+		CreatedAt:            ejwk.CreatedAt.Unix(),
+	}
 }
 
-// ElasticJWKResponse represents the response for an elastic JWK.
-// CRITICAL: No realm_id - realms are authn-only, NOT data scope.
-type ElasticJWKResponse struct {
-	KID                  string `json:"kid"`
-	TenantID             string `json:"tenant_id"`
-	KeyType              string `json:"kty"`
-	Algorithm            string `json:"alg"`
-	Use                  string `json:"use"`
-	MaxMaterials         int    `json:"max_materials"`
-	CurrentMaterialCount int    `json:"current_material_count"`
-	CreatedAt            int64  `json:"created_at"`
-}
+// toMaterialJWKResponse maps a domain MaterialJWK to a generated MaterialJWKResponse.
+func toMaterialJWKResponse(mat *cryptoutilAppsJoseJaDomain.MaterialJWK) cryptoutilJoseModels.MaterialJWKResponse {
+	resp := cryptoutilJoseModels.MaterialJWKResponse{
+		MaterialKid:    mat.MaterialKID,
+		ElasticJWKID:   mat.ElasticJWKID.String(),
+		Active:         mat.Active,
+		BarrierVersion: mat.BarrierVersion,
+		CreatedAt:      mat.CreatedAt.Unix(),
+	}
 
-// MaterialJWKResponse represents the response for a material JWK.
-type MaterialJWKResponse struct {
-	MaterialKID    string          `json:"material_kid"`
-	ElasticJWKID   string          `json:"elastic_jwk_id"`
-	PublicJWK      json.RawMessage `json:"public_jwk,omitempty"`
-	Active         bool            `json:"active"`
-	BarrierVersion int             `json:"barrier_version"`
-	CreatedAt      int64           `json:"created_at"`
-	RetiredAt      *int64          `json:"retired_at,omitempty"`
-}
+	if mat.RetiredAt != nil {
+		retiredUnix := mat.RetiredAt.Unix()
+		resp.RetiredAt = &retiredUnix
+	}
 
-// ListResponse represents a paginated list response.
-type ListResponse struct {
-	Items any   `json:"items"`
-	Total int64 `json:"total"`
+	return resp
 }
 
 // HandleCreateElasticJWK creates a new elastic JWK container.
 // CRITICAL: tenant_id for data scoping only - realms are authn-only, NOT data scope.
 func (h *JWKHandler) HandleCreateElasticJWK() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		var req CreateElasticJWKRequest
+		var req cryptoutilJoseModels.ElasticJWKCreateRequest
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				cryptoutilSharedMagic.StringError: "Invalid request body",
@@ -112,9 +108,15 @@ func (h *JWKHandler) HandleCreateElasticJWK() fiber.Handler {
 		}
 
 		// Set default max materials.
-		maxMaterials := req.MaxMaterials
-		if maxMaterials <= 0 {
-			maxMaterials = cryptoutilSharedMagic.JoseJADefaultMaxMaterials
+		maxMaterials := cryptoutilSharedMagic.JoseJADefaultMaxMaterials
+		if req.MaxMaterials != nil && *req.MaxMaterials > 0 {
+			maxMaterials = *req.MaxMaterials
+		}
+
+		// Extract use as string.
+		useStr := ""
+		if req.Use != nil {
+			useStr = string(*req.Use)
 		}
 
 		// Map algorithm to key type.
@@ -135,7 +137,7 @@ func (h *JWKHandler) HandleCreateElasticJWK() fiber.Handler {
 			KID:                  kid.String(),
 			KeyType:              keyType,
 			Algorithm:            req.Algorithm,
-			Use:                  req.Use,
+			Use:                  useStr,
 			MaxMaterials:         maxMaterials,
 			CurrentMaterialCount: 0,
 			CreatedAt:            time.Now().UTC(),
@@ -148,16 +150,7 @@ func (h *JWKHandler) HandleCreateElasticJWK() fiber.Handler {
 			})
 		}
 
-		return c.Status(fiber.StatusCreated).JSON(ElasticJWKResponse{
-			KID:                  elasticJWK.KID,
-			TenantID:             elasticJWK.TenantID.String(),
-			KeyType:              elasticJWK.KeyType,
-			Algorithm:            elasticJWK.Algorithm,
-			Use:                  elasticJWK.Use,
-			MaxMaterials:         elasticJWK.MaxMaterials,
-			CurrentMaterialCount: elasticJWK.CurrentMaterialCount,
-			CreatedAt:            elasticJWK.CreatedAt.Unix(),
-		})
+		return c.Status(fiber.StatusCreated).JSON(toElasticJWKResponse(elasticJWK))
 	}
 }
 
@@ -196,16 +189,7 @@ func (h *JWKHandler) HandleGetElasticJWK() fiber.Handler {
 			})
 		}
 
-		return c.JSON(ElasticJWKResponse{
-			KID:                  elasticJWK.KID,
-			TenantID:             elasticJWK.TenantID.String(),
-			KeyType:              elasticJWK.KeyType,
-			Algorithm:            elasticJWK.Algorithm,
-			Use:                  elasticJWK.Use,
-			MaxMaterials:         elasticJWK.MaxMaterials,
-			CurrentMaterialCount: elasticJWK.CurrentMaterialCount,
-			CreatedAt:            elasticJWK.CreatedAt.Unix(),
-		})
+		return c.JSON(toElasticJWKResponse(elasticJWK))
 	}
 }
 
@@ -241,21 +225,12 @@ func (h *JWKHandler) HandleListElasticJWKs() fiber.Handler {
 			})
 		}
 
-		responses := make([]ElasticJWKResponse, len(elasticJWKs))
-		for i, jwk := range elasticJWKs {
-			responses[i] = ElasticJWKResponse{
-				KID:                  jwk.KID,
-				TenantID:             jwk.TenantID.String(),
-				KeyType:              jwk.KeyType,
-				Algorithm:            jwk.Algorithm,
-				Use:                  jwk.Use,
-				MaxMaterials:         jwk.MaxMaterials,
-				CurrentMaterialCount: jwk.CurrentMaterialCount,
-				CreatedAt:            jwk.CreatedAt.Unix(),
-			}
+		responses := make([]cryptoutilJoseModels.ElasticJWKResponse, len(elasticJWKs))
+		for i := range elasticJWKs {
+			responses[i] = toElasticJWKResponse(elasticJWKs[i])
 		}
 
-		return c.JSON(ListResponse{
+		return c.JSON(cryptoutilJoseModels.ElasticJWKListResponse{
 			Items: responses,
 			Total: total,
 		})
@@ -381,13 +356,7 @@ func (h *JWKHandler) HandleCreateMaterialJWK() fiber.Handler {
 			})
 		}
 
-		return c.Status(fiber.StatusCreated).JSON(MaterialJWKResponse{
-			MaterialKID:    material.MaterialKID,
-			ElasticJWKID:   material.ElasticJWKID.String(),
-			Active:         material.Active,
-			BarrierVersion: material.BarrierVersion,
-			CreatedAt:      material.CreatedAt.Unix(),
-		})
+		return c.Status(fiber.StatusCreated).JSON(toMaterialJWKResponse(material))
 	}
 }
 
