@@ -21,7 +21,7 @@ import (
 
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
-	cryptoutilAppsSmImDomain "cryptoutil/internal/apps/sm/im/domain"
+	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm/im/model"
 	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm/im/repository"
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
@@ -297,7 +297,7 @@ func TestHandleDeleteMessage_HappyPath(t *testing.T) {
 	// Create a message first
 	senderID := googleUuid.New()
 	messageID := googleUuid.New()
-	message := &cryptoutilAppsSmImDomain.Message{
+	message := &cryptoutilAppsSmImModel.Message{
 		ID:       messageID,
 		SenderID: senderID,
 		JWE:      "test-jwe-content",

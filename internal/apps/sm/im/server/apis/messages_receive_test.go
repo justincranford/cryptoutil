@@ -16,7 +16,7 @@ import (
 
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
-	cryptoutilAppsSmImDomain "cryptoutil/internal/apps/sm/im/domain"
+	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm/im/model"
 )
 
 func TestHandleReceiveMessages_WithMessages(t *testing.T) {
@@ -82,7 +82,7 @@ func TestHandleReceiveMessages_CorruptedJWK(t *testing.T) {
 	receiverID := googleUuid.New()
 	messageID := googleUuid.New()
 
-	message := &cryptoutilAppsSmImDomain.Message{
+	message := &cryptoutilAppsSmImModel.Message{
 		ID:       messageID,
 		SenderID: senderID,
 		JWE:      "corrupted-jwe-content-not-valid",
@@ -90,7 +90,7 @@ func TestHandleReceiveMessages_CorruptedJWK(t *testing.T) {
 	require.NoError(t, testMessageRepo.Create(ctx, message))
 
 	// Create corrupted recipient JWK record.
-	recipientJWK := &cryptoutilAppsSmImDomain.MessageRecipientJWK{
+	recipientJWK := &cryptoutilAppsSmImModel.MessageRecipientJWK{
 		ID:           googleUuid.New(),
 		MessageID:    messageID,
 		RecipientID:  receiverID,
@@ -134,7 +134,7 @@ func TestHandleReceiveMessages_NoJWKForRecipient(t *testing.T) {
 	receiverID := googleUuid.New()
 	messageID := googleUuid.New()
 
-	message := &cryptoutilAppsSmImDomain.Message{
+	message := &cryptoutilAppsSmImModel.Message{
 		ID:       messageID,
 		SenderID: senderID,
 		JWE:      "some-jwe-content",
@@ -179,7 +179,7 @@ func TestHandleDeleteMessage_ForbiddenNotOwner(t *testing.T) {
 	otherUserID := googleUuid.New()
 	messageID := googleUuid.New()
 
-	message := &cryptoutilAppsSmImDomain.Message{
+	message := &cryptoutilAppsSmImModel.Message{
 		ID:       messageID,
 		SenderID: senderID,
 		JWE:      "test-jwe-content",
@@ -239,7 +239,7 @@ func TestHandleDeleteMessage_ExistingMessageNoAuth(t *testing.T) {
 	// Create a message so FindByID succeeds.
 	senderID := googleUuid.New()
 	messageID := googleUuid.New()
-	message := &cryptoutilAppsSmImDomain.Message{
+	message := &cryptoutilAppsSmImModel.Message{
 		ID:       messageID,
 		SenderID: senderID,
 		JWE:      "test-jwe-no-auth",

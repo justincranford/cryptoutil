@@ -2,8 +2,8 @@
 //
 //
 
-// Package domain provides domain models for the sm-im service.
-package domain
+// Package model provides domain models for the sm-im service.
+package model
 
 import (
 	"time"

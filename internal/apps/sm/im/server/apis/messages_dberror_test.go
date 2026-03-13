@@ -18,7 +18,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilAppsSmImDomain "cryptoutil/internal/apps/sm/im/domain"
+	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm/im/model"
 	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm/im/repository"
 	cryptoutilTestdb "cryptoutil/internal/apps/template/service/testing/testdb"
 )
@@ -106,7 +106,7 @@ func TestHandleReceiveMessages_MarkAsReadError(t *testing.T) {
 	messageID := googleUuid.New()
 
 	// Create message in the WORKING database.
-	message := &cryptoutilAppsSmImDomain.Message{
+	message := &cryptoutilAppsSmImModel.Message{
 		ID:        messageID,
 		SenderID:  senderID,
 		JWE:       "test-jwe-for-mark-read-error",
@@ -145,7 +145,7 @@ func TestHandleDeleteMessage_DatabaseDeleteError(t *testing.T) {
 
 	// Create a message in the WORKING database.
 	messageID := googleUuid.New()
-	message := &cryptoutilAppsSmImDomain.Message{
+	message := &cryptoutilAppsSmImModel.Message{
 		ID:        messageID,
 		SenderID:  senderID,
 		JWE:       "test-jwe-for-delete-error",
@@ -187,7 +187,7 @@ func TestHandleDeleteMessage_OwnershipVerification(t *testing.T) {
 
 	// Create a message owned by senderID.
 	messageID := googleUuid.New()
-	message := &cryptoutilAppsSmImDomain.Message{
+	message := &cryptoutilAppsSmImModel.Message{
 		ID:        messageID,
 		SenderID:  senderID,
 		JWE:       "test-jwe-for-ownership-check",
@@ -243,7 +243,7 @@ func TestHandleReceiveMessages_DecryptionErrors(t *testing.T) {
 
 			messageID := googleUuid.New()
 
-			message := &cryptoutilAppsSmImDomain.Message{
+			message := &cryptoutilAppsSmImModel.Message{
 				ID:        messageID,
 				SenderID:  googleUuid.New(),
 				JWE:       tc.jwe,
@@ -251,7 +251,7 @@ func TestHandleReceiveMessages_DecryptionErrors(t *testing.T) {
 			}
 			require.NoError(t, testMessageRepo.Create(ctx, message))
 
-			recipientJWK := &cryptoutilAppsSmImDomain.MessageRecipientJWK{
+			recipientJWK := &cryptoutilAppsSmImModel.MessageRecipientJWK{
 				ID:           googleUuid.New(),
 				MessageID:    messageID,
 				RecipientID:  receiverID,

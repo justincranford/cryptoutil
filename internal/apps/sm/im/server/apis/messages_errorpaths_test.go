@@ -22,7 +22,7 @@ import (
 
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
-	cryptoutilAppsSmImDomain "cryptoutil/internal/apps/sm/im/domain"
+	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm/im/model"
 	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm/im/repository"
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilTestdb "cryptoutil/internal/apps/template/service/testing/testdb"
@@ -176,7 +176,7 @@ func TestHandleReceiveMessages_MarkAsReadTriggerError(t *testing.T) {
 	receiverID := googleUuid.New()
 	messageID := googleUuid.New()
 
-	message := &cryptoutilAppsSmImDomain.Message{
+	message := &cryptoutilAppsSmImModel.Message{
 		ID:        messageID,
 		SenderID:  senderID,
 		JWE:       "test-jwe-mark-as-read-trigger",
@@ -186,7 +186,7 @@ func TestHandleReceiveMessages_MarkAsReadTriggerError(t *testing.T) {
 	msgRepo := cryptoutilAppsSmImRepository.NewMessageRepository(triggerDB)
 	require.NoError(t, msgRepo.Create(ctx, message))
 
-	recipientJWK := &cryptoutilAppsSmImDomain.MessageRecipientJWK{
+	recipientJWK := &cryptoutilAppsSmImModel.MessageRecipientJWK{
 		ID:           googleUuid.New(),
 		MessageID:    messageID,
 		RecipientID:  receiverID,
@@ -252,7 +252,7 @@ func TestHandleReceiveMessages_JWKDecryptionVariants(t *testing.T) {
 			require.NoError(t, err)
 
 			// Insert message directly into test DB.
-			message := &cryptoutilAppsSmImDomain.Message{
+			message := &cryptoutilAppsSmImModel.Message{
 				ID:        messageID,
 				SenderID:  googleUuid.New(),
 				JWE:       tc.jwe,
@@ -261,7 +261,7 @@ func TestHandleReceiveMessages_JWKDecryptionVariants(t *testing.T) {
 			require.NoError(t, testMessageRepo.Create(ctx, message))
 
 			// Insert recipient JWK with barrier-encrypted data.
-			recipientJWK := &cryptoutilAppsSmImDomain.MessageRecipientJWK{
+			recipientJWK := &cryptoutilAppsSmImModel.MessageRecipientJWK{
 				ID:           googleUuid.New(),
 				MessageID:    messageID,
 				RecipientID:  receiverID,
@@ -322,7 +322,7 @@ func TestHandleDeleteMessage_RecipientJWKDeleteFailed(t *testing.T) {
 	senderID := googleUuid.New()
 	messageID := googleUuid.New()
 
-	message := &cryptoutilAppsSmImDomain.Message{
+	message := &cryptoutilAppsSmImModel.Message{
 		ID:        messageID,
 		SenderID:  senderID,
 		JWE:       "test-jwe-recipient-delete-error",
@@ -361,7 +361,7 @@ func TestHandleDeleteMessage_MessageDeleteTriggerError(t *testing.T) {
 	senderID := googleUuid.New()
 	messageID := googleUuid.New()
 
-	message := &cryptoutilAppsSmImDomain.Message{
+	message := &cryptoutilAppsSmImModel.Message{
 		ID:        messageID,
 		SenderID:  senderID,
 		JWE:       "test-jwe-delete-trigger",

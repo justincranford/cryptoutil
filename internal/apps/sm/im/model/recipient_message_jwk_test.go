@@ -2,7 +2,7 @@
 //
 //
 
-package domain_test
+package model_test
 
 import (
 	"testing"
@@ -11,13 +11,13 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilAppsSmImDomain "cryptoutil/internal/apps/sm/im/domain"
+	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm/im/model"
 )
 
 func TestMessageRecipientJWK_TableName(t *testing.T) {
 	t.Parallel()
 
-	mrj := cryptoutilAppsSmImDomain.MessageRecipientJWK{}
+	mrj := cryptoutilAppsSmImModel.MessageRecipientJWK{}
 	require.Equal(t, "messages_recipient_jwks", mrj.TableName())
 }
 
@@ -30,13 +30,13 @@ func TestMessageRecipientJWK_FieldTypes(t *testing.T) {
 	encryptedJWK := `{"protected":"eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0","iv":"test","ciphertext":"test","tag":"test"}`
 	createdAt := time.Now().UTC()
 
-	mrj := cryptoutilAppsSmImDomain.MessageRecipientJWK{
+	mrj := cryptoutilAppsSmImModel.MessageRecipientJWK{
 		ID:           id,
 		RecipientID:  recipientID,
 		MessageID:    messageID,
 		EncryptedJWK: encryptedJWK,
 		CreatedAt:    createdAt,
-		Message: cryptoutilAppsSmImDomain.Message{
+		Message: cryptoutilAppsSmImModel.Message{
 			ID:       messageID,
 			SenderID: googleUuid.New(),
 			JWE:      "test-message-jwe",
@@ -55,7 +55,7 @@ func TestMessageRecipientJWK_FieldTypes(t *testing.T) {
 func TestMessageRecipientJWK_ZeroValue(t *testing.T) {
 	t.Parallel()
 
-	var mrj cryptoutilAppsSmImDomain.MessageRecipientJWK
+	var mrj cryptoutilAppsSmImModel.MessageRecipientJWK
 
 	require.Equal(t, googleUuid.Nil, mrj.ID)
 	require.Equal(t, googleUuid.Nil, mrj.RecipientID)
@@ -76,9 +76,9 @@ func TestMessageRecipientJWK_MultiRecipientScenario(t *testing.T) {
 		googleUuid.New(),
 	}
 
-	jwks := make([]cryptoutilAppsSmImDomain.MessageRecipientJWK, len(recipients))
+	jwks := make([]cryptoutilAppsSmImModel.MessageRecipientJWK, len(recipients))
 	for i, recipID := range recipients {
-		jwks[i] = cryptoutilAppsSmImDomain.MessageRecipientJWK{
+		jwks[i] = cryptoutilAppsSmImModel.MessageRecipientJWK{
 			ID:           googleUuid.New(),
 			RecipientID:  recipID,
 			MessageID:    messageID,

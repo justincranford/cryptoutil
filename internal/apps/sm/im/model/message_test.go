@@ -2,7 +2,7 @@
 //
 //
 
-package domain_test
+package model_test
 
 import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -12,13 +12,13 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilAppsSmImDomain "cryptoutil/internal/apps/sm/im/domain"
+	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm/im/model"
 )
 
 func TestMessage_TableName(t *testing.T) {
 	t.Parallel()
 
-	m := cryptoutilAppsSmImDomain.Message{}
+	m := cryptoutilAppsSmImModel.Message{}
 	require.Equal(t, "messages", m.TableName())
 }
 
@@ -31,7 +31,7 @@ func TestMessage_FieldTypes(t *testing.T) {
 	readAt := time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute)
 	jwe := `{"protected":"eyJhbGciOiJBMjU2R0NNS1ciLCJlbmMiOiJBMjU2R0NNIn0","iv":"test","ciphertext":"test","tag":"test"}`
 
-	m := cryptoutilAppsSmImDomain.Message{
+	m := cryptoutilAppsSmImModel.Message{
 		ID:        messageID,
 		SenderID:  senderID,
 		JWE:       jwe,
@@ -50,7 +50,7 @@ func TestMessage_FieldTypes(t *testing.T) {
 func TestMessage_NilReadAt(t *testing.T) {
 	t.Parallel()
 
-	m := cryptoutilAppsSmImDomain.Message{
+	m := cryptoutilAppsSmImModel.Message{
 		ID:        googleUuid.New(),
 		SenderID:  googleUuid.New(),
 		JWE:       "test-jwe",
@@ -64,7 +64,7 @@ func TestMessage_NilReadAt(t *testing.T) {
 func TestMessage_ZeroValue(t *testing.T) {
 	t.Parallel()
 
-	var m cryptoutilAppsSmImDomain.Message
+	var m cryptoutilAppsSmImModel.Message
 
 	require.Equal(t, googleUuid.Nil, m.ID)
 	require.Equal(t, googleUuid.Nil, m.SenderID)

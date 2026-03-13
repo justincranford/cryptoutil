@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 
-	cryptoutilAppsSmImDomain "cryptoutil/internal/apps/sm/im/domain"
+	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm/im/model"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
@@ -35,12 +35,12 @@ func TestMessageRepository_Create(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		message *cryptoutilAppsSmImDomain.Message
+		message *cryptoutilAppsSmImModel.Message
 		wantErr bool
 	}{
 		{
 			name: "valid message creation",
-			message: &cryptoutilAppsSmImDomain.Message{
+			message: &cryptoutilAppsSmImModel.Message{
 				ID:       *testJWKGenService.GenerateUUIDv7(),
 				SenderID: sender.ID,
 				JWE:      `{"protected":"...","encrypted_key":"...","iv":"...","ciphertext":"...","tag":"..."}`,
@@ -49,7 +49,7 @@ func TestMessageRepository_Create(t *testing.T) {
 		},
 		{
 			name: "message with empty JWE",
-			message: &cryptoutilAppsSmImDomain.Message{
+			message: &cryptoutilAppsSmImModel.Message{
 				ID:       *testJWKGenService.GenerateUUIDv7(),
 				SenderID: sender.ID,
 				JWE:      "",
@@ -58,7 +58,7 @@ func TestMessageRepository_Create(t *testing.T) {
 		},
 		{
 			name: "message with large JWE payload",
-			message: &cryptoutilAppsSmImDomain.Message{
+			message: &cryptoutilAppsSmImModel.Message{
 				ID:       *testJWKGenService.GenerateUUIDv7(),
 				SenderID: sender.ID,
 				JWE:      `{"protected":"...","ciphertext":"` + string(make([]byte, cryptoutilSharedMagic.RSA4096KeySize)) + `"}`,
@@ -72,7 +72,7 @@ func TestMessageRepository_Create(t *testing.T) {
 			t.Parallel()
 
 			// Create unique copy for this test to avoid shared mutations.
-			testMessage := &cryptoutilAppsSmImDomain.Message{
+			testMessage := &cryptoutilAppsSmImModel.Message{
 				ID:       tt.message.ID,
 				SenderID: tt.message.SenderID,
 				JWE:      tt.message.JWE,
@@ -146,7 +146,7 @@ func TestMessageRepository_FindByID(t *testing.T) {
 
 			defer func() { _ = userRepo.Delete(ctx, sender.ID) }()
 
-			message := &cryptoutilAppsSmImDomain.Message{
+			message := &cryptoutilAppsSmImModel.Message{
 				ID:       *testJWKGenService.GenerateUUIDv7(),
 				SenderID: sender.ID,
 				JWE:      `{"protected":"test"}`,
@@ -221,7 +221,7 @@ func TestMessageRepository_FindByRecipientID(t *testing.T) {
 			}
 
 			// Test finding messages for recipient.
-			messages := []*cryptoutilAppsSmImDomain.Message{
+			messages := []*cryptoutilAppsSmImModel.Message{
 				{
 					ID:       *testJWKGenService.GenerateUUIDv7(),
 					SenderID: sender.ID,
@@ -253,7 +253,7 @@ func TestMessageRepository_FindByRecipientID(t *testing.T) {
 			jwkRepo := NewMessageRecipientJWKRepository(testDB, testBarrierService)
 
 			for _, msg := range messages {
-				jwk := &cryptoutilAppsSmImDomain.MessageRecipientJWK{
+				jwk := &cryptoutilAppsSmImModel.MessageRecipientJWK{
 					ID:           *testJWKGenService.GenerateUUIDv7(),
 					RecipientID:  recipient.ID,
 					MessageID:    msg.ID,
@@ -326,7 +326,7 @@ func TestMessageRepository_MarkAsRead(t *testing.T) {
 
 			defer func() { _ = userRepo.Delete(ctx, sender.ID) }()
 
-			message := &cryptoutilAppsSmImDomain.Message{
+			message := &cryptoutilAppsSmImModel.Message{
 				ID:       *testJWKGenService.GenerateUUIDv7(),
 				SenderID: sender.ID,
 				JWE:      `{"protected":"test"}`,
@@ -363,7 +363,7 @@ func TestMessageRepository_Delete(t *testing.T) {
 	defer func() { _ = userRepo.Delete(ctx, sender.ID) }()
 
 	// Create test message.
-	message := &cryptoutilAppsSmImDomain.Message{
+	message := &cryptoutilAppsSmImModel.Message{
 		ID:       *testJWKGenService.GenerateUUIDv7(),
 		SenderID: sender.ID,
 		JWE:      `{"protected":"test"}`,
@@ -431,7 +431,7 @@ func TestMessageRepository_TransactionContext(t *testing.T) {
 	tx := testDB.Begin()
 	txCtx := cryptoutilAppsTemplateServiceServerRepository.WithTransaction(ctx, tx)
 
-	message := &cryptoutilAppsSmImDomain.Message{
+	message := &cryptoutilAppsSmImModel.Message{
 		ID:       *testJWKGenService.GenerateUUIDv7(),
 		SenderID: sender.ID,
 		JWE:      `{"protected":"test"}`,
@@ -452,7 +452,7 @@ func TestMessageRepository_TransactionContext(t *testing.T) {
 	tx = testDB.Begin()
 	txCtx = cryptoutilAppsTemplateServiceServerRepository.WithTransaction(ctx, tx)
 
-	message2 := &cryptoutilAppsSmImDomain.Message{
+	message2 := &cryptoutilAppsSmImModel.Message{
 		ID:       *testJWKGenService.GenerateUUIDv7(),
 		SenderID: sender.ID,
 		JWE:      `{"protected":"test2"}`,

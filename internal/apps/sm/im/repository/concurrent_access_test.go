@@ -11,7 +11,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilAppsSmImDomain "cryptoutil/internal/apps/sm/im/domain"
+	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm/im/model"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
@@ -44,7 +44,7 @@ func TestConcurrentAccess_ParallelCreates(t *testing.T) {
 			defer wg.Done()
 
 			messageID := googleUuid.New()
-			message := &cryptoutilAppsSmImDomain.Message{
+			message := &cryptoutilAppsSmImModel.Message{
 				ID:       messageID,
 				SenderID: senderID,
 				JWE:      "test-jwe-concurrent-" + googleUuid.New().String(),
@@ -63,7 +63,7 @@ func TestConcurrentAccess_ParallelCreates(t *testing.T) {
 
 	// Verify all messages exist in database.
 	var count int64
-	require.NoError(t, testDB.Model(&cryptoutilAppsSmImDomain.Message{}).Where("sender_id = ?", senderID).Count(&count).Error)
+	require.NoError(t, testDB.Model(&cryptoutilAppsSmImModel.Message{}).Where("sender_id = ?", senderID).Count(&count).Error)
 	require.Equal(t, int64(numMessages), count)
 }
 
@@ -84,7 +84,7 @@ func TestConcurrentAccess_ParallelReadsAndWrites(t *testing.T) {
 	require.NoError(t, userRepo.Create(ctx, testUser))
 
 	messageID := googleUuid.New()
-	testMessage := &cryptoutilAppsSmImDomain.Message{
+	testMessage := &cryptoutilAppsSmImModel.Message{
 		ID:       messageID,
 		SenderID: senderID,
 		JWE:      "test-jwe-read-write",
@@ -166,7 +166,7 @@ func TestConcurrentAccess_ParallelFindByRecipientID(t *testing.T) {
 	// Create 3 messages for recipient.
 	for i := 0; i < 3; i++ {
 		messageID := googleUuid.New()
-		message := &cryptoutilAppsSmImDomain.Message{
+		message := &cryptoutilAppsSmImModel.Message{
 			ID:       messageID,
 			SenderID: senderID,
 			JWE:      "test-jwe-recipient-" + googleUuid.New().String(),
@@ -174,7 +174,7 @@ func TestConcurrentAccess_ParallelFindByRecipientID(t *testing.T) {
 		require.NoError(t, messageRepo.Create(ctx, message))
 
 		// Create recipient JWK association.
-		jwkEntry := &cryptoutilAppsSmImDomain.MessageRecipientJWK{
+		jwkEntry := &cryptoutilAppsSmImModel.MessageRecipientJWK{
 			ID:           googleUuid.New(),
 			MessageID:    messageID,
 			RecipientID:  recipientID,
@@ -189,7 +189,7 @@ func TestConcurrentAccess_ParallelFindByRecipientID(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(numQueries)
 
-	results := make([][]cryptoutilAppsSmImDomain.Message, numQueries)
+	results := make([][]cryptoutilAppsSmImModel.Message, numQueries)
 	errors := make([]error, numQueries)
 
 	for i := 0; i < numQueries; i++ {
@@ -232,7 +232,7 @@ func TestConcurrentAccess_ParallelDeletes(t *testing.T) {
 
 	for i := 0; i < numMessages; i++ {
 		messageIDs[i] = googleUuid.New()
-		message := &cryptoutilAppsSmImDomain.Message{
+		message := &cryptoutilAppsSmImModel.Message{
 			ID:       messageIDs[i],
 			SenderID: senderID,
 			JWE:      "test-jwe-delete-" + googleUuid.New().String(),
@@ -263,6 +263,6 @@ func TestConcurrentAccess_ParallelDeletes(t *testing.T) {
 
 	// Verify all messages deleted.
 	var count int64
-	require.NoError(t, testDB.Model(&cryptoutilAppsSmImDomain.Message{}).Where("sender_id = ?", senderID).Count(&count).Error)
+	require.NoError(t, testDB.Model(&cryptoutilAppsSmImModel.Message{}).Where("sender_id = ?", senderID).Count(&count).Error)
 	require.Equal(t, int64(0), count)
 }

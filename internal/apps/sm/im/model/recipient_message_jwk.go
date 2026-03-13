@@ -2,7 +2,7 @@
 //
 //
 
-package domain
+package model
 
 import (
 	"time"

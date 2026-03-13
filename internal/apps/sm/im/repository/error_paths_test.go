@@ -12,7 +12,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilAppsSmImDomain "cryptoutil/internal/apps/sm/im/domain"
+	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm/im/model"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTestdb "cryptoutil/internal/apps/template/service/testing/testdb"
@@ -36,7 +36,7 @@ func TestErrorPaths_CreateOperations(t *testing.T) {
 				messageID := *testJWKGenService.GenerateUUIDv7()
 
 				// Create first message.
-				message1 := &cryptoutilAppsSmImDomain.Message{
+				message1 := &cryptoutilAppsSmImModel.Message{
 					ID:       messageID,
 					SenderID: *testJWKGenService.GenerateUUIDv7(),
 					JWE:      "test-jwe-1",
@@ -46,7 +46,7 @@ func TestErrorPaths_CreateOperations(t *testing.T) {
 				defer func() { _ = repo.Delete(ctx, messageID) }()
 
 				// Try to create duplicate.
-				message2 := &cryptoutilAppsSmImDomain.Message{
+				message2 := &cryptoutilAppsSmImModel.Message{
 					ID:       messageID, // Same ID = constraint violation
 					SenderID: *testJWKGenService.GenerateUUIDv7(),
 					JWE:      "test-jwe-2",
@@ -92,7 +92,7 @@ func TestErrorPaths_CreateOperations(t *testing.T) {
 
 				// Create message first (foreign key requirement).
 				messageID := *testJWKGenService.GenerateUUIDv7()
-				message := &cryptoutilAppsSmImDomain.Message{
+				message := &cryptoutilAppsSmImModel.Message{
 					ID:       messageID,
 					SenderID: *testJWKGenService.GenerateUUIDv7(),
 					JWE:      "test-jwe",
@@ -104,7 +104,7 @@ func TestErrorPaths_CreateOperations(t *testing.T) {
 				recipientID := *testJWKGenService.GenerateUUIDv7()
 
 				// Create first recipient JWK.
-				jwk1 := &cryptoutilAppsSmImDomain.MessageRecipientJWK{
+				jwk1 := &cryptoutilAppsSmImModel.MessageRecipientJWK{
 					ID:           *testJWKGenService.GenerateUUIDv7(),
 					RecipientID:  recipientID,
 					MessageID:    messageID,
@@ -115,7 +115,7 @@ func TestErrorPaths_CreateOperations(t *testing.T) {
 				defer func() { _ = jwkRepo.Delete(ctx, jwk1.ID) }()
 
 				// Try to create duplicate with same ID = constraint violation.
-				jwk2 := &cryptoutilAppsSmImDomain.MessageRecipientJWK{
+				jwk2 := &cryptoutilAppsSmImModel.MessageRecipientJWK{
 					ID:           jwk1.ID, // Same ID = primary key violation
 					RecipientID:  recipientID,
 					MessageID:    messageID,

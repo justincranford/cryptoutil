@@ -11,7 +11,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 
-	cryptoutilAppsSmImDomain "cryptoutil/internal/apps/sm/im/domain"
+	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm/im/model"
 	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm/im/repository"
 	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilAppsTemplateServiceServerMiddleware "cryptoutil/internal/apps/template/service/server/middleware"
@@ -130,7 +130,7 @@ func (h *MessageHandler) HandleSendMessage() fiber.Handler {
 		}
 
 		// Create message with JWE ciphertext.
-		message := &cryptoutilAppsSmImDomain.Message{
+		message := &cryptoutilAppsSmImModel.Message{
 			ID:       googleUuid.New(),
 			SenderID: senderID,
 			JWE:      string(jweCompactBytes),
@@ -164,7 +164,7 @@ func (h *MessageHandler) HandleSendMessage() fiber.Handler {
 			}
 
 			// Store encrypted JWK for this recipient.
-			messageRecipientJWK := &cryptoutilAppsSmImDomain.MessageRecipientJWK{
+			messageRecipientJWK := &cryptoutilAppsSmImModel.MessageRecipientJWK{
 				ID:           googleUuid.New(),
 				MessageID:    message.ID,
 				RecipientID:  recipientID,
