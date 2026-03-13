@@ -273,19 +273,19 @@
 
 #### Task 3.6: Phase 3 quality gate
 
-- **Status**: TODO
+- **Status**: ✅ DONE
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
-- **Actual**: [fill when complete]
+- **Actual**: 0.3h
 - **Dependencies**: Tasks 3.1-3.5
 - **Description**: Full quality gate + post-mortem.
 - **Acceptance Criteria**:
-  - [ ] `go build ./...` clean
-  - [ ] `go test ./internal/apps/sm/im/... -shuffle=on` passes
-  - [ ] `golangci-lint run ./internal/apps/sm/im/...` clean
-  - [ ] Coverage maintained ≥95%
-  - [ ] `go run ./cmd/cicd lint-fitness` passes (no sm-im violations)
-  - [ ] lessons.md updated with Phase 3 post-mortem
+  - [x] `go build ./...` clean
+  - [x] `go test ./internal/apps/sm/im/... -shuffle=on` passes — model 100%, repository 98.6%, server 96.2%, apis 95.2%, config 100%
+  - [x] `golangci-lint run ./internal/apps/sm/im/...` clean — 0 issues
+  - [x] Coverage maintained ≥95% — all packages ≥95.2%
+  - [x] `go run ./cmd/cicd lint-fitness` passes (no sm-im violations)
+  - [x] lessons.md updated with Phase 3 post-mortem
 
 ---
 

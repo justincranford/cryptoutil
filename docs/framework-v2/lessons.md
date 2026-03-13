@@ -89,7 +89,43 @@ This file captures lessons from each phase, used as:
 
 ## Phase 3: sm-im Cleanup
 
-*(To be filled during Phase 3 execution)*
+### What Worked
+
+- **testdb.NewClosedSQLiteDB adoption**: Seamless migration of closed-DB helpers in both `repository/` and `server/apis/` packages. Same pattern as jose-ja Phase 2 — one-line replacement per helper function.
+- **File merge evaluation**: Correctly assessed 500-line hard limits before attempting merges. Prevented wasted effort on infeasible merges.
+- **Independent bug discovery**: Found and fixed pre-existing `Preload("Sender")` bug during closed-DB migration testing. Root cause analysis and separate commit preserved bisect capability.
+- **domain/ → model/ rename**: Identical pattern to jose-ja Task 2.5. PowerShell batch replacement for 13 files was efficient and error-free.
+
+### What Didn't Work
+
+- **Accidental import removal (Task 3.2)**: Removed `context` import from `messages_dberror_test.go` while cleaning up `createClosedDBHandler`. The import was still needed by `context.Background()` on line 103. Caught by `go vet`.
+- **Unused import left behind (Task 3.2)**: Left `cryptoutilSharedMagic` import after removing the code that used it. Also caught by `go vet`.
+- **Pre-commit end-of-file fixer (Task 3.3)**: Auto-modified `error_paths_test.go` during commit, causing commit failure. Required re-stage and re-commit.
+
+### Root Causes
+
+- **Import accidents**: When replacing function bodies, imports used by the OLD body get removed but imports used elsewhere in the file may be accidentally caught in the cleanup. Always run `go vet` after import changes.
+- **Preload("Sender") bug**: The `Message` struct has `SenderID googleUuid.UUID` (a scalar field) but no `Sender` GORM relation. Someone added `.Preload("Sender")` assuming an association existed. GORM silently fails on invalid preloads in some versions but errors in others.
+
+### Patterns Discovered
+
+- **sm-im has no OpenAPI-generated models**: Unlike jose-ja which has `api/jose/ja/`, sm-im has no `api/sm/im/` directory. Handler uses hand-rolled DTOs. This is a pre-existing gap, not in scope for framework-v2.
+- **File merge limits**: sm-im test files are larger on average than jose-ja. Repository files (269-387 lines) and server/apis files (193-359 lines) leave less headroom for merging under the 500-line limit.
+- **PowerShell batch replace**: Using `[System.IO.File]::ReadAllText/WriteAllText` with `.Replace()` for 13 files is faster and more reliable than individual `replace_string_in_file` calls for uniform text substitution.
+
+### Decisions
+
+- **D1**: Task 3.3 merged `error_returns_test.go` INTO `error_paths_test.go` (305 lines) instead of into `message_repository_test.go` (387 lines) to stay under 500-line limit.
+- **D2**: Task 3.4 kept server/apis test files separate — total 860 lines for 3 files far exceeds 500-line limit.
+- **D3**: Pre-existing `Preload("Sender")` bug committed separately (`f44038190`) from framework-v2 refactoring work — multi-category commit rule.
+- **D4**: sm-im lacks OpenAPI models — documented but not in scope for framework-v2.
+
+### Quality Evidence
+
+- Coverage: model 100%, repository 98.6%, server 96.2%, apis 95.2%, config 100% — all ≥95%
+- Lint: 0 issues
+- Fitness: PASSED
+- Tests: 107 repository + 40 server/apis — all pass with `-shuffle=on`
 
 ---
 
