@@ -1,8 +1,8 @@
 # Framework v3 - Iteration Plan
 
-**Status**: IN PROGRESS — Phase 1: 11/12 tasks done. **quizme-v4 pending** (D12 tentative; Q2=C applied to D14, Q3=E→D18, Q4=A confirmed, Q5=E→quizme-v4, Q6=A→D17)
+**Status**: IN PROGRESS — Phase 1: 11/12 tasks done (Task 1.12 next). Quizme series complete. D7 expanded; D12=B confirmed; D14 unchanged; D19–D26 added.
 **Created**: 2026-03-08
-**Last Updated**: 2026-03-14
+**Last Updated**: 2026-03-15
 **Depends On**: `docs/framework-brainstorm/08-recommendations.md`, framework-v1 (archived), framework-v2 (archived — see Completed in Prior Iterations)
 **Purpose**: Aggressive standardization of all 10 product-services as thin domain-only wrappers around service-template. Service-template owns 100% of reusable infrastructure (servers, clients, authn, authz, middleware, health, TLS, barrier, telemetry, tests). Product-services inject ONLY domain-specific: OpenAPI add-ons, DB migrations, business logic, config overrides.
 
@@ -15,7 +15,6 @@
 1. **plan.md** (this file) - phases, objectives, decisions
 2. **tasks.md** - task checklist per phase
 3. **lessons.md** - persistent memory: what worked, what did not, root causes, patterns
-4. **quizme-v4.md** - 3 pending questions (D12 skeleton role, Docker testing, terminology)
 
 ---
 
@@ -92,12 +91,20 @@ All 10 product-services MUST use the latest framework patterns. No service gets 
 
 skeleton-template's purpose needs analysis: given lint-fitness (23 sub-linters enforcing conformance), is skeleton still needed as a reference? It may serve as a minimal working example for `cicd new-service` scaffolding, or it may be redundant.
 
-### D7: Test Infrastructure Rules
+### D7: Test Infrastructure Rules (expanded by quizme-v4 Q2)
 
-- **Unit tests**: NEVER start servers, NEVER start DBs
-- **Integration tests**: ONE server per service (via TestMain)
-- **E2E tests**: ONE docker-compose file
-- Violations of these rules MUST be bubbled up to lint-fitness
+**3-Tier Strategy (MANDATORY, enforced by lint-fitness)**:
+
+- **Unit tests**: Limited SQLite only (in-memory, no servers, no Docker). NEVER PostgreSQL.
+- **Integration tests**: TestMain pattern with ONE SQLite in-memory instance. ALL happy-path table-driven tests share it. NEVER PostgreSQL. NEVER per-test DB creation.
+- **E2E tests**: Docker Compose with 3 app instances (2 sharing PostgreSQL, 1 using SQLite). Test PostgreSQL compatibility here ONLY.
+
+**Key Rules**:
+
+- NEVER use PostgreSQL in unit or integration tests — PostgreSQL tested ONLY in E2E.
+- NEVER create DB per-test in integration tests (use TestMain shared instance).
+- NEVER start real servers in unit tests (use Fiber app.Test()).
+- This strategy is THE canonical definition — documented in ARCHITECTURE.md Section 10 (D19), all Copilot artifacts, and enforced by lint-fitness for all 10 services + skeleton-template.
 
 ### D8: lint-fitness is Full Investment (quizme-v1 Q2=A)
 
@@ -115,9 +122,13 @@ Phase 4 starts with the smallest exemption categories (os.Stderr=5, pgDriver=11)
 
 No automated commit linting enforcement (no commitlint, no CI validation). Improve agent instructions to better enforce the Multi-Category Fix Commit Rule. Trust the AI instructions, avoid tooling overhead for an alpha repo.
 
-### D12: Skeleton-Template Stays Minimal (quizme-v2 Q1 → A recommended)
+### D12: Skeleton-Template Gets OpenAPI CRUD Example (quizme-v4 Q1=B confirmed)
 
-skeleton-template (19 Go files, 61KB) keeps its triple role: human reference, `/new-service` scaffolding source, lint-fitness validation target. NO CRUD endpoint added (sm-im at 61 files/357KB already IS the CRUD reference). NO code generation engine (over-engineered for ~10 services). Cost: ~2h/quarter to keep current.
+skeleton-template adds ONE working CRUD example endpoint. Critical constraint: MUST use `api/skeleton-template/` OpenAPI strict server (like sm-kms does), NOT handrolled handlers. This ensures lint-fitness validates it like all other services and CI keeps it correct and current.
+
+When `/new-service` copies skeleton, developers rename `Item` → their domain type. Triple role preserved: human reference, `/new-service` scaffolding source, lint-fitness validation target. Now also a concrete OpenAPI + CRUD pattern reference.
+
+**Scope**: Add `api/skeleton-template/` + OpenAPI spec + gen configs + ~100 lines Item CRUD example (model, repo, HTTP handlers). One-time ~4h; ~15 min/quarter maintenance via lint-fitness.
 
 ### D13: Identity Full Extraction + Staged Reintegration (quizme-v2 Q2=A)
 
@@ -141,9 +152,66 @@ sm-kms gets the same treatment as jose-ja (framework-v2 Phase 2) and sm-im (fram
 
 ### D18: Go-Based Copilot Tools Collection (quizme-v3 Q3=E)
 
-A Go-based collection of reusable Copilot tools to replace inefficient built-in tools and ad-hoc generated scripts. NOT part of the cicd command — a separate strategic investment. Think of it as a toolbox of Go programs that Copilot can invoke via MCP or custom tool definitions to replace fragile PowerShell heredocs and one-off scripts. Exact scope to be refined during implementation.
+A Go-based collection of reusable Copilot tools to replace inefficient built-in tools and ad-hoc generated scripts. NOT part of the cicd command — a separate strategic investment. Start with direct `go run ./cmd/tools/<name>` invocations (simplest path), then optionally expose via MCP server (mark3labs/mcp-go) when ≥3 tools exist and cross-LLM portability matters. See D25 for MCP adoption strategy and D26 for project tool catalog in instructions.
 
-Phases 2, 6, 7, 8 restructured per these decisions.
+Phases 2, 6, 7, 8, 10, 11 restructured per these decisions.
+
+### D19: Test Strategy Canonical Documentation + Enforcement (quizme-v4 Q2)
+
+D7 defines the canonical 3-tier test strategy. D19 mandates WHERE it lives and HOW it is enforced:
+
+1. **ARCHITECTURE.md Section 10** — add comprehensive 3-tier strategy (SQLite unit/integration, PostgreSQL E2E only)
+2. **03-02.testing.instructions.md** — propagate from ARCHITECTURE.md (Section 10 as source of truth)
+3. **All agents** (implementation-execution, implementation-planning, beast-mode) — reference D7 strategy
+4. **lint-fitness sub-linters** — enforce: no per-test DB creation, no PostgreSQL in unit/integration tests
+5. ALL 10 product-services + skeleton-template must pass new lint-fitness rules
+
+Addressed in Phase 6 (new Task 6.4 additions) and Phase 9.
+
+### D20: Rename to "service-framework" — FINAL Phase (quizme-v4 Q3)
+
+Rename `internal/apps/template/` → `internal/apps/framework/` and ALL imports, identifiers, config keys, docs, agents, skills, instructions, GitHub workflows. ~340 files. Enforce with lint-fitness (no stray `template` in framework package paths after rename). MUST be the absolute final phase — after Phase 3 builder refactoring stabilizes all service files. Zero ambiguity: "framework" = shared engine, "skeleton" = starter service.
+
+### D21: OpenAPI Directory Naming Standardization
+
+All `api/` subdirectories MUST use product-service naming convention, not short abbreviations:
+
+- `api/kms/` → `api/sm-kms/` (gold standard pattern — already has correct structure)
+- `api/ca/` → `api/pki-ca/`
+- `api/jose/` → `api/jose-ja/`
+- `api/identity/` (combined mess) → split: `api/identity-authz/`, `api/identity-idp/`, `api/identity-rs/`, etc.
+- `api/skeleton-template/` → create new (D12 OpenAPI CRUD example)
+- `api/sm-im/` → create new (sm-im currently has no api/ representation)
+- Orphaned/stale files (`authz/`, `client/`, `idp/`, `model/`, `server/`, root `generate.go`) → deleted
+
+### D22: OpenAPI Initialisms Consolidation
+
+`additional-initialisms` is duplicated across every service's `openapi-gen_config_server.yaml` with divergent subsets. Solution: document the canonical base list in ARCHITECTURE.md Section 8.1. Each gen config retains ONLY domain-specific additions on top. Enforced by lint-fitness (flag gen configs that duplicate base-list items).
+
+**Base list** (all services): JWT, JWK, JWE, JWS, TLS, RSA, EC, SHA, IP, URI, AES, GCM, CBC, HMAC
+**Domain additions**: CA, CSR, PEM, DER, CRL, OCSP, SAN, DN, CN, OU (pki-ca only); JWKS, OKP (jose-ja only)
+
+### D23: FiberHandlerOpenAPISpec Deduplication
+
+`FiberHandlerOpenAPISpec()` is duplicated across every service's public server. Refactor: service-template provides a shared handler factory `FiberHandlerOpenAPISpec(rawSpec func() ([]byte, error))`. Each service injects its oapi-codegen-generated `rawSpec()` from `embedded-spec`. Future changes (version headers, caching, spec hash) happen once in service-template.
+
+### D24: All Services Must Have api/ Directories (lint-fitness enforced)
+
+All 10 product-services + skeleton-template MUST have `api/<service-name>/` with the canonical structure: `generate.go`, `openapi_spec_components.yaml`, `openapi_spec_paths.yaml`, `openapi-gen_config_server.yaml`, `openapi-gen_config_models.yaml`, `openapi-gen_config_client.yaml`, `client/client.gen.go`, `server/server.gen.go`, `models/models.gen.go`. New lint-fitness sub-linter enforces this.
+
+### D25: MCP Adoption Strategy for D18 Tools
+
+MCP (Model Context Protocol) is the right long-term protocol for Go-based Copilot tools, but adopt incrementally:
+
+- **Phase 1**: Direct `go run ./cmd/tools/<name>` via run_in_terminal. Zero overhead, works today.
+- **Phase 2** (when ≥3 tools exist): Expose as stdio-based MCP server (mark3labs/mcp-go). NOT a daemon — starts on-demand per session. Workspace-level config in `.vscode/mcp.json`.
+- **MCP clarified**: An MCP "server" is a small process called via stdin/stdout. Not consuming resources when idle. Standard protocol supported by Copilot, Claude, Cursor, etc.
+- **Prompt files** (`.github/prompts/`): NOT needed. Skills and instructions already cover this more effectively.
+- **Chat modes** (`.github/chatmodes/`): NOT needed. Agents (`@implementation-planning`, `@beast-mode`, etc.) already provide richer mode switching.
+
+### D26: Project-Specific Tool Catalog in Instructions
+
+Add a "Project Tooling" section to `04-01.deployment.instructions.md` listing all `go run ./cmd/cicd <subcommand>` tools with purpose and usage. Ensures Copilot reliably uses project-specific tools in agent sessions without context-discovery guesswork. Expand the catalog as D18 Go tools mature.
 
 ---
 
@@ -333,9 +401,39 @@ Following migration priority (sm-im > jose-ja > sm-kms > pki-ca > identity):
 - Full coverage and mutation testing enforcement across all services
 - Performance benchmarking for crypto operations
 - Improve agent instructions for semantic commit grouping (D11: instructions only, no automated tooling)
-- Propagate ALL lessons to ARCHITECTURE.md, agents, skills, instructions
+- Propagate ALL lessons to ARCHITECTURE.md, agents, skills, instructions (D19: test strategy canonical doc)
+- Add project-specific cicd tool catalog to instructions (D26)
 - Simplify review document format for future iterations
 - **Success**: All quality gates pass, all knowledge propagated, clean lessons.md
+- **Post-Mortem**: lessons.md updated
+
+### Phase 10: OpenAPI Standardization (D21–D24, D12 part) [Status: TODO]
+
+**Objective**: Standardize all api/ directories to product-service naming, consolidate initialisms, deduplicate FiberHandlerOpenAPISpec, add skeleton-template OpenAPI CRUD example.
+
+- Rename api/ subdirs: kms→sm-kms, ca→pki-ca, jose→jose-ja (D21)
+- Remove orphaned api/ files (authz/, client/, idp/, model/, server/, root generate.go) (D21)
+- Create api/sm-im/, api/identity-authz/, api/identity-idp/, etc. (D21)
+- Create api/skeleton-template/ + OpenAPI spec + CRUD example (D12 + D21)
+- Consolidate initialisms: document base list in ARCHITECTURE.md, update gen configs (D22)
+- Refactor FiberHandlerOpenAPISpec into shared service-template factory (D23)
+- Add lint-fitness sub-linter enforcing api/<service-name>/ structure exists (D24)
+- **Precondition**: Phase 3 builder refactoring complete (service files stabilized)
+- **Success**: All services have standardized api/ directories; lint-fitness passes
+- **Post-Mortem**: lessons.md updated
+
+### Phase 11: service-framework Rename — FINAL (D20) [Status: TODO]
+
+**Objective**: Eliminate all terminology ambiguity between "template" (framework engine) and "skeleton" (starter service).
+
+- Rename `internal/apps/template/` → `internal/apps/framework/` (~340 files) (D20)
+- Update ALL imports, identifiers, config keys, YAML keys
+- Update ALL docs (ARCHITECTURE.md, plan.md, tasks.md, lessons.md)
+- Update ALL Copilot artifacts (agents, skills, instructions, copilot-instructions.md)
+- Update ALL GitHub Actions workflows and Dockerfiles
+- Add lint-fitness rule: reject any `internal/apps/template` import path
+- **Precondition**: ALL previous phases complete (builder, TLS, domain extraction all stable)
+- **Success**: Zero occurrences of "service-template" referring to the engine anywhere in codebase/docs; lint-fitness blocks regression
 - **Post-Mortem**: lessons.md updated
 
 ---
@@ -366,7 +464,7 @@ All gaps resolved by quizme-v2 decisions. Assigned to implementation phases:
 ### Resolution
 
 - **TLS gaps 1-6**: Fixed in Phase 2 (D15)
-- **Identity/Skeleton gaps 1-2**: Addressed in Phase 6 (D12 — skeleton stays minimal, document relationship)
+- **Identity/Skeleton gaps 1-2**: Addressed in Phase 6 (D12 — skeleton adds OpenAPI CRUD example, document relationship) and Phase 10
 - **Gap 3 (status table)**: Fixed in Phase 7 (D16 — identity-* → 0%)
 - **Gaps 4-5 (extraction/archival)**: Addressed in Phases 7-8 (D13 — extraction + staged reintegration)
 

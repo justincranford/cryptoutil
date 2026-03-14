@@ -980,6 +980,26 @@ If contradictions or omissions are found, create new phase tasks to fix them imm
 
 **After user answers**: Merge into plan.md/tasks.md, DELETE quizme-v#.md
 
+### Quizme Lifecycle Rules — MANDATORY
+
+**ONE quizme at a time**: Only ONE quizme-v*.md file may ever exist in `<work-dir>/`. Creating quizme-v2 without deleting quizme-v1 is FORBIDDEN.
+
+**When user returns with answers**:
+
+1. Read ALL answers in the quizme file
+2. For each question where user answered A, B, C, or D:
+   - Apply the decision to plan.md (update existing Decision or add new Decision)
+   - Apply task changes to tasks.md (update phases/tasks to reflect decision)
+   - Mark the decision as confirmed (remove "tentative" labels)
+3. For each question where user answered E (custom):
+   - Apply the custom answer text to plan.md/tasks.md as a new or updated decision
+4. **DELETE the answered quizme file** — no exceptions, even for partial application
+5. **Carry forward unanswered questions** (if any remain from E answers that need more depth): create the NEXT quizme-v(N+1).md with MORE research, MORE context, MORE concrete examples than the previous version
+
+**If ALL questions answered**: Delete quizme, do NOT create a new one unless brand new unknowns arise during subsequent implementation phases.
+
+**Never leave a quizme answered but undeleted**. An answered quizme is waste — the decisions must be in plan.md or they don't exist.
+
 ## Related Files
 
 **Examples**:

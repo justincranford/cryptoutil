@@ -535,11 +535,11 @@
   - [ ] Each sub-linter classified: real vs synthetic testing
   - [ ] Plan to convert synthetic tests to real-project tests where feasible
 
-#### Task 6.3: Verify skeleton-template as scaffolding source (D12)
+#### Task 6.3: Update skeleton-template to use new builder patterns (D12 prep)
 
 - **Status**: TODO
-- **Dependencies**: None
-- **Description**: Skeleton stays minimal per D12 (no CRUD, no code generation). Verify it's current as `/new-service` scaffolding source.
+- **Dependencies**: Phase 3 complete (builder refactoring)
+- **Description**: Ensure skeleton-template uses the latest builder API. This is the prerequisite for Task 10.4 (OpenAPI CRUD example in Phase 10).
 - **Acceptance Criteria**:
   - [ ] skeleton-template uses latest builder API patterns
   - [ ] `/new-service` skill generates valid services from skeleton
@@ -557,10 +557,21 @@
   - [ ] `no_local_create_closed_database` rule added (detects `createClosedDatabase`/`createClosedDBHandler` outside testdb package)
   - [ ] Tests for the new sub-linters
 
-#### Task 6.5: Phase 6 validation and post-mortem
+#### Task 6.6: Add PostgreSQL isolation enforcement linters (D19)
 
 - **Status**: TODO
-- **Dependencies**: Tasks 6.1-6.4
+- **Dependencies**: Task 6.4
+- **Description**: Extend lint-fitness for D7/D19: add sub-linters that detect PostgreSQL testcontainer usage in unit and integration tests (allowed only in E2E). Complements Task 6.4 (server/DB start detection) with the PostgreSQL-specific rule.
+- **Acceptance Criteria**:
+  - [ ] New sub-linter detects `postgres.RunContainer` calls outside E2E build tag
+  - [ ] New sub-linter detects `testdb.NewPostgresTestContainer` outside E2E build tag
+  - [ ] All 10 services + skeleton-template pass the new linters
+  - [ ] Tests for the new sub-linters (>=98% coverage)
+
+#### Task 6.7: Phase 6 validation and post-mortem
+
+- **Status**: TODO
+- **Dependencies**: Tasks 6.1-6.6
 - **Description**: Full quality gate run
 - **Acceptance Criteria**:
   - [ ] Value assessment documented
@@ -806,14 +817,192 @@
   - [ ] Implementation-execution agent includes Docker Desktop check
   - [ ] Cross-platform instructions consistent
 
-#### Task 9.7: Phase 9 validation and post-mortem
+#### Task 9.7: Propagate D19 test strategy to ARCHITECTURE.md and Copilot artifacts
 
 - **Status**: TODO
-- **Dependencies**: Tasks 9.1-9.6
+- **Dependencies**: Task 9.3
+- **Description**: Propagate the D7/D19 3-tier test strategy (unit=SQLite, integration=SQLite TestMain, E2E=PostgreSQL Docker Compose) to ARCHITECTURE.md Section 10, 03-02.testing.instructions.md, and all agents. This makes the strategy unambiguous and the single source of truth.
+- **Acceptance Criteria**:
+  - [ ] ARCHITECTURE.md Section 10 has comprehensive 3-tier strategy with PostgreSQL isolation rule
+  - [ ] 03-02.testing.instructions.md propagated from ARCHITECTURE.md
+  - [ ] All agents reference D7 strategy
+  - [ ] `cicd lint-docs validate-propagation` passes
+
+#### Task 9.8: Add project-specific tool catalog to instructions (D26)
+
+- **Status**: TODO
+- **Dependencies**: None
+- **Description**: Add "Project Tooling" section to 04-01.deployment.instructions.md listing all `go run ./cmd/cicd <subcommand>` commands with purpose and usage. Ensures agents reliably use project-specific tools.
+- **Acceptance Criteria**:
+  - [ ] All cicd subcommands documented with purpose and example invocation
+  - [ ] Instructions include when to use each tool (lint-fitness vs lint-deployments vs lint-docs, etc.)
+  - [ ] `cicd lint-docs validate-propagation` passes
+
+#### Task 9.9: Phase 9 validation and post-mortem
+
+- **Status**: TODO
+- **Dependencies**: Tasks 9.1-9.8
 - **Description**: Final quality gate run
 - **Acceptance Criteria**:
   - [ ] All quality gates pass
   - [ ] lessons.md finalized
+  - [ ] Git working tree clean
+
+---
+
+### Phase 10: OpenAPI Standardization (D21–D24, D12 Part)
+
+**Phase Objective**: Standardize all api/ directories, consolidate initialisms, deduplicate FiberHandlerOpenAPISpec, add skeleton-template OpenAPI CRUD example.
+
+#### Task 10.1: Rename api/ subdirectories to product-service naming (D21)
+
+- **Status**: TODO
+- **Dependencies**: Phase 3 complete
+- **Description**: Rename api/kms/ → api/sm-kms/, api/ca/ → api/pki-ca/, api/jose/ → api/jose-ja/. Delete orphaned files (authz/, client/, idp/, model/, server/, root generate.go). Update all Go generate directives.
+- **Acceptance Criteria**:
+  - [ ] `api/sm-kms/`, `api/pki-ca/`, `api/jose-ja/` exist with correct structure
+  - [ ] Old short-name directories deleted
+  - [ ] `go generate ./api/...` succeeds in all renamed dirs
+  - [ ] No broken imports
+
+#### Task 10.2: Restructure api/identity/ into per-service directories (D21)
+
+- **Status**: TODO
+- **Dependencies**: Task 10.1
+- **Description**: Split combined api/identity/ into api/identity-authz/, api/identity-idp/, api/identity-rs/, api/identity-rp/, api/identity-spa/. Each gets its own canonical structure.
+- **Acceptance Criteria**:
+  - [ ] 5 separate api/identity-*/ directories exist
+  - [ ] Each has generate.go + spec files + gen configs + client/server/models subdirs
+  - [ ] Old api/identity/ deleted
+
+#### Task 10.3: Create api/sm-im/ directory and OpenAPI spec (D21, D24)
+
+- **Status**: TODO
+- **Dependencies**: Task 10.1
+- **Description**: sm-im currently has no api/ representation. Create api/sm-im/ with canonical structure. Generate server/client/models from existing sm-im endpoints.
+- **Acceptance Criteria**:
+  - [ ] `api/sm-im/` exists with canonical structure
+  - [ ] `go generate ./api/sm-im/...` succeeds
+  - [ ] sm-im server uses generated strict server (not handrolled)
+
+#### Task 10.4: Create api/skeleton-template/ and add OpenAPI CRUD example (D12, D21)
+
+- **Status**: TODO
+- **Dependencies**: Task 6.3, Task 10.1
+- **Description**: Create api/skeleton-template/ with Item CRUD OpenAPI spec. Add ~100 lines of Item repository + HTTP handlers to skeleton-template using the generated strict server. This is the D12 CRUD example implementation.
+- **Acceptance Criteria**:
+  - [ ] `api/skeleton-template/` exists with canonical structure
+  - [ ] OpenAPI spec defines Item CRUD (GET/POST/PUT/DELETE)
+  - [ ] skeleton-template server uses generated strict server (not handrolled)
+  - [ ] `RunContractTests` passes for skeleton-template with new endpoints
+  - [ ] lint-fitness passes for skeleton-template
+  - [ ] `/new-service` generates a working service from updated skeleton
+
+#### Task 10.5: Consolidate initialisms in gen configs (D22)
+
+- **Status**: TODO
+- **Dependencies**: Tasks 10.1–10.3
+- **Description**: Document canonical base initialisms list in ARCHITECTURE.md Section 8.1. Update all openapi-gen_config_server.yaml files to remove base-list duplicates. Each service keeps only domain-specific additions.
+- **Acceptance Criteria**:
+  - [ ] ARCHITECTURE.md Section 8.1 has canonical base initialisms list
+  - [ ] All gen config files use base list only + domain additions
+  - [ ] lint-fitness rule flags gen configs that duplicate base-list items
+
+#### Task 10.6: Deduplicate FiberHandlerOpenAPISpec (D23)
+
+- **Status**: TODO
+- **Dependencies**: Phase 3 complete
+- **Description**: Refactor all per-service FiberHandlerOpenAPISpec() into a shared service-template factory function. Each service injects its generated rawSpec() function.
+- **Acceptance Criteria**:
+  - [ ] service-template provides `FiberHandlerOpenAPISpec(rawSpec func() ([]byte, error))` factory
+  - [ ] All 10 services + skeleton-template use the shared factory
+  - [ ] No per-service FiberHandlerOpenAPISpec duplication
+
+#### Task 10.7: Add lint-fitness api/ structure enforcement (D24)
+
+- **Status**: TODO
+- **Dependencies**: Tasks 10.1–10.4
+- **Description**: Add new lint-fitness sub-linter that verifies all services have api/<service-name>/ with required files.
+- **Acceptance Criteria**:
+  - [ ] New `require_api_dir` sub-linter registered and passing
+  - [ ] Sub-linter detects missing api/ dirs for any registered service
+  - [ ] Coverage >=98%, mutation >=95% on new sub-linter
+
+#### Task 10.8: Phase 10 validation and post-mortem
+
+- **Status**: TODO
+- **Dependencies**: Tasks 10.1–10.7
+- **Description**: Full quality gate run after OpenAPI standardization
+- **Acceptance Criteria**:
+  - [ ] All services have correct api/<service-name>/ structures
+  - [ ] lint-fitness passes
+  - [ ] lessons.md updated
+
+---
+
+### Phase 11: service-framework Rename — FINAL (D20)
+
+**Phase Objective**: Eliminate all ambiguity between "template" (framework engine) and "skeleton" (starter service). This is the ABSOLUTE FINAL phase.
+
+#### Task 11.1: Prepare rename script and verify scope (D20)
+
+- **Status**: TODO
+- **Dependencies**: ALL previous phases complete
+- **Description**: Enumerate all files referencing `internal/apps/template` or `service-template` (as the framework, not the skeleton service). Write a Go rename script or use `gofmt -r` approach.
+- **Acceptance Criteria**:
+  - [ ] Complete list of ~340 affected files documented
+  - [ ] Rename strategy chosen (automated vs manual + review)
+  - [ ] Rollback plan documented
+
+#### Task 11.2: Rename framework package paths (D20)
+
+- **Status**: TODO
+- **Dependencies**: Task 11.1
+- **Description**: Rename `internal/apps/template/` → `internal/apps/framework/`. Update all Go imports, package declarations, identifiers (ServiceTemplateServerSettings → ServiceFrameworkServerSettings, etc.).
+- **Acceptance Criteria**:
+  - [ ] `go build ./...` passes with zero errors
+  - [ ] No remaining `internal/apps/template` import paths (except skeleton-template which is correct)
+
+#### Task 11.3: Update all documentation and Copilot artifacts (D20)
+
+- **Status**: TODO
+- **Dependencies**: Task 11.2
+- **Description**: Update ARCHITECTURE.md, plan.md, tasks.md, lessons.md, all agents, skills, instructions, copilot-instructions.md to use "service-framework" terminology.
+- **Acceptance Criteria**:
+  - [ ] ARCHITECTURE.md uses "service-framework" throughout
+  - [ ] All agents/skills/instructions updated
+  - [ ] `cicd lint-docs validate-propagation` passes
+
+#### Task 11.4: Add lint-fitness terminology enforcement (D20)
+
+- **Status**: TODO
+- **Dependencies**: Task 11.2
+- **Description**: Add lint-fitness rule that rejects any new `internal/apps/template` import path (to prevent regression). The skeleton-template path is explicitly whitelisted.
+- **Acceptance Criteria**:
+  - [ ] New `require_framework_naming` sub-linter registered
+  - [ ] Rule blocks `internal/apps/template` imports (framework paths only)
+  - [ ] skeleton-template path `internal/apps/skeleton/template` is whitelisted
+
+#### Task 11.5: Update GitHub workflows and Dockerfiles (D20)
+
+- **Status**: TODO
+- **Dependencies**: Task 11.2
+- **Description**: Update all GitHub Actions workflows, Dockerfiles, docker-compose files, and config references that mention service-template as the framework.
+- **Acceptance Criteria**:
+  - [ ] All CI/CD workflows pass
+  - [ ] Docker builds succeed
+  - [ ] No remaining stale service-template references in deployment files
+
+#### Task 11.6: Phase 11 validation and post-mortem (FINAL)
+
+- **Status**: TODO
+- **Dependencies**: Tasks 11.1–11.5
+- **Description**: Final validation of complete framework-v3 iteration
+- **Acceptance Criteria**:
+  - [ ] All quality gates pass
+  - [ ] Zero ambiguous "template" references
+  - [ ] lessons.md finalized
+  - [ ] ARCHITECTURE.md comprehensive and current
   - [ ] Git working tree clean
 
 ---
