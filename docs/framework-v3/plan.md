@@ -1,6 +1,6 @@
 # Framework v3 - Iteration Plan
 
-**Status**: IN PROGRESS — Phase 1: 11/12 tasks done. **quizme-v3 pending** (D12, D14 tentative; Q3-Q6 from framework-v2 lessons)
+**Status**: IN PROGRESS — Phase 1: 11/12 tasks done. **quizme-v4 pending** (D12 tentative; Q2=C applied to D14, Q3=E→D18, Q4=A confirmed, Q5=E→quizme-v4, Q6=A→D17)
 **Created**: 2026-03-08
 **Last Updated**: 2026-03-14
 **Depends On**: `docs/framework-brainstorm/08-recommendations.md`, framework-v1 (archived), framework-v2 (archived — see Completed in Prior Iterations)
@@ -15,7 +15,7 @@
 1. **plan.md** (this file) - phases, objectives, decisions
 2. **tasks.md** - task checklist per phase
 3. **lessons.md** - persistent memory: what worked, what did not, root causes, patterns
-4. **quizme-v3.md** - 6 pending questions (D12, D14 + 4 from framework-v2 lessons)
+4. **quizme-v4.md** - 3 pending questions (D12 skeleton role, Docker testing, terminology)
 
 ---
 
@@ -123,9 +123,9 @@ skeleton-template (19 Go files, 61KB) keeps its triple role: human reference, `/
 
 All 5 identity services + pki-ca get clean-slate treatment: archive domain logic to `_archived/`, replace with fresh skeletons, stage reintegration (rp/rs/spa first → authz → idp → pki-ca). Precondition: service-template MUST be fully proven first (able to stand up 5 thin services that work with minimal effort).
 
-### D14: InsecureSkipVerify Phase 2A Only (quizme-v2 Q3 → A recommended)
+### D14: InsecureSkipVerify Phase 2A Now + Phase 2B E2E After Phase 7 (quizme-v3 Q2=C)
 
-Phase 2 scope = integration + contract tests only. Add `TLSBundle()` accessor to `ServiceServer`, migrate test HTTP clients to trust server's auto-generated CA. Eliminates ~90% of InsecureSkipVerify (38 of 47 files). E2E Docker TLS (2B), mTLS (2C), and PostgreSQL TLS (2D) deferred. The 1 production InsecureSkipVerify (identity-rp) gets fixed by D13 extraction.
+Phase 2A scope = integration + contract tests (current position in plan). Add `TLSBundle()` accessor to `ServiceServer`, migrate test HTTP clients to trust server's auto-generated CA. Eliminates ~90% of InsecureSkipVerify (38 of 47 files). Phase 2B = E2E Docker TLS after Phase 7, using a PKI init approach: prepend a Docker Compose job to generate all TLS files in Docker volume(s), creating ephemeral complete PKI domains for E2E/Demo/UAT/OnPrem. mTLS (2C) and PostgreSQL TLS (2D) deferred. The 1 production InsecureSkipVerify (identity-rp) gets fixed by D13 extraction.
 
 ### D15: Fix ALL 6 ARCHITECTURE.md TLS Gaps in Phase 2 (quizme-v2 Q4=A)
 
@@ -134,6 +134,14 @@ All 6 TLS gaps fixed as part of Phase 2 when InsecureSkipVerify removal provides
 ### D16: Architecture Status Table Set to 0% for Identity (quizme-v2 Q5=E)
 
 All 5 identity-* services marked "⚠️ Extraction Pending 0%" in ARCHITECTURE.md Section 3.2 status table. Current "Complete 100%" entries are false. Domain code must be extracted to archive, services replaced with skeleton code. Update table again after extraction completes.
+
+### D17: sm-kms Full Application Layer Extraction (quizme-v3 Q6=A)
+
+sm-kms gets the same treatment as jose-ja (framework-v2 Phase 2) and sm-im (framework-v2 Phase 3): full application layer extraction, proper test coverage (property/fuzz/bench), >=95% coverage. sm-kms has 10 custom middleware files (claims, errors, introspection, jwt, jwt_revocation, realm_context, scopes, service_auth, session, tenant) — 5 have partial template counterparts, 5 need new template capabilities. Quality is paramount (Q4=A).
+
+### D18: Go-Based Copilot Tools Collection (quizme-v3 Q3=E)
+
+A Go-based collection of reusable Copilot tools to replace inefficient built-in tools and ad-hoc generated scripts. NOT part of the cicd command — a separate strategic investment. Think of it as a toolbox of Go programs that Copilot can invoke via MCP or custom tool definitions to replace fragile PowerShell heredocs and one-off scripts. Exact scope to be refined during implementation.
 
 Phases 2, 6, 7, 8 restructured per these decisions.
 
@@ -209,7 +217,7 @@ Following migration priority (sm-im > jose-ja > sm-kms > pki-ca > identity):
 
 ### Phase 2: Remove InsecureSkipVerify — Integration Tests Only (D14, D15) [Status: TODO]
 
-**Objective**: Eliminate InsecureSkipVerify from integration + contract tests (~90% of 47 files). Fix all 6 ARCHITECTURE.md TLS gaps (D15).
+**Objective**: Eliminate InsecureSkipVerify from integration + contract tests (~90% of 47 files). Fix all 6 ARCHITECTURE.md TLS gaps (D15). Phase 2B (E2E Docker TLS with PKI init) deferred to after Phase 7 per D14 (quizme-v3 Q2=C).
 
 - Add `TLSBundle()` accessor to `ServiceServer` interface (exposes server's auto-generated CA cert)
 - Add `TLSClientConfig(t)` helper that trusts the test server's CA
@@ -257,6 +265,18 @@ Following migration priority (sm-im > jose-ja > sm-kms > pki-ca > identity):
 - **Success**: Integration tests can access all framework services through the interface
 - **Post-Mortem**: lessons.md updated
 
+### Phase 5B: sm-kms Full Application Layer Extraction (D17) [Status: TODO]
+
+**Objective**: Extract sm-kms application layer (same treatment as jose-ja/sm-im in framework-v2). Quality is paramount (Q4=A).
+
+- Extract application layer from sm-kms (separate from server startup)
+- Resolve 10 custom middleware files: migrate 5 with partial template counterparts to service-template, evaluate 5 needing new template capabilities
+- Add property tests, fuzz tests, benchmark tests
+- Achieve >=95% coverage
+- **Precondition**: Phase 3 (builder refactoring) complete
+- **Success**: sm-kms application layer cleanly separated, >=95% coverage, middleware consolidated
+- **Post-Mortem**: lessons.md updated
+
 ### Phase 6: lint-fitness Value Assessment [Status: TODO]
 
 **Objective**: Confirm 10,500 lines of lint-fitness truly standardize services.
@@ -292,6 +312,18 @@ Following migration priority (sm-im > jose-ja > sm-kms > pki-ca > identity):
 - Stage 4: pki-ca (48KB active + 880KB archived, certificate lifecycle)
 - Each stage: extract relevant domain from archive → adapt to latest builder → test → commit
 - **Success**: All 6 services have working domain + latest framework patterns
+- **Post-Mortem**: lessons.md updated
+
+### Phase 8B: E2E TLS with PKI Init (D14 Phase 2B) [Status: TODO]
+
+**Objective**: Eliminate InsecureSkipVerify from E2E and Docker Compose tests using a PKI init approach.
+
+- Create Docker Compose init job that generates all TLS certificates into Docker volume(s)
+- Ephemeral complete PKI domains for E2E / Demo / UAT / OnPrem deployments
+- All E2E tests use real TLS (no InsecureSkipVerify)
+- Docker Compose services mount TLS volume and use generated certs
+- **Precondition**: Phase 7 complete (clean skeleton services), Phase 2 complete (TLS bundle infrastructure)
+- **Success**: Zero InsecureSkipVerify in E2E tests, all Docker Compose deployments use real TLS
 - **Post-Mortem**: lessons.md updated
 
 ### Phase 9: Quality and Knowledge Propagation [Status: TODO]

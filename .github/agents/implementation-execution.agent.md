@@ -111,6 +111,23 @@ You MUST keep working until the problem is completely solved, and all items in t
 
 ---
 
+## VS Code Hot-Exit File Resurrection - CRITICAL
+
+**VS Code hot-exit feature can resurrect deleted files from buffer recovery.**
+
+When you delete a file that VS Code had open in a buffer, VS Code may recreate it on restart or session reload from its hot-exit cache. This creates "ghost files" that reappear after `git rm` or manual deletion.
+
+**Mitigation steps after deleting files:**
+1. Delete the file(s) (`git rm` or manual delete)
+2. Verify deletion: `Test-Path <file>` should return `False`
+3. If the file reappears after a VS Code reload, delete it again and clear VS Code's hot-exit cache: close the file tab, then delete
+4. After committing deletion, verify `git status` shows no untracked files matching the deleted path
+5. If persistent, the user may need to clear VS Code workspace storage
+
+**Root cause**: VS Code's `files.hotExit` setting (default: `onExit`) saves unsaved buffer contents and restores them on restart, even if the underlying file was deleted by git operations.
+
+---
+
 ## Evidence Collection Pattern - MANDATORY
 
 **CRITICAL: ALL analysis outputs, test coverage, mutation results, verification artifacts, and generated evidence MUST be collected in organized subdirectories**

@@ -1,6 +1,6 @@
 # Tasks - Framework v3
 
-**Status**: 11 of 61 tasks complete (18%)
+**Status**: 11 of 69 tasks complete (16%)
 **Last Updated**: 2026-03-14
 **Created**: 2026-03-08
 
@@ -163,7 +163,7 @@
 
 ### Phase 2: Remove InsecureSkipVerify — Integration Tests Only (D14, D15)
 
-**Phase Objective**: Eliminate InsecureSkipVerify from integration + contract tests (~90% of 47 files). Fix all 6 ARCHITECTURE.md TLS gaps. E2E/Docker TLS (2B), mTLS (2C), PostgreSQL TLS (2D) explicitly deferred.
+**Phase Objective**: Eliminate InsecureSkipVerify from integration + contract tests (~90% of 47 files). Fix all 6 ARCHITECTURE.md TLS gaps. E2E/Docker TLS (Phase 2B) deferred to after Phase 7 per D14 (quizme-v3 Q2=C). mTLS (2C), PostgreSQL TLS (2D) deferred.
 
 #### Task 2.1: Add TLS Test Bundle to service-template testserver
 
@@ -462,6 +462,56 @@
 
 ---
 
+### Phase 5B: sm-kms Full Application Layer Extraction (D17)
+
+**Phase Objective**: Extract sm-kms application layer with full test coverage. Quality is paramount (Q4=A).
+
+#### Task 5B.1: Extract sm-kms application layer
+
+- **Status**: TODO
+- **Dependencies**: Phase 3 complete (new builder API)
+- **Description**: Separate sm-kms business logic from server startup, same pattern as jose-ja/sm-im in framework-v2
+- **Acceptance Criteria**:
+  - [ ] Application layer cleanly separated from server wiring
+  - [ ] Business logic testable without server startup
+  - [ ] All existing tests pass
+
+#### Task 5B.2: Analyze and migrate sm-kms custom middleware
+
+- **Status**: TODO
+- **Dependencies**: Task 5B.1
+- **Description**: sm-kms has 10 custom middleware files. 5 have partial template counterparts, 5 need new template capabilities (see framework-v2 Task 4.2 catalog).
+  - **Migrate to template**: claims, jwt, session, realm_context, tenant (partial counterparts exist)
+  - **Evaluate for template**: errors, introspection, jwt_revocation, scopes, service_auth
+- **Acceptance Criteria**:
+  - [ ] 5 middleware with template counterparts migrated to use service-template
+  - [ ] 5 remaining middleware evaluated: either migrated to template or justified as domain-specific
+  - [ ] Zero duplicated middleware logic between sm-kms and service-template
+
+#### Task 5B.3: Add property, fuzz, and benchmark tests for sm-kms
+
+- **Status**: TODO
+- **Dependencies**: Task 5B.1
+- **Description**: Add comprehensive test types following jose-ja/sm-im patterns
+- **Acceptance Criteria**:
+  - [ ] Property tests for crypto operations
+  - [ ] Fuzz tests for parsers and input handling
+  - [ ] Benchmark tests for key operations
+  - [ ] Coverage >=95%
+
+#### Task 5B.4: Phase 5B validation and post-mortem
+
+- **Status**: TODO
+- **Dependencies**: Tasks 5B.1-5B.3
+- **Description**: Full quality gate run
+- **Acceptance Criteria**:
+  - [ ] `go build ./...` clean
+  - [ ] `golangci-lint run` clean
+  - [ ] Coverage >=95%
+  - [ ] lessons.md updated
+
+---
+
 ### Phase 6: lint-fitness Value Assessment
 
 **Phase Objective**: Verify 10,500 lines of lint-fitness truly standardize services.
@@ -642,6 +692,52 @@
 - **Acceptance Criteria**:
   - [ ] All 6 services have working domain + latest framework patterns
   - [ ] Coverage >=95% across all reintegrated services
+  - [ ] lessons.md updated
+
+---
+
+### Phase 8B: E2E TLS with PKI Init (D14 Phase 2B)
+
+**Phase Objective**: Eliminate InsecureSkipVerify from E2E and Docker Compose tests using PKI init approach (D14, quizme-v3 Q2=C).
+
+#### Task 8B.1: Design PKI init Docker Compose job
+
+- **Status**: TODO
+- **Dependencies**: Phase 2 complete (TLS bundle infrastructure), Phase 7 complete
+- **Description**: Design Docker Compose init job that generates all TLS certificates into Docker volume(s) for ephemeral PKI domains
+- **Acceptance Criteria**:
+  - [ ] PKI init job design documented
+  - [ ] Docker volume structure defined (CA certs, server certs, client certs)
+  - [ ] Certificate generation approach decided (Go binary or pki-ca service)
+
+#### Task 8B.2: Implement PKI init certificate generator
+
+- **Status**: TODO
+- **Dependencies**: Task 8B.1
+- **Description**: Implement the PKI init job that generates complete TLS certificate chains
+- **Acceptance Criteria**:
+  - [ ] Init job generates root CA + intermediate CA + server certs for all services
+  - [ ] Certificates written to Docker volume
+  - [ ] Supports multiple environments (E2E, Demo, UAT, OnPrem)
+
+#### Task 8B.3: Migrate E2E Docker Compose to real TLS
+
+- **Status**: TODO
+- **Dependencies**: Task 8B.2
+- **Description**: Update all Docker Compose deployments to use PKI-init-generated certificates
+- **Acceptance Criteria**:
+  - [ ] All E2E Docker Compose files mount TLS volume
+  - [ ] Zero InsecureSkipVerify in E2E test code
+  - [ ] All E2E tests pass with real TLS
+
+#### Task 8B.4: Phase 8B validation and post-mortem
+
+- **Status**: TODO
+- **Dependencies**: Tasks 8B.1-8B.3
+- **Description**: Full quality gate run
+- **Acceptance Criteria**:
+  - [ ] Zero InsecureSkipVerify in E2E tests
+  - [ ] All Docker Compose deployments use real TLS
   - [ ] lessons.md updated
 
 ---
