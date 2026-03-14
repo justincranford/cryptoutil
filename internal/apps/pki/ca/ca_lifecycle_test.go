@@ -5,6 +5,7 @@ package ca
 
 import (
 	"os"
+	"runtime"
 	"strings"
 	"syscall"
 	"testing"
@@ -22,6 +23,10 @@ import (
 func TestCA_ServerLifecycle(t *testing.T) {
 	// Reset viper global state after test to prevent leaking --profile=test to subsequent tests.
 	t.Cleanup(func() { viper.Reset() })
+
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("syscall.SIGINT is not supported on Windows.")
+	}
 
 	var stdout, stderr cryptoutilSharedTestutil.SafeBuffer
 

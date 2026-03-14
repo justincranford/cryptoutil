@@ -7,6 +7,7 @@ package workflow
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -133,6 +134,10 @@ func TestRunWithWorkflowsDir_DryRun_WithActArgs(t *testing.T) {
 func TestRunWithWorkflowsDir_NonDryRun_EchoAct(t *testing.T) {
 	t.Parallel()
 
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("/bin/echo is not available on Windows.")
+	}
+
 	tempDir := t.TempDir()
 	wfDir := makeWorkflowsDir(t, "mock")
 	outputDir := filepath.Join(tempDir, "output")
@@ -169,6 +174,10 @@ func TestRunWithWorkflowsDir_NonDryRun_ActNotFound(t *testing.T) {
 // TestRunWithWorkflowsDir_OutputDirCreationFails tests when output dir creation fails.
 func TestRunWithWorkflowsDir_OutputDirCreationFails(t *testing.T) {
 	t.Parallel()
+
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("Unix /root/ path unavailable on Windows.")
+	}
 
 	wfDir := makeWorkflowsDir(t, "mock")
 

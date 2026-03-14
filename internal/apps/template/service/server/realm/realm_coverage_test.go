@@ -16,6 +16,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	googleUuid "github.com/google/uuid"
@@ -356,6 +357,10 @@ func TestGetJWKSURL_DiscoverError(t *testing.T) {
 // TestLoadConfig_PermissionError covers the non-ENOENT file read error path.
 func TestLoadConfig_PermissionError(t *testing.T) {
 	t.Parallel()
+
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("os.Chmod permission enforcement is not reliable on Windows.")
+	}
 
 	tmpDir := t.TempDir()
 	configPath := filepath.Join(tmpDir, "realms.yml")

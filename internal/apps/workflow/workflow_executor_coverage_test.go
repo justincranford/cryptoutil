@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"testing"
@@ -82,6 +83,10 @@ func TestRunWithWorkflowsDir_NonDryRun_DastWorkflow(t *testing.T) {
 // Creates outputDir as read-only so the combined log file cannot be created.
 func TestRunWithWorkflowsDir_CombinedLogCreationFails(t *testing.T) {
 	t.Parallel()
+
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("os.Chmod read-only enforcement is not reliable on Windows.")
+	}
 
 	wfDir := makeWorkflowsDir(t, "mock")
 	parentDir := t.TempDir()
@@ -159,6 +164,10 @@ func TestExecuteWorkflow_PipeSetupFailure(t *testing.T) {
 // Not parallel: modifies package-level doCloseFile variable.
 // Sequential: modifies package-level doCloseFile function variable.
 func TestExecuteWorkflow_WorkflowLogCloseError(t *testing.T) {
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("/bin/echo is not available on Windows.")
+	}
+
 	var closeCallCount int
 
 	varMu.Lock()
@@ -169,6 +178,8 @@ func TestExecuteWorkflow_WorkflowLogCloseError(t *testing.T) {
 		closeCallCount++
 		if closeCallCount == 1 {
 			// First call is for workflowLog inside executeWorkflow.
+			_ = f.Close() // Close OS handle to prevent Windows file-lock on TempDir cleanup.
+
 			return fmt.Errorf("mock workflow log close error")
 		}
 		// Subsequent calls use real close.
@@ -204,6 +215,10 @@ func TestExecuteWorkflow_WorkflowLogCloseError(t *testing.T) {
 // Not parallel: modifies package-level doCloseFile variable.
 // Sequential: modifies package-level doCloseFile function variable.
 func TestExecuteWorkflow_CombinedLogCloseError(t *testing.T) {
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
+		t.Skip("/bin/echo is not available on Windows.")
+	}
+
 	var closeCallCount int
 
 	varMu.Lock()
@@ -213,6 +228,8 @@ func TestExecuteWorkflow_CombinedLogCloseError(t *testing.T) {
 	doCloseFile = func(f *os.File) error {
 		closeCallCount++
 		if closeCallCount == 2 { //nolint:mnd // 2nd close call = combinedLog.
+			_ = f.Close() // Close OS handle to prevent Windows file-lock on TempDir cleanup.
+
 			return fmt.Errorf("mock combined log close error")
 		}
 
