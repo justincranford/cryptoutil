@@ -23,8 +23,6 @@ import (
 	"github.com/spf13/pflag"
 )
 
-const sqliteInMemoryURL = cryptoutilSharedMagic.SQLiteInMemoryDSN
-
 // Im implements the instant messaging service subcommand handler.
 // Handles subcommands: server, client, init, health, livez, readyz, shutdown.
 func Im(args []string, _ io.Reader, stdout, stderr io.Writer) int {

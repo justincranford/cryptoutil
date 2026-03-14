@@ -26,7 +26,7 @@ import (
 func setupDeviceAuthTestDB(t *testing.T) *cryptoutilIdentityORM.DeviceAuthorizationRepository {
 	t.Helper()
 
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, testDSNInMemory)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
 	require.NoError(t, err)
 
 	ctx := context.Background()

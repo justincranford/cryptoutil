@@ -30,7 +30,7 @@ Description:
 
 Options:
   --database-url URL    Database URL (default: SQLite in-memory)
-                        SQLite: sqliteInMemoryURL
+                        SQLite: file::memory:?cache=shared
                         PostgreSQL: postgres://user:pass@host:port/dbname?sslmode=disable
   --help, -h            Show this help message
 

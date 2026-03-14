@@ -53,12 +53,10 @@ func HashSecretHKDFFixedHigh(secret string, fixedInfo []byte) (string, error) {
 
 	algorithm := cryptoutilSharedMagic.HKDFFixedHighHashName
 
-	const dkLength = cryptoutilSharedMagic.PBKDF2DerivedKeyLength // 32 bytes
-
 	// Use HKDF with no salt (nil), fixed info parameter for deterministic output.
 	secretBytes := []byte(secret)
 
-	dk, err := hashHighFixedHKDFFn(cryptoutilSharedMagic.SHA256, secretBytes, nil, fixedInfo, dkLength)
+	dk, err := hashHighFixedHKDFFn(cryptoutilSharedMagic.SHA256, secretBytes, nil, fixedInfo, cryptoutilSharedMagic.PBKDF2DerivedKeyLength)
 	if err != nil {
 		return "", fmt.Errorf("HKDF key derivation failed: %w", err)
 	}

@@ -38,7 +38,7 @@ var (
 func TestMain(m *testing.M) {
 	// Create in-memory SQLite configuration for testing.
 	serviceTemplateServerSettings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("sm-im-test")
-	serviceTemplateServerSettings.DatabaseURL = sqliteInMemoryURL
+	serviceTemplateServerSettings.DatabaseURL = cryptoutilSharedMagic.SQLiteInMemoryDSN
 
 	sharedAppConfig := &cryptoutilAppsSmImServerConfig.SmIMServerSettings{
 		ServiceTemplateServerSettings: serviceTemplateServerSettings,

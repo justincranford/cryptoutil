@@ -27,7 +27,7 @@ import (
 func setupRecoveryCodeTestDB(t *testing.T) cryptoutilIdentityRepository.RecoveryCodeRepository {
 	t.Helper()
 
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, testDSNInMemory)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
 	require.NoError(t, err)
 
 	ctx := context.Background()

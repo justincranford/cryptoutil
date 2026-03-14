@@ -20,9 +20,8 @@ import (
 
 const (
 	// TLS certificate validity and helper constants.
-	tlsCACertValidityYears   = cryptoutilSharedMagic.TLSDefaultValidityCACertYears // years for CA certificates
-	tlsEndEntityValidityDays = 396                                                 // days for server end-entity certificate (reduced from 397 to allow for randomization)
-	tlsServerKeyPairsNeeded  = 2                                                   // number of keypairs requested for server TLS
+	tlsEndEntityValidityDays = 396 // days for server end-entity certificate (reduced from 397 to allow for randomization)
+	tlsServerKeyPairsNeeded  = 2   // number of keypairs requested for server TLS
 
 	// File mode for written PEM files.
 )
@@ -72,7 +71,7 @@ func generateTLSServerSubjects(settings *cryptoutilAppsTemplateServiceConfig.Ser
 func generateTLSServerSubject(serverApplicationBasic *ServerApplicationBasic, prefix string, publicTLSServerDNSNames []string, publicTLSServerIPAddresses []net.IP) (*cryptoutilSharedCryptoCertificate.Subject, error) {
 	tlsServerSubjectsKeyPairs := serverApplicationBasic.JWKGenService.ECDSAP256KeyGenPool.GetMany(tlsServerKeyPairsNeeded)
 
-	tlsServerCASubjects, err := cryptoutilSharedCryptoCertificate.CreateCASubjects(tlsServerSubjectsKeyPairs[1:], "TLS Server CA", tlsCACertValidityYears*cryptoutilSharedMagic.Days365)
+	tlsServerCASubjects, err := cryptoutilSharedCryptoCertificate.CreateCASubjects(tlsServerSubjectsKeyPairs[1:], "TLS Server CA", cryptoutilSharedMagic.TLSDefaultValidityCACertYears*cryptoutilSharedMagic.Days365)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create TLS server CA subjects: %w", err)
 	}
