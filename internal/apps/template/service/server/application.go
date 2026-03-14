@@ -58,12 +58,14 @@ type IPublicServer interface {
 // - ActualPort: Return the actual port (should always be 9090)
 // - SetReady: Mark server as ready to handle readyz health checks (thread-safe).
 // - AdminBaseURL: Return the base URL for admin API access.
+// - AdminTLSRootCAPool: Return the root CA certificate pool for the admin server's TLS chain.
 type IAdminServer interface {
 	Start(ctx context.Context) error
 	Shutdown(ctx context.Context) error
 	ActualPort() int
 	SetReady(ready bool)
 	AdminBaseURL() string
+	AdminTLSRootCAPool() *x509.CertPool
 }
 
 // NewApplication creates a new service application with public and admin servers.
@@ -305,4 +307,15 @@ func (a *Application) TLSRootCAPool() *x509.CertPool {
 	}
 
 	return base.TLSRootCAPool()
+}
+
+// AdminTLSRootCAPool returns the root CA certificate pool from the admin server's TLS chain.
+// Used by test infrastructure to configure secure HTTP clients for the admin endpoint without InsecureSkipVerify.
+// Returns nil if the admin server is nil.
+func (a *Application) AdminTLSRootCAPool() *x509.CertPool {
+	if a.adminServer == nil {
+		return nil
+	}
+
+	return a.adminServer.AdminTLSRootCAPool()
 }

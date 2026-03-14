@@ -4,6 +4,7 @@ package testutil
 
 import (
 	"context"
+	"crypto/x509"
 	"fmt"
 	"sync"
 )
@@ -137,6 +138,11 @@ func (m *MockAdminServer) ActualPort() int {
 // AdminBaseURL returns the base URL for the admin server.
 func (m *MockAdminServer) AdminBaseURL() string {
 	return fmt.Sprintf("https://127.0.0.1:%d", m.actualPort)
+}
+
+// AdminTLSRootCAPool returns the TLS root CA pool for the admin server.
+func (m *MockAdminServer) AdminTLSRootCAPool() *x509.CertPool {
+	return nil
 }
 
 // SetReady sets the readiness status of the admin server.

@@ -62,12 +62,24 @@ func TestHTTPGet(t *testing.T) {
 	publicPort := srv.PublicPort()
 	adminPort := srv.AdminPort()
 
-	// Create insecure HTTP client (accepts self-signed certs).
-	client := &http.Client{
+	// Create secure HTTP clients: one for the public endpoint, one for the admin endpoint.
+	publicClient := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true,
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    srv.TLSRootCAPool(),
 			},
+			DisableKeepAlives: true,
+		},
+		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
+	}
+	adminClient := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    srv.AdminTLSRootCAPool(),
+			},
+			DisableKeepAlives: true,
 		},
 		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}
@@ -78,7 +90,7 @@ func TestHTTPGet(t *testing.T) {
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 		require.NoError(t, err)
 
-		resp, err := client.Do(req)
+		resp, err := publicClient.Do(req)
 		require.NoError(t, err)
 
 		defer func() { _ = resp.Body.Close() }()
@@ -92,7 +104,7 @@ func TestHTTPGet(t *testing.T) {
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 		require.NoError(t, err)
 
-		resp, err := client.Do(req)
+		resp, err := adminClient.Do(req)
 		require.NoError(t, err)
 
 		defer func() { _ = resp.Body.Close() }()
@@ -106,7 +118,7 @@ func TestHTTPGet(t *testing.T) {
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 		require.NoError(t, err)
 
-		resp, err := client.Do(req)
+		resp, err := adminClient.Do(req)
 		require.NoError(t, err)
 
 		defer func() { _ = resp.Body.Close() }()
@@ -150,12 +162,14 @@ func TestHTTPPost(t *testing.T) {
 	// Get actual ports.
 	adminPort := srv.AdminPort()
 
-	// Create insecure HTTP client (accepts self-signed certs).
+	// Create secure HTTP client for admin endpoint.
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true,
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    srv.AdminTLSRootCAPool(),
 			},
+			DisableKeepAlives: true,
 		},
 		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}

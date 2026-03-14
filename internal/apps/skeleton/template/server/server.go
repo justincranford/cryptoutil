@@ -169,9 +169,14 @@ func (s *SkeletonTemplateServer) AdminServerActualPort() int {
 	return s.app.AdminPort()
 }
 
-// TLSRootCAPool returns the root CA pool for test client TLS configuration.
+// TLSRootCAPool returns the root CA pool for test client TLS configuration (public server).
 func (s *SkeletonTemplateServer) TLSRootCAPool() *x509.CertPool {
 	return s.app.TLSRootCAPool()
+}
+
+// AdminTLSRootCAPool returns the admin TLS root CA pool for test client TLS configuration.
+func (s *SkeletonTemplateServer) AdminTLSRootCAPool() *x509.CertPool {
+	return s.app.AdminTLSRootCAPool()
 }
 
 // Compile-time assertion: SkeletonTemplateServer must implement ServiceServer.

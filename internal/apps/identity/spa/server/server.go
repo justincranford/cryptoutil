@@ -192,9 +192,14 @@ func (s *SPAServer) AdminServerActualPort() int {
 	return s.AdminPort()
 }
 
-// TLSRootCAPool returns the root CA pool for test client TLS configuration.
+// TLSRootCAPool returns the root CA pool for test client TLS configuration (public server).
 func (s *SPAServer) TLSRootCAPool() *x509.CertPool {
 	return s.app.TLSRootCAPool()
+}
+
+// AdminTLSRootCAPool returns the admin TLS root CA pool for test client TLS configuration.
+func (s *SPAServer) AdminTLSRootCAPool() *x509.CertPool {
+	return s.app.AdminTLSRootCAPool()
 }
 
 // Compile-time assertion: SPAServer must implement ServiceServer.

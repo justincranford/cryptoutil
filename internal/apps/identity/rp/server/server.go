@@ -190,9 +190,14 @@ func (s *RPServer) AdminServerActualPort() int {
 	return s.app.AdminPort()
 }
 
-// TLSRootCAPool returns the root CA pool for test client TLS configuration.
+// TLSRootCAPool returns the root CA pool for test client TLS configuration (public server).
 func (s *RPServer) TLSRootCAPool() *x509.CertPool {
 	return s.app.TLSRootCAPool()
+}
+
+// AdminTLSRootCAPool returns the admin TLS root CA pool for test client TLS configuration.
+func (s *RPServer) AdminTLSRootCAPool() *x509.CertPool {
+	return s.app.AdminTLSRootCAPool()
 }
 
 // Compile-time assertion: RPServer must implement ServiceServer.

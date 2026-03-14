@@ -208,9 +208,14 @@ func (s *JoseJAServer) AdminServerActualPort() int {
 	return s.app.AdminPort()
 }
 
-// TLSRootCAPool returns the root CA pool for test client TLS configuration.
+// TLSRootCAPool returns the root CA pool for test client TLS configuration (public server).
 func (s *JoseJAServer) TLSRootCAPool() *x509.CertPool {
 	return s.app.TLSRootCAPool()
+}
+
+// AdminTLSRootCAPool returns the admin TLS root CA pool for test client TLS configuration.
+func (s *JoseJAServer) AdminTLSRootCAPool() *x509.CertPool {
+	return s.app.AdminTLSRootCAPool()
 }
 
 // Compile-time assertion: JoseJAServer must implement ServiceServer.

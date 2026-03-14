@@ -35,7 +35,11 @@ func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 	// Create HTTP client for API calls.
 	client := &http.Client{
 		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // Test server uses self-signed cert.
+			TLSClientConfig: &tls.Config{
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    smIMServer.TLSRootCAPool(),
+			},
+			DisableKeepAlives: true,
 		},
 		Timeout: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second,
 	}

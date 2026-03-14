@@ -250,10 +250,19 @@ func (s *KMSServer) AdminServerActualPort() int {
 	return s.AdminPort()
 }
 
-// TLSRootCAPool returns the root CA pool for test client TLS configuration.
+// TLSRootCAPool returns the root CA pool for test client TLS configuration (public server).
 func (s *KMSServer) TLSRootCAPool() *x509.CertPool {
 	if s.resources != nil && s.resources.Application != nil {
 		return s.resources.Application.TLSRootCAPool()
+	}
+
+	return nil
+}
+
+// AdminTLSRootCAPool returns the admin TLS root CA pool for test client TLS configuration.
+func (s *KMSServer) AdminTLSRootCAPool() *x509.CertPool {
+	if s.resources != nil && s.resources.Application != nil {
+		return s.resources.Application.AdminTLSRootCAPool()
 	}
 
 	return nil

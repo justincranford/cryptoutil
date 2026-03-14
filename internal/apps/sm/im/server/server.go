@@ -247,5 +247,10 @@ func (s *SmIMServer) TLSRootCAPool() *x509.CertPool {
 	return s.app.TLSRootCAPool()
 }
 
+// AdminTLSRootCAPool returns the admin TLS root CA pool for test client TLS configuration.
+func (s *SmIMServer) AdminTLSRootCAPool() *x509.CertPool {
+	return s.app.AdminTLSRootCAPool()
+}
+
 // Compile-time assertion: SmIMServer must implement ServiceServer.
 var _ cryptoutilAppsTemplateServiceServer.ServiceServer = (*SmIMServer)(nil)

@@ -9,9 +9,11 @@ package integration
 
 import (
 	"context"
+	"crypto/tls"
 	http "net/http"
 	"os"
 	"testing"
+	"time"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
@@ -19,7 +21,6 @@ import (
 	cryptoutilAppsSmImServerConfig "cryptoutil/internal/apps/sm/im/server/config"
 	cryptoutilAppsSmImTesting "cryptoutil/internal/apps/sm/im/testing"
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilSharedCryptoTls "cryptoutil/internal/shared/crypto/tls"
 )
 
 // Shared test resources (initialized once per package).
@@ -52,7 +53,17 @@ func TestMain(m *testing.M) {
 	publicBaseURL = smIMServer.PublicBaseURL()
 	adminBaseURL = smIMServer.AdminBaseURL()
 	sharedServiceBaseURL = publicBaseURL // Backward compatibility.
-	sharedHTTPClient = cryptoutilSharedCryptoTls.NewClientForTest()
+	// Create shared HTTP client using proper TLS certificate validation.
+	sharedHTTPClient = &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    smIMServer.TLSRootCAPool(),
+			},
+			DisableKeepAlives: true,
+		},
+		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
+	}
 
 	exitCode := m.Run()
 

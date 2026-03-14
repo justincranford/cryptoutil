@@ -127,9 +127,14 @@ func (s *PKICAServer) App() *cryptoutilAppsTemplateServiceServer.Application {
 	return s.app
 }
 
-// TLSRootCAPool returns the root CA pool for test client TLS configuration.
+// TLSRootCAPool returns the root CA pool for test client TLS configuration (public server).
 func (s *PKICAServer) TLSRootCAPool() *x509.CertPool {
 	return s.app.TLSRootCAPool()
+}
+
+// AdminTLSRootCAPool returns the admin TLS root CA pool for test client TLS configuration.
+func (s *PKICAServer) AdminTLSRootCAPool() *x509.CertPool {
+	return s.app.AdminTLSRootCAPool()
 }
 
 // Compile-time assertion: PKICAServer must implement ServiceServer.

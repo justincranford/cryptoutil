@@ -114,6 +114,10 @@ func (m *mockServer) TLSRootCAPool() *x509.CertPool {
 	return x509.NewCertPool()
 }
 
+func (m *mockServer) AdminTLSRootCAPool() *x509.CertPool {
+	return x509.NewCertPool()
+}
+
 func (m *mockServer) isStartCalled() bool {
 	m.mu.Lock()
 	defer m.mu.Unlock()

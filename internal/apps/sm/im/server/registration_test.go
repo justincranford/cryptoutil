@@ -22,13 +22,15 @@ import (
 	cryptoutilAppsSmImServerConfig "cryptoutil/internal/apps/sm/im/server/config"
 )
 
-// newTestHTTPClient creates an HTTPS client for testing with self-signed certificates.
+// newTestHTTPClient creates an HTTPS client for testing using the shared server's TLS root CA.
 func newTestHTTPClient() *http.Client {
 	return &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, //nolint:gosec // Test environment only.
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    testSmIMServer.TLSRootCAPool(),
 			},
+			DisableKeepAlives: true,
 		},
 		Timeout: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second,
 	}
@@ -111,7 +113,16 @@ func TestUserRegistration_DBClosedError(t *testing.T) {
 	require.NoError(t, err)
 
 	// Send registration request — userFactory will call RegisterUserWithTenant which fails.
-	client := newTestHTTPClient()
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    server.TLSRootCAPool(),
+			},
+			DisableKeepAlives: true,
+		},
+		Timeout: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second,
+	}
 	registerURL := server.PublicBaseURL() + "/service/api/v1/users/register"
 
 	username := fmt.Sprintf("db-closed-%s", googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength])

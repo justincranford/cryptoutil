@@ -115,12 +115,14 @@ func SetupTestServer(ctx context.Context, _ bool) (*TestServerResources, error) 
 	// Mark server as ready.
 	resources.SmIMServer.SetReady(true)
 
-	// Create HTTP client with test TLS config.
+	// Create HTTP client with proper TLS certificate validation.
 	resources.HTTPClient = &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, //nolint:gosec // Test environment only.
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    resources.SmIMServer.TLSRootCAPool(),
 			},
+			DisableKeepAlives: true,
 		},
 		Timeout: cryptoutilSharedMagic.IMDefaultTimeout,
 	}

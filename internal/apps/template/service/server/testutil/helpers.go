@@ -3,6 +3,7 @@
 package testutil
 
 import (
+	"crypto/x509"
 	"fmt"
 
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
@@ -11,9 +12,11 @@ import (
 )
 
 var (
-	serverSettings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
-	publicTLS      *cryptoutilAppsTemplateServiceConfigTlsGenerator.TLSGeneratedSettings
-	privateTLS     *cryptoutilAppsTemplateServiceConfigTlsGenerator.TLSGeneratedSettings
+	serverSettings   *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
+	publicTLS        *cryptoutilAppsTemplateServiceConfigTlsGenerator.TLSGeneratedSettings
+	privateTLS       *cryptoutilAppsTemplateServiceConfigTlsGenerator.TLSGeneratedSettings
+	publicRootCAPool *x509.CertPool
+	privateRootCAPool *x509.CertPool
 )
 
 // Initialize is called from TestMain to setup shared test fixtures.
@@ -50,6 +53,21 @@ func Initialize() error {
 		return fmt.Errorf("failed to generate private TLS settings: %w", err)
 	}
 
+	// Build root CA pools for use in test HTTP clients (avoids InsecureSkipVerify).
+	publicMat, err := cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateTLSMaterial(publicTLS)
+	if err != nil {
+		return fmt.Errorf("failed to generate public TLS material: %w", err)
+	}
+
+	publicRootCAPool = publicMat.RootCAPool
+
+	privateMat, err := cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateTLSMaterial(privateTLS)
+	if err != nil {
+		return fmt.Errorf("failed to generate private TLS material: %w", err)
+	}
+
+	privateRootCAPool = privateMat.RootCAPool
+
 	return nil
 }
 
@@ -81,4 +99,16 @@ func PublicTLS() *cryptoutilAppsTemplateServiceConfigTlsGenerator.TLSGeneratedSe
 // PrivateTLS returns the shared test private TLS fixture.
 func PrivateTLS() *cryptoutilAppsTemplateServiceConfigTlsGenerator.TLSGeneratedSettings {
 	return privateTLS
+}
+
+// PublicRootCAPool returns the root CA pool for the shared public TLS fixture.
+// Use this in test HTTP clients instead of InsecureSkipVerify.
+func PublicRootCAPool() *x509.CertPool {
+	return publicRootCAPool
+}
+
+// PrivateRootCAPool returns the root CA pool for the shared private TLS fixture.
+// Use this in test HTTP clients instead of InsecureSkipVerify.
+func PrivateRootCAPool() *x509.CertPool {
+	return privateRootCAPool
 }

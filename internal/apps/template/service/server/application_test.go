@@ -6,6 +6,7 @@ package server_test
 
 import (
 	"context"
+	"crypto/x509"
 	"fmt"
 	"sync"
 	"testing"
@@ -145,6 +146,10 @@ func (m *mockAdminServer) SetReady(ready bool) {
 
 func (m *mockAdminServer) AdminBaseURL() string {
 	return m.baseURL
+}
+
+func (m *mockAdminServer) AdminTLSRootCAPool() *x509.CertPool {
+	return nil
 }
 
 func (m *mockAdminServer) isReady() bool {

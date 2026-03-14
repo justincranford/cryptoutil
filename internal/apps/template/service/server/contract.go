@@ -60,4 +60,9 @@ type ServiceServer interface {
 	// Used by test infrastructure to configure secure HTTP clients without InsecureSkipVerify.
 	// Returns nil when the server has not yet started or uses a non-PublicServerBase implementation.
 	TLSRootCAPool() *x509.CertPool
+
+	// AdminTLSRootCAPool returns the root CA certificate pool for the admin server's TLS chain.
+	// Used by test infrastructure to configure secure HTTP clients for admin endpoints without InsecureSkipVerify.
+	// Returns nil when the admin server has not yet started.
+	AdminTLSRootCAPool() *x509.CertPool
 }

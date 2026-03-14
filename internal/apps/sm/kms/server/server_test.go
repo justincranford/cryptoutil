@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"crypto/x509"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"testing"
@@ -31,6 +32,7 @@ func (s *stubAdminServer) Shutdown(context.Context) error { return nil }
 func (s *stubAdminServer) ActualPort() int                { return cryptoutilSharedMagic.JoseJAAdminPort }
 func (s *stubAdminServer) SetReady(bool)                  {}
 func (s *stubAdminServer) AdminBaseURL() string           { return "https://localhost:9090" }
+func (s *stubAdminServer) AdminTLSRootCAPool() *x509.CertPool { return nil }
 
 func newTestApp(t *testing.T) *cryptoutilAppsTemplateServiceServer.Application {
 	t.Helper()

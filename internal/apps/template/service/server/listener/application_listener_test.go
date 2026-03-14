@@ -6,6 +6,7 @@ package listener_test
 
 import (
 	"context"
+	"crypto/x509"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
@@ -324,3 +325,4 @@ func (m *mockAdminServerImpl) Shutdown(_ context.Context) error { return nil }
 func (m *mockAdminServerImpl) ActualPort() int                  { return cryptoutilSharedMagic.JoseJAAdminPort }
 func (m *mockAdminServerImpl) SetReady(_ bool)                  {}
 func (m *mockAdminServerImpl) AdminBaseURL() string             { return "https://127.0.0.1:9090" }
+func (m *mockAdminServerImpl) AdminTLSRootCAPool() *x509.CertPool { return nil }

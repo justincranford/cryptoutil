@@ -4,6 +4,7 @@ package server
 
 import (
 	"context"
+	"crypto/x509"
 	"database/sql"
 	"fmt"
 	"net"
@@ -331,6 +332,10 @@ func (m *mockAdminServerForCoverage) SetReady(_ bool) {}
 
 func (m *mockAdminServerForCoverage) AdminBaseURL() string {
 	return "https://127.0.0.1:9090"
+}
+
+func (m *mockAdminServerForCoverage) AdminTLSRootCAPool() *x509.CertPool {
+	return nil
 }
 
 // TestApplication_StartContextCancellation tests Application.Start with pre-cancelled context.
