@@ -7,13 +7,9 @@ package server
 
 import (
 	"context"
-	"crypto/tls"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
-	http "net/http"
 	"os"
 	"testing"
-	"time"
 
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceTestingE2eHelpers "cryptoutil/internal/apps/template/service/testing/e2e_helpers"
@@ -22,7 +18,6 @@ import (
 
 var (
 	testIntegrationServer       *KMSServer
-	testIntegrationClient       *http.Client
 	testIntegrationHealthClient *cryptoutilTestingHealthclient.HealthClient
 	testIntegrationPublicURL    string
 	testIntegrationAdminURL     string
@@ -52,16 +47,6 @@ func TestMain(m *testing.M) {
 
 	// Create shared health client.
 	testIntegrationHealthClient = cryptoutilTestingHealthclient.NewHealthClient(testIntegrationPublicURL, testIntegrationAdminURL)
-
-	// Create HTTP client that accepts self-signed certificates.
-	testIntegrationClient = &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, //nolint:gosec // G402: Test client for self-signed certs.
-			},
-		},
-		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
-	}
 
 	// Run all tests.
 	exitCode := m.Run()

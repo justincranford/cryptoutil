@@ -71,14 +71,7 @@ func httpGet(url *string, timeout time.Duration, rootCAsPool *x509.CertPool) err
 	if strings.HasPrefix(*url, "https://") {
 		tlsConfig := &tls.Config{
 			MinVersion: tls.VersionTLS13,
-		}
-
-		if rootCAsPool != nil {
-			// Use provided root CAs for certificate validation
-			tlsConfig.RootCAs = rootCAsPool
-		} else {
-			// No root CAs provided - skip verification for self-signed certificates
-			tlsConfig.InsecureSkipVerify = true //nolint:gosec // G402: TLS InsecureSkipVerify set true for testing with self-signed certs
+			RootCAs:    rootCAsPool,
 		}
 
 		client.Transport = &http.Transport{
@@ -121,14 +114,7 @@ func RequireClientWithResponses(t *testing.T, baseURL *string, rootCAsPool *x509
 		// For HTTPS URLs, configure TLS
 		tlsConfig := &tls.Config{
 			MinVersion: tls.VersionTLS13,
-		}
-
-		if rootCAsPool != nil {
-			// Use provided root CAs for certificate validation
-			tlsConfig.RootCAs = rootCAsPool
-		} else {
-			// No root CAs provided - skip verification for self-signed certificates
-			tlsConfig.InsecureSkipVerify = true //nolint:gosec // G402: TLS InsecureSkipVerify set true for testing with self-signed certs
+			RootCAs:    rootCAsPool,
 		}
 
 		httpClient := &http.Client{
