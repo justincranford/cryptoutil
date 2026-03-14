@@ -6,6 +6,7 @@ package ja
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	http "net/http"
 	"os"
@@ -14,7 +15,6 @@ import (
 
 	cryptoutilAppsJoseJaServer "cryptoutil/internal/apps/jose/ja/server"
 	cryptoutilAppsJoseJaServerConfig "cryptoutil/internal/apps/jose/ja/server/config"
-	cryptoutilSharedCryptoTls "cryptoutil/internal/shared/crypto/tls"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
 )
@@ -23,7 +23,6 @@ var (
 	testJoseJAService *cryptoutilAppsJoseJaServer.JoseJAServer
 	sharedHTTPClient  *http.Client
 	publicBaseURL     string
-	adminBaseURL      string
 )
 
 func TestMain(m *testing.M) {
@@ -73,10 +72,15 @@ func TestMain(m *testing.M) {
 
 	// Store base URLs for tests.
 	publicBaseURL = testJoseJAService.PublicBaseURL()
-	adminBaseURL = testJoseJAService.AdminBaseURL()
 
-	// Create shared HTTP client for all tests (accepts self-signed certs).
-	sharedHTTPClient = cryptoutilSharedCryptoTls.NewClientForTest()
+	// Create shared HTTP client for all tests.
+	sharedHTTPClient = &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig:   &tls.Config{MinVersion: tls.VersionTLS13, RootCAs: testJoseJAService.TLSRootCAPool()},
+			DisableKeepAlives: true,
+		},
+		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
+	}
 
 	// Run all tests.
 	exitCode := m.Run()

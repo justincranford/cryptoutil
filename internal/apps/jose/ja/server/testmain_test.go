@@ -5,10 +5,8 @@ package server
 
 import (
 	"context"
-	"crypto/tls"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
-	http "net/http"
 	"os"
 	"testing"
 	"time"
@@ -20,7 +18,6 @@ import (
 
 var (
 	testServer        *JoseJAServer
-	testHTTPClient    *http.Client
 	testHealthClient  *cryptoutilTestingHealthclient.HealthClient
 	testPublicBaseURL string
 	testAdminBaseURL  string
@@ -51,16 +48,6 @@ func TestMain(m *testing.M) {
 	// Store base URLs for tests.
 	testPublicBaseURL, testAdminBaseURL = cryptoutilAppsTemplateServiceTestingE2eHelpers.DualPortBaseURLs(testServer)
 	testHealthClient = cryptoutilTestingHealthclient.NewHealthClient(testPublicBaseURL, testAdminBaseURL)
-
-	// Create HTTP client that accepts self-signed certificates.
-	testHTTPClient = &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, //nolint:gosec // G402: Test client for self-signed certs.
-			},
-		},
-		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
-	}
 
 	// Run all tests.
 	exitCode := m.Run()
