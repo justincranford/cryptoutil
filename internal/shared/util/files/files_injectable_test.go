@@ -3,11 +3,12 @@
 package files
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -56,7 +57,9 @@ func TestReadFileBytesLimit_CloseError(t *testing.T) {
 
 	defer func() { filesCloseFn = originalFn }()
 
-	filesCloseFn = func(_ *os.File) error {
+	filesCloseFn = func(f *os.File) error {
+		_ = f.Close() // Close the OS handle to prevent Windows file-lock on TempDir cleanup.
+
 		return fmt.Errorf("injected close error")
 	}
 
