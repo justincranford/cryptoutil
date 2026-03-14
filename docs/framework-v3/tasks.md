@@ -1,6 +1,6 @@
 # Tasks - Framework v3
 
-**Status**: 11 of 58 tasks complete (19%)
+**Status**: 11 of 61 tasks complete (18%)
 **Last Updated**: 2026-03-12
 **Created**: 2026-03-08
 
@@ -499,8 +499,9 @@
 
 - **Status**: TODO
 - **Dependencies**: None
-- **Description**: Add fitness linters detecting unit tests that start servers or DBs, and other test infrastructure anti-patterns.
+- **Description**: Add fitness linters detecting unit tests that start servers or DBs, and other test infrastructure anti-patterns. Also register the existing `no_local_closed_db_helper` rule in lint_fitness.go (deferred from framework-v2 Phase 1/5 — rule file exists at `internal/apps/cicd/lint_fitness/no_local_closed_db_helper/` but is NOT registered).
 - **Acceptance Criteria**:
+  - [ ] `no_local_closed_db_helper` registered in `lint_fitness.go` and passes against current codebase
   - [ ] New sub-linter detects unit tests starting real servers
   - [ ] New sub-linter detects unit tests starting real databases
   - [ ] `no_local_create_closed_database` rule added (detects `createClosedDatabase`/`createClosedDBHandler` outside testdb package)
@@ -621,10 +622,22 @@
   - [ ] All pki-ca tests pass
   - [ ] Coverage >=95%
 
-#### Task 8.5: Phase 8 validation and post-mortem
+#### Task 8.5: Enforce OpenAPI-generated models for ALL service handlers
 
 - **Status**: TODO
 - **Dependencies**: Tasks 8.1-8.4
+- **Description**: sm-im currently uses hand-rolled handler DTOs instead of OpenAPI-generated models (framework-v2 D4 was WRONG to defer this). ALL services MUST use OpenAPI-generated models from `api/*/server/` and `api/model/` packages for handlers. This includes sm-im which currently lacks an `api/sm/im/` directory entirely.
+- **Acceptance Criteria**:
+  - [ ] sm-im has OpenAPI spec created (`api/sm/im/openapi_spec_*.yaml`)
+  - [ ] sm-im code generation configs created (`openapi-gen_config_*.yaml`)
+  - [ ] sm-im handler DTOs replaced with generated models
+  - [ ] All services verified using OpenAPI-generated models (not hand-rolled DTOs)
+  - [ ] `go build ./...` clean after migration
+
+#### Task 8.6: Phase 8 validation and post-mortem
+
+- **Status**: TODO
+- **Dependencies**: Tasks 8.1-8.5
 - **Description**: Full quality gate run, phase post-mortem
 - **Acceptance Criteria**:
   - [ ] All 6 services have working domain + latest framework patterns
@@ -676,10 +689,31 @@
   - [ ] Review template documented (concise format)
   - [ ] Future reviews follow simpler format
 
-#### Task 9.5: Phase 9 validation and post-mortem
+#### Task 9.5: Fix lint-fitness and lint-docs exit code 1
 
 - **Status**: TODO
-- **Dependencies**: Tasks 9.1-9.4
+- **Dependencies**: None
+- **Description**: Both `cicd lint-fitness` and `cicd lint-docs` exit with code 1 despite SUCCESS output. Pre-existing CI/CD issue — stderr output triggers non-zero exit. Discovered during framework-v2 Phase 5.
+- **Acceptance Criteria**:
+  - [ ] `go run ./cmd/cicd lint-fitness` exits 0 on success
+  - [ ] `go run ./cmd/cicd lint-docs` exits 0 on success
+  - [ ] Root cause identified (stderr vs stdout handling)
+  - [ ] Tests verify correct exit codes
+
+#### Task 9.6: Verify Docker Desktop startup directive propagation
+
+- **Status**: TODO
+- **Dependencies**: None
+- **Description**: Docker Desktop startup check exists in some Copilot modes but may be missing in others. Verify all agents, skills, and instructions that involve Docker or E2E have the directive (from framework-v2 Phase 3 lessons).
+- **Acceptance Criteria**:
+  - [ ] All agents that run E2E tests reference Docker Desktop startup
+  - [ ] Implementation-execution agent includes Docker Desktop check
+  - [ ] Cross-platform instructions consistent
+
+#### Task 9.7: Phase 9 validation and post-mortem
+
+- **Status**: TODO
+- **Dependencies**: Tasks 9.1-9.6
 - **Description**: Final quality gate run
 - **Acceptance Criteria**:
   - [ ] All quality gates pass

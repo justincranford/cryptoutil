@@ -339,6 +339,21 @@ All gaps resolved by quizme-v2 decisions. Assigned to implementation phases:
 
 ---
 
+## Completed in Prior Iterations
+
+### Framework v2 (Complete — 2026-03-13)
+
+5 phases, 23 tasks — all complete. Key accomplishments:
+- **Phase 1**: Created shared `testdb` package (`NewInMemorySQLiteDB`, `NewClosedSQLiteDB`), 6 fitness rules
+- **Phase 2**: jose-ja cleanup — extracted application layer, added property/fuzz/bench tests, ≥95% coverage
+- **Phase 3**: sm-im cleanup — extracted application layer, added error-path tests, ≥95% coverage
+- **Phase 4**: sm-kms assessment — coverage ceiling analysis, seam injection pattern documented
+- **Phase 5**: Knowledge propagation — ARCHITECTURE.md Section 13.1.1 (Opportunistic Quality Fixes), UUID literal construction, import safety
+
+**Carried to framework-v3**: `no_local_closed_db_helper` fitness rule registration (Task 6.4), lint-fitness/lint-docs exit code 1 fix (Task 9.5), sm-im OpenAPI models enforcement (Task 8.5)
+
+---
+
 ## Cross-References
 
 - **Framework v1**: `docs/framework-v1/` (plan.md, tasks.md, lessons.md, review.md)
