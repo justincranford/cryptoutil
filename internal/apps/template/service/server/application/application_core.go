@@ -281,8 +281,18 @@ func provisionDatabase(ctx context.Context, basic *Basic, settings *cryptoutilAp
 	} else if len(databaseURL) >= cryptoutilSharedMagic.GitRecentActivityDays && databaseURL[:cryptoutilSharedMagic.GitRecentActivityDays] == cryptoutilSharedMagic.FileURIScheme {
 		isSQLite = true
 	} else if len(databaseURL) >= 13 && databaseURL[:13] == "file::memory:" {
-		// Handle file::memory:NAME?cache=shared format (used by test utilities with unique names).
+		// Handle file::memory:NAME?cache=shared format.
+		// Normalize to file:NAME?mode=memory&cache=shared for modernc.org/sqlite compatibility.
 		isSQLite = true
+
+		name := strings.TrimPrefix(databaseURL, "file::memory:")
+		if idx := strings.Index(name, "?"); idx != -1 {
+			name = name[:idx]
+		}
+
+		if name != "" {
+			databaseURL = fmt.Sprintf("file:%s?mode=memory&cache=shared", name)
+		}
 	} else if strings.HasPrefix(databaseURL, "file:") && strings.Contains(databaseURL, "mode=memory") {
 		// Handle file:NAME?mode=memory&cache=shared format (unique per-test in-memory SQLite).
 		isSQLite = true
