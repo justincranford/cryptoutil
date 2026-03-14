@@ -33,14 +33,14 @@ placeholder names to replace. It does NOT show you how to add a domain table, a 
 | **B) Add minimal CRUD example** | Add 1 example table + repository + handler to skeleton showing the pattern. ~30 lines. `/new-service` generates it, dev deletes what they don't need. | ~4h | Low — adds concrete guidance |
 | **C) Add code generation** | skeleton generates domain code from a config (table name, fields, operations). Like Rails scaffold. | ~40h, highly complex | High — over-engineered for 10 services |
 | **D) Deprecate skeleton, use sm-im as template source** | `/new-service` strips sm-im down to skeleton, dev adds back what they need | ~8h, fragile — sm-im evolves constantly | High — sm-im changes break new-service |
-| **E)** | | | |
+| **E)** DEFINITELY NOT C!!!! I DON'T LIKE THE IDEA OF USING sm-im AS TEMPLATE, BECAUSE IT'S A REAL SERVICE THAT EVOLVES CONSTANTLY. YOU HAVE NOT GIVEN ME ENOUGH TO DECIDE, AND I AM NOT SURE IF ANY OF THE OPTIONS ARE GOOD WITHOUT MORE CONTEXT. I NEED YOU TO DUMB IT DOWN FOR ME, AND INCLUDE CONCRETE EXAMPLES. |
 
 **My judgment**: **A or B**. The question is whether a developer creating a new service needs to see a CRUD
 example inside the skeleton or can be pointed at sm-im. If you think "I'd always open sm-im side-by-side
 anyway," pick A. If you think "the skeleton should show me one complete domain example so I can copy-paste,"
 pick B.
 
-**Answer**:
+**Answer**: E
 
 ---
 
@@ -74,7 +74,7 @@ file entirely. Fix it now or let Phase 7 erase it?
 | **B) Phase 2A + production bug fix** | 38 integration test files + 1 production file | ~2-3 days + 2h | E2E TLS (2B), mTLS (2C), PostgreSQL TLS (2D) |
 | **C) Phase 2A + 2B (include E2E)** | 38 integration + E2E Docker TLS | ~2 weeks | mTLS (2C), PostgreSQL TLS (2D) |
 | **D) Defer all until after Phase 7** | Nothing now | 0h now | Everything — gosec keeps flagging until then |
-| **E)** | | | |
+| **E)** |
 
 **My judgment**: **B** slightly over A. The production file is a real security defect and the fix is
 trivial (`identity/rp/server/public_server.go` replaces `InsecureSkipVerify: true` with the CA-trusting
@@ -85,7 +85,7 @@ want zero production `InsecureSkipVerify` regardless, pick B.
 C is disproportionate (E2E TLS requires real CA certs in Docker Compose, separate infrastructure work).
 D creates ongoing noise in every PR.
 
-**Answer**:
+**Answer**: C, do Phase 2A at current 2A position, and move E2E 2A after phase 7. I don't understand your concern about E2E, because there is sufficient code to create root/intermediate/leaf CA certs as part of `init` at suite||product||service level, and then use those certs for all TLS needs in servers+clients in E2E. This is a one-time implementation to create on-the-fly, ephemeral, complete PKI domains for use in E2E; for example, prepend a docker compose job to generate all of the TLS files in docker volume(s), and all downstream containers (suite, product, service, postgres, otel, grafana, etc) can mount their TLS files, and all servers+clients in containers will have all of their TLS config available for trusting their PKI subdomains (e.g. all product-service have unique TLS client cert chains + TLS server truststore to do mTLS to PostgreSQL instance(s), Otel Collector Control instance, and Grafana LGTM instance). This is a one-time implementation that solves the problem for all E2E tests, and be reusable for all one-off Demos or customer evaluations. The implementation effort for `init` subcommands in all suite+product+server APIs is moderate, and it strategically eliminates the need for `InsecureSkipVerify` in every possible E2E/Demo/UAT/OnPrem deployment.
 
 ---
 
@@ -99,9 +99,9 @@ D creates ongoing noise in every PR.
 **B)** Replace heredocs with `[System.IO.File]::WriteAllText()` using Go string concatenation — generate content in Go, write via Go
 **C)** Move ALL multi-line file generation to Go tooling (`go run ./cmd/cicd ...`) — no PowerShell heredocs ever
 **D)** Use Python for multi-line file generation (cross-platform, no encoding issues)
-**E)**
+**E)** Move ALL multi-line file generation to Go tooling (`go run ./cmd/copilottool heredocs ...`) — no PowerShell heredocs ever
 
-**Answer**:
+**Answer**: E; I don't want to mix concerns of heredocs with cicd. I suspect we'll have other use cases for replacing inefficient or problematic Copilot agent tools. Not sure if Copilot tool integration prefers individual commands or subcommands, but having Go-based code would be faster, more efficient, and ideally more reliable than powershell heredocs. In other words, I would like a place to collect copilot tools, to replace inefficient built-in tools or adhoc generated scripts, that can be reused across future chat sessions, implementation plans/phases/tasks/beast work. This would be a strategic investment that pays off in the long run, allows for new/existing code Go reuse within the project, is constrained by my high code coverage and mutations thresholds, and eliminates the need for fragile PowerShell heredocs in any Copilot agent context.
 
 **Rationale**: PowerShell heredocs have caused multiple regressions (BOM encoding, column-0 parsing). A permanent solution prevents recurrence.
 
@@ -119,7 +119,7 @@ D creates ongoing noise in every PR.
 **D)** Defer — Seam adoption can wait until Phase 6+ (fitness functions) when we have better tooling to identify candidates
 **E)**
 
-**Answer**:
+**Answer**: A; QUALITY IS PARAMOUNT!!!!
 
 **Rationale**: Seam injection raises coverage 3-8% per package but adds maintenance complexity. The right threshold matters.
 
@@ -135,9 +135,9 @@ D creates ongoing noise in every PR.
 **B)** SQLite-only — sm-kms stays SQLite in-memory for unit/integration tests. PostgreSQL tested only in E2E (Phase 7).
 **C)** Both — SQLite for fast local dev, PostgreSQL integration tests behind build tag. CI always runs both.
 **D)** Defer to Phase 7 — E2E tests cover PostgreSQL. Integration tests stay SQLite.
-**E)**
+**E)** DOCKER DESKTOP IS GUARANTEED TO BE RUNNING, BECAUSE YOU HAVE COPILOT INSTRUCTIONS TO START IT ON WINDOWS OR LINUX, IF IT IS NOT ALREADY RUNNING!!!!!!!!!!!!!!! IF YOU ARE NOT SEEING AND USING THOSE INSTRUCTIONS, FIGURE OUT HOW TO FIX IT SO YOU DO SEE AND USE THOSE INSTRUCTIONS, BECAUSE DOCKER DESKTOP IS MANDATORY FOR ANY KIND OF DEVELOPMENT OR TESTING WORK IN THIS PROJECT, AND IT IS UNACCEPTABLE TO DEFER DOCKER-DEPENDENT TESTS. ALL DEVELOPERS (i.e. ME) HAS DOCKER DESKTOP INSTALLED IN ALL ENVIRONMENTS (i.e. WINDOWS AND LINUX).
 
-**Answer**:
+**Answer**: E
 
 **Rationale**: PostgreSQL testcontainers add test fidelity but increase CI duration and require Docker. The tradeoff matters for developer experience.
 
@@ -155,7 +155,7 @@ D creates ongoing noise in every PR.
 **D)** Partial — Add `application/` only for complex operations (key rotation, key hierarchy). Leave simple CRUD in handlers.
 **E)**
 
-**Answer**:
+**Answer**: A
 
 **Rationale**: Architectural consistency vs. unnecessary abstraction for simpler services. sm-kms has ~6 operations vs. sm-im's ~15.
 
