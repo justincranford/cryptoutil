@@ -1,9 +1,9 @@
 # Framework v3 - Iteration Plan
 
-**Status**: IN PROGRESS — Phase 1 near completion. **quizme-v3 pending** (D12, D14 tentative until confirmed)
+**Status**: IN PROGRESS — Phase 1: 11/12 tasks done. **quizme-v3 pending** (D12, D14 tentative; Q3-Q6 from framework-v2 lessons)
 **Created**: 2026-03-08
-**Last Updated**: 2026-03-12
-**Depends On**: `docs/framework-v1/` (complete), `docs/framework-brainstorm/08-recommendations.md`
+**Last Updated**: 2026-03-14
+**Depends On**: `docs/framework-brainstorm/08-recommendations.md`, framework-v1 (archived), framework-v2 (archived — see Completed in Prior Iterations)
 **Purpose**: Aggressive standardization of all 10 product-services as thin domain-only wrappers around service-template. Service-template owns 100% of reusable infrastructure (servers, clients, authn, authz, middleware, health, TLS, barrier, telemetry, tests). Product-services inject ONLY domain-specific: OpenAPI add-ons, DB migrations, business logic, config overrides.
 
 **Guiding Principle**: This repo is alpha development. NO backward compatibility. NO legacy code. All 10 product-services MUST use latest-and-greatest framework patterns.
@@ -15,6 +15,7 @@
 1. **plan.md** (this file) - phases, objectives, decisions
 2. **tasks.md** - task checklist per phase
 3. **lessons.md** - persistent memory: what worked, what did not, root causes, patterns
+4. **quizme-v3.md** - 6 pending questions (D12, D14 + 4 from framework-v2 lessons)
 
 ---
 
@@ -192,7 +193,7 @@ Following migration priority (sm-im > jose-ja > sm-kms > pki-ca > identity):
 
 ## Phases
 
-### Phase 1: Close v1 Gaps and Knowledge Propagation [Status: TODO]
+### Phase 1: Close v1 Gaps and Knowledge Propagation [Status: IN PROGRESS — 11/12 tasks done]
 
 **Objective**: Fix immediate gaps from v1 review. Small items implemented immediately.
 
@@ -206,7 +207,7 @@ Following migration priority (sm-im > jose-ja > sm-kms > pki-ca > identity):
 - **Success**: All 10 services have `RunContractTests`, auth contracts in cross-service suite, ci-fitness.yml in CI
 - **Post-Mortem**: lessons.md updated
 
-### Phase 2: Remove InsecureSkipVerify — Integration Tests Only (D14) [Status: TODO]
+### Phase 2: Remove InsecureSkipVerify — Integration Tests Only (D14, D15) [Status: TODO]
 
 **Objective**: Eliminate InsecureSkipVerify from integration + contract tests (~90% of 47 files). Fix all 6 ARCHITECTURE.md TLS gaps (D15).
 
@@ -268,7 +269,7 @@ Following migration priority (sm-im > jose-ja > sm-kms > pki-ca > identity):
 - **Success**: >=98% coverage, >=95% mutation, documented value assessment
 - **Post-Mortem**: lessons.md updated
 
-### Phase 7: Domain Extraction and Fresh Skeletons (D13) [Status: TODO]
+### Phase 7: Domain Extraction and Fresh Skeletons (D13, D16) [Status: TODO]
 
 **Objective**: Extract domain logic from identity-* and pki-ca, replace with fresh skeleton-template copies.
 
@@ -356,7 +357,8 @@ All gaps resolved by quizme-v2 decisions. Assigned to implementation phases:
 
 ## Cross-References
 
-- **Framework v1**: `docs/framework-v1/` (plan.md, tasks.md, lessons.md, review.md)
+- **Framework v1**: Archived (was `docs/framework-v1/`, 48/48 tasks complete)
+- **Framework v2**: Archived (was `docs/framework-v2/`, 23/23 tasks complete — see Completed in Prior Iterations)
 - **Framework Brainstorm**: `docs/framework-brainstorm/` (00-overview through 08-recommendations)
 - **Architecture**: `docs/ARCHITECTURE.md` (single source of truth)
 - **Migration Priority**: ARCHITECTURE.md Section 2.2 (sm-im > jose-ja > sm-kms > pki-ca > identity)
