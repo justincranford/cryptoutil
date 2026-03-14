@@ -2466,6 +2466,7 @@ func TestSendMessage_Validation(t *testing.T) {
 - Easy to add new test cases (just add table row)
 - t.Parallel() for concurrent execution
 - UUIDv7 for dynamic, conflict-free test data
+- **UUID Literal Construction**: Use `googleUuid.UUID{}` for nil UUID and `googleUuid.UUID{0xff, 0xff, ...}` for max UUID instead of `googleUuid.MustParse("00000000-...")` to satisfy the `test-patterns` fitness linter
 
 #### 10.2.2 Fiber Handler Testing (app.Test())
 
@@ -3119,6 +3120,8 @@ func BenchmarkWithSetup(b *testing.B) {
 <!-- @propagate to=".github/instructions/03-03.golang.instructions.md" as="crypto-acronyms-caps" -->
 **Crypto Acronyms**: ALWAYS ALL CAPS: RSA, EC, ECDSA, ECDH, HMAC, AES, JWA, JWK, JWS, JWE, ED25519, PKCS8, PEM, DER.
 <!-- @/propagate -->
+
+**Import Safety When Replacing Function Bodies**: When replacing function bodies, imports used by the OLD body may be accidentally removed even though they are still needed elsewhere in the file. ALWAYS run `go vet` after import changes to catch missing or unused imports.
 
 #### 11.1.4 Magic Values Organization
 
@@ -4288,6 +4291,25 @@ All validators run to completion (never short-circuit) and aggregate errors for 
 
 **Go Best Practices**: Effective Go, Code Review Comments, Go Proverbs
 **Project Patterns**: See [03-01.coding.instructions.md](../.github/instructions/03-01.coding.instructions.md) for file size limits, default values, conditional statements
+
+#### 13.1.1 Opportunistic Quality Fixes — MANDATORY
+
+**CRITICAL: ALL linter violations, code quality issues, and pre-existing defects discovered during ANY work MUST be fixed immediately — even when not part of the original request, phase, task, or plan.**
+
+This applies to ALL issue types including but not limited to:
+
+- `goconst`: Repeated string literals must become constants
+- `noctx`: Missing context in database/HTTP calls (`Ping()` → `PingContext(ctx)`)
+- `lint-go literal-use`: Magic constants must use `cryptoutilSharedMagic` values
+- `wsl`, `godot`, `gofumpt`: Formatting and style violations
+- Import ordering and unused imports
+- Pre-commit hook findings from any linter
+
+**Rationale**: Quality is paramount. Deferring discovered issues creates technical debt that compounds. Each linter pass may discover new issues from different linters — fix ALL before re-staging. Incremental lint discovery is normal and expected.
+
+**Anti-Pattern**: Tagging discovered issues as "pre-existing" or "not part of this task" to justify deferral. If an issue is discovered, it is blocking regardless of origin.
+
+**Atomic Staging for Cross-Cutting Changes**: When a refactor touches imports across multiple packages AND renames/moves directories, ALL changes MUST be staged together. Pre-commit hooks run against the staged state, not the working directory — partial staging of cross-cutting changes will fail type-checking.
 
 ### 13.2 Version Control
 

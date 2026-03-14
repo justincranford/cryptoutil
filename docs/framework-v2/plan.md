@@ -1,8 +1,8 @@
 # Implementation Plan - Framework v2: Service Code Quality Refactoring
 
-**Status**: Planning
+**Status**: COMPLETE — All 5 phases done (2026-03-13)
 **Created**: 2026-03-12
-**Last Updated**: 2026-03-12
+**Last Updated**: 2026-03-13
 **Purpose**: Systematic code-quality and structural refactoring of three mature services (sm-im, jose-ja, sm-kms) to eliminate patterns that accumulated before service-template existed. Establishes correct target structure for all future services.
 
 ---
@@ -182,7 +182,7 @@ v2 MUST NOT: change builder API, move middleware, change auth flows, touch ident
 
 ## Phases
 
-### Phase 1: testdb.NewClosedSQLiteDB Helper (0.5d) [Status: TODO]
+### Phase 1: testdb.NewClosedSQLiteDB Helper (0.5d) [Status: ✅ COMPLETE]
 
 **Objective**: Add `NewClosedSQLiteDB(t, applyMigrations)` to service-template testdb package. This is infrastructure work that unlocks all three service cleanups.
 
@@ -196,7 +196,7 @@ v2 MUST NOT: change builder API, move middleware, change auth flows, touch ident
 - **Success**: Build + tests clean; fitness rule passes on new helper; fitness rule FAILS on current jose-ja (confirmed before cleanup)
 - **Post-Mortem**: Update lessons.md.
 
-### Phase 2: jose-ja Cleanup (1.5d) [Status: TODO]
+### Phase 2: jose-ja Cleanup (1.5d) [Status: ✅ COMPLETE]
 
 **Objective**: Fix all four identified problems in jose-ja (handler DTOs, closed-DB helpers, file proliferation, domain naming).
 
@@ -209,7 +209,7 @@ v2 MUST NOT: change builder API, move middleware, change auth flows, touch ident
 - **Success**: jose-ja repository/ ≤5 test files; service/ ≤1 test file per service file; handler uses generated models; fitness rule passes.
 - **Post-Mortem**: Update lessons.md.
 
-### Phase 3: sm-im Cleanup (1d) [Status: TODO]
+### Phase 3: sm-im Cleanup (1d) [Status: ✅ COMPLETE]
 
 **Objective**: Apply the same cleanup to sm-im (fewer issues than jose-ja, no hand-rolled DTOs).
 
@@ -222,7 +222,7 @@ v2 MUST NOT: change builder API, move middleware, change auth flows, touch ident
 - **Success**: No createClosedDB* functions in sm-im; repository/ and server/apis/ have ≤1 test file per source file; fitness rule passes.
 - **Post-Mortem**: Update lessons.md.
 
-### Phase 4: sm-kms Assessment and Safe Cleanup (1d) [Status: TODO]
+### Phase 4: sm-kms Assessment and Safe Cleanup (1d) [Status: ✅ COMPLETE]
 
 **Objective**: Audit sm-kms, remove clearly dead code, flag v3-owned items. Do NOT touch middleware or auth.
 
@@ -234,7 +234,7 @@ v2 MUST NOT: change builder API, move middleware, change auth flows, touch ident
 - **Success**: server/application/ either removed or documented; repository/orm/ file count reduced by ≥30%; no custom closed-DB helpers; fitness rule passes.
 - **Post-Mortem**: Update lessons.md.
 
-### Phase 5: Knowledge Propagation (0.5d) [Status: TODO]
+### Phase 5: Knowledge Propagation (0.5d) [Status: ✅ COMPLETE]
 
 **Objective**: Apply lessons to permanent artifacts. Never skip this phase.
 
