@@ -55,32 +55,6 @@ type TLSMaterial struct {
 }
 
 const (
-	defaultLogLevel                    = cryptoutilSharedMagic.DefaultLogLevelInfo                // Balanced verbosity: shows important events without being overwhelming
-	defaultBindPublicProtocol          = cryptoutilSharedMagic.DefaultPublicProtocolCryptoutil    // HTTPS by default for security in production environments
-	defaultBindPublicAddress           = cryptoutilSharedMagic.DefaultPublicAddressCryptoutil     // IPv4 loopback prevents external access by default, requires explicit configuration for exposure
-	defaultBindPublicPort              = cryptoutilSharedMagic.DefaultPublicPortCryptoutil        // Standard HTTP/HTTPS port, well-known and commonly available
-	defaultBindPrivateProtocol         = cryptoutilSharedMagic.DefaultPrivateProtocolCryptoutil   // HTTPS for private API security, even in service-to-service communication
-	defaultBindPrivateAddress          = cryptoutilSharedMagic.DefaultPrivateAddressCryptoutil    // IPv4 loopback for private API, only accessible from same machine
-	defaultBindPrivatePort             = cryptoutilSharedMagic.DefaultPrivatePortCryptoutil       // Non-standard port to avoid conflicts with other services
-	defaultPublicBrowserAPIContextPath = cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath // RESTful API versioning, separates browser from service APIs
-	defaultPublicServiceAPIContextPath = cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath // RESTful API versioning, separates service from browser APIs
-	defaultAdminServerAPIContextPath   = cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath  // RESTful API versioning for admin API
-	defaultCORSMaxAge                  = cryptoutilSharedMagic.DefaultCORSMaxAge                  // 1 hour cache for CORS preflight requests, balances performance and freshness
-	defaultCSRFTokenName               = cryptoutilSharedMagic.DefaultCSRFTokenName               // Standard CSRF token name, widely recognized by frameworks
-	defaultCSRFTokenSameSite           = cryptoutilSharedMagic.DefaultCSRFTokenSameSiteStrict     // Strict SameSite prevents CSRF while maintaining usability
-	defaultCSRFTokenMaxAge             = cryptoutilSharedMagic.DefaultCSRFTokenMaxAge             // 1 hour expiration balances security and user experience
-	defaultCSRFTokenCookieSecure       = cryptoutilSharedMagic.DefaultCSRFTokenCookieSecure       // Secure cookies in production prevent MITM attacks
-	defaultCSRFTokenCookieHTTPOnly     = cryptoutilSharedMagic.DefaultCSRFTokenCookieHTTPOnly     // False allows JavaScript access for form submissions (Swagger UI workaround)
-	defaultCSRFTokenCookieSessionOnly  = cryptoutilSharedMagic.DefaultCSRFTokenCookieSessionOnly  // Session-only prevents persistent tracking while maintaining security
-	defaultCSRFTokenSingleUseToken     = cryptoutilSharedMagic.DefaultCSRFTokenSingleUseToken     // Reusable tokens for better UX, can be changed for high-security needs
-	defaultRequestBodyLimit            = cryptoutilSharedMagic.DefaultHTTPRequestBodyLimit        // 2MB limit prevents large payload attacks while allowing reasonable API usage
-	defaultBrowserIPRateLimit          = cryptoutilSharedMagic.DefaultPublicBrowserAPIIPRateLimit // More lenient rate limit for browser APIs (user interactions)
-	defaultServiceIPRateLimit          = cryptoutilSharedMagic.DefaultPublicServiceAPIIPRateLimit // More restrictive rate limit for service APIs (automated systems)
-	defaultDatabaseContainer           = cryptoutilSharedMagic.DefaultDatabaseContainerDisabled   // Disabled by default to avoid unexpected container dependencies
-	defaultDatabaseURL                 = cryptoutilSharedMagic.DefaultDatabaseURL                 // pragma: allowlist secret // PostgreSQL default with placeholder credentials, SSL disabled for local dev
-	defaultDatabaseInitTotalTimeout    = cryptoutilSharedMagic.DefaultDatabaseInitTotalTimeout    // 5 minutes allows for container startup while preventing indefinite waits
-	defaultDatabaseInitRetryWait       = cryptoutilSharedMagic.DefaultDataInitRetryWait           // 1 second retry interval balances responsiveness and resource usage
-	defaultServerShutdownTimeout       = cryptoutilSharedMagic.DefaultDataServerShutdownTimeout   // 5 seconds allows graceful shutdown while preventing indefinite waits
 	defaultTLSPublicMode               = TLSMode(cryptoutilSharedMagic.DefaultTLSPublicMode)
 	defaultTLSPrivateMode              = TLSMode(cryptoutilSharedMagic.DefaultTLSPrivateMode)
 )
@@ -99,13 +73,13 @@ var profiles = map[string]map[string]any{
 	"test": {
 		"log-level": "ERROR",
 		cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault: cryptoutilSharedMagic.DefaultDevMode,
-		"bind-public-protocol":                              defaultBindPublicProtocol,
-		"bind-public-address":                               defaultBindPublicAddress,
-		"bind-public-port":                                  defaultBindPublicPort,
-		"bind-private-protocol":                             defaultBindPrivateProtocol,
-		"bind-private-address":                              defaultBindPrivateAddress,
-		"bind-private-port":                                 defaultBindPrivatePort,
-		"database-container":                                defaultDatabaseContainer,
+		"bind-public-protocol":                              cryptoutilSharedMagic.DefaultPublicProtocolCryptoutil,
+		"bind-public-address":                               cryptoutilSharedMagic.DefaultPublicAddressCryptoutil,
+		"bind-public-port":                                  cryptoutilSharedMagic.DefaultPublicPortCryptoutil,
+		"bind-private-protocol":                             cryptoutilSharedMagic.DefaultPrivateProtocolCryptoutil,
+		"bind-private-address":                              cryptoutilSharedMagic.DefaultPrivateAddressCryptoutil,
+		"bind-private-port":                                 cryptoutilSharedMagic.DefaultPrivatePortCryptoutil,
+		"database-container":                                cryptoutilSharedMagic.DefaultDatabaseContainerDisabled,
 		"database-url":                                      "sqlite://file::memory:?cache=shared",
 		"csrf-token-cookie-secure":                          false,
 		"otlp":                                              false,
@@ -115,13 +89,13 @@ var profiles = map[string]map[string]any{
 	cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault: {
 		"log-level": "DEBUG",
 		cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault: cryptoutilSharedMagic.DefaultDevMode,
-		"bind-public-protocol":                              defaultBindPrivateProtocol,
-		"bind-public-address":                               defaultBindPublicAddress,
-		"bind-public-port":                                  defaultBindPublicPort,
-		"bind-private-protocol":                             defaultBindPrivateProtocol,
-		"bind-private-address":                              defaultBindPrivateAddress,
-		"bind-private-port":                                 defaultBindPrivatePort,
-		"database-container":                                defaultDatabaseContainer,
+		"bind-public-protocol":                              cryptoutilSharedMagic.DefaultPrivateProtocolCryptoutil,
+		"bind-public-address":                               cryptoutilSharedMagic.DefaultPublicAddressCryptoutil,
+		"bind-public-port":                                  cryptoutilSharedMagic.DefaultPublicPortCryptoutil,
+		"bind-private-protocol":                             cryptoutilSharedMagic.DefaultPrivateProtocolCryptoutil,
+		"bind-private-address":                              cryptoutilSharedMagic.DefaultPrivateAddressCryptoutil,
+		"bind-private-port":                                 cryptoutilSharedMagic.DefaultPrivatePortCryptoutil,
+		"database-container":                                cryptoutilSharedMagic.DefaultDatabaseContainerDisabled,
 		"database-url":                                      "sqlite://file::memory:?cache=shared",
 		"csrf-token-cookie-secure":                          false,
 		"otlp":                                              false,
@@ -131,13 +105,13 @@ var profiles = map[string]map[string]any{
 	"stg": {
 		"log-level": cryptoutilSharedMagic.DefaultLogLevelInfo,
 		cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault: false,
-		"bind-public-protocol":                              defaultBindPrivateProtocol,
+		"bind-public-protocol":                              cryptoutilSharedMagic.DefaultPrivateProtocolCryptoutil,
 		"bind-public-address":                               cryptoutilSharedMagic.IPv4AnyAddress,
-		"bind-public-port":                                  defaultBindPublicPort,
-		"bind-private-protocol":                             defaultBindPrivateProtocol,
-		"bind-private-address":                              defaultBindPrivateAddress,
-		"bind-private-port":                                 defaultBindPrivatePort,
-		"database-container":                                defaultDatabaseContainer,
+		"bind-public-port":                                  cryptoutilSharedMagic.DefaultPublicPortCryptoutil,
+		"bind-private-protocol":                             cryptoutilSharedMagic.DefaultPrivateProtocolCryptoutil,
+		"bind-private-address":                              cryptoutilSharedMagic.DefaultPrivateAddressCryptoutil,
+		"bind-private-port":                                 cryptoutilSharedMagic.DefaultPrivatePortCryptoutil,
+		"database-container":                                cryptoutilSharedMagic.DefaultDatabaseContainerDisabled,
 		"csrf-token-cookie-secure":                          true,
 		"otlp":                                              true,
 		"otlp-console":                                      false,
@@ -146,14 +120,14 @@ var profiles = map[string]map[string]any{
 	"prod": {
 		"log-level": "WARN",
 		cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault: false,
-		"bind-public-protocol":                              defaultBindPublicProtocol,
+		"bind-public-protocol":                              cryptoutilSharedMagic.DefaultPublicProtocolCryptoutil,
 		"bind-public-address":                               cryptoutilSharedMagic.IPv4AnyAddress,
-		"bind-public-port":                                  defaultBindPublicPort,
-		"bind-private-protocol":                             defaultBindPrivateProtocol,
-		"bind-private-address":                              defaultBindPrivateAddress,
-		"bind-private-port":                                 defaultBindPrivatePort,
-		"database-container":                                defaultDatabaseContainer,
-		"rate-limit":                                        defaultBrowserIPRateLimit,
+		"bind-public-port":                                  cryptoutilSharedMagic.DefaultPublicPortCryptoutil,
+		"bind-private-protocol":                             cryptoutilSharedMagic.DefaultPrivateProtocolCryptoutil,
+		"bind-private-address":                              cryptoutilSharedMagic.DefaultPrivateAddressCryptoutil,
+		"bind-private-port":                                 cryptoutilSharedMagic.DefaultPrivatePortCryptoutil,
+		"database-container":                                cryptoutilSharedMagic.DefaultDatabaseContainerDisabled,
+		"rate-limit":                                        cryptoutilSharedMagic.DefaultPublicBrowserAPIIPRateLimit,
 		"csrf-token-cookie-secure":                          true,
 		"otlp":                                              true,
 		"otlp-console":                                      false,

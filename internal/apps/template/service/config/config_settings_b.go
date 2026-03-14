@@ -12,42 +12,42 @@ var (
 	csrfTokenCookieSecure = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "csrf-token-cookie-secure",
 		Shorthand:   "R",
-		Value:       defaultCSRFTokenCookieSecure,
+		Value:       cryptoutilSharedMagic.DefaultCSRFTokenCookieSecure,
 		Usage:       "CSRF token cookie Secure attribute",
 		Description: "CSRF Token Cookie Secure",
 	})
 	csrfTokenCookieHTTPOnly = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "csrf-token-cookie-http-only",
 		Shorthand:   "J",
-		Value:       defaultCSRFTokenCookieHTTPOnly, // False needed for Swagger UI submit CSRF workaround
+		Value:       cryptoutilSharedMagic.DefaultCSRFTokenCookieHTTPOnly, // False needed for Swagger UI submit CSRF workaround
 		Usage:       "CSRF token cookie HttpOnly attribute",
 		Description: "CSRF Token Cookie HTTPOnly",
 	})
 	csrfTokenCookieSessionOnly = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "csrf-token-cookie-session-only",
 		Shorthand:   "E",
-		Value:       defaultCSRFTokenCookieSessionOnly,
+		Value:       cryptoutilSharedMagic.DefaultCSRFTokenCookieSessionOnly,
 		Usage:       "CSRF token cookie SessionOnly attribute",
 		Description: "CSRF Token Cookie SessionOnly",
 	})
 	csrfTokenSingleUseToken = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "csrf-token-single-use-token",
 		Shorthand:   "G",
-		Value:       defaultCSRFTokenSingleUseToken,
+		Value:       cryptoutilSharedMagic.DefaultCSRFTokenSingleUseToken,
 		Usage:       "CSRF token SingleUse attribute",
 		Description: "CSRF Token SingleUseToken",
 	})
 	browserIPRateLimit = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "browser-rate-limit",
 		Shorthand:   "e",
-		Value:       defaultBrowserIPRateLimit,
+		Value:       cryptoutilSharedMagic.DefaultPublicBrowserAPIIPRateLimit,
 		Usage:       "rate limit for browser API requests per second",
 		Description: "Browser IP Rate Limit",
 	})
 	serviceIPRateLimit = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "service-rate-limit",
 		Shorthand:   "w",
-		Value:       defaultServiceIPRateLimit,
+		Value:       cryptoutilSharedMagic.DefaultPublicServiceAPIIPRateLimit,
 		Usage:       "rate limit for service API requests per second",
 		Description: "Service IP Rate Limit",
 	})
@@ -83,21 +83,21 @@ var (
 	requestBodyLimit = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "request-body-limit",
 		Shorthand:   "L",
-		Value:       defaultRequestBodyLimit,
+		Value:       cryptoutilSharedMagic.DefaultHTTPRequestBodyLimit,
 		Usage:       "Maximum request body size in bytes",
 		Description: "Request Body Limit",
 	})
 	databaseContainer = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "database-container",
 		Shorthand:   "D",
-		Value:       defaultDatabaseContainer,
+		Value:       cryptoutilSharedMagic.DefaultDatabaseContainerDisabled,
 		Usage:       "database container mode; true to use container, false to use local database",
 		Description: "Database Container",
 	})
 	databaseURL = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "database-url",
 		Shorthand:   "u",
-		Value:       defaultDatabaseURL,
+		Value:       cryptoutilSharedMagic.DefaultDatabaseURL,
 		Usage:       "database URL; start a container with:\ndocker run -d --name postgres -p 5432:5432 -e POSTGRES_USER=USR -e POSTGRES_PASSWORD=PWD -e POSTGRES_DB=DB postgres:18\n", // pragma: allowlist secret
 		Description: "Database URL",
 		Redacted:    true,
@@ -105,21 +105,21 @@ var (
 	databaseInitTotalTimeout = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "database-init-total-timeout",
 		Shorthand:   "Z",
-		Value:       defaultDatabaseInitTotalTimeout,
+		Value:       cryptoutilSharedMagic.DefaultDatabaseInitTotalTimeout,
 		Usage:       "database init total timeout",
 		Description: "Database Init Total Timeout",
 	})
 	databaseInitRetryWait = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "database-init-retry-wait",
 		Shorthand:   "W",
-		Value:       defaultDatabaseInitRetryWait,
+		Value:       cryptoutilSharedMagic.DefaultDataInitRetryWait,
 		Usage:       "database init retry wait",
 		Description: "Database Init Retry Wait",
 	})
 	serverShutdownTimeout = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "server-shutdown-timeout",
 		Shorthand:   "",
-		Value:       defaultServerShutdownTimeout,
+		Value:       cryptoutilSharedMagic.DefaultDataServerShutdownTimeout,
 		Usage:       "server shutdown timeout",
 		Description: "Server Shutdown Timeout",
 	})

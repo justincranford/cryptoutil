@@ -27,7 +27,7 @@ var (
 	logLevel = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "log-level",
 		Shorthand:   "l",
-		Value:       defaultLogLevel,
+		Value:       cryptoutilSharedMagic.DefaultLogLevelInfo,
 		Usage:       "log level: ALL, TRACE, DEBUG, CONFIG, INFO, NOTICE, WARN, ERROR, FATAL, OFF",
 		Description: "Log Level",
 	})
@@ -76,42 +76,42 @@ var (
 	bindPublicProtocol = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "bind-public-protocol",
 		Shorthand:   "t",
-		Value:       defaultBindPublicProtocol,
+		Value:       cryptoutilSharedMagic.DefaultPublicProtocolCryptoutil,
 		Usage:       "bind public protocol (http or https)",
 		Description: "Bind Public Protocol",
 	})
 	bindPublicAddress = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "bind-public-address",
 		Shorthand:   "a",
-		Value:       defaultBindPublicAddress,
+		Value:       cryptoutilSharedMagic.DefaultPublicAddressCryptoutil,
 		Usage:       "bind public address",
 		Description: "Bind Public Address",
 	})
 	bindPublicPort = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "bind-public-port",
 		Shorthand:   "p",
-		Value:       defaultBindPublicPort,
+		Value:       cryptoutilSharedMagic.DefaultPublicPortCryptoutil,
 		Usage:       "bind public port",
 		Description: "Bind Public Port",
 	})
 	bindPrivateProtocol = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "bind-private-protocol",
 		Shorthand:   "T",
-		Value:       defaultBindPrivateProtocol,
+		Value:       cryptoutilSharedMagic.DefaultPrivateProtocolCryptoutil,
 		Usage:       "bind private protocol (http or https)",
 		Description: "Bind Private Protocol",
 	})
 	bindPrivateAddress = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "bind-private-address",
 		Shorthand:   "A",
-		Value:       defaultBindPrivateAddress,
+		Value:       cryptoutilSharedMagic.DefaultPrivateAddressCryptoutil,
 		Usage:       "bind private address",
 		Description: "Bind Private Address",
 	})
 	bindPrivatePort = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "bind-private-port",
 		Shorthand:   "P",
-		Value:       defaultBindPrivatePort,
+		Value:       cryptoutilSharedMagic.DefaultPrivatePortCryptoutil,
 		Usage:       "bind private port",
 		Description: "Bind Private Port",
 	})
@@ -192,14 +192,14 @@ var (
 	publicBrowserAPIContextPath = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "browser-api-context-path",
 		Shorthand:   "c",
-		Value:       defaultPublicBrowserAPIContextPath,
+		Value:       cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
 		Usage:       "context path for Public Browser API",
 		Description: "Public Browser API Context Path",
 	})
 	publicServiceAPIContextPath = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "service-api-context-path",
 		Shorthand:   "b",
-		Value:       defaultPublicServiceAPIContextPath,
+		Value:       cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath,
 		Usage:       "context path for Public Server API",
 		Description: "Public Service API Context Path",
 	})
@@ -234,28 +234,28 @@ var (
 	corsMaxAge = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "cors-max-age",
 		Shorthand:   "x",
-		Value:       defaultCORSMaxAge,
+		Value:       cryptoutilSharedMagic.DefaultCORSMaxAge,
 		Usage:       "CORS max age in seconds",
 		Description: "CORS Max Age",
 	})
 	csrfTokenName = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "csrf-token-name",
 		Shorthand:   "N",
-		Value:       defaultCSRFTokenName,
+		Value:       cryptoutilSharedMagic.DefaultCSRFTokenName,
 		Usage:       "CSRF token name",
 		Description: "CSRF Token Name",
 	})
 	csrfTokenSameSite = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "csrf-token-same-site",
 		Shorthand:   "S",
-		Value:       defaultCSRFTokenSameSite,
+		Value:       cryptoutilSharedMagic.DefaultCSRFTokenSameSiteStrict,
 		Usage:       "CSRF token SameSite attribute",
 		Description: "CSRF Token SameSite",
 	})
 	csrfTokenMaxAge = *SetEnvAndRegisterSetting(allServiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "csrf-token-max-age",
 		Shorthand:   "M",
-		Value:       defaultCSRFTokenMaxAge,
+		Value:       cryptoutilSharedMagic.DefaultCSRFTokenMaxAge,
 		Usage:       "CSRF token max age (expiration)",
 		Description: "CSRF Token Max Age",
 	})
