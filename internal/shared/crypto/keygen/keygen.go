@@ -14,7 +14,6 @@ import (
 	rsa "crypto/rsa"
 	"errors"
 	"fmt"
-	"io"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
@@ -23,8 +22,19 @@ import (
 )
 
 var (
-	keygenRandReader      io.Reader = crand.Reader
-	keygenGenerateBytesFn           = cryptoutilSharedUtilRandom.GenerateBytes
+	// Function seams for testable error injection.
+	// Go 1.24+ stdlib RSA/ECDSA/ECDH/EdDSA functions ignore the rand io.Reader parameter;
+	// function-level seams are required to test error paths in this package.
+	keygenRSAFn   = func(bits int) (*rsa.PrivateKey, error) { return rsa.GenerateKey(crand.Reader, bits) }
+	keygenECDSAFn = func(curve elliptic.Curve) (*ecdsa.PrivateKey, error) {
+		return ecdsa.GenerateKey(curve, crand.Reader)
+	}
+	keygenECDHFn         = func(curve ecdh.Curve) (*ecdh.PrivateKey, error) { return curve.GenerateKey(crand.Reader) }
+	keygenEdDSAEd448Fn   = func() (ed448.PublicKey, ed448.PrivateKey, error) { return ed448.GenerateKey(crand.Reader) }
+	keygenEdDSAEd25519Fn = func() (ed25519.PublicKey, ed25519.PrivateKey, error) {
+		return ed25519.GenerateKey(crand.Reader)
+	}
+	keygenGenerateBytesFn = cryptoutilSharedUtilRandom.GenerateBytes
 )
 
 // KeyPair represents an asymmetric key pair with private and public keys.
@@ -73,7 +83,7 @@ func GenerateRSAKeyPairFunction(rsaBits int) func() (*KeyPair, error) {
 
 // GenerateRSAKeyPair generates an RSA key pair with the specified bit size.
 func GenerateRSAKeyPair(rsaBits int) (*KeyPair, error) {
-	privateKey, err := rsa.GenerateKey(keygenRandReader, rsaBits)
+	privateKey, err := keygenRSAFn(rsaBits)
 	if err != nil {
 		return nil, fmt.Errorf("generate RSA key pair failed: %w", err)
 	}
@@ -88,7 +98,7 @@ func GenerateECDSAKeyPairFunction(ecdsaCurve elliptic.Curve) func() (*KeyPair, e
 
 // GenerateECDSAKeyPair generates an ECDSA key pair with the specified curve.
 func GenerateECDSAKeyPair(ecdsaCurve elliptic.Curve) (*KeyPair, error) {
-	privateKey, err := ecdsa.GenerateKey(ecdsaCurve, keygenRandReader)
+	privateKey, err := keygenECDSAFn(ecdsaCurve)
 	if err != nil {
 		return nil, fmt.Errorf("generate ECDSA key pair failed: %w", err)
 	}
@@ -103,7 +113,7 @@ func GenerateECDHKeyPairFunction(ecdhCurve ecdh.Curve) func() (*KeyPair, error) 
 
 // GenerateECDHKeyPair generates an ECDH key pair with the specified curve.
 func GenerateECDHKeyPair(ecdhCurve ecdh.Curve) (*KeyPair, error) {
-	privateKey, err := ecdhCurve.GenerateKey(keygenRandReader)
+	privateKey, err := keygenECDHFn(ecdhCurve)
 	if err != nil {
 		return nil, fmt.Errorf("generate ECDH key pair failed: %w", err)
 	}
@@ -120,14 +130,14 @@ func GenerateEDDSAKeyPairFunction(edCurve string) func() (*KeyPair, error) {
 func GenerateEDDSAKeyPair(edCurve string) (*KeyPair, error) {
 	switch edCurve {
 	case EdCurveEd448:
-		publicKey, privateKey, err := ed448.GenerateKey(keygenRandReader)
+		publicKey, privateKey, err := keygenEdDSAEd448Fn()
 		if err != nil {
 			return nil, fmt.Errorf("generate Ed448 key pair failed: %w", err)
 		}
 
 		return &KeyPair{Private: privateKey, Public: publicKey}, nil
 	case EdCurveEd25519:
-		publicKey, privateKey, err := ed25519.GenerateKey(keygenRandReader)
+		publicKey, privateKey, err := keygenEdDSAEd25519Fn()
 		if err != nil {
 			return nil, fmt.Errorf("generate Ed25519 key pair failed: %w", err)
 		}
