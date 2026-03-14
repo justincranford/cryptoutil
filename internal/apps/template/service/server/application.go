@@ -19,6 +19,7 @@ package server
 
 import (
 	"context"
+	"crypto/x509"
 	"fmt"
 	"sync"
 )
@@ -292,4 +293,16 @@ func (a *Application) PublicServerBase() *PublicServerBase {
 
 	// Type assertion failed - public server is not a PublicServerBase (e.g., a mock).
 	return nil
+}
+
+// TLSRootCAPool returns the root CA certificate pool from the public server's TLS chain.
+// Used by test infrastructure to configure secure HTTP clients without InsecureSkipVerify.
+// Returns nil if the public server is not a PublicServerBase or has no TLS material.
+func (a *Application) TLSRootCAPool() *x509.CertPool {
+	base := a.PublicServerBase()
+	if base == nil {
+		return nil
+	}
+
+	return base.TLSRootCAPool()
 }

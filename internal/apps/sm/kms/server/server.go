@@ -7,6 +7,7 @@ package server
 
 import (
 	"context"
+	"crypto/x509"
 	"fmt"
 	"sync/atomic"
 
@@ -247,6 +248,15 @@ func (s *KMSServer) PublicServerActualPort() int {
 // Alias for AdminPort() — both return the same value.
 func (s *KMSServer) AdminServerActualPort() int {
 	return s.AdminPort()
+}
+
+// TLSRootCAPool returns the root CA pool for test client TLS configuration.
+func (s *KMSServer) TLSRootCAPool() *x509.CertPool {
+	if s.resources != nil && s.resources.Application != nil {
+		return s.resources.Application.TLSRootCAPool()
+	}
+
+	return nil
 }
 
 // Compile-time assertion: KMSServer must implement ServiceServer.

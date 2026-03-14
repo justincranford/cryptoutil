@@ -5,6 +5,7 @@ package server
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"net"
 	"sync"
@@ -207,4 +208,14 @@ func (s *PublicServerBase) PublicBaseURL() string {
 // App returns the underlying Fiber app for route registration.
 func (s *PublicServerBase) App() *fiber.App {
 	return s.app
+}
+
+// TLSRootCAPool returns the root CA certificate pool for this server's TLS chain.
+// Used by test infrastructure to configure secure HTTP clients without InsecureSkipVerify.
+func (s *PublicServerBase) TLSRootCAPool() *x509.CertPool {
+	if s.tlsMaterial == nil {
+		return nil
+	}
+
+	return s.tlsMaterial.RootCAPool
 }

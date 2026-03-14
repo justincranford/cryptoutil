@@ -7,6 +7,7 @@ package server
 
 import (
 	"context"
+	"crypto/x509"
 
 	"gorm.io/gorm"
 )
@@ -54,4 +55,9 @@ type ServiceServer interface {
 	// AdminServerActualPort returns the actual port the admin server is listening on.
 	// Alias for AdminPort() — both return the same value.
 	AdminServerActualPort() int
+
+	// TLSRootCAPool returns the root CA certificate pool for the server's TLS chain.
+	// Used by test infrastructure to configure secure HTTP clients without InsecureSkipVerify.
+	// Returns nil when the server has not yet started or uses a non-PublicServerBase implementation.
+	TLSRootCAPool() *x509.CertPool
 }

@@ -7,6 +7,7 @@ package server
 
 import (
 	"context"
+	"crypto/x509"
 	"fmt"
 
 	"gorm.io/gorm"
@@ -166,6 +167,11 @@ func (s *SkeletonTemplateServer) PublicServerActualPort() int {
 // Useful when configured with port 0 for dynamic allocation.
 func (s *SkeletonTemplateServer) AdminServerActualPort() int {
 	return s.app.AdminPort()
+}
+
+// TLSRootCAPool returns the root CA pool for test client TLS configuration.
+func (s *SkeletonTemplateServer) TLSRootCAPool() *x509.CertPool {
+	return s.app.TLSRootCAPool()
 }
 
 // Compile-time assertion: SkeletonTemplateServer must implement ServiceServer.

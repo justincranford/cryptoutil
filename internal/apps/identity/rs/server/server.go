@@ -5,6 +5,7 @@ package server
 
 import (
 	"context"
+	"crypto/x509"
 	"fmt"
 
 	"gorm.io/gorm"
@@ -192,6 +193,11 @@ func (s *RSServer) PublicServerActualPort() int {
 // Alias for AdminPort() — both return the same value.
 func (s *RSServer) AdminServerActualPort() int {
 	return s.app.AdminPort()
+}
+
+// TLSRootCAPool returns the root CA pool for test client TLS configuration.
+func (s *RSServer) TLSRootCAPool() *x509.CertPool {
+	return s.app.TLSRootCAPool()
 }
 
 // Compile-time assertion: RSServer must implement ServiceServer.

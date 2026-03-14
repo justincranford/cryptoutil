@@ -6,6 +6,7 @@ package server
 
 import (
 	"context"
+	"crypto/x509"
 	"fmt"
 
 	"gorm.io/gorm"
@@ -189,6 +190,11 @@ func (s *SPAServer) PublicServerActualPort() int {
 // Alias for AdminPort() — both return the same value.
 func (s *SPAServer) AdminServerActualPort() int {
 	return s.AdminPort()
+}
+
+// TLSRootCAPool returns the root CA pool for test client TLS configuration.
+func (s *SPAServer) TLSRootCAPool() *x509.CertPool {
+	return s.app.TLSRootCAPool()
 }
 
 // Compile-time assertion: SPAServer must implement ServiceServer.

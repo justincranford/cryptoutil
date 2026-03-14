@@ -5,6 +5,7 @@ package testserver_test
 
 import (
 	"context"
+	"crypto/x509"
 	"errors"
 	"fmt"
 	"sync"
@@ -107,6 +108,10 @@ func (m *mockServer) AdminServerActualPort() int {
 	defer m.mu.Unlock()
 
 	return m.adminPort
+}
+
+func (m *mockServer) TLSRootCAPool() *x509.CertPool {
+	return x509.NewCertPool()
 }
 
 func (m *mockServer) isStartCalled() bool {

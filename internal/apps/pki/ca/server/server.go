@@ -6,6 +6,7 @@ package server
 
 import (
 	"context"
+	"crypto/x509"
 	"fmt"
 
 	cryptoutilAppsPkiCaDomain "cryptoutil/internal/apps/pki/ca/domain"
@@ -124,6 +125,11 @@ func (s *PKICAServer) DB() *gorm.DB {
 // App returns the application wrapper (for tests).
 func (s *PKICAServer) App() *cryptoutilAppsTemplateServiceServer.Application {
 	return s.app
+}
+
+// TLSRootCAPool returns the root CA pool for test client TLS configuration.
+func (s *PKICAServer) TLSRootCAPool() *x509.CertPool {
+	return s.app.TLSRootCAPool()
 }
 
 // Compile-time assertion: PKICAServer must implement ServiceServer.

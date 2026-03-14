@@ -7,6 +7,7 @@ package server
 
 import (
 	"context"
+	"crypto/x509"
 	"fmt"
 
 	"gorm.io/gorm"
@@ -239,6 +240,11 @@ func (s *SmIMServer) MessageRecipientJWKRepo() *cryptoutilAppsSmImRepository.Mes
 // This extracts the base from the Application's public server.
 func (s *SmIMServer) PublicServerBase() *cryptoutilAppsTemplateServiceServer.PublicServerBase {
 	return s.app.PublicServerBase()
+}
+
+// TLSRootCAPool returns the root CA pool for test client TLS configuration.
+func (s *SmIMServer) TLSRootCAPool() *x509.CertPool {
+	return s.app.TLSRootCAPool()
 }
 
 // Compile-time assertion: SmIMServer must implement ServiceServer.
