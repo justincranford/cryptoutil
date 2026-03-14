@@ -6,23 +6,18 @@ package ca
 import (
 	"context"
 	"fmt"
-	http "net/http"
 	"os"
 	"testing"
 	"time"
 
 	cryptoutilAppsCaServer "cryptoutil/internal/apps/pki/ca/server"
 	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/pki/ca/server/config"
-	cryptoutilSharedCryptoTls "cryptoutil/internal/shared/crypto/tls"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
 )
 
 var (
 	testPkiCaService *cryptoutilAppsCaServer.PKICAServer
-	sharedHTTPClient *http.Client
-	publicBaseURL    string
-	adminBaseURL     string
 )
 
 func TestMain(m *testing.M) {
@@ -69,13 +64,6 @@ func TestMain(m *testing.M) {
 
 	// Mark server as ready.
 	testPkiCaService.SetReady(true)
-
-	// Store base URLs for tests.
-	publicBaseURL = testPkiCaService.PublicBaseURL()
-	adminBaseURL = testPkiCaService.AdminBaseURL()
-
-	// Create shared HTTP client for all tests (accepts self-signed certs).
-	sharedHTTPClient = cryptoutilSharedCryptoTls.NewClientForTest()
 
 	// Run all tests.
 	exitCode := m.Run()

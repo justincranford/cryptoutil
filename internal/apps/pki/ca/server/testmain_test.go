@@ -49,12 +49,14 @@ func TestMain(m *testing.M) {
 	// Store base URLs for tests.
 	testPublicBaseURL, testAdminBaseURL = cryptoutilAppsTemplateServiceTestingE2eHelpers.DualPortBaseURLs(testServer)
 
-	// Create HTTP client that accepts self-signed certificates.
+	// Create HTTP client using admin server's TLS root CA pool.
 	testHTTPClient = &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, //nolint:gosec // G402: Test client for self-signed certs.
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    testServer.AdminTLSRootCAPool(),
 			},
+			DisableKeepAlives: true,
 		},
 		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}
