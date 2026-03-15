@@ -6,24 +6,10 @@
 package testutil
 
 import (
-	"crypto/tls"
 	http "net/http"
 	"net/http/httptest"
 	"time"
 )
-
-// NewInsecureTLSClient creates an HTTP client that accepts self-signed certificates.
-// Used for testing HTTPS endpoints with self-signed certificates.
-func NewInsecureTLSClient(timeout time.Duration) *http.Client {
-	return &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, //nolint:gosec // G402: Tests use self-signed certs
-			},
-		},
-		Timeout: timeout,
-	}
-}
 
 // NewMockServerOK creates a test server that returns 200 OK responses.
 // Used for testing health check success cases.

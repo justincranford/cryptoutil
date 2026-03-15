@@ -157,12 +157,14 @@ func TestAdminServer_Readyz_NotReady(t *testing.T) {
 	port := server.ActualPort()
 	require.Greater(t, port, 0, "Expected dynamic port allocation")
 
-	// Create HTTPS client that accepts self-signed certs.
+	// Create HTTPS client.
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, //nolint:gosec // Test environment with self-signed certs.
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    cryptoutilAppsTemplateServiceServerTestutil.PrivateRootCAPool(),
 			},
+			DisableKeepAlives: true,
 		},
 		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}
@@ -232,12 +234,14 @@ func TestAdminServer_HealthChecks_DuringShutdown(t *testing.T) {
 	port := server.ActualPort()
 	require.Greater(t, port, 0, "Expected dynamic port allocation")
 
-	// Create HTTPS client that accepts self-signed certs.
+	// Create HTTPS client.
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, //nolint:gosec // Test environment with self-signed certs.
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    cryptoutilAppsTemplateServiceServerTestutil.PrivateRootCAPool(),
 			},
+			DisableKeepAlives: true,
 		},
 		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}
@@ -353,7 +357,11 @@ func TestAdminServer_Livez_Alive(t *testing.T) {
 	// Query livez endpoint.
 	client := &http.Client{
 		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //nolint:gosec // Self-signed cert in test.
+			TLSClientConfig: &tls.Config{
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    cryptoutilAppsTemplateServiceServerTestutil.PrivateRootCAPool(),
+			},
+			DisableKeepAlives: true,
 		},
 		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}
@@ -431,7 +439,11 @@ func TestAdminServer_Readyz_Ready(t *testing.T) {
 	// Query readyz endpoint.
 	client := &http.Client{
 		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //nolint:gosec // Self-signed cert in test.
+			TLSClientConfig: &tls.Config{
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    cryptoutilAppsTemplateServiceServerTestutil.PrivateRootCAPool(),
+			},
+			DisableKeepAlives: true,
 		},
 		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}

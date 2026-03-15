@@ -52,7 +52,11 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 	// Wait for server to be ready with health check retry.
 	client := &http.Client{
 		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //nolint:gosec // Self-signed cert in test.
+			TLSClientConfig: &tls.Config{
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    cryptoutilAppsTemplateServiceServerTestutil.PrivateRootCAPool(),
+			},
+			DisableKeepAlives: true,
 		},
 		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}
@@ -211,8 +215,10 @@ func TestAdminServer_TimeoutsConfigured(t *testing.T) {
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, //nolint:gosec // Test server uses self-signed cert.
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    cryptoutilAppsTemplateServiceServerTestutil.PrivateRootCAPool(),
 			},
+			DisableKeepAlives: true,
 		},
 		Timeout: 15 * time.Second, // Longer than server timeout to test server-side.
 	}

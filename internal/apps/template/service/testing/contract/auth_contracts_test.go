@@ -4,7 +4,6 @@
 package contract
 
 import (
-	"crypto/tls"
 	http "net/http"
 	httptest "net/http/httptest"
 	"strings"
@@ -116,12 +115,11 @@ func TestRunAuthContracts_DirectHTTPValidation(t *testing.T) {
 	protectedPath := "/service/api/v1/protected"
 	server := newAuthTestServer(t, []string{protectedPath})
 
-	client := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig:   &tls.Config{InsecureSkipVerify: true}, //nolint:gosec // test-only: mock TLS server
-			DisableKeepAlives: true,
-		},
-	}
+	client := server.Client()
+	transport, ok := client.Transport.(*http.Transport)
+	require.True(t, ok)
+
+	transport.DisableKeepAlives = true
 
 	tests := []struct {
 		name       string

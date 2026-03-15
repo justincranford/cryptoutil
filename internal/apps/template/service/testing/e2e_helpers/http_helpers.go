@@ -6,6 +6,7 @@ package e2e_helpers
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	http "net/http"
 	"testing"
 	"time"
@@ -13,33 +14,35 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// CreateInsecureHTTPClient creates an HTTP client that trusts self-signed certificates.
-// Reusable for all services using self-signed TLS certificates in tests.
-//
-// WARNING: Only use in test environments. Production code MUST validate certificates.
-func CreateInsecureHTTPClient(t *testing.T) *http.Client {
+// CreateHTTPClient creates an HTTPS client using the provided certificate pool.
+// Reusable for all services using TLS certificates in tests.
+func CreateHTTPClient(t *testing.T, certPool *x509.CertPool) *http.Client {
 	t.Helper()
 
 	return &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, //nolint:gosec // Test environment only.
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    certPool,
 			},
+			DisableKeepAlives: true,
 		},
 		Timeout: cryptoutilSharedMagic.IMDefaultTimeout, // Increased for concurrent test execution.
 	}
 }
 
-// CreateInsecureHTTPClientWithTimeout creates HTTP client with custom timeout.
+// CreateHTTPClientWithTimeout creates an HTTPS client with custom timeout.
 // Useful for tests requiring longer timeouts (e.g., race detector mode).
-func CreateInsecureHTTPClientWithTimeout(t *testing.T, timeout int64) *http.Client {
+func CreateHTTPClientWithTimeout(t *testing.T, timeout int64, certPool *x509.CertPool) *http.Client {
 	t.Helper()
 
 	return &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, //nolint:gosec // Test environment only.
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    certPool,
 			},
+			DisableKeepAlives: true,
 		},
 		Timeout: cryptoutilSharedMagic.IMDefaultTimeout * time.Duration(timeout),
 	}

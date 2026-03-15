@@ -84,11 +84,12 @@ func TestSkeletonTemplateServer_HealthEndpoints(t *testing.T) {
 		name       string
 		url        string
 		wantStatus int
+		client     *http.Client
 	}{
-		{name: "public browser health", url: fmt.Sprintf("%s/browser/api/v1/health", testPublicBaseURL), wantStatus: http.StatusOK},
-		{name: "public service health", url: fmt.Sprintf("%s/service/api/v1/health", testPublicBaseURL), wantStatus: http.StatusOK},
-		{name: "admin livez", url: fmt.Sprintf("%s/admin/api/v1/livez", testAdminBaseURL), wantStatus: http.StatusOK},
-		{name: "admin readyz", url: fmt.Sprintf("%s/admin/api/v1/readyz", testAdminBaseURL), wantStatus: http.StatusOK},
+		{name: "public browser health", url: fmt.Sprintf("%s/browser/api/v1/health", testPublicBaseURL), wantStatus: http.StatusOK, client: testPublicHTTPClient},
+		{name: "public service health", url: fmt.Sprintf("%s/service/api/v1/health", testPublicBaseURL), wantStatus: http.StatusOK, client: testPublicHTTPClient},
+		{name: "admin livez", url: fmt.Sprintf("%s/admin/api/v1/livez", testAdminBaseURL), wantStatus: http.StatusOK, client: testAdminHTTPClient},
+		{name: "admin readyz", url: fmt.Sprintf("%s/admin/api/v1/readyz", testAdminBaseURL), wantStatus: http.StatusOK, client: testAdminHTTPClient},
 	}
 
 	for _, tc := range tests {
@@ -98,7 +99,7 @@ func TestSkeletonTemplateServer_HealthEndpoints(t *testing.T) {
 			req, reqErr := http.NewRequestWithContext(context.Background(), http.MethodGet, tc.url, nil)
 			require.NoError(t, reqErr)
 
-			resp, respErr := testHTTPClient.Do(req)
+			resp, respErr := tc.client.Do(req)
 			require.NoError(t, respErr)
 
 			defer func() { require.NoError(t, resp.Body.Close()) }()

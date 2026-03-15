@@ -157,8 +157,10 @@ func TestPublicHTTPServer_ServiceHealth_Healthy(t *testing.T) {
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, //nolint:gosec // Test server uses self-signed cert.
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    cryptoutilAppsTemplateServiceServerTestutil.PublicRootCAPool(),
 			},
+			DisableKeepAlives: true,
 		},
 		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}
@@ -221,8 +223,10 @@ func TestPublicHTTPServer_BrowserHealth_Healthy(t *testing.T) {
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, //nolint:gosec // Test server uses self-signed cert.
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    cryptoutilAppsTemplateServiceServerTestutil.PublicRootCAPool(),
 			},
+			DisableKeepAlives: true,
 		},
 		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}

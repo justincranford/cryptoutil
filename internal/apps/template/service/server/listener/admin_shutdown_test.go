@@ -53,7 +53,11 @@ func TestAdminServer_Shutdown_Endpoint(t *testing.T) {
 	// Trigger shutdown via HTTP endpoint.
 	client := &http.Client{
 		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //nolint:gosec // Self-signed cert in test.
+			TLSClientConfig: &tls.Config{
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    cryptoutilAppsTemplateServiceServerTestutil.PrivateRootCAPool(),
+			},
+			DisableKeepAlives: true,
 		},
 		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}

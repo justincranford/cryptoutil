@@ -19,11 +19,12 @@ import (
 )
 
 var (
-	testServer        *SkeletonTemplateServer
-	testHTTPClient    *http.Client
-	testHealthClient  *cryptoutilTestingHealthclient.HealthClient
-	testPublicBaseURL string
-	testAdminBaseURL  string
+	testServer             *SkeletonTemplateServer
+	testPublicHTTPClient   *http.Client
+	testAdminHTTPClient    *http.Client
+	testHealthClient       *cryptoutilTestingHealthclient.HealthClient
+	testPublicBaseURL      string
+	testAdminBaseURL       string
 )
 
 func TestMain(m *testing.M) {
@@ -52,12 +53,25 @@ func TestMain(m *testing.M) {
 	testPublicBaseURL, testAdminBaseURL = cryptoutilAppsTemplateServiceTestingE2eHelpers.DualPortBaseURLs(testServer)
 	testHealthClient = cryptoutilTestingHealthclient.NewHealthClient(testPublicBaseURL, testAdminBaseURL)
 
-	// Create HTTP client that accepts self-signed certificates.
-	testHTTPClient = &http.Client{
+	// Create public and admin HTTPS clients.
+	testPublicHTTPClient = &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, //nolint:gosec // G402: Test client for self-signed certs.
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    testServer.TLSRootCAPool(),
 			},
+			DisableKeepAlives: true,
+		},
+		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
+	}
+
+	testAdminHTTPClient = &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    testServer.AdminTLSRootCAPool(),
+			},
+			DisableKeepAlives: true,
 		},
 		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 	}

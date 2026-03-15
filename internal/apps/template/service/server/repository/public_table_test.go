@@ -105,12 +105,12 @@ func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 				client := &http.Client{
 					Transport: &http.Transport{
 						TLSClientConfig: &tls.Config{
-							InsecureSkipVerify: true, //nolint:gosec // Test uses self-signed cert.
+							MinVersion: tls.VersionTLS13,
+							RootCAs:    cryptoutilAppsTemplateServiceServerTestutil.PublicRootCAPool(),
 						},
+						DisableKeepAlives: true,
 					},
-					Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 				}
-
 				url := fmt.Sprintf("https://%s:%d/service/api/v1/health", cryptoutilSharedMagic.IPv4Loopback, port)
 				req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 				require.NoError(t, err)
@@ -163,12 +163,12 @@ func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 				client := &http.Client{
 					Transport: &http.Transport{
 						TLSClientConfig: &tls.Config{
-							InsecureSkipVerify: true, //nolint:gosec // Test uses self-signed cert.
+							MinVersion: tls.VersionTLS13,
+							RootCAs:    cryptoutilAppsTemplateServiceServerTestutil.PublicRootCAPool(),
 						},
+						DisableKeepAlives: true,
 					},
-					Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 				}
-
 				url := fmt.Sprintf("https://%s:%d/browser/api/v1/health", cryptoutilSharedMagic.IPv4Loopback, port)
 				req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 				require.NoError(t, err)
