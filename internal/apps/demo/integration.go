@@ -9,6 +9,7 @@ package demo
 
 import (
 	"context"
+	"crypto/tls"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	http "net/http"
@@ -19,7 +20,7 @@ import (
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
 	cryptoutilIdentityServer "cryptoutil/internal/apps/identity/server"
-	cryptoutilServerApplication "cryptoutil/internal/apps/sm/kms/server/application"
+	cryptoutilKmsServer "cryptoutil/internal/apps/sm/kms/server"
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
 )
@@ -78,8 +79,7 @@ type integrationServers struct {
 	identityRepo    *cryptoutilIdentityRepository.RepositoryFactory
 	identityCancel  context.CancelFunc
 	identityBaseURL string
-	kmsServer       *cryptoutilServerApplication.ServerApplicationListener
-	kmsSettings     *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
+	kmsServer       *cryptoutilKmsServer.KMSServer
 	kmsBaseURL      string
 }
 
@@ -390,33 +390,38 @@ func startIntegrationKMSServer(ctx context.Context, servers *integrationServers)
 		return fmt.Errorf("failed to parse KMS config: %w", err)
 	}
 
-	// Start KMS server.
-	server, err := cryptoutilServerApplication.StartServerListenerApplication(settings)
+	server, err := cryptoutilKmsServer.NewKMSServer(ctx, settings)
 	if err != nil {
-		return fmt.Errorf("failed to start KMS server: %w", err)
+		return fmt.Errorf("failed to create KMS server: %w", err)
+	}
+
+	adminClient := &http.Client{
+		Timeout: integrationHTTPTimeout,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{MinVersion: tls.VersionTLS13, RootCAs: server.AdminTLSRootCAPool()},
+		},
 	}
 
 	// Start server in background.
-	go server.StartFunction()
+	go func() { _ = server.Start(ctx) }()
 
-	// Poll for KMS server readiness instead of sleeping.
+	// Poll for ports to bind.
 	if err := cryptoutilSharedUtilPoll.Until(ctx, integrationHealthTimeout, integrationHealthInterval, func(_ context.Context) (bool, error) {
-		return isKMSHealthy(settings), nil
+		return server.PublicPort() > 0 && server.AdminPort() > 0, nil
+	}); err != nil {
+		return fmt.Errorf("KMS server ports did not bind: %w", err)
+	}
+
+	// Poll for KMS server readiness.
+	if err := cryptoutilSharedUtilPoll.Until(ctx, integrationHealthTimeout, integrationHealthInterval, func(pollCtx context.Context) (bool, error) {
+		return isKMSHealthy(pollCtx, adminClient, server.AdminBaseURL()), nil
 	}); err != nil {
 		return fmt.Errorf("KMS server failed to become ready: %w", err)
 	}
 
-	// Update settings with actual ports.
-	settings.BindPublicPort = server.ActualPublicPort
-	settings.BindPrivatePort = server.ActualPrivatePort
-
-	// Build base URL with actual port.
-	baseURL := fmt.Sprintf("https://%s:%d", settings.BindPublicAddress, server.ActualPublicPort)
-
 	// Store server references.
 	servers.kmsServer = server
-	servers.kmsSettings = settings
-	servers.kmsBaseURL = baseURL
+	servers.kmsBaseURL = server.PublicBaseURL()
 
 	return nil
 }
@@ -429,7 +434,10 @@ func stopIntegrationServers(servers *integrationServers) {
 
 	// Stop KMS server.
 	if servers.kmsServer != nil {
-		servers.kmsServer.ShutdownFunction()
+		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultServerShutdownTimeout)
+		defer shutdownCancel()
+
+		_ = servers.kmsServer.Shutdown(shutdownCtx)
 	}
 
 	// Stop Identity server.

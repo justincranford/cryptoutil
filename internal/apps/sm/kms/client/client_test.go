@@ -19,8 +19,9 @@ import (
 	"testing"
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
-	cryptoutilServerApplication "cryptoutil/internal/apps/sm/kms/server/application"
+	cryptoutilKmsServer "cryptoutil/internal/apps/sm/kms/server"
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceTestingE2eHelpers "cryptoutil/internal/apps/template/service/testing/e2e_helpers"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
@@ -41,26 +42,24 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	var err error
+	ctx := context.Background()
 
-	var startServerListenerApplication *cryptoutilServerApplication.ServerApplicationListener
-
-	startServerListenerApplication, err = cryptoutilServerApplication.StartServerListenerApplication(testSettings)
+	testServer, err := cryptoutilKmsServer.NewKMSServer(ctx, testSettings)
 	if err != nil {
-		log.Fatalf("failed to start server application: %v", err)
+		log.Fatalf("failed to create server: %v", err)
 	}
 
-	go startServerListenerApplication.StartFunction()
+	cryptoutilAppsTemplateServiceTestingE2eHelpers.MustStartAndWaitForDualPorts(testServer, func() error {
+		return testServer.Start(ctx)
+	})
 
-	defer startServerListenerApplication.ShutdownFunction()
+	defer func() {
+		_ = testServer.Shutdown(ctx)
+	}()
 
-	// Build URLs using actual port bindings
-	testServerPublicURL = testSettings.BindPublicProtocol + "://" + testSettings.BindPublicAddress + ":" + strconv.Itoa(int(startServerListenerApplication.ActualPublicPort))
-	testServerPrivateURL = testSettings.BindPrivateProtocol + "://" + testSettings.BindPrivateAddress + ":" + strconv.Itoa(int(startServerListenerApplication.ActualPrivatePort))
-
-	// Store the root CA pool for use in tests - use public server's pool since tests connect to public API
-	testRootCAsPool = startServerListenerApplication.PublicTLSServer.RootCAsPool
-	WaitUntilReady(&testServerPrivateURL, cryptoutilSharedMagic.TimeoutTestServerReady, cryptoutilSharedMagic.TimeoutTestServerReadyRetryDelay, startServerListenerApplication.PrivateTLSServer.RootCAsPool)
+	testServerPublicURL = testServer.PublicBaseURL()
+	testServerPrivateURL = testServer.AdminBaseURL()
+	testRootCAsPool = testServer.TLSRootCAPool()
 
 	os.Exit(m.Run())
 }

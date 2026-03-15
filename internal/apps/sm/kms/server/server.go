@@ -14,9 +14,11 @@ import (
 	"gorm.io/gorm"
 
 	cryptoutilKmsServer "cryptoutil/api/kms/server"
-	cryptoutilServerApplication "cryptoutil/internal/apps/sm/kms/server/application"
+	cryptoutilKmsServerBusinesslogic "cryptoutil/internal/apps/sm/kms/server/businesslogic"
+	cryptoutilKmsServerDemo "cryptoutil/internal/apps/sm/kms/server/demo"
 	cryptoutilKmsServerHandler "cryptoutil/internal/apps/sm/kms/server/handler"
 	cryptoutilAppsSmKmsServerRepository "cryptoutil/internal/apps/sm/kms/server/repository"
+	cryptoutilOrmRepository "cryptoutil/internal/apps/sm/kms/server/repository/orm"
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
@@ -31,13 +33,11 @@ import (
 type KMSServer struct {
 	settings  *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 	resources *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources
-	kmsCore   *cryptoutilServerApplication.ServerApplicationCore
 	ready     atomic.Bool
 }
 
 // NewKMSServer creates a new KMS server using the template's ServerBuilder.
-// KMS now uses the template's GORM database and barrier infrastructure.
-// TODO: Migrate SQLRepository to template's ORM pattern for complete unification.
+// All KMS-specific services (OrmRepository, BusinessLogicService) are created inside the RouteRegistration callback using builder-provided resources.
 func NewKMSServer(
 	ctx context.Context,
 	settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings,
@@ -50,43 +50,51 @@ func NewKMSServer(
 		return nil, fmt.Errorf("settings cannot be nil")
 	}
 
-	// Initialize KMS-specific services BEFORE building the server.
-	// TODO(Phase2-5): Replace with template's GORM database and barrier.
-	kmsCore, err := cryptoutilServerApplication.StartServerApplicationCore(ctx, settings)
-	if err != nil {
-		return nil, fmt.Errorf("failed to start KMS application core: %w", err)
-	}
-
 	resources, err := cryptoutilAppsTemplateServiceServerBuilder.Build(ctx, settings, &cryptoutilAppsTemplateServiceServerBuilder.DomainConfig{
 		MigrationsFS:   cryptoutilAppsSmKmsServerRepository.MigrationsFS,
 		MigrationsPath: "migrations",
-		RouteRegistration: func(publicServerBase *cryptoutilAppsTemplateServiceServer.PublicServerBase, _ *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources) error {
-			return registerKMSRoutes(publicServerBase.App(), kmsCore, settings)
+		RouteRegistration: func(publicServerBase *cryptoutilAppsTemplateServiceServer.PublicServerBase, res *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources) error {
+			ormRepo, err := cryptoutilOrmRepository.NewOrmRepository(ctx, res.TelemetryService, res.DB, res.JWKGenService, settings.VerboseMode)
+			if err != nil {
+				return fmt.Errorf("failed to create orm repository: %w", err)
+			}
+
+			bizLogicService, err := cryptoutilKmsServerBusinesslogic.NewBusinessLogicService(ctx, res.TelemetryService, res.JWKGenService, ormRepo, res.BarrierService)
+			if err != nil {
+				return fmt.Errorf("failed to create business logic service: %w", err)
+			}
+
+			if settings.DemoMode {
+				if err := cryptoutilKmsServerDemo.SeedDemoData(ctx, res.TelemetryService, bizLogicService); err != nil {
+					return fmt.Errorf("failed to seed demo data: %w", err)
+				}
+			} else if settings.ResetDemoMode {
+				if err := cryptoutilKmsServerDemo.ResetDemoData(ctx, res.TelemetryService, bizLogicService); err != nil {
+					return fmt.Errorf("failed to reset demo data: %w", err)
+				}
+			}
+
+			return registerKMSRoutes(publicServerBase.App(), bizLogicService, settings)
 		},
 	})
 	if err != nil {
-		kmsCore.Shutdown()
-
 		return nil, fmt.Errorf("failed to build KMS server: %w", err)
 	}
 
-	server := &KMSServer{
+	return &KMSServer{
 		settings:  settings,
 		resources: resources,
-		kmsCore:   kmsCore,
-	}
-
-	return server, nil
+	}, nil
 }
 
 // registerKMSRoutes registers KMS-specific routes on the public Fiber app.
 func registerKMSRoutes(
 	app *fiber.App,
-	kmsCore *cryptoutilServerApplication.ServerApplicationCore,
+	bizLogicService *cryptoutilKmsServerBusinesslogic.BusinessLogicService,
 	settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings,
 ) error {
 	// Create the OpenAPI strict server handler.
-	openapiStrictServer := cryptoutilKmsServerHandler.NewOpenapiStrictServer(kmsCore.BusinessLogicService)
+	openapiStrictServer := cryptoutilKmsServerHandler.NewOpenapiStrictServer(bizLogicService)
 	openapiStrictHandler := cryptoutilKmsServer.NewStrictHandler(openapiStrictServer, nil)
 
 	// Configure browser API options.
@@ -125,11 +133,6 @@ func (s *KMSServer) Start(ctx context.Context) error {
 // Shutdown gracefully shuts down the KMS server.
 func (s *KMSServer) Shutdown(ctx context.Context) error {
 	s.ready.Store(false)
-
-	// Shutdown KMS-specific services.
-	if s.kmsCore != nil {
-		s.kmsCore.Shutdown()
-	}
 
 	// Shutdown server infrastructure.
 	if s.resources != nil {
@@ -193,11 +196,6 @@ func (s *KMSServer) AdminBaseURL() string {
 // Resources returns the service resources from ServerBuilder.
 func (s *KMSServer) Resources() *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources {
 	return s.resources
-}
-
-// KMSCore returns the KMS application core.
-func (s *KMSServer) KMSCore() *cryptoutilServerApplication.ServerApplicationCore {
-	return s.kmsCore
 }
 
 // Settings returns the server settings.

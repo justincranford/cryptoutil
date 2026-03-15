@@ -8,7 +8,7 @@ import (
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-	cryptoutilServerApplication "cryptoutil/internal/apps/sm/kms/server/application"
+	cryptoutilKmsServerBusinesslogic "cryptoutil/internal/apps/sm/kms/server/businesslogic"
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilAppsTemplateServiceServerBuilder "cryptoutil/internal/apps/template/service/server/builder"
@@ -119,12 +119,6 @@ func TestKMSServer_ShutdownNilFields(t *testing.T) {
 			name:   "all nil fields",
 			server: &KMSServer{},
 		},
-		{
-			name: "nil kmsCore only",
-			server: &KMSServer{
-				kmsCore: nil,
-			},
-		},
 	}
 
 	for _, tc := range tests {
@@ -162,7 +156,7 @@ func TestKMSServer_Accessors(t *testing.T) {
 			require.Empty(t, tc.server.PublicBaseURL())
 			require.Empty(t, tc.server.AdminBaseURL())
 			require.Nil(t, tc.server.Resources())
-			require.Nil(t, tc.server.KMSCore())
+
 			require.Nil(t, tc.server.Settings())
 		})
 	}
@@ -267,9 +261,8 @@ func TestRegisterKMSRoutes(t *testing.T) {
 			t.Parallel()
 
 			app := fiber.New(fiber.Config{DisableStartupMessage: true})
-			kmsCore := &cryptoutilServerApplication.ServerApplicationCore{}
 
-			err := registerKMSRoutes(app, kmsCore, tc.settings)
+				err := registerKMSRoutes(app, (*cryptoutilKmsServerBusinesslogic.BusinessLogicService)(nil), tc.settings)
 			require.NoError(t, err)
 
 			// Verify routes were registered (Fiber's route stack should be non-empty).

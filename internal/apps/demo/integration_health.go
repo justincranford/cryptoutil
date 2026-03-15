@@ -9,6 +9,7 @@ package demo
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/base64"
 	json "encoding/json"
 	"fmt"
@@ -18,7 +19,6 @@ import (
 	"strings"
 	"time"
 
-	cryptoutilServerApplication "cryptoutil/internal/apps/sm/kms/server/application"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
 )
@@ -36,8 +36,17 @@ func waitForIntegrationHealth(ctx context.Context, servers *integrationServers, 
 	}
 
 	// Wait for KMS server health.
-	if err := cryptoutilSharedUtilPoll.Until(ctx, timeout, integrationHealthInterval, func(_ context.Context) (bool, error) {
-		return isKMSHealthy(servers.kmsSettings), nil
+	kmsAdminClient := &http.Client{
+		Timeout: integrationHTTPTimeout,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{MinVersion: tls.VersionTLS13, RootCAs: servers.kmsServer.AdminTLSRootCAPool()},
+		},
+	}
+
+	kmsAdminBase := servers.kmsServer.AdminBaseURL()
+
+	if err := cryptoutilSharedUtilPoll.Until(ctx, timeout, integrationHealthInterval, func(pollCtx context.Context) (bool, error) {
+		return isKMSHealthy(pollCtx, kmsAdminClient, kmsAdminBase), nil
 	}); err != nil {
 		return fmt.Errorf("kms health check failed: %w", err)
 	}
@@ -165,17 +174,24 @@ func validateIntegrationToken(accessToken string, progress *ProgressDisplay) err
 }
 
 // performAuthenticatedKMSOperation performs an authenticated operation against KMS.
-func performAuthenticatedKMSOperation(_ context.Context, servers *integrationServers, accessToken string, progress *ProgressDisplay) error {
+func performAuthenticatedKMSOperation(ctx context.Context, servers *integrationServers, accessToken string, progress *ProgressDisplay) error {
 	// Use the KMS health endpoint as a simple authenticated operation test.
 	// In a full implementation, this would perform actual KMS operations.
-	_, err := cryptoutilServerApplication.SendServerListenerLivenessCheck(servers.kmsSettings)
-	if err != nil {
-		return fmt.Errorf("KMS liveness check failed: %w", err)
+	kmsAdminClient := &http.Client{
+		Timeout: integrationHTTPTimeout,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{MinVersion: tls.VersionTLS13, RootCAs: servers.kmsServer.AdminTLSRootCAPool()},
+		},
 	}
 
-	_, err = cryptoutilServerApplication.SendServerListenerReadinessCheck(servers.kmsSettings)
-	if err != nil {
-		return fmt.Errorf("KMS readiness check failed: %w", err)
+	adminBase := servers.kmsServer.AdminBaseURL()
+
+	if !isHTTPHealthy(ctx, kmsAdminClient, adminBase+"/admin/api/v1/livez") {
+		return fmt.Errorf("KMS liveness check failed")
+	}
+
+	if !isHTTPHealthy(ctx, kmsAdminClient, adminBase+"/admin/api/v1/readyz") {
+		return fmt.Errorf("KMS readiness check failed")
 	}
 
 	progress.Debug("KMS operations verified:")

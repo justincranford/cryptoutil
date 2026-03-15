@@ -7,10 +7,12 @@ package demo
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
+	http "net/http"
 	"time"
 
-	cryptoutilServerApplication "cryptoutil/internal/apps/sm/kms/server/application"
+	cryptoutilKmsServer "cryptoutil/internal/apps/sm/kms/server"
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
@@ -25,6 +27,9 @@ const (
 	kmsPreDemoSteps    = 3
 	kmsRemainingHealth = 1
 	kmsRemainingOps    = 0
+
+	// kmsAdminHTTPTimeout is the HTTP client timeout for KMS admin health checks.
+	kmsAdminHTTPTimeout = 10 * time.Second
 )
 
 // runKMSDemo executes the KMS demo.
@@ -77,19 +82,19 @@ func runKMSDemo(ctx context.Context, config *Config) int {
 
 	defer func() {
 		progress.Debug("Shutting down KMS server")
-		server.ShutdownFunction()
+
+		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultServerShutdownTimeout)
+		defer shutdownCancel()
+
+		_ = server.Shutdown(shutdownCtx)
 	}()
 
 	progress.CompleteStep("Started KMS server")
 
-	// Update settings with actual dynamic ports assigned by OS.
-	settings.BindPublicPort = server.ActualPublicPort
-	settings.BindPrivatePort = server.ActualPrivatePort
-
 	// Step 3: Wait for health checks.
 	progress.StartStep("Waiting for health checks")
 
-	if err := waitForKMSHealth(ctx, settings, config.HealthTimeout); err != nil {
+	if err := waitForKMSHealth(ctx, server, config.HealthTimeout); err != nil {
 		progress.FailStep("Health checks", err)
 		errors.Add("health", "health checks failed", err)
 
@@ -107,7 +112,7 @@ func runKMSDemo(ctx context.Context, config *Config) int {
 	// Step 4: Demonstrate operations.
 	progress.StartStep("Demonstrating KMS operations")
 
-	if err := demonstrateKMSOperations(ctx, settings, progress); err != nil {
+	if err := demonstrateKMSOperations(ctx, progress); err != nil {
 		progress.FailStep("KMS operations", err)
 		errors.Add("operations", "failed to demonstrate KMS operations", err)
 	} else {
@@ -146,18 +151,32 @@ func parseKMSConfig() (*cryptoutilAppsTemplateServiceConfig.ServiceTemplateServe
 }
 
 // startKMSServer starts the KMS server.
-func startKMSServer(ctx context.Context, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) (*cryptoutilServerApplication.ServerApplicationListener, error) {
-	server, err := cryptoutilServerApplication.StartServerListenerApplication(settings)
+func startKMSServer(ctx context.Context, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) (*cryptoutilKmsServer.KMSServer, error) {
+	server, err := cryptoutilKmsServer.NewKMSServer(ctx, settings)
 	if err != nil {
-		return nil, fmt.Errorf("failed to start server: %w", err)
+		return nil, fmt.Errorf("failed to create server: %w", err)
+	}
+
+	adminClient := &http.Client{
+		Timeout: kmsAdminHTTPTimeout,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{MinVersion: tls.VersionTLS13, RootCAs: server.AdminTLSRootCAPool()},
+		},
 	}
 
 	// Start server in background.
-	go server.StartFunction()
+	go func() { _ = server.Start(ctx) }()
 
-	// Poll for KMS server readiness instead of sleeping.
+	// Poll for ports to bind.
 	if err := cryptoutilSharedUtilPoll.Until(ctx, cryptoutilSharedMagic.DefaultHealthCheckTimeout, cryptoutilSharedMagic.DefaultHealthCheckInterval, func(_ context.Context) (bool, error) {
-		return isKMSHealthy(settings), nil
+		return server.PublicPort() > 0 && server.AdminPort() > 0, nil
+	}); err != nil {
+		return nil, fmt.Errorf("KMS server ports did not bind: %w", err)
+	}
+
+	// Poll for KMS server readiness.
+	if err := cryptoutilSharedUtilPoll.Until(ctx, cryptoutilSharedMagic.DefaultHealthCheckTimeout, cryptoutilSharedMagic.DefaultHealthCheckInterval, func(pollCtx context.Context) (bool, error) {
+		return isKMSHealthy(pollCtx, adminClient, server.AdminBaseURL()), nil
 	}); err != nil {
 		return nil, fmt.Errorf("KMS server failed to become ready: %w", err)
 	}
@@ -166,9 +185,16 @@ func startKMSServer(ctx context.Context, settings *cryptoutilAppsTemplateService
 }
 
 // waitForKMSHealth waits for KMS health checks to pass.
-func waitForKMSHealth(ctx context.Context, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings, timeout time.Duration) error {
-	if err := cryptoutilSharedUtilPoll.Until(ctx, timeout, cryptoutilSharedMagic.DefaultHealthCheckInterval, func(_ context.Context) (bool, error) {
-		return isKMSHealthy(settings), nil
+func waitForKMSHealth(ctx context.Context, server *cryptoutilKmsServer.KMSServer, timeout time.Duration) error {
+	adminClient := &http.Client{
+		Timeout: kmsAdminHTTPTimeout,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{MinVersion: tls.VersionTLS13, RootCAs: server.AdminTLSRootCAPool()},
+		},
+	}
+
+	if err := cryptoutilSharedUtilPoll.Until(ctx, timeout, cryptoutilSharedMagic.DefaultHealthCheckInterval, func(pollCtx context.Context) (bool, error) {
+		return isKMSHealthy(pollCtx, adminClient, server.AdminBaseURL()), nil
 	}); err != nil {
 		return fmt.Errorf("kms health check failed: %w", err)
 	}
@@ -177,7 +203,7 @@ func waitForKMSHealth(ctx context.Context, settings *cryptoutilAppsTemplateServi
 }
 
 // demonstrateKMSOperations demonstrates KMS cryptographic operations.
-func demonstrateKMSOperations(_ context.Context, _ *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings, progress *ProgressDisplay) error {
+func demonstrateKMSOperations(_ context.Context, progress *ProgressDisplay) error {
 	progress.Debug("Demo mode enabled - server seeded demo keys automatically")
 	progress.Debug("Available demo keys: demo-encryption-aes256, demo-signing-rsa2048, demo-signing-ec256, demo-wrapping-aes256kw")
 

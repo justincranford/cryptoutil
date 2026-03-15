@@ -1,7 +1,7 @@
 # Tasks - Framework v3
 
-**Status**: 17 of 69 tasks complete (25%)
-**Last Updated**: 2026-03-14
+**Status**: 39 of 86 tasks complete (45%)
+**Last Updated**: 2026-03-15
 **Created**: 2026-03-08
 
 ## Quality Mandate - MANDATORY
@@ -494,13 +494,13 @@
 
 #### Task 5B.1: Extract sm-kms application layer
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: Phase 3 complete (new builder API)
 - **Description**: Separate sm-kms business logic from server startup, same pattern as jose-ja/sm-im in framework-v2
 - **Acceptance Criteria**:
-  - [ ] Application layer cleanly separated from server wiring
-  - [ ] Business logic testable without server startup
-  - [ ] All existing tests pass
+  - [x] Application layer cleanly separated from server wiring
+  - [x] Business logic testable without server startup
+  - [x] All existing tests pass
 
 #### Task 5B.2: Analyze and migrate sm-kms custom middleware
 

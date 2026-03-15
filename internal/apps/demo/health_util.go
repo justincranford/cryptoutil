@@ -7,9 +7,6 @@ package demo
 import (
 	"context"
 	http "net/http"
-
-	cryptoutilServerApplication "cryptoutil/internal/apps/sm/kms/server/application"
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 )
 
 // isHTTPHealthy checks if an HTTP health endpoint returns 200 OK.
@@ -31,16 +28,10 @@ func isHTTPHealthy(ctx context.Context, client *http.Client, healthURL string) b
 	return resp.StatusCode == http.StatusOK
 }
 
-// isKMSHealthy checks if a KMS server passes both liveness and readiness checks.
+// isKMSHealthy checks if a KMS admin endpoint passes both liveness and readiness checks.
 // Returns false when the server is not yet ready — not an error, just "not ready yet"
 // for polling purposes.
-func isKMSHealthy(settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) bool {
-	_, err := cryptoutilServerApplication.SendServerListenerLivenessCheck(settings)
-	if err != nil {
-		return false
-	}
-
-	_, err = cryptoutilServerApplication.SendServerListenerReadinessCheck(settings)
-
-	return err == nil
+func isKMSHealthy(ctx context.Context, client *http.Client, adminBaseURL string) bool {
+	return isHTTPHealthy(ctx, client, adminBaseURL+"/admin/api/v1/livez") &&
+		isHTTPHealthy(ctx, client, adminBaseURL+"/admin/api/v1/readyz")
 }
