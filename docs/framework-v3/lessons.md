@@ -204,6 +204,36 @@ o-tls-insecure-skip-verify semgrep rule includes all _test.go,_integration_test.
 
 ---
 
+## Phase 5B: sm-kms Full Application Layer Extraction (D17)
+
+### What Worked
+
+- **SQLite nested-write deadlock fix**: Moving `EncryptContentWithContext` calls OUTSIDE `WithTransaction` blocks resolved the deadlock. The barrier service opens its own read/write transaction internally, and nesting two write transactions on the same SQLite connection pool (MaxOpenConns=5) deadlocks when all connections are held by the outer ORM transaction. Solution: encrypt AFTER the ORM transaction completes, then wrap the GORM Create in a separate call.
+- **Fuzz test setup pattern**: Creating the entire `testStack` in `FuzzXxx(f *testing.F)` before `f.Fuzz()` avoids SQLite URI corruption. Running `setupTestStack(f)` inside `f.Fuzz(func(t *testing.T, ...)` causes the test name (which contains `#` from seed numbering) to corrupt the SQLite in-memory URI.
+- **setupTestStack accepts `testing.TB`**: Changing the setup helper to accept `testing.TB` instead of `*testing.T` enables both regular tests and fuzz tests to call it without code duplication.
+- **Coverage ceiling analysis**: Structural ceiling at 93.2% (all uncovered lines are DB-error paths, barrier failures, and non-Internal provider guards — none reachable without mocking). Adjusted target: 91.2% (ceiling−2%). Actual: 93.2% ✅.
+
+### Problems Discovered
+
+- **magic-usage `[literal-use]` violations in new test files**: New property tests used raw integers `{16, 64, 256, 1024}` as payload sizes, and coverage tests used literal `5` for JWE compact part count. These triggered 9 blocking `[literal-use]` violations from the magic-usage fitness linter. Fix: added `JWECompactParts = 5` to `magic_crypto.go` and `TestRandomStringLength256 = 256`, `TestRandomStringLength1024 = 1024` to `magic_testing.go`, then used those constants.
+- **Terminal output wrapping obscured missing code**: The `parts[3] = testTamperedB64` tampering line was accidentally omitted from `TestPostDecrypt_TamperedCiphertext` due to how the multi_replace tool matched context. The terminal's 80-column wrapping made adjacent lines appear combined, leading to an incorrect assumption about what the `oldString` contained. Always verify test behavior with a targeted run BEFORE committing.
+
+### Prevention Strategies
+
+- **Run targeted tests immediately after editing**: After any test file change, run the specific test (`-run TestXxx`) before committing. A fast test run would have caught the missing `parts[3]` line instantly.
+- **When adding magic constants for test values**: Follow `TestRandomStringLengthNN` naming convention in `magic_testing.go` for test-specific sizes. Add `JoseXxx` / `JWEXxx` / `JWSXxx` constants in `magic_crypto.go` for JOSE format-specific counts.
+- **SQLite + barrier pattern**: ALL operations that use `barrier.EncryptContentWithContext` or `barrier.DecryptContentWithContext` MUST be outside any ORM `WithTransaction` scope. Diagram: `ORM.Create(plainRecord) -> (outside tx) barrier.Encrypt -> ORM.Update(encryptedRecord)`.
+
+### Metrics
+
+- businesslogic coverage: 93.2% (above 91.2% ceiling target) ✅
+- middleware coverage: 100% ✅
+- New test files: 5 (property, fuzz, 3 coverage gap files)
+- Blocking magic violations resolved: 9
+- SQLite deadlock paths fixed: 3 (AddElasticKey, GenerateMaterialKeyInElasticKey, ImportMaterialKey)
+
+---
+
 ## Phase 6: lint-fitness Value Assessment
 
 *(To be filled during Phase 6 execution)*
