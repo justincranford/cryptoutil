@@ -652,56 +652,56 @@
 
 #### Task 7.1: Archive identity shared packages
 
-- **Status**: TODO
+- **Status**: ✅ DONE (commit `5600b1a52`)
 - **Dependencies**: Phases 1-5 complete
 - **Description**: Archive all shared packages under `internal/apps/identity/` to `_archived/`
 - **Acceptance Criteria**:
-  - [ ] All shared identity packages moved to `internal/apps/identity/_archived/`
-  - [ ] Build passes (broken imports expected — services replaced in Task 7.3)
+  - [x] All shared identity packages moved to `internal/apps/identity/_archived/`
+  - [x] Build passes (broken imports expected — services replaced in Task 7.3)
 
 #### Task 7.2: Archive per-service domain code
 
-- **Status**: TODO
+- **Status**: ✅ DONE (commit `5600b1a52`)
 - **Dependencies**: Task 7.1
 - **Description**: Archive domain code for authz, idp, rp, rs, spa, pki-ca
 - **Acceptance Criteria**:
-  - [ ] authz domain → `internal/apps/identity/_authz-archived/`
-  - [ ] idp domain → `internal/apps/identity/_idp-archived/`
-  - [ ] rp domain → `internal/apps/identity/_rp-archived/`
-  - [ ] rs domain → `internal/apps/identity/_rs-archived/`
-  - [ ] spa domain → `internal/apps/identity/_spa-archived/`
-  - [ ] pki-ca archive verified complete (`internal/apps/pki/_ca-archived/`)
+  - [x] authz domain → `internal/apps/identity/_authz-archived/`
+  - [x] idp domain → `internal/apps/identity/_idp-archived/`
+  - [x] rp domain → `internal/apps/identity/_rp-archived/`
+  - [x] rs domain → `internal/apps/identity/_rs-archived/`
+  - [x] spa domain → `internal/apps/identity/_spa-archived/`
+  - [x] pki-ca archive verified complete (`internal/apps/pki/_ca-archived/`)
 
 #### Task 7.3: Replace services with fresh skeletons
 
-- **Status**: TODO
+- **Status**: ✅ DONE (commit `5600b1a52`)
 - **Dependencies**: Task 7.2
 - **Description**: Replace all 6 services with fresh skeleton-template copies (builder + contract tests + health)
 - **Acceptance Criteria**:
-  - [ ] All 6 services use latest builder pattern
-  - [ ] All 6 services pass `RunContractTests`
-  - [ ] `go build ./...` clean
-  - [ ] `go test ./... -shuffle=on` passes
+  - [x] All 6 services use latest builder pattern
+  - [x] All 6 services pass `RunContractTests`
+  - [x] `go build ./...` clean
+  - [x] `go test ./... -shuffle=on` passes
 
 #### Task 7.4: Update ARCHITECTURE.md status table (D16)
 
-- **Status**: TODO
+- **Status**: ✅ DONE (commit `16bf6fca7`)
 - **Dependencies**: Task 7.3
 - **Description**: Update Section 3.2 status table: all 5 identity-* services → "⚠️ Extraction Pending 0%"
 - **Acceptance Criteria**:
-  - [ ] identity-authz/idp/rp/rs/spa marked "⚠️ Extraction Pending 0%"
-  - [ ] pki-ca status updated appropriately
+  - [x] identity-authz/idp/rp/rs/spa marked "⚠️ Extraction Pending 0%"
+  - [x] pki-ca status updated appropriately
 
 #### Task 7.5: Phase 7 validation and post-mortem
 
-- **Status**: TODO
+- **Status**: ✅ DONE
 - **Dependencies**: Tasks 7.1-7.4
 - **Description**: Full quality gate run, phase post-mortem
 - **Acceptance Criteria**:
-  - [ ] All 6 skeleton services pass contract tests
-  - [ ] All domain logic safely archived
-  - [ ] `go build ./...` and `golangci-lint run` clean
-  - [ ] lessons.md updated
+  - [x] All 6 skeleton services pass contract tests
+  - [x] All domain logic safely archived
+  - [x] `go build ./...` and `golangci-lint run` clean
+  - [x] lessons.md updated
 
 ---
 

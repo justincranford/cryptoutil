@@ -264,7 +264,34 @@ o-tls-insecure-skip-verify semgrep rule includes all _test.go,_integration_test.
 
 ## Phase 7: Domain Extraction and Fresh Skeletons (D13, D16)
 
-*(To be filled during Phase 7 execution)*
+### What Worked Well
+
+- **`_`-prefix archiving strategy**: Using `git mv` to rename directories/files to `_`-prefixed names (e.g., `identity/authz/` → `identity/_authz-archived/`) is the cleanest approach. Go build tool ignores `_`-prefixed paths completely, git preserves full history, and the code is recoverable for Phase 8.
+- **Staged build recovery**: Fix broken imports in top-level callers (`pki/ca/server/server.go`, `demo/`, etc.) AFTER archiving. Using empty `DomainConfig{}` as a placeholder allows clean compilation without domain logic.
+- **Fresh skeleton pattern**: 8-file skeleton per service (`.go`, `_usage.go`, `server/server.go`, `server/public_server.go`, `server/config/config.go`, `server/config/config_test.go`, `server/testmain_test.go`, `server/server_integration_test.go`) is sufficient for builder pattern compliance + contract tests.
+- **Demo stubs**: When a package (e.g., `demo/`) references archived services, create `_`-prefixed archived copies of the files AND a new stub file (`identity_stub.go`) with minimal implementations returning appropriate errors/messages.
+
+### What Didn't Work / Pitfalls
+
+- **`MagicShouldSkipPath` didn't exclude `_`-prefixed dirs**: The `magic-usage` linter was scanning archived directories (`_archived/`, `_ca-archived/`, etc.) and finding constant redefinition violations in non-compilable archived Go files. **Fix**: Added `_`/`.`-prefix check to `MagicShouldSkipPath` in `internal/apps/cicd/lint_go/common/common.go`. This is the correct behavior — mirrors Go's own build tool conventions.
+- **`test-presence` linter checks top-level service dirs**: The linter walks `internal/apps/` and requires every directory with `.go` files containing functions to have at least one `_test.go` file. The fresh skeleton top-level dirs (`authz/`, `idp/`, etc.) had no tests. **Fix**: Add minimal `*_cli_test.go` files testing the `--help` flag (same pattern as `pki/ca/ca_cli_test.go`).
+- **test-presence errors invisible in combined stderr**: The linter violations are embedded in the error return value (not stdout/stderr), so `go run ./cmd/cicd lint-go 2>&1` doesn't reveal the specific violations. **Workaround**: Run `go test -run TestCheck_RealWorkspace ./internal/apps/cicd/lint_go/test_presence/` — this directly invokes the real-workspace check and shows the formatted error.
+- **`internal/apps/identity/demo` needs a test file too**: Even stub packages with one function need a test file. `demo_test.go` with `TestDemo_NotYetAvailable` is sufficient.
+
+### Patterns Discovered
+
+- **Pre-commit hook failure diagnosis**: When `lint-go` fails with message "lint-go completed with 1 errors" but the error content isn't visible in terminal, the actual linter error is buried in its ErrorReturn. Use the corresponding `go test` command to expose it.
+- **`excludedPrefixes` in test_presence.go already handles `_`**: The `test_presence` linter already skips directories starting with `_` via `excludedPrefixes`. However, `MagicShouldSkipPath` (used by other linters) did NOT have this. Both need the `_`-prefix exclusion.
+- **compose/demo dirs are excluded from test-presence**: The `excludedDirs` map in `test_presence.go` includes `"compose"` but NOT `"demo"`. The `identity/demo` package needs a test file despite being a stub.
+
+### Key Metrics
+
+- 6 identity services archived + fresh skeletons installed: authz, idp, rp, rs, spa, pki-ca
+- 24 shared packages archived to `internal/apps/identity/_archived/`
+- 6 new CLI test files created (one per service top-level dir)
+- `MagicShouldSkipPath` updated with 6 new test cases covering `_`-prefix exclusion
+- `go build ./...` clean, `golangci-lint run` clean, all tests pass
+- Pre-commit hooks passing (all linters green)
 
 ---
 
