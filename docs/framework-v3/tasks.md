@@ -431,24 +431,24 @@
 
 #### Task 4.7: Remaining exemption categories
 
-- **Status**: TODO
+- **Status**: DONE (commit `832e49078`) — 122 → 95 exemptions (all remaining are legitimate)
 - **Dependencies**: Task 4.1
 - **Description**: Address SQLite in-memory (10), shared state (13), injectable function variables (16), signals (6), port reuse (5)
 - **Acceptance Criteria**:
-  - [ ] Each category evaluated
-  - [ ] Avoidable exemptions removed
-  - [ ] Target: total <100 exemptions remaining
+  - [x] Each category evaluated
+  - [x] Avoidable exemptions removed (28 removed: redundant viper.Reset() + stale NOTE comments + missing t.Parallel())
+  - [x] Target: total <100 exemptions remaining (95 remaining, all legitimate)
 
 #### Task 4.8: Phase 4 validation and post-mortem
 
-- **Status**: TODO
+- **Status**: DONE (commit below)
 - **Dependencies**: Tasks 4.2-4.7
 - **Description**: Full quality gate run
 - **Acceptance Criteria**:
-  - [ ] Total exemptions documented (target: <100)
-  - [ ] Each remaining exemption has justified comment
-  - [ ] All tests pass
-  - [ ] lessons.md updated
+  - [x] Total exemptions documented (target: <100) — 95 remaining ✅
+  - [x] Each remaining exemption has justified comment ✅
+  - [x] All tests pass ✅
+  - [x] lessons.md updated ✅
 
 ---
 
