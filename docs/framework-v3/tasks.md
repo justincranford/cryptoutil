@@ -573,15 +573,15 @@
 
 #### Task 6.4: Add test infrastructure rule linters
 
-- **Status**: TODO
+- **Status**: ✅ COMPLETE
 - **Dependencies**: None
 - **Description**: Add fitness linters detecting unit tests that start servers or DBs, and other test infrastructure anti-patterns. Also register the existing `no_local_closed_db_helper` rule in lint_fitness.go (deferred from framework-v2 Phase 1/5 — rule file exists at `internal/apps/cicd/lint_fitness/no_local_closed_db_helper/` but is NOT registered).
 - **Acceptance Criteria**:
-  - [ ] `no_local_closed_db_helper` registered in `lint_fitness.go` and passes against current codebase
-  - [ ] New sub-linter detects unit tests starting real servers
-  - [ ] New sub-linter detects unit tests starting real databases
-  - [ ] `no_local_create_closed_database` rule added (detects `createClosedDatabase`/`createClosedDBHandler` outside testdb package)
-  - [ ] Tests for the new sub-linters
+  - [x] `no_local_closed_db_helper` registered in `lint_fitness.go` and passes against current codebase
+  - [x] New sub-linter detects unit tests starting real servers
+  - [x] New sub-linter detects unit tests starting real databases
+  - [x] `no_local_create_closed_database` rule added (detects `createClosedDatabase`/`createClosedDBHandler` outside testdb package)
+  - [x] Tests for the new sub-linters
 
 #### Task 6.6: Add PostgreSQL isolation enforcement linters (D19)
 

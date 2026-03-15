@@ -50,6 +50,11 @@ func TestCheckFile_ViolationDetected(t *testing.T) {
 			wantIssues:  true,
 		},
 		{
+			name:        "createClosedDBHandler violation",
+			fileContent: "package apis\n\nfunc createClosedDBHandler(t *testing.T) *Handler {\n\treturn nil\n}\n",
+			wantIssues:  true,
+		},
+				{
 			name:        "no violation - clean file",
 			fileContent: "package repo_test\n\nfunc TestSomething(t *testing.T) {\n\tt.Parallel()\n}\n",
 			wantIssues:  false,

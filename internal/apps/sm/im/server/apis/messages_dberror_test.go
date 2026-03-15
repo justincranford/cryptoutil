@@ -23,9 +23,9 @@ import (
 	cryptoutilTestdb "cryptoutil/internal/apps/template/service/testing/testdb"
 )
 
-// createClosedDBHandler creates a MessageHandler with a closed database to trigger repository errors.
+// newBrokenMessageHandler creates a MessageHandler with a closed database to trigger repository errors.
 // The JWK generation and barrier services remain functional from TestMain.
-func createClosedDBHandler(t *testing.T) *MessageHandler {
+func newBrokenMessageHandler(t *testing.T) *MessageHandler {
 	t.Helper()
 
 	closedDB := cryptoutilTestdb.NewClosedSQLiteDB(t, func(sqlDB *sql.DB) error {
@@ -42,7 +42,7 @@ func createClosedDBHandler(t *testing.T) *MessageHandler {
 func TestHandleSendMessage_DatabaseErrors(t *testing.T) {
 	t.Parallel()
 
-	brokenHandler := createClosedDBHandler(t)
+	brokenHandler := newBrokenMessageHandler(t)
 
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
 	app.Use(testAuthMiddleware())
@@ -75,7 +75,7 @@ func TestHandleSendMessage_DatabaseErrors(t *testing.T) {
 func TestHandleReceiveMessages_DatabaseError(t *testing.T) {
 	t.Parallel()
 
-	brokenHandler := createClosedDBHandler(t)
+	brokenHandler := newBrokenMessageHandler(t)
 
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
 	app.Use(testAuthMiddleware())
@@ -154,7 +154,7 @@ func TestHandleDeleteMessage_DatabaseDeleteError(t *testing.T) {
 	require.NoError(t, testMessageRepo.Create(ctx, message))
 
 	// Create a handler with a closed DB for recipient JWK deletion step.
-	brokenHandler := createClosedDBHandler(t)
+	brokenHandler := newBrokenMessageHandler(t)
 
 	// We need the message to be found by the handler (FindByID), but the broken handler
 	// uses a closed DB, so FindByID will fail first with "not found".

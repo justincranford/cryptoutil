@@ -25,6 +25,7 @@ var bannedFunctions = []string{
 	"func createcloseddatabase(",
 	"func createcloseddb(",
 	"func createclosedservicedependencies(",
+	"func createcloseddbhandler(",
 }
 
 // Check walks all test files in "." and reports closed-DB helper violations.

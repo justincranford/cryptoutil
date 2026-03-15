@@ -85,7 +85,7 @@ Derived from plan.md, tasks.md, lessons.md, and all planning sessions.
 - ☐ 6.1 Run coverage (≥98%) and mutation (≥95%) on all 23 lint-fitness sub-linters
 - ☐ 6.2 Classify each sub-linter: real vs synthetic test content; plan conversion
 - ☐ 6.3 Update skeleton-template to use latest builder API (prerequisite for Phase 10 Task 10.4)
-- ☐ 6.4 Add test infrastructure linters: detect unit tests starting servers/DBs; register no_local_closed_db_helper; add no_local_create_closed_database rule
+- ☑ 6.4 Add test infrastructure linters: detect unit tests starting servers/DBs; register no_local_closed_db_helper; add no_local_create_closed_database rule
 - ☐ 6.6 Add PostgreSQL isolation enforcement linters (D19): block postgres.RunContainer and testdb.NewPostgresTestContainer outside E2E build tag
 - ☐ 6.7 Phase 6 validation and post-mortem
 
@@ -177,10 +177,10 @@ Derived from plan.md, tasks.md, lessons.md, and all planning sessions.
 
 ### Fitness Linter Additions Needed
 
-- ☐ no_local_closed_db_helper registered in lint_fitness.go (deferred from v2)
-- ☐ no_local_create_closed_database (detects createClosedDatabase/createClosedDBHandler outside testdb)
-- ☐ detect unit tests starting real servers
-- ☐ detect unit tests starting real databases
+- ☑ no_local_closed_db_helper registered in lint_fitness.go (deferred from v2)
+- ☑ no_local_create_closed_database (detects createClosedDatabase/createClosedDBHandler outside testdb)
+- ☑ detect unit tests starting real servers
+- ☑ detect unit tests starting real databases
 - ☐ postgres_in_unit_integration_tests: block postgres.RunContainer outside E2E tag
 - ☐ require_api_dir: enforce api/<service-name>/ structure for all 10 services + skeleton
 - ☐ openapi_gen_config_initialisms: flag gen configs duplicating canonical base-list items
