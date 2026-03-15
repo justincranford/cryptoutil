@@ -1316,6 +1316,17 @@ if session.CreatedAt.After(time.Now().UTC()) { ... }
 - Least privilege principle for all operations
 - Timeout configuration mandatory for all network operations
 
+**mTLS Deployment Strategy**:
+
+| Phase | TLS Mode | Authentication | Status |
+|-------|----------|---------------|--------|
+| 2A (current) | Unilateral TLS | Bearer token / API key over TLS 1.3+ | ✅ Complete |
+| 2C (deferred) | Mutual TLS (mTLS) | Client certificate + server certificate | ⏳ Deferred post Phase 7 |
+
+- **Current**: Server authenticates to client. Service-to-service calls use Bearer token or API key over TLS 1.3+.
+- **Future (Phase 2C)**: Both parties authenticate via client certificates (mTLS). All services require PKI-issued client certificates.
+- **Production Goal**: All internal service-to-service calls use mTLS (client certificate auth over TLS 1.3+). Revocation checked via CRLDP + OCSP (both must be checked; fail if both unreachable). See [Section 6.5](#65-pki-architecture--strategy) for PKI architecture.
+
 ### 6.4 Cryptographic Architecture
 
 #### 6.4.1 FIPS 140-3 Compliance (ALWAYS Enabled)
@@ -1583,6 +1594,43 @@ Non-Deterministic Example: {n2}nonce:aad#{R5}HKDF-HMAC-SHA256:abc123...:def456..
 **Trade-offs**: Length threshold catches most real secrets (UUIDs, tokens, hashes) while allowing short developer passwords (`admin`, `dev123`). Infrastructure deployments (Grafana, OTLP collector) are excluded since they intentionally use inline dev credentials.
 
 **Cross-References**: Implementation in [validate_secrets.go](/internal/apps/cicd/lint_deployments/validate_secrets.go). Deployment secrets management in [Section 12.6](#126-secrets-management-in-deployments).
+
+---
+
+### 6.11 TLS Certificate Configuration
+
+**Service Template uses a 3-mode auto-detect strategy** based on credentials provided at startup:
+
+| Environment | Cert Chain | TLS Key | Issuing CA Key | TLS Mode | Outcome |
+|-------------|-----------|---------|----------------|----------|---------|
+| Production | Provided | Docker Secret | Not provided | Static | Use as-is |
+| E2E Dev | Provided | Not provided | Docker Secret | Mixed | Generate + sign TLS cert |
+| Unit/Integration | Not provided | Not provided | Not provided | Auto | Auto-create all certs |
+
+#### 6.11.1 TLS Mode Taxonomy (Static / Mixed / Auto)
+
+The `GenerateTLSMaterial()` function in `internal/apps/template/service/config/tls_generator.go` selects one of three modes based on available credentials:
+
+**TLSModeStatic** (Production):
+- Provides pre-generated certificate chain + private key via Docker secrets
+- No key generation at runtime — fastest, most deterministic
+- Requires: `tls_server_cert.secret` + `tls_server_key.secret`
+
+**TLSModeMixed** (E2E Dev):
+- Provides CA certificate + CA private key; server certificate generated at startup
+- Server private key generated in-memory (not stored)
+- Requires: `tls_ca_cert.secret` + `tls_issuing_ca_key.secret`
+
+**TLSModeAuto** (Unit/Integration Tests):
+- Fully auto-generates 3-tier CA hierarchy (root → intermediate → server)
+- All keys generated in-memory; ephemeral per process start
+- Requires: no TLS secrets (any absent → Auto mode)
+
+**Detection Logic**: `StaticCertPEM + StaticKeyPEM` provided → **Static**. `MixedCACertPEM + MixedCAKeyPEM` provided → generate server cert then treat as **Static**. Nothing provided → **Auto**.
+
+#### 6.11.2 Test TLS Bundle
+
+**Unit/Integration tests MUST use Auto TLS** (no Docker secrets needed). The server auto-generates a complete ephemeral PKI chain per test run. Test HTTP clients must use `TLSRootCAPool()` / `AdminTLSRootCAPool()` from the started server to trust the ephemeral CA. See [Section 10.3.7](#1037-tls-test-bundle-pattern) for the TestMain pattern.
 
 ---
 
@@ -2689,12 +2737,16 @@ func TestMyService_ContractCompliance(t *testing.T) {
 
 ```go
 type ServiceServer interface {
-    PublicBaseURL() string // returns base URL e.g. "https://127.0.0.1:8080"
-    AdminBaseURL() string  // returns base URL e.g. "https://127.0.0.1:9090"
-    SetReady(ready bool)   // used by RunReadyzNotReadyContract
+    PublicBaseURL() string                 // base URL e.g. "https://127.0.0.1:8080"
+    AdminBaseURL() string                  // base URL e.g. "https://127.0.0.1:9090"
+    SetReady(ready bool)                   // used by RunReadyzNotReadyContract
+    TLSRootCAPool() *x509.CertPool         // public server CA pool (no InsecureSkipVerify)
+    AdminTLSRootCAPool() *x509.CertPool    // admin server CA pool (no InsecureSkipVerify)
     // ... (full interface: see internal/apps/template/service/server/contract.go)
 }
 ```
+
+**TLS Accessors**: `TLSRootCAPool()` and `AdminTLSRootCAPool()` return the root CA certificate pools for the auto-generated ephemeral TLS chains. Test infrastructure uses these to create properly-trusted HTTP clients without `InsecureSkipVerify: true`. See [Section 10.3.7](#1037-tls-test-bundle-pattern) for the full pattern.
 
 **What contracts are verified**: health endpoint liveness, readiness, dual-server isolation (public vs. admin port separation), and response format correctness.
 
@@ -2764,6 +2816,55 @@ readyzResp, err := client.Readyz()
 ```
 
 **coverage ceiling**: `testdb` (57.5%) and `e2e_infra` (37.3%) have documented ceilings due to Docker-dependent code paths unreachable in unit tests. All other packages: ≥95% production, ≥98% infrastructure.
+
+#### 10.3.7 TLS Test Bundle Pattern
+
+**Problem**: Tests starting real HTTPS servers need valid TLS certificate chains. `InsecureSkipVerify: true` is **prohibited** (gosec G402, semgrep `no-tls-insecure-skip-verify`).
+
+**Solution**: Service servers expose `TLSRootCAPool()` and `AdminTLSRootCAPool()` accessors that return the x509.CertPool for the auto-generated ephemeral TLS chain. Test infrastructure uses these pools to create properly-trusted HTTP clients.
+
+**TestMain Pattern**:
+
+```go
+// In TestMain: create service-specific HTTP clients after server starts.
+testPublicHTTPClient = &http.Client{
+    Transport: &http.Transport{
+        TLSClientConfig: &tls.Config{
+            MinVersion: tls.VersionTLS13,
+            RootCAs:    testServer.TLSRootCAPool(),       // trusts the server's CA
+        },
+        DisableKeepAlives: true, // prevents 90-second shutdown hang
+    },
+    Timeout: 5 * time.Second,
+}
+testAdminHTTPClient = &http.Client{
+    Transport: &http.Transport{
+        TLSClientConfig: &tls.Config{
+            MinVersion: tls.VersionTLS13,
+            RootCAs:    testServer.AdminTLSRootCAPool(),  // trusts the admin CA
+        },
+        DisableKeepAlives: true, // prevents 90-second shutdown hang
+    },
+    Timeout: 5 * time.Second,
+}
+```
+
+**Testutil Helpers** (shared test infrastructure for template-derived tests):
+
+```go
+import cryptoutilTestutil "cryptoutil/internal/apps/template/service/server/testutil"
+
+// Pre-configured cert pools from the shared test TLS bundle.
+publicPool := cryptoutilTestutil.PublicRootCAPool()   // public server CA
+adminPool  := cryptoutilTestutil.PrivateRootCAPool()  // admin server CA
+```
+
+**Rules** (ALL MANDATORY):
+
+- ALWAYS use `testServer.TLSRootCAPool()` / `testServer.AdminTLSRootCAPool()` for server-specific tests
+- ALWAYS use `cryptoutilTestutil.PublicRootCAPool()` / `cryptoutilTestutil.PrivateRootCAPool()` for template-derived tests
+- ALWAYS set `DisableKeepAlives: true` to prevent fasthttp 90-second shutdown hang (see [Section 10.3.4](#1034-test-http-client-patterns))
+- NEVER use `InsecureSkipVerify: true` in any test (caught by gosec G402 + semgrep `no-tls-insecure-skip-verify`)
 
 ### 10.4 E2E Testing Strategy
 
@@ -3533,6 +3634,29 @@ jose_ja_db
 
 - Naming: `{product}_{service}_user`, `{product}_{service}_db`
 - Password: `{product}-{service}-pass-{32 hex chars}`
+
+**TLS Certificate and Key Secrets** (Static/Mixed TLS modes — production and E2E):
+
+These secrets are only required in Static/Mixed TLS modes. Unit/integration tests use Auto TLS (self-generated ephemeral certificates — no secrets needed). See [Section 6.11](#611-tls-certificate-configuration) for TLS mode taxonomy.
+
+| Secret File | TLS Mode | Purpose |
+|-------------|----------|---------|
+| `tls_server_cert.secret` | Static | Pre-generated PEM server certificate |
+| `tls_server_key.secret` | Static + Mixed | PEM server private key |
+| `tls_ca_cert.secret` | Static + Mixed | PEM CA certificate chain (client verification) |
+| `tls_issuing_ca_key.secret` | Mixed | PEM CA signing key (runtime certificate generation) |
+
+```
+# tls_server_cert.secret    — PEM-encoded server certificate (Static mode)
+# tls_server_key.secret     — PEM-encoded server private key (Static/Mixed)
+# tls_ca_cert.secret        — PEM-encoded CA certificate chain (Static/Mixed)
+# tls_issuing_ca_key.secret — PEM-encoded CA issuing key (Mixed mode only)
+```
+
+**TLS Mode Detection** (automatic from provided secrets — see [Section 6.11](#611-tls-certificate-configuration)):
+- Static: Provide `tls_server_cert.secret` + `tls_server_key.secret`
+- Mixed: Provide `tls_ca_cert.secret` + `tls_issuing_ca_key.secret`
+- Auto (default): Omit all TLS secrets → self-generated ephemeral certificates
 
 ##### Secret Validation
 
