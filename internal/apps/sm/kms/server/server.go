@@ -17,16 +17,19 @@ import (
 	cryptoutilKmsServerBusinesslogic "cryptoutil/internal/apps/sm/kms/server/businesslogic"
 	cryptoutilKmsServerDemo "cryptoutil/internal/apps/sm/kms/server/demo"
 	cryptoutilKmsServerHandler "cryptoutil/internal/apps/sm/kms/server/handler"
+	cryptoutilKmsServerMiddleware "cryptoutil/internal/apps/sm/kms/server/middleware"
 	cryptoutilAppsSmKmsServerRepository "cryptoutil/internal/apps/sm/kms/server/repository"
 	cryptoutilOrmRepository "cryptoutil/internal/apps/sm/kms/server/repository/orm"
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilAppsTemplateServiceServerBuilder "cryptoutil/internal/apps/template/service/server/builder"
+	cryptoutilAppsTemplateServiceServerMiddleware "cryptoutil/internal/apps/template/service/server/middleware"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	fiber "github.com/gofiber/fiber/v2"
+	googleUuid "github.com/google/uuid"
 )
 
 // KMSServer wraps the template's ServerBuilder infrastructure with KMS-specific services.
@@ -74,7 +77,7 @@ func NewKMSServer(
 				}
 			}
 
-			return registerKMSRoutes(publicServerBase.App(), bizLogicService, settings)
+			return registerKMSRoutes(publicServerBase.App(), bizLogicService, settings, res)
 		},
 	})
 	if err != nil {
@@ -87,24 +90,63 @@ func NewKMSServer(
 	}, nil
 }
 
+// tenantContextBridgeMiddleware copies tenant/realm IDs from Fiber locals
+// (set by template SessionMiddleware) into the Go context as a RealmContext,
+// so KMS business logic can continue to use GetRealmContext(ctx).
+func tenantContextBridgeMiddleware() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		tid, ok := c.Locals(cryptoutilAppsTemplateServiceServerMiddleware.ContextKeyTenantID).(googleUuid.UUID)
+		if ok && tid != googleUuid.Nil {
+			rid, _ := c.Locals(cryptoutilAppsTemplateServiceServerMiddleware.ContextKeyRealmID).(googleUuid.UUID)
+			rc := &cryptoutilKmsServerMiddleware.RealmContext{
+				TenantID: tid,
+				RealmID:  rid,
+				Source:   "session",
+			}
+			c.SetUserContext(context.WithValue(c.UserContext(), cryptoutilKmsServerMiddleware.RealmContextKey{}, rc))
+		}
+
+		return c.Next()
+	}
+}
+
 // registerKMSRoutes registers KMS-specific routes on the public Fiber app.
 func registerKMSRoutes(
 	app *fiber.App,
 	bizLogicService *cryptoutilKmsServerBusinesslogic.BusinessLogicService,
 	settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings,
+	res *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources,
 ) error {
 	// Create the OpenAPI strict server handler.
 	openapiStrictServer := cryptoutilKmsServerHandler.NewOpenapiStrictServer(bizLogicService)
 	openapiStrictHandler := cryptoutilKmsServer.NewStrictHandler(openapiStrictServer, nil)
 
+	// Build middleware chains: session auth + tenant context bridge.
+	// When res is nil (unit tests), routes are registered without auth middleware.
+	bridgeMW := cryptoutilKmsServer.MiddlewareFunc(tenantContextBridgeMiddleware())
+
+	var (
+		browserMiddlewares []cryptoutilKmsServer.MiddlewareFunc
+		serviceMiddlewares []cryptoutilKmsServer.MiddlewareFunc
+	)
+
+	if res != nil && res.SessionManager != nil {
+		browserSessionMW := cryptoutilAppsTemplateServiceServerMiddleware.BrowserSessionMiddleware(res.SessionManager)
+		serviceSessionMW := cryptoutilAppsTemplateServiceServerMiddleware.ServiceSessionMiddleware(res.SessionManager)
+		browserMiddlewares = []cryptoutilKmsServer.MiddlewareFunc{cryptoutilKmsServer.MiddlewareFunc(browserSessionMW), bridgeMW}
+		serviceMiddlewares = []cryptoutilKmsServer.MiddlewareFunc{cryptoutilKmsServer.MiddlewareFunc(serviceSessionMW), bridgeMW}
+	}
+
 	// Configure browser API options.
 	publicBrowserFiberServerOptions := cryptoutilKmsServer.FiberServerOptions{
-		BaseURL: settings.PublicBrowserAPIContextPath,
+		BaseURL:     settings.PublicBrowserAPIContextPath,
+		Middlewares: browserMiddlewares,
 	}
 
 	// Configure service API options.
 	publicServiceFiberServerOptions := cryptoutilKmsServer.FiberServerOptions{
-		BaseURL: settings.PublicServiceAPIContextPath,
+		BaseURL:     settings.PublicServiceAPIContextPath,
+		Middlewares: serviceMiddlewares,
 	}
 
 	// Register handlers on both browser and service paths.

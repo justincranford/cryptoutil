@@ -262,7 +262,7 @@ func TestRegisterKMSRoutes(t *testing.T) {
 
 			app := fiber.New(fiber.Config{DisableStartupMessage: true})
 
-				err := registerKMSRoutes(app, (*cryptoutilKmsServerBusinesslogic.BusinessLogicService)(nil), tc.settings)
+			err := registerKMSRoutes(app, (*cryptoutilKmsServerBusinesslogic.BusinessLogicService)(nil), tc.settings, nil)
 			require.NoError(t, err)
 
 			// Verify routes were registered (Fiber's route stack should be non-empty).
