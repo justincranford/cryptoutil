@@ -312,7 +312,8 @@ func TestHealthChecks(t *testing.T) {
 			client := &http.Client{
 				Transport: &http.Transport{
 					TLSClientConfig: &tls.Config{
-						RootCAs: startServerListenerApplication.PrivateTLSServer.RootCAsPool,
+						MinVersion: tls.VersionTLS13,
+						RootCAs:    startServerListenerApplication.PrivateTLSServer.RootCAsPool,
 					},
 				},
 				Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
