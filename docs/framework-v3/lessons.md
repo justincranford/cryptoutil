@@ -95,7 +95,36 @@ o-tls-insecure-skip-verify semgrep rule includes all _test.go,_integration_test.
 
 ## Phase 3: Builder Refactoring
 
-*(To be filled during Phase 3 execution)*
+### What Worked
+
+1. **DomainConfig struct is clean** — `MigrationsFS`, `MigrationsPath`, `RouteRegistration` captures 100% of what services need; 0 services needed any additional configuration.
+2. **`Build()` convenience function** reduces every service's `NewFromConfig` to a single `Build()` call + struct literal. Each service is now ~10-15 lines, down from 20-30.
+3. **`replace_string_in_file` works when given exact tab-indented text** — semantic search returns real indentation; using those snippets directly in `replace_string_in_file` succeeds without any CRLF handling needed.
+4. **Position-based PowerShell replacement** (`IndexOf` + `Substring` + concatenation with CRLF normalization) is reliable for complex multi-line blocks and handles em-dash / UTF-8 characters that confuse regex.
+
+### What Didn't Work
+
+1. **Space-indented `oldString` in `replace_string_in_file`** — All service files use tab indentation + CRLF; providing space-indented `oldString` always fails. Must match exact file content character-for-character.
+2. **Accumulating changes in a single `replace_string_in_file` call with multiple items** — Failed silently when one array element failed (e.g., identity-rp had different `NewPublicServer` signature than authz/idp/rs). MUST read every file individually before replacing.
+3. **Assuming all identity services are identical** — identity-rp passes `res.SessionManager, res.RealmService` to `NewPublicServer`; identity-spa uses `RegisterRoutes()` (capital R). Subtle differences break bulk replacements.
+
+### Root Causes
+
+- CRLF line endings + tab indentation = `replace_string_in_file` succeeds only with exact content
+- Services evolved independently and have subtle API differences even within the same product family
+- `domain_config.go` had trailing whitespace that pre-commit `end-of-file-fixer` caught — needed a second re-add + commit
+
+### Prevention
+
+- Always read a service file before migrating it (never assume same-product services are identical)
+- When using `multi_replace_string_in_file` across multiple files, verify each file individually first; partial failures are silent
+- Pre-commit hooks auto-fix trailing whitespace and EOF — if commit aborts, re-add the modified file and retry
+
+### Pattern Discovery
+
+- **DomainConfig pattern** generalizes cleanly: `{MigrationsFS, MigrationsPath, RouteRegistration}` is the universal domain configuration API for all service types
+- **Services with no domain migrations** (identity-*) simply omit those fields — Go zero values work correctly
+- **sm-kms special case**: initializes `kmsCore` BEFORE calling `Build()` so the closure captures it; `kmsCore.Shutdown()` called in the error path before returning
 
 ---
 
