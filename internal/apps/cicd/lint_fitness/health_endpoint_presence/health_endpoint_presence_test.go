@@ -3,6 +3,7 @@
 package health_endpoint_presence
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -118,4 +119,72 @@ func TestDiscoverServices_EmptyAppsDir(t *testing.T) {
 	services, err := discoverServices(tmp)
 	require.NoError(t, err)
 	require.Empty(t, services)
+}
+
+func TestDiscoverServices_NonDirFileInAppsDir_Skipped(t *testing.T) {
+	t.Parallel()
+	tmp := t.TempDir()
+	appsDir := filepath.Join(tmp, "apps")
+	require.NoError(t, os.MkdirAll(appsDir, cryptoutilSharedMagic.DirPermissions))
+	// Create a FILE (not directory) directly in appsDir - triggers !p.IsDir() continue.
+	require.NoError(t, os.WriteFile(filepath.Join(appsDir, "README.md"), []byte("docs"), cryptoutilSharedMagic.CacheFilePermissions))
+	services, err := discoverServices(appsDir)
+	require.NoError(t, err)
+	require.Empty(t, services)
+}
+
+func TestDiscoverServices_NonDirFileInProductDir_Skipped(t *testing.T) {
+	t.Parallel()
+	tmp := t.TempDir()
+	appsDir := filepath.Join(tmp, "apps")
+	productDir := filepath.Join(appsDir, "sm")
+	require.NoError(t, os.MkdirAll(productDir, cryptoutilSharedMagic.DirPermissions))
+	// Create a FILE (not directory) in the product dir - triggers !s.IsDir() continue.
+	require.NoError(t, os.WriteFile(filepath.Join(productDir, "README.md"), []byte("docs"), cryptoutilSharedMagic.CacheFilePermissions))
+
+	services, err := discoverServices(appsDir)
+	require.NoError(t, err)
+	require.Empty(t, services)
+}
+
+func findProjectRoot() (string, error) {
+	dir, err := os.Getwd()
+	if err != nil {
+		return "", fmt.Errorf("failed to get working directory: %w", err)
+	}
+
+	for {
+		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
+			return dir, nil
+		}
+
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return "", os.ErrNotExist
+		}
+
+		dir = parent
+	}
+}
+
+// Sequential: uses os.Chdir (global process state, cannot run in parallel).
+func TestCheck_Integration(t *testing.T) {
+	root, err := findProjectRoot()
+	if err != nil {
+		t.Skip("Skipping - cannot find project root")
+	}
+
+	origDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	require.NoError(t, os.Chdir(root))
+
+	defer func() {
+		require.NoError(t, os.Chdir(origDir))
+	}()
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test-health-endpoint-presence")
+
+	err = Check(logger)
+	require.NoError(t, err)
 }

@@ -184,3 +184,83 @@ func TestCheckDir_MissingDir_ReturnsNilNoError(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, violations)
 }
+
+func TestCheckDir_WithSubdirectory_IsSkipped(t *testing.T) {
+	t.Parallel()
+	tmp := t.TempDir()
+	dir := filepath.Join(tmp, "migrations")
+	require.NoError(t, os.MkdirAll(filepath.Join(dir, "subdir"), cryptoutilSharedMagic.DirPermissions))
+	// Only the subdir is in migrations dir; subdir entries should be skipped (entry.IsDir() continue).
+	violations, err := checkDir(dir, templateMigrationMin, templateMigrationMax, true)
+	require.NoError(t, err)
+	require.Empty(t, violations)
+}
+
+func TestCheckDir_WithNonMatchingSqlFile_IsSkipped(t *testing.T) {
+	t.Parallel()
+	tmp := t.TempDir()
+	dir := filepath.Join(tmp, "migrations")
+	require.NoError(t, os.MkdirAll(dir, cryptoutilSharedMagic.DirPermissions))
+	// File like "init.sql" has no numeric prefix - matches == nil, continue.
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "init.sql"), []byte("-- migration"), cryptoutilSharedMagic.CacheFilePermissions))
+	violations, err := checkDir(dir, templateMigrationMin, templateMigrationMax, true)
+	require.NoError(t, err)
+	require.Empty(t, violations)
+}
+
+func TestFindDomainMigrationDirs_WithArchivedSubdir_Skipped(t *testing.T) {
+	t.Parallel()
+	tmp := t.TempDir()
+	// Create a _archived subdirectory under appsDir - it should be skipped via strings.HasPrefix check.
+	archived := filepath.Join(tmp, "_archived", "migrations")
+	require.NoError(t, os.MkdirAll(archived, cryptoutilSharedMagic.DirPermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(archived, "0001_invalid.up.sql"), []byte("-- bad"), cryptoutilSharedMagic.CacheFilePermissions))
+
+	appsDir := tmp
+	templateDir := filepath.Join(tmp, "template", "migrations")
+	dirs, err := findDomainMigrationDirs(appsDir, templateDir)
+	require.NoError(t, err)
+	require.Empty(t, dirs)
+}
+
+func findProjectRoot() (string, error) {
+	dir, err := os.Getwd()
+	if err != nil {
+		return "", fmt.Errorf("failed to get working directory: %w", err)
+	}
+
+	for {
+		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
+			return dir, nil
+		}
+
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return "", os.ErrNotExist
+		}
+
+		dir = parent
+	}
+}
+
+// Sequential: uses os.Chdir (global process state, cannot run in parallel).
+func TestCheck_Integration(t *testing.T) {
+	root, err := findProjectRoot()
+	if err != nil {
+		t.Skip("Skipping - cannot find project root")
+	}
+
+	origDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	require.NoError(t, os.Chdir(root))
+
+	defer func() {
+		require.NoError(t, os.Chdir(origDir))
+	}()
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test-migration-range-compliance")
+
+	err = Check(logger)
+	require.NoError(t, err)
+}

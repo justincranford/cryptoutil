@@ -217,3 +217,46 @@ func TestScanDomainFile_NonexistentFile_Error(t *testing.T) {
 	_, err := scanDomainFile("/nonexistent/file.go", "/tmp")
 	require.Error(t, err)
 }
+
+
+func findProjectRoot() (string, error) {
+	dir, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	for {
+		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
+			return dir, nil
+		}
+
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return "", os.ErrNotExist
+		}
+
+		dir = parent
+	}
+}
+
+// Sequential: uses os.Chdir (global process state, cannot run in parallel).
+func TestCheck_Integration(t *testing.T) {
+	root, err := findProjectRoot()
+	if err != nil {
+		t.Skip("Skipping - cannot find project root")
+	}
+
+	origDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	require.NoError(t, os.Chdir(root))
+
+	defer func() {
+		require.NoError(t, os.Chdir(origDir))
+	}()
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test-domain-layer-isolation")
+
+	err = Check(logger)
+	require.NoError(t, err)
+}

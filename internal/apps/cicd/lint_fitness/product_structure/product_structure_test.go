@@ -133,3 +133,25 @@ func TestCheck_FromProjectRoot(t *testing.T) {
 	err = CheckInDir(logger, root)
 	require.NoError(t, err)
 }
+
+// Sequential: uses os.Chdir (global process state, cannot run in parallel).
+func TestCheck_Integration(t *testing.T) {
+	root, err := findProjectRoot()
+	if err != nil {
+		t.Skip("Skipping - cannot find project root")
+	}
+
+	origDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	require.NoError(t, os.Chdir(root))
+
+	defer func() {
+		require.NoError(t, os.Chdir(origDir))
+	}()
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test-product-structure")
+
+	err = Check(logger)
+	require.NoError(t, err)
+}

@@ -151,10 +151,6 @@ func findDomainMigrationDirs(appsDir, templateDir string) ([]string, error) {
 		return nil, fmt.Errorf("abs template dir: %w", err)
 	}
 
-	if err != nil {
-		return nil, fmt.Errorf("abs template dir: %w", err)
-	}
-
 	absAppsDir, err := filepath.Abs(appsDir)
 	if err != nil {
 		return nil, fmt.Errorf("abs apps dir: %w", err)
