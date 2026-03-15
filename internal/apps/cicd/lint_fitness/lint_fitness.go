@@ -25,6 +25,7 @@ import (
 	lintFitnessMigrationRangeCompliance "cryptoutil/internal/apps/cicd/lint_fitness/migration_range_compliance"
 	lintFitnessNoHardcodedPasswords "cryptoutil/internal/apps/cicd/lint_fitness/no_hardcoded_passwords"
 	lintFitnessNoLocalClosedDBHelper "cryptoutil/internal/apps/cicd/lint_fitness/no_local_closed_db_helper"
+	lintFitnessNoPostgresInNonE2E "cryptoutil/internal/apps/cicd/lint_fitness/no_postgres_in_non_e2e"
 	lintFitnessNoUnitTestRealDB "cryptoutil/internal/apps/cicd/lint_fitness/no_unit_test_real_db"
 	lintFitnessNoUnitTestRealServer "cryptoutil/internal/apps/cicd/lint_fitness/no_unit_test_real_server"
 	lintFitnessNonFIPSAlgorithms "cryptoutil/internal/apps/cicd/lint_fitness/non_fips_algorithms"
@@ -74,6 +75,7 @@ var registeredLinters = []struct {
 	{"service-contract-compliance", lintFitnessServiceContractCompliance.Check},
 	{"migration-range-compliance", lintFitnessMigrationRangeCompliance.Check},
 	{"no-local-closed-db-helper", lintFitnessNoLocalClosedDBHelper.Check},
+	{"no-postgres-in-non-e2e", lintFitnessNoPostgresInNonE2E.Check},
 	{"no-unit-test-real-db", lintFitnessNoUnitTestRealDB.Check},
 	{"no-unit-test-real-server", lintFitnessNoUnitTestRealServer.Check},
 }
