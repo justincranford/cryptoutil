@@ -190,11 +190,18 @@ var magicGeneratedAPIDirs = map[string]bool{
 }
 
 // MagicShouldSkipPath returns true if the given relative path should be excluded from magic scanning.
+// This respects Go's build convention: directories and files starting with '_' are ignored by go tools.
 func MagicShouldSkipPath(path string) bool {
 	slashed := filepath.ToSlash(path)
 	parts := strings.Split(slashed, "/")
 
 	for i, part := range parts {
+		// Skip Go-convention excluded directories (start with _ or .).
+		// Matches what the Go build tool does: directories named _ or . are not compiled.
+		if strings.HasPrefix(part, "_") || strings.HasPrefix(part, ".") {
+			return true
+		}
+
 		switch part {
 		case cryptoutilSharedMagic.CICDExcludeDirVendor, magicExcludeDirTestOutput, magicExcludeDirWorkflowReports:
 			return true

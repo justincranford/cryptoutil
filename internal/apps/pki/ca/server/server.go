@@ -11,8 +11,6 @@ import (
 
 	"gorm.io/gorm"
 
-	cryptoutilAppsPkiCaDomain "cryptoutil/internal/apps/pki/ca/domain"
-	cryptoutilAppsPkiCaRepository "cryptoutil/internal/apps/pki/ca/repository"
 	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/pki/ca/server/config"
 	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
@@ -38,18 +36,7 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsCaServerConfig.PKICAS
 		return nil, fmt.Errorf("failed to create pki-ca server: %w", fmt.Errorf("config is nil"))
 	}
 
-	resources, err := cryptoutilAppsTemplateServiceServerBuilder.Build(ctx, cfg.ServiceTemplateServerSettings, &cryptoutilAppsTemplateServiceServerBuilder.DomainConfig{
-		MigrationsFS:   cryptoutilAppsPkiCaRepository.MigrationsFS,
-		MigrationsPath: "migrations",
-		RouteRegistration: func(_ *cryptoutilAppsTemplateServiceServer.PublicServerBase, res *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources) error {
-			// Auto-migrate domain models for GORM compatibility.
-			if err := res.DB.AutoMigrate(&cryptoutilAppsPkiCaDomain.CAItem{}); err != nil {
-				return fmt.Errorf("failed to auto-migrate pki-ca domain models: %w", err)
-			}
-
-			return nil
-		},
-	})
+	resources, err := cryptoutilAppsTemplateServiceServerBuilder.Build(ctx, cfg.ServiceTemplateServerSettings, &cryptoutilAppsTemplateServiceServerBuilder.DomainConfig{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to build pki-ca server: %w", err)
 	}

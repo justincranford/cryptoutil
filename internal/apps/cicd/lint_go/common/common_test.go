@@ -240,6 +240,15 @@ func TestMagicShouldSkipPath(t *testing.T) {
 		{name: "api server dir", path: "api/server/server.gen.go", expected: true},
 		{name: "normal path", path: "internal/server/handler.go", expected: false},
 		{name: "api non-generated", path: "api/custom/handler.go", expected: false},
+		// Go build convention: directories starting with _ are ignored by go tools.
+		{name: "underscore dir (top-level)", path: "_archived/file.go", expected: true},
+		{name: "underscore dir (nested)", path: "internal/apps/identity/_archived/domain/model.go", expected: true},
+		{name: "underscore dir (service archive)", path: "internal/apps/identity/_authz-archived/server.go", expected: true},
+		{name: "underscore dir (pki ca archive)", path: "internal/apps/pki/_ca-archived/domain/cert.go", expected: true},
+		// Go build convention: files starting with _ are ignored by go tools.
+		{name: "underscore file", path: "internal/apps/demo/_identity.go", expected: true},
+		// Dot-prefixed directories are also excluded.
+		{name: "dot dir", path: ".github/workflows/ci.yml", expected: true},
 	}
 
 	for _, tc := range tests {

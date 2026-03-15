@@ -1,0 +1,23 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
+package rs
+
+import (
+	"bytes"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
+
+func TestRs_MainHelp(t *testing.T) {
+	t.Parallel()
+
+	var stdout, stderr bytes.Buffer
+
+	exitCode := Rs([]string{"--help"}, nil, &stdout, &stderr)
+
+	require.Equal(t, 0, exitCode)
+	require.Contains(t, stdout.String()+stderr.String(), "identity rs")
+}
