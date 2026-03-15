@@ -2,14 +2,12 @@
 //
 //
 
-//nolint:errcheck // Test infrastructure uses os.Pipe/Close/ReadFrom without error checking
 package common
 
 import (
 	"bytes"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
-	"os"
 	"strings"
 	"testing"
 	"time"
@@ -17,30 +15,19 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Sequential: captures os.Stderr (global OS handle).
 func TestPrintExecutionSummary(t *testing.T) {
+	t.Parallel()
+
 	results := []CommandResult{
 		{Command: "test-command-1", Duration: cryptoutilSharedMagic.JoseJAMaxMaterials * time.Millisecond, Error: nil},
 		{Command: "test-command-2", Duration: 200 * time.Millisecond, Error: errors.New("test error")},
 		{Command: "test-command-3", Duration: 150 * time.Millisecond, Error: nil},
 	}
 
-	// Capture stderr
-	oldStderr := os.Stderr
-	r, w, _ := os.Pipe()
-	os.Stderr = w
-
-	PrintExecutionSummary(results, cryptoutilSharedMagic.TestDefaultRateLimitServiceIP*time.Millisecond)
-
-	if err := w.Close(); err != nil {
-		t.Logf("Warning: failed to close write pipe: %v", err)
-	}
-
-	os.Stderr = oldStderr
-
 	var buf bytes.Buffer
 
-	_, _ = buf.ReadFrom(r)
+	PrintExecutionSummary(&buf, results, cryptoutilSharedMagic.TestDefaultRateLimitServiceIP*time.Millisecond)
+
 	output := buf.String()
 
 	require.Contains(t, output, "EXECUTION SUMMARY", "Output should contain summary header")
@@ -55,84 +42,51 @@ func TestPrintExecutionSummary(t *testing.T) {
 	require.Contains(t, output, "0.50s", "Output should show total duration")
 }
 
-// Sequential: captures os.Stderr (global OS handle).
 func TestPrintExecutionSummary_AllSuccess(t *testing.T) {
+	t.Parallel()
+
 	results := []CommandResult{
 		{Command: "cmd1", Duration: cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond, Error: nil},
 		{Command: "cmd2", Duration: 75 * time.Millisecond, Error: nil},
 	}
 
-	// Capture stderr
-	oldStderr := os.Stderr
-	r, w, _ := os.Pipe()
-	os.Stderr = w
-
-	PrintExecutionSummary(results, 150*time.Millisecond)
-
-	if err := w.Close(); err != nil {
-		t.Logf("Warning: failed to close write pipe: %v", err)
-	}
-
-	os.Stderr = oldStderr
-
 	var buf bytes.Buffer
 
-	_, _ = buf.ReadFrom(r)
+	PrintExecutionSummary(&buf, results, 150*time.Millisecond)
+
 	output := buf.String()
 
 	require.Contains(t, output, "Passed: 2", "All commands should pass")
 	require.Contains(t, output, "Failed: 0", "No failed commands")
 }
 
-// Sequential: captures os.Stderr (global OS handle).
 func TestPrintExecutionSummary_AllFailure(t *testing.T) {
+	t.Parallel()
+
 	results := []CommandResult{
 		{Command: "cmd1", Duration: cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond, Error: errors.New("error1")},
 		{Command: "cmd2", Duration: 75 * time.Millisecond, Error: errors.New("error2")},
 	}
 
-	// Capture stderr
-	oldStderr := os.Stderr
-	r, w, _ := os.Pipe()
-	os.Stderr = w
-
-	PrintExecutionSummary(results, 150*time.Millisecond)
-
-	if err := w.Close(); err != nil {
-		t.Logf("Warning: failed to close write pipe: %v", err)
-	}
-
-	os.Stderr = oldStderr
-
 	var buf bytes.Buffer
 
-	_, _ = buf.ReadFrom(r)
+	PrintExecutionSummary(&buf, results, 150*time.Millisecond)
+
 	output := buf.String()
 
 	require.Contains(t, output, "Passed: 0", "No passed commands")
 	require.Contains(t, output, "Failed: 2", "All commands should fail")
 }
 
-// Sequential: captures os.Stderr (global OS handle).
 func TestPrintExecutionSummary_Empty(t *testing.T) {
+	t.Parallel()
+
 	results := []CommandResult{}
-
-	// Capture stderr
-	oldStderr := os.Stderr
-	r, w, _ := os.Pipe()
-	os.Stderr = w
-
-	PrintExecutionSummary(results, 0)
-
-	if err := w.Close(); err != nil {
-		t.Logf("Warning: failed to close write pipe: %v", err)
-	}
-
-	os.Stderr = oldStderr
 
 	var buf bytes.Buffer
 
-	_, _ = buf.ReadFrom(r)
+	PrintExecutionSummary(&buf, results, 0)
+
 	output := buf.String()
 
 	require.Contains(t, output, "Total: 0 commands", "Should handle empty results")
@@ -140,27 +94,19 @@ func TestPrintExecutionSummary_Empty(t *testing.T) {
 	require.Contains(t, output, "Failed: 0", "No failed commands")
 }
 
-// Sequential: captures os.Stderr (global OS handle).
-func TestPrintCommandSeparator(t *testing.T) { // Capture stderr
-	oldStderr := os.Stderr
-	r, w, _ := os.Pipe()
-	os.Stderr = w
-
-	PrintCommandSeparator()
-
-	if err := w.Close(); err != nil {
-		t.Logf("Warning: failed to close write pipe: %v", err)
-	}
-
-	os.Stderr = oldStderr
+func TestPrintCommandSeparator(t *testing.T) {
+	t.Parallel()
 
 	var buf bytes.Buffer
 
-	_, _ = buf.ReadFrom(r)
+	PrintCommandSeparator(&buf)
+
 	output := buf.String()
 
 	require.Contains(t, output, "=", "Output should contain separator characters")
+
 	lines := strings.Split(output, "\n")
+
 	require.GreaterOrEqual(t, len(lines), 2, "Should output multiple lines")
 }
 

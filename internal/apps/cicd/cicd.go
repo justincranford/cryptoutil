@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 	"time"
 
@@ -161,13 +162,13 @@ func run(commands []string, extraArgs []string) error {
 
 		// Add a separator between multiple commands.
 		if i < len(actualCommands)-1 {
-			cryptoutilCmdCicdCommon.PrintCommandSeparator()
+				cryptoutilCmdCicdCommon.PrintCommandSeparator(os.Stderr)
 		}
 	}
 
 	// Print summary
 	totalDuration := time.Since(startTime)
-	cryptoutilCmdCicdCommon.PrintExecutionSummary(results, totalDuration)
+	cryptoutilCmdCicdCommon.PrintExecutionSummary(os.Stderr, results, totalDuration)
 
 	// Collect all errors
 	failedCommands := cryptoutilCmdCicdCommon.GetFailedCommands(results)

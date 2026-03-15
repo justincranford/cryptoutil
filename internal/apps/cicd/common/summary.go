@@ -2,11 +2,12 @@
 //
 //
 
+//nolint:errcheck // CLI summary output: write errors to io.Writer are non-actionable (terminal/pipe failures).
 package common
 
 import (
 	"fmt"
-	"os"
+	"io"
 	"strings"
 	"time"
 
@@ -22,10 +23,10 @@ type CommandResult struct {
 
 // PrintExecutionSummary outputs a formatted summary of command execution results.
 // It displays individual command statuses, counts, and total execution time.
-func PrintExecutionSummary(results []CommandResult, totalDuration time.Duration) {
-	fmt.Fprintln(os.Stderr, "\n"+strings.Repeat("=", cryptoutilSharedMagic.SeparatorLength))
-	fmt.Fprintln(os.Stderr, "EXECUTION SUMMARY")
-	fmt.Fprintln(os.Stderr, strings.Repeat("=", cryptoutilSharedMagic.SeparatorLength))
+func PrintExecutionSummary(w io.Writer, results []CommandResult, totalDuration time.Duration) {
+	fmt.Fprintln(w, "\n"+strings.Repeat("=", cryptoutilSharedMagic.SeparatorLength))
+	fmt.Fprintln(w, "EXECUTION SUMMARY")
+	fmt.Fprintln(w, strings.Repeat("=", cryptoutilSharedMagic.SeparatorLength))
 
 	successCount := 0
 	failureCount := 0
@@ -39,24 +40,24 @@ func PrintExecutionSummary(results []CommandResult, totalDuration time.Duration)
 			successCount++
 		}
 
-		fmt.Fprintf(os.Stderr, "%s  %-45s  %8.2fs\n",
+		fmt.Fprintf(w, "%s  %-45s  %8.2fs\n",
 			status,
 			result.Command,
 			result.Duration.Seconds())
 	}
 
-	fmt.Fprintln(os.Stderr, strings.Repeat("-", cryptoutilSharedMagic.SeparatorLength))
-	fmt.Fprintf(os.Stderr, "Total: %d commands  |  Passed: %d  |  Failed: %d  |  Time: %.2fs\n",
+	fmt.Fprintln(w, strings.Repeat("-", cryptoutilSharedMagic.SeparatorLength))
+	fmt.Fprintf(w, "Total: %d commands  |  Passed: %d  |  Failed: %d  |  Time: %.2fs\n",
 		len(results),
 		successCount,
 		failureCount,
 		totalDuration.Seconds())
-	fmt.Fprintln(os.Stderr, strings.Repeat("=", cryptoutilSharedMagic.SeparatorLength))
+	fmt.Fprintln(w, strings.Repeat("=", cryptoutilSharedMagic.SeparatorLength))
 }
 
 // PrintCommandSeparator outputs a visual separator between commands.
-func PrintCommandSeparator() {
-	fmt.Fprintln(os.Stderr, "\n"+strings.Repeat("=", cryptoutilSharedMagic.SeparatorLength)+"\n")
+func PrintCommandSeparator(w io.Writer) {
+	fmt.Fprintln(w, "\n"+strings.Repeat("=", cryptoutilSharedMagic.SeparatorLength)+"\n")
 }
 
 // SummaryStats calculates summary statistics from command results.
