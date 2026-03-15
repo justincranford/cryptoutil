@@ -24,6 +24,7 @@ import (
 	lintFitnessMigrationNumbering "cryptoutil/internal/apps/cicd/lint_fitness/migration_numbering"
 	lintFitnessMigrationRangeCompliance "cryptoutil/internal/apps/cicd/lint_fitness/migration_range_compliance"
 	lintFitnessNoHardcodedPasswords "cryptoutil/internal/apps/cicd/lint_fitness/no_hardcoded_passwords"
+	lintFitnessNoLocalClosedDBHelper "cryptoutil/internal/apps/cicd/lint_fitness/no_local_closed_db_helper"
 	lintFitnessNonFIPSAlgorithms "cryptoutil/internal/apps/cicd/lint_fitness/non_fips_algorithms"
 	lintFitnessParallelTests "cryptoutil/internal/apps/cicd/lint_fitness/parallel_tests"
 	lintFitnessProductStructure "cryptoutil/internal/apps/cicd/lint_fitness/product_structure"
@@ -70,6 +71,7 @@ var registeredLinters = []struct {
 	{"admin-bind-address", lintFitnessAdminBindAddress.Check},
 	{"service-contract-compliance", lintFitnessServiceContractCompliance.Check},
 	{"migration-range-compliance", lintFitnessMigrationRangeCompliance.Check},
+	{"no-local-closed-db-helper", lintFitnessNoLocalClosedDBHelper.Check},
 }
 
 // Lint runs all registered architecture fitness linters.
