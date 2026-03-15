@@ -9,14 +9,12 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
 
 // TestParseWithFlagSet_Defaults verifies default skeleton-template configuration.
-// Sequential: uses viper global state via ParseWithFlagSet.
 func TestParseWithFlagSet_Defaults(t *testing.T) {
-	t.Cleanup(func() { viper.Reset() })
+	t.Parallel()
 
 	fs := pflag.NewFlagSet("test-defaults", pflag.ContinueOnError)
 
@@ -29,9 +27,8 @@ func TestParseWithFlagSet_Defaults(t *testing.T) {
 }
 
 // TestParseWithFlagSet_CustomPort verifies custom port override.
-// Sequential: uses viper global state via ParseWithFlagSet.
 func TestParseWithFlagSet_CustomPort(t *testing.T) {
-	t.Cleanup(func() { viper.Reset() })
+	t.Parallel()
 
 	fs := pflag.NewFlagSet("test-custom-port", pflag.ContinueOnError)
 
@@ -42,9 +39,8 @@ func TestParseWithFlagSet_CustomPort(t *testing.T) {
 }
 
 // TestParseWithFlagSet_InvalidFlag verifies error on unknown flags.
-// Sequential: uses viper global state via ParseWithFlagSet.
 func TestParseWithFlagSet_InvalidFlag(t *testing.T) {
-	t.Cleanup(func() { viper.Reset() })
+	t.Parallel()
 
 	fs := pflag.NewFlagSet("test-invalid", pflag.ContinueOnError)
 
@@ -82,10 +78,8 @@ func TestValidateSettings_NilBase(t *testing.T) {
 }
 
 // TestParse_Delegates verifies Parse delegates to ParseWithFlagSet with global CommandLine.
-// Sequential: uses viper global state via Parse.
+// Sequential: uses pflag.CommandLine global state via Parse().
 func TestParse_Delegates(t *testing.T) {
-	t.Cleanup(func() { viper.Reset() })
-
 	// Parse with valid args to verify delegation works (pflag.CommandLine
 	// uses ExitOnError mode, so we cannot test invalid flags here).
 	cfg, err := Parse([]string{"start", "--profile=test"}, false)

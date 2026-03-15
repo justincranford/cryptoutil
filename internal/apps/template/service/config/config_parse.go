@@ -16,10 +16,10 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// getTLSPEMBytes safely retrieves PEM bytes from viper for BytesBase64 flags.
+// getTLSPEMBytes safely retrieves PEM bytes from a viper instance for BytesBase64 flags.
 // Returns nil if the value is not set or cannot be converted to []byte.
-func getTLSPEMBytes(key string) []byte {
-	val := viper.Get(key)
+func getTLSPEMBytes(v *viper.Viper, key string) []byte {
+	val := v.Get(key)
 	if val == nil {
 		return nil
 	}
@@ -72,21 +72,19 @@ func ParseWithFlagSet(fs *pflag.FlagSet, commandParameters []string, exitIfHelp 
 
 	subCommandParameters := commandParameters[1:]
 
-	// Lock viperMutex to prevent concurrent map writes when tests run in parallel.
-	// viper uses global maps for environment variable bindings and other state, so we must serialize access.
-	viperMutex.Lock()
-	defer viperMutex.Unlock()
+	// Create a viper instance per call to prevent global state contamination between concurrent callers.
+	v := viper.New()
 
-	// Enable environment variable support with CRYPTOUTIL_ prefix BEFORE parsing flags
-	viper.SetEnvPrefix("CRYPTOUTIL")
-	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
-	viper.AutomaticEnv()
+	// Enable environment variable support with CRYPTOUTIL_ prefix BEFORE parsing flags.
+	v.SetEnvPrefix("CRYPTOUTIL")
+	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	v.AutomaticEnv()
 
 	// Explicitly bind boolean environment variables (viper.AutomaticEnv may not handle booleans correctly)
-	// Note: viper.BindEnv errors are logged but don't prevent startup as they are extremely rare
+	// Note: v.BindEnv errors are logged but don't prevent startup as they are extremely rare
 	for _, setting := range allServiceTemplateServerRegisteredSettings {
 		if _, ok := setting.Value.(bool); ok {
-			if err := viper.BindEnv(setting.Name, setting.Env); err != nil {
+			if err := v.BindEnv(setting.Name, setting.Env); err != nil {
 				fmt.Printf("Warning: failed to bind environment variable %s: %v\n", setting.Env, err)
 			}
 		}
@@ -170,7 +168,7 @@ func ParseWithFlagSet(fs *pflag.FlagSet, commandParameters []string, exitIfHelp 
 		return nil, fmt.Errorf("error parsing flags: %w", err)
 	}
 
-	err = viper.BindPFlags(fs)
+	err = v.BindPFlags(fs)
 	if err != nil {
 		return nil, fmt.Errorf("failed to bind flags: %w", err)
 	}
@@ -179,26 +177,26 @@ func ParseWithFlagSet(fs *pflag.FlagSet, commandParameters []string, exitIfHelp 
 	// Environment variables use CRYPTOUTIL_ prefix with underscores instead of hyphens.
 	// Example: CRYPTOUTIL_DATABASE_URL overrides --database-url flag.
 	// Precedence: flags > env vars > config files > defaults
-	viper.AutomaticEnv()
-	viper.SetEnvPrefix("CRYPTOUTIL")
-	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	v.AutomaticEnv()
+	v.SetEnvPrefix("CRYPTOUTIL")
+	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 
-	configFiles := viper.GetStringSlice(configFile.Name)
+	configFiles := v.GetStringSlice(configFile.Name)
 	if len(configFiles) > 0 {
 		// Set the first config file
 		if info, err := os.Stat(configFiles[0]); err == nil && !info.IsDir() {
-			viper.SetConfigFile(configFiles[0])
+			v.SetConfigFile(configFiles[0])
 
-			if err := viper.ReadInConfig(); err != nil {
+			if err := v.ReadInConfig(); err != nil {
 				return nil, fmt.Errorf("error reading config file %s: %w", configFiles[0], err)
 			}
 		}
 		// Merge additional config files
 		for i := 1; i < len(configFiles); i++ {
 			if info, err := os.Stat(configFiles[i]); err == nil && !info.IsDir() {
-				viper.SetConfigFile(configFiles[i])
+				v.SetConfigFile(configFiles[i])
 
-				if err := viper.MergeInConfig(); err != nil {
+				if err := v.MergeInConfig(); err != nil {
 					return nil, fmt.Errorf("error merging config file %s: %w", configFiles[i], err)
 				}
 			}
@@ -206,13 +204,13 @@ func ParseWithFlagSet(fs *pflag.FlagSet, commandParameters []string, exitIfHelp 
 	}
 
 	// Apply configuration profile if specified
-	profileName := viper.GetString(profile.Name)
+	profileName := v.GetString(profile.Name)
 	if profileName != "" {
 		if profileConfig, exists := profiles[profileName]; exists {
 			// Apply profile settings (these can be overridden by config files or command line flags)
 			for key, value := range profileConfig {
-				if !viper.IsSet(key) {
-					viper.Set(key, value)
+				if !v.IsSet(key) {
+					v.Set(key, value)
 				}
 			}
 		} else {
@@ -221,12 +219,12 @@ func ParseWithFlagSet(fs *pflag.FlagSet, commandParameters []string, exitIfHelp 
 	}
 
 	// Parse TLS mode and PEM fields
-	tlsPublicModeStr := viper.GetString(tlsPublicMode.Name)
+	tlsPublicModeStr := v.GetString(tlsPublicMode.Name)
 	if tlsPublicModeStr == "" {
 		tlsPublicModeStr = string(defaultTLSPublicMode)
 	}
 
-	tlsPrivateModeStr := viper.GetString(tlsPrivateMode.Name)
+	tlsPrivateModeStr := v.GetString(tlsPrivateMode.Name)
 	if tlsPrivateModeStr == "" {
 		tlsPrivateModeStr = string(defaultTLSPrivateMode)
 	}
@@ -234,77 +232,77 @@ func ParseWithFlagSet(fs *pflag.FlagSet, commandParameters []string, exitIfHelp 
 	s := &ServiceTemplateServerSettings{
 		TLSPublicMode:               TLSMode(tlsPublicModeStr),
 		TLSPrivateMode:              TLSMode(tlsPrivateModeStr),
-		TLSStaticCertPEM:            getTLSPEMBytes(tlsStaticCertPEM.Name),
-		TLSStaticKeyPEM:             getTLSPEMBytes(tlsStaticKeyPEM.Name),
-		TLSMixedCACertPEM:           getTLSPEMBytes(tlsMixedCACertPEM.Name),
-		TLSMixedCAKeyPEM:            getTLSPEMBytes(tlsMixedCAKeyPEM.Name),
+		TLSStaticCertPEM:            getTLSPEMBytes(v, tlsStaticCertPEM.Name),
+		TLSStaticKeyPEM:             getTLSPEMBytes(v, tlsStaticKeyPEM.Name),
+		TLSMixedCACertPEM:           getTLSPEMBytes(v, tlsMixedCACertPEM.Name),
+		TLSMixedCAKeyPEM:            getTLSPEMBytes(v, tlsMixedCAKeyPEM.Name),
 		SubCommand:                  subCommand,
-		Help:                        viper.GetBool(help.Name),
-		ConfigFile:                  viper.GetStringSlice(configFile.Name),
-		LogLevel:                    viper.GetString(logLevel.Name),
-		VerboseMode:                 viper.GetBool(verboseMode.Name),
-		DevMode:                     viper.GetBool(devMode.Name),
-		DemoMode:                    viper.GetBool(demoMode.Name),
-		ResetDemoMode:               viper.GetBool(resetDemoMode.Name),
-		DryRun:                      viper.GetBool(dryRun.Name),
-		Profile:                     viper.GetString(profile.Name),
-		BindPublicProtocol:          viper.GetString(bindPublicProtocol.Name),
-		BindPublicAddress:           viper.GetString(bindPublicAddress.Name),
-		BindPublicPort:              viper.GetUint16(bindPublicPort.Name),
-		TLSPublicDNSNames:           viper.GetStringSlice(tlsPublicDNSNames.Name),
-		TLSPublicIPAddresses:        viper.GetStringSlice(tlsPublicIPAddresses.Name),
-		TLSPrivateDNSNames:          viper.GetStringSlice(tlsPrivateDNSNames.Name),
-		TLSPrivateIPAddresses:       viper.GetStringSlice(tlsPrivateIPAddresses.Name),
-		BindPrivateProtocol:         viper.GetString(bindPrivateProtocol.Name),
-		BindPrivateAddress:          viper.GetString(bindPrivateAddress.Name),
-		BindPrivatePort:             viper.GetUint16(bindPrivatePort.Name),
-		PublicBrowserAPIContextPath: viper.GetString(publicBrowserAPIContextPath.Name),
-		PublicServiceAPIContextPath: viper.GetString(publicServiceAPIContextPath.Name),
-		PrivateAdminAPIContextPath:  viper.GetString(privateAdminAPIContextPath.Name),
-		CORSAllowedOrigins:          viper.GetStringSlice(corsAllowedOrigins.Name),
-		CORSAllowedMethods:          viper.GetStringSlice(corsAllowedMethods.Name),
-		CORSAllowedHeaders:          viper.GetStringSlice(corsAllowedHeaders.Name),
-		CORSMaxAge:                  viper.GetUint16(corsMaxAge.Name),
-		RequestBodyLimit:            viper.GetInt(requestBodyLimit.Name),
-		CSRFTokenName:               viper.GetString(csrfTokenName.Name),
-		CSRFTokenSameSite:           viper.GetString(csrfTokenSameSite.Name),
-		CSRFTokenMaxAge:             viper.GetDuration(csrfTokenMaxAge.Name),
-		CSRFTokenCookieSecure:       viper.GetBool(csrfTokenCookieSecure.Name),
-		CSRFTokenCookieHTTPOnly:     viper.GetBool(csrfTokenCookieHTTPOnly.Name),
-		CSRFTokenCookieSessionOnly:  viper.GetBool(csrfTokenCookieSessionOnly.Name),
-		CSRFTokenSingleUseToken:     viper.GetBool(csrfTokenSingleUseToken.Name),
-		BrowserIPRateLimit:          viper.GetUint16(browserIPRateLimit.Name),
-		ServiceIPRateLimit:          viper.GetUint16(serviceIPRateLimit.Name),
-		AllowedIPs:                  viper.GetStringSlice(allowedIps.Name),
-		AllowedCIDRs:                viper.GetStringSlice(allowedCidrs.Name),
-		DatabaseContainer:           viper.GetString(databaseContainer.Name),
-		DatabaseURL:                 viper.GetString(databaseURL.Name),
-		DatabaseInitTotalTimeout:    viper.GetDuration(databaseInitTotalTimeout.Name),
-		DatabaseInitRetryWait:       viper.GetDuration(databaseInitRetryWait.Name),
-		ServerShutdownTimeout:       viper.GetDuration(serverShutdownTimeout.Name),
-		OTLPEnabled:                 viper.GetBool(otlpEnabled.Name),
-		OTLPConsole:                 viper.GetBool(otlpConsole.Name),
-		OTLPService:                 viper.GetString(otlpService.Name),
-		OTLPInstance:                viper.GetString(otlpInstance.Name),
-		OTLPVersion:                 viper.GetString(otlpVersion.Name),
-		OTLPEnvironment:             viper.GetString(otlpEnvironment.Name),
-		OTLPHostname:                viper.GetString(otlpHostname.Name),
-		OTLPEndpoint:                viper.GetString(otlpEndpoint.Name),
-		UnsealMode:                  viper.GetString(unsealMode.Name),
-		UnsealFiles:                 viper.GetStringSlice(unsealFiles.Name),
-		BrowserRealms:               viper.GetStringSlice(browserRealms.Name),
-		ServiceRealms:               viper.GetStringSlice(serviceRealms.Name),
-		BrowserSessionCookie:        viper.GetString(browserSessionCookie.Name),
-		BrowserSessionAlgorithm:     viper.GetString(browserSessionAlgorithm.Name),
-		BrowserSessionJWSAlgorithm:  viper.GetString(browserSessionJWSAlgorithm.Name),
-		BrowserSessionJWEAlgorithm:  viper.GetString(browserSessionJWEAlgorithm.Name),
-		BrowserSessionExpiration:    viper.GetDuration(browserSessionExpiration.Name),
-		ServiceSessionAlgorithm:     viper.GetString(serviceSessionAlgorithm.Name),
-		ServiceSessionJWSAlgorithm:  viper.GetString(serviceSessionJWSAlgorithm.Name),
-		ServiceSessionJWEAlgorithm:  viper.GetString(serviceSessionJWEAlgorithm.Name),
-		ServiceSessionExpiration:    viper.GetDuration(serviceSessionExpiration.Name),
-		SessionIdleTimeout:          viper.GetDuration(sessionIdleTimeout.Name),
-		SessionCleanupInterval:      viper.GetDuration(sessionCleanupInterval.Name),
+		Help:                        v.GetBool(help.Name),
+		ConfigFile:                  v.GetStringSlice(configFile.Name),
+		LogLevel:                    v.GetString(logLevel.Name),
+		VerboseMode:                 v.GetBool(verboseMode.Name),
+		DevMode:                     v.GetBool(devMode.Name),
+		DemoMode:                    v.GetBool(demoMode.Name),
+		ResetDemoMode:               v.GetBool(resetDemoMode.Name),
+		DryRun:                      v.GetBool(dryRun.Name),
+		Profile:                     v.GetString(profile.Name),
+		BindPublicProtocol:          v.GetString(bindPublicProtocol.Name),
+		BindPublicAddress:           v.GetString(bindPublicAddress.Name),
+		BindPublicPort:              v.GetUint16(bindPublicPort.Name),
+		TLSPublicDNSNames:           v.GetStringSlice(tlsPublicDNSNames.Name),
+		TLSPublicIPAddresses:        v.GetStringSlice(tlsPublicIPAddresses.Name),
+		TLSPrivateDNSNames:          v.GetStringSlice(tlsPrivateDNSNames.Name),
+		TLSPrivateIPAddresses:       v.GetStringSlice(tlsPrivateIPAddresses.Name),
+		BindPrivateProtocol:         v.GetString(bindPrivateProtocol.Name),
+		BindPrivateAddress:          v.GetString(bindPrivateAddress.Name),
+		BindPrivatePort:             v.GetUint16(bindPrivatePort.Name),
+		PublicBrowserAPIContextPath: v.GetString(publicBrowserAPIContextPath.Name),
+		PublicServiceAPIContextPath: v.GetString(publicServiceAPIContextPath.Name),
+		PrivateAdminAPIContextPath:  v.GetString(privateAdminAPIContextPath.Name),
+		CORSAllowedOrigins:          v.GetStringSlice(corsAllowedOrigins.Name),
+		CORSAllowedMethods:          v.GetStringSlice(corsAllowedMethods.Name),
+		CORSAllowedHeaders:          v.GetStringSlice(corsAllowedHeaders.Name),
+		CORSMaxAge:                  v.GetUint16(corsMaxAge.Name),
+		RequestBodyLimit:            v.GetInt(requestBodyLimit.Name),
+		CSRFTokenName:               v.GetString(csrfTokenName.Name),
+		CSRFTokenSameSite:           v.GetString(csrfTokenSameSite.Name),
+		CSRFTokenMaxAge:             v.GetDuration(csrfTokenMaxAge.Name),
+		CSRFTokenCookieSecure:       v.GetBool(csrfTokenCookieSecure.Name),
+		CSRFTokenCookieHTTPOnly:     v.GetBool(csrfTokenCookieHTTPOnly.Name),
+		CSRFTokenCookieSessionOnly:  v.GetBool(csrfTokenCookieSessionOnly.Name),
+		CSRFTokenSingleUseToken:     v.GetBool(csrfTokenSingleUseToken.Name),
+		BrowserIPRateLimit:          v.GetUint16(browserIPRateLimit.Name),
+		ServiceIPRateLimit:          v.GetUint16(serviceIPRateLimit.Name),
+		AllowedIPs:                  v.GetStringSlice(allowedIps.Name),
+		AllowedCIDRs:                v.GetStringSlice(allowedCidrs.Name),
+		DatabaseContainer:           v.GetString(databaseContainer.Name),
+		DatabaseURL:                 v.GetString(databaseURL.Name),
+		DatabaseInitTotalTimeout:    v.GetDuration(databaseInitTotalTimeout.Name),
+		DatabaseInitRetryWait:       v.GetDuration(databaseInitRetryWait.Name),
+		ServerShutdownTimeout:       v.GetDuration(serverShutdownTimeout.Name),
+		OTLPEnabled:                 v.GetBool(otlpEnabled.Name),
+		OTLPConsole:                 v.GetBool(otlpConsole.Name),
+		OTLPService:                 v.GetString(otlpService.Name),
+		OTLPInstance:                v.GetString(otlpInstance.Name),
+		OTLPVersion:                 v.GetString(otlpVersion.Name),
+		OTLPEnvironment:             v.GetString(otlpEnvironment.Name),
+		OTLPHostname:                v.GetString(otlpHostname.Name),
+		OTLPEndpoint:                v.GetString(otlpEndpoint.Name),
+		UnsealMode:                  v.GetString(unsealMode.Name),
+		UnsealFiles:                 v.GetStringSlice(unsealFiles.Name),
+		BrowserRealms:               v.GetStringSlice(browserRealms.Name),
+		ServiceRealms:               v.GetStringSlice(serviceRealms.Name),
+		BrowserSessionCookie:        v.GetString(browserSessionCookie.Name),
+		BrowserSessionAlgorithm:     v.GetString(browserSessionAlgorithm.Name),
+		BrowserSessionJWSAlgorithm:  v.GetString(browserSessionJWSAlgorithm.Name),
+		BrowserSessionJWEAlgorithm:  v.GetString(browserSessionJWEAlgorithm.Name),
+		BrowserSessionExpiration:    v.GetDuration(browserSessionExpiration.Name),
+		ServiceSessionAlgorithm:     v.GetString(serviceSessionAlgorithm.Name),
+		ServiceSessionJWSAlgorithm:  v.GetString(serviceSessionJWSAlgorithm.Name),
+		ServiceSessionJWEAlgorithm:  v.GetString(serviceSessionJWEAlgorithm.Name),
+		ServiceSessionExpiration:    v.GetDuration(serviceSessionExpiration.Name),
+		SessionIdleTimeout:          v.GetDuration(sessionIdleTimeout.Name),
+		SessionCleanupInterval:      v.GetDuration(sessionCleanupInterval.Name),
 	}
 
 	// Resolve file:// URLs for sensitive settings from Docker secrets or Kubernetes secrets.

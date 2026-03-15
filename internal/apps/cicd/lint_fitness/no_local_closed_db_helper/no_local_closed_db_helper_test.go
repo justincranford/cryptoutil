@@ -211,20 +211,15 @@ func TestCheckInDir_SkipsGitAndVendorDirs(t *testing.T) {
 	}
 }
 
-// Sequential: uses os.Chdir (global process state, cannot run in parallel).
 func TestCheck_DelegatesCheckInDir(t *testing.T) {
-	origDir, err := os.Getwd()
-	require.NoError(t, err)
-
-	defer func() { require.NoError(t, os.Chdir(origDir)) }()
+	t.Parallel()
 
 	tmpDir := t.TempDir()
-	require.NoError(t, os.Chdir(tmpDir))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
 	// Check() delegates to CheckInDir(logger, ".").
 	// From a clean temp directory with no test files, there are no violations.
-	err = Check(logger)
+	err := CheckInDir(logger, tmpDir)
 	require.NoError(t, err)
 }

@@ -9,38 +9,46 @@ import (
 	"testing"
 	"time"
 
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
 
 // TestGetTLSPEMBytes tests getTLSPEMBytes with various inputs.
-// NOTE: Cannot use t.Parallel() - this test accesses global viper state.
-// Sequential: uses viper/pflag global state.
 func TestGetTLSPEMBytes(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name    string
-		setup   func()
+		setup   func() *viper.Viper
 		key     string
 		wantNil bool
 	}{
 		{
 			name:    "nil value for non-existent key",
-			setup:   func() {},
+			setup:   func() *viper.Viper { return viper.New() },
 			key:     "non-existent-key",
 			wantNil: true,
 		},
 		{
-			name:    "nil for non-bytes value",
-			setup:   resetFlags,
-			key:     "log-level",
+			name: "nil for non-bytes value",
+			setup: func() *viper.Viper {
+				v := viper.New()
+				v.Set("int-value", cryptoutilSharedMagic.AnswerToLifeUniverseEverything)
+
+				return v
+			},
+			key:     "int-value",
 			wantNil: true,
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			tc.setup()
+			t.Parallel()
 
-			result := getTLSPEMBytes(tc.key)
+			v := tc.setup()
+
+			result := getTLSPEMBytes(v, tc.key)
 			if tc.wantNil {
 				require.Nil(t, result)
 			} else {
@@ -51,8 +59,7 @@ func TestGetTLSPEMBytes(t *testing.T) {
 }
 
 // TestNewForServer tests NewForJOSEServer and NewForCAServer factory functions.
-// NOTE: These tests cannot run in parallel due to global flag state.
-// Sequential: uses viper/pflag global state.
+// Sequential: uses pflag.CommandLine global state via NewForJOSEServer/NewForCAServer.
 func TestNewForServer(t *testing.T) {
 	tests := []struct {
 		name        string

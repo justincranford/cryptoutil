@@ -21,22 +21,27 @@ import (
 // Injectable functions for testing defensive error paths.
 var outdatedDepsMarshalFn = func(v any, prefix, indent string) ([]byte, error) { return json.MarshalIndent(v, prefix, indent) }
 
-// Check checks for outdated Go direct dependencies and fails if any are found.
-// This command uses caching to avoid repeated expensive checks and returns an error if outdated dependencies are found.
+// Check checks for outdated Go direct dependencies using the current working directory.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
+	return CheckInDir(logger, ".")
+}
+
+// CheckInDir checks for outdated Go direct dependencies in the given directory.
+// This command uses caching to avoid repeated expensive checks and returns an error if outdated dependencies are found.
+func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, dir string) error {
 	modeName := cryptoutilSharedMagic.ModeNameDirect
 
-	cacheFile := cryptoutilSharedMagic.DepCacheFileName
+	cacheFile := filepath.Join(dir, cryptoutilSharedMagic.DepCacheFileName)
 
 	// Get go.mod and go.sum file stats - needed for cache timestamp comparison.
-	goModStat, err := os.Stat("go.mod")
+	goModStat, err := os.Stat(filepath.Join(dir, "go.mod"))
 	if err != nil {
 		logger.Log(fmt.Sprintf("Error reading go.mod: %v", err))
 
 		return fmt.Errorf("failed to read go.mod: %w", err)
 	}
 
-	goSumStat, err := os.Stat("go.sum")
+	goSumStat, err := os.Stat(filepath.Join(dir, "go.sum"))
 	if err != nil {
 		logger.Log(fmt.Sprintf("Error reading go.sum: %v", err))
 
@@ -61,6 +66,7 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 
 	// Run go list -u -m all to check for outdated dependencies.
 	cmd := exec.CommandContext(context.Background(), "go", "list", "-u", "-m", cryptoutilSharedMagic.ModeNameAll)
+	cmd.Dir = dir
 
 	output, err := cmd.Output()
 	if err != nil {
@@ -70,7 +76,7 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 	}
 
 	// Get direct dependencies for the check (only read go.mod once).
-	goModContent, err := os.ReadFile("go.mod")
+	goModContent, err := os.ReadFile(filepath.Join(dir, "go.mod"))
 	if err != nil {
 		logger.Log(fmt.Sprintf("Error reading go.mod: %v", err))
 
@@ -90,6 +96,7 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 		OutdatedDeps: outdated,
 		Mode:         modeName,
 	}
+
 	if err := saveDepCache(cacheFile, cache); err != nil {
 		logger.Log(fmt.Sprintf("Warning: Failed to save dependency cache: %v", err))
 	}
@@ -107,15 +114,10 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 	}
 
 	fmt.Fprintf(os.Stderr, "All %s Go dependencies are up to date.\n", modeName)
-
 	logger.Log("lint-go-mod completed")
 
 	return nil
 }
-
-// checkDependencyUpdates analyzes dependency update information and returns outdated dependencies.
-// It takes the go list output and direct dependencies map as inputs to enable testing with mock data.
-// Returns a slice of outdated dependency strings and an error if the check fails.
 func checkDependencyUpdates(goListOutput string, directDeps map[string]bool) []string {
 	// Optimize: avoid trim and split overhead for empty output.
 	if goListOutput == "" {

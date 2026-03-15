@@ -11,7 +11,6 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
 )
 
 // SmIMServerSettings defines configuration settings for the SM-IM server.
@@ -89,14 +88,20 @@ func ParseWithFlagSet(fs *pflag.FlagSet, args []string, exitIfHelp bool) (*SmIMS
 		return nil, fmt.Errorf("failed to parse template settings: %w", err)
 	}
 
-	// Create sm-im settings using values from viper (bound by template ParseWithFlagSet).
+	// Create sm-im settings using values from the FlagSet (avoids global viper dependency).
+	messageJWEAlgo, _ := fs.GetString(messageJWEAlgorithm.Name)
+	msgMinLen, _ := fs.GetInt(messageMinLength.Name)
+	msgMaxLen, _ := fs.GetInt(messageMaxLength.Name)
+	recipMinCount, _ := fs.GetInt(recipientsMinCount.Name)
+	recipMaxCount, _ := fs.GetInt(recipientsMaxCount.Name)
+
 	settings := &SmIMServerSettings{
 		ServiceTemplateServerSettings: baseSettings,
-		MessageJWEAlgorithm:           viper.GetString(messageJWEAlgorithm.Name),
-		MessageMinLength:              viper.GetInt(messageMinLength.Name),
-		MessageMaxLength:              viper.GetInt(messageMaxLength.Name),
-		RecipientsMinCount:            viper.GetInt(recipientsMinCount.Name),
-		RecipientsMaxCount:            viper.GetInt(recipientsMaxCount.Name),
+		MessageJWEAlgorithm:           messageJWEAlgo,
+		MessageMinLength:              msgMinLen,
+		MessageMaxLength:              msgMaxLen,
+		RecipientsMinCount:            recipMinCount,
+		RecipientsMaxCount:            recipMaxCount,
 	}
 
 	// NOTE: BrowserRealms and ServiceRealms are inherited from template configuration.

@@ -8,7 +8,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"sync"
 	"time"
 
 	googleUuid "github.com/google/uuid"
@@ -16,11 +15,6 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
-
-// viperMutex protects concurrent access to the global viper instance used in ParseWithFlagSet.
-// This prevents "concurrent map writes" panics when tests run in parallel with ParseWithFlagSet().
-// Note: viper uses global maps for environment variable bindings and other state, so we must serialize access.
-var viperMutex sync.Mutex
 
 // TLSMode defines the three supported TLS certificate provisioning modes.
 type TLSMode string

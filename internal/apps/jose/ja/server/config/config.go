@@ -11,7 +11,6 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
 )
 
 // JoseJAServerSettings contains jose-ja specific configuration.
@@ -71,12 +70,16 @@ func ParseWithFlagSet(fs *pflag.FlagSet, args []string, exitIfHelp bool) (*JoseJ
 		return nil, fmt.Errorf("failed to parse template settings: %w", err)
 	}
 
-	// Create jose-ja settings using values from viper (bound by template ParseWithFlagSet).
+	// Create jose-ja settings using values from the FlagSet (avoids global viper dependency).
+	maxMaterials, _ := fs.GetInt(maxMaterialsSetting.Name)
+	auditEnabled, _ := fs.GetBool(auditEnabledSetting.Name)
+	auditSamplingRate, _ := fs.GetInt(auditSamplingRateSetting.Name)
+
 	settings := &JoseJAServerSettings{
 		ServiceTemplateServerSettings: baseSettings,
-		DefaultMaxMaterials:           viper.GetInt(maxMaterialsSetting.Name),
-		AuditEnabled:                  viper.GetBool(auditEnabledSetting.Name),
-		AuditSamplingRate:             viper.GetInt(auditSamplingRateSetting.Name),
+		DefaultMaxMaterials:           maxMaterials,
+		AuditEnabled:                  auditEnabled,
+		AuditSamplingRate:             auditSamplingRate,
 	}
 
 	// Override template defaults with jose-ja specific values.

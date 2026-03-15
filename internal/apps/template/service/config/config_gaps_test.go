@@ -185,49 +185,49 @@ func TestRegisterAsIntSetting_WrongType(t *testing.T) {
 }
 
 // TestGetTLSPEMBytes_Base64DecodeError tests getTLSPEMBytes with invalid base64 string.
-// Sequential: uses viper/pflag global state.
 func TestGetTLSPEMBytes_Base64DecodeError(t *testing.T) {
-	viper.Set("test-invalid-base64", "!!!invalid-base64!!!")
+	t.Parallel()
 
-	defer viper.Reset()
+	v := viper.New()
+	v.Set("test-invalid-base64", "!!!invalid-base64!!!")
 
-	result := getTLSPEMBytes("test-invalid-base64")
+	result := getTLSPEMBytes(v, "test-invalid-base64")
 	require.Nil(t, result)
 }
 
 // TestGetTLSPEMBytes_EmptyString tests getTLSPEMBytes with empty string.
-// Sequential: uses viper/pflag global state.
 func TestGetTLSPEMBytes_EmptyString(t *testing.T) {
-	viper.Set("test-empty-string", "")
+	t.Parallel()
 
-	defer viper.Reset()
+	v := viper.New()
+	v.Set("test-empty-string", "")
 
-	result := getTLSPEMBytes("test-empty-string")
+	result := getTLSPEMBytes(v, "test-empty-string")
 	require.Nil(t, result)
 }
 
 // TestGetTLSPEMBytes_ByteSliceValue tests getTLSPEMBytes with []byte value.
-// Sequential: uses viper/pflag global state.
 func TestGetTLSPEMBytes_ByteSliceValue(t *testing.T) {
+	t.Parallel()
+
 	expected := []byte("test-bytes")
-	viper.Set("test-byte-slice", expected)
+	v := viper.New()
+	v.Set("test-byte-slice", expected)
 
-	defer viper.Reset()
-
-	result := getTLSPEMBytes("test-byte-slice")
+	result := getTLSPEMBytes(v, "test-byte-slice")
 	require.Equal(t, expected, result)
 }
 
 // TestGetTLSPEMBytes_ValidBase64 tests getTLSPEMBytes with valid base64 string.
-// Sequential: uses viper/pflag global state.
 func TestGetTLSPEMBytes_ValidBase64(t *testing.T) {
+	t.Parallel()
+
 	original := []byte("test-pem-content")
 	encoded := base64.StdEncoding.EncodeToString(original)
-	viper.Set("test-valid-base64", encoded)
+	v := viper.New()
+	v.Set("test-valid-base64", encoded)
 
-	defer viper.Reset()
-
-	result := getTLSPEMBytes("test-valid-base64")
+	result := getTLSPEMBytes(v, "test-valid-base64")
 	require.Equal(t, original, result)
 }
 
@@ -252,10 +252,7 @@ func TestNewTestConfig_ProdMode(t *testing.T) {
 
 // TestParseWithFlagSet_EmptyCommandParameters tests error when command parameters is empty.
 func TestParseWithFlagSet_EmptyCommandParameters(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() here - ParseWithFlagSet modifies global viper state
-	viper.Reset()
-
-	defer viper.Reset()
+	t.Parallel()
 
 	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
 	_, err := ParseWithFlagSet(fs, []string{}, false)
@@ -265,10 +262,7 @@ func TestParseWithFlagSet_EmptyCommandParameters(t *testing.T) {
 
 // TestParseWithFlagSet_InvalidFlagSyntax tests error when parsing invalid flag syntax.
 func TestParseWithFlagSet_InvalidFlagSyntax(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() here - ParseWithFlagSet modifies global viper state
-	viper.Reset()
-
-	defer viper.Reset()
+	t.Parallel()
 
 	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
 	// Invalid flag syntax: --unknown-flag will cause pflag.Parse to fail when flag doesn't exist
@@ -280,10 +274,7 @@ func TestParseWithFlagSet_InvalidFlagSyntax(t *testing.T) {
 
 // TestParseWithFlagSet_ProfileKnown tests configuration profiles.
 func TestParseWithFlagSet_ProfileKnown(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() here - ParseWithFlagSet modifies global viper state
-	viper.Reset()
-
-	defer viper.Reset()
+	t.Parallel()
 
 	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
 	// Use a known profile (dev, stg, prod, test)

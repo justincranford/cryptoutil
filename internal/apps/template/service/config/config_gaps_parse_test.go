@@ -17,10 +17,7 @@ import (
 )
 
 func TestParseWithFlagSet_ProfileUnknown(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() here - ParseWithFlagSet modifies global viper state
-	viper.Reset()
-
-	defer viper.Reset()
+	t.Parallel()
 
 	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
 	_, err := ParseWithFlagSet(fs, []string{"start", "--profile=nonexistent"}, false)
@@ -29,35 +26,30 @@ func TestParseWithFlagSet_ProfileUnknown(t *testing.T) {
 }
 
 // TestGetTLSPEMBytes_UnsupportedType tests getTLSPEMBytes with unsupported type (not string, not []byte).
-// Sequential: uses viper/pflag global state.
 func TestGetTLSPEMBytes_UnsupportedType(t *testing.T) {
-	// Set a non-string, non-[]byte value in viper (e.g., an integer).
-	viper.Set("test-unsupported-type", 12345)
+	t.Parallel()
 
-	defer viper.Reset()
+	v := viper.New()
+	v.Set("test-unsupported-type", 12345)
 
-	result := getTLSPEMBytes("test-unsupported-type")
+	result := getTLSPEMBytes(v, "test-unsupported-type")
 	require.Nil(t, result, "Expected nil for unsupported type (int)")
 }
 
 // TestGetTLSPEMBytes_MapType tests getTLSPEMBytes with map type (unsupported).
-// Sequential: uses viper/pflag global state.
 func TestGetTLSPEMBytes_MapType(t *testing.T) {
-	// Set a map value in viper (unsupported type).
-	viper.Set("test-map-type", map[string]string{"key": "value"})
+	t.Parallel()
 
-	defer viper.Reset()
+	v := viper.New()
+	v.Set("test-map-type", map[string]string{"key": "value"})
 
-	result := getTLSPEMBytes("test-map-type")
+	result := getTLSPEMBytes(v, "test-map-type")
 	require.Nil(t, result, "Expected nil for unsupported type (map)")
 }
 
 // TestParseWithFlagSet_InvalidSubcommand tests error for invalid subcommand.
 func TestParseWithFlagSet_InvalidSubcommand(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() here - ParseWithFlagSet modifies global viper state
-	viper.Reset()
-
-	defer viper.Reset()
+	t.Parallel()
 
 	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
 	_, err := ParseWithFlagSet(fs, []string{"invalid-subcommand"}, false)
@@ -77,10 +69,7 @@ func TestParseWithFlagSet_InvalidSubcommand(t *testing.T) {
 
 // TestParseWithFlagSet_ConfigFileReadError tests error when config file cannot be read.
 func TestParseWithFlagSet_ConfigFileReadError(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() here - ParseWithFlagSet modifies global viper state
-	viper.Reset()
-
-	defer viper.Reset()
+	t.Parallel()
 
 	// Create a directory (not a file) to cause read error.
 	tmpDir := t.TempDir()
@@ -98,10 +87,7 @@ func TestParseWithFlagSet_ConfigFileReadError(t *testing.T) {
 
 // TestParseWithFlagSet_ConfigFileInvalidYAML tests error when config file has invalid YAML.
 func TestParseWithFlagSet_ConfigFileInvalidYAML(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() here - ParseWithFlagSet modifies global viper state
-	viper.Reset()
-
-	defer viper.Reset()
+	t.Parallel()
 
 	// Create a config file with invalid YAML.
 	tmpDir := t.TempDir()
@@ -121,10 +107,7 @@ bind-public-address: [this is invalid YAML
 
 // TestParseWithFlagSet_MultipleConfigFiles tests merging multiple config files.
 func TestParseWithFlagSet_MultipleConfigFiles(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() here - ParseWithFlagSet modifies global viper state
-	viper.Reset()
-
-	defer viper.Reset()
+	t.Parallel()
 
 	tmpDir := t.TempDir()
 
@@ -154,10 +137,7 @@ bind-public-port: 9999
 
 // TestParseWithFlagSet_MergeConfigFileError tests error when merging config file fails.
 func TestParseWithFlagSet_MergeConfigFileError(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() here - ParseWithFlagSet modifies global viper state
-	viper.Reset()
-
-	defer viper.Reset()
+	t.Parallel()
 
 	tmpDir := t.TempDir()
 
@@ -184,8 +164,8 @@ bind-public-port: [invalid yaml syntax
 }
 
 // TestNewForJOSEServer_PanicOnInvalidArgs tests that NewForJOSEServer panics on invalid args.
+// Sequential: uses pflag.CommandLine global state via Parse().
 func TestNewForJOSEServer_PanicOnInvalidArgs(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() here - ParseWithFlagSet modifies global viper state
 	resetFlags()
 
 	defer resetFlags()
@@ -197,8 +177,8 @@ func TestNewForJOSEServer_PanicOnInvalidArgs(t *testing.T) {
 }
 
 // TestNewForCAServer_PanicOnInvalidArgs tests that NewForCAServer panics on invalid args.
+// Sequential: uses pflag.CommandLine global state via Parse().
 func TestNewForCAServer_PanicOnInvalidArgs(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() here - ParseWithFlagSet modifies global viper state
 	resetFlags()
 
 	defer resetFlags()
@@ -210,8 +190,8 @@ func TestNewForCAServer_PanicOnInvalidArgs(t *testing.T) {
 }
 
 // TestNewForJOSEServer_HappyPath tests the happy path for NewForJOSEServer.
+// Sequential: uses pflag.CommandLine global state via Parse().
 func TestNewForJOSEServer_HappyPath(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() here - ParseWithFlagSet modifies global viper state
 	resetFlags()
 
 	// Valid address should succeed
@@ -223,7 +203,7 @@ func TestNewForJOSEServer_HappyPath(t *testing.T) {
 }
 
 // TestParseWithFlagSet_ValidationError tests that validation errors propagate correctly.
-// Sequential: uses viper/pflag global state.
+// Sequential: uses pflag.CommandLine global state via Parse().
 func TestParseWithFlagSet_ValidationError(t *testing.T) {
 	resetFlags()
 
@@ -235,7 +215,7 @@ func TestParseWithFlagSet_ValidationError(t *testing.T) {
 }
 
 // TestParseWithFlagSet_EmptyTLSMode tests that empty TLS mode gets default.
-// Sequential: uses viper/pflag global state.
+// Sequential: uses pflag.CommandLine global state via Parse().
 func TestParseWithFlagSet_EmptyTLSMode(t *testing.T) {
 	resetFlags()
 
@@ -257,8 +237,8 @@ tls-private-mode: ""
 }
 
 // TestNewForCAServer_HappyPath tests the happy path for NewForCAServer.
+// Sequential: uses pflag.CommandLine global state via Parse().
 func TestNewForCAServer_HappyPath(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() here - ParseWithFlagSet modifies global viper state
 	resetFlags()
 
 	// Valid address should succeed

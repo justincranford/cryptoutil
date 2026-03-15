@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Sequential: uses viper/pflag global state.
+// Sequential: uses pflag.CommandLine global state via Parse().
 func TestParse_EnvironmentVariables_DatabaseURL(t *testing.T) {
 	resetFlags()
 
@@ -25,7 +25,7 @@ func TestParse_EnvironmentVariables_DatabaseURL(t *testing.T) {
 	require.Equal(t, "postgres://envuser:envpass@envhost:5432/envdb", s.DatabaseURL, "environment variable should override default")
 }
 
-// Sequential: uses viper/pflag global state.
+// Sequential: uses pflag.CommandLine global state via Parse().
 func TestParse_EnvironmentVariables_BindPublicPort(t *testing.T) {
 	resetFlags()
 
@@ -38,7 +38,7 @@ func TestParse_EnvironmentVariables_BindPublicPort(t *testing.T) {
 	require.Equal(t, uint16(9999), s.BindPublicPort, "environment variable should override default")
 }
 
-// Sequential: uses viper/pflag global state.
+// Sequential: uses pflag.CommandLine global state via Parse().
 func TestParse_EnvironmentVariables_LogLevel(t *testing.T) {
 	resetFlags()
 
@@ -51,7 +51,7 @@ func TestParse_EnvironmentVariables_LogLevel(t *testing.T) {
 	require.Equal(t, "TRACE", s.LogLevel, "environment variable should override default")
 }
 
-// Sequential: uses viper/pflag global state.
+// Sequential: uses pflag.CommandLine global state via Parse().
 func TestParse_Precedence_FlagOverridesEnvVar(t *testing.T) {
 	resetFlags()
 
@@ -109,7 +109,7 @@ func TestResolveFileURL_WhitespaceTrimming(t *testing.T) {
 	require.Equal(t, "postgres://trimmeduser:trimmedpass@trimmedhost:5432/trimmeddb", result, "file content should be trimmed")
 }
 
-// Sequential: uses viper/pflag global state.
+// Sequential: uses pflag.CommandLine global state via Parse().
 func TestParse_FileURL_DatabaseURL(t *testing.T) {
 	resetFlags()
 
@@ -126,7 +126,7 @@ func TestParse_FileURL_DatabaseURL(t *testing.T) {
 	require.Equal(t, secretContent, s.DatabaseURL, "file URL should resolve to file content")
 }
 
-// Sequential: uses viper/pflag global state.
+// Sequential: uses pflag.CommandLine global state via Parse().
 func TestParse_Precedence_FullStack(t *testing.T) {
 	resetFlags()
 

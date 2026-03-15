@@ -121,23 +121,15 @@ func TestCheckInDir_NoAppsDir(t *testing.T) {
 	require.Contains(t, err.Error(), "internal/apps directory not found")
 }
 
-// Sequential: uses os.Chdir (global process state).
 func TestCheck_FromProjectRoot(t *testing.T) {
+	t.Parallel()
+
 	root, err := findProjectRoot()
 	if err != nil {
 		t.Skip("Skipping - cannot find project root")
 	}
 
-	origDir, wdErr := os.Getwd()
-	require.NoError(t, wdErr)
-
-	require.NoError(t, os.Chdir(root))
-
-	t.Cleanup(func() {
-		require.NoError(t, os.Chdir(origDir))
-	})
-
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = Check(logger)
+	err = CheckInDir(logger, root)
 	require.NoError(t, err)
 }

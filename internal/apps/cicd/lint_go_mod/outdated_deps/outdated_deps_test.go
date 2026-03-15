@@ -3,11 +3,11 @@
 package outdated_deps
 
 import (
-	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
 	"time"
+	"os"
 
 	"github.com/stretchr/testify/require"
 
@@ -15,70 +15,51 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// Sequential: uses os.Chdir (global process state).
 func TestCheckOutdatedDeps_NoGoMod(t *testing.T) {
-	// This test cannot be parallel because it changes working directory.
+	t.Parallel()
+
 	tmpDir := t.TempDir()
-	origDir, err := os.Getwd()
-	require.NoError(t, err)
-
-	defer func() { _ = os.Chdir(origDir) }()
-
-	err = os.Chdir(tmpDir)
-	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = Check(logger)
+	err := CheckInDir(logger, tmpDir)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to read go.mod")
 }
 
 // TestCheckOutdatedDeps_NoGoSum tests Check when go.sum is missing.
-// Sequential: uses os.Chdir (global process state).
 func TestCheckOutdatedDeps_NoGoSum(t *testing.T) {
-	// This test cannot be parallel because it changes working directory.
+	t.Parallel()
+
 	tmpDir := t.TempDir()
-	origDir, err := os.Getwd()
-	require.NoError(t, err)
-
-	defer func() { _ = os.Chdir(origDir) }()
-
-	err = os.Chdir(tmpDir)
-	require.NoError(t, err)
 
 	// Create go.mod only (no go.sum).
-	err = os.WriteFile("go.mod", []byte("module test\ngo 1.26.1\n"), cryptoutilSharedMagic.CacheFilePermissions)
+	err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte("module test\ngo 1.26.1\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = Check(logger)
+	err = CheckInDir(logger, tmpDir)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to read go.sum")
 }
 
 // TestCheckOutdatedDeps_CacheUsed tests Check when valid cache exists.
-// Sequential: uses os.Chdir (global process state).
 func TestCheckOutdatedDeps_CacheUsed(t *testing.T) {
-	// This test cannot be parallel because it changes working directory.
+	t.Parallel()
+
 	tmpDir := t.TempDir()
-	origDir, err := os.Getwd()
-	require.NoError(t, err)
-
-	defer func() { _ = os.Chdir(origDir) }()
-
-	err = os.Chdir(tmpDir)
-	require.NoError(t, err)
 
 	// Create go.mod and go.sum.
-	err = os.WriteFile("go.mod", []byte("module test\ngo 1.26.1\n"), cryptoutilSharedMagic.CacheFilePermissions)
+	err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte("module test\ngo 1.26.1\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
-	err = os.WriteFile("go.sum", []byte(""), cryptoutilSharedMagic.CacheFilePermissions)
+
+	err = os.WriteFile(filepath.Join(tmpDir, "go.sum"), []byte(""), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Get file stats for cache.
-	goModStat, err := os.Stat("go.mod")
+	goModStat, err := os.Stat(filepath.Join(tmpDir, "go.mod"))
 	require.NoError(t, err)
-	goSumStat, err := os.Stat("go.sum")
+
+	goSumStat, err := os.Stat(filepath.Join(tmpDir, "go.sum"))
 	require.NoError(t, err)
 
 	// Create a valid cache file with no outdated deps.
@@ -89,37 +70,33 @@ func TestCheckOutdatedDeps_CacheUsed(t *testing.T) {
 		OutdatedDeps: []string{},
 		Mode:         cryptoutilSharedMagic.ModeNameDirect,
 	}
-	err = saveDepCache(cryptoutilSharedMagic.DepCacheFileName, cache)
+
+	err = saveDepCache(filepath.Join(tmpDir, cryptoutilSharedMagic.DepCacheFileName), cache)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = Check(logger)
+	err = CheckInDir(logger, tmpDir)
 	require.NoError(t, err)
 }
 
 // TestCheckOutdatedDeps_CacheWithError tests Check when cache has outdated deps.
-// Sequential: uses os.Chdir (global process state).
 func TestCheckOutdatedDeps_CacheWithError(t *testing.T) {
-	// This test cannot be parallel because it changes working directory.
+	t.Parallel()
+
 	tmpDir := t.TempDir()
-	origDir, err := os.Getwd()
-	require.NoError(t, err)
-
-	defer func() { _ = os.Chdir(origDir) }()
-
-	err = os.Chdir(tmpDir)
-	require.NoError(t, err)
 
 	// Create go.mod and go.sum.
-	err = os.WriteFile("go.mod", []byte("module test\ngo 1.26.1\n"), cryptoutilSharedMagic.CacheFilePermissions)
+	err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte("module test\ngo 1.26.1\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
-	err = os.WriteFile("go.sum", []byte(""), cryptoutilSharedMagic.CacheFilePermissions)
+
+	err = os.WriteFile(filepath.Join(tmpDir, "go.sum"), []byte(""), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Get file stats for cache.
-	goModStat, err := os.Stat("go.mod")
+	goModStat, err := os.Stat(filepath.Join(tmpDir, "go.mod"))
 	require.NoError(t, err)
-	goSumStat, err := os.Stat("go.sum")
+
+	goSumStat, err := os.Stat(filepath.Join(tmpDir, "go.sum"))
 	require.NoError(t, err)
 
 	// Create a valid cache file WITH outdated deps.
@@ -130,63 +107,52 @@ func TestCheckOutdatedDeps_CacheWithError(t *testing.T) {
 		OutdatedDeps: []string{"example.com/dep v1.0.0 [v1.1.0]"},
 		Mode:         cryptoutilSharedMagic.ModeNameDirect,
 	}
-	err = saveDepCache(cryptoutilSharedMagic.DepCacheFileName, cache)
+
+	err = saveDepCache(filepath.Join(tmpDir, cryptoutilSharedMagic.DepCacheFileName), cache)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = Check(logger)
+	err = CheckInDir(logger, tmpDir)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "cached dependency check failed")
 }
 
 // TestCheckOutdatedDeps_GoListError tests Check when go list command fails.
-// Sequential: uses os.Chdir (global process state).
 func TestCheckOutdatedDeps_GoListError(t *testing.T) {
-	// This test cannot be parallel because it changes working directory.
+	t.Parallel()
+
 	tmpDir := t.TempDir()
-	origDir, err := os.Getwd()
-	require.NoError(t, err)
-
-	defer func() { _ = os.Chdir(origDir) }()
-
-	err = os.Chdir(tmpDir)
-	require.NoError(t, err)
 
 	// Create a malformed go.mod file that will make go list fail.
 	// Using invalid syntax to force a parsing error.
-	err = os.WriteFile("go.mod", []byte("invalid go.mod content without module directive\n"), cryptoutilSharedMagic.CacheFilePermissions)
+	err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte("invalid go.mod content without module directive\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
-	err = os.WriteFile("go.sum", []byte(""), cryptoutilSharedMagic.CacheFilePermissions)
+
+	err = os.WriteFile(filepath.Join(tmpDir, "go.sum"), []byte(""), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = Check(logger)
+	err = CheckInDir(logger, tmpDir)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to check dependencies")
 }
 
 // TestCheckOutdatedDeps_NoOutdatedDeps tests Check with up-to-date deps (fresh check).
-// Sequential: uses os.Chdir (global process state).
 func TestCheckOutdatedDeps_NoOutdatedDeps(t *testing.T) {
-	// This test cannot be parallel because it changes working directory.
+	t.Parallel()
+
 	tmpDir := t.TempDir()
-	origDir, err := os.Getwd()
-	require.NoError(t, err)
-
-	defer func() { _ = os.Chdir(origDir) }()
-
-	err = os.Chdir(tmpDir)
-	require.NoError(t, err)
 
 	// Create a valid go module that go list can process.
 	// Using "example.com/test" which won't have any real dependencies.
-	err = os.WriteFile("go.mod", []byte("module example.com/test\ngo 1.26.1\n"), cryptoutilSharedMagic.CacheFilePermissions)
+	err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte("module example.com/test\ngo 1.26.1\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
-	err = os.WriteFile("go.sum", []byte(""), cryptoutilSharedMagic.CacheFilePermissions)
+
+	err = os.WriteFile(filepath.Join(tmpDir, "go.sum"), []byte(""), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = Check(logger)
+	err = CheckInDir(logger, tmpDir)
 	// This should succeed because there are no dependencies.
 	require.NoError(t, err)
 }
@@ -222,109 +188,82 @@ func TestSaveDepCache_WriteError(t *testing.T) {
 }
 
 // TestLint_WithLinterError tests the Lint function when a linter returns an error.
-// Sequential: uses os.Chdir (global process state).
 func TestLint_WithLinterError(t *testing.T) {
-	// This test cannot be parallel because it changes working directory.
+	t.Parallel()
+
 	tmpDir := t.TempDir()
-	origDir, err := os.Getwd()
-	require.NoError(t, err)
-
-	defer func() { _ = os.Chdir(origDir) }()
-
-	err = os.Chdir(tmpDir)
-	require.NoError(t, err)
 
 	// No go.mod file, so the linter will fail.
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = Check(logger)
+	err := CheckInDir(logger, tmpDir)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to read go.mod")
 }
 
 // TestLint_Success tests the Lint function when all linters pass.
-// Sequential: uses os.Chdir (global process state).
 func TestLint_Success(t *testing.T) {
-	// This test cannot be parallel because it changes working directory.
+	t.Parallel()
+
 	tmpDir := t.TempDir()
-	origDir, err := os.Getwd()
-	require.NoError(t, err)
-
-	defer func() { _ = os.Chdir(origDir) }()
-
-	err = os.Chdir(tmpDir)
-	require.NoError(t, err)
 
 	// Create a valid go module setup.
-	err = os.WriteFile("go.mod", []byte("module example.com/test\ngo 1.26.1\n"), cryptoutilSharedMagic.CacheFilePermissions)
+	err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte("module example.com/test\ngo 1.26.1\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
-	err = os.WriteFile("go.sum", []byte(""), cryptoutilSharedMagic.CacheFilePermissions)
+
+	err = os.WriteFile(filepath.Join(tmpDir, "go.sum"), []byte(""), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = Check(logger)
+	err = CheckInDir(logger, tmpDir)
 	require.NoError(t, err)
 }
 
 // TestCheckOutdatedDeps_WithOutdatedDeps tests Check finding outdated deps (fresh check).
-// Sequential: uses os.Chdir (global process state).
 func TestCheckOutdatedDeps_WithOutdatedDeps(t *testing.T) {
-	// This test cannot be parallel because it changes working directory.
+	t.Parallel()
+
 	tmpDir := t.TempDir()
-	origDir, err := os.Getwd()
-	require.NoError(t, err)
-
-	defer func() { _ = os.Chdir(origDir) }()
-
-	err = os.Chdir(tmpDir)
-	require.NoError(t, err)
 
 	// Create a go module that has an outdated dependency.
 	// We need a real dependency that might have updates.
-	goModContent := `module example.com/test
-
-go 1.26.1
-
-require github.com/pkg/errors v0.8.0
-`
-	err = os.WriteFile("go.mod", []byte(goModContent), cryptoutilSharedMagic.CacheFilePermissions)
+	goModContent := "module example.com/test\n\ngo 1.26.1\n\nrequire github.com/pkg/errors v0.8.0\n"
+	err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(goModContent), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
-	err = os.WriteFile("go.sum", []byte("github.com/pkg/errors v0.8.0 h1:WdK/asTD0HN+q6hsWO3/vpuAkAr+tw6aNJNDFFf0+qw=\ngithub.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=\n"), cryptoutilSharedMagic.CacheFilePermissions)
+
+	err = os.WriteFile(filepath.Join(tmpDir, "go.sum"), []byte("github.com/pkg/errors v0.8.0 h1:WdK/asTD0HN+q6hsWO3/vpuAkAr+tw6aNJNDFFf0+qw=\ngithub.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = Check(logger)
+	err = CheckInDir(logger, tmpDir)
 	// This should fail because pkg/errors v0.8.0 has updates available.
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "outdated dependencies found")
 }
 
 // TestCheckOutdatedDeps_SaveCacheError tests warning when cache save fails.
-// Sequential: uses os.Chdir (global process state).
 func TestCheckOutdatedDeps_SaveCacheError(t *testing.T) {
-	// This test cannot be parallel because it changes working directory.
+	t.Parallel()
+
 	tmpDir := t.TempDir()
-	origDir, err := os.Getwd()
-	require.NoError(t, err)
-
-	defer func() { _ = os.Chdir(origDir) }()
-
-	err = os.Chdir(tmpDir)
-	require.NoError(t, err)
 
 	// Create a valid go module.
-	err = os.WriteFile("go.mod", []byte("module example.com/test\ngo 1.26.1\n"), cryptoutilSharedMagic.CacheFilePermissions)
+	err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte("module example.com/test\ngo 1.26.1\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
-	err = os.WriteFile("go.sum", []byte(""), cryptoutilSharedMagic.CacheFilePermissions)
+
+	err = os.WriteFile(filepath.Join(tmpDir, "go.sum"), []byte(""), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	// Create a file at the cache directory location to prevent directory creation.
-	cacheDir := filepath.Dir(cryptoutilSharedMagic.DepCacheFileName)
+	cacheDir := filepath.Dir(filepath.Join(tmpDir, cryptoutilSharedMagic.DepCacheFileName))
+	err = os.MkdirAll(filepath.Dir(cacheDir), cryptoutilSharedMagic.CICDOutputDirPermissions)
+	require.NoError(t, err)
+
 	err = os.WriteFile(cacheDir, []byte("blocking file"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	// This should succeed but with a warning about cache save failure.
-	err = Check(logger)
+	err = CheckInDir(logger, tmpDir)
 	// The check itself should still pass (no outdated deps).
 	require.NoError(t, err)
 }

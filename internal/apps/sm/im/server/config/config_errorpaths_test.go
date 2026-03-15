@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -113,9 +112,7 @@ func TestValidateSmIMSettings_Valid(t *testing.T) {
 // TestParseWithFlagSet_DefaultPortOverride verifies that when --bind-public-port is NOT specified,
 // the port is overridden to IMServicePort.
 func TestParseWithFlagSet_DefaultPortOverride(t *testing.T) {
-	// Sequential: uses viper global state.
-	viper.Reset()
-	t.Cleanup(func() { viper.Reset() })
+	t.Parallel()
 
 	fs := pflag.NewFlagSet("test-default-port", pflag.ContinueOnError)
 	settings, err := ParseWithFlagSet(fs, []string{"start"}, false)
@@ -129,9 +126,7 @@ func TestParseWithFlagSet_DefaultPortOverride(t *testing.T) {
 // TestParseWithFlagSet_TemplateParseFail verifies error wrapping when the template
 // parser encounters an unknown flag.
 func TestParseWithFlagSet_TemplateParseFail(t *testing.T) {
-	// Sequential: uses viper global state.
-	viper.Reset()
-	t.Cleanup(func() { viper.Reset() })
+	t.Parallel()
 
 	fs := pflag.NewFlagSet("test-parse-error", pflag.ContinueOnError)
 	settings, err := ParseWithFlagSet(fs, []string{"start", "--nonexistent-flag-xyz"}, false)
@@ -144,9 +139,7 @@ func TestParseWithFlagSet_TemplateParseFail(t *testing.T) {
 // TestParseWithFlagSet_ValidationFail verifies error wrapping when sm-im validation
 // fails due to an invalid flag value passed through the CLI.
 func TestParseWithFlagSet_ValidationFail(t *testing.T) {
-	// Sequential: uses viper global state.
-	viper.Reset()
-	t.Cleanup(func() { viper.Reset() })
+	t.Parallel()
 
 	fs := pflag.NewFlagSet("test-validation-error", pflag.ContinueOnError)
 	settings, err := ParseWithFlagSet(fs, []string{"start", "--message-min-length=0"}, false)

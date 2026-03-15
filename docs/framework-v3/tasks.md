@@ -357,53 +357,62 @@
 
 #### Task 4.1: Categorize and triage all 173 exemptions
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: None
 - **Description**: Categorize each exemption, determine which are truly necessary vs. avoidable
 - **Acceptance Criteria**:
-  - [ ] Spreadsheet/doc with all 173 exemptions categorized
-  - [ ] Each marked: necessary, refactorable, or questionable
-  - [ ] Priority order: smallest categories first (os.Stderr, pgDriver, seams, os.Chdir, viper/pflag)
+  - [x] Spreadsheet/doc with all 173 exemptions categorized
+  - [x] Each marked: necessary, refactorable, or questionable
+  - [x] Priority order: smallest categories first (os.Stderr, pgDriver, seams, os.Chdir, viper/pflag)
+  - **Note**: 180 total (not 173): os.Stderr(5), pgDriver(11), seam/osExit(19), os.Chdir(38), viper/pflag/cobra(58), shared/global(34), SQLite-in-memory(10), port-reuse(5)
 
 #### Task 4.2: Inject io.Writer for os.Stderr tests (5 exemptions)
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: Task 4.1
 - **Description**: Inject `io.Writer` instead of capturing os.Stderr. Smallest category — quick win.
 - **Acceptance Criteria**:
-  - [ ] os.Stderr capture tests use injected io.Writer
-  - [ ] Sequential exemptions removed for these tests
-  - [ ] All tests pass
+  - [x] os.Stderr capture tests use injected io.Writer
+  - [x] Sequential exemptions removed for these tests
+  - [x] All tests pass
+  - **Commit**: cff614ad6
 
 #### Task 4.3: pgDriver registration exemptions (11 exemptions)
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: Task 4.1
 - **Description**: Evaluate test isolation approach for pgDriver registration
 - **Acceptance Criteria**:
-  - [ ] Each pgDriver exemption evaluated
-  - [ ] Avoidable exemptions removed
-  - [ ] All tests pass
+  - [x] Each pgDriver exemption evaluated
+  - [x] All 11 exemptions eliminated via per-test atomic.Uint64 driver registration
+  - [x] All tests pass
+  - **Commit**: 5604f138c
 
-#### Task 4.4: Seam variables audit (11 exemptions)
+#### Task 4.4: Seam variables audit (19 exemptions)
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: Task 4.1
 - **Description**: These ARE the SEAM PATTERN already. Align documentation. Verify all are truly necessary.
 - **Acceptance Criteria**:
-  - [ ] Each seam exemption verified as correct pattern usage
-  - [ ] Documentation aligned with seam pattern
-  - [ ] Unnecessary exemptions removed if any
+  - [x] Each seam exemption verified as correct pattern usage (19 examined: 8 keygen, 4 migration_numbering, 3 magic_aliases, 2 check_skeleton_placeholders, 1 parallel_tests, 1 test_presence)
+  - [x] Documentation aligned with seam pattern (all correctly use `orig := seam; seam = mock; defer func() { seam = orig }()` pattern)
+  - [x] Unnecessary exemptions removed if any (NONE — all 19 are genuinely required seam pattern)
+  - **Note**: No code changes needed — all exemptions are correct seam pattern usage
 
 #### Task 4.5: Evaluate os.Chdir exemptions (37 exemptions)
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: Task 4.1
 - **Description**: Many os.Chdir exemptions in lint_fitness use CheckInDir which is already parameterized
 - **Acceptance Criteria**:
-  - [ ] Each os.Chdir exemption evaluated
-  - [ ] Unnecessary exemptions removed
-  - [ ] All tests pass
+  - [x] Each os.Chdir exemption evaluated
+  - [x] Unnecessary exemptions removed (10 github_actions tests fixed via CheckInDir + 19 from prior tasks)
+  - [x] All tests pass
+- **Commit**: e2b0e7cf3
+- **Note**: 37 evaluated: 10 github_actions (added CheckInDir/loadWorkflowActionExceptionsInDir),
+  5 keep Sequential (integration tests, deleted-CWD SEAM, chmod-0000 SEAM),
+  19 prior tasks (outdated_deps: 10, DelegatesCheckInDir: 4, FromProjectRoot: 5),
+  3 circular_deps/format_go/magic_usage (justified: SEAM+Chdir, chmod-0000, deleted-CWD)
 
 #### Task 4.6: SEAM PATTERN for viper/pflag tests (58 exemptions)
 

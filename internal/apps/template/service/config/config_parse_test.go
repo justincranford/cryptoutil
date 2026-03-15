@@ -9,12 +9,12 @@ import (
 	"os"
 	"testing"
 
+	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/require"
 )
 
-// Sequential: uses viper/pflag global state.
 func TestParseWithMultipleConfigFiles(t *testing.T) {
-	resetFlags()
+	t.Parallel()
 
 	// Create two temporary config files.
 	configFile1 := t.TempDir() + "/config1.yaml"
@@ -45,7 +45,7 @@ service-rate-limit: 200
 		"--config=" + configFile2,
 	}
 
-	s, err := Parse(commandParameters, true)
+	s, err := ParseWithFlagSet(pflag.NewFlagSet("test", pflag.ContinueOnError), commandParameters, true)
 	require.NoError(t, err)
 
 	// Verify second config file values override first.
@@ -114,7 +114,7 @@ func TestFormatDefault_EmptyStringSlice(t *testing.T) {
 
 // TestParse_BooleanEnvironmentVariableBinding tests that boolean settings are bound to environment variables.
 // Kills mutation: config.go:949 (CONDITIONALS_NEGATION: if _, ok := setting.Value.(bool); ok).
-// Sequential: uses viper/pflag global state.
+// Sequential: uses pflag.CommandLine global state via Parse().
 func TestParse_BooleanEnvironmentVariableBinding(t *testing.T) {
 	resetFlags()
 
