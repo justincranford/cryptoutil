@@ -416,13 +416,18 @@
 
 #### Task 4.6: SEAM PATTERN for viper/pflag tests (58 exemptions)
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: Task 4.1
 - **Description**: Inject config reader instead of relying on global viper state. Largest category — most complex.
 - **Acceptance Criteria**:
-  - [ ] Config tests no longer use global viper state
-  - [ ] Sequential exemptions reduced by ~30-50
-  - [ ] All tests pass
+  - [x] Config tests no longer use global viper state (viper.New() per ParseWithFlagSet call)
+  - [x] Sequential exemptions reduced by ~58 (180 -> 122; ParseWithFlagSet tests now parallel)
+  - [x] All tests pass
+- **Commit**: e5dee60e7
+- **Note**: template ParseWithFlagSet creates v := viper.New() per call (isolated instance).
+  jose/ja and sm/im read domain settings via fs.GetX() instead of global viper.
+  Tests using ParseWithFlagSet(pflag.NewFlagSet()) → t.Parallel() (no shared state).
+  Tests using Parse() → keep Sequential: uses pflag.CommandLine global state via Parse().
 
 #### Task 4.7: Remaining exemption categories
 

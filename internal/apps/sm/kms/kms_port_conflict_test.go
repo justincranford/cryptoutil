@@ -10,7 +10,6 @@ import (
 	"net"
 	"testing"
 
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 
 	cryptoutilSharedTestutil "cryptoutil/internal/shared/testutil"
@@ -18,10 +17,8 @@ import (
 
 // TestKMS_ServerStartPortConflict verifies the server error path through errChan when
 // the public port is already occupied and srv.Start(ctx) fails to bind.
-// Sequential: uses viper global state via ParseWithFlagSet.
+// Sequential: uses pflag.CommandLine global state via Parse() and port reuse.
 func TestKMS_ServerStartPortConflict(t *testing.T) {
-	t.Cleanup(func() { viper.Reset() })
-
 	// Occupy a TCP port so the server's public listener fails to bind.
 	var lc net.ListenConfig
 

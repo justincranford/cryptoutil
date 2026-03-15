@@ -116,7 +116,7 @@ func TestCA_UnknownSubcommand(t *testing.T) {
 }
 
 // TestCA_ServerParseError verifies the Parse error path in caServerStart.
-// Sequential: uses viper global state via ParseWithFlagSet.
+// Sequential: uses pflag.CommandLine global state via Parse().
 func TestCA_ServerParseError(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
@@ -129,7 +129,7 @@ func TestCA_ServerParseError(t *testing.T) {
 }
 
 // TestCA_ServerCreateError verifies the NewFromConfig error path.
-// Sequential: uses viper global state via ParseWithFlagSet.
+// Sequential: uses pflag.CommandLine global state via Parse().
 func TestCA_ServerCreateError(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 

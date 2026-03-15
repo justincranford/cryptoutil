@@ -23,7 +23,7 @@ func TestIM_ServerHelp(t *testing.T) {
 }
 
 // TestIM_ServerParseError verifies the parse error path in imServiceServerStart.
-// Sequential: uses viper global state via ParseWithFlagSet.
+// Sequential: uses pflag.CommandLine global state via Parse().
 func TestIM_ServerParseError(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
@@ -36,7 +36,7 @@ func TestIM_ServerParseError(t *testing.T) {
 }
 
 // TestIM_ServerCreateError verifies the NewFromConfig error path.
-// Sequential: uses viper global state via ParseWithFlagSet.
+// Sequential: uses pflag.CommandLine global state via Parse().
 func TestIM_ServerCreateError(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 

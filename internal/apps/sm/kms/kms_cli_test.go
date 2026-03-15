@@ -121,7 +121,7 @@ func TestKMS_UnknownSubcommand(t *testing.T) {
 }
 
 // TestKMS_ServerParseError verifies the parse error path in kmsServerStart.
-// Sequential: uses viper global state via ParseWithFlagSet.
+// Sequential: uses pflag.CommandLine global state via Parse().
 func TestKMS_ServerParseError(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
@@ -134,7 +134,7 @@ func TestKMS_ServerParseError(t *testing.T) {
 }
 
 // TestKMS_ServerCreateError verifies the NewKMSServer error path.
-// Sequential: uses viper global state via ParseWithFlagSet.
+// Sequential: uses pflag.CommandLine global state via Parse().
 func TestKMS_ServerCreateError(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 

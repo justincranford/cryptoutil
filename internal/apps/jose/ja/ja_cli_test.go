@@ -117,7 +117,7 @@ func TestJA_UnknownSubcommand(t *testing.T) {
 }
 
 // TestJA_ServerParseError verifies the Parse error path in jaServerStart.
-// Sequential: uses viper global state via ParseWithFlagSet.
+// Sequential: uses pflag.CommandLine global state via Parse().
 func TestJA_ServerParseError(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
@@ -130,7 +130,7 @@ func TestJA_ServerParseError(t *testing.T) {
 }
 
 // TestJA_ServerCreateError verifies the NewFromConfig error path.
-// Sequential: uses viper global state via ParseWithFlagSet.
+// Sequential: uses pflag.CommandLine global state via Parse().
 func TestJA_ServerCreateError(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 

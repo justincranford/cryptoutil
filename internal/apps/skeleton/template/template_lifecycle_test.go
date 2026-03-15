@@ -12,18 +12,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 
 	cryptoutilSharedTestutil "cryptoutil/internal/shared/testutil"
 )
 
 // TestTemplate_ServerLifecycle verifies the full server start → signal → graceful shutdown path.
-// Sequential: uses viper global state via ParseWithFlagSet and process-level signals.
+// Sequential: uses pflag.CommandLine global state via Parse() and process-level signals.
 func TestTemplate_ServerLifecycle(t *testing.T) {
-	// Reset viper global state after test to prevent leaking --profile=test to subsequent tests.
-	t.Cleanup(func() { viper.Reset() })
-
 	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
 		t.Skip("syscall.SIGINT is not supported on Windows.")
 	}

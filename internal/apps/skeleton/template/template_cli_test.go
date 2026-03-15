@@ -116,7 +116,7 @@ func TestTemplate_UnknownSubcommand(t *testing.T) {
 }
 
 // TestTemplate_ServerParseError verifies the Parse error path in templateServerStart.
-// Sequential: uses viper global state via ParseWithFlagSet.
+// Sequential: uses pflag.CommandLine global state via Parse().
 func TestTemplate_ServerParseError(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
@@ -129,7 +129,7 @@ func TestTemplate_ServerParseError(t *testing.T) {
 }
 
 // TestTemplate_ServerCreateError verifies the NewFromConfig error path.
-// Sequential: uses viper global state via ParseWithFlagSet.
+// Sequential: uses pflag.CommandLine global state via Parse().
 func TestTemplate_ServerCreateError(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
