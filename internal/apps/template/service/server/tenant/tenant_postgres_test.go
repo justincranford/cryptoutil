@@ -9,8 +9,10 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"errors"
+	"fmt"
 	"io"
 	"sync"
+	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -32,35 +34,6 @@ type mockPGDriver struct {
 	failIter bool // When true, rows.Next() returns an error after first row.
 	rowsData [][]driver.Value
 	columns  []string
-}
-
-func (d *mockPGDriver) setFail(fail bool) {
-	d.mu.Lock()
-	defer d.mu.Unlock()
-
-	d.failExec = fail
-}
-
-func (d *mockPGDriver) setFailScan(fail bool) {
-	d.mu.Lock()
-	defer d.mu.Unlock()
-
-	d.failScan = fail
-}
-
-func (d *mockPGDriver) setFailIter(fail bool) {
-	d.mu.Lock()
-	defer d.mu.Unlock()
-
-	d.failIter = fail
-}
-
-func (d *mockPGDriver) setRows(cols []string, rows [][]driver.Value) {
-	d.mu.Lock()
-	defer d.mu.Unlock()
-
-	d.columns = cols
-	d.rowsData = rows
 }
 
 func (d *mockPGDriver) Open(_ string) (driver.Conn, error) {
@@ -157,18 +130,18 @@ func (r *mockPGRows) Next(dest []driver.Value) error {
 	return nil
 }
 
-// pgDriver is the package-level mock driver registered once.
-var pgDriver = &mockPGDriver{} //nolint:gochecknoglobals // Required for sql.Register.
+// pgDriverCounter generates unique driver names to allow parallel testing.
+var pgDriverCounter atomic.Uint64 //nolint:gochecknoglobals // Required for unique sql.Register names per test.
 
-func init() { //nolint:gochecknoinits // Required for sql.Register at package init.
-	sql.Register("mockpg", pgDriver)
-}
-
-// newMockPGSchemaManager creates a SchemaManager with the mock Postgres driver.
-func newMockPGSchemaManager(t *testing.T) *SchemaManager {
+// newMockPGSchemaManager creates a SchemaManager with a fresh per-test mock Postgres driver.
+// Each call registers a uniquely-named driver so tests can run in parallel without sharing state.
+func newMockPGSchemaManager(t *testing.T, d *mockPGDriver) *SchemaManager {
 	t.Helper()
 
-	db, err := sql.Open("mockpg", "dummy")
+	driverName := fmt.Sprintf("mockpg_%d", pgDriverCounter.Add(1))
+	sql.Register(driverName, d)
+
+	db, err := sql.Open(driverName, "dummy")
 	require.NoError(t, err)
 
 	// Need a GORM db for NewSchemaManager — use SQLite.
@@ -226,24 +199,22 @@ func TestListSchemas_UnsupportedType(t *testing.T) {
 // ----------------------------------------------------------------------------
 
 // TestCreatePostgresSchema_Success tests successful schema creation.
-// Sequential: modifies global pgDriver state (package-level mock driver).
 func TestCreatePostgresSchema_Success(t *testing.T) {
-	pgDriver.setFail(false)
+	t.Parallel()
 
-	sm := newMockPGSchemaManager(t)
+	d := &mockPGDriver{}
+	sm := newMockPGSchemaManager(t, d)
 
 	err := sm.CreateSchema(context.Background(), "test-tenant-id")
 	require.NoError(t, err)
 }
 
 // TestCreatePostgresSchema_Error tests error path in schema creation.
-// Sequential: modifies global pgDriver state (package-level mock driver).
 func TestCreatePostgresSchema_Error(t *testing.T) {
-	pgDriver.setFail(true)
+	t.Parallel()
 
-	defer pgDriver.setFail(false)
-
-	sm := newMockPGSchemaManager(t)
+	d := &mockPGDriver{failExec: true}
+	sm := newMockPGSchemaManager(t, d)
 
 	err := sm.CreateSchema(context.Background(), "test-tenant-id")
 	require.Error(t, err)
@@ -251,24 +222,22 @@ func TestCreatePostgresSchema_Error(t *testing.T) {
 }
 
 // TestDropPostgresSchema_Success tests successful schema drop.
-// Sequential: modifies global pgDriver state (package-level mock driver).
 func TestDropPostgresSchema_Success(t *testing.T) {
-	pgDriver.setFail(false)
+	t.Parallel()
 
-	sm := newMockPGSchemaManager(t)
+	d := &mockPGDriver{}
+	sm := newMockPGSchemaManager(t, d)
 
 	err := sm.DropSchema(context.Background(), "test-tenant-id")
 	require.NoError(t, err)
 }
 
 // TestDropPostgresSchema_Error tests error path in schema drop.
-// Sequential: modifies global pgDriver state (package-level mock driver).
 func TestDropPostgresSchema_Error(t *testing.T) {
-	pgDriver.setFail(true)
+	t.Parallel()
 
-	defer pgDriver.setFail(false)
-
-	sm := newMockPGSchemaManager(t)
+	d := &mockPGDriver{failExec: true}
+	sm := newMockPGSchemaManager(t, d)
 
 	err := sm.DropSchema(context.Background(), "test-tenant-id")
 	require.Error(t, err)
@@ -276,14 +245,11 @@ func TestDropPostgresSchema_Error(t *testing.T) {
 }
 
 // TestPostgresSchemaExists_ExistsTrue tests schema existence returning true.
-// Sequential: modifies global pgDriver state (package-level mock driver).
 func TestPostgresSchemaExists_ExistsTrue(t *testing.T) {
-	pgDriver.setFail(false)
-	pgDriver.setRows([]string{"exists"}, [][]driver.Value{{true}})
+	t.Parallel()
 
-	defer pgDriver.setRows(nil, nil)
-
-	sm := newMockPGSchemaManager(t)
+	d := &mockPGDriver{columns: []string{"exists"}, rowsData: [][]driver.Value{{true}}}
+	sm := newMockPGSchemaManager(t, d)
 
 	exists, err := sm.SchemaExists(context.Background(), "test-tenant-id")
 	require.NoError(t, err)
@@ -291,14 +257,11 @@ func TestPostgresSchemaExists_ExistsTrue(t *testing.T) {
 }
 
 // TestPostgresSchemaExists_ExistsFalse tests schema existence returning false.
-// Sequential: modifies global pgDriver state (package-level mock driver).
 func TestPostgresSchemaExists_ExistsFalse(t *testing.T) {
-	pgDriver.setFail(false)
-	pgDriver.setRows([]string{"exists"}, [][]driver.Value{{false}})
+	t.Parallel()
 
-	defer pgDriver.setRows(nil, nil)
-
-	sm := newMockPGSchemaManager(t)
+	d := &mockPGDriver{columns: []string{"exists"}, rowsData: [][]driver.Value{{false}}}
+	sm := newMockPGSchemaManager(t, d)
 
 	exists, err := sm.SchemaExists(context.Background(), "test-tenant-id")
 	require.NoError(t, err)
@@ -306,13 +269,11 @@ func TestPostgresSchemaExists_ExistsFalse(t *testing.T) {
 }
 
 // TestPostgresSchemaExists_Error tests error path in schema existence check.
-// Sequential: modifies global pgDriver state (package-level mock driver).
 func TestPostgresSchemaExists_Error(t *testing.T) {
-	pgDriver.setFail(true)
+	t.Parallel()
 
-	defer pgDriver.setFail(false)
-
-	sm := newMockPGSchemaManager(t)
+	d := &mockPGDriver{failExec: true}
+	sm := newMockPGSchemaManager(t, d)
 
 	_, err := sm.SchemaExists(context.Background(), "test-tenant-id")
 	require.Error(t, err)
@@ -320,17 +281,17 @@ func TestPostgresSchemaExists_Error(t *testing.T) {
 }
 
 // TestListPostgresSchemas_Success tests listing schemas with results.
-// Sequential: modifies global pgDriver state (package-level mock driver).
 func TestListPostgresSchemas_Success(t *testing.T) {
-	pgDriver.setFail(false)
-	pgDriver.setRows([]string{"schema_name"}, [][]driver.Value{
-		{"tenant_abc"},
-		{"tenant_def"},
-	})
+	t.Parallel()
 
-	defer pgDriver.setRows(nil, nil)
-
-	sm := newMockPGSchemaManager(t)
+	d := &mockPGDriver{
+		columns:  []string{"schema_name"},
+		rowsData: [][]driver.Value{
+			{"tenant_abc"},
+			{"tenant_def"},
+		},
+	}
+	sm := newMockPGSchemaManager(t, d)
 
 	schemas, err := sm.ListSchemas(context.Background())
 	require.NoError(t, err)
@@ -339,13 +300,11 @@ func TestListPostgresSchemas_Success(t *testing.T) {
 }
 
 // TestListPostgresSchemas_Error tests error path when listing schemas fails.
-// Sequential: modifies global pgDriver state (package-level mock driver).
 func TestListPostgresSchemas_Error(t *testing.T) {
-	pgDriver.setFail(true)
+	t.Parallel()
 
-	defer pgDriver.setFail(false)
-
-	sm := newMockPGSchemaManager(t)
+	d := &mockPGDriver{failExec: true}
+	sm := newMockPGSchemaManager(t, d)
 
 	_, err := sm.ListSchemas(context.Background())
 	require.Error(t, err)
@@ -353,20 +312,17 @@ func TestListPostgresSchemas_Error(t *testing.T) {
 }
 
 // TestListPostgresSchemas_ScanError tests error path when rows.Scan fails.
-// Sequential: modifies global pgDriver state (package-level mock driver).
 func TestListPostgresSchemas_ScanError(t *testing.T) {
-	pgDriver.setFail(false)
-	pgDriver.setFailScan(true)
-	pgDriver.setRows([]string{"schema_name"}, [][]driver.Value{
-		{"tenant_bad"},
-	})
+	t.Parallel()
 
-	defer func() {
-		pgDriver.setFailScan(false)
-		pgDriver.setRows(nil, nil)
-	}()
-
-	sm := newMockPGSchemaManager(t)
+	d := &mockPGDriver{
+		failScan: true,
+		columns:  []string{"schema_name"},
+		rowsData: [][]driver.Value{
+			{"tenant_bad"},
+		},
+	}
+	sm := newMockPGSchemaManager(t, d)
 
 	_, err := sm.ListSchemas(context.Background())
 	require.Error(t, err)
@@ -374,21 +330,18 @@ func TestListPostgresSchemas_ScanError(t *testing.T) {
 }
 
 // TestListPostgresSchemas_IterError tests error path when rows.Err() returns an error.
-// Sequential: modifies global pgDriver state (package-level mock driver).
 func TestListPostgresSchemas_IterError(t *testing.T) {
-	pgDriver.setFail(false)
-	pgDriver.setFailIter(true)
-	pgDriver.setRows([]string{"schema_name"}, [][]driver.Value{
-		{"tenant_ok"},
-		{"tenant_fail"},
-	})
+	t.Parallel()
 
-	defer func() {
-		pgDriver.setFailIter(false)
-		pgDriver.setRows(nil, nil)
-	}()
-
-	sm := newMockPGSchemaManager(t)
+	d := &mockPGDriver{
+		failIter: true,
+		columns:  []string{"schema_name"},
+		rowsData: [][]driver.Value{
+			{"tenant_ok"},
+			{"tenant_fail"},
+		},
+	}
+	sm := newMockPGSchemaManager(t, d)
 
 	_, err := sm.ListSchemas(context.Background())
 	require.Error(t, err)
