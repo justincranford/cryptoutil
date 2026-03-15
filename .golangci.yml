@@ -147,6 +147,9 @@ linters:
       - path: "internal/shared/crypto/hash/doc\\.go$"
         linters: [revive]
         text: "package-comments"
+      # Exclude gosec G402 from TLS validation test (intentional InsecureSkipVerify test fixture).
+      - path: "internal/shared/crypto/tls/tls_validate_test\\.go$"
+        linters: [gosec]
 
   settings:
     errcheck:
@@ -154,7 +157,7 @@ linters:
       check-blank: false
     gosec:
       confidence: medium
-      excludes: [G204, G301, G302, G304, G402]
+      excludes: [G204, G301, G302, G304]
     gocyclo:
       min-complexity: 15
     goconst:

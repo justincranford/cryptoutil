@@ -40,14 +40,17 @@ rules:
         - "*_test.go"
         - "*_integration_test.go"
 
-  # FUTURE: InsecureSkipVerify - pending framework-v2 Phase 2 TLS init work.
-  # When test TLS cert chains are generated in service-template and gosec G402
-  # is removed from exclusions, uncomment this rule:
-  #
-  # - id: no-tls-insecure-skip-verify
-  #   message: >
-  #     InsecureSkipVerify: true MUST NOT be used. Use proper TLS cert chains.
-  #     See: docs/ARCHITECTURE.md Section 6.4 Cryptographic Architecture.
-  #   languages: [go]
-  #   severity: ERROR
-  #   pattern: "InsecureSkipVerify: true"
+  - id: no-tls-insecure-skip-verify
+    message: >
+      InsecureSkipVerify: true MUST NOT be used. Use proper TLS cert chains.
+      See: docs/ARCHITECTURE.md Section 6.4 Cryptographic Architecture.
+    languages: [go]
+    severity: ERROR
+    pattern: "InsecureSkipVerify: true"
+    paths:
+      include:
+        - "*_test.go"
+        - "*_integration_test.go"
+        - "*_e2e_test.go"
+      exclude:
+        - "internal/shared/crypto/tls/tls_validate_test.go"
