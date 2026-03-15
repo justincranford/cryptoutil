@@ -319,22 +319,14 @@ jobs:
 	require.Contains(t, err.Error(), "workflow validation errors")
 }
 
-// Sequential: uses os.Chdir (global process state).
 func TestLintGitHubWorkflows_ExceptionLoadWarning(t *testing.T) {
+	t.Parallel()
+
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	tmpDir := t.TempDir()
-	originalWd, err := os.Getwd()
-	require.NoError(t, err)
-
-	err = os.Chdir(tmpDir)
-	require.NoError(t, err)
-
-	defer func() {
-		_ = os.Chdir(originalWd)
-	}()
 
 	githubDir := filepath.Join(tmpDir, ".github")
-	err = os.MkdirAll(githubDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
+	err := os.MkdirAll(githubDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	exceptionsFile := filepath.Join(githubDir, "workflow-action-exceptions.json")
@@ -357,6 +349,6 @@ jobs:
 	err = os.WriteFile(workflowFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
-	err = Check(logger, []string{workflowFile})
-	require.NoError(t, err, "Should succeed with invalid exceptions file (warning only)")
+	err = CheckInDir(logger, []string{workflowFile}, tmpDir)
+	require.NoError(t, err, "Should succeed with invalid exceptions file (load warning only)")
 }

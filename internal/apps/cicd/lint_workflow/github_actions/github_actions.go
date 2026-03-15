@@ -45,7 +45,14 @@ var checkActionVersionsConcurrentlyFn = checkActionVersionsConcurrently
 // Check validates GitHub workflow files for outdated actions and other issues.
 // It returns an error if validation fails or outdated actions are found.
 func Check(logger *cryptoutilCmdCicdCommon.Logger, workflowFiles []string) error {
-	workflowActionExceptions, err := loadWorkflowActionExceptions()
+	return CheckInDir(logger, workflowFiles, ".")
+}
+
+// CheckInDir validates GitHub workflow files for outdated actions and other issues,
+// loading action exceptions relative to the given directory.
+// It returns an error if validation fails or outdated actions are found.
+func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, workflowFiles []string, dir string) error {
+	workflowActionExceptions, err := loadWorkflowActionExceptionsInDir(dir)
 	if err != nil {
 		logger.Log(fmt.Sprintf("Warning: Failed to load action exceptions: %v", err))
 
@@ -166,8 +173,8 @@ func validateAndGetWorkflowActionsDetails(logger *cryptoutilCmdCicdCommon.Logger
 	return workflowsActionDetails, nil
 }
 
-func loadWorkflowActionExceptions() (*WorkflowActionExceptions, error) {
-	exceptionsFile := ".github/workflow-action-exceptions.json"
+func loadWorkflowActionExceptionsInDir(dir string) (*WorkflowActionExceptions, error) {
+	exceptionsFile := filepath.Join(dir, ".github", "workflow-action-exceptions.json")
 
 	content, err := os.ReadFile(exceptionsFile)
 	if err != nil {

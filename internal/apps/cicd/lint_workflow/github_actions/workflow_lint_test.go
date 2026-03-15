@@ -224,23 +224,14 @@ jobs:
 
 // TestLintGitHubWorkflows_WithExemptedActions tests the exempted actions reporting path
 // by setting up an exceptions file and a workflow with matching exempted actions.
-// Sequential: uses os.Chdir (global process state).
 func TestLintGitHubWorkflows_WithExemptedActions(t *testing.T) {
-	// Note: Not parallel - modifies working directory.
+	t.Parallel()
+
 	tmpDir := t.TempDir()
-	originalWd, err := os.Getwd()
-	require.NoError(t, err)
-
-	err = os.Chdir(tmpDir)
-	require.NoError(t, err)
-
-	defer func() {
-		_ = os.Chdir(originalWd)
-	}()
 
 	// Create .github directory with exceptions file.
 	githubDir := filepath.Join(tmpDir, ".github")
-	err = os.MkdirAll(githubDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
+	err := os.MkdirAll(githubDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	// Create exceptions file with exempted action.
@@ -275,30 +266,21 @@ jobs:
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = Check(logger, []string{workflowFile})
+	err = CheckInDir(logger, []string{workflowFile}, tmpDir)
 	require.NoError(t, err, "Should succeed with exempted actions")
 }
 
 // TestLintGitHubWorkflows_SuccessPath tests the success message path when
 // there are actions but none are exempted or outdated.
-// Sequential: uses os.Chdir (global process state).
 func TestLintGitHubWorkflows_SuccessPath(t *testing.T) {
-	// Note: Not parallel - modifies working directory.
+	t.Parallel()
+
 	tmpDir := t.TempDir()
-	originalWd, err := os.Getwd()
-	require.NoError(t, err)
-
-	err = os.Chdir(tmpDir)
-	require.NoError(t, err)
-
-	defer func() {
-		_ = os.Chdir(originalWd)
-	}()
 
 	// Create .github/workflows directory.
 	githubDir := filepath.Join(tmpDir, ".github")
 	workflowDir := filepath.Join(githubDir, "workflows")
-	err = os.MkdirAll(workflowDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
+	err := os.MkdirAll(workflowDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	// Create workflow file with actions (no exceptions file means no exemptions).
@@ -316,29 +298,20 @@ jobs:
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = Check(logger, []string{workflowFile})
+	err = CheckInDir(logger, []string{workflowFile}, tmpDir)
 	require.NoError(t, err, "Should succeed and print success message")
 }
 
 // TestLintGitHubWorkflows_ExemptedAndNonExemptedMixed tests when some actions
 // are exempted and others are not.
-// Sequential: uses os.Chdir (global process state).
 func TestLintGitHubWorkflows_ExemptedAndNonExemptedMixed(t *testing.T) {
-	// Note: Not parallel - modifies working directory.
+	t.Parallel()
+
 	tmpDir := t.TempDir()
-	originalWd, err := os.Getwd()
-	require.NoError(t, err)
-
-	err = os.Chdir(tmpDir)
-	require.NoError(t, err)
-
-	defer func() {
-		_ = os.Chdir(originalWd)
-	}()
 
 	// Create .github directory with exceptions file.
 	githubDir := filepath.Join(tmpDir, ".github")
-	err = os.MkdirAll(githubDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
+	err := os.MkdirAll(githubDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	// Create exceptions file with one exempted action.
@@ -374,6 +347,6 @@ jobs:
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = Check(logger, []string{workflowFile})
+	err = CheckInDir(logger, []string{workflowFile}, tmpDir)
 	require.NoError(t, err, "Should succeed with mixed exempted and non-exempted actions")
 }

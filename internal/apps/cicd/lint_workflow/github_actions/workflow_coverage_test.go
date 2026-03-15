@@ -80,39 +80,28 @@ func TestValidateAndGetWorkflowActionsDetails_BranchPinned(t *testing.T) {
 
 // TestLintGitHubWorkflows_BranchPinnedAction verifies that Check
 // returns an error when a workflow has branch-pinned actions.
-// Note: Not parallel - changes working directory.
-// Sequential: uses os.Chdir (global process state).
 func TestLintGitHubWorkflows_BranchPinnedAction(t *testing.T) {
+	t.Parallel()
+
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	tmpDir := t.TempDir()
-
-	origDir, err := os.Getwd()
-	require.NoError(t, err)
-
-	err = os.Chdir(tmpDir)
-	require.NoError(t, err)
-
-	defer func() {
-		err := os.Chdir(origDir)
-		require.NoError(t, err)
-	}()
 
 	workflowFile := filepath.Join(tmpDir, "ci.yml")
 	content := []byte("uses: actions/checkout@main\n")
 
-	err = os.WriteFile(workflowFile, content, cryptoutilSharedMagic.CacheFilePermissions)
+	err := os.WriteFile(workflowFile, content, cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
-	err = Check(logger, []string{workflowFile})
+	err = CheckInDir(logger, []string{workflowFile}, tmpDir)
 	require.Error(t, err, "Should fail when branch-pinned actions are found")
 	require.Contains(t, err.Error(), "workflow validation failed")
 }
 
 // TestLintGitHubWorkflows_ExceptionVersionMismatch verifies that
 // Check prints warnings when exception version mismatches.
-// Note: Not parallel - changes working directory to set up exceptions file.
-// Sequential: uses os.Chdir (global process state).
 func TestLintGitHubWorkflows_ExceptionVersionMismatch(t *testing.T) {
+	t.Parallel()
+
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	tmpDir := t.TempDir()
 
@@ -124,21 +113,8 @@ func TestLintGitHubWorkflows_ExceptionVersionMismatch(t *testing.T) {
 
 	exceptionsFile := filepath.Join(githubDir, "workflow-action-exceptions.json")
 	exceptionsContent := []byte(`{"exceptions":{"actions/checkout":{"version":"v3","reason":"Testing stale exception"}}}`)
-
 	err = os.WriteFile(exceptionsFile, exceptionsContent, cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
-
-	// Change working directory so loadWorkflowActionExceptions finds the file.
-	origDir, err := os.Getwd()
-	require.NoError(t, err)
-
-	err = os.Chdir(tmpDir)
-	require.NoError(t, err)
-
-	defer func() {
-		err := os.Chdir(origDir)
-		require.NoError(t, err)
-	}()
 
 	// Workflow uses v4 but exception specifies v3 - triggers stale-exception warning.
 	workflowFile := filepath.Join(tmpDir, "ci.yml")
@@ -147,6 +123,6 @@ func TestLintGitHubWorkflows_ExceptionVersionMismatch(t *testing.T) {
 	err = os.WriteFile(workflowFile, content, cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
-	err = Check(logger, []string{workflowFile})
+	err = CheckInDir(logger, []string{workflowFile}, tmpDir)
 	require.NoError(t, err, "Stale exception warnings do not cause failure")
 }

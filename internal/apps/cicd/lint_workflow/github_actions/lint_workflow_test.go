@@ -245,50 +245,40 @@ func TestLintGitHubWorkflows_WithActions(t *testing.T) {
 	require.NoError(t, err, "Lint should succeed with actions (no outdated check)")
 }
 
-// Sequential: uses os.Chdir (global process state).
 func TestLoadWorkflowActionExceptions_NotExists(t *testing.T) {
-	// Note: Not parallel - uses relative path from current working directory.
-	exceptions, err := loadWorkflowActionExceptions()
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	exceptions, err := loadWorkflowActionExceptionsInDir(tmpDir)
 	require.NoError(t, err, "Should succeed when file doesn't exist")
 	require.NotNil(t, exceptions)
 	require.Empty(t, exceptions.Exceptions)
 }
 
-// Sequential: uses os.Chdir (global process state).
 func TestLoadWorkflowActionExceptions_InvalidJSON(t *testing.T) {
-	tmpDir := t.TempDir()
-	originalWd, err := os.Getwd()
-	require.NoError(t, err)
+	t.Parallel()
 
+	tmpDir := t.TempDir()
 	githubDir := filepath.Join(tmpDir, ".github")
-	err = os.MkdirAll(githubDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
+	err := os.MkdirAll(githubDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	exceptionsFile := filepath.Join(githubDir, "workflow-action-exceptions.json")
 	err = os.WriteFile(exceptionsFile, []byte("invalid json"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
-	err = os.Chdir(tmpDir)
-	require.NoError(t, err)
-
-	defer func() {
-		_ = os.Chdir(originalWd)
-	}()
-
-	exceptions, err := loadWorkflowActionExceptions()
+	exceptions, err := loadWorkflowActionExceptionsInDir(tmpDir)
 	require.Error(t, err)
 	require.Nil(t, exceptions)
 	require.Contains(t, err.Error(), "failed to parse exceptions file")
 }
 
-// Sequential: uses os.Chdir (global process state).
 func TestLoadWorkflowActionExceptions_ValidJSON(t *testing.T) {
-	tmpDir := t.TempDir()
-	originalWd, err := os.Getwd()
-	require.NoError(t, err)
+	t.Parallel()
 
+	tmpDir := t.TempDir()
 	githubDir := filepath.Join(tmpDir, ".github")
-	err = os.MkdirAll(githubDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
+	err := os.MkdirAll(githubDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	exceptionsFile := filepath.Join(githubDir, "workflow-action-exceptions.json")
@@ -296,14 +286,7 @@ func TestLoadWorkflowActionExceptions_ValidJSON(t *testing.T) {
 	err = os.WriteFile(exceptionsFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
-	err = os.Chdir(tmpDir)
-	require.NoError(t, err)
-
-	defer func() {
-		_ = os.Chdir(originalWd)
-	}()
-
-	exceptions, err := loadWorkflowActionExceptions()
+	exceptions, err := loadWorkflowActionExceptionsInDir(tmpDir)
 	require.NoError(t, err)
 	require.NotNil(t, exceptions)
 	require.Len(t, exceptions.Exceptions, 1)
@@ -312,8 +295,9 @@ func TestLoadWorkflowActionExceptions_ValidJSON(t *testing.T) {
 	require.Equal(t, "Test exception", exceptions.Exceptions["actions/checkout"].Reason)
 }
 
-// Sequential: uses os.Chdir (global process state).
 func TestLoadWorkflowActionExceptions_UnreadableFile(t *testing.T) {
+	t.Parallel()
+
 	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
 		t.Skip("os.Chmod does not enforce POSIX permissions on Windows")
 	}
@@ -323,11 +307,8 @@ func TestLoadWorkflowActionExceptions_UnreadableFile(t *testing.T) {
 	}
 
 	tmpDir := t.TempDir()
-	originalWd, err := os.Getwd()
-	require.NoError(t, err)
-
 	githubDir := filepath.Join(tmpDir, ".github")
-	err = os.MkdirAll(githubDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
+	err := os.MkdirAll(githubDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
 	exceptionsFile := filepath.Join(githubDir, "workflow-action-exceptions.json")
@@ -340,14 +321,7 @@ func TestLoadWorkflowActionExceptions_UnreadableFile(t *testing.T) {
 		_ = os.Chmod(exceptionsFile, cryptoutilSharedMagic.CICDOutputFilePermissions)
 	}()
 
-	err = os.Chdir(tmpDir)
-	require.NoError(t, err)
-
-	defer func() {
-		_ = os.Chdir(originalWd)
-	}()
-
-	exceptions, err := loadWorkflowActionExceptions()
+	exceptions, err := loadWorkflowActionExceptionsInDir(tmpDir)
 	require.Error(t, err, "Should fail when file exists but is unreadable")
 	require.Nil(t, exceptions)
 	require.Contains(t, err.Error(), "failed to read exceptions file")
