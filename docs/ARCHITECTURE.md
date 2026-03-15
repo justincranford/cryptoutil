@@ -543,14 +543,14 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 | Product-Service Identifier | Status | Completion | Notes |
 |----------------------------|--------|------------|-------|
 | **sm-kms** | ✅ Complete | 100% | Reference implementation with dual servers, Docker Compose |
-| **pki-ca** | ⚠️ Partial | ~85% | Missing admin server, Docker Compose needs update |
+| **pki-ca** | ⚠️ Extraction Pending | 0% | Domain archived (`_ca-archived/`); fresh skeleton installed (Phase 8 reintegration) |
 | **jose-ja** | ⚠️ Partial | ~85% | Missing admin server, Docker Compose needs update |
 | **sm-im** | ✅ Complete | 100% | E2E encrypted messaging, Docker Compose working |
-| **identity-authz** | ✅ Complete | 100% | Dual servers, Docker Compose working |
-| **identity-idp** | ✅ Complete | 100% | Dual servers, Docker Compose working |
-| **identity-rs** | ✅ Complete | 100% | Dual servers, Docker Compose working |
-| **identity-rp** | ❌ Not Started | 0% | Planned for Phase 6 of implementation |
-| **identity-spa** | ❌ Not Started | 0% | Planned for Phase 6 of implementation |
+| **identity-authz** | ⚠️ Extraction Pending | 0% | Domain archived (`_authz-archived/`); fresh skeleton installed (Phase 8 reintegration) |
+| **identity-idp** | ⚠️ Extraction Pending | 0% | Domain archived (`_idp-archived/`); fresh skeleton installed (Phase 8 reintegration) |
+| **identity-rs** | ⚠️ Extraction Pending | 0% | Domain archived (`_rs-archived/`); fresh skeleton installed (Phase 8 reintegration) |
+| **identity-rp** | ⚠️ Extraction Pending | 0% | Domain archived (`_rp-archived/`); fresh skeleton installed (Phase 8 reintegration) |
+| **identity-spa** | ⚠️ Extraction Pending | 0% | Domain archived (`_spa-archived/`); fresh skeleton installed (Phase 8 reintegration) |
 | **skeleton-template** | ❌ Not Started | 0% | Best-practice stereotype product-service template |
 
 **Legend**: ✅ Complete (production-ready), ⚠️ Partial (functional but missing features), ❌ Not Started
