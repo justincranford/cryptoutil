@@ -407,9 +407,9 @@ func TestPostDecrypt_TamperedCiphertext(t *testing.T) {
 	// JWE compact has 5 parts: header.encryptedKey.iv.ciphertext.tag
 	// Replace ciphertext (part[3]) with different bytes so the GCM tag no longer matches.
 	parts := strings.Split(string(jweBytes), ".")
-        testify.Len(t, parts, cryptoutilSharedMagic.JWECompactParts)
+	testify.Len(t, parts, cryptoutilSharedMagic.JWECompactParts)
 
-parts[3] = testTamperedB64 // base64url for "tampered"
+	parts[3] = testTamperedB64 // base64url for "tampered"
 
 	tamperedJWE := []byte(strings.Join(parts, "."))
 
@@ -445,7 +445,7 @@ func TestPostVerify_TamperedPayload(t *testing.T) {
 	parts := strings.Split(string(jwsBytes), ".")
 	testify.Len(t, parts, 3)
 
-parts[1] = testTamperedB64 // base64url for "tampered"
+	parts[1] = testTamperedB64 // base64url for "tampered"
 
 	tamperedJWS := []byte(strings.Join(parts, "."))
 
