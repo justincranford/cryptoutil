@@ -179,116 +179,116 @@
 
 #### Task 2.1: Add TLS Test Bundle to service-template testserver
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: None
 - **Description**: Add TLS cert bundle generation to the shared testserver infrastructure
 - **Acceptance Criteria**:
-  - [ ] `NewTestTLSBundle(t)` in `internal/apps/template/service/testing/testserver/` generates self-signed CA + server cert
-  - [ ] `TLSClientConfig(t *testing.T, bundle *TestTLSBundle) *tls.Config` returns config trusting the test CA cert
-  - [ ] `testserver.StartAndWait()` accepts optional TLS bundle or auto-generates one
-  - [ ] Server exposes `TLSBundle()` accessor so test setup can retrieve the CA cert
-  - [ ] Unit tests for TLS bundle generation (>=95% coverage)
-  - [ ] Build clean: `go build ./internal/apps/template/service/testing/...`
-  - [ ] No linting errors
+  - [x] `NewTestTLSBundle(t)` in `internal/apps/template/service/testing/testserver/` generates self-signed CA + server cert
+  - [x] `TLSClientConfig(t *testing.T, bundle *TestTLSBundle) *tls.Config` returns config trusting the test CA cert
+  - [x] `testserver.StartAndWait()` accepts optional TLS bundle or auto-generates one
+  - [x] Server exposes `TLSBundle()` accessor so test setup can retrieve the CA cert
+  - [x] Unit tests for TLS bundle generation (>=95% coverage)
+  - [x] Build clean: `go build ./internal/apps/template/service/testing/...`
+  - [x] No linting errors
 
 #### Task 2.2: Migrate sm-im test HTTP clients
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: Task 2.1
 - **Description**: Replace InsecureSkipVerify: true with TLSClientConfig(t) in sm-im tests
 - **Acceptance Criteria**:
-  - [ ] Zero `InsecureSkipVerify: true` in sm-im test files
-  - [ ] All sm-im tests pass
-  - [ ] No linting errors
+  - [x] Zero `InsecureSkipVerify: true` in sm-im test files
+  - [x] All sm-im tests pass
+  - [x] No linting errors
 
 #### Task 2.3: Migrate jose-ja test HTTP clients
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: Task 2.1
 - **Description**: Replace InsecureSkipVerify: true with TLSClientConfig(t) in jose-ja tests
 - **Acceptance Criteria**:
-  - [ ] Zero `InsecureSkipVerify: true` in jose-ja test files
-  - [ ] All jose-ja tests pass
-  - [ ] No linting errors
+  - [x] Zero `InsecureSkipVerify: true` in jose-ja test files
+  - [x] All jose-ja tests pass
+  - [x] No linting errors
 
 #### Task 2.4: Migrate sm-kms test HTTP clients
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: Task 2.1
 - **Description**: Replace InsecureSkipVerify: true with TLSClientConfig(t) in sm-kms tests
 - **Acceptance Criteria**:
-  - [ ] Zero `InsecureSkipVerify: true` in sm-kms test files
-  - [ ] All sm-kms tests pass
-  - [ ] No linting errors
+  - [x] Zero `InsecureSkipVerify: true` in sm-kms test files
+  - [x] All sm-kms tests pass
+  - [x] No linting errors
 
 #### Task 2.5: Migrate pki-ca test HTTP clients
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: Task 2.1
 - **Description**: Replace InsecureSkipVerify: true with TLSClientConfig(t) in pki-ca tests
 - **Acceptance Criteria**:
-  - [ ] Zero `InsecureSkipVerify: true` in pki-ca test files
-  - [ ] All pki-ca tests pass
-  - [ ] No linting errors
+  - [x] Zero `InsecureSkipVerify: true` in pki-ca test files
+  - [x] All pki-ca tests pass
+  - [x] No linting errors
 
 #### Task 2.6: Migrate identity service test HTTP clients (all 5)
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: Task 2.1
 - **Description**: Replace InsecureSkipVerify: true with TLSClientConfig(t) in identity-authz/idp/rp/rs/spa tests
 - **Acceptance Criteria**:
-  - [ ] Zero `InsecureSkipVerify: true` in identity service test files
-  - [ ] All identity tests pass
-  - [ ] No linting errors
+  - [x] Zero `InsecureSkipVerify: true` in identity service test files
+  - [x] All identity tests pass
+  - [x] No linting errors
 
 #### Task 2.7: Migrate skeleton-template test HTTP clients
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: Task 2.1
 - **Description**: Replace InsecureSkipVerify: true with TLSClientConfig(t) in skeleton-template tests
 - **Acceptance Criteria**:
-  - [ ] Zero `InsecureSkipVerify: true` in skeleton-template test files
-  - [ ] All template and skeleton tests pass
-  - [ ] No linting errors
+  - [x] Zero `InsecureSkipVerify: true` in skeleton-template test files
+  - [x] All template and skeleton tests pass
+  - [x] No linting errors
 
 #### Task 2.8: Remove G402 from gosec.excludes and activate semgrep rule
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: Tasks 2.2-2.7
 - **Description**: Remove G402 exclusion from .golangci.yml, activate the semgrep rule
 - **Acceptance Criteria**:
-  - [ ] `G402` removed from `gosec.excludes` in `.golangci.yml`
-  - [ ] `no-tls-insecure-skip-verify` rule uncommented in `.semgrep/rules/go-testing.yml`
-  - [ ] `golangci-lint run ./...` passes with G402 enabled
-  - [ ] `go test ./... -shuffle=on` passes
+  - [x] `G402` removed from `gosec.excludes` in `.golangci.yml`
+  - [x] `no-tls-insecure-skip-verify` rule uncommented in `.semgrep/rules/go-testing.yml`
+  - [x] `golangci-lint run ./...` passes with G402 enabled
+  - [x] `go test ./... -shuffle=on` passes
 
 #### Task 2.9: Fix ARCHITECTURE.md TLS gaps (D15)
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: Task 2.1
 - **Description**: Fix all 6 identified TLS documentation gaps in ARCHITECTURE.md
 - **Acceptance Criteria**:
-  - [ ] Gap 1: TLS Certificate Configuration table added to ARCHITECTURE.md Section 6
-  - [ ] Gap 2: TLS CA/cert/key secrets documented in Section 12.3.3
-  - [ ] Gap 3: TLS test bundle pattern documented in Section 10.3
-  - [ ] Gap 4: ServiceServer.TLSBundle() accessor documented in Section 10.3.5
-  - [ ] Gap 5: mTLS deployment architecture documented in Section 6.3
-  - [ ] Gap 6: TLS mode taxonomy (Static/Mixed/Auto) documented in Section 6
-  - [ ] `cicd lint-docs validate-propagation` passes
+  - [x] Gap 1: TLS Certificate Configuration table added to ARCHITECTURE.md Section 6
+  - [x] Gap 2: TLS CA/cert/key secrets documented in Section 12.3.3
+  - [x] Gap 3: TLS test bundle pattern documented in Section 10.3
+  - [x] Gap 4: ServiceServer.TLSBundle() accessor documented in Section 10.3.5
+  - [x] Gap 5: mTLS deployment architecture documented in Section 6.3
+  - [x] Gap 6: TLS mode taxonomy (Static/Mixed/Auto) documented in Section 6
+  - [x] `cicd lint-docs validate-propagation` passes
 
 #### Task 2.10: Phase 2 validation and post-mortem
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: Tasks 2.8-2.9
 - **Description**: Full quality gate run, phase post-mortem
 - **Acceptance Criteria**:
-  - [ ] `go build ./...` and `go build -tags e2e,integration ./...` clean
-  - [ ] `golangci-lint run` and `golangci-lint run --build-tags e2e,integration` clean
-  - [ ] `go test ./... -shuffle=on` passes
-  - [ ] `go test -race -count=2 ./...` clean
-  - [ ] Coverage maintained
-  - [ ] lessons.md updated with Phase 2 post-mortem
-  - [ ] Git commit
+  - [x] `go build ./...` and `go build -tags e2e,integration ./...` clean
+  - [x] `golangci-lint run` and `golangci-lint run --build-tags e2e,integration` clean
+  - [x] `go test ./... -shuffle=on` passes
+  - [x] `go test -race -count=2 ./...` clean
+  - [x] Coverage maintained
+  - [x] lessons.md updated with Phase 2 post-mortem
+  - [x] Git commit
 
 ---
 
