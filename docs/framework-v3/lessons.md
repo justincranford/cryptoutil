@@ -236,7 +236,29 @@ o-tls-insecure-skip-verify semgrep rule includes all _test.go,_integration_test.
 
 ## Phase 6: lint-fitness Value Assessment
 
-*(To be filled during Phase 6 execution)*
+### What Worked
+
+- **Dual-pattern testing** (synthetic TempDir unit tests + `TestCheck_Integration` against real project) is the right approach. All 27+ sub-linters already use this pattern so no conversion needed.
+- **Coverage ceiling analysis** avoids chasing unreachable stdlib error propagation paths (WalkDir callback errors requiring OS permission failures). Documenting the ceiling prevents recurring pressure to reach 98% when structural barriers exist.
+- **D19 enforcement via new linter** is straightforward: scan for banned patterns, exempt via suffix + build tag + path fragments. 100% coverage achievable with simple unit tests covering all branches.
+
+### What Didn't Work / Pitfalls
+
+- **`multi_replace_string_in_file` corruption**: Adding a new element to a `var [] string` slice via replacement can corrupt the closing `}` if the replacement doesn't include enough context. **Prevention**: Always include the closing `}` in the `oldString` when editing inside a slice literal.
+- **Adding `//go:build e2e` to entire TestMain file**: If a test file declares `TestMain`, shared variables (`testDB`, `testPasswordHash`, etc.), it CANNOT be gated with a build tag — other test files in the same package that don't have the tag will fail to compile. **Rule**: Only add `//go:build e2e` to files that are fully standalone (no shared vars used by other test files in the package).
+- **`go tool cover -func=file`**: The `=` is rejected on Windows PowerShell (treated as argument separator). Use `-func file` (space, not equals).
+
+### Patterns Discovered
+
+- **TestMain with SQLite fallback pattern**: `tenant_registration_service_test.go` tries PostgreSQL but falls back to SQLite on panic/error. This satisfies D19 spirit (test works without Docker) while testing against real DB when available. Exempt such files from `no_postgres_in_non_e2e` via `service/server/businesslogic/` path fragment.
+- **D19 exemption strategy**: Three layers: (1) `_e2e_test.go` suffix, (2) `//go:build e2e` header tag, (3) explicit path fragments for infrastructure code (testdb/, container/, database/, businesslogic/ w/ fallback). This covers all legitimate PostgreSQL usage in the codebase.
+- **`no_local_closed_db_helper` already registered** as of Task 6.4 — confirming tracking docs can lag behind implementation.
+
+### Key Metrics
+
+- 28 lint-fitness sub-linter packages (was 24 before framework-v3; Task 6.4 added 4 more infra rules; Task 6.6 added 1 D19 rule = 29 planned, 28 confirmed passing)
+- New `no_postgres_in_non_e2e`: 100% coverage immediately with proper error path tests
+- All 28 packages: zero FAIL in full suite run
 
 ---
 
