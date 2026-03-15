@@ -34,6 +34,7 @@ type AdminServer struct {
 	mu       sync.RWMutex
 	ready    bool
 	shutdown bool
+	tlsCerts []tls.Certificate
 }
 
 // NewAdminHTTPServer creates a new admin server instance for private administrative operations.
@@ -181,8 +182,9 @@ func (s *AdminServer) Start(ctx context.Context) error {
 		return fmt.Errorf("failed to create TLS listener on %s: %w", bindAddr, err)
 	}
 
-	// Mark server as ready.
+	// Mark server as ready and store TLS certs for test pool access.
 	s.mu.Lock()
+	s.tlsCerts = tlsConfig.Certificates
 	s.ready = true
 	s.mu.Unlock()
 
@@ -318,4 +320,24 @@ func (s *AdminServer) AdminBaseURL() string {
 	port := s.ActualPort()
 
 	return fmt.Sprintf("https://127.0.0.1:%d", port)
+}
+
+// TLSRootCAPool returns the root CA certificate pool for test client TLS configuration.
+func (s *AdminServer) TLSRootCAPool() *x509.CertPool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if len(s.tlsCerts) == 0 || len(s.tlsCerts[0].Certificate) == 0 {
+		return nil
+	}
+
+	cert, err := x509.ParseCertificate(s.tlsCerts[0].Certificate[0])
+	if err != nil {
+		return nil
+	}
+
+	pool := x509.NewCertPool()
+	pool.AddCert(cert)
+
+	return pool
 }

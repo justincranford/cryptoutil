@@ -7,7 +7,6 @@ package demo
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
 	"io"
 	http "net/http"
@@ -321,11 +320,6 @@ func registerDemoClient(ctx context.Context, repoFactory *cryptoutilIdentityRepo
 func createHTTPClient() *http.Client {
 	return &http.Client{
 		Timeout: cryptoutilSharedMagic.DemoRequestDelay,
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, //nolint:gosec // Demo only
-			},
-		},
 	}
 }
 

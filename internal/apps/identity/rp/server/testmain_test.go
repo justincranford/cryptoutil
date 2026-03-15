@@ -29,8 +29,11 @@ const (
 // testServer is the shared server instance for all tests.
 var testServer *cryptoutilAppsIdentityRpServer.RPServer //nolint:gochecknoglobals
 
-// testHTTPClient is a pre-configured HTTP client for testing.
-var testHTTPClient *http.Client //nolint:gochecknoglobals
+// testPublicHTTPClient is a pre-configured HTTP client for public endpoints.
+var testPublicHTTPClient *http.Client //nolint:gochecknoglobals
+
+// testAdminHTTPClient is a pre-configured HTTP client for admin endpoints.
+var testAdminHTTPClient *http.Client //nolint:gochecknoglobals
 
 // testPublicBaseURL is the public server base URL.
 var testPublicBaseURL string //nolint:gochecknoglobals
@@ -71,14 +74,25 @@ func TestMain(m *testing.M) {
 	testPublicBaseURL = testServer.PublicBaseURL()
 	testAdminBaseURL = testServer.AdminBaseURL()
 
-	// Create HTTP client with TLS config.
-	testHTTPClient = &http.Client{
+	// Create HTTP clients with TLS config.
+	testPublicHTTPClient = &http.Client{
 		Timeout: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, //nolint:gosec // Test environment
-				MinVersion:         tls.VersionTLS12,
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    testServer.TLSRootCAPool(),
 			},
+			DisableKeepAlives: true,
+		},
+	}
+	testAdminHTTPClient = &http.Client{
+		Timeout: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    testServer.AdminTLSRootCAPool(),
+			},
+			DisableKeepAlives: true,
 		},
 	}
 
@@ -111,7 +125,8 @@ func requireTestSetup(t *testing.T) {
 	t.Helper()
 
 	require.NotNil(t, testServer, "test server should be initialized")
-	require.NotNil(t, testHTTPClient, "test HTTP client should be initialized")
+	require.NotNil(t, testPublicHTTPClient, "public HTTP client should be initialized")
+	require.NotNil(t, testAdminHTTPClient, "admin HTTP client should be initialized")
 	require.NotEmpty(t, testPublicBaseURL, "public base URL should be set")
 	require.NotEmpty(t, testAdminBaseURL, "admin base URL should be set")
 }

@@ -7,6 +7,7 @@ package server
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	json "encoding/json"
 	"fmt"
 	"io"
@@ -194,7 +195,7 @@ func TestAdminEndpointLivez(t *testing.T) {
 	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, port)
 
 	t.Run("LivezReturnsAlive", func(t *testing.T) {
-		statusCode, body := doAdminGet(t, baseURL+"/admin/api/v1/livez")
+			statusCode, body := doAdminGet(t, baseURL+"/admin/api/v1/livez", server.TLSRootCAPool())
 		require.Equal(t, http.StatusOK, statusCode)
 
 		var response map[string]any
@@ -212,9 +213,10 @@ func TestAdminEndpointLivez(t *testing.T) {
 			Timeout: 1 * time.Second,
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{
-					MinVersion:         tls.VersionTLS13,
-					InsecureSkipVerify: true, //nolint:gosec // Test server uses self-signed cert.
+					MinVersion: tls.VersionTLS13,
+					RootCAs:    server.TLSRootCAPool(),
 				},
+				DisableKeepAlives: true,
 			},
 		}
 
@@ -253,7 +255,7 @@ func TestAdminEndpointReadyz(t *testing.T) {
 
 	t.Run("ReadyzBeforeReady", func(t *testing.T) {
 		// Server starts not ready by default.
-		statusCode, body := doAdminGet(t, baseURL+"/admin/api/v1/readyz")
+		statusCode, body := doAdminGet(t, baseURL+"/admin/api/v1/readyz", server.TLSRootCAPool())
 
 		var response map[string]any
 
@@ -279,9 +281,10 @@ func TestAdminEndpointReadyz(t *testing.T) {
 			Timeout: 1 * time.Second,
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{
-					MinVersion:         tls.VersionTLS13,
-					InsecureSkipVerify: true, //nolint:gosec // Test server uses self-signed cert.
+					MinVersion: tls.VersionTLS13,
+					RootCAs:    server.TLSRootCAPool(),
 				},
+				DisableKeepAlives: true,
 			},
 		}
 
@@ -320,7 +323,7 @@ func TestAdminEndpointShutdown(t *testing.T) {
 
 	t.Run("ShutdownViaEndpoint", func(t *testing.T) {
 		// Call shutdown endpoint.
-		statusCode, body := doAdminPost(t, baseURL+"/admin/api/v1/shutdown")
+		statusCode, body := doAdminPost(t, baseURL+"/admin/api/v1/shutdown", server.TLSRootCAPool())
 		require.Equal(t, http.StatusOK, statusCode)
 
 		var response map[string]any
@@ -351,17 +354,18 @@ func waitForAdminPort(t *testing.T, server *AdminServer, timeout time.Duration) 
 	return 0
 }
 
-// doAdminGet performs GET request with TLS verification disabled.
-func doAdminGet(t *testing.T, url string) (int, []byte) {
+// doAdminGet performs GET request using the provided TLS certificate pool.
+func doAdminGet(t *testing.T, url string, certPool *x509.CertPool) (int, []byte) {
 	t.Helper()
 
 	client := &http.Client{
 		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				MinVersion:         tls.VersionTLS13,
-				InsecureSkipVerify: true, //nolint:gosec // Test server uses self-signed cert.
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    certPool,
 			},
+			DisableKeepAlives: true,
 		},
 	}
 
@@ -381,17 +385,18 @@ func doAdminGet(t *testing.T, url string) (int, []byte) {
 	return resp.StatusCode, body
 }
 
-// doAdminPost performs POST request with TLS verification disabled.
-func doAdminPost(t *testing.T, url string) (int, []byte) {
+// doAdminPost performs POST request using the provided TLS certificate pool.
+func doAdminPost(t *testing.T, url string, certPool *x509.CertPool) (int, []byte) {
 	t.Helper()
 
 	client := &http.Client{
 		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				MinVersion:         tls.VersionTLS13,
-				InsecureSkipVerify: true, //nolint:gosec // Test server uses self-signed cert.
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    certPool,
 			},
+			DisableKeepAlives: true,
 		},
 	}
 

@@ -29,7 +29,7 @@ func TestRPServer_Lifecycle(t *testing.T) {
 	livezReq, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/admin/api/v1/livez", testAdminBaseURL), nil)
 	require.NoError(t, err, "failed to create livez request")
 
-	livezResp, err := testHTTPClient.Do(livezReq)
+	livezResp, err := testAdminHTTPClient.Do(livezReq)
 	require.NoError(t, err, "failed to send livez request")
 	require.Equal(t, http.StatusOK, livezResp.StatusCode, "livez should return 200 OK")
 
@@ -39,7 +39,7 @@ func TestRPServer_Lifecycle(t *testing.T) {
 	readyzReq, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/admin/api/v1/readyz", testAdminBaseURL), nil)
 	require.NoError(t, err, "failed to create readyz request")
 
-	readyzResp, err := testHTTPClient.Do(readyzReq)
+	readyzResp, err := testAdminHTTPClient.Do(readyzReq)
 	require.NoError(t, err, "failed to send readyz request")
 	require.Equal(t, http.StatusOK, readyzResp.StatusCode, "readyz should return 200 OK")
 
@@ -88,7 +88,7 @@ func TestRPServer_PublicHealth(t *testing.T) {
 	healthReq, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/health", testPublicBaseURL), nil)
 	require.NoError(t, err, "failed to create health request")
 
-	healthResp, err := testHTTPClient.Do(healthReq)
+	healthResp, err := testPublicHTTPClient.Do(healthReq)
 	require.NoError(t, err, "failed to send health request")
 	require.Equal(t, http.StatusOK, healthResp.StatusCode, "health should return 200 OK")
 
@@ -98,7 +98,7 @@ func TestRPServer_PublicHealth(t *testing.T) {
 	livezReq, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/livez", testPublicBaseURL), nil)
 	require.NoError(t, err, "failed to create livez request")
 
-	livezResp, err := testHTTPClient.Do(livezReq)
+	livezResp, err := testPublicHTTPClient.Do(livezReq)
 	require.NoError(t, err, "failed to send livez request")
 	require.Equal(t, http.StatusOK, livezResp.StatusCode, "livez should return 200 OK")
 
@@ -110,7 +110,7 @@ func TestRPServer_PublicHealth(t *testing.T) {
 	readyzReq, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/readyz", testPublicBaseURL), nil)
 	require.NoError(t, err, "failed to create readyz request")
 
-	readyzResp, err := testHTTPClient.Do(readyzReq)
+	readyzResp, err := testPublicHTTPClient.Do(readyzReq)
 	require.NoError(t, err, "failed to send readyz request")
 	// Accept either 200 (AuthZ available) or 503 (AuthZ unavailable) - both are valid behaviors.
 	require.Contains(t, []int{http.StatusOK, http.StatusServiceUnavailable}, readyzResp.StatusCode,

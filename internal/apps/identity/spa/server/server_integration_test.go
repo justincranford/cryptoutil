@@ -60,8 +60,10 @@ func TestSPAServer_PublicHealth(t *testing.T) {
 		Timeout: httpTimeout,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, //nolint:gosec // Test environment uses self-signed certs.
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    testServer.TLSRootCAPool(),
 			},
+			DisableKeepAlives: true,
 		},
 	}
 
@@ -111,8 +113,10 @@ func TestSPAServer_SPAFallback(t *testing.T) {
 		Timeout: httpTimeout,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, //nolint:gosec // Test environment uses self-signed certs.
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    testServer.TLSRootCAPool(),
 			},
+			DisableKeepAlives: true,
 		},
 	}
 
@@ -144,8 +148,10 @@ func TestSPAServer_APINotFound(t *testing.T) {
 		Timeout: httpTimeout,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, //nolint:gosec // Test environment uses self-signed certs.
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    testServer.TLSRootCAPool(),
 			},
+			DisableKeepAlives: true,
 		},
 	}
 
