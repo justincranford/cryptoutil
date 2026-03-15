@@ -42,10 +42,6 @@ type RealmContext struct {
 // GetRealmContext extracts the RealmContext from a Go context.
 // Returns nil if no realm context is set.
 func GetRealmContext(ctx context.Context) *RealmContext {
-	if ctx == nil {
-		return nil
-	}
-
 	rc, _ := ctx.Value(RealmContextKey{}).(*RealmContext)
 
 	return rc

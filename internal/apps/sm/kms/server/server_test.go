@@ -4,16 +4,21 @@ import (
 	"context"
 	"crypto/x509"
 	"fmt"
+	"net/http/httptest"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilKmsServerBusinesslogic "cryptoutil/internal/apps/sm/kms/server/businesslogic"
+	cryptoutilKmsServerMiddleware "cryptoutil/internal/apps/sm/kms/server/middleware"
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilAppsTemplateServiceServerBuilder "cryptoutil/internal/apps/template/service/server/builder"
+	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
+	cryptoutilAppsTemplateServiceServerMiddleware "cryptoutil/internal/apps/template/service/server/middleware"
 
 	fiber "github.com/gofiber/fiber/v2"
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
 
@@ -268,6 +273,175 @@ func TestRegisterKMSRoutes(t *testing.T) {
 			// Verify routes were registered (Fiber's route stack should be non-empty).
 			routes := app.GetRoutes()
 			require.NotEmpty(t, routes)
+		})
+	}
+}
+
+func TestRegisterKMSRoutes_WithSessionManager(t *testing.T) {
+	t.Parallel()
+
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		PublicBrowserAPIContextPath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
+		PublicServiceAPIContextPath: cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath,
+	}
+	res := &cryptoutilAppsTemplateServiceServerBuilder.ServiceResources{
+		SessionManager: &cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService{},
+	}
+
+	err := registerKMSRoutes(app, (*cryptoutilKmsServerBusinesslogic.BusinessLogicService)(nil), settings, res)
+
+	require.NoError(t, err)
+	require.NotEmpty(t, app.GetRoutes())
+}
+
+func TestKMSServer_SetReady(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		server func(t *testing.T) *KMSServer
+	}{
+		{
+			name:   "nil resources",
+			server: func(_ *testing.T) *KMSServer { return &KMSServer{} },
+		},
+		{
+			name: "with application",
+			server: func(t *testing.T) *KMSServer {
+				t.Helper()
+
+				return &KMSServer{
+					resources: &cryptoutilAppsTemplateServiceServerBuilder.ServiceResources{
+						Application: newTestApp(t),
+					},
+				}
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			srv := tc.server(t)
+			srv.SetReady(true)
+			require.True(t, srv.IsReady())
+			srv.SetReady(false)
+			require.False(t, srv.IsReady())
+		})
+	}
+}
+
+func TestKMSServer_MissingAccessors(t *testing.T) {
+	t.Parallel()
+
+	srv := &KMSServer{}
+
+	require.Nil(t, srv.DB())
+	require.Nil(t, srv.App())
+	require.Equal(t, 0, srv.PublicServerActualPort())
+	require.Equal(t, 0, srv.AdminServerActualPort())
+	require.Nil(t, srv.TLSRootCAPool())
+	require.Nil(t, srv.AdminTLSRootCAPool())
+	require.Nil(t, srv.JWKGen())
+	require.Nil(t, srv.Telemetry())
+	require.Nil(t, srv.Barrier())
+}
+
+func TestKMSServer_MissingAccessorsWithResources(t *testing.T) {
+	t.Parallel()
+
+	app := newTestApp(t)
+	srv := &KMSServer{
+		resources: &cryptoutilAppsTemplateServiceServerBuilder.ServiceResources{
+			Application: app,
+		},
+	}
+
+	require.Nil(t, srv.DB())
+	require.Equal(t, app, srv.App())
+	require.Equal(t, 8443, srv.PublicServerActualPort())
+	require.Equal(t, cryptoutilSharedMagic.JoseJAAdminPort, srv.AdminServerActualPort())
+	require.Nil(t, srv.TLSRootCAPool())
+	require.Nil(t, srv.AdminTLSRootCAPool())
+	require.Nil(t, srv.JWKGen())
+	require.Nil(t, srv.Telemetry())
+	require.Nil(t, srv.Barrier())
+}
+
+func TestTenantContextBridgeMiddleware(t *testing.T) {
+	t.Parallel()
+
+	validTID := googleUuid.New()
+	validRID := googleUuid.New()
+
+	tests := []struct {
+		name     string
+		setup    func(c *fiber.Ctx)
+		expectRC bool
+	}{
+		{
+			name: "valid tenant and realm IDs",
+			setup: func(c *fiber.Ctx) {
+				c.Locals(cryptoutilAppsTemplateServiceServerMiddleware.ContextKeyTenantID, validTID)
+				c.Locals(cryptoutilAppsTemplateServiceServerMiddleware.ContextKeyRealmID, validRID)
+			},
+			expectRC: true,
+		},
+		{
+			name: "nil UUID",
+			setup: func(c *fiber.Ctx) {
+				c.Locals(cryptoutilAppsTemplateServiceServerMiddleware.ContextKeyTenantID, googleUuid.UUID{})
+			},
+			expectRC: false,
+		},
+		{
+			name: "wrong type in locals",
+			setup: func(c *fiber.Ctx) {
+				c.Locals(cryptoutilAppsTemplateServiceServerMiddleware.ContextKeyTenantID, "not-a-uuid")
+			},
+			expectRC: false,
+		},
+		{
+			name:     "no tenant ID set",
+			setup:    func(*fiber.Ctx) {},
+			expectRC: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			fiberApp := fiber.New(fiber.Config{DisableStartupMessage: true})
+
+			var capturedRC *cryptoutilKmsServerMiddleware.RealmContext
+
+			fiberApp.Use(func(c *fiber.Ctx) error {
+				tc.setup(c)
+
+				return c.Next()
+			})
+			fiberApp.Use(tenantContextBridgeMiddleware())
+			fiberApp.Get("/test", func(c *fiber.Ctx) error {
+				capturedRC = cryptoutilKmsServerMiddleware.GetRealmContext(c.UserContext())
+
+				return c.SendStatus(fiber.StatusOK)
+			})
+
+			req := httptest.NewRequest(fiber.MethodGet, "/test", nil)
+			resp, err := fiberApp.Test(req, -1)
+
+			require.NoError(t, err)
+			require.NoError(t, resp.Body.Close())
+
+			if tc.expectRC {
+				require.NotNil(t, capturedRC)
+				require.Equal(t, validTID, capturedRC.TenantID)
+			} else {
+				require.Nil(t, capturedRC)
+			}
 		})
 	}
 }

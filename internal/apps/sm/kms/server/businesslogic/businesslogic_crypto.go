@@ -333,6 +333,16 @@ func (s *BusinessLogicService) ImportMaterialKey(ctx context.Context, elasticKey
 
 	var ormMaterialKey *cryptoutilOrmRepository.MaterialKey
 
+	// Pre-encrypt the imported JWK bytes before opening the ORM write transaction
+	// to avoid nested write transaction deadlock on SQLite.
+	importedJWKBytes := []byte(importRequest.JWK)
+	materialKeyImportDate := time.Now().UTC()
+
+	encryptedMaterialKeyBytes, err := s.barrierService.EncryptContentWithContext(ctx, importedJWKBytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encrypt imported MaterialKey: %w", err)
+	}
+
 	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		var err error
 
@@ -349,18 +359,9 @@ func (s *BusinessLogicService) ImportMaterialKey(ctx context.Context, elasticKey
 			return fmt.Errorf("invalid ElasticKey status for import: %s", ormElasticKey.ElasticKeyStatus)
 		}
 
-		importedJWKBytes := []byte(importRequest.JWK)
-
 		materialKeyID := googleUuid.New()
 
-		materialKeyImportDate := time.Now().UTC()
-
-		encryptedMaterialKeyBytes, err := s.barrierService.EncryptContentWithContext(ctx, importedJWKBytes)
-		if err != nil {
-			return fmt.Errorf("failed to encrypt imported MaterialKey: %w", err)
-		}
-
-		// Convert time.Time to Unix milliseconds for database storage
+		// Convert time.Time to Unix milliseconds for database storage.
 		importDateMillis := materialKeyImportDate.UnixMilli()
 		ormMaterialKey = &cryptoutilOrmRepository.MaterialKey{
 			ElasticKeyID:                  *elasticKeyID,
@@ -370,8 +371,7 @@ func (s *BusinessLogicService) ImportMaterialKey(ctx context.Context, elasticKey
 			MaterialKeyImportDate:         &importDateMillis,
 		}
 
-		err = sqlTransaction.AddElasticKeyMaterialKey(ormMaterialKey)
-		if err != nil {
+		if err = sqlTransaction.AddElasticKeyMaterialKey(ormMaterialKey); err != nil {
 			return fmt.Errorf("failed to insert imported MaterialKey: %w", err)
 		}
 

@@ -20,13 +20,13 @@ const testCryptoDescription = "test description"
 // nested read transactions inside ORM ReadOnly transactions. SQLite with MaxOpenConns=1
 // deadlocks when barrier DecryptContentWithContext is called inside an ORM transaction
 // because both need a connection from the same pool.
-func setupCryptoTestStack(t *testing.T) *testStack {
-	t.Helper()
+func setupCryptoTestStack(tb testing.TB) *testStack {
+	tb.Helper()
 
-	stack := setupTestStack(t)
+	stack := setupTestStack(tb)
 
 	sqlDB, err := stack.core.DB.DB()
-	testify.NoError(t, err)
+	testify.NoError(tb, err)
 
 	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnectionsForGORM)
 	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnectionsForGORM)

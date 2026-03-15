@@ -10,10 +10,11 @@ package demo
 import (
 	"context"
 	"crypto/tls"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	http "net/http"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilIdentityBootstrap "cryptoutil/internal/apps/identity/bootstrap"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"

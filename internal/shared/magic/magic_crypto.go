@@ -70,6 +70,9 @@ const (
 	JWEA384KeySize = SymmetricKeySize384
 	// JWEA512KeySize is the JWE 512-bit key size constant.
 	JWEA512KeySize = SymmetricKeySize512
+	// JWECompactParts is the number of base64url parts in a JWE compact serialization
+	// (header.encryptedKey.iv.ciphertext.tag).
+	JWECompactParts = 5
 
 	// SecretGenerationDefaultByteLength is the default secret generation byte length.
 	SecretGenerationDefaultByteLength = 32

@@ -90,6 +90,12 @@ func (s *BusinessLogicService) AddElasticKey(ctx context.Context, openapiElastic
 
 	materialKeyGenerateDate := time.Now().UTC()
 
+	// Encrypt before opening the ORM write transaction to avoid nested write transaction deadlock on SQLite.
+	materialKeyEncryptedNonPublicJWKBytes, err := s.barrierService.EncryptContentWithContext(ctx, materialKeyClearNonPublicJWKBytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encrypt first MaterialKey for ElasticKey: %w", err)
+	}
+
 	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		err := sqlTransaction.AddElasticKey(ormElasticKey)
 		if err != nil {
@@ -99,11 +105,6 @@ func (s *BusinessLogicService) AddElasticKey(ctx context.Context, openapiElastic
 		err = TransitionElasticKeyStatus(cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.Creating), ormElasticKey.ElasticKeyStatus)
 		if err != nil {
 			return fmt.Errorf("invalid ElasticKeyStatus transition: %w", err)
-		}
-
-		materialKeyEncryptedNonPublicJWKBytes, err := s.barrierService.EncryptContentWithContext(ctx, materialKeyClearNonPublicJWKBytes)
-		if err != nil {
-			return fmt.Errorf("failed to encrypt first MaterialKey for ElasticKey: %w", err)
 		}
 
 		ormMaterialKey := s.oamOrmMapper.toOrmAddMaterialKey(elasticKeyID, materialKeyID, materialKeyClearPublicJWKBytes, materialKeyEncryptedNonPublicJWKBytes, materialKeyGenerateDate)
@@ -200,7 +201,8 @@ func (s *BusinessLogicService) GenerateMaterialKeyInElasticKey(ctx context.Conte
 
 	var ormMaterialKey *cryptoutilOrmRepository.MaterialKey
 
-	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
+	// Step 1: Read and validate the ElasticKey in a read-only transaction.
+	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		var err error
 
 		ormElasticKey, err = sqlTransaction.GetElasticKey(tenantID, elasticKeyID)
@@ -212,20 +214,30 @@ func (s *BusinessLogicService) GenerateMaterialKeyInElasticKey(ctx context.Conte
 			return fmt.Errorf("invalid ElasticKey Status: %w", err)
 		}
 
-		materialKeyID, _, _, clearMaterialKeyNonPublicJWKBytes, clearPublicJWKBytes, err := s.generateJWK(&ormElasticKey.ElasticKeyAlgorithm)
-		if err != nil {
-			return fmt.Errorf("failed to generate new MaterialKey for ElasticKey: %w", err)
-		}
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate new MaterialKey for ElasticKey: %w", err)
+	}
 
-		materialKeyGenerateDate := time.Now().UTC()
+	// Step 2: Generate and encrypt the new material key outside any transaction
+	// to avoid nested write transaction deadlock on SQLite.
+	materialKeyID, _, _, clearMaterialKeyNonPublicJWKBytes, clearPublicJWKBytes, err := s.generateJWK(&ormElasticKey.ElasticKeyAlgorithm)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate new MaterialKey for ElasticKey: %w", err)
+	}
 
-		encryptedMaterialKeyPrivateOrPublicJWKBytes, err := s.barrierService.EncryptContentWithContext(ctx, clearMaterialKeyNonPublicJWKBytes)
-		if err != nil {
-			return fmt.Errorf("failed to encrypt new MaterialKey for ElasticKey: %w", err)
-		}
+	materialKeyGenerateDate := time.Now().UTC()
 
-		// Convert time.Time to Unix milliseconds for database storage
-		generateDateMillis := materialKeyGenerateDate.UnixMilli()
+	encryptedMaterialKeyPrivateOrPublicJWKBytes, err := s.barrierService.EncryptContentWithContext(ctx, clearMaterialKeyNonPublicJWKBytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encrypt new MaterialKey for ElasticKey: %w", err)
+	}
+
+	// Step 3: Insert the new material key in a write transaction.
+	generateDateMillis := materialKeyGenerateDate.UnixMilli()
+
+	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		ormMaterialKey = &cryptoutilOrmRepository.MaterialKey{
 			ElasticKeyID:                  *elasticKeyID,
 			MaterialKeyID:                 *materialKeyID,
@@ -234,8 +246,7 @@ func (s *BusinessLogicService) GenerateMaterialKeyInElasticKey(ctx context.Conte
 			MaterialKeyGenerateDate:       &generateDateMillis,
 		}
 
-		err = sqlTransaction.AddElasticKeyMaterialKey(ormMaterialKey)
-		if err != nil {
+		if err := sqlTransaction.AddElasticKeyMaterialKey(ormMaterialKey); err != nil {
 			return fmt.Errorf("failed to insert new MaterialKey for ElasticKey: %w", err)
 		}
 

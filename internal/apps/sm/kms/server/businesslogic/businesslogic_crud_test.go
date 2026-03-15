@@ -2,11 +2,12 @@ package businesslogic
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"io/fs"
 	"os"
 	"testing"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilKmsServer "cryptoutil/api/kms/server"
 	cryptoutilOpenapiModel "cryptoutil/api/model"
@@ -104,18 +105,18 @@ type testStack struct {
 	core    *cryptoutilAppsTemplateServiceServerApplication.Core
 }
 
-func setupTestStack(t *testing.T) *testStack {
-	t.Helper()
+func setupTestStack(tb testing.TB) *testStack {
+	tb.Helper()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("biz-crud-" + t.Name())
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("biz-crud-" + tb.Name())
 
 	templateCore, err := cryptoutilAppsTemplateServiceServerApplication.StartCore(ctx, settings)
-	testify.NoError(t, err)
-	t.Cleanup(func() { templateCore.Shutdown() })
+	testify.NoError(tb, err)
+	tb.Cleanup(func() { templateCore.Shutdown() })
 
 	sqlDB, err := templateCore.DB.DB()
-	testify.NoError(t, err)
+	testify.NoError(tb, err)
 
 	mergedFS := &testMergedMigrations{
 		templateFS:   cryptoutilAppsTemplateServiceServerRepository.MigrationsFS,
@@ -125,30 +126,30 @@ func setupTestStack(t *testing.T) *testStack {
 	}
 
 	err = cryptoutilAppsTemplateServiceServerRepository.ApplyMigrationsFromFS(sqlDB, mergedFS, "", cryptoutilSharedMagic.TestDatabaseSQLite)
-	testify.NoError(t, err)
+	testify.NoError(tb, err)
 
 	ormRepo, err := cryptoutilOrmRepository.NewOrmRepository(
 		ctx, templateCore.Basic.TelemetryService, templateCore.DB,
 		templateCore.Basic.JWKGenService, false,
 	)
-	testify.NoError(t, err)
-	t.Cleanup(func() { ormRepo.Shutdown() })
+	testify.NoError(tb, err)
+	tb.Cleanup(func() { ormRepo.Shutdown() })
 
 	gormRepo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(templateCore.DB)
-	testify.NoError(t, err)
+	testify.NoError(tb, err)
 
 	barrierSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewService(
 		ctx, templateCore.Basic.TelemetryService, templateCore.Basic.JWKGenService,
 		gormRepo, templateCore.Basic.UnsealKeysService,
 	)
-	testify.NoError(t, err)
-	t.Cleanup(func() { barrierSvc.Shutdown() })
+	testify.NoError(tb, err)
+	tb.Cleanup(func() { barrierSvc.Shutdown() })
 
 	service, err := NewBusinessLogicService(
 		ctx, templateCore.Basic.TelemetryService, templateCore.Basic.JWKGenService,
 		ormRepo, barrierSvc,
 	)
-	testify.NoError(t, err)
+	testify.NoError(tb, err)
 
 	tenantID := googleUuid.New()
 	rc := &cryptoutilKmsMiddleware.RealmContext{TenantID: tenantID}

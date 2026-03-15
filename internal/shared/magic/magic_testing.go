@@ -232,6 +232,10 @@ const (
 	TestRandomStringLength16 = 16
 	// TestRandomStringLength64 - Long random string length for ID tokens.
 	TestRandomStringLength64 = 64
+	// TestRandomStringLength256 - Large random payload length for property tests.
+	TestRandomStringLength256 = 256
+	// TestRandomStringLength1024 - Extra-large random payload length for property tests.
+	TestRandomStringLength1024 = 1024
 	// TestTokenExpirationSeconds - Standard token expiration time in seconds.
 	TestTokenExpirationSeconds = 3600
 	// TestServiceStartupDelaySeconds - Delay to allow services to start.
