@@ -87,7 +87,8 @@ func TestRegisterUserWithTenant_UserCreate_Error(t *testing.T) {
 	username := fmt.Sprintf("erruser_%s", userID.String()[:cryptoutilSharedMagic.IMMinPasswordLength])
 	email := fmt.Sprintf("err_%s@example.com", userID.String()[:cryptoutilSharedMagic.IMMinPasswordLength])
 
-	_, err := service.RegisterUserWithTenant(ctx, userID, username, email, testPasswordHash, "Error Test Tenant", true)
+	tenantName := fmt.Sprintf("error-tenant-%s", userID.String())
+	_, err := service.RegisterUserWithTenant(ctx, userID, username, email, testPasswordHash, tenantName, true)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to create user")
 }

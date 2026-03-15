@@ -458,33 +458,33 @@
 
 #### Task 5.1: Audit integration test needs
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: None
 - **Description**: Survey all integration tests to determine what framework services they need access to
 - **Acceptance Criteria**:
-  - [ ] List of methods integration tests currently access
-  - [ ] List of methods integration tests need but don't have
-  - [ ] Recommendation for interface expansion
+  - [x] List of methods integration tests currently access
+  - [x] List of methods integration tests need but don't have — JWKGen(), Telemetry(), Barrier()
+  - [x] Recommendation for interface expansion — add all 3 to ServiceServer; fix SmIMServer (BarrierService→Barrier); add all 3 to KMSServer
 
 #### Task 5.2: Expand ServiceServer interface
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: Task 5.1
 - **Description**: Add new methods to ServiceServer interface (NO backward compatibility)
 - **Acceptance Criteria**:
-  - [ ] Interface expanded with needed methods
-  - [ ] All 10 services implement new methods
-  - [ ] Contract tests exercise new methods
+  - [x] Interface expanded with needed methods (JWKGen, Telemetry, Barrier already present)
+  - [x] All 10 services implement new methods (verified: all 10 have all 3 methods)
+  - [x] Contract tests exercise new methods (service_contracts.go + RunServiceContracts added)
 
 #### Task 5.3: Phase 5 validation and post-mortem
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: Task 5.2
 - **Description**: Full quality gate run
 - **Acceptance Criteria**:
-  - [ ] `go build ./...` clean
-  - [ ] All tests pass
-  - [ ] lessons.md updated
+  - [x] `go build ./...` clean
+  - [x] All tests pass
+  - [x] lessons.md updated
 
 ---
 

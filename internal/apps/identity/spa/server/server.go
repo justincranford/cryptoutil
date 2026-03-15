@@ -37,7 +37,7 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsIdentitySpaServerConf
 		return nil, fmt.Errorf("config is nil")
 	}
 
-		resources, err := cryptoutilAppsTemplateServiceServerBuilder.Build(ctx, cfg.ServiceTemplateServerSettings, &cryptoutilAppsTemplateServiceServerBuilder.DomainConfig{
+	resources, err := cryptoutilAppsTemplateServiceServerBuilder.Build(ctx, cfg.ServiceTemplateServerSettings, &cryptoutilAppsTemplateServiceServerBuilder.DomainConfig{
 		RouteRegistration: func(base *cryptoutilAppsTemplateServiceServer.PublicServerBase, _ *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources) error {
 			// Create SPA public server.
 			publicServer := NewPublicServer(base, cfg)

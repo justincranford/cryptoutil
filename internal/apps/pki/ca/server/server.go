@@ -9,19 +9,23 @@ import (
 	"crypto/x509"
 	"fmt"
 
+	"gorm.io/gorm"
+
 	cryptoutilAppsPkiCaDomain "cryptoutil/internal/apps/pki/ca/domain"
 	cryptoutilAppsPkiCaRepository "cryptoutil/internal/apps/pki/ca/repository"
 	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/pki/ca/server/config"
 	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilAppsTemplateServiceServerBuilder "cryptoutil/internal/apps/template/service/server/builder"
-
-	"gorm.io/gorm"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // PKICAServer wraps the service template Application for the pki-ca service.
 type PKICAServer struct {
-	app *cryptoutilAppsTemplateServiceServer.Application
-	db  *gorm.DB
+	app       *cryptoutilAppsTemplateServiceServer.Application
+	db        *gorm.DB
+	resources *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources
 }
 
 // NewFromConfig creates a new PKI CA server from configuration.
@@ -50,7 +54,7 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsCaServerConfig.PKICAS
 		return nil, fmt.Errorf("failed to build pki-ca server: %w", err)
 	}
 
-	return &PKICAServer{app: resources.Application, db: resources.DB}, nil
+	return &PKICAServer{app: resources.Application, db: resources.DB, resources: resources}, nil
 }
 
 // Start starts the pki-ca server (blocking).
@@ -132,6 +136,33 @@ func (s *PKICAServer) TLSRootCAPool() *x509.CertPool {
 // AdminTLSRootCAPool returns the admin TLS root CA pool for test client TLS configuration.
 func (s *PKICAServer) AdminTLSRootCAPool() *x509.CertPool {
 	return s.app.AdminTLSRootCAPool()
+}
+
+// JWKGen returns the JWK generation service used by this server.
+func (s *PKICAServer) JWKGen() *cryptoutilSharedCryptoJose.JWKGenService {
+	if s.resources != nil {
+		return s.resources.JWKGenService
+	}
+
+	return nil
+}
+
+// Telemetry returns the telemetry service used by this server.
+func (s *PKICAServer) Telemetry() *cryptoutilSharedTelemetry.TelemetryService {
+	if s.resources != nil {
+		return s.resources.TelemetryService
+	}
+
+	return nil
+}
+
+// Barrier returns the barrier (encryption-at-rest) service used by this server.
+func (s *PKICAServer) Barrier() *cryptoutilAppsTemplateServiceServerBarrier.Service {
+	if s.resources != nil {
+		return s.resources.BarrierService
+	}
+
+	return nil
 }
 
 // Compile-time assertion: PKICAServer must implement ServiceServer.

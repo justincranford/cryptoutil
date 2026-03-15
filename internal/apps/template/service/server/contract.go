@@ -10,6 +10,10 @@ import (
 	"crypto/x509"
 
 	"gorm.io/gorm"
+
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // ServiceServer defines the contract that all cryptoutil services must satisfy.
@@ -65,4 +69,16 @@ type ServiceServer interface {
 	// Used by test infrastructure to configure secure HTTP clients for admin endpoints without InsecureSkipVerify.
 	// Returns nil when the admin server has not yet started.
 	AdminTLSRootCAPool() *x509.CertPool
+
+	// JWKGen returns the JWK generation service used by this server.
+	// Used by integration tests to verify JWK generation is correctly wired.
+	JWKGen() *cryptoutilSharedCryptoJose.JWKGenService
+
+	// Telemetry returns the telemetry service used by this server.
+	// Used by integration tests to verify OpenTelemetry is correctly wired.
+	Telemetry() *cryptoutilSharedTelemetry.TelemetryService
+
+	// Barrier returns the barrier (encryption-at-rest) service used by this server.
+	// Used by integration tests to verify the barrier service is correctly wired.
+	Barrier() *cryptoutilAppsTemplateServiceServerBarrier.Service
 }

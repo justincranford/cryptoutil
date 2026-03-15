@@ -8,7 +8,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"strings"
 	"testing"
 	"time"
 
@@ -29,8 +28,13 @@ import (
 func setupTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	// Create unique database name to avoid sharing between tests.
-	dbName := fmt.Sprintf("file:test_%s.db?mode=memory&cache=private", strings.ReplaceAll(t.Name(), "/", "_"))
+	// Use a UUIDv7-based name with cache=private to ensure each setupTestDB()
+	// call gets a fresh isolated in-memory DB. UUIDs prevent name collisions
+	// across parallel test runs and -count=N reruns. cache=private means this
+	// pool's connections are isolated from all other test DB pools.
+	// (All connections within this pool share the same named in-memory DB.)
+	dbID := googleUuid.Must(googleUuid.NewV7())
+	dbName := fmt.Sprintf("file:test_%s?mode=memory&cache=private", dbID.String())
 	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, dbName)
 	require.NoError(t, err)
 
@@ -50,8 +54,8 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	// Configure connection pool for GORM transactions.
 	sqlDB, err = db.DB()
 	require.NoError(t, err)
-	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries) // Required for GORM transactions
-	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnectionsForGORM)
+	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnectionsForGORM)
 	sqlDB.SetConnMaxLifetime(0) // In-memory: never close
 
 	// Auto-migrate session tables.

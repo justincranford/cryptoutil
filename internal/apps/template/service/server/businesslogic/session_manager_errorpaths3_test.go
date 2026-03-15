@@ -20,10 +20,9 @@ const testInvalidAlgorithm = "INVALID_ALGO"
 // OPAQUE session error path tests.
 // =============================================================================
 
+// Sequential: mutates global hashHighEntropyDeterministicFn - package-level state, cannot run in parallel.
 // TestIssueOPAQUESession_HashError covers the hash error in OPAQUE issue.
 func TestIssueOPAQUESession_HashError(t *testing.T) {
-	t.Parallel()
-
 	orig := hashHighEntropyDeterministicFn
 
 	defer func() { hashHighEntropyDeterministicFn = orig }()
@@ -54,10 +53,9 @@ func TestIssueOPAQUESession_CreateDBError(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to store session")
 }
 
+// Sequential: mutates global hashHighEntropyDeterministicFn - package-level state, cannot run in parallel.
 // TestValidateOPAQUESession_HashError covers the hash error in OPAQUE validate.
 func TestValidateOPAQUESession_HashError(t *testing.T) {
-	t.Parallel()
-
 	orig := hashHighEntropyDeterministicFn
 
 	defer func() { hashHighEntropyDeterministicFn = orig }()

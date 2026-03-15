@@ -118,6 +118,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, dir string) error {
 
 	return nil
 }
+
 func checkDependencyUpdates(goListOutput string, directDeps map[string]bool) []string {
 	// Optimize: avoid trim and split overhead for empty output.
 	if goListOutput == "" {

@@ -195,7 +195,7 @@ func TestAdminEndpointLivez(t *testing.T) {
 	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, port)
 
 	t.Run("LivezReturnsAlive", func(t *testing.T) {
-			statusCode, body := doAdminGet(t, baseURL+"/admin/api/v1/livez", server.TLSRootCAPool())
+		statusCode, body := doAdminGet(t, baseURL+"/admin/api/v1/livez", server.TLSRootCAPool())
 		require.Equal(t, http.StatusOK, statusCode)
 
 		var response map[string]any

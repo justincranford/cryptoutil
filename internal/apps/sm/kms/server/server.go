@@ -19,7 +19,10 @@ import (
 	cryptoutilAppsSmKmsServerRepository "cryptoutil/internal/apps/sm/kms/server/repository"
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilAppsTemplateServiceServerBuilder "cryptoutil/internal/apps/template/service/server/builder"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	fiber "github.com/gofiber/fiber/v2"
 )
@@ -54,7 +57,7 @@ func NewKMSServer(
 		return nil, fmt.Errorf("failed to start KMS application core: %w", err)
 	}
 
-		resources, err := cryptoutilAppsTemplateServiceServerBuilder.Build(ctx, settings, &cryptoutilAppsTemplateServiceServerBuilder.DomainConfig{
+	resources, err := cryptoutilAppsTemplateServiceServerBuilder.Build(ctx, settings, &cryptoutilAppsTemplateServiceServerBuilder.DomainConfig{
 		MigrationsFS:   cryptoutilAppsSmKmsServerRepository.MigrationsFS,
 		MigrationsPath: "migrations",
 		RouteRegistration: func(publicServerBase *cryptoutilAppsTemplateServiceServer.PublicServerBase, _ *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources) error {
@@ -254,6 +257,33 @@ func (s *KMSServer) TLSRootCAPool() *x509.CertPool {
 func (s *KMSServer) AdminTLSRootCAPool() *x509.CertPool {
 	if s.resources != nil && s.resources.Application != nil {
 		return s.resources.Application.AdminTLSRootCAPool()
+	}
+
+	return nil
+}
+
+// JWKGen returns the JWK generation service used by this server.
+func (s *KMSServer) JWKGen() *cryptoutilSharedCryptoJose.JWKGenService {
+	if s.resources != nil {
+		return s.resources.JWKGenService
+	}
+
+	return nil
+}
+
+// Telemetry returns the telemetry service used by this server.
+func (s *KMSServer) Telemetry() *cryptoutilSharedTelemetry.TelemetryService {
+	if s.resources != nil {
+		return s.resources.TelemetryService
+	}
+
+	return nil
+}
+
+// Barrier returns the barrier (encryption-at-rest) service used by this server.
+func (s *KMSServer) Barrier() *cryptoutilAppsTemplateServiceServerBarrier.Service {
+	if s.resources != nil {
+		return s.resources.BarrierService
 	}
 
 	return nil

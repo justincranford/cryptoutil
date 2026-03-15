@@ -53,7 +53,7 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsSmImServerConfig.SmIM
 		return nil, fmt.Errorf("config cannot be nil")
 	}
 
-		resources, err := cryptoutilAppsTemplateServiceServerBuilder.Build(ctx, cfg.ServiceTemplateServerSettings, &cryptoutilAppsTemplateServiceServerBuilder.DomainConfig{
+	resources, err := cryptoutilAppsTemplateServiceServerBuilder.Build(ctx, cfg.ServiceTemplateServerSettings, &cryptoutilAppsTemplateServiceServerBuilder.DomainConfig{
 		MigrationsFS:   cryptoutilAppsSmImRepository.MigrationsFS,
 		MigrationsPath: "migrations",
 		RouteRegistration: func(base *cryptoutilAppsTemplateServiceServer.PublicServerBase, res *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources) error {
@@ -241,6 +241,12 @@ func (s *SmIMServer) TLSRootCAPool() *x509.CertPool {
 // AdminTLSRootCAPool returns the admin TLS root CA pool for test client TLS configuration.
 func (s *SmIMServer) AdminTLSRootCAPool() *x509.CertPool {
 	return s.app.AdminTLSRootCAPool()
+}
+
+// Barrier returns the barrier (encryption-at-rest) service used by this server.
+// Implements ServiceServer interface; delegates to BarrierService().
+func (s *SmIMServer) Barrier() *cryptoutilAppsTemplateServiceServerBarrier.Service {
+	return s.barrierService
 }
 
 // Compile-time assertion: SmIMServer must implement ServiceServer.

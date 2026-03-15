@@ -53,7 +53,7 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsJoseJaServerConfig.Jo
 		return nil, fmt.Errorf("config cannot be nil")
 	}
 
-		resources, err := cryptoutilAppsTemplateServiceServerBuilder.Build(ctx, cfg.ServiceTemplateServerSettings, &cryptoutilAppsTemplateServiceServerBuilder.DomainConfig{
+	resources, err := cryptoutilAppsTemplateServiceServerBuilder.Build(ctx, cfg.ServiceTemplateServerSettings, &cryptoutilAppsTemplateServiceServerBuilder.DomainConfig{
 		MigrationsFS:   cryptoutilAppsJoseJaRepository.MigrationsFS,
 		MigrationsPath: "migrations",
 		RouteRegistration: func(base *cryptoutilAppsTemplateServiceServer.PublicServerBase, res *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources) error {

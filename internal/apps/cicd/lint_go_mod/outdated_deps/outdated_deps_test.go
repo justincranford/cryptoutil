@@ -3,11 +3,11 @@
 package outdated_deps
 
 import (
+	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
 	"time"
-	"os"
 
 	"github.com/stretchr/testify/require"
 

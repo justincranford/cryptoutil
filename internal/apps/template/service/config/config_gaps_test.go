@@ -5,11 +5,12 @@
 package config
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/base64"
 	"os"
 	"path/filepath"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -19,6 +20,7 @@ import (
 // TestNewFromFile_Success tests successful config loading from file.
 func TestNewFromFile_Success(t *testing.T) {
 	t.Parallel()
+
 	yamlContent := `
 dev: true
 bind-public-address: 127.0.0.1
@@ -46,6 +48,7 @@ bind-private-port: 9090
 // does not return an error. The function returns valid settings with defaults.
 func TestNewFromFile_FileNotFound(t *testing.T) {
 	t.Parallel()
+
 	settings, err := NewFromFile("/nonexistent/path/config.yml")
 	// Viper intentionally doesn't error on missing config files - they're optional
 	require.NoError(t, err)

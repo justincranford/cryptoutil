@@ -12,10 +12,10 @@ import (
 )
 
 var (
-	serverSettings   *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
-	publicTLS        *cryptoutilAppsTemplateServiceConfigTlsGenerator.TLSGeneratedSettings
-	privateTLS       *cryptoutilAppsTemplateServiceConfigTlsGenerator.TLSGeneratedSettings
-	publicRootCAPool *x509.CertPool
+	serverSettings    *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
+	publicTLS         *cryptoutilAppsTemplateServiceConfigTlsGenerator.TLSGeneratedSettings
+	privateTLS        *cryptoutilAppsTemplateServiceConfigTlsGenerator.TLSGeneratedSettings
+	publicRootCAPool  *x509.CertPool
 	privateRootCAPool *x509.CertPool
 )
 

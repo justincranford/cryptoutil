@@ -81,7 +81,7 @@ func TestRegisterUserWithTenant_JoinFlow(t *testing.T) {
 func TestRegisterUserWithTenant_CreateTenant_DBError(t *testing.T) {
 	t.Parallel()
 	// Create fresh database for this test.
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteInMemoryDSN)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, fmt.Sprintf("file:%s?mode=memory&cache=private", googleUuid.NewString()))
 	require.NoError(t, err)
 
 	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
@@ -119,7 +119,7 @@ func TestRegisterUserWithTenant_CreateTenant_DBError(t *testing.T) {
 func TestRegisterClientWithTenant_DBError(t *testing.T) {
 	t.Parallel()
 	// Create fresh database for this test.
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteInMemoryDSN)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, fmt.Sprintf("file:%s?mode=memory&cache=private", googleUuid.NewString()))
 	require.NoError(t, err)
 
 	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
@@ -189,7 +189,7 @@ func TestRegisterClientWithTenant_JoinRequestCreateError(t *testing.T) {
 func TestAuthorizeJoinRequest_GetByID_DBError(t *testing.T) {
 	t.Parallel()
 	// Create fresh database for this test.
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteInMemoryDSN)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, fmt.Sprintf("file:%s?mode=memory&cache=private", googleUuid.NewString()))
 	require.NoError(t, err)
 
 	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
@@ -227,7 +227,7 @@ func TestAuthorizeJoinRequest_GetByID_DBError(t *testing.T) {
 func TestAuthorizeJoinRequest_Update_DBError(t *testing.T) {
 	t.Parallel()
 	// Create fresh database for this test.
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteInMemoryDSN)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, fmt.Sprintf("file:%s?mode=memory&cache=private", googleUuid.NewString()))
 	require.NoError(t, err)
 
 	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
@@ -279,7 +279,7 @@ func TestAuthorizeJoinRequest_Update_DBError(t *testing.T) {
 func TestListJoinRequests_DBError(t *testing.T) {
 	t.Parallel()
 	// Create fresh database for this test.
-	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteInMemoryDSN)
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, fmt.Sprintf("file:%s?mode=memory&cache=private", googleUuid.NewString()))
 	require.NoError(t, err)
 
 	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{

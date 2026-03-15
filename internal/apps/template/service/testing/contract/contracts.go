@@ -60,6 +60,12 @@ func RunContractTests(t *testing.T, server ServiceServer) {
 		RunResponseFormatContracts(t, server)
 	})
 
+	t.Run("service_contracts", func(t *testing.T) {
+		t.Parallel()
+
+		RunServiceContracts(t, server)
+	})
+
 	// Auth contracts are opt-in: only run if server implements AuthContractServer.
 	if authServer, ok := server.(AuthContractServer); ok {
 		t.Run("auth_contracts", func(t *testing.T) {

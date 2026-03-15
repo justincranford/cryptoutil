@@ -49,8 +49,8 @@ type TLSMaterial struct {
 }
 
 const (
-	defaultTLSPublicMode               = TLSMode(cryptoutilSharedMagic.DefaultTLSPublicMode)
-	defaultTLSPrivateMode              = TLSMode(cryptoutilSharedMagic.DefaultTLSPrivateMode)
+	defaultTLSPublicMode  = TLSMode(cryptoutilSharedMagic.DefaultTLSPublicMode)
+	defaultTLSPrivateMode = TLSMode(cryptoutilSharedMagic.DefaultTLSPrivateMode)
 )
 
 var (

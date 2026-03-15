@@ -18,7 +18,10 @@ import (
 	"gorm.io/gorm"
 
 	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilTestingTestserver "cryptoutil/internal/apps/template/service/testing/testserver"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // mockServer implements ServiceServer for testing without starting real HTTPS servers.
@@ -116,6 +119,18 @@ func (m *mockServer) TLSRootCAPool() *x509.CertPool {
 
 func (m *mockServer) AdminTLSRootCAPool() *x509.CertPool {
 	return x509.NewCertPool()
+}
+
+func (m *mockServer) JWKGen() *cryptoutilSharedCryptoJose.JWKGenService {
+	return nil
+}
+
+func (m *mockServer) Telemetry() *cryptoutilSharedTelemetry.TelemetryService {
+	return nil
+}
+
+func (m *mockServer) Barrier() *cryptoutilAppsTemplateServiceServerBarrier.Service {
+	return nil
 }
 
 func (m *mockServer) isStartCalled() bool {

@@ -3,9 +3,10 @@ package server
 import (
 	"context"
 	"crypto/x509"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilServerApplication "cryptoutil/internal/apps/sm/kms/server/application"
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
@@ -27,11 +28,11 @@ func (s *stubPublicServer) PublicBaseURL() string          { return "https://loc
 // stubAdminServer implements IAdminServer for testing accessor branches.
 type stubAdminServer struct{}
 
-func (s *stubAdminServer) Start(context.Context) error    { return nil }
-func (s *stubAdminServer) Shutdown(context.Context) error { return nil }
-func (s *stubAdminServer) ActualPort() int                { return cryptoutilSharedMagic.JoseJAAdminPort }
-func (s *stubAdminServer) SetReady(bool)                  {}
-func (s *stubAdminServer) AdminBaseURL() string           { return "https://localhost:9090" }
+func (s *stubAdminServer) Start(context.Context) error        { return nil }
+func (s *stubAdminServer) Shutdown(context.Context) error     { return nil }
+func (s *stubAdminServer) ActualPort() int                    { return cryptoutilSharedMagic.JoseJAAdminPort }
+func (s *stubAdminServer) SetReady(bool)                      {}
+func (s *stubAdminServer) AdminBaseURL() string               { return "https://localhost:9090" }
 func (s *stubAdminServer) AdminTLSRootCAPool() *x509.CertPool { return nil }
 
 func newTestApp(t *testing.T) *cryptoutilAppsTemplateServiceServer.Application {

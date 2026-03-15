@@ -16,9 +16,7 @@ import (
 	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
 )
 
-var (
-	testPkiCaService *cryptoutilAppsCaServer.PKICAServer
-)
+var testPkiCaService *cryptoutilAppsCaServer.PKICAServer
 
 func TestMain(m *testing.M) {
 	// Create in-memory SQLite configuration for testing.

@@ -312,7 +312,11 @@ func (sm *SessionManager) StartCleanupTask(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			if err := sm.CleanupExpiredSessions(ctx); err != nil {
+			if ctx.Err() != nil {
+				return
+			}
+
+			if err := sm.CleanupExpiredSessions(context.Background()); err != nil {
 				// Log error but continue cleanup task
 				// TODO: Use proper logger from context
 				fmt.Printf("Session cleanup error: %v\n", err)

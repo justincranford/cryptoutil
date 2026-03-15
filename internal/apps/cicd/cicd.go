@@ -162,7 +162,7 @@ func run(commands []string, extraArgs []string) error {
 
 		// Add a separator between multiple commands.
 		if i < len(actualCommands)-1 {
-				cryptoutilCmdCicdCommon.PrintCommandSeparator(os.Stderr)
+			cryptoutilCmdCicdCommon.PrintCommandSeparator(os.Stderr)
 		}
 	}
 

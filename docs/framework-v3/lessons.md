@@ -86,7 +86,7 @@ o-tls-insecure-skip-verify semgrep rule includes all _test.go,_integration_test.
 ### Quality Gates Status
 
 - go build ./...: ✅ clean
-- go build -tags e2e,integration ./...: ✅ clean  
+- go build -tags e2e,integration ./...: ✅ clean
 - golangci-lint run ./...: ✅ 0 issues
 - golangci-lint run --build-tags e2e,integration ./...: ✅ 0 issues
 - go test ./... -shuffle=on: ✅ passes (pre-existing contention failures confirmed pre-existing)
@@ -178,7 +178,29 @@ o-tls-insecure-skip-verify semgrep rule includes all _test.go,_integration_test.
 
 ## Phase 5: ServiceServer Interface Expansion
 
-*(To be filled during Phase 5 execution)*
+### What Worked
+
+- **Interface was already expanded**: All 3 methods (JWKGen, Telemetry, Barrier) were already added to `ServiceServer` interface and implemented by all 10 services in a prior session. Task 5.2 was 90% complete before Phase 5 formally started.
+- **Compile-time enforcement**: `var _ ServiceServer = (*XxxServer)(nil)` pattern catches all missing implementations at compile time — zero runtime surprises.
+- **Contract test pattern**: Adding `service_contracts.go` + `RunServiceContracts` + wiring into `RunContractTests` took ~10 minutes. Pattern is clean and reusable.
+- **Legacy alias removal deferred correctly**: `SmIMServer.BarrierService()` is a legacy alias for `Barrier()`. Since 2 test files use it and removing it provides no functional benefit, it was left in place. Removing it would require updating 2 test files with no correctness gain.
+
+### Root Cause: Global Fn Variable Race (Pre-Phase 5 Fix)
+
+- **Issue**: 10 test functions in `session_manager_errorpaths2_test.go` and `errorpaths3_test.go` called BOTH `t.Parallel()` AND mutated package-level injectable function variables (`jwkParseKeyFn`, `decryptBytesFn`, `verifyBytesFn`, `generateRSAKeyPairSessionFn`, `generateAESKeySessionFn`, `hashHighEntropyDeterministicFn`).
+- **Symptom**: Flaky test failures — `TestSessionManager_ServiceSession_JWE_FullCycle/A256GCMKW` and `TestSessionManager_ServiceSession_JWS_FullCycle/RS256` failing with `"failed to parse JWK: injected parse error"` on ~20% of runs.
+- **Fix**: Remove `t.Parallel()` from all 10 tests + add `// Sequential: mutates global XxxFn - package-level state, cannot run in parallel.` comment. 20/20 runs now pass.
+- **Prevention**: When injecting errors via package-level function variables, ALWAYS use `// Sequential:` instead of `t.Parallel()`. The `parallel_tests` fitness linter enforces this pattern.
+
+### What Did Not Work
+
+- **PowerShell heredoc for file creation**: PowerShell's `@'...'@` heredoc does not preserve tab indentation in terminal output (tabs shown as spaces/lost). Must use Python file I/O for creating Go source files with proper formatting.
+
+### Metrics
+
+- Phase 5 test stability: 20/20 runs passing (was ~16/20 before fix)
+- Contract tests added: 3 new contracts (JWKGen, Telemetry, Barrier)
+- All 10 services confirmed implementing full ServiceServer interface
 
 ---
 

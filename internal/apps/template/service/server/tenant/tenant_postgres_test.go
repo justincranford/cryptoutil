@@ -5,7 +5,6 @@ package tenant
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"database/sql"
 	"database/sql/driver"
 	"errors"
@@ -14,6 +13,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 	"gorm.io/driver/sqlite"
@@ -285,7 +286,7 @@ func TestListPostgresSchemas_Success(t *testing.T) {
 	t.Parallel()
 
 	d := &mockPGDriver{
-		columns:  []string{"schema_name"},
+		columns: []string{"schema_name"},
 		rowsData: [][]driver.Value{
 			{"tenant_abc"},
 			{"tenant_def"},

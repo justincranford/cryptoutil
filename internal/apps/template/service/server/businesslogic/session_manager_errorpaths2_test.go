@@ -25,10 +25,9 @@ import (
 // JWK parse error tests for issue and validate paths.
 // =============================================================================
 
+// Sequential: mutates global jwkParseKeyFn - package-level state, cannot run in parallel.
 // TestIssueJWSSession_ParseJWKError covers the JWK parse error in JWS issue.
 func TestIssueJWSSession_ParseJWKError(t *testing.T) {
-	t.Parallel()
-
 	orig := jwkParseKeyFn
 
 	defer func() { jwkParseKeyFn = orig }()
@@ -44,10 +43,9 @@ func TestIssueJWSSession_ParseJWKError(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to parse JWK")
 }
 
+// Sequential: mutates global jwkParseKeyFn - package-level state, cannot run in parallel.
 // TestValidateJWESession_ParseJWKError covers the JWK parse error in JWE validate.
 func TestValidateJWESession_ParseJWKError(t *testing.T) {
-	t.Parallel()
-
 	orig := jwkParseKeyFn
 
 	defer func() { jwkParseKeyFn = orig }()
@@ -67,10 +65,9 @@ func TestValidateJWESession_ParseJWKError(t *testing.T) {
 	require.Error(t, err)
 }
 
+// Sequential: mutates global jwkParseKeyFn - package-level state, cannot run in parallel.
 // TestValidateJWSSession_ParseJWKError covers the JWK parse error in JWS validate.
 func TestValidateJWSSession_ParseJWKError(t *testing.T) {
-	t.Parallel()
-
 	orig := jwkParseKeyFn
 
 	defer func() { jwkParseKeyFn = orig }()
@@ -92,10 +89,9 @@ func TestValidateJWSSession_ParseJWKError(t *testing.T) {
 // Verify/decrypt result error tests (non-JSON payloads trigger unmarshal errors).
 // =============================================================================
 
+// Sequential: mutates global decryptBytesFn - package-level state, cannot run in parallel.
 // TestValidateJWESession_UnmarshalError covers the claims unmarshal error in JWE validate.
 func TestValidateJWESession_UnmarshalError(t *testing.T) {
-	t.Parallel()
-
 	orig := decryptBytesFn
 
 	defer func() { decryptBytesFn = orig }()
@@ -114,10 +110,9 @@ func TestValidateJWESession_UnmarshalError(t *testing.T) {
 	require.Error(t, err)
 }
 
+// Sequential: mutates global verifyBytesFn - package-level state, cannot run in parallel.
 // TestValidateJWSSession_UnmarshalError covers the claims unmarshal error in JWS validate.
 func TestValidateJWSSession_UnmarshalError(t *testing.T) {
-	t.Parallel()
-
 	orig := verifyBytesFn
 
 	defer func() { verifyBytesFn = orig }()
@@ -140,10 +135,9 @@ func TestValidateJWSSession_UnmarshalError(t *testing.T) {
 // JWS validate PublicKey error test.
 // =============================================================================
 
+// Sequential: mutates global jwkParseKeyFn - package-level state, cannot run in parallel.
 // TestValidateJWSSession_PublicKeyError covers the PublicKey extraction error.
 func TestValidateJWSSession_PublicKeyError(t *testing.T) {
-	t.Parallel()
-
 	orig := jwkParseKeyFn
 
 	defer func() { jwkParseKeyFn = orig }()
@@ -347,10 +341,9 @@ var (
 // Keygen error path tests (injectable keygen vars in session_manager_session.go).
 // =============================================================================
 
+// Sequential: mutates global generateRSAKeyPairSessionFn - package-level state, cannot run in parallel.
 // TestGenerateJWSKey_RSAKeygenError covers RSA keygen failure in generateJWSKey.
 func TestGenerateJWSKey_RSAKeygenError(t *testing.T) {
-	t.Parallel()
-
 	orig := generateRSAKeyPairSessionFn
 
 	defer func() { generateRSAKeyPairSessionFn = orig }()
@@ -366,10 +359,9 @@ func TestGenerateJWSKey_RSAKeygenError(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to generate RSA key pair")
 }
 
+// Sequential: mutates global generateAESKeySessionFn - package-level state, cannot run in parallel.
 // TestGenerateJWEKey_AESKeygenError covers AES keygen failure in generateJWEKey.
 func TestGenerateJWEKey_AESKeygenError(t *testing.T) {
-	t.Parallel()
-
 	orig := generateAESKeySessionFn
 
 	defer func() { generateAESKeySessionFn = orig }()
