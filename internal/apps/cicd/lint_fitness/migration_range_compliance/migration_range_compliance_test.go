@@ -217,7 +217,7 @@ func TestFindDomainMigrationDirs_WithArchivedSubdir_Skipped(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(archived, "0001_invalid.up.sql"), []byte("-- bad"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	appsDir := tmp
-	templateDir := filepath.Join(tmp, "template", "migrations")
+	templateDir := filepath.Join(tmp, cryptoutilSharedMagic.SkeletonTemplateServiceName, "migrations")
 	dirs, err := findDomainMigrationDirs(appsDir, templateDir)
 	require.NoError(t, err)
 	require.Empty(t, dirs)
