@@ -37,27 +37,17 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsIdentitySpaServerConf
 		return nil, fmt.Errorf("config is nil")
 	}
 
-	// Create server builder with template configuration.
-	builder := cryptoutilAppsTemplateServiceServerBuilder.NewServerBuilder(ctx, cfg.ServiceTemplateServerSettings)
+		resources, err := cryptoutilAppsTemplateServiceServerBuilder.Build(ctx, cfg.ServiceTemplateServerSettings, &cryptoutilAppsTemplateServiceServerBuilder.DomainConfig{
+		RouteRegistration: func(base *cryptoutilAppsTemplateServiceServer.PublicServerBase, _ *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources) error {
+			// Create SPA public server.
+			publicServer := NewPublicServer(base, cfg)
 
-	// No domain-specific migrations for SPA (static file server).
+			// Register SPA-specific routes.
+			publicServer.RegisterRoutes()
 
-	// Register public route registration for SPA endpoints.
-	builder.WithPublicRouteRegistration(func(
-		base *cryptoutilAppsTemplateServiceServer.PublicServerBase,
-		_ *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources,
-	) error {
-		// Create SPA public server.
-		publicServer := NewPublicServer(base, cfg)
-
-		// Register SPA-specific routes.
-		publicServer.RegisterRoutes()
-
-		return nil
+			return nil
+		},
 	})
-
-	// Build the server infrastructure.
-	resources, err := builder.Build()
 	if err != nil {
 		return nil, fmt.Errorf("failed to build server infrastructure: %w", err)
 	}

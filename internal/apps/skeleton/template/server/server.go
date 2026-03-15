@@ -50,24 +50,10 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsSkeletonTemplateServe
 	}
 
 	// Create server builder with template config.
-	builder := cryptoutilAppsTemplateServiceServerBuilder.NewServerBuilder(ctx, cfg.ServiceTemplateServerSettings)
-
-	// Register skeleton-template specific migrations.
-	builder.WithDomainMigrations(cryptoutilAppsSkeletonTemplateRepository.MigrationsFS, "migrations")
-
-	// Register skeleton-template specific public routes.
-	// The skeleton-template has no domain-specific business routes — only health endpoints from the template.
-	builder.WithPublicRouteRegistration(func(
-		_ *cryptoutilAppsTemplateServiceServer.PublicServerBase,
-		_ *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources,
-	) error {
-		// No domain-specific routes for skeleton-template.
-		// Health endpoints (/browser/api/v1/health, /service/api/v1/health) are registered by the template.
-		return nil
+	resources, err := cryptoutilAppsTemplateServiceServerBuilder.Build(ctx, cfg.ServiceTemplateServerSettings, &cryptoutilAppsTemplateServiceServerBuilder.DomainConfig{
+		MigrationsFS:   cryptoutilAppsSkeletonTemplateRepository.MigrationsFS,
+		MigrationsPath: "migrations",
 	})
-
-	// Build complete service infrastructure.
-	resources, err := builder.Build()
 	if err != nil {
 		return nil, fmt.Errorf("failed to build skeleton-template service: %w", err)
 	}

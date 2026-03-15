@@ -53,48 +53,39 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsSmImServerConfig.SmIM
 		return nil, fmt.Errorf("config cannot be nil")
 	}
 
-	// Create server builder with template config.
-	builder := cryptoutilAppsTemplateServiceServerBuilder.NewServerBuilder(ctx, cfg.ServiceTemplateServerSettings)
+		resources, err := cryptoutilAppsTemplateServiceServerBuilder.Build(ctx, cfg.ServiceTemplateServerSettings, &cryptoutilAppsTemplateServiceServerBuilder.DomainConfig{
+		MigrationsFS:   cryptoutilAppsSmImRepository.MigrationsFS,
+		MigrationsPath: "migrations",
+		RouteRegistration: func(base *cryptoutilAppsTemplateServiceServer.PublicServerBase, res *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources) error {
+			// Create sm-im specific repositories.
+			userRepo := cryptoutilAppsSmImRepository.NewUserRepository(res.DB)
+			messageRepo := cryptoutilAppsSmImRepository.NewMessageRepository(res.DB)
+			messageRecipientJWKRepo := cryptoutilAppsSmImRepository.NewMessageRecipientJWKRepository(res.DB, res.BarrierService)
 
-	// Register sm-im specific migrations.
-	builder.WithDomainMigrations(cryptoutilAppsSmImRepository.MigrationsFS, "migrations")
+			// Create public server with sm-im handlers.
+			publicServer, err := NewPublicServer(
+				base,
+				res.SessionManager,
+				res.RealmService,
+				res.RegistrationService,
+				userRepo,
+				messageRepo,
+				messageRecipientJWKRepo,
+				res.JWKGenService,
+				res.BarrierService,
+			)
+			if err != nil {
+				return fmt.Errorf("failed to create public server: %w", err)
+			}
 
-	// Register sm-im specific public routes.
-	builder.WithPublicRouteRegistration(func(
-		base *cryptoutilAppsTemplateServiceServer.PublicServerBase,
-		res *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources,
-	) error {
-		// Create sm-im specific repositories.
-		userRepo := cryptoutilAppsSmImRepository.NewUserRepository(res.DB)
-		messageRepo := cryptoutilAppsSmImRepository.NewMessageRepository(res.DB)
-		messageRecipientJWKRepo := cryptoutilAppsSmImRepository.NewMessageRecipientJWKRepository(res.DB, res.BarrierService)
+			// Register all routes (standard + domain-specific).
+			if err := publicServer.registerRoutes(); err != nil {
+				return fmt.Errorf("failed to register public routes: %w", err)
+			}
 
-		// Create public server with sm-im handlers.
-		publicServer, err := NewPublicServer(
-			base,
-			res.SessionManager,
-			res.RealmService,
-			res.RegistrationService,
-			userRepo,
-			messageRepo,
-			messageRecipientJWKRepo,
-			res.JWKGenService,
-			res.BarrierService,
-		)
-		if err != nil {
-			return fmt.Errorf("failed to create public server: %w", err)
-		}
-
-		// Register all routes (standard + domain-specific).
-		if err := publicServer.registerRoutes(); err != nil {
-			return fmt.Errorf("failed to register public routes: %w", err)
-		}
-
-		return nil
+			return nil
+		},
 	})
-
-	// Build complete service infrastructure.
-	resources, err := builder.Build()
 	if err != nil {
 		return nil, fmt.Errorf("failed to build sm-im service: %w", err)
 	}

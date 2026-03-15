@@ -54,28 +54,19 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsIdentityRpServerConfi
 		return nil, fmt.Errorf("config cannot be nil")
 	}
 
-	// Create server builder with template config.
-	// Note: RP uses template database for sessions/barrier but has no domain-specific migrations.
-	builder := cryptoutilAppsTemplateServiceServerBuilder.NewServerBuilder(ctx, cfg.ServiceTemplateServerSettings)
+	resources, err := cryptoutilAppsTemplateServiceServerBuilder.Build(ctx, cfg.ServiceTemplateServerSettings, &cryptoutilAppsTemplateServiceServerBuilder.DomainConfig{
+		RouteRegistration: func(base *cryptoutilAppsTemplateServiceServer.PublicServerBase, res *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources) error {
+			// Create public server with BFF handlers.
+			publicServer := NewPublicServer(base, cfg, res.SessionManager, res.RealmService)
 
-	// Register identity-rp specific public routes.
-	builder.WithPublicRouteRegistration(func(
-		base *cryptoutilAppsTemplateServiceServer.PublicServerBase,
-		res *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources,
-	) error {
-		// Create public server with BFF handlers.
-		publicServer := NewPublicServer(base, cfg, res.SessionManager, res.RealmService)
+			// Register all routes (standard + RP-specific).
+			if err := publicServer.registerRoutes(); err != nil {
+				return fmt.Errorf("failed to register public routes: %w", err)
+			}
 
-		// Register all routes (standard + RP-specific).
-		if err := publicServer.registerRoutes(); err != nil {
-			return fmt.Errorf("failed to register public routes: %w", err)
-		}
-
-		return nil
+			return nil
+		},
 	})
-
-	// Build complete service infrastructure.
-	resources, err := builder.Build()
 	if err != nil {
 		return nil, fmt.Errorf("failed to build identity-rp service: %w", err)
 	}

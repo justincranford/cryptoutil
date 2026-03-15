@@ -53,49 +53,40 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsJoseJaServerConfig.Jo
 		return nil, fmt.Errorf("config cannot be nil")
 	}
 
-	// Create server builder with template config.
-	builder := cryptoutilAppsTemplateServiceServerBuilder.NewServerBuilder(ctx, cfg.ServiceTemplateServerSettings)
+		resources, err := cryptoutilAppsTemplateServiceServerBuilder.Build(ctx, cfg.ServiceTemplateServerSettings, &cryptoutilAppsTemplateServiceServerBuilder.DomainConfig{
+		MigrationsFS:   cryptoutilAppsJoseJaRepository.MigrationsFS,
+		MigrationsPath: "migrations",
+		RouteRegistration: func(base *cryptoutilAppsTemplateServiceServer.PublicServerBase, res *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources) error {
+			// Create jose-ja specific repositories.
+			elasticJWKRepo := cryptoutilAppsJoseJaRepository.NewElasticJWKRepository(res.DB)
+			materialJWKRepo := cryptoutilAppsJoseJaRepository.NewMaterialJWKRepository(res.DB)
+			auditConfigRepo := cryptoutilAppsJoseJaRepository.NewAuditConfigRepository(res.DB)
+			auditLogRepo := cryptoutilAppsJoseJaRepository.NewAuditLogRepository(res.DB)
 
-	// Register jose-ja specific migrations.
-	builder.WithDomainMigrations(cryptoutilAppsJoseJaRepository.MigrationsFS, "migrations")
+			// Create public server with jose-ja handlers.
+			publicServer, err := NewPublicServer(
+				base,
+				res.SessionManager,
+				res.RealmService,
+				elasticJWKRepo,
+				materialJWKRepo,
+				auditConfigRepo,
+				auditLogRepo,
+				res.JWKGenService,
+				res.BarrierService,
+			)
+			if err != nil {
+				return fmt.Errorf("failed to create public server: %w", err)
+			}
 
-	// Register jose-ja specific public routes.
-	builder.WithPublicRouteRegistration(func(
-		base *cryptoutilAppsTemplateServiceServer.PublicServerBase,
-		res *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources,
-	) error {
-		// Create jose-ja specific repositories.
-		elasticJWKRepo := cryptoutilAppsJoseJaRepository.NewElasticJWKRepository(res.DB)
-		materialJWKRepo := cryptoutilAppsJoseJaRepository.NewMaterialJWKRepository(res.DB)
-		auditConfigRepo := cryptoutilAppsJoseJaRepository.NewAuditConfigRepository(res.DB)
-		auditLogRepo := cryptoutilAppsJoseJaRepository.NewAuditLogRepository(res.DB)
+			// Register all routes (standard + domain-specific).
+			if err := publicServer.registerRoutes(); err != nil {
+				return fmt.Errorf("failed to register public routes: %w", err)
+			}
 
-		// Create public server with jose-ja handlers.
-		publicServer, err := NewPublicServer(
-			base,
-			res.SessionManager,
-			res.RealmService,
-			elasticJWKRepo,
-			materialJWKRepo,
-			auditConfigRepo,
-			auditLogRepo,
-			res.JWKGenService,
-			res.BarrierService,
-		)
-		if err != nil {
-			return fmt.Errorf("failed to create public server: %w", err)
-		}
-
-		// Register all routes (standard + domain-specific).
-		if err := publicServer.registerRoutes(); err != nil {
-			return fmt.Errorf("failed to register public routes: %w", err)
-		}
-
-		return nil
+			return nil
+		},
 	})
-
-	// Build complete service infrastructure.
-	resources, err := builder.Build()
 	if err != nil {
 		return nil, fmt.Errorf("failed to build jose-ja service: %w", err)
 	}

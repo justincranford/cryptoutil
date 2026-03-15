@@ -54,28 +54,19 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsIdentityAuthzServerCo
 		return nil, fmt.Errorf("config cannot be nil")
 	}
 
-	// Create server builder with template config.
-	// Note: Authz uses template database for sessions/barrier but has no domain-specific migrations yet.
-	builder := cryptoutilAppsTemplateServiceServerBuilder.NewServerBuilder(ctx, cfg.ServiceTemplateServerSettings)
+	resources, err := cryptoutilAppsTemplateServiceServerBuilder.Build(ctx, cfg.ServiceTemplateServerSettings, &cryptoutilAppsTemplateServiceServerBuilder.DomainConfig{
+		RouteRegistration: func(base *cryptoutilAppsTemplateServiceServer.PublicServerBase, _ *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources) error {
+			// Create public server with authz handlers.
+			publicServer := NewPublicServer(base, cfg)
 
-	// Register identity-authz specific public routes.
-	builder.WithPublicRouteRegistration(func(
-		base *cryptoutilAppsTemplateServiceServer.PublicServerBase,
-		_ *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources,
-	) error {
-		// Create public server with authz handlers.
-		publicServer := NewPublicServer(base, cfg)
+			// Register all routes (standard + authz-specific).
+			if err := publicServer.registerRoutes(); err != nil {
+				return fmt.Errorf("failed to register public routes: %w", err)
+			}
 
-		// Register all routes (standard + authz-specific).
-		if err := publicServer.registerRoutes(); err != nil {
-			return fmt.Errorf("failed to register public routes: %w", err)
-		}
-
-		return nil
+			return nil
+		},
 	})
-
-	// Build complete service infrastructure.
-	resources, err := builder.Build()
 	if err != nil {
 		return nil, fmt.Errorf("failed to build identity-authz service: %w", err)
 	}

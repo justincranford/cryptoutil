@@ -54,22 +54,13 @@ func NewKMSServer(
 		return nil, fmt.Errorf("failed to start KMS application core: %w", err)
 	}
 
-	// Create ServerBuilder directly (no more builder_adapter.go).
-	builder := cryptoutilAppsTemplateServiceServerBuilder.NewServerBuilder(ctx, settings)
-
-	// Configure domain migrations (KMS business tables 2001+).
-	builder.WithDomainMigrations(cryptoutilAppsSmKmsServerRepository.MigrationsFS, "migrations")
-
-	// Register KMS-specific routes.
-	builder.WithPublicRouteRegistration(func(
-		publicServerBase *cryptoutilAppsTemplateServiceServer.PublicServerBase,
-		resources *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources,
-	) error {
-		return registerKMSRoutes(publicServerBase.App(), kmsCore, settings)
+		resources, err := cryptoutilAppsTemplateServiceServerBuilder.Build(ctx, settings, &cryptoutilAppsTemplateServiceServerBuilder.DomainConfig{
+		MigrationsFS:   cryptoutilAppsSmKmsServerRepository.MigrationsFS,
+		MigrationsPath: "migrations",
+		RouteRegistration: func(publicServerBase *cryptoutilAppsTemplateServiceServer.PublicServerBase, _ *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources) error {
+			return registerKMSRoutes(publicServerBase.App(), kmsCore, settings)
+		},
 	})
-
-	// Build the server infrastructure (TLS, servers, middleware, health endpoints).
-	resources, err := builder.Build()
 	if err != nil {
 		kmsCore.Shutdown()
 

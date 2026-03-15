@@ -34,21 +34,18 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsCaServerConfig.PKICAS
 		return nil, fmt.Errorf("failed to create pki-ca server: %w", fmt.Errorf("config is nil"))
 	}
 
-	builder := cryptoutilAppsTemplateServiceServerBuilder.NewServerBuilder(ctx, cfg.ServiceTemplateServerSettings)
-	builder.WithDomainMigrations(cryptoutilAppsPkiCaRepository.MigrationsFS, "migrations")
-	builder.WithPublicRouteRegistration(func(
-		_ *cryptoutilAppsTemplateServiceServer.PublicServerBase,
-		res *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources,
-	) error {
-		// Auto-migrate domain models for GORM compatibility.
-		if err := res.DB.AutoMigrate(&cryptoutilAppsPkiCaDomain.CAItem{}); err != nil {
-			return fmt.Errorf("failed to auto-migrate pki-ca domain models: %w", err)
-		}
+	resources, err := cryptoutilAppsTemplateServiceServerBuilder.Build(ctx, cfg.ServiceTemplateServerSettings, &cryptoutilAppsTemplateServiceServerBuilder.DomainConfig{
+		MigrationsFS:   cryptoutilAppsPkiCaRepository.MigrationsFS,
+		MigrationsPath: "migrations",
+		RouteRegistration: func(_ *cryptoutilAppsTemplateServiceServer.PublicServerBase, res *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources) error {
+			// Auto-migrate domain models for GORM compatibility.
+			if err := res.DB.AutoMigrate(&cryptoutilAppsPkiCaDomain.CAItem{}); err != nil {
+				return fmt.Errorf("failed to auto-migrate pki-ca domain models: %w", err)
+			}
 
-		return nil
+			return nil
+		},
 	})
-
-	resources, err := builder.Build()
 	if err != nil {
 		return nil, fmt.Errorf("failed to build pki-ca server: %w", err)
 	}
