@@ -249,6 +249,9 @@ func TestMagicShouldSkipPath(t *testing.T) {
 		{name: "underscore file", path: "internal/apps/demo/_identity.go", expected: true},
 		// Dot-prefixed directories are also excluded.
 		{name: "dot dir", path: ".github/workflows/ci.yml", expected: true},
+		// Relative root "." and empty string are NOT excluded (they are path separators, not directory names).
+		{name: "dot root", path: ".", expected: false},
+		{name: "empty path", path: "", expected: false},
 	}
 
 	for _, tc := range tests {

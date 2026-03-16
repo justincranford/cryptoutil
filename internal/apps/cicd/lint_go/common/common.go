@@ -196,6 +196,11 @@ func MagicShouldSkipPath(path string) bool {
 	parts := strings.Split(slashed, "/")
 
 	for i, part := range parts {
+		// Skip empty parts and "." (relative root reference, not actual directory names).
+		if part == "" || part == "." {
+			continue
+		}
+
 		// Skip Go-convention excluded directories (start with _ or .).
 		// Matches what the Go build tool does: directories named _ or . are not compiled.
 		if strings.HasPrefix(part, "_") || strings.HasPrefix(part, ".") {
