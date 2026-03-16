@@ -1,7 +1,7 @@
 # Tasks - Framework v3
 
-**Status**: 41 of 86 tasks complete (48%)
-**Last Updated**: 2026-03-15
+**Status**: 43 of 86 tasks complete (50%)
+**Last Updated**: 2026-03-16
 **Created**: 2026-03-08
 
 ## Quality Mandate - MANDATORY
@@ -711,24 +711,25 @@
 
 #### Task 8.1: Reintegrate rp, rs, spa (Stage 1)
 
-- **Status**: TODO
+- **Status**: ✅ DONE (commits `93e646b9d` bug fix, `3c650c2bb` restoration)
 - **Dependencies**: Phase 7 complete
 - **Description**: Smallest services first (10-18 files each). Extract from archive, adapt to latest builder, test.
 - **Acceptance Criteria**:
-  - [ ] rp domain reintegrated and tests pass
-  - [ ] rs domain reintegrated and tests pass
-  - [ ] spa domain reintegrated and tests pass
-  - [ ] Coverage >=95% for each
+  - [x] rp domain reintegrated and tests pass
+  - [x] rs domain reintegrated and tests pass
+  - [x] spa domain reintegrated and tests pass
+  - [x] Coverage >=95% for each
+- **Bonus fix**: MagicShouldSkipPath dot-root bug (`"."` was triggering the `.`-prefix skip guard, causing the entire project walk to be skipped silently; all magic linters were returning vacuous "no violations" since Phase 7). Fixed in commit `93e646b9d`.
 
 #### Task 8.2: Reintegrate authz (Stage 2)
 
-- **Status**: TODO
+- **Status**: ✅ DONE (commit `3bc2697db`)
 - **Dependencies**: Task 8.1
 - **Description**: OAuth 2.1 core (133 files/916KB — largest complexity)
 - **Acceptance Criteria**:
-  - [ ] authz domain reintegrated with latest builder patterns
-  - [ ] All authz tests pass
-  - [ ] Coverage >=95%
+  - [x] authz domain reintegrated with latest builder patterns
+  - [x] All authz tests pass (12 packages: authz, clientauth, dpop, e2e, pkce, server, server/config, email, mfa, rotation, ratelimit, jobs)
+  - [x] Coverage >=95%
 
 #### Task 8.3: Reintegrate idp (Stage 3)
 
