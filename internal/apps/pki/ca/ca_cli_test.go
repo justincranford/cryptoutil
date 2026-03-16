@@ -1,10 +1,12 @@
 // Copyright (c) 2025 Justin Cranford
 //
+// SPDX-License-Identifier: MIT
 
 package ca
 
 import (
 	"bytes"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -116,8 +118,9 @@ func TestCA_UnknownSubcommand(t *testing.T) {
 }
 
 // TestCA_ServerParseError verifies the Parse error path in caServerStart.
-// Sequential: uses pflag.CommandLine global state via Parse().
 func TestCA_ServerParseError(t *testing.T) {
+	t.Parallel()
+
 	var stdout, stderr bytes.Buffer
 
 	//nolint:goconst // Test-specific invalid flag, not a magic string.
@@ -129,14 +132,58 @@ func TestCA_ServerParseError(t *testing.T) {
 }
 
 // TestCA_ServerCreateError verifies the NewFromConfig error path.
-// Sequential: uses pflag.CommandLine global state via Parse().
 func TestCA_ServerCreateError(t *testing.T) {
+	t.Parallel()
+
 	var stdout, stderr bytes.Buffer
 
-	// Server creation fails because PostgreSQL is not running on the default port.
 	exitCode := caServerStart([]string{}, &stdout, &stderr)
 	require.Equal(t, 1, exitCode)
 
 	combined := stdout.String() + stderr.String()
 	require.Contains(t, combined, "Failed to create server")
+}
+
+func TestCA_SubcommandLiveServer(t *testing.T) {
+	tests := []struct {
+		subcommand       string
+		url              string
+		expectedExitCode int
+		expectedOutputs  []string
+	}{
+		{
+			subcommand:       "health",
+			url:              publicBaseURL + cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath,
+			expectedExitCode: 0,
+			expectedOutputs:  []string{"HTTP 200"},
+		},
+		{
+			subcommand:       "livez",
+			url:              adminBaseURL,
+			expectedExitCode: 0,
+			expectedOutputs:  []string{"HTTP 200"},
+		},
+		{
+			subcommand:       "readyz",
+			url:              adminBaseURL,
+			expectedExitCode: 0,
+			expectedOutputs:  []string{"HTTP 200"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.subcommand, func(t *testing.T) {
+			t.Parallel()
+
+			var stdout, stderr bytes.Buffer
+
+			exitCode := Ca([]string{tc.subcommand, "--url", tc.url}, nil, &stdout, &stderr)
+			require.Equal(t, tc.expectedExitCode, exitCode, "%s should succeed", tc.subcommand)
+
+			output := stdout.String() + stderr.String()
+			for _, expected := range tc.expectedOutputs {
+				require.Contains(t, output, expected, "Output should contain: %s", expected)
+			}
+		})
+	}
 }

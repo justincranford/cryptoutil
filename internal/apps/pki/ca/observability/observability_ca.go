@@ -7,6 +7,8 @@ import (
 	"context"
 	"sync"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // MetricType represents the type of metric.
@@ -107,7 +109,7 @@ type SpanStatus string
 const (
 	SpanStatusUnset SpanStatus = "unset"
 	SpanStatusOK    SpanStatus = "ok"
-	SpanStatusError SpanStatus = "error"
+	SpanStatusError SpanStatus = SpanStatus(cryptoutilSharedMagic.StringError)
 )
 
 // SpanEvent represents an event within a span.

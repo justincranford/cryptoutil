@@ -1,33 +1,39 @@
 // Copyright (c) 2025 Justin Cranford
 //
+// SPDX-License-Identifier: MIT
 
 package ca
 
 import (
 	"context"
 	"fmt"
+	http "net/http"
 	"os"
 	"testing"
 	"time"
 
 	cryptoutilAppsCaServer "cryptoutil/internal/apps/pki/ca/server"
 	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/pki/ca/server/config"
+	cryptoutilSharedCryptoTls "cryptoutil/internal/shared/crypto/tls"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
 )
 
-var testPkiCaService *cryptoutilAppsCaServer.PKICAServer
+var (
+	testCaService    *cryptoutilAppsCaServer.CAServer
+	sharedHTTPClient *http.Client
+	publicBaseURL    string
+	adminBaseURL     string
+)
 
 func TestMain(m *testing.M) {
 	// Create in-memory SQLite configuration for testing.
 	cfg := cryptoutilAppsCaServerConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
-
 	ctx := context.Background()
 
 	// Create server.
 	var err error
 
-	testPkiCaService, err = cryptoutilAppsCaServer.NewFromConfig(ctx, cfg)
+	testCaService, err = cryptoutilAppsCaServer.NewFromConfig(ctx, cfg)
 	if err != nil {
 		panic(fmt.Sprintf("TestMain: failed to create server: %v", err))
 	}
@@ -36,41 +42,55 @@ func TestMain(m *testing.M) {
 	errChan := make(chan error, 1)
 
 	go func() {
-		if startErr := testPkiCaService.Start(ctx); startErr != nil {
+		if startErr := testCaService.Start(ctx); startErr != nil {
 			errChan <- startErr
 		}
 	}()
 
 	// Wait for server ports to be assigned.
 	const (
-		pollTimeout  = 5 * time.Second
-		pollInterval = 100 * time.Millisecond
+		maxWaitAttempts = 50
+		waitInterval    = 100 * time.Millisecond
 	)
 
-	pollErr := cryptoutilSharedUtilPoll.Until(ctx, pollTimeout, pollInterval, func(_ context.Context) (bool, error) {
-		select {
-		case startErr := <-errChan:
-			return false, fmt.Errorf("server failed to start: %w", startErr)
-		default:
+	var publicPort, adminPort int
+	for i := 0; i < maxWaitAttempts; i++ {
+		publicPort = testCaService.PublicPort()
+		adminPort = testCaService.AdminPort()
+
+		if publicPort > 0 && adminPort > 0 {
+			break
 		}
 
-		return testPkiCaService.PublicPort() > 0 && testPkiCaService.AdminPort() > 0, nil
-	})
-	if pollErr != nil {
-		panic(fmt.Sprintf("TestMain: %v", pollErr))
+		select {
+		case startErr := <-errChan:
+			panic(fmt.Sprintf("TestMain: server failed to start: %v", startErr))
+		case <-time.After(waitInterval):
+		}
+	}
+
+	if publicPort == 0 || adminPort == 0 {
+		panic("TestMain: server did not bind to ports")
 	}
 
 	// Mark server as ready.
-	testPkiCaService.SetReady(true)
+	testCaService.SetReady(true)
+
+	// Store base URLs for tests.
+	publicBaseURL = testCaService.PublicBaseURL()
+	adminBaseURL = testCaService.AdminBaseURL()
+
+	// Create shared HTTP client for all tests (accepts self-signed certs).
+	sharedHTTPClient = cryptoutilSharedCryptoTls.NewClientForTest()
 
 	// Run all tests.
 	exitCode := m.Run()
 
 	// Cleanup: Shutdown server.
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultDataServerShutdownTimeout)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second)
 	defer cancel()
 
-	_ = testPkiCaService.Shutdown(shutdownCtx)
+	_ = testCaService.Shutdown(shutdownCtx)
 
 	os.Exit(exitCode)
 }

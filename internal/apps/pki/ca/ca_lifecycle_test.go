@@ -1,5 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 //
+// SPDX-License-Identifier: MIT
 
 package ca
 
@@ -11,18 +12,22 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTestutil "cryptoutil/internal/shared/testutil"
 )
 
 // TestCA_ServerLifecycle verifies the full server start → signal → graceful shutdown path.
-// Sequential: uses pflag.CommandLine global state via Parse() and process-level signals.
+// Sequential: uses viper global state via ParseWithFlagSet and process-level signals.
 func TestCA_ServerLifecycle(t *testing.T) {
 	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
 		t.Skip("syscall.SIGINT is not supported on Windows.")
 	}
+	// Reset viper global state after test to prevent leaking --profile=test to subsequent tests.
+	t.Cleanup(func() { viper.Reset() })
 
 	var stdout, stderr cryptoutilSharedTestutil.SafeBuffer
 

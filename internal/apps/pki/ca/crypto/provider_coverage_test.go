@@ -449,6 +449,7 @@ func TestGenerateRSAKeyPair_KeygenError(t *testing.T) {
 // NOTE: Must NOT use t.Parallel() - modifies package-level pkiCryptoGenerateECDSAKeyPairFn.
 func TestGenerateECDSAKeyPair_KeygenError(t *testing.T) {
 	t.Parallel()
+
 	orig := pkiCryptoGenerateECDSAKeyPairFn
 	pkiCryptoGenerateECDSAKeyPairFn = func(_ elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
 		return nil, errSignFailed

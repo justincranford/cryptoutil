@@ -3,12 +3,13 @@
 package common
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"go/ast"
 	"go/token"
 	"os"
 	"path/filepath"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )

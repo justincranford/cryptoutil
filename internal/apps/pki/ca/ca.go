@@ -1,4 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
+//
+//
 
 // Package ca provides the Certificate Authority service entry point.
 package ca

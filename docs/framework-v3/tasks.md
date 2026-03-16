@@ -733,13 +733,13 @@
 
 #### Task 8.3: Reintegrate idp (Stage 3)
 
-- **Status**: TODO
+- **Status**: ✅ DONE (commit `65e2dbbbc`)
 - **Dependencies**: Task 8.2
 - **Description**: OIDC provider (129 files/862KB — second largest)
 - **Acceptance Criteria**:
-  - [ ] idp domain reintegrated with latest builder patterns
-  - [ ] All idp tests pass
-  - [ ] Coverage >=95%
+  - [x] idp domain reintegrated with latest builder patterns
+  - [x] All idp tests pass (7 packages: idp, idp/auth, idp/server, idp/server/config, idp/unified, idp/userauth, idp/userauth/mocks)
+  - [x] Coverage >=95%
 
 #### Task 8.4: Reintegrate pki-ca (Stage 4)
 
