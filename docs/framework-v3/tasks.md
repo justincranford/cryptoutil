@@ -765,13 +765,13 @@
 
 #### Task 8.6: Phase 8 validation and post-mortem
 
-- **Status**: TODO
+- **Status**: ✅ DONE (commit `5a5a2cff1`)
 - **Dependencies**: Tasks 8.1-8.5
 - **Description**: Full quality gate run, phase post-mortem
 - **Acceptance Criteria**:
-  - [ ] All 6 services have working domain + latest framework patterns
-  - [ ] Coverage >=95% across all reintegrated services
-  - [ ] lessons.md updated
+  - [x] All 6 services have working domain + latest framework patterns
+  - [x] Coverage >=95% across all reintegrated services
+  - [x] lessons.md updated
 
 ---
 
