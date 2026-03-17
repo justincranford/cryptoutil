@@ -147,6 +147,42 @@ func TestDiscoverServices_NonDirFileInProductDir_Skipped(t *testing.T) {
 	require.Empty(t, services)
 }
 
+// Sequential: modifies package-level healthEndpointReadDirFn seam.
+func TestDiscoverServices_ReadDirError(t *testing.T) {
+	orig := healthEndpointReadDirFn
+
+	t.Cleanup(func() { healthEndpointReadDirFn = orig })
+
+	healthEndpointReadDirFn = func(_ string) ([]os.DirEntry, error) {
+		return nil, fmt.Errorf("injected readdir error")
+	}
+
+	err := CheckInDir(newTestLogger(), t.TempDir())
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to discover services")
+}
+
+// Sequential: modifies package-level healthEndpointReadFileFn seam.
+func TestCheckServiceHealth_ReadFileError(t *testing.T) {
+	orig := healthEndpointReadFileFn
+
+	t.Cleanup(func() { healthEndpointReadFileFn = orig })
+
+	healthEndpointReadFileFn = func(_ string) ([]byte, error) {
+		return nil, fmt.Errorf("injected read error")
+	}
+
+	tmp := t.TempDir()
+	mkServiceWithServer(t, tmp, "sm", "im")
+
+	err := CheckInDir(newTestLogger(), tmp)
+	// ReadFile errors inside Walk are returned by WalkFunc, but Walk result
+	// is discarded (_ = filepath.Walk(...)), so patterns simply aren't found
+	// and the function reports missing-health-pattern violations instead.
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "health endpoint presence violations")
+}
+
 func findProjectRoot() (string, error) {
 	dir, err := os.Getwd()
 	if err != nil {

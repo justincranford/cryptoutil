@@ -3,6 +3,7 @@
 package tls_minimum_version
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -153,6 +154,53 @@ func TestCheckInDir_VendorDir_Skipped(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// Sequential: modifies package-level tlsMinVersionWalkFn seam.
+func TestCheckInDir_WalkError(t *testing.T) {
+	orig := tlsMinVersionWalkFn
+
+	t.Cleanup(func() { tlsMinVersionWalkFn = orig })
+
+	tlsMinVersionWalkFn = func(_ string, _ filepath.WalkFunc) error {
+		return fmt.Errorf("injected walk error")
+	}
+
+	err := CheckInDir(newTestLogger(), t.TempDir())
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "filesystem walk failed")
+}
+
+// Sequential: modifies package-level tlsMinVersionWalkFn seam.
+func TestCheckInDir_WalkCallbackError(t *testing.T) {
+	orig := tlsMinVersionWalkFn
+
+	t.Cleanup(func() { tlsMinVersionWalkFn = orig })
+
+	tlsMinVersionWalkFn = func(_ string, fn filepath.WalkFunc) error {
+		return fn("bad/path", nil, fmt.Errorf("injected callback error"))
+	}
+
+	err := CheckInDir(newTestLogger(), t.TempDir())
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "filesystem walk failed")
+}
+
+// Sequential: modifies package-level tlsMinVersionOpenFn seam.
+func TestCheckInDir_ScanOpenError(t *testing.T) {
+	orig := tlsMinVersionOpenFn
+
+	t.Cleanup(func() { tlsMinVersionOpenFn = orig })
+
+	tlsMinVersionOpenFn = func(_ string) (*os.File, error) {
+		return nil, fmt.Errorf("injected open error")
+	}
+
+	tmp := t.TempDir()
+	writeGoFile(t, tmp, "main.go", "package main\n")
+
+	err := CheckInDir(newTestLogger(), tmp)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "filesystem walk failed")
+}
 
 func findProjectRoot() (string, error) {
 	dir, err := os.Getwd()

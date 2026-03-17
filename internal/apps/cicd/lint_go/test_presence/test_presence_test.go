@@ -307,6 +307,25 @@ func saveRestoreSeams(t *testing.T) {
 	})
 }
 
+// Sequential: uses os.Chdir (global process state, cannot run in parallel).
+func TestCheck_ChDir(t *testing.T) {
+	root, err := findProjectRoot()
+	if err != nil {
+		t.Skip("Skipping - cannot find project root")
+	}
+
+	orig, err := os.Getwd()
+	require.NoError(t, err)
+
+	t.Cleanup(func() { _ = os.Chdir(orig) })
+
+	require.NoError(t, os.Chdir(root))
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err = Check(logger)
+	require.NoError(t, err)
+}
+
 // Sequential: modifies package-level seam variables.
 func TestSeam_CheckInDir_RelError(t *testing.T) {
 	saveRestoreSeams(t)

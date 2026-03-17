@@ -293,3 +293,20 @@ func TestValidatePropagationWithRoot_BadRoot(t *testing.T) {
 	require.Equal(t, 1, exitCode)
 	require.Contains(t, stderr.String(), "Error")
 }
+
+// Sequential: modifies package-level findProjectRootFn seam.
+func TestValidatePropagationCommand_FindRootError(t *testing.T) {
+	orig := findProjectRootFn
+
+	t.Cleanup(func() { findProjectRootFn = orig })
+
+	findProjectRootFn = func() (string, error) {
+		return "", fmt.Errorf("injected root error")
+	}
+
+	var stdout, stderr bytes.Buffer
+
+	exitCode := ValidatePropagationCommand(&stdout, &stderr)
+	require.Equal(t, 1, exitCode)
+	require.Contains(t, stderr.String(), "injected root error")
+}

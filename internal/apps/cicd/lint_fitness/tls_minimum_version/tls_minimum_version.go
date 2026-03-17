@@ -26,6 +26,11 @@ var forbiddenMinVersions = []string{
 	"VersionTLS12",
 }
 
+// Test seams: replaceable in tests to exercise unreachable OS-level error paths.
+// See ARCHITECTURE.md Section 10.2.4 (Test Seam Injection Pattern).
+var tlsMinVersionWalkFn = filepath.Walk
+var tlsMinVersionOpenFn = os.Open
+
 // Check verifies TLS minimum version from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 	return CheckInDir(logger, ".")
@@ -42,7 +47,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 	var violations []string
 
-	walkErr := filepath.Walk(projectRoot, func(path string, info os.FileInfo, err error) error {
+	walkErr := tlsMinVersionWalkFn(projectRoot, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -88,7 +93,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 // scanFileForTLSVersion scans a Go file for forbidden TLS MinVersion values.
 func scanFileForTLSVersion(filePath, projectRoot string) ([]string, error) {
-	f, err := os.Open(filePath) //nolint:gosec // filePath from filepath.Walk, controlled
+	f, err := tlsMinVersionOpenFn(filePath) //nolint:gosec // filePath from filepath.Walk, controlled
 	if err != nil {
 		return nil, fmt.Errorf("open %s: %w", filePath, err)
 	}

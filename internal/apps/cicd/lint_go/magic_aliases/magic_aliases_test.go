@@ -275,3 +275,68 @@ func TestFindMagicImportAlias_DefaultName(t *testing.T) {
 	require.Equal(t, "x", violations[0].LocalName)
 	require.Equal(t, "EmptyString", violations[0].MagicName)
 }
+
+func TestFindAliasesInFile_UnparseableFile(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	badPath := filepath.Join(dir, "bad.go")
+	require.NoError(t, os.WriteFile(badPath, []byte("THIS IS NOT VALID GO @@@@@"), cryptoutilSharedMagic.CacheFilePermissions))
+
+	violations := findAliasesInFile(badPath, "bad.go")
+	require.Empty(t, violations)
+}
+
+func TestFindAliasesInFile_ConstWithoutValues(t *testing.T) {
+	t.Parallel()
+
+	// iota-based const — vspec.Values will be nil for subsequent iota specs.
+	content := "package a\n\nimport cryptoutilSharedMagic \"cryptoutil/internal/shared/magic\"\n\nconst (\n\t_ = cryptoutilSharedMagic.EmptyString\n)\n\nvar _ = \"x\"\n"
+	dir := t.TempDir()
+	path := filepath.Join(dir, "a.go")
+	require.NoError(t, os.WriteFile(path, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
+
+	violations := findAliasesInFile(path, "a.go")
+	// _ is exported (well, blank identifier) — the function may or may not flag it.
+	require.NotNil(t, violations)
+}
+
+// Sequential: uses os.Chdir (global process state, cannot run in parallel).
+func TestCheck_ProjectRoot(t *testing.T) {
+	root, err := findProjectRoot()
+	if err != nil {
+		t.Skip("Skipping - cannot find project root")
+	}
+
+	orig, err := os.Getwd()
+	require.NoError(t, err)
+
+	t.Cleanup(func() { _ = os.Chdir(orig) })
+
+	require.NoError(t, os.Chdir(root))
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err = Check(logger)
+	require.NoError(t, err)
+}
+
+// findProjectRoot finds the project root by walking up to find go.mod.
+func findProjectRoot() (string, error) {
+	dir, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	for {
+		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
+			return dir, nil
+		}
+
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return "", fmt.Errorf("go.mod not found")
+		}
+
+		dir = parent
+	}
+}

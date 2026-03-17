@@ -341,7 +341,7 @@ func FormatChunkResults(result *ChunkValidationResult) string {
 // ValidateChunksCommand is the CLI entry point for validate-chunks.
 // Returns exit code: 0 if all chunks match, 1 if any issues found.
 func ValidateChunksCommand(stdout, stderr io.Writer) int {
-	rootDir, err := findProjectRoot()
+	rootDir, err := findProjectRootFn()
 	if err != nil {
 		_, _ = fmt.Fprintf(stderr, "Error: %s\n", err)
 

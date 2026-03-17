@@ -7,17 +7,23 @@ package check_chunk_verification
 import (
 	"bytes"
 	"fmt"
+	"io"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
 	cryptoutilDocsValidation "cryptoutil/internal/apps/cicd/docs_validation"
 )
+
+// checkChunkVerificationFn is the seam for testing, replacing CheckChunkVerification.
+var checkChunkVerificationFn = func(stdout, stderr io.Writer) int {
+	return cryptoutilDocsValidation.CheckChunkVerification(stdout, stderr)
+}
 
 // Check verifies that all architecture chunk references exist in instruction files.
 // Returns an error if any chunk references are missing.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 	var stdout, stderr bytes.Buffer
 
-	exitCode := cryptoutilDocsValidation.CheckChunkVerification(&stdout, &stderr)
+	exitCode := checkChunkVerificationFn(&stdout, &stderr)
 
 	if stdout.Len() > 0 {
 		logger.Log(stdout.String())

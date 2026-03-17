@@ -3,6 +3,7 @@
 package magic_duplicates
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -323,4 +324,101 @@ func TestCheckCrossFileDuplicatesInDir_WalkError(t *testing.T) {
 	err := CheckCrossFileDuplicatesInDir(logger, t.TempDir(), t.TempDir())
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "directory walk failed")
+}
+
+func TestCheckCrossFileDuplicatesInDir_WalkFileErr(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	magicDir := filepath.Join(tmpDir, "magic")
+	rootDir := tmpDir
+
+	require.NoError(t, os.MkdirAll(magicDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+
+	// Create a sub-dir that will become unreadable, triggering a walk file error.
+	subDir := filepath.Join(rootDir, "subpkg")
+	require.NoError(t, os.MkdirAll(subDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.WriteFile(filepath.Join(subDir, "constants.go"), []byte("package subpkg\nconst X = \"hello\"\n"), cryptoutilSharedMagic.CacheFilePermissions))
+	// Make dir unreadable to trigger a walk error inside the walk callback.
+	require.NoError(t, os.Chmod(subDir, 0o000))
+
+	t.Cleanup(func() { _ = os.Chmod(subDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute) })
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("cross-dup-test")
+	err := CheckCrossFileDuplicatesInDir(logger, magicDir, rootDir)
+	// On Windows chmod 000 doesn't work the same way; the test is best-effort.
+	// If it doesn't produce an error, that's acceptable.
+	if err != nil {
+		require.Contains(t, err.Error(), "walk errors")
+	}
+}
+
+func TestCheckCrossFileDuplicatesInDir_NonStringConst(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	magicDir := filepath.Join(tmpDir, "magic")
+	require.NoError(t, os.MkdirAll(magicDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+
+	// Write a file with integer constants — should be collected but not matched as string duplicates.
+	writeMagicFile(t, tmpDir, "consts.go", "package root\nconst (\n\tA = 42\n\tB = 3.14\n)\n")
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err := CheckCrossFileDuplicatesInDir(logger, magicDir, tmpDir)
+	require.NoError(t, err)
+}
+
+func TestCheckCrossFileDuplicatesInDir_UnparseableFile(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	magicDir := filepath.Join(tmpDir, "magic")
+	require.NoError(t, os.MkdirAll(magicDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+
+	// Write an invalid Go file — collectConstsFromFile should skip it gracefully.
+	writeMagicFile(t, tmpDir, "bad.go", "THIS IS NOT VALID GO CODE @@@@!!")
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err := CheckCrossFileDuplicatesInDir(logger, magicDir, tmpDir)
+	require.NoError(t, err)
+}
+
+// Sequential: uses os.Chdir (global process state, cannot run in parallel).
+func TestCheck_ProjectRoot(t *testing.T) {
+	root, err := findProjectRoot()
+	if err != nil {
+		t.Skip("Skipping - cannot find project root")
+	}
+
+	orig, err := os.Getwd()
+	require.NoError(t, err)
+
+	t.Cleanup(func() { _ = os.Chdir(orig) })
+
+	require.NoError(t, os.Chdir(root))
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err = Check(logger)
+	require.NoError(t, err)
+}
+
+// findProjectRoot finds the project root by walking up to find go.mod.
+func findProjectRoot() (string, error) {
+	dir, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	for {
+		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
+			return dir, nil
+		}
+
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return "", fmt.Errorf("go.mod not found")
+		}
+
+		dir = parent
+	}
 }

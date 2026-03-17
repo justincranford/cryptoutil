@@ -204,10 +204,14 @@ func findProjectRoot() (string, error) {
 	}
 }
 
+// Test seams: replaceable in tests to exercise unreachable OS-level error paths.
+// See ARCHITECTURE.md Section 10.2.4 (Test Seam Injection Pattern).
+var findProjectRootFn = findProjectRoot
+
 // CheckChunkVerification is the entry point for the check-chunk-verification subcommand.
 // Returns exit code: 0 for all chunks verified, 1 for any missing.
 func CheckChunkVerification(stdout, stderr io.Writer) int {
-	rootDir, err := findProjectRoot()
+	rootDir, err := findProjectRootFn()
 	if err != nil {
 		_, _ = fmt.Fprintf(stderr, "Error: %s\n", err)
 

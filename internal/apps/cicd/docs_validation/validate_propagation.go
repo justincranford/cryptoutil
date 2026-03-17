@@ -324,7 +324,7 @@ func FormatPropagationResults(result *PropagationResult) string {
 // ValidatePropagationCommand is the CLI entry point for validate-propagation.
 // Returns exit code: 0 if no broken refs, 1 if broken refs found.
 func ValidatePropagationCommand(stdout, stderr io.Writer) int {
-	rootDir, err := findProjectRoot()
+	rootDir, err := findProjectRootFn()
 	if err != nil {
 		_, _ = fmt.Fprintf(stderr, "Error: %s\n", err)
 

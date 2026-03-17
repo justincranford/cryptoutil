@@ -3,6 +3,7 @@
 package domain_layer_isolation
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -218,6 +219,35 @@ func TestScanDomainFile_NonexistentFile_Error(t *testing.T) {
 	require.Error(t, err)
 }
 
+// Sequential: modifies package-level domainIsolationWalkFn seam.
+func TestCheckInDir_WalkError(t *testing.T) {
+	orig := domainIsolationWalkFn
+
+	t.Cleanup(func() { domainIsolationWalkFn = orig })
+
+	domainIsolationWalkFn = func(_ string, _ filepath.WalkFunc) error {
+		return fmt.Errorf("injected walk error")
+	}
+
+	err := CheckInDir(newTestLogger(), t.TempDir())
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "filesystem walk failed")
+}
+
+// Sequential: modifies package-level domainIsolationWalkFn seam.
+func TestCheckInDir_WalkCallbackError(t *testing.T) {
+	orig := domainIsolationWalkFn
+
+	t.Cleanup(func() { domainIsolationWalkFn = orig })
+
+	domainIsolationWalkFn = func(_ string, fn filepath.WalkFunc) error {
+		return fn("bad/path", nil, fmt.Errorf("injected callback error"))
+	}
+
+	err := CheckInDir(newTestLogger(), t.TempDir())
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "filesystem walk failed")
+}
 
 func findProjectRoot() (string, error) {
 	dir, err := os.Getwd()

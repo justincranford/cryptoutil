@@ -19,6 +19,12 @@ import (
 // compileTimeAssertionPattern is the pattern that must appear in a service's server.go.
 const compileTimeAssertionPattern = "ServiceServer = (*"
 
+// Test seams: replaceable in tests to exercise unreachable OS-level error paths.
+// See ARCHITECTURE.md Section 10.2.4 (Test Seam Injection Pattern).
+var serviceContractReadDirFn = os.ReadDir
+
+var serviceContractReadFileFn = os.ReadFile
+
 // Check verifies service contract compliance from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 	return CheckInDir(logger, ".")
@@ -75,7 +81,7 @@ type serviceID struct {
 func discoverServices(appsDir string) ([]serviceID, error) {
 	var services []serviceID
 
-	products, err := os.ReadDir(appsDir)
+	products, err := serviceContractReadDirFn(appsDir)
 	if err != nil {
 		return nil, fmt.Errorf("read apps dir: %w", err)
 	}
@@ -120,7 +126,7 @@ func discoverServices(appsDir string) ([]serviceID, error) {
 
 // checkServerFile verifies that the server.go file contains the compile-time assertion.
 func checkServerFile(serverFile string, svc serviceID, violations *[]string) error {
-	content, err := os.ReadFile(serverFile) //nolint:gosec // serverFile is a constructed path, controlled
+	content, err := serviceContractReadFileFn(serverFile) //nolint:gosec // serverFile is a constructed path, controlled
 	if err != nil {
 		if os.IsNotExist(err) {
 			*violations = append(*violations, fmt.Sprintf(

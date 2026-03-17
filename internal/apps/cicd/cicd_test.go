@@ -100,6 +100,18 @@ func TestRun_AllCommands_HappyPath(t *testing.T) {
 			name:     "all commands together",
 			commands: []string{"lint-text", "lint-go", "format-go", "lint-go-test", "format-go-test", "lint-workflow", "lint-go-mod", "lint-compose", "lint-ports", "lint-golangci"},
 		},
+		{
+			name:     "lint-docs command",
+			commands: []string{"lint-docs"},
+		},
+		{
+			name:     "lint-deployments command",
+			commands: []string{"lint-deployments"},
+		},
+		{
+			name:     "lint-fitness command",
+			commands: []string{"lint-fitness"},
+		},
 	}
 
 	for _, tc := range tests {
@@ -114,6 +126,21 @@ func TestRun_AllCommands_HappyPath(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetExtraArgs_WithArgs(t *testing.T) {
+	t.Parallel()
+
+	result := getExtraArgs([]string{"binary", "command", "extra1", "extra2"})
+	require.Equal(t, []string{"extra1", "extra2"}, result)
+}
+
+func TestCommandsNeedFiles_NonFileCommands(t *testing.T) {
+	t.Parallel()
+
+	require.False(t, commandsNeedFiles([]string{"lint-docs"}))
+	require.False(t, commandsNeedFiles([]string{"lint-deployments"}))
+	require.False(t, commandsNeedFiles([]string{"lint-fitness"}))
 }
 
 func TestValidateCommands_HappyPath(t *testing.T) {

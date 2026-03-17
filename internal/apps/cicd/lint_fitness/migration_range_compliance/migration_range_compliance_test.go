@@ -264,3 +264,14 @@ func TestCheck_Integration(t *testing.T) {
 	err = Check(logger)
 	require.NoError(t, err)
 }
+
+func TestCheckInDir_NoInternalAppsDir_Succeeds(t *testing.T) {
+	t.Parallel()
+
+	// When appsDir doesn't exist, findDomainMigrationDirs returns nil/nil.
+	// When the template dir doesn't exist, checkDir returns nil/nil.
+	// CheckInDir should succeed with no violations.
+	tmp := t.TempDir()
+	err := CheckInDir(cryptoutilCmdCicdCommon.NewLogger("test"), tmp)
+	require.NoError(t, err)
+}

@@ -30,6 +30,10 @@ const (
 
 var importLinePattern = regexp.MustCompile(`^\s+(?:\w+ )?"([^"]+)"`)
 
+// Test seams: replaceable in tests to exercise unreachable OS-level error paths.
+// See ARCHITECTURE.md Section 10.2.4 (Test Seam Injection Pattern).
+var crossServiceWalkFn = filepath.Walk
+
 // Check verifies cross-service import isolation from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 	return CheckInDir(logger, ".")
@@ -136,7 +140,7 @@ func collectServices(appsDir string) ([]serviceRef, error) {
 }
 
 func walkServiceImports(projectRoot, svcDir string, self serviceRef, allServices []serviceRef, violations *[]string) error {
-	err := filepath.Walk(svcDir, func(path string, info os.FileInfo, err error) error {
+	err := crossServiceWalkFn(svcDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}

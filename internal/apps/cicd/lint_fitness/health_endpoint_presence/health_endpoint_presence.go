@@ -18,6 +18,11 @@ import (
 // healthRequirements are string patterns that must appear somewhere in a service.
 var healthRequirements = []string{"livez", "readyz"}
 
+// Test seams: replaceable in tests to exercise unreachable OS-level error paths.
+// See ARCHITECTURE.md Section 10.2.4 (Test Seam Injection Pattern).
+var healthEndpointReadDirFn = os.ReadDir
+var healthEndpointReadFileFn = os.ReadFile
+
 // Check verifies health endpoint presence from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 	return CheckInDir(logger, ".")
@@ -71,7 +76,7 @@ type serviceID struct {
 func discoverServices(appsDir string) ([]serviceID, error) {
 	var services []serviceID
 
-	products, err := os.ReadDir(appsDir)
+	products, err := healthEndpointReadDirFn(appsDir)
 	if err != nil {
 		return nil, fmt.Errorf("read apps dir: %w", err)
 	}
@@ -130,7 +135,7 @@ func checkServiceHealth(svc serviceID, appsDir string) []string {
 			return nil
 		}
 
-		content, readErr := os.ReadFile(path) //nolint:gosec // path from filepath.Walk, controlled
+				content, readErr := healthEndpointReadFileFn(path) //nolint:gosec // path from filepath.Walk, controlled
 		if readErr != nil {
 			return fmt.Errorf("reading file %s: %w", path, readErr)
 		}

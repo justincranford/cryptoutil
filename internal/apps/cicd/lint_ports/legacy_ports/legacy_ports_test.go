@@ -187,3 +187,38 @@ func TestCheckFile_OtelPortInOtelContext(t *testing.T) {
 	// In an OTEL-related file, the OTEL continue fires and no violation is flagged.
 	require.Empty(t, violations, "8888 in OTEL context should be skipped")
 }
+
+func TestCheckFile_CicdDirectorySkipped(t *testing.T) {
+	t.Parallel()
+
+	violations := CheckFile("/project/internal/apps/cicd/lint_go/lint.go", lintPortsCommon.AllLegacyPorts())
+	require.Nil(t, violations, "Files in internal/apps/cicd/ should be skipped")
+}
+
+func TestCheckFile_MagicDirectorySkipped(t *testing.T) {
+	t.Parallel()
+
+	violations := CheckFile("/project/internal/shared/magic/magic_ports.go", lintPortsCommon.AllLegacyPorts())
+	require.Nil(t, violations, "Files in internal/shared/magic/ should be skipped")
+}
+
+func TestCheckFile_TestFileSkipped(t *testing.T) {
+	t.Parallel()
+
+	violations := CheckFile("/project/internal/apps/sm/im/server_test.go", lintPortsCommon.AllLegacyPorts())
+	require.Nil(t, violations, "Test files should be skipped")
+}
+
+func TestCheckFile_ArchivedDeploymentSkipped(t *testing.T) {
+	t.Parallel()
+
+	violations := CheckFile("/project/deployments/archived/old-compose.yml", lintPortsCommon.AllLegacyPorts())
+	require.Nil(t, violations, "Files in deployments/archived/ should be skipped")
+}
+
+func TestCheckFile_OrphanedConfigSkipped(t *testing.T) {
+	t.Parallel()
+
+	violations := CheckFile("/project/configs/orphaned/old-config.yml", lintPortsCommon.AllLegacyPorts())
+	require.Nil(t, violations, "Files in configs/orphaned/ should be skipped")
+}

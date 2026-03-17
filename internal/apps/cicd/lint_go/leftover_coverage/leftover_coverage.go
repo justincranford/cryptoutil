@@ -14,6 +14,13 @@ import (
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
 )
 
+// Test seams: replaceable in tests to exercise unreachable OS-level error paths.
+// See ARCHITECTURE.md Section 10.2.4 (Test Seam Injection Pattern).
+var (
+	leftoverCoverageWalkFn   = filepath.Walk
+	leftoverCoverageRemoveFn = os.Remove
+)
+
 // CoveragePatterns defines file patterns considered leftover coverage artifacts.
 // These files should be placed in test-output/ or deleted after test runs.
 var CoveragePatterns = []string{
@@ -37,7 +44,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 	var deletedFiles []string
 
-	err := filepath.Walk(rootDir, func(path string, info os.FileInfo, walkErr error) error {
+	err := leftoverCoverageWalkFn(rootDir, func(path string, info os.FileInfo, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
 		}
@@ -60,7 +67,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 		// Check if file matches any coverage pattern.
 		if MatchesCoveragePattern(info.Name()) {
 			// Auto-delete the file per user decision.
-			if err := os.Remove(path); err != nil {
+			if err := leftoverCoverageRemoveFn(path); err != nil {
 				logger.Log(fmt.Sprintf("⚠️  WARNING: Failed to delete leftover coverage file: %s (error: %v)", path, err))
 			} else {
 				logger.Log(fmt.Sprintf("⚠️  WARNING: Deleted leftover coverage file: %s", path))

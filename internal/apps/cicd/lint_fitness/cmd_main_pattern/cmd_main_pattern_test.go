@@ -3,9 +3,9 @@
 package cmd_main_pattern
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -218,23 +218,22 @@ println("bad pattern")
 	require.Contains(t, err.Error(), "cmd/ main() pattern violations")
 }
 
+// Sequential: modifies package-level cmdMainWalkFn seam.
 func TestCheckInDir_WalkError(t *testing.T) {
-	t.Parallel()
+	orig := cmdMainWalkFn
 
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("os.Chmod 0o000 does not restrict access on Windows NTFS")
+	t.Cleanup(func() { cmdMainWalkFn = orig })
+
+	cmdMainWalkFn = func(_ string, _ filepath.WalkFunc) error {
+		return fmt.Errorf("injected walk error")
 	}
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	tmpDir := t.TempDir()
 
-	// Create cmd/ but with inaccessible subdirectory.
+	// Create cmd/ so the stat check passes.
 	cmdDir := filepath.Join(tmpDir, "cmd")
 	require.NoError(t, os.MkdirAll(cmdDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-
-	badDir := filepath.Join(cmdDir, "badapp")
-	require.NoError(t, os.MkdirAll(badDir, 0o000))
-	t.Cleanup(func() { _ = os.Chmod(badDir, 0o700) })
 
 	err := CheckInDir(logger, tmpDir)
 	require.Error(t, err)
@@ -272,7 +271,6 @@ func TestCheck_DelegatesCheckInDir(t *testing.T) {
 	err := CheckInDir(logger, tmpDir)
 	require.NoError(t, err) // no cmd/ dir in temp dir → no violations
 }
-
 
 func findProjectRoot() (string, error) {
 	dir, err := os.Getwd()

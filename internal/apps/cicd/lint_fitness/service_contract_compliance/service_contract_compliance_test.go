@@ -195,6 +195,39 @@ func TestDiscoverServices_NonDirFileInProductDir_Skipped(t *testing.T) {
 	require.Empty(t, services)
 }
 
+// Sequential: modifies package-level serviceContractReadDirFn seam.
+func TestDiscoverServices_ReadDirSeamError(t *testing.T) {
+	orig := serviceContractReadDirFn
+
+	t.Cleanup(func() { serviceContractReadDirFn = orig })
+
+	serviceContractReadDirFn = func(_ string) ([]os.DirEntry, error) {
+		return nil, fmt.Errorf("injected readdir error")
+	}
+
+	err := CheckInDir(newTestLogger(), t.TempDir())
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to discover services")
+}
+
+// Sequential: modifies package-level serviceContractReadFileFn seam.
+func TestCheckServerFile_ReadFileError(t *testing.T) {
+	orig := serviceContractReadFileFn
+
+	t.Cleanup(func() { serviceContractReadFileFn = orig })
+
+	serviceContractReadFileFn = func(_ string) ([]byte, error) {
+		return nil, fmt.Errorf("injected read error")
+	}
+
+	tmp := t.TempDir()
+	makeServiceDir(t, tmp, "sm", "im", "package server\ntype MyServer struct{}\n")
+
+	err := CheckInDir(newTestLogger(), tmp)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to check")
+}
+
 func findProjectRoot() (string, error) {
 	dir, err := os.Getwd()
 	if err != nil {
@@ -235,4 +268,33 @@ func TestCheck_Integration(t *testing.T) {
 
 	err = Check(logger)
 	require.NoError(t, err)
+}
+
+func TestDiscoverServices_ArchivedDirSkipped(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	appsDir := filepath.Join(tmp, "apps")
+
+	productDir := filepath.Join(appsDir, cryptoutilSharedMagic.JoseProductName)
+	require.NoError(t, os.MkdirAll(productDir, cryptoutilSharedMagic.DirPermissions))
+
+	// Create a dir prefixed with _ (archived).
+	archivedDir := filepath.Join(productDir, "_archived_service")
+	require.NoError(t, os.MkdirAll(archivedDir, cryptoutilSharedMagic.DirPermissions))
+
+	services, err := discoverServices(appsDir)
+	require.NoError(t, err)
+	require.Empty(t, services)
+}
+
+func TestCheckInDir_NoAppsDir_Error(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	// No internal/apps dir created — discoverServices should fail.
+	err := CheckInDir(newTestLogger(), tmp)
+	// Should error because internal/apps doesn't exist.
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to discover services")
 }

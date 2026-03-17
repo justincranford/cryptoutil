@@ -3,6 +3,7 @@
 package admin_bind_address
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -124,6 +125,53 @@ func TestCheckInDir_GitDir_Skipped(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// Sequential: modifies package-level adminBindWalkFn seam.
+func TestCheckInDir_WalkError(t *testing.T) {
+	orig := adminBindWalkFn
+
+	t.Cleanup(func() { adminBindWalkFn = orig })
+
+	adminBindWalkFn = func(_ string, _ filepath.WalkFunc) error {
+		return fmt.Errorf("injected walk error")
+	}
+
+	err := CheckInDir(newTestLogger(), t.TempDir())
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "filesystem walk failed")
+}
+
+// Sequential: modifies package-level adminBindWalkFn seam.
+func TestCheckInDir_WalkCallbackError(t *testing.T) {
+	orig := adminBindWalkFn
+
+	t.Cleanup(func() { adminBindWalkFn = orig })
+
+	adminBindWalkFn = func(_ string, fn filepath.WalkFunc) error {
+		return fn("bad/path", nil, fmt.Errorf("injected callback error"))
+	}
+
+	err := CheckInDir(newTestLogger(), t.TempDir())
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "filesystem walk failed")
+}
+
+// Sequential: modifies package-level adminBindOpenFn seam.
+func TestCheckInDir_ScanOpenError(t *testing.T) {
+	orig := adminBindOpenFn
+
+	t.Cleanup(func() { adminBindOpenFn = orig })
+
+	adminBindOpenFn = func(_ string) (*os.File, error) {
+		return nil, fmt.Errorf("injected open error")
+	}
+
+	tmp := t.TempDir()
+	writeGoFile(t, tmp, "main.go", "package main\n")
+
+	err := CheckInDir(newTestLogger(), tmp)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "filesystem walk failed")
+}
 
 func findProjectRoot() (string, error) {
 	dir, err := os.Getwd()

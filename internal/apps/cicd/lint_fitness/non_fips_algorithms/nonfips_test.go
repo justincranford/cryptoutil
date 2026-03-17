@@ -3,9 +3,9 @@
 package non_fips_algorithms
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
 
@@ -324,40 +324,34 @@ func TestCheckNonFIPS_WithViolations(t *testing.T) {
 	require.Contains(t, err.Error(), "non-FIPS algorithm violations")
 }
 
+// Sequential: modifies package-level nonFIPSWalkFn seam.
 func TestFindGoFiles_ErrorPath(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() - test changes working directory.
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("os.Chmod does not enforce POSIX permissions on Windows")
+	orig := nonFIPSWalkFn
+
+	t.Cleanup(func() { nonFIPSWalkFn = orig })
+
+	nonFIPSWalkFn = func(_ string, _ filepath.WalkFunc) error {
+		return fmt.Errorf("injected walk error")
 	}
 
-	// Save current directory.
-	origDir, err := os.Getwd()
-	require.NoError(t, err)
-
-	defer func() {
-		require.NoError(t, os.Chdir(origDir))
-	}()
-
-	// Create temp directory.
-	tempDir := t.TempDir()
-	require.NoError(t, os.Chdir(tempDir))
-
-	// Create a subdirectory that will trigger walk error.
-	subDir := "subdir"
-	require.NoError(t, os.MkdirAll(subDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	require.NoError(t, os.WriteFile(filepath.Join(subDir, "file.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
-
-	// Make subdirectory unreadable.
-	require.NoError(t, os.Chmod(subDir, 0o000))
-
-	defer func() {
-		// Restore permissions for cleanup.
-		_ = os.Chmod(filepath.Join(tempDir, subDir), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
-	}()
-
-	// Test - should get error from walking directory.
-	_, err = FindGoFiles()
+	_, err := FindGoFiles()
 	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to walk directory tree")
+}
+
+// Sequential: modifies package-level nonFIPSWalkFn seam.
+func TestFindGoFiles_WalkCallbackError(t *testing.T) {
+	orig := nonFIPSWalkFn
+
+	t.Cleanup(func() { nonFIPSWalkFn = orig })
+
+	nonFIPSWalkFn = func(_ string, fn filepath.WalkFunc) error {
+		return fn("bad/path", nil, fmt.Errorf("injected callback error"))
+	}
+
+	_, err := FindGoFiles()
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to walk directory tree")
 }
 
 func TestCheckFileForNonFIPS_ReadFileError(t *testing.T) {
@@ -383,36 +377,21 @@ func TestCheckFileForNonFIPS_NolintComment(t *testing.T) {
 	require.Empty(t, violations, "nolint comment should suppress violation")
 }
 
+// Sequential: modifies package-level nonFIPSWalkFn seam.
 func TestCheck_FindGoFilesError(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() - test changes working directory.
-	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
-		t.Skip("chmod 0o000 does not work on Windows")
+	orig := nonFIPSWalkFn
+
+	t.Cleanup(func() { nonFIPSWalkFn = orig })
+
+	nonFIPSWalkFn = func(_ string, _ filepath.WalkFunc) error {
+		return fmt.Errorf("injected walk error")
 	}
 
-	origDir, err := os.Getwd()
-	require.NoError(t, err)
-
-	defer func() { require.NoError(t, os.Chdir(origDir)) }()
-
-	tempDir := t.TempDir()
-	require.NoError(t, os.Chdir(tempDir))
-
-	// Create a subdirectory that will trigger walk error.
-	subDir := "lockdir"
-	require.NoError(t, os.MkdirAll(subDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-	require.NoError(t, os.WriteFile(filepath.Join(subDir, "file.go"), []byte("package main\n"), cryptoutilSharedMagic.CacheFilePermissions))
-	require.NoError(t, os.Chmod(subDir, 0o000))
-
-	defer func() {
-		_ = os.Chmod(filepath.Join(tempDir, subDir), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
-	}()
-
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = Check(logger)
+	err := Check(logger)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to find Go files")
 }
-
 
 func findProjectRoot() (string, error) {
 	dir, err := os.Getwd()

@@ -3,10 +3,12 @@
 package leftover_coverage
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
 
@@ -111,4 +113,54 @@ func TestCheckLeftoverCoverage_WithCoverageFiles(t *testing.T) {
 		_, err = os.Stat(cf)
 		require.True(t, os.IsNotExist(err), "File should have been deleted: %s", cf)
 	}
+}
+
+// Sequential: modifies package-level leftoverCoverageWalkFn seam.
+func TestCheckInDir_WalkError(t *testing.T) {
+	orig := leftoverCoverageWalkFn
+
+	t.Cleanup(func() { leftoverCoverageWalkFn = orig })
+
+	leftoverCoverageWalkFn = func(_ string, _ filepath.WalkFunc) error {
+		return fmt.Errorf("injected walk error")
+	}
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err := CheckInDir(logger, t.TempDir())
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to walk directory tree")
+}
+
+// Sequential: modifies package-level leftoverCoverageRemoveFn seam.
+func TestCheckInDir_RemoveError(t *testing.T) {
+	orig := leftoverCoverageRemoveFn
+
+	t.Cleanup(func() { leftoverCoverageRemoveFn = orig })
+
+	leftoverCoverageRemoveFn = func(_ string) error {
+		return fmt.Errorf("injected remove error")
+	}
+
+	tmpDir := t.TempDir()
+	covFile := filepath.Join(tmpDir, "coverage.out")
+	require.NoError(t, os.WriteFile(covFile, []byte("mode: set\n"), cryptoutilSharedMagic.CacheFilePermissions))
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	// Remove fails silently (just logs warning); function should succeed with no deleted files.
+	err := CheckInDir(logger, tmpDir)
+	require.NoError(t, err, "remove failure is a warning, not an error")
+}
+
+func TestCheckInDir_SkipsTestOutputDir(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	// Place a coverage file inside test-output/ — it should be skipped.
+	testOutputDir := filepath.Join(tmpDir, "test-output")
+	require.NoError(t, os.MkdirAll(testOutputDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	require.NoError(t, os.WriteFile(filepath.Join(testOutputDir, "coverage.out"), []byte("mode: set\n"), cryptoutilSharedMagic.CacheFilePermissions))
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err := CheckInDir(logger, tmpDir)
+	require.NoError(t, err, "coverage file inside test-output/ should be ignored")
 }

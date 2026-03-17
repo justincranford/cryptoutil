@@ -16,6 +16,11 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+// Test seams: replaceable in tests to exercise unreachable OS-level error paths.
+// See ARCHITECTURE.md Section 10.2.4 (Test Seam Injection Pattern).
+var adminBindWalkFn = filepath.Walk
+var adminBindOpenFn = os.Open
+
 // Check verifies admin bind address from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 	return CheckInDir(logger, ".")
@@ -32,7 +37,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 	var violations []string
 
-	walkErr := filepath.Walk(projectRoot, func(path string, info os.FileInfo, err error) error {
+	walkErr := adminBindWalkFn(projectRoot, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -85,7 +90,7 @@ var adminBindPatterns = []string{
 
 // scanForAdminBindViolations checks a Go file for admin bind address set to 0.0.0.0.
 func scanForAdminBindViolations(filePath, projectRoot string) ([]string, error) {
-	f, err := os.Open(filePath) //nolint:gosec // filePath from filepath.Walk, controlled
+	f, err := adminBindOpenFn(filePath) //nolint:gosec // filePath from filepath.Walk, controlled
 	if err != nil {
 		return nil, fmt.Errorf("open %s: %w", filePath, err)
 	}

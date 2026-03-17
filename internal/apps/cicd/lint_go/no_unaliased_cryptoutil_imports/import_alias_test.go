@@ -3,6 +3,7 @@
 package no_unaliased_cryptoutil_imports
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -336,4 +337,19 @@ func TestCheck_WalkError(t *testing.T) {
 	err = Check(logger)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to check cryptoutil imports")
+}
+
+// Sequential: modifies package-level unaliasedImportsWalkFn seam.
+func TestFindUnaliasedCryptoutilImports_WalkSeamError(t *testing.T) {
+	orig := unaliasedImportsWalkFn
+
+	t.Cleanup(func() { unaliasedImportsWalkFn = orig })
+
+	unaliasedImportsWalkFn = func(_ string, _ filepath.WalkFunc) error {
+		return fmt.Errorf("injected walk error")
+	}
+
+	_, err := FindUnaliasedCryptoutilImports()
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "error walking directory tree")
 }
