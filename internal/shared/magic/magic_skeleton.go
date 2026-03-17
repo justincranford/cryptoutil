@@ -40,6 +40,10 @@ const (
 	// Path: internal/apps/skeleton/template/e2e → ../../../../../deployments/skeleton/compose.yml.
 	SkeletonTemplateE2EComposeFile = "../../../../../deployments/skeleton/compose.yml"
 
+	// SkeletonTemplateE2ECACertPath is the path to the pki-init root CA cert for skeleton E2E tests.
+	// Path: internal/apps/skeleton/template/e2e → ../../../../../deployments/skeleton/certs/root-ca.pem.
+	SkeletonTemplateE2ECACertPath = "../../../../../deployments/skeleton/certs/root-ca.pem"
+
 	// SkeletonTemplateE2ESQLiteContainer is the SQLite instance service name in compose.
 	SkeletonTemplateE2ESQLiteContainer = "skeleton-template-app-sqlite-1"
 

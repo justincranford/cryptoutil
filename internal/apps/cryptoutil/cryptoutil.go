@@ -14,6 +14,7 @@ import (
 	cryptoutilAppsIdentity "cryptoutil/internal/apps/identity"
 	cryptoutilAppsJose "cryptoutil/internal/apps/jose"
 	cryptoutilAppsPki "cryptoutil/internal/apps/pki"
+	cryptoutilAppsPkiinit "cryptoutil/internal/apps/pkiinit"
 	cryptoutilAppsSkeleton "cryptoutil/internal/apps/skeleton"
 	cryptoutilAppsSm "cryptoutil/internal/apps/sm"
 )
@@ -42,6 +43,8 @@ func Suite(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return cryptoutilAppsSkeleton.Skeleton(parameters, stdin, stdout, stderr)
 	case cryptoutilSharedMagic.SMProductName:
 		return cryptoutilAppsSm.Sm(parameters, stdin, stdout, stderr)
+	case "pki-init":
+		return cryptoutilAppsPkiinit.Run(parameters, stdin, stdout, stderr)
 	case "help", "--help", "-h":
 		printUsage(stderr)
 
@@ -64,6 +67,7 @@ Available products:
   pki         PKI product (X.509 certificates, CA)
   skeleton    Skeleton product (service template demonstration)
   sm          Secrets Manager product (KMS, IM)
+  pki-init    PKI Init (generate TLS certificates for Docker Compose E2E deployments)
 
 Use "cryptoutil <product> help" for product-specific help.`)
 }

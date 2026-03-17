@@ -72,6 +72,10 @@ const (
 	// Levels: e2e→ja(1)→jose(2)→apps(3)→internal(4)→root(5), then deployments/jose.
 	JoseJAE2EComposeFile = "../../../../../deployments/jose/compose.yml"
 
+	// JoseJAE2ECACertPath is the path to the pki-init root CA cert for jose-ja E2E tests.
+	// Path: internal/apps/jose/ja/e2e → ../../../../../deployments/jose/certs/root-ca.pem.
+	JoseJAE2ECACertPath = "../../../../../deployments/jose/certs/root-ca.pem"
+
 	// JoseJAE2ESQLiteContainer is the SQLite instance service name in compose.
 	JoseJAE2ESQLiteContainer = "jose-ja-app-sqlite-1"
 

@@ -31,6 +31,10 @@ const (
 	// Levels: e2e→kms(1)→sm(2)→apps(3)→internal(4)→root(5), then deployments/sm-kms.
 	KMSE2EComposeFile = "../../../../../deployments/sm-kms/compose.yml"
 
+	// KMSE2ECACertPath is the path to the pki-init root CA cert for sm-kms E2E tests.
+	// Path: internal/apps/sm/kms/e2e → ../../../../../deployments/sm-kms/certs/root-ca.pem.
+	KMSE2ECACertPath = "../../../../../deployments/sm-kms/certs/root-ca.pem"
+
 	// KMSE2ESQLiteContainer is the SQLite instance service name in compose.
 	KMSE2ESQLiteContainer = "sm-kms-app-sqlite-1"
 
