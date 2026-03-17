@@ -61,6 +61,18 @@ services:
       healthcheck-secrets:
         condition: service_completed_successfully
 
+  # PKI init job: generates TLS certificates into shared volume.
+  pki-init:
+    image: cryptoutil:dev
+    command: ["pki-init", "--output-dir=/certs"]
+    volumes:
+      - ./certs/:/certs/:rw
+    depends_on:
+      builder-jose:
+        condition: service_completed_successfully
+    networks:
+      - jose-network
+
   # PostgreSQL database for JOSE persistence (shared by all services and instances).
   jose-db-postgres-1:
     profiles: ["postgres"]
@@ -102,7 +114,7 @@ services:
   jose-ja-app-sqlite-1:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil:dev
-    command: ["jose", "ja", "server", "--config=/app/config/jose-ja-app-sqlite-1.yml", "--config=/app/config/jose-ja-app-common.yml", "--config=/app/otel/otel.yml", "-u", "sqlite://file::memory:?cache=shared", "--bind-public-port=8080"]
+    command: ["jose", "ja", "server", "--config=/certs/tls-config.yml", "--config=/app/config/jose-ja-app-sqlite-1.yml", "--config=/app/config/jose-ja-app-common.yml", "--config=/app/otel/otel.yml", "-u", "sqlite://file::memory:?cache=shared", "--bind-public-port=8080"]
     working_dir: /tmp
     ports:
       - "18800:8080"
@@ -110,6 +122,7 @@ services:
       - ../jose-ja/config/jose-ja-app-sqlite-1.yml:/app/config/jose-ja-app-sqlite-1.yml:ro
       - ../jose-ja/config/jose-ja-app-common.yml:/app/config/jose-ja-app-common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ./certs/:/certs/:ro
     secrets:
       - unseal-1of5.secret
       - unseal-2of5.secret
@@ -121,10 +134,12 @@ services:
         condition: service_completed_successfully
       builder-jose:
         condition: service_completed_successfully
+      pki-init:
+        condition: service_completed_successfully
       opentelemetry-collector-contrib:
         condition: service_started
     healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      test: ["CMD", "wget", "--ca-certificate=/certs/root-ca.pem", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
       start_period: 60s
       interval: 5s
       timeout: 5s
@@ -143,7 +158,7 @@ services:
   jose-ja-app-postgres-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["jose", "ja", "server", "--config=/app/config/jose-ja-app-postgresql-1.yml", "--config=/app/config/jose-ja-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret", "--bind-public-port=8080"]
+    command: ["jose", "ja", "server", "--config=/certs/tls-config.yml", "--config=/app/config/jose-ja-app-postgresql-1.yml", "--config=/app/config/jose-ja-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret", "--bind-public-port=8080"]
     working_dir: /tmp
     ports:
       - "18801:8080"
@@ -151,6 +166,7 @@ services:
       - ../jose-ja/config/jose-ja-app-postgresql-1.yml:/app/config/jose-ja-app-postgresql-1.yml:ro
       - ../jose-ja/config/jose-ja-app-common.yml:/app/config/jose-ja-app-common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ./certs/:/certs/:ro
     secrets:
       - unseal-1of5.secret
       - unseal-2of5.secret
@@ -163,12 +179,14 @@ services:
         condition: service_completed_successfully
       builder-jose:
         condition: service_completed_successfully
+      pki-init:
+        condition: service_completed_successfully
       jose-db-postgres-1:
         condition: service_healthy
       opentelemetry-collector-contrib:
         condition: service_started
     healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      test: ["CMD", "wget", "--ca-certificate=/certs/root-ca.pem", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
       start_period: 60s
       interval: 5s
       timeout: 5s
@@ -187,7 +205,7 @@ services:
   jose-ja-app-postgres-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["jose", "ja", "server", "--config=/app/config/jose-ja-app-postgresql-2.yml", "--config=/app/config/jose-ja-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret", "--bind-public-port=8080"]
+    command: ["jose", "ja", "server", "--config=/certs/tls-config.yml", "--config=/app/config/jose-ja-app-postgresql-2.yml", "--config=/app/config/jose-ja-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret", "--bind-public-port=8080"]
     working_dir: /tmp
     ports:
       - "18802:8080"
@@ -195,6 +213,7 @@ services:
       - ../jose-ja/config/jose-ja-app-postgresql-2.yml:/app/config/jose-ja-app-postgresql-2.yml:ro
       - ../jose-ja/config/jose-ja-app-common.yml:/app/config/jose-ja-app-common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ./certs/:/certs/:ro
     secrets:
       - unseal-1of5.secret
       - unseal-2of5.secret
@@ -207,6 +226,8 @@ services:
         condition: service_completed_successfully
       builder-jose:
         condition: service_completed_successfully
+      pki-init:
+        condition: service_completed_successfully
       jose-db-postgres-1:
         condition: service_healthy
       opentelemetry-collector-contrib:
@@ -214,7 +235,7 @@ services:
       jose-ja-app-postgres-1:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      test: ["CMD", "wget", "--ca-certificate=/certs/root-ca.pem", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
       start_period: 60s
       interval: 5s
       timeout: 5s

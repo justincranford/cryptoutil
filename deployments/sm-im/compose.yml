@@ -61,6 +61,18 @@ services:
       healthcheck-secrets:
         condition: service_completed_successfully
 
+  # PKI init job: generates TLS certificates into shared volume.
+  pki-init:
+    image: cryptoutil:dev
+    command: ["pki-init", "--output-dir=/certs"]
+    volumes:
+      - ./certs/:/certs/:rw
+    depends_on:
+      builder-sm-im:
+        condition: service_completed_successfully
+    networks:
+      - sm-im-network
+
   # PostgreSQL database for sm-im persistence.
   sm-im-db-postgres-1:
     profiles: ["postgres"]
@@ -102,7 +114,7 @@ services:
   sm-im-app-sqlite-1:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil:dev
-    command: ["server", "--bind-public-port=8080", "--config=/app/config/sm-im-app-sqlite-1.yml", "--config=/app/config/sm-im-app-common.yml", "--config=/app/otel/otel.yml", "-u", "sqlite://file::memory:?cache=shared"]
+    command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/sm-im-app-sqlite-1.yml", "--config=/app/config/sm-im-app-common.yml", "--config=/app/otel/otel.yml", "-u", "sqlite://file::memory:?cache=shared"]
     working_dir: /tmp
     ports:
       - "8700:8080"  # HTTPS public
@@ -110,6 +122,7 @@ services:
       - ./config/sm-im-app-sqlite-1.yml:/app/config/sm-im-app-sqlite-1.yml:ro
       - ./config/sm-im-app-common.yml:/app/config/sm-im-app-common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ./certs/:/certs/:ro
     secrets:
       - unseal-1of5.secret
       - unseal-2of5.secret
@@ -121,12 +134,14 @@ services:
         condition: service_completed_successfully
       builder-sm-im:
         condition: service_completed_successfully
+      pki-init:
+        condition: service_completed_successfully
       opentelemetry-collector-contrib:
         condition: service_started
       healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      test: ["CMD", "wget", "--ca-certificate=/certs/root-ca.pem", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
       start_period: 60s
       interval: 5s
       timeout: 5s
@@ -145,7 +160,7 @@ services:
   sm-im-app-postgres-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["server", "--bind-public-port=8080", "--config=/app/config/sm-im-app-postgresql-1.yml", "--config=/app/config/sm-im-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/sm-im-app-postgresql-1.yml", "--config=/app/config/sm-im-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
       - "8701:8080"  # HTTPS public
@@ -153,6 +168,7 @@ services:
       - ./config/sm-im-app-postgresql-1.yml:/app/config/sm-im-app-postgresql-1.yml:ro
       - ./config/sm-im-app-common.yml:/app/config/sm-im-app-common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ./certs/:/certs/:ro
     secrets:
       - unseal-1of5.secret
       - unseal-2of5.secret
@@ -165,6 +181,8 @@ services:
         condition: service_completed_successfully
       builder-sm-im:
         condition: service_completed_successfully
+      pki-init:
+        condition: service_completed_successfully
       sm-im-db-postgres-1:
         condition: service_healthy
       opentelemetry-collector-contrib:
@@ -172,7 +190,7 @@ services:
       healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      test: ["CMD", "wget", "--ca-certificate=/certs/root-ca.pem", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
       start_period: 60s
       interval: 5s
       timeout: 5s
@@ -191,7 +209,7 @@ services:
   sm-im-app-postgres-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["server", "--bind-public-port=8080", "--config=/app/config/sm-im-app-postgresql-2.yml", "--config=/app/config/sm-im-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/sm-im-app-postgresql-2.yml", "--config=/app/config/sm-im-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
       - "8702:8080"  # HTTPS public
@@ -199,6 +217,7 @@ services:
       - ./config/sm-im-app-postgresql-2.yml:/app/config/sm-im-app-postgresql-2.yml:ro
       - ./config/sm-im-app-common.yml:/app/config/sm-im-app-common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ./certs/:/certs/:ro
     secrets:
       - unseal-1of5.secret
       - unseal-2of5.secret
@@ -211,6 +230,8 @@ services:
         condition: service_completed_successfully
       builder-sm-im:
         condition: service_completed_successfully
+      pki-init:
+        condition: service_completed_successfully
       sm-im-db-postgres-1:
         condition: service_healthy
       opentelemetry-collector-contrib:
@@ -220,7 +241,7 @@ services:
       sm-im-app-postgres-1:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      test: ["CMD", "wget", "--ca-certificate=/certs/root-ca.pem", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
       start_period: 60s
       interval: 5s
       timeout: 5s

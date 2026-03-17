@@ -50,7 +50,7 @@ func TestMain(m *testing.M) {
 
 	// Initialize compose manager with reusable helper.
 	composeManager = cryptoutilAppsTemplateTestingE2eInfra.NewComposeManager(cryptoutilSharedMagic.KMSE2EComposeFile, cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault, cryptoutilSharedMagic.DockerServicePostgres)
-	sharedHTTPClient = cryptoutilSharedCryptoTls.NewClientForTest()
+	sharedHTTPClient = cryptoutilSharedCryptoTls.NewClientForTestWithCA(cryptoutilSharedMagic.KMSE2ECACertPath)
 
 	// Step 1: Start docker compose stack.
 	if err := composeManager.Start(ctx); err != nil {
