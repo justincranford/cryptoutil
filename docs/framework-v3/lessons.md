@@ -380,4 +380,27 @@ The tasks.md header says `**Status**: 43 of 86 tasks complete (50%)`. The agent 
 
 ## Phase 9: Quality and Knowledge Propagation
 
-*(To be filled during Phase 9 execution)*
+### Summary
+
+Phase 9 focused on knowledge propagation and quality enforcement. Tasks 9.1 (coverage), 9.2 (commit instructions), 9.3 (lesson propagation), 9.4 (review format), 9.5 (exit codes), 9.6 (Docker Desktop), 9.7 (D19 test strategy), 9.8 (tool catalog), and 9.9 (validation) all completed.
+
+### What Worked
+
+- **Systematic propagation audit**: Comparing every lesson in lessons.md against permanent artifacts (ARCHITECTURE.md, instructions, agents, skills) revealed that most lessons were already propagated through work done during their respective phases. Only the D7/D19 3-tier test strategy and the cicd tool catalog were missing from permanent artifacts.
+- **@propagate/@source marker system**: Adding a new `@propagate` block in ARCHITECTURE.md and matching `@source` block in instructions was straightforward. The `cicd lint-docs` validator immediately confirmed chunk sync (36 matched, 0 mismatched).
+- **Agent self-containment**: Adding D7/D19 references to all three execution agents (beast-mode, implementation-execution, implementation-planning) ensures the strategy is available even with agent isolation (agents don't inherit copilot instructions).
+
+### Patterns Discovered
+
+- **Most lessons self-propagate during implementation**: When Phase N discovers a lesson (e.g., DisableKeepAlives in Phase 2), the fix typically involves updating the instruction file directly. By Phase 9, these are already in permanent artifacts.
+- **The 3-file review format (plan.md + tasks.md + lessons.md) IS the simplified review**: No separate "review template" document needed — the implementation-planning agent already enforces this pattern.
+- **Pre-existing infrastructure issues surface during validation**: The `StartServerListenerApplication` undefined reference in sm-kms tests is pre-existing and not caused by Phase 9 work.
+
+### Key Metrics
+
+- 9 tasks completed (9.1-9.9)
+- 1 new @propagate/@source chunk pair (3-tier database strategy)
+- 36 total propagation chunks validated, 0 mismatched
+- 267 valid ARCHITECTURE.md section references, 0 broken
+- All 3 execution agents updated with D7/D19 strategy
+- 14 cicd subcommands documented in tool catalog
