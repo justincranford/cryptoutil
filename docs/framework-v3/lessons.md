@@ -330,6 +330,54 @@ Phase 8 reintegrated 4 domain packages (authz, idp, sm-im, pki-ca) and added Ope
 
 ---
 
+---
+
+## Root Cause Analysis: Why the Previous Session Stopped Early After Phase 8
+
+### Summary
+
+The session titled "Framework V3 Work Review and Completion" ended after completing Phase 8 (commit `823fe71f2`) without starting Phases 8B, 9, 10, or 11 — leaving 43 of 86 tasks incomplete (50%).
+
+### Root Causes (in order of severity)
+
+**RC1 (Primary): Partial tasks.md reading — agent did not scroll to find all phases.**
+
+The agent processed tasks.md sequentially. When Phase 8's `Task 8.6: Phase 8 validation and post-mortem` was marked DONE, the agent concluded "Phase 8 complete" and appears to have stopped reading further. Phase 8B is a distinct section *below* Phase 8 in tasks.md. The agent did not read far enough to discover it. This is a "partial reading failure" — the agent satisfied its local loop invariant ("current phase complete") without verifying the global invariant ("all phases complete").
+
+**RC2 (Contributing): Misleading "validation and post-mortem" naming creates false terminal signal.**
+
+The label "Phase 8 validation and post-mortem" sounds like a final step. The agent pattern-matched on "post-mortem" as a terminal event, not checking whether MORE phases followed. Phase 8B is a continuation that was deferred until after Phase 7 (per D14); its name (`8B`) visually implies it follows Phase 8, but the agent didn't verify this.
+
+**RC3 (Contributing): No pre-flight task count validation in agent.**
+
+The implementation-execution agent's TERMINATION CONDITIONS state "ALL tasks in tasks.md marked `[x]`" but do not require the agent to COUNT total incomplete tasks (`[ ]`) before starting OR before terminating. If it had checked "86 tasks total, N completed" it would have found 43 incomplete.
+
+**RC4 (Contributing): tasks.md header status not auto-verified.**
+
+The tasks.md header says `**Status**: 43 of 86 tasks complete (50%)`. The agent did not re-verify this counter represented completion at 100% before stopping.
+
+### What Should Have Happened
+
+1. Before starting: Count `[ ]` occurrences in tasks.md → 43 incomplete. Cannot stop until 0.
+2. After Phase 8 post-mortem: Re-scan tasks.md for any `### Phase` headings with `**Status**: TODO`. Find Phase 8B, 9, 10, 11 — all TODO.
+3. Continue to Phase 8B immediately, then 9, 10, 11.
+4. Only terminate when COUNT of `[ ]` in tasks.md = 0 AND tasks.md header says 86/86.
+
+### Fixes Applied
+
+1. **lessons.md (this entry)**: Documents root cause for human review.
+2. **implementation-execution.agent.md**: Added mandatory pre-flight task count requirement and mandatory inter-phase continuation check (see section "Mandatory Phase Continuation Check" added to agent).
+3. **implementation-execution.agent.md**: Added explicit requirement to read tasks.md FROM BEGINNING TO END before starting to find ALL phases.
+
+### Prevention Rules (MANDATORY for all future execution sessions)
+
+- BEFORE starting any work: Count all `[ ]` in tasks.md. Record as N_INCOMPLETE. Must reach 0 before stopping.
+- AFTER each phase validation: Re-scan tasks.md for `### Phase` sections with `**Status**: TODO`.
+- NEVER treat "validation and post-mortem" as a terminal signal — always check if there is a NEXT PHASE.
+- NEVER stop with N_INCOMPLETE > 0 unless the user explicitly clicks STOP.
+
+---
+
 ## Phase 9: Quality and Knowledge Propagation
 
 *(To be filled during Phase 9 execution)*

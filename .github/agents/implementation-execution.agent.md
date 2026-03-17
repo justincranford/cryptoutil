@@ -85,8 +85,25 @@ You MUST keep working until the problem is completely solved, and all items in t
    - Windows: `Start-Process "C:\Program Files\Docker\Docker\Docker Desktop.exe"`
    - macOS: `open -a Docker`
    - Linux: `sudo systemctl start docker` or `systemctl --user start docker-desktop`
+5. **Read ENTIRE tasks.md**: Read tasks.md from first line to last line before starting ANY work. Count ALL `[ ]` (incomplete) tasks. Record as `N_INCOMPLETE`. NEVER start work assuming you know the task list from memory alone.
+6. **Count Incomplete Tasks**: `N_INCOMPLETE` MUST reach 0 before the execution session is considered complete. If N_INCOMPLETE > 0 after any phase, continue immediately to the next phase.
+7. **Enumerate All Phases**: List all `### Phase N` sections from tasks.md. Count them. Every phase MUST be completed before stopping.
 
 **If any check fails**: Report error, DO NOT start
+
+## Mandatory Phase Continuation Check — CRITICAL
+
+**AFTER completing each phase and its "validation and post-mortem" task:**
+
+NEVER treat "validation and post-mortem" as a terminal signal. It is always the LAST task of a phase, NOT the last task of the ENTIRE plan.
+
+After every phase post-mortem:
+1. Re-scan tasks.md for `### Phase` or `**Status**: TODO` patterns
+2. If ANY phase has remaining TODO tasks → immediately begin that phase
+3. Count remaining `[ ]` checkboxes → must be 0 before stopping
+4. A phase named `8B` after phase `8` is a CONTINUATION, not an optional extension
+
+**Root cause of stale pattern**: Session "Framework V3 Work Review" stopped after Phase 8 post-mortem without reading Phase 8B, 9, 10, 11 — all marked TODO. 43 of 86 tasks were left incomplete (50%).
 
 ## Quality Enforcement - MANDATORY
 
@@ -591,25 +608,37 @@ TERMINATION CONDITIONS (EXHAUSTIVE)
 
 Execution must continue until ONE of the following is true:
 
-1. ALL tasks in tasks.md marked `[x]` with objective evidence
-2. ALL quality gates passed (build, lint, test, coverage, mutation)
-3. User clicks STOP button explicitly
+1. ALL tasks in tasks.md marked `[x]` with objective evidence (read the ENTIRE file, not just the first N phases)
+2. ALL phases enumerated and verified complete (grep for `[ ]` in tasks.md must return 0 results)
+3. ALL quality gates passed (build, lint, test, coverage, mutation)
+4. User clicks STOP button explicitly
 
 These are the ONLY valid stopping conditions.
+
+**CRITICAL: "All tasks done" means tasks.md contains ZERO unchecked `[ ]` items.**
+
+```bash
+# MANDATORY before stopping: verify zero incomplete tasks
+grep -c "[ ]" "<work-dir>/tasks.md"  # must return 0
+```
 
 **NEVER STOP FOR:**
 - ❌ Reaching token limits (token budget is unlimited)
 - ❌ Context summarization (just continue after summary)
 - ❌ Completing partial work (continue until ALL tasks done)
+- ❌ Completing phases visible so far (read ALL of tasks.md first - there may be more phases after)
 - ❌ Waiting for approval (autonomous execution - no approval needed)
 - ❌ Taking a break (no breaks - continuous execution required)
 - ❌ Asking "should I continue" (ALWAYS continue until all tasks done)
+- ❌ Reaching a "validation" or "post-mortem" phase name (these are NOT terminal conditions)
 
 **IF SUMMARIZATION OCCURS:**
 - Resume immediately with next incomplete task
 - Do NOT ask for permission to continue
 - Do NOT provide status updates
 - Just continue working until ALL tasks complete
+- Run grep check: `grep -c "[ ]" <work-dir>/tasks.md` must return 0 before stopping
+- Run grep check: `grep -c "[ ]" <work-dir>/tasks.md` must return 0 before stopping
 
 --------------------------------------------
 
