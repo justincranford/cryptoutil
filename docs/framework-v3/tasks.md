@@ -753,15 +753,15 @@
 
 #### Task 8.5: Enforce OpenAPI-generated models for ALL service handlers
 
-- **Status**: TODO
+- **Status**: ✅ DONE (commit `3093a7b1c`)
 - **Dependencies**: Tasks 8.1-8.4
 - **Description**: sm-im currently uses hand-rolled handler DTOs instead of OpenAPI-generated models (framework-v2 D4 was WRONG to defer this). ALL services MUST use OpenAPI-generated models from `api/*/server/` and `api/model/` packages for handlers. This includes sm-im which currently lacks an `api/sm/im/` directory entirely.
 - **Acceptance Criteria**:
-  - [ ] sm-im has OpenAPI spec created (`api/sm/im/openapi_spec_*.yaml`)
-  - [ ] sm-im code generation configs created (`openapi-gen_config_*.yaml`)
-  - [ ] sm-im handler DTOs replaced with generated models
-  - [ ] All services verified using OpenAPI-generated models (not hand-rolled DTOs)
-  - [ ] `go build ./...` clean after migration
+  - [x] sm-im has OpenAPI spec created (`api/sm/im/openapi_spec_*.yaml`)
+  - [x] sm-im code generation configs created (`openapi-gen_config_*.yaml`)
+  - [x] sm-im handler DTOs replaced with generated models
+  - [x] All services verified using OpenAPI-generated models (not hand-rolled DTOs)
+  - [x] `go build ./...` clean after migration
 
 #### Task 8.6: Phase 8 validation and post-mortem
 

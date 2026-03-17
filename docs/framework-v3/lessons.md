@@ -297,7 +297,36 @@ o-tls-insecure-skip-verify semgrep rule includes all _test.go,_integration_test.
 
 ## Phase 8: Staged Domain Reintegration (D13)
 
-*(To be filled during Phase 8 execution)*
+### Summary
+
+Phase 8 reintegrated 4 domain packages (authz, idp, sm-im, pki-ca) and added OpenAPI-generated models for sm-im. Tasks 8.1–8.5 all completed.
+
+### What Worked
+
+- **Staged reintegration pattern**: Reintegrating one service at a time with full quality gates made it easy to isolate issues.
+- **OpenAPI code generation**: `oapi-codegen` v2.4.1 generated correct Fiber server, models, and client from a simple OpenAPI 3.0.3 spec.
+- **Type aliases for UUID**: `openapi_types.UUID = uuid.UUID` means no conversion needed between generated types and `googleUuid.UUID`.
+- **Generated `time.Time` vs `string`**: Replacing `msg.CreatedAt.Format("2006-01-02T15:04:05Z07:00")` with direct `msg.CreatedAt` assignment when field is `time.Time` avoids format bugs.
+
+### Root Causes Discovered
+
+- **Hand-rolled DTOs anti-pattern**: sm-im had `SendMessageRequest`, `SendMessageResponse`, `MessageResponse`, `ReceiveMessagesResponse` defined locally rather than using OpenAPI-generated types. This was identified as D4 technical debt from framework-v2 and was correctly resolved in Task 8.5.
+- **Test file drift**: When DTO types are removed from production code, test files in the same package still reference them. Updating test files requires understanding the field name changes (e.g., `ReceiverIDs → ReceiverIds`, `[]string → []openapi_types.UUID`).
+- **Invalid UUID test cases**: When generated types parse UUIDs via `BodyParser`, invalid UUID strings in `receiver_ids` cause `BodyParser` to fail → `StatusBadRequest`. Test uses `map[string]any` to pass raw invalid string instead of the generated struct.
+
+### Pre-existing Failures (Not Caused by Phase 8)
+
+- `TestInitDatabase_HappyPaths/PostgreSQL_Container` fails in multiple packages due to Docker Desktop not running on Windows. This is pre-existing infrastructure.
+- Test timeout of 300s causes `pki/ca/server` to report FAIL if Docker startup takes > 300s.
+
+### Key Metrics
+
+- 4 domain packages reintegrated: authz, idp, sm-im, pki-ca
+- 1 OpenAPI spec created: `api/sm/im/openapi_spec.yaml` with 3 endpoints
+- 4 hand-rolled DTOs replaced with generated models in `messages.go`
+- 4 test files updated to use generated types
+- `go build ./...` clean, `golangci-lint run ./...` 0 issues, `lint-fitness` all checks pass
+- All non-Docker tests pass
 
 ---
 
