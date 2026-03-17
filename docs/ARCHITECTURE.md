@@ -523,6 +523,18 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 - **Use Cases**: Reference implementation for new product-service creation, developer onboarding
 - **Key Features**: Minimal domain logic, full service-template integration, deployment and config examples
 
+**Skeleton / lint-fitness / `/new-service` Relationship**:
+
+| Component | Role | Scope |
+|-----------|------|-------|
+| `skeleton-template` | Reference implementation | Source code copied by `/new-service` skill |
+| `lint-fitness` | Automated enforcement | Validates ALL services (including skeleton) conform to structure rules |
+| `/new-service` skill | Generation guide | Step-by-step instructions to copy skeleton-template and customize for a new service |
+
+- **skeleton-template** is the canonical 8-file starter service using the latest builder API (`Build()` with `DomainConfig`). It demonstrates domain model, repository, migrations, server, config, and test patterns.
+- **lint-fitness** enforces structural invariants (file limits, import isolation, test patterns, PostgreSQL isolation) across ALL services independently of how they were created.
+- **`/new-service`** skill guides developers through copying skeleton-template, renaming identifiers, assigning ports, and registering with CI/CD. The skeleton is the INPUT; lint-fitness validates the OUTPUT.
+
 ### 3.2 Service Catalog
 
 | Product | Service | Product-Service Identifier | Address (Container) [Admin] | Address (Container) [Public] | Address (Host) [Public] | Port Value (Container) [Admin] | Port Value (Container) [Public] | Port Range (Host) [Service Deployment] | Port Range (Host) [Product Deployment] | Port Range (Host) [Suite Deployment] | Description |

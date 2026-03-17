@@ -1,6 +1,6 @@
 # Tasks - Framework v3
 
-**Status**: 48 of 86 tasks complete (56%)
+**Status**: 49 of 86 tasks complete (57%)
 **Last Updated**: 2026-03-17
 **Created**: 2026-03-08
 
@@ -588,13 +588,17 @@
 
 #### Task 6.3: Update skeleton-template to use new builder patterns (D12 prep)
 
-- **Status**: TODO
+- **Status**: ✅ DONE
 - **Dependencies**: Phase 3 complete (builder refactoring)
 - **Description**: Ensure skeleton-template uses the latest builder API. This is the prerequisite for Task 10.4 (OpenAPI CRUD example in Phase 10).
 - **Acceptance Criteria**:
-  - [ ] skeleton-template uses latest builder API patterns
-  - [ ] `/new-service` skill generates valid services from skeleton
-  - [ ] Document skeleton vs lint-fitness vs `/new-service` relationship in ARCHITECTURE.md Section 3.1.5
+  - [x] skeleton-template uses latest builder API patterns
+    - Uses `Build()` with `DomainConfig` (verified in server.go)
+    - All tests pass: 5 packages, 0 failures
+  - [x] `/new-service` skill generates valid services from skeleton
+    - Skill references skeleton-template correctly with step-by-step copy/rename process
+  - [x] Document skeleton vs lint-fitness vs `/new-service` relationship in ARCHITECTURE.md Section 3.1.5
+    - Added relationship table and component descriptions
 
 #### Task 6.4: Add test infrastructure rule linters
 
