@@ -12,10 +12,12 @@ import (
 
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/stretchr/testify/require"
 
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
+	cryptoutilApiSmImServer "cryptoutil/api/sm/im/server"
 	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm/im/model"
 )
 
@@ -30,8 +32,8 @@ func TestHandleReceiveMessages_WithMessages(t *testing.T) {
 	sendApp.Use(testAuthMiddleware())
 	sendApp.Post("/messages/send", testMessageHandler.HandleSendMessage())
 
-	sendReqBody := SendMessageRequest{
-		ReceiverIDs: []string{receiverID.String()},
+	sendReqBody := cryptoutilApiSmImServer.SendMessageRequest{
+		ReceiverIds: []openapi_types.UUID{receiverID},
 		Message:     "Test message for receive test",
 	}
 	sendBodyBytes, _ := json.Marshal(sendReqBody)
@@ -62,7 +64,7 @@ func TestHandleReceiveMessages_WithMessages(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, receiveResp.StatusCode)
 
-	var response ReceiveMessagesResponse
+	var response cryptoutilApiSmImServer.ReceiveMessagesResponse
 
 	err = json.NewDecoder(receiveResp.Body).Decode(&response)
 	require.NoError(t, err)
@@ -114,7 +116,7 @@ func TestHandleReceiveMessages_CorruptedJWK(t *testing.T) {
 	// Should return 200 OK (corrupted messages are skipped, not errors).
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
-	var response ReceiveMessagesResponse
+	var response cryptoutilApiSmImServer.ReceiveMessagesResponse
 
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	require.NoError(t, err)
@@ -159,7 +161,7 @@ func TestHandleReceiveMessages_NoJWKForRecipient(t *testing.T) {
 	// Should return 200 OK (messages without JWK are skipped).
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
-	var response ReceiveMessagesResponse
+	var response cryptoutilApiSmImServer.ReceiveMessagesResponse
 
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	require.NoError(t, err)

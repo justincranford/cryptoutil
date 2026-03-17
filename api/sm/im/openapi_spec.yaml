@@ -1,0 +1,217 @@
+# $schema: https://raw.githubusercontent.com/OAI/OpenAPI-Specification/main/schemas/v3.1/schema.yaml
+openapi: 3.0.3
+info:
+  title: SM-IM (Secure Messenger - Instant Messenger) API
+  version: "1.0.0"
+  description: >
+    REST API for Secure Messenger Instant Messaging operations.
+
+    Provides:
+    - Encrypted message sending with per-recipient JWE key wrapping
+    - Message retrieval with automatic decryption
+    - Message deletion with ownership verification
+    - End-to-end encryption using FIPS 140-3 approved algorithms (AES-256-GCM)
+
+    All operations support both browser-based (session auth) and service-to-service (JWT auth) access patterns.
+  contact:
+    name: Justin Cranford
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: /browser/api/v1
+    description: Browser client API (session-based auth)
+  - url: /service/api/v1
+    description: Service client API (JWT-based auth)
+
+paths:
+  /messages/tx:
+    put:
+      summary: Send an encrypted message
+      description: Send an encrypted message to one or more recipients. The message is encrypted with AES-256-GCM and per-recipient JWE key wrapping.
+      tags: [Messages]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendMessageRequest'
+      responses:
+        '201':
+          description: Message sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SendMessageResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /messages/rx:
+    get:
+      summary: Receive messages
+      description: Retrieve all unread messages for the authenticated recipient. Messages are automatically marked as read after retrieval.
+      tags: [Messages]
+      responses:
+        '200':
+          description: Messages retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceiveMessagesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /messages/{id}:
+    delete:
+      summary: Delete a message
+      description: Delete a message by ID. Only the original sender may delete a message.
+      tags: [Messages]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Message ID (UUID)
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Message deleted successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    SendMessageRequest:
+      type: object
+      required:
+        - receiver_ids
+        - message
+      properties:
+        receiver_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+          description: List of recipient user IDs (UUIDs).
+        message:
+          type: string
+          minLength: 1
+          description: Plaintext message content to encrypt and send.
+
+    SendMessageResponse:
+      type: object
+      required:
+        - message_id
+      properties:
+        message_id:
+          type: string
+          format: uuid
+          description: The ID of the created message.
+
+    MessageResponse:
+      type: object
+      required:
+        - message_id
+        - sender_pub_key
+        - encrypted_content
+        - nonce
+        - created_at
+      properties:
+        message_id:
+          type: string
+          format: uuid
+          description: Message ID.
+        sender_pub_key:
+          type: string
+          description: Ephemeral sender public key (base64-encoded).
+        encrypted_content:
+          type: string
+          description: Encrypted message content (base64-encoded).
+        nonce:
+          type: string
+          description: GCM nonce (base64-encoded).
+        created_at:
+          type: string
+          format: date-time
+          description: Message creation timestamp (RFC 3339).
+
+    ReceiveMessagesResponse:
+      type: object
+      required:
+        - messages
+      properties:
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageResponse'
+          description: List of received messages.
+
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: Machine-readable error code.
+        message:
+          type: string
+          description: Human-readable error description.
+        details:
+          type: object
+          additionalProperties: true
+          description: Optional additional error context.
+        requestId:
+          type: string
+          format: uuid
+          description: Request correlation ID for tracing.
+
+  responses:
+    BadRequest:
+      description: Bad request — invalid input or missing required fields
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Unauthorized — authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Forbidden — insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Not found — resource does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'

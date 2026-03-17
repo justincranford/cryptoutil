@@ -16,6 +16,7 @@ import (
 
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/stretchr/testify/require"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -26,6 +27,8 @@ import (
 	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm/im/repository"
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilTestdb "cryptoutil/internal/apps/template/service/testing/testdb"
+
+	cryptoutilApiSmImServer "cryptoutil/api/sm/im/server"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
@@ -112,8 +115,8 @@ func TestHandleSendMessage_JWKGenShutdownError(t *testing.T) {
 	app.Use(testAuthMiddleware())
 	app.Post("/messages/send", handler.HandleSendMessage())
 
-	reqBody := SendMessageRequest{
-		ReceiverIDs: []string{googleUuid.New().String()},
+	reqBody := cryptoutilApiSmImServer.SendMessageRequest{
+		ReceiverIds: []openapi_types.UUID{googleUuid.New()},
 		Message:     "test message for jwk gen error",
 	}
 
@@ -142,8 +145,8 @@ func TestHandleSendMessage_RecipientJWKCreateError(t *testing.T) {
 	app.Use(testAuthMiddleware())
 	app.Post("/messages/send", handler.HandleSendMessage())
 
-	reqBody := SendMessageRequest{
-		ReceiverIDs: []string{googleUuid.New().String()},
+	reqBody := cryptoutilApiSmImServer.SendMessageRequest{
+		ReceiverIds: []openapi_types.UUID{googleUuid.New()},
 		Message:     "test message for recipient create error",
 	}
 
@@ -283,7 +286,7 @@ func TestHandleReceiveMessages_JWKDecryptionVariants(t *testing.T) {
 
 			require.Equal(t, http.StatusOK, resp.StatusCode)
 
-			var response ReceiveMessagesResponse
+				var response cryptoutilApiSmImServer.ReceiveMessagesResponse
 
 			err = json.NewDecoder(resp.Body).Decode(&response)
 			require.NoError(t, err)

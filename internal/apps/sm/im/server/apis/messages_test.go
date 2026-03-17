@@ -15,12 +15,14 @@ import (
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/stretchr/testify/require"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
+	cryptoutilApiSmImServer "cryptoutil/api/sm/im/server"
 	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm/im/model"
 	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm/im/repository"
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
@@ -174,8 +176,8 @@ func TestHandleSendMessage_HappyPath(t *testing.T) {
 	receiver1ID := googleUuid.New()
 	receiver2ID := googleUuid.New()
 
-	reqBody := SendMessageRequest{
-		ReceiverIDs: []string{receiver1ID.String(), receiver2ID.String()},
+	reqBody := cryptoutilApiSmImServer.SendMessageRequest{
+		ReceiverIds: []openapi_types.UUID{receiver1ID, receiver2ID},
 		Message:     "Hello, World!",
 	}
 	bodyBytes, _ := json.Marshal(reqBody)
@@ -191,7 +193,7 @@ func TestHandleSendMessage_HappyPath(t *testing.T) {
 
 	require.Equal(t, http.StatusCreated, resp.StatusCode)
 
-	var response SendMessageResponse
+	var response cryptoutilApiSmImServer.SendMessageResponse
 
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	require.NoError(t, err)
@@ -225,8 +227,8 @@ func TestHandleSendMessage_MissingSenderID(t *testing.T) {
 	app.Use(testAuthMiddleware())
 	app.Post("/messages/send", testMessageHandler.HandleSendMessage())
 
-	reqBody := SendMessageRequest{
-		ReceiverIDs: []string{googleUuid.New().String()},
+	reqBody := cryptoutilApiSmImServer.SendMessageRequest{
+		ReceiverIds: []openapi_types.UUID{googleUuid.New()},
 		Message:     "Test message",
 	}
 	bodyBytes, _ := json.Marshal(reqBody)
@@ -262,7 +264,7 @@ func TestHandleReceiveMessages_HappyPath(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
-	var response ReceiveMessagesResponse
+	var response cryptoutilApiSmImServer.ReceiveMessagesResponse
 
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	require.NoError(t, err)
@@ -365,8 +367,8 @@ func TestHandleSendMessage_EmptyMessage(t *testing.T) {
 	app.Use(testAuthMiddleware())
 	app.Post("/messages/send", testMessageHandler.HandleSendMessage())
 
-	reqBody := SendMessageRequest{
-		ReceiverIDs: []string{googleUuid.New().String()},
+	reqBody := cryptoutilApiSmImServer.SendMessageRequest{
+		ReceiverIds: []openapi_types.UUID{googleUuid.New()},
 		Message:     "", // Empty message.
 	}
 	bodyBytes, _ := json.Marshal(reqBody)
@@ -391,8 +393,8 @@ func TestHandleSendMessage_EmptyReceiverIDs(t *testing.T) {
 	app.Use(testAuthMiddleware())
 	app.Post("/messages/send", testMessageHandler.HandleSendMessage())
 
-	reqBody := SendMessageRequest{
-		ReceiverIDs: []string{}, // Empty receiver IDs.
+	reqBody := cryptoutilApiSmImServer.SendMessageRequest{
+		ReceiverIds: []openapi_types.UUID{}, // Empty receiver IDs.
 		Message:     "Test message",
 	}
 	bodyBytes, _ := json.Marshal(reqBody)
@@ -417,9 +419,9 @@ func TestHandleSendMessage_InvalidReceiverID(t *testing.T) {
 	app.Use(testAuthMiddleware())
 	app.Post("/messages/send", testMessageHandler.HandleSendMessage())
 
-	reqBody := SendMessageRequest{
-		ReceiverIDs: []string{"not-a-valid-uuid"},
-		Message:     "Test message",
+	reqBody := map[string]any{
+		"receiver_ids": []string{"not-a-valid-uuid"},
+		"message":      "Test message",
 	}
 	bodyBytes, _ := json.Marshal(reqBody)
 
@@ -453,14 +455,12 @@ func TestHandleReceiveMessages_NoMessages(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
-	var response ReceiveMessagesResponse
+	var response cryptoutilApiSmImServer.ReceiveMessagesResponse
 
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	require.NoError(t, err)
 	require.Empty(t, response.Messages)
 }
-
-// TestHandleDeleteMessage_MissingMessageID tests missing message ID in path.
 func TestHandleDeleteMessage_MissingMessageID(_ *testing.T) {
 	app := fiber.New()
 	app.Use(testAuthMiddleware())

@@ -5,12 +5,12 @@ package apis
 
 import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-	"fmt"
 
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 
+	cryptoutilApiSmImServer "cryptoutil/api/sm/im/server"
 	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm/im/model"
 	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm/im/repository"
 	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
@@ -41,35 +41,10 @@ func NewMessageHandler(
 	}
 }
 
-// SendMessageRequest represents the request to send a message.
-type SendMessageRequest struct {
-	ReceiverIDs []string `json:"receiver_ids"` // Receiver user IDs (UUIDs).
-	Message     string   `json:"message"`      // Plaintext message.
-}
-
-// SendMessageResponse represents the response after sending a message.
-type SendMessageResponse struct {
-	MessageID string `json:"message_id"` // Created message ID.
-}
-
-// MessageResponse represents a message in the response.
-type MessageResponse struct {
-	MessageID        string `json:"message_id"`        // Message ID.
-	SenderPubKey     string `json:"sender_pub_key"`    // Ephemeral sender public key (base64).
-	EncryptedContent string `json:"encrypted_content"` // Encrypted message content (base64).
-	Nonce            string `json:"nonce"`             // GCM nonce (base64).
-	CreatedAt        string `json:"created_at"`        // Message timestamp.
-}
-
-// ReceiveMessagesResponse represents the response for receiving messages.
-type ReceiveMessagesResponse struct {
-	Messages []MessageResponse `json:"messages"`
-}
-
 // HandleSendMessage handles PUT /messages/tx.
 func (h *MessageHandler) HandleSendMessage() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		var req SendMessageRequest
+		var req cryptoutilApiSmImServer.SendMessageRequest
 		if err := c.BodyParser(&req); err != nil {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -78,7 +53,7 @@ func (h *MessageHandler) HandleSendMessage() fiber.Handler {
 		}
 
 		// Validate request.
-		if len(req.ReceiverIDs) == 0 {
+		if len(req.ReceiverIds) == 0 {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				cryptoutilSharedMagic.StringError: "receiver_ids cannot be empty",
@@ -145,15 +120,7 @@ func (h *MessageHandler) HandleSendMessage() fiber.Handler {
 		}
 
 		// Store per-recipient decryption keys.
-		for _, recipientIDStr := range req.ReceiverIDs {
-			recipientID, err := googleUuid.Parse(recipientIDStr)
-			if err != nil {
-				//nolint:wrapcheck // Fiber framework error, wrapping not needed.
-				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-					cryptoutilSharedMagic.StringError: fmt.Sprintf("invalid recipient ID: %s", recipientIDStr),
-				})
-			}
-
+		for _, recipientID := range req.ReceiverIds {
 			// Encrypt JWK for this recipient using barrier service.
 			encryptedJWKBytes, err := h.barrierService.EncryptContentWithContext(c.Context(), cekJWKBytes)
 			if err != nil {
@@ -181,8 +148,8 @@ func (h *MessageHandler) HandleSendMessage() fiber.Handler {
 
 		_ = jweMessage // JWE message structure (contains headers).
 		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
-		return c.Status(fiber.StatusCreated).JSON(SendMessageResponse{
-			MessageID: message.ID.String(),
+		return c.Status(fiber.StatusCreated).JSON(cryptoutilApiSmImServer.SendMessageResponse{
+			MessageID: message.ID,
 		})
 	}
 }
@@ -217,8 +184,8 @@ func (h *MessageHandler) HandleReceiveMessages() fiber.Handler {
 		}
 
 		// Build response.
-		response := ReceiveMessagesResponse{
-			Messages: make([]MessageResponse, 0, len(messages)),
+		response := cryptoutilApiSmImServer.ReceiveMessagesResponse{
+			Messages: make([]cryptoutilApiSmImServer.MessageResponse, 0, len(messages)),
 		}
 
 		for _, msg := range messages {
@@ -252,12 +219,12 @@ func (h *MessageHandler) HandleReceiveMessages() fiber.Handler {
 				continue
 			}
 
-			response.Messages = append(response.Messages, MessageResponse{
-				MessageID:        msg.ID.String(),
+			response.Messages = append(response.Messages, cryptoutilApiSmImServer.MessageResponse{
+				MessageID:        msg.ID,
 				SenderPubKey:     msg.SenderID.String(),
 				EncryptedContent: string(plaintext),
 				Nonce:            "",
-				CreatedAt:        msg.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+				CreatedAt:        msg.CreatedAt,
 			})
 		}
 

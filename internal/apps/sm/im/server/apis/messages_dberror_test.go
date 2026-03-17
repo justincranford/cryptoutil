@@ -16,8 +16,10 @@ import (
 
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/stretchr/testify/require"
 
+	cryptoutilApiSmImServer "cryptoutil/api/sm/im/server"
 	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm/im/model"
 	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm/im/repository"
 	cryptoutilTestdb "cryptoutil/internal/apps/template/service/testing/testdb"
@@ -50,8 +52,8 @@ func TestHandleSendMessage_DatabaseErrors(t *testing.T) {
 
 	senderID := googleUuid.New()
 
-	reqBody := SendMessageRequest{
-		ReceiverIDs: []string{googleUuid.New().String()},
+	reqBody := cryptoutilApiSmImServer.SendMessageRequest{
+		ReceiverIds: []openapi_types.UUID{googleUuid.New()},
 		Message:     "test message for database error",
 	}
 
@@ -274,7 +276,7 @@ func TestHandleReceiveMessages_DecryptionErrors(t *testing.T) {
 			// Should return 200 OK with empty messages (decryption failures are skipped).
 			require.Equal(t, http.StatusOK, resp.StatusCode)
 
-			var response ReceiveMessagesResponse
+				var response cryptoutilApiSmImServer.ReceiveMessagesResponse
 
 			err = json.NewDecoder(resp.Body).Decode(&response)
 			require.NoError(t, err)

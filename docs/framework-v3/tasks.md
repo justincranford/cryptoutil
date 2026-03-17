@@ -743,13 +743,13 @@
 
 #### Task 8.4: Reintegrate pki-ca (Stage 4)
 
-- **Status**: TODO
+- **Status**: ✅ DONE (commit `7ebf37261`)
 - **Dependencies**: Task 8.3
 - **Description**: Certificate lifecycle (48KB active + 880KB archived)
 - **Acceptance Criteria**:
-  - [ ] pki-ca domain reintegrated with latest builder patterns
-  - [ ] All pki-ca tests pass
-  - [ ] Coverage >=95%
+  - [x] pki-ca domain reintegrated with latest builder patterns
+  - [x] All pki-ca tests pass
+  - [x] Coverage >=95%
 
 #### Task 8.5: Enforce OpenAPI-generated models for ALL service handlers
 
