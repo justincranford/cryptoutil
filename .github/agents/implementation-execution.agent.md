@@ -574,6 +574,14 @@ MUST commit after EVERY completed task:
 - **Semantic Grouping**: Each commit MUST represent one semantically coherent unit of work (one feature, one fix, one refactor, one test suite, one doc update). NEVER batch changes across different semantic groups into a bulk commit.
 - **Periodic Commits**: A completed task = a commit. Prefer frequent small commits.
 
+**Multi-Category Fix Commit Rule**: When a single user request generates multiple independent root-cause fixes, each root-cause category is a separate commit.
+
+**Commit Checkpoint Pattern**: After completing each task, checkpoint progress:
+1. `git add -A` all changes for the completed task
+2. `git commit -m "type(scope): description"` with evidence
+3. Verify `git status` is clean before starting next task
+4. Push every 5-10 commits for CI/CD validation
+
 NEVER:
 
 - Accumulate uncommitted changes across multiple tasks

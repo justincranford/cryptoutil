@@ -224,6 +224,18 @@ problem without needing to ask the user for further input.
 - Prefer frequent small commits: completed task = commit, section revised = commit, phase done = commit
 - Push every 5–10 commits so CI/CD validates incrementally
 
+**Multi-Category Fix Commit Rule**: When a single user request generates multiple independent root-cause fixes, each root-cause category is a separate commit. "One bug fix = one commit" applies at the root-cause level, NOT the user-request level.
+
+**Correct Example** (user asks "fix all pre-commit violations"):
+```
+fix(tooling): add .gitattributes LF normalization policy
+fix(tooling): renormalize CRLF files to LF
+fix(tooling): fix Dockerfile tab indentation
+fix(tooling): fix config file padding violations
+```
+
+**Anti-Pattern** (NEVER): One 155-file commit mixing CRLF fixes, Dockerfile tabs, .editorconfig changes, shell padding, and YAML continuation lines.
+
 **Todo List Empty?**
 - ✅ Read tracking documents
 - ✅ Find next incomplete task
