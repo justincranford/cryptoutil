@@ -2447,6 +2447,22 @@ Architecture fitness functions are automated checks that enforce ARCHITECTURE.md
 - **Integration Tests**: TestMain pattern, shared resources, GORM repositories
 - **E2E Tests**: Docker Compose, production-like, cross-service validation
 
+<!-- @propagate to=".github/instructions/03-02.testing.instructions.md" as="three-tier-database-strategy" -->
+**3-Tier Database Strategy (MANDATORY)**:
+
+| Tier | Database | Pattern | PostgreSQL? |
+|------|----------|---------|-------------|
+| Unit | SQLite in-memory | `testdb.NewInMemorySQLiteDB(t)` | NEVER |
+| Integration | SQLite in-memory via TestMain | ONE shared instance per package | NEVER |
+| E2E | Docker Compose PostgreSQL | 3 app instances (2 PostgreSQL + 1 SQLite) | YES (only here) |
+
+**Key Rules**:
+- NEVER use PostgreSQL in unit or integration tests — PostgreSQL tested ONLY in E2E.
+- NEVER create DB per-test in integration tests (use TestMain shared instance).
+- NEVER start real servers in unit tests (use Fiber app.Test()).
+- E2E tests use Docker Compose with 3 service instances: 2 sharing a PostgreSQL container, 1 using in-memory SQLite, validating cross-database compatibility.
+<!-- @/propagate -->
+
 **Coverage Requirements**:
 
 - Production code: ≥95%

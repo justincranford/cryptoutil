@@ -850,6 +850,11 @@ Unit + integration + E2E tests MUST be done during EVERY phase:
 - In between tasks when verifying cross-cutting concerns
 - NEVER defer testing to later phases
 
+**3-Tier Database Strategy (D7/D19 — MANDATORY):**
+- **Unit tests**: SQLite in-memory only. NEVER PostgreSQL.
+- **Integration tests**: ONE shared SQLite in-memory instance per package via TestMain. NEVER PostgreSQL.
+- **E2E tests**: Docker Compose with PostgreSQL. PostgreSQL tested ONLY here.
+
 **Mutation Testing:**
 
 Mutations MUST be grouped towards the END of plan.md:

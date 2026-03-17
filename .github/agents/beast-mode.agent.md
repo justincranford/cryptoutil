@@ -436,6 +436,11 @@ go test -race -count=3 ./...              # Race detection
 - ≥95% production code, ≥98% infrastructure/utility code
 - Mutation testing: ≥95% (when applicable)
 
+**3-Tier Database Strategy (D7/D19 — MANDATORY):**
+- **Unit tests**: SQLite in-memory only. NEVER PostgreSQL.
+- **Integration tests**: ONE shared SQLite in-memory instance per package via TestMain. NEVER PostgreSQL.
+- **E2E tests**: Docker Compose with PostgreSQL. PostgreSQL tested ONLY here.
+
 **Before marking task complete (Go Projects):**
 - Build clean (`go build ./...` AND `go build -tags e2e,integration ./...`)
 - Linting clean (`golangci-lint run` AND `golangci-lint run --build-tags e2e,integration`)

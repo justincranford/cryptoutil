@@ -847,22 +847,38 @@
 
 #### Task 9.3: Propagate all lessons to permanent artifacts
 
-- **Status**: TODO
+- **Status**: ✅ DONE
 - **Dependencies**: None
 - **Description**: Review lessons.md and propagate all lessons to ARCHITECTURE.md, agents, skills, instructions
 - **Acceptance Criteria**:
-  - [ ] Every lesson in lessons.md has corresponding entry in permanent artifact
-  - [ ] `cicd lint-docs validate-propagation` passes
-  - [ ] No lessons orphaned in plan docs only
+  - [x] Every lesson in lessons.md has corresponding entry in permanent artifact
+    - Phase 1 FIPS/magic: 03-02.testing (seam injection), 03-03.golang (magic values)
+    - Phase 2 TLS/DisableKeepAlives: 02-05.security, 03-02.testing
+    - Phase 3 CRLF/pre-commit: 05-02.git, 03-05.linting
+    - Phase 4 sequential exemption: 03-02.testing
+    - Phase 5 race condition: 03-02.testing (seam injection save/restore)
+    - Phase 5B SQLite/sm-kms: 03-04.data-infrastructure
+    - Phase 6 coverage ceiling: 03-02.testing, 06-01.evidence-based
+    - Phase 7 skeleton: /new-service skill, ARCHITECTURE.md migration status
+    - Phase 8 reintegration: implementation-specific, not a recurring pattern
+    - Root Cause Analysis: implementation-execution.agent.md (Phase Continuation Check)
+    - Task 9.2 commit rules: beast-mode.agent.md, implementation-execution.agent.md
+  - [x] `cicd lint-docs validate-propagation` passes (12 PASS, 0 FAIL; 35 chunks matched)
+  - [x] No lessons orphaned in plan docs only
 
 #### Task 9.4: Simplify review document format
 
-- **Status**: TODO
+- **Status**: ✅ DONE
 - **Dependencies**: None
 - **Description**: framework-v1/review.md was overwhelming. Design a simpler format for future reviews.
 - **Acceptance Criteria**:
-  - [ ] Review template documented (concise format)
-  - [ ] Future reviews follow simpler format
+  - [x] Review template documented (concise format)
+    - framework-v3 already uses the simpler format: plan.md (phases+decisions) + tasks.md (checkboxes) + lessons.md (post-mortems)
+    - This 3-file pattern replaced the single monolithic review.md from framework-v1
+    - implementation-planning.agent.md documents the create/update/review workflow for these files
+  - [x] Future reviews follow simpler format
+    - The implementation-planning agent enforces plan.md + tasks.md as the standard format
+    - No new review.md files needed — lessons.md captures post-mortem insights per phase
 
 #### Task 9.5: Fix lint-fitness and lint-docs exit code 1
 
@@ -877,34 +893,48 @@
 
 #### Task 9.6: Verify Docker Desktop startup directive propagation
 
-- **Status**: TODO
+- **Status**: ✅ DONE
 - **Dependencies**: None
 - **Description**: Docker Desktop startup check exists in some Copilot modes but may be missing in others. Verify all agents, skills, and instructions that involve Docker or E2E have the directive (from framework-v2 Phase 3 lessons).
 - **Acceptance Criteria**:
-  - [ ] All agents that run E2E tests reference Docker Desktop startup
-  - [ ] Implementation-execution agent includes Docker Desktop check
-  - [ ] Cross-platform instructions consistent
+  - [x] All agents that run E2E tests reference Docker Desktop startup
+    - beast-mode.agent.md: 4 references (pre-flight + upgrade warning)
+    - fix-workflows.agent.md: 17 references (comprehensive Docker verification)
+    - implementation-execution.agent.md: pre-flight step 4 with cross-platform commands
+    - implementation-planning.agent.md: 1 reference
+    - doc-sync.agent.md: N/A (docs-only agent, no Docker usage)
+  - [x] Implementation-execution agent includes Docker Desktop check
+    - Pre-flight step 4 with Docker ps check, ARCHITECTURE.md Section 13.5.4 reference, Windows/macOS/Linux startup commands
+  - [x] Cross-platform instructions consistent
+    - 05-01.cross-platform.instructions.md has full "Docker Desktop Startup - CRITICAL" section with @source from ARCHITECTURE.md
 
 #### Task 9.7: Propagate D19 test strategy to ARCHITECTURE.md and Copilot artifacts
 
-- **Status**: TODO
+- **Status**: ✅ DONE
 - **Dependencies**: Task 9.3
 - **Description**: Propagate the D7/D19 3-tier test strategy (unit=SQLite, integration=SQLite TestMain, E2E=PostgreSQL Docker Compose) to ARCHITECTURE.md Section 10, 03-02.testing.instructions.md, and all agents. This makes the strategy unambiguous and the single source of truth.
 - **Acceptance Criteria**:
-  - [ ] ARCHITECTURE.md Section 10 has comprehensive 3-tier strategy with PostgreSQL isolation rule
-  - [ ] 03-02.testing.instructions.md propagated from ARCHITECTURE.md
-  - [ ] All agents reference D7 strategy
-  - [ ] `cicd lint-docs validate-propagation` passes
+  - [x] ARCHITECTURE.md Section 10 has comprehensive 3-tier strategy with PostgreSQL isolation rule
+    - Added @propagate block in Section 10.1 with full table + key rules
+  - [x] 03-02.testing.instructions.md propagated from ARCHITECTURE.md
+    - Added @source block matching ARCHITECTURE.md with "3-Tier Database Strategy - MANDATORY" section
+  - [x] All agents reference D7 strategy
+    - beast-mode.agent.md: Added D7/D19 3-tier strategy in coverage targets section
+    - implementation-execution.agent.md: Added D7/D19 3-tier strategy in TESTING STRATEGY section
+    - implementation-planning.agent.md: Added D7/D19 3-tier strategy in Testing Strategy section
+  - [x] `cicd lint-docs validate-propagation` passes (36 chunks matched, 0 mismatched)
 
 #### Task 9.8: Add project-specific tool catalog to instructions (D26)
 
-- **Status**: TODO
+- **Status**: ✅ DONE
 - **Dependencies**: None
 - **Description**: Add "Project Tooling" section to 04-01.deployment.instructions.md listing all `go run ./cmd/cicd <subcommand>` commands with purpose and usage. Ensures agents reliably use project-specific tools.
 - **Acceptance Criteria**:
-  - [ ] All cicd subcommands documented with purpose and example invocation
-  - [ ] Instructions include when to use each tool (lint-fitness vs lint-deployments vs lint-docs, etc.)
-  - [ ] `cicd lint-docs validate-propagation` passes
+  - [x] All cicd subcommands documented with purpose and example invocation
+    - 11 linters, 2 formatters, 1 script command — all with Purpose and When to Use columns
+  - [x] Instructions include when to use each tool (lint-fitness vs lint-deployments vs lint-docs, etc.)
+    - Each command has specific "When to Use" guidance
+  - [x] `cicd lint-docs validate-propagation` passes (36 chunks, 267 valid refs, 0 broken)
 
 #### Task 9.9: Phase 9 validation and post-mortem
 
