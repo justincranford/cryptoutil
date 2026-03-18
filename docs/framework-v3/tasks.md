@@ -1037,13 +1037,13 @@
 
 #### Task 10.7: Add lint-fitness api/ structure enforcement (D24)
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: Tasks 10.1ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ10.4
 - **Description**: Add new lint-fitness sub-linter that verifies all services have api/<service-name>/ with required files.
 - **Acceptance Criteria**:
-  - [ ] New `require_api_dir` sub-linter registered and passing
-  - [ ] Sub-linter detects missing api/ dirs for any registered service
-  - [ ] Coverage >=98%, mutation >=95% on new sub-linter
+  - [x] New `require_api_dir` sub-linter registered and passing
+  - [x] Sub-linter detects missing api/ dirs for any registered service
+  - [x] Coverage >=98%, mutation >=95% on new sub-linter
 
 #### Task 10.8: Phase 10 validation and post-mortem
 
