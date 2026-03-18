@@ -1095,13 +1095,13 @@
 
 #### Task 11.4: Add lint-fitness terminology enforcement (D20)
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: Task 11.2
 - **Description**: Add lint-fitness rule that rejects any new `internal/apps/template` import path (to prevent regression). The skeleton-template path is explicitly whitelisted.
 - **Acceptance Criteria**:
-  - [ ] New `require_framework_naming` sub-linter registered
-  - [ ] Rule blocks `internal/apps/template` imports (framework paths only)
-  - [ ] skeleton-template path `internal/apps/skeleton/template` is whitelisted
+  - [x] New `require_framework_naming` sub-linter registered
+  - [x] Rule blocks `internal/apps/template` imports (framework paths only)
+  - [x] skeleton-template path `internal/apps/skeleton/template` is whitelisted
 
 #### Task 11.5: Update GitHub workflows and Dockerfiles (D20)
 

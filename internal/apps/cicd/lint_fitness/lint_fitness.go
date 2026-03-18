@@ -34,6 +34,7 @@ import (
 	lintFitnessProductStructure "cryptoutil/internal/apps/cicd/lint_fitness/product_structure"
 	lintFitnessProductWiring "cryptoutil/internal/apps/cicd/lint_fitness/product_wiring"
 	lintFitnessRequireAPIDir "cryptoutil/internal/apps/cicd/lint_fitness/require_api_dir"
+	lintFitnessRequireFrameworkNaming "cryptoutil/internal/apps/cicd/lint_fitness/require_framework_naming"
 	lintFitnessServiceContractCompliance "cryptoutil/internal/apps/cicd/lint_fitness/service_contract_compliance"
 	lintFitnessServiceStructure "cryptoutil/internal/apps/cicd/lint_fitness/service_structure"
 	lintFitnessTestPatterns "cryptoutil/internal/apps/cicd/lint_fitness/test_patterns"
@@ -82,6 +83,7 @@ var registeredLinters = []struct {
 	{"no-unit-test-real-server", lintFitnessNoUnitTestRealServer.Check},
 	{"gen-config-initialisms", lintFitnessGenConfigInitialisms.Check},
 	{"require-api-dir", lintFitnessRequireAPIDir.Check},
+	{"require-framework-naming", lintFitnessRequireFrameworkNaming.Check},
 }
 
 // Lint runs all registered architecture fitness linters.
