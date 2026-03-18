@@ -5,7 +5,7 @@
 package config
 
 import (
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -23,14 +23,14 @@ import (
 // Returns directly populated SkeletonTemplateServerSettings matching Parse() behavior.
 func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *SkeletonTemplateServerSettings {
 	// Get base template config.
-	baseConfig := cryptoutilAppsTemplateServiceConfig.NewTestConfig(bindAddr, bindPort, devMode)
+	baseConfig := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(bindAddr, bindPort, devMode)
 
 	// Override template defaults with skeleton-template specific values.
 	baseConfig.BindPublicPort = bindPort
 	baseConfig.OTLPService = cryptoutilSharedMagic.OTLPServiceSkeletonTemplate
 
 	return &SkeletonTemplateServerSettings{
-		ServiceTemplateServerSettings: baseConfig,
+		ServiceFrameworkServerSettings: baseConfig,
 	}
 }
 

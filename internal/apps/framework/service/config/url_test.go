@@ -1,0 +1,121 @@
+// Copyright (c) 2025 Justin Cranford
+
+package config
+
+import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
+
+// TestPrivateBaseURL tests the PrivateBaseURL method.
+func TestPrivateBaseURL(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		settings ServiceFrameworkServerSettings
+		expected string
+	}{
+		{
+			name: "https localhost 9090",
+			settings: ServiceFrameworkServerSettings{
+				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
+				BindPrivateAddress:  cryptoutilSharedMagic.DefaultOTLPHostnameDefault,
+				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
+			},
+			expected: "https://localhost:9090",
+		},
+		{
+			name: "http 127.0.0.1 8080",
+			settings: ServiceFrameworkServerSettings{
+				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTP,
+				BindPrivateAddress:  cryptoutilSharedMagic.IPv4Loopback,
+				BindPrivatePort:     cryptoutilSharedMagic.DemoServerPort,
+			},
+			expected: cryptoutilSharedMagic.DemoIssuer,
+		},
+		{
+			name: "https IPv6 9999",
+			settings: ServiceFrameworkServerSettings{
+				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
+				BindPrivateAddress:  cryptoutilSharedMagic.IPv6Loopback,
+				BindPrivatePort:     9999,
+			},
+			expected: "https://::1:9999",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			result := tt.settings.PrivateBaseURL()
+			require.Equal(t, tt.expected, result, "PrivateBaseURL should match")
+		})
+	}
+}
+
+// TestPublicBaseURL tests the PublicBaseURL method.
+func TestPublicBaseURL(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		settings ServiceFrameworkServerSettings
+		expected string
+	}{
+		{
+			name: "https localhost 8080",
+			settings: ServiceFrameworkServerSettings{
+				BindPublicProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
+				BindPublicAddress:  cryptoutilSharedMagic.DefaultOTLPHostnameDefault,
+				BindPublicPort:     cryptoutilSharedMagic.DemoServerPort,
+			},
+			expected: "https://localhost:8080",
+		},
+		{
+			name: "http 0.0.0.0 3000",
+			settings: ServiceFrameworkServerSettings{
+				BindPublicProtocol: cryptoutilSharedMagic.ProtocolHTTP,
+				BindPublicAddress:  cryptoutilSharedMagic.IPv4AnyAddress,
+				BindPublicPort:     cryptoutilSharedMagic.JoseJAE2EGrafanaPort,
+			},
+			expected: "http://0.0.0.0:3000",
+		},
+		{
+			name: "https IPv6 443",
+			settings: ServiceFrameworkServerSettings{
+				BindPublicProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
+				BindPublicAddress:  "[::]",
+				BindPublicPort:     cryptoutilSharedMagic.PortHTTPS,
+			},
+			expected: "https://[::]:443",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			result := tt.settings.PublicBaseURL()
+			require.Equal(t, tt.expected, result, "PublicBaseURL should match")
+		})
+	}
+}
+
+// TestRequireNewForTest tests the test utility function.
+func TestRequireNewForTest(t *testing.T) {
+	t.Parallel()
+
+	// Call the test utility function.
+	settings := RequireNewForTest("test-app")
+
+	// Verify it returns a valid settings object.
+	require.NotNil(t, settings, "Settings should not be nil")
+
+	// Verify some expected fields are set (may be defaults or zeros).
+	require.NotEmpty(t, settings.LogLevel, "LogLevel should be set")
+	// Note: Ports may be zero in test settings, so just verify structure exists.
+}

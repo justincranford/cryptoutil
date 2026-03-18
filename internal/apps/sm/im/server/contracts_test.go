@@ -6,7 +6,7 @@ package server_test
 import (
 	"testing"
 
-	cryptoutilContract "cryptoutil/internal/apps/template/service/testing/contract"
+	cryptoutilContract "cryptoutil/internal/apps/framework/service/testing/contract"
 )
 
 // TestSmIMServer_ContractCompliance verifies sm-im implements all service template contracts.

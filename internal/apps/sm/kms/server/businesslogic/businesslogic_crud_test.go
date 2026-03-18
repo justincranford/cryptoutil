@@ -14,10 +14,10 @@ import (
 	cryptoutilKmsMiddleware "cryptoutil/internal/apps/sm/kms/server/middleware"
 	cryptoutilKmsServerRepository "cryptoutil/internal/apps/sm/kms/server/repository"
 	cryptoutilOrmRepository "cryptoutil/internal/apps/sm/kms/server/repository/orm"
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilAppsTemplateServiceServerApplication "cryptoutil/internal/apps/template/service/server/application"
-	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
+	cryptoutilAppsFrameworkServiceServerApplication "cryptoutil/internal/apps/framework/service/server/application"
+	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
+	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
 
 	googleUuid "github.com/google/uuid"
 	testify "github.com/stretchr/testify/require"
@@ -102,16 +102,16 @@ func (m *testMergedMigrations) ReadFile(name string) ([]byte, error) {
 type testStack struct {
 	service *BusinessLogicService
 	ctx     context.Context
-	core    *cryptoutilAppsTemplateServiceServerApplication.Core
+	core    *cryptoutilAppsFrameworkServiceServerApplication.Core
 }
 
 func setupTestStack(tb testing.TB) *testStack {
 	tb.Helper()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("biz-crud-" + tb.Name())
+	settings := cryptoutilAppsFrameworkServiceConfig.RequireNewForTest("biz-crud-" + tb.Name())
 
-	templateCore, err := cryptoutilAppsTemplateServiceServerApplication.StartCore(ctx, settings)
+	templateCore, err := cryptoutilAppsFrameworkServiceServerApplication.StartCore(ctx, settings)
 	testify.NoError(tb, err)
 	tb.Cleanup(func() { templateCore.Shutdown() })
 
@@ -119,13 +119,13 @@ func setupTestStack(tb testing.TB) *testStack {
 	testify.NoError(tb, err)
 
 	mergedFS := &testMergedMigrations{
-		templateFS:   cryptoutilAppsTemplateServiceServerRepository.MigrationsFS,
+		templateFS:   cryptoutilAppsFrameworkServiceServerRepository.MigrationsFS,
 		templatePath: "migrations",
 		domainFS:     cryptoutilKmsServerRepository.MigrationsFS,
 		domainPath:   "migrations",
 	}
 
-	err = cryptoutilAppsTemplateServiceServerRepository.ApplyMigrationsFromFS(sqlDB, mergedFS, "", cryptoutilSharedMagic.TestDatabaseSQLite)
+	err = cryptoutilAppsFrameworkServiceServerRepository.ApplyMigrationsFromFS(sqlDB, mergedFS, "", cryptoutilSharedMagic.TestDatabaseSQLite)
 	testify.NoError(tb, err)
 
 	ormRepo, err := cryptoutilOrmRepository.NewOrmRepository(
@@ -135,10 +135,10 @@ func setupTestStack(tb testing.TB) *testStack {
 	testify.NoError(tb, err)
 	tb.Cleanup(func() { ormRepo.Shutdown() })
 
-	gormRepo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(templateCore.DB)
+	gormRepo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(templateCore.DB)
 	testify.NoError(tb, err)
 
-	barrierSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewService(
+	barrierSvc, err := cryptoutilAppsFrameworkServiceServerBarrier.NewService(
 		ctx, templateCore.Basic.TelemetryService, templateCore.Basic.JWKGenService,
 		gormRepo, templateCore.Basic.UnsealKeysService,
 	)

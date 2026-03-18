@@ -1,0 +1,137 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
+package listener_test
+
+import (
+	"context"
+	"crypto/tls"
+	json "encoding/json"
+	"fmt"
+	"io"
+	http "net/http"
+	"sync"
+	"testing"
+	"time"
+
+	cryptoutilAppsFrameworkServiceServerListener "cryptoutil/internal/apps/framework/service/server/listener"
+	cryptoutilAppsFrameworkServiceServerTestutil "cryptoutil/internal/apps/framework/service/server/testutil"
+	cryptoutilAppsFrameworkServiceTestingHttpservertests "cryptoutil/internal/apps/framework/service/testing/httpservertests"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
+	"github.com/stretchr/testify/require"
+)
+
+// Sequential: uses shared state (not safe for parallel execution).
+func TestAdminServer_Shutdown_Endpoint(t *testing.T) {
+	// NOT parallel - all admin server tests compete for port 9090.
+	tlsCfg := cryptoutilAppsFrameworkServiceServerTestutil.PrivateTLS()
+	server, err := cryptoutilAppsFrameworkServiceServerListener.NewAdminHTTPServer(context.Background(), cryptoutilAppsFrameworkServiceServerTestutil.ServiceFrameworkServerSettings(), tlsCfg)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Start server in background and track goroutine.
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+
+		_ = server.Start(ctx)
+	}()
+
+	// Wait for server to be ready.
+	time.Sleep(200 * time.Millisecond)
+
+	port := server.ActualPort()
+	require.Greater(t, port, 0, "Expected dynamic port allocation")
+
+	// Trigger shutdown via HTTP endpoint.
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				MinVersion: tls.VersionTLS13,
+				RootCAs:    cryptoutilAppsFrameworkServiceServerTestutil.PrivateRootCAPool(),
+			},
+			DisableKeepAlives: true,
+		},
+		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
+	}
+
+	reqCtx, reqCancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
+	defer reqCancel()
+
+	url := fmt.Sprintf("https://%s:%d/admin/api/v1/shutdown", cryptoutilSharedMagic.IPv4Loopback, port)
+
+	req, err := http.NewRequestWithContext(reqCtx, http.MethodPost, url, nil)
+	require.NoError(t, err)
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { require.NoError(t, resp.Body.Close()) }()
+
+	// Verify response.
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	var response map[string]any
+
+	err = json.Unmarshal(body, &response)
+	require.NoError(t, err)
+
+	require.Equal(t, "shutdown initiated", response[cryptoutilSharedMagic.StringStatus])
+
+	// The endpoint triggers shutdown in a goroutine with 100ms delay.
+	// Cancel context to let Start() exit cleanly, then wait for goroutine.
+	cancel()
+	wg.Wait()
+
+	// Wait for OS socket cleanup (TCP TIME_WAIT state).
+	// Windows needs longer for socket release.
+	time.Sleep(3 * time.Second)
+}
+
+// TestAdminServer_Shutdown_NilContext tests Shutdown accepts nil context and uses Background().
+// Sequential: uses shared state (not safe for parallel execution).
+func TestAdminServer_Shutdown_NilContext(t *testing.T) {
+	// NOT parallel - all admin server tests compete for port 9090.
+	createServer := func(t *testing.T) cryptoutilAppsFrameworkServiceTestingHttpservertests.HTTPServer {
+		t.Helper()
+
+		tlsCfg := cryptoutilAppsFrameworkServiceServerTestutil.PrivateTLS()
+		server, err := cryptoutilAppsFrameworkServiceServerListener.NewAdminHTTPServer(context.Background(), cryptoutilAppsFrameworkServiceServerTestutil.ServiceFrameworkServerSettings(), tlsCfg)
+		require.NoError(t, err)
+
+		return server
+	}
+
+	cryptoutilAppsFrameworkServiceTestingHttpservertests.TestShutdownNilContext(t, createServer)
+
+	// Wait for OS socket cleanup (TCP TIME_WAIT state).
+	// Windows needs longer for socket release - ConcurrentRequests runs next.
+	time.Sleep(2 * time.Second)
+}
+
+// TestAdminServer_ActualPort_BeforeStart tests ActualPort before server starts.
+func TestAdminServer_ActualPort_BeforeStart(t *testing.T) {
+	t.Parallel()
+
+	tlsCfg := cryptoutilAppsFrameworkServiceServerTestutil.PrivateTLS()
+	server, err := cryptoutilAppsFrameworkServiceServerListener.NewAdminHTTPServer(context.Background(), cryptoutilAppsFrameworkServiceServerTestutil.ServiceFrameworkServerSettings(), tlsCfg)
+	require.NoError(t, err)
+
+	port := server.ActualPort()
+
+	require.Equal(t, 0, port, "Expected port 0 before server starts")
+}
+
+// TestAdminServer_ConcurrentRequests tests multiple concurrent requests to admin endpoints.

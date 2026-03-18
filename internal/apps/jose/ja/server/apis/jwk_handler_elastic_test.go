@@ -14,7 +14,7 @@ import (
 
 	cryptoutilJoseModels "cryptoutil/api/jose-ja/models"
 	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose/ja/model"
-	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
@@ -32,7 +32,7 @@ func TestNewJWKHandler(t *testing.T) {
 	auditConfigRepo := new(MockAuditConfigRepository)
 	auditLogRepo := new(MockAuditLogRepository)
 	jwkGenService := &cryptoutilSharedCryptoJose.JWKGenService{}
-	barrierService := &cryptoutilAppsTemplateServiceServerBarrier.Service{}
+	barrierService := &cryptoutilAppsFrameworkServiceServerBarrier.Service{}
 
 	handler := NewJWKHandler(
 		elasticRepo,

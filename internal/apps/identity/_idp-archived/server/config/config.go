@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/spf13/pflag"
@@ -17,7 +17,7 @@ import (
 
 // IdentityIDPServerSettings contains identity-idp specific configuration.
 type IdentityIDPServerSettings struct {
-	*cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
+	*cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings
 
 	// IdP (Identity Provider) settings.
 	AuthzServerURL  string // URL of the OAuth 2.1 authorization server to integrate with.
@@ -47,53 +47,53 @@ const (
 
 var defaultMFAMethods = []string{cryptoutilSharedMagic.MFATypeTOTP} // Default MFA methods.
 
-var allIdentityIDPServerRegisteredSettings []*cryptoutilAppsTemplateServiceConfig.Setting //nolint:gochecknoglobals
+var allIdentityIDPServerRegisteredSettings []*cryptoutilAppsFrameworkServiceConfig.Setting //nolint:gochecknoglobals
 
 // Identity-IDP specific Setting objects for parameter attributes.
 var (
-	idpAuthzServerURLSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityIDPServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
+	idpAuthzServerURLSetting = cryptoutilAppsFrameworkServiceConfig.SetEnvAndRegisterSetting(allIdentityIDPServerRegisteredSettings, &cryptoutilAppsFrameworkServiceConfig.Setting{
 		Name:        "authz-server-url",
 		Shorthand:   "",
 		Value:       defaultIDPAuthzServerURL,
 		Usage:       "URL of the OAuth 2.1 authorization server to integrate with",
 		Description: "AuthZ Server URL",
 	})
-	loginPagePathSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityIDPServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
+	loginPagePathSetting = cryptoutilAppsFrameworkServiceConfig.SetEnvAndRegisterSetting(allIdentityIDPServerRegisteredSettings, &cryptoutilAppsFrameworkServiceConfig.Setting{
 		Name:        "login-page-path",
 		Shorthand:   "",
 		Value:       defaultLoginPagePath,
 		Usage:       "Path to custom login page template (empty for built-in)",
 		Description: "Login Page Path",
 	})
-	consentPagePathSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityIDPServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
+	consentPagePathSetting = cryptoutilAppsFrameworkServiceConfig.SetEnvAndRegisterSetting(allIdentityIDPServerRegisteredSettings, &cryptoutilAppsFrameworkServiceConfig.Setting{
 		Name:        "consent-page-path",
 		Shorthand:   "",
 		Value:       defaultConsentPagePath,
 		Usage:       "Path to custom consent page template (empty for built-in)",
 		Description: "Consent Page Path",
 	})
-	enableMFAEnrollmentSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityIDPServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
+	enableMFAEnrollmentSetting = cryptoutilAppsFrameworkServiceConfig.SetEnvAndRegisterSetting(allIdentityIDPServerRegisteredSettings, &cryptoutilAppsFrameworkServiceConfig.Setting{
 		Name:        "enable-mfa-enrollment",
 		Shorthand:   "",
 		Value:       defaultEnableMFAEnrollment,
 		Usage:       "Enable MFA enrollment during login",
 		Description: "Enable MFA Enrollment",
 	})
-	requireMFASetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityIDPServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
+	requireMFASetting = cryptoutilAppsFrameworkServiceConfig.SetEnvAndRegisterSetting(allIdentityIDPServerRegisteredSettings, &cryptoutilAppsFrameworkServiceConfig.Setting{
 		Name:        "require-mfa",
 		Shorthand:   "",
 		Value:       defaultRequireMFA,
 		Usage:       "Require MFA for all logins",
 		Description: "Require MFA",
 	})
-	loginSessionTimeoutSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityIDPServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
+	loginSessionTimeoutSetting = cryptoutilAppsFrameworkServiceConfig.SetEnvAndRegisterSetting(allIdentityIDPServerRegisteredSettings, &cryptoutilAppsFrameworkServiceConfig.Setting{
 		Name:        "login-session-timeout",
 		Shorthand:   "",
 		Value:       defaultLoginSessionTimeout,
 		Usage:       "Login session timeout in seconds",
 		Description: "Login Session Timeout",
 	})
-	consentSessionTimeoutSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityIDPServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
+	consentSessionTimeoutSetting = cryptoutilAppsFrameworkServiceConfig.SetEnvAndRegisterSetting(allIdentityIDPServerRegisteredSettings, &cryptoutilAppsFrameworkServiceConfig.Setting{
 		Name:        "consent-session-timeout",
 		Shorthand:   "",
 		Value:       defaultConsentSessionTimeout,
@@ -105,19 +105,19 @@ var (
 // Parse parses command line arguments and returns identity-idp settings.
 func Parse(args []string, exitIfHelp bool) (*IdentityIDPServerSettings, error) {
 	// Parse base template settings first.
-	baseSettings, err := cryptoutilAppsTemplateServiceConfig.Parse(args, exitIfHelp)
+	baseSettings, err := cryptoutilAppsFrameworkServiceConfig.Parse(args, exitIfHelp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template settings: %w", err)
 	}
 
 	// Register identity-idp specific flags.
-	pflag.StringP(idpAuthzServerURLSetting.Name, idpAuthzServerURLSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(idpAuthzServerURLSetting), idpAuthzServerURLSetting.Description)
-	pflag.StringP(loginPagePathSetting.Name, loginPagePathSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(loginPagePathSetting), loginPagePathSetting.Description)
-	pflag.StringP(consentPagePathSetting.Name, consentPagePathSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(consentPagePathSetting), consentPagePathSetting.Description)
-	pflag.BoolP(enableMFAEnrollmentSetting.Name, enableMFAEnrollmentSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsBoolSetting(enableMFAEnrollmentSetting), enableMFAEnrollmentSetting.Description)
-	pflag.BoolP(requireMFASetting.Name, requireMFASetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsBoolSetting(requireMFASetting), requireMFASetting.Description)
-	pflag.IntP(loginSessionTimeoutSetting.Name, loginSessionTimeoutSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(loginSessionTimeoutSetting), loginSessionTimeoutSetting.Description)
-	pflag.IntP(consentSessionTimeoutSetting.Name, consentSessionTimeoutSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(consentSessionTimeoutSetting), consentSessionTimeoutSetting.Description)
+	pflag.StringP(idpAuthzServerURLSetting.Name, idpAuthzServerURLSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(idpAuthzServerURLSetting), idpAuthzServerURLSetting.Description)
+	pflag.StringP(loginPagePathSetting.Name, loginPagePathSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(loginPagePathSetting), loginPagePathSetting.Description)
+	pflag.StringP(consentPagePathSetting.Name, consentPagePathSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(consentPagePathSetting), consentPagePathSetting.Description)
+	pflag.BoolP(enableMFAEnrollmentSetting.Name, enableMFAEnrollmentSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsBoolSetting(enableMFAEnrollmentSetting), enableMFAEnrollmentSetting.Description)
+	pflag.BoolP(requireMFASetting.Name, requireMFASetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsBoolSetting(requireMFASetting), requireMFASetting.Description)
+	pflag.IntP(loginSessionTimeoutSetting.Name, loginSessionTimeoutSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsIntSetting(loginSessionTimeoutSetting), loginSessionTimeoutSetting.Description)
+	pflag.IntP(consentSessionTimeoutSetting.Name, consentSessionTimeoutSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsIntSetting(consentSessionTimeoutSetting), consentSessionTimeoutSetting.Description)
 
 	// Parse flags.
 	pflag.Parse()
@@ -129,7 +129,7 @@ func Parse(args []string, exitIfHelp bool) (*IdentityIDPServerSettings, error) {
 
 	// Create identity-idp settings.
 	settings := &IdentityIDPServerSettings{
-		ServiceTemplateServerSettings: baseSettings,
+		ServiceFrameworkServerSettings: baseSettings,
 		AuthzServerURL:                viper.GetString(idpAuthzServerURLSetting.Name),
 		LoginPagePath:                 viper.GetString(loginPagePathSetting.Name),
 		ConsentPagePath:               viper.GetString(consentPagePathSetting.Name),
@@ -226,14 +226,14 @@ func maskEmpty(value, defaultValue string) string {
 // Returns directly populated IdentityIDPServerSettings matching Parse() behavior.
 func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *IdentityIDPServerSettings {
 	// Get base template config.
-	baseConfig := cryptoutilAppsTemplateServiceConfig.NewTestConfig(bindAddr, bindPort, devMode)
+	baseConfig := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(bindAddr, bindPort, devMode)
 
 	// Override template defaults with identity-idp specific values.
 	baseConfig.BindPublicPort = bindPort
 	baseConfig.OTLPService = cryptoutilSharedMagic.OTLPServiceIdentityIDP
 
 	return &IdentityIDPServerSettings{
-		ServiceTemplateServerSettings: baseConfig,
+		ServiceFrameworkServerSettings: baseConfig,
 		AuthzServerURL:                defaultIDPAuthzServerURL,
 		LoginPagePath:                 defaultLoginPagePath,
 		ConsentPagePath:               defaultConsentPagePath,

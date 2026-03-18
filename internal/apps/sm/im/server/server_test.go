@@ -13,7 +13,7 @@ import (
 
 	cryptoutilAppsSmImServer "cryptoutil/internal/apps/sm/im/server"
 	cryptoutilAppsSmImServerConfig "cryptoutil/internal/apps/sm/im/server/config"
-	cryptoutilTestingTestserver "cryptoutil/internal/apps/template/service/testing/testserver"
+	cryptoutilTestingTestserver "cryptoutil/internal/apps/framework/service/testing/testserver"
 )
 
 // TestServer_AccessorMethods tests all server accessor methods (delegation to Application).

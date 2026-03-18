@@ -13,8 +13,8 @@ import (
 	"time"
 
 	cryptoutilAppsSkeletonTemplateServerConfig "cryptoutil/internal/apps/skeleton/template/server/config"
-	cryptoutilAppsTemplateServiceTestingE2eHelpers "cryptoutil/internal/apps/template/service/testing/e2e_helpers"
-	cryptoutilTestingHealthclient "cryptoutil/internal/apps/template/service/testing/healthclient"
+	cryptoutilAppsFrameworkServiceTestingE2eHelpers "cryptoutil/internal/apps/framework/service/testing/e2e_helpers"
+	cryptoutilTestingHealthclient "cryptoutil/internal/apps/framework/service/testing/healthclient"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -42,7 +42,7 @@ func TestMain(m *testing.M) {
 	}
 
 	// Use generic template helper for goroutine start + dual port polling + panic-on-failure.
-	cryptoutilAppsTemplateServiceTestingE2eHelpers.MustStartAndWaitForDualPorts(testServer, func() error {
+	cryptoutilAppsFrameworkServiceTestingE2eHelpers.MustStartAndWaitForDualPorts(testServer, func() error {
 		return testServer.Start(ctx)
 	})
 
@@ -50,7 +50,7 @@ func TestMain(m *testing.M) {
 	testServer.SetReady(true)
 
 	// Store base URLs for tests.
-	testPublicBaseURL, testAdminBaseURL = cryptoutilAppsTemplateServiceTestingE2eHelpers.DualPortBaseURLs(testServer)
+	testPublicBaseURL, testAdminBaseURL = cryptoutilAppsFrameworkServiceTestingE2eHelpers.DualPortBaseURLs(testServer)
 	testHealthClient = cryptoutilTestingHealthclient.NewHealthClient(testPublicBaseURL, testAdminBaseURL)
 
 	// Create public and admin HTTPS clients.

@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/spf13/pflag"
@@ -17,7 +17,7 @@ import (
 
 // IdentityRSServerSettings contains identity-rs specific configuration.
 type IdentityRSServerSettings struct {
-	*cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
+	*cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings
 
 	// Token validation settings.
 	AuthzServerURL   string // URL of the OAuth 2.1 authorization server for token validation.
@@ -53,60 +53,60 @@ var (
 	defaultRequiredAudiences = []string{} // No required audiences by default.
 )
 
-var allIdentityRSServerRegisteredSettings []*cryptoutilAppsTemplateServiceConfig.Setting //nolint:gochecknoglobals
+var allIdentityRSServerRegisteredSettings []*cryptoutilAppsFrameworkServiceConfig.Setting //nolint:gochecknoglobals
 
 // Identity-RS specific Setting objects for parameter attributes.
 var (
-	rsAuthzServerURLSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityRSServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
+	rsAuthzServerURLSetting = cryptoutilAppsFrameworkServiceConfig.SetEnvAndRegisterSetting(allIdentityRSServerRegisteredSettings, &cryptoutilAppsFrameworkServiceConfig.Setting{
 		Name:        "authz-server-url",
 		Shorthand:   "",
 		Value:       defaultRSAuthzServerURL,
 		Usage:       "URL of the OAuth 2.1 authorization server for token validation",
 		Description: "AuthZ Server URL",
 	})
-	jwksEndpointSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityRSServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
+	jwksEndpointSetting = cryptoutilAppsFrameworkServiceConfig.SetEnvAndRegisterSetting(allIdentityRSServerRegisteredSettings, &cryptoutilAppsFrameworkServiceConfig.Setting{
 		Name:        "jwks-endpoint",
 		Shorthand:   "",
 		Value:       defaultJWKSEndpoint,
 		Usage:       "JWKS endpoint path for token signature validation",
 		Description: "JWKS Endpoint",
 	})
-	introspectionURLSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityRSServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
+	introspectionURLSetting = cryptoutilAppsFrameworkServiceConfig.SetEnvAndRegisterSetting(allIdentityRSServerRegisteredSettings, &cryptoutilAppsFrameworkServiceConfig.Setting{
 		Name:        "introspection-url",
 		Shorthand:   "",
 		Value:       defaultIntrospectionURL,
 		Usage:       "Token introspection endpoint URL (optional)",
 		Description: "Introspection URL",
 	})
-	allowBearerTokenSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityRSServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
+	allowBearerTokenSetting = cryptoutilAppsFrameworkServiceConfig.SetEnvAndRegisterSetting(allIdentityRSServerRegisteredSettings, &cryptoutilAppsFrameworkServiceConfig.Setting{
 		Name:        "allow-bearer-token",
 		Shorthand:   "",
 		Value:       defaultAllowBearerToken,
 		Usage:       "Allow Bearer token authentication",
 		Description: "Allow Bearer Token",
 	})
-	allowClientCertSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityRSServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
+	allowClientCertSetting = cryptoutilAppsFrameworkServiceConfig.SetEnvAndRegisterSetting(allIdentityRSServerRegisteredSettings, &cryptoutilAppsFrameworkServiceConfig.Setting{
 		Name:        "allow-client-cert",
 		Shorthand:   "",
 		Value:       defaultAllowClientCert,
 		Usage:       "Allow mTLS client certificate authentication",
 		Description: "Allow Client Cert",
 	})
-	jwksCacheTTLSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityRSServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
+	jwksCacheTTLSetting = cryptoutilAppsFrameworkServiceConfig.SetEnvAndRegisterSetting(allIdentityRSServerRegisteredSettings, &cryptoutilAppsFrameworkServiceConfig.Setting{
 		Name:        "jwks-cache-ttl",
 		Shorthand:   "",
 		Value:       defaultJWKSCacheTTL,
 		Usage:       "JWKS cache TTL in seconds",
 		Description: "JWKS Cache TTL",
 	})
-	tokenCacheTTLSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityRSServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
+	tokenCacheTTLSetting = cryptoutilAppsFrameworkServiceConfig.SetEnvAndRegisterSetting(allIdentityRSServerRegisteredSettings, &cryptoutilAppsFrameworkServiceConfig.Setting{
 		Name:        "token-cache-ttl",
 		Shorthand:   "",
 		Value:       defaultTokenCacheTTL,
 		Usage:       "Validated token cache TTL in seconds",
 		Description: "Token Cache TTL",
 	})
-	enableTokenCachingSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityRSServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
+	enableTokenCachingSetting = cryptoutilAppsFrameworkServiceConfig.SetEnvAndRegisterSetting(allIdentityRSServerRegisteredSettings, &cryptoutilAppsFrameworkServiceConfig.Setting{
 		Name:        "enable-token-caching",
 		Shorthand:   "",
 		Value:       defaultEnableTokenCaching,
@@ -118,20 +118,20 @@ var (
 // Parse parses command line arguments and returns identity-rs settings.
 func Parse(args []string, exitIfHelp bool) (*IdentityRSServerSettings, error) {
 	// Parse base template settings first.
-	baseSettings, err := cryptoutilAppsTemplateServiceConfig.Parse(args, exitIfHelp)
+	baseSettings, err := cryptoutilAppsFrameworkServiceConfig.Parse(args, exitIfHelp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template settings: %w", err)
 	}
 
 	// Register identity-rs specific flags.
-	pflag.StringP(rsAuthzServerURLSetting.Name, rsAuthzServerURLSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(rsAuthzServerURLSetting), rsAuthzServerURLSetting.Description)
-	pflag.StringP(jwksEndpointSetting.Name, jwksEndpointSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(jwksEndpointSetting), jwksEndpointSetting.Description)
-	pflag.StringP(introspectionURLSetting.Name, introspectionURLSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(introspectionURLSetting), introspectionURLSetting.Description)
-	pflag.BoolP(allowBearerTokenSetting.Name, allowBearerTokenSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsBoolSetting(allowBearerTokenSetting), allowBearerTokenSetting.Description)
-	pflag.BoolP(allowClientCertSetting.Name, allowClientCertSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsBoolSetting(allowClientCertSetting), allowClientCertSetting.Description)
-	pflag.IntP(jwksCacheTTLSetting.Name, jwksCacheTTLSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(jwksCacheTTLSetting), jwksCacheTTLSetting.Description)
-	pflag.IntP(tokenCacheTTLSetting.Name, tokenCacheTTLSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(tokenCacheTTLSetting), tokenCacheTTLSetting.Description)
-	pflag.BoolP(enableTokenCachingSetting.Name, enableTokenCachingSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsBoolSetting(enableTokenCachingSetting), enableTokenCachingSetting.Description)
+	pflag.StringP(rsAuthzServerURLSetting.Name, rsAuthzServerURLSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(rsAuthzServerURLSetting), rsAuthzServerURLSetting.Description)
+	pflag.StringP(jwksEndpointSetting.Name, jwksEndpointSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(jwksEndpointSetting), jwksEndpointSetting.Description)
+	pflag.StringP(introspectionURLSetting.Name, introspectionURLSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(introspectionURLSetting), introspectionURLSetting.Description)
+	pflag.BoolP(allowBearerTokenSetting.Name, allowBearerTokenSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsBoolSetting(allowBearerTokenSetting), allowBearerTokenSetting.Description)
+	pflag.BoolP(allowClientCertSetting.Name, allowClientCertSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsBoolSetting(allowClientCertSetting), allowClientCertSetting.Description)
+	pflag.IntP(jwksCacheTTLSetting.Name, jwksCacheTTLSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsIntSetting(jwksCacheTTLSetting), jwksCacheTTLSetting.Description)
+	pflag.IntP(tokenCacheTTLSetting.Name, tokenCacheTTLSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsIntSetting(tokenCacheTTLSetting), tokenCacheTTLSetting.Description)
+	pflag.BoolP(enableTokenCachingSetting.Name, enableTokenCachingSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsBoolSetting(enableTokenCachingSetting), enableTokenCachingSetting.Description)
 
 	// Parse flags.
 	pflag.Parse()
@@ -143,7 +143,7 @@ func Parse(args []string, exitIfHelp bool) (*IdentityRSServerSettings, error) {
 
 	// Create identity-rs settings.
 	settings := &IdentityRSServerSettings{
-		ServiceTemplateServerSettings: baseSettings,
+		ServiceFrameworkServerSettings: baseSettings,
 		AuthzServerURL:                viper.GetString(rsAuthzServerURLSetting.Name),
 		JWKSEndpoint:                  viper.GetString(jwksEndpointSetting.Name),
 		IntrospectionURL:              viper.GetString(introspectionURLSetting.Name),
@@ -248,14 +248,14 @@ func maskEmpty(value, defaultValue string) string {
 // Returns directly populated IdentityRSServerSettings matching Parse() behavior.
 func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *IdentityRSServerSettings {
 	// Get base template config.
-	baseConfig := cryptoutilAppsTemplateServiceConfig.NewTestConfig(bindAddr, bindPort, devMode)
+	baseConfig := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(bindAddr, bindPort, devMode)
 
 	// Override template defaults with identity-rs specific values.
 	baseConfig.BindPublicPort = bindPort
 	baseConfig.OTLPService = cryptoutilSharedMagic.OTLPServiceIdentityRS
 
 	return &IdentityRSServerSettings{
-		ServiceTemplateServerSettings: baseConfig,
+		ServiceFrameworkServerSettings: baseConfig,
 		AuthzServerURL:                defaultRSAuthzServerURL,
 		JWKSEndpoint:                  defaultJWKSEndpoint,
 		IntrospectionURL:              defaultIntrospectionURL,

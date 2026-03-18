@@ -20,11 +20,11 @@ import (
 	cryptoutilKmsServerMiddleware "cryptoutil/internal/apps/sm/kms/server/middleware"
 	cryptoutilAppsSmKmsServerRepository "cryptoutil/internal/apps/sm/kms/server/repository"
 	cryptoutilOrmRepository "cryptoutil/internal/apps/sm/kms/server/repository/orm"
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
-	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilAppsTemplateServiceServerBuilder "cryptoutil/internal/apps/template/service/server/builder"
-	cryptoutilAppsTemplateServiceServerMiddleware "cryptoutil/internal/apps/template/service/server/middleware"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
+	cryptoutilAppsFrameworkServiceServer "cryptoutil/internal/apps/framework/service/server"
+	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
+	cryptoutilAppsFrameworkServiceServerBuilder "cryptoutil/internal/apps/framework/service/server/builder"
+	cryptoutilAppsFrameworkServiceServerMiddleware "cryptoutil/internal/apps/framework/service/server/middleware"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
@@ -34,8 +34,8 @@ import (
 
 // KMSServer wraps the template's ServerBuilder infrastructure with KMS-specific services.
 type KMSServer struct {
-	settings  *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
-	resources *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources
+	settings  *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings
+	resources *cryptoutilAppsFrameworkServiceServerBuilder.ServiceResources
 	ready     atomic.Bool
 }
 
@@ -43,7 +43,7 @@ type KMSServer struct {
 // All KMS-specific services (OrmRepository, BusinessLogicService) are created inside the RouteRegistration callback using builder-provided resources.
 func NewKMSServer(
 	ctx context.Context,
-	settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings,
+	settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings,
 ) (*KMSServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
@@ -53,10 +53,10 @@ func NewKMSServer(
 		return nil, fmt.Errorf("settings cannot be nil")
 	}
 
-	resources, err := cryptoutilAppsTemplateServiceServerBuilder.Build(ctx, settings, &cryptoutilAppsTemplateServiceServerBuilder.DomainConfig{
+	resources, err := cryptoutilAppsFrameworkServiceServerBuilder.Build(ctx, settings, &cryptoutilAppsFrameworkServiceServerBuilder.DomainConfig{
 		MigrationsFS:   cryptoutilAppsSmKmsServerRepository.MigrationsFS,
 		MigrationsPath: "migrations",
-		RouteRegistration: func(publicServerBase *cryptoutilAppsTemplateServiceServer.PublicServerBase, res *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources) error {
+		RouteRegistration: func(publicServerBase *cryptoutilAppsFrameworkServiceServer.PublicServerBase, res *cryptoutilAppsFrameworkServiceServerBuilder.ServiceResources) error {
 			ormRepo, err := cryptoutilOrmRepository.NewOrmRepository(ctx, res.TelemetryService, res.DB, res.JWKGenService, settings.VerboseMode)
 			if err != nil {
 				return fmt.Errorf("failed to create orm repository: %w", err)
@@ -95,9 +95,9 @@ func NewKMSServer(
 // so KMS business logic can continue to use GetRealmContext(ctx).
 func tenantContextBridgeMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		tid, ok := c.Locals(cryptoutilAppsTemplateServiceServerMiddleware.ContextKeyTenantID).(googleUuid.UUID)
+		tid, ok := c.Locals(cryptoutilAppsFrameworkServiceServerMiddleware.ContextKeyTenantID).(googleUuid.UUID)
 		if ok && tid != googleUuid.Nil {
-			rid, _ := c.Locals(cryptoutilAppsTemplateServiceServerMiddleware.ContextKeyRealmID).(googleUuid.UUID)
+			rid, _ := c.Locals(cryptoutilAppsFrameworkServiceServerMiddleware.ContextKeyRealmID).(googleUuid.UUID)
 			rc := &cryptoutilKmsServerMiddleware.RealmContext{
 				TenantID: tid,
 				RealmID:  rid,
@@ -114,8 +114,8 @@ func tenantContextBridgeMiddleware() fiber.Handler {
 func registerKMSRoutes(
 	app *fiber.App,
 	bizLogicService *cryptoutilKmsServerBusinesslogic.BusinessLogicService,
-	settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings,
-	res *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources,
+	settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings,
+	res *cryptoutilAppsFrameworkServiceServerBuilder.ServiceResources,
 ) error {
 	// Create the OpenAPI strict server handler.
 	openapiStrictServer := cryptoutilKmsServerHandler.NewOpenapiStrictServer(bizLogicService)
@@ -131,8 +131,8 @@ func registerKMSRoutes(
 	)
 
 	if res != nil && res.SessionManager != nil {
-		browserSessionMW := cryptoutilAppsTemplateServiceServerMiddleware.BrowserSessionMiddleware(res.SessionManager)
-		serviceSessionMW := cryptoutilAppsTemplateServiceServerMiddleware.ServiceSessionMiddleware(res.SessionManager)
+		browserSessionMW := cryptoutilAppsFrameworkServiceServerMiddleware.BrowserSessionMiddleware(res.SessionManager)
+		serviceSessionMW := cryptoutilAppsFrameworkServiceServerMiddleware.ServiceSessionMiddleware(res.SessionManager)
 		browserMiddlewares = []cryptoutilKmsServer.MiddlewareFunc{cryptoutilKmsServer.MiddlewareFunc(browserSessionMW), bridgeMW}
 		serviceMiddlewares = []cryptoutilKmsServer.MiddlewareFunc{cryptoutilKmsServer.MiddlewareFunc(serviceSessionMW), bridgeMW}
 	}
@@ -236,12 +236,12 @@ func (s *KMSServer) AdminBaseURL() string {
 }
 
 // Resources returns the service resources from ServerBuilder.
-func (s *KMSServer) Resources() *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources {
+func (s *KMSServer) Resources() *cryptoutilAppsFrameworkServiceServerBuilder.ServiceResources {
 	return s.resources
 }
 
 // Settings returns the server settings.
-func (s *KMSServer) Settings() *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings {
+func (s *KMSServer) Settings() *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings {
 	return s.settings
 }
 
@@ -264,7 +264,7 @@ func (s *KMSServer) DB() *gorm.DB {
 }
 
 // App returns the application wrapper (for tests).
-func (s *KMSServer) App() *cryptoutilAppsTemplateServiceServer.Application {
+func (s *KMSServer) App() *cryptoutilAppsFrameworkServiceServer.Application {
 	if s.resources != nil {
 		return s.resources.Application
 	}
@@ -321,7 +321,7 @@ func (s *KMSServer) Telemetry() *cryptoutilSharedTelemetry.TelemetryService {
 }
 
 // Barrier returns the barrier (encryption-at-rest) service used by this server.
-func (s *KMSServer) Barrier() *cryptoutilAppsTemplateServiceServerBarrier.Service {
+func (s *KMSServer) Barrier() *cryptoutilAppsFrameworkServiceServerBarrier.Service {
 	if s.resources != nil {
 		return s.resources.BarrierService
 	}
@@ -330,4 +330,4 @@ func (s *KMSServer) Barrier() *cryptoutilAppsTemplateServiceServerBarrier.Servic
 }
 
 // Compile-time assertion: KMSServer must implement ServiceServer.
-var _ cryptoutilAppsTemplateServiceServer.ServiceServer = (*KMSServer)(nil)
+var _ cryptoutilAppsFrameworkServiceServer.ServiceServer = (*KMSServer)(nil)

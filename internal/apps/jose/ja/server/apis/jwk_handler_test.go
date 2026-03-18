@@ -8,7 +8,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose/ja/model"
-	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 
 	fiber "github.com/gofiber/fiber/v2"
@@ -261,7 +261,7 @@ func setupTestHandler() (*JWKHandler, *MockElasticJWKRepository, *MockMaterialJW
 	jwkGenService := &cryptoutilSharedCryptoJose.JWKGenService{}
 
 	// Create minimal BarrierService for testing.
-	barrierService := &cryptoutilAppsTemplateServiceServerBarrier.Service{}
+	barrierService := &cryptoutilAppsFrameworkServiceServerBarrier.Service{}
 
 	handler := NewJWKHandler(
 		elasticRepo,

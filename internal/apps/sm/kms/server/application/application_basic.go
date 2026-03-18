@@ -10,8 +10,8 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilUnsealKeysService "cryptoutil/internal/apps/template/service/server/barrier/unsealkeysservice"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
+	cryptoutilUnsealKeysService "cryptoutil/internal/apps/framework/service/server/barrier/unsealkeysservice"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
@@ -24,7 +24,7 @@ type ServerApplicationBasic struct {
 }
 
 // StartServerApplicationBasic initializes and starts a basic server application with essential services.
-func StartServerApplicationBasic(ctx context.Context, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) (*ServerApplicationBasic, error) {
+func StartServerApplicationBasic(ctx context.Context, settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*ServerApplicationBasic, error) {
 	serverApplicationBasic := &ServerApplicationBasic{}
 
 	telemetryService, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, settings.ToTelemetrySettings())

@@ -11,8 +11,8 @@ import (
 	"time"
 
 	cryptoutilAppsSkeletonTemplateServerConfig "cryptoutil/internal/apps/skeleton/template/server/config"
-	cryptoutilContract "cryptoutil/internal/apps/template/service/testing/contract"
-	cryptoutilTestingTestserver "cryptoutil/internal/apps/template/service/testing/testserver"
+	cryptoutilContract "cryptoutil/internal/apps/framework/service/testing/contract"
+	cryptoutilTestingTestserver "cryptoutil/internal/apps/framework/service/testing/testserver"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"

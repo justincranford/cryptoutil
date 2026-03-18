@@ -11,7 +11,7 @@ import (
 
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilAppsTemplateServiceClient "cryptoutil/internal/apps/template/service/client"
+	cryptoutilAppsFrameworkServiceClient "cryptoutil/internal/apps/framework/service/client"
 )
 
 // jsonMarshalFn is an injectable JSON marshal function for testing error paths.
@@ -34,7 +34,7 @@ func SendMessage(client *http.Client, baseURL, message, token string, receiverID
 		return "", fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	resp, err := cryptoutilAppsTemplateServiceClient.SendAuthenticatedRequest(client, http.MethodPut, baseURL+"/service/api/v1/messages/tx", token, reqJSON)
+	resp, err := cryptoutilAppsFrameworkServiceClient.SendAuthenticatedRequest(client, http.MethodPut, baseURL+"/service/api/v1/messages/tx", token, reqJSON)
 	if err != nil {
 		return "", fmt.Errorf("failed to send message: %w", err)
 	}
@@ -46,7 +46,7 @@ func SendMessage(client *http.Client, baseURL, message, token string, receiverID
 	}
 
 	var respBody map[string]string
-	if err := cryptoutilAppsTemplateServiceClient.DecodeJSONResponse(resp, &respBody); err != nil {
+	if err := cryptoutilAppsFrameworkServiceClient.DecodeJSONResponse(resp, &respBody); err != nil {
 		return "", fmt.Errorf("failed to decode response: %w", err)
 	}
 
@@ -60,7 +60,7 @@ func SendMessage(client *http.Client, baseURL, message, token string, receiverID
 
 // ReceiveMessagesService retrieves messages for the specified receiver via /service/api/v1/messages/rx.
 func ReceiveMessagesService(client *http.Client, baseURL, token string) ([]map[string]any, error) {
-	resp, err := cryptoutilAppsTemplateServiceClient.SendAuthenticatedRequest(client, http.MethodGet, baseURL+"/service/api/v1/messages/rx", token, nil)
+	resp, err := cryptoutilAppsFrameworkServiceClient.SendAuthenticatedRequest(client, http.MethodGet, baseURL+"/service/api/v1/messages/rx", token, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to receive messages: %w", err)
 	}
@@ -72,7 +72,7 @@ func ReceiveMessagesService(client *http.Client, baseURL, token string) ([]map[s
 	}
 
 	var respBody map[string][]map[string]any
-	if err := cryptoutilAppsTemplateServiceClient.DecodeJSONResponse(resp, &respBody); err != nil {
+	if err := cryptoutilAppsFrameworkServiceClient.DecodeJSONResponse(resp, &respBody); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
@@ -86,7 +86,7 @@ func ReceiveMessagesService(client *http.Client, baseURL, token string) ([]map[s
 
 // DeleteMessageService deletes a message via /service/api/v1/messages/:id.
 func DeleteMessageService(client *http.Client, baseURL, messageID, token string) error {
-	resp, err := cryptoutilAppsTemplateServiceClient.SendAuthenticatedRequest(client, http.MethodDelete, baseURL+"/service/api/v1/messages/"+messageID, token, nil)
+	resp, err := cryptoutilAppsFrameworkServiceClient.SendAuthenticatedRequest(client, http.MethodDelete, baseURL+"/service/api/v1/messages/"+messageID, token, nil)
 	if err != nil {
 		return fmt.Errorf("failed to delete message: %w", err)
 	}
@@ -117,7 +117,7 @@ func SendMessageBrowser(client *http.Client, baseURL, message, token string, rec
 		return "", fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	resp, err := cryptoutilAppsTemplateServiceClient.SendAuthenticatedRequest(client, http.MethodPut, baseURL+"/browser/api/v1/messages/tx", token, reqJSON)
+	resp, err := cryptoutilAppsFrameworkServiceClient.SendAuthenticatedRequest(client, http.MethodPut, baseURL+"/browser/api/v1/messages/tx", token, reqJSON)
 	if err != nil {
 		return "", fmt.Errorf("failed to send message: %w", err)
 	}
@@ -129,7 +129,7 @@ func SendMessageBrowser(client *http.Client, baseURL, message, token string, rec
 	}
 
 	var respBody map[string]string
-	if err := cryptoutilAppsTemplateServiceClient.DecodeJSONResponse(resp, &respBody); err != nil {
+	if err := cryptoutilAppsFrameworkServiceClient.DecodeJSONResponse(resp, &respBody); err != nil {
 		return "", fmt.Errorf("failed to decode response: %w", err)
 	}
 
@@ -143,7 +143,7 @@ func SendMessageBrowser(client *http.Client, baseURL, message, token string, rec
 
 // ReceiveMessagesBrowser retrieves messages for the specified receiver via /browser/api/v1/messages/rx.
 func ReceiveMessagesBrowser(client *http.Client, baseURL, token string) ([]map[string]any, error) {
-	resp, err := cryptoutilAppsTemplateServiceClient.SendAuthenticatedRequest(client, http.MethodGet, baseURL+"/browser/api/v1/messages/rx", token, nil)
+	resp, err := cryptoutilAppsFrameworkServiceClient.SendAuthenticatedRequest(client, http.MethodGet, baseURL+"/browser/api/v1/messages/rx", token, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to receive messages: %w", err)
 	}
@@ -155,7 +155,7 @@ func ReceiveMessagesBrowser(client *http.Client, baseURL, token string) ([]map[s
 	}
 
 	var respBody map[string][]map[string]any
-	if err := cryptoutilAppsTemplateServiceClient.DecodeJSONResponse(resp, &respBody); err != nil {
+	if err := cryptoutilAppsFrameworkServiceClient.DecodeJSONResponse(resp, &respBody); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
@@ -169,7 +169,7 @@ func ReceiveMessagesBrowser(client *http.Client, baseURL, token string) ([]map[s
 
 // DeleteMessageBrowser deletes a message via /browser/api/v1/messages/:id.
 func DeleteMessageBrowser(client *http.Client, baseURL, messageID, token string) error {
-	resp, err := cryptoutilAppsTemplateServiceClient.SendAuthenticatedRequest(client, http.MethodDelete, baseURL+"/browser/api/v1/messages/"+messageID, token, nil)
+	resp, err := cryptoutilAppsFrameworkServiceClient.SendAuthenticatedRequest(client, http.MethodDelete, baseURL+"/browser/api/v1/messages/"+messageID, token, nil)
 	if err != nil {
 		return fmt.Errorf("failed to delete message: %w", err)
 	}

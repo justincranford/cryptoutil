@@ -16,7 +16,7 @@ func TestNewTestConfig(t *testing.T) {
 	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
 	require.NotNil(t, cfg, "config should not be nil")
-	require.NotNil(t, cfg.ServiceTemplateServerSettings, "base config should not be nil")
+	require.NotNil(t, cfg.ServiceFrameworkServerSettings, "base config should not be nil")
 	require.Equal(t, cryptoutilSharedMagic.IPv4Loopback, cfg.BindPublicAddress, "bind address should match")
 	require.Equal(t, uint16(0), cfg.BindPublicPort, "bind port should be 0 for dynamic allocation")
 	require.True(t, cfg.DevMode, "dev mode should be enabled")

@@ -18,7 +18,7 @@ import (
 
 	cryptoutilAppsIdentityIdpServer "cryptoutil/internal/apps/identity/idp/server"
 	cryptoutilAppsIdentityIdpServerConfig "cryptoutil/internal/apps/identity/idp/server/config"
-	cryptoutilTemplateCli "cryptoutil/internal/apps/template/service/cli"
+	cryptoutilTemplateCli "cryptoutil/internal/apps/framework/service/cli"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 

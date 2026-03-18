@@ -14,8 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsJoseJaServerConfig "cryptoutil/internal/apps/jose/ja/server/config"
-	cryptoutilContract "cryptoutil/internal/apps/template/service/testing/contract"
-	cryptoutilTestingTestserver "cryptoutil/internal/apps/template/service/testing/testserver"
+	cryptoutilContract "cryptoutil/internal/apps/framework/service/testing/contract"
+	cryptoutilTestingTestserver "cryptoutil/internal/apps/framework/service/testing/testserver"
 )
 
 func TestJoseJAServer_Lifecycle(t *testing.T) {

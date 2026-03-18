@@ -17,8 +17,8 @@ import (
 	_ "modernc.org/sqlite"             // CGO-free SQLite driver
 
 	cryptoutilKMSServer "cryptoutil/internal/apps/sm/kms/server"
-	cryptoutilTemplateCli "cryptoutil/internal/apps/template/service/cli"
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilTemplateCli "cryptoutil/internal/apps/framework/service/cli"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/spf13/pflag"
@@ -65,7 +65,7 @@ func kmsServerStart(args []string, stdout, stderr io.Writer) int {
 
 	fs := pflag.NewFlagSet("sm-kms-server", pflag.ContinueOnError)
 
-	settings, err := cryptoutilAppsTemplateServiceConfig.ParseWithFlagSet(fs, argsWithSubcommand, true)
+	settings, err := cryptoutilAppsFrameworkServiceConfig.ParseWithFlagSet(fs, argsWithSubcommand, true)
 	if err != nil {
 		_, _ = fmt.Fprintf(stderr, "❌ Failed to parse configuration: %v\n", err)
 

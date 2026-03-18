@@ -27,7 +27,7 @@
 - **Owner**: LLM Agent
 - **Estimated**: 30m
 - **Description**: In framework-v1/tasks.md, update Phase 5 tasks 5.1-5.6 from ❌ to ✅.
-  All packages exist in `internal/apps/template/service/testing/` but status wasn't updated.
+  All packages exist in `internal/apps/framework/service/testing/` but status wasn't updated.
 - **Acceptance Criteria**:
   - [x] Tasks 5.1-5.6 updated from ❌ to ✅ with actual completion evidence
   - [x] Task count header updated from 28/48 to 48/48 (100%)
@@ -442,7 +442,7 @@ These tasks are NOT executed now — they are reference stubs for future plans.
 - **Status**: 📋 DEFERRED (not executing now)
 - **Trigger**: When external consumers of the framework are identified, OR when >15 services exist
 - **Effort**: 1-4 weeks
-- **Approach**: Move `internal/apps/template/` to separate Go module `github.com/user/cryptoutil-framework`.
+- **Approach**: Move `internal/apps/framework/` to separate Go module `github.com/user/cryptoutil-framework`.
 
 ---
 

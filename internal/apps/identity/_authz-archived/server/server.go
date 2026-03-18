@@ -11,12 +11,12 @@ import (
 	"gorm.io/gorm"
 
 	cryptoutilAppsIdentityAuthzServerConfig "cryptoutil/internal/apps/identity/authz/server/config"
-	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
-	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilAppsTemplateServiceServerBuilder "cryptoutil/internal/apps/template/service/server/builder"
-	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
-	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilAppsTemplateServiceServerService "cryptoutil/internal/apps/template/service/server/service"
+	cryptoutilAppsFrameworkServiceServer "cryptoutil/internal/apps/framework/service/server"
+	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
+	cryptoutilAppsFrameworkServiceServerBuilder "cryptoutil/internal/apps/framework/service/server/builder"
+	cryptoutilAppsFrameworkServiceServerBusinesslogic "cryptoutil/internal/apps/framework/service/server/businesslogic"
+	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
+	cryptoutilAppsFrameworkServiceServerService "cryptoutil/internal/apps/framework/service/server/service"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
@@ -24,7 +24,7 @@ import (
 // AuthzServer represents the identity-authz service application.
 // This is an OAuth 2.1 Authorization Server with OIDC Discovery support.
 type AuthzServer struct {
-	app *cryptoutilAppsTemplateServiceServer.Application
+	app *cryptoutilAppsFrameworkServiceServer.Application
 	db  *gorm.DB
 
 	// Authz configuration.
@@ -33,12 +33,12 @@ type AuthzServer struct {
 	// Template services.
 	telemetryService      *cryptoutilSharedTelemetry.TelemetryService
 	jwkGenService         *cryptoutilSharedCryptoJose.JWKGenService
-	barrierService        *cryptoutilAppsTemplateServiceServerBarrier.Service
-	sessionManagerService *cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService
-	realmService          cryptoutilAppsTemplateServiceServerService.RealmService
+	barrierService        *cryptoutilAppsFrameworkServiceServerBarrier.Service
+	sessionManagerService *cryptoutilAppsFrameworkServiceServerBusinesslogic.SessionManagerService
+	realmService          cryptoutilAppsFrameworkServiceServerService.RealmService
 
 	// Template repositories.
-	realmRepo cryptoutilAppsTemplateServiceServerRepository.TenantRealmRepository
+	realmRepo cryptoutilAppsFrameworkServiceServerRepository.TenantRealmRepository
 
 	// Shutdown functions.
 	shutdownCore      func()
@@ -54,8 +54,8 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsIdentityAuthzServerCo
 		return nil, fmt.Errorf("config cannot be nil")
 	}
 
-	resources, err := cryptoutilAppsTemplateServiceServerBuilder.Build(ctx, cfg.ServiceTemplateServerSettings, &cryptoutilAppsTemplateServiceServerBuilder.DomainConfig{
-		RouteRegistration: func(base *cryptoutilAppsTemplateServiceServer.PublicServerBase, _ *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources) error {
+	resources, err := cryptoutilAppsFrameworkServiceServerBuilder.Build(ctx, cfg.ServiceFrameworkServerSettings, &cryptoutilAppsFrameworkServiceServerBuilder.DomainConfig{
+		RouteRegistration: func(base *cryptoutilAppsFrameworkServiceServer.PublicServerBase, _ *cryptoutilAppsFrameworkServiceServerBuilder.ServiceResources) error {
 			// Create public server with authz handlers.
 			publicServer := NewPublicServer(base, cfg)
 
@@ -128,7 +128,7 @@ func (s *AuthzServer) DB() *gorm.DB {
 }
 
 // App returns the application wrapper (for tests).
-func (s *AuthzServer) App() *cryptoutilAppsTemplateServiceServer.Application {
+func (s *AuthzServer) App() *cryptoutilAppsFrameworkServiceServer.Application {
 	return s.app
 }
 
@@ -143,7 +143,7 @@ func (s *AuthzServer) Telemetry() *cryptoutilSharedTelemetry.TelemetryService {
 }
 
 // Barrier returns the barrier service (for tests).
-func (s *AuthzServer) Barrier() *cryptoutilAppsTemplateServiceServerBarrier.Service {
+func (s *AuthzServer) Barrier() *cryptoutilAppsFrameworkServiceServerBarrier.Service {
 	return s.barrierService
 }
 
@@ -197,4 +197,4 @@ func (s *AuthzServer) AdminTLSRootCAPool() *x509.CertPool {
 }
 
 // Compile-time assertion: AuthzServer must implement ServiceServer.
-var _ cryptoutilAppsTemplateServiceServer.ServiceServer = (*AuthzServer)(nil)
+var _ cryptoutilAppsFrameworkServiceServer.ServiceServer = (*AuthzServer)(nil)

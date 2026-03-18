@@ -21,7 +21,7 @@ func TestParseWithFlagSet_Defaults(t *testing.T) {
 	cfg, err := ParseWithFlagSet(fs, []string{"start", "--profile=test"}, false)
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
-	require.NotNil(t, cfg.ServiceTemplateServerSettings)
+	require.NotNil(t, cfg.ServiceFrameworkServerSettings)
 	require.Equal(t, cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, cfg.OTLPService)
 	require.Equal(t, uint16(cryptoutilSharedMagic.SkeletonTemplateServicePort), cfg.BindPublicPort)
 }
@@ -53,7 +53,7 @@ func TestNewTestConfig(t *testing.T) {
 
 	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	require.NotNil(t, cfg)
-	require.NotNil(t, cfg.ServiceTemplateServerSettings)
+	require.NotNil(t, cfg.ServiceFrameworkServerSettings)
 	require.Equal(t, cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, cfg.OTLPService)
 	require.Equal(t, uint16(0), cfg.BindPublicPort)
 }
@@ -63,7 +63,7 @@ func TestDefaultTestConfig(t *testing.T) {
 
 	cfg := DefaultTestConfig()
 	require.NotNil(t, cfg)
-	require.NotNil(t, cfg.ServiceTemplateServerSettings)
+	require.NotNil(t, cfg.ServiceFrameworkServerSettings)
 	require.Equal(t, cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, cfg.OTLPService)
 }
 
@@ -71,7 +71,7 @@ func TestValidateSettings_NilBase(t *testing.T) {
 	t.Parallel()
 
 	err := validateSettings(&SkeletonTemplateServerSettings{
-		ServiceTemplateServerSettings: nil,
+		ServiceFrameworkServerSettings: nil,
 	})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "base template settings cannot be nil")
@@ -85,6 +85,6 @@ func TestParse_Delegates(t *testing.T) {
 	cfg, err := Parse([]string{"start", "--profile=test"}, false)
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
-	require.NotNil(t, cfg.ServiceTemplateServerSettings)
+	require.NotNil(t, cfg.ServiceFrameworkServerSettings)
 	require.Equal(t, cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, cfg.OTLPService)
 }

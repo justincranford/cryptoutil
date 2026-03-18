@@ -3,7 +3,7 @@
 // Package service_contract_compliance verifies that all services have a
 // compile-time interface assertion: `var _ ServiceServer = (*XxxServer)(nil)`.
 // This assertion ensures services satisfy the ServiceServer contract defined in
-// internal/apps/template/service/server/contract.go.
+// internal/apps/framework/service/server/contract.go.
 package service_contract_compliance
 
 import (

@@ -14,14 +14,14 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
-	cryptoutilAppsTemplateServiceTestingHttpservertests "cryptoutil/internal/apps/template/service/testing/httpservertests"
+	cryptoutilAppsFrameworkServiceTestingHttpservertests "cryptoutil/internal/apps/framework/service/testing/httpservertests"
 )
 
 // TestAdminServer_Start_NilContext tests Start with nil context.
 func TestAdminServer_Start_NilContext(t *testing.T) {
 	t.Parallel()
 
-	createServer := func(t *testing.T) cryptoutilAppsTemplateServiceTestingHttpservertests.HTTPServer {
+	createServer := func(t *testing.T) cryptoutilAppsFrameworkServiceTestingHttpservertests.HTTPServer {
 		t.Helper()
 
 		cfg := cryptoutilIdentityConfig.RequireNewForTest("test_idp_admin_start_nil_ctx")
@@ -32,7 +32,7 @@ func TestAdminServer_Start_NilContext(t *testing.T) {
 		return server
 	}
 
-	cryptoutilAppsTemplateServiceTestingHttpservertests.TestStartNilContext(t, createServer)
+	cryptoutilAppsFrameworkServiceTestingHttpservertests.TestStartNilContext(t, createServer)
 }
 
 // TestAdminServer_LoadTLSConfig_InvalidCertFile tests loadTLSConfig with invalid certificate file.

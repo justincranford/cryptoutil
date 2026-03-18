@@ -401,8 +401,8 @@ func TestRegister_UnverifiedClientExpiryDuration(t *testing.T) {
 **Files to Modify**:
 - `internal/apps/jose/ja/repository/audit_repository_test.go` (3 tests)
 - `internal/apps/jose/ja/server/server_test.go` (1 test)
-- `internal/apps/template/service/server/service/realm_service_test.go` (1 test)
-- `internal/apps/template/service/server/service/registration_service_test.go` (1 test)
+- `internal/apps/framework/service/server/service/realm_service_test.go` (1 test)
+- `internal/apps/framework/service/server/service/registration_service_test.go` (1 test)
 
 **Expected Outcome**:
 - JOSE-JA efficacy: 96.15% → ~98% (kill 3 of 4 lived)
@@ -417,7 +417,7 @@ func TestRegister_UnverifiedClientExpiryDuration(t *testing.T) {
 **Approach**: Comprehensive edge case validation suite
 
 **Files to Modify**:
-- `internal/apps/template/service/config/config_loading_test.go`
+- `internal/apps/framework/service/config/config_loading_test.go`
 
 **Expected Outcome**:
 - Template efficacy: ~93% → ~95% (kill 6 more lived)

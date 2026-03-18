@@ -80,7 +80,7 @@ linters:
       - path: "internal/identity/rotation/secret_rotation_service\\.go$"
         linters: [nilnil]
       # Exclude nilnil from realm_service.go (intentional "no realms found" pattern).
-      - path: "internal/apps/template/service/server/service/realm_service\\.go$"
+      - path: "internal/apps/framework/service/server/service/realm_service\\.go$"
         linters: [nilnil]
       # Exclude nilerr from jwk_util.go (intentional type-check pattern).
       - path: "internal/jose/jwk_util\\.go$"
@@ -131,10 +131,10 @@ linters:
       - path: "internal/apps/sm/im/server/businesslogic/session_manager_service\\.go$"
         linters: [wrapcheck]
       # Exclude wrapcheck from template session manager barrier wrappers (internal package delegation).
-      - path: "internal/apps/template/service/server/businesslogic/session_manager\\.go$"
+      - path: "internal/apps/framework/service/server/businesslogic/session_manager\\.go$"
         linters: [wrapcheck]
       # Exclude wrapcheck from template registration handlers (Fiber HTTP response helpers).
-      - path: "internal/apps/template/service/server/apis/registration_handlers\\.go$"
+      - path: "internal/apps/framework/service/server/apis/registration_handlers\\.go$"
         linters: [wrapcheck]
       # Exclude wrapcheck from identity-rs public server (Fiber HTTP response helpers).
       - path: "internal/apps/identity/rs/server/public_server\\.go$"
@@ -471,10 +471,10 @@ linters:
           alias: cryptoutilAppsJoseJaServerApis
         - pkg: "cryptoutil/internal/apps/jose/ja/server/config"
           alias: cryptoutilAppsJoseJaServerConfig
-        - pkg: "cryptoutil/internal/apps/template/service/server"
-          alias: cryptoutilAppsTemplateServiceServer
-        - pkg: "cryptoutil/internal/apps/template/service/server/repository"
-          alias: cryptoutilAppsTemplateServiceServerRepository
+        - pkg: "cryptoutil/internal/apps/framework/service/server"
+          alias: cryptoutilAppsFrameworkServiceServer
+        - pkg: "cryptoutil/internal/apps/framework/service/server/repository"
+          alias: cryptoutilAppsFrameworkServiceServerRepository
         - pkg: "cryptoutil/internal/apps/pki/ca/server"
           alias: cryptoutilAppsCaServer
         - pkg: "cryptoutil/internal/apps/sm/im/client"
@@ -493,42 +493,42 @@ linters:
           alias: cryptoutilAppsIdentitySpaServerConfig
         - pkg: "cryptoutil/internal/apps/jose/ja/domain"
           alias: cryptoutilAppsJoseJaDomain
-        - pkg: "cryptoutil/internal/apps/template/service/client"
-          alias: cryptoutilAppsTemplateServiceClient
-        - pkg: "cryptoutil/internal/apps/template/service/config"
-          alias: cryptoutilAppsTemplateServiceConfig
-        - pkg: "cryptoutil/internal/apps/template/service/config/tls_generator"
-          alias: cryptoutilAppsTemplateServiceConfigTlsGenerator
-        - pkg: "cryptoutil/internal/apps/template/service/server/apis"
-          alias: cryptoutilAppsTemplateServiceServerApis
-        - pkg: "cryptoutil/internal/apps/template/service/server/application"
-          alias: cryptoutilAppsTemplateServiceServerApplication
-        - pkg: "cryptoutil/internal/apps/template/service/server/barrier"
-          alias: cryptoutilAppsTemplateServiceServerBarrier
-        - pkg: "cryptoutil/internal/apps/template/service/server/builder"
-          alias: cryptoutilAppsTemplateServiceServerBuilder
-        - pkg: "cryptoutil/internal/apps/template/service/server/businesslogic"
-          alias: cryptoutilAppsTemplateServiceServerBusinesslogic
-        - pkg: "cryptoutil/internal/apps/template/service/server/domain"
-          alias: cryptoutilAppsTemplateServiceServerDomain
-        - pkg: "cryptoutil/internal/apps/template/service/server/listener"
-          alias: cryptoutilAppsTemplateServiceServerListener
-        - pkg: "cryptoutil/internal/apps/template/service/server/middleware"
-          alias: cryptoutilAppsTemplateServiceServerMiddleware
-        - pkg: "cryptoutil/internal/apps/template/service/server/realms"
-          alias: cryptoutilAppsTemplateServiceServerRealms
-        - pkg: "cryptoutil/internal/apps/template/service/server/service"
-          alias: cryptoutilAppsTemplateServiceServerService
-        - pkg: "cryptoutil/internal/apps/template/service/server/testutil"
-          alias: cryptoutilAppsTemplateServiceServerTestutil
-        - pkg: "cryptoutil/internal/apps/template/service/testing/e2e"
-          alias: cryptoutilAppsTemplateServiceTestingE2e
-        - pkg: "cryptoutil/internal/apps/template/service/testing/httpservertests"
-          alias: cryptoutilAppsTemplateServiceTestingHttpservertests
-        - pkg: "cryptoutil/internal/apps/template/service/testutil"
-          alias: cryptoutilAppsTemplateServiceTestutil
-        - pkg: "cryptoutil/internal/apps/template/testing/e2e"
-          alias: cryptoutilAppsTemplateTestingE2e
+        - pkg: "cryptoutil/internal/apps/framework/service/client"
+          alias: cryptoutilAppsFrameworkServiceClient
+        - pkg: "cryptoutil/internal/apps/framework/service/config"
+          alias: cryptoutilAppsFrameworkServiceConfig
+        - pkg: "cryptoutil/internal/apps/framework/service/config/tls_generator"
+          alias: cryptoutilAppsFrameworkServiceConfigTlsGenerator
+        - pkg: "cryptoutil/internal/apps/framework/service/server/apis"
+          alias: cryptoutilAppsFrameworkServiceServerApis
+        - pkg: "cryptoutil/internal/apps/framework/service/server/application"
+          alias: cryptoutilAppsFrameworkServiceServerApplication
+        - pkg: "cryptoutil/internal/apps/framework/service/server/barrier"
+          alias: cryptoutilAppsFrameworkServiceServerBarrier
+        - pkg: "cryptoutil/internal/apps/framework/service/server/builder"
+          alias: cryptoutilAppsFrameworkServiceServerBuilder
+        - pkg: "cryptoutil/internal/apps/framework/service/server/businesslogic"
+          alias: cryptoutilAppsFrameworkServiceServerBusinesslogic
+        - pkg: "cryptoutil/internal/apps/framework/service/server/domain"
+          alias: cryptoutilAppsFrameworkServiceServerDomain
+        - pkg: "cryptoutil/internal/apps/framework/service/server/listener"
+          alias: cryptoutilAppsFrameworkServiceServerListener
+        - pkg: "cryptoutil/internal/apps/framework/service/server/middleware"
+          alias: cryptoutilAppsFrameworkServiceServerMiddleware
+        - pkg: "cryptoutil/internal/apps/framework/service/server/realms"
+          alias: cryptoutilAppsFrameworkServiceServerRealms
+        - pkg: "cryptoutil/internal/apps/framework/service/server/service"
+          alias: cryptoutilAppsFrameworkServiceServerService
+        - pkg: "cryptoutil/internal/apps/framework/service/server/testutil"
+          alias: cryptoutilAppsFrameworkServiceServerTestutil
+        - pkg: "cryptoutil/internal/apps/framework/service/testing/e2e"
+          alias: cryptoutilAppsFrameworkServiceTestingE2e
+        - pkg: "cryptoutil/internal/apps/framework/service/testing/httpservertests"
+          alias: cryptoutilAppsFrameworkServiceTestingHttpservertests
+        - pkg: "cryptoutil/internal/apps/framework/service/testutil"
+          alias: cryptoutilAppsFrameworkServiceTestutil
+        - pkg: "cryptoutil/internal/apps/framework/testing/e2e"
+          alias: cryptoutilAppsFrameworkTestingE2e
         # Cryptoutil jose
         - pkg: "cryptoutil/internal/jose/domain"
           alias: cryptoutilJoseDomain

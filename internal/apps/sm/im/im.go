@@ -17,7 +17,7 @@ import (
 
 	cryptoutilAppsSmImServer "cryptoutil/internal/apps/sm/im/server"
 	cryptoutilAppsSmImServerConfig "cryptoutil/internal/apps/sm/im/server/config"
-	cryptoutilTemplateCli "cryptoutil/internal/apps/template/service/cli"
+	cryptoutilTemplateCli "cryptoutil/internal/apps/framework/service/cli"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/spf13/pflag"
@@ -60,7 +60,7 @@ func imServiceServerStart(args []string, stdout, stderr io.Writer) int {
 
 	// Parse configuration using config.Parse() which leverages viper+pflag.
 	// The Parse() function:
-	//   1. Calls parent ServiceTemplateServerSettings.Parse() for base settings
+	//   1. Calls parent ServiceFrameworkServerSettings.Parse() for base settings
 	//   2. Adds sm-im specific flags (JWE algorithm, message constraints, JWT secret)
 	//   3. Merges config files, environment variables, and command-line flags
 	//   4. Returns fully populated SmIMServerSettings

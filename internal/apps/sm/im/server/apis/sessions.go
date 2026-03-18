@@ -6,26 +6,26 @@
 package apis
 
 import (
-	cryptoutilAppsTemplateServiceServerApis "cryptoutil/internal/apps/template/service/server/apis"
-	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
+	cryptoutilAppsFrameworkServiceServerApis "cryptoutil/internal/apps/framework/service/server/apis"
+	cryptoutilAppsFrameworkServiceServerBusinesslogic "cryptoutil/internal/apps/framework/service/server/businesslogic"
 )
 
 // SessionHandler is an alias to the template's SessionHandler.
-type SessionHandler = cryptoutilAppsTemplateServiceServerApis.SessionHandler
+type SessionHandler = cryptoutilAppsFrameworkServiceServerApis.SessionHandler
 
 // NewSessionHandler creates a new SessionHandler instance.
-func NewSessionHandler(sessionManager *cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService) *SessionHandler {
-	return cryptoutilAppsTemplateServiceServerApis.NewSessionHandler(sessionManager)
+func NewSessionHandler(sessionManager *cryptoutilAppsFrameworkServiceServerBusinesslogic.SessionManagerService) *SessionHandler {
+	return cryptoutilAppsFrameworkServiceServerApis.NewSessionHandler(sessionManager)
 }
 
 // Re-exported request/response types for session management operations.
 type (
 	// SessionIssueRequest is the request for creating a new session.
-	SessionIssueRequest = cryptoutilAppsTemplateServiceServerApis.SessionIssueRequest
+	SessionIssueRequest = cryptoutilAppsFrameworkServiceServerApis.SessionIssueRequest
 	// SessionIssueResponse is the response containing the issued session token.
-	SessionIssueResponse = cryptoutilAppsTemplateServiceServerApis.SessionIssueResponse
+	SessionIssueResponse = cryptoutilAppsFrameworkServiceServerApis.SessionIssueResponse
 	// SessionValidateRequest is the request for validating an existing session.
-	SessionValidateRequest = cryptoutilAppsTemplateServiceServerApis.SessionValidateRequest
+	SessionValidateRequest = cryptoutilAppsFrameworkServiceServerApis.SessionValidateRequest
 	// SessionValidateResponse is the response containing session validation results.
-	SessionValidateResponse = cryptoutilAppsTemplateServiceServerApis.SessionValidateResponse
+	SessionValidateResponse = cryptoutilAppsFrameworkServiceServerApis.SessionValidateResponse
 )

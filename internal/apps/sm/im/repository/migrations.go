@@ -10,17 +10,17 @@ import (
 	"fmt"
 	"io/fs"
 
-	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
 )
 
 // DatabaseType represents supported database types for sm-im.
-type DatabaseType = cryptoutilAppsTemplateServiceServerRepository.DatabaseType
+type DatabaseType = cryptoutilAppsFrameworkServiceServerRepository.DatabaseType
 
 const (
 	// DatabaseTypeSQLite represents SQLite database.
-	DatabaseTypeSQLite = cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite
+	DatabaseTypeSQLite = cryptoutilAppsFrameworkServiceServerRepository.DatabaseTypeSQLite
 	// DatabaseTypePostgreSQL represents PostgreSQL database.
-	DatabaseTypePostgreSQL = cryptoutilAppsTemplateServiceServerRepository.DatabaseTypePostgreSQL
+	DatabaseTypePostgreSQL = cryptoutilAppsFrameworkServiceServerRepository.DatabaseTypePostgreSQL
 )
 
 // MigrationsFS contains embedded sm-im specific migrations (1005-1006 only).
@@ -39,7 +39,7 @@ var MigrationsFS embed.FS
 // GetMergedMigrationsFS returns a filesystem combining template and sm-im migrations.
 // This is used by tests to access all migrations (1001-1999 template + 2001+ sm-im) in sequence.
 func GetMergedMigrationsFS() fs.FS {
-	return cryptoutilAppsTemplateServiceServerRepository.NewMergedMigrationsFS(MigrationsFS)
+	return cryptoutilAppsFrameworkServiceServerRepository.NewMergedMigrationsFS(MigrationsFS)
 }
 
 // ApplySmIMMigrations runs database migrations for sm-im service.
@@ -59,7 +59,7 @@ func GetMergedMigrationsFS() fs.FS {
 // NOTE: sm-im uses template_realms from template 1003_realms_template (NOT custom sm_im_realms table).
 func ApplySmIMMigrations(db *sql.DB, dbType DatabaseType) error {
 	// Apply all migrations in sequence (1001-1999 template + 2001+ sm-im) using merged filesystem.
-	runner := cryptoutilAppsTemplateServiceServerRepository.NewMigrationRunner(GetMergedMigrationsFS(), "migrations")
+	runner := cryptoutilAppsFrameworkServiceServerRepository.NewMigrationRunner(GetMergedMigrationsFS(), "migrations")
 
 	if err := runner.Apply(db, dbType); err != nil {
 		return fmt.Errorf("failed to apply sm-im migrations (1001-1999 + 2001+): %w", err)

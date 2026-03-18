@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/spf13/pflag"
@@ -17,7 +17,7 @@ import (
 
 // IdentityRPServerSettings contains identity-rp specific configuration.
 type IdentityRPServerSettings struct {
-	*cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
+	*cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings
 
 	// OAuth 2.1 Provider settings.
 	AuthzServerURL string // URL of the OAuth 2.1 authorization server.
@@ -40,46 +40,46 @@ const (
 	defaultSessionSecret  = ""                       // Must be configured via Docker secret.
 )
 
-var allIdentityRPServerRegisteredSettings []*cryptoutilAppsTemplateServiceConfig.Setting //nolint:gochecknoglobals
+var allIdentityRPServerRegisteredSettings []*cryptoutilAppsFrameworkServiceConfig.Setting //nolint:gochecknoglobals
 
 // Identity-RP specific Setting objects for parameter attributes.
 var (
-	authzServerURLSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityRPServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
+	authzServerURLSetting = cryptoutilAppsFrameworkServiceConfig.SetEnvAndRegisterSetting(allIdentityRPServerRegisteredSettings, &cryptoutilAppsFrameworkServiceConfig.Setting{
 		Name:        "authz-server-url",
 		Shorthand:   "",
 		Value:       defaultAuthzServerURL,
 		Usage:       "URL of the OAuth 2.1 authorization server",
 		Description: "AuthZ Server URL",
 	})
-	clientIDSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityRPServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
+	clientIDSetting = cryptoutilAppsFrameworkServiceConfig.SetEnvAndRegisterSetting(allIdentityRPServerRegisteredSettings, &cryptoutilAppsFrameworkServiceConfig.Setting{
 		Name:        "client-id",
 		Shorthand:   "",
 		Value:       defaultClientID,
 		Usage:       "OAuth 2.1 client ID for this relying party",
 		Description: "Client ID",
 	})
-	clientSecretSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityRPServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
+	clientSecretSetting = cryptoutilAppsFrameworkServiceConfig.SetEnvAndRegisterSetting(allIdentityRPServerRegisteredSettings, &cryptoutilAppsFrameworkServiceConfig.Setting{
 		Name:        "client-secret",
 		Shorthand:   "",
 		Value:       defaultClientSecret,
 		Usage:       "OAuth 2.1 client secret (use file:///run/secrets/client_secret)",
 		Description: "Client Secret",
 	})
-	redirectURISetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityRPServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
+	redirectURISetting = cryptoutilAppsFrameworkServiceConfig.SetEnvAndRegisterSetting(allIdentityRPServerRegisteredSettings, &cryptoutilAppsFrameworkServiceConfig.Setting{
 		Name:        "redirect-uri",
 		Shorthand:   "",
 		Value:       defaultRedirectURI,
 		Usage:       "OAuth 2.1 redirect URI for this relying party",
 		Description: "Redirect URI",
 	})
-	spaOriginSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityRPServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
+	spaOriginSetting = cryptoutilAppsFrameworkServiceConfig.SetEnvAndRegisterSetting(allIdentityRPServerRegisteredSettings, &cryptoutilAppsFrameworkServiceConfig.Setting{
 		Name:        "spa-origin",
 		Shorthand:   "",
 		Value:       defaultSPAOrigin,
 		Usage:       "origin of the SPA frontend for CORS",
 		Description: "SPA Origin",
 	})
-	sessionSecretSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityRPServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
+	sessionSecretSetting = cryptoutilAppsFrameworkServiceConfig.SetEnvAndRegisterSetting(allIdentityRPServerRegisteredSettings, &cryptoutilAppsFrameworkServiceConfig.Setting{
 		Name:        "session-secret",
 		Shorthand:   "",
 		Value:       defaultSessionSecret,
@@ -91,18 +91,18 @@ var (
 // Parse parses command line arguments and returns identity-rp settings.
 func Parse(args []string, exitIfHelp bool) (*IdentityRPServerSettings, error) {
 	// Parse base template settings first.
-	baseSettings, err := cryptoutilAppsTemplateServiceConfig.Parse(args, exitIfHelp)
+	baseSettings, err := cryptoutilAppsFrameworkServiceConfig.Parse(args, exitIfHelp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template settings: %w", err)
 	}
 
 	// Register identity-rp specific flags.
-	pflag.StringP(authzServerURLSetting.Name, authzServerURLSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(authzServerURLSetting), authzServerURLSetting.Description)
-	pflag.StringP(clientIDSetting.Name, clientIDSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(clientIDSetting), clientIDSetting.Description)
-	pflag.StringP(clientSecretSetting.Name, clientSecretSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(clientSecretSetting), clientSecretSetting.Description)
-	pflag.StringP(redirectURISetting.Name, redirectURISetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(redirectURISetting), redirectURISetting.Description)
-	pflag.StringP(spaOriginSetting.Name, spaOriginSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(spaOriginSetting), spaOriginSetting.Description)
-	pflag.StringP(sessionSecretSetting.Name, sessionSecretSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(sessionSecretSetting), sessionSecretSetting.Description)
+	pflag.StringP(authzServerURLSetting.Name, authzServerURLSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(authzServerURLSetting), authzServerURLSetting.Description)
+	pflag.StringP(clientIDSetting.Name, clientIDSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(clientIDSetting), clientIDSetting.Description)
+	pflag.StringP(clientSecretSetting.Name, clientSecretSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(clientSecretSetting), clientSecretSetting.Description)
+	pflag.StringP(redirectURISetting.Name, redirectURISetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(redirectURISetting), redirectURISetting.Description)
+	pflag.StringP(spaOriginSetting.Name, spaOriginSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(spaOriginSetting), spaOriginSetting.Description)
+	pflag.StringP(sessionSecretSetting.Name, sessionSecretSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(sessionSecretSetting), sessionSecretSetting.Description)
 
 	// Parse flags.
 	pflag.Parse()
@@ -114,7 +114,7 @@ func Parse(args []string, exitIfHelp bool) (*IdentityRPServerSettings, error) {
 
 	// Create identity-rp settings.
 	settings := &IdentityRPServerSettings{
-		ServiceTemplateServerSettings: baseSettings,
+		ServiceFrameworkServerSettings: baseSettings,
 		AuthzServerURL:                viper.GetString(authzServerURLSetting.Name),
 		ClientID:                      viper.GetString(clientIDSetting.Name),
 		ClientSecret:                  viper.GetString(clientSecretSetting.Name),
@@ -207,14 +207,14 @@ func maskSecret(secret string) string {
 // Returns directly populated IdentityRPServerSettings matching Parse() behavior.
 func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *IdentityRPServerSettings {
 	// Get base template config.
-	baseConfig := cryptoutilAppsTemplateServiceConfig.NewTestConfig(bindAddr, bindPort, devMode)
+	baseConfig := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(bindAddr, bindPort, devMode)
 
 	// Override template defaults with identity-rp specific values.
 	baseConfig.BindPublicPort = bindPort
 	baseConfig.OTLPService = cryptoutilSharedMagic.OTLPServiceIdentityRP
 
 	return &IdentityRPServerSettings{
-		ServiceTemplateServerSettings: baseConfig,
+		ServiceFrameworkServerSettings: baseConfig,
 		AuthzServerURL:                defaultAuthzServerURL,
 		ClientID:                      "",
 		ClientSecret:                  "",

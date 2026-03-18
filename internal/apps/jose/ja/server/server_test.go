@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsJoseJaServerConfig "cryptoutil/internal/apps/jose/ja/server/config"
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 )
 
 func TestNewFromConfig_NilContext(t *testing.T) {
@@ -42,7 +42,7 @@ func TestNewFromConfig_InvalidDatabaseURL(t *testing.T) {
 
 	// Create config with invalid database URL to trigger builder failure.
 	cfg := &cryptoutilAppsJoseJaServerConfig.JoseJAServerSettings{}
-	cfg.ServiceTemplateServerSettings = &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{}
+	cfg.ServiceFrameworkServerSettings = &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{}
 	cfg.DatabaseURL = "invalid://not-a-real-dsn"
 
 	// Call with invalid config - should fail during builder.Build().

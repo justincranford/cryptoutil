@@ -18,7 +18,7 @@ func TestDefaultTestConfig(t *testing.T) {
 	settings := cryptoutilAppsSmImServerConfig.DefaultTestConfig()
 
 	require.NotNil(t, settings)
-	require.NotNil(t, settings.ServiceTemplateServerSettings)
+	require.NotNil(t, settings.ServiceFrameworkServerSettings)
 
 	// Verify sm-im specific defaults.
 	require.Equal(t, cryptoutilSharedMagic.IMJWEAlgorithm, settings.MessageJWEAlgorithm)
@@ -136,7 +136,7 @@ func TestNewTestConfig_InheritedTemplateSettings(t *testing.T) {
 	settings := cryptoutilAppsSmImServerConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 8070, false)
 
 	require.NotNil(t, settings)
-	require.NotNil(t, settings.ServiceTemplateServerSettings)
+	require.NotNil(t, settings.ServiceFrameworkServerSettings)
 
 	// Note: BrowserRealms and ServiceRealms are populated by Parse() from config file or flags.
 	// NewTestConfig provides minimal valid settings, not full runtime configuration.

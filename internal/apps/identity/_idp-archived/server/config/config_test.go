@@ -54,7 +54,7 @@ func TestIdentityIDPServerSettings_FullConfig(t *testing.T) {
 	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
 	// Verify embedded template config is populated.
-	require.NotNil(t, cfg.ServiceTemplateServerSettings)
+	require.NotNil(t, cfg.ServiceFrameworkServerSettings)
 	require.Equal(t, cryptoutilSharedMagic.IPv4Loopback, cfg.BindPublicAddress)
 
 	// Verify idp-specific settings.

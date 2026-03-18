@@ -291,7 +291,7 @@ go-arch-lint enforces import rules:
 # .arch-lint.yml
 
 components:
-  framework:   { files: ['internal/apps/template/**'] }
+  framework:   { files: ['internal/apps/framework/**'] }
   domain-sm:   { files: ['internal/apps/sm/**'] }
   domain-jose: { files: ['internal/apps/jose/**'] }
 

@@ -10,17 +10,17 @@ import (
 	"fmt"
 	"io/fs"
 
-	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
 )
 
 // DatabaseType represents supported database types for jose-ja.
-type DatabaseType = cryptoutilAppsTemplateServiceServerRepository.DatabaseType
+type DatabaseType = cryptoutilAppsFrameworkServiceServerRepository.DatabaseType
 
 const (
 	// DatabaseTypeSQLite represents SQLite database.
-	DatabaseTypeSQLite = cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite
+	DatabaseTypeSQLite = cryptoutilAppsFrameworkServiceServerRepository.DatabaseTypeSQLite
 	// DatabaseTypePostgreSQL represents PostgreSQL database.
-	DatabaseTypePostgreSQL = cryptoutilAppsTemplateServiceServerRepository.DatabaseTypePostgreSQL
+	DatabaseTypePostgreSQL = cryptoutilAppsFrameworkServiceServerRepository.DatabaseTypePostgreSQL
 )
 
 // MigrationsFS contains embedded jose-ja specific migrations (2001+ only).
@@ -39,7 +39,7 @@ var MigrationsFS embed.FS
 // GetMergedMigrationsFS returns a filesystem combining template and JOSE-JA migrations.
 // This is used by tests to access all migrations (1001-1999 template + 2001+ JOSE-JA) in sequence.
 func GetMergedMigrationsFS() fs.FS {
-	return cryptoutilAppsTemplateServiceServerRepository.NewMergedMigrationsFS(MigrationsFS)
+	return cryptoutilAppsFrameworkServiceServerRepository.NewMergedMigrationsFS(MigrationsFS)
 }
 
 // ApplyJoseJAMigrations runs database migrations for jose-ja service.
@@ -59,7 +59,7 @@ func GetMergedMigrationsFS() fs.FS {
 // - 2004_audit_log: Cryptographic operation audit entries.
 func ApplyJoseJAMigrations(db *sql.DB, dbType DatabaseType) error {
 	// Apply all migrations in sequence (1001-1999 template + 2001+ jose-ja) using merged filesystem.
-	runner := cryptoutilAppsTemplateServiceServerRepository.NewMigrationRunner(GetMergedMigrationsFS(), "migrations")
+	runner := cryptoutilAppsFrameworkServiceServerRepository.NewMigrationRunner(GetMergedMigrationsFS(), "migrations")
 
 	if err := runner.Apply(db, dbType); err != nil {
 		return fmt.Errorf("failed to apply jose-ja migrations (1001-1999 + 2001+): %w", err)

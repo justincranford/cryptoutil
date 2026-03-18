@@ -11,50 +11,50 @@ import (
 
 	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm/im/repository"
 	cryptoutilAppsSmImServerApis "cryptoutil/internal/apps/sm/im/server/apis"
-	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
-	cryptoutilAppsTemplateServiceServerApis "cryptoutil/internal/apps/template/service/server/apis"
-	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
-	cryptoutilAppsTemplateServiceServerMiddleware "cryptoutil/internal/apps/template/service/server/middleware"
-	cryptoutilAppsTemplateServiceServerRealms "cryptoutil/internal/apps/template/service/server/realms"
-	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilAppsTemplateServiceServerService "cryptoutil/internal/apps/template/service/server/service"
+	cryptoutilAppsFrameworkServiceServer "cryptoutil/internal/apps/framework/service/server"
+	cryptoutilAppsFrameworkServiceServerApis "cryptoutil/internal/apps/framework/service/server/apis"
+	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
+	cryptoutilAppsFrameworkServiceServerBusinesslogic "cryptoutil/internal/apps/framework/service/server/businesslogic"
+	cryptoutilAppsFrameworkServiceServerMiddleware "cryptoutil/internal/apps/framework/service/server/middleware"
+	cryptoutilAppsFrameworkServiceServerRealms "cryptoutil/internal/apps/framework/service/server/realms"
+	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
+	cryptoutilAppsFrameworkServiceServerService "cryptoutil/internal/apps/framework/service/server/service"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // PublicServer implements the sm-im public server by embedding PublicServerBase.
 type PublicServer struct {
-	base *cryptoutilAppsTemplateServiceServer.PublicServerBase // Reusable server infrastructure
+	base *cryptoutilAppsFrameworkServiceServer.PublicServerBase // Reusable server infrastructure
 
 	userRepo                *cryptoutilAppsSmImRepository.UserRepository
 	messageRepo             *cryptoutilAppsSmImRepository.MessageRepository
 	messageRecipientJWKRepo *cryptoutilAppsSmImRepository.MessageRecipientJWKRepository                 // Per-recipient decryption keys
 	jwkGenService           *cryptoutilSharedCryptoJose.JWKGenService                                   // JWK generation for message encryption
-	sessionManagerService   *cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService     // Session management service
-	realmService            cryptoutilAppsTemplateServiceServerService.RealmService                     // Realm management service
-	registrationService     *cryptoutilAppsTemplateServiceServerBusinesslogic.TenantRegistrationService // Tenant registration service
+	sessionManagerService   *cryptoutilAppsFrameworkServiceServerBusinesslogic.SessionManagerService     // Session management service
+	realmService            cryptoutilAppsFrameworkServiceServerService.RealmService                     // Realm management service
+	registrationService     *cryptoutilAppsFrameworkServiceServerBusinesslogic.TenantRegistrationService // Tenant registration service
 
 	// SM-IM demo state (auto-created tenant on first registration).
 	demoTenantID *googleUuid.UUID
 
 	// Handlers (composition pattern).
-	authnHandler   *cryptoutilAppsTemplateServiceServerRealms.UserServiceImpl
+	authnHandler   *cryptoutilAppsFrameworkServiceServerRealms.UserServiceImpl
 	messageHandler *cryptoutilAppsSmImServerApis.MessageHandler
 }
 
 // NewPublicServer creates a new sm-im public server using builder-provided infrastructure.
 // Used by ServerBuilder during route registration.
 func NewPublicServer(
-	base *cryptoutilAppsTemplateServiceServer.PublicServerBase,
-	sessionManagerService *cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService,
-	realmService cryptoutilAppsTemplateServiceServerService.RealmService,
-	registrationService *cryptoutilAppsTemplateServiceServerBusinesslogic.TenantRegistrationService,
+	base *cryptoutilAppsFrameworkServiceServer.PublicServerBase,
+	sessionManagerService *cryptoutilAppsFrameworkServiceServerBusinesslogic.SessionManagerService,
+	realmService cryptoutilAppsFrameworkServiceServerService.RealmService,
+	registrationService *cryptoutilAppsFrameworkServiceServerBusinesslogic.TenantRegistrationService,
 	userRepo *cryptoutilAppsSmImRepository.UserRepository,
 	messageRepo *cryptoutilAppsSmImRepository.MessageRepository,
 	messageRecipientJWKRepo *cryptoutilAppsSmImRepository.MessageRecipientJWKRepository,
 	jwkGenService *cryptoutilSharedCryptoJose.JWKGenService,
-	barrierService *cryptoutilAppsTemplateServiceServerBarrier.Service,
+	barrierService *cryptoutilAppsFrameworkServiceServerBarrier.Service,
 ) (*PublicServer, error) {
 	if base == nil {
 		return nil, fmt.Errorf("public server base cannot be nil")
@@ -93,10 +93,10 @@ func NewPublicServer(
 	// Create user factory for template realms.
 	// For sm-im demo: Creates tenant dynamically on first user registration.
 	// All subsequent users share the same demo tenant.
-	userFactory := func() cryptoutilAppsTemplateServiceServerRealms.UserModel {
+	userFactory := func() cryptoutilAppsFrameworkServiceServerRealms.UserModel {
 		// Check if demo tenant already created.
 		if s.demoTenantID != nil {
-			return &cryptoutilAppsTemplateServiceServerRepository.User{
+			return &cryptoutilAppsFrameworkServiceServerRepository.User{
 				TenantID: *s.demoTenantID,
 			}
 		}
@@ -118,7 +118,7 @@ func NewPublicServer(
 			// Log error but continue with zero UUID (will fail later with better error).
 			fmt.Printf("Warning: Failed to create demo tenant: %v\n", err)
 
-			return &cryptoutilAppsTemplateServiceServerRepository.User{
+			return &cryptoutilAppsFrameworkServiceServerRepository.User{
 				TenantID: googleUuid.UUID{},
 			}
 		}
@@ -126,13 +126,13 @@ func NewPublicServer(
 		// Store tenant ID for reuse.
 		s.demoTenantID = &tenant.ID
 
-		return &cryptoutilAppsTemplateServiceServerRepository.User{
+		return &cryptoutilAppsFrameworkServiceServerRepository.User{
 			TenantID: tenant.ID,
 		}
 	}
 
 	// Create realms handler using template service (authentication/authorization).
-	s.authnHandler = cryptoutilAppsTemplateServiceServerRealms.NewUserService(userRepoAdapter, userFactory)
+	s.authnHandler = cryptoutilAppsFrameworkServiceServerRealms.NewUserService(userRepoAdapter, userFactory)
 
 	// Create message handler (business logic).
 	s.messageHandler = cryptoutilAppsSmImServerApis.NewMessageHandler(messageRepo, messageRecipientJWKRepo, jwkGenService, barrierService)
@@ -147,8 +147,8 @@ func (s *PublicServer) registerRoutes() error {
 	sessionHandler := cryptoutilAppsSmImServerApis.NewSessionHandler(s.sessionManagerService)
 
 	// Create session middleware for browser and service paths using template middleware directly.
-	browserSessionMiddleware := cryptoutilAppsTemplateServiceServerMiddleware.BrowserSessionMiddleware(s.sessionManagerService)
-	serviceSessionMiddleware := cryptoutilAppsTemplateServiceServerMiddleware.ServiceSessionMiddleware(s.sessionManagerService)
+	browserSessionMiddleware := cryptoutilAppsFrameworkServiceServerMiddleware.BrowserSessionMiddleware(s.sessionManagerService)
+	serviceSessionMiddleware := cryptoutilAppsFrameworkServiceServerMiddleware.ServiceSessionMiddleware(s.sessionManagerService)
 
 	// Get underlying Fiber app from base for route registration.
 	app := s.base.App()
@@ -175,7 +175,7 @@ func (s *PublicServer) registerRoutes() error {
 	app.Delete("/browser/api/v1/messages/:id", browserSessionMiddleware, s.messageHandler.HandleDeleteMessage())
 
 	// Register tenant registration routes (from template) with default rate limit.
-	cryptoutilAppsTemplateServiceServerApis.RegisterRegistrationRoutes(app, s.registrationService, cryptoutilSharedMagic.RateLimitDefaultRequestsPerMin)
+	cryptoutilAppsFrameworkServiceServerApis.RegisterRegistrationRoutes(app, s.registrationService, cryptoutilSharedMagic.RateLimitDefaultRequestsPerMin)
 
 	return nil
 }

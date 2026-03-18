@@ -74,7 +74,7 @@ done
 
 ```bash
 # DANGEROUS - single package can produce 500+ lines
-gremlins unleash --timeout-coefficient=60 ./internal/apps/template/service/...
+gremlins unleash --timeout-coefficient=60 ./internal/apps/framework/service/...
 ```
 
 ### Pattern C: Reading Entire Large Files

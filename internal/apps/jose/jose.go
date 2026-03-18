@@ -10,7 +10,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilAppsJoseJa "cryptoutil/internal/apps/jose/ja"
-	cryptoutilTemplateCli "cryptoutil/internal/apps/template/service/cli"
+	cryptoutilTemplateCli "cryptoutil/internal/apps/framework/service/cli"
 )
 
 const (

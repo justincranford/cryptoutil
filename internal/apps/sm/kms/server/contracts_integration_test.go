@@ -8,7 +8,7 @@ package server
 import (
 	"testing"
 
-	cryptoutilContract "cryptoutil/internal/apps/template/service/testing/contract"
+	cryptoutilContract "cryptoutil/internal/apps/framework/service/testing/contract"
 )
 
 // TestKMSServer_ContractCompliance verifies sm-kms implements all service template contracts.

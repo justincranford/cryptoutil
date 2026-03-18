@@ -6,12 +6,12 @@ package kms
 
 import (
 	cryptoutilApiSmKmsServer "cryptoutil/api/sm-kms/server"
-	cryptoutilAppsTemplateServiceServerBuilder "cryptoutil/internal/apps/template/service/server/builder"
+	cryptoutilAppsFrameworkServiceServerBuilder "cryptoutil/internal/apps/framework/service/server/builder"
 
 	fiber "github.com/gofiber/fiber/v2"
 )
 
 // ServeOpenAPISpec serves the embedded OpenAPI specification for the Key Management service.
 func ServeOpenAPISpec() (func(c *fiber.Ctx) error, error) {
-	return cryptoutilAppsTemplateServiceServerBuilder.FiberHandlerOpenAPISpec(cryptoutilApiSmKmsServer.GetSwagger)
+	return cryptoutilAppsFrameworkServiceServerBuilder.FiberHandlerOpenAPISpec(cryptoutilApiSmKmsServer.GetSwagger)
 }

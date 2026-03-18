@@ -28,7 +28,7 @@ RunContractTests verifies 8 contracts per service:
 
 ## Required: Service Interface
 
-The service MUST implement the full server.ServiceServer interface (see internal/apps/template/service/server/contract.go):
+The service MUST implement the full server.ServiceServer interface (see internal/apps/framework/service/server/contract.go):
 
 `go
 // Add to your service server type declaration to enforce at compile time:
@@ -51,10 +51,10 @@ import (
 "os"
 "testing"
 
-cryptoutilContract "cryptoutil/internal/apps/template/service/testing/contract"
+cryptoutilContract "cryptoutil/internal/apps/framework/service/testing/contract"
 cryptoutilYourServer "cryptoutil/internal/apps/yourproduct/yourservice/server"
 cryptoutilYourConfig "cryptoutil/internal/apps/yourproduct/yourservice/server/config"
-cryptoutilE2eHelpers "cryptoutil/internal/apps/template/service/testing/e2e_helpers"
+cryptoutilE2eHelpers "cryptoutil/internal/apps/framework/service/testing/e2e_helpers"
 cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 

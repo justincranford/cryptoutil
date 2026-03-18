@@ -12,12 +12,12 @@ import (
 	cryptoutilCAHandler "cryptoutil/internal/apps/pki/ca/api/handler"
 	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/pki/ca/server/config"
 	cryptoutilCAServiceRevocation "cryptoutil/internal/apps/pki/ca/service/revocation"
-	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
+	cryptoutilAppsFrameworkServiceServer "cryptoutil/internal/apps/framework/service/server"
 )
 
 // PublicServer implements the pki-ca public server by embedding PublicServerBase.
 type PublicServer struct {
-	base *cryptoutilAppsTemplateServiceServer.PublicServerBase // Reusable server infrastructure
+	base *cryptoutilAppsFrameworkServiceServer.PublicServerBase // Reusable server infrastructure
 
 	handler     *cryptoutilCAHandler.Handler
 	crlService  *cryptoutilCAServiceRevocation.CRLService
@@ -28,7 +28,7 @@ type PublicServer struct {
 // NewPublicServer creates a new pki-ca public server using builder-provided infrastructure.
 // Used by ServerBuilder during route registration.
 func NewPublicServer(
-	base *cryptoutilAppsTemplateServiceServer.PublicServerBase,
+	base *cryptoutilAppsFrameworkServiceServer.PublicServerBase,
 	handler *cryptoutilCAHandler.Handler,
 	crlService *cryptoutilCAServiceRevocation.CRLService,
 	ocspService *cryptoutilCAServiceRevocation.OCSPService,

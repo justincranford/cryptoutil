@@ -6,12 +6,12 @@ package ja
 
 import (
 	cryptoutilApiJoseJaServer "cryptoutil/api/jose-ja/server"
-	cryptoutilAppsTemplateServiceServerBuilder "cryptoutil/internal/apps/template/service/server/builder"
+	cryptoutilAppsFrameworkServiceServerBuilder "cryptoutil/internal/apps/framework/service/server/builder"
 
 	fiber "github.com/gofiber/fiber/v2"
 )
 
 // ServeOpenAPISpec serves the embedded OpenAPI specification for the JWK Authority service.
 func ServeOpenAPISpec() (func(c *fiber.Ctx) error, error) {
-	return cryptoutilAppsTemplateServiceServerBuilder.FiberHandlerOpenAPISpec(cryptoutilApiJoseJaServer.GetSwagger)
+	return cryptoutilAppsFrameworkServiceServerBuilder.FiberHandlerOpenAPISpec(cryptoutilApiJoseJaServer.GetSwagger)
 }

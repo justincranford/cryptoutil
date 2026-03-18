@@ -11,7 +11,7 @@ import (
 
 	cryptoutilAppsSmIm "cryptoutil/internal/apps/sm/im"
 	cryptoutilAppsSmKms "cryptoutil/internal/apps/sm/kms"
-	cryptoutilTemplateCli "cryptoutil/internal/apps/template/service/cli"
+	cryptoutilTemplateCli "cryptoutil/internal/apps/framework/service/cli"
 )
 
 const (

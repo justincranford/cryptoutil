@@ -9,26 +9,26 @@ import (
 
 	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose/ja/repository"
 	cryptoutilAppsJoseJaServerApis "cryptoutil/internal/apps/jose/ja/server/apis"
-	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
-	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
-	cryptoutilAppsTemplateServiceServerMiddleware "cryptoutil/internal/apps/template/service/server/middleware"
-	cryptoutilAppsTemplateServiceServerService "cryptoutil/internal/apps/template/service/server/service"
+	cryptoutilAppsFrameworkServiceServer "cryptoutil/internal/apps/framework/service/server"
+	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
+	cryptoutilAppsFrameworkServiceServerBusinesslogic "cryptoutil/internal/apps/framework/service/server/businesslogic"
+	cryptoutilAppsFrameworkServiceServerMiddleware "cryptoutil/internal/apps/framework/service/server/middleware"
+	cryptoutilAppsFrameworkServiceServerService "cryptoutil/internal/apps/framework/service/server/service"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 )
 
 // PublicServer implements the jose-ja public server by embedding PublicServerBase.
 type PublicServer struct {
-	base *cryptoutilAppsTemplateServiceServer.PublicServerBase // Reusable server infrastructure
+	base *cryptoutilAppsFrameworkServiceServer.PublicServerBase // Reusable server infrastructure
 
 	elasticJWKRepo        cryptoutilAppsJoseJaRepository.ElasticJWKRepository
 	materialJWKRepo       cryptoutilAppsJoseJaRepository.MaterialJWKRepository
 	auditConfigRepo       cryptoutilAppsJoseJaRepository.AuditConfigRepository
 	auditLogRepo          cryptoutilAppsJoseJaRepository.AuditLogRepository
 	jwkGenService         *cryptoutilSharedCryptoJose.JWKGenService
-	barrierService        *cryptoutilAppsTemplateServiceServerBarrier.Service
-	sessionManagerService *cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService
-	realmService          cryptoutilAppsTemplateServiceServerService.RealmService
+	barrierService        *cryptoutilAppsFrameworkServiceServerBarrier.Service
+	sessionManagerService *cryptoutilAppsFrameworkServiceServerBusinesslogic.SessionManagerService
+	realmService          cryptoutilAppsFrameworkServiceServerService.RealmService
 
 	// Handlers (composition pattern).
 	jwkHandler *cryptoutilAppsJoseJaServerApis.JWKHandler
@@ -37,15 +37,15 @@ type PublicServer struct {
 // NewPublicServer creates a new jose-ja public server using builder-provided infrastructure.
 // Used by ServerBuilder during route registration.
 func NewPublicServer(
-	base *cryptoutilAppsTemplateServiceServer.PublicServerBase,
-	sessionManagerService *cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService,
-	realmService cryptoutilAppsTemplateServiceServerService.RealmService,
+	base *cryptoutilAppsFrameworkServiceServer.PublicServerBase,
+	sessionManagerService *cryptoutilAppsFrameworkServiceServerBusinesslogic.SessionManagerService,
+	realmService cryptoutilAppsFrameworkServiceServerService.RealmService,
 	elasticJWKRepo cryptoutilAppsJoseJaRepository.ElasticJWKRepository,
 	materialJWKRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository,
 	auditConfigRepo cryptoutilAppsJoseJaRepository.AuditConfigRepository,
 	auditLogRepo cryptoutilAppsJoseJaRepository.AuditLogRepository,
 	jwkGenService *cryptoutilSharedCryptoJose.JWKGenService,
-	barrierService *cryptoutilAppsTemplateServiceServerBarrier.Service,
+	barrierService *cryptoutilAppsFrameworkServiceServerBarrier.Service,
 ) (*PublicServer, error) {
 	if base == nil {
 		return nil, fmt.Errorf("public server base cannot be nil")
@@ -99,8 +99,8 @@ func (s *PublicServer) registerRoutes() error {
 	sessionHandler := cryptoutilAppsJoseJaServerApis.NewSessionHandler(s.sessionManagerService)
 
 	// Create session middleware for browser and service paths using template middleware directly.
-	browserSessionMiddleware := cryptoutilAppsTemplateServiceServerMiddleware.BrowserSessionMiddleware(s.sessionManagerService)
-	serviceSessionMiddleware := cryptoutilAppsTemplateServiceServerMiddleware.ServiceSessionMiddleware(s.sessionManagerService)
+	browserSessionMiddleware := cryptoutilAppsFrameworkServiceServerMiddleware.BrowserSessionMiddleware(s.sessionManagerService)
+	serviceSessionMiddleware := cryptoutilAppsFrameworkServiceServerMiddleware.ServiceSessionMiddleware(s.sessionManagerService)
 
 	// Get underlying Fiber app from base for route registration.
 	app := s.base.App()

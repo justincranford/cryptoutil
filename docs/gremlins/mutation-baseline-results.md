@@ -138,7 +138,7 @@ Per-package gremlins analysis with `--timeout-coefficient=60`. All packages run 
 
 ### 3. Template Service (template package)
 
-**Command**: `gremlins unleash ./internal/apps/template/service/`
+**Command**: `gremlins unleash ./internal/apps/framework/service/`
 
 **Results**:
 - **Test Efficacy**: 91.75%

@@ -5,7 +5,7 @@
 // isolation: service code in product A must not import internal packages
 // from product B. Same-product cross-service imports are permitted since those
 // are expected during migration and are handled per-product.
-// Imports of internal/apps/template/ and internal/shared/ are always allowed.
+// Imports of internal/apps/framework/ and internal/shared/ are always allowed.
 package cross_service_import_isolation
 
 import (
@@ -237,8 +237,8 @@ func isViolation(importPath string, self serviceRef, allServices []serviceRef) b
 	importProduct := parts[0]
 	importService := parts[1]
 
-	// Allow template imports (all services may import template) and cicd (tooling).
-	if importProduct == cryptoutilSharedMagic.SkeletonTemplateServiceName || importProduct == cicdProductName {
+	// Allow framework imports (all services may import the service framework) and cicd (tooling).
+	if importProduct == cryptoutilSharedMagic.FrameworkProductName || importProduct == cicdProductName {
 		return false
 	}
 

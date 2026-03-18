@@ -9,19 +9,19 @@ import (
 	fiber "github.com/gofiber/fiber/v2"
 
 	cryptoutilAppsIdentityAuthzServerConfig "cryptoutil/internal/apps/identity/authz/server/config"
-	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
+	cryptoutilAppsFrameworkServiceServer "cryptoutil/internal/apps/framework/service/server"
 )
 
 // PublicServer implements the identity-authz public server by embedding PublicServerBase.
 type PublicServer struct {
-	base *cryptoutilAppsTemplateServiceServer.PublicServerBase // Reusable server infrastructure.
+	base *cryptoutilAppsFrameworkServiceServer.PublicServerBase // Reusable server infrastructure.
 	cfg  *cryptoutilAppsIdentityAuthzServerConfig.IdentityAuthzServerSettings
 }
 
 // NewPublicServer creates a new identity-authz public server using builder-provided infrastructure.
 // Used by ServerBuilder during route registration.
 func NewPublicServer(
-	base *cryptoutilAppsTemplateServiceServer.PublicServerBase,
+	base *cryptoutilAppsFrameworkServiceServer.PublicServerBase,
 	cfg *cryptoutilAppsIdentityAuthzServerConfig.IdentityAuthzServerSettings,
 ) *PublicServer {
 	return &PublicServer{

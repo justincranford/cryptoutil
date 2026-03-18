@@ -11,7 +11,7 @@ import (
 	"net"
 	"os"
 
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilSharedCryptoAsn1 "cryptoutil/internal/shared/crypto/asn1"
 	cryptoutilSharedCryptoCertificate "cryptoutil/internal/shared/crypto/certificate"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -27,7 +27,7 @@ const (
 )
 
 // ServerInit initializes the server by generating TLS certificates and other required configuration.
-func ServerInit(settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) error {
+func ServerInit(settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) error {
 	ctx := context.Background()
 
 	serverApplicationBasic, err := StartServerApplicationBasic(ctx, settings)
@@ -44,7 +44,7 @@ func ServerInit(settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateSer
 	return nil
 }
 
-func generateTLSServerSubjects(settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings, serverApplicationBasic *ServerApplicationBasic) (*cryptoutilSharedCryptoCertificate.Subject, *cryptoutilSharedCryptoCertificate.Subject, error) {
+func generateTLSServerSubjects(settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings, serverApplicationBasic *ServerApplicationBasic) (*cryptoutilSharedCryptoCertificate.Subject, *cryptoutilSharedCryptoCertificate.Subject, error) {
 	publicTLSServerIPAddresses, err := cryptoutilSharedUtilNetwork.ParseIPAddresses(settings.TLSPublicIPAddresses)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to parse public TLS server IP addresses: %w", err)

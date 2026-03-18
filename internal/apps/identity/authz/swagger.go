@@ -6,12 +6,12 @@ package authz
 
 import (
 	cryptoutilApiIdentityAuthz "cryptoutil/api/identity-authz"
-	cryptoutilAppsTemplateServiceServerBuilder "cryptoutil/internal/apps/template/service/server/builder"
+	cryptoutilAppsFrameworkServiceServerBuilder "cryptoutil/internal/apps/framework/service/server/builder"
 
 	fiber "github.com/gofiber/fiber/v2"
 )
 
 // ServeOpenAPISpec serves the embedded OpenAPI specification for the AuthZ service.
 func ServeOpenAPISpec() (func(c *fiber.Ctx) error, error) {
-	return cryptoutilAppsTemplateServiceServerBuilder.FiberHandlerOpenAPISpec(cryptoutilApiIdentityAuthz.GetSwagger)
+	return cryptoutilAppsFrameworkServiceServerBuilder.FiberHandlerOpenAPISpec(cryptoutilApiIdentityAuthz.GetSwagger)
 }

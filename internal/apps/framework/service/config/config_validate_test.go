@@ -1,0 +1,396 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
+package config
+
+import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
+
+func TestValidateConfiguration_HappyPath(t *testing.T) {
+	t.Parallel()
+
+	s := &ServiceFrameworkServerSettings{
+		BindPublicAddress:   cryptoutilSharedMagic.IPv4Loopback,
+		BindPrivateAddress:  cryptoutilSharedMagic.IPv4Loopback,
+		BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+		BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
+		BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
+		BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
+		TLSPublicDNSNames:   []string{"public.example.com"},
+		TLSPrivateDNSNames:  []string{"private.example.com"},
+		DatabaseURL:         "postgres://user:pass@localhost:5432/db",
+		CORSAllowedOrigins:  []string{"https://example.com"},
+		LogLevel:            cryptoutilSharedMagic.DefaultLogLevelInfo,
+		BrowserIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+		ServiceIPRateLimit:  200,
+		OTLPEnabled:         true,
+		OTLPEndpoint:        "grpc://otel:4317",
+	}
+
+	err := validateConfiguration(s)
+	require.NoError(t, err)
+}
+
+func TestValidateConfiguration_Errors(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		settings *ServiceFrameworkServerSettings
+		errMsg   string
+	}{
+		{
+			name: "blank public bind address",
+			settings: &ServiceFrameworkServerSettings{
+				BindPublicAddress:   "",
+				BindPrivateAddress:  cryptoutilSharedMagic.IPv4Loopback,
+				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
+				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
+				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
+				TLSPublicDNSNames:   []string{"test.com"},
+				TLSPrivateDNSNames:  []string{"test.com"},
+				LogLevel:            cryptoutilSharedMagic.DefaultLogLevelInfo,
+				BrowserIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+				ServiceIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+			},
+			errMsg: "bind public address cannot be blank",
+		},
+		{
+			name: "blank private bind address",
+			settings: &ServiceFrameworkServerSettings{
+				BindPublicAddress:   cryptoutilSharedMagic.IPv4Loopback,
+				BindPrivateAddress:  "",
+				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
+				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
+				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
+				TLSPublicDNSNames:   []string{"test.com"},
+				TLSPrivateDNSNames:  []string{"test.com"},
+				LogLevel:            cryptoutilSharedMagic.DefaultLogLevelInfo,
+				BrowserIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+				ServiceIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+			},
+			errMsg: "bind private address cannot be blank",
+		},
+		{
+			name: "same non-zero ports",
+			settings: &ServiceFrameworkServerSettings{
+				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPrivatePort:     cryptoutilSharedMagic.DemoServerPort,
+				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
+				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
+				TLSPublicDNSNames:   []string{"test.com"},
+				TLSPrivateDNSNames:  []string{"test.com"},
+				LogLevel:            cryptoutilSharedMagic.DefaultLogLevelInfo,
+				BrowserIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+				ServiceIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+			},
+			errMsg: "cannot be the same",
+		},
+		{
+			name: "invalid public protocol",
+			settings: &ServiceFrameworkServerSettings{
+				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
+				BindPublicProtocol:  "ftp",
+				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
+				TLSPrivateDNSNames:  []string{"test.com"},
+				LogLevel:            cryptoutilSharedMagic.DefaultLogLevelInfo,
+				BrowserIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+				ServiceIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+			},
+			errMsg: "invalid public protocol 'ftp'",
+		},
+		{
+			name: "invalid private protocol",
+			settings: &ServiceFrameworkServerSettings{
+				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
+				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
+				BindPrivateProtocol: "ftp",
+				TLSPublicDNSNames:   []string{"test.com"},
+				LogLevel:            cryptoutilSharedMagic.DefaultLogLevelInfo,
+				BrowserIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+				ServiceIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+			},
+			errMsg: "invalid private protocol 'ftp'",
+		},
+		{
+			name: "https public missing TLS config",
+			settings: &ServiceFrameworkServerSettings{
+				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
+				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
+				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTP,
+				LogLevel:            cryptoutilSharedMagic.DefaultLogLevelInfo,
+				BrowserIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+				ServiceIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+			},
+			errMsg: "HTTPS public protocol requires TLS DNS names or IP addresses",
+		},
+		{
+			name: "https private missing TLS config",
+			settings: &ServiceFrameworkServerSettings{
+				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
+				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTP,
+				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
+				LogLevel:            cryptoutilSharedMagic.DefaultLogLevelInfo,
+				BrowserIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+				ServiceIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+			},
+			errMsg: "HTTPS private protocol requires TLS DNS names or IP addresses",
+		},
+		{
+			name: "invalid database URL format",
+			settings: &ServiceFrameworkServerSettings{
+				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
+				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
+				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
+				TLSPublicDNSNames:   []string{"test.com"},
+				TLSPrivateDNSNames:  []string{"test.com"},
+				DatabaseURL:         "invalid-no-scheme",
+				LogLevel:            cryptoutilSharedMagic.DefaultLogLevelInfo,
+				BrowserIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+				ServiceIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+			},
+			errMsg: "invalid database URL format",
+		},
+		{
+			name: "invalid CORS origin format",
+			settings: &ServiceFrameworkServerSettings{
+				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
+				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
+				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
+				TLSPublicDNSNames:   []string{"test.com"},
+				TLSPrivateDNSNames:  []string{"test.com"},
+				CORSAllowedOrigins:  []string{"invalid-no-scheme"},
+				LogLevel:            cryptoutilSharedMagic.DefaultLogLevelInfo,
+				BrowserIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+				ServiceIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+			},
+			errMsg: "invalid CORS origin format",
+		},
+		{
+			name: "invalid log level",
+			settings: &ServiceFrameworkServerSettings{
+				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
+				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
+				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
+				TLSPublicDNSNames:   []string{"test.com"},
+				TLSPrivateDNSNames:  []string{"test.com"},
+				LogLevel:            "INVALID",
+				BrowserIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+				ServiceIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+			},
+			errMsg: "invalid log level 'INVALID'",
+		},
+		{
+			name: "browser rate limit zero",
+			settings: &ServiceFrameworkServerSettings{
+				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
+				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
+				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
+				TLSPublicDNSNames:   []string{"test.com"},
+				TLSPrivateDNSNames:  []string{"test.com"},
+				LogLevel:            cryptoutilSharedMagic.DefaultLogLevelInfo,
+				BrowserIPRateLimit:  0,
+				ServiceIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+			},
+			errMsg: "browser rate limit cannot be 0",
+		},
+		{
+			name: "service rate limit zero",
+			settings: &ServiceFrameworkServerSettings{
+				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
+				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
+				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
+				TLSPublicDNSNames:   []string{"test.com"},
+				TLSPrivateDNSNames:  []string{"test.com"},
+				LogLevel:            cryptoutilSharedMagic.DefaultLogLevelInfo,
+				BrowserIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+				ServiceIPRateLimit:  0,
+			},
+			errMsg: "service rate limit cannot be 0",
+		},
+		{
+			name: "invalid OTLP endpoint format",
+			settings: &ServiceFrameworkServerSettings{
+				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
+				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
+				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
+				TLSPublicDNSNames:   []string{"test.com"},
+				TLSPrivateDNSNames:  []string{"test.com"},
+				LogLevel:            cryptoutilSharedMagic.DefaultLogLevelInfo,
+				BrowserIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+				ServiceIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+				OTLPEnabled:         true,
+				OTLPEndpoint:        "invalid-no-scheme:4317",
+			},
+			errMsg: "invalid OTLP endpoint format",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := validateConfiguration(tc.settings)
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tc.errMsg)
+		})
+	}
+}
+
+// TestValidateConfiguration_BoundaryConditions tests edge cases at validation boundaries.
+// Kills mutation: config.go:1526 (CONDITIONALS_BOUNDARY: > vs >=).
+// Kills mutation: config.go:1530 (CONDITIONALS_BOUNDARY: > vs >=).
+// Kills mutation: config.go:1593 (CONDITIONALS_BOUNDARY: > vs >=).
+// Kills mutation: config.go:1599 (CONDITIONALS_BOUNDARY: > vs >=).
+func TestValidateConfiguration_BoundaryConditions(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		settings *ServiceFrameworkServerSettings
+		wantErr  bool
+		errMsg   string
+	}{
+		{
+			name: "public port exactly 65535 - valid",
+			settings: &ServiceFrameworkServerSettings{
+				BindPublicAddress:   cryptoutilSharedMagic.IPv4Loopback,
+				BindPrivateAddress:  cryptoutilSharedMagic.IPv4Loopback,
+				BindPublicPort:      cryptoutilSharedMagic.MaxPortNumber,
+				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
+				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
+				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
+				TLSPublicDNSNames:   []string{"test.com"},
+				TLSPrivateDNSNames:  []string{"test.com"},
+				LogLevel:            cryptoutilSharedMagic.DefaultLogLevelInfo,
+				BrowserIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+				ServiceIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+			},
+			wantErr: false,
+		},
+		{
+			name: "private port exactly 65535 - valid",
+			settings: &ServiceFrameworkServerSettings{
+				BindPublicAddress:   cryptoutilSharedMagic.IPv4Loopback,
+				BindPrivateAddress:  cryptoutilSharedMagic.IPv4Loopback,
+				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPrivatePort:     cryptoutilSharedMagic.MaxPortNumber,
+				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
+				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
+				TLSPublicDNSNames:   []string{"test.com"},
+				TLSPrivateDNSNames:  []string{"test.com"},
+				LogLevel:            cryptoutilSharedMagic.DefaultLogLevelInfo,
+				BrowserIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+				ServiceIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+			},
+			wantErr: false,
+		},
+		{
+			name: "browser rate limit exactly MaxIPRateLimit - valid warning",
+			settings: &ServiceFrameworkServerSettings{
+				BindPublicAddress:   cryptoutilSharedMagic.IPv4Loopback,
+				BindPrivateAddress:  cryptoutilSharedMagic.IPv4Loopback,
+				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
+				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
+				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
+				TLSPublicDNSNames:   []string{"test.com"},
+				TLSPrivateDNSNames:  []string{"test.com"},
+				LogLevel:            cryptoutilSharedMagic.DefaultLogLevelInfo,
+				BrowserIPRateLimit:  cryptoutilSharedMagic.DBContainerRandSuffixMax, // cryptoutilSharedMagic.MaxIPRateLimit
+				ServiceIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+			},
+			wantErr: false,
+		},
+		{
+			name: "browser rate limit above MaxIPRateLimit - warning",
+			settings: &ServiceFrameworkServerSettings{
+				BindPublicAddress:   cryptoutilSharedMagic.IPv4Loopback,
+				BindPrivateAddress:  cryptoutilSharedMagic.IPv4Loopback,
+				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
+				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
+				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
+				TLSPublicDNSNames:   []string{"test.com"},
+				TLSPrivateDNSNames:  []string{"test.com"},
+				LogLevel:            cryptoutilSharedMagic.DefaultLogLevelInfo,
+				BrowserIPRateLimit:  10001,
+				ServiceIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+			},
+			wantErr: true,
+			errMsg:  "browser rate limit 10001 is very high",
+		},
+		{
+			name: "service rate limit exactly MaxIPRateLimit - valid warning",
+			settings: &ServiceFrameworkServerSettings{
+				BindPublicAddress:   cryptoutilSharedMagic.IPv4Loopback,
+				BindPrivateAddress:  cryptoutilSharedMagic.IPv4Loopback,
+				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
+				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
+				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
+				TLSPublicDNSNames:   []string{"test.com"},
+				TLSPrivateDNSNames:  []string{"test.com"},
+				LogLevel:            cryptoutilSharedMagic.DefaultLogLevelInfo,
+				BrowserIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+				ServiceIPRateLimit:  cryptoutilSharedMagic.DBContainerRandSuffixMax, // cryptoutilSharedMagic.MaxIPRateLimit
+			},
+			wantErr: false,
+		},
+		{
+			name: "service rate limit above MaxIPRateLimit - warning",
+			settings: &ServiceFrameworkServerSettings{
+				BindPublicAddress:   cryptoutilSharedMagic.IPv4Loopback,
+				BindPrivateAddress:  cryptoutilSharedMagic.IPv4Loopback,
+				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
+				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
+				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
+				TLSPublicDNSNames:   []string{"test.com"},
+				TLSPrivateDNSNames:  []string{"test.com"},
+				LogLevel:            cryptoutilSharedMagic.DefaultLogLevelInfo,
+				BrowserIPRateLimit:  cryptoutilSharedMagic.JoseJAMaxMaterials,
+				ServiceIPRateLimit:  10001,
+			},
+			wantErr: true,
+			errMsg:  "service rate limit 10001 is very high",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := validateConfiguration(tc.settings)
+			if tc.wantErr {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tc.errMsg)
+			} else {
+				if err != nil {
+					// Allow warnings that don't prevent startup.
+					require.NotContains(t, err.Error(), "invalid")
+				}
+			}
+		})
+	}
+}
+
+// TestParseWithMultipleConfigFiles tests config file merging with multiple files.
+// Kills mutation: config.go:1046 (INCREMENT_DECREMENT: i++ vs i--).

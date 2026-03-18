@@ -20,8 +20,8 @@ import (
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilKmsServer "cryptoutil/internal/apps/sm/kms/server"
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilAppsTemplateServiceTestingE2eHelpers "cryptoutil/internal/apps/template/service/testing/e2e_helpers"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
+	cryptoutilAppsFrameworkServiceTestingE2eHelpers "cryptoutil/internal/apps/framework/service/testing/e2e_helpers"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
@@ -35,7 +35,7 @@ import (
 )
 
 var (
-	testSettings         = cryptoutilAppsTemplateServiceConfig.RequireNewForTest("application_test")
+	testSettings         = cryptoutilAppsFrameworkServiceConfig.RequireNewForTest("application_test")
 	testServerPublicURL  string
 	testServerPrivateURL string
 	testRootCAsPool      *x509.CertPool
@@ -49,7 +49,7 @@ func TestMain(m *testing.M) {
 		log.Fatalf("failed to create server: %v", err)
 	}
 
-	cryptoutilAppsTemplateServiceTestingE2eHelpers.MustStartAndWaitForDualPorts(testServer, func() error {
+	cryptoutilAppsFrameworkServiceTestingE2eHelpers.MustStartAndWaitForDualPorts(testServer, func() error {
 		return testServer.Start(ctx)
 	})
 

@@ -14,7 +14,7 @@ import (
 
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
-	cryptoutilTestdb "cryptoutil/internal/apps/template/service/testing/testdb"
+	cryptoutilTestdb "cryptoutil/internal/apps/framework/service/testing/testdb"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 )

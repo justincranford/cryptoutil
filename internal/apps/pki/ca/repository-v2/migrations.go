@@ -8,17 +8,17 @@ import (
 	"fmt"
 	"io/fs"
 
-	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
 )
 
 // DatabaseType represents supported database types for pki-ca.
-type DatabaseType = cryptoutilAppsTemplateServiceServerRepository.DatabaseType
+type DatabaseType = cryptoutilAppsFrameworkServiceServerRepository.DatabaseType
 
 const (
 	// DatabaseTypeSQLite represents SQLite database.
-	DatabaseTypeSQLite = cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite
+	DatabaseTypeSQLite = cryptoutilAppsFrameworkServiceServerRepository.DatabaseTypeSQLite
 	// DatabaseTypePostgreSQL represents PostgreSQL database.
-	DatabaseTypePostgreSQL = cryptoutilAppsTemplateServiceServerRepository.DatabaseTypePostgreSQL
+	DatabaseTypePostgreSQL = cryptoutilAppsFrameworkServiceServerRepository.DatabaseTypePostgreSQL
 )
 
 // MigrationsFS contains embedded pki-ca specific migrations (2001+ only).
@@ -37,7 +37,7 @@ var MigrationsFS embed.FS
 // GetMergedMigrationsFS returns a filesystem combining template and pki-ca migrations.
 // This is used by tests to access all migrations (1001-1999 template + 2001+ pki-ca) in sequence.
 func GetMergedMigrationsFS() fs.FS {
-	return cryptoutilAppsTemplateServiceServerRepository.NewMergedMigrationsFS(MigrationsFS)
+	return cryptoutilAppsFrameworkServiceServerRepository.NewMergedMigrationsFS(MigrationsFS)
 }
 
 // ApplyPKICAMigrations runs database migrations for pki-ca service.
@@ -54,7 +54,7 @@ func GetMergedMigrationsFS() fs.FS {
 // - 2001_ca_items: Minimal CA demonstration table.
 func ApplyPKICAMigrations(db *sql.DB, dbType DatabaseType) error {
 	// Apply all migrations in sequence (1001-1999 template + 2001+ pki-ca) using merged filesystem.
-	runner := cryptoutilAppsTemplateServiceServerRepository.NewMigrationRunner(GetMergedMigrationsFS(), "migrations")
+	runner := cryptoutilAppsFrameworkServiceServerRepository.NewMigrationRunner(GetMergedMigrationsFS(), "migrations")
 
 	if err := runner.Apply(db, dbType); err != nil {
 		return fmt.Errorf("failed to apply pki-ca migrations (1001-1999 + 2001+): %w", err)

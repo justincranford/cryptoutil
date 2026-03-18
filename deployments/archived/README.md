@@ -21,7 +21,7 @@ This directory contains deprecated deployment configurations that have been arch
 - Modern E2E pattern: `internal/apps/{PRODUCT}/{SERVICE}/e2e/` using ComposeManager
 
 **Migration Path**:
-- Migrate E2E tests to use ComposeManager from `internal/apps/template/testing/e2e/`
+- Migrate E2E tests to use ComposeManager from `internal/apps/framework/testing/e2e/`
 - Follow sm-im or identity E2E patterns (RECOMMENDED)
 - See `test-output/phase1/e2e-patterns.txt` for analysis
 

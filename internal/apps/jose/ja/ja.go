@@ -20,7 +20,7 @@ import (
 
 	cryptoutilAppsJoseJaServer "cryptoutil/internal/apps/jose/ja/server"
 	cryptoutilAppsJoseJaServerConfig "cryptoutil/internal/apps/jose/ja/server/config"
-	cryptoutilTemplateCli "cryptoutil/internal/apps/template/service/cli"
+	cryptoutilTemplateCli "cryptoutil/internal/apps/framework/service/cli"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 

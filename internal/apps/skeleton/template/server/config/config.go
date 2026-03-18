@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"strings"
 
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/spf13/pflag"
@@ -18,7 +18,7 @@ import (
 // SkeletonTemplateServerSettings contains skeleton-template specific configuration.
 // The skeleton-template service has no domain-specific settings beyond the base template.
 type SkeletonTemplateServerSettings struct {
-	*cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
+	*cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings
 }
 
 // ParseWithFlagSet parses command line arguments using provided FlagSet and returns skeleton-template settings.
@@ -26,14 +26,14 @@ type SkeletonTemplateServerSettings struct {
 func ParseWithFlagSet(fs *pflag.FlagSet, args []string, exitIfHelp bool) (*SkeletonTemplateServerSettings, error) {
 	// Parse base template settings using the provided FlagSet.
 	// This will register template flags and call fs.Parse() + viper.BindPFlags().
-	baseSettings, err := cryptoutilAppsTemplateServiceConfig.ParseWithFlagSet(fs, args, exitIfHelp)
+	baseSettings, err := cryptoutilAppsFrameworkServiceConfig.ParseWithFlagSet(fs, args, exitIfHelp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template settings: %w", err)
 	}
 
 	// Create skeleton-template settings from base template settings.
 	settings := &SkeletonTemplateServerSettings{
-		ServiceTemplateServerSettings: baseSettings,
+		ServiceFrameworkServerSettings: baseSettings,
 	}
 
 	// Override template defaults with skeleton-template specific values.
@@ -62,7 +62,7 @@ func Parse(args []string, exitIfHelp bool) (*SkeletonTemplateServerSettings, err
 func validateSettings(s *SkeletonTemplateServerSettings) error {
 	var validationErrors []string
 
-	if s.ServiceTemplateServerSettings == nil {
+	if s.ServiceFrameworkServerSettings == nil {
 		validationErrors = append(validationErrors, "base template settings cannot be nil")
 	}
 

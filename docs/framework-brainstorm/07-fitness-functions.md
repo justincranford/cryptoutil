@@ -38,7 +38,7 @@ Fitness functions catch these at commit-time, not code-review-time.
 // For each internal/apps/{product}/{service}/ package,
 // verify it does not import any other service package.
 // shared packages (internal/shared/) are allowed
-// template packages (internal/apps/template/) are allowed
+// template packages (internal/apps/framework/) are allowed
 func CheckImportIsolation(cfg Config) []Violation { ... }
 ```n
 ### Rule: Domain packages must not import server or client packages

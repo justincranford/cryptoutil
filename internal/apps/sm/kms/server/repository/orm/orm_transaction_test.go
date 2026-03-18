@@ -16,9 +16,9 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilAppsTemplateServiceServerApplication "cryptoutil/internal/apps/template/service/server/application"
-	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
+	cryptoutilAppsFrameworkServiceServerApplication "cryptoutil/internal/apps/framework/service/server/application"
+	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
@@ -34,11 +34,11 @@ import (
 )
 
 var (
-	testSettings         = cryptoutilAppsTemplateServiceConfig.RequireNewForTest("orm_transaction_test")
+	testSettings         = cryptoutilAppsFrameworkServiceConfig.RequireNewForTest("orm_transaction_test")
 	testCtx              = context.Background()
 	testTelemetryService *cryptoutilSharedTelemetry.TelemetryService
 	testJWKGenService    *cryptoutilSharedCryptoJose.JWKGenService
-	testTemplateCore     *cryptoutilAppsTemplateServiceServerApplication.Core
+	testTemplateCore     *cryptoutilAppsFrameworkServiceServerApplication.Core
 	testOrmRepository    *OrmRepository
 	skipReadOnlyTxTests  = true // true for DBTypeSQLite, false for DBTypePostgres
 	numMaterialKeys      = cryptoutilSharedMagic.JoseJADefaultMaxMaterials
@@ -51,7 +51,7 @@ func TestMain(m *testing.M) {
 		// Start template Core which provides GORM directly with proper migrations
 		var err error
 
-		testTemplateCore, err = cryptoutilAppsTemplateServiceServerApplication.StartCore(testCtx, testSettings)
+		testTemplateCore, err = cryptoutilAppsFrameworkServiceServerApplication.StartCore(testCtx, testSettings)
 		if err != nil {
 			panic(fmt.Sprintf("failed to start template core: %v", err))
 		}
@@ -73,9 +73,9 @@ func TestMain(m *testing.M) {
 			panic(fmt.Sprintf("failed to get sql.DB from GORM: %v", err))
 		}
 
-		err = cryptoutilAppsTemplateServiceServerRepository.ApplyMigrationsFromFS(
+		err = cryptoutilAppsFrameworkServiceServerRepository.ApplyMigrationsFromFS(
 			sqlDB,
-			cryptoutilAppsTemplateServiceServerRepository.MigrationsFS,
+			cryptoutilAppsFrameworkServiceServerRepository.MigrationsFS,
 			"migrations",
 			cryptoutilSharedMagic.TestDatabaseSQLite,
 		)

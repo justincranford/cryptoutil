@@ -15,7 +15,7 @@ import (
 	"testing"
 
 	cryptoutilAppsSmImClient "cryptoutil/internal/apps/sm/im/client"
-	cryptoutilAppsTemplateServiceTestingE2eHelpers "cryptoutil/internal/apps/template/service/testing/e2e_helpers"
+	cryptoutilAppsFrameworkServiceTestingE2eHelpers "cryptoutil/internal/apps/framework/service/testing/e2e_helpers"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
@@ -27,8 +27,8 @@ func TestE2E_RotateRootKey(t *testing.T) {
 	t.Parallel()
 
 	// Step 1: Send baseline message before rotation.
-	user1 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user1_rotate_root", *cryptoutilSharedUtilRandom.GeneratePassword(t, cryptoutilSharedMagic.DefaultCodeChallengeLength))
-	user2 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user2_rotate_root", *cryptoutilSharedUtilRandom.GeneratePassword(t, cryptoutilSharedMagic.DefaultCodeChallengeLength))
+	user1 := cryptoutilAppsFrameworkServiceTestingE2eHelpers.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user1_rotate_root", *cryptoutilSharedUtilRandom.GeneratePassword(t, cryptoutilSharedMagic.DefaultCodeChallengeLength))
+	user2 := cryptoutilAppsFrameworkServiceTestingE2eHelpers.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user2_rotate_root", *cryptoutilSharedUtilRandom.GeneratePassword(t, cryptoutilSharedMagic.DefaultCodeChallengeLength))
 
 	plaintext1 := "Message before root key rotation"
 
@@ -108,8 +108,8 @@ func TestE2E_RotateIntermediateKey(t *testing.T) {
 	t.Parallel()
 
 	// Step 1: Send baseline message before rotation.
-	user1 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user1_rotate_intermediate", *cryptoutilSharedUtilRandom.GeneratePassword(t, cryptoutilSharedMagic.DefaultCodeChallengeLength))
-	user2 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user2_rotate_intermediate", *cryptoutilSharedUtilRandom.GeneratePassword(t, cryptoutilSharedMagic.DefaultCodeChallengeLength))
+	user1 := cryptoutilAppsFrameworkServiceTestingE2eHelpers.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user1_rotate_intermediate", *cryptoutilSharedUtilRandom.GeneratePassword(t, cryptoutilSharedMagic.DefaultCodeChallengeLength))
+	user2 := cryptoutilAppsFrameworkServiceTestingE2eHelpers.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user2_rotate_intermediate", *cryptoutilSharedUtilRandom.GeneratePassword(t, cryptoutilSharedMagic.DefaultCodeChallengeLength))
 
 	plaintext1 := "Message before intermediate key rotation"
 
@@ -180,8 +180,8 @@ func TestE2E_RotateContentKey(t *testing.T) {
 	t.Parallel()
 
 	// Step 1: Send baseline message (creates first content key).
-	user1 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user1_rotate_content", *cryptoutilSharedUtilRandom.GeneratePassword(t, cryptoutilSharedMagic.DefaultCodeChallengeLength))
-	user2 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user2_rotate_content", *cryptoutilSharedUtilRandom.GeneratePassword(t, cryptoutilSharedMagic.DefaultCodeChallengeLength))
+	user1 := cryptoutilAppsFrameworkServiceTestingE2eHelpers.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user1_rotate_content", *cryptoutilSharedUtilRandom.GeneratePassword(t, cryptoutilSharedMagic.DefaultCodeChallengeLength))
+	user2 := cryptoutilAppsFrameworkServiceTestingE2eHelpers.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user2_rotate_content", *cryptoutilSharedUtilRandom.GeneratePassword(t, cryptoutilSharedMagic.DefaultCodeChallengeLength))
 
 	plaintext1 := "Message before content key rotation"
 

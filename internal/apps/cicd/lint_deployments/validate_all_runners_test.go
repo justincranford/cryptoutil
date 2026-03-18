@@ -148,7 +148,7 @@ func TestRunSecretsValidation_ErrorPath(t *testing.T) {
 	require.Equal(t, validatorNameSecrets, result.Results[0].Name)
 }
 
-func TestIsServiceTemplateConfig(t *testing.T) {
+func TestIsServiceFrameworkConfig(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -171,7 +171,7 @@ func TestIsServiceTemplateConfig(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := isServiceTemplateConfig(tc.path)
+			got := isServiceFrameworkConfig(tc.path)
 			require.Equal(t, tc.expected, got)
 		})
 	}

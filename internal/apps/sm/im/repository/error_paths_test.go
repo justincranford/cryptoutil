@@ -13,8 +13,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm/im/model"
-	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilTestdb "cryptoutil/internal/apps/template/service/testing/testdb"
+	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
+	cryptoutilTestdb "cryptoutil/internal/apps/framework/service/testing/testdb"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -65,7 +65,7 @@ func TestErrorPaths_CreateOperations(t *testing.T) {
 				username := "test-user-" + testJWKGenService.GenerateUUIDv7().String()
 
 				// Create first user.
-				user1 := &cryptoutilAppsTemplateServiceServerRepository.User{
+				user1 := &cryptoutilAppsFrameworkServiceServerRepository.User{
 					ID:       *testJWKGenService.GenerateUUIDv7(),
 					Username: username,
 				}
@@ -74,7 +74,7 @@ func TestErrorPaths_CreateOperations(t *testing.T) {
 				defer func() { _ = repo.Delete(ctx, user1.ID) }()
 
 				// Try to create duplicate username.
-				user2 := &cryptoutilAppsTemplateServiceServerRepository.User{
+				user2 := &cryptoutilAppsFrameworkServiceServerRepository.User{
 					ID:       *testJWKGenService.GenerateUUIDv7(),
 					Username: username, // Same username = constraint violation
 				}
@@ -156,7 +156,7 @@ func TestErrorPaths_UpdateOperations(t *testing.T) {
 				// GORM Save() doesn't error on non-existent records.
 				// This test verifies the behavior (no error, 0 rows affected).
 				nonExistentID := *testJWKGenService.GenerateUUIDv7()
-				user := &cryptoutilAppsTemplateServiceServerRepository.User{
+				user := &cryptoutilAppsFrameworkServiceServerRepository.User{
 					ID:       nonExistentID,
 					Username: "non-existent-user",
 				}
@@ -323,7 +323,7 @@ func TestErrorReturns_DatabaseErrors(t *testing.T) {
 
 	t.Run("UserRepository.Update error", func(t *testing.T) {
 		repo := NewUserRepository(closedGormDB)
-		user := &cryptoutilAppsTemplateServiceServerRepository.User{
+		user := &cryptoutilAppsFrameworkServiceServerRepository.User{
 			ID:       googleUuid.New(),
 			Username: "test-user",
 		}

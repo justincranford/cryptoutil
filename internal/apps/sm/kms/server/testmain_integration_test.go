@@ -11,9 +11,9 @@ import (
 	"os"
 	"testing"
 
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilAppsTemplateServiceTestingE2eHelpers "cryptoutil/internal/apps/template/service/testing/e2e_helpers"
-	cryptoutilTestingHealthclient "cryptoutil/internal/apps/template/service/testing/healthclient"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
+	cryptoutilAppsFrameworkServiceTestingE2eHelpers "cryptoutil/internal/apps/framework/service/testing/e2e_helpers"
+	cryptoutilTestingHealthclient "cryptoutil/internal/apps/framework/service/testing/healthclient"
 )
 
 var (
@@ -27,7 +27,7 @@ func TestMain(m *testing.M) {
 	ctx := context.Background()
 
 	// Create test configuration using template helper.
-	cfg := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("kms-server-integration")
+	cfg := cryptoutilAppsFrameworkServiceConfig.RequireNewForTest("kms-server-integration")
 
 	// Create KMS server.
 	var err error
@@ -38,12 +38,12 @@ func TestMain(m *testing.M) {
 	}
 
 	// Use generic template helper for goroutine start + dual port polling + panic-on-failure.
-	cryptoutilAppsTemplateServiceTestingE2eHelpers.MustStartAndWaitForDualPorts(testIntegrationServer, func() error {
+	cryptoutilAppsFrameworkServiceTestingE2eHelpers.MustStartAndWaitForDualPorts(testIntegrationServer, func() error {
 		return testIntegrationServer.Start(ctx)
 	})
 
 	// Store base URLs for tests.
-	testIntegrationPublicURL, testIntegrationAdminURL = cryptoutilAppsTemplateServiceTestingE2eHelpers.DualPortBaseURLs(testIntegrationServer)
+	testIntegrationPublicURL, testIntegrationAdminURL = cryptoutilAppsFrameworkServiceTestingE2eHelpers.DualPortBaseURLs(testIntegrationServer)
 
 	// Create shared health client.
 	testIntegrationHealthClient = cryptoutilTestingHealthclient.NewHealthClient(testIntegrationPublicURL, testIntegrationAdminURL)

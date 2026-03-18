@@ -13,8 +13,8 @@ import (
 	cryptoutilApiSmImServer "cryptoutil/api/sm-im/server"
 	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm/im/model"
 	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm/im/repository"
-	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilAppsTemplateServiceServerMiddleware "cryptoutil/internal/apps/template/service/server/middleware"
+	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
+	cryptoutilAppsFrameworkServiceServerMiddleware "cryptoutil/internal/apps/framework/service/server/middleware"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 )
 
@@ -23,7 +23,7 @@ type MessageHandler struct {
 	messageRepo             *cryptoutilAppsSmImRepository.MessageRepository
 	messageRecipientJWKRepo *cryptoutilAppsSmImRepository.MessageRecipientJWKRepository
 	jwkGenService           *cryptoutilSharedCryptoJose.JWKGenService
-	barrierService          *cryptoutilAppsTemplateServiceServerBarrier.Service
+	barrierService          *cryptoutilAppsFrameworkServiceServerBarrier.Service
 }
 
 // NewMessageHandler creates a new MessageHandler with injected dependencies.
@@ -31,7 +31,7 @@ func NewMessageHandler(
 	messageRepo *cryptoutilAppsSmImRepository.MessageRepository,
 	messageRecipientJWKRepo *cryptoutilAppsSmImRepository.MessageRecipientJWKRepository,
 	jwkGenService *cryptoutilSharedCryptoJose.JWKGenService,
-	barrierService *cryptoutilAppsTemplateServiceServerBarrier.Service,
+	barrierService *cryptoutilAppsFrameworkServiceServerBarrier.Service,
 ) *MessageHandler {
 	return &MessageHandler{
 		messageRepo:             messageRepo,
@@ -68,7 +68,7 @@ func (h *MessageHandler) HandleSendMessage() fiber.Handler {
 		}
 
 		// Extract sender ID from authentication context.
-		senderID, ok := c.Locals(cryptoutilAppsTemplateServiceServerMiddleware.ContextKeyUserID).(googleUuid.UUID)
+		senderID, ok := c.Locals(cryptoutilAppsFrameworkServiceServerMiddleware.ContextKeyUserID).(googleUuid.UUID)
 		if !ok {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
@@ -158,7 +158,7 @@ func (h *MessageHandler) HandleSendMessage() fiber.Handler {
 func (h *MessageHandler) HandleReceiveMessages() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// Extract recipient ID from authentication context.
-		recipientID, ok := c.Locals(cryptoutilAppsTemplateServiceServerMiddleware.ContextKeyUserID).(googleUuid.UUID)
+		recipientID, ok := c.Locals(cryptoutilAppsFrameworkServiceServerMiddleware.ContextKeyUserID).(googleUuid.UUID)
 		if !ok {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
@@ -262,7 +262,7 @@ func (h *MessageHandler) HandleDeleteMessage() fiber.Handler {
 		}
 
 		// Extract authenticated user ID from context.
-		userID, ok := c.Locals(cryptoutilAppsTemplateServiceServerMiddleware.ContextKeyUserID).(googleUuid.UUID)
+		userID, ok := c.Locals(cryptoutilAppsFrameworkServiceServerMiddleware.ContextKeyUserID).(googleUuid.UUID)
 		if !ok {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{

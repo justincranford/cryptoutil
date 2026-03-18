@@ -33,7 +33,7 @@ func makeMigrationDir(t *testing.T, root, relDir string, fileNumbers []int) {
 }
 
 const (
-	templateMigRelDir = "internal/apps/template/service/server/repository/migrations"
+	templateMigRelDir = "internal/apps/framework/service/server/repository/migrations"
 	joseMigRelDir     = "internal/apps/jose/ja/repository/migrations"
 	identityMigRelDir = "internal/apps/identity/idp/repository/migrations"
 )
@@ -109,7 +109,7 @@ func TestFindDomainMigrationDirs_NoAppsDir_ReturnsEmpty(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
 	appsDir := filepath.Join(tmp, "internal", "apps")
-	templateDir := filepath.Join(tmp, "internal", "apps", cryptoutilSharedMagic.SkeletonTemplateServiceName, "service", "server", "repository", "migrations")
+	templateDir := filepath.Join(tmp, "internal", "apps", cryptoutilSharedMagic.FrameworkProductName, "service", "server", "repository", "migrations")
 	dirs, err := findDomainMigrationDirs(appsDir, templateDir)
 	require.NoError(t, err)
 	require.Empty(t, dirs)
@@ -120,7 +120,7 @@ func TestFindDomainMigrationDirs_WithIdentity_ExcludesIt(t *testing.T) {
 	tmp := t.TempDir()
 	makeMigrationDir(t, tmp, identityMigRelDir, []int{1, 2})
 	appsDir := filepath.Join(tmp, "internal", "apps")
-	templateDir := filepath.Join(tmp, "internal", "apps", cryptoutilSharedMagic.SkeletonTemplateServiceName, "service", "server", "repository", "migrations")
+	templateDir := filepath.Join(tmp, "internal", "apps", cryptoutilSharedMagic.FrameworkProductName, "service", "server", "repository", "migrations")
 	dirs, err := findDomainMigrationDirs(appsDir, templateDir)
 	require.NoError(t, err)
 
@@ -134,7 +134,7 @@ func TestFindDomainMigrationDirs_WithJose_IncludesIt(t *testing.T) {
 	tmp := t.TempDir()
 	makeMigrationDir(t, tmp, joseMigRelDir, []int{2001})
 	appsDir := filepath.Join(tmp, "internal", "apps")
-	templateDir := filepath.Join(tmp, "internal", "apps", cryptoutilSharedMagic.SkeletonTemplateServiceName, "service", "server", "repository", "migrations")
+	templateDir := filepath.Join(tmp, "internal", "apps", cryptoutilSharedMagic.FrameworkProductName, "service", "server", "repository", "migrations")
 	dirs, err := findDomainMigrationDirs(appsDir, templateDir)
 	require.NoError(t, err)
 	require.NotEmpty(t, dirs)
@@ -217,7 +217,7 @@ func TestFindDomainMigrationDirs_WithArchivedSubdir_Skipped(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(archived, "0001_invalid.up.sql"), []byte("-- bad"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	appsDir := tmp
-	templateDir := filepath.Join(tmp, cryptoutilSharedMagic.SkeletonTemplateServiceName, "migrations")
+	templateDir := filepath.Join(tmp, cryptoutilSharedMagic.FrameworkProductName, "migrations")
 	dirs, err := findDomainMigrationDirs(appsDir, templateDir)
 	require.NoError(t, err)
 	require.Empty(t, dirs)

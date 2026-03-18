@@ -13,33 +13,34 @@ import (
 	"gorm.io/gorm"
 
 	cryptoutilSkeletonTemplateServer "cryptoutil/api/skeleton-template/server"
+	cryptoutilAppsFrameworkServiceServer "cryptoutil/internal/apps/framework/service/server"
+	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
+	cryptoutilAppsFrameworkServiceServerBuilder "cryptoutil/internal/apps/framework/service/server/builder"
+	cryptoutilAppsFrameworkServiceServerBusinesslogic "cryptoutil/internal/apps/framework/service/server/businesslogic"
+	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
+	cryptoutilAppsFrameworkServiceServerService "cryptoutil/internal/apps/framework/service/server/service"
 	cryptoutilAppsSkeletonTemplateRepository "cryptoutil/internal/apps/skeleton/template/repository"
 	cryptoutilAppsSkeletonTemplateServerConfig "cryptoutil/internal/apps/skeleton/template/server/config"
 	cryptoutilAppsSkeletonTemplateServerHandler "cryptoutil/internal/apps/skeleton/template/server/handler"
-	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
-	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilAppsTemplateServiceServerBuilder "cryptoutil/internal/apps/template/service/server/builder"
-	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
-	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilAppsTemplateServiceServerService "cryptoutil/internal/apps/template/service/server/service"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
+
 // SkeletonTemplateServer represents the skeleton-template service application.
 type SkeletonTemplateServer struct {
-	app *cryptoutilAppsTemplateServiceServer.Application
+	app *cryptoutilAppsFrameworkServiceServer.Application
 	db  *gorm.DB
 
 	// Services.
 	telemetryService      *cryptoutilSharedTelemetry.TelemetryService
 	jwkGenService         *cryptoutilSharedCryptoJose.JWKGenService
-	barrierService        *cryptoutilAppsTemplateServiceServerBarrier.Service
-	sessionManagerService *cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService
-	realmService          cryptoutilAppsTemplateServiceServerService.RealmService
+	barrierService        *cryptoutilAppsFrameworkServiceServerBarrier.Service
+	sessionManagerService *cryptoutilAppsFrameworkServiceServerBusinesslogic.SessionManagerService
+	realmService          cryptoutilAppsFrameworkServiceServerService.RealmService
 
 	// Repositories.
-	realmRepo cryptoutilAppsTemplateServiceServerRepository.TenantRealmRepository // Uses service-template repository.
+	realmRepo cryptoutilAppsFrameworkServiceServerRepository.TenantRealmRepository // Uses service-template repository.
 }
 
 // NewFromConfig creates a new skeleton-template server from SkeletonTemplateServerSettings only.
@@ -52,10 +53,10 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsSkeletonTemplateServe
 	}
 
 	// Create server builder with template config.
-	resources, err := cryptoutilAppsTemplateServiceServerBuilder.Build(ctx, cfg.ServiceTemplateServerSettings, &cryptoutilAppsTemplateServiceServerBuilder.DomainConfig{
+	resources, err := cryptoutilAppsFrameworkServiceServerBuilder.Build(ctx, cfg.ServiceFrameworkServerSettings, &cryptoutilAppsFrameworkServiceServerBuilder.DomainConfig{
 		MigrationsFS:   cryptoutilAppsSkeletonTemplateRepository.MigrationsFS,
 		MigrationsPath: "migrations",
-		RouteRegistration: func(base *cryptoutilAppsTemplateServiceServer.PublicServerBase, res *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources) error {
+		RouteRegistration: func(base *cryptoutilAppsFrameworkServiceServer.PublicServerBase, res *cryptoutilAppsFrameworkServiceServerBuilder.ServiceResources) error {
 			return registerItemRoutes(base, res)
 		},
 	})
@@ -102,7 +103,7 @@ func (s *SkeletonTemplateServer) DB() *gorm.DB {
 }
 
 // App returns the application wrapper (for tests).
-func (s *SkeletonTemplateServer) App() *cryptoutilAppsTemplateServiceServer.Application {
+func (s *SkeletonTemplateServer) App() *cryptoutilAppsFrameworkServiceServer.Application {
 	return s.app
 }
 
@@ -117,7 +118,7 @@ func (s *SkeletonTemplateServer) Telemetry() *cryptoutilSharedTelemetry.Telemetr
 }
 
 // Barrier returns the barrier service (for tests).
-func (s *SkeletonTemplateServer) Barrier() *cryptoutilAppsTemplateServiceServerBarrier.Service {
+func (s *SkeletonTemplateServer) Barrier() *cryptoutilAppsFrameworkServiceServerBarrier.Service {
 	return s.barrierService
 }
 
@@ -171,10 +172,10 @@ func (s *SkeletonTemplateServer) AdminTLSRootCAPool() *x509.CertPool {
 }
 
 // Compile-time assertion: SkeletonTemplateServer must implement ServiceServer.
-var _ cryptoutilAppsTemplateServiceServer.ServiceServer = (*SkeletonTemplateServer)(nil)
+var _ cryptoutilAppsFrameworkServiceServer.ServiceServer = (*SkeletonTemplateServer)(nil)
 
 // registerItemRoutes sets up the Item CRUD routes using the OpenAPI strict server pattern.
-func registerItemRoutes(base *cryptoutilAppsTemplateServiceServer.PublicServerBase, res *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources) error {
+func registerItemRoutes(base *cryptoutilAppsFrameworkServiceServer.PublicServerBase, res *cryptoutilAppsFrameworkServiceServerBuilder.ServiceResources) error {
 	// Create domain repository.
 	itemRepo := cryptoutilAppsSkeletonTemplateRepository.NewItemRepository(res.DB)
 

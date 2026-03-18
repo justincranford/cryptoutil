@@ -13,7 +13,7 @@ import (
 	"time"
 
 	cryptoutilKmsServer "cryptoutil/internal/apps/sm/kms/server"
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
 )
@@ -131,7 +131,7 @@ func runKMSDemo(ctx context.Context, config *Config) int {
 }
 
 // parseKMSConfig creates settings for KMS demo.
-func parseKMSConfig() (*cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings, error) {
+func parseKMSConfig() (*cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings, error) {
 	// Use dev profile with demo mode enabled.
 	args := []string{
 		"start",
@@ -142,7 +142,7 @@ func parseKMSConfig() (*cryptoutilAppsTemplateServiceConfig.ServiceTemplateServe
 		"--bind-private-port", "0",
 	}
 
-	settings, err := cryptoutilAppsTemplateServiceConfig.Parse(args, true)
+	settings, err := cryptoutilAppsFrameworkServiceConfig.Parse(args, true)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse config: %w", err)
 	}
@@ -151,7 +151,7 @@ func parseKMSConfig() (*cryptoutilAppsTemplateServiceConfig.ServiceTemplateServe
 }
 
 // startKMSServer starts the KMS server.
-func startKMSServer(ctx context.Context, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) (*cryptoutilKmsServer.KMSServer, error) {
+func startKMSServer(ctx context.Context, settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*cryptoutilKmsServer.KMSServer, error) {
 	server, err := cryptoutilKmsServer.NewKMSServer(ctx, settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create server: %w", err)

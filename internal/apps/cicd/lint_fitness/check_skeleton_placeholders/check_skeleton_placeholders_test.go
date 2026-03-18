@@ -242,18 +242,18 @@ func TestFindViolations_TemplateDirExcluded(t *testing.T) {
 
 	tempDir := t.TempDir()
 
-	templateDir := filepath.Join(tempDir, "internal", "apps", cryptoutilSharedMagic.SkeletonTemplateServiceName)
-	err := os.MkdirAll(templateDir, 0o700)
+	frameworkDir := filepath.Join(tempDir, "internal", "apps", cryptoutilSharedMagic.FrameworkProductName)
+	err := os.MkdirAll(frameworkDir, 0o700)
 	require.NoError(t, err)
 
-	file := filepath.Join(templateDir, "server.go")
-	content := "package template\n\n// Supported services: skeleton-template\n"
+	file := filepath.Join(frameworkDir, "server.go")
+	content := "package framework\n\n// Supported services: skeleton-template\n"
 	err = os.WriteFile(file, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	violations, err := FindViolations(tempDir)
 	require.NoError(t, err)
-	require.Empty(t, violations, "internal/apps/template/ must be excluded")
+	require.Empty(t, violations, "internal/apps/framework/ must be excluded")
 }
 
 func TestFindViolations_ApiSkeletonTemplateDirExcluded(t *testing.T) {

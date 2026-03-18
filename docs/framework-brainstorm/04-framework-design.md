@@ -1,6 +1,6 @@
 # Framework Design Proposals
 
-Concrete design ideas for evolving internal/apps/template/service/ into a
+Concrete design ideas for evolving internal/apps/framework/service/ into a
 true application framework equivalent to Spring Boot's @SpringBootApplication.
 
 ---
@@ -26,7 +26,7 @@ Target: cryptoutil framework is a FRAMEWORK.
 The simplest improvement: define a Go interface that every service MUST implement.
 
 `go
-// Package framework (internal/apps/template/service/framework)
+// Package framework (internal/apps/framework/service/framework)
 
 // ServiceContract is the interface every cryptoutil service must satisfy.
 // This is enforced at compile time: if a service does not implement this interface,
@@ -148,7 +148,7 @@ type FrameworkModule interface {
     Shutdown()
 }
 
-// Built-in modules (in internal/apps/template/service/modules/):
+// Built-in modules (in internal/apps/framework/service/modules/):
 var (
     DatabaseModule     FrameworkModule  // GORM DB, migrations, connection pool
     TelemetryModule    FrameworkModule  // OTel, structured logging

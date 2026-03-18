@@ -4,16 +4,16 @@
 
 **Archived**: 2025-12-24
 **Reason**: Migrated to service template pattern
-**Replacement**: `internal/apps/template/service/testing/e2e_helpers/` (service-level) + `internal/apps/template/service/testing/e2e_infra/` (Docker Compose orchestration)
+**Replacement**: `internal/apps/framework/service/testing/e2e_helpers/` (service-level) + `internal/apps/framework/service/testing/e2e_infra/` (Docker Compose orchestration)
 
 ### Migration Summary
 
 **Fully Migrated**:
-- `docker_health.go` → `internal/apps/template/service/testing/e2e_infra/docker_health.go` (3-use-case health checking with ServiceAndJob struct)
+- `docker_health.go` → `internal/apps/framework/service/testing/e2e_infra/docker_health.go` (3-use-case health checking with ServiceAndJob struct)
 
 **Partially Migrated**:
-- `docker_utils.go` → Simplified as `internal/apps/template/service/testing/e2e_infra/compose_manager.go` (ComposeManager, lighter design)
-- `http_utils.go` → Similar functionality in `internal/apps/template/service/testing/e2e_helpers/http_helpers.go`
+- `docker_utils.go` → Simplified as `internal/apps/framework/service/testing/e2e_infra/compose_manager.go` (ComposeManager, lighter design)
+- `http_utils.go` → Similar functionality in `internal/apps/framework/service/testing/e2e_helpers/http_helpers.go`
 
 **Not Migrated (Intentionally Archived)**:
 - `log_utils.go` - Elaborate dual-output logging replaced by simpler testing.T.Log()
@@ -29,8 +29,8 @@
 **New Framework**: Simpler TestMain pattern, testing.T.Log(), direct ComposeManager usage
 
 **Two Directory Strategy**:
-1. `internal/apps/template/service/testing/e2e_helpers/` - Service-level testing helpers (in-process, no Docker)
-2. `internal/apps/template/service/testing/e2e_infra/` - Docker Compose orchestration (docker_health.go, compose_manager.go)
+1. `internal/apps/framework/service/testing/e2e_helpers/` - Service-level testing helpers (in-process, no Docker)
+2. `internal/apps/framework/service/testing/e2e_infra/` - Docker Compose orchestration (docker_health.go, compose_manager.go)
 
 ### References
 

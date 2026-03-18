@@ -39,7 +39,7 @@ var excludedDirPrefixes = []string{
 	"internal/shared/magic/",
 	"internal/apps/cryptoutil/",
 	"internal/apps/cicd/",
-	"internal/apps/template/",
+	"internal/apps/framework/",
 }
 
 // excludedDirNames are directory names (single component) that skip entire subtrees.

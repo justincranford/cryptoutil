@@ -22,7 +22,7 @@ import (
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
 	cryptoutilIdentityServer "cryptoutil/internal/apps/identity/server"
 	cryptoutilKmsServer "cryptoutil/internal/apps/sm/kms/server"
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
 )
 
@@ -386,7 +386,7 @@ func startIntegrationKMSServer(ctx context.Context, servers *integrationServers)
 		"--bind-private-port", "0",
 	}
 
-	settings, err := cryptoutilAppsTemplateServiceConfig.Parse(args, true)
+	settings, err := cryptoutilAppsFrameworkServiceConfig.Parse(args, true)
 	if err != nil {
 		return fmt.Errorf("failed to parse KMS config: %w", err)
 	}

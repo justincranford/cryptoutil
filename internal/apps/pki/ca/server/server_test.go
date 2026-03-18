@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/pki/ca/server/config"
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
@@ -19,7 +19,7 @@ func TestNewFromConfig_InvalidDatabaseURL(t *testing.T) {
 	t.Parallel()
 
 	cfg := &cryptoutilAppsCaServerConfig.CAServerSettings{}
-	cfg.ServiceTemplateServerSettings = &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{}
+	cfg.ServiceFrameworkServerSettings = &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{}
 	cfg.DatabaseURL = "invalid://not-a-real-dsn"
 
 	_, err := NewFromConfig(context.Background(), cfg)

@@ -4,7 +4,7 @@
 
 ### 1. ServerBuilder Fluent API
 
-The builder pattern in internal/apps/template/service/server/builder/ is solid:
+The builder pattern in internal/apps/framework/service/server/builder/ is solid:
 - NewServerBuilder() -> WithDomainMigrations() -> WithPublicRouteRegistration() -> Build()
 - Error accumulation (railway-oriented) prevents partial construction
 - Single Build() produces a fully-wired ServiceResources bundle

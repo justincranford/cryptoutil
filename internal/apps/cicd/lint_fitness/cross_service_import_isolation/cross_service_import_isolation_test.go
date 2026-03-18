@@ -69,7 +69,7 @@ func TestCheckInDir_CleanImports_Passes(t *testing.T) {
 		[]string{
 			`"fmt"`,
 			`"cryptoutil/internal/shared/magic"`,
-			`"cryptoutil/internal/apps/template/service/server"`,
+			`"cryptoutil/internal/apps/framework/service/server"`,
 		},
 	)
 	err := CheckInDir(newTestLogger(), tmp)
@@ -154,7 +154,7 @@ func TestIsViolation_AllowedImports(t *testing.T) {
 		wantViol   bool
 	}{
 		{"non-apps import", "github.com/some/lib", false},
-		{"template import", "cryptoutil/internal/apps/template/service/server", false},
+		{"template import", "cryptoutil/internal/apps/framework/service/server", false},
 		{"cicd import", "cryptoutil/internal/apps/cicd/common", false},
 		{"same-product import", "cryptoutil/internal/apps/sm/kms/something", false},
 		{"cross-product violation", "cryptoutil/internal/apps/pki/ca/something", true},

@@ -12,7 +12,7 @@ import (
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-	cryptoutilContract "cryptoutil/internal/apps/template/service/testing/contract"
+	cryptoutilContract "cryptoutil/internal/apps/framework/service/testing/contract"
 
 	"github.com/stretchr/testify/require"
 )

@@ -10,17 +10,17 @@ import (
 	"fmt"
 	"io/fs"
 
-	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
 )
 
 // DatabaseType represents supported database types for skeleton-template.
-type DatabaseType = cryptoutilAppsTemplateServiceServerRepository.DatabaseType
+type DatabaseType = cryptoutilAppsFrameworkServiceServerRepository.DatabaseType
 
 const (
 	// DatabaseTypeSQLite represents SQLite database.
-	DatabaseTypeSQLite = cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite
+	DatabaseTypeSQLite = cryptoutilAppsFrameworkServiceServerRepository.DatabaseTypeSQLite
 	// DatabaseTypePostgreSQL represents PostgreSQL database.
-	DatabaseTypePostgreSQL = cryptoutilAppsTemplateServiceServerRepository.DatabaseTypePostgreSQL
+	DatabaseTypePostgreSQL = cryptoutilAppsFrameworkServiceServerRepository.DatabaseTypePostgreSQL
 )
 
 // MigrationsFS contains embedded skeleton-template specific migrations (2001+ only).
@@ -39,7 +39,7 @@ var MigrationsFS embed.FS
 // GetMergedMigrationsFS returns a filesystem combining template and skeleton-template migrations.
 // This is used by tests to access all migrations (1001-1999 template + 2001+ skeleton-template) in sequence.
 func GetMergedMigrationsFS() fs.FS {
-	return cryptoutilAppsTemplateServiceServerRepository.NewMergedMigrationsFS(MigrationsFS)
+	return cryptoutilAppsFrameworkServiceServerRepository.NewMergedMigrationsFS(MigrationsFS)
 }
 
 // ApplySkeletonTemplateMigrations runs database migrations for skeleton-template service.
@@ -56,7 +56,7 @@ func GetMergedMigrationsFS() fs.FS {
 // - 2001_template_items: Minimal template demonstration table.
 func ApplySkeletonTemplateMigrations(db *sql.DB, dbType DatabaseType) error {
 	// Apply all migrations in sequence (1001-1999 template + 2001+ skeleton-template) using merged filesystem.
-	runner := cryptoutilAppsTemplateServiceServerRepository.NewMigrationRunner(GetMergedMigrationsFS(), "migrations")
+	runner := cryptoutilAppsFrameworkServiceServerRepository.NewMigrationRunner(GetMergedMigrationsFS(), "migrations")
 
 	if err := runner.Apply(db, dbType); err != nil {
 		return fmt.Errorf("failed to apply skeleton-template migrations (1001-1999 + 2001+): %w", err)

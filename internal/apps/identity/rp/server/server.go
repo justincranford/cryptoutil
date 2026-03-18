@@ -11,12 +11,12 @@ import (
 	"gorm.io/gorm"
 
 	cryptoutilAppsIdentityRpServerConfig "cryptoutil/internal/apps/identity/rp/server/config"
-	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
-	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilAppsTemplateServiceServerBuilder "cryptoutil/internal/apps/template/service/server/builder"
-	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
-	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilAppsTemplateServiceServerService "cryptoutil/internal/apps/template/service/server/service"
+	cryptoutilAppsFrameworkServiceServer "cryptoutil/internal/apps/framework/service/server"
+	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
+	cryptoutilAppsFrameworkServiceServerBuilder "cryptoutil/internal/apps/framework/service/server/builder"
+	cryptoutilAppsFrameworkServiceServerBusinesslogic "cryptoutil/internal/apps/framework/service/server/businesslogic"
+	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
+	cryptoutilAppsFrameworkServiceServerService "cryptoutil/internal/apps/framework/service/server/service"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
@@ -24,7 +24,7 @@ import (
 // RPServer represents the identity-rp service application.
 // This is a Backend-for-Frontend (BFF) that proxies OAuth 2.1 flows for SPAs.
 type RPServer struct {
-	app *cryptoutilAppsTemplateServiceServer.Application
+	app *cryptoutilAppsFrameworkServiceServer.Application
 	db  *gorm.DB
 
 	// RP configuration.
@@ -33,12 +33,12 @@ type RPServer struct {
 	// Template services.
 	telemetryService      *cryptoutilSharedTelemetry.TelemetryService
 	jwkGenService         *cryptoutilSharedCryptoJose.JWKGenService
-	barrierService        *cryptoutilAppsTemplateServiceServerBarrier.Service
-	sessionManagerService *cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService
-	realmService          cryptoutilAppsTemplateServiceServerService.RealmService
+	barrierService        *cryptoutilAppsFrameworkServiceServerBarrier.Service
+	sessionManagerService *cryptoutilAppsFrameworkServiceServerBusinesslogic.SessionManagerService
+	realmService          cryptoutilAppsFrameworkServiceServerService.RealmService
 
 	// Template repositories.
-	realmRepo cryptoutilAppsTemplateServiceServerRepository.TenantRealmRepository
+	realmRepo cryptoutilAppsFrameworkServiceServerRepository.TenantRealmRepository
 
 	// Shutdown functions.
 	shutdownCore      func()
@@ -54,8 +54,8 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsIdentityRpServerConfi
 		return nil, fmt.Errorf("config cannot be nil")
 	}
 
-	resources, err := cryptoutilAppsTemplateServiceServerBuilder.Build(ctx, cfg.ServiceTemplateServerSettings, &cryptoutilAppsTemplateServiceServerBuilder.DomainConfig{
-		RouteRegistration: func(base *cryptoutilAppsTemplateServiceServer.PublicServerBase, res *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources) error {
+	resources, err := cryptoutilAppsFrameworkServiceServerBuilder.Build(ctx, cfg.ServiceFrameworkServerSettings, &cryptoutilAppsFrameworkServiceServerBuilder.DomainConfig{
+		RouteRegistration: func(base *cryptoutilAppsFrameworkServiceServer.PublicServerBase, res *cryptoutilAppsFrameworkServiceServerBuilder.ServiceResources) error {
 			// Create public server with BFF handlers.
 			publicServer := NewPublicServer(base, cfg, res.SessionManager, res.RealmService)
 
@@ -123,7 +123,7 @@ func (s *RPServer) DB() *gorm.DB {
 }
 
 // App returns the application wrapper (for tests).
-func (s *RPServer) App() *cryptoutilAppsTemplateServiceServer.Application {
+func (s *RPServer) App() *cryptoutilAppsFrameworkServiceServer.Application {
 	return s.app
 }
 
@@ -138,7 +138,7 @@ func (s *RPServer) Telemetry() *cryptoutilSharedTelemetry.TelemetryService {
 }
 
 // Barrier returns the barrier service (for tests).
-func (s *RPServer) Barrier() *cryptoutilAppsTemplateServiceServerBarrier.Service {
+func (s *RPServer) Barrier() *cryptoutilAppsFrameworkServiceServerBarrier.Service {
 	return s.barrierService
 }
 
@@ -192,4 +192,4 @@ func (s *RPServer) AdminTLSRootCAPool() *x509.CertPool {
 }
 
 // Compile-time assertion: RPServer must implement ServiceServer.
-var _ cryptoutilAppsTemplateServiceServer.ServiceServer = (*RPServer)(nil)
+var _ cryptoutilAppsFrameworkServiceServer.ServiceServer = (*RPServer)(nil)

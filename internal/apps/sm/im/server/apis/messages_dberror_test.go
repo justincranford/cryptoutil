@@ -22,7 +22,7 @@ import (
 	cryptoutilApiSmImServer "cryptoutil/api/sm-im/server"
 	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm/im/model"
 	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm/im/repository"
-	cryptoutilTestdb "cryptoutil/internal/apps/template/service/testing/testdb"
+	cryptoutilTestdb "cryptoutil/internal/apps/framework/service/testing/testdb"
 )
 
 // newBrokenMessageHandler creates a MessageHandler with a closed database to trigger repository errors.

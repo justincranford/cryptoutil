@@ -71,7 +71,7 @@
 - **Dependencies**: None
 - **Description**: Add 401/403 rejection contract tests to the cross-service contract suite. Auth is 100% service-template owned.
 - **Acceptance Criteria**:
-  - [x] New `auth_contracts.go` in `internal/apps/template/service/testing/contract/`
+  - [x] New `auth_contracts.go` in `internal/apps/framework/service/testing/contract/`
   - [x] Tests unauthenticated requests get 401 on protected endpoints
   - [x] Tests unauthorized requests get 403 (note: 403 requires authorization infrastructure not yet built; 401 is fully tested)
   - [x] Tests both `/service/**` and `/browser/**` paths
@@ -183,12 +183,12 @@
 - **Dependencies**: None
 - **Description**: Add TLS cert bundle generation to the shared testserver infrastructure
 - **Acceptance Criteria**:
-  - [x] `NewTestTLSBundle(t)` in `internal/apps/template/service/testing/testserver/` generates self-signed CA + server cert
+  - [x] `NewTestTLSBundle(t)` in `internal/apps/framework/service/testing/testserver/` generates self-signed CA + server cert
   - [x] `TLSClientConfig(t *testing.T, bundle *TestTLSBundle) *tls.Config` returns config trusting the test CA cert
   - [x] `testserver.StartAndWait()` accepts optional TLS bundle or auto-generates one
   - [x] Server exposes `TLSBundle()` accessor so test setup can retrieve the CA cert
   - [x] Unit tests for TLS bundle generation (>=95% coverage)
-  - [x] Build clean: `go build ./internal/apps/template/service/testing/...`
+  - [x] Build clean: `go build ./internal/apps/framework/service/testing/...`
   - [x] No linting errors
 
 #### Task 2.2: Migrate sm-im test HTTP clients
@@ -1075,7 +1075,7 @@
 
 - **Status**: TODO
 - **Dependencies**: Task 11.1
-- **Description**: Rename `internal/apps/template/` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ `internal/apps/framework/`. Update all Go imports, package declarations, identifiers (ServiceTemplateServerSettings ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ ServiceFrameworkServerSettings, etc.).
+- **Description**: Rename `internal/apps/framework/` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ `internal/apps/framework/`. Update all Go imports, package declarations, identifiers (ServiceTemplateServerSettings ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ ServiceFrameworkServerSettings, etc.).
 - **Acceptance Criteria**:
   - [ ] `go build ./...` passes with zero errors
   - [ ] No remaining `internal/apps/template` import paths (except skeleton-template which is correct)

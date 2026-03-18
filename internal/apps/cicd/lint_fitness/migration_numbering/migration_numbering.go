@@ -47,7 +47,7 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	var errors []string
 
-	templateDir := filepath.Join(rootDir, "internal", "apps", cryptoutilSharedMagic.SkeletonTemplateServiceName, "service", "server", "repository", "migrations")
+	templateDir := filepath.Join(rootDir, "internal", "apps", cryptoutilSharedMagic.FrameworkProductName, "service", "server", "repository", "migrations")
 	errors = append(errors, checkMigrationDir(templateDir, templateMigrationMin, templateMigrationMax, true)...)
 
 	domainDirs, findErr := findDomainMigrationDirs(rootDir, templateDir)
@@ -176,7 +176,7 @@ func checkMigrationDir(dir string, minVersion, maxVersion int, isTemplate bool) 
 
 		label := "domain"
 		if isTemplate {
-			label = cryptoutilSharedMagic.SkeletonTemplateServiceName
+			label = cryptoutilSharedMagic.FrameworkProductName
 		}
 
 		if version < minVersion {

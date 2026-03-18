@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm/im/repository"
-	cryptoutilAppsTemplateServiceServerTestutil "cryptoutil/internal/apps/template/service/server/testutil"
+	cryptoutilAppsFrameworkServiceServerTestutil "cryptoutil/internal/apps/framework/service/server/testutil"
 )
 
 const (
@@ -54,7 +54,7 @@ const (
 func TestInitDatabase_HappyPaths(t *testing.T) {
 	t.Parallel()
 	// Use merged filesystem to get all migrations (1001-1999 template + 2001+ sm-im).
-	cryptoutilAppsTemplateServiceServerTestutil.HelpTestInitDatabaseHappyPaths(
+	cryptoutilAppsFrameworkServiceServerTestutil.HelpTestInitDatabaseHappyPaths(
 		t,
 		cryptoutilAppsSmImRepository.GetMergedMigrationsFS(),
 		expectedTableCount,
@@ -67,5 +67,5 @@ func TestInitDatabase_HappyPaths(t *testing.T) {
 func TestInitDatabase_SadPaths(t *testing.T) {
 	t.Parallel()
 	// Use merged filesystem to get all migrations (1001-1006).
-	cryptoutilAppsTemplateServiceServerTestutil.HelpTestInitDatabaseSadPaths(t, cryptoutilAppsSmImRepository.GetMergedMigrationsFS())
+	cryptoutilAppsFrameworkServiceServerTestutil.HelpTestInitDatabaseSadPaths(t, cryptoutilAppsSmImRepository.GetMergedMigrationsFS())
 }

@@ -20,7 +20,7 @@ import (
 	cryptoutilAppsSmImServer "cryptoutil/internal/apps/sm/im/server"
 	cryptoutilAppsSmImServerConfig "cryptoutil/internal/apps/sm/im/server/config"
 	cryptoutilAppsSmImTesting "cryptoutil/internal/apps/sm/im/testing"
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 )
 
 // Shared test resources (initialized once per package).
@@ -37,11 +37,11 @@ var (
 // Integration tests start the full application but use SQLite instead of PostgreSQL,
 // and exclude telemetry containers (otel-collector, grafana-lgtm).
 func TestMain(m *testing.M) {
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("sm-im-integration-test")
+	settings := cryptoutilAppsFrameworkServiceConfig.RequireNewForTest("sm-im-integration-test")
 	settings.DatabaseURL = cryptoutilSharedMagic.SQLiteInMemoryDSN // SQLite in-memory for fast integration tests.
 
 	testSmIMServer = &cryptoutilAppsSmImServerConfig.SmIMServerSettings{
-		ServiceTemplateServerSettings: settings,
+		ServiceFrameworkServerSettings: settings,
 	}
 
 	smIMServer = cryptoutilAppsSmImTesting.StartSmIMService(testSmIMServer)

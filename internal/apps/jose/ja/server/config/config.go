@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/spf13/pflag"
@@ -15,7 +15,7 @@ import (
 
 // JoseJAServerSettings contains jose-ja specific configuration.
 type JoseJAServerSettings struct {
-	*cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
+	*cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings
 
 	// Elastic Key settings.
 	DefaultMaxMaterials int
@@ -27,25 +27,25 @@ type JoseJAServerSettings struct {
 
 // Jose-JA specific default values.
 
-var allJoseJAServerRegisteredSettings []*cryptoutilAppsTemplateServiceConfig.Setting
+var allJoseJAServerRegisteredSettings []*cryptoutilAppsFrameworkServiceConfig.Setting
 
 // Jose-JA specific Setting objects for parameter attributes.
 var (
-	maxMaterialsSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allJoseJAServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
+	maxMaterialsSetting = cryptoutilAppsFrameworkServiceConfig.SetEnvAndRegisterSetting(allJoseJAServerRegisteredSettings, &cryptoutilAppsFrameworkServiceConfig.Setting{
 		Name:        "max-materials",
 		Shorthand:   "",
 		Value:       cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 		Usage:       "default maximum material keys per elastic key",
 		Description: "Max Materials Per Elastic Key",
 	})
-	auditEnabledSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allJoseJAServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
+	auditEnabledSetting = cryptoutilAppsFrameworkServiceConfig.SetEnvAndRegisterSetting(allJoseJAServerRegisteredSettings, &cryptoutilAppsFrameworkServiceConfig.Setting{
 		Name:        "audit-enabled",
 		Shorthand:   "",
 		Value:       cryptoutilSharedMagic.JoseJAAuditDefaultEnabled,
 		Usage:       "enable audit logging for JWK operations",
 		Description: "Audit Enabled",
 	})
-	auditSamplingRateSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allJoseJAServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
+	auditSamplingRateSetting = cryptoutilAppsFrameworkServiceConfig.SetEnvAndRegisterSetting(allJoseJAServerRegisteredSettings, &cryptoutilAppsFrameworkServiceConfig.Setting{
 		Name:        "audit-sampling-rate",
 		Shorthand:   "",
 		Value:       cryptoutilSharedMagic.JoseJAAuditDefaultSamplingRate,
@@ -59,13 +59,13 @@ var (
 func ParseWithFlagSet(fs *pflag.FlagSet, args []string, exitIfHelp bool) (*JoseJAServerSettings, error) {
 	// Register jose-ja specific flags on the provided FlagSet BEFORE parsing.
 	// This must happen before calling template ParseWithFlagSet since it will call fs.Parse().
-	fs.IntP(maxMaterialsSetting.Name, maxMaterialsSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(maxMaterialsSetting), maxMaterialsSetting.Description)
-	fs.BoolP(auditEnabledSetting.Name, auditEnabledSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsBoolSetting(auditEnabledSetting), auditEnabledSetting.Description)
-	fs.IntP(auditSamplingRateSetting.Name, auditSamplingRateSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(auditSamplingRateSetting), auditSamplingRateSetting.Description)
+	fs.IntP(maxMaterialsSetting.Name, maxMaterialsSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsIntSetting(maxMaterialsSetting), maxMaterialsSetting.Description)
+	fs.BoolP(auditEnabledSetting.Name, auditEnabledSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsBoolSetting(auditEnabledSetting), auditEnabledSetting.Description)
+	fs.IntP(auditSamplingRateSetting.Name, auditSamplingRateSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsIntSetting(auditSamplingRateSetting), auditSamplingRateSetting.Description)
 
 	// Parse base template settings using the same FlagSet.
 	// This will register template flags and call fs.Parse() + viper.BindPFlags().
-	baseSettings, err := cryptoutilAppsTemplateServiceConfig.ParseWithFlagSet(fs, args, exitIfHelp)
+	baseSettings, err := cryptoutilAppsFrameworkServiceConfig.ParseWithFlagSet(fs, args, exitIfHelp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template settings: %w", err)
 	}
@@ -76,7 +76,7 @@ func ParseWithFlagSet(fs *pflag.FlagSet, args []string, exitIfHelp bool) (*JoseJ
 	auditSamplingRate, _ := fs.GetInt(auditSamplingRateSetting.Name)
 
 	settings := &JoseJAServerSettings{
-		ServiceTemplateServerSettings: baseSettings,
+		ServiceFrameworkServerSettings: baseSettings,
 		DefaultMaxMaterials:           maxMaterials,
 		AuditEnabled:                  auditEnabled,
 		AuditSamplingRate:             auditSamplingRate,

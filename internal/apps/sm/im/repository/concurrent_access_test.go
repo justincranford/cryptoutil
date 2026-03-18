@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm/im/model"
-	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
 )
 
 // TestConcurrentAccess_ParallelCreates tests concurrent Create operations for race conditions.
@@ -25,7 +25,7 @@ func TestConcurrentAccess_ParallelCreates(t *testing.T) {
 
 	// Create test user.
 	senderID := googleUuid.New()
-	testUser := &cryptoutilAppsTemplateServiceServerRepository.User{
+	testUser := &cryptoutilAppsFrameworkServiceServerRepository.User{
 		ID:       senderID,
 		Username: "concurrent_sender_" + googleUuid.New().String(),
 	}
@@ -77,7 +77,7 @@ func TestConcurrentAccess_ParallelReadsAndWrites(t *testing.T) {
 
 	// Create test user and message.
 	senderID := googleUuid.New()
-	testUser := &cryptoutilAppsTemplateServiceServerRepository.User{
+	testUser := &cryptoutilAppsFrameworkServiceServerRepository.User{
 		ID:       senderID,
 		Username: "rw_sender_" + googleUuid.New().String(),
 	}
@@ -151,13 +151,13 @@ func TestConcurrentAccess_ParallelFindByRecipientID(t *testing.T) {
 	senderID := googleUuid.New()
 	recipientID := googleUuid.New()
 
-	sender := &cryptoutilAppsTemplateServiceServerRepository.User{
+	sender := &cryptoutilAppsFrameworkServiceServerRepository.User{
 		ID:       senderID,
 		Username: "sender_" + googleUuid.New().String(),
 	}
 	require.NoError(t, userRepo.Create(ctx, sender))
 
-	recipient := &cryptoutilAppsTemplateServiceServerRepository.User{
+	recipient := &cryptoutilAppsFrameworkServiceServerRepository.User{
 		ID:       recipientID,
 		Username: "recipient_" + googleUuid.New().String(),
 	}
@@ -219,7 +219,7 @@ func TestConcurrentAccess_ParallelDeletes(t *testing.T) {
 
 	// Create test user.
 	senderID := googleUuid.New()
-	testUser := &cryptoutilAppsTemplateServiceServerRepository.User{
+	testUser := &cryptoutilAppsFrameworkServiceServerRepository.User{
 		ID:       senderID,
 		Username: "delete_sender_" + googleUuid.New().String(),
 	}

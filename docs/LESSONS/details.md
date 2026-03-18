@@ -94,7 +94,7 @@ open('file.go', 'w').write(content)
 
 **Problem**: The MergedMigrationsFS pattern (merging template migrations with domain migrations for golang-migrate compatibility) was duplicated ~330 lines across 4 service packages: jose-ja, skeleton-template, sm-im, pki-ca.
 
-**Solution**: Extract to `internal/apps/template/service/server/repository/migrations_merged.go` as a shared utility. Each domain package now calls `NewMergedMigrationsFS(MigrationsFS)` instead of reimplementing the pattern from scratch.
+**Solution**: Extract to `internal/apps/framework/service/server/repository/migrations_merged.go` as a shared utility. Each domain package now calls `NewMergedMigrationsFS(MigrationsFS)` instead of reimplementing the pattern from scratch.
 
 **Impact**: 5 files changed, 330 duplicate lines removed.
 

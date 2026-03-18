@@ -19,7 +19,7 @@ func TestNewTestConfig_BasicCreation(t *testing.T) {
 	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
 	require.NotNil(t, cfg, "config should not be nil")
-	require.NotNil(t, cfg.ServiceTemplateServerSettings, "template settings should not be nil")
+	require.NotNil(t, cfg.ServiceFrameworkServerSettings, "template settings should not be nil")
 
 	// Verify bind settings.
 	require.Equal(t, cryptoutilSharedMagic.IPv4Loopback, cfg.BindPublicAddress)

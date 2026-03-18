@@ -16,7 +16,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	cryptoutilAppsTemplateServiceConfigTlsGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
+	cryptoutilAppsFrameworkServiceConfigTlsGenerator "cryptoutil/internal/apps/framework/service/config/tls_generator"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -50,7 +50,7 @@ func Run(args []string, _ io.Reader, stdout io.Writer, stderr io.Writer) int {
 		return 1
 	}
 
-	settings, err := cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings(
+	settings, err := cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings(
 		domains, ips, cryptoutilSharedMagic.PKIInitCertValidityDays,
 	)
 	if err != nil {

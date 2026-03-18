@@ -2,7 +2,7 @@
 
 // Package no_local_closed_db_helper enforces that createClosedDatabase-style helpers
 // are not defined outside the shared testdb package.
-// Use testdb.NewClosedSQLiteDB() from internal/apps/template/service/testing/testdb instead.
+// Use testdb.NewClosedSQLiteDB() from internal/apps/framework/service/testing/testdb instead.
 package no_local_closed_db_helper
 
 import (
@@ -97,7 +97,7 @@ func CheckFiles(logger *cryptoutilCmdCicdCommon.Logger, testFiles []string) erro
 
 	if totalViolations > 0 {
 		logger.Log(fmt.Sprintf("Found %d local closed-DB helper violation(s)", totalViolations))
-		fmt.Fprintln(os.Stderr, "Use testdb.NewClosedSQLiteDB() from internal/apps/template/service/testing/testdb instead.")
+		fmt.Fprintln(os.Stderr, "Use testdb.NewClosedSQLiteDB() from internal/apps/framework/service/testing/testdb instead.")
 
 		return fmt.Errorf("found %d local closed-DB helper violation(s)", totalViolations)
 	}

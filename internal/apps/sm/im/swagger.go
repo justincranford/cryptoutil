@@ -6,12 +6,12 @@ package im
 
 import (
 	cryptoutilApiSmImServer "cryptoutil/api/sm-im/server"
-	cryptoutilAppsTemplateServiceServerBuilder "cryptoutil/internal/apps/template/service/server/builder"
+	cryptoutilAppsFrameworkServiceServerBuilder "cryptoutil/internal/apps/framework/service/server/builder"
 
 	fiber "github.com/gofiber/fiber/v2"
 )
 
 // ServeOpenAPISpec serves the embedded OpenAPI specification for the SM IM service.
 func ServeOpenAPISpec() (func(c *fiber.Ctx) error, error) {
-	return cryptoutilAppsTemplateServiceServerBuilder.FiberHandlerOpenAPISpec(cryptoutilApiSmImServer.GetSwagger)
+	return cryptoutilAppsFrameworkServiceServerBuilder.FiberHandlerOpenAPISpec(cryptoutilApiSmImServer.GetSwagger)
 }

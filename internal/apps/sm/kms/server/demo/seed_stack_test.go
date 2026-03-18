@@ -11,10 +11,10 @@ import (
 	cryptoutilKmsServerBusinesslogic "cryptoutil/internal/apps/sm/kms/server/businesslogic"
 	cryptoutilKmsMiddleware "cryptoutil/internal/apps/sm/kms/server/middleware"
 	cryptoutilOrmRepository "cryptoutil/internal/apps/sm/kms/server/repository/orm"
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilAppsTemplateServiceServerApplication "cryptoutil/internal/apps/template/service/server/application"
-	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
+	cryptoutilAppsFrameworkServiceServerApplication "cryptoutil/internal/apps/framework/service/server/application"
+	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
+	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	googleUuid "github.com/google/uuid"
@@ -26,7 +26,7 @@ type demoTestStack struct {
 	businessLogicService *cryptoutilKmsServerBusinesslogic.BusinessLogicService
 	telemetryService     *cryptoutilSharedTelemetry.TelemetryService
 	ctx                  context.Context
-	core                 *cryptoutilAppsTemplateServiceServerApplication.Core
+	core                 *cryptoutilAppsFrameworkServiceServerApplication.Core
 }
 
 func TestMain(m *testing.M) {
@@ -39,18 +39,18 @@ func setupDemoTestStack(t *testing.T) *demoTestStack {
 	t.Helper()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("demo-" + t.Name())
+	settings := cryptoutilAppsFrameworkServiceConfig.RequireNewForTest("demo-" + t.Name())
 
-	templateCore, err := cryptoutilAppsTemplateServiceServerApplication.StartCore(ctx, settings)
+	templateCore, err := cryptoutilAppsFrameworkServiceServerApplication.StartCore(ctx, settings)
 	testify.NoError(t, err)
 	t.Cleanup(func() { templateCore.Shutdown() })
 
 	sqlDB, err := templateCore.DB.DB()
 	testify.NoError(t, err)
 
-	err = cryptoutilAppsTemplateServiceServerRepository.ApplyMigrationsFromFS(
+	err = cryptoutilAppsFrameworkServiceServerRepository.ApplyMigrationsFromFS(
 		sqlDB,
-		cryptoutilAppsTemplateServiceServerRepository.MigrationsFS,
+		cryptoutilAppsFrameworkServiceServerRepository.MigrationsFS,
 		"migrations",
 		cryptoutilSharedMagic.TestDatabaseSQLite,
 	)
@@ -66,10 +66,10 @@ func setupDemoTestStack(t *testing.T) *demoTestStack {
 	testify.NoError(t, err)
 	t.Cleanup(func() { ormRepo.Shutdown() })
 
-	gormRepo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(templateCore.DB)
+	gormRepo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(templateCore.DB)
 	testify.NoError(t, err)
 
-	barrierSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewService(
+	barrierSvc, err := cryptoutilAppsFrameworkServiceServerBarrier.NewService(
 		ctx, templateCore.Basic.TelemetryService, templateCore.Basic.JWKGenService,
 		gormRepo, templateCore.Basic.UnsealKeysService,
 	)

@@ -294,7 +294,7 @@ Skills live in `.github/skills/NAME/SKILL.md` — each skill in its own subdirec
 
 #### Service Template Pattern
 
-- **Single Reusable Template**: All 10 services across 5 products inherit from `internal/apps/template/`
+- **Single Reusable Template**: All 10 services across 5 products inherit from `internal/apps/framework/`
 - **Eliminates 48,000+ lines per service**: TLS setup, dual HTTPS servers, database, migrations, sessions, barrier
 - **Merged Migrations**: Template (1001-1999) + Domain (2001+) for golang-migrate validation
 - **Builder Pattern**: Fluent API with `NewServerBuilder(ctx, cfg).WithDomainMigrations(...).Build()`
@@ -1089,7 +1089,7 @@ cryptoutil sm kms server --config=/etc/sm/kms.yml
 ### CLI Subcommand
 
 All CLIs for all 10 services MUST support these subcommands, with consistent behavior and config parsing and flag parsing.
-Consistency MUST be guaranteed by inheriting from service-template, which will reuse `internal/apps/template/service/<SUBCOMMAND>/` packages:
+Consistency MUST be guaranteed by inheriting from service-template, which will reuse `internal/apps/framework/service/<SUBCOMMAND>/` packages:
 
 | Subcommand | Description |
 |------------|-------------|
@@ -1128,8 +1128,8 @@ Consistency MUST be guaranteed by inheriting from service-template, which will r
 
 #### 5.1.3 Mandatory Usage
 
-- ALL new services MUST use `internal/apps/template/service/` (consistency, reduced duplication)
-- ALL existing services MUST be refactored to use `internal/apps/template/service/` (iterative migration)
+- ALL new services MUST use `internal/apps/framework/service/` (consistency, reduced duplication)
+- ALL existing services MUST be refactored to use `internal/apps/framework/service/` (iterative migration)
 - Migration priority: sm-im → jose-ja → sm-kms → pki-ca → identity services
   - sm-im/jose-ja/sm-kms migrate first (SM product); pki-ca second; identity last
 
@@ -1137,7 +1137,7 @@ Consistency MUST be guaranteed by inheriting from service-template, which will r
 
 #### 5.2.1 Builder Methods
 
-- NewServerBuilder(ctx, cfg): Create builder with `internal/apps/template/service/` config
+- NewServerBuilder(ctx, cfg): Create builder with `internal/apps/framework/service/` config
 - WithDomainMigrations(fs, path): Register domain migrations (2001+)
 - WithPublicRouteRegistration(func): Register domain-specific public routes
 - Build(): Construct complete infrastructure and return ServiceResources
@@ -1621,7 +1621,7 @@ Non-Deterministic Example: {n2}nonce:aad#{R5}HKDF-HMAC-SHA256:abc123...:def456..
 
 #### 6.11.1 TLS Mode Taxonomy (Static / Mixed / Auto)
 
-The `GenerateTLSMaterial()` function in `internal/apps/template/service/config/tls_generator.go` selects one of three modes based on available credentials:
+The `GenerateTLSMaterial()` function in `internal/apps/framework/service/config/tls_generator.go` selects one of three modes based on available credentials:
 
 **TLSModeStatic** (Production):
 - Provides pre-generated certificate chain + private key via Docker secrets
@@ -2799,7 +2799,7 @@ client := &http.Client{
 **Entry Point**:
 
 ```go
-import cryptoutilContract "cryptoutil/internal/apps/template/service/testing/contract"
+import cryptoutilContract "cryptoutil/internal/apps/framework/service/testing/contract"
 
 func TestMyService_ContractCompliance(t *testing.T) {
     t.Parallel()
@@ -2816,7 +2816,7 @@ type ServiceServer interface {
     SetReady(ready bool)                   // used by RunReadyzNotReadyContract
     TLSRootCAPool() *x509.CertPool         // public server CA pool (no InsecureSkipVerify)
     AdminTLSRootCAPool() *x509.CertPool    // admin server CA pool (no InsecureSkipVerify)
-    // ... (full interface: see internal/apps/template/service/server/contract.go)
+    // ... (full interface: see internal/apps/framework/service/server/contract.go)
 }
 ```
 
@@ -2828,12 +2828,12 @@ type ServiceServer interface {
 
 #### 10.3.6 Shared Test Infrastructure
 
-Shared test packages in `internal/apps/template/service/testing/` eliminate TestMain boilerplate by providing reusable setup helpers.
+Shared test packages in `internal/apps/framework/service/testing/` eliminate TestMain boilerplate by providing reusable setup helpers.
 
 **testdb** — Database setup helpers:
 
 ```go
-import cryptoutilTestdb "cryptoutil/internal/apps/template/service/testing/testdb"
+import cryptoutilTestdb "cryptoutil/internal/apps/framework/service/testing/testdb"
 
 // In-memory SQLite (fast, no cleanup needed)
 db := cryptoutilTestdb.NewInMemorySQLiteDB(t)
@@ -2852,7 +2852,7 @@ db := cryptoutilTestdb.RequireNewPostgresTestContainer(ctx, t, &MyModel{})
 **testserver** — Test server lifecycle:
 
 ```go
-import cryptoutilTestserver "cryptoutil/internal/apps/template/service/testing/testserver"
+import cryptoutilTestserver "cryptoutil/internal/apps/framework/service/testing/testserver"
 
 // Start server with port 0 (dynamic), wait for ready, register cleanup
 srv := cryptoutilTestserver.StartAndWait(ctx, t, myServiceServer)
@@ -2861,7 +2861,7 @@ srv := cryptoutilTestserver.StartAndWait(ctx, t, myServiceServer)
 **fixtures** — Test data creation:
 
 ```go
-import cryptoutilFixtures "cryptoutil/internal/apps/template/service/testing/fixtures"
+import cryptoutilFixtures "cryptoutil/internal/apps/framework/service/testing/fixtures"
 
 tenant := cryptoutilFixtures.CreateTestTenant(t, db)
 realm  := cryptoutilFixtures.CreateTestRealm(t, db, tenant.ID)
@@ -2871,7 +2871,7 @@ user   := cryptoutilFixtures.CreateTestUser(t, db, tenant.ID)
 **assertions** — HTTP response assertions:
 
 ```go
-import cryptoutilAssertions "cryptoutil/internal/apps/template/service/testing/assertions"
+import cryptoutilAssertions "cryptoutil/internal/apps/framework/service/testing/assertions"
 
 cryptoutilAssertions.AssertHealthy(t, resp)                         // 200 OK
 cryptoutilAssertions.AssertErrorResponse(t, resp, http.StatusBadRequest)
@@ -2882,7 +2882,7 @@ cryptoutilAssertions.AssertTraceID(t, resp)
 **healthclient** — HTTPS health endpoint client:
 
 ```go
-import cryptoutilHealthclient "cryptoutil/internal/apps/template/service/testing/healthclient"
+import cryptoutilHealthclient "cryptoutil/internal/apps/framework/service/testing/healthclient"
 
 client := cryptoutilHealthclient.NewHealthClient(srv.PublicBaseURL(), srv.AdminBaseURL())
 livezResp, err  := client.Livez()
@@ -2926,7 +2926,7 @@ testAdminHTTPClient = &http.Client{
 **Testutil Helpers** (shared test infrastructure for template-derived tests):
 
 ```go
-import cryptoutilTestutil "cryptoutil/internal/apps/template/service/server/testutil"
+import cryptoutilTestutil "cryptoutil/internal/apps/framework/service/server/testutil"
 
 // Pre-configured cert pools from the shared test TLS bundle.
 publicPool := cryptoutilTestutil.PublicRootCAPool()   // public server CA
@@ -3112,7 +3112,7 @@ type ServiceAndJob struct {
 }
 ```
 
-**Implementation**: See `internal/apps/template/service/testing/e2e_infra/docker_health.go` for parseDockerComposePsOutput(), determineServiceHealthStatus(), WaitForServicesHealthy().
+**Implementation**: See `internal/apps/framework/service/testing/e2e_infra/docker_health.go` for parseDockerComposePsOutput(), determineServiceHealthStatus(), WaitForServicesHealthy().
 
 #### 10.4.3 E2E Test Scope
 

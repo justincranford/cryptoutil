@@ -13,7 +13,7 @@ import (
 	"os"
 	"testing"
 
-	cryptoutilAppsTemplateTestingE2eInfra "cryptoutil/internal/apps/template/service/testing/e2e_infra"
+	cryptoutilAppsFrameworkTestingE2eInfra "cryptoutil/internal/apps/framework/service/testing/e2e_infra"
 	cryptoutilSharedCryptoTls "cryptoutil/internal/shared/crypto/tls"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
@@ -21,7 +21,7 @@ import (
 // Shared test resources (initialized once per package).
 var (
 	sharedHTTPClient *http.Client
-	composeManager   *cryptoutilAppsTemplateTestingE2eInfra.ComposeManager
+	composeManager   *cryptoutilAppsFrameworkTestingE2eInfra.ComposeManager
 
 	// Three sm-kms instances with different backends (actual compose service names).
 	sqliteContainer    = cryptoutilSharedMagic.KMSE2ESQLiteContainer      // "sm-kms-app-sqlite-1"
@@ -49,7 +49,7 @@ func TestMain(m *testing.M) {
 	ctx := context.Background()
 
 	// Initialize compose manager with reusable helper.
-	composeManager = cryptoutilAppsTemplateTestingE2eInfra.NewComposeManager(cryptoutilSharedMagic.KMSE2EComposeFile, cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault, cryptoutilSharedMagic.DockerServicePostgres)
+	composeManager = cryptoutilAppsFrameworkTestingE2eInfra.NewComposeManager(cryptoutilSharedMagic.KMSE2EComposeFile, cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault, cryptoutilSharedMagic.DockerServicePostgres)
 	sharedHTTPClient = cryptoutilSharedCryptoTls.NewClientForTestWithCA(cryptoutilSharedMagic.KMSE2ECACertPath)
 
 	// Step 1: Start docker compose stack.

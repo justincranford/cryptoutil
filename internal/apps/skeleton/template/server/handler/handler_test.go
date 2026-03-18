@@ -169,7 +169,7 @@ func TestStrictServer_ListItems(t *testing.T) {
 		size *int
 	}{
 		{name: "default_params"},
-			{name: "with_pagination", page: handlerIntPtr(1), size: handlerIntPtr(cryptoutilSharedMagic.SuiteServiceCount)},
+		{name: "with_pagination", page: handlerIntPtr(1), size: handlerIntPtr(cryptoutilSharedMagic.SuiteServiceCount)},
 	}
 
 	for _, tc := range tests {

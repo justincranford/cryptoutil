@@ -9,7 +9,7 @@ import (
 
 	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose/ja/model"
 	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose/ja/repository"
-	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
@@ -26,7 +26,7 @@ type JWKHandler struct {
 	auditConfigRepo cryptoutilAppsJoseJaRepository.AuditConfigRepository
 	auditLogRepo    cryptoutilAppsJoseJaRepository.AuditLogRepository
 	jwkGenService   *cryptoutilSharedCryptoJose.JWKGenService
-	barrierService  *cryptoutilAppsTemplateServiceServerBarrier.Service
+	barrierService  *cryptoutilAppsFrameworkServiceServerBarrier.Service
 }
 
 // NewJWKHandler creates a new JWK handler.
@@ -36,7 +36,7 @@ func NewJWKHandler(
 	auditConfigRepo cryptoutilAppsJoseJaRepository.AuditConfigRepository,
 	auditLogRepo cryptoutilAppsJoseJaRepository.AuditLogRepository,
 	jwkGenService *cryptoutilSharedCryptoJose.JWKGenService,
-	barrierService *cryptoutilAppsTemplateServiceServerBarrier.Service,
+	barrierService *cryptoutilAppsFrameworkServiceServerBarrier.Service,
 ) *JWKHandler {
 	return &JWKHandler{
 		elasticJWKRepo:  elasticJWKRepo,

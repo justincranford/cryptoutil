@@ -139,7 +139,7 @@ Derived from plan.md, tasks.md, lessons.md, and all planning sessions.
 ### Phase 11: service-framework Rename — FINAL (D20)
 
 - ☐ 11.1 Enumerate all ~340 files referencing internal/apps/template as framework; plan rename
-- ☐ 11.2 Rename internal/apps/template/ → internal/apps/framework/; update all imports/identifiers
+- ☐ 11.2 Rename internal/apps/framework/ → internal/apps/framework/; update all imports/identifiers
 - ☐ 11.3 Update ALL docs + Copilot artifacts (ARCHITECTURE.md, agents, skills, instructions, copilot-instructions.md)
 - ☐ 11.4 Add lint-fitness rule blocking new internal/apps/template framework imports (skeleton-template whitelisted)
 - ☐ 11.5 Update all GitHub workflows, Dockerfiles, docker-compose files

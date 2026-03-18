@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	cryptoutilAppsSmImClient "cryptoutil/internal/apps/sm/im/client"
-	cryptoutilAppsTemplateServiceTestingE2eHelpers "cryptoutil/internal/apps/template/service/testing/e2e_helpers"
+	cryptoutilAppsFrameworkServiceTestingE2eHelpers "cryptoutil/internal/apps/framework/service/testing/e2e_helpers"
 
 	"github.com/stretchr/testify/require"
 )
@@ -21,8 +21,8 @@ func TestE2E_FullEncryptionFlow(t *testing.T) {
 	t.Parallel()
 
 	// Register users.
-	user1 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterTestUserService(t, sharedHTTPClient, publicBaseURL)
-	user2 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterTestUserService(t, sharedHTTPClient, publicBaseURL)
+	user1 := cryptoutilAppsFrameworkServiceTestingE2eHelpers.RegisterTestUserService(t, sharedHTTPClient, publicBaseURL)
+	user2 := cryptoutilAppsFrameworkServiceTestingE2eHelpers.RegisterTestUserService(t, sharedHTTPClient, publicBaseURL)
 
 	// user1 sends encrypted message to user2.
 	plaintext := "Hello " + user2.Username + ", this is a secret message from " + user1.Username + "!"
@@ -54,9 +54,9 @@ func TestE2E_MultiReceiverEncryption(t *testing.T) {
 	t.Parallel()
 
 	// Register users.
-	user1 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterTestUserService(t, sharedHTTPClient, publicBaseURL)
-	user2 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterTestUserService(t, sharedHTTPClient, publicBaseURL)
-	user3 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterTestUserService(t, sharedHTTPClient, publicBaseURL)
+	user1 := cryptoutilAppsFrameworkServiceTestingE2eHelpers.RegisterTestUserService(t, sharedHTTPClient, publicBaseURL)
+	user2 := cryptoutilAppsFrameworkServiceTestingE2eHelpers.RegisterTestUserService(t, sharedHTTPClient, publicBaseURL)
+	user3 := cryptoutilAppsFrameworkServiceTestingE2eHelpers.RegisterTestUserService(t, sharedHTTPClient, publicBaseURL)
 
 	// user1 sends message to both user2 and user3.
 	plaintext := "Hello to both of you!"
@@ -94,8 +94,8 @@ func TestE2E_MessageDeletion(t *testing.T) {
 	t.Parallel()
 
 	// Register users.
-	user1 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterTestUserService(t, sharedHTTPClient, publicBaseURL)
-	user2 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterTestUserService(t, sharedHTTPClient, publicBaseURL)
+	user1 := cryptoutilAppsFrameworkServiceTestingE2eHelpers.RegisterTestUserService(t, sharedHTTPClient, publicBaseURL)
+	user2 := cryptoutilAppsFrameworkServiceTestingE2eHelpers.RegisterTestUserService(t, sharedHTTPClient, publicBaseURL)
 
 	// user1 sends message to user2.
 	plaintext := "This message will be deleted!"

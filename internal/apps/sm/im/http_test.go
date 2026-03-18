@@ -18,16 +18,16 @@ import (
 
 	cryptoutilAppsSmImServer "cryptoutil/internal/apps/sm/im/server"
 	cryptoutilAppsSmImServerConfig "cryptoutil/internal/apps/sm/im/server/config"
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 )
 
 // initTestConfig returns an SmIMServerSettings with all required settings for tests.
 func initTestConfig() *cryptoutilAppsSmImServerConfig.SmIMServerSettings {
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("sm-im-http-test")
+	settings := cryptoutilAppsFrameworkServiceConfig.RequireNewForTest("sm-im-http-test")
 	settings.DatabaseURL = cryptoutilSharedMagic.SQLiteInMemoryDSN // SQLite in-memory for fast tests.
 
 	return &cryptoutilAppsSmImServerConfig.SmIMServerSettings{
-		ServiceTemplateServerSettings: settings,
+		ServiceFrameworkServerSettings: settings,
 	}
 }
 

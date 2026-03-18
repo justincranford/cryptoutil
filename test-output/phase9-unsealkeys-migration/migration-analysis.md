@@ -31,17 +31,17 @@
 
 ### Template Service (11 imports - PRIMARY CONSUMER)
 
-1. internal/apps/template/service/server/apis/registration_integration_test.go
-2. internal/apps/template/service/server/barrier/barrier_service.go
-3. internal/apps/template/service/server/barrier/root_keys_service.go
-4. internal/apps/template/service/server/barrier/rotation_service.go
-5. internal/apps/template/service/server/barrier/barrier_service_test.go
-6. internal/apps/template/service/server/barrier/rotation_service_test.go
-7. internal/apps/template/service/server/barrier/rotation_handlers_test.go
-8. internal/apps/template/service/server/barrier/key_services_test.go
-9. internal/apps/template/service/server/businesslogic/session_manager_service_test.go
-10. internal/apps/template/service/server/application/application_basic.go
-11. internal/apps/template/service/server/builder/server_builder.go
+1. internal/apps/framework/service/server/apis/registration_integration_test.go
+2. internal/apps/framework/service/server/barrier/barrier_service.go
+3. internal/apps/framework/service/server/barrier/root_keys_service.go
+4. internal/apps/framework/service/server/barrier/rotation_service.go
+5. internal/apps/framework/service/server/barrier/barrier_service_test.go
+6. internal/apps/framework/service/server/barrier/rotation_service_test.go
+7. internal/apps/framework/service/server/barrier/rotation_handlers_test.go
+8. internal/apps/framework/service/server/barrier/key_services_test.go
+9. internal/apps/framework/service/server/businesslogic/session_manager_service_test.go
+10. internal/apps/framework/service/server/application/application_basic.go
+11. internal/apps/framework/service/server/builder/server_builder.go
 
 ### Other Services (3 imports - WILL NEED UPDATES)
 
@@ -73,7 +73,7 @@
 
 ### Step 1: Create Target Directory
 
-- Path: `internal/apps/template/service/server/barrier/unsealkeysservice/`
+- Path: `internal/apps/framework/service/server/barrier/unsealkeysservice/`
 - This makes unsealkeysservice a LOCAL package within template's barrier module
 
 ### Step 2: Move All 16 Files
@@ -84,10 +84,10 @@
 ### Step 3: Update Imports in Template Service (11 files)
 
 OLD: `cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"`
-NEW: `cryptoutilUnsealKeysService "cryptoutil/internal/apps/template/service/server/barrier/unsealkeysservice"`
+NEW: `cryptoutilUnsealKeysService "cryptoutil/internal/apps/framework/service/server/barrier/unsealkeysservice"`
 
 OR even better (local package reference):
-NEW: `unsealkeysservice "cryptoutil/internal/apps/template/service/server/barrier/unsealkeysservice"`
+NEW: `unsealkeysservice "cryptoutil/internal/apps/framework/service/server/barrier/unsealkeysservice"`
 
 ### Step 4: Update Imports in Other Services (4 files)
 
@@ -97,7 +97,7 @@ These services will need to import from the NEW location:
 - sm-kms: application_basic.go
 
 They will continue using:
-`cryptoutilUnsealKeysService "cryptoutil/internal/apps/template/service/server/barrier/unsealkeysservice"`
+`cryptoutilUnsealKeysService "cryptoutil/internal/apps/framework/service/server/barrier/unsealkeysservice"`
 
 ### Step 5: Delete Old Location
 
@@ -107,7 +107,7 @@ They will continue using:
 ### Step 6: Test Everything
 
 - Build: `go build ./...`
-- Test: `go test ./internal/apps/template/...`
+- Test: `go test ./internal/apps/framework/...`
 - Test: `go test ./internal/apps/jose/...`
 - Test: `go test ./internal/apps/cipher/...`
 - Test: `go test ./internal/apps/sm/...`

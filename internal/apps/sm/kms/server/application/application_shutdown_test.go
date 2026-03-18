@@ -12,7 +12,7 @@ import (
 	"context"
 	"testing"
 
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 
 	"github.com/stretchr/testify/require"
 )
@@ -30,7 +30,7 @@ func TestServerApplicationBasic_Shutdown(t *testing.T) {
 			setupFunc: func(t *testing.T) *ServerApplicationBasic {
 				t.Helper()
 
-				settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("shutdown_test_basic")
+				settings := cryptoutilAppsFrameworkServiceConfig.RequireNewForTest("shutdown_test_basic")
 				ctx := context.Background()
 				app, err := StartServerApplicationBasic(ctx, settings)
 				require.NoError(t, err, "failed to start server application basic")

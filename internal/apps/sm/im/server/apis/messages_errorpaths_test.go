@@ -25,8 +25,8 @@ import (
 
 	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm/im/model"
 	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm/im/repository"
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTestdb "cryptoutil/internal/apps/template/service/testing/testdb"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
+	cryptoutilTestdb "cryptoutil/internal/apps/framework/service/testing/testdb"
 
 	cryptoutilApiSmImServer "cryptoutil/api/sm-im/server"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
@@ -92,7 +92,7 @@ func createShutdownJWKHandler(t *testing.T) *MessageHandler {
 
 	ctx := context.Background()
 
-	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
 	telemetry, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, settings.ToTelemetrySettings())
 	require.NoError(t, err)

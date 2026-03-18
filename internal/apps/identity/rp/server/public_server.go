@@ -11,28 +11,28 @@ import (
 	fiber "github.com/gofiber/fiber/v2"
 
 	cryptoutilAppsIdentityRpServerConfig "cryptoutil/internal/apps/identity/rp/server/config"
-	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
-	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
-	cryptoutilAppsTemplateServiceServerService "cryptoutil/internal/apps/template/service/server/service"
+	cryptoutilAppsFrameworkServiceServer "cryptoutil/internal/apps/framework/service/server"
+	cryptoutilAppsFrameworkServiceServerBusinesslogic "cryptoutil/internal/apps/framework/service/server/businesslogic"
+	cryptoutilAppsFrameworkServiceServerService "cryptoutil/internal/apps/framework/service/server/service"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // PublicServer implements the identity-rp public server by embedding PublicServerBase.
 type PublicServer struct {
-	base *cryptoutilAppsTemplateServiceServer.PublicServerBase // Reusable server infrastructure.
+	base *cryptoutilAppsFrameworkServiceServer.PublicServerBase // Reusable server infrastructure.
 
 	cfg            *cryptoutilAppsIdentityRpServerConfig.IdentityRPServerSettings
-	sessionManager *cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService
-	realmService   cryptoutilAppsTemplateServiceServerService.RealmService
+	sessionManager *cryptoutilAppsFrameworkServiceServerBusinesslogic.SessionManagerService
+	realmService   cryptoutilAppsFrameworkServiceServerService.RealmService
 }
 
 // NewPublicServer creates a new identity-rp public server using builder-provided infrastructure.
 // Used by ServerBuilder during route registration.
 func NewPublicServer(
-	base *cryptoutilAppsTemplateServiceServer.PublicServerBase,
+	base *cryptoutilAppsFrameworkServiceServer.PublicServerBase,
 	cfg *cryptoutilAppsIdentityRpServerConfig.IdentityRPServerSettings,
-	sessionManager *cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService,
-	realmService cryptoutilAppsTemplateServiceServerService.RealmService,
+	sessionManager *cryptoutilAppsFrameworkServiceServerBusinesslogic.SessionManagerService,
+	realmService cryptoutilAppsFrameworkServiceServerService.RealmService,
 ) *PublicServer {
 	return &PublicServer{
 		base:           base,

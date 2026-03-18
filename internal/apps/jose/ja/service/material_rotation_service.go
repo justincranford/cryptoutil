@@ -13,7 +13,7 @@ import (
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose/ja/model"
 	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose/ja/repository"
-	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
@@ -43,7 +43,7 @@ type materialRotationServiceImpl struct {
 	elasticRepo  cryptoutilAppsJoseJaRepository.ElasticJWKRepository
 	materialRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository
 	jwkGenSvc    *cryptoutilSharedCryptoJose.JWKGenService
-	barrierSvc   *cryptoutilAppsTemplateServiceServerBarrier.Service
+	barrierSvc   *cryptoutilAppsFrameworkServiceServerBarrier.Service
 }
 
 // NewMaterialRotationService creates a new MaterialRotationService.
@@ -51,7 +51,7 @@ func NewMaterialRotationService(
 	elasticRepo cryptoutilAppsJoseJaRepository.ElasticJWKRepository,
 	materialRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository,
 	jwkGenSvc *cryptoutilSharedCryptoJose.JWKGenService,
-	barrierSvc *cryptoutilAppsTemplateServiceServerBarrier.Service,
+	barrierSvc *cryptoutilAppsFrameworkServiceServerBarrier.Service,
 ) MaterialRotationService {
 	return &materialRotationServiceImpl{
 		elasticRepo:  elasticRepo,

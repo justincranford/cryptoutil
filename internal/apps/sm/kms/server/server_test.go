@@ -11,11 +11,11 @@ import (
 
 	cryptoutilKmsServerBusinesslogic "cryptoutil/internal/apps/sm/kms/server/businesslogic"
 	cryptoutilKmsServerMiddleware "cryptoutil/internal/apps/sm/kms/server/middleware"
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
-	cryptoutilAppsTemplateServiceServerBuilder "cryptoutil/internal/apps/template/service/server/builder"
-	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
-	cryptoutilAppsTemplateServiceServerMiddleware "cryptoutil/internal/apps/template/service/server/middleware"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
+	cryptoutilAppsFrameworkServiceServer "cryptoutil/internal/apps/framework/service/server"
+	cryptoutilAppsFrameworkServiceServerBuilder "cryptoutil/internal/apps/framework/service/server/builder"
+	cryptoutilAppsFrameworkServiceServerBusinesslogic "cryptoutil/internal/apps/framework/service/server/businesslogic"
+	cryptoutilAppsFrameworkServiceServerMiddleware "cryptoutil/internal/apps/framework/service/server/middleware"
 
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
@@ -40,10 +40,10 @@ func (s *stubAdminServer) SetReady(bool)                      {}
 func (s *stubAdminServer) AdminBaseURL() string               { return "https://localhost:9090" }
 func (s *stubAdminServer) AdminTLSRootCAPool() *x509.CertPool { return nil }
 
-func newTestApp(t *testing.T) *cryptoutilAppsTemplateServiceServer.Application {
+func newTestApp(t *testing.T) *cryptoutilAppsFrameworkServiceServer.Application {
 	t.Helper()
 
-	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(
+	app, err := cryptoutilAppsFrameworkServiceServer.NewApplication(
 		context.Background(), &stubPublicServer{}, &stubAdminServer{},
 	)
 	require.NoError(t, err)
@@ -172,7 +172,7 @@ func TestKMSServer_AccessorsWithResources(t *testing.T) {
 
 	app := newTestApp(t)
 	srv := &KMSServer{
-		resources: &cryptoutilAppsTemplateServiceServerBuilder.ServiceResources{
+		resources: &cryptoutilAppsFrameworkServiceServerBuilder.ServiceResources{
 			Application: app,
 		},
 	}
@@ -187,7 +187,7 @@ func TestKMSServer_AccessorsWithResources(t *testing.T) {
 func TestKMSServer_StartError(t *testing.T) {
 	t.Parallel()
 
-	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(
+	app, err := cryptoutilAppsFrameworkServiceServer.NewApplication(
 		context.Background(),
 		&stubPublicServer{startErr: fmt.Errorf("bind failed")},
 		&stubAdminServer{},
@@ -195,7 +195,7 @@ func TestKMSServer_StartError(t *testing.T) {
 	require.NoError(t, err)
 
 	srv := &KMSServer{
-		resources: &cryptoutilAppsTemplateServiceServerBuilder.ServiceResources{
+		resources: &cryptoutilAppsFrameworkServiceServerBuilder.ServiceResources{
 			Application: app,
 		},
 	}
@@ -214,7 +214,7 @@ func TestKMSServer_ShutdownWithResources(t *testing.T) {
 	shutdownContainerCalled := false
 
 	srv := &KMSServer{
-		resources: &cryptoutilAppsTemplateServiceServerBuilder.ServiceResources{
+		resources: &cryptoutilAppsFrameworkServiceServerBuilder.ServiceResources{
 			Application:       app,
 			ShutdownCore:      func() { shutdownCoreCalled = true },
 			ShutdownContainer: func() { shutdownContainerCalled = true },
@@ -232,7 +232,7 @@ func TestKMSServer_ShutdownWithPartialResources(t *testing.T) {
 	t.Parallel()
 
 	srv := &KMSServer{
-		resources: &cryptoutilAppsTemplateServiceServerBuilder.ServiceResources{},
+		resources: &cryptoutilAppsFrameworkServiceServerBuilder.ServiceResources{},
 	}
 
 	require.NotPanics(t, func() { _ = srv.Shutdown(context.Background()) })
@@ -243,18 +243,18 @@ func TestRegisterKMSRoutes(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
+		settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings
 	}{
 		{
 			name: "default paths",
-			settings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
 				PublicBrowserAPIContextPath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
 				PublicServiceAPIContextPath: cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath,
 			},
 		},
 		{
 			name: "custom paths",
-			settings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+			settings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
 				PublicBrowserAPIContextPath: "/custom/browser",
 				PublicServiceAPIContextPath: "/custom/service",
 			},
@@ -281,12 +281,12 @@ func TestRegisterKMSRoutes_WithSessionManager(t *testing.T) {
 	t.Parallel()
 
 	app := fiber.New(fiber.Config{DisableStartupMessage: true})
-	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
 		PublicBrowserAPIContextPath: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
 		PublicServiceAPIContextPath: cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath,
 	}
-	res := &cryptoutilAppsTemplateServiceServerBuilder.ServiceResources{
-		SessionManager: &cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService{},
+	res := &cryptoutilAppsFrameworkServiceServerBuilder.ServiceResources{
+		SessionManager: &cryptoutilAppsFrameworkServiceServerBusinesslogic.SessionManagerService{},
 	}
 
 	err := registerKMSRoutes(app, (*cryptoutilKmsServerBusinesslogic.BusinessLogicService)(nil), settings, res)
@@ -312,7 +312,7 @@ func TestKMSServer_SetReady(t *testing.T) {
 				t.Helper()
 
 				return &KMSServer{
-					resources: &cryptoutilAppsTemplateServiceServerBuilder.ServiceResources{
+					resources: &cryptoutilAppsFrameworkServiceServerBuilder.ServiceResources{
 						Application: newTestApp(t),
 					},
 				}
@@ -354,7 +354,7 @@ func TestKMSServer_MissingAccessorsWithResources(t *testing.T) {
 
 	app := newTestApp(t)
 	srv := &KMSServer{
-		resources: &cryptoutilAppsTemplateServiceServerBuilder.ServiceResources{
+		resources: &cryptoutilAppsFrameworkServiceServerBuilder.ServiceResources{
 			Application: app,
 		},
 	}
@@ -384,22 +384,22 @@ func TestTenantContextBridgeMiddleware(t *testing.T) {
 		{
 			name: "valid tenant and realm IDs",
 			setup: func(c *fiber.Ctx) {
-				c.Locals(cryptoutilAppsTemplateServiceServerMiddleware.ContextKeyTenantID, validTID)
-				c.Locals(cryptoutilAppsTemplateServiceServerMiddleware.ContextKeyRealmID, validRID)
+				c.Locals(cryptoutilAppsFrameworkServiceServerMiddleware.ContextKeyTenantID, validTID)
+				c.Locals(cryptoutilAppsFrameworkServiceServerMiddleware.ContextKeyRealmID, validRID)
 			},
 			expectRC: true,
 		},
 		{
 			name: "nil UUID",
 			setup: func(c *fiber.Ctx) {
-				c.Locals(cryptoutilAppsTemplateServiceServerMiddleware.ContextKeyTenantID, googleUuid.UUID{})
+				c.Locals(cryptoutilAppsFrameworkServiceServerMiddleware.ContextKeyTenantID, googleUuid.UUID{})
 			},
 			expectRC: false,
 		},
 		{
 			name: "wrong type in locals",
 			setup: func(c *fiber.Ctx) {
-				c.Locals(cryptoutilAppsTemplateServiceServerMiddleware.ContextKeyTenantID, "not-a-uuid")
+				c.Locals(cryptoutilAppsFrameworkServiceServerMiddleware.ContextKeyTenantID, "not-a-uuid")
 			},
 			expectRC: false,
 		},

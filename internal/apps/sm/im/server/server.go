@@ -14,34 +14,34 @@ import (
 
 	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm/im/repository"
 	cryptoutilAppsSmImServerConfig "cryptoutil/internal/apps/sm/im/server/config"
-	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
-	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilAppsTemplateServiceServerBuilder "cryptoutil/internal/apps/template/service/server/builder"
-	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
-	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilAppsTemplateServiceServerService "cryptoutil/internal/apps/template/service/server/service"
+	cryptoutilAppsFrameworkServiceServer "cryptoutil/internal/apps/framework/service/server"
+	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
+	cryptoutilAppsFrameworkServiceServerBuilder "cryptoutil/internal/apps/framework/service/server/builder"
+	cryptoutilAppsFrameworkServiceServerBusinesslogic "cryptoutil/internal/apps/framework/service/server/businesslogic"
+	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
+	cryptoutilAppsFrameworkServiceServerService "cryptoutil/internal/apps/framework/service/server/service"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // SmIMServer represents the sm-im service application.
 type SmIMServer struct {
-	app *cryptoutilAppsTemplateServiceServer.Application
+	app *cryptoutilAppsFrameworkServiceServer.Application
 	db  *gorm.DB
 
 	// Services.
 	telemetryService      *cryptoutilSharedTelemetry.TelemetryService
 	jwkGenService         *cryptoutilSharedCryptoJose.JWKGenService
-	barrierService        *cryptoutilAppsTemplateServiceServerBarrier.Service
-	sessionManagerService *cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService
-	realmService          cryptoutilAppsTemplateServiceServerService.RealmService
-	registrationService   *cryptoutilAppsTemplateServiceServerBusinesslogic.TenantRegistrationService
+	barrierService        *cryptoutilAppsFrameworkServiceServerBarrier.Service
+	sessionManagerService *cryptoutilAppsFrameworkServiceServerBusinesslogic.SessionManagerService
+	realmService          cryptoutilAppsFrameworkServiceServerService.RealmService
+	registrationService   *cryptoutilAppsFrameworkServiceServerBusinesslogic.TenantRegistrationService
 
 	// Repositories.
 	userRepo                *cryptoutilAppsSmImRepository.UserRepository
 	messageRepo             *cryptoutilAppsSmImRepository.MessageRepository
 	messageRecipientJWKRepo *cryptoutilAppsSmImRepository.MessageRecipientJWKRepository
-	realmRepo               cryptoutilAppsTemplateServiceServerRepository.TenantRealmRepository // Uses service-template repository.
+	realmRepo               cryptoutilAppsFrameworkServiceServerRepository.TenantRealmRepository // Uses service-template repository.
 }
 
 // NewFromConfig creates a new sm-im server from SmIMServerSettings only.
@@ -53,10 +53,10 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsSmImServerConfig.SmIM
 		return nil, fmt.Errorf("config cannot be nil")
 	}
 
-	resources, err := cryptoutilAppsTemplateServiceServerBuilder.Build(ctx, cfg.ServiceTemplateServerSettings, &cryptoutilAppsTemplateServiceServerBuilder.DomainConfig{
+	resources, err := cryptoutilAppsFrameworkServiceServerBuilder.Build(ctx, cfg.ServiceFrameworkServerSettings, &cryptoutilAppsFrameworkServiceServerBuilder.DomainConfig{
 		MigrationsFS:   cryptoutilAppsSmImRepository.MigrationsFS,
 		MigrationsPath: "migrations",
-		RouteRegistration: func(base *cryptoutilAppsTemplateServiceServer.PublicServerBase, res *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources) error {
+		RouteRegistration: func(base *cryptoutilAppsFrameworkServiceServer.PublicServerBase, res *cryptoutilAppsFrameworkServiceServerBuilder.ServiceResources) error {
 			// Create sm-im specific repositories.
 			userRepo := cryptoutilAppsSmImRepository.NewUserRepository(res.DB)
 			messageRepo := cryptoutilAppsSmImRepository.NewMessageRepository(res.DB)
@@ -139,7 +139,7 @@ func (s *SmIMServer) DB() *gorm.DB {
 }
 
 // App returns the application wrapper (for tests).
-func (s *SmIMServer) App() *cryptoutilAppsTemplateServiceServer.Application {
+func (s *SmIMServer) App() *cryptoutilAppsFrameworkServiceServer.Application {
 	return s.app
 }
 
@@ -193,22 +193,22 @@ func (s *SmIMServer) AdminServerActualPort() int {
 }
 
 // SessionManager returns the session manager service (for tests).
-func (s *SmIMServer) SessionManager() *cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService {
+func (s *SmIMServer) SessionManager() *cryptoutilAppsFrameworkServiceServerBusinesslogic.SessionManagerService {
 	return s.sessionManagerService
 }
 
 // RealmService returns the realm service (for tests).
-func (s *SmIMServer) RealmService() cryptoutilAppsTemplateServiceServerService.RealmService {
+func (s *SmIMServer) RealmService() cryptoutilAppsFrameworkServiceServerService.RealmService {
 	return s.realmService
 }
 
 // RegistrationService returns the tenant registration service (for tests).
-func (s *SmIMServer) RegistrationService() *cryptoutilAppsTemplateServiceServerBusinesslogic.TenantRegistrationService {
+func (s *SmIMServer) RegistrationService() *cryptoutilAppsFrameworkServiceServerBusinesslogic.TenantRegistrationService {
 	return s.registrationService
 }
 
 // BarrierService returns the barrier service (for tests).
-func (s *SmIMServer) BarrierService() *cryptoutilAppsTemplateServiceServerBarrier.Service {
+func (s *SmIMServer) BarrierService() *cryptoutilAppsFrameworkServiceServerBarrier.Service {
 	return s.barrierService
 }
 
@@ -229,7 +229,7 @@ func (s *SmIMServer) MessageRecipientJWKRepo() *cryptoutilAppsSmImRepository.Mes
 
 // PublicServerBase returns the public server base for testing NewPublicServer.
 // This extracts the base from the Application's public server.
-func (s *SmIMServer) PublicServerBase() *cryptoutilAppsTemplateServiceServer.PublicServerBase {
+func (s *SmIMServer) PublicServerBase() *cryptoutilAppsFrameworkServiceServer.PublicServerBase {
 	return s.app.PublicServerBase()
 }
 
@@ -245,9 +245,9 @@ func (s *SmIMServer) AdminTLSRootCAPool() *x509.CertPool {
 
 // Barrier returns the barrier (encryption-at-rest) service used by this server.
 // Implements ServiceServer interface; delegates to BarrierService().
-func (s *SmIMServer) Barrier() *cryptoutilAppsTemplateServiceServerBarrier.Service {
+func (s *SmIMServer) Barrier() *cryptoutilAppsFrameworkServiceServerBarrier.Service {
 	return s.barrierService
 }
 
 // Compile-time assertion: SmIMServer must implement ServiceServer.
-var _ cryptoutilAppsTemplateServiceServer.ServiceServer = (*SmIMServer)(nil)
+var _ cryptoutilAppsFrameworkServiceServer.ServiceServer = (*SmIMServer)(nil)

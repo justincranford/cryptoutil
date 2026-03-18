@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/spf13/pflag"
@@ -15,7 +15,7 @@ import (
 
 // SmIMServerSettings defines configuration settings for the SM-IM server.
 type SmIMServerSettings struct {
-	*cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
+	*cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings
 
 	// Message encryption settings.
 	MessageJWEAlgorithm string
@@ -29,39 +29,39 @@ type SmIMServerSettings struct {
 
 // SM-IM specific default values.
 
-var allSmIMServerRegisteredSettings []*cryptoutilAppsTemplateServiceConfig.Setting
+var allSmIMServerRegisteredSettings []*cryptoutilAppsFrameworkServiceConfig.Setting
 
 // SM-IM specific Setting objects for parameter attributes.
 var (
-	messageJWEAlgorithm = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allSmIMServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
+	messageJWEAlgorithm = cryptoutilAppsFrameworkServiceConfig.SetEnvAndRegisterSetting(allSmIMServerRegisteredSettings, &cryptoutilAppsFrameworkServiceConfig.Setting{
 		Name:        "message-jwe-algorithm",
 		Shorthand:   "",
 		Value:       cryptoutilSharedMagic.IMJWEAlgorithm,
 		Usage:       "JWE algorithm for message encryption (e.g., dir+A256GCM)",
 		Description: "Message JWE Algorithm",
 	})
-	messageMinLength = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allSmIMServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
+	messageMinLength = cryptoutilAppsFrameworkServiceConfig.SetEnvAndRegisterSetting(allSmIMServerRegisteredSettings, &cryptoutilAppsFrameworkServiceConfig.Setting{
 		Name:        "message-min-length",
 		Shorthand:   "",
 		Value:       cryptoutilSharedMagic.IMMessageMinLength,
 		Usage:       "minimum message length in characters",
 		Description: "Message Min Length",
 	})
-	messageMaxLength = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allSmIMServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
+	messageMaxLength = cryptoutilAppsFrameworkServiceConfig.SetEnvAndRegisterSetting(allSmIMServerRegisteredSettings, &cryptoutilAppsFrameworkServiceConfig.Setting{
 		Name:        "message-max-length",
 		Shorthand:   "",
 		Value:       cryptoutilSharedMagic.IMMessageMaxLength,
 		Usage:       "maximum message length in characters",
 		Description: "Message Max Length",
 	})
-	recipientsMinCount = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allSmIMServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
+	recipientsMinCount = cryptoutilAppsFrameworkServiceConfig.SetEnvAndRegisterSetting(allSmIMServerRegisteredSettings, &cryptoutilAppsFrameworkServiceConfig.Setting{
 		Name:        "recipients-min-count",
 		Shorthand:   "",
 		Value:       cryptoutilSharedMagic.IMRecipientsMinCount,
 		Usage:       "minimum recipients per message",
 		Description: "Recipients Min Count",
 	})
-	recipientsMaxCount = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allSmIMServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
+	recipientsMaxCount = cryptoutilAppsFrameworkServiceConfig.SetEnvAndRegisterSetting(allSmIMServerRegisteredSettings, &cryptoutilAppsFrameworkServiceConfig.Setting{
 		Name:        "recipients-max-count",
 		Shorthand:   "",
 		Value:       cryptoutilSharedMagic.IMRecipientsMaxCount,
@@ -75,15 +75,15 @@ var (
 func ParseWithFlagSet(fs *pflag.FlagSet, args []string, exitIfHelp bool) (*SmIMServerSettings, error) {
 	// Register sm-im specific flags on the provided FlagSet BEFORE parsing.
 	// This must happen before calling template ParseWithFlagSet since it will call fs.Parse().
-	fs.StringP(messageJWEAlgorithm.Name, messageJWEAlgorithm.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(messageJWEAlgorithm), messageJWEAlgorithm.Description)
-	fs.IntP(messageMinLength.Name, messageMinLength.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(messageMinLength), messageMinLength.Description)
-	fs.IntP(messageMaxLength.Name, messageMaxLength.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(messageMaxLength), messageMaxLength.Description)
-	fs.IntP(recipientsMinCount.Name, recipientsMinCount.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(recipientsMinCount), recipientsMinCount.Description)
-	fs.IntP(recipientsMaxCount.Name, recipientsMaxCount.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(recipientsMaxCount), recipientsMaxCount.Description)
+	fs.StringP(messageJWEAlgorithm.Name, messageJWEAlgorithm.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(messageJWEAlgorithm), messageJWEAlgorithm.Description)
+	fs.IntP(messageMinLength.Name, messageMinLength.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsIntSetting(messageMinLength), messageMinLength.Description)
+	fs.IntP(messageMaxLength.Name, messageMaxLength.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsIntSetting(messageMaxLength), messageMaxLength.Description)
+	fs.IntP(recipientsMinCount.Name, recipientsMinCount.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsIntSetting(recipientsMinCount), recipientsMinCount.Description)
+	fs.IntP(recipientsMaxCount.Name, recipientsMaxCount.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsIntSetting(recipientsMaxCount), recipientsMaxCount.Description)
 
 	// Parse base template settings using the same FlagSet.
 	// This will register template flags and call fs.Parse() + viper.BindPFlags().
-	baseSettings, err := cryptoutilAppsTemplateServiceConfig.ParseWithFlagSet(fs, args, exitIfHelp)
+	baseSettings, err := cryptoutilAppsFrameworkServiceConfig.ParseWithFlagSet(fs, args, exitIfHelp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template settings: %w", err)
 	}
@@ -96,7 +96,7 @@ func ParseWithFlagSet(fs *pflag.FlagSet, args []string, exitIfHelp bool) (*SmIMS
 	recipMaxCount, _ := fs.GetInt(recipientsMaxCount.Name)
 
 	settings := &SmIMServerSettings{
-		ServiceTemplateServerSettings: baseSettings,
+		ServiceFrameworkServerSettings: baseSettings,
 		MessageJWEAlgorithm:           messageJWEAlgo,
 		MessageMinLength:              msgMinLen,
 		MessageMaxLength:              msgMaxLen,
@@ -108,7 +108,7 @@ func ParseWithFlagSet(fs *pflag.FlagSet, args []string, exitIfHelp bool) (*SmIMS
 	// Template uses cryptoutilSharedMagic.DefaultBrowserRealms (6 browser realms) and
 	// cryptoutilSharedMagic.DefaultServiceRealms (6 service realms) as defaults.
 	// See internal/shared/magic/magic_identity.go for complete realm definitions.
-	// See internal/apps/template/service/server/repository/tenant_domain.go for TenantRealm types.
+	// See internal/apps/framework/service/server/repository/tenant_domain.go for TenantRealm types.
 	// See internal/apps/sm/im/service/realm_service.go for realm management.
 	// Realms are stored in database and loaded at runtime via migration 0005_add_realms.up.sql.
 

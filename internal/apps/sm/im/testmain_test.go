@@ -18,8 +18,8 @@ import (
 	cryptoutilAppsSmImServer "cryptoutil/internal/apps/sm/im/server"
 	cryptoutilAppsSmImServerConfig "cryptoutil/internal/apps/sm/im/server/config"
 	cryptoutilAppsSmImTesting "cryptoutil/internal/apps/sm/im/testing"
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilAppsTemplateServiceTestutil "cryptoutil/internal/apps/template/service/testutil"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
+	cryptoutilAppsFrameworkServiceTestutil "cryptoutil/internal/apps/framework/service/testutil"
 )
 
 var (
@@ -31,18 +31,18 @@ var (
 
 // Shared mock servers from template testutil.
 var (
-	testMockServerOK     = cryptoutilAppsTemplateServiceTestutil.NewMockServerOK()
-	testMockServerError  = cryptoutilAppsTemplateServiceTestutil.NewMockServerError()
-	testMockServerCustom = cryptoutilAppsTemplateServiceTestutil.NewMockServerCustom()
+	testMockServerOK     = cryptoutilAppsFrameworkServiceTestutil.NewMockServerOK()
+	testMockServerError  = cryptoutilAppsFrameworkServiceTestutil.NewMockServerError()
+	testMockServerCustom = cryptoutilAppsFrameworkServiceTestutil.NewMockServerCustom()
 )
 
 func TestMain(m *testing.M) {
 	// Create in-memory SQLite configuration for testing.
-	serviceTemplateServerSettings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("sm-im-test")
-	serviceTemplateServerSettings.DatabaseURL = cryptoutilSharedMagic.SQLiteInMemoryDSN
+	ServiceFrameworkServerSettings := cryptoutilAppsFrameworkServiceConfig.RequireNewForTest("sm-im-test")
+	ServiceFrameworkServerSettings.DatabaseURL = cryptoutilSharedMagic.SQLiteInMemoryDSN
 
 	sharedAppConfig := &cryptoutilAppsSmImServerConfig.SmIMServerSettings{
-		ServiceTemplateServerSettings: serviceTemplateServerSettings,
+		ServiceFrameworkServerSettings: ServiceFrameworkServerSettings,
 	}
 
 	// Start service once for all tests in this package (following e2e pattern).

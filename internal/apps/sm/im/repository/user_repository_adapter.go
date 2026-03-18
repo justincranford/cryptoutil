@@ -9,8 +9,8 @@ import (
 
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilAppsTemplateServiceServerRealms "cryptoutil/internal/apps/template/service/server/realms"
-	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsFrameworkServiceServerRealms "cryptoutil/internal/apps/framework/service/server/realms"
+	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
 )
 
 // UserRepositoryAdapter adapts UserRepository to realms.UserRepository interface.
@@ -27,9 +27,9 @@ func NewUserRepositoryAdapter(repo *UserRepository) *UserRepositoryAdapter {
 
 // Create creates a new user in the database.
 // Adapts realms.UserModel interface to concrete template repository.User.
-func (a *UserRepositoryAdapter) Create(ctx context.Context, user cryptoutilAppsTemplateServiceServerRealms.UserModel) error {
+func (a *UserRepositoryAdapter) Create(ctx context.Context, user cryptoutilAppsFrameworkServiceServerRealms.UserModel) error {
 	// Type assertion: UserModel -> *repository.User
-	concreteUser, ok := user.(*cryptoutilAppsTemplateServiceServerRepository.User)
+	concreteUser, ok := user.(*cryptoutilAppsFrameworkServiceServerRepository.User)
 	if !ok {
 		// This should never happen if used correctly
 		panic("UserRepositoryAdapter.Create: expected *repository.User")
@@ -40,7 +40,7 @@ func (a *UserRepositoryAdapter) Create(ctx context.Context, user cryptoutilAppsT
 
 // FindByUsername finds a user by username.
 // Adapts realms.UserModel interface to concrete template repository.User.
-func (a *UserRepositoryAdapter) FindByUsername(ctx context.Context, username string) (cryptoutilAppsTemplateServiceServerRealms.UserModel, error) {
+func (a *UserRepositoryAdapter) FindByUsername(ctx context.Context, username string) (cryptoutilAppsFrameworkServiceServerRealms.UserModel, error) {
 	user, err := a.repo.FindByUsername(ctx, username)
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func (a *UserRepositoryAdapter) FindByUsername(ctx context.Context, username str
 
 // FindByID finds a user by ID.
 // Adapts realms.UserModel interface to concrete template repository.User.
-func (a *UserRepositoryAdapter) FindByID(ctx context.Context, id googleUuid.UUID) (cryptoutilAppsTemplateServiceServerRealms.UserModel, error) {
+func (a *UserRepositoryAdapter) FindByID(ctx context.Context, id googleUuid.UUID) (cryptoutilAppsFrameworkServiceServerRealms.UserModel, error) {
 	user, err := a.repo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -61,4 +61,4 @@ func (a *UserRepositoryAdapter) FindByID(ctx context.Context, id googleUuid.UUID
 }
 
 // Compile-time check that UserRepositoryAdapter implements realms.UserRepository interface.
-var _ cryptoutilAppsTemplateServiceServerRealms.UserRepository = (*UserRepositoryAdapter)(nil)
+var _ cryptoutilAppsFrameworkServiceServerRealms.UserRepository = (*UserRepositoryAdapter)(nil)

@@ -16,7 +16,7 @@ Two distinct roles are articulated:
 
 | Role | Current Name | Desired Behavior |
 |------|--------------|-----------------|
-| Application Framework | internal/apps/template/service/ | Equivalent to Spring Boot @SpringBootApplication - provides infrastructure, auto-configuration, extension points |
+| Application Framework | internal/apps/framework/service/ | Equivalent to Spring Boot @SpringBootApplication - provides infrastructure, auto-configuration, extension points |
 | Service Stereotype | skeleton-template | Equivalent to a Spring Boot Initializr project - copy-paste starting point that enforces conventions, domain business logic goes here |
 
 ---

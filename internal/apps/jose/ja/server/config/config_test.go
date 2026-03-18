@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
@@ -17,7 +17,7 @@ func TestValidateJoseJASettings_HappyPath(t *testing.T) {
 	t.Parallel()
 
 	settings := &JoseJAServerSettings{
-		ServiceTemplateServerSettings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{},
+		ServiceFrameworkServerSettings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{},
 		DefaultMaxMaterials:           cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 		AuditEnabled:                  true,
 		AuditSamplingRate:             cryptoutilSharedMagic.JoseJAAuditDefaultSamplingRate,
@@ -30,7 +30,7 @@ func TestValidateJoseJASettings_MinMaxMaterials(t *testing.T) {
 	t.Parallel()
 	t.Run("at_minimum", func(t *testing.T) {
 		settings := &JoseJAServerSettings{
-			ServiceTemplateServerSettings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{},
+			ServiceFrameworkServerSettings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{},
 			DefaultMaxMaterials:           cryptoutilSharedMagic.JoseJAMinMaterials, // 1
 			AuditSamplingRate:             cryptoutilSharedMagic.IMMaxUsernameLength,
 		}
@@ -40,7 +40,7 @@ func TestValidateJoseJASettings_MinMaxMaterials(t *testing.T) {
 
 	t.Run("at_maximum", func(t *testing.T) {
 		settings := &JoseJAServerSettings{
-			ServiceTemplateServerSettings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{},
+			ServiceFrameworkServerSettings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{},
 			DefaultMaxMaterials:           cryptoutilSharedMagic.JoseJAMaxMaterials, // 100
 			AuditSamplingRate:             cryptoutilSharedMagic.IMMaxUsernameLength,
 		}
@@ -50,7 +50,7 @@ func TestValidateJoseJASettings_MinMaxMaterials(t *testing.T) {
 
 	t.Run("below_minimum", func(t *testing.T) {
 		settings := &JoseJAServerSettings{
-			ServiceTemplateServerSettings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{},
+			ServiceFrameworkServerSettings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{},
 			DefaultMaxMaterials:           cryptoutilSharedMagic.JoseJAMinMaterials - 1, // 0
 			AuditSamplingRate:             cryptoutilSharedMagic.IMMaxUsernameLength,
 		}
@@ -61,7 +61,7 @@ func TestValidateJoseJASettings_MinMaxMaterials(t *testing.T) {
 
 	t.Run("above_maximum", func(t *testing.T) {
 		settings := &JoseJAServerSettings{
-			ServiceTemplateServerSettings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{},
+			ServiceFrameworkServerSettings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{},
 			DefaultMaxMaterials:           cryptoutilSharedMagic.JoseJAMaxMaterials + 1, // 101
 			AuditSamplingRate:             cryptoutilSharedMagic.IMMaxUsernameLength,
 		}
@@ -75,7 +75,7 @@ func TestValidateJoseJASettings_AuditSamplingRate(t *testing.T) {
 	t.Parallel()
 	t.Run("at_minimum", func(t *testing.T) {
 		settings := &JoseJAServerSettings{
-			ServiceTemplateServerSettings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{},
+			ServiceFrameworkServerSettings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{},
 			DefaultMaxMaterials:           cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 			AuditSamplingRate:             cryptoutilSharedMagic.JoseJAAuditMinSamplingRate, // 0
 		}
@@ -85,7 +85,7 @@ func TestValidateJoseJASettings_AuditSamplingRate(t *testing.T) {
 
 	t.Run("at_maximum", func(t *testing.T) {
 		settings := &JoseJAServerSettings{
-			ServiceTemplateServerSettings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{},
+			ServiceFrameworkServerSettings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{},
 			DefaultMaxMaterials:           cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 			AuditSamplingRate:             cryptoutilSharedMagic.JoseJAAuditMaxSamplingRate, // 100
 		}
@@ -95,7 +95,7 @@ func TestValidateJoseJASettings_AuditSamplingRate(t *testing.T) {
 
 	t.Run("below_minimum", func(t *testing.T) {
 		settings := &JoseJAServerSettings{
-			ServiceTemplateServerSettings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{},
+			ServiceFrameworkServerSettings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{},
 			DefaultMaxMaterials:           cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 			AuditSamplingRate:             cryptoutilSharedMagic.JoseJAAuditMinSamplingRate - 1, // -1
 		}
@@ -106,7 +106,7 @@ func TestValidateJoseJASettings_AuditSamplingRate(t *testing.T) {
 
 	t.Run("above_maximum", func(t *testing.T) {
 		settings := &JoseJAServerSettings{
-			ServiceTemplateServerSettings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{},
+			ServiceFrameworkServerSettings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{},
 			DefaultMaxMaterials:           cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 			AuditSamplingRate:             cryptoutilSharedMagic.JoseJAAuditMaxSamplingRate + 1, // 101
 		}
@@ -120,7 +120,7 @@ func TestValidateJoseJASettings_MultipleErrors(t *testing.T) {
 	t.Parallel()
 
 	settings := &JoseJAServerSettings{
-		ServiceTemplateServerSettings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{},
+		ServiceFrameworkServerSettings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{},
 		DefaultMaxMaterials:           0,   // Invalid: below minimum
 		AuditSamplingRate:             101, // Invalid: above maximum
 	}
@@ -138,7 +138,7 @@ func TestLogJoseJASettings(t *testing.T) {
 	os.Stderr = w
 
 	settings := &JoseJAServerSettings{
-		ServiceTemplateServerSettings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		ServiceFrameworkServerSettings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
 			BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
 			BindPublicAddress:   cryptoutilSharedMagic.IPv4Loopback,
 			BindPublicPort:      8060,
@@ -212,7 +212,7 @@ func TestNewTestConfig(t *testing.T) {
 	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, cryptoutilSharedMagic.DemoServerPort, true)
 
 	require.NotNil(t, cfg)
-	require.NotNil(t, cfg.ServiceTemplateServerSettings)
+	require.NotNil(t, cfg.ServiceFrameworkServerSettings)
 	require.Equal(t, uint16(cryptoutilSharedMagic.DemoServerPort), cfg.BindPublicPort)
 	require.Equal(t, cryptoutilSharedMagic.OTLPServiceJoseJA, cfg.OTLPService)
 	require.Equal(t, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cfg.DefaultMaxMaterials)
@@ -227,7 +227,7 @@ func TestDefaultTestConfig(t *testing.T) {
 	cfg := DefaultTestConfig()
 
 	require.NotNil(t, cfg)
-	require.NotNil(t, cfg.ServiceTemplateServerSettings)
+	require.NotNil(t, cfg.ServiceFrameworkServerSettings)
 	require.Equal(t, uint16(0), cfg.BindPublicPort) // Dynamic port allocation.
 	require.Equal(t, cryptoutilSharedMagic.OTLPServiceJoseJA, cfg.OTLPService)
 	require.Equal(t, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cfg.DefaultMaxMaterials)

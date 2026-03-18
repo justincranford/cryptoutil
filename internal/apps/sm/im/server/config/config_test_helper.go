@@ -4,7 +4,7 @@
 package config
 
 import (
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -22,14 +22,14 @@ import (
 // Returns directly populated SmIMServerSettings matching Parse() behavior.
 func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *SmIMServerSettings {
 	// Get base template config.
-	baseConfig := cryptoutilAppsTemplateServiceConfig.NewTestConfig(bindAddr, bindPort, devMode)
+	baseConfig := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(bindAddr, bindPort, devMode)
 
 	// Override template defaults with sm-im specific values.
 	baseConfig.BindPublicPort = bindPort
 	baseConfig.OTLPService = cryptoutilSharedMagic.OTLPServiceSMIM
 
 	return &SmIMServerSettings{
-		ServiceTemplateServerSettings: baseConfig,
+		ServiceFrameworkServerSettings: baseConfig,
 		MessageJWEAlgorithm:           cryptoutilSharedMagic.IMJWEAlgorithm,
 		MessageMinLength:              cryptoutilSharedMagic.IMMessageMinLength,
 		MessageMaxLength:              cryptoutilSharedMagic.IMMessageMaxLength,

@@ -21,7 +21,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsSmImClient "cryptoutil/internal/apps/sm/im/client"
-	cryptoutilAppsTemplateServiceTestingE2eHelpers "cryptoutil/internal/apps/template/service/testing/e2e_helpers"
+	cryptoutilAppsFrameworkServiceTestingE2eHelpers "cryptoutil/internal/apps/framework/service/testing/e2e_helpers"
 )
 
 // TestConcurrent_MultipleUsersSimultaneousSends tests concurrent message sending scenarios.
@@ -127,13 +127,13 @@ func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 }
 
 // createTestUsersAPI creates N test users via API calls using the reusable helper.
-func createTestUsersAPI(t *testing.T, client *http.Client, baseURL string, numUsers int) []*cryptoutilAppsTemplateServiceTestingE2eHelpers.TestUser {
+func createTestUsersAPI(t *testing.T, client *http.Client, baseURL string, numUsers int) []*cryptoutilAppsFrameworkServiceTestingE2eHelpers.TestUser {
 	t.Helper()
 
-	users := make([]*cryptoutilAppsTemplateServiceTestingE2eHelpers.TestUser, numUsers)
+	users := make([]*cryptoutilAppsFrameworkServiceTestingE2eHelpers.TestUser, numUsers)
 
 	for i := 0; i < numUsers; i++ {
-		users[i] = cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterTestUserService(t, client, baseURL)
+		users[i] = cryptoutilAppsFrameworkServiceTestingE2eHelpers.RegisterTestUserService(t, client, baseURL)
 	}
 
 	return users
@@ -158,8 +158,8 @@ func getMessagesAPI(t *testing.T, client *http.Client, baseURL string, _ googleU
 }
 
 // selectRecipients selects N random recipients (excluding sender).
-func selectRecipients(users []*cryptoutilAppsTemplateServiceTestingE2eHelpers.TestUser, senderID googleUuid.UUID, count int) []*cryptoutilAppsTemplateServiceTestingE2eHelpers.TestUser {
-	recipients := make([]*cryptoutilAppsTemplateServiceTestingE2eHelpers.TestUser, 0, count)
+func selectRecipients(users []*cryptoutilAppsFrameworkServiceTestingE2eHelpers.TestUser, senderID googleUuid.UUID, count int) []*cryptoutilAppsFrameworkServiceTestingE2eHelpers.TestUser {
+	recipients := make([]*cryptoutilAppsFrameworkServiceTestingE2eHelpers.TestUser, 0, count)
 
 	for _, user := range users {
 		if user.ID != senderID && len(recipients) < count {

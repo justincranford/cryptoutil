@@ -14,7 +14,7 @@ import (
 
 	cryptoutilAppsSmImServer "cryptoutil/internal/apps/sm/im/server"
 	cryptoutilAppsSmImTesting "cryptoutil/internal/apps/sm/im/testing"
-	cryptoutilAppsTemplateServiceConfigTlsGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
+	cryptoutilAppsFrameworkServiceConfigTlsGenerator "cryptoutil/internal/apps/framework/service/config/tls_generator"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
@@ -30,7 +30,7 @@ var (
 	testJWKGenService    *cryptoutilSharedCryptoJose.JWKGenService
 	testTelemetryService *cryptoutilSharedTelemetry.TelemetryService
 
-	testTLSCfg *cryptoutilAppsTemplateServiceConfigTlsGenerator.TLSGeneratedSettings
+	testTLSCfg *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings
 )
 
 func TestMain(m *testing.M) {

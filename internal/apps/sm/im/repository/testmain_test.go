@@ -15,9 +15,9 @@ import (
 
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilUnsealKeysService "cryptoutil/internal/apps/template/service/server/barrier/unsealkeysservice"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
+	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
+	cryptoutilUnsealKeysService "cryptoutil/internal/apps/framework/service/server/barrier/unsealkeysservice"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
@@ -28,7 +28,7 @@ var (
 	testDB             *gorm.DB
 	testSQLDB          *sql.DB // CRITICAL: Keep reference to prevent GC - in-memory SQLite requires open connection
 	testJWKGenService  *cryptoutilSharedCryptoJose.JWKGenService
-	testBarrierService *cryptoutilAppsTemplateServiceServerBarrier.Service
+	testBarrierService *cryptoutilAppsFrameworkServiceServerBarrier.Service
 )
 
 func TestMain(m *testing.M) {
@@ -81,7 +81,7 @@ func TestMain(m *testing.M) {
 	}
 
 	// Initialize telemetry.
-	telemetrySettings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+	telemetrySettings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
 	testTelemetryService, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, telemetrySettings.ToTelemetrySettings())
 	if err != nil {
@@ -109,13 +109,13 @@ func TestMain(m *testing.M) {
 	}
 	defer unsealKeysService.Shutdown()
 
-	barrierRepo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(testDB)
+	barrierRepo, err := cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository(testDB)
 	if err != nil {
 		panic("TestMain: failed to create barrier repository: " + err.Error())
 	}
 	defer barrierRepo.Shutdown()
 
-	testBarrierService, err = cryptoutilAppsTemplateServiceServerBarrier.NewService(ctx, testTelemetryService, testJWKGenService, barrierRepo, unsealKeysService)
+	testBarrierService, err = cryptoutilAppsFrameworkServiceServerBarrier.NewService(ctx, testTelemetryService, testJWKGenService, barrierRepo, unsealKeysService)
 	if err != nil {
 		panic("TestMain: failed to create barrier service: " + err.Error())
 	}

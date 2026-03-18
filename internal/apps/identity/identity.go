@@ -14,7 +14,7 @@ import (
 	cryptoutilAppsIdentityRp "cryptoutil/internal/apps/identity/rp"
 	cryptoutilAppsIdentityRs "cryptoutil/internal/apps/identity/rs"
 	cryptoutilAppsIdentitySpa "cryptoutil/internal/apps/identity/spa"
-	cryptoutilTemplateCli "cryptoutil/internal/apps/template/service/cli"
+	cryptoutilTemplateCli "cryptoutil/internal/apps/framework/service/cli"
 )
 
 const (

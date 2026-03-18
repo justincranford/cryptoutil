@@ -170,7 +170,7 @@ Addressed in Phase 6 (new Task 6.4 additions) and Phase 9.
 
 ### D20: Rename to "service-framework" — FINAL Phase (quizme-v4 Q3)
 
-Rename `internal/apps/template/` → `internal/apps/framework/` and ALL imports, identifiers, config keys, docs, agents, skills, instructions, GitHub workflows. ~340 files. Enforce with lint-fitness (no stray `template` in framework package paths after rename). MUST be the absolute final phase — after Phase 3 builder refactoring stabilizes all service files. Zero ambiguity: "framework" = shared engine, "skeleton" = starter service.
+Rename `internal/apps/framework/` → `internal/apps/framework/` and ALL imports, identifiers, config keys, docs, agents, skills, instructions, GitHub workflows. ~340 files. Enforce with lint-fitness (no stray `template` in framework package paths after rename). MUST be the absolute final phase — after Phase 3 builder refactoring stabilizes all service files. Zero ambiguity: "framework" = shared engine, "skeleton" = starter service.
 
 ### D21: OpenAPI Directory Naming Standardization
 
@@ -426,7 +426,7 @@ Following migration priority (sm-im > jose-ja > sm-kms > pki-ca > identity):
 
 **Objective**: Eliminate all terminology ambiguity between "template" (framework engine) and "skeleton" (starter service).
 
-- Rename `internal/apps/template/` → `internal/apps/framework/` (~340 files) (D20)
+- Rename `internal/apps/framework/` → `internal/apps/framework/` (~340 files) (D20)
 - Update ALL imports, identifiers, config keys, YAML keys
 - Update ALL docs (ARCHITECTURE.md, plan.md, tasks.md, lessons.md)
 - Update ALL Copilot artifacts (agents, skills, instructions, copilot-instructions.md)

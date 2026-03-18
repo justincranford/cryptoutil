@@ -120,7 +120,7 @@ func CheckBindAddressSafety(filePath string) []string {
 	}
 
 	// Pattern 3: Direct struct instantiation without NewTestConfig.
-	structPattern := regexp.MustCompile(`&cryptoutilConfig\.ServiceTemplateServerSettings\{`)
+	structPattern := regexp.MustCompile(`&cryptoutilConfig\.ServiceFrameworkServerSettings\{`)
 	if structPattern.MatchString(contentStr) {
 		// Check if NewTestConfig is also present (safe pattern).
 		hasNewTestConfig := strings.Contains(contentStr, "NewTestConfig")
@@ -128,7 +128,7 @@ func CheckBindAddressSafety(filePath string) []string {
 		if !hasNewTestConfig {
 			for i, line := range lines {
 				if structPattern.MatchString(line) {
-					issues = append(issues, fmt.Sprintf("Line %d: Direct ServiceTemplateServerSettings{} creation - use NewTestConfig() for safe defaults", i+1))
+					issues = append(issues, fmt.Sprintf("Line %d: Direct ServiceFrameworkServerSettings{} creation - use NewTestConfig() for safe defaults", i+1))
 				}
 			}
 		}

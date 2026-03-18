@@ -40,7 +40,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 	// Check template migration directory.
 	templateDir := filepath.Join(rootDir,
-		"internal", "apps", cryptoutilSharedMagic.SkeletonTemplateServiceName,
+		"internal", "apps", cryptoutilSharedMagic.FrameworkProductName,
 		"service", "server", "repository", "migrations")
 
 	templateViolations, err := checkDir(templateDir, templateMigrationMin, templateMigrationMax, true)
@@ -90,7 +90,7 @@ func checkDir(dir string, min, max int, isTemplate bool) ([]string, error) {
 
 	label := "domain"
 	if isTemplate {
-		label = cryptoutilSharedMagic.SkeletonTemplateServiceName
+		label = cryptoutilSharedMagic.FrameworkProductName
 	}
 
 	var violations []string

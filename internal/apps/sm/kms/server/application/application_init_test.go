@@ -13,7 +13,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
@@ -39,11 +39,11 @@ func TestServerInit_HappyPath(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
+		settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings
 	}{
 		{
 			name:     "ValidConfig_InMemoryDB_UnsealModeSysInfo",
-			settings: cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true),
+			settings: cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true),
 		},
 	}
 
@@ -89,13 +89,13 @@ func TestServerInit_InvalidIPAddresses(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		settings    *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
+		settings    *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings
 		expectedErr string
 	}{
 		{
 			name: "InvalidPublicIPAddress",
-			settings: func() *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings {
-				s := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+			settings: func() *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings {
+				s := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 				s.TLSPublicIPAddresses = []string{"invalid-ip"}
 
 				return s
@@ -104,8 +104,8 @@ func TestServerInit_InvalidIPAddresses(t *testing.T) {
 		},
 		{
 			name: "InvalidPrivateIPAddress",
-			settings: func() *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings {
-				s := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+			settings: func() *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings {
+				s := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 				s.TLSPrivateIPAddresses = []string{"999.999.999.999"}
 
 				return s
@@ -132,13 +132,13 @@ func TestContainerConfigurationValidation(t *testing.T) {
 
 	tests := []struct {
 		name              string
-		modifySettings    func(*cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings)
+		modifySettings    func(*cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings)
 		wantInitSuccess   bool
 		wantContainerMode bool
 	}{
 		{
 			name: "container mode + SQLite initialization succeeds",
-			modifySettings: func(s *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) {
+			modifySettings: func(s *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) {
 				s.BindPublicAddress = cryptoutilSharedMagic.IPv4AnyAddress // 0.0.0.0
 				s.BindPublicPort = 0                                       // Dynamic port
 				s.DatabaseURL = "sqlite://file::memory:?cache=shared"
@@ -148,7 +148,7 @@ func TestContainerConfigurationValidation(t *testing.T) {
 		},
 		{
 			name: "container mode + PostgreSQL initialization succeeds",
-			modifySettings: func(s *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) {
+			modifySettings: func(s *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) {
 				s.DevMode = false                                          // Disable dev mode to test actual PostgreSQL URL
 				s.BindPublicAddress = cryptoutilSharedMagic.IPv4AnyAddress // 0.0.0.0
 				s.BindPublicPort = 0                                       // Dynamic port
@@ -160,7 +160,7 @@ func TestContainerConfigurationValidation(t *testing.T) {
 		},
 		{
 			name: "dev mode + SQLite initialization succeeds",
-			modifySettings: func(s *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) {
+			modifySettings: func(s *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) {
 				s.DevMode = true
 				s.BindPublicAddress = cryptoutilSharedMagic.IPv4Loopback // 127.0.0.1
 				s.BindPublicPort = 0
@@ -171,7 +171,7 @@ func TestContainerConfigurationValidation(t *testing.T) {
 		},
 		{
 			name: "production mode + loopback + SQLite initialization succeeds",
-			modifySettings: func(s *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) {
+			modifySettings: func(s *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) {
 				s.DevMode = false
 				s.BindPublicAddress = cryptoutilSharedMagic.IPv4Loopback // 127.0.0.1
 				s.BindPublicPort = 0
@@ -188,7 +188,7 @@ func TestContainerConfigurationValidation(t *testing.T) {
 			t.Parallel()
 
 			// Start with clean test settings
-			settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest(tt.name)
+			settings := cryptoutilAppsFrameworkServiceConfig.RequireNewForTest(tt.name)
 
 			// Apply test-specific modifications
 			tt.modifySettings(settings)

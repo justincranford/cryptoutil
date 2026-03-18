@@ -11,30 +11,30 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose/ja/repository"
-	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
-	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
-	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilAppsTemplateServiceServerService "cryptoutil/internal/apps/template/service/server/service"
+	cryptoutilAppsFrameworkServiceServer "cryptoutil/internal/apps/framework/service/server"
+	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
+	cryptoutilAppsFrameworkServiceServerBusinesslogic "cryptoutil/internal/apps/framework/service/server/businesslogic"
+	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
+	cryptoutilAppsFrameworkServiceServerService "cryptoutil/internal/apps/framework/service/server/service"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 )
 
 // mockRealmService implements cryptoutilTemplateService.RealmService for testing.
 type mockRealmService struct{}
 
-func (m *mockRealmService) CreateRealm(_ context.Context, _ googleUuid.UUID, _ string, _ cryptoutilAppsTemplateServiceServerService.RealmConfig) (*cryptoutilAppsTemplateServiceServerRepository.TenantRealm, error) {
+func (m *mockRealmService) CreateRealm(_ context.Context, _ googleUuid.UUID, _ string, _ cryptoutilAppsFrameworkServiceServerService.RealmConfig) (*cryptoutilAppsFrameworkServiceServerRepository.TenantRealm, error) {
 	return nil, nil
 }
 
-func (m *mockRealmService) GetRealm(_ context.Context, _, _ googleUuid.UUID) (*cryptoutilAppsTemplateServiceServerRepository.TenantRealm, error) {
+func (m *mockRealmService) GetRealm(_ context.Context, _, _ googleUuid.UUID) (*cryptoutilAppsFrameworkServiceServerRepository.TenantRealm, error) {
 	return nil, nil
 }
 
-func (m *mockRealmService) ListRealms(_ context.Context, _ googleUuid.UUID, _ bool) ([]*cryptoutilAppsTemplateServiceServerRepository.TenantRealm, error) {
+func (m *mockRealmService) ListRealms(_ context.Context, _ googleUuid.UUID, _ bool) ([]*cryptoutilAppsFrameworkServiceServerRepository.TenantRealm, error) {
 	return nil, nil
 }
 
-func (m *mockRealmService) UpdateRealm(_ context.Context, _, _ googleUuid.UUID, _ cryptoutilAppsTemplateServiceServerService.RealmConfig, _ *bool) (*cryptoutilAppsTemplateServiceServerRepository.TenantRealm, error) {
+func (m *mockRealmService) UpdateRealm(_ context.Context, _, _ googleUuid.UUID, _ cryptoutilAppsFrameworkServiceServerService.RealmConfig, _ *bool) (*cryptoutilAppsFrameworkServiceServerRepository.TenantRealm, error) {
 	return nil, nil
 }
 
@@ -42,16 +42,16 @@ func (m *mockRealmService) DeleteRealm(_ context.Context, _, _ googleUuid.UUID) 
 	return nil
 }
 
-func (m *mockRealmService) GetRealmConfig(_ context.Context, _, _ googleUuid.UUID) (cryptoutilAppsTemplateServiceServerService.RealmConfig, error) {
+func (m *mockRealmService) GetRealmConfig(_ context.Context, _, _ googleUuid.UUID) (cryptoutilAppsFrameworkServiceServerService.RealmConfig, error) {
 	return nil, nil
 }
 
-func (m *mockRealmService) GetFirstActiveRealm(_ context.Context, _ googleUuid.UUID) (*cryptoutilAppsTemplateServiceServerRepository.TenantRealm, error) {
+func (m *mockRealmService) GetFirstActiveRealm(_ context.Context, _ googleUuid.UUID) (*cryptoutilAppsFrameworkServiceServerRepository.TenantRealm, error) {
 	return nil, nil
 }
 
 // newMockRealmService creates a mock realm service for testing.
-func newMockRealmService() cryptoutilAppsTemplateServiceServerService.RealmService {
+func newMockRealmService() cryptoutilAppsFrameworkServiceServerService.RealmService {
 	return &mockRealmService{}
 }
 
@@ -61,14 +61,14 @@ func TestNewPublicServer_NilBase(t *testing.T) {
 	// Call with nil base - only testing the first nil check.
 	_, err := NewPublicServer(
 		nil, // base is nil
-		&cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService{},
+		&cryptoutilAppsFrameworkServiceServerBusinesslogic.SessionManagerService{},
 		newMockRealmService(),
 		cryptoutilAppsJoseJaRepository.NewElasticJWKRepository(nil),
 		cryptoutilAppsJoseJaRepository.NewMaterialJWKRepository(nil),
 		cryptoutilAppsJoseJaRepository.NewAuditConfigRepository(nil),
 		cryptoutilAppsJoseJaRepository.NewAuditLogRepository(nil),
 		&cryptoutilSharedCryptoJose.JWKGenService{},
-		&cryptoutilAppsTemplateServiceServerBarrier.Service{},
+		&cryptoutilAppsFrameworkServiceServerBarrier.Service{},
 	)
 
 	require.Error(t, err)
@@ -79,7 +79,7 @@ func TestNewPublicServer_NilSessionManager(t *testing.T) {
 	t.Parallel()
 
 	// Create minimal base.
-	base := &cryptoutilAppsTemplateServiceServer.PublicServerBase{}
+	base := &cryptoutilAppsFrameworkServiceServer.PublicServerBase{}
 
 	// Call with nil session manager - testing second nil check.
 	_, err := NewPublicServer(
@@ -91,7 +91,7 @@ func TestNewPublicServer_NilSessionManager(t *testing.T) {
 		cryptoutilAppsJoseJaRepository.NewAuditConfigRepository(nil),
 		cryptoutilAppsJoseJaRepository.NewAuditLogRepository(nil),
 		&cryptoutilSharedCryptoJose.JWKGenService{},
-		&cryptoutilAppsTemplateServiceServerBarrier.Service{},
+		&cryptoutilAppsFrameworkServiceServerBarrier.Service{},
 	)
 
 	require.Error(t, err)
@@ -102,19 +102,19 @@ func TestNewPublicServer_NilRealmService(t *testing.T) {
 	t.Parallel()
 
 	// Create minimal base.
-	base := &cryptoutilAppsTemplateServiceServer.PublicServerBase{}
+	base := &cryptoutilAppsFrameworkServiceServer.PublicServerBase{}
 
 	// Call with nil realm service - testing third nil check.
 	_, err := NewPublicServer(
 		base,
-		&cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService{},
+		&cryptoutilAppsFrameworkServiceServerBusinesslogic.SessionManagerService{},
 		nil, // realm service is nil
 		cryptoutilAppsJoseJaRepository.NewElasticJWKRepository(nil),
 		cryptoutilAppsJoseJaRepository.NewMaterialJWKRepository(nil),
 		cryptoutilAppsJoseJaRepository.NewAuditConfigRepository(nil),
 		cryptoutilAppsJoseJaRepository.NewAuditLogRepository(nil),
 		&cryptoutilSharedCryptoJose.JWKGenService{},
-		&cryptoutilAppsTemplateServiceServerBarrier.Service{},
+		&cryptoutilAppsFrameworkServiceServerBarrier.Service{},
 	)
 
 	require.Error(t, err)
@@ -125,19 +125,19 @@ func TestNewPublicServer_NilElasticJWKRepo(t *testing.T) {
 	t.Parallel()
 
 	// Create minimal base.
-	base := &cryptoutilAppsTemplateServiceServer.PublicServerBase{}
+	base := &cryptoutilAppsFrameworkServiceServer.PublicServerBase{}
 
 	// Call with nil elastic JWK repository.
 	_, err := NewPublicServer(
 		base,
-		&cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService{},
+		&cryptoutilAppsFrameworkServiceServerBusinesslogic.SessionManagerService{},
 		newMockRealmService(),
 		nil, // elastic JWK repo is nil
 		cryptoutilAppsJoseJaRepository.NewMaterialJWKRepository(nil),
 		cryptoutilAppsJoseJaRepository.NewAuditConfigRepository(nil),
 		cryptoutilAppsJoseJaRepository.NewAuditLogRepository(nil),
 		&cryptoutilSharedCryptoJose.JWKGenService{},
-		&cryptoutilAppsTemplateServiceServerBarrier.Service{},
+		&cryptoutilAppsFrameworkServiceServerBarrier.Service{},
 	)
 
 	require.Error(t, err)
@@ -148,19 +148,19 @@ func TestNewPublicServer_NilMaterialJWKRepo(t *testing.T) {
 	t.Parallel()
 
 	// Create minimal base.
-	base := &cryptoutilAppsTemplateServiceServer.PublicServerBase{}
+	base := &cryptoutilAppsFrameworkServiceServer.PublicServerBase{}
 
 	// Call with nil material JWK repository.
 	_, err := NewPublicServer(
 		base,
-		&cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService{},
+		&cryptoutilAppsFrameworkServiceServerBusinesslogic.SessionManagerService{},
 		newMockRealmService(),
 		cryptoutilAppsJoseJaRepository.NewElasticJWKRepository(nil),
 		nil, // material JWK repo is nil
 		cryptoutilAppsJoseJaRepository.NewAuditConfigRepository(nil),
 		cryptoutilAppsJoseJaRepository.NewAuditLogRepository(nil),
 		&cryptoutilSharedCryptoJose.JWKGenService{},
-		&cryptoutilAppsTemplateServiceServerBarrier.Service{},
+		&cryptoutilAppsFrameworkServiceServerBarrier.Service{},
 	)
 
 	require.Error(t, err)
@@ -171,19 +171,19 @@ func TestNewPublicServer_NilAuditConfigRepo(t *testing.T) {
 	t.Parallel()
 
 	// Create minimal base.
-	base := &cryptoutilAppsTemplateServiceServer.PublicServerBase{}
+	base := &cryptoutilAppsFrameworkServiceServer.PublicServerBase{}
 
 	// Call with nil audit config repository.
 	_, err := NewPublicServer(
 		base,
-		&cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService{},
+		&cryptoutilAppsFrameworkServiceServerBusinesslogic.SessionManagerService{},
 		newMockRealmService(),
 		cryptoutilAppsJoseJaRepository.NewElasticJWKRepository(nil),
 		cryptoutilAppsJoseJaRepository.NewMaterialJWKRepository(nil),
 		nil, // audit config repo is nil
 		cryptoutilAppsJoseJaRepository.NewAuditLogRepository(nil),
 		&cryptoutilSharedCryptoJose.JWKGenService{},
-		&cryptoutilAppsTemplateServiceServerBarrier.Service{},
+		&cryptoutilAppsFrameworkServiceServerBarrier.Service{},
 	)
 
 	require.Error(t, err)
@@ -194,19 +194,19 @@ func TestNewPublicServer_NilAuditLogRepo(t *testing.T) {
 	t.Parallel()
 
 	// Create minimal base.
-	base := &cryptoutilAppsTemplateServiceServer.PublicServerBase{}
+	base := &cryptoutilAppsFrameworkServiceServer.PublicServerBase{}
 
 	// Call with nil audit log repository.
 	_, err := NewPublicServer(
 		base,
-		&cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService{},
+		&cryptoutilAppsFrameworkServiceServerBusinesslogic.SessionManagerService{},
 		newMockRealmService(),
 		cryptoutilAppsJoseJaRepository.NewElasticJWKRepository(nil),
 		cryptoutilAppsJoseJaRepository.NewMaterialJWKRepository(nil),
 		cryptoutilAppsJoseJaRepository.NewAuditConfigRepository(nil),
 		nil, // audit log repo is nil
 		&cryptoutilSharedCryptoJose.JWKGenService{},
-		&cryptoutilAppsTemplateServiceServerBarrier.Service{},
+		&cryptoutilAppsFrameworkServiceServerBarrier.Service{},
 	)
 
 	require.Error(t, err)
@@ -217,19 +217,19 @@ func TestNewPublicServer_NilJWKGenService(t *testing.T) {
 	t.Parallel()
 
 	// Create minimal base.
-	base := &cryptoutilAppsTemplateServiceServer.PublicServerBase{}
+	base := &cryptoutilAppsFrameworkServiceServer.PublicServerBase{}
 
 	// Call with nil JWK generation service.
 	_, err := NewPublicServer(
 		base,
-		&cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService{},
+		&cryptoutilAppsFrameworkServiceServerBusinesslogic.SessionManagerService{},
 		newMockRealmService(),
 		cryptoutilAppsJoseJaRepository.NewElasticJWKRepository(nil),
 		cryptoutilAppsJoseJaRepository.NewMaterialJWKRepository(nil),
 		cryptoutilAppsJoseJaRepository.NewAuditConfigRepository(nil),
 		cryptoutilAppsJoseJaRepository.NewAuditLogRepository(nil),
 		nil, // JWK gen service is nil
-		&cryptoutilAppsTemplateServiceServerBarrier.Service{},
+		&cryptoutilAppsFrameworkServiceServerBarrier.Service{},
 	)
 
 	require.Error(t, err)
@@ -240,12 +240,12 @@ func TestNewPublicServer_NilBarrierService(t *testing.T) {
 	t.Parallel()
 
 	// Create minimal base.
-	base := &cryptoutilAppsTemplateServiceServer.PublicServerBase{}
+	base := &cryptoutilAppsFrameworkServiceServer.PublicServerBase{}
 
 	// Call with nil barrier service.
 	_, err := NewPublicServer(
 		base,
-		&cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService{},
+		&cryptoutilAppsFrameworkServiceServerBusinesslogic.SessionManagerService{},
 		newMockRealmService(),
 		cryptoutilAppsJoseJaRepository.NewElasticJWKRepository(nil),
 		cryptoutilAppsJoseJaRepository.NewMaterialJWKRepository(nil),

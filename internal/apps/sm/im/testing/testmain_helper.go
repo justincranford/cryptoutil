@@ -17,8 +17,8 @@ import (
 
 	cryptoutilAppsSmImServer "cryptoutil/internal/apps/sm/im/server"
 	cryptoutilAppsSmImServerConfig "cryptoutil/internal/apps/sm/im/server/config"
-	cryptoutilAppsTemplateServiceConfigTlsGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
-	cryptoutilAppsTemplateServiceTestingE2eHelpers "cryptoutil/internal/apps/template/service/testing/e2e_helpers"
+	cryptoutilAppsFrameworkServiceConfigTlsGenerator "cryptoutil/internal/apps/framework/service/config/tls_generator"
+	cryptoutilAppsFrameworkServiceTestingE2eHelpers "cryptoutil/internal/apps/framework/service/testing/e2e_helpers"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
@@ -38,7 +38,7 @@ type TestServerResources struct {
 	// Shared services
 	JWKGenService    *cryptoutilSharedCryptoJose.JWKGenService
 	TelemetryService *cryptoutilSharedTelemetry.TelemetryService
-	TLSCfg           *cryptoutilAppsTemplateServiceConfigTlsGenerator.TLSGeneratedSettings
+	TLSCfg           *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings
 
 	// HTTP client for tests
 	HTTPClient *http.Client
@@ -69,7 +69,7 @@ func SetupTestServer(ctx context.Context, _ bool) (*TestServerResources, error) 
 	// Generate TLS config for HTTP client.
 	var err error
 
-	resources.TLSCfg, err = cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings(
+	resources.TLSCfg, err = cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings(
 		[]string{cryptoutilSharedMagic.HostnameLocalhost},
 		[]string{cryptoutilSharedMagic.IPv4Loopback},
 		cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year,
@@ -80,7 +80,7 @@ func SetupTestServer(ctx context.Context, _ bool) (*TestServerResources, error) 
 
 	// Create SmIMServerSettings with test settings.
 	cfg := &cryptoutilAppsSmImServerConfig.SmIMServerSettings{
-		ServiceTemplateServerSettings: cryptoutilAppsTemplateServiceTestingE2eHelpers.NewTestServerSettingsWithService("sm-im-test"),
+		ServiceFrameworkServerSettings: cryptoutilAppsFrameworkServiceTestingE2eHelpers.NewTestServerSettingsWithService("sm-im-test"),
 	}
 	cfg.DatabaseURL = dsn // Set database URL for NewFromConfig
 
@@ -97,11 +97,11 @@ func SetupTestServer(ctx context.Context, _ bool) (*TestServerResources, error) 
 	resources.TelemetryService = resources.SmIMServer.Telemetry()
 
 	// Start server in background and wait for both ports to bind.
-	errChan := cryptoutilAppsTemplateServiceTestingE2eHelpers.StartDualPortServerAsync(func() error {
+	errChan := cryptoutilAppsFrameworkServiceTestingE2eHelpers.StartDualPortServerAsync(func() error {
 		return resources.SmIMServer.Start(ctx)
 	})
 
-	if err = cryptoutilAppsTemplateServiceTestingE2eHelpers.WaitForDualServerPorts(resources.SmIMServer, errChan); err != nil {
+	if err = cryptoutilAppsFrameworkServiceTestingE2eHelpers.WaitForDualServerPorts(resources.SmIMServer, errChan); err != nil {
 		_ = resources.SmIMServer.Shutdown(ctx)
 		resources.JWKGenService.Shutdown()
 		resources.TelemetryService.Shutdown()
@@ -110,7 +110,7 @@ func SetupTestServer(ctx context.Context, _ bool) (*TestServerResources, error) 
 		return nil, fmt.Errorf("failed to wait for sm-im server ports: %w", err)
 	}
 
-	resources.BaseURL, resources.AdminURL = cryptoutilAppsTemplateServiceTestingE2eHelpers.DualPortBaseURLs(resources.SmIMServer)
+	resources.BaseURL, resources.AdminURL = cryptoutilAppsFrameworkServiceTestingE2eHelpers.DualPortBaseURLs(resources.SmIMServer)
 
 	// Mark server as ready.
 	resources.SmIMServer.SetReady(true)
@@ -158,7 +158,7 @@ func StartSmIMService(SmIMServerSettings *cryptoutilAppsSmImServerConfig.SmIMSer
 	}
 
 	// Use generic template helper for goroutine start + dual port polling + panic-on-failure.
-	cryptoutilAppsTemplateServiceTestingE2eHelpers.MustStartAndWaitForDualPorts(smIMServer, func() error {
+	cryptoutilAppsFrameworkServiceTestingE2eHelpers.MustStartAndWaitForDualPorts(smIMServer, func() error {
 		return smIMServer.Start(ctx)
 	})
 

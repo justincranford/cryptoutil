@@ -14,7 +14,7 @@ import (
 
 	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose/ja/model"
 	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose/ja/repository"
-	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
 
 	jose "github.com/go-jose/go-jose/v4"
 	"github.com/go-jose/go-jose/v4/jwt"
@@ -49,14 +49,14 @@ type JWTService interface {
 type jwtServiceImpl struct {
 	elasticRepo  cryptoutilAppsJoseJaRepository.ElasticJWKRepository
 	materialRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository
-	barrierSvc   *cryptoutilAppsTemplateServiceServerBarrier.Service
+	barrierSvc   *cryptoutilAppsFrameworkServiceServerBarrier.Service
 }
 
 // NewJWTService creates a new JWTService.
 func NewJWTService(
 	elasticRepo cryptoutilAppsJoseJaRepository.ElasticJWKRepository,
 	materialRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository,
-	barrierSvc *cryptoutilAppsTemplateServiceServerBarrier.Service,
+	barrierSvc *cryptoutilAppsFrameworkServiceServerBarrier.Service,
 ) JWTService {
 	return &jwtServiceImpl{
 		elasticRepo:  elasticRepo,

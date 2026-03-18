@@ -146,7 +146,7 @@ Note: cryptoutil already uses Copilot agents. This extends that pattern systemat
 
 Effort: 4-6 weeks. Return: cleaner contracts, versioned evolution.
 
-Extract internal/apps/template/service/ to its own Go module.
+Extract internal/apps/framework/service/ to its own Go module.
 Services import it: go get github.com/justincranford/cryptoutil-framework
 
 Benefits:

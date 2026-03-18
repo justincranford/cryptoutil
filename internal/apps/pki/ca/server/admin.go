@@ -21,13 +21,13 @@ import (
 
 	fiber "github.com/gofiber/fiber/v2"
 
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // AdminServer represents the private admin API server for CA service.
 type AdminServer struct {
-	settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
+	settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings
 	app      *fiber.App
 	listener net.Listener
 	mu       sync.RWMutex
@@ -38,7 +38,7 @@ type AdminServer struct {
 // NewAdminHTTPServer creates a new admin server instance for private administrative operations.
 func NewAdminHTTPServer(
 	ctx context.Context,
-	settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings,
+	settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings,
 ) (*AdminServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")

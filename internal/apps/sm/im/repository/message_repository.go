@@ -12,7 +12,7 @@ import (
 	"gorm.io/gorm"
 
 	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm/im/model"
-	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
 )
 
 // MessageRepository handles database operations for Message entities.
@@ -27,7 +27,7 @@ func NewMessageRepository(db *gorm.DB) *MessageRepository {
 
 // Create inserts a new message into the database.
 func (r *MessageRepository) Create(ctx context.Context, message *cryptoutilAppsSmImModel.Message) error {
-	if err := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).Create(message).Error; err != nil {
+	if err := cryptoutilAppsFrameworkServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).Create(message).Error; err != nil {
 		return fmt.Errorf("failed to create message: %w", err)
 	}
 
@@ -37,7 +37,7 @@ func (r *MessageRepository) Create(ctx context.Context, message *cryptoutilAppsS
 // FindByID retrieves a message by ID.
 func (r *MessageRepository) FindByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilAppsSmImModel.Message, error) {
 	var message cryptoutilAppsSmImModel.Message
-	if err := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).First(&message, "id = ?", id).Error; err != nil {
+	if err := cryptoutilAppsFrameworkServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).First(&message, "id = ?", id).Error; err != nil {
 		return nil, fmt.Errorf("failed to find message: %w", err)
 	}
 
@@ -50,7 +50,7 @@ func (r *MessageRepository) FindByRecipientID(ctx context.Context, recipientID g
 	var messages []cryptoutilAppsSmImModel.Message
 
 	// JOIN messages with messages_recipient_jwks to find messages for this recipient.
-	if err := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).
+	if err := cryptoutilAppsFrameworkServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).
 		Joins("JOIN messages_recipient_jwks ON messages.id = messages_recipient_jwks.message_id").
 		Where("messages_recipient_jwks.recipient_id = ?", recipientID).
 		Order("messages.created_at DESC").
@@ -63,7 +63,7 @@ func (r *MessageRepository) FindByRecipientID(ctx context.Context, recipientID g
 
 // MarkAsRead updates the read timestamp for a message.
 func (r *MessageRepository) MarkAsRead(ctx context.Context, messageID googleUuid.UUID) error {
-	if err := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).
+	if err := cryptoutilAppsFrameworkServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).
 		Model(&cryptoutilAppsSmImModel.Message{}).
 		Where("id = ?", messageID).
 		Update("read_at", gorm.Expr("CURRENT_TIMESTAMP")).Error; err != nil {
@@ -75,7 +75,7 @@ func (r *MessageRepository) MarkAsRead(ctx context.Context, messageID googleUuid
 
 // Delete removes a message from the database.
 func (r *MessageRepository) Delete(ctx context.Context, id googleUuid.UUID) error {
-	if err := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).Delete(&cryptoutilAppsSmImModel.Message{}, "id = ?", id).Error; err != nil {
+	if err := cryptoutilAppsFrameworkServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).Delete(&cryptoutilAppsSmImModel.Message{}, "id = ?", id).Error; err != nil {
 		return fmt.Errorf("failed to delete message: %w", err)
 	}
 

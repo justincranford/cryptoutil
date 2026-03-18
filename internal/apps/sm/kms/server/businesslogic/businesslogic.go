@@ -14,7 +14,7 @@ import (
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilKmsMiddleware "cryptoutil/internal/apps/sm/kms/server/middleware"
 	cryptoutilOrmRepository "cryptoutil/internal/apps/sm/kms/server/repository/orm"
-	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
@@ -31,11 +31,11 @@ type BusinessLogicService struct {
 	jwkGenService    *cryptoutilSharedCryptoJose.JWKGenService
 	ormRepository    *cryptoutilOrmRepository.OrmRepository
 	oamOrmMapper     *OamOrmMapper
-	barrierService   *cryptoutilAppsTemplateServiceServerBarrier.Service
+	barrierService   *cryptoutilAppsFrameworkServiceServerBarrier.Service
 }
 
 // NewBusinessLogicService creates a new BusinessLogicService with injected dependencies.
-func NewBusinessLogicService(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, jwkGenService *cryptoutilSharedCryptoJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, barrierService *cryptoutilAppsTemplateServiceServerBarrier.Service) (*BusinessLogicService, error) {
+func NewBusinessLogicService(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, jwkGenService *cryptoutilSharedCryptoJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, barrierService *cryptoutilAppsFrameworkServiceServerBarrier.Service) (*BusinessLogicService, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx must be non-nil")
 	} else if telemetryService == nil {

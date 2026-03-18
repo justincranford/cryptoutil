@@ -11,7 +11,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilAppsPkiCa "cryptoutil/internal/apps/pki/ca"
-	cryptoutilTemplateCli "cryptoutil/internal/apps/template/service/cli"
+	cryptoutilTemplateCli "cryptoutil/internal/apps/framework/service/cli"
 )
 
 const (

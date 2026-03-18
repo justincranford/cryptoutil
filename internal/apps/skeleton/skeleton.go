@@ -9,7 +9,7 @@ import (
 	"io"
 
 	cryptoutilAppsSkeletonTemplate "cryptoutil/internal/apps/skeleton/template"
-	cryptoutilTemplateCli "cryptoutil/internal/apps/template/service/cli"
+	cryptoutilTemplateCli "cryptoutil/internal/apps/framework/service/cli"
 )
 
 const (

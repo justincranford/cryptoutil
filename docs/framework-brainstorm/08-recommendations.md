@@ -11,7 +11,7 @@ These items unblock everything else and have the best effort-to-value ratio.
 
 ### P0-1: ServiceContract Interface
 
-File: internal/apps/template/service/framework/contract.go (new)
+File: internal/apps/framework/service/framework/contract.go (new)
 
 What: Define a Go interface every cryptoutil service must implement.
 Why:  Compile-time enforcement of framework contracts. Free once written.
@@ -157,7 +157,7 @@ Package includes:
 
 ### P2-1: Service Manifest Declaration
 
-Files: internal/apps/template/service/framework/manifest.go (new)
+Files: internal/apps/framework/service/framework/manifest.go (new)
 
 What: ServiceManifest struct that declares service capabilities.
       Framework reads it and auto-configures accordingly.
@@ -214,7 +214,7 @@ fx.Module maps almost perfectly to the cryptoutil module concept.
 
 ### P3-2: Extract Framework as Separate Go Module
 
-What: Extract internal/apps/template/service/ to its own versioned Go module.
+What: Extract internal/apps/framework/service/ to its own versioned Go module.
 Why:  Clean contract boundary. Versioned evolution. Framework can be reused.
 When: After Module System is implemented and stable.
 Effort: 4-6 weeks

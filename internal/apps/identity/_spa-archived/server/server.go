@@ -12,9 +12,9 @@ import (
 	"gorm.io/gorm"
 
 	cryptoutilAppsIdentitySpaServerConfig "cryptoutil/internal/apps/identity/spa/server/config"
-	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
-	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilAppsTemplateServiceServerBuilder "cryptoutil/internal/apps/template/service/server/builder"
+	cryptoutilAppsFrameworkServiceServer "cryptoutil/internal/apps/framework/service/server"
+	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
+	cryptoutilAppsFrameworkServiceServerBuilder "cryptoutil/internal/apps/framework/service/server/builder"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
@@ -23,9 +23,9 @@ import (
 // SPA serves static files for Single Page Application frontends.
 type SPAServer struct {
 	cfg              *cryptoutilAppsIdentitySpaServerConfig.IdentitySPAServerSettings
-	app              *cryptoutilAppsTemplateServiceServer.Application
+	app              *cryptoutilAppsFrameworkServiceServer.Application
 	db               *gorm.DB
-	barrierService   *cryptoutilAppsTemplateServiceServerBarrier.Service
+	barrierService   *cryptoutilAppsFrameworkServiceServerBarrier.Service
 	jwkGenService    *cryptoutilSharedCryptoJose.JWKGenService
 	telemetryService *cryptoutilSharedTelemetry.TelemetryService
 	shutdownCore     func()
@@ -37,8 +37,8 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsIdentitySpaServerConf
 		return nil, fmt.Errorf("config is nil")
 	}
 
-	resources, err := cryptoutilAppsTemplateServiceServerBuilder.Build(ctx, cfg.ServiceTemplateServerSettings, &cryptoutilAppsTemplateServiceServerBuilder.DomainConfig{
-		RouteRegistration: func(base *cryptoutilAppsTemplateServiceServer.PublicServerBase, _ *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources) error {
+	resources, err := cryptoutilAppsFrameworkServiceServerBuilder.Build(ctx, cfg.ServiceFrameworkServerSettings, &cryptoutilAppsFrameworkServiceServerBuilder.DomainConfig{
+		RouteRegistration: func(base *cryptoutilAppsFrameworkServiceServer.PublicServerBase, _ *cryptoutilAppsFrameworkServiceServerBuilder.ServiceResources) error {
 			// Create SPA public server.
 			publicServer := NewPublicServer(base, cfg)
 
@@ -103,7 +103,7 @@ func (s *SPAServer) DB() *gorm.DB {
 }
 
 // App returns the template Application for tests.
-func (s *SPAServer) App() *cryptoutilAppsTemplateServiceServer.Application {
+func (s *SPAServer) App() *cryptoutilAppsFrameworkServiceServer.Application {
 	return s.app
 }
 
@@ -118,7 +118,7 @@ func (s *SPAServer) Telemetry() *cryptoutilSharedTelemetry.TelemetryService {
 }
 
 // Barrier returns the barrier encryption service for tests.
-func (s *SPAServer) Barrier() *cryptoutilAppsTemplateServiceServerBarrier.Service {
+func (s *SPAServer) Barrier() *cryptoutilAppsFrameworkServiceServerBarrier.Service {
 	return s.barrierService
 }
 
@@ -193,4 +193,4 @@ func (s *SPAServer) AdminTLSRootCAPool() *x509.CertPool {
 }
 
 // Compile-time assertion: SPAServer must implement ServiceServer.
-var _ cryptoutilAppsTemplateServiceServer.ServiceServer = (*SPAServer)(nil)
+var _ cryptoutilAppsFrameworkServiceServer.ServiceServer = (*SPAServer)(nil)

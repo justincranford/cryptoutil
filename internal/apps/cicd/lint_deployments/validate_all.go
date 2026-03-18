@@ -125,11 +125,11 @@ func runKebabCaseValidation(configsDir string, result *AllValidationResult) {
 	result.addResult(validatorNameKebabCase, configsDir, kr.Valid, FormatKebabCaseValidationResult(kr), dur)
 }
 
-// isServiceTemplateConfig returns true if the file matches the service template
+// isServiceFrameworkConfig returns true if the file matches the service template
 // config naming pattern (config-*.yml). Only these files use the flat kebab-case
 // format validated by ValidateSchema. Other configs (e.g., ca-server.yml,
 // identity profiles, policies) use nested YAML with domain-specific schemas.
-func isServiceTemplateConfig(path string) bool {
+func isServiceFrameworkConfig(path string) bool {
 	base := filepath.Base(path)
 
 	return strings.HasPrefix(base, "config-") && (strings.HasSuffix(base, ".yml") || strings.HasSuffix(base, ".yaml"))
@@ -142,7 +142,7 @@ func runSchemaValidation(configsDir string, result *AllValidationResult) {
 	configFiles := discoverConfigFiles(configsDir)
 
 	for _, cf := range configFiles {
-		if !isServiceTemplateConfig(cf) {
+		if !isServiceFrameworkConfig(cf) {
 			continue
 		}
 
