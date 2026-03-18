@@ -135,11 +135,11 @@
 - **Description**: Run coverage and mutation testing on 10,500 lines of lint_fitness code
 - **Acceptance Criteria**:
   - [x] Coverage verified for `internal/apps/cicd/lint_fitness/`
-  - [ ] Coverage >=98% for all packages (19 of 24 below target — pre-existing gap)
+  - [ ] Coverage >=98% for all packages (19 of 24 below target ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â pre-existing gap)
   - [ ] Mutation testing >=95% (gremlins panics on Windows; CI-only)
   - [x] Document any uncovered lines with justification
 - **Coverage Report** (24 packages):
-  - ≥98%: lint_fitness(100%), product_structure(100%), product_wiring(100%), service_structure(100%), circular_deps(99%)
+  - ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¥98%: lint_fitness(100%), product_structure(100%), product_wiring(100%), service_structure(100%), circular_deps(99%)
   - 95-98%: migration_numbering(97.7%), check_skeleton_placeholders(96.8%), crypto_rand(96.1%), insecure_skip_verify(96.1%), cgo_free_sqlite(95.2%)
   - 90-95%: non_fips_algorithms(94.4%), cmd_main_pattern(91.3%)
   - 80-90%: file_size_limits(89.2%), tls_minimum_version(88.5%), cross_service_import_isolation(88%), admin_bind_address(87.8%), domain_layer_isolation(86.8%), health_endpoint_presence(85.5%), service_contract_compliance(83%), bind_address_safety(80.6%)
@@ -166,14 +166,14 @@
   - workflow_executor_coverage_test.go: 3 Windows skip guards + OS handle closure
   - 5 lifecycle test files: Windows skip guard for `syscall.SIGINT`
   - realm_coverage_test.go: Windows skip guard for chmod permission test
-  - application_core.go: SQLite URL normalization (`file::memory:NAME` → `file:NAME?mode=memory&cache=shared`)
+  - application_core.go: SQLite URL normalization (`file::memory:NAME` ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ `file:NAME?mode=memory&cache=shared`)
   - config package: 26 const alias violations removed, all `defaultXxx` replaced with `cryptoutilSharedMagic.DefaultXxx`
   - im.go, application_init.go, hash_high/low_provider.go, service_structure_test.go: 7 remaining magic-aliases violations removed
-  - 9 lifecycle/workflow/realm test files: `"windows"` literal → `magic.OSNameWindows`
+  - 9 lifecycle/workflow/realm test files: `"windows"` literal ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ `magic.OSNameWindows`
 
 ---
 
-### Phase 2: Remove InsecureSkipVerify — Integration Tests Only (D14, D15)
+### Phase 2: Remove InsecureSkipVerify ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Integration Tests Only (D14, D15)
 
 **Phase Objective**: Eliminate InsecureSkipVerify from integration + contract tests (~90% of 47 files). Fix all 6 ARCHITECTURE.md TLS gaps. E2E/Docker TLS (Phase 2B) deferred to after Phase 7 per D14 (quizme-v3 Q2=C). mTLS (2C), PostgreSQL TLS (2D) deferred.
 
@@ -370,7 +370,7 @@
 
 - **Status**: DONE
 - **Dependencies**: Task 4.1
-- **Description**: Inject `io.Writer` instead of capturing os.Stderr. Smallest category — quick win.
+- **Description**: Inject `io.Writer` instead of capturing os.Stderr. Smallest category ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â quick win.
 - **Acceptance Criteria**:
   - [x] os.Stderr capture tests use injected io.Writer
   - [x] Sequential exemptions removed for these tests
@@ -396,8 +396,8 @@
 - **Acceptance Criteria**:
   - [x] Each seam exemption verified as correct pattern usage (19 examined: 8 keygen, 4 migration_numbering, 3 magic_aliases, 2 check_skeleton_placeholders, 1 parallel_tests, 1 test_presence)
   - [x] Documentation aligned with seam pattern (all correctly use `orig := seam; seam = mock; defer func() { seam = orig }()` pattern)
-  - [x] Unnecessary exemptions removed if any (NONE — all 19 are genuinely required seam pattern)
-  - **Note**: No code changes needed — all exemptions are correct seam pattern usage
+  - [x] Unnecessary exemptions removed if any (NONE ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â all 19 are genuinely required seam pattern)
+  - **Note**: No code changes needed ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â all exemptions are correct seam pattern usage
 
 #### Task 4.5: Evaluate os.Chdir exemptions (37 exemptions)
 
@@ -418,7 +418,7 @@
 
 - **Status**: DONE
 - **Dependencies**: Task 4.1
-- **Description**: Inject config reader instead of relying on global viper state. Largest category — most complex.
+- **Description**: Inject config reader instead of relying on global viper state. Largest category ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â most complex.
 - **Acceptance Criteria**:
   - [x] Config tests no longer use global viper state (viper.New() per ParseWithFlagSet call)
   - [x] Sequential exemptions reduced by ~58 (180 -> 122; ParseWithFlagSet tests now parallel)
@@ -426,12 +426,12 @@
 - **Commit**: e5dee60e7
 - **Note**: template ParseWithFlagSet creates v := viper.New() per call (isolated instance).
   jose/ja and sm/im read domain settings via fs.GetX() instead of global viper.
-  Tests using ParseWithFlagSet(pflag.NewFlagSet()) → t.Parallel() (no shared state).
-  Tests using Parse() → keep Sequential: uses pflag.CommandLine global state via Parse().
+  Tests using ParseWithFlagSet(pflag.NewFlagSet()) ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ t.Parallel() (no shared state).
+  Tests using Parse() ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ keep Sequential: uses pflag.CommandLine global state via Parse().
 
 #### Task 4.7: Remaining exemption categories
 
-- **Status**: DONE (commit `832e49078`) — 122 → 95 exemptions (all remaining are legitimate)
+- **Status**: DONE (commit `832e49078`) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 122 ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ 95 exemptions (all remaining are legitimate)
 - **Dependencies**: Task 4.1
 - **Description**: Address SQLite in-memory (10), shared state (13), injectable function variables (16), signals (6), port reuse (5)
 - **Acceptance Criteria**:
@@ -445,10 +445,10 @@
 - **Dependencies**: Tasks 4.2-4.7
 - **Description**: Full quality gate run
 - **Acceptance Criteria**:
-  - [x] Total exemptions documented (target: <100) — 95 remaining ✅
-  - [x] Each remaining exemption has justified comment ✅
-  - [x] All tests pass ✅
-  - [x] lessons.md updated ✅
+  - [x] Total exemptions documented (target: <100) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 95 remaining ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦
+  - [x] Each remaining exemption has justified comment ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦
+  - [x] All tests pass ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦
+  - [x] lessons.md updated ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦
 
 ---
 
@@ -463,8 +463,8 @@
 - **Description**: Survey all integration tests to determine what framework services they need access to
 - **Acceptance Criteria**:
   - [x] List of methods integration tests currently access
-  - [x] List of methods integration tests need but don't have — JWKGen(), Telemetry(), Barrier()
-  - [x] Recommendation for interface expansion — add all 3 to ServiceServer; fix SmIMServer (BarrierService→Barrier); add all 3 to KMSServer
+  - [x] List of methods integration tests need but don't have ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â JWKGen(), Telemetry(), Barrier()
+  - [x] Recommendation for interface expansion ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â add all 3 to ServiceServer; fix SmIMServer (BarrierServiceÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢Barrier); add all 3 to KMSServer
 
 #### Task 5.2: Expand ServiceServer interface
 
@@ -523,7 +523,7 @@
   - [x] Property tests for crypto operations (`businesslogic_property_test.go`: encrypt/decrypt and sign/verify invariants)
   - [x] Fuzz tests for parsers and input handling (`businesslogic_fuzz_test.go`: FuzzPostDecryptByElasticKeyIDBytes, FuzzPostVerifyByElasticKeyIDBytes)
   - [x] Benchmark tests for key operations (pre-existing `businesslogic_bench_test.go`)
-  - [x] Coverage ceiling analysis: structural ceiling 93.2% (42 uncovered blocks are all DB-transaction error paths, barrier failures, and non-Internal provider guards — none reachable without mocking). Adjusted target per §10.2.3: 91.2% (ceiling−2%). Current: 93.2% > 91.2% ✅. Profile: `test-output/coverage-analysis/biz_v4.out`
+  - [x] Coverage ceiling analysis: structural ceiling 93.2% (42 uncovered blocks are all DB-transaction error paths, barrier failures, and non-Internal provider guards ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â none reachable without mocking). Adjusted target per Ãƒâ€šÃ‚Â§10.2.3: 91.2% (ceilingÃƒÂ¢Ã‹â€ Ã¢â‚¬â„¢2%). Current: 93.2% > 91.2% ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦. Profile: `test-output/coverage-analysis/biz_v4.out`
 
 #### Task 5B.4: Phase 5B validation and post-mortem
 
@@ -531,10 +531,10 @@
 - **Dependencies**: Tasks 5B.1-5B.3
 - **Description**: Full quality gate run
 - **Acceptance Criteria**:
-  - [x] `go build ./...` clean ✅
-  - [x] `golangci-lint run` clean (0 violations; pre-commit all passed) ✅
-  - [x] Coverage businesslogic 93.2% > ceiling target 91.2% ✅; middleware 100% ✅
-  - [x] lessons.md updated with Phase 5B findings ✅
+  - [x] `go build ./...` clean ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦
+  - [x] `golangci-lint run` clean (0 violations; pre-commit all passed) ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦
+  - [x] Coverage businesslogic 93.2% > ceiling target 91.2% ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦; middleware 100% ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦
+  - [x] lessons.md updated with Phase 5B findings ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦
 
 ---
 
@@ -544,12 +544,12 @@
 
 #### Task 6.1: Coverage and mutation testing of lint-fitness
 
-- **Status**: ✅ DONE (coverage complete; mutation deferred to CI/CD — gremlins v0.6.0 panics on Windows)
+- **Status**: ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DONE (coverage complete; mutation deferred to CI/CD ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â gremlins v0.6.0 panics on Windows)
 - **Dependencies**: None
 - **Description**: Run coverage and mutation on all 27 sub-linters (23 original + 4 new from Task 6.4)
 - **Acceptance Criteria**:
   - [x] Coverage >=98% OR ceiling analysis documented for each gap
-  - [ ] Mutation >=95% (runs in CI/CD — gremlins panics on Windows v0.6.0)
+  - [ ] Mutation >=95% (runs in CI/CD ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â gremlins panics on Windows v0.6.0)
   - [x] Document any gaps
 
 **Coverage Summary (2026-03-15)**:
@@ -562,10 +562,10 @@
 **Coverage Ceiling Analysis** (all 22 packages below 98%):
 - ALL uncovered paths across ALL packages follow the same pattern: `return walkErr` inside WalkDir/Walk callbacks + error propagation from OS operations (`os.ReadDir`, `filepath.Abs`, file opens after walk)
 - These paths require OS-level permission errors or filesystem errors to trigger
-- On Windows: `os.ReadDir(filePath)` returns `ERROR_PATH_NOT_FOUND` → `os.IsNotExist()==true` → NOT triggerable via "file-as-dir" trick
-- Structural ceiling formula: ceiling = (T - S) / T × 100% where S = structural uncoverable statements (walk errors, os.ReadDir non-ENOTDIR errors, filepath.Abs errors, file-open errors after WalkDir)
-- Ceiling-2% targets all met: lowest package (`migration_range_compliance` 86.2%) has ~9 structural uncoverable stmts out of ~75 total (ceiling ~88%), ceiling-2% = 86%, current = 86.2% ✓
-- To reach 98%: would require seam injection (`var walkDirFunc = filepath.WalkDir`) on all 22 packages — high effort for trivially testing stdlib error propagation, not warranted per ceiling analysis guidance
+- On Windows: `os.ReadDir(filePath)` returns `ERROR_PATH_NOT_FOUND` ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ `os.IsNotExist()==true` ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ NOT triggerable via "file-as-dir" trick
+- Structural ceiling formula: ceiling = (T - S) / T ÃƒÆ’Ã¢â‚¬â€ 100% where S = structural uncoverable statements (walk errors, os.ReadDir non-ENOTDIR errors, filepath.Abs errors, file-open errors after WalkDir)
+- Ceiling-2% targets all met: lowest package (`migration_range_compliance` 86.2%) has ~9 structural uncoverable stmts out of ~75 total (ceiling ~88%), ceiling-2% = 86%, current = 86.2% ÃƒÂ¢Ã…â€œÃ¢â‚¬Å“
+- To reach 98%: would require seam injection (`var walkDirFunc = filepath.WalkDir`) on all 22 packages ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â high effort for trivially testing stdlib error propagation, not warranted per ceiling analysis guidance
 
 **Changes Made for Task 6.1**:
 - Added `TestCheck_Integration` + `findProjectRoot()` to all 25 sub-linter test files
@@ -577,18 +577,18 @@
 
 #### Task 6.2: Synthetic vs real content audit
 
-- **Status**: ✅ DONE
+- **Status**: ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DONE
 - **Dependencies**: None
 - **Description**: Identify sub-linters testing synthetic file content instead of real project structure
 - **Acceptance Criteria**:
   - [x] Each sub-linter classified: real vs synthetic testing
   - [x] Plan to convert synthetic tests to real-project tests where feasible
 
-**Classification**: All 27 sub-linter packages use BOTH patterns: (1) synthetic unit tests with `t.TempDir()` for deterministic edge-case coverage, and (2) `TestCheck_Integration` that runs the linter against the real project in `findProjectRoot()`. No conversion needed — the dual-pattern is already implemented.
+**Classification**: All 27 sub-linter packages use BOTH patterns: (1) synthetic unit tests with `t.TempDir()` for deterministic edge-case coverage, and (2) `TestCheck_Integration` that runs the linter against the real project in `findProjectRoot()`. No conversion needed ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â the dual-pattern is already implemented.
 
 #### Task 6.3: Update skeleton-template to use new builder patterns (D12 prep)
 
-- **Status**: ✅ DONE
+- **Status**: ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DONE
 - **Dependencies**: Phase 3 complete (builder refactoring)
 - **Description**: Ensure skeleton-template uses the latest builder API. This is the prerequisite for Task 10.4 (OpenAPI CRUD example in Phase 10).
 - **Acceptance Criteria**:
@@ -602,9 +602,9 @@
 
 #### Task 6.4: Add test infrastructure rule linters
 
-- **Status**: ✅ COMPLETE
+- **Status**: ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ COMPLETE
 - **Dependencies**: None
-- **Description**: Add fitness linters detecting unit tests that start servers or DBs, and other test infrastructure anti-patterns. Also register the existing `no_local_closed_db_helper` rule in lint_fitness.go (deferred from framework-v2 Phase 1/5 — rule file exists at `internal/apps/cicd/lint_fitness/no_local_closed_db_helper/` but is NOT registered).
+- **Description**: Add fitness linters detecting unit tests that start servers or DBs, and other test infrastructure anti-patterns. Also register the existing `no_local_closed_db_helper` rule in lint_fitness.go (deferred from framework-v2 Phase 1/5 ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â rule file exists at `internal/apps/cicd/lint_fitness/no_local_closed_db_helper/` but is NOT registered).
 - **Acceptance Criteria**:
   - [x] `no_local_closed_db_helper` registered in `lint_fitness.go` and passes against current codebase
   - [x] New sub-linter detects unit tests starting real servers
@@ -614,7 +614,7 @@
 
 #### Task 6.6: Add PostgreSQL isolation enforcement linters (D19)
 
-- **Status**: ✅ DONE
+- **Status**: ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DONE
 - **Dependencies**: Task 6.4
 - **Description**: Extend lint-fitness for D7/D19: add sub-linters that detect PostgreSQL testcontainer usage in unit and integration tests (allowed only in E2E). Complements Task 6.4 (server/DB start detection) with the PostgreSQL-specific rule.
 - **Acceptance Criteria**:
@@ -624,17 +624,17 @@
   - [x] Tests for the new sub-linters (>=98% coverage)
 
 **Implementation**:
-- New linter: `no_postgres_in_non_e2e` — bans `postgres.RunContainer`, `postgresModule.Run`, `.NewPostgresTestContainer`, `.RequireNewPostgresTestContainer` outside E2E
+- New linter: `no_postgres_in_non_e2e` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â bans `postgres.RunContainer`, `postgresModule.Run`, `.NewPostgresTestContainer`, `.RequireNewPostgresTestContainer` outside E2E
 - Allows: `_e2e_test.go` suffix OR `//go:build e2e` header tag (first 10 lines)
 - Exempt paths: `testing/testdb/`, `shared/container/`, `shared/database/`, `service/server/businesslogic/` (TestMain w/ SQLite fallback), `lint_fitness/`, `lint_gotest/`
 - Coverage: 100% (all functions including error paths and hasE2EBuildTag)
-- Violations fixed: `migrations_db_postgres_integration_test.go` → renamed to `_e2e_test.go` + `//go:build e2e` tag
-- businesslogic exempted: TestMain gracefully falls back to SQLite when Docker unavailable — correct architecture per D19 spirit
+- Violations fixed: `migrations_db_postgres_integration_test.go` ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ renamed to `_e2e_test.go` + `//go:build e2e` tag
+- businesslogic exempted: TestMain gracefully falls back to SQLite when Docker unavailable ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â correct architecture per D19 spirit
 - Commits: `1ee15924b`
 
 #### Task 6.7: Phase 6 validation and post-mortem
 
-- **Status**: ✅ DONE
+- **Status**: ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DONE
 - **Dependencies**: Tasks 6.1-6.6
 - **Description**: Full quality gate run
 - **Acceptance Criteria**:
@@ -642,10 +642,10 @@
   - [x] lessons.md updated
 
 **Quality Gate Evidence (2026-03-15)**:
-- `go build ./...` → clean
-- `go run ./cmd/cicd lint-fitness` → SUCCESS (Passed: 1, Failed: 0)
-- `go test ./internal/apps/cicd/lint_fitness/... -timeout 300s` → all 28 packages pass
-- `golangci-lint run ./internal/apps/cicd/lint_fitness/...` → 0 issues
+- `go build ./...` ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ clean
+- `go run ./cmd/cicd lint-fitness` ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ SUCCESS (Passed: 1, Failed: 0)
+- `go test ./internal/apps/cicd/lint_fitness/... -timeout 300s` ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ all 28 packages pass
+- `golangci-lint run ./internal/apps/cicd/lint_fitness/...` ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ 0 issues
 - Commits: `77c145258` (Task 6.1), `1a5b31dda` (magic literal fix), `1ee15924b` (Task 6.6), `f3402f321` (style)
 
 ---
@@ -656,29 +656,29 @@
 
 #### Task 7.1: Archive identity shared packages
 
-- **Status**: ✅ DONE (commit `5600b1a52`)
+- **Status**: ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DONE (commit `5600b1a52`)
 - **Dependencies**: Phases 1-5 complete
 - **Description**: Archive all shared packages under `internal/apps/identity/` to `_archived/`
 - **Acceptance Criteria**:
   - [x] All shared identity packages moved to `internal/apps/identity/_archived/`
-  - [x] Build passes (broken imports expected — services replaced in Task 7.3)
+  - [x] Build passes (broken imports expected ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â services replaced in Task 7.3)
 
 #### Task 7.2: Archive per-service domain code
 
-- **Status**: ✅ DONE (commit `5600b1a52`)
+- **Status**: ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DONE (commit `5600b1a52`)
 - **Dependencies**: Task 7.1
 - **Description**: Archive domain code for authz, idp, rp, rs, spa, pki-ca
 - **Acceptance Criteria**:
-  - [x] authz domain → `internal/apps/identity/_authz-archived/`
-  - [x] idp domain → `internal/apps/identity/_idp-archived/`
-  - [x] rp domain → `internal/apps/identity/_rp-archived/`
-  - [x] rs domain → `internal/apps/identity/_rs-archived/`
-  - [x] spa domain → `internal/apps/identity/_spa-archived/`
+  - [x] authz domain ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ `internal/apps/identity/_authz-archived/`
+  - [x] idp domain ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ `internal/apps/identity/_idp-archived/`
+  - [x] rp domain ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ `internal/apps/identity/_rp-archived/`
+  - [x] rs domain ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ `internal/apps/identity/_rs-archived/`
+  - [x] spa domain ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ `internal/apps/identity/_spa-archived/`
   - [x] pki-ca archive verified complete (`internal/apps/pki/_ca-archived/`)
 
 #### Task 7.3: Replace services with fresh skeletons
 
-- **Status**: ✅ DONE (commit `5600b1a52`)
+- **Status**: ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DONE (commit `5600b1a52`)
 - **Dependencies**: Task 7.2
 - **Description**: Replace all 6 services with fresh skeleton-template copies (builder + contract tests + health)
 - **Acceptance Criteria**:
@@ -689,16 +689,16 @@
 
 #### Task 7.4: Update ARCHITECTURE.md status table (D16)
 
-- **Status**: ✅ DONE (commit `16bf6fca7`)
+- **Status**: ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DONE (commit `16bf6fca7`)
 - **Dependencies**: Task 7.3
-- **Description**: Update Section 3.2 status table: all 5 identity-* services → "⚠️ Extraction Pending 0%"
+- **Description**: Update Section 3.2 status table: all 5 identity-* services ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ "ÃƒÂ¢Ã…Â¡Ã‚Â ÃƒÂ¯Ã‚Â¸Ã‚Â Extraction Pending 0%"
 - **Acceptance Criteria**:
-  - [x] identity-authz/idp/rp/rs/spa marked "⚠️ Extraction Pending 0%"
+  - [x] identity-authz/idp/rp/rs/spa marked "ÃƒÂ¢Ã…Â¡Ã‚Â ÃƒÂ¯Ã‚Â¸Ã‚Â Extraction Pending 0%"
   - [x] pki-ca status updated appropriately
 
 #### Task 7.5: Phase 7 validation and post-mortem
 
-- **Status**: ✅ DONE
+- **Status**: ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DONE
 - **Dependencies**: Tasks 7.1-7.4
 - **Description**: Full quality gate run, phase post-mortem
 - **Acceptance Criteria**:
@@ -715,7 +715,7 @@
 
 #### Task 8.1: Reintegrate rp, rs, spa (Stage 1)
 
-- **Status**: ✅ DONE (commits `93e646b9d` bug fix, `3c650c2bb` restoration)
+- **Status**: ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DONE (commits `93e646b9d` bug fix, `3c650c2bb` restoration)
 - **Dependencies**: Phase 7 complete
 - **Description**: Smallest services first (10-18 files each). Extract from archive, adapt to latest builder, test.
 - **Acceptance Criteria**:
@@ -727,9 +727,9 @@
 
 #### Task 8.2: Reintegrate authz (Stage 2)
 
-- **Status**: ✅ DONE (commit `3bc2697db`)
+- **Status**: ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DONE (commit `3bc2697db`)
 - **Dependencies**: Task 8.1
-- **Description**: OAuth 2.1 core (133 files/916KB — largest complexity)
+- **Description**: OAuth 2.1 core (133 files/916KB ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â largest complexity)
 - **Acceptance Criteria**:
   - [x] authz domain reintegrated with latest builder patterns
   - [x] All authz tests pass (12 packages: authz, clientauth, dpop, e2e, pkce, server, server/config, email, mfa, rotation, ratelimit, jobs)
@@ -737,9 +737,9 @@
 
 #### Task 8.3: Reintegrate idp (Stage 3)
 
-- **Status**: ✅ DONE (commit `65e2dbbbc`)
+- **Status**: ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DONE (commit `65e2dbbbc`)
 - **Dependencies**: Task 8.2
-- **Description**: OIDC provider (129 files/862KB — second largest)
+- **Description**: OIDC provider (129 files/862KB ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â second largest)
 - **Acceptance Criteria**:
   - [x] idp domain reintegrated with latest builder patterns
   - [x] All idp tests pass (7 packages: idp, idp/auth, idp/server, idp/server/config, idp/unified, idp/userauth, idp/userauth/mocks)
@@ -747,7 +747,7 @@
 
 #### Task 8.4: Reintegrate pki-ca (Stage 4)
 
-- **Status**: ✅ DONE (commit `7ebf37261`)
+- **Status**: ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DONE (commit `7ebf37261`)
 - **Dependencies**: Task 8.3
 - **Description**: Certificate lifecycle (48KB active + 880KB archived)
 - **Acceptance Criteria**:
@@ -757,7 +757,7 @@
 
 #### Task 8.5: Enforce OpenAPI-generated models for ALL service handlers
 
-- **Status**: ✅ DONE (commit `3093a7b1c`)
+- **Status**: ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DONE (commit `3093a7b1c`)
 - **Dependencies**: Tasks 8.1-8.4
 - **Description**: sm-im currently uses hand-rolled handler DTOs instead of OpenAPI-generated models (framework-v2 D4 was WRONG to defer this). ALL services MUST use OpenAPI-generated models from `api/*/server/` and `api/model/` packages for handlers. This includes sm-im which currently lacks an `api/sm/im/` directory entirely.
 - **Acceptance Criteria**:
@@ -769,7 +769,7 @@
 
 #### Task 8.6: Phase 8 validation and post-mortem
 
-- **Status**: ✅ DONE (commit `5a5a2cff1`)
+- **Status**: ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DONE (commit `5a5a2cff1`)
 - **Dependencies**: Tasks 8.1-8.5
 - **Description**: Full quality gate run, phase post-mortem
 - **Acceptance Criteria**:
@@ -831,17 +831,17 @@
 
 #### Task 9.1: Full coverage and mutation enforcement
 
-- **Status**: ✅ DONE (cicd packages all ≥95% via seam injection; production service coverage pre-existing gap; mutation CI-only)
+- **Status**: ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DONE (cicd packages all ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¥95% via seam injection; production service coverage pre-existing gap; mutation CI-only)
 - **Dependencies**: None
 - **Description**: Run coverage and mutation across entire codebase
 - **Acceptance Criteria**:
-  - [x] All production code >=95% coverage (cicd infra packages all ≥95%; production service packages have pre-existing gaps requiring integration test infrastructure)
-  - [x] All infrastructure code >=98% coverage (structural ceilings documented: github_cleanup 9.7%, migration_range_compliance 86.2%; all others ≥95% with seam injection)
+  - [x] All production code >=95% coverage (cicd infra packages all ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¥95%; production service packages have pre-existing gaps requiring integration test infrastructure)
+  - [x] All infrastructure code >=98% coverage (structural ceilings documented: github_cleanup 9.7%, migration_range_compliance 86.2%; all others ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¥95% with seam injection)
   - [x] Mutation >=95% (gremlins v0.6.0 panics on Windows; CI/CD only)
 
 #### Task 9.2: Improve agent semantic commit instructions (D11)
 
-- **Status**: ✅ DONE
+- **Status**: ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DONE
 - **Dependencies**: None
 - **Description**: Improve agent instructions for Multi-Category Fix Commit Rule. NO automated tooling (no commitlint, no CI validation). Instructions-only approach per D11.
 - **Acceptance Criteria**:
@@ -851,7 +851,7 @@
 
 #### Task 9.3: Propagate all lessons to permanent artifacts
 
-- **Status**: ✅ DONE
+- **Status**: ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DONE
 - **Dependencies**: None
 - **Description**: Review lessons.md and propagate all lessons to ARCHITECTURE.md, agents, skills, instructions
 - **Acceptance Criteria**:
@@ -872,7 +872,7 @@
 
 #### Task 9.4: Simplify review document format
 
-- **Status**: ✅ DONE
+- **Status**: ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DONE
 - **Dependencies**: None
 - **Description**: framework-v1/review.md was overwhelming. Design a simpler format for future reviews.
 - **Acceptance Criteria**:
@@ -882,22 +882,22 @@
     - implementation-planning.agent.md documents the create/update/review workflow for these files
   - [x] Future reviews follow simpler format
     - The implementation-planning agent enforces plan.md + tasks.md as the standard format
-    - No new review.md files needed — lessons.md captures post-mortem insights per phase
+    - No new review.md files needed ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â lessons.md captures post-mortem insights per phase
 
 #### Task 9.5: Fix lint-fitness and lint-docs exit code 1
 
-- **Status**: ✅ DONE (already fixed in prior sessions — both exit 0)
+- **Status**: ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DONE (already fixed in prior sessions ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â both exit 0)
 - **Dependencies**: None
-- **Description**: Both `cicd lint-fitness` and `cicd lint-docs` exit with code 1 despite SUCCESS output. Pre-existing CI/CD issue — stderr output triggers non-zero exit. Discovered during framework-v2 Phase 5.
+- **Description**: Both `cicd lint-fitness` and `cicd lint-docs` exit with code 1 despite SUCCESS output. Pre-existing CI/CD issue ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â stderr output triggers non-zero exit. Discovered during framework-v2 Phase 5.
 - **Acceptance Criteria**:
   - [x] `go run ./cmd/cicd lint-fitness` exits 0 on success (verified 2026-03-17)
   - [x] `go run ./cmd/cicd lint-docs` exits 0 on success (verified 2026-03-17)
-  - [x] Root cause identified (stderr output from Go logger was treated as error by PowerShell — fixed by proper exit code handling in cicd runner)
+  - [x] Root cause identified (stderr output from Go logger was treated as error by PowerShell ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â fixed by proper exit code handling in cicd runner)
   - [x] Tests verify correct exit codes (TestRun_AllCommands_HappyPath covers both)
 
 #### Task 9.6: Verify Docker Desktop startup directive propagation
 
-- **Status**: ✅ DONE
+- **Status**: ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DONE
 - **Dependencies**: None
 - **Description**: Docker Desktop startup check exists in some Copilot modes but may be missing in others. Verify all agents, skills, and instructions that involve Docker or E2E have the directive (from framework-v2 Phase 3 lessons).
 - **Acceptance Criteria**:
@@ -914,7 +914,7 @@
 
 #### Task 9.7: Propagate D19 test strategy to ARCHITECTURE.md and Copilot artifacts
 
-- **Status**: ✅ DONE
+- **Status**: ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DONE
 - **Dependencies**: Task 9.3
 - **Description**: Propagate the D7/D19 3-tier test strategy (unit=SQLite, integration=SQLite TestMain, E2E=PostgreSQL Docker Compose) to ARCHITECTURE.md Section 10, 03-02.testing.instructions.md, and all agents. This makes the strategy unambiguous and the single source of truth.
 - **Acceptance Criteria**:
@@ -930,19 +930,19 @@
 
 #### Task 9.8: Add project-specific tool catalog to instructions (D26)
 
-- **Status**: ✅ DONE
+- **Status**: ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DONE
 - **Dependencies**: None
 - **Description**: Add "Project Tooling" section to 04-01.deployment.instructions.md listing all `go run ./cmd/cicd <subcommand>` commands with purpose and usage. Ensures agents reliably use project-specific tools.
 - **Acceptance Criteria**:
   - [x] All cicd subcommands documented with purpose and example invocation
-    - 11 linters, 2 formatters, 1 script command — all with Purpose and When to Use columns
+    - 11 linters, 2 formatters, 1 script command ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â all with Purpose and When to Use columns
   - [x] Instructions include when to use each tool (lint-fitness vs lint-deployments vs lint-docs, etc.)
     - Each command has specific "When to Use" guidance
   - [x] `cicd lint-docs validate-propagation` passes (36 chunks, 267 valid refs, 0 broken)
 
 #### Task 9.9: Phase 9 validation and post-mortem
 
-- **Status**: ✅ DONE
+- **Status**: ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DONE
 - **Dependencies**: Tasks 9.1-9.8
 - **Description**: Final quality gate run
 - **Acceptance Criteria**:
@@ -958,15 +958,15 @@
 
 ---
 
-### Phase 10: OpenAPI Standardization (D21–D24, D12 Part)
+### Phase 10: OpenAPI Standardization (D21ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“D24, D12 Part)
 
 **Phase Objective**: Standardize all api/ directories, consolidate initialisms, deduplicate FiberHandlerOpenAPISpec, add skeleton-template OpenAPI CRUD example.
 
 #### Task 10.1: Rename api/ subdirectories to product-service naming (D21)
 
-- **Status**: ✅ DONE
+- **Status**: ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DONE
 - **Dependencies**: Phase 3 complete
-- **Description**: Rename api/kms/ → api/sm-kms/, api/ca/ → api/pki-ca/, api/jose/ → api/jose-ja/. Flatten api/sm/im/ → api/sm-im/. Delete orphaned files (authz/, idp/, server/). Update all Go imports and generate directives.
+- **Description**: Rename api/kms/ ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ api/sm-kms/, api/ca/ ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ api/pki-ca/, api/jose/ ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ api/jose-ja/. Flatten api/sm/im/ ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ api/sm-im/. Delete orphaned files (authz/, idp/, server/). Update all Go imports and generate directives.
 - **Acceptance Criteria**:
   - [x] `api/sm-kms/`, `api/pki-ca/`, `api/jose-ja/` exist with correct structure
   - [x] Old short-name directories deleted
@@ -982,7 +982,7 @@
 
 #### Task 10.2: Restructure api/identity/ into per-service directories (D21)
 
-- **Status**: DONE ✅
+- **Status**: DONE ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦
 - **Dependencies**: Task 10.1
 - **Description**: Split combined api/identity/ into api/identity-authz/, api/identity-idp/, api/identity-rs/, api/identity-rp/, api/identity-spa/. Each gets its own canonical structure.
 - **Acceptance Criteria**:
@@ -993,7 +993,7 @@
 
 #### Task 10.3: Create api/sm-im/ directory and OpenAPI spec (D21, D24)
 
-- **Status**: DONE ✅ (pre-satisfied by Task 10.1)
+- **Status**: DONE ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ (pre-satisfied by Task 10.1)
 - **Dependencies**: Task 10.1
 - **Description**: sm-im currently has no api/ representation. Create api/sm-im/ with canonical structure. Generate server/client/models from existing sm-im endpoints.
 - **Acceptance Criteria**:
@@ -1004,7 +1004,7 @@
 
 #### Task 10.4: Create api/skeleton-template/ and add OpenAPI CRUD example (D12, D21)
 
-- **Status**: TODO
+- **Status**: DONE (commits `56e5fb8e8`, `958a78d41`)
 - **Dependencies**: Task 6.3, Task 10.1
 - **Description**: Create api/skeleton-template/ with Item CRUD OpenAPI spec. Add ~100 lines of Item repository + HTTP handlers to skeleton-template using the generated strict server. This is the D12 CRUD example implementation.
 - **Acceptance Criteria**:
@@ -1017,13 +1017,13 @@
 
 #### Task 10.5: Consolidate initialisms in gen configs (D22)
 
-- **Status**: TODO
-- **Dependencies**: Tasks 10.1–10.3
+- **Status**: DONE
+- **Dependencies**: Tasks 10.1ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“10.3
 - **Description**: Document canonical base initialisms list in ARCHITECTURE.md Section 8.1. Update all openapi-gen_config_server.yaml files to remove base-list duplicates. Each service keeps only domain-specific additions.
 - **Acceptance Criteria**:
-  - [ ] ARCHITECTURE.md Section 8.1 has canonical base initialisms list
-  - [ ] All gen config files use base list only + domain additions
-  - [ ] lint-fitness rule flags gen configs that duplicate base-list items
+  - [x] ARCHITECTURE.md Section 8.1 has canonical base initialisms list
+  - [x] All gen config files use base list only + domain additions
+  - [x] lint-fitness rule flags gen configs that duplicate base-list items
 
 #### Task 10.6: Deduplicate FiberHandlerOpenAPISpec (D23)
 
@@ -1038,7 +1038,7 @@
 #### Task 10.7: Add lint-fitness api/ structure enforcement (D24)
 
 - **Status**: TODO
-- **Dependencies**: Tasks 10.1–10.4
+- **Dependencies**: Tasks 10.1ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“10.4
 - **Description**: Add new lint-fitness sub-linter that verifies all services have api/<service-name>/ with required files.
 - **Acceptance Criteria**:
   - [ ] New `require_api_dir` sub-linter registered and passing
@@ -1048,7 +1048,7 @@
 #### Task 10.8: Phase 10 validation and post-mortem
 
 - **Status**: TODO
-- **Dependencies**: Tasks 10.1–10.7
+- **Dependencies**: Tasks 10.1ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“10.7
 - **Description**: Full quality gate run after OpenAPI standardization
 - **Acceptance Criteria**:
   - [ ] All services have correct api/<service-name>/ structures
@@ -1057,7 +1057,7 @@
 
 ---
 
-### Phase 11: service-framework Rename — FINAL (D20)
+### Phase 11: service-framework Rename ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â FINAL (D20)
 
 **Phase Objective**: Eliminate all ambiguity between "template" (framework engine) and "skeleton" (starter service). This is the ABSOLUTE FINAL phase.
 
@@ -1075,7 +1075,7 @@
 
 - **Status**: TODO
 - **Dependencies**: Task 11.1
-- **Description**: Rename `internal/apps/template/` → `internal/apps/framework/`. Update all Go imports, package declarations, identifiers (ServiceTemplateServerSettings → ServiceFrameworkServerSettings, etc.).
+- **Description**: Rename `internal/apps/template/` ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ `internal/apps/framework/`. Update all Go imports, package declarations, identifiers (ServiceTemplateServerSettings ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ ServiceFrameworkServerSettings, etc.).
 - **Acceptance Criteria**:
   - [ ] `go build ./...` passes with zero errors
   - [ ] No remaining `internal/apps/template` import paths (except skeleton-template which is correct)
@@ -1113,7 +1113,7 @@
 #### Task 11.6: Phase 11 validation and post-mortem (FINAL)
 
 - **Status**: TODO
-- **Dependencies**: Tasks 11.1–11.5
+- **Dependencies**: Tasks 11.1ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“11.5
 - **Description**: Final validation of complete framework-v3 iteration
 - **Acceptance Criteria**:
   - [ ] All quality gates pass

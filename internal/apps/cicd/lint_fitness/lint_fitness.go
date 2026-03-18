@@ -19,6 +19,7 @@ import (
 	lintFitnessCryptoRand "cryptoutil/internal/apps/cicd/lint_fitness/crypto_rand"
 	lintFitnessDomainLayerIsolation "cryptoutil/internal/apps/cicd/lint_fitness/domain_layer_isolation"
 	lintFitnessFileSizeLimits "cryptoutil/internal/apps/cicd/lint_fitness/file_size_limits"
+	lintFitnessGenConfigInitialisms "cryptoutil/internal/apps/cicd/lint_fitness/gen_config_initialisms"
 	lintFitnessHealthEndpointPresence "cryptoutil/internal/apps/cicd/lint_fitness/health_endpoint_presence"
 	lintFitnessInsecureSkipVerify "cryptoutil/internal/apps/cicd/lint_fitness/insecure_skip_verify"
 	lintFitnessMigrationNumbering "cryptoutil/internal/apps/cicd/lint_fitness/migration_numbering"
@@ -78,6 +79,7 @@ var registeredLinters = []struct {
 	{"no-postgres-in-non-e2e", lintFitnessNoPostgresInNonE2E.Check},
 	{"no-unit-test-real-db", lintFitnessNoUnitTestRealDB.Check},
 	{"no-unit-test-real-server", lintFitnessNoUnitTestRealServer.Check},
+	{"gen-config-initialisms", lintFitnessGenConfigInitialisms.Check},
 }
 
 // Lint runs all registered architecture fitness linters.

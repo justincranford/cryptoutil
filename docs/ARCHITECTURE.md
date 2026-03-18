@@ -1817,6 +1817,52 @@ cryptoutil follows an OpenAPI-first design approach, ensuring all APIs are defin
 - Array: minItems/maxItems, uniqueItems, items
 - Object: required, nested properties
 
+#### 8.1.4 Canonical Base Initialisms List
+
+<!-- @propagate to=".github/instructions/02-04.openapi.instructions.md" as="base-initialisms" -->
+All `openapi-gen_config*.yaml` files MUST include the full base initialisms list in their `additional-initialisms` section. Domain-specific additions follow the base list.
+
+**Base initialisms (mandatory in every gen config)**:
+
+| Initialism | Meaning |
+|------------|---------|
+| IDS | Intrusion Detection System |
+| JWT | JSON Web Token |
+| JWK | JSON Web Key |
+| JWE | JSON Web Encryption |
+| JWS | JSON Web Signature |
+| OIDC | OpenID Connect |
+| SAML | Security Assertion Markup Language |
+| AES | Advanced Encryption Standard |
+| GCM | Galois/Counter Mode |
+| CBC | Cipher Block Chaining |
+| RSA | Rivest-Shamir-Adleman |
+| EC | Elliptic Curve |
+| HMAC | Hash-based Message Authentication Code |
+| SHA | Secure Hash Algorithm |
+| TLS | Transport Layer Security |
+| IP | Internet Protocol |
+| AI | Artificial Intelligence |
+| ML | Machine Learning |
+| KEM | Key Encapsulation Mechanism |
+| PEM | Privacy Enhanced Mail |
+| DER | Distinguished Encoding Rules |
+| DSA | Digital Signature Algorithm |
+| IKM | Input Keying Material |
+
+**Domain-specific additions by service**:
+
+| Service | Domain Additions |
+|---------|----------------|
+| `jose-ja` | JWKS, OKP, URI |
+| `pki-ca` | CSR, CA, CRL, OCSP, URI, SAN, DN, CN, OU |
+| `sm-im` | IM, SM, URI |
+| `sm-kms` | URI |
+| `skeleton-template` | (none — base list only) |
+<!-- @/propagate -->
+
+**Enforcement**: `lint-fitness gen-config-initialisms` verifies every `openapi-gen_config_server.yaml` contains the full base list.
+
 ### 8.2 REST Conventions
 
 #### 8.2.1 Resource Naming
