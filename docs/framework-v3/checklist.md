@@ -134,7 +134,7 @@ Derived from plan.md, tasks.md, lessons.md, and all planning sessions.
 - ☐ 10.5 Document canonical base initialisms list in ARCHITECTURE.md Section 8.1; update all gen configs (D22)
 - ☑ 10.6 Refactor FiberHandlerOpenAPISpec into shared service-template factory taking rawSpec() (D23)
 - ☑ 10.7 Add require_api_dir lint-fitness sub-linter enforcing api/<service-name>/ structure (D24)
-- ☐ 10.8 Phase 10 validation and post-mortem
+- ☑ 10.8 Phase 10 validation and post-mortem
 
 ### Phase 11: service-framework Rename — FINAL (D20)
 

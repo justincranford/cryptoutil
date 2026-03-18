@@ -404,3 +404,34 @@ Phase 9 focused on knowledge propagation and quality enforcement. Tasks 9.1 (cov
 - 267 valid ARCHITECTURE.md section references, 0 broken
 - All 3 execution agents updated with D7/D19 strategy
 - 14 cicd subcommands documented in tool catalog
+
+## Phase 10: OpenAPI Standardization
+
+### Summary
+
+Phase 10 (Tasks 10.1-10.7) standardized all api/ directory structures, consolidated initialisms across all gen configs, deduplicated FiberHandlerOpenAPISpec into a shared factory, and enforced the api/ structure via a new lint-fitness sub-linter.
+
+### What Worked
+
+- **Factory function pattern for OpenAPI handlers**: Moving FiberHandlerOpenAPISpec to the shared builder package eliminated ~150 lines of duplicated handler logic across 8 services. Each service now delegates to the factory via a 3-line ServeOpenAPISpec() wrapper.
+- **Pre-seam test design**: Designing
+equire_api_dir without ilepath.Abs (using ilepath.Join(rootDir, "api") directly) eliminated unreachable error paths and achieved 100% coverage without test seams — cleaner than gen_config_initialisms which needed an osStatFunc seam.
+- **Iterative testing for sub-linters**: Running tests after each implementation attempt (3 rounds for require_api_dir) quickly surfaces issues with parallel test races and coverage gaps.
+- **TestCheck_DirectCall pattern**: Adding a test that calls both Check() and CheckInDir() directly (verifying they return the same error type) ensures 100% coverage even when Check() just delegates to CheckInDir().
+
+### Patterns Discovered
+
+- **importas rule naming**: The golangci.yml importas rule for pi/pki-ca/server uses alias cryptoutilApiCaServer (not cryptoutilApiPkiCaServer) — the "pki" product name is dropped from the alias because the CA is the canonical PKI authority. Always verify importas aliases experimentally rather than guessing from package paths.
+- **Parallel test races on package-level test seams**: Using a ar statFunc = os.Stat package-level seam causes data races when multiple parallel tests mutate it. For sub-linters that only need filesystem errors from a specific directory, use real tempdir tests with missing directories instead.
+- **PowerShell file writing**: Must use [System.IO.File]::WriteAllText(path, content, UTF8NoBOM) — Set-Content -Encoding UTF8 adds a BOM that triggers the ix-byte-order-marker pre-commit hook.
+- **Full suite timeout vs per-package timeout**: go test ./... -timeout 180s distributes the entire 180s budget across all packages sequentially. pki/ca/server integration tests require ~12s alone, causing timeouts in full-suite runs. Use per-package runs or increase timeout to >=300s for full suite validation.
+
+### Key Metrics
+
+- 7 tasks completed (10.1-10.7)
+- 8 swagger.go files refactored or created (3 refactored identity services + 5 new services)
+- 1 new shared factory function (FiberHandlerOpenAPISpec in builder package)
+- 1 new lint-fitness sub-linter (require-api-dir, 100% coverage)
+- 10 services validated for api/ directory presence
+- 25 total registered lint-fitness linters (was 24)
+- All pre-commit hooks pass, lint-fitness SUCCESS, exit code 0

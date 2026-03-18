@@ -1012,7 +1012,7 @@
   - [ ] OpenAPI spec defines Item CRUD (GET/POST/PUT/DELETE)
   - [ ] skeleton-template server uses generated strict server (not handrolled)
   - [ ] `RunContractTests` passes for skeleton-template with new endpoints
-  - [ ] lint-fitness passes for skeleton-template
+  - [x] lint-fitness passes for skeleton-template
   - [ ] `/new-service` generates a working service from updated skeleton
 
 #### Task 10.5: Consolidate initialisms in gen configs (D22)
@@ -1047,13 +1047,13 @@
 
 #### Task 10.8: Phase 10 validation and post-mortem
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: Tasks 10.1ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ10.7
 - **Description**: Full quality gate run after OpenAPI standardization
 - **Acceptance Criteria**:
-  - [ ] All services have correct api/<service-name>/ structures
-  - [ ] lint-fitness passes
-  - [ ] lessons.md updated
+  - [x] All services have correct api/<service-name>/ structures
+  - [x] lint-fitness passes
+  - [x] lessons.md updated
 
 ---
 
