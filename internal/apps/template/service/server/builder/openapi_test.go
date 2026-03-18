@@ -5,6 +5,7 @@ package builder
 
 import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	"fmt"
 	http "net/http"
 	"net/http/httptest"
 	"testing"
@@ -254,6 +255,84 @@ func TestOpenAPIConfig_MiddlewareExecution(t *testing.T) {
 // ptr returns a pointer to a string.
 func ptr(s string) *string {
 	return &s
+}
+
+// TestFiberHandlerOpenAPISpec_Success validates successful OpenAPI spec serving via factory.
+func TestFiberHandlerOpenAPISpec_Success(t *testing.T) {
+	t.Parallel()
+
+	getSwagger := func() (*openapi3.T, error) {
+		return &openapi3.T{
+			OpenAPI: "3.0.0",
+			Info: &openapi3.Info{
+				Title:   "Test API",
+				Version: cryptoutilSharedMagic.ServiceVersion,
+			},
+			Paths: &openapi3.Paths{},
+		}, nil
+	}
+
+	handler, err := FiberHandlerOpenAPISpec(getSwagger)
+	require.NoError(t, err, "FiberHandlerOpenAPISpec should succeed")
+	require.NotNil(t, handler, "Handler should not be nil")
+
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	app.Get("/spec", handler)
+
+	req := httptest.NewRequest(http.MethodGet, "/spec", nil)
+	resp, err := app.Test(req, -1)
+	require.NoError(t, err)
+
+	defer func() { require.NoError(t, resp.Body.Close()) }()
+
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	require.Equal(t, "application/json", resp.Header.Get("Content-Type"))
+}
+
+// TestFiberHandlerOpenAPISpec_GetSwaggerError validates error handling when getSwagger fails.
+func TestFiberHandlerOpenAPISpec_GetSwaggerError(t *testing.T) {
+	t.Parallel()
+
+	getSwagger := func() (*openapi3.T, error) {
+		return nil, fmt.Errorf("spec load failure")
+	}
+
+	handler, err := FiberHandlerOpenAPISpec(getSwagger)
+	require.Error(t, err, "Should return error when getSwagger fails")
+	require.Nil(t, handler, "Handler should be nil on error")
+	require.ErrorContains(t, err, "failed to get OpenAPI spec")
+}
+
+// TestFiberHandlerOpenAPISpec_MultipleInvocations validates handler can be called multiple times.
+func TestFiberHandlerOpenAPISpec_MultipleInvocations(t *testing.T) {
+	t.Parallel()
+
+	getSwagger := func() (*openapi3.T, error) {
+		return &openapi3.T{
+			OpenAPI: "3.0.0",
+			Info: &openapi3.Info{
+				Title:   "Test API",
+				Version: cryptoutilSharedMagic.ServiceVersion,
+			},
+			Paths: &openapi3.Paths{},
+		}, nil
+	}
+
+	handler, err := FiberHandlerOpenAPISpec(getSwagger)
+	require.NoError(t, err)
+
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	app.Get("/spec", handler)
+
+	for range 3 {
+		req := httptest.NewRequest(http.MethodGet, "/spec", nil)
+		resp, err := app.Test(req, -1)
+		require.NoError(t, err)
+
+		defer func() { require.NoError(t, resp.Body.Close()) }()
+
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+	}
 }
 
 // TestOpenAPIRegistrar_Interface verifies interface can be implemented.

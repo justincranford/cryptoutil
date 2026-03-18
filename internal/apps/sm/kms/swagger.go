@@ -2,16 +2,16 @@
 //
 
 //nolint:wrapcheck // Fiber HTTP handlers return framework errors directly
-package rs
+package kms
 
 import (
-	cryptoutilApiIdentityRs "cryptoutil/api/identity-rs"
+	cryptoutilApiSmKmsServer "cryptoutil/api/sm-kms/server"
 	cryptoutilAppsTemplateServiceServerBuilder "cryptoutil/internal/apps/template/service/server/builder"
 
 	fiber "github.com/gofiber/fiber/v2"
 )
 
-// ServeOpenAPISpec serves the embedded OpenAPI specification for the Resource Server.
+// ServeOpenAPISpec serves the embedded OpenAPI specification for the Key Management service.
 func ServeOpenAPISpec() (func(c *fiber.Ctx) error, error) {
-	return cryptoutilAppsTemplateServiceServerBuilder.FiberHandlerOpenAPISpec(cryptoutilApiIdentityRs.GetSwagger)
+	return cryptoutilAppsTemplateServiceServerBuilder.FiberHandlerOpenAPISpec(cryptoutilApiSmKmsServer.GetSwagger)
 }

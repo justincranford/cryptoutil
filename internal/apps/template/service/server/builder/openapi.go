@@ -5,6 +5,9 @@
 package builder
 
 import (
+	"fmt"
+	http "net/http"
+
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"github.com/getkin/kin-openapi/openapi3"
 	fiber "github.com/gofiber/fiber/v2"
@@ -83,6 +86,26 @@ func (c *OpenAPIConfig) ServiceMiddlewares() []fiber.Handler {
 	}
 
 	return middlewares
+}
+
+// FiberHandlerOpenAPISpec creates a Fiber handler that serves the OpenAPI specification as JSON.
+// getSwagger is the oapi-codegen generated GetSwagger() function from the service's API package.
+func FiberHandlerOpenAPISpec(getSwagger func() (*openapi3.T, error)) (func(*fiber.Ctx) error, error) {
+	swagger, err := getSwagger()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get OpenAPI spec: %w", err)
+	}
+
+	specJSON, err := swagger.MarshalJSON()
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal OpenAPI spec: %w", err)
+	}
+
+	return func(c *fiber.Ctx) error {
+		c.Set("Content-Type", "application/json")
+
+		return c.Status(http.StatusOK).Send(specJSON)
+	}, nil
 }
 
 // OpenAPIRegistrar provides a standardized way to register OpenAPI handlers.

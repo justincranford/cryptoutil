@@ -2,16 +2,16 @@
 //
 
 //nolint:wrapcheck // Fiber HTTP handlers return framework errors directly
-package rs
+package template
 
 import (
-	cryptoutilApiIdentityRs "cryptoutil/api/identity-rs"
+	cryptoutilApiSkeletonTemplateServer "cryptoutil/api/skeleton-template/server"
 	cryptoutilAppsTemplateServiceServerBuilder "cryptoutil/internal/apps/template/service/server/builder"
 
 	fiber "github.com/gofiber/fiber/v2"
 )
 
-// ServeOpenAPISpec serves the embedded OpenAPI specification for the Resource Server.
+// ServeOpenAPISpec serves the embedded OpenAPI specification for the Skeleton Template service.
 func ServeOpenAPISpec() (func(c *fiber.Ctx) error, error) {
-	return cryptoutilAppsTemplateServiceServerBuilder.FiberHandlerOpenAPISpec(cryptoutilApiIdentityRs.GetSwagger)
+	return cryptoutilAppsTemplateServiceServerBuilder.FiberHandlerOpenAPISpec(cryptoutilApiSkeletonTemplateServer.GetSwagger)
 }
