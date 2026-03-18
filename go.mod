@@ -17,9 +17,9 @@ require (
 	github.com/jackc/pgx/v5 v5.8.0
 	github.com/leanovate/gopter v0.2.11
 	github.com/lestrrat-go/jwx/v3 v3.0.13
-	github.com/lib/pq v1.11.2
+	github.com/lib/pq v1.12.0
 	github.com/oapi-codegen/fiber-middleware v1.0.2
-	github.com/oapi-codegen/runtime v1.2.0
+	github.com/oapi-codegen/runtime v1.3.0
 	github.com/pquerna/otp v1.5.0
 	github.com/samber/slog-multi v1.7.1
 	github.com/shirou/gopsutil v3.21.11+incompatible
@@ -49,7 +49,7 @@ require (
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.31.1
-	modernc.org/sqlite v1.46.2
+	modernc.org/sqlite v1.47.0
 )
 
 require (

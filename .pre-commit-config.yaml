@@ -380,7 +380,7 @@ repos:
 
   # IaC / Container security scanning (Dockerfiles, Docker Compose, Kubernetes)
   - repo: https://github.com/bridgecrewio/checkov
-    rev: 3.2.508
+    rev: 3.2.510
     hooks:
       - id: checkov
         name: Checkov IaC security scan
@@ -421,7 +421,7 @@ repos:
 
   # pyproject.toml normalization (consistent key ordering, whitespace)
   - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: v2.19.0
+    rev: v2.20.0
     hooks:
       - id: pyproject-fmt
         name: Normalize pyproject.toml
