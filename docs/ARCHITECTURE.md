@@ -105,7 +105,7 @@ This document is structured to serve multiple audiences:
 2. **JSON Object Signing and Encryption (JOSE)** - JWK/JWS/JWE/JWT cryptographic operations
 3. **Secrets Manager (SM)** - Elastic key management service with hierarchical key barriers; also hosts the encrypted messaging service
 4. **Identity** - OAuth 2.1, OIDC 1.0, WebAuthn, and Passkeys authentication and authorization
-5. **Skeleton** - Best-practice stereotype product-service template for service-template usage demonstration
+5. **Skeleton** - Best-practice stereotype product-service template for service-framework usage demonstration
 
 **Purpose**: This project is **for fun** while providing a comprehensive learning experience with LLM agents for Spec-Driven Development (SDD) and delivering modern, enterprise-ready security products.
 
@@ -292,7 +292,7 @@ Skills live in `.github/skills/NAME/SKILL.md` — each skill in its own subdirec
 
 ### 2.2 Architecture Strategy
 
-#### Service Template Pattern
+#### Service Framework Pattern
 
 - **Single Reusable Template**: All 10 services across 5 products inherit from `internal/apps/framework/`
 - **Eliminates 48,000+ lines per service**: TLS setup, dual HTTPS servers, database, migrations, sessions, barrier
@@ -519,9 +519,9 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 #### 3.1.5 Skeleton
 
 - **Service**: Template
-- **Capabilities**: Best-practice stereotype product-service demonstrating all service-template patterns
+- **Capabilities**: Best-practice stereotype product-service demonstrating all service-framework patterns
 - **Use Cases**: Reference implementation for new product-service creation, developer onboarding
-- **Key Features**: Minimal domain logic, full service-template integration, deployment and config examples
+- **Key Features**: Minimal domain logic, full service-framework integration, deployment and config examples
 
 **Skeleton / lint-fitness / `/new-service` Relationship**:
 
@@ -706,9 +706,9 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 ##### 3.2.5.1 Template Service
 
 - **Product-Service Identifier**: skeleton-template
-- **Purpose**: Best-practice stereotype product-service template for service-template usage demonstration
-- **Capabilities**: Demonstrates all service-template patterns with minimal domain logic
-- **Use Cases**: Reference implementation for new product-service creation, developer onboarding, service-template validation
+- **Purpose**: Best-practice stereotype product-service template for service-framework usage demonstration
+- **Capabilities**: Demonstrates all service-framework patterns with minimal domain logic
+- **Use Cases**: Reference implementation for new product-service creation, developer onboarding, service-framework validation
 - **Status**: ❌ Not Started
 - **Network Configuration**:
   - Address (Container): Private Admin Compose+K8s APIs: 127.0.0.1 (IPv4 only)
@@ -930,7 +930,7 @@ func main() {
 internal/apps/
 ├── template/                  # REUSABLE product-service template (all 10 services for all 5 products MUST reuse this template for maximum consistency and minimum duplication)
 │   ├── service/
-│   │   ├── config/            # ServiceTemplateServerSettings
+│   │   ├── config/            # ServiceFrameworkServerSettings
 │   │   ├── server/            # Application, PublicServerBase, AdminServer
 │   │   │   ├── application/   # ApplicationCore, ApplicationBasic
 │   │   │   ├── builder/       # ServerBuilder fluent API
@@ -1089,7 +1089,7 @@ cryptoutil sm kms server --config=/etc/sm/kms.yml
 ### CLI Subcommand
 
 All CLIs for all 10 services MUST support these subcommands, with consistent behavior and config parsing and flag parsing.
-Consistency MUST be guaranteed by inheriting from service-template, which will reuse `internal/apps/framework/service/<SUBCOMMAND>/` packages:
+Consistency MUST be guaranteed by inheriting from service-framework, which will reuse `internal/apps/framework/service/<SUBCOMMAND>/` packages:
 
 | Subcommand | Description |
 |------------|-------------|
@@ -1106,11 +1106,11 @@ Consistency MUST be guaranteed by inheriting from service-template, which will r
 
 ## 5. Service Architecture
 
-### 5.1 Service Template Pattern
+### 5.1 Service Framework Pattern
 
-#### 5.1.1 Template Components
+#### 5.1.1 Framework Components
 
-<!-- @propagate to=".github/instructions/02-01.architecture.instructions.md" as="service-template-components" -->
+<!-- @propagate to=".github/instructions/02-01.architecture.instructions.md" as="service-framework-components" -->
 - Two HTTPS Listeners: Public (business APIs) + Admin (health checks)
 - Two Public Paths: `/browser/**` (sessions) vs `/service/**` (tokens)
 - Three Admin APIs: /admin/api/v1/livez, /admin/api/v1/readyz, /admin/api/v1/shutdown
@@ -1119,7 +1119,7 @@ Consistency MUST be guaranteed by inheriting from service-template, which will r
 - Config Priority: Docker secrets > YAML > CLI parameters (NO environment variables)
 <!-- @/propagate -->
 
-#### 5.1.2 Template Benefits
+#### 5.1.2 Framework Benefits
 
 - Eliminates 48,000+ lines of boilerplate per service
 - Consistent infrastructure across all 10 services
@@ -2023,7 +2023,7 @@ Every service config should have a test settings factory:
 // NewTestSettings returns configuration suitable for testing
 func NewTestSettings() *SMImServerSettings {
     return &SMImServerSettings{
-        ServiceTemplateServerSettings: cryptoutilTemplateTestutil.NewTestSettings(),
+        ServiceFrameworkServerSettings: cryptoutilFrameworkTestutil.NewTestSettings(),
         MaxMessageSize:                65536,
     }
 }
@@ -4430,7 +4430,7 @@ Propagation markers are added incrementally:
 | emphasis-keywords | Document Conventions | 01-01.terminology |
 | abbreviations | Document Conventions | 01-01.terminology |
 | infrastructure-blocker-escalation | 13.7 | 01-02.beast-mode, 06-01.evidence-based |
-| service-template-components | 5.1.1 | 02-01.architecture |
+| service-framework-components | 5.1.1 | 02-01.architecture |
 | minimum-versions | B.1 | 02-02.versions |
 | otel-collector-constraints | 9.4.1 | 02-03.observability |
 | http-status-codes | 8.4 | 02-04.openapi |

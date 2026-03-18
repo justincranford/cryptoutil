@@ -144,7 +144,7 @@ A1. **Architecture** (`docs/ARCHITECTURE.md`)
 - **Update Triggers**: Architectural changes, new patterns, component additions
 - **Propagate To**: Service template docs, copilot instructions (02-01.architecture)
 
-A2. **Service Template Docs** (`docs/arch/*.md`)
+A2. **Service Framework Docs** (`docs/arch/*.md`)
 
 - **Purpose**: Reusable patterns, examples, guidance
 - **Sources**: Architecture (patterns), copilot instructions (standards), implementation (validated patterns)
@@ -380,7 +380,7 @@ grep -r "NEVER ask.*Should I proceed" .github/ | wc -l  # Should match number of
 
 1. Architecture (docs/ARCHITECTURE.md) → Update ServerBuilder section
 2. Copilot Instructions (02-01.architecture, 03-04.data-infrastructure) → Update ServerBuilder requirements and migrations
-3. Service Template Docs (docs/service-template/*.md) → Update examples
+3. Service Framework Docs (docs/service-framework/*.md) → Update examples
 **Sync Workflow**:
 
 ```bash

@@ -126,7 +126,7 @@ func TestPublicServerBase_ShutdownTwice(t *testing.T) {
 }
 
 // TestNewServiceFramework_JWKGenInitError tests NewServiceFramework when JWKGenService fails to initialize.
-// Target: service_template.go:83 (JWKGenService init error)
+// Target: service_framework.go:83 (JWKGenService init error)
 //
 // TestNewServiceFramework_TelemetryInitError tests NewServiceFramework when telemetry init fails.
 // Cannot use t.Parallel() because it modifies the package-level injectable var.
@@ -201,7 +201,7 @@ func TestNewServiceFramework_JWKGenInitError(t *testing.T) {
 }
 
 // TestNewServiceFramework_OptionError tests NewServiceFramework when option application fails.
-// Target: service_template.go:99 (option apply error).
+// Target: service_framework.go:99 (option apply error).
 func TestNewServiceFramework_OptionError(t *testing.T) {
 	t.Parallel()
 
@@ -254,7 +254,7 @@ func TestNewServiceFramework_OptionError(t *testing.T) {
 }
 
 // TestServiceFramework_ShutdownNilComponents tests Shutdown with nil components.
-// Target: service_template.go:144-153 (nil check branches).
+// Target: service_framework.go:144-153 (nil check branches).
 func TestServiceFramework_ShutdownNilComponents(t *testing.T) {
 	t.Parallel()
 

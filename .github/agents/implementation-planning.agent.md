@@ -531,7 +531,7 @@ EOF
 | Version Control | [Section 13.2](../../docs/ARCHITECTURE.md#132-version-control) | ALL plans (commit strategy) |
 | Deployment Architecture | [Section 12](../../docs/ARCHITECTURE.md#12-deployment-architecture) | Plans modifying deployments |
 | Infrastructure Blockers | [Section 13.7](../../docs/ARCHITECTURE.md#137-infrastructure-blocker-escalation) | Plans encountering infra issues |
-| Service Template | [Section 5.1](../../docs/ARCHITECTURE.md#51-service-template-pattern) | Plans for new services |
+| Service Template | [Section 5.1](../../docs/ARCHITECTURE.md#51-service-framework-pattern) | Plans for new services |
 | Security Architecture | [Section 6](../../docs/ARCHITECTURE.md#6-security-architecture) | Plans touching crypto/auth |
 | API Architecture | [Section 8](../../docs/ARCHITECTURE.md#8-api-architecture) | Plans with API changes |
 | OTel/Telemetry | [Section 9.4](../../docs/ARCHITECTURE.md#94-telemetry-strategy) | Plans involving telemetry |

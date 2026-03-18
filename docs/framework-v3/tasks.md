@@ -1063,32 +1063,35 @@
 
 #### Task 11.1: Prepare rename script and verify scope (D20)
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: ALL previous phases complete
 - **Description**: Enumerate all files referencing `internal/apps/template` or `service-template` (as the framework, not the skeleton service). Write a Go rename script or use `gofmt -r` approach.
 - **Acceptance Criteria**:
-  - [ ] Complete list of ~340 affected files documented
-  - [ ] Rename strategy chosen (automated vs manual + review)
-  - [ ] Rollback plan documented
+  - [x] Complete list of ~340 affected files documented (342 Go files, 25 non-Go files)
+  - [x] Rename strategy chosen (PowerShell bulk replacement)
+  - [x] Rollback plan documented (git revert)
 
 #### Task 11.2: Rename framework package paths (D20)
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: Task 11.1
 - **Description**: Rename `internal/apps/framework/` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ `internal/apps/framework/`. Update all Go imports, package declarations, identifiers (ServiceTemplateServerSettings ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ ServiceFrameworkServerSettings, etc.).
 - **Acceptance Criteria**:
-  - [ ] `go build ./...` passes with zero errors
-  - [ ] No remaining `internal/apps/template` import paths (except skeleton-template which is correct)
+  - [x] `go build ./...` passes with zero errors
+  - [x] No remaining `internal/apps/template` import paths (except skeleton-template which is correct)
+  - [x] All lint-fitness linters pass (migration_numbering, migration_range_compliance, cross_service_import_isolation fixed)
+  - [x] golangci-lint passes with zero issues
+  - [x] Git commit: a659e788d
 
 #### Task 11.3: Update all documentation and Copilot artifacts (D20)
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: Task 11.2
 - **Description**: Update ARCHITECTURE.md, plan.md, tasks.md, lessons.md, all agents, skills, instructions, copilot-instructions.md to use "service-framework" terminology.
 - **Acceptance Criteria**:
-  - [ ] ARCHITECTURE.md uses "service-framework" throughout
-  - [ ] All agents/skills/instructions updated
-  - [ ] `cicd lint-docs validate-propagation` passes
+  - [x] ARCHITECTURE.md uses "service-framework" throughout
+  - [x] All agents/skills/instructions updated
+  - [x] `cicd lint-docs validate-propagation` passes
 
 #### Task 11.4: Add lint-fitness terminology enforcement (D20)
 

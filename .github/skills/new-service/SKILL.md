@@ -106,5 +106,5 @@ go run ./cmd/cicd lint-deployments
 ## References
 
 Read [ARCHITECTURE.md Section 3.4 Port Assignments](../../../docs/ARCHITECTURE.md#34-port-assignments--networking) for port catalog — select the next available port range from this table when assigning host ports for the new service.
-Read [ARCHITECTURE.md Section 5.1 Service Template Pattern](../../../docs/ARCHITECTURE.md#51-service-template-pattern) for template components — validate that all required components (dual HTTPS, health checks, migrations, telemetry) are present in the new service.
+Read [ARCHITECTURE.md Section 5.1 Service Framework Pattern](../../../docs/ARCHITECTURE.md#51-service-framework-pattern) for framework components — validate that all required components (dual HTTPS, health checks, migrations, telemetry) are present in the new service.
 Read [ARCHITECTURE.md Section 5.2 Service Builder Pattern](../../../docs/ARCHITECTURE.md#52-service-builder-pattern) for builder usage — follow the builder registration flow and `ServiceResources` pattern exactly as specified.
