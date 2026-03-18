@@ -16,9 +16,12 @@ import (
 // This model demonstrates best-practice GORM tagging with cross-DB compatibility.
 // CRITICAL: TenantID for data scoping only - realms are authentication-only, NOT data scope.
 type TemplateItem struct {
-	ID        googleUuid.UUID `gorm:"type:text;primaryKey"`
-	TenantID  googleUuid.UUID `gorm:"type:text;not null;index:idx_template_items_tenant"`
-	CreatedAt time.Time       `gorm:"not null;autoCreateTime"`
+	ID          googleUuid.UUID `gorm:"type:text;primaryKey"`
+	TenantID    googleUuid.UUID `gorm:"type:text;not null;index:idx_template_items_tenant"`
+	Name        string          `gorm:"type:text;not null"`
+	Description string          `gorm:"type:text"`
+	CreatedAt   time.Time       `gorm:"not null;autoCreateTime"`
+	UpdatedAt   time.Time       `gorm:"not null;autoUpdateTime"`
 }
 
 // TableName specifies the database table name for TemplateItem.

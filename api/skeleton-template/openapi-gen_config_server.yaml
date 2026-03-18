@@ -1,0 +1,10 @@
+package: server
+generate:
+  fiber-server: true
+  strict-server: true
+  models: true
+  embedded-spec: true
+output: server/server.gen.go
+output-options:
+  skip-prune: true
+  name-normalizer: ToCamelCaseWithInitialisms

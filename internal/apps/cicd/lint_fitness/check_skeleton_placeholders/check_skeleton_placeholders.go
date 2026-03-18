@@ -32,6 +32,7 @@ var skeletonWords = []string{cryptoutilSharedMagic.SkeletonProductName, cryptout
 // excludedDirPrefixes are directory prefixes that are legitimately allowed to contain skeleton references.
 // Paths are relative to the scan rootDir and use forward slashes.
 var excludedDirPrefixes = []string{
+	"api/skeleton-template/",
 	"internal/apps/skeleton/",
 	"cmd/skeleton-template/",
 	"cmd/skeleton/",

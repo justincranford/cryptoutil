@@ -12,8 +12,10 @@ import (
 
 	"gorm.io/gorm"
 
+	cryptoutilSkeletonTemplateServer "cryptoutil/api/skeleton-template/server"
 	cryptoutilAppsSkeletonTemplateRepository "cryptoutil/internal/apps/skeleton/template/repository"
 	cryptoutilAppsSkeletonTemplateServerConfig "cryptoutil/internal/apps/skeleton/template/server/config"
+	cryptoutilAppsSkeletonTemplateServerHandler "cryptoutil/internal/apps/skeleton/template/server/handler"
 	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilAppsTemplateServiceServerBuilder "cryptoutil/internal/apps/template/service/server/builder"
@@ -53,6 +55,9 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsSkeletonTemplateServe
 	resources, err := cryptoutilAppsTemplateServiceServerBuilder.Build(ctx, cfg.ServiceTemplateServerSettings, &cryptoutilAppsTemplateServiceServerBuilder.DomainConfig{
 		MigrationsFS:   cryptoutilAppsSkeletonTemplateRepository.MigrationsFS,
 		MigrationsPath: "migrations",
+		RouteRegistration: func(base *cryptoutilAppsTemplateServiceServer.PublicServerBase, res *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources) error {
+			return registerItemRoutes(base, res)
+		},
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to build skeleton-template service: %w", err)
@@ -167,3 +172,26 @@ func (s *SkeletonTemplateServer) AdminTLSRootCAPool() *x509.CertPool {
 
 // Compile-time assertion: SkeletonTemplateServer must implement ServiceServer.
 var _ cryptoutilAppsTemplateServiceServer.ServiceServer = (*SkeletonTemplateServer)(nil)
+
+// registerItemRoutes sets up the Item CRUD routes using the OpenAPI strict server pattern.
+func registerItemRoutes(base *cryptoutilAppsTemplateServiceServer.PublicServerBase, res *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources) error {
+	// Create domain repository.
+	itemRepo := cryptoutilAppsSkeletonTemplateRepository.NewItemRepository(res.DB)
+
+	// Create OpenAPI strict server handler.
+	strictServer := cryptoutilAppsSkeletonTemplateServerHandler.NewStrictServer(itemRepo)
+	strictHandler := cryptoutilSkeletonTemplateServer.NewStrictHandler(strictServer, nil)
+
+	// Register handlers on both browser and service paths.
+	app := base.App()
+
+	cryptoutilSkeletonTemplateServer.RegisterHandlersWithOptions(app, strictHandler, cryptoutilSkeletonTemplateServer.FiberServerOptions{
+		BaseURL: "/browser/api/v1",
+	})
+
+	cryptoutilSkeletonTemplateServer.RegisterHandlersWithOptions(app, strictHandler, cryptoutilSkeletonTemplateServer.FiberServerOptions{
+		BaseURL: "/service/api/v1",
+	})
+
+	return nil
+}

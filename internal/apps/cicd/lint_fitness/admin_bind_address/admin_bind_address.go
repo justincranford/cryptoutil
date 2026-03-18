@@ -18,8 +18,10 @@ import (
 
 // Test seams: replaceable in tests to exercise unreachable OS-level error paths.
 // See ARCHITECTURE.md Section 10.2.4 (Test Seam Injection Pattern).
-var adminBindWalkFn = filepath.Walk
-var adminBindOpenFn = os.Open
+var (
+	adminBindWalkFn = filepath.Walk
+	adminBindOpenFn = os.Open
+)
 
 // Check verifies admin bind address from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {

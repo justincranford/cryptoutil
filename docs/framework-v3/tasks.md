@@ -1,6 +1,6 @@
 # Tasks - Framework v3
 
-**Status**: 50 of 86 tasks complete (58%)
+**Status**: 52 of 86 tasks complete (60%)
 **Last Updated**: 2026-03-17
 **Created**: 2026-03-08
 
@@ -982,23 +982,25 @@
 
 #### Task 10.2: Restructure api/identity/ into per-service directories (D21)
 
-- **Status**: TODO
+- **Status**: DONE ✅
 - **Dependencies**: Task 10.1
 - **Description**: Split combined api/identity/ into api/identity-authz/, api/identity-idp/, api/identity-rs/, api/identity-rp/, api/identity-spa/. Each gets its own canonical structure.
 - **Acceptance Criteria**:
-  - [ ] 5 separate api/identity-*/ directories exist
-  - [ ] Each has generate.go + spec files + gen configs + client/server/models subdirs
-  - [ ] Old api/identity/ deleted
+  - [x] 5 separate api/identity-*/ directories exist (identity-authz, identity-idp, identity-rs, identity-rp, identity-spa)
+  - [x] Each has generate.go + spec files + gen configs (authz/idp/rs have full specs; rp/spa have stub generate.go for future specs)
+  - [x] Old api/identity/ deleted
+  - Evidence: `go build ./...` EXIT 0, `golangci-lint run --fix ./...` 0 issues, all identity tests pass, commit `196fa8a09`
 
 #### Task 10.3: Create api/sm-im/ directory and OpenAPI spec (D21, D24)
 
-- **Status**: TODO
+- **Status**: DONE ✅ (pre-satisfied by Task 10.1)
 - **Dependencies**: Task 10.1
 - **Description**: sm-im currently has no api/ representation. Create api/sm-im/ with canonical structure. Generate server/client/models from existing sm-im endpoints.
 - **Acceptance Criteria**:
-  - [ ] `api/sm-im/` exists with canonical structure
-  - [ ] `go generate ./api/sm-im/...` succeeds
-  - [ ] sm-im server uses generated strict server (not handrolled)
+  - [x] `api/sm-im/` exists with canonical structure (generate.go, 3 gen configs, spec, client/models/server sub-dirs)
+  - [x] `go generate ./api/sm-im/...` generated files exist and `go build ./api/sm-im/...` EXIT 0
+  - [x] sm-im server uses generated strict server (`cryptoutilApiSmImServer` import in messages.go)
+  - Note: Already satisfied when api/sm/im/ was moved to api/sm-im/ in Task 10.1
 
 #### Task 10.4: Create api/skeleton-template/ and add OpenAPI CRUD example (D12, D21)
 

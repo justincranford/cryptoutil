@@ -20,8 +20,10 @@ var healthRequirements = []string{"livez", "readyz"}
 
 // Test seams: replaceable in tests to exercise unreachable OS-level error paths.
 // See ARCHITECTURE.md Section 10.2.4 (Test Seam Injection Pattern).
-var healthEndpointReadDirFn = os.ReadDir
-var healthEndpointReadFileFn = os.ReadFile
+var (
+	healthEndpointReadDirFn  = os.ReadDir
+	healthEndpointReadFileFn = os.ReadFile
+)
 
 // Check verifies health endpoint presence from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
@@ -135,7 +137,7 @@ func checkServiceHealth(svc serviceID, appsDir string) []string {
 			return nil
 		}
 
-				content, readErr := healthEndpointReadFileFn(path) //nolint:gosec // path from filepath.Walk, controlled
+		content, readErr := healthEndpointReadFileFn(path) //nolint:gosec // path from filepath.Walk, controlled
 		if readErr != nil {
 			return fmt.Errorf("reading file %s: %w", path, readErr)
 		}

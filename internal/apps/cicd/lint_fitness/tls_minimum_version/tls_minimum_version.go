@@ -28,8 +28,10 @@ var forbiddenMinVersions = []string{
 
 // Test seams: replaceable in tests to exercise unreachable OS-level error paths.
 // See ARCHITECTURE.md Section 10.2.4 (Test Seam Injection Pattern).
-var tlsMinVersionWalkFn = filepath.Walk
-var tlsMinVersionOpenFn = os.Open
+var (
+	tlsMinVersionWalkFn = filepath.Walk
+	tlsMinVersionOpenFn = os.Open
+)
 
 // Check verifies TLS minimum version from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {

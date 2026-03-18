@@ -256,6 +256,25 @@ func TestFindViolations_TemplateDirExcluded(t *testing.T) {
 	require.Empty(t, violations, "internal/apps/template/ must be excluded")
 }
 
+func TestFindViolations_ApiSkeletonTemplateDirExcluded(t *testing.T) {
+	t.Parallel()
+
+	tempDir := t.TempDir()
+
+	apiDir := filepath.Join(tempDir, "api", cryptoutilSharedMagic.OTLPServiceSkeletonTemplate)
+	err := os.MkdirAll(apiDir, 0o700)
+	require.NoError(t, err)
+
+	file := filepath.Join(apiDir, "generate.go")
+	content := "// Package skeletontemplate provides generated OpenAPI code.\npackage skeletontemplate\n"
+	err = os.WriteFile(file, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
+	require.NoError(t, err)
+
+	violations, err := FindViolations(tempDir)
+	require.NoError(t, err)
+	require.Empty(t, violations, "api/skeleton-template/ must be excluded")
+}
+
 func TestFindViolations_NonGoFilesIgnored(t *testing.T) {
 	t.Parallel()
 
@@ -482,7 +501,6 @@ func TestFindViolations_RelError(t *testing.T) {
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to compute relative path")
 }
-
 
 func findProjectRoot() (string, error) {
 	dir, err := os.Getwd()
