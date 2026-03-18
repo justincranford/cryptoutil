@@ -46,7 +46,7 @@ type AuthzServer struct {
 }
 
 // NewFromConfig creates a new identity-authz server from IdentityAuthzServerSettings.
-// Uses service-template builder for infrastructure initialization.
+// Uses service-framework builder for infrastructure initialization.
 func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsIdentityAuthzServerConfig.IdentityAuthzServerSettings) (*AuthzServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")

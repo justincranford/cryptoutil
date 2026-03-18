@@ -1,9 +1,9 @@
 --
 -- Barrier encryption tables for multi-layer key hierarchy
 -- Pattern: unseal → root → intermediate → content keys
--- Extracted from sm-im into reusable service-template pattern
+-- Extracted from sm-im into reusable service-framework pattern
 --
--- CRITICAL: These tables are required by barrier service (internal/apps/template/service/server/barrier/)
+-- CRITICAL: These tables are required by barrier service (internal/apps/framework/service/server/barrier/)
 --
 
 -- Barrier Root Keys table

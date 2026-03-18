@@ -1,4 +1,4 @@
-// Package server_integration provides integration tests for service-template server.
+// Package server_integration provides integration tests for service-framework server.
 // These tests validate end-to-end flows including tenant registration and join requests.
 //
 //go:build integration

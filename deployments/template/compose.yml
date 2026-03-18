@@ -5,7 +5,7 @@
 # This is the TEMPLATE file for ANY cryptoutil service deployment.
 # Replace PRODUCT, SERVICE, XXXX placeholders with actual values.
 #
-# The service-template is an INTERNAL LIBRARY providing reusable infrastructure:
+# The service-framework is an INTERNAL LIBRARY providing reusable infrastructure:
 #   - Two HTTPS servers (public + admin)
 #   - PostgreSQL/SQLite dual-database support with GORM
 #   - OpenTelemetry integration
@@ -18,7 +18,7 @@
 #
 # E2E Testing Strategy:
 # ---------------------
-# The service-template is tested through concrete implementations:
+# The service-framework is tested through concrete implementations:
 #   docker compose -f ../PRODUCT/compose.yml up -d
 #   go test -tags=e2e ./internal/apps/PRODUCT/SERVICE/e2e/...
 #

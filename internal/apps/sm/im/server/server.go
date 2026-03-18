@@ -41,11 +41,11 @@ type SmIMServer struct {
 	userRepo                *cryptoutilAppsSmImRepository.UserRepository
 	messageRepo             *cryptoutilAppsSmImRepository.MessageRepository
 	messageRecipientJWKRepo *cryptoutilAppsSmImRepository.MessageRecipientJWKRepository
-	realmRepo               cryptoutilAppsFrameworkServiceServerRepository.TenantRealmRepository // Uses service-template repository.
+	realmRepo               cryptoutilAppsFrameworkServiceServerRepository.TenantRealmRepository // Uses service-framework repository.
 }
 
 // NewFromConfig creates a new sm-im server from SmIMServerSettings only.
-// Uses service-template builder for infrastructure initialization.
+// Uses service-framework builder for infrastructure initialization.
 func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsSmImServerConfig.SmIMServerSettings) (*SmIMServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")

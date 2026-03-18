@@ -46,7 +46,7 @@ func NewPublicServer(
 // registerRoutes sets up the CA API endpoints.
 // Called by ServerBuilder after NewPublicServer returns.
 //
-// Note: Health check endpoints are provided by service-template:
+// Note: Health check endpoints are provided by service-framework:
 // - Admin: /admin/api/v1/livez, /admin/api/v1/readyz (via AdminServer)
 // - Public: /service/api/v1/health, /browser/api/v1/health (via PublicServerBase).
 func (s *PublicServer) registerRoutes() error {

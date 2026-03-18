@@ -197,7 +197,7 @@ func TestCAServer_HandleCRLDistribution_Error(t *testing.T) {
 }
 
 // TestCAServer_HealthEndpoints_EdgeCases tests health endpoint edge cases.
-// Health endpoints are provided by service-template:
+// Health endpoints are provided by service-framework:
 // - Admin: /admin/api/v1/livez, /admin/api/v1/readyz (via AdminServer)
 // - Public: /service/api/v1/health, /browser/api/v1/health (via PublicServerBase).
 func TestCAServer_HealthEndpoints_EdgeCases(t *testing.T) {

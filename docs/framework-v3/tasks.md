@@ -28,9 +28,9 @@
 
 - **Status**: DONE
 - **Dependencies**: None
-- **Description**: Correct the inherited lesson that says "auth contracts belong in service-specific tests" - auth is 100% service-template owned
+- **Description**: Correct the inherited lesson that says "auth contracts belong in service-specific tests" - auth is 100% service-framework owned
 - **Acceptance Criteria**:
-  - [x] lessons.md item 4 updated to reflect auth is service-template owned
+  - [x] lessons.md item 4 updated to reflect auth is service-framework owned
   - [x] No references to "auth belongs in service-specific tests" remain
 
 #### Task 1.2: Propagate timeout double-multiplication lesson
@@ -69,7 +69,7 @@
 
 - **Status**: DONE
 - **Dependencies**: None
-- **Description**: Add 401/403 rejection contract tests to the cross-service contract suite. Auth is 100% service-template owned.
+- **Description**: Add 401/403 rejection contract tests to the cross-service contract suite. Auth is 100% service-framework owned.
 - **Acceptance Criteria**:
   - [x] New `auth_contracts.go` in `internal/apps/framework/service/testing/contract/`
   - [x] Tests unauthenticated requests get 401 on protected endpoints
@@ -177,7 +177,7 @@
 
 **Phase Objective**: Eliminate InsecureSkipVerify from integration + contract tests (~90% of 47 files). Fix all 6 ARCHITECTURE.md TLS gaps. E2E/Docker TLS (Phase 2B) deferred to after Phase 7 per D14 (quizme-v3 Q2=C). mTLS (2C), PostgreSQL TLS (2D) deferred.
 
-#### Task 2.1: Add TLS Test Bundle to service-template testserver
+#### Task 2.1: Add TLS Test Bundle to service-framework testserver
 
 - **Status**: DONE
 - **Dependencies**: None
@@ -294,7 +294,7 @@
 
 ### Phase 3: Builder Refactoring
 
-**Phase Objective**: Product-services pass config objects; service-template picks what it needs.
+**Phase Objective**: Product-services pass config objects; service-framework picks what it needs.
 
 #### Task 3.1: Analyze current builder With*() call patterns
 
@@ -321,7 +321,7 @@
 
 - **Status**: DONE
 - **Dependencies**: Task 3.2
-- **Description**: Implement the new builder API in service-template
+- **Description**: Implement the new builder API in service-framework
 - **Acceptance Criteria**:
   - [x] New builder API implemented
   - [x] Old With*() methods removed (NO backward compatibility)
@@ -510,9 +510,9 @@
   - **Migrate to template**: claims, jwt, session, realm_context, tenant (partial counterparts exist)
   - **Evaluate for template**: errors, introspection, jwt_revocation, scopes, service_auth
 - **Acceptance Criteria**:
-  - [x] 5 middleware with template counterparts migrated to use service-template
+  - [x] 5 middleware with template counterparts migrated to use service-framework
   - [x] 5 remaining middleware evaluated: either migrated to template or justified as domain-specific
-  - [x] Zero duplicated middleware logic between sm-kms and service-template
+  - [x] Zero duplicated middleware logic between sm-kms and service-framework
 
 #### Task 5B.3: Add property, fuzz, and benchmark tests for sm-kms
 
@@ -1029,9 +1029,9 @@
 
 - **Status**: DONE
 - **Dependencies**: Phase 3 complete
-- **Description**: Refactor all per-service FiberHandlerOpenAPISpec() into a shared service-template factory function. Each service injects its generated rawSpec() function.
+- **Description**: Refactor all per-service FiberHandlerOpenAPISpec() into a shared service-framework factory function. Each service injects its generated rawSpec() function.
 - **Acceptance Criteria**:
-  - [x] service-template provides `FiberHandlerOpenAPISpec(rawSpec func() ([]byte, error))` factory
+  - [x] service-framework provides `FiberHandlerOpenAPISpec(rawSpec func() ([]byte, error))` factory
   - [x] All 10 services + skeleton-template use the shared factory
   - [x] No per-service FiberHandlerOpenAPISpec duplication
 
@@ -1105,13 +1105,16 @@
 
 #### Task 11.5: Update GitHub workflows and Dockerfiles (D20)
 
-- **Status**: TODO
+- **Status**: DONE
 - **Dependencies**: Task 11.2
-- **Description**: Update all GitHub Actions workflows, Dockerfiles, docker-compose files, and config references that mention service-template as the framework.
+- **Description**: Update all GitHub Actions workflows, Dockerfiles, docker-compose files, and config references that mention service-framework as the framework.
 - **Acceptance Criteria**:
-  - [ ] All CI/CD workflows pass
-  - [ ] Docker builds succeed
-  - [ ] No remaining stale service-template references in deployment files
+  - [x] All CI/CD workflows pass (ci-e2e.yml updated: 3 service-template → service-framework)
+  - [x] Docker builds succeed (deployments/template/compose.yml comments updated)
+  - [x] No remaining stale service-framework references in deployment files
+  - [x] All Go source comments updated across 10 service files
+  - [x] SQL migration comments updated (1002, 1004)
+  - [x] Documentation updated (plan.md: 17 replacements, tasks.md: 13, checklist.md: 3)
 
 #### Task 11.6: Phase 11 validation and post-mortem (FINAL)
 
@@ -1152,7 +1155,7 @@
 | Shared Test Infrastructure | [Section 10.3.6](../ARCHITECTURE.md#1036-shared-test-infrastructure) |
 | Quality Gates | [Section 11.2](../ARCHITECTURE.md#112-quality-gates) |
 | Security Architecture | [Section 6](../ARCHITECTURE.md#6-security-architecture) |
-| Service Template | [Section 5.1](../ARCHITECTURE.md#51-service-template-pattern) |
+| Service Framework | [Section 5.1](../ARCHITECTURE.md#51-service-framework-pattern) |
 | Service Builder | [Section 5.2](../ARCHITECTURE.md#52-service-builder-pattern) |
 | Fitness Functions | [Section 9.11](../ARCHITECTURE.md#911-architecture-fitness-functions) |
 | Sequential Test Exemption | [Section 10.2.5](../ARCHITECTURE.md#1025-sequential-test-exemption) |

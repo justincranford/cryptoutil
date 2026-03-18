@@ -38,7 +38,7 @@ Derived from plan.md, tasks.md, lessons.md, and all planning sessions.
 
 ### Phase 2: Remove InsecureSkipVerify — Integration Tests Only (D14, D15)
 
-- ☐ 2.1 Add TLSBundle() accessor to ServiceServer interface in service-template testserver
+- ☐ 2.1 Add TLSBundle() accessor to ServiceServer interface in service-framework testserver
 - ☐ 2.2 Migrate sm-im test HTTP clients to trust server's auto-generated CA via TLSBundle()
 - ☐ 2.3 Migrate jose-ja test HTTP clients to trust server's auto-generated CA
 - ☐ 2.4 Migrate sm-kms test HTTP clients to trust server's auto-generated CA
@@ -76,7 +76,7 @@ Derived from plan.md, tasks.md, lessons.md, and all planning sessions.
 ### Phase 5B: sm-kms Full Application Layer Extraction (D17)
 
 - ☐ 5B.1 Extract sm-kms application layer (same pattern as jose-ja framework-v2 Phase 2)
-- ☐ 5B.2 Analyze and migrate 10 custom sm-kms middleware files to service-template or new packages
+- ☐ 5B.2 Analyze and migrate 10 custom sm-kms middleware files to service-framework or new packages
 - ☐ 5B.3 Add property, fuzz, and benchmark tests for sm-kms domain logic; reach ≥95% coverage
 - ☐ 5B.4 Phase 5B validation and post-mortem
 
@@ -132,7 +132,7 @@ Derived from plan.md, tasks.md, lessons.md, and all planning sessions.
 - ☐ 10.3 Create api/sm-im/ with canonical structure and OpenAPI spec (D21, D24)
 - ☐ 10.4 Create api/skeleton-template/ + OpenAPI Item CRUD spec + ~100-line Item domain example (D12, D21)
 - ☐ 10.5 Document canonical base initialisms list in ARCHITECTURE.md Section 8.1; update all gen configs (D22)
-- ☑ 10.6 Refactor FiberHandlerOpenAPISpec into shared service-template factory taking rawSpec() (D23)
+- ☑ 10.6 Refactor FiberHandlerOpenAPISpec into shared service-framework factory taking rawSpec() (D23)
 - ☑ 10.7 Add require_api_dir lint-fitness sub-linter enforcing api/<service-name>/ structure (D24)
 - ☑ 10.8 Phase 10 validation and post-mortem
 
@@ -142,7 +142,7 @@ Derived from plan.md, tasks.md, lessons.md, and all planning sessions.
 - ☑ 11.2 Rename internal/apps/framework/ → internal/apps/framework/; update all imports/identifiers
 - ☑ 11.3 Update ALL docs + Copilot artifacts (ARCHITECTURE.md, agents, skills, instructions, copilot-instructions.md)
 - ☑ 11.4 Add lint-fitness rule blocking new internal/apps/template framework imports (skeleton-template whitelisted)
-- ☐ 11.5 Update all GitHub workflows, Dockerfiles, docker-compose files
+- ☑ 11.5 Update all GitHub workflows, Dockerfiles, docker-compose files
 - ☐ 11.6 Phase 11 validation and post-mortem (FINAL)
 
 ### Cross-Cutting Work

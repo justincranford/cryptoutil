@@ -46,7 +46,7 @@ type RPServer struct {
 }
 
 // NewFromConfig creates a new identity-rp server from IdentityRPServerSettings.
-// Uses service-template builder for infrastructure initialization.
+// Uses service-framework builder for infrastructure initialization.
 func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsIdentityRpServerConfig.IdentityRPServerSettings) (*RPServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")

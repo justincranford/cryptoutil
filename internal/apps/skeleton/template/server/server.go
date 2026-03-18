@@ -40,11 +40,11 @@ type SkeletonTemplateServer struct {
 	realmService          cryptoutilAppsFrameworkServiceServerService.RealmService
 
 	// Repositories.
-	realmRepo cryptoutilAppsFrameworkServiceServerRepository.TenantRealmRepository // Uses service-template repository.
+	realmRepo cryptoutilAppsFrameworkServiceServerRepository.TenantRealmRepository // Uses service-framework repository.
 }
 
 // NewFromConfig creates a new skeleton-template server from SkeletonTemplateServerSettings only.
-// Uses service-template builder for infrastructure initialization.
+// Uses service-framework builder for infrastructure initialization.
 func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsSkeletonTemplateServerConfig.SkeletonTemplateServerSettings) (*SkeletonTemplateServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")

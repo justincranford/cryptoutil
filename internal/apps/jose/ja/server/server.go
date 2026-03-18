@@ -41,11 +41,11 @@ type JoseJAServer struct {
 	materialJWKRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository
 	auditConfigRepo cryptoutilAppsJoseJaRepository.AuditConfigRepository
 	auditLogRepo    cryptoutilAppsJoseJaRepository.AuditLogRepository
-	realmRepo       cryptoutilAppsFrameworkServiceServerRepository.TenantRealmRepository // Uses service-template repository.
+	realmRepo       cryptoutilAppsFrameworkServiceServerRepository.TenantRealmRepository // Uses service-framework repository.
 }
 
 // NewFromConfig creates a new jose-ja server from JoseJAServerSettings only.
-// Uses service-template builder for infrastructure initialization.
+// Uses service-framework builder for infrastructure initialization.
 func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsJoseJaServerConfig.JoseJAServerSettings) (*JoseJAServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")

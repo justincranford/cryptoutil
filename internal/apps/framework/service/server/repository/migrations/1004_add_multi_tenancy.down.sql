@@ -1,5 +1,5 @@
 --
--- Rollback Multi-Tenancy tables for template service
+-- Rollback Multi-Tenancy tables for framework service
 --
 
 -- Drop indexes first

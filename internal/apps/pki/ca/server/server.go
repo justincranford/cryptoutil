@@ -71,7 +71,7 @@ type CAServer struct {
 }
 
 // NewFromConfig creates a new pki-ca server from CAServerSettings.
-// Uses service-template builder for infrastructure initialization.
+// Uses service-framework builder for infrastructure initialization.
 func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsCaServerConfig.CAServerSettings) (*CAServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context is required")

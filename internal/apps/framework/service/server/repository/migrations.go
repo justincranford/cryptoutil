@@ -33,11 +33,11 @@ const (
 )
 
 // MigrationsFS contains embedded base infrastructure migrations (1001-1004).
-// Services that use service-template MUST apply these migrations first,
+// Services that use service-framework MUST apply these migrations first,
 // then apply their own app-specific migrations (1005+).
 //
 // Migration version numbering convention:
-//   - 1001-1004: Service-template base infrastructure (session mgmt, barrier, realms template, multi-tenancy)
+//   - 1001-1004: Service-framework base infrastructure (session mgmt, barrier, realms template, multi-tenancy)
 //   - 1005+: App-specific tables (sm-im users/messages, identity accounts, etc.)
 //
 //go:embed migrations/*.sql

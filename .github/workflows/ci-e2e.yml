@@ -93,7 +93,7 @@ jobs:
     - name: Build Docker images
       uses: ./.github/actions/docker-compose-build
 
-    # TODO: pki-ca not yet migrated to service-template pattern
+    # TODO: pki-ca not yet migrated to service-framework pattern
     # Migration status: sm-im ✅, jose-ja ✅, sm-kms ✅, skeleton-template ✅ | pki-ca ❌, identity-* ❌
     # CA deployment needed for E2E test infrastructure (certificate dependencies)
     - name: Deploy CA services
@@ -184,7 +184,7 @@ jobs:
           exit 1
         fi
 
-        # TODO: Enable identity E2E tests after identity services migrated to service-template pattern
+        # TODO: Enable identity E2E tests after identity services migrated to service-framework pattern
         # Currently DISABLED - identity-authz, identity-idp, identity-rp, identity-rs, identity-spa not yet migrated
         # Migration status: sm-im ✅, jose-ja ✅, sm-kms ✅, skeleton-template ✅ | pki-ca ❌, identity-* ❌
         # Test identity E2E
@@ -195,7 +195,7 @@ jobs:
         #   exit 1
         # fi
 
-        echo "⚠️  Identity E2E tests SKIPPED - awaiting service-template migration"
+        echo "⚠️  Identity E2E tests SKIPPED - awaiting service-framework migration"
 
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))

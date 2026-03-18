@@ -46,7 +46,7 @@ type IDPServer struct {
 }
 
 // NewFromConfig creates a new identity-idp server from IdentityIDPServerSettings.
-// Uses service-template builder for infrastructure initialization.
+// Uses service-framework builder for infrastructure initialization.
 func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsIdentityIdpServerConfig.IdentityIDPServerSettings) (*IDPServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")

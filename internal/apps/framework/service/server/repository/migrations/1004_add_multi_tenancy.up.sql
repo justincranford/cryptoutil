@@ -1,5 +1,5 @@
 --
--- Multi-Tenancy tables for template service
+-- Multi-Tenancy tables for framework service
 -- Provides tenant isolation with users, clients, roles, and realm configuration
 --
 

@@ -4,7 +4,7 @@
 **Created**: 2026-03-08
 **Last Updated**: 2026-03-15
 **Depends On**: `docs/framework-brainstorm/08-recommendations.md`, framework-v1 (archived), framework-v2 (archived — see Completed in Prior Iterations)
-**Purpose**: Aggressive standardization of all 10 product-services as thin domain-only wrappers around service-template. Service-template owns 100% of reusable infrastructure (servers, clients, authn, authz, middleware, health, TLS, barrier, telemetry, tests). Product-services inject ONLY domain-specific: OpenAPI add-ons, DB migrations, business logic, config overrides.
+**Purpose**: Aggressive standardization of all 10 product-services as thin domain-only wrappers around service-framework. Service-framework owns 100% of reusable infrastructure (servers, clients, authn, authz, middleware, health, TLS, barrier, telemetry, tests). Product-services inject ONLY domain-specific: OpenAPI add-ons, DB migrations, business logic, config overrides.
 
 **Guiding Principle**: This repo is alpha development. NO backward compatibility. NO legacy code. All 10 product-services MUST use latest-and-greatest framework patterns.
 
@@ -34,9 +34,9 @@
 1. **No GitHub Workflows updated** - `lint-fitness` only runs via pre-commit, not CI
 2. **Identity services** - only got compile-time assertions, no contract tests, minimal conformance work
 3. **PKI-CA** - minimal treatment (assertion + contract tests), domain still partial
-4. **No auth contract tests** - 401 rejection tests wrongly deferred to service-specific tests (auth is 100% service-template owned)
+4. **No auth contract tests** - 401 rejection tests wrongly deferred to service-specific tests (auth is 100% service-framework owned)
 5. **Contract tests incomplete** - only 4 of 10 services have `RunContractTests` (missing: identity-authz/idp/rp/rs/spa, pki-ca)
-6. **Builder still has redundant config logic** - services pass paths that service-template already knows
+6. **Builder still has redundant config logic** - services pass paths that service-framework already knows
 7. **Sequential test exemptions** - 173 total, many avoidable (58 viper/pflag, 37 os.Chdir)
 8. **Lessons not fully propagated** - timeout double-multiplication not in skills/instructions
 9. **Agent semantic commit grouping not working** - last v1 commit was a bulk commit mixing unrelated changes
@@ -63,7 +63,7 @@
 
 ### D1: Auth is 100% Service-Template Owned
 
-AuthN/AuthZ are NOT domain-specific. They are 100% owned by service-template. Auth contract tests (401/403 rejection) belong in `RunContractTests`, NOT in service-specific tests. The v1 lesson "auth contracts belong in service-specific tests" was WRONG and is corrected here.
+AuthN/AuthZ are NOT domain-specific. They are 100% owned by service-framework. Auth contract tests (401/403 rejection) belong in `RunContractTests`, NOT in service-specific tests. The v1 lesson "auth contracts belong in service-specific tests" was WRONG and is corrected here.
 
 ### D2: NO Builder Backward Compatibility
 
@@ -77,7 +77,7 @@ Product-services MUST be thin domain-only wrappers (like Spring Boot `@SpringBoo
 - Domain business logic handlers
 - Domain config overrides (via config object, not redundant `With*()` calls)
 
-ALL reusable infrastructure (servers, clients, authn, authz, middleware, health, TLS, barrier, telemetry, sessions, tests) lives in service-template. If code is duplicated across >1 service, it belongs in service-template.
+ALL reusable infrastructure (servers, clients, authn, authz, middleware, health, TLS, barrier, telemetry, sessions, tests) lives in service-framework. If code is duplicated across >1 service, it belongs in service-framework.
 
 ### D4: ARCHITECTURE.md is THE Single Source of Truth
 
@@ -112,7 +112,7 @@ lint-fitness (23 sub-linters, 10,500 lines) gets FULL investment: >=98% coverage
 
 ### D9: Single Domain Config Struct for Builder (quizme-v1 Q3=A)
 
-Builder refactoring uses a SINGLE domain config struct (not per-With()-call options). Product-services pass one config object; service-template picks what it needs. This is the cleanest API and aligns with D3 (thin wrappers).
+Builder refactoring uses a SINGLE domain config struct (not per-With()-call options). Product-services pass one config object; service-framework picks what it needs. This is the cleanest API and aligns with D3 (thin wrappers).
 
 ### D10: Sequential Exemption Reduction Starts Smallest-First (quizme-v1 Q4=D)
 
@@ -132,7 +132,7 @@ When `/new-service` copies skeleton, developers rename `Item` → their domain t
 
 ### D13: Identity Full Extraction + Staged Reintegration (quizme-v2 Q2=A)
 
-All 5 identity services + pki-ca get clean-slate treatment: archive domain logic to `_archived/`, replace with fresh skeletons, stage reintegration (rp/rs/spa first → authz → idp → pki-ca). Precondition: service-template MUST be fully proven first (able to stand up 5 thin services that work with minimal effort).
+All 5 identity services + pki-ca get clean-slate treatment: archive domain logic to `_archived/`, replace with fresh skeletons, stage reintegration (rp/rs/spa first → authz → idp → pki-ca). Precondition: service-framework MUST be fully proven first (able to stand up 5 thin services that work with minimal effort).
 
 ### D14: InsecureSkipVerify Phase 2A Now + Phase 2B E2E After Phase 7 (quizme-v3 Q2=C)
 
@@ -193,7 +193,7 @@ All `api/` subdirectories MUST use product-service naming convention, not short 
 
 ### D23: FiberHandlerOpenAPISpec Deduplication
 
-`FiberHandlerOpenAPISpec()` is duplicated across every service's public server. Refactor: service-template provides a shared handler factory `FiberHandlerOpenAPISpec(rawSpec func() ([]byte, error))`. Each service injects its oapi-codegen-generated `rawSpec()` from `embedded-spec`. Future changes (version headers, caching, spec hash) happen once in service-template.
+`FiberHandlerOpenAPISpec()` is duplicated across every service's public server. Refactor: service-framework provides a shared handler factory `FiberHandlerOpenAPISpec(rawSpec func() ([]byte, error))`. Each service injects its oapi-codegen-generated `rawSpec()` from `embedded-spec`. Future changes (version headers, caching, spec hash) happen once in service-framework.
 
 ### D24: All Services Must Have api/ Directories (lint-fitness enforced)
 
@@ -219,13 +219,13 @@ Add a "Project Tooling" section to `04-01.deployment.instructions.md` listing al
 
 ### Goal 1: Service-Template Standardization
 
-Make service-template the single source of ALL reusable infrastructure:
+Make service-framework the single source of ALL reusable infrastructure:
 
 - [ ] **Auth contract tests in RunContractTests** - 401/403 rejection tests as cross-service contracts
 - [ ] **Contract tests for ALL 10 services** - identity-authz/idp/rp/rs/spa + pki-ca
 - [ ] **Contract tests for ALL 5 products** - parameterized product-level contract tests
 - [ ] **Contract test for the suite** - suite-level contract test
-- [ ] **Builder refactoring** - services pass config objects, service-template picks what it needs (eliminate redundant `WithBrowserBasePath`/`WithServiceBasePath` logic in each service)
+- [ ] **Builder refactoring** - services pass config objects, service-framework picks what it needs (eliminate redundant `WithBrowserBasePath`/`WithServiceBasePath` logic in each service)
 - [ ] **ServiceServer interface expansion analysis** - determine what integration tests need beyond current 11 methods (telemetry? JWK? barrier? TLS bundle? config?)
 
 ### Goal 2: CI/CD and Quality Infrastructure
@@ -273,7 +273,7 @@ Following migration priority (sm-im > jose-ja > sm-kms > pki-ca > identity):
 
 **Objective**: Fix immediate gaps from v1 review. Small items implemented immediately.
 
-- Fix lessons.md auth contracts item (auth is service-template owned, not service-specific)
+- Fix lessons.md auth contracts item (auth is service-framework owned, not service-specific)
 - Propagate timeout double-multiplication lesson to skills and instructions
 - Clean up temp files from research
 - Add ci-fitness.yml GitHub Actions workflow
@@ -299,7 +299,7 @@ Following migration priority (sm-im > jose-ja > sm-kms > pki-ca > identity):
 
 ### Phase 3: Builder Refactoring [Status: TODO]
 
-**Objective**: Product-services pass config objects; service-template picks what it needs.
+**Objective**: Product-services pass config objects; service-framework picks what it needs.
 
 - Analyze current builder `With*()` call patterns across all 10 services
 - Refactor builder to accept domain config struct (OpenAPI spec, migrations FS, route registration)
@@ -338,7 +338,7 @@ Following migration priority (sm-im > jose-ja > sm-kms > pki-ca > identity):
 **Objective**: Extract sm-kms application layer (same treatment as jose-ja/sm-im in framework-v2). Quality is paramount (Q4=A).
 
 - Extract application layer from sm-kms (separate from server startup)
-- Resolve 10 custom middleware files: migrate 5 with partial template counterparts to service-template, evaluate 5 needing new template capabilities
+- Resolve 10 custom middleware files: migrate 5 with partial template counterparts to service-framework, evaluate 5 needing new template capabilities
 - Add property tests, fuzz tests, benchmark tests
 - Achieve >=95% coverage
 - **Precondition**: Phase 3 (builder refactoring) complete
@@ -366,7 +366,7 @@ Following migration priority (sm-im > jose-ja > sm-kms > pki-ca > identity):
 - Archive pki-ca domain code to `internal/apps/pki/_ca-archived/` (already exists, verify complete)
 - Replace all 6 services with fresh skeleton-template copies (builder + contract tests + health)
 - Update ARCHITECTURE.md status table: all 6 services → "⚠️ Extraction Pending 0%" (D16)
-- **Precondition**: Phases 1-5 complete (service-template patterns proven on sm-im, jose-ja, sm-kms)
+- **Precondition**: Phases 1-5 complete (service-framework patterns proven on sm-im, jose-ja, sm-kms)
 - **Success**: 6 clean skeleton services pass `RunContractTests`, all domain logic safely archived
 - **Post-Mortem**: lessons.md updated
 
@@ -416,7 +416,7 @@ Following migration priority (sm-im > jose-ja > sm-kms > pki-ca > identity):
 - Create api/sm-im/, api/identity-authz/, api/identity-idp/, etc. (D21)
 - Create api/skeleton-template/ + OpenAPI spec + CRUD example (D12 + D21)
 - Consolidate initialisms: document base list in ARCHITECTURE.md, update gen configs (D22)
-- Refactor FiberHandlerOpenAPISpec into shared service-template factory (D23)
+- Refactor FiberHandlerOpenAPISpec into shared service-framework factory (D23)
 - Add lint-fitness sub-linter enforcing api/<service-name>/ structure exists (D24)
 - **Precondition**: Phase 3 builder refactoring complete (service files stabilized)
 - **Success**: All services have standardized api/ directories; lint-fitness passes
