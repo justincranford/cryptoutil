@@ -10,7 +10,7 @@ import (
 
 	fiber "github.com/gofiber/fiber/v2"
 
-	cryptoutilApiIdentityAuthz "cryptoutil/api/identity/authz"
+	cryptoutilApiIdentityAuthz "cryptoutil/api/identity-authz"
 )
 
 // ServeOpenAPISpec serves the embedded OpenAPI specification for the AuthZ service.

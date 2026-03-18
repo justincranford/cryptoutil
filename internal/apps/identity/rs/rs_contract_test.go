@@ -17,7 +17,7 @@ import (
 	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilApiIdentityRs "cryptoutil/api/identity/rs"
+	cryptoutilApiIdentityRs "cryptoutil/api/identity-rs"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
 	cryptoutilIdentityRs "cryptoutil/internal/apps/identity/rs"

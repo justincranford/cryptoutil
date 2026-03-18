@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/oapi-codegen/oapi-codegen/HEAD/configuration-schema.json
-package: idp
-output: idp/openapi_gen_client.go
+package: authz
+output: ./openapi_gen_client.go
 generate:
   client: true
   models: true

@@ -10,7 +10,7 @@ import (
 
 	fiber "github.com/gofiber/fiber/v2"
 
-	cryptoutilApiIdentityRs "cryptoutil/api/identity/rs"
+	cryptoutilApiIdentityRs "cryptoutil/api/identity-rs"
 )
 
 // ServeOpenAPISpec serves the embedded OpenAPI specification for the Resource Server.

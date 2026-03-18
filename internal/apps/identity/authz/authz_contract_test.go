@@ -19,7 +19,7 @@ import (
 	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilApiIdentityAuthz "cryptoutil/api/identity/authz"
+	cryptoutilApiIdentityAuthz "cryptoutil/api/identity-authz"
 	cryptoutilIdentityAuthz "cryptoutil/internal/apps/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"

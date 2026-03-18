@@ -10,7 +10,7 @@ import (
 
 	fiber "github.com/gofiber/fiber/v2"
 
-	cryptoutilApiIdentityIdp "cryptoutil/api/identity/idp"
+	cryptoutilApiIdentityIdp "cryptoutil/api/identity-idp"
 )
 
 // ServeOpenAPISpec serves the embedded OpenAPI specification for the IdP service.
