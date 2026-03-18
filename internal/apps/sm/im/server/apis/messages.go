@@ -10,7 +10,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 
-	cryptoutilApiSmImServer "cryptoutil/api/sm/im/server"
+	cryptoutilApiSmImServer "cryptoutil/api/sm-im/server"
 	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm/im/model"
 	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm/im/repository"
 	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"

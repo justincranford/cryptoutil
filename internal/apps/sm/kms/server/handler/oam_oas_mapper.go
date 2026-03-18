@@ -9,7 +9,7 @@ import (
 	"fmt"
 	http "net/http"
 
-	cryptoutilKmsServer "cryptoutil/api/kms/server"
+	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"

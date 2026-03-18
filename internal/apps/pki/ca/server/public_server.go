@@ -8,7 +8,7 @@ import (
 
 	fiber "github.com/gofiber/fiber/v2"
 
-	cryptoutilApiCaServer "cryptoutil/api/ca/server"
+	cryptoutilApiCaServer "cryptoutil/api/pki-ca/server"
 	cryptoutilCAHandler "cryptoutil/internal/apps/pki/ca/api/handler"
 	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/pki/ca/server/config"
 	cryptoutilCAServiceRevocation "cryptoutil/internal/apps/pki/ca/service/revocation"

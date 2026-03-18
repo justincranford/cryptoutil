@@ -17,7 +17,7 @@ import (
 
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
-	cryptoutilApiSmImServer "cryptoutil/api/sm/im/server"
+	cryptoutilApiSmImServer "cryptoutil/api/sm-im/server"
 	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm/im/model"
 )
 

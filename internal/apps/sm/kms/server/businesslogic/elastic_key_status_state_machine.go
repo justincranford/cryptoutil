@@ -8,7 +8,7 @@ import (
 	"errors"
 	"fmt"
 
-	cryptoutilKmsServer "cryptoutil/api/kms/server"
+	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 )
 

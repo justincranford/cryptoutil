@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilJoseModels "cryptoutil/api/jose/models"
+	cryptoutilJoseModels "cryptoutil/api/jose-ja/models"
 	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose/ja/model"
 	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"

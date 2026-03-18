@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"testing"
 
-	cryptoutilKmsServer "cryptoutil/api/kms/server"
+	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 
 	googleUuid "github.com/google/uuid"

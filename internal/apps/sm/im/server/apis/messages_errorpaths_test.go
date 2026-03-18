@@ -28,7 +28,7 @@ import (
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilTestdb "cryptoutil/internal/apps/template/service/testing/testdb"
 
-	cryptoutilApiSmImServer "cryptoutil/api/sm/im/server"
+	cryptoutilApiSmImServer "cryptoutil/api/sm-im/server"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"

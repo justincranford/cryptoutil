@@ -13,7 +13,7 @@ import (
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-	cryptoutilJoseModels "cryptoutil/api/jose/models"
+	cryptoutilJoseModels "cryptoutil/api/jose-ja/models"
 
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"

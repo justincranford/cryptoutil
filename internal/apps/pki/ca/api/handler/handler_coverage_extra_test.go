@@ -24,7 +24,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ocsp"
 
-	cryptoutilApiCaServer "cryptoutil/api/ca/server"
+	cryptoutilApiCaServer "cryptoutil/api/pki-ca/server"
 	cryptoutilCAServiceRevocation "cryptoutil/internal/apps/pki/ca/service/revocation"
 	cryptoutilCAStorage "cryptoutil/internal/apps/pki/ca/storage"
 )

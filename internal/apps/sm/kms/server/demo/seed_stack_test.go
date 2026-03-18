@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	cryptoutilKmsServer "cryptoutil/api/kms/server"
+	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilKmsServerBusinesslogic "cryptoutil/internal/apps/sm/kms/server/businesslogic"
 	cryptoutilKmsMiddleware "cryptoutil/internal/apps/sm/kms/server/middleware"

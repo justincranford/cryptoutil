@@ -218,13 +218,13 @@ linters:
         - { pkg: "cryptoutil/api/client", alias: cryptoutilOpenapiClient }
         - { pkg: "cryptoutil/api/model", alias: cryptoutilOpenapiModel }
         - { pkg: "cryptoutil/api/server", alias: cryptoutilOpenapiServer }
-        - { pkg: "cryptoutil/api/ca/client", alias: cryptoutilApiCaClient }
-        - { pkg: "cryptoutil/api/ca/models", alias: cryptoutilApiCaModels }
-        - { pkg: "cryptoutil/api/ca/server", alias: cryptoutilApiCaServer }
+        - { pkg: "cryptoutil/api/pki-ca/client", alias: cryptoutilApiCaClient }
+        - { pkg: "cryptoutil/api/pki-ca/models", alias: cryptoutilApiCaModels }
+        - { pkg: "cryptoutil/api/pki-ca/server", alias: cryptoutilApiCaServer }
         - { pkg: "cryptoutil/api/identity/authz", alias: cryptoutilApiIdentityAuthz }
         - { pkg: "cryptoutil/api/identity/idp", alias: cryptoutilApiIdentityIdp }
         - { pkg: "cryptoutil/api/identity/rs", alias: cryptoutilApiIdentityRs }
-        - { pkg: "cryptoutil/api/jose/client", alias: cryptoutilApiJoseClient }
+        - { pkg: "cryptoutil/api/jose-ja/client", alias: cryptoutilApiJoseClient }
         # Cryptoutil cmd
         - pkg: "cryptoutil/internal/cmd"
           alias: cryptoutilCmd

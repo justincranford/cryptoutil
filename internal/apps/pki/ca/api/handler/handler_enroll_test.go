@@ -22,7 +22,7 @@ import (
 	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilApiCaServer "cryptoutil/api/ca/server"
+	cryptoutilApiCaServer "cryptoutil/api/pki-ca/server"
 	cryptoutilCAServiceRevocation "cryptoutil/internal/apps/pki/ca/service/revocation"
 	cryptoutilCAServiceTimestamp "cryptoutil/internal/apps/pki/ca/service/timestamp"
 	cryptoutilCAStorage "cryptoutil/internal/apps/pki/ca/storage"

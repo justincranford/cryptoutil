@@ -22,7 +22,7 @@ import (
 	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilApiCaServer "cryptoutil/api/ca/server"
+	cryptoutilApiCaServer "cryptoutil/api/pki-ca/server"
 	cryptoutilCAProfileCertificate "cryptoutil/internal/apps/pki/ca/profile/certificate"
 	cryptoutilCAProfileSubject "cryptoutil/internal/apps/pki/ca/profile/subject"
 	cryptoutilCAServiceIssuer "cryptoutil/internal/apps/pki/ca/service/issuer"

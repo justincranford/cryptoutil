@@ -14,7 +14,7 @@ import (
 
 	fiber "github.com/gofiber/fiber/v2"
 
-	cryptoutilApiCaServer "cryptoutil/api/ca/server"
+	cryptoutilApiCaServer "cryptoutil/api/pki-ca/server"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 

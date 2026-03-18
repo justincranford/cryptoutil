@@ -8,7 +8,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	testify "github.com/stretchr/testify/require"
 
-	cryptoutilKmsServer "cryptoutil/api/kms/server"
+	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
 )
 
 func TestToOptionalOrmUUIDs(t *testing.T) {

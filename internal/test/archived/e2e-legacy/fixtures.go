@@ -15,9 +15,9 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilApiCaClient "cryptoutil/api/ca/client"
+	cryptoutilApiCaClient "cryptoutil/api/pki-ca/client"
 	cryptoutilOpenapiClient "cryptoutil/api/client"
-	cryptoutilApiJoseClient "cryptoutil/api/jose/client"
+	cryptoutilApiJoseClient "cryptoutil/api/jose-ja/client"
 	cryptoutilKmsClient "cryptoutil/internal/apps/sm/kms/client"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 

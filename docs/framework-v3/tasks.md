@@ -1,6 +1,6 @@
 # Tasks - Framework v3
 
-**Status**: 49 of 86 tasks complete (57%)
+**Status**: 50 of 86 tasks complete (58%)
 **Last Updated**: 2026-03-17
 **Created**: 2026-03-08
 
@@ -964,14 +964,21 @@
 
 #### Task 10.1: Rename api/ subdirectories to product-service naming (D21)
 
-- **Status**: TODO
+- **Status**: ✅ DONE
 - **Dependencies**: Phase 3 complete
-- **Description**: Rename api/kms/ → api/sm-kms/, api/ca/ → api/pki-ca/, api/jose/ → api/jose-ja/. Delete orphaned files (authz/, client/, idp/, model/, server/, root generate.go). Update all Go generate directives.
+- **Description**: Rename api/kms/ → api/sm-kms/, api/ca/ → api/pki-ca/, api/jose/ → api/jose-ja/. Flatten api/sm/im/ → api/sm-im/. Delete orphaned files (authz/, idp/, server/). Update all Go imports and generate directives.
 - **Acceptance Criteria**:
-  - [ ] `api/sm-kms/`, `api/pki-ca/`, `api/jose-ja/` exist with correct structure
-  - [ ] Old short-name directories deleted
-  - [ ] `go generate ./api/...` succeeds in all renamed dirs
-  - [ ] No broken imports
+  - [x] `api/sm-kms/`, `api/pki-ca/`, `api/jose-ja/` exist with correct structure
+  - [x] Old short-name directories deleted
+  - [x] `go generate ./api/...` succeeds in all renamed dirs (gen configs use relative paths)
+  - [x] No broken imports
+    - All Go imports updated across 60+ files
+    - .golangci.yml import aliases updated
+    - pki-ca gen config external ref updated
+    - go build ./... and go build -tags e2e,integration ./... both pass
+    - golangci-lint run --fix 0 issues
+    - All service tests pass (sm-kms, jose-ja, pki-ca, sm-im)
+  - Note: Root api/model/ and api/client/ retained (58+ imports from old KMS API; migration to api/sm-kms/ types is a separate future task)
 
 #### Task 10.2: Restructure api/identity/ into per-service directories (D21)
 

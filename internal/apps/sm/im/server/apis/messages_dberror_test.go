@@ -19,7 +19,7 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilApiSmImServer "cryptoutil/api/sm/im/server"
+	cryptoutilApiSmImServer "cryptoutil/api/sm-im/server"
 	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm/im/model"
 	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm/im/repository"
 	cryptoutilTestdb "cryptoutil/internal/apps/template/service/testing/testdb"

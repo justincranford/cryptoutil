@@ -42,4 +42,4 @@ output-options:
     - CA     # Certificate Authority
     - RA     # Registration Authority
 import-mapping:
-  "./openapi_spec_enrollment.yaml": cryptoutil/api/ca/models
+  "./openapi_spec_enrollment.yaml": cryptoutil/api/pki-ca/models

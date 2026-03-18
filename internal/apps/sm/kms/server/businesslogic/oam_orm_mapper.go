@@ -10,7 +10,7 @@ import (
 
 	openapi_types "github.com/oapi-codegen/runtime/types"
 
-	cryptoutilKmsServer "cryptoutil/api/kms/server"
+	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilOrmRepository "cryptoutil/internal/apps/sm/kms/server/repository/orm"
 

@@ -9,7 +9,7 @@ import (
 "fmt"
 "testing"
 
-cryptoutilKmsServer "cryptoutil/api/kms/server"
+cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
 cryptoutilOpenapiModel "cryptoutil/api/model"
 cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 

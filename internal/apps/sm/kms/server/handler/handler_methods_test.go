@@ -7,7 +7,7 @@ import (
 	"errors"
 	"testing"
 
-	cryptoutilKmsServer "cryptoutil/api/kms/server"
+	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
 	cryptoutilKmsServerBusinesslogic "cryptoutil/internal/apps/sm/kms/server/businesslogic"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 

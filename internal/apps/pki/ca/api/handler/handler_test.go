@@ -13,7 +13,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilApiCaServer "cryptoutil/api/ca/server"
+	cryptoutilApiCaServer "cryptoutil/api/pki-ca/server"
 	cryptoutilCAStorage "cryptoutil/internal/apps/pki/ca/storage"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )

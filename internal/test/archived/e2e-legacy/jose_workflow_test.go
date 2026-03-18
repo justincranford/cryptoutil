@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	cryptoutilApiJoseClient "cryptoutil/api/jose/client"
+	cryptoutilApiJoseClient "cryptoutil/api/jose-ja/client"
 )
 
 // TestJOSEWorkflow runs JOSE E2E test.
