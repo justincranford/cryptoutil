@@ -14,6 +14,7 @@ import (
 	cryptoutilSkeletonTemplateServer "cryptoutil/api/skeleton-template/server"
 	cryptoutilAppsSkeletonTemplateDomain "cryptoutil/internal/apps/skeleton/template/domain"
 	cryptoutilAppsSkeletonTemplateRepository "cryptoutil/internal/apps/skeleton/template/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
@@ -27,7 +28,7 @@ var demoTenantID = googleUuid.MustParse("00000000-0000-0000-0000-000000000001")
 var defaultPage = 1
 
 // defaultSize is the default page size for list operations.
-var defaultSize = 50
+var defaultSize = cryptoutilSharedMagic.SeparatorLength
 
 // StrictServer implements the generated StrictServerInterface for Item CRUD.
 type StrictServer struct {

@@ -23,9 +23,9 @@ import (
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilAppsTemplateServiceServerService "cryptoutil/internal/apps/template/service/server/service"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
-
 // SkeletonTemplateServer represents the skeleton-template service application.
 type SkeletonTemplateServer struct {
 	app *cryptoutilAppsTemplateServiceServer.Application
@@ -186,11 +186,11 @@ func registerItemRoutes(base *cryptoutilAppsTemplateServiceServer.PublicServerBa
 	app := base.App()
 
 	cryptoutilSkeletonTemplateServer.RegisterHandlersWithOptions(app, strictHandler, cryptoutilSkeletonTemplateServer.FiberServerOptions{
-		BaseURL: "/browser/api/v1",
+		BaseURL: cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath,
 	})
 
 	cryptoutilSkeletonTemplateServer.RegisterHandlersWithOptions(app, strictHandler, cryptoutilSkeletonTemplateServer.FiberServerOptions{
-		BaseURL: "/service/api/v1",
+		BaseURL: cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath,
 	})
 
 	return nil

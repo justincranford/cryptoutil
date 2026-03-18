@@ -231,10 +231,10 @@ func TestItemRepository_List(t *testing.T) {
 		wantErr   bool
 		wantCount int
 	}{
-		{name: "empty_list", seedCount: 0, page: 1, size: 10, wantCount: 0},
-		{name: "with_items", seedCount: 3, page: 1, size: 10, wantCount: 3},
-		{name: "pagination_page2", seedCount: 5, page: 2, size: 3, wantCount: 2},
-		{name: "db_error", useBad: true, page: 1, size: 10, wantErr: true},
+			{name: "empty_list", seedCount: 0, page: 1, size: cryptoutilSharedMagic.SuiteServiceCount, wantCount: 0},
+			{name: "with_items", seedCount: 3, page: 1, size: cryptoutilSharedMagic.SuiteServiceCount, wantCount: 3},
+			{name: "pagination_page2", seedCount: cryptoutilSharedMagic.DBMaxPingAttempts, page: 2, size: 3, wantCount: 2},
+			{name: "db_error", useBad: true, page: 1, size: cryptoutilSharedMagic.SuiteServiceCount, wantErr: true},
 	}
 
 	for _, tc := range tests {
