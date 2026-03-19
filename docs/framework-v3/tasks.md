@@ -1118,15 +1118,15 @@
 
 #### Task 11.6: Phase 11 validation and post-mortem (FINAL)
 
-- **Status**: TODO
-- **Dependencies**: Tasks 11.1ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ11.5
+- **Status**: DONE
+- **Dependencies**: Tasks 11.1-11.5
 - **Description**: Final validation of complete framework-v3 iteration
 - **Acceptance Criteria**:
-  - [ ] All quality gates pass
-  - [ ] Zero ambiguous "template" references
-  - [ ] lessons.md finalized
-  - [ ] ARCHITECTURE.md comprehensive and current
-  - [ ] Git working tree clean
+  - [x] All quality gates pass (build, golangci-lint, lint-fitness, lint-docs all clean)
+  - [x] Zero ambiguous `template` references (require-framework-naming confirms 0 banned imports)
+  - [x] lessons.md finalized (Phase 11 post-mortem added)
+  - [x] ARCHITECTURE.md comprehensive and current (0 service-template, 24 service-framework references)
+  - [x] Git working tree clean
 
 ---
 

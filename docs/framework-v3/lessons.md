@@ -435,3 +435,34 @@ equire_api_dir without ilepath.Abs (using ilepath.Join(rootDir, "api") directl
 - 10 services validated for api/ directory presence
 - 25 total registered lint-fitness linters (was 24)
 - All pre-commit hooks pass, lint-fitness SUCCESS, exit code 0
+
+## Phase 11: service-framework Rename — FINAL (D20)
+
+### Summary
+
+Phase 11 (Tasks 11.1–11.6) completed the terminal rename of `internal/apps/template/` → `internal/apps/framework/`, eliminating all ambiguity between "template" (framework engine) and "skeleton" (starter service). The rename touched 572+ files across Go source, documentation, CI/CD workflows, SQL migrations, and Copilot artifacts.
+
+### What Worked
+
+- **PowerShell bulk replacement strategy**: Using `Get-ChildItem -Recurse | ForEach-Object { (Get-Content) -replace }` handled the ~342 Go files + 25 non-Go files efficiently. A single commit with `git add -A` captured the atomic rename.
+- **lint-fitness enforcement**: The `require-framework-naming` sub-linter (24 tests, 95.7% coverage) blocks any future regression to `internal/apps/template/` import paths. Skeleton-template (`internal/apps/skeleton/template/`) is explicitly whitelisted since it's a different concept.
+- **Phased commit strategy**: Separating the rename (11.1/11.2), docs (11.3), lint enforcement (11.4), and deployment/workflow updates (11.5) into distinct commits made review and rollback straightforward.
+- **Magic constant enforcement**: Using `magic.CICDExcludeDirGit` and `magic.CICDExcludeDirVendor` instead of raw `".git"` and `"vendor"` strings — caught by lint-go's `literal-use` violation type.
+
+### Patterns Discovered
+
+- **Raw string literal false positives**: Scanning Go files for "banned imports" must track backtick raw string literals to avoid matching test fixture data that contains import-like patterns inside backtick-delimited strings.
+- **Archived directory skipping**: Directories prefixed with `_` (e.g., `_archived`, `_authz-archived`) should be skipped by lint-fitness sub-linters. This convention is shared with `cross_service_import_isolation`.
+- **Single-line import syntax**: Go supports both `import "pkg"` (single-line) and `import ( "pkg" )` (block) syntax. Linters scanning for banned imports need regexes for both forms.
+- **Pre-existing lint-go informational violations**: The `const-redefine` violation type (308 occurrences) is informational/non-blocking. Only `literal-use` violations block the pre-commit hook.
+- **Intentional "template" survivors**: `MigrationModeTemplateWithDomain` (migration strategy name), `deployments/template/` (Docker compose template concept), `template_realms` (SQL table schema pattern), and `skeleton-template` (starter service) are all legitimate uses of "template" that should NOT be renamed.
+
+### Key Metrics
+
+- 6 tasks completed (11.1–11.6)
+- 572+ files changed in the core rename commit
+- 20 additional files updated for stale comment references
+- 1 new lint-fitness sub-linter (require-framework-naming, 24 tests, 95.7% coverage)
+- 26 total registered lint-fitness linters (was 25)
+- Zero remaining ambiguous "service-template" references (excluding archived and meta-references)
+- All quality gates pass: build, lint, lint-fitness, lint-docs

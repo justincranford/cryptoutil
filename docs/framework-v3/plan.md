@@ -422,7 +422,7 @@ Following migration priority (sm-im > jose-ja > sm-kms > pki-ca > identity):
 - **Success**: All services have standardized api/ directories; lint-fitness passes
 - **Post-Mortem**: lessons.md updated
 
-### Phase 11: service-framework Rename — FINAL (D20) [Status: TODO]
+### Phase 11: service-framework Rename — FINAL (D20) [Status: DONE]
 
 **Objective**: Eliminate all terminology ambiguity between "template" (framework engine) and "skeleton" (starter service).
 
