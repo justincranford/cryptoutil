@@ -150,9 +150,6 @@ linters:
       # Exclude gosec G402 from TLS validation test (intentional InsecureSkipVerify test fixture).
       - path: "internal/shared/crypto/tls/tls_validate_test\\.go$"
         linters: [gosec]
-      # Exclude gosec G402 from legacy identity e2e test (connects to deployed services with self-signed certs).
-      - path: "internal/apps/identity/test/e2e/identity_e2e_test\\.go$"
-        linters: [gosec]
 
   settings:
     errcheck:
