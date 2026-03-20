@@ -25,7 +25,7 @@ Derived from plan.md, tasks.md, lessons.md, and all planning sessions.
 - ✅ D18 (Go-based Copilot tools) scoped and started (Phase 9 D26 catalog) then built in background
 - ✅ D19 (test strategy in ARCHITECTURE.md + Copilot artifacts + lint-fitness enforcement)
 - ✅ D20 (rename to service-framework) done (Phase 11 — FINAL)
-- ✅ D21 (OpenAPI directory naming standardized) done (Phase 10)
+- ✅ D21 (OpenAPI directory naming standardized) done (Phase 10 + Phase 10B import migration)
 - ✅ D22 (initialisms consolidated to base list + domain additions) done (Phase 10)
 - ✅ D23 (FiberHandlerOpenAPISpec deduplicated) done (Phase 10)
 - ✅ D24 (all services have api/<service-name>/ dir, lint-fitness enforced) done (Phase 10)
@@ -135,6 +135,15 @@ Derived from plan.md, tasks.md, lessons.md, and all planning sessions.
 - ☑ 10.6 Refactor FiberHandlerOpenAPISpec into shared service-framework factory taking rawSpec() (D23)
 - ☑ 10.7 Add require_api_dir lint-fitness sub-linter enforcing api/<service-name>/ structure (D24)
 - ☑ 10.8 Phase 10 validation and post-mortem
+
+### Phase 10B: Complete D21 — Legacy api/ Import Migration and Cleanup
+
+- ☑ 10B.1 Move spec files to api/sm-kms/ and update gen configs
+- ☑ 10B.2 Regenerate models (77 types) and client from split specs
+- ☑ 10B.3 Migrate 53+ files from api/model to api/sm-kms/models imports
+- ☑ 10B.4 Migrate api/client to api/sm-kms/client imports
+- ☑ 10B.5 Delete legacy api/model/, api/client/, api/fix_external_ref/, root gen configs
+- ☑ 10B.6 Quality gates and post-mortem
 
 ### Phase 11: service-framework Rename — FINAL (D20)
 

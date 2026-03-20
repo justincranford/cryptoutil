@@ -407,7 +407,7 @@ Following migration priority (sm-im > jose-ja > sm-kms > pki-ca > identity):
 - **Success**: All quality gates pass, all knowledge propagated, clean lessons.md
 - **Post-Mortem**: lessons.md updated
 
-### Phase 10: OpenAPI Standardization (D21–D24, D12 part) [Status: DONE — D21 steps 2+3 deferred to Phase 10B]
+### Phase 10: OpenAPI Standardization (D21–D24, D12 part) [Status: DONE — D21 fully complete with Phase 10B]
 
 **Objective**: Standardize all api/ directories to product-service naming, consolidate initialisms, deduplicate FiberHandlerOpenAPISpec, add skeleton-template OpenAPI CRUD example.
 
@@ -420,7 +420,7 @@ Following migration priority (sm-im > jose-ja > sm-kms > pki-ca > identity):
 - Add lint-fitness sub-linter enforcing api/<service-name>/ structure exists (D24) ✅
 - **Post-Mortem Gap**: Task 10.1 deferred "migration to api/sm-kms/ types" with a note but never created the future task — Phase 10 was falsely marked 100% complete
 
-### Phase 10B: Complete D21 — Legacy api/ Import Migration and Cleanup [Status: TODO]
+### Phase 10B: Complete D21 — Legacy api/ Import Migration and Cleanup [Status: DONE]
 
 **Objective**: Finish the deferred D21 work from Phase 10. Migrate all production imports away from legacy `api/model/` and `api/client/` packages to the canonical per-service `api/sm-kms/models/` and `api/sm-kms/client/` locations. Delete all orphaned legacy api/ files.
 
