@@ -28,6 +28,12 @@ var (
 )
 
 var (
+	postgresDirectRunViolationPrefix = "package repo_test\n\nfunc TestFoo(t *testing.T) {\n\tcontainer, err := postgres"
+	postgresDirectRunViolationSuffix = ".Run(ctx, \"postgres:18-alpine\")\n\t_ = container\n\t_ = err\n}\n"
+	postgresDirectRunViolation       = postgresDirectRunViolationPrefix + postgresDirectRunViolationSuffix
+)
+
+var (
 	newPostgresHelperViolationPrefix = "package repo_test\n\nfunc TestFoo(t *testing.T) {\n\tdb := cryptoutilTestingTestdb"
 	newPostgresHelperViolationSuffix = ".NewPostgresTestContainer(ctx, t)\n\t_ = db\n}\n"
 	newPostgresHelperViolation       = newPostgresHelperViolationPrefix + newPostgresHelperViolationSuffix
@@ -61,6 +67,11 @@ func TestCheckFile_Violations(t *testing.T) {
 		{
 			name:      "postgresModule.Run violation",
 			content:   postgresModuleRunViolation,
+			wantCount: 1,
+		},
+		{
+			name:      "postgres.Run violation",
+			content:   postgresDirectRunViolation,
 			wantCount: 1,
 		},
 		{
@@ -173,7 +184,6 @@ func TestCheckInDir_SkipsAllowedPathFragments(t *testing.T) {
 		{"testdb package", "testing/testdb", "foo_test.go"},
 		{"container package", "shared/container", "foo_test.go"},
 		{"lint_fitness package", "lint_fitness/some_linter", "foo_test.go"},
-		{"businesslogic package", "service/server/businesslogic", "foo_test.go"},
 	}
 
 	for _, tc := range tests {
@@ -196,6 +206,26 @@ func TestCheckInDir_SkipsAllowedPathFragments(t *testing.T) {
 			require.NoError(t, err)
 		})
 	}
+}
+
+func TestCheckInDir_FlagsBusinesslogicFiles(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	subDir := filepath.Join(dir, filepath.FromSlash("service/server/businesslogic"))
+
+	err := os.MkdirAll(subDir, cryptoutilSharedMagic.DirPermissions)
+	require.NoError(t, err)
+
+	filePath := filepath.Join(subDir, "foo_test.go")
+
+	err = os.WriteFile(filePath, []byte(postgresRunContainerViolation), cryptoutilSharedMagic.CacheFilePermissions)
+	require.NoError(t, err)
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err = CheckInDir(logger, dir)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "violation")
 }
 
 func TestCheckInDir_SkipsGitAndVendorDirs(t *testing.T) {

@@ -22,6 +22,7 @@ import (
 // PostgreSQL containers are forbidden in non-E2E tests. Use testdb.NewInMemorySQLiteDB() instead.
 var bannedPatterns = []string{
 	"postgres.runcontainer(",
+	"postgres.run(",
 	"postgresmodule.run(",
 	".newpostgrestestcontainer(",
 	".requirenewpostgrestestcontainer(",
@@ -37,7 +38,6 @@ var allowedPathFragments = []string{
 	"testing/testdb/",
 	"shared/container/",
 	"shared/database/",
-	"service/server/businesslogic/",
 	"lint_fitness/",
 	"lint_gotest/",
 }

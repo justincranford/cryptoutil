@@ -144,26 +144,15 @@ func InitDatabase(ctx context.Context, databaseURL string, migrationsFS fs.FS) (
 	return db, nil
 }
 
-// HelpTestInitDatabaseHappyPaths tests successful database initialization for PostgreSQL and SQLite.
+// HelpTestInitDatabaseHappyPaths tests successful database initialization for SQLite.
 // It verifies that the database schema is correctly created by counting the number of tables.
-// Expected table count and query must be provided for each database type.
-func HelpTestInitDatabaseHappyPaths(t *testing.T, migrationsFS fs.FS, expectedTableCount int, countTablesQueryPostgres, countTablesQuerySQLite string) {
+// Expected table count and query must be provided for SQLite.
+// Per the 3-tier test strategy, PostgreSQL is tested exclusively in E2E tests via Docker Compose.
+func HelpTestInitDatabaseHappyPaths(t *testing.T, migrationsFS fs.FS, expectedTableCount int, countTablesQuerySQLite string) {
 	tests := []struct {
 		name      string
 		setupFunc func(t *testing.T, ctx context.Context) (*sql.DB, func(), string)
 	}{
-		{
-			name: "PostgreSQL Container",
-			setupFunc: func(t *testing.T, ctx context.Context) (*sql.DB, func(), string) {
-				t.Parallel()
-
-				// Start PostgreSQL container with randomized credentials.
-				sqlDB, closeDB, err := NewInitializedPostgresTestDatabase(ctx, migrationsFS)
-				require.NoError(t, err)
-
-				return sqlDB, closeDB, countTablesQueryPostgres
-			},
-		},
 		{
 			name: "SQLite In-Memory",
 			setupFunc: func(t *testing.T, ctx context.Context) (*sql.DB, func(), string) {

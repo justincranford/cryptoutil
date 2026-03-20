@@ -17,11 +17,7 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go/modules/postgres"
-	postgresDriver "gorm.io/driver/postgres"
-	"gorm.io/gorm"
 
-	cryptoutilAppsFrameworkServiceServerBusinesslogic "cryptoutil/internal/apps/framework/service/server/businesslogic"
 	cryptoutilAppsFrameworkServiceServerDomain "cryptoutil/internal/apps/framework/service/server/domain"
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
 
@@ -218,59 +214,6 @@ func TestIntegration_DuplicateUsername_SameTenant(t *testing.T) {
 	var joinRequests []cryptoutilAppsFrameworkServiceServerDomain.TenantJoinRequest
 	require.NoError(t, testDB.WithContext(ctx).Where("tenant_id = ?", tenant.ID).Find(&joinRequests).Error)
 	require.GreaterOrEqual(t, len(joinRequests), 2, "Should have at least 2 join requests (duplicate checking deferred to approval)")
-}
-
-// TestIntegration_PostgreSQL tests with real PostgreSQL container (slow, only run with -tags=integration).
-// NOTE: Disabled on Windows due to testcontainers "rootless Docker" error. Run on Linux/Mac instead.
-func TestIntegration_PostgreSQL(t *testing.T) {
-	t.Parallel()
-	t.Skip("PostgreSQL container test disabled on Windows - rootless Docker not supported")
-
-	ctx := context.Background()
-
-	// Start PostgreSQL container.
-	container, err := postgres.Run(ctx, "postgres:16-alpine",
-		postgres.WithDatabase(fmt.Sprintf("test_%s", googleUuid.NewString())),
-		postgres.WithUsername(fmt.Sprintf("user_%s", googleUuid.NewString())),
-		postgres.WithPassword("password"),
-	)
-	require.NoError(t, err)
-
-	defer func() { _ = container.Terminate(ctx) }()
-
-	connStr, err := container.ConnectionString(ctx)
-	require.NoError(t, err)
-
-	db, err := gorm.Open(postgresDriver.New(postgresDriver.Config{DSN: connStr}), &gorm.Config{})
-	require.NoError(t, err)
-
-	// Run migrations.
-	require.NoError(t, db.AutoMigrate(
-		&cryptoutilAppsFrameworkServiceServerRepository.Tenant{},
-		&cryptoutilAppsFrameworkServiceServerRepository.TenantRealm{},
-		&cryptoutilAppsFrameworkServiceServerRepository.User{},
-		&cryptoutilAppsFrameworkServiceServerDomain.TenantJoinRequest{},
-	))
-
-	// Create repositories and service.
-	tenantRepo := cryptoutilAppsFrameworkServiceServerRepository.NewTenantRepository(db)
-	userRepo := cryptoutilAppsFrameworkServiceServerRepository.NewUserRepository(db)
-	joinRequestRepo := cryptoutilAppsFrameworkServiceServerRepository.NewTenantJoinRequestRepository(db)
-	_ = cryptoutilAppsFrameworkServiceServerBusinesslogic.NewTenantRegistrationService(db, tenantRepo, userRepo, joinRequestRepo)
-
-	// Create tenant via service.
-	tenant := &cryptoutilAppsFrameworkServiceServerRepository.Tenant{
-		ID:   googleUuid.New(),
-		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength]),
-	}
-	require.NoError(t, db.Create(tenant).Error)
-
-	// Verify tenant exists.
-	var retrieved cryptoutilAppsFrameworkServiceServerRepository.Tenant
-	require.NoError(t, db.First(&retrieved, "id = ?", tenant.ID).Error)
-	require.Equal(t, tenant.Name, retrieved.Name)
-
-	t.Logf("PostgreSQL integration test passed with tenant: %s", tenant.Name)
 }
 
 // TestIntegration_RegisterUser_InvalidJSON tests HandleRegisterUser with malformed JSON.

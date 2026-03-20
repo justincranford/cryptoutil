@@ -70,15 +70,15 @@ o-tls-insecure-skip-verify rule**: Activating the rule with path filters (test f
 2. **.golangci.yml YAML structure corruption on first insertion attempt**: The
 eplace_string_in_file tool consumed the blank line + settings: + errcheck: section when inserting the identity e2e gosec path exclusion. Root cause: The old string matched a larger block than expected because the surrounding YAML (blank line + settings block) was part of a contiguous string. Lesson: When inserting a new YAML array entry, use PowerShell $content.Replace() with exact string matching to avoid consuming adjacent structure. After any .golangci.yml edit, ALWAYS run python -c "import yaml; yaml.safe_load(open('.golangci.yml').read())" to verify YAML validity.
 
-3. **Full suite parallel test flakiness**: Running go test ./... -shuffle=on -count=1 caused  emplate/service/server/application and  emplate/service/server to fail due to resource contention from parallel execution. These pass in isolation on both committed and modified code. This is pre-existing. Lesson: For the quality gate, run go test ./... -shuffle=on but accept that contention-related failures that pass in isolation are pre-existing.
+3. **Full suite parallel test flakiness**: Running go test ./... -shuffle=on -count=1 caused  emplate/service/server/application and  emplate/service/server to fail due to resource contention from parallel execution. These pass in isolation on both committed and modified code. This is pre-existing. Lesson: For the quality gate, run go test ./... -shuffle=on. Contention failures that only appear in full-suite runs (AND pass in both isolation AND when run on a clean baseline) are acceptable. CRITICAL: accepting pre-existing contention failures is NOT permitted for custom Copilot agents, Copilot Skills, or Copilot Instructions — those artifacts require parallel test execution with shuffle on, zero failures.
 
-4. **identity/test/e2e/ missed by Task 2.6**: Task 2.6 migrated identity service test clients, but internal/apps/identity/test/e2e/identity_e2e_test.go (a separate  est/e2e/ subdirectory) was missed. This file connects to actual deployed services, so InsecureSkipVerify is justified — the fix was a gosec path exclusion, not a migration. Lesson: After disabling G402 blanket exclusion in Task 2.8, always re-run golangci-lint run --build-tags e2e,integration ./... (not just ./...) to catch e2e-tagged files.
+4. **identity/test/e2e/ missed by Task 2.6**: Task 2.6 migrated identity service test clients, but internal/apps/identity/test/e2e/identity_e2e_test.go (a separate  est/e2e/ subdirectory) was missed. This file connects to actual deployed services. The correct fix is to volume-mount the server's TLS certificate bundle into the test container and use it to build a proper `tls.Config` with `RootCAs` — NOT to add a gosec path exclusion. Adding a gosec exclusion without fixing InsecureSkipVerify is a security regression. The gosec path exclusion added for identity_e2e_test.go in .golangci.yml was WRONG and has been removed. Lesson: After disabling G402 blanket exclusion, always re-run golangci-lint run --build-tags e2e,integration ./... (not just ./...) to catch e2e-tagged files. Fix InsecureSkipVerify by mounting certs, not by suppressing the linter.
 
 5. **golangci-lint build tag sensitivity**: The golangci-lint run ./... command only lints files without build tags active. Files tagged //go:build e2e or //go:build integration require --build-tags e2e,integration to be linted. The standard lint gate must ALWAYS include both forms.
 
 ### Key Decisions
 
-- **identity/test/e2e/identity_e2e_test.go**: Added gosec path exclusion instead of migrating to TLSRootCAPool pattern. This file connects to externally-deployed service containers with self-signed certs and has no access to the server's TLS bundle. A documentation comment explains why InsecureSkipVerify is used.
+- **identity/test/e2e/identity_e2e_test.go**: The gosec path exclusion added here was WRONG and has been removed. The correct fix is to volume-mount the deployed service's TLS certificate bundle and use it via `tls.Config.RootCAs` — same pattern as all other test clients. A documentation comment explaining the cert mounting approach should replace InsecureSkipVerify.
 - **semgrep exclusion scope**: The
 o-tls-insecure-skip-verify semgrep rule includes all _test.go,_integration_test.go,_e2e_test.go files but excludes  ls_validate_test.go. The identity e2e test file (identity_e2e_test.go, not identity_e2e_integration_test.go) is covered by the *_test.go pattern — the semgrep rule and gosec exclusion together ensure it is checked by semgrep (and passes, since semgrep exclusion is a different file) but excluded from gosec G402.
 - **YAML structure fix**: When golangci-lint viper reports "line X: did not find expected key", always use Python yaml.safe_load to pinpoint the issue before trying random fixes.
@@ -150,20 +150,24 @@ o-tls-insecure-skip-verify semgrep rule includes all _test.go,_integration_test.
 
 - **viper global state**: The original design used `viper.BindPFlags(pflag.CommandLine)` which requires a single global viper instance. The fix preserves the same surface API (`Parse()` delegates to `ParseWithFlagSet(pflag.CommandLine)` for production) while adding isolation for tests that use `pflag.NewFlagSet`.
 
-- **Incremental legacy**: 95 remaining Sequential exemptions are ALL genuinely required:
-  - 28 × pflag.CommandLine global state via Parse() — production CLI uses global flags
-  - 14 × process-level signals or port reuse — Linux signals and socket TIME_WAIT
-  - 9 × shared SQLite in-memory database — TestMain pattern, shared instance
-  - 9 × os.Chdir (global process state) — legitimate
-  - 24 × package-level seam/injectable variables — correct SEAM pattern usage
-  - 5 × shared state in listener tests — concurrent test interference
+- **Incremental legacy**: The count of 95 remaining Sequential exemptions documented at Phase 4 end was INCORRECT — actual post-Phase-4 count is 196. The 196 remaining exemptions break down by fixability:
+  - 38 × os.Chdir (global process state) — STILL FIXABLE via CheckInDir(dir, ...) parameter pattern
+  - 35 × pflag.CommandLine global state — PARTIALLY FIXABLE via pflag.NewFlagSet + ParseWithFlagSet
+  - 76 × package-level seam/injectable variables (osExitFn, osStat, etc.) — FIXABLE via constructor injection for first-party code; acceptable ONLY when wrapping third-party/generated code
+  - 22 × shared SQLite in-memory database — TestMain pattern, shared instance (legitimate)
+  - 10 × mutates global state — process-level signals, port reuse (legitimate)
+  - 5 × starts a real server/listener — integration tests (legitimate)
+  - 4 × mutates registeredLinters/registeredFormatters — package-state initialization (legitimate)
+  - 6 × other process-level state (SEAM deleted-CWD, chmod-0000 SEAM, etc.)
+  NOTE: Package-level seam variables (xxxFn vars replaced in tests) are a DESIGN SMELL — they indicate missing constructor injection. PREFER constructor injection for all first-party code.
 
 ### Measurements
 
 - Start of Phase 4: 173 Sequential exemptions
-- End of Phase 4: 95 Sequential exemptions
-- Reduction: 78 exemptions eliminated (45% reduction)
-- Target was <100 ✅
+- End of Phase 4: 95 Sequential exemptions documented (actual count was 196 — the 95 count was INCORRECT)
+- Reduction: 78 exemptions eliminated (45% reduction claimed, but actual end count of 196 means many were missed)
+- Target was <100 — NOT MET (actual 196 remaining)
+- Root cause: grep-based counting was incomplete; a dedicated linter count (`go run ./cmd/cicd lint-fitness` + `grep -r "// Sequential:"`) gives accurate counts
 
 ### Commits
 
@@ -194,7 +198,7 @@ o-tls-insecure-skip-verify semgrep rule includes all _test.go,_integration_test.
 
 ### What Did Not Work
 
-- **PowerShell heredoc for file creation**: PowerShell's `@'...'@` heredoc does not preserve tab indentation in terminal output (tabs shown as spaces/lost). Must use Python file I/O for creating Go source files with proper formatting.
+- **PowerShell heredoc for file creation**: PowerShell's `@'...'@` heredoc does not preserve tab indentation in terminal output (tabs shown as spaces/lost). The correct approach is to use the project's custom Go cicd tool (`go run ./cmd/cicd format-go`) rather than Python file I/O or PowerShell heredocs. The cicd tool is cross-platform, handles proper tab indentation, and is the standard formatting pipeline for this project. NEVER write Go source files via shell heredocs or raw Python writes — always use `go run ./cmd/cicd format-go` to format after creation.
 
 ### Metrics
 
@@ -222,7 +226,7 @@ o-tls-insecure-skip-verify semgrep rule includes all _test.go,_integration_test.
 
 - **Run targeted tests immediately after editing**: After any test file change, run the specific test (`-run TestXxx`) before committing. A fast test run would have caught the missing `parts[3]` line instantly.
 - **When adding magic constants for test values**: Follow `TestRandomStringLengthNN` naming convention in `magic_testing.go` for test-specific sizes. Add `JoseXxx` / `JWEXxx` / `JWSXxx` constants in `magic_crypto.go` for JOSE format-specific counts.
-- **SQLite + barrier pattern**: ALL operations that use `barrier.EncryptContentWithContext` or `barrier.DecryptContentWithContext` MUST be outside any ORM `WithTransaction` scope. Diagram: `ORM.Create(plainRecord) -> (outside tx) barrier.Encrypt -> ORM.Update(encryptedRecord)`.
+- **SQLite + barrier pattern**: ALL operations that use `barrier.EncryptContentWithContext` or `barrier.DecryptContentWithContext` MUST be outside any ORM `WithTransaction` scope. Root cause: the barrier service opens its own internal read/write transaction. SQLite in WAL mode allows one writer at a time — nesting two concurrent write transactions on the same connection pool (MaxOpenConns=5) causes deadlock when all connections are held by the outer ORM transaction. The outer transaction holds connections while waiting for the inner barrier transaction to complete, but the inner barrier transaction cannot acquire a connection because they are all held. Solution: call barrier.Encrypt AFTER committing the ORM transaction (not inside it), then issue a separate ORM.Update call with the encrypted data. Diagram: `ORM.Create(plainRecord) [commit] -> (outside tx) barrier.Encrypt -> ORM.Update(encryptedRecord)`. This is NOT just a performance concern — it is a correctness requirement. Wrapping barrier calls inside ORM transactions is a guaranteed SQLite deadlock.
 
 ### Metrics
 
@@ -250,8 +254,8 @@ o-tls-insecure-skip-verify semgrep rule includes all _test.go,_integration_test.
 
 ### Patterns Discovered
 
-- **TestMain with SQLite fallback pattern**: `tenant_registration_service_test.go` tries PostgreSQL but falls back to SQLite on panic/error. This satisfies D19 spirit (test works without Docker) while testing against real DB when available. Exempt such files from `no_postgres_in_non_e2e` via `service/server/businesslogic/` path fragment.
-- **D19 exemption strategy**: Three layers: (1) `_e2e_test.go` suffix, (2) `//go:build e2e` header tag, (3) explicit path fragments for infrastructure code (testdb/, container/, database/, businesslogic/ w/ fallback). This covers all legitimate PostgreSQL usage in the codebase.
+- **TestMain with SQLite fallback pattern**: `tenant_registration_service_test.go` previously tried PostgreSQL first, falling back to SQLite on panic/error. This was WRONG — integration tests MUST use SQLite in-memory only per the 3-tier test strategy (D7/D19). PostgreSQL is reserved EXCLUSIVELY for E2E tests via Docker Compose. The PostgreSQL-first+SQLite-fallback pattern violates D19, causes the `no_postgres_in_non_e2e` fitness linter to flag the file, and makes tests environment-dependent (pass only when Docker Desktop is running). CORRECT pattern: SQLite-only TestMain, no PostgreSQL imports at all. The `service/server/businesslogic/` path fragment exemption in `no_postgres_in_non_e2e` has been REMOVED since there is no longer any legitimate PostgreSQL usage in that package. See also: `registration_integration_proc_test.go` had `TestIntegration_PostgreSQL` which was ALSO wrong and has been removed.
+- **D19 exemption strategy**: Three layers: (1) `_e2e_test.go` suffix, (2) `//go:build e2e` header tag, (3) explicit path fragments for infrastructure code (testdb/, container/, database/). The previously-added businesslogic/ path fragment was wrong and has been removed.
 - **`no_local_closed_db_helper` already registered** as of Task 6.4 — confirming tracking docs can lag behind implementation.
 
 ### Key Metrics
@@ -275,7 +279,7 @@ o-tls-insecure-skip-verify semgrep rule includes all _test.go,_integration_test.
 
 - **`MagicShouldSkipPath` didn't exclude `_`-prefixed dirs**: The `magic-usage` linter was scanning archived directories (`_archived/`, `_ca-archived/`, etc.) and finding constant redefinition violations in non-compilable archived Go files. **Fix**: Added `_`/`.`-prefix check to `MagicShouldSkipPath` in `internal/apps/cicd/lint_go/common/common.go`. This is the correct behavior — mirrors Go's own build tool conventions.
 - **`test-presence` linter checks top-level service dirs**: The linter walks `internal/apps/` and requires every directory with `.go` files containing functions to have at least one `_test.go` file. The fresh skeleton top-level dirs (`authz/`, `idp/`, etc.) had no tests. **Fix**: Add minimal `*_cli_test.go` files testing the `--help` flag (same pattern as `pki/ca/ca_cli_test.go`).
-- **test-presence errors invisible in combined stderr**: The linter violations are embedded in the error return value (not stdout/stderr), so `go run ./cmd/cicd lint-go 2>&1` doesn't reveal the specific violations. **Workaround**: Run `go test -run TestCheck_RealWorkspace ./internal/apps/cicd/lint_go/test_presence/` — this directly invokes the real-workspace check and shows the formatted error.
+- **test-presence errors now surfaced (FIXED)**: The linter violations were previously embedded only in the error return value (not stdout/stderr), so `go run ./cmd/cicd lint-go 2>&1` didn't reveal the specific violations. This has been fixed: violations are now logged individually via logger.Log() (visible in `[CICD]`-prefixed stderr) AND included in the error string with the full list of violating package names. Both `go run ./cmd/cicd lint-go` and `go test -run TestCheck_RealWorkspace ./internal/apps/cicd/lint_go/test_presence/` now show actionable violation details.
 - **`internal/apps/identity/demo` needs a test file too**: Even stub packages with one function need a test file. `demo_test.go` with `TestDemo_NotYetAvailable` is sufficient.
 
 ### Patterns Discovered
@@ -316,8 +320,7 @@ Phase 8 reintegrated 4 domain packages (authz, idp, sm-im, pki-ca) and added Ope
 
 ### Pre-existing Failures (Not Caused by Phase 8)
 
-- `TestInitDatabase_HappyPaths/PostgreSQL_Container` fails in multiple packages due to Docker Desktop not running on Windows. This is pre-existing infrastructure.
-- Test timeout of 300s causes `pki/ca/server` to report FAIL if Docker startup takes > 300s.
+- `TestInitDatabase_HappyPaths/PostgreSQL_Container` was failing in multiple packages due to Docker Desktop not running on Windows. This has been CORRECTLY RESOLVED: the PostgreSQL_Container subtests in `database_test_helpers.go` (and the HelpTestInitDatabaseHappyPaths call in `im_database_test.go`) have been removed. Per the 3-tier test strategy (D7/D19), integration tests MUST use SQLite in-memory only — Docker Desktop is NOT required for unit or integration tests. If Docker Desktop is not running before E2E tests, start it first (`Start-Process "C:\Program Files\Docker\Docker\Docker Desktop.exe"` then wait 45s before running E2E tests). Pre-existing test failures from infrastructure-missing state are NEVER acceptable — fix the infrastructure or remove the test.
 
 ### Key Metrics
 
@@ -421,8 +424,7 @@ equire_api_dir without ilepath.Abs (using ilepath.Join(rootDir, "api") directl
 
 ### Patterns Discovered
 
-- **importas rule naming**: The golangci.yml importas rule for pi/pki-ca/server uses alias cryptoutilApiCaServer (not cryptoutilApiPkiCaServer) — the "pki" product name is dropped from the alias because the CA is the canonical PKI authority. Always verify importas aliases experimentally rather than guessing from package paths.
-- **Parallel test races on package-level test seams**: Using a ar statFunc = os.Stat package-level seam causes data races when multiple parallel tests mutate it. For sub-linters that only need filesystem errors from a specific directory, use real tempdir tests with missing directories instead.
+- **importas rule naming**: The golangci.yml importas rule for pi/pki-ca/server uses alias cryptoutilApiCaServer (not cryptoutilApiPkiCaServer) — the "pki" product name is dropped from the alias because the CA is the canonical PKI authority. Always verify importas aliases experimentally rather than guessing from package paths.- **api/ directory is NOT dead code**: The `api/client/` package (~50 exported functions) is actively imported by sm-kms and jose-ja services. It is the stable public client library for these services. Migration debt exists: `api/sm-kms/client/`, `api/sm-kms/models/`, `api/sm-kms/server/` directories were added in Phase 10 but sm-kms still imports the old `api/client/` paths. This is migration debt, not dead code. Do NOT delete `api/client/` without first migrating all importers to the new per-service paths. Run `grep -r "api/client" internal/ cmd/` to find all importers before touching this directory.- **Parallel test races on package-level test seams**: Using a ar statFunc = os.Stat package-level seam causes data races when multiple parallel tests mutate it. For sub-linters that only need filesystem errors from a specific directory, use real tempdir tests with missing directories instead.
 - **PowerShell file writing**: Must use [System.IO.File]::WriteAllText(path, content, UTF8NoBOM) — Set-Content -Encoding UTF8 adds a BOM that triggers the ix-byte-order-marker pre-commit hook.
 - **Full suite timeout vs per-package timeout**: go test ./... -timeout 180s distributes the entire 180s budget across all packages sequentially. pki/ca/server integration tests require ~12s alone, causing timeouts in full-suite runs. Use per-package runs or increase timeout to >=300s for full suite validation.
 

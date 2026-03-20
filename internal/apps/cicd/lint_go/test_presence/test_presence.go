@@ -104,7 +104,11 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	}
 
 	if len(errors) > 0 {
-		return fmt.Errorf("test presence violations:\n%s", strings.Join(errors, "\n"))
+		for _, violation := range errors {
+			logger.Log(fmt.Sprintf("VIOLATION: %s", violation))
+		}
+
+		return fmt.Errorf("test presence violations: %d package(s) missing test files:\n%s", len(errors), strings.Join(errors, "\n"))
 	}
 
 	logger.Log("test-presence: all packages have test files")

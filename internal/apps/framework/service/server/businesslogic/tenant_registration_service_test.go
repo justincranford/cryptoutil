@@ -13,10 +13,6 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go"
-	postgresModule "github.com/testcontainers/testcontainers-go/modules/postgres"
-	"github.com/testcontainers/testcontainers-go/wait"
-	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
@@ -34,7 +30,6 @@ var (
 	testRealmID        googleUuid.UUID
 	testUserID         googleUuid.UUID
 	testClientID       googleUuid.UUID
-	postgresTestDB     bool
 )
 
 // testPasswordHash is a placeholder password hash for tests.
@@ -44,88 +39,32 @@ const testPasswordHash = "hashed_password_placeholder"
 func TestMain(m *testing.M) {
 	ctx := context.Background()
 
-	// Try PostgreSQL first, fallback to SQLite on failure (Windows Docker Desktop requirement).
-	var (
-		db        *gorm.DB
-		container *postgresModule.PostgresContainer
-		err       error
-	)
+	// Per the 3-tier test strategy, integration tests MUST use SQLite in-memory only.
+	// PostgreSQL is reserved exclusively for E2E tests via Docker Compose.
+	sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteInMemoryDSN)
+	if err != nil {
+		panic(fmt.Sprintf("failed to open sqlite: %v", err))
+	}
 
-	// Try PostgreSQL with test-containers (with panic recovery for Docker Desktop not running).
-	func() {
-		defer func() {
-			if r := recover(); r != nil {
-				// testcontainers panics when Docker Desktop not running.
-				// Silently fall through to SQLite fallback.
-				err = fmt.Errorf("postgres container panic: %v", r)
-			}
-		}()
+	// Configure SQLite for concurrent operations.
+	if _, err := sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;"); err != nil {
+		panic(fmt.Sprintf("failed to enable WAL mode: %v", err))
+	}
 
-		dbName := fmt.Sprintf("test_%s", googleUuid.Must(googleUuid.NewV7()))
-		userName := fmt.Sprintf("user_%s", googleUuid.Must(googleUuid.NewV7()))
+	if _, err := sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;"); err != nil {
+		panic(fmt.Sprintf("failed to set busy timeout: %v", err))
+	}
 
-		container, err = postgresModule.Run(ctx,
-			"postgres:18-alpine",
-			postgresModule.WithDatabase(dbName),
-			postgresModule.WithUsername(userName),
-			postgresModule.WithPassword("password"),
-			testcontainers.WithWaitStrategy(
-				wait.ForLog("database system is ready to accept connections").
-					WithOccurrence(2).
-					WithStartupTimeout(cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds*time.Second),
-			),
-		)
-	}()
+	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
+	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
+	sqlDB.SetConnMaxLifetime(0)
 
-	if err == nil && container != nil {
-		// PostgreSQL container started successfully.
-		defer func() {
-			if err := container.Terminate(ctx); err != nil {
-				panic(fmt.Sprintf("failed to terminate postgres container: %v", err))
-			}
-		}()
-
-		connStr, err := container.ConnectionString(ctx)
-		if err != nil {
-			panic(fmt.Sprintf("failed to get connection string: %v", err))
-		}
-
-		db, err = gorm.Open(postgres.Open(connStr), &gorm.Config{})
-		if err != nil {
-			panic(fmt.Sprintf("failed to connect to postgres: %v", err))
-		}
-
-		postgresTestDB = true
-	} else {
-		// Fallback to SQLite in-memory database.
-		// Use sql.Open with "sqlite" driver to force modernc.org/sqlite (CGO-free).
-		sqlDB, err := sql.Open(cryptoutilSharedMagic.TestDatabaseSQLite, cryptoutilSharedMagic.SQLiteInMemoryDSN)
-		if err != nil {
-			panic(fmt.Sprintf("failed to open sqlite: %v", err))
-		}
-
-		// Configure SQLite for concurrent operations.
-		if _, err := sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;"); err != nil {
-			panic(fmt.Sprintf("failed to enable WAL mode: %v", err))
-		}
-
-		if _, err := sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;"); err != nil {
-			panic(fmt.Sprintf("failed to set busy timeout: %v", err))
-		}
-
-		sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-		sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
-		sqlDB.SetConnMaxLifetime(0)
-
-		// Wrap with GORM using Dialector pattern.
-		db, err = gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
-			SkipDefaultTransaction: true,
-		})
-		if err != nil {
-			panic(fmt.Sprintf("failed to wrap with GORM: %v", err))
-		}
-
-		postgresTestDB = false
+	// Wrap with GORM using Dialector pattern.
+	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
+		SkipDefaultTransaction: true,
+	})
+	if err != nil {
+		panic(fmt.Sprintf("failed to wrap with GORM: %v", err))
 	}
 
 	testDB = db
@@ -202,7 +141,6 @@ func TestMain(m *testing.M) {
 	// Run all tests.
 	exitCode := m.Run()
 
-	// Cleanup happens via defer (PostgreSQL container termination).
 	os.Exit(exitCode)
 }
 

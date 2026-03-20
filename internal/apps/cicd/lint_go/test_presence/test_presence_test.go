@@ -73,7 +73,8 @@ func TestCheckInDir_MissingTestFile(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	err := CheckInDir(logger, tmpDir)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "no _test.go files")
+	require.Contains(t, err.Error(), "test presence violations")
+	require.Contains(t, err.Error(), "missing test files")
 }
 
 func TestCheckInDir_ExcludedMagicDir(t *testing.T) {

@@ -1175,6 +1175,20 @@ sqlDB.Exec("PRAGMA busy_timeout = 30000;")   // 30s retry on lock
 sqlDB.SetMaxOpenConns(5)                     // GORM transactions need multiple
 ```
 
+##### SQLite + Barrier Outside Transactions (CRITICAL)
+
+**MANDATORY**: ALL calls to `barrier.EncryptContentWithContext` or `barrier.DecryptContentWithContext` MUST be outside any ORM `WithTransaction` scope.
+
+**Root cause**: The barrier service opens its own internal read/write transaction. SQLite WAL mode allows only one writer at a time. Nesting two concurrent write transactions on the same connection pool (MaxOpenConns=5) causes a deadlock: the outer ORM transaction holds all connections waiting for the inner barrier transaction to complete, but the inner barrier transaction cannot acquire a connection because they are all held by the outer transaction.
+
+**Correct pattern**: Call `barrier.Encrypt` AFTER committing the ORM transaction (not inside it), then issue a separate ORM update with the encrypted data:
+
+```
+ORM.Create(plainRecord) → commit → (outside tx) barrier.Encrypt → ORM.Update(encryptedRecord)
+```
+
+This is NOT a performance concern — it is a **correctness requirement**. Wrapping barrier calls inside ORM transactions is a guaranteed SQLite deadlock.
+
 ##### SQLite DateTime (CRITICAL)
 
 **ALWAYS use `.UTC()` when comparing with SQLite timestamps**:
@@ -1749,12 +1763,13 @@ db.Where("tenant_id = ? AND user_id = ?", tenantID, userID).Find(&messages)
 
 All 10 services MUST support using one of PostgreSQL or SQLite, specified via configuration at startup.
 
-Typical usages for each database for different purposes:
-- Unit tests, Fuzz tests, Benchmark tests, Mutations tests => Ephemeral SQLite instance (e.g. in-memory)
-- Integration tests, Load tests => Ephemeral PostgreSQL instance (i.e. test-container)
+Typical usages for each database for different purposes (MANDATORY — see [Section 10.1](#101-testing-strategy-overview) for 3-Tier Database Strategy):
+- Unit tests, Fuzz tests, Benchmark tests, Mutation tests => SQLite in-memory (NEVER PostgreSQL)
+- Integration tests => SQLite in-memory via TestMain shared instance (NEVER PostgreSQL)
+- Load tests => Ephemeral PostgreSQL instance (i.e. test-container)
 - End-to-End tests => Static PostgreSQL instance (e.g. Docker Compose)
 - Production => Static PostgreSQL instance (e.g. Cloud hosted)
-- Local Development => Static SQLite instance (e.g. file); used for local development
+- Local Development => Static SQLite instance (e.g. file)
 
 Caveat: End-to-End Docker Compose tests use both PostgreSQL and SQLite, for isolation testing; 3 service instances, 2 using a shared PostgreSQL container, and 1 using in-memory SQLite
 
