@@ -5,7 +5,7 @@
 package crypto
 
 import (
-	cryptoutilOpenapiModel "cryptoutil/api/model"
+	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
 )

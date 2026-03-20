@@ -17,7 +17,7 @@ import (
 	"sync/atomic"
 	"testing"
 
-	cryptoutilOpenapiModel "cryptoutil/api/model"
+	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
@@ -150,7 +150,7 @@ func TestCreateJWEJWKFromKey_SeamErrors(t *testing.T) {
 			require.True(t, errors.Is(err, errInjected))
 		})
 
-		// Set errors — fail on each Set call number.
+		// Set errors â€” fail on each Set call number.
 		for i := 1; i <= tc.maxSets; i++ {
 			t.Run(fmt.Sprintf("%s/set_fail_%d", tc.name, i), func(t *testing.T) {
 				jwkKeySet = countingSet(i)
@@ -167,7 +167,7 @@ func TestCreateJWEJWKFromKey_SeamErrors(t *testing.T) {
 		})
 	}
 
-	// PublicKey error — only for KeyPair types.
+	// PublicKey error â€” only for KeyPair types.
 	t.Run("RSA/publickey_fail", func(t *testing.T) {
 		resetSeams()
 
@@ -178,7 +178,7 @@ func TestCreateJWEJWKFromKey_SeamErrors(t *testing.T) {
 		require.True(t, errors.Is(err, errInjected))
 	})
 
-	// Marshal(public) error — second Marshal call for KeyPair.
+	// Marshal(public) error â€” second Marshal call for KeyPair.
 	t.Run("RSA/marshal_public_fail", func(t *testing.T) {
 		resetSeams()
 
@@ -188,7 +188,7 @@ func TestCreateJWEJWKFromKey_SeamErrors(t *testing.T) {
 		require.Error(t, err)
 	})
 
-	// Set(ops) on public JWK — 8th Set call for RSA KeyPair.
+	// Set(ops) on public JWK â€” 8th Set call for RSA KeyPair.
 	t.Run("RSA/set_public_ops_fail", func(t *testing.T) {
 		resetSeams()
 
@@ -281,7 +281,7 @@ func TestCreateJWSJWKFromKey_SeamErrors(t *testing.T) {
 		require.Error(t, err)
 	})
 
-	// Set(ops) on public key — 7th Set call for RSA.
+	// Set(ops) on public key â€” 7th Set call for RSA.
 	t.Run("RSA/set_public_ops_fail", func(t *testing.T) {
 		resetSeams()
 
@@ -417,7 +417,7 @@ func TestEdDSASetError(t *testing.T) {
 		require.True(t, errors.Is(err, errInjected), "error should wrap errInjected, got: %v", err)
 	})
 
-	// JWE: Set error on 1st Set (kty OKP) — use ECDH-ES with ecdh key
+	// JWE: Set error on 1st Set (kty OKP) â€” use ECDH-ES with ecdh key
 	ecdhAlg := AlgECDHES
 	encAlg := EncA256GCM
 	ecdhPrivKey, err := ecdh.P521().GenerateKey(crand.Reader)

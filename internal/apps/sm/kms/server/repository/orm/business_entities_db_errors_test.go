@@ -10,7 +10,7 @@ import (
 "testing"
 
 cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
-cryptoutilOpenapiModel "cryptoutil/api/model"
+cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 "github.com/jackc/pgx/v5/pgconn"

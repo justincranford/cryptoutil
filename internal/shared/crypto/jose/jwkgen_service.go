@@ -11,7 +11,7 @@ import (
 	"errors"
 	"fmt"
 
-	cryptoutilOpenapiModel "cryptoutil/api/model"
+	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedPool "cryptoutil/internal/shared/pool"

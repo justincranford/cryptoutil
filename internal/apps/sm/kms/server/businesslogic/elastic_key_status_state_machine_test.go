@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
-	cryptoutilOpenapiModel "cryptoutil/api/model"
+	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 
 	"github.com/stretchr/testify/require"
 )

@@ -9,7 +9,7 @@ import (
 	"fmt"
 
 	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
-	cryptoutilOpenapiModel "cryptoutil/api/model"
+	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 )
 
 var validTransitions = func() map[cryptoutilKmsServer.ElasticKeyStatus]map[cryptoutilKmsServer.ElasticKeyStatus]bool {

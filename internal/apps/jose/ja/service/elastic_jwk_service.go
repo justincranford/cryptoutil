@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"time"
 
-	cryptoutilOpenapiModel "cryptoutil/api/model"
+	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose/ja/model"
 	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose/ja/repository"
 	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"

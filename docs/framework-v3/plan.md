@@ -407,19 +407,34 @@ Following migration priority (sm-im > jose-ja > sm-kms > pki-ca > identity):
 - **Success**: All quality gates pass, all knowledge propagated, clean lessons.md
 - **Post-Mortem**: lessons.md updated
 
-### Phase 10: OpenAPI Standardization (D21–D24, D12 part) [Status: TODO]
+### Phase 10: OpenAPI Standardization (D21–D24, D12 part) [Status: DONE — D21 steps 2+3 deferred to Phase 10B]
 
 **Objective**: Standardize all api/ directories to product-service naming, consolidate initialisms, deduplicate FiberHandlerOpenAPISpec, add skeleton-template OpenAPI CRUD example.
 
-- Rename api/ subdirs: kms→sm-kms, ca→pki-ca, jose→jose-ja (D21)
-- Remove orphaned api/ files (authz/, client/, idp/, model/, server/, root generate.go) (D21)
-- Create api/sm-im/, api/identity-authz/, api/identity-idp/, etc. (D21)
-- Create api/skeleton-template/ + OpenAPI spec + CRUD example (D12 + D21)
-- Consolidate initialisms: document base list in ARCHITECTURE.md, update gen configs (D22)
-- Refactor FiberHandlerOpenAPISpec into shared service-framework factory (D23)
-- Add lint-fitness sub-linter enforcing api/<service-name>/ structure exists (D24)
-- **Precondition**: Phase 3 builder refactoring complete (service files stabilized)
-- **Success**: All services have standardized api/ directories; lint-fitness passes
+- Rename api/ subdirs: kms→sm-kms, ca→pki-ca, jose→jose-ja (D21) ✅
+- Remove orphaned api/ files (authz/, client/, idp/, model/, server/, root generate.go) (D21) — client/ and model/ deferred to Phase 10B (58+ import sites)
+- Create api/sm-im/, api/identity-authz/, api/identity-idp/, etc. (D21) ✅
+- Create api/skeleton-template/ + OpenAPI spec + CRUD example (D12 + D21) ✅
+- Consolidate initialisms: document base list in ARCHITECTURE.md, update gen configs (D22) ✅
+- Refactor FiberHandlerOpenAPISpec into shared service-framework factory (D23) ✅
+- Add lint-fitness sub-linter enforcing api/<service-name>/ structure exists (D24) ✅
+- **Post-Mortem Gap**: Task 10.1 deferred "migration to api/sm-kms/ types" with a note but never created the future task — Phase 10 was falsely marked 100% complete
+
+### Phase 10B: Complete D21 — Legacy api/ Import Migration and Cleanup [Status: TODO]
+
+**Objective**: Finish the deferred D21 work from Phase 10. Migrate all production imports away from legacy `api/model/` and `api/client/` packages to the canonical per-service `api/sm-kms/models/` and `api/sm-kms/client/` locations. Delete all orphaned legacy api/ files.
+
+**Root Cause**: Task 10.1 in Phase 10 added an explicit note: "Root api/model/ and api/client/ retained (58+ imports from old KMS API; migration to api/sm-kms/ types is a separate future task)" — but that future task was NEVER created. The previous session investigated the api/ dead code and updated lessons.md but never created the task or did the migration. Phase 10 was then falsely marked 100% complete.
+
+**Type Mismatch Context**: `api/sm-kms/models/` (54 types, generated from combined spec) has DIFFERENT types than `api/model/` (77 types, from components-only spec). Fix: regenerate `api/sm-kms/models/` from the legacy components spec (same 77 types). Also regenerate `api/sm-kms/client/` from legacy paths spec with correct import-mapping (preserving type compatibility with models).
+
+- Move legacy spec files to api/sm-kms/ (components + paths specs)
+- Regenerate api/sm-kms/models/ from legacy components spec (77 types, package models)
+- Regenerate api/sm-kms/client/ from legacy paths spec with ExternalRef fix
+- Migrate 53+ non-archived files: `cryptoutil/api/model` → `cryptoutil/api/sm-kms/models`
+- Migrate 2 non-archived files: `cryptoutil/api/client` → `cryptoutil/api/sm-kms/client`
+- Delete: `api/model/`, `api/client/`, `api/fix_external_ref/`, `api/generate.go`, legacy gen configs
+- **Success**: `api/model/` and `api/client/` no longer exist; all imports use canonical api/sm-kms/ paths
 - **Post-Mortem**: lessons.md updated
 
 ### Phase 11: service-framework Rename — FINAL (D20) [Status: DONE]

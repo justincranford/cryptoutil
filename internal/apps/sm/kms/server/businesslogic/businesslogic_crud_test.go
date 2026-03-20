@@ -10,7 +10,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
-	cryptoutilOpenapiModel "cryptoutil/api/model"
+	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 	cryptoutilKmsMiddleware "cryptoutil/internal/apps/sm/kms/server/middleware"
 	cryptoutilKmsServerRepository "cryptoutil/internal/apps/sm/kms/server/repository"
 	cryptoutilOrmRepository "cryptoutil/internal/apps/sm/kms/server/repository/orm"

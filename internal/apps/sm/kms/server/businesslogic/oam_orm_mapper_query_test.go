@@ -8,7 +8,7 @@ import (
 	"time"
 
 	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
-	cryptoutilOpenapiModel "cryptoutil/api/model"
+	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 
 	googleUuid "github.com/google/uuid"
 	testify "github.com/stretchr/testify/require"

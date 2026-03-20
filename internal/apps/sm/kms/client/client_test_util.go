@@ -18,8 +18,8 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilOpenapiClient "cryptoutil/api/client"
-	cryptoutilOpenapiModel "cryptoutil/api/model"
+	cryptoutilOpenapiClient "cryptoutil/api/sm-kms/client"
+	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"

@@ -10,7 +10,7 @@ import (
 	http "net/http"
 
 	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
-	cryptoutilOpenapiModel "cryptoutil/api/model"
+	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 )

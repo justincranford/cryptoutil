@@ -10,7 +10,7 @@ import (
 "time"
 
 cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
-cryptoutilOpenapiModel "cryptoutil/api/model"
+cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 googleUuid "github.com/google/uuid"

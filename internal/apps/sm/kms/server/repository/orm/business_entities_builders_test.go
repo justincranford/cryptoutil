@@ -10,7 +10,7 @@ package orm
 import (
 	"testing"
 
-	cryptoutilOpenapiModel "cryptoutil/api/model"
+	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"

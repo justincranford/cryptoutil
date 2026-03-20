@@ -13,7 +13,7 @@ import (
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
-	cryptoutilOpenapiModel "cryptoutil/api/model"
+	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 	cryptoutilKmsServerBusinesslogic "cryptoutil/internal/apps/sm/kms/server/businesslogic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )

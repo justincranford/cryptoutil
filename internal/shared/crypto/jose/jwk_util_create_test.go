@@ -9,7 +9,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
-	cryptoutilOpenapiModel "cryptoutil/api/model"
+	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
 
 	googleUuid "github.com/google/uuid"

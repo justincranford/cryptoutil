@@ -4,379 +4,815 @@
 package models
 
 import (
+	"bytes"
+	"compress/gzip"
+	"encoding/base64"
+	"fmt"
+	"net/url"
+	"path"
+	"strings"
 	"time"
 
+	"github.com/getkin/kin-openapi/openapi3"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+// Defines values for ElasticKeyAlgorithm.
 const (
-	BearerAuthScopes  = "BearerAuth.Scopes"
-	SessionAuthScopes = "SessionAuth.Scopes"
+	A128CBCHS256A128GCMKW    ElasticKeyAlgorithm = "A128CBC-HS256/A128GCMKW"
+	A128CBCHS256A128KW       ElasticKeyAlgorithm = "A128CBC-HS256/A128KW"
+	A128CBCHS256A192GCMKW    ElasticKeyAlgorithm = "A128CBC-HS256/A192GCMKW"
+	A128CBCHS256A192KW       ElasticKeyAlgorithm = "A128CBC-HS256/A192KW"
+	A128CBCHS256A256GCMKW    ElasticKeyAlgorithm = "A128CBC-HS256/A256GCMKW"
+	A128CBCHS256A256KW       ElasticKeyAlgorithm = "A128CBC-HS256/A256KW"
+	A128CBCHS256Dir          ElasticKeyAlgorithm = "A128CBC-HS256/dir"
+	A128CBCHS256ECDHES       ElasticKeyAlgorithm = "A128CBC-HS256/ECDH-ES"
+	A128CBCHS256ECDHESA128KW ElasticKeyAlgorithm = "A128CBC-HS256/ECDH-ES+A128KW"
+	A128CBCHS256ECDHESA192KW ElasticKeyAlgorithm = "A128CBC-HS256/ECDH-ES+A192KW"
+	A128CBCHS256ECDHESA256KW ElasticKeyAlgorithm = "A128CBC-HS256/ECDH-ES+A256KW"
+	A128CBCHS256RSA15        ElasticKeyAlgorithm = "A128CBC-HS256/RSA1_5"
+	A128CBCHS256RSAOAEP      ElasticKeyAlgorithm = "A128CBC-HS256/RSA-OAEP"
+	A128CBCHS256RSAOAEP256   ElasticKeyAlgorithm = "A128CBC-HS256/RSA-OAEP-256"
+	A128CBCHS256RSAOAEP384   ElasticKeyAlgorithm = "A128CBC-HS256/RSA-OAEP-384"
+	A128CBCHS256RSAOAEP512   ElasticKeyAlgorithm = "A128CBC-HS256/RSA-OAEP-512"
+	A128GCMA128GCMKW         ElasticKeyAlgorithm = "A128GCM/A128GCMKW"
+	A128GCMA128KW            ElasticKeyAlgorithm = "A128GCM/A128KW"
+	A128GCMA192GCMKW         ElasticKeyAlgorithm = "A128GCM/A192GCMKW"
+	A128GCMA192KW            ElasticKeyAlgorithm = "A128GCM/A192KW"
+	A128GCMA256GCMKW         ElasticKeyAlgorithm = "A128GCM/A256GCMKW"
+	A128GCMA256KW            ElasticKeyAlgorithm = "A128GCM/A256KW"
+	A128GCMDir               ElasticKeyAlgorithm = "A128GCM/dir"
+	A128GCMECDHES            ElasticKeyAlgorithm = "A128GCM/ECDH-ES"
+	A128GCMECDHESA128KW      ElasticKeyAlgorithm = "A128GCM/ECDH-ES+A128KW"
+	A128GCMECDHESA192KW      ElasticKeyAlgorithm = "A128GCM/ECDH-ES+A192KW"
+	A128GCMECDHESA256KW      ElasticKeyAlgorithm = "A128GCM/ECDH-ES+A256KW"
+	A128GCMRSA15             ElasticKeyAlgorithm = "A128GCM/RSA1_5"
+	A128GCMRSAOAEP           ElasticKeyAlgorithm = "A128GCM/RSA-OAEP"
+	A128GCMRSAOAEP256        ElasticKeyAlgorithm = "A128GCM/RSA-OAEP-256"
+	A128GCMRSAOAEP384        ElasticKeyAlgorithm = "A128GCM/RSA-OAEP-384"
+	A128GCMRSAOAEP512        ElasticKeyAlgorithm = "A128GCM/RSA-OAEP-512"
+	A192CBCHS384A128GCMKW    ElasticKeyAlgorithm = "A192CBC-HS384/A128GCMKW"
+	A192CBCHS384A128KW       ElasticKeyAlgorithm = "A192CBC-HS384/A128KW"
+	A192CBCHS384A192GCMKW    ElasticKeyAlgorithm = "A192CBC-HS384/A192GCMKW"
+	A192CBCHS384A192KW       ElasticKeyAlgorithm = "A192CBC-HS384/A192KW"
+	A192CBCHS384A256GCMKW    ElasticKeyAlgorithm = "A192CBC-HS384/A256GCMKW"
+	A192CBCHS384A256KW       ElasticKeyAlgorithm = "A192CBC-HS384/A256KW"
+	A192CBCHS384Dir          ElasticKeyAlgorithm = "A192CBC-HS384/dir"
+	A192CBCHS384ECDHES       ElasticKeyAlgorithm = "A192CBC-HS384/ECDH-ES"
+	A192CBCHS384ECDHESA128KW ElasticKeyAlgorithm = "A192CBC-HS384/ECDH-ES+A128KW"
+	A192CBCHS384ECDHESA192KW ElasticKeyAlgorithm = "A192CBC-HS384/ECDH-ES+A192KW"
+	A192CBCHS384ECDHESA256KW ElasticKeyAlgorithm = "A192CBC-HS384/ECDH-ES+A256KW"
+	A192CBCHS384RSA15        ElasticKeyAlgorithm = "A192CBC-HS384/RSA1_5"
+	A192CBCHS384RSAOAEP      ElasticKeyAlgorithm = "A192CBC-HS384/RSA-OAEP"
+	A192CBCHS384RSAOAEP256   ElasticKeyAlgorithm = "A192CBC-HS384/RSA-OAEP-256"
+	A192CBCHS384RSAOAEP384   ElasticKeyAlgorithm = "A192CBC-HS384/RSA-OAEP-384"
+	A192CBCHS384RSAOAEP512   ElasticKeyAlgorithm = "A192CBC-HS384/RSA-OAEP-512"
+	A192GCMA128GCMKW         ElasticKeyAlgorithm = "A192GCM/A128GCMKW"
+	A192GCMA128KW            ElasticKeyAlgorithm = "A192GCM/A128KW"
+	A192GCMA192GCMKW         ElasticKeyAlgorithm = "A192GCM/A192GCMKW"
+	A192GCMA192KW            ElasticKeyAlgorithm = "A192GCM/A192KW"
+	A192GCMA256GCMKW         ElasticKeyAlgorithm = "A192GCM/A256GCMKW"
+	A192GCMA256KW            ElasticKeyAlgorithm = "A192GCM/A256KW"
+	A192GCMDir               ElasticKeyAlgorithm = "A192GCM/dir"
+	A192GCMECDHES            ElasticKeyAlgorithm = "A192GCM/ECDH-ES"
+	A192GCMECDHESA128KW      ElasticKeyAlgorithm = "A192GCM/ECDH-ES+A128KW"
+	A192GCMECDHESA192KW      ElasticKeyAlgorithm = "A192GCM/ECDH-ES+A192KW"
+	A192GCMECDHESA256KW      ElasticKeyAlgorithm = "A192GCM/ECDH-ES+A256KW"
+	A192GCMRSA15             ElasticKeyAlgorithm = "A192GCM/RSA1_5"
+	A192GCMRSAOAEP           ElasticKeyAlgorithm = "A192GCM/RSA-OAEP"
+	A192GCMRSAOAEP256        ElasticKeyAlgorithm = "A192GCM/RSA-OAEP-256"
+	A192GCMRSAOAEP384        ElasticKeyAlgorithm = "A192GCM/RSA-OAEP-384"
+	A192GCMRSAOAEP512        ElasticKeyAlgorithm = "A192GCM/RSA-OAEP-512"
+	A256CBCHS512A128GCMKW    ElasticKeyAlgorithm = "A256CBC-HS512/A128GCMKW"
+	A256CBCHS512A128KW       ElasticKeyAlgorithm = "A256CBC-HS512/A128KW"
+	A256CBCHS512A192GCMKW    ElasticKeyAlgorithm = "A256CBC-HS512/A192GCMKW"
+	A256CBCHS512A192KW       ElasticKeyAlgorithm = "A256CBC-HS512/A192KW"
+	A256CBCHS512A256GCMKW    ElasticKeyAlgorithm = "A256CBC-HS512/A256GCMKW"
+	A256CBCHS512A256KW       ElasticKeyAlgorithm = "A256CBC-HS512/A256KW"
+	A256CBCHS512Dir          ElasticKeyAlgorithm = "A256CBC-HS512/dir"
+	A256CBCHS512ECDHES       ElasticKeyAlgorithm = "A256CBC-HS512/ECDH-ES"
+	A256CBCHS512ECDHESA128KW ElasticKeyAlgorithm = "A256CBC-HS512/ECDH-ES+A128KW"
+	A256CBCHS512ECDHESA192KW ElasticKeyAlgorithm = "A256CBC-HS512/ECDH-ES+A192KW"
+	A256CBCHS512ECDHESA256KW ElasticKeyAlgorithm = "A256CBC-HS512/ECDH-ES+A256KW"
+	A256CBCHS512RSA15        ElasticKeyAlgorithm = "A256CBC-HS512/RSA1_5"
+	A256CBCHS512RSAOAEP      ElasticKeyAlgorithm = "A256CBC-HS512/RSA-OAEP"
+	A256CBCHS512RSAOAEP256   ElasticKeyAlgorithm = "A256CBC-HS512/RSA-OAEP-256"
+	A256CBCHS512RSAOAEP384   ElasticKeyAlgorithm = "A256CBC-HS512/RSA-OAEP-384"
+	A256CBCHS512RSAOAEP512   ElasticKeyAlgorithm = "A256CBC-HS512/RSA-OAEP-512"
+	A256GCMA128GCMKW         ElasticKeyAlgorithm = "A256GCM/A128GCMKW"
+	A256GCMA128KW            ElasticKeyAlgorithm = "A256GCM/A128KW"
+	A256GCMA192GCMKW         ElasticKeyAlgorithm = "A256GCM/A192GCMKW"
+	A256GCMA192KW            ElasticKeyAlgorithm = "A256GCM/A192KW"
+	A256GCMA256GCMKW         ElasticKeyAlgorithm = "A256GCM/A256GCMKW"
+	A256GCMA256KW            ElasticKeyAlgorithm = "A256GCM/A256KW"
+	A256GCMDir               ElasticKeyAlgorithm = "A256GCM/dir"
+	A256GCMECDHES            ElasticKeyAlgorithm = "A256GCM/ECDH-ES"
+	A256GCMECDHESA128KW      ElasticKeyAlgorithm = "A256GCM/ECDH-ES+A128KW"
+	A256GCMECDHESA192KW      ElasticKeyAlgorithm = "A256GCM/ECDH-ES+A192KW"
+	A256GCMECDHESA256KW      ElasticKeyAlgorithm = "A256GCM/ECDH-ES+A256KW"
+	A256GCMRSA15             ElasticKeyAlgorithm = "A256GCM/RSA1_5"
+	A256GCMRSAOAEP           ElasticKeyAlgorithm = "A256GCM/RSA-OAEP"
+	A256GCMRSAOAEP256        ElasticKeyAlgorithm = "A256GCM/RSA-OAEP-256"
+	A256GCMRSAOAEP384        ElasticKeyAlgorithm = "A256GCM/RSA-OAEP-384"
+	A256GCMRSAOAEP512        ElasticKeyAlgorithm = "A256GCM/RSA-OAEP-512"
+	ES256                    ElasticKeyAlgorithm = "ES256"
+	ES384                    ElasticKeyAlgorithm = "ES384"
+	ES512                    ElasticKeyAlgorithm = "ES512"
+	EdDSA                    ElasticKeyAlgorithm = "EdDSA"
+	HS256                    ElasticKeyAlgorithm = "HS256"
+	HS384                    ElasticKeyAlgorithm = "HS384"
+	HS512                    ElasticKeyAlgorithm = "HS512"
+	PS256                    ElasticKeyAlgorithm = "PS256"
+	PS384                    ElasticKeyAlgorithm = "PS384"
+	PS512                    ElasticKeyAlgorithm = "PS512"
+	RS256                    ElasticKeyAlgorithm = "RS256"
+	RS384                    ElasticKeyAlgorithm = "RS384"
+	RS512                    ElasticKeyAlgorithm = "RS512"
+)
+
+// Defines values for ElasticKeyProvider.
+const (
+	Internal ElasticKeyProvider = "Internal"
+)
+
+// Defines values for ElasticKeySort.
+const (
+	ElasticKeySortAlgorithmASC          ElasticKeySort = "algorithm:ASC"
+	ElasticKeySortAlgorithmDESC         ElasticKeySort = "algorithm:DESC"
+	ElasticKeySortElasticKeyIDASC       ElasticKeySort = "elastic_key_id:ASC"
+	ElasticKeySortElasticKeyIDDESC      ElasticKeySort = "elastic_key_id:DESC"
+	ElasticKeySortExportAllowedASC      ElasticKeySort = "export_allowed:ASC"
+	ElasticKeySortExportAllowedDESC     ElasticKeySort = "export_allowed:DESC"
+	ElasticKeySortImportAllowedASC      ElasticKeySort = "import_allowed:ASC"
+	ElasticKeySortImportAllowedDESC     ElasticKeySort = "import_allowed:DESC"
+	ElasticKeySortNameASC               ElasticKeySort = "name:ASC"
+	ElasticKeySortNameDESC              ElasticKeySort = "name:DESC"
+	ElasticKeySortProviderASC           ElasticKeySort = "provider:ASC"
+	ElasticKeySortProviderDESC          ElasticKeySort = "provider:DESC"
+	ElasticKeySortStatusASC             ElasticKeySort = "status:ASC"
+	ElasticKeySortStatusDESC            ElasticKeySort = "status:DESC"
+	ElasticKeySortVersioningAllowedASC  ElasticKeySort = "versioning_allowed:ASC"
+	ElasticKeySortVersioningAllowedDESC ElasticKeySort = "versioning_allowed:DESC"
 )
 
 // Defines values for ElasticKeyStatus.
 const (
-	Active   ElasticKeyStatus = "active"
-	Deleted  ElasticKeyStatus = "deleted"
-	Inactive ElasticKeyStatus = "inactive"
+	Active                         ElasticKeyStatus = "active"
+	Creating                       ElasticKeyStatus = "creating"
+	Disabled                       ElasticKeyStatus = "disabled"
+	FinishedDelete                 ElasticKeyStatus = "finished_delete"
+	GenerateFailed                 ElasticKeyStatus = "generate_failed"
+	ImportFailed                   ElasticKeyStatus = "import_failed"
+	PendingDeleteWasActive         ElasticKeyStatus = "pending_delete_was_active"
+	PendingDeleteWasDisabled       ElasticKeyStatus = "pending_delete_was_disabled"
+	PendingDeleteWasGenerateFailed ElasticKeyStatus = "pending_delete_was_generate_failed"
+	PendingDeleteWasImportFailed   ElasticKeyStatus = "pending_delete_was_import_failed"
+	PendingDeleteWasPendingImport  ElasticKeyStatus = "pending_delete_was_pending_import"
+	PendingGenerate                ElasticKeyStatus = "pending_generate"
+	PendingImport                  ElasticKeyStatus = "pending_import"
+	StartedDelete                  ElasticKeyStatus = "started_delete"
 )
+
+// Defines values for GenerateAlgorithm.
+const (
+	ECP256     GenerateAlgorithm = "EC/P256"
+	ECP384     GenerateAlgorithm = "EC/P384"
+	ECP521     GenerateAlgorithm = "EC/P521"
+	OKPEd25519 GenerateAlgorithm = "OKP/Ed25519"
+	Oct128     GenerateAlgorithm = "oct/128"
+	Oct192     GenerateAlgorithm = "oct/192"
+	Oct256     GenerateAlgorithm = "oct/256"
+	Oct384     GenerateAlgorithm = "oct/384"
+	Oct512     GenerateAlgorithm = "oct/512"
+	RSA2048    GenerateAlgorithm = "RSA/2048"
+	RSA3072    GenerateAlgorithm = "RSA/3072"
+	RSA4096    GenerateAlgorithm = "RSA/4096"
+)
+
+// Defines values for MaterialKeySort.
+const (
+	MaterialKeySortElasticKeyID       MaterialKeySort = "elastic_key_id"
+	MaterialKeySortElasticKeyIDASC    MaterialKeySort = "elastic_key_id:ASC"
+	MaterialKeySortElasticKeyIDDESC   MaterialKeySort = "elastic_key_id:DESC"
+	MaterialKeySortExpirationDate     MaterialKeySort = "expiration_date"
+	MaterialKeySortExpirationDateASC  MaterialKeySort = "expiration_date:ASC"
+	MaterialKeySortExpirationDateDESC MaterialKeySort = "expiration_date:DESC"
+	MaterialKeySortGenerateDate       MaterialKeySort = "generate_date"
+	MaterialKeySortGenerateDateASC    MaterialKeySort = "generate_date:ASC"
+	MaterialKeySortGenerateDateDESC   MaterialKeySort = "generate_date:DESC"
+	MaterialKeySortImportDate         MaterialKeySort = "import_date"
+	MaterialKeySortImportDateASC      MaterialKeySort = "import_date:ASC"
+	MaterialKeySortImportDateDESC     MaterialKeySort = "import_date:DESC"
+	MaterialKeySortMaterialKeyID      MaterialKeySort = "material_key_id"
+	MaterialKeySortMaterialKeyIDASC   MaterialKeySort = "material_key_id:ASC"
+	MaterialKeySortMaterialKeyIDDESC  MaterialKeySort = "material_key_id:DESC"
+	MaterialKeySortRevocationDate     MaterialKeySort = "revocation_date"
+	MaterialKeySortRevocationDateASC  MaterialKeySort = "revocation_date:ASC"
+	MaterialKeySortRevocationDateDESC MaterialKeySort = "revocation_date:DESC"
+)
+
+// DecryptRequest JSON Web Encryption (JWE) message in compact serialized format. See RFC 7516 JSON Web Encryption (JWE) for more details. Compact serialized format is 'Header.EncryptedKey.IV.Ciphertext.AuthenticationTag'. Each section is Base64Url-encoded; Some parts can be empty depending on 'alg' and 'enc' headers. - Header: Required base64Url-encoded JSON key/values for the JWE message. - EncryptedKey: Optional base64Url-encoded of an encrypted symmetric key used to encrypt the payload. Mon-empty for envelope encryption (e.g. alg=a256gcmkw), or empty for direct encryption (e.g. alg=dir). - IV: Required base64Url-encoded Initialization Vector (IV) used to encrypt the payload. For AES-GCM or AES-GCM-SIV it contains a 12-bytes nonce. For AES-CBC it contains a 16-bytes IV. - Ciphertext: Required base64Url-encoded encrypted bytes. - AuthenticationTag: Required base64Url-encoded authentication tag. For AES-GCM or AES-GCM-SIV it's a 16-bytes authentication tag. For AES-CBC-HMAC it contains an AEAD HMAC hash.
+type DecryptRequest = string
+
+// DecryptResponse Decrypted string. For bytes, decode from text (e.g. Hexadecimal, Base64, Base64-URL, Base64-MIME, etc) back to bytes.
+type DecryptResponse = string
 
 // ElasticKey defines model for ElasticKey.
 type ElasticKey struct {
-	// Algorithm Cryptographic algorithm
-	Algorithm *string `json:"algorithm,omitempty"`
+	// Algorithm Cryptographic algorithm(s) used for Material Keys in the Elastic Key. The first is the content encryption algorithm, and the second is the optional key encryption algorithm. If key encryption algorithm is 'dir', the Elastic Key Key is directly used on values. direct encryption is useful for small values. If key encryption algorithm is 'K*W', a random Content Encryption Key (CEK) is used directly on values, and the Elastic Key Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc). If in doubt, it is safe to use 'A256GCM/A256KW' for all values; it is the default.
+	Algorithm *ElasticKeyAlgorithm `json:"algorithm,omitempty"`
 
-	// Description Description
-	Description *string `json:"description,omitempty"`
+	// Description Description for an Elastic Key.
+	Description *ElasticKeyDescription `json:"description,omitempty"`
 
-	// ElasticKeyId Unique UUID for the elastic key
-	ElasticKeyId *openapi_types.UUID `json:"elastic_key_id,omitempty"`
+	// ElasticKeyID Unique UUID for an Elastic Key.
+	ElasticKeyID *ElasticKeyID `json:"elastic_key_id,omitempty"`
 
-	// ImportAllowed Import allowed flag
-	ImportAllowed *bool `json:"import_allowed,omitempty"`
+	// ImportAllowed Indicates if the Elastic Key supports import (BYOK).
+	ImportAllowed *ElasticKeyImportAllowed `json:"import_allowed,omitempty"`
 
-	// Name Friendly name
-	Name *string `json:"name,omitempty"`
+	// Name Friendly name for an Elastic Key.
+	Name *ElasticKeyName `json:"name,omitempty"`
 
-	// Provider Provider type
-	Provider *string `json:"provider,omitempty"`
+	// Provider Provider of the Elastic Key management service.
+	Provider *ElasticKeyProvider `json:"provider,omitempty"`
 
-	// Status Current status
+	// Status Status of the Elastic Key.
 	Status *ElasticKeyStatus `json:"status,omitempty"`
 
-	// TenantId Tenant ID for multi-tenant isolation
-	TenantId *openapi_types.UUID `json:"tenant_id,omitempty"`
-
-	// VersioningAllowed Versioning allowed flag
-	VersioningAllowed *bool `json:"versioning_allowed,omitempty"`
+	// VersioningAllowed Indicates if the Elastic Key supports versioning.
+	VersioningAllowed *ElasticKeyVersioningAllowed `json:"versioning_allowed,omitempty"`
 }
 
-// ElasticKeyStatus Current status
-type ElasticKeyStatus string
+// ElasticKeyAlgorithm Cryptographic algorithm(s) used for Material Keys in the Elastic Key. The first is the content encryption algorithm, and the second is the optional key encryption algorithm. If key encryption algorithm is 'dir', the Elastic Key Key is directly used on values. direct encryption is useful for small values. If key encryption algorithm is 'K*W', a random Content Encryption Key (CEK) is used directly on values, and the Elastic Key Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc). If in doubt, it is safe to use 'A256GCM/A256KW' for all values; it is the default.
+type ElasticKeyAlgorithm string
 
 // ElasticKeyCreate defines model for ElasticKeyCreate.
 type ElasticKeyCreate struct {
-	// Algorithm Cryptographic algorithm
-	Algorithm string `json:"algorithm"`
+	// Algorithm Cryptographic algorithm(s) used for Material Keys in the Elastic Key. The first is the content encryption algorithm, and the second is the optional key encryption algorithm. If key encryption algorithm is 'dir', the Elastic Key Key is directly used on values. direct encryption is useful for small values. If key encryption algorithm is 'K*W', a random Content Encryption Key (CEK) is used directly on values, and the Elastic Key Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc). If in doubt, it is safe to use 'A256GCM/A256KW' for all values; it is the default.
+	Algorithm *ElasticKeyAlgorithm `json:"algorithm,omitempty"`
 
-	// Description Description of the elastic key's purpose
-	Description *string `json:"description,omitempty"`
+	// Description Description for an Elastic Key.
+	Description ElasticKeyDescription `json:"description"`
 
-	// ImportAllowed Whether external key import is allowed
-	ImportAllowed *bool `json:"import_allowed,omitempty"`
+	// ImportAllowed Indicates if the Elastic Key supports import (BYOK).
+	ImportAllowed *ElasticKeyImportAllowed `json:"import_allowed,omitempty"`
 
-	// Name Friendly name for the elastic key
-	Name string `json:"name"`
+	// Name Friendly name for an Elastic Key.
+	Name ElasticKeyName `json:"name"`
 
-	// Provider Key provider type
-	Provider string `json:"provider"`
+	// Provider Provider of the Elastic Key management service.
+	Provider *ElasticKeyProvider `json:"provider,omitempty"`
 
-	// VersioningAllowed Whether key versioning is allowed
-	VersioningAllowed *bool `json:"versioning_allowed,omitempty"`
+	// VersioningAllowed Indicates if the Elastic Key supports versioning.
+	VersioningAllowed *ElasticKeyVersioningAllowed `json:"versioning_allowed,omitempty"`
 }
+
+// ElasticKeyDescription Description for an Elastic Key.
+type ElasticKeyDescription = string
+
+// ElasticKeyID Unique UUID for an Elastic Key.
+type ElasticKeyID = openapi_types.UUID
+
+// ElasticKeyImportAllowed Indicates if the Elastic Key supports import (BYOK).
+type ElasticKeyImportAllowed = bool
+
+// ElasticKeyMaterialKeysQueryParams defines model for ElasticKeyMaterialKeysQueryParams.
+type ElasticKeyMaterialKeysQueryParams struct {
+	MaterialKeyID *[]MaterialKeyID `json:"material_key_id,omitempty"`
+
+	// MaxExpirationDate ISO 8601 UTC timestamp of Material Key generation.
+	MaxExpirationDate *MaterialKeyExpirationDate `json:"max_expiration_date,omitempty"`
+
+	// MaxGenerateDate ISO 8601 UTC timestamp of Material Key generation.
+	MaxGenerateDate *MaterialKeyGenerateDate `json:"max_generate_date,omitempty"`
+
+	// MaxImportDate ISO 8601 UTC timestamp of Material Key generation.
+	MaxImportDate *MaterialKeyImportDate `json:"max_import_date,omitempty"`
+
+	// MaxRevocationDate ISO 8601 UTC timestamp of Material Key generation.
+	MaxRevocationDate *MaterialKeyRevocationDate `json:"max_revocation_date,omitempty"`
+
+	// MinExpirationDate ISO 8601 UTC timestamp of Material Key generation.
+	MinExpirationDate *MaterialKeyExpirationDate `json:"min_expiration_date,omitempty"`
+
+	// MinGenerateDate ISO 8601 UTC timestamp of Material Key generation.
+	MinGenerateDate *MaterialKeyGenerateDate `json:"min_generate_date,omitempty"`
+
+	// MinImportDate ISO 8601 UTC timestamp of Material Key generation.
+	MinImportDate *MaterialKeyImportDate `json:"min_import_date,omitempty"`
+
+	// MinRevocationDate ISO 8601 UTC timestamp of Material Key generation.
+	MinRevocationDate *MaterialKeyRevocationDate `json:"min_revocation_date,omitempty"`
+
+	// Page Page number starting at 0.
+	Page *PageNumber `json:"page,omitempty"`
+
+	// Size Page number.
+	Size *PageSize          `json:"size,omitempty"`
+	Sort *[]MaterialKeySort `json:"sort,omitempty"`
+}
+
+// ElasticKeyName Friendly name for an Elastic Key.
+type ElasticKeyName = string
+
+// ElasticKeyProvider Provider of the Elastic Key management service.
+type ElasticKeyProvider string
+
+// ElasticKeySort defines model for ElasticKeySort.
+type ElasticKeySort string
+
+// ElasticKeyStatus Status of the Elastic Key.
+type ElasticKeyStatus string
 
 // ElasticKeyUpdate defines model for ElasticKeyUpdate.
 type ElasticKeyUpdate struct {
-	// Description Updated description
-	Description *string `json:"description,omitempty"`
+	// Description Description for an Elastic Key.
+	Description ElasticKeyDescription `json:"description"`
 
-	// Name Updated friendly name
-	Name string `json:"name"`
+	// Name Friendly name for an Elastic Key.
+	Name ElasticKeyName `json:"name"`
 }
 
-// Error defines model for Error.
-type Error struct {
-	// Code Error code
-	Code string `json:"code"`
+// ElasticKeyVersioningAllowed Indicates if the Elastic Key supports versioning.
+type ElasticKeyVersioningAllowed = bool
 
-	// Details Additional error details
-	Details *map[string]any `json:"details,omitempty"`
+// ElasticKeysQueryParams defines model for ElasticKeysQueryParams.
+type ElasticKeysQueryParams struct {
+	Algorithm    *[]ElasticKeyAlgorithm `json:"algorithm,omitempty"`
+	ElasticKeyID *[]ElasticKeyID        `json:"elastic_key_id,omitempty"`
 
-	// Message Human-readable error message
+	// ImportAllowed Indicates if the Elastic Key supports import (BYOK).
+	ImportAllowed *ElasticKeyImportAllowed `json:"import_allowed,omitempty"`
+	Name          *[]ElasticKeyName        `json:"name,omitempty"`
+
+	// Page Page number starting at 0.
+	Page     *PageNumber           `json:"page,omitempty"`
+	Provider *[]ElasticKeyProvider `json:"provider,omitempty"`
+
+	// Size Page number.
+	Size   *PageSize           `json:"size,omitempty"`
+	Sort   *[]ElasticKeySort   `json:"sort,omitempty"`
+	Status *[]ElasticKeyStatus `json:"status,omitempty"`
+
+	// VersioningAllowed Indicates if the Elastic Key supports versioning.
+	VersioningAllowed *ElasticKeyVersioningAllowed `json:"versioning_allowed,omitempty"`
+}
+
+// EncryptContext Base64URL-encoded context. This is clear data used for authentication and integrity checking during decryption (e.g. namespace, context).
+type EncryptContext = string
+
+// EncryptParams defines model for EncryptParams.
+type EncryptParams struct {
+	// Context Base64URL-encoded context. This is clear data used for authentication and integrity checking during decryption (e.g. namespace, context).
+	Context *EncryptContext `json:"context,omitempty"`
+}
+
+// EncryptRequest Clear string to be encrypted. For bytes, pre-encode as text (e.g. Hexadecimal, Base64, Base64-URL, Base64-MIME, etc).
+type EncryptRequest = string
+
+// EncryptResponse JSON Web Encryption (JWE) message in compact serialized format. See RFC 7516 JSON Web Encryption (JWE) for more details. Compact serialized format is 'Header.EncryptedKey.IV.Ciphertext.AuthenticationTag'. Each section is Base64Url-encoded; Some parts can be empty depending on 'alg' and 'enc' headers. - Header: Required base64Url-encoded JSON key/values for the JWE. - EncryptedKey: Optional base64Url-encoded of an encrypted symmetric key used to encrypt the payload. Mon-empty for envelope encryption (e.g. alg=a256gcmkw), or empty for direct encryption (e.g. alg=dir). - IV: Required base64Url-encoded Initialization Vector (IV) used to encrypt the payload. For AES-GCM or AES-GCM-SIV it contains a 12-bytes nonce. For AES-CBC it contains a 16-bytes IV. - Ciphertext: Required base64Url-encoded encrypted bytes. - AuthenticationTag: Required base64Url-encoded authentication tag. For AES-GCM or AES-GCM-SIV it's a 16-bytes authentication tag. For AES-CBC-HMAC it contains an AEAD HMAC hash.
+type EncryptResponse = string
+
+// GenerateAlgorithm Key or Key Pair algorithm.
+type GenerateAlgorithm string
+
+// GenerateParams defines model for GenerateParams.
+type GenerateParams struct {
+	// Alg Key or Key Pair algorithm.
+	Alg *GenerateAlgorithm `json:"alg,omitempty"`
+
+	// Context Base64URL-encoded context. This is clear data used for authentication and integrity checking during decryption (e.g. namespace, context).
+	Context *EncryptContext `json:"context,omitempty"`
+}
+
+// GenerateResponse JSON Web Encryption (JWE) message in compact serialized format. See RFC 7516 JSON Web Encryption (JWE) for more details. Compact serialized format is 'Header.EncryptedKey.IV.Ciphertext.AuthenticationTag'. Each section is Base64Url-encoded; Some parts can be empty depending on 'alg' and 'enc' headers. - Header: Required base64Url-encoded JSON key/values for the JWE. - EncryptedKey: Optional base64Url-encoded of an encrypted symmetric key used to encrypt the payload. Mon-empty for envelope encryption (e.g. alg=a256gcmkw), or empty for direct encryption (e.g. alg=dir). - IV: Required base64Url-encoded Initialization Vector (IV) used to encrypt the payload. For AES-GCM or AES-GCM-SIV it contains a 12-bytes nonce. For AES-CBC it contains a 16-bytes IV. - Ciphertext: Required base64Url-encoded encrypted bytes. - AuthenticationTag: Required base64Url-encoded authentication tag. For AES-GCM or AES-GCM-SIV it's a 16-bytes authentication tag. For AES-CBC-HMAC it contains an AEAD HMAC hash.
+type GenerateResponse = string
+
+// HTTPError defines model for HTTPError.
+type HTTPError struct {
+	// Error HTTP status message
+	Error string `json:"error"`
+
+	// Message Detailed error message
 	Message string `json:"message"`
 
-	// RequestId Request ID for tracing
-	RequestId *openapi_types.UUID `json:"request_id,omitempty"`
+	// Status HTTP status code
+	Status int `json:"status"`
 }
 
 // MaterialKey defines model for MaterialKey.
 type MaterialKey struct {
-	// ClearPublic Public key material (for asymmetric keys)
-	ClearPublic *string `json:"clear_public,omitempty"`
+	// ClearPublic Clear public key Material Key (if applicable)
+	ClearPublic *MaterialKeyClearPublic `json:"clear_public,omitempty"`
 
-	// ElasticKeyId Parent elastic key UUID
-	ElasticKeyId *openapi_types.UUID `json:"elastic_key_id,omitempty"`
+	// ElasticKeyID Unique UUID for an Elastic Key.
+	ElasticKeyID ElasticKeyID `json:"elastic_key_id"`
 
-	// ExpirationDate Date when key expires
-	ExpirationDate *time.Time `json:"expiration_date,omitempty"`
+	// ExpirationDate ISO 8601 UTC timestamp of Material Key generation.
+	ExpirationDate *MaterialKeyExpirationDate `json:"expiration_date,omitempty"`
 
-	// GenerateDate Date when key was generated
-	GenerateDate *time.Time `json:"generate_date,omitempty"`
+	// GenerateDate ISO 8601 UTC timestamp of Material Key generation.
+	GenerateDate *MaterialKeyGenerateDate `json:"generate_date,omitempty"`
 
-	// ImportDate Date when key was imported
-	ImportDate *time.Time `json:"import_date,omitempty"`
+	// ImportDate ISO 8601 UTC timestamp of Material Key generation.
+	ImportDate *MaterialKeyImportDate `json:"import_date,omitempty"`
 
-	// MaterialKeyId Material key UUID
-	MaterialKeyId *openapi_types.UUID `json:"material_key_id,omitempty"`
+	// MaterialKeyID Unique UUID for a Material Key.
+	MaterialKeyID MaterialKeyID `json:"material_key_id"`
 
-	// RevocationDate Date when key was revoked
-	RevocationDate *time.Time `json:"revocation_date,omitempty"`
-
-	// TenantId Tenant ID for multi-tenant isolation
-	TenantId *openapi_types.UUID `json:"tenant_id,omitempty"`
+	// RevocationDate ISO 8601 UTC timestamp of Material Key generation.
+	RevocationDate *MaterialKeyRevocationDate `json:"revocation_date,omitempty"`
 }
 
-// MaterialKeyGenerate Request body for generating a new material key (empty object)
+// MaterialKeyClearPublic Clear public key Material Key (if applicable)
+type MaterialKeyClearPublic = string
+
+// MaterialKeyExpirationDate ISO 8601 UTC timestamp of Material Key generation.
+type MaterialKeyExpirationDate = time.Time
+
+// MaterialKeyGenerate defines model for MaterialKeyGenerate.
 type MaterialKeyGenerate = map[string]any
+
+// MaterialKeyGenerateDate ISO 8601 UTC timestamp of Material Key generation.
+type MaterialKeyGenerateDate = time.Time
+
+// MaterialKeyID Unique UUID for a Material Key.
+type MaterialKeyID = openapi_types.UUID
 
 // MaterialKeyImport defines model for MaterialKeyImport.
 type MaterialKeyImport struct {
-	// Jwk JSON Web Key in compact JSON format to import
-	Jwk string `json:"jwk"`
+	// JWK JSON Web Key in compact JSON format to import
+	JWK string `json:"jwk"`
 }
 
-// Algorithms defines model for Algorithms.
-type Algorithms = []string
+// MaterialKeyImportDate ISO 8601 UTC timestamp of Material Key generation.
+type MaterialKeyImportDate = time.Time
 
-// ElasticKeyID defines model for ElasticKeyID.
-type ElasticKeyID = openapi_types.UUID
+// MaterialKeyRevocationDate ISO 8601 UTC timestamp of Material Key generation.
+type MaterialKeyRevocationDate = time.Time
 
-// ElasticKeyIDs defines model for ElasticKeyIDs.
-type ElasticKeyIDs = []openapi_types.UUID
+// MaterialKeySort defines model for MaterialKeySort.
+type MaterialKeySort string
 
-// ImportAllowed defines model for ImportAllowed.
-type ImportAllowed = bool
+// MaterialKeyUpdate defines model for MaterialKeyUpdate.
+type MaterialKeyUpdate struct {
+	// ElasticKeyID Unique UUID for an Elastic Key.
+	ElasticKeyID ElasticKeyID `json:"elastic_key_id"`
 
-// MaterialKeyID defines model for MaterialKeyID.
-type MaterialKeyID = openapi_types.UUID
+	// MaterialKeyID Unique UUID for a Material Key.
+	MaterialKeyID MaterialKeyID `json:"material_key_id"`
+}
 
-// MaterialKeyIDs defines model for MaterialKeyIDs.
-type MaterialKeyIDs = []openapi_types.UUID
+// MaterialKeysQueryParams defines model for MaterialKeysQueryParams.
+type MaterialKeysQueryParams struct {
+	ElasticKeyID  *[]ElasticKeyID  `json:"elastic_key_id,omitempty"`
+	MaterialKeyID *[]MaterialKeyID `json:"material_key_id,omitempty"`
 
-// MaterialKeyPageNumber defines model for MaterialKeyPageNumber.
-type MaterialKeyPageNumber = int
+	// MaxExpirationDate ISO 8601 UTC timestamp of Material Key generation.
+	MaxExpirationDate *MaterialKeyExpirationDate `json:"max_expiration_date,omitempty"`
 
-// MaterialKeyPageSize defines model for MaterialKeyPageSize.
-type MaterialKeyPageSize = int
+	// MaxGenerateDate ISO 8601 UTC timestamp of Material Key generation.
+	MaxGenerateDate *MaterialKeyGenerateDate `json:"max_generate_date,omitempty"`
 
-// MaxExpirationDate defines model for MaxExpirationDate.
-type MaxExpirationDate = time.Time
+	// MaxImportDate ISO 8601 UTC timestamp of Material Key generation.
+	MaxImportDate *MaterialKeyImportDate `json:"max_import_date,omitempty"`
 
-// MaxGenerateDate defines model for MaxGenerateDate.
-type MaxGenerateDate = time.Time
+	// MaxRevocationDate ISO 8601 UTC timestamp of Material Key generation.
+	MaxRevocationDate *MaterialKeyRevocationDate `json:"max_revocation_date,omitempty"`
 
-// MaxImportDate defines model for MaxImportDate.
-type MaxImportDate = time.Time
+	// MinExpirationDate ISO 8601 UTC timestamp of Material Key generation.
+	MinExpirationDate *MaterialKeyExpirationDate `json:"min_expiration_date,omitempty"`
 
-// MaxRevocationDate defines model for MaxRevocationDate.
-type MaxRevocationDate = time.Time
+	// MinGenerateDate ISO 8601 UTC timestamp of Material Key generation.
+	MinGenerateDate *MaterialKeyGenerateDate `json:"min_generate_date,omitempty"`
 
-// MinExpirationDate defines model for MinExpirationDate.
-type MinExpirationDate = time.Time
+	// MinImportDate ISO 8601 UTC timestamp of Material Key generation.
+	MinImportDate *MaterialKeyImportDate `json:"min_import_date,omitempty"`
 
-// MinGenerateDate defines model for MinGenerateDate.
-type MinGenerateDate = time.Time
+	// MinRevocationDate ISO 8601 UTC timestamp of Material Key generation.
+	MinRevocationDate *MaterialKeyRevocationDate `json:"min_revocation_date,omitempty"`
 
-// MinImportDate defines model for MinImportDate.
-type MinImportDate = time.Time
+	// Page Page number starting at 0.
+	Page *PageNumber `json:"page,omitempty"`
 
-// MinRevocationDate defines model for MinRevocationDate.
-type MinRevocationDate = time.Time
+	// Size Page number.
+	Size *PageSize          `json:"size,omitempty"`
+	Sort *[]MaterialKeySort `json:"sort,omitempty"`
+}
 
-// Names defines model for Names.
-type Names = []string
-
-// PageNumber defines model for PageNumber.
+// PageNumber Page number starting at 0.
 type PageNumber = int
 
-// PageSize defines model for PageSize.
+// PageSize Page number.
 type PageSize = int
 
-// Providers defines model for Providers.
-type Providers = []string
+// SignContext Base64URL-encoded context. This is clear data used for integrity checking during verify (e.g. namespace, context).
+type SignContext = string
 
-// Sorts defines model for Sorts.
-type Sorts = []string
-
-// Statuses defines model for Statuses.
-type Statuses = []string
-
-// VersioningAllowed defines model for VersioningAllowed.
-type VersioningAllowed = bool
-
-// BadRequest defines model for BadRequest.
-type BadRequest = Error
-
-// Conflict defines model for Conflict.
-type Conflict = Error
-
-// Forbidden defines model for Forbidden.
-type Forbidden = Error
-
-// InternalServerError defines model for InternalServerError.
-type InternalServerError = Error
-
-// NotFound defines model for NotFound.
-type NotFound = Error
-
-// Unauthorized defines model for Unauthorized.
-type Unauthorized = Error
-
-// PostElastickeyElasticKeyIDDecryptTextBody defines parameters for PostElastickeyElasticKeyIDDecrypt.
-type PostElastickeyElasticKeyIDDecryptTextBody = string
-
-// PostElastickeyElasticKeyIDEncryptTextBody defines parameters for PostElastickeyElasticKeyIDEncrypt.
-type PostElastickeyElasticKeyIDEncryptTextBody = string
-
-// PostElastickeyElasticKeyIDEncryptParams defines parameters for PostElastickeyElasticKeyIDEncrypt.
-type PostElastickeyElasticKeyIDEncryptParams struct {
-	// Context Additional authenticated data for encryption context
-	Context *string `form:"context,omitempty" json:"context,omitempty"`
+// SignParams defines model for SignParams.
+type SignParams struct {
+	// Context Base64URL-encoded context. This is clear data used for integrity checking during verify (e.g. namespace, context).
+	Context *SignContext `json:"context,omitempty"`
 }
 
-// PostElastickeyElasticKeyIDGenerateParams defines parameters for PostElastickeyElasticKeyIDGenerate.
-type PostElastickeyElasticKeyIDGenerateParams struct {
-	// Context Additional authenticated data for encryption context
-	Context *string `form:"context,omitempty" json:"context,omitempty"`
+// SignRequest Clear text to be signed. Can be JSON-encoded to create a JWT, or freeform to create a JWS. If you need freeform, encode as text (e.g. Base64-URL, Base64-MIME, Base64, Hexadecimal, etc).
+type SignRequest = string
 
-	// Alg Algorithm for key generation
-	Alg *string `form:"alg,omitempty" json:"alg,omitempty"`
+// SignResponse JSON Web Signature (JWS) message in compact serialized format. See RFC 7515 JSON Web Signature (JWS) for more details. Compact serialized format is 'Header.Payload.Signature'. Each section is Base64Url-encoded. All parts are non-empty. - Header: Required base64Url-encoded JSON key/values for the JWS message. - Plaintext: Required base64Url-encoded clear text. Payload can be freeform (JWS), or in a special case it can be JSON (JWT). - Signature: Required base64Url-encoded signature.
+type SignResponse = string
+
+// VerifyRequest JSON Web Signature (JWS) message in compact serialized format. See RFC 7515 JSON Web Signature (JWS) for more details. Compact serialized format is 'Header.Payload.Signature'. Each section is Base64Url-encoded. All parts are non-empty. - Header: Required base64Url-encoded JSON key/values for the JWS message. - Plaintext: Required base64Url-encoded clear text. Payload can be freeform (JWS), or in a special case it can be JSON (JWT). - Signature: Required base64Url-encoded signature.
+type VerifyRequest = string
+
+// VerifyResponse Optional message about verification result
+type VerifyResponse = string
+
+// ElasticKeyQueryParamAlgorithms defines model for ElasticKeyQueryParamAlgorithms.
+type ElasticKeyQueryParamAlgorithms = []ElasticKeyAlgorithm
+
+// ElasticKeyQueryParamElasticKeyIDS defines model for ElasticKeyQueryParamElasticKeyIDS.
+type ElasticKeyQueryParamElasticKeyIDS = []ElasticKeyID
+
+// ElasticKeyQueryParamImportAllowed Indicates if the Elastic Key supports import (BYOK).
+type ElasticKeyQueryParamImportAllowed = ElasticKeyImportAllowed
+
+// ElasticKeyQueryParamNames defines model for ElasticKeyQueryParamNames.
+type ElasticKeyQueryParamNames = []ElasticKeyName
+
+// ElasticKeyQueryParamPageNumber Page number starting at 0.
+type ElasticKeyQueryParamPageNumber = PageNumber
+
+// ElasticKeyQueryParamPageSize Page number.
+type ElasticKeyQueryParamPageSize = PageSize
+
+// ElasticKeyQueryParamProviders defines model for ElasticKeyQueryParamProviders.
+type ElasticKeyQueryParamProviders = []ElasticKeyProvider
+
+// ElasticKeyQueryParamSorts defines model for ElasticKeyQueryParamSorts.
+type ElasticKeyQueryParamSorts = []ElasticKeySort
+
+// ElasticKeyQueryParamStatuses defines model for ElasticKeyQueryParamStatuses.
+type ElasticKeyQueryParamStatuses = []ElasticKeyStatus
+
+// ElasticKeyQueryParamVersioningAllowed Indicates if the Elastic Key supports versioning.
+type ElasticKeyQueryParamVersioningAllowed = ElasticKeyVersioningAllowed
+
+// MaterialKeyQueryParamElasticKeyIDS defines model for MaterialKeyQueryParamElasticKeyIDS.
+type MaterialKeyQueryParamElasticKeyIDS = []ElasticKeyID
+
+// MaterialKeyQueryParamMaterialKeyIDS defines model for MaterialKeyQueryParamMaterialKeyIDS.
+type MaterialKeyQueryParamMaterialKeyIDS = []MaterialKeyID
+
+// MaterialKeyQueryParamMaximumExpirationDate ISO 8601 UTC timestamp of Material Key generation.
+type MaterialKeyQueryParamMaximumExpirationDate = MaterialKeyExpirationDate
+
+// MaterialKeyQueryParamMaximumGenerateDate ISO 8601 UTC timestamp of Material Key generation.
+type MaterialKeyQueryParamMaximumGenerateDate = MaterialKeyGenerateDate
+
+// MaterialKeyQueryParamMaximumImportDate ISO 8601 UTC timestamp of Material Key generation.
+type MaterialKeyQueryParamMaximumImportDate = MaterialKeyImportDate
+
+// MaterialKeyQueryParamMaximumRevocationDate ISO 8601 UTC timestamp of Material Key generation.
+type MaterialKeyQueryParamMaximumRevocationDate = MaterialKeyRevocationDate
+
+// MaterialKeyQueryParamMinimumExpirationDate ISO 8601 UTC timestamp of Material Key generation.
+type MaterialKeyQueryParamMinimumExpirationDate = MaterialKeyExpirationDate
+
+// MaterialKeyQueryParamMinimumGenerateDate ISO 8601 UTC timestamp of Material Key generation.
+type MaterialKeyQueryParamMinimumGenerateDate = MaterialKeyGenerateDate
+
+// MaterialKeyQueryParamMinimumImportDate ISO 8601 UTC timestamp of Material Key generation.
+type MaterialKeyQueryParamMinimumImportDate = MaterialKeyImportDate
+
+// MaterialKeyQueryParamMinimumRevocationDate ISO 8601 UTC timestamp of Material Key generation.
+type MaterialKeyQueryParamMinimumRevocationDate = MaterialKeyRevocationDate
+
+// MaterialKeyQueryParamPageNumber Page number starting at 0.
+type MaterialKeyQueryParamPageNumber = PageNumber
+
+// MaterialKeyQueryParamPageSize Page number.
+type MaterialKeyQueryParamPageSize = PageSize
+
+// MaterialKeyQueryParamSorts defines model for MaterialKeyQueryParamSorts.
+type MaterialKeyQueryParamSorts = []MaterialKeySort
+
+// HTTP400BadRequest defines model for HTTP400BadRequest.
+type HTTP400BadRequest struct {
+	Error   string `json:"error"`
+	Message string `json:"message"`
+	Status  int    `json:"status"`
 }
 
-// GetElastickeyElasticKeyIDMaterialkeysParams defines parameters for GetElastickeyElasticKeyIDMaterialkeys.
-type GetElastickeyElasticKeyIDMaterialkeysParams struct {
-	// MaterialKeyIds Filter by material key IDs
-	MaterialKeyIds *MaterialKeyIDs `form:"material_key_ids,omitempty" json:"material_key_ids,omitempty"`
-
-	// MinGenerateDate Minimum generation date
-	MinGenerateDate *MinGenerateDate `form:"min_generate_date,omitempty" json:"min_generate_date,omitempty"`
-
-	// MaxGenerateDate Maximum generation date
-	MaxGenerateDate *MaxGenerateDate `form:"max_generate_date,omitempty" json:"max_generate_date,omitempty"`
-
-	// MinImportDate Minimum import date
-	MinImportDate *MinImportDate `form:"min_import_date,omitempty" json:"min_import_date,omitempty"`
-
-	// MaxImportDate Maximum import date
-	MaxImportDate *MaxImportDate `form:"max_import_date,omitempty" json:"max_import_date,omitempty"`
-
-	// MinExpirationDate Minimum expiration date
-	MinExpirationDate *MinExpirationDate `form:"min_expiration_date,omitempty" json:"min_expiration_date,omitempty"`
-
-	// MaxExpirationDate Maximum expiration date
-	MaxExpirationDate *MaxExpirationDate `form:"max_expiration_date,omitempty" json:"max_expiration_date,omitempty"`
-
-	// MinRevocationDate Minimum revocation date
-	MinRevocationDate *MinRevocationDate `form:"min_revocation_date,omitempty" json:"min_revocation_date,omitempty"`
-
-	// MaxRevocationDate Maximum revocation date
-	MaxRevocationDate *MaxRevocationDate `form:"max_revocation_date,omitempty" json:"max_revocation_date,omitempty"`
-
-	// PageNumber Page number for material keys pagination
-	PageNumber *MaterialKeyPageNumber `form:"page_number,omitempty" json:"page_number,omitempty"`
-
-	// PageSize Page size for material keys pagination
-	PageSize *MaterialKeyPageSize `form:"page_size,omitempty" json:"page_size,omitempty"`
+// HTTP401Unauthorized defines model for HTTP401Unauthorized.
+type HTTP401Unauthorized struct {
+	Error   string `json:"error"`
+	Message string `json:"message"`
+	Status  int    `json:"status"`
 }
 
-// PostElastickeyElasticKeyIDSignTextBody defines parameters for PostElastickeyElasticKeyIDSign.
-type PostElastickeyElasticKeyIDSignTextBody = string
-
-// PostElastickeyElasticKeyIDVerifyTextBody defines parameters for PostElastickeyElasticKeyIDVerify.
-type PostElastickeyElasticKeyIDVerifyTextBody = string
-
-// GetElastickeysParams defines parameters for GetElastickeys.
-type GetElastickeysParams struct {
-	// ElasticKeyIds Filter by elastic key IDs
-	ElasticKeyIds *ElasticKeyIDs `form:"elastic_key_ids,omitempty" json:"elastic_key_ids,omitempty"`
-
-	// Names Filter by elastic key names
-	Names *Names `form:"names,omitempty" json:"names,omitempty"`
-
-	// Providers Filter by providers
-	Providers *Providers `form:"providers,omitempty" json:"providers,omitempty"`
-
-	// Algorithms Filter by algorithms
-	Algorithms *Algorithms `form:"algorithms,omitempty" json:"algorithms,omitempty"`
-
-	// VersioningAllowed Filter by versioning allowed flag
-	VersioningAllowed *VersioningAllowed `form:"versioning_allowed,omitempty" json:"versioning_allowed,omitempty"`
-
-	// ImportAllowed Filter by import allowed flag
-	ImportAllowed *ImportAllowed `form:"import_allowed,omitempty" json:"import_allowed,omitempty"`
-
-	// Statuses Filter by elastic key statuses
-	Statuses *Statuses `form:"statuses,omitempty" json:"statuses,omitempty"`
-
-	// Sorts Sort fields
-	Sorts *Sorts `form:"sorts,omitempty" json:"sorts,omitempty"`
-
-	// PageNumber Page number for pagination
-	PageNumber *PageNumber `form:"page_number,omitempty" json:"page_number,omitempty"`
-
-	// PageSize Page size for pagination
-	PageSize *PageSize `form:"page_size,omitempty" json:"page_size,omitempty"`
+// HTTP403Forbidden defines model for HTTP403Forbidden.
+type HTTP403Forbidden struct {
+	Error   string `json:"error"`
+	Message string `json:"message"`
+	Status  int    `json:"status"`
 }
 
-// GetMaterialkeysParams defines parameters for GetMaterialkeys.
-type GetMaterialkeysParams struct {
-	// ElasticKeyIds Filter by elastic key IDs
-	ElasticKeyIds *ElasticKeyIDs `form:"elastic_key_ids,omitempty" json:"elastic_key_ids,omitempty"`
-
-	// MaterialKeyIds Filter by material key IDs
-	MaterialKeyIds *MaterialKeyIDs `form:"material_key_ids,omitempty" json:"material_key_ids,omitempty"`
-
-	// MinGenerateDate Minimum generation date
-	MinGenerateDate *MinGenerateDate `form:"min_generate_date,omitempty" json:"min_generate_date,omitempty"`
-
-	// MaxGenerateDate Maximum generation date
-	MaxGenerateDate *MaxGenerateDate `form:"max_generate_date,omitempty" json:"max_generate_date,omitempty"`
-
-	// MinImportDate Minimum import date
-	MinImportDate *MinImportDate `form:"min_import_date,omitempty" json:"min_import_date,omitempty"`
-
-	// MaxImportDate Maximum import date
-	MaxImportDate *MaxImportDate `form:"max_import_date,omitempty" json:"max_import_date,omitempty"`
-
-	// MinExpirationDate Minimum expiration date
-	MinExpirationDate *MinExpirationDate `form:"min_expiration_date,omitempty" json:"min_expiration_date,omitempty"`
-
-	// MaxExpirationDate Maximum expiration date
-	MaxExpirationDate *MaxExpirationDate `form:"max_expiration_date,omitempty" json:"max_expiration_date,omitempty"`
-
-	// MinRevocationDate Minimum revocation date
-	MinRevocationDate *MinRevocationDate `form:"min_revocation_date,omitempty" json:"min_revocation_date,omitempty"`
-
-	// MaxRevocationDate Maximum revocation date
-	MaxRevocationDate *MaxRevocationDate `form:"max_revocation_date,omitempty" json:"max_revocation_date,omitempty"`
-
-	// PageNumber Page number for material keys pagination
-	PageNumber *MaterialKeyPageNumber `form:"page_number,omitempty" json:"page_number,omitempty"`
-
-	// PageSize Page size for material keys pagination
-	PageSize *MaterialKeyPageSize `form:"page_size,omitempty" json:"page_size,omitempty"`
+// HTTP404NotFound defines model for HTTP404NotFound.
+type HTTP404NotFound struct {
+	Error   string `json:"error"`
+	Message string `json:"message"`
+	Status  int    `json:"status"`
 }
 
-// PostElastickeyJSONRequestBody defines body for PostElastickey for application/json ContentType.
-type PostElastickeyJSONRequestBody = ElasticKeyCreate
+// HTTP409Conflict defines model for HTTP409Conflict.
+type HTTP409Conflict struct {
+	Error   string `json:"error"`
+	Message string `json:"message"`
+	Status  int    `json:"status"`
+}
 
-// PutElastickeyElasticKeyIDJSONRequestBody defines body for PutElastickeyElasticKeyID for application/json ContentType.
-type PutElastickeyElasticKeyIDJSONRequestBody = ElasticKeyUpdate
+// HTTP429TooManyRequests defines model for HTTP429TooManyRequests.
+type HTTP429TooManyRequests struct {
+	Error   string `json:"error"`
+	Message string `json:"message"`
+	Status  int    `json:"status"`
+}
 
-// PostElastickeyElasticKeyIDDecryptTextRequestBody defines body for PostElastickeyElasticKeyIDDecrypt for text/plain ContentType.
-type PostElastickeyElasticKeyIDDecryptTextRequestBody = PostElastickeyElasticKeyIDDecryptTextBody
+// HTTP500InternalServerError defines model for HTTP500InternalServerError.
+type HTTP500InternalServerError struct {
+	Error   string `json:"error"`
+	Message string `json:"message"`
+	Status  int    `json:"status"`
+}
 
-// PostElastickeyElasticKeyIDEncryptTextRequestBody defines body for PostElastickeyElasticKeyIDEncrypt for text/plain ContentType.
-type PostElastickeyElasticKeyIDEncryptTextRequestBody = PostElastickeyElasticKeyIDEncryptTextBody
+// HTTP502BadGateway defines model for HTTP502BadGateway.
+type HTTP502BadGateway struct {
+	Error   string `json:"error"`
+	Message string `json:"message"`
+	Status  int    `json:"status"`
+}
 
-// PostElastickeyElasticKeyIDImportJSONRequestBody defines body for PostElastickeyElasticKeyIDImport for application/json ContentType.
-type PostElastickeyElasticKeyIDImportJSONRequestBody = MaterialKeyImport
+// HTTP503ServiceUnavailable defines model for HTTP503ServiceUnavailable.
+type HTTP503ServiceUnavailable struct {
+	Error   string `json:"error"`
+	Message string `json:"message"`
+	Status  int    `json:"status"`
+}
 
-// PostElastickeyElasticKeyIDMaterialkeyJSONRequestBody defines body for PostElastickeyElasticKeyIDMaterialkey for application/json ContentType.
-type PostElastickeyElasticKeyIDMaterialkeyJSONRequestBody = MaterialKeyGenerate
+// HTTP504GatewayTimeout defines model for HTTP504GatewayTimeout.
+type HTTP504GatewayTimeout struct {
+	Error   string `json:"error"`
+	Message string `json:"message"`
+	Status  int    `json:"status"`
+}
 
-// PostElastickeyElasticKeyIDSignTextRequestBody defines body for PostElastickeyElasticKeyIDSign for text/plain ContentType.
-type PostElastickeyElasticKeyIDSignTextRequestBody = PostElastickeyElasticKeyIDSignTextBody
+// Base64 encoded, gzipped, json marshaled Swagger object
+var swaggerSpec = []string{
 
-// PostElastickeyElasticKeyIDVerifyTextRequestBody defines body for PostElastickeyElasticKeyIDVerify for text/plain ContentType.
-type PostElastickeyElasticKeyIDVerifyTextRequestBody = PostElastickeyElasticKeyIDVerifyTextBody
+	"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",
+}
+
+// GetSwagger returns the content of the embedded swagger specification file
+// or error if failed to decode
+func decodeSpec() ([]byte, error) {
+	zipped, err := base64.StdEncoding.DecodeString(strings.Join(swaggerSpec, ""))
+	if err != nil {
+		return nil, fmt.Errorf("error base64 decoding spec: %w", err)
+	}
+	zr, err := gzip.NewReader(bytes.NewReader(zipped))
+	if err != nil {
+		return nil, fmt.Errorf("error decompressing spec: %w", err)
+	}
+	var buf bytes.Buffer
+	_, err = buf.ReadFrom(zr)
+	if err != nil {
+		return nil, fmt.Errorf("error decompressing spec: %w", err)
+	}
+
+	return buf.Bytes(), nil
+}
+
+var rawSpec = decodeSpecCached()
+
+// a naive cached of a decoded swagger spec
+func decodeSpecCached() func() ([]byte, error) {
+	data, err := decodeSpec()
+	return func() ([]byte, error) {
+		return data, err
+	}
+}
+
+// Constructs a synthetic filesystem for resolving external references when loading openapi specifications.
+func PathToRawSpec(pathToFile string) map[string]func() ([]byte, error) {
+	res := make(map[string]func() ([]byte, error))
+	if len(pathToFile) > 0 {
+		res[pathToFile] = rawSpec
+	}
+
+	return res
+}
+
+// GetSwagger returns the Swagger specification corresponding to the generated code
+// in this file. The external references of Swagger specification are resolved.
+// The logic of resolving external references is tightly connected to "import-mapping" feature.
+// Externally referenced files must be embedded in the corresponding golang packages.
+// Urls can be supported but this task was out of the scope.
+func GetSwagger() (swagger *openapi3.T, err error) {
+	resolvePath := PathToRawSpec("")
+
+	loader := openapi3.NewLoader()
+	loader.IsExternalRefsAllowed = true
+	loader.ReadFromURIFunc = func(loader *openapi3.Loader, url *url.URL) ([]byte, error) {
+		pathToFile := url.String()
+		pathToFile = path.Clean(pathToFile)
+		getSpec, ok := resolvePath[pathToFile]
+		if !ok {
+			err1 := fmt.Errorf("path not found: %s", pathToFile)
+			return nil, err1
+		}
+		return getSpec()
+	}
+	var specData []byte
+	specData, err = rawSpec()
+	if err != nil {
+		return
+	}
+	swagger, err = loader.LoadFromData(specData)
+	if err != nil {
+		return
+	}
+	return
+}

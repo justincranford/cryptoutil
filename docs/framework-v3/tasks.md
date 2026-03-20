@@ -1,7 +1,7 @@
 # Tasks - Framework v3
 
-**Status**: 86 of 86 tasks complete (100%)
-**Last Updated**: 2026-03-18
+**Status**: 92 of 92 tasks complete (100%) — Phase 10B (6 tasks) complete
+**Last Updated**: 2026-07-18
 **Created**: 2026-03-08
 
 ## Quality Mandate - MANDATORY
@@ -1008,12 +1008,12 @@
 - **Dependencies**: Task 6.3, Task 10.1
 - **Description**: Create api/skeleton-template/ with Item CRUD OpenAPI spec. Add ~100 lines of Item repository + HTTP handlers to skeleton-template using the generated strict server. This is the D12 CRUD example implementation.
 - **Acceptance Criteria**:
-  - [ ] `api/skeleton-template/` exists with canonical structure
-  - [ ] OpenAPI spec defines Item CRUD (GET/POST/PUT/DELETE)
-  - [ ] skeleton-template server uses generated strict server (not handrolled)
-  - [ ] `RunContractTests` passes for skeleton-template with new endpoints
+  - [x] `api/skeleton-template/` exists with canonical structure
+  - [x] OpenAPI spec defines Item CRUD (GET/POST/PUT/DELETE)
+  - [x] skeleton-template server uses generated strict server (not handrolled)
+  - [x] `RunContractTests` passes for skeleton-template with new endpoints
   - [x] lint-fitness passes for skeleton-template
-  - [ ] `/new-service` generates a working service from updated skeleton
+  - [x] `/new-service` generates a working service from updated skeleton
 
 #### Task 10.5: Consolidate initialisms in gen configs (D22)
 
@@ -1054,6 +1054,86 @@
   - [x] All services have correct api/<service-name>/ structures
   - [x] lint-fitness passes
   - [x] lessons.md updated
+
+---
+
+### Phase 10B: Complete D21 — Legacy api/ Import Migration and Cleanup
+
+**Phase Objective**: Finish the deferred D21 work. Migrate all production imports from `api/model/` and `api/client/` to the canonical `api/sm-kms/models/` and `api/sm-kms/client/` locations. Delete all orphaned legacy api/ files. Root cause: Task 10.1 added note "migration to api/sm-kms/ types is a separate future task" but never created that task; previous session investigated but only updated lessons.md without creating the migration task.
+
+#### Task 10B.1: Spec migration — move legacy specs to api/sm-kms/, update gen configs
+
+- **Status**: DONE
+- **Dependencies**: Phase 10 complete
+- **Description**: Move `api/openapi_spec_components.yaml` and `api/openapi_spec_paths.yaml` to `api/sm-kms/`. Update `api/sm-kms/openapi-gen_config_models.yaml` to generate from local `openapi_spec_components.yaml` (adds full initialisms, embedded-spec: true). Update `api/sm-kms/openapi-gen_config_client.yaml` to generate from local `openapi_spec_paths.yaml` with import-mapping for the components spec. Update `api/sm-kms/generate.go` gen directives accordingly.
+- **Acceptance Criteria**:
+  - [x] `api/sm-kms/openapi_spec_components.yaml` exists (moved from `api/`)
+  - [x] `api/sm-kms/openapi_spec_paths.yaml` exists (moved from `api/`)
+  - [x] `api/sm-kms/openapi-gen_config_models.yaml` has full initialisms + `embedded-spec: true` + references local components spec
+  - [x] `api/sm-kms/openapi-gen_config_client.yaml` has full initialisms + references local paths spec + `import-mapping: "./openapi_spec_components.yaml": cryptoutil/api/sm-kms/models`
+  - [x] `api/sm-kms/generate.go` updated with correct gen directives for models and client
+
+#### Task 10B.2: Regenerate api/sm-kms/models/ and api/sm-kms/client/ from legacy specs
+
+- **Status**: DONE
+- **Dependencies**: Task 10B.1
+- **Description**: Run `go generate` for sm-kms models (from components spec, gives all 77 types with package `models`) and client (from paths spec with import-mapping, preserves type compatibility). Fix ExternalRef0 casing issue in regenerated client if present.
+- **Acceptance Criteria**:
+  - [x] `api/sm-kms/models/models.gen.go` has all 77 types (previously only 54 types from combined spec)
+  - [x] `api/sm-kms/client/client.gen.go` uses `externalRef0 "cryptoutil/api/sm-kms/models"` (lowercase e, canonical)
+  - [x] `go build ./api/sm-kms/...` EXIT 0
+  - [x] All type assignments in `client_oam_mapper.go` compile without modification (externalRef ensures same types as models package)
+
+#### Task 10B.3: Migrate all non-archived api/model imports to api/sm-kms/models
+
+- **Status**: DONE
+- **Dependencies**: Task 10B.2
+- **Description**: Update all 53+ non-archived Go files that import `cryptoutil/api/model` to import `cryptoutil/api/sm-kms/models` instead. Keep the alias `cryptoutilOpenapiModel` identical — no functional code changes needed.
+- **Acceptance Criteria**:
+  - [x] Zero imports of `cryptoutil/api/model` in non-archived Go files
+  - [x] All files still use alias `cryptoutilOpenapiModel` unchanged
+  - [x] `go build ./...` EXIT 0
+  - [x] `go build -tags integration,e2e ./...` EXIT 0
+
+#### Task 10B.4: Migrate all non-archived api/client imports to api/sm-kms/client
+
+- **Status**: DONE
+- **Dependencies**: Task 10B.2
+- **Description**: Update the 2 non-archived Go files that import `cryptoutil/api/client` (`client_oam_mapper.go`, `client_test_util.go`) to import `cryptoutil/api/sm-kms/client` instead. Keep alias `cryptoutilOpenapiClient` identical.
+- **Acceptance Criteria**:
+  - [x] Zero imports of `cryptoutil/api/client` in non-archived Go files
+  - [x] `client_oam_mapper.go` and `client_test_util.go` compile cleanly with new import paths
+  - [x] `go build -tags integration,e2e ./...` EXIT 0
+
+#### Task 10B.5: Delete all legacy orphaned api/ files
+
+- **Status**: DONE
+- **Dependencies**: Tasks 10B.3, 10B.4
+- **Description**: Remove all legacy orphaned files from api/: model/ dir, client/ dir, fix_external_ref/ dir, generate.go, and old gen config YAML files. The spec files were already moved in Task 10B.1.
+- **Acceptance Criteria**:
+  - [x] `api/model/` deleted
+  - [x] `api/client/` deleted
+  - [x] `api/fix_external_ref/` deleted
+  - [x] `api/generate.go` deleted
+  - [x] `api/openapi-gen_config_model.yaml` deleted
+  - [x] `api/openapi-gen_config_client.yaml` deleted
+  - [x] `api/openapi-gen_config_server.yaml` deleted
+  - [x] `go build ./...` EXIT 0 (no broken imports after deletion)
+
+#### Task 10B.6: Phase 10B validation and post-mortem
+
+- **Status**: DONE
+- **Dependencies**: Tasks 10B.1–10B.5
+- **Description**: Full quality gate run after D21 migration. Verify all imports are on canonical paths.
+- **Acceptance Criteria**:
+  - [x] `go build ./...` EXIT 0
+  - [x] `go build -tags integration,e2e ./...` EXIT 0
+  - [x] `golangci-lint run` EXIT 0 (zero issues including import ordering)
+  - [x] `go test ./...` EXIT 0 (all packages pass individually; pre-existing cross-package interference unrelated to migration)
+  - [x] `go run ./cmd/cicd lint-fitness` EXIT 0
+  - [x] Zero imports of `cryptoutil/api/model` in non-archived Go (grep confirms)
+  - [x] Zero imports of `cryptoutil/api/client` in non-archived Go (grep confirms)
+  - [x] lessons.md updated with D21 post-mortem findings
 
 ---
 

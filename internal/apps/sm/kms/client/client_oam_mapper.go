@@ -10,8 +10,8 @@ import (
 	"fmt"
 	http "net/http"
 
-	cryptoutilOpenapiClient "cryptoutil/api/client"
-	cryptoutilOpenapiModel "cryptoutil/api/model"
+	cryptoutilOpenapiClient "cryptoutil/api/sm-kms/client"
+	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 
 	googleUuid "github.com/google/uuid"

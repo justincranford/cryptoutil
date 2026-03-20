@@ -5,7 +5,7 @@ import (
 	"time"
 
 	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
-	cryptoutilOpenapiModel "cryptoutil/api/model"
+	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 	cryptoutilKmsMiddleware "cryptoutil/internal/apps/sm/kms/server/middleware"
 	cryptoutilOrmRepository "cryptoutil/internal/apps/sm/kms/server/repository/orm"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -68,7 +68,7 @@ func seedBarrierEncryptedElasticKey(
 	materialKeyID, _, _, clearNonPublicBytes, clearPublicBytes, err := stack.service.generateJWK(&alg)
 	testify.NoError(t, err)
 
-	// Encrypt private material using barrier (standalone call — no outer transaction).
+	// Encrypt private material using barrier (standalone call â€” no outer transaction).
 	encryptedNonPublicBytes, err := stack.service.barrierService.EncryptContentWithContext(stack.ctx, clearNonPublicBytes)
 	testify.NoError(t, err)
 
@@ -230,7 +230,7 @@ func TestDecrypt_WrongElasticKey(t *testing.T) {
 	jweBytes, err := stack.service.PostEncryptByElasticKeyID(stack.ctx, &ekID1, &cryptoutilOpenapiModel.EncryptParams{}, plaintext)
 	testify.NoError(t, err)
 
-	// Attempt decrypt with second elastic key — kid mismatch should fail.
+	// Attempt decrypt with second elastic key â€” kid mismatch should fail.
 	_, err = stack.service.PostDecryptByElasticKeyID(stack.ctx, &ekID2, jweBytes)
 	testify.Error(t, err)
 }
@@ -264,12 +264,12 @@ func TestEncrypt_UnsupportedAlgorithm(t *testing.T) {
 
 	stack := setupCryptoTestStack(t)
 
-	// ES256 is JWS, not JWE — encrypt should use it but decrypt should reject.
+	// ES256 is JWS, not JWE â€” encrypt should use it but decrypt should reject.
 	ekID := seedBarrierEncryptedElasticKey(t, stack, "enc-jws-alg", cryptoutilOpenapiModel.ES256)
 
 	plaintext := []byte("try to decrypt with JWS algorithm")
 
-	// PostEncryptByElasticKeyID attempts to encrypt — for JWS key it will try to use
+	// PostEncryptByElasticKeyID attempts to encrypt â€” for JWS key it will try to use
 	// the non-public key for JWE which should fail because ES256 is not a JWE algorithm.
 	_, err := stack.service.PostEncryptByElasticKeyID(stack.ctx, &ekID, &cryptoutilOpenapiModel.EncryptParams{}, plaintext)
 	testify.Error(t, err)
@@ -324,7 +324,7 @@ func TestEncryptDecrypt_MultipleVersions(t *testing.T) {
 	jwe2, err := stack.service.PostEncryptByElasticKeyID(stack.ctx, &ekID, &cryptoutilOpenapiModel.EncryptParams{}, plaintext2)
 	testify.NoError(t, err)
 
-	// Decrypt both — key ID embedded in JWE header selects correct version.
+	// Decrypt both â€” key ID embedded in JWE header selects correct version.
 	dec1, err := stack.service.PostDecryptByElasticKeyID(stack.ctx, &ekID, jwe1)
 	testify.NoError(t, err)
 	testify.Equal(t, plaintext1, dec1)
@@ -350,7 +350,7 @@ func TestDecryptByElasticKeyID_NonJWEAlgorithm(t *testing.T) {
 	jweBytes, err := stack.service.PostEncryptByElasticKeyID(stack.ctx, &ekIDJWE, &cryptoutilOpenapiModel.EncryptParams{}, plaintext)
 	testify.NoError(t, err)
 
-	// Decrypt with JWS elastic key — should fail because ES256 is not JWE.
+	// Decrypt with JWS elastic key â€” should fail because ES256 is not JWE.
 	_, err = stack.service.PostDecryptByElasticKeyID(stack.ctx, &ekIDJWS, jweBytes)
 	testify.Error(t, err)
 }
@@ -360,7 +360,7 @@ func TestVerifyByElasticKeyID_NonJWSAlgorithm(t *testing.T) {
 
 	stack := setupCryptoTestStack(t)
 
-	// Create a JWE elastic key (A256GCM+Dir) — not a JWS algorithm.
+	// Create a JWE elastic key (A256GCM+Dir) â€” not a JWS algorithm.
 	ekID := seedBarrierEncryptedElasticKey(t, stack, "verify-jwe-reject", cryptoutilOpenapiModel.A256GCMDir)
 
 	// Create a JWS key to produce a valid JWS message.
@@ -371,7 +371,7 @@ func TestVerifyByElasticKeyID_NonJWSAlgorithm(t *testing.T) {
 	jwsBytes, err := stack.service.PostSignByElasticKeyID(stack.ctx, &ekIDJWS, payload)
 	testify.NoError(t, err)
 
-	// Verify with JWE elastic key — should fail because A256GCM+Dir is not JWS.
+	// Verify with JWE elastic key â€” should fail because A256GCM+Dir is not JWS.
 	_, err = stack.service.PostVerifyByElasticKeyID(stack.ctx, &ekID, jwsBytes)
 	testify.Error(t, err)
 }
@@ -381,15 +381,15 @@ func TestGetMaterialKeys_CachePath(t *testing.T) {
 
 	stack := setupTestStack(t)
 
-	// Seed two elastic keys with material keys — exercises the elastic key cache in GetMaterialKeys.
+	// Seed two elastic keys with material keys â€” exercises the elastic key cache in GetMaterialKeys.
 	ekID1 := seedElasticKey(t, stack, "cache-ek1", cryptoutilOpenapiModel.A256GCMDir, cryptoutilKmsServer.Active)
 	seedMaterialKey(t, stack, ekID1)
-	seedMaterialKey(t, stack, ekID1) // Second MK on same EK — cache hit.
+	seedMaterialKey(t, stack, ekID1) // Second MK on same EK â€” cache hit.
 
 	ekID2 := seedElasticKey(t, stack, "cache-ek2", cryptoutilOpenapiModel.ES256, cryptoutilKmsServer.Active)
 	seedMaterialKey(t, stack, ekID2)
 
-	// Get all material keys — this exercises the elasticKeyCache with multiple elastic keys.
+	// Get all material keys â€” this exercises the elasticKeyCache with multiple elastic keys.
 	mks, err := stack.service.GetMaterialKeys(stack.ctx, nil)
 	testify.NoError(t, err)
 	testify.GreaterOrEqual(t, len(mks), 3)

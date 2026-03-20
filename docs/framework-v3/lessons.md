@@ -438,6 +438,52 @@ equire_api_dir without ilepath.Abs (using ilepath.Join(rootDir, "api") directl
 - 25 total registered lint-fitness linters (was 24)
 - All pre-commit hooks pass, lint-fitness SUCCESS, exit code 0
 
+## Phase 10B: Complete D21 — Legacy api/ Import Migration and Cleanup
+
+### Summary
+
+Phase 10B (Tasks 10B.1–10B.6) completed the deferred D21 work that was incorrectly omitted from Phase 10: migrating all 53+ import sites from the legacy `api/model/` and `api/client/` packages to the canonical `api/sm-kms/models/` and `api/sm-kms/client/` packages, moving the OpenAPI spec files into `api/sm-kms/`, updating all gen configs, regenerating models and client code, deleting all legacy packages, and implementing the missing `StartServerListenerApplication` function.
+
+### What Worked
+
+- **Bulk import migration**: PowerShell bulk replace `"cryptoutil/api/model"` → `"cryptoutil/api/sm-kms/models"` updated 53+ files in one pass with zero manual errors.
+- **Split-spec regeneration**: Regenerating from `openapi_spec_components.yaml` (components-only) yielded 77 types vs only 54 from the combined spec. The components spec was always the correct source for the models package.
+- **import-mapping in oapi-codegen**: `--import-mapping ./openapi_spec_components.yaml:cryptoutil/api/sm-kms/models` correctly deduplicates types between client and models packages.
+- **oapi-codegen v2.4.1 ExternalRef0 fix**: Current version generates lowercase `externalRef0` directly — the `api/fix_external_ref/` workaround tool was obsolete and was deleted.
+- **Framework `StartCore` reuse**: Using `cryptoutilAppsFrameworkServiceServerApplication.StartCore(ctx, settings)` for `StartServerListenerApplication` gave DB connectivity checking for free — PostgreSQL test cases correctly fail when db not running.
+- **In-memory TLS generation**: `generateTLSServerSubjectInMemory` is identical to `generateTLSServerSubject` minus the `os.WriteFile` calls, producing parallel-test-safe TLS cert subjects without disk I/O.
+
+### What Didn't Work / Root Causes
+
+1. **D21 was never completed**: Task 10.1 added "migration to api/sm-kms/ types is a separate future task" but never created that task. Phase 10 was then falsely marked 100% complete. A prior session investigated and updated only lessons.md without creating the migration task — the deferred work was lost.
+
+2. **`StartServerListenerApplication` missing**: Integration test `TestContainerConfigurationValidation` in `internal/apps/sm/kms/server/application/application_init_test.go` called this function which was planned but never implemented. Root fix: created `application_listener.go` with:
+   - `ServerApplicationListener` struct (PublicTLSServer, PrivateTLSServer, ShutdownFunction)
+   - `StartServerListenerApplication` calling framework `StartCore` + `StartServerApplicationBasic` + in-memory TLS
+   - PostgreSQL test cases fail correctly because `StartCore` fails on unavailable PostgreSQL
+
+3. **Archived files needed migration too**: Files under `internal/test/archived/e2e-legacy/` with `//go:build e2e` also imported the old paths — needed updating as part of the bulk replace pass.
+
+4. **Cross-package test interference (pre-existing)**: `go test ./...` shows intermittent failures in framework application, businesslogic, and PKI packages. All pass when run individually. Caused by injectable function vars (global package state) being mutated across parallel packages. NOT introduced by this migration — confirmed via git stash verification.
+
+### Key Insights
+
+- When deferring work with a "separate future task" note, **always create that task immediately** — deferred notes in comments get lost between sessions.
+- Keeping dependencies current eliminates workarounds: `api/fix_external_ref/` existed solely for an oapi-codegen ExternalRef0 casing bug fixed in v2.4.1.
+- In-memory TLS generation (no files) is required for `t.Parallel()` integration tests; disk-writing variants must be explicitly documented as sequential-only.
+- Before marking a phase complete, verify that ALL "Note:" and "deferred" comments in task descriptions have corresponding tracked follow-up items.
+
+### Key Metrics
+
+- 6 tasks completed (10B.1–10B.6)
+- 53+ files migrated from `api/model` → `api/sm-kms/models` imports
+- 2 files migrated from `api/client` → `api/sm-kms/client` imports
+- 77 model types (was 54 from combined spec — components-only spec is the correct source)
+- 4 packages deleted: `api/model/`, `api/client/`, `api/fix_external_ref/`, root `api/generate.go` + gen configs
+- 1 new file: `application_listener.go` (planned function implemented)
+- 1 new helper: `generateTLSServerSubjectInMemory` (parallel-test-safe TLS)
+- All quality gates pass: build, lint, lint-fitness exit 0
+
 ## Phase 11: service-framework Rename — FINAL (D20)
 
 ### Summary

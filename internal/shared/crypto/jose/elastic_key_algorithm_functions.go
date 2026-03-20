@@ -7,7 +7,7 @@ package crypto
 import (
 	"fmt"
 
-	cryptoutilOpenapiModel "cryptoutil/api/model"
+	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"

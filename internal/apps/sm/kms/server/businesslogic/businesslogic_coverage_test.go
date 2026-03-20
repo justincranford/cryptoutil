@@ -7,7 +7,7 @@ import (
 	"time"
 
 	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
-	cryptoutilOpenapiModel "cryptoutil/api/model"
+	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 	cryptoutilKmsMiddleware "cryptoutil/internal/apps/sm/kms/server/middleware"
 	cryptoutilOrmRepository "cryptoutil/internal/apps/sm/kms/server/repository/orm"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
@@ -295,7 +295,7 @@ func TestPostDecrypt_WrongAlgorithmType(t *testing.T) {
 	_, jweBytes, err := cryptoutilSharedCryptoJose.EncryptBytes([]joseJwk.Key{jweJWK}, []byte("test payload"))
 	testify.NoError(t, err)
 
-	// PostDecryptByElasticKeyID with JWS EK id and JWE with that EK's kid → !IsJWE error.
+	// PostDecryptByElasticKeyID with JWS EK id and JWE with that EK's kid â†’ !IsJWE error.
 	_, err = stack.service.PostDecryptByElasticKeyID(stack.ctx, &jwsEKID, jweBytes)
 	testify.Error(t, err)
 	testify.Contains(t, err.Error(), "decrypt not supported by KeyMaterial")
@@ -355,13 +355,13 @@ func TestPostVerify_WrongAlgorithmType(t *testing.T) {
 	_, jwsBytes, err := cryptoutilSharedCryptoJose.SignBytes([]joseJwk.Key{jwsJWK}, []byte("test payload"))
 	testify.NoError(t, err)
 
-	// PostVerifyByElasticKeyID with JWE EK id and JWS with that EK's kid → !IsJWS error.
+	// PostVerifyByElasticKeyID with JWE EK id and JWS with that EK's kid â†’ !IsJWS error.
 	_, err = stack.service.PostVerifyByElasticKeyID(stack.ctx, &jweEKID, jwsBytes)
 	testify.Error(t, err)
 	testify.Contains(t, err.Error(), "verify not supported by KeyMaterial")
 }
 
-// TestGetMaterialKeysForElasticKey_InvalidPage covers businesslogic.go:275 – the
+// TestGetMaterialKeysForElasticKey_InvalidPage covers businesslogic.go:275 â€“ the
 // toOrmGetMaterialKeysForElasticKeyQueryParams validation-error return path.
 func TestGetMaterialKeysForElasticKey_InvalidPage(t *testing.T) {
 	t.Parallel()
@@ -379,7 +379,7 @@ func TestGetMaterialKeysForElasticKey_InvalidPage(t *testing.T) {
 	testify.Contains(t, err.Error(), "failed to map MaterialKeys for ElasticKey query parameters")
 }
 
-// TestPostDecrypt_TamperedCiphertext covers businesslogic_crypto.go:82 – the
+// TestPostDecrypt_TamperedCiphertext covers businesslogic_crypto.go:82 â€“ the
 // DecryptBytes failure path when ciphertext is tampered after the material key
 // is successfully resolved.
 func TestPostDecrypt_TamperedCiphertext(t *testing.T) {
@@ -419,7 +419,7 @@ func TestPostDecrypt_TamperedCiphertext(t *testing.T) {
 	testify.Contains(t, err.Error(), "failed to decrypt bytes with MaterialKey")
 }
 
-// TestPostVerify_TamperedPayload covers businesslogic_crypto.go:138 – the
+// TestPostVerify_TamperedPayload covers businesslogic_crypto.go:138 â€“ the
 // VerifyBytes failure path when the JWS payload is tampered after the material
 // key is successfully resolved.
 func TestPostVerify_TamperedPayload(t *testing.T) {
@@ -455,7 +455,7 @@ func TestPostVerify_TamperedPayload(t *testing.T) {
 	testify.Contains(t, err.Error(), "failed to verify bytes with MaterialKey")
 }
 
-// TestPostSign_JWEKeyType covers businesslogic_crypto.go:101 – the SignBytes
+// TestPostSign_JWEKeyType covers businesslogic_crypto.go:101 â€“ the SignBytes
 // failure path when the material key is an AES-GCM (JWE) key that cannot be
 // used for JWS signing.
 func TestPostSign_JWEKeyType(t *testing.T) {

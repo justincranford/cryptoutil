@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	cryptoutilOpenapiClient "cryptoutil/api/client"
-	cryptoutilOpenapiModel "cryptoutil/api/model"
+	cryptoutilOpenapiClient "cryptoutil/api/sm-kms/client"
+	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 	cryptoutilKmsClient "cryptoutil/internal/apps/sm/kms/client"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 

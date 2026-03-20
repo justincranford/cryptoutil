@@ -25,7 +25,7 @@ import (
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
-	cryptoutilOpenapiModel "cryptoutil/api/model"
+	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 
 	googleUuid "github.com/google/uuid"
 	_ "github.com/jackc/pgx/v5/stdlib"
