@@ -1,8 +1,8 @@
 # $schema: https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
 #
-# Cipher-IM Docker Compose Configuration
+# SM-IM Docker Compose Configuration
 #
-# SERVICE-level deployment for Cipher Instant Messenger.
+# SERVICE-level deployment for Secrets Manager Instant Messenger.
 # Supports 3 instances: 1 SQLite + 2 PostgreSQL.
 #
 # Port allocation (SERVICE level: 8700-8799):

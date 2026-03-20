@@ -19,7 +19,7 @@ CREATE INDEX IF NOT EXISTS idx_tenants_created_at ON tenants (created_at);
 
 -- Insert default tenant for single-tenant applications
 -- This tenant is referenced by SessionManagerService when using default tenant ID
--- Uses well-known UUID 00000000-0000-0000-0000-000000000001 (CipherIMDefaultTenantID)
+-- Uses well-known UUID 00000000-0000-0000-0000-000000000001 (SMIMDefaultTenantID)
 INSERT INTO tenants (id, name, description, active)
 VALUES ('00000000-0000-0000-0000-000000000001', 'default', 'Default tenant for single-tenant applications', 1)
 ON CONFLICT (id) DO NOTHING;

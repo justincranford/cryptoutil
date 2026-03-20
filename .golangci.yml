@@ -274,7 +274,7 @@ linters:
         - pkg: "cryptoutil/internal/cmd/cicd/lint_workflow"
           alias: cryptoutilCmdCicdLintWorkflow
         - pkg: "cryptoutil/internal/cmd/sm"
-          alias: cryptoutilCmdCipher
+          alias: cryptoutilCmdSM
         - pkg: "cryptoutil/internal/cmd/demo"
           alias: cryptoutilCmdDemo
         - pkg: "cryptoutil/internal/cmd/cryptoutil/authz"

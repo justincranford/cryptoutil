@@ -1,5 +1,5 @@
-# Cipher IM (Instant Messenger) Service Configuration - SQLite Instance
-# This file contains instance-specific settings for sm-im-sqlite
+# SM IM (Instant Messenger) Service Configuration - SQLite Instance 1
+# This file contains instance-specific settings for sm-im-sqlite-1
 #
 # Config key format: flat kebab-case (e.g., bind-public-address)
 # NOT nested YAML (e.g., server.bind_address)
@@ -21,7 +21,7 @@ tls-private-mode: "auto"  # Auto-generate self-signed cert
 
 # OTLP Telemetry Configuration
 otlp: true
-otlp-service: "sm-im-sqlite"
+otlp-service: "sm-im-sqlite-1"
 otlp-environment: "development"
 otlp-endpoint: "http://sm-im-otel-collector:4317"
 

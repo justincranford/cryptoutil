@@ -1,5 +1,5 @@
 --
--- Cipher IM database schema (SQLite + PostgreSQL compatible)
+-- SM IM database schema (SQLite + PostgreSQL compatible)
 -- 2-table design: messages, messages_recipient_jwks
 -- Users table is provided by template service (1004_add_multi_tenancy)
 --
