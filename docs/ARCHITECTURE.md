@@ -2420,8 +2420,8 @@ internal/apps/cicd/
 │   ├── validate_chunks/                            # Sub-linter
 │   └── validate_propagation/                       # Sub-linter
 ├── lint_fitness/                                      # lint-fitness command
-│   ├── lint_fitness.go                             # Lint() + registeredLinters (23 sub-linters)
-│   └── ... (23 sub-linters, see Section 9.11)
+│   ├── lint_fitness.go                             # Lint() + registeredLinters (43 sub-linters)
+│   └── ... (43 sub-linters, see Section 9.11)
 ├── format_go/                                        # format-go command
 │   ├── format_go.go                                # Format() + registeredFormatters
 │   ├── copyloopvar/                                # Sub-formatter
@@ -2458,7 +2458,7 @@ Architecture fitness functions are automated checks that enforce ARCHITECTURE.md
 
 **Adding new fitness functions**: Use the `fitness-function-gen` Copilot skill — see `.github/skills/fitness-function-gen/SKILL.md`.
 
-#### 9.11.1 Fitness Sub-Linter Catalog (23 total)
+#### 9.11.1 Fitness Sub-Linter Catalog (43 total)
 
 **Migrated from lint_go (10)**:
 
@@ -2475,7 +2475,7 @@ Architecture fitness functions are automated checks that enforce ARCHITECTURE.md
 | `product-wiring` | Product wiring must delegate to service entry points |
 | `service-structure` | Service packages must follow PRODUCT/SERVICE layout convention |
 
-**Migrated from lint_gotest (5)**:
+**Migrated from lint_gotest (4)**:
 
 | Sub-Linter | Rule Enforced |
 |-----------|--------------|
@@ -2483,9 +2483,14 @@ Architecture fitness functions are automated checks that enforce ARCHITECTURE.md
 | `no-hardcoded-passwords` | No hardcoded credentials in test files |
 | `parallel-tests` | All tests must call `t.Parallel()` (with `// Sequential:` exemption) |
 | `test-patterns` | Test file naming, table-driven structure compliance |
+
+**Migrated from lint_skeleton (1)**:
+
+| Sub-Linter | Rule Enforced |
+|-----------|--------------|
 | `check-skeleton-placeholders` | No skeleton placeholder text left in service code |
 
-**New checks (8)**:
+**New checks — framework-v3 Phase 4 (15)**:
 
 | Sub-Linter | Rule Enforced |
 |-----------|--------------|
@@ -2497,6 +2502,49 @@ Architecture fitness functions are automated checks that enforce ARCHITECTURE.md
 | `admin-bind-address` | Admin server must bind to `127.0.0.1:9090`, never `0.0.0.0` |
 | `service-contract-compliance` | Services must implement `ServiceServer` interface (`PublicBaseURL`, `AdminBaseURL`, `SetReady`) |
 | `migration-range-compliance` | Template migrations use 1001-1999; domain migrations use 2001+ |
+| `no-local-closed-db-helper` | No local `closedDB` helper — use shared test utility |
+| `no-postgres-in-non-e2e` | PostgreSQL must not appear in non-E2E test files |
+| `no-unit-test-real-db` | Unit tests must use in-memory SQLite, never real DB |
+| `no-unit-test-real-server` | Unit tests must use `app.Test()`, never real server |
+| `gen-config-initialisms` | Config field names must use correct Go initialisms |
+| `require-api-dir` | Services must have an `api/` directory |
+| `require-framework-naming` | Framework packages must use canonical naming conventions |
+
+**New checks — framework-v4 (13)**:
+
+| Sub-Linter | Phase | Rule Enforced |
+|-----------|-------|---------------|
+| `otlp-service-name-pattern` | Phase 1 | OTLP service names must match `{ps-id}-{db}-N` pattern |
+| `entity-registry-completeness` | Phase 2 | All PS in registry must have required magic constants |
+| `banned-product-names` | Phase 3 | Old product names (`Cipher IM`, `Cipher KMS`, etc.) banned from source |
+| `legacy-dir-detection` | Phase 3 | Legacy directories (`internal/apps/cipher/`) must not exist |
+| `deployment-dir-completeness` | Phase 4 | Every PS must have Dockerfile, compose.yml, secrets/, and config/ |
+| `compose-header-format` | Phase 5 | Compose files must have canonical comment header |
+| `compose-service-names` | Phase 5 | Compose service names must match `{ps-id}-{db}-N` pattern |
+| `compose-db-naming` | Phase 5 | Compose DB service names must use `sqlite`/`postgres` not `pg` |
+| `magic-e2e-container-names` | Phase 6 | `*E2ESQLiteContainer`/`*E2EPostgresContainer` constants must match compose names |
+| `magic-e2e-compose-path` | Phase 6 | `*E2EComposePath` constants must point to existing compose files |
+| `standalone-config-presence` | Phase 7 | Allowlist PS must have `config-sqlite.yml`, `config-pg-1.yml`, `config-pg-2.yml` |
+| `standalone-config-otlp-names` | Phase 7 | Config file `otlp-service` values must match `{ps-id}-{db}-N` pattern |
+| `migration-comment-headers` | Phase 8 | Domain migrations (2001+) first comment must be `{DisplayName} database schema` |
+
+#### 9.11.2 Entity Registry
+
+**Location**: `internal/apps/cicd/lint_fitness/registry/registry.go`
+
+**Purpose**: Single source of truth for all products and product-services. All registry-driven fitness checks iterate `AllProductServices()` to detect drift without hardcoding names.
+
+**Types**:
+- `Product` — ID, DisplayName, InternalAppsDir, CmdDir
+- `ProductService` — PSID, Product, Service, DisplayName, InternalAppsDir, MagicFile
+
+**Update Procedure**: When adding a new product-service:
+1. Add entry to `allProductServices` in `registry.go` using `cryptoutilSharedMagic.*` constants
+2. Add the corresponding magic constants to `internal/shared/magic/magic_*.go`
+3. Run `go run ./cmd/cicd lint-fitness` — entity-registry-completeness will catch any gaps
+4. Add required deployment artifacts (Dockerfile, compose.yml, configs, secrets)
+
+**Current registry**: 5 products, 10 product-services
 
 ---
 
