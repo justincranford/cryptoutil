@@ -36,25 +36,28 @@ var scannedExtensions = []string{".go", ".yml", ".yaml", ".sql", ".md"}
 // The banned_product_names/ directory itself defines the banned phrase constants
 // and is excluded to prevent self-referential false positives.
 // The test-output/ directory contains historical session artifacts and is excluded.
+// The .github/ directory contains instruction and skill files that document what
+// is banned; this directory is excluded to avoid false positives.
 var excludedDirs = []string{
 	cryptoutilSharedMagic.CICDExcludeDirGit,
 	cryptoutilSharedMagic.CICDExcludeDirVendor,
 	cryptoutilSharedMagic.CICDExcludeDirDocs,
 	cryptoutilSharedMagic.CICDExcludeDirTestOutput,
 	cryptoutilSharedMagic.CICDExcludeDirBannedProductNamesCheck,
+        cryptoutilSharedMagic.CICDExcludeDirGithubInstructions,
 }
 
 // Violation holds information about a banned phrase found in a file.
 type Violation struct {
-	File    string
-	Line    int
-	Phrase  string
-	Content string
+        File    string
+        Line    int
+        Phrase  string
+        Content string
 }
 
 // Check runs the banned-product-names check from the current working directory.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
-	return CheckInDir(logger, ".")
+        return CheckInDir(logger, ".")
 }
 
 // CheckInDir scans rootDir for banned product/service name phrases.

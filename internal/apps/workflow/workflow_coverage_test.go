@@ -21,7 +21,7 @@ func makeWorkflowsDir(t *testing.T, workflowNames ...string) string {
 	t.Helper()
 
 	tempDir := t.TempDir()
-	wfDir := filepath.Join(tempDir, ".github", "workflows")
+	wfDir := filepath.Join(tempDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "workflows")
 	err := os.MkdirAll(wfDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 

@@ -30,7 +30,7 @@ func TestLint_ValidWorkflowFile(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create valid workflow directory structure.
-	workflowDir := filepath.Join(tmpDir, ".github", "workflows")
+	workflowDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "workflows")
 	require.NoError(t, os.MkdirAll(workflowDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	// Create a simple valid workflow file.
@@ -54,7 +54,7 @@ func TestLint_BranchPinnedAction(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create workflow directory structure.
-	workflowDir := filepath.Join(tmpDir, ".github", "workflows")
+	workflowDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "workflows")
 	require.NoError(t, os.MkdirAll(workflowDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	// Create a workflow file with branch-pinned action (disallowed).

@@ -8,7 +8,7 @@ Generate a new architecture fitness function for the cryptoutil lint-fitness fra
 
 ## Purpose
 
-The lint-fitness framework runs 23 architectural invariant checks on every CI push. Use this skill when:
+The lint-fitness framework runs 43 architectural invariant checks on every CI push. Use this skill when:
 
 - Adding a new architectural rule from ARCHITECTURE.md that must be enforced programmatically
 - Migrating a soft architectural guideline to a hard enforced check
@@ -143,6 +143,40 @@ require.NoError(t, Check(newTestLogger()))
 }
 `
 
+## Registry-Driven Check Pattern
+
+For checks that must validate EVERY product-service uniformly, use the registry-driven pattern instead of hardcoding names:
+
+```go
+import (
+    lintFitnessRegistry "cryptoutil/internal/apps/cicd/lint_fitness/registry"
+)
+
+func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
+    logger.Log("Checking [rule]...")
+    var violations []string
+    for _, ps := range lintFitnessRegistry.AllProductServices() {
+        // Check each PS using ps.PSID, ps.DisplayName, ps.InternalAppsDir, etc.
+        psDir := filepath.Join(rootDir, "internal", "apps", ps.InternalAppsDir)
+        if err := checkPS(ps, psDir); err != nil {
+            violations = append(violations, err.Error())
+        }
+    }
+    if len(violations) > 0 {
+        for _, v := range violations { logger.Log(fmt.Sprintf("VIOLATION: %s", v)) }
+        return fmt.Errorf("[rule] found %d violation(s)", len(violations))
+    }
+    logger.Log("[Rule] check passed")
+    return nil
+}
+```
+
+**Registry fields**: `ps.PSID` (e.g. `sm-im`), `ps.Product`, `ps.Service`, `ps.DisplayName` (e.g. `Secrets Manager Instant Messenger`), `ps.InternalAppsDir` (e.g. `sm/im/`), `ps.MagicFile`.
+
+**When to use registry-driven**: When the rule applies to all product-services (naming patterns, config presence, migration headers, compose structure). When the rule is service-specific or cross-cutting, use the simpler `rootDir` walk pattern.
+
+**Real-workspace test is mandatory**: Add `TestCheck_RealWorkspace` that calls `Check(logger)` against the actual workspace. This test reveals existing violations before the check is first committed—always fix violations before committing the checker.
+
 ## Critical Notes
 
 - **CheckInDir pattern**: Always separate Check (calls .) from CheckInDir (parameterized root). Tests use CheckInDir(logger, tmp) for isolation.
@@ -161,6 +195,6 @@ require.NoError(t, Check(newTestLogger()))
 ## References
 
 Read [ARCHITECTURE.md Section 9.10](../../../docs/ARCHITECTURE.md#910-cicd-command-architecture) for CICD command architecture.
-Read [ARCHITECTURE.md Section 9.11 Architecture Fitness Functions](../../../docs/ARCHITECTURE.md#911-architecture-fitness-functions) for the complete list of 23 existing sub-linters in 3 groups — use this section to understand what invariants are already enforced and select a unique new architectural rule.
+Read [ARCHITECTURE.md Section 9.11 Architecture Fitness Functions](../../../docs/ARCHITECTURE.md#911-architecture-fitness-functions) for the complete list of 43 existing sub-linters in 5 groups — use this section to understand what invariants are already enforced and select a unique new architectural rule.
 Read [ARCHITECTURE.md Section 10.2.5](../../../docs/ARCHITECTURE.md#1025-sequential-test-exemption) for // Sequential: comment exemption.
 Read [ARCHITECTURE.md Section 11.3](../../../docs/ARCHITECTURE.md#113-code-quality-standards) for test coverage targets (=98% for infrastructure/utility code).

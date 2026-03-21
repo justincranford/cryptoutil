@@ -107,7 +107,7 @@ func TestLintGitHubWorkflows_ExceptionVersionMismatch(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Set up the .github directory with the exceptions file.
-	githubDir := filepath.Join(tmpDir, ".github")
+	githubDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions)
 
 	err := os.MkdirAll(githubDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)

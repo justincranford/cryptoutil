@@ -34,10 +34,14 @@ const (
 	// self-referential false positives.
 	CICDExcludeDirBannedProductNamesCheck = "banned_product_names"
 
-	// CICDComposeHeaderLinesToCheck is the number of header lines to read from compose.yml for header validation.
-	CICDComposeHeaderLinesToCheck = 5
-	// CICDComposeLine3Index is the 0-based index of compose header line 3 (the PS-ID title line).
-	CICDComposeLine3Index = 2
+        // CICDExcludeDirGithubInstructions is the name of the GitHub Copilot instructions directory.
+        // Instruction and skill files serve as documentation and may reference old product names
+        // in the context of documenting what is banned; this directory is excluded to prevent false positives.
+        CICDExcludeDirGithubInstructions = ".github"
+        // CICDComposeHeaderLinesToCheck is the number of header lines to read from compose.yml for header validation.
+        CICDComposeHeaderLinesToCheck = 5
+        // CICDComposeLine3Index is the 0-based index of compose header line 3 (the PS-ID title line).
+        CICDComposeLine3Index = 2
 	// CICDComposeLine5Index is the 0-based index of compose header line 5 (the service description line).
 	CICDComposeLine5Index = 4
 	// CICDTempDirPermissions is the directory permissions used in tests when creating temporary test directories (0o755).

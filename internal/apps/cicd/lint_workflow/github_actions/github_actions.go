@@ -174,7 +174,7 @@ func validateAndGetWorkflowActionsDetails(logger *cryptoutilCmdCicdCommon.Logger
 }
 
 func loadWorkflowActionExceptionsInDir(dir string) (*WorkflowActionExceptions, error) {
-	exceptionsFile := filepath.Join(dir, ".github", "workflow-action-exceptions.json")
+	exceptionsFile := filepath.Join(dir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "workflow-action-exceptions.json")
 
 	content, err := os.ReadFile(exceptionsFile)
 	if err != nil {

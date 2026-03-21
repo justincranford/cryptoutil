@@ -18,7 +18,7 @@ func TestLint_WithActualWorkflow(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	tmpDir := t.TempDir()
-	workflowDir := filepath.Join(tmpDir, ".github", "workflows")
+	workflowDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "workflows")
 
 	err := os.MkdirAll(workflowDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
@@ -325,7 +325,7 @@ func TestLintGitHubWorkflows_ExceptionLoadWarning(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	tmpDir := t.TempDir()
 
-	githubDir := filepath.Join(tmpDir, ".github")
+	githubDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions)
 	err := os.MkdirAll(githubDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 

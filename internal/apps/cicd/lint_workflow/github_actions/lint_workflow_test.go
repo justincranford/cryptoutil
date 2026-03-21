@@ -131,7 +131,7 @@ func TestValidateAndParseWorkflowFile(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	workflowDir := filepath.Join(tmpDir, ".github", "workflows")
+	workflowDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "workflows")
 
 	err := os.MkdirAll(workflowDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
@@ -207,7 +207,7 @@ func TestLintGitHubWorkflows_NoActions(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	tmpDir := t.TempDir()
-	workflowDir := filepath.Join(tmpDir, ".github", "workflows")
+	workflowDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "workflows")
 
 	err := os.MkdirAll(workflowDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
@@ -233,7 +233,7 @@ func TestLintGitHubWorkflows_WithActions(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	tmpDir := t.TempDir()
-	workflowDir := filepath.Join(tmpDir, ".github", "workflows")
+	workflowDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "workflows")
 
 	err := os.MkdirAll(workflowDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
@@ -260,7 +260,7 @@ func TestLoadWorkflowActionExceptions_InvalidJSON(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	githubDir := filepath.Join(tmpDir, ".github")
+	githubDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions)
 	err := os.MkdirAll(githubDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
@@ -278,7 +278,7 @@ func TestLoadWorkflowActionExceptions_ValidJSON(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	githubDir := filepath.Join(tmpDir, ".github")
+	githubDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions)
 	err := os.MkdirAll(githubDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
@@ -308,7 +308,7 @@ func TestLoadWorkflowActionExceptions_UnreadableFile(t *testing.T) {
 	}
 
 	tmpDir := t.TempDir()
-	githubDir := filepath.Join(tmpDir, ".github")
+	githubDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions)
 	err := os.MkdirAll(githubDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 

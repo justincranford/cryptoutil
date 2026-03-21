@@ -231,7 +231,7 @@ func TestLintGitHubWorkflows_WithExemptedActions(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create .github directory with exceptions file.
-	githubDir := filepath.Join(tmpDir, ".github")
+	githubDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions)
 	err := os.MkdirAll(githubDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
@@ -279,7 +279,7 @@ func TestLintGitHubWorkflows_SuccessPath(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create .github/workflows directory.
-	githubDir := filepath.Join(tmpDir, ".github")
+	githubDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions)
 	workflowDir := filepath.Join(githubDir, "workflows")
 	err := os.MkdirAll(workflowDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
@@ -311,7 +311,7 @@ func TestLintGitHubWorkflows_ExemptedAndNonExemptedMixed(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create .github directory with exceptions file.
-	githubDir := filepath.Join(tmpDir, ".github")
+	githubDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions)
 	err := os.MkdirAll(githubDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 

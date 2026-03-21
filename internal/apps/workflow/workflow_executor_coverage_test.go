@@ -265,7 +265,7 @@ func TestExecuteWorkflow_CombinedLogCloseError(t *testing.T) {
 // Sequential: uses os.Chdir (global process state).
 func TestGetWorkflowDescription_WithFile(t *testing.T) {
 	tempDir := t.TempDir()
-	wfDir := filepath.Join(tempDir, ".github", "workflows")
+	wfDir := filepath.Join(tempDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "workflows")
 	err := os.MkdirAll(wfDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err)
 
