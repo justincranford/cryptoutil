@@ -2,8 +2,8 @@
 
 **Status**: Planning
 **Created**: 2026-03-21
-**Last Updated**: 2026-03-21
-**Purpose**: Apply rigid standardization and enforcement across configs/, deployments/, cmd/, internal/apps/, and docs/ for 1 suite, 5 products, and 10 services. Clean dead code, rationalize non-standard entries, and ensure ARCHITECTURE.md is the complete roadmap SSOT.
+**Last Updated**: 2026-03-22
+**Purpose**: Apply rigid standardization and enforcement of directories and files and contents, across configs/, deployments/, cmd/, internal/apps/, and docs/ for 1 suite, 5 products, and 10 services. Clean dead code, rationalize non-standard entries, and ensure ARCHITECTURE.md is the complete roadmap SSOT.
 
 ## Quality Mandate - MANDATORY
 
@@ -315,11 +315,17 @@ All 10 services + template have 4 config files each (40 total):
 - D: Deprecate configs/ entirely, use only deployments/config/
 - E:
 
-**Decision**: Option B selected (tentative, pending quizme answer)
+**Decision**: Option E selected ✓ CONFIRMED (quizme-v1 Q1=E)
 
-**Rationale**: Both serve distinct purposes. `deployments/config/` has Docker-specific settings (bind to 0.0.0.0, Docker network hostnames, TLS cert paths as Docker secrets). `configs/` has domain configs (CA profiles, auth policies), development settings, and standalone operation configs. Merging would create confusion between deployment-specific and domain-specific configuration.
+**Rationale**: B was closest but needs a stricter contract. The core separation-of-concerns principle:
+- `configs/` = **canonical SSOT** — environment-agnostic, reusable config for what the app needs (domain config, certificate profiles, auth policies, service defaults). Usable by local dev, tests, Docker, Kubernetes.
+- `deployments/` = **deployment wiring** — environment-specific manifests that CONSUME or OVERLAY configs/. `deployments/*/config/` contains deployment-specific overlays (bind addresses, Docker network hostnames, TLS cert paths as Docker secrets, sqlite vs postgres variants). NOT a parallel config system.
 
-**Impact**: Both config locations maintained with clear, documented separation. Naming standardized in both.
+**Mental model**: configs/ = library, deployments/ = instructions on how to use the library.
+
+**Impact**: Both config locations maintained with strict contract. Naming standardized in both. Environment-specific files (`*-docker.yml`, `development.yml`, `production.yml`) move to deployments/. Deployment variant files (`config-pg-1.yml`, `config-sqlite.yml`) stay in deployments/config/. Domain config stays in configs/.
+
+**Pending**: User must review and approve the complete concrete target-structure.md before Phase 3 config moves begin.
 
 ### Decision 2: Non-Standard cmd/ Entry Disposition
 
@@ -330,9 +336,11 @@ All 10 services + template have 4 config files each (40 total):
 - D: Move cicd/workflow under a new cmd/tools/ pattern
 - E:
 
-**Decision**: Option B selected (tentative, pending quizme answer)
+**Decision**: Option C selected ✓ CONFIRMED (quizme-v1 Q2=C)
 
-**Rationale**: `cmd/cicd` and `cmd/workflow` are legitimate infrastructure tools documented in ARCHITECTURE.md. `cmd/identity-compose` and `cmd/identity-demo` violate the anti-pattern rule in Section 4.4.7 (NO executables for subcommands). Merging them into `cmd/identity compose` and `cmd/identity demo` subcommands follows the existing CLI pattern.
+**Rationale**: Archive ALL demo entries — demos are not needed. `cmd/cicd` and `cmd/workflow` are the only legitimate infrastructure tools. `cmd/demo`, `cmd/identity-compose`, `cmd/identity-demo`, and `internal/apps/demo` all violate the strict PRODUCT/SERVICE hierarchy and serve no production purpose.
+
+**Scope**: Delete `cmd/demo/`, `cmd/identity-compose/`, `cmd/identity-demo/`, `internal/apps/demo/`. Keep only `cmd/cicd/` and `cmd/workflow/` as infrastructure tools.
 
 ### Decision 3: Archive Deletion vs Preservation
 
@@ -343,9 +351,9 @@ All 10 services + template have 4 config files each (40 total):
 - D: Compress archived into .tar.gz files in docs/ for reference
 - E:
 
-**Decision**: Option A selected (tentative, pending quizme answer)
+**Decision**: Option A selected ✓ CONFIRMED (quizme-v1 Q3=A)
 
-**Rationale**: Git history preserves all content permanently. The entity registry and fitness linters ensure active services are tracked. Archived code serves no purpose on main branch — it adds noise to searches, increases build times, and confuses LLM agents trying to understand the codebase.
+**Rationale**: Delete all permanently. Git history preserves content. Entity registry and fitness linters ensure active services are tracked. Archived code adds search noise, increases cognitive load, and confuses LLM agents analyzing the codebase.
 
 ### Decision 4: ARCHITECTURE-COMPOSE-MULTIDEPLOY.md Fate
 
@@ -356,9 +364,11 @@ All 10 services + template have 4 config files each (40 total):
 - D: Delete without merging (ARCHITECTURE.md already covers the essentials)
 - E:
 
-**Decision**: Option A selected (tentative, pending quizme answer)
+**Decision**: Option A selected ✓ CONFIRMED (quizme-v1 Q4=A)
 
 **Rationale**: ARCHITECTURE.md is the SSOT per project policy. The 872-line COMPOSE-MULTIDEPLOY doc contains detailed compose tier patterns that belong in Section 12.3. Keeping it separate creates information silos that LLM agents may miss.
+
+**Pending**: User must review and approve the complete concrete target-structure.md before the merge begins.
 
 ## Risk Assessment
 

@@ -1,7 +1,7 @@
 # Tasks - Framework v5: Rigid Standardization & Cleanup
 
 **Status**: 0 of 42 tasks complete (0%)
-**Last Updated**: 2026-03-21
+**Last Updated**: 2026-03-22
 **Created**: 2026-03-21
 
 ## Quality Mandate - MANDATORY
@@ -606,11 +606,15 @@
 
 ## Notes / Deferred Work
 
-**Quizme questions pending**: Decisions 1-4 in plan.md are tentative. User confirmation needed for:
-1. configs/ vs deployments/config/ relationship (keep both with clear separation?)
-2. cmd/identity-compose and cmd/identity-demo disposition (merge into subcommands?)
-3. Archive deletion policy (permanent delete, git history preserves?)
-4. ARCHITECTURE-COMPOSE-MULTIDEPLOY.md fate (merge into ARCHITECTURE.md?)
+**All quizme-v1 decisions confirmed** (merged 2026-03-22):
+1. ✓ Decision 1 (Q1=E): configs/ = canonical SSOT (env-agnostic), deployments/ = deployment wiring that consumes/overlays configs/
+2. ✓ Decision 2 (Q2=C): Archive ALL demo entries (cmd/demo, cmd/identity-compose, cmd/identity-demo, internal/apps/demo). Keep only cicd/workflow.
+3. ✓ Decision 3 (Q3=A): Delete all archived/orphaned permanently. Git history preserves content.
+4. ✓ Decision 4 (Q4=A): Merge ARCHITECTURE-COMPOSE-MULTIDEPLOY.md into ARCHITECTURE.md Section 12.3 and delete.
+
+**Pending**: User review of `target-structure.md` before Phase 3 config moves begin.
+
+**NEW scope discovered**: ~80+ junk files at repository root (*.exe, *.py, coverage_*) need cleanup — added to Phase 1.
 
 ---
 
