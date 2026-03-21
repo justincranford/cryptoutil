@@ -152,7 +152,18 @@ Each failure mode (missing Dockerfile, compose.yml, secrets/, config/, each conf
 
 ## Phase 7: Standalone Config File Presence and Naming
 
-*(No notes yet — phase not started.)*
+### Implementation Notes
+
+- **Allowlist pattern**: Only `sm-im` and `sm-kms` use the standardized `configs/{product}/{service}/` layout. Implemented via `configAllowlist` map keyed on `OTLPServiceSMIM` / `OTLPServiceSMKMS` magic constants (no literal strings, lint-go compliant).
+- **Two-checker split**: `standalone-config-presence` checks file existence; `standalone-config-otlp-names` checks OTLP values. This mirrors the separation of concerns in `compose_service_names` + `compose_db_naming`.
+- **Missing file is not an OTLP error**: `standalone_config_otlp_names` uses `os.IsNotExist` to skip absent files silently — file absence is `standalone-config-presence`'s domain.
+- **Registry-driven vs filesystem-scan**: `standalone_config_otlp_names` iterates `AllProductServices()` + allowlist filter, unlike `otlp_service_name_pattern` which scans the filesystem. Both validate the same invariant from different directions.
+- **Windows path separator in tests**: `filepath.Rel` returns OS-native separators, so test assertions must use component names (e.g. `cryptoutilSharedMagic.KMSServiceName`) rather than slash-joined paths. Discovered during first test run.
+- **No drift found**: Both `sm-im` and `sm-kms` configs already conform to `{ps-id}-sqlite-1`, `{ps-id}-postgres-1`, `{ps-id}-postgres-2` naming.
+
+### Commit
+
+- `697b41951`: `feat(lint-fitness): add standalone config presence and OTLP name checks (Phase 7)` — 5 files, 500 insertions
 
 ---
 

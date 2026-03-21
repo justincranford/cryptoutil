@@ -286,7 +286,7 @@ Services with ad-hoc config layouts (jose-ja, pki-ca, identity services) are exp
 - **Success**: All magic container name constants are in sync with compose service names
 - **Post-Mortem**: lessons.md updated
 
-### Phase 7: Standalone Config File Presence and Naming [Status: TODO]
+### Phase 7: Standalone Config File Presence and Naming [Status: COMPLETE]
 
 **Objective**: Services with standalone configs have all required files with correct names.
 

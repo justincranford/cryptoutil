@@ -114,17 +114,17 @@
 
 ## Phase 7: Standalone Config File Presence and Naming
 
-- [ ] 7.1 Establish allowlist of PS IDs that have standardized standalone configs: `sm-im`, `sm-kms`
-- [ ] 7.2 Create `internal/apps/cicd/lint_fitness/standalone_config_presence/` directory and implementation
-- [ ] 7.3 Implement `Check(logger)`: for each PS in standalone allowlist, verify `config-sqlite.yml`, `config-pg-1.yml`, `config-pg-2.yml` exist under `configs/{PRODUCT}/{SERVICE}/`
-- [ ] 7.4 Register `standalone-config-presence` in `lint_fitness.go`
-- [ ] 7.5 Create `internal/apps/cicd/lint_fitness/standalone_config_otlp_names/` directory and implementation
-- [ ] 7.6 Implement `Check(logger)`: parse YAML, extract `otlp-service` value, verify against expected pattern
-- [ ] 7.7 Register `standalone-config-otlp-names` in `lint_fitness.go`
-- [ ] 7.8 Add unit tests (table-driven for both checks with positive and negative cases)
-- [ ] 7.9 Run `go run ./cmd/cicd lint-fitness` â€” verify both checks pass after Phase 1 fixes
-- [ ] 7.10 Commit Phase 7 changes
-- [ ] 7.11 Update lessons.md with Phase 7 post-mortem
+- [x] 7.1 Establish allowlist of PS IDs that have standardized standalone configs: `sm-im`, `sm-kms`
+- [x] 7.2 Create `internal/apps/cicd/lint_fitness/standalone_config_presence/` directory and implementation
+- [x] 7.3 Implement `Check(logger)`: for each PS in standalone allowlist, verify `config-sqlite.yml`, `config-pg-1.yml`, `config-pg-2.yml` exist under `configs/{PRODUCT}/{SERVICE}/`
+- [x] 7.4 Register `standalone-config-presence` in `lint_fitness.go`
+- [x] 7.5 Create `internal/apps/cicd/lint_fitness/standalone_config_otlp_names/` directory and implementation
+- [x] 7.6 Implement `Check(logger)`: parse YAML, extract `otlp-service` value, verify against expected pattern
+- [x] 7.7 Register `standalone-config-otlp-names` in `lint_fitness.go`
+- [x] 7.8 Add unit tests (table-driven for both checks with positive and negative cases)
+- [x] 7.9 Run `go run ./cmd/cicd lint-fitness` â€” verify both checks pass after Phase 1 fixes
+- [x] 7.10 Commit Phase 7 changes
+- [x] 7.11 Update lessons.md with Phase 7 post-mortem
 
 ## Phase 8: Migration Comment Header Validation
 
