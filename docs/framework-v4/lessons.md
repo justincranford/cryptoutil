@@ -184,7 +184,14 @@ Each failure mode (missing Dockerfile, compose.yml, secrets/, config/, each conf
 
 ## Phase 9: ARCHITECTURE.md Updates and CICD Tool Catalog
 
-*(No notes yet — phase not started.)*
+**Root Causes Found**: ARCHITECTURE.md Section 9.11 was stale — showed "23 total" when 43 checks existed, "lint_gotest (5)" when it was 4 (the 5th was from lint_skeleton), and "New checks (8)" when there were actually 28 new checks across framework-v3 Phase 4 and framework-v4 Phases 1-8.
+
+**Key Lessons**:
+1. **Count discrepancy compounds**: Each new check added without updating ARCHITECTURE.md widens the gap. Updating at Phase 9 with the full catalog is the right approach — maintaining accuracy vs. keeping docs synchronized incrementally are both valid strategies.
+2. **Catalog grouping matters**: Separating `lint_go (10)`, `lint_gotest (4)`, `lint_skeleton (1)`, `framework-v3 Phase 4 (15)`, and `framework-v4 (13)` makes the history clear and auditable.
+3. **lint-docs validates propagation not counts**: `go run ./cmd/cicd lint-docs` only checks `@propagate`/`@source` marker integrity, not free-form counts. Manual review of counts is still required.
+4. **Entity Registry sub-section**: Documenting registry location, types, and update procedure in ARCHITECTURE.md ensures new contributors know the single source of truth and how to extend it.
+5. **ci-fitness.yml**: The workflow doesn't need updating — it just runs `lint-fitness` without mentioning a count.
 
 ---
 

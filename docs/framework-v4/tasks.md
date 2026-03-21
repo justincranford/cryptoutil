@@ -143,16 +143,18 @@
 
 ## Phase 9: ARCHITECTURE.md Updates and CICD Tool Catalog
 
-- [ ] 9.1 Count total fitness checks after all phases complete
-- [ ] 9.2 Update ARCHITECTURE.md Section 9.11 count from "23 total" (or current stale value) to new total
-- [ ] 9.3 Add all new fitness checks to the sub-linter catalog table in ARCHITECTURE.md Section 9.11.1
-- [ ] 9.4 Add "Entity Registry" sub-section to ARCHITECTURE.md Section 9.11: location, structure, update procedure
-- [ ] 9.5 Add "Naming Convention Catalog" reference to ARCHITECTURE.md with pointer to `plan.md` tables
-- [ ] 9.6 Update `cicd-lint-fitness` workflow description (if separate workflow file exists) to mention expanded scope
-- [ ] 9.7 Run `go run ./cmd/cicd lint-docs` â€” verify ARCHITECTURE.md propagation passes
-- [ ] 9.8 Run `go run ./cmd/cicd lint-fitness` â€” ALL checks pass (final full suite run)
-- [ ] 9.9 Commit Phase 9 changes
-- [ ] 9.10 Update lessons.md with Phase 9 post-mortem
+**Status**: ✅ COMPLETE (commit `913dea15d` + Naming Convention Catalog commit pending)
+
+- [x] 9.1 Count total fitness checks after all phases complete — 43 total
+- [x] 9.2 Update ARCHITECTURE.md Section 9.11 count from "23 total" to "43 total"
+- [x] 9.3 Add all new fitness checks to the sub-linter catalog table in ARCHITECTURE.md Section 9.11.1
+- [x] 9.4 Add "Entity Registry" sub-section to ARCHITECTURE.md Section 9.11: location, structure, update procedure
+- [x] 9.5 Add "Naming Convention Catalog" reference to ARCHITECTURE.md with pointer to `plan.md` tables (Section 9.11.3)
+- [x] 9.6 Update `cicd-lint-fitness` workflow description (if separate workflow file exists) to mention expanded scope — ci-fitness.yml has no count reference, no change needed
+- [x] 9.7 Run `go run ./cmd/cicd lint-docs` — verify ARCHITECTURE.md propagation passes
+- [x] 9.8 Run `go run ./cmd/cicd lint-fitness` — ALL checks pass (final full suite run)
+- [x] 9.9 Commit Phase 9 changes
+- [x] 9.10 Update lessons.md with Phase 9 post-mortem
 
 ## Phase 10: Knowledge Propagation
 

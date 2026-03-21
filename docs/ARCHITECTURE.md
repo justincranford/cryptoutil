@@ -2546,6 +2546,18 @@ Architecture fitness functions are automated checks that enforce ARCHITECTURE.md
 
 **Current registry**: 5 products, 10 product-services
 
+#### 9.11.3 Naming Convention Catalog
+
+All naming conventions enforced by `lint-fitness` are fully parameterized in the **Naming Convention Catalog** in `docs/framework-v4/plan.md`. That catalog defines the exact formula for every file, directory, compose service, config, and migration naming pattern.
+
+**Key conventions**:
+- Compose service names: `{ps-id}-{db}-N` (e.g. `sm-im-postgres-1`)
+- OTLP service names: `{ps-id}-sqlite-1`, `{ps-id}-postgres-1`, `{ps-id}-postgres-2`
+- Migration comment headers: `-- {DisplayName} database schema` / `-- {DisplayName} database schema rollback`
+- Standalone config files: `config-sqlite.yml`, `config-pg-1.yml`, `config-pg-2.yml`
+
+See `docs/framework-v4/plan.md` for the complete parameterization tables.
+
 ---
 
 ## 10. Testing Architecture
