@@ -1,6 +1,6 @@
 # Framework v4 - Anti-Drift Fitness Linter Expansion Plan
 
-**Status**: TODO — Planning complete, no phases started.
+**Status**: COMPLETE — All 10 phases delivered, 43 fitness checks operational.
 **Created**: 2026-07-20
 **Depends On**: `docs/framework-v3/` (complete), `internal/apps/cicd/lint_fitness/` (30 existing checks)
 **Purpose**: Rigidly parameterize the location, naming, content, and structure of every file across all products (5), product-services (10), suites (1), and all helpers (cicd, etc). Create comprehensive anti-drift fitness linters that detect and reject any structural or naming drift across the entire repository.
@@ -218,7 +218,7 @@ Services with ad-hoc config layouts (jose-ja, pki-ca, identity services) are exp
 
 ## Phases
 
-### Phase 1: Fix Legacy `sm-kms-pg-` Naming and Add OTLP Service Name Check [Status: TODO]
+### Phase 1: Fix Legacy `sm-kms-pg-` Naming and Add OTLP Service Name Check [Status: COMPLETE]
 
 **Objective**: Before adding the `otlp-service-name-pattern` fitness check, fix the pre-existing `sm-kms-pg-1` / `sm-kms-pg-2` naming inconsistency in standalone config files so the check can immediately pass.
 
@@ -228,7 +228,7 @@ Services with ad-hoc config layouts (jose-ja, pki-ca, identity services) are exp
 - **Success**: `lint-fitness otlp-service-name-pattern` passes, sm-kms configs use correct names
 - **Post-Mortem**: lessons.md updated
 
-### Phase 2: Registry-Driven Foundation and Entity Registry Check [Status: TODO]
+### Phase 2: Registry-Driven Foundation and Entity Registry Check [Status: COMPLETE]
 
 **Objective**: Create the shared entity registry and the first registry-driven check.
 
@@ -239,7 +239,7 @@ Services with ad-hoc config layouts (jose-ja, pki-ca, identity services) are exp
 - **Success**: Registry exists, `entity-registry-completeness` check passes for all 16 entities
 - **Post-Mortem**: lessons.md updated
 
-### Phase 3: Banned Name Detection [Status: TODO]
+### Phase 3: Banned Name Detection [Status: COMPLETE]
 
 **Objective**: Prevent recurrence of the "Cipher IM" naming regression.
 
@@ -250,7 +250,7 @@ Services with ad-hoc config layouts (jose-ja, pki-ca, identity services) are exp
 - **Success**: Both checks pass, would have caught the Cipher→SM regression at commit time
 - **Post-Mortem**: lessons.md updated
 
-### Phase 4: Deployment Directory Completeness [Status: TODO]
+### Phase 4: Deployment Directory Completeness [Status: COMPLETE]
 
 **Objective**: Every product-service must have a complete deployment directory.
 
@@ -267,7 +267,7 @@ Services with ad-hoc config layouts (jose-ja, pki-ca, identity services) are exp
 - **Success**: Check passes for all 10 product-services, missing files reported clearly
 - **Post-Mortem**: lessons.md updated
 
-### Phase 5: Compose File Header and Service Name Validation [Status: TODO]
+### Phase 5: Compose File Header and Service Name Validation [Status: COMPLETE]
 
 **Objective**: Compose file headers and service names follow exact patterns.
 
@@ -316,7 +316,7 @@ Services with ad-hoc config layouts (jose-ja, pki-ca, identity services) are exp
 - **Success**: ARCHITECTURE.md accurately reflects all fitness checks; `cicd lint-docs` passes
 - **Post-Mortem**: lessons.md updated
 
-### Phase 10: Knowledge Propagation [Status: TODO]
+### Phase 10: Knowledge Propagation [Status: COMPLETE]
 
 **Objective**: Propagate lessons and patterns to agents, skills, instructions, ARCHITECTURE.md.
 

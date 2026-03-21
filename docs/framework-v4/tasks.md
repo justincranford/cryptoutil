@@ -158,11 +158,11 @@
 
 ## Phase 10: Knowledge Propagation
 
-- [ ] 10.1 Update `docs/framework-v3/plan.md` Status to COMPLETE (if not already)
-- [ ] 10.2 Propagate entity registry pattern and banned name list to `.github/instructions/02-01.architecture.instructions.md`
-- [ ] 10.3 Update `fitness-function-gen` skill to document registry-driven check pattern for new contributors
-- [ ] 10.4 Verify all `@source` propagation blocks in instruction files match ARCHITECTURE.md after updates
-- [ ] 10.5 Run full quality gate suite one final time:
+- [x] 10.1 Update `docs/framework-v3/plan.md` Status to COMPLETE (if not already)
+- [x] 10.2 Propagate entity registry pattern and banned name list to `.github/instructions/02-01.architecture.instructions.md`
+- [x] 10.3 Update `fitness-function-gen` skill to document registry-driven check pattern for new contributors
+- [x] 10.4 Verify all `@source` propagation blocks in instruction files match ARCHITECTURE.md after updates
+- [x] 10.5 Run full quality gate suite one final time:
   - `go build ./...`
   - `go build -tags e2e,integration ./...`
   - `golangci-lint run`
@@ -171,6 +171,6 @@
   - `go run ./cmd/cicd lint-fitness`
   - `go run ./cmd/cicd lint-deployments`
   - `go run ./cmd/cicd lint-docs`
-- [ ] 10.6 Commit Phase 10 changes
-- [ ] 10.7 Update lessons.md with Phase 10 post-mortem
-- [ ] 10.8 Mark all phases COMPLETE in plan.md top-level status
+- [x] 10.6 Commit Phase 10 changes — `9856af43d`
+- [x] 10.7 Update lessons.md with Phase 10 post-mortem
+- [x] 10.8 Mark all phases COMPLETE in plan.md top-level status

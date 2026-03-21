@@ -197,4 +197,28 @@ Each failure mode (missing Dockerfile, compose.yml, secrets/, config/, each conf
 
 ## Phase 10: Knowledge Propagation
 
-*(No notes yet — phase not started.)*
+### Summary
+
+Phase 10 propagated entity registry patterns and banned product name documentation to permanent instruction and skill artifacts.
+
+### What Worked
+
+- Adding `CICDExcludeDirGithubInstructions = ".github"` magic constant and using it in `banned_product_names.go` excludedDirs cleanly excluded `.github/instructions/` from the banned-phrase scan without any test failures in that checker.
+- The fitness-function-gen SKILL.md update (23→43 checks + Registry-Driven Check Pattern section) documented the established coding pattern for new contributors.
+- lint-docs validate-propagation passed with 270 valid refs, 0 broken after all instruction file updates.
+
+### Lessons Learned
+
+1. **New magic constants propagate immediately to literal-use checker**: When adding a magic constant like `CICDExcludeDirGithubInstructions`, the `magic-usage` linter (`TestLint_Integration`) immediately flags all existing literal usages of that string value as blocking violations. This is expected behavior — the fix is to update all usages to reference the new constant (not add exceptions). In this case, 17 usages of `".github"` across `lint_workflow` and `workflow` packages required updating.
+
+2. **replace_string_in_file tool can lose content when oldString includes trailing code**: If the `oldString` matches content that is followed immediately by other code on the same line (due to a previous bad edit), the tool will find no match. Use PowerShell `[System.IO.File]::ReadAllText()` + `.Replace()` + `[System.IO.File]::WriteAllText()` for robust string replacement when tool-based replacement fails.
+
+3. **Documentation files need scanner exclusions for banned phrases**: Instruction files and skill files that document why certain names are banned will necessarily contain those banned phrases. Add the parent directory to the excluded dirs list using a dedicated magic constant (same pattern as `CICDExcludeDirBannedProductNamesCheck`).
+
+4. **Verify build immediately after each replace_string_in_file call**: A single mismatched replacement can silently lose a line or merge adjacent lines. `go build ./...` is the fastest verification — any undefined symbol immediately reveals corruption before it compounds.
+
+### Key Metrics
+
+- Files changed in Phase 10: 13 (1 magic constant, 1 banned-names checker, 7 test files, 1 implementation file, 1 instruction doc, 1 skill doc, 1 plan.md)
+- Blocking violations fixed: 17 (all `".github"` literal-use in lint_workflow + workflow packages)
+- Quality gate: all 43 lint_fitness checks pass, `go test ./internal/apps/cicd/...` all OK, `TestLint_Integration` OK
