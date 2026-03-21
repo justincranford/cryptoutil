@@ -128,7 +128,7 @@
 
 ## Phase 8: Migration Comment Header Validation
 
-**Status**: ✅ COMPLETE (commit `8030ed742`, lessons commit pending)
+**Status**: ✅ COMPLETE (commit `8030ed742`, lessons commit `653c2b732`)
 
 - [x] 8.1 Create `internal/apps/cicd/lint_fitness/migration_comment_headers/` directory and implementation
 - [x] 8.2 Implement `Check(logger)`: for each PS in registry that has `internal/apps/{PRODUCT}/{SERVICE}/repository/migrations/`, scan `*.up.sql` — first comment line must contain `{Display Name} database schema`
