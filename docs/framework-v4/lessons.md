@@ -96,7 +96,33 @@ Each failure mode (missing Dockerfile, compose.yml, secrets/, config/, each conf
 
 ## Phase 5: Compose File Header and Service Name Validation
 
-*(No notes yet — phase not started.)*
+### What Went Well
+
+- All 3 checks (`compose-header-format`, `compose-service-names`, `compose-db-naming`) implemented and passing in one session.
+- Registry-driven pattern: all 10 PS validated automatically — no hardcoding of PS lists.
+- 20 tests written covering integration (real workspace), all-correct, missing-file, and wrong-value cases.
+
+### Surprises / Root Causes
+
+- **5 compose headers had drift**: 4 PS (identity-idp/rp/rs/spa) had lowercase PS-ID on line 3; sm-kms had wrong display name on line 5 (`SM Key Management Service` vs. registry `Secrets Manager Key Management`). Discovered only at lint-fitness run time.
+- **magic_cicd.go uses TAB indentation**: `replace_string_in_file` with space-indented oldString fails silently with "Could not find matching text". Always match exact whitespace. Workaround: use string concatenation `$tab = "`t"` in PowerShell heredocs.
+- **PowerShell heredoc strips tab indentation**: Writing Go files with `@'...'@` in PowerShell 5.1 causes lines to lose leading tabs. Use string concatenation with `${tab}` to build files `requiring` tab indentation.
+- **`format-go` hook auto-fixed `interface{}` → `any`**: Pre-commit auto-modified compose_service_names.go. Always re-stage and retry commit after hook modifications.
+
+### Patterns Established
+
+- New magic constants added when literal values have domain semantics: `CICDComposeHeaderLinesToCheck`, `CICDComposeLine3Index`, `CICDComposeLine5Index`, `CICDTempDirPermissions`.
+- Test files must use `cryptoutilSharedMagic.FilePermissions` for `0o644` and `cryptoutilSharedMagic.DirPermissions` / `CICDTempDirPermissions` for `0o755`.
+- `IME2ESQLiteContainer`, `IME2EPostgreSQL1Container`, `IME2EPostgreSQL2Container` exist in shared/magic for SM-IM E2E container names.
+- For the `{PS-ID}-db-postgres-1` db container service suffix, no dedicated constant exists — compute as `psID + "-db-postgres-1"` dynamically.
+
+### Quality Gates Summary
+
+- `go build ./...`: ✅ clean
+- `golangci-lint run`: ✅ 0 issues
+- `go test ./internal/apps/cicd/lint_fitness/...`: ✅ all pass
+- `go run ./cmd/cicd lint-fitness`: ✅ SUCCESS
+- `go run ./cmd/cicd lint-go`: ✅ 0 literal-use [blocking] violations
 
 ---
 
