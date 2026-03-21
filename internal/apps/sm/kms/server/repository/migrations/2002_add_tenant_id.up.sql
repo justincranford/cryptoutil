@@ -1,5 +1,5 @@
 --
--- KMS Tenant ID Migration
+-- Secrets Manager Key Management database schema
 -- Domain migration 2002: Add tenant_id to elastic_keys and material_keys
 -- Enables multi-tenant isolation for KMS data
 --

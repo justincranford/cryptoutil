@@ -1,2 +1,2 @@
--- pki-ca domain migration: drop ca_items table.
+-- PKI Certificate Authority database schema rollback
 DROP TABLE IF EXISTS ca_items;

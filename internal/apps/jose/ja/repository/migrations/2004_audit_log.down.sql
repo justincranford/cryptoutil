@@ -1,5 +1,5 @@
 --
--- JOSE-JA database schema rollback
+-- JOSE JWK Authority database schema rollback
 -- 2004: Audit log - drop audit_log table
 --
 

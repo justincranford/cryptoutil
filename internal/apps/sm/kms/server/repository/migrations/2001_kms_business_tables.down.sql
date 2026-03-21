@@ -1,5 +1,5 @@
 --
--- KMS Business Tables Migration - Rollback
+-- Secrets Manager Key Management database schema rollback
 -- Domain migration 2001: elastic_keys and material_keys tables
 --
 

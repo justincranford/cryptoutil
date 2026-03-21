@@ -1,5 +1,5 @@
 --
--- KMS Business Tables Migration
+-- Secrets Manager Key Management database schema
 -- Domain migration 2001: elastic_keys and material_keys tables
 -- Template migration 1002 provides barrier tables
 --

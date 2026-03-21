@@ -1,5 +1,5 @@
 --
--- JOSE-JA database schema (SQLite + PostgreSQL compatible)
+-- JOSE JWK Authority database schema (SQLite + PostgreSQL compatible)
 -- 2003: Audit configuration - per-tenant audit sampling settings
 --
 

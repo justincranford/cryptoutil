@@ -1,5 +1,5 @@
 --
--- JOSE-JA database schema rollback
+-- JOSE JWK Authority database schema rollback
 -- 2003: Audit configuration - drop tenant_audit_config table
 --
 

@@ -19,10 +19,6 @@ import (
 	lintFitnessComposeDBNaming "cryptoutil/internal/apps/cicd/lint_fitness/compose_db_naming"
 	lintFitnessComposeHeaderFormat "cryptoutil/internal/apps/cicd/lint_fitness/compose_header_format"
 	lintFitnessComposeServiceNames "cryptoutil/internal/apps/cicd/lint_fitness/compose_service_names"
-	lintFitnessMagicE2EComposePath "cryptoutil/internal/apps/cicd/lint_fitness/magic_e2e_compose_path"
-	lintFitnessMagicE2EContainerNames "cryptoutil/internal/apps/cicd/lint_fitness/magic_e2e_container_names"
-	lintFitnessStandaloneConfigOTLPNames "cryptoutil/internal/apps/cicd/lint_fitness/standalone_config_otlp_names"
-	lintFitnessStandaloneConfigPresence "cryptoutil/internal/apps/cicd/lint_fitness/standalone_config_presence"
 	lintFitnessCrossServiceImportIsolation "cryptoutil/internal/apps/cicd/lint_fitness/cross_service_import_isolation"
 	lintFitnessCryptoRand "cryptoutil/internal/apps/cicd/lint_fitness/crypto_rand"
 	lintFitnessDeploymentDirCompleteness "cryptoutil/internal/apps/cicd/lint_fitness/deployment_dir_completeness"
@@ -33,6 +29,9 @@ import (
 	lintFitnessHealthEndpointPresence "cryptoutil/internal/apps/cicd/lint_fitness/health_endpoint_presence"
 	lintFitnessInsecureSkipVerify "cryptoutil/internal/apps/cicd/lint_fitness/insecure_skip_verify"
 	lintFitnessLegacyDirDetection "cryptoutil/internal/apps/cicd/lint_fitness/legacy_dir_detection"
+	lintFitnessMagicE2EComposePath "cryptoutil/internal/apps/cicd/lint_fitness/magic_e2e_compose_path"
+	lintFitnessMagicE2EContainerNames "cryptoutil/internal/apps/cicd/lint_fitness/magic_e2e_container_names"
+	lintFitnessMigrationCommentHeaders "cryptoutil/internal/apps/cicd/lint_fitness/migration_comment_headers"
 	lintFitnessMigrationNumbering "cryptoutil/internal/apps/cicd/lint_fitness/migration_numbering"
 	lintFitnessMigrationRangeCompliance "cryptoutil/internal/apps/cicd/lint_fitness/migration_range_compliance"
 	lintFitnessNoHardcodedPasswords "cryptoutil/internal/apps/cicd/lint_fitness/no_hardcoded_passwords"
@@ -49,6 +48,8 @@ import (
 	lintFitnessRequireFrameworkNaming "cryptoutil/internal/apps/cicd/lint_fitness/require_framework_naming"
 	lintFitnessServiceContractCompliance "cryptoutil/internal/apps/cicd/lint_fitness/service_contract_compliance"
 	lintFitnessServiceStructure "cryptoutil/internal/apps/cicd/lint_fitness/service_structure"
+	lintFitnessStandaloneConfigOTLPNames "cryptoutil/internal/apps/cicd/lint_fitness/standalone_config_otlp_names"
+	lintFitnessStandaloneConfigPresence "cryptoutil/internal/apps/cicd/lint_fitness/standalone_config_presence"
 	lintFitnessTestPatterns "cryptoutil/internal/apps/cicd/lint_fitness/test_patterns"
 	lintFitnessTLSMinimumVersion "cryptoutil/internal/apps/cicd/lint_fitness/tls_minimum_version"
 )
@@ -115,6 +116,8 @@ var registeredLinters = []struct {
 	// New fitness checks (added in Phase 7 of framework-v4).
 	{"standalone-config-presence", lintFitnessStandaloneConfigPresence.Check},
 	{"standalone-config-otlp-names", lintFitnessStandaloneConfigOTLPNames.Check},
+	// New fitness checks (added in Phase 8 of framework-v4).
+	{"migration-comment-headers", lintFitnessMigrationCommentHeaders.Check},
 }
 
 // Lint runs all registered architecture fitness linters.

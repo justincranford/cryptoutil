@@ -1,4 +1,4 @@
--- skeleton-template domain migration: add name, description, updated_at to template_items.
+-- Skeleton Template database schema
 -- Migration range 2001+: domain-specific (non-template).
 ALTER TABLE template_items ADD COLUMN name TEXT NOT NULL DEFAULT '';
 ALTER TABLE template_items ADD COLUMN description TEXT DEFAULT '';

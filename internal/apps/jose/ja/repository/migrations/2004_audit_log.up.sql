@@ -1,5 +1,5 @@
 --
--- JOSE-JA database schema (SQLite + PostgreSQL compatible)
+-- JOSE JWK Authority database schema (SQLite + PostgreSQL compatible)
 -- 2004: Audit log - cryptographic operation audit entries
 -- CRITICAL: tenant_id for data scoping, session_id for traceability - realms are authn-only
 --

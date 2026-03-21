@@ -1,5 +1,5 @@
 --
--- KMS Tenant ID Migration - Rollback
+-- Secrets Manager Key Management database schema rollback
 -- Domain migration 2002: Remove tenant_id from elastic_keys
 --
 

@@ -1,4 +1,4 @@
--- pki-ca domain migration: create ca_items table.
+-- PKI Certificate Authority database schema
 -- Migration range 2001+: domain-specific (non-template).
 CREATE TABLE IF NOT EXISTS ca_items (
     id TEXT NOT NULL PRIMARY KEY,

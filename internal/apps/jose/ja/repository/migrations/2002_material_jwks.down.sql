@@ -1,5 +1,5 @@
 --
--- JOSE-JA database schema rollback
+-- JOSE JWK Authority database schema rollback
 -- 2002: Material JWKs - drop material_jwks table
 --
 

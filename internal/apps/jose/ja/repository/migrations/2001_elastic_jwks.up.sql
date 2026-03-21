@@ -1,5 +1,5 @@
 --
--- JOSE-JA database schema (SQLite + PostgreSQL compatible)
+-- JOSE JWK Authority database schema (SQLite + PostgreSQL compatible)
 -- 2001: Elastic JWKs - key containers with versioned material keys
 -- Elastic JWKs hold multiple material keys for key rotation support
 -- CRITICAL: tenant_id for data scoping only - realms are authn-only, NOT data scope

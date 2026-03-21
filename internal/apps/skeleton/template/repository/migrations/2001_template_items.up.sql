@@ -1,4 +1,4 @@
--- skeleton-template domain migration: create template_items table.
+-- Skeleton Template database schema
 -- Migration range 2001+: domain-specific (non-template).
 CREATE TABLE IF NOT EXISTS template_items (
     id TEXT NOT NULL PRIMARY KEY,

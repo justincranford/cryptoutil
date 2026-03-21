@@ -1,5 +1,5 @@
 --
--- JOSE-JA database schema rollback
+-- JOSE JWK Authority database schema rollback
 -- 2001: Elastic JWKs - drop elastic_jwks table
 --
 

@@ -1,5 +1,5 @@
 --
--- JOSE-JA database schema (SQLite + PostgreSQL compatible)
+-- JOSE JWK Authority database schema (SQLite + PostgreSQL compatible)
 -- 2002: Material JWKs - actual key material for elastic JWKs
 -- Material keys are encrypted at rest using barrier encryption
 --
