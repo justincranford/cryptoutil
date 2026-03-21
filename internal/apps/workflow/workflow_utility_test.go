@@ -5,11 +5,12 @@
 package workflow
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -170,7 +171,7 @@ func TestGetWorkflowLogFile(t *testing.T) {
 	}{
 		{
 			name:         "Quality workflow in default output dir",
-			outputDir:    "test-output",
+			outputDir:    cryptoutilSharedMagic.CICDExcludeDirTestOutput,
 			workflowName: "quality",
 		},
 		{

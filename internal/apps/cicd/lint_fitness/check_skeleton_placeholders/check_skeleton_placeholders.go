@@ -43,7 +43,7 @@ var excludedDirPrefixes = []string{
 }
 
 // excludedDirNames are directory names (single component) that skip entire subtrees.
-var excludedDirNames = []string{cryptoutilSharedMagic.CICDExcludeDirVendor, cryptoutilSharedMagic.CICDExcludeDirGit, "test-output", "node_modules"}
+var excludedDirNames = []string{cryptoutilSharedMagic.CICDExcludeDirVendor, cryptoutilSharedMagic.CICDExcludeDirGit, cryptoutilSharedMagic.CICDExcludeDirTestOutput, "node_modules"}
 
 // Test seams: replaceable in tests to exercise unreachable OS-level error paths.
 // See ARCHITECTURE.md Section 10.2.4 (Test Seam Injection Pattern).

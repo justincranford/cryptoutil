@@ -156,7 +156,7 @@ func TestCheckInDir_SkipsTestOutputDir(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	// Place a coverage file inside test-output/ — it should be skipped.
-	testOutputDir := filepath.Join(tmpDir, "test-output")
+	testOutputDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDExcludeDirTestOutput)
 	require.NoError(t, os.MkdirAll(testOutputDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(testOutputDir, "coverage.out"), []byte("mode: set\n"), cryptoutilSharedMagic.CacheFilePermissions))
 

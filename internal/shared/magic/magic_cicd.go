@@ -20,6 +20,19 @@ const (
 
 	// CICDExcludeDirVendor is the name of the vendor directory to exclude from scans.
 	CICDExcludeDirVendor = "vendor"
+
+	// CICDExcludeDirDocs is the name of the documentation directory to exclude from banned-phrase scans.
+	// Planning docs under docs/ legitimately reference old product names when explaining the migration.
+	CICDExcludeDirDocs = "docs"
+
+	// CICDExcludeDirTestOutput is the name of the historical test-output directory to exclude from banned-phrase scans.
+	// This directory contains historical session artifacts that may reference old product names.
+	CICDExcludeDirTestOutput = "test-output"
+
+	// CICDExcludeDirBannedProductNamesCheck is the name of the banned-product-names checker directory.
+	// The checker itself defines the banned phrases as string literals and is excluded to prevent
+	// self-referential false positives.
+	CICDExcludeDirBannedProductNamesCheck = "banned_product_names"
 )
 
 // getProjectRoot finds the project root by walking up the directory tree to find .git directory.
@@ -155,11 +168,11 @@ const (
 	// ModeNameAll is the dependency check mode name for all dependencies.
 	ModeNameAll = "all"
 
-// SuiteProductCount is the total number of products in the cryptoutil suite.
-        // Products: sm, pki, jose, identity, skeleton.
-        SuiteProductCount = 5
+	// SuiteProductCount is the total number of products in the cryptoutil suite.
+	// Products: sm, pki, jose, identity, skeleton.
+	SuiteProductCount = 5
 
-        // SuiteServiceCount is the total number of individual services in the cryptoutil suite.
+	// SuiteServiceCount is the total number of individual services in the cryptoutil suite.
 	// Services: sm-kms, sm-im, jose-ja, pki-ca, identity-authz, identity-idp,
 	// identity-rp, identity-rs, identity-spa, skeleton-template.
 	SuiteServiceCount = 10

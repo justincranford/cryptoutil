@@ -55,7 +55,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 		}
 
 		// Skip known output directories where coverage files are expected.
-		if info.IsDir() && (info.Name() == "workflow-reports" || info.Name() == "test-output") {
+		if info.IsDir() && (info.Name() == "workflow-reports" || info.Name() == cryptoutilSharedMagic.CICDExcludeDirTestOutput) {
 			return filepath.SkipDir
 		}
 

@@ -171,7 +171,7 @@ func TestCheckDir_NonSQLFile_Ignored(t *testing.T) {
 	dir := filepath.Join(tmp, "migrations")
 	require.NoError(t, os.MkdirAll(dir, cryptoutilSharedMagic.DirPermissions))
 	// README.md must not trigger a range violation.
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "README.md"), []byte("docs"), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "README.md"), []byte(cryptoutilSharedMagic.CICDExcludeDirDocs), cryptoutilSharedMagic.CacheFilePermissions))
 	violations, err := checkDir(dir, templateMigrationMin, templateMigrationMax, true)
 	require.NoError(t, err)
 	require.Empty(t, violations)

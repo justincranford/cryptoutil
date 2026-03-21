@@ -57,7 +57,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 		if info.IsDir() {
 			name := info.Name()
-			if name == cryptoutilSharedMagic.CICDExcludeDirGit || name == cryptoutilSharedMagic.CICDExcludeDirVendor || name == "test-output" || name == "api" {
+			if name == cryptoutilSharedMagic.CICDExcludeDirGit || name == cryptoutilSharedMagic.CICDExcludeDirVendor || name == cryptoutilSharedMagic.CICDExcludeDirTestOutput || name == "api" {
 				return filepath.SkipDir
 			}
 

@@ -112,7 +112,7 @@ func FindGoFiles() ([]string, error) {
 		// Skip directories to exclude.
 		if info.IsDir() {
 			switch info.Name() {
-			case cryptoutilSharedMagic.CICDExcludeDirVendor, "test-output", cryptoutilSharedMagic.CICDExcludeDirGit, "node_modules":
+			case cryptoutilSharedMagic.CICDExcludeDirVendor, cryptoutilSharedMagic.CICDExcludeDirTestOutput, cryptoutilSharedMagic.CICDExcludeDirGit, "node_modules":
 				return filepath.SkipDir
 			}
 

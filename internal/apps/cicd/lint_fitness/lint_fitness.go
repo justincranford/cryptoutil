@@ -10,6 +10,7 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
 	lintFitnessAdminBindAddress "cryptoutil/internal/apps/cicd/lint_fitness/admin_bind_address"
+	lintFitnessBannedProductNames "cryptoutil/internal/apps/cicd/lint_fitness/banned_product_names"
 	lintFitnessBindAddressSafety "cryptoutil/internal/apps/cicd/lint_fitness/bind_address_safety"
 	lintFitnessCGOFreeSQLite "cryptoutil/internal/apps/cicd/lint_fitness/cgo_free_sqlite"
 	lintFitnessCheckSkeletonPlaceholders "cryptoutil/internal/apps/cicd/lint_fitness/check_skeleton_placeholders"
@@ -23,6 +24,7 @@ import (
 	lintFitnessGenConfigInitialisms "cryptoutil/internal/apps/cicd/lint_fitness/gen_config_initialisms"
 	lintFitnessHealthEndpointPresence "cryptoutil/internal/apps/cicd/lint_fitness/health_endpoint_presence"
 	lintFitnessInsecureSkipVerify "cryptoutil/internal/apps/cicd/lint_fitness/insecure_skip_verify"
+	lintFitnessLegacyDirDetection "cryptoutil/internal/apps/cicd/lint_fitness/legacy_dir_detection"
 	lintFitnessMigrationNumbering "cryptoutil/internal/apps/cicd/lint_fitness/migration_numbering"
 	lintFitnessMigrationRangeCompliance "cryptoutil/internal/apps/cicd/lint_fitness/migration_range_compliance"
 	lintFitnessNoHardcodedPasswords "cryptoutil/internal/apps/cicd/lint_fitness/no_hardcoded_passwords"
@@ -90,6 +92,9 @@ var registeredLinters = []struct {
 	{"otlp-service-name-pattern", lintFitnessOTLPServiceNamePattern.Check},
 	// New fitness checks (added in Phase 2 of framework-v4).
 	{"entity-registry-completeness", lintFitnessEntityRegistryCompleteness.Check},
+	// New fitness checks (added in Phase 3 of framework-v4).
+	{"banned-product-names", lintFitnessBannedProductNames.Check},
+	{"legacy-dir-detection", lintFitnessLegacyDirDetection.Check},
 }
 
 // Lint runs all registered architecture fitness linters.

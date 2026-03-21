@@ -127,7 +127,7 @@ func TestDiscoverServices_NonDirFileInAppsDir_Skipped(t *testing.T) {
 	appsDir := filepath.Join(tmp, "apps")
 	require.NoError(t, os.MkdirAll(appsDir, cryptoutilSharedMagic.DirPermissions))
 	// Create a FILE (not directory) directly in appsDir - triggers !p.IsDir() continue.
-	require.NoError(t, os.WriteFile(filepath.Join(appsDir, "README.md"), []byte("docs"), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(appsDir, "README.md"), []byte(cryptoutilSharedMagic.CICDExcludeDirDocs), cryptoutilSharedMagic.CacheFilePermissions))
 	services, err := discoverServices(appsDir)
 	require.NoError(t, err)
 	require.Empty(t, services)
@@ -140,7 +140,7 @@ func TestDiscoverServices_NonDirFileInProductDir_Skipped(t *testing.T) {
 	productDir := filepath.Join(appsDir, "sm")
 	require.NoError(t, os.MkdirAll(productDir, cryptoutilSharedMagic.DirPermissions))
 	// Create a FILE (not directory) in the product dir - triggers !s.IsDir() continue.
-	require.NoError(t, os.WriteFile(filepath.Join(productDir, "README.md"), []byte("docs"), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(productDir, "README.md"), []byte(cryptoutilSharedMagic.CICDExcludeDirDocs), cryptoutilSharedMagic.CacheFilePermissions))
 
 	services, err := discoverServices(appsDir)
 	require.NoError(t, err)
