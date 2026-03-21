@@ -18,6 +18,7 @@ import (
 	lintFitnessCmdMainPattern "cryptoutil/internal/apps/cicd/lint_fitness/cmd_main_pattern"
 	lintFitnessCrossServiceImportIsolation "cryptoutil/internal/apps/cicd/lint_fitness/cross_service_import_isolation"
 	lintFitnessCryptoRand "cryptoutil/internal/apps/cicd/lint_fitness/crypto_rand"
+	lintFitnessDeploymentDirCompleteness "cryptoutil/internal/apps/cicd/lint_fitness/deployment_dir_completeness"
 	lintFitnessDomainLayerIsolation "cryptoutil/internal/apps/cicd/lint_fitness/domain_layer_isolation"
 	lintFitnessEntityRegistryCompleteness "cryptoutil/internal/apps/cicd/lint_fitness/entity_registry_completeness"
 	lintFitnessFileSizeLimits "cryptoutil/internal/apps/cicd/lint_fitness/file_size_limits"
@@ -95,6 +96,8 @@ var registeredLinters = []struct {
 	// New fitness checks (added in Phase 3 of framework-v4).
 	{"banned-product-names", lintFitnessBannedProductNames.Check},
 	{"legacy-dir-detection", lintFitnessLegacyDirDetection.Check},
+	// New fitness checks (added in Phase 4 of framework-v4).
+	{"deployment-dir-completeness", lintFitnessDeploymentDirCompleteness.Check},
 }
 
 // Lint runs all registered architecture fitness linters.
