@@ -53,18 +53,18 @@
 
 ## Phase 3: Banned Name Detection
 
-- [ ] 3.1 Finalize banned phrase list (exact strings to ban — not substrings of `cipher`)
-- [ ] 3.2 Create `internal/apps/cicd/lint_fitness/banned_product_names/` directory and implementation
-- [ ] 3.3 Implement `Check(logger)`: scan `.go`, `.yml`, `.yaml`, `.sql`, `.md` files for banned phrases (exact match), report file+line
-- [ ] 3.4 Implement exclusion rule: crypto terminology like `cipher.Block`, `ciphertext` allowed (not the exact banned phrases)
-- [ ] 3.5 Add unit tests: at minimum 1 test per banned phrase showing detection, 1 test showing exclusion
-- [ ] 3.6 Register `banned-product-names` in `lint_fitness.go`
-- [ ] 3.7 Create `internal/apps/cicd/lint_fitness/legacy_dir_detection/` directory and implementation
-- [ ] 3.8 Implement `Check(logger)`: verify `internal/apps/cipher/` does not exist; verify no `*-cipher-*` directories in `deployments/`, `configs/`, `cmd/`
-- [ ] 3.9 Register `legacy-dir-detection` in `lint_fitness.go`
-- [ ] 3.10 Run `go run ./cmd/cicd lint-fitness` — verify both checks pass
-- [ ] 3.11 Commit Phase 3 changes
-- [ ] 3.12 Update lessons.md with Phase 3 post-mortem
+- [x] 3.1 Finalize banned phrase list (exact strings to ban — not substrings of `cipher`)
+- [x] 3.2 Create `internal/apps/cicd/lint_fitness/banned_product_names/` directory and implementation
+- [x] 3.3 Implement `Check(logger)`: scan `.go`, `.yml`, `.yaml`, `.sql`, `.md` files for banned phrases (exact match), report file+line
+- [x] 3.4 Implement exclusion rule: crypto terminology like `cipher.Block`, `ciphertext` allowed (not the exact banned phrases)
+- [x] 3.5 Add unit tests: at minimum 1 test per banned phrase showing detection, 1 test showing exclusion
+- [x] 3.6 Register `banned-product-names` in `lint_fitness.go`
+- [x] 3.7 Create `internal/apps/cicd/lint_fitness/legacy_dir_detection/` directory and implementation
+- [x] 3.8 Implement `Check(logger)`: verify `internal/apps/cipher/` does not exist; verify no `*-cipher-*` directories in `deployments/`, `configs/`, `cmd/`
+- [x] 3.9 Register `legacy-dir-detection` in `lint_fitness.go`
+- [x] 3.10 Run `go run ./cmd/cicd lint-fitness` — verify both checks pass
+- [x] 3.11 Commit Phase 3 changes
+- [x] 3.12 Update lessons.md with Phase 3 post-mortem
 
 ## Phase 4: Deployment Directory Completeness
 

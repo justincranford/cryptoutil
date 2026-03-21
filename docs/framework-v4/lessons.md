@@ -44,7 +44,31 @@
 
 ## Phase 3: Banned Name Detection
 
-*(No notes yet — phase not started.)*
+**Commit**: `f7a9c84a6`
+
+### Self-Referential Exclusion
+
+The banned-product-names checker defines the banned phrases as Go string literals. The checker's own directory (`banned_product_names/`) must be excluded from scanning to prevent self-referential false positives. General rule: any checker that defines the forbidden patterns as literals must exclude its own package directory.
+
+### Documentation Exclusion
+
+Planning docs under `docs/` legitimately reference old product names when explaining the migration history (e.g., "we renamed Cipher IM to SM IM"). These are valid documentation, not accidental regressions. Excluding `docs/` from the production drift check is correct.
+
+### Test File Exclusion
+
+Test files (e.g., `legacy_dir_detection_test.go`) use banned phrases as negative test data — asserting that the checker *detects* them. Scanning `_test.go` files would cause the integration tests themselves to fail. Skip `_test.go` files in all banned-phrase walk functions.
+
+### `test-output/` Exclusion
+
+The `test-output/` directory contains historical session artifacts (e.g., coverage files, workflow reports). Its contents are not maintained and may reference old names incidentally. Exclude it from banned-phrase scans.
+
+### The Check Caught a Real Violation
+
+The `legacy-dir-detection` integration test revealed that `internal/apps/cipher/` still existed on disk. This was the check working correctly — the directory was a leftover of the cipher→SM migration (contained only the test binary `cipher.test.exe` and temp test directories, no Go source). Removal was required before the check could pass in CI. The lesson: write the check, run it, fix what it finds.
+
+### New Magic Constants Unlock Pre-Existing Violations
+
+Adding `CICDExcludeDirDocs`, `CICDExcludeDirTestOutput`, and `CICDExcludeDirBannedProductNamesCheck` immediately created 18 new `[literal-use]` blocking violations across 12 files — these were pre-existing literal usages that became blocking once the constant was defined. All must be fixed in the same commit. New constants should always be followed by a full `lint-go` run to catch newly-unblocked violations.
 
 ---
 
