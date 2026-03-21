@@ -23,17 +23,19 @@
 
 ## Phase 1: Fix Legacy sm-kms-pg- Naming and Add OTLP Service Name Check
 
-- [ ] 1.1 Fix `configs/sm/kms/config-pg-1.yml`: update comment header and `otlp-service: "sm-kms-pg-1"` → `"sm-kms-postgres-1"`
-- [ ] 1.2 Fix `configs/sm/kms/config-pg-2.yml`: update comment header and `otlp-service: "sm-kms-pg-2"` → `"sm-kms-postgres-2"`
-- [ ] 1.3 Verify `configs/sm/im/config-pg-1.yml` uses `"sm-im-postgres-1"` (already done in prior session, confirm unchanged)
-- [ ] 1.4 Verify `configs/sm/im/config-pg-2.yml` uses `"sm-im-postgres-2"` (already done in prior session, confirm unchanged)
-- [ ] 1.5 Create `internal/apps/cicd/lint_fitness/otlp_service_name_pattern/` directory and implementation
-- [ ] 1.6 Implement `Check(logger)` function: for each `configs/{PRODUCT}/{SERVICE}/config-*.yml`, parse `otlp-service` key, verify matches `{PS-ID}-sqlite-1`, `{PS-ID}-postgres-1`, or `{PS-ID}-postgres-2` pattern
-- [ ] 1.7 Register `otlp-service-name-pattern` in `internal/apps/cicd/lint_fitness/lint_fitness.go`
-- [ ] 1.8 Add unit tests for the check with positive and negative cases using table-driven tests
-- [ ] 1.9 Run `go run ./cmd/cicd lint-fitness` — verify `otlp-service-name-pattern` passes
-- [ ] 1.10 Commit Phase 1 changes
-- [ ] 1.11 Update lessons.md with Phase 1 post-mortem
+**Status**: ✅ COMPLETE (commit `dc5970d47`, lessons commit `e9be1a7d3`)
+
+- [x] 1.1 Fix `configs/sm/kms/config-pg-1.yml`: update comment header and `otlp-service: "sm-kms-pg-1"` → `"sm-kms-postgres-1"`
+- [x] 1.2 Fix `configs/sm/kms/config-pg-2.yml`: update comment header and `otlp-service: "sm-kms-pg-2"` → `"sm-kms-postgres-2"`
+- [x] 1.3 Verify `configs/sm/im/config-pg-1.yml` uses `"sm-im-postgres-1"` (already done in prior session, confirm unchanged)
+- [x] 1.4 Verify `configs/sm/im/config-pg-2.yml` uses `"sm-im-postgres-2"` (already done in prior session, confirm unchanged)
+- [x] 1.5 Create `internal/apps/cicd/lint_fitness/otlp_service_name_pattern/` directory and implementation
+- [x] 1.6 Implement `Check(logger)` function: for each `configs/{PRODUCT}/{SERVICE}/config-*.yml`, parse `otlp-service` key, verify matches `{PS-ID}-sqlite-1`, `{PS-ID}-postgres-1`, or `{PS-ID}-postgres-2` pattern
+- [x] 1.7 Register `otlp-service-name-pattern` in `internal/apps/cicd/lint_fitness/lint_fitness.go`
+- [x] 1.8 Add unit tests for the check with positive and negative cases using table-driven tests
+- [x] 1.9 Run `go run ./cmd/cicd lint-fitness` — verify `otlp-service-name-pattern` passes
+- [x] 1.10 Commit Phase 1 changes
+- [x] 1.11 Update lessons.md with Phase 1 post-mortem
 
 ## Phase 2: Registry-Driven Foundation and Entity Registry Check
 
