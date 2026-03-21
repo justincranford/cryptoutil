@@ -44,20 +44,20 @@ var excludedDirs = []string{
 	cryptoutilSharedMagic.CICDExcludeDirDocs,
 	cryptoutilSharedMagic.CICDExcludeDirTestOutput,
 	cryptoutilSharedMagic.CICDExcludeDirBannedProductNamesCheck,
-        cryptoutilSharedMagic.CICDExcludeDirGithubInstructions,
+	cryptoutilSharedMagic.CICDExcludeDirGithubInstructions,
 }
 
 // Violation holds information about a banned phrase found in a file.
 type Violation struct {
-        File    string
-        Line    int
-        Phrase  string
-        Content string
+	File    string
+	Line    int
+	Phrase  string
+	Content string
 }
 
 // Check runs the banned-product-names check from the current working directory.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
-        return CheckInDir(logger, ".")
+	return CheckInDir(logger, ".")
 }
 
 // CheckInDir scans rootDir for banned product/service name phrases.
