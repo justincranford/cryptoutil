@@ -34,6 +34,7 @@ import (
 	lintFitnessProductStructure "cryptoutil/internal/apps/cicd/lint_fitness/product_structure"
 	lintFitnessProductWiring "cryptoutil/internal/apps/cicd/lint_fitness/product_wiring"
 	lintFitnessRequireAPIDir "cryptoutil/internal/apps/cicd/lint_fitness/require_api_dir"
+	lintFitnessOTLPServiceNamePattern "cryptoutil/internal/apps/cicd/lint_fitness/otlp_service_name_pattern"
 	lintFitnessRequireFrameworkNaming "cryptoutil/internal/apps/cicd/lint_fitness/require_framework_naming"
 	lintFitnessServiceContractCompliance "cryptoutil/internal/apps/cicd/lint_fitness/service_contract_compliance"
 	lintFitnessServiceStructure "cryptoutil/internal/apps/cicd/lint_fitness/service_structure"
@@ -84,6 +85,8 @@ var registeredLinters = []struct {
 	{"gen-config-initialisms", lintFitnessGenConfigInitialisms.Check},
 	{"require-api-dir", lintFitnessRequireAPIDir.Check},
 	{"require-framework-naming", lintFitnessRequireFrameworkNaming.Check},
+	// New fitness checks (added in Phase 1 of framework-v4).
+	{"otlp-service-name-pattern", lintFitnessOTLPServiceNamePattern.Check},
 }
 
 // Lint runs all registered architecture fitness linters.
