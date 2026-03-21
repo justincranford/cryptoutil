@@ -6,7 +6,7 @@
 repos:
   # Secrets scanning (critical for crypto project)
   - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.30.1
+    rev: v8.30.0
     hooks:
       - id: gitleaks
         name: Scan for secrets
