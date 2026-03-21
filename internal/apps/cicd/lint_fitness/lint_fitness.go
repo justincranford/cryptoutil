@@ -19,6 +19,8 @@ import (
 	lintFitnessComposeDBNaming "cryptoutil/internal/apps/cicd/lint_fitness/compose_db_naming"
 	lintFitnessComposeHeaderFormat "cryptoutil/internal/apps/cicd/lint_fitness/compose_header_format"
 	lintFitnessComposeServiceNames "cryptoutil/internal/apps/cicd/lint_fitness/compose_service_names"
+	lintFitnessMagicE2EComposePath "cryptoutil/internal/apps/cicd/lint_fitness/magic_e2e_compose_path"
+	lintFitnessMagicE2EContainerNames "cryptoutil/internal/apps/cicd/lint_fitness/magic_e2e_container_names"
 	lintFitnessCrossServiceImportIsolation "cryptoutil/internal/apps/cicd/lint_fitness/cross_service_import_isolation"
 	lintFitnessCryptoRand "cryptoutil/internal/apps/cicd/lint_fitness/crypto_rand"
 	lintFitnessDeploymentDirCompleteness "cryptoutil/internal/apps/cicd/lint_fitness/deployment_dir_completeness"
@@ -105,6 +107,9 @@ var registeredLinters = []struct {
 	{"compose-header-format", lintFitnessComposeHeaderFormat.Check},
 	{"compose-service-names", lintFitnessComposeServiceNames.Check},
 	{"compose-db-naming", lintFitnessComposeDBNaming.Check},
+	// New fitness checks (added in Phase 6 of framework-v4).
+	{"magic-e2e-container-names", lintFitnessMagicE2EContainerNames.Check},
+	{"magic-e2e-compose-path", lintFitnessMagicE2EComposePath.Check},
 }
 
 // Lint runs all registered architecture fitness linters.
