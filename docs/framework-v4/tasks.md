@@ -99,18 +99,18 @@
 
 ## Phase 6: Magic Constants Cross-Reference Validation
 
-- [ ] 6.1 Create `internal/apps/cicd/lint_fitness/magic_e2e_container_names/` directory and implementation
-- [ ] 6.2 Implement `Check(logger)`: for each PS in registry, parse `internal/shared/magic/magic_*.go` for `*E2ESQLiteContainer`, `*E2EPostgreSQL1Container`, `*E2EPostgreSQL2Container` constant values using Go AST or regex
-- [ ] 6.3 Cross-reference: parsed container name constants must match expected compose service names (`{PS-ID}-app-sqlite-1`, etc.)
-- [ ] 6.4 Add unit tests (in-memory Go source: correct constant passes, wrong constant fails)
-- [ ] 6.5 Register `magic-e2e-container-names` in `lint_fitness.go`
-- [ ] 6.6 Create `internal/apps/cicd/lint_fitness/magic_e2e_compose_path/` directory and implementation
-- [ ] 6.7 Implement `Check(logger)`: verify `*E2EComposeFile` constant value points to an existing file relative to the magic file's location
-- [ ] 6.8 Register `magic-e2e-compose-path` in `lint_fitness.go`
-- [ ] 6.9 Add unit tests for compose path check
-- [ ] 6.10 Run `go run ./cmd/cicd lint-fitness` â€” verify both checks pass
-- [ ] 6.11 Commit Phase 6 changes
-- [ ] 6.12 Update lessons.md with Phase 6 post-mortem
+- [x] 6.1 Create `internal/apps/cicd/lint_fitness/magic_e2e_container_names/` directory and implementation
+- [x] 6.2 Implement `Check(logger)`: for each PS in registry, parse `internal/shared/magic/magic_*.go` for `*E2ESQLiteContainer`, `*E2EPostgreSQL1Container`, `*E2EPostgreSQL2Container` constant values using Go AST or regex
+- [x] 6.3 Cross-reference: parsed container name constants must match expected compose service names (`{PS-ID}-app-sqlite-1`, etc.)
+- [x] 6.4 Add unit tests (in-memory Go source: correct constant passes, wrong constant fails)
+- [x] 6.5 Register `magic-e2e-container-names` in `lint_fitness.go`
+- [x] 6.6 Create `internal/apps/cicd/lint_fitness/magic_e2e_compose_path/` directory and implementation
+- [x] 6.7 Implement `Check(logger)`: verify `*E2EComposeFile` constant value points to an existing file relative to the magic file's location
+- [x] 6.8 Register `magic-e2e-compose-path` in `lint_fitness.go`
+- [x] 6.9 Add unit tests for compose path check
+- [x] 6.10 Run `go run ./cmd/cicd lint-fitness` â€” verify both checks pass
+- [x] 6.11 Commit Phase 6 changes
+- [x] 6.12 Update lessons.md with Phase 6 post-mortem
 
 ## Phase 7: Standalone Config File Presence and Naming
 

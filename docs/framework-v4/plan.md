@@ -277,7 +277,7 @@ Services with ad-hoc config layouts (jose-ja, pki-ca, identity services) are exp
 - **Success**: All three checks pass for all 10 product-services
 - **Post-Mortem**: lessons.md updated
 
-### Phase 6: Magic Constants Cross-Reference Validation [Status: TODO]
+### Phase 6: Magic Constants Cross-Reference Validation [Status: COMPLETE]
 
 **Objective**: Magic constants must match actual compose service names.
 

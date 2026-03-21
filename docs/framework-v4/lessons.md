@@ -128,7 +128,25 @@ Each failure mode (missing Dockerfile, compose.yml, secrets/, config/, each conf
 
 ## Phase 6: Magic Constants Cross-Reference Validation
 
-*(No notes yet — phase not started.)*
+### Drift Found
+
+- `magic_identity.go`: `IdentityE2EComposeFile` used 4 `../` levels but the active e2e tests are in `identity/authz/e2e/` (5 levels from root). The constant path was stale from before the authz sub-service restructuring. Fixed to use 5 levels and updated comment to reference `identity/authz/e2e`.
+
+### Implementation Notes
+
+- **Regex approach**: Used `regexp.MustCompile` with `(\w+)\s*=\s*"([^"]+)"` to parse Go constant string assignments. No AST needed — simpler and faster for this validation.
+- **Deduplication by MagicFile**: Multiple PS (e.g. all 5 identity PS) share `magic_identity.go`. The checker deduplicates by `ps.MagicFile` so each magic file is scanned exactly once, using the first PS entry in the registry to get `InternalAppsDir`.
+- **Skip sentinel**: For `magic-e2e-container-names`, a PS is skipped if no constant with suffix `E2ESQLiteContainer` is found in the magic file. This handles identity (uses per-service naming) and pki-ca (no E2E tests).
+- **Path resolution**: For `magic-e2e-compose-path`, the checker resolves `*E2EComposeFile` relative to `rootDir/internal/apps/{InternalAppsDir}e2e/`. The `filepath.Clean(filepath.Join(...))` chain handles `../` traversal correctly.
+- **PowerShell backtick issue**: Cannot write Go files containing backtick-delimited regex literals using Python one-liners in PowerShell — PowerShell intercepts backticks before Python runs. Solution: use VS Code file editor tools (`replace_string_in_file`) directly instead of terminal commands.
+
+### Patterns Established
+
+- Magic file checkers follow the same dedup-by-MagicFile pattern to handle shared magic files.
+- `magic-e2e-container-names` checks the 3-tuple `{SQLite, PostgreSQL1, PostgreSQL2}Container` per PS; missing constituent = violation when SQLite sentinel is present.
+- `magic-e2e-compose-path` verifies E2EComposeFile constants resolve to actual files; constants must be correct relative to `InternalAppsDir/e2e/`.
+- Test files write fake magic sources using Go string concatenation (no backtick literals in the test code itself) to avoid BOM and quoting issues.
+- `goconst` linter catches duplicate string literals across test functions — extract to package-level constants when a string is used 2+ times.
 
 ---
 
