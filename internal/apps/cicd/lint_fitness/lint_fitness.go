@@ -18,6 +18,7 @@ import (
 	lintFitnessCrossServiceImportIsolation "cryptoutil/internal/apps/cicd/lint_fitness/cross_service_import_isolation"
 	lintFitnessCryptoRand "cryptoutil/internal/apps/cicd/lint_fitness/crypto_rand"
 	lintFitnessDomainLayerIsolation "cryptoutil/internal/apps/cicd/lint_fitness/domain_layer_isolation"
+	lintFitnessEntityRegistryCompleteness "cryptoutil/internal/apps/cicd/lint_fitness/entity_registry_completeness"
 	lintFitnessFileSizeLimits "cryptoutil/internal/apps/cicd/lint_fitness/file_size_limits"
 	lintFitnessGenConfigInitialisms "cryptoutil/internal/apps/cicd/lint_fitness/gen_config_initialisms"
 	lintFitnessHealthEndpointPresence "cryptoutil/internal/apps/cicd/lint_fitness/health_endpoint_presence"
@@ -30,11 +31,11 @@ import (
 	lintFitnessNoUnitTestRealDB "cryptoutil/internal/apps/cicd/lint_fitness/no_unit_test_real_db"
 	lintFitnessNoUnitTestRealServer "cryptoutil/internal/apps/cicd/lint_fitness/no_unit_test_real_server"
 	lintFitnessNonFIPSAlgorithms "cryptoutil/internal/apps/cicd/lint_fitness/non_fips_algorithms"
+	lintFitnessOTLPServiceNamePattern "cryptoutil/internal/apps/cicd/lint_fitness/otlp_service_name_pattern"
 	lintFitnessParallelTests "cryptoutil/internal/apps/cicd/lint_fitness/parallel_tests"
 	lintFitnessProductStructure "cryptoutil/internal/apps/cicd/lint_fitness/product_structure"
 	lintFitnessProductWiring "cryptoutil/internal/apps/cicd/lint_fitness/product_wiring"
 	lintFitnessRequireAPIDir "cryptoutil/internal/apps/cicd/lint_fitness/require_api_dir"
-	lintFitnessOTLPServiceNamePattern "cryptoutil/internal/apps/cicd/lint_fitness/otlp_service_name_pattern"
 	lintFitnessRequireFrameworkNaming "cryptoutil/internal/apps/cicd/lint_fitness/require_framework_naming"
 	lintFitnessServiceContractCompliance "cryptoutil/internal/apps/cicd/lint_fitness/service_contract_compliance"
 	lintFitnessServiceStructure "cryptoutil/internal/apps/cicd/lint_fitness/service_structure"
@@ -87,6 +88,8 @@ var registeredLinters = []struct {
 	{"require-framework-naming", lintFitnessRequireFrameworkNaming.Check},
 	// New fitness checks (added in Phase 1 of framework-v4).
 	{"otlp-service-name-pattern", lintFitnessOTLPServiceNamePattern.Check},
+	// New fitness checks (added in Phase 2 of framework-v4).
+	{"entity-registry-completeness", lintFitnessEntityRegistryCompleteness.Check},
 }
 
 // Lint runs all registered architecture fitness linters.

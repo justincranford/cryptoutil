@@ -24,12 +24,12 @@ type ServiceDef struct {
 // identity/authz and identity/idp are intentionally excluded (legacy, don't follow service template pattern).
 var knownServices = []ServiceDef{
 	{Product: cryptoutilSharedMagic.SkeletonProductName, Service: cryptoutilSharedMagic.SkeletonTemplateServiceName},
-	{Product: cryptoutilSharedMagic.PKIProductName, Service: "ca"},
-	{Product: cryptoutilSharedMagic.JoseProductName, Service: "ja"},
-	{Product: "sm", Service: "im"},
-	{Product: "sm", Service: cryptoutilSharedMagic.KMSServiceName, Required: kmsRequiredFiles},
-	{Product: cryptoutilSharedMagic.IdentityProductName, Service: "rp"},
-	{Product: cryptoutilSharedMagic.IdentityProductName, Service: "rs"},
+	{Product: cryptoutilSharedMagic.PKIProductName, Service: cryptoutilSharedMagic.PKICAServiceName},
+	{Product: cryptoutilSharedMagic.JoseProductName, Service: cryptoutilSharedMagic.JoseJAServiceName},
+	{Product: cryptoutilSharedMagic.SMProductName, Service: cryptoutilSharedMagic.IMServiceName},
+	{Product: cryptoutilSharedMagic.SMProductName, Service: cryptoutilSharedMagic.KMSServiceName, Required: kmsRequiredFiles},
+	{Product: cryptoutilSharedMagic.IdentityProductName, Service: cryptoutilSharedMagic.RPServiceName},
+	{Product: cryptoutilSharedMagic.IdentityProductName, Service: cryptoutilSharedMagic.RSServiceName},
 	{Product: cryptoutilSharedMagic.IdentityProductName, Service: cryptoutilSharedMagic.SPAServiceName},
 }
 
