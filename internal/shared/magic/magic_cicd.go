@@ -33,6 +33,15 @@ const (
 	// The checker itself defines the banned phrases as string literals and is excluded to prevent
 	// self-referential false positives.
 	CICDExcludeDirBannedProductNamesCheck = "banned_product_names"
+
+	// CICDComposeHeaderLinesToCheck is the number of header lines to read from compose.yml for header validation.
+	CICDComposeHeaderLinesToCheck = 5
+	// CICDComposeLine3Index is the 0-based index of compose header line 3 (the PS-ID title line).
+	CICDComposeLine3Index = 2
+	// CICDComposeLine5Index is the 0-based index of compose header line 5 (the service description line).
+	CICDComposeLine5Index = 4
+	// CICDTempDirPermissions is the directory permissions used in tests when creating temporary test directories (0o755).
+	CICDTempDirPermissions = 0o755
 )
 
 // getProjectRoot finds the project root by walking up the directory tree to find .git directory.

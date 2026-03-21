@@ -1,6 +1,6 @@
 # $schema: https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
 #
-# identity-rs Docker Compose Configuration
+# IDENTITY-RS Docker Compose Configuration
 #
 # SERVICE-level deployment for Identity Resource Server.
 # Supports 3 instances: 1 SQLite + 2 PostgreSQL.

@@ -16,6 +16,9 @@ import (
 	lintFitnessCheckSkeletonPlaceholders "cryptoutil/internal/apps/cicd/lint_fitness/check_skeleton_placeholders"
 	lintFitnessCircularDeps "cryptoutil/internal/apps/cicd/lint_fitness/circular_deps"
 	lintFitnessCmdMainPattern "cryptoutil/internal/apps/cicd/lint_fitness/cmd_main_pattern"
+	lintFitnessComposeDBNaming "cryptoutil/internal/apps/cicd/lint_fitness/compose_db_naming"
+	lintFitnessComposeHeaderFormat "cryptoutil/internal/apps/cicd/lint_fitness/compose_header_format"
+	lintFitnessComposeServiceNames "cryptoutil/internal/apps/cicd/lint_fitness/compose_service_names"
 	lintFitnessCrossServiceImportIsolation "cryptoutil/internal/apps/cicd/lint_fitness/cross_service_import_isolation"
 	lintFitnessCryptoRand "cryptoutil/internal/apps/cicd/lint_fitness/crypto_rand"
 	lintFitnessDeploymentDirCompleteness "cryptoutil/internal/apps/cicd/lint_fitness/deployment_dir_completeness"
@@ -98,6 +101,10 @@ var registeredLinters = []struct {
 	{"legacy-dir-detection", lintFitnessLegacyDirDetection.Check},
 	// New fitness checks (added in Phase 4 of framework-v4).
 	{"deployment-dir-completeness", lintFitnessDeploymentDirCompleteness.Check},
+	// New fitness checks (added in Phase 5 of framework-v4).
+	{"compose-header-format", lintFitnessComposeHeaderFormat.Check},
+	{"compose-service-names", lintFitnessComposeServiceNames.Check},
+	{"compose-db-naming", lintFitnessComposeDBNaming.Check},
 }
 
 // Lint runs all registered architecture fitness linters.
