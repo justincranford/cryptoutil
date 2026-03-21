@@ -74,7 +74,23 @@ Adding `CICDExcludeDirDocs`, `CICDExcludeDirTestOutput`, and `CICDExcludeDirBann
 
 ## Phase 4: Deployment Directory Completeness
 
-*(No notes yet — phase not started.)*
+**Commit**: `239a78f07`
+
+### Pre-Audit Before Writing the Check
+
+Auditing all 10 PS deployment directories before writing the check confirmed all were complete. This enabled writing a correct integration test (`TestCheck_RealWorkspace`) with confidence it would pass.
+
+### Pattern Reuse
+
+The implementation closely mirrors `entity_registry_completeness` — both iterate `lintFitnessRegistry.AllProductServices()`, accumulate violations, and return a single aggregated error. This consistent pattern makes the code predictable and the tests straightforward.
+
+### Early Return on Missing Config Dir
+
+If `config/` directory is missing, returning early avoids cascading "missing config file" violations for all 4 files. This keeps error output actionable: one clear error instead of 5.
+
+### Test Granularity
+
+Each failure mode (missing Dockerfile, compose.yml, secrets/, config/, each config file) gets its own test. Table-driven tests for Dockerfile and config-file subtypes maintain coverage without duplication.
 
 ---
 

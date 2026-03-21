@@ -68,16 +68,16 @@
 
 ## Phase 4: Deployment Directory Completeness
 
-- [ ] 4.1 Create `internal/apps/cicd/lint_fitness/deployment_dir_completeness/` directory and implementation
-- [ ] 4.2 Implement `Check(logger)`: for each PS in registry, verify Dockerfile, compose.yml, secrets/, config/ exist under `deployments/{PS-ID}/`
-- [ ] 4.3 Verify config subdir contains: `{PS-ID}-app-common.yml`, `{PS-ID}-app-sqlite-1.yml`, `{PS-ID}-app-postgresql-1.yml`, `{PS-ID}-app-postgresql-2.yml`
-- [ ] 4.4 Report missing files clearly: `deployments/sm-im/config/sm-im-app-postgresql-2.yml: missing`
-- [ ] 4.5 Add unit tests (table-driven: all files present passes; each missing file type fails independently)
-- [ ] 4.6 Register `deployment-dir-completeness` in `lint_fitness.go`
-- [ ] 4.7 Fix any missing deployment config files discovered during check development
-- [ ] 4.8 Run `go run ./cmd/cicd lint-fitness` — verify `deployment-dir-completeness` passes for all 10 PS
-- [ ] 4.9 Commit Phase 4 changes
-- [ ] 4.10 Update lessons.md with Phase 4 post-mortem
+- [x] 4.1 Create `internal/apps/cicd/lint_fitness/deployment_dir_completeness/` directory and implementation
+- [x] 4.2 Implement `Check(logger)`: for each PS in registry, verify Dockerfile, compose.yml, secrets/, config/ exist under `deployments/{PS-ID}/`
+- [x] 4.3 Verify config subdir contains: `{PS-ID}-app-common.yml`, `{PS-ID}-app-sqlite-1.yml`, `{PS-ID}-app-postgresql-1.yml`, `{PS-ID}-app-postgresql-2.yml`
+- [x] 4.4 Report missing files clearly: `deployments/sm-im/config/sm-im-app-postgresql-2.yml: missing`
+- [x] 4.5 Add unit tests (table-driven: all files present passes; each missing file type fails independently)
+- [x] 4.6 Register `deployment-dir-completeness` in `lint_fitness.go`
+- [x] 4.7 Fix any missing deployment config files discovered during check development
+- [x] 4.8 Run `go run ./cmd/cicd lint-fitness` — verify `deployment-dir-completeness` passes for all 10 PS
+- [x] 4.9 Commit Phase 4 changes
+- [x] 4.10 Update lessons.md with Phase 4 post-mortem
 
 ## Phase 5: Compose File Header and Service Name Validation
 
