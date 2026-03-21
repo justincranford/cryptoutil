@@ -296,7 +296,7 @@ Services with ad-hoc config layouts (jose-ja, pki-ca, identity services) are exp
 - **Success**: Both checks pass, standalone config OTLP names validated
 - **Post-Mortem**: lessons.md updated
 
-### Phase 8: Migration Comment Header Validation [Status: TODO]
+### Phase 8: Migration Comment Header Validation [Status: COMPLETE]
 
 **Objective**: Migration files have correct comment headers without old product names.
 

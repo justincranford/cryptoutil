@@ -169,7 +169,16 @@ Each failure mode (missing Dockerfile, compose.yml, secrets/, config/, each conf
 
 ## Phase 8: Migration Comment Header Validation
 
-*(No notes yet — phase not started.)*
+**Root Causes Found**: 20 domain migration files across 5 product-services had non-conforming comment headers — abbreviated names (`JOSE-JA`, `SM IM`, `KMS Business Tables Migration`) instead of full registry `DisplayName` values.
+
+**Key Lessons**:
+1. **`Contains` vs exact-match**: Using `strings.Contains` for the check (not a prefix match) lets files keep additional descriptive text after "database schema" while still enforcing the registry name. This is the right trade-off.
+2. **Walk for migrations dirs**: Not all PS use `repository/migrations/` — some use `repository-v2/migrations/`. Walking `internal/apps/{InternalAppsDir}` for any `migrations` directory is robust to this variation.
+3. **Archived dirs need skip**: Dirs prefixed with `_` (archived/disabled) must be excluded or false violations accumulate.
+4. **Domain min = 2001**: Framework migrations (1001-1999) are intentionally generic — only domain-specific (2001+) migrations are owned per-PS.
+5. **banned-product-names catches its own fixer**: A code comment in the checker using an example old name triggered the checker itself. Lesson: use generic descriptions in examples, not actual old product names.
+6. **20 violations in one shot**: All found by `TestCheck_RealWorkspace` in a single test run. Write the real-workspace integration test first — it reveals all violations immediately.
+7. **SQLFluff ran on commit**: The pre-commit `sqlfluff fix` hook ran over all 20 changed SQL files and passed cleanly — no SQL formatting regressions.
 
 ---
 

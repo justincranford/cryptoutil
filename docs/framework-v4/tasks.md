@@ -128,16 +128,18 @@
 
 ## Phase 8: Migration Comment Header Validation
 
-- [ ] 8.1 Create `internal/apps/cicd/lint_fitness/migration_comment_headers/` directory and implementation
-- [ ] 8.2 Implement `Check(logger)`: for each PS in registry that has `internal/apps/{PRODUCT}/{SERVICE}/repository/migrations/`, scan `*.up.sql` â€” first comment line must contain `{Display Name} database schema`
-- [ ] 8.3 Also check `*.down.sql` â€” first comment line must contain `{Display Name} database schema rollback`
-- [ ] 8.4 Skip framework migration files (1001-1999 range) â€” only domain migrations (2001+) are validated
-- [ ] 8.5 Add unit tests (in-memory SQL files with correct/incorrect headers)
-- [ ] 8.6 Register `migration-comment-headers` in `lint_fitness.go`
-- [ ] 8.7 Fix any migration files with non-conforming headers discovered
-- [ ] 8.8 Run `go run ./cmd/cicd lint-fitness` â€” verify `migration-comment-headers` passes
-- [ ] 8.9 Commit Phase 8 changes
-- [ ] 8.10 Update lessons.md with Phase 8 post-mortem
+**Status**: ✅ COMPLETE (commit `8030ed742`, lessons commit pending)
+
+- [x] 8.1 Create `internal/apps/cicd/lint_fitness/migration_comment_headers/` directory and implementation
+- [x] 8.2 Implement `Check(logger)`: for each PS in registry that has `internal/apps/{PRODUCT}/{SERVICE}/repository/migrations/`, scan `*.up.sql` — first comment line must contain `{Display Name} database schema`
+- [x] 8.3 Also check `*.down.sql` — first comment line must contain `{Display Name} database schema rollback`
+- [x] 8.4 Skip framework migration files (1001-1999 range) — only domain migrations (2001+) are validated
+- [x] 8.5 Add unit tests (in-memory SQL files with correct/incorrect headers)
+- [x] 8.6 Register `migration-comment-headers` in `lint_fitness.go`
+- [x] 8.7 Fix any migration files with non-conforming headers discovered — fixed 20 files across 5 PS (jose-ja: 8, pki-ca: 2, skeleton-template: 4, sm-im: 2, sm-kms: 4)
+- [x] 8.8 Run `go run ./cmd/cicd lint-fitness` — verify `migration-comment-headers` passes
+- [x] 8.9 Commit Phase 8 changes
+- [x] 8.10 Update lessons.md with Phase 8 post-mortem
 
 ## Phase 9: ARCHITECTURE.md Updates and CICD Tool Catalog
 
