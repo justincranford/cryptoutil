@@ -39,17 +39,17 @@
 
 ## Phase 2: Registry-Driven Foundation and Entity Registry Check
 
-- [ ] 2.1 Design Go struct schema for entity registry (Product, ProductService, Suite)
-- [ ] 2.2 Create `internal/apps/cicd/lint_fitness/registry/registry.go` with canonical entity registry for all 5 products, 10 product-services, 1 suite
-- [ ] 2.3 Add unit tests for registry package (validate all 16 entities are present, all fields non-empty)
-- [ ] 2.4 Create `internal/apps/cicd/lint_fitness/entity_registry_completeness/` directory and implementation
-- [ ] 2.5 Implement `Check(logger)` function: for each entity in registry, verify deployment dir, config dir, and magic file exist on disk
-- [ ] 2.6 Register `entity-registry-completeness` in `lint_fitness.go`
-- [ ] 2.7 Add unit tests (table-driven: present entity passes, missing entity fails)
-- [ ] 2.8 Migrate existing hardcoded PS-ID lists in other checks to use registry package (reduce duplication)
-- [ ] 2.9 Run `go run ./cmd/cicd lint-fitness` — verify `entity-registry-completeness` passes
-- [ ] 2.10 Commit Phase 2 changes
-- [ ] 2.11 Update lessons.md with Phase 2 post-mortem
+- [x] 2.1 Design Go struct schema for entity registry (Product, ProductService, Suite)
+- [x] 2.2 Create `internal/apps/cicd/lint_fitness/registry/registry.go` with canonical entity registry for all 5 products, 10 product-services, 1 suite
+- [x] 2.3 Add unit tests for registry package (validate all 16 entities are present, all fields non-empty)
+- [x] 2.4 Create `internal/apps/cicd/lint_fitness/entity_registry_completeness/` directory and implementation
+- [x] 2.5 Implement `Check(logger)` function: for each entity in registry, verify deployment dir, config dir, and magic file exist on disk
+- [x] 2.6 Register `entity-registry-completeness` in `lint_fitness.go`
+- [x] 2.7 Add unit tests (table-driven: present entity passes, missing entity fails)
+- [x] 2.8 Migrate existing hardcoded PS-ID lists in other checks to use registry package (reduce duplication)
+- [x] 2.9 Run `go run ./cmd/cicd lint-fitness` — verify `entity-registry-completeness` passes
+- [x] 2.10 Commit Phase 2 changes
+- [x] 2.11 Update lessons.md with Phase 2 post-mortem
 
 ## Phase 3: Banned Name Detection
 
