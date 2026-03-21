@@ -5,6 +5,8 @@
 **Last Updated**: 2026-03-22
 **Purpose**: Apply rigid standardization and enforcement of directories and files and contents, across configs/, deployments/, cmd/, internal/apps/, and docs/ for 1 suite, 5 products, and 10 services. Clean dead code, rationalize non-standard entries, and ensure ARCHITECTURE.md is the complete roadmap SSOT.
 
+**Target Structure**: See [target-structure.md](target-structure.md) for the complete parameterized target state of every directory and file.
+
 ## Quality Mandate - MANDATORY
 
 **Quality Attributes (NO EXCEPTIONS)**:
