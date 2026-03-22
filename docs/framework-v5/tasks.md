@@ -1,6 +1,6 @@
 # Tasks - Framework v5: Rigid Standardization & Cleanup
 
-**Status**: 30 of 49 tasks complete (61%)
+**Status**: 31 of 49 tasks complete (63%)
 **Last Updated**: 2026-03-27
 **Created**: 2026-03-21
 
@@ -489,15 +489,23 @@
 
 #### Task 4.3: Audit Suite Compose Size
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1h
+- **Actual**: 0.3h
 - **Dependencies**: None
 - **Description**: Review `deployments/cryptoutil-suite/compose.yml` (1507 lines) for duplication reduction
 - **Acceptance Criteria**:
-  - [ ] Compose file reviewed for unnecessary duplication
-  - [ ] Recommended optimizations documented (if any)
-  - [ ] If optimizations applied: line count reduced, all validators pass
-  - [ ] Delegation chain SUITE->PRODUCT->SERVICE verified
+  - [x] Compose file reviewed for unnecessary duplication
+  - [x] Recommended optimizations documented (if any)
+  - [x] If optimizations applied: line count reduced, all validators pass
+  - [x] Delegation chain SUITE->PRODUCT->SERVICE verified
+- **Findings**:
+  - 1507 lines: 30 service blocks (10 services × 3 instances: sqlite, pg-1, pg-2), 1 builder, 1 secrets healthcheck, includes for shared-telemetry and shared-postgres
+  - Each service block ~38-50 lines with repeated secrets/depends_on/healthcheck/deploy sections
+  - Duplication is **structural** — each tier uses different port ranges (SERVICE: 8XXX, PRODUCT: 18XXX, SUITE: 28XXX) so `include` delegation across tiers is not viable
+  - YAML anchors or Docker Compose `extends` (v2.24+) could reduce ~5-line secrets blocks and ~10-line depends_on blocks, but benefit is marginal (~100 lines saved, increased complexity)
+  - **No optimizations applied** — current structure is correct and validated by existing linters
+  - **Delegation chain**: SUITE, PRODUCT, and SERVICE tiers are **independent self-contained files** (not delegating), each with appropriate port offsets. Shared infrastructure (telemetry, postgres) via `include`. This is correct per ARCHITECTURE.md Section 12.3
 
 #### Task 4.4: Phase 4 Quality Gate Verification
 
