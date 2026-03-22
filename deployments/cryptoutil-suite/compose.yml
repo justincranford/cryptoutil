@@ -68,7 +68,7 @@ services:
       - unseal-3of5.secret
       - unseal-4of5.secret
       - unseal-5of5.secret
-      - hash-pepper_v3.secret
+      - hash-pepper-v3.secret
       - postgres-url.secret
       - postgres-username.secret
       - postgres-password.secret
@@ -1491,8 +1491,8 @@ networks:
 # ========================================================================
 
 secrets:
-  hash-pepper_v3.secret:
-    file: ./secrets/cryptoutil-hash-pepper.secret
+  hash-pepper-v3.secret:
+    file: ./secrets/hash-pepper-v3.secret
   unseal-1of5.secret:
     file: ./secrets/unseal-1of5.secret
   unseal-2of5.secret:
