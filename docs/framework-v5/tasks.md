@@ -1,6 +1,6 @@
 # Tasks - Framework v5: Rigid Standardization & Cleanup
 
-**Status**: 9 of 49 tasks complete (18%)
+**Status**: 10 of 49 tasks complete (20%)
 **Last Updated**: 2026-03-22
 **Created**: 2026-03-21
 
@@ -170,15 +170,17 @@
 
 #### Task 2.2: Document Infrastructure CLI Tools
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1h
+- **Actual**: 20m
 - **Dependencies**: Task 2.1
 - **Description**: Document `cmd/cicd-lint/` and `cmd/workflow/` as intentional infrastructure tools in ARCHITECTURE.md
 - **Acceptance Criteria**:
-  - [ ] ARCHITECTURE.md Section 4.4.7 updated with infrastructure tool documentation
-  - [ ] `cmd/cicd-lint/` documented as CICD tooling (linters, formatters, scripts)
-  - [ ] `cmd/workflow/` documented as workflow testing infrastructure
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
+  - [x] ARCHITECTURE.md Section 4.4.7 updated with infrastructure tool documentation
+  - [x] `cmd/cicd-lint/` documented as CICD tooling (linters, formatters, scripts)
+  - [x] `cmd/workflow/` documented as workflow testing infrastructure
+  - [x] `go run ./cmd/cicd-lint lint-docs` passes
+- **Commit**: `f4048d8a9`
 
 #### Task 2.3: Evaluate cmd/identity-compose
 
