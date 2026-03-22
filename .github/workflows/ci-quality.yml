@@ -319,6 +319,52 @@ jobs:
         if: always()
         uses: ./.github/actions/workflow-job-end
 
+  # CICD Lint - Custom linters and formatters (merged from ci-cicd-lint.yml)
+  cicd-lint:
+    name: CICD Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.0
+        with:
+          sparse-checkout-cone-mode: false
+      - name: Begin Workflow Job
+        id: begin-workflow-job
+        uses: ./.github/actions/workflow-job-begin
+      - name: Set up Go
+        uses: ./.github/actions/go-setup
+        with:
+          go-version: ${{ steps.begin-workflow-job.outputs.go-version }}
+          go-mod-download: true
+          go-mod-verify: false
+          go-mod-tidy: false
+      - name: Build cicd binary
+        shell: bash
+        run: |
+          echo "Building cicd-lint binary..."
+          CGO_ENABLED=0 go build -o ./cicd ./cmd/cicd-lint
+          chmod +x ./cicd
+          echo "Build complete."
+      - name: Run all linters (sequential)
+        shell: bash
+        run: |
+          ./cicd lint-fitness lint-text lint-go lint-go-test lint-compose \
+                lint-ports lint-workflow lint-go-mod lint-golangci lint-docs \
+                lint-deployments
+      - name: Run formatters and verify no changes needed
+        shell: bash
+        run: |
+          ./cicd format-go format-go-test
+          if ! git diff --exit-code; then
+            echo "[FAIL] Files need formatting. Run './cicd format-go format-go-test' locally and commit the changes."
+            git diff
+            exit 1
+          fi
+      - name: CICD lint summary
+        if: always()
+        uses: ./.github/actions/workflow-job-end
+
   # SBOM Generation
   sbom:
     name: Generate SBOM

@@ -598,32 +598,35 @@
 
 #### Task 5.5: Sync ARCHITECTURE.md with target-structure.md Decisions
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 2h
+- **Actual**: 1.5h
 - **Dependencies**: Tasks 5.1-5.4
 - **Description**: Update ARCHITECTURE.md to reflect Decisions 5-11 from target-structure.md
 - **Acceptance Criteria**:
-  - [ ] Section 7: Explicitly state "PostgreSQL and SQLite only — no Citus" (Decision 5)
-  - [ ] Section 5.1 or new section: Framework tier routing pattern documented — suite/cli/, product/cli/, service/cli/ (Decision 6)
-  - [ ] Section 9.7: CI/CD workflow matrix updated — ci-cicd-lint.yml merged into ci-quality.yml (Decision 7)
-  - [ ] Section 12.5: Environment configs (development.yml, production.yml, test.yml, profiles/) documented as DELETE (Decision 8)
-  - [ ] Section 12.6: Legacy secrets policy documented (Decision 9)
-  - [ ] Section 9.10: Workflow subcommands documented (Decision 10)
-  - [ ] Section 9.10: cicd-lint rename reflected (Decision 11)
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
+  - [x] Section 7: Explicitly state "PostgreSQL and SQLite only — no Citus" (Decision 5)
+  - [x] Section 5.1 or new section: Framework tier routing pattern documented — suite/cli/, product/cli/, service/cli/ (Decision 6)
+  - [x] Section 9.7: CI/CD workflow matrix updated — ci-cicd-lint.yml merged into ci-quality.yml (Decision 7)
+  - [x] Section 12.5: Environment configs (development.yml, production.yml, test.yml, profiles/) documented as DELETE (Decision 8) — already correct
+  - [x] Section 12.6: Legacy secrets policy documented (Decision 9)
+  - [x] Section 9.10: Workflow subcommands documented (Decision 10) — already documented with flag pattern
+  - [x] Section 9.10: cicd-lint rename reflected (Decision 11) — already correct
+  - [x] `go run ./cmd/cicd-lint lint-docs` passes
+- **Files**: docs/ARCHITECTURE.md, internal/apps/tools/cicd_lint/lint_deployments/*.go, internal/shared/magic/magic_cicd.go
+- **Commit**: 5142d67a8
 
 #### Task 5.6: Merge ci-cicd-lint.yml into ci-quality.yml
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1h
 - **Dependencies**: Task 5.5
 - **Description**: Move ci-cicd-lint.yml job steps into ci-quality.yml and delete ci-cicd-lint.yml (Decision 7)
 - **Acceptance Criteria**:
-  - [ ] ci-cicd-lint.yml job steps copied into ci-quality.yml as new job
-  - [ ] ci-cicd-lint.yml deleted
-  - [ ] ci-quality.yml syntax valid
-  - [ ] CI triggers still cover same paths
-  - [ ] `go build ./...` clean (workflow changes don't affect build, but verify)
+  - [x] ci-cicd-lint.yml job steps copied into ci-quality.yml as new job
+  - [x] ci-cicd-lint.yml deleted
+  - [x] ci-quality.yml syntax valid
+  - [x] CI triggers still cover same paths
+  - [x] `go build ./...` clean (workflow changes don't affect build, but verify)
 
 #### Task 5.7: Phase 5 Quality Gate Verification
 

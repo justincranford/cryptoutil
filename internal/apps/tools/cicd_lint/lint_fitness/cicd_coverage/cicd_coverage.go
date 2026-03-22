@@ -6,7 +6,7 @@
 //
 // Checked files:
 //   - .pre-commit-config.yaml
-//   - .github/workflows/ci-cicd-lint.yml
+//   - .github/workflows/ci-quality.yml
 package cicd_coverage
 
 import (
@@ -56,9 +56,9 @@ var violations []string
 preCommitPath := filepath.Join(rootDir, ".pre-commit-config.yaml")
 violations = append(violations, checkFileCoverage(preCommitPath, ".pre-commit-config.yaml", allCmds)...)
 
-// 2. Validate ci-cicd-lint.yml covers all linters and formatters.
-workflowPath := filepath.Join(rootDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "workflows", "ci-cicd-lint.yml")
-violations = append(violations, checkFileCoverage(workflowPath, "ci-cicd-lint.yml", allCmds)...)
+// 2. Validate ci-quality.yml covers all linters and formatters.
+workflowPath := filepath.Join(rootDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "workflows", "ci-quality.yml")
+violations = append(violations, checkFileCoverage(workflowPath, "ci-quality.yml", allCmds)...)
 
 if len(violations) > 0 {
 return fmt.Errorf("cicd-coverage violations:\n%s", strings.Join(violations, "\n"))

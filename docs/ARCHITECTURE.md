@@ -2315,8 +2315,6 @@ COPY --from=validator /app/cryptoutil /app/cryptoutil
 | `ci-identity-validation` | Identity service requirements validation |
 | `release` | Automated release workflows |
 
-**NOTE**: `ci-cicd-lint.yml` exists as a standalone workflow but is planned for merge into `ci-quality.yml` to reduce workflow count.
-
 #### 9.7.2 Workflow Optimization Patterns
 
 - Path filters to skip irrelevant changes

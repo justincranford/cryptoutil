@@ -40,7 +40,7 @@ validContent := buildValidContent()
 
 for _, relPath := range []string{
 ".pre-commit-config.yaml",
-filepath.Join(cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "workflows", "ci-cicd-lint.yml"),
+filepath.Join(cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "workflows", "ci-quality.yml"),
 } {
 fullPath := filepath.Join(rootDir, relPath)
 require.NoError(t, os.MkdirAll(filepath.Dir(fullPath), cryptoutilSharedMagic.CICDTempDirPermissions))
@@ -80,14 +80,14 @@ func TestCheckInDir_MissingWorkflowFile(t *testing.T) {
 t.Parallel()
 
 rootDir := createValidDir(t)
-require.NoError(t, os.Remove(filepath.Join(rootDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "workflows", "ci-cicd-lint.yml")))
+require.NoError(t, os.Remove(filepath.Join(rootDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "workflows", "ci-quality.yml")))
 
 logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
 err := CheckInDir(logger, rootDir)
 
 require.Error(t, err)
-require.Contains(t, err.Error(), "ci-cicd-lint.yml")
+require.Contains(t, err.Error(), "ci-quality.yml")
 require.Contains(t, err.Error(), "cannot read file")
 }
 
@@ -126,7 +126,7 @@ relPath string
 content string
 }{
 {".pre-commit-config.yaml", validContent},
-{filepath.Join(cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "workflows", "ci-cicd-lint.yml"), workflowContent},
+{filepath.Join(cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "workflows", "ci-quality.yml"), workflowContent},
 } {
 fullPath := filepath.Join(rootDir, entry.relPath)
 require.NoError(t, os.MkdirAll(filepath.Dir(fullPath), cryptoutilSharedMagic.CICDTempDirPermissions))
@@ -138,7 +138,7 @@ logger := cryptoutilCmdCicdCommon.NewLogger("test")
 err := CheckInDir(logger, rootDir)
 
 require.Error(t, err)
-require.Contains(t, err.Error(), "ci-cicd-lint.yml")
+	require.Contains(t, err.Error(), "ci-quality.yml")
 require.Contains(t, err.Error(), omitCmd)
 }
 
@@ -177,7 +177,7 @@ relPath string
 content string
 }{
 {".pre-commit-config.yaml", preCommitContent},
-{filepath.Join(cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "workflows", "ci-cicd-lint.yml"), validContent},
+{filepath.Join(cryptoutilSharedMagic.CICDExcludeDirGithubInstructions, "workflows", "ci-quality.yml"), validContent},
 } {
 fullPath := filepath.Join(rootDir, entry.relPath)
 require.NoError(t, os.MkdirAll(filepath.Dir(fullPath), cryptoutilSharedMagic.CICDTempDirPermissions))
