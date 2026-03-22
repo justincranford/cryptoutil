@@ -1,0 +1,703 @@
+# $schema: https://json.schemastore.org/github-workflow.json
+# https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
+# WORKFLOW: CI - CICD Lint
+# PURPOSE: Build the cicd binary then run all custom linters and formatters with
+#          maximum concurrency and a comprehensive results summary.
+# PARALLEL STRUCTURE:
+#   Phase 1: Build cicd binary (ubuntu-latest artifact, shared across all jobs)
+#   Phase 2: N concurrent individual linter jobs (one per cicd linter command)
+#   Phase 3: All linters combined in a single sequential job (runs concurrently with Phase 2)
+#   Phase 4: M concurrent formatter jobs (start only after Phase 2 and Phase 3 both complete)
+#   Phase 5: Summary (always runs, reports pass/fail for every job)
+# FAILURE POLICY: Any job failure immediately fails the workflow.
+# EXPECTED DURATION: ~3-5 minutes (build bottleneck + parallel linting)
+# TIMEOUT: 10 minutes per job, 30 minutes total
+
+name: CI - CICD Lint
+
+on:
+  push:
+    branches: [ main, develop ]
+    # SHARED PATHS-IGNORE CONFIGURATION - Keep synchronized with pull_request below
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '.github/copilot-instructions.md'
+      - '.github/instructions/**'
+      - 'workflow-reports/**'
+      - 'nohup.out'
+      - 'LICENSE'
+      - '.editorconfig'
+      - '.gitignore'
+      - '.gitattributes'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/pull_request_template.md'
+      - '.github/dependabot.yml'
+      - '**/*.log'
+      - '**/*.sarif'
+  pull_request:
+    branches: [ main, develop ]
+    # SHARED PATHS-IGNORE CONFIGURATION - Keep synchronized with push above
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '.github/copilot-instructions.md'
+      - '.github/instructions/**'
+      - 'workflow-reports/**'
+      - 'nohup.out'
+      - 'LICENSE'
+      - '.editorconfig'
+      - '.gitignore'
+      - '.gitattributes'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/pull_request_template.md'
+      - '.github/dependabot.yml'
+      - '**/*.log'
+      - '**/*.sarif'
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+
+  # ============================================================
+  # PHASE 1: Build cicd binary (single job, artifact shared by all linter jobs)
+  # ============================================================
+  build-cicd:
+    name: "Phase 1: Build cicd"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        # https://github.com/actions/checkout/releases (v6.0.0, 2025-11-11)
+        uses: actions/checkout@v6.0.0
+        with:
+          sparse-checkout-cone-mode: false
+      - name: Begin Workflow Job
+        id: begin-workflow-job
+        uses: ./.github/actions/workflow-job-begin
+      - name: Set up Go and validate dependencies
+        uses: ./.github/actions/go-setup
+        with:
+          go-version: ${{ steps.begin-workflow-job.outputs.go-version }}
+          go-mod-download: true
+          go-mod-verify: false
+          go-mod-tidy: false
+      - name: Build cicd binary
+        shell: bash
+        run: |
+          START_TIME=$(date +%s)
+          echo "Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          CGO_ENABLED=0 go build -o cicd ./cmd/cicd
+          chmod +x cicd
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "Build completed in: ${DURATION}s"
+      - name: Upload cicd binary artifact
+        # https://github.com/actions/upload-artifact/releases (v5.0.0, 2025-11-11)
+        uses: actions/upload-artifact@v5.0.0
+        with:
+          name: cicd-binary-${{ github.run_id }}-${{ github.run_attempt }}
+          path: cicd
+          retention-days: 1
+      - name: Job summary
+        if: always()
+        uses: ./.github/actions/workflow-job-end
+
+  # ============================================================
+  # PHASE 2: Individual linter jobs (concurrent, one per cicd linter)
+  # ============================================================
+
+  lint-fitness:
+    name: "Phase 2a: lint-fitness"
+    needs: build-cicd
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.0
+        with:
+          sparse-checkout-cone-mode: false
+      - name: Begin Workflow Job
+        id: begin-workflow-job
+        uses: ./.github/actions/workflow-job-begin
+      - name: Set up Go
+        uses: ./.github/actions/go-setup
+        with:
+          go-version: ${{ steps.begin-workflow-job.outputs.go-version }}
+          go-mod-download: true
+          go-mod-verify: false
+          go-mod-tidy: false
+      - name: Download cicd binary
+        # https://github.com/actions/download-artifact/releases (v6.0.0, 2025-11-11)
+        uses: actions/download-artifact@v6.0.0
+        with:
+          name: cicd-binary-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Set execute permission
+        shell: bash
+        run: chmod +x cicd
+      - name: Run lint-fitness
+        shell: bash
+        run: ./cicd lint-fitness
+      - name: Job summary
+        if: always()
+        uses: ./.github/actions/workflow-job-end
+
+  lint-text:
+    name: "Phase 2b: lint-text"
+    needs: build-cicd
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.0
+        with:
+          sparse-checkout-cone-mode: false
+      - name: Begin Workflow Job
+        uses: ./.github/actions/workflow-job-begin
+      - name: Download cicd binary
+        uses: actions/download-artifact@v6.0.0
+        with:
+          name: cicd-binary-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Set execute permission
+        shell: bash
+        run: chmod +x cicd
+      - name: Run lint-text
+        shell: bash
+        run: ./cicd lint-text
+      - name: Job summary
+        if: always()
+        uses: ./.github/actions/workflow-job-end
+
+  lint-go:
+    name: "Phase 2c: lint-go"
+    needs: build-cicd
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.0
+        with:
+          sparse-checkout-cone-mode: false
+      - name: Begin Workflow Job
+        uses: ./.github/actions/workflow-job-begin
+      - name: Download cicd binary
+        uses: actions/download-artifact@v6.0.0
+        with:
+          name: cicd-binary-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Set execute permission
+        shell: bash
+        run: chmod +x cicd
+      - name: Run lint-go
+        shell: bash
+        run: ./cicd lint-go
+      - name: Job summary
+        if: always()
+        uses: ./.github/actions/workflow-job-end
+
+  lint-go-test:
+    name: "Phase 2d: lint-go-test"
+    needs: build-cicd
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.0
+        with:
+          sparse-checkout-cone-mode: false
+      - name: Begin Workflow Job
+        uses: ./.github/actions/workflow-job-begin
+      - name: Download cicd binary
+        uses: actions/download-artifact@v6.0.0
+        with:
+          name: cicd-binary-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Set execute permission
+        shell: bash
+        run: chmod +x cicd
+      - name: Run lint-go-test
+        shell: bash
+        run: ./cicd lint-go-test
+      - name: Job summary
+        if: always()
+        uses: ./.github/actions/workflow-job-end
+
+  lint-compose:
+    name: "Phase 2e: lint-compose"
+    needs: build-cicd
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.0
+        with:
+          sparse-checkout-cone-mode: false
+      - name: Begin Workflow Job
+        uses: ./.github/actions/workflow-job-begin
+      - name: Download cicd binary
+        uses: actions/download-artifact@v6.0.0
+        with:
+          name: cicd-binary-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Set execute permission
+        shell: bash
+        run: chmod +x cicd
+      - name: Run lint-compose
+        shell: bash
+        run: ./cicd lint-compose
+      - name: Job summary
+        if: always()
+        uses: ./.github/actions/workflow-job-end
+
+  lint-ports:
+    name: "Phase 2f: lint-ports"
+    needs: build-cicd
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.0
+        with:
+          sparse-checkout-cone-mode: false
+      - name: Begin Workflow Job
+        uses: ./.github/actions/workflow-job-begin
+      - name: Download cicd binary
+        uses: actions/download-artifact@v6.0.0
+        with:
+          name: cicd-binary-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Set execute permission
+        shell: bash
+        run: chmod +x cicd
+      - name: Run lint-ports
+        shell: bash
+        run: ./cicd lint-ports
+      - name: Job summary
+        if: always()
+        uses: ./.github/actions/workflow-job-end
+
+  lint-workflow:
+    name: "Phase 2g: lint-workflow"
+    needs: build-cicd
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.0
+        with:
+          sparse-checkout-cone-mode: false
+      - name: Begin Workflow Job
+        uses: ./.github/actions/workflow-job-begin
+      - name: Download cicd binary
+        uses: actions/download-artifact@v6.0.0
+        with:
+          name: cicd-binary-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Set execute permission
+        shell: bash
+        run: chmod +x cicd
+      - name: Run lint-workflow
+        shell: bash
+        run: ./cicd lint-workflow
+      - name: Job summary
+        if: always()
+        uses: ./.github/actions/workflow-job-end
+
+  lint-go-mod:
+    name: "Phase 2h: lint-go-mod"
+    needs: build-cicd
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.0
+        with:
+          sparse-checkout-cone-mode: false
+      - name: Begin Workflow Job
+        id: begin-workflow-job
+        uses: ./.github/actions/workflow-job-begin
+      - name: Set up Go
+        uses: ./.github/actions/go-setup
+        with:
+          go-version: ${{ steps.begin-workflow-job.outputs.go-version }}
+          go-mod-download: true
+          go-mod-verify: false
+          go-mod-tidy: false
+      - name: Download cicd binary
+        uses: actions/download-artifact@v6.0.0
+        with:
+          name: cicd-binary-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Set execute permission
+        shell: bash
+        run: chmod +x cicd
+      - name: Run lint-go-mod
+        shell: bash
+        run: ./cicd lint-go-mod
+      - name: Job summary
+        if: always()
+        uses: ./.github/actions/workflow-job-end
+
+  lint-golangci:
+    name: "Phase 2i: lint-golangci"
+    needs: build-cicd
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.0
+        with:
+          sparse-checkout-cone-mode: false
+      - name: Begin Workflow Job
+        uses: ./.github/actions/workflow-job-begin
+      - name: Download cicd binary
+        uses: actions/download-artifact@v6.0.0
+        with:
+          name: cicd-binary-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Set execute permission
+        shell: bash
+        run: chmod +x cicd
+      - name: Run lint-golangci
+        shell: bash
+        run: ./cicd lint-golangci
+      - name: Job summary
+        if: always()
+        uses: ./.github/actions/workflow-job-end
+
+  lint-docs:
+    name: "Phase 2j: lint-docs"
+    needs: build-cicd
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.0
+        with:
+          sparse-checkout-cone-mode: false
+      - name: Begin Workflow Job
+        uses: ./.github/actions/workflow-job-begin
+      - name: Download cicd binary
+        uses: actions/download-artifact@v6.0.0
+        with:
+          name: cicd-binary-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Set execute permission
+        shell: bash
+        run: chmod +x cicd
+      - name: Run lint-docs
+        shell: bash
+        run: ./cicd lint-docs
+      - name: Job summary
+        if: always()
+        uses: ./.github/actions/workflow-job-end
+
+  lint-deployments:
+    name: "Phase 2k: lint-deployments"
+    needs: build-cicd
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.0
+        with:
+          sparse-checkout-cone-mode: false
+      - name: Begin Workflow Job
+        uses: ./.github/actions/workflow-job-begin
+      - name: Download cicd binary
+        uses: actions/download-artifact@v6.0.0
+        with:
+          name: cicd-binary-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Set execute permission
+        shell: bash
+        run: chmod +x cicd
+      - name: Run lint-deployments
+        shell: bash
+        run: ./cicd lint-deployments
+      - name: Job summary
+        if: always()
+        uses: ./.github/actions/workflow-job-end
+
+  # ============================================================
+  # PHASE 3: All linters as a single job (concurrent with Phase 2)
+  # ============================================================
+  all-linters:
+    name: "Phase 3: All linters (single job)"
+    needs: build-cicd
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.0
+        with:
+          sparse-checkout-cone-mode: false
+      - name: Begin Workflow Job
+        id: begin-workflow-job
+        uses: ./.github/actions/workflow-job-begin
+      - name: Set up Go
+        uses: ./.github/actions/go-setup
+        with:
+          go-version: ${{ steps.begin-workflow-job.outputs.go-version }}
+          go-mod-download: true
+          go-mod-verify: false
+          go-mod-tidy: false
+      - name: Download cicd binary
+        uses: actions/download-artifact@v6.0.0
+        with:
+          name: cicd-binary-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Set execute permission
+        shell: bash
+        run: chmod +x cicd
+      - name: Run all linters (sequential)
+        shell: bash
+        run: |
+          ./cicd lint-fitness lint-text lint-go lint-go-test lint-compose \
+                 lint-ports lint-workflow lint-go-mod lint-golangci lint-docs \
+                 lint-deployments
+      - name: Job summary
+        if: always()
+        uses: ./.github/actions/workflow-job-end
+
+  # ============================================================
+  # PHASE 4: Formatter jobs (concurrent, start only after Phase 2 + Phase 3 complete)
+  # ============================================================
+
+  format-go:
+    name: "Phase 4a: format-go"
+    needs:
+      - lint-fitness
+      - lint-text
+      - lint-go
+      - lint-go-test
+      - lint-compose
+      - lint-ports
+      - lint-workflow
+      - lint-go-mod
+      - lint-golangci
+      - lint-docs
+      - lint-deployments
+      - all-linters
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.0
+        with:
+          sparse-checkout-cone-mode: false
+      - name: Begin Workflow Job
+        uses: ./.github/actions/workflow-job-begin
+      - name: Download cicd binary
+        uses: actions/download-artifact@v6.0.0
+        with:
+          name: cicd-binary-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Set execute permission
+        shell: bash
+        run: chmod +x cicd
+      - name: Run format-go
+        shell: bash
+        run: ./cicd format-go
+      - name: Verify no formatting changes needed
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "[FAIL] Go files need formatting. Run './cicd format-go' locally and commit the changes."
+            git diff
+            exit 1
+          fi
+      - name: Job summary
+        if: always()
+        uses: ./.github/actions/workflow-job-end
+
+  format-go-test:
+    name: "Phase 4b: format-go-test"
+    needs:
+      - lint-fitness
+      - lint-text
+      - lint-go
+      - lint-go-test
+      - lint-compose
+      - lint-ports
+      - lint-workflow
+      - lint-go-mod
+      - lint-golangci
+      - lint-docs
+      - lint-deployments
+      - all-linters
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.0
+        with:
+          sparse-checkout-cone-mode: false
+      - name: Begin Workflow Job
+        uses: ./.github/actions/workflow-job-begin
+      - name: Download cicd binary
+        uses: actions/download-artifact@v6.0.0
+        with:
+          name: cicd-binary-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Set execute permission
+        shell: bash
+        run: chmod +x cicd
+      - name: Run format-go-test
+        shell: bash
+        run: ./cicd format-go-test
+      - name: Verify no test formatting changes needed
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "[FAIL] Go test files need formatting. Run './cicd format-go-test' locally and commit the changes."
+            git diff
+            exit 1
+          fi
+      - name: Job summary
+        if: always()
+        uses: ./.github/actions/workflow-job-end
+
+  # ============================================================
+  # PHASE 5: Summary (always runs; reports overall pass/fail with subtotals)
+  # ============================================================
+  summary:
+    name: "Phase 5: Summary"
+    if: always()
+    needs:
+      - build-cicd
+      - lint-fitness
+      - lint-text
+      - lint-go
+      - lint-go-test
+      - lint-compose
+      - lint-ports
+      - lint-workflow
+      - lint-go-mod
+      - lint-golangci
+      - lint-docs
+      - lint-deployments
+      - all-linters
+      - format-go
+      - format-go-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Generate summary report
+        shell: bash
+        run: |
+          STATUS_ICON() {
+            case "$1" in
+              success)   echo "PASS" ;;
+              failure)   echo "FAIL" ;;
+              skipped)   echo "SKIP" ;;
+              cancelled) echo "CANC" ;;
+              *)         echo "$1"   ;;
+            esac
+          }
+
+          {
+            echo "## CI/CD Lint Summary"
+            echo ""
+            echo "### Phase 1: Build"
+            echo "| Job | Status |"
+            echo "|-----|--------|"
+            echo "| build-cicd | $(STATUS_ICON ${{ needs.build-cicd.result }}) |"
+            echo ""
+            echo "### Phase 2: Individual Linters (Concurrent)"
+            echo "| Linter | Status |"
+            echo "|--------|--------|"
+            echo "| lint-fitness | $(STATUS_ICON ${{ needs.lint-fitness.result }}) |"
+            echo "| lint-text | $(STATUS_ICON ${{ needs.lint-text.result }}) |"
+            echo "| lint-go | $(STATUS_ICON ${{ needs.lint-go.result }}) |"
+            echo "| lint-go-test | $(STATUS_ICON ${{ needs.lint-go-test.result }}) |"
+            echo "| lint-compose | $(STATUS_ICON ${{ needs.lint-compose.result }}) |"
+            echo "| lint-ports | $(STATUS_ICON ${{ needs.lint-ports.result }}) |"
+            echo "| lint-workflow | $(STATUS_ICON ${{ needs.lint-workflow.result }}) |"
+            echo "| lint-go-mod | $(STATUS_ICON ${{ needs.lint-go-mod.result }}) |"
+            echo "| lint-golangci | $(STATUS_ICON ${{ needs.lint-golangci.result }}) |"
+            echo "| lint-docs | $(STATUS_ICON ${{ needs.lint-docs.result }}) |"
+            echo "| lint-deployments | $(STATUS_ICON ${{ needs.lint-deployments.result }}) |"
+            echo ""
+            echo "### Phase 3: All Linters (Single Job)"
+            echo "| Job | Status |"
+            echo "|-----|--------|"
+            echo "| all-linters | $(STATUS_ICON ${{ needs.all-linters.result }}) |"
+            echo ""
+            echo "### Phase 4: Formatters (Concurrent)"
+            echo "| Formatter | Status |"
+            echo "|-----------|--------|"
+            echo "| format-go | $(STATUS_ICON ${{ needs.format-go.result }}) |"
+            echo "| format-go-test | $(STATUS_ICON ${{ needs.format-go-test.result }}) |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # Count totals
+          TOTAL=0; PASSED=0; FAILED=0; SKIPPED=0
+          for r in \
+            "${{ needs.build-cicd.result }}" \
+            "${{ needs.lint-fitness.result }}" \
+            "${{ needs.lint-text.result }}" \
+            "${{ needs.lint-go.result }}" \
+            "${{ needs.lint-go-test.result }}" \
+            "${{ needs.lint-compose.result }}" \
+            "${{ needs.lint-ports.result }}" \
+            "${{ needs.lint-workflow.result }}" \
+            "${{ needs.lint-go-mod.result }}" \
+            "${{ needs.lint-golangci.result }}" \
+            "${{ needs.lint-docs.result }}" \
+            "${{ needs.lint-deployments.result }}" \
+            "${{ needs.all-linters.result }}" \
+            "${{ needs.format-go.result }}" \
+            "${{ needs.format-go-test.result }}"; do
+            TOTAL=$((TOTAL + 1))
+            case "$r" in
+              success)   PASSED=$((PASSED + 1)) ;;
+              failure)   FAILED=$((FAILED + 1)) ;;
+              skipped)   SKIPPED=$((SKIPPED + 1)) ;;
+            esac
+          done
+
+          # Phase 2 subtotals
+          L_PASS=0; L_FAIL=0
+          for r in \
+            "${{ needs.lint-fitness.result }}" \
+            "${{ needs.lint-text.result }}" \
+            "${{ needs.lint-go.result }}" \
+            "${{ needs.lint-go-test.result }}" \
+            "${{ needs.lint-compose.result }}" \
+            "${{ needs.lint-ports.result }}" \
+            "${{ needs.lint-workflow.result }}" \
+            "${{ needs.lint-go-mod.result }}" \
+            "${{ needs.lint-golangci.result }}" \
+            "${{ needs.lint-docs.result }}" \
+            "${{ needs.lint-deployments.result }}"; do
+            case "$r" in
+              success) L_PASS=$((L_PASS + 1)) ;;
+              failure) L_FAIL=$((L_FAIL + 1)) ;;
+            esac
+          done
+
+          # Phase 4 subtotals
+          F_PASS=0; F_FAIL=0
+          for r in \
+            "${{ needs.format-go.result }}" \
+            "${{ needs.format-go-test.result }}"; do
+            case "$r" in
+              success) F_PASS=$((F_PASS + 1)) ;;
+              failure) F_FAIL=$((F_FAIL + 1)) ;;
+            esac
+          done
+
+          {
+            echo ""
+            echo "### Totals"
+            echo "| Category | Passed | Failed | Skipped | Total |"
+            echo "|----------|--------|--------|---------|-------|"
+            echo "| **All jobs** | $PASSED | $FAILED | $SKIPPED | $TOTAL |"
+            BUILD_P=$([ "${{ needs.build-cicd.result }}" = "success" ] && echo 1 || echo 0)
+            BUILD_F=$([ "${{ needs.build-cicd.result }}" = "failure" ] && echo 1 || echo 0)
+            echo "| Phase 1: Build | $BUILD_P | $BUILD_F | 0 | 1 |"
+            echo "| Phase 2: Individual Linters | $L_PASS | $L_FAIL | - | 11 |"
+            ALL_P=$([ "${{ needs.all-linters.result }}" = "success" ] && echo 1 || echo 0)
+            ALL_F=$([ "${{ needs.all-linters.result }}" = "failure" ] && echo 1 || echo 0)
+            echo "| Phase 3: All Linters | $ALL_P | $ALL_F | 0 | 1 |"
+            echo "| Phase 4: Formatters | $F_PASS | $F_FAIL | - | 2 |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$FAILED" -gt 0 ]; then
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "**Overall: FAILED** ($FAILED job(s) failed out of $TOTAL)" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          else
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "**Overall: PASSED** ($PASSED/$TOTAL jobs passed)" >> "$GITHUB_STEP_SUMMARY"
+          fi
