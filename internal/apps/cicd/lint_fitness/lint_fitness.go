@@ -14,6 +14,7 @@ import (
 	lintFitnessBindAddressSafety "cryptoutil/internal/apps/cicd/lint_fitness/bind_address_safety"
 	lintFitnessCGOFreeSQLite "cryptoutil/internal/apps/cicd/lint_fitness/cgo_free_sqlite"
 	lintFitnessCheckSkeletonPlaceholders "cryptoutil/internal/apps/cicd/lint_fitness/check_skeleton_placeholders"
+	lintFitnessCIDCoverage "cryptoutil/internal/apps/cicd/lint_fitness/cicd_coverage"
 	lintFitnessCircularDeps "cryptoutil/internal/apps/cicd/lint_fitness/circular_deps"
 	lintFitnessCmdMainPattern "cryptoutil/internal/apps/cicd/lint_fitness/cmd_main_pattern"
 	lintFitnessComposeDBNaming "cryptoutil/internal/apps/cicd/lint_fitness/compose_db_naming"
@@ -118,6 +119,8 @@ var registeredLinters = []struct {
 	{"standalone-config-otlp-names", lintFitnessStandaloneConfigOTLPNames.Check},
 	// New fitness checks (added in Phase 8 of framework-v4).
 	{"migration-comment-headers", lintFitnessMigrationCommentHeaders.Check},
+	// New fitness check: validates cicd commands are covered in action, pre-commit, and CI workflow.
+	{"cicd-coverage", lintFitnessCIDCoverage.Check},
 }
 
 // Lint runs all registered architecture fitness linters.
