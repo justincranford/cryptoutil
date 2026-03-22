@@ -57,7 +57,7 @@ See [ARCHITECTURE.md Section X.Y](../../../docs/ARCHITECTURE.md#xy-anchor) for c
 
 1. Add entry to `.github/copilot-instructions.md` instruction file table
 2. Add file to ARCHITECTURE.md Appendix B.4 summary count (if adding to a category)
-3. Run `go run ./cmd/cicd lint-docs` to validate cross-references
+3. Run `go run ./cmd/cicd-lint lint-docs` to validate cross-references
 
 ## References
 

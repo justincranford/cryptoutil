@@ -33,7 +33,7 @@ content here (MUST be byte-for-byte identical)
 
 ```bash
 # Run the automated validator
-go run ./cmd/cicd lint-docs
+go run ./cmd/cicd-lint lint-docs
 
 # Manual: extract @propagate block content
 python3 - <<'EOF'
@@ -52,7 +52,7 @@ EOF
 1. Find the @propagate block in ARCHITECTURE.md
 2. Copy its content verbatim
 3. Paste between @source markers in the target file
-4. Run `go run ./cmd/cicd lint-docs` to verify match
+4. Run `go run ./cmd/cicd-lint lint-docs` to verify match
 
 ## Rules
 

@@ -1,6 +1,6 @@
 # Config File Schema Reference
 
-**Source of Truth**: [validate_schema.go](/internal/cmd/cicd/lint_deployments/validate_schema.go)
+**Source of Truth**: [validate_schema.go](/internal/cmd/cicd_lint/lint_deployments/validate_schema.go)
 
 This document describes the flat kebab-case YAML config file schema used by `config-*.yml` files in `configs/`. The schema is hardcoded in Go and validated by `cicd lint-deployments validate-schema`.
 

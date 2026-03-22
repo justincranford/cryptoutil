@@ -15,7 +15,7 @@ for knowledge propagation to ARCHITECTURE.md, agents, skills, and instructions.
 - **Bulk PowerShell replace** for updating 48 stale `❌` statuses across 4 duplicate blocks in tasks.md — far faster than per-occurrence string replacement
 - **`replace_string_in_file` for unique context** — using surrounding unique content (file paths, task descriptions) as the oldString discriminator works well for single-block updates
 - **ARCHITECTURE.md multi-section edits in sequence** — doing all 6 Phase 8.2 edits in one session before committing prevents partial-state commits
-- **`lint-docs` as propagation gate** — `go run ./cmd/cicd lint-docs` caught the stale `@source` mismatch (10→11 linters) before commit
+- **`lint-docs` as propagation gate** — `go run ./cmd/cicd-lint lint-docs` caught the stale `@source` mismatch (10→11 linters) before commit
 
 ### What Didn't Work
 
@@ -205,7 +205,7 @@ for knowledge propagation to ARCHITECTURE.md, agents, skills, and instructions.
 3. 3-pass review caught Tasks 4.1 checkbox acceptance criteria as needing verification before marking complete.
 
 **Final Quality Gate Results**:
-- `go run ./cmd/cicd lint-docs`: 3/3 sub-linters pass.
+- `go run ./cmd/cicd-lint lint-docs`: 3/3 sub-linters pass.
 - `go build ./...`: exit 0.
 - All 38 tasks: ✅ complete.
 

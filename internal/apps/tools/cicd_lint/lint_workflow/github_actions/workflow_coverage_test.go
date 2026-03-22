@@ -1,0 +1,129 @@
+// Copyright (c) 2025 Justin Cranford
+
+package github_actions
+
+import (
+	"os"
+	"path/filepath"
+	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
+	"github.com/stretchr/testify/require"
+
+	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
+)
+
+// TestValidateAndParseWorkflowFile_BranchPinned verifies that branch-pinned
+// versions (e.g. @main) are flagged as validation errors.
+func TestValidateAndParseWorkflowFile_BranchPinned(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	workflowFile := filepath.Join(tmpDir, "ci.yml")
+	content := []byte("uses: actions/checkout@main\n")
+
+	err := os.WriteFile(workflowFile, content, cryptoutilSharedMagic.CacheFilePermissions)
+	require.NoError(t, err)
+
+	actionDetails, validationErrors, err := validateAndParseWorkflowFile(workflowFile)
+	require.NoError(t, err, "File read should succeed")
+	require.NotEmpty(t, validationErrors, "Should flag branch-pinned version")
+	require.Contains(t, validationErrors[0], "main")
+	require.Contains(t, validationErrors[0], "branch")
+	// Action is still parsed even though it has a validation error.
+	require.Len(t, actionDetails, 1)
+}
+
+// TestValidateAndParseWorkflowFile_BranchPinned_AllBranchNames verifies all
+// disallowed branch names are detected.
+func TestValidateAndParseWorkflowFile_BranchPinned_AllBranchNames(t *testing.T) {
+	t.Parallel()
+
+	branchNames := []string{"main", "master", "latest", "develop", cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault, "trunk", "MAIN", "MASTER"}
+
+	for _, branch := range branchNames {
+		t.Run(branch, func(t *testing.T) {
+			t.Parallel()
+
+			tmpDir := t.TempDir()
+			workflowFile := filepath.Join(tmpDir, "ci.yml")
+			content := []byte("uses: actions/checkout@" + branch + "\n")
+
+			err := os.WriteFile(workflowFile, content, cryptoutilSharedMagic.CacheFilePermissions)
+			require.NoError(t, err)
+
+			_, validationErrors, err := validateAndParseWorkflowFile(workflowFile)
+			require.NoError(t, err)
+			require.NotEmpty(t, validationErrors, "Branch %s should be flagged", branch)
+		})
+	}
+}
+
+// TestValidateAndGetWorkflowActionsDetails_BranchPinned verifies that branch-
+// pinned actions cause validateAndGetWorkflowActionsDetails to return an error.
+func TestValidateAndGetWorkflowActionsDetails_BranchPinned(t *testing.T) {
+	t.Parallel()
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	tmpDir := t.TempDir()
+	workflowFile := filepath.Join(tmpDir, "ci.yml")
+	content := []byte("uses: actions/checkout@main\n")
+
+	err := os.WriteFile(workflowFile, content, cryptoutilSharedMagic.CacheFilePermissions)
+	require.NoError(t, err)
+
+	details, err := validateAndGetWorkflowActionsDetails(logger, []string{workflowFile})
+	require.Error(t, err, "Should fail when branch-pinned actions are found")
+	require.Nil(t, details)
+	require.Contains(t, err.Error(), "1 workflow validation errors")
+}
+
+// TestLintGitHubWorkflows_BranchPinnedAction verifies that Check
+// returns an error when a workflow has branch-pinned actions.
+func TestLintGitHubWorkflows_BranchPinnedAction(t *testing.T) {
+	t.Parallel()
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	tmpDir := t.TempDir()
+
+	workflowFile := filepath.Join(tmpDir, "ci.yml")
+	content := []byte("uses: actions/checkout@main\n")
+
+	err := os.WriteFile(workflowFile, content, cryptoutilSharedMagic.CacheFilePermissions)
+	require.NoError(t, err)
+
+	err = CheckInDir(logger, []string{workflowFile}, tmpDir)
+	require.Error(t, err, "Should fail when branch-pinned actions are found")
+	require.Contains(t, err.Error(), "workflow validation failed")
+}
+
+// TestLintGitHubWorkflows_ExceptionVersionMismatch verifies that
+// Check prints warnings when exception version mismatches.
+func TestLintGitHubWorkflows_ExceptionVersionMismatch(t *testing.T) {
+	t.Parallel()
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	tmpDir := t.TempDir()
+
+	// Set up the .github directory with the exceptions file.
+	githubDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDExcludeDirGithubInstructions)
+
+	err := os.MkdirAll(githubDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
+	require.NoError(t, err)
+
+	exceptionsFile := filepath.Join(githubDir, "workflow-action-exceptions.json")
+	exceptionsContent := []byte(`{"exceptions":{"actions/checkout":{"version":"v3","reason":"Testing stale exception"}}}`)
+	err = os.WriteFile(exceptionsFile, exceptionsContent, cryptoutilSharedMagic.CacheFilePermissions)
+	require.NoError(t, err)
+
+	// Workflow uses v4 but exception specifies v3 - triggers stale-exception warning.
+	workflowFile := filepath.Join(tmpDir, "ci.yml")
+	content := []byte("uses: actions/checkout@v4\n")
+
+	err = os.WriteFile(workflowFile, content, cryptoutilSharedMagic.CacheFilePermissions)
+	require.NoError(t, err)
+
+	err = CheckInDir(logger, []string{workflowFile}, tmpDir)
+	require.NoError(t, err, "Stale exception warnings do not cause failure")
+}

@@ -160,7 +160,7 @@ Extension opportunities:
 //go:generate cryptoutil-gen test-stubs --handler=server/apis/handlers.go --output=server/apis/handlers_test.go
 `
 
-The cryptoutil-gen tool does not exist yet. It should be in cmd/cicd or cmd/codegen.
+The cryptoutil-gen tool does not exist yet. It should be in cmd/cicd-lint or cmd/codegen.
 
 ---
 

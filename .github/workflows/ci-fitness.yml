@@ -82,7 +82,7 @@ jobs:
         echo "Running architecture fitness checks..."
         START_TIME=$(date +%s)
         echo "Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        go run ./cmd/cicd lint-fitness
+        go run ./cmd/cicd-lint lint-fitness
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
         echo "End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"

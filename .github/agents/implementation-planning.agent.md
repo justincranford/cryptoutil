@@ -422,7 +422,7 @@ EOF
 - Review lessons.md from all prior phases
 - Update ARCHITECTURE.md with new patterns and decisions
 - Update agents, skills, instructions, code, tests, workflows, and docs where warranted
-- Verify propagation integrity (`go run ./cmd/cicd lint-docs validate-propagation`)
+- Verify propagation integrity (`go run ./cmd/cicd-lint lint-docs validate-propagation`)
 - **Success**: All artifact updates committed; propagation check passes
 
 ## Executive Decisions (for complex work with multiple strategic options)
@@ -488,7 +488,7 @@ EOF
 **Per-Phase Quality Gates**:
 - ✅ Unit + integration tests complete before moving to next phase
 - ✅ E2E tests pass (BOTH /service/** and /browser/** paths)
-- ✅ Deployment validators pass (`go run ./cmd/cicd lint-deployments validate-all` - when deployments/ or configs/ changed)
+- ✅ Deployment validators pass (`go run ./cmd/cicd-lint lint-deployments validate-all` - when deployments/ or configs/ changed)
 - ✅ Docker Compose health checks pass
 - ✅ Race detector clean (`go test -race -count=2 ./...`)
 
@@ -923,7 +923,7 @@ Running frequent Unit + integration + E2E tests locally:
 7. **Updates tests** — improves test suites where plan work exposed incomplete coverage or weak assertions
 8. **Updates workflows** — updates CI/CD workflows to reflect any new quality gates or tooling discovered
 9. **Updates documentation** — updates README, inline comments, and docs/ to reflect new patterns
-10. **Verifies propagation** by running `go run ./cmd/cicd lint-docs validate-propagation`
+10. **Verifies propagation** by running `go run ./cmd/cicd-lint lint-docs validate-propagation`
 11. Commits all artifact updates with separate semantic commits per artifact type
 
 **Phase Post-Mortem Self-Evaluation (EVERY phase)**:

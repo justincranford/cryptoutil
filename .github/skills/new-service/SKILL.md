@@ -76,14 +76,14 @@ cp -r deployments/skeleton-template deployments/PRODUCT-SERVICE
 
 - Add service to `.github/workflows/ci-*.yml` matrix
 - Add service to `docker-compose.yml` (root-level if suite)
-- Run `go run ./cmd/cicd lint-deployments` to validate
+- Run `go run ./cmd/cicd-lint lint-deployments` to validate
 
 ### Step 8: Test
 
 ```bash
 go build ./cmd/PRODUCT-SERVICE/...
 go test ./internal/apps/PRODUCT/SERVICE/...
-go run ./cmd/cicd lint-deployments
+go run ./cmd/cicd-lint lint-deployments
 ```
 
 ### Step 9: Update Documentation

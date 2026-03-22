@@ -1,6 +1,6 @@
 ---
 name: fitness-function-gen
-description: "Generate a new architecture fitness function (linter) for the cryptoutil lint-fitness framework. Use when adding a new architectural invariant that should be enforced via go run ./cmd/cicd lint-fitness across every service."
+description: "Generate a new architecture fitness function (linter) for the cryptoutil lint-fitness framework. Use when adding a new architectural invariant that should be enforced via go run ./cmd/cicd-lint lint-fitness across every service."
 argument-hint: "[linter-name] [architectural rule description]"
 ---
 
@@ -17,15 +17,15 @@ The lint-fitness framework runs 43 architectural invariant checks on every CI pu
 ## Fitness Function Registration
 
 Every fitness function MUST:
-1. Live in internal/apps/cicd/lint_fitness/<linter-name>/
+1. Live in internal/apps/tools/cicd_lint/lint_fitness/<linter-name>/
 2. Export a Check(logger *cryptoutilCmdCicdCommon.Logger) error function
-3. Be registered in internal/apps/cicd/lint_fitness/lint_fitness.go
+3. Be registered in internal/apps/tools/cicd_lint/lint_fitness/lint_fitness.go
 4. Achieve =98% test coverage (infrastructure/utility target)
 
 ## Directory Structure
 
 `
-internal/apps/cicd/lint_fitness/
+internal/apps/tools/cicd_lint/lint_fitness/
 +-- lint_fitness.go                 # Registration + Lint() orchestrator
 +-- your-linter-name/               # kebab-case directory
     +-- your_linter_name.go         # Implementation: package your_linter_name
@@ -44,7 +44,7 @@ package your_linter_name
 import (
 "fmt"
 
-cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
 )
 
 // Check enforces [rule] from the workspace root.
@@ -75,12 +75,12 @@ return nil
 
 ## Registration in lint_fitness.go
 
-Add to the `registeredLinters` slice in `internal/apps/cicd/lint_fitness/lint_fitness.go`:
+Add to the `registeredLinters` slice in `internal/apps/tools/cicd_lint/lint_fitness/lint_fitness.go`:
 
 `go
 import (
     // ... existing imports
-    lintFitnessYourLinter "cryptoutil/internal/apps/cicd/lint_fitness/your-linter-name"
+    lintFitnessYourLinter "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/your-linter-name"
 )
 
 var registeredLinters = []struct { name string; linter LinterFunc }{
@@ -101,7 +101,7 @@ import (
 "path/filepath"
 "testing"
 
-cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
 cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 "github.com/stretchr/testify/require"
 )
@@ -149,7 +149,7 @@ For checks that must validate EVERY product-service uniformly, use the registry-
 
 ```go
 import (
-    lintFitnessRegistry "cryptoutil/internal/apps/cicd/lint_fitness/registry"
+    lintFitnessRegistry "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/registry"
 )
 
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
@@ -187,8 +187,8 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 ## After Creation
 
-1. Run go run ./cmd/cicd lint-fitness � must pass with your new linter included.
-2. Run tests: go test ./internal/apps/cicd/lint_fitness/... � must achieve =98% coverage.
+1. Run go run ./cmd/cicd-lint lint-fitness � must pass with your new linter included.
+2. Run tests: go test ./internal/apps/tools/cicd_lint/lint_fitness/... � must achieve =98% coverage.
 3. Update lint_fitness_test.go TestLint_Success count if it has a hardcoded linter count.
 4. Commit with ci(cicd): add [linter-name] fitness function.
 

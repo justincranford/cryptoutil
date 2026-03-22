@@ -59,7 +59,7 @@ The structure, not the domain, is what skeleton teaches.
 A CLI command that reads skeleton-template and generates a new service:
 
 ```bash
-go run ./cmd/cicd new-service \
+go run ./cmd/cicd-lint new-service \
   --product pki \
   --service ca \
   --domain Certificate \
@@ -71,7 +71,7 @@ Output: internal/apps/pki/ca/ with all skeleton files renamed and Widget -> Cert
 ### Level 3: Conformance Checking (ongoing)
 
 ```bash
-go run ./cmd/cicd diff-skeleton --service pki-ca
+go run ./cmd/cicd-lint diff-skeleton --service pki-ca
 ```n
 Diffs a real service against skeleton structure. Reports:
 - Missing files

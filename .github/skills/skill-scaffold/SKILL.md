@@ -82,7 +82,7 @@ Read [ARCHITECTURE.md Section X.Y](../../../docs/ARCHITECTURE.md#xy-anchor) for 
 1. Add entry to `.github/skills/README.md` skill table
 2. Add entry to ARCHITECTURE.md Section 2.1.5 skill catalogue table (update path `skills/NAME/SKILL.md`)
 3. Update relevant agents' frontmatter `skills:` list (if agents reference skills)
-4. Run `go run ./cmd/cicd lint-docs` to validate cross-references
+4. Run `go run ./cmd/cicd-lint lint-docs` to validate cross-references
 
 ## References
 

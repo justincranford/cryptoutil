@@ -146,9 +146,9 @@ var hardcodedUUIDPattern = regexp.MustCompile(
 ### Integration in cicd command suite
 
 ```bash
-go run ./cmd/cicd fitness-check
-go run ./cmd/cicd fitness-check --service pki-ca
-go run ./cmd/cicd fitness-check --category security
+go run ./cmd/cicd-lint fitness-check
+go run ./cmd/cicd-lint fitness-check --service pki-ca
+go run ./cmd/cicd-lint fitness-check --category security
 ```n
 ### Fitness function registry (self-documenting)
 
@@ -185,7 +185,7 @@ jobs:
       - uses: actions/setup-go@v6
         with: {go-version: '1.26.1', cache: true}
       - name: Run architecture fitness functions
-        run: go run ./cmd/cicd fitness-check
+        run: go run ./cmd/cicd-lint fitness-check
 ```n
 ## Effort and Adoption Strategy
 

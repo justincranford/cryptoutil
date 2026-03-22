@@ -223,7 +223,7 @@ const (
 	UsageCICD = `Usage: cicd <command> [command...]
 
 	Commands:
-		format-go           - [Formatter] Auto-fix Go files (any -> any, loop var copies)
+			format-go           - [Formatter] Auto-fix Go files (any -> any, loop var copies)
 		format-go-test      - [Formatter] Auto-fix Go test files (add t.Helper() to helpers)
 		github-cleanup      - [Script]    GitHub Actions storage cleanup (runs, artifacts, caches)
 		lint-compose        - [Linter]    Detect admin port 9090 exposure in Docker Compose files
@@ -275,17 +275,17 @@ var (
 	// CRITICAL: Each command excludes its own subdirectory to prevent self-modification.
 	// Keys match command names: lint-text, lint-go, lint-compose, format-go, lint-go-test, format-go-test, lint-golangci, lint-ports, lint-workflow, lint-go-mod.
 	CICDSelfExclusionPatterns = map[string]string{
-		"format-go":      `internal[/\\]apps[/\\]cicd[/\\]format_go[/\\].*\.go$`,
-		"format-go-test": `internal[/\\]apps[/\\]cicd[/\\]format_gotest[/\\].*\.go$`,
-		"lint-compose":   `internal[/\\]apps[/\\]cicd[/\\]lint_compose[/\\].*\.go$`,
-		"lint-fitness":   `internal[/\\]apps[/\\]cicd[/\\]lint_fitness[/\\].*\.go$`,
-		"lint-go":        `internal[/\\]apps[/\\]cicd[/\\]lint_go[/\\].*\.go$`,
-		"lint-go-mod":    `internal[/\\]apps[/\\]cicd[/\\]lint_go_mod[/\\].*\.go$`,
-		"lint-go-test":   `internal[/\\]apps[/\\]cicd[/\\]lint_gotest[/\\].*\.go$`,
-		"lint-golangci":  `internal[/\\]apps[/\\]cicd[/\\]lint_golangci[/\\].*\.go$`,
-		"lint-ports":     `internal[/\\]apps[/\\]cicd[/\\]lint_ports[/\\].*\.go$`,
-		"lint-text":      `internal[/\\]apps[/\\]cicd[/\\]lint_text[/\\].*\.go$`,
-		"lint-workflow":  `internal[/\\]apps[/\\]cicd[/\\]lint_workflow[/\\].*\.go$`,
+		"format-go":      `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]format_go[/\\].*\.go$`,
+		"format-go-test": `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]format_gotest[/\\].*\.go$`,
+		"lint-compose":   `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_compose[/\\].*\.go$`,
+		"lint-fitness":   `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_fitness[/\\].*\.go$`,
+		"lint-go":        `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_go[/\\].*\.go$`,
+		"lint-go-mod":    `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_go_mod[/\\].*\.go$`,
+		"lint-go-test":   `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_gotest[/\\].*\.go$`,
+		"lint-golangci":  `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_golangci[/\\].*\.go$`,
+		"lint-ports":     `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_ports[/\\].*\.go$`,
+		"lint-text":      `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_text[/\\].*\.go$`,
+		"lint-workflow":  `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_workflow[/\\].*\.go$`,
 	}
 
 	// GeneratedFileExcludePatterns - File patterns for generated files that should be excluded from linting.

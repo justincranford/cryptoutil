@@ -138,7 +138,7 @@ jobs:
         echo "| Package | Coverage | Status |" >> $GITHUB_STEP_SUMMARY
         echo "|---------|----------|--------|" >> $GITHUB_STEP_SUMMARY
         FAILED=0
-        # internal/apps/cicd infrastructure packages require >=98%
+        # internal/apps/tools/cicd_lint infrastructure packages require >=98%
         # All other production packages require >=95%
         while IFS= read -r line; do
           PKG=$(echo "$line" | grep -oP '(?<=ok\s{1,10})[\w./\-]+' || true)

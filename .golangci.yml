@@ -92,28 +92,28 @@ linters:
       - path: "internal/identity/issuer/service\\.go$"
         linters: [nilerr]
       # Exclude nilerr from validate_naming.go (error captured in result.Errors; callers check result.Valid).
-      - path: "internal/cmd/cicd/lint_deployments/validate_naming\\.go$"
+      - path: "internal/cmd/cicd_lint/lint_deployments/validate_naming\\.go$"
         linters: [nilerr]
       # Exclude nilerr from validate_kebab_case.go (error captured in result.Errors; callers check result.Valid).
-      - path: "internal/cmd/cicd/lint_deployments/validate_kebab_case\\.go$"
+      - path: "internal/cmd/cicd_lint/lint_deployments/validate_kebab_case\\.go$"
         linters: [nilerr]
       # Exclude nilerr from validate_template_pattern.go (error captured in result.Errors; callers check result.Valid).
-      - path: "internal/cmd/cicd/lint_deployments/validate_template_pattern\\.go$"
+      - path: "internal/cmd/cicd_lint/lint_deployments/validate_template_pattern\\.go$"
         linters: [nilerr]
       # Exclude nilerr from validate_ports.go (error captured in result.Errors; callers check result.Valid).
-      - path: "internal/cmd/cicd/lint_deployments/validate_ports\\.go$"
+      - path: "internal/cmd/cicd_lint/lint_deployments/validate_ports\\.go$"
         linters: [nilerr]
       # Exclude nilerr from validate_telemetry.go (error captured in result.Errors; callers check result.Valid).
-      - path: "internal/cmd/cicd/lint_deployments/validate_telemetry\\.go$"
+      - path: "internal/cmd/cicd_lint/lint_deployments/validate_telemetry\\.go$"
         linters: [nilerr]
       # Exclude nilerr from validate_admin.go (error captured in result.Errors; callers check result.Valid).
-      - path: "internal/cmd/cicd/lint_deployments/validate_admin\\.go$"
+      - path: "internal/cmd/cicd_lint/lint_deployments/validate_admin\\.go$"
         linters: [nilerr]
       # Exclude nilerr from validate_secrets.go (error captured in result.Errors; callers check result.Valid).
-      - path: "internal/cmd/cicd/lint_deployments/validate_secrets\\.go$"
+      - path: "internal/cmd/cicd_lint/lint_deployments/validate_secrets\\.go$"
         linters: [nilerr]
       # Exclude nilerr from validate_all.go (WalkDir callback returns nil on error to continue walking).
-      - path: "internal/cmd/cicd/lint_deployments/validate_all\\.go$"
+      - path: "internal/cmd/cicd_lint/lint_deployments/validate_all\\.go$"
         linters: [nilerr]
       # Exclude wrapcheck from jose server handlers (Fiber HTTP response helpers).
       - path: "internal/jose/server/handlers\\.go$"
@@ -225,53 +225,53 @@ linters:
         # Cryptoutil cmd
         - pkg: "cryptoutil/internal/cmd"
           alias: cryptoutilCmd
-        - pkg: "cryptoutil/internal/cmd/cicd"
+        - pkg: "cryptoutil/internal/cmd/cicd_lint"
           alias: cryptoutilCmdCicd
         - pkg: "cryptoutil/internal/cmd/cryptoutil"
           alias: cryptoutilCmdCryptoutil
         - pkg: "cryptoutil/internal/cmd/workflow"
           alias: cryptoutilWorkflow
-        - pkg: "cryptoutil/internal/cmd/cicd/common"
+        - pkg: "cryptoutil/internal/cmd/cicd_lint/common"
           alias: cryptoutilCmdCicdCommon
-        - pkg: "cryptoutil/internal/cmd/cicd/all_enforce_utf8"
+        - pkg: "cryptoutil/internal/cmd/cicd_lint/all_enforce_utf8"
           alias: cryptoutilCmdCicdAllEnforceUtf8
-        - pkg: "cryptoutil/internal/cmd/cicd/go_check_circular_package_dependencies"
+        - pkg: "cryptoutil/internal/cmd/cicd_lint/go_check_circular_package_dependencies"
           alias: cryptoutilCmdCicdGoCheckCircularPackageDependencies
-        - pkg: "cryptoutil/internal/cmd/cicd/go_enforce_any"
+        - pkg: "cryptoutil/internal/cmd/cicd_lint/go_enforce_any"
           alias: cryptoutilCmdCicdGoEnforceAny
-        - pkg: "cryptoutil/internal/cmd/cicd/go_enforce_test_patterns"
+        - pkg: "cryptoutil/internal/cmd/cicd_lint/go_enforce_test_patterns"
           alias: cryptoutilCmdCicdGoEnforceTestPatterns
-        - pkg: "cryptoutil/internal/cmd/cicd/go_fix_all"
+        - pkg: "cryptoutil/internal/cmd/cicd_lint/go_fix_all"
           alias: cryptoutilCmdCicdGoFixAll
-        - pkg: "cryptoutil/internal/cmd/cicd/go_fix_copyloopvar"
+        - pkg: "cryptoutil/internal/cmd/cicd_lint/go_fix_copyloopvar"
           alias: cryptoutilCmdCicdGoFixCopyLoopVar
-        - pkg: "cryptoutil/internal/cmd/cicd/go_fix_thelper"
+        - pkg: "cryptoutil/internal/cmd/cicd_lint/go_fix_thelper"
           alias: cryptoutilCmdCicdGoFixTHelper
-        - pkg: "cryptoutil/internal/cmd/cicd/go_generate_postmortem"
+        - pkg: "cryptoutil/internal/cmd/cicd_lint/go_generate_postmortem"
           alias: cryptoutilGoGeneratePostmortem
-        - pkg: "cryptoutil/internal/cmd/cicd/go_update_direct_dependencies"
+        - pkg: "cryptoutil/internal/cmd/cicd_lint/go_update_direct_dependencies"
           alias: cryptoutilCmdCicdGoUpdateDirectDependencies
-        - pkg: "cryptoutil/internal/cmd/cicd/go_update_project_status"
+        - pkg: "cryptoutil/internal/cmd/cicd_lint/go_update_project_status"
           alias: cryptoutilCmdCicdGoUpdateProjectStatus
-        - pkg: "cryptoutil/internal/cmd/cicd/go_update_project_status_v2"
+        - pkg: "cryptoutil/internal/cmd/cicd_lint/go_update_project_status_v2"
           alias: cryptoutilGoUpdateProjectStatusV2
-        - pkg: "cryptoutil/internal/cmd/cicd/github_workflow_lint"
+        - pkg: "cryptoutil/internal/cmd/cicd_lint/github_workflow_lint"
           alias: cryptoutilCmdCicdGithubWorkflowLint
-        - pkg: "cryptoutil/internal/cmd/cicd/format_go"
+        - pkg: "cryptoutil/internal/cmd/cicd_lint/format_go"
           alias: cryptoutilCmdCicdFormatGo
-        - pkg: "cryptoutil/internal/cmd/cicd/format_gotest"
+        - pkg: "cryptoutil/internal/cmd/cicd_lint/format_gotest"
           alias: cryptoutilCmdCicdFormatGotest
-        - pkg: "cryptoutil/internal/cmd/cicd/lint_compose"
+        - pkg: "cryptoutil/internal/cmd/cicd_lint/lint_compose"
           alias: cryptoutilCmdCicdLintCompose
-        - pkg: "cryptoutil/internal/cmd/cicd/lint_go"
+        - pkg: "cryptoutil/internal/cmd/cicd_lint/lint_go"
           alias: cryptoutilCmdCicdLintGo
-        - pkg: "cryptoutil/internal/cmd/cicd/lint_go_mod"
+        - pkg: "cryptoutil/internal/cmd/cicd_lint/lint_go_mod"
           alias: cryptoutilCmdCicdLintGoMod
-        - pkg: "cryptoutil/internal/cmd/cicd/lint_gotest"
+        - pkg: "cryptoutil/internal/cmd/cicd_lint/lint_gotest"
           alias: cryptoutilCmdCicdLintGotest
-        - pkg: "cryptoutil/internal/cmd/cicd/lint_text"
+        - pkg: "cryptoutil/internal/cmd/cicd_lint/lint_text"
           alias: cryptoutilCmdCicdLintText
-        - pkg: "cryptoutil/internal/cmd/cicd/lint_workflow"
+        - pkg: "cryptoutil/internal/cmd/cicd_lint/lint_workflow"
           alias: cryptoutilCmdCicdLintWorkflow
         - pkg: "cryptoutil/internal/cmd/sm"
           alias: cryptoutilCmdSM

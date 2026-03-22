@@ -1,0 +1,84 @@
+// Copyright (c) 2025 Justin Cranford
+
+package cicd_lint
+
+import (
+	"fmt"
+	"io"
+
+	cryptoutilAppsCicd "cryptoutil/internal/apps/tools/cicd_lint"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+)
+
+// Cicd is the thin entry point for the cicd command.
+// It validates the command and delegates to internal/apps/cicd for all processing.
+// Returns exit code: 0 for success, 1 for failure.
+func Cicd(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
+	if len(args) < 2 {
+		printUsage(stdout)
+
+		return 1
+	}
+
+	command := args[1]
+
+	switch {
+	case cryptoutilSharedMagic.ValidCommands[command]:
+		// ALL valid commands route to apps/cicd for processing.
+		return cryptoutilAppsCicd.Cicd(args, stdin, stdout, stderr)
+	case command == "help" || command == "--help" || command == "-h":
+		printUsage(stdout)
+
+		return 0
+	default:
+		_, _ = fmt.Fprintf(stderr, "Unknown command: %s\n\n", command)
+		printUsage(stderr)
+
+		return 1
+	}
+}
+
+func printUsage(w io.Writer) {
+	_, _ = fmt.Fprint(w, `cicd - Cryptoutil CI/CD linter and formatter tools
+
+Usage:
+	cicd <command> [args]
+
+Lint Commands:
+	lint-fitness              Architecture fitness functions (cross-service isolation, file limits, etc.)
+	lint-text                 Enforce UTF-8 file encoding (no BOM)
+	lint-go                   Go package linters (circular deps, CGO-free SQLite)
+	lint-go-test              Go test file linters (test patterns)
+	lint-go-mod               Go module linters (dependency updates)
+	lint-golangci             golangci-lint config validation (v2 compatibility)
+	lint-compose              Docker Compose file linters (admin port exposure)
+	lint-ports                Port assignment validation (standardized ports)
+	lint-workflow             Workflow file linters (GitHub Actions)
+	lint-deployments          Deployment structure and config file validation
+	lint-docs                 Documentation chunk verification and propagation validation
+
+Format Commands:
+	format-go                 Go file formatters (any, copyloopvar)
+	format-go-test            Go test file formatters (t.Helper)
+
+Script Commands:
+	github-cleanup            GitHub Actions storage cleanup (runs, artifacts, caches)
+
+	GitHub Cleanup Flags:
+	--confirm               Execute deletions (default: dry-run preview only)
+	--max-age-days=N        Age threshold in days (default: 7)
+	--keep-min-runs=N       Min successful runs to keep per workflow (default: 3)
+	--repo=owner/repo       Target repo (default: auto-detect from cwd)
+
+	help, --help, -h          Show this help message
+
+Examples:
+	cicd lint-text
+	cicd lint-go lint-go-test format-go
+	cicd lint-deployments
+	cicd lint-docs
+	cicd github-cleanup                   # Dry-run preview
+	cicd github-cleanup --confirm         # Execute deletions
+	cicd github-cleanup --max-age-days=7  # Preview runs older than 7 days
+`)
+}

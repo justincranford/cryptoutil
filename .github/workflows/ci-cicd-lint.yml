@@ -87,7 +87,7 @@ jobs:
         run: |
           START_TIME=$(date +%s)
           echo "Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          CGO_ENABLED=0 go build -o cicd ./cmd/cicd
+          CGO_ENABLED=0 go build -o cicd ./cmd/cicd-lint
           chmod +x cicd
           END_TIME=$(date +%s)
           DURATION=$((END_TIME - START_TIME))
@@ -420,8 +420,8 @@ jobs:
         shell: bash
         run: |
           ./cicd lint-fitness lint-text lint-go lint-go-test lint-compose \
-                 lint-ports lint-workflow lint-go-mod lint-golangci lint-docs \
-                 lint-deployments
+                lint-ports lint-workflow lint-go-mod lint-golangci lint-docs \
+                lint-deployments
       - name: Job summary
         if: always()
         uses: ./.github/actions/workflow-job-end

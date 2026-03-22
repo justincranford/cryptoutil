@@ -985,7 +985,7 @@ If a task cannot be completed due to architectural limitations, missing infrastr
      - `README.md`, `docs/DEV-SETUP.md`, inline comments — Developer-facing documentation
 3. **Artifact Self-Evaluation**: Review ALL of the following for contradictions or omissions introduced by this plan:
    - Every `@source` block in instruction files must match its `@propagate` block in ARCHITECTURE.md
-   - Run `go run ./cmd/cicd lint-docs validate-propagation` to verify propagation integrity
+   - Run `go run ./cmd/cicd-lint lint-docs validate-propagation` to verify propagation integrity
 4. **Document Patterns and Prevention Strategies**: Ensure categories.md contains all recurring patterns, add prevention strategies to copilot instructions
 5. **Commit with Audit Trail**: Use separate semantic commits per artifact type: (1) ARCHITECTURE.md, (2) agents, (3) skills, (4) instructions
 

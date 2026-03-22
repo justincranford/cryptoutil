@@ -99,7 +99,7 @@ ALL relevant context MUST be in the agent file itself.
 ## After Creating
 
 1. Add entry to ARCHITECTURE.md Section 2.1.2 Agent Catalog table
-2. Run `go run ./cmd/cicd lint-docs` to validate cross-references
+2. Run `go run ./cmd/cicd-lint lint-docs` to validate cross-references
 
 ## References
 

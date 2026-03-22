@@ -72,7 +72,7 @@ What to add to skeleton:
 
 ### P1-1: cicd new-service Scaffolding Tool
 
-Files: cmd/cicd/new_service/ (new), skeleton/**/*.tmpl (new templates)
+Files: cmd/cicd-lint/new_service/ (new), skeleton/**/*.tmpl (new templates)
 
 What: CLI tool that generates a complete new service from skeleton templates.
 Why:  Reduces service migration from 3 weeks to 3 days.
@@ -80,7 +80,7 @@ When: After skeleton is promoted to full CRUD reference (P0-3).
 Effort: 2-3 weeks
 Return: 3-5x faster per service migration. 10 services * 3 days = 30 days total.
 
-Command: go run ./cmd/cicd new-service --product sm --service newname --entity Item
+Command: go run ./cmd/cicd-lint new-service --product sm --service newname --entity Item
 Output: internal/apps/sm/newname/ with full service skeleton that compiles and tests pass.
 
 Implementation approach:
@@ -115,7 +115,7 @@ Tests to include:
 
 ### P1-3: cicd diff-skeleton Conformance Tool
 
-Files: cmd/cicd/diff_skeleton/ (new)
+Files: cmd/cicd-lint/diff_skeleton/ (new)
 
 What: Tool that shows structural differences between a service and skeleton.
 Why:  Prevents drift from compounding. Surfaces issues before they are expensive.
@@ -123,8 +123,8 @@ When: After skeleton is promoted (P0-3).
 Effort: 1 week
 Return: Services stay conformant. Maintenance overhead reduced by 30%+.
 
-Command: go run ./cmd/cicd diff-skeleton --service sm-im
-Command: go run ./cmd/cicd diff-skeleton --all-services
+Command: go run ./cmd/cicd-lint diff-skeleton --service sm-im
+Command: go run ./cmd/cicd-lint diff-skeleton --all-services
 
 Output shows:
 - Files present in skeleton but missing from service (possibly required)
@@ -187,7 +187,7 @@ Initial fitness functions (see 07-fitness-functions.md for full list):
 
 ### P2-3: OpenAPI-to-Repository Code Generation
 
-Files: cmd/cicd/generate/ (new), templates for repository + service layers
+Files: cmd/cicd-lint/generate/ (new), templates for repository + service layers
 
 What: Generate repository CRUD and service stubs from OpenAPI spec.
 Why:  Reducing handwritten code reduces bugs and speeds iteration.

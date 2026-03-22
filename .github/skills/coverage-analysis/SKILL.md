@@ -33,7 +33,7 @@ go tool cover -func=test-output/coverage-analysis/coverage.out | tail -1
 | Package Type | Minimum | Examples |
 |--------------|---------|---------|
 | Production | 95% | internal/{jose,identity,kms,ca} |
-| Infrastructure/Utility | 98% | internal/apps/cicd/*, internal/shared/*, pkg/* |
+| Infrastructure/Utility | 98% | internal/apps/tools/cicd_lint/*, internal/shared/*, pkg/* |
 | Generated Code | Excluded | api/*_gen.go |
 | Main Functions | 0% (if internalMain ≥95%) | cmd/*/main.go |
 | Magic Constants | Excluded | internal/shared/magic/ |

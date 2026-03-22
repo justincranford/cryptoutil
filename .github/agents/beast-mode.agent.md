@@ -417,7 +417,7 @@ go build -tags e2e,integration ./...      # Build-tagged files must be clean
 golangci-lint run --fix                   # Auto-fix then verify clean
 golangci-lint run --build-tags e2e,integration  # Build-tagged files lint-clean
 go test ./... -shuffle=on                 # All tests pass (unit + integration), zero skips
-go run ./cmd/cicd lint-deployments              # Deployment validation (when deployments/configs changed)
+go run ./cmd/cicd-lint lint-deployments              # Deployment validation (when deployments/configs changed)
 ```
 
 **Additional Quality Gate Commands (Context-Dependent, Go Projects):**

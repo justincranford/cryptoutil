@@ -563,7 +563,7 @@ jobs:
   #         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
 
   #         # Run with --skip-slow-checks to avoid task-specific parsing (not implemented in coverage file)
-  #         go run ./cmd/cicd go-identity-requirements-check --strict \
+  #         go run ./cmd/cicd-lint go-identity-requirements-check --strict \
   #           --task-threshold=90 \
   #           --overall-threshold=85 \
   #           --skip-slow-checks

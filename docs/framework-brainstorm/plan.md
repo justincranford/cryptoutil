@@ -40,7 +40,7 @@ identified improvement priorities for cryptoutil's internal framework. Framework
 |------|--------|-------|
 | P0-1: ServiceContract interface | ✅ Done | `server/contract.go` + compile-time assertions |
 | P0-2: air live reload | ✅ Done | `.air.toml` per-service targets |
-| P2-2: Architecture fitness functions (`lint-fitness`) | ✅ Done | `cmd/cicd/lint_fitness/` |
+| P2-2: Architecture fitness functions (`lint-fitness`) | ✅ Done | `cmd/cicd-lint/lint_fitness/` |
 | P1-4: Shared test infrastructure | ✅ Done | `template/service/testing/` packages |
 | P1-2: Cross-service contract test suite | ✅ Done | `template/service/testing/contract/` |
 | Simplified builder pattern | ✅ Done | Template builder Phase 2/3 |
@@ -183,7 +183,7 @@ to code, tests, config, deployments, workflows, and documentation.
 4. Skill files updated where Phase 2 audit found gaps
 5. lint-docs validate-propagation passes
 
-**Success**: `go run ./cmd/cicd lint-docs validate-propagation` passes. All artifacts consistent.
+**Success**: `go run ./cmd/cicd-lint lint-docs validate-propagation` passes. All artifacts consistent.
 
 ---
 

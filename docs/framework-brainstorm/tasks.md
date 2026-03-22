@@ -43,7 +43,7 @@
   - [x] `go test ./...` — pre-existing Windows failures documented (TestFix_WalkDirError/WalkError, chmod doesn't block reads); all CI/CD (Linux) passes
   - [x] `golangci-lint run` clean
   - [x] `golangci-lint run --build-tags e2e,integration` clean
-  - [x] `go run ./cmd/cicd lint-fitness` passes
+  - [x] `go run ./cmd/cicd-lint lint-fitness` passes
   - [x] New shared test infrastructure packages at ≥98% coverage (assertions/fixtures/healthclient/testserver 100%)
   - [x] Evidence recorded in framework-v1/tasks.md Phase 7 section
 
@@ -65,7 +65,7 @@
     - `assertions.AssertHealthy/AssertErrorResponse` documented
     - `healthclient.NewHealthClient` documented
   - [x] Air live reload documented: Section 13.5.5 added
-  - [x] `go run ./cmd/cicd lint-docs` passes (validate-propagation: 0 broken refs)
+  - [x] `go run ./cmd/cicd-lint lint-docs` passes (validate-propagation: 0 broken refs)
 
 #### Task 1.4: Verify Phase 8.3 - Skills Already Created
 
@@ -94,7 +94,7 @@
 - **Estimated**: 30m
 - **Description**: Verify propagation passes, mark framework-v1 tasks complete.
 - **Acceptance Criteria**:
-  - [x] `go run ./cmd/cicd lint-docs` passes (all 3 sub-linters: chunk-verify, validate-chunks, validate-propagation)
+  - [x] `go run ./cmd/cicd-lint lint-docs` passes (all 3 sub-linters: chunk-verify, validate-chunks, validate-propagation)
   - [x] `go build ./...` clean
   - [x] framework-v1/tasks.md updated to 48/48 complete
   - [x] framework-v1/plan.md marked COMPLETE
@@ -188,7 +188,7 @@
 - **Acceptance Criteria**:
   - [x] All 14 skills reviewed (Tasks 2.1-2.5)
   - [x] All updates committed with conventional commits
-  - [x] `go run ./cmd/cicd lint-docs validate-propagation` passes (if ARCHITECTURE.md skills catalogue updated)
+  - [x] `go run ./cmd/cicd-lint lint-docs validate-propagation` passes (if ARCHITECTURE.md skills catalogue updated)
 
 #### Task 2.7: Phase 2 Post-Mortem
 
@@ -320,7 +320,7 @@
 - **Estimated**: 30m
 - **Acceptance Criteria**:
   - [x] All 18 instruction files reviewed (Tasks 4.1-4.3) and updated where needed
-  - [x] `go run ./cmd/cicd lint-docs validate-propagation` passes
+  - [x] `go run ./cmd/cicd-lint lint-docs validate-propagation` passes
   - [x] All updates committed
   - [x] lessons.md updated with Phase 4 observations
 
@@ -339,7 +339,7 @@ patterns cover ALL artifact types.
 - **Description**: Add lint-fitness documentation to ARCHITECTURE.md.
 - **Files**: ARCHITECTURE.md Section 9.10 or new Section 11.4
 - **Acceptance Criteria**:
-  - [x] lint-fitness command documented: `go run ./cmd/cicd lint-fitness`
+  - [x] lint-fitness command documented: `go run ./cmd/cicd-lint lint-fitness`
   - [x] All 8 sub-linters described: service-contract-compliance, parallel-tests,
       sequential-test-comment, admin-bind-policy, health-endpoints, port-assignments,
       import-isolation, file-size
@@ -379,7 +379,7 @@ patterns cover ALL artifact types.
 - **Owner**: LLM Agent
 - **Estimated**: 30m
 - **Acceptance Criteria**:
-  - [x] `go run ./cmd/cicd lint-docs validate-propagation` passes
+  - [x] `go run ./cmd/cicd-lint lint-docs validate-propagation` passes
   - [x] `go build ./...` clean
   - [x] Updates committed with semantic commits
   - [x] lessons.md updated
@@ -397,7 +397,7 @@ to @source blocks in instruction files.
 - **Owner**: LLM Agent
 - **Estimated**: 1h
 - **Acceptance Criteria**:
-  - [x] `go run ./cmd/cicd lint-docs validate-propagation` passes with 0 errors
+  - [x] `go run ./cmd/cicd-lint lint-docs validate-propagation` passes with 0 errors
   - [x] Any drift in @source blocks corrected to match ARCHITECTURE.md
   - [x] All fixes committed
 

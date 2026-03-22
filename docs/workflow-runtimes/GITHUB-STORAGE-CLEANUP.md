@@ -201,16 +201,16 @@ Navigate to: **Settings > Actions > General > Artifact and log retention**
 
 ## 10. Go Cleanup Scripts
 
-See `internal/apps/cicd/cleanup_github/` for Go-based automation scripts.
+See `internal/apps/tools/cicd_lint/cleanup_github/` for Go-based automation scripts.
 
 ### Available commands
 
 | Command | Description |
 |---------|-------------|
-| `go run ./cmd/cicd github-cleanup-runs` | Delete old workflow runs (configurable age threshold) |
-| `go run ./cmd/cicd github-cleanup-artifacts` | Delete expired artifacts |
-| `go run ./cmd/cicd github-cleanup-caches` | Delete stale/orphaned caches |
-| `go run ./cmd/cicd github-cleanup-all` | Run all cleanup commands |
+| `go run ./cmd/cicd-lint github-cleanup-runs` | Delete old workflow runs (configurable age threshold) |
+| `go run ./cmd/cicd-lint github-cleanup-artifacts` | Delete expired artifacts |
+| `go run ./cmd/cicd-lint github-cleanup-caches` | Delete stale/orphaned caches |
+| `go run ./cmd/cicd-lint github-cleanup-all` | Run all cleanup commands |
 
 ### Prerequisites
 
@@ -237,7 +237,7 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
-      - run: go run ./cmd/cicd github-cleanup-all --confirm --max-age-days=7
+      - run: go run ./cmd/cicd-lint github-cleanup-all --confirm --max-age-days=7
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```

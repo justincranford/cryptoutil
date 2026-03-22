@@ -293,7 +293,7 @@ Data collected via `gh run list --workflow <name> --limit 100 --branch main`.
 | 6 | **Incremental linting** — Use `only-new-issues: true` for PRs (already available in golangci-lint-action) | -15% on PRs | ~4.7m | Low | Low — may hide pre-existing issues |
 | 7 | **Reduce cicd lint scope** — Skip slow cicd linters for unchanged file types | -10% | ~5.0m | Medium | Low |
 | 8 | **Remove duplicate Go test run** — If Coverage CI already runs tests, quality workflow can skip `go test` | -25% | ~4.1m | Low | Low — rely on Coverage workflow |
-| 9 | **Pre-compile and cache cicd binary** — `go run ./cmd/cicd` compiles each time; pre-build and cache | -5% | ~5.2m | Medium | None |
+| 9 | **Pre-compile and cache cicd binary** — `go run ./cmd/cicd-lint` compiles each time; pre-build and cache | -5% | ~5.2m | Medium | None |
 | 10 | **Target changed files only** — Run linters only on changed files (golangci-lint supports `--new-from-rev`) | -20% on PRs | ~4.4m | Low | Low — may miss indirect issues |
 
 **Recommended combination**: Options 1 + 3 + 5 → ~3.5m with single lint pass and parallel matrix.
@@ -419,7 +419,7 @@ Data collected via `gh run list --workflow <name> --limit 100 --branch main`.
 |---|-------------|---------------------|-----------------|--------|------|
 | 1 | **Add concurrency group** — Cancel superseded lint runs | Saves wasted minutes | 0.6m per run | Low | None |
 | 2 | **Path filtering** — Only trigger on `deployments/` and `configs/` changes | -80% runs | 0.6m per run | Low | None |
-| 3 | **Cache compiled cicd binary** — Pre-compile `go run ./cmd/cicd` | -20% | ~0.5m | Medium | None |
+| 3 | **Cache compiled cicd binary** — Pre-compile `go run ./cmd/cicd-lint` | -20% | ~0.5m | Medium | None |
 | 4 | **Merge into quality workflow** — Add as a step in the existing Quality CI | -100% (eliminated) | 0m separate | Medium | None |
 | 5 | **Pre-build cicd binary as artifact** — Shared across workflows | -15% | ~0.5m | Medium | Low |
 | 6 | **Already near-optimal** — At 0.6m avg, minimal room for improvement | N/A | 0.6m | N/A | N/A |
