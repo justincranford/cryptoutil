@@ -1,7 +1,7 @@
 # Tasks - Framework v5: Rigid Standardization & Cleanup
 
-**Status**: 10 of 49 tasks complete (20%)
-**Last Updated**: 2026-03-22
+**Status**: 17 of 49 tasks complete (35%)
+**Last Updated**: 2026-03-25
 **Created**: 2026-03-21
 
 ## Quality Mandate - MANDATORY
@@ -184,65 +184,65 @@
 
 #### Task 2.3: Evaluate cmd/identity-compose
 
-- **Status**: Not Started
+- **Status**: ✅
 - **Estimated**: 1h
 - **Dependencies**: None
 - **Description**: Assess whether identity-compose should be subcommand of cmd/identity or archived
 - **Acceptance Criteria**:
-  - [ ] Code read and purpose understood
-  - [ ] Decision documented: merge into cmd/identity subcommand, OR archive (with rationale)
-  - [ ] If merge: cmd/identity compose subcommand implemented
-  - [ ] If archive: cmd/identity-compose/ removed
-  - [ ] All workflow references updated
-  - [ ] Build clean
+  - [x] Code read and purpose understood
+  - [x] Decision documented: archive — stub with a single `fmt.Println` statement, zero real implementation
+  - [x] If merge: cmd/identity compose subcommand implemented (N/A — chose archive)
+  - [x] If archive: cmd/identity-compose/ removed (commit `c4d5f0594`)
+  - [x] All workflow references updated (no workflow references found)
+  - [x] Build clean
 
 #### Task 2.4: Evaluate cmd/identity-demo
 
-- **Status**: Not Started
+- **Status**: ✅
 - **Estimated**: 1h
 - **Dependencies**: None
 - **Description**: Assess whether identity-demo should be subcommand of cmd/identity or archived
 - **Acceptance Criteria**:
-  - [ ] Code read and purpose understood
-  - [ ] Decision documented: merge into cmd/identity subcommand, OR archive (with rationale)
-  - [ ] If merge: cmd/identity demo subcommand implemented
-  - [ ] If archive: cmd/identity-demo/ removed
-  - [ ] Build clean
+  - [x] Code read and purpose understood
+  - [x] Decision documented: archive — 3-file stub directory with zero real implementation
+  - [x] If merge: cmd/identity demo subcommand implemented (N/A — chose archive)
+  - [x] If archive: cmd/identity-demo/ removed (commit `4a2b63a6e`)
+  - [x] Build clean
 
 #### Task 2.5: Evaluate cmd/demo and internal/apps/demo
 
-- **Status**: Not Started
+- **Status**: ✅
 - **Estimated**: 1h
 - **Dependencies**: None
 - **Description**: Assess whether unified demo CLI should become a suite-level subcommand or remain standalone
 - **Acceptance Criteria**:
-  - [ ] 17-file demo codebase reviewed for usefulness
-  - [ ] Decision documented: keep as standalone documented tool, merge into cmd/cryptoutil demo, OR archive
-  - [ ] Changes implemented per decision
-  - [ ] Build clean
+  - [x] 17-file demo codebase reviewed for usefulness
+  - [x] Decision documented: archive — skeleton stubs masquerading as demo, no value
+  - [x] Changes implemented per decision (commit `497379e97`; also cleaned fitness linter dead exclusions)
+  - [x] Build clean
 
 #### Task 2.6: Evaluate internal/apps/pkiinit
 
-- **Status**: Not Started
+- **Status**: ✅
 - **Estimated**: 30m
 - **Dependencies**: None
 - **Description**: Assess whether PKI init tool belongs under framework/tls/ or is orphaned (quizme-v2 Q2=D)
 - **Acceptance Criteria**:
-  - [ ] 3-file codebase reviewed
-  - [ ] Decision documented: integrate into framework/tls/, OR archive
-  - [ ] Changes implemented per decision
-  - [ ] Build clean
+  - [x] 3-file codebase reviewed
+  - [x] Decision documented: integrate into framework/tls/ (Q2=D confirmed)
+  - [x] Changes implemented: `Init()` in `internal/apps/framework/tls/`, 9 tests pass (commit `7fcd75425`)
+  - [x] Build clean
 
 #### Task 2.7: Clean docs/demo-brainstorm
 
-- **Status**: Not Started
+- **Status**: ✅
 - **Estimated**: 15m
 - **Dependencies**: Task 2.5
 - **Description**: Archive or delete demo brainstorm documents if no longer relevant
 - **Acceptance Criteria**:
-  - [ ] 3 files reviewed for relevance
-  - [ ] Deleted if outdated, kept if active planning reference
-  - [ ] No references to deleted files remain
+  - [x] 3 files reviewed for relevance
+  - [x] Deleted (outdated brainstorm for archived demo product, commit `4a49e2827`)
+  - [x] No references to deleted files remain
 
 #### Task 2.8: Create Framework Tier Routing
 
