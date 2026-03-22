@@ -11,10 +11,10 @@ import (
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
+	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps/framework/tls"
 	cryptoutilAppsIdentity "cryptoutil/internal/apps/identity"
 	cryptoutilAppsJose "cryptoutil/internal/apps/jose"
 	cryptoutilAppsPki "cryptoutil/internal/apps/pki"
-	cryptoutilAppsPkiinit "cryptoutil/internal/apps/pkiinit"
 	cryptoutilAppsSkeleton "cryptoutil/internal/apps/skeleton"
 	cryptoutilAppsSm "cryptoutil/internal/apps/sm"
 )
@@ -44,7 +44,7 @@ func Suite(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	case cryptoutilSharedMagic.SMProductName:
 		return cryptoutilAppsSm.Sm(parameters, stdin, stdout, stderr)
 	case "pki-init":
-		return cryptoutilAppsPkiinit.Run(parameters, stdin, stdout, stderr)
+			return cryptoutilAppsFrameworkTls.Init(parameters, stdin, stdout, stderr)
 	case "help", "--help", "-h":
 		printUsage(stderr)
 

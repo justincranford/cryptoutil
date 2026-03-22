@@ -1,8 +1,7 @@
 // Copyright (c) 2025 Justin Cranford
 //
-//
 
-package pkiinit_test
+package tls_test
 
 import (
 	"bytes"
@@ -13,19 +12,18 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	pkiinit "cryptoutil/internal/apps/pkiinit"
+	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps/framework/tls"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-func TestRun_HappyPath(t *testing.T) {
+func TestInit_HappyPath(t *testing.T) {
 	t.Parallel()
 
 	outputDir := t.TempDir()
 
 	var stdout, stderr bytes.Buffer
 
-	code := pkiinit.Run([]string{"--output-dir=" + outputDir}, nil, &stdout, &stderr)
-
+	code := cryptoutilAppsFrameworkTls.Init([]string{"--output-dir=" + outputDir}, nil, &stdout, &stderr)
 	require.Equal(t, 0, code, "expected exit 0; stderr=%s", stderr.String())
 	require.Contains(t, stdout.String(), "certificates written")
 	require.Empty(t, stderr.String())
@@ -50,7 +48,7 @@ func TestRun_HappyPath(t *testing.T) {
 	require.Contains(t, string(tlsConfigBytes), "tls-static-key-pem:")
 }
 
-func TestRun_HelpFlag(t *testing.T) {
+func TestInit_HelpFlag(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -67,8 +65,7 @@ func TestRun_HelpFlag(t *testing.T) {
 
 			var stdout, stderr bytes.Buffer
 
-			code := pkiinit.Run([]string{tc.arg}, nil, &stdout, &stderr)
-
+			code := cryptoutilAppsFrameworkTls.Init([]string{tc.arg}, nil, &stdout, &stderr)
 			require.Equal(t, 0, code)
 			require.Contains(t, stdout.String(), "Usage:")
 			require.Empty(t, stderr.String())
@@ -76,14 +73,14 @@ func TestRun_HelpFlag(t *testing.T) {
 	}
 }
 
-func TestRun_DefaultOutputDir(t *testing.T) {
+func TestInit_DefaultOutputDir(t *testing.T) {
 	t.Parallel()
 
 	// Verify the default output dir constant value is set.
 	require.NotEmpty(t, cryptoutilSharedMagic.PKIInitDefaultOutputDir)
 }
 
-func TestRun_InvalidOutputDir(t *testing.T) {
+func TestInit_InvalidOutputDir(t *testing.T) {
 	t.Parallel()
 
 	var stdout, stderr bytes.Buffer
@@ -94,21 +91,19 @@ func TestRun_InvalidOutputDir(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, tmpFile.Close())
 
-	code := pkiinit.Run([]string{"--output-dir=" + filepath.Join(tmpFile.Name(), "subdir")}, nil, &stdout, &stderr)
-
+	code := cryptoutilAppsFrameworkTls.Init([]string{"--output-dir=" + filepath.Join(tmpFile.Name(), "subdir")}, nil, &stdout, &stderr)
 	require.Equal(t, 1, code)
 	require.Contains(t, stderr.String(), "failed to create output directory")
 }
 
-func TestRun_ExtraFlagsIgnored(t *testing.T) {
+func TestInit_ExtraFlagsIgnored(t *testing.T) {
 	t.Parallel()
 
 	outputDir := t.TempDir()
 
 	var stdout, stderr bytes.Buffer
 
-	code := pkiinit.Run([]string{"--output-dir=" + outputDir, "--domain=example.com", "--ip=192.168.1.1"}, nil, &stdout, &stderr)
-
+	code := cryptoutilAppsFrameworkTls.Init([]string{"--output-dir=" + outputDir, "--domain=example.com", "--ip=192.168.1.1"}, nil, &stdout, &stderr)
 	require.Equal(t, 0, code, "stderr=%s", stderr.String())
 	require.Contains(t, stdout.String(), "certificates written")
 }
@@ -126,8 +121,7 @@ func TestExtractRootCACert_MultipleCerts(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	code := pkiinit.Run([]string{"--output-dir=" + outputDir}, nil, &stdout, &stderr)
-
+	code := cryptoutilAppsFrameworkTls.Init([]string{"--output-dir=" + outputDir}, nil, &stdout, &stderr)
 	require.Equal(t, 0, code, "stderr=%s", stderr.String())
 
 	rootCAPath := filepath.Join(outputDir, cryptoutilSharedMagic.PKIInitRootCACertFile)
@@ -143,7 +137,7 @@ func TestExtractRootCACert_MultipleCerts(t *testing.T) {
 	_ = chain // suppress unused var
 }
 
-func TestRun_WriteRootCAError(t *testing.T) {
+func TestInit_WriteRootCAError(t *testing.T) {
 	t.Parallel()
 
 	outputDir := t.TempDir()
@@ -153,13 +147,12 @@ func TestRun_WriteRootCAError(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	code := pkiinit.Run([]string{"--output-dir=" + outputDir}, nil, &stdout, &stderr)
-
+	code := cryptoutilAppsFrameworkTls.Init([]string{"--output-dir=" + outputDir}, nil, &stdout, &stderr)
 	require.Equal(t, 1, code)
 	require.Contains(t, stderr.String(), "failed to write root CA cert")
 }
 
-func TestRun_WriteTLSConfigError(t *testing.T) {
+func TestInit_WriteTLSConfigError(t *testing.T) {
 	t.Parallel()
 
 	outputDir := t.TempDir()
@@ -169,8 +162,7 @@ func TestRun_WriteTLSConfigError(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	code := pkiinit.Run([]string{"--output-dir=" + outputDir}, nil, &stdout, &stderr)
-
+	code := cryptoutilAppsFrameworkTls.Init([]string{"--output-dir=" + outputDir}, nil, &stdout, &stderr)
 	require.Equal(t, 1, code)
 	require.Contains(t, stderr.String(), "failed to write TLS config")
 }
@@ -179,13 +171,13 @@ func TestExtractRootCACert_EmptyInput(t *testing.T) {
 	t.Parallel()
 
 	// nil input: lastBlock stays nil, returns original nil input.
-	result := pkiinit.ExportedExtractRootCACert(nil)
+	result := cryptoutilAppsFrameworkTls.ExportedExtractRootCACert(nil)
 
 	require.Nil(t, result)
 
 	// Empty bytes: same nil-lastBlock path, returns original empty slice.
 	empty := []byte{}
-	result2 := pkiinit.ExportedExtractRootCACert(empty)
+	result2 := cryptoutilAppsFrameworkTls.ExportedExtractRootCACert(empty)
 
 	require.Equal(t, empty, result2)
 }
