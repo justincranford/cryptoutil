@@ -1,7 +1,7 @@
 # Tasks - Framework v5: Rigid Standardization & Cleanup
 
-**Status**: 17 of 49 tasks complete (35%)
-**Last Updated**: 2026-03-25
+**Status**: 18 of 49 tasks complete (37%)
+**Last Updated**: 2026-03-27
 **Created**: 2026-03-21
 
 ## Quality Mandate - MANDATORY
@@ -246,20 +246,21 @@
 
 #### Task 2.8: Create Framework Tier Routing
 
-- **Status**: Not Started
+- **Status**: Complete ✅
 - **Estimated**: 2h
 - **Dependencies**: None
 - **Description**: Create `framework/suite/cli/` with RouteSuite() and `framework/product/cli/` with RouteProduct() moved from service/cli/ (Decision 6)
 - **Acceptance Criteria**:
-  - [ ] `internal/apps/framework/suite/cli/suite_router.go` created: `RouteSuite()`, `SuiteConfig`, `ProductEntry`
-  - [ ] `internal/apps/framework/suite/cli/suite_router_test.go` created (≥98% coverage)
-  - [ ] `internal/apps/framework/product/cli/product_router.go` created: `RouteProduct()`, `ProductConfig`, `ServiceEntry`
-  - [ ] `internal/apps/framework/product/cli/product_router_test.go` created (≥98% coverage)
-  - [ ] `RouteProduct()` removed from `framework/service/cli/` (moved, not duplicated)
-  - [ ] All product-level `cmd/*/main.go` imports updated for new `product/cli/` path
-  - [ ] All suite-level `cmd/cryptoutil/main.go` imports updated for new `suite/cli/` path
-  - [ ] `go build ./...` clean
-  - [ ] `go test ./...` passes (framework packages)
+  - [x] `internal/apps/framework/suite/cli/suite_router.go` created: `RouteSuite()`, `SuiteConfig`, `ProductEntry`
+  - [x] `internal/apps/framework/suite/cli/suite_router_test.go` created (≥98% coverage)
+  - [x] `internal/apps/framework/product/cli/product_router.go` created: `RouteProduct()`, `ProductConfig`, `ServiceEntry`
+  - [x] `internal/apps/framework/product/cli/product_router_test.go` created (≥98% coverage)
+  - [x] `RouteProduct()` removed from `framework/service/cli/` (moved, not duplicated)
+  - [x] All product-level `cmd/*/main.go` imports updated for new `product/cli/` path
+  - [x] All suite-level `cmd/cryptoutil/main.go` imports updated for new `suite/cli/` path
+  - [x] `go build ./...` clean
+  - [x] `go test ./...` passes (framework packages)
+- **Commit**: f0ef6d217
 
 #### Task 2.9: Add Workflow Subcommands
 
