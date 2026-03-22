@@ -1,6 +1,6 @@
 # Tasks - Framework v5: Rigid Standardization & Cleanup
 
-**Status**: 25 of 49 tasks complete (51%)
+**Status**: 28 of 49 tasks complete (57%)
 **Last Updated**: 2026-03-27
 **Created**: 2026-03-21
 
@@ -426,32 +426,34 @@
 
 #### Task 3.7: Update lint-deployments Mirror Mapping
 
-- **Status**: Not Started
+- **Status**: ✅ Complete (no-op)
 - **Estimated**: 1h
+- **Actual**: 0.1h
 - **Dependencies**: Tasks 3.2-3.5
 - **Description**: Update lint-deployments to validate configs/ mirrors deployments/ structure
 - **Acceptance Criteria**:
-  - [ ] Mirror mapping updated for `configs/ca/` -> `configs/pki/ca/` rename
-  - [ ] All 68+ deployment validators still pass
-  - [ ] Tests updated and passing (>=98% coverage)
-  - [ ] Build clean
+  - [x] Mirror mapping updated for `configs/ca/` -> `configs/pki/ca/` rename (already correct from Phase 1)
+  - [x] All 68+ deployment validators still pass
+  - [x] Tests updated and passing (>=98% coverage)
+  - [x] Build clean
 
 #### Task 3.8: Phase 3 Quality Gate Verification
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 30m
+- **Actual**: 0.3h
 - **Dependencies**: Tasks 3.1-3.7
 - **Description**: Verify all configs changes maintain project health
 - **Acceptance Criteria**:
-  - [ ] `go build ./...` clean
-  - [ ] `go build -tags e2e,integration ./...` clean
-  - [ ] `go test ./...` passes (modified packages)
-  - [ ] `go run ./cmd/cicd-lint lint-fitness` — all linters pass
-  - [ ] `go run ./cmd/cicd-lint lint-deployments` — all validators pass
-  - [ ] `golangci-lint run` clean
-  - [ ] All configs/ files follow `{PS-ID}-{purpose}.yml` naming
-  - [ ] No empty directories without `.gitkeep`
-  - [ ] Git commits: one per semantic rename group
+  - [x] `go build ./...` clean
+  - [x] `go build -tags e2e,integration ./...` clean
+  - [x] `go test ./...` passes (modified packages)
+  - [x] `go run ./cmd/cicd-lint lint-fitness` — all linters pass
+  - [x] `go run ./cmd/cicd-lint lint-deployments` — all validators pass
+  - [x] `golangci-lint run` clean
+  - [x] All configs/ files follow `{PS-ID}-{purpose}.yml` naming
+  - [x] No empty directories without `.gitkeep`
+  - [x] Git commits: one per semantic rename group
 
 ---
 

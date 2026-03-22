@@ -78,6 +78,7 @@ func checkConfigPresence(rootDir string, ps lintFitnessRegistry.ProductService) 
 
 	for _, suffix := range configFileSuffixes {
 		filename := ps.PSID + suffix
+
 		configPath := filepath.Join(configDir, filename)
 		if _, err := os.Stat(configPath); os.IsNotExist(err) {
 			violations = append(violations, fmt.Sprintf("%s: configs/%s/%s/%s: file does not exist", ps.PSID, ps.Product, ps.Service, filename))
