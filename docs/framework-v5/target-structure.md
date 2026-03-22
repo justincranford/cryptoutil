@@ -215,7 +215,7 @@ cmd/                                                  # drwxr-xr-x
 │                                                     #   cmd/sm-im/main.go
 │                                                     #   cmd/sm-kms/main.go
 │
-├── cicd/main.go                                      # CICD tool → internal/apps/tools/cicd/
+├── cicd-lint/main.go                                  # CICD-Lint tool → internal/apps/tools/cicd-lint/
 └── workflow/main.go                                  # Workflow runner → internal/apps/tools/workflow/
 ```
 
@@ -578,13 +578,14 @@ internal/apps/                                        # drwxr-xr-x
 │                                                     #     strict server (api/{PS-ID}/server/)
 │
 ├── framework/                                        # Service framework (shared by ALL services)
+│   ├── apperr/                                       #   Application error types (moved from internal/shared/apperr/)
 │   ├── suite/                                        #   Suite-level framework (orchestration, routing)
 │   ├── product/                                      #   Product-level framework (product CLI, aggregation)
+│   ├── tls/                                          #   TLS certificate generation (merged: tls_generator/ + pkiinit/)
 │   └── service/                                      #   Service-level framework
 │       ├── cli/                                      #     CLI infrastructure (cobra commands)
 │       ├── client/                                   #     HTTP client helpers
 │       ├── config/                                   #     Config loading and validation
-│       │   └── tls_generator/                        #     Auto TLS certificate generation
 │       ├── server/                                   #     Server infrastructure
 │       │   ├── apis/                                 #       API route registration
 │       │   ├── application/                          #       Application lifecycle
@@ -648,7 +649,7 @@ internal/apps/                                        # drwxr-xr-x
 │
 └── (DELETE)
     ├── demo/                                         #   Dead code (Decision 2)
-    └── pkiinit/                                      #   Dead code (Decision 2)
+    └── pkiinit/                                      #   Merged → internal/apps/framework/tls/ (Decision 2)
 ```
 
 **Consolidation required**:
@@ -660,7 +661,6 @@ internal/apps/                                        # drwxr-xr-x
 
 ```
 internal/shared/                                      # drwxr-xr-x
-├── apperr/                                           # Application error types
 ├── container/                                        # Docker container utilities
 ├── crypto/                                           # Cryptographic libraries
 │   ├── asn1/                                         #   ASN.1 encoding/decoding
@@ -777,9 +777,6 @@ pkg/                                                  # Currently empty, reserve
 ```
 scripts/                                              # Currently empty (.gitkeep only)
                                                       # Part of Go project structure, keep empty
-testdata/                                             # Test data files
-└── adaptive-sim/
-    └── sample-auth-logs.json                         #   Sample auth logs for adaptive simulation
 workflow-reports/                                      # Ephemeral test output, never Git tracked (gitignored)
 test-output/                                          # Ephemeral test output, never Git tracked (gitignored)
 ```
@@ -847,37 +844,29 @@ These fitness sub-linters of `lint-fitness` enforce the target structure:
 | `internal/apps/` suite | No explicit entry point | `{SUITE}.go` seam + e2e/ | CREATE |
 | `internal/apps/` product | No explicit entry point | `{PRODUCT}.go` seam + shared/ + e2e/ | CREATE |
 | `internal/apps/` service | Nested `{PRODUCT}/{SERVICE}/` | Keep nested, add integration/ + e2e/ | ADD dirs |
-| `internal/apps/` cicd | Under `internal/apps/cicd/` | Under `internal/apps/tools/cicd/` | MOVE |
+| `internal/apps/` cicd | Under `internal/apps/cicd/` | Under `internal/apps/tools/cicd-lint/` | MOVE |
 | `internal/apps/` workflow | Under `internal/apps/workflow/` | Under `internal/apps/tools/workflow/` | MOVE |
 | `internal/apps/` docs\_validation | Separate from lint\_docs | Merged into lint\_docs/ | MERGE |
 | `internal/apps/` github\_cleanup | Under cicd/ | Merged into tools/workflow/ | MERGE |
 | `internal/apps/` framework | Only service/ | Add suite/ + product/ | CREATE |
-| `internal/apps/` demo, pkiinit | Present | Deleted | DELETE |
+| `internal/apps/` demo, pkiinit | Present | Deleted / merged into `framework/tls/` | DELETE / MERGE |
+| `internal/shared/` apperr | In `internal/shared/apperr/` | Moved to `internal/apps/framework/apperr/` | MOVE |
+| `framework/service/config/` tls\_generator | Exists in service/config/ | Merged into `framework/tls/` | MERGE |
+| `testdata/` | Present (1 sample file) | Deleted (move to owning package) | DELETE |
 | `docs/` | Historical plans + stale docs | Only active plan + core docs | DELETE stale |
 | `test/load/` | Single basic test | Cover all 10+5+1 tiers | REFACTOR |
 | Secret naming | Inconsistent across tiers | Uniform `{purpose}.secret` + `.never` markers | STANDARDIZE |
 
 ---
 
-## O. Open Questions (Quizme v2 Candidates)
+## O. Open Questions (Quizme v3 Candidate)
 
-These questions require user decisions before implementation:
+Resolved from quizme-v2: Q1→E (`tools/cicd-lint/`), Q2→D (`framework/tls/` + merge
+`pkiinit/`), Q3→B (`framework/apperr/`), Q5→B (delete `testdata/`).
 
-1. **tools/cicd/ naming**: The name `cicd/` is misleading since it only contains
-   custom linting and formatting tools, not CI/CD pipeline management. Possible renames:
-   `tools/lint/`, `tools/quality/`, `tools/checks/`. Keep as-is?
+One question requires more information before a decision can be made:
 
-2. **tls\_generator/ restructuring**: Should `framework/service/config/tls_generator/`
-   move to `framework/tls/` to support suite/product/service TLS needs? Should
-   `internal/apps/pkiinit/` merge into it?
-
-3. **apperr/ location**: Should `internal/shared/apperr/` move to
-   `internal/apps/framework/` since it is part of the application error layer
-   rather than a general shared utility?
-
-4. **framework/suite/ and framework/product/ scope**: What concrete packages
-   belong under these new directories? Suite orchestration CLI? Product aggregation
-   CLI? Or are these empty scaffolds awaiting future framework extraction?
-
-5. **testdata/ directory**: Keep or delete? Currently only contains one sample
-   file (`adaptive-sim/sample-auth-logs.json`).
+1. **framework/suite/ and framework/product/ scope**: The target structure adds
+   `framework/suite/` and `framework/product/` alongside `framework/service/`.
+   Deciding what belongs in them requires research into existing inline patterns.
+   See quizme-v3.md for a detailed breakdown of current code with concrete options.
