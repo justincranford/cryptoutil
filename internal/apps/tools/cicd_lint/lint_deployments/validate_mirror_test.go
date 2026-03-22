@@ -143,7 +143,7 @@ func TestValidateStructuralMirror(t *testing.T) {
 
 		// Create excluded deployment directories.
 		createTestDir(t, deploymentsDir, "shared-postgres")
-		createTestDir(t, deploymentsDir, "shared-citus")
+
 		createTestDir(t, deploymentsDir, "shared-telemetry")
 		createTestDir(t, deploymentsDir, "archived")
 		createTestDir(t, deploymentsDir, cryptoutilSharedMagic.SkeletonTemplateServiceName)
@@ -155,7 +155,7 @@ func TestValidateStructuralMirror(t *testing.T) {
 			t.Error("expected valid when only excluded dirs exist")
 		}
 
-		require.Len(t, result.Excluded, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries)
+		require.Len(t, result.Excluded, cryptoutilSharedMagic.CICDDeploymentMirrorExcludedCount)
 
 		require.Empty(t, result.MissingMirrors)
 	})

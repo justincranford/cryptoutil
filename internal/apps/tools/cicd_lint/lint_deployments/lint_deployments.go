@@ -72,10 +72,10 @@ func GetExpectedStructures() map[string]DeploymentStructure {
 			AllowedExtensions: []string{".yml", ".yaml", ".secret", ".never", ".md"},
 		},
 		"infrastructure": {
-			Name:              "Infrastructure deployment (postgres, citus, telemetry)",
+			Name:              "Infrastructure deployment (postgres, telemetry)",
 			RequiredDirs:      []string{},
 			RequiredFiles:     []string{"compose.yml"},
-			OptionalFiles:     []string{"init-db.sql", "init-citus.sql", "README.md"},
+			OptionalFiles:     []string{"init-db.sql", "README.md"},
 			RequiredSecrets:   []string{}, // Infrastructure secrets are optional
 			AllowedExtensions: []string{".yml", ".yaml", ".sql", ".md"},
 		},

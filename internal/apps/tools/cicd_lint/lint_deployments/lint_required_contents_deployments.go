@@ -46,7 +46,6 @@ func GetDeploymentDirectories() (suite []string, product []string, productServic
 
 	// Infrastructure deployments (shared resources)
 	infrastructure = []string{
-		"shared-citus",     // CitusDB cluster infrastructure
 		"shared-postgres",  // PostgreSQL leader/follower infrastructure
 		"shared-telemetry", // Telemetry infrastructure
 	}
@@ -175,7 +174,6 @@ func GetExpectedDeploymentsContents() map[string]string {
 	addProductServiceFiles(&contents, cryptoutilSharedMagic.OTLPServiceSkeletonTemplate)
 
 	// Infrastructure deployments
-	addInfrastructureFiles(&contents, "shared-citus")
 	addInfrastructureFiles(&contents, "shared-postgres")
 	addInfrastructureFiles(&contents, "shared-telemetry")
 
@@ -224,10 +222,6 @@ func addInfrastructureFiles(contents *map[string]string, infraName string) {
 	// Optional files for specific infrastructure types
 	if infraName == "shared-postgres" {
 		(*contents)[infraName+"/init-db.sql"] = OptionalFileStatus
-	}
-
-	if infraName == "shared-citus" {
-		(*contents)[infraName+"/init-citus.sql"] = OptionalFileStatus
 	}
 }
 

@@ -68,7 +68,7 @@ func ValidateAllDeployments(deploymentsRoot string) ([]ValidationResult, error) 
 	}
 
 	// Infrastructure deployments
-	infraNames := []string{"shared-postgres", "shared-citus", "shared-telemetry"}
+	infraNames := []string{"shared-postgres", "shared-telemetry"}
 	for _, infra := range infraNames {
 		infraPath := filepath.Join(deploymentsRoot, infra)
 		if _, err := os.Stat(infraPath); err == nil {

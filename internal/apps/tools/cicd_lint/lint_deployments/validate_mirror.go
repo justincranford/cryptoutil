@@ -23,7 +23,6 @@ type MirrorResult struct {
 // excludedDeployments lists infrastructure deployments that do not require a configs/ counterpart.
 var excludedDeployments = map[string]bool{
 	"shared-postgres":  true,
-	"shared-citus":     true,
 	"shared-telemetry": true,
 	"archived":         true,
 	cryptoutilSharedMagic.SkeletonTemplateServiceName: true,

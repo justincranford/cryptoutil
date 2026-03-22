@@ -1129,6 +1129,22 @@ Consistency MUST be guaranteed by inheriting from service-framework, which will 
 | `init` | CLI client for Initialize static config, like TLS certificates |
 | `demo` | CLI client for start server, inject Demo data, and run clients |
 
+#### Framework Tier Routing
+
+The suite → product → service CLI hierarchy is implemented by three framework routing packages:
+
+| Package | Function | Call Pattern |
+|---------|----------|-------------|
+| `internal/apps/framework/suite/cli/` | `RouteSuite(cfg, args, stdin, stdout, stderr, products)` | `cryptoutil <product> <service> <subcommand>` |
+| `internal/apps/framework/product/cli/` | `RouteProduct(cfg, args, stdin, stdout, stderr, services)` | `<product> <service> <subcommand>` |
+| `internal/apps/framework/service/` | Service-level subcommand dispatch | `<product-service> <subcommand>` |
+
+**RouteSuite** accepts a `[]ProductEntry` (name + handler). Matches `args[0]` to a product name, delegates remaining args to the product handler.
+
+**RouteProduct** accepts a `[]ServiceEntry` (name + handler). Supports `--version`/`--help` flags. Matches `args[0]` to a service name, delegates remaining args to the service handler.
+
+**Convention**: Each `cmd/PRODUCT/main.go` calls `RouteProduct()`. Each `cmd/cryptoutil/main.go` calls `RouteSuite()`, which delegates to the same product handlers.
+
 #### Anti-Patterns
 
 **NEVER** create `cmd/{PRODUCT}-{SUBCOMMAND}/` executables for subcommands:
@@ -1814,6 +1830,8 @@ db.Where("tenant_id = ? AND user_id = ?", tenantID, userID).Find(&messages)
 
 ### 7.3 Dual Database Strategy
 
+**Supported Engines**: PostgreSQL and SQLite ONLY. No other database engines (Citus, CockroachDB, Redis, etc.) are supported or planned. This is a deliberate constraint to reduce complexity and ensure consistent cross-database testing.
+
 All 10 services MUST support using one of PostgreSQL or SQLite, specified via configuration at startup.
 
 Typical usages for each database for different purposes (MANDATORY — see [Section 10.1](#101-testing-strategy-overview) for 3-Tier Database Strategy):
@@ -2280,17 +2298,24 @@ COPY --from=validator /app/cryptoutil /app/cryptoutil
 
 #### 9.7.1 Workflow Catalog
 
-- ci-coverage: Test coverage collection and enforcement
-- ci-mutation: Mutation testing with gremlins
-- ci-race: Race condition detection
-- ci-benchmark: Performance benchmarking
-- ci-quality: Linting and code quality
-- ci-sast: Static application security testing
-- ci-dast: Dynamic application security testing
-- ci-e2e: End-to-end integration testing
-- ci-load: Load testing with Gatling
-- ci-gitleaks: Secret detection
-- release: Automated release workflows
+| Workflow | Purpose |
+|----------|---------|
+| `ci-quality` | Linting, code quality, and CICD lint validation |
+| `ci-coverage` | Test coverage collection and enforcement |
+| `ci-mutation` | Mutation testing with gremlins |
+| `ci-race` | Race condition detection |
+| `ci-benchmark` | Performance benchmarking |
+| `ci-fuzz` | Fuzz testing |
+| `ci-fitness` | Architecture fitness function validation |
+| `ci-sast` | Static application security testing |
+| `ci-dast` | Dynamic application security testing |
+| `ci-gitleaks` | Secret detection |
+| `ci-e2e` | End-to-end integration testing |
+| `ci-load` | Load testing with Gatling |
+| `ci-identity-validation` | Identity service requirements validation |
+| `release` | Automated release workflows |
+
+**NOTE**: `ci-cicd-lint.yml` exists as a standalone workflow but is planned for merge into `ci-quality.yml` to reduce workflow count.
 
 #### 9.7.2 Workflow Optimization Patterns
 
@@ -4139,10 +4164,10 @@ HASH_PEPPER_FILE: /run/secrets/cryptoutil-hash_pepper.secret
 - **Purpose**: Inert scaffolding templates (NOT a deployed service). Contains placeholder compose files for all 3 deployment tiers (`compose-cryptoutil-PRODUCT-SERVICE.yml`, `compose-cryptoutil-PRODUCT.yml`, `compose-cryptoutil.yml`) with placeholder names and underscores. See `deployments/template/README.md`.
 - **Not to be confused with** `deployments/skeleton-template/` which is the actual deployed skeleton-template service used as a running reference implementation.
 
-**infrastructure** (shared-postgres, shared-citus, shared-telemetry):
+**infrastructure** (shared-postgres, shared-telemetry):
 - Required directories: none
 - Required files: `compose.yml`
-- Optional files: `init-db.sql`, `init-citus.sql`, `README.md`
+- Optional files: `init-db.sql`, `README.md`
 - Required secrets: none (infrastructure secrets are optional)
 
 #### 12.4.2 Validation Rules
@@ -4337,7 +4362,7 @@ if file == "demo-seed.yml" || file == "integration.yml" {
 - `PRODUCT` (e.g., `sm`) → same name
 - Explicit overrides: `pki`/`pki-ca` → `ca`, `sm`/`sm-kms` → `sm`
 
-**Exclusions**: Infrastructure deployments (`shared-postgres`, `shared-citus`, `shared-telemetry`, `compose`, `template`)
+**Exclusions**: Infrastructure deployments (`shared-postgres`, `shared-telemetry`, `compose`, `template`)
 
 **Orphan Handling**: Orphaned `configs/` directories produce warnings (not errors). Archived orphans go to `configs/orphaned/`.
 
@@ -4458,6 +4483,12 @@ configs/
 **File Permissions**: All `.secret` files MUST have 440 (r--r-----) permissions. Never commit actual secret values to version control.
 
 **Detection Strategy**: Length-based threshold (≥32 bytes / ≥43 base64 chars) identifies high-entropy inline values. Safe references (`/run/secrets/`, Docker secret names, short dev defaults) are excluded. No entropy calculation (too many false positives). Infrastructure deployments (Grafana, OTLP collector) are excluded from secrets validation since they use intentional inline dev credentials.
+
+**Legacy Secret Naming Policy**: All secrets use the standardized `{PS-ID}-{purpose}.secret` naming convention (e.g., `sm-im-hash-pepper.secret`, `jose-ja-unseal-1of5.secret`). The following legacy patterns are BANNED and MUST NOT be introduced:
+
+- Product-prefixed secrets: `sm-hash-pepper.secret`, `jose-unseal-*.secret` (use PS-ID prefix instead).
+- Bare secrets without PS-ID prefix: `hash_pepper.secret`, `unseal_1of5.secret` (use PS-ID prefix for non-template deployments).
+- `.secret.never` marker files: Removed. All required secrets are enforced by the `validate_required_contents` linter.
 
 **Cross-References**: Secrets coordination strategy in [Section 12.3.3](#1233-secrets-coordination-strategy). Validator implementation in [validate_secrets.go](/internal/apps/tools/cicd_lint/lint_deployments/validate_secrets.go).
 

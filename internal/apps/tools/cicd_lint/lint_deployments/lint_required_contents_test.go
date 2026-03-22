@@ -156,11 +156,6 @@ func TestAddInfrastructureFiles(t *testing.T) {
 			infraName: "shared-postgres",
 			wantExtra: "shared-postgres/init-db.sql",
 		},
-		{
-			name:      "shared-citus has init-citus.sql",
-			infraName: "shared-citus",
-			wantExtra: "shared-citus/init-citus.sql",
-		},
 	}
 
 	for _, tc := range tests {

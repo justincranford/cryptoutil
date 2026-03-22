@@ -44,6 +44,9 @@ const (
 	CICDComposeLine3Index = 2
 	// CICDComposeLine5Index is the 0-based index of compose header line 5 (the service description line).
 	CICDComposeLine5Index = 4
+	// CICDDeploymentMirrorExcludedCount is the number of deployment directories excluded from mirror validation.
+	// Excluded: shared-postgres, shared-telemetry, archived, skeleton-template.
+	CICDDeploymentMirrorExcludedCount = 4
 	// CICDTempDirPermissions is the directory permissions used in tests when creating temporary test directories (0o755).
 	CICDTempDirPermissions = 0o755
 )
