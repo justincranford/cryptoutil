@@ -557,26 +557,29 @@
 
 #### Task 5.2: Add Infrastructure CLI Tools Documentation
 
-- **Status**: Not Started
+- **Status**: ✅ Complete (already exists)
 - **Estimated**: 1h
+- **Actual**: 0h (no-op — content already present)
 - **Dependencies**: Phase 2 complete
 - **Description**: Add Section 4.4.8 documenting cicd-lint, workflow, and demo as intentional non-product CLI entries
 - **Acceptance Criteria**:
-  - [ ] New section documenting infrastructure tool rationale
-  - [ ] Clear distinction from product/service CLI pattern
-  - [ ] References cicd-lint (not cicd) per Decision 11
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
+  - [x] New section documenting infrastructure tool rationale
+  - [x] Clear distinction from product/service CLI pattern
+  - [x] References cicd-lint (not cicd) per Decision 11
+  - [x] `go run ./cmd/cicd-lint lint-docs` passes
+- **Resolution**: Section 4.4.7 already contains "Infrastructure CLI Tools (Intentional Exceptions)" subsection documenting `cmd/cicd-lint/` and `cmd/workflow/` with rationale, distinction from product/service CLIs, and cross-reference to Section 9.10. `cmd/demo/` does not exist in the codebase. No changes needed.
 
 #### Task 5.3: Add Archive and Dead Code Policy
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 30m
+- **Actual**: 10m
 - **Dependencies**: Phase 1 complete
 - **Description**: Add Section 13.9 defining archive vs delete policy
 - **Acceptance Criteria**:
-  - [ ] Policy: code is DELETED (not archived) — git history preserves everything
-  - [ ] Fitness linter prevents `_archived/` directory creation
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
+  - [x] Policy: code is DELETED (not archived) — git history preserves everything
+  - [x] Fitness linter prevents `_archived/` directory creation
+  - [x] `go run ./cmd/cicd-lint lint-docs` passes
 
 #### Task 5.4: Roadmap Vision Section
 

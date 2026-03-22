@@ -4914,6 +4914,26 @@ After ALL plan tasks are complete, apply accumulated lessons to permanent artifa
 
 **Every plan MUST include a final "Knowledge Propagation" phase** that executes these steps. This phase is NOT optional.
 
+### 13.9 Archive and Dead Code Policy
+
+**MANDATORY: Code is DELETED, not archived. Git history preserves everything.**
+
+| Action | Correct | Incorrect |
+|--------|---------|-----------|
+| Remove unused code | `git rm file.go` | Move to `_archived/` or `archived/` |
+| Remove legacy configs | `git rm config.yml` | Move to `configs/orphaned/` |
+| Remove old docs | `git rm docs/OLD.md` | Rename to `docs/OLD.archived.md` |
+| Remove dead packages | `git rm -r pkg/` | Move to `internal/_archived/pkg/` |
+
+**Rules**:
+
+1. **No archive directories**: `_archived/`, `archived/`, `orphaned/` directories MUST NOT exist anywhere in the repository. The `archive-detector` fitness linter enforces this.
+2. **Git history is the archive**: Any deleted file is recoverable via `git log --diff-filter=D -- path/to/file` and `git show <hash>:path/to/file`.
+3. **No "soft delete" patterns**: Do not comment out large blocks of code, wrap in `if false {}`, or use build tags to hide dead code.
+4. **Satellite docs are merged, then deleted**: When consolidating documentation, merge unique content into ARCHITECTURE.md (the SSOT), then delete the satellite file. Do not keep both.
+
+**Rationale**: Archive directories accumulate stale code that confuses search results, inflates repository size, creates false positives in linters, and misleads developers into thinking archived code is maintained. Git provides complete history for recovery when needed.
+
 ---
 
 ## 14. Operational Excellence
