@@ -3,12 +3,12 @@
 # WORKFLOW: CI - CICD Lint
 # PURPOSE: Build the cicd binary then run all custom linters and formatters with
 #          maximum concurrency and a comprehensive results summary.
-# PARALLEL STRUCTURE:
-#   Phase 1: Build cicd binary (ubuntu-latest artifact, shared across all jobs)
-#   Phase 2: N concurrent individual linter jobs (one per cicd linter command)
-#   Phase 3: All linters combined in a single sequential job (runs concurrently with Phase 2)
-#   Phase 4: M concurrent formatter jobs (start only after Phase 2 and Phase 3 both complete)
-#   Phase 5: Summary (always runs, reports pass/fail for every job)
+# JOB STRUCTURE:
+#   build-cicd:    Builds cicd binary once; all subsequent jobs download the artifact.
+#   lint-* jobs:   All 11 linters run CONCURRENTLY (each only needs build-cicd).
+#   all-linters:   All 11 linters sequentially in one job; runs CONCURRENTLY with lint-* jobs.
+#   format-* jobs: 2 formatters run CONCURRENTLY after all lint-* and all-linters complete.
+#   summary:       Always runs last; reports pass/fail for every job.
 # FAILURE POLICY: Any job failure immediately fails the workflow.
 # EXPECTED DURATION: ~3-5 minutes (build bottleneck + parallel linting)
 # TIMEOUT: 10 minutes per job, 30 minutes total
@@ -60,10 +60,10 @@ on:
 jobs:
 
   # ============================================================
-  # PHASE 1: Build cicd binary (single job, artifact shared by all linter jobs)
+  # Build cicd binary once; artifact shared by all subsequent jobs
   # ============================================================
   build-cicd:
-    name: "Phase 1: Build cicd"
+    name: "Build cicd"
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -105,11 +105,11 @@ jobs:
         uses: ./.github/actions/workflow-job-end
 
   # ============================================================
-  # PHASE 2: Individual linter jobs (concurrent, one per cicd linter)
+  # Individual linter jobs — all run CONCURRENTLY (each only needs build-cicd)
   # ============================================================
 
   lint-fitness:
-    name: "Phase 2a: lint-fitness"
+    name: "lint-fitness"
     needs: build-cicd
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -129,13 +129,10 @@ jobs:
           go-mod-verify: false
           go-mod-tidy: false
       - name: Download cicd binary
-        # https://github.com/actions/download-artifact/releases (v6.0.0, 2025-11-11)
-        uses: actions/download-artifact@v6.0.0
+        uses: ./.github/actions/download-cicd
         with:
-          name: cicd-binary-${{ github.run_id }}-${{ github.run_attempt }}
-      - name: Set execute permission
-        shell: bash
-        run: chmod +x cicd
+          run-id: ${{ github.run_id }}
+          run-attempt: ${{ github.run_attempt }}
       - name: Run lint-fitness
         shell: bash
         run: ./cicd lint-fitness
@@ -144,7 +141,7 @@ jobs:
         uses: ./.github/actions/workflow-job-end
 
   lint-text:
-    name: "Phase 2b: lint-text"
+    name: "lint-text"
     needs: build-cicd
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -156,12 +153,10 @@ jobs:
       - name: Begin Workflow Job
         uses: ./.github/actions/workflow-job-begin
       - name: Download cicd binary
-        uses: actions/download-artifact@v6.0.0
+        uses: ./.github/actions/download-cicd
         with:
-          name: cicd-binary-${{ github.run_id }}-${{ github.run_attempt }}
-      - name: Set execute permission
-        shell: bash
-        run: chmod +x cicd
+          run-id: ${{ github.run_id }}
+          run-attempt: ${{ github.run_attempt }}
       - name: Run lint-text
         shell: bash
         run: ./cicd lint-text
@@ -170,7 +165,7 @@ jobs:
         uses: ./.github/actions/workflow-job-end
 
   lint-go:
-    name: "Phase 2c: lint-go"
+    name: "lint-go"
     needs: build-cicd
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -182,12 +177,10 @@ jobs:
       - name: Begin Workflow Job
         uses: ./.github/actions/workflow-job-begin
       - name: Download cicd binary
-        uses: actions/download-artifact@v6.0.0
+        uses: ./.github/actions/download-cicd
         with:
-          name: cicd-binary-${{ github.run_id }}-${{ github.run_attempt }}
-      - name: Set execute permission
-        shell: bash
-        run: chmod +x cicd
+          run-id: ${{ github.run_id }}
+          run-attempt: ${{ github.run_attempt }}
       - name: Run lint-go
         shell: bash
         run: ./cicd lint-go
@@ -196,7 +189,7 @@ jobs:
         uses: ./.github/actions/workflow-job-end
 
   lint-go-test:
-    name: "Phase 2d: lint-go-test"
+    name: "lint-go-test"
     needs: build-cicd
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -208,12 +201,10 @@ jobs:
       - name: Begin Workflow Job
         uses: ./.github/actions/workflow-job-begin
       - name: Download cicd binary
-        uses: actions/download-artifact@v6.0.0
+        uses: ./.github/actions/download-cicd
         with:
-          name: cicd-binary-${{ github.run_id }}-${{ github.run_attempt }}
-      - name: Set execute permission
-        shell: bash
-        run: chmod +x cicd
+          run-id: ${{ github.run_id }}
+          run-attempt: ${{ github.run_attempt }}
       - name: Run lint-go-test
         shell: bash
         run: ./cicd lint-go-test
@@ -222,7 +213,7 @@ jobs:
         uses: ./.github/actions/workflow-job-end
 
   lint-compose:
-    name: "Phase 2e: lint-compose"
+    name: "lint-compose"
     needs: build-cicd
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -234,12 +225,10 @@ jobs:
       - name: Begin Workflow Job
         uses: ./.github/actions/workflow-job-begin
       - name: Download cicd binary
-        uses: actions/download-artifact@v6.0.0
+        uses: ./.github/actions/download-cicd
         with:
-          name: cicd-binary-${{ github.run_id }}-${{ github.run_attempt }}
-      - name: Set execute permission
-        shell: bash
-        run: chmod +x cicd
+          run-id: ${{ github.run_id }}
+          run-attempt: ${{ github.run_attempt }}
       - name: Run lint-compose
         shell: bash
         run: ./cicd lint-compose
@@ -248,7 +237,7 @@ jobs:
         uses: ./.github/actions/workflow-job-end
 
   lint-ports:
-    name: "Phase 2f: lint-ports"
+    name: "lint-ports"
     needs: build-cicd
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -260,12 +249,10 @@ jobs:
       - name: Begin Workflow Job
         uses: ./.github/actions/workflow-job-begin
       - name: Download cicd binary
-        uses: actions/download-artifact@v6.0.0
+        uses: ./.github/actions/download-cicd
         with:
-          name: cicd-binary-${{ github.run_id }}-${{ github.run_attempt }}
-      - name: Set execute permission
-        shell: bash
-        run: chmod +x cicd
+          run-id: ${{ github.run_id }}
+          run-attempt: ${{ github.run_attempt }}
       - name: Run lint-ports
         shell: bash
         run: ./cicd lint-ports
@@ -274,7 +261,7 @@ jobs:
         uses: ./.github/actions/workflow-job-end
 
   lint-workflow:
-    name: "Phase 2g: lint-workflow"
+    name: "lint-workflow"
     needs: build-cicd
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -286,12 +273,10 @@ jobs:
       - name: Begin Workflow Job
         uses: ./.github/actions/workflow-job-begin
       - name: Download cicd binary
-        uses: actions/download-artifact@v6.0.0
+        uses: ./.github/actions/download-cicd
         with:
-          name: cicd-binary-${{ github.run_id }}-${{ github.run_attempt }}
-      - name: Set execute permission
-        shell: bash
-        run: chmod +x cicd
+          run-id: ${{ github.run_id }}
+          run-attempt: ${{ github.run_attempt }}
       - name: Run lint-workflow
         shell: bash
         run: ./cicd lint-workflow
@@ -300,7 +285,7 @@ jobs:
         uses: ./.github/actions/workflow-job-end
 
   lint-go-mod:
-    name: "Phase 2h: lint-go-mod"
+    name: "lint-go-mod"
     needs: build-cicd
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -320,12 +305,10 @@ jobs:
           go-mod-verify: false
           go-mod-tidy: false
       - name: Download cicd binary
-        uses: actions/download-artifact@v6.0.0
+        uses: ./.github/actions/download-cicd
         with:
-          name: cicd-binary-${{ github.run_id }}-${{ github.run_attempt }}
-      - name: Set execute permission
-        shell: bash
-        run: chmod +x cicd
+          run-id: ${{ github.run_id }}
+          run-attempt: ${{ github.run_attempt }}
       - name: Run lint-go-mod
         shell: bash
         run: ./cicd lint-go-mod
@@ -334,7 +317,7 @@ jobs:
         uses: ./.github/actions/workflow-job-end
 
   lint-golangci:
-    name: "Phase 2i: lint-golangci"
+    name: "lint-golangci"
     needs: build-cicd
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -346,12 +329,10 @@ jobs:
       - name: Begin Workflow Job
         uses: ./.github/actions/workflow-job-begin
       - name: Download cicd binary
-        uses: actions/download-artifact@v6.0.0
+        uses: ./.github/actions/download-cicd
         with:
-          name: cicd-binary-${{ github.run_id }}-${{ github.run_attempt }}
-      - name: Set execute permission
-        shell: bash
-        run: chmod +x cicd
+          run-id: ${{ github.run_id }}
+          run-attempt: ${{ github.run_attempt }}
       - name: Run lint-golangci
         shell: bash
         run: ./cicd lint-golangci
@@ -360,7 +341,7 @@ jobs:
         uses: ./.github/actions/workflow-job-end
 
   lint-docs:
-    name: "Phase 2j: lint-docs"
+    name: "lint-docs"
     needs: build-cicd
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -372,12 +353,10 @@ jobs:
       - name: Begin Workflow Job
         uses: ./.github/actions/workflow-job-begin
       - name: Download cicd binary
-        uses: actions/download-artifact@v6.0.0
+        uses: ./.github/actions/download-cicd
         with:
-          name: cicd-binary-${{ github.run_id }}-${{ github.run_attempt }}
-      - name: Set execute permission
-        shell: bash
-        run: chmod +x cicd
+          run-id: ${{ github.run_id }}
+          run-attempt: ${{ github.run_attempt }}
       - name: Run lint-docs
         shell: bash
         run: ./cicd lint-docs
@@ -386,7 +365,7 @@ jobs:
         uses: ./.github/actions/workflow-job-end
 
   lint-deployments:
-    name: "Phase 2k: lint-deployments"
+    name: "lint-deployments"
     needs: build-cicd
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -398,12 +377,10 @@ jobs:
       - name: Begin Workflow Job
         uses: ./.github/actions/workflow-job-begin
       - name: Download cicd binary
-        uses: actions/download-artifact@v6.0.0
+        uses: ./.github/actions/download-cicd
         with:
-          name: cicd-binary-${{ github.run_id }}-${{ github.run_attempt }}
-      - name: Set execute permission
-        shell: bash
-        run: chmod +x cicd
+          run-id: ${{ github.run_id }}
+          run-attempt: ${{ github.run_attempt }}
       - name: Run lint-deployments
         shell: bash
         run: ./cicd lint-deployments
@@ -412,10 +389,10 @@ jobs:
         uses: ./.github/actions/workflow-job-end
 
   # ============================================================
-  # PHASE 3: All linters as a single job (concurrent with Phase 2)
+  # All linters in one sequential job — runs CONCURRENTLY with the individual lint-* jobs
   # ============================================================
   all-linters:
-    name: "Phase 3: All linters (single job)"
+    name: "All linters"
     needs: build-cicd
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -435,12 +412,10 @@ jobs:
           go-mod-verify: false
           go-mod-tidy: false
       - name: Download cicd binary
-        uses: actions/download-artifact@v6.0.0
+        uses: ./.github/actions/download-cicd
         with:
-          name: cicd-binary-${{ github.run_id }}-${{ github.run_attempt }}
-      - name: Set execute permission
-        shell: bash
-        run: chmod +x cicd
+          run-id: ${{ github.run_id }}
+          run-attempt: ${{ github.run_attempt }}
       - name: Run all linters (sequential)
         shell: bash
         run: |
@@ -452,11 +427,11 @@ jobs:
         uses: ./.github/actions/workflow-job-end
 
   # ============================================================
-  # PHASE 4: Formatter jobs (concurrent, start only after Phase 2 + Phase 3 complete)
+  # Formatter jobs — run CONCURRENTLY, start only after all lint-* and all-linters complete
   # ============================================================
 
   format-go:
-    name: "Phase 4a: format-go"
+    name: "format-go"
     needs:
       - lint-fitness
       - lint-text
@@ -480,12 +455,10 @@ jobs:
       - name: Begin Workflow Job
         uses: ./.github/actions/workflow-job-begin
       - name: Download cicd binary
-        uses: actions/download-artifact@v6.0.0
+        uses: ./.github/actions/download-cicd
         with:
-          name: cicd-binary-${{ github.run_id }}-${{ github.run_attempt }}
-      - name: Set execute permission
-        shell: bash
-        run: chmod +x cicd
+          run-id: ${{ github.run_id }}
+          run-attempt: ${{ github.run_attempt }}
       - name: Run format-go
         shell: bash
         run: ./cicd format-go
@@ -502,7 +475,7 @@ jobs:
         uses: ./.github/actions/workflow-job-end
 
   format-go-test:
-    name: "Phase 4b: format-go-test"
+    name: "format-go-test"
     needs:
       - lint-fitness
       - lint-text
@@ -526,12 +499,10 @@ jobs:
       - name: Begin Workflow Job
         uses: ./.github/actions/workflow-job-begin
       - name: Download cicd binary
-        uses: actions/download-artifact@v6.0.0
+        uses: ./.github/actions/download-cicd
         with:
-          name: cicd-binary-${{ github.run_id }}-${{ github.run_attempt }}
-      - name: Set execute permission
-        shell: bash
-        run: chmod +x cicd
+          run-id: ${{ github.run_id }}
+          run-attempt: ${{ github.run_attempt }}
       - name: Run format-go-test
         shell: bash
         run: ./cicd format-go-test
@@ -548,10 +519,10 @@ jobs:
         uses: ./.github/actions/workflow-job-end
 
   # ============================================================
-  # PHASE 5: Summary (always runs; reports overall pass/fail with subtotals)
+  # Summary — always runs; reports overall pass/fail with subtotals
   # ============================================================
   summary:
-    name: "Phase 5: Summary"
+    name: "Summary"
     if: always()
     needs:
       - build-cicd

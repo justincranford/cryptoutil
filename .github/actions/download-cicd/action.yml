@@ -1,0 +1,21 @@
+# $schema: https://json.schemastore.org/github-action.json
+name: 'download-cicd'
+description: 'Download the pre-built cicd binary artifact and set execute permission'
+inputs:
+  run-id:
+    description: 'GitHub run ID'
+    required: true
+  run-attempt:
+    description: 'GitHub run attempt number'
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Download cicd binary
+      # https://github.com/actions/download-artifact/releases (v6.0.0, 2025-11-11)
+      uses: actions/download-artifact@v6.0.0
+      with:
+        name: cicd-binary-${{ inputs.run-id }}-${{ inputs.run-attempt }}
+    - name: Set execute permission
+      shell: bash
+      run: chmod +x cicd
