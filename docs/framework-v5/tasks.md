@@ -1,6 +1,6 @@
 # Tasks - Framework v5: Rigid Standardization & Cleanup
 
-**Status**: 22 of 49 tasks complete (45%)
+**Status**: 24 of 49 tasks complete (49%)
 **Last Updated**: 2026-03-27
 **Created**: 2026-03-21
 
@@ -379,30 +379,36 @@
 
 #### Task 3.4: Standardize Identity Configs Naming
 
-- **Status**: Not Started
+- **Status**: ✅ Complete (no-op)
 - **Estimated**: 1h
+- **Actual**: 5m
 - **Dependencies**: Task 3.1
 - **Description**: Evaluate identity `-docker.yml` files and standardize naming
 - **Acceptance Criteria**:
-  - [ ] `authz.yml` -> `identity-authz.yml` (or keep if already domain config)
-  - [ ] `authz-docker.yml` evaluated for overlap with deployments/identity-authz/config/
-  - [ ] Decision: remove `-docker.yml` duplicates OR rename to `{PS-ID}-docker.yml`
-  - [ ] Same pattern applied to idp, rp, rs, spa
-  - [ ] All Go code references updated
-  - [ ] Build clean
+  - [x] `authz.yml` -> keep as domain config (not service framework config)
+  - [x] No `-docker.yml` files exist (deleted in Phase 1 Task 1.7)
+  - [x] Decision: identity configs are domain configs, keep short names (`authz.yml`, `idp.yml`, etc.)
+  - [x] Same pattern applied to idp, rp, rs, spa — all are domain configs
+  - [x] No Go code references to update
+  - [x] Build clean (no changes)
 
 #### Task 3.5: Standardize Jose and Skeleton Configs
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 30m
+- **Actual**: 10m
 - **Dependencies**: Task 3.1
 - **Description**: Rename product-level configs to use PS-ID; populate empty directories
 - **Acceptance Criteria**:
-  - [ ] `configs/jose/jose-server.yml` -> evaluate: product-level or move to `configs/jose/ja/jose-ja-server.yml`
-  - [ ] `configs/skeleton/skeleton-server.yml` -> evaluate: product-level or move to `configs/skeleton/template/`
-  - [ ] `configs/skeleton/template/template-server.yml` renamed to `skeleton-template-server.yml`
-  - [ ] `configs/jose/ja/` populated (was empty)
-  - [ ] Build clean
+  - [x] `configs/jose/ja/jose-server.yml` -> `configs/jose/ja/jose-ja-server.yml` (PS-ID prefix)
+  - [x] `configs/skeleton/skeleton-server.yml` -> kept as product-level config (no rename needed)
+  - [x] `configs/skeleton/template/template-server.yml` -> `skeleton-template-server.yml` (PS-ID prefix)
+  - [x] `configs/jose/ja/` was already populated (jose-ja-server.yml)
+  - [x] Build clean
+- **Files**:
+  - `configs/jose/ja/jose-ja-server.yml` (renamed from jose-server.yml)
+  - `configs/skeleton/template/skeleton-template-server.yml` (renamed from template-server.yml)
+  - `internal/apps/tools/cicd_lint/lint_deployments/validate_all_runners_test.go`
 
 #### Task 3.6: Update ARCHITECTURE.md Section 12.5
 

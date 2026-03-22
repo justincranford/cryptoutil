@@ -162,7 +162,7 @@ func TestIsServiceFrameworkConfig(t *testing.T) {
 		{name: "sm-kms-pg-2.yml", path: "configs/sm/kms/sm-kms-pg-2.yml", expected: true},
 		{name: "config-pg-2.yaml", path: "/tmp/config-pg-2.yaml", expected: true},
 		{name: "pki-ca-server.yml", path: "configs/pki/ca/pki-ca-server.yml", expected: false},
-		{name: "jose-server.yml", path: "configs/jose/ja/jose-server.yml", expected: false},
+		{name: "jose-ja-server.yml", path: "configs/jose/ja/jose-ja-server.yml", expected: false},
 		{name: "ca-config-schema.yaml", path: "configs/pki/ca/pki-ca-config-schema.yaml", expected: false},
 		{name: "adaptive-auth.yml", path: "configs/identity/policies/adaptive-auth.yml", expected: false},
 		{name: "authz-docker.yml", path: "configs/identity/authz/authz-docker.yml", expected: false},
