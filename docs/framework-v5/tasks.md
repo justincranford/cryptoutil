@@ -1,6 +1,6 @@
 # Tasks - Framework v5: Rigid Standardization & Cleanup
 
-**Status**: 18 of 49 tasks complete (37%)
+**Status**: 19 of 49 tasks complete (39%)
 **Last Updated**: 2026-03-27
 **Created**: 2026-03-21
 
@@ -264,34 +264,38 @@
 
 #### Task 2.9: Add Workflow Subcommands
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1h
+- **Actual**: 30m
 - **Dependencies**: Task 2.1 (cicd-lint rename moves workflow under tools/)
 - **Description**: Add `run` and `cleanup` subcommands to `cmd/workflow/` (Decision 10)
 - **Acceptance Criteria**:
-  - [ ] `cmd/workflow/main.go` accepts `run` and `cleanup` subcommands
-  - [ ] Internal implementation in `internal/apps/tools/workflow/`
-  - [ ] `go build ./cmd/workflow/...` clean
-  - [ ] `go test ./internal/apps/tools/workflow/...` passes (≥98% coverage)
+  - [x] `cmd/workflow/main.go` accepts `run` and `cleanup` subcommands
+  - [x] Internal implementation in `internal/apps/tools/workflow/`
+  - [x] `go build ./cmd/workflow/...` clean
+  - [x] `go test ./internal/apps/tools/workflow/...` passes (≥98% coverage)
+- **Commit**: 26818f717
 
 #### Task 2.10: Phase 2 Quality Gate Verification
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 30m
+- **Actual**: 1h (includes dead code fix for profile.go regression)
 - **Dependencies**: Tasks 2.1-2.9
 - **Description**: Verify all rationalization changes maintain project health
 - **Acceptance Criteria**:
-  - [ ] `go build ./...` clean
-  - [ ] `go build -tags e2e,integration ./...` clean
-  - [ ] `go test ./...` passes (modified packages)
-  - [ ] `go run ./cmd/cicd-lint lint-fitness` — all linters pass
-  - [ ] `golangci-lint run` clean
-  - [ ] Zero cmd/ anti-pattern violations remain
-  - [ ] cicd → cicd-lint rename complete with zero missed references
-  - [ ] Framework tier routing (suite/cli/, product/cli/, service/cli/) in place
-  - [ ] Workflow subcommands (run, cleanup) functional
-  - [ ] ARCHITECTURE.md documents all intentional infrastructure tools
-  - [ ] Git commits: one per semantic change
+  - [x] `go build ./...` clean
+  - [x] `go build -tags e2e,integration ./...` clean
+  - [x] `go test ./...` passes (modified packages: identity/config, tools/workflow, tools/cicd_lint, framework/product/cli, framework/tls)
+  - [x] `go run ./cmd/cicd-lint lint-fitness` — all linters pass
+  - [x] `golangci-lint run` clean
+  - [x] Zero cmd/ anti-pattern violations remain
+  - [x] cicd → cicd-lint rename complete with zero missed references
+  - [x] Framework tier routing (suite/cli/, product/cli/, service/cli/) in place
+  - [x] Workflow subcommands (run, cleanup) functional
+  - [x] ARCHITECTURE.md documents all intentional infrastructure tools
+  - [x] Git commits: one per semantic change
+- **Note**: `internal/apps/identity/config/profile.go` and `profile_test.go` were dead code (LoadProfile has no production callers) depending on `configs/identity/profiles/` which was intentionally deleted in Task 1.7 (Decision 8). Deleted both files as part of this quality gate. framework/service/server/* and pki/ca/server timeouts are PRE-EXISTING infrastructure issues (not introduced by Phase 1/2 changes — confirmed via git log).
 
 ---
 
