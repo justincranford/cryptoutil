@@ -24,8 +24,8 @@ func TestMapDeploymentToConfig(t *testing.T) {
 		{name: "sm-im service", deployment: cryptoutilSharedMagic.OTLPServiceSMIM, want: "sm"},
 		{name: "jose service", deployment: cryptoutilSharedMagic.OTLPServiceJoseJA, want: cryptoutilSharedMagic.JoseProductName},
 		{name: "jose product", deployment: cryptoutilSharedMagic.JoseProductName, want: cryptoutilSharedMagic.JoseProductName},
-		{name: "pki explicit mapping", deployment: cryptoutilSharedMagic.PKIProductName, want: "ca"},
-		{name: "pki-ca explicit mapping", deployment: cryptoutilSharedMagic.OTLPServicePKICA, want: "ca"},
+		{name: "pki product fallback", deployment: cryptoutilSharedMagic.PKIProductName, want: cryptoutilSharedMagic.PKIProductName},
+		{name: "pki-ca explicit mapping", deployment: cryptoutilSharedMagic.OTLPServicePKICA, want: cryptoutilSharedMagic.PKIProductName},
 		{name: "sm explicit mapping", deployment: "sm", want: "sm"},
 		{name: "sm-kms explicit mapping", deployment: cryptoutilSharedMagic.OTLPServiceSMKMS, want: "sm"},
 		{name: "single segment fallback", deployment: "newproduct", want: "newproduct"},
@@ -249,7 +249,7 @@ func TestValidateStructuralMirror(t *testing.T) {
 		require.Empty(t, result.MissingMirrors)
 	})
 
-	t.Run("explicit mapping pki to ca", func(t *testing.T) {
+	t.Run("explicit mapping pki to pki", func(t *testing.T) {
 		t.Parallel()
 
 		tmpDir := t.TempDir()
@@ -259,12 +259,12 @@ func TestValidateStructuralMirror(t *testing.T) {
 		createTestDir(t, tmpDir, "configs")
 
 		createTestDir(t, deploymentsDir, cryptoutilSharedMagic.OTLPServicePKICA)
-		createTestDir(t, configsDir, "ca")
+		createTestDir(t, configsDir, cryptoutilSharedMagic.PKIProductName)
 
 		result, err := ValidateStructuralMirror(deploymentsDir, configsDir)
 		require.NoError(t, err)
 
-		require.True(t, result.Valid, "expected valid for pki-ca -> ca mapping, errors: %v, missing: %v", result.Errors, result.MissingMirrors)
+		require.True(t, result.Valid, "expected valid for pki-ca -> pki mapping, errors: %v, missing: %v", result.Errors, result.MissingMirrors)
 	})
 
 	t.Run("warnings for orphaned configs", func(t *testing.T) {

@@ -119,8 +119,7 @@ func ValidateStructuralMirror(deploymentsDir string, configsDir string) (*Mirror
 // deploymentToConfigMapping maps deployment directory names to their expected configs directory names.
 // This handles naming differences between deployments/ and configs/ directories.
 var deploymentToConfigMapping = map[string]string{
-	cryptoutilSharedMagic.PKIProductName:   "ca",
-	cryptoutilSharedMagic.OTLPServicePKICA: "ca",
+	cryptoutilSharedMagic.OTLPServicePKICA: cryptoutilSharedMagic.PKIProductName,
 	"sm":                                   "sm",
 	cryptoutilSharedMagic.OTLPServiceSMKMS: "sm",
 }
