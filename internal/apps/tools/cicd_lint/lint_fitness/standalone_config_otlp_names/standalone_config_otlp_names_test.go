@@ -65,12 +65,12 @@ func setupAllCorrectOTLPConfigs(t *testing.T, tmpDir string) {
 		filename string
 		suffix   string
 	}{
-		{cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.IMServiceName, cryptoutilSharedMagic.OTLPServiceSMIM, "config-sqlite.yml", "-sqlite-1"},
-		{cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.IMServiceName, cryptoutilSharedMagic.OTLPServiceSMIM, "config-pg-1.yml", "-postgres-1"},
-		{cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.IMServiceName, cryptoutilSharedMagic.OTLPServiceSMIM, "config-pg-2.yml", "-postgres-2"},
-		{cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.KMSServiceName, cryptoutilSharedMagic.OTLPServiceSMKMS, "config-sqlite.yml", "-sqlite-1"},
-		{cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.KMSServiceName, cryptoutilSharedMagic.OTLPServiceSMKMS, "config-pg-1.yml", "-postgres-1"},
-		{cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.KMSServiceName, cryptoutilSharedMagic.OTLPServiceSMKMS, "config-pg-2.yml", "-postgres-2"},
+		{cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.IMServiceName, cryptoutilSharedMagic.OTLPServiceSMIM, "sm-im-sqlite.yml", "-sqlite-1"},
+		{cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.IMServiceName, cryptoutilSharedMagic.OTLPServiceSMIM, "sm-im-pg-1.yml", "-postgres-1"},
+		{cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.IMServiceName, cryptoutilSharedMagic.OTLPServiceSMIM, "sm-im-pg-2.yml", "-postgres-2"},
+		{cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.KMSServiceName, cryptoutilSharedMagic.OTLPServiceSMKMS, "sm-kms-sqlite.yml", "-sqlite-1"},
+		{cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.KMSServiceName, cryptoutilSharedMagic.OTLPServiceSMKMS, "sm-kms-pg-1.yml", "-postgres-1"},
+		{cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.KMSServiceName, cryptoutilSharedMagic.OTLPServiceSMKMS, "sm-kms-pg-2.yml", "-postgres-2"},
 	}
 
 	for _, c := range configs {
@@ -103,8 +103,8 @@ func TestCheckInDir_WrongOTLPServiceValue(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupAllCorrectOTLPConfigs(t, tmpDir)
 
-	// Overwrite sm-kms config-sqlite.yml with a wrong otlp-service value.
-	writeConfigFile(t, tmpDir, cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.KMSServiceName, "config-sqlite.yml",
+	// Overwrite sm-kms sm-kms-sqlite.yml with a wrong otlp-service value.
+	writeConfigFile(t, tmpDir, cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.KMSServiceName, "sm-kms-sqlite.yml",
 		"otlp-service: \"sm-kms-wrong-name\"\n",
 	)
 
@@ -121,8 +121,8 @@ func TestCheckInDir_MissingOTLPServiceKey(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupAllCorrectOTLPConfigs(t, tmpDir)
 
-	// Overwrite sm-im config-pg-1.yml with no otlp-service key.
-	writeConfigFile(t, tmpDir, cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.IMServiceName, "config-pg-1.yml",
+	// Overwrite sm-im sm-im-pg-1.yml with no otlp-service key.
+	writeConfigFile(t, tmpDir, cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.IMServiceName, "sm-im-pg-1.yml",
 		"bind-public-port: 8700\n",
 	)
 
@@ -138,8 +138,8 @@ func TestCheckInDir_MissingConfigFile_Skipped(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupAllCorrectOTLPConfigs(t, tmpDir)
 
-	// Remove sm-kms config-pg-2.yml — file absence is a presence violation, not OTLP names.
-	require.NoError(t, os.Remove(filepath.Join(tmpDir, "configs", cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.KMSServiceName, "config-pg-2.yml")))
+	// Remove sm-kms sm-kms-pg-2.yml — file absence is a presence violation, not OTLP names.
+	require.NoError(t, os.Remove(filepath.Join(tmpDir, "configs", cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.KMSServiceName, "sm-kms-pg-2.yml")))
 
 	err := lintFitnessStandaloneConfigOTLPNames.CheckInDir(newTestLogger(), tmpDir)
 	require.NoError(t, err)

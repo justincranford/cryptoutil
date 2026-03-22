@@ -4,10 +4,10 @@
 // standalone config allowlist has all three required config files present under
 // configs/{PRODUCT}/{SERVICE}/.
 //
-// Required files per allowlist PS:
-//   - config-sqlite.yml
-//   - config-pg-1.yml
-//   - config-pg-2.yml
+// Required files per allowlist PS (PS-ID-prefixed):
+//   - {PS-ID}-sqlite.yml
+//   - {PS-ID}-pg-1.yml
+//   - {PS-ID}-pg-2.yml
 //
 // Only sm-im and sm-kms are in the allowlist.
 // Other product-services do not use the standardized standalone config layout.
@@ -24,11 +24,11 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// requiredConfigFiles lists the config files that must exist for each allowlist PS.
-var requiredConfigFiles = []string{
-	"config-sqlite.yml",
-	"config-pg-1.yml",
-	"config-pg-2.yml",
+// configFileSuffixes lists the suffixes appended to the PS-ID to form the required config filenames.
+var configFileSuffixes = []string{
+	"-sqlite.yml",
+	"-pg-1.yml",
+	"-pg-2.yml",
 }
 
 // configAllowlist is the set of PS IDs that must have the three required config files.
@@ -76,7 +76,8 @@ func checkConfigPresence(rootDir string, ps lintFitnessRegistry.ProductService) 
 
 	var violations []string
 
-	for _, filename := range requiredConfigFiles {
+	for _, suffix := range configFileSuffixes {
+		filename := ps.PSID + suffix
 		configPath := filepath.Join(configDir, filename)
 		if _, err := os.Stat(configPath); os.IsNotExist(err) {
 			violations = append(violations, fmt.Sprintf("%s: configs/%s/%s/%s: file does not exist", ps.PSID, ps.Product, ps.Service, filename))

@@ -1,6 +1,6 @@
 # Tasks - Framework v5: Rigid Standardization & Cleanup
 
-**Status**: 19 of 49 tasks complete (39%)
+**Status**: 22 of 49 tasks complete (45%)
 **Last Updated**: 2026-03-27
 **Created**: 2026-03-21
 
@@ -347,19 +347,35 @@
 
 #### Task 3.3: Standardize SM Configs Naming
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1h
+- **Actual**: 2h
 - **Dependencies**: Task 3.1
 - **Description**: Rename SM service config files to use PS-ID prefix
 - **Acceptance Criteria**:
-  - [ ] `configs/sm/kms/config-pg-1.yml` -> `configs/sm/kms/sm-kms-pg-1.yml`
-  - [ ] `configs/sm/kms/config-pg-2.yml` -> `configs/sm/kms/sm-kms-pg-2.yml`
-  - [ ] `configs/sm/kms/config-sqlite.yml` -> `configs/sm/kms/sm-kms-sqlite.yml`
-  - [ ] `configs/sm/im/config-pg-1.yml` -> `configs/sm/im/sm-im-pg-1.yml`
-  - [ ] `configs/sm/im/config-pg-2.yml` -> `configs/sm/im/sm-im-pg-2.yml`
-  - [ ] `configs/sm/im/config-sqlite.yml` -> `configs/sm/im/sm-im-sqlite.yml`
-  - [ ] All Go code references updated
-  - [ ] Build clean
+  - [x] `configs/sm/kms/config-pg-1.yml` -> `configs/sm/kms/sm-kms-pg-1.yml`
+  - [x] `configs/sm/kms/config-pg-2.yml` -> `configs/sm/kms/sm-kms-pg-2.yml`
+  - [x] `configs/sm/kms/config-sqlite.yml` -> `configs/sm/kms/sm-kms-sqlite.yml`
+  - [x] `configs/sm/im/config-pg-1.yml` -> `configs/sm/im/sm-im-pg-1.yml`
+  - [x] `configs/sm/im/config-pg-2.yml` -> `configs/sm/im/sm-im-pg-2.yml`
+  - [x] `configs/sm/im/config-sqlite.yml` -> `configs/sm/im/sm-im-sqlite.yml`
+  - [x] All Go code references updated (3 fitness linters + isServiceFrameworkConfig)
+  - [x] Build clean
+- **Files**:
+  - `configs/sm/kms/sm-kms-sqlite.yml` (renamed)
+  - `configs/sm/kms/sm-kms-pg-1.yml` (renamed)
+  - `configs/sm/kms/sm-kms-pg-2.yml` (renamed)
+  - `configs/sm/im/sm-im-sqlite.yml` (renamed)
+  - `configs/sm/im/sm-im-pg-1.yml` (renamed)
+  - `configs/sm/im/sm-im-pg-2.yml` (renamed)
+  - `internal/apps/tools/cicd_lint/lint_fitness/standalone_config_presence/standalone_config_presence.go`
+  - `internal/apps/tools/cicd_lint/lint_fitness/standalone_config_presence/standalone_config_presence_test.go`
+  - `internal/apps/tools/cicd_lint/lint_fitness/standalone_config_otlp_names/standalone_config_otlp_names.go`
+  - `internal/apps/tools/cicd_lint/lint_fitness/standalone_config_otlp_names/standalone_config_otlp_names_test.go`
+  - `internal/apps/tools/cicd_lint/lint_fitness/otlp_service_name_pattern/otlp_service_name_pattern.go`
+  - `internal/apps/tools/cicd_lint/lint_fitness/otlp_service_name_pattern/otlp_service_name_pattern_test.go`
+  - `internal/apps/tools/cicd_lint/lint_deployments/validate_all.go`
+  - `internal/apps/tools/cicd_lint/lint_deployments/validate_all_runners_test.go`
 
 #### Task 3.4: Standardize Identity Configs Naming
 

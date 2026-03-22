@@ -157,9 +157,11 @@ func TestIsServiceFrameworkConfig(t *testing.T) {
 		path     string
 		expected bool
 	}{
-		{name: "config-pg-1.yml", path: "configs/sm/im/config-pg-1.yml", expected: true},
-		{name: "config-sqlite.yml", path: "configs/sm/im/config-sqlite.yml", expected: true},
+		{name: "sm-im-pg-1.yml", path: "configs/sm/im/sm-im-pg-1.yml", expected: true},
+		{name: "sm-im-sqlite.yml", path: "configs/sm/im/sm-im-sqlite.yml", expected: true},
+		{name: "sm-kms-pg-2.yml", path: "configs/sm/kms/sm-kms-pg-2.yml", expected: true},
 		{name: "config-pg-2.yaml", path: "/tmp/config-pg-2.yaml", expected: true},
+		{name: "pki-ca-server.yml", path: "configs/pki/ca/pki-ca-server.yml", expected: false},
 		{name: "jose-server.yml", path: "configs/jose/ja/jose-server.yml", expected: false},
 		{name: "ca-config-schema.yaml", path: "configs/pki/ca/pki-ca-config-schema.yaml", expected: false},
 		{name: "adaptive-auth.yml", path: "configs/identity/policies/adaptive-auth.yml", expected: false},

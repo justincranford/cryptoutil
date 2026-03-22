@@ -125,14 +125,58 @@ func runKebabCaseValidation(configsDir string, result *AllValidationResult) {
 	result.addResult(validatorNameKebabCase, configsDir, kr.Valid, FormatKebabCaseValidationResult(kr), dur)
 }
 
+// serviceFrameworkSuffixes lists the file suffixes that identify service
+// framework config files when combined with a PS-ID prefix.
+var serviceFrameworkSuffixes = []string{
+	"-sqlite.yml",
+	"-pg-1.yml",
+	"-pg-2.yml",
+}
+
 // isServiceFrameworkConfig returns true if the file matches the service template
-// config naming pattern (config-*.yml). Only these files use the flat kebab-case
-// format validated by ValidateSchema. Other configs (e.g., pki-ca-server.yml,
-// identity profiles, policies) use nested YAML with domain-specific schemas.
+// config naming pattern. Service framework configs use flat kebab-case format
+// validated by ValidateSchema.
+//
+// Recognized patterns:
+//   - config-*.yml / config-*.yaml (legacy generic prefix)
+//   - {product}-{service}-{suffix} (PS-ID-prefixed, e.g., sm-kms-sqlite.yml)
+//
+// Excluded patterns:
+//   - *-config-schema.* (CA definition, nested YAML)
+//   - *-server.yml (domain configs with mixed framework + domain keys)
+//
+// Other configs (e.g., identity domain configs, profiles, policies)
+// use nested YAML with domain-specific schemas and are excluded.
 func isServiceFrameworkConfig(path string) bool {
 	base := filepath.Base(path)
 
-	return strings.HasPrefix(base, "config-") && (strings.HasSuffix(base, ".yml") || strings.HasSuffix(base, ".yaml"))
+	if !strings.HasSuffix(base, ".yml") && !strings.HasSuffix(base, ".yaml") {
+		return false
+	}
+
+	// Exclude known non-framework patterns.
+	if strings.Contains(base, "-config-schema") {
+		return false
+	}
+
+	// Legacy generic prefix.
+	if strings.HasPrefix(base, "config-") {
+		return true
+	}
+
+	// PS-ID-prefixed: derive PS-ID from path configs/{product}/{service}/{ps-id}-{suffix}.
+	dir := filepath.Dir(path)
+	service := filepath.Base(dir)
+	product := filepath.Base(filepath.Dir(dir))
+	psIDPrefix := product + "-" + service
+
+	for _, suffix := range serviceFrameworkSuffixes {
+		if base == psIDPrefix+suffix {
+			return true
+		}
+	}
+
+	return false
 }
 
 // runSchemaValidation discovers config YAML files and runs ValidateSchema on each.

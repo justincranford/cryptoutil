@@ -139,7 +139,7 @@ func TestCheckInDir_NoOTLPServiceKey(t *testing.T) {
 	require.NoError(t, os.MkdirAll(productDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	configContent := "bind-public-port: 8080\n"
-	require.NoError(t, os.WriteFile(filepath.Join(productDir, "config-sqlite.yml"), []byte(configContent), cryptoutilSharedMagic.FilePermissionsDefault))
+	require.NoError(t, os.WriteFile(filepath.Join(productDir, "sm-im-sqlite.yml"), []byte(configContent), cryptoutilSharedMagic.FilePermissionsDefault))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-otlp-no-key")
 
@@ -156,7 +156,7 @@ func TestCheckInDir_ViolationReported(t *testing.T) {
 
 	// Use old legacy naming.
 	configContent := "otlp-service: \"" + cryptoutilSharedMagic.OTLPServiceSMKMS + "-pg-1\"\n"
-	require.NoError(t, os.WriteFile(filepath.Join(productDir, "config-pg-1.yml"), []byte(configContent), cryptoutilSharedMagic.FilePermissionsDefault))
+	require.NoError(t, os.WriteFile(filepath.Join(productDir, "sm-kms-pg-1.yml"), []byte(configContent), cryptoutilSharedMagic.FilePermissionsDefault))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-otlp-violation")
 

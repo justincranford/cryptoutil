@@ -5,9 +5,9 @@
 //
 // For each product-service in the allowlist (sm-im, sm-kms), each required
 // config file must have an otlp-service value following the pattern:
-//   - config-sqlite.yml  -> {PS-ID}-sqlite-1
-//   - config-pg-1.yml    -> {PS-ID}-postgres-1
-//   - config-pg-2.yml    -> {PS-ID}-postgres-2
+//   - {PS-ID}-sqlite.yml  -> {PS-ID}-sqlite-1
+//   - {PS-ID}-pg-1.yml    -> {PS-ID}-postgres-1
+//   - {PS-ID}-pg-2.yml    -> {PS-ID}-postgres-2
 //
 // Only sm-im and sm-kms are in the allowlist.
 // The check is registry-driven: it uses the canonical PS registry to determine
@@ -27,18 +27,19 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// configRule maps a standalone config filename to its expected otlp-service suffix.
-// Full expected value: {PS-ID} + expectedSuffix.
+// configRule maps a standalone config file suffix to its expected otlp-service suffix.
+// Filename is constructed as: {PS-ID} + filenameSuffix.
+// Full expected otlp-service value: {PS-ID} + expectedOTLPSuffix.
 type configRule struct {
-	filename       string
-	expectedSuffix string
+	filenameSuffix     string
+	expectedOTLPSuffix string
 }
 
-// otlpConfigRules lists the required config files and their expected otlp-service suffix.
+// otlpConfigRules lists the required config file suffixes and their expected otlp-service suffix.
 var otlpConfigRules = []configRule{
-	{filename: "config-sqlite.yml", expectedSuffix: "-sqlite-1"},
-	{filename: "config-pg-1.yml", expectedSuffix: "-postgres-1"},
-	{filename: "config-pg-2.yml", expectedSuffix: "-postgres-2"},
+	{filenameSuffix: "-sqlite.yml", expectedOTLPSuffix: "-sqlite-1"},
+	{filenameSuffix: "-pg-1.yml", expectedOTLPSuffix: "-postgres-1"},
+	{filenameSuffix: "-pg-2.yml", expectedOTLPSuffix: "-postgres-2"},
 }
 
 // configAllowlist is the set of PS IDs whose standalone configs are validated.
@@ -83,9 +84,10 @@ func checkOTLPNames(rootDir string, ps lintFitnessRegistry.ProductService) []str
 	var violations []string
 
 	for _, rule := range otlpConfigRules {
-		configPath := filepath.Join(configDir, rule.filename)
+		filename := ps.PSID + rule.filenameSuffix
+		configPath := filepath.Join(configDir, filename)
 
-		fileViolations := checkOTLPServiceValue(configPath, ps.PSID, rule.expectedSuffix, rootDir)
+		fileViolations := checkOTLPServiceValue(configPath, ps.PSID, rule.expectedOTLPSuffix, rootDir)
 		violations = append(violations, fileViolations...)
 	}
 

@@ -53,9 +53,15 @@ func setupAllRequiredConfigs(t *testing.T, tmpDir string) {
 	t.Helper()
 
 	for _, product := range []string{cryptoutilSharedMagic.SMProductName} {
-		for _, service := range []string{cryptoutilSharedMagic.IMServiceName, cryptoutilSharedMagic.KMSServiceName} {
-			for _, filename := range []string{"config-sqlite.yml", "config-pg-1.yml", "config-pg-2.yml"} {
-				writeConfigFile(t, tmpDir, product, service, filename, "# placeholder\n")
+		for _, svc := range []struct {
+			service string
+			psID    string
+		}{
+			{cryptoutilSharedMagic.IMServiceName, cryptoutilSharedMagic.OTLPServiceSMIM},
+			{cryptoutilSharedMagic.KMSServiceName, cryptoutilSharedMagic.OTLPServiceSMKMS},
+		} {
+			for _, suffix := range []string{"-sqlite.yml", "-pg-1.yml", "-pg-2.yml"} {
+				writeConfigFile(t, tmpDir, product, svc.service, svc.psID+suffix, "# placeholder\n")
 			}
 		}
 	}
@@ -86,12 +92,12 @@ func TestCheckInDir_MissingSQLiteConfig(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupAllRequiredConfigs(t, tmpDir)
 
-	require.NoError(t, os.Remove(filepath.Join(tmpDir, "configs", cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.KMSServiceName, "config-sqlite.yml")))
+	require.NoError(t, os.Remove(filepath.Join(tmpDir, "configs", cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.KMSServiceName, "sm-kms-sqlite.yml")))
 
 	err := lintFitnessStandaloneConfigPresence.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMKMS)
-	assert.Contains(t, err.Error(), "config-sqlite.yml")
+	assert.Contains(t, err.Error(), "sm-kms-sqlite.yml")
 }
 
 func TestCheckInDir_MissingPG1Config(t *testing.T) {
@@ -100,12 +106,12 @@ func TestCheckInDir_MissingPG1Config(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupAllRequiredConfigs(t, tmpDir)
 
-	require.NoError(t, os.Remove(filepath.Join(tmpDir, "configs", cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.IMServiceName, "config-pg-1.yml")))
+	require.NoError(t, os.Remove(filepath.Join(tmpDir, "configs", cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.IMServiceName, "sm-im-pg-1.yml")))
 
 	err := lintFitnessStandaloneConfigPresence.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMIM)
-	assert.Contains(t, err.Error(), "config-pg-1.yml")
+	assert.Contains(t, err.Error(), "sm-im-pg-1.yml")
 }
 
 func TestCheckInDir_MissingConfigDir(t *testing.T) {

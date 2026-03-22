@@ -2,9 +2,9 @@
 
 // Package otlp_service_name_pattern validates that standalone service config files
 // use the canonical otlp-service naming convention:
-//   - config-sqlite.yml  -> {ps-id}-sqlite-1
-//   - config-pg-1.yml    -> {ps-id}-postgres-1
-//   - config-pg-2.yml    -> {ps-id}-postgres-2
+//   - {ps-id}-sqlite.yml  -> {ps-id}-sqlite-1
+//   - {ps-id}-pg-1.yml    -> {ps-id}-postgres-1
+//   - {ps-id}-pg-2.yml    -> {ps-id}-postgres-2
 //
 // See ARCHITECTURE.md Section 9.11 for naming convention details.
 package otlp_service_name_pattern
@@ -20,19 +20,20 @@ import (
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
 )
 
-// configRule maps a standalone config filename to its expected otlp-service suffix.
+// configRule maps a standalone config file suffix to its expected otlp-service suffix.
+// Filename is constructed as: {ps-id} + filenameSuffix.
 // The prefix is computed from the service ID (product-service).
 type configRule struct {
-	filename       string
-	expectedSuffix string
+	filenameSuffix     string
+	expectedOTLPSuffix string
 }
 
-// standaloneConfigRules defines the expected otlp-service suffix for each config filename.
-// Full expected value: {ps-id} + expectedSuffix.
+// standaloneConfigRules defines the expected otlp-service suffix for each config file suffix.
+// Full expected value: {ps-id} + expectedOTLPSuffix.
 var standaloneConfigRules = []configRule{
-	{filename: "config-sqlite.yml", expectedSuffix: "-sqlite-1"},
-	{filename: "config-pg-1.yml", expectedSuffix: "-postgres-1"},
-	{filename: "config-pg-2.yml", expectedSuffix: "-postgres-2"},
+	{filenameSuffix: "-sqlite.yml", expectedOTLPSuffix: "-sqlite-1"},
+	{filenameSuffix: "-pg-1.yml", expectedOTLPSuffix: "-postgres-1"},
+	{filenameSuffix: "-pg-2.yml", expectedOTLPSuffix: "-postgres-2"},
 }
 
 // excludedProductDirs lists top-level directories under configs/ that are NOT product directories.
@@ -110,13 +111,14 @@ func checkServiceDir(serviceDir, psID, rootDir string) []string {
 	var violations []string
 
 	for _, rule := range standaloneConfigRules {
-		configPath := filepath.Join(serviceDir, rule.filename)
+		filename := psID + rule.filenameSuffix
+		configPath := filepath.Join(serviceDir, filename)
 
 		if _, err := os.Stat(configPath); os.IsNotExist(err) {
 			continue // File does not exist — not a violation (file presence checked elsewhere).
 		}
 
-		v := checkOTLPServiceValue(configPath, psID, rule.expectedSuffix, rootDir)
+		v := checkOTLPServiceValue(configPath, psID, rule.expectedOTLPSuffix, rootDir)
 		violations = append(violations, v...)
 	}
 
