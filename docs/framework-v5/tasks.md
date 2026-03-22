@@ -330,19 +330,20 @@
 
 #### Task 3.2: Fix configs/ca/ Path Mismatch
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1h
+- **Actual**: 0.5h
 - **Dependencies**: Task 3.1
-- **Description**: Move `configs/ca/` to `configs/pki/ca/` (entity registry product is `pki`, not `ca`)
+- **Description**: Rename PKI CA config files to use PS-ID prefix (`configs/pki/ca/` path already correct from prior work)
 - **Acceptance Criteria**:
-  - [ ] `configs/ca/ca-server.yml` moved to `configs/pki/ca/pki-ca-server.yml`
-  - [ ] `configs/ca/ca-config-schema.yaml` moved to `configs/pki/ca/pki-ca-config-schema.yaml`
-  - [ ] `configs/ca/profiles/` moved to `configs/pki/ca/profiles/`
-  - [ ] Old `configs/ca/` directory deleted
-  - [ ] All Go code references updated (search: `configs/ca/`)
-  - [ ] All compose file references updated
-  - [ ] lint-deployments mirror mapping updated
-  - [ ] Build clean
+  - [x] `configs/pki/ca/ca-server.yml` renamed to `configs/pki/ca/pki-ca-server.yml`
+  - [x] `configs/pki/ca/ca-config-schema.yaml` renamed to `configs/pki/ca/pki-ca-config-schema.yaml`
+  - [x] `configs/pki/ca/profiles/` already at correct path (no change needed)
+  - [x] Old `configs/ca/` directory already deleted (prior work)
+  - [x] All Go code references updated (generate_listings_test.go, validate_all_runners_test.go, validate_all.go)
+  - [x] Compose files verified — no references to configs/ standalone files
+  - [x] lint-deployments mirror mapping verified — only checks top-level dirs, no update needed
+  - [x] Build clean, tests pass
 
 #### Task 3.3: Standardize SM Configs Naming
 

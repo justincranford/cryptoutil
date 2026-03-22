@@ -127,7 +127,7 @@ func runKebabCaseValidation(configsDir string, result *AllValidationResult) {
 
 // isServiceFrameworkConfig returns true if the file matches the service template
 // config naming pattern (config-*.yml). Only these files use the flat kebab-case
-// format validated by ValidateSchema. Other configs (e.g., ca-server.yml,
+// format validated by ValidateSchema. Other configs (e.g., pki-ca-server.yml,
 // identity profiles, policies) use nested YAML with domain-specific schemas.
 func isServiceFrameworkConfig(path string) bool {
 	base := filepath.Base(path)

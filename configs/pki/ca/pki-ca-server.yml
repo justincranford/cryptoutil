@@ -1,6 +1,6 @@
 # CA Server Configuration
 # This file provides the default configuration for the Certificate Authority Server.
-# Override with environment-specific configs in deployments/ca/config/
+# Override with environment-specific configs in deployments/pki-ca/config/
 
 # Server binding
 bind-public-address: "127.0.0.1"
