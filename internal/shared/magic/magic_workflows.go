@@ -36,6 +36,17 @@ const (
 	EventTypeWorkflowDispatch = "workflow_dispatch"
 )
 
+// Workflow tool subcommands.
+const (
+	// WorkflowSubCmdRun is the subcommand for running GitHub Actions workflows locally.
+	WorkflowSubCmdRun = "run"
+	// WorkflowSubCmdCleanup is the subcommand for cleaning up GitHub Actions storage.
+	WorkflowSubCmdCleanup = "cleanup"
+)
+
+// UsageWorkflow is the usage message for the workflow command.
+const UsageWorkflow = "Usage: workflow <subcommand> [options]\n\nSubcommands:\n  run      Run GitHub Actions workflows locally using act\n  cleanup  Clean up GitHub Actions storage (runs, artifacts, caches)\n\nUse \"workflow <subcommand> --help\" for subcommand-specific help."
+
 // Regex patterns for workflow validation.
 var (
 	// RegexWorkflowActionUses - Regex to match "uses: owner/repo@version" patterns in GitHub Actions workflows.

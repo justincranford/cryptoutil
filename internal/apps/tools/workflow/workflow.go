@@ -14,6 +14,8 @@ import (
 	"strings"
 	"time"
 
+	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
+	cryptoutilGitHubCleanup "cryptoutil/internal/apps/tools/cicd_lint/github_cleanup"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -64,9 +66,45 @@ type ExecutionSummary struct {
 	CombinedLog   string
 }
 
-// Workflow executes the workflow runner with the provided command line arguments.
+// cleanupFn is the GitHub Actions cleanup handler.
+// Test seam: replaceable in tests to avoid invoking gh CLI.
+// See ARCHITECTURE.md Section 10.2.4 (Test Seam Injection Pattern).
+var cleanupFn = defaultCleanup
+
+// Workflow executes the workflow tool with the provided command line arguments.
+// It dispatches to run or cleanup subcommands.
 func Workflow(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
-	return runWithWorkflowsDir(args[1:], cryptoutilSharedMagic.WorkflowsDir)
+	if len(args) < 2 {
+		_, _ = fmt.Fprintf(stderr, "%s\n", cryptoutilSharedMagic.UsageWorkflow)
+
+		return 1
+	}
+
+	subArgs := args[1:]
+
+	switch subArgs[0] {
+	case cryptoutilSharedMagic.WorkflowSubCmdRun:
+		return runWithWorkflowsDir(subArgs[1:], cryptoutilSharedMagic.WorkflowsDir)
+	case cryptoutilSharedMagic.WorkflowSubCmdCleanup:
+		return cleanupFn(subArgs[1:], stderr)
+	default:
+		_, _ = fmt.Fprintf(stderr, "Unknown subcommand %q.\n\n%s\n", subArgs[0], cryptoutilSharedMagic.UsageWorkflow)
+
+		return 1
+	}
+}
+
+// defaultCleanup executes GitHub Actions storage cleanup.
+func defaultCleanup(args []string, stderr io.Writer) int {
+	logger := cryptoutilCmdCicdCommon.NewLogger("workflow-cleanup")
+
+	if err := cryptoutilGitHubCleanup.Cleanup(logger, args); err != nil {
+		_, _ = fmt.Fprintf(stderr, "Error: %v\n", err)
+
+		return 1
+	}
+
+	return 0
 }
 
 // run executes the workflow runner with the provided command line arguments.

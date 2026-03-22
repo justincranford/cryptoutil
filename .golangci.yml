@@ -502,6 +502,8 @@ linters:
           alias: cryptoutilAppsFrameworkProductCli
         - pkg: "cryptoutil/internal/apps/framework/suite/cli"
           alias: cryptoutilAppsFrameworkSuiteCli
+        - pkg: "cryptoutil/internal/apps/tools/workflow"
+          alias: cryptoutilAppsToolsWorkflow
         - pkg: "cryptoutil/internal/apps/framework/service/server/apis"
           alias: cryptoutilAppsFrameworkServiceServerApis
         - pkg: "cryptoutil/internal/apps/framework/service/server/application"

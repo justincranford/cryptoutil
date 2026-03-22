@@ -8,9 +8,9 @@ package main
 import (
 	"os"
 
-	cryptoutilAppsWorkflow "cryptoutil/internal/apps/workflow"
+	cryptoutilAppsToolsWorkflow "cryptoutil/internal/apps/tools/workflow"
 )
 
 func main() {
-	os.Exit(cryptoutilAppsWorkflow.Workflow(os.Args, os.Stdin, os.Stdout, os.Stderr))
+	os.Exit(cryptoutilAppsToolsWorkflow.Workflow(os.Args, os.Stdin, os.Stdout, os.Stderr))
 }

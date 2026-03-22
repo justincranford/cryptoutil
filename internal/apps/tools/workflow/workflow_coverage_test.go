@@ -5,6 +5,7 @@
 package workflow
 
 import (
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -192,17 +193,60 @@ func TestRunWithWorkflowsDir_OutputDirCreationFails(t *testing.T) {
 	require.Equal(t, 1, result)
 }
 
-// TestWorkflow_EntryPoint tests the Workflow() public entry point.
+// TestWorkflow_EntryPoint tests the Workflow() public entry point via the "run" subcommand.
 func TestWorkflow_EntryPoint(t *testing.T) {
 	t.Parallel()
 
-	// Workflow requires args[0] as program name.
-	// Test the error path (invalid workflows dir) via the Workflow function itself.
-	// Since Workflow calls run() which uses ".github/workflows" directly,
-	// and test CWD is the package dir (no .github/workflows there),
-	// this will exercise the error path.
-	result := Workflow([]string{"workflow", "-workflows=nonexistent"}, nil, nil, nil)
-	// Either 1 (no .github/workflows from package dir) or 1 (no valid workflow).
+	// Workflow requires args[0] as program name and args[1] as subcommand.
+	// Test the "run" subcommand error path (invalid workflows flag).
+	result := Workflow([]string{"workflow", cryptoutilSharedMagic.WorkflowSubCmdRun, "-workflows=nonexistent"}, nil, nil, nil)
+	// Returns 1 because no valid workflow named "nonexistent" exists.
+	require.Equal(t, 1, result)
+}
+
+// TestWorkflow_NoArgs tests Workflow with fewer than 2 args (no subcommand provided).
+func TestWorkflow_NoArgs(t *testing.T) {
+	t.Parallel()
+
+	result := Workflow([]string{"workflow"}, nil, nil, io.Discard)
+	require.Equal(t, 1, result)
+}
+
+// Sequential: mutates cleanupFn package-level variable.
+func TestWorkflow_CleanupSubcommand_Success(t *testing.T) {
+	orig := cleanupFn
+	cleanupFn = func(_ []string, _ io.Writer) int { return 0 }
+
+	defer func() { cleanupFn = orig }()
+
+	result := Workflow([]string{"workflow", cryptoutilSharedMagic.WorkflowSubCmdCleanup}, nil, nil, nil)
+	require.Equal(t, 0, result)
+}
+
+// Sequential: mutates cleanupFn package-level variable.
+func TestWorkflow_CleanupSubcommand_Error(t *testing.T) {
+	orig := cleanupFn
+	cleanupFn = func(_ []string, _ io.Writer) int { return 1 }
+
+	defer func() { cleanupFn = orig }()
+
+	result := Workflow([]string{"workflow", cryptoutilSharedMagic.WorkflowSubCmdCleanup}, nil, nil, nil)
+	require.Equal(t, 1, result)
+}
+
+// TestWorkflow_UnknownSubcommand tests the default case for unknown subcommands.
+func TestWorkflow_UnknownSubcommand(t *testing.T) {
+	t.Parallel()
+
+	result := Workflow([]string{"workflow", "invalid-cmd"}, nil, nil, io.Discard)
+	require.Equal(t, 1, result)
+}
+
+// TestDefaultCleanup_ParseError tests defaultCleanup with an invalid flag (ParseArgs failure).
+func TestDefaultCleanup_ParseError(t *testing.T) {
+	t.Parallel()
+
+	result := defaultCleanup([]string{"--xyzzy-invalid-flag=bad"}, io.Discard)
 	require.Equal(t, 1, result)
 }
 
