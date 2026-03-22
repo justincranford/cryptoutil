@@ -1,6 +1,6 @@
 # Tasks - Framework v5: Rigid Standardization & Cleanup
 
-**Status**: 28 of 49 tasks complete (57%)
+**Status**: 30 of 49 tasks complete (61%)
 **Last Updated**: 2026-03-27
 **Created**: 2026-03-21
 
@@ -476,15 +476,16 @@
 
 #### Task 4.2: Document Template vs Skeleton-Template
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 30m
+- **Actual**: 0.3h
 - **Dependencies**: None
 - **Description**: Clearly document the purpose distinction between `deployments/template/` and `deployments/skeleton-template/`
 - **Acceptance Criteria**:
-  - [ ] `deployments/template/README.md` created or updated explaining: template for creating NEW services
-  - [ ] `deployments/skeleton-template/` documented as the actual skeleton service deployment
-  - [ ] ARCHITECTURE.md updated with template directory purpose
-  - [ ] No ambiguity remains
+  - [x] `deployments/template/README.md` created or updated explaining: template for creating NEW services
+  - [x] `deployments/skeleton-template/` documented as the actual skeleton service deployment
+  - [x] ARCHITECTURE.md updated with template directory purpose
+  - [x] No ambiguity remains
 
 #### Task 4.3: Audit Suite Compose Size
 

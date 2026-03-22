@@ -4061,7 +4061,7 @@ HASH_PEPPER_FILE: /run/secrets/cryptoutil-hash_pepper.secret
 - Required files: `compose.yml`
 - Optional files: `README.md`
 - Required secrets: 1 file (hash pepper ONLY, NO unseal keys)
-  - `cryptoutil-hash_pepper.secret` (shared by all 10 services)
+  - `hash-pepper-v3.secret` (shared by all 10 services)
 - Forbidden secrets (documented by `.never` files):
   - `unseal_1of5-SUITEONLY.never` through `unseal_5of5-SUITEONLY.never`
   - Rationale: Unseal keys MUST be unique per service (security isolation)
@@ -4072,7 +4072,7 @@ HASH_PEPPER_FILE: /run/secrets/cryptoutil-hash_pepper.secret
 - Required files: `compose.yml`
 - Optional files: `README.md`
 - Required secrets: 1 file (hash pepper ONLY, NO unseal keys)
-  - `{PRODUCT}-hash_pepper.secret` (shared within product services)
+  - `hash-pepper-v3.secret` (shared within product services)
 - Forbidden secrets (documented by `.never` files):
   - `unseal_1of5-PRODUCTONLY.never` through `unseal_5of5-PRODUCTONLY.never`
   - Rationale: Unseal keys MUST be unique per service (security isolation)
@@ -4094,6 +4094,8 @@ HASH_PEPPER_FILE: /run/secrets/cryptoutil-hash_pepper.secret
 - Required files: `compose.yml`
 - Optional files: `compose.demo.yml`, `Dockerfile`, `README.md`
 - Required secrets: Same 14 files as PRODUCT-SERVICE
+- **Purpose**: Inert scaffolding templates (NOT a deployed service). Contains placeholder compose files for all 3 deployment tiers (`compose-cryptoutil-PRODUCT-SERVICE.yml`, `compose-cryptoutil-PRODUCT.yml`, `compose-cryptoutil.yml`) with placeholder names and underscores. See `deployments/template/README.md`.
+- **Not to be confused with** `deployments/skeleton-template/` which is the actual deployed skeleton-template service used as a running reference implementation.
 
 **infrastructure** (shared-postgres, shared-citus, shared-telemetry):
 - Required directories: none
