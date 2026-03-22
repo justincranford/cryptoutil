@@ -2,7 +2,7 @@
 
 **Status**: Planning
 **Created**: 2026-03-21
-**Last Updated**: 2026-03-22
+**Last Updated**: 2026-03-24
 **Purpose**: Apply rigid standardization and enforcement of directories and files and contents, across configs/, deployments/, cmd/, internal/apps/, and docs/ for 1 suite, 5 products, and 10 services. Clean dead code, rationalize non-standard entries, and ensure ARCHITECTURE.md is the complete roadmap SSOT.
 
 **Target Structure**: See [target-structure.md](target-structure.md) for the complete parameterized target state of every directory and file.
@@ -139,11 +139,11 @@ All 10 services + template have 4 config files each (40 total):
 
 ## Phases
 
-### Phase 1: Archive and Dead Code Cleanup (4h) [Status: TODO]
+### Phase 1: Archive, Dead Code, and Legacy Cleanup (5h) [Status: TODO]
 
-**Objective**: Remove all archived/dead code directories to reduce repository noise and eliminate 161+ unused files.
+**Objective**: Remove all archived/dead code directories, legacy deployment artifacts, and dead infrastructure to reduce repository noise and eliminate 161+ unused files plus legacy configs.
 
-**Strategy**: Git-delete all `_archived` and `archived/` directories. These contain superseded code from pre-v4 migrations. The entity registry and fitness linters ensure all active services are tracked — anything in `_archived` is definitively dead.
+**Strategy**: Git-delete all `_archived` and `archived/` directories. These contain superseded code from pre-v4 migrations. The entity registry and fitness linters ensure all active services are tracked — anything in `_archived` is definitively dead. Also remove Citus infrastructure (Decision 5), legacy secrets (Decision 9), and environment configs (Decision 8).
 
 **Tasks**:
 - Delete `internal/apps/identity/_archived/` (92 files)
@@ -152,43 +152,56 @@ All 10 services + template have 4 config files each (40 total):
 - Delete `internal/test/archived/` (15 files)
 - Delete `deployments/archived/` (14 files)
 - Delete `configs/orphaned/` (legacy configs, 6+ files including observability, template, test secrets)
+- Delete `deployments/shared-citus/` entirely (Decision 5: only PostgreSQL + SQLite)
+- Delete `sm-hash-pepper.secret` from all deployment tiers (Decision 9: legacy hash service artifact)
+- Delete all `{PRODUCT}-*.secret.never` and `{SUITE}-*.secret.never` marker files (Decision 9)
+- Delete `development.yml`, `production.yml`, `test.yml` from all `configs/` directories (Decision 8)
+- Delete `profiles/` from all `configs/` directories (Decision 8: cert profiles are deployment concerns)
+- Move `*-docker.yml` from `configs/` to `deployments/*/config/` (Decision 8: Docker overlays)
 - Verify `go build ./...` still clean after deletion
 - Verify all 44 fitness linters still pass
 - Verify all 68 deployment validators still pass
 
-**Success**: Zero `_archived`, `archived/`, or `orphaned/` directories remain. Build and all linters pass.
+**Success**: Zero `_archived`, `archived/`, `orphaned/`, `shared-citus/` directories remain. No legacy secrets or environment configs in configs/. Build and all linters pass.
 **Post-Mortem**: After quality gates pass, update lessons.md.
 
-### Phase 2: Non-Standard Entry Rationalization (6h) [Status: TODO]
+### Phase 2: Non-Standard Entry Rationalization (7h) [Status: TODO]
 
-**Objective**: Classify each non-standard cmd/ and internal/apps/ entry as INTENTIONAL INFRASTRUCTURE or VIOLATION, and fix violations.
+**Objective**: Classify each non-standard cmd/ and internal/apps/ entry as INTENTIONAL INFRASTRUCTURE or VIOLATION, fix violations, rename cicd tool (Decision 11), and create framework tier routing (Decision 6).
 
 **Analysis from repository survey**:
-- `cmd/cicd/` + `internal/apps/cicd/`: INTENTIONAL INFRASTRUCTURE — provides `lint-*`, `format-*`, `github-cleanup` tooling. These are development tools, not product/service binaries. Documented in ARCHITECTURE.md Section 9.10.
-- `cmd/workflow/` + `internal/apps/workflow/`: INTENTIONAL INFRASTRUCTURE — workflow testing tool. Referenced in CI/CD pipelines.
+- `cmd/cicd/` + `internal/apps/cicd/`: INTENTIONAL INFRASTRUCTURE → RENAME to `cmd/cicd-lint/` + `internal/apps/tools/cicd_lint/` (Decision 11)
+- `cmd/workflow/` + `internal/apps/workflow/`: INTENTIONAL INFRASTRUCTURE → MOVE to `internal/apps/tools/workflow/`, add `run` + `cleanup` subcommands (Decision 10)
 - `cmd/demo/` + `internal/apps/demo/`: EVALUATE — unified demo CLI. Consider whether this should be a subcommand of `cmd/cryptoutil` (suite-level CLI) rather than a standalone binary.
 - `cmd/identity-compose/` + `internal/apps/identity/compose/`: VIOLATION — violates anti-pattern "NO executables for subcommands." Should be `cmd/identity compose` subcommand.
 - `cmd/identity-demo/` + `internal/apps/identity/demo/`: VIOLATION — same anti-pattern. Should be `cmd/identity demo` subcommand.
-- `internal/apps/pkiinit/`: EVALUATE — PKI initialization tool. May belong under `cmd/pki init` subcommand.
+- `internal/apps/pkiinit/`: EVALUATE — PKI initialization tool. May belong under `cmd/pki init` subcommand or merge into `framework/tls/` (quizme-v2 Q2=D).
 
 **Tasks**:
-- Document `cmd/cicd/` and `cmd/workflow/` as intentional infrastructure tools in ARCHITECTURE.md Section 4.4.7
+- Rename `cmd/cicd/` to `cmd/cicd-lint/` and `internal/apps/cicd/` to `internal/apps/tools/cicd_lint/` (Decision 11)
+- Update all import paths, workflow files (.github/workflows/), pre-commit hooks for cicd → cicd-lint rename
+- Move `internal/apps/workflow/` to `internal/apps/tools/workflow/`
+- Add `run` + `cleanup` subcommands to `cmd/workflow/` (Decision 10)
+- Create `framework/suite/cli/` with `RouteSuite()`, `SuiteConfig`, `ProductEntry` (Decision 6)
+- Create `framework/product/cli/` with `RouteProduct()`, `ProductConfig`, `ServiceEntry` — move from `framework/service/cli/` (Decision 6)
+- Update all product-level cmd/ imports for RouteProduct move
+- Document `cmd/cicd-lint/` and `cmd/workflow/` as intentional infrastructure tools in ARCHITECTURE.md Section 4.4.7
 - Merge `cmd/identity-compose/` into `cmd/identity compose` subcommand (or archive if not used)
 - Merge `cmd/identity-demo/` into `cmd/identity demo` subcommand (or archive if not used)
 - Evaluate `cmd/demo/` — if useful, document as suite-level demo; if redundant, archive
-- Evaluate `internal/apps/pkiinit/` — if useful, integrate into `cmd/pki init`; if redundant, archive
+- Evaluate `internal/apps/pkiinit/` — if useful, integrate into `framework/tls/`; if redundant, archive
 - Evaluate `docs/demo-brainstorm/` — archive if outdated
-- Update entity registry and magic constants if entries change
+- Update entity registry and magic constants for tool renames
 - Verify build and linters pass
 
-**Success**: All cmd/ entries are either documented infrastructure tools or follow the PRODUCT(-SERVICE) pattern. Zero anti-pattern violations.
+**Success**: All cmd/ entries are either documented infrastructure tools or follow the PRODUCT(-SERVICE) pattern. Zero anti-pattern violations. cicd-lint rename complete. Framework tier routing in place.
 **Post-Mortem**: After quality gates pass, update lessons.md.
 
 ### Phase 3: Configs Standardization (8h) [Status: TODO]
 
-**Objective**: Apply rigid naming and structure standards to `configs/` directory, resolving the two-config-system duality and inconsistent naming.
+**Objective**: Apply rigid naming and structure standards to `configs/` directory, resolving the two-config-system duality and inconsistent naming. Environment configs already deleted in Phase 1 (Decision 8).
 
-**Design Decision Required**: What is the relationship between `configs/` (standalone) and `deployments/*/config/` (Docker)?
+**Design Decision (Decision 1)**: configs/ = canonical SSOT (environment-agnostic), deployments/ = deployment wiring that consumes/overlays configs/.
 
 **Proposed model**:
 - `deployments/*/config/` = Docker-focused: bind addresses, TLS cert paths as Docker secrets, Docker network hostnames. Standardized `{PS-ID}-app-{variant}.yml` naming. Already enforced by lint-deployments.
@@ -238,34 +251,41 @@ All 10 services + template have 4 config files each (40 total):
 - Document `deployments/template/` purpose vs `deployments/skeleton-template/` clearly
 - Audit suite compose (1507 lines) for duplication opportunities
 - Verify all 68 deployment validators still pass after changes
-- Run `go run ./cmd/cicd lint-fitness` to confirm all 44 fitness linters pass
+- Run `go run ./cmd/cicd-lint lint-fitness` to confirm all 44 fitness linters pass
 
 **Success**: All product-level secrets follow new naming convention. Template vs skeleton-template purpose documented. Delegation chain (SUITE->PRODUCT->SERVICE) verified.
 **Post-Mortem**: After quality gates pass, update lessons.md.
 
-### Phase 5: ARCHITECTURE.md Roadmap Consolidation (6h) [Status: TODO]
+### Phase 5: ARCHITECTURE.md Roadmap Consolidation (7h) [Status: TODO]
 
-**Objective**: Ensure ARCHITECTURE.md is the complete SSOT for the project roadmap, absorbing content from satellite docs and adding missing strategies.
+**Objective**: Ensure ARCHITECTURE.md is the complete SSOT for the project roadmap, absorbing content from satellite docs, documenting missing strategies, and syncing with target-structure.md decisions.
 
 **Gaps identified**:
 1. `docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md` (872 lines) — detailed compose tier documentation NOT in ARCHITECTURE.md. Should be merged into Section 12.3.
 2. `configs/` standardization strategy — under-documented in Section 12.5 (currently describes current state, not target state)
 3. Demo/workflow strategy — not documented anywhere as intentional infrastructure
 4. Archive cleanup criteria — no defined policy for when code gets archived vs deleted
-5. Non-standard cmd/ entries — Section 4.4.7 CLI Patterns doesn't document cicd/demo/workflow as intentional exceptions
+5. Non-standard cmd/ entries — Section 4.4.7 CLI Patterns doesn't document cicd-lint/demo/workflow as intentional exceptions
 6. Roadmap completion for LLM agents — user wants ARCHITECTURE.md to be sufficient for LLM agents to converge on end goals
+7. Citus removal — ARCHITECTURE.md must explicitly state "PostgreSQL and SQLite only" (Decision 5)
+8. Framework tier routing — document suite/cli/, product/cli/, service/cli/ pattern (Decision 6)
+9. CI workflow consolidation — update Section 9.7 to remove separate cicd-lint workflow (Decision 7)
 
 **Tasks**:
 - Merge ARCHITECTURE-COMPOSE-MULTIDEPLOY.md content into ARCHITECTURE.md Section 12.3 (compose tier deployment patterns)
 - Delete ARCHITECTURE-COMPOSE-MULTIDEPLOY.md after merge (ARCHITECTURE.md is SSOT)
 - Expand Section 12.5 with configs/ canonical naming standard from Phase 3
-- Add Section 4.4.8 "Infrastructure CLI Tools" documenting cicd, workflow, demo as intentional non-product entries
+- Add Section 4.4.8 "Infrastructure CLI Tools" documenting cicd-lint, workflow, demo as intentional non-product entries
 - Add Section 13.9 "Archive and Dead Code Policy" defining when code is archived vs deleted
 - Add or expand roadmap content section summarizing the vision: 1 suite / 5 products / 10 services with federation and 3-tier deployment
+- Update Section 7 to explicitly state "PostgreSQL and SQLite only — no Citus" (Decision 5)
+- Add framework tier routing documentation: suite/cli/, product/cli/, service/cli/ (Decision 6)
+- Update Section 9.7 CI/CD workflow matrix: merge ci-cicd-lint.yml into ci-quality.yml (Decision 7)
+- Merge ci-cicd-lint.yml job into ci-quality.yml and delete ci-cicd-lint.yml (Decision 7)
 - Review all instruction files for alignment with updated ARCHITECTURE.md
-- Run `go run ./cmd/cicd lint-docs` to verify propagation integrity
+- Run `go run ./cmd/cicd-lint lint-docs` to verify propagation integrity
 
-**Success**: ARCHITECTURE-COMPOSE-MULTIDEPLOY.md merged and deleted. ARCHITECTURE.md fully documents configs/ standardization, infrastructure CLI tools, archive policy, and roadmap vision. LLM agents reading ARCHITECTURE.md can understand the complete project structure and goals.
+**Success**: ARCHITECTURE-COMPOSE-MULTIDEPLOY.md merged and deleted. ARCHITECTURE.md fully documents configs/ standardization, infrastructure CLI tools, archive policy, framework routing tiers, database engines (PostgreSQL + SQLite only), CI workflow consolidation, and roadmap vision. LLM agents reading ARCHITECTURE.md can understand the complete project structure and goals.
 **Post-Mortem**: After quality gates pass, update lessons.md.
 
 ### Phase 6: Fitness Linter Expansion (6h) [Status: TODO]
@@ -280,9 +300,9 @@ All 10 services + template have 4 config files each (40 total):
 5. **configs-deployments-consistency**: Validate configs/ mirrors deployments/ service structure
 
 **Tasks**:
-- Implement `configs_naming` linter in `internal/apps/cicd/lint_fitness/`
+- Implement `configs_naming` linter in `internal/apps/tools/cicd_lint/lint_fitness/`
 - Implement `archive_detector` linter
-- Implement `cmd_anti_pattern` linter
+- Implement `cmd_anti_pattern` linter (MUST allow `cmd/cicd-lint/` and `cmd/workflow/` as documented infrastructure)
 - Implement `configs_empty_dir` linter
 - Implement `configs_deployments_consistency` linter
 - Add tests for all new linters (>=98% coverage per infrastructure standard)
@@ -293,16 +313,18 @@ All 10 services + template have 4 config files each (40 total):
 **Success**: 49+ fitness linters all pass. New linters prevent regression of Phase 1-5 work. >=98% coverage and mutation testing on all new linter code.
 **Post-Mortem**: After quality gates pass, update lessons.md.
 
-### Phase 7: Knowledge Propagation (4h) [Status: TODO]
+### Phase 7: Knowledge Propagation (5h) [Status: TODO]
 
-**Objective**: Apply lessons learned to permanent artifacts
+**Objective**: Apply lessons learned to permanent artifacts. Audit all skills, agents, and instructions for framework-v5 compliance.
 
 - Review lessons.md from all prior phases
 - Update ARCHITECTURE.md with new patterns and decisions
 - Update agents (`.github/agents/*.agent.md`) with improved guidance
-- Update skills (`.github/skills/*/SKILL.md`) with new patterns
+- Update skills (`.github/skills/*/SKILL.md`) with new patterns and verify names match purpose
 - Update instructions (`.github/instructions/*.instructions.md`) with updated configs/deployment standards
-- Verify propagation integrity (`go run ./cmd/cicd lint-docs validate-propagation`)
+- Audit skill names for clarity: verify new-service vs skeleton-template overlap, coverage-analysis scope (mutations?), contract-test-gen naming, migration-create naming, fitness-function-gen naming
+- Schedule `test/load/` Gatling refactoring as deferred work (NOT in this plan — low priority)
+- Verify propagation integrity (`go run ./cmd/cicd-lint lint-docs validate-propagation`)
 
 **Success**: All artifact updates committed; propagation check passes.
 
@@ -372,6 +394,117 @@ All 10 services + template have 4 config files each (40 total):
 
 **Pending**: User must review and approve the complete concrete target-structure.md before the merge begins.
 
+### Decision 5: Citus Removal
+
+**Options**:
+- A: Keep shared-citus/ as optional PostgreSQL extension support
+- B: Remove shared-citus/ entirely — only PostgreSQL + SQLite supported
+- C: Move citus config to a feature branch for future use
+- D: Deprecate but leave in codebase with warning comments
+
+**Decision**: Option B selected ✓ CONFIRMED (user directive)
+
+**Rationale**: Project supports exactly two database engines: PostgreSQL and SQLite. Citus is a PostgreSQL extension that adds unnecessary complexity. No service uses it, no tests reference it, and it creates confusion in the deployment structure. Clean removal reduces cognitive load and prevents accidental adoption.
+
+**Scope**: Delete `deployments/shared-citus/` directory. Remove all citus references from compose files. Update ARCHITECTURE.md to explicitly state "PostgreSQL and SQLite only."
+
+### Decision 6: Framework Tier Routing
+
+**Options**:
+- A: Keep all routing logic in framework/service/cli/ (status quo)
+- B: Create framework/suite/cli/ + framework/product/cli/ with routing separated by tier ✓ **SELECTED**
+- C: Put all routing in a single framework/cli/ package
+- D: Keep routing tiered but inline in cmd/ entry points
+
+**Decision**: Option B selected ✓ CONFIRMED (quizme-v3 Q1=B, Q2=B)
+
+**Rationale**: Each deployment tier (suite, product, service) has distinct routing responsibilities. Suite routes to products, products route to services, services handle subcommands. Separating into `framework/suite/cli/`, `framework/product/cli/`, `framework/service/cli/` provides clear ownership:
+- `suite/cli/`: `RouteSuite()`, `SuiteConfig`, `ProductEntry` — maps product names to router functions
+- `product/cli/`: `RouteProduct()`, `ProductConfig`, `ServiceEntry` — maps service names to router functions (moved FROM service/cli/)
+- `service/cli/`: `RouteService()` — remains as-is for service-level subcommands
+
+**Impact**: `RouteProduct()` moves from `framework/service/cli/` to `framework/product/cli/`. Import paths change for all product-level cmd/ entries.
+
+### Decision 7: CI Workflow Consolidation
+
+**Options**:
+- A: Keep ci-cicd-lint.yml as separate workflow
+- B: Merge ci-cicd-lint.yml into ci-quality.yml as additional job ✓ **SELECTED**
+- C: Create new ci-lint-all.yml combining all lint workflows
+- D: Replace with pre-commit-only enforcement
+
+**Decision**: Option B selected ✓ CONFIRMED (user directive)
+
+**Rationale**: ci-cicd-lint.yml runs cicd-lint deployment validators on push/PR. This belongs as a job within ci-quality.yml alongside build, lint, and unit tests. One fewer workflow file, simpler CI/CD matrix, same enforcement. The ci-quality.yml workflow already runs golangci-lint and build checks.
+
+**Scope**: Move ci-cicd-lint.yml job steps into ci-quality.yml. Delete ci-cicd-lint.yml. Update workflow documentation.
+
+### Decision 8: Environment Config Disposition
+
+**Options**:
+- A: Keep development.yml, production.yml, test.yml in configs/ (status quo)
+- B: Move environment configs to deployments/*/config/ as overlays
+- C: Delete all environment configs — use deployment wiring instead ✓ **SELECTED**
+- D: Merge environment configs into service config files
+
+**Decision**: Option C selected ✓ CONFIRMED (user directive)
+
+**Rationale**: Per Decision 1, configs/ is the canonical SSOT for environment-agnostic domain config. Environment-specific files (development.yml, production.yml, test.yml, profiles/) violate this principle — they are deployment concerns. Since deployments/ already handles environment-specific wiring, these files are redundant duplication. Certificate profiles/ are deployment-specific (TLS cert generation parameters vary by environment).
+
+**Scope**: DELETE development.yml, production.yml, test.yml, profiles/ from all configs/ directories. Docker overlays (*-docker.yml) MOVE to deployments/*/config/. Deployment variants (config-pg-*.yml, config-sqlite.yml) already in correct location.
+
+### Decision 9: Legacy Secret Cleanup
+
+**Options**:
+- A: Keep all legacy secrets for backward compatibility
+- B: Remove only obviously unused secrets
+- C: Remove all legacy secrets — they are dead references ✓ **SELECTED**
+- D: Archive legacy secrets to a reference directory
+
+**Decision**: Option C selected ✓ CONFIRMED (user directive)
+
+**Rationale**: `sm-hash-pepper.secret` is a legacy artifact from when SM had a standalone hash service — it no longer exists. All `{PRODUCT}-*.secret.never` and `{SUITE}-*.secret.never` files are placeholder/marker files that serve no purpose — the real secrets use `{PS-ID}-` or `{SUITE}-{PS-ID}-` prefixes. Clean deletion reduces deployment confusion.
+
+**Scope**: DELETE sm-hash-pepper.secret from all deployment tiers. DELETE all .secret.never marker files with product-level or suite-level prefixes. Unseal keys and database URL secrets are NOT affected.
+
+### Decision 10: Workflow Subcommands
+
+**Options**:
+- A: Keep workflow tool as single command
+- B: Add `run` + `cleanup` subcommands ✓ **SELECTED**
+- C: Split into separate cmd/workflow-run and cmd/workflow-cleanup
+- D: Merge workflow functionality into cicd-lint
+
+**Decision**: Option B selected ✓ CONFIRMED (user directive)
+
+**Rationale**: The workflow tool needs both execution (`run`) and cleanup (`cleanup`) capabilities. Subcommands under a single `cmd/workflow/` entry follow the established CLI pattern (like `cmd/cicd-lint lint-fitness`). This avoids anti-pattern of `cmd/workflow-run/` separate entries.
+
+**Scope**: `cmd/workflow/main.go` accepts `run` and `cleanup` subcommands. Internal implementation in `internal/apps/tools/workflow/`.
+
+### Decision 11: CICD Tool Rename
+
+**Options**:
+- A: Keep as cmd/cicd (status quo)
+- B: Rename to cmd/cicd-lint with internal/apps/tools/cicd_lint/ ✓ **SELECTED**
+- C: Rename to cmd/lint
+- D: Merge into a general cmd/tools
+
+**Decision**: Option B selected ✓ CONFIRMED (quizme-v2 Q1=E, user directive)
+
+**Rationale**: The tool provides linters, formatters, and scripts for CI/CD. The name `cicd-lint` more accurately reflects its primary purpose and distinguishes it from the `workflow` tool. Moving under `internal/apps/tools/` creates a clean separation between product/service apps and infrastructure tools.
+
+**Scope**: Rename `cmd/cicd/` → `cmd/cicd-lint/`, `internal/apps/cicd/` → `internal/apps/tools/cicd_lint/`. Update all import paths, workflow files, documentation, pre-commit hooks. The `.cicd/` runtime cache directory is unrelated (gitignored runtime artifact) and stays unchanged.
+
+**Rename instances identified**:
+- `cmd/cicd/main.go` → `cmd/cicd-lint/main.go`
+- `internal/apps/cicd/` → `internal/apps/tools/cicd_lint/`
+- All `go run ./cmd/cicd` in workflows → `go run ./cmd/cicd-lint`
+- All `go run ./cmd/cicd` in pre-commit hooks → `go run ./cmd/cicd-lint`
+- ARCHITECTURE.md Section 9.10 command table
+- Entity registry `PSID` and `InternalAppsDir` fields
+- copilot-instructions.md cicd command table
+- `.cicd/` runtime cache dir: NO RENAME (gitignored, unrelated)
+
 ## Risk Assessment
 
 | Risk | Probability | Impact | Mitigation |
@@ -381,6 +514,10 @@ All 10 services + template have 4 config files each (40 total):
 | Fitness linter false positives | Medium | Medium | Table-driven tests with edge cases; run on real codebase before merging |
 | ARCHITECTURE.md merge creates duplication | Low | Low | Careful deduplication during merge; lint-docs validates propagation |
 | cmd/ consolidation breaks CI/CD | Medium | High | Check all workflow files for references to cmd/identity-compose and cmd/identity-demo |
+| cicd → cicd-lint rename breaks imports | Medium | High | Global search for all `cmd/cicd` and `apps/cicd` references; update in one atomic commit |
+| Citus removal leaves dangling references | Low | Low | grep for `citus` after deletion; verify compose files parse cleanly |
+| ci-cicd-lint.yml merge breaks CI | Medium | High | Test ci-quality.yml with added jobs locally before pushing |
+| Framework tier routing import breakage | Medium | Medium | Update all cmd/ product entry points in same commit as RouteProduct move |
 
 ## Quality Gates - MANDATORY
 
@@ -402,8 +539,8 @@ All 10 services + template have 4 config files each (40 total):
 
 **Per-Phase Quality Gates**:
 - Unit + integration tests complete before moving to next phase
-- Deployment validators pass (`go run ./cmd/cicd lint-deployments`)
-- Fitness linters pass (`go run ./cmd/cicd lint-fitness`)
+- Deployment validators pass (`go run ./cmd/cicd-lint lint-deployments`)
+- Fitness linters pass (`go run ./cmd/cicd-lint lint-fitness`)
 - Race detector clean (`go test -race -count=2 ./...`) for modified packages
 
 **Overall Project Quality Gates**:
@@ -417,13 +554,19 @@ All 10 services + template have 4 config files each (40 total):
 
 - [ ] All phases complete
 - [ ] Zero archived/orphaned directories remain
-- [ ] All cmd/ entries documented or fixed
-- [ ] configs/ uses rigid {PS-ID}-based naming
+- [ ] Zero shared-citus/ and legacy artifacts remain (Decision 5, 9)
+- [ ] All cmd/ entries documented or fixed; cicd → cicd-lint rename complete (Decision 11)
+- [ ] configs/ uses rigid {PS-ID}-based naming; zero environment configs (Decision 8)
+- [ ] Framework tier routing in place: suite/cli/, product/cli/, service/cli/ (Decision 6)
 - [ ] ARCHITECTURE-COMPOSE-MULTIDEPLOY.md merged into ARCHITECTURE.md
-- [ ] ARCHITECTURE.md sufficient for LLM agent convergence on roadmap goals
+- [ ] ARCHITECTURE.md synced with target-structure.md decisions (5-11)
+- [ ] ci-cicd-lint.yml merged into ci-quality.yml (Decision 7)
+- [ ] Workflow tool has run + cleanup subcommands (Decision 10)
 - [ ] 49+ fitness linters all passing
 - [ ] 68+ deployment validators all passing
 - [ ] All quality gates passing
+- [ ] Skills/agents/instructions audited for framework-v5 compliance
+- [ ] test/load/ refactoring documented as deferred work
 - [ ] Evidence archived (test output, logs, analysis)
 
 ## ARCHITECTURE.md Cross-References - MANDATORY

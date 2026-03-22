@@ -18,7 +18,7 @@ and automation moves current state toward it.
 | Service | `{SERVICE}` | varies per product (see below) | 10 total |
 | PS-ID | `{PS-ID}` = `{PRODUCT}-{SERVICE}` | see table below | 10 |
 | PS_ID | `{PS_ID}` = `{PRODUCT}_{SERVICE}` | underscore variant for SQL/secrets | 10 |
-| Infra Tool | N/A | `cicd`, `workflow` | 2 |
+| Infra Tool | N/A | `cicd-lint`, `workflow` | 2 |
 | Framework | N/A | `framework` | 1 |
 
 ### Product-Service Matrix
@@ -42,21 +42,21 @@ All directory and file permissions shown in this document follow this convention
 
 | Target | Permission | Octal | Description |
 |--------|-----------|-------|-------------|
-| Directories | `drwxr-xr-x` | 755 | Owner rwx, group/other rx |
-| Source files (`.go`, `.yml`, `.yaml`, `.md`, `.sql`) | `-rw-r--r--` | 644 | Owner rw, group/other r |
+| Directories | `drwxr-x---` | 750 | Owner rwx, group rx, others no access |
+| Source files (`.go`, `.yml`, `.yaml`, `.md`, `.sql`) | `-rw-r-----` | 640 | Owner rw, group r, others no access |
 | Secret files (`.secret`) | `-r--r-----` | 440 | Owner/group r only, no other |
 | Secret marker files (`.secret.never`) | `-r--r-----` | 440 | Same as secrets |
-| Executable scripts (`mvnw`) | `-rwxr-xr-x` | 755 | Owner rwx, group/other rx |
-| Generated files (`*.gen.go`) | `-rw-r--r--` | 644 | Same as source |
+| Executable scripts (`mvnw`) | `-rwxr-x---` | 750 | Owner rwx, group rx, others no access |
+| Generated files (`*.gen.go`) | `-rw-r-----` | 640 | Same as source |
 
 ---
 
 ## A. Root Level
 
-### A.1 Root Files (KEEP — legitimate project config) `drwxr-xr-x`
+### A.1 Root Files (KEEP — legitimate project config) `drwxr-x---`
 
 ```
-{ROOT}/                                    # drwxr-xr-x
+{ROOT}/                                    # drwxr-x---
 ├── .air.toml                              # Air live-reload config
 ├── .dockerignore                          # Docker build context exclusions
 ├── .editorconfig                          # Editor formatting standards (indent, line endings)
@@ -83,7 +83,7 @@ All directory and file permissions shown in this document follow this convention
 All `*.exe`, `*.py`, `coverage*`, `*_coverage`, `*.test.exe` files at root are
 build/test artifacts that should never be committed. Git history preserves them.
 
-### A.3 Root Hidden Directories `drwxr-xr-x`
+### A.3 Root Hidden Directories `drwxr-x---`
 
 ```
 {ROOT}/
@@ -105,7 +105,7 @@ build/test artifacts that should never be committed. Git history preserves them.
 
 ---
 
-## B. .github/ — GitHub & Copilot Configuration `drwxr-xr-x`
+## B. .github/ — GitHub & Copilot Configuration `drwxr-x---`
 
 ```
 .github/
@@ -128,8 +128,8 @@ build/test artifacts that should never be committed. Git history preserves them.
 │   ├── go-setup/action.yml                #   Go toolchain setup with caching
 │   ├── golangci-lint/action.yml           #   golangci-lint v2 execution
 │   ├── security-scan-gitleaks/action.yml
-│   ├── security-scan-trivy/action.yml
-│   ├── security-scan-trivy2/action.yml
+│   ├── security-scan-trivy/action.yml     #   Manual Trivy install + CLI (supports scan-files)
+│   ├── security-scan-trivy2/action.yml    #   Official aquasecurity/trivy-action (simpler, no scan-files)
 │   ├── workflow-job-begin/action.yml      #   Job telemetry start
 │   └── workflow-job-end/action.yml        #   Job telemetry end
 ├── instructions/                          # Copilot instruction files (auto-loaded alpha order)
@@ -181,18 +181,20 @@ build/test artifacts that should never be committed. Git history preserves them.
     ├── ci-quality.yml                     #   Build + lint + unit tests
     ├── ci-race.yml                        #   Race condition detection
     ├── ci-sast.yml                        #   Static application security testing
-    ├── cicd-lint-deployments.yml          #   Deployment structure validation
     └── release.yml                        #   Release workflow
 ```
 
+**NOTE**: The current `ci-cicd-lint.yml` separate workflow is consolidated INTO
+`ci-quality.yml` as a job step. No standalone cicd-lint workflow in target state.
+
 ---
 
-## C. cmd/ — Binary Entry Points `drwxr-xr-x`
+## C. cmd/ — Binary Entry Points `drwxr-x---`
 
-**Pattern**: Each entry has exactly one `main.go` that delegates to `internal/apps/`.
+**Pattern**: Flat directories, and each entry has exactly one `main.go` that delegates to `internal/apps/`.
 
 ```
-cmd/                                                  # drwxr-xr-x
+cmd/                                                  # drwxr-x---
 ├── {SUITE}/main.go                                   # Suite CLI → internal/apps/{SUITE}/
 │                                                     #   e.g. cmd/cryptoutil/main.go
 │
@@ -216,7 +218,8 @@ cmd/                                                  # drwxr-xr-x
 │                                                     #   cmd/sm-kms/main.go
 │
 ├── cicd-lint/main.go                                  # CICD-Lint tool → internal/apps/tools/cicd-lint/
-└── workflow/main.go                                  # Workflow runner → internal/apps/tools/workflow/
+└── workflow/main.go                                  # Workflow runner and cleaner → internal/apps/tools/workflow/
+                                                      #   Subcommands: `run` (execute workflows) + `cleanup` (github-cleanup)
 ```
 
 **Allowed entries**: 1 suite + 5 products + 10 services + 2 infra = **18 total**
@@ -225,13 +228,13 @@ cmd/                                                  # drwxr-xr-x
 
 ---
 
-## D. api/ — OpenAPI Specifications & Generated Code `drwxr-xr-x`
+## D. api/ — OpenAPI Specifications & Generated Code `drwxr-x---`
 
 **Pattern**: One directory per product-service, containing the OpenAPI spec and
-oapi-codegen output.
+oapi-codegen output. No directories for product or suite level — only service-level API definitions.
 
 ```
-api/                                                  # drwxr-xr-x
+api/                                                  # drwxr-x---
 └── {PS-ID}/                                          # (×10)
     ├── generate.go                                   # //go:generate oapi-codegen directives
     ├── openapi_spec.yaml                             # OpenAPI 3.0.3 specification (SSOT for API)
@@ -250,16 +253,16 @@ api/                                                  # drwxr-xr-x
 
 ---
 
-## E. configs/ — Canonical Application Configuration (SSOT) `drwxr-xr-x`
+## E. configs/ — Canonical Application Configuration (SSOT) `drwxr-x---`
 
 **Principle**: `configs/` is the **single source of truth** for what the app needs —
 environment-agnostic, reusable configuration. Deployment-specific overlays live
 in `deployments/`.
 
-### E.1 Suite Level
+### E.1 Suite Level (Parameterized ×1)
 
 ```
-configs/                                              # drwxr-xr-x
+configs/                                              # drwxr-x---
 └── {SUITE}/                                          # Suite-level config
     └── {SUITE}.yml                                   # Suite orchestration config
                                                       #   e.g. configs/cryptoutil/cryptoutil.yml
@@ -268,7 +271,7 @@ configs/                                              # drwxr-xr-x
 ### E.2 Product Level (Parameterized ×5)
 
 ```
-configs/                                              # drwxr-xr-x
+configs/                                              # drwxr-x---
 └── {PRODUCT}/                                        # Product directory
     └── {PRODUCT}.yml                                 # Canonical product domain config
                                                       #   e.g. configs/sm/sm.yml
@@ -283,7 +286,7 @@ configs/                                              # drwxr-xr-x
 **FLAT PS-ID directories** — NOT nested `configs/{PRODUCT}/{SERVICE}/`.
 
 ```
-configs/                                              # drwxr-xr-x
+configs/                                              # drwxr-x---
 └── {PS-ID}/                                          # Service directory (flat, one per PS-ID)
     └── {PS-ID}.yml                                   # Canonical service domain config
                                                       #   e.g. configs/sm-kms/sm-kms.yml
@@ -305,7 +308,7 @@ that product. These live at the product level under `configs/{PRODUCT}/{SERVICE}
 for domain-specific configuration files.
 
 ```
-configs/                                              # drwxr-xr-x
+configs/                                              # drwxr-x---
 ├── identity/                                         # Identity product
 │   ├── identity.yml                                  # Product-level config (from E.2)
 │   ├── authz/
@@ -348,27 +351,27 @@ configs/                                              # drwxr-xr-x
         └── domain/                                   # Domain-specific configuration files
 ```
 
-### E.5 What MOVES OUT of configs/ (to deployments/)
+### E.5 What Gets DELETED or MOVED from configs/
 
-These files are **deployment-specific** and belong in `deployments/`, not `configs/`:
+These files are **deployment-specific** or **legacy** and should be DELETED:
 
-| Current Location | Reason to Move | Target |
+| Current Location | Reason to Remove | Action |
 |-----------------|----------------|--------|
-| `configs/identity/development.yml` | Environment-specific | `deployments/identity/config/` or delete |
-| `configs/identity/production.yml` | Environment-specific | `deployments/identity/config/` or delete |
-| `configs/identity/test.yml` | Environment-specific | `deployments/identity/config/` or delete |
-| `configs/identity/profiles/` (authz-idp.yml, ci.yml, demo.yml, full-stack.yml) | Compose deployment profiles | `deployments/identity/config/` |
-| `configs/identity/*/authz-docker.yml` | Docker-specific overlay | `deployments/identity-authz/config/` |
-| `configs/identity/*/idp-docker.yml` | Docker-specific overlay | `deployments/identity-idp/config/` |
-| `configs/identity/*/rp-docker.yml` | Docker-specific overlay | `deployments/identity-rp/config/` |
-| `configs/identity/*/rs-docker.yml` | Docker-specific overlay | `deployments/identity-rs/config/` |
-| `configs/identity/*/spa-docker.yml` | Docker-specific overlay | `deployments/identity-spa/config/` |
-| `configs/sm/im/config-pg-1.yml` | Deployment variant | Already in `deployments/sm-im/config/` |
-| `configs/sm/im/config-pg-2.yml` | Deployment variant | Already in `deployments/sm-im/config/` |
-| `configs/sm/im/config-sqlite.yml` | Deployment variant | Already in `deployments/sm-im/config/` |
-| `configs/sm/kms/config-pg-1.yml` | Deployment variant | Already in `deployments/sm-kms/config/` |
-| `configs/sm/kms/config-pg-2.yml` | Deployment variant | Already in `deployments/sm-kms/config/` |
-| `configs/sm/kms/config-sqlite.yml` | Deployment variant | Already in `deployments/sm-kms/config/` |
+| `configs/identity/development.yml` | Environment-specific | DELETE |
+| `configs/identity/production.yml` | Environment-specific | DELETE |
+| `configs/identity/test.yml` | Environment-specific | DELETE |
+| `configs/identity/profiles/` (authz-idp.yml, ci.yml, demo.yml, full-stack.yml) | Compose deployment profiles | DELETE |
+| `configs/identity/*/authz-docker.yml` | Docker-specific overlay | MOVE to `deployments/identity-authz/config/` |
+| `configs/identity/*/idp-docker.yml` | Docker-specific overlay | MOVE to `deployments/identity-idp/config/` |
+| `configs/identity/*/rp-docker.yml` | Docker-specific overlay | MOVE to `deployments/identity-rp/config/` |
+| `configs/identity/*/rs-docker.yml` | Docker-specific overlay | MOVE to `deployments/identity-rs/config/` |
+| `configs/identity/*/spa-docker.yml` | Docker-specific overlay | MOVE to `deployments/identity-spa/config/` |
+| `configs/sm/im/config-pg-1.yml` | Deployment variant | DELETE (already in `deployments/sm-im/config/`) |
+| `configs/sm/im/config-pg-2.yml` | Deployment variant | DELETE (already in `deployments/sm-im/config/`) |
+| `configs/sm/im/config-sqlite.yml` | Deployment variant | DELETE (already in `deployments/sm-im/config/`) |
+| `configs/sm/kms/config-pg-1.yml` | Deployment variant | DELETE (already in `deployments/sm-kms/config/`) |
+| `configs/sm/kms/config-pg-2.yml` | Deployment variant | DELETE (already in `deployments/sm-kms/config/`) |
+| `configs/sm/kms/config-sqlite.yml` | Deployment variant | DELETE (already in `deployments/sm-kms/config/`) |
 
 ### E.6 What Gets DELETED from configs/
 
@@ -382,7 +385,7 @@ These files are **deployment-specific** and belong in `deployments/`, not `confi
 
 ---
 
-## F. deployments/ — Deployment Manifests & Wiring `drwxr-xr-x`
+## F. deployments/ — Deployment Manifests & Wiring `drwxr-x---`
 
 **Principle**: `deployments/` contains environment-specific deployment manifests that
 CONSUME configuration from `configs/`. Config files here are deployment overlays, NOT
@@ -391,7 +394,7 @@ the canonical source.
 ### F.1 Service-Level Deployments (×10)
 
 ```
-deployments/                                          # drwxr-xr-x
+deployments/                                          # drwxr-x---
 └── {PS-ID}/                                          # One per product-service
     ├── compose.yml                                   # Docker Compose manifest
     ├── Dockerfile                                    # Multi-stage build (builder → validator → runtime)
@@ -411,107 +414,93 @@ deployments/                                          # drwxr-xr-x
     │                                                 #     database-driver: postgres
     │                                                 #     database-url: file:///run/secrets/postgres-url.secret
     └── secrets/                                      # Docker secrets (chmod 440)
-        ├── browser-password.secret                   #   value: {PS-ID}-browser-{base64-random}
-        │                                             #     e.g. sm-im-browser-ZRWjFFiRHMGps8E+xiwt1A==
+        ├── browser-password.secret                   #   value: {PS-ID}-browser-pass-{base64-random-32-bytes}
+        │                                             #     e.g. sm-im-browser-pass-ZRWjFFiRHMGps8E+x1A==
         ├── browser-username.secret                   #   value: {PS-ID}-browser-user
         │                                             #     e.g. sm-im-browser-user
-        ├── hash-pepper-v3.secret                     #   value: {base64-random-32-bytes}
-        │                                             #     e.g. txvakOQ3is9DDHfdAtjoa8sl2AjgqOHZSk0ggjOlk0M=
-        ├── postgres-database.secret                  #   value: {PS_ID}
-        │                                             #     e.g. sm_im
-        ├── postgres-password.secret                  #   value: {PS_ID}_pass
-        │                                             #     e.g. sm_im_pass
-        ├── postgres-url.secret                       #   value: postgres://{PS_ID}_user:{PS_ID}_pass@{PS-ID}-postgres:5432/{PS_ID}?sslmode=disable
-        │                                             #     e.g. postgres://sm_im_user:sm_im_pass@sm-im-postgres:5432/sm_im?sslmode=disable
-        ├── postgres-username.secret                  #   value: {PS_ID}_user
-        │                                             #     e.g. sm_im_user
-        ├── service-password.secret                   #   value: {PS-ID}-service-{base64-random}
-        │                                             #     e.g. sm-im-service-cIu5DadDObrS+rP49XwrYw==
+        ├── hash-pepper-v3.secret                     #   value: {PS-ID}-hash-pepper-v3-{base64-random-32-bytes}
+        │                                             #     e.g. sm-im-hash-pepper-v3-tkOQ3is9DDHfda8sl2AjgqOHZSk0ggjOlk0M=
+        ├── postgres-database.secret                  #   value: {PS_ID}_database
+        │                                             #     e.g. sm_im_database
+        ├── postgres-password.secret                  #   value: {PS_ID}_database_pass-{base64-random-32-bytes}
+        │                                             #     e.g. sm_im_database_pass-ZRWjFFiRHMGps8E+x1A==
+        ├── postgres-url.secret                       #   value: postgres://{PS_ID}_database_user:{PS_ID}_database_pass@{PS-ID}-postgres:5432/{PS_ID}_database?sslmode=disable
+        │                                             #     e.g. postgres://sm_im_database_user:sm_im_database_pass@sm-im-postgres:5432/sm_im_database?sslmode=disable
+        ├── postgres-username.secret                  #   value: {PS_ID}_database_user
+        │                                             #     e.g. sm_im_database_user
+        ├── service-password.secret                   #   value: {PS-ID}-service-pass-{base64-random-32-bytes}
+        │                                             #     e.g. sm-im-service-pass-cIu5DadDObrS+rP49XwrYw==
         ├── service-username.secret                   #   value: {PS-ID}-service-user
         │                                             #     e.g. sm-im-service-user
-        ├── unseal-1of5.secret                        #   value: {SERVICE}-{hex-random-32-bytes}
+        ├── unseal-1of5.secret                        #   value: {PS-ID}-unseal-key-1-of-5-{hex-random-32-bytes}
         │                                             #     e.g. im-0d6dfc52f2517a2820e11859fe9e4f3c
-        ├── unseal-2of5.secret                        #   value: {SERVICE}-{hex-random-32-bytes}
-        ├── unseal-3of5.secret                        #   value: {SERVICE}-{hex-random-32-bytes}
-        ├── unseal-4of5.secret                        #   value: {SERVICE}-{hex-random-32-bytes}
-        └── unseal-5of5.secret                        #   value: {SERVICE}-{hex-random-32-bytes}
+        ├── unseal-2of5.secret                        #   value: {PS-ID}-unseal-key-2-of-5-{hex-random-32-bytes}
+        ├── unseal-3of5.secret                        #   value: {PS-ID}-unseal-key-3-of-5-{hex-random-32-bytes}
+        ├── unseal-4of5.secret                        #   value: {PS-ID}-unseal-key-4-of-5-{hex-random-32-bytes}
+        └── unseal-5of5.secret                        #   value: {PS-ID}-unseal-key-5-of-5-{hex-random-32-bytes}
 ```
 
 ### F.2 Product-Level Deployments (×5)
 
 ```
-deployments/                                          # drwxr-xr-x
+deployments/                                          # drwxr-x---
 └── {PRODUCT}/                                        # One per product
     ├── compose.yml                                   # Product-level compose (delegates to services)
     ├── Dockerfile                                    # Product-level multi-stage build
     └── secrets/                                      # Product-level secrets (shared across services)
-        ├── hash-pepper-v3.secret                     #   value: dev-hash-pepper-v3
-        ├── postgres-database.secret                  #   value: cryptoutil
-        ├── postgres-password.secret                  #   value: cryptoutil-dev-password
-        ├── postgres-url.secret                       #   value: postgres://cryptoutil:cryptoutil-dev-password@{PRODUCT}-postgres:5432/cryptoutil?sslmode=disable
-        ├── postgres-username.secret                  #   value: cryptoutil
-        ├── sm-hash-pepper.secret                     #   value: CHANGE_ME_IN_PRODUCTION (legacy, product-specific)
-        ├── unseal-1of5.secret                        #   value: dev-unseal-key-1-of-5
-        ├── unseal-2of5.secret                        #   value: dev-unseal-key-2-of-5
-        ├── unseal-3of5.secret                        #   value: dev-unseal-key-3-of-5
-        ├── unseal-4of5.secret                        #   value: dev-unseal-key-4-of-5
-        ├── unseal-5of5.secret                        #   value: dev-unseal-key-5-of-5
+        ├── browser-password.secret.never             #   MUST NEVER be overridden at PRODUCT level
+        ├── browser-username.secret.never             #   MUST NEVER be overridden at PRODUCT level
+        ├── service-password.secret.never             #   MUST NEVER be overridden at PRODUCT level
+        ├── service-username.secret.never             #   MUST NEVER be overridden at PRODUCT level
+        ├── hash-pepper-v3.secret                     #   MUST ALWAYS be overridden at PRODUCT LEVEL, value: {PRODUCT}-hash-pepper-v3-{base64-random-32-bytes}
+        ├── postgres-database.secret                  #   MUST ALWAYS be overridden at PRODUCT LEVEL, value: {PRODUCT}_database
+        ├── postgres-password.secret                  #   MUST ALWAYS be overridden at PRODUCT LEVEL, value: {PRODUCT}_database_pass-{base64-random-32-bytes}
+        ├── postgres-url.secret                       #   MUST ALWAYS be overridden at PRODUCT LEVEL, value: postgres://{PRODUCT}_database_user:{PRODUCT}_database_pass@{PRODUCT}_postgres:5432/{PRODUCT}_database?sslmode=disable
+        ├── postgres-username.secret                  #   MUST ALWAYS be overridden at PRODUCT LEVEL, value: {PRODUCT}_database_user
+        ├── unseal-1of5.secret                        #   MUST ALWAYS be overridden at PRODUCT LEVEL, value: {PRODUCT}-unseal-key-1-of-5-{hex-random-32-bytes}
+        ├── unseal-2of5.secret                        #   MUST ALWAYS be overridden at PRODUCT LEVEL, value: {PRODUCT}-unseal-key-2-of-5-{hex-random-32-bytes}
+        ├── unseal-3of5.secret                        #   MUST ALWAYS be overridden at PRODUCT LEVEL, value: {PRODUCT}-unseal-key-3-of-5-{hex-random-32-bytes}
+        ├── unseal-4of5.secret                        #   MUST ALWAYS be overridden at PRODUCT LEVEL, value: {PRODUCT}-unseal-key-4-of-5-{hex-random-32-bytes}
+        ├── unseal-5of5.secret                        #   MUST ALWAYS be overridden at PRODUCT LEVEL, value: {PRODUCT}-unseal-key-5-of-5-{hex-random-32-bytes}
         │
-        │   # .secret.never marker files (KEEP as explicit reminders)
-        ├── {PRODUCT}-postgres-database.secret.never  #   "PostgreSQL secrets MUST NOT be shared at {PRODUCT} level"
-        ├── {PRODUCT}-postgres-password.secret.never  #   Use service-specific secrets instead
-        ├── {PRODUCT}-postgres-url.secret.never       #   See: ARCHITECTURE.md Section 12.3.4
-        ├── {PRODUCT}-postgres-username.secret.never
-        ├── {PRODUCT}-unseal-1of5.secret.never        #   "Unseal secrets MUST NOT be shared at {PRODUCT} level"
-        ├── {PRODUCT}-unseal-2of5.secret.never
-        ├── {PRODUCT}-unseal-3of5.secret.never
-        ├── {PRODUCT}-unseal-4of5.secret.never
-        └── {PRODUCT}-unseal-5of5.secret.never
+        └── unseal-5of5.secret                        #   dev-unseal-key-5-of-5
 ```
 
 ### F.3 Suite-Level Deployment (×1)
 
 ```
-deployments/                                          # drwxr-xr-x
+deployments/                                          # drwxr-x---
 └── {SUITE}-suite/                                    # e.g. cryptoutil-suite/
     ├── compose.yml                                   # Suite-level compose (all 5 products → transitively all 10 services)
     ├── Dockerfile                                    # Suite-level multi-stage build
     └── secrets/                                      # Suite-level secrets
-        ├── postgres-database.secret                  #   value: (shared suite-level dev value)
-        ├── postgres-password.secret                  #   value: (shared suite-level dev value)
-        ├── postgres-url.secret                       #   value: (shared suite-level dev value)
-        ├── postgres-username.secret                  #   value: (shared suite-level dev value)
-        ├── unseal-1of5.secret                        #   value: (shared suite-level dev value)
-        ├── unseal-2of5.secret                        #   value: (shared suite-level dev value)
-        ├── unseal-3of5.secret                        #   value: (shared suite-level dev value)
-        ├── unseal-4of5.secret                        #   value: (shared suite-level dev value)
-        ├── unseal-5of5.secret                        #   value: (shared suite-level dev value)
+        ├── browser-password.secret.never             #   MUST NEVER be overridden at SUITE level
+        ├── browser-username.secret.never             #   MUST NEVER be overridden at SUITE level
+        ├── service-password.secret.never             #   MUST NEVER be overridden at SUITE level
+        ├── service-username.secret.never             #   MUST NEVER be overridden at SUITE level
+        ├── hash-pepper-v3.secret                     #   MUST ALWAYS be overridden at SUITE LEVEL, value: {SUITE}-hash-pepper-v3-{base64-random-32-bytes}
+        ├── postgres-database.secret                  #   MUST ALWAYS be overridden at SUITE LEVEL, value: {SUITE}_database
+        ├── postgres-password.secret                  #   MUST ALWAYS be overridden at SUITE LEVEL, value: {SUITE}-database-pass-{base64-random-32-bytes}
+        ├── postgres-url.secret                       #   MUST ALWAYS be overridden at SUITE LEVEL, value: postgres://{SUITE}_database_user:{SUITE}_database_pass@{SUITE}_postgres:5432/{SUITE}_database?sslmode=disable
+        ├── postgres-username.secret                  #   MUST ALWAYS be overridden at SUITE LEVEL, value: {SUITE}-databases-user
+        ├── unseal-1of5.secret                        #   MUST ALWAYS be overridden at SUITE LEVEL, value: {SUITE}-unseal-key-1-of-5-{hex-random-32-bytes}
+        ├── unseal-2of5.secret                        #   MUST ALWAYS be overridden at SUITE LEVEL, value: {SUITE}-unseal-key-2-of-5-{hex-random-32-bytes}
+        ├── unseal-3of5.secret                        #   MUST ALWAYS be overridden at SUITE LEVEL, value: {SUITE}-unseal-key-3-of-5-{hex-random-32-bytes}
+        ├── unseal-4of5.secret                        #   MUST ALWAYS be overridden at SUITE LEVEL, value: {SUITE}-unseal-key-4-of-5-{hex-random-32-bytes}
+        ├── unseal-5of5.secret                        #   MUST ALWAYS be overridden at SUITE LEVEL, value: {SUITE}-unseal-key-5-of-5-{hex-random-32-bytes}
         │
-        │   # .secret.never marker files (KEEP as explicit reminders)
-        ├── {SUITE}-hash-pepper.secret.never          #   "Secrets MUST NOT be shared at {SUITE} level"
-        ├── {SUITE}-postgres-database.secret.never    #   Use service-specific secrets instead
-        ├── {SUITE}-postgres-password.secret.never    #   See: ARCHITECTURE.md Section 12.3.4
-        ├── {SUITE}-postgres-url.secret.never
-        ├── {SUITE}-postgres-username.secret.never
-        ├── {SUITE}-unseal-1of5.secret.never
-        ├── {SUITE}-unseal-2of5.secret.never
-        ├── {SUITE}-unseal-3of5.secret.never
-        ├── {SUITE}-unseal-4of5.secret.never
-        └── {SUITE}-unseal-5of5.secret.never
+        └── unseal-5of5.secret                        #   dev-unseal-key-5-of-5
 ```
 
 ### F.4 Shared Infrastructure
 
 ```
-deployments/                                          # drwxr-xr-x
+deployments/                                          # drwxr-x---
 ├── shared-telemetry/                                 # OpenTelemetry + Grafana LGTM
 │   └── compose.yml                                   #   otel-collector-contrib + grafana-otel-lgtm
 ├── shared-postgres/                                  # Shared PostgreSQL container
-│   └── compose.yml                                   #   PostgreSQL for multi-service sharing;
-│                                                     #   every service gets a logical database in this instance
-└── shared-citus/                                     # Shared Citus (distributed PostgreSQL)
-    └── compose.yml                                   #   Citus for distributed scenarios;
-                                                      #   every service gets a logical schema in this instance
+│   └── compose.yml                                   #   PostgreSQL for multi-service multi-product multi-suite sharing;
+│                                                     #   every service gets a logical database in this instance; credentials shared at suite-level or product-level or service-level
 ```
 
 ### F.5 Template
@@ -528,15 +517,28 @@ to hyphens (`hash-pepper-v3.secret`) to match all other tiers.
 |-----------------|--------|
 | `deployments/archived/` | Dead code (Decision 3) |
 | `deployments/template/` | Duplicate of `deployments/skeleton-template/` — reconcile and remove |
+| `deployments/shared-citus/` | Citus removed — only PostgreSQL and SQLite supported |
+| `deployments/{PRODUCT}/secrets/sm-hash-pepper.secret` | Legacy file (only in sm product) |
+| `deployments/{PRODUCT}/secrets/{PRODUCT}-postgres-database.secret.never` | Legacy prefixed marker (all products) |
+| `deployments/{PRODUCT}/secrets/{PRODUCT}-postgres-password.secret.never` | Legacy prefixed marker (all products) |
+| `deployments/{PRODUCT}/secrets/{PRODUCT}-postgres-url.secret.never` | Legacy prefixed marker (all products) |
+| `deployments/{PRODUCT}/secrets/{PRODUCT}-postgres-username.secret.never` | Legacy prefixed marker (all products) |
+| `deployments/{PRODUCT}/secrets/{PRODUCT}-unseal-{1..5}of5.secret.never` | Legacy prefixed marker (all products) |
+| `deployments/{SUITE}-suite/secrets/{SUITE}-hash-pepper.secret.never` | Legacy prefixed marker |
+| `deployments/{SUITE}-suite/secrets/{SUITE}-postgres-database.secret.never` | Legacy prefixed marker |
+| `deployments/{SUITE}-suite/secrets/{SUITE}-postgres-password.secret.never` | Legacy prefixed marker |
+| `deployments/{SUITE}-suite/secrets/{SUITE}-postgres-url.secret.never` | Legacy prefixed marker |
+| `deployments/{SUITE}-suite/secrets/{SUITE}-postgres-username.secret.never` | Legacy prefixed marker |
+| `deployments/{SUITE}-suite/secrets/{SUITE}-unseal-{1..5}of5.secret.never` | Legacy prefixed marker |
 
 ---
 
-## G. internal/ — Private Application Code `drwxr-xr-x`
+## G. internal/ — Private Application Code `drwxr-x---`
 
 ### G.1 internal/apps/ — Application Layer
 
 ```
-internal/apps/                                        # drwxr-xr-x
+internal/apps/                                        # drwxr-x---
 ├── {SUITE}/                                          # Suite orchestration
 │   ├── {SUITE}.go                                    #   Suite CLI dispatch (seam pattern)
 │   │                                                 #     Called by cmd/{SUITE}/main.go
@@ -550,7 +552,7 @@ internal/apps/                                        # drwxr-xr-x
 │   │                                                 #     Delegates to services
 │   ├── *_test.go                                     #   Unit tests
 │   ├── e2e/                                          #   E2E tests (orchestrates docker compose of full product)
-│   └── shared/                                       #   Shared within product (optional)
+│   └── shared/                                       #   Shared within product (optional, may not be needed for any products)
 │       └── (shared packages)/                        #   e.g. identity/shared/domain/, identity/shared/config/
 │           ├── *.go
 │           └── *_test.go
@@ -574,13 +576,18 @@ internal/apps/                                        # drwxr-xr-x
 │   │                                                 #     NOT API models (those are in api/{PS-ID}/models/)
 │   │                                                 #     NOT GORM models (those are in repository/)
 │   └── handler/                                      #   HTTP handlers (optional)
-│       └── *.go                                      #     Domain-specific handlers beyond generated
-│                                                     #     strict server (api/{PS-ID}/server/)
+│       └── *.go                                      #     Domain-specific handlers beyond generated strict server (api/{PS-ID}/server/)
 │
 ├── framework/                                        # Service framework (shared by ALL services)
 │   ├── apperr/                                       #   Application error types (moved from internal/shared/apperr/)
 │   ├── suite/                                        #   Suite-level framework (orchestration, routing)
+│   │   └── cli/                                      #     Suite CLI routing
+│   │       ├── suite_router.go                        #       RouteSuite(), SuiteConfig, ProductEntry
+│   │       └── suite_router_test.go                   #       Unit tests
 │   ├── product/                                      #   Product-level framework (product CLI, aggregation)
+│   │   └── cli/                                      #     Product CLI routing (moved from service/cli/)
+│   │       ├── product_router.go                      #       RouteProduct(), ProductConfig, ServiceEntry
+│   │       └── product_router_test.go                 #       Unit tests
 │   ├── tls/                                          #   TLS certificate generation (merged: tls_generator/ + pkiinit/)
 │   └── service/                                      #   Service-level framework
 │       ├── cli/                                      #     CLI infrastructure (cobra commands)
@@ -617,7 +624,7 @@ internal/apps/                                        # drwxr-xr-x
 │       └── testutil/                                 #     Framework test utilities
 │
 ├── tools/                                            # Infrastructure tooling
-│   ├── cicd/                                         #   Custom linting and formatting tools
+│   ├── cicd_lint/                                         #   Custom linting and formatting tools
 │   │   ├── common/                                   #     Shared CICD utilities
 │   │   ├── format_go/                                #     Go code formatter
 │   │   ├── format_gotest/                            #     Go test formatter
@@ -655,12 +662,12 @@ internal/apps/                                        # drwxr-xr-x
 **Consolidation required**:
 
 - `docs_validation/` → merge into `lint_docs/` (single documentation linter)
-- `github_cleanup/` → merge into `tools/workflow/` (single workflow tool)
+- `github_cleanup/` → merge into `tools/workflow/` (single workflow tool, use subcommands to differentiate runner vs cleanup)
 
-### G.2 internal/shared/ — Shared Libraries `drwxr-xr-x`
+### G.2 internal/shared/ — Shared Libraries `drwxr-x---`
 
 ```
-internal/shared/                                      # drwxr-xr-x
+internal/shared/                                      # drwxr-x---
 ├── container/                                        # Docker container utilities
 ├── crypto/                                           # Cryptographic libraries
 │   ├── asn1/                                         #   ASN.1 encoding/decoding
@@ -712,10 +719,10 @@ internal/shared/                                      # drwxr-xr-x
 
 ---
 
-## H. docs/ — Documentation `drwxr-xr-x`
+## H. docs/ — Documentation `drwxr-x---`
 
 ```
-docs/                                                 # drwxr-xr-x
+docs/                                                 # drwxr-x---
 ├── ARCHITECTURE.md                                   # SSOT: Architecture reference (5080+ lines)
 ├── CONFIG-SCHEMA.md                                  # Config file schema reference
 ├── DEV-SETUP.md                                      # Developer setup guide
@@ -745,16 +752,16 @@ docs/                                                 # drwxr-xr-x
 
 ---
 
-## I. test/ — External Test Suites `drwxr-xr-x`
+## I. test/ — External Test Suites `drwxr-x---`
 
 ```
-test/                                                 # drwxr-xr-x
+test/                                                 # drwxr-x---
 └── load/                                             # Gatling load tests (Java 21 + Maven)
     │                                                 # Needs refactoring: cover all 10 service-level,
     │                                                 # all 5 product-level, and 1 suite-level load tests
     ├── .gitignore
     ├── .mvn/                                         #   Maven wrapper
-    ├── mvnw                                          #   Maven wrapper (Unix, chmod 755)
+    ├── mvnw                                          #   Maven wrapper (Unix, chmod 750)
     ├── mvnw.cmd                                      #   Maven wrapper (Windows)
     ├── pom.xml                                       #   Maven POM
     ├── README.md                                     #   Load test documentation
@@ -764,7 +771,7 @@ test/                                                 # drwxr-xr-x
 
 ---
 
-## J. pkg/ — Public Library Code (Reserved) `drwxr-xr-x`
+## J. pkg/ — Public Library Code (Reserved) `drwxr-x---`
 
 ```
 pkg/                                                  # Currently empty, reserved for future public APIs
@@ -856,17 +863,27 @@ These fitness sub-linters of `lint-fitness` enforce the target structure:
 | `docs/` | Historical plans + stale docs | Only active plan + core docs | DELETE stale |
 | `test/load/` | Single basic test | Cover all 10+5+1 tiers | REFACTOR |
 | Secret naming | Inconsistent across tiers | Uniform `{purpose}.secret` + `.never` markers | STANDARDIZE |
+| `deployments/shared-citus/` | Citus distributed PostgreSQL | Deleted (only PostgreSQL + SQLite) | DELETE |
+| `ci-cicd-lint.yml` | Separate workflow | Consolidated into `ci-quality.yml` | MERGE |
+| `sm-hash-pepper.secret` | Legacy product secret | Deleted | DELETE |
+| `{PRODUCT}-*.secret.never` | Legacy prefixed markers | Deleted (unprefixed `.never` files remain) | DELETE |
+| `{SUITE}-*.secret.never` | Legacy prefixed markers | Deleted (unprefixed `.never` files remain) | DELETE |
+| `configs/identity/development.yml` | Environment config | Deleted (not canonical config) | DELETE |
+| `configs/identity/production.yml` | Environment config | Deleted (not canonical config) | DELETE |
+| `configs/identity/test.yml` | Environment config | Deleted (not canonical config) | DELETE |
+| `configs/identity/profiles/` | Compose profiles | Deleted | DELETE |
+| `framework/suite/cli/` | Missing | `RouteSuite()`, `SuiteConfig`, `ProductEntry` | CREATE |
+| `framework/product/cli/` | Missing | `RouteProduct()` moved from `service/cli/` | CREATE + MOVE |
+| `tools/workflow/` subcommands | Single entry | `run` + `cleanup` subcommands | REFACTOR |
 
 ---
 
-## O. Open Questions (Quizme v3 Candidate)
+## O. Open Questions
 
-Resolved from quizme-v2: Q1→E (`tools/cicd-lint/`), Q2→D (`framework/tls/` + merge
-`pkiinit/`), Q3→B (`framework/apperr/`), Q5→B (delete `testdata/`).
+All questions resolved:
 
-One question requires more information before a decision can be made:
-
-1. **framework/suite/ and framework/product/ scope**: The target structure adds
-   `framework/suite/` and `framework/product/` alongside `framework/service/`.
-   Deciding what belongs in them requires research into existing inline patterns.
-   See quizme-v3.md for a detailed breakdown of current code with concrete options.
+- Quizme-v1: 4 Executive Decisions (all answered and confirmed)
+- Quizme-v2: Q1→E (`tools/cicd-lint/`), Q2→D (`framework/tls/` + merge `pkiinit/`),
+  Q3→B (`framework/apperr/`), Q5→B (delete `testdata/`)
+- Quizme-v3: Q1→B (`framework/suite/cli/` with `RouteSuite()`),
+  Q2→B (`framework/product/cli/` with `RouteProduct()` moved from `service/cli/`)

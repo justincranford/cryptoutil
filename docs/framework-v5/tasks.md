@@ -1,7 +1,7 @@
 # Tasks - Framework v5: Rigid Standardization & Cleanup
 
-**Status**: 0 of 42 tasks complete (0%)
-**Last Updated**: 2026-03-22
+**Status**: 0 of 49 tasks complete (0%)
+**Last Updated**: 2026-03-24
 **Created**: 2026-03-21
 
 ## Quality Mandate - MANDATORY
@@ -22,9 +22,9 @@
 
 ## Task Checklist
 
-### Phase 1: Archive and Dead Code Cleanup
+### Phase 1: Archive, Dead Code, and Legacy Cleanup
 
-**Phase Objective**: Remove 161+ dead files across 9 archived/orphaned directories.
+**Phase Objective**: Remove 161+ dead files across 9 archived/orphaned directories, plus legacy infrastructure (Citus, legacy secrets, environment configs).
 
 #### Task 1.1: Delete Identity Archived Directories
 
@@ -75,11 +75,51 @@
   - [ ] No code references to orphaned config files remain
   - [ ] `go build ./...` clean
 
-#### Task 1.5: Phase 1 Quality Gate Verification
+#### Task 1.5: Delete Citus Infrastructure
 
 - **Status**: Not Started
 - **Estimated**: 30m
-- **Dependencies**: Tasks 1.1-1.4
+- **Dependencies**: None
+- **Description**: Delete `deployments/shared-citus/` entirely — only PostgreSQL + SQLite supported (Decision 5)
+- **Acceptance Criteria**:
+  - [ ] `deployments/shared-citus/` deleted
+  - [ ] Zero references to `citus` in compose files
+  - [ ] `go run ./cmd/cicd lint-deployments` passes
+  - [ ] `go build ./...` clean
+
+#### Task 1.6: Delete Legacy Secrets
+
+- **Status**: Not Started
+- **Estimated**: 30m
+- **Dependencies**: None
+- **Description**: Delete `sm-hash-pepper.secret` and all `{PRODUCT}-*.secret.never` / `{SUITE}-*.secret.never` marker files (Decision 9)
+- **Acceptance Criteria**:
+  - [ ] `sm-hash-pepper.secret` removed from all deployment tiers
+  - [ ] All `.secret.never` marker files with product-level prefixes deleted
+  - [ ] All `.secret.never` marker files with suite-level prefixes deleted
+  - [ ] Compose file secret references updated (remove dangling mounts)
+  - [ ] `go run ./cmd/cicd lint-deployments` passes
+
+#### Task 1.7: Delete Environment Configs and Move Docker Overlays
+
+- **Status**: Not Started
+- **Estimated**: 1h
+- **Dependencies**: None
+- **Description**: Delete development.yml, production.yml, test.yml, profiles/ from configs/; move *-docker.yml to deployments/*/config/ (Decision 8)
+- **Acceptance Criteria**:
+  - [ ] `development.yml` deleted from all `configs/` directories
+  - [ ] `production.yml` deleted from all `configs/` directories
+  - [ ] `test.yml` deleted from all `configs/` directories
+  - [ ] `profiles/` deleted from all `configs/` directories
+  - [ ] `*-docker.yml` files moved to corresponding `deployments/*/config/`
+  - [ ] No code references to deleted config files remain
+  - [ ] `go build ./...` clean
+
+#### Task 1.8: Phase 1 Quality Gate Verification
+
+- **Status**: Not Started
+- **Estimated**: 30m
+- **Dependencies**: Tasks 1.1-1.7
 - **Description**: Comprehensive verification that all deletions left the project healthy
 - **Acceptance Criteria**:
   - [ ] `go build ./...` clean
@@ -87,28 +127,49 @@
   - [ ] `go run ./cmd/cicd lint-fitness` — all 44 linters pass
   - [ ] `go run ./cmd/cicd lint-deployments` — all 68 validators pass
   - [ ] `golangci-lint run` clean
-  - [ ] Zero `_archived`, `archived/`, or `orphaned/` directories remain
-  - [ ] Git commit: `refactor: delete 161+ archived and orphaned files`
+  - [ ] Zero `_archived`, `archived/`, `orphaned/`, or `shared-citus/` directories remain
+  - [ ] Zero legacy secrets (`sm-hash-pepper`, prefixed `.secret.never`) remain
+  - [ ] Zero environment configs (`development.yml`, `production.yml`, `test.yml`, `profiles/`) in configs/
+  - [ ] Git commits: one per semantic deletion group (archives, citus, secrets, env configs)
 
 ---
 
 ### Phase 2: Non-Standard Entry Rationalization
 
-**Phase Objective**: Classify all non-standard cmd/ and internal/apps/ entries. Fix anti-pattern violations.
+**Phase Objective**: Classify all non-standard cmd/ and internal/apps/ entries. Fix anti-pattern violations. Rename cicd → cicd-lint. Create framework tier routing. Add workflow subcommands.
 
-#### Task 2.1: Document Infrastructure CLI Tools
+#### Task 2.1: Rename cicd → cicd-lint
+
+- **Status**: Not Started
+- **Estimated**: 2h
+- **Dependencies**: None
+- **Description**: Rename `cmd/cicd/` → `cmd/cicd-lint/` and `internal/apps/cicd/` → `internal/apps/tools/cicd_lint/` (Decision 11)
+- **Acceptance Criteria**:
+  - [ ] `cmd/cicd/` renamed to `cmd/cicd-lint/`
+  - [ ] `internal/apps/cicd/` moved to `internal/apps/tools/cicd_lint/`
+  - [ ] All import paths updated (grep for `apps/cicd`)
+  - [ ] All workflow files updated (`go run ./cmd/cicd` → `go run ./cmd/cicd-lint`)
+  - [ ] Pre-commit hooks updated
+  - [ ] ARCHITECTURE.md Section 9.10 command table updated
+  - [ ] Entity registry `PSID` and `InternalAppsDir` fields updated
+  - [ ] copilot-instructions.md cicd command table updated
+  - [ ] `.cicd/` runtime cache dir: NO RENAME (gitignored, unrelated)
+  - [ ] `go build ./...` clean
+  - [ ] `go test ./...` passes (tools packages)
+
+#### Task 2.2: Document Infrastructure CLI Tools
 
 - **Status**: Not Started
 - **Estimated**: 1h
-- **Dependencies**: None
-- **Description**: Document `cmd/cicd/` and `cmd/workflow/` as intentional infrastructure tools in ARCHITECTURE.md
+- **Dependencies**: Task 2.1
+- **Description**: Document `cmd/cicd-lint/` and `cmd/workflow/` as intentional infrastructure tools in ARCHITECTURE.md
 - **Acceptance Criteria**:
   - [ ] ARCHITECTURE.md Section 4.4.7 updated with infrastructure tool documentation
-  - [ ] `cmd/cicd/` documented as CICD tooling (linters, formatters, scripts)
+  - [ ] `cmd/cicd-lint/` documented as CICD tooling (linters, formatters, scripts)
   - [ ] `cmd/workflow/` documented as workflow testing infrastructure
-  - [ ] `go run ./cmd/cicd lint-docs` passes
+  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
 
-#### Task 2.2: Evaluate cmd/identity-compose
+#### Task 2.3: Evaluate cmd/identity-compose
 
 - **Status**: Not Started
 - **Estimated**: 1h
@@ -122,7 +183,7 @@
   - [ ] All workflow references updated
   - [ ] Build clean
 
-#### Task 2.3: Evaluate cmd/identity-demo
+#### Task 2.4: Evaluate cmd/identity-demo
 
 - **Status**: Not Started
 - **Estimated**: 1h
@@ -135,7 +196,7 @@
   - [ ] If archive: cmd/identity-demo/ removed
   - [ ] Build clean
 
-#### Task 2.4: Evaluate cmd/demo and internal/apps/demo
+#### Task 2.5: Evaluate cmd/demo and internal/apps/demo
 
 - **Status**: Not Started
 - **Estimated**: 1h
@@ -147,42 +208,74 @@
   - [ ] Changes implemented per decision
   - [ ] Build clean
 
-#### Task 2.5: Evaluate internal/apps/pkiinit
+#### Task 2.6: Evaluate internal/apps/pkiinit
 
 - **Status**: Not Started
 - **Estimated**: 30m
 - **Dependencies**: None
-- **Description**: Assess whether PKI init tool belongs under cmd/pki init or is orphaned
+- **Description**: Assess whether PKI init tool belongs under framework/tls/ or is orphaned (quizme-v2 Q2=D)
 - **Acceptance Criteria**:
   - [ ] 3-file codebase reviewed
-  - [ ] Decision documented: integrate into cmd/pki init, OR archive
+  - [ ] Decision documented: integrate into framework/tls/, OR archive
   - [ ] Changes implemented per decision
   - [ ] Build clean
 
-#### Task 2.6: Clean docs/demo-brainstorm
+#### Task 2.7: Clean docs/demo-brainstorm
 
 - **Status**: Not Started
 - **Estimated**: 15m
-- **Dependencies**: Task 2.4
+- **Dependencies**: Task 2.5
 - **Description**: Archive or delete demo brainstorm documents if no longer relevant
 - **Acceptance Criteria**:
   - [ ] 3 files reviewed for relevance
   - [ ] Deleted if outdated, kept if active planning reference
   - [ ] No references to deleted files remain
 
-#### Task 2.7: Phase 2 Quality Gate Verification
+#### Task 2.8: Create Framework Tier Routing
+
+- **Status**: Not Started
+- **Estimated**: 2h
+- **Dependencies**: None
+- **Description**: Create `framework/suite/cli/` with RouteSuite() and `framework/product/cli/` with RouteProduct() moved from service/cli/ (Decision 6)
+- **Acceptance Criteria**:
+  - [ ] `internal/apps/framework/suite/cli/suite_router.go` created: `RouteSuite()`, `SuiteConfig`, `ProductEntry`
+  - [ ] `internal/apps/framework/suite/cli/suite_router_test.go` created (≥98% coverage)
+  - [ ] `internal/apps/framework/product/cli/product_router.go` created: `RouteProduct()`, `ProductConfig`, `ServiceEntry`
+  - [ ] `internal/apps/framework/product/cli/product_router_test.go` created (≥98% coverage)
+  - [ ] `RouteProduct()` removed from `framework/service/cli/` (moved, not duplicated)
+  - [ ] All product-level `cmd/*/main.go` imports updated for new `product/cli/` path
+  - [ ] All suite-level `cmd/cryptoutil/main.go` imports updated for new `suite/cli/` path
+  - [ ] `go build ./...` clean
+  - [ ] `go test ./...` passes (framework packages)
+
+#### Task 2.9: Add Workflow Subcommands
+
+- **Status**: Not Started
+- **Estimated**: 1h
+- **Dependencies**: Task 2.1 (cicd-lint rename moves workflow under tools/)
+- **Description**: Add `run` and `cleanup` subcommands to `cmd/workflow/` (Decision 10)
+- **Acceptance Criteria**:
+  - [ ] `cmd/workflow/main.go` accepts `run` and `cleanup` subcommands
+  - [ ] Internal implementation in `internal/apps/tools/workflow/`
+  - [ ] `go build ./cmd/workflow/...` clean
+  - [ ] `go test ./internal/apps/tools/workflow/...` passes (≥98% coverage)
+
+#### Task 2.10: Phase 2 Quality Gate Verification
 
 - **Status**: Not Started
 - **Estimated**: 30m
-- **Dependencies**: Tasks 2.1-2.6
+- **Dependencies**: Tasks 2.1-2.9
 - **Description**: Verify all rationalization changes maintain project health
 - **Acceptance Criteria**:
   - [ ] `go build ./...` clean
   - [ ] `go build -tags e2e,integration ./...` clean
   - [ ] `go test ./...` passes (modified packages)
-  - [ ] `go run ./cmd/cicd lint-fitness` — all linters pass
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` — all linters pass
   - [ ] `golangci-lint run` clean
   - [ ] Zero cmd/ anti-pattern violations remain
+  - [ ] cicd → cicd-lint rename complete with zero missed references
+  - [ ] Framework tier routing (suite/cli/, product/cli/, service/cli/) in place
+  - [ ] Workflow subcommands (run, cleanup) functional
   - [ ] ARCHITECTURE.md documents all intentional infrastructure tools
   - [ ] Git commits: one per semantic change
 
@@ -275,7 +368,7 @@
   - [ ] Naming conventions table included
   - [ ] Dual configs/ vs deployments/config/ relationship documented
   - [ ] Examples for each config file type
-  - [ ] `go run ./cmd/cicd lint-docs` passes
+  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
 
 #### Task 3.7: Update lint-deployments Mirror Mapping
 
@@ -299,8 +392,8 @@
   - [ ] `go build ./...` clean
   - [ ] `go build -tags e2e,integration ./...` clean
   - [ ] `go test ./...` passes (modified packages)
-  - [ ] `go run ./cmd/cicd lint-fitness` — all linters pass
-  - [ ] `go run ./cmd/cicd lint-deployments` — all validators pass
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` — all linters pass
+  - [ ] `go run ./cmd/cicd-lint lint-deployments` — all validators pass
   - [ ] `golangci-lint run` clean
   - [ ] All configs/ files follow `{PS-ID}-{purpose}.yml` naming
   - [ ] No empty directories without `.gitkeep`
@@ -322,7 +415,7 @@
   - [ ] All `deployments/{PRODUCT}/secrets/*.secret` files audited
   - [ ] Old-style naming identified and renamed to current standard
   - [ ] Compose file secret references updated
-  - [ ] `go run ./cmd/cicd lint-deployments` passes
+  - [ ] `go run ./cmd/cicd-lint lint-deployments` passes
 
 #### Task 4.2: Document Template vs Skeleton-Template
 
@@ -355,8 +448,8 @@
 - **Dependencies**: Tasks 4.1-4.3
 - **Description**: Verify all deployment changes maintain project health
 - **Acceptance Criteria**:
-  - [ ] `go run ./cmd/cicd lint-deployments` — all 68+ validators pass
-  - [ ] `go run ./cmd/cicd lint-fitness` — all 44 linters pass
+  - [ ] `go run ./cmd/cicd-lint lint-deployments` — all 68+ validators pass
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` — all 44 linters pass
   - [ ] Docker Compose syntax valid (if changed)
   - [ ] Git commits: one per semantic change
 
@@ -364,7 +457,7 @@
 
 ### Phase 5: ARCHITECTURE.md Roadmap Consolidation
 
-**Phase Objective**: Make ARCHITECTURE.md the complete SSOT by merging satellite docs and documenting missing strategies.
+**Phase Objective**: Make ARCHITECTURE.md the complete SSOT by merging satellite docs, documenting missing strategies, and syncing all Decisions 5-11 from target-structure.md.
 
 #### Task 5.1: Merge ARCHITECTURE-COMPOSE-MULTIDEPLOY.md
 
@@ -378,18 +471,19 @@
   - [ ] Section 12.3 comprehensive for compose tier patterns
   - [ ] ARCHITECTURE-COMPOSE-MULTIDEPLOY.md deleted
   - [ ] All references to deleted file updated (search codebase)
-  - [ ] `go run ./cmd/cicd lint-docs` passes
+  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
 
 #### Task 5.2: Add Infrastructure CLI Tools Documentation
 
 - **Status**: Not Started
 - **Estimated**: 1h
 - **Dependencies**: Phase 2 complete
-- **Description**: Add Section 4.4.8 documenting cicd, workflow, and demo as intentional non-product CLI entries
+- **Description**: Add Section 4.4.8 documenting cicd-lint, workflow, and demo as intentional non-product CLI entries
 - **Acceptance Criteria**:
   - [ ] New section documenting infrastructure tool rationale
   - [ ] Clear distinction from product/service CLI pattern
-  - [ ] `go run ./cmd/cicd lint-docs` passes
+  - [ ] References cicd-lint (not cicd) per Decision 11
+  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
 
 #### Task 5.3: Add Archive and Dead Code Policy
 
@@ -400,7 +494,7 @@
 - **Acceptance Criteria**:
   - [ ] Policy: code is DELETED (not archived) — git history preserves everything
   - [ ] Fitness linter prevents `_archived/` directory creation
-  - [ ] `go run ./cmd/cicd lint-docs` passes
+  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
 
 #### Task 5.4: Roadmap Vision Section
 
@@ -413,19 +507,50 @@
   - [ ] 3-tier deployment strategy (SERVICE/PRODUCT/SUITE) fully described
   - [ ] Migration priority documented (sm-im -> jose-ja -> sm-kms -> pki-ca -> identity)
   - [ ] LLM agent reading this section can understand the end goal
-  - [ ] `go run ./cmd/cicd lint-docs` passes
+  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
 
-#### Task 5.5: Phase 5 Quality Gate Verification
+#### Task 5.5: Sync ARCHITECTURE.md with target-structure.md Decisions
+
+- **Status**: Not Started
+- **Estimated**: 2h
+- **Dependencies**: Tasks 5.1-5.4
+- **Description**: Update ARCHITECTURE.md to reflect Decisions 5-11 from target-structure.md
+- **Acceptance Criteria**:
+  - [ ] Section 7: Explicitly state "PostgreSQL and SQLite only — no Citus" (Decision 5)
+  - [ ] Section 5.1 or new section: Framework tier routing pattern documented — suite/cli/, product/cli/, service/cli/ (Decision 6)
+  - [ ] Section 9.7: CI/CD workflow matrix updated — ci-cicd-lint.yml merged into ci-quality.yml (Decision 7)
+  - [ ] Section 12.5: Environment configs (development.yml, production.yml, test.yml, profiles/) documented as DELETE (Decision 8)
+  - [ ] Section 12.6: Legacy secrets policy documented (Decision 9)
+  - [ ] Section 9.10: Workflow subcommands documented (Decision 10)
+  - [ ] Section 9.10: cicd-lint rename reflected (Decision 11)
+  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
+
+#### Task 5.6: Merge ci-cicd-lint.yml into ci-quality.yml
+
+- **Status**: Not Started
+- **Estimated**: 1h
+- **Dependencies**: Task 5.5
+- **Description**: Move ci-cicd-lint.yml job steps into ci-quality.yml and delete ci-cicd-lint.yml (Decision 7)
+- **Acceptance Criteria**:
+  - [ ] ci-cicd-lint.yml job steps copied into ci-quality.yml as new job
+  - [ ] ci-cicd-lint.yml deleted
+  - [ ] ci-quality.yml syntax valid
+  - [ ] CI triggers still cover same paths
+  - [ ] `go build ./...` clean (workflow changes don't affect build, but verify)
+
+#### Task 5.7: Phase 5 Quality Gate Verification
 
 - **Status**: Not Started
 - **Estimated**: 30m
-- **Dependencies**: Tasks 5.1-5.4
-- **Description**: Verify all documentation changes are consistent and pass validation
+- **Dependencies**: Tasks 5.1-5.6
+- **Description**: Verify all documentation and workflow changes are consistent and pass validation
 - **Acceptance Criteria**:
-  - [ ] `go run ./cmd/cicd lint-docs` passes
-  - [ ] `go run ./cmd/cicd lint-docs validate-propagation` passes
+  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
+  - [ ] `go run ./cmd/cicd-lint lint-docs validate-propagation` passes
   - [ ] No broken cross-references in ARCHITECTURE.md
   - [ ] ARCHITECTURE-COMPOSE-MULTIDEPLOY.md deleted
+  - [ ] ci-cicd-lint.yml deleted
+  - [ ] All Decisions 5-11 reflected in ARCHITECTURE.md
   - [ ] Git commits: one per semantic documentation change
 
 ---
@@ -441,7 +566,7 @@
 - **Dependencies**: Phase 1 complete
 - **Description**: Detect `_archived/`, `archived/`, `orphaned/` directories anywhere in repository
 - **Acceptance Criteria**:
-  - [ ] `internal/apps/cicd/lint_fitness/archive_detector/` created
+  - [ ] `internal/apps/tools/cicd_lint/lint_fitness/archive_detector/` created
   - [ ] Walks repo tree, fails on any archived/orphaned directory
   - [ ] Tests >= 98% coverage
   - [ ] Registered in fitness catalog
@@ -454,7 +579,7 @@
 - **Dependencies**: Phase 3 complete
 - **Description**: Validate configs/ directory structure and file naming follows `{PS-ID}-{purpose}.yml` pattern
 - **Acceptance Criteria**:
-  - [ ] `internal/apps/cicd/lint_fitness/configs_naming/` created
+  - [ ] `internal/apps/tools/cicd_lint/lint_fitness/configs_naming/` created
   - [ ] Validates `configs/{PRODUCT}/{SERVICE}/` structure against entity registry
   - [ ] Validates file naming: `{PS-ID}-{purpose}.yml` for service template configs
   - [ ] Allows product-level configs in `configs/{PRODUCT}/`
@@ -469,10 +594,10 @@
 - **Dependencies**: Phase 2 complete
 - **Description**: Detect `cmd/{PRODUCT}-{subcommand}/` anti-pattern entries
 - **Acceptance Criteria**:
-  - [ ] `internal/apps/cicd/lint_fitness/cmd_anti_pattern/` created
+  - [ ] `internal/apps/tools/cicd_lint/lint_fitness/cmd_anti_pattern/` created
   - [ ] Detects `cmd/{product}-{subcommand}/` patterns (e.g., cmd/identity-compose/)
   - [ ] Does NOT flag legitimate PS-ID entries (e.g., cmd/identity-authz/)
-  - [ ] Does NOT flag documented infrastructure tools (cmd/cicd/, cmd/workflow/)
+  - [ ] Does NOT flag documented infrastructure tools (cmd/cicd-lint/, cmd/workflow/)
   - [ ] Tests >= 98% coverage
   - [ ] Registered in fitness catalog
 
@@ -483,7 +608,7 @@
 - **Dependencies**: Phase 3 complete
 - **Description**: Detect empty directories in configs/ without `.gitkeep`
 - **Acceptance Criteria**:
-  - [ ] `internal/apps/cicd/lint_fitness/configs_empty_dir/` created
+  - [ ] `internal/apps/tools/cicd_lint/lint_fitness/configs_empty_dir/` created
   - [ ] Walks configs/ tree, fails on empty dirs without `.gitkeep`
   - [ ] Tests >= 98% coverage
   - [ ] Registered in fitness catalog
@@ -495,7 +620,7 @@
 - **Dependencies**: Phase 3 complete
 - **Description**: Validate configs/ mirrors deployments/ service structure
 - **Acceptance Criteria**:
-  - [ ] `internal/apps/cicd/lint_fitness/configs_deployments_consistency/` created
+  - [ ] `internal/apps/tools/cicd_lint/lint_fitness/configs_deployments_consistency/` created
   - [ ] Ensures every deployments/{PS-ID}/ has matching configs/{PRODUCT}/{SERVICE}/
   - [ ] Uses entity registry to map PS-ID to PRODUCT/SERVICE
   - [ ] Tests >= 98% coverage
@@ -508,7 +633,7 @@
 - **Dependencies**: Tasks 6.1-6.5
 - **Description**: Verify all new linters pass and meet quality standards
 - **Acceptance Criteria**:
-  - [ ] `go run ./cmd/cicd lint-fitness` — all 49+ linters pass
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` — all 49+ linters pass
   - [ ] All new linter packages >= 98% coverage
   - [ ] Mutation testing >= 98% on new linter packages
   - [ ] `go build ./...` clean
@@ -519,7 +644,7 @@
 
 ### Phase 7: Knowledge Propagation
 
-**Phase Objective**: Apply all lessons to permanent artifacts.
+**Phase Objective**: Apply all lessons to permanent artifacts. Audit skills, agents, and instructions for framework-v5 compliance. Document deferred work.
 
 #### Task 7.1: Review and Consolidate Lessons
 
@@ -542,29 +667,57 @@
   - [ ] `02-01.architecture.instructions.md` updated with configs/ naming standard
   - [ ] `04-01.deployment.instructions.md` updated with template vs skeleton-template clarity
   - [ ] `03-05.linting.instructions.md` updated with new fitness linter catalog count
+  - [ ] All `cmd/cicd` references updated to `cmd/cicd-lint` in instruction files
   - [ ] All instruction file @source blocks aligned with ARCHITECTURE.md
 
-#### Task 7.3: Update Agent and Skill Files
+#### Task 7.3: Audit and Update Skills
+
+- **Status**: Not Started
+- **Estimated**: 1h
+- **Dependencies**: Task 7.1
+- **Description**: Audit all 14 skill directories for framework-v5 compliance: verify names match purpose, content reflects new patterns
+- **Acceptance Criteria**:
+  - [ ] `new-service/SKILL.md` reviewed: verify no overlap with skeleton-template
+  - [ ] `coverage-analysis/SKILL.md` reviewed: verify if mutation testing is included (if not, document scope)
+  - [ ] `contract-test-gen/SKILL.md` reviewed: verify name clarity
+  - [ ] `migration-create/SKILL.md` reviewed: verify name describes purpose accurately
+  - [ ] `fitness-function-gen/SKILL.md` reviewed: verify name clarity
+  - [ ] Any skill generating config files updated with new {PS-ID} naming
+  - [ ] Any skill referencing `cmd/cicd` updated to `cmd/cicd-lint`
+  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
+
+#### Task 7.4: Update Agent Files
 
 - **Status**: Not Started
 - **Estimated**: 30m
 - **Dependencies**: Task 7.1
-- **Description**: Update agent/skill files with new patterns if applicable
+- **Description**: Update agent files with new patterns
 - **Acceptance Criteria**:
   - [ ] Any agent referencing configs/ patterns updated
-  - [ ] Any skill generating config files updated with new naming
-  - [ ] `go run ./cmd/cicd lint-docs` passes
+  - [ ] Any agent referencing `cmd/cicd` updated to `cmd/cicd-lint`
+  - [ ] Agent architecture references current framework tier routing (suite/product/service)
 
-#### Task 7.4: Final Propagation Verification
+#### Task 7.5: Document Deferred Work
 
 - **Status**: Not Started
 - **Estimated**: 30m
-- **Dependencies**: Tasks 7.1-7.3
+- **Dependencies**: Task 7.1
+- **Description**: Document `test/load/` Gatling refactoring and any other deferred items
+- **Acceptance Criteria**:
+  - [ ] `test/load/` refactoring documented as deferred work with rationale (low priority, Java/Maven domain)
+  - [ ] Any other deferred items from lessons.md documented
+  - [ ] No undocumented deferred work remains
+
+#### Task 7.6: Final Propagation Verification
+
+- **Status**: Not Started
+- **Estimated**: 30m
+- **Dependencies**: Tasks 7.1-7.5
 - **Description**: Verify all propagation integrity
 - **Acceptance Criteria**:
-  - [ ] `go run ./cmd/cicd lint-docs validate-propagation` passes
-  - [ ] `go run ./cmd/cicd lint-fitness` — all linters pass
-  - [ ] `go run ./cmd/cicd lint-deployments` — all validators pass
+  - [ ] `go run ./cmd/cicd-lint lint-docs validate-propagation` passes
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` — all linters pass
+  - [ ] `go run ./cmd/cicd-lint lint-deployments` — all validators pass
   - [ ] `go build ./...` clean
   - [ ] `golangci-lint run` clean
   - [ ] Git commits: one per semantic documentation update
@@ -587,13 +740,15 @@
 - [ ] No new TODOs without tracking
 - [ ] Formatting clean (`gofumpt -s -w ./`)
 - [ ] Imports organized (`goimports -w ./`)
+- [ ] All `cmd/cicd` references updated to `cmd/cicd-lint` after Phase 2 rename
 
 ### Documentation
 
-- [ ] ARCHITECTURE.md fully updated (merge COMPOSE-MULTIDEPLOY, Section 12.5, Section 4.4.8, Section 13.9)
-- [ ] Instruction files reflect new standards
+- [ ] ARCHITECTURE.md fully updated (merge COMPOSE-MULTIDEPLOY, Section 12.5, Section 4.4.8, Section 13.9, Decisions 5-11)
+- [ ] Instruction files reflect new standards (including `cmd/cicd-lint` references)
 - [ ] ARCHITECTURE-COMPOSE-MULTIDEPLOY.md deleted
 - [ ] configs/ relationship documented
+- [ ] Database engine documentation updated (PostgreSQL + SQLite only, no Citus)
 
 ### Deployment
 
@@ -601,6 +756,7 @@
 - [ ] All 49+ fitness linters pass after all phases
 - [ ] Docker Compose syntax valid
 - [ ] Config file references updated
+- [ ] `ci-cicd-lint.yml` consolidated into `ci-quality.yml`
 
 ---
 
@@ -612,9 +768,23 @@
 3. ✓ Decision 3 (Q3=A): Delete all archived/orphaned permanently. Git history preserves content.
 4. ✓ Decision 4 (Q4=A): Merge ARCHITECTURE-COMPOSE-MULTIDEPLOY.md into ARCHITECTURE.md Section 12.3 and delete.
 
+**All quizme-v2 decisions confirmed** (merged 2026-03-23):
+5. ✓ Decision (Q1=E): cicd tool → `internal/apps/tools/cicd_lint/`, binary → `cmd/cicd-lint/`
+6. ✓ Decision (Q2=D): pkiinit → `framework/tls/` (merge with existing TLS code)
+7. ✓ Decision (Q3=B): Error wrapping → `framework/apperr/`
+8. ✓ Decision (Q5=B): `testdata/` directories at repo root → DELETE
+
+**All quizme-v3 decisions confirmed** (merged 2026-03-24):
+9. ✓ Decision (Q1=B): Create `framework/suite/cli/` with `RouteSuite()`, `SuiteConfig`, `ProductEntry`
+10. ✓ Decision (Q2=B): Move `RouteProduct()` to `framework/product/cli/` (from `framework/service/cli/`)
+
 **Pending**: User review of `target-structure.md` before Phase 3 config moves begin.
 
 **NEW scope discovered**: ~80+ junk files at repository root (*.exe, *.py, coverage_*) need cleanup — added to Phase 1.
+
+**Deferred work**:
+- `test/load/` Gatling refactoring: Low priority (Java/Maven domain, not Go). Schedule after framework-v5 completion.
+- Skill name audit results: Documented in Phase 7 Task 7.3 — evaluate during execution.
 
 ---
 

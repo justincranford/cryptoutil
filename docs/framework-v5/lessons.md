@@ -1,9 +1,9 @@
 # Lessons - Framework v5: Rigid Standardization & Cleanup
 
 **Created**: 2026-03-21
-**Last Updated**: 2026-03-21
+**Last Updated**: 2026-03-24
 
-## Phase 1: Archive and Dead Code Cleanup
+## Phase 1: Archive, Dead Code, and Legacy Cleanup
 
 *(To be filled during Phase 1 execution)*
 
