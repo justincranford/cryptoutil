@@ -1,117 +1,160 @@
 # $schema: https://json.schemastore.org/github-action.json
 # Doc: https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions
-
 name: 'custom-cicd-lint'
-description: 'Build cicd binary and run custom linting and validation checks'
+description: 'Build cicd binary and run ALL custom linting and formatting checks (sequential)'
 runs:
   using: 'composite'
   steps:
     - name: Build cicd binary for quality checks
       shell: bash
       run: |
-        echo "🔨 Building cicd binary..."
         START_TIME=$(date +%s)
-        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         go build -o cicd ./cmd/cicd
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
-        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "⏱️ cicd binary built in: ${DURATION}s"
+        echo "End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "cicd binary built in: ${DURATION}s"
 
     - name: Enforce file encoding (UTF-8 without BOM)
       shell: bash
       run: |
-        echo "🔤 Enforcing UTF-8 file encoding..."
         START_TIME=$(date +%s)
-        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         ./cicd lint-text
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
-        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "⏱️ UTF-8 enforcement completed in: ${DURATION}s"
+        echo "End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "lint-text completed in: ${DURATION}s"
 
-    - name: Check for circular Go package dependencies
+    - name: Check Go package linters (circular deps, CGO-free SQLite)
       shell: bash
       run: |
-        echo "🔄 Checking for circular Go package dependencies..."
         START_TIME=$(date +%s)
-        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         ./cicd lint-go
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
-        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "⏱️ Circular dependency check completed in: ${DURATION}s"
+        echo "End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "lint-go completed in: ${DURATION}s"
+
+    - name: Enforce Go test patterns
+      shell: bash
+      run: |
+        START_TIME=$(date +%s)
+        echo "Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        ./cicd lint-go-test
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "lint-go-test completed in: ${DURATION}s"
+
+    - name: Check Docker Compose files (admin port exposure)
+      shell: bash
+      run: |
+        START_TIME=$(date +%s)
+        echo "Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        ./cicd lint-compose
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "lint-compose completed in: ${DURATION}s"
+
+    - name: Check port assignments (standardized ports)
+      shell: bash
+      run: |
+        START_TIME=$(date +%s)
+        echo "Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        ./cicd lint-ports
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "lint-ports completed in: ${DURATION}s"
+
+    - name: Check GitHub Actions workflow versions
+      shell: bash
+      run: |
+        START_TIME=$(date +%s)
+        echo "Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        ./cicd lint-workflow
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "lint-workflow completed in: ${DURATION}s"
+
+    - name: Check Go direct dependency updates
+      shell: bash
+      run: |
+        START_TIME=$(date +%s)
+        echo "Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        ./cicd lint-go-mod
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "lint-go-mod completed in: ${DURATION}s"
+
+    - name: Validate golangci-lint config (v2 compatibility)
+      shell: bash
+      run: |
+        START_TIME=$(date +%s)
+        echo "Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        ./cicd lint-golangci
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "lint-golangci completed in: ${DURATION}s"
+
+    - name: Validate documentation propagation
+      shell: bash
+      run: |
+        START_TIME=$(date +%s)
+        echo "Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        ./cicd lint-docs
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "lint-docs completed in: ${DURATION}s"
+
+    - name: Validate deployment structure and config files
+      shell: bash
+      run: |
+        START_TIME=$(date +%s)
+        echo "Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        ./cicd lint-deployments
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "lint-deployments completed in: ${DURATION}s"
+
+    - name: Run architecture fitness functions (includes cicd-coverage self-check)
+      shell: bash
+      run: |
+        START_TIME=$(date +%s)
+        echo "Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        ./cicd lint-fitness
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "lint-fitness completed in: ${DURATION}s"
 
     - name: Run Go code formatters (interface{} to any, copyloopvar)
       shell: bash
       run: |
-        echo "🔧 Running Go code formatters..."
         START_TIME=$(date +%s)
-        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         ./cicd format-go
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
-        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "⏱️ Go code formatters completed in: ${DURATION}s"
-
-    - name: Enforce Go test patterns (informational)
-      shell: bash
-      continue-on-error: true  # Informational until pre-existing violations fixed
-      run: |
-        echo "🧪 Enforcing Go test patterns..."
-        START_TIME=$(date +%s)
-        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        ./cicd lint-go-test || echo "⚠️ Test pattern violations found (informational - does not fail build)"
-        END_TIME=$(date +%s)
-        DURATION=$((END_TIME - START_TIME))
-        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "⏱️ Test pattern enforcement completed in: ${DURATION}s"
+        echo "End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "format-go completed in: ${DURATION}s"
 
     - name: Run Go test file formatters (t.Helper)
       shell: bash
       run: |
-        echo "🔧 Running Go test file formatters..."
         START_TIME=$(date +%s)
-        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         ./cicd format-go-test
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
-        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "⏱️ Go test formatters completed in: ${DURATION}s"
-
-    - name: Check GitHub Actions versions
-      shell: bash
-      run: |
-        echo "🔄 Checking GitHub Actions versions..."
-        START_TIME=$(date +%s)
-        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        ./cicd lint-workflow
-        END_TIME=$(date +%s)
-        DURATION=$((END_TIME - START_TIME))
-        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "⏱️ GitHub Actions version check completed in: ${DURATION}s"
-
-    - name: Check Go direct dependencies
-      shell: bash
-      run: |
-        echo "📦 Checking Go direct dependencies..."
-        START_TIME=$(date +%s)
-        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        ./cicd lint-go-mod
-        END_TIME=$(date +%s)
-        DURATION=$((END_TIME - START_TIME))
-        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "⏱️ Direct dependencies check completed in: ${DURATION}s"
-
-    - name: Check port assignments (informational)
-      shell: bash
-      continue-on-error: true  # Informational until all violations fixed
-      run: |
-        echo "🔌 Checking port assignments..."
-        START_TIME=$(date +%s)
-        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        ./cicd lint-ports || echo "⚠️ Port violations found (informational - does not fail build)"
-        END_TIME=$(date +%s)
-        DURATION=$((END_TIME - START_TIME))
-        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "⏱️ Port assignment check completed in: ${DURATION}s"
+        echo "End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "format-go-test completed in: ${DURATION}s"
