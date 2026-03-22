@@ -174,7 +174,7 @@ func validateConfigFiles(basePath string, deploymentName string, result *Validat
 }
 
 // validateProductSecrets validates PRODUCT-level hash_pepper.secret and .never files.
-// See: docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md Section 5.2 "Layered Pepper Strategy".
+// See: docs/ARCHITECTURE.md Section 12.3.4 "Layered Pepper Strategy".
 func validateProductSecrets(basePath string, productName string, result *ValidationResult) {
 	expectedSecret := fmt.Sprintf("%s-hash_pepper.secret", productName)
 	secretPath := filepath.Join(basePath, "secrets", expectedSecret)
@@ -211,7 +211,7 @@ func validateProductSecrets(basePath string, productName string, result *Validat
 }
 
 // validateSuiteSecrets validates SUITE-level hash_pepper.secret and .never files.
-// See: docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md Section 5.2 "Layered Pepper Strategy".
+// See: docs/ARCHITECTURE.md Section 12.3.4 "Layered Pepper Strategy".
 func validateSuiteSecrets(basePath string, result *ValidationResult) {
 	expectedSecret := "cryptoutil-hash_pepper.secret"
 	secretPath := filepath.Join(basePath, "secrets", expectedSecret)

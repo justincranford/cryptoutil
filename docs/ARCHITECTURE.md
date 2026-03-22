@@ -3897,6 +3897,22 @@ healthcheck-secrets:
 | **PRODUCT** | `deployments/{PRODUCT}/` | Product services | 1-5 | Product-level testing, SSO within product |
 | **SUITE** | `deployments/cryptoutil-suite/` | All services | 10 | Full integration, cross-product federation |
 
+##### Docker Compose `include` Semantics
+
+Docker Compose `include` merges services from different compose files into a single project with shared networking. Key behaviors (validated with Docker Compose v2.40+):
+
+| Scenario | Result |
+|----------|--------|
+| Same secret name + same file path across includes | Merged (deduplicated) |
+| Same secret name + different file paths across includes | **CONFLICT ERROR** |
+| Different secret names + different files | Works |
+| Same infrastructure service included by multiple files | Correctly deduplicated |
+
+**Implications**:
+- `depends_on` references work across included files within the same project.
+- Secret names MUST be globally unique within a compose project unless pointing to the same file.
+- Infrastructure services (telemetry, postgres) included by multiple service files appear once in the merged configuration.
+
 ##### SUITE-Level Deployment (cryptoutil)
 
 **Location**: `deployments/cryptoutil-suite/compose.yml`
@@ -4041,7 +4057,6 @@ HASH_PEPPER_FILE: /run/secrets/cryptoutil-hash_pepper.secret
 
 ##### Cross-Reference Documentation
 
-- **Comprehensive hierarchy documentation**: [ARCHITECTURE-COMPOSE-MULTIDEPLOY.md](/docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md)
 - **Secrets coordination**: [12.3.3 Secrets Coordination Strategy](#1233-secrets-coordination-strategy)
 - **Deployment validation**: [12.4 Deployment Structure Validation](#124-deployment-structure-validation)
 - **Port assignments**: [3.4.1 Port Design Principles](#341-port-design-principles)
@@ -5114,7 +5129,6 @@ After ALL plan tasks are complete, apply accumulated lessons to permanent artifa
 - `.github/copilot-instructions.md` - Copilot configuration
 - `.github/instructions/*.instructions.md` - Detailed instructions
 - `docs/ARCHITECTURE-INDEX.md` - Agent lookup reference
-- `docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md` - Multi-deployment compose patterns
 
 **Cross-References**:
 - All sections maintain stable anchor links for referencing

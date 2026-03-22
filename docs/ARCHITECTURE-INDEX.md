@@ -193,7 +193,7 @@
 - 12.10 Release Management (3773-3779): Versioning, changelog, release process
 
 **Companion Docs**:
-- [ARCHITECTURE-COMPOSE-MULTIDEPLOY.md](/docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md) - Comprehensive multi-level deployment hierarchy documentation
+- None — all deployment hierarchy documentation is in ARCHITECTURE.md Section 12.3.4
 
 ---
 

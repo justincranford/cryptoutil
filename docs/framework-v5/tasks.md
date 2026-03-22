@@ -1,6 +1,6 @@
 # Tasks - Framework v5: Rigid Standardization & Cleanup
 
-**Status**: 32 of 49 tasks complete (65%)
+**Status**: 33 of 49 tasks complete (67%)
 **Last Updated**: 2026-03-27
 **Created**: 2026-03-21
 
@@ -535,17 +535,25 @@
 
 #### Task 5.1: Merge ARCHITECTURE-COMPOSE-MULTIDEPLOY.md
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 2h
+- **Actual**: 0.5h
 - **Dependencies**: Phase 4 complete
 - **Description**: Merge 872-line compose tier documentation into ARCHITECTURE.md Section 12.3
 - **Acceptance Criteria**:
-  - [ ] Content from ARCHITECTURE-COMPOSE-MULTIDEPLOY.md merged into Section 12.3
-  - [ ] Duplicate content deduplicated
-  - [ ] Section 12.3 comprehensive for compose tier patterns
-  - [ ] ARCHITECTURE-COMPOSE-MULTIDEPLOY.md deleted
-  - [ ] All references to deleted file updated (search codebase)
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
+  - [x] Content from ARCHITECTURE-COMPOSE-MULTIDEPLOY.md merged into Section 12.3
+  - [x] Duplicate content deduplicated
+  - [x] Section 12.3 comprehensive for compose tier patterns
+  - [x] ARCHITECTURE-COMPOSE-MULTIDEPLOY.md deleted
+  - [x] All references to deleted file updated (search codebase)
+  - [x] `go run ./cmd/cicd-lint lint-docs` passes
+- **Merge Details**:
+  - Unique content (Docker Compose `include` semantics table) added as new subsection in 12.3.4
+  - Duplicate content (directory structure, composition patterns, secret naming, port strategy) already in Sections 12.3.3/12.3.4 — not re-added
+  - Historical migration path (Section 6) — obsolete, not merged
+  - Updated 3 Go code references (lint_required_contents_deployments.go, validate_structure.go)
+  - Updated ARCHITECTURE-INDEX.md companion docs reference
+  - Removed 2 ARCHITECTURE.md cross-references to deleted file
 
 #### Task 5.2: Add Infrastructure CLI Tools Documentation
 

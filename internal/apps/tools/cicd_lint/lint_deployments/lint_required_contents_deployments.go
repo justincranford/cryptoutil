@@ -67,8 +67,7 @@ func GetDeploymentDirectories() (suite []string, product []string, productServic
 //   - ForbiddenFileStatus - file MUST NOT exist (present = error) - used for deprecated files
 //   - OptionalFileStatus - file MAY exist (used for documentation, optional configs)
 //
-// See: docs/ARCHITECTURE.md Section 12.3.4 "Multi-Level Deployment Hierarchy"
-// See: docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md for complete hierarchy documentation.
+// See: docs/ARCHITECTURE.md Section 12.3.4 "Multi-Level Deployment Hierarchy".
 func GetExpectedDeploymentsContents() map[string]string {
 	contents := make(map[string]string)
 
