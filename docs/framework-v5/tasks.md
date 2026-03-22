@@ -305,16 +305,28 @@
 
 #### Task 3.1: Design Configs Canonical Structure
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1h
+- **Actual**: 30m
 - **Dependencies**: None
 - **Description**: Document the target configs/ structure aligned with entity registry
 - **Acceptance Criteria**:
-  - [ ] Target directory tree documented (configs/{PRODUCT}/{SERVICE}/ for all 10 services)
-  - [ ] File naming convention defined: `{PS-ID}-{purpose}.yml` for service template configs
-  - [ ] Domain config convention defined: `{PS-ID}-{domain-purpose}.yml`
-  - [ ] Product-level config convention defined
-  - [ ] Relationship between configs/ and deployments/config/ documented
+  - [x] Target directory tree documented (configs/{PRODUCT}/{SERVICE}/ for all 10 services)
+  - [x] File naming convention defined: `{PS-ID}-{purpose}.yml` for service template configs
+  - [x] Domain config convention defined: `{PS-ID}-{domain-purpose}.yml`
+  - [x] Product-level config convention defined
+  - [x] Relationship between configs/ and deployments/config/ documented
+- **Design Decisions**:
+  - **Directory hierarchy**: `configs/{PRODUCT}/{SERVICE}/` mirrors entity registry product/service
+  - **Service template configs** (flat kebab-case, validated by ValidateSchema): `{PS-ID}-{variant}.yml` — e.g., `sm-kms-sqlite.yml`, `sm-kms-pg-1.yml`, `sm-kms-pg-2.yml`
+  - **Domain configs** (nested YAML, service-specific): `{service}.yml` or `{PS-ID}-server.yml` — e.g., `ca-server.yml` → `pki-ca-server.yml`, `authz.yml` (identity domain configs keep short names as they are already under `configs/identity/authz/`)
+  - **Product-level configs**: `configs/{PRODUCT}/` for shared configs — e.g., `configs/identity/policies/`, `configs/pki/ca/profiles/`
+  - **Suite-level config**: `configs/cryptoutil/cryptoutil.yml`
+  - **configs/ vs deployments/config/**: `configs/` = canonical SSOT for local dev/testing. `deployments/*/config/` = Docker-specific minimal overrides (instance isolation). No duplication between the two.
+  - **Standalone config renaming**: SM configs `config-{variant}.yml` → `{PS-ID}-{variant}.yml`. Linters (`standalone_config_presence`, `standalone_config_otlp_names`, `otlp_service_name_pattern`) updated atomically.
+  - **PKI CA**: Already at `configs/pki/ca/` path. Files renamed: `ca-server.yml` → `pki-ca-server.yml`, `ca-config-schema.yaml` → `pki-ca-config-schema.yaml`
+  - **Identity**: Domain configs (`authz.yml`, `idp.yml`, etc.) keep current names (already at canonical `configs/identity/{service}/` path). No `-docker.yml` files exist (deleted in Phase 1).
+  - **Jose/Skeleton**: `jose-server.yml` → `jose-ja-server.yml` (moved to `configs/jose/ja/`). `template-server.yml` → `skeleton-template-server.yml`. `skeleton-server.yml` is a product-level default (kept at `configs/skeleton/`).
 
 #### Task 3.2: Fix configs/ca/ Path Mismatch
 
