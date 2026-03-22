@@ -1102,6 +1102,32 @@ Consistency MUST be guaranteed by inheriting from service-framework, which will 
 | `init` | CLI client for Initialize static config, like TLS certificates |
 | `demo` | CLI client for start server, inject Demo data, and run clients |
 
+#### Anti-Patterns
+
+**NEVER** create `cmd/{PRODUCT}-{SUBCOMMAND}/` executables for subcommands:
+
+- `cmd/sm-im-server/main.go` → **WRONG**: Use `cmd/sm-im server` subcommand instead.
+- `cmd/cryptoutil-health/main.go` → **WRONG**: Use `cmd/cryptoutil health` subcommand instead.
+
+Each product-service binary (`cmd/{PS-ID}/main.go`) routes subcommands internally via the framework. Multiple executables for the same binary's subcommands create maintenance burden and violate the single-binary principle.
+
+#### Infrastructure CLI Tools (Intentional Exceptions)
+
+Two `cmd/` entries exist as deliberate **infrastructure tools**, NOT product/service CLIs:
+
+| Entry | Internal Package | Purpose |
+|-------|-----------------|---------|
+| `cmd/cicd-lint/` | `internal/apps/tools/cicd_lint/` | CI/CD quality tooling: 11 linters, 2 formatters, 1 script |
+| `cmd/workflow/` | `internal/apps/tools/workflow/` | GitHub Actions workflow testing infrastructure |
+
+These are **intentional exceptions** to the product/service CLI pattern. They serve **repository infrastructure**, not business domain concerns:
+
+- MUST NOT be merged into product/service CLIs.
+- MUST NOT be subcommands of `cmd/cryptoutil/` (suite CLI).
+- MUST be documented here to prevent confusion about "non-standard" entries.
+
+See [Section 9.10 CICD Command Architecture](#910-cicd-command-architecture) for the `cmd/cicd-lint/` four-layer dispatch pattern, command catalog, and enforcement rules.
+
 ---
 
 ## 5. Service Architecture

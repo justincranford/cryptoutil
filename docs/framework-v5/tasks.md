@@ -1,6 +1,6 @@
 # Tasks - Framework v5: Rigid Standardization & Cleanup
 
-**Status**: 8 of 49 tasks complete (16%)
+**Status**: 9 of 49 tasks complete (18%)
 **Last Updated**: 2026-03-22
 **Created**: 2026-03-21
 
@@ -149,22 +149,24 @@
 
 #### Task 2.1: Rename cicd → cicd-lint
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 2h
+- **Actual**: 3h (unexpected interface{} corruption in format_go after rename)
 - **Dependencies**: None
 - **Description**: Rename `cmd/cicd/` → `cmd/cicd-lint/` and `internal/apps/cicd/` → `internal/apps/tools/cicd_lint/` (Decision 11)
 - **Acceptance Criteria**:
-  - [ ] `cmd/cicd/` renamed to `cmd/cicd-lint/`
-  - [ ] `internal/apps/cicd/` moved to `internal/apps/tools/cicd_lint/`
-  - [ ] All import paths updated (grep for `apps/cicd`)
-  - [ ] All workflow files updated (`go run ./cmd/cicd` → `go run ./cmd/cicd-lint`)
-  - [ ] Pre-commit hooks updated
-  - [ ] ARCHITECTURE.md Section 9.10 command table updated
-  - [ ] Entity registry `PSID` and `InternalAppsDir` fields updated
-  - [ ] copilot-instructions.md cicd command table updated
-  - [ ] `.cicd/` runtime cache dir: NO RENAME (gitignored, unrelated)
-  - [ ] `go build ./...` clean
-  - [ ] `go test ./...` passes (tools packages)
+  - [x] `cmd/cicd/` renamed to `cmd/cicd-lint/`
+  - [x] `internal/apps/cicd/` moved to `internal/apps/tools/cicd_lint/`
+  - [x] All import paths updated (grep for `apps/cicd`)
+  - [x] All workflow files updated (pre-commit hooks, CI workflows)
+  - [x] Pre-commit hooks updated (`cmd/cicd-lint/main.go`)
+  - [x] ARCHITECTURE.md Section 9.10 command table updated
+  - [x] Entity registry `PSID` and `InternalAppsDir` fields updated
+  - [x] copilot-instructions.md cicd command table updated
+  - [x] `.cicd/` runtime cache dir: NO RENAME (gitignored, unrelated)
+  - [x] `go build ./...` clean
+  - [x] `go test ./internal/apps/tools/cicd_lint/...` passes
+- **Commit**: `4131dc57d`
 
 #### Task 2.2: Document Infrastructure CLI Tools
 
