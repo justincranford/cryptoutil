@@ -11,7 +11,7 @@ import (
 
 	cryptoutilAppsSmIm "cryptoutil/internal/apps/sm/im"
 	cryptoutilAppsSmKms "cryptoutil/internal/apps/sm/kms"
-	cryptoutilTemplateCli "cryptoutil/internal/apps/framework/service/cli"
+	cryptoutilAppsFrameworkProductCli "cryptoutil/internal/apps/framework/product/cli"
 )
 
 const (
@@ -27,14 +27,14 @@ const (
 // - Product: sm kms server
 // - Product-Service: sm-kms server (via main.go delegation).
 func Sm(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
-	return cryptoutilTemplateCli.RouteProduct(
-		cryptoutilTemplateCli.ProductConfig{
+	return cryptoutilAppsFrameworkProductCli.RouteProduct(
+		cryptoutilAppsFrameworkProductCli.ProductConfig{
 			ProductName: cryptoutilSharedMagic.SMProductName,
 			UsageText:   usageText,
 			VersionText: versionText,
 		},
 		args, stdin, stdout, stderr,
-		[]cryptoutilTemplateCli.ServiceEntry{
+		[]cryptoutilAppsFrameworkProductCli.ServiceEntry{
 			{Name: cryptoutilSharedMagic.IMServiceName, Handler: cryptoutilAppsSmIm.Im},
 			{Name: cryptoutilSharedMagic.KMSServiceName, Handler: cryptoutilAppsSmKms.Kms},
 		},

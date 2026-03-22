@@ -11,7 +11,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilAppsPkiCa "cryptoutil/internal/apps/pki/ca"
-	cryptoutilTemplateCli "cryptoutil/internal/apps/framework/service/cli"
+	cryptoutilAppsFrameworkProductCli "cryptoutil/internal/apps/framework/product/cli"
 )
 
 const (
@@ -27,14 +27,14 @@ const (
 // - Product: pki ca server
 // - Product-Service: pki-ca server (via main.go delegation).
 func Pki(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
-	return cryptoutilTemplateCli.RouteProduct(
-		cryptoutilTemplateCli.ProductConfig{
+	return cryptoutilAppsFrameworkProductCli.RouteProduct(
+		cryptoutilAppsFrameworkProductCli.ProductConfig{
 			ProductName: cryptoutilSharedMagic.PKIProductName,
 			UsageText:   usageText,
 			VersionText: versionText,
 		},
 		args, stdin, stdout, stderr,
-		[]cryptoutilTemplateCli.ServiceEntry{
+		[]cryptoutilAppsFrameworkProductCli.ServiceEntry{
 			{Name: cryptoutilSharedMagic.PKICAServiceName, Handler: cryptoutilAppsPkiCa.Ca},
 		},
 	)

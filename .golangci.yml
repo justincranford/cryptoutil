@@ -498,6 +498,10 @@ linters:
           alias: cryptoutilAppsFrameworkServiceConfigTlsGenerator
         - pkg: "cryptoutil/internal/apps/framework/tls"
           alias: cryptoutilAppsFrameworkTls
+        - pkg: "cryptoutil/internal/apps/framework/product/cli"
+          alias: cryptoutilAppsFrameworkProductCli
+        - pkg: "cryptoutil/internal/apps/framework/suite/cli"
+          alias: cryptoutilAppsFrameworkSuiteCli
         - pkg: "cryptoutil/internal/apps/framework/service/server/apis"
           alias: cryptoutilAppsFrameworkServiceServerApis
         - pkg: "cryptoutil/internal/apps/framework/service/server/application"

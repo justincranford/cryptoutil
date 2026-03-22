@@ -14,7 +14,7 @@ import (
 	cryptoutilAppsIdentityRp "cryptoutil/internal/apps/identity/rp"
 	cryptoutilAppsIdentityRs "cryptoutil/internal/apps/identity/rs"
 	cryptoutilAppsIdentitySpa "cryptoutil/internal/apps/identity/spa"
-	cryptoutilTemplateCli "cryptoutil/internal/apps/framework/service/cli"
+	cryptoutilAppsFrameworkProductCli "cryptoutil/internal/apps/framework/product/cli"
 )
 
 const (
@@ -30,14 +30,14 @@ const (
 // - Product: identity authz server
 // - Product-Service: identity-authz server (via main.go delegation).
 func Identity(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
-	return cryptoutilTemplateCli.RouteProduct(
-		cryptoutilTemplateCli.ProductConfig{
+	return cryptoutilAppsFrameworkProductCli.RouteProduct(
+		cryptoutilAppsFrameworkProductCli.ProductConfig{
 			ProductName: cryptoutilSharedMagic.IdentityProductName,
 			UsageText:   usageText,
 			VersionText: versionText,
 		},
 		args, stdin, stdout, stderr,
-		[]cryptoutilTemplateCli.ServiceEntry{
+		[]cryptoutilAppsFrameworkProductCli.ServiceEntry{
 			{Name: cryptoutilSharedMagic.AuthzServiceName, Handler: cryptoutilAppsIdentityAuthz.Authz},
 			{Name: cryptoutilSharedMagic.IDPServiceName, Handler: cryptoutilAppsIdentityIdp.Idp},
 			{Name: cryptoutilSharedMagic.RPServiceName, Handler: cryptoutilAppsIdentityRp.Rp},

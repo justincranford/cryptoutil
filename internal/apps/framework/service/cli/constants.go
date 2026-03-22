@@ -1,8 +1,8 @@
 // Copyright (c) 2025 Justin Cranford
 //
 
-// Package cli provides common CLI utilities for product and service entrypoints.
-// All PRODUCT CLI entrypoints use RouteProduct; all SERVICE CLI entrypoints use RouteService.
+// Package cli provides common CLI utilities for service entrypoints.
+// All SERVICE CLI entrypoints use RouteService.
 package cli
 
 const (

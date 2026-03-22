@@ -6,11 +6,11 @@
 package cryptoutil
 
 import (
-	"fmt"
 	"io"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
+	cryptoutilAppsFrameworkSuiteCli "cryptoutil/internal/apps/framework/suite/cli"
 	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps/framework/tls"
 	cryptoutilAppsIdentity "cryptoutil/internal/apps/identity"
 	cryptoutilAppsJose "cryptoutil/internal/apps/jose"
@@ -19,55 +19,29 @@ import (
 	cryptoutilAppsSm "cryptoutil/internal/apps/sm"
 )
 
+const (
+	pkiInitName  = "pki-init"
+	suiteUsageText = "Usage: cryptoutil <product> [service] [options]\n\nAvailable products:\n  identity    Identity product (OAuth 2.1, OIDC 1.0)\n  jose        JOSE product (JWK/JWS/JWE/JWT operations)\n  pki         PKI product (X.509 certificates, CA)\n  skeleton    Skeleton product (service template demonstration)\n  sm          Secrets Manager product (KMS, IM)\n  pki-init    PKI Init (generate TLS certificates for Docker Compose E2E deployments)\n\nUse \"cryptoutil <product> help\" for product-specific help."
+)
+
 // Suite runs the cryptoutil suite command-line interface.
 // This is the entry point for the suite-level CLI.
 func Suite(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
-	if len(args) < 2 {
-		printUsage(stderr)
-
-		return 1
+	var suiteArgs []string
+	if len(args) > 0 {
+		suiteArgs = args[1:]
 	}
 
-	product := args[1]     // Example products: sm, identity, jose, pki, skeleton
-	parameters := args[2:] // Example parameters: service names, --config-file, --port, --host, etc.
-
-	// Route to product command.
-	switch product {
-	case cryptoutilSharedMagic.IdentityProductName:
-		return cryptoutilAppsIdentity.Identity(parameters, stdin, stdout, stderr)
-	case cryptoutilSharedMagic.JoseProductName:
-		return cryptoutilAppsJose.Jose(parameters, stdin, stdout, stderr)
-	case cryptoutilSharedMagic.PKIProductName:
-		return cryptoutilAppsPki.Pki(parameters, stdin, stdout, stderr)
-	case cryptoutilSharedMagic.SkeletonProductName:
-		return cryptoutilAppsSkeleton.Skeleton(parameters, stdin, stdout, stderr)
-	case cryptoutilSharedMagic.SMProductName:
-		return cryptoutilAppsSm.Sm(parameters, stdin, stdout, stderr)
-	case "pki-init":
-			return cryptoutilAppsFrameworkTls.Init(parameters, stdin, stdout, stderr)
-	case "help", "--help", "-h":
-		printUsage(stderr)
-
-		return 0
-	default:
-		_, _ = fmt.Fprintf(stderr, "Unknown product: %s\n\n", product)
-		printUsage(stderr)
-
-		return 1
-	}
-}
-
-// printUsage prints the cryptoutil suite usage information.
-func printUsage(stderr io.Writer) {
-	_, _ = fmt.Fprintln(stderr, `Usage: cryptoutil <product> [service] [options]
-
-Available products:
-  identity    Identity product (OAuth 2.1, OIDC 1.0)
-  jose        JOSE product (JWK/JWS/JWE/JWT operations)
-  pki         PKI product (X.509 certificates, CA)
-  skeleton    Skeleton product (service template demonstration)
-  sm          Secrets Manager product (KMS, IM)
-  pki-init    PKI Init (generate TLS certificates for Docker Compose E2E deployments)
-
-Use "cryptoutil <product> help" for product-specific help.`)
+	return cryptoutilAppsFrameworkSuiteCli.RouteSuite(
+		cryptoutilAppsFrameworkSuiteCli.SuiteConfig{UsageText: suiteUsageText},
+		suiteArgs, stdin, stdout, stderr,
+		[]cryptoutilAppsFrameworkSuiteCli.ProductEntry{
+			{Name: cryptoutilSharedMagic.IdentityProductName, Handler: cryptoutilAppsIdentity.Identity},
+			{Name: cryptoutilSharedMagic.JoseProductName, Handler: cryptoutilAppsJose.Jose},
+			{Name: cryptoutilSharedMagic.PKIProductName, Handler: cryptoutilAppsPki.Pki},
+			{Name: cryptoutilSharedMagic.SkeletonProductName, Handler: cryptoutilAppsSkeleton.Skeleton},
+			{Name: cryptoutilSharedMagic.SMProductName, Handler: cryptoutilAppsSm.Sm},
+			{Name: pkiInitName, Handler: cryptoutilAppsFrameworkTls.Init},
+		},
+	)
 }

@@ -144,17 +144,3 @@ func TestSuite_ProductVersion(t *testing.T) {
 		})
 	}
 }
-
-func TestPrintUsage(t *testing.T) {
-	t.Parallel()
-
-	var stderr bytes.Buffer
-
-	require.NotPanics(t, func() {
-		printUsage(&stderr)
-	})
-
-	output := stderr.String()
-	require.Contains(t, output, "Usage: cryptoutil")
-	require.Contains(t, output, "Available products:")
-}

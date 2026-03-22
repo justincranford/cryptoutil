@@ -10,7 +10,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilAppsJoseJa "cryptoutil/internal/apps/jose/ja"
-	cryptoutilTemplateCli "cryptoutil/internal/apps/framework/service/cli"
+	cryptoutilAppsFrameworkProductCli "cryptoutil/internal/apps/framework/product/cli"
 )
 
 const (
@@ -26,14 +26,14 @@ const (
 // - Product: jose ja server
 // - Product-Service: jose-ja server (via main.go delegation).
 func Jose(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
-	return cryptoutilTemplateCli.RouteProduct(
-		cryptoutilTemplateCli.ProductConfig{
+	return cryptoutilAppsFrameworkProductCli.RouteProduct(
+		cryptoutilAppsFrameworkProductCli.ProductConfig{
 			ProductName: cryptoutilSharedMagic.JoseProductName,
 			UsageText:   usageText,
 			VersionText: versionText,
 		},
 		args, stdin, stdout, stderr,
-		[]cryptoutilTemplateCli.ServiceEntry{
+		[]cryptoutilAppsFrameworkProductCli.ServiceEntry{
 			{Name: cryptoutilSharedMagic.JoseJAServiceName, Handler: cryptoutilAppsJoseJa.Ja},
 		},
 	)
