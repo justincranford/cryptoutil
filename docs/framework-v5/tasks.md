@@ -1,6 +1,6 @@
 # Tasks - Framework v5: Rigid Standardization & Cleanup
 
-**Status**: 24 of 49 tasks complete (49%)
+**Status**: 25 of 49 tasks complete (51%)
 **Last Updated**: 2026-03-27
 **Created**: 2026-03-21
 
@@ -412,16 +412,17 @@
 
 #### Task 3.6: Update ARCHITECTURE.md Section 12.5
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1h
+- **Actual**: 0.5h
 - **Dependencies**: Tasks 3.2-3.5
 - **Description**: Rewrite Section 12.5 to document the TARGET configs/ standard (not current inconsistent state)
 - **Acceptance Criteria**:
-  - [ ] Section 12.5 rewritten with canonical configs/ structure
-  - [ ] Naming conventions table included
-  - [ ] Dual configs/ vs deployments/config/ relationship documented
-  - [ ] Examples for each config file type
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
+  - [x] Section 12.5 rewritten with canonical configs/ structure
+  - [x] Naming conventions table included
+  - [x] Dual configs/ vs deployments/config/ relationship documented
+  - [x] Examples for each config file type
+  - [x] `go run ./cmd/cicd-lint lint-docs` passes
 
 #### Task 3.7: Update lint-deployments Mirror Mapping
 

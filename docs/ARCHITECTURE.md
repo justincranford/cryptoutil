@@ -4343,51 +4343,65 @@ if file == "demo-seed.yml" || file == "integration.yml" {
 
 ```
 configs/
-├── ca/                          # PKI product (maps to pki-ca service)
-│   ├── ca-server.yml            # CA-specific nested config
-│   ├── ca-config-schema.yaml    # CA certificate schema
-│   └── profiles/                # X.509 certificate profiles
-│       ├── tls-server.yaml
-│       └── root-ca.yaml
-
-├── sm/
-│   ├── kms/                     # SM KMS service configs
-│   │   ├── config-pg-1.yml      # PostgreSQL instance 1 (flat kebab-case)
-│   │   ├── config-pg-2.yml      # PostgreSQL instance 2 (flat kebab-case)
-│   │   └── config-sqlite.yml    # SQLite development (flat kebab-case)
-│   └── im/                      # SM IM service configs
-│       ├── config-pg-1.yml      # PostgreSQL instance 1 (flat kebab-case)
-│       ├── config-pg-2.yml      # PostgreSQL instance 2 (flat kebab-case)
-│       └── config-sqlite.yml    # SQLite development (flat kebab-case)
-├── identity/
-│   ├── development.yml          # Environment-specific
-│   ├── production.yml           # Environment-specific
-│   ├── test.yml                 # Environment-specific
-│   ├── policies/                # Shared authentication policies
-│   │   ├── adaptive-auth.yml
-│   │   └── step-up.yml
-│   ├── profiles/                # Deployment profiles
-│   │   ├── full-stack.yml
-│   │   └── ci.yml
-│   └── authz/                   # Per-service configs
-│       └── authz.yml
-├── jose/
-│   └── jose-server.yml
 ├── cryptoutil/
-│   └── cryptoutil.yml           # Suite-level config
-└── orphaned/                    # Archived configs (no active deployment)
-    └── template/                # Orphaned template configs
+│   └── cryptoutil.yml               # Suite-level config
+├── identity/
+│   ├── authz/
+│   │   └── authz.yml                # Domain config (nested YAML)
+│   ├── idp/
+│   │   └── idp.yml                  # Domain config (nested YAML)
+│   ├── rp/
+│   │   └── rp.yml                   # Domain config (nested YAML)
+│   ├── rs/
+│   │   └── rs.yml                   # Domain config (nested YAML)
+│   ├── spa/
+│   │   └── spa.yml                  # Domain config (nested YAML)
+│   └── policies/                    # Shared authentication policies
+│       ├── adaptive-auth.yml
+│       ├── risk-scoring.yml
+│       └── step-up.yml
+├── jose/
+│   └── ja/
+│       └── jose-ja-server.yml       # Domain config (nested YAML, PS-ID prefix)
+├── pki/
+│   └── ca/
+│       ├── pki-ca-server.yml        # Domain config (nested YAML, PS-ID prefix)
+│       ├── pki-ca-config-schema.yaml # CA certificate schema definition
+│       └── profiles/                # X.509 certificate profiles (25 files)
+│           ├── tls-server.yaml
+│           ├── root-ca.yaml
+│           └── ...
+├── skeleton/
+│   ├── skeleton-server.yml          # Product-level default config
+│   └── template/
+│       └── skeleton-template-server.yml # Domain config (PS-ID prefix)
+└── sm/
+    ├── im/
+    │   ├── im.yml                   # Domain config (nested YAML)
+    │   ├── sm-im-sqlite.yml         # Service framework config (flat kebab-case)
+    │   ├── sm-im-pg-1.yml           # Service framework config (flat kebab-case)
+    │   └── sm-im-pg-2.yml           # Service framework config (flat kebab-case)
+    └── kms/
+        ├── sm-kms-sqlite.yml        # Service framework config (flat kebab-case)
+        ├── sm-kms-pg-1.yml          # Service framework config (flat kebab-case)
+        └── sm-kms-pg-2.yml          # Service framework config (flat kebab-case)
 ```
 
-**File Types**:
+**Config File Naming Conventions**:
 
-| Type | Pattern | Schema | Example |
-|------|---------|--------|---------|
-| Service template config | `config-*.yml` | Flat kebab-case, validated by `ValidateSchema` | `config-pg-1.yml` |
-| Domain-specific config | `{service}.yml` | Nested YAML, service-specific | `ca-server.yml`, `authz.yml` |
-| Environment config | `{env}.yml` | Product-level deployment settings | `development.yml`, `production.yml` |
+| Type | Naming Pattern | Schema Format | Examples |
+|------|---------------|---------------|----------|
+| Service framework config | `{PS-ID}-{variant}.yml` | Flat kebab-case, validated by `ValidateSchema` | `sm-kms-sqlite.yml`, `sm-im-pg-1.yml` |
+| Domain config | `{service}.yml` or `{PS-ID}-server.yml` | Nested YAML, service-specific | `authz.yml`, `pki-ca-server.yml` |
+| Suite config | `cryptoutil.yml` | Suite-level settings | `cryptoutil.yml` |
+| Product config | `{product}-server.yml` | Product-level defaults | `skeleton-server.yml` |
 | Certificate profile | `profiles/*.yaml` | X.509 certificate definitions | `tls-server.yaml` |
 | Auth policy | `policies/*.yml` | Authentication/authorization rules | `adaptive-auth.yml` |
+| Certificate schema | `*-config-schema.yaml` | CA certificate schema definitions | `pki-ca-config-schema.yaml` |
+
+**Service Framework Config Suffixes**: `-sqlite.yml`, `-pg-1.yml`, `-pg-2.yml` (recognized by `isServiceFrameworkConfig` in `validate_all.go`).
+
+**Dual configs/ vs deployments/config/ Relationship**: The `configs/` directory holds **standalone development configs** for direct `go run` usage. The `deployments/*/config/` directories hold **Docker Compose deployment configs** that may override or extend standalone configs. Both follow the same flat kebab-case schema for service framework configs.
 
 **Cross-References**: Schema validation rules in [validate_schema.go](/internal/apps/tools/cicd_lint/lint_deployments/validate_schema.go). Config naming in [Section 12.4.5](#1245-config-file-naming-strategy).
 
