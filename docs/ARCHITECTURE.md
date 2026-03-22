@@ -203,6 +203,33 @@ See [Section 11.1 Maximum Quality Strategy](#111-maximum-quality-strategy---mand
 - **Documentation**: Every feature documented in OpenAPI specs
 - **CI/CD**: All workflows passing, <15 min total pipeline time
 
+### 1.5 Architecture at a Glance
+
+**1 Suite → 5 Products → 10 Services**:
+
+```
+cryptoutil (suite)
+├── PKI           → pki-ca
+├── JOSE          → jose-ja
+├── SM            → sm-kms, sm-im
+├── Identity      → identity-authz, identity-idp, identity-rs, identity-rp, identity-spa
+└── Skeleton      → skeleton-template
+```
+
+**Deployment Tiers** (independent, stackable — see [Section 3.4.1](#341-port-design-principles)):
+
+| Tier | Scope | Host Port Offset | compose.yml Location |
+|------|-------|------------------|---------------------|
+| SERVICE | Single service | +0 (8XXX) | `deployments/{PS-ID}/` |
+| PRODUCT | All services in one product | +10000 (18XXX) | `deployments/{PRODUCT}/` |
+| SUITE | All 10 services across all 5 products | +20000 (28XXX) | `deployments/cryptoutil-suite/` |
+
+**Service Independence**: Each service is a standalone binary with its own HTTPS listeners (public :8080, admin :9090), database (PostgreSQL or SQLite), config, Docker Compose file, and deployment secrets. Services communicate via mTLS or OAuth 2.1 client credentials (see [Section 3.3](#33-product-service-relationships)).
+
+**Migration Priority** (to service framework — see [Section 5.1.3](#513-mandatory-usage)): sm-im → jose-ja → sm-kms → pki-ca → identity services. SM services first, PKI second, Identity last.
+
+**Federation**: Services fail over through FEDERATED → DATABASE → FILE realms with no retry logic or circuit breakers. FILE realms (local, always available) are the last-resort failsafe.
+
 ---
 
 ## 2. Strategic Vision & Principles
