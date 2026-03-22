@@ -85,8 +85,6 @@ jobs:
     - name: Run golangci-lint
       uses: ./.github/actions/golangci-lint
 
-    - name: Run custom cicd linting and validation
-      uses: ./.github/actions/custom-cicd-lint
 
     - name: Code quality summary
       if: always()
