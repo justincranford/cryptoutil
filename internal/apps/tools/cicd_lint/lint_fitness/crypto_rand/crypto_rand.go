@@ -90,8 +90,7 @@ func FindMathRandViolationsInDir(rootDir string) ([]lintGoCommon.CryptoViolation
 			strings.Contains(normalizedPath, "/testutil/") ||
 			strings.Contains(normalizedPath, "/test/") ||
 			strings.Contains(normalizedPath, "/demo/") ||
-			strings.Contains(normalizedPath, "cmd/demo/") ||
-			strings.Contains(normalizedPath, "cmd/identity-demo/") ||
+
 			strings.Contains(normalizedPath, "lint_go/") ||
 			strings.Contains(normalizedPath, "lint_fitness/") {
 			return nil
