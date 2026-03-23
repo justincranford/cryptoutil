@@ -195,6 +195,6 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 ## References
 
 Read [ARCHITECTURE.md Section 9.10](../../../docs/ARCHITECTURE.md#910-cicd-command-architecture) for CICD command architecture.
-Read [ARCHITECTURE.md Section 9.11 Architecture Fitness Functions](../../../docs/ARCHITECTURE.md#911-architecture-fitness-functions) for the complete list of 43 existing sub-linters in 5 groups — use this section to understand what invariants are already enforced and select a unique new architectural rule.
+Read [ARCHITECTURE.md Section 9.11 Architecture Fitness Functions](../../../docs/ARCHITECTURE.md#911-architecture-fitness-functions) for the complete list of 49 existing sub-linters in 5 groups — use this section to understand what invariants are already enforced and select a unique new architectural rule.
 Read [ARCHITECTURE.md Section 10.2.5](../../../docs/ARCHITECTURE.md#1025-sequential-test-exemption) for // Sequential: comment exemption.
 Read [ARCHITECTURE.md Section 11.3](../../../docs/ARCHITECTURE.md#113-code-quality-standards) for test coverage targets (=98% for infrastructure/utility code).

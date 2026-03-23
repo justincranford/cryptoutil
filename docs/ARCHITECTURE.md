@@ -2496,8 +2496,8 @@ internal/apps/tools/cicd_lint/
 │   ├── validate_chunks/                            # Sub-linter
 │   └── validate_propagation/                       # Sub-linter
 ├── lint_fitness/                                      # lint-fitness command
-│   ├── lint_fitness.go                             # Lint() + registeredLinters (43 sub-linters)
-│   └── ... (43 sub-linters, see Section 9.11)
+│   ├── lint_fitness.go                             # Lint() + registeredLinters (49 sub-linters)
+│   └── ... (49 sub-linters, see Section 9.11)
 ├── format_go/                                        # format-go command
 │   ├── format_go.go                                # Format() + registeredFormatters
 │   ├── copyloopvar/                                # Sub-formatter
@@ -2534,7 +2534,7 @@ Architecture fitness functions are automated checks that enforce ARCHITECTURE.md
 
 **Adding new fitness functions**: Use the `fitness-function-gen` Copilot skill — see `.github/skills/fitness-function-gen/SKILL.md`.
 
-#### 9.11.1 Fitness Sub-Linter Catalog (43 total)
+#### 9.11.1 Fitness Sub-Linter Catalog (49 total)
 
 **Migrated from lint_go (10)**:
 
@@ -2603,6 +2603,17 @@ Architecture fitness functions are automated checks that enforce ARCHITECTURE.md
 | `standalone-config-presence` | Phase 7 | Allowlist PS must have `config-sqlite.yml`, `config-pg-1.yml`, `config-pg-2.yml` |
 | `standalone-config-otlp-names` | Phase 7 | Config file `otlp-service` values must match `{ps-id}-{db}-N` pattern |
 | `migration-comment-headers` | Phase 8 | Domain migrations (2001+) first comment must be `{DisplayName} database schema` |
+
+**New checks — framework-v5 (6)**:
+
+| Sub-Linter | Phase | Rule Enforced |
+|-----------|-------|---------------|
+| `cicd-coverage` | Pre-v5 | `cicd-lint` sub-commands must have test coverage for registered linters/validators |
+| `archive-detector` | Phase 1 | `_archived/`, `archived/`, `orphaned/` directories must not exist |
+| `configs-naming` | Phase 1 | `configs/` directories must match suite/product/service hierarchy from entity registry |
+| `cmd-anti-pattern` | Phase 1 | `cmd/` directories must follow `cmd/{name}/main.go` pattern, no banned names |
+| `configs-empty-dir` | Phase 1 | `configs/` directories must not be empty (require `.gitkeep` or files) |
+| `configs-deployments-consistency` | Phase 1 | Every `deployments/{PS-ID}/` must have matching `configs/{PRODUCT}/{SERVICE}/` |
 
 #### 9.11.2 Entity Registry
 

@@ -763,16 +763,17 @@
 
 #### Task 7.2: Update Instruction Files
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1h
+- **Actual**: 30m
 - **Dependencies**: Task 7.1
 - **Description**: Update copilot instruction files with new configs/deployment standards
 - **Acceptance Criteria**:
-  - [ ] `02-01.architecture.instructions.md` updated with configs/ naming standard
-  - [ ] `04-01.deployment.instructions.md` updated with template vs skeleton-template clarity
-  - [ ] `03-05.linting.instructions.md` updated with new fitness linter catalog count
-  - [ ] All `cmd/cicd` references updated to `cmd/cicd-lint` in instruction files
-  - [ ] All instruction file @source blocks aligned with ARCHITECTURE.md
+  - [x] `02-01.architecture.instructions.md` updated with configs/ naming standard (43→49 anchor fix)
+  - [x] `04-01.deployment.instructions.md` updated with template vs skeleton-template clarity (already correct)
+  - [x] `03-05.linting.instructions.md` updated with new fitness linter catalog count (no count ref exists — N/A)
+  - [x] All `cmd/cicd` references updated to `cmd/cicd-lint` in instruction files (none found — already clean)
+  - [x] All instruction file @source blocks aligned with ARCHITECTURE.md (1 broken ref fixed, lint-docs passes)
 
 #### Task 7.3: Audit and Update Skills
 
