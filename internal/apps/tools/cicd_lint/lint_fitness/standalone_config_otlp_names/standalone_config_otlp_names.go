@@ -79,7 +79,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 // checkOTLPNames validates the otlp-service values in each required config file for ps.
 func checkOTLPNames(rootDir string, ps lintFitnessRegistry.ProductService) []string {
-	configDir := filepath.Join(rootDir, "configs", ps.Product, ps.Service)
+	configDir := filepath.Join(rootDir, cryptoutilSharedMagic.CICDConfigsDir, ps.Product, ps.Service)
 
 	var violations []string
 

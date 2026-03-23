@@ -43,7 +43,7 @@ func setupAllComponents(t *testing.T, tmpDir string) {
 		deploymentsDir := filepath.Join(tmpDir, "deployments", ps.PSID)
 		require.NoError(t, os.MkdirAll(deploymentsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
-		configsDir := filepath.Join(tmpDir, "configs", ps.Product, ps.Service)
+		configsDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, ps.Product, ps.Service)
 		require.NoError(t, os.MkdirAll(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 		magicDir := filepath.Join(tmpDir, "internal", "shared", "magic")
@@ -126,7 +126,7 @@ func TestCheckInDir_MissingConfigsDir(t *testing.T) {
 			tmpDir := t.TempDir()
 			setupAllComponents(t, tmpDir)
 
-			configsDir := filepath.Join(tmpDir, "configs", tc.product, tc.service)
+			configsDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, tc.product, tc.service)
 			require.NoError(t, os.RemoveAll(configsDir))
 
 			logger := cryptoutilCmdCicdCommon.NewLogger("test")

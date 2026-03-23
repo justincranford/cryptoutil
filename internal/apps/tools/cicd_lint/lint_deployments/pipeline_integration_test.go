@@ -18,7 +18,7 @@ func TestIntegrationFullPipeline(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	deploymentsDir := filepath.Join(tmpDir, "deployments")
-	configsDir := filepath.Join(tmpDir, "configs")
+	configsDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir)
 
 	// Create a realistic deployment structure.
 	// Note: mapDeploymentToConfig maps PRODUCT-SERVICE "jose-ja" -> PRODUCT "jose".
@@ -165,7 +165,7 @@ database-url: "postgres://user:pass@db:5432/mydb"
 
 		tmpDir := t.TempDir()
 		deploymentsDir := filepath.Join(tmpDir, "deployments")
-		configsDir := filepath.Join(tmpDir, "configs")
+		configsDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir)
 
 		// Create deployment without matching config.
 		require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, "svc-a", "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))

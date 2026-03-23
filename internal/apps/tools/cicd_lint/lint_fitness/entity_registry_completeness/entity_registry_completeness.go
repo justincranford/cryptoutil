@@ -18,6 +18,7 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
 	lintFitnessRegistry "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/registry"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Check validates entity registry completeness from the workspace root.
@@ -56,7 +57,7 @@ func checkProductService(rootDir string, ps lintFitnessRegistry.ProductService) 
 	}
 
 	// 2. configs/{PRODUCT}/{SERVICE}/ directory.
-	configsDir := filepath.Join(rootDir, "configs", ps.Product, ps.Service)
+	configsDir := filepath.Join(rootDir, cryptoutilSharedMagic.CICDConfigsDir, ps.Product, ps.Service)
 	if _, err := os.Stat(configsDir); os.IsNotExist(err) {
 		violations = append(violations, fmt.Sprintf("%s: missing configs/%s/%s/ directory", ps.PSID, ps.Product, ps.Service))
 	}

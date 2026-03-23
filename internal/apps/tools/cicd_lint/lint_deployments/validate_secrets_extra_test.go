@@ -85,7 +85,7 @@ func TestValidateSecrets_ComposeDockerComposeYml(t *testing.T) {
 func TestValidateSecrets_ConfigNonStringValue(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
-	configsDir := filepath.Join(dir, "configs")
+	configsDir := filepath.Join(dir, cryptoutilSharedMagic.CICDConfigsDir)
 	require.NoError(t, os.Mkdir(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	config := "api-key: 12345\n"
@@ -99,7 +99,7 @@ func TestValidateSecrets_ConfigNonStringValue(t *testing.T) {
 func TestValidateSecrets_ConfigSqliteURL(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
-	configsDir := filepath.Join(dir, "configs")
+	configsDir := filepath.Join(dir, cryptoutilSharedMagic.CICDConfigsDir)
 	require.NoError(t, os.Mkdir(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	config := "database-password: sqlite:///tmp/test.db\n"
@@ -113,7 +113,7 @@ func TestValidateSecrets_ConfigSqliteURL(t *testing.T) {
 func TestValidateSecrets_ConfigMemoryRef(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
-	configsDir := filepath.Join(dir, "configs")
+	configsDir := filepath.Join(dir, cryptoutilSharedMagic.CICDConfigsDir)
 	require.NoError(t, os.Mkdir(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	config := "db-password: \":memory:\"\n"

@@ -38,7 +38,7 @@ func TestCheckInDir_NoLegacyDirs_Passes(t *testing.T) {
 	tmp := t.TempDir()
 	mkdir(t, filepath.Join(tmp, "internal", "apps", "sm"))
 	mkdir(t, filepath.Join(tmp, "deployments", cryptoutilSharedMagic.OTLPServiceSMIM))
-	mkdir(t, filepath.Join(tmp, "configs", "sm", "im"))
+	mkdir(t, filepath.Join(tmp, cryptoutilSharedMagic.CICDConfigsDir, "sm", "im"))
 	mkdir(t, filepath.Join(tmp, "cmd", cryptoutilSharedMagic.OTLPServiceSMIM))
 
 	err := CheckInDir(newTestLogger(), tmp)
@@ -71,7 +71,7 @@ func TestCheckInDir_CipherPrefixInConfigs(t *testing.T) {
 	t.Parallel()
 
 	tmp := t.TempDir()
-	mkdir(t, filepath.Join(tmp, "configs", "cipher-kms"))
+	mkdir(t, filepath.Join(tmp, cryptoutilSharedMagic.CICDConfigsDir, "cipher-kms"))
 
 	err := CheckInDir(newTestLogger(), tmp)
 	require.Error(t, err)

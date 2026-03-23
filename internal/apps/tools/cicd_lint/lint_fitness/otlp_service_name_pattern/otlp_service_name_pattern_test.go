@@ -135,7 +135,7 @@ func TestCheckInDir_NoOTLPServiceKey(t *testing.T) {
 
 	// A config file without an otlp-service key should not be flagged.
 	tmpDir := t.TempDir()
-	productDir := filepath.Join(tmpDir, "configs", cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.IMServiceName)
+	productDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.IMServiceName)
 	require.NoError(t, os.MkdirAll(productDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	configContent := "bind-public-port: 8080\n"
@@ -151,7 +151,7 @@ func TestCheckInDir_ViolationReported(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	productDir := filepath.Join(tmpDir, "configs", cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.KMSServiceName)
+	productDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.KMSServiceName)
 	require.NoError(t, os.MkdirAll(productDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	// Use old legacy naming.

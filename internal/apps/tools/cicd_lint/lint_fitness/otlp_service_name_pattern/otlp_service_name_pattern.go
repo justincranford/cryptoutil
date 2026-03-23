@@ -18,6 +18,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // configRule maps a standalone config file suffix to its expected otlp-service suffix.
@@ -52,7 +53,7 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	logger.Log("Checking OTLP service name patterns in standalone config files...")
 
-	configsDir := filepath.Join(rootDir, "configs")
+	configsDir := filepath.Join(rootDir, cryptoutilSharedMagic.CICDConfigsDir)
 
 	if _, err := os.Stat(configsDir); os.IsNotExist(err) {
 		logger.Log("No configs/ directory found — skipping otlp-service-name-pattern check")

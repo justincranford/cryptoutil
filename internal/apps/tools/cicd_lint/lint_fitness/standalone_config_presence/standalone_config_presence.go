@@ -68,7 +68,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 // checkConfigPresence verifies that each required config file exists for ps.
 func checkConfigPresence(rootDir string, ps lintFitnessRegistry.ProductService) []string {
-	configDir := filepath.Join(rootDir, "configs", ps.Product, ps.Service)
+	configDir := filepath.Join(rootDir, cryptoutilSharedMagic.CICDConfigsDir, ps.Product, ps.Service)
 
 	if _, err := os.Stat(configDir); os.IsNotExist(err) {
 		return []string{fmt.Sprintf("%s: configs/%s/%s/ directory does not exist", ps.PSID, ps.Product, ps.Service)}

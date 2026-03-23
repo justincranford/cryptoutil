@@ -180,7 +180,7 @@ func TestValidateSecrets_UnreadableSecretsDir(t *testing.T) {
 func TestValidateSecrets_ConfigInlineSecret(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
-	configsDir := filepath.Join(dir, "configs")
+	configsDir := filepath.Join(dir, cryptoutilSharedMagic.CICDConfigsDir)
 	require.NoError(t, os.Mkdir(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	config := "database-password: supersecretpassword123\n"
@@ -196,7 +196,7 @@ func TestValidateSecrets_ConfigInlineSecret(t *testing.T) {
 func TestValidateSecrets_ConfigSafeReference(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
-	configsDir := filepath.Join(dir, "configs")
+	configsDir := filepath.Join(dir, cryptoutilSharedMagic.CICDConfigsDir)
 	require.NoError(t, os.Mkdir(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	config := "database-password: file:///run/secrets/db_password\n"
@@ -211,7 +211,7 @@ func TestValidateSecrets_ConfigSafeReference(t *testing.T) {
 func TestValidateSecrets_ConfigNestedInlineSecret(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
-	configsDir := filepath.Join(dir, "configs")
+	configsDir := filepath.Join(dir, cryptoutilSharedMagic.CICDConfigsDir)
 	require.NoError(t, os.Mkdir(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	config := "auth:\n  api-key: my-hardcoded-api-key-value\n"
@@ -226,7 +226,7 @@ func TestValidateSecrets_ConfigNestedInlineSecret(t *testing.T) {
 func TestValidateSecrets_ConfigEmptySecretValue(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
-	configsDir := filepath.Join(dir, "configs")
+	configsDir := filepath.Join(dir, cryptoutilSharedMagic.CICDConfigsDir)
 	require.NoError(t, os.Mkdir(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	config := "database-password: \"\"\n"
@@ -240,7 +240,7 @@ func TestValidateSecrets_ConfigEmptySecretValue(t *testing.T) {
 func TestValidateSecrets_ConfigNonSecretField(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
-	configsDir := filepath.Join(dir, "configs")
+	configsDir := filepath.Join(dir, cryptoutilSharedMagic.CICDConfigsDir)
 	require.NoError(t, os.Mkdir(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	config := "bind-public-port: 8080\nhost: localhost\n"
@@ -254,7 +254,7 @@ func TestValidateSecrets_ConfigNonSecretField(t *testing.T) {
 func TestValidateSecrets_ConfigInvalidYAML(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
-	configsDir := filepath.Join(dir, "configs")
+	configsDir := filepath.Join(dir, cryptoutilSharedMagic.CICDConfigsDir)
 	require.NoError(t, os.Mkdir(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(configsDir, "bad.yml"), []byte(":\n  - :\n:"), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -271,7 +271,7 @@ func TestValidateSecrets_ConfigUnreadableFile(t *testing.T) {
 	}
 
 	dir := t.TempDir()
-	configsDir := filepath.Join(dir, "configs")
+	configsDir := filepath.Join(dir, cryptoutilSharedMagic.CICDConfigsDir)
 	require.NoError(t, os.Mkdir(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	f := filepath.Join(configsDir, "unreadable.yml")
 	require.NoError(t, os.WriteFile(f, []byte("data"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -288,7 +288,7 @@ func TestValidateSecrets_ConfigUnreadableFile(t *testing.T) {
 func TestValidateSecrets_ConfigNonYAMLIgnored(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
-	configsDir := filepath.Join(dir, "configs")
+	configsDir := filepath.Join(dir, cryptoutilSharedMagic.CICDConfigsDir)
 	require.NoError(t, os.Mkdir(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(configsDir, "readme.md"), []byte("api-key: secret"), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -300,7 +300,7 @@ func TestValidateSecrets_ConfigNonYAMLIgnored(t *testing.T) {
 func TestValidateSecrets_ConfigSubdirIgnored(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
-	configsDir := filepath.Join(dir, "configs")
+	configsDir := filepath.Join(dir, cryptoutilSharedMagic.CICDConfigsDir)
 	require.NoError(t, os.Mkdir(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.Mkdir(filepath.Join(configsDir, "subdir"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
@@ -317,7 +317,7 @@ func TestValidateSecrets_UnreadableConfigsDir(t *testing.T) {
 	}
 
 	dir := t.TempDir()
-	configsDir := filepath.Join(dir, "configs")
+	configsDir := filepath.Join(dir, cryptoutilSharedMagic.CICDConfigsDir)
 	require.NoError(t, os.Mkdir(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.Chmod(configsDir, 0o000))
 

@@ -219,7 +219,7 @@ func TestWorkflow_CleanupSubcommand_Success(t *testing.T) {
 
 	defer func() { cleanupFn = orig }()
 
-result := Workflow([]string{cryptoutilSharedMagic.CICDCmdDirWorkflow, cryptoutilSharedMagic.WorkflowSubCmdCleanup}, nil, nil, nil)
+	result := Workflow([]string{cryptoutilSharedMagic.CICDCmdDirWorkflow, cryptoutilSharedMagic.WorkflowSubCmdCleanup}, nil, nil, nil)
 	require.Equal(t, 0, result)
 }
 
@@ -230,7 +230,7 @@ func TestWorkflow_CleanupSubcommand_Error(t *testing.T) {
 
 	defer func() { cleanupFn = orig }()
 
-result := Workflow([]string{cryptoutilSharedMagic.CICDCmdDirWorkflow, cryptoutilSharedMagic.WorkflowSubCmdCleanup}, nil, nil, nil)
+	result := Workflow([]string{cryptoutilSharedMagic.CICDCmdDirWorkflow, cryptoutilSharedMagic.WorkflowSubCmdCleanup}, nil, nil, nil)
 	require.Equal(t, 1, result)
 }
 

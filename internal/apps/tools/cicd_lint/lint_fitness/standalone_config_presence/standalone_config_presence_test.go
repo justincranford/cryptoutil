@@ -43,7 +43,7 @@ func findProjectRoot(t *testing.T) string {
 func writeConfigFile(t *testing.T, tmpDir, product, service, filename, content string) {
 	t.Helper()
 
-	configDir := filepath.Join(tmpDir, "configs", product, service)
+	configDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, product, service)
 	require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.CICDTempDirPermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(configDir, filename), []byte(content), cryptoutilSharedMagic.CICDOutputFilePermissions))
 }
@@ -92,7 +92,7 @@ func TestCheckInDir_MissingSQLiteConfig(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupAllRequiredConfigs(t, tmpDir)
 
-	require.NoError(t, os.Remove(filepath.Join(tmpDir, "configs", cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.KMSServiceName, "sm-kms-sqlite.yml")))
+	require.NoError(t, os.Remove(filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.KMSServiceName, "sm-kms-sqlite.yml")))
 
 	err := lintFitnessStandaloneConfigPresence.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
@@ -106,7 +106,7 @@ func TestCheckInDir_MissingPG1Config(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupAllRequiredConfigs(t, tmpDir)
 
-	require.NoError(t, os.Remove(filepath.Join(tmpDir, "configs", cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.IMServiceName, "sm-im-pg-1.yml")))
+	require.NoError(t, os.Remove(filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.IMServiceName, "sm-im-pg-1.yml")))
 
 	err := lintFitnessStandaloneConfigPresence.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
@@ -121,7 +121,7 @@ func TestCheckInDir_MissingConfigDir(t *testing.T) {
 	setupAllRequiredConfigs(t, tmpDir)
 
 	// Remove the entire sm-kms config directory.
-	require.NoError(t, os.RemoveAll(filepath.Join(tmpDir, "configs", cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.KMSServiceName)))
+	require.NoError(t, os.RemoveAll(filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.KMSServiceName)))
 
 	err := lintFitnessStandaloneConfigPresence.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)

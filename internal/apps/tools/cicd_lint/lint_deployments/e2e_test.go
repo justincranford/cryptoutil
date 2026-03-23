@@ -26,7 +26,7 @@ func TestMainGenerateListings(t *testing.T) {
 
 				tmpDir := t.TempDir()
 				deploymentsDir := filepath.Join(tmpDir, "deployments")
-				configsDir := filepath.Join(tmpDir, "configs")
+				configsDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir)
 				require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServiceJoseJA), dirPermissions))
 				require.NoError(t, os.MkdirAll(configsDir, dirPermissions))
 				require.NoError(t, os.WriteFile(
@@ -75,7 +75,7 @@ func TestMainValidateMirror(t *testing.T) {
 
 				tmpDir := t.TempDir()
 				deploymentsDir := filepath.Join(tmpDir, "deployments")
-				configsDir := filepath.Join(tmpDir, "configs")
+				configsDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir)
 				require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServiceJoseJA), dirPermissions))
 				require.NoError(t, os.MkdirAll(filepath.Join(configsDir, cryptoutilSharedMagic.JoseProductName), dirPermissions))
 
@@ -90,7 +90,7 @@ func TestMainValidateMirror(t *testing.T) {
 
 				tmpDir := t.TempDir()
 				deploymentsDir := filepath.Join(tmpDir, "deployments")
-				configsDir := filepath.Join(tmpDir, "configs")
+				configsDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir)
 				require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServiceJoseJA), dirPermissions))
 				require.NoError(t, os.MkdirAll(configsDir, dirPermissions))
 
@@ -210,7 +210,7 @@ func TestMainSubcommandRouting(t *testing.T) {
 
 				tmpDir := t.TempDir()
 				deploymentsDir := filepath.Join(tmpDir, "deployments")
-				configsDir := filepath.Join(tmpDir, "configs")
+				configsDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir)
 				require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServiceJoseJA), dirPermissions))
 				require.NoError(t, os.MkdirAll(configsDir, dirPermissions))
 				require.NoError(t, os.WriteFile(
@@ -228,7 +228,7 @@ func TestMainSubcommandRouting(t *testing.T) {
 
 				tmpDir := t.TempDir()
 				deploymentsDir := filepath.Join(tmpDir, "deployments")
-				configsDir := filepath.Join(tmpDir, "configs")
+				configsDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir)
 				require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServiceJoseJA), dirPermissions))
 				require.NoError(t, os.MkdirAll(filepath.Join(configsDir, cryptoutilSharedMagic.JoseProductName), dirPermissions))
 

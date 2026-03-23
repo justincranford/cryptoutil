@@ -660,45 +660,45 @@
 
 #### Task 6.1: Implement archive-detector Linter
 
-- **Status**: Not Started
+- **Status**: Complete
 - **Estimated**: 1h
 - **Dependencies**: Phase 1 complete
 - **Description**: Detect `_archived/`, `archived/`, `orphaned/` directories anywhere in repository
 - **Acceptance Criteria**:
-  - [ ] `internal/apps/tools/cicd_lint/lint_fitness/archive_detector/` created
-  - [ ] Walks repo tree, fails on any archived/orphaned directory
-  - [ ] Tests >= 98% coverage
-  - [ ] Registered in fitness catalog
-  - [ ] Passes on current codebase (post Phase 1 cleanup)
+  - [x] `internal/apps/tools/cicd_lint/lint_fitness/archive_detector/` created
+  - [x] Walks repo tree, fails on any archived/orphaned directory
+  - [x] Tests >= 98% coverage
+  - [x] Registered in fitness catalog
+  - [x] Passes on current codebase (post Phase 1 cleanup)
 
 #### Task 6.2: Implement configs-naming Linter
 
-- **Status**: Not Started
+- **Status**: Complete
 - **Estimated**: 2h
 - **Dependencies**: Phase 3 complete
 - **Description**: Validate configs/ directory structure and file naming follows `{PS-ID}-{purpose}.yml` pattern
 - **Acceptance Criteria**:
-  - [ ] `internal/apps/tools/cicd_lint/lint_fitness/configs_naming/` created
-  - [ ] Validates `configs/{PRODUCT}/{SERVICE}/` structure against entity registry
-  - [ ] Validates file naming: `{PS-ID}-{purpose}.yml` for service template configs
-  - [ ] Allows product-level configs in `configs/{PRODUCT}/`
-  - [ ] Tests >= 98% coverage with edge cases
-  - [ ] Registered in fitness catalog
-  - [ ] Passes on current codebase (post Phase 3 standardization)
+  - [x] `internal/apps/tools/cicd_lint/lint_fitness/configs_naming/` created
+  - [x] Validates `configs/{PRODUCT}/{SERVICE}/` structure against entity registry
+  - [x] Validates file naming: `{PS-ID}-{purpose}.yml` for service template configs
+  - [x] Allows product-level configs in `configs/{PRODUCT}/`
+  - [x] Tests >= 98% coverage with edge cases
+  - [x] Registered in fitness catalog
+  - [x] Passes on current codebase (post Phase 3 standardization)
 
 #### Task 6.3: Implement cmd-anti-pattern Linter
 
-- **Status**: Not Started
+- **Status**: Complete
 - **Estimated**: 1h
 - **Dependencies**: Phase 2 complete
 - **Description**: Detect `cmd/{PRODUCT}-{subcommand}/` anti-pattern entries
 - **Acceptance Criteria**:
-  - [ ] `internal/apps/tools/cicd_lint/lint_fitness/cmd_anti_pattern/` created
-  - [ ] Detects `cmd/{product}-{subcommand}/` patterns (e.g., cmd/identity-compose/)
-  - [ ] Does NOT flag legitimate PS-ID entries (e.g., cmd/identity-authz/)
-  - [ ] Does NOT flag documented infrastructure tools (cmd/cicd-lint/, cmd/workflow/)
-  - [ ] Tests >= 98% coverage
-  - [ ] Registered in fitness catalog
+  - [x] `internal/apps/tools/cicd_lint/lint_fitness/cmd_anti_pattern/` created
+  - [x] Detects `cmd/{product}-{subcommand}/` patterns (e.g., cmd/identity-compose/)
+  - [x] Does NOT flag legitimate PS-ID entries (e.g., cmd/identity-authz/)
+  - [x] Does NOT flag documented infrastructure tools (cmd/cicd-lint/, cmd/workflow/)
+  - [x] Tests >= 98% coverage
+  - [x] Registered in fitness catalog
 
 #### Task 6.4: Implement configs-empty-dir Linter
 

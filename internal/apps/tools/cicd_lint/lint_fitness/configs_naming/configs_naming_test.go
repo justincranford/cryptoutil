@@ -42,17 +42,17 @@ func findProjectRoot(t *testing.T) string {
 
 func setupConfigsDir(t *testing.T, tmpDir string) {
 	t.Helper()
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "configs"), cryptoutilSharedMagic.DirPermissions))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir), cryptoutilSharedMagic.DirPermissions))
 }
 
 func createProductDir(t *testing.T, tmpDir, product string) {
 	t.Helper()
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "configs", product), cryptoutilSharedMagic.DirPermissions))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, product), cryptoutilSharedMagic.DirPermissions))
 }
 
 func createServiceDir(t *testing.T, tmpDir, product, service string) {
 	t.Helper()
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "configs", product, service), cryptoutilSharedMagic.DirPermissions))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, product, service), cryptoutilSharedMagic.DirPermissions))
 }
 
 func writeConfigFile(t *testing.T, tmpDir string, relPath string, content string) {
@@ -89,7 +89,7 @@ func TestFindViolationsInDir_ValidSuiteDir(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	writeConfigFile(t, tmpDir, filepath.Join("configs", cryptoutilSharedMagic.DefaultOTLPServiceDefault, "cryptoutil.yml"), "# config\n")
+	writeConfigFile(t, tmpDir, filepath.Join(cryptoutilSharedMagic.CICDConfigsDir, cryptoutilSharedMagic.DefaultOTLPServiceDefault, "cryptoutil.yml"), "# config\n")
 
 	violations, err := lintFitnessConfigsNaming.FindViolationsInDir(tmpDir)
 	require.NoError(t, err)
@@ -124,7 +124,7 @@ func TestFindViolationsInDir_UnknownTopLevelDir(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	setupConfigsDir(t, tmpDir)
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "configs", "legacy"), cryptoutilSharedMagic.DirPermissions))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, "legacy"), cryptoutilSharedMagic.DirPermissions))
 
 	violations, err := lintFitnessConfigsNaming.FindViolationsInDir(tmpDir)
 	require.NoError(t, err)
@@ -139,8 +139,8 @@ func TestFindViolationsInDir_UnknownTopLevelDir_Multiple(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	setupConfigsDir(t, tmpDir)
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "configs", "legacy"), cryptoutilSharedMagic.DirPermissions))
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "configs", "old"), cryptoutilSharedMagic.DirPermissions))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, "legacy"), cryptoutilSharedMagic.DirPermissions))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, "old"), cryptoutilSharedMagic.DirPermissions))
 
 	violations, err := lintFitnessConfigsNaming.FindViolationsInDir(tmpDir)
 	require.NoError(t, err)
@@ -167,7 +167,7 @@ func TestFindViolationsInDir_UnknownServiceDir_WithPSIDFiles(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	writeConfigFile(t, tmpDir, filepath.Join("configs", cryptoutilSharedMagic.SMProductName, "unknown", cryptoutilSharedMagic.SMProductName+"-unknown-sqlite.yml"), "# wrong service\n")
+	writeConfigFile(t, tmpDir, filepath.Join(cryptoutilSharedMagic.CICDConfigsDir, cryptoutilSharedMagic.SMProductName, "unknown", cryptoutilSharedMagic.SMProductName+"-unknown-sqlite.yml"), "# wrong service\n")
 
 	violations, err := lintFitnessConfigsNaming.FindViolationsInDir(tmpDir)
 	require.NoError(t, err)
@@ -182,7 +182,7 @@ func TestFindViolationsInDir_ProductLevelSpecialDir(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	writeConfigFile(t, tmpDir, filepath.Join("configs", cryptoutilSharedMagic.IdentityProductName, "policies", "adaptive-auth.yml"), "# policy\n")
+	writeConfigFile(t, tmpDir, filepath.Join(cryptoutilSharedMagic.CICDConfigsDir, cryptoutilSharedMagic.IdentityProductName, "policies", "adaptive-auth.yml"), "# policy\n")
 
 	violations, err := lintFitnessConfigsNaming.FindViolationsInDir(tmpDir)
 	require.NoError(t, err)
@@ -195,7 +195,7 @@ func TestFindViolationsInDir_ProductLevelFilesAllowed(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	writeConfigFile(t, tmpDir, filepath.Join("configs", cryptoutilSharedMagic.SkeletonProductName, "skeleton-server.yml"), "# skeleton\n")
+	writeConfigFile(t, tmpDir, filepath.Join(cryptoutilSharedMagic.CICDConfigsDir, cryptoutilSharedMagic.SkeletonProductName, "skeleton-server.yml"), "# skeleton\n")
 
 	violations, err := lintFitnessConfigsNaming.FindViolationsInDir(tmpDir)
 	require.NoError(t, err)
@@ -208,7 +208,7 @@ func TestFindViolationsInDir_UnknownServiceDir_NoProductFiles(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "configs", cryptoutilSharedMagic.IdentityProductName, "policies"), cryptoutilSharedMagic.DirPermissions))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, cryptoutilSharedMagic.IdentityProductName, "policies"), cryptoutilSharedMagic.DirPermissions))
 
 	violations, err := lintFitnessConfigsNaming.FindViolationsInDir(tmpDir)
 	require.NoError(t, err)
@@ -221,7 +221,7 @@ func TestFindViolationsInDir_FilesInConfigsRootIgnored(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	setupConfigsDir(t, tmpDir)
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "configs", "README.md"), []byte("# readme\n"), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, "README.md"), []byte("# readme\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	violations, err := lintFitnessConfigsNaming.FindViolationsInDir(tmpDir)
 	require.NoError(t, err)
@@ -246,7 +246,7 @@ func TestCheckInDir_InvalidStructure(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	setupConfigsDir(t, tmpDir)
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "configs", "bad"), cryptoutilSharedMagic.DirPermissions))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, "bad"), cryptoutilSharedMagic.DirPermissions))
 
 	err := lintFitnessConfigsNaming.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)

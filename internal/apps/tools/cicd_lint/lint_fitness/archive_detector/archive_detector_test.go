@@ -38,7 +38,7 @@ func TestCheckInDir_NoBannedDirs_Passes(t *testing.T) {
 	tmp := t.TempDir()
 	mkdir(t, filepath.Join(tmp, "internal", "apps", "sm"))
 	mkdir(t, filepath.Join(tmp, "deployments", cryptoutilSharedMagic.OTLPServiceSMIM))
-	mkdir(t, filepath.Join(tmp, "configs", "sm", "im"))
+	mkdir(t, filepath.Join(tmp, cryptoutilSharedMagic.CICDConfigsDir, "sm", "im"))
 
 	err := CheckInDir(newTestLogger(), tmp)
 	require.NoError(t, err)

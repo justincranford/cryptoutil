@@ -209,7 +209,7 @@ func FormatMirrorResult(result *MirrorResult) string {
 
 	var (
 		deploymentsDir = filepath.Clean("deployments")
-		configsDir     = filepath.Clean("configs")
+		configsDir     = filepath.Clean(cryptoutilSharedMagic.CICDConfigsDir)
 	)
 
 	sb.WriteString(fmt.Sprintf("Summary: deployments=%s configs=%s valid=%t missing=%d orphans=%d excluded=%d\n",

@@ -11,17 +11,18 @@ import (
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
 	lintFitnessAdminBindAddress "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/admin_bind_address"
 	lintFitnessArchiveDetector "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/archive_detector"
-	lintFitnessCmdAntiPattern "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/cmd_anti_pattern"
 	lintFitnessBannedProductNames "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/banned_product_names"
 	lintFitnessBindAddressSafety "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/bind_address_safety"
 	lintFitnessCGOFreeSQLite "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/cgo_free_sqlite"
 	lintFitnessCheckSkeletonPlaceholders "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/check_skeleton_placeholders"
 	lintFitnessCIDCoverage "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/cicd_coverage"
 	lintFitnessCircularDeps "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/circular_deps"
+	lintFitnessCmdAntiPattern "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/cmd_anti_pattern"
 	lintFitnessCmdMainPattern "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/cmd_main_pattern"
 	lintFitnessComposeDBNaming "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/compose_db_naming"
 	lintFitnessComposeHeaderFormat "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/compose_header_format"
 	lintFitnessComposeServiceNames "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/compose_service_names"
+	lintFitnessConfigsEmptyDir "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/configs_empty_dir"
 	lintFitnessConfigsNaming "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/configs_naming"
 	lintFitnessCrossServiceImportIsolation "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/cross_service_import_isolation"
 	lintFitnessCryptoRand "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/crypto_rand"
@@ -127,6 +128,7 @@ var registeredLinters = []struct {
 	// New fitness checks (added in Phase 6 of framework-v5).
 	{"archive-detector", lintFitnessArchiveDetector.Check},
 	{"cmd-anti-pattern", lintFitnessCmdAntiPattern.Check},
+	{"configs-empty-dir", lintFitnessConfigsEmptyDir.Check},
 	{"configs-naming", lintFitnessConfigsNaming.Check},
 }
 

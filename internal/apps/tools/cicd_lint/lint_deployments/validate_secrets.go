@@ -68,7 +68,7 @@ func ValidateSecrets(deploymentPath string) (*SecretValidationResult, error) {
 		validateSecretFileLengths(secretsDir, result)
 	}
 
-	configsDir := filepath.Join(deploymentPath, "configs")
+	configsDir := filepath.Join(deploymentPath, cryptoutilSharedMagic.CICDConfigsDir)
 
 	if dirInfo, err := os.Stat(configsDir); err == nil && dirInfo.IsDir() {
 		validateConfigInlineSecrets(configsDir, result)

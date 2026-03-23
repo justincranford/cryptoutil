@@ -413,9 +413,9 @@ func TestFormatTelemetryValidationResult(t *testing.T) {
 func TestValidateTelemetry_RealSmIM(t *testing.T) {
 	t.Parallel()
 
-	configDir := filepath.Join("testdata", "configs", "sm", "im")
+	configDir := filepath.Join("testdata", cryptoutilSharedMagic.CICDConfigsDir, "sm", "im")
 	if _, err := os.Stat(configDir); err != nil {
-		configDir = filepath.Join("..", "..", "..", "..", "configs", "sm", "im")
+		configDir = filepath.Join("..", "..", "..", "..", cryptoutilSharedMagic.CICDConfigsDir, "sm", "im")
 	}
 
 	if _, err := os.Stat(configDir); err != nil {

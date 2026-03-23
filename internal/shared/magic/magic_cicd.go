@@ -50,11 +50,14 @@ const (
 	// CICDTempDirPermissions is the directory permissions used in tests when creating temporary test directories (0o755).
 	CICDTempDirPermissions = 0o755
 
-        // CICDCmdDirCicdLint is the cmd/ directory name for the CI/CD lint tool binary.
-        CICDCmdDirCicdLint = "cicd-lint"
+	// CICDCmdDirCicdLint is the cmd/ directory name for the CI/CD lint tool binary.
+	CICDCmdDirCicdLint = "cicd-lint"
 
-        // CICDCmdDirWorkflow is the cmd/ directory name for the workflow testing binary.
-        CICDCmdDirWorkflow = "workflow"
+	// CICDCmdDirWorkflow is the cmd/ directory name for the workflow testing binary.
+	CICDCmdDirWorkflow = "workflow"
+
+	// CICDConfigsDir is the top-level directory name for service configuration files.
+	CICDConfigsDir = "configs"
 )
 
 // getProjectRoot finds the project root by walking up the directory tree to find .git directory.

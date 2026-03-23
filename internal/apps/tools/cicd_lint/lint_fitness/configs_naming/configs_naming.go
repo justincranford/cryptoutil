@@ -23,6 +23,7 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
 	lintFitnessRegistry "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/registry"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Check validates configs/ directory structure from the workspace root.
@@ -52,7 +53,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 func FindViolationsInDir(rootDir string) ([]string, error) {
 	suiteIDs, productIDs, servicesByProduct := buildRegistrySets()
 
-	configsDir := filepath.Join(rootDir, "configs")
+	configsDir := filepath.Join(rootDir, cryptoutilSharedMagic.CICDConfigsDir)
 
 	topEntries, err := os.ReadDir(configsDir)
 	if err != nil {

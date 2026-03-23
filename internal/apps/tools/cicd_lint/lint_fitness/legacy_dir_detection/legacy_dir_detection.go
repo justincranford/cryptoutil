@@ -11,6 +11,7 @@ import (
 "path/filepath"
 
 cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // legacyDirs is the list of directory paths (relative to project root) that
@@ -26,7 +27,7 @@ scanDir string
 prefix  string
 }{
 {scanDir: "deployments", prefix: "cipher-"},
-{scanDir: "configs", prefix: "cipher-"},
+		{scanDir: cryptoutilSharedMagic.CICDConfigsDir, prefix: "cipher-"},
 {scanDir: "cmd", prefix: "cipher-"},
 }
 
