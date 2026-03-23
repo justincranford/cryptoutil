@@ -21,6 +21,7 @@ import (
 	lintFitnessComposeDBNaming "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/compose_db_naming"
 	lintFitnessComposeHeaderFormat "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/compose_header_format"
 	lintFitnessComposeServiceNames "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/compose_service_names"
+	lintFitnessConfigsNaming "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/configs_naming"
 	lintFitnessCrossServiceImportIsolation "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/cross_service_import_isolation"
 	lintFitnessCryptoRand "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/crypto_rand"
 	lintFitnessDeploymentDirCompleteness "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/deployment_dir_completeness"
@@ -124,6 +125,7 @@ var registeredLinters = []struct {
 	{"cicd-coverage", lintFitnessCIDCoverage.Check},
 	// New fitness checks (added in Phase 6 of framework-v5).
 	{"archive-detector", lintFitnessArchiveDetector.Check},
+	{"configs-naming", lintFitnessConfigsNaming.Check},
 }
 
 // Lint runs all registered architecture fitness linters.
