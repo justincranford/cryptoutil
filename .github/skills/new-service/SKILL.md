@@ -60,8 +60,8 @@ touch internal/apps/PRODUCT/SERVICE/repository/migrations/2001_init.down.sql
 ### Step 5: Add config files
 
 ```bash
-cp configs/skeleton-template/config-development.yml configs/PRODUCT-SERVICE/config-development.yml
-cp configs/skeleton-template/config-production.yml  configs/PRODUCT-SERVICE/config-production.yml
+cp configs/skeleton/template/config-development.yml configs/PRODUCT/SERVICE/config-development.yml
+cp configs/skeleton/template/config-production.yml  configs/PRODUCT/SERVICE/config-production.yml
 # Update port numbers, service name, database config
 ```
 

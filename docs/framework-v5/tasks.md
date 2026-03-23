@@ -777,19 +777,20 @@
 
 #### Task 7.3: Audit and Update Skills
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1h
+- **Actual**: 20m
 - **Dependencies**: Task 7.1
 - **Description**: Audit all 14 skill directories for framework-v5 compliance: verify names match purpose, content reflects new patterns
 - **Acceptance Criteria**:
-  - [ ] `new-service/SKILL.md` reviewed: verify no overlap with skeleton-template
-  - [ ] `coverage-analysis/SKILL.md` reviewed: verify if mutation testing is included (if not, document scope)
-  - [ ] `contract-test-gen/SKILL.md` reviewed: verify name clarity
-  - [ ] `migration-create/SKILL.md` reviewed: verify name describes purpose accurately
-  - [ ] `fitness-function-gen/SKILL.md` reviewed: verify name clarity
-  - [ ] Any skill generating config files updated with new {PS-ID} naming
-  - [ ] Any skill referencing `cmd/cicd` updated to `cmd/cicd-lint`
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
+  - [x] `new-service/SKILL.md` reviewed: verify no overlap with skeleton-template (fixed configs path: skeleton-template→skeleton/template, PRODUCT-SERVICE→PRODUCT/SERVICE)
+  - [x] `coverage-analysis/SKILL.md` reviewed: verify if mutation testing is included (not included — out of scope, coverage-analysis focuses on line/branch coverage)
+  - [x] `contract-test-gen/SKILL.md` reviewed: verify name clarity (clear — generates cross-service contract compliance tests)
+  - [x] `migration-create/SKILL.md` reviewed: verify name describes purpose accurately (clear — creates numbered SQL migration files)
+  - [x] `fitness-function-gen/SKILL.md` reviewed: verify name clarity (clear — generates architecture fitness functions; count updated 43→49 in task 7.2)
+  - [x] Any skill generating config files updated with new {PS-ID} naming (new-service/SKILL.md fixed: configs/ uses hierarchical PRODUCT/SERVICE not flat PRODUCT-SERVICE)
+  - [x] Any skill referencing `cmd/cicd` updated to `cmd/cicd-lint` (none found — already clean)
+  - [x] `go run ./cmd/cicd-lint lint-docs` passes
 
 #### Task 7.4: Update Agent Files
 
