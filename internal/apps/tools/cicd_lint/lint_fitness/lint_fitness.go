@@ -10,6 +10,7 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
 	lintFitnessAdminBindAddress "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/admin_bind_address"
+	lintFitnessArchiveDetector "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/archive_detector"
 	lintFitnessBannedProductNames "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/banned_product_names"
 	lintFitnessBindAddressSafety "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/bind_address_safety"
 	lintFitnessCGOFreeSQLite "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/cgo_free_sqlite"
@@ -121,6 +122,8 @@ var registeredLinters = []struct {
 	{"migration-comment-headers", lintFitnessMigrationCommentHeaders.Check},
 	// New fitness check: validates cicd commands are covered in action, pre-commit, and CI workflow.
 	{"cicd-coverage", lintFitnessCIDCoverage.Check},
+	// New fitness checks (added in Phase 6 of framework-v5).
+	{"archive-detector", lintFitnessArchiveDetector.Check},
 }
 
 // Lint runs all registered architecture fitness linters.
