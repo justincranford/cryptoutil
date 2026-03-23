@@ -794,14 +794,15 @@
 
 #### Task 7.4: Update Agent Files
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 30m
+- **Actual**: 10m
 - **Dependencies**: Task 7.1
 - **Description**: Update agent files with new patterns
 - **Acceptance Criteria**:
-  - [ ] Any agent referencing configs/ patterns updated
-  - [ ] Any agent referencing `cmd/cicd` updated to `cmd/cicd-lint`
-  - [ ] Agent architecture references current framework tier routing (suite/product/service)
+  - [x] Any agent referencing configs/ patterns updated (all 5 agents audited — configs/ glob patterns already correct)
+  - [x] Any agent referencing `cmd/cicd` updated to `cmd/cicd-lint` (none found — already clean)
+  - [x] Agent architecture references current framework tier routing (suite/product/service) (verified in beast-mode, fix-workflows, implementation-execution, implementation-planning)
 
 #### Task 7.5: Document Deferred Work
 
