@@ -22,6 +22,7 @@ import (
 	lintFitnessComposeDBNaming "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/compose_db_naming"
 	lintFitnessComposeHeaderFormat "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/compose_header_format"
 	lintFitnessComposeServiceNames "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/compose_service_names"
+	lintFitnessConfigsDeploymentsConsistency "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/configs_deployments_consistency"
 	lintFitnessConfigsEmptyDir "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/configs_empty_dir"
 	lintFitnessConfigsNaming "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/configs_naming"
 	lintFitnessCrossServiceImportIsolation "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/cross_service_import_isolation"
@@ -128,6 +129,7 @@ var registeredLinters = []struct {
 	// New fitness checks (added in Phase 6 of framework-v5).
 	{"archive-detector", lintFitnessArchiveDetector.Check},
 	{"cmd-anti-pattern", lintFitnessCmdAntiPattern.Check},
+	{"configs-deployments-consistency", lintFitnessConfigsDeploymentsConsistency.Check},
 	{"configs-empty-dir", lintFitnessConfigsEmptyDir.Check},
 	{"configs-naming", lintFitnessConfigsNaming.Check},
 }

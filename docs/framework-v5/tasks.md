@@ -702,15 +702,15 @@
 
 #### Task 6.4: Implement configs-empty-dir Linter
 
-- **Status**: Not Started
+- **Status**: Complete
 - **Estimated**: 30m
 - **Dependencies**: Phase 3 complete
 - **Description**: Detect empty directories in configs/ without `.gitkeep`
 - **Acceptance Criteria**:
-  - [ ] `internal/apps/tools/cicd_lint/lint_fitness/configs_empty_dir/` created
-  - [ ] Walks configs/ tree, fails on empty dirs without `.gitkeep`
-  - [ ] Tests >= 98% coverage
-  - [ ] Registered in fitness catalog
+  - [x] `internal/apps/tools/cicd_lint/lint_fitness/configs_empty_dir/` created
+  - [x] Walks configs/ tree, fails on empty dirs without `.gitkeep`
+  - [x] Tests >= 98% coverage
+  - [x] Registered in fitness catalog
 
 #### Task 6.5: Implement configs-deployments-consistency Linter
 
