@@ -42,4 +42,8 @@
 
 ## Phase 7: Knowledge Propagation
 
-*(To be filled during Phase 7 execution)*
+- **@propagate/@source anchor sensitivity**: Changing an ARCHITECTURE.md heading that appears in an @propagate block changes the markdown anchor, breaking @source references in instruction files. The lint-docs validator catches this, but it requires finding and updating every referencing file. Always run `lint-docs` after editing ARCHITECTURE.md headings.
+- **Count references scattered across file types**: The fitness linter count "43" was referenced in 3 ARCHITECTURE.md locations, 1 instruction file anchor, and 1 skill file. A single count change requires auditing all file types (instructions, skills, agents, ARCHITECTURE.md).
+- **configs/ hierarchical vs deployments/ flat naming**: configs uses `{product}/{service}` (e.g., `configs/skeleton/template/`) while deployments uses flat PS-ID (`deployments/skeleton-template`). Skill files that generate both must use the correct pattern for each.
+- **Quick audits across file categories**: Using `Select-String` across `.github/instructions/`, `.github/agents/`, `.github/skills/` with targeted patterns is an efficient way to find stale references. The "no matches = already clean" outcome is common for well-maintained repos.
+- **Cross-cutting tasks as verification checkboxes**: These are not additional work items but verification that phased work achieved cross-cutting goals. They can be bulk-checked after final quality gate passes.
