@@ -11,6 +11,7 @@ import (
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
 	lintFitnessAdminBindAddress "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/admin_bind_address"
 	lintFitnessArchiveDetector "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/archive_detector"
+	lintFitnessCmdAntiPattern "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/cmd_anti_pattern"
 	lintFitnessBannedProductNames "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/banned_product_names"
 	lintFitnessBindAddressSafety "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/bind_address_safety"
 	lintFitnessCGOFreeSQLite "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/cgo_free_sqlite"
@@ -125,6 +126,7 @@ var registeredLinters = []struct {
 	{"cicd-coverage", lintFitnessCIDCoverage.Check},
 	// New fitness checks (added in Phase 6 of framework-v5).
 	{"archive-detector", lintFitnessArchiveDetector.Check},
+	{"cmd-anti-pattern", lintFitnessCmdAntiPattern.Check},
 	{"configs-naming", lintFitnessConfigsNaming.Check},
 }
 

@@ -117,7 +117,7 @@ func run(args []string) int {
 // This separation enables testing without changing the process working directory.
 func runWithWorkflowsDir(args []string, workflowsDir string) int {
 	// Create flag set for parsing.
-	fs := flag.NewFlagSet("workflow", flag.ContinueOnError)
+	fs := flag.NewFlagSet(cryptoutilSharedMagic.CICDCmdDirWorkflow, flag.ContinueOnError)
 
 	workflows := fs.String("workflows", "", "Comma-separated list of workflows to run (benchmark,coverage,dast,e2e,fuzz,gitleaks,load,quality,race,sast)")
 	showHelp := fs.Bool("help", false, "Show usage with list available workflows and exit")

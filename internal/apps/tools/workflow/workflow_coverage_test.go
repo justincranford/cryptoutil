@@ -199,7 +199,7 @@ func TestWorkflow_EntryPoint(t *testing.T) {
 
 	// Workflow requires args[0] as program name and args[1] as subcommand.
 	// Test the "run" subcommand error path (invalid workflows flag).
-	result := Workflow([]string{"workflow", cryptoutilSharedMagic.WorkflowSubCmdRun, "-workflows=nonexistent"}, nil, nil, nil)
+	result := Workflow([]string{cryptoutilSharedMagic.CICDCmdDirWorkflow, cryptoutilSharedMagic.WorkflowSubCmdRun, "-workflows=nonexistent"}, nil, nil, nil)
 	// Returns 1 because no valid workflow named "nonexistent" exists.
 	require.Equal(t, 1, result)
 }
@@ -208,7 +208,7 @@ func TestWorkflow_EntryPoint(t *testing.T) {
 func TestWorkflow_NoArgs(t *testing.T) {
 	t.Parallel()
 
-	result := Workflow([]string{"workflow"}, nil, nil, io.Discard)
+	result := Workflow([]string{cryptoutilSharedMagic.CICDCmdDirWorkflow}, nil, nil, io.Discard)
 	require.Equal(t, 1, result)
 }
 
@@ -219,7 +219,7 @@ func TestWorkflow_CleanupSubcommand_Success(t *testing.T) {
 
 	defer func() { cleanupFn = orig }()
 
-	result := Workflow([]string{"workflow", cryptoutilSharedMagic.WorkflowSubCmdCleanup}, nil, nil, nil)
+result := Workflow([]string{cryptoutilSharedMagic.CICDCmdDirWorkflow, cryptoutilSharedMagic.WorkflowSubCmdCleanup}, nil, nil, nil)
 	require.Equal(t, 0, result)
 }
 
@@ -230,7 +230,7 @@ func TestWorkflow_CleanupSubcommand_Error(t *testing.T) {
 
 	defer func() { cleanupFn = orig }()
 
-	result := Workflow([]string{"workflow", cryptoutilSharedMagic.WorkflowSubCmdCleanup}, nil, nil, nil)
+result := Workflow([]string{cryptoutilSharedMagic.CICDCmdDirWorkflow, cryptoutilSharedMagic.WorkflowSubCmdCleanup}, nil, nil, nil)
 	require.Equal(t, 1, result)
 }
 
@@ -238,7 +238,7 @@ func TestWorkflow_CleanupSubcommand_Error(t *testing.T) {
 func TestWorkflow_UnknownSubcommand(t *testing.T) {
 	t.Parallel()
 
-	result := Workflow([]string{"workflow", "invalid-cmd"}, nil, nil, io.Discard)
+	result := Workflow([]string{cryptoutilSharedMagic.CICDCmdDirWorkflow, "invalid-cmd"}, nil, nil, io.Discard)
 	require.Equal(t, 1, result)
 }
 
