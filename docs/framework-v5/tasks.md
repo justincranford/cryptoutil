@@ -714,30 +714,34 @@
 
 #### Task 6.5: Implement configs-deployments-consistency Linter
 
-- **Status**: Not Started
+- **Status**: Complete
 - **Estimated**: 1h
+- **Actual**: 1h
 - **Dependencies**: Phase 3 complete
 - **Description**: Validate configs/ mirrors deployments/ service structure
 - **Acceptance Criteria**:
-  - [ ] `internal/apps/tools/cicd_lint/lint_fitness/configs_deployments_consistency/` created
-  - [ ] Ensures every deployments/{PS-ID}/ has matching configs/{PRODUCT}/{SERVICE}/
-  - [ ] Uses entity registry to map PS-ID to PRODUCT/SERVICE
-  - [ ] Tests >= 98% coverage
-  - [ ] Registered in fitness catalog
+  - [x] `internal/apps/tools/cicd_lint/lint_fitness/configs_deployments_consistency/` created
+  - [x] Ensures every deployments/{PS-ID}/ has matching configs/{PRODUCT}/{SERVICE}/
+  - [x] Uses entity registry to map PS-ID to PRODUCT/SERVICE
+  - [x] Tests >= 98% coverage (100.0%)
+  - [x] Registered in fitness catalog
+- **Files**: configs_deployments_consistency.go, configs_deployments_consistency_test.go, seam_test.go, lint_fitness.go
+- **Commit**: f87c5dbfc
 
 #### Task 6.6: Phase 6 Quality Gate Verification
 
-- **Status**: Not Started
+- **Status**: Complete
 - **Estimated**: 1h
+- **Actual**: 1h
 - **Dependencies**: Tasks 6.1-6.5
 - **Description**: Verify all new linters pass and meet quality standards
 - **Acceptance Criteria**:
-  - [ ] `go run ./cmd/cicd-lint lint-fitness` — all 49+ linters pass
-  - [ ] All new linter packages >= 98% coverage
-  - [ ] Mutation testing >= 98% on new linter packages
-  - [ ] `go build ./...` clean
-  - [ ] `golangci-lint run` clean
-  - [ ] Git commits: one per linter implementation
+  - [x] `go run ./cmd/cicd-lint lint-fitness` — all 49+ linters pass
+  - [x] All new linter packages >= 98% coverage (archive_detector: 100%, configs_naming: 98.4%, cmd_anti_pattern: 100%, configs_empty_dir: 100%, configs_deployments_consistency: 100%)
+  - [x] Mutation testing >= 98% on new linter packages (0 lived mutants across all 5 packages)
+  - [x] `go build ./...` clean
+  - [x] `golangci-lint run` clean
+  - [x] Git commits: one per linter implementation (6.1-6.5)
 
 ---
 
