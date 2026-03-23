@@ -806,14 +806,15 @@
 
 #### Task 7.5: Document Deferred Work
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 30m
+- **Actual**: 5m
 - **Dependencies**: Task 7.1
 - **Description**: Document `test/load/` Gatling refactoring and any other deferred items
 - **Acceptance Criteria**:
-  - [ ] `test/load/` refactoring documented as deferred work with rationale (low priority, Java/Maven domain)
-  - [ ] Any other deferred items from lessons.md documented
-  - [ ] No undocumented deferred work remains
+  - [x] `test/load/` refactoring documented as deferred work with rationale (low priority, Java/Maven domain) — already in "Notes / Deferred Work" section
+  - [x] Any other deferred items from lessons.md documented (none found — lessons.md has no additional deferred items)
+  - [x] No undocumented deferred work remains (verified via lessons.md audit)
 
 #### Task 7.6: Final Propagation Verification
 
