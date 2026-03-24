@@ -30,7 +30,7 @@ tools:
   - search/listDirectory
   - search/textSearch
   - search/usages
-  - todos
+  - todo
   - vscode/extensions
   - vscode/installExtension
   - vscode/renameSymbol
@@ -43,12 +43,6 @@ tools:
   - edit/replaceString
   - search/findTestFiles
   - search/symbols
-  - configurePythonEnvironment
-  - create_virtual_environment
-  - getPythonEnvironmentInfo
-  - getPythonExecutableCommand
-  - installPythonPackage
-  - selectEnvironment
   - selection
   - vscode.mermaid-chat-features/renderMermaidDiagram
 handoffs:

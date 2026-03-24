@@ -55,8 +55,8 @@ Reference table for reviewing which tools are enabled per agent. Edit the cells 
 | search/usages | [x] | [x] | [x] | [x] | Combination of Find All References, Find Implementation, and Go to Definition |
 | **selection** | | | | | |
 | selection | [x] | [x] | [x] | [x] | Get the current editor selection (only available when text is selected) |
-| **todos** | | | | | |
-| todos | [x] | [x] | [x] | [x] | Track implementation and progress of a chat request with a todo list |
+| **todo** | | | | | |
+| todo | [x] | [x] | [x] | [x] | Track implementation and progress of a chat request with a todo list |
 | **vscode/** | | | | | |
 | vscode/askQuestions | [ ] | [ ] | [ ] | [ ] | Ask the user clarifying questions via the interactive questions carousel |
 | vscode/extensions | [x] | [x] | [x] | [x] | Search for and ask about VS Code extensions in the Marketplace |

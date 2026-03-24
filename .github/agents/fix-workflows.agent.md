@@ -12,7 +12,6 @@ tools:
   - execute/getTerminalOutput
   - execute/killTerminal
   - execute/runInTerminal
-  - execute/runTests
   - execute/testFailure
   - read/problems
   - read/readFile
@@ -25,10 +24,7 @@ tools:
   - search/listDirectory
   - search/textSearch
   - search/usages
-  - todos
-  - vscode/extensions
-  - vscode/installExtension
-  - vscode/renameSymbol
+  - todo
   - web/fetch
   - web/githubRepo
   - web/searchResults
@@ -36,14 +32,7 @@ tools:
   - edit/insertEdit
   - edit/multiReplaceString
   - edit/replaceString
-  - search/findTestFiles
   - search/symbols
-  - configurePythonEnvironment
-  - create_virtual_environment
-  - getPythonEnvironmentInfo
-  - getPythonExecutableCommand
-  - installPythonPackage
-  - selectEnvironment
   - selection
   - vscode.mermaid-chat-features/renderMermaidDiagram
 argument-hint: "['all' or specific-workflow-name like 'quality' or 'e2e']"

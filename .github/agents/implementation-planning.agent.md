@@ -11,9 +11,7 @@ tools:
   - execute/awaitTerminal
   - execute/createAndRunTask
   - execute/getTerminalOutput
-  - execute/killTerminal
   - execute/runInTerminal
-  - execute/runTests
   - execute/testFailure
   - read/problems
   - read/readFile
@@ -26,10 +24,8 @@ tools:
   - search/listDirectory
   - search/textSearch
   - search/usages
-  - todos
+  - todo
   - vscode/extensions
-  - vscode/installExtension
-  - vscode/renameSymbol
   - web/fetch
   - web/githubRepo
   - web/searchResults
@@ -39,12 +35,6 @@ tools:
   - edit/replaceString
   - search/findTestFiles
   - search/symbols
-  - configurePythonEnvironment
-  - create_virtual_environment
-  - getPythonEnvironmentInfo
-  - getPythonExecutableCommand
-  - installPythonPackage
-  - selectEnvironment
   - selection
   - vscode.mermaid-chat-features/renderMermaidDiagram
 handoffs:
