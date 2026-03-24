@@ -464,6 +464,28 @@ Get-ChildItem ~/.vscode/extensions -Directory | ForEach-Object {
 - **Completion Verification Checklist**: Build clean, linting clean, tests pass (100%, zero skips), coverage maintained, mutation testing passes, evidence exists, git commit ready; After substantive change, run relevant build/tests/linters, validate code works (fast, minimal input), provide optional fenced commands for larger runs; Fix failures up to three targeted fixes, summarize root cause if still failing
 - **Blocker Resolution**: Document in tracking doc, continue with ALL unblocked tasks, maximize progress, return to blocker when resolved; NO waiting for external dependencies
 
+##### End-of-Turn Commit Protocol
+
+<!-- @propagate to=".github/instructions/01-02.beast-mode.instructions.md" as="end-of-turn-commit-protocol" -->
+**MANDATORY: NEVER end a turn with uncommitted changes. Run `git status --porcelain` as the absolute last action before yielding to the user.**
+
+If `git status --porcelain` returns ANY output:
+
+1. Stage all changes: `git add -A`
+2. Commit with a conventional commit message: `git commit -m "type(scope): description"`
+3. Verify clean: `git status --porcelain` MUST return empty
+4. Only then end the turn
+
+**Critical violations** (any one = turn is NOT complete):
+
+- Ending a turn with `M`, `A`, `D`, or `?` in `git status --porcelain` output
+- Stopping after analysis without committing changes
+- Marking work "done" with unstaged or uncommitted files
+- Responding to the user without committing work in progress
+
+**Pattern**: `git status --porcelain` returns empty → End turn. Any output → Commit first.
+<!-- @/propagate -->
+
 ### 2.5 Quality Strategy
 
 **Quality Attributes**: See [Section 11.1 Maximum Quality Strategy](#111-maximum-quality-strategy---mandatory) for the complete quality attributes list (NO EXCEPTIONS).
