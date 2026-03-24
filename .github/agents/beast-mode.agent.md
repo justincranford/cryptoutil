@@ -20,8 +20,11 @@ tools:
   - read/terminalSelection
   - read/viewImage
   - search/codebase
-  - search/usages
   - search/changes
+  - search/fileSearch
+  - search/listDirectory
+  - search/textSearch
+  - search/usages
   - vscode/extensions
   - vscode/installExtension
   - web/fetch
