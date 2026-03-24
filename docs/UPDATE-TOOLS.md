@@ -16,15 +16,15 @@ Reference table for reviewing which tools are enabled per agent. Edit the cells 
 | **browser/** | | | | | | |
 | browser | [ ] | [ ] | [ ] | [ ] | [ ] | *(Experimental)* Interact with the integrated browser: navigate, read page, take screenshots, click, type. Requires `workbench.browser.enableChatTools` |
 | **edit/** | | | | | | |
-| edit/applyPatch | [ ] | [ ] | [ ] | [ ] | [ ] | Apply a patch/diff to files in the workspace |
+| edit/applyPatch | [x] | [x] | [x] | [x] | [x] | Apply a patch/diff to files in the workspace |
 | edit/createDirectory | [x] | [x] | [x] | [x] | [x] | Create a new directory in the workspace |
 | edit/createFile | [x] | [x] | [x] | [x] | [x] | Create a new file in the workspace |
 | edit/editFiles | [x] | [x] | [x] | [x] | [x] | Apply edits to files in the workspace |
 | edit/editNotebook | [ ] | [ ] | [ ] | [ ] | [ ] | Make edits to a Jupyter notebook |
-| edit/insertEdit | [ ] | [ ] | [ ] | [ ] | [ ] | Insert text at a specific position in a file; more granular than edit/editFiles |
-| edit/multiReplaceString | [ ] | [ ] | [ ] | [ ] | [ ] | Apply multiple find-and-replace string substitutions across files in one call *(u)* |
+| edit/insertEdit | [x] | [x] | [x] | [x] | [x] | Insert text at a specific position in a file; more granular than edit/editFiles |
+| edit/multiReplaceString | [x] | [x] | [x] | [x] | [x] | Apply multiple find-and-replace string substitutions across files in one call *(u)* |
 | edit/rename | [x] | [x] | [x] | [x] | [x] | Rename or move a file or directory in the workspace *(u)* |
-| edit/replaceString | [ ] | [ ] | [ ] | [ ] | [ ] | Find and replace a string occurrence in a specific file *(u)* |
+| edit/replaceString | [x] | [x] | [x] | [x] | [x] | Find and replace a string occurrence in a specific file *(u)* |
 | **execute/** | | | | | | |
 | execute/awaitTerminal | [x] | [x] | [x] | [x] | [x] | Wait for a running terminal command to finish and return its output *(u)* |
 | execute/createAndRunTask | [x] | [x] | [x] | [x] | [x] | Create and run a new VS Code task in the workspace |
@@ -48,9 +48,9 @@ Reference table for reviewing which tools are enabled per agent. Edit the cells 
 | search/codebase | [x] | [x] | [x] | [x] | [x] | Perform a semantic code search across the workspace to find relevant context |
 | search/changes | [x] | [x] | [x] | [x] | [x] | List source control changes (git diff / SCM history) |
 | search/fileSearch | [x] | [x] | [x] | [x] | [x] | Search for files in the workspace using glob patterns; returns file paths |
-| search/findTestFiles | [ ] | [ ] | [ ] | [ ] | [ ] | Find test files associated with a given source file using VS Code test discovery |
+| search/findTestFiles | [x] | [x] | [x] | [x] | [x] | Find test files associated with a given source file using VS Code test discovery |
 | search/listDirectory | [x] | [x] | [x] | [x] | [x] | List all files in a given directory in the workspace |
-| search/symbols | [ ] | [ ] | [ ] | [ ] | [ ] | Search workspace symbols (functions, types, variables, constants) by name |
+| search/symbols | [x] | [x] | [x] | [x] | [x] | Search workspace symbols (functions, types, variables, constants) by name |
 | search/textSearch | [x] | [x] | [x] | [x] | [x] | Find literal or regex text matches across files in the workspace |
 | search/usages | [x] | [x] | [x] | [x] | [x] | Combination of Find All References, Find Implementation, and Go to Definition |
 | **selection** | | | | | | |
@@ -70,7 +70,7 @@ Reference table for reviewing which tools are enabled per agent. Edit the cells 
 | **web/** | | | | | | |
 | web/fetch | [x] | [x] | [x] | [x] | [x] | Fetch and return the content from a given URL |
 | web/githubRepo | [x] | [x] | [x] | [x] | [x] | Access GitHub repository file content and metadata *(u)* |
-| web/searchResults | [ ] | [ ] | [ ] | [ ] | [ ] | Execute a web search and return the results |
+| web/searchResults | [x] | [x] | [x] | [x] | [x] | Execute a web search and return the results |
 
 ## Extension Tool Assignments
 

@@ -37,6 +37,13 @@ tools:
   - vscode/renameSymbol
   - web/fetch
   - web/githubRepo
+  - web/searchResults
+  - edit/applyPatch
+  - edit/insertEdit
+  - edit/multiReplaceString
+  - edit/replaceString
+  - search/findTestFiles
+  - search/symbols
   - configurePythonEnvironment
   - create_virtual_environment
   - getPythonEnvironmentInfo
