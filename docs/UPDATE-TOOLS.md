@@ -28,6 +28,8 @@ Reference table for reviewing which tools are enabled per agent. Edit the cells 
 | execute/runNotebookCell | [ ] | [ ] | [ ] | [ ] | [ ] | Execute a notebook cell |
 | execute/runTests | [x] | [x] | [x] | [x] | [x] | Invoke the VS Code test runner for a test file or suite *(u)* |
 | execute/testFailure | [x] | [x] | [x] | [x] | [x] | Get unit test failure information; useful when running and diagnosing tests |
+| **newWorkspace** | | | | | | |
+| newWorkspace | [ ] | [ ] | [ ] | [ ] | [ ] | Create a new VS Code workspace |
 | **read/** | | | | | | |
 | read/getNotebookSummary | [ ] | [ ] | [ ] | [ ] | [ ] | Get the list of notebook cells and their details |
 | read/problems | [x] | [x] | [x] | [x] | [x] | Add workspace issues and problems from the Problems panel as context; useful while fixing code or debugging |
@@ -39,16 +41,22 @@ Reference table for reviewing which tools are enabled per agent. Edit the cells 
 | **search/** | | | | | | |
 | search/codebase | [x] | [x] | [x] | [x] | [x] | Perform a semantic code search across the workspace to find relevant context |
 | search/changes | [x] | [x] | [x] | [x] | [x] | List source control changes (git diff / SCM history) |
-| search/fileSearch | [ ] | [ ] | [ ] | [ ] | [ ] | Search for files in the workspace using glob patterns; returns file paths |
-| search/listDirectory | [ ] | [ ] | [ ] | [ ] | [ ] | List all files in a given directory in the workspace |
-| search/textSearch | [ ] | [ ] | [ ] | [ ] | [ ] | Find literal or regex text matches across files in the workspace |
+| search/fileSearch | [x] | [x] | [x] | [x] | [x] | Search for files in the workspace using glob patterns; returns file paths |
+| search/listDirectory | [x] | [x] | [x] | [x] | [x] | List all files in a given directory in the workspace |
+| search/textSearch | [x] | [x] | [x] | [x] | [x] | Find literal or regex text matches across files in the workspace |
 | search/usages | [x] | [x] | [x] | [x] | [x] | Combination of Find All References, Find Implementation, and Go to Definition |
+| **selection** | | | | | | |
+| selection | [ ] | [ ] | [ ] | [ ] | [ ] | Get the current editor selection (only available when text is selected) |
+| **todos** | | | | | | |
+| todos | [x] | [x] | [x] | [x] | [x] | Track implementation and progress of a chat request with a todo list |
 | **vscode/** | | | | | | |
 | vscode/askQuestions | [ ] | [ ] | [ ] | [ ] | [ ] | Ask the user clarifying questions via the interactive questions carousel |
 | vscode/extensions | [x] | [x] | [x] | [x] | [x] | Search for and ask about VS Code extensions in the Marketplace |
 | vscode/getProjectSetupInfo | [ ] | [ ] | [ ] | [ ] | [ ] | Provide instructions and configuration for scaffolding different project types |
 | vscode/installExtension | [x] | [x] | [x] | [x] | [x] | Install a VS Code extension from the Marketplace |
+| vscode/listCodeUsages | [x] | [x] | [x] | [x] | [x] | List all usages of a symbol using VS Code's language intelligence (Find All References / Go to Definition) *(u)* |
 | vscode/memory | [ ] | [ ] | [ ] | [ ] | [ ] | Read and write persistent agent memory across chat sessions *(u)* |
+| vscode/renameSymbol | [x] | [x] | [x] | [x] | [x] | Rename a symbol across the workspace using VS Code's language intelligence *(u)* |
 | vscode/runCommand | [ ] | [ ] | [ ] | [ ] | [ ] | Execute a VS Code command by ID |
 | vscode/VSCodeAPI | [ ] | [ ] | [ ] | [ ] | [ ] | Ask about VS Code functionality and extension development APIs |
 | **web/** | | | | | | |
