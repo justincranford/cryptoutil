@@ -1,8 +1,8 @@
 # Implementation Plan - Framework v6: Corrective Standardization
 
-**Status**: Planning (Decisions Confirmed)
+**Status**: In Progress
 **Created**: 2026-03-25
-**Last Updated**: 2026-03-26
+**Last Updated**: 2026-03-27
 **Purpose**: Fix all deployment, config, and secret standardization failures left by framework-v5, which marked all tasks Complete despite massive gaps. This plan is a corrective pass based on deep analysis of actual repository state vs. target-structure.md specifications.
 
 ## Quality Mandate - MANDATORY
@@ -112,12 +112,12 @@ All 7 phases were marked Complete without catching any of the above issues. The 
 - **Language**: Go 1.26.1
 - **Entity Hierarchy**: 1 Suite (cryptoutil), 5 Products (identity, jose, pki, skeleton, sm), 10 PS-IDs
 - **PS-IDs**: identity-authz, identity-idp, identity-rp, identity-rs, identity-spa, jose-ja, pki-ca, skeleton-template, sm-im, sm-kms
-- **Key Spec**: `docs/framework-v5/target-structure.md` (889 lines)
-- **Fitness Linters**: configs_naming, configs_deployments_consistency, configs_empty_dir, deployment_dir_completeness, standalone_config_presence
+- **Key Spec**: `docs/framework-v6/target-structure.md`
+- **Fitness Linters**: configs_naming, configs_deployments_consistency, configs_empty_dir, deployment_dir_completeness, standalone_config_presence, unseal_secret_content (NEW), dockerfile_labels (NEW), secret_naming (NEW)
 
 ## Phases
 
-### Phase 1: Fix target-structure.md Contradictions (1h) [Status: TODO]
+### Phase 1: Fix target-structure.md Contradictions (1h) [Status: IN PROGRESS]
 
 **Objective**: Resolve all internal contradictions in the spec so subsequent phases have a single unambiguous source of truth.
 - Fix E.3 vs E.4 contradiction: E.4 should document that configs/ uses FLAT `configs/{PS-ID}/` pattern (matching Decision 2=B), NOT nested `{PRODUCT}/{SERVICE}/` dirs. Rewrite E.4 to align with E.3.
@@ -126,6 +126,19 @@ All 7 phases were marked Complete without catching any of the above issues. The 
 - Document .never file spec clearly (already clear in F.2/F.3, just ensure consistency).
 - Document `configs/pki-ca/profiles/` exception per Decision 3=B.
 - Document `configs/identity-authz/domain/policies/` per Decision 4=A.
+
+**Completed Work** (commit `286ea4588`): Nine target-structure.md corrections committed:
+- **C. cmd/**: Replaced nested tree with flat listing (18 entries: 1 SUITE + 5 PRODUCT + 10 PS-ID + 2 INFRA-TOOL)
+- **E.1**: Added `{SUITE}` parameterized pattern before concrete `cryptoutil` expansion
+- **F.1**: Replaced incomplete pki-ca examples with full 14-secret listings for both sm-im and pki-ca (all 5 unseal shards with unique hex)
+- **F.3**: Added `{SUITE}` parameterized pattern followed by concrete `cryptoutil-suite` expansion
+- **F.6 (NEW)**: Added Dockerfile Parameterization section documenting multi-stage structure, parameterized ARGs/LABELs, concrete PS-ID values table. Notes suite Dockerfile has incorrect OCI labels.
+- **G.1**: Restructured into G.1.1 (Suite & Product), G.1.2 (Service with nested `{PRODUCT}/{SERVICE}/` and actual subdirectories table), G.1.3 (Framework & Tools with new linter entries)
+- **L.**: Fixed secret.never statement — secret VALUES contain tier-specific prefixes while FILENAMES are identical across tiers. Replaced hardcoded `cryptoutil` with `{SUITE}` in suite column.
+- **M.**: Expanded `configs-no-deployment` patterns to full variant list. Added `unseal-secret-content`, `dockerfile-labels`, and `secret-naming` linters.
+- **N.**: Fixed mcp.json from "Missing → CREATE" to "Present (GitHub + Playwright MCP) → KEEP"
+
+**Remaining Work**: Original tasks 1.1-1.4 (E.3/E.4 rewrite, F.1 pattern alignment, F.2 dedup, full consistency verification).
 - **Success**: target-structure.md has zero internal contradictions. Every pattern has matching examples.
 - **Post-Mortem**: After quality gates pass, update lessons.md.
 
@@ -198,18 +211,22 @@ All 7 phases were marked Complete without catching any of the above issues. The 
 - Delete `deployments/pki-ca/README.md` (not in spec)
 - Reconcile `deployments/template/` per Decision 5=C: merge useful content into `deployments/skeleton-template/`, then delete `deployments/template/`
 - Fix template dir secret filenames (underscores to hyphens) before merge
-- **Success**: No orphaned files remain. All files in configs/ and deployments/ match spec.
+- Fix suite Dockerfile labels (currently says "CA Server" / "Certificate Authority REST API Server" — should match suite identity)
+- **Success**: No orphaned files remain. All files in configs/ and deployments/ match spec. Suite Dockerfile labels correct.
 - **Post-Mortem**: After quality gates pass, update lessons.md.
 
-### Phase 8: Fitness Linter Verification (1h) [Status: TODO]
+### Phase 8: Fitness Linter Verification (1.5h) [Status: TODO]
 
-**Objective**: Run all fitness linters and deployment validators to verify full compliance.
+**Objective**: Implement new fitness linters discovered during Phase 1 and run all linters to verify full compliance.
+- Implement `unseal-secret-content` fitness linter: validates unseal key value patterns (correct PS-ID/PRODUCT/SUITE prefix, unique hex per shard, correct `N-of-5` infix, correct tier prefix matching deployment tier)
+- Implement `dockerfile-labels` fitness linter: validates OCI labels in all Dockerfiles (correct PS-ID in `org.opencontainers.image.title`, correct description, version label present)
+- Implement `secret-naming` fitness linter: validates secret filenames follow hyphen convention (no underscores), correct count per tier
 - Run `go run ./cmd/cicd-lint lint-fitness`
 - Run `go run ./cmd/cicd-lint lint-deployments`
 - Run `go build ./...` and `go build -tags e2e,integration ./...`
 - Run `golangci-lint run` and `golangci-lint run --build-tags e2e,integration`
 - Fix any violations found
-- **Success**: All linters pass. Zero violations.
+- **Success**: All linters pass (including 3 new linters). Zero violations.
 - **Post-Mortem**: After quality gates pass, update lessons.md.
 
 ### Phase 9: Terminology Enforcement (0.5h) [Status: TODO]
@@ -223,15 +240,20 @@ All 7 phases were marked Complete without catching any of the above issues. The 
 - **Success**: Zero instances of standalone `auth` in any config filename, plan document, or generated content.
 - **Post-Mortem**: After quality gates pass, update lessons.md.
 
-### Phase 10: Knowledge Propagation (1h) [Status: TODO]
+### Phase 10: Knowledge Propagation (1.5h) [Status: TODO]
 
 **Objective**: Apply lessons learned to permanent artifacts.
 - Review lessons.md from all prior phases
-- Update ARCHITECTURE.md with any new patterns or corrections
-- Update instruction files if patterns changed
+- Update ARCHITECTURE.md with any new patterns or corrections, specifically:
+  - Deployment secret naming patterns with same specificity as target-structure.md (PS-ID prefix, tier differentiation, value format)
+  - Dockerfile parameterization patterns (ARGs, LABELs, multi-stage structure per tier)
+  - Flat config directory pattern `configs/{PS-ID}/` and exceptions (profiles/, domain/policies/)
+  - New fitness linter catalog entries (unseal-secret-content, dockerfile-labels, secret-naming)
+- Update instruction files (especially 02-01.architecture, 04-01.deployment) to match ARCHITECTURE.md specificity
+- Update agents and skills if deployment/config patterns changed
 - Update target-structure.md if any additional issues found during implementation
 - Verify propagation integrity (`go run ./cmd/cicd-lint lint-docs validate-propagation`)
-- **Success**: All artifact updates committed; propagation check passes.
+- **Success**: All artifact updates committed; propagation check passes. ARCHITECTURE.md has same specificity as target-structure.md for deployment patterns.
 
 ## Executive Decisions
 
@@ -344,7 +366,7 @@ All 7 phases were marked Complete without catching any of the above issues. The 
 | Fitness linters reject changes | Medium | Medium | Run linters after each phase |
 | Go code references old config filenames | Medium | High | Search all .go files for old names |
 | E2E tests break from secret changes | High | High | Run E2E suite after secret changes |
-| target-structure.md changes cascade | Low | Low | target-structure.md is documentation, not enforcement |
+| target-structure.md changes cascade | Low | Low | target-structure.md is documentation, not enforcement |\n| Dockerfile labels inconsistent across tiers | High | Medium | New dockerfile-labels linter catches all mismatches; known: suite Dockerfile has pki-ca labels |
 
 ## Quality Gates - MANDATORY
 
@@ -369,9 +391,11 @@ All 7 phases were marked Complete without catching any of the above issues. The 
 - [ ] All missing config files created (product-level, sqlite-2, domain dirs)
 - [ ] Config file naming matches E.4 pattern
 - [ ] Zero orphaned files remain
-- [ ] All fitness linters pass
+- [ ] All fitness linters pass (including 3 new: unseal-secret-content, dockerfile-labels, secret-naming)
 - [ ] All deployment validators pass
+- [ ] All Dockerfiles have correct OCI labels matching their PS-ID
 - [ ] Build and lint clean
+- [ ] ARCHITECTURE.md updated with deployment pattern specificity matching target-structure.md
 - [ ] Evidence archived
 
 ## ARCHITECTURE.md Cross-References - MANDATORY

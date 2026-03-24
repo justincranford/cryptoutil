@@ -1,7 +1,7 @@
 # Tasks - Framework v6: Corrective Standardization
 
-**Status**: 0 of 46 tasks complete (0%)
-**Last Updated**: 2026-03-26
+**Status**: 8 of 59 tasks complete (14%)
+**Last Updated**: 2026-03-27
 **Created**: 2026-03-25
 
 ## Quality Mandate - MANDATORY
@@ -42,7 +42,7 @@
   - [ ] Document `configs/pki-ca/profiles/` exception per Decision 3=B
   - [ ] Document `configs/identity-authz/domain/policies/` per Decision 4=A
 - **Files**:
-  - `docs/framework-v5/target-structure.md`
+  - `docs/framework-v6/target-structure.md`
 
 #### Task 1.2: Fix F.1 Unseal Pattern vs Example (Decision 1=A)
 
@@ -89,6 +89,120 @@
   - [ ] `configs/pki-ca/profiles/` documented as valid exception
   - [ ] `configs/identity-authz/domain/policies/` documented
   - [ ] Postgres value pattern `{PS_ID}_database` / `{PS_ID}_database_user` documented
+
+#### Task 1.5: Fix C. cmd/ Flat Structure (commit 286ea4588)
+
+- **Status**: ✅ Complete
+- **Owner**: LLM Agent
+- **Estimated**: 15m
+- **Actual**: 10m
+- **Dependencies**: None
+- **Description**: Replace misleading nested cmd/ tree with flat listing showing all 18 entries as direct children (1 SUITE + 5 PRODUCT + 10 PS-ID + 2 INFRA-TOOL).
+- **Acceptance Criteria**:
+  - [x] cmd/ tree shows flat structure
+  - [x] All 18 entries listed with type annotations
+  - [x] Concrete values shown (not just parameters)
+
+#### Task 1.6: Fix E.1 and F.3 Suite Parameterization (commit 286ea4588)
+
+- **Status**: ✅ Complete
+- **Owner**: LLM Agent
+- **Estimated**: 10m
+- **Actual**: 5m
+- **Dependencies**: None
+- **Description**: Add `{SUITE}` parameterized patterns before concrete `cryptoutil`/`cryptoutil-suite` expansions in E.1 and F.3.
+- **Acceptance Criteria**:
+  - [x] E.1 shows `{SUITE}` pattern + concrete expansion
+  - [x] F.3 shows `{SUITE}` pattern + concrete expansion
+
+#### Task 1.7: Fix F.1 pki-ca Examples (commit 286ea4588)
+
+- **Status**: ✅ Complete
+- **Owner**: LLM Agent
+- **Estimated**: 20m
+- **Actual**: 15m
+- **Dependencies**: None
+- **Description**: Replace incomplete pki-ca examples with full 14-secret listings for both sm-im and pki-ca, including all 5 unseal shards with unique hex values.
+- **Acceptance Criteria**:
+  - [x] sm-im example: 14 secrets, `sm-im-` prefix, unique hex
+  - [x] pki-ca example: 14 secrets, `pki-ca-` prefix, unique hex (not copied from sm-kms)
+
+#### Task 1.8: Add F.6 Dockerfile Parameterization (commit 286ea4588)
+
+- **Status**: ✅ Complete
+- **Owner**: LLM Agent
+- **Estimated**: 30m
+- **Actual**: 25m
+- **Dependencies**: None
+- **Description**: Add new section documenting Dockerfile parameterization: multi-stage structure (validation → builder → runtime), parameterized ARGs/LABELs per tier, concrete PS-ID values table. Notes suite Dockerfile has incorrect OCI labels.
+- **Acceptance Criteria**:
+  - [x] F.6 section added to target-structure.md
+  - [x] All three tiers (SERVICE, PRODUCT, SUITE) documented
+  - [x] Concrete values table for all 10 PS-IDs
+  - [x] Suite Dockerfile label issue flagged
+
+#### Task 1.9: Fix G.1 internal/apps/ Structure (commit 286ea4588)
+
+- **Status**: ✅ Complete
+- **Owner**: LLM Agent
+- **Estimated**: 25m
+- **Actual**: 20m
+- **Dependencies**: None
+- **Description**: Restructure G.1 into G.1.1 (Suite & Product), G.1.2 (Service with nested `{PRODUCT}/{SERVICE}/` and actual subdirectory table), G.1.3 (Framework & Tools with new linter entries).
+- **Acceptance Criteria**:
+  - [x] G.1.1 documents suite and product app patterns
+  - [x] G.1.2 documents service pattern with actual subdirectories
+  - [x] G.1.3 documents framework/tools with new linters
+  - [x] Comprehensive subdirectory table per PS-ID
+
+#### Task 1.10: Fix L. Secret.never Statement (commit 286ea4588)
+
+- **Status**: ✅ Complete
+- **Owner**: LLM Agent
+- **Estimated**: 10m
+- **Actual**: 5m
+- **Dependencies**: None
+- **Description**: Correct misleading statement. Secret VALUES contain tier-specific prefixes; FILENAMES are identical across tiers. Replace hardcoded `cryptoutil` with `{SUITE}` in suite column.
+- **Acceptance Criteria**:
+  - [x] Statement corrected: values have prefix, not filenames
+  - [x] Suite column uses `{SUITE}` parameter
+
+#### Task 1.11: Fix M. configs-no-deployment and Add Linters (commit 286ea4588)
+
+- **Status**: ✅ Complete
+- **Owner**: LLM Agent
+- **Estimated**: 15m
+- **Actual**: 10m
+- **Dependencies**: None
+- **Description**: Expand `configs-no-deployment` to full variant list (`*-pg-*.yml`, `*-postgresql-*.yml`, `*-sqlite.yml`, `*-sqlite-*.yml`, plus environment files). Add three new linters: `unseal-secret-content`, `dockerfile-labels`, `secret-naming`.
+- **Acceptance Criteria**:
+  - [x] Full variant pattern list documented
+  - [x] unseal-secret-content linter spec added
+  - [x] dockerfile-labels linter spec added
+  - [x] secret-naming linter spec added
+
+#### Task 1.12: Fix N. mcp.json Status (commit 286ea4588)
+
+- **Status**: ✅ Complete
+- **Owner**: LLM Agent
+- **Estimated**: 5m
+- **Actual**: 3m
+- **Dependencies**: None
+- **Description**: Change mcp.json table entry from "Missing → Present → CREATE" to "Present (GitHub + Playwright MCP servers) → Present → KEEP (no change)".
+- **Acceptance Criteria**:
+  - [x] N. table shows "Present → KEEP"
+
+#### Task 1.13: Verify F.2 Duplicate unseal-5of5 Fixed
+
+- **Status**: Not Started
+- **Owner**: LLM Agent
+- **Estimated**: 10m
+- **Actual**: -
+- **Dependencies**: Tasks 1.5-1.12
+- **Description**: Verify that the F.1 rewrite (Task 1.7) resolved the F.2 duplicate unseal-5of5 listing, or make a targeted fix if not.
+- **Acceptance Criteria**:
+  - [ ] Only one unseal-5of5 entry per example in F.1/F.2
+  - [ ] Value patterns consistent
 
 ### Phase 2: Create Missing .never Files
 
@@ -585,7 +699,20 @@
   - [ ] `deployments/template/` deleted entirely
   - [ ] No underscore-named secret files remain anywhere
 
-#### Task 7.3: Verify No Orphans Remain
+#### Task 7.3: Fix Suite Dockerfile OCI Labels
+
+- **Status**: Not Started
+- **Owner**: LLM Agent
+- **Estimated**: 15m
+- **Actual**: -
+- **Dependencies**: None
+- **Description**: Suite Dockerfile currently has incorrect labels ("CA Server" / "Certificate Authority REST API Server"). Update to match suite identity (e.g., "cryptoutil Suite" / "CryptoUtil Suite Server").
+- **Acceptance Criteria**:
+  - [ ] Suite Dockerfile `org.opencontainers.image.title` matches suite identity
+  - [ ] Suite Dockerfile `org.opencontainers.image.description` matches suite identity
+  - [ ] Labels do not reference any single PS-ID
+
+#### Task 7.4: Verify No Orphans Remain
 
 - **Status**: Not Started
 - **Owner**: LLM Agent
@@ -600,20 +727,65 @@
 
 ### Phase 8: Fitness Linter Verification
 
-**Phase Objective**: Run all linters to verify full compliance.
+**Phase Objective**: Implement 3 new fitness linters and verify full compliance.
 
-#### Task 8.1: Run Fitness Linters
+#### Task 8.1: Implement unseal-secret-content Linter
+
+- **Status**: Not Started
+- **Owner**: LLM Agent
+- **Estimated**: 45m
+- **Actual**: -
+- **Dependencies**: Phases 3-4 (secret values corrected)
+- **Description**: Create `internal/apps/tools/cicd_lint/lint_fitness/unseal_secret_content/unseal_secret_content.go`. Validates: correct PS-ID/PRODUCT/SUITE prefix, unique hex per shard, correct `N-of-5` infix, tier prefix matches deployment tier. Tests with >=98% coverage.
+- **Acceptance Criteria**:
+  - [ ] Linter validates unseal values for all 3 tiers (service, product, suite)
+  - [ ] Detects wrong prefix (e.g., `kms-` in pki-ca)
+  - [ ] Detects duplicate hex across services
+  - [ ] Detects generic `dev-unseal-key-N-of-5` values
+  - [ ] Tests pass with >=98% coverage
+  - [ ] Registered in fitness linter catalog
+
+#### Task 8.2: Implement dockerfile-labels Linter
+
+- **Status**: Not Started
+- **Owner**: LLM Agent
+- **Estimated**: 30m
+- **Actual**: -
+- **Dependencies**: Task 7.3 (suite Dockerfile fixed)
+- **Description**: Create `internal/apps/tools/cicd_lint/lint_fitness/dockerfile_labels/dockerfile_labels.go`. Validates OCI labels in all Dockerfiles: correct PS-ID in title, correct description, version label present. Tests with >=98% coverage.
+- **Acceptance Criteria**:
+  - [ ] Linter validates SERVICE, PRODUCT, SUITE Dockerfiles
+  - [ ] Detects mismatched PS-ID in labels
+  - [ ] Detects missing required labels
+  - [ ] Tests pass with >=98% coverage
+  - [ ] Registered in fitness linter catalog
+
+#### Task 8.3: Implement secret-naming Linter
+
+- **Status**: Not Started
+- **Owner**: LLM Agent
+- **Estimated**: 30m
+- **Actual**: -
+- **Dependencies**: Phase 3 (secret filenames normalized)
+- **Description**: Create `internal/apps/tools/cicd_lint/lint_fitness/secret_naming/secret_naming.go`. Validates: all secret filenames use hyphens (no underscores), correct count per tier (14 service, 10+ product, 10+ suite), correct `.secret` extension. Tests with >=98% coverage.
+- **Acceptance Criteria**:
+  - [ ] Linter detects underscore filenames (e.g., `unseal_1of5.secret`)
+  - [ ] Linter validates file count per deployment tier
+  - [ ] Tests pass with >=98% coverage
+  - [ ] Registered in fitness linter catalog
+
+#### Task 8.4: Run Fitness Linters
 
 - **Status**: Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 15m
 - **Actual**: -
-- **Dependencies**: Phases 1-7
+- **Dependencies**: Tasks 8.1-8.3, Phases 1-7
 - **Description**: Run `go run ./cmd/cicd-lint lint-fitness` and fix any violations.
 - **Acceptance Criteria**:
-  - [ ] Zero violations from lint-fitness
+  - [ ] Zero violations from lint-fitness (including 3 new linters)
 
-#### Task 8.2: Run Deployment Validators
+#### Task 8.5: Run Deployment Validators
 
 - **Status**: Not Started
 - **Owner**: LLM Agent
@@ -624,7 +796,7 @@
 - **Acceptance Criteria**:
   - [ ] Zero violations from lint-deployments
 
-#### Task 8.3: Run Build and Lint
+#### Task 8.6: Run Build and Lint
 
 - **Status**: Not Started
 - **Owner**: LLM Agent
@@ -636,7 +808,7 @@
   - [ ] Build clean (both standard and tagged)
   - [ ] Lint clean (both standard and tagged)
 
-#### Task 8.4: Run Compose Validation
+#### Task 8.7: Run Compose Validation
 
 - **Status**: Not Started
 - **Owner**: LLM Agent
@@ -686,26 +858,31 @@
 
 - **Status**: Not Started
 - **Owner**: LLM Agent
-- **Estimated**: 20m
+- **Estimated**: 30m
 - **Actual**: -
 - **Dependencies**: All prior phases
-- **Description**: Review lessons.md, update ARCHITECTURE.md with new patterns including flat config structure and terminology enforcement.
+- **Description**: Review lessons.md, update ARCHITECTURE.md with new patterns including: flat config structure, deployment secret naming with PS-ID prefix specificity, Dockerfile parameterization (ARGs/LABELs/multi-stage per tier), new fitness linter catalog entries (unseal-secret-content, dockerfile-labels, secret-naming), and terminology enforcement. ARCHITECTURE.md must have same specificity as target-structure.md for deployment patterns.
 - **Acceptance Criteria**:
   - [ ] lessons.md reviewed
-  - [ ] ARCHITECTURE.md updated where needed (flat config pattern, terminology enforcement)
+  - [ ] ARCHITECTURE.md Section 12 updated: flat config pattern, secret naming patterns with PS-ID prefix specificity
+  - [ ] ARCHITECTURE.md Section 12 updated: Dockerfile parameterization patterns (ARGs, LABELs, multi-stage structure per tier)
+  - [ ] ARCHITECTURE.md Section 9.11 updated: 3 new fitness linter catalog entries
   - [ ] Propagation check passes
 
 #### Task 10.2: Update Instruction Files
 
 - **Status**: Not Started
 - **Owner**: LLM Agent
-- **Estimated**: 15m
+- **Estimated**: 20m
 - **Actual**: -
 - **Dependencies**: Task 10.1
-- **Description**: Update instruction files if config/deployment patterns changed (especially 02-01.architecture.instructions.md for flat config pattern).
+- **Description**: Update instruction files to match ARCHITECTURE.md specificity. Key files: 02-01.architecture.instructions.md (flat config pattern, Dockerfile patterns), 04-01.deployment.instructions.md (secret naming, Docker patterns), 02-05.security.instructions.md (unseal naming patterns).
 - **Acceptance Criteria**:
   - [ ] Instructions reflect flat `configs/{PS-ID}/` pattern
+  - [ ] Instructions document Dockerfile parameterization
+  - [ ] Instructions document secret value tier-prefix patterns
   - [ ] Terminology enforcement guidance strengthened
+  - [ ] Propagation check passes (`go run ./cmd/cicd-lint lint-docs validate-propagation`)
 
 #### Task 10.3: Update target-structure.md with Implementation Learnings
 
@@ -754,7 +931,11 @@
 - All 6 decisions confirmed (merged from quizme-v1.md)
 - Decision 2=B (flatten configs) added Phase 5 with 12 new tasks — major scope increase
 - Phase 9 (Terminology Enforcement) added for `auth` → `authz`/`authorization` fixes
-- Total phases: 10 (was 9). Total tasks: 46 (was 52, restructured: old Phases 5-6 merged into new Phase 5 with 12 tasks)
+- Phase 1 expanded: 9 additional target-structure.md fixes completed (commit 286ea4588), plus 1 new verification task (1.13)
+- Phase 7 expanded: Task 7.3 added for suite Dockerfile OCI label fix
+- Phase 8 expanded: Tasks 8.1-8.3 added for 3 new fitness linters (unseal-secret-content, dockerfile-labels, secret-naming)
+- Phase 10 expanded: Tasks 10.1-10.2 scope increased for ARCHITECTURE.md and instruction file specificity matching target-structure.md
+- Total phases: 10. Total tasks: 59 (was 46, added 13 new tasks: 9 completed Phase 1 sub-tasks, 1 Phase 1 verification, 1 Phase 7 Dockerfile fix, 3 Phase 8 linters)
 - E2E testing may be blocked if Docker Desktop is not running
 
 ---
