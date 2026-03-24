@@ -63,9 +63,46 @@ Reference table for reviewing which tools are enabled per agent. Edit the cells 
 | web/fetch | [x] | [x] | [x] | [x] | [x] | Fetch and return the content from a given URL |
 | web/githubRepo | [x] | [x] | [x] | [x] | [x] | Access GitHub repository file content and metadata *(u)* |
 
+## Extension Tool Assignments
+
+Tools contributed by installed VS Code extensions. All currently `[ ]` (this is a Go project — Java/Python/Mermaid tools not needed).
+
+### Debugger for Java (`vscjava.vscode-java-debug`)
+
+| Tool | beast-mode | doc-sync | fix-wf | impl-exec | impl-plan | Description |
+|------|:----------:|:--------:|:------:|:---------:|:---------:|-------------|
+| debugJavaApplication | [ ] | [ ] | [ ] | [ ] | [ ] | Launch or attach to a Java application in debug mode with automatic compilation and classpath resolution |
+| debugStepOperation | [ ] | [ ] | [ ] | [ ] | [ ] | Control program execution flow: stepIn (enter method calls), stepOut (exit current method), stepOver, continue, or pause |
+| evaluateDebugExpression | [ ] | [ ] | [ ] | [ ] | [ ] | Evaluate a Java expression in a specific thread's debug context |
+| getDebugSessionInfo | [ ] | [ ] | [ ] | [ ] | [ ] | Get information about the currently active Java debug session |
+| getDebugStackTrace | [ ] | [ ] | [ ] | [ ] | [ ] | Retrieve the call stack showing all method calls leading to the current execution point |
+| getDebugThreads | [ ] | [ ] | [ ] | [ ] | [ ] | List all threads in the debugged Java application with their IDs, names, and states |
+| getDebugVariables | [ ] | [ ] | [ ] | [ ] | [ ] | Inspect variables in a specific thread's stack frame: local variables, method parameters, and fields |
+| removeJavaBreakpoints | [ ] | [ ] | [ ] | [ ] | [ ] | Remove breakpoints: specific breakpoint by file and line, all breakpoints in a file, or all breakpoints |
+| setJavaBreakpoint | [ ] | [ ] | [ ] | [ ] | [ ] | Set a breakpoint at a specific line in Java source code to pause execution and enable debugging |
+| stopDebugSession | [ ] | [ ] | [ ] | [ ] | [ ] | Stop the active Java debug session when investigation is complete |
+
+### Mermaid Chat Features (`vscode.mermaid-chat-features`)
+
+| Tool | beast-mode | doc-sync | fix-wf | impl-exec | impl-plan | Description |
+|------|:----------:|:--------:|:------:|:---------:|:---------:|-------------|
+| vscode.mermaid-chat-features/renderMermaidDiagram | [ ] | [ ] | [ ] | [ ] | [ ] | Render a Mermaid diagram inline in chat |
+
+### Python (`ms-python.python`)
+
+| Tool | beast-mode | doc-sync | fix-wf | impl-exec | impl-plan | Description |
+|------|:----------:|:--------:|:------:|:---------:|:---------:|-------------|
+| configurePythonEnvironment | [ ] | [ ] | [ ] | [ ] | [ ] | Configure the Python environment for the workspace |
+| create_virtual_environment | [ ] | [ ] | [ ] | [ ] | [ ] | Create a new Python virtual environment |
+| getPythonEnvironmentInfo | [ ] | [ ] | [ ] | [ ] | [ ] | Get details about the currently selected Python environment |
+| getPythonExecutableCommand | [ ] | [ ] | [ ] | [ ] | [ ] | Get the Python executable path and command for running scripts |
+| installPythonPackage | [ ] | [ ] | [ ] | [ ] | [ ] | Install one or more Python packages using pip |
+| selectEnvironment | [ ] | [ ] | [ ] | [ ] | [ ] | Select a Python environment for the workspace |
+
 ## Notes
 
 - **Updating agents**: After editing this table, reflect changes in the corresponding `tools:` list in each `.github/agents/<name>.agent.md` file.
 - **Undocumented tools *(u)***: Not listed in the [VS Code agent tools docs](https://code.visualstudio.com/docs/copilot/agents/agent-tools) but observed as functional in agents.
 - **Notebook tools**: `edit/editNotebook`, `execute/runNotebookCell`, `read/getNotebookSummary`, `read/readNotebookCellOutput` are only useful for agents that work with Jupyter notebooks.
-- **MCP / extension tools**: Tools from installed MCP servers or VS Code extensions appear in the tool picker alongside built-in tools. Add rows here for any that should be selectively enabled per agent.
+- **Extension tools**: The tool ID to put in an agent's `tools:` list is the `toolReferenceName` from the extension's `package.json` (camelCase, as shown in the tools picker). For tools with no `toolReferenceName`, use the `name` field (snake_case).
+- **MCP tools**: Tools from installed MCP servers appear in the tool picker alongside built-in tools. Add rows here for any that should be selectively enabled per agent.
