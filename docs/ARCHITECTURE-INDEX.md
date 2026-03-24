@@ -32,16 +32,16 @@
 
 ---
 
-### 2. Strategic Vision & Principles (Lines 211-406)
+### 2. Strategic Vision & Principles (Lines 235-545)
 
 **Topics**: Agent orchestration, architecture strategy, design strategy, implementation strategy, quality strategy
 
 **Subsections**:
-- 2.1 Agent Orchestration Strategy (213-295): Agent architecture, catalog, handoff flow, instruction files, tool discovery
-- 2.2 Architecture Strategy (260-289): Monorepo, service template, evolutionary design
-- 2.3 Design Strategy (290-334): Core principles, autonomous execution principles
-- 2.4 Implementation Strategy (335-373): Spec-Driven Development, domain-driven design
-- 2.5 Quality Strategy (374-406): Continuous quality, maximum quality mandate
+- 2.1 Agent Orchestration Strategy (237-353): Agent architecture, catalog, handoff flow, instruction files, tool discovery
+- 2.2 Architecture Strategy (354-383): Monorepo, service template, evolutionary design
+- 2.3 Design Strategy (384-428): Core principles, autonomous execution principles
+- 2.4 Implementation Strategy (429-467): Spec-Driven Development, domain-driven design
+- 2.5 Quality Strategy (468-545): Continuous quality, maximum quality mandate
 
 ---
 
