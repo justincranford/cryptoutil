@@ -253,34 +253,40 @@ job step. No standalone cicd-lint workflow in target state.
 
 ## C. cmd/ — Binary Entry Points `drwxr-x---`
 
-**Pattern**: Flat directories; each entry has exactly one `main.go` that delegates to `internal/apps/`.
+**Pattern**: Flat directories — every entry is a direct child of `cmd/`. No nesting.
+Each entry has exactly one `main.go` that delegates to `internal/apps/`.
 
 ```
-cmd/                                                  # drwxr-x---
-├── cryptoutil/main.go                                # Suite CLI → internal/apps/cryptoutil/
-├── {PRODUCT}/main.go                                 # Product CLI → internal/apps/{PRODUCT}/ (×5)
-│   ├── identity/main.go
-│   ├── jose/main.go
-│   ├── pki/main.go
-│   ├── skeleton/main.go
-│   └── sm/main.go
-├── {PS-ID}/main.go                                   # Service CLI → internal/apps/{PRODUCT}/{SERVICE}/ (×10)
-│   ├── identity-authz/main.go
-│   ├── identity-idp/main.go
-│   ├── identity-rp/main.go
-│   ├── identity-rs/main.go
-│   ├── identity-spa/main.go
-│   ├── jose-ja/main.go
-│   ├── pki-ca/main.go
-│   ├── skeleton-template/main.go
-│   ├── sm-im/main.go
-│   └── sm-kms/main.go
-└── {INFRA-TOOL}/main.go                             # Infra tools (×2)
-    ├── cicd-lint/main.go
-    └── workflow/main.go
+cmd/                                                  # drwxr-x---  (18 flat entries)
+│
+│   # {SUITE}/main.go — Suite CLI → internal/apps/{SUITE}/ (×1)
+├── cryptoutil/main.go                                # {SUITE}=cryptoutil
+│
+│   # {PRODUCT}/main.go — Product CLI → internal/apps/{PRODUCT}/ (×5)
+├── identity/main.go                                  # {PRODUCT}=identity
+├── jose/main.go                                      # {PRODUCT}=jose
+├── pki/main.go                                       # {PRODUCT}=pki
+├── skeleton/main.go                                  # {PRODUCT}=skeleton
+├── sm/main.go                                        # {PRODUCT}=sm
+│
+│   # {PS-ID}/main.go — Service CLI → internal/apps/{PRODUCT}/{SERVICE}/ (×10)
+├── identity-authz/main.go                            # {PS-ID}=identity-authz
+├── identity-idp/main.go                              # {PS-ID}=identity-idp
+├── identity-rp/main.go                               # {PS-ID}=identity-rp
+├── identity-rs/main.go                               # {PS-ID}=identity-rs
+├── identity-spa/main.go                              # {PS-ID}=identity-spa
+├── jose-ja/main.go                                   # {PS-ID}=jose-ja
+├── pki-ca/main.go                                    # {PS-ID}=pki-ca
+├── skeleton-template/main.go                         # {PS-ID}=skeleton-template
+├── sm-im/main.go                                     # {PS-ID}=sm-im
+├── sm-kms/main.go                                    # {PS-ID}=sm-kms
+│
+│   # {INFRA-TOOL}/main.go — Infrastructure tools (×2)
+├── cicd-lint/main.go                                 # {INFRA-TOOL}=cicd-lint
+└── workflow/main.go                                  # {INFRA-TOOL}=workflow
 ```
 
-**Total**: 18 entries (1 suite + 5 products + 10 services + 2 infra tools).
+**Total**: 18 flat entries (1 suite + 5 products + 10 services + 2 infra tools).
 
 **DELETE from cmd/**:
 
@@ -322,10 +328,20 @@ api/                                                  # drwxr-x---
 
 ### E.1 Suite Config
 
+**Pattern**: `configs/{SUITE}/{SUITE}.yml`
+
+```
+configs/
+└── {SUITE}/
+    └── {SUITE}.yml                        # Suite-level config (logging, telemetry)
+```
+
+**Concrete** (`{SUITE}=cryptoutil`):
+
 ```
 configs/
 └── cryptoutil/
-    └── cryptoutil.yml                     # Suite-level config (logging, telemetry)
+    └── cryptoutil.yml
 ```
 
 ### E.2 Product Configs (5 products — FLAT, one dir per product)
@@ -466,21 +482,36 @@ deployments/{PS-ID}/                                  # drwxr-x---
 
 ```
 # sm-im secrets (PS-ID=sm-im, PS_ID=sm_im)
-hash-pepper-v3.secret  →  sm-im-hash-pepper-v3-Qrst6789Uvwx0123Yzab4567Cdef8901
-unseal-1of5.secret  →  sm-im-unseal-key-1-of-5-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
-postgres-username.secret  →  sm_im_database_user
-postgres-password.secret  →  sm_im_database_pass-Abcd1234Efgh5678Ijkl9012Mnop3456
-postgres-database.secret  →  sm_im_database
-postgres-url.secret  →  postgres://sm_im_database_user:sm_im_database_pass-Abcd1234...@sm-im-postgres:5432/sm_im_database?sslmode=disable
-browser-username.secret  →  sm-im-browser-user
-browser-password.secret  →  sm-im-browser-pass-Ghij2345Klmn6789Opqr0123Stuv4567
-service-username.secret  →  sm-im-service-user
-service-password.secret  →  sm-im-service-pass-Wxyz8901Abcd2345Efgh6789Ijkl0123
+hash-pepper-v3.secret      →  sm-im-hash-pepper-v3-Qrst6789Uvwx0123Yzab4567Cdef8901
+unseal-1of5.secret         →  sm-im-unseal-key-1-of-5-a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2
+unseal-2of5.secret         →  sm-im-unseal-key-2-of-5-b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3
+unseal-3of5.secret         →  sm-im-unseal-key-3-of-5-c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4
+unseal-4of5.secret         →  sm-im-unseal-key-4-of-5-d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5
+unseal-5of5.secret         →  sm-im-unseal-key-5-of-5-e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6
+postgres-username.secret   →  sm_im_database_user
+postgres-password.secret   →  sm_im_database_pass-Abcd1234Efgh5678Ijkl9012Mnop3456
+postgres-database.secret   →  sm_im_database
+postgres-url.secret        →  postgres://sm_im_database_user:sm_im_database_pass-Abcd1234...@sm-im-postgres:5432/sm_im_database?sslmode=disable
+browser-username.secret    →  sm-im-browser-user
+browser-password.secret    →  sm-im-browser-pass-Ghij2345Klmn6789Opqr0123Stuv4567
+service-username.secret    →  sm-im-service-user
+service-password.secret    →  sm-im-service-pass-Wxyz8901Abcd2345Efgh6789Ijkl0123
 
 # pki-ca secrets (PS-ID=pki-ca, PS_ID=pki_ca)
-unseal-1of5.secret  →  pki-ca-unseal-key-1-of-5-{unique-hex-NOT-copied-from-sm-kms}
-postgres-database.secret  →  pki_ca_database
-postgres-username.secret  →  pki_ca_database_user
+hash-pepper-v3.secret      →  pki-ca-hash-pepper-v3-Rstu7890Vwxy1234Zabc5678Defg9012
+unseal-1of5.secret         →  pki-ca-unseal-key-1-of-5-f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7
+unseal-2of5.secret         →  pki-ca-unseal-key-2-of-5-a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8
+unseal-3of5.secret         →  pki-ca-unseal-key-3-of-5-b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9
+unseal-4of5.secret         →  pki-ca-unseal-key-4-of-5-c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0
+unseal-5of5.secret         →  pki-ca-unseal-key-5-of-5-d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1
+postgres-username.secret   →  pki_ca_database_user
+postgres-password.secret   →  pki_ca_database_pass-Hijk3456Lmno7890Pqrs1234Tuvw5678
+postgres-database.secret   →  pki_ca_database
+postgres-url.secret        →  postgres://pki_ca_database_user:pki_ca_database_pass-Hijk3456...@pki-ca-postgres:5432/pki_ca_database?sslmode=disable
+browser-username.secret    →  pki-ca-browser-user
+browser-password.secret    →  pki-ca-browser-pass-Klmn4567Opqr8901Stuv2345Wxyz6789
+service-username.secret    →  pki-ca-service-user
+service-password.secret    →  pki-ca-service-pass-Nopq5678Rstu9012Vwxy3456Abcd7890
 ```
 
 **All 10 services** (`identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`,
@@ -538,9 +569,33 @@ unseal-5of5.secret              →  sm-unseal-key-5-of-5-{hex-random-32-bytes}
 
 ### F.3 Suite Deployment
 
+**Pattern**: `deployments/{SUITE}-suite/`
+
 ```
-deployments/cryptoutil-suite/                         # drwxr-x---
+deployments/{SUITE}-suite/                            # drwxr-x---
 ├── compose.yml                                       # Suite-level Docker Compose
+└── secrets/
+    ├── hash-pepper-v3.secret                         # {SUITE}-hash-pepper-v3-{base64-random-32-bytes}
+    ├── browser-username.secret.never                 # MUST NEVER be used at suite level
+    ├── browser-password.secret.never                 # MUST NEVER be used at suite level
+    ├── service-username.secret.never                 # MUST NEVER be used at suite level
+    ├── service-password.secret.never                 # MUST NEVER be used at suite level
+    ├── postgres-username.secret                      # {SUITE}_database_user
+    ├── postgres-password.secret                      # {SUITE}_database_pass-{base64-random-32-bytes}
+    ├── postgres-database.secret                      # {SUITE}_database
+    ├── postgres-url.secret                           # postgres://{SUITE}_database_user:{SUITE}_database_pass@{SUITE}-postgres:5432/{SUITE}_database?sslmode=disable
+    ├── unseal-1of5.secret                            # {SUITE}-unseal-key-1-of-5-{hex-random-32-bytes}
+    ├── unseal-2of5.secret                            # {SUITE}-unseal-key-2-of-5-{hex-random-32-bytes}
+    ├── unseal-3of5.secret                            # {SUITE}-unseal-key-3-of-5-{hex-random-32-bytes}
+    ├── unseal-4of5.secret                            # {SUITE}-unseal-key-4-of-5-{hex-random-32-bytes}
+    └── unseal-5of5.secret                            # {SUITE}-unseal-key-5-of-5-{hex-random-32-bytes}
+```
+
+**Concrete** (`{SUITE}=cryptoutil`):
+
+```
+deployments/cryptoutil-suite/
+├── compose.yml
 └── secrets/
     ├── hash-pepper-v3.secret                         # cryptoutil-hash-pepper-v3-{base64-random-32-bytes}
     ├── browser-username.secret.never                 # MUST NEVER be used at suite level
@@ -592,44 +647,126 @@ deployments/
 | `deployments/cryptoutil-suite/secrets/{SUITE}-postgres-*.secret.never` | Legacy prefixed markers |
 | `deployments/cryptoutil-suite/secrets/{SUITE}-unseal-{1..5}of5.secret.never` | Legacy prefixed markers |
 
+### F.6 Dockerfile Parameterization
+
+All Dockerfiles follow identical multi-stage structure (validation → builder → runtime).
+Parameterized fields differ by deployment tier.
+
+**Pattern**: `deployments/{DEPLOYMENT-DIR}/Dockerfile`
+
+| Field | Service (`{PS-ID}`) | Product (`{PRODUCT}`) | Suite (`{SUITE}-suite`) |
+|-------|---------------------|----------------------|-------------------------|
+| `image.title` LABEL | `{SUITE}-{PS-ID}` | `{SUITE}-{PRODUCT}` | `{SUITE}` |
+| `image.description` LABEL | Service-specific description | Product-specific description | Suite-level description |
+| Binary built | `./cmd/{SUITE}` (always suite binary) | `./cmd/{SUITE}` | `./cmd/{SUITE}` |
+| `EXPOSE` | 8080 (container public) | Service-range (e.g., 18000) | Suite-range (e.g., 28000) |
+| `HEALTHCHECK` | `wget --no-check-certificate -qO- https://127.0.0.1:8080/browser/api/v1/health` | Same pattern, product port | Same pattern, suite port |
+| `ENTRYPOINT` | `["/app/{SUITE}", "{PS-ID}", "start"]` | `["/app/{SUITE}", "{PRODUCT}", "start"]` | `["/app/{SUITE}"]` |
+
+**Concrete values** (`{SUITE}=cryptoutil`):
+
+| PS-ID | `image.title` | `ENTRYPOINT` args |
+|-------|--------------|-------------------|
+| `identity-authz` | `cryptoutil-identity-authz` | `"identity-authz", "start"` |
+| `identity-idp` | `cryptoutil-identity-idp` | `"identity-idp", "start"` |
+| `identity-rp` | `cryptoutil-identity-rp` | `"identity-rp", "start"` |
+| `identity-rs` | `cryptoutil-identity-rs` | `"identity-rs", "start"` |
+| `identity-spa` | `cryptoutil-identity-spa` | `"identity-spa", "start"` |
+| `jose-ja` | `cryptoutil-jose-ja` | `"jose-ja", "start"` |
+| `pki-ca` | `cryptoutil-pki-ca` | `"pki-ca", "start"` |
+| `skeleton-template` | `cryptoutil-skeleton-template` | `"skeleton-template", "start"` |
+| `sm-im` | `cryptoutil-sm-im` | `"sm-im", "start"` |
+| `sm-kms` | `cryptoutil-sm-kms` | `"sm-kms", "start"` |
+
+**Current state**: 10 service-level + 1 suite-level Dockerfiles exist. 0 product-level Dockerfiles exist (v6 CREATE).
+**Suite Dockerfile** has INCORRECT labels (`"CA Server"`, `"Certificate Authority"`) — must be fixed to `"cryptoutil"`.
+
 ---
 
 ## G. internal/ — Private Application Code `drwxr-x---`
 
 ### G.1 internal/apps/ — Application Layer
 
+**Structure**: `internal/apps/{SUITE | PRODUCT | PRODUCT/SERVICE | framework | tools}`
+
+Services are nested under their product: `internal/apps/{PRODUCT}/{SERVICE}/`.
+This matches the current codebase and `cmd/{PS-ID}/main.go` delegates to
+`internal/apps/{PRODUCT}/{SERVICE}/`.
+
+#### G.1.1 Suite & Product Pattern
+
 ```
 internal/apps/                                        # drwxr-x---
-├── {SUITE}/                                          # Suite orchestration
-│   ├── {SUITE}.go                                    #   Suite CLI dispatch (seam pattern)
+│
+│   # Suite orchestration (×1, {SUITE}=cryptoutil)
+├── cryptoutil/
+│   ├── cryptoutil.go                                 #   Suite CLI dispatch (seam pattern)
 │   ├── *_test.go
 │   └── e2e/                                          #   E2E tests (full suite docker compose)
 │
-├── {PRODUCT}/                                        # Product level (×5)
+│   # Product level (×5)
+├── {PRODUCT}/                                        # identity, jose, pki, skeleton, sm
 │   ├── {PRODUCT}.go                                  #   Product CLI dispatch
 │   ├── *_test.go
 │   ├── e2e/                                          #   E2E tests (full product docker compose)
-│   └── shared/                                       #   Shared within product (optional)
-│       └── (shared packages)/
-│           ├── *.go
-│           └── *_test.go
-│
-├── {PRODUCT}/{SERVICE}/                              # Service implementation (×N per product, 10 total)
+│   └── (shared packages)/                            #   Shared within product (optional, varies)
+```
+
+#### G.1.2 Service Pattern (nested `{PRODUCT}/{SERVICE}/`)
+
+Each service lives at `internal/apps/{PRODUCT}/{SERVICE}/`. The generic pattern:
+
+```
+├── {PRODUCT}/{SERVICE}/                              # Nested under product (×10 total)
 │   ├── {SERVICE}.go                                  #   Service entry point (seam pattern)
 │   ├── *_test.go
-│   ├── integration/                                  #   Integration tests
+│   ├── client/                                       #   HTTP client (optional)
 │   ├── e2e/                                          #   E2E tests (service docker compose)
-│   ├── repository/                                   #   Data access layer
+│   ├── integration/                                  #   Integration tests (optional)
+│   ├── model/                                        #   Domain models (optional)
+│   ├── repository/                                   #   Data access layer (optional)
 │   │   ├── *.go                                      #     GORM entity models + repository methods
 │   │   ├── *_test.go
 │   │   └── migrations/                               #     Domain migrations (2001+)
-│   │       ├── 2001_init.up.sql
-│   │       └── 2001_init.down.sql
-│   ├── model/                                        #   Domain models (optional)
-│   │   └── *.go
-│   └── handler/                                      #   HTTP handlers (optional)
-│       └── *.go
-│
+│   ├── server/                                       #   HTTP server setup
+│   ├── service/                                      #   Business logic (optional)
+│   └── testing/                                      #   Test helpers (optional)
+```
+
+**Concrete service subdirectories** (discovered from actual codebase):
+
+| PS-ID | Subdirectories |
+|-------|---------------|
+| `identity-authz` (`identity/authz/`) | `server/` (with `config/`), `unified/`, `clientauth/`, `dpop/`, `pkce/` |
+| `identity-idp` (`identity/idp/`) | `server/` (with `config/`), `unified/`, `auth/`, `templates/`, `userauth/` |
+| `identity-rp` (`identity/rp/`) | `server/`, `unified/` |
+| `identity-rs` (`identity/rs/`) | `server/`, `unified/` |
+| `identity-spa` (`identity/spa/`) | `server/`, `unified/` |
+| `jose-ja` (`jose/ja/`) | `e2e/`, `model/`, `repository/`, `server/`, `service/` (with `coverage/`) |
+| `pki-ca` (`pki/ca/`) | `api/`, `bootstrap/`, `cli/`, `compliance/`, `config/`, `crypto/`, `demo/`, `domain/`, `domain-v2/`, `intermediate/`, `observability/`, `profile/`, `repository-v2/`, `security/`, `server/` (with `config/`, `cmd/`, `middleware/`), `service/` (with `issuer/`, `ra/`, `revocation/`, `timestamp/`), `storage/` |
+| `skeleton-template` (`skeleton/template/`) | `domain/`, `e2e/`, `repository/` (with `migrations/`), `server/` |
+| `sm-im` (`sm/im/`) | `client/`, `e2e/`, `integration/`, `model/`, `repository/` (with `migrations/`), `server/`, `testing/` |
+| `sm-kms` (`sm/kms/`) | `client/`, `e2e/`, `server/` |
+
+**Identity shared packages** (at `internal/apps/identity/`, shared across identity services):
+
+| Package | Purpose |
+|---------|---------|
+| `domain/` | Shared identity domain types |
+| `repository/` (with `orm/`, `migrations/`) | Shared identity data access |
+| `config/` | Shared identity configuration |
+| `apperr/` | Identity-specific error types |
+| `email/` | Email sending |
+| `issuer/` | Token issuer |
+| `jobs/` | Background jobs |
+| `mfa/` | Multi-factor authentication |
+| `ratelimit/` | Rate limiting |
+| `rotation/` | Key/token rotation |
+
+#### G.1.3 Framework & Tools
+
+```
+internal/apps/
 ├── framework/                                        # Service framework (shared by ALL services)
 │   ├── apperr/                                       #   Application error types (moved from shared/apperr/)
 │   ├── suite/                                        #   Suite-level framework
@@ -693,6 +830,9 @@ internal/apps/                                        # drwxr-x---
 │   │   │   ├── entity_registry_completeness/
 │   │   │   ├── file_size/
 │   │   │   ├── parallel_tests/
+│   │   │   ├── secret_naming/                        #     (NEW) All tiers use {purpose}.secret names
+│   │   │   ├── unseal_secret_content/                #     (NEW) Validates unseal key value patterns
+│   │   │   ├── dockerfile_labels/                    #     (NEW) Validates Dockerfile OCI labels
 │   │   │   ├── test_patterns/
 │   │   │   └── ... (44+ linters)
 │   │   ├── lint_go/
@@ -849,22 +989,25 @@ test-output/                                          # Ephemeral test output, n
 
 ## L. Secret File Naming Convention
 
-All tiers (service, product, suite) use **identical `{purpose}.secret` names** —
-no tier prefix on active secret files. Tier prefixes appear ONLY on `.secret.never`
-marker files.
+All tiers (service, product, suite) use **identical `{purpose}.secret` filenames** —
+no tier prefix on active secret filenames. The **value inside** each secret contains
+the tier-specific prefix (e.g., `{PS-ID}-`, `{PRODUCT}-`, `{SUITE}-`).
+
+`.secret.never` marker files exist ONLY at product and suite tiers as explicit
+reminders that browser/service credentials are service-level concerns.
 
 | Secret Purpose | Filename | Service Value Pattern | Product Value Pattern | Suite Value Pattern |
 |---------------|----------|-----------------------|-----------------------|---------------------|
-| Hash pepper v3 | `hash-pepper-v3.secret` | `{PS-ID}-hash-pepper-v3-{base64-random-32-bytes}` | `{PRODUCT}-hash-pepper-v3-{base64}` | `cryptoutil-hash-pepper-v3-{base64}` |
+| Hash pepper v3 | `hash-pepper-v3.secret` | `{PS-ID}-hash-pepper-v3-{base64-random-32-bytes}` | `{PRODUCT}-hash-pepper-v3-{base64}` | `{SUITE}-hash-pepper-v3-{base64}` |
 | Browser username | `browser-username.secret` | `{PS-ID}-browser-user` | `.never` only | `.never` only |
 | Browser password | `browser-password.secret` | `{PS-ID}-browser-pass-{base64-random-32-bytes}` | `.never` only | `.never` only |
 | Service username | `service-username.secret` | `{PS-ID}-service-user` | `.never` only | `.never` only |
 | Service password | `service-password.secret` | `{PS-ID}-service-pass-{base64-random-32-bytes}` | `.never` only | `.never` only |
-| PostgreSQL username | `postgres-username.secret` | `{PS_ID}_database_user` | `{PRODUCT}_database_user` | `cryptoutil_database_user` |
-| PostgreSQL password | `postgres-password.secret` | `{PS_ID}_database_pass-{base64-random-32-bytes}` | `{PRODUCT}_database_pass-{base64}` | `cryptoutil_database_pass-{base64}` |
-| PostgreSQL database | `postgres-database.secret` | `{PS_ID}_database` | `{PRODUCT}_database` | `cryptoutil_database` |
-| PostgreSQL URL | `postgres-url.secret` | `postgres://{PS_ID}_database_user:{PS_ID}_database_pass@{PS-ID}-postgres:5432/{PS_ID}_database?sslmode=disable` | `postgres://{PRODUCT}_database_user:{PRODUCT}_database_pass@{PRODUCT}-postgres:5432/{PRODUCT}_database?sslmode=disable` | `postgres://cryptoutil_database_user:cryptoutil_database_pass@cryptoutil-postgres:5432/cryptoutil_database?sslmode=disable` |
-| Unseal shard N | `unseal-{N}of5.secret` | `{PS-ID}-unseal-key-N-of-5-{hex-random-32-bytes}` | `{PRODUCT}-unseal-key-N-of-5-{hex-random-32-bytes}` | `cryptoutil-unseal-key-N-of-5-{hex-random-32-bytes}` |
+| PostgreSQL username | `postgres-username.secret` | `{PS_ID}_database_user` | `{PRODUCT}_database_user` | `{SUITE}_database_user` |
+| PostgreSQL password | `postgres-password.secret` | `{PS_ID}_database_pass-{base64-random-32-bytes}` | `{PRODUCT}_database_pass-{base64}` | `{SUITE}_database_pass-{base64}` |
+| PostgreSQL database | `postgres-database.secret` | `{PS_ID}_database` | `{PRODUCT}_database` | `{SUITE}_database` |
+| PostgreSQL URL | `postgres-url.secret` | `postgres://{PS_ID}_database_user:{PS_ID}_database_pass@{PS-ID}-postgres:5432/{PS_ID}_database?sslmode=disable` | `postgres://{PRODUCT}_database_user:{PRODUCT}_database_pass@{PRODUCT}-postgres:5432/{PRODUCT}_database?sslmode=disable` | `postgres://{SUITE}_database_user:{SUITE}_database_pass@{SUITE}-postgres:5432/{SUITE}_database?sslmode=disable` |
+| Unseal shard N | `unseal-{N}of5.secret` | `{PS-ID}-unseal-key-N-of-5-{hex-random-32-bytes}` | `{PRODUCT}-unseal-key-N-of-5-{hex-random-32-bytes}` | `{SUITE}-unseal-key-N-of-5-{hex-random-32-bytes}` |
 
 **`.secret.never` marker files** — present at product and suite tiers as explicit reminders:
 
@@ -885,11 +1028,13 @@ marker files.
 | `cmd-entry-whitelist` | `cmd/` | Only 18 allowed entries (1 suite + 5 products + 10 services + 2 infra tools) |
 | `configs-structure` | `configs/` | Must follow flat `{SUITE}/`, `{PRODUCT}/`, `{PS-ID}/` hierarchy (Decision 2=B) |
 | `configs-naming` (rewritten) | `configs/` | Validates flat `{PS-ID}/{PS-ID}.yml` pattern; rejects nested `{PRODUCT}/{SERVICE}/`; allows `pki-ca/profiles/` and `identity-authz/domain/policies/` exceptions |
-| `configs-no-deployment` | `configs/` | No deployment variants (`*-pg-1.yml`, `*-sqlite.yml`) or environment files |
+| `configs-no-deployment` | `configs/` | No deployment variants (`*-pg-*.yml`, `*-postgresql-*.yml`, `*-sqlite.yml`, `*-sqlite-*.yml`) or environment files (`development.yml`, `production.yml`, `test.yml`) |
 | `secret-naming` | `deployments/*/secrets/` | All tiers use `{purpose}.secret` names; `.never` markers enforced at product/suite |
+| `unseal-secret-content` | `deployments/*/secrets/unseal-*.secret` | Validates unseal secret value patterns: `{TIER-PREFIX}-unseal-key-N-of-5-{hex-random-32-bytes}`; hex must be exactly 64 lowercase hex chars (32 bytes); all 5 shards must have unique hex values; tier prefix must match deployment directory (`{PS-ID}-` for services, `{PRODUCT}-` for products, `{SUITE}-` for suite); rejects generic `dev-unseal-key-N-of-5` placeholders |
 | `template-consistency` | `deployments/skeleton-template/` | Hyphens in secret names (not underscores) |
 | `archive-detection` | `**/*archived*/`, `**/*orphaned*/` | No archived/orphaned directories |
 | `entity-registry-completeness` | (existing, enhanced) | Verify `configs/{PS-ID}/` existence for all registered PS-IDs |
+| `dockerfile-labels` | `deployments/*/Dockerfile` | Validates LABEL `org.opencontainers.image.title` matches deployment tier; validates `image.description` is non-empty |
 
 ---
 
@@ -898,7 +1043,7 @@ marker files.
 | Area | Current State | Target State | Action |
 |------|--------------|-------------|--------|
 | Root files | ~80+ junk artifacts | Clean project config only | DELETE artifacts |
-| `.vscode/mcp.json` | Missing | Present | CREATE |
+| `.vscode/mcp.json` | Present (GitHub + Playwright MCP servers) | Present | KEEP (no change) |
 | `cmd/` | 18 entries + extras | 18 entries exactly | DELETE demo, identity-compose, identity-demo |
 | `api/` | Missing components for some services | All 10 PS-IDs with full generated spec | CREATE missing |
 | `configs/` | Nested `{PRODUCT}/{SERVICE}/` dirs | Flat `{PS-ID}/` dirs + `{PRODUCT}/` dirs | RESTRUCTURE (Decision 2=B) |
