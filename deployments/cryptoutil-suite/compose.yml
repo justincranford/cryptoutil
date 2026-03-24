@@ -31,9 +31,6 @@
 # Database ports (PostgreSQL leader/follower):
 #   - postgres-leader:      5432
 #   - postgres-follower:    5433
-#   - citus-coordinator:    5434
-#   - citus-worker-1:       5435
-#   - citus-worker-2:       5436
 #
 # Usage:
 #   docker compose -f compose-cryptoutil.yml up -d                        # SQLite instances only (default: dev profile)

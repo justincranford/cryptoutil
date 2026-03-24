@@ -955,26 +955,6 @@
     "status": "REQUIRED",
     "type": "secret"
   },
-  "shared-citus/compose.yml": {
-    "status": "REQUIRED",
-    "type": "compose"
-  },
-  "shared-citus/init-citus.sql": {
-    "status": "OPTIONAL",
-    "type": "sql"
-  },
-  "shared-citus/secrets/postgres-database.secret": {
-    "status": "REQUIRED",
-    "type": "secret"
-  },
-  "shared-citus/secrets/postgres-password.secret": {
-    "status": "REQUIRED",
-    "type": "secret"
-  },
-  "shared-citus/secrets/postgres-username.secret": {
-    "status": "REQUIRED",
-    "type": "secret"
-  },
   "shared-postgres/compose.yml": {
     "status": "REQUIRED",
     "type": "compose"
