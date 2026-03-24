@@ -11,14 +11,20 @@ Reference table for reviewing which tools are enabled per agent. Edit the cells 
 |------|:----------:|:--------:|:------:|:---------:|:---------:|-------------|
 | **agent/** | | | | | | |
 | agent/runSubagent | [x] | [x] | [x] | [x] | [x] | Run a task in an isolated subagent context; improves context management of the main agent thread |
+| agent/searchSubagent | [ ] | [ ] | [ ] | [ ] | [ ] | Search workspace codebase in an isolated subagent context; alternative to agent/runSubagent for pure search tasks |
+| agent/switchAgent | [ ] | [ ] | [ ] | [ ] | [ ] | Switch to a different agent by name; useful for declarative agent-to-agent handoffs |
 | **browser/** | | | | | | |
 | browser | [ ] | [ ] | [ ] | [ ] | [ ] | *(Experimental)* Interact with the integrated browser: navigate, read page, take screenshots, click, type. Requires `workbench.browser.enableChatTools` |
 | **edit/** | | | | | | |
+| edit/applyPatch | [ ] | [ ] | [ ] | [ ] | [ ] | Apply a patch/diff to files in the workspace |
 | edit/createDirectory | [x] | [x] | [x] | [x] | [x] | Create a new directory in the workspace |
 | edit/createFile | [x] | [x] | [x] | [x] | [x] | Create a new file in the workspace |
 | edit/editFiles | [x] | [x] | [x] | [x] | [x] | Apply edits to files in the workspace |
 | edit/editNotebook | [ ] | [ ] | [ ] | [ ] | [ ] | Make edits to a Jupyter notebook |
+| edit/insertEdit | [ ] | [ ] | [ ] | [ ] | [ ] | Insert text at a specific position in a file; more granular than edit/editFiles |
+| edit/multiReplaceString | [ ] | [ ] | [ ] | [ ] | [ ] | Apply multiple find-and-replace string substitutions across files in one call *(u)* |
 | edit/rename | [x] | [x] | [x] | [x] | [x] | Rename or move a file or directory in the workspace *(u)* |
+| edit/replaceString | [ ] | [ ] | [ ] | [ ] | [ ] | Find and replace a string occurrence in a specific file *(u)* |
 | **execute/** | | | | | | |
 | execute/awaitTerminal | [x] | [x] | [x] | [x] | [x] | Wait for a running terminal command to finish and return its output *(u)* |
 | execute/createAndRunTask | [x] | [x] | [x] | [x] | [x] | Create and run a new VS Code task in the workspace |
@@ -42,11 +48,13 @@ Reference table for reviewing which tools are enabled per agent. Edit the cells 
 | search/codebase | [x] | [x] | [x] | [x] | [x] | Perform a semantic code search across the workspace to find relevant context |
 | search/changes | [x] | [x] | [x] | [x] | [x] | List source control changes (git diff / SCM history) |
 | search/fileSearch | [x] | [x] | [x] | [x] | [x] | Search for files in the workspace using glob patterns; returns file paths |
+| search/findTestFiles | [ ] | [ ] | [ ] | [ ] | [ ] | Find test files associated with a given source file using VS Code test discovery |
 | search/listDirectory | [x] | [x] | [x] | [x] | [x] | List all files in a given directory in the workspace |
+| search/symbols | [ ] | [ ] | [ ] | [ ] | [ ] | Search workspace symbols (functions, types, variables, constants) by name |
 | search/textSearch | [x] | [x] | [x] | [x] | [x] | Find literal or regex text matches across files in the workspace |
 | search/usages | [x] | [x] | [x] | [x] | [x] | Combination of Find All References, Find Implementation, and Go to Definition |
 | **selection** | | | | | | |
-| selection | [ ] | [ ] | [ ] | [ ] | [ ] | Get the current editor selection (only available when text is selected) |
+| selection | [x] | [x] | [x] | [x] | [x] | Get the current editor selection (only available when text is selected) |
 | **todos** | | | | | | |
 | todos | [x] | [x] | [x] | [x] | [x] | Track implementation and progress of a chat request with a todo list |
 | **vscode/** | | | | | | |
@@ -62,6 +70,7 @@ Reference table for reviewing which tools are enabled per agent. Edit the cells 
 | **web/** | | | | | | |
 | web/fetch | [x] | [x] | [x] | [x] | [x] | Fetch and return the content from a given URL |
 | web/githubRepo | [x] | [x] | [x] | [x] | [x] | Access GitHub repository file content and metadata *(u)* |
+| web/searchResults | [ ] | [ ] | [ ] | [ ] | [ ] | Execute a web search and return the results |
 
 ## Extension Tool Assignments
 
@@ -86,23 +95,43 @@ Tools contributed by installed VS Code extensions. All currently `[ ]` (this is 
 
 | Tool | beast-mode | doc-sync | fix-wf | impl-exec | impl-plan | Description |
 |------|:----------:|:--------:|:------:|:---------:|:---------:|-------------|
-| vscode.mermaid-chat-features/renderMermaidDiagram | [ ] | [ ] | [ ] | [ ] | [ ] | Render a Mermaid diagram inline in chat |
+| vscode.mermaid-chat-features/renderMermaidDiagram | [x] | [x] | [x] | [x] | [x] | Render a Mermaid diagram inline in chat |
 
 ### Python (`ms-python.python`)
 
 | Tool | beast-mode | doc-sync | fix-wf | impl-exec | impl-plan | Description |
 |------|:----------:|:--------:|:------:|:---------:|:---------:|-------------|
-| configurePythonEnvironment | [ ] | [ ] | [ ] | [ ] | [ ] | Configure the Python environment for the workspace |
-| create_virtual_environment | [ ] | [ ] | [ ] | [ ] | [ ] | Create a new Python virtual environment |
-| getPythonEnvironmentInfo | [ ] | [ ] | [ ] | [ ] | [ ] | Get details about the currently selected Python environment |
-| getPythonExecutableCommand | [ ] | [ ] | [ ] | [ ] | [ ] | Get the Python executable path and command for running scripts |
-| installPythonPackage | [ ] | [ ] | [ ] | [ ] | [ ] | Install one or more Python packages using pip |
-| selectEnvironment | [ ] | [ ] | [ ] | [ ] | [ ] | Select a Python environment for the workspace |
+| configurePythonEnvironment | [x] | [x] | [x] | [x] | [x] | Configure the Python environment for the workspace |
+| create_virtual_environment | [x] | [x] | [x] | [x] | [x] | Create a new Python virtual environment |
+| getPythonEnvironmentInfo | [x] | [x] | [x] | [x] | [x] | Get details about the currently selected Python environment |
+| getPythonExecutableCommand | [x] | [x] | [x] | [x] | [x] | Get the Python executable path and command for running scripts |
+| installPythonPackage | [x] | [x] | [x] | [x] | [x] | Install one or more Python packages using pip |
+| selectEnvironment | [x] | [x] | [x] | [x] | [x] | Select a Python environment for the workspace |
 
 ## Notes
 
 - **Updating agents**: After editing this table, reflect changes in the corresponding `tools:` list in each `.github/agents/<name>.agent.md` file.
 - **Undocumented tools *(u)***: Not listed in the [VS Code agent tools docs](https://code.visualstudio.com/docs/copilot/agents/agent-tools) but observed as functional in agents.
 - **Notebook tools**: `edit/editNotebook`, `execute/runNotebookCell`, `read/getNotebookSummary`, `read/readNotebookCellOutput` are only useful for agents that work with Jupyter notebooks.
-- **Extension tools**: The tool ID to put in an agent's `tools:` list is the `toolReferenceName` from the extension's `package.json` (camelCase, as shown in the tools picker). For tools with no `toolReferenceName`, use the `name` field (snake_case).
-- **MCP tools**: Tools from installed MCP servers appear in the tool picker alongside built-in tools. Add rows here for any that should be selectively enabled per agent.
+- **Extension tools**: The tool ID to put in an agent's `tools:` list is the `toolReferenceName` from the extension's `package.json` (camelCase, as shown in the tools picker). For tools with no `toolReferenceName`, use the `name` field (snake_case). For `github.copilot-chat` extension tools, use `category/toolReferenceName` (infer category from the tool picker groupings: agent, browser, edit, execute, read, search, todo, vscode, web).
+- **MCP tools**: Tools from installed MCP servers appear in the tool picker alongside built-in tools. Add rows here for any that should be selectively enabled per agent. MCP config files: `%APPDATA%\Code\User\mcp.json` (Windows) or `.vscode/mcp.json` (workspace-level).
+
+## Tool Discovery Commands
+
+To rediscover all available tools when VS Code or extensions are updated:
+
+```powershell
+# Scan all installed extensions for language model tools
+Get-ChildItem ~/.vscode/extensions -Directory | ForEach-Object {
+    $pkg = Join-Path $_.FullName "package.json"
+    if (Test-Path $pkg) {
+        $json = Get-Content $pkg -Raw | ConvertFrom-Json -ErrorAction SilentlyContinue
+        if ($json.contributes.languageModelTools) {
+            Write-Host "=== $($_.Name) ==="
+            $json.contributes.languageModelTools | Select-Object name, toolReferenceName, description | Format-Table -AutoSize
+        }
+    }
+}
+```
+
+See `docs/ARCHITECTURE.md` Section 2.1.6 for the complete tool discovery methodology (4 sources: documented built-ins, undocumented built-ins, extension tools, MCP server tools).

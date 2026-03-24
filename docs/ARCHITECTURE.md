@@ -317,6 +317,40 @@ Skills live in `.github/skills/NAME/SKILL.md` — each skill in its own subdirec
 | `instruction-scaffold` | tooling | Create conformant `.github/instructions/NN-NN.name.instructions.md` | [SKILL.md](.github/skills/instruction-scaffold/SKILL.md) |
 | `skill-scaffold` | tooling | Create conformant `.github/skills/NAME/SKILL.md` with proper YAML frontmatter | [SKILL.md](.github/skills/skill-scaffold/SKILL.md) |
 
+#### 2.1.6 Agent Tool Discovery
+
+**Four tool sources** — each requires a different discovery method. Keep `docs/UPDATE-TOOLS.md` synchronized whenever VS Code, extensions, or MCP servers are updated.
+
+<!-- @propagate to=".github/instructions/06-02.agent-format.instructions.md" as="agent-tool-discovery" -->
+**Tool discovery by source type**:
+
+| Source | How to Discover | Tool ID Format in Agent `tools:` |
+|--------|----------------|----------------------------------|
+| Built-in documented | [VS Code Agent Tools doc](https://code.visualstudio.com/docs/copilot/agents/agent-tools) | `category/toolReferenceName` (e.g., `edit/createFile`) |
+| Built-in undocumented *(u)* | Empirical: check deferred tools list in active agent session | `category/toolReferenceName` (e.g., `web/githubRepo`) |
+| Extension tools | Scan `~/.vscode/extensions/*/package.json` for `contributes.languageModelTools` | `toolReferenceName` (camelCase); use `name` (snake_case) if no `toolReferenceName` |
+| MCP server tools | `%APPDATA%\Code\User\mcp.json` or `.vscode/mcp.json` | Tool name as shown in MCP server config |
+
+**Extension scan command** (PowerShell):
+
+```powershell
+Get-ChildItem ~/.vscode/extensions -Directory | ForEach-Object {
+    $pkg = Join-Path $_.FullName "package.json"
+    if (Test-Path $pkg) {
+        $json = Get-Content $pkg -Raw | ConvertFrom-Json -ErrorAction SilentlyContinue
+        if ($json.contributes.languageModelTools) {
+            Write-Host "=== $($_.Name) ==="
+            $json.contributes.languageModelTools | Select-Object name, toolReferenceName | Format-Table -AutoSize
+        }
+    }
+}
+```
+
+**Category disambiguation**: `github.copilot-chat` extension tools use `category/toolReferenceName` (categories: `agent`, `browser`, `edit`, `execute`, `read`, `search`, `vscode`, `web`). All other extensions use bare `toolReferenceName`.
+
+**Maintenance**: Re-run the extension scan after any VS Code update, extension install/update, or MCP server change.
+<!-- @/propagate -->
+
 ### 2.2 Architecture Strategy
 
 #### Service Framework Pattern

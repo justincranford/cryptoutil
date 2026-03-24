@@ -37,7 +37,7 @@
 **Topics**: Agent orchestration, architecture strategy, design strategy, implementation strategy, quality strategy
 
 **Subsections**:
-- 2.1 Agent Orchestration Strategy (213-259): Agent architecture, catalog, handoff flow, instruction files
+- 2.1 Agent Orchestration Strategy (213-295): Agent architecture, catalog, handoff flow, instruction files, tool discovery
 - 2.2 Architecture Strategy (260-289): Monorepo, service template, evolutionary design
 - 2.3 Design Strategy (290-334): Core principles, autonomous execution principles
 - 2.4 Implementation Strategy (335-373): Spec-Driven Development, domain-driven design
