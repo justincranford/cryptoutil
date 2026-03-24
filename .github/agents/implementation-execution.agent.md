@@ -37,6 +37,14 @@ tools:
   - vscode/renameSymbol
   - web/fetch
   - web/githubRepo
+  - configurePythonEnvironment
+  - create_virtual_environment
+  - getPythonEnvironmentInfo
+  - getPythonExecutableCommand
+  - installPythonPackage
+  - selectEnvironment
+  - selection
+  - vscode.mermaid-chat-features/renderMermaidDiagram
 handoffs:
   - label: Create/Update Plan
     agent: implementation-planning
