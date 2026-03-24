@@ -39,6 +39,10 @@
 
 *(To be filled during Phase 9 execution)*
 
-## Phase 10: Knowledge Propagation
+## Phase 10: Migrate internal/apps/ to Flat PS-ID Structure
 
 *(To be filled during Phase 10 execution)*
+
+## Phase 11: Knowledge Propagation
+
+*(To be filled during Phase 11 execution)*

@@ -943,7 +943,7 @@ Three deployment scenarios each use distinct host port ranges to enable concurre
 
 Based on golang-standards/project-layout:
 - cmd/: Applications (external entry points for binary executables)
-- internal/apps/: Applications (internal implementations organized as PRODUCT/SERVICE/)
+- internal/apps/: Applications (suite at {SUITE}/, products at {PRODUCT}/, services at flat {PS-ID}/)
 - internal/shared/: Shared utilities (apperr, config, crypto, magic, pool, telemetry, testutil, util)
 - api/: OpenAPI specs, generated code
 - configs/: Configuration files
@@ -971,17 +971,17 @@ cmd/
 ├── pki/main.go                # Product-level PKI CLI: Thin main() call to `internal/apps/pki/pki.go`
 ├── identity/main.go           # Product-level Identity CLI: Thin main() call to `internal/apps/identity/identity.go`
 ├── sm/main.go                 # Product-level SM CLI: Thin main() call to `internal/apps/sm/sm.go`
-├── sm-im/main.go            # Service-level SM-IM CLI: Thin main() call to `internal/apps/sm/im/im.go`
-├── jose-ja/main.go            # Service-level JOSE-JA CLI: Thin main() call to `internal/apps/jose/ja/ja.go`
-├── pki-ca/main.go             # Service-level PKI-CA CLI: Thin main() call to `internal/apps/pki/ca/ca.go`
-├── identity-authz/main.go     # Service-level Identity-Authz CLI: Thin main() call to `internal/apps/identity/authz/authz.go`
-├── identity-idp/main.go       # Service-level Identity-IDP CLI: Thin main() call to `internal/apps/identity/idp/idp.go`
-├── identity-rp/main.go        # Service-level Identity-RP CLI: Thin main() call to `internal/apps/identity/rp/rp.go`
-├── identity-rs/main.go        # Service-level Identity-RS CLI: Thin main() call to `internal/apps/identity/rs/rs.go`
-├── identity-spa/main.go       # Service-level Identity-SPA CLI: Thin main() call to `internal/apps/identity/spa/spa.go`
+├── sm-im/main.go            # Service-level SM-IM CLI: Thin main() call to `internal/apps/sm-im/sm-im.go`
+├── jose-ja/main.go            # Service-level JOSE-JA CLI: Thin main() call to `internal/apps/jose-ja/jose-ja.go`
+├── pki-ca/main.go             # Service-level PKI-CA CLI: Thin main() call to `internal/apps/pki-ca/pki-ca.go`
+├── identity-authz/main.go     # Service-level Identity-Authz CLI: Thin main() call to `internal/apps/identity-authz/identity-authz.go`
+├── identity-idp/main.go       # Service-level Identity-IDP CLI: Thin main() call to `internal/apps/identity-idp/identity-idp.go`
+├── identity-rp/main.go        # Service-level Identity-RP CLI: Thin main() call to `internal/apps/identity-rp/identity-rp.go`
+├── identity-rs/main.go        # Service-level Identity-RS CLI: Thin main() call to `internal/apps/identity-rs/identity-rs.go`
+├── identity-spa/main.go       # Service-level Identity-SPA CLI: Thin main() call to `internal/apps/identity-spa/identity-spa.go`
 ├── skeleton/main.go           # Product-level Skeleton CLI: Thin main() call to `internal/apps/skeleton/skeleton.go`
-├── skeleton-template/main.go  # Service-level Skeleton-Template CLI: Thin main() call to `internal/apps/skeleton/template/template.go`
-├── sm-kms/main.go             # Service-level SM-KMS CLI (legacy): Thin main() call to `internal/apps/sm/kms/kms.go`
+├── skeleton-template/main.go  # Service-level Skeleton-Template CLI: Thin main() call to `internal/apps/skeleton-template/skeleton-template.go`
+├── sm-kms/main.go             # Service-level SM-KMS CLI: Thin main() call to `internal/apps/sm-kms/sm-kms.go`
 └── cicd-lint/main.go               # CICD CLI: Thin main() call to `internal/cmd/cicd_lint/cicd.go` → `internal/apps/tools/cicd_lint/cicd.go`
 ```
 
@@ -999,55 +999,63 @@ func main() {
     os.Exit(cryptoutilApps<PRODUCT>.<PRODUCT>(os.Args, os.Stdin, os.Stdout, os.Stderr))
 }
 ```
-1. `cmd/<product>/<service>/` for service-level CLI
+1. `cmd/<ps-id>/` for service-level CLI
 ```go
 func main() {
-    os.Exit(cryptoutilApps<PRODUCT><SERVICE>.<SERVICE>(os.Args, os.Stdin, os.Stdout, os.Stderr))
+    os.Exit(cryptoutilApps<PS-ID>.<PS-ID>(os.Args, os.Stdin, os.Stdout, os.Stderr))
 }
 ```
 
 #### 4.4.4 Service Implementations
 
+Services live at flat `internal/apps/{PS-ID}/`. Product directories contain only
+product-level code (`{PRODUCT}.go`, shared packages) — NO service subdirectories.
+
 ```
 internal/apps/
-├── template/                  # REUSABLE product-service template (all 10 services for all 5 products MUST reuse this template for maximum consistency and minimum duplication)
-│   ├── service/
-│   │   ├── config/            # ServiceFrameworkServerSettings
-│   │   ├── server/            # Application, PublicServerBase, AdminServer
-│   │   │   ├── application/   # ApplicationCore, ApplicationBasic
-│   │   │   ├── builder/       # ServerBuilder fluent API
-│   │   │   ├── listener/      # AdminHTTPServer
-│   │   │   ├── barrier/       # Encryption-at-rest service
-│   │   │   ├── businesslogic/ # SessionManager, TenantRegistration
-│   │   │   ├── repository/    # TenantRepo, RealmRepo, SessionRepo
-│   │   │   └── realms/        # Authentication realm implementations
-│   │   └── testutil/          # Test helpers (NewTestSettings)
-│   └── testing/
-│       └── e2e/               # ComposeManager for E2E orchestration
-
-│   └── im/                    # SM-IM service
-│       ├── model/             # GORM-tagged models (Message, Recipient)
-│       ├── repository/        # Domain repos + migrations (2001+)
-│       ├── server/            # SMIMServer, PublicServer
-│       │   ├── config/        # SMImServerSettings embeds template
-│       │   └── apis/          # HTTP handlers
-│       ├── client/            # API client
-│       ├── e2e/               # E2E tests (Docker Compose)
-│       └── integration/       # Integration tests
+│
+│   # Suite orchestration
+├── cryptoutil/
+│   └── cryptoutil.go                     # Suite CLI dispatch
+│
+│   # Product level (product.go + shared packages only; NO service subdirs)
+├── identity/
+│   ├── identity.go                       # Product CLI dispatch
+│   └── (shared: domain/, repository/, config/, apperr/, email/, issuer/, jobs/, mfa/, ratelimit/, rotation/)
 ├── jose/
-│   └── ja/                    # JOSE-JA service (same structure)
+│   └── jose.go
 ├── pki/
-│   └── ca/                    # PKI-CA service (same structure)
-├── sm/
-│   └── jose/                  # SM-KMS service (same structure)
-└── identity/
-    ├── authz/                 # OAuth 2.1 Authorization Server (same structure)
-    ├── idp/                   # OIDC 1.0 Identity Provider (same structure)
-    ├── rs/                    # OAuth 2.1 Resource Server (same structure)
-    ├── rp/                    # OAuth 2.1 Relying Party (same structure)
-    └── spa/                   # OAuth 2.1 Single Page Application (same structure)
+│   └── pki.go
 ├── skeleton/
-│   └── template/              # Skeleton-Template service (same structure)
+│   └── skeleton.go
+├── sm/
+│   └── sm.go
+│
+│   # Service level (flat PS-ID directories, ×10)
+├── identity-authz/
+│   └── identity-authz.go                 # Service entry point (seam pattern)
+├── identity-idp/
+│   └── identity-idp.go
+├── identity-rp/
+│   └── identity-rp.go
+├── identity-rs/
+│   └── identity-rs.go
+├── identity-spa/
+│   └── identity-spa.go
+├── jose-ja/
+│   └── jose-ja.go
+├── pki-ca/
+│   └── pki-ca.go
+├── skeleton-template/
+│   └── skeleton-template.go
+├── sm-im/
+│   └── sm-im.go
+├── sm-kms/
+│   └── sm-kms.go
+│
+│   # Framework & tools
+├── framework/                            # Service framework (shared by all services)
+└── tools/                                # Infrastructure tooling (cicd_lint, workflow)
 ```
 
 #### 4.4.5 Shared Utilities

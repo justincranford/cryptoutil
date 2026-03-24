@@ -1,6 +1,6 @@
 # Tasks - Framework v6: Corrective Standardization
 
-**Status**: 8 of 59 tasks complete (14%)
+**Status**: 8 of 63 tasks complete (13%)
 **Last Updated**: 2026-03-27
 **Created**: 2026-03-25
 
@@ -141,17 +141,17 @@
   - [x] Concrete values table for all 10 PS-IDs
   - [x] Suite Dockerfile label issue flagged
 
-#### Task 1.9: Fix G.1 internal/apps/ Structure (commit 286ea4588)
+#### Task 1.9: Fix G.1 internal/apps/ Structure (commit 286ea4588, corrected in follow-up)
 
-- **Status**: ✅ Complete
+- **Status**: ✅ Complete (with correction applied)
 - **Owner**: LLM Agent
 - **Estimated**: 25m
 - **Actual**: 20m
 - **Dependencies**: None
-- **Description**: Restructure G.1 into G.1.1 (Suite & Product), G.1.2 (Service with nested `{PRODUCT}/{SERVICE}/` and actual subdirectory table), G.1.3 (Framework & Tools with new linter entries).
+- **Description**: Restructure G.1 into G.1.1 (Suite & Product), G.1.2 (Service with flat `{PS-ID}/` pattern and actual subdirectory table), G.1.3 (Framework & Tools with new linter entries). **NOTE**: Original commit 286ea4588 incorrectly documented the NESTED `{PRODUCT}/{SERVICE}/` pattern. A follow-up correction rewrote G.1 intro and G.1.2 to describe the FLAT `internal/apps/{PS-ID}/` target (matching `cmd/{PS-ID}/` and `deployments/{PS-ID}/`).
 - **Acceptance Criteria**:
   - [x] G.1.1 documents suite and product app patterns
-  - [x] G.1.2 documents service pattern with actual subdirectories
+  - [x] G.1.2 documents **flat** `{PS-ID}/` service pattern (NOT nested)
   - [x] G.1.3 documents framework/tools with new linters
   - [x] Comprehensive subdirectory table per PS-ID
 
@@ -850,11 +850,94 @@
   - [ ] Root cause documented in lessons.md Phase 9 section
   - [ ] Prevention strategy documented
 
-### Phase 10: Knowledge Propagation
+### Phase 10: Migrate internal/apps/ to Flat PS-ID Structure
+
+**Phase Objective**: Migrate all 10 service directories from nested `internal/apps/{PRODUCT}/{SERVICE}/` to flat `internal/apps/{PS-ID}/`, matching the `cmd/{PS-ID}/` and `deployments/{PS-ID}/` conventions already in use. Update the `service_structure` fitness linter accordingly.
+
+#### Task 10.1: Move Service Directories to Flat PS-ID Structure
+
+- **Status**: Not Started
+- **Owner**: LLM Agent
+- **Estimated**: 45m
+- **Actual**: -
+- **Dependencies**: Phases 1-9 complete (all config/secret changes done first)
+- **Description**: Move all 10 service directories from their nested locations to flat PS-ID directories under `internal/apps/`. Use `git mv` to preserve history.
+- **Acceptance Criteria**:
+  - [ ] `internal/apps/sm-im/` exists (was `internal/apps/sm/im/`)
+  - [ ] `internal/apps/sm-kms/` exists (was `internal/apps/sm/kms/`)
+  - [ ] `internal/apps/jose-ja/` exists (was `internal/apps/jose/ja/`)
+  - [ ] `internal/apps/pki-ca/` exists (was `internal/apps/pki/ca/`)
+  - [ ] `internal/apps/skeleton-template/` exists (was `internal/apps/skeleton/template/`)
+  - [ ] `internal/apps/identity-authz/` exists (was `internal/apps/identity/authz/`)
+  - [ ] `internal/apps/identity-idp/` exists (was `internal/apps/identity/idp/`)
+  - [ ] `internal/apps/identity-rp/` exists (was `internal/apps/identity/rp/`)
+  - [ ] `internal/apps/identity-rs/` exists (was `internal/apps/identity/rs/`)
+  - [ ] `internal/apps/identity-spa/` exists (was `internal/apps/identity/spa/`)
+  - [ ] No nested `internal/apps/{PRODUCT}/{SERVICE}/` directories remain (only `{PRODUCT}.go` and shared packages remain in product dirs)
+- **Files**:
+  - `internal/apps/sm/im/` → `internal/apps/sm-im/`
+  - `internal/apps/sm/kms/` → `internal/apps/sm-kms/`
+  - `internal/apps/jose/ja/` → `internal/apps/jose-ja/`
+  - `internal/apps/pki/ca/` → `internal/apps/pki-ca/`
+  - `internal/apps/skeleton/template/` → `internal/apps/skeleton-template/`
+  - `internal/apps/identity/{authz,idp,rp,rs,spa}/` → `internal/apps/identity-{authz,idp,rp,rs,spa}/`
+
+#### Task 10.2: Update All Go Import Paths
+
+- **Status**: Not Started
+- **Owner**: LLM Agent
+- **Estimated**: 30m
+- **Actual**: -
+- **Dependencies**: Task 10.1
+- **Description**: Update every Go import path referencing the old nested service dirs. This includes `cmd/{PS-ID}/main.go` imports, cross-service imports, and any test files.
+- **Acceptance Criteria**:
+  - [ ] Zero references to `internal/apps/sm/im`, `internal/apps/sm/kms`, `internal/apps/jose/ja`, `internal/apps/pki/ca`, `internal/apps/skeleton/template`, `internal/apps/identity/authz`, `internal/apps/identity/idp`, `internal/apps/identity/rp`, `internal/apps/identity/rs`, `internal/apps/identity/spa`
+  - [ ] `go build ./...` passes
+  - [ ] `go build -tags e2e,integration ./...` passes
+
+#### Task 10.3: Update service_structure Fitness Linter
+
+- **Status**: Not Started
+- **Owner**: LLM Agent
+- **Estimated**: 45m
+- **Actual**: -
+- **Dependencies**: Task 10.1
+- **Description**: Rewrite `internal/apps/tools/cicd_lint/lint_fitness/service_structure/service_structure.go` to validate flat `internal/apps/{PS-ID}/` pattern instead of nested `filepath.Join(appsDir, svc.Product, svc.Service)`. Add `PSID` field to the service struct; remove `Product`/`Service` path construction. Update tests with >=98% coverage.
+- **Acceptance Criteria**:
+  - [ ] `knownServices` slice uses PS-ID strings instead of `Product`/`Service` field pairs
+  - [ ] `serviceDir` computed as `filepath.Join(appsDir, svc.PSID)`
+  - [ ] Linter accepts flat `internal/apps/{PS-ID}/` directories
+  - [ ] Linter rejects nested `internal/apps/{PRODUCT}/{SERVICE}/` pattern
+  - [ ] Tests updated and passing with >=98% coverage
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes
+- **Files**:
+  - `internal/apps/tools/cicd_lint/lint_fitness/service_structure/service_structure.go`
+  - `internal/apps/tools/cicd_lint/lint_fitness/service_structure/service_structure_test.go`
+
+#### Task 10.4: Build, Test, and Lint Verification
+
+- **Status**: Not Started
+- **Owner**: LLM Agent
+- **Estimated**: 15m
+- **Actual**: -
+- **Dependencies**: Tasks 10.1-10.3
+- **Description**: Full build, test, and lint verification after the structural migration.
+- **Acceptance Criteria**:
+  - [ ] `go build ./...` clean
+  - [ ] `go build -tags e2e,integration ./...` clean
+  - [ ] `go test ./...` passes (100%, zero skips)
+  - [ ] `golangci-lint run` clean
+  - [ ] `golangci-lint run --build-tags e2e,integration` clean
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes
+  - [ ] `go run ./cmd/cicd-lint lint-deployments` passes
+
+---
+
+### Phase 11: Knowledge Propagation
 
 **Phase Objective**: Apply lessons learned to permanent artifacts.
 
-#### Task 10.1: Review Lessons and Update ARCHITECTURE.md
+#### Task 11.1: Review Lessons and Update ARCHITECTURE.md
 
 - **Status**: Not Started
 - **Owner**: LLM Agent
@@ -869,13 +952,13 @@
   - [ ] ARCHITECTURE.md Section 9.11 updated: 3 new fitness linter catalog entries
   - [ ] Propagation check passes
 
-#### Task 10.2: Update Instruction Files
+#### Task 11.2: Update Instruction Files
 
 - **Status**: Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 20m
 - **Actual**: -
-- **Dependencies**: Task 10.1
+- **Dependencies**: Task 11.1
 - **Description**: Update instruction files to match ARCHITECTURE.md specificity. Key files: 02-01.architecture.instructions.md (flat config pattern, Dockerfile patterns), 04-01.deployment.instructions.md (secret naming, Docker patterns), 02-05.security.instructions.md (unseal naming patterns).
 - **Acceptance Criteria**:
   - [ ] Instructions reflect flat `configs/{PS-ID}/` pattern
@@ -884,7 +967,7 @@
   - [ ] Terminology enforcement guidance strengthened
   - [ ] Propagation check passes (`go run ./cmd/cicd-lint lint-docs validate-propagation`)
 
-#### Task 10.3: Update target-structure.md with Implementation Learnings
+#### Task 11.3: Update target-structure.md with Implementation Learnings
 
 - **Status**: Not Started
 - **Owner**: LLM Agent
@@ -935,7 +1018,7 @@
 - Phase 7 expanded: Task 7.3 added for suite Dockerfile OCI label fix
 - Phase 8 expanded: Tasks 8.1-8.3 added for 3 new fitness linters (unseal-secret-content, dockerfile-labels, secret-naming)
 - Phase 10 expanded: Tasks 10.1-10.2 scope increased for ARCHITECTURE.md and instruction file specificity matching target-structure.md
-- Total phases: 10. Total tasks: 59 (was 46, added 13 new tasks: 9 completed Phase 1 sub-tasks, 1 Phase 1 verification, 1 Phase 7 Dockerfile fix, 3 Phase 8 linters)
+- Total phases: 11. Total tasks: 63 (was 59; added 4 new Phase 10 tasks for internal/apps migration; renamed old Phase 10 Knowledge Propagation → Phase 11; renumbered old Tasks 10.1-10.3 → 11.1-11.3)
 - E2E testing may be blocked if Docker Desktop is not running
 
 ---

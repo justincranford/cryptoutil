@@ -240,7 +240,43 @@ All 7 phases were marked Complete without catching any of the above issues. The 
 - **Success**: Zero instances of standalone `auth` in any config filename, plan document, or generated content.
 - **Post-Mortem**: After quality gates pass, update lessons.md.
 
-### Phase 10: Knowledge Propagation (1.5h) [Status: TODO]
+### Phase 10: Migrate internal/apps/ to Flat PS-ID Structure (4h) [Status: TODO]
+
+**Objective**: Migrate all 10 service directories from nested `internal/apps/{PRODUCT}/{SERVICE}/` to flat `internal/apps/{PS-ID}/`, matching the `cmd/{PS-ID}/` convention already in use.
+
+**Root Cause**: ARCHITECTURE.md, target-structure.md, and instruction files repeatedly documented nested structure despite the canonical design requiring flat PS-ID directories. The `service_structure` fitness linter enforced the nested pattern, perpetuating the contradiction.
+
+**Scope**:
+- Move `internal/apps/sm/im/` → `internal/apps/sm-im/`
+- Move `internal/apps/sm/kms/` → `internal/apps/sm-kms/`
+- Move `internal/apps/jose/ja/` → `internal/apps/jose-ja/`
+- Move `internal/apps/pki/ca/` → `internal/apps/pki-ca/`
+- Move `internal/apps/skeleton/template/` → `internal/apps/skeleton-template/`
+- Move `internal/apps/identity/authz/` → `internal/apps/identity-authz/`
+- Move `internal/apps/identity/idp/` → `internal/apps/identity-idp/`
+- Move `internal/apps/identity/rp/` → `internal/apps/identity-rp/`
+- Move `internal/apps/identity/rs/` → `internal/apps/identity-rs/`
+- Move `internal/apps/identity/spa/` → `internal/apps/identity-spa/`
+- Update ALL Go package import paths throughout the entire codebase (major refactor)
+- Update `service_structure` fitness linter: change `filepath.Join(appsDir, svc.Product, svc.Service)` to `filepath.Join(appsDir, svc.PSID)` using PSID field
+- Update `cmd/{PS-ID}/main.go` import aliases in all 10 service CLIs
+- Update all cross-references in test files, integration tests, E2E tests
+- Product directories (`internal/apps/{PRODUCT}/`) KEEP only `{PRODUCT}.go`, `{PRODUCT}_test.go`, and shared packages — product dirs become product-level code only
+
+**Why this phase is last among structural changes**:
+- All config/deploy changes (Phases 1-9) must be stable before touching Go source
+- Go import path changes affect every file; a clean baseline minimizes conflict risk
+
+**Success**:
+- `internal/apps/sm-im/`, `internal/apps/jose-ja/`, etc. exist (flat)
+- `internal/apps/sm/im/`, `internal/apps/jose/ja/`, etc. do NOT exist
+- `go build ./...` and `go build -tags e2e,integration ./...` pass
+- All tests pass: `go test ./...`
+- `service_structure` fitness linter validates flat PS-ID paths and passes
+- `golangci-lint run` clean
+- **Post-Mortem**: After quality gates pass, update lessons.md.
+
+### Phase 11: Knowledge Propagation (1.5h) [Status: TODO]
 
 **Objective**: Apply lessons learned to permanent artifacts.
 - Review lessons.md from all prior phases

@@ -376,7 +376,7 @@ configs/
 │   ├── identity-authz.yml                 # Service config for identity-authz
 │   └── domain/                            # Exception: authorization domain configs (Decision 4=A)
 │       └── policies/
-│           ├── adaptive-authorization.yml # RENAMED from adaptive-auth.yml (banned term)
+│           ├── adaptive-authorization.yml # RENAMED from adaptive-auth.yml (`auth` is a banned term because it is ambiguous)
 │           ├── risk-scoring.yml
 │           └── step-up.yml
 ├── identity-idp/
@@ -529,10 +529,10 @@ deployments/{PRODUCT}/                                # drwxr-x---
 ├── Dockerfile                                        # Product Docker image (v6 CREATE)
 └── secrets/
     ├── hash-pepper-v3.secret                         # {PRODUCT}-hash-pepper-v3-{base64-random-32-bytes}
-    ├── browser-username.secret.never                 # MUST NEVER be used at product level
-    ├── browser-password.secret.never                 # MUST NEVER be used at product level
-    ├── service-username.secret.never                 # MUST NEVER be used at product level
-    ├── service-password.secret.never                 # MUST NEVER be used at product level
+    ├── browser-username.secret.never                 # MUST use `.never` filename extension at product level; these are service-level creds only
+    ├── browser-password.secret.never                 # MUST use `.never` filename extension at product level; these are service-level creds only
+    ├── service-username.secret.never                 # MUST use `.never` filename extension at product level; these are service-level creds only
+    ├── service-password.secret.never                 # MUST use `.never` filename extension at product level; these are service-level creds only
     ├── postgres-username.secret                      # {PRODUCT}_database_user
     ├── postgres-password.secret                      # {PRODUCT}_database_pass-{base64-random-32-bytes}
     ├── postgres-database.secret                      # {PRODUCT}_database
@@ -550,10 +550,10 @@ deployments/{PRODUCT}/                                # drwxr-x---
 
 ```
 hash-pepper-v3.secret           →  sm-hash-pepper-v3-Abcd1234Efgh5678Ijkl9012Mnop3456
-browser-username.secret.never   →  (content: "MUST NEVER be used at product level")
-browser-password.secret.never   →  (content: "MUST NEVER be used at product level")
-service-username.secret.never   →  (content: "MUST NEVER be used at product level")
-service-password.secret.never   →  (content: "MUST NEVER be used at product level")
+browser-username.secret.never   →  MUST use `.never` filename extension at product level; these are service-level creds only
+browser-password.secret.never   →  MUST use `.never` filename extension at product level; these are service-level creds only
+service-username.secret.never   →  MUST use `.never` filename extension at product level; these are service-level creds only
+service-password.secret.never   →  MUST use `.never` filename extension at product level; these are service-level creds only
 postgres-username.secret        →  sm_database_user
 postgres-password.secret        →  sm_database_pass-Qrst6789Uvwx0123Yzab4567Cdef8901
 postgres-database.secret        →  sm_database
@@ -576,10 +576,10 @@ deployments/{SUITE}-suite/                            # drwxr-x---
 ├── compose.yml                                       # Suite-level Docker Compose
 └── secrets/
     ├── hash-pepper-v3.secret                         # {SUITE}-hash-pepper-v3-{base64-random-32-bytes}
-    ├── browser-username.secret.never                 # MUST NEVER be used at suite level
-    ├── browser-password.secret.never                 # MUST NEVER be used at suite level
-    ├── service-username.secret.never                 # MUST NEVER be used at suite level
-    ├── service-password.secret.never                 # MUST NEVER be used at suite level
+    ├── browser-username.secret.never                 # MUST use `.never` filename extension at suite level; these are service-level creds only
+    ├── browser-password.secret.never                 # MUST use `.never` filename extension at suite level; these are service-level creds only
+    ├── service-username.secret.never                 # MUST use `.never` filename extension at suite level; these are service-level creds only
+    ├── service-password.secret.never                 # MUST use `.never` filename extension at suite level; these are service-level creds only
     ├── postgres-username.secret                      # {SUITE}_database_user
     ├── postgres-password.secret                      # {SUITE}_database_pass-{base64-random-32-bytes}
     ├── postgres-database.secret                      # {SUITE}_database
@@ -598,10 +598,10 @@ deployments/cryptoutil-suite/
 ├── compose.yml
 └── secrets/
     ├── hash-pepper-v3.secret                         # cryptoutil-hash-pepper-v3-{base64-random-32-bytes}
-    ├── browser-username.secret.never                 # MUST NEVER be used at suite level
-    ├── browser-password.secret.never                 # MUST NEVER be used at suite level
-    ├── service-username.secret.never                 # MUST NEVER be used at suite level
-    ├── service-password.secret.never                 # MUST NEVER be used at suite level
+    ├── browser-username.secret.never                 # MUST use `.never` filename extension at suite level; these are service-level creds only
+    ├── browser-password.secret.never                 # MUST use `.never` filename extension at suite level; these are service-level creds only
+    ├── service-username.secret.never                 # MUST use `.never` filename extension at suite level; these are service-level creds only
+    ├── service-password.secret.never                 # MUST use `.never` filename extension at suite level; these are service-level creds only
     ├── postgres-username.secret                      # cryptoutil_database_user
     ├── postgres-password.secret                      # cryptoutil_database_pass-{base64-random-32-bytes}
     ├── postgres-database.secret                      # cryptoutil_database
@@ -687,11 +687,12 @@ Parameterized fields differ by deployment tier.
 
 ### G.1 internal/apps/ — Application Layer
 
-**Structure**: `internal/apps/{SUITE | PRODUCT | PRODUCT/SERVICE | framework | tools}`
+**Structure**: `internal/apps/{SUITE | PRODUCT | PS-ID | framework | tools}`
 
-Services are nested under their product: `internal/apps/{PRODUCT}/{SERVICE}/`.
-This matches the current codebase and `cmd/{PS-ID}/main.go` delegates to
-`internal/apps/{PRODUCT}/{SERVICE}/`.
+Services live at flat `internal/apps/{PS-ID}/` (NOT nested under their product).
+`cmd/{PS-ID}/main.go` delegates to `internal/apps/{PS-ID}/{PS-ID}.go`.
+Product directories (`internal/apps/{PRODUCT}/`) contain ONLY product-level code
+(`{PRODUCT}.go`, shared packages) — NO service subdirectories.
 
 #### G.1.1 Suite & Product Pattern
 
@@ -712,13 +713,13 @@ internal/apps/                                        # drwxr-x---
 │   └── (shared packages)/                            #   Shared within product (optional, varies)
 ```
 
-#### G.1.2 Service Pattern (nested `{PRODUCT}/{SERVICE}/`)
+#### G.1.2 Service Pattern (`{PS-ID}/`)
 
-Each service lives at `internal/apps/{PRODUCT}/{SERVICE}/`. The generic pattern:
+Each service lives at `internal/apps/{PS-ID}/` (flat, NOT nested under product). The generic pattern:
 
 ```
-├── {PRODUCT}/{SERVICE}/                              # Nested under product (×10 total)
-│   ├── {SERVICE}.go                                  #   Service entry point (seam pattern)
+├── {PS-ID}/                                          # Flat PS-ID directory (×10 total)
+│   ├── {PS-ID}.go                                    #   Service entry point (seam pattern)
 │   ├── *_test.go
 │   ├── client/                                       #   HTTP client (optional)
 │   ├── e2e/                                          #   E2E tests (service docker compose)
@@ -737,16 +738,16 @@ Each service lives at `internal/apps/{PRODUCT}/{SERVICE}/`. The generic pattern:
 
 | PS-ID | Subdirectories |
 |-------|---------------|
-| `identity-authz` (`identity/authz/`) | `server/` (with `config/`), `unified/`, `clientauth/`, `dpop/`, `pkce/` |
-| `identity-idp` (`identity/idp/`) | `server/` (with `config/`), `unified/`, `auth/`, `templates/`, `userauth/` |
-| `identity-rp` (`identity/rp/`) | `server/`, `unified/` |
-| `identity-rs` (`identity/rs/`) | `server/`, `unified/` |
-| `identity-spa` (`identity/spa/`) | `server/`, `unified/` |
-| `jose-ja` (`jose/ja/`) | `e2e/`, `model/`, `repository/`, `server/`, `service/` (with `coverage/`) |
-| `pki-ca` (`pki/ca/`) | `api/`, `bootstrap/`, `cli/`, `compliance/`, `config/`, `crypto/`, `demo/`, `domain/`, `domain-v2/`, `intermediate/`, `observability/`, `profile/`, `repository-v2/`, `security/`, `server/` (with `config/`, `cmd/`, `middleware/`), `service/` (with `issuer/`, `ra/`, `revocation/`, `timestamp/`), `storage/` |
-| `skeleton-template` (`skeleton/template/`) | `domain/`, `e2e/`, `repository/` (with `migrations/`), `server/` |
-| `sm-im` (`sm/im/`) | `client/`, `e2e/`, `integration/`, `model/`, `repository/` (with `migrations/`), `server/`, `testing/` |
-| `sm-kms` (`sm/kms/`) | `client/`, `e2e/`, `server/` |
+| `identity-authz` | `server/` (with `config/`), `unified/`, `clientauth/`, `dpop/`, `pkce/` |
+| `identity-idp` | `server/` (with `config/`), `unified/`, `auth/`, `templates/`, `userauth/` |
+| `identity-rp` | `server/`, `unified/` |
+| `identity-rs` | `server/`, `unified/` |
+| `identity-spa` | `server/`, `unified/` |
+| `jose-ja` | `e2e/`, `model/`, `repository/`, `server/`, `service/` (with `coverage/`) |
+| `pki-ca` | `api/`, `bootstrap/`, `cli/`, `compliance/`, `config/`, `crypto/`, `demo/`, `domain/`, `domain-v2/`, `intermediate/`, `observability/`, `profile/`, `repository-v2/`, `security/`, `server/` (with `config/`, `cmd/`, `middleware/`), `service/` (with `issuer/`, `ra/`, `revocation/`, `timestamp/`), `storage/` |
+| `skeleton-template` | `domain/`, `e2e/`, `repository/` (with `migrations/`), `server/` |
+| `sm-im` | `client/`, `e2e/`, `integration/`, `model/`, `repository/` (with `migrations/`), `server/`, `testing/` |
+| `sm-kms` | `client/`, `e2e/`, `server/` |
 
 **Identity shared packages** (at `internal/apps/identity/`, shared across identity services):
 
