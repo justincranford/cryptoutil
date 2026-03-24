@@ -446,15 +446,15 @@ deployments/{PS-ID}/                                  # drwxr-x---
 │   ├── {PS-ID}-app-postgresql-1.yml                  #   PostgreSQL logical instance 1
 │   └── {PS-ID}-app-postgresql-2.yml                  #   PostgreSQL logical instance 2
 └── secrets/                                          # 14 secret files
-    ├── browser-password.secret                       #   {PS-ID}-browser-pass-{base64-random-32-bytes}
-    ├── browser-username.secret                       #   {PS-ID}-browser-user
     ├── hash-pepper-v3.secret                         #   {PS-ID}-hash-pepper-v3-{base64-random-32-bytes}
-    ├── postgres-database.secret                      #   {PS_ID}_database
-    ├── postgres-password.secret                      #   {PS_ID}_database_pass-{base64-random-32-bytes}
-    ├── postgres-url.secret                           #   postgres://{PS_ID}_database_user:{PS_ID}_database_pass@{PS-ID}-postgres:5432/{PS_ID}_database?sslmode=disable
-    ├── postgres-username.secret                      #   {PS_ID}_database_user
-    ├── service-password.secret                       #   {PS-ID}-service-pass-{base64-random-32-bytes}
+    ├── browser-username.secret                       #   {PS-ID}-browser-user
+    ├── browser-password.secret                       #   {PS-ID}-browser-pass-{base64-random-32-bytes}
     ├── service-username.secret                       #   {PS-ID}-service-user
+    ├── service-password.secret                       #   {PS-ID}-service-pass-{base64-random-32-bytes}
+    ├── postgres-username.secret                      #   {PS_ID}_database_user
+    ├── postgres-password.secret                      #   {PS_ID}_database_pass-{base64-random-32-bytes}
+    ├── postgres-database.secret                      #   {PS_ID}_database
+    ├── postgres-url.secret                           #   postgres://{PS_ID}_database_user:{PS_ID}_database_pass@{PS-ID}-postgres:5432/{PS_ID}_database?sslmode=disable
     ├── unseal-1of5.secret                            #   {PS-ID}-unseal-key-1-of-5-{hex-random-32-bytes}
     ├── unseal-2of5.secret                            #   {PS-ID}-unseal-key-2-of-5-{hex-random-32-bytes}
     ├── unseal-3of5.secret                            #   {PS-ID}-unseal-key-3-of-5-{hex-random-32-bytes}
@@ -466,12 +466,12 @@ deployments/{PS-ID}/                                  # drwxr-x---
 
 ```
 # sm-im secrets (PS-ID=sm-im, PS_ID=sm_im)
+hash-pepper-v3.secret  →  sm-im-hash-pepper-v3-Qrst6789Uvwx0123Yzab4567Cdef8901
 unseal-1of5.secret  →  sm-im-unseal-key-1-of-5-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
-postgres-database.secret  →  sm_im_database
 postgres-username.secret  →  sm_im_database_user
 postgres-password.secret  →  sm_im_database_pass-Abcd1234Efgh5678Ijkl9012Mnop3456
+postgres-database.secret  →  sm_im_database
 postgres-url.secret  →  postgres://sm_im_database_user:sm_im_database_pass-Abcd1234...@sm-im-postgres:5432/sm_im_database?sslmode=disable
-hash-pepper-v3.secret  →  sm-im-hash-pepper-v3-Qrst6789Uvwx0123Yzab4567Cdef8901
 browser-username.secret  →  sm-im-browser-user
 browser-password.secret  →  sm-im-browser-pass-Ghij2345Klmn6789Opqr0123Stuv4567
 service-username.secret  →  sm-im-service-user
@@ -497,15 +497,15 @@ deployments/{PRODUCT}/                                # drwxr-x---
 ├── compose.yml                                       # Product-level Docker Compose
 ├── Dockerfile                                        # Product Docker image (v6 CREATE)
 └── secrets/
-    ├── browser-password.secret.never                 # MUST NEVER be used at product level
-    ├── browser-username.secret.never                 # MUST NEVER be used at product level
-    ├── service-password.secret.never                 # MUST NEVER be used at product level
-    ├── service-username.secret.never                 # MUST NEVER be used at product level
     ├── hash-pepper-v3.secret                         # {PRODUCT}-hash-pepper-v3-{base64-random-32-bytes}
-    ├── postgres-database.secret                      # {PRODUCT}_database
-    ├── postgres-password.secret                      # {PRODUCT}_database_pass-{base64-random-32-bytes}
-    ├── postgres-url.secret                           # postgres://{PRODUCT}_database_user:{PRODUCT}_database_pass@{PRODUCT}-postgres:5432/{PRODUCT}_database?sslmode=disable
+    ├── browser-username.secret.never                 # MUST NEVER be used at product level
+    ├── browser-password.secret.never                 # MUST NEVER be used at product level
+    ├── service-username.secret.never                 # MUST NEVER be used at product level
+    ├── service-password.secret.never                 # MUST NEVER be used at product level
     ├── postgres-username.secret                      # {PRODUCT}_database_user
+    ├── postgres-password.secret                      # {PRODUCT}_database_pass-{base64-random-32-bytes}
+    ├── postgres-database.secret                      # {PRODUCT}_database
+    ├── postgres-url.secret                           # postgres://{PRODUCT}_database_user:{PRODUCT}_database_pass@{PRODUCT}-postgres:5432/{PRODUCT}_database?sslmode=disable
     ├── unseal-1of5.secret                            # {PRODUCT}-unseal-key-1-of-5-{hex-random-32-bytes}
     ├── unseal-2of5.secret                            # {PRODUCT}-unseal-key-2-of-5-{hex-random-32-bytes}
     ├── unseal-3of5.secret                            # {PRODUCT}-unseal-key-3-of-5-{hex-random-32-bytes}
@@ -518,15 +518,15 @@ deployments/{PRODUCT}/                                # drwxr-x---
 **Concrete example** (`sm` product, `PRODUCT=sm`):
 
 ```
-browser-password.secret.never   →  (content: "MUST NEVER be used at product level")
-browser-username.secret.never   →  (content: "MUST NEVER be used at product level")
-service-password.secret.never   →  (content: "MUST NEVER be used at product level")
-service-username.secret.never   →  (content: "MUST NEVER be used at product level")
 hash-pepper-v3.secret           →  sm-hash-pepper-v3-Abcd1234Efgh5678Ijkl9012Mnop3456
-postgres-database.secret        →  sm_database
-postgres-password.secret        →  sm_database_pass-Qrst6789Uvwx0123Yzab4567Cdef8901
-postgres-url.secret             →  postgres://sm_database_user:sm_database_pass-...@sm-postgres:5432/sm_database?sslmode=disable
+browser-username.secret.never   →  (content: "MUST NEVER be used at product level")
+browser-password.secret.never   →  (content: "MUST NEVER be used at product level")
+service-username.secret.never   →  (content: "MUST NEVER be used at product level")
+service-password.secret.never   →  (content: "MUST NEVER be used at product level")
 postgres-username.secret        →  sm_database_user
+postgres-password.secret        →  sm_database_pass-Qrst6789Uvwx0123Yzab4567Cdef8901
+postgres-database.secret        →  sm_database
+postgres-url.secret             →  postgres://sm_database_user:sm_database_pass-...@sm-postgres:5432/sm_database?sslmode=disable
 unseal-1of5.secret              →  sm-unseal-key-1-of-5-{hex-random-32-bytes}
 unseal-2of5.secret              →  sm-unseal-key-2-of-5-{hex-random-32-bytes}
 unseal-3of5.secret              →  sm-unseal-key-3-of-5-{hex-random-32-bytes}
@@ -542,15 +542,15 @@ unseal-5of5.secret              →  sm-unseal-key-5-of-5-{hex-random-32-bytes}
 deployments/cryptoutil-suite/                         # drwxr-x---
 ├── compose.yml                                       # Suite-level Docker Compose
 └── secrets/
-    ├── browser-password.secret.never                 # MUST NEVER be used at suite level
-    ├── browser-username.secret.never                 # MUST NEVER be used at suite level
-    ├── service-password.secret.never                 # MUST NEVER be used at suite level
-    ├── service-username.secret.never                 # MUST NEVER be used at suite level
     ├── hash-pepper-v3.secret                         # cryptoutil-hash-pepper-v3-{base64-random-32-bytes}
-    ├── postgres-database.secret                      # cryptoutil_database
-    ├── postgres-password.secret                      # cryptoutil_database_pass-{base64-random-32-bytes}
-    ├── postgres-url.secret                           # postgres://cryptoutil_database_user:cryptoutil_database_pass@cryptoutil-postgres:5432/cryptoutil_database?sslmode=disable
+    ├── browser-username.secret.never                 # MUST NEVER be used at suite level
+    ├── browser-password.secret.never                 # MUST NEVER be used at suite level
+    ├── service-username.secret.never                 # MUST NEVER be used at suite level
+    ├── service-password.secret.never                 # MUST NEVER be used at suite level
     ├── postgres-username.secret                      # cryptoutil_database_user
+    ├── postgres-password.secret                      # cryptoutil_database_pass-{base64-random-32-bytes}
+    ├── postgres-database.secret                      # cryptoutil_database
+    ├── postgres-url.secret                           # postgres://cryptoutil_database_user:cryptoutil_database_pass@cryptoutil-postgres:5432/cryptoutil_database?sslmode=disable
     ├── unseal-1of5.secret                            # cryptoutil-unseal-key-1-of-5-{hex-random-32-bytes}
     ├── unseal-2of5.secret                            # cryptoutil-unseal-key-2-of-5-{hex-random-32-bytes}
     ├── unseal-3of5.secret                            # cryptoutil-unseal-key-3-of-5-{hex-random-32-bytes}
@@ -582,10 +582,10 @@ deployments/
 | `deployments/shared-citus/` | Citus removed — only PostgreSQL and SQLite supported |
 | `deployments/deployments-all-files.json` | Build artifact, not in spec |
 | `deployments/pki-ca/README.md` | Not in spec |
-| `deployments/{PRODUCT}/secrets/{PRODUCT}-postgres-database.secret.never` | Legacy prefixed marker (all products) |
-| `deployments/{PRODUCT}/secrets/{PRODUCT}-postgres-password.secret.never` | Legacy prefixed marker (all products) |
-| `deployments/{PRODUCT}/secrets/{PRODUCT}-postgres-url.secret.never` | Legacy prefixed marker (all products) |
 | `deployments/{PRODUCT}/secrets/{PRODUCT}-postgres-username.secret.never` | Legacy prefixed marker (all products) |
+| `deployments/{PRODUCT}/secrets/{PRODUCT}-postgres-password.secret.never` | Legacy prefixed marker (all products) |
+| `deployments/{PRODUCT}/secrets/{PRODUCT}-postgres-database.secret.never` | Legacy prefixed marker (all products) |
+| `deployments/{PRODUCT}/secrets/{PRODUCT}-postgres-url.secret.never` | Legacy prefixed marker (all products) |
 | `deployments/{PRODUCT}/secrets/{PRODUCT}-unseal-{1..5}of5.secret.never` | Legacy prefixed marker (all products) |
 | `deployments/{PRODUCT}/secrets/sm-hash-pepper.secret` | Legacy file (only in sm) |
 | `deployments/cryptoutil-suite/secrets/{SUITE}-hash-pepper.secret.never` | Legacy prefixed marker |
@@ -855,15 +855,15 @@ marker files.
 
 | Secret Purpose | Filename | Service Value Pattern | Product Value Pattern | Suite Value Pattern |
 |---------------|----------|-----------------------|-----------------------|---------------------|
-| Browser password | `browser-password.secret` | `{PS-ID}-browser-pass-{base64-random-32-bytes}` | `.never` only | `.never` only |
-| Browser username | `browser-username.secret` | `{PS-ID}-browser-user` | `.never` only | `.never` only |
 | Hash pepper v3 | `hash-pepper-v3.secret` | `{PS-ID}-hash-pepper-v3-{base64-random-32-bytes}` | `{PRODUCT}-hash-pepper-v3-{base64}` | `cryptoutil-hash-pepper-v3-{base64}` |
-| PostgreSQL database | `postgres-database.secret` | `{PS_ID}_database` | `{PRODUCT}_database` | `cryptoutil_database` |
-| PostgreSQL password | `postgres-password.secret` | `{PS_ID}_database_pass-{base64-random-32-bytes}` | `{PRODUCT}_database_pass-{base64}` | `cryptoutil_database_pass-{base64}` |
-| PostgreSQL URL | `postgres-url.secret` | `postgres://{PS_ID}_database_user:{PS_ID}_database_pass@{PS-ID}-postgres:5432/{PS_ID}_database?sslmode=disable` | `postgres://{PRODUCT}_database_user:{PRODUCT}_database_pass@{PRODUCT}-postgres:5432/{PRODUCT}_database?sslmode=disable` | `postgres://cryptoutil_database_user:cryptoutil_database_pass@cryptoutil-postgres:5432/cryptoutil_database?sslmode=disable` |
-| PostgreSQL username | `postgres-username.secret` | `{PS_ID}_database_user` | `{PRODUCT}_database_user` | `cryptoutil_database_user` |
-| Service password | `service-password.secret` | `{PS-ID}-service-pass-{base64-random-32-bytes}` | `.never` only | `.never` only |
+| Browser username | `browser-username.secret` | `{PS-ID}-browser-user` | `.never` only | `.never` only |
+| Browser password | `browser-password.secret` | `{PS-ID}-browser-pass-{base64-random-32-bytes}` | `.never` only | `.never` only |
 | Service username | `service-username.secret` | `{PS-ID}-service-user` | `.never` only | `.never` only |
+| Service password | `service-password.secret` | `{PS-ID}-service-pass-{base64-random-32-bytes}` | `.never` only | `.never` only |
+| PostgreSQL username | `postgres-username.secret` | `{PS_ID}_database_user` | `{PRODUCT}_database_user` | `cryptoutil_database_user` |
+| PostgreSQL password | `postgres-password.secret` | `{PS_ID}_database_pass-{base64-random-32-bytes}` | `{PRODUCT}_database_pass-{base64}` | `cryptoutil_database_pass-{base64}` |
+| PostgreSQL database | `postgres-database.secret` | `{PS_ID}_database` | `{PRODUCT}_database` | `cryptoutil_database` |
+| PostgreSQL URL | `postgres-url.secret` | `postgres://{PS_ID}_database_user:{PS_ID}_database_pass@{PS-ID}-postgres:5432/{PS_ID}_database?sslmode=disable` | `postgres://{PRODUCT}_database_user:{PRODUCT}_database_pass@{PRODUCT}-postgres:5432/{PRODUCT}_database?sslmode=disable` | `postgres://cryptoutil_database_user:cryptoutil_database_pass@cryptoutil-postgres:5432/cryptoutil_database?sslmode=disable` |
 | Unseal shard N | `unseal-{N}of5.secret` | `{PS-ID}-unseal-key-N-of-5-{hex-random-32-bytes}` | `{PRODUCT}-unseal-key-N-of-5-{hex-random-32-bytes}` | `cryptoutil-unseal-key-N-of-5-{hex-random-32-bytes}` |
 
 **`.secret.never` marker files** — present at product and suite tiers as explicit reminders:
