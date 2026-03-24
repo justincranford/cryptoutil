@@ -33,7 +33,6 @@ tools:
   - todos
   - vscode/extensions
   - vscode/installExtension
-  - vscode/listCodeUsages
   - vscode/renameSymbol
   - web/fetch
   - web/githubRepo
