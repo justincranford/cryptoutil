@@ -62,7 +62,7 @@ Reference table for reviewing which tools are enabled per agent. Edit the cells 
 | vscode/extensions | [x] | [x] | [x] | [x] | [x] | Search for and ask about VS Code extensions in the Marketplace |
 | vscode/getProjectSetupInfo | [ ] | [ ] | [ ] | [ ] | [ ] | Provide instructions and configuration for scaffolding different project types |
 | vscode/installExtension | [x] | [x] | [x] | [x] | [x] | Install a VS Code extension from the Marketplace |
-| vscode/listCodeUsages | [x] | [x] | [x] | [x] | [x] | List all usages of a symbol using VS Code's language intelligence (Find All References / Go to Definition) *(u)* |
+| vscode/listCodeUsages | [ ] | [ ] | [ ] | [ ] | [ ] | List all usages of a symbol using VS Code's language intelligence (Find All References / Go to Definition) *(u)* — **DISABLED**: redundant with `search/usages` which covers the same functionality |
 | vscode/memory | [ ] | [ ] | [ ] | [ ] | [ ] | Read and write persistent agent memory across chat sessions *(u)* |
 | vscode/renameSymbol | [x] | [x] | [x] | [x] | [x] | Rename a symbol across the workspace using VS Code's language intelligence *(u)* |
 | vscode/runCommand | [ ] | [ ] | [ ] | [ ] | [ ] | Execute a VS Code command by ID |
@@ -135,3 +135,23 @@ Get-ChildItem ~/.vscode/extensions -Directory | ForEach-Object {
 ```
 
 See `docs/ARCHITECTURE.md` Section 2.1.6 for the complete tool discovery methodology (4 sources: documented built-ins, undocumented built-ins, extension tools, MCP server tools).
+
+## MCP Server Configuration
+
+MCP servers are configured in `.vscode/mcp.json` (workspace-level, shared via git). Tools from running MCP servers appear in the Copilot tool picker automatically. To force-include specific MCP tools in an agent's `tools:` frontmatter, list them by their exact tool name as exposed by the server.
+
+Currently configured servers (see `.vscode/mcp.json`):
+
+| Server | Type | URL / Command | Tools Exposed | Purpose |
+|--------|------|---------------|---------------|---------|
+| `github` | HTTP (remote) | `https://api.githubcopilot.com/mcp` | issues, PRs, code search, notifications | Richer GitHub access than built-in `web/githubRepo`; auth via existing Copilot token |
+| `playwright` | stdio (local) | `npx @playwright/mcp@latest` | browser navigation, click, type, screenshot | SPA (identity-spa) testing, DAST validation, /browser/** path testing |
+
+**Adding MCP tools to agent frontmatter**: Once an MCP server is running, list its tool names (e.g. `list_issues`, `browser_navigate`) in the agent `tools:` array to force-include them. Run the MCP server once to discover available tool names from the tool picker.
+
+**Additional servers to consider** (not yet configured):
+
+| Server | Install | Value |
+|--------|---------|-------|
+| `grafana/mcp-grafana` | `mcp-grafana --url http://localhost:3000` | Query Loki logs + Prometheus metrics from Grafana LGTM stack during debugging |
+| `@modelcontextprotocol/server-postgres` | `npx -y @modelcontextprotocol/server-postgres <DSN>` | Query PostgreSQL during E2E/integration development (DSN varies per environment) |

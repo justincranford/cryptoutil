@@ -1,0 +1,22 @@
+{
+  // MCP server configuration for VS Code Copilot Chat agent mode.
+  // Workspace-level (shared via git). Remote servers need no local install.
+  // Docs: https://code.visualstudio.com/docs/copilot/chat/mcp-servers
+  "servers": {
+    // Official GitHub MCP server — richer than built-in web/githubRepo:
+    // create/list/edit issues, create/review/merge PRs, semantic code search.
+    // Auth: VS Code reuses existing GitHub Copilot token automatically.
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp"
+    },
+    // Official Microsoft Playwright MCP — headless browser automation.
+    // Useful for: SPA (identity-spa) testing, DAST validation, /browser/** path
+    // testing. Requires Node.js (already required: v24.11.1+). Runs on demand.
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"]
+    }
+  }
+}
