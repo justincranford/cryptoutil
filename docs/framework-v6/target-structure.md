@@ -1,524 +1,650 @@
 # Target Repository Structure - Framework v6
 
-**Status**: CANONICAL TARGET — guides framework-v6 implementation
-**Created**: 2026-03-24
-**Purpose**: Define the complete, exact target state of every directory and file
-in the repository. After framework-v6 implementation is complete, everything
-listed here exists; everything **not** listed here is **deleted**.
+**Status**: CANONICAL TARGET — Post-v6 implementation state
+**Created**: 2026-03-26
+**Last Updated**: 2026-03-26
+**Purpose**: Define the complete, parameterized target state of every directory and file in the
+repository after all framework-v6 phases complete. This document supersedes framework-v5/target-structure.md.
 
-> **Reading this document**: Directory trees use `*.go` / `*_test.go` wildcards
-> for Go source files within established packages where individual file names
-> are not structurally significant. All config files, secret files, documentation
-> files, and deployment manifests are enumerated individually because their exact
-> names are load-bearing for linters, tooling, and deployment.
+**RULE**: Everything listed here MUST exist after v6 completes. Everything NOT listed is deleted.
 
 ---
 
-## Framework v5 Mistakes Resolved in v6
+## Corrections from framework-v5/target-structure.md
 
-| # | v5 Mistake | v6 Fix |
-|---|-----------|--------|
-| 1 | `doc-sync.agent.md` listed in B (agents section) despite being deleted | Removed from target |
-| 2 | E.3 declared "FLAT PS-ID directories" but E.4 showed nested `{PRODUCT}/{SERVICE}/` — direct contradiction | Single canonical nested `configs/{PRODUCT}/{SERVICE}/` structure throughout |
-| 3 | F.2 and F.3 each had a spurious duplicate trailing `unseal-5of5.secret` entry | Removed duplicate |
-| 4 | `todos` tool name in UPDATE-TOOLS.md not yet updated to `todo` | `todo` used throughout |
-| 5 | F.1 included `{PS-ID}-app-sqlite-2.yml` per-service but 3-tier strategy requires only 1 SQLite | Only `sqlite-1.yml` listed |
-| 6 | `.vscode/mcp.json` absent (added in commit 672c4974e) | Included |
-| 7 | `.github/actions/custom-cicd-lint/` listed but replaced by `download-cicd/` | `download-cicd/` used |
-| 8 | `docs/UPDATE-TOOLS.md` not mentioned in docs section | Included |
-| 9 | Stale docs (`ARCHITECTURE-TODO.md`, `ARCHITECTURE-INDEX.md`, etc.) planned for deletion in v5 but never deleted | Not listed → deleted by v6 |
-| 10 | `deployments/template/` listed for deletion in v5 but never deleted | Not listed → deleted by v6 |
-| 11 | Deployment-variant configs in `configs/sm/` listed for deletion in v5 but never deleted | Not listed → deleted by v6 |
-| 12 | `configs/sm/kms/` has no canonical config (only deployment variants) | `configs/sm/kms/kms.yml` added as target |
-| 13 | `configs/skeleton/skeleton-server.yml` at product level listed for deletion in v5 but never deleted | Not listed → deleted by v6 |
-| 14 | Pending internal merges not reflected (docs_validation→lint_docs, github_cleanup→workflow, tls_generator→framework/tls, shared/apperr→framework/apperr) | v6 target reflects post-merge state |
-| 15 | `deployments-all-files.json` at deployments root not addressed | Not listed → deleted by v6 |
-| 16 | `docs/framework-v3/`, `docs/framework-v4/`, and other historical docs still present | Not listed → deleted by v6 |
+The following errors and contradictions in v5/target-structure.md are resolved in this document:
+
+| # | v5 Error | v6 Correction | Decision |
+|---|----------|--------------|---------|
+| 1 | E.4 used nested `configs/{PRODUCT}/{SERVICE}/` dirs | E.4 now flat `configs/{PS-ID}/` per E.3 | 2=B |
+| 2 | E.4 used `{SERVICE}.yml` config filename | Config files named `{PS-ID}.yml` | 2=B |
+| 3 | sqlite-2 overlay missing from F.1 (only sqlite-1) | F.1 has BOTH sqlite-1 AND sqlite-2 | RC-3 |
+| 4 | F.1 unseal example showed `im-{hex}` (SERVICE prefix) | `{PS-ID}-unseal-key-N-of-5-{hex}` | 1=A |
+| 5 | F.2 had duplicate `unseal-5of5.secret` entry | Single entry, no duplicate | RC-1 |
+| 6 | postgres-database value was `{PS_ID}` | `{PS_ID}_database` | 6=A |
+| 7 | postgres-username value was `{PS_ID}_user` | `{PS_ID}_database_user` | 6=A |
+| 8 | `configs/pki-ca/profiles/` not documented | Documented as valid exception | 3=B |
+| 9 | `configs/identity-authz/domain/policies/` absent | Documented with rename | 4=A |
+| 10 | `deployments/template/` still shown as existing | Deleted (merged → skeleton-template) | 5=C |
+| 11 | `doc-sync.agent.md` listed in B | Not listed (agent deleted) | — |
+| 12 | `custom-cicd-lint/action.yml` in B | Renamed to `download-cicd/action.yml` | — |
+| 13 | `.vscode/mcp.json` missing from A.3 | Added to A.3 | — |
+| 14 | `docs/UPDATE-TOOLS.md` missing from H | Added to H | — |
+| 15 | Product unseal used `dev-unseal-key-N-of-5` | `{PRODUCT}-unseal-key-N-of-5-{hex}` | 1=A |
+| 16 | Suite unseal used `suite-` prefix | `cryptoutil-unseal-key-N-of-5-{hex}` | 1=A |
 
 ---
 
 ## Entity Hierarchy (Canonical)
 
-| Level | Variable | Instances |
-|-------|----------|-----------|
-| Suite | `{SUITE}` | `cryptoutil` |
-| Product | `{PRODUCT}` | `identity`, `jose`, `pki`, `skeleton`, `sm` |
-| Service | `{SERVICE}` | varies per product (see matrix below) |
-| PS-ID | `{PS-ID}` = `{PRODUCT}-{SERVICE}` | 10 total (hyphen-separated, kebab-case) |
-| PS\_ID | `{PS_ID}` = `{PRODUCT}_{SERVICE}` | 10 total (underscore variant for SQL/secrets) |
-| Infra Tool | `cicd-lint`, `workflow` | 2 |
+| Level | Variable | Instances | Count |
+|-------|----------|-----------|-------|
+| Suite | `{SUITE}` | `cryptoutil` | 1 |
+| Product | `{PRODUCT}` | `identity`, `jose`, `pki`, `skeleton`, `sm` | 5 |
+| Service | `{SERVICE}` | varies per product (see below) | 10 total |
+| PS-ID | `{PS-ID}` = `{PRODUCT}-{SERVICE}` | see table below | 10 |
+| PS_ID | `{PS_ID}` = `{PRODUCT}_{SERVICE}` | underscore variant for SQL/secrets | 10 |
+| Infra Tool | N/A | `cicd-lint`, `workflow` | 2 |
+| Framework | N/A | `framework` | 1 |
 
 ### Product-Service Matrix
 
-| PS-ID | PS\_ID | Product | Service |
-|-------|--------|---------|---------|
-| `identity-authz` | `identity_authz` | identity | authz |
-| `identity-idp` | `identity_idp` | identity | idp |
-| `identity-rp` | `identity_rp` | identity | rp |
-| `identity-rs` | `identity_rs` | identity | rs |
-| `identity-spa` | `identity_spa` | identity | spa |
-| `jose-ja` | `jose_ja` | jose | ja |
-| `pki-ca` | `pki_ca` | pki | ca |
-| `skeleton-template` | `skeleton_template` | skeleton | template |
-| `sm-im` | `sm_im` | sm | im |
-| `sm-kms` | `sm_kms` | sm | kms |
+| PS-ID | PS_ID | Product | Service | Display Name |
+|-------|-------|---------|---------|-------------|
+| `identity-authz` | `identity_authz` | identity | authz | Identity Authorization Server |
+| `identity-idp` | `identity_idp` | identity | idp | Identity Provider |
+| `identity-rp` | `identity_rp` | identity | rp | Identity Relying Party |
+| `identity-rs` | `identity_rs` | identity | rs | Identity Resource Server |
+| `identity-spa` | `identity_spa` | identity | spa | Identity Single Page App |
+| `jose-ja` | `jose_ja` | jose | ja | JOSE JWK Authority |
+| `pki-ca` | `pki_ca` | pki | ca | PKI Certificate Authority |
+| `skeleton-template` | `skeleton_template` | skeleton | template | Skeleton Template |
+| `sm-im` | `sm_im` | sm | im | Secrets Manager Instant Messenger |
+| `sm-kms` | `sm_kms` | sm | kms | Secrets Manager Key Management |
 
 ### Permission Convention
 
-| Target | Octal |
-|--------|-------|
-| Directories | 750 |
-| Source files (`.go`, `.yml`, `.yaml`, `.md`, `.sql`) | 640 |
-| Secret files (`.secret`) | 440 |
-| Secret marker files (`.secret.never`) | 440 |
-| Executable scripts (`mvnw`) | 750 |
-| Generated files (`*.gen.go`) | 640 |
+| Target | Permission | Octal | Description |
+|--------|-----------|-------|-------------|
+| Directories | `drwxr-x---` | 750 | Owner rwx, group rx, others no access |
+| Source files (`.go`, `.yml`, `.yaml`, `.md`, `.sql`) | `-rw-r-----` | 640 | Owner rw, group r, others no access |
+| Secret files (`.secret`) | `-r--r-----` | 440 | Owner/group r only, no other |
+| Secret marker files (`.secret.never`) | `-r--r-----` | 440 | Same as secrets |
+| Executable scripts (`mvnw`) | `-rwxr-x---` | 750 | Owner rwx, group rx, others no access |
+| Generated files (`*.gen.go`) | `-rw-r-----` | 640 | Same as source |
 
 ---
 
 ## A. Root Level
 
-### A.1 Root Files (KEEP)
+### A.1 Root Files (KEEP — legitimate project config) `drwxr-x---`
 
 ```
-{ROOT}/
-├── .air.toml
-├── .dockerignore
-├── .editorconfig
-├── .gitattributes
-├── .gitignore
-├── .gitleaks.toml
-├── .gofumpt.toml
-├── .golangci.yml
-├── .gremlins.yaml
-├── .markdownlint.jsonc
-├── .nuclei-ignore
-├── .pre-commit-config.yaml
-├── .rgignore
-├── .sqlfluff
-├── go.mod
-├── go.sum
-├── LICENSE
-├── pyproject.toml
-└── README.md
+{ROOT}/                                    # drwxr-x---
+├── .air.toml                              # Air live-reload config
+├── .dockerignore                          # Docker build context exclusions
+├── .editorconfig                          # Editor formatting standards (indent, line endings)
+├── .gitattributes                         # Git line ending and diff config
+├── .gitignore                             # Git ignore rules
+├── .gitleaks.toml                         # Gitleaks secret detection config
+├── .gofumpt.toml                          # gofumpt Go formatting config
+├── .golangci.yml                          # golangci-lint v2 linter config
+├── .gremlins.yaml                         # Gremlins mutation testing config
+├── .markdownlint.jsonc                    # Markdown linting rules
+├── .nuclei-ignore                         # Nuclei DAST scan exclusions
+├── .pre-commit-config.yaml                # Pre-commit hook definitions
+├── .rgignore                              # ripgrep ignore patterns
+├── .sqlfluff                              # SQL linting config
+├── go.mod                                 # Go module definition
+├── go.sum                                 # Go module dependency checksums
+├── LICENSE                                # Project license
+├── pyproject.toml                         # Python project config (pre-commit tooling)
+└── README.md                              # Project README
 ```
 
-### A.2 Root Junk Files — DELETE
+### A.2 Root Files (DELETE — junk artifacts)
 
-All `*.exe`, `*.py`, `coverage*`, `*_coverage`, `*.test.exe`, `*.log`, and
-similar build/test artifacts at root level. Git history preserves them.
+All `*.exe`, `*.py`, `coverage*`, `*_coverage`, `*.test.exe` files at root are build/test
+artifacts that must never be committed.
 
-### A.3 Root Hidden Directories
+### A.3 Root Hidden Directories `drwxr-x---`
 
 ```
 {ROOT}/
 ├── .cicd/                                 # CICD runtime caches (gitignored)
-│   ├── circular-dep-cache.json
-│   └── dep-cache.json
+│   ├── circular-dep-cache.json            #   Circular dependency analysis cache
+│   └── dep-cache.json                     #   Dependency analysis cache
 ├── .ruff_cache/                           # Ruff Python linter cache (gitignored)
-├── .semgrep/
+├── .semgrep/                              # Semgrep SAST rules
 │   └── rules/
-│       └── go-testing.yml
-├── .vscode/
-│   ├── cspell.json
-│   ├── extensions.json
-│   ├── launch.json
-│   ├── mcp.json                           # MCP server config (github + playwright)
-│   └── settings.json
-└── .zap/
-    └── rules.tsv
+│       └── go-testing.yml                 #   Go testing SAST rules
+├── .vscode/                               # VS Code workspace settings
+│   ├── cspell.json                        #   Spell checking dictionary
+│   ├── extensions.json                    #   Recommended extensions
+│   ├── launch.json                        #   Debug launch configs
+│   ├── mcp.json                           #   MCP server configuration (v6 NEW)
+│   └── settings.json                      #   Workspace settings
+└── .zap/                                  # OWASP ZAP DAST config
+    └── rules.tsv                          #   ZAP scan rules
 ```
 
 ---
 
-## B. .github/ — GitHub & Copilot Configuration
+## B. .github/ — GitHub & Copilot Configuration `drwxr-x---`
+
+### B.0 Top-Level .github/ Files
 
 ```
 .github/
-├── copilot-instructions.md
-├── agents/                                # 4 agents (no doc-sync)
-│   ├── beast-mode.agent.md
-│   ├── fix-workflows.agent.md
-│   ├── implementation-execution.agent.md
-│   └── implementation-planning.agent.md
-├── actions/
-│   ├── docker-compose-build/action.yml
-│   ├── docker-compose-down/action.yml
-│   ├── docker-compose-logs/action.yml
-│   ├── docker-compose-up/action.yml
-│   ├── docker-compose-verify/action.yml
-│   ├── docker-images-pull/action.yml
-│   ├── download-cicd/action.yml           # replaces custom-cicd-lint
-│   ├── fuzz-test/action.yml
-│   ├── go-setup/action.yml
-│   ├── golangci-lint/action.yml
-│   ├── security-scan-gitleaks/action.yml
-│   ├── security-scan-trivy/action.yml
-│   ├── security-scan-trivy2/action.yml
-│   ├── workflow-job-begin/action.yml
-│   └── workflow-job-end/action.yml
-├── instructions/
-│   ├── 01-01.terminology.instructions.md
-│   ├── 01-02.beast-mode.instructions.md
-│   ├── 02-01.architecture.instructions.md
-│   ├── 02-02.versions.instructions.md
-│   ├── 02-03.observability.instructions.md
-│   ├── 02-04.openapi.instructions.md
-│   ├── 02-05.security.instructions.md
-│   ├── 02-06.authn.instructions.md
-│   ├── 03-01.coding.instructions.md
-│   ├── 03-02.testing.instructions.md
-│   ├── 03-03.golang.instructions.md
-│   ├── 03-04.data-infrastructure.instructions.md
-│   ├── 03-05.linting.instructions.md
-│   ├── 04-01.deployment.instructions.md
-│   ├── 05-01.cross-platform.instructions.md
-│   ├── 05-02.git.instructions.md
-│   ├── 06-01.evidence-based.instructions.md
-│   └── 06-02.agent-format.instructions.md
-├── skills/
-│   ├── README.md
-│   ├── agent-scaffold/SKILL.md
-│   ├── contract-test-gen/SKILL.md
-│   ├── coverage-analysis/SKILL.md
-│   ├── fips-audit/SKILL.md
-│   ├── fitness-function-gen/SKILL.md
-│   ├── instruction-scaffold/SKILL.md
-│   ├── migration-create/SKILL.md
-│   ├── new-service/SKILL.md
-│   ├── openapi-codegen/SKILL.md
-│   ├── propagation-check/SKILL.md
-│   ├── skill-scaffold/SKILL.md
-│   ├── test-benchmark-gen/SKILL.md
-│   ├── test-fuzz-gen/SKILL.md
-│   └── test-table-driven/SKILL.md
-└── workflows/
-    ├── ci-benchmark.yml
-    ├── ci-coverage.yml
-    ├── ci-dast.yml
-    ├── ci-e2e.yml
-    ├── ci-fitness.yml
-    ├── ci-fuzz.yml
-    ├── ci-gitleaks.yml
-    ├── ci-identity-validation.yml
-    ├── ci-load.yml
-    ├── ci-mutation.yml
-    ├── ci-quality.yml                     # includes cicd-lint job (no separate ci-cicd-lint.yml)
-    ├── ci-race.yml
-    ├── ci-sast.yml
-    └── release.yml
+├── copilot-instructions.md                # Copilot config hub (loads instructions/)
+├── dependabot.yml                         # Dependabot automated dependency updates
+├── SECURITY.md                            # Security policy and vulnerability reporting
+├── versions-rules.xml                     # Version constraint rules
+└── workflows-outdated-action-exemptions.json  # Exemptions for outdated workflow actions
 ```
 
----
-
-## C. cmd/ — Binary Entry Points
-
-**Rule**: Exactly 18 entries. Each `main.go` delegates to `internal/apps/`.
+### B.1 Agents (4 agents — `doc-sync` deleted)
 
 ```
-cmd/
-├── cryptoutil/main.go                     # Suite CLI → internal/apps/cryptoutil/
-├── identity/main.go                       # Product CLI → internal/apps/identity/
-├── jose/main.go                           # Product CLI → internal/apps/jose/
-├── pki/main.go                            # Product CLI → internal/apps/pki/
-├── skeleton/main.go                       # Product CLI → internal/apps/skeleton/
-├── sm/main.go                             # Product CLI → internal/apps/sm/
-├── identity-authz/main.go                 # Service CLI → internal/apps/identity/authz/
-├── identity-idp/main.go                   # Service CLI → internal/apps/identity/idp/
-├── identity-rp/main.go                    # Service CLI → internal/apps/identity/rp/
-├── identity-rs/main.go                    # Service CLI → internal/apps/identity/rs/
-├── identity-spa/main.go                   # Service CLI → internal/apps/identity/spa/
-├── jose-ja/main.go                        # Service CLI → internal/apps/jose/ja/
-├── pki-ca/main.go                         # Service CLI → internal/apps/pki/ca/
-├── skeleton-template/main.go             # Service CLI → internal/apps/skeleton/template/
-├── sm-im/main.go                          # Service CLI → internal/apps/sm/im/
-├── sm-kms/main.go                         # Service CLI → internal/apps/sm/kms/
-├── cicd-lint/main.go                      # Tool CLI → internal/apps/tools/cicd_lint/
-└── workflow/main.go                       # Tool CLI → internal/apps/tools/workflow/
+.github/agents/
+├── beast-mode.agent.md                    # Continuous autonomous execution
+├── fix-workflows.agent.md                 # CI/CD workflow fixer
+├── implementation-execution.agent.md      # Plan execution agent
+└── implementation-planning.agent.md       # Plan creation agent
 ```
 
----
-
-## D. api/ — OpenAPI Specifications & Generated Code
-
-**Rule**: One directory per PS-ID (10 total); no suite-level or product-level API dirs.
+### B.2 Actions (15 actions — `download-cicd` replaces `custom-cicd-lint`)
 
 ```
-api/
-└── {PS-ID}/                               # ×10
-    ├── generate.go
-    ├── openapi_spec.yaml
-    ├── openapi_spec_components.yaml
-    ├── openapi_spec_paths.yaml
-    ├── openapi-gen_config_client.yaml
-    ├── openapi-gen_config_models.yaml
-    ├── openapi-gen_config_server.yaml
-    ├── client/
-    │   └── client.gen.go
-    ├── models/
-    │   └── models.gen.go
-    └── server/
-        └── server.gen.go
+.github/actions/
+├── docker-compose-build/action.yml
+├── docker-compose-down/action.yml
+├── docker-compose-logs/action.yml
+├── docker-compose-up/action.yml
+├── docker-compose-verify/action.yml
+├── docker-images-pull/action.yml          # Parallel Docker image pre-pull
+├── download-cicd/action.yml               # Download cicd-lint binary (was custom-cicd-lint)
+├── fuzz-test/action.yml
+├── go-setup/action.yml                    # Go toolchain setup with caching
+├── golangci-lint/action.yml               # golangci-lint v2 execution
+├── security-scan-gitleaks/action.yml
+├── security-scan-trivy/action.yml         # Manual Trivy install + CLI (supports scan-files)
+├── security-scan-trivy2/action.yml        # Official aquasecurity/trivy-action (simpler)
+├── workflow-job-begin/action.yml          # Job telemetry start
+└── workflow-job-end/action.yml            # Job telemetry end
 ```
 
----
-
-## E. configs/ — Canonical Application Configuration
-
-**Principle**: `configs/` is the single source of truth for what the app needs,
-independent of deployment environment. Deployment-specific overlays live in
-`deployments/`.
-
-**Structure**: `configs/{PRODUCT}/{SERVICE}/` nested hierarchy for all services.
-Suite config at `configs/{SUITE}/`. No flat `configs/{PS-ID}/` at the root level.
+### B.3 Instructions (18 files)
 
 ```
-configs/
-├── cryptoutil/
-│   └── cryptoutil.yml                     # Suite orchestration config
-│
-├── identity/
-│   ├── policies/                          # Shared identity auth policies
-│   │   ├── adaptive-auth.yml
-│   │   ├── risk-scoring.yml
-│   │   └── step-up.yml
-│   ├── authz/
-│   │   └── authz.yml
-│   ├── idp/
-│   │   └── idp.yml
-│   ├── rp/
-│   │   └── rp.yml
-│   ├── rs/
-│   │   └── rs.yml
-│   └── spa/
-│       └── spa.yml
-│
-├── jose/
-│   └── ja/
-│       └── jose-ja-server.yml
-│
-├── pki/
-│   └── ca/
-│       └── pki-ca-server.yml
-│
-├── skeleton/
-│   └── template/
-│       └── skeleton-template-server.yml
-│
-└── sm/
-    ├── im/
-    │   └── im.yml                         # canonical only — deployment variants deleted
-    └── kms/
-        └── kms.yml                        # CREATE: was missing; all deployment variants deleted
+.github/instructions/
+├── 01-01.terminology.instructions.md
+├── 01-02.beast-mode.instructions.md
+├── 02-01.architecture.instructions.md
+├── 02-02.versions.instructions.md
+├── 02-03.observability.instructions.md
+├── 02-04.openapi.instructions.md
+├── 02-05.security.instructions.md
+├── 02-06.authn.instructions.md
+├── 03-01.coding.instructions.md
+├── 03-02.testing.instructions.md
+├── 03-03.golang.instructions.md
+├── 03-04.data-infrastructure.instructions.md
+├── 03-05.linting.instructions.md
+├── 04-01.deployment.instructions.md
+├── 05-01.cross-platform.instructions.md
+├── 05-02.git.instructions.md
+├── 06-01.evidence-based.instructions.md
+└── 06-02.agent-format.instructions.md
 ```
 
-**Files to DELETE from configs/ (deployment variants and legacy):**
+### B.4 Skills (14 skills + README)
+
+```
+.github/skills/
+├── README.md
+├── agent-scaffold/SKILL.md
+├── contract-test-gen/SKILL.md
+├── coverage-analysis/SKILL.md
+├── fips-audit/SKILL.md
+├── fitness-function-gen/SKILL.md
+├── instruction-scaffold/SKILL.md
+├── migration-create/SKILL.md
+├── new-service/SKILL.md
+├── openapi-codegen/SKILL.md
+├── propagation-check/SKILL.md
+├── skill-scaffold/SKILL.md
+├── test-benchmark-gen/SKILL.md
+├── test-fuzz-gen/SKILL.md
+└── test-table-driven/SKILL.md
+```
+
+### B.5 Workflows (14 workflows)
+
+```
+.github/workflows/
+├── ci-benchmark.yml                       # Benchmark testing
+├── ci-coverage.yml                        # Code coverage analysis
+├── ci-dast.yml                            # Dynamic application security testing
+├── ci-e2e.yml                             # End-to-end testing
+├── ci-fitness.yml                         # Architecture fitness functions
+├── ci-fuzz.yml                            # Fuzz testing
+├── ci-gitleaks.yml                        # Secret detection
+├── ci-identity-validation.yml             # Identity service validation
+├── ci-load.yml                            # Load testing (Gatling)
+├── ci-mutation.yml                        # Mutation testing (gremlins)
+├── ci-quality.yml                         # Build + lint + unit tests (includes cicd-lint)
+├── ci-race.yml                            # Race condition detection
+├── ci-sast.yml                            # Static application security testing
+└── release.yml                            # Release workflow
+```
+
+**NOTE**: The `ci-cicd-lint.yml` separate workflow is consolidated INTO `ci-quality.yml` as a
+job step. No standalone cicd-lint workflow in target state.
+
+### B.6 What Gets DELETED from .github/
 
 | File | Reason |
 |------|--------|
-| `configs/skeleton/skeleton-server.yml` | Product-level legacy file |
-| `configs/sm/im/sm-im-pg-1.yml` | Deployment variant (belongs in deployments/) |
-| `configs/sm/im/sm-im-pg-2.yml` | Deployment variant |
-| `configs/sm/im/sm-im-sqlite.yml` | Deployment variant |
-| `configs/sm/kms/sm-kms-pg-1.yml` | Deployment variant |
-| `configs/sm/kms/sm-kms-pg-2.yml` | Deployment variant |
-| `configs/sm/kms/sm-kms-sqlite.yml` | Deployment variant |
+| `agents/doc-sync.agent.md` | Agent deleted — functionality not required |
+| `actions/custom-cicd-lint/` | Renamed to `download-cicd/` |
 
 ---
 
-## F. deployments/ — Deployment Manifests
+## C. cmd/ — Binary Entry Points `drwxr-x---`
 
-**Principle**: `deployments/` contains environment-specific manifests that
-*consume* configuration from `configs/`. Each tier has its own secrets.
-
-### F.1 Service-Level Deployments (×10)
-
-Each service has exactly **4 config overlays** (1 common + 2 postgres + 1 sqlite)
-matching the E2E test strategy: 2 PostgreSQL instances + 1 SQLite instance.
+**Pattern**: Flat directories; each entry has exactly one `main.go` that delegates to `internal/apps/`.
 
 ```
-deployments/
-└── {PS-ID}/                               # ×10 — identity-authz, identity-idp,
-    │                                      #        identity-rp, identity-rs,
-    │                                      #        identity-spa, jose-ja,
-    │                                      #        pki-ca, skeleton-template,
-    │                                      #        sm-im, sm-kms
-    ├── compose.yml
-    ├── Dockerfile
-    ├── config/
-    │   ├── {PS-ID}-app-common.yml         # shared: bind addresses, TLS, network
-    │   ├── {PS-ID}-app-postgresql-1.yml   # postgres: database-driver + url
-    │   ├── {PS-ID}-app-postgresql-2.yml   # postgres: database-driver + url
-    │   └── {PS-ID}-app-sqlite-1.yml       # sqlite: database-driver + url
-    └── secrets/                           # chmod 440
-        ├── browser-password.secret
-        ├── browser-username.secret
-        ├── hash-pepper-v3.secret
-        ├── postgres-database.secret
-        ├── postgres-password.secret
-        ├── postgres-url.secret
-        ├── postgres-username.secret
-        ├── service-password.secret
-        ├── service-username.secret
-        ├── unseal-1of5.secret
-        ├── unseal-2of5.secret
-        ├── unseal-3of5.secret
-        ├── unseal-4of5.secret
-        └── unseal-5of5.secret
+cmd/                                                  # drwxr-x---
+├── cryptoutil/main.go                                # Suite CLI → internal/apps/cryptoutil/
+├── {PRODUCT}/main.go                                 # Product CLI → internal/apps/{PRODUCT}/ (×5)
+│   ├── identity/main.go
+│   ├── jose/main.go
+│   ├── pki/main.go
+│   ├── skeleton/main.go
+│   └── sm/main.go
+├── {PS-ID}/main.go                                   # Service CLI → internal/apps/{PRODUCT}/{SERVICE}/ (×10)
+│   ├── identity-authz/main.go
+│   ├── identity-idp/main.go
+│   ├── identity-rp/main.go
+│   ├── identity-rs/main.go
+│   ├── identity-spa/main.go
+│   ├── jose-ja/main.go
+│   ├── pki-ca/main.go
+│   ├── skeleton-template/main.go
+│   ├── sm-im/main.go
+│   └── sm-kms/main.go
+└── {INFRA-TOOL}/main.go                             # Infra tools (×2)
+    ├── cicd-lint/main.go
+    └── workflow/main.go
 ```
 
-### F.2 Product-Level Deployments (×5)
+**Total**: 18 entries (1 suite + 5 products + 10 services + 2 infra tools).
 
-Product secrets are **shared** across all services in the product. Browser,
-service, and unseal credentials MUST NOT be set at product level (enforced by
-`.secret.never` marker files). PostgreSQL and pepper MAY be shared at product
-level.
+**DELETE from cmd/**:
 
-```
-deployments/
-└── {PRODUCT}/                             # ×5 — identity, jose, pki, skeleton, sm
-    ├── compose.yml
-    ├── Dockerfile                         # CREATE: currently missing for all 5 products
-    └── secrets/
-        ├── browser-password.secret.never  # MUST NOT override at product level
-        ├── browser-username.secret.never  # MUST NOT override at product level
-        ├── service-password.secret.never  # MUST NOT override at product level
-        ├── service-username.secret.never  # MUST NOT override at product level
-        ├── hash-pepper-v3.secret
-        ├── postgres-database.secret
-        ├── postgres-password.secret
-        ├── postgres-url.secret
-        ├── postgres-username.secret
-        ├── unseal-1of5.secret
-        ├── unseal-2of5.secret
-        ├── unseal-3of5.secret
-        ├── unseal-4of5.secret
-        └── unseal-5of5.secret
-```
+| Entry | Reason |
+|-------|--------|
+| `cmd/demo/` | Dead code |
+| `cmd/identity-compose/` | Non-standard entry point |
+| `cmd/identity-demo/` | Dead code |
 
-### F.3 Suite-Level Deployment (×1)
+---
+
+## D. api/ — OpenAPI Specs and Generated Code `drwxr-x---`
+
+**Pattern**: One directory per PS-ID. Each contains the OpenAPI spec files and oapi-codegen
+generated code.
 
 ```
-deployments/
-└── cryptoutil-suite/
-    ├── compose.yml
-    ├── Dockerfile
-    └── secrets/
-        ├── browser-password.secret.never
-        ├── browser-username.secret.never
-        ├── service-password.secret.never
-        ├── service-username.secret.never
-        ├── hash-pepper-v3.secret
-        ├── postgres-database.secret
-        ├── postgres-password.secret
-        ├── postgres-url.secret
-        ├── postgres-username.secret
-        ├── unseal-1of5.secret
-        ├── unseal-2of5.secret
-        ├── unseal-3of5.secret
-        ├── unseal-4of5.secret
-        └── unseal-5of5.secret
+api/                                                  # drwxr-x---
+├── {PS-ID}/                                          # One dir per service (×10)
+│   ├── openapi_spec_components.yaml                  #   Reusable components
+│   ├── openapi_spec_paths.yaml                       #   API endpoints
+│   ├── openapi-gen_config_client.yaml                #   oapi-codegen client config
+│   ├── openapi-gen_config_model.yaml                 #   oapi-codegen model config
+│   ├── openapi-gen_config_server.yaml                #   oapi-codegen server config
+│   ├── client/                                       #   Generated client code
+│   │   └── client.gen.go
+│   ├── model/                                        #   Generated model code
+│   │   └── models.gen.go
+│   └── server/                                       #   Generated server code
+│       └── server.gen.go
 ```
 
-### F.4 Shared Infrastructure
+**All 10 PS-IDs**: `identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`,
+`identity-spa`, `jose-ja`, `pki-ca`, `skeleton-template`, `sm-im`, `sm-kms`.
+
+---
+
+## E. configs/ — Service Configuration Files `drwxr-x---`
+
+### E.1 Suite Config
+
+```
+configs/
+└── cryptoutil/
+    └── cryptoutil.yml                     # Suite-level config (logging, telemetry)
+```
+
+### E.2 Product Configs (5 products — FLAT, one dir per product)
+
+Each product has its own flat directory at `configs/{PRODUCT}/` containing exactly
+one config file named `{PRODUCT}.yml`. NO nested service subdirectories.
+
+```
+configs/
+├── identity/
+│   └── identity.yml                       # Product-level config
+├── jose/
+│   └── jose.yml
+├── pki/
+│   └── pki.yml
+├── skeleton/
+│   └── skeleton.yml
+└── sm/
+    └── sm.yml
+```
+
+### E.3 Service Configs (10 services — FLAT `configs/{PS-ID}/`)
+
+Each service has its own flat directory at `configs/{PS-ID}/` containing exactly
+one config file named `{PS-ID}.yml`. NO nested product subdirectories.
+
+Config file name pattern: `{PS-ID}.yml` (e.g., `sm-im.yml`, NOT `im.yml`).
+
+```
+configs/
+├── identity-authz/
+│   ├── identity-authz.yml                 # Service config for identity-authz
+│   └── domain/                            # Exception: authorization domain configs (Decision 4=A)
+│       └── policies/
+│           ├── adaptive-authorization.yml # RENAMED from adaptive-auth.yml (banned term)
+│           ├── risk-scoring.yml
+│           └── step-up.yml
+├── identity-idp/
+│   └── identity-idp.yml
+├── identity-rp/
+│   └── identity-rp.yml
+├── identity-rs/
+│   └── identity-rs.yml
+├── identity-spa/
+│   └── identity-spa.yml
+├── jose-ja/
+│   └── jose-ja.yml
+├── pki-ca/
+│   ├── pki-ca.yml
+│   └── profiles/                          # Exception: certificate profiles (Decision 3=B)
+│       │                                  # 25 YAML certificate profile definitions;
+│       │                                  # valid subdir because they are real config data,
+│       │                                  # NOT deployment variants or schema
+│       └── (25 *.yaml profile files)      # e.g. root-ca.yaml, tls-server.yaml, etc.
+├── skeleton-template/
+│   └── skeleton-template.yml
+├── sm-im/
+│   └── sm-im.yml
+└── sm-kms/
+    └── sm-kms.yml
+```
+
+### E.4 What Gets DELETED from configs/
+
+Deletion order: service subdirs first, then empty product dirs.
+
+| Current Location | Reason |
+|-----------------|--------|
+| `configs/sm/im/` | Service configs moved to flat `configs/sm-im/` |
+| `configs/sm/kms/` | Service configs moved to flat `configs/sm-kms/` |
+| `configs/jose/ja/` | Service configs moved to flat `configs/jose-ja/` |
+| `configs/pki/ca/` | Service configs moved to flat `configs/pki-ca/` |
+| `configs/skeleton/template/` | Service configs moved to flat `configs/skeleton-template/` |
+| `configs/identity/authz/` | Service configs moved to flat `configs/identity-authz/` |
+| `configs/identity/idp/` | Service configs moved to flat `configs/identity-idp/` |
+| `configs/identity/rp/` | Service configs moved to flat `configs/identity-rp/` |
+| `configs/identity/rs/` | Service configs moved to flat `configs/identity-rs/` |
+| `configs/identity/spa/` | Service configs moved to flat `configs/identity-spa/` |
+| `configs/identity/policies/` | Moved to `configs/identity-authz/domain/policies/` |
+| `configs/skeleton/skeleton-server.yml` | Orphaned product-level file (non-canonical name) |
+| `configs/sm/im/sm-im-pg-1.yml` | Deployment variant — belongs in deployments/ |
+| `configs/sm/im/sm-im-pg-2.yml` | Deployment variant — belongs in deployments/ |
+| `configs/sm/im/sm-im-sqlite.yml` | Deployment variant — belongs in deployments/ |
+| `configs/sm/kms/sm-kms-pg-1.yml` | Deployment variant — belongs in deployments/ |
+| `configs/sm/kms/sm-kms-pg-2.yml` | Deployment variant — belongs in deployments/ |
+| `configs/sm/kms/sm-kms-sqlite.yml` | Deployment variant — belongs in deployments/ |
+| `configs/pki-ca/pki-ca-config-schema.yaml` | Schema hardcoded in Go, not a config file |
+| `configs/identity/development.yml` | Environment config — not in canonical config spec |
+| `configs/identity/production.yml` | Environment config — not in canonical config spec |
+| `configs/identity/test.yml` | Environment config — not in canonical config spec |
+| `configs/identity/profiles/` | Compose profiles — not in spec |
+| `configs/orphaned/` | Archived orphaned configs — delete after v6 review |
+
+After all service subdirs are moved to flat structure, the parent product directories
+`configs/sm/`, `configs/jose/`, `configs/pki/`, `configs/skeleton/` have no more nested
+subdirs and contain only the product-level `{PRODUCT}.yml` file. The `configs/identity/`
+directory also contains only `identity.yml` after policies and service subdirs are removed.
+
+**No orphaned deployment-variant files** (`*-pg-1.yml`, `*-sqlite.yml`, etc.) remain
+in configs/ — those belong in `deployments/{PS-ID}/config/`.
+
+---
+
+## F. deployments/ — Service Deployments `drwxr-x---`
+
+### F.1 Per-Service Deployment (10 services × identical pattern)
+
+Each service has exactly the same structure. 5 config overlay files (NOT 4).
+
+```
+deployments/{PS-ID}/                                  # drwxr-x---
+├── compose.yml                                       # Docker Compose service definition
+├── Dockerfile                                        # Service Docker image build
+├── config/
+│   ├── {PS-ID}-app-common.yml                        #   Common: bind addresses, TLS, network
+│   ├── {PS-ID}-app-sqlite-1.yml                      #   SQLite in-memory instance 1
+│   ├── {PS-ID}-app-sqlite-2.yml                      #   SQLite in-memory instance 2 (REQUIRED)
+│   ├── {PS-ID}-app-postgresql-1.yml                  #   PostgreSQL logical instance 1
+│   └── {PS-ID}-app-postgresql-2.yml                  #   PostgreSQL logical instance 2
+└── secrets/                                          # 14 secret files
+    ├── browser-password.secret                       #   {PS-ID}-browser-pass-{base64-random-32-bytes}
+    ├── browser-username.secret                       #   {PS-ID}-browser-user
+    ├── hash-pepper-v3.secret                         #   {PS-ID}-hash-pepper-v3-{base64-random-32-bytes}
+    ├── postgres-database.secret                      #   {PS_ID}_database
+    ├── postgres-password.secret                      #   {PS_ID}_database_pass-{base64-random-32-bytes}
+    ├── postgres-url.secret                           #   postgres://{PS_ID}_database_user:{PS_ID}_database_pass@{PS-ID}-postgres:5432/{PS_ID}_database?sslmode=disable
+    ├── postgres-username.secret                      #   {PS_ID}_database_user
+    ├── service-password.secret                       #   {PS-ID}-service-pass-{base64-random-32-bytes}
+    ├── service-username.secret                       #   {PS-ID}-service-user
+    ├── unseal-1of5.secret                            #   {PS-ID}-unseal-key-1-of-5-{hex-random-32-bytes}
+    ├── unseal-2of5.secret                            #   {PS-ID}-unseal-key-2-of-5-{hex-random-32-bytes}
+    ├── unseal-3of5.secret                            #   {PS-ID}-unseal-key-3-of-5-{hex-random-32-bytes}
+    ├── unseal-4of5.secret                            #   {PS-ID}-unseal-key-4-of-5-{hex-random-32-bytes}
+    └── unseal-5of5.secret                            #   {PS-ID}-unseal-key-5-of-5-{hex-random-32-bytes}
+```
+
+**Concrete examples**:
+
+```
+# sm-im secrets (PS-ID=sm-im, PS_ID=sm_im)
+unseal-1of5.secret  →  sm-im-unseal-key-1-of-5-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
+postgres-database.secret  →  sm_im_database
+postgres-username.secret  →  sm_im_database_user
+postgres-password.secret  →  sm_im_database_pass-Abcd1234Efgh5678Ijkl9012Mnop3456
+postgres-url.secret  →  postgres://sm_im_database_user:sm_im_database_pass-Abcd1234...@sm-im-postgres:5432/sm_im_database?sslmode=disable
+hash-pepper-v3.secret  →  sm-im-hash-pepper-v3-Qrst6789Uvwx0123Yzab4567Cdef8901
+browser-username.secret  →  sm-im-browser-user
+browser-password.secret  →  sm-im-browser-pass-Ghij2345Klmn6789Opqr0123Stuv4567
+service-username.secret  →  sm-im-service-user
+service-password.secret  →  sm-im-service-pass-Wxyz8901Abcd2345Efgh6789Ijkl0123
+
+# pki-ca secrets (PS-ID=pki-ca, PS_ID=pki_ca)
+unseal-1of5.secret  →  pki-ca-unseal-key-1-of-5-{unique-hex-NOT-copied-from-sm-kms}
+postgres-database.secret  →  pki_ca_database
+postgres-username.secret  →  pki_ca_database_user
+```
+
+**All 10 services** (`identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`,
+`identity-spa`, `jose-ja`, `pki-ca`, `skeleton-template`, `sm-im`, `sm-kms`) follow
+this identical structure.
+
+### F.2 Per-Product Deployment (5 products)
+
+Each product has a deployment directory with a Dockerfile, compose.yml, and secrets.
+Product-level secrets are shared across all services in the product.
+
+```
+deployments/{PRODUCT}/                                # drwxr-x---
+├── compose.yml                                       # Product-level Docker Compose
+├── Dockerfile                                        # Product Docker image (v6 CREATE)
+└── secrets/
+    ├── browser-password.secret.never                 # MUST NEVER be used at product level
+    ├── browser-username.secret.never                 # MUST NEVER be used at product level
+    ├── service-password.secret.never                 # MUST NEVER be used at product level
+    ├── service-username.secret.never                 # MUST NEVER be used at product level
+    ├── hash-pepper-v3.secret                         # {PRODUCT}-hash-pepper-v3-{base64-random-32-bytes}
+    ├── postgres-database.secret                      # {PRODUCT}_database
+    ├── postgres-password.secret                      # {PRODUCT}_database_pass-{base64-random-32-bytes}
+    ├── postgres-url.secret                           # postgres://{PRODUCT}_database_user:{PRODUCT}_database_pass@{PRODUCT}-postgres:5432/{PRODUCT}_database?sslmode=disable
+    ├── postgres-username.secret                      # {PRODUCT}_database_user
+    ├── unseal-1of5.secret                            # {PRODUCT}-unseal-key-1-of-5-{hex-random-32-bytes}
+    ├── unseal-2of5.secret                            # {PRODUCT}-unseal-key-2-of-5-{hex-random-32-bytes}
+    ├── unseal-3of5.secret                            # {PRODUCT}-unseal-key-3-of-5-{hex-random-32-bytes}
+    ├── unseal-4of5.secret                            # {PRODUCT}-unseal-key-4-of-5-{hex-random-32-bytes}
+    └── unseal-5of5.secret                            # {PRODUCT}-unseal-key-5-of-5-{hex-random-32-bytes}
+```
+
+**Total per product**: 4 `.secret.never` + 10 `.secret` = 14 files.
+
+**Concrete example** (`sm` product, `PRODUCT=sm`):
+
+```
+browser-password.secret.never   →  (content: "MUST NEVER be used at product level")
+browser-username.secret.never   →  (content: "MUST NEVER be used at product level")
+service-password.secret.never   →  (content: "MUST NEVER be used at product level")
+service-username.secret.never   →  (content: "MUST NEVER be used at product level")
+hash-pepper-v3.secret           →  sm-hash-pepper-v3-Abcd1234Efgh5678Ijkl9012Mnop3456
+postgres-database.secret        →  sm_database
+postgres-password.secret        →  sm_database_pass-Qrst6789Uvwx0123Yzab4567Cdef8901
+postgres-url.secret             →  postgres://sm_database_user:sm_database_pass-...@sm-postgres:5432/sm_database?sslmode=disable
+postgres-username.secret        →  sm_database_user
+unseal-1of5.secret              →  sm-unseal-key-1-of-5-{hex-random-32-bytes}
+unseal-2of5.secret              →  sm-unseal-key-2-of-5-{hex-random-32-bytes}
+unseal-3of5.secret              →  sm-unseal-key-3-of-5-{hex-random-32-bytes}
+unseal-4of5.secret              →  sm-unseal-key-4-of-5-{hex-random-32-bytes}
+unseal-5of5.secret              →  sm-unseal-key-5-of-5-{hex-random-32-bytes}
+```
+
+**All 5 products** (`identity`, `jose`, `pki`, `skeleton`, `sm`) follow this identical structure.
+
+### F.3 Suite Deployment
+
+```
+deployments/cryptoutil-suite/                         # drwxr-x---
+├── compose.yml                                       # Suite-level Docker Compose
+└── secrets/
+    ├── browser-password.secret.never                 # MUST NEVER be used at suite level
+    ├── browser-username.secret.never                 # MUST NEVER be used at suite level
+    ├── service-password.secret.never                 # MUST NEVER be used at suite level
+    ├── service-username.secret.never                 # MUST NEVER be used at suite level
+    ├── hash-pepper-v3.secret                         # cryptoutil-hash-pepper-v3-{base64-random-32-bytes}
+    ├── postgres-database.secret                      # cryptoutil_database
+    ├── postgres-password.secret                      # cryptoutil_database_pass-{base64-random-32-bytes}
+    ├── postgres-url.secret                           # postgres://cryptoutil_database_user:cryptoutil_database_pass@cryptoutil-postgres:5432/cryptoutil_database?sslmode=disable
+    ├── postgres-username.secret                      # cryptoutil_database_user
+    ├── unseal-1of5.secret                            # cryptoutil-unseal-key-1-of-5-{hex-random-32-bytes}
+    ├── unseal-2of5.secret                            # cryptoutil-unseal-key-2-of-5-{hex-random-32-bytes}
+    ├── unseal-3of5.secret                            # cryptoutil-unseal-key-3-of-5-{hex-random-32-bytes}
+    ├── unseal-4of5.secret                            # cryptoutil-unseal-key-4-of-5-{hex-random-32-bytes}
+    └── unseal-5of5.secret                            # cryptoutil-unseal-key-5-of-5-{hex-random-32-bytes}
+```
+
+**Total**: 4 `.secret.never` + 10 `.secret` = 14 files. No Dockerfile (suite orchestrates via compose only).
+
+### F.4 Shared Infrastructure Deployments
 
 ```
 deployments/
 ├── shared-telemetry/
-│   ├── compose.yml
-│   ├── cryptoutil.yml
-│   ├── database.json
-│   ├── health.json
-│   ├── kms.json
-│   ├── prometheus.yml
-│   ├── dashboards.yaml
-│   ├── prometheus.yaml
-│   ├── cryptoutil-otel.yml
-│   └── otel-collector-config.yaml
+│   └── compose.yml                                   # otel-collector-contrib + grafana-otel-lgtm
 └── shared-postgres/
-    ├── .sqlfluff
-    ├── compose.yml
-    ├── init-follower-databases.sql
-    ├── init-leader-databases.sql
-    ├── setup-logical-replication.sh
-    ├── secrets/
-    │   ├── postgres-database.secret
-    │   ├── postgres-password.secret
-    │   └── postgres-username.secret
+    └── compose.yml                                   # Shared PostgreSQL container
+                                                      # Every service gets a logical database in this
+                                                      # instance; credentials shared at suite/product/
+                                                      # service level as appropriate
 ```
 
-### F.5 Files to DELETE from deployments/
+### F.5 What Gets DELETED from deployments/
 
-| Path | Reason |
-|------|--------|
-| `deployments/template/` (entire dir) | Duplicate of `skeleton-template/`; reconciled in v5 |
-| `deployments/deployments-all-files.json` | Metadata artifact, not a manifest |
+| Current Location | Reason |
+|-----------------|--------|
+| `deployments/template/` | Duplicate of `deployments/skeleton-template/` — merge then delete (Decision 5=C) |
+| `deployments/archived/` | Dead code |
+| `deployments/shared-citus/` | Citus removed — only PostgreSQL and SQLite supported |
+| `deployments/deployments-all-files.json` | Build artifact, not in spec |
+| `deployments/pki-ca/README.md` | Not in spec |
+| `deployments/{PRODUCT}/secrets/{PRODUCT}-postgres-database.secret.never` | Legacy prefixed marker (all products) |
+| `deployments/{PRODUCT}/secrets/{PRODUCT}-postgres-password.secret.never` | Legacy prefixed marker (all products) |
+| `deployments/{PRODUCT}/secrets/{PRODUCT}-postgres-url.secret.never` | Legacy prefixed marker (all products) |
+| `deployments/{PRODUCT}/secrets/{PRODUCT}-postgres-username.secret.never` | Legacy prefixed marker (all products) |
+| `deployments/{PRODUCT}/secrets/{PRODUCT}-unseal-{1..5}of5.secret.never` | Legacy prefixed marker (all products) |
+| `deployments/{PRODUCT}/secrets/sm-hash-pepper.secret` | Legacy file (only in sm) |
+| `deployments/cryptoutil-suite/secrets/{SUITE}-hash-pepper.secret.never` | Legacy prefixed marker |
+| `deployments/cryptoutil-suite/secrets/{SUITE}-postgres-*.secret.never` | Legacy prefixed markers |
+| `deployments/cryptoutil-suite/secrets/{SUITE}-unseal-{1..5}of5.secret.never` | Legacy prefixed markers |
 
 ---
 
-## G. internal/ — Private Application Code
+## G. internal/ — Private Application Code `drwxr-x---`
 
 ### G.1 internal/apps/ — Application Layer
 
 ```
-internal/apps/
-│
-├── cryptoutil/                            # Suite orchestration
-│   ├── cryptoutil.go                      #   Suite CLI dispatch (seam pattern)
-│   └── *_test.go
-│
-├── {PRODUCT}/                             # ×5 — identity, jose, pki, skeleton, sm
-│   ├── {PRODUCT}.go                       #   Product CLI dispatch
+internal/apps/                                        # drwxr-x---
+├── {SUITE}/                                          # Suite orchestration
+│   ├── {SUITE}.go                                    #   Suite CLI dispatch (seam pattern)
 │   ├── *_test.go
-│   ├── e2e/                               #   Product-level E2E tests
-│   └── shared/                            #   Intra-product shared packages (optional)
-│       └── (application-specific subdirs)
+│   └── e2e/                                          #   E2E tests (full suite docker compose)
 │
-├── {PRODUCT}/{SERVICE}/                   # ×10 — e.g. sm/kms, sm/im, jose/ja, …
-│   ├── {SERVICE}.go                       #   Service entry point (seam pattern)
+├── {PRODUCT}/                                        # Product level (×5)
+│   ├── {PRODUCT}.go                                  #   Product CLI dispatch
 │   ├── *_test.go
-│   ├── server/                            #   HTTP handlers and route registration
-│   │   └── *.go
-│   ├── client/                            #   Domain-specific HTTP clients
-│   │   └── *.go
-│   ├── repository/                        #   GORM models + data-access methods
-│   │   ├── *.go
+│   ├── e2e/                                          #   E2E tests (full product docker compose)
+│   └── shared/                                       #   Shared within product (optional)
+│       └── (shared packages)/
+│           ├── *.go
+│           └── *_test.go
+│
+├── {PRODUCT}/{SERVICE}/                              # Service implementation (×N per product, 10 total)
+│   ├── {SERVICE}.go                                  #   Service entry point (seam pattern)
+│   ├── *_test.go
+│   ├── integration/                                  #   Integration tests
+│   ├── e2e/                                          #   E2E tests (service docker compose)
+│   ├── repository/                                   #   Data access layer
+│   │   ├── *.go                                      #     GORM entity models + repository methods
 │   │   ├── *_test.go
-│   │   └── migrations/                    #   Domain migrations (2001+)
+│   │   └── migrations/                               #     Domain migrations (2001+)
 │   │       ├── 2001_init.up.sql
 │   │       └── 2001_init.down.sql
-│   ├── model/                             #   Internal domain value objects (optional)
+│   ├── model/                                        #   Domain models (optional)
 │   │   └── *.go
-│   ├── integration/                       #   Integration tests (optional)
-│   │   └── *_integration_test.go
-│   └── e2e/                               #   Service-level E2E tests
+│   └── handler/                                      #   HTTP handlers (optional)
 │       └── *.go
 │
-├── framework/                             # Shared service framework
-│   ├── apperr/                            #   Application error types
-│   │   │                                  #   MOVED from internal/shared/apperr/
-│   │   └── *.go
-│   ├── suite/
+├── framework/                                        # Service framework (shared by ALL services)
+│   ├── apperr/                                       #   Application error types (moved from shared/apperr/)
+│   ├── suite/                                        #   Suite-level framework
 │   │   └── cli/
-│   │       ├── suite_router.go            #   RouteSuite(), SuiteConfig, ProductEntry
+│   │       ├── suite_router.go                       #     RouteSuite(), SuiteConfig, ProductEntry
 │   │       └── suite_router_test.go
-│   ├── product/
+│   ├── product/                                      #   Product-level framework
 │   │   └── cli/
-│   │       ├── product_router.go          #   RouteProduct(), ProductConfig, ServiceEntry
+│   │       ├── product_router.go                     #     RouteProduct(), ProductConfig, ServiceEntry
 │   │       └── product_router_test.go
-│   ├── tls/                               #   TLS certificate generation
-│   │   │                                  #   MERGED: tls_generator from service/config/
-│   │   ├── init.go
-│   │   ├── init_test.go
-│   │   └── export_test.go
-│   └── service/
-│       ├── cli/                           #   CLI infrastructure (cobra commands)
-│       │   └── *.go
-│       ├── client/                        #   HTTP client helpers
-│       │   └── *.go
-│       ├── config/                        #   Config loading and validation
-│       │   └── *.go
-│       │   # NOTE: config/tls_generator/ merged into framework/tls/ above
+│   ├── tls/                                          #   TLS certificate generation (merged: tls_generator + pkiinit)
+│   └── service/                                      #   Service-level framework
+│       ├── cli/
+│       ├── client/
+│       ├── config/
 │       ├── server/
 │       │   ├── apis/
 │       │   ├── application/
@@ -532,21 +658,11 @@ internal/apps/
 │       │   ├── realm/
 │       │   ├── realms/
 │       │   ├── repository/
-│       │   │   ├── migrations/            #   Framework migrations (1001-1999)
+│       │   │   ├── migrations/                       #     Framework migrations (1001-1999)
 │       │   │   └── test_migrations/
 │       │   ├── service/
-│       │   ├── tenant/
-│       │   ├── testutil/
-│       │   ├── application.go
-│       │   ├── contract.go
-│       │   ├── contract_test.go
-│       │   ├── public_server_base.go
-│       │   ├── service_framework.go
-│       │   ├── test_main.go
-│       │   ├── ROUTE-REGISTRATION.md
-│       │   └── *_test.go
+│       │   └── tenant/
 │       ├── server_integration/
-│       │   └── *.go
 │       ├── testing/
 │       │   ├── assertions/
 │       │   ├── contract/
@@ -559,108 +675,53 @@ internal/apps/
 │       │   └── testserver/
 │       └── testutil/
 │
-└── tools/
-    ├── cicd_lint/
-    │   ├── cicd.go
-    │   ├── cicd_test.go
-    │   ├── adaptive-sim/                  #   Adaptive simulation utilities
-    │   │   └── *.go
-    │   ├── common/                        #   Shared CICD utilities
-    │   │   └── *.go
-    │   ├── format_go/                     #   Go file formatter
-    │   │   └── *.go
-    │   ├── format_gotest/                 #   Go test formatter
-    │   │   └── *.go
-    │   ├── lint_compose/
-    │   │   └── *.go
-    │   ├── lint_deployments/
-    │   │   └── *.go
-    │   ├── lint_docs/                     #   Documentation linter
-    │   │   │                              #   MERGED: docs_validation/ folded in here
-    │   │   └── *.go
-    │   ├── lint_fitness/
-    │   │   ├── lint_fitness.go
-    │   │   ├── lint_fitness_test.go
-    │   │   ├── registry/
-    │   │   │   ├── registry.go
-    │   │   │   └── registry_test.go
-    │   │   ├── admin_bind_address/
-    │   │   ├── archive_detector/
-    │   │   ├── banned_product_names/
-    │   │   ├── bind_address_safety/
-    │   │   ├── cgo_free_sqlite/
-    │   │   ├── check_skeleton_placeholders/
-    │   │   ├── cicd_coverage/
-    │   │   ├── circular_deps/
-    │   │   ├── cmd_anti_pattern/
-    │   │   ├── cmd_main_pattern/
-    │   │   ├── compose_db_naming/
-    │   │   ├── compose_header_format/
-    │   │   ├── compose_service_names/
-    │   │   ├── configs_deployments_consistency/
-    │   │   ├── configs_empty_dir/
-    │   │   ├── configs_naming/
-    │   │   ├── cross_service_import_isolation/
-    │   │   ├── crypto_rand/
-    │   │   ├── deployment_dir_completeness/
-    │   │   ├── domain_layer_isolation/
-    │   │   ├── entity_registry_completeness/
-    │   │   ├── file_size_limits/
-    │   │   ├── gen_config_initialisms/
-    │   │   ├── health_endpoint_presence/
-    │   │   ├── insecure_skip_verify/
-    │   │   ├── legacy_dir_detection/
-    │   │   ├── magic_e2e_compose_path/
-    │   │   ├── magic_e2e_container_names/
-    │   │   ├── migration_comment_headers/
-    │   │   ├── migration_numbering/
-    │   │   ├── migration_range_compliance/
-    │   │   ├── no_hardcoded_passwords/
-    │   │   ├── no_local_closed_db_helper/
-    │   │   ├── no_postgres_in_non_e2e/
-    │   │   ├── no_unit_test_real_db/
-    │   │   ├── no_unit_test_real_server/
-    │   │   ├── non_fips_algorithms/
-    │   │   ├── otlp_service_name_pattern/
-    │   │   ├── parallel_tests/
-    │   │   ├── product_structure/
-    │   │   ├── product_wiring/
-    │   │   ├── require_api_dir/
-    │   │   ├── require_framework_naming/
-    │   │   ├── service_contract_compliance/
-    │   │   ├── service_structure/
-    │   │   ├── standalone_config_otlp_names/
-    │   │   ├── standalone_config_presence/
-    │   │   ├── test_patterns/
-    │   │   └── tls_minimum_version/
-    │   ├── lint_go/
-    │   │   └── *.go
-    │   ├── lint_go_mod/
-    │   │   └── *.go
-    │   ├── lint_golangci/
-    │   │   └── *.go
-    │   ├── lint_gotest/
-    │   │   └── *.go
-    │   ├── lint_ports/
-    │   │   └── *.go
-    │   ├── lint_text/
-    │   │   └── *.go
-    │   └── lint_workflow/
-    │       └── *.go
-    │   # NOTE: docs_validation/ merged into lint_docs/ above
-    │   # NOTE: github_cleanup/ merged into workflow/ below
-    │
-    └── workflow/                          #   GitHub Actions workflow management
-        │                                  #   MERGED: github_cleanup/ folded in here
-        └── *.go
+├── tools/                                            # Infrastructure tooling
+│   ├── cicd_lint/                                    #   Custom linting and formatting tools
+│   │   ├── common/
+│   │   ├── format_go/
+│   │   ├── format_gotest/
+│   │   ├── lint_compose/
+│   │   ├── lint_deployments/                         #   Deployment structure validator (8 validators)
+│   │   ├── lint_docs/                                #   Documentation linter (includes docs_validation)
+│   │   ├── lint_fitness/                             #   Architecture fitness functions
+│   │   │   ├── registry/                             #     Entity registry (SSOT)
+│   │   │   │   ├── registry.go
+│   │   │   │   └── registry_test.go
+│   │   │   ├── banned_product_names/
+│   │   │   ├── circular_deps/
+│   │   │   ├── configs_naming/                       #     Validates FLAT configs/{PS-ID}/ pattern
+│   │   │   ├── entity_registry_completeness/
+│   │   │   ├── file_size/
+│   │   │   ├── parallel_tests/
+│   │   │   ├── test_patterns/
+│   │   │   └── ... (44+ linters)
+│   │   ├── lint_go/
+│   │   ├── lint_golangci/
+│   │   ├── lint_gotest/
+│   │   ├── lint_go_mod/
+│   │   ├── lint_ports/
+│   │   ├── lint_text/
+│   │   └── lint_workflow/
+│   │
+│   └── workflow/                                     #   GitHub Actions workflow management
+│       └── *.go                                      #     run + cleanup subcommands
+│
+└── (DELETE)
+    ├── demo/                                         #   Dead code
+    └── pkiinit/                                      #   Merged → framework/tls/
 ```
 
-### G.2 internal/shared/ — Shared Libraries
+**Consolidations required**:
+
+- `docs_validation/` → merged into `lint_docs/` (single documentation linter)
+- `github_cleanup/` → merged into `tools/workflow/` (subcommands: run, cleanup)
+- `configs_naming` fitness linter rewritten to validate **flat** `configs/{PS-ID}/` pattern
+
+### G.2 internal/shared/ — Shared Libraries `drwxr-x---`
 
 ```
-internal/shared/
-├── container/                             # Docker container utilities
-│   └── *.go
+internal/shared/                                      # drwxr-x---
+├── container/
 ├── crypto/
 │   ├── asn1/
 │   ├── certificate/
@@ -673,8 +734,7 @@ internal/shared/
 │   ├── pbkdf2/
 │   └── tls/
 ├── database/
-│   └── *.go
-├── magic/                                 # Named constants only; excluded from coverage
+├── magic/                                            # Named constants (SSOT, excluded from coverage)
 │   ├── magic_api.go
 │   ├── magic_cicd.go
 │   ├── magic_console.go
@@ -682,48 +742,22 @@ internal/shared/
 │   ├── magic_database.go
 │   ├── magic_docker.go
 │   ├── magic_framework.go
-│   ├── magic_identity.go
-│   ├── magic_identity_adaptive.go
-│   ├── magic_identity_config.go
-│   ├── magic_identity_http.go
-│   ├── magic_identity_keys.go
-│   ├── magic_identity_metrics.go
-│   ├── magic_identity_mfa.go
-│   ├── magic_identity_oauth.go
-│   ├── magic_identity_oidc.go
-│   ├── magic_identity_pbkdf2.go
-│   ├── magic_identity_scopes.go
-│   ├── magic_identity_testing.go
-│   ├── magic_identity_timeouts.go
-│   ├── magic_identity_uris.go
-│   ├── magic_jose.go
-│   ├── magic_memory.go
+│   ├── magic_{PRODUCT}.go                            # Per-product constants (×5)
+│   ├── magic_{PRODUCT}_{topic}.go                    # Per-product topic files (identity has ~12)
 │   ├── magic_misc.go
 │   ├── magic_network.go
 │   ├── magic_orchestration.go
 │   ├── magic_percent.go
-│   ├── magic_pki.go
-│   ├── magic_pki_ca.go
-│   ├── magic_pkix.go
 │   ├── magic_security.go
 │   ├── magic_session.go
-│   ├── magic_skeleton.go
-│   ├── magic_sm.go
-│   ├── magic_sm_im.go
 │   ├── magic_telemetry.go
 │   ├── magic_testing.go
 │   ├── magic_unseal.go
 │   └── magic_workflows.go
-│   # NOTE: magic_demo.go deleted (demo code removed in v5)
-│   # NOTE: magic_pkiinit.go deleted (pkiinit merged into framework/tls)
 ├── pool/
-│   └── *.go
 ├── pwdgen/
-│   └── *.go
 ├── telemetry/
-│   └── *.go
 ├── testutil/
-│   └── *.go
 └── util/
     ├── cache/
     ├── combinations/
@@ -732,157 +766,183 @@ internal/shared/
     ├── network/
     ├── poll/
     ├── random/
-    ├── slice.go
-    ├── slice_test.go
     ├── sysinfo/
-    ├── thread/
-    ├── yml_json.go
-    └── yml_json_test.go
-# NOTE: shared/apperr/ deleted — moved to internal/apps/framework/apperr/
+    └── thread/
 ```
 
 ---
 
-## H. docs/ — Documentation
+## H. docs/ — Documentation `drwxr-x---`
 
 ```
-docs/
-├── ARCHITECTURE.md                        # SSOT: Architecture reference
-├── CONFIG-SCHEMA.md                       # Config file schema reference
-├── DEV-SETUP.md                           # Developer setup guide
-├── README.md                              # Documentation index
-├── UPDATE-TOOLS.md                        # Agent tool matrix (todos column = todo)
-└── framework-v6/                          # Active plan (THIS iteration)
-    ├── lessons.md
+docs/                                                 # drwxr-x---
+├── ARCHITECTURE.md                                   # SSOT: Architecture reference (5080+ lines)
+├── CONFIG-SCHEMA.md                                  # Config file schema reference
+├── DEV-SETUP.md                                      # Developer setup guide
+├── README.md                                         # Documentation index
+├── UPDATE-TOOLS.md                                   # VS Code / MCP tool catalog and update guide
+└── framework-v6/                                     # Current active plan
     ├── plan.md
     ├── tasks.md
-    └── target-structure.md               # THIS FILE
+    ├── lessons.md
+    └── target-structure.md                           # THIS FILE
 ```
 
-**Files/directories to DELETE from docs/:**
+**DELETE** (historical and stale docs):
 
-| Path | Reason |
-|------|--------|
-| `docs/ARCHITECTURE-TODO.md` | Superseded by plan tracking in framework-v*/tasks.md |
-| `docs/ARCHITECTURE-INDEX.md` | Superseded by ARCHITECTURE.md built-in ToC |
+| Entry | Reason |
+|-------|--------|
+| `docs/framework-v3/` | Historical plan (completed) |
+| `docs/framework-v4/` | Historical plan (completed) |
+| `docs/framework-v5/` | Superseded by framework-v6/ |
+| `docs/LESSONS/` | Cross-plan lessons archive (superseded by per-plan lessons.md) |
+| `docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md` | After merge into ARCHITECTURE.md |
+| `docs/ARCHITECTURE-INDEX.md` | Superseded by ARCHITECTURE.md ToC |
+| `docs/ARCHITECTURE-TODO.md` | Superseded by plan tracking |
 | `docs/COPILOT-MULTI-PROJECT.md` | Stale reference doc |
-| `docs/DEAD_CODE_REVIEW.md` | Completed review; no longer needed |
+| `docs/DEAD_CODE_REVIEW.md` | Completed, no longer needed |
 | `docs/VSCODE-CRASHES.md` | Stale troubleshooting doc |
-| `docs/gremlins/` | Stale mutation testing notes |
-| `docs/LESSONS/` | Cross-plan archive superseded by per-plan lessons.md |
+| `docs/demo-brainstorm/` | Demos archived |
 | `docs/framework-brainstorm/` | Superseded by framework-v3+ |
-| `docs/framework-v3/` | Historical (completed) |
-| `docs/framework-v4/` | Historical (completed) |
-| `docs/framework-v5/` | Historical (completed; this is framework-v6) |
+| `docs/gremlins/` | Stale mutation testing notes |
 | `docs/workflow-runtimes/` | Stale workflow analysis |
 
 ---
 
-## I. test/ — External Test Suites
+## I. test/ — External Test Suites `drwxr-x---`
 
 ```
-test/
-└── load/                                  # Gatling load tests (Java 21 + Maven)
+test/                                                 # drwxr-x---
+└── load/                                             # Gatling load tests (Java 21 + Maven)
+    │                                                 # Needs refactoring: cover all 10 service-level,
+    │                                                 # all 5 product-level, and 1 suite-level load tests
     ├── .gitignore
-    ├── .mvn/
-    ├── mvnw                               # chmod 750
-    ├── mvnw.cmd
+    ├── .mvn/                                         #   Maven wrapper
+    ├── mvnw                                          #   Maven wrapper (Unix, chmod 750)
+    ├── mvnw.cmd                                      #   Maven wrapper (Windows)
     ├── pom.xml
     ├── README.md
-    └── src/
+    ├── src/
+    └── target/                                       #   Maven build output (gitignored)
 ```
 
 ---
 
-## J. pkg/ — Public Library Code (Reserved)
+## J. pkg/ — Public Library Code (Reserved) `drwxr-x---`
 
 ```
-pkg/                                       # Currently empty; reserved for future public APIs
+pkg/                                                  # Currently empty, reserved for future public APIs
 ```
 
 ---
 
-## K. Other Root Directories
+## K. Other Directories
 
 ```
-scripts/                                   # Empty; keep (.gitkeep)
-workflow-reports/                          # Ephemeral test output; gitignored, never committed
-test-output/                               # Ephemeral test output; gitignored, never committed
-testdata/                                  # DELETE: move contents to owning packages
+scripts/                                              # Currently empty (.gitkeep only)
+                                                      # Part of Go project structure, keep empty
+workflow-reports/                                     # Ephemeral test output, never Git tracked (gitignored)
+test-output/                                          # Ephemeral test output, never Git tracked (gitignored)
 ```
 
 ---
 
 ## L. Secret File Naming Convention
 
-All tiers use **identical `{purpose}.secret` names** with no tier prefix on
-active secret files. Tier prefixes appear ONLY on `.secret.never` marker files.
+All tiers (service, product, suite) use **identical `{purpose}.secret` names** —
+no tier prefix on active secret files. Tier prefixes appear ONLY on `.secret.never`
+marker files.
 
-### Active Secret Files
+| Secret Purpose | Filename | Service Value Pattern | Product Value Pattern | Suite Value Pattern |
+|---------------|----------|-----------------------|-----------------------|---------------------|
+| Browser password | `browser-password.secret` | `{PS-ID}-browser-pass-{base64-random-32-bytes}` | `.never` only | `.never` only |
+| Browser username | `browser-username.secret` | `{PS-ID}-browser-user` | `.never` only | `.never` only |
+| Hash pepper v3 | `hash-pepper-v3.secret` | `{PS-ID}-hash-pepper-v3-{base64-random-32-bytes}` | `{PRODUCT}-hash-pepper-v3-{base64}` | `cryptoutil-hash-pepper-v3-{base64}` |
+| PostgreSQL database | `postgres-database.secret` | `{PS_ID}_database` | `{PRODUCT}_database` | `cryptoutil_database` |
+| PostgreSQL password | `postgres-password.secret` | `{PS_ID}_database_pass-{base64-random-32-bytes}` | `{PRODUCT}_database_pass-{base64}` | `cryptoutil_database_pass-{base64}` |
+| PostgreSQL URL | `postgres-url.secret` | `postgres://{PS_ID}_database_user:{PS_ID}_database_pass@{PS-ID}-postgres:5432/{PS_ID}_database?sslmode=disable` | `postgres://{PRODUCT}_database_user:{PRODUCT}_database_pass@{PRODUCT}-postgres:5432/{PRODUCT}_database?sslmode=disable` | `postgres://cryptoutil_database_user:cryptoutil_database_pass@cryptoutil-postgres:5432/cryptoutil_database?sslmode=disable` |
+| PostgreSQL username | `postgres-username.secret` | `{PS_ID}_database_user` | `{PRODUCT}_database_user` | `cryptoutil_database_user` |
+| Service password | `service-password.secret` | `{PS-ID}-service-pass-{base64-random-32-bytes}` | `.never` only | `.never` only |
+| Service username | `service-username.secret` | `{PS-ID}-service-user` | `.never` only | `.never` only |
+| Unseal shard N | `unseal-{N}of5.secret` | `{PS-ID}-unseal-key-N-of-5-{hex-random-32-bytes}` | `{PRODUCT}-unseal-key-N-of-5-{hex-random-32-bytes}` | `cryptoutil-unseal-key-N-of-5-{hex-random-32-bytes}` |
 
-| File | Service tier value | Product/Suite tier value |
-|------|--------------------|--------------------------|
-| `browser-password.secret` | `{PS-ID}-browser-{base64-32}` | `.never` (MUST NOT share) |
-| `browser-username.secret` | `{PS-ID}-browser-user` | `.never` (MUST NOT share) |
-| `service-password.secret` | `{PS-ID}-service-{base64-32}` | `.never` (MUST NOT share) |
-| `service-username.secret` | `{PS-ID}-service-user` | `.never` (MUST NOT share) |
-| `hash-pepper-v3.secret` | `{PS-ID}-hash-pepper-v3-{base64-32}` | MUST be set per tier |
-| `postgres-database.secret` | `{PS_ID}_database` | MUST be set per tier |
-| `postgres-password.secret` | `{PS_ID}_database_pass-{base64-32}` | MUST be set per tier |
-| `postgres-url.secret` | `postgres://{PS_ID}_database_user:…@{PS-ID}-postgres:5432/{PS_ID}_database` | MUST be set per tier |
-| `postgres-username.secret` | `{PS_ID}_database_user` | MUST be set per tier |
-| `unseal-Nof5.secret` (N=1..5) | `{SERVICE}-{hex-32}` | MUST be set per tier |
+**`.secret.never` marker files** — present at product and suite tiers as explicit reminders:
 
-### Marker Files (`.secret.never`)
+| Tier | Files Present | Content |
+|------|-------------|---------|
+| Product (×5) | `browser-password.secret.never`, `browser-username.secret.never`, `service-password.secret.never`, `service-username.secret.never` | "MUST NEVER be used at product level. Use service-specific secrets." |
+| Suite (×1) | Same 4 filenames | "MUST NEVER be used at suite level. Use service-specific secrets." |
 
-Present at product and suite level only. Purpose: explicit reminder that
-browser/service credentials are service-specific and MUST NOT be shared.
-
-| File | Content |
-|------|---------|
-| `browser-password.secret.never` | "MUST NOT be set at this level. Use service-specific secrets." |
-| `browser-username.secret.never` | "MUST NOT be set at this level. Use service-specific secrets." |
-| `service-password.secret.never` | "MUST NOT be set at this level. Use service-specific secrets." |
-| `service-username.secret.never` | "MUST NOT be set at this level. Use service-specific secrets." |
+**Total `.secret.never` files**: 4 per product × 5 products + 4 suite = **24 files**.
 
 ---
 
-## M. Agent Tool Matrix Reference
+## M. Fitness Linter Coverage (New/Enhanced in v6)
 
-The `docs/UPDATE-TOOLS.md` table columns map to agent files in `.github/agents/`.
-Correct tool name: **`todo`** (not `todos` — renamed in VS Code).
-
-| Agent Column | Agent File |
-|---|---|
-| `beast-mode` | `beast-mode.agent.md` |
-| `fix-wf` | `fix-workflows.agent.md` |
-| `impl-exec` | `implementation-execution.agent.md` |
-| `impl-plan` | `implementation-planning.agent.md` |
-
-All four agents include `edit/insertEdit` in their `tools:` list.
+| Linter | Scope | Rule |
+|--------|-------|------|
+| `root-junk-detection` | `{ROOT}/` | No `*.exe`, `*.py`, `coverage*`, `*.test.exe` at root |
+| `cmd-entry-whitelist` | `cmd/` | Only 18 allowed entries (1 suite + 5 products + 10 services + 2 infra tools) |
+| `configs-structure` | `configs/` | Must follow flat `{SUITE}/`, `{PRODUCT}/`, `{PS-ID}/` hierarchy (Decision 2=B) |
+| `configs-naming` (rewritten) | `configs/` | Validates flat `{PS-ID}/{PS-ID}.yml` pattern; rejects nested `{PRODUCT}/{SERVICE}/`; allows `pki-ca/profiles/` and `identity-authz/domain/policies/` exceptions |
+| `configs-no-deployment` | `configs/` | No deployment variants (`*-pg-1.yml`, `*-sqlite.yml`) or environment files |
+| `secret-naming` | `deployments/*/secrets/` | All tiers use `{purpose}.secret` names; `.never` markers enforced at product/suite |
+| `template-consistency` | `deployments/skeleton-template/` | Hyphens in secret names (not underscores) |
+| `archive-detection` | `**/*archived*/`, `**/*orphaned*/` | No archived/orphaned directories |
+| `entity-registry-completeness` | (existing, enhanced) | Verify `configs/{PS-ID}/` existence for all registered PS-IDs |
 
 ---
 
-## N. Framework v6 Change Summary
+## N. Change Summary (Current → Post-v6 Target)
 
-Changes required to reach this target from current repository state.
+| Area | Current State | Target State | Action |
+|------|--------------|-------------|--------|
+| Root files | ~80+ junk artifacts | Clean project config only | DELETE artifacts |
+| `.vscode/mcp.json` | Missing | Present | CREATE |
+| `cmd/` | 18 entries + extras | 18 entries exactly | DELETE demo, identity-compose, identity-demo |
+| `api/` | Missing components for some services | All 10 PS-IDs with full generated spec | CREATE missing |
+| `configs/` | Nested `{PRODUCT}/{SERVICE}/` dirs | Flat `{PS-ID}/` dirs + `{PRODUCT}/` dirs | RESTRUCTURE (Decision 2=B) |
+| `configs/` service filenames | `{SERVICE}.yml` (e.g., `im.yml`) | `{PS-ID}.yml` (e.g., `sm-im.yml`) | RENAME |
+| `configs/pki-ca/profiles/` | At `configs/pki/ca/profiles/` | At `configs/pki-ca/profiles/` | MOVE (Decision 3=B) |
+| `configs/identity/policies/` | At `configs/identity/policies/` | At `configs/identity-authz/domain/policies/` | MOVE + RENAME (Decision 4=A) |
+| `configs/identity/policies/adaptive-auth.yml` | `adaptive-auth.yml` (banned term) | `adaptive-authorization.yml` | RENAME (Decision 4=A) |
+| `deployments/` service sqlite-2 | Missing in all 10 services | Present in all 10 services | CREATE (RC-3) |
+| `deployments/` product Dockerfile | Missing in all 5 products | Present in all 5 products | CREATE |
+| `deployments/template/` | Still exists | Deleted (merged → skeleton-template) | MERGE + DELETE (Decision 5=C) |
+| `deployments/` archived | Present | Deleted | DELETE |
+| `deployments/` shared-citus | Present | Deleted | DELETE |
+| `deployments/deployments-all-files.json` | Present | Deleted | DELETE |
+| Service unseal prefix | `{SERVICE}-{hex}` (e.g., `im-{hex}`) | `{PS-ID}-unseal-key-N-of-5-{hex}` | FIX (Decision 1=A) |
+| Product unseal value | `dev-unseal-key-N-of-5` | `{PRODUCT}-unseal-key-N-of-5-{hex}` | FIX (Decision 1=A) |
+| Suite unseal prefix | `suite-` | `cryptoutil-` | FIX (Decision 1=A) |
+| `pki-ca` unseal | Copy of sm-kms values | Unique `pki-ca-` prefixed values | REGENERATE |
+| Service postgres DB | `{PS_ID}` (e.g., `sm_im`) | `{PS_ID}_database` | FIX (Decision 6=A) |
+| Service postgres user | `{PS_ID}_user` | `{PS_ID}_database_user` | FIX (Decision 6=A) |
+| Product postgres DB | Not standardized | `{PRODUCT}_database` | FIX (Decision 6=A) |
+| `.secret.never` at product | 0 files | 4 files per product (20 total) | CREATE (RC-3) |
+| `.secret.never` at suite | 0 files | 4 files (24 total with products) | CREATE (RC-3) |
+| Legacy prefixed `.never` files | Present at products/suite | Deleted | DELETE |
+| `internal/apps/tools/cicd_lint/configs_naming/` | Validates nested pattern | Validates flat pattern | REWRITE |
+| `internal/` demo, pkiinit | Present | Deleted / merged into `framework/tls/` | DELETE / MERGE |
+| `internal/shared/apperr/` | Present | Moved to `internal/apps/framework/apperr/` | MOVE |
+| `internal/apps/tools/docs_validation/` | Separate dir | Merged into `lint_docs/` | MERGE |
+| `internal/apps/tools/github_cleanup/` | Separate dir | Merged into `tools/workflow/` as subcommand | MERGE |
+| `.github/agents/doc-sync.agent.md` | Present | Deleted | DELETE |
+| `.github/actions/custom-cicd-lint/` | Present | Renamed to `download-cicd/` | RENAME |
+| `docs/framework-v5/` | Active plan | Historical — delete | DELETE |
+| `docs/UPDATE-TOOLS.md` | Missing | Present | CREATE |
+| `docs/` stale (framework-v3/v4, LESSONS/, etc.) | Present | Deleted | DELETE |
+| `testdata/` | Present (1 sample file) | Deleted (move to owning package) | DELETE |
 
-| Area | Current State | v6 Target | Action |
-|------|--------------|-----------|--------|
-| `docs/` stale files | 10+ stale docs/dirs present | Only essential docs + framework-v6/ | DELETE all listed in H |
-| `deployments/template/` | Still present | Removed | DELETE |
-| `deployments/deployments-all-files.json` | Present | Removed | DELETE |
-| `configs/sm/kms/` canonical | No canonical config (only deployment variants) | `kms.yml` created | CREATE + DELETE variants |
-| `configs/sm/im/` deployment variants | 3 variant files present | Deleted; only `im.yml` remains | DELETE variants |
-| `configs/skeleton/skeleton-server.yml` | Present at product level | Removed | DELETE |
-| `internal/apps/tools/cicd_lint/docs_validation/` | Separate package | Merged into `lint_docs/` | MERGE + DELETE dir |
-| `internal/apps/tools/cicd_lint/github_cleanup/` | Separate package | Merged into `tools/workflow/` | MERGE + DELETE dir |
-| `internal/apps/framework/service/config/tls_generator/` | Separate package | Merged into `framework/tls/` | MERGE + DELETE dir |
-| `internal/shared/apperr/` | In shared/ | Moved to `framework/apperr/` | MOVE + DELETE old dir |
-| `internal/shared/magic/magic_demo.go` | Present | Removed (demo deleted in v5) | DELETE |
-| `internal/shared/magic/magic_pkiinit.go` | Present | Removed (pkiinit merged) | DELETE |
-| `deployments/{PRODUCT}/Dockerfile` | Missing for all 5 products | Add to each product deployment | CREATE ×5 |
-| `deployments/{PRODUCT}/secrets/*.secret.never` | Missing for all 5 products | Add 4 marker files per product | CREATE ×20 |
-| `deployments/cryptoutil-suite/secrets/*.secret.never` | Missing | Add 4 marker files | CREATE ×4 |
-| `testdata/` root dir | Present | Deleted; files moved to owning packages | DELETE |
-| `docs/UPDATE-TOOLS.md` `todos` row | Named `todos` | Renamed to `todo` | DONE (this session) |
+---
+
+## O. Open Questions
+
+All questions resolved via plan.md quizme answers:
+
+- Decision 1=A: Unseal naming `{PS-ID}-unseal-key-N-of-5-{hex-random-32-bytes}`
+- Decision 2=B: Flat `configs/{PS-ID}/` (NOT nested `configs/{PRODUCT}/{SERVICE}/`)
+- Decision 3=B: Keep `configs/pki-ca/profiles/` as valid subdir exception
+- Decision 4=A: Identity policies → `configs/identity-authz/domain/policies/`; rename `adaptive-auth.yml` → `adaptive-authorization.yml`
+- Decision 5=C: Merge `deployments/template/` into `deployments/skeleton-template/` then delete
+- Decision 6=A: Postgres DB = `{PS_ID}_database`, Postgres user = `{PS_ID}_database_user`
