@@ -72,6 +72,7 @@ Quick reference for all synchronization-eligible documentation across the crypto
 | `docs/DEV-SETUP.md` | Reference | Development environment setup | Tool version updates, new dependencies, setup process changes | README, workflow docs |
 | `docs/pre-commit-hooks.md` | Reference | Pre-commit hook documentation | Hook configuration changes, new hooks, formatter updates | .pre-commit-config.yaml, copilot instructions |
 | `.github/agents/*.agent.md` | Agent Prompts | Custom agent workflows | Workflow improvements, pattern discovery, anti-pattern identification | Copilot instructions, constitution |
+| `docs/UPDATE-TOOLS.md` | Reference | Agent × tool matrix for planning which tools to enable per agent | VS Code/extension updates, new MCP servers, tool assignments changing | `.github/agents/*.agent.md` tool lists |
 | **Evidence (Temporary, test-output/ only, NEVER commit)** |
 | `test-output/<analysis-type>/*.md` | Analysis | Session-specific analysis artifacts | Every analysis session | Lessons learned, copilot instructions (as needed) |
 | `test-output/<analysis-type>/*.{cov,html,log,txt}` | Artifacts | Coverage, mutation, benchmark results | Every test/analysis run | Analysis documents, completion evidence |
@@ -97,7 +98,7 @@ Quick reference for all synchronization-eligible documentation across the crypto
 
 | Change Type | Start Here | Then Update |
 |-------------|-----------|-------------|
-| New quality gate | `docs/ARCHITECTURE.md` | `.github/instructions/06-01.quality-gates.md`, `.github/agents/implementation-execution.agent.md` |
+| New quality gate | `docs/ARCHITECTURE.md` | `.github/instructions/06-01.evidence-based.instructions.md`, `.github/agents/implementation-execution.agent.md` |
 | New execution rule | `.github/instructions/01-02.beast-mode.instructions.md` | `.github/agents/implementation-execution.agent.md`, `.github/agents/beast-mode.agent.md` |
 | New architectural pattern | `docs/ARCHITECTURE.md` | `.github/instructions/02-*.md` (relevant domain), service implementations |
 | New testing pattern | `.github/instructions/03-02.testing.md` | `README.md`, `.github/agents/*.agent.md` (if workflow change) |
