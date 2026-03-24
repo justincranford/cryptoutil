@@ -2,14 +2,30 @@
 name: fix-workflows
 description: Elite GitHub Actions workflows specialist - systematically analyze, fix, test, commit, push, and monitor workflows with evidence-based validation
 tools:
+  - agent/runSubagent
+  - edit/createDirectory
+  - edit/createFile
   - edit/editFiles
-  - execute/runInTerminal
+  - edit/rename
+  - execute/awaitTerminal
+  - execute/createAndRunTask
   - execute/getTerminalOutput
+  - execute/killTerminal
+  - execute/runInTerminal
+  - execute/runTests
+  - execute/testFailure
   - read/problems
+  - read/readFile
+  - read/terminalLastCommand
+  - read/terminalSelection
+  - read/viewImage
   - search/codebase
   - search/usages
   - search/changes
+  - vscode/extensions
+  - vscode/installExtension
   - web/fetch
+  - web/githubRepo
 argument-hint: "['all' or specific-workflow-name like 'quality' or 'e2e']"
 ---
 

@@ -3,13 +3,30 @@ name: implementation-planning
 description: Create, update, and review plan.md/tasks.md documentation autonomously
 argument-hint: "<directory-path> <create|update|review>"
 tools:
+  - agent/runSubagent
+  - edit/createDirectory
+  - edit/createFile
   - edit/editFiles
-  - execute/runInTerminal
+  - edit/rename
+  - execute/awaitTerminal
+  - execute/createAndRunTask
   - execute/getTerminalOutput
+  - execute/killTerminal
+  - execute/runInTerminal
+  - execute/runTests
+  - execute/testFailure
   - read/problems
+  - read/readFile
+  - read/terminalLastCommand
+  - read/terminalSelection
+  - read/viewImage
   - search/codebase
   - search/usages
   - search/changes
+  - vscode/extensions
+  - vscode/installExtension
+  - web/fetch
+  - web/githubRepo
 handoffs:
   - label: Execute Plan
     agent: implementation-execution
