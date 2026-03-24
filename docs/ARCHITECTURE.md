@@ -277,7 +277,6 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 
 - implementation-planning: Planning and task decomposition
 - implementation-execution: Autonomous implementation execution
-- doc-sync: Documentation synchronization
 - fix-workflows: Workflow repair and validation
 - beast-mode: Continuous execution mode
 
@@ -3650,12 +3649,10 @@ Here are local convenience commands to run the workflows locally for Development
 
 #### 11.4.1 Documentation Organization
 
-<!-- @propagate to=".github/agents/doc-sync.agent.md" as="documentation-standards" -->
 - Primary: README.md and docs/README.md (keep in 2 files)
 - Spec structure: plan.md and tasks.md patterns
 - NEVER create standalone session/analysis docs
 - Append to existing docs instead of creating new files
-<!-- @/propagate -->
 
 #### 11.4.2 Documentation Frontmatter
 
@@ -4543,9 +4540,7 @@ configs/
 
 **Solution**: ARCHITECTURE.md is the **absolute single source of truth**. Content is propagated to downstream files using **chunk-based verbatim copying** with HTML comment markers. A deterministic CI/CD validator verifies propagation integrity.
 
-<!-- @propagate to=".github/agents/doc-sync.agent.md" as="documentation-propagation-strategy" -->
 **MANDATORY**: Changes to ARCHITECTURE.md MUST be propagated to ALL downstream files in the SAME commit. Infrastructure changes (Docker, OTel, testcontainers, CI/CD) are ALWAYS BLOCKING — NEVER deferred.
-<!-- @/propagate -->
 
 #### 12.7.2 Propagation Marker System
 
@@ -4609,7 +4604,7 @@ content here (verbatim copy of source)
 | 9. Infrastructure Architecture | 02-03.observability, 04-01.deployment, 03-05.linting | fix-workflows |
 | 10. Testing Architecture | 03-02.testing | implementation-execution |
 | 11. Quality Architecture | 03-05.linting, 03-01.coding, 06-01.evidence-based | implementation-planning, beast-mode |
-| 12. Deployment Architecture | 04-01.deployment, 02-05.security | fix-workflows, doc-sync |
+| 12. Deployment Architecture | 04-01.deployment, 02-05.security | fix-workflows |
 | 13. Development Practices | 05-02.git, 03-01.coding, 03-03.golang | implementation-planning, implementation-execution |
 | 14. Operational Excellence | 02-03.observability | — |
 | Appendix A-C | (reference only) | — |
@@ -5151,19 +5146,16 @@ After ALL plan tasks are complete, apply accumulated lessons to permanent artifa
 
 ### B.4 Instruction File Reference
 
-<!-- @propagate to=".github/agents/doc-sync.agent.md" as="instruction-file-catalog" -->
 **See .github/copilot-instructions.md** for complete table of 18 instruction files
 
 **Summary**: 01-terminology/beast-mode, 02-architecture (5 files), 03-development (4 files), 04-deployment (1 file), 05-platform (2 files), 06-evidence (2 files)
-<!-- @/propagate -->
 
 ### B.5 Agent Catalog & Handoff Matrix
 
 | Agent | Description | Tools | Handoffs |
 |-------|-------------|-------|----------|
 | implementation-planning | Planning and task decomposition | edit, execute, read, search, web | → implementation-execution |
-| implementation-execution | Autonomous implementation execution | edit, execute, read, search, web | → doc-sync, fix-workflows |
-| doc-sync | Documentation synchronization | TBD | TBD |
+| implementation-execution | Autonomous implementation execution | edit, execute, read, search, web | → fix-workflows |
 | fix-workflows | Workflow repair and validation | TBD | TBD |
 | beast-mode | Continuous execution mode | TBD | TBD |
 

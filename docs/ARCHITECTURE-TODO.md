@@ -31,7 +31,6 @@ All instruction files now have cross-references to ARCHITECTURE.md sections. No 
 - [.github/agents/beast-mode.agent.md](.github/agents/beast-mode.agent.md) - ✅ Links to Section 2.1 Agent Orchestration Strategy
 - [.github/agents/fix-workflows.agent.md](.github/agents/fix-workflows.agent.md) - ✅ Links to Section 2.1 Agent Orchestration Strategy
 - [.github/agents/implementation-execution.agent.md](.github/agents/implementation-execution.agent.md) - ✅ Links to Section 2.1 Agent Orchestration Strategy
-- [.github/agents/doc-sync.agent.md](.github/agents/doc-sync.agent.md) - ✅ Has ARCHITECTURE.md references
 - [.github/agents/implementation-planning.agent.md](.github/agents/implementation-planning.agent.md) - ✅ Has ARCHITECTURE.md references
 
 ### CICD Tools

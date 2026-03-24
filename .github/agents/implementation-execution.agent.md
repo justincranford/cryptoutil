@@ -56,10 +56,6 @@ handoffs:
     agent: implementation-planning
     prompt: Create or update plan.md and tasks.md in the specified directory.
     send: false
-  - label: Sync Documentation
-    agent: doc-sync
-    prompt: Synchronize documentation after implementation complete.
-    send: false
   - label: Fix GitHub Workflows
     agent: fix-workflows
     prompt: Fix or update GitHub Actions workflows as required by implementation or plan or tasks.

@@ -7,7 +7,7 @@
 ## Problem Statement
 
 The `cryptoutil` project has a mature Copilot framework:
-- 5 agents (beast-mode, doc-sync, fix-workflows, implementation-execution, implementation-planning)
+- 4 agents (beast-mode, fix-workflows, implementation-execution, implementation-planning)
 - 14 skills (test-table-driven, coverage-analysis, fips-audit, etc.)
 - 16 instruction files (terminology, architecture, testing, security, etc.)
 - 1 copilot-instructions.md (master index)
@@ -50,7 +50,7 @@ These encode cryptoutil domain knowledge:
 
 - **Instructions**: 02-01 architecture, 02-03 observability, 02-04 openapi, 02-05 security, 02-06 authn, 03-04 data-infrastructure, 04-01 deployment
 - **Skills**: fips-audit, new-service, contract-test-gen, openapi-codegen, propagation-check
-- **Agents**: doc-sync, fix-workflows (heavily coupled to cryptoutil's CI/CD)
+- **Agents**: fix-workflows (heavily coupled to cryptoutil's CI/CD)
 
 ## Sharing Options Analysis
 
