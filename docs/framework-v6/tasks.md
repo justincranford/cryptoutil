@@ -1,6 +1,6 @@
 # Tasks - Framework v6: Corrective Standardization
 
-**Status**: 13 of 63 tasks complete (21%)
+**Status**: 16 of 63 tasks complete (25%)
 **Last Updated**: 2026-03-27
 **Created**: 2026-03-25
 
@@ -210,48 +210,48 @@
 
 #### Task 2.1: Create Product-Level .never Files (20 files)
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 15m
 - **Actual**: -
 - **Dependencies**: None
 - **Description**: Create 4 .secret.never files in each of 5 product secret directories (identity, jose, pki, skeleton, sm).
 - **Acceptance Criteria**:
-  - [ ] `deployments/identity/secrets/browser-password.secret.never` exists
-  - [ ] `deployments/identity/secrets/browser-username.secret.never` exists
-  - [ ] `deployments/identity/secrets/service-password.secret.never` exists
-  - [ ] `deployments/identity/secrets/service-username.secret.never` exists
-  - [ ] Same 4 files for jose, pki, skeleton, sm (20 total)
-  - [ ] File contents indicate "MUST NEVER be overridden at PRODUCT level"
+  - [x] `deployments/identity/secrets/browser-password.secret.never` exists
+  - [x] `deployments/identity/secrets/browser-username.secret.never` exists
+  - [x] `deployments/identity/secrets/service-password.secret.never` exists
+  - [x] `deployments/identity/secrets/service-username.secret.never` exists
+  - [x] Same 4 files for jose, pki, skeleton, sm (20 total)
+  - [x] File contents indicate "MUST NEVER be overridden at PRODUCT level"
 - **Files**:
   - `deployments/{identity,jose,pki,skeleton,sm}/secrets/*.secret.never` (20 files)
 
 #### Task 2.2: Create Suite-Level .never Files (4 files)
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 5m
 - **Actual**: -
 - **Dependencies**: None
 - **Description**: Create 4 .secret.never files in cryptoutil-suite secret directory.
 - **Acceptance Criteria**:
-  - [ ] `deployments/cryptoutil-suite/secrets/browser-password.secret.never` exists
-  - [ ] `deployments/cryptoutil-suite/secrets/browser-username.secret.never` exists
-  - [ ] `deployments/cryptoutil-suite/secrets/service-password.secret.never` exists
-  - [ ] `deployments/cryptoutil-suite/secrets/service-username.secret.never` exists
+  - [x] `deployments/cryptoutil-suite/secrets/browser-password.secret.never` exists
+  - [x] `deployments/cryptoutil-suite/secrets/browser-username.secret.never` exists
+  - [x] `deployments/cryptoutil-suite/secrets/service-password.secret.never` exists
+  - [x] `deployments/cryptoutil-suite/secrets/service-username.secret.never` exists
 - **Files**:
   - `deployments/cryptoutil-suite/secrets/*.secret.never` (4 files)
 
 #### Task 2.3: Verify .never File Count
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 5m
 - **Actual**: -
 - **Dependencies**: Tasks 2.1-2.2
 - **Description**: Count all .never files to verify exactly 24 exist.
 - **Acceptance Criteria**:
-  - [ ] `Get-ChildItem deployments -Recurse -Filter "*.never" | Measure-Object` = 24
+  - [x] `Get-ChildItem deployments -Recurse -Filter "*.never" | Measure-Object` = 24
 
 ### Phase 3: Fix Service-Level Secret Values
 
