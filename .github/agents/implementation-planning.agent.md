@@ -138,11 +138,6 @@ Custom plans are composed of **5 files in `<work-dir>/`**:
    - After plan complete: evaluated to apply insights to ARCHITECTURE.md, agents, skills, instructions, code, tests, workflows, documents
    - NEVER includes "Inherited from" sections — lessons are written by the execution agent, not carried over
 
-5. **`<work-dir>/memory.md`** - Execution context (NOT created by this agent)
-   - Ephemeral, ONLY during implementation-execution.agent.md
-   - NOT a copilot instruction file (.github/instructions/ files not loaded by agents)
-   - Created/updated by implementation-execution agent for session context
-
 **Files created/updated by this agent**:
 
 - **`<work-dir>/lessons.md`** - Empty scaffold with one heading stub per plan phase

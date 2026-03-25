@@ -302,42 +302,23 @@ Use the following format to create and maintain a todo list:
 
 ## Session Tracking - MANDATORY
 
-**ALWAYS create session tracking documentation in `docs/fixes-needed-plan-tasks-v#/`:**
+**ALWAYS create session tracking documentation in docs/fixes-needed-plan-tasks-v#/:**
 
 **Directory Structure:**
 
-```
+`
 docs/fixes-needed-plan-tasks-v#/
-â”œâ”€â”€ issues.md          # Granular issue tracking with structured metadata
-â”œâ”€â”€ categories.md      # Pattern analysis across issue categories
-â”œâ”€â”€ plan.md           # Session overview with executive summary and metrics
-â”œâ”€â”€ tasks.md          # Comprehensive actionable checklist for implementation
-â””â”€â”€ lessons-extraction-checklist.md  # (Optional) If temp docs need cleanup
-```
+plan.md           # Session overview with executive summary and metrics
+tasks.md          # Comprehensive actionable checklist for implementation
+lessons.md        # Lessons learned, patterns, root causes
+`
 
 **Workflow:**
 
-1. **At Session Start**: Create `docs/fixes-needed-plan-tasks-v#/` directory (increment # from last version)
-2. **Create issues.md + categories.md**: Document all workflow issues as discovered
-3. **Append As Found**: Add new issues to issues.md during investigation and fixing
-4. **Before Implementation**: Create comprehensive plan.md + tasks.md with all work
-5. **Execute Tasks**: Track progress in tasks.md, update issue statuses in issues.md
-
-**Issue Template** (for issues.md):
-
-```markdown
-### Issue #N: Brief Title
-
-- **Category**: [Syntax|Configuration|Dependencies|Testing|Documentation]
-- **Severity**: [P0-CRITICAL|P1-HIGH|P2-MEDIUM|P3-LOW]
-- **Status**: [Found|In Progress|Completed|Blocked]
-- **Description**: What is the problem?
-- **Root Cause**: Why did this happen?
-- **Impact**: What breaks without this fix?
-- **Proposed Fix**: How will this be resolved?
-- **Commits**: [List of related commit hashes]
-- **Prevention**: How to avoid this in the future?
-```
+1. **At Session Start**: Create docs/fixes-needed-plan-tasks-v#/ directory (increment # from last version)
+2. **Before Implementation**: Create comprehensive plan.md + tasks.md with all work
+3. **Execute Tasks**: Track progress in tasks.md
+4. **Post-Mortem**: Update lessons.md with patterns and root causes
 
 ## Testing Strategy (MANDATORY)
 
@@ -376,21 +357,13 @@ Set-Content -Path $path -Value $content -Encoding UTF8  # ❌ BOM
 - [ ] **Syntax Check**: `go run ./cmd/workflow -workflows=<name> -dry-run` (validates YAML syntax, structure, and configuration)
 - [ ] **Local Execution**: `go run ./cmd/workflow -workflows=<name>` (executes workflow locally to catch runtime errors)
 - [ ] **Regression Check**: Verify fix doesn't break other workflows (grep for shared dependencies, test dependent workflows)
-- [ ] **Tracking Update**: Update issues.md with fix details and categories.md with pattern
 - [ ] **Conventional Commit**: Use `ci(workflows): fix <issue>` format with detailed body
 
-**Evidence Requirements (MUST document in issues.md):**
+**Evidence Requirements:**
 
 - âœ… Workflow runs successfully in cmd/workflow local environment
 - âœ… No new errors introduced (grep logs for "error", "failed", "fatal")
-- âœ… Tracking docs updated (issues.md status â†’ Completed, categories.md pattern added)
 - âœ… Commit follows conventional format with issue reference
-
-**Post-Fix Analysis (MUST add to categories.md):**
-
-- Document pattern that caused issue (e.g., "Missing environment variable validation")
-- Add prevention strategy (e.g., "ALWAYS validate env vars at workflow start")
-- Update related documentation (e.g., add to copilot instructions if recurring pattern)
 
 ---
 
@@ -441,14 +414,14 @@ Set-Content -Path $path -Value $content -Encoding UTF8  # ❌ BOM
 1. **Prevents Root-Level Sprawl**: No scattered .log, .txt, .html files in project root
 2. **Prevents Documentation Sprawl**: No docs/workflow-analysis-*.md files
 3. **Consistent Location**: All related evidence in one predictable location (canonical from internal\apps\workflow\workflow.go line 66)
-4. **Easy to Reference**: Issues.md references subdirectory for complete evidence
+4. **Easy to Reference**: Lessons.md references subdirectory for complete evidence
 5. **Git-Friendly**: Covered by .gitignore workflow-reports/ pattern
 
 **Requirements**:
 
 1. **Create subdirectory BEFORE validation**: `mkdir -Force ./workflow-reports/workflow-validation/`
 2. **Place ALL validation artifacts in subdirectory**: Dry-run results, execution logs, error reports
-3. **Reference in issues.md**: Link to subdirectory for complete evidence
+3. **Reference in lessons.md**: Link to subdirectory for complete evidence
 4. **Use descriptive subdirectory names**: `workflow-validation` not `wf`, `workflow-execution` not `logs`
 5. **One subdirectory per workflow session**: Append workflow name or timestamp if needed
 
@@ -464,7 +437,7 @@ Set-Content -Path $path -Value $content -Encoding UTF8  # ❌ BOM
 
 - âœ… **Organized subdirectories**: All evidence in `./workflow-reports/workflow-validation/`
 - âœ… **Comprehensive evidence**: Dry-run + execution + regression logs together
-- âœ… **Referenced in issues.md**: "See ./workflow-reports/workflow-validation/ for evidence"
+- âœ… **Referenced in lessons.md**: "See ./workflow-reports/workflow-validation/ for evidence"
 - âœ… **Descriptive names**: Clear purpose from subdirectory name
 
 **Example - Workflow Validation Evidence**:
@@ -482,10 +455,10 @@ go run ./cmd/workflow -workflows=quality > ./workflow-reports/workflow-validatio
 # Check for regressions
 Get-ChildItem -Recurse .github/workflows/ | Select-String "shared-action" > ./workflow-reports/workflow-validation/shared-action-dependencies.txt
 
-# Document evidence in issues.md
-Add-Content -Path docs/fixes-needed-plan-tasks-v#/issues.md -Value @"
+# Document evidence in lessons.md
+Add-Content -Path docs/fixes-needed-plan-tasks-v#/lessons.md -Value @"
 
-### Issue #3: CI Quality Workflow Syntax Error
+### Lesson: CI Quality Workflow Syntax Error
 
 - **Evidence**: ./workflow-reports/workflow-validation/
   - quality-dryrun.log: Syntax validation passed
@@ -497,7 +470,7 @@ Add-Content -Path docs/fixes-needed-plan-tasks-v#/issues.md -Value @"
 **Enforcement**:
 
 - This pattern is MANDATORY for ALL workflow validation evidence
-- Issues.md MUST reference evidence subdirectories in `./workflow-reports/`
+- Lessons.md MUST reference evidence subdirectories in `./workflow-reports/`
 - DO NOT create separate analysis documents in docs/
 - ALL validation artifacts go in `./workflow-reports/` (NOT test-output/)
 - cmd/workflow automatically creates `./workflow-reports/` per internal\apps\workflow\workflow.go line 66

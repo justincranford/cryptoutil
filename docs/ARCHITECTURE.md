@@ -245,7 +245,9 @@ cryptoutil (suite)
 
 **Service Independence**: Each `{PS-ID}` service is a standalone binary with its own HTTPS listeners (public :8080, admin :9090), database (PostgreSQL or SQLite), config (`configs/{PS-ID}/`), Docker Compose file (`deployments/{PS-ID}/compose.yml`), and deployment secrets (`deployments/{PS-ID}/secrets/`). Services communicate via mTLS or OAuth 2.1 client credentials (see [Section 3.3](#33-product-service-relationships)).
 
-**Migration Priority** (to service framework — see [Section 5.1.3](#513-mandatory-usage)): sm-im → jose-ja → sm-kms → pki-ca → identity services. SM services first, PKI second, Identity last.
+**Product & Suite Convenience**: Each `{PRODUCT}` product and `{SUITE}` suite are also available as all-in-one binaries for optional, alternate packaging for ease of distribution. They also come with convenience `{PRODUCT}` product and `{SUITE}` suite Docker Compose files for ease of e2e testing.
+
+**Migration Priority** (to service framework — see [Section 5.1.3](#513-mandatory-usage)): sm-im → jose-ja → sm-kms → skeleton-template → pki-ca → identity services. SM services first, PKI second, Identity last.
 
 **Federation**: Services fail over through FEDERATED → DATABASE → FILE realms with no retry logic or circuit breakers. FILE realms (local, always available) are the last-resort failsafe.
 
@@ -283,19 +285,13 @@ Implementation plans use the following files in `<work-dir>/`:
 - `tasks.md` — Task breakdown with checkbox tracking (updated continuously during execution)
 - `lessons.md` — Phase post-mortem lessons: what worked, what didn't, root causes, patterns observed (scaffold created by planning, populated after each phase by execution)
 
-**On-Demand** (created by implementation-execution when needed):
-- `issues.md` — Blockers and discovered issues with root cause analysis
-- `categories.md` — Categorized issue tracking for cross-cutting concerns
-
 **Ephemeral** (temporary, session-scoped):
 - `quizme-v#.md` — Unknowns clarification during planning only (A-D options + E blank; deleted after answers merged)
-- `memory.md` — Session-scoped execution context, discoveries, blockers, working notes (created/updated only by implementation-execution; NOT a copilot instruction file)
 
 <!-- @propagate to=".github/instructions/06-02.agent-format.instructions.md" as="agent-self-containment" -->
 **Agent Self-Containment Checklist** (MANDATORY):
 - Agents generating implementation plans MUST reference ARCHITECTURE.md testing (Section 10), quality gates (Section 11), coding standards (Section 13)
-- Agents modifying code MUST reference coding standards (Section 13) and quality architecture (Section 11)
-- Agents modifying tests MUST reference testing architecture (Section 10) and quality gates (Section 11)
+- Agents modifying code MUST reference coding standards (Sections 11, 13)
 - Agents modifying deployments MUST reference deployment architecture (Section 12)
 - Agents modifying CI/CD workflows or infrastructure MUST reference infrastructure architecture (Section 9)
 - Agents modifying documentation or copilot artifacts (skills, instructions, agents) MUST reference Section 2.1 (Agent/Skill/Instruction catalog) and Section 12.7 (Documentation Propagation)
@@ -476,7 +472,7 @@ See the [beast-mode agent](.github/agents/beast-mode.agent.md) for the full auto
 
 - **Table-Driven Tests**: ALWAYS use for multiple test cases (NOT standalone functions)
 - **app.Test() Pattern**: ALL HTTP handler tests use in-memory testing (NO real servers)
-- **TestMain Pattern**: Heavyweight resources (SQLite in-memory databases, application servers) initialized once per package; PostgreSQL tested ONLY in E2E via Docker Compose
+- **TestMain Pattern**: Heavyweight resources (SQLite in-memory databases, application servers) initialized once per package; PostgreSQL initialized indirectly ONLY by E2E tests via Docker Compose
 - **Dynamic Test Data**: UUIDv7 for all test values (thread-safe, process-safe, time-ordered)
 - **t.Parallel()**: ALWAYS use in test functions and subtests for concurrency validation
 
@@ -5096,9 +5092,7 @@ Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATO
 At the end of EVERY phase's quality gates, conduct a post-mortem **before starting the next phase**:
 
 1. **lessons.md** (in `<work-dir>/`): Record lessons learned — what worked, what didn't, root causes, patterns observed.
-2. **categories.md** (in `<work-dir>/`): Update recurring pattern analysis across the plan.
-3. **issues.md** (in `<work-dir>/`): Document all issues encountered with root cause + resolution.
-4. **Artifact Self-Evaluation**: Actively evaluate whether phase lessons expose contradictions or omissions in:
+2. **Artifact Self-Evaluation**: Actively evaluate whether phase lessons expose contradictions or omissions in:
    - `docs/ARCHITECTURE.md` — architecture decisions, patterns, strategies
    - `.github/agents/*.agent.md` — agent guidance and workflows
    - `.github/skills/*/SKILL.md` — skill templates and guidance
@@ -5107,8 +5101,8 @@ At the end of EVERY phase's quality gates, conduct a post-mortem **before starti
    - Tests — missing coverage, weak assertions, deprecated test patterns
    - CI/CD workflows — missing steps, incorrect gates, outdated tooling
    - Project documentation — README, docs/, comments that contradict new patterns
-5. **Create Fix Tasks**: If contradictions or omissions are found, create new phase tasks to fix them — NEVER defer artifact updates.
-6. **Identify new phases**: Create follow-up phases for any blockers, gaps, or artifact fixes discovered.
+3. **Create Fix Tasks**: If contradictions or omissions are found, create new phase tasks to fix them — NEVER defer artifact updates.
+4. **Identify new phases**: Create follow-up phases for any blockers, gaps, or artifact fixes discovered.
 
 Skipping post-mortems is FORBIDDEN. This is continuous self-improvement.
 

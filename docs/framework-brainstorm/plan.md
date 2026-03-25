@@ -9,7 +9,6 @@
 1. **plan.md** (this file) — phases, objectives, decisions
 2. **tasks.md** — task checklist per phase
 3. **lessons.md** — persistent memory: what worked, what did not, root causes, patterns
-4. **memory.md** — ephemeral agent context (session state, working notes)
 
 > **Note**: Framework v1 implementation is tracked in `docs/framework-v1/plan.md` and
 > `docs/framework-v1/tasks.md`. This brainstorm plan covers (1) closing Framework v1,

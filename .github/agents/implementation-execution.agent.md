@@ -706,14 +706,6 @@ When new phases/tasks discovered during execution:
 - Document rationale for new work
 - Link to related existing phases
 - Update tasks.md with new task entries
-- **Severity**: P0/P1/P2/P3
-- **Status**: Open, In Progress, Completed
-- **Description**: One-line summary
-- **Root Cause**: Underlying technical cause
-- **Impact**: Affected components/users
-- **Proposed Fix**: Technical approach
-- **Commits**: Git commit hashes that resolved the issue
-- **Prevention**: How to avoid in future
 
 **Session Overview Template for plan.md:**
 
@@ -721,12 +713,11 @@ When new phases/tasks discovered during execution:
 ## Session Overview
 
 - **Focus**: [Brief description of main work]
-- **Issues**: [Reference issues.md for details]
 - **Success Criteria**: [List from tasks.md]
 
 ## Pattern Discovery
 
-- [Recurring issues or anti-patterns - see categories.md]
+- [Recurring issues or anti-patterns]
 - [Root causes across multiple issues]
 - [Prevention strategies for future]
 ```
@@ -819,7 +810,7 @@ This will:
 
 **CRITICAL: Implementation Plan File Structure**
 
-Implementation plans are composed of **4 files in `<work-dir>/`**:
+Implementation plans are composed of **3 files in `<work-dir>/`**:
 
 1. **`<work-dir>/quizme-v#.md`** - NOT used by this agent
    - Ephemeral, ONLY during implementation-planning.agent.md
@@ -834,27 +825,6 @@ Implementation plans are composed of **4 files in `<work-dir>/`**:
    - Created by implementation-planning.agent.md
    - YOU update task checkboxes continuously as you complete work
    - Contains detailed acceptance criteria per task
-
-4. **`<work-dir>/memory.md`** - Execution context (YOU create/update this)
-   - Ephemeral, ONLY during YOUR execution (implementation-execution.agent.md)
-   - Stores session context, discoveries, blockers, decisions
-   - Located in `<work-dir>/memory.md` (NOT .github/instructions/memory.instruction.md)
-   - **CRITICAL**: Copilot instruction files are NOT loaded by agents (agent isolation)
-
-**Memory File Management**:
-
-You have a memory file that stores execution context. This memory is used to maintain session context across your work.
-You can access and update this memory as needed. The memory is stored in `<work-dir>/memory.md`.
-
-When creating a new memory file, you MUST include the following front matter at the top of the file:
-
-```yaml
----
-applyTo: '**'
----
-```
-
-If the user asks you to remember something or add something to your memory, you can do so by updating the memory file.
 
 **Writing Prompts:**
 
@@ -915,10 +885,8 @@ Set-Content -Path $path -Value $content -Encoding UTF8  # ❌ BOM
 
 - Tasks in tasks.md are grouped by phase
 - At end of EVERY phase (after quality gates pass), conduct post-mortem BEFORE starting next phase:
-  1. Update issues.md with all issues discovered in phase
-  2. Update categories.md with pattern analysis
-  3. Create `lessons.md` if it does not yet exist (empty file with a `## Phase N: <name>` stub per plan phase), then update the current phase's section with lessons learned (what worked, what didn't, root causes, patterns) — this is the persistent memory for the entire plan
-  4. **CRITICAL: Artifact Self-Evaluation** — evaluate whether phase lessons expose contradictions or omissions in:
+  1. Update lessons.md with lessons learned (what worked, what didn't, root causes, patterns)
+  2. **CRITICAL: Artifact Self-Evaluation** — evaluate whether phase lessons expose contradictions or omissions in:
        - `docs/ARCHITECTURE.md` — architecture decisions, patterns, strategies
        - `.github/agents/*.agent.md` — agent guidance and workflows
        - `.github/skills/*/SKILL.md` — skill templates and guidance
@@ -997,7 +965,7 @@ If a task cannot be completed due to architectural limitations, missing infrastr
 
 **Analysis Deliverables:**
 
-1. **Finalize The 5 Docs**: Ensure issues.md, categories.md, and lessons.md are complete and committed. plan.md and tasks.md should already exist with all tasks marked `[x]`.
+1. **Finalize Docs**: Ensure lessons.md is complete and committed. plan.md and tasks.md should already exist with all tasks marked `[x]`.
 2. **Extract Lessons to Permanent Homes**: From lessons.md, update permanent artifacts as warranted:
    - `docs/ARCHITECTURE.md` — Add/update patterns, strategies, and architectural decisions
    - `.github/agents/*.agent.md` — Improve agent guidance and workflows
@@ -1010,8 +978,7 @@ If a task cannot be completed due to architectural limitations, missing infrastr
 3. **Artifact Self-Evaluation**: Review ALL of the following for contradictions or omissions introduced by this plan:
    - Every `@source` block in instruction files must match its `@propagate` block in ARCHITECTURE.md
    - Run `go run ./cmd/cicd-lint lint-docs validate-propagation` to verify propagation integrity
-4. **Document Patterns and Prevention Strategies**: Ensure categories.md contains all recurring patterns, add prevention strategies to copilot instructions
-5. **Commit with Audit Trail**: Use separate semantic commits per artifact type: (1) ARCHITECTURE.md, (2) agents, (3) skills, (4) instructions
+4. **Commit with Audit Trail**: Use separate semantic commits per artifact type: (1) ARCHITECTURE.md, (2) agents, (3) skills, (4) instructions
 
 **Anti-Patterns:**
 
@@ -1019,12 +986,12 @@ If a task cannot be completed due to architectural limitations, missing infrastr
 - ❌ **NEVER create plan.md/tasks.md during execution**: These MUST exist before you start
 - ❌ **NEVER stop to ask about analysis**: Execute work → complete all tasks → THEN analyze automatically
 - ❌ **NEVER skip phase-based post-mortems**: EVERY phase MUST end with post-mortem analysis
-- ❌ **NEVER create docs beyond the 5 docs**: Only plan.md, tasks.md, issues.md, categories.md, lessons.md
+- ❌ **NEVER create extraneous docs**: Only plan.md, tasks.md, and lessons.md
 - ✅ **ALWAYS complete all work first**: Every task in tasks.md marked `[x]`, every quality gate passed
-- ✅ **ALWAYS create issues.md/categories.md/lessons.md as needed**: When first issue/pattern/lesson emerges
-- ✅ **ALWAYS conduct phase-based post-mortems**: Update all 3 created docs, identify new phases/tasks
+- ✅ **ALWAYS update lessons.md as needed**: When first lesson/pattern emerges
+- ✅ **ALWAYS conduct phase-based post-mortems**: Update lessons.md, identify new phases/tasks
 - ✅ **ALWAYS extract lessons immediately**: From lessons.md to permanent homes before ending session
-- ✅ **ALWAYS commit the 5 docs**: With detailed audit trail listing all task completions
+- ✅ **ALWAYS commit docs**: With detailed audit trail listing all task completions
 
 ---
 
