@@ -1,6 +1,6 @@
 # Tasks - Framework v6: Corrective Standardization
 
-**Status**: 16 of 63 tasks complete (25%)
+**Status**: 24 of 63 tasks complete (38%)
 **Last Updated**: 2026-03-27
 **Created**: 2026-03-25
 
@@ -259,135 +259,135 @@
 
 #### Task 3.1: Regenerate pki-ca Secrets (CRITICAL)
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 20m
-- **Actual**: -
+- **Actual**: 5m
 - **Dependencies**: Phase 1 (Decision 1)
 - **Description**: Regenerate ALL pki-ca secrets. Currently copy-pasted from sm-kms with `kms-` prefix and hardcoded hex. Generate unique random values with correct `pki-ca-` prefix pattern.
 - **Acceptance Criteria**:
-  - [ ] All 5 unseal secrets have `pki-ca-` prefix (not `kms-`)
-  - [ ] All hex values are unique (not `11111111...` through `55555555...`)
-  - [ ] postgres-database = `pki_ca_database`
-  - [ ] postgres-username = `pki_ca_database_user`
-  - [ ] postgres-url reflects corrected db/user values
-  - [ ] browser-username = `pki-ca-browser-user`
-  - [ ] service-username = `pki-ca-service-user`
-  - [ ] No values match sm-kms secrets
+  - [x] All 5 unseal secrets have `pki-ca-` prefix (not `kms-`)
+  - [x] All hex values are unique (not `11111111...` through `55555555...`)
+  - [x] postgres-database = `pki_ca_database`
+  - [x] postgres-username = `pki_ca_database_user`
+  - [x] postgres-url reflects corrected db/user values
+  - [x] browser-username = `pki-ca-browser-user`
+  - [x] service-username = `pki-ca-service-user`
+  - [x] No values match sm-kms secrets
 - **Files**:
   - `deployments/pki-ca/secrets/*.secret` (14 files)
 
 #### Task 3.2: Fix Unseal Prefixes for All 10 Services
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 30m
-- **Actual**: -
+- **Actual**: 5m
 - **Dependencies**: Phase 1 (Decision 1)
 - **Description**: Update unseal secret prefixes from SERVICE-only to PS-ID for all services (or per Decision 1 outcome).
 - **Acceptance Criteria**:
-  - [ ] identity-authz: prefix `identity-authz-` (was `authz-`)
-  - [ ] identity-idp: prefix `identity-idp-` (was `idp-`)
-  - [ ] identity-rp: prefix `identity-rp-` (was `rp-`)
-  - [ ] identity-rs: prefix `identity-rs-` (was `rs-`)
-  - [ ] identity-spa: prefix `identity-spa-` (was `spa-`)
-  - [ ] jose-ja: prefix `jose-ja-` (was `ja-`)
-  - [ ] pki-ca: handled in Task 3.1
-  - [ ] skeleton-template: prefix `skeleton-template-` (was `template-`)
-  - [ ] sm-im: prefix `sm-im-` (was `im-`)
-  - [ ] sm-kms: prefix `sm-kms-` (was `kms-`)
-  - [ ] Each service has 5 unique hex values (not copied from another service)
+  - [x] identity-authz: prefix `identity-authz-` (was `authz-`)
+  - [x] identity-idp: prefix `identity-idp-` (was `idp-`)
+  - [x] identity-rp: prefix `identity-rp-` (was `rp-`)
+  - [x] identity-rs: prefix `identity-rs-` (was `rs-`)
+  - [x] identity-spa: prefix `identity-spa-` (was `spa-`)
+  - [x] jose-ja: prefix `jose-ja-` (was `ja-`)
+  - [x] pki-ca: handled in Task 3.1
+  - [x] skeleton-template: prefix `skeleton-template-` (was `template-`)
+  - [x] sm-im: prefix `sm-im-` (was `im-`)
+  - [x] sm-kms: prefix `sm-kms-` (was `kms-`)
+  - [x] Each service has 5 unique hex values (not copied from another service)
 - **Files**:
   - `deployments/*/secrets/unseal-*of5.secret` (50 files across 10 services)
 
 #### Task 3.3: Fix Postgres Database Secrets for All 10 Services
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 15m
-- **Actual**: -
+- **Actual**: 5m
 - **Dependencies**: None
 - **Description**: Update postgres-database.secret values to include `_database` suffix per spec.
 - **Acceptance Criteria**:
-  - [ ] sm-im: `sm_im_database` (was `sm_im`)
-  - [ ] sm-kms: `sm_kms_database` (was unknown, likely `sm_kms`)
-  - [ ] pki-ca: `pki_ca_database` (was `ca_db`)
-  - [ ] jose-ja: `jose_ja_database` (was `jose_ja`)
-  - [ ] skeleton-template: `skeleton_template_database` (was `skeleton_template`)
-  - [ ] All 5 identity services follow same pattern
+  - [x] sm-im: `sm_im_database` (was `sm_im`)
+  - [x] sm-kms: `sm_kms_database` (was `cryptoutil_test`)
+  - [x] pki-ca: `pki_ca_database` (was `ca_db`)
+  - [x] jose-ja: `jose_ja_database` (was `jose_ja`)
+  - [x] skeleton-template: `skeleton_template_database` (was `skeleton_template`)
+  - [x] All 5 identity services follow same pattern
 - **Files**:
   - `deployments/*/secrets/postgres-database.secret` (10 files)
 
 #### Task 3.4: Fix Postgres Username Secrets for All 10 Services
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 15m
-- **Actual**: -
+- **Actual**: 5m
 - **Dependencies**: None
 - **Description**: Update postgres-username.secret values to include `_database_user` suffix per spec.
 - **Acceptance Criteria**:
-  - [ ] sm-im: `sm_im_database_user` (was `sm_im_user`)
-  - [ ] pki-ca: `pki_ca_database_user` (was `ca_user`)
-  - [ ] jose-ja: `jose_ja_database_user` (was `ja_user`)
-  - [ ] skeleton-template: `skeleton_template_database_user` (was `template_user`)
-  - [ ] All 5 identity services follow same pattern
+  - [x] sm-im: `sm_im_database_user` (was `sm_im_user`)
+  - [x] pki-ca: `pki_ca_database_user` (was `ca_user`)
+  - [x] jose-ja: `jose_ja_database_user` (was `ja_user`)
+  - [x] skeleton-template: `skeleton_template_database_user` (was `template_user`)
+  - [x] All 5 identity services follow same pattern
 - **Files**:
   - `deployments/*/secrets/postgres-username.secret` (10 files)
 
 #### Task 3.5: Fix Postgres URL Secrets for All 10 Services
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 15m
-- **Actual**: -
+- **Actual**: 5m
 - **Dependencies**: Tasks 3.3, 3.4
 - **Description**: Update postgres-url.secret to reflect corrected database and username values.
 - **Acceptance Criteria**:
-  - [ ] Each URL uses `{PS_ID}_database_user:{PS_ID}_database_pass@{PS-ID}-postgres:5432/{PS_ID}_database`
-  - [ ] No stale references to old db/user names
+  - [x] Each URL uses `{PS_ID}_database_user:{PS_ID}_database_pass@{PS-ID}-postgres:5432/{PS_ID}_database`
+  - [x] No stale references to old db/user names
 - **Files**:
   - `deployments/*/secrets/postgres-url.secret` (10 files)
 
 #### Task 3.6: Fix Postgres Password Secrets for All 10 Services
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 10m
-- **Actual**: -
+- **Actual**: 5m
 - **Dependencies**: None
 - **Description**: Verify/fix postgres-password.secret values match `{PS_ID}_database_pass-{base64}` pattern.
 - **Acceptance Criteria**:
-  - [ ] All 10 services use `{PS_ID}_database_pass-{base64}` pattern
+  - [x] All 10 services use `{PS_ID}_database_pass-{base64}` pattern
 - **Files**:
   - `deployments/*/secrets/postgres-password.secret` (10 files)
 
 #### Task 3.7: Fix Hash Pepper Secrets for All 10 Services
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 10m
-- **Actual**: -
+- **Actual**: 5m
 - **Dependencies**: None
 - **Description**: Verify/fix hash-pepper-v3.secret values match `{PS-ID}-hash-pepper-v3-{base64}` pattern.
 - **Acceptance Criteria**:
-  - [ ] All 10 services use `{PS-ID}-hash-pepper-v3-{base64}` pattern
+  - [x] All 10 services use `{PS-ID}-hash-pepper-v3-{base64}` pattern
 - **Files**:
   - `deployments/*/secrets/hash-pepper-v3.secret` (10 files)
 
 #### Task 3.8: Verify All Service Secrets Complete
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 15m
-- **Actual**: -
+- **Actual**: 5m
 - **Dependencies**: Tasks 3.1-3.7
 - **Description**: Cross-check every service secret against spec. Verify no duplicate values across services.
 - **Acceptance Criteria**:
-  - [ ] Each of 10 services has exactly 14 secret files
-  - [ ] No two services share any unseal hex values
-  - [ ] No two services share postgres credentials
-  - [ ] pki-ca values completely different from sm-kms
+  - [x] Each of 10 services has exactly 14 secret files
+  - [x] No two services share any unseal hex values
+  - [x] No two services share postgres credentials
+  - [x] pki-ca values completely different from sm-kms
 
 ### Phase 4: Fix Product-Level and Suite-Level Secret Values
 
