@@ -2683,63 +2683,63 @@ Architecture fitness functions are automated checks that enforce ARCHITECTURE.md
 
 | Sub-Linter | Rule Enforced |
 |-----------|--------------|
-| `cgo-free-sqlite` | Use `modernc.org/sqlite` not `mattn/go-sqlite3` (CGO banned) |
-| `circular-deps` | No circular imports between packages |
-| `cmd-main-pattern` | `cmd/*/main.go` must delegate to `internalMain()`, no logic |
-| `crypto-rand` | Use `crypto/rand`, NEVER `math/rand` |
-| `insecure-skip-verify` | No `InsecureSkipVerify: true` in production TLS config |
-| `migration-numbering` | Migration files must use `NNNN_name.up.sql` format |
-| `non-fips-algorithms` | No bcrypt, scrypt, argon2, MD5, SHA-1 |
-| `product-structure` | Product packages must follow PRODUCT/SERVICE hierarchy |
-| `product-wiring` | Product wiring must delegate to service entry points |
-| `service-structure` | Service packages must follow PRODUCT/SERVICE layout convention |
-| `bind-address-safety` | Tests bind to `127.0.0.1`, never `0.0.0.0` |
-| `no-hardcoded-passwords` | No hardcoded credentials in test files |
-| `parallel-tests` | All tests must call `t.Parallel()` (with `// Sequential:` exemption) |
-| `test-patterns` | Test file naming, table-driven structure compliance |
-| `check-skeleton-placeholders` | No skeleton placeholder text left in service code |
-| `cross-service-import-isolation` | Service packages must not import other service packages |
-| `domain-layer-isolation` | Domain layer must not import server/client/API packages |
-| `file-size-limits` | Files ≤500 lines (warning at >300, error at >500) |
-| `health-endpoint-presence` | Services must expose `/admin/api/v1/livez` and `/admin/api/v1/readyz` |
-| `tls-minimum-version` | TLS config must specify `tls.VersionTLS13` minimum |
 | `admin-bind-address` | Admin server must bind to `127.0.0.1:9090`, never `0.0.0.0` |
-| `service-contract-compliance` | Services must implement `ServiceServer` interface (`PublicBaseURL`, `AdminBaseURL`, `SetReady`) |
+| `archive-detector` | `_archived/`, `archived/`, `orphaned/` directories must not exist |
+| `banned-product-names` | Old product names (`Cipher IM`, `Cipher KMS`, etc.) banned from source |
+| `bind-address-safety` | Tests bind to `127.0.0.1`, never `0.0.0.0` |
+| `cgo-free-sqlite` | Use `modernc.org/sqlite` not `mattn/go-sqlite3` (CGO banned) |
+| `check-skeleton-placeholders` | No skeleton placeholder text left in service code |
+| `cicd-coverage` | `cicd-lint` sub-commands must have test coverage for registered linters/validators |
+| `circular-deps` | No circular imports between packages |
+| `cmd-anti-pattern` | `cmd/` directories must follow `cmd/{name}/main.go` pattern, no banned names |
+| `cmd-entry-whitelist` | Only 18 allowed `cmd/` entries (1 suite + 5 products + 10 services + 2 infra tools) |
+| `cmd-main-pattern` | `cmd/*/main.go` must delegate to `internalMain()`, no logic |
+| `compose-db-naming` | Compose DB service names must use `sqlite`/`postgres` not `pg` |
+| `compose-header-format` | Compose files must have canonical comment header |
+| `compose-service-names` | Compose service names must match `{ps-id}-{db}-N` pattern |
+| `configs-deployments-consistency` | Every `deployments/{PS-ID}/` must have matching `configs/{PS-ID}/` |
+| `configs-empty-dir` | `configs/` directories must not be empty (require `.gitkeep` or files) |
+| `configs-naming` | `configs/` directories must follow flat `configs/{PS-ID}/` pattern from entity registry |
+| `configs-no-deployment` | No deployment variants (`*-pg-*.yml`, `*-sqlite-*.yml`) or environment files (`development.yml`, `production.yml`, `test.yml`) in `configs/` |
+| `configs-structure` | `configs/` must follow flat `{SUITE}/`, `{PRODUCT}/`, `{PS-ID}/` hierarchy |
+| `cross-service-import-isolation` | Service packages must not import other service packages |
+| `crypto-rand` | Use `crypto/rand`, NEVER `math/rand` |
+| `deployment-dir-completeness` | Every PS must have Dockerfile, compose.yml, secrets/, and config/ |
+| `dockerfile-labels` | Dockerfile `org.opencontainers.image.title` LABEL matches deployment tier; `image.description` is non-empty |
+| `domain-layer-isolation` | Domain layer must not import server/client/API packages |
+| `entity-registry-completeness` | All PS in registry must have required magic constants |
+| `file-size-limits` | Files ≤500 lines (warning at >300, error at >500) |
+| `gen-config-initialisms` | Config field names must use correct Go initialisms |
+| `health-endpoint-presence` | Services must expose `/admin/api/v1/livez` and `/admin/api/v1/readyz` |
+| `insecure-skip-verify` | No `InsecureSkipVerify: true` in production TLS config |
+| `legacy-dir-detection` | Legacy directories (`internal/apps/cipher/`) must not exist |
+| `magic-e2e-compose-path` | `*E2EComposePath` constants must point to existing compose files |
+| `magic-e2e-container-names` | `*E2ESQLiteContainer`/`*E2EPostgresContainer` constants must match compose names |
+| `migration-comment-headers` | Domain migrations (2001+) first comment must be `{DisplayName} database schema` |
+| `migration-numbering` | Migration files must use `NNNN_name.up.sql` format |
 | `migration-range-compliance` | Template migrations use 1001-1999; domain migrations use 2001+ |
+| `no-hardcoded-passwords` | No hardcoded credentials in test files |
 | `no-local-closed-db-helper` | No local `closedDB` helper — use shared test utility |
+| `non-fips-algorithms` | No bcrypt, scrypt, argon2, MD5, SHA-1 |
 | `no-postgres-in-non-e2e` | PostgreSQL must not appear in non-E2E test files |
 | `no-unit-test-real-db` | Unit tests must use in-memory SQLite, never real DB |
 | `no-unit-test-real-server` | Unit tests must use `app.Test()`, never real server |
-| `gen-config-initialisms` | Config field names must use correct Go initialisms |
+| `otlp-service-name-pattern` | OTLP service names must match `{ps-id}-{db}-N` pattern |
+| `parallel-tests` | All tests must call `t.Parallel()` (with `// Sequential:` exemption) |
+| `product-structure` | Product packages must follow PRODUCT/SERVICE hierarchy |
+| `product-wiring` | Product wiring must delegate to service entry points |
 | `require-api-dir` | Services must have an `api/` directory |
 | `require-framework-naming` | Framework packages must use canonical naming conventions |
-| `otlp-service-name-pattern` | OTLP service names must match `{ps-id}-{db}-N` pattern |
-| `entity-registry-completeness` | All PS in registry must have required magic constants |
-| `banned-product-names` | Old product names (`Cipher IM`, `Cipher KMS`, etc.) banned from source |
-| `legacy-dir-detection` | Legacy directories (`internal/apps/cipher/`) must not exist |
-| `deployment-dir-completeness` | Every PS must have Dockerfile, compose.yml, secrets/, and config/ |
-| `compose-header-format` | Compose files must have canonical comment header |
-| `compose-service-names` | Compose service names must match `{ps-id}-{db}-N` pattern |
-| `compose-db-naming` | Compose DB service names must use `sqlite`/`postgres` not `pg` |
-| `magic-e2e-container-names` | `*E2ESQLiteContainer`/`*E2EPostgresContainer` constants must match compose names |
-| `magic-e2e-compose-path` | `*E2EComposePath` constants must point to existing compose files |
-| `standalone-config-presence` | All PS must have 5 config overlay files: `{PS-ID}-app-common.yml`, `{PS-ID}-app-sqlite-1.yml`, `{PS-ID}-app-sqlite-2.yml`, `{PS-ID}-app-postgresql-1.yml`, `{PS-ID}-app-postgresql-2.yml` |
-| `standalone-config-otlp-names` | Config file `otlp-service` values must match `{ps-id}-{db}-N` pattern |
-| `migration-comment-headers` | Domain migrations (2001+) first comment must be `{DisplayName} database schema` |
-| `cicd-coverage` | `cicd-lint` sub-commands must have test coverage for registered linters/validators |
-| `archive-detector` | `_archived/`, `archived/`, `orphaned/` directories must not exist |
-| `configs-naming` | `configs/` directories must follow flat `configs/{PS-ID}/` pattern from entity registry |
-| `cmd-anti-pattern` | `cmd/` directories must follow `cmd/{name}/main.go` pattern, no banned names |
-| `configs-empty-dir` | `configs/` directories must not be empty (require `.gitkeep` or files) |
-| `configs-deployments-consistency` | Every `deployments/{PS-ID}/` must have matching `configs/{PS-ID}/` |
 | `root-junk-detection` | No `*.exe`, `*.py`, `coverage*`, `*.test.exe` at project root |
-| `cmd-entry-whitelist` | Only 18 allowed `cmd/` entries (1 suite + 5 products + 10 services + 2 infra tools) |
-| `configs-structure` | `configs/` must follow flat `{SUITE}/`, `{PRODUCT}/`, `{PS-ID}/` hierarchy |
-| `configs-no-deployment` | No deployment variants (`*-pg-*.yml`, `*-sqlite-*.yml`) or environment files (`development.yml`, `production.yml`, `test.yml`) in `configs/` |
 | `secret-naming` | All tiers use `{purpose}.secret` filenames; `.secret.never` markers enforced at product/suite tiers |
-| `unseal-secret-content` | Unseal secret values match `{TIER-PREFIX}-unseal-key-N-of-5-{hex-random-32-bytes}` (64 lowercase hex chars, unique per shard, tier prefix matches deployment directory) |
+| `service-contract-compliance` | Services must implement `ServiceServer` interface (`PublicBaseURL`, `AdminBaseURL`, `SetReady`) |
+| `service-structure` | Service packages must follow PRODUCT/SERVICE layout convention |
+| `standalone-config-otlp-names` | Config file `otlp-service` values must match `{ps-id}-{db}-N` pattern |
+| `standalone-config-presence` | All PS must have 5 config overlay files: `{PS-ID}-app-common.yml`, `{PS-ID}-app-sqlite-1.yml`, `{PS-ID}-app-sqlite-2.yml`, `{PS-ID}-app-postgresql-1.yml`, `{PS-ID}-app-postgresql-2.yml` |
 | `template-consistency` | `deployments/skeleton-template/` uses hyphenated secret names (not underscores) |
-| `dockerfile-labels` | Dockerfile `org.opencontainers.image.title` LABEL matches deployment tier; `image.description` is non-empty |
+| `test-patterns` | Test file naming, table-driven structure compliance |
+| `tls-minimum-version` | TLS config must specify `tls.VersionTLS13` minimum |
+| `unseal-secret-content` | Unseal secret values match `{TIER-PREFIX}-unseal-key-N-of-5-{hex-random-32-bytes}` (64 lowercase hex chars, unique per shard, tier prefix matches deployment directory) |
 
 #### 9.11.2 Entity Registry
 
@@ -2760,8 +2760,6 @@ Architecture fitness functions are automated checks that enforce ARCHITECTURE.md
 **Current registry**: 5 products, 10 product-services
 
 #### 9.11.3 Naming Convention Catalog
-
-All naming conventions enforced by `lint-fitness` are fully parameterized in this section. It defines the exact formula for every file, directory, compose service, config, and migration naming pattern.
 
 **Key conventions**:
 - Compose service names: `{ps-id}-{db}-N` (e.g. `sm-im-postgres-1`)
