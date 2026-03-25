@@ -67,7 +67,7 @@ quality gates, Phase 8 knowledge propagation.
 
 **Sub-phases**:
 1. Update stale ❌ task status fields in framework-v1/tasks.md (packages exist, just not marked)
-2. Run Phase 7 quality gates: `go test ./...`, coverage, lint-fitness  
+2. Run Phase 7 quality gates: `go test ./...`, coverage, lint-fitness
 3. Complete Phase 8: ARCHITECTURE.md updates (lint-fitness, shared test infra)
 4. Verify Phase 8: skills (contract-test-gen ✅, fitness-function-gen ✅), agents (updated this session ✅)
 5. Final framework-v1 commit and mark plan complete
