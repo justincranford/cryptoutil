@@ -339,7 +339,7 @@ func TestParse_EnvironmentVariables(t *testing.T) {
 	// Verify environment variables were loaded
 	require.Equal(t, "DEBUG", s.LogLevel)
 	require.True(t, s.DevMode)
-	require.Equal(t, uint16(cryptoutilSharedMagic.DemoServerPort), s.BindPublicPort)
+	require.Equal(t, uint16(cryptoutilSharedMagic.TestServerPort), s.BindPublicPort)
 	require.Equal(t, "postgres://env:pass@envdb:5432/envdb?sslmode=require", s.DatabaseURL)
 }
 

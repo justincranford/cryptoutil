@@ -35,7 +35,7 @@ func TestOpenPostgreSQL(t *testing.T) {
 func TestListener_Start_NilContext(t *testing.T) {
 	t.Parallel()
 
-	publicServer := &mockPublicServer{port: cryptoutilSharedMagic.DemoServerPort}
+	publicServer := &mockPublicServer{port: cryptoutilSharedMagic.TestServerPort}
 	adminServer := &mockAdminServer{port: cryptoutilSharedMagic.JoseJAAdminPort}
 
 	listener := &Listener{
@@ -66,7 +66,7 @@ func TestListener_Start_PublicServerError(t *testing.T) {
 
 	// Create mock server that fails immediately.
 	publicServer := &mockPublicServer{
-		port:     cryptoutilSharedMagic.DemoServerPort,
+		port:     cryptoutilSharedMagic.TestServerPort,
 		startErr: fmt.Errorf("mock public server error"),
 	}
 	adminServer := &mockAdminServer{port: cryptoutilSharedMagic.JoseJAAdminPort}
@@ -104,7 +104,7 @@ func TestListener_Start_AdminServerError(t *testing.T) {
 		LogLevel:     cryptoutilSharedMagic.DefaultLogLevelInfo,
 	}
 
-	publicServer := &mockPublicServer{port: cryptoutilSharedMagic.DemoServerPort}
+	publicServer := &mockPublicServer{port: cryptoutilSharedMagic.TestServerPort}
 	// Create mock server that fails immediately.
 	adminServer := &mockAdminServer{
 		port:     cryptoutilSharedMagic.JoseJAAdminPort,
@@ -146,7 +146,7 @@ func TestListener_Start_ContextCancelled(t *testing.T) {
 	// Create servers that block until cancelled.
 	startDone := make(chan struct{})
 	publicServer := &mockPublicServer{
-		port:      cryptoutilSharedMagic.DemoServerPort,
+		port:      cryptoutilSharedMagic.TestServerPort,
 		startDone: startDone,
 	}
 	adminServer := &mockAdminServer{

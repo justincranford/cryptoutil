@@ -37,11 +37,6 @@ func RequireNewForTest(applicationName string) *ServiceFrameworkServerSettings {
 		panic("devMode.value must be bool")
 	}
 
-	demoModeValue, ok := demoMode.Value.(bool)
-	if !ok {
-		panic("demoMode.value must be bool")
-	}
-
 	bindPublicProtocolValue, ok := bindPublicProtocol.Value.(string)
 	if !ok {
 		panic("bindPublicProtocol.value must be string")
@@ -318,8 +313,6 @@ func RequireNewForTest(applicationName string) *ServiceFrameworkServerSettings {
 		LogLevel:                    logLevelValue,
 		VerboseMode:                 verboseModeValue,
 		DevMode:                     devModeValue,
-		DemoMode:                    demoModeValue,
-		ResetDemoMode:               false, // Default to false for tests
 		BindPublicProtocol:          bindPublicProtocolValue,
 		BindPublicAddress:           bindPublicAddressValue,
 		BindPublicPort:              uint16(0), // Let OS assign port to avoid conflict during parallel testing

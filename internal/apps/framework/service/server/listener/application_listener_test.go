@@ -315,7 +315,7 @@ type mockPublicServerImpl struct{}
 
 func (m *mockPublicServerImpl) Start(_ context.Context) error    { return nil }
 func (m *mockPublicServerImpl) Shutdown(_ context.Context) error { return nil }
-func (m *mockPublicServerImpl) ActualPort() int                  { return cryptoutilSharedMagic.DemoServerPort }
+func (m *mockPublicServerImpl) ActualPort() int                  { return cryptoutilSharedMagic.TestServerPort }
 func (m *mockPublicServerImpl) PublicBaseURL() string            { return "https://127.0.0.1:8080" }
 
 // mockAdminServerImpl implements IAdminServer for testing.

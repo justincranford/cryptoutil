@@ -40,8 +40,8 @@ func newTestHTTPClient() *http.Client {
 // TestUserRegistration_TriggerUserFactory tests user registration via HTTP to cover
 // the userFactory closure in public_server.go.
 // Two sequential registrations cover both branches:
-//  1. First registration: creates demo tenant (demoTenantID == nil path).
-//  2. Second registration: reuses existing demo tenant (demoTenantID != nil path).
+//  1. First registration: creates auto tenant (autoTenantID == nil path).
+//  2. Second registration: reuses existing auto tenant (autoTenantID != nil path).
 func TestUserRegistration_TriggerUserFactory(t *testing.T) {
 	t.Parallel()
 
@@ -51,8 +51,8 @@ func TestUserRegistration_TriggerUserFactory(t *testing.T) {
 	tests := []struct {
 		name string
 	}{
-		{name: "first registration creates demo tenant"},
-		{name: "second registration reuses demo tenant"},
+		{name: "first registration creates auto tenant"},
+		{name: "second registration reuses auto tenant"},
 	}
 
 	// Sequential execution required: second test depends on first setting demoTenantID.

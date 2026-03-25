@@ -6,14 +6,13 @@
 # Supports 3 instances: 1 SQLite + 2 PostgreSQL.
 #
 # Port allocation:
-#   - sm-kms-app-sqlite-1:    18000 (SQLite, dev/demo/ci)
+#   - sm-kms-app-sqlite-1:    18000 (SQLite, dev/ci)
 #   - sm-kms-app-postgres-1:  18001 (PostgreSQL instance 1)
 #   - sm-kms-app-postgres-2:  18002 (PostgreSQL instance 2)
 #
 # Usage:
 #   docker compose -f compose.yml up -d                        # SQLite (default: dev profile)
 #   docker compose -f compose.yml --profile postgres up -d     # All instances
-#   docker compose -f compose.yml --profile demo up -d         # Demo mode
 #   docker compose -f compose.yml --profile ci up -d           # CI mode
 #   docker compose -f compose.yml logs -f                      # View logs
 #   docker compose -f compose.yml down -v                      # Stop and clean up
@@ -103,9 +102,9 @@ services:
         reservations:
           memory: 256M
 
-  # KMS server with SQLite backend (dev/demo/ci mode).
+  # KMS server with SQLite backend (dev/ci mode).
   sm-kms-app-sqlite-1:
-    profiles: ["dev", "demo", "ci"]
+    profiles: ["dev", "ci"]
     image: cryptoutil:dev
     command: ["sm", "kms", "server", "--bind-public-port=8080", "--config=/app/config/sm-kms-app-sqlite-1.yml", "--config=/app/config/sm-kms-app-common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp

@@ -47,7 +47,7 @@ func TestHandleLogin_GET(t *testing.T) {
 		IDP: &cryptoutilIdentityConfig.ServerConfig{
 			Name:        cryptoutilSharedMagic.IDPServiceName,
 			BindAddress: cryptoutilSharedMagic.IPv4Loopback,
-			Port:        cryptoutilSharedMagic.DemoServerPort,
+			Port:        cryptoutilSharedMagic.TestServerPort,
 			TLSEnabled:  true,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{
@@ -126,7 +126,7 @@ func TestHandleLoginSubmit_POST(t *testing.T) {
 		IDP: &cryptoutilIdentityConfig.ServerConfig{
 			Name:        cryptoutilSharedMagic.IDPServiceName,
 			BindAddress: cryptoutilSharedMagic.IPv4Loopback,
-			Port:        cryptoutilSharedMagic.DemoServerPort,
+			Port:        cryptoutilSharedMagic.TestServerPort,
 			TLSEnabled:  true,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{

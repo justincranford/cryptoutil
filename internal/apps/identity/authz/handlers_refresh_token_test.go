@@ -75,7 +75,7 @@ func TestHandleRefreshTokenGrant_ErrorPaths(t *testing.T) {
 				client := &cryptoutilIdentityDomain.Client{
 					ClientID:                "test-client-" + googleUuid.NewString(),
 					ClientSecret:            "test-secret",
-					Name:                    "Test Client",
+					Name:                    cryptoutilSharedMagic.TestClientName,
 					AllowedScopes:           []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
 					ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 					TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
@@ -116,7 +116,7 @@ func TestHandleRefreshTokenGrant_ErrorPaths(t *testing.T) {
 				client := &cryptoutilIdentityDomain.Client{
 					ClientID:                "test-client-" + googleUuid.NewString(),
 					ClientSecret:            "test-secret",
-					Name:                    "Test Client",
+					Name:                    cryptoutilSharedMagic.TestClientName,
 					AllowedScopes:           []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
 					ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 					TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
@@ -160,7 +160,7 @@ func TestHandleRefreshTokenGrant_ErrorPaths(t *testing.T) {
 				client := &cryptoutilIdentityDomain.Client{
 					ClientID:                "test-client-" + googleUuid.NewString(),
 					ClientSecret:            "test-secret",
-					Name:                    "Test Client",
+					Name:                    cryptoutilSharedMagic.TestClientName,
 					AllowedScopes:           []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
 					ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 					TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,

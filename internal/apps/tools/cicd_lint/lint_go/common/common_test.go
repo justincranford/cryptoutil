@@ -247,7 +247,7 @@ func TestMagicShouldSkipPath(t *testing.T) {
 		{name: "underscore dir (service archive)", path: "internal/apps/identity/_authz-archived/server.go", expected: true},
 		{name: "underscore dir (pki ca archive)", path: "internal/apps/pki/_ca-archived/domain/cert.go", expected: true},
 		// Go build convention: files starting with _ are ignored by go tools.
-		{name: "underscore file", path: "internal/apps/demo/_identity.go", expected: true},
+		{name: "underscore file", path: "internal/apps/skeleton/_template.go", expected: true},
 		// Dot-prefixed directories are also excluded.
 		{name: "dot dir", path: ".github/workflows/ci.yml", expected: true},
 		// Relative root "." and empty string are NOT excluded (they are path separators, not directory names).

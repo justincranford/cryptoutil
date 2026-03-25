@@ -177,8 +177,6 @@ type ServiceFrameworkServerSettings struct {
 	LogLevel                    string
 	VerboseMode                 bool
 	DevMode                     bool
-	DemoMode                    bool
-	ResetDemoMode               bool
 	DryRun                      bool
 	Profile                     string // Configuration profile: dev, stg, prod, test
 	BindPublicProtocol          string

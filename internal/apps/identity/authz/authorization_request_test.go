@@ -27,7 +27,7 @@ func TestInMemoryAuthorizationRequestStore_StoreAndGet(t *testing.T) {
 	request := &cryptoutilIdentityAuthz.AuthorizationRequest{
 		RequestID:    requestID,
 		ClientID:     "test-client",
-		RedirectURI:  cryptoutilSharedMagic.DemoRedirectURI,
+		RedirectURI:  cryptoutilSharedMagic.TestRedirectURI,
 		ResponseType: cryptoutilSharedMagic.ResponseTypeCode,
 		Scope:        "openid profile",
 		State:        "state123",
@@ -56,7 +56,7 @@ func TestInMemoryAuthorizationRequestStore_GetByCode(t *testing.T) {
 	request := &cryptoutilIdentityAuthz.AuthorizationRequest{
 		RequestID:    requestID,
 		ClientID:     "test-client",
-		RedirectURI:  cryptoutilSharedMagic.DemoRedirectURI,
+		RedirectURI:  cryptoutilSharedMagic.TestRedirectURI,
 		ResponseType: cryptoutilSharedMagic.ResponseTypeCode,
 		Code:         code,
 		CreatedAt:    time.Now().UTC(),
@@ -83,7 +83,7 @@ func TestInMemoryAuthorizationRequestStore_Update(t *testing.T) {
 	request := &cryptoutilIdentityAuthz.AuthorizationRequest{
 		RequestID:    requestID,
 		ClientID:     "test-client",
-		RedirectURI:  cryptoutilSharedMagic.DemoRedirectURI,
+		RedirectURI:  cryptoutilSharedMagic.TestRedirectURI,
 		ResponseType: cryptoutilSharedMagic.ResponseTypeCode,
 		CreatedAt:    time.Now().UTC(),
 		ExpiresAt:    time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),
@@ -114,7 +114,7 @@ func TestInMemoryAuthorizationRequestStore_Delete(t *testing.T) {
 	request := &cryptoutilIdentityAuthz.AuthorizationRequest{
 		RequestID:    requestID,
 		ClientID:     "test-client",
-		RedirectURI:  cryptoutilSharedMagic.DemoRedirectURI,
+		RedirectURI:  cryptoutilSharedMagic.TestRedirectURI,
 		ResponseType: cryptoutilSharedMagic.ResponseTypeCode,
 		Code:         code,
 		CreatedAt:    time.Now().UTC(),
@@ -145,7 +145,7 @@ func TestInMemoryAuthorizationRequestStore_ExpiredRequest(t *testing.T) {
 	request := &cryptoutilIdentityAuthz.AuthorizationRequest{
 		RequestID:    requestID,
 		ClientID:     "test-client",
-		RedirectURI:  cryptoutilSharedMagic.DemoRedirectURI,
+		RedirectURI:  cryptoutilSharedMagic.TestRedirectURI,
 		ResponseType: cryptoutilSharedMagic.ResponseTypeCode,
 		CreatedAt:    time.Now().UTC().Add(-cryptoutilSharedMagic.MaxErrorDisplay * time.Minute),
 		ExpiresAt:    time.Now().UTC().Add(-cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute), // Expired.
@@ -187,7 +187,7 @@ func TestInMemoryAuthorizationRequestStore_UpdateNonExistent(t *testing.T) {
 	nonExistentRequest := &cryptoutilIdentityAuthz.AuthorizationRequest{
 		RequestID:    googleUuid.New(),
 		ClientID:     "test-client",
-		RedirectURI:  cryptoutilSharedMagic.DemoRedirectURI,
+		RedirectURI:  cryptoutilSharedMagic.TestRedirectURI,
 		ResponseType: cryptoutilSharedMagic.ResponseTypeCode,
 		CreatedAt:    time.Now().UTC(),
 		ExpiresAt:    time.Now().UTC().Add(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute),

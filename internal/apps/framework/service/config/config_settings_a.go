@@ -45,20 +45,7 @@ var (
 		Usage:       "run in development mode; enables in-memory SQLite",
 		Description: "Dev mode",
 	})
-	demoMode = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
-		Name:        "demo",
-		Shorthand:   "X",
-		Value:       cryptoutilSharedMagic.DefaultDemoMode,
-		Usage:       "run in demo mode; auto-seeds demo data on startup",
-		Description: "Demo mode",
-	})
-	resetDemoMode = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
-		Name:        "reset-demo",
-		Shorthand:   "g",
-		Value:       cryptoutilSharedMagic.DefaultResetDemoMode,
-		Usage:       "reset demo mode; clears and re-seeds demo data on startup",
-		Description: "Reset demo mode",
-	})
+
 	dryRun = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
 		Name:        "dry-run",
 		Shorthand:   "Y",

@@ -47,7 +47,7 @@ func TestNullableUUID_SQLiteIntegration(t *testing.T) {
 		ID:                      googleUuid.Must(googleUuid.NewV7()),
 		ClientID:                "test-client",
 		ClientType:              "confidential",
-		Name:                    "Test Client",
+		Name:                    cryptoutilSharedMagic.TestClientName,
 		TokenEndpointAuthMethod: cryptoutilSharedMagic.ClientAuthMethodSecretPost,
 	}
 

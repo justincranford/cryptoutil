@@ -9,14 +9,14 @@ import "time"
 // TestCleartext - Standard test cleartext for encryption/decryption tests.
 var TestCleartext = "Hello, World!"
 
-// Demo CLI constants (Session 3 Q11-15, Session 5 Q1, Q15).
+// Test execution constants.
 const (
-	// DefaultDemoTimeout - Overall timeout for demo execution.
-	DefaultDemoTimeout = 5 * time.Minute
-	// DefaultDemoRetryCount - Number of retries for failed demo operations.
-	DefaultDemoRetryCount = 3
-	// DefaultDemoRetryDelay - Delay between retry attempts.
-	DefaultDemoRetryDelay = 1 * time.Second
+	// DefaultTestExecutionTimeout - Overall timeout for test execution.
+	DefaultTestExecutionTimeout = 5 * time.Minute
+	// DefaultTestRetryCount - Number of retries for failed test operations.
+	DefaultTestRetryCount = 3
+	// DefaultTestRetryDelay - Delay between retry attempts.
+	DefaultTestRetryDelay = 1 * time.Second
 	// DefaultServerStartupDelay - Delay to allow server to start.
 	DefaultServerStartupDelay = 500 * time.Millisecond
 	// DefaultHealthCheckInterval - Interval between health check polls.

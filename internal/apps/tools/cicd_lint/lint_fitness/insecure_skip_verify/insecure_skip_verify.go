@@ -78,8 +78,6 @@ func FindInsecureSkipVerifyViolationsInDir(rootDir string) ([]lintGoCommon.Crypt
 		if strings.Contains(normalizedPath, "/testing/") ||
 			strings.Contains(normalizedPath, "/testutil/") ||
 			strings.Contains(normalizedPath, "/test/") ||
-			strings.Contains(normalizedPath, "/demo/") ||
-
 			strings.Contains(normalizedPath, "lint_go/") ||
 			strings.Contains(normalizedPath, "lint_fitness/") {
 			return nil

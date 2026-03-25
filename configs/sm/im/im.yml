@@ -5,7 +5,7 @@
 service:
   name: "sm-im"
   description: >-
-    Educational instant messaging service demonstrating service template
+    Educational instant messaging service using the service template
     patterns
   version: "1.0.0"
 

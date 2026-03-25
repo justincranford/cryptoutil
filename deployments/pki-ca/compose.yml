@@ -6,7 +6,7 @@
 # Supports 3 instances: 1 SQLite + 2 PostgreSQL.
 #
 # Port allocation (SERVICE level: 8100-8199):
-#   - pki-ca-app-sqlite-1:    8100 (SQLite, dev/demo/ci)
+#   - pki-ca-app-sqlite-1:    8100 (SQLite, dev/ci)
 #   - pki-ca-app-postgres-1:  8101 (PostgreSQL instance 1) [--profile postgres]
 #   - pki-ca-app-postgres-2:  8102 (PostgreSQL instance 2) [--profile postgres]
 #   - pki-ca-db-postgres-1:   5432 (PostgreSQL database) [--profile postgres]
@@ -14,7 +14,6 @@
 # Usage:
 #   docker compose -f compose.yml up -d                        # SQLite (default: dev profile)
 #   docker compose -f compose.yml --profile postgres up -d     # All instances
-#   docker compose -f compose.yml --profile demo up -d         # Demo mode
 #   docker compose -f compose.yml --profile ci up -d           # CI mode
 #   docker compose -f compose.yml logs -f                      # View logs
 #   docker compose -f compose.yml down -v                      # Stop and clean up
@@ -98,9 +97,9 @@ services:
         reservations:
           memory: 256M
 
-  # pki-ca server with SQLite backend (dev/demo/ci mode).
+  # pki-ca server with SQLite backend (dev/ci mode).
   pki-ca-app-sqlite-1:
-    profiles: ["dev", "demo", "ci"]
+    profiles: ["dev", "ci"]
     image: cryptoutil:dev
     command: ["server", "--bind-public-port=8080", "--config=/app/config/pki-ca-app-sqlite-1.yml", "--config=/app/config/pki-ca-app-common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp

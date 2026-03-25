@@ -52,8 +52,8 @@ func (m *mockServer) Start(_ context.Context) error {
 
 	m.mu.Lock()
 	m.startCalled = true
-	m.publicPort = cryptoutilSharedMagic.DemoServerPort
-	m.adminPort = cryptoutilSharedMagic.DemoAdminPort
+	m.publicPort = cryptoutilSharedMagic.TestServerPort
+	m.adminPort = cryptoutilSharedMagic.TestAdminPort
 	m.mu.Unlock()
 
 	return nil
@@ -241,8 +241,8 @@ func TestStartAndWait_PortsReady(t *testing.T) {
 
 	cryptoutilTestingTestserver.StartAndWait(ctx, t, srv)
 
-	require.Equal(t, cryptoutilSharedMagic.DemoServerPort, srv.PublicPort())
-	require.Equal(t, cryptoutilSharedMagic.DemoAdminPort, srv.AdminPort())
+	require.Equal(t, cryptoutilSharedMagic.TestServerPort, srv.PublicPort())
+	require.Equal(t, cryptoutilSharedMagic.TestAdminPort, srv.AdminPort())
 }
 
 func TestStartAndWait_StartError(t *testing.T) {

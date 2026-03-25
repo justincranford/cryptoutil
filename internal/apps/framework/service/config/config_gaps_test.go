@@ -40,7 +40,7 @@ bind-private-port: 9090
 	require.NotNil(t, settings)
 	require.True(t, settings.DevMode)
 	require.Equal(t, cryptoutilSharedMagic.IPv4Loopback, settings.BindPublicAddress)
-	require.Equal(t, uint16(cryptoutilSharedMagic.DemoServerPort), settings.BindPublicPort)
+	require.Equal(t, uint16(cryptoutilSharedMagic.TestServerPort), settings.BindPublicPort)
 }
 
 // TestNewFromFile_FileNotFound tests behavior when config file does not exist.
@@ -238,7 +238,7 @@ func TestGetTLSPEMBytes_ValidBase64(t *testing.T) {
 func TestNewTestConfig_DevMode(t *testing.T) {
 	t.Parallel()
 
-	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, cryptoutilSharedMagic.DemoServerPort, true)
+	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, cryptoutilSharedMagic.TestServerPort, true)
 	require.NotNil(t, cfg)
 	require.True(t, cfg.DevMode)
 	require.Contains(t, cfg.DatabaseURL, cryptoutilSharedMagic.SQLiteMemoryPlaceholder)
@@ -248,7 +248,7 @@ func TestNewTestConfig_DevMode(t *testing.T) {
 func TestNewTestConfig_ProdMode(t *testing.T) {
 	t.Parallel()
 
-	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, cryptoutilSharedMagic.DemoServerPort, false)
+	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, cryptoutilSharedMagic.TestServerPort, false)
 	require.NotNil(t, cfg)
 	require.False(t, cfg.DevMode)
 	require.Contains(t, cfg.DatabaseURL, "postgres://")

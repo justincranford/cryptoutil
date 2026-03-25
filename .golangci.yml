@@ -275,8 +275,6 @@ linters:
           alias: cryptoutilCmdCicdLintWorkflow
         - pkg: "cryptoutil/internal/cmd/sm"
           alias: cryptoutilCmdSM
-        - pkg: "cryptoutil/internal/cmd/demo"
-          alias: cryptoutilCmdDemo
         - pkg: "cryptoutil/internal/cmd/cryptoutil/authz"
           alias: cryptoutilCmdCryptoutilAuthz
         - pkg: "cryptoutil/internal/cmd/cryptoutil/ca"
@@ -377,8 +375,6 @@ linters:
         # Cryptoutil infra
         - pkg: "cryptoutil/internal/infra/tls"
           alias: cryptoutilTLS
-        - pkg: "cryptoutil/internal/infra/demo"
-          alias: cryptoutilDemo
         # Cryptoutil crypto
         - pkg: "cryptoutil/internal/common/crypto/asn1"
           alias: cryptoutilAsn1
@@ -415,8 +411,6 @@ linters:
           alias: cryptoutilKmsClient
         - pkg: "cryptoutil/internal/apps/sm/kms/server/businesslogic"
           alias: cryptoutilKmsServerBusinesslogic
-        - pkg: "cryptoutil/internal/apps/sm/kms/server/demo"
-          alias: cryptoutilKmsServerDemo
         - pkg: "cryptoutil/internal/apps/sm/kms/server/handler"
           alias: cryptoutilKmsServerHandler
         # Cryptoutil template

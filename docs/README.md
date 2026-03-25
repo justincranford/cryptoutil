@@ -512,11 +512,11 @@ This system is well-suited for:
 
    Open `https://localhost:8000/ui/swagger/` in your browser.
 
-3. **Authenticate with demo credentials:**
-   - Username: `demo`
-   - Password: `demo-password`
+3. **Authenticate with test credentials:**
+   - Username: `admin`
+   - Password: `admin-password`
 
-### Demo Flow: Key Pool → Key → Encrypt → Decrypt
+### Walkthrough: Key Pool → Key → Encrypt → Decrypt
 
 #### Step 1: Create a Key Pool
 
@@ -527,7 +527,7 @@ This system is well-suited for:
    ```json
    {
      "algorithm": "A256GCM",
-     "name": "demo-encryption-pool"
+     "name": "test-encryption-pool"
    }
    ```
 
@@ -596,7 +596,7 @@ The Swagger UI automatically handles CSRF tokens:
 | Issue | Solution |
 |-------|----------|
 | Connection refused | Ensure Docker containers are running: `docker compose ps` |
-| 401 Unauthorized | Verify demo credentials: `demo` / `demo-password` |
+| 401 Unauthorized | Verify test credentials: `admin` / `admin-password` |
 | 403 Forbidden | CSRF token expired; refresh the page |
 | Certificate error | Add `--insecure` flag in curl, or accept certificate in browser |
 | TLS handshake error | Ensure TLS 1.3 is supported by your client |

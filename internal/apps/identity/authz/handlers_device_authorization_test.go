@@ -261,7 +261,7 @@ func createTestClientForDevice(ctx context.Context, t *testing.T, repoFactory *c
 		ClientSecret:            "$2a$10$examplehashedvalue",
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                    "Test Device Client",
-		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
+		RedirectURIs:            []string{cryptoutilSharedMagic.TestRedirectURI},
 		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail},
 		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode, cryptoutilSharedMagic.GrantTypeDeviceCode},
 		AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},

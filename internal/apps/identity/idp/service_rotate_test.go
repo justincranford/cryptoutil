@@ -44,7 +44,7 @@ func TestService_RotateClientSecret_Success(t *testing.T) {
 		ClientID:     "test-rotate-client",
 		ClientSecret: "original-secret-hash",
 		Name:         "Test Rotate Client",
-		RedirectURIs: []string{cryptoutilSharedMagic.DemoRedirectURI},
+		RedirectURIs: []string{cryptoutilSharedMagic.TestRedirectURI},
 	}
 
 	err = clientRepo.Create(ctx, testClient)

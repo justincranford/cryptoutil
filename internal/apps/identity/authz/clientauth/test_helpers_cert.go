@@ -12,6 +12,8 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -55,7 +57,7 @@ func createTestClientCertForAuth(t *testing.T, caCert *x509.Certificate, caKey *
 	template := &x509.Certificate{
 		SerialNumber: big.NewInt(2),
 		Subject: pkix.Name{
-			CommonName: "Test Client",
+			CommonName: cryptoutilSharedMagic.TestClientName,
 		},
 		NotBefore: time.Now().UTC().Add(-1 * time.Hour),
 		NotAfter:  time.Now().UTC().Add(testCertValidityHours * time.Hour),

@@ -28,7 +28,7 @@ func TestAuthorizationRequestStore_CRUD(t *testing.T) {
 	authRequest := &AuthorizationRequest{
 		RequestID:           requestID,
 		ClientID:            "test_client",
-		RedirectURI:         cryptoutilSharedMagic.DemoRedirectURI,
+		RedirectURI:         cryptoutilSharedMagic.TestRedirectURI,
 		ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
 		Scope:               cryptoutilSharedMagic.ScopeOpenID,
 		State:               "state123",
@@ -78,7 +78,7 @@ func TestAuthorizationRequestStore_Expiration(t *testing.T) {
 	authRequest1 := &AuthorizationRequest{
 		RequestID:           requestID1,
 		ClientID:            "test_client",
-		RedirectURI:         cryptoutilSharedMagic.DemoRedirectURI,
+		RedirectURI:         cryptoutilSharedMagic.TestRedirectURI,
 		ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
 		Scope:               cryptoutilSharedMagic.ScopeOpenID,
 		State:               "state123",
@@ -139,7 +139,7 @@ func TestAuthorizationRequestStore_CodeIndexing(t *testing.T) {
 	authRequest1 := &AuthorizationRequest{
 		RequestID:           requestID1,
 		ClientID:            "test_client_1",
-		RedirectURI:         cryptoutilSharedMagic.DemoRedirectURI,
+		RedirectURI:         cryptoutilSharedMagic.TestRedirectURI,
 		ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
 		Scope:               cryptoutilSharedMagic.ScopeOpenID,
 		State:               "state1",
@@ -153,7 +153,7 @@ func TestAuthorizationRequestStore_CodeIndexing(t *testing.T) {
 	authRequest2 := &AuthorizationRequest{
 		RequestID:           requestID2,
 		ClientID:            "test_client_2",
-		RedirectURI:         cryptoutilSharedMagic.DemoRedirectURI,
+		RedirectURI:         cryptoutilSharedMagic.TestRedirectURI,
 		ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
 		Scope:               "openid profile",
 		State:               "state2",

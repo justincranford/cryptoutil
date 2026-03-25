@@ -333,7 +333,7 @@ func createRevocationFlowTestClient(t *testing.T, repoFactory *cryptoutilIdentit
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeClientCredentials},
 		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail, cryptoutilSharedMagic.ScopeOfflineAccess},
-		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
+		RedirectURIs:            []string{cryptoutilSharedMagic.TestRedirectURI},
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,
 	}
 

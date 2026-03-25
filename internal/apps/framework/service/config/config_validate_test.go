@@ -17,7 +17,7 @@ func TestValidateConfiguration_HappyPath(t *testing.T) {
 	s := &ServiceFrameworkServerSettings{
 		BindPublicAddress:   cryptoutilSharedMagic.IPv4Loopback,
 		BindPrivateAddress:  cryptoutilSharedMagic.IPv4Loopback,
-		BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+		BindPublicPort:      cryptoutilSharedMagic.TestServerPort,
 		BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
 		BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
 		BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
@@ -49,7 +49,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 			settings: &ServiceFrameworkServerSettings{
 				BindPublicAddress:   "",
 				BindPrivateAddress:  cryptoutilSharedMagic.IPv4Loopback,
-				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPublicPort:      cryptoutilSharedMagic.TestServerPort,
 				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
 				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
 				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
@@ -66,7 +66,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 			settings: &ServiceFrameworkServerSettings{
 				BindPublicAddress:   cryptoutilSharedMagic.IPv4Loopback,
 				BindPrivateAddress:  "",
-				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPublicPort:      cryptoutilSharedMagic.TestServerPort,
 				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
 				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
 				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
@@ -81,8 +81,8 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		{
 			name: "same non-zero ports",
 			settings: &ServiceFrameworkServerSettings{
-				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
-				BindPrivatePort:     cryptoutilSharedMagic.DemoServerPort,
+				BindPublicPort:      cryptoutilSharedMagic.TestServerPort,
+				BindPrivatePort:     cryptoutilSharedMagic.TestServerPort,
 				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
 				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
 				TLSPublicDNSNames:   []string{"test.com"},
@@ -96,7 +96,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		{
 			name: "invalid public protocol",
 			settings: &ServiceFrameworkServerSettings{
-				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPublicPort:      cryptoutilSharedMagic.TestServerPort,
 				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
 				BindPublicProtocol:  "ftp",
 				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
@@ -110,7 +110,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		{
 			name: "invalid private protocol",
 			settings: &ServiceFrameworkServerSettings{
-				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPublicPort:      cryptoutilSharedMagic.TestServerPort,
 				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
 				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
 				BindPrivateProtocol: "ftp",
@@ -124,7 +124,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		{
 			name: "https public missing TLS config",
 			settings: &ServiceFrameworkServerSettings{
-				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPublicPort:      cryptoutilSharedMagic.TestServerPort,
 				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
 				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
 				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTP,
@@ -137,7 +137,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		{
 			name: "https private missing TLS config",
 			settings: &ServiceFrameworkServerSettings{
-				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPublicPort:      cryptoutilSharedMagic.TestServerPort,
 				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
 				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTP,
 				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
@@ -150,7 +150,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		{
 			name: "invalid database URL format",
 			settings: &ServiceFrameworkServerSettings{
-				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPublicPort:      cryptoutilSharedMagic.TestServerPort,
 				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
 				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
 				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
@@ -166,7 +166,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		{
 			name: "invalid CORS origin format",
 			settings: &ServiceFrameworkServerSettings{
-				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPublicPort:      cryptoutilSharedMagic.TestServerPort,
 				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
 				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
 				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
@@ -182,7 +182,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		{
 			name: "invalid log level",
 			settings: &ServiceFrameworkServerSettings{
-				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPublicPort:      cryptoutilSharedMagic.TestServerPort,
 				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
 				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
 				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
@@ -197,7 +197,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		{
 			name: "browser rate limit zero",
 			settings: &ServiceFrameworkServerSettings{
-				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPublicPort:      cryptoutilSharedMagic.TestServerPort,
 				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
 				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
 				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
@@ -212,7 +212,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		{
 			name: "service rate limit zero",
 			settings: &ServiceFrameworkServerSettings{
-				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPublicPort:      cryptoutilSharedMagic.TestServerPort,
 				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
 				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
 				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
@@ -227,7 +227,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		{
 			name: "invalid OTLP endpoint format",
 			settings: &ServiceFrameworkServerSettings{
-				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPublicPort:      cryptoutilSharedMagic.TestServerPort,
 				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
 				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
 				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
@@ -290,7 +290,7 @@ func TestValidateConfiguration_BoundaryConditions(t *testing.T) {
 			settings: &ServiceFrameworkServerSettings{
 				BindPublicAddress:   cryptoutilSharedMagic.IPv4Loopback,
 				BindPrivateAddress:  cryptoutilSharedMagic.IPv4Loopback,
-				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPublicPort:      cryptoutilSharedMagic.TestServerPort,
 				BindPrivatePort:     cryptoutilSharedMagic.MaxPortNumber,
 				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
 				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
@@ -307,7 +307,7 @@ func TestValidateConfiguration_BoundaryConditions(t *testing.T) {
 			settings: &ServiceFrameworkServerSettings{
 				BindPublicAddress:   cryptoutilSharedMagic.IPv4Loopback,
 				BindPrivateAddress:  cryptoutilSharedMagic.IPv4Loopback,
-				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPublicPort:      cryptoutilSharedMagic.TestServerPort,
 				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
 				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
 				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
@@ -324,7 +324,7 @@ func TestValidateConfiguration_BoundaryConditions(t *testing.T) {
 			settings: &ServiceFrameworkServerSettings{
 				BindPublicAddress:   cryptoutilSharedMagic.IPv4Loopback,
 				BindPrivateAddress:  cryptoutilSharedMagic.IPv4Loopback,
-				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPublicPort:      cryptoutilSharedMagic.TestServerPort,
 				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
 				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
 				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
@@ -342,7 +342,7 @@ func TestValidateConfiguration_BoundaryConditions(t *testing.T) {
 			settings: &ServiceFrameworkServerSettings{
 				BindPublicAddress:   cryptoutilSharedMagic.IPv4Loopback,
 				BindPrivateAddress:  cryptoutilSharedMagic.IPv4Loopback,
-				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPublicPort:      cryptoutilSharedMagic.TestServerPort,
 				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
 				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
 				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
@@ -359,7 +359,7 @@ func TestValidateConfiguration_BoundaryConditions(t *testing.T) {
 			settings: &ServiceFrameworkServerSettings{
 				BindPublicAddress:   cryptoutilSharedMagic.IPv4Loopback,
 				BindPrivateAddress:  cryptoutilSharedMagic.IPv4Loopback,
-				BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+				BindPublicPort:      cryptoutilSharedMagic.TestServerPort,
 				BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
 				BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
 				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,

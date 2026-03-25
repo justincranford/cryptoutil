@@ -47,8 +47,8 @@ func TestHandleAuthorizationCodeGrant_ErrorPaths(t *testing.T) {
 				client := &cryptoutilIdentityDomain.Client{
 					ClientID:                clientID,
 					ClientSecret:            "test-secret",
-					Name:                    "Test Client",
-					RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
+					Name:                    cryptoutilSharedMagic.TestClientName,
+					RedirectURIs:            []string{cryptoutilSharedMagic.TestRedirectURI},
 					AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 					ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 					TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
@@ -68,7 +68,7 @@ func TestHandleAuthorizationCodeGrant_ErrorPaths(t *testing.T) {
 					ID:                  googleUuid.Must(googleUuid.NewV7()),
 					ClientID:            clientID,
 					Code:                authCode,
-					RedirectURI:         cryptoutilSharedMagic.DemoRedirectURI,
+					RedirectURI:         cryptoutilSharedMagic.TestRedirectURI,
 					ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
 					Scope:               "openid profile",
 					CodeChallenge:       "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
@@ -84,7 +84,7 @@ func TestHandleAuthorizationCodeGrant_ErrorPaths(t *testing.T) {
 
 				verifier := "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk" // Valid verifier for challenge above
 
-				return clientID, authCode, cryptoutilSharedMagic.DemoRedirectURI, verifier
+				return clientID, authCode, cryptoutilSharedMagic.TestRedirectURI, verifier
 			},
 			expectedStatus: fiber.StatusBadRequest,
 			expectedError:  cryptoutilSharedMagic.ErrorInvalidRequest,
@@ -150,8 +150,8 @@ func TestHandleRevoke_ErrorPaths(t *testing.T) {
 				client := &cryptoutilIdentityDomain.Client{
 					ClientID:                "test-client-" + googleUuid.NewString(),
 					ClientSecret:            "test-secret",
-					Name:                    "Test Client",
-					RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
+					Name:                    cryptoutilSharedMagic.TestClientName,
+					RedirectURIs:            []string{cryptoutilSharedMagic.TestRedirectURI},
 					AllowedScopes:           []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
 					ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 					TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,

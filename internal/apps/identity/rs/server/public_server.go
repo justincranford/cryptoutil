@@ -3,13 +3,14 @@
 package server
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	fiber "github.com/gofiber/fiber/v2"
 
-	cryptoutilAppsIdentityRsServerConfig "cryptoutil/internal/apps/identity/rs/server/config"
 	cryptoutilAppsFrameworkServiceServer "cryptoutil/internal/apps/framework/service/server"
+	cryptoutilAppsIdentityRsServerConfig "cryptoutil/internal/apps/identity/rs/server/config"
 )
 
 // PublicServer implements the identity-rs public server by embedding PublicServerBase.
@@ -52,8 +53,8 @@ func (s *PublicServer) registerRoutes() error {
 	// Protected resource endpoint - returns 401 when no authorization header present.
 	app.Get("/service/api/v1/resources", s.handleListResources)
 
-	// Token introspection demo endpoints.
-	// TODO: Add token introspection demo endpoints:
+	// Token introspection endpoints.
+	// TODO: Add token introspection endpoints:
 	// - /service/api/v1/token/info - Display token claims.
 	// - /service/api/v1/token/scopes - Display token scopes.
 

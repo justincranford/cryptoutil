@@ -293,7 +293,7 @@ func (m *mockPublicServerForCoverage) Shutdown(ctx context.Context) error {
 }
 
 func (m *mockPublicServerForCoverage) ActualPort() int {
-	return cryptoutilSharedMagic.DemoServerPort
+	return cryptoutilSharedMagic.TestServerPort
 }
 
 func (m *mockPublicServerForCoverage) PublicBaseURL() string {

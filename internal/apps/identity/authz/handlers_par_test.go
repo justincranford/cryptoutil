@@ -37,7 +37,7 @@ func TestHandlePAR_HappyPath(t *testing.T) {
 	formData := url.Values{
 		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
 		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
-		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.DemoRedirectURI},
+		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.TestRedirectURI},
 		cryptoutilSharedMagic.ParamScope:               []string{"openid profile"},
 		cryptoutilSharedMagic.ParamState:               []string{"random-state-value"},
 		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-code-challenge-value-xxxxxxxxxxxxxxxxx"},
@@ -81,7 +81,7 @@ func TestHandlePAR_HappyPath(t *testing.T) {
 	require.NotNil(t, storedPAR, "Stored PAR should not be nil")
 	require.Equal(t, testClient.ID, storedPAR.ClientID, "ClientID should match")
 	require.Equal(t, cryptoutilSharedMagic.ResponseTypeCode, storedPAR.ResponseType, "ResponseType should match")
-	require.Equal(t, cryptoutilSharedMagic.DemoRedirectURI, storedPAR.RedirectURI, "RedirectURI should match")
+	require.Equal(t, cryptoutilSharedMagic.TestRedirectURI, storedPAR.RedirectURI, "RedirectURI should match")
 	require.Equal(t, "openid profile", storedPAR.Scope, "Scope should match")
 	require.Equal(t, "random-state-value", storedPAR.State, "State should match")
 	require.Equal(t, "test-code-challenge-value-xxxxxxxxxxxxxxxxx", storedPAR.CodeChallenge, "CodeChallenge should match")
@@ -104,7 +104,7 @@ func TestHandlePAR_MissingClientID(t *testing.T) {
 
 	formData := url.Values{
 		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
-		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.DemoRedirectURI},
+		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.TestRedirectURI},
 		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-code-challenge"},
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
@@ -150,7 +150,7 @@ func TestHandlePAR_MissingResponseType(t *testing.T) {
 
 	formData := url.Values{
 		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
-		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.DemoRedirectURI},
+		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.TestRedirectURI},
 		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-code-challenge"},
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
@@ -243,7 +243,7 @@ func TestHandlePAR_MissingCodeChallenge(t *testing.T) {
 	formData := url.Values{
 		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
 		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
-		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.DemoRedirectURI},
+		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.TestRedirectURI},
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
 

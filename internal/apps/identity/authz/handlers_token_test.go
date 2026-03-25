@@ -61,7 +61,7 @@ func TestHandleToken_AuthorizationCodeGrant_MissingCode(t *testing.T) {
 
 	reqBody := url.Values{
 		cryptoutilSharedMagic.ParamGrantType:   []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
-		cryptoutilSharedMagic.ParamRedirectURI: []string{cryptoutilSharedMagic.DemoRedirectURI},
+		cryptoutilSharedMagic.ParamRedirectURI: []string{cryptoutilSharedMagic.TestRedirectURI},
 		cryptoutilSharedMagic.ParamClientID:    []string{"test-client"},
 	}
 

@@ -38,7 +38,7 @@ func TestHandlePAR_InvalidClient(t *testing.T) {
 	formData := url.Values{
 		cryptoutilSharedMagic.ParamClientID:            []string{"nonexistent-client-id"},
 		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
-		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.DemoRedirectURI},
+		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.TestRedirectURI},
 		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-code-challenge"},
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
@@ -128,7 +128,7 @@ func TestHandlePAR_UnsupportedResponseType(t *testing.T) {
 	formData := url.Values{
 		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
 		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ParamToken}, // Only "code" is supported.
-		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.DemoRedirectURI},
+		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.TestRedirectURI},
 		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-code-challenge"},
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
@@ -171,7 +171,7 @@ func TestHandlePAR_UnsupportedCodeChallengeMethod(t *testing.T) {
 	formData := url.Values{
 		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
 		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
-		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.DemoRedirectURI},
+		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.TestRedirectURI},
 		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-code-challenge"},
 		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodPlain}, // Only S256 is supported.
 	}
@@ -248,7 +248,7 @@ func createTestClientForPAR(ctx context.Context, t *testing.T, repoFactory *cryp
 		ClientSecret:            "$2a$10$examplehashedvalue",
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                    "Test PAR Client",
-		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
+		RedirectURIs:            []string{cryptoutilSharedMagic.TestRedirectURI},
 		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail},
 		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
 		AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},

@@ -54,7 +54,7 @@ func createTestCertificatePair(t *testing.T, includeCRLDistributionPoints, inclu
 	clientTemplate := &x509.Certificate{
 		SerialNumber: big.NewInt(cryptoutilSharedMagic.AnswerToLifeUniverseEverything),
 		Subject: pkix.Name{
-			CommonName:   "Test Client",
+			CommonName:   cryptoutilSharedMagic.TestClientName,
 			Organization: []string{"Test Org"},
 		},
 		NotBefore:             time.Now().UTC().Add(-1 * time.Hour),

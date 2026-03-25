@@ -40,7 +40,7 @@ func TestRegisterRoutes_RouteRegistration(t *testing.T) {
 		IDP: &cryptoutilIdentityConfig.ServerConfig{
 			Name:        cryptoutilSharedMagic.IDPServiceName,
 			BindAddress: cryptoutilSharedMagic.IPv4Loopback,
-			Port:        cryptoutilSharedMagic.DemoServerPort,
+			Port:        cryptoutilSharedMagic.TestServerPort,
 			TLSEnabled:  true,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{

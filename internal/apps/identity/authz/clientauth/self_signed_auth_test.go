@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func TestSelfSignedAuthenticator_Authenticate(t *testing.T) {
@@ -35,7 +36,7 @@ func TestSelfSignedAuthenticator_Authenticate(t *testing.T) {
 				ID:                      mustNewUUID(),
 				ClientID:                "self-signed-client",
 				TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSelfSignedTLSAuth,
-				CertificateSubject:      "Test Client",
+				CertificateSubject:      cryptoutilSharedMagic.TestClientName,
 				CertificateFingerprint:  fingerprint,
 				Enabled:                 boolPtr(true),
 			},

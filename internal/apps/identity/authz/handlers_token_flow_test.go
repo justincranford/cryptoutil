@@ -34,7 +34,7 @@ func TestHandleAuthorizationCodeGrant_MissingCodeVerifier(t *testing.T) {
 	form := url.Values{}
 	form.Set(cryptoutilSharedMagic.ParamGrantType, cryptoutilSharedMagic.GrantTypeAuthorizationCode)
 	form.Set(cryptoutilSharedMagic.ResponseTypeCode, "test-code")
-	form.Set(cryptoutilSharedMagic.ParamRedirectURI, cryptoutilSharedMagic.DemoRedirectURI)
+	form.Set(cryptoutilSharedMagic.ParamRedirectURI, cryptoutilSharedMagic.TestRedirectURI)
 	form.Set(cryptoutilSharedMagic.ClaimClientID, "test-client")
 	// Missing code_verifier (PKCE required).
 
@@ -58,7 +58,7 @@ func TestHandleAuthorizationCodeGrant_InvalidCode(t *testing.T) {
 	form := url.Values{}
 	form.Set(cryptoutilSharedMagic.ParamGrantType, cryptoutilSharedMagic.GrantTypeAuthorizationCode)
 	form.Set(cryptoutilSharedMagic.ResponseTypeCode, "invalid-code-12345")
-	form.Set(cryptoutilSharedMagic.ParamRedirectURI, cryptoutilSharedMagic.DemoRedirectURI)
+	form.Set(cryptoutilSharedMagic.ParamRedirectURI, cryptoutilSharedMagic.TestRedirectURI)
 	form.Set(cryptoutilSharedMagic.ClaimClientID, "test-client")
 	form.Set(cryptoutilSharedMagic.ParamCodeVerifier, "valid-verifier-here")
 
@@ -87,7 +87,7 @@ func TestHandleClientCredentialsGrant_ValidClient(t *testing.T) {
 		ID:           googleUuid.New(),
 		ClientID:     "test-client-credentials",
 		ClientSecret: "$" + cryptoutilSharedMagic.PBKDF2DefaultHashName + "$i=100000,l=32$test-salt$test-hash", // Pre-hashed.
-		Name:         "Test Client",
+		Name:         cryptoutilSharedMagic.TestClientName,
 		CreatedAt:    time.Now().UTC(),
 		UpdatedAt:    time.Now().UTC(),
 	}

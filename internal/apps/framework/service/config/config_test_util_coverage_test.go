@@ -23,7 +23,6 @@ func TestRequireNewForTest_TypeAssertionPanics(t *testing.T) {
 		{"logLevel", &logLevel},
 		{"verboseMode", &verboseMode},
 		{"devMode", &devMode},
-		{"demoMode", &demoMode},
 		{"bindPublicProtocol", &bindPublicProtocol},
 		{"bindPublicAddress", &bindPublicAddress},
 		{"tlsPublicDNSNames", &tlsPublicDNSNames},

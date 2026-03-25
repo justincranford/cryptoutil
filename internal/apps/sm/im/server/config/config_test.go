@@ -116,7 +116,7 @@ func TestParse_HappyPath(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, settings)
 	require.Equal(t, cryptoutilSharedMagic.IPv4Loopback, settings.BindPublicAddress)
-	require.Equal(t, uint16(cryptoutilSharedMagic.DemoServerPort), settings.BindPublicPort) // CLI flag --bind-public-port=8080 is respected.
+	require.Equal(t, uint16(cryptoutilSharedMagic.TestServerPort), settings.BindPublicPort) // CLI flag --bind-public-port=8080 is respected.
 	require.Equal(t, cryptoutilSharedMagic.IMJWEAlgorithm, settings.MessageJWEAlgorithm)
 	require.Equal(t, cryptoutilSharedMagic.IMMessageMinLength, settings.MessageMinLength)
 	require.Equal(t, cryptoutilSharedMagic.IMMessageMaxLength, settings.MessageMaxLength)

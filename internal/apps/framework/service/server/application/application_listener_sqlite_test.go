@@ -275,7 +275,7 @@ func TestShutdown_PublicServerError(t *testing.T) {
 	ctx := context.Background()
 
 	publicServer := &mockPublicServer{
-		port:        cryptoutilSharedMagic.DemoServerPort,
+		port:        cryptoutilSharedMagic.TestServerPort,
 		shutdownErr: fmt.Errorf("public server shutdown failed"),
 	}
 
@@ -302,7 +302,7 @@ func TestShutdown_BothServersShutdownError(t *testing.T) {
 	}
 
 	publicServer := &mockPublicServer{
-		port:        cryptoutilSharedMagic.DemoServerPort,
+		port:        cryptoutilSharedMagic.TestServerPort,
 		shutdownErr: fmt.Errorf("public server shutdown failed"),
 	}
 

@@ -49,7 +49,7 @@ func TestHandleLogout_POST(t *testing.T) {
 		IDP: &cryptoutilIdentityConfig.ServerConfig{
 			Name:        cryptoutilSharedMagic.IDPServiceName,
 			BindAddress: cryptoutilSharedMagic.IPv4Loopback,
-			Port:        cryptoutilSharedMagic.DemoServerPort,
+			Port:        cryptoutilSharedMagic.TestServerPort,
 			TLSEnabled:  true,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{
@@ -162,7 +162,7 @@ func TestHandleEndSession_MissingParams(t *testing.T) {
 		IDP: &cryptoutilIdentityConfig.ServerConfig{
 			Name:        cryptoutilSharedMagic.IDPServiceName,
 			BindAddress: cryptoutilSharedMagic.IPv4Loopback,
-			Port:        cryptoutilSharedMagic.DemoServerPort,
+			Port:        cryptoutilSharedMagic.TestServerPort,
 			TLSEnabled:  true,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{
@@ -205,7 +205,7 @@ func TestHandleEndSession_WithClientID(t *testing.T) {
 		IDP: &cryptoutilIdentityConfig.ServerConfig{
 			Name:        cryptoutilSharedMagic.IDPServiceName,
 			BindAddress: cryptoutilSharedMagic.IPv4Loopback,
-			Port:        cryptoutilSharedMagic.DemoServerPort,
+			Port:        cryptoutilSharedMagic.TestServerPort,
 			TLSEnabled:  true,
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{

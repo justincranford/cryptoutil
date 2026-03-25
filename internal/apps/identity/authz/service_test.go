@@ -142,7 +142,7 @@ func TestService_MigrateClientSecrets(t *testing.T) {
 					Name:                    "Test Client 1",
 					ClientSecret:            testSecret,
 					ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
-					RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
+					RedirectURIs:            []string{cryptoutilSharedMagic.TestRedirectURI},
 					AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
 					AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
 					AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},

@@ -145,5 +145,5 @@ const (
 	DefaultAuthZPort = 8200 // Default OAuth 2.1 authorization server port.
 	DefaultIDPPort   = 8300 // Default OIDC identity provider server port.
 	DefaultRSPort    = 8400 // Default resource server port.
-	DefaultSPARPPort = 8500 // Default SPA relying party demo server port.
+	DefaultSPARPPort = 8500 // Default SPA relying party server port.
 )

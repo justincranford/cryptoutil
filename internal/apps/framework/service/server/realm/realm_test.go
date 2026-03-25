@@ -7,6 +7,7 @@ package realm
 import (
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 
 	googleUuid "github.com/google/uuid"
@@ -57,6 +58,8 @@ func TestGenerateTenantID(t *testing.T) {
 		{name: "generates properly formatted UUID"},
 	}
 
+	var mu sync.Mutex
+
 	generatedIDs := make(map[string]bool)
 
 	for _, tc := range tests {
@@ -67,6 +70,9 @@ func TestGenerateTenantID(t *testing.T) {
 			require.NotEmpty(t, id)
 			require.Len(t, id, cryptoutilSharedMagic.UUIDStringLength) // UUID format: 8-4-4-4-12 = 36 chars.
 			require.Contains(t, id, "-")
+
+			mu.Lock()
+			defer mu.Unlock()
 
 			// Each call should generate unique ID.
 			require.False(t, generatedIDs[id], "expected unique ID, got duplicate")
@@ -242,8 +248,8 @@ func TestLoadConfig_ValidFile(t *testing.T) {
 version: "1.0"
 realms:
   - id: "` + realmTestID1 + `"
-    name: "demo-realm"
-    description: "Demo realm for testing"
+    name: "test-realm"
+    description: "Test realm for testing"
     type: "file"
     enabled: true
     users:
@@ -274,7 +280,7 @@ defaults:
 	require.NotNil(t, config)
 	require.Equal(t, "1.0", config.Version)
 	require.Len(t, config.Realms, 1)
-	require.Equal(t, "demo-realm", config.Realms[0].Name)
+	require.Equal(t, "test-realm", config.Realms[0].Name)
 	require.Equal(t, RealmTypeFile, config.Realms[0].Type)
 	require.True(t, config.Realms[0].Enabled)
 	require.Len(t, config.Realms[0].Users, 1)

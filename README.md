@@ -222,7 +222,7 @@ go build -o bin/identity.exe ./cmd/identity-unified
 go build -o bin/cryptoutil.exe ./cmd/cryptoutil
 
 # Start all services with one command
-./bin/identity start --profile demo
+./bin/identity start --profile dev
 
 # Check service health
 ./bin/identity health
@@ -235,7 +235,7 @@ go build -o bin/cryptoutil.exe ./cmd/cryptoutil
 
 **Available Profiles:**
 
-- `demo`: All services (AuthZ, IdP, RS) with SQLite in-memory
+- `dev`: All services (AuthZ, IdP, RS) with SQLite in-memory
 - `authz-only`: Authorization Server only
 - `authz-idp`: AuthZ + IdP without Resource Server
 - `full-stack`: All services with PostgreSQL

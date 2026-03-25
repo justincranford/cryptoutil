@@ -26,7 +26,7 @@ func TestServerConfig_Validate(t *testing.T) {
 			config: &ServerConfig{
 				Name:         "test-server",
 				BindAddress:  cryptoutilSharedMagic.IPv4Loopback,
-				Port:         cryptoutilSharedMagic.DemoServerPort,
+				Port:         cryptoutilSharedMagic.TestServerPort,
 				ReadTimeout:  cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second,
 				WriteTimeout: cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second,
 				IdleTimeout:  cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes * time.Second,
@@ -53,7 +53,7 @@ func TestServerConfig_Validate(t *testing.T) {
 			config: &ServerConfig{
 				Name:             "test-server",
 				BindAddress:      cryptoutilSharedMagic.IPv4Loopback,
-				Port:             cryptoutilSharedMagic.DemoServerPort,
+				Port:             cryptoutilSharedMagic.TestServerPort,
 				AdminEnabled:     true,
 				AdminBindAddress: cryptoutilSharedMagic.IPv4Loopback,
 				AdminPort:        cryptoutilSharedMagic.JoseJAAdminPort,
@@ -68,7 +68,7 @@ func TestServerConfig_Validate(t *testing.T) {
 			config: &ServerConfig{
 				Name:        "",
 				BindAddress: cryptoutilSharedMagic.IPv4Loopback,
-				Port:        cryptoutilSharedMagic.DemoServerPort,
+				Port:        cryptoutilSharedMagic.TestServerPort,
 			},
 			expectError: true,
 			errorMsg:    "server name is required",
@@ -78,7 +78,7 @@ func TestServerConfig_Validate(t *testing.T) {
 			config: &ServerConfig{
 				Name:        "test-server",
 				BindAddress: "",
-				Port:        cryptoutilSharedMagic.DemoServerPort,
+				Port:        cryptoutilSharedMagic.TestServerPort,
 			},
 			expectError: true,
 			errorMsg:    "bind address is required",
@@ -144,7 +144,7 @@ func TestServerConfig_Validate(t *testing.T) {
 			config: &ServerConfig{
 				Name:             "test-server",
 				BindAddress:      cryptoutilSharedMagic.IPv4Loopback,
-				Port:             cryptoutilSharedMagic.DemoServerPort,
+				Port:             cryptoutilSharedMagic.TestServerPort,
 				AdminEnabled:     true,
 				AdminBindAddress: "",
 				AdminPort:        cryptoutilSharedMagic.JoseJAAdminPort,
@@ -157,7 +157,7 @@ func TestServerConfig_Validate(t *testing.T) {
 			config: &ServerConfig{
 				Name:             "test-server",
 				BindAddress:      cryptoutilSharedMagic.IPv4Loopback,
-				Port:             cryptoutilSharedMagic.DemoServerPort,
+				Port:             cryptoutilSharedMagic.TestServerPort,
 				AdminEnabled:     true,
 				AdminBindAddress: cryptoutilSharedMagic.IPv4Loopback,
 				AdminPort:        0,
@@ -170,7 +170,7 @@ func TestServerConfig_Validate(t *testing.T) {
 			config: &ServerConfig{
 				Name:             "test-server",
 				BindAddress:      cryptoutilSharedMagic.IPv4Loopback,
-				Port:             cryptoutilSharedMagic.DemoServerPort,
+				Port:             cryptoutilSharedMagic.TestServerPort,
 				AdminEnabled:     true,
 				AdminBindAddress: cryptoutilSharedMagic.IPv4Loopback,
 				AdminPort:        -1,
@@ -183,7 +183,7 @@ func TestServerConfig_Validate(t *testing.T) {
 			config: &ServerConfig{
 				Name:             "test-server",
 				BindAddress:      cryptoutilSharedMagic.IPv4Loopback,
-				Port:             cryptoutilSharedMagic.DemoServerPort,
+				Port:             cryptoutilSharedMagic.TestServerPort,
 				AdminEnabled:     true,
 				AdminBindAddress: cryptoutilSharedMagic.IPv4Loopback,
 				AdminPort:        65536,

@@ -14,7 +14,6 @@
 # Usage:
 #   docker compose -f compose.yml up -d                        # SQLite only (default: dev profile)
 #   docker compose -f compose.yml --profile postgres up -d     # All instances (1x SQLite + 2x PostgreSQL)
-#   docker compose -f compose.yml --profile demo up -d         # Demo mode with seed data
 #   docker compose -f compose.yml --profile ci up -d           # CI mode for testing
 #   docker compose -f compose.yml logs -f                      # View logs
 #   docker compose -f compose.yml down -v                      # Stop and clean up
@@ -34,7 +33,6 @@
 #
 # Profiles:
 #   - dev: Development mode (default) - SQLite backend, minimal services
-#   - demo: Demo mode with seeded data, SQLite backend
 #   - ci: CI mode for testing, SQLite backend
 #   - postgres: PostgreSQL backend with multiple instances (1x SQLite + 2x PostgreSQL)
 #
@@ -119,9 +117,9 @@ services:
         reservations:
           memory: 256M
 
-  # PRODUCT-SERVICE server with SQLite backend (dev/demo/ci mode).
+  # PRODUCT-SERVICE server with SQLite backend (dev/ci mode).
   PRODUCT-SERVICE-app-sqlite-1:
-    profiles: ["dev", "demo", "ci"]
+    profiles: ["dev", "ci"]
     image: PRODUCT-SERVICE:dev
     command: ["SERVICE", "start", "--config=/app/config/sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp

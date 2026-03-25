@@ -189,7 +189,7 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 					ID:           clientID,
 					ClientID:     clientID.String(),
 					ClientSecret: "test-secret",
-					RedirectURIs: []string{cryptoutilSharedMagic.DemoRedirectURI},
+					RedirectURIs: []string{cryptoutilSharedMagic.TestRedirectURI},
 				}
 
 				err = db.Create(client).Error

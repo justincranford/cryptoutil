@@ -6,7 +6,7 @@
 # Supports 3 instances: 1 SQLite + 2 PostgreSQL.
 #
 # Port allocation (SERVICE level: 8800-8899):
-#   - jose-ja-app-sqlite-1:    8800 (SQLite, dev/demo/ci)
+#   - jose-ja-app-sqlite-1:    8800 (SQLite, dev/ci)
 #   - jose-ja-app-postgres-1:  8801 (PostgreSQL instance 1) [--profile postgres]
 #   - jose-ja-app-postgres-2:  8802 (PostgreSQL instance 2) [--profile postgres]
 #   - jose-ja-db-postgres-1:   5432 (PostgreSQL database) [--profile postgres]
@@ -14,7 +14,6 @@
 # Usage:
 #   docker compose -f compose.yml up -d                        # SQLite (default: dev profile)
 #   docker compose -f compose.yml --profile postgres up -d     # All instances
-#   docker compose -f compose.yml --profile demo up -d         # Demo mode
 #   docker compose -f compose.yml --profile ci up -d           # CI mode
 #   docker compose -f compose.yml logs -f                      # View logs
 #   docker compose -f compose.yml down -v                      # Stop and clean up
@@ -98,9 +97,9 @@ services:
         reservations:
           memory: 256M
 
-  # jose-ja server with SQLite backend (dev/demo/ci mode).
+  # jose-ja server with SQLite backend (dev/ci mode).
   jose-ja-app-sqlite-1:
-    profiles: ["dev", "demo", "ci"]
+    profiles: ["dev", "ci"]
     image: cryptoutil:dev
     command: ["server", "--config=/app/config/jose-ja-app-sqlite-1.yml", "--config=/app/config/jose-ja-app-common.yml", "--config=/app/otel/otel.yml", "-u", "sqlite://file::memory:?cache=shared", "--bind-public-port=8080"]
     working_dir: /tmp

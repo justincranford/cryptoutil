@@ -209,11 +209,11 @@ func TestSettingRegistrations(t *testing.T) {
 func TestNewTestConfig(t *testing.T) {
 	t.Parallel()
 
-	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, cryptoutilSharedMagic.DemoServerPort, true)
+	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, cryptoutilSharedMagic.TestServerPort, true)
 
 	require.NotNil(t, cfg)
 	require.NotNil(t, cfg.ServiceFrameworkServerSettings)
-	require.Equal(t, uint16(cryptoutilSharedMagic.DemoServerPort), cfg.BindPublicPort)
+	require.Equal(t, uint16(cryptoutilSharedMagic.TestServerPort), cfg.BindPublicPort)
 	require.Equal(t, cryptoutilSharedMagic.OTLPServiceJoseJA, cfg.OTLPService)
 	require.Equal(t, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cfg.DefaultMaxMaterials)
 	require.Equal(t, cryptoutilSharedMagic.JoseJAAuditDefaultEnabled, cfg.AuditEnabled)

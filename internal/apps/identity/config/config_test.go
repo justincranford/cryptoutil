@@ -107,7 +107,7 @@ func TestServerConfigValidation(t *testing.T) {
 			config: &ServerConfig{
 				Name:         "test",
 				BindAddress:  cryptoutilSharedMagic.IPv4Loopback,
-				Port:         cryptoutilSharedMagic.DemoServerPort,
+				Port:         cryptoutilSharedMagic.TestServerPort,
 				TLSEnabled:   false,
 				ReadTimeout:  cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second,
 				WriteTimeout: cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second,

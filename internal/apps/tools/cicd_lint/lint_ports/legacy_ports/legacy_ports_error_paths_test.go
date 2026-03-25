@@ -44,6 +44,6 @@ func TestCheckFile_ShortRegexMatch(t *testing.T) {
 	testFile := filepath.Join(tmpDir, "test.go")
 	require.NoError(t, os.WriteFile(testFile, []byte("port: 8080\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	violations := CheckFile(testFile, []uint16{cryptoutilSharedMagic.DemoServerPort})
+	violations := CheckFile(testFile, []uint16{cryptoutilSharedMagic.TestServerPort})
 	require.Empty(t, violations)
 }

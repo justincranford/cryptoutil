@@ -47,14 +47,14 @@ const (
 	DefaultIdleServerTimeout = 120 * time.Second // Default HTTP idle timeout.
 )
 
-// Demo/testing timeouts.
+// Testing timeouts and ports.
 const (
-	DemoStartupDelay  = 500 * time.Millisecond // Delay for server startup in demo.
-	DemoTimeout       = 30 * time.Second       // Overall demo timeout.
-	DemoRequestDelay  = 10 * time.Second       // Delay for request operations in demo.
-	DemoAdminPort     = 9090                   // Admin port for demo server.
-	DemoServerPort    = 8080                   // Server port for demo.
-	DemoMinTokenChars = 20                     // Minimum token characters to display.
+	TestStartupDelay  = 500 * time.Millisecond // Delay for server startup in tests.
+	TestTimeout       = 30 * time.Second       // Overall test timeout.
+	TestRequestDelay  = 10 * time.Second       // Delay for request operations in tests.
+	TestAdminPort     = 9090                   // Admin port for test server.
+	TestServerPort    = 8080                   // Server port for tests.
+	TestMinTokenChars = 20                     // Minimum token characters to display.
 )
 
 // Rate limiting.

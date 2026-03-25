@@ -133,7 +133,7 @@ func TestOIDCFlow_IDPEndpointsIntegration(t *testing.T) {
 		ClientID:                testClientID,
 		ClientSecret:            testClientSecretHash,
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
-		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
+		RedirectURIs:            []string{cryptoutilSharedMagic.TestRedirectURI},
 		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail},
 		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
 		AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
@@ -141,7 +141,7 @@ func TestOIDCFlow_IDPEndpointsIntegration(t *testing.T) {
 		RequirePKCE:             boolPtr(true),
 		PKCEChallengeMethod:     cryptoutilSharedMagic.PKCEMethodS256,
 		Enabled:                 boolPtr(true),
-		Name:                    "Test Client",
+		Name:                    cryptoutilSharedMagic.TestClientName,
 		CreatedAt:               time.Now().UTC(),
 		UpdatedAt:               time.Now().UTC(),
 	}

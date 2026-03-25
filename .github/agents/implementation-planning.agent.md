@@ -535,7 +535,7 @@ EOF
 
 - [ ] All phases complete
 - [ ] All quality gates passing
-- [ ] E2E demo functional
+- [ ] E2E tests functional
 - [ ] Documentation updated (README, architecture, instructions)
 - [ ] CI/CD workflows green
 

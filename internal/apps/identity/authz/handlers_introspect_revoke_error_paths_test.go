@@ -43,7 +43,7 @@ func TestHandleRevoke_AdditionalErrorPaths(t *testing.T) {
 				client := &cryptoutilIdentityDomain.Client{
 					ClientID:                "test-client-" + googleUuid.NewString(),
 					ClientSecret:            "test-secret",
-					Name:                    "Test Client",
+					Name:                    cryptoutilSharedMagic.TestClientName,
 					AllowedScopes:           []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
 					ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 					TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
@@ -86,7 +86,7 @@ func TestHandleRevoke_AdditionalErrorPaths(t *testing.T) {
 				client := &cryptoutilIdentityDomain.Client{
 					ClientID:                "test-client-" + googleUuid.NewString(),
 					ClientSecret:            "test-secret",
-					Name:                    "Test Client",
+					Name:                    cryptoutilSharedMagic.TestClientName,
 					AllowedScopes:           []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
 					ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 					TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,

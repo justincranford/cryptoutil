@@ -77,7 +77,7 @@ func TestHandleClientCredentialsGrant_ErrorPaths(t *testing.T) {
 				client := &cryptoutilIdentityDomain.Client{
 					ClientID:                "test-client-" + googleUuid.NewString(),
 					ClientSecret:            "test-secret",
-					Name:                    "Test Client",
+					Name:                    cryptoutilSharedMagic.TestClientName,
 					AllowedScopes:           []string{cryptoutilSharedMagic.ScopeRead},
 					ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 					TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,

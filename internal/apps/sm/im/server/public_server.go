@@ -9,8 +9,6 @@ import (
 
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm/im/repository"
-	cryptoutilAppsSmImServerApis "cryptoutil/internal/apps/sm/im/server/apis"
 	cryptoutilAppsFrameworkServiceServer "cryptoutil/internal/apps/framework/service/server"
 	cryptoutilAppsFrameworkServiceServerApis "cryptoutil/internal/apps/framework/service/server/apis"
 	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
@@ -19,6 +17,8 @@ import (
 	cryptoutilAppsFrameworkServiceServerRealms "cryptoutil/internal/apps/framework/service/server/realms"
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
 	cryptoutilAppsFrameworkServiceServerService "cryptoutil/internal/apps/framework/service/server/service"
+	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm/im/repository"
+	cryptoutilAppsSmImServerApis "cryptoutil/internal/apps/sm/im/server/apis"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
@@ -29,14 +29,14 @@ type PublicServer struct {
 
 	userRepo                *cryptoutilAppsSmImRepository.UserRepository
 	messageRepo             *cryptoutilAppsSmImRepository.MessageRepository
-	messageRecipientJWKRepo *cryptoutilAppsSmImRepository.MessageRecipientJWKRepository                 // Per-recipient decryption keys
-	jwkGenService           *cryptoutilSharedCryptoJose.JWKGenService                                   // JWK generation for message encryption
+	messageRecipientJWKRepo *cryptoutilAppsSmImRepository.MessageRecipientJWKRepository                  // Per-recipient decryption keys
+	jwkGenService           *cryptoutilSharedCryptoJose.JWKGenService                                    // JWK generation for message encryption
 	sessionManagerService   *cryptoutilAppsFrameworkServiceServerBusinesslogic.SessionManagerService     // Session management service
 	realmService            cryptoutilAppsFrameworkServiceServerService.RealmService                     // Realm management service
 	registrationService     *cryptoutilAppsFrameworkServiceServerBusinesslogic.TenantRegistrationService // Tenant registration service
 
-	// SM-IM demo state (auto-created tenant on first registration).
-	demoTenantID *googleUuid.UUID
+	// SM-IM state (auto-created tenant on first registration).
+	autoTenantID *googleUuid.UUID
 
 	// Handlers (composition pattern).
 	authnHandler   *cryptoutilAppsFrameworkServiceServerRealms.UserServiceImpl
@@ -91,32 +91,32 @@ func NewPublicServer(
 	userRepoAdapter := cryptoutilAppsSmImRepository.NewUserRepositoryAdapter(userRepo)
 
 	// Create user factory for template realms.
-	// For sm-im demo: Creates tenant dynamically on first user registration.
-	// All subsequent users share the same demo tenant.
+	// Creates tenant dynamically on first user registration.
+	// All subsequent users share the same auto-created tenant.
 	userFactory := func() cryptoutilAppsFrameworkServiceServerRealms.UserModel {
-		// Check if demo tenant already created.
-		if s.demoTenantID != nil {
+		// Check if tenant already created.
+		if s.autoTenantID != nil {
 			return &cryptoutilAppsFrameworkServiceServerRepository.User{
-				TenantID: *s.demoTenantID,
+				TenantID: *s.autoTenantID,
 			}
 		}
 
-		// First user registration - create demo tenant.
+		// First user registration - create tenant.
 		ctx := context.Background()
 		dummyUserID := googleUuid.New() // Temporary user ID for tenant creation.
 
 		tenant, err := s.registrationService.RegisterUserWithTenant(
 			ctx,
 			dummyUserID,
-			"demo-user",         // username
-			"demo@sm-im.local",  // email
-			"",                  // passwordHash (not used for demo tenant)
-			"SM-IM Demo Tenant", // tenantName
+			"auto-user",         // username
+			"auto@sm-im.local",  // email
+			"",                  // passwordHash (not used for auto tenant)
+			"SM-IM Auto Tenant", // tenantName
 			true,                // createTenant = true
 		)
 		if err != nil {
 			// Log error but continue with zero UUID (will fail later with better error).
-			fmt.Printf("Warning: Failed to create demo tenant: %v\n", err)
+			fmt.Printf("Warning: Failed to create auto tenant: %v\n", err)
 
 			return &cryptoutilAppsFrameworkServiceServerRepository.User{
 				TenantID: googleUuid.UUID{},
@@ -124,7 +124,7 @@ func NewPublicServer(
 		}
 
 		// Store tenant ID for reuse.
-		s.demoTenantID = &tenant.ID
+		s.autoTenantID = &tenant.ID
 
 		return &cryptoutilAppsFrameworkServiceServerRepository.User{
 			TenantID: tenant.ID,

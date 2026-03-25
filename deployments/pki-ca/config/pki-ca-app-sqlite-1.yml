@@ -10,7 +10,7 @@ service-name: "ca-sqlite"
 # Public API port
 bind-public-port: 8080
 
-# Database backend (SQLite in-memory for dev/demo/ci)
+# Database backend (SQLite in-memory for dev/ci)
 database:
   type: "sqlite"
   dsn: "file::memory:?cache=shared"

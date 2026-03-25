@@ -33,7 +33,7 @@ func TestHandleAuthorizeGET_MissingClientID(t *testing.T) {
 
 	query := url.Values{
 		cryptoutilSharedMagic.ParamResponseType: []string{cryptoutilSharedMagic.ResponseTypeCode},
-		cryptoutilSharedMagic.ParamRedirectURI:  []string{cryptoutilSharedMagic.DemoRedirectURI},
+		cryptoutilSharedMagic.ParamRedirectURI:  []string{cryptoutilSharedMagic.TestRedirectURI},
 		cryptoutilSharedMagic.ParamScope:        []string{"openid profile"},
 		cryptoutilSharedMagic.ParamState:        []string{"test-state"},
 	}
@@ -64,7 +64,7 @@ func TestHandleAuthorizeGET_MissingResponseType(t *testing.T) {
 
 	query := url.Values{
 		cryptoutilSharedMagic.ParamClientID:    []string{"test-client"},
-		cryptoutilSharedMagic.ParamRedirectURI: []string{cryptoutilSharedMagic.DemoRedirectURI},
+		cryptoutilSharedMagic.ParamRedirectURI: []string{cryptoutilSharedMagic.TestRedirectURI},
 		cryptoutilSharedMagic.ParamScope:       []string{"openid profile"},
 		cryptoutilSharedMagic.ParamState:       []string{"test-state"},
 	}

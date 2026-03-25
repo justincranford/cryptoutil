@@ -6,19 +6,19 @@
 # Supports 3 instances per service: 1 SQLite + 2 PostgreSQL (15 app instances total).
 #
 # Port allocation:
-#   - identity-authz-app-sqlite-1:    18200 (SQLite, dev/demo/ci)
+#   - identity-authz-app-sqlite-1:    18200 (SQLite, dev/ci)
 #   - identity-authz-app-postgres-1:  18201 (PostgreSQL instance 1)
 #   - identity-authz-app-postgres-2:  18202 (PostgreSQL instance 2)
-#   - identity-idp-app-sqlite-1:      18300 (SQLite, dev/demo/ci)
+#   - identity-idp-app-sqlite-1:      18300 (SQLite, dev/ci)
 #   - identity-idp-app-postgres-1:    18301 (PostgreSQL instance 1)
 #   - identity-idp-app-postgres-2:    18302 (PostgreSQL instance 2)
-#   - identity-rs-app-sqlite-1:       18400 (SQLite, dev/demo/ci)
+#   - identity-rs-app-sqlite-1:       18400 (SQLite, dev/ci)
 #   - identity-rs-app-postgres-1:     18401 (PostgreSQL instance 1)
 #   - identity-rs-app-postgres-2:     18402 (PostgreSQL instance 2)
-#   - identity-rp-app-sqlite-1:       18500 (SQLite, dev/demo/ci)
+#   - identity-rp-app-sqlite-1:       18500 (SQLite, dev/ci)
 #   - identity-rp-app-postgres-1:     18501 (PostgreSQL instance 1)
 #   - identity-rp-app-postgres-2:     18502 (PostgreSQL instance 2)
-#   - identity-spa-app-sqlite-1:      18600 (SQLite, dev/demo/ci)
+#   - identity-spa-app-sqlite-1:      18600 (SQLite, dev/ci)
 #   - identity-spa-app-postgres-1:    18601 (PostgreSQL instance 1)
 #   - identity-spa-app-postgres-2:    18602 (PostgreSQL instance 2)
 #   - identity-db-postgres-1:         5432  (PostgreSQL, shared by ALL services)
@@ -26,7 +26,6 @@
 # Usage:
 #   docker compose -f compose.yml up -d                        # SQLite (default: dev profile)
 #   docker compose -f compose.yml --profile postgres up -d     # All instances
-#   docker compose -f compose.yml --profile demo up -d         # Demo mode
 #   docker compose -f compose.yml --profile ci up -d           # CI mode
 #   docker compose -f compose.yml logs -f                      # View logs
 #   docker compose -f compose.yml down -v                      # Stop and clean up
@@ -115,9 +114,9 @@ services:
   # AUTHZ SERVICE (Authorization Server) - Ports 18200-18202
   ##############################################################################
 
-  # Authz server with SQLite backend (dev/demo/ci mode).
+  # Authz server with SQLite backend (dev/ci mode).
   identity-authz-app-sqlite-1:
-    profiles: ["dev", "demo", "ci"]
+    profiles: ["dev", "ci"]
     image: cryptoutil:dev
     command: ["identity", "authz", "server", "--bind-public-port=8080", "--config=/app/config/identity-authz-app-sqlite-1.yml", "--config=/app/config/identity-authz-app-common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
@@ -250,9 +249,9 @@ services:
   # IDP SERVICE (Identity Provider) - Ports 18300-18302
   ##############################################################################
 
-  # IdP server with SQLite backend (dev/demo/ci mode).
+  # IdP server with SQLite backend (dev/ci mode).
   identity-idp-app-sqlite-1:
-    profiles: ["dev", "demo", "ci"]
+    profiles: ["dev", "ci"]
     image: cryptoutil:dev
     command: ["identity", "idp", "server", "--bind-public-port=8080", "--config=/app/config/identity-idp-app-sqlite-1.yml", "--config=/app/config/identity-idp-app-common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
@@ -385,9 +384,9 @@ services:
   # RS SERVICE (Resource Server) - Ports 18400-18402
   ##############################################################################
 
-  # RS server with SQLite backend (dev/demo/ci mode).
+  # RS server with SQLite backend (dev/ci mode).
   identity-rs-app-sqlite-1:
-    profiles: ["dev", "demo", "ci"]
+    profiles: ["dev", "ci"]
     image: cryptoutil:dev
     command: ["identity", "rs", "server", "--bind-public-port=8080", "--config=/app/config/identity-rs-app-sqlite-1.yml", "--config=/app/config/identity-rs-app-common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
@@ -520,9 +519,9 @@ services:
   # RP SERVICE (Relying Party) - Ports 18500-18502
   ##############################################################################
 
-  # RP server with SQLite backend (dev/demo/ci mode).
+  # RP server with SQLite backend (dev/ci mode).
   identity-rp-app-sqlite-1:
-    profiles: ["dev", "demo", "ci"]
+    profiles: ["dev", "ci"]
     image: cryptoutil:dev
     command: ["identity", "rp", "server", "--bind-public-port=8080", "--config=/app/config/identity-rp-app-sqlite-1.yml", "--config=/app/config/identity-rp-app-common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
@@ -655,9 +654,9 @@ services:
   # SPA SERVICE (Single Page App) - Ports 18600-18602
   ##############################################################################
 
-  # SPA server with SQLite backend (dev/demo/ci mode).
+  # SPA server with SQLite backend (dev/ci mode).
   identity-spa-app-sqlite-1:
-    profiles: ["dev", "demo", "ci"]
+    profiles: ["dev", "ci"]
     image: cryptoutil:dev
     command: ["identity", "spa", "server", "--bind-public-port=8080", "--config=/app/config/identity-spa-app-sqlite-1.yml", "--config=/app/config/identity-spa-app-common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp

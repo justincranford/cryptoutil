@@ -12,10 +12,10 @@
   "github.copilot.chat.editor.temporalContext.enabled": true, // Enable temporal context in editor - Default: false, Recommended: true (experimental)
   "github.copilot.nextEditSuggestions.enabled": true, // Enable next edit suggestions - Default: false, Recommended: true (experimental)
   "chat.agentSessionsViewLocation": "view", // Agent sessions view location - Default: "auxiliary", Recommended: "view" (main view)
-  "chat.agent.maxRequests": 1000, // Maximum agent requests - Default: 25, Recommended: 1000 (higher limit for complex tasks)
+  "chat.agent.maxRequests": 10000, // Maximum agent requests - Default: 25, Recommended: 1000 (higher limit for complex tasks)
   "chat.math.enabled": true, // Enable math expressions in chat - Default: false, Recommended: true (experimental)
-  "chat.fontSize": 14, // Increase GitHub Copilot Chat font size for non-code text (default 12)
-  "chat.editor.fontSize": 14, // Increase GitHub Copilot Chat font size for code text (default 12)
+  "chat.fontSize": 16, // Increase GitHub Copilot Chat font size for non-code text (default 12)
+  "chat.editor.fontSize": 16, // Increase GitHub Copilot Chat font size for code text (default 12)
   "workbench.secondarySideBar.defaultVisibility": "visible", // Default visibility of secondary sidebar - Default: "hidden", Recommended: "visible"
 
   "git.enableSmartCommit": true, // Commit button is only enabled when you have staged changes - Default: true
@@ -26,7 +26,7 @@
   // VS Code Terminal Settings https://code.visualstudio.com/docs/terminal/profiles
   "terminal.integrated.fontSize": 15, // Increase terminal font size (default 12)
   "terminal.integrated.shellIntegration.enabled": true, // Enable shell integration for better command detection
-  "terminal.integrated.shellIntegration.history": 500,
+  "terminal.integrated.shellIntegration.history": 200,
   "terminal.integrated.defaultProfile.windows": "PowerShell Core", // Set PowerShell Core (pwsh) as default terminal profile
   "terminal.integrated.profiles.windows": {
     "PowerShell Core": {

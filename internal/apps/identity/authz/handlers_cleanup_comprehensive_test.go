@@ -184,7 +184,7 @@ func createCleanupTestClient(
 		ClientID:                clientID,
 		ClientSecret:            "cleanup-test-secret",
 		Name:                    "Cleanup Test Client",
-		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
+		RedirectURIs:            []string{cryptoutilSharedMagic.TestRedirectURI},
 		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
 		ClientType:              "confidential",
 		TokenEndpointAuthMethod: cryptoutilSharedMagic.ClientAuthMethodSecretPost,

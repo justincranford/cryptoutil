@@ -20,9 +20,9 @@ import (
 	"gorm.io/gorm"
 )
 
-// demoTenantID is a fixed tenant ID for the skeleton-template demo.
+// defaultTenantID is a fixed tenant ID for the skeleton-template.
 // Real services derive tenant from authentication context.
-var demoTenantID = googleUuid.MustParse("00000000-0000-0000-0000-000000000001")
+var defaultTenantID = googleUuid.MustParse("00000000-0000-0000-0000-000000000001")
 
 // defaultPage is the default page number for list operations.
 var defaultPage = 1
@@ -43,7 +43,7 @@ func NewStrictServer(itemRepo *cryptoutilAppsSkeletonTemplateRepository.ItemRepo
 // Compile-time assertion: StrictServer implements StrictServerInterface.
 var _ cryptoutilSkeletonTemplateServer.StrictServerInterface = (*StrictServer)(nil)
 
-// ListItems lists items for the demo tenant with pagination.
+// ListItems lists items for the default tenant with pagination.
 // (GET /items).
 func (s *StrictServer) ListItems(_ context.Context, request cryptoutilSkeletonTemplateServer.ListItemsRequestObject) (cryptoutilSkeletonTemplateServer.ListItemsResponseObject, error) {
 	page := defaultPage
@@ -56,7 +56,7 @@ func (s *StrictServer) ListItems(_ context.Context, request cryptoutilSkeletonTe
 		size = *request.Params.Size
 	}
 
-	items, total, err := s.itemRepo.List(context.Background(), demoTenantID, page, size)
+	items, total, err := s.itemRepo.List(context.Background(), defaultTenantID, page, size)
 	if err != nil {
 		return listItems500("Failed to list items")
 	}
@@ -77,7 +77,7 @@ func (s *StrictServer) ListItems(_ context.Context, request cryptoutilSkeletonTe
 	}, nil
 }
 
-// CreateItem creates a new item for the demo tenant.
+// CreateItem creates a new item for the default tenant.
 // (POST /items).
 func (s *StrictServer) CreateItem(_ context.Context, request cryptoutilSkeletonTemplateServer.CreateItemRequestObject) (cryptoutilSkeletonTemplateServer.CreateItemResponseObject, error) {
 	if request.Body == nil {
@@ -90,7 +90,7 @@ func (s *StrictServer) CreateItem(_ context.Context, request cryptoutilSkeletonT
 	now := time.Now().UTC()
 	item := &cryptoutilAppsSkeletonTemplateDomain.TemplateItem{
 		ID:          googleUuid.Must(googleUuid.NewV7()),
-		TenantID:    demoTenantID,
+		TenantID:    defaultTenantID,
 		Name:        request.Body.Name,
 		Description: derefString(request.Body.Description),
 		CreatedAt:   now,
@@ -107,7 +107,7 @@ func (s *StrictServer) CreateItem(_ context.Context, request cryptoutilSkeletonT
 // GetItem retrieves an item by ID.
 // (GET /items/{itemID}).
 func (s *StrictServer) GetItem(_ context.Context, request cryptoutilSkeletonTemplateServer.GetItemRequestObject) (cryptoutilSkeletonTemplateServer.GetItemResponseObject, error) {
-	item, err := s.itemRepo.GetByID(context.Background(), demoTenantID, googleUuid.UUID(request.ItemID))
+	item, err := s.itemRepo.GetByID(context.Background(), defaultTenantID, googleUuid.UUID(request.ItemID))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return cryptoutilSkeletonTemplateServer.GetItem404JSONResponse{NotFoundJSONResponse: cryptoutilSkeletonTemplateServer.NotFoundJSONResponse{
@@ -132,7 +132,7 @@ func (s *StrictServer) UpdateItem(_ context.Context, request cryptoutilSkeletonT
 		}}, nil
 	}
 
-	existing, err := s.itemRepo.GetByID(context.Background(), demoTenantID, googleUuid.UUID(request.ItemID))
+	existing, err := s.itemRepo.GetByID(context.Background(), defaultTenantID, googleUuid.UUID(request.ItemID))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return cryptoutilSkeletonTemplateServer.UpdateItem404JSONResponse{NotFoundJSONResponse: cryptoutilSkeletonTemplateServer.NotFoundJSONResponse{
@@ -157,7 +157,7 @@ func (s *StrictServer) UpdateItem(_ context.Context, request cryptoutilSkeletonT
 // DeleteItem deletes an item by ID.
 // (DELETE /items/{itemID}).
 func (s *StrictServer) DeleteItem(_ context.Context, request cryptoutilSkeletonTemplateServer.DeleteItemRequestObject) (cryptoutilSkeletonTemplateServer.DeleteItemResponseObject, error) {
-	if err := s.itemRepo.Delete(context.Background(), demoTenantID, googleUuid.UUID(request.ItemID)); err != nil {
+	if err := s.itemRepo.Delete(context.Background(), defaultTenantID, googleUuid.UUID(request.ItemID)); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return cryptoutilSkeletonTemplateServer.DeleteItem404JSONResponse{NotFoundJSONResponse: cryptoutilSkeletonTemplateServer.NotFoundJSONResponse{
 				Code:    "NOT_FOUND",

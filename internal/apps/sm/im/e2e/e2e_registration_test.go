@@ -179,7 +179,7 @@ func TestE2E_RegistrationFlowWithJoinRequest(t *testing.T) {
 // TestE2E_AdminJoinRequestManagement validates listing and managing join requests.
 // This tests the Phase 0 admin endpoints for join request approval/rejection.
 //
-// SKIPPED: Sm-im is a demo service without admin server infrastructure.
+// SKIPPED: Sm-im is a reference service without admin server infrastructure.
 // Admin join request routes are registered on ADMIN server (/admin/api/v1/join-requests),
 // NOT on PUBLIC server with /service or /browser prefixes.
 // Template infrastructure provides RegisterJoinRequestManagementRoutes() for services
@@ -191,5 +191,5 @@ func TestE2E_RegistrationFlowWithJoinRequest(t *testing.T) {
 // 3. Re-enable this test and update URLs to use adminURL (port 9090).
 func TestE2E_AdminJoinRequestManagement(t *testing.T) {
 	t.Parallel()
-	t.Skip("Sm-im demo service does not implement admin server (admin routes registered on separate admin server, not public server with /service or /browser prefixes)")
+	t.Skip("Sm-im service does not implement admin server (admin routes registered on separate admin server, not public server with /service or /browser prefixes)")
 }

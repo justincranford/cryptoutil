@@ -35,7 +35,6 @@
 # Usage:
 #   docker compose -f compose-cryptoutil.yml up -d                        # SQLite instances only (default: dev profile)
 #   docker compose -f compose-cryptoutil.yml --profile postgres up -d     # All instances (SQLite + 2x PostgreSQL per service)
-#   docker compose -f compose-cryptoutil.yml --profile demo up -d         # Demo mode with seed data
 #   docker compose -f compose-cryptoutil.yml --profile ci up -d           # CI mode for testing
 #   docker compose -f compose-cryptoutil.yml logs -f                      # View logs
 #   docker compose -f compose-cryptoutil.yml down -v                      # Stop and clean up
@@ -46,7 +45,6 @@
 #
 # Profiles:
 #   - dev: Development mode (default) - SQLite backend, minimal services
-#   - demo: Demo mode with seeded data, SQLite backend
 #   - ci: CI mode for testing, SQLite backend
 #   - postgres: PostgreSQL backend with multiple instances (2x app per service + shared infrastructure)
 #
@@ -96,7 +94,7 @@ services:
   # ========================================================================
 
   pki-ca-app-sqlite-1:
-    profiles: ["dev", "demo", "ci"]
+    profiles: ["dev", "ci"]
     image: cryptoutil:dev
     command: ["pki", "ca", "server", "--bind-public-port=8080", "--config=/app/config/pki-ca-app-sqlite-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
@@ -234,7 +232,7 @@ services:
   # ========================================================================
 
   jose-ja-app-sqlite-1:
-    profiles: ["dev", "demo", "ci"]
+    profiles: ["dev", "ci"]
     image: cryptoutil:dev
     command: ["jose", "ja", "server", "--bind-public-port=8080", "--config=/app/config/jose-ja-app-sqlite-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
@@ -372,7 +370,7 @@ services:
   # ========================================================================
 
   sm-im-app-sqlite-1:
-    profiles: ["dev", "demo", "ci"]
+    profiles: ["dev", "ci"]
     image: cryptoutil:dev
     command: ["sm", "im", "server", "--bind-public-port=8080", "--config=/app/config/sm-im-app-sqlite-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
@@ -510,7 +508,7 @@ services:
   # ========================================================================
 
   sm-kms-app-sqlite-1:
-    profiles: ["dev", "demo", "ci"]
+    profiles: ["dev", "ci"]
     image: cryptoutil:dev
     command: ["sm", "kms", "server", "--bind-public-port=8080", "--config=/app/config/sm-kms-app-sqlite-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
@@ -648,7 +646,7 @@ services:
   # ========================================================================
 
   identity-authz-app-sqlite-1:
-    profiles: ["dev", "demo", "ci"]
+    profiles: ["dev", "ci"]
     image: cryptoutil:dev
     command: ["identity", "authz", "server", "--bind-public-port=8080", "--config=/app/config/identity-authz-sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
@@ -786,7 +784,7 @@ services:
   # ========================================================================
 
   identity-idp-app-sqlite-1:
-    profiles: ["dev", "demo", "ci"]
+    profiles: ["dev", "ci"]
     image: cryptoutil:dev
     command: ["identity", "idp", "server", "--bind-public-port=8080", "--config=/app/config/identity-idp-sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
@@ -924,7 +922,7 @@ services:
   # ========================================================================
 
   identity-rs-app-sqlite-1:
-    profiles: ["dev", "demo", "ci"]
+    profiles: ["dev", "ci"]
     image: cryptoutil:dev
     command: ["identity", "rs", "server", "--bind-public-port=8080", "--config=/app/config/identity-rs-sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
@@ -1062,7 +1060,7 @@ services:
   # ========================================================================
 
   identity-rp-app-sqlite-1:
-    profiles: ["dev", "demo", "ci"]
+    profiles: ["dev", "ci"]
     image: cryptoutil:dev
     command: ["identity", "rp", "server", "--bind-public-port=8080", "--config=/app/config/identity-rp-sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
@@ -1200,7 +1198,7 @@ services:
   # ========================================================================
 
   identity-spa-app-sqlite-1:
-    profiles: ["dev", "demo", "ci"]
+    profiles: ["dev", "ci"]
     image: cryptoutil:dev
     command: ["identity", "spa", "server", "--bind-public-port=8080", "--config=/app/config/identity-spa-sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
@@ -1338,7 +1336,7 @@ services:
   # =====================================================================
 
   skeleton-template-app-sqlite-1:
-    profiles: ["dev", "demo", "ci"]
+    profiles: ["dev", "ci"]
     image: cryptoutil:dev
     command: ["skeleton", "template", "server", "--bind-public-port=8080", "--config=/app/config/skeleton-template-app-sqlite-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp

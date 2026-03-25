@@ -245,11 +245,11 @@ func createIntrospectRevokeTestClient(t *testing.T, repoFactory *cryptoutilIdent
 	testClient := &cryptoutilIdentityDomain.Client{
 		ID:                      clientUUID,
 		ClientID:                fmt.Sprintf("test-client-%s", clientUUID.String()),
-		Name:                    "Test Client",
+		Name:                    cryptoutilSharedMagic.TestClientName,
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
 		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail},
-		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
+		RedirectURIs:            []string{cryptoutilSharedMagic.TestRedirectURI},
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,
 	}
 

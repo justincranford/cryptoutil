@@ -39,7 +39,7 @@ func TestTLSClientAuthenticator_Authenticate_Cert(t *testing.T) {
 				ID:                      mustNewUUID(),
 				ClientID:                "tls-client",
 				TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodTLSClientAuth,
-				CertificateSubject:      "Test Client",
+				CertificateSubject:      cryptoutilSharedMagic.TestClientName,
 				CertificateFingerprint:  fingerprint,
 				Enabled:                 boolPtr(true),
 			},

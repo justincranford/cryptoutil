@@ -267,7 +267,7 @@ func TestConfig_Validate(t *testing.T) {
 				AuthZ: &ServerConfig{
 					Name:        "authz-server",
 					BindAddress: cryptoutilSharedMagic.IPv4Loopback,
-					Port:        cryptoutilSharedMagic.DemoServerPort,
+					Port:        cryptoutilSharedMagic.TestServerPort,
 				},
 				IDP: &ServerConfig{
 					Name:        "idp-server",
@@ -321,7 +321,7 @@ func TestConfig_Validate(t *testing.T) {
 				AuthZ: &ServerConfig{
 					Name:        "",
 					BindAddress: cryptoutilSharedMagic.IPv4Loopback,
-					Port:        cryptoutilSharedMagic.DemoServerPort,
+					Port:        cryptoutilSharedMagic.TestServerPort,
 				},
 			},
 			expectError: true,

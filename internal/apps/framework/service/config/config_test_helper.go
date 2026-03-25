@@ -41,7 +41,6 @@ func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *ServiceFrame
 		LogLevel:                    cryptoutilSharedMagic.DefaultLogLevelInfo,
 		VerboseMode:                 cryptoutilSharedMagic.DefaultVerboseMode,
 		DevMode:                     devMode,
-		DemoMode:                    cryptoutilSharedMagic.DefaultDemoMode,
 		DryRun:                      cryptoutilSharedMagic.DefaultDryRun,
 		Profile:                     cryptoutilSharedMagic.DefaultProfile,
 		BindPublicProtocol:          cryptoutilSharedMagic.DefaultPublicProtocolCryptoutil,

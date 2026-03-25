@@ -352,7 +352,7 @@ func createMultiTenantTestClientWithScopes(t *testing.T, repoFactory *cryptoutil
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeClientCredentials},
 		AllowedScopes:           scopes,
-		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
+		RedirectURIs:            []string{cryptoutilSharedMagic.TestRedirectURI},
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,
 	}
 

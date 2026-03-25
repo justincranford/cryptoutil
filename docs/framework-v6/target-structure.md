@@ -19,7 +19,7 @@ The following errors and contradictions in v5/target-structure.md are resolved i
 | 1 | E.4 used nested `configs/{PRODUCT}/{SERVICE}/` dirs | E.4 now flat `configs/{PS-ID}/` per E.3 | 2=B |
 | 2 | E.4 used `{SERVICE}.yml` config filename | Config files named `{PS-ID}.yml` | 2=B |
 | 3 | sqlite-2 overlay missing from F.1 (only sqlite-1) | F.1 has BOTH sqlite-1 AND sqlite-2 | RC-3 |
-| 4 | F.1 unseal example showed `im-{hex}` (SERVICE prefix) | `{PS-ID}-unseal-key-N-of-5-{hex}` | 1=A |
+| 4 | F.1 unseal example showed `im-{hex-random-32-bytes}` (SERVICE prefix) | `{PS-ID}-unseal-key-N-of-5-{hex-random-32-bytes}` | 1=A |
 | 5 | F.2 had duplicate `unseal-5of5.secret` entry | Single entry, no duplicate | RC-1 |
 | 6 | postgres-database value was `{PS_ID}` | `{PS_ID}_database` | 6=A |
 | 7 | postgres-username value was `{PS_ID}_user` | `{PS_ID}_database_user` | 6=A |
@@ -30,8 +30,8 @@ The following errors and contradictions in v5/target-structure.md are resolved i
 | 12 | `custom-cicd-lint/action.yml` in B | Renamed to `download-cicd/action.yml` | — |
 | 13 | `.vscode/mcp.json` missing from A.3 | Added to A.3 | — |
 | 14 | `docs/UPDATE-TOOLS.md` missing from H | Added to H | — |
-| 15 | Product unseal used `dev-unseal-key-N-of-5` | `{PRODUCT}-unseal-key-N-of-5-{hex}` | 1=A |
-| 16 | Suite unseal used `suite-` prefix | `cryptoutil-unseal-key-N-of-5-{hex}` | 1=A |
+| 15 | Product unseal used `dev-unseal-key-N-of-5` | `{PRODUCT}-unseal-key-N-of-5-{hex-random-32-bytes}` | 1=A |
+| 16 | Suite unseal used `suite-` prefix | `cryptoutil-unseal-key-N-of-5-{hex-random-32-bytes}` | 1=A |
 
 ---
 
@@ -999,13 +999,13 @@ reminders that browser/service credentials are service-level concerns.
 
 | Secret Purpose | Filename | Service Value Pattern | Product Value Pattern | Suite Value Pattern |
 |---------------|----------|-----------------------|-----------------------|---------------------|
-| Hash pepper v3 | `hash-pepper-v3.secret` | `{PS-ID}-hash-pepper-v3-{base64-random-32-bytes}` | `{PRODUCT}-hash-pepper-v3-{base64}` | `{SUITE}-hash-pepper-v3-{base64}` |
+| Hash pepper v3 | `hash-pepper-v3.secret` | `{PS-ID}-hash-pepper-v3-{base64-random-32-bytes}` | `{PRODUCT}-hash-pepper-v3-{base64-random-32-bytes}` | `{SUITE}-hash-pepper-v3-{base64-random-32-bytes}` |
 | Browser username | `browser-username.secret` | `{PS-ID}-browser-user` | `.never` only | `.never` only |
 | Browser password | `browser-password.secret` | `{PS-ID}-browser-pass-{base64-random-32-bytes}` | `.never` only | `.never` only |
 | Service username | `service-username.secret` | `{PS-ID}-service-user` | `.never` only | `.never` only |
 | Service password | `service-password.secret` | `{PS-ID}-service-pass-{base64-random-32-bytes}` | `.never` only | `.never` only |
 | PostgreSQL username | `postgres-username.secret` | `{PS_ID}_database_user` | `{PRODUCT}_database_user` | `{SUITE}_database_user` |
-| PostgreSQL password | `postgres-password.secret` | `{PS_ID}_database_pass-{base64-random-32-bytes}` | `{PRODUCT}_database_pass-{base64}` | `{SUITE}_database_pass-{base64}` |
+| PostgreSQL password | `postgres-password.secret` | `{PS_ID}_database_pass-{base64-random-32-bytes}` | `{PRODUCT}_database_pass-{base64-random-32-bytes}` | `{SUITE}_database_pass-{base64-random-32-bytes}` |
 | PostgreSQL database | `postgres-database.secret` | `{PS_ID}_database` | `{PRODUCT}_database` | `{SUITE}_database` |
 | PostgreSQL URL | `postgres-url.secret` | `postgres://{PS_ID}_database_user:{PS_ID}_database_pass@{PS-ID}-postgres:5432/{PS_ID}_database?sslmode=disable` | `postgres://{PRODUCT}_database_user:{PRODUCT}_database_pass@{PRODUCT}-postgres:5432/{PRODUCT}_database?sslmode=disable` | `postgres://{SUITE}_database_user:{SUITE}_database_pass@{SUITE}-postgres:5432/{SUITE}_database?sslmode=disable` |
 | Unseal shard N | `unseal-{N}of5.secret` | `{PS-ID}-unseal-key-N-of-5-{hex-random-32-bytes}` | `{PRODUCT}-unseal-key-N-of-5-{hex-random-32-bytes}` | `{SUITE}-unseal-key-N-of-5-{hex-random-32-bytes}` |
@@ -1058,8 +1058,8 @@ reminders that browser/service credentials are service-level concerns.
 | `deployments/` archived | Present | Deleted | DELETE |
 | `deployments/` shared-citus | Present | Deleted | DELETE |
 | `deployments/deployments-all-files.json` | Present | Deleted | DELETE |
-| Service unseal prefix | `{SERVICE}-{hex}` (e.g., `im-{hex}`) | `{PS-ID}-unseal-key-N-of-5-{hex}` | FIX (Decision 1=A) |
-| Product unseal value | `dev-unseal-key-N-of-5` | `{PRODUCT}-unseal-key-N-of-5-{hex}` | FIX (Decision 1=A) |
+| Service unseal prefix | `{SERVICE}-{hex-random-32-bytes}` (e.g., `im-{hex-random-32-bytes}`) | `{PS-ID}-unseal-key-N-of-5-{hex-random-32-bytes}` | FIX (Decision 1=A) |
+| Product unseal value | `dev-unseal-key-N-of-5` | `{PRODUCT}-unseal-key-N-of-5-{hex-random-32-bytes}` | FIX (Decision 1=A) |
 | Suite unseal prefix | `suite-` | `cryptoutil-` | FIX (Decision 1=A) |
 | `pki-ca` unseal | Copy of sm-kms values | Unique `pki-ca-` prefixed values | REGENERATE |
 | Service postgres DB | `{PS_ID}` (e.g., `sm_im`) | `{PS_ID}_database` | FIX (Decision 6=A) |

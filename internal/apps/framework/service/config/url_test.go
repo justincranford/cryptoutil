@@ -32,9 +32,9 @@ func TestPrivateBaseURL(t *testing.T) {
 			settings: ServiceFrameworkServerSettings{
 				BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTP,
 				BindPrivateAddress:  cryptoutilSharedMagic.IPv4Loopback,
-				BindPrivatePort:     cryptoutilSharedMagic.DemoServerPort,
+				BindPrivatePort:     cryptoutilSharedMagic.TestServerPort,
 			},
-			expected: cryptoutilSharedMagic.DemoIssuer,
+			expected: cryptoutilSharedMagic.TestIssuer,
 		},
 		{
 			name: "https IPv6 9999",
@@ -71,7 +71,7 @@ func TestPublicBaseURL(t *testing.T) {
 			settings: ServiceFrameworkServerSettings{
 				BindPublicProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
 				BindPublicAddress:  cryptoutilSharedMagic.DefaultOTLPHostnameDefault,
-				BindPublicPort:     cryptoutilSharedMagic.DemoServerPort,
+				BindPublicPort:     cryptoutilSharedMagic.TestServerPort,
 			},
 			expected: "https://localhost:8080",
 		},

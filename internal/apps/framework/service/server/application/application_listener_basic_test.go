@@ -272,7 +272,7 @@ func TestStartListener(t *testing.T) {
 		LogLevel:     cryptoutilSharedMagic.DefaultLogLevelInfo,
 	}
 
-	publicServer := &mockPublicServer{port: cryptoutilSharedMagic.DemoServerPort, baseURL: "https://localhost:8080"}
+	publicServer := &mockPublicServer{port: cryptoutilSharedMagic.TestServerPort, baseURL: "https://localhost:8080"}
 	adminServer := &mockAdminServer{port: cryptoutilSharedMagic.JoseJAAdminPort, baseURL: "https://localhost:9090"}
 
 	config := &ListenerConfig{
@@ -445,7 +445,7 @@ func TestListener_Shutdown(t *testing.T) {
 		LogLevel:     cryptoutilSharedMagic.DefaultLogLevelInfo,
 	}
 
-	publicServer := &mockPublicServer{port: cryptoutilSharedMagic.DemoServerPort}
+	publicServer := &mockPublicServer{port: cryptoutilSharedMagic.TestServerPort}
 	adminServer := &mockAdminServer{port: cryptoutilSharedMagic.JoseJAAdminPort}
 
 	config := &ListenerConfig{
@@ -476,7 +476,7 @@ func TestListener_Shutdown_NilContext(t *testing.T) {
 		LogLevel:     cryptoutilSharedMagic.DefaultLogLevelInfo,
 	}
 
-	publicServer := &mockPublicServer{port: cryptoutilSharedMagic.DemoServerPort}
+	publicServer := &mockPublicServer{port: cryptoutilSharedMagic.TestServerPort}
 	adminServer := &mockAdminServer{port: cryptoutilSharedMagic.JoseJAAdminPort}
 
 	config := &ListenerConfig{

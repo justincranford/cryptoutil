@@ -18,7 +18,7 @@ func validBaseSettings() *ServiceFrameworkServerSettings {
 	return &ServiceFrameworkServerSettings{
 		DevMode:             false,
 		BindPublicAddress:   cryptoutilSharedMagic.IPv4Loopback,
-		BindPublicPort:      cryptoutilSharedMagic.DemoServerPort,
+		BindPublicPort:      cryptoutilSharedMagic.TestServerPort,
 		BindPrivateAddress:  cryptoutilSharedMagic.IPv4Loopback,
 		BindPrivatePort:     cryptoutilSharedMagic.JoseJAAdminPort,
 		BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
@@ -85,7 +85,7 @@ func TestValidateConfiguration(t *testing.T) {
 			name: "valid production PostgreSQL config",
 			modify: func(s *ServiceFrameworkServerSettings) {
 				s.BindPublicAddress = "192.168.1.100"
-				s.BindPublicPort = cryptoutilSharedMagic.DemoServerPort
+				s.BindPublicPort = cryptoutilSharedMagic.TestServerPort
 				s.DatabaseURL = "postgres://user:pass@db.example.com:5432/production"
 				s.TLSPublicDNSNames = []string{"api.example.com"}
 				s.OTLPEndpoint = "http://otel-collector:4317"
@@ -134,8 +134,8 @@ func TestValidateConfiguration(t *testing.T) {
 		{
 			name: "same non-zero ports rejected",
 			modify: func(s *ServiceFrameworkServerSettings) {
-				s.BindPublicPort = cryptoutilSharedMagic.DemoServerPort
-				s.BindPrivatePort = cryptoutilSharedMagic.DemoServerPort
+				s.BindPublicPort = cryptoutilSharedMagic.TestServerPort
+				s.BindPrivatePort = cryptoutilSharedMagic.TestServerPort
 			},
 			wantErrorMessage: "public port (8080) and private port (8080) cannot be the same",
 		},

@@ -6,7 +6,7 @@ import "time"
 
 // Identity service scaling constants.
 const (
-	// IdentityScaling1x - Single instance scaling (demo, ci).
+	// IdentityScaling1x - Single instance scaling (dev, ci).
 	IdentityScaling1x = 1
 	// IdentityScaling2x - High availability scaling (development).
 	IdentityScaling2x = 2

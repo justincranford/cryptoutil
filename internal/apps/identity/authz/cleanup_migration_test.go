@@ -59,7 +59,7 @@ func TestMigrateClientSecrets_Success(t *testing.T) {
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeClientCredentials},
 		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID},
-		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
+		RedirectURIs:            []string{cryptoutilSharedMagic.TestRedirectURI},
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
 		ClientSecret:            legacyHash,
 		AccessTokenLifetime:     cryptoutilSharedMagic.IMDefaultSessionTimeout,

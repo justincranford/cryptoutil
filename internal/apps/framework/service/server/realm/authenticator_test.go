@@ -6,8 +6,9 @@ package realm
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -237,7 +238,7 @@ func TestAuthenticator_AuthenticateByRealmName(t *testing.T) {
 		Realms: []RealmConfig{
 			{
 				ID:      testRealmID1,
-				Name:    "demo-realm",
+				Name:    "test-realm",
 				Type:    RealmTypeFile,
 				Enabled: true,
 				Users: []UserConfig{
@@ -262,7 +263,7 @@ func TestAuthenticator_AuthenticateByRealmName(t *testing.T) {
 	ctx := context.Background()
 
 	// Success case.
-	result := auth.AuthenticateByRealmName(ctx, "demo-realm", "testuser", testuserPassword)
+	result := auth.AuthenticateByRealmName(ctx, "test-realm", "testuser", testuserPassword)
 	require.True(t, result.Authenticated)
 	require.Equal(t, "testuser", result.Username)
 

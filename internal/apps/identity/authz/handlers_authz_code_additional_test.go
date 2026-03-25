@@ -45,8 +45,8 @@ func TestHandleAuthorizationCodeGrant_AdditionalErrorPaths(t *testing.T) {
 				clientRepo := repoFactory.ClientRepository()
 				client := &cryptoutilIdentityDomain.Client{
 					ClientID:             "test-client-" + googleUuid.NewString(),
-					Name:                 "Test Client",
-					RedirectURIs:         []string{cryptoutilSharedMagic.DemoRedirectURI},
+					Name:                 cryptoutilSharedMagic.TestClientName,
+					RedirectURIs:         []string{cryptoutilSharedMagic.TestRedirectURI},
 					AllowedScopes:        []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile},
 					AccessTokenLifetime:  cryptoutilSharedMagic.IMDefaultSessionTimeout,
 					RefreshTokenLifetime: cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
@@ -61,7 +61,7 @@ func TestHandleAuthorizationCodeGrant_AdditionalErrorPaths(t *testing.T) {
 				codeChallenge := cryptoutilIdentityAuthzPkce.GenerateCodeChallenge(codeVerifier, cryptoutilSharedMagic.PKCEMethodS256)
 				authRequest := &cryptoutilIdentityDomain.AuthorizationRequest{
 					ClientID:            client.ClientID,
-					RedirectURI:         cryptoutilSharedMagic.DemoRedirectURI,
+					RedirectURI:         cryptoutilSharedMagic.TestRedirectURI,
 					Scope:               "openid profile",
 					State:               "test-state",
 					CodeChallenge:       codeChallenge,
@@ -90,7 +90,7 @@ func TestHandleAuthorizationCodeGrant_AdditionalErrorPaths(t *testing.T) {
 				nonExistentClientID := "non-existent-client-" + googleUuid.NewString()
 				authRequest := &cryptoutilIdentityDomain.AuthorizationRequest{
 					ClientID:            nonExistentClientID,
-					RedirectURI:         cryptoutilSharedMagic.DemoRedirectURI,
+					RedirectURI:         cryptoutilSharedMagic.TestRedirectURI,
 					Scope:               "openid profile",
 					State:               "test-state",
 					CodeChallenge:       codeChallenge,

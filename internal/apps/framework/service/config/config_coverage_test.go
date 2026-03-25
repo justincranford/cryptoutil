@@ -111,8 +111,8 @@ func TestRegisterAsSettings(t *testing.T) {
 	t.Run("uint16", func(t *testing.T) {
 		t.Parallel()
 
-		setting := Setting{Value: uint16(cryptoutilSharedMagic.DemoServerPort)}
-		require.Equal(t, uint16(cryptoutilSharedMagic.DemoServerPort), RegisterAsUint16Setting(&setting))
+		setting := Setting{Value: uint16(cryptoutilSharedMagic.TestServerPort)}
+		require.Equal(t, uint16(cryptoutilSharedMagic.TestServerPort), RegisterAsUint16Setting(&setting))
 	})
 
 	t.Run("string slice", func(t *testing.T) {

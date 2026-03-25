@@ -5,24 +5,30 @@ date: 2026-02-08
 status: Draft
 audience:
   - Copilot Instructions
-  - GitHub Copilot Agents
-  - Prompts and Skills
+  - Copilot Agents
+  - Copilot Skills
+  - Copilot Prompts
   - Development Team
   - Technical Stakeholders
 references:
   - .github/copilot-instructions.md
   - .github/instructions/*.instructions.md
   - .github/agents/*.agent.md
+  - .github/skills/NAME/SKILL.md
+  - .github/prompts/NAME.prompt.md
   - .github/workflows/*.yml
+  - .github/actions/NAME/action.yml
 maintainers:
   - cryptoutil Development Team
 tags:
   - architecture
+  - strategy
   - design
   - implementation
   - testing
   - security
   - compliance
+  - automation
 ---
 
 # cryptoutil Architecture - Single Source of Truth
@@ -105,7 +111,7 @@ This document is structured to serve multiple audiences:
 2. **JSON Object Signing and Encryption (JOSE)** - JWK/JWS/JWE/JWT cryptographic operations
 3. **Secrets Manager (SM)** - Elastic key management service with hierarchical key barriers; also hosts the encrypted messaging service
 4. **Identity** - OAuth 2.1, OIDC 1.0, WebAuthn, and Passkeys authentication and authorization
-5. **Skeleton** - Best-practice stereotype product-service template for service-framework usage demonstration
+5. **Skeleton** - Best-practice stereotype product-service template for service-framework usage reference
 
 **Purpose**: This project is **for fun** while providing a comprehensive learning experience with LLM agents for Spec-Driven Development (SDD) and delivering modern, enterprise-ready security products.
 
@@ -192,9 +198,12 @@ See [Section 11.1 Maximum Quality Strategy](#111-maximum-quality-strategy---mand
 #### Security
 
 - **Vulnerability Scanning**: Zero high/critical CVEs in dependencies
-- **Secret Management**: 100% Docker secrets (zero inline credentials)
-- **TLS Configuration**: TLS 1.3+ only, full certificate chain validation
-- **Authentication**: Multi-factor support across all services
+- **Secret Management**: 100% Docker secrets (zero inline credentials, zero environment variable credentials)
+- **TLS Configuration**: TLS 1.3+ only, full certificate chain validation, for protect-in-transit
+- **JWE/JWS Configuration**: JOSE+JWT for protection-at-rest
+- **Authentication**: Multi-factor support across all service
+- **Authorization**: OAuth 2.1 access control with least privilege
+- **Identification**: OIDC 1.0 identity
 
 #### Operational Excellence
 
@@ -508,7 +517,7 @@ If `git status --porcelain` returns ANY output:
 
 #### Linting Standards
 
-- **Zero Exceptions**: ALL code must pass linting (production, tests, demos, utilities)
+- **Zero Exceptions**: ALL code must pass linting (production, tests, examples, utilities)
 - **golangci-lint v2**: v2.7.2+ with wsl_v5, built-in formatters
 - **Auto-Fixable**: Run `--fix` first (gofumpt, goimports, wsl, godot, importas)
 - **Critical Rules**: wsl (no suppression), godot (periods required), mnd (magic constants)
@@ -601,7 +610,7 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 #### 3.1.5 Skeleton
 
 - **Service**: Template
-- **Capabilities**: Best-practice stereotype product-service demonstrating all service-framework patterns
+- **Capabilities**: Best-practice stereotype product-service showcasing all service-framework patterns
 - **Use Cases**: Reference implementation for new product-service creation, developer onboarding
 - **Key Features**: Minimal domain logic, full service-framework integration, deployment and config examples
 
@@ -613,7 +622,7 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 | `lint-fitness` | Automated enforcement | Validates ALL services (including skeleton) conform to structure rules |
 | `/new-service` skill | Generation guide | Step-by-step instructions to copy skeleton-template and customize for a new service |
 
-- **skeleton-template** is the canonical 8-file starter service using the latest builder API (`Build()` with `DomainConfig`). It demonstrates domain model, repository, migrations, server, config, and test patterns.
+- **skeleton-template** is the canonical 8-file starter service using the latest builder API (`Build()` with `DomainConfig`). It showcases domain model, repository, migrations, server, config, and test patterns.
 - **lint-fitness** enforces structural invariants (file limits, import isolation, test patterns, PostgreSQL isolation) across ALL services independently of how they were created.
 - **`/new-service`** skill guides developers through copying skeleton-template, renaming identifiers, assigning ports, and registering with CI/CD. The skeleton is the INPUT; lint-fitness validates the OUTPUT.
 
@@ -788,8 +797,8 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 ##### 3.2.5.1 Template Service
 
 - **Product-Service Identifier**: skeleton-template
-- **Purpose**: Best-practice stereotype product-service template for service-framework usage demonstration
-- **Capabilities**: Demonstrates all service-framework patterns with minimal domain logic
+- **Purpose**: Best-practice stereotype product-service template for service-framework usage reference
+- **Capabilities**: Showcases all service-framework patterns with minimal domain logic
 - **Use Cases**: Reference implementation for new product-service creation, developer onboarding, service-framework validation
 - **Status**: ❌ Not Started
 - **Network Configuration**:
@@ -996,7 +1005,7 @@ cmd/
 
 **Pattern**: Thin `main()` pattern for all cmd/ CLIs, with all logic in `internal/apps/` for maximum code reuse and testability.
 
-1. `cmd/cryptoutil/` for suite-level CLI
+1. `cmd/{SUITE}/` for suite-level CLI (e.g., `cmd/cryptoutil/`)
 ```go
 func main() {
     os.Exit(cryptoutilAppsSuite.Suite(os.Args, os.Stdin, os.Stdout, os.Stderr))
@@ -1180,61 +1189,44 @@ All tiers (service, product, suite) use **identical `{purpose}.secret` filenames
 
 | Secret Purpose | Filename | Service Value | Product Value | Suite Value |
 |---------------|----------|---------------|---------------|-------------|
-| Hash pepper v3 | `hash-pepper-v3.secret` | `{PS-ID}-hash-pepper-v3-{base64}` | `{PRODUCT}-hash-pepper-v3-{base64}` | `{SUITE}-hash-pepper-v3-{base64}` |
+| Hash pepper v3 | `hash-pepper-v3.secret` | `{PS-ID}-hash-pepper-v3-{base64-random-32-bytes}` | `{PRODUCT}-hash-pepper-v3-{base64-random-32-bytes}` | `{SUITE}-hash-pepper-v3-{base64-random-32-bytes}` |
 | Browser username | `browser-username.secret` | `{PS-ID}-browser-user` | `.never` marker | `.never` marker |
-| Browser password | `browser-password.secret` | `{PS-ID}-browser-pass-{base64}` | `.never` marker | `.never` marker |
+| Browser password | `browser-password.secret` | `{PS-ID}-browser-pass-{base64-random-32-bytes}` | `.never` marker | `.never` marker |
 | Service username | `service-username.secret` | `{PS-ID}-service-user` | `.never` marker | `.never` marker |
-| Service password | `service-password.secret` | `{PS-ID}-service-pass-{base64}` | `.never` marker | `.never` marker |
+| Service password | `service-password.secret` | `{PS-ID}-service-pass-{base64-random-32-bytes}` | `.never` marker | `.never` marker |
 | PostgreSQL username | `postgres-username.secret` | `{PS_ID}_database_user` | `{PRODUCT}_database_user` | `{SUITE}_database_user` |
-| PostgreSQL password | `postgres-password.secret` | `{PS_ID}_database_pass-{base64}` | `{PRODUCT}_database_pass-{base64}` | `{SUITE}_database_pass-{base64}` |
+| PostgreSQL password | `postgres-password.secret` | `{PS_ID}_database_pass-{base64-random-32-bytes}` | `{PRODUCT}_database_pass-{base64-random-32-bytes}` | `{SUITE}_database_pass-{base64-random-32-bytes}` |
 | PostgreSQL database | `postgres-database.secret` | `{PS_ID}_database` | `{PRODUCT}_database` | `{SUITE}_database` |
 | PostgreSQL URL | `postgres-url.secret` | `postgres://{PS_ID}_database_user:...@{PS-ID}-postgres:5432/{PS_ID}_database?sslmode=disable` | `...@{PRODUCT}-postgres:5432/...` | `...@{SUITE}-postgres:5432/...` |
-| Unseal shard N | `unseal-{N}of5.secret` | `{PS-ID}-unseal-key-N-of-5-{hex}` | `{PRODUCT}-unseal-key-N-of-5-{hex}` | `{SUITE}-unseal-key-N-of-5-{hex}` |
+| Unseal shard N | `unseal-{N}of5.secret` | `{PS-ID}-unseal-key-N-of-5-{hex-random-32-bytes}` | `{PRODUCT}-unseal-key-N-of-5-{hex-random-32-bytes}` | `{SUITE}-unseal-key-N-of-5-{hex-random-32-bytes}` |
 
 #### 4.4.7 CLI Patterns
 
 ### CLI Hierarchy
 
-```
-# Product-Service pattern (preferred)
-sm-im server --config=/etc/sm/im.yml
-
-# Service pattern
-im server --config=/etc/sm/im.yml
-
-# Product pattern (routes to service)
-sm im server --config=/etc/sm/im.yml
-
-# Suite pattern (routes to product, then service)
-cryptoutil sm im server --config=/etc/sm/im.yml
-```
+Four equivalent invocation forms route to the same service handler:
 
 ```
-# Product-Service pattern (preferred)
-jose-ja server --config=/etc/jose/ja.yml
+# Product-Service pattern (preferred) — binary name IS the {PS-ID}
+{PS-ID} <subcommand> --config=/etc/{PRODUCT}/{SERVICE}.yml
 
-# Service pattern
-ja server --config=/etc/jose/ja.yml
+# Service pattern — short alias when product is unambiguous
+{SERVICE} <subcommand> --config=/etc/{PRODUCT}/{SERVICE}.yml
 
-# Product pattern (routes to service)
-jose ja server --config=/etc/jose/ja.yml
+# Product pattern — product binary routes to service
+{PRODUCT} {SERVICE} <subcommand> --config=/etc/{PRODUCT}/{SERVICE}.yml
 
-# Suite pattern (routes to product, then service)
-cryptoutil jose ja server --config=/etc/jose/ja.yml
+# Suite pattern — suite binary routes to product, then service
+{SUITE} {PRODUCT} {SERVICE} <subcommand> --config=/etc/{PRODUCT}/{SERVICE}.yml
 ```
 
+**Concrete example** (sm-kms, {SUITE}=cryptoutil, {PRODUCT}=sm, {SERVICE}=kms, {PS-ID}=sm-kms):
+
 ```
-# Product-Service pattern (preferred)
-sm-kms server --config=/etc/sm/kms.yml
-
-# Service pattern
-kms server --config=/etc/sm/kms.yml
-
-# Product pattern (routes to service)
-sm kms server --config=/etc/sm/kms.yml
-
-# Suite pattern (routes to product, then service)
-cryptoutil sm kms server --config=/etc/sm/kms.yml
+sm-kms  server --config=/etc/sm/kms.yml   # {PS-ID} pattern
+kms     server --config=/etc/sm/kms.yml   # {SERVICE} pattern
+sm kms  server --config=/etc/sm/kms.yml   # {PRODUCT} {SERVICE} pattern
+cryptoutil sm kms server --config=/etc/sm/kms.yml   # {SUITE} {PRODUCT} {SERVICE} pattern
 ```
 
 ### CLI Subcommand
@@ -1251,7 +1243,6 @@ Consistency MUST be guaranteed by inheriting from service-framework, which will 
 | `shutdown` | CLI client for Private graceful shutdown endpoint API trigger |
 | `client` | CLI client for Business Logic API interaction (n.b. domain-specific for each of the 10 services) |
 | `init` | CLI client for Initialize static config, like TLS certificates |
-| `demo` | CLI client for start server, inject Demo data, and run clients |
 
 #### Framework Tier Routing
 
@@ -1259,22 +1250,22 @@ The suite → product → service CLI hierarchy is implemented by three framewor
 
 | Package | Function | Call Pattern |
 |---------|----------|-------------|
-| `internal/apps/framework/suite/cli/` | `RouteSuite(cfg, args, stdin, stdout, stderr, products)` | `cryptoutil <product> <service> <subcommand>` |
-| `internal/apps/framework/product/cli/` | `RouteProduct(cfg, args, stdin, stdout, stderr, services)` | `<product> <service> <subcommand>` |
-| `internal/apps/framework/service/` | Service-level subcommand dispatch | `<product-service> <subcommand>` |
+| `internal/apps/framework/suite/cli/` | `RouteSuite(cfg, args, stdin, stdout, stderr, products)` | `{SUITE} {PRODUCT} {SERVICE} <subcommand>` |
+| `internal/apps/framework/product/cli/` | `RouteProduct(cfg, args, stdin, stdout, stderr, services)` | `{PRODUCT} {SERVICE} <subcommand>` |
+| `internal/apps/framework/service/` | Service-level subcommand dispatch | `{PS-ID} <subcommand>` |
 
 **RouteSuite** accepts a `[]ProductEntry` (name + handler). Matches `args[0]` to a product name, delegates remaining args to the product handler.
 
 **RouteProduct** accepts a `[]ServiceEntry` (name + handler). Supports `--version`/`--help` flags. Matches `args[0]` to a service name, delegates remaining args to the service handler.
 
-**Convention**: Each `cmd/PRODUCT/main.go` calls `RouteProduct()`. Each `cmd/cryptoutil/main.go` calls `RouteSuite()`, which delegates to the same product handlers.
+**Convention**: Each `cmd/{PRODUCT}/main.go` calls `RouteProduct()`. Each `cmd/{SUITE}/main.go` calls `RouteSuite()`, which delegates to the same product handlers.
 
 #### Anti-Patterns
 
 **NEVER** create `cmd/{PRODUCT}-{SUBCOMMAND}/` executables for subcommands:
 
-- `cmd/sm-im-server/main.go` → **WRONG**: Use `cmd/sm-im server` subcommand instead.
-- `cmd/cryptoutil-health/main.go` → **WRONG**: Use `cmd/cryptoutil health` subcommand instead.
+- `cmd/sm-im-server/main.go` → **WRONG**: Use `cmd/sm-im server` subcommand instead (i.e., `cmd/{PS-ID} server`).
+- `cmd/cryptoutil-health/main.go` → **WRONG**: Use `cmd/cryptoutil health` subcommand instead (i.e., `cmd/{SUITE} health`).
 
 Each product-service binary (`cmd/{PS-ID}/main.go`) routes subcommands internally via the framework. Multiple executables for the same binary's subcommands create maintenance burden and violate the single-binary principle.
 
@@ -1287,10 +1278,10 @@ Two `cmd/` entries exist as deliberate **infrastructure tools**, NOT product/ser
 | `cmd/cicd-lint/` | `internal/apps/tools/cicd_lint/` | CI/CD quality tooling: 11 linters, 2 formatters, 1 script |
 | `cmd/workflow/` | `internal/apps/tools/workflow/` | GitHub Actions workflow testing infrastructure |
 
-These are **intentional exceptions** to the product/service CLI pattern. They serve **repository infrastructure**, not business domain concerns:
+These are **intentional exceptions** to the product/service CLI pattern (`{INFRA-TOOL}=cicd-lint|workflow`). They serve **repository infrastructure**, not business domain concerns:
 
 - MUST NOT be merged into product/service CLIs.
-- MUST NOT be subcommands of `cmd/cryptoutil/` (suite CLI).
+- MUST NOT be subcommands of `cmd/{SUITE}/` (suite CLI).
 - MUST be documented here to prevent confusion about "non-standard" entries.
 
 See [Section 9.10 CICD Command Architecture](#910-cicd-command-architecture) for the `cmd/cicd-lint/` four-layer dispatch pattern, command catalog, and enforcement rules.
@@ -1305,7 +1296,7 @@ See [Section 9.10 CICD Command Architecture](#910-cicd-command-architecture) for
 
 <!-- @propagate to=".github/instructions/02-01.architecture.instructions.md" as="service-framework-components" -->
 - Two HTTPS Listeners: Public (business APIs) + Admin (health checks)
-- Two Public Paths: `/browser/**` (sessions) vs `/service/**` (tokens)
+- Two Public Paths: `/browser/**` (session cookies) vs `/service/**` (session tokens)
 - Three Admin APIs: /admin/api/v1/livez, /admin/api/v1/readyz, /admin/api/v1/shutdown
 - Database: PostgreSQL || SQLite with GORM
 - Telemetry: OTLP → otel-collector-contrib → Grafana LGTM
@@ -2180,7 +2171,7 @@ All `openapi-gen_config*.yaml` files MUST include the full base initialisms list
 
 ### 9.1 CLI Patterns & Strategy
 
-Three hierarchical levels: Suite (`cmd/cryptoutil/`), Product (`cmd/PRODUCT/`), Service (`cmd/PRODUCT-SERVICE/`). All delegate to `internal/apps/` layers with subcommands: server, client, health, livez, readyz, shutdown, init, compose, demo, e2e.
+Three hierarchical levels: Suite (`cmd/{SUITE}/`), Product (`cmd/{PRODUCT}/`), Service (`cmd/{PS-ID}/`). All delegate to `internal/apps/` layers with subcommands: server, client, health, livez, readyz, shutdown, init, compose, e2e.
 
 See [Section 4.4.7 CLI Patterns](#447-cli-patterns) for complete hierarchy, routing rules, and anti-patterns (no executables for subcommands).
 
@@ -3935,16 +3926,16 @@ See [Section 4.4.6](#446-deployments) for the complete secret file listing at ea
 
 | Secret | Service Value | Product Value | Suite Value |
 |--------|---------------|---------------|-------------|
-| `hash-pepper-v3.secret` | `{PS-ID}-hash-pepper-v3-{base64-random-32-bytes}` | `{PRODUCT}-hash-pepper-v3-{base64}` | `{SUITE}-hash-pepper-v3-{base64}` |
+| `hash-pepper-v3.secret` | `{PS-ID}-hash-pepper-v3-{base64-random-32-bytes}` | `{PRODUCT}-hash-pepper-v3-{base64-random-32-bytes}` | `{SUITE}-hash-pepper-v3-{base64-random-32-bytes}` |
 | `browser-username.secret` | `{PS-ID}-browser-user` | `.never` marker | `.never` marker |
 | `browser-password.secret` | `{PS-ID}-browser-pass-{base64-random-32-bytes}` | `.never` marker | `.never` marker |
 | `service-username.secret` | `{PS-ID}-service-user` | `.never` marker | `.never` marker |
 | `service-password.secret` | `{PS-ID}-service-pass-{base64-random-32-bytes}` | `.never` marker | `.never` marker |
 | `postgres-username.secret` | `{PS_ID}_database_user` | `{PRODUCT}_database_user` | `{SUITE}_database_user` |
-| `postgres-password.secret` | `{PS_ID}_database_pass-{base64-random-32-bytes}` | `{PRODUCT}_database_pass-{base64}` | `{SUITE}_database_pass-{base64}` |
+| `postgres-password.secret` | `{PS_ID}_database_pass-{base64-random-32-bytes}` | `{PRODUCT}_database_pass-{base64-random-32-bytes}` | `{SUITE}_database_pass-{base64-random-32-bytes}` |
 | `postgres-database.secret` | `{PS_ID}_database` | `{PRODUCT}_database` | `{SUITE}_database` |
 | `postgres-url.secret` | `postgres://{PS_ID}_database_user:...@{PS-ID}-postgres:5432/{PS_ID}_database?sslmode=disable` | `...@{PRODUCT}-postgres:5432/...` | `...@{SUITE}-postgres:5432/...` |
-| `unseal-{N}of5.secret` | `{PS-ID}-unseal-key-N-of-5-{hex-random-32-bytes}` | `{PRODUCT}-unseal-key-N-of-5-{hex}` | `{SUITE}-unseal-key-N-of-5-{hex}` |
+| `unseal-{N}of5.secret` | `{PS-ID}-unseal-key-N-of-5-{hex-random-32-bytes}` | `{PRODUCT}-unseal-key-N-of-5-{hex-random-32-bytes}` | `{SUITE}-unseal-key-N-of-5-{hex-random-32-bytes}` |
 
 **Note**: `{PS_ID}` uses underscores (e.g., `jose_ja`) for PostgreSQL identifiers; `{PS-ID}` uses hyphens (e.g., `jose-ja`) for all other contexts.
 
@@ -4319,7 +4310,7 @@ HASH_PEPPER_FILE: /run/secrets/hash-pepper-v3.secret   # value: cryptoutil-hash-
 **PRODUCT-SERVICE** (e.g., sm-im, jose-ja, pki-ca, sm-kms, identity-authz/idp/rp/rs/spa, skeleton-template):
 - Required directories: `secrets/`, `config/`
 - Required files: `compose.yml`, `Dockerfile`
-- Optional files: `compose.demo.yml`, `otel-collector-config.yaml`, `README.md`
+- Optional files: `otel-collector-config.yaml`, `README.md`
 - Required secrets: 14 files
   - `unseal-1of5.secret` through `unseal-5of5.secret`
   - `hash-pepper-v3.secret`
@@ -4396,26 +4387,17 @@ HASH_PEPPER_FILE: /run/secrets/hash-pepper-v3.secret   # value: cryptoutil-hash-
 **Optional Config Files**:
 
 - `{PS-ID}-e2e.yml` - End-to-end test-specific overrides.
-- `{PS-ID}-demo.yml` - Demo environment settings.
 
 **Examples**:
 
 ```
-deployments/sm-kms/config/
-├── sm-kms-app-common.yml
-├── sm-kms-app-sqlite-1.yml
-├── sm-kms-app-sqlite-2.yml
-├── sm-kms-app-postgresql-1.yml
-├── sm-kms-app-postgresql-2.yml
-├── sm-kms-e2e.yml          (optional)
-└── sm-kms-demo.yml         (optional)
-
-deployments/jose-ja/config/
-├── jose-ja-app-common.yml
-├── jose-ja-app-sqlite-1.yml
-├── jose-ja-app-sqlite-2.yml
-├── jose-ja-app-postgresql-1.yml
-└── jose-ja-app-postgresql-2.yml
+deployments/{PS-ID}/config/         # e.g., {PS-ID}=sm-kms
+├── {PS-ID}-app-common.yml         # sm-kms-app-common.yml
+├── {PS-ID}-app-sqlite-1.yml       # sm-kms-app-sqlite-1.yml
+├── {PS-ID}-app-sqlite-2.yml       # sm-kms-app-sqlite-2.yml
+├── {PS-ID}-app-postgresql-1.yml   # sm-kms-app-postgresql-1.yml
+├── {PS-ID}-app-postgresql-2.yml   # sm-kms-app-postgresql-2.yml
+└── {PS-ID}-e2e.yml                # sm-kms-e2e.yml (optional)
 ```
 
 **Rationale**:
@@ -4432,41 +4414,22 @@ deployments/jose-ja/config/
 - NO symlinks or aliases - clean cutover
 - **Rationale**: Pre-production repository with zero deployed instances, rigid enforcement prevents future drift
 
-#### 12.4.6 Demo and Integration File Handling
+#### 12.4.6 Deprecated File Handling
 
-**Decision** (Q3 Answer: Remove from service directories):
+**Decision**: Remove deprecated files from all `deployments/{PS-ID}/config/` directories.
 
-- **demo-seed.yml**: Remove from all `deployments/{PS-ID}/config/` directories
-- **integration.yml**: Remove from all `deployments/{PS-ID}/config/` directories
+**Removed Files**:
 
-**Replacement Pattern**:
-
-- Demo-specific settings → `{PS-ID}-demo.yml` (optional file in config/)
-- E2E test settings → `{PS-ID}-e2e.yml` (optional file in config/)
-- Integration test data → Use TestMain with test-containers (NOT Docker Compose)
+- `demo-seed.yml` — FORBIDDEN (removed; demo orchestration deferred until E2E foundation mature).
+- `integration.yml` — FORBIDDEN (removed; integration test data uses TestMain with test-containers, NOT Docker Compose).
+- `{PS-ID}-demo.yml` — FORBIDDEN (removed; demo orchestration deferred until E2E foundation mature).
 
 **Rationale**:
 
-- Ambiguous naming (`demo-seed`, `integration`) caused confusion about purpose
-- New naming (`-demo.yml`, `-e2e.yml`) aligns with PRODUCT-SERVICE prefix pattern
-- Optional nature prevents bloat when not needed
+- Demo orchestration is deferred until a solid E2E orchestration foundation exists. E2E patterns will be reused as the basis for future demo support.
+- Integration test data belongs in Go test code (TestMain + test-containers), not Docker Compose config files.
 
-**Linter Enforcement** (Q5 Answer: Warning Mode Transition):
-
-```go
-// Phase 1: Warning Mode (current)
-if file == "demo-seed.yml" || file == "integration.yml" {
-    warnings = append(warnings, fmt.Sprintf("DEPRECATED: %s should be removed or renamed to %s-demo.yml / %s-e2e.yml",
-        file, productService, productService))
-}
-
-// Phase 2: Error Mode (after transition period)
-if file == "demo-seed.yml" || file == "integration.yml" {
-    errors = append(errors, fmt.Sprintf("FORBIDDEN: %s must be removed", file))
-}
-```
-
-**Transition Period**: Completed. Strict enforcement mode is now active.
+**Linter Enforcement**: Strict mode. Presence of any deprecated file is an ERROR that blocks CI/CD.
 
 #### 12.4.7 Linter Validation Modes
 
@@ -4475,7 +4438,7 @@ if file == "demo-seed.yml" || file == "integration.yml" {
 **ALL violations are errors (blocking)**:
 
 - Config files not matching `{PS-ID}-app-{variant}.yml` pattern.
-- Presence of deprecated `demo-seed.yml` or `integration.yml` files.
+- Presence of deprecated `demo-seed.yml`, `integration.yml`, or `{PS-ID}-demo.yml` files.
 - Missing required config files (5 standard files).
 - Missing required secrets (14 secret files for service tier).
 - Missing required directories (`secrets/`, `config/`).

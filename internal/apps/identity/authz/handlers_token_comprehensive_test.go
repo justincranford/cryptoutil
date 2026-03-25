@@ -359,7 +359,7 @@ func createTestClientForToken(ctx context.Context, t *testing.T, repoFactory *cr
 		ClientSecret:            "test-secret",
 		Name:                    "Test Token Client",
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
-		RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
+		RedirectURIs:            []string{cryptoutilSharedMagic.TestRedirectURI},
 		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail, "api:read", "api:write"},
 		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode, cryptoutilSharedMagic.GrantTypeRefreshToken, cryptoutilSharedMagic.GrantTypeClientCredentials},
 		AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
@@ -388,7 +388,7 @@ func createTestAuthorizationCode(ctx context.Context, t *testing.T, repoFactory 
 	authCode := &cryptoutilIdentityDomain.AuthorizationRequest{
 		ID:                  googleUuid.New(),
 		ClientID:            clientID,
-		RedirectURI:         cryptoutilSharedMagic.DemoRedirectURI,
+		RedirectURI:         cryptoutilSharedMagic.TestRedirectURI,
 		ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
 		Scope:               "openid profile email",
 		State:               "test-state",

@@ -163,7 +163,7 @@ func TestParallelTestSafety(t *testing.T) {
 							ClientID:     "client_parallel_" + uniqueID,
 							ClientSecret: "secret_" + uniqueID,
 							Name:         "Parallel Test Client " + uniqueID,
-							RedirectURIs: []string{cryptoutilSharedMagic.DemoRedirectURI},
+							RedirectURIs: []string{cryptoutilSharedMagic.TestRedirectURI},
 						}
 
 						if err := clientRepo.Create(ctx, client); err != nil {
@@ -212,7 +212,7 @@ func TestParallelTestSafety(t *testing.T) {
 								ClientID:     "client_mixed_" + uniqueID,
 								ClientSecret: "secret_" + uniqueID,
 								Name:         "Mixed Test Client " + uniqueID,
-								RedirectURIs: []string{cryptoutilSharedMagic.DemoRedirectURI},
+								RedirectURIs: []string{cryptoutilSharedMagic.TestRedirectURI},
 							}
 
 							if err := clientRepo.Create(ctx, client); err != nil {

@@ -172,7 +172,7 @@ func TestNewForJOSEServer_PanicOnInvalidArgs(t *testing.T) {
 
 	// In dev mode, IPv4AnyAddress is rejected, so this should cause a validation error and panic
 	require.Panics(t, func() {
-		NewForJOSEServer(cryptoutilSharedMagic.IPv4AnyAddress, cryptoutilSharedMagic.DemoServerPort, true)
+		NewForJOSEServer(cryptoutilSharedMagic.IPv4AnyAddress, cryptoutilSharedMagic.TestServerPort, true)
 	})
 }
 
@@ -185,7 +185,7 @@ func TestNewForCAServer_PanicOnInvalidArgs(t *testing.T) {
 
 	// In dev mode, IPv4AnyAddress is rejected, so this should cause a validation error and panic
 	require.Panics(t, func() {
-		NewForCAServer(cryptoutilSharedMagic.IPv4AnyAddress, cryptoutilSharedMagic.DemoServerPort, true)
+		NewForCAServer(cryptoutilSharedMagic.IPv4AnyAddress, cryptoutilSharedMagic.TestServerPort, true)
 	})
 }
 
@@ -195,10 +195,10 @@ func TestNewForJOSEServer_HappyPath(t *testing.T) {
 	resetFlags()
 
 	// Valid address should succeed
-	settings := NewForJOSEServer(cryptoutilSharedMagic.IPv4Loopback, cryptoutilSharedMagic.DemoServerPort, true)
+	settings := NewForJOSEServer(cryptoutilSharedMagic.IPv4Loopback, cryptoutilSharedMagic.TestServerPort, true)
 	require.NotNil(t, settings)
 	require.Equal(t, cryptoutilSharedMagic.IPv4Loopback, settings.BindPublicAddress)
-	require.Equal(t, uint16(cryptoutilSharedMagic.DemoServerPort), settings.BindPublicPort)
+	require.Equal(t, uint16(cryptoutilSharedMagic.TestServerPort), settings.BindPublicPort)
 	require.Equal(t, cryptoutilSharedMagic.OTLPServiceJoseJA, settings.OTLPService)
 }
 
@@ -242,9 +242,9 @@ func TestNewForCAServer_HappyPath(t *testing.T) {
 	resetFlags()
 
 	// Valid address should succeed
-	settings := NewForCAServer(cryptoutilSharedMagic.IPv4Loopback, cryptoutilSharedMagic.DemoServerPort, true)
+	settings := NewForCAServer(cryptoutilSharedMagic.IPv4Loopback, cryptoutilSharedMagic.TestServerPort, true)
 	require.NotNil(t, settings)
 	require.Equal(t, cryptoutilSharedMagic.IPv4Loopback, settings.BindPublicAddress)
-	require.Equal(t, uint16(cryptoutilSharedMagic.DemoServerPort), settings.BindPublicPort)
+	require.Equal(t, uint16(cryptoutilSharedMagic.TestServerPort), settings.BindPublicPort)
 	require.Equal(t, cryptoutilSharedMagic.OTLPServicePKICA, settings.OTLPService)
 }

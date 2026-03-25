@@ -6,7 +6,7 @@
 # Supports 3 instances: 1 SQLite + 2 PostgreSQL.
 #
 # Port allocation (SERVICE level: 8700-8799):
-#   - sm-im-app-sqlite-1:    8700 (SQLite, dev/demo/ci)
+#   - sm-im-app-sqlite-1:    8700 (SQLite, dev/ci)
 #   - sm-im-app-postgres-1:  8701 (PostgreSQL instance 1) [--profile postgres]
 #   - sm-im-app-postgres-2:  8702 (PostgreSQL instance 2) [--profile postgres]
 #   - sm-im-db-postgres-1:   5432 (PostgreSQL database) [--profile postgres]
@@ -14,7 +14,6 @@
 # Usage:
 #   docker compose -f compose.yml up -d                        # SQLite (default: dev profile)
 #   docker compose -f compose.yml --profile postgres up -d     # All instances
-#   docker compose -f compose.yml --profile demo up -d         # Demo mode
 #   docker compose -f compose.yml --profile ci up -d           # CI mode
 #   docker compose -f compose.yml logs -f                      # View logs
 #   docker compose -f compose.yml down -v                      # Stop and clean up
@@ -110,9 +109,9 @@ services:
         reservations:
           memory: 256M
 
-  # sm-im server with SQLite backend (dev/demo/ci mode).
+  # sm-im server with SQLite backend (dev/ci mode).
   sm-im-app-sqlite-1:
-    profiles: ["dev", "demo", "ci"]
+    profiles: ["dev", "ci"]
     image: cryptoutil:dev
     command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/sm-im-app-sqlite-1.yml", "--config=/app/config/sm-im-app-common.yml", "--config=/app/otel/otel.yml", "-u", "sqlite://file::memory:?cache=shared"]
     working_dir: /tmp

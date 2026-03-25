@@ -96,7 +96,6 @@ func ParseWithFlagSet(fs *pflag.FlagSet, commandParameters []string, exitIfHelp 
 	fs.StringP(logLevel.Name, logLevel.Shorthand, RegisterAsStringSetting(&logLevel), logLevel.Usage)
 	fs.BoolP(verboseMode.Name, verboseMode.Shorthand, RegisterAsBoolSetting(&verboseMode), verboseMode.Usage)
 	fs.BoolP(devMode.Name, devMode.Shorthand, RegisterAsBoolSetting(&devMode), devMode.Usage)
-	fs.BoolP(demoMode.Name, demoMode.Shorthand, RegisterAsBoolSetting(&demoMode), demoMode.Usage)
 	fs.BoolP(dryRun.Name, dryRun.Shorthand, RegisterAsBoolSetting(&dryRun), dryRun.Usage)
 	fs.StringP(profile.Name, profile.Shorthand, RegisterAsStringSetting(&profile), profile.Usage)
 	fs.StringP(bindPublicProtocol.Name, bindPublicProtocol.Shorthand, RegisterAsStringSetting(&bindPublicProtocol), bindPublicProtocol.Usage)
@@ -242,8 +241,6 @@ func ParseWithFlagSet(fs *pflag.FlagSet, commandParameters []string, exitIfHelp 
 		LogLevel:                    v.GetString(logLevel.Name),
 		VerboseMode:                 v.GetBool(verboseMode.Name),
 		DevMode:                     v.GetBool(devMode.Name),
-		DemoMode:                    v.GetBool(demoMode.Name),
-		ResetDemoMode:               v.GetBool(resetDemoMode.Name),
 		DryRun:                      v.GetBool(dryRun.Name),
 		Profile:                     v.GetString(profile.Name),
 		BindPublicProtocol:          v.GetString(bindPublicProtocol.Name),

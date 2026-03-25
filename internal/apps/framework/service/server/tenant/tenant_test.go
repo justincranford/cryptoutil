@@ -6,10 +6,11 @@ package tenant
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"database/sql"
 	"strings"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -302,8 +303,8 @@ func TestWithTenant_GetTenant(t *testing.T) {
 		},
 		{
 			name:       "simple tenant ID",
-			tenantID:   "demo",
-			wantSchema: "tenant_demo",
+			tenantID:   "test-tenant",
+			wantSchema: "tenant_test_tenant",
 		},
 	}
 

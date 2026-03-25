@@ -47,7 +47,7 @@ func TestPostAuthenticator_Authenticate(t *testing.T) {
 				AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
 				AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
 				AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID},
-				RedirectURIs:            []string{cryptoutilSharedMagic.DemoRedirectURI},
+				RedirectURIs:            []string{cryptoutilSharedMagic.TestRedirectURI},
 				RequirePKCE:             boolPtr(true),
 				AccessTokenLifetime:     cryptoutilSharedMagic.IMDefaultSessionTimeout,
 				RefreshTokenLifetime:    cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,

@@ -14,17 +14,16 @@ import (
 	"gorm.io/gorm"
 
 	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
-	cryptoutilKmsServerBusinesslogic "cryptoutil/internal/apps/sm/kms/server/businesslogic"
-	cryptoutilKmsServerDemo "cryptoutil/internal/apps/sm/kms/server/demo"
-	cryptoutilKmsServerHandler "cryptoutil/internal/apps/sm/kms/server/handler"
-	cryptoutilKmsServerMiddleware "cryptoutil/internal/apps/sm/kms/server/middleware"
-	cryptoutilAppsSmKmsServerRepository "cryptoutil/internal/apps/sm/kms/server/repository"
-	cryptoutilOrmRepository "cryptoutil/internal/apps/sm/kms/server/repository/orm"
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilAppsFrameworkServiceServer "cryptoutil/internal/apps/framework/service/server"
 	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
 	cryptoutilAppsFrameworkServiceServerBuilder "cryptoutil/internal/apps/framework/service/server/builder"
 	cryptoutilAppsFrameworkServiceServerMiddleware "cryptoutil/internal/apps/framework/service/server/middleware"
+	cryptoutilKmsServerBusinesslogic "cryptoutil/internal/apps/sm/kms/server/businesslogic"
+	cryptoutilKmsServerHandler "cryptoutil/internal/apps/sm/kms/server/handler"
+	cryptoutilKmsServerMiddleware "cryptoutil/internal/apps/sm/kms/server/middleware"
+	cryptoutilAppsSmKmsServerRepository "cryptoutil/internal/apps/sm/kms/server/repository"
+	cryptoutilOrmRepository "cryptoutil/internal/apps/sm/kms/server/repository/orm"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
@@ -65,16 +64,6 @@ func NewKMSServer(
 			bizLogicService, err := cryptoutilKmsServerBusinesslogic.NewBusinessLogicService(ctx, res.TelemetryService, res.JWKGenService, ormRepo, res.BarrierService)
 			if err != nil {
 				return fmt.Errorf("failed to create business logic service: %w", err)
-			}
-
-			if settings.DemoMode {
-				if err := cryptoutilKmsServerDemo.SeedDemoData(ctx, res.TelemetryService, bizLogicService); err != nil {
-					return fmt.Errorf("failed to seed demo data: %w", err)
-				}
-			} else if settings.ResetDemoMode {
-				if err := cryptoutilKmsServerDemo.ResetDemoData(ctx, res.TelemetryService, bizLogicService); err != nil {
-					return fmt.Errorf("failed to reset demo data: %w", err)
-				}
 			}
 
 			return registerKMSRoutes(publicServerBase.App(), bizLogicService, settings, res)

@@ -275,7 +275,7 @@ func TestToInt(t *testing.T) {
 	}{
 		{name: "int", input: cryptoutilSharedMagic.AnswerToLifeUniverseEverything, wantVal: cryptoutilSharedMagic.AnswerToLifeUniverseEverything, wantOK: true},
 		{name: "int64", input: int64(99), wantVal: 99, wantOK: true},
-		{name: "float64", input: float64(cryptoutilSharedMagic.DemoServerPort), wantVal: cryptoutilSharedMagic.DemoServerPort, wantOK: true},
+		{name: "float64", input: float64(cryptoutilSharedMagic.TestServerPort), wantVal: cryptoutilSharedMagic.TestServerPort, wantOK: true},
 		{name: "string", input: "not-a-number", wantVal: 0, wantOK: false},
 		{name: "bool", input: true, wantVal: 0, wantOK: false},
 		{name: "nil", input: nil, wantVal: 0, wantOK: false},
