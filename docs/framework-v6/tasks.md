@@ -1,6 +1,6 @@
 # Tasks - Framework v6: Corrective Standardization
 
-**Status**: 24 of 63 tasks complete (38%)
+**Status**: 29 of 63 tasks complete (46%)
 **Last Updated**: 2026-03-27
 **Created**: 2026-03-25
 
@@ -395,80 +395,80 @@
 
 #### Task 4.1: Fix Product Unseal Secrets (5 products)
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 20m
-- **Actual**: -
+- **Actual**: 10m
 - **Dependencies**: Phase 1
 - **Description**: Replace generic `dev-unseal-key-N-of-5` with `{PRODUCT}-unseal-key-N-of-5-{hex}` for jose, pki, skeleton, sm. Normalize identity format.
 - **Acceptance Criteria**:
-  - [ ] jose: `jose-unseal-key-N-of-5-{hex}` (was `dev-unseal-key-N-of-5`)
-  - [ ] pki: `pki-unseal-key-N-of-5-{hex}` (was `dev-unseal-key-N-of-5`)
-  - [ ] skeleton: `skeleton-unseal-key-N-of-5-{hex}` (was `dev-unseal-key-N-of-5`)
-  - [ ] sm: `sm-unseal-key-N-of-5-{hex}` (was `dev-unseal-key-N-of-5`)
-  - [ ] identity: normalized to `identity-unseal-key-N-of-5-{hex}` format
-  - [ ] All hex values unique per product
+  - [x] jose: `jose-unseal-key-N-of-5-{hex}` (was `dev-unseal-key-N-of-5`)
+  - [x] pki: `pki-unseal-key-N-of-5-{hex}` (was `dev-unseal-key-N-of-5`)
+  - [x] skeleton: `skeleton-unseal-key-N-of-5-{hex}` (was `dev-unseal-key-N-of-5`)
+  - [x] sm: `sm-unseal-key-N-of-5-{hex}` (was `dev-unseal-key-N-of-5`)
+  - [x] identity: normalized to `identity-unseal-key-N-of-5-{hex}` format
+  - [x] All hex values unique per product
 - **Files**:
   - `deployments/{identity,jose,pki,skeleton,sm}/secrets/unseal-*of5.secret` (25 files)
 
 #### Task 4.2: Fix Product Postgres Secrets (5 products)
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 15m
-- **Actual**: -
+- **Actual**: 10m
 - **Dependencies**: None
 - **Description**: Verify/fix product-level postgres secrets match `{PRODUCT}_database`, `{PRODUCT}_database_user`, `{PRODUCT}_database_pass-{base64}` patterns.
 - **Acceptance Criteria**:
-  - [ ] Each product's postgres-database = `{PRODUCT}_database`
-  - [ ] Each product's postgres-username = `{PRODUCT}_database_user`
-  - [ ] Each product's postgres-url uses corrected values
-  - [ ] Each product's postgres-password matches pattern
+  - [x] Each product's postgres-database = `{PRODUCT}_database`
+  - [x] Each product's postgres-username = `{PRODUCT}_database_user`
+  - [x] Each product's postgres-url uses corrected values
+  - [x] Each product's postgres-password matches pattern
 - **Files**:
   - `deployments/{identity,jose,pki,skeleton,sm}/secrets/postgres-*.secret` (20 files)
 
 #### Task 4.3: Fix Product Hash Pepper Secrets (5 products)
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 10m
-- **Actual**: -
+- **Actual**: 5m
 - **Dependencies**: None
 - **Description**: Verify/fix product-level hash-pepper-v3.secret matches `{PRODUCT}-hash-pepper-v3-{base64}` pattern.
 - **Acceptance Criteria**:
-  - [ ] All 5 products match pattern
+  - [x] All 5 products match pattern
 - **Files**:
   - `deployments/{identity,jose,pki,skeleton,sm}/secrets/hash-pepper-v3.secret`
 
 #### Task 4.4: Fix Suite Secrets
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 15m
-- **Actual**: -
+- **Actual**: 10m
 - **Dependencies**: Phase 1
 - **Description**: Fix cryptoutil-suite secrets to use `cryptoutil-` prefix (not `suite-`). Fix unseal values to `cryptoutil-unseal-key-N-of-5-{hex}`. Fix postgres values to use `cryptoutil_database` pattern.
 - **Acceptance Criteria**:
-  - [ ] Unseal prefix: `cryptoutil-` (was `suite-`)
-  - [ ] postgres-database: `cryptoutil_database`
-  - [ ] postgres-username: `cryptoutil_database_user`
-  - [ ] postgres-url: correct references
-  - [ ] hash-pepper-v3: `cryptoutil-hash-pepper-v3-{base64}`
+  - [x] Unseal prefix: `cryptoutil-` (was `suite-`)
+  - [x] postgres-database: `cryptoutil_database`
+  - [x] postgres-username: `cryptoutil_database_user`
+  - [x] postgres-url: correct references
+  - [x] hash-pepper-v3: `cryptoutil-hash-pepper-v3-{base64}`
 - **Files**:
   - `deployments/cryptoutil-suite/secrets/*.secret` (10 files)
 
 #### Task 4.5: Verify All Product/Suite Secrets
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 10m
-- **Actual**: -
+- **Actual**: 5m
 - **Dependencies**: Tasks 4.1-4.4
 - **Description**: Cross-check all product and suite secrets against spec.
 - **Acceptance Criteria**:
-  - [ ] No generic `dev-unseal-key-N-of-5` values remain anywhere
-  - [ ] No `suite-` prefix anywhere (should be `cryptoutil-`)
-  - [ ] All products have unique unseal hex values
+  - [x] No generic `dev-unseal-key-N-of-5` values remain anywhere
+  - [x] No `suite-` prefix anywhere (should be `cryptoutil-`)
+  - [x] All products have unique unseal hex values
 
 ### Phase 5: Restructure Config Directories — Flat Pattern (Decision 2=B)
 
