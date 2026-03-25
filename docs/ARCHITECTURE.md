@@ -963,26 +963,35 @@ Based on golang-standards/project-layout:
 
 #### 4.4.3 CLI Entry Points
 
+**18 flat entries**: 1 suite + 5 products + 10 services + 2 infra tools.
+
 ```
 cmd/
-├── cryptoutil/main.go         # Suite-level CLI (all products): Thin main() call to `internal/apps/cryptoutil.go`
-# SM product removed - im moved to sm product
-├── jose/main.go               # Product-level JOSE CLI: Thin main() call to `internal/apps/jose/jose.go`
-├── pki/main.go                # Product-level PKI CLI: Thin main() call to `internal/apps/pki/pki.go`
-├── identity/main.go           # Product-level Identity CLI: Thin main() call to `internal/apps/identity/identity.go`
-├── sm/main.go                 # Product-level SM CLI: Thin main() call to `internal/apps/sm/sm.go`
-├── sm-im/main.go            # Service-level SM-IM CLI: Thin main() call to `internal/apps/sm-im/sm-im.go`
-├── jose-ja/main.go            # Service-level JOSE-JA CLI: Thin main() call to `internal/apps/jose-ja/jose-ja.go`
-├── pki-ca/main.go             # Service-level PKI-CA CLI: Thin main() call to `internal/apps/pki-ca/pki-ca.go`
-├── identity-authz/main.go     # Service-level Identity-Authz CLI: Thin main() call to `internal/apps/identity-authz/identity-authz.go`
-├── identity-idp/main.go       # Service-level Identity-IDP CLI: Thin main() call to `internal/apps/identity-idp/identity-idp.go`
-├── identity-rp/main.go        # Service-level Identity-RP CLI: Thin main() call to `internal/apps/identity-rp/identity-rp.go`
-├── identity-rs/main.go        # Service-level Identity-RS CLI: Thin main() call to `internal/apps/identity-rs/identity-rs.go`
-├── identity-spa/main.go       # Service-level Identity-SPA CLI: Thin main() call to `internal/apps/identity-spa/identity-spa.go`
-├── skeleton/main.go           # Product-level Skeleton CLI: Thin main() call to `internal/apps/skeleton/skeleton.go`
-├── skeleton-template/main.go  # Service-level Skeleton-Template CLI: Thin main() call to `internal/apps/skeleton-template/skeleton-template.go`
-├── sm-kms/main.go             # Service-level SM-KMS CLI: Thin main() call to `internal/apps/sm-kms/sm-kms.go`
-└── cicd-lint/main.go               # CICD CLI: Thin main() call to `internal/cmd/cicd_lint/cicd.go` → `internal/apps/tools/cicd_lint/cicd.go`
+│   # Suite (×1, {SUITE}=cryptoutil)
+├── cryptoutil/main.go                  # Suite CLI → internal/apps/cryptoutil/cryptoutil.go
+│
+│   # Products (×5, {PRODUCT}=identity|jose|pki|skeleton|sm)
+├── identity/main.go                    # Product CLI → internal/apps/identity/identity.go
+├── jose/main.go                        # Product CLI → internal/apps/jose/jose.go
+├── pki/main.go                         # Product CLI → internal/apps/pki/pki.go
+├── skeleton/main.go                    # Product CLI → internal/apps/skeleton/skeleton.go
+├── sm/main.go                          # Product CLI → internal/apps/sm/sm.go
+│
+│   # Services (×10, {PS-ID}={PRODUCT}-{SERVICE})
+├── identity-authz/main.go             # Service CLI → internal/apps/identity-authz/identity-authz.go
+├── identity-idp/main.go               # Service CLI → internal/apps/identity-idp/identity-idp.go
+├── identity-rp/main.go                # Service CLI → internal/apps/identity-rp/identity-rp.go
+├── identity-rs/main.go                # Service CLI → internal/apps/identity-rs/identity-rs.go
+├── identity-spa/main.go               # Service CLI → internal/apps/identity-spa/identity-spa.go
+├── jose-ja/main.go                     # Service CLI → internal/apps/jose-ja/jose-ja.go
+├── pki-ca/main.go                      # Service CLI → internal/apps/pki-ca/pki-ca.go
+├── skeleton-template/main.go           # Service CLI → internal/apps/skeleton-template/skeleton-template.go
+├── sm-im/main.go                       # Service CLI → internal/apps/sm-im/sm-im.go
+├── sm-kms/main.go                      # Service CLI → internal/apps/sm-kms/sm-kms.go
+│
+│   # Infra tools (×2, {INFRA-TOOL}=cicd-lint|workflow)
+├── cicd-lint/main.go                   # CICD lint CLI → internal/apps/tools/cicd_lint/cicd.go
+└── workflow/main.go                    # Workflow CLI → internal/apps/tools/workflow/workflow.go
 ```
 
 **Pattern**: Thin `main()` pattern for all cmd/ CLIs, with all logic in `internal/apps/` for maximum code reuse and testability.
@@ -1073,62 +1082,114 @@ internal/shared/
 └── testutil/                # Shared test utilities
 ```
 
-#### 4.4.6 Docker Compose
+#### 4.4.6 Deployments
+
+**Structure**: Parameterized by `{PS-ID}` (service), `{PRODUCT}` (product), and `{SUITE}` (suite). All 10 services follow an identical pattern.
+
+##### Per-Service Deployment (`deployments/{PS-ID}/`) — ×10
+
+```
+deployments/{PS-ID}/                                  # One per service (×10)
+├── compose.yml                                       # Docker Compose service definition
+├── Dockerfile                                        # Service Docker image build
+├── config/
+│   ├── {PS-ID}-app-common.yml                        #   Common: bind addresses, TLS, network
+│   ├── {PS-ID}-app-sqlite-1.yml                      #   SQLite in-memory instance 1
+│   ├── {PS-ID}-app-sqlite-2.yml                      #   SQLite in-memory instance 2 (REQUIRED)
+│   ├── {PS-ID}-app-postgresql-1.yml                  #   PostgreSQL logical instance 1
+│   └── {PS-ID}-app-postgresql-2.yml                  #   PostgreSQL logical instance 2
+└── secrets/                                          # 14 secret files
+    ├── hash-pepper-v3.secret                         #   {PS-ID}-hash-pepper-v3-{base64-random-32-bytes}
+    ├── browser-username.secret                       #   {PS-ID}-browser-user
+    ├── browser-password.secret                       #   {PS-ID}-browser-pass-{base64-random-32-bytes}
+    ├── service-username.secret                       #   {PS-ID}-service-user
+    ├── service-password.secret                       #   {PS-ID}-service-pass-{base64-random-32-bytes}
+    ├── postgres-username.secret                      #   {PS_ID}_database_user
+    ├── postgres-password.secret                      #   {PS_ID}_database_pass-{base64-random-32-bytes}
+    ├── postgres-database.secret                      #   {PS_ID}_database
+    ├── postgres-url.secret                           #   postgres://{PS_ID}_database_user:{PS_ID}_database_pass@{PS-ID}-postgres:5432/{PS_ID}_database?sslmode=disable
+    ├── unseal-1of5.secret                            #   {PS-ID}-unseal-key-1-of-5-{hex-random-32-bytes}
+    ├── unseal-2of5.secret                            #   {PS-ID}-unseal-key-2-of-5-{hex-random-32-bytes}
+    ├── unseal-3of5.secret                            #   {PS-ID}-unseal-key-3-of-5-{hex-random-32-bytes}
+    ├── unseal-4of5.secret                            #   {PS-ID}-unseal-key-4-of-5-{hex-random-32-bytes}
+    └── unseal-5of5.secret                            #   {PS-ID}-unseal-key-5-of-5-{hex-random-32-bytes}
+```
+
+**All 10 PS-IDs**: `identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`, `identity-spa`, `jose-ja`, `pki-ca`, `skeleton-template`, `sm-im`, `sm-kms`.
+
+##### Per-Product Deployment (`deployments/{PRODUCT}/`) — ×5
+
+```
+deployments/{PRODUCT}/                                # One per product (×5)
+├── compose.yml                                       # Product-level Docker Compose (includes service composes)
+├── Dockerfile                                        # Product Docker image
+└── secrets/
+    ├── hash-pepper-v3.secret                         # {PRODUCT}-hash-pepper-v3-{base64-random-32-bytes}
+    ├── browser-username.secret.never                 # Marker: browser creds are service-level only
+    ├── browser-password.secret.never                 # Marker: browser creds are service-level only
+    ├── service-username.secret.never                 # Marker: service creds are service-level only
+    ├── service-password.secret.never                 # Marker: service creds are service-level only
+    ├── postgres-username.secret                      # {PRODUCT}_database_user
+    ├── postgres-password.secret                      # {PRODUCT}_database_pass-{base64-random-32-bytes}
+    ├── postgres-database.secret                      # {PRODUCT}_database
+    ├── postgres-url.secret                           # postgres://{PRODUCT}_database_user:{PRODUCT}_database_pass@{PRODUCT}-postgres:5432/{PRODUCT}_database?sslmode=disable
+    ├── unseal-1of5.secret                            # {PRODUCT}-unseal-key-1-of-5-{hex-random-32-bytes}
+    ├── unseal-2of5.secret                            # {PRODUCT}-unseal-key-2-of-5-{hex-random-32-bytes}
+    ├── unseal-3of5.secret                            # {PRODUCT}-unseal-key-3-of-5-{hex-random-32-bytes}
+    ├── unseal-4of5.secret                            # {PRODUCT}-unseal-key-4-of-5-{hex-random-32-bytes}
+    └── unseal-5of5.secret                            # {PRODUCT}-unseal-key-5-of-5-{hex-random-32-bytes}
+```
+
+**All 5 products**: `identity`, `jose`, `pki`, `skeleton`, `sm`.
+
+##### Suite Deployment (`deployments/{SUITE}-suite/`)
+
+```
+deployments/{SUITE}-suite/                            # Suite-level (×1, {SUITE}=cryptoutil)
+├── compose.yml                                       # Suite-level Docker Compose (includes product composes)
+└── secrets/
+    ├── hash-pepper-v3.secret                         # {SUITE}-hash-pepper-v3-{base64-random-32-bytes}
+    ├── browser-username.secret.never                 # Marker: browser creds are service-level only
+    ├── browser-password.secret.never                 # Marker: browser creds are service-level only
+    ├── service-username.secret.never                 # Marker: service creds are service-level only
+    ├── service-password.secret.never                 # Marker: service creds are service-level only
+    ├── postgres-username.secret                      # {SUITE}_database_user
+    ├── postgres-password.secret                      # {SUITE}_database_pass-{base64-random-32-bytes}
+    ├── postgres-database.secret                      # {SUITE}_database
+    ├── postgres-url.secret                           # postgres://{SUITE}_database_user:{SUITE}_database_pass@{SUITE}-postgres:5432/{SUITE}_database?sslmode=disable
+    ├── unseal-1of5.secret                            # {SUITE}-unseal-key-1-of-5-{hex-random-32-bytes}
+    ├── unseal-2of5.secret                            # {SUITE}-unseal-key-2-of-5-{hex-random-32-bytes}
+    ├── unseal-3of5.secret                            # {SUITE}-unseal-key-3-of-5-{hex-random-32-bytes}
+    ├── unseal-4of5.secret                            # {SUITE}-unseal-key-4-of-5-{hex-random-32-bytes}
+    └── unseal-5of5.secret                            # {SUITE}-unseal-key-5-of-5-{hex-random-32-bytes}
+```
+
+##### Shared Infrastructure Deployments
 
 ```
 deployments/
-├── telemetry/
-│   └── compose.yml
-├── sm-kms/
-│   ├── config/
-|   │   ├── common.yml        # common configuration for all 3 sm-kms instances
-|   │   ├── postgresql-1.yml  # instance 1 of sm-kms; uses shared sm-kms PostgreSQL
-|   │   ├── postgresql-2.yml  # instance 2 of sm-kms; uses shared sm-kms PostgreSQL
-|   │   └── sqlite.yml        # instance 3 of sm-kms; uses non-shared in-memory sm-kms SQLite
-│   ├── secrets/
-|   │   ├──postgres_url.secret      # Docker Compose secret shared by 2 instances of sm-kms; PostgreSQL instances only
-|   │   ├──postgres_database.secret # Docker Compose secret shared by 2 instances of sm-kms; PostgreSQL instances only
-|   │   ├──postgres_username.secret # Docker Compose secret shared by 2 instances of sm-kms; PostgreSQL instances only
-|   │   ├──postgres_password.secret # Docker Compose secret shared by 2 instances of sm-kms; PostgreSQL instances only
-|   │   ├──unseal_1of5.secret       # Docker Compose secret shared by 3 instances of sm-kms; unseal service
-|   │   ├──unseal_2of5.secret       # Docker Compose secret shared by 3 instances of sm-kms; unseal service
-|   │   ├──unseal_3of5.secret       # Docker Compose secret shared by 3 instances of sm-kms; unseal service
-|   │   ├──unseal_4of5.secret       # Docker Compose secret shared by 3 instances of sm-kms; unseal service
-|   │   ├──unseal_5of5.secret       # Docker Compose secret shared by 3 instances of sm-kms; unseal service
-|   │   └──hash_pepper.secret       # Docker Compose secret shared by 3 instances of sm-kms; hash registries of hash algorithms
-│   ├── compose.yml                 # Docker Compose config: `builder-cryptoutil` builds Dockerfile, 3 instances of sm-kms depend on it
-│   └── Dockerfile                  # Dockerfile: compose.yml `builder-cryptoutil` builds this Dockerfile
-├── sm-im/
-│   └── ... (same structure as sm-kms)
-├── jose-ja/
-│   └── ... (same structure as sm-kms)
-├── pki-ca/
-│   └── ... (same structure as sm-kms)
-├── identity-authz/
-│   └── ... (same structure as sm-kms)
-├── identity-idp/
-│   └── ... (same structure as sm-kms)
-├── identity-rp/
-│   └── ... (same structure as sm-kms)
-├── identity-rs/
-│   └── ... (same structure as sm-kms)
-├── identity-spa/
-│   └── ... (same structure as sm-kms)
-├── skeleton-template/
-│   └── ... (same structure as sm-kms)
-├── sm/                      # Product-level: includes sm-kms + sm-im
-│   └── compose.yml
-├── jose/                    # Product-level: includes jose-ja
-│   └── compose.yml
-├── pki/                     # Product-level: includes pki-ca
-│   └── compose.yml
-├── identity/                # Product-level: includes identity-authz, -idp, -rp, -rs, -spa
-│   └── compose.yml
-├── skeleton/                # Product-level: includes skeleton-template
-│   └── compose.yml
-└── cryptoutil-suite/        # Suite-level: includes all products
-    └── compose.yml
+├── shared-telemetry/
+│   └── compose.yml                                   # otel-collector-contrib + grafana-otel-lgtm
+└── shared-postgres/
+    └── compose.yml                                   # Shared PostgreSQL container
 ```
+
+##### Secret File Naming Convention
+
+All tiers (service, product, suite) use **identical `{purpose}.secret` filenames** — no tier prefix on filenames. The **value inside** each secret contains the tier-specific prefix. `.secret.never` marker files exist ONLY at product and suite tiers.
+
+| Secret Purpose | Filename | Service Value | Product Value | Suite Value |
+|---------------|----------|---------------|---------------|-------------|
+| Hash pepper v3 | `hash-pepper-v3.secret` | `{PS-ID}-hash-pepper-v3-{base64}` | `{PRODUCT}-hash-pepper-v3-{base64}` | `{SUITE}-hash-pepper-v3-{base64}` |
+| Browser username | `browser-username.secret` | `{PS-ID}-browser-user` | `.never` marker | `.never` marker |
+| Browser password | `browser-password.secret` | `{PS-ID}-browser-pass-{base64}` | `.never` marker | `.never` marker |
+| Service username | `service-username.secret` | `{PS-ID}-service-user` | `.never` marker | `.never` marker |
+| Service password | `service-password.secret` | `{PS-ID}-service-pass-{base64}` | `.never` marker | `.never` marker |
+| PostgreSQL username | `postgres-username.secret` | `{PS_ID}_database_user` | `{PRODUCT}_database_user` | `{SUITE}_database_user` |
+| PostgreSQL password | `postgres-password.secret` | `{PS_ID}_database_pass-{base64}` | `{PRODUCT}_database_pass-{base64}` | `{SUITE}_database_pass-{base64}` |
+| PostgreSQL database | `postgres-database.secret` | `{PS_ID}_database` | `{PRODUCT}_database` | `{SUITE}_database` |
+| PostgreSQL URL | `postgres-url.secret` | `postgres://{PS_ID}_database_user:...@{PS-ID}-postgres:5432/{PS_ID}_database?sslmode=disable` | `...@{PRODUCT}-postgres:5432/...` | `...@{SUITE}-postgres:5432/...` |
+| Unseal shard N | `unseal-{N}of5.secret` | `{PS-ID}-unseal-key-N-of-5-{hex}` | `{PRODUCT}-unseal-key-N-of-5-{hex}` | `{SUITE}-unseal-key-N-of-5-{hex}` |
 
 #### 4.4.7 CLI Patterns
 
@@ -1824,12 +1885,12 @@ db.Where("tenant_id = ? AND user_id = ?", tenantID, userID).Find(&messages)
 4. Clear ownership boundaries and access control
 
 **Requirements** (enforced by linter):
-- **Unique Database Name**: Each of 10 services MUST have unique `postgres_database.secret`
-  - Example: `authz_db`, `idp_db`, `rp_db`, `rs_db`, `spa_db` (NOT shared `identity_db`)
-- **Unique Username**: Each service MUST have unique `postgres_username.secret`
-  - Example: `authz_user`, `idp_user`, `rp_user`, `rs_user`, `spa_user`
-- **Unique Password**: Each service MUST have unique `postgres_password.secret`
-- **Unique Connection URL**: Each service MUST have unique `postgres_url.secret`
+- **Unique Database Name**: Each of 10 services MUST have unique `postgres-database.secret`
+  - Example: `identity_authz_database`, `identity_idp_database`, `jose_ja_database` (NOT shared `identity_database`)
+- **Unique Username**: Each service MUST have unique `postgres-username.secret`
+  - Example: `identity_authz_database_user`, `identity_idp_database_user`, `jose_ja_database_user`
+- **Unique Password**: Each service MUST have unique `postgres-password.secret`
+- **Unique Connection URL**: Each service MUST have unique `postgres-url.secret`
 
 **Linter Enforcement** (`cicd lint-deployments`):
 - Scans ALL 10 service directories for database credential secrets
@@ -2348,7 +2409,7 @@ COPY --from=validator /app/cryptoutil /app/cryptoutil
 - **CI**: ci-quality (lint/format/build), ci-test (unit tests), ci-coverage (≥95%/98%), ci-benchmark, ci-mutation (≥95%/98%), ci-race (concurrency)
 - **Security**: ci-sast (gosec), ci-gitleaks (secret detection), ci-dast (Nuclei/ZAP)
 - **Integration**: ci-e2e (Docker Compose), ci-load (Gatling)
-- **Deployment**: cicd-lint-deployments (8 validators on deployments/ and configs/)
+- **Deployment**: cicd-lint-deployments (7 validators on deployments/ and configs/)
 
 **Quality Gates** (MANDATORY before merge):
 
@@ -2559,7 +2620,7 @@ internal/apps/tools/cicd_lint/
 │   ├── validate_chunks/                            # Sub-linter
 │   └── validate_propagation/                       # Sub-linter
 ├── lint_fitness/                                      # lint-fitness command
-│   ├── lint_fitness.go                             # Lint() + registeredLinters (49 sub-linters)
+│   ├── lint_fitness.go                             # Lint() + registeredLinters (57 sub-linters)
 │   └── ... (49 sub-linters, see Section 9.11)
 ├── format_go/                                        # format-go command
 │   ├── format_go.go                                # Format() + registeredFormatters
@@ -2597,7 +2658,7 @@ Architecture fitness functions are automated checks that enforce ARCHITECTURE.md
 
 **Adding new fitness functions**: Use the `fitness-function-gen` Copilot skill — see `.github/skills/fitness-function-gen/SKILL.md`.
 
-#### 9.11.1 Fitness Sub-Linter Catalog (49 total)
+#### 9.11.1 Fitness Sub-Linter Catalog (57 total)
 
 **Migrated from lint_go (10)**:
 
@@ -2663,7 +2724,7 @@ Architecture fitness functions are automated checks that enforce ARCHITECTURE.md
 | `compose-db-naming` | Phase 5 | Compose DB service names must use `sqlite`/`postgres` not `pg` |
 | `magic-e2e-container-names` | Phase 6 | `*E2ESQLiteContainer`/`*E2EPostgresContainer` constants must match compose names |
 | `magic-e2e-compose-path` | Phase 6 | `*E2EComposePath` constants must point to existing compose files |
-| `standalone-config-presence` | Phase 7 | Allowlist PS must have `config-sqlite.yml`, `config-pg-1.yml`, `config-pg-2.yml` |
+| `standalone-config-presence` | Phase 7 | All PS must have 5 config overlay files: `{PS-ID}-app-common.yml`, `{PS-ID}-app-sqlite-1.yml`, `{PS-ID}-app-sqlite-2.yml`, `{PS-ID}-app-postgresql-1.yml`, `{PS-ID}-app-postgresql-2.yml` |
 | `standalone-config-otlp-names` | Phase 7 | Config file `otlp-service` values must match `{ps-id}-{db}-N` pattern |
 | `migration-comment-headers` | Phase 8 | Domain migrations (2001+) first comment must be `{DisplayName} database schema` |
 
@@ -2673,10 +2734,23 @@ Architecture fitness functions are automated checks that enforce ARCHITECTURE.md
 |-----------|-------|---------------|
 | `cicd-coverage` | Pre-v5 | `cicd-lint` sub-commands must have test coverage for registered linters/validators |
 | `archive-detector` | Phase 1 | `_archived/`, `archived/`, `orphaned/` directories must not exist |
-| `configs-naming` | Phase 1 | `configs/` directories must match suite/product/service hierarchy from entity registry |
+| `configs-naming` | Phase 1 | `configs/` directories must follow flat `configs/{PS-ID}/` pattern from entity registry |
 | `cmd-anti-pattern` | Phase 1 | `cmd/` directories must follow `cmd/{name}/main.go` pattern, no banned names |
 | `configs-empty-dir` | Phase 1 | `configs/` directories must not be empty (require `.gitkeep` or files) |
-| `configs-deployments-consistency` | Phase 1 | Every `deployments/{PS-ID}/` must have matching `configs/{PRODUCT}/{SERVICE}/` |
+| `configs-deployments-consistency` | Phase 1 | Every `deployments/{PS-ID}/` must have matching `configs/{PS-ID}/` |
+
+**New checks — framework-v6 (8)**:
+
+| Sub-Linter | Rule Enforced |
+|-----------|--------------|
+| `root-junk-detection` | No `*.exe`, `*.py`, `coverage*`, `*.test.exe` at project root |
+| `cmd-entry-whitelist` | Only 18 allowed `cmd/` entries (1 suite + 5 products + 10 services + 2 infra tools) |
+| `configs-structure` | `configs/` must follow flat `{SUITE}/`, `{PRODUCT}/`, `{PS-ID}/` hierarchy |
+| `configs-no-deployment` | No deployment variants (`*-pg-*.yml`, `*-sqlite-*.yml`) or environment files (`development.yml`, `production.yml`, `test.yml`) in `configs/` |
+| `secret-naming` | All tiers use `{purpose}.secret` filenames; `.secret.never` markers enforced at product/suite tiers |
+| `unseal-secret-content` | Unseal secret values match `{TIER-PREFIX}-unseal-key-N-of-5-{hex-random-32-bytes}` (64 lowercase hex chars, unique per shard, tier prefix matches deployment directory) |
+| `template-consistency` | `deployments/skeleton-template/` uses hyphenated secret names (not underscores) |
+| `dockerfile-labels` | Dockerfile `org.opencontainers.image.title` LABEL matches deployment tier; `image.description` is non-empty |
 
 #### 9.11.2 Entity Registry
 
@@ -2698,15 +2772,15 @@ Architecture fitness functions are automated checks that enforce ARCHITECTURE.md
 
 #### 9.11.3 Naming Convention Catalog
 
-All naming conventions enforced by `lint-fitness` are fully parameterized in the **Naming Convention Catalog** in `docs/framework-v4/plan.md`. That catalog defines the exact formula for every file, directory, compose service, config, and migration naming pattern.
+All naming conventions enforced by `lint-fitness` are fully parameterized in the **Naming Convention Catalog** in `docs/framework-v6/target-structure.md`. That catalog defines the exact formula for every file, directory, compose service, config, and migration naming pattern.
 
 **Key conventions**:
 - Compose service names: `{ps-id}-{db}-N` (e.g. `sm-im-postgres-1`)
-- OTLP service names: `{ps-id}-sqlite-1`, `{ps-id}-postgres-1`, `{ps-id}-postgres-2`
+- OTLP service names: `{ps-id}-sqlite-1`, `{ps-id}-sqlite-2`, `{ps-id}-postgres-1`, `{ps-id}-postgres-2`
 - Migration comment headers: `-- {DisplayName} database schema` / `-- {DisplayName} database schema rollback`
-- Standalone config files: `config-sqlite.yml`, `config-pg-1.yml`, `config-pg-2.yml`
+- Config overlay files: `{PS-ID}-app-common.yml`, `{PS-ID}-app-sqlite-1.yml`, `{PS-ID}-app-sqlite-2.yml`, `{PS-ID}-app-postgresql-1.yml`, `{PS-ID}-app-postgresql-2.yml`
 
-See `docs/framework-v4/plan.md` for the complete parameterization tables.
+See `docs/framework-v6/target-structure.md` for the complete parameterization tables.
 
 ---
 
@@ -3246,14 +3320,14 @@ healthcheck-secrets:
     - sh
     - -c
     - |
-      for secret in unseal_1 unseal_2 unseal_3 unseal_4 unseal_5 hash_pepper_v3 postgres_url; do
+      for secret in unseal-1of5 unseal-2of5 unseal-3of5 unseal-4of5 unseal-5of5 hash-pepper-v3 browser-username browser-password service-username service-password postgres-url postgres-username postgres-password postgres-database; do
         test -f /run/secrets/$${secret}.secret || exit 1;
       done
       echo 'All secrets validated'
   secrets:
-    - unseal_1.secret
-    - unseal_2.secret
-    - unseal_3.secret
+    - unseal-1of5.secret
+    - unseal-2of5.secret
+    - unseal-3of5.secret
 ```
 
 ##### Use Case 2: Service-Only Healthchecks
@@ -3733,6 +3807,20 @@ Here are local convenience commands to run the workflows locally for Development
 - Runtime stage (Alpine-based minimal image)
 - LABELs in final published image only
 
+**Dockerfile Parameterization by Tier**:
+
+All Dockerfiles follow identical multi-stage structure. Parameterized fields differ by deployment tier:
+
+| Field | Service (`{PS-ID}`) | Product (`{PRODUCT}`) | Suite (`{SUITE}-suite`) |
+|-------|---------------------|----------------------|-------------------------|
+| `image.title` LABEL | `{SUITE}-{PS-ID}` | `{SUITE}-{PRODUCT}` | `{SUITE}` |
+| Binary built | `./cmd/{SUITE}` (always suite binary) | `./cmd/{SUITE}` | `./cmd/{SUITE}` |
+| `EXPOSE` | 8080 (container public) | Service-range (e.g., 18000) | Suite-range (e.g., 28000) |
+| `HEALTHCHECK` | `wget --no-check-certificate -qO- https://127.0.0.1:8080/browser/api/v1/health` | Same, product port | Same, suite port |
+| `ENTRYPOINT` | `["/app/{SUITE}", "{PS-ID}", "start"]` | `["/app/{SUITE}", "{PRODUCT}", "start"]` | `["/app/{SUITE}"]` |
+
+**Current state**: 10 service-level + 1 suite-level Dockerfiles exist. 0 product-level Dockerfiles exist (v6 CREATE).
+
 #### 12.2.2 Build Optimization
 
 - Single build, shared image (prevents 3× build time)
@@ -3772,15 +3860,15 @@ Here are local convenience commands to run the workflows locally for Development
 
 ```yaml
 secrets:
-  postgres_password.secret:
-    file: ./secrets/postgres_password.secret  # chmod 440
+  postgres-password.secret:
+    file: ./secrets/postgres-password.secret  # chmod 440
 
 services:
   postgres:
     environment:
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password.secret
     secrets:
-      - postgres_password.secret
+      - postgres-password.secret
 ```
 
 **NEVER use inline environment variables for credentials.**
@@ -3803,7 +3891,7 @@ cryptoutil-service:
 ```yaml
 healthcheck-secrets:
   image: alpine:latest
-  command: ["sh", "-c", "test -f /run/secrets/unseal_1.secret || exit 1"]
+  command: ["sh", "-c", "test -f /run/secrets/unseal-1of5.secret || exit 1"]
 ```
 
 1. **Service with healthcheck job** (external sidecar):
@@ -3833,104 +3921,110 @@ healthcheck-otel-collector:
 
 **MANDATORY: All secrets stored in Docker/Kubernetes secrets, NEVER inline environment variables.**
 
-**Secrets Structure**: Each service requires 10 secrets (5 unseal keys, 1 hash pepper, 4 PostgreSQL credentials).
+**Secrets Structure**: Each service requires 14 secrets (5 unseal keys, 1 hash pepper, 2 browser credentials, 2 service credentials, 4 PostgreSQL credentials).
 
-##### Secret Naming Suffixes (4 Levels)
+##### Secret Naming Convention
 
-**MANDATORY**: All secret files MUST use a level suffix to indicate deployment scope:
+**MANDATORY**: All secret files use **identical `{purpose}.secret` filenames** at ALL deployment tiers (service, product, suite). NO tier prefix on filenames. The **value inside** each secret file contains the tier-specific prefix (`{PS-ID}-`, `{PRODUCT}-`, or `{SUITE}-`).
 
-| Suffix | Location | Scope | Example |
-|--------|----------|-------|---------|
-| `-SERVICEONLY.secret` | `deployments/PRODUCT-SERVICE/secrets/` | Single service only | `unseal_1of5-SERVICEONLY.secret` |
-| `-PRODUCTONLY.secret` | `deployments/PRODUCT/secrets/` | Product services only | `postgres_url-PRODUCTONLY.secret` |
-| `-SUITEONLY.secret` | `deployments/cryptoutil-suite/secrets/` | Suite-wide only | `admin_api_key-SUITEONLY.secret` |
-| `-SHARED.secret` | Any level | Shared across multiple levels | `hash_pepper_v3-SHARED.secret` |
+**`.secret.never` Marker Files**: Product and suite tiers include `.secret.never` files to document that browser and service credentials are intentionally service-level only. These markers are NOT present at the service tier.
 
-**Rules**:
+See [Section 4.4.6](#446-deployments) for the complete secret file listing at each tier.
 
-- **`-SERVICEONLY`**: Secret exists at exactly one service level. UNIQUE per service.
-- **`-PRODUCTONLY`**: Secret exists at product level only. NOT inherited by service-level deployments.
-- **`-SUITEONLY`**: Secret exists at suite level only. NOT inherited by product/service deployments.
-- **`-SHARED`**: Secret is shared across multiple deployment levels (e.g., hash pepper for SSO across identity services). The SAME value MUST be used at all levels where it appears.
+##### Secret Value Format By Tier
 
-**Transition**: Existing service-level secrets without suffixes are valid during transition. New secrets MUST use level suffixes. When SUITE/PRODUCT directories are created, all secrets MUST use appropriate suffixes.
+| Secret | Service Value | Product Value | Suite Value |
+|--------|---------------|---------------|-------------|
+| `hash-pepper-v3.secret` | `{PS-ID}-hash-pepper-v3-{base64-random-32-bytes}` | `{PRODUCT}-hash-pepper-v3-{base64}` | `{SUITE}-hash-pepper-v3-{base64}` |
+| `browser-username.secret` | `{PS-ID}-browser-user` | `.never` marker | `.never` marker |
+| `browser-password.secret` | `{PS-ID}-browser-pass-{base64-random-32-bytes}` | `.never` marker | `.never` marker |
+| `service-username.secret` | `{PS-ID}-service-user` | `.never` marker | `.never` marker |
+| `service-password.secret` | `{PS-ID}-service-pass-{base64-random-32-bytes}` | `.never` marker | `.never` marker |
+| `postgres-username.secret` | `{PS_ID}_database_user` | `{PRODUCT}_database_user` | `{SUITE}_database_user` |
+| `postgres-password.secret` | `{PS_ID}_database_pass-{base64-random-32-bytes}` | `{PRODUCT}_database_pass-{base64}` | `{SUITE}_database_pass-{base64}` |
+| `postgres-database.secret` | `{PS_ID}_database` | `{PRODUCT}_database` | `{SUITE}_database` |
+| `postgres-url.secret` | `postgres://{PS_ID}_database_user:...@{PS-ID}-postgres:5432/{PS_ID}_database?sslmode=disable` | `...@{PRODUCT}-postgres:5432/...` | `...@{SUITE}-postgres:5432/...` |
+| `unseal-{N}of5.secret` | `{PS-ID}-unseal-key-N-of-5-{hex-random-32-bytes}` | `{PRODUCT}-unseal-key-N-of-5-{hex}` | `{SUITE}-unseal-key-N-of-5-{hex}` |
+
+**Note**: `{PS_ID}` uses underscores (e.g., `jose_ja`) for PostgreSQL identifiers; `{PS-ID}` uses hyphens (e.g., `jose-ja`) for all other contexts.
 
 ##### SUITE-Level Deployment (cryptoutil)
 
-**Location**: `deployments/cryptoutil-suite/secrets/` (template pattern applied)
+**Location**: `deployments/cryptoutil-suite/secrets/`
 
 **Consistency Requirements**:
 
-- **hash_pepper_v3.secret**: SAME value across ALL 10 services (enables cross-service PII deduplication, SSO username lookup)
-- **unseal_*.secret**: UNIQUE per service (barrier encryption independence, security isolation)
-- **postgres_*.secret**: Service-specific (30 logical databases: 10 suite + 10 product + 10 service)
+- **hash-pepper-v3.secret**: SAME value across ALL 10 services (enables cross-service PII deduplication, SSO username lookup).
+- **unseal-{N}of5.secret**: UNIQUE per service (barrier encryption independence, security isolation).
+- **postgres-*.secret**: Service-specific.
 
 **Rationale**: Unified hash pepper allows username@domain lookups across identity services while maintaining per-service encryption boundaries.
 
-##### PRODUCT-Level Deployment (identity, jose, pki, sm)
+##### PRODUCT-Level Deployment (identity, jose, pki, skeleton, sm)
 
-**Location**: `deployments/PRODUCT/secrets/` (multiple services per product)
+**Location**: `deployments/{PRODUCT}/secrets/`
 
 **Consistency Requirements**:
 
-- **hash_pepper_v3.secret**: SAME value within product services (identity-{authz,idp,rs,rp,spa} share pepper for SSO)
-- **unseal_*.secret**: UNIQUE per service within product (independent barrier hierarchies)
-- **postgres_*.secret**: Service-specific (each service has 3 databases: suite, product, service levels)
+- **hash-pepper-v3.secret**: SAME value within product services (identity-{authz,idp,rs,rp,spa} share pepper for SSO).
+- **unseal-{N}of5.secret**: UNIQUE per service within product (independent barrier hierarchies).
+- **postgres-*.secret**: Service-specific.
 
-**Example**: identity-authz, identity-idp, identity-rs, identity-rp, identity-spa share hash_pepper for unified user lookups.
+**Example**: identity-authz, identity-idp, identity-rs, identity-rp, identity-spa share hash pepper for unified user lookups.
 
 ##### SERVICE-Level Deployment (single service)
 
-**Location**: `deployments/PRODUCT-SERVICE/secrets/` (e.g., `deployments/jose-ja/secrets/`)
+**Location**: `deployments/{PS-ID}/secrets/` (e.g., `deployments/jose-ja/secrets/`)
 
 **Consistency Requirements**:
 
-- **hash_pepper_v3.secret**: UNIQUE per service (no cross-service lookups needed)
-- **unseal_*.secret**: UNIQUE per service (barrier encryption independence)
-- **postgres_*.secret**: Service-specific (3 databases per service)
+- **hash-pepper-v3.secret**: UNIQUE per service (no cross-service lookups needed).
+- **unseal-{N}of5.secret**: UNIQUE per service (barrier encryption independence).
+- **postgres-*.secret**: Service-specific.
 
 **Rationale**: Maximum isolation for standalone deployments.
 
 ##### Secret File Format
 
-**Unseal Keys** (`unseal_{1,2,3,4,5}.secret`):
+**Unseal Keys** (`unseal-{N}of5.secret`, N=1..5):
 
 ```
-jose-ja-40c8c0f3c1c3b9c3f3c3b9c3f3c3b9c3f3c3b9c3
+jose-ja-unseal-key-1-of-5-40c8c0f3c1c3b9c3f3c3b9c3f3c3b9c3f3c3b9c3
 ```
 
-- Format: `{product}-{service}-{32 hex chars}`
-- Generation: `secrets.token_hex(16)`
-- Purpose: HKDF deterministic derivation for Root Key encryption
+- Format: `{PS-ID}-unseal-key-N-of-5-{hex-random-32-bytes}`
+- Generation: `secrets.token_hex(32)`
+- Purpose: HKDF deterministic derivation for Root Key encryption.
 
-**Hash Pepper** (`hash_pepper_v3.secret`):
+**Hash Pepper** (`hash-pepper-v3.secret`):
 
 ```
-dGhpcyBpcyBhIDMyLWJ5dGUgcGVwcGVyIGZvciBoYXNoaW5nIQ==
+jose-ja-hash-pepper-v3-dGhpcyBpcyBhIDMyLWJ5dGUgcGVwcGVyIGZvciBoYXNoaW5nIQ==
 ```
 
-- Format: Base64-encoded 32 bytes
+- Format: `{PS-ID}-hash-pepper-v3-{base64-random-32-bytes}`
 - Generation: `base64.b64encode(secrets.token_bytes(32))`
-- Purpose: PBKDF2/HKDF salt/pepper for PII hashing (username, email deduplication)
+- Purpose: PBKDF2/HKDF salt/pepper for PII hashing (username, email deduplication).
 
-**PostgreSQL Credentials** (`postgres_{url,username,password,database}.secret`):
+**PostgreSQL Credentials** (`postgres-{url,username,password,database}.secret`):
 
 ```
-# postgres_url.secret
-postgres://jose_ja_user:jose-ja-pass@postgres-leader:5432/jose_ja_db
+# postgres-url.secret
+postgres://jose_ja_database_user:jose_ja_database_pass-40c8c0f3...@jose-ja-postgres:5432/jose_ja_database?sslmode=disable
 
-# postgres_username.secret
-jose_ja_user
+# postgres-username.secret
+jose_ja_database_user
 
-# postgres_password.secret
-jose-ja-pass-40c8c0f3c1c3b9c3f3c3b9c3f3c3b9c3
+# postgres-password.secret
+jose_ja_database_pass-40c8c0f3c1c3b9c3f3c3b9c3f3c3b9c3
 
-# postgres_database.secret
-jose_ja_db
+# postgres-database.secret
+jose_ja_database
 ```
 
-- Naming: `{product}_{service}_user`, `{product}_{service}_db`
-- Password: `{product}-{service}-pass-{32 hex chars}`
+- Username: `{PS_ID}_database_user`
+- Database: `{PS_ID}_database`
+- Password: `{PS_ID}_database_pass-{base64-random-32-bytes}`
 
 **TLS Certificate and Key Secrets** (Static/Mixed TLS modes — production and E2E):
 
@@ -3964,24 +4058,30 @@ healthcheck-secrets:
   image: alpine:3.19
   command: >
     sh -c "
-      for secret in unseal_1 unseal_2 unseal_3 unseal_4 unseal_5
-                   hash_pepper_v3
-                   postgres_url postgres_username postgres_password postgres_database; do
+      for secret in unseal-1of5 unseal-2of5 unseal-3of5 unseal-4of5 unseal-5of5
+                   hash-pepper-v3
+                   browser-username browser-password
+                   service-username service-password
+                   postgres-url postgres-username postgres-password postgres-database; do
         test -f /run/secrets/$${secret}.secret || exit 1;
       done;
       echo 'All secrets validated';
     "
   secrets:
-    - unseal_1.secret
-    - unseal_2.secret
-    - unseal_3.secret
-    - unseal_4.secret
-    - unseal_5.secret
-    - hash_pepper_v3.secret
-    - postgres_url.secret
-    - postgres_username.secret
-    - postgres_password.secret
-    - postgres_database.secret
+    - unseal-1of5.secret
+    - unseal-2of5.secret
+    - unseal-3of5.secret
+    - unseal-4of5.secret
+    - unseal-5of5.secret
+    - hash-pepper-v3.secret
+    - browser-username.secret
+    - browser-password.secret
+    - service-username.secret
+    - service-password.secret
+    - postgres-url.secret
+    - postgres-username.secret
+    - postgres-password.secret
+    - postgres-database.secret
 ```
 
 **Purpose**: Fail fast on missing secrets, prevent runtime errors.
@@ -3991,7 +4091,7 @@ healthcheck-secrets:
 - Secrets generation scripts: `internal/apps/tools/cicd_lint/secrets/` (Python secrets module)
 - Security architecture: [02-05.security.instructions.md](../.github/instructions/02-05.security.instructions.md#secret-management---mandatory)
 - Hash service patterns: [02-05.security.instructions.md](../.github/instructions/02-05.security.instructions.md#hash-service-architecture)
-- Docker Compose templates: `deployments/template/compose-cryptoutil*.yml`
+- Deployment structure: [Section 4.4.6 Deployments](#446-deployments)
 
 #### 12.3.4 Multi-Level Deployment Hierarchy
 
@@ -4015,7 +4115,7 @@ healthcheck-secrets:
 
 | Level | Directory | Scope | Services | Use Cases |
 |-------|-----------|-------|----------|-----------|
-| **SERVICE** | `deployments/{PRODUCT}-{SERVICE}/` | Single service | 1 | Development, testing, isolated deployment |
+| **SERVICE** | `deployments/{PS-ID}/` | Single service | 1 | Development, testing, isolated deployment |
 | **PRODUCT** | `deployments/{PRODUCT}/` | Product services | 1-5 | Product-level testing, SSO within product |
 | **SUITE** | `deployments/cryptoutil-suite/` | All services | 10 | Full integration, cross-product federation |
 
@@ -4050,13 +4150,13 @@ include:
   - path: ../skeleton/compose.yml    # skeleton-template service
 
 secrets:
-  cryptoutil-hash_pepper.secret:
-    file: ./secrets/cryptoutil-hash_pepper.secret
+  hash-pepper-v3.secret:
+    file: ./secrets/hash-pepper-v3.secret
 ```
 
 **Purpose**: Deploy all 10 services with unified hash pepper for cross-product SSO and PII deduplication.
 
-**Secret Sharing**: `cryptoutil-hash_pepper.secret` shared by ALL services enables username@domain lookups across identity-authz, identity-idp, jose-ja, etc.
+**Secret Sharing**: `hash-pepper-v3.secret` (value prefixed with `cryptoutil-`) shared by ALL services enables username@domain lookups across identity-authz, identity-idp, jose-ja, etc.
 
 **Port Assignments**: Suite deployment uses offset +20000 (e.g., sm-kms: 28080 public, 29090 admin instead of 8080/9090).
 
@@ -4075,13 +4175,13 @@ include:
   - path: ../identity-spa/compose.yml
 
 secrets:
-  identity-hash_pepper.secret:
-    file: ./secrets/identity-hash_pepper.secret
+  hash-pepper-v3.secret:
+    file: ./secrets/hash-pepper-v3.secret
 ```
 
 **Purpose**: Deploy all identity services with shared hash pepper for SSO within product.
 
-**Secret Sharing**: `identity-hash_pepper.secret` shared by all 5 identity services enables unified username lookups for authentication/authorization.
+**Secret Sharing**: `hash-pepper-v3.secret` (value prefixed with `identity-`) shared by all 5 identity services enables unified username lookups for authentication/authorization.
 
 **Port Assignments**: Product deployment uses offset +10000 (e.g., identity-authz: 18200 public, 19290 admin instead of 8200/9290).
 
@@ -4108,13 +4208,13 @@ services:
       - "9090:9090"   # Admin API
 
 secrets:
-  sm-kms-hash_pepper.secret:
-    file: ./secrets/sm-kms-hash_pepper.secret
+  hash-pepper-v3.secret:
+    file: ./secrets/hash-pepper-v3.secret
 ```
 
 **Purpose**: Deploy single service with unique hash pepper (NO cross-service sharing).
 
-**Secret Uniqueness**: Each SERVICE-level deployment uses unique `{PRODUCT}-{SERVICE}-hash_pepper.secret` for maximum isolation.
+**Secret Uniqueness**: Each SERVICE-level deployment uses unique `hash-pepper-v3.secret` (value prefixed with `{PS-ID}-`) for maximum isolation.
 
 **Port Assignments**: Service deployment uses base ports (e.g., sm-kms: 8080 public, 9090 admin).
 
@@ -4122,24 +4222,24 @@ secrets:
 
 **Three Tiers** (from most isolated to most shared):
 
-1. **SERVICE pepper** (`{PRODUCT}-{SERVICE}-hash_pepper.secret`): Unique per service, NO cross-service lookups
-2. **PRODUCT pepper** (`{PRODUCT}-hash_pepper.secret`): Shared within product services (e.g., 5 identity services)
-3. **SUITE pepper** (`cryptoutil-hash_pepper.secret`): Shared by ALL 10 services for cross-product federation
+1. **SERVICE pepper** (`hash-pepper-v3.secret` with `{PS-ID}-` value prefix): Unique per service, NO cross-service lookups.
+2. **PRODUCT pepper** (`hash-pepper-v3.secret` with `{PRODUCT}-` value prefix): Shared within product services (e.g., 5 identity services).
+3. **SUITE pepper** (`hash-pepper-v3.secret` with `{SUITE}-` value prefix): Shared by ALL 10 services for cross-product federation.
 
-**Selection Logic** (service configures which pepper to use):
+**Selection Logic** (service configures which pepper to use — all tiers use the same filename):
 
 ```yaml
 # SERVICE-only deployment (isolated)
-HASH_PEPPER_FILE: /run/secrets/sm-kms-hash_pepper.secret
+HASH_PEPPER_FILE: /run/secrets/hash-pepper-v3.secret   # value: sm-kms-hash-pepper-v3-...
 
 # PRODUCT deployment (SSO within product)
-HASH_PEPPER_FILE: /run/secrets/identity-hash_pepper.secret
+HASH_PEPPER_FILE: /run/secrets/hash-pepper-v3.secret   # value: identity-hash-pepper-v3-...
 
 # SUITE deployment (cross-product federation)
-HASH_PEPPER_FILE: /run/secrets/cryptoutil-hash_pepper.secret
+HASH_PEPPER_FILE: /run/secrets/hash-pepper-v3.secret   # value: cryptoutil-hash-pepper-v3-...
 ```
 
-**Rationale**: Layered peppers enable flexible deployment modes while maintaining security isolation at SERVICE level and enabling federation at PRODUCT/SUITE levels.
+**Rationale**: Layered peppers enable flexible deployment modes while maintaining security isolation at SERVICE level and enabling federation at PRODUCT/SUITE levels. Identical filenames across tiers simplify compose `include` merging — the tier is selected by which `secrets/` directory the compose file references.
 
 ##### Port Offset Strategy
 
@@ -4159,9 +4259,12 @@ HASH_PEPPER_FILE: /run/secrets/cryptoutil-hash_pepper.secret
 
 ```
 ✅ Required: compose.yml exists
+✅ Required: Dockerfile exists
 ✅ Required: secrets/ directory exists
-✅ Required: identity-hash_pepper.secret exists in secrets/
-✅ Forbidden: unseal_*.secret MUST NOT exist (documented by .never files)
+✅ Required: hash-pepper-v3.secret exists in secrets/
+✅ Required: browser-username.secret.never marker exists in secrets/
+✅ Required: service-username.secret.never marker exists in secrets/
+✅ Forbidden: unseal-*.secret MUST NOT exist (service-level only)
 ```
 
 **SUITE Deployment Validation** (`cicd lint-deployments deployments/cryptoutil-suite`):
@@ -4169,11 +4272,13 @@ HASH_PEPPER_FILE: /run/secrets/cryptoutil-hash_pepper.secret
 ```
 ✅ Required: compose.yml exists
 ✅ Required: secrets/ directory exists
-✅ Required: cryptoutil-hash_pepper.secret exists in secrets/
-✅ Forbidden: unseal_*.secret MUST NOT exist (documented by .never files)
+✅ Required: hash-pepper-v3.secret exists in secrets/
+✅ Required: browser-username.secret.never marker exists in secrets/
+✅ Required: service-username.secret.never marker exists in secrets/
+✅ Forbidden: unseal-*.secret MUST NOT exist (service-level only)
 ```
 
-**Enforcement**: Linter validates ALL 19 deployments (9 SERVICE, 5 PRODUCT, 1 SUITE, 1 template, 3 infrastructure).
+**Enforcement**: Linter validates ALL deployments (10 SERVICE, 5 PRODUCT, 1 SUITE, 2 shared infrastructure).
 
 **Implementation**: [internal/apps/tools/cicd_lint/lint_deployments/lint_deployments.go](/internal/apps/tools/cicd_lint/lint_deployments/) with `validateProductSecrets()` and `validateSuiteSecrets()` functions.
 
@@ -4197,42 +4302,30 @@ HASH_PEPPER_FILE: /run/secrets/cryptoutil-hash_pepper.secret
 - Required directories: `secrets/`
 - Required files: `compose.yml`
 - Optional files: `README.md`
-- Required secrets: 1 file (hash pepper ONLY, NO unseal keys)
-  - `hash-pepper-v3.secret` (shared by all 10 services)
-- Forbidden secrets (documented by `.never` files):
-  - `unseal_1of5-SUITEONLY.never` through `unseal_5of5-SUITEONLY.never`
-  - Rationale: Unseal keys MUST be unique per service (security isolation)
+- Required secrets: hash pepper, postgres credentials, unseal keys (14 `.secret` files, same as service tier)
+- `.secret.never` marker files: `browser-username.secret.never`, `browser-password.secret.never`, `service-username.secret.never`, `service-password.secret.never`
+  - Rationale: Browser and service credentials are service-level only
 - Validation function: `validateSuiteSecrets()` in lint_deployments.go
 
-**PRODUCT** (e.g., identity, sm, pki, jose):
+**PRODUCT** (e.g., identity, sm, pki, jose, skeleton):
 - Required directories: `secrets/`
-- Required files: `compose.yml`
+- Required files: `compose.yml`, `Dockerfile`
 - Optional files: `README.md`
-- Required secrets: 1 file (hash pepper ONLY, NO unseal keys)
-  - `hash-pepper-v3.secret` (shared within product services)
-- Forbidden secrets (documented by `.never` files):
-  - `unseal_1of5-PRODUCTONLY.never` through `unseal_5of5-PRODUCTONLY.never`
-  - Rationale: Unseal keys MUST be unique per service (security isolation)
+- Required secrets: hash pepper, postgres credentials, unseal keys (14 `.secret` files, same as service tier)
+- `.secret.never` marker files: `browser-username.secret.never`, `browser-password.secret.never`, `service-username.secret.never`, `service-password.secret.never`
+  - Rationale: Browser and service credentials are service-level only
 - Validation function: `validateProductSecrets()` in lint_deployments.go
 
 **PRODUCT-SERVICE** (e.g., sm-im, jose-ja, pki-ca, sm-kms, identity-authz/idp/rp/rs/spa, skeleton-template):
 - Required directories: `secrets/`, `config/`
 - Required files: `compose.yml`, `Dockerfile`
 - Optional files: `compose.demo.yml`, `otel-collector-config.yaml`, `README.md`
-- Required secrets: 14 files (5 unseal, 1 hash pepper, 4 PostgreSQL, 4 auth credentials)
-  - `unseal_1of5.secret` through `unseal_5of5.secret`
-  - `hash_pepper_v3.secret`
-  - `postgres_url.secret`, `postgres_username.secret`, `postgres_password.secret`, `postgres_database.secret`
-  - `browser_username.secret`, `browser_password.secret` (web UI auth)
-  - `service_username.secret`, `service_password.secret` (headless/API auth)
-
-**template** (deployment template for new services):
-- Required directories: `secrets/`
-- Required files: `compose.yml`
-- Optional files: `compose.demo.yml`, `Dockerfile`, `README.md`
-- Required secrets: Same 14 files as PRODUCT-SERVICE
-- **Purpose**: Inert scaffolding templates (NOT a deployed service). Contains placeholder compose files for all 3 deployment tiers (`compose-cryptoutil-PRODUCT-SERVICE.yml`, `compose-cryptoutil-PRODUCT.yml`, `compose-cryptoutil.yml`) with placeholder names and underscores. See `deployments/template/README.md`.
-- **Not to be confused with** `deployments/skeleton-template/` which is the actual deployed skeleton-template service used as a running reference implementation.
+- Required secrets: 14 files
+  - `unseal-1of5.secret` through `unseal-5of5.secret`
+  - `hash-pepper-v3.secret`
+  - `postgres-url.secret`, `postgres-username.secret`, `postgres-password.secret`, `postgres-database.secret`
+  - `browser-username.secret`, `browser-password.secret` (web UI auth)
+  - `service-username.secret`, `service-password.secret` (headless/API auth)
 
 **infrastructure** (shared-postgres, shared-telemetry):
 - Required directories: none
@@ -4246,25 +4339,25 @@ HASH_PEPPER_FILE: /run/secrets/cryptoutil-hash_pepper.secret
 
 **File Requirements**: compose.yml is MANDATORY for all types; Dockerfile MANDATORY only for PRODUCT-SERVICE.
 
-**Secret Validation**: For PRODUCT-SERVICE and template types, all 14 required secrets MUST exist in `secrets/` directory.
+**Secret Validation**: For PRODUCT-SERVICE types, all 14 required secrets MUST exist in `secrets/` directory. For PRODUCT and SUITE types, all 14 `.secret` files plus 4 `.secret.never` marker files MUST exist.
 
 **Error Reporting**: Linter identifies missing directories, missing files, and missing secrets with actionable error messages.
 
-**Rigid Delegation Pattern** (NEW - enforced 2026-02-16):
+**Rigid Delegation Pattern** (enforced):
 - **SUITE Compose**: MUST include PRODUCT-level paths (e.g., `../sm/compose.yml`), NEVER service-level (e.g., `../sm-kms/compose.yml`)
 - **PRODUCT Compose**: MUST include SERVICE-level paths (e.g., `../sm-kms/compose.yml`)
 - **Validation Function**: `checkDelegationPattern()` in lint_deployments.go
 - **Failure Mode**: Violations are ERRORS that block CI/CD
 
-**Database Isolation** (NEW - enforced 2026-02-16):
-- Each of 10 services MUST have unique `postgres_database.secret` value
-- Each of 10 services MUST have unique `postgres_username.secret` value
+**Database Isolation** (enforced):
+- Each of 10 services MUST have unique `postgres-database.secret` value
+- Each of 10 services MUST have unique `postgres-username.secret` value
 - Duplicate database names or usernames across services are ERRORS
 - **Validation Function**: `checkDatabaseIsolation()` in lint_deployments.go
 - **Cross-Service Check**: Runs after all deployments validated to detect sharing violations
 
-**Authentication Credentials** (NEW - enforced 2026-02-16):
-- Each service MUST have 4 credential files: `browser_username.secret`, `browser_password.secret`, `service_username.secret`, `service_password.secret`
+**Authentication Credentials** (enforced):
+- Each service MUST have 4 credential files: `browser-username.secret`, `browser-password.secret`, `service-username.secret`, `service-password.secret`
 - **Validation Function**: `checkBrowserServiceCredentials()` in lint_deployments.go
 - **Rationale**: No hardcoded credentials in config files (E2E testing requires Docker secrets)
 
@@ -4290,19 +4383,20 @@ HASH_PEPPER_FILE: /run/secrets/cryptoutil-hash_pepper.secret
 
 #### 12.4.5 Config File Naming Strategy
 
-**MANDATORY Pattern**: All service config files MUST use full `{PRODUCT}-{SERVICE}-app-{variant}.yml` naming.
+**MANDATORY Pattern**: All service config files MUST use full `{PS-ID}-app-{variant}.yml` naming.
 
-**Standard Config File Set** (required for ALL services):
+**Standard Config File Set** (5 required for ALL services):
 
-- `{PRODUCT}-{SERVICE}-app-common.yml` - Shared configuration for all deployment modes (SQLite, PostgreSQL-1, PostgreSQL-2)
-- `{PRODUCT}-{SERVICE}-app-sqlite-1.yml` - SQLite in-memory configuration for single-instance development/testing
-- `{PRODUCT}-{SERVICE}-app-postgresql-1.yml` - PostgreSQL instance 1 configuration (shared database)
-- `{PRODUCT}-{SERVICE}-app-postgresql-2.yml` - PostgreSQL instance 2 configuration (shared database, high-availability pair)
+- `{PS-ID}-app-common.yml` - Shared configuration for all deployment modes (bind addresses, TLS, network).
+- `{PS-ID}-app-sqlite-1.yml` - SQLite in-memory instance 1 configuration.
+- `{PS-ID}-app-sqlite-2.yml` - SQLite in-memory instance 2 configuration (REQUIRED for parity with PostgreSQL instances).
+- `{PS-ID}-app-postgresql-1.yml` - PostgreSQL logical instance 1 configuration (shared database).
+- `{PS-ID}-app-postgresql-2.yml` - PostgreSQL logical instance 2 configuration (shared database, high-availability pair).
 
 **Optional Config Files**:
 
-- `{PRODUCT}-{SERVICE}-e2e.yml` - End-to-end test-specific overrides
-- `{PRODUCT}-{SERVICE}-demo.yml` - Demo environment settings
+- `{PS-ID}-e2e.yml` - End-to-end test-specific overrides.
+- `{PS-ID}-demo.yml` - Demo environment settings.
 
 **Examples**:
 
@@ -4310,6 +4404,7 @@ HASH_PEPPER_FILE: /run/secrets/cryptoutil-hash_pepper.secret
 deployments/sm-kms/config/
 ├── sm-kms-app-common.yml
 ├── sm-kms-app-sqlite-1.yml
+├── sm-kms-app-sqlite-2.yml
 ├── sm-kms-app-postgresql-1.yml
 ├── sm-kms-app-postgresql-2.yml
 ├── sm-kms-e2e.yml          (optional)
@@ -4318,16 +4413,18 @@ deployments/sm-kms/config/
 deployments/jose-ja/config/
 ├── jose-ja-app-common.yml
 ├── jose-ja-app-sqlite-1.yml
+├── jose-ja-app-sqlite-2.yml
 ├── jose-ja-app-postgresql-1.yml
 └── jose-ja-app-postgresql-2.yml
 ```
 
 **Rationale**:
 
-- **Explicit Product-Service Coupling**: Prevents config file collisions when multiple services deployed together
-- **Variant Clarity**: `app-sqlite-1` vs `app-postgresql-1` makes deployment mode immediately obvious
-- **Instance Numbering**: `-1` and `-2` suffixes enable horizontal scaling with unique configs per instance
-- **Tooling Support**: Linter validates presence of 4 required files, flags non-conformant naming
+- **Explicit PS-ID Coupling**: Prevents config file collisions when multiple services deployed together.
+- **Variant Clarity**: `app-sqlite-1` vs `app-postgresql-1` makes deployment mode immediately obvious.
+- **Instance Numbering**: `-1` and `-2` suffixes enable horizontal scaling with unique configs per instance.
+- **SQLite Parity**: Two SQLite instances (`sqlite-1`, `sqlite-2`) mirror the two PostgreSQL instances for consistent testing across both database backends.
+- **Tooling Support**: Linter validates presence of 5 required files, flags non-conformant naming.
 
 **Migration Strategy** (Q9 Answer: Break Immediately):
 
@@ -4339,13 +4436,13 @@ deployments/jose-ja/config/
 
 **Decision** (Q3 Answer: Remove from service directories):
 
-- **demo-seed.yml**: Remove from all `deployments/{PRODUCT}-{SERVICE}/config/` directories
-- **integration.yml**: Remove from all `deployments/{PRODUCT}-{SERVICE}/config/` directories
+- **demo-seed.yml**: Remove from all `deployments/{PS-ID}/config/` directories
+- **integration.yml**: Remove from all `deployments/{PS-ID}/config/` directories
 
 **Replacement Pattern**:
 
-- Demo-specific settings → `{PRODUCT}-{SERVICE}-demo.yml` (optional file in config/)
-- E2E test settings → `{PRODUCT}-{SERVICE}-e2e.yml` (optional file in config/)
+- Demo-specific settings → `{PS-ID}-demo.yml` (optional file in config/)
+- E2E test settings → `{PS-ID}-e2e.yml` (optional file in config/)
 - Integration test data → Use TestMain with test-containers (NOT Docker Compose)
 
 **Rationale**:
@@ -4377,14 +4474,14 @@ if file == "demo-seed.yml" || file == "integration.yml" {
 
 **ALL violations are errors (blocking)**:
 
-- Config files not matching `{PRODUCT}-{SERVICE}-app-{variant}.yml` pattern
-- Presence of deprecated `demo-seed.yml` or `integration.yml` files
-- Missing required config files (4 standard files)
-- Missing required secrets (10 secret files)
-- Missing required directories (`secrets/`, `config/`)
-- Missing required compose/Dockerfile files
-- Single-part deployment names (must be `PRODUCT-SERVICE` format)
-- Wrong product prefix in config file names
+- Config files not matching `{PS-ID}-app-{variant}.yml` pattern.
+- Presence of deprecated `demo-seed.yml` or `integration.yml` files.
+- Missing required config files (5 standard files).
+- Missing required secrets (14 secret files for service tier).
+- Missing required directories (`secrets/`, `config/`).
+- Missing required compose/Dockerfile files.
+- Single-part deployment names (must be `{PS-ID}` format, e.g., `sm-kms`, `jose-ja`).
+- Wrong PS-ID prefix in config file names.
 
 #### 12.4.8 Config File Content Validation
 
@@ -4440,35 +4537,34 @@ if file == "demo-seed.yml" || file == "integration.yml" {
 
 #### 12.4.11 Validation Pipeline Architecture
 
-**Execution Model**: All 8 validators run sequentially with aggregated error reporting. Each validator produces a `ValidationResult` with pass/fail status, error list, and timing metrics. The `validate-all` orchestrator collects all results and prints a unified summary.
+**Execution Model**: All 7 validators run sequentially with aggregated error reporting. Each validator produces a `ValidationResult` with pass/fail status, error list, and timing metrics. The `validate-all` orchestrator collects all results and prints a unified summary.
 
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                  validate-all orchestrator               │
 │                                                         │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌─────────┐ │
-│  │ naming   │→ │kebab-case│→ │  schema  │→ │template │ │
+│  │ naming   │→ │kebab-case│→ │  schema  │→ │  ports  │ │
 │  └──────────┘  └──────────┘  └──────────┘  └─────────┘ │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌─────────┐ │
-│  │  ports   │→ │telemetry │→ │  admin   │→ │ secrets │ │
-│  └──────────┘  └──────────┘  └──────────┘  └─────────┘ │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐              │
+│  │telemetry │→ │  admin   │→ │ secrets  │              │
+│  └──────────┘  └──────────┘  └──────────┘              │
 │                                                         │
 │  Result: N passed / M failed (Xms)                      │
 └─────────────────────────────────────────────────────────┘
 ```
 
-**8-Validator Reference**:
+**7-Validator Reference**:
 
 | # | Validator | Scope | Purpose | Key Rules |
 |---|-----------|-------|---------|-----------|
-| 1 | **ValidateNaming** | `deployments/`, `configs/` | Enforce kebab-case directory and file naming | All directories/files must be lowercase kebab-case; template directory skipped (intentional uppercase placeholders). |
+| 1 | **ValidateNaming** | `deployments/`, `configs/` | Enforce kebab-case directory and file naming | All directories/files must be lowercase kebab-case. |
 | 2 | **ValidateKebabCase** | `configs/` YAML files | Enforce kebab-case in YAML keys and compose service names | Top-level YAML keys must use kebab-case; `x-` extension keys and `services` map entries validated. |
 | 3 | **ValidateSchema** | `configs/` `config-*.yml` files | Validate service template config files against hardcoded schema | Required keys (`bind-public-protocol`, `bind-public-address`, `bind-public-port`, etc.); protocol must be `https`; addresses must be valid IP/hostname. |
-| 4 | **ValidateTemplatePattern** | `deployments/template/` | Validate template directory naming, structure, and placeholder values | compose.yml must use `PRODUCT-SERVICE` placeholders; required directories/files present; secrets follow template naming. |
-| 5 | **ValidatePorts** | `deployments/` compose files | Validate port assignments per deployment type | SERVICE: 8000-8999, PRODUCT: 18000-18999, SUITE: 28000-28999; admin always 9090; no port conflicts. |
-| 6 | **ValidateTelemetry** | `configs/` YAML files | Validate OTLP endpoint consistency | OTLP endpoint required in service configs; hostname:port format (no protocol prefix); consistent collector naming. |
-| 7 | **ValidateAdmin** | `deployments/` compose files | Validate admin endpoint bind policy | Admin port must bind to `127.0.0.1:9090` (never `0.0.0.0`); ensures admin API never exposed outside container. |
-| 8 | **ValidateSecrets** | `deployments/` compose files | Detect inline secrets in environment variables | Secret-pattern env vars (PASSWORD, SECRET, TOKEN, KEY, API_KEY) must use Docker secrets (`/run/secrets/`); length threshold ≥32/43 chars for non-reference values. Infrastructure deployments excluded. |
+| 4 | **ValidatePorts** | `deployments/` compose files | Validate port assignments per deployment type | SERVICE: 8000-8999, PRODUCT: 18000-18999, SUITE: 28000-28999; admin always 9090; no port conflicts. |
+| 5 | **ValidateTelemetry** | `configs/` YAML files | Validate OTLP endpoint consistency | OTLP endpoint required in service configs; hostname:port format (no protocol prefix); consistent collector naming. |
+| 6 | **ValidateAdmin** | `deployments/` compose files | Validate admin endpoint bind policy | Admin port must bind to `127.0.0.1:9090` (never `0.0.0.0`); ensures admin API never exposed outside container. |
+| 7 | **ValidateSecrets** | `deployments/` compose files | Detect inline secrets in environment variables | Secret-pattern env vars (PASSWORD, SECRET, TOKEN, KEY, API_KEY) must use Docker secrets (`/run/secrets/`); length threshold ≥32/43 chars for non-reference values. Infrastructure deployments excluded. |
 
 **Cross-References**: Each validator is implemented in `internal/apps/tools/cicd_lint/lint_deployments/validate_<name>.go` with comprehensive table-driven tests in `validate_<name>_test.go`. See code comments for detailed validation rules (per Decision 9:A minimal docs, comprehensive code comments).
 
@@ -4478,69 +4574,61 @@ if file == "demo-seed.yml" || file == "integration.yml" {
 
 **Schema Strategy**: Config file schema is HARDCODED in Go (`validate_schema.go`) with comprehensive code comments. No external schema files (e.g., JSON Schema, CONFIG-SCHEMA.md) are maintained. The validator source code is the single source of truth for schema rules.
 
-**Directory Structure**:
+**Directory Structure** (flat `configs/{PS-ID}/` pattern):
 
 ```
 configs/
 ├── cryptoutil/
-│   └── cryptoutil.yml               # Suite-level config
-├── identity/
-│   ├── authz/
-│   │   └── authz.yml                # Domain config (nested YAML)
-│   ├── idp/
-│   │   └── idp.yml                  # Domain config (nested YAML)
-│   ├── rp/
-│   │   └── rp.yml                   # Domain config (nested YAML)
-│   ├── rs/
-│   │   └── rs.yml                   # Domain config (nested YAML)
-│   ├── spa/
-│   │   └── spa.yml                  # Domain config (nested YAML)
-│   └── policies/                    # Shared authentication policies
-│       ├── adaptive-auth.yml
-│       ├── risk-scoring.yml
-│       └── step-up.yml
-├── jose/
-│   └── ja/
-│       └── jose-ja-server.yml       # Domain config (nested YAML, PS-ID prefix)
-├── pki/
-│   └── ca/
-│       ├── pki-ca-server.yml        # Domain config (nested YAML, PS-ID prefix)
-│       ├── pki-ca-config-schema.yaml # CA certificate schema definition
-│       └── profiles/                # X.509 certificate profiles (25 files)
-│           ├── tls-server.yaml
-│           ├── root-ca.yaml
-│           └── ...
-├── skeleton/
-│   ├── skeleton-server.yml          # Product-level default config
-│   └── template/
-│       └── skeleton-template-server.yml # Domain config (PS-ID prefix)
-└── sm/
-    ├── im/
-    │   ├── im.yml                   # Domain config (nested YAML)
-    │   ├── sm-im-sqlite.yml         # Service framework config (flat kebab-case)
-    │   ├── sm-im-pg-1.yml           # Service framework config (flat kebab-case)
-    │   └── sm-im-pg-2.yml           # Service framework config (flat kebab-case)
-    └── kms/
-        ├── sm-kms-sqlite.yml        # Service framework config (flat kebab-case)
-        ├── sm-kms-pg-1.yml          # Service framework config (flat kebab-case)
-        └── sm-kms-pg-2.yml          # Service framework config (flat kebab-case)
+│   └── cryptoutil.yml                          # Suite-level config
+├── identity-authz/
+│   ├── identity-authz.yml                      # Domain config (nested YAML)
+│   └── domain/
+│       └── policies/                           # Authentication/authorization policies
+│           ├── adaptive-auth.yml
+│           ├── risk-scoring.yml
+│           └── step-up.yml
+├── identity-idp/
+│   └── identity-idp.yml                        # Domain config (nested YAML)
+├── identity-rp/
+│   └── identity-rp.yml                         # Domain config (nested YAML)
+├── identity-rs/
+│   └── identity-rs.yml                         # Domain config (nested YAML)
+├── identity-spa/
+│   └── identity-spa.yml                        # Domain config (nested YAML)
+├── jose-ja/
+│   └── jose-ja.yml                             # Domain config (nested YAML)
+├── pki-ca/
+│   ├── pki-ca.yml                              # Domain config (nested YAML)
+│   ├── pki-ca-config-schema.yaml               # CA certificate schema definition
+│   └── profiles/                               # X.509 certificate profiles (25 files)
+│       ├── tls-server.yaml
+│       ├── root-ca.yaml
+│       └── ...
+├── skeleton-template/
+│   └── skeleton-template.yml                   # Domain config (nested YAML)
+├── sm-im/
+│   └── sm-im.yml                               # Domain config (nested YAML)
+└── sm-kms/
+    └── sm-kms.yml                              # Domain config (nested YAML)
 ```
+
+**Key Rules**:
+
+- **Flat {PS-ID} directories**: `configs/{PS-ID}/` (e.g., `configs/jose-ja/`, `configs/sm-kms/`). NOT nested `configs/{PRODUCT}/{SERVICE}/`.
+- **Domain config naming**: `{PS-ID}.yml` (e.g., `jose-ja.yml`, `sm-im.yml`).
+- **Special subdirectories**: `configs/pki-ca/profiles/` for X.509 profiles, `configs/identity-authz/domain/policies/` for auth policies.
 
 **Config File Naming Conventions**:
 
 | Type | Naming Pattern | Schema Format | Examples |
 |------|---------------|---------------|----------|
-| Service framework config | `{PS-ID}-{variant}.yml` | Flat kebab-case, validated by `ValidateSchema` | `sm-kms-sqlite.yml`, `sm-im-pg-1.yml` |
-| Domain config | `{service}.yml` or `{PS-ID}-server.yml` | Nested YAML, service-specific | `authz.yml`, `pki-ca-server.yml` |
-| Suite config | `cryptoutil.yml` | Suite-level settings | `cryptoutil.yml` |
-| Product config | `{product}-server.yml` | Product-level defaults | `skeleton-server.yml` |
+| Domain config | `{PS-ID}.yml` | Nested YAML, service-specific | `jose-ja.yml`, `sm-im.yml` |
+| Suite config | `cryptoutil.yml` | Suite-level settings | `configs/cryptoutil/cryptoutil.yml` |
 | Certificate profile | `profiles/*.yaml` | X.509 certificate definitions | `tls-server.yaml` |
-| Auth policy | `policies/*.yml` | Authentication/authorization rules | `adaptive-auth.yml` |
+| Auth policy | `domain/policies/*.yml` | Authentication/authorization rules | `adaptive-auth.yml` |
 | Certificate schema | `*-config-schema.yaml` | CA certificate schema definitions | `pki-ca-config-schema.yaml` |
 
-**Service Framework Config Suffixes**: `-sqlite.yml`, `-pg-1.yml`, `-pg-2.yml` (recognized by `isServiceFrameworkConfig` in `validate_all.go`).
-
-**Dual configs/ vs deployments/config/ Relationship**: The `configs/` directory holds **standalone development configs** for direct `go run` usage. The `deployments/*/config/` directories hold **Docker Compose deployment configs** that may override or extend standalone configs. Both follow the same flat kebab-case schema for service framework configs.
+**Dual configs/ vs deployments/config/ Relationship**: The `configs/` directory holds **standalone development configs** for direct `go run` usage. The `deployments/{PS-ID}/config/` directories hold **Docker Compose deployment configs** (`{PS-ID}-app-{variant}.yml`) with 5 required variant files (common, sqlite-1, sqlite-2, postgresql-1, postgresql-2). Both follow the same flat kebab-case schema for service framework configs.
 
 **Cross-References**: Schema validation rules in [validate_schema.go](/internal/apps/tools/cicd_lint/lint_deployments/validate_schema.go). Config naming in [Section 12.4.5](#1245-config-file-naming-strategy).
 
@@ -4554,11 +4642,15 @@ configs/
 
 **Detection Strategy**: Length-based threshold (≥32 bytes / ≥43 base64 chars) identifies high-entropy inline values. Safe references (`/run/secrets/`, Docker secret names, short dev defaults) are excluded. No entropy calculation (too many false positives). Infrastructure deployments (Grafana, OTLP collector) are excluded from secrets validation since they use intentional inline dev credentials.
 
-**Legacy Secret Naming Policy**: All secrets use the standardized `{PS-ID}-{purpose}.secret` naming convention (e.g., `sm-im-hash-pepper.secret`, `jose-ja-unseal-1of5.secret`). The following legacy patterns are BANNED and MUST NOT be introduced:
+**Secret Naming Convention**: All tiers use **identical `{purpose}.secret` filenames** — no tier prefix on filenames. The VALUE inside each secret contains the tier-specific prefix (`{PS-ID}-`, `{PRODUCT}-`, or `{SUITE}-`). See [Section 4.4.6](#446-deployments) for the complete secret file listing at each tier.
 
-- Product-prefixed secrets: `sm-hash-pepper.secret`, `jose-unseal-*.secret` (use PS-ID prefix instead).
-- Bare secrets without PS-ID prefix: `hash_pepper.secret`, `unseal_1of5.secret` (use PS-ID prefix for non-template deployments).
-- `.secret.never` marker files: Removed. All required secrets are enforced by the `validate_required_contents` linter.
+**`.secret.never` Marker Files**: Product and suite tiers include `.secret.never` files (e.g., `browser-username.secret.never`, `service-password.secret.never`) to document that browser and service credentials are intentionally service-level only. These markers are enforced by `validateProductSecrets()` and `validateSuiteSecrets()`.
+
+**Legacy Patterns (BANNED)**:
+
+- Tier-suffixed secrets: `unseal_1of5-SERVICEONLY.secret`, `hash_pepper_v3-SHARED.secret` (use simple `{purpose}.secret` naming).
+- Underscore-based secrets: `hash_pepper_v3.secret`, `unseal_1of5.secret` (use hyphenated `hash-pepper-v3.secret`, `unseal-1of5.secret`).
+- Product-prefixed filenames: `sm-hash-pepper.secret`, `jose-unseal-1of5.secret` (prefix goes in VALUE, not filename).
 
 **Cross-References**: Secrets coordination strategy in [Section 12.3.3](#1233-secrets-coordination-strategy). Validator implementation in [validate_secrets.go](/internal/apps/tools/cicd_lint/lint_deployments/validate_secrets.go).
 
@@ -4721,7 +4813,7 @@ Propagation markers are added incrementally:
 All validators run to completion (never short-circuit) and aggregate errors for a single unified report. Sequential execution ensures deterministic output ordering. Aggregated errors (not fail-fast) show ALL problems in one run, reducing fix-test-fix cycles. `validate-all` returns exit code 0 if all pass, exit code 1 if any fail.
 <!-- @/propagate -->
 
-**Execution Model**: Sequential execution of all 8 validators. Each validator produces a `ValidationResult` containing: valid/invalid status, error list, and execution duration. The orchestrator (`ValidateAll`) collects all results and produces a summary with pass/fail counts and total duration.
+**Execution Model**: Sequential execution of all 7 validators. Each validator produces a `ValidationResult` containing: valid/invalid status, error list, and execution duration. The orchestrator (`ValidateAll`) collects all results and produces a summary with pass/fail counts and total duration.
 
 **Rationale**: Sequential execution (not parallel) ensures deterministic output ordering and simplifies debugging. Aggregated errors (not fail-fast) show ALL problems in one run, reducing fix-test-fix cycles.
 
