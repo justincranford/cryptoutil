@@ -214,6 +214,16 @@ See [Section 11.1 Maximum Quality Strategy](#111-maximum-quality-strategy---mand
 
 ### 1.5 Architecture at a Glance
 
+**Entity Hierarchy** (parameterized naming conventions used throughout this document):
+
+| Parameter | Meaning | Count | Values |
+|-----------|---------|-------|--------|
+| `{SUITE}` | Suite name | 1 | `cryptoutil` |
+| `{PRODUCT}` | Product name | 5 | `identity`, `jose`, `pki`, `skeleton`, `sm` |
+| `{PS-ID}` | Product-Service Identifier | 10 | `identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`, `identity-spa`, `jose-ja`, `pki-ca`, `skeleton-template`, `sm-im`, `sm-kms` |
+| `{PS_ID}` | Underscore variant (SQL, secrets) | 10 | Same as `{PS-ID}` with `_` replacing `-` |
+| `{INFRA-TOOL}` | Infrastructure tooling | 2 | `cicd-lint`, `workflow` |
+
 **1 Suite → 5 Products → 10 Services**:
 
 ```
@@ -231,9 +241,9 @@ cryptoutil (suite)
 |------|-------|------------------|---------------------|
 | SERVICE | Single service | +0 (8XXX) | `deployments/{PS-ID}/` |
 | PRODUCT | All services in one product | +10000 (18XXX) | `deployments/{PRODUCT}/` |
-| SUITE | All 10 services across all 5 products | +20000 (28XXX) | `deployments/cryptoutil-suite/` |
+| SUITE | All 10 services across all 5 products | +20000 (28XXX) | `deployments/{SUITE}-suite/` |
 
-**Service Independence**: Each service is a standalone binary with its own HTTPS listeners (public :8080, admin :9090), database (PostgreSQL or SQLite), config, Docker Compose file, and deployment secrets. Services communicate via mTLS or OAuth 2.1 client credentials (see [Section 3.3](#33-product-service-relationships)).
+**Service Independence**: Each `{PS-ID}` service is a standalone binary with its own HTTPS listeners (public :8080, admin :9090), database (PostgreSQL or SQLite), config (`configs/{PS-ID}/`), Docker Compose file (`deployments/{PS-ID}/compose.yml`), and deployment secrets (`deployments/{PS-ID}/secrets/`). Services communicate via mTLS or OAuth 2.1 client credentials (see [Section 3.3](#33-product-service-relationships)).
 
 **Migration Priority** (to service framework — see [Section 5.1.3](#513-mandatory-usage)): sm-im → jose-ja → sm-kms → pki-ca → identity services. SM services first, PKI second, Identity last.
 
@@ -266,17 +276,28 @@ See [Section 2.1.5 Copilot Skills](#215-copilot-skills) for skill catalogue and 
 
 **Implementation Plan File Structure**:
 
-Implementation plans are composed of 4 files in `<work-dir>/`:
-- `quizme-v#.md` - Ephemeral, only during implementation-planning.agent.md (A-D options + E blank + Answer field)
-- `plan.md` - Created/updated during implementation-planning.agent.md, implemented during implementation-execution.agent.md
-- `tasks.md` - Created/updated during implementation-planning.agent.md, implemented during implementation-execution.agent.md (phases and tasks as checkboxes, updated continuously)
-- `memory.md` - Ephemeral, only during implementation-execution.agent.md (NOT in .github/instructions/memory.instruction.md - copilot instruction files are not loaded by agents)
+Implementation plans use the following files in `<work-dir>/`:
+
+**Core** (created by implementation-planning, updated by implementation-execution):
+- `plan.md` — Phase plan with scope, LOE, rationale, and constraints
+- `tasks.md` — Task breakdown with checkbox tracking (updated continuously during execution)
+- `lessons.md` — Phase post-mortem lessons: what worked, what didn't, root causes, patterns observed (scaffold created by planning, populated after each phase by execution)
+
+**On-Demand** (created by implementation-execution when needed):
+- `issues.md` — Blockers and discovered issues with root cause analysis
+- `categories.md` — Categorized issue tracking for cross-cutting concerns
+
+**Ephemeral** (temporary, session-scoped):
+- `quizme-v#.md` — Unknowns clarification during planning only (A-D options + E blank; deleted after answers merged)
+- `memory.md` — Session-scoped execution context, discoveries, blockers, working notes (created/updated only by implementation-execution; NOT a copilot instruction file)
 
 <!-- @propagate to=".github/instructions/06-02.agent-format.instructions.md" as="agent-self-containment" -->
 **Agent Self-Containment Checklist** (MANDATORY):
 - Agents generating implementation plans MUST reference ARCHITECTURE.md testing (Section 10), quality gates (Section 11), coding standards (Section 13)
-- Agents modifying code MUST reference coding standards (Sections 11, 13)
+- Agents modifying code MUST reference coding standards (Section 13) and quality architecture (Section 11)
+- Agents modifying tests MUST reference testing architecture (Section 10) and quality gates (Section 11)
 - Agents modifying deployments MUST reference deployment architecture (Section 12)
+- Agents modifying CI/CD workflows or infrastructure MUST reference infrastructure architecture (Section 9)
 - Agents modifying documentation or copilot artifacts (skills, instructions, agents) MUST reference Section 2.1 (Agent/Skill/Instruction catalog) and Section 12.7 (Documentation Propagation)
 - ALL agents MUST reference Section 2.5 (Quality Strategy) for coverage and mutation targets
 - Agents with ZERO ARCHITECTURE.md references are NON-COMPLIANT and MUST be updated
@@ -284,14 +305,14 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 
 #### 2.1.2 Agent Catalog
 
-- implementation-planning: Planning and task decomposition
-- implementation-execution: Autonomous implementation execution
+- implementation-planning: Planning and task decomposition, quizme, and lessons.md scaffold
+- implementation-execution: Autonomous implementation execution, plan.md, tasks.md (phases and tasks and post-mortems and lessons.md), lessons.md updates
 - fix-workflows: Workflow repair and validation
 - beast-mode: Continuous execution mode
 
 #### 2.1.3 Agent Handoff Flow
 
-- Planning → Implementation → Documentation → Fix handoff chains
+- Planning → Implementation → Fix handoff chains
 - Explicit handoff triggers and conditions
 - State preservation across handoffs
 
@@ -301,6 +322,7 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 - Auto-discovery and alphanumeric ordering
 - Single responsibility per file
 - Cross-reference patterns
+- Propagations from this document (i.e. docs/ARCHITECTURE.md)
 
 #### 2.1.5 Copilot Skills
 
@@ -327,7 +349,7 @@ Skills live in `.github/skills/NAME/SKILL.md` — each skill in its own subdirec
 
 #### 2.1.6 Agent Tool Discovery
 
-**Four tool sources** — each requires a different discovery method. Keep `docs/UPDATE-TOOLS.md` synchronized whenever VS Code, extensions, or MCP servers are updated.
+**Four tool sources** — each requires a different discovery method.
 
 <!-- @propagate to=".github/instructions/06-02.agent-format.instructions.md" as="agent-tool-discovery" -->
 **Tool discovery by source type**:
@@ -339,19 +361,21 @@ Skills live in `.github/skills/NAME/SKILL.md` — each skill in its own subdirec
 | Extension tools | Scan `~/.vscode/extensions/*/package.json` for `contributes.languageModelTools` | `toolReferenceName` (camelCase); use `name` (snake_case) if no `toolReferenceName` |
 | MCP server tools | `%APPDATA%\Code\User\mcp.json` or `.vscode/mcp.json` | Tool name as shown in MCP server config |
 
-**Extension scan command** (PowerShell):
+**Extension scan script** (Python — cross-platform):
 
-```powershell
-Get-ChildItem ~/.vscode/extensions -Directory | ForEach-Object {
-    $pkg = Join-Path $_.FullName "package.json"
-    if (Test-Path $pkg) {
-        $json = Get-Content $pkg -Raw | ConvertFrom-Json -ErrorAction SilentlyContinue
-        if ($json.contributes.languageModelTools) {
-            Write-Host "=== $($_.Name) ==="
-            $json.contributes.languageModelTools | Select-Object name, toolReferenceName | Format-Table -AutoSize
-        }
-    }
-}
+```python
+import json, pathlib
+
+ext_dir = pathlib.Path.home() / ".vscode" / "extensions"
+for d in sorted(ext_dir.iterdir()):
+    pkg = d / "package.json"
+    if pkg.is_file():
+        data = json.loads(pkg.read_text(encoding="utf-8"))
+        tools = data.get("contributes", {}).get("languageModelTools")
+        if tools:
+            print(f"=== {d.name} ===")
+            for t in tools:
+                print(f"  name={t.get('name', '')}  toolReferenceName={t.get('toolReferenceName', '')}")
 ```
 
 **Category disambiguation**: `github.copilot-chat` extension tools use `category/toolReferenceName` (categories: `agent`, `browser`, `edit`, `execute`, `read`, `search`, `vscode`, `web`). All other extensions use bare `toolReferenceName`.
@@ -384,10 +408,11 @@ Get-ChildItem ~/.vscode/extensions -Directory | ForEach-Object {
 
 #### Database Strategy
 
-- **Dual Database Support**: PostgreSQL (production) + SQLite (dev/test)
+- **Dual Database Support**: PostgreSQL (production, e2e) + SQLite (dev/integration)
 - **Cross-DB Compatibility**: UUID as TEXT, serializer:json for arrays, NullableUUID for optional FKs
 - **GORM Always**: Never raw database/sql for consistency
-- **TestMain Pattern**: Heavyweight resources initialized once per package
+- **TestMain Pattern**: Heavyweight resources initialized once per package; integration package starts one instance of service with SQLite database, for use by all tests within that package
+- **Docker Compose Pattern**: Each service has its own `docker-compose.yml` for e2e testing, with 2x applications using shared PostgreSQL instance and 2x applications using separate in-memory SQLite instances; separate compose files for product-level and suite-level deployments
 
 ### 2.3 Design Strategy
 
@@ -422,17 +447,21 @@ Get-ChildItem ~/.vscode/extensions -Directory | ForEach-Object {
 
 #### 2.3.1 Core Principles
 
-- Quality over speed (NO EXCEPTIONS)
-- Evidence-based validation
-- Correctness, completeness, thoroughness
-- Reliability and efficiency
+See [Section 11.1 Maximum Quality Strategy](#111-maximum-quality-strategy---mandatory) for the 8 quality attributes enforced without exception. Key principles:
+
+- **Quality over speed**: NEVER rush, NEVER skip validation, NEVER defer quality checks
+- **Evidence-based validation**: Objective evidence required before marking any task complete
+- **All issues are blockers**: Fix immediately, NEVER defer ("fix later"), NEVER skip
+- **Continuous improvement**: Post-mortem on every phase, extract lessons to permanent homes
 
 #### 2.3.2 Autonomous Execution Principles
 
-- Continuous work without stopping
-- No permission requests between tasks
-- Blocker documentation and parallel work
-- Task completion criteria
+See the [beast-mode agent](.github/agents/beast-mode.agent.md) for the full autonomous execution contract:
+
+- Continuous work until ALL tasks complete or user clicks STOP
+- Zero permission requests, zero status updates between tasks
+- Blocker documentation with parallel unblocked work
+- Mandatory review passes (see [Section 2.5](#25-quality-strategy)) before task completion
 
 ### 2.4 Implementation Strategy
 
@@ -447,7 +476,7 @@ Get-ChildItem ~/.vscode/extensions -Directory | ForEach-Object {
 
 - **Table-Driven Tests**: ALWAYS use for multiple test cases (NOT standalone functions)
 - **app.Test() Pattern**: ALL HTTP handler tests use in-memory testing (NO real servers)
-- **TestMain Pattern**: Heavyweight resources (PostgreSQL, servers) initialized once per package
+- **TestMain Pattern**: Heavyweight resources (SQLite in-memory databases, application servers) initialized once per package; PostgreSQL tested ONLY in E2E via Docker Compose
 - **Dynamic Test Data**: UUIDv7 for all test values (thread-safe, process-safe, time-ordered)
 - **t.Parallel()**: ALWAYS use in test functions and subtests for concurrency validation
 
@@ -456,14 +485,15 @@ Get-ChildItem ~/.vscode/extensions -Directory | ForEach-Object {
 - **Conventional Commits**: `<type>[scope]: <description>` format mandatory
 - **Commit Strategy**: Incremental commits (NOT amend) preserve history for bisect
 - **Restore from Clean**: When fixing regressions, restore known-good baseline first
-- **Quality Gates**: Build clean (`go build ./...` AND `go build -tags e2e,integration ./...`), linting clean (`golangci-lint run` AND `golangci-lint run --build-tags e2e,integration`), tests pass before commit
+- **Quality Gates**: Build clean (`go build ./...` AND `go build -tags e2e,integration ./...`), linting clean (`golangci-lint run --fix` AND `golangci-lint run --build-tags e2e,integration`), tests pass (`go test ./... -shuffle=on`), deployment validators pass (when `deployments/` or `configs/` changed)
 
 #### Continuous Execution
 
 - **Beast Mode**: Work autonomously until problem completely solved
-- **Maximum Quality Strategy**: Correctness, completeness, thoroughness (NO EXCEPTIONS)
+- **Maximum Quality Strategy**: All 8 quality attributes enforced — see [Section 11.1](#111-maximum-quality-strategy---mandatory) (NO EXCEPTIONS)
 - **NO Stopping**: Task complete → Commit → IMMEDIATELY start next task (zero pause)
 - **Blocker Handling**: Document blocker, switch to unblocked tasks, return when resolved
+- **Mandatory Review Passes**: Minimum 3 review passes before marking any task complete — see [Section 2.5](#25-quality-strategy)
 
 ##### Autonomous Execution Principles
 
@@ -551,6 +581,10 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 **Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
 <!-- @/propagate -->
 
+<!-- NOTE: The following block is intentionally identical to the one above. The propagation system
+     requires a separate @propagate block per target instruction file. Both 01-02 (beast-mode)
+     and 06-01 (evidence-based) consume this content because review passes serve both autonomous
+     execution quality enforcement AND evidence-based task completion requirements. -->
 <!-- @propagate to=".github/instructions/06-01.evidence-based.instructions.md" as="mandatory-review-passes" -->
 **MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
 
