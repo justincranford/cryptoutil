@@ -1,6 +1,6 @@
 # Tasks - Framework v6: Corrective Standardization
 
-**Status**: 54 of 63 tasks complete (86%)
+**Status**: 56 of 63 tasks complete (89%)
 **Last Updated**: 2026-03-28
 **Created**: 2026-03-25
 
@@ -828,29 +828,29 @@
 
 #### Task 9.1: Audit All Generated Files for Banned Terms
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 15m
-- **Actual**: -
+- **Actual**: 5m
 - **Dependencies**: Phase 5 (config restructuring done, files in final locations)
 - **Description**: Scan all config filenames, plan docs, and generated content for standalone `auth` (banned per `.github/instructions/01-01.terminology.instructions.md`). Must use `authn`, `authz`, `authentication`, or `authorization` instead.
 - **Acceptance Criteria**:
-  - [ ] `adaptive-auth.yml` renamed to `adaptive-authorization.yml` (done in Phase 5 Task 5.6)
-  - [ ] Zero instances of standalone `auth` in any config filename
-  - [ ] Zero instances of `auth` used as abbreviation in plan.md or tasks.md (context-dependent: e.g., `authn` and `authz` are correct)
-  - [ ] No `auth` in any newly generated content
+  - [x] `adaptive-auth.yml` renamed to `adaptive-authorization.yml` (done in Phase 5 Task 5.6)
+  - [x] Zero instances of standalone `auth` in any config filename
+  - [x] Zero instances of `auth` used as abbreviation in plan.md or tasks.md (context-dependent: e.g., `authn` and `authz` are correct)
+  - [x] No `auth` in any newly generated content
 
 #### Task 9.2: Document Root Cause and Prevention
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 10m
-- **Actual**: -
+- **Actual**: 5m
 - **Dependencies**: Task 9.1
 - **Description**: Document in lessons.md: Root cause = AI agent generating content did not pre-check against banned terms list. Prevention = All generated/moved filenames and content must be scanned for banned terms before commit.
 - **Acceptance Criteria**:
-  - [ ] Root cause documented in lessons.md Phase 9 section
-  - [ ] Prevention strategy documented
+  - [x] Root cause documented in lessons.md Phase 9 section
+  - [x] Prevention strategy documented
 
 ### Phase 10: Migrate internal/apps/ to Flat PS-ID Structure
 

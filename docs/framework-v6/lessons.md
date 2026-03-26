@@ -37,7 +37,22 @@
 
 ## Phase 9: Terminology Enforcement
 
-*(To be filled during Phase 9 execution)*
+### Findings
+
+- **No violations found**: All config filenames, deployment files, and generated content use approved terminology (`authz`, `authn`, `authorization`, `authentication`).
+- **Prior fix confirmed**: `adaptive-auth.yml` was already renamed to `adaptive-authorization.yml` in Phase 5 (Task 5.6).
+- **Identity service**: Uses `identity-authz` PS-ID with approved `authz` abbreviation.
+
+### Root Cause
+
+- AI agents generating filenames or content may use the banned standalone `auth` abbreviation instead of `authn`/`authz`/`authentication`/`authorization`.
+- Phase 5 already caught and fixed the only occurrence (`adaptive-auth.yml` → `adaptive-authorization.yml`).
+
+### Prevention
+
+- The terminology instruction file (`.github/instructions/01-01.terminology.instructions.md`) explicitly bans standalone `auth` and requires `authn`/`authz`.
+- Future fitness linter could enforce filename scanning for banned terms (not implemented — deferring since manual audit found zero violations).
+- All generated/renamed filenames should be checked against the banned terms list before commit.
 
 ## Phase 10: Migrate internal/apps/ to Flat PS-ID Structure
 
