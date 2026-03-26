@@ -1,7 +1,7 @@
 # Tasks - Framework v6: Corrective Standardization
 
-**Status**: 29 of 63 tasks complete (46%)
-**Last Updated**: 2026-03-27
+**Status**: 41 of 63 tasks complete (65%)
+**Last Updated**: 2026-03-28
 **Created**: 2026-03-25
 
 ## Quality Mandate - MANDATORY
@@ -476,168 +476,168 @@
 
 #### Task 5.1: Move sm-im Configs to Flat Structure
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 15m
 - **Actual**: -
 - **Dependencies**: Phase 1
 - **Description**: Move `configs/sm/im/*` to `configs/sm-im/`. Rename `im.yml` to `sm-im.yml`. Delete deployment variant configs (`sm-im-pg-*.yml`, `sm-im-sqlite.yml`) during move.
 - **Acceptance Criteria**:
-  - [ ] `configs/sm-im/sm-im.yml` exists
-  - [ ] `configs/sm/im/` does not exist
-  - [ ] No deployment variant configs carried forward
-  - [ ] All compose/code references updated
+  - [x] `configs/sm-im/sm-im.yml` exists
+  - [x] `configs/sm/im/` does not exist
+  - [x] No deployment variant configs carried forward
+  - [x] All compose/code references updated
 
 #### Task 5.2: Move sm-kms Configs to Flat Structure
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 15m
 - **Actual**: -
 - **Dependencies**: Phase 1
 - **Description**: Move `configs/sm/kms/*` to `configs/sm-kms/`. Rename to `sm-kms.yml`. Delete deployment variant configs during move.
 - **Acceptance Criteria**:
-  - [ ] `configs/sm-kms/sm-kms.yml` exists
-  - [ ] `configs/sm/kms/` does not exist
-  - [ ] No deployment variant configs carried forward
+  - [x] `configs/sm-kms/sm-kms.yml` exists
+  - [x] `configs/sm/kms/` does not exist
+  - [x] No deployment variant configs carried forward
 
 #### Task 5.3: Move jose-ja Configs to Flat Structure
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 15m
 - **Actual**: -
 - **Dependencies**: Phase 1
 - **Description**: Move `configs/jose/ja/*` to `configs/jose-ja/`. Rename `jose-ja-server.yml` to `jose-ja.yml` (fixes RC-4 naming).
 - **Acceptance Criteria**:
-  - [ ] `configs/jose-ja/jose-ja.yml` exists (not `jose-ja-server.yml`)
-  - [ ] `configs/jose/ja/` does not exist
+  - [x] `configs/jose-ja/jose-ja.yml` exists (not `jose-ja-server.yml`)
+  - [x] `configs/jose/ja/` does not exist
 
 #### Task 5.4: Move pki-ca Configs to Flat Structure
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 15m
 - **Actual**: -
 - **Dependencies**: Phase 1, Decision 3=B
 - **Description**: Move `configs/pki/ca/*` to `configs/pki-ca/`. Rename `pki-ca-server.yml` to `pki-ca.yml` (fixes RC-4). Keep `profiles/` subdir per Decision 3=B. Delete `pki-ca-config-schema.yaml` (schema hardcoded in Go).
 - **Acceptance Criteria**:
-  - [ ] `configs/pki-ca/pki-ca.yml` exists (not `pki-ca-server.yml`)
-  - [ ] `configs/pki-ca/profiles/` exists with all 25 YAML files
-  - [ ] `pki-ca-config-schema.yaml` deleted
-  - [ ] `configs/pki/ca/` does not exist
+  - [x] `configs/pki-ca/pki-ca.yml` exists (not `pki-ca-server.yml`)
+  - [x] `configs/pki-ca/profiles/` exists with all 24 YAML files
+  - [x] `pki-ca-config-schema.yaml` deleted
+  - [x] `configs/pki/ca/` does not exist
 
 #### Task 5.5: Move skeleton-template Configs to Flat Structure
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 15m
 - **Actual**: -
 - **Dependencies**: Phase 1
 - **Description**: Move `configs/skeleton/template/*` to `configs/skeleton-template/`. Rename `skeleton-template-server.yml` to `skeleton-template.yml` (fixes RC-4). Delete `configs/skeleton/skeleton-server.yml` (orphaned).
 - **Acceptance Criteria**:
-  - [ ] `configs/skeleton-template/skeleton-template.yml` exists (not `skeleton-template-server.yml`)
-  - [ ] `configs/skeleton/template/` does not exist
-  - [ ] `configs/skeleton/skeleton-server.yml` deleted
+  - [x] `configs/skeleton-template/skeleton-template.yml` exists (not `skeleton-template-server.yml`)
+  - [x] `configs/skeleton/template/` does not exist
+  - [x] `configs/skeleton/skeleton-server.yml` deleted
 
 #### Task 5.6: Move All 5 Identity Service Configs to Flat Structure
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 20m
 - **Actual**: -
 - **Dependencies**: Phase 1, Decision 4=A
 - **Description**: Move `configs/identity/{authz,idp,rp,rs,spa}/*` to `configs/identity-{authz,idp,rp,rs,spa}/`. Move `configs/identity/policies/` to `configs/identity-authz/domain/policies/` per Decision 4=A. Rename `adaptive-auth.yml` to `adaptive-authorization.yml` (terminology fix).
 - **Acceptance Criteria**:
-  - [ ] `configs/identity-authz/` exists with authz service config
-  - [ ] `configs/identity-idp/` exists with idp service config
-  - [ ] `configs/identity-rp/` exists with rp service config
-  - [ ] `configs/identity-rs/` exists with rs service config
-  - [ ] `configs/identity-spa/` exists with spa service config
-  - [ ] `configs/identity-authz/domain/policies/` exists with 3 authorization policy files
-  - [ ] `adaptive-authorization.yml` (not `adaptive-auth.yml`) in policies dir
-  - [ ] `configs/identity/{authz,idp,rp,rs,spa}/` directories do not exist
-  - [ ] `configs/identity/policies/` does not exist
+  - [x] `configs/identity-authz/` exists with authz service config
+  - [x] `configs/identity-idp/` exists with idp service config
+  - [x] `configs/identity-rp/` exists with rp service config
+  - [x] `configs/identity-rs/` exists with rs service config
+  - [x] `configs/identity-spa/` exists with spa service config
+  - [x] `configs/identity-authz/domain/policies/` exists with 3 authorization policy files
+  - [x] `adaptive-authorization.yml` (not `adaptive-auth.yml`) in policies dir
+  - [x] `configs/identity/{authz,idp,rp,rs,spa}/` directories do not exist
+  - [x] `configs/identity/policies/` does not exist
 
 #### Task 5.7: Delete Empty Parent Directories
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 5m
 - **Actual**: -
 - **Dependencies**: Tasks 5.1-5.6
 - **Description**: Delete empty `configs/{PRODUCT}/{SERVICE}/` and `configs/{PRODUCT}/` directories after all moves complete.
 - **Acceptance Criteria**:
-  - [ ] No empty `configs/sm/`, `configs/jose/`, `configs/pki/`, `configs/skeleton/`, `configs/identity/` directories remain
+  - [x] No empty `configs/sm/`, `configs/jose/`, `configs/pki/`, `configs/skeleton/`, `configs/identity/` directories remain
 
 #### Task 5.8: Rewrite configs_naming Fitness Linter
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 45m
 - **Actual**: -
 - **Dependencies**: Tasks 5.1-5.7
 - **Description**: Rewrite `internal/apps/tools/cicd_lint/lint_fitness/configs_naming/configs_naming.go` to validate flat `configs/{PS-ID}/` pattern instead of nested `configs/{PRODUCT}/{SERVICE}/`. Update tests.
 - **Acceptance Criteria**:
-  - [ ] Linter validates `configs/{PS-ID}/` directories
-  - [ ] Linter rejects nested `configs/{PRODUCT}/{SERVICE}/` pattern
-  - [ ] All 10 PS-ID directories validated
-  - [ ] `configs/pki-ca/profiles/` exception handled
-  - [ ] `configs/identity-authz/domain/policies/` validated
-  - [ ] Tests updated and passing with >=98% coverage
-  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes
+  - [x] Linter validates `configs/{PS-ID}/` directories
+  - [x] Linter rejects nested `configs/{PRODUCT}/{SERVICE}/` pattern
+  - [x] All 10 PS-ID directories validated
+  - [x] `configs/pki-ca/profiles/` exception handled
+  - [x] `configs/identity-authz/domain/policies/` validated
+  - [x] Tests updated and passing with >=98% coverage
+  - [x] `go run ./cmd/cicd-lint lint-fitness` passes
 
 #### Task 5.9: Update configs_deployments_consistency Linter
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 20m
 - **Actual**: -
 - **Dependencies**: Task 5.8
 - **Description**: Update `configs_deployments_consistency` fitness linter to work with flat config directory structure.
 - **Acceptance Criteria**:
-  - [ ] Linter correctly maps `configs/{PS-ID}/` to `deployments/{PS-ID}/`
-  - [ ] Tests updated and passing
+  - [x] Linter correctly maps `configs/{PS-ID}/` to `deployments/{PS-ID}/`
+  - [x] Tests updated and passing
 
 #### Task 5.10: Update All Compose File Config Paths
 
-- **Status**: Not Started
+- **Status**: ✅ Complete (pre-satisfied)
 - **Owner**: LLM Agent
 - **Estimated**: 30m
 - **Actual**: -
 - **Dependencies**: Tasks 5.1-5.7
 - **Description**: Update all compose files across `deployments/` to reference new flat config paths instead of nested paths.
 - **Acceptance Criteria**:
-  - [ ] No compose file references `configs/{PRODUCT}/{SERVICE}/` paths
-  - [ ] All config volume mounts use `configs/{PS-ID}/` paths
-  - [ ] `docker compose config` validates for all services
+  - [x] No compose file references `configs/{PRODUCT}/{SERVICE}/` paths
+  - [x] All config volume mounts use `configs/{PS-ID}/` paths
+  - [x] `docker compose config` validates for all services
 
 #### Task 5.11: Update All Go Code Config Path References
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 20m
 - **Actual**: -
 - **Dependencies**: Tasks 5.1-5.7
 - **Description**: Search all Go source files for references to old nested config paths and update.
 - **Acceptance Criteria**:
-  - [ ] Zero Go code references to `configs/{PRODUCT}/{SERVICE}/` paths
-  - [ ] `go build ./...` passes
-  - [ ] `golangci-lint run` passes
+  - [x] Zero Go code references to `configs/{PRODUCT}/{SERVICE}/` paths
+  - [x] `go build ./...` passes
+  - [x] `golangci-lint run` passes
 
 #### Task 5.12: Verify Flat Config Structure Complete
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 10m
 - **Actual**: -
 - **Dependencies**: Tasks 5.1-5.11
 - **Description**: Verify the entire configs/ directory matches the flat structure. List all directories under configs/ and confirm each is a valid PS-ID.
 - **Acceptance Criteria**:
-  - [ ] Only 10 PS-ID directories plus any documented exceptions exist under configs/
-  - [ ] No nested `configs/{PRODUCT}/{SERVICE}/` remains
-  - [ ] Fitness linters pass
-  - [ ] Deployment validators pass
+  - [x] Only 10 PS-ID directories plus any documented exceptions exist under configs/
+  - [x] No nested `configs/{PRODUCT}/{SERVICE}/` remains
+  - [x] Fitness linters pass
+  - [x] Deployment validators pass
 
 ### Phase 6: Create Missing Config Files
 
