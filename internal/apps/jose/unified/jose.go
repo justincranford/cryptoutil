@@ -9,7 +9,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 
-	cryptoutilAppsJoseJa "cryptoutil/internal/apps/jose/ja"
+	cryptoutilAppsJoseJa "cryptoutil/internal/apps/jose-ja"
 )
 
 // Execute handles JOSE service commands by delegating to ja.Ja.

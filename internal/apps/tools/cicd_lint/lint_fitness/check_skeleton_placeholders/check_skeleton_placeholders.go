@@ -34,6 +34,7 @@ var skeletonWords = []string{cryptoutilSharedMagic.SkeletonProductName, cryptout
 var excludedDirPrefixes = []string{
 	"api/skeleton-template/",
 	"internal/apps/skeleton/",
+	"internal/apps/skeleton-template/",
 	"cmd/skeleton-template/",
 	"cmd/skeleton/",
 	"internal/shared/magic/",

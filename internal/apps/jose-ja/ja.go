@@ -1,0 +1,155 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
+// Package ja provides the JWK Authority service entry point.
+package ja
+
+import (
+	"context"
+	"fmt"
+	"io"
+	"os"
+	"os/signal"
+	"syscall"
+
+	"github.com/spf13/pflag"
+
+	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
+	_ "modernc.org/sqlite"             // CGO-free SQLite driver
+
+	cryptoutilAppsJoseJaServer "cryptoutil/internal/apps/jose-ja/server"
+	cryptoutilAppsJoseJaServerConfig "cryptoutil/internal/apps/jose-ja/server/config"
+	cryptoutilTemplateCli "cryptoutil/internal/apps/framework/service/cli"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+)
+
+// Ja implements the JWK Authority service subcommand handler.
+// Handles subcommands: server, client, init, health, livez, readyz, shutdown.
+func Ja(args []string, _ io.Reader, stdout, stderr io.Writer) int {
+	return cryptoutilTemplateCli.RouteService(
+		cryptoutilTemplateCli.ServiceConfig{
+			ServiceID:         cryptoutilSharedMagic.JoseJAServiceID,
+			ProductName:       cryptoutilSharedMagic.JoseProductName,
+			ServiceName:       cryptoutilSharedMagic.JoseJAServiceName,
+			DefaultPublicPort: uint16(cryptoutilSharedMagic.JoseJAServicePort),
+			UsageMain:         JAUsageMain,
+			UsageServer:       JAUsageServer,
+			UsageClient:       JAUsageClient,
+			UsageInit:         JAUsageInit,
+			UsageHealth:       JAUsageHealth,
+			UsageLivez:        JAUsageLivez,
+			UsageReadyz:       JAUsageReadyz,
+			UsageShutdown:     JAUsageShutdown,
+		},
+		args, stdout, stderr,
+		jaServerStart,
+		jaClient,
+		jaInit,
+	)
+}
+
+// jaServerStart implements the server subcommand.
+func jaServerStart(args []string, stdout, stderr io.Writer) int {
+	if cryptoutilTemplateCli.IsHelpRequest(args) {
+		_, _ = fmt.Fprintln(stderr, JAUsageServer)
+
+		return 0
+	}
+
+	ctx := context.Background()
+
+	// Parse configuration using ParseWithFlagSet with a fresh FlagSet.
+	// Uses ContinueOnError for proper error handling (no os.Exit on bad flags).
+	// Note: We prepend "start" as the subcommand for Parse() to validate.
+	argsWithSubcommand := append([]string{"start"}, args...)
+
+	fs := pflag.NewFlagSet("jose-ja-server", pflag.ContinueOnError)
+
+	cfg, err := cryptoutilAppsJoseJaServerConfig.ParseWithFlagSet(fs, argsWithSubcommand, true)
+	if err != nil {
+		_, _ = fmt.Fprintf(stderr, "❌ Failed to parse configuration: %v\n", err)
+
+		return 1
+	}
+
+	srv, err := cryptoutilAppsJoseJaServer.NewFromConfig(ctx, cfg)
+	if err != nil {
+		_, _ = fmt.Fprintf(stderr, "❌ Failed to create server: %v\n", err)
+
+		return 1
+	}
+
+	// Mark server as ready after successful initialization.
+	// This enables /admin/api/v1/readyz to return 200 OK instead of 503 Service Unavailable.
+	srv.SetReady(true)
+
+	// Start server with graceful shutdown.
+	errChan := make(chan error, 1)
+
+	go func() {
+		_, _ = fmt.Fprintf(stdout, "🚀 Starting jose-ja service...\n")
+		_, _ = fmt.Fprintf(stdout, "   Public Server: https://%s:%d\n", cfg.BindPublicAddress, cfg.BindPublicPort)
+		_, _ = fmt.Fprintf(stdout, "   Admin Server:  https://%s:%d\n", cfg.BindPrivateAddress, cfg.BindPrivatePort)
+
+		errChan <- srv.Start(ctx)
+	}()
+
+	// Wait for interrupt signal.
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
+	select {
+	case err := <-errChan:
+		if err != nil {
+			_, _ = fmt.Fprintf(stderr, "❌ Server error: %v\n", err)
+
+			return 1
+		}
+	case sig := <-sigChan:
+		_, _ = fmt.Fprintf(stdout, "\n⏹️  Received signal %v, shutting down gracefully...\n", sig)
+
+		shutdownCtx, cancel := context.WithTimeout(ctx, cryptoutilSharedMagic.DefaultDataServerShutdownTimeout)
+		defer cancel()
+
+		if shutdownErr := srv.Shutdown(shutdownCtx); shutdownErr != nil {
+			_, _ = fmt.Fprintf(stderr, "⚠️  Shutdown error: %v\n", shutdownErr)
+		}
+	}
+
+	signal.Stop(sigChan)
+
+	_, _ = fmt.Fprintln(stdout, "✅ jose-ja service stopped")
+
+	return 0
+}
+
+// jaClient implements the client subcommand.
+// CLI wrapper for client operations.
+func jaClient(args []string, _, stderr io.Writer) int {
+	if cryptoutilTemplateCli.IsHelpRequest(args) {
+		_, _ = fmt.Fprintln(stderr, JAUsageClient)
+
+		return 0
+	}
+
+	_, _ = fmt.Fprintln(stderr, "❌ Client subcommand not yet implemented")
+	_, _ = fmt.Fprintln(stderr, "   This will provide CLI tools for interacting with the JWK Authority service")
+
+	return 1
+}
+
+// jaInit implements the init subcommand.
+// CLI wrapper for database and configuration initialization.
+func jaInit(args []string, _, stderr io.Writer) int {
+	if cryptoutilTemplateCli.IsHelpRequest(args) {
+		_, _ = fmt.Fprintln(stderr, JAUsageInit)
+
+		return 0
+	}
+
+	_, _ = fmt.Fprintln(stderr, "❌ Init subcommand not yet implemented")
+	_, _ = fmt.Fprintln(stderr, "   This will initialize database schema and configuration")
+
+	return 1
+}

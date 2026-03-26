@@ -164,8 +164,8 @@ const (
 // Uses PRODUCT-level compose (deployments/identity/compose.yml) with PRODUCT ports (18XXX).
 const (
 	// IdentityE2EComposeFile is the path to the identity PRODUCT docker compose file (relative from e2e test directory).
-	// Path: internal/apps/identity/authz/e2e → ../../../../../deployments/identity/compose.yml.
-	IdentityE2EComposeFile = "../../../../../deployments/identity/compose.yml"
+	// Path: internal/apps/identity-authz/e2e → ../../../../../deployments/identity/compose.yml.
+	IdentityE2EComposeFile = "../../../../deployments/identity/compose.yml"
 
 	// IdentityE2EAuthzContainer is the identity-authz service name in PRODUCT compose.
 	IdentityE2EAuthzContainer = "identity-authz-app-sqlite-1"

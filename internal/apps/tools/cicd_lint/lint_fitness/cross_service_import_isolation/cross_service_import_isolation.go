@@ -21,11 +21,11 @@ import (
 )
 
 const (
-	// importPrefixSplitN splits import path into product, service, and rest.
-	importPrefixSplitN = 3
+	// importPrefixSplitN splits import path into PS-ID and rest.
+	importPrefixSplitN = 2
 
-	// cicdProductName is the cicd tooling product; excluded from isolation checks.
-	cicdProductName = "cicd"
+	// toolsDirName is the tools directory name; excluded from isolation checks.
+	toolsDirName = "tools"
 )
 
 var importLinePattern = regexp.MustCompile(`^\s+(?:\w+ )?"([^"]+)"`)
@@ -58,10 +58,10 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	var violations []string
 
 	for _, svc := range services {
-		svcDir := filepath.Join(appsDir, svc.product, svc.service)
+		svcDir := filepath.Join(appsDir, svc.psid)
 
 		if walkErr := walkServiceImports(projectRoot, svcDir, svc, services, &violations); walkErr != nil {
-			return fmt.Errorf("failed to scan service %s/%s: %w", svc.product, svc.service, walkErr)
+			return fmt.Errorf("failed to scan service %s: %w", svc.psid, walkErr)
 		}
 	}
 
@@ -78,62 +78,74 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	return nil
 }
 
-// serviceRef identifies a product+service pair.
+// serviceRef identifies a PS-ID and its owning product.
 type serviceRef struct {
+	psid    string
 	product string
-	service string
 }
 
-// collectServices discovers all product/service directories under appsDir.
+// knownProducts lists all product names used to extract product from PS-ID.
+// PS-IDs follow the pattern "<product>-<service>" (e.g., "sm-im", "pki-ca").
+var knownProducts = []string{
+	cryptoutilSharedMagic.IdentityProductName,
+	cryptoutilSharedMagic.JoseProductName,
+	cryptoutilSharedMagic.PKIProductName,
+	cryptoutilSharedMagic.SkeletonProductName,
+	cryptoutilSharedMagic.SMProductName,
+}
+
+// productFromPSID extracts the product name from a PS-ID.
+// Returns the PS-ID itself if no known product prefix matches (e.g., product dirs).
+func productFromPSID(psid string) string {
+	for _, product := range knownProducts {
+		if strings.HasPrefix(psid, product+"-") {
+			return product
+		}
+	}
+
+	return psid
+}
+
+// collectServices discovers all flat PS-ID service directories under appsDir.
 // Only directories with a server/ subdirectory qualify as real services.
 // Directories starting with _ (archived) are excluded.
-// The cicd and skeleton products are excluded as they are tooling/templates.
+// The tools, skeleton, framework, and cryptoutil directories are excluded.
 func collectServices(appsDir string) ([]serviceRef, error) {
 	var services []serviceRef
 
-	products, err := os.ReadDir(appsDir)
+	entries, err := os.ReadDir(appsDir)
 	if err != nil {
 		return nil, fmt.Errorf("read apps dir: %w", err)
 	}
 
-	for _, productEntry := range products {
-		if !productEntry.IsDir() {
+	for _, entry := range entries {
+		if !entry.IsDir() {
 			continue
 		}
 
-		product := productEntry.Name()
+		dirName := entry.Name()
 
-		// Skip archived directories, cicd tooling, and skeleton templates.
-		if strings.HasPrefix(product, "_") || product == cicdProductName || product == cryptoutilSharedMagic.SkeletonProductName {
+		// Skip archived directories, skeleton product/services (templates), and tools.
+		// framework, cryptoutil, and product dirs are filtered by the server/ check below.
+		switch {
+		case strings.HasPrefix(dirName, "_"):
+			continue
+		case dirName == toolsDirName:
+			continue
+		case dirName == cryptoutilSharedMagic.SkeletonProductName || strings.HasPrefix(dirName, cryptoutilSharedMagic.SkeletonProductName+"-"):
 			continue
 		}
 
-		productDir := filepath.Join(appsDir, product)
-
-		serviceEntries, err := os.ReadDir(productDir)
-		if err != nil {
-			return nil, fmt.Errorf("read product dir %s: %w", product, err)
+		// Only directories with server/ are real services.
+		// Product dirs and shared packages lack server/.
+		serverDir := filepath.Join(appsDir, dirName, "server")
+		if _, statErr := os.Stat(serverDir); os.IsNotExist(statErr) {
+			continue
 		}
 
-		for _, svcEntry := range serviceEntries {
-			if !svcEntry.IsDir() {
-				continue
-			}
+		product := productFromPSID(dirName)
 
-			// Skip archived service directories.
-			if strings.HasPrefix(svcEntry.Name(), "_") {
-				continue
-			}
-
-			// Only directories with server/ are real services.
-			// Shared packages (identity/domain, identity/config, etc.) lack server/.
-			serverDir := filepath.Join(productDir, svcEntry.Name(), "server")
-			if _, statErr := os.Stat(serverDir); os.IsNotExist(statErr) {
-				continue
-			}
-
-			services = append(services, serviceRef{product: product, service: svcEntry.Name()})
-		}
+		services = append(services, serviceRef{psid: dirName, product: product})
 	}
 
 	return services, nil
@@ -218,8 +230,8 @@ func extractImports(filePath string) ([]string, error) {
 
 // isViolation returns true if importPath crosses a PRODUCT boundary.
 // Same-product cross-service imports are permitted: services within a product
-// may share packages (e.g., identity/idp importing identity/authz/clientauth).
-// Cross-product imports are forbidden: e.g., jose/ja importing pki/ca internals.
+// may share packages (e.g., identity-idp importing identity-authz/clientauth).
+// Cross-product imports are forbidden: e.g., jose-ja importing pki-ca internals.
 func isViolation(importPath string, self serviceRef, allServices []serviceRef) bool {
 	const appsPrefix = "cryptoutil/internal/apps/"
 
@@ -230,26 +242,33 @@ func isViolation(importPath string, self serviceRef, allServices []serviceRef) b
 	rest := strings.TrimPrefix(importPath, appsPrefix)
 	parts := strings.SplitN(rest, "/", importPrefixSplitN)
 
-	if len(parts) < importPrefixSplitN-1 {
+	if len(parts) < importPrefixSplitN {
 		return false
 	}
 
-	importProduct := parts[0]
-	importService := parts[1]
+	importPSID := parts[0]
 
-	// Allow framework imports (all services may import the service framework) and cicd (tooling).
-	if importProduct == cryptoutilSharedMagic.FrameworkProductName || importProduct == cicdProductName {
+	// Allow framework imports (all services may import the service framework) and tools (cicd tooling).
+	if importPSID == cryptoutilSharedMagic.FrameworkProductName || importPSID == toolsDirName {
 		return false
 	}
 
-	// Allow self-imports and same-product imports.
+	// Allow self-imports.
+	if importPSID == self.psid {
+		return false
+	}
+
+	// Determine imported PS-ID's product.
+	importProduct := productFromPSID(importPSID)
+
+	// Allow same-product imports (e.g., identity-idp importing identity-authz).
 	if importProduct == self.product {
 		return false
 	}
 
 	// Cross-product: check if the import points to another product's service.
 	for _, svc := range allServices {
-		if svc.product == importProduct && svc.service == importService {
+		if svc.psid == importPSID {
 			return true
 		}
 	}

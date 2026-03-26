@@ -16,7 +16,7 @@ import (
 )
 
 // smIME2EMagicSrc is the magic Go source fragment for sm-im with a correct E2EComposeFile constant.
-const smIME2EMagicSrc = "package magic\nconst (\n\tIME2EComposeFile = \"../../../../../deployments/sm-im/compose.yml\"\n)\n"
+const smIME2EMagicSrc = "package magic\nconst (\n\tIME2EComposeFile = \"../../../../deployments/sm-im/compose.yml\"\n)\n"
 
 func newTestLogger() *cryptoutilCmdCicdCommon.Logger {
 	return cryptoutilCmdCicdCommon.NewLogger("test")
@@ -85,10 +85,10 @@ func TestCheckInDir_AllCorrect(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Use sm-im as representative: magic_sm_im.go with E2EComposeFile pointing 5 levels up.
-	// e2e dir: tmpDir/internal/apps/sm/im/e2e
+	// e2e dir: tmpDir/internal/apps/sm-im/e2e
 	// compose:  tmpDir/deployments/sm-im/compose.yml
 	// relative: ../../../../../deployments/sm-im/compose.yml
-	createE2EDir(t, tmpDir, "sm/im/")
+	createE2EDir(t, tmpDir, "sm-im/")
 	createComposeFile(t, tmpDir, cryptoutilSharedMagic.OTLPServiceSMIM)
 
 	writeMagicFile(t, tmpDir, "magic_sm_im.go", smIME2EMagicSrc)
@@ -108,7 +108,7 @@ func TestCheckInDir_NonExistentComposePath(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Write sm-im magic file pointing to a compose file that doesn't exist.
-	createE2EDir(t, tmpDir, "sm/im/")
+	createE2EDir(t, tmpDir, "sm-im/")
 	// Do NOT create the compose file.
 
 	writeMagicFile(t, tmpDir, "magic_sm_im.go", smIME2EMagicSrc)

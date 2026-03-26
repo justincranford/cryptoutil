@@ -1,0 +1,268 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
+package authz_test
+
+import (
+	"context"
+	json "encoding/json"
+	"net/http/httptest"
+	"net/url"
+	"strings"
+	"testing"
+
+	fiber "github.com/gofiber/fiber/v2"
+	googleUuid "github.com/google/uuid"
+	"github.com/stretchr/testify/require"
+
+	cryptoutilIdentityAuthz "cryptoutil/internal/apps/identity-authz"
+	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
+	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
+	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+)
+
+// TestHandlePAR_HappyPath validates successful PAR request.
+func TestHandlePAR_InvalidClient(t *testing.T) {
+	t.Parallel()
+
+	config, repoFactory := createPARTestDependencies(t)
+
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
+	require.NotNil(t, svc, "Service should not be nil")
+
+	app := fiber.New()
+	svc.RegisterRoutes(app)
+
+	formData := url.Values{
+		cryptoutilSharedMagic.ParamClientID:            []string{"nonexistent-client-id"},
+		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
+		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.TestRedirectURI},
+		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-code-challenge"},
+		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
+	}
+
+	req := httptest.NewRequest("POST", "/oauth2/v1/par", strings.NewReader(formData.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := app.Test(req, -1)
+	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should return 400 Bad Request")
+
+	var result map[string]any
+
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	require.NoError(t, err, "Should decode JSON response")
+
+	errorCode, ok := result[cryptoutilSharedMagic.StringError].(string)
+	require.True(t, ok, "error should be string")
+	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidClient, errorCode, "Should return invalid_client error")
+}
+
+// TestHandlePAR_InvalidRedirectURI validates error when redirect_uri is not registered.
+func TestHandlePAR_InvalidRedirectURI(t *testing.T) {
+	t.Parallel()
+
+	config, repoFactory := createPARTestDependencies(t)
+
+	ctx := context.Background()
+	testClient := createTestClientForPAR(ctx, t, repoFactory)
+
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
+	require.NotNil(t, svc, "Service should not be nil")
+
+	app := fiber.New()
+	svc.RegisterRoutes(app)
+
+	formData := url.Values{
+		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
+		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
+		cryptoutilSharedMagic.ParamRedirectURI:         []string{"https://malicious.com/callback"},
+		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-code-challenge"},
+		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
+	}
+
+	req := httptest.NewRequest("POST", "/oauth2/v1/par", strings.NewReader(formData.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := app.Test(req, -1)
+	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should return 400 Bad Request")
+
+	var result map[string]any
+
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	require.NoError(t, err, "Should decode JSON response")
+
+	errorCode, ok := result[cryptoutilSharedMagic.StringError].(string)
+	require.True(t, ok, "error should be string")
+	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidRequest, errorCode, "Should return invalid_request error")
+
+	errorDescription, ok := result["error_description"].(string)
+	require.True(t, ok, "error_description should be string")
+	require.Contains(t, errorDescription, cryptoutilSharedMagic.ParamRedirectURI, "Error description should mention redirect_uri")
+}
+
+// TestHandlePAR_UnsupportedResponseType validates error for unsupported response_type.
+func TestHandlePAR_UnsupportedResponseType(t *testing.T) {
+	t.Parallel()
+
+	config, repoFactory := createPARTestDependencies(t)
+
+	ctx := context.Background()
+	testClient := createTestClientForPAR(ctx, t, repoFactory)
+
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
+	require.NotNil(t, svc, "Service should not be nil")
+
+	app := fiber.New()
+	svc.RegisterRoutes(app)
+
+	formData := url.Values{
+		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
+		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ParamToken}, // Only "code" is supported.
+		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.TestRedirectURI},
+		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-code-challenge"},
+		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
+	}
+
+	req := httptest.NewRequest("POST", "/oauth2/v1/par", strings.NewReader(formData.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := app.Test(req, -1)
+	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should return 400 Bad Request")
+
+	var result map[string]any
+
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	require.NoError(t, err, "Should decode JSON response")
+
+	errorCode, ok := result[cryptoutilSharedMagic.StringError].(string)
+	require.True(t, ok, "error should be string")
+	require.Equal(t, cryptoutilSharedMagic.ErrorUnsupportedResponseType, errorCode, "Should return unsupported_response_type error")
+}
+
+// TestHandlePAR_UnsupportedCodeChallengeMethod validates error for unsupported code_challenge_method.
+func TestHandlePAR_UnsupportedCodeChallengeMethod(t *testing.T) {
+	t.Parallel()
+
+	config, repoFactory := createPARTestDependencies(t)
+
+	ctx := context.Background()
+	testClient := createTestClientForPAR(ctx, t, repoFactory)
+
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
+	require.NotNil(t, svc, "Service should not be nil")
+
+	app := fiber.New()
+	svc.RegisterRoutes(app)
+
+	formData := url.Values{
+		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
+		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
+		cryptoutilSharedMagic.ParamRedirectURI:         []string{cryptoutilSharedMagic.TestRedirectURI},
+		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-code-challenge"},
+		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodPlain}, // Only S256 is supported.
+	}
+
+	req := httptest.NewRequest("POST", "/oauth2/v1/par", strings.NewReader(formData.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := app.Test(req, -1)
+	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should return 400 Bad Request")
+
+	var result map[string]any
+
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	require.NoError(t, err, "Should decode JSON response")
+
+	errorCode, ok := result[cryptoutilSharedMagic.StringError].(string)
+	require.True(t, ok, "error should be string")
+	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidRequest, errorCode, "Should return invalid_request error")
+
+	errorDescription, ok := result["error_description"].(string)
+	require.True(t, ok, "error_description should be string")
+	require.Contains(t, errorDescription, cryptoutilSharedMagic.ParamCodeChallengeMethod, "Error description should mention code_challenge_method")
+}
+
+// createPARTestDependencies creates test dependencies for PAR tests.
+func createPARTestDependencies(t *testing.T) (*cryptoutilIdentityConfig.Config, *cryptoutilIdentityRepository.RepositoryFactory) {
+	t.Helper()
+
+	config := &cryptoutilIdentityConfig.Config{
+		Database: &cryptoutilIdentityConfig.DatabaseConfig{
+			Type: cryptoutilSharedMagic.TestDatabaseSQLite,
+			DSN:  "file::memory:?cache=private",
+		},
+		Tokens: &cryptoutilIdentityConfig.TokenConfig{
+			Issuer: "https://localhost:8080",
+		},
+	}
+
+	ctx := context.Background()
+	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, config.Database)
+	require.NoError(t, err, "Failed to create repository factory")
+	require.NotNil(t, repoFactory, "Repository factory should not be nil")
+
+	// Get GORM DB instance for AutoMigrate.
+	db := repoFactory.DB()
+
+	// Auto-migrate all required tables for PAR tests.
+	err = db.AutoMigrate(
+		&cryptoutilIdentityDomain.PushedAuthorizationRequest{},
+		&cryptoutilIdentityDomain.Client{},
+		&cryptoutilIdentityDomain.ClientSecretVersion{},
+		&cryptoutilIdentityDomain.ClientSecretHistory{},
+		&cryptoutilIdentityDomain.KeyRotationEvent{},
+	)
+	require.NoError(t, err, "Failed to auto-migrate database tables")
+
+	return config, repoFactory
+}
+
+// createTestClientForPAR creates a test client for PAR tests.
+func createTestClientForPAR(ctx context.Context, t *testing.T, repoFactory *cryptoutilIdentityRepository.RepositoryFactory) *cryptoutilIdentityDomain.Client {
+	t.Helper()
+
+	enabled := true
+	requirePKCE := true
+
+	client := &cryptoutilIdentityDomain.Client{
+		ID:                      googleUuid.Must(googleUuid.NewV7()),
+		ClientID:                "test-par-client-" + googleUuid.NewString()[:cryptoutilSharedMagic.IMMinPasswordLength],
+		ClientSecret:            "$2a$10$examplehashedvalue",
+		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
+		Name:                    "Test PAR Client",
+		RedirectURIs:            []string{cryptoutilSharedMagic.TestRedirectURI},
+		AllowedScopes:           []string{cryptoutilSharedMagic.ScopeOpenID, cryptoutilSharedMagic.ClaimProfile, cryptoutilSharedMagic.ClaimEmail},
+		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
+		AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
+		TokenEndpointAuthMethod: cryptoutilSharedMagic.ClientAuthMethodSecretPost,
+		RequirePKCE:             &requirePKCE,
+		AccessTokenLifetime:     cryptoutilSharedMagic.IMDefaultSessionTimeout,
+		RefreshTokenLifetime:    cryptoutilSharedMagic.IMDefaultSessionAbsoluteMax,
+		IDTokenLifetime:         cryptoutilSharedMagic.IMDefaultSessionTimeout,
+		Enabled:                 &enabled,
+	}
+
+	clientRepo := repoFactory.ClientRepository()
+	err := clientRepo.Create(ctx, client)
+	require.NoError(t, err, "Failed to create test client")
+
+	return client
+}

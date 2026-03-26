@@ -33,8 +33,8 @@ func TestFindViolationsInDir_ValidSecrets(t *testing.T) {
 		{
 			name: "hyphenated secret files",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/secrets/unseal-1of5.secret":      "content",
-				"deployments/sm-kms/secrets/hash-pepper-v3.secret":   "content",
+				"deployments/sm-kms/secrets/unseal-1of5.secret":       "content",
+				"deployments/sm-kms/secrets/hash-pepper-v3.secret":    "content",
 				"deployments/sm-kms/secrets/postgres-password.secret": "content",
 			},
 		},

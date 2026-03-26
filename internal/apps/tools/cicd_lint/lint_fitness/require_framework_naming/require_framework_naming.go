@@ -4,7 +4,7 @@
 // internal/apps/template/ import path. After the framework rename
 // (internal/apps/template/ -> internal/apps/framework/), any Go file
 // importing internal/apps/template/ is a violation -- UNLESS the import
-// is for the skeleton-template service (internal/apps/skeleton/template/).
+// is for the skeleton-template service (internal/apps/skeleton-template/).
 package require_framework_naming
 
 import (
@@ -26,7 +26,7 @@ const (
 
 	// allowedSkeletonPrefix is the skeleton-template import path prefix which
 	// is exempt from this rule.
-	allowedSkeletonPrefix = "cryptoutil/internal/apps/skeleton/template/"
+	allowedSkeletonPrefix = "cryptoutil/internal/apps/skeleton-template/"
 )
 
 var importLinePattern = regexp.MustCompile(`^\s+(?:\w+ )?"([^"]+)"`)
@@ -174,7 +174,7 @@ func isBannedImport(importPath string) bool {
 		return false
 	}
 
-	// Allow skeleton-template imports (internal/apps/skeleton/template/).
+	// Allow skeleton-template imports (internal/apps/skeleton-template/).
 	if strings.Contains(importPath, allowedSkeletonPrefix) {
 		return false
 	}

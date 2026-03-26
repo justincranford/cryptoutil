@@ -74,7 +74,7 @@ func TestCheckInDir_CorrectHeaders(t *testing.T) {
 
 	// Write correct migrations for sm-im (representative PS with migrations).
 	const (
-		smIMAppsDir     = "sm/im/"
+		smIMAppsDir     = "sm-im/"
 		smIMDisplayName = "Secrets Manager Instant Messenger"
 	)
 
@@ -91,7 +91,7 @@ func TestCheckInDir_WrongUpHeader(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	const (
-		smIMAppsDir     = "sm/im/"
+		smIMAppsDir     = "sm-im/"
 		smIMDisplayName = "Secrets Manager Instant Messenger"
 	)
 
@@ -112,7 +112,7 @@ func TestCheckInDir_WrongDownHeader(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	const (
-		smIMAppsDir     = "sm/im/"
+		smIMAppsDir     = "sm-im/"
 		smIMDisplayName = "Secrets Manager Instant Messenger"
 	)
 
@@ -133,7 +133,7 @@ func TestCheckInDir_NoCommentHeader(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	const (
-		smIMAppsDir     = "sm/im/"
+		smIMAppsDir     = "sm-im/"
 		smIMDisplayName = "Secrets Manager Instant Messenger"
 	)
 
@@ -155,7 +155,7 @@ func TestCheckInDir_FrameworkMigrationSkipped(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	const (
-		smIMAppsDir     = "sm/im/"
+		smIMAppsDir     = "sm-im/"
 		smIMDisplayName = "Secrets Manager Instant Messenger"
 	)
 

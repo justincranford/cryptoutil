@@ -10,8 +10,8 @@ import (
 	"os"
 	"testing"
 
-	cryptoutilAppsSkeletonTemplateServer "cryptoutil/internal/apps/skeleton/template/server"
-	cryptoutilAppsSkeletonTemplateServerConfig "cryptoutil/internal/apps/skeleton/template/server/config"
+	cryptoutilAppsSkeletonTemplateServer "cryptoutil/internal/apps/skeleton-template/server"
+	cryptoutilAppsSkeletonTemplateServerConfig "cryptoutil/internal/apps/skeleton-template/server/config"
 	cryptoutilAppsFrameworkServiceTestingE2eHelpers "cryptoutil/internal/apps/framework/service/testing/e2e_helpers"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )

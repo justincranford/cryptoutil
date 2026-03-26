@@ -8,7 +8,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"io"
 
-	cryptoutilAppsSkeletonTemplate "cryptoutil/internal/apps/skeleton/template"
+	cryptoutilAppsSkeletonTemplate "cryptoutil/internal/apps/skeleton-template"
 	cryptoutilAppsFrameworkProductCli "cryptoutil/internal/apps/framework/product/cli"
 )
 

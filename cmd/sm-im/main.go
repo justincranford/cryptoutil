@@ -7,7 +7,7 @@ package main
 import (
 	"os"
 
-	cryptoutilAppsSmIm "cryptoutil/internal/apps/sm/im"
+	cryptoutilAppsSmIm "cryptoutil/internal/apps/sm-im"
 )
 
 func main() {

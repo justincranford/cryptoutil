@@ -10,7 +10,7 @@ import (
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-	cryptoutilAppsPkiCa "cryptoutil/internal/apps/pki/ca"
+	cryptoutilAppsPkiCa "cryptoutil/internal/apps/pki-ca"
 	cryptoutilAppsFrameworkProductCli "cryptoutil/internal/apps/framework/product/cli"
 )
 

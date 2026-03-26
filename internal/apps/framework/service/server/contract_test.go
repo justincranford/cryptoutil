@@ -35,16 +35,16 @@ func TestServiceServer_InterfaceIsDefinedInServerPackage(t *testing.T) {
 // would cause a build failure — documented here for clarity.
 //
 // Services with compile-time assertions (var _ ServiceServer = (*XxxServer)(nil)):
-// - SmIMServer          (internal/apps/sm/im/server)
-// - KMSServer           (internal/apps/sm/kms/server)
-// - JoseJAServer        (internal/apps/jose/ja/server)
-// - PKICAServer         (internal/apps/pki/ca/server)
-// - SkeletonTemplateServer (internal/apps/skeleton/template/server)
-// - AuthzServer         (internal/apps/identity/authz/server)
-// - IDPServer           (internal/apps/identity/idp/server)
-// - RPServer            (internal/apps/identity/rp/server)
-// - RSServer            (internal/apps/identity/rs/server)
-// - SPAServer           (internal/apps/identity/spa/server).
+// - SmIMServer          (internal/apps/sm-im/server)
+// - KMSServer           (internal/apps/sm-kms/server)
+// - JoseJAServer        (internal/apps/jose-ja/server)
+// - PKICAServer         (internal/apps/pki-ca/server)
+// - SkeletonTemplateServer (internal/apps/skeleton-template/server)
+// - AuthzServer         (internal/apps/identity-authz/server)
+// - IDPServer           (internal/apps/identity-idp/server)
+// - RPServer            (internal/apps/identity-rp/server)
+// - RSServer            (internal/apps/identity-rs/server)
+// - SPAServer           (internal/apps/identity-spa/server).
 func TestServiceServer_AllServicesHaveCompileTimeAssertions(t *testing.T) {
 	t.Parallel()
 

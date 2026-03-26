@@ -56,7 +56,7 @@ func TestCheckInDir_AllValid(t *testing.T) {
 
 	// Create all 8 services with required files.
 	for _, svc := range knownServices {
-		serviceDir := filepath.Join(tmpDir, "internal", "apps", svc.Product, svc.Service)
+		serviceDir := filepath.Join(tmpDir, "internal", "apps", svc.PSID)
 		require.NoError(t, os.MkdirAll(filepath.Join(serviceDir, "server", "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 		required := svc.Required
@@ -92,7 +92,7 @@ func TestCheckInDir_MissingEntryFile(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	serviceDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.SkeletonProductName, cryptoutilSharedMagic.SkeletonTemplateServiceName)
+	serviceDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.OTLPServiceSkeletonTemplate)
 	require.NoError(t, os.MkdirAll(filepath.Join(serviceDir, "server", "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	// Create all required files except the entry file.
@@ -102,11 +102,11 @@ func TestCheckInDir_MissingEntryFile(t *testing.T) {
 
 	// Create all other services with all files to isolate the test.
 	for _, svc := range knownServices {
-		if svc.Product == cryptoutilSharedMagic.SkeletonProductName && svc.Service == cryptoutilSharedMagic.SkeletonTemplateServiceName {
+		if svc.PSID == cryptoutilSharedMagic.OTLPServiceSkeletonTemplate {
 			continue
 		}
 
-		svcDir := filepath.Join(tmpDir, "internal", "apps", svc.Product, svc.Service)
+		svcDir := filepath.Join(tmpDir, "internal", "apps", svc.PSID)
 
 		required := svc.Required
 		if required == nil {
@@ -130,7 +130,7 @@ func TestCheckInDir_MissingUsageFile(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	serviceDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.SkeletonProductName, cryptoutilSharedMagic.SkeletonTemplateServiceName)
+	serviceDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.OTLPServiceSkeletonTemplate)
 	require.NoError(t, os.MkdirAll(filepath.Join(serviceDir, "server", "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	require.NoError(t, os.WriteFile(filepath.Join(serviceDir, "template.go"), []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -138,11 +138,11 @@ func TestCheckInDir_MissingUsageFile(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(serviceDir, "server", "config", "config.go"), []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	for _, svc := range knownServices {
-		if svc.Product == cryptoutilSharedMagic.SkeletonProductName && svc.Service == cryptoutilSharedMagic.SkeletonTemplateServiceName {
+		if svc.PSID == cryptoutilSharedMagic.OTLPServiceSkeletonTemplate {
 			continue
 		}
 
-		svcDir := filepath.Join(tmpDir, "internal", "apps", svc.Product, svc.Service)
+		svcDir := filepath.Join(tmpDir, "internal", "apps", svc.PSID)
 
 		required := svc.Required
 		if required == nil {
@@ -166,7 +166,7 @@ func TestCheckInDir_MissingServerGo(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	serviceDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.SkeletonProductName, cryptoutilSharedMagic.SkeletonTemplateServiceName)
+	serviceDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.OTLPServiceSkeletonTemplate)
 	require.NoError(t, os.MkdirAll(filepath.Join(serviceDir, "server", "config"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	require.NoError(t, os.WriteFile(filepath.Join(serviceDir, "template.go"), []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -174,11 +174,11 @@ func TestCheckInDir_MissingServerGo(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(serviceDir, "server", "config", "config.go"), []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	for _, svc := range knownServices {
-		if svc.Product == cryptoutilSharedMagic.SkeletonProductName && svc.Service == cryptoutilSharedMagic.SkeletonTemplateServiceName {
+		if svc.PSID == cryptoutilSharedMagic.OTLPServiceSkeletonTemplate {
 			continue
 		}
 
-		svcDir := filepath.Join(tmpDir, "internal", "apps", svc.Product, svc.Service)
+		svcDir := filepath.Join(tmpDir, "internal", "apps", svc.PSID)
 
 		required := svc.Required
 		if required == nil {
@@ -202,7 +202,7 @@ func TestCheckInDir_MissingConfigGo(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	serviceDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.SkeletonProductName, cryptoutilSharedMagic.SkeletonTemplateServiceName)
+	serviceDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.OTLPServiceSkeletonTemplate)
 	require.NoError(t, os.MkdirAll(filepath.Join(serviceDir, "server"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	require.NoError(t, os.WriteFile(filepath.Join(serviceDir, "template.go"), []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -210,11 +210,11 @@ func TestCheckInDir_MissingConfigGo(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(serviceDir, "server", "server.go"), []byte("package x\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	for _, svc := range knownServices {
-		if svc.Product == cryptoutilSharedMagic.SkeletonProductName && svc.Service == cryptoutilSharedMagic.SkeletonTemplateServiceName {
+		if svc.PSID == cryptoutilSharedMagic.OTLPServiceSkeletonTemplate {
 			continue
 		}
 
-		svcDir := filepath.Join(tmpDir, "internal", "apps", svc.Product, svc.Service)
+		svcDir := filepath.Join(tmpDir, "internal", "apps", svc.PSID)
 
 		required := svc.Required
 		if required == nil {

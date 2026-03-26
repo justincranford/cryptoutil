@@ -7,7 +7,7 @@ package main
 import (
 	"os"
 
-	cryptoutilAppsIdentityIdp "cryptoutil/internal/apps/identity/idp"
+	cryptoutilAppsIdentityIdp "cryptoutil/internal/apps/identity-idp"
 )
 
 func main() {

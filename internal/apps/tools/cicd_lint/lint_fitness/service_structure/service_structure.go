@@ -13,9 +13,9 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// ServiceDef defines a product-service pair and its required files.
+// ServiceDef defines a service and its required files.
 type ServiceDef struct {
-	Product  string
+	PSID     string
 	Service  string
 	Required []string // Optional override; nil means use defaultRequiredFiles.
 }
@@ -23,14 +23,14 @@ type ServiceDef struct {
 // knownServices lists all product-service pairs that must follow structural conventions.
 // identity/authz and identity/idp are intentionally excluded (legacy, don't follow service template pattern).
 var knownServices = []ServiceDef{
-	{Product: cryptoutilSharedMagic.SkeletonProductName, Service: cryptoutilSharedMagic.SkeletonTemplateServiceName},
-	{Product: cryptoutilSharedMagic.PKIProductName, Service: cryptoutilSharedMagic.PKICAServiceName},
-	{Product: cryptoutilSharedMagic.JoseProductName, Service: cryptoutilSharedMagic.JoseJAServiceName},
-	{Product: cryptoutilSharedMagic.SMProductName, Service: cryptoutilSharedMagic.IMServiceName},
-	{Product: cryptoutilSharedMagic.SMProductName, Service: cryptoutilSharedMagic.KMSServiceName, Required: kmsRequiredFiles},
-	{Product: cryptoutilSharedMagic.IdentityProductName, Service: cryptoutilSharedMagic.RPServiceName},
-	{Product: cryptoutilSharedMagic.IdentityProductName, Service: cryptoutilSharedMagic.RSServiceName},
-	{Product: cryptoutilSharedMagic.IdentityProductName, Service: cryptoutilSharedMagic.SPAServiceName},
+	{PSID: cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, Service: cryptoutilSharedMagic.SkeletonTemplateServiceName},
+	{PSID: cryptoutilSharedMagic.OTLPServicePKICA, Service: cryptoutilSharedMagic.PKICAServiceName},
+	{PSID: cryptoutilSharedMagic.OTLPServiceJoseJA, Service: cryptoutilSharedMagic.JoseJAServiceName},
+	{PSID: cryptoutilSharedMagic.OTLPServiceSMIM, Service: cryptoutilSharedMagic.IMServiceName},
+	{PSID: cryptoutilSharedMagic.OTLPServiceSMKMS, Service: cryptoutilSharedMagic.KMSServiceName, Required: kmsRequiredFiles},
+	{PSID: cryptoutilSharedMagic.OTLPServiceIdentityRP, Service: cryptoutilSharedMagic.RPServiceName},
+	{PSID: cryptoutilSharedMagic.OTLPServiceIdentityRS, Service: cryptoutilSharedMagic.RSServiceName},
+	{PSID: cryptoutilSharedMagic.OTLPServiceIdentitySPA, Service: cryptoutilSharedMagic.SPAServiceName},
 }
 
 // defaultRequiredFiles are files that every service must have (relative to service dir).
@@ -63,7 +63,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	}
 
 	for _, svc := range knownServices {
-		serviceDir := filepath.Join(appsDir, svc.Product, svc.Service)
+		serviceDir := filepath.Join(appsDir, svc.PSID)
 
 		required := svc.Required
 		if required == nil {

@@ -7,7 +7,7 @@ package main
 import (
 	"os"
 
-	cryptoutilAppsIdentitySpa "cryptoutil/internal/apps/identity/spa"
+	cryptoutilAppsIdentitySpa "cryptoutil/internal/apps/identity-spa"
 )
 
 func main() {

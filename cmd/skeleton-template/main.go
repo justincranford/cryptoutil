@@ -8,7 +8,7 @@ package main
 import (
 	"os"
 
-	cryptoutilAppsSkeletonTemplate "cryptoutil/internal/apps/skeleton/template"
+	cryptoutilAppsSkeletonTemplate "cryptoutil/internal/apps/skeleton-template"
 )
 
 func main() {

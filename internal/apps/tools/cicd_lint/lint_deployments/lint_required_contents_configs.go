@@ -16,18 +16,18 @@ func GetExpectedConfigsContents() map[string]string {
 	contents["cryptoutil/"] = OptionalFileStatus // suite: cryptoutil
 
 	// Product-service config directories (flat, no product nesting).
-	contents["identity-authz/"] = OptionalFileStatus                    // PS-ID: identity-authz
-	contents["identity-authz/domain/policies/"] = OptionalFileStatus    // authz policies
-	contents["identity-idp/"] = OptionalFileStatus                      // PS-ID: identity-idp
-	contents["identity-rp/"] = OptionalFileStatus                       // PS-ID: identity-rp
-	contents["identity-rs/"] = OptionalFileStatus                       // PS-ID: identity-rs
-	contents["identity-spa/"] = OptionalFileStatus                      // PS-ID: identity-spa
-	contents["jose-ja/"] = OptionalFileStatus                           // PS-ID: jose-ja
-	contents["pki-ca/"] = OptionalFileStatus                            // PS-ID: pki-ca
-	contents["pki-ca/profiles/"] = OptionalFileStatus                   // certificate profiles
-	contents["skeleton-template/"] = OptionalFileStatus                 // PS-ID: skeleton-template
-	contents["sm-im/"] = OptionalFileStatus                             // PS-ID: sm-im
-	contents["sm-kms/"] = OptionalFileStatus                            // PS-ID: sm-kms
+	contents["identity-authz/"] = OptionalFileStatus                 // PS-ID: identity-authz
+	contents["identity-authz/domain/policies/"] = OptionalFileStatus // authz policies
+	contents["identity-idp/"] = OptionalFileStatus                   // PS-ID: identity-idp
+	contents["identity-rp/"] = OptionalFileStatus                    // PS-ID: identity-rp
+	contents["identity-rs/"] = OptionalFileStatus                    // PS-ID: identity-rs
+	contents["identity-spa/"] = OptionalFileStatus                   // PS-ID: identity-spa
+	contents["jose-ja/"] = OptionalFileStatus                        // PS-ID: jose-ja
+	contents["pki-ca/"] = OptionalFileStatus                         // PS-ID: pki-ca
+	contents["pki-ca/profiles/"] = OptionalFileStatus                // certificate profiles
+	contents["skeleton-template/"] = OptionalFileStatus              // PS-ID: skeleton-template
+	contents["sm-im/"] = OptionalFileStatus                          // PS-ID: sm-im
+	contents["sm-kms/"] = OptionalFileStatus                         // PS-ID: sm-kms
 
 	return contents
 }

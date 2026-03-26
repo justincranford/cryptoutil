@@ -93,15 +93,15 @@ func TestAllProductServices_PSIDEqualsProductDashService(t *testing.T) {
 	}
 }
 
-func TestAllProductServices_InternalAppsDirMatchesProductAndService(t *testing.T) {
+func TestAllProductServices_InternalAppsDirMatchesPSID(t *testing.T) {
 	t.Parallel()
 
 	for _, ps := range lintFitnessRegistry.AllProductServices() {
 		t.Run(ps.PSID, func(t *testing.T) {
 			t.Parallel()
 
-			expected := ps.Product + "/" + ps.Service + "/"
-			assert.Equal(t, expected, ps.InternalAppsDir, "InternalAppsDir must match product/service/")
+			expected := ps.PSID + "/"
+			assert.Equal(t, expected, ps.InternalAppsDir, "InternalAppsDir must match PSID/")
 		})
 	}
 }

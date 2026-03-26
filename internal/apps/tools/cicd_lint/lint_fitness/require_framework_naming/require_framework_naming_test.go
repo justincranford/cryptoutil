@@ -44,7 +44,7 @@ func TestIsBannedImport_OldTemplateSubpath_Banned(t *testing.T) {
 func TestIsBannedImport_SkeletonTemplate_Allowed(t *testing.T) {
 	t.Parallel()
 
-	require.False(t, isBannedImport("cryptoutil/internal/apps/skeleton/template/server"))
+	require.False(t, isBannedImport("cryptoutil/internal/apps/skeleton-template/server"))
 }
 
 func TestIsBannedImport_FrameworkPath_Allowed(t *testing.T) {
@@ -127,7 +127,7 @@ func TestCheckFile_SkeletonTemplateImport_NoViolation(t *testing.T) {
 	writeFile(t, goFile, `package skeleton
 
 import (
-	cryptoutilSkeletonTemplate "cryptoutil/internal/apps/skeleton/template/server"
+	cryptoutilSkeletonTemplate "cryptoutil/internal/apps/skeleton-template/server"
 )
 
 var _ = cryptoutilSkeletonTemplate.Something

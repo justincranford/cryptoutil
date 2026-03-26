@@ -135,8 +135,21 @@ func checkDir(dir string, min, max int, isTemplate bool) ([]string, error) {
 
 // nonFrameworkProducts are products not yet migrated to the template service framework.
 // Their migrations use legacy numbering and are excluded from domain range compliance.
-var nonFrameworkProducts = map[string]bool{
-	cryptoutilSharedMagic.IdentityProductName: true,
+// With flat PS-ID structure (e.g. "identity-idp/"), matching checks for prefix "identity-".
+var nonFrameworkProducts = []string{
+	cryptoutilSharedMagic.IdentityProductName,
+}
+
+// isNonFrameworkProduct checks if a directory name belongs to a non-framework product.
+// Matches both product-level dirs (e.g. "identity") and flat PS-ID dirs (e.g. "identity-idp").
+func isNonFrameworkProduct(dirName string) bool {
+	for _, product := range nonFrameworkProducts {
+		if dirName == product || strings.HasPrefix(dirName, product+"-") {
+			return true
+		}
+	}
+
+	return false
 }
 
 // findDomainMigrationDirs finds all migrations/ directories under appsDir, excluding
@@ -180,7 +193,7 @@ func findDomainMigrationDirs(appsDir, templateDir string) ([]string, error) {
 		rel, _ := filepath.Rel(absAppsDir, absPath)
 
 		parts := strings.Split(rel, string(filepath.Separator))
-		if len(parts) >= 1 && nonFrameworkProducts[parts[0]] {
+		if len(parts) >= 1 && isNonFrameworkProduct(parts[0]) {
 			return filepath.SkipDir
 		}
 

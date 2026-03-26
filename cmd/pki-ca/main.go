@@ -7,7 +7,7 @@ package main
 import (
 	"os"
 
-	cryptoutilAppsPkiCa "cryptoutil/internal/apps/pki/ca"
+	cryptoutilAppsPkiCa "cryptoutil/internal/apps/pki-ca"
 )
 
 func main() {

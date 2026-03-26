@@ -7,7 +7,7 @@ package main
 import (
 	"os"
 
-	cryptoutilAppsIdentityAuthz "cryptoutil/internal/apps/identity/authz"
+	cryptoutilAppsIdentityAuthz "cryptoutil/internal/apps/identity-authz"
 )
 
 func main() {

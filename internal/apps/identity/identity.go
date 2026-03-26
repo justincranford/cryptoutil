@@ -9,11 +9,11 @@ import (
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-	cryptoutilAppsIdentityAuthz "cryptoutil/internal/apps/identity/authz"
-	cryptoutilAppsIdentityIdp "cryptoutil/internal/apps/identity/idp"
-	cryptoutilAppsIdentityRp "cryptoutil/internal/apps/identity/rp"
-	cryptoutilAppsIdentityRs "cryptoutil/internal/apps/identity/rs"
-	cryptoutilAppsIdentitySpa "cryptoutil/internal/apps/identity/spa"
+	cryptoutilAppsIdentityAuthz "cryptoutil/internal/apps/identity-authz"
+	cryptoutilAppsIdentityIdp "cryptoutil/internal/apps/identity-idp"
+	cryptoutilAppsIdentityRp "cryptoutil/internal/apps/identity-rp"
+	cryptoutilAppsIdentityRs "cryptoutil/internal/apps/identity-rs"
+	cryptoutilAppsIdentitySpa "cryptoutil/internal/apps/identity-spa"
 	cryptoutilAppsFrameworkProductCli "cryptoutil/internal/apps/framework/product/cli"
 )
 

@@ -7,7 +7,7 @@ package main
 import (
 	"os"
 
-	cryptoutilAppsJoseJa "cryptoutil/internal/apps/jose/ja"
+	cryptoutilAppsJoseJa "cryptoutil/internal/apps/jose-ja"
 )
 
 func main() {

@@ -31,7 +31,7 @@ type ProductService struct {
 	Service string
 	// DisplayName is the human-readable name (e.g. "Secrets Manager Key Management").
 	DisplayName string
-	// InternalAppsDir is the path under internal/apps/ (e.g. "sm/kms/").
+	// InternalAppsDir is the path under internal/apps/ (e.g. "sm-kms/").
 	InternalAppsDir string
 	// MagicFile is the filename of the primary magic constants file
 	// under internal/shared/magic/ (e.g. "magic_sm.go").
@@ -89,7 +89,7 @@ var allProductServices = []ProductService{
 		Product:         cryptoutilSharedMagic.IdentityProductName,
 		Service:         cryptoutilSharedMagic.AuthzServiceName,
 		DisplayName:     "Identity Authorization Server",
-		InternalAppsDir: cryptoutilSharedMagic.IdentityProductName + "/" + cryptoutilSharedMagic.AuthzServiceName + "/",
+		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceIdentityAuthz + "/",
 		MagicFile:       "magic_identity.go",
 	},
 	{
@@ -97,7 +97,7 @@ var allProductServices = []ProductService{
 		Product:         cryptoutilSharedMagic.IdentityProductName,
 		Service:         cryptoutilSharedMagic.IDPServiceName,
 		DisplayName:     "Identity Provider",
-		InternalAppsDir: cryptoutilSharedMagic.IdentityProductName + "/" + cryptoutilSharedMagic.IDPServiceName + "/",
+		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceIdentityIDP + "/",
 		MagicFile:       "magic_identity.go",
 	},
 	{
@@ -105,7 +105,7 @@ var allProductServices = []ProductService{
 		Product:         cryptoutilSharedMagic.IdentityProductName,
 		Service:         cryptoutilSharedMagic.RPServiceName,
 		DisplayName:     "Identity Relying Party",
-		InternalAppsDir: cryptoutilSharedMagic.IdentityProductName + "/" + cryptoutilSharedMagic.RPServiceName + "/",
+		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceIdentityRP + "/",
 		MagicFile:       "magic_identity.go",
 	},
 	{
@@ -113,7 +113,7 @@ var allProductServices = []ProductService{
 		Product:         cryptoutilSharedMagic.IdentityProductName,
 		Service:         cryptoutilSharedMagic.RSServiceName,
 		DisplayName:     "Identity Resource Server",
-		InternalAppsDir: cryptoutilSharedMagic.IdentityProductName + "/" + cryptoutilSharedMagic.RSServiceName + "/",
+		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceIdentityRS + "/",
 		MagicFile:       "magic_identity.go",
 	},
 	{
@@ -121,7 +121,7 @@ var allProductServices = []ProductService{
 		Product:         cryptoutilSharedMagic.IdentityProductName,
 		Service:         cryptoutilSharedMagic.SPAServiceName,
 		DisplayName:     "Identity Single Page App",
-		InternalAppsDir: cryptoutilSharedMagic.IdentityProductName + "/" + cryptoutilSharedMagic.SPAServiceName + "/",
+		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceIdentitySPA + "/",
 		MagicFile:       "magic_identity.go",
 	},
 	{
@@ -129,7 +129,7 @@ var allProductServices = []ProductService{
 		Product:         cryptoutilSharedMagic.JoseProductName,
 		Service:         cryptoutilSharedMagic.JoseJAServiceName,
 		DisplayName:     "JOSE JWK Authority",
-		InternalAppsDir: cryptoutilSharedMagic.JoseProductName + "/" + cryptoutilSharedMagic.JoseJAServiceName + "/",
+		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceJoseJA + "/",
 		MagicFile:       "magic_jose.go",
 	},
 	{
@@ -137,7 +137,7 @@ var allProductServices = []ProductService{
 		Product:         cryptoutilSharedMagic.PKIProductName,
 		Service:         cryptoutilSharedMagic.PKICAServiceName,
 		DisplayName:     "PKI Certificate Authority",
-		InternalAppsDir: cryptoutilSharedMagic.PKIProductName + "/" + cryptoutilSharedMagic.PKICAServiceName + "/",
+		InternalAppsDir: cryptoutilSharedMagic.OTLPServicePKICA + "/",
 		MagicFile:       "magic_pki.go",
 	},
 	{
@@ -145,7 +145,7 @@ var allProductServices = []ProductService{
 		Product:         cryptoutilSharedMagic.SkeletonProductName,
 		Service:         cryptoutilSharedMagic.SkeletonTemplateServiceName,
 		DisplayName:     "Skeleton Template",
-		InternalAppsDir: cryptoutilSharedMagic.SkeletonProductName + "/" + cryptoutilSharedMagic.SkeletonTemplateServiceName + "/",
+		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceSkeletonTemplate + "/",
 		MagicFile:       "magic_skeleton.go",
 	},
 	{
@@ -153,7 +153,7 @@ var allProductServices = []ProductService{
 		Product:         cryptoutilSharedMagic.SMProductName,
 		Service:         cryptoutilSharedMagic.IMServiceName,
 		DisplayName:     "Secrets Manager Instant Messenger",
-		InternalAppsDir: cryptoutilSharedMagic.SMProductName + "/" + cryptoutilSharedMagic.IMServiceName + "/",
+		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceSMIM + "/",
 		MagicFile:       "magic_sm_im.go",
 	},
 	{
@@ -161,7 +161,7 @@ var allProductServices = []ProductService{
 		Product:         cryptoutilSharedMagic.SMProductName,
 		Service:         cryptoutilSharedMagic.KMSServiceName,
 		DisplayName:     "Secrets Manager Key Management",
-		InternalAppsDir: cryptoutilSharedMagic.SMProductName + "/" + cryptoutilSharedMagic.KMSServiceName + "/",
+		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceSMKMS + "/",
 		MagicFile:       "magic_sm.go",
 	},
 }

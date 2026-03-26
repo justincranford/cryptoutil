@@ -9,7 +9,7 @@ import (
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-	cryptoutilAppsJoseJa "cryptoutil/internal/apps/jose/ja"
+	cryptoutilAppsJoseJa "cryptoutil/internal/apps/jose-ja"
 	cryptoutilAppsFrameworkProductCli "cryptoutil/internal/apps/framework/product/cli"
 )
 

@@ -34,8 +34,8 @@ func makeMigrationDir(t *testing.T, root, relDir string, fileNumbers []int) {
 
 const (
 	templateMigRelDir = "internal/apps/framework/service/server/repository/migrations"
-	joseMigRelDir     = "internal/apps/jose/ja/repository/migrations"
-	identityMigRelDir = "internal/apps/identity/idp/repository/migrations"
+	joseMigRelDir     = "internal/apps/jose-ja/repository/migrations"
+	identityMigRelDir = "internal/apps/identity-idp/repository/migrations"
 )
 
 // ---- CheckInDir: template range ----
@@ -123,10 +123,7 @@ func TestFindDomainMigrationDirs_WithIdentity_ExcludesIt(t *testing.T) {
 	templateDir := filepath.Join(tmp, "internal", "apps", cryptoutilSharedMagic.FrameworkProductName, "service", "server", "repository", "migrations")
 	dirs, err := findDomainMigrationDirs(appsDir, templateDir)
 	require.NoError(t, err)
-
-	for _, d := range dirs {
-		require.NotContains(t, d, cryptoutilSharedMagic.IdentityProductName)
-	}
+	require.Empty(t, dirs, "identity migrations should be excluded from domain range compliance")
 }
 
 func TestFindDomainMigrationDirs_WithJose_IncludesIt(t *testing.T) {
