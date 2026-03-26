@@ -56,7 +56,29 @@
 
 ## Phase 10: Migrate internal/apps/ to Flat PS-ID Structure
 
-*(To be filled during Phase 10 execution)*
+### Findings
+
+- **Scope**: 10 service directories moved from `internal/apps/{PRODUCT}/{SERVICE}/` to `internal/apps/{PS-ID}/` using `git mv` to preserve history. 319 Go files had import paths updated.
+- **Fitness linters updated**:
+  - `service_structure`: Replaced `Product`+`Service` field pairs with single `PSID` field; `serviceDir = filepath.Join(appsDir, svc.PSID)`.
+  - `cross_service_import_isolation`: Rewrote to use flat `serviceRef{psid, product}` and `collectServices()` scanning for `server/` subdir.
+  - `check_skeleton_placeholders`: Added `"internal/apps/skeleton-template/"` to `excludedDirPrefixes`.
+- **Incidental fix**: `identity-rs/server/public_server.go` had wrapcheck lint violations (`c.JSON()` / `c.Status().JSON()` return values not wrapped). Fixed by adding error wrapping with `fmt.Errorf`.
+- **CRLF**: 4 identity service `server.go` files had CRLF line endings after the `git mv`. Fixed with PowerShell byte-level replacement before commit.
+- **Pre-existing sysinfo flakiness**: Under `go test ./...` (full parallel load), several packages fail due to CPU contention causing sysinfo collection to timeout. All pass in isolation. NOT caused by Phase 10.
+
+### Root Cause (CRLF)
+
+The old `internal/apps/identity/{authz,idp,rp,rs}/server/server.go` files were written with CRLF. After `git mv` they carried those endings into the flat structure. Git warned `CRLF will be replaced by LF the next time Git touches it` but does not auto-fix until the next index write.
+
+### Prevention
+
+- Always check CRLF after `git mv` renames, especially for server.go files: `foreach ($f in $files) { $bytes = [System.IO.File]::ReadAllBytes($f); ... }`.
+- Use the established PowerShell pattern for CRLF→LF conversion: `[System.IO.File]::WriteAllText($f, $content -replace \`"\`r\`n\`", \`"\`n\`", [System.Text.UTF8Encoding]::new($false))`.
+
+### Key Decision
+
+Flat `internal/apps/{PS-ID}/` aligns `internal/apps/`, `cmd/`, `deployments/`, and `configs/` all with the same PS-ID naming convention. This is the canonical project structure going forward.
 
 ## Phase 11: Knowledge Propagation
 

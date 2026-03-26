@@ -1,6 +1,6 @@
 # Tasks - Framework v6: Corrective Standardization
 
-**Status**: 60 of 63 tasks complete (95%)
+**Status**: 63 of 63 tasks complete (100%)
 **Last Updated**: 2026-03-28
 **Created**: 2026-03-25
 
@@ -941,44 +941,44 @@
 
 #### Task 11.1: Review Lessons and Update ARCHITECTURE.md
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 30m
-- **Actual**: -
+- **Actual**: 45m
 - **Dependencies**: All prior phases
 - **Description**: Review lessons.md, update ARCHITECTURE.md with new patterns including: flat config structure, deployment secret naming with PS-ID prefix specificity, Dockerfile parameterization (ARGs/LABELs/multi-stage per tier), new fitness linter catalog entries (unseal-secret-content, dockerfile-labels, secret-naming), and terminology enforcement. ARCHITECTURE.md must have same specificity as target-structure.md for deployment patterns.
 - **Acceptance Criteria**:
-  - [ ] lessons.md reviewed
-  - [ ] ARCHITECTURE.md Section 12 updated: flat config pattern, secret naming patterns with PS-ID prefix specificity
-  - [ ] ARCHITECTURE.md Section 12 updated: Dockerfile parameterization patterns (ARGs, LABELs, multi-stage structure per tier)
-  - [ ] ARCHITECTURE.md Section 9.11 updated: 3 new fitness linter catalog entries
-  - [ ] Propagation check passes
+  - [x] lessons.md reviewed
+  - [x] ARCHITECTURE.md Section 12 updated: flat config pattern, secret naming patterns with PS-ID prefix specificity
+  - [x] ARCHITECTURE.md Section 12 updated: Dockerfile parameterization patterns (ARGs, LABELs, multi-stage structure per tier)
+  - [x] ARCHITECTURE.md Section 9.11 updated: 3 new fitness linter catalog entries
+  - [x] Propagation check passes
 
 #### Task 11.2: Update Instruction Files
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 20m
-- **Actual**: -
+- **Actual**: 30m
 - **Dependencies**: Task 11.1
 - **Description**: Update instruction files to match ARCHITECTURE.md specificity. Key files: 02-01.architecture.instructions.md (flat config pattern, Dockerfile patterns), 04-01.deployment.instructions.md (secret naming, Docker patterns), 02-05.security.instructions.md (unseal naming patterns).
 - **Acceptance Criteria**:
-  - [ ] Instructions reflect flat `configs/{PS-ID}/` pattern
-  - [ ] Instructions document Dockerfile parameterization
-  - [ ] Instructions document secret value tier-prefix patterns
-  - [ ] Terminology enforcement guidance strengthened
-  - [ ] Propagation check passes (`go run ./cmd/cicd-lint lint-docs validate-propagation`)
+  - [x] Instructions reflect flat `configs/{PS-ID}/` pattern
+  - [x] Instructions document Dockerfile parameterization
+  - [x] Instructions document secret value tier-prefix patterns
+  - [x] Terminology enforcement guidance strengthened
+  - [x] Propagation check passes (`go run ./cmd/cicd-lint lint-docs validate-propagation`)
 
 #### Task 11.3: Update target-structure.md with Implementation Learnings
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 10m
-- **Actual**: -
+- **Actual**: 15m
 - **Dependencies**: All prior phases
 - **Description**: Document any additional findings from implementation in target-structure.md.
 - **Acceptance Criteria**:
-  - [ ] target-structure.md is fully accurate vs repo state
+  - [x] target-structure.md is fully accurate vs repo state
 
 ---
 

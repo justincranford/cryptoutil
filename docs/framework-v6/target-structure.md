@@ -269,7 +269,7 @@ cmd/                                                  # drwxr-x---  (18 flat ent
 ├── skeleton/main.go                                  # {PRODUCT}=skeleton
 ├── sm/main.go                                        # {PRODUCT}=sm
 │
-│   # {PS-ID}/main.go — Service CLI → internal/apps/{PRODUCT}/{SERVICE}/ (×10)
+│   # {PS-ID}/main.go — Service CLI → internal/apps/{PS-ID}/ (×10)
 ├── identity-authz/main.go                            # {PS-ID}=identity-authz
 ├── identity-idp/main.go                              # {PS-ID}=identity-idp
 ├── identity-rp/main.go                               # {PS-ID}=identity-rp
@@ -667,7 +667,7 @@ Parameterized fields differ by deployment tier.
 | `sm-kms` | `cryptoutil-sm-kms` | `"sm-kms", "start"` |
 
 **Current state**: 10 service-level + 1 suite-level Dockerfiles exist. 0 product-level Dockerfiles exist (v6 CREATE).
-**Suite Dockerfile** has INCORRECT labels (`"CA Server"`, `"Certificate Authority"`) — must be fixed to `"cryptoutil"`.
+**Suite Dockerfile** labels fixed in Phase 7.3: `"cryptoutil"` title and description, correct user/ports/entrypoint.
 
 ---
 

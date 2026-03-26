@@ -4541,7 +4541,7 @@ configs/
 │   ├── identity-authz.yml                      # Domain config (nested YAML)
 │   └── domain/
 │       └── policies/                           # Authentication/authorization policies
-│           ├── adaptive-auth.yml
+│           ├── adaptive-authorization.yml
 │           ├── risk-scoring.yml
 │           └── step-up.yml
 ├── identity-idp/
@@ -4556,7 +4556,6 @@ configs/
 │   └── jose-ja.yml                             # Domain config (nested YAML)
 ├── pki-ca/
 │   ├── pki-ca.yml                              # Domain config (nested YAML)
-│   ├── pki-ca-config-schema.yaml               # CA certificate schema definition
 │   └── profiles/                               # X.509 certificate profiles (25 files)
 │       ├── tls-server.yaml
 │       ├── root-ca.yaml
@@ -4582,7 +4581,7 @@ configs/
 | Domain config | `{PS-ID}.yml` | Nested YAML, service-specific | `jose-ja.yml`, `sm-im.yml` |
 | Suite config | `cryptoutil.yml` | Suite-level settings | `configs/cryptoutil/cryptoutil.yml` |
 | Certificate profile | `profiles/*.yaml` | X.509 certificate definitions | `tls-server.yaml` |
-| Auth policy | `domain/policies/*.yml` | Authentication/authorization rules | `adaptive-auth.yml` |
+| Auth policy | `domain/policies/*.yml` | Authentication/authorization rules | `adaptive-authorization.yml` |
 | Certificate schema | `*-config-schema.yaml` | CA certificate schema definitions | `pki-ca-config-schema.yaml` |
 
 **Dual configs/ vs deployments/config/ Relationship**: The `configs/` directory holds **standalone development configs** for direct `go run` usage. The `deployments/{PS-ID}/config/` directories hold **Docker Compose deployment configs** (`{PS-ID}-app-{variant}.yml`) with 5 required variant files (common, sqlite-1, sqlite-2, postgresql-1, postgresql-2). Both follow the same flat kebab-case schema for service framework configs.
