@@ -202,9 +202,10 @@ func addProductServiceFiles(contents *map[string]string, serviceName string) {
 	(*contents)[serviceName+"/secrets/"+serviceName+"-postgres_database.secret"] = RequiredFileStatus
 	(*contents)[serviceName+"/secrets/"+serviceName+"-postgres_url.secret"] = RequiredFileStatus
 
-	// Required config files (4 standard files per Section 12.4.5)
+	// Required config files (5 standard files per F.1)
 	(*contents)[serviceName+"/config/"+serviceName+"-app-common.yml"] = RequiredFileStatus
 	(*contents)[serviceName+"/config/"+serviceName+"-app-sqlite-1.yml"] = RequiredFileStatus
+	(*contents)[serviceName+"/config/"+serviceName+"-app-sqlite-2.yml"] = RequiredFileStatus
 	(*contents)[serviceName+"/config/"+serviceName+"-app-postgresql-1.yml"] = RequiredFileStatus
 	(*contents)[serviceName+"/config/"+serviceName+"-app-postgresql-2.yml"] = RequiredFileStatus
 

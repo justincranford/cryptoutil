@@ -1,0 +1,25 @@
+# CA SQLite Instance 2 Configuration
+# Used by: ca-sqlite-2 service in compose.yml
+#
+# This file contains instance-specific settings.
+# Common settings are in pki-ca-app-common.yml.
+
+# Service name for telemetry
+service-name: "ca-sqlite-2"
+
+# Public API port
+bind-public-port: 8080
+
+# Database backend (SQLite in-memory for dev/ci)
+database:
+  type: "sqlite"
+  dsn: "file::memory:?cache=shared"
+
+# CORS origins (specific to this instance)
+cors-origins:
+  - "https://localhost:8100"
+  - "https://127.0.0.1:8100"
+
+# OTLP telemetry service name (unique per instance)
+otlp-service-name: "ca-sqlite-2"
+otlp-hostname: "ca-sqlite-2"

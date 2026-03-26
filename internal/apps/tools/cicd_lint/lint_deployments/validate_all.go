@@ -130,6 +130,7 @@ func runKebabCaseValidation(configsDir string, result *AllValidationResult) {
 var serviceFrameworkSuffixes = []string{
 	"-app-common.yml",
 	"-app-sqlite-1.yml",
+	"-app-sqlite-2.yml",
 	"-app-postgresql-1.yml",
 	"-app-postgresql-2.yml",
 }

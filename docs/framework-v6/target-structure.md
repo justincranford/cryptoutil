@@ -344,24 +344,12 @@ configs/
     └── cryptoutil.yml
 ```
 
-### E.2 Product Configs (5 products — FLAT, one dir per product)
+### E.2 Product Configs — NOT APPLICABLE
 
-Each product has its own flat directory at `configs/{PRODUCT}/` containing exactly
-one config file named `{PRODUCT}.yml`. NO nested service subdirectories.
-
-```
-configs/
-├── identity/
-│   └── identity.yml                       # Product-level config
-├── jose/
-│   └── jose.yml
-├── pki/
-│   └── pki.yml
-├── skeleton/
-│   └── skeleton.yml
-└── sm/
-    └── sm.yml
-```
+Product-level config directories (`configs/{PRODUCT}/{PRODUCT}.yml`) are NOT used.
+Products (cmd/identity, cmd/jose, etc.) are CLI dispatchers that recurse to their
+constituent service binaries — they do not have their own config files. All config
+is at the service level (E.3) or suite level (E.1).
 
 ### E.3 Service Configs (10 services — FLAT `configs/{PS-ID}/`)
 

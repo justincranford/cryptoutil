@@ -7,6 +7,7 @@
 // config file under deployments/{PS-ID}/config/ must have an otlp-service value
 // following the pattern:
 //   - {PS-ID}-app-sqlite-1.yml       -> {PS-ID}-sqlite-1
+//   - {PS-ID}-app-sqlite-2.yml       -> {PS-ID}-sqlite-2
 //   - {PS-ID}-app-postgresql-1.yml   -> {PS-ID}-postgres-1
 //   - {PS-ID}-app-postgresql-2.yml   -> {PS-ID}-postgres-2
 //
@@ -39,6 +40,7 @@ type configRule struct {
 // otlpConfigRules lists the required config file suffixes and their expected otlp-service suffix.
 var otlpConfigRules = []configRule{
 	{filenameSuffix: "-app-sqlite-1.yml", expectedOTLPSuffix: "-sqlite-1"},
+	{filenameSuffix: "-app-sqlite-2.yml", expectedOTLPSuffix: "-sqlite-2"},
 	{filenameSuffix: "-app-postgresql-1.yml", expectedOTLPSuffix: "-postgres-1"},
 	{filenameSuffix: "-app-postgresql-2.yml", expectedOTLPSuffix: "-postgres-2"},
 }

@@ -1,6 +1,6 @@
 # Tasks - Framework v6: Corrective Standardization
 
-**Status**: 41 of 63 tasks complete (65%)
+**Status**: 43 of 63 tasks complete (68%)
 **Last Updated**: 2026-03-28
 **Created**: 2026-03-25
 
@@ -645,30 +645,30 @@
 
 #### Task 6.1: Create Missing sqlite-2 Config Overlays (10 files)
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 20m
-- **Actual**: -
+- **Actual**: 15m
 - **Dependencies**: Phase 5 (flat structure in place)
 - **Description**: Create `{PS-ID}-app-sqlite-2.yml` in every service's deployment config dir per F.1. Copy from sqlite-1 and adjust as needed.
 - **Acceptance Criteria**:
-  - [ ] `deployments/*/config/{PS-ID}-app-sqlite-2.yml` exists for all 10 services
-  - [ ] Content matches sqlite-1 pattern (database-driver: sqlite, database-url: file::memory:?cache=shared)
+  - [x] `deployments/*/config/{PS-ID}-app-sqlite-2.yml` exists for all 10 services
+  - [x] Content matches sqlite-1 pattern (database-driver: sqlite, database-url: file::memory:?cache=shared)
 - **Files**:
   - `deployments/*/config/{PS-ID}-app-sqlite-2.yml` (10 files)
 
 #### Task 6.2: Evaluate Product-Level Config Files
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 15m
-- **Actual**: -
+- **Actual**: 5m
 - **Dependencies**: Phase 5 (flat structure)
 - **Description**: Under flat `configs/{PS-ID}/` structure, evaluate whether product-level configs (E.2's `{PRODUCT}.yml`) are still applicable. If so, determine placement. If not, update spec.
 - **Acceptance Criteria**:
-  - [ ] Decision documented on whether product-level configs are needed under flat structure
-  - [ ] If needed: files created at appropriate location
-  - [ ] If not needed: target-structure.md E.2 updated
+  - [x] Decision documented on whether product-level configs are needed under flat structure
+  - [x] If needed: files created at appropriate location
+  - [x] If not needed: target-structure.md E.2 updated
 
 ### Phase 7: Clean Up Orphaned/Legacy Files
 
