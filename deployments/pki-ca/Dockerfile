@@ -106,8 +106,8 @@ ARG VCS_REF
 ARG BUILD_DATE
 
 # OCI Image spec labels.
-LABEL org.opencontainers.image.title="CA Server" \
-    org.opencontainers.image.description="Certificate Authority REST API Server" \
+LABEL org.opencontainers.image.title="cryptoutil-pki-ca" \
+    org.opencontainers.image.description="PKI Certificate Authority REST API Server" \
     org.opencontainers.image.version="${APP_VERSION}" \
     org.opencontainers.image.revision="${VCS_REF}" \
     org.opencontainers.image.created="${BUILD_DATE}" \

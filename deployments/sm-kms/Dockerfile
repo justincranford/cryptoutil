@@ -145,8 +145,8 @@ ARG VCS_REF
 ARG BUILD_DATE
 
 # Image metadata labels (set at final stage so they are present in the produced image)
-LABEL org.opencontainers.image.title="cryptoutil"
-LABEL org.opencontainers.image.description="AGPL-3.0 Golang embedded KMS"
+LABEL org.opencontainers.image.title="cryptoutil-sm-kms"
+LABEL org.opencontainers.image.description="Secrets Manager Key Management REST API Server"
 LABEL org.opencontainers.image.source="https://github.com/justincranford/cryptoutil"
 LABEL org.opencontainers.image.authors="Justin Cranford <justincranford@example.com>"
 LABEL org.opencontainers.image.version="${APP_VERSION}"

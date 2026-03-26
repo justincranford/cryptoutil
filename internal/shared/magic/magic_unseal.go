@@ -26,6 +26,11 @@ const (
 	// DefaultMaxBytesPerUnsealFile - Maximum bytes per file allowed.
 	DefaultMaxBytesPerUnsealFile = 10 << 20 // 10MB
 
+	// UnsealTotalShards - Total number of unseal key shards per deployment.
+	UnsealTotalShards = 5
+	// UnsealGenericBannedPrefix - Banned generic placeholder prefix for unseal secrets.
+	UnsealGenericBannedPrefix = "dev"
+
 	// MaxUnsealSharedSecrets - Maximum number of shared secrets allowed.
 	MaxUnsealSharedSecrets = 256
 	// MinSharedSecretLength - Minimum shared secret length in bytes.

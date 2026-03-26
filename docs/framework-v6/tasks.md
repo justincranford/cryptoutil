@@ -1,6 +1,6 @@
 # Tasks - Framework v6: Corrective Standardization
 
-**Status**: 47 of 63 tasks complete (75%)
+**Status**: 54 of 63 tasks complete (86%)
 **Last Updated**: 2026-03-28
 **Created**: 2026-03-25
 
@@ -733,94 +733,94 @@
 
 #### Task 8.1: Implement unseal-secret-content Linter
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 45m
 - **Actual**: -
 - **Dependencies**: Phases 3-4 (secret values corrected)
 - **Description**: Create `internal/apps/tools/cicd_lint/lint_fitness/unseal_secret_content/unseal_secret_content.go`. Validates: correct PS-ID/PRODUCT/SUITE prefix, unique hex per shard, correct `N-of-5` infix, tier prefix matches deployment tier. Tests with >=98% coverage.
 - **Acceptance Criteria**:
-  - [ ] Linter validates unseal values for all 3 tiers (service, product, suite)
-  - [ ] Detects wrong prefix (e.g., `kms-` in pki-ca)
-  - [ ] Detects duplicate hex across services
-  - [ ] Detects generic `dev-unseal-key-N-of-5` values
-  - [ ] Tests pass with >=98% coverage
-  - [ ] Registered in fitness linter catalog
+  - [x] Linter validates unseal values for all 3 tiers (service, product, suite)
+  - [x] Detects wrong prefix (e.g., `kms-` in pki-ca)
+  - [x] Detects duplicate hex across services
+  - [x] Detects generic `dev-unseal-key-N-of-5` values
+  - [x] Tests pass with >=98% coverage
+  - [x] Registered in fitness linter catalog
 
 #### Task 8.2: Implement dockerfile-labels Linter
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 30m
 - **Actual**: -
 - **Dependencies**: Task 7.3 (suite Dockerfile fixed)
 - **Description**: Create `internal/apps/tools/cicd_lint/lint_fitness/dockerfile_labels/dockerfile_labels.go`. Validates OCI labels in all Dockerfiles: correct PS-ID in title, correct description, version label present. Tests with >=98% coverage.
 - **Acceptance Criteria**:
-  - [ ] Linter validates SERVICE, PRODUCT, SUITE Dockerfiles
-  - [ ] Detects mismatched PS-ID in labels
-  - [ ] Detects missing required labels
-  - [ ] Tests pass with >=98% coverage
-  - [ ] Registered in fitness linter catalog
+  - [x] Linter validates SERVICE, PRODUCT, SUITE Dockerfiles
+  - [x] Detects mismatched PS-ID in labels
+  - [x] Detects missing required labels
+  - [x] Tests pass with >=98% coverage
+  - [x] Registered in fitness linter catalog
 
 #### Task 8.3: Implement secret-naming Linter
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 30m
 - **Actual**: -
 - **Dependencies**: Phase 3 (secret filenames normalized)
 - **Description**: Create `internal/apps/tools/cicd_lint/lint_fitness/secret_naming/secret_naming.go`. Validates: all secret filenames use hyphens (no underscores), correct count per tier (14 service, 10+ product, 10+ suite), correct `.secret` extension. Tests with >=98% coverage.
 - **Acceptance Criteria**:
-  - [ ] Linter detects underscore filenames (e.g., `unseal_1of5.secret`)
-  - [ ] Linter validates file count per deployment tier
-  - [ ] Tests pass with >=98% coverage
-  - [ ] Registered in fitness linter catalog
+  - [x] Linter detects underscore filenames (e.g., `unseal_1of5.secret`)
+  - [x] Linter validates file count per deployment tier
+  - [x] Tests pass with >=98% coverage
+  - [x] Registered in fitness linter catalog
 
 #### Task 8.4: Run Fitness Linters
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 15m
 - **Actual**: -
 - **Dependencies**: Tasks 8.1-8.3, Phases 1-7
 - **Description**: Run `go run ./cmd/cicd-lint lint-fitness` and fix any violations.
 - **Acceptance Criteria**:
-  - [ ] Zero violations from lint-fitness (including 3 new linters)
+  - [x] Zero violations from lint-fitness (including 3 new linters)
 
 #### Task 8.5: Run Deployment Validators
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 15m
 - **Actual**: -
 - **Dependencies**: Phases 1-7
 - **Description**: Run `go run ./cmd/cicd-lint lint-deployments` and fix any violations.
 - **Acceptance Criteria**:
-  - [ ] Zero violations from lint-deployments
+  - [x] Zero violations from lint-deployments
 
 #### Task 8.6: Run Build and Lint
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 10m
 - **Actual**: -
 - **Dependencies**: Phases 1-7
 - **Description**: Verify `go build ./...`, `go build -tags e2e,integration ./...`, `golangci-lint run`, `golangci-lint run --build-tags e2e,integration` all pass.
 - **Acceptance Criteria**:
-  - [ ] Build clean (both standard and tagged)
-  - [ ] Lint clean (both standard and tagged)
+  - [x] Build clean (both standard and tagged)
+  - [x] Lint clean (both standard and tagged)
 
 #### Task 8.7: Run Compose Validation
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 15m
 - **Actual**: -
 - **Dependencies**: Phases 3-4 (secret changes)
 - **Description**: Verify compose files still reference correct secret names and values work.
 - **Acceptance Criteria**:
-  - [ ] All compose files reference valid secret file paths
-  - [ ] `docker compose config` passes for representative services
+  - [x] All compose files reference valid secret file paths
+  - [x] `docker compose config` passes for representative services
 
 ### Phase 9: Terminology Enforcement
 

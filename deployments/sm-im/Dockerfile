@@ -35,6 +35,20 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
 # Stage 2: Runtime - Minimal runtime image
 FROM alpine:${ALPINE_VERSION} AS runtime
 
+# Redeclare build args for use in labels.
+ARG APP_VERSION
+ARG VCS_REF
+ARG BUILD_DATE
+
+# OCI Image spec labels.
+LABEL org.opencontainers.image.title="cryptoutil-sm-im" \
+    org.opencontainers.image.description="Secrets Manager Instant Messenger REST API Server" \
+    org.opencontainers.image.version="${APP_VERSION}" \
+    org.opencontainers.image.revision="${VCS_REF}" \
+    org.opencontainers.image.created="${BUILD_DATE}" \
+    org.opencontainers.image.source="https://github.com/justincranford/cryptoutil" \
+    org.opencontainers.image.licenses="MIT"
+
 WORKDIR /app
 
 # Install runtime dependencies

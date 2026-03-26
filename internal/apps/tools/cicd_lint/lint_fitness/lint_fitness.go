@@ -28,6 +28,7 @@ import (
 	lintFitnessCrossServiceImportIsolation "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/cross_service_import_isolation"
 	lintFitnessCryptoRand "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/crypto_rand"
 	lintFitnessDeploymentDirCompleteness "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/deployment_dir_completeness"
+	lintFitnessDockerfileLabels "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/dockerfile_labels"
 	lintFitnessDomainLayerIsolation "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/domain_layer_isolation"
 	lintFitnessEntityRegistryCompleteness "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/entity_registry_completeness"
 	lintFitnessFileSizeLimits "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/file_size_limits"
@@ -52,12 +53,14 @@ import (
 	lintFitnessProductWiring "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/product_wiring"
 	lintFitnessRequireAPIDir "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/require_api_dir"
 	lintFitnessRequireFrameworkNaming "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/require_framework_naming"
+	lintFitnessSecretNaming "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/secret_naming"
 	lintFitnessServiceContractCompliance "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/service_contract_compliance"
 	lintFitnessServiceStructure "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/service_structure"
 	lintFitnessStandaloneConfigOTLPNames "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/standalone_config_otlp_names"
 	lintFitnessStandaloneConfigPresence "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/standalone_config_presence"
 	lintFitnessTestPatterns "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/test_patterns"
 	lintFitnessTLSMinimumVersion "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/tls_minimum_version"
+	lintFitnessUnsealSecretContent "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/unseal_secret_content"
 )
 
 // LinterFunc is a function type for individual architecture fitness linters.
@@ -132,6 +135,10 @@ var registeredLinters = []struct {
 	{"configs-deployments-consistency", lintFitnessConfigsDeploymentsConsistency.Check},
 	{"configs-empty-dir", lintFitnessConfigsEmptyDir.Check},
 	{"configs-naming", lintFitnessConfigsNaming.Check},
+	// New fitness checks (added in Phase 8 of framework-v6).
+	{"dockerfile-labels", lintFitnessDockerfileLabels.Check},
+	{"secret-naming", lintFitnessSecretNaming.Check},
+	{"unseal-secret-content", lintFitnessUnsealSecretContent.Check},
 }
 
 // Lint runs all registered architecture fitness linters.

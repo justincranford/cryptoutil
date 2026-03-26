@@ -106,8 +106,8 @@ ARG VCS_REF
 ARG BUILD_DATE
 
 # OCI Image spec labels.
-LABEL org.opencontainers.image.title="JOSE Authority Server" \
-    org.opencontainers.image.description="Standalone REST API for JOSE operations" \
+LABEL org.opencontainers.image.title="cryptoutil-jose-ja" \
+    org.opencontainers.image.description="JOSE JWK Authority REST API Server" \
     org.opencontainers.image.version="${APP_VERSION}" \
     org.opencontainers.image.revision="${VCS_REF}" \
     org.opencontainers.image.created="${BUILD_DATE}" \
