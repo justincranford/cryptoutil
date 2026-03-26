@@ -106,8 +106,8 @@ ARG VCS_REF
 ARG BUILD_DATE
 
 # OCI Image spec labels.
-LABEL org.opencontainers.image.title="CA Server" \
-    org.opencontainers.image.description="Certificate Authority REST API Server" \
+LABEL org.opencontainers.image.title="CryptoUtil Suite" \
+    org.opencontainers.image.description="CryptoUtil Suite Server" \
     org.opencontainers.image.version="${APP_VERSION}" \
     org.opencontainers.image.revision="${VCS_REF}" \
     org.opencontainers.image.created="${BUILD_DATE}" \
@@ -118,7 +118,7 @@ LABEL org.opencontainers.image.title="CA Server" \
 # Create non-root user for security.
 # hadolint ignore=DL3018
 RUN apk --no-cache add ca-certificates && \
-    adduser -D -H -u 65532 -s /sbin/nologin ca
+    adduser -D -H -u 65532 -s /sbin/nologin cryptoutil
 
 # Copy build artifacts.
 COPY --from=validation /app/.build-params /app/.build-params
@@ -126,15 +126,15 @@ COPY --from=builder --chown=65532:65532 /app/cryptoutil /app/cryptoutil
 COPY --from=builder --chown=65532:65532 /app/run /app/run
 
 # Create directories for config, data, and secrets.
-RUN mkdir -p /etc/ca /app/data /run/secrets && \
-    chown -R 65532:65532 /etc/ca /app/data /run/secrets
+RUN mkdir -p /etc/cryptoutil /app/data /run/secrets && \
+    chown -R 65532:65532 /etc/cryptoutil /app/data /run/secrets
 
 # Set working directory and default user.
 WORKDIR /app
-USER ca
+USER cryptoutil
 
 # Expose ports.
-EXPOSE 9093 9093
+EXPOSE 8080 9090
 
 # Healthcheck using wget (available in Alpine).
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
@@ -142,4 +142,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
 
 # Default entrypoint.
 ENTRYPOINT ["/app/cryptoutil"]
-CMD ["server", "--config=/etc/cryptoutil/ca.yml"]
+CMD ["server", "--config=/etc/cryptoutil/cryptoutil.yml"]

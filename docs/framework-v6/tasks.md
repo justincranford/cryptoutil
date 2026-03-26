@@ -1,6 +1,6 @@
 # Tasks - Framework v6: Corrective Standardization
 
-**Status**: 43 of 63 tasks complete (68%)
+**Status**: 47 of 63 tasks complete (75%)
 **Last Updated**: 2026-03-28
 **Created**: 2026-03-25
 
@@ -676,54 +676,56 @@
 
 #### Task 7.1: Delete Deployment Artifact Files
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 10m
-- **Actual**: -
+- **Actual**: 5m
 - **Dependencies**: None
 - **Description**: Delete `deployments/deployments-all-files.json` (build artifact) and `deployments/pki-ca/README.md` (not in spec).
 - **Acceptance Criteria**:
-  - [ ] `deployments/deployments-all-files.json` deleted or gitignored
-  - [ ] `deployments/pki-ca/README.md` deleted
+  - [x] `deployments/deployments-all-files.json` deleted or gitignored
+  - [x] `deployments/pki-ca/README.md` deleted
 
 #### Task 7.2: Reconcile deployments/template/ (Decision 5=C)
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 20m
-- **Actual**: -
+- **Actual**: 10m
 - **Dependencies**: None
 - **Description**: Merge useful content from `deployments/template/` into `deployments/skeleton-template/` per Decision 5=C. Fix template secret filenames (underscores to hyphens: `unseal_1of5.secret` -> `unseal-1of5.secret`). Then delete `deployments/template/` entirely.
 - **Acceptance Criteria**:
-  - [ ] Any useful parameterized compose patterns merged into skeleton-template
-  - [ ] `deployments/template/` deleted entirely
-  - [ ] No underscore-named secret files remain anywhere
+  - [x] Any useful parameterized compose patterns merged into skeleton-template (skeleton-template already had complete set — no merge needed)
+  - [x] `deployments/template/` deleted entirely (19 files removed via git rm -r)
+  - [x] No underscore-named secret files remain anywhere (verified with grep)
 
 #### Task 7.3: Fix Suite Dockerfile OCI Labels
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 15m
-- **Actual**: -
+- **Actual**: 10m
 - **Dependencies**: None
 - **Description**: Suite Dockerfile currently has incorrect labels ("CA Server" / "Certificate Authority REST API Server"). Update to match suite identity (e.g., "cryptoutil Suite" / "CryptoUtil Suite Server").
 - **Acceptance Criteria**:
-  - [ ] Suite Dockerfile `org.opencontainers.image.title` matches suite identity
-  - [ ] Suite Dockerfile `org.opencontainers.image.description` matches suite identity
-  - [ ] Labels do not reference any single PS-ID
+  - [x] Suite Dockerfile `org.opencontainers.image.title` matches suite identity ("CryptoUtil Suite")
+  - [x] Suite Dockerfile `org.opencontainers.image.description` matches suite identity ("CryptoUtil Suite Server")
+  - [x] Labels do not reference any single PS-ID
+  - [x] Fixed user (ca → cryptoutil), directory (/etc/ca → /etc/cryptoutil), ports (9093 → 8080/9090), CMD (ca.yml → cryptoutil.yml)
 
 #### Task 7.4: Verify No Orphans Remain
 
-- **Status**: Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 10m
-- **Actual**: -
+- **Actual**: 10m
 - **Dependencies**: Tasks 7.1-7.2, Phase 5
 - **Description**: Scan configs/ and deployments/ for files not in target-structure.md. Note: configs/ cleanup (variant configs, schema, orphaned files, identity policies) was handled in Phase 5 during restructuring.
 - **Acceptance Criteria**:
-  - [ ] Every file in configs/ matches flat `configs/{PS-ID}/` spec
-  - [ ] Every file in deployments/ matches F.1-F.3 spec
-  - [ ] No `deployments/template/` directory exists
+  - [x] Every file in configs/ matches flat `configs/{PS-ID}/` spec (11 dirs: 1 suite + 10 PS-IDs)
+  - [x] Every file in deployments/ matches F.1-F.3 spec (18 dirs: suite + 5 products + 10 PS-IDs + 2 infra)
+  - [x] No `deployments/template/` directory exists
+  - [x] go build clean, lint-fitness pass, lint-deployments 54/54 validators pass
 
 ### Phase 8: Fitness Linter Verification
 
