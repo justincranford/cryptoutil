@@ -37,7 +37,7 @@ Options:
 
 Examples:
   identity authz server
-  identity authz server --config configs/identity/authz/config.yml`
+  identity authz server --config configs/identity-authz/identity-authz.yml`
 
 	// AUTHZUsageClient is the usage message for the client subcommand.
 	AUTHZUsageClient = `Usage: identity authz client [options]
@@ -63,7 +63,7 @@ Options:
 
 Examples:
   identity authz init
-  identity authz init --config configs/identity/authz/config.yml`
+  identity authz init --config configs/identity-authz/identity-authz.yml`
 
 	// AUTHZUsageHealth is the usage message for the health subcommand.
 	AUTHZUsageHealth = `Usage: identity authz health [options]

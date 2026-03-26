@@ -128,9 +128,10 @@ func runKebabCaseValidation(configsDir string, result *AllValidationResult) {
 // serviceFrameworkSuffixes lists the file suffixes that identify service
 // framework config files when combined with a PS-ID prefix.
 var serviceFrameworkSuffixes = []string{
-	"-sqlite.yml",
-	"-pg-1.yml",
-	"-pg-2.yml",
+	"-app-common.yml",
+	"-app-sqlite-1.yml",
+	"-app-postgresql-1.yml",
+	"-app-postgresql-2.yml",
 }
 
 // isServiceFrameworkConfig returns true if the file matches the service template
@@ -139,7 +140,7 @@ var serviceFrameworkSuffixes = []string{
 //
 // Recognized patterns:
 //   - config-*.yml / config-*.yaml (legacy generic prefix)
-//   - {product}-{service}-{suffix} (PS-ID-prefixed, e.g., sm-kms-sqlite.yml)
+//   - {PS-ID}-app-{variant}.yml (PS-ID-prefixed, e.g., sm-kms-app-sqlite-1.yml)
 //
 // Excluded patterns:
 //   - *-config-schema.* (CA definition, nested YAML)
@@ -164,11 +165,14 @@ func isServiceFrameworkConfig(path string) bool {
 		return true
 	}
 
-	// PS-ID-prefixed: derive PS-ID from path configs/{product}/{service}/{ps-id}-{suffix}.
+	// PS-ID-prefixed: derive PS-ID from parent directory configs/{PS-ID}/ or deployments/{PS-ID}/config/.
 	dir := filepath.Dir(path)
-	service := filepath.Base(dir)
-	product := filepath.Base(filepath.Dir(dir))
-	psIDPrefix := product + "-" + service
+	psIDPrefix := filepath.Base(dir)
+
+	// If the parent is "config", use the grandparent (deployments/{PS-ID}/config/).
+	if psIDPrefix == "config" {
+		psIDPrefix = filepath.Base(filepath.Dir(dir))
+	}
 
 	for _, suffix := range serviceFrameworkSuffixes {
 		if base == psIDPrefix+suffix {

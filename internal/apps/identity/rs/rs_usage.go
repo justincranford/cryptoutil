@@ -37,7 +37,7 @@ Options:
 
 Examples:
   identity rs server
-  identity rs server --config configs/identity/rs/config.yml`
+  identity rs server --config configs/identity-rs/identity-rs.yml`
 
 	// RSUsageClient is the usage message for the client subcommand.
 	RSUsageClient = `Usage: identity rs client [options]
@@ -63,7 +63,7 @@ Options:
 
 Examples:
   identity rs init
-  identity rs init --config configs/identity/rs/config.yml`
+  identity rs init --config configs/identity-rs/identity-rs.yml`
 
 	// RSUsageHealth is the usage message for the health subcommand.
 	RSUsageHealth = `Usage: identity rs health [options]

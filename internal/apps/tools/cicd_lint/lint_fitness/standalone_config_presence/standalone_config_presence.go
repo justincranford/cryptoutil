@@ -1,13 +1,14 @@
 // Copyright (c) 2025 Justin Cranford
 
 // Package standalone_config_presence validates that each product-service in the
-// standalone config allowlist has all three required config files present under
-// configs/{PRODUCT}/{SERVICE}/.
+// standalone config allowlist has all required config files present under
+// deployments/{PS-ID}/config/.
 //
 // Required files per allowlist PS (PS-ID-prefixed):
-//   - {PS-ID}-sqlite.yml
-//   - {PS-ID}-pg-1.yml
-//   - {PS-ID}-pg-2.yml
+//   - {PS-ID}-app-common.yml
+//   - {PS-ID}-app-sqlite-1.yml
+//   - {PS-ID}-app-postgresql-1.yml
+//   - {PS-ID}-app-postgresql-2.yml
 //
 // Only sm-im and sm-kms are in the allowlist.
 // Other product-services do not use the standardized standalone config layout.
@@ -26,12 +27,13 @@ import (
 
 // configFileSuffixes lists the suffixes appended to the PS-ID to form the required config filenames.
 var configFileSuffixes = []string{
-	"-sqlite.yml",
-	"-pg-1.yml",
-	"-pg-2.yml",
+	"-app-common.yml",
+	"-app-sqlite-1.yml",
+	"-app-postgresql-1.yml",
+	"-app-postgresql-2.yml",
 }
 
-// configAllowlist is the set of PS IDs that must have the three required config files.
+// configAllowlist is the set of PS IDs that must have the required config files.
 var configAllowlist = map[string]bool{
 	cryptoutilSharedMagic.OTLPServiceSMIM:  true,
 	cryptoutilSharedMagic.OTLPServiceSMKMS: true,
@@ -68,10 +70,10 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 // checkConfigPresence verifies that each required config file exists for ps.
 func checkConfigPresence(rootDir string, ps lintFitnessRegistry.ProductService) []string {
-	configDir := filepath.Join(rootDir, cryptoutilSharedMagic.CICDConfigsDir, ps.Product, ps.Service)
+	configDir := filepath.Join(rootDir, "deployments", ps.PSID, "config")
 
 	if _, err := os.Stat(configDir); os.IsNotExist(err) {
-		return []string{fmt.Sprintf("%s: configs/%s/%s/ directory does not exist", ps.PSID, ps.Product, ps.Service)}
+		return []string{fmt.Sprintf("%s: deployments/%s/config/ directory does not exist", ps.PSID, ps.PSID)}
 	}
 
 	var violations []string
@@ -81,7 +83,7 @@ func checkConfigPresence(rootDir string, ps lintFitnessRegistry.ProductService) 
 
 		configPath := filepath.Join(configDir, filename)
 		if _, err := os.Stat(configPath); os.IsNotExist(err) {
-			violations = append(violations, fmt.Sprintf("%s: configs/%s/%s/%s: file does not exist", ps.PSID, ps.Product, ps.Service, filename))
+			violations = append(violations, fmt.Sprintf("%s: deployments/%s/config/%s: file does not exist", ps.PSID, ps.PSID, filename))
 		}
 	}
 

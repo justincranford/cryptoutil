@@ -37,7 +37,7 @@ Options:
 
 Examples:
   identity rp server
-  identity rp server --config configs/identity/rp/config.yml`
+  identity rp server --config configs/identity-rp/identity-rp.yml`
 
 	// RPUsageClient is the usage message for the client subcommand.
 	RPUsageClient = `Usage: identity rp client [options]
@@ -63,7 +63,7 @@ Options:
 
 Examples:
   identity rp init
-  identity rp init --config configs/identity/rp/config.yml`
+  identity rp init --config configs/identity-rp/identity-rp.yml`
 
 	// RPUsageHealth is the usage message for the health subcommand.
 	RPUsageHealth = `Usage: identity rp health [options]

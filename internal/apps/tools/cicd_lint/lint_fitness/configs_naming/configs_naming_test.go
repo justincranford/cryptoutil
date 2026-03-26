@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	lintFitnessConfigsNaming "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/configs_naming"
+	lintFitnessRegistry "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/registry"
 )
 
 func newTestLogger() *cryptoutilCmdCicdCommon.Logger {
@@ -45,14 +46,9 @@ func setupConfigsDir(t *testing.T, tmpDir string) {
 	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir), cryptoutilSharedMagic.DirPermissions))
 }
 
-func createProductDir(t *testing.T, tmpDir, product string) {
+func createPSIDDir(t *testing.T, tmpDir, psID string) {
 	t.Helper()
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, product), cryptoutilSharedMagic.DirPermissions))
-}
-
-func createServiceDir(t *testing.T, tmpDir, product, service string) {
-	t.Helper()
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, product, service), cryptoutilSharedMagic.DirPermissions))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, psID), cryptoutilSharedMagic.DirPermissions))
 }
 
 func writeConfigFile(t *testing.T, tmpDir string, relPath string, content string) {
@@ -96,21 +92,15 @@ func TestFindViolationsInDir_ValidSuiteDir(t *testing.T) {
 	assert.Empty(t, violations)
 }
 
-// TestFindViolationsInDir_ValidProductDirs verifies all 5 product dirs are allowed.
-func TestFindViolationsInDir_ValidProductDirs(t *testing.T) {
+// TestFindViolationsInDir_ValidPSIDDirs verifies all 10 PS-ID dirs are allowed.
+func TestFindViolationsInDir_ValidPSIDDirs(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
 	setupConfigsDir(t, tmpDir)
 
-	for _, product := range []string{
-		cryptoutilSharedMagic.IdentityProductName,
-		cryptoutilSharedMagic.JoseProductName,
-		cryptoutilSharedMagic.PKIProductName,
-		cryptoutilSharedMagic.SkeletonProductName,
-		cryptoutilSharedMagic.SMProductName,
-	} {
-		createProductDir(t, tmpDir, product)
+	for _, ps := range lintFitnessRegistry.AllProductServices() {
+		createPSIDDir(t, tmpDir, ps.PSID)
 	}
 
 	violations, err := lintFitnessConfigsNaming.FindViolationsInDir(tmpDir)
@@ -130,7 +120,7 @@ func TestFindViolationsInDir_UnknownTopLevelDir(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, violations, 1)
 	assert.Contains(t, violations[0], "configs/legacy")
-	assert.Contains(t, violations[0], "unknown product or suite directory")
+	assert.Contains(t, violations[0], "unknown directory")
 }
 
 // TestFindViolationsInDir_UnknownTopLevelDir_Multiple verifies multiple unknown dirs are all reported.
@@ -147,68 +137,14 @@ func TestFindViolationsInDir_UnknownTopLevelDir_Multiple(t *testing.T) {
 	require.Len(t, violations, 2)
 }
 
-// TestFindViolationsInDir_ValidServiceDirs verifies known service dirs are allowed.
-func TestFindViolationsInDir_ValidServiceDirs(t *testing.T) {
+// TestFindViolationsInDir_PSIDWithSubdirs verifies subdirectories within PS-ID dirs are allowed.
+func TestFindViolationsInDir_PSIDWithSubdirs(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
 
-	createServiceDir(t, tmpDir, cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.IMServiceName)
-	createServiceDir(t, tmpDir, cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.KMSServiceName)
-
-	violations, err := lintFitnessConfigsNaming.FindViolationsInDir(tmpDir)
-	require.NoError(t, err)
-	assert.Empty(t, violations)
-}
-
-// TestFindViolationsInDir_UnknownServiceDir_WithPSIDFiles verifies violation for misnamed service dir with PS-ID files.
-func TestFindViolationsInDir_UnknownServiceDir_WithPSIDFiles(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-
-	writeConfigFile(t, tmpDir, filepath.Join(cryptoutilSharedMagic.CICDConfigsDir, cryptoutilSharedMagic.SMProductName, "unknown", cryptoutilSharedMagic.SMProductName+"-unknown-sqlite.yml"), "# wrong service\n")
-
-	violations, err := lintFitnessConfigsNaming.FindViolationsInDir(tmpDir)
-	require.NoError(t, err)
-	require.Len(t, violations, 1)
-	assert.Contains(t, violations[0], "configs/"+cryptoutilSharedMagic.SMProductName+"/unknown")
-	assert.Contains(t, violations[0], "unknown service directory")
-}
-
-// TestFindViolationsInDir_ProductLevelSpecialDir verifies product-level special dirs with non-PS-ID files are allowed.
-func TestFindViolationsInDir_ProductLevelSpecialDir(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-
-	writeConfigFile(t, tmpDir, filepath.Join(cryptoutilSharedMagic.CICDConfigsDir, cryptoutilSharedMagic.IdentityProductName, "policies", "adaptive-auth.yml"), "# policy\n")
-
-	violations, err := lintFitnessConfigsNaming.FindViolationsInDir(tmpDir)
-	require.NoError(t, err)
-	assert.Empty(t, violations)
-}
-
-// TestFindViolationsInDir_ProductLevelFilesAllowed verifies files directly in product dir are allowed.
-func TestFindViolationsInDir_ProductLevelFilesAllowed(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-
-	writeConfigFile(t, tmpDir, filepath.Join(cryptoutilSharedMagic.CICDConfigsDir, cryptoutilSharedMagic.SkeletonProductName, "skeleton-server.yml"), "# skeleton\n")
-
-	violations, err := lintFitnessConfigsNaming.FindViolationsInDir(tmpDir)
-	require.NoError(t, err)
-	assert.Empty(t, violations)
-}
-
-// TestFindViolationsInDir_UnknownServiceDir_NoProductFiles verifies product-level unknown dirs without PS-ID files are allowed.
-func TestFindViolationsInDir_UnknownServiceDir_NoProductFiles(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, cryptoutilSharedMagic.IdentityProductName, "policies"), cryptoutilSharedMagic.DirPermissions))
+	// Create pki-ca with profiles/ subdirectory.
+	writeConfigFile(t, tmpDir, filepath.Join(cryptoutilSharedMagic.CICDConfigsDir, cryptoutilSharedMagic.OTLPServicePKICA, "profiles", "root-ca.yml"), "# profile\n")
 
 	violations, err := lintFitnessConfigsNaming.FindViolationsInDir(tmpDir)
 	require.NoError(t, err)
@@ -228,13 +164,31 @@ func TestFindViolationsInDir_FilesInConfigsRootIgnored(t *testing.T) {
 	assert.Empty(t, violations)
 }
 
+// TestFindViolationsInDir_OldProductDirsAreViolations verifies old product-level dirs (e.g. sm/, jose/) are violations.
+func TestFindViolationsInDir_OldProductDirsAreViolations(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	setupConfigsDir(t, tmpDir)
+
+	// Old nested product dirs should now be violations.
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, "sm"), cryptoutilSharedMagic.DirPermissions))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, cryptoutilSharedMagic.JoseProductName), cryptoutilSharedMagic.DirPermissions))
+
+	violations, err := lintFitnessConfigsNaming.FindViolationsInDir(tmpDir)
+	require.NoError(t, err)
+	require.Len(t, violations, 2)
+}
+
 // TestCheckInDir_ValidStructure verifies CheckInDir passes on a valid structure.
 func TestCheckInDir_ValidStructure(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
 	setupConfigsDir(t, tmpDir)
-	createServiceDir(t, tmpDir, cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.KMSServiceName)
+
+	ps := lintFitnessRegistry.AllProductServices()[0]
+	createPSIDDir(t, tmpDir, ps.PSID)
 
 	err := lintFitnessConfigsNaming.CheckInDir(newTestLogger(), tmpDir)
 	require.NoError(t, err)

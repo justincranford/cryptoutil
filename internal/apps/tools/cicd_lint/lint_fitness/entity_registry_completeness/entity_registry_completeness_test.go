@@ -43,7 +43,7 @@ func setupAllComponents(t *testing.T, tmpDir string) {
 		deploymentsDir := filepath.Join(tmpDir, "deployments", ps.PSID)
 		require.NoError(t, os.MkdirAll(deploymentsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
-		configsDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, ps.Product, ps.Service)
+		configsDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, ps.PSID)
 		require.NoError(t, os.MkdirAll(configsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 		magicDir := filepath.Join(tmpDir, "internal", "shared", "magic")
@@ -111,12 +111,11 @@ func TestCheckInDir_MissingConfigsDir(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name    string
-		product string
-		service string
+		name string
+		psID string
 	}{
-		{name: cryptoutilSharedMagic.OTLPServiceSMIM, product: cryptoutilSharedMagic.SMProductName, service: cryptoutilSharedMagic.IMServiceName},
-		{name: cryptoutilSharedMagic.OTLPServiceJoseJA, product: cryptoutilSharedMagic.JoseProductName, service: cryptoutilSharedMagic.JoseJAServiceName},
+		{name: cryptoutilSharedMagic.OTLPServiceSMIM, psID: cryptoutilSharedMagic.OTLPServiceSMIM},
+		{name: cryptoutilSharedMagic.OTLPServiceJoseJA, psID: cryptoutilSharedMagic.OTLPServiceJoseJA},
 	}
 
 	for _, tc := range tests {
@@ -126,7 +125,7 @@ func TestCheckInDir_MissingConfigsDir(t *testing.T) {
 			tmpDir := t.TempDir()
 			setupAllComponents(t, tmpDir)
 
-			configsDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, tc.product, tc.service)
+			configsDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, tc.psID)
 			require.NoError(t, os.RemoveAll(configsDir))
 
 			logger := cryptoutilCmdCicdCommon.NewLogger("test")

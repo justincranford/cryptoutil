@@ -149,13 +149,12 @@ func TestFindViolationsInDir_DirWithOnlySubdirs_IsNotViolation(t *testing.T) {
 	root := t.TempDir()
 	configsDir := filepath.Join(root, cryptoutilSharedMagic.CICDConfigsDir)
 	// configs/ itself only has subdirs, but one of those subdirs has a file
-	touch(t, filepath.Join(configsDir, "product", "service", "config.yml"))
+	touch(t, filepath.Join(configsDir, "ps-id", "config.yml"))
 
 	violations, err := lintFitnessConfigsEmptyDir.FindViolationsInDir(root)
 	require.NoError(t, err)
-	// configs/ has child "product/" → not empty
-	// configs/product/ has child "service/" → not empty
-	// configs/product/service/ has child "config.yml" → not empty
+	// configs/ has child "ps-id/" → not empty
+	// configs/ps-id/ has child "config.yml" → not empty
 	require.Empty(t, violations)
 }
 
@@ -163,7 +162,7 @@ func TestCheckInDir_ValidStructure(t *testing.T) {
 	t.Parallel()
 
 	root := t.TempDir()
-	touch(t, filepath.Join(root, cryptoutilSharedMagic.CICDConfigsDir, "product", "service", "ps-id-main.yml"))
+	touch(t, filepath.Join(root, cryptoutilSharedMagic.CICDConfigsDir, "ps-id", "ps-id-main.yml"))
 
 	logger := newTestLogger()
 	err := lintFitnessConfigsEmptyDir.CheckInDir(logger, root)

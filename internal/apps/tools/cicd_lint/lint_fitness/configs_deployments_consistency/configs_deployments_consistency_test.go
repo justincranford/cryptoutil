@@ -31,14 +31,11 @@ func setupDeployments(t *testing.T, tmpDir string, psIDs ...string) {
 	}
 }
 
-func setupConfigs(t *testing.T, tmpDir string, productServicePairs ...string) {
+func setupConfigs(t *testing.T, tmpDir string, psIDs ...string) {
 	t.Helper()
 
-	for i := 0; i < len(productServicePairs); i += 2 {
-		product := productServicePairs[i]
-		service := productServicePairs[i+1]
-
-		configsDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, product, service)
+	for _, psID := range psIDs {
+		configsDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, psID)
 		require.NoError(t, os.MkdirAll(configsDir, cryptoutilSharedMagic.CICDTempDirPermissions))
 	}
 }
@@ -107,7 +104,7 @@ func TestFindViolationsInDir_MatchingConfigExists(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	setupDeployments(t, tmpDir, ps.PSID)
-	setupConfigs(t, tmpDir, ps.Product, ps.Service)
+	setupConfigs(t, tmpDir, ps.PSID)
 
 	violations, err := lintFitnessConfigsDeploymentsConsistency.FindViolationsInDir(tmpDir)
 	require.NoError(t, err)
@@ -138,15 +135,12 @@ func TestFindViolationsInDir_AllRegisteredPSIDs(t *testing.T) {
 
 	var psIDs []string
 
-	var productServicePairs []string
-
 	for _, ps := range lintFitnessRegistry.AllProductServices() {
 		psIDs = append(psIDs, ps.PSID)
-		productServicePairs = append(productServicePairs, ps.Product, ps.Service)
 	}
 
 	setupDeployments(t, tmpDir, psIDs...)
-	setupConfigs(t, tmpDir, productServicePairs...)
+	setupConfigs(t, tmpDir, psIDs...)
 
 	violations, err := lintFitnessConfigsDeploymentsConsistency.FindViolationsInDir(tmpDir)
 	require.NoError(t, err)
@@ -189,7 +183,7 @@ func TestCheckInDir_ValidStructure(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	setupDeployments(t, tmpDir, ps.PSID)
-	setupConfigs(t, tmpDir, ps.Product, ps.Service)
+	setupConfigs(t, tmpDir, ps.PSID)
 
 	err := lintFitnessConfigsDeploymentsConsistency.CheckInDir(newTestLogger(), tmpDir)
 	require.NoError(t, err)

@@ -1,13 +1,14 @@
 // Copyright (c) 2025 Justin Cranford
 
 // Package standalone_config_otlp_names validates that the otlp-service value in
-// each standalone config file matches the canonical naming convention.
+// each deployment config file matches the canonical naming convention.
 //
 // For each product-service in the allowlist (sm-im, sm-kms), each required
-// config file must have an otlp-service value following the pattern:
-//   - {PS-ID}-sqlite.yml  -> {PS-ID}-sqlite-1
-//   - {PS-ID}-pg-1.yml    -> {PS-ID}-postgres-1
-//   - {PS-ID}-pg-2.yml    -> {PS-ID}-postgres-2
+// config file under deployments/{PS-ID}/config/ must have an otlp-service value
+// following the pattern:
+//   - {PS-ID}-app-sqlite-1.yml       -> {PS-ID}-sqlite-1
+//   - {PS-ID}-app-postgresql-1.yml   -> {PS-ID}-postgres-1
+//   - {PS-ID}-app-postgresql-2.yml   -> {PS-ID}-postgres-2
 //
 // Only sm-im and sm-kms are in the allowlist.
 // The check is registry-driven: it uses the canonical PS registry to determine
@@ -37,9 +38,9 @@ type configRule struct {
 
 // otlpConfigRules lists the required config file suffixes and their expected otlp-service suffix.
 var otlpConfigRules = []configRule{
-	{filenameSuffix: "-sqlite.yml", expectedOTLPSuffix: "-sqlite-1"},
-	{filenameSuffix: "-pg-1.yml", expectedOTLPSuffix: "-postgres-1"},
-	{filenameSuffix: "-pg-2.yml", expectedOTLPSuffix: "-postgres-2"},
+	{filenameSuffix: "-app-sqlite-1.yml", expectedOTLPSuffix: "-sqlite-1"},
+	{filenameSuffix: "-app-postgresql-1.yml", expectedOTLPSuffix: "-postgres-1"},
+	{filenameSuffix: "-app-postgresql-2.yml", expectedOTLPSuffix: "-postgres-2"},
 }
 
 // configAllowlist is the set of PS IDs whose standalone configs are validated.
@@ -79,7 +80,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 // checkOTLPNames validates the otlp-service values in each required config file for ps.
 func checkOTLPNames(rootDir string, ps lintFitnessRegistry.ProductService) []string {
-	configDir := filepath.Join(rootDir, cryptoutilSharedMagic.CICDConfigsDir, ps.Product, ps.Service)
+	configDir := filepath.Join(rootDir, "deployments", ps.PSID, "config")
 
 	var violations []string
 

@@ -77,7 +77,7 @@ func TestMainValidateMirror(t *testing.T) {
 				deploymentsDir := filepath.Join(tmpDir, "deployments")
 				configsDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir)
 				require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServiceJoseJA), dirPermissions))
-				require.NoError(t, os.MkdirAll(filepath.Join(configsDir, cryptoutilSharedMagic.JoseProductName), dirPermissions))
+				require.NoError(t, os.MkdirAll(filepath.Join(configsDir, cryptoutilSharedMagic.OTLPServiceJoseJA), dirPermissions))
 
 				return deploymentsDir, configsDir
 			},
@@ -230,7 +230,7 @@ func TestMainSubcommandRouting(t *testing.T) {
 				deploymentsDir := filepath.Join(tmpDir, "deployments")
 				configsDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir)
 				require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, cryptoutilSharedMagic.OTLPServiceJoseJA), dirPermissions))
-				require.NoError(t, os.MkdirAll(filepath.Join(configsDir, cryptoutilSharedMagic.JoseProductName), dirPermissions))
+				require.NoError(t, os.MkdirAll(filepath.Join(configsDir, cryptoutilSharedMagic.OTLPServiceJoseJA), dirPermissions))
 
 				return []string{"validate-mirror", deploymentsDir, configsDir}
 			},

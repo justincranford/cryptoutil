@@ -38,7 +38,7 @@ Options:
 
 Examples:
   pki ca server
-  pki ca server --config configs/pki/ca/config.yml
+  pki ca server --config configs/pki-ca/pki-ca.yml
   pki ca server --dev`
 
 	// CAUsageClient is the usage message for the client subcommand.
@@ -65,7 +65,7 @@ Options:
 
 Examples:
   pki ca init
-  pki ca init --config configs/pki/ca/config.yml`
+  pki ca init --config configs/pki-ca/pki-ca.yml`
 
 	// CAUsageHealth is the usage message for the health subcommand.
 	CAUsageHealth = `Usage: pki ca health [options]

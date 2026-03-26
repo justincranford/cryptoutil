@@ -3,7 +3,7 @@
 // Package entity_registry_completeness validates that every product-service in the
 // canonical entity registry has the required structural components on disk:
 //   - deployments/{PS-ID}/ directory
-//   - configs/{PRODUCT}/{SERVICE}/ directory
+//   - configs/{PS-ID}/ directory
 //   - internal/shared/magic/{MagicFile} file
 //
 // This check prevents structural drift: if a product-service is added to the registry
@@ -56,10 +56,10 @@ func checkProductService(rootDir string, ps lintFitnessRegistry.ProductService) 
 		violations = append(violations, fmt.Sprintf("%s: missing deployments/%s/ directory", ps.PSID, ps.PSID))
 	}
 
-	// 2. configs/{PRODUCT}/{SERVICE}/ directory.
-	configsDir := filepath.Join(rootDir, cryptoutilSharedMagic.CICDConfigsDir, ps.Product, ps.Service)
+	// 2. configs/{PS-ID}/ directory.
+	configsDir := filepath.Join(rootDir, cryptoutilSharedMagic.CICDConfigsDir, ps.PSID)
 	if _, err := os.Stat(configsDir); os.IsNotExist(err) {
-		violations = append(violations, fmt.Sprintf("%s: missing configs/%s/%s/ directory", ps.PSID, ps.Product, ps.Service))
+		violations = append(violations, fmt.Sprintf("%s: missing configs/%s/ directory", ps.PSID, ps.PSID))
 	}
 
 	// 3. internal/shared/magic/{MagicFile} file.

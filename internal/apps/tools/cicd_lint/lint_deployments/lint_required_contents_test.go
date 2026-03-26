@@ -24,11 +24,16 @@ func TestGetExpectedConfigsContents(t *testing.T) {
 	// Verify expected config directories exist.
 	expectedDirs := []string{
 		"cryptoutil/",
-		"identity/", "identity/authz", "identity/idp", "identity/rp", "identity/rs", "identity/spa", "identity/policies/", "identity/profiles/",
-		"jose/", "jose/ja/",
-		"pki/", "pki/ca/",
-		"sm/", "sm/im/", "sm/kms/",
-		"skeleton/", "skeleton/template/",
+		"identity-authz/", "identity-authz/domain/policies/",
+		"identity-idp/",
+		"identity-rp/",
+		"identity-rs/",
+		"identity-spa/",
+		"jose-ja/",
+		"pki-ca/", "pki-ca/profiles/",
+		"skeleton-template/",
+		"sm-im/",
+		"sm-kms/",
 	}
 
 	for _, dir := range expectedDirs {

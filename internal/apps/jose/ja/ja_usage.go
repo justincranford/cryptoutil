@@ -65,7 +65,7 @@ Options:
 
 Examples:
   jose ja init
-  jose ja init --config configs/jose/ja/config.yml`
+  jose ja init --config configs/jose-ja/jose-ja.yml`
 
 	// JAUsageHealth is the usage message for the health subcommand.
 	JAUsageHealth = `Usage: jose ja health [options]

@@ -1,8 +1,8 @@
 // Copyright (c) 2025 Justin Cranford
 
 // Package configs_deployments_consistency validates that every deployments/{PS-ID}/
-// directory has a matching configs/{PRODUCT}/{SERVICE}/ directory, using the entity
-// registry to map PS-ID to PRODUCT/SERVICE.
+// directory has a matching configs/{PS-ID}/ directory. PS-IDs are validated against
+// the entity registry.
 package configs_deployments_consistency
 
 import (
@@ -50,7 +50,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 }
 
 // FindViolationsInDir scans deployments/ under rootDir and verifies each PS-ID has
-// a matching configs/{PRODUCT}/{SERVICE}/ directory.
+// a matching configs/{PS-ID}/ directory.
 func FindViolationsInDir(rootDir string) ([]string, error) {
 	deploymentsDir := filepath.Join(rootDir, "deployments")
 
@@ -74,27 +74,26 @@ func FindViolationsInDir(rootDir string) ([]string, error) {
 
 		psID := entry.Name()
 
-		ps, ok := psMap[psID]
-		if !ok {
+		if _, ok := psMap[psID]; !ok {
 			continue // Not a registered PS-ID; other linters handle unknown dirs.
 		}
 
-		configsDir := filepath.Join(rootDir, cryptoutilSharedMagic.CICDConfigsDir, ps.Product, ps.Service)
+		configsDir := filepath.Join(rootDir, cryptoutilSharedMagic.CICDConfigsDir, psID)
 
 		if _, err := configsDeploymentsStatFn(configsDir); err != nil {
-			violations = append(violations, fmt.Sprintf("deployments/%s/ exists but configs/%s/%s/ is missing", psID, ps.Product, ps.Service))
+			violations = append(violations, fmt.Sprintf("deployments/%s/ exists but configs/%s/ is missing", psID, psID))
 		}
 	}
 
 	return violations, nil
 }
 
-// buildPSIDMap returns a map from PS-ID to ProductService.
-func buildPSIDMap() map[string]lintFitnessRegistry.ProductService {
-	result := make(map[string]lintFitnessRegistry.ProductService)
+// buildPSIDMap returns a set of all registered PS-IDs.
+func buildPSIDMap() map[string]bool {
+	result := make(map[string]bool)
 
 	for _, ps := range lintFitnessRegistry.AllProductServices() {
-		result[ps.PSID] = ps
+		result[ps.PSID] = true
 	}
 
 	return result

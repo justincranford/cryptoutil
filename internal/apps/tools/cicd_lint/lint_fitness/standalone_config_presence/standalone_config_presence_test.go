@@ -39,30 +39,22 @@ func findProjectRoot(t *testing.T) string {
 	}
 }
 
-// writeConfigFile creates a config YAML file under configs/{product}/{service}/.
-func writeConfigFile(t *testing.T, tmpDir, product, service, filename, content string) {
+// writeDeploymentConfigFile creates a config YAML file under deployments/{psID}/config/.
+func writeDeploymentConfigFile(t *testing.T, tmpDir, psID, filename, content string) {
 	t.Helper()
 
-	configDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, product, service)
+	configDir := filepath.Join(tmpDir, "deployments", psID, "config")
 	require.NoError(t, os.MkdirAll(configDir, cryptoutilSharedMagic.CICDTempDirPermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(configDir, filename), []byte(content), cryptoutilSharedMagic.CICDOutputFilePermissions))
 }
 
-// setupAllRequiredConfigs creates all three required config files for both allowlist PS.
+// setupAllRequiredConfigs creates all four required config files for both allowlist PS.
 func setupAllRequiredConfigs(t *testing.T, tmpDir string) {
 	t.Helper()
 
-	for _, product := range []string{cryptoutilSharedMagic.SMProductName} {
-		for _, svc := range []struct {
-			service string
-			psID    string
-		}{
-			{cryptoutilSharedMagic.IMServiceName, cryptoutilSharedMagic.OTLPServiceSMIM},
-			{cryptoutilSharedMagic.KMSServiceName, cryptoutilSharedMagic.OTLPServiceSMKMS},
-		} {
-			for _, suffix := range []string{"-sqlite.yml", "-pg-1.yml", "-pg-2.yml"} {
-				writeConfigFile(t, tmpDir, product, svc.service, svc.psID+suffix, "# placeholder\n")
-			}
+	for _, psID := range []string{cryptoutilSharedMagic.OTLPServiceSMIM, cryptoutilSharedMagic.OTLPServiceSMKMS} {
+		for _, suffix := range []string{"-app-common.yml", "-app-sqlite-1.yml", "-app-postgresql-1.yml", "-app-postgresql-2.yml"} {
+			writeDeploymentConfigFile(t, tmpDir, psID, psID+suffix, "# placeholder\n")
 		}
 	}
 }
@@ -92,26 +84,26 @@ func TestCheckInDir_MissingSQLiteConfig(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupAllRequiredConfigs(t, tmpDir)
 
-	require.NoError(t, os.Remove(filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.KMSServiceName, "sm-kms-sqlite.yml")))
+	require.NoError(t, os.Remove(filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS, "config", "sm-kms-app-sqlite-1.yml")))
 
 	err := lintFitnessStandaloneConfigPresence.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMKMS)
-	assert.Contains(t, err.Error(), "sm-kms-sqlite.yml")
+	assert.Contains(t, err.Error(), "sm-kms-app-sqlite-1.yml")
 }
 
-func TestCheckInDir_MissingPG1Config(t *testing.T) {
+func TestCheckInDir_MissingPostgresConfig(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
 	setupAllRequiredConfigs(t, tmpDir)
 
-	require.NoError(t, os.Remove(filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.IMServiceName, "sm-im-pg-1.yml")))
+	require.NoError(t, os.Remove(filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServiceSMIM, "config", "sm-im-app-postgresql-1.yml")))
 
 	err := lintFitnessStandaloneConfigPresence.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMIM)
-	assert.Contains(t, err.Error(), "sm-im-pg-1.yml")
+	assert.Contains(t, err.Error(), "sm-im-app-postgresql-1.yml")
 }
 
 func TestCheckInDir_MissingConfigDir(t *testing.T) {
@@ -120,8 +112,8 @@ func TestCheckInDir_MissingConfigDir(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupAllRequiredConfigs(t, tmpDir)
 
-	// Remove the entire sm-kms config directory.
-	require.NoError(t, os.RemoveAll(filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.KMSServiceName)))
+	// Remove the entire sm-kms deployment config directory.
+	require.NoError(t, os.RemoveAll(filepath.Join(tmpDir, "deployments", cryptoutilSharedMagic.OTLPServiceSMKMS, "config")))
 
 	err := lintFitnessStandaloneConfigPresence.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)

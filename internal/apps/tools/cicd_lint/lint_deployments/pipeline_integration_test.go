@@ -21,9 +21,9 @@ func TestIntegrationFullPipeline(t *testing.T) {
 	configsDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir)
 
 	// Create a realistic deployment structure.
-	// Note: mapDeploymentToConfig maps PRODUCT-SERVICE "jose-ja" -> PRODUCT "jose".
+	// Note: mapDeploymentToConfig maps 1:1 with flat configs/{PS-ID}/ layout.
 	deployName := cryptoutilSharedMagic.OTLPServiceJoseJA
-	configName := cryptoutilSharedMagic.JoseProductName
+	configName := cryptoutilSharedMagic.OTLPServiceJoseJA
 	svcDeployDir := filepath.Join(deploymentsDir, deployName)
 	svcConfigDir := filepath.Join(configsDir, configName)
 

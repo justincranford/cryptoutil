@@ -62,7 +62,7 @@ Options:
 
 Examples:
   learn im init
-  learn im init --config configs/sm/im/im.yml`
+  learn im init --config configs/sm-im/sm-im.yml`
 
 	// IMUsageHealth is the usage message for the health subcommand.
 	IMUsageHealth = `Usage: sm im health [options]

@@ -11,29 +11,23 @@ package lint_deployments
 func GetExpectedConfigsContents() map[string]string {
 	contents := make(map[string]string)
 
-	// Config directories (allowed but not strictly required at this time)
-	// Future: add more specific validation once config patterns stabilize
-	contents["cryptoutil/"] = OptionalFileStatus    // suite: cryptoutil
-	contents["identity/"] = OptionalFileStatus      // product: identity
-	contents["identity/authz"] = OptionalFileStatus // service: identity-authz
-	contents["identity/idp"] = OptionalFileStatus   // service: identity-idp
-	contents["identity/rp"] = OptionalFileStatus    // service: identity-rp
-	contents["identity/rs"] = OptionalFileStatus    // service: identity-rs
-	contents["identity/spa"] = OptionalFileStatus   // service: identity-spa
-	contents["identity/policies/"] = OptionalFileStatus
-	contents["identity/profiles/"] = OptionalFileStatus
-	contents["jose/"] = OptionalFileStatus              // product: jose
-	contents["jose/ja/"] = OptionalFileStatus           // service: jose-ja
-	contents["pki/"] = OptionalFileStatus               // product: pki
-	contents["pki/ca/"] = OptionalFileStatus            // service: pki-ca
-	contents["sm/"] = OptionalFileStatus                // product: sm
-	contents["sm/im/"] = OptionalFileStatus             // service: sm-im
-	contents["sm/kms/"] = OptionalFileStatus            // service: sm-kms
-	contents["skeleton/"] = OptionalFileStatus          // product: skeleton
-	contents["skeleton/template/"] = OptionalFileStatus // service: skeleton-template
+	// Config directories — flat configs/{PS-ID}/ layout (Decision 2=B).
+	// Suite config directory.
+	contents["cryptoutil/"] = OptionalFileStatus // suite: cryptoutil
 
-	// Future: add specific required files once config patterns are established
-	// For now, configs/ validation is minimal to allow experimentation
+	// Product-service config directories (flat, no product nesting).
+	contents["identity-authz/"] = OptionalFileStatus                    // PS-ID: identity-authz
+	contents["identity-authz/domain/policies/"] = OptionalFileStatus    // authz policies
+	contents["identity-idp/"] = OptionalFileStatus                      // PS-ID: identity-idp
+	contents["identity-rp/"] = OptionalFileStatus                       // PS-ID: identity-rp
+	contents["identity-rs/"] = OptionalFileStatus                       // PS-ID: identity-rs
+	contents["identity-spa/"] = OptionalFileStatus                      // PS-ID: identity-spa
+	contents["jose-ja/"] = OptionalFileStatus                           // PS-ID: jose-ja
+	contents["pki-ca/"] = OptionalFileStatus                            // PS-ID: pki-ca
+	contents["pki-ca/profiles/"] = OptionalFileStatus                   // certificate profiles
+	contents["skeleton-template/"] = OptionalFileStatus                 // PS-ID: skeleton-template
+	contents["sm-im/"] = OptionalFileStatus                             // PS-ID: sm-im
+	contents["sm-kms/"] = OptionalFileStatus                            // PS-ID: sm-kms
 
 	return contents
 }
