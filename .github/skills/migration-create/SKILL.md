@@ -32,7 +32,7 @@ paired up/down files, and proper SQL idioms.
 ## File Structure
 
 ```
-internal/apps/PRODUCT/SERVICE/repository/migrations/
+internal/apps/PS-ID/repository/migrations/
 ├── 2001_create_keys.up.sql
 ├── 2001_create_keys.down.sql
 ├── 2002_add_key_metadata.up.sql
@@ -76,7 +76,8 @@ builder.WithDomainMigrations(repository.MigrationsFS, "migrations")
 ## Config Schema Updates (if applicable)
 
 If the new domain table requires new service configuration keys, also update:
-- `configs/SERVICE/config-*.yml` — add the new keys with appropriate defaults
+- `configs/PS-ID/` — add the new keys with appropriate defaults
+- `deployments/PS-ID/config/{PS-ID}-app-*.yml` — update per-variant overrides if needed
 - `validate_schema.go` — update the hardcoded Go schema with the new key definitions
 
 Reference [docs/CONFIG-SCHEMA.md](../../../docs/CONFIG-SCHEMA.md) for flat kebab-case YAML key naming conventions.

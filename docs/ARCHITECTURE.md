@@ -2679,7 +2679,7 @@ Architecture fitness functions are automated checks that enforce ARCHITECTURE.md
 
 **Adding new fitness functions**: Use the `fitness-function-gen` Copilot skill — see `.github/skills/fitness-function-gen/SKILL.md`.
 
-#### 9.11.1 Fitness Sub-Linter Catalog (57 total)
+#### 9.11.1 Fitness Sub-Linter Catalog (55 total)
 
 | Sub-Linter | Rule Enforced |
 |-----------|--------------|
@@ -2700,8 +2700,6 @@ Architecture fitness functions are automated checks that enforce ARCHITECTURE.md
 | `configs-deployments-consistency` | Every `deployments/{PS-ID}/` must have matching `configs/{PS-ID}/` |
 | `configs-empty-dir` | `configs/` directories must not be empty (require `.gitkeep` or files) |
 | `configs-naming` | `configs/` directories must follow flat `configs/{PS-ID}/` pattern from entity registry |
-| `configs-no-deployment` | No deployment variants (`*-pg-*.yml`, `*-sqlite-*.yml`) or environment files (`development.yml`, `production.yml`, `test.yml`) in `configs/` |
-| `configs-structure` | `configs/` must follow flat `{SUITE}/`, `{PRODUCT}/`, `{PS-ID}/` hierarchy |
 | `cross-service-import-isolation` | Service packages must not import other service packages |
 | `crypto-rand` | Use `crypto/rand`, NEVER `math/rand` |
 | `deployment-dir-completeness` | Every PS must have Dockerfile, compose.yml, secrets/, and config/ |
@@ -4482,46 +4480,46 @@ deployments/{PS-ID}/config/         # e.g., {PS-ID}=sm-kms
 
 **Mapping Rules**:
 
-- `PRODUCT-SERVICE` (e.g., `jose-ja`) → product name (e.g., `jose`)
-- `PRODUCT` (e.g., `sm`) → same name
-- Explicit overrides: `pki`/`pki-ca` → `ca`, `sm`/`sm-kms` → `sm`
+- Identity mapping (1:1): deployment directory name = `configs/` directory name
+- Only exception: `cryptoutil-suite` → `cryptoutil`
 
 **Exclusions**: Infrastructure deployments (`shared-postgres`, `shared-telemetry`, `compose`, `template`)
 
-**Orphan Handling**: Orphaned `configs/` directories produce warnings (not errors). Archived orphans go to `configs/orphaned/`.
+**Orphan Handling**: Orphaned `configs/` directories produce warnings (not errors). No archive directory — git history preserves all deleted files (see Section 13.9).
 
 **CLI Usage**: `cicd lint-deployments validate-mirror [deployments-dir configs-dir]`
 
 #### 12.4.11 Validation Pipeline Architecture
 
-**Execution Model**: All 7 validators run sequentially with aggregated error reporting. Each validator produces a `ValidationResult` with pass/fail status, error list, and timing metrics. The `validate-all` orchestrator collects all results and prints a unified summary.
+**Execution Model**: All 8 validators run sequentially with aggregated error reporting. Each validator produces a `ValidationResult` with pass/fail status, error list, and timing metrics. The `validate-all` orchestrator collects all results and prints a unified summary.
 
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                  validate-all orchestrator               │
 │                                                         │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌─────────┐ │
-│  │ naming   │→ │kebab-case│→ │  schema  │→ │  ports  │ │
-│  └──────────┘  └──────────┘  └──────────┘  └─────────┘ │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐              │
-│  │telemetry │→ │  admin   │→ │ secrets  │              │
-│  └──────────┘  └──────────┘  └──────────┘              │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐ │
+│  │ naming   │→ │kebab-case│→ │  schema  │→ │ template │ │
+│  └──────────┘  └──────────┘  └──────────┘  └──────────┘ │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐ │
+│  │  ports   │→ │telemetry │→ │  admin   │→ │ secrets  │ │
+│  └──────────┘  └──────────┘  └──────────┘  └──────────┘ │
 │                                                         │
 │  Result: N passed / M failed (Xms)                      │
 └─────────────────────────────────────────────────────────┘
 ```
 
-**7-Validator Reference**:
+**8-Validator Reference**:
 
 | # | Validator | Scope | Purpose | Key Rules |
 |---|-----------|-------|---------|-----------|
 | 1 | **ValidateNaming** | `deployments/`, `configs/` | Enforce kebab-case directory and file naming | All directories/files must be lowercase kebab-case. |
 | 2 | **ValidateKebabCase** | `configs/` YAML files | Enforce kebab-case in YAML keys and compose service names | Top-level YAML keys must use kebab-case; `x-` extension keys and `services` map entries validated. |
 | 3 | **ValidateSchema** | `configs/` `config-*.yml` files | Validate service template config files against hardcoded schema | Required keys (`bind-public-protocol`, `bind-public-address`, `bind-public-port`, etc.); protocol must be `https`; addresses must be valid IP/hostname. |
-| 4 | **ValidatePorts** | `deployments/` compose files | Validate port assignments per deployment type | SERVICE: 8000-8999, PRODUCT: 18000-18999, SUITE: 28000-28999; admin always 9090; no port conflicts. |
-| 5 | **ValidateTelemetry** | `configs/` YAML files | Validate OTLP endpoint consistency | OTLP endpoint required in service configs; hostname:port format (no protocol prefix); consistent collector naming. |
-| 6 | **ValidateAdmin** | `deployments/` compose files | Validate admin endpoint bind policy | Admin port must bind to `127.0.0.1:9090` (never `0.0.0.0`); ensures admin API never exposed outside container. |
-| 7 | **ValidateSecrets** | `deployments/` compose files | Detect inline secrets in environment variables | Secret-pattern env vars (PASSWORD, SECRET, TOKEN, KEY, API_KEY) must use Docker secrets (`/run/secrets/`); length threshold ≥32/43 chars for non-reference values. Infrastructure deployments excluded. |
+| 4 | **ValidateTemplatePattern** | `deployments/template/` | Validate skeleton-template structure, naming, and placeholder values | Required files present, config files use placeholder names, secret files use hyphenated names. |
+| 5 | **ValidatePorts** | `deployments/` compose files | Validate port assignments per deployment type | SERVICE: 8000-8999, PRODUCT: 18000-18999, SUITE: 28000-28999; admin always 9090; no port conflicts. |
+| 6 | **ValidateTelemetry** | `configs/` YAML files | Validate OTLP endpoint consistency | OTLP endpoint required in service configs; hostname:port format (no protocol prefix); consistent collector naming. |
+| 7 | **ValidateAdmin** | `deployments/` compose files | Validate admin endpoint bind policy | Admin port must bind to `127.0.0.1:9090` (never `0.0.0.0`); ensures admin API never exposed outside container. |
+| 8 | **ValidateSecrets** | `deployments/` compose files | Detect inline secrets in environment variables | Secret-pattern env vars (PASSWORD, SECRET, TOKEN, KEY, API_KEY) must use Docker secrets (`/run/secrets/`); length threshold ≥32/43 chars for non-reference values. Infrastructure deployments excluded. |
 
 **Cross-References**: Each validator is implemented in `internal/apps/tools/cicd_lint/lint_deployments/validate_<name>.go` with comprehensive table-driven tests in `validate_<name>_test.go`. See code comments for detailed validation rules (per Decision 9:A minimal docs, comprehensive code comments).
 

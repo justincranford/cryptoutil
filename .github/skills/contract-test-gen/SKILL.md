@@ -52,8 +52,8 @@ import (
 "testing"
 
 cryptoutilContract "cryptoutil/internal/apps/framework/service/testing/contract"
-cryptoutilYourServer "cryptoutil/internal/apps/yourproduct/yourservice/server"
-cryptoutilYourConfig "cryptoutil/internal/apps/yourproduct/yourservice/server/config"
+cryptoutilYourServer "cryptoutil/internal/apps/your-ps-id/server"
+cryptoutilYourConfig "cryptoutil/internal/apps/your-ps-id/server/config"
 cryptoutilE2eHelpers "cryptoutil/internal/apps/framework/service/testing/e2e_helpers"
 cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )

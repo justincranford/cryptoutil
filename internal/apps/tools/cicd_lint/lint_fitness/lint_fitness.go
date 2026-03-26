@@ -18,6 +18,7 @@ import (
 	lintFitnessCIDCoverage "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/cicd_coverage"
 	lintFitnessCircularDeps "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/circular_deps"
 	lintFitnessCmdAntiPattern "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/cmd_anti_pattern"
+	lintFitnessCmdEntryWhitelist "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/cmd_entry_whitelist"
 	lintFitnessCmdMainPattern "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/cmd_main_pattern"
 	lintFitnessComposeDBNaming "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/compose_db_naming"
 	lintFitnessComposeHeaderFormat "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/compose_header_format"
@@ -53,11 +54,13 @@ import (
 	lintFitnessProductWiring "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/product_wiring"
 	lintFitnessRequireAPIDir "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/require_api_dir"
 	lintFitnessRequireFrameworkNaming "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/require_framework_naming"
+	lintFitnessRootJunkDetection "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/root_junk_detection"
 	lintFitnessSecretNaming "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/secret_naming"
 	lintFitnessServiceContractCompliance "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/service_contract_compliance"
 	lintFitnessServiceStructure "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/service_structure"
 	lintFitnessStandaloneConfigOTLPNames "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/standalone_config_otlp_names"
 	lintFitnessStandaloneConfigPresence "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/standalone_config_presence"
+	lintFitnessTemplateConsistency "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/template_consistency"
 	lintFitnessTestPatterns "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/test_patterns"
 	lintFitnessTLSMinimumVersion "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/tls_minimum_version"
 	lintFitnessUnsealSecretContent "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/unseal_secret_content"
@@ -139,6 +142,10 @@ var registeredLinters = []struct {
 	{"dockerfile-labels", lintFitnessDockerfileLabels.Check},
 	{"secret-naming", lintFitnessSecretNaming.Check},
 	{"unseal-secret-content", lintFitnessUnsealSecretContent.Check},
+	// New fitness checks (added in documentation-audit pass).
+	{"cmd-entry-whitelist", lintFitnessCmdEntryWhitelist.Check},
+	{"root-junk-detection", lintFitnessRootJunkDetection.Check},
+	{"template-consistency", lintFitnessTemplateConsistency.Check},
 }
 
 // Lint runs all registered architecture fitness linters.

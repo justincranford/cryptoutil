@@ -8,7 +8,7 @@ Generate a new architecture fitness function for the cryptoutil lint-fitness fra
 
 ## Purpose
 
-The lint-fitness framework runs 43 architectural invariant checks on every CI push. Use this skill when:
+The lint-fitness framework runs 55 architectural invariant checks on every CI push. Use this skill when:
 
 - Adding a new architectural rule from ARCHITECTURE.md that must be enforced programmatically
 - Migrating a soft architectural guideline to a hard enforced check

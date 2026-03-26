@@ -27,19 +27,19 @@ from copying the skeleton to registering with CI/CD.
 ### Step 1: Copy skeleton-template
 
 ```bash
-# Copy entire skeleton directory
-cp -r internal/apps/skeleton/template internal/apps/PRODUCT/SERVICE
+# Copy entire skeleton app directory and cmd entry point
+cp -r internal/apps/skeleton-template internal/apps/PS-ID
 
 # Copy skeleton cmd/
-cp cmd/skeleton-template/main.go cmd/PRODUCT-SERVICE/main.go
+cp cmd/skeleton-template/main.go cmd/PS-ID/main.go
 ```
 
 ### Step 2: Rename identifiers
 
 ```bash
 # Replace all skeleton-template identifiers
-find internal/apps/PRODUCT/SERVICE cmd/PRODUCT-SERVICE -type f -name "*.go" | xargs sed -i 's/skeleton-template/PRODUCT-SERVICE/g'
-find internal/apps/PRODUCT/SERVICE cmd/PRODUCT-SERVICE -type f -name "*.go" | xargs sed -i 's/skeletonTemplate/PRODUCTService/g'
+find internal/apps/PS-ID cmd/PS-ID -type f -name "*.go" | xargs sed -i 's/skeleton-template/PS-ID/g'
+find internal/apps/PS-ID cmd/PS-ID -type f -name "*.go" | xargs sed -i 's/skeletonTemplate/PSIDCamelCase/g'
 ```
 
 ### Step 3: Assign port range
@@ -53,15 +53,22 @@ find internal/apps/PRODUCT/SERVICE cmd/PRODUCT-SERVICE -type f -name "*.go" | xa
 
 ```bash
 # Start from 2001 (template uses 1001-1999)
-touch internal/apps/PRODUCT/SERVICE/repository/migrations/2001_init.up.sql
-touch internal/apps/PRODUCT/SERVICE/repository/migrations/2001_init.down.sql
+touch internal/apps/PS-ID/repository/migrations/2001_init.up.sql
+touch internal/apps/PS-ID/repository/migrations/2001_init.down.sql
 ```
 
 ### Step 5: Add config files
 
 ```bash
-cp configs/skeleton/template/config-development.yml configs/PRODUCT/SERVICE/config-development.yml
-cp configs/skeleton/template/config-production.yml  configs/PRODUCT/SERVICE/config-production.yml
+# Copy domain config from skeleton-template and rename
+cp -r configs/skeleton-template configs/PS-ID
+mv configs/PS-ID/skeleton-template.yml configs/PS-ID/PS-ID.yml
+
+# Copy deployment variant configs and rename
+cp -r deployments/skeleton-template/config deployments/PS-ID/config
+for f in deployments/PS-ID/config/skeleton-template-*.yml; do
+  mv "$f" "${f/skeleton-template/PS-ID}"
+done
 # Update port numbers, service name, database config
 ```
 
@@ -81,8 +88,8 @@ cp -r deployments/skeleton-template deployments/PRODUCT-SERVICE
 ### Step 8: Test
 
 ```bash
-go build ./cmd/PRODUCT-SERVICE/...
-go test ./internal/apps/PRODUCT/SERVICE/...
+go build ./cmd/PS-ID/...
+go test ./internal/apps/PS-ID/...
 go run ./cmd/cicd-lint lint-deployments
 ```
 
