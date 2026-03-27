@@ -250,7 +250,7 @@ func TestParsePbkdf2Params_CoverageCheck(t *testing.T) {
 }
 
 // TestPBKDF2WithParams_RandReadError tests PBKDF2WithParams when crypto/rand.Read fails.
-// NOTE: Must NOT use t.Parallel() - modifies package-level var.
+// Sequential: modifies package-level digestsRandReadFn var — must not run concurrently.
 func TestPBKDF2WithParams_RandReadError(t *testing.T) {
 	orig := digestsRandReadFn
 	digestsRandReadFn = func(_ []byte) (int, error) {
@@ -274,10 +274,8 @@ func TestPBKDF2WithParams_RandReadError(t *testing.T) {
 }
 
 // TestHKDF_ReadError tests HKDF when the internal Read call fails.
-// NOTE: Must NOT use t.Parallel() - modifies package-level var.
+// Sequential: modifies package-level digestsHKDFReadFn var — must not run concurrently.
 func TestHKDF_ReadError(t *testing.T) {
-	t.Parallel()
-
 	orig := digestsHKDFReadFn
 	digestsHKDFReadFn = func(_ interface{ Read([]byte) (int, error) }, _ []byte) (int, error) {
 		return 0, errTestInjectFailure
