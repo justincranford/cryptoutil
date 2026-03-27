@@ -3937,7 +3937,7 @@ See [Section 4.4.6](#446-deployments) for the complete secret file listing at ea
 
 **Consistency Requirements**:
 
-- **hash-pepper-v3.secret**: SAME value across ALL 10 services (enables cross-service PII deduplication, SSO username lookup).
+- **hash-pepper-v3.secret**: SAME value across ALL 10 services (enables cross-service PII deduplication, SSO username lookup, for suite-level PostgreSQL OLAP database).
 - **unseal-{N}of5.secret**: UNIQUE per service (barrier encryption independence, security isolation).
 - **postgres-*.secret**: Service-specific.
 
@@ -3949,11 +3949,11 @@ See [Section 4.4.6](#446-deployments) for the complete secret file listing at ea
 
 **Consistency Requirements**:
 
-- **hash-pepper-v3.secret**: SAME value within product services (identity-{authz,idp,rs,rp,spa} share pepper for SSO).
+- **hash-pepper-v3.secret**: SAME value within product services (identity-{authz,idp,rs,rp,spa} share pepper for SSO, for product-level PostgreSQL OLAP database).
 - **unseal-{N}of5.secret**: UNIQUE per service within product (independent barrier hierarchies).
 - **postgres-*.secret**: Service-specific.
 
-**Example**: identity-authz, identity-idp, identity-rs, identity-rp, identity-spa share hash pepper for unified user lookups.
+**Example**: identity-authz, identity-idp, identity-rs, identity-rp, identity-spa share hash pepper for unified user lookups, for product-level PostgreSQL OLAP database.
 
 ##### SERVICE-Level Deployment (single service)
 
@@ -3961,11 +3961,11 @@ See [Section 4.4.6](#446-deployments) for the complete secret file listing at ea
 
 **Consistency Requirements**:
 
-- **hash-pepper-v3.secret**: UNIQUE per service (no cross-service lookups needed).
+- **hash-pepper-v3.secret**: UNIQUE per service (no cross-service lookups needed, design intent is to block service-level PostgreSQL OLAP database).
 - **unseal-{N}of5.secret**: UNIQUE per service (barrier encryption independence).
 - **postgres-*.secret**: Service-specific.
 
-**Rationale**: Maximum isolation for standalone deployments.
+**Rationale**: Maximum isolation for standalone deployments in non-federated mode, even if they share the same infrastructure.
 
 ##### Secret File Format
 
@@ -4006,8 +4006,8 @@ jose_ja_database
 ```
 
 - Username: `{PS_ID}_database_user`
-- Database: `{PS_ID}_database`
 - Password: `{PS_ID}_database_pass-{base64-random-32-bytes}`
+- Database: `{PS_ID}_database`
 
 **TLS Certificate and Key Secrets** (Static/Mixed TLS modes — production and E2E):
 
@@ -4051,20 +4051,20 @@ healthcheck-secrets:
       echo 'All secrets validated';
     "
   secrets:
-    - unseal-1of5.secret
-    - unseal-2of5.secret
-    - unseal-3of5.secret
-    - unseal-4of5.secret
-    - unseal-5of5.secret
     - hash-pepper-v3.secret
     - browser-username.secret
     - browser-password.secret
     - service-username.secret
     - service-password.secret
-    - postgres-url.secret
     - postgres-username.secret
     - postgres-password.secret
     - postgres-database.secret
+    - postgres-url.secret
+    - unseal-1of5.secret
+    - unseal-2of5.secret
+    - unseal-3of5.secret
+    - unseal-4of5.secret
+    - unseal-5of5.secret
 ```
 
 **Purpose**: Fail fast on missing secrets, prevent runtime errors.
@@ -4397,7 +4397,7 @@ deployments/{PS-ID}/config/         # e.g., {PS-ID}=sm-kms
 - **Explicit PS-ID Coupling**: Prevents config file collisions when multiple services deployed together.
 - **Variant Clarity**: `app-sqlite-1` vs `app-postgresql-1` makes deployment mode immediately obvious.
 - **Instance Numbering**: `-1` and `-2` suffixes enable horizontal scaling with unique configs per instance.
-- **SQLite Parity**: Two SQLite instances (`sqlite-1`, `sqlite-2`) mirror the two PostgreSQL instances for consistent testing across both database backends.
+- **SQLite Parity**: Two SQLite instances (`sqlite-1`, `sqlite-2`) mirror the two PostgreSQL instances for consistent testing across both database backends, but with different database data sharing vs non-sharing goals.
 - **Tooling Support**: Linter validates presence of 5 required files, flags non-conformant naming.
 
 **Migration Strategy** (Q9 Answer: Break Immediately):
