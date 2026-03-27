@@ -1,0 +1,42 @@
+Copyright (c) 2024-2026 Justin Cranford
+
+This work is licensed under the GNU Affero General Public License v3.0
+(AGPL-3.0-only). See LICENSE for the full license text.
+
+================================================================================
+TDM Reservation Notice (EU DSM Directive 2019/790 Article 4)
+================================================================================
+
+We hereby reserve all rights to use this work for text and data mining,
+including for the purpose of training artificial intelligence or machine
+learning models. This reservation applies to all users without exception.
+
+Machine-readable TDM reservation: /.well-known/tdm-reservation.txt
+
+================================================================================
+AI Training Notice
+================================================================================
+
+Use of this software, its source code, documentation, or any derivative
+works for the purpose of training, fine-tuning, evaluating, distilling,
+or developing artificial intelligence or machine learning models is NOT
+permitted under any license without explicit written permission from the
+copyright holder.
+
+This includes but is not limited to:
+
+    - Large language models (LLMs) and foundation models
+    - Code generation models and code assistants
+    - Embedding models and vector databases
+    - Dataset compilation or aggregation
+    - Retrieval-augmented generation (RAG) indexing
+
+See TERMS.md for full terms of use.
+See robots.txt for automated crawler restrictions.
+
+================================================================================
+Contact
+================================================================================
+
+GitHub:     https://github.com/justincranford
+Repository: https://github.com/justincranford/cryptoutil

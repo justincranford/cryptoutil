@@ -1,0 +1,19 @@
+{
+    "tdm-compliance": "EU DSM Directive 2019/790 Article 4",
+    "tdm-policy": "reserved",
+    "tdm-reservation": "All text and data mining rights are reserved by the copyright holder.",
+    "scope": "All files, source code, documentation, configuration, and other content in this repository.",
+    "license": "AGPL-3.0-only",
+    "copyright-holder": "Justin Cranford",
+    "copyright-years": "2024-2026",
+    "ai-training-prohibited": true,
+    "ai-training-notice": "Use of this repository's content for the purpose of training, fine-tuning, evaluating, or developing artificial intelligence or machine learning models is NOT permitted without explicit written permission from the copyright holder.",
+    "contact": "https://github.com/justincranford",
+    "repository": "https://github.com/justincranford/cryptoutil",
+    "related-files": [
+        "/robots.txt",
+        "/NOTICE",
+        "/TERMS.md",
+        "/LICENSE"
+    ]
+}
