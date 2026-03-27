@@ -1,42 +1,90 @@
 # ARCHITECTURE.md Improvement Suggestions
 
-**Date**: 2026-02-17
+**Date**: 2026-03-26
 **Status**: Review-first (do NOT apply without review)
-**Scope**: Efficiency, quality, correctness, completeness, thoroughness, and general quality gates for `docs/ARCHITECTURE.md`
+**Scope**: Deep analysis of `docs/ARCHITECTURE.md`, Copilot instructions/agents/skills, lint-fitness sub-linters, and INFRA-TOOL structure
 
 ---
 
-## Document Profile (Current State)
+## Document Profile (Current State — 2026-03-26)
 
-| Metric | Value |
-|--------|-------|
-| Total lines | 5,362 |
-| Total characters | ~263,755 |
-| Estimated tokens (Claude Sonnet 4.6) | ~75,000 |
-| Instruction files (18) token cost | ~36,500 |
-| copilot-instructions.md token cost | ~1,700 |
-| **Combined context budget** | **~113,500 tokens (56.8% of 200K window)** |
-| Top-level sections (##) | 14 |
-| Total headings | ~430 |
-| @propagate markers | 43 |
-| Code blocks | ~83 |
-| Table rows | ~480 |
+| Metric | Value | vs. 2026-02-17 |
+|--------|-------|----------------|
+| Total lines | 3,936 | -1,426 (-26.6%) |
+| Total characters | 260,334 | ~-3,400 (-1.3%) |
+| Estimated tokens (Claude Sonnet 4.6) | ~55,000 | -20,000 |
+| Instruction files (18) token cost | ~36,500 | unchanged |
+| copilot-instructions.md token cost | ~1,700 | unchanged |
+| **Combined context budget** | **~93,200 tokens (46.6% of 200K window)** | was 56.8% |
+| Top-level sections (##) | 14 | unchanged |
+| Total headings | 383 | -47 (-10.9%) |
+| @propagate markers | 38 | -5 (-11.6%) |
+| Code blocks | ~60 | -23 |
 
-**Largest sections by line count**:
+**Largest sections (current)**:
 
 | # | Section | Lines | % of doc |
 |---|---------|-------|----------|
-| 12 | Deployment Architecture | 1,016 | 18.9% |
-| 10 | Testing Architecture | 756 | 14.1% |
-| 9 | Infrastructure Architecture | 608 | 11.3% |
-| 4 | System Architecture | 385 | 7.2% |
-| 6 | Security Architecture | 374 | 7.0% |
-| 2 | Strategic Vision | 350 | 6.5% |
-| 3 | Product Suite | 330 | 6.2% |
+| 12 | Deployment Architecture | 1,015 | 25.8% |
+| 10 | Testing Architecture | ~480 | 12.2% |
+| 9 | Infrastructure Architecture | ~420 | 10.7% |
+| 6 | Security Architecture | ~350 | 8.9% |
+| 2 | Strategic Vision | ~280 | 7.1% |
+| 4 | System Architecture | ~250 | 6.4% |
+| 14 | Operational Excellence | 35 | 0.9% |
+
+**Notable changes since Feb 2026**:
+- ARCHITECTURE.md shrank 26.6% (1,426 lines) due to framework-v6 restructuring.
+- Section 12 grew proportionally: was 18.9%, now **25.8%** — now dominates the document by a wider margin.
+- Section 14 remains extremely thin at 35 lines.
+- `@propagate` markers decreased 5 (from 43 to 38) — some propagation blocks removed during restructuring.
+- Combined context budget improved from 56.8% to 46.6% — now at a healthy target.
 
 ---
 
-## Suggestions
+## Previous Suggestions Status (2026-02-17 Backlog)
+
+Of the 26 Feb 2026 suggestions, approximately 6 were partially applied during framework-v6 restructuring (evidenced by the 1,426-line reduction, heading count decrease, and @propagate marker reduction). The remaining 20 are still open and valid.
+
+### Applied (estimated ~6, partially)
+
+Evidence of application: document shrank 1,426 lines; headings -47; @propagate -5. Most likely applied as side-effects of framework-v6 work (not as direct suggestion implementations):
+- **#2 partial**: Deployment compose examples may have been compressed.
+- **#3 partial**: Fitness linter catalog may have been condensed.
+- **#4 partial**: Test code examples reduced (Section 10 shrank significantly).
+- **#6 partial**: Directory trees may have been simplified.
+- **#1 partial**: Some secret format content extracted.
+
+### Still Open (confirmed NOT applied)
+
+| # | Suggestion | Priority |
+|---|-----------|----------|
+| 5 | Multi-target `@propagate` syntax | Low |
+| 8 | Fix Section 13.5 numbering (13.5.5 before 13.5.4) | **High** |
+| 9 | Reconcile duplicate port docs | Low |
+| 10 | Clarify `end-of-turn-commit-protocol` propagation target | Low |
+| 11 | Remove stale TBD entries in Appendix B | **High** |
+| 12 | Fix healthcheck numbered list (all `1.`) | Medium |
+| 13 | Add `@propagate` for 3 non-propagated instruction files | Medium |
+| 14 | Machine-readable `@propagate` grammar | Low |
+| 15 | Anchor stability policy | Medium |
+| 16 | Pre-commit propagation drift detection | Medium |
+| 17 | Config file count validation in deployment linter | Medium |
+| 18 | Token budget quality gate documentation | Medium |
+| 19 | Split Section 12 into two sections | **High** |
+| 20 | Expand / move Section 14 | Medium |
+| 21 | Add reading guide table | Medium |
+| 22 | Cross-reference index for frequently-referenced topics | Low |
+| 23 | Glue content maintenance strategy | Low |
+| 24 | Propagation coverage metrics command | Low |
+| 25 | Remove or archive ARCHITECTURE-INDEX.md reference | Low |
+| 26 | Reconcile CONFIG-SCHEMA.md vs hardcoded schema | Medium |
+
+All 20 pending items from Feb remain valid. None were invalidated by framework-v6 restructuring.
+
+---
+
+## Suggestions (Feb 2026 Backlog — Items #1–#26)
 
 ### Category A: Token Budget Reduction (Efficiency)
 
@@ -448,48 +496,403 @@ This adds ~20 lines and prevents agents from missing relevant context scattered 
 
 ---
 
-## Summary Statistics
+---
 
-| Category | Count | Estimated Token Savings |
-|----------|-------|------------------------|
-| A: Token Budget Reduction | 7 | ~11,500-15,700 tokens |
-| B: Correctness & Consistency | 5 | — (no size change) |
-| C: Completeness | 3 | +200 tokens (small additions) |
-| D: Quality Gates | 3 | — (no size change) |
-| E: Structural Improvements | 4 | ~-200 tokens (minor additions) |
-| F: @propagate System | 2 | — (tooling changes) |
-| G: Miscellaneous | 2 | — (minor edits) |
-| **Total** | **26** | **~11,000-15,000 tokens net savings** |
+## New Suggestions (2026-03-26 — Items #27–#50)
 
-Applying all Category A suggestions would reduce ARCHITECTURE.md from ~75K to ~60-64K tokens, bringing the combined context budget from 56.8% to ~49-51% of a 200K window — below the recommended 50% threshold.
+### Category H: INFRA-TOOL Rename & Naming Convention
+
+#### 27. Complete `workflow` → `cicd-workflow` Rename
+
+**Context**: The project has 2 INFRA-TOOLs: `cicd-lint` and `workflow`. The `cicd-*` prefix applies to `cicd-lint` but NOT `workflow`. This inconsistency was identified and a rename to `cicd-workflow` is planned.
+
+**Full rename scope**:
+
+| File / Location | Required Change |
+|----------------|-----------------|
+| `internal/shared/magic/magic_cicd.go` | `CICDCmdDirWorkflow = "workflow"` → `"cicd-workflow"` |
+| `internal/shared/magic/magic_workflows.go` | `UsageWorkflow` string: `"workflow"` → `"cicd-workflow"` |
+| `cmd/workflow/` | `git mv cmd/workflow cmd/cicd-workflow` |
+| `cmd/cicd-workflow/main.go` | Update import path and package comment |
+| `internal/apps/tools/workflow/` | `git mv` → `internal/apps/tools/cicd_workflow/` |
+| `internal/apps/tools/cicd_workflow/*.go` | `package workflow` → `package cicd_workflow`; update all hardcoded strings |
+| `.github/agents/fix-workflows.agent.md` | 40+ occurrences of `./cmd/workflow` → `./cmd/cicd-workflow` |
+| `.github/agents/beast-mode.agent.md` | 2 occurrences |
+| `docs/ARCHITECTURE.md` | ~8 occurrences on lines ~1033, ~1309, ~3520, ~3627–3640 |
+
+**Fitness linters** (`cmd_entry_whitelist`, `cmd_anti_pattern`): reference `CICDCmdDirWorkflow` via magic constant — auto-update when magic constant changes. No additional code changes needed.
+
+**Status**: Planned — execute before implementing suggestion #29 (infra-tool-naming linter).
 
 ---
 
-## Prioritized Implementation Order
+#### 28. Define INFRA-TOOL CLI Pattern in ARCHITECTURE.md Section 4.4.7
 
-**Phase 1 — Quick wins (correctness fixes, no token impact)**:
-- #8 Fix Section 13.5 numbering
-- #11 Remove stale TBD entries
-- #12 Fix healthcheck pattern numbering
+**Problem**: Section 4.4.7 CLI Patterns defines PRODUCT, PRODUCT-SERVICE, and SUITE patterns. INFRA-TOOLs (`cicd-lint`, `cicd-workflow`) are referenced in examples but are never formally defined as a CLI pattern type — there are no rules about naming, location, or entry function signature.
 
-**Phase 2 — Token reduction (high impact, low risk)**:
-- #1 Extract secret format examples
-- #6 Replace verbose directory trees
-- #4 Reduce testing code examples
-- #7 Compress realm type table
+**Suggestion**: Add an "INFRA-TOOL Pattern" subsection to 4.4.7:
 
-**Phase 3 — Structural improvements (moderate risk)**:
-- #2 Consolidate deployment compose examples
-- #3 Compress fitness linter catalog
-- #9 Reconcile duplicate port docs
-- #21 Add reading guide
+```
+INFRA-TOOL Pattern: cmd/cicd-{tool}/main.go → internal/apps/tools/cicd_{tool}/cicd_{tool}.go
+- ALL INFRA-TOOL cmd dirs MUST be prefixed with cicd-
+- Internal package dirs use underscore: cicd_{tool}
+- NOT registered in entity registry (not a product-service)
+- Whitelisted in cmd-entry-whitelist fitness linter
+```
 
-**Phase 4 — Infrastructure improvements (requires code changes)**:
-- #5 Multi-target @propagate syntax
-- #16 Pre-commit propagation check
-- #24 Propagation coverage metrics
+**Impact**: Provides clear rules for future INFRA-TOOL additions (cicd-release, cicd-migrate, etc.). Update the INFRA-TOOL table in Section 9.10 to `cicd-lint, cicd-workflow` after rename #27.
 
-**Phase 5 — Major restructuring (high risk, high reward)**:
-- #19 Split Section 12
-- #18 Token budget quality gate
-- #15 Anchor stability policy
+---
+
+#### 29. Add `infra-tool-naming` Fitness Linter
+
+**Problem**: Neither `cmd-entry-whitelist` nor `cmd-anti-pattern` specifically enforces the `cicd-*` naming convention for INFRA-TOOLs. They whitelist known entries but don't ensure new INFRA-TOOLs follow the convention.
+
+**Suggestion**: Add a new fitness linter `infra-tool-naming` that:
+1. Identifies all `cmd/` entries not matching product/service/suite patterns.
+2. Validates those entries (INFRA-TOOLs) are prefixed with `cicd-`.
+3. Validates matching `internal/apps/tools/` entries use `cicd_` prefix.
+4. Emits error otherwise.
+
+**Prerequisite**: Complete rename #27 first so the new linter validates `cicd-workflow`, not the old `workflow`.
+
+---
+
+### Category I: Lint-Fitness Sub-Linter Analysis
+
+**Current state**: 55 registered sub-linters confirmed in `lint_fitness.go`. Directory count matches: 55 dirs + 1 `registry/` helper = 56 total entries.
+
+#### 30. Investigate Admin Port Linter Overlap
+
+**Problem**: Two linters may check overlapping concerns:
+- `admin-port-exposure` — checks admin port binding in compose files.
+- `validate-admin` — validates admin port configuration.
+
+If both validate that the admin port binds to `127.0.0.1:9090`, one is redundant. If they check different aspects (exposure vs. YAML key naming), they can coexist.
+
+**Action**: Read both implementations and determine if there is genuine duplication. If yes, consolidate into one linter.
+
+---
+
+#### 31. Add `magic-constant-location` Fitness Linter
+
+**Problem**: `internal/shared/magic/` is the MANDATORY location for ALL magic constants. The `mnd` golangci-lint linter catches inline literals but does NOT catch package-local `const x = ...` declarations that should be in `magic/`. A developer can create `internal/myservice/constants.go` with package-local constants and bypass the `mnd` linter entirely.
+
+**Suggestion**: Add a fitness linter that scans all non-`magic/` packages for constant declarations and emits a warning if a `const` declaration contains a numeric value or a string that looks like a magic constant (e.g., port numbers, timeout values, algorithm names).
+
+**Note**: False-positive tuning will be needed — some package-local constants are legitimately package-private. Start with string constants containing known magic patterns (e.g., `"AES"`, `"RSA"`, port-like integers).
+
+---
+
+#### 32. Remove Hard Count from Section 9.11.1 Heading
+
+**Problem**: Section 9.11.1 heading says "(55 total)". Every time a linter is added, this number must be manually updated. When it falls out of sync, the document is misleading.
+
+**Suggestion**: Remove the hard count from the heading. Change `Fitness Sub-Linter Catalog (55 total)` to `Fitness Sub-Linter Catalog` and state the count in a table or note that can auto-generate. Alternatively, add a CI step asserting `len(registeredLinters) == number of lint_fitness subdirs (excluding registry/)`.
+
+---
+
+#### 33. Add Regression Test for `workflow` Rename in `cmd_anti_pattern_test.go`
+
+**Problem**: After the `workflow` → `cicd-workflow` rename (#27), the magic constant changes from `"workflow"` to `"cicd-workflow"`. Without a regression test, a future refactor could silently change it back.
+
+**Suggestion**: Add a test in `cmd_anti_pattern_test.go` (or a new `magic_cicd_test.go`) asserting:
+```go
+require.Equal(t, "cicd-workflow", cryptoutilSharedMagic.CICDCmdDirWorkflow)
+require.Equal(t, "cicd-lint", cryptoutilSharedMagic.CICDCmdDirCicdLint)
+```
+This is a trivial test that prevents naming regressions. No logic to test — just value assertions.
+
+---
+
+#### 34. Categorize the Fitness Sub-Linter Catalog in Section 9.11.1
+
+**Problem**: The 55 sub-linters in Section 9.11.1 are listed in registration order (neither alphabetical nor by category). As the list grows, it becomes harder to quickly find a specific linter or identify category gaps.
+
+**Suggestion**: Organize the catalog with category sub-headers:
+
+| Category | Example Linters |
+|----------|----------------|
+| Code Quality | `file-size-limit`, `magic-constants`, `cgo-ban` |
+| Naming Conventions | `file-naming-conventions`, `package-naming`, `directory-naming` |
+| Testing | `test-patterns`, `parallel-tests`, `table-driven-tests` |
+| Architecture | `entity-registry`, `entity-registry-completeness`, `cmd-entry-whitelist` |
+| Deployment | `compose-service-naming`, `admin-port-exposure`, `validate-ports` |
+| Documentation | `docs-*`, `banned-product-names` |
+| Infrastructure | `cmd-anti-pattern`, linters specific to INFRA-TOOL dirs |
+
+This restructuring adds ~15 lines but significantly improves catalog navigability.
+
+---
+
+### Category J: Agent & Skill Gaps
+
+#### 35. Missing Agents: `security-audit` and `coverage-boost`
+
+**Current agents**: `beast-mode`, `fix-workflows`, `implementation-execution`, `implementation-planning`, `Explore`.
+
+**Missing agents**:
+
+| Suggested Agent | Purpose | Frequency |
+|----------------|---------|-----------|
+| `security-audit` | Orchestrates SAST + FIPS audit + gosec + govulncheck + DAST | Quarterly |
+| `coverage-boost` | Analyzes coverage gaps and generates targeted tests | Per-release |
+| `dependency-update` | Updates Go dependencies, checks CVEs, runs full tests | Monthly |
+
+**Highest priority**: `security-audit` — security scanning is a complex multi-step workflow (FIPS audit → gosec → govulncheck → SAST → DAST → report) that benefits most from agent orchestration.
+
+---
+
+#### 36. Missing Skills: `deployment-gen` and `secret-gen`
+
+**Current skills (14)**: agent-scaffold, agent-customization, contract-test-gen, coverage-analysis, fips-audit, fitness-function-gen, instruction-scaffold, migration-create, new-service, openapi-codegen, propagation-check, skill-scaffold, test-benchmark-gen, test-fuzz-gen, test-table-driven.
+
+**Missing skills**:
+
+| Suggested Skill | Purpose | Gap Being Filled |
+|----------------|---------|-----------------|
+| `deployment-gen` | Generate complete deployment structure for a new service | Currently error-prone manual process |
+| `secret-gen` | Generate Docker secrets with correct format, naming, hex values | Wrong format is the #1 deployment mistake |
+| `api-handler` | Map OpenAPI operation to strict server handler implementation | Reduces boilerplate copy errors |
+
+**Highest priority**: `secret-gen` — wrong hex values in unseal secrets break HKDF derivation silently; a skill with format validation would prevent this.
+
+---
+
+#### 37. `fix-workflows.agent.md` Has 40+ References to Old `cmd/workflow`
+
+**Problem**: After the `workflow` → `cicd-workflow` rename (#27), `.github/agents/fix-workflows.agent.md` will have 40+ stale references to `./cmd/workflow`. These are BLOCKING — the agent would generate incorrect commands after the rename.
+
+**Status**: Tracked in rename scope (#27). This item is a reminder that the agent file is part of the rename PR, NOT a separate task.
+
+---
+
+### Category K: Section-Level Correctness (New Findings)
+
+#### 38. Update INFRA-TOOL Table in Section 9.10 After Rename
+
+**Location**: ARCHITECTURE.md Section 9.10 CICD Command Architecture, INFRA-TOOL table.
+
+**Problem**: After the `workflow` → `cicd-workflow` rename (#27), the table listing `cicd-lint, workflow` must become `cicd-lint, cicd-workflow`.
+
+**Action**: After completing #27, grep ARCHITECTURE.md for occurrences of `workflow` in INFRA-TOOL-related contexts (not general workflow references) and update them. ~8 occurrences.
+
+---
+
+#### 39. Section 2.1.2 Agent Catalog — Verify `Explore` Agent Entry
+
+**Problem**: The `Explore` subagent was added after Feb 2026 and may not appear in ARCHITECTURE.md Section 2.1.2 Agent Catalog.
+
+**Action**: Read Section 2.1.2, verify `Explore` is listed with its purpose and argument hint. Add if missing. Also verify `agent-customization` skill is in Section 2.1.1 Skills Catalog.
+
+---
+
+#### 40. Appendix B TBD Entries — Fill or Remove
+
+**Problem**: 12 TBD cells remain in Appendix B across 4 sections:
+1. **B.5 Agent Catalog**: `fix-workflows` and `beast-mode` have `Tools: TBD`, `Handoffs: TBD` — these can be filled from actual `.agent.md` files.
+2. **B.6 CI/CD Workflow Catalog**: `ci-race`, `ci-benchmark`, `ci-sast`, `ci-dast`, `ci-e2e`, `ci-load` all have `Duration: TBD` — fill from workflow timeout values.
+3. **B.7 Reusable Action Catalog**: "Additional actions | TBD | TBD | TBD" — fill or remove.
+4. **B.8 Linter Rule Reference**: "(30+ total linters) | TBD | TBD | TBD" — fill from `lint_fitness.go`.
+
+**Token impact**: Filling adds ~200–400 tokens. If brevity preferred, remove TBD rows entirely (empty rows add zero value).
+
+---
+
+### Category L: Propagation & Documentation Issues
+
+#### 41. Verify SQLite+Barrier Rule Has `@propagate` Coverage
+
+**Problem**: `03-04.data-infrastructure.instructions.md` documents "SQLite + Barrier Outside Transactions (CRITICAL)" with the specific deadlock explanation and correct pattern. This is also referenced as coming from ARCHITECTURE.md Section 5.2.4. If Section 5.2.4 does NOT have a `@propagate` block for this rule, then the instruction file contains un-validated content that can drift.
+
+**Action**: Read ARCHITECTURE.md Section 5.2.4 and verify the SQLite+Barrier constraint has a `@propagate` marker sending it to `03-04.data-infrastructure.instructions.md`. Add if missing.
+
+---
+
+#### 42. Add `@source` Blocks to 2 Non-Propagated Instruction Files
+
+**Problem**: `03-04.data-infrastructure.instructions.md` and `03-05.linting.instructions.md` still have zero `@source` blocks (confirmed in Feb 2026 suggestion #13 as NOT applied). Two clear candidates for propagation:
+- `three-tier-database-strategy` → `03-04.data-infrastructure`
+- `utf8-without-bom` → `03-05.linting`
+
+**Action**: Apply Feb suggestion #13.
+
+---
+
+#### 43. Archive `docs/framework-v5/` and `docs/framework-v6/`
+
+**Problem**: These directories contain implementation planning documents for completed framework development phases. Keeping them in `docs/` root adds cognitive overhead for humans and agents exploring the docs directory.
+
+**Suggestion**: Move to `docs/ARCHIVE/framework-v5/` and `docs/ARCHIVE/framework-v6/`, or add a `README.md` in each stating "Historical planning for completed framework phase — do not apply."
+
+---
+
+#### 44. Link `ARCHITECTURE-TODO.md` from ARCHITECTURE.md
+
+**Problem**: `docs/ARCHITECTURE-TODO.md` exists as a peer of ARCHITECTURE.md but is not referenced from ARCHITECTURE.md. Agents or developers may not know it exists.
+
+**Suggestion**: Add a one-line reference near the Document Organization section: `For pending architecture improvements, see [ARCHITECTURE-TODO.md](ARCHITECTURE-TODO.md).`
+
+---
+
+#### 45. Anti-Pattern Documentation: Timeout Double-Multiplication
+
+**Problem**: The anti-pattern `context.WithTimeout(ctx, magic.DefaultDataServerShutdownTimeout * time.Second)` producing a ~158-year timeout is documented in `03-02.testing.instructions.md` (under "Section 10.3.4 Test HTTP Client Patterns"). This should also be in ARCHITECTURE.md Section 10.3.4 with a `@propagate` marker so it's machine-verified.
+
+**Suggestion**: Add the anti-pattern note with `@propagate` to ARCHITECTURE.md Section 10.3.4.
+
+---
+
+#### 46. Verify `DisableKeepAlives` Requirement Has `@propagate` Coverage
+
+**Problem**: The `DisableKeepAlives: true` requirement for HTTP test transports (preventing 90-second Fiber shutdown hang) is documented in `03-02.testing.instructions.md` Section 10.3.4. If the corresponding `@propagate` block in ARCHITECTURE.md is missing, this critical rule has no drift protection.
+
+**Action**: Verify ARCHITECTURE.md Section 10.3.4 has a `@propagate` block for `disable-keep-alives-test-transport`.
+
+---
+
+#### 47. Verify Sequential Test Exemption Rule Has `@propagate` Coverage
+
+**Problem**: The `// Sequential: <reason>` comment exemption pattern (must appear within 10 lines before function declaration) is documented in `03-02.testing.instructions.md` Section 10.2.5. If this is not in a `@propagate` block, it has no drift protection.
+
+**Action**: Verify ARCHITECTURE.md Section 10.2.5 has a `@propagate` block. Add if missing.
+
+---
+
+#### 48. Section 14 Operational Excellence — Add Expansion Note
+
+**Problem**: Section 14 is 35 lines of placeholder content (monitoring, incident management, performance, capacity, disaster recovery) with no actionable detail for agents. At 0.9% of the document, it contributes almost nothing.
+
+**Suggestion**: Add a brief note: "This section will be expanded when the operational monitoring stack (Prometheus alerts, Grafana dashboards, runbooks) is implemented in the codebase. Until then, see Section 9.4 Telemetry Strategy for current observability patterns."
+
+This sets appropriate expectations without creating false completeness.
+
+---
+
+#### 49. Add Token Budget Quality Gate to ARCHITECTURE.md
+
+**Problem**: Feb suggestion #18 (token budget warning) is still open. With the document now at 46.6% (improved from 56.8%), there is now headroom. But the lack of a documented target means it could creep back up as sections grow.
+
+**Suggestion**: Add to ARCHITECTURE.md Section 11.4 Documentation Standards:
+- ARCHITECTURE.md SHOULD stay below 4,500 lines (~55K tokens).
+- Combined context budget (ARCHITECTURE.md + instruction files + copilot-instructions.md) SHOULD stay below 100K tokens (50% of 200K window).
+- Document size is a tracked quality gate, measured during each `lint-docs` run.
+
+---
+
+#### 50. Section 12 Split Is Now More Urgent (25.8% of Document)
+
+**Problem**: Section 12 was 18.9% of the document in Feb 2026. After framework-v6 restructuring, it is now **25.8%** — the largest section by a wider margin, and proportionally even more dominant. The split suggested in Feb (#19) is now a higher priority.
+
+**Revised suggestion**: Split at 12.4 boundary:
+- **Section 12: Deployment Architecture** (12.1–12.3): ~400 lines — patterns, pipelines, secrets.
+- **Section 15: Deployment Tooling & Validation** (12.4–12.8): ~600 lines — linters, validators, config schema, documentation propagation.
+
+Section 12.7 (Documentation Propagation) could also be extracted to a standalone Section 15 or Appendix, since it has no operational deployment dependency.
+
+**Trade-off**: Requires renumbering Sections 13 and 14 → 14 and 16. All `#13xx` and `#14xx` anchors in cross-references must update. Significant but feasible in one focused pass.
+
+---
+
+## Summary Statistics (Updated)
+
+### Feb 2026 Suggestions (#1–#26)
+
+| Category | Count | Estimated Token Savings |
+|----------|-------|------------------------|
+| A: Token Budget Reduction | 7 | ~11,500–15,700 tokens |
+| B: Correctness & Consistency | 5 | — |
+| C: Completeness | 3 | +200 tokens |
+| D: Quality Gates | 3 | — |
+| E: Structural Improvements | 4 | ~-200 tokens |
+| F: @propagate System | 2 | — |
+| G: Miscellaneous | 2 | — |
+| **Feb subtotal** | **26** | **~11,000–15,000 tokens net savings** |
+
+### Mar 2026 New Suggestions (#27–#50)
+
+| Category | Count | Primary Impact |
+|----------|-------|----------------|
+| H: INFRA-TOOL Rename & Convention | 3 | Naming consistency, fitness linter |
+| I: Lint-Fitness Analysis | 5 | Overlap removal, new linters |
+| J: Agent & Skill Gaps | 3 | New agents, new skills |
+| K: Section-Level Correctness | 4 | TBD removal, catalog accuracy |
+| L: Propagation & Documentation | 10 | Drift protection, doc debt |
+| **Mar subtotal** | **24** | — |
+
+### Combined
+
+| Metric | Value |
+|--------|-------|
+| Total suggestions | 50 |
+| Open (never applied) | ~44 |
+| Applied/partially applied | ~6 (estimated) |
+| High priority | 6 |
+| Medium priority | 20 |
+| Low priority | 24 |
+
+---
+
+## Prioritized Implementation Order (Updated March 2026)
+
+### Phase 1 — Blocking / Immediate (must do now)
+
+1. **#27** Execute `workflow` → `cicd-workflow` rename (blocks #29, #33, #38).
+2. **#8** Fix Section 13.5 numbering (13.5.5 before 13.5.4) — 5-minute fix.
+3. **#11** Remove stale TBD entries from Appendix B — quick quality improvement.
+4. **#12** Fix healthcheck numbered list (all `1.`) — trivial correctness fix.
+5. **#38** Update INFRA-TOOL table in Section 9.10 after rename (part of #27 commit).
+
+### Phase 2 — Quality Gates (medium effort, high value)
+
+1. **#28** Define INFRA-TOOL CLI pattern in Section 4.4.7.
+2. **#29** Add `infra-tool-naming` fitness linter (post-rename).
+3. **#16** Add propagation drift detection to pre-commit hooks.
+4. **#41** Verify SQLite+Barrier rule has `@propagate` coverage.
+5. **#42** Add `@source` blocks to 2 non-propagated instruction files.
+
+### Phase 3 — Completeness (fill documented gaps)
+
+1. **#40** Fill Appendix B TBD entries from actual agent/workflow files.
+2. **#39** Verify `Explore` agent and `agent-customization` skill in Section 2.1.
+3. **#21** Add reading guide table to top of ARCHITECTURE.md.
+4. **#35** Create `security-audit` agent.
+5. **#36** Create `secret-gen` and `deployment-gen` skills.
+
+### Phase 4 — Structural Improvements (moderate risk)
+
+1. **#50/#19** Split Section 12 (now 25.8% — most urgent structural change).
+2. **#34** Categorize fitness linter catalog in Section 9.11.1.
+3. **#20** Expand or move Section 14.
+4. **#32** Remove hard count from Section 9.11.1 heading.
+5. **#49** Add token budget quality gate to Section 11.4.
+
+### Phase 5 — Token Budget Reduction (efficiency)
+
+1. **#1** Extract secret format examples to satellite reference.
+2. **#4** Reduce testing code examples.
+3. **#6** Replace verbose directory trees with compact tables.
+4. **#7** Compress authentication realm type table.
+5. **#3** Compress fitness linter catalog section.
+
+### Phase 6 — Tooling & Infrastructure (requires code changes)
+
+1. **#5** Multi-target `@propagate` syntax support.
+2. **#24** Propagation coverage metrics command.
+3. **#31** Add `magic-constant-location` fitness linter.
+4. **#33** Add regression test for INFRA-TOOL name constants.
+
+### Phase 7 — Low-Priority Cleanup
+
+1. **#9** Reconcile duplicate port assignment documentation.
+2. **#10** Clarify `end-of-turn-commit-protocol` propagation target.
+3. **#14** Machine-readable `@propagate` grammar.
+4. **#15** Anchor stability policy.
+5. **#22** Cross-reference index for frequently-referenced topics.
+6. **#23** Glue content maintenance strategy.
+7. **#43** Archive framework-v5/v6 planning docs.
+8. **#44** Link ARCHITECTURE-TODO.md from ARCHITECTURE.md.
+9. **#45–#47** Add `@propagate` coverage for testing anti-patterns.
+10. **#48** Add expansion note to Section 14.
+11. **#25** Remove or archive ARCHITECTURE-INDEX.md reference.
+12. **#26** Reconcile CONFIG-SCHEMA.md vs hardcoded schema.
