@@ -515,7 +515,7 @@ EOF
 - ✅ Race detector clean (`go test -race -count=2 ./...`)
 
 **Context-Specific Requirements**:
-- **E2E Changes**: Docker Desktop must be running; E2E workflow must pass (`go run ./cmd/workflow -workflows=e2e`)
+- **E2E Changes**: Docker Desktop must be running; E2E workflow must pass (`go run ./cmd/cicd-workflow -workflows=e2e`)
 - **Deployment/Config Changes**: All 65 deployment validators must pass
 - **Security-Sensitive Changes**: SAST/DAST scans may be required
 

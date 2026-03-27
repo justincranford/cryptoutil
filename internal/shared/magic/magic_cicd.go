@@ -54,7 +54,7 @@ const (
 	CICDCmdDirCicdLint = "cicd-lint"
 
 	// CICDCmdDirWorkflow is the cmd/ directory name for the workflow testing binary.
-	CICDCmdDirWorkflow = "workflow"
+	CICDCmdDirWorkflow = "cicd-workflow"
 
 	// CICDConfigsDir is the top-level directory name for service configuration files.
 	CICDConfigsDir = "configs"

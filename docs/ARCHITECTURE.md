@@ -222,7 +222,7 @@ See [Section 11.1 Maximum Quality Strategy](#111-maximum-quality-strategy---mand
 | `{PRODUCT}` | Product name | 5 | `identity`, `jose`, `pki`, `skeleton`, `sm` |
 | `{PS-ID}` | Product-Service Identifier | 10 | `identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`, `identity-spa`, `jose-ja`, `pki-ca`, `skeleton-template`, `sm-im`, `sm-kms` |
 | `{PS_ID}` | Underscore variant (SQL, secrets) | 10 | Same as `{PS-ID}` with `_` replacing `-` |
-| `{INFRA-TOOL}` | Infrastructure tooling | 2 | `cicd-lint`, `workflow` |
+| `{INFRA-TOOL}` | Infrastructure tooling | 2 | `cicd-lint`, `cicd-workflow` |
 
 **1 Suite → 5 Products → 10 Services**:
 
@@ -1028,9 +1028,9 @@ cmd/
 ├── sm-im/main.go                       # Service CLI → internal/apps/sm-im/sm-im.go
 ├── sm-kms/main.go                      # Service CLI → internal/apps/sm-kms/sm-kms.go
 │
-│   # Infra tools (×2, {INFRA-TOOL}=cicd-lint|workflow)
+│   # Infra tools (×2, {INFRA-TOOL}=cicd-lint|cicd-workflow)
 ├── cicd-lint/main.go                   # CICD lint CLI → internal/apps/tools/cicd_lint/cicd.go
-└── workflow/main.go                    # Workflow CLI → internal/apps/tools/workflow/workflow.go
+└── cicd-workflow/main.go               # Workflow CLI → internal/apps/tools/cicd_workflow/workflow.go
 ```
 
 **Pattern**: Thin `main()` pattern for all cmd/ CLIs, with all logic in `internal/apps/` for maximum code reuse and testability.
@@ -1103,7 +1103,7 @@ internal/apps/
 │
 │   # Framework & tools
 ├── framework/                            # Service framework (shared by all services)
-└── tools/                                # Infrastructure tooling (cicd_lint, workflow)
+└── tools/                                # Infrastructure tooling (cicd_lint, cicd_workflow)
 ```
 
 #### 4.4.5 Shared Utilities
@@ -1306,9 +1306,9 @@ Two `cmd/` entries exist as deliberate **infrastructure tools**, NOT product/ser
 | Entry | Internal Package | Purpose |
 |-------|-----------------|---------|
 | `cmd/cicd-lint/` | `internal/apps/tools/cicd_lint/` | CI/CD quality tooling: 11 linters, 2 formatters, 1 script |
-| `cmd/workflow/` | `internal/apps/tools/workflow/` | GitHub Actions workflow testing infrastructure |
+| `cmd/cicd-workflow/` | `internal/apps/tools/cicd_workflow/` | GitHub Actions workflow testing infrastructure |
 
-These are **intentional exceptions** to the product/service CLI pattern (`{INFRA-TOOL}=cicd-lint|workflow`). They serve **repository infrastructure**, not business domain concerns:
+These are **intentional exceptions** to the product/service CLI pattern (`{INFRA-TOOL}=cicd-lint|cicd-workflow`). They serve **repository infrastructure**, not business domain concerns:
 
 - MUST NOT be merged into product/service CLIs.
 - MUST NOT be subcommands of `cmd/{SUITE}/` (suite CLI).
@@ -3517,7 +3517,7 @@ func BenchmarkWithSetup(b *testing.B) {
 
 ### 10.12 Workflow Testing Strategy
 
-**Local Testing**: go run ./cmd/workflow -workflows=dast,e2e -inputs="key=value"
+**Local Testing**: go run ./cmd/cicd-workflow -workflows=dast,e2e -inputs="key=value"
 
 **Act Compatibility**: NEVER use -t timeout, ALWAYS specify -workflows, use -inputs for params
 
@@ -3624,20 +3624,20 @@ See [Section 13.5.4 Docker Desktop Startup](#1354-docker-desktop-startup---criti
 
 Here are local convenience commands to run the workflows locally for Development and Testing.
 
-`go run ./cmd/workflow -workflows=build`     → build check
-`go run ./cmd/workflow -workflows=coverage`  → workflow coverage check; ≥98% required
-`go run ./cmd/workflow -workflows=quality`   → workflow quality check
-`go run ./cmd/workflow -workflows=lint`      → linting check
-`go run ./cmd/workflow -workflows=benchmark` → workflow benchmark check
-`go run ./cmd/workflow -workflows=fuzz`      → workflow fuzz check
-`go run ./cmd/workflow -workflows=race`      → workflow race check
-`go run ./cmd/workflow -workflows=sast`      → static security analysis
-`go run ./cmd/workflow -workflows=gitleaks`  → secrets scanning
-`go run ./cmd/workflow -workflows=dast`      → dynamic security testing
-`go run ./cmd/workflow -workflows=mutation`  → mutation testing; ≥95% required
-`go run ./cmd/workflow -workflows=e2e`       → end-to-end tests; BOTH `/service/**` AND `/browser/**` paths
-`go run ./cmd/workflow -workflows=load`      → load testing
-`go run ./cmd/workflow -workflows=ci`        → full CI workflow
+`go run ./cmd/cicd-workflow -workflows=build`     → build check
+`go run ./cmd/cicd-workflow -workflows=coverage`  → workflow coverage check; ≥98% required
+`go run ./cmd/cicd-workflow -workflows=quality`   → workflow quality check
+`go run ./cmd/cicd-workflow -workflows=lint`      → linting check
+`go run ./cmd/cicd-workflow -workflows=benchmark` → workflow benchmark check
+`go run ./cmd/cicd-workflow -workflows=fuzz`      → workflow fuzz check
+`go run ./cmd/cicd-workflow -workflows=race`      → workflow race check
+`go run ./cmd/cicd-workflow -workflows=sast`      → static security analysis
+`go run ./cmd/cicd-workflow -workflows=gitleaks`  → secrets scanning
+`go run ./cmd/cicd-workflow -workflows=dast`      → dynamic security testing
+`go run ./cmd/cicd-workflow -workflows=mutation`  → mutation testing; ≥95% required
+`go run ./cmd/cicd-workflow -workflows=e2e`       → end-to-end tests; BOTH `/service/**` AND `/browser/**` paths
+`go run ./cmd/cicd-workflow -workflows=load`      → load testing
+`go run ./cmd/cicd-workflow -workflows=ci`        → full CI workflow
 
 **Mutation Testing Scope**: ALL `cmd/cicd-lint/` packages (including `lint_deployments/`) require ≥98% mutation testing efficacy. This includes test infrastructure, CLI wiring, and validator implementations. Mutation testing validates test quality, not just test coverage.
 

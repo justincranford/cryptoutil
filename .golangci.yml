@@ -229,8 +229,6 @@ linters:
           alias: cryptoutilCmdCicd
         - pkg: "cryptoutil/internal/cmd/cryptoutil"
           alias: cryptoutilCmdCryptoutil
-        - pkg: "cryptoutil/internal/cmd/workflow"
-          alias: cryptoutilWorkflow
         - pkg: "cryptoutil/internal/cmd/cicd_lint/common"
           alias: cryptoutilCmdCicdCommon
         - pkg: "cryptoutil/internal/cmd/cicd_lint/all_enforce_utf8"
@@ -496,8 +494,8 @@ linters:
           alias: cryptoutilAppsFrameworkProductCli
         - pkg: "cryptoutil/internal/apps/framework/suite/cli"
           alias: cryptoutilAppsFrameworkSuiteCli
-        - pkg: "cryptoutil/internal/apps/tools/workflow"
-          alias: cryptoutilAppsToolsWorkflow
+        - pkg: "cryptoutil/internal/apps/tools/cicd_workflow"
+          alias: cryptoutilAppsToolsCicdWorkflow
         - pkg: "cryptoutil/internal/apps/framework/service/server/apis"
           alias: cryptoutilAppsFrameworkServiceServerApis
         - pkg: "cryptoutil/internal/apps/framework/service/server/application"

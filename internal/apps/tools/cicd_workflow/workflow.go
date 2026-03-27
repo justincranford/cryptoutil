@@ -2,8 +2,8 @@
 //
 //
 
-// Package workflow provides workflow execution and orchestration utilities.
-package workflow
+// Package cicd_workflow provides workflow execution and orchestration utilities.
+package cicd_workflow
 
 import (
 	"flag"
@@ -269,9 +269,9 @@ func printHelp(availableWorkflows map[string]WorkflowConfig) {
 
 	fmt.Println("\n" + strings.Repeat("=", cryptoutilSharedMagic.LineWidth))
 	fmt.Println("\nUsage:")
-	fmt.Println("  go run ./cmd/workflow -workflows=e2e,dast")
-	fmt.Println("  go run ./cmd/workflow -workflows=quality -dry-run")
-	fmt.Println("  go run ./cmd/workflow -list")
+	fmt.Println("  go run ./cmd/cicd-workflow -workflows=e2e,dast")
+	fmt.Println("  go run ./cmd/cicd-workflow -workflows=quality -dry-run")
+	fmt.Println("  go run ./cmd/cicd-workflow -list")
 	fmt.Println()
 }
 

@@ -102,7 +102,7 @@ You are in **continuous autonomous execution mode**. This means:
 2. **Pick most critical issue** and fix completely:
    - Root cause analysis from logs
    - Identify syntactic vs semantic vs configuration issues
-   - Test fix locally with `go run ./cmd/workflow -workflows=<name>`
+   - Test fix locally with `go run ./cmd/cicd-workflow -workflows=<name>`
    - Commit with evidence
    - Verify fix in GitHub Actions
 
@@ -212,29 +212,29 @@ See [ARCHITECTURE.md Section 13.5.4 Docker Desktop Startup](../../docs/ARCHITECT
 
 ### 1. Local Workflow Execution (MANDATORY METHOD)
 
-**CRITICAL: ONLY use `go run ./cmd/workflow -workflows=<name>` for workflow testing**
+**CRITICAL: ONLY use `go run ./cmd/cicd-workflow -workflows=<name>` for workflow testing**
 
-âŒ **NEVER call act directly** - cmd/workflow orchestrates act internally
-âŒ **NEVER use Docker Compose manually** - cmd/workflow handles orchestration
+âŒ **NEVER call act directly** - cmd/cicd-workflow orchestrates act internally
+âŒ **NEVER use Docker Compose manually** - cmd/cicd-workflow handles orchestration
 
 **Available Workflows:**
 
 | Workflow | Command | Purpose | Services Required |
 |----------|---------|---------|------------------|
-| **build** | `go run ./cmd/workflow -workflows=build` | Build check | None |
-| **coverage** | `go run ./cmd/workflow -workflows=coverage` | Test coverage (â‰¥98% required) | None |
-| **quality** | `go run ./cmd/workflow -workflows=quality` | Lint + format + build | None |
-| **lint** | `go run ./cmd/workflow -workflows=lint` | Linting check | None |
-| **benchmark** | `go run ./cmd/workflow -workflows=benchmark` | Performance benchmarks | None |
-| **fuzz** | `go run ./cmd/workflow -workflows=fuzz` | Fuzz testing (15s/test) | None |
-| **race** | `go run ./cmd/workflow -workflows=race` | Race detector (10x overhead) | None |
-| **sast** | `go run ./cmd/workflow -workflows=sast` | Static security analysis | None |
-| **gitleaks** | `go run ./cmd/workflow -workflows=gitleaks` | Secrets scanning | None |
-| **dast** | `go run ./cmd/workflow -workflows=dast` | Dynamic security testing | PostgreSQL, Services |
-| **mutation** | `go run ./cmd/workflow -workflows=mutation` | Mutation testing (â‰¥95%) | None |
-| **e2e** | `go run ./cmd/workflow -workflows=e2e` | E2E tests (/service + /browser) | PostgreSQL, Services |
-| **load** | `go run ./cmd/workflow -workflows=load` | Load testing | PostgreSQL, Services |
-| **ci** | `go run ./cmd/workflow -workflows=ci` | Full CI (all checks) | PostgreSQL, Services |
+| **build** | `go run ./cmd/cicd-workflow -workflows=build` | Build check | None |
+| **coverage** | `go run ./cmd/cicd-workflow -workflows=coverage` | Test coverage (â‰¥98% required) | None |
+| **quality** | `go run ./cmd/cicd-workflow -workflows=quality` | Lint + format + build | None |
+| **lint** | `go run ./cmd/cicd-workflow -workflows=lint` | Linting check | None |
+| **benchmark** | `go run ./cmd/cicd-workflow -workflows=benchmark` | Performance benchmarks | None |
+| **fuzz** | `go run ./cmd/cicd-workflow -workflows=fuzz` | Fuzz testing (15s/test) | None |
+| **race** | `go run ./cmd/cicd-workflow -workflows=race` | Race detector (10x overhead) | None |
+| **sast** | `go run ./cmd/cicd-workflow -workflows=sast` | Static security analysis | None |
+| **gitleaks** | `go run ./cmd/cicd-workflow -workflows=gitleaks` | Secrets scanning | None |
+| **dast** | `go run ./cmd/cicd-workflow -workflows=dast` | Dynamic security testing | PostgreSQL, Services |
+| **mutation** | `go run ./cmd/cicd-workflow -workflows=mutation` | Mutation testing (â‰¥95%) | None |
+| **e2e** | `go run ./cmd/cicd-workflow -workflows=e2e` | E2E tests (/service + /browser) | PostgreSQL, Services |
+| **load** | `go run ./cmd/cicd-workflow -workflows=load` | Load testing | PostgreSQL, Services |
+| **ci** | `go run ./cmd/cicd-workflow -workflows=ci` | Full CI (all checks) | PostgreSQL, Services |
 
 **Fast Workflows** (no service dependencies, <5 min):
 - build, coverage, quality, lint, benchmark, fuzz, race, sast, gitleaks, mutation
@@ -246,19 +246,19 @@ See [ARCHITECTURE.md Section 13.5.4 Docker Desktop Startup](../../docs/ARCHITECT
 
 ```powershell
 # Single workflow
-go run ./cmd/workflow -workflows=quality
+go run ./cmd/cicd-workflow -workflows=quality
 
 # Multiple workflows (comma-separated, NO SPACES)
-go run ./cmd/workflow -workflows=quality,coverage,race
+go run ./cmd/cicd-workflow -workflows=quality,coverage,race
 
 # Dry-run mode (validate syntax)
-go run ./cmd/workflow -workflows=e2e -dry-run
+go run ./cmd/cicd-workflow -workflows=e2e -dry-run
 
 # List available workflows
-go run ./cmd/workflow -list
+go run ./cmd/cicd-workflow -list
 
 # Get help
-go run ./cmd/workflow -help
+go run ./cmd/cicd-workflow -help
 ```
 
 ### 2. Output Directory - CRITICAL
@@ -327,8 +327,8 @@ lessons.md        # Lessons learned, patterns, root causes
 MUST run tests BEFORE EVERY COMMIT:
 - Run `go test ./...` to verify no code regressions
 - Verify all tests pass (100%, zero skips)
-- Verify workflow syntax with `go run ./cmd/workflow -workflows=<name> -dry-run`
-- Test workflow execution with `go run ./cmd/workflow -workflows=<name>`
+- Verify workflow syntax with `go run ./cmd/cicd-workflow -workflows=<name> -dry-run`
+- Test workflow execution with `go run ./cmd/cicd-workflow -workflows=<name>`
 - NEVER commit workflow changes that break tests
 
 **Mutation Testing:**
@@ -354,14 +354,14 @@ Set-Content -Path $path -Value $content -Encoding UTF8  # ❌ BOM
 
 **Verification Checklist:**
 
-- [ ] **Syntax Check**: `go run ./cmd/workflow -workflows=<name> -dry-run` (validates YAML syntax, structure, and configuration)
-- [ ] **Local Execution**: `go run ./cmd/workflow -workflows=<name>` (executes workflow locally to catch runtime errors)
+- [ ] **Syntax Check**: `go run ./cmd/cicd-workflow -workflows=<name> -dry-run` (validates YAML syntax, structure, and configuration)
+- [ ] **Local Execution**: `go run ./cmd/cicd-workflow -workflows=<name>` (executes workflow locally to catch runtime errors)
 - [ ] **Regression Check**: Verify fix doesn't break other workflows (grep for shared dependencies, test dependent workflows)
 - [ ] **Conventional Commit**: Use `ci(workflows): fix <issue>` format with detailed body
 
 **Evidence Requirements:**
 
-- âœ… Workflow runs successfully in cmd/workflow local environment
+- âœ… Workflow runs successfully in cmd/cicd-workflow local environment
 - âœ… No new errors introduced (grep logs for "error", "failed", "fatal")
 - âœ… Commit follows conventional format with issue reference
 
@@ -404,8 +404,8 @@ Set-Content -Path $path -Value $content -Encoding UTF8  # ❌ BOM
 
 **Common Evidence Types for Workflow Fixes**:
 
-- `./workflow-reports/workflow-validation/` - cmd/workflow dry-run results, syntax validation, workflow verification
-- `./workflow-reports/workflow-execution/` - cmd/workflow run logs, job output, container logs
+- `./workflow-reports/workflow-validation/` - cmd/cicd-workflow dry-run results, syntax validation, workflow verification
+- `./workflow-reports/workflow-execution/` - cmd/cicd-workflow run logs, job output, container logs
 - `./workflow-reports/workflow-regression/` - Regression test results, before/after comparisons
 - `./workflow-reports/workflow-analysis/` - Workflow dependency analysis, shared action audits
 
@@ -447,10 +447,10 @@ Set-Content -Path $path -Value $content -Encoding UTF8  # ❌ BOM
 New-Item -ItemType Directory -Force -Path ./workflow-reports/workflow-validation/
 
 # Validate syntax with dry-run
-go run ./cmd/workflow -workflows=quality -dry-run > ./workflow-reports/workflow-validation/quality-dryrun.log 2>&1
+go run ./cmd/cicd-workflow -workflows=quality -dry-run > ./workflow-reports/workflow-validation/quality-dryrun.log 2>&1
 
 # Execute workflow locally
-go run ./cmd/workflow -workflows=quality > ./workflow-reports/workflow-validation/quality-execution.log 2>&1
+go run ./cmd/cicd-workflow -workflows=quality > ./workflow-reports/workflow-validation/quality-execution.log 2>&1
 
 # Check for regressions
 Get-ChildItem -Recurse .github/workflows/ | Select-String "shared-action" > ./workflow-reports/workflow-validation/shared-action-dependencies.txt
@@ -473,7 +473,7 @@ Add-Content -Path docs/fixes-needed-plan-tasks-v#/lessons.md -Value @"
 - Lessons.md MUST reference evidence subdirectories in `./workflow-reports/`
 - DO NOT create separate analysis documents in docs/
 - ALL validation artifacts go in `./workflow-reports/` (NOT test-output/)
-- cmd/workflow automatically creates `./workflow-reports/` per internal\apps\workflow\workflow.go line 66
+- cmd/cicd-workflow automatically creates `./workflow-reports/` per internal\apps\workflow\workflow.go line 66
 
 ---
 
@@ -574,8 +574,8 @@ permissions:
 ### 1. Scope Clarification
 
 - [ ] **Which workflows are affected?**
-  - All workflows (`go run ./cmd/workflow -workflows=ci`)
-  - Specific workflow(s) (`go run ./cmd/workflow -workflows=quality,coverage`)
+  - All workflows (`go run ./cmd/cicd-workflow -workflows=ci`)
+  - Specific workflow(s) (`go run ./cmd/cicd-workflow -workflows=quality,coverage`)
   - Workflows with pattern (e.g., all security workflows: `sast,gitleaks,dast`)
 
 - [ ] **What is the failure symptom?**
@@ -595,7 +595,7 @@ permissions:
 - [ ] **Where is this running?**
   - GitHub Actions (cloud runners)
   - Self-hosted runners
-  - Local testing with cmd/workflow
+  - Local testing with cmd/cicd-workflow
 
 - [ ] **What are the constraints?**
   - Time budget for fixes (urgent hotfix vs. planned improvement)
@@ -605,7 +605,7 @@ permissions:
 ### 3. Testing Requirements
 
 - [ ] **How should this be validated?**
-  - Local execution sufficient (`go run ./cmd/workflow -workflows=<name>`)
+  - Local execution sufficient (`go run ./cmd/cicd-workflow -workflows=<name>`)
   - Full CI pipeline required (all 14 workflows)
   - Specific test coverage (e.g., E2E tests for service changes)
 
@@ -649,7 +649,7 @@ permissions:
 - [ ] **Dependency review**: New dependencies reviewed for vulnerabilities
 - [ ] **SBOM generation**: Software Bill of Materials generated for deployments (if applicable)
 
-**Enforcement**: Run `go run ./cmd/workflow -workflows=<name> -dry-run` to catch syntax issues, then visual review for security checklist compliance.
+**Enforcement**: Run `go run ./cmd/cicd-workflow -workflows=<name> -dry-run` to catch syntax issues, then visual review for security checklist compliance.
 
 ---
 
@@ -747,7 +747,7 @@ permissions:
 
 **Log Analysis**: Download artifacts first, grep for errors/patterns, compare working vs failing workflows, analyze timing/resource usage
 
-**Evidence-Based Debugging**: Reproduce locally (cmd/workflow), collect diagnostic data (logs, configs, screenshots), verify fix with before/after comparison
+**Evidence-Based Debugging**: Reproduce locally (cmd/cicd-workflow), collect diagnostic data (logs, configs, screenshots), verify fix with before/after comparison
 
 **Version Pinning**: Pin action versions to commit SHAs (not tags), document version in comments, review security advisories before updating
 
@@ -760,7 +760,7 @@ permissions:
 **Local Testing Priority**:
 
 1. **ALWAYS test locally first** - saves 5-10 minutes per iteration
-2. **Use cmd/workflow for integration tests** - faster than Act
+2. **Use cmd/cicd-workflow for integration tests** - faster than Act
 3. **Download and analyze container logs** - actual errors, not assumptions
 4. **Code archaeology for zero symptom change** - missing code vs config
 5. **Monitor GitHub workflows** - verify fixes work in CI/CD

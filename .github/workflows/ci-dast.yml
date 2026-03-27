@@ -17,9 +17,9 @@ name: CI - DAST Security Testing
 #
 # IMPORTANT: Test locally with act (NO TIMEOUT - workflows take 3-25 minutes):
 #   RECOMMENDED: Use the automated Go utility (handles timeouts, monitoring, and analysis):
-#     go run ./cmd/workflow -workflows=dast -inputs="scan_profile=quick"
-#     go run ./cmd/workflow -workflows=dast -inputs="scan_profile=full"
-#     go run ./cmd/workflow -workflows=dast -inputs="scan_profile=deep"
+#     go run ./cmd/cicd-workflow -workflows=dast -inputs="scan_profile=quick"
+#     go run ./cmd/cicd-workflow -workflows=dast -inputs="scan_profile=full"
+#     go run ./cmd/cicd-workflow -workflows=dast -inputs="scan_profile=deep"
 #
 #   ALTERNATIVE: Direct act commands (manual monitoring required):
 #     [Console]::OutputEncoding = [System.Text.Encoding]::UTF8

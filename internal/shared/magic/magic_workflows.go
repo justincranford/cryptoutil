@@ -45,7 +45,7 @@ const (
 )
 
 // UsageWorkflow is the usage message for the workflow command.
-const UsageWorkflow = "Usage: workflow <subcommand> [options]\n\nSubcommands:\n  run      Run GitHub Actions workflows locally using act\n  cleanup  Clean up GitHub Actions storage (runs, artifacts, caches)\n\nUse \"workflow <subcommand> --help\" for subcommand-specific help."
+const UsageWorkflow = "Usage: cicd-workflow <subcommand> [options]\n\nSubcommands:\n  run      Run GitHub Actions workflows locally using act\n  cleanup  Clean up GitHub Actions storage (runs, artifacts, caches)\n\nUse \"cicd-workflow <subcommand> --help\" for subcommand-specific help."
 
 // Regex patterns for workflow validation.
 var (

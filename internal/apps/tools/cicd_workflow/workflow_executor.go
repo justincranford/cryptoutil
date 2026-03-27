@@ -2,8 +2,8 @@
 //
 //
 
-// Package workflow provides workflow execution and orchestration utilities.
-package workflow
+// Package cicd_workflow provides workflow execution and orchestration utilities.
+package cicd_workflow
 
 import (
 	"bufio"

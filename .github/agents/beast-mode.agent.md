@@ -452,7 +452,7 @@ go run ./cmd/cicd-lint lint-deployments              # Deployment validation (wh
 
 ```bash
 # When E2E code/tests changed (MANDATORY)
-go run ./cmd/workflow -workflows=e2e      # End-to-end tests (requires Docker Desktop running)
+go run ./cmd/cicd-workflow -workflows=e2e      # End-to-end tests (requires Docker Desktop running)
 
 # RECOMMENDED Pre-Push Quality Gates
 gremlins unleash --tags=!integration      # Mutation testing (when explicitly requested)
@@ -475,7 +475,7 @@ go test -race -count=3 ./...              # Race detection
 - Tests pass (100%, zero skips, `go test ./... -shuffle=on`)
 - Integration tests pass (included in go test ./...)
 - Deployment validators pass (`cicd lint-deployments` - when deployments/ or configs/ changed)
-- E2E tests pass (`go run ./cmd/workflow -workflows=e2e` - when E2E code/tests changed, requires Docker Desktop)
+- E2E tests pass (`go run ./cmd/cicd-workflow -workflows=e2e` - when E2E code/tests changed, requires Docker Desktop)
 - Coverage maintained
 - Git commit with conventional commit message
 

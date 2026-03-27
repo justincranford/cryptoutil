@@ -2,7 +2,7 @@
 //
 //
 
-package workflow
+package cicd_workflow
 
 import (
 	"bytes"

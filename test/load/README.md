@@ -296,9 +296,9 @@ The project includes a dedicated `ci-load.yml` workflow for automated load testi
 
 ```bash
 # Run locally using the workflow runner
-go run ./cmd/workflow -workflows=load -inputs="load_profile=quick"
-go run ./cmd/workflow -workflows=load -inputs="load_profile=standard"
-go run ./cmd/workflow -workflows=load -inputs="load_profile=stress"
+go run ./cmd/cicd-workflow -workflows=load -inputs="load_profile=quick"
+go run ./cmd/cicd-workflow -workflows=load -inputs="load_profile=standard"
+go run ./cmd/cicd-workflow -workflows=load -inputs="load_profile=stress"
 ```
 
 **Workflow Features:**
