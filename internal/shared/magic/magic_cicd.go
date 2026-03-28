@@ -62,6 +62,12 @@ const (
 	// CICDInfraToolInternalDir is the internal/ directory where infrastructure tool packages live.
 	CICDInfraToolInternalDir = "internal/apps/tools"
 
+	// PortRangeSuspiciousMin is the minimum integer value in the suspicious port range for const linting.
+	PortRangeSuspiciousMin = 1000
+
+	// PortRangeSuspiciousMax is the maximum integer value in the suspicious port range for const linting.
+	PortRangeSuspiciousMax = 65535
+
 	// CICDConfigsDir is the top-level directory name for service configuration files.
 	CICDConfigsDir = "configs"
 )

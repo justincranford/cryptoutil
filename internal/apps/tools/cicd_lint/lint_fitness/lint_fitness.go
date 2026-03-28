@@ -38,6 +38,7 @@ import (
 	lintFitnessInfraToolNaming "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/infra_tool_naming"
 	lintFitnessInsecureSkipVerify "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/insecure_skip_verify"
 	lintFitnessLegacyDirDetection "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/legacy_dir_detection"
+	lintFitnessMagicConstantLocation "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/magic_constant_location"
 	lintFitnessMagicE2EComposePath "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/magic_e2e_compose_path"
 	lintFitnessMagicE2EContainerNames "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/magic_e2e_container_names"
 	lintFitnessMigrationCommentHeaders "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/migration_comment_headers"
@@ -146,6 +147,7 @@ var registeredLinters = []struct {
 	// New fitness checks (added in documentation-audit pass).
 	{"cmd-entry-whitelist", lintFitnessCmdEntryWhitelist.Check},
 	{"infra-tool-naming", lintFitnessInfraToolNaming.Check},
+	{"magic-constant-location", lintFitnessMagicConstantLocation.Check},
 	{"root-junk-detection", lintFitnessRootJunkDetection.Check},
 	{"template-consistency", lintFitnessTemplateConsistency.Check},
 }
