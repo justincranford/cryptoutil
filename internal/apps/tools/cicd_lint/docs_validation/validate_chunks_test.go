@@ -100,6 +100,17 @@ func TestExtractPropagateBlocks(t *testing.T) {
 			wantCount: 1,
 			wantFirst: &PropagateBlock{TargetFile: "f.md", ChunkID: "empty", Content: "\n"},
 		},
+		{
+			name: "multi-target comma separated",
+			content: join(
+				`<!-- @propagate to="a.md, b.md" as="shared" -->`,
+				"Shared content",
+				"<!-- @/propagate -->",
+			),
+			wantCount:  2,
+			wantFirst:  &PropagateBlock{TargetFile: "a.md", ChunkID: "shared", Content: "Shared content\n", LineNumber: 1},
+			wantSecond: &PropagateBlock{TargetFile: "b.md", ChunkID: "shared", Content: "Shared content\n", LineNumber: 1},
+		},
 	}
 
 	for _, tc := range tests {
@@ -310,6 +321,27 @@ func TestValidateChunks(t *testing.T) {
 				"<!-- @/propagate -->",
 			),
 			wantFileErrors: 2,
+		},
+		{
+			name: "multi-target matches both files",
+			archContent: join(
+				`<!-- @propagate to="first.md, second.md" as="multi" -->`,
+				"Multi content",
+				"<!-- @/propagate -->",
+			),
+			files: map[string]string{
+				"first.md": join(
+					`<!-- @source from="docs/ARCHITECTURE.md" as="multi" -->`,
+					"Multi content",
+					"<!-- @/source -->",
+				),
+				"second.md": join(
+					`<!-- @source from="docs/ARCHITECTURE.md" as="multi" -->`,
+					"Multi content",
+					"<!-- @/source -->",
+				),
+			},
+			wantMatched: 2,
 		},
 	}
 

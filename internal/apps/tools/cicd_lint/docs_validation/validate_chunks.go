@@ -77,6 +77,8 @@ func extractPropagateBlocks(content string) []PropagateBlock {
 
 	var contentLines []string
 
+	var pendingTargets []string
+
 	for i, line := range lines {
 		lineNum := i + 1
 
@@ -95,11 +97,15 @@ func extractPropagateBlocks(content string) []PropagateBlock {
 		// Check for @propagate start (only when not already in a block).
 		if current == nil {
 			if match := propagateRegex.FindStringSubmatch(line); len(match) == cryptoutilSharedMagic.PropagateMarkerMatchGroups {
+				// Support comma-separated targets: to="a.md, b.md" expands to multiple blocks.
+				targets := strings.Split(match[1], ", ")
 				current = &PropagateBlock{
-					TargetFile: match[1],
+					TargetFile: targets[0],
 					ChunkID:    match[2],
 					LineNumber: lineNum,
 				}
+				// Store additional targets for expansion after content is captured.
+				pendingTargets = targets[1:]
 				contentLines = nil
 
 				continue
@@ -112,8 +118,20 @@ func extractPropagateBlocks(content string) []PropagateBlock {
 		if strings.Contains(line, "<!-- @/propagate -->") {
 			current.Content = strings.Join(contentLines, "\n") + "\n"
 			blocks = append(blocks, *current)
+
+			// Expand comma-separated targets into additional blocks with identical content.
+			for _, extraTarget := range pendingTargets {
+				blocks = append(blocks, PropagateBlock{
+					TargetFile: extraTarget,
+					ChunkID:    current.ChunkID,
+					Content:    current.Content,
+					LineNumber: current.LineNumber,
+				})
+			}
+
 			current = nil
 			contentLines = nil
+			pendingTargets = nil
 
 			continue
 		}

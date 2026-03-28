@@ -575,31 +575,7 @@ If `git status --porcelain` returns ANY output:
 
 #### Mandatory Review Passes
 
-<!-- @propagate to=".github/instructions/01-02.beast-mode.instructions.md" as="mandatory-review-passes" -->
-**MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
-
-Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
-
-**Each pass checks ALL 8 attributes** (fresh perspective per pass):
-1. ✅ **Correctness** — code/docs correct, no regressions
-2. ✅ **Completeness** — all tasks/steps/items addressed, nothing skipped
-3. ✅ **Thoroughness** — evidence-based validation, all edge cases covered
-4. ✅ **Reliability** — build, lint, test, coverage, mutation all pass
-5. ✅ **Efficiency** — optimized for maintainability, not implementation speed
-6. ✅ **Accuracy** — root cause addressed, not just symptoms
-7. ❌ **NO Time Pressure** — NEVER rushed, NEVER cutting corners
-8. ❌ **NO Premature Completion** — objective evidence required before marking complete
-
-**Continuation rule**: If pass 3 finds ANY issue, continue to pass 4. If pass 4 still finds issues, continue to pass 5. Diminishing returns = done.
-
-**Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
-<!-- @/propagate -->
-
-<!-- NOTE: The following block is intentionally identical to the one above. The propagation system
-     requires a separate @propagate block per target instruction file. Both 01-02 (beast-mode)
-     and 06-01 (evidence-based) consume this content because review passes serve both autonomous
-     execution quality enforcement AND evidence-based task completion requirements. -->
-<!-- @propagate to=".github/instructions/06-01.evidence-based.instructions.md" as="mandatory-review-passes" -->
+<!-- @propagate to=".github/instructions/01-02.beast-mode.instructions.md, .github/instructions/06-01.evidence-based.instructions.md" as="mandatory-review-passes" -->
 **MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
 
 Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
@@ -2777,23 +2753,7 @@ Architecture fitness functions are automated checks that enforce ARCHITECTURE.md
 - **Integration Tests**: TestMain pattern, shared resources, GORM repositories
 - **E2E Tests**: Docker Compose, production-like, cross-service validation
 
-<!-- @propagate to=".github/instructions/03-02.testing.instructions.md" as="three-tier-database-strategy" -->
-**3-Tier Database Strategy (MANDATORY)**:
-
-| Tier | Database | Pattern | PostgreSQL? |
-|------|----------|---------|-------------|
-| Unit | SQLite in-memory | `testdb.NewInMemorySQLiteDB(t)` | NEVER |
-| Integration | SQLite in-memory via TestMain | ONE shared instance per package | NEVER |
-| E2E | Docker Compose PostgreSQL | 3 app instances (2 PostgreSQL + 1 SQLite) | YES (only here) |
-
-**Key Rules**:
-- NEVER use PostgreSQL in unit or integration tests — PostgreSQL tested ONLY in E2E.
-- NEVER create DB per-test in integration tests (use TestMain shared instance).
-- NEVER start real servers in unit tests (use Fiber app.Test()).
-- E2E tests use Docker Compose with 3 service instances: 2 sharing a PostgreSQL container, 1 using in-memory SQLite, validating cross-database compatibility.
-<!-- @/propagate -->
-
-<!-- @propagate to=".github/instructions/03-04.data-infrastructure.instructions.md" as="three-tier-database-strategy" -->
+<!-- @propagate to=".github/instructions/03-02.testing.instructions.md, .github/instructions/03-04.data-infrastructure.instructions.md" as="three-tier-database-strategy" -->
 **3-Tier Database Strategy (MANDATORY)**:
 
 | Tier | Database | Pattern | PostgreSQL? |
@@ -4513,10 +4473,11 @@ content here (verbatim copy of source)
 **Formal Grammar** (BNF-like, for validator implementors):
 
 ```
-@propagate-open  ::= '<!-- @propagate to="' PATH '" as="' CHUNK_ID '" -->'
+@propagate-open  ::= '<!-- @propagate to="' PATH_LIST '" as="' CHUNK_ID '" -->'
 @propagate-close ::= '<!-- @/propagate -->'
 @source-open     ::= '<!-- @source from="' PATH '" as="' CHUNK_ID '" -->'
 @source-close    ::= '<!-- @/source -->'
+PATH_LIST        ::= PATH ( ', ' PATH )*
 PATH             ::= [a-zA-Z0-9_./-]+
 CHUNK_ID         ::= [a-z0-9-]+
 ```
@@ -4525,7 +4486,7 @@ Any variant not matching the above grammar (e.g., `@propagate from=...`, `@sourc
 
 #### 13.4.3 Propagation Rules
 
-**One-to-many**: One ARCHITECTURE.md chunk MAY propagate to multiple target files. Use separate `@propagate`/`@/propagate` blocks with different `to` attributes and the same `as` identifier. Content MUST be duplicated identically in each block to enable simple regex extraction.
+**One-to-many**: One ARCHITECTURE.md chunk MAY propagate to multiple target files. Use a comma-separated `to` attribute: `to="file-a.md, file-b.md"`. The validator splits on comma-space and creates one propagation block per target with identical content. Avoid separate duplicate blocks.
 
 **Chunk granularity**: Propagate the smallest self-contained unit. Prefer one chunk per logical concept (a table, a rule set, a code block with explanation). Do NOT wrap entire sections in a single marker.
 
@@ -4903,13 +4864,7 @@ See [Section 9.4.2 Docker Desktop and Testcontainers API Compatibility](#942-doc
 
 ### 14.7 Infrastructure Blocker Escalation
 
-<!-- @propagate to=".github/instructions/06-01.evidence-based.instructions.md" as="infrastructure-blocker-escalation" -->
-**MANDATORY: ALL infrastructure issues are BLOCKING. NEVER defer, deprioritize, skip, or tag as "pre-existing."**
-
-Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATORY Phase 0 fix (block ALL other work). Infrastructure blockers (OTel, Docker, testcontainers, CI/CD) take priority over feature work.
-<!-- @/propagate -->
-
-<!-- @propagate to=".github/instructions/01-02.beast-mode.instructions.md" as="infrastructure-blocker-escalation" -->
+<!-- @propagate to=".github/instructions/06-01.evidence-based.instructions.md, .github/instructions/01-02.beast-mode.instructions.md" as="infrastructure-blocker-escalation" -->
 **MANDATORY: ALL infrastructure issues are BLOCKING. NEVER defer, deprioritize, skip, or tag as "pre-existing."**
 
 Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATORY Phase 0 fix (block ALL other work). Infrastructure blockers (OTel, Docker, testcontainers, CI/CD) take priority over feature work.
