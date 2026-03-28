@@ -56,6 +56,12 @@ const (
 	// CICDCmdDirWorkflow is the cmd/ directory name for the workflow testing binary.
 	CICDCmdDirWorkflow = "cicd-workflow"
 
+	// CICDInfraToolCmdPrefix is the required prefix for infrastructure tool cmd/ directories.
+	CICDInfraToolCmdPrefix = "cicd-"
+
+	// CICDInfraToolInternalDir is the internal/ directory where infrastructure tool packages live.
+	CICDInfraToolInternalDir = "internal/apps/tools"
+
 	// CICDConfigsDir is the top-level directory name for service configuration files.
 	CICDConfigsDir = "configs"
 )
