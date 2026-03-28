@@ -66,8 +66,8 @@ This guide covers setting up a complete development environment for the cryptout
 
 | Tool | Installation | Purpose |
 |------|-------------|---------|
-| **pre-commit** | `pip install pre-commit` | Git hooks framework |
-| **pytest** | `pip install pytest` | Python testing (if writing Python) |
+| **pre-commit** | `uvx pre-commit install` | Git hooks framework |
+| **pytest** | `uvx pytest` | Python testing (if writing Python) |
 
 ---
 
@@ -193,7 +193,13 @@ winget install --id Python.Python.3.14 --source winget
 # Verify installation (may need to restart terminal)
 python --version
 # Expected: Python 3.14.x
-pip --version
+
+# Install uv (Python package runner)
+# Option 1: winget
+winget install --id astral-sh.uv --source winget
+# Option 2: curl
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+uv --version
 ```
 
 **Node.js 24.11.1+ LTS**
@@ -303,11 +309,11 @@ markdownlint-cli2 --version
 #### 4. Install Python Tools
 
 ```powershell
-# Install pre-commit
-pip install pre-commit
+# Install pre-commit hooks
+uvx pre-commit install
 
 # Verify
-pre-commit --version
+uvx pre-commit --version
 ```
 
 #### 5. Install Security & Testing Tools
@@ -393,7 +399,10 @@ docker --version
 docker compose version
 
 # Install Python 3.14+
-sudo apt install -y python3 python3-pip python3-venv
+sudo apt install -y python3 python3-venv
+
+# Install uv (Python package runner)
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Verify
 python3 --version
@@ -447,7 +456,10 @@ sudo systemctl enable docker
 sudo usermod -aG docker $USER
 
 # Install Python
-sudo dnf install -y python3 python3-pip
+sudo dnf install -y python3
+
+# Install uv (Python package runner)
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Install Node.js
 curl -fsSL https://rpm.nodesource.com/setup_24.x | sudo bash -
@@ -486,7 +498,7 @@ npm install -g cspell markdownlint-cli2
 #### 4. Install Python Tools
 
 ```bash
-pip3 install pre-commit
+uvx pre-commit install
 ```
 
 #### 5. Install Security & Testing Tools
@@ -525,6 +537,9 @@ brew install --cask docker
 # Install Python 3.14+
 brew install python@3.14
 
+# Install uv (Python package runner)
+brew install uv
+
 # Install Node.js 24.x LTS
 brew install node@24
 
@@ -561,7 +576,7 @@ go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
 
 ```bash
 npm install -g cspell markdownlint-cli2
-pip3 install pre-commit
+uvx pre-commit install
 ```
 
 #### 4. Install Security & Testing Tools

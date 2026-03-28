@@ -1,6 +1,6 @@
 # $schema: https://json.schemastore.org/pre-commit-config.json
 # Pre-commit hooks configuration for automatic code formatting
-# Install: pip install pre-commit && pre-commit install
+# Install: uvx pre-commit install
 # Run manually: pre-commit run --all-files
 
 repos:
@@ -291,6 +291,16 @@ repos:
         name: YAML strict lint
         args: [-d, relaxed]
         files: '\.(yaml|yml)$'
+        stages: [pre-commit]
+
+  # YAML file formatting (consistent indentation, trailing newlines)
+  - repo: https://github.com/google/yamlfmt
+    rev: v0.21.0
+    hooks:
+      - id: yamlfmt
+        name: Format YAML files
+        files: '\.(yaml|yml)$'
+        exclude: '(\.github/|\.pre-commit-config\.yaml)$'
         stages: [pre-commit]
 
   # Specialized file linting: GitHub Actions workflow linting

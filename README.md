@@ -898,21 +898,13 @@ This project uses **automated code formatting** that runs on every commit. The f
 
 ```sh
 # Install pre-commit hooks (runs comprehensive code quality checks)
-pip install pre-commit
-# If pip is not in PATH, use:
-# python -m pip install pre-commit
-
-pre-commit install
-# If pre-commit is not in PATH, use:
-# python -m pre_commit install
+uvx pre-commit install
 
 # Set consistent cache location (Windows)
 setx PRE_COMMIT_HOME "C:\Users\%USERNAME%\.cache\pre-commit"
 
 # Test the setup
-pre-commit run --all-files
-# If pre-commit is not in PATH, use:
-# python -m pre_commit run --all-files
+uvx pre-commit run --all-files
 ```
 
 **Setup Instructions:**

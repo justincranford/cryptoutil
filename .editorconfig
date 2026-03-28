@@ -30,6 +30,11 @@ indent_size = 4
 indent_style = space
 indent_size = 2
 
+# yamlfmt config (YAML without extension)
+[.yamlfmt]
+indent_style = space
+indent_size = 2
+
 # JSON files (2-space indent)
 [*.json]
 indent_style = space
