@@ -37,9 +37,6 @@ Copilot auto-load it when your request matches the skill description.
 | `skill-scaffold` | tooling | Create conformant `.github/skills/NAME/SKILL.md` with proper frontmatter | [SKILL.md](skill-scaffold/SKILL.md) |
 | `contract-test-gen` | testing | Generate cross-service contract compliance tests (RunContractTests, ServiceServer, SetReady) | [SKILL.md](contract-test-gen/SKILL.md) |
 | `fitness-function-gen` | testing | Generate architecture fitness functions for lint-fitness (Check, CheckInDir, registration) | [SKILL.md](fitness-function-gen/SKILL.md) |
-| `deployment-gen` | deployment | Generate complete deployment structure (compose.yml, Dockerfile, secrets/, config/) | [SKILL.md](deployment-gen/SKILL.md) |
-| `secret-gen` | deployment | Generate Docker secrets with correct format, naming, hex/base64 values, tier prefix | [SKILL.md](secret-gen/SKILL.md) |
-| `api-handler` | api | Map OpenAPI operation to strict server handler implementation boilerplate | [SKILL.md](api-handler/SKILL.md) |
 
 ## Skills vs Custom Instructions vs Agents
 
