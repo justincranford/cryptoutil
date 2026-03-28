@@ -11,14 +11,17 @@ import (
 	"sort"
 	"strings"
 	"unicode"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // PropagationRef represents a reference from an instruction/agent file to ARCHITECTURE.md.
 type PropagationRef struct {
-	SourceFile string // e.g., ".github/instructions/02-01.architecture.instructions.md"
-	LineNumber int    // 1-based line number in SourceFile
-	Anchor     string // e.g., "941-otel-collector-processor-constraints"
-	RawRef     string // e.g., "See [ARCHITECTURE.md Section 9.4.1 ...](...)"
+	SourceFile  string // e.g., ".github/instructions/02-01.architecture.instructions.md"
+	LineNumber  int    // 1-based line number in SourceFile
+	Anchor      string // e.g., "941-otel-collector-processor-constraints"
+	RawRef      string // e.g., "See [ARCHITECTURE.md Section 9.4.1 ...](...)"
+	DisplayText string // e.g., "ARCHITECTURE.md Section 9.4.1 ..."
 }
 
 // LevelCoverage tracks section coverage at a specific heading level.
@@ -29,17 +32,34 @@ type LevelCoverage struct {
 
 // PropagationResult holds validation results.
 type PropagationResult struct {
-	ValidRefs    []PropagationRef
-	BrokenRefs   []PropagationRef
-	OrphanedKeys []string // ARCHITECTURE.md anchors with zero references
-	TotalAnchors int
-	HighImpact   LevelCoverage // ## sections.
-	MediumImpact LevelCoverage // ### sections.
-	LowImpact    LevelCoverage // #### sections.
+	ValidRefs           []PropagationRef
+	BrokenRefs          []PropagationRef
+	OrphanedKeys        []string // ARCHITECTURE.md anchors with zero references
+	DisplayTextWarnings []DisplayTextWarning
+	TotalAnchors        int
+	HighImpact          LevelCoverage // ## sections.
+	MediumImpact        LevelCoverage // ### sections.
+	LowImpact           LevelCoverage // #### sections.
+}
+
+// DisplayTextWarning represents a reference where the display text section number
+// does not match the actual heading's section number at the referenced anchor.
+type DisplayTextWarning struct {
+	SourceFile    string
+	LineNumber    int
+	Anchor        string
+	DisplayNumber string // section number extracted from display text
+	HeadingNumber string // section number from the actual heading
 }
 
 // anchorRegex matches ARCHITECTURE.md#anchor-fragment in markdown links.
 var anchorRegex = regexp.MustCompile(`ARCHITECTURE\.md#([a-z0-9_-]+)\)`)
+
+// displayTextRegex captures display text and anchor from markdown links to ARCHITECTURE.md.
+var displayTextRegex = regexp.MustCompile(`\[([^\]]+)\]\([^)]*ARCHITECTURE\.md#([a-z0-9_-]+)\)`)
+
+// sectionNumberRegex extracts section numbers like "1.2", "14.7.1" from text.
+var sectionNumberRegex = regexp.MustCompile(`\b(\d+(?:\.\d+)+)\b`)
 
 // headerToAnchor converts a Markdown header text to a GitHub-flavored anchor.
 // Rules: lowercase, spaces to hyphens, remove non-alphanumeric except hyphens/underscores,
@@ -98,22 +118,72 @@ func extractAnchorsFromArchitecture(content string) map[string]bool {
 	return anchors
 }
 
+// extractAnchorHeadingMap builds a map from anchor to the raw heading text.
+func extractAnchorHeadingMap(content string) map[string]string {
+	headingMap := make(map[string]string)
+
+	for _, line := range strings.Split(content, "\n") {
+		if strings.HasPrefix(line, "#") {
+			anchor := headerToAnchor(line)
+			if anchor != "" {
+				headingText := strings.TrimLeft(line, "# ")
+				headingMap[anchor] = headingText
+			}
+		}
+	}
+
+	return headingMap
+}
+
+// extractSectionNumber extracts the first dotted section number (e.g., "14.7") from text.
+// Returns empty string if no dotted number is found.
+func extractSectionNumber(text string) string {
+	match := sectionNumberRegex.FindString(text)
+
+	return match
+}
+
 // extractRefsFromFile reads a file and extracts all ARCHITECTURE.md anchor references.
 func extractRefsFromFile(relPath, content string) []PropagationRef {
 	var refs []PropagationRef
 
 	lines := strings.Split(content, "\n")
 
+	// Build per-line display text lookup: anchor → display text.
+	displayTextByLine := make(map[int]map[string]string)
+
 	for i, line := range lines {
+		lineNum := i + 1
+		dtMatches := displayTextRegex.FindAllStringSubmatch(line, -1)
+
+		for _, dtMatch := range dtMatches {
+			if len(dtMatch) >= cryptoutilSharedMagic.DisplayTextRegexMatchGroups {
+				if displayTextByLine[lineNum] == nil {
+					displayTextByLine[lineNum] = make(map[string]string)
+				}
+
+				displayTextByLine[lineNum][dtMatch[2]] = dtMatch[1]
+			}
+		}
+	}
+
+	for i, line := range lines {
+		lineNum := i + 1
 		matches := anchorRegex.FindAllStringSubmatch(line, -1)
 
 		for _, match := range matches {
 			if len(match) >= 2 {
+				dt := ""
+				if dtMap, ok := displayTextByLine[lineNum]; ok {
+					dt = dtMap[match[1]]
+				}
+
 				refs = append(refs, PropagationRef{
-					SourceFile: relPath,
-					LineNumber: i + 1,
-					Anchor:     match[1],
-					RawRef:     truncateRef(line),
+					SourceFile:  relPath,
+					LineNumber:  lineNum,
+					Anchor:      match[1],
+					RawRef:      truncateRef(line),
+					DisplayText: dt,
 				})
 			}
 		}
@@ -249,6 +319,40 @@ func ValidatePropagation(rootDir string, readFile func(string) ([]byte, error)) 
 
 	sort.Strings(result.OrphanedKeys)
 
+	// Check display text accuracy: compare section numbers in display text vs actual headings.
+	headingMap := extractAnchorHeadingMap(string(archContent))
+
+	for _, ref := range result.ValidRefs {
+		if ref.DisplayText == "" {
+			continue
+		}
+
+		displayNum := extractSectionNumber(ref.DisplayText)
+		if displayNum == "" {
+			continue
+		}
+
+		heading, ok := headingMap[ref.Anchor]
+		if !ok {
+			continue
+		}
+
+		headingNum := extractSectionNumber(heading)
+		if headingNum == "" {
+			continue
+		}
+
+		if displayNum != headingNum {
+			result.DisplayTextWarnings = append(result.DisplayTextWarnings, DisplayTextWarning{
+				SourceFile:    ref.SourceFile,
+				LineNumber:    ref.LineNumber,
+				Anchor:        ref.Anchor,
+				DisplayNumber: displayNum,
+				HeadingNumber: headingNum,
+			})
+		}
+	}
+
 	return result, nil
 }
 
@@ -288,6 +392,17 @@ func FormatPropagationResults(result *PropagationResult) string {
 
 		for _, anchor := range result.OrphanedKeys {
 			sb.WriteString(fmt.Sprintf("  WARN #%s\n", anchor))
+		}
+
+		sb.WriteString("\n")
+	}
+
+	// Display text accuracy warnings.
+	if len(result.DisplayTextWarnings) > 0 {
+		sb.WriteString(fmt.Sprintf("DISPLAY TEXT MISMATCHES (%d):\n", len(result.DisplayTextWarnings)))
+
+		for _, w := range result.DisplayTextWarnings {
+			sb.WriteString(fmt.Sprintf("  WARN %s:%d -> #%s (display: %s, heading: %s)\n", w.SourceFile, w.LineNumber, w.Anchor, w.DisplayNumber, w.HeadingNumber))
 		}
 
 		sb.WriteString("\n")

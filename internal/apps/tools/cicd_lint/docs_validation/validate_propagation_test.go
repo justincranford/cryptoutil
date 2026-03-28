@@ -111,6 +111,57 @@ No architecture references here.
 	require.Empty(t, refs)
 }
 
+func TestExtractRefsFromFile_DisplayText(t *testing.T) {
+	t.Parallel()
+
+	content := `See [Section 1.1](../../docs/ARCHITECTURE.md#11-vision-statement) for details.`
+
+	refs := extractRefsFromFile("test.md", content)
+
+	require.Len(t, refs, 1)
+	require.Equal(t, "11-vision-statement", refs[0].Anchor)
+	require.Equal(t, "Section 1.1", refs[0].DisplayText)
+}
+
+func TestExtractAnchorHeadingMap(t *testing.T) {
+	t.Parallel()
+
+	content := "# Main Title\n## 2. Strategic Vision\n### 2.1 Agent Orchestration\n#### 2.1.1 Agent Architecture\n"
+
+	headingMap := extractAnchorHeadingMap(content)
+
+	require.Equal(t, "Main Title", headingMap["main-title"])
+	require.Equal(t, "2. Strategic Vision", headingMap["2-strategic-vision"])
+	require.Equal(t, "2.1 Agent Orchestration", headingMap["21-agent-orchestration"])
+	require.Equal(t, "2.1.1 Agent Architecture", headingMap["211-agent-architecture"])
+}
+
+func TestExtractSectionNumber(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{name: "dotted two", input: "Section 14.7", expected: "14.7"},
+		{name: "dotted three", input: "Section 2.1.1", expected: "2.1.1"},
+		{name: "in heading", input: "Key Management System Architecture", expected: ""},
+		{name: "no number", input: "Overview", expected: ""},
+		{name: "single number only", input: "Section 3", expected: ""},
+		{name: "embedded in text", input: "See 9.4.1 for details", expected: "9.4.1"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			result := extractSectionNumber(tc.input)
+			require.Equal(t, tc.expected, result)
+		})
+	}
+}
+
 func TestTruncateRef(t *testing.T) {
 	t.Parallel()
 
@@ -197,6 +248,45 @@ func TestValidatePropagation_MissingArchFile(t *testing.T) {
 	require.Contains(t, err.Error(), "ARCHITECTURE.md")
 }
 
+func TestValidatePropagation_DisplayTextWarnings(t *testing.T) {
+	t.Parallel()
+
+	archContent := `# Main
+## 1. Executive Summary
+### 1.1 Vision Statement
+### 13.4 Documentation Strategy
+`
+	// Display text says "Section 12.7" but anchor resolves to "13.4 Documentation Strategy".
+	instructionContent := `See [Section 12.7](../../docs/ARCHITECTURE.md#134-documentation-strategy) for docs.
+See [Section 1.1](../../docs/ARCHITECTURE.md#11-vision-statement) correct.
+`
+	rootDir := t.TempDir()
+
+	require.NoError(t, os.MkdirAll(rootDir+"/.github/instructions", 0o700))
+	require.NoError(t, os.MkdirAll(rootDir+"/.github/agents", 0o700))
+	require.NoError(t, os.MkdirAll(rootDir+"/docs", 0o700))
+	require.NoError(t, os.WriteFile(rootDir+"/docs/ARCHITECTURE.md", []byte(archContent), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(rootDir+"/.github/instructions/test.instructions.md", []byte(instructionContent), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(rootDir+"/.github/copilot-instructions.md", []byte("No refs."), cryptoutilSharedMagic.CacheFilePermissions))
+
+	readFile := func(path string) ([]byte, error) {
+		return os.ReadFile(rootDir + "/" + path)
+	}
+
+	result, err := ValidatePropagation(rootDir, readFile)
+	require.NoError(t, err)
+
+	// Both refs are valid (anchors exist).
+	require.Len(t, result.ValidRefs, 2)
+	require.Empty(t, result.BrokenRefs)
+
+	// One display text warning: "12.7" vs "13.4".
+	require.Len(t, result.DisplayTextWarnings, 1)
+	require.Equal(t, "12.7", result.DisplayTextWarnings[0].DisplayNumber)
+	require.Equal(t, "13.4", result.DisplayTextWarnings[0].HeadingNumber)
+	require.Equal(t, "134-documentation-strategy", result.DisplayTextWarnings[0].Anchor)
+}
+
 func TestFormatPropagationResults_AllValid(t *testing.T) {
 	t.Parallel()
 
@@ -241,6 +331,22 @@ func TestFormatPropagationResults_WithBroken(t *testing.T) {
 	require.Contains(t, report, "High   (##  ): 1/2 (50%)")
 	require.Contains(t, report, "Medium (### ): 2/5 (40%)")
 	require.Contains(t, report, "Combined ##/###: 3/7 (42%)")
+}
+
+func TestFormatPropagationResults_DisplayTextWarnings(t *testing.T) {
+	t.Parallel()
+
+	result := &PropagationResult{
+		ValidRefs:    []PropagationRef{{Anchor: "valid"}},
+		TotalAnchors: 1,
+		DisplayTextWarnings: []DisplayTextWarning{
+			{SourceFile: "file.md", LineNumber: 3, Anchor: "134-docs", DisplayNumber: "12.7", HeadingNumber: "13.4"},
+		},
+	}
+
+	report := FormatPropagationResults(result)
+	require.Contains(t, report, "DISPLAY TEXT MISMATCHES (1)")
+	require.Contains(t, report, "WARN file.md:3 -> #134-docs (display: 12.7, heading: 13.4)")
 }
 
 func TestFormatLevelCoverage(t *testing.T) {

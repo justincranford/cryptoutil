@@ -125,6 +125,9 @@ const (
 	// PropagateMarkerMatchGroups is the expected submatch count for @propagate/@source regex (full match + 2 capture groups).
 	PropagateMarkerMatchGroups = 3
 
+	// DisplayTextRegexMatchGroups is the expected submatch count for display text regex (full match + display text + anchor).
+	DisplayTextRegexMatchGroups = 3
+
 	// CacheFilePermissions is the cache file permissions (owner read/write only).
 	CacheFilePermissions = 0o600
 
