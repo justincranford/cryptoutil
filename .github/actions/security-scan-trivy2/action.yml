@@ -29,8 +29,9 @@ runs:
   using: 'composite'
   steps:
     - name: Run Trivy security scan
-      # https://github.com/aquasecurity/trivy-action/releases (v0.33.1, 2025-11-05)
-      uses: aquasecurity/trivy-action@0.33.1
+      # https://github.com/aquasecurity/trivy-action/releases (v0.35.0, 2026-08-08)
+      # SECURITY: v0.33.1 was affected by GHSA-9p44-j4g5-cfx5 (CVE-2026-26189) - script injection via unsanitized env export
+      uses: aquasecurity/trivy-action@v0.35.0
       with:
         scan-type: ${{ inputs.scan-type }}
         scan-ref: ${{ inputs.scan-ref }}
