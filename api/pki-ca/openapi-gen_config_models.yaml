@@ -9,8 +9,16 @@ output-options:
   skip-prune: true
   name-normalizer: ToCamelCaseWithInitialisms
   additional-initialisms:
+    - IDS    # Intrusion Detection System
     - JWT    # JSON Web Token
     - JWK    # JSON Web Key
+    - JWE    # JSON Web Encryption
+    - JWS    # JSON Web Signature
+    - OIDC   # OpenID Connect
+    - SAML   # Security Assertion Markup Language
+    - AES    # Advanced Encryption Standard
+    - GCM    # Galois/Counter Mode
+    - CBC    # Cipher Block Chaining
     - CSR    # Certificate Signing Request
     - PEM    # Privacy-Enhanced Mail
     - DER    # Distinguished Encoding Rules
@@ -21,9 +29,15 @@ output-options:
     - SHA    # Secure Hash Algorithm
     - RSA    # Rivest-Shamir-Adleman
     - EC     # Elliptic Curve
+    - HMAC   # Hash-based Message Authentication Code
     - IP     # Internet Protocol
     - URI    # Uniform Resource Identifier
     - SAN    # Subject Alternative Name
     - DN     # Distinguished Name
     - CN     # Common Name
     - OU     # Organizational Unit
+    - AI     # Artificial Intelligence
+    - ML     # Machine Learning
+    - KEM    # Key Encapsulation Mechanism
+    - DSA    # Digital Signature Algorithm
+    - IKM    # Input Keying Material

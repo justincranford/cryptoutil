@@ -9,7 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math/rand"
+	"math/rand/v2"
 
 	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose-ja/model"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"

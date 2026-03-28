@@ -265,7 +265,10 @@ const (
 		lint-go-mod         - [Linter]    Check direct Go dependencies for updates
 		lint-go-test        - [Linter]    Enforce test patterns (UUIDv7 usage, testify assertions)
 		lint-golangci       - [Linter]    Validate golangci-lint config files for v2 compatibility
-		lint-ports          - [Linter]    Enforce standardized port assignments (no legacy ports)	  lint-text           - [Linter]    Enforce UTF-8 encoding without BOM for text files
+		lint-openapi        - [Linter]    Validate OpenAPI spec versions and codegen config initialisms
+		lint-ports          - [Linter]    Enforce standardized port assignments (no legacy ports)
+		lint-security       - [Linter]    Detect banned crypto imports (FIPS 140-3 compliance)
+		lint-text           - [Linter]    Enforce UTF-8 encoding without BOM for text files
 		lint-workflow       - [Linter]    Validate GitHub Actions workflow naming and versions`
 )
 
@@ -282,7 +285,9 @@ var ValidCommands = map[string]bool{
 	"lint-go-mod":      true,
 	"lint-go-test":     true,
 	"lint-golangci":    true,
+	"lint-openapi":     true,
 	"lint-ports":       true,
+	"lint-security":    true,
 	"lint-text":        true,
 	"lint-workflow":    true,
 }
@@ -314,7 +319,9 @@ var (
 		"lint-go-mod":    `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_go_mod[/\\].*\.go$`,
 		"lint-go-test":   `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_gotest[/\\].*\.go$`,
 		"lint-golangci":  `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_golangci[/\\].*\.go$`,
+		"lint-openapi":   `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_openapi[/\\].*\.go$`,
 		"lint-ports":     `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_ports[/\\].*\.go$`,
+		"lint-security":  `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_security[/\\].*\.go$`,
 		"lint-text":      `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_text[/\\].*\.go$`,
 		"lint-workflow":  `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_workflow[/\\].*\.go$`,
 	}

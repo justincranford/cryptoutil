@@ -24,3 +24,13 @@ output-options:
     - CBC    # Cipher Block Chaining
     - IP     # Internet Protocol
     - URI    # Uniform Resource Identifier
+    - IDS    # Intrusion Detection System
+    - OIDC   # OpenID Connect
+    - SAML   # Security Assertion Markup Language
+    - AI     # Artificial Intelligence
+    - ML     # Machine Learning
+    - KEM    # Key Encapsulation Mechanism
+    - PEM    # Privacy Enhanced Mail
+    - DER    # Distinguished Encoding Rules
+    - DSA    # Digital Signature Algorithm
+    - IKM    # Input Keying Material

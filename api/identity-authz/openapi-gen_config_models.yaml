@@ -28,5 +28,9 @@ output-options:
     - AI     # Artificial Intelligence
     - ML     # Machine Learning
     - KEM    # Key Encapsulation Mechanism
+    - PEM    # Privacy Enhanced Mail
+    - DER    # Distinguished Encoding Rules
+    - DSA    # Digital Signature Algorithm
+    - IKM    # Input Keying Material
     - CSRF   # Cross-Site Request Forgery
     - CORS   # Cross-Origin Resource Sharing
