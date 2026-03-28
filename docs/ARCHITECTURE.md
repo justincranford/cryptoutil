@@ -304,6 +304,7 @@ Implementation plans use the following files in `<work-dir>/`:
 - implementation-execution: Autonomous implementation execution, plan.md, tasks.md (phases and tasks and post-mortems and lessons.md), lessons.md updates
 - fix-workflows: Workflow repair and validation
 - beast-mode: Continuous execution mode
+- Explore: Fast read-only codebase exploration and Q&A subagent (quick/medium/thorough)
 
 #### 2.1.3 Agent Handoff Flow
 
@@ -338,6 +339,8 @@ Skills live in `.github/skills/NAME/SKILL.md` — each skill in its own subdirec
 | `migration-create` | data | Create numbered golang-migrate SQL files (template 1001-1999, domain 2001+) | [SKILL.md](.github/skills/migration-create/SKILL.md) |
 | `new-service` | architecture | Guide service creation from skeleton-template: copy, rename, register, migrate, test | [SKILL.md](.github/skills/new-service/SKILL.md) |
 | `propagation-check` | docs | Detect @propagate/@source drift, generate corrected @source blocks | [SKILL.md](.github/skills/propagation-check/SKILL.md) |
+| `contract-test-gen` | testing | Generate cross-service contract compliance tests for framework behavioral contracts | [SKILL.md](.github/skills/contract-test-gen/SKILL.md) |
+| `fitness-function-gen` | tooling | Create new architecture fitness function (linter) for lint-fitness framework | [SKILL.md](.github/skills/fitness-function-gen/SKILL.md) |
 | `agent-scaffold` | tooling | Create conformant `.github/agents/NAME.agent.md` with all mandatory sections | [SKILL.md](.github/skills/agent-scaffold/SKILL.md) |
 | `instruction-scaffold` | tooling | Create conformant `.github/instructions/NN-NN.name.instructions.md` | [SKILL.md](.github/skills/instruction-scaffold/SKILL.md) |
 | `skill-scaffold` | tooling | Create conformant `.github/skills/NAME/SKILL.md` with proper YAML frontmatter | [SKILL.md](.github/skills/skill-scaffold/SKILL.md) |
@@ -1395,17 +1398,18 @@ sqlDB.SetMaxOpenConns(5)                     // GORM transactions need multiple
 
 ##### SQLite + Barrier Outside Transactions (CRITICAL)
 
+<!-- @propagate to=".github/instructions/03-04.data-infrastructure.instructions.md" as="sqlite-barrier-outside-tx" -->
 **MANDATORY**: ALL calls to `barrier.EncryptContentWithContext` or `barrier.DecryptContentWithContext` MUST be outside any ORM `WithTransaction` scope.
 
-**Root cause**: The barrier service opens its own internal read/write transaction. SQLite WAL mode allows only one writer at a time. Nesting two concurrent write transactions on the same connection pool (MaxOpenConns=5) causes a deadlock: the outer ORM transaction holds all connections waiting for the inner barrier transaction to complete, but the inner barrier transaction cannot acquire a connection because they are all held by the outer transaction.
+**Root cause**: The barrier service opens its own internal read/write transaction. SQLite WAL mode allows only one writer at a time. Nesting two write transactions on the same connection pool causes deadlock: all connections are held by the outer ORM transaction, so the inner barrier transaction cannot acquire one.
 
-**Correct pattern**: Call `barrier.Encrypt` AFTER committing the ORM transaction (not inside it), then issue a separate ORM update with the encrypted data:
-
+**Correct pattern** — barrier after ORM commit:
 ```
 ORM.Create(plainRecord) → commit → (outside tx) barrier.Encrypt → ORM.Update(encryptedRecord)
 ```
 
-This is NOT a performance concern — it is a **correctness requirement**. Wrapping barrier calls inside ORM transactions is a guaranteed SQLite deadlock.
+This is a **correctness requirement**, not a performance concern. Barrier calls inside ORM transactions are a guaranteed SQLite deadlock.
+<!-- @/propagate -->
 
 ##### SQLite DateTime (CRITICAL)
 
@@ -2980,13 +2984,13 @@ func TestErrorPath(t *testing.T) {
 
 #### 10.2.5 Sequential Test Exemption
 
-Tests that mutate **package-level state** (e.g., `os.Chdir()`, global registries, seam variables) MUST NOT call `t.Parallel()`. Add a `// Sequential:` comment within 10 lines before the function declaration to exempt it from the `parallel_tests` linter:
+<!-- @propagate to=".github/instructions/03-02.testing.instructions.md" as="sequential-test-exemption" -->
+Tests that mutate **package-level state** (e.g., `os.Chdir()`, global registries) MUST NOT call `t.Parallel()`. Add a `// Sequential:` comment within 10 lines before the function to exempt it from the `parallel_tests` linter:
 
 ```go
 // Sequential: uses os.Chdir (global process state, cannot run in parallel).
 func TestMyFunction_ChangeDir(t *testing.T) {
     // no t.Parallel() here
-    // ...
 }
 ```
 
@@ -2994,11 +2998,13 @@ func TestMyFunction_ChangeDir(t *testing.T) {
 // Sequential: mutates registeredHandlers package-level state.
 func TestRegisterHandler_Duplicate(t *testing.T) {
     // no t.Parallel() here
-    // ...
 }
 ```
 
-**Rule**: The comment MUST appear within 10 lines before the function declaration. Include a clear reason after the colon to document *why* the test is sequential.
+**Rule**: Comment MUST be within 10 lines before function declaration. Include a reason after the colon.
+<!-- @/propagate -->
+
+Seam variables (see §10.2.4) are a common cause of sequential tests.
 
 #### 10.2.6 Test File Consolidation
 
@@ -3074,9 +3080,8 @@ func TestMain(m *testing.M) {
 
 #### 10.3.4 Test HTTP Client Patterns
 
-**MANDATORY: `DisableKeepAlives: true` on ALL test HTTP transports**
-
-When integration or contract tests call a real running server, the HTTP transport MUST disable keep-alives:
+<!-- @propagate to=".github/instructions/03-02.testing.instructions.md" as="disable-keep-alives-test-transport" -->
+NEVER use a default `http.Transport` in integration tests calling a real server. ALWAYS set `DisableKeepAlives: true`:
 
 ```go
 client := &http.Client{
@@ -3088,11 +3093,22 @@ client := &http.Client{
 }
 ```
 
-**Root cause**: Fasthttp (used by Fiber) tracks open connections. `ShutdownWithContext` loops until the open-connection counter reaches zero. Persistent keep-alive connections keep the counter above zero indefinitely, causing `TestMain` teardown to hang for 90 seconds (the server-side shutdown timeout).
+**Why**: Fasthttp (Fiber) keeps an `open` counter > 0 while keep-alive connections remain open. `ShutdownWithContext` hangs for 90 seconds waiting for the counter to reach zero.
+<!-- @/propagate -->
 
 **Symptom**: Tests pass but teardown is extremely slow (≥90s per test binary); `TestMain` never completes in a reasonable time.
 
-**Note on `time.Duration` constants**: Service timeout constants are already `time.Duration` values. NEVER multiply them by `time.Second`. Use them directly: `server.Shutdown(ctx)` where the server internally uses the constant.
+<!-- @propagate to=".github/instructions/03-02.testing.instructions.md" as="timeout-double-multiplication-antipattern" -->
+NEVER multiply a `time.Duration` constant by `time.Second`. Magic constants that are already `time.Duration` (e.g., `DefaultDataServerShutdownTimeout = 5 * time.Second`) produce ~158-year values when multiplied again:
+
+```go
+// WRONG: DefaultDataServerShutdownTimeout is already time.Duration
+ctx, cancel := context.WithTimeout(ctx, magic.DefaultDataServerShutdownTimeout * time.Second) // ~158 years!
+
+// CORRECT: use directly
+ctx, cancel := context.WithTimeout(ctx, magic.DefaultDataServerShutdownTimeout) // 5 seconds
+```
+<!-- @/propagate -->
 
 #### 10.3.5 Cross-Service Contract Test Pattern
 
