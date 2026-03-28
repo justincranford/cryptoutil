@@ -362,6 +362,9 @@ Skills live in `.github/skills/NAME/SKILL.md` — each skill in its own subdirec
 | `agent-scaffold` | tooling | Create conformant `.github/agents/NAME.agent.md` with all mandatory sections | [SKILL.md](.github/skills/agent-scaffold/SKILL.md) |
 | `instruction-scaffold` | tooling | Create conformant `.github/instructions/NN-NN.name.instructions.md` | [SKILL.md](.github/skills/instruction-scaffold/SKILL.md) |
 | `skill-scaffold` | tooling | Create conformant `.github/skills/NAME/SKILL.md` with proper YAML frontmatter | [SKILL.md](.github/skills/skill-scaffold/SKILL.md) |
+| `deployment-gen` | deployment | Generate complete deployment structure (compose.yml, Dockerfile, secrets/, config/) | [SKILL.md](.github/skills/deployment-gen/SKILL.md) |
+| `secret-gen` | deployment | Generate Docker secrets with correct format, naming, hex/base64 values, tier prefix | [SKILL.md](.github/skills/secret-gen/SKILL.md) |
+| `api-handler` | api | Map OpenAPI operation to strict server handler implementation boilerplate | [SKILL.md](.github/skills/api-handler/SKILL.md) |
 
 #### 2.1.6 Agent Tool Discovery
 

@@ -46,6 +46,9 @@ See [.github/skills/README.md](.github/skills/README.md) for the full catalogue.
 | `/new-service` | Creating a new service from skeleton-template |
 | `/contract-test-gen` | Adding cross-service contract compliance tests to a service |
 | `/fitness-function-gen` | Creating a new architecture fitness function (linter) |
+| `/deployment-gen` | Generating complete deployment structure for a new service |
+| `/secret-gen` | Generating Docker secrets with correct format and naming |
+| `/api-handler` | Mapping OpenAPI operation to strict server handler |
 
 ## Instruction Files Reference
 
