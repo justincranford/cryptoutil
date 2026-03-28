@@ -2492,10 +2492,25 @@ COPY --from=validator /app/cryptoutil /app/cryptoutil
 
 #### 9.8.1 Action Catalog
 
-- docker-images-pull: Parallel Docker image pre-fetching
-- setup-go: Go toolchain configuration
-- cache-go: Go module and build cache management
-- Additional actions TBD
+| Action | Purpose |
+|--------|---------|
+| docker-compose-build | Build Docker Compose services |
+| docker-compose-down | Tear down Docker Compose environment |
+| docker-compose-logs | Collect Docker Compose logs |
+| docker-compose-up | Start Docker Compose services |
+| docker-compose-verify | Verify Docker Compose service health |
+| docker-images-pull | Parallel Docker image pre-fetching |
+| download-cicd | Download CI/CD tooling artifacts |
+| fuzz-test | Run fuzz tests with controlled duration |
+| go-setup | Go toolchain configuration |
+| golangci-lint | Run golangci-lint with project config |
+| security-scan-gitleaks | Scan for leaked secrets (Gitleaks) |
+| security-scan-trivy | Scan Docker images for vulnerabilities (Trivy) |
+| security-scan-trivy2 | Scan filesystem for vulnerabilities (Trivy) |
+| workflow-job-begin | Standard job prologue (checkout, setup) |
+| workflow-job-end | Standard job epilogue (artifacts, cleanup) |
+
+See `.github/actions/` for the authoritative action catalog.
 
 #### 9.8.2 Action Composition Patterns
 
@@ -2687,7 +2702,7 @@ Architecture fitness functions are automated checks that enforce ARCHITECTURE.md
 
 **Adding new fitness functions**: Use the `fitness-function-gen` Copilot skill — see `.github/skills/fitness-function-gen/SKILL.md`.
 
-#### 9.11.1 Fitness Sub-Linter Catalog (55 total)
+#### 9.11.1 Fitness Sub-Linter Catalog
 
 | Sub-Linter | Rule Enforced |
 |-----------|--------------|
@@ -4717,6 +4732,13 @@ Any variant not matching the above grammar (e.g., `@propagate from=...`, `@sourc
 
 **Whitespace normalization**: CI/CD comparison ignores leading/trailing blank lines within markers and normalizes line endings (CRLF → LF). All other whitespace (indentation, inline spaces) MUST match exactly.
 
+#### 13.4.3.1 Anchor Stability Policy
+
+**After any section renumbering**:
+- MUST grep `.github/**/*.md` and `docs/**/*.md` for old anchor patterns and update all broken references.
+- SHOULD prefer stable named anchors (`#documentation-propagation-strategy`) over numbered anchors (`#134-documentation-propagation-strategy`) for sections frequently referenced from agent, skill, or instruction files.
+- The `lint-docs validate-propagation` broken-reference check is the safety net — treat any broken references as blocking.
+
 #### 13.4.4 Section-Level Mapping
 
 | ARCHITECTURE.md Section | Primary Instruction File(s) | Agent File(s) |
@@ -4783,13 +4805,17 @@ Propagation markers are added incrementally:
 
 | Chunk ID | ARCHITECTURE.md Section | Target File(s) |
 |----------|------------------------|----------------|
-| rfc-2119-keywords | Document Conventions | 01-01.terminology |
-| emphasis-keywords | Document Conventions | 01-01.terminology |
-| abbreviations | Document Conventions | 01-01.terminology |
+| rfc-2119-keywords | 1.2 | 01-01.terminology |
+| emphasis-keywords | 1.2 | 01-01.terminology |
+| abbreviations | 1.2 | 01-01.terminology |
+| quality-attributes | 11.1 | 01-02.beast-mode |
+| end-of-turn-commit-protocol | 2.4 | 01-02.beast-mode |
+| mandatory-review-passes | 2.5 | 01-02.beast-mode, 06-01.evidence-based |
 | infrastructure-blocker-escalation | 14.7 | 01-02.beast-mode, 06-01.evidence-based |
 | service-framework-components | 5.1.1 | 02-01.architecture |
 | minimum-versions | B.1 | 02-02.versions |
 | otel-collector-constraints | 9.4.1 | 02-03.observability |
+| base-initialisms | 8.1.4 | 02-04.openapi |
 | http-status-codes | 8.4 | 02-04.openapi |
 | secrets-detection-strategy | 6.10 | 02-05.security |
 | key-principles | 6.9 | 02-06.authn |
@@ -4801,16 +4827,24 @@ Propagation markers are added incrementally:
 | validator-error-aggregation | 13.5 | 03-01.coding |
 | format-go-protection | 11.2.8 | 03-01.coding |
 | test-file-suffixes | 10.1 | 03-02.testing |
+| three-tier-database-strategy | 10.1 | 03-02.testing, 03-04.data-infrastructure |
+| sequential-test-exemption | 10.2.5 | 03-02.testing |
+| disable-keep-alives-test-transport | 10.3.4 | 03-02.testing |
+| timeout-double-multiplication-antipattern | 10.3.4 | 03-02.testing |
 | crypto-acronyms-caps | 11.1.3 | 03-03.golang |
+| sqlite-barrier-outside-tx | 5.2.4 | 03-04.data-infrastructure |
+| utf8-without-bom | 9.9.3 | 03-05.linting |
 | docker-compose-rules | 12.3.1 | 04-01.deployment |
+| cicd-command-naming | 9.10.2 | 04-01.deployment |
 | docker-desktop-startup | 14.5.5 | 05-01.cross-platform |
 | docker-desktop-upgrade | 14.5.5 | 05-01.cross-platform |
 | conventional-commits | 14.2.1 | 05-02.git |
 | incremental-commits | 14.2.2 | 05-02.git |
 | restore-from-baseline | 14.2.3 | 05-02.git |
 | agent-self-containment | 2.1.1 | 06-02.agent-format |
+| agent-tool-discovery | 2.1.6 | 06-02.agent-format |
 
-**Instruction file coverage**: All 18 instruction files analyzed. 15 files have 1+ propagation chunks (26 total chunk pairs). 3 files (03-04.data-infrastructure, 03-05.linting, copilot-instructions) are structural glue only — their content is condensed quick-reference summaries, code blocks in different formats from ARCHITECTURE.md, or instruction-file-specific formatting that cannot be byte-for-byte identical with ARCHITECTURE.md source sections.
+**Instruction file coverage**: All 18 instruction files analyzed. 17 files have 1+ propagation chunks (38 unique chunks, 41 total source-target pairs). 1 file (copilot-instructions) is structural glue only — its content is a condensed quick-reference summary and instruction file table, not verbatim ARCHITECTURE.md content.
 
 **Structural glue** (~20% of instruction file content) remains non-propagated: condensed quick-reference summaries, section headings, `See` cross-references, transitional text, tables in different formats, and code examples unique to instruction file context.
 
