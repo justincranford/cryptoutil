@@ -345,7 +345,7 @@ repos:
 
   # Python linting and formatting with ruff (replaces black, isort, flake8)
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.7
+    rev: v0.15.8
     hooks:
       - id: ruff
         name: Ruff Python linter (auto-fix)
@@ -380,7 +380,7 @@ repos:
 
   # IaC / Container security scanning (Dockerfiles, Docker Compose, Kubernetes)
   - repo: https://github.com/bridgecrewio/checkov
-    rev: 3.2.511
+    rev: 3.2.513
     hooks:
       - id: checkov
         name: Checkov IaC security scan
@@ -398,7 +398,7 @@ repos:
 
   # SQL migration linting (PostgreSQL dialect)
   - repo: https://github.com/sqlfluff/sqlfluff
-    rev: 4.0.4
+    rev: 4.1.0
     hooks:
       - id: sqlfluff-fix
         name: SQLFluff fix SQL migrations
