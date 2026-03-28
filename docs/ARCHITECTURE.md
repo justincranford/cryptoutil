@@ -289,11 +289,11 @@ Implementation plans use the following files in `<work-dir>/`:
 
 <!-- @propagate to=".github/instructions/06-02.agent-format.instructions.md" as="agent-self-containment" -->
 **Agent Self-Containment Checklist** (MANDATORY):
-- Agents generating implementation plans MUST reference ARCHITECTURE.md testing (Section 10), quality gates (Section 11), coding standards (Section 13)
-- Agents modifying code MUST reference coding standards (Sections 11, 13)
-- Agents modifying deployments MUST reference deployment architecture (Section 12)
+- Agents generating implementation plans MUST reference ARCHITECTURE.md testing (Section 10), quality gates (Section 11), coding standards (Section 14)
+- Agents modifying code MUST reference coding standards (Sections 11, 14)
+- Agents modifying deployments MUST reference deployment architecture (Sections 12, 13)
 - Agents modifying CI/CD workflows or infrastructure MUST reference infrastructure architecture (Section 9)
-- Agents modifying documentation or copilot artifacts (skills, instructions, agents) MUST reference Section 2.1 (Agent/Skill/Instruction catalog) and Section 12.7 (Documentation Propagation)
+- Agents modifying documentation or copilot artifacts (skills, instructions, agents) MUST reference Section 2.1 (Agent/Skill/Instruction catalog) and Section 13.4 (Documentation Propagation)
 - ALL agents MUST reference Section 2.5 (Quality Strategy) for coverage and mutation targets
 - Agents with ZERO ARCHITECTURE.md references are NON-COMPLIANT and MUST be updated
 <!-- @/propagate -->
@@ -1151,11 +1151,11 @@ deployments/{PS-ID}/                                  # One per service (×10)
     ├── postgres-password.secret                      #   {PS_ID}_database_pass-{base64-random-32-bytes}
     ├── postgres-database.secret                      #   {PS_ID}_database
     ├── postgres-url.secret                           #   postgres://{PS_ID}_database_user:{PS_ID}_database_pass@{PS-ID}-postgres:5432/{PS_ID}_database?sslmode=disable
-    ├── unseal-1of5.secret                            #   {PS-ID}-unseal-key-1-of-5-{hex-random-32-bytes}
-    ├── unseal-2of5.secret                            #   {PS-ID}-unseal-key-2-of-5-{hex-random-32-bytes}
-    ├── unseal-3of5.secret                            #   {PS-ID}-unseal-key-3-of-5-{hex-random-32-bytes}
-    ├── unseal-4of5.secret                            #   {PS-ID}-unseal-key-4-of-5-{hex-random-32-bytes}
-    └── unseal-5of5.secret                            #   {PS-ID}-unseal-key-5-of-5-{hex-random-32-bytes}
+    ├── unseal-1of5.secret                            #   {PS-ID}-unseal-key-1-of-5-{base64-random-32-bytes}
+    ├── unseal-2of5.secret                            #   {PS-ID}-unseal-key-2-of-5-{base64-random-32-bytes}
+    ├── unseal-3of5.secret                            #   {PS-ID}-unseal-key-3-of-5-{base64-random-32-bytes}
+    ├── unseal-4of5.secret                            #   {PS-ID}-unseal-key-4-of-5-{base64-random-32-bytes}
+    └── unseal-5of5.secret                            #   {PS-ID}-unseal-key-5-of-5-{base64-random-32-bytes}
 ```
 
 **All 10 PS-IDs**: `identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`, `identity-spa`, `jose-ja`, `pki-ca`, `skeleton-template`, `sm-im`, `sm-kms`.
@@ -1176,11 +1176,11 @@ deployments/{PRODUCT}/                                # One per product (×5)
     ├── postgres-password.secret                      # {PRODUCT}_database_pass-{base64-random-32-bytes}
     ├── postgres-database.secret                      # {PRODUCT}_database
     ├── postgres-url.secret                           # postgres://{PRODUCT}_database_user:{PRODUCT}_database_pass@{PRODUCT}-postgres:5432/{PRODUCT}_database?sslmode=disable
-    ├── unseal-1of5.secret                            # {PRODUCT}-unseal-key-1-of-5-{hex-random-32-bytes}
-    ├── unseal-2of5.secret                            # {PRODUCT}-unseal-key-2-of-5-{hex-random-32-bytes}
-    ├── unseal-3of5.secret                            # {PRODUCT}-unseal-key-3-of-5-{hex-random-32-bytes}
-    ├── unseal-4of5.secret                            # {PRODUCT}-unseal-key-4-of-5-{hex-random-32-bytes}
-    └── unseal-5of5.secret                            # {PRODUCT}-unseal-key-5-of-5-{hex-random-32-bytes}
+    ├── unseal-1of5.secret                            # {PRODUCT}-unseal-key-1-of-5-{base64-random-32-bytes}
+    ├── unseal-2of5.secret                            # {PRODUCT}-unseal-key-2-of-5-{base64-random-32-bytes}
+    ├── unseal-3of5.secret                            # {PRODUCT}-unseal-key-3-of-5-{base64-random-32-bytes}
+    ├── unseal-4of5.secret                            # {PRODUCT}-unseal-key-4-of-5-{base64-random-32-bytes}
+    └── unseal-5of5.secret                            # {PRODUCT}-unseal-key-5-of-5-{base64-random-32-bytes}
 ```
 
 **All 5 products**: `identity`, `jose`, `pki`, `skeleton`, `sm`.
@@ -1200,11 +1200,11 @@ deployments/{SUITE}-suite/                            # Suite-level (×1, {SUITE
     ├── postgres-password.secret                      # {SUITE}_database_pass-{base64-random-32-bytes}
     ├── postgres-database.secret                      # {SUITE}_database
     ├── postgres-url.secret                           # postgres://{SUITE}_database_user:{SUITE}_database_pass@{SUITE}-postgres:5432/{SUITE}_database?sslmode=disable
-    ├── unseal-1of5.secret                            # {SUITE}-unseal-key-1-of-5-{hex-random-32-bytes}
-    ├── unseal-2of5.secret                            # {SUITE}-unseal-key-2-of-5-{hex-random-32-bytes}
-    ├── unseal-3of5.secret                            # {SUITE}-unseal-key-3-of-5-{hex-random-32-bytes}
-    ├── unseal-4of5.secret                            # {SUITE}-unseal-key-4-of-5-{hex-random-32-bytes}
-    └── unseal-5of5.secret                            # {SUITE}-unseal-key-5-of-5-{hex-random-32-bytes}
+    ├── unseal-1of5.secret                            # {SUITE}-unseal-key-1-of-5-{base64-random-32-bytes}
+    ├── unseal-2of5.secret                            # {SUITE}-unseal-key-2-of-5-{base64-random-32-bytes}
+    ├── unseal-3of5.secret                            # {SUITE}-unseal-key-3-of-5-{base64-random-32-bytes}
+    ├── unseal-4of5.secret                            # {SUITE}-unseal-key-4-of-5-{base64-random-32-bytes}
+    └── unseal-5of5.secret                            # {SUITE}-unseal-key-5-of-5-{base64-random-32-bytes}
 ```
 
 ##### Shared Infrastructure Deployments
@@ -1232,7 +1232,7 @@ All tiers (service, product, suite) use **identical `{purpose}.secret` filenames
 | PostgreSQL password | `postgres-password.secret` | `{PS_ID}_database_pass-{base64-random-32-bytes}` | `{PRODUCT}_database_pass-{base64-random-32-bytes}` | `{SUITE}_database_pass-{base64-random-32-bytes}` |
 | PostgreSQL database | `postgres-database.secret` | `{PS_ID}_database` | `{PRODUCT}_database` | `{SUITE}_database` |
 | PostgreSQL URL | `postgres-url.secret` | `postgres://{PS_ID}_database_user:...@{PS-ID}-postgres:5432/{PS_ID}_database?sslmode=disable` | `...@{PRODUCT}-postgres:5432/...` | `...@{SUITE}-postgres:5432/...` |
-| Unseal shard N | `unseal-{N}of5.secret` | `{PS-ID}-unseal-key-N-of-5-{hex-random-32-bytes}` | `{PRODUCT}-unseal-key-N-of-5-{hex-random-32-bytes}` | `{SUITE}-unseal-key-N-of-5-{hex-random-32-bytes}` |
+| Unseal shard N | `unseal-{N}of5.secret` | `{PS-ID}-unseal-key-N-of-5-{base64-random-32-bytes}` | `{PRODUCT}-unseal-key-N-of-5-{base64-random-32-bytes}` | `{SUITE}-unseal-key-N-of-5-{base64-random-32-bytes}` |
 
 #### 4.4.7 CLI Patterns
 
@@ -2741,7 +2741,7 @@ Architecture fitness functions are automated checks that enforce ARCHITECTURE.md
 | `template-consistency` | `deployments/skeleton-template/` uses hyphenated secret names (not underscores) |
 | `test-patterns` | Test file naming, table-driven structure compliance |
 | `tls-minimum-version` | TLS config must specify `tls.VersionTLS13` minimum |
-| `unseal-secret-content` | Unseal secret values match `{TIER-PREFIX}-unseal-key-N-of-5-{hex-random-32-bytes}` (64 lowercase hex chars, unique per shard, tier prefix matches deployment directory) |
+| `unseal-secret-content` | Unseal secret values match `{TIER-PREFIX}-unseal-key-N-of-5-{base64-random-32-bytes}` (64 lowercase hex chars, unique per shard, tier prefix matches deployment directory) |
 
 #### 9.11.2 Entity Registry
 
@@ -3947,7 +3947,7 @@ See [Section 4.4.6](#446-deployments) for the complete secret file listing at ea
 | `postgres-password.secret` | `{PS_ID}_database_pass-{base64-random-32-bytes}` | `{PRODUCT}_database_pass-{base64-random-32-bytes}` | `{SUITE}_database_pass-{base64-random-32-bytes}` |
 | `postgres-database.secret` | `{PS_ID}_database` | `{PRODUCT}_database` | `{SUITE}_database` |
 | `postgres-url.secret` | `postgres://{PS_ID}_database_user:...@{PS-ID}-postgres:5432/{PS_ID}_database?sslmode=disable` | `...@{PRODUCT}-postgres:5432/...` | `...@{SUITE}-postgres:5432/...` |
-| `unseal-{N}of5.secret` | `{PS-ID}-unseal-key-N-of-5-{hex-random-32-bytes}` | `{PRODUCT}-unseal-key-N-of-5-{hex-random-32-bytes}` | `{SUITE}-unseal-key-N-of-5-{hex-random-32-bytes}` |
+| `unseal-{N}of5.secret` | `{PS-ID}-unseal-key-N-of-5-{base64-random-32-bytes}` | `{PRODUCT}-unseal-key-N-of-5-{base64-random-32-bytes}` | `{SUITE}-unseal-key-N-of-5-{base64-random-32-bytes}` |
 
 **Note**: `{PS_ID}` uses underscores (e.g., `jose_ja`) for PostgreSQL identifiers; `{PS-ID}` uses hyphens (e.g., `jose-ja`) for all other contexts.
 
@@ -3995,7 +3995,7 @@ See [Section 4.4.6](#446-deployments) for the complete secret file listing at ea
 jose-ja-unseal-key-1-of-5-40c8c0f3c1c3b9c3f3c3b9c3f3c3b9c3f3c3b9c3
 ```
 
-- Format: `{PS-ID}-unseal-key-N-of-5-{hex-random-32-bytes}`
+- Format: `{PS-ID}-unseal-key-N-of-5-{base64-random-32-bytes}`
 - Generation: `secrets.token_hex(32)`
 - Purpose: HKDF deterministic derivation for Root Key encryption.
 

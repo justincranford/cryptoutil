@@ -208,7 +208,7 @@ systemctl --user start docker-desktop
 - E2E tests skip with environmental warnings
 - Integration test containers cannot start
 
-See [ARCHITECTURE.md Section 13.5.4 Docker Desktop Startup](../../docs/ARCHITECTURE.md#1455-docker-desktop-startup---critical) for comprehensive documentation.
+See [ARCHITECTURE.md Section 14.5.5 Docker Desktop Startup](../../docs/ARCHITECTURE.md#1455-docker-desktop-startup---critical) for comprehensive documentation.
 
 ### 1. Local Workflow Execution (MANDATORY METHOD)
 

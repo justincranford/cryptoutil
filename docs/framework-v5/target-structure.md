@@ -432,12 +432,12 @@ deployments/                                          # drwxr-x---
         │                                             #     e.g. sm-im-service-pass-cIu5DadDObrS+rP49XwrYw==
         ├── service-username.secret                   #   value: {PS-ID}-service-user
         │                                             #     e.g. sm-im-service-user
-        ├── unseal-1of5.secret                        #   value: {PS-ID}-unseal-key-1-of-5-{hex-random-32-bytes}
+        ├── unseal-1of5.secret                        #   value: {PS-ID}-unseal-key-1-of-5-{base64-random-32-bytes}
         │                                             #     e.g. im-0d6dfc52f2517a2820e11859fe9e4f3c
-        ├── unseal-2of5.secret                        #   value: {PS-ID}-unseal-key-2-of-5-{hex-random-32-bytes}
-        ├── unseal-3of5.secret                        #   value: {PS-ID}-unseal-key-3-of-5-{hex-random-32-bytes}
-        ├── unseal-4of5.secret                        #   value: {PS-ID}-unseal-key-4-of-5-{hex-random-32-bytes}
-        └── unseal-5of5.secret                        #   value: {PS-ID}-unseal-key-5-of-5-{hex-random-32-bytes}
+        ├── unseal-2of5.secret                        #   value: {PS-ID}-unseal-key-2-of-5-{base64-random-32-bytes}
+        ├── unseal-3of5.secret                        #   value: {PS-ID}-unseal-key-3-of-5-{base64-random-32-bytes}
+        ├── unseal-4of5.secret                        #   value: {PS-ID}-unseal-key-4-of-5-{base64-random-32-bytes}
+        └── unseal-5of5.secret                        #   value: {PS-ID}-unseal-key-5-of-5-{base64-random-32-bytes}
 ```
 
 ### F.2 Product-Level Deployments (×5)
@@ -457,11 +457,11 @@ deployments/                                          # drwxr-x---
         ├── postgres-password.secret                  #   MUST ALWAYS be overridden at PRODUCT LEVEL, value: {PRODUCT}_database_pass-{base64-random-32-bytes}
         ├── postgres-url.secret                       #   MUST ALWAYS be overridden at PRODUCT LEVEL, value: postgres://{PRODUCT}_database_user:{PRODUCT}_database_pass@{PRODUCT}_postgres:5432/{PRODUCT}_database?sslmode=disable
         ├── postgres-username.secret                  #   MUST ALWAYS be overridden at PRODUCT LEVEL, value: {PRODUCT}_database_user
-        ├── unseal-1of5.secret                        #   MUST ALWAYS be overridden at PRODUCT LEVEL, value: {PRODUCT}-unseal-key-1-of-5-{hex-random-32-bytes}
-        ├── unseal-2of5.secret                        #   MUST ALWAYS be overridden at PRODUCT LEVEL, value: {PRODUCT}-unseal-key-2-of-5-{hex-random-32-bytes}
-        ├── unseal-3of5.secret                        #   MUST ALWAYS be overridden at PRODUCT LEVEL, value: {PRODUCT}-unseal-key-3-of-5-{hex-random-32-bytes}
-        ├── unseal-4of5.secret                        #   MUST ALWAYS be overridden at PRODUCT LEVEL, value: {PRODUCT}-unseal-key-4-of-5-{hex-random-32-bytes}
-        ├── unseal-5of5.secret                        #   MUST ALWAYS be overridden at PRODUCT LEVEL, value: {PRODUCT}-unseal-key-5-of-5-{hex-random-32-bytes}
+        ├── unseal-1of5.secret                        #   MUST ALWAYS be overridden at PRODUCT LEVEL, value: {PRODUCT}-unseal-key-1-of-5-{base64-random-32-bytes}
+        ├── unseal-2of5.secret                        #   MUST ALWAYS be overridden at PRODUCT LEVEL, value: {PRODUCT}-unseal-key-2-of-5-{base64-random-32-bytes}
+        ├── unseal-3of5.secret                        #   MUST ALWAYS be overridden at PRODUCT LEVEL, value: {PRODUCT}-unseal-key-3-of-5-{base64-random-32-bytes}
+        ├── unseal-4of5.secret                        #   MUST ALWAYS be overridden at PRODUCT LEVEL, value: {PRODUCT}-unseal-key-4-of-5-{base64-random-32-bytes}
+        ├── unseal-5of5.secret                        #   MUST ALWAYS be overridden at PRODUCT LEVEL, value: {PRODUCT}-unseal-key-5-of-5-{base64-random-32-bytes}
         │
         └── unseal-5of5.secret                        #   dev-unseal-key-5-of-5
 ```
@@ -483,11 +483,11 @@ deployments/                                          # drwxr-x---
         ├── postgres-password.secret                  #   MUST ALWAYS be overridden at SUITE LEVEL, value: {SUITE}-database-pass-{base64-random-32-bytes}
         ├── postgres-url.secret                       #   MUST ALWAYS be overridden at SUITE LEVEL, value: postgres://{SUITE}_database_user:{SUITE}_database_pass@{SUITE}_postgres:5432/{SUITE}_database?sslmode=disable
         ├── postgres-username.secret                  #   MUST ALWAYS be overridden at SUITE LEVEL, value: {SUITE}-databases-user
-        ├── unseal-1of5.secret                        #   MUST ALWAYS be overridden at SUITE LEVEL, value: {SUITE}-unseal-key-1-of-5-{hex-random-32-bytes}
-        ├── unseal-2of5.secret                        #   MUST ALWAYS be overridden at SUITE LEVEL, value: {SUITE}-unseal-key-2-of-5-{hex-random-32-bytes}
-        ├── unseal-3of5.secret                        #   MUST ALWAYS be overridden at SUITE LEVEL, value: {SUITE}-unseal-key-3-of-5-{hex-random-32-bytes}
-        ├── unseal-4of5.secret                        #   MUST ALWAYS be overridden at SUITE LEVEL, value: {SUITE}-unseal-key-4-of-5-{hex-random-32-bytes}
-        ├── unseal-5of5.secret                        #   MUST ALWAYS be overridden at SUITE LEVEL, value: {SUITE}-unseal-key-5-of-5-{hex-random-32-bytes}
+        ├── unseal-1of5.secret                        #   MUST ALWAYS be overridden at SUITE LEVEL, value: {SUITE}-unseal-key-1-of-5-{base64-random-32-bytes}
+        ├── unseal-2of5.secret                        #   MUST ALWAYS be overridden at SUITE LEVEL, value: {SUITE}-unseal-key-2-of-5-{base64-random-32-bytes}
+        ├── unseal-3of5.secret                        #   MUST ALWAYS be overridden at SUITE LEVEL, value: {SUITE}-unseal-key-3-of-5-{base64-random-32-bytes}
+        ├── unseal-4of5.secret                        #   MUST ALWAYS be overridden at SUITE LEVEL, value: {SUITE}-unseal-key-4-of-5-{base64-random-32-bytes}
+        ├── unseal-5of5.secret                        #   MUST ALWAYS be overridden at SUITE LEVEL, value: {SUITE}-unseal-key-5-of-5-{base64-random-32-bytes}
         │
         └── unseal-5of5.secret                        #   dev-unseal-key-5-of-5
 ```
@@ -807,7 +807,7 @@ marker files.
 | PostgreSQL username | `postgres-username.secret` | `{PS_ID}_user` | `cryptoutil` |
 | Service password | `service-password.secret` | `{PS-ID}-service-{base64-random}` | (not at product/suite) |
 | Service username | `service-username.secret` | `{PS-ID}-service-user` | (not at product/suite) |
-| Unseal shard N | `unseal-{N}of5.secret` | `{SERVICE}-{hex-random-32-bytes}` | `dev-unseal-key-{N}-of-5` |
+| Unseal shard N | `unseal-{N}of5.secret` | `{SERVICE}-{base64-random-32-bytes}` | `dev-unseal-key-{N}-of-5` |
 
 **.secret.never marker files** (KEEP as explicit reminders):
 

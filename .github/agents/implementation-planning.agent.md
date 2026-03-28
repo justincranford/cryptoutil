@@ -549,16 +549,16 @@ EOF
 | Mutation Testing | [Section 10.5](../../docs/ARCHITECTURE.md#105-mutation-testing-strategy) | Quality gate enforcement |
 | Quality Gates | [Section 11.2](../../docs/ARCHITECTURE.md#112-quality-gates) | ALL plans (mandatory) |
 | Code Quality | [Section 11.3](../../docs/ARCHITECTURE.md#113-code-quality-standards) | Plans with new code |
-| Coding Standards | [Section 13.1](../../docs/ARCHITECTURE.md#141-coding-standards) | ALL plans with implementation |
-| Version Control | [Section 13.2](../../docs/ARCHITECTURE.md#142-version-control) | ALL plans (commit strategy) |
+| Coding Standards | [Section 14.1](../../docs/ARCHITECTURE.md#141-coding-standards) | ALL plans with implementation |
+| Version Control | [Section 14.2](../../docs/ARCHITECTURE.md#142-version-control) | ALL plans (commit strategy) |
 | Deployment Architecture | [Section 12](../../docs/ARCHITECTURE.md#12-deployment-architecture) | Plans modifying deployments |
-| Infrastructure Blockers | [Section 13.7](../../docs/ARCHITECTURE.md#147-infrastructure-blocker-escalation) | Plans encountering infra issues |
+| Infrastructure Blockers | [Section 14.7](../../docs/ARCHITECTURE.md#147-infrastructure-blocker-escalation) | Plans encountering infra issues |
 | Service Template | [Section 5.1](../../docs/ARCHITECTURE.md#51-service-framework-pattern) | Plans for new services |
 | Security Architecture | [Section 6](../../docs/ARCHITECTURE.md#6-security-architecture) | Plans touching crypto/auth |
 | API Architecture | [Section 8](../../docs/ARCHITECTURE.md#8-api-architecture) | Plans with API changes |
 | OTel/Telemetry | [Section 9.4](../../docs/ARCHITECTURE.md#94-telemetry-strategy) | Plans involving telemetry |
-| Plan Lifecycle | [Section 13.6](../../docs/ARCHITECTURE.md#146-plan-lifecycle-management) | ALL plans (mandatory) |
-| Post-Mortem & Knowledge Propagation | [Section 13.8](../../docs/ARCHITECTURE.md#148-phase-post-mortem--knowledge-propagation) | ALL plans (every phase post-mortem + final propagation phase) |
+| Plan Lifecycle | [Section 14.6](../../docs/ARCHITECTURE.md#146-plan-lifecycle-management) | ALL plans (mandatory) |
+| Post-Mortem & Knowledge Propagation | [Section 14.8](../../docs/ARCHITECTURE.md#148-phase-post-mortem--knowledge-propagation) | ALL plans (every phase post-mortem + final propagation phase) |
 
 **NON-COMPLIANT plans**: Any plan that does not reference relevant ARCHITECTURE.md sections for its scope is NON-COMPLIANT and MUST be updated before execution begins.
 - [ ] Evidence archived (test output, logs, analysis)

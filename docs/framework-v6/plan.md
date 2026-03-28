@@ -35,7 +35,7 @@ The specification document itself contains contradictions that made compliant im
 
 **E.3 vs E.4 Conflict**: E.3 mandates FLAT `configs/{PS-ID}/` directories (e.g., `configs/sm-im/sm-im.yml`). E.4 mandates NESTED `configs/{PRODUCT}/{SERVICE}/` directories (e.g., `configs/sm/im/im.yml`). These are mutually exclusive. The `configs_naming` fitness linter enforces the NESTED pattern (E.4), meaning E.3 is de facto wrong.
 
-**F.1 Unseal Pattern vs Example Conflict**: F.1 pattern says `{PS-ID}-unseal-key-N-of-5-{hex-random-32-bytes}` but the example shows `im-0d6dfc52f2517a2820e11859fe9e4f3c` (SERVICE-only prefix `im-`, not PS-ID `sm-im-`, and no `unseal-key-N-of-5` infix). The actual repo matches the example, not the pattern.
+**F.1 Unseal Pattern vs Example Conflict**: F.1 pattern says `{PS-ID}-unseal-key-N-of-5-{base64-random-32-bytes}` but the example shows `im-0d6dfc52f2517a2820e11859fe9e4f3c` (SERVICE-only prefix `im-`, not PS-ID `sm-im-`, and no `unseal-key-N-of-5` infix). The actual repo matches the example, not the pattern.
 
 **F.2 Duplicate Listing**: F.2 lists `unseal-5of5.secret` twice with different semantics (one says "MUST ALWAYS be overridden at PRODUCT LEVEL" with `{PRODUCT}-unseal-key-5-of-5-{hex}`, the other says `dev-unseal-key-5-of-5`).
 
@@ -63,7 +63,7 @@ Multiple categories of incorrect secret values across all tiers:
 - `identity`: uses `identity-00000000...N-unseal-Nof5` (non-standard format but at least product-prefixed)
 - `jose`, `pki`, `skeleton`, `sm`: all use generic `dev-unseal-key-N-of-5`
 
-**Suite-level unseal prefixes**: `cryptoutil-suite` uses `suite-00000000...N` pattern. Spec says `{SUITE}-unseal-key-N-of-5-{hex-random-32-bytes}` = `cryptoutil-unseal-key-N-of-5-{hex}`. Actual uses `suite-` prefix not `cryptoutil-`.
+**Suite-level unseal prefixes**: `cryptoutil-suite` uses `suite-00000000...N` pattern. Spec says `{SUITE}-unseal-key-N-of-5-{base64-random-32-bytes}` = `cryptoutil-unseal-key-N-of-5-{hex}`. Actual uses `suite-` prefix not `cryptoutil-`.
 
 **Postgres secret values**: Missing `_database` suffix in postgres-database.secret and missing `_database_` infix in postgres-username.secret:
 - `sm-im`: db=`sm_im` (spec: `sm_im_database`), user=`sm_im_user` (spec: `sm_im_database_user`)
@@ -121,7 +121,7 @@ All 7 phases were marked Complete without catching any of the above issues. The 
 
 **Objective**: Resolve all internal contradictions in the spec so subsequent phases have a single unambiguous source of truth.
 - Fix E.3 vs E.4 contradiction: E.4 should document that configs/ uses FLAT `configs/{PS-ID}/` pattern (matching Decision 2=B), NOT nested `{PRODUCT}/{SERVICE}/` dirs. Rewrite E.4 to align with E.3.
-- Fix F.1 unseal pattern vs example: Apply Decision 1=A. Pattern is `{PS-ID}-unseal-key-N-of-5-{hex-random-32-bytes}`. Update examples to match.
+- Fix F.1 unseal pattern vs example: Apply Decision 1=A. Pattern is `{PS-ID}-unseal-key-N-of-5-{base64-random-32-bytes}`. Update examples to match.
 - Fix F.2 duplicate unseal-5of5 listing.
 - Document .never file spec clearly (already clear in F.2/F.3, just ensure consistency).
 - Document `configs/pki-ca/profiles/` exception per Decision 3=B.
@@ -296,15 +296,15 @@ All 7 phases were marked Complete without catching any of the above issues. The 
 ### Decision 1: Unseal Secret Naming Pattern
 
 **Options**:
-- A: Use `{PS-ID}-unseal-key-N-of-5-{hex-random-32-bytes}` (full PS-ID prefix with descriptive infix) **SELECTED** ✓
-- B: Use `{PS-ID}-{hex-random-32-bytes}` (compact PS-ID prefix)
+- A: Use `{PS-ID}-unseal-key-N-of-5-{base64-random-32-bytes}` (full PS-ID prefix with descriptive infix) **SELECTED** ✓
+- B: Use `{PS-ID}-{base64-random-32-bytes}` (compact PS-ID prefix)
 - C: Keep current SERVICE-only prefix (e.g., `im-{hex}`, `kms-{hex}`) and update spec to match
 - D: Use current values as-is and only fix pki-ca (which is a broken copy of sm-kms)
 - E:
 
 **Answer**: A
 
-**Decision**: Full PS-ID prefix with descriptive infix: `{PS-ID}-unseal-key-N-of-5-{hex-random-32-bytes}` (e.g., `sm-im-unseal-key-1-of-5-a1b2c3d4e5f6...`). Most descriptive, prevents cross-service collision. Requires updating all 50 service + 25 product + 5 suite unseal files.
+**Decision**: Full PS-ID prefix with descriptive infix: `{PS-ID}-unseal-key-N-of-5-{base64-random-32-bytes}` (e.g., `sm-im-unseal-key-1-of-5-a1b2c3d4e5f6...`). Most descriptive, prevents cross-service collision. Requires updating all 50 service + 25 product + 5 suite unseal files.
 
 **Rationale**: Option A provides the most descriptive, unambiguous naming. Prevents all cross-service collisions. Pattern matches F.1 spec. All unseal files across all tiers must be regenerated.
 

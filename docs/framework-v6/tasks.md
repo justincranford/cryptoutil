@@ -51,9 +51,9 @@
 - **Estimated**: 15m
 - **Actual**: -
 - **Dependencies**: None (Decision 1=A confirmed)
-- **Description**: Update F.1 to use canonical pattern `{PS-ID}-unseal-key-N-of-5-{hex-random-32-bytes}`. Fix example to match (e.g., `sm-im-unseal-key-1-of-5-a1b2c3d4e5f6...`). Remove contradictory SERVICE-only prefix examples.
+- **Description**: Update F.1 to use canonical pattern `{PS-ID}-unseal-key-N-of-5-{base64-random-32-bytes}`. Fix example to match (e.g., `sm-im-unseal-key-1-of-5-a1b2c3d4e5f6...`). Remove contradictory SERVICE-only prefix examples.
 - **Acceptance Criteria**:
-  - [x] F.1 pattern is `{PS-ID}-unseal-key-N-of-5-{hex-random-32-bytes}`
+  - [x] F.1 pattern is `{PS-ID}-unseal-key-N-of-5-{base64-random-32-bytes}`
   - [x] F.1 examples match pattern (PS-ID prefix, descriptive infix)
   - [x] No SERVICE-only prefix examples remain
   - [x] Unseal naming convention is unambiguous

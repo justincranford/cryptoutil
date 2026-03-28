@@ -31,34 +31,34 @@ type ChunkVerificationResult struct {
 func chunkMappings() []ChunkMapping {
 	return []ChunkMapping{
 		{
-			ArchSection: "12.4.11",
+			ArchSection: "13.1.11",
 			Description: "Validation Pipeline Architecture",
 			DestFile:    ".github/instructions/04-01.deployment.instructions.md",
-			MarkerText:  "Section 12.4.11",
+			MarkerText:  "Section 13.1.11",
 		},
 		{
-			ArchSection: "12.5",
+			ArchSection: "13.2",
 			Description: "Config File Architecture",
 			DestFile:    ".github/instructions/02-01.architecture.instructions.md",
 			MarkerText:  "Config File Architecture",
 		},
 		{
-			ArchSection: "12.5",
+			ArchSection: "13.2",
 			Description: "Config File Architecture (data-infra)",
 			DestFile:    ".github/instructions/03-04.data-infrastructure.instructions.md",
 			MarkerText:  "Config File Architecture",
 		},
 		{
-			ArchSection: "12.6",
+			ArchSection: "13.3",
 			Description: "Secrets Management in Deployments",
 			DestFile:    ".github/instructions/04-01.deployment.instructions.md",
-			MarkerText:  "Section 12.6",
+			MarkerText:  "Section 13.3",
 		},
 		{
-			ArchSection: "12.6",
+			ArchSection: "13.3",
 			Description: "Secrets Management in Deployments (security)",
 			DestFile:    ".github/instructions/02-05.security.instructions.md",
-			MarkerText:  "Section 12.6",
+			MarkerText:  "Section 13.3",
 		},
 		{
 			ArchSection: "6.10",
@@ -73,13 +73,13 @@ func chunkMappings() []ChunkMapping {
 			MarkerText:  "cmd/cicd-lint/",
 		},
 		{
-			ArchSection: "12.7",
+			ArchSection: "13.4",
 			Description: "Documentation Propagation Strategy",
 			DestFile:    ".github/copilot-instructions.md",
 			MarkerText:  "Documentation Propagation",
 		},
 		{
-			ArchSection: "12.8",
+			ArchSection: "13.5",
 			Description: "Validator Error Aggregation Pattern",
 			DestFile:    ".github/instructions/03-01.coding.instructions.md",
 			MarkerText:  "Validator Error Aggregation",

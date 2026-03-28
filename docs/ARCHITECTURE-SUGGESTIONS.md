@@ -32,25 +32,6 @@ lint-fitness sub-linters, and INFRA-TOOL structure
 
 ---
 
-## Recently Completed (Since 2026-03-26)
-
-| Item | What Was Done |
-|------|--------------|
-| Split §12 into §12/§13 | Old 12.4–12.8 → new §13 (Deployment Tooling & Validation) |
-| Fix §13.5 numbering | 13.5.4/13.5.5 ordering corrected (now 14.5.4/14.5.5 in §14) |
-| BNF grammar for @propagate | §13.4.2 now has formal marker syntax |
-| Glue content maintenance | §13.4 documents glue-content update procedure |
-| @propagate for three-tier-db | Lines 2794 and 2810: sends to both 03-02 and 03-04 |
-| @propagate for utf8-without-bom | Line 2520: sends to 03-05.linting |
-| workflow → cicd-workflow rename | cmd/cicd-workflow/ exists; magic_cicd.go updated |
-| lint-docs in pre-commit | cicd-lint-all hook runs lint-docs before every commit |
-| Delete obsolete docs files | ARCHITECTURE-INDEX.md, ARCHITECTURE-TODO.md, CONFIG-SCHEMA.md removed |
-| Appendix B TBD cleanup | B.6 workflow durations filled; B.5 agent tools filled |
-| Fix healthcheck numbering | 12.3.1 health check patterns now 1./2./3. |
-| Fix broken propagation anchors | copilot-instructions.md #127→#134; 06-01 #142→#152 |
-
----
-
 ## Open Suggestions
 
 ### Category A: Token Budget Reduction
@@ -143,8 +124,8 @@ Requires updating `lint-docs validate-propagation` parser to split the `to=` att
 
 **Suggestion**: Group by pattern:
 ```
-Session cookies: JWE | JWS | Opaque (browser only, SQL storage)
-Session tokens: JWE | JWS | Opaque (headless only, SQL storage)
+Browser Session cookies: JWE | JWS | Opaque (browser only, SQL storage)
+Non-browser Session tokens: JWE | JWS | Opaque (headless only, SQL storage)
 MFA factors: TOTP | HOTP | WebAuthn | Push | Recovery (federated only, SQL storage)
 ```
 Saves ~800–1,200 tokens with no information loss.

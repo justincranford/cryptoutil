@@ -63,6 +63,6 @@ EOF
 
 ## References
 
-Read [ARCHITECTURE.md Section 12.7 Documentation Propagation Strategy](../../../docs/ARCHITECTURE.md#134-documentation-propagation-strategy) for full marker system documentation — apply all marker system rules (byte-for-byte match, no headings inside markers, same-commit propagation) when checking and fixing drift.
+Read [ARCHITECTURE.md Section 13.4 Documentation Propagation Strategy](../../../docs/ARCHITECTURE.md#134-documentation-propagation-strategy) for full marker system documentation — apply all marker system rules (byte-for-byte match, no headings inside markers, same-commit propagation) when checking and fixing drift.
 
 For orchestrating full documentation synchronization across ARCHITECTURE.md, instruction files, and agent files, use the `beast-mode` agent.
