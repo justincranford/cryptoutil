@@ -2,37 +2,12 @@
 
 **Status**: CANONICAL TARGET — Living reference document
 **Created**: 2026-03-26
-**Last Updated**: 2026-03-28
+**Last Updated**: 2026-06-27
 **Purpose**: Define the complete, parameterized target state of every directory and file in the
 repository. Originally created during framework-v6, now maintained as a living spec in framework-v7.
 This document supersedes framework-v5/target-structure.md (deleted — git history preserves).
 
-**RULE**: Everything listed here MUST exist after v6 completes. Everything NOT listed is deleted.
-
----
-
-## Corrections from framework-v5/target-structure.md
-
-The following errors and contradictions in v5/target-structure.md are resolved in this document:
-
-| # | v5 Error | v6 Correction | Decision |
-|---|----------|--------------|---------|
-| 1 | E.4 used nested `configs/{PRODUCT}/{SERVICE}/` dirs | E.4 now flat `configs/{PS-ID}/` per E.3 | 2=B |
-| 2 | E.4 used `{SERVICE}.yml` config filename | Config files named `{PS-ID}.yml` | 2=B |
-| 3 | sqlite-2 overlay missing from F.1 (only sqlite-1) | F.1 has BOTH sqlite-1 AND sqlite-2 | RC-3 |
-| 4 | F.1 unseal example showed `im-{base64-random-32-bytes}` (SERVICE prefix) | `{PS-ID}-unseal-key-N-of-5-{base64-random-32-bytes}` | 1=A |
-| 5 | F.2 had duplicate `unseal-5of5.secret` entry | Single entry, no duplicate | RC-1 |
-| 6 | postgres-database value was `{PS_ID}` | `{PS_ID}_database` | 6=A |
-| 7 | postgres-username value was `{PS_ID}_user` | `{PS_ID}_database_user` | 6=A |
-| 8 | `configs/pki-ca/profiles/` not documented | Documented as valid exception | 3=B |
-| 9 | `configs/identity-authz/domain/policies/` absent | Documented with rename | 4=A |
-| 10 | `deployments/template/` still shown as existing | Deleted (merged → skeleton-template) | 5=C |
-| 11 | `doc-sync.agent.md` listed in B | Not listed (agent deleted) | — |
-| 12 | `custom-cicd-lint/action.yml` in B | Renamed to `download-cicd/action.yml` | — |
-| 13 | `.vscode/mcp.json` missing from A.3 | Added to A.3 | — |
-| 14 | `docs/UPDATE-TOOLS.md` missing from H | Added to H | — |
-| 15 | Product unseal used `dev-unseal-key-N-of-5` | `{PRODUCT}-unseal-key-N-of-5-{base64-random-32-bytes}` | 1=A |
-| 16 | Suite unseal used `suite-` prefix | `cryptoutil-unseal-key-N-of-5-{base64-random-32-bytes}` | 1=A |
+**RULE**: Everything listed here MUST exist. Everything NOT listed is deleted.
 
 ---
 
@@ -45,7 +20,7 @@ The following errors and contradictions in v5/target-structure.md are resolved i
 | Service | `{SERVICE}` | varies per product (see below) | 10 total |
 | PS-ID | `{PS-ID}` = `{PRODUCT}-{SERVICE}` | see table below | 10 |
 | PS_ID | `{PS_ID}` = `{PRODUCT}_{SERVICE}` | underscore variant for SQL/secrets | 10 |
-| Infra Tool | N/A | `cicd-lint`, `workflow` | 2 |
+| Infra Tool | N/A | `cicd-lint`, `cicd-workflow` | 2 |
 | Framework | N/A | `framework` | 1 |
 
 ### Product-Service Matrix
@@ -96,6 +71,7 @@ The following errors and contradictions in v5/target-structure.md are resolved i
 ├── .pre-commit-config.yaml                # Pre-commit hook definitions
 ├── .rgignore                              # ripgrep ignore patterns
 ├── .sqlfluff                              # SQL linting config
+├── .yamlfmt                               # yamlfmt YAML formatter config
 ├── go.mod                                 # Go module definition
 ├── go.sum                                 # Go module dependency checksums
 ├── LICENSE                                # Project license
@@ -243,13 +219,6 @@ artifacts that must never be committed.
 **NOTE**: The `ci-cicd-lint.yml` separate workflow is consolidated INTO `ci-quality.yml` as a
 job step. No standalone cicd-lint workflow in target state.
 
-### B.6 What Gets DELETED from .github/
-
-| File | Reason |
-|------|--------|
-| `agents/doc-sync.agent.md` | Agent deleted — functionality not required |
-| `actions/custom-cicd-lint/` | Renamed to `download-cicd/` |
-
 ---
 
 ## C. cmd/ — Binary Entry Points `drwxr-x---`
@@ -284,18 +253,10 @@ cmd/                                                  # drwxr-x---  (18 flat ent
 │
 │   # {INFRA-TOOL}/main.go — Infrastructure tools (×2)
 ├── cicd-lint/main.go                                 # {INFRA-TOOL}=cicd-lint
-└── workflow/main.go                                  # {INFRA-TOOL}=workflow
+└── cicd-workflow/main.go                             # {INFRA-TOOL}=cicd-workflow
 ```
 
 **Total**: 18 flat entries (1 suite + 5 products + 10 services + 2 infra tools).
-
-**DELETE from cmd/**:
-
-| Entry | Reason |
-|-------|--------|
-| `cmd/demo/` | Dead code |
-| `cmd/identity-compose/` | Non-standard entry point |
-| `cmd/identity-demo/` | Dead code |
 
 ---
 
@@ -393,45 +354,6 @@ configs/
     └── sm-kms.yml
 ```
 
-### E.4 What Gets DELETED from configs/
-
-Deletion order: service subdirs first, then empty product dirs.
-
-| Current Location | Reason |
-|-----------------|--------|
-| `configs/sm/im/` | Service configs moved to flat `configs/sm-im/` |
-| `configs/sm/kms/` | Service configs moved to flat `configs/sm-kms/` |
-| `configs/jose/ja/` | Service configs moved to flat `configs/jose-ja/` |
-| `configs/pki/ca/` | Service configs moved to flat `configs/pki-ca/` |
-| `configs/skeleton/template/` | Service configs moved to flat `configs/skeleton-template/` |
-| `configs/identity/authz/` | Service configs moved to flat `configs/identity-authz/` |
-| `configs/identity/idp/` | Service configs moved to flat `configs/identity-idp/` |
-| `configs/identity/rp/` | Service configs moved to flat `configs/identity-rp/` |
-| `configs/identity/rs/` | Service configs moved to flat `configs/identity-rs/` |
-| `configs/identity/spa/` | Service configs moved to flat `configs/identity-spa/` |
-| `configs/identity/policies/` | Moved to `configs/identity-authz/domain/policies/` |
-| `configs/skeleton/skeleton-server.yml` | Orphaned product-level file (non-canonical name) |
-| `configs/sm/im/sm-im-pg-1.yml` | Deployment variant — belongs in deployments/ |
-| `configs/sm/im/sm-im-pg-2.yml` | Deployment variant — belongs in deployments/ |
-| `configs/sm/im/sm-im-sqlite.yml` | Deployment variant — belongs in deployments/ |
-| `configs/sm/kms/sm-kms-pg-1.yml` | Deployment variant — belongs in deployments/ |
-| `configs/sm/kms/sm-kms-pg-2.yml` | Deployment variant — belongs in deployments/ |
-| `configs/sm/kms/sm-kms-sqlite.yml` | Deployment variant — belongs in deployments/ |
-| `configs/pki-ca/pki-ca-config-schema.yaml` | Schema hardcoded in Go, not a config file |
-| `configs/identity/development.yml` | Environment config — not in canonical config spec |
-| `configs/identity/production.yml` | Environment config — not in canonical config spec |
-| `configs/identity/test.yml` | Environment config — not in canonical config spec |
-| `configs/identity/profiles/` | Compose profiles — not in spec |
-| `configs/orphaned/` | Archived orphaned configs — delete after v6 review |
-
-After all service subdirs are moved to flat structure, the parent product directories
-`configs/sm/`, `configs/jose/`, `configs/pki/`, `configs/skeleton/` have no more nested
-subdirs and contain only the product-level `{PRODUCT}.yml` file. The `configs/identity/`
-directory also contains only `identity.yml` after policies and service subdirs are removed.
-
-**No orphaned deployment-variant files** (`*-pg-1.yml`, `*-sqlite.yml`, etc.) remain
-in configs/ — those belong in `deployments/{PS-ID}/config/`.
-
 ---
 
 ## F. deployments/ — Service Deployments `drwxr-x---`
@@ -467,42 +389,6 @@ deployments/{PS-ID}/                                  # drwxr-x---
     └── unseal-5of5.secret                            #   {PS-ID}-unseal-key-5-of-5-{base64-random-32-bytes}
 ```
 
-**Concrete examples**:
-
-```
-# sm-im secrets (PS-ID=sm-im, PS_ID=sm_im)
-hash-pepper-v3.secret      →  sm-im-hash-pepper-v3-Qrst6789Uvwx0123Yzab4567Cdef8901
-unseal-1of5.secret         →  sm-im-unseal-key-1-of-5-a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2
-unseal-2of5.secret         →  sm-im-unseal-key-2-of-5-b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3
-unseal-3of5.secret         →  sm-im-unseal-key-3-of-5-c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4
-unseal-4of5.secret         →  sm-im-unseal-key-4-of-5-d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5
-unseal-5of5.secret         →  sm-im-unseal-key-5-of-5-e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6
-postgres-username.secret   →  sm_im_database_user
-postgres-password.secret   →  sm_im_database_pass-Abcd1234Efgh5678Ijkl9012Mnop3456
-postgres-database.secret   →  sm_im_database
-postgres-url.secret        →  postgres://sm_im_database_user:sm_im_database_pass-Abcd1234...@sm-im-postgres:5432/sm_im_database?sslmode=disable
-browser-username.secret    →  sm-im-browser-user
-browser-password.secret    →  sm-im-browser-pass-Ghij2345Klmn6789Opqr0123Stuv4567
-service-username.secret    →  sm-im-service-user
-service-password.secret    →  sm-im-service-pass-Wxyz8901Abcd2345Efgh6789Ijkl0123
-
-# pki-ca secrets (PS-ID=pki-ca, PS_ID=pki_ca)
-hash-pepper-v3.secret      →  pki-ca-hash-pepper-v3-Rstu7890Vwxy1234Zabc5678Defg9012
-unseal-1of5.secret         →  pki-ca-unseal-key-1-of-5-f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7
-unseal-2of5.secret         →  pki-ca-unseal-key-2-of-5-a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8
-unseal-3of5.secret         →  pki-ca-unseal-key-3-of-5-b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9
-unseal-4of5.secret         →  pki-ca-unseal-key-4-of-5-c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0
-unseal-5of5.secret         →  pki-ca-unseal-key-5-of-5-d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1
-postgres-username.secret   →  pki_ca_database_user
-postgres-password.secret   →  pki_ca_database_pass-Hijk3456Lmno7890Pqrs1234Tuvw5678
-postgres-database.secret   →  pki_ca_database
-postgres-url.secret        →  postgres://pki_ca_database_user:pki_ca_database_pass-Hijk3456...@pki-ca-postgres:5432/pki_ca_database?sslmode=disable
-browser-username.secret    →  pki-ca-browser-user
-browser-password.secret    →  pki-ca-browser-pass-Klmn4567Opqr8901Stuv2345Wxyz6789
-service-username.secret    →  pki-ca-service-user
-service-password.secret    →  pki-ca-service-pass-Nopq5678Rstu9012Vwxy3456Abcd7890
-```
-
 **All 10 services** (`identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`,
 `identity-spa`, `jose-ja`, `pki-ca`, `skeleton-template`, `sm-im`, `sm-kms`) follow
 this identical structure.
@@ -535,30 +421,16 @@ deployments/{PRODUCT}/                                # drwxr-x---
 
 **Total per product**: 4 `.secret.never` + 10 `.secret` = 14 files.
 
-**Concrete example** (`sm` product, `PRODUCT=sm`):
-
-```
-hash-pepper-v3.secret           →  sm-hash-pepper-v3-Abcd1234Efgh5678Ijkl9012Mnop3456
-browser-username.secret.never   →  MUST use `.never` filename extension at product level; these are service-level creds only
-browser-password.secret.never   →  MUST use `.never` filename extension at product level; these are service-level creds only
-service-username.secret.never   →  MUST use `.never` filename extension at product level; these are service-level creds only
-service-password.secret.never   →  MUST use `.never` filename extension at product level; these are service-level creds only
-postgres-username.secret        →  sm_database_user
-postgres-password.secret        →  sm_database_pass-Qrst6789Uvwx0123Yzab4567Cdef8901
-postgres-database.secret        →  sm_database
-postgres-url.secret             →  postgres://sm_database_user:sm_database_pass-...@sm-postgres:5432/sm_database?sslmode=disable
-unseal-1of5.secret              →  sm-unseal-key-1-of-5-{base64-random-32-bytes}
-unseal-2of5.secret              →  sm-unseal-key-2-of-5-{base64-random-32-bytes}
-unseal-3of5.secret              →  sm-unseal-key-3-of-5-{base64-random-32-bytes}
-unseal-4of5.secret              →  sm-unseal-key-4-of-5-{base64-random-32-bytes}
-unseal-5of5.secret              →  sm-unseal-key-5-of-5-{base64-random-32-bytes}
-```
-
 **All 5 products** (`identity`, `jose`, `pki`, `skeleton`, `sm`) follow this identical structure.
 
 ### F.3 Suite Deployment
 
 **Pattern**: `deployments/{SUITE}-suite/`
+
+**Naming exception**: The deployment directory uses `{SUITE}-suite` (e.g., `cryptoutil-suite`)
+while all other contexts use bare `{SUITE}` (e.g., `cryptoutil`). This is the ONLY place the
+`-suite` suffix appears. The structural mirror validator maps `cryptoutil-suite` → `cryptoutil`
+for config directory matching.
 
 ```
 deployments/{SUITE}-suite/                            # drwxr-x---
@@ -580,28 +452,6 @@ deployments/{SUITE}-suite/                            # drwxr-x---
     └── unseal-5of5.secret                            # {SUITE}-unseal-key-5-of-5-{base64-random-32-bytes}
 ```
 
-**Concrete** (`{SUITE}=cryptoutil`):
-
-```
-deployments/cryptoutil-suite/
-├── compose.yml
-└── secrets/
-    ├── hash-pepper-v3.secret                         # cryptoutil-hash-pepper-v3-{base64-random-32-bytes}
-    ├── browser-username.secret.never                 # MUST use `.never` filename extension at suite level; these are service-level creds only
-    ├── browser-password.secret.never                 # MUST use `.never` filename extension at suite level; these are service-level creds only
-    ├── service-username.secret.never                 # MUST use `.never` filename extension at suite level; these are service-level creds only
-    ├── service-password.secret.never                 # MUST use `.never` filename extension at suite level; these are service-level creds only
-    ├── postgres-username.secret                      # cryptoutil_database_user
-    ├── postgres-password.secret                      # cryptoutil_database_pass-{base64-random-32-bytes}
-    ├── postgres-database.secret                      # cryptoutil_database
-    ├── postgres-url.secret                           # postgres://cryptoutil_database_user:cryptoutil_database_pass@cryptoutil-postgres:5432/cryptoutil_database?sslmode=disable
-    ├── unseal-1of5.secret                            # cryptoutil-unseal-key-1-of-5-{base64-random-32-bytes}
-    ├── unseal-2of5.secret                            # cryptoutil-unseal-key-2-of-5-{base64-random-32-bytes}
-    ├── unseal-3of5.secret                            # cryptoutil-unseal-key-3-of-5-{base64-random-32-bytes}
-    ├── unseal-4of5.secret                            # cryptoutil-unseal-key-4-of-5-{base64-random-32-bytes}
-    └── unseal-5of5.secret                            # cryptoutil-unseal-key-5-of-5-{base64-random-32-bytes}
-```
-
 **Total**: 4 `.secret.never` + 10 `.secret` = 14 files. No Dockerfile (suite orchestrates via compose only).
 
 ### F.4 Shared Infrastructure Deployments
@@ -617,26 +467,7 @@ deployments/
                                                       # service level as appropriate
 ```
 
-### F.5 What Gets DELETED from deployments/
-
-| Current Location | Reason |
-|-----------------|--------|
-| `deployments/template/` | Duplicate of `deployments/skeleton-template/` — merge then delete (Decision 5=C) |
-| `deployments/archived/` | Dead code |
-| `deployments/shared-citus/` | Citus removed — only PostgreSQL and SQLite supported |
-| `deployments/deployments-all-files.json` | Build artifact, not in spec |
-| `deployments/pki-ca/README.md` | Not in spec |
-| `deployments/{PRODUCT}/secrets/{PRODUCT}-postgres-username.secret.never` | Legacy prefixed marker (all products) |
-| `deployments/{PRODUCT}/secrets/{PRODUCT}-postgres-password.secret.never` | Legacy prefixed marker (all products) |
-| `deployments/{PRODUCT}/secrets/{PRODUCT}-postgres-database.secret.never` | Legacy prefixed marker (all products) |
-| `deployments/{PRODUCT}/secrets/{PRODUCT}-postgres-url.secret.never` | Legacy prefixed marker (all products) |
-| `deployments/{PRODUCT}/secrets/{PRODUCT}-unseal-{1..5}of5.secret.never` | Legacy prefixed marker (all products) |
-| `deployments/{PRODUCT}/secrets/sm-hash-pepper.secret` | Legacy file (only in sm) |
-| `deployments/cryptoutil-suite/secrets/{SUITE}-hash-pepper.secret.never` | Legacy prefixed marker |
-| `deployments/cryptoutil-suite/secrets/{SUITE}-postgres-*.secret.never` | Legacy prefixed markers |
-| `deployments/cryptoutil-suite/secrets/{SUITE}-unseal-{1..5}of5.secret.never` | Legacy prefixed markers |
-
-### F.6 Dockerfile Parameterization
+### F.5 Dockerfile Parameterization
 
 All Dockerfiles follow identical multi-stage structure (validation → builder → runtime).
 Parameterized fields differ by deployment tier.
@@ -652,23 +483,7 @@ Parameterized fields differ by deployment tier.
 | `HEALTHCHECK` | `wget --no-check-certificate -qO- https://127.0.0.1:8080/browser/api/v1/health` | Same pattern, product port | Same pattern, suite port |
 | `ENTRYPOINT` | `["/app/{SUITE}", "{PS-ID}", "start"]` | `["/app/{SUITE}", "{PRODUCT}", "start"]` | `["/app/{SUITE}"]` |
 
-**Concrete values** (`{SUITE}=cryptoutil`):
-
-| PS-ID | `image.title` | `ENTRYPOINT` args |
-|-------|--------------|-------------------|
-| `identity-authz` | `cryptoutil-identity-authz` | `"identity-authz", "start"` |
-| `identity-idp` | `cryptoutil-identity-idp` | `"identity-idp", "start"` |
-| `identity-rp` | `cryptoutil-identity-rp` | `"identity-rp", "start"` |
-| `identity-rs` | `cryptoutil-identity-rs` | `"identity-rs", "start"` |
-| `identity-spa` | `cryptoutil-identity-spa` | `"identity-spa", "start"` |
-| `jose-ja` | `cryptoutil-jose-ja` | `"jose-ja", "start"` |
-| `pki-ca` | `cryptoutil-pki-ca` | `"pki-ca", "start"` |
-| `skeleton-template` | `cryptoutil-skeleton-template` | `"skeleton-template", "start"` |
-| `sm-im` | `cryptoutil-sm-im` | `"sm-im", "start"` |
-| `sm-kms` | `cryptoutil-sm-kms` | `"sm-kms", "start"` |
-
-**Current state**: 10 service-level + 1 suite-level Dockerfiles exist. 0 product-level Dockerfiles exist (v6 CREATE).
-**Suite Dockerfile** labels fixed in Phase 7.3: `"cryptoutil"` title and description, correct user/ports/entrypoint.
+**Current state**: 10 service-level + 1 suite-level Dockerfiles exist. 0 product-level Dockerfiles exist (CREATE pending).
 
 ---
 
@@ -835,17 +650,7 @@ internal/apps/
 │   │
 │   └── workflow/                                     #   GitHub Actions workflow management
 │       └── *.go                                      #     run + cleanup subcommands
-│
-└── (DELETE)
-    ├── demo/                                         #   Dead code
-    └── pkiinit/                                      #   Merged → framework/tls/
 ```
-
-**Consolidations required**:
-
-- `docs_validation/` → merged into `lint_docs/` (single documentation linter)
-- `github_cleanup/` → merged into `tools/workflow/` (subcommands: run, cleanup)
-- `configs_naming` fitness linter rewritten to validate **flat** `configs/{PS-ID}/` pattern
 
 ### G.2 internal/shared/ — Shared Libraries `drwxr-x---`
 
@@ -910,7 +715,6 @@ docs/                                                 # drwxr-x---
 ├── CONFIG-SCHEMA.md                                  # Config file schema reference
 ├── DEV-SETUP.md                                      # Developer setup guide
 ├── README.md                                         # Documentation index
-├── UPDATE-TOOLS.md                                   # VS Code / MCP tool catalog and update guide
 └── framework-v7/                                     # Ongoing reference documentation
     ├── README.md                                     # Index of living docs
     ├── target-structure.md                           # THIS FILE (canonical target structure)
@@ -923,24 +727,6 @@ docs/                                                 # drwxr-x---
         ├── README.md
         └── GITHUB-STORAGE-CLEANUP.md
 ```
-
-**DELETED** (completed — git history preserves all content):
-
-| Entry | Reason |
-|-------|--------|
-| `docs/framework-brainstorm/` | Initial research, consumed by v1-v6 |
-| `docs/framework-v3/` | Completed: aggressive standardization |
-| `docs/framework-v4/` | Completed: anti-drift fitness linter expansion (43 checks) |
-| `docs/framework-v5/` | Completed: archive cleanup, configs standardization (49/49 tasks) |
-| `docs/framework-v6/` | Completed: corrective standardization (63/63 tasks) |
-| `docs/LESSONS/` | Completed: all 8 lessons propagated to instruction files |
-| `docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md` | Merged into ARCHITECTURE.md |
-| `docs/ARCHITECTURE-INDEX.md` | Superseded by ARCHITECTURE.md ToC |
-| `docs/ARCHITECTURE-TODO.md` | Superseded by plan tracking |
-| `docs/COPILOT-MULTI-PROJECT.md` | Stale reference doc |
-| `docs/DEAD_CODE_REVIEW.md` | Completed, no longer needed |
-| `docs/VSCODE-CRASHES.md` | Stale troubleshooting doc |
-| `docs/demo-brainstorm/` | Demos archived |
 
 ---
 
@@ -1033,56 +819,11 @@ reminders that browser/service credentials are service-level concerns.
 
 ---
 
-## N. Change Summary (Current → Post-v6 Target)
+## N. Remaining Work (Pending Items)
 
 | Area | Current State | Target State | Action |
 |------|--------------|-------------|--------|
-| Root files | ~80+ junk artifacts | Clean project config only | DELETE artifacts |
-| `.vscode/mcp.json` | Present (GitHub + Playwright MCP servers) | Present | KEEP (no change) |
-| `cmd/` | 18 entries + extras | 18 entries exactly | DELETE demo, identity-compose, identity-demo |
-| `api/` | Missing components for some services | All 10 PS-IDs with full generated spec | CREATE missing |
-| `configs/` | Nested `{PRODUCT}/{SERVICE}/` dirs | Flat `{PS-ID}/` dirs + `{PRODUCT}/` dirs | RESTRUCTURE (Decision 2=B) |
-| `configs/` service filenames | `{SERVICE}.yml` (e.g., `im.yml`) | `{PS-ID}.yml` (e.g., `sm-im.yml`) | RENAME |
-| `configs/pki-ca/profiles/` | At `configs/pki/ca/profiles/` | At `configs/pki-ca/profiles/` | MOVE (Decision 3=B) |
-| `configs/identity/policies/` | At `configs/identity/policies/` | At `configs/identity-authz/domain/policies/` | MOVE + RENAME (Decision 4=A) |
-| `configs/identity/policies/adaptive-auth.yml` | `adaptive-auth.yml` (banned term) | `adaptive-authorization.yml` | RENAME (Decision 4=A) |
-| `deployments/` service sqlite-2 | Missing in all 10 services | Present in all 10 services | CREATE (RC-3) |
+| Root files | 9 junk `*_coverage`/`cover` artifacts | Clean project config only | DELETE artifacts |
 | `deployments/` product Dockerfile | Missing in all 5 products | Present in all 5 products | CREATE |
-| `deployments/template/` | Still exists | Deleted (merged → skeleton-template) | MERGE + DELETE (Decision 5=C) |
-| `deployments/` archived | Present | Deleted | DELETE |
-| `deployments/` shared-citus | Present | Deleted | DELETE |
-| `deployments/deployments-all-files.json` | Present | Deleted | DELETE |
-| Service unseal prefix | `{SERVICE}-{base64-random-32-bytes}` (e.g., `im-{base64-random-32-bytes}`) | `{PS-ID}-unseal-key-N-of-5-{base64-random-32-bytes}` | FIX (Decision 1=A) |
-| Product unseal value | `dev-unseal-key-N-of-5` | `{PRODUCT}-unseal-key-N-of-5-{base64-random-32-bytes}` | FIX (Decision 1=A) |
-| Suite unseal prefix | `suite-` | `cryptoutil-` | FIX (Decision 1=A) |
-| `pki-ca` unseal | Copy of sm-kms values | Unique `pki-ca-` prefixed values | REGENERATE |
-| Service postgres DB | `{PS_ID}` (e.g., `sm_im`) | `{PS_ID}_database` | FIX (Decision 6=A) |
-| Service postgres user | `{PS_ID}_user` | `{PS_ID}_database_user` | FIX (Decision 6=A) |
-| Product postgres DB | Not standardized | `{PRODUCT}_database` | FIX (Decision 6=A) |
-| `.secret.never` at product | 0 files | 4 files per product (20 total) | CREATE (RC-3) |
-| `.secret.never` at suite | 0 files | 4 files (24 total with products) | CREATE (RC-3) |
-| Legacy prefixed `.never` files | Present at products/suite | Deleted | DELETE |
-| `internal/apps/tools/cicd_lint/configs_naming/` | Validates nested pattern | Validates flat pattern | REWRITE |
-| `internal/` demo, pkiinit | Present | Deleted / merged into `framework/tls/` | DELETE / MERGE |
 | `internal/shared/apperr/` | Present | Moved to `internal/apps/framework/apperr/` | MOVE |
-| `internal/apps/tools/docs_validation/` | Separate dir | Merged into `lint_docs/` | MERGE |
-| `internal/apps/tools/github_cleanup/` | Separate dir | Merged into `tools/workflow/` as subcommand | MERGE |
-| `.github/agents/doc-sync.agent.md` | Present | Deleted | DELETE |
-| `.github/actions/custom-cicd-lint/` | Present | Renamed to `download-cicd/` | RENAME |
-| `docs/framework-v5/` | Active plan | Historical — delete | DELETE |
-| `docs/UPDATE-TOOLS.md` | Missing | Present | CREATE |
-| `docs/` stale (framework-v3/v4, LESSONS/, etc.) | Present | Deleted | DELETE |
 | `testdata/` | Present (1 sample file) | Deleted (move to owning package) | DELETE |
-
----
-
-## O. Open Questions
-
-All questions resolved via plan.md quizme answers:
-
-- Decision 1=A: Unseal naming `{PS-ID}-unseal-key-N-of-5-{base64-random-32-bytes}`
-- Decision 2=B: Flat `configs/{PS-ID}/` (NOT nested `configs/{PRODUCT}/{SERVICE}/`)
-- Decision 3=B: Keep `configs/pki-ca/profiles/` as valid subdir exception
-- Decision 4=A: Identity policies → `configs/identity-authz/domain/policies/`; rename `adaptive-auth.yml` → `adaptive-authorization.yml`
-- Decision 5=C: Merge `deployments/template/` into `deployments/skeleton-template/` then delete
-- Decision 6=A: Postgres DB = `{PS_ID}_database`, Postgres user = `{PS_ID}_database_user`
