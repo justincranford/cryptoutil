@@ -655,14 +655,14 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 | Product | Service | Product-Service Identifier | Address (Container) [Admin] | Address (Container) [Public] | Address (Host) [Public] | Port Value (Container) [Admin] | Port Value (Container) [Public] | Port Range (Host) [Service Deployment] | Port Range (Host) [Product Deployment] | Port Range (Host) [Suite Deployment] | Description |
 |---------|---------|----------------------------|-----------------------------|-----------------------------|-------------------------|--------------------------------|---------------------------------|----------------------------------------|----------------------------------------|--------------------------------------|-------------|
 | **Secrets Manager (SM)** | **Key Management Service (KMS)** | **sm-kms** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8000-8099 | 18000-18099 | 28000-28099 | Elastic key management, encryption-at-rest |
+| **Secrets Manager (SM)** | **Instant Messenger (IM)** | **sm-im** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8700-8799 | 18700-18799 | 28700-28799 | E2E encrypted messaging, encryption-at-rest |
+| **JSON Object Signing and Encryption (JOSE)** | **JWK Authority (JA)** | **jose-ja** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8800-8899 | 18800-18899 | 28800-28899 | JWK/JWS/JWE/JWT operations |
 | **Private Key Infrastructure (PKI)** | **Certificate Authority (CA)** | **pki-ca** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8100-8199 | 18100-18199 | 28100-28199 | X.509 certificates, EST, SCEP, OCSP, CRL |
 | **Identity** | **Authorization Server (Authz)** | **identity-authz** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8200-8299 | 18200-18299 | 28200-28299 | OAuth 2.1 authorization server |
 | **Identity** | **Identity Provider (IdP)** | **identity-idp** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8300-8399 | 18300-18399 | 28300-28399 | OIDC 1.0 Identity Provider |
 | **Identity** | **Resource Server (RS)** | **identity-rs** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8400-8499 | 18400-18499 | 28400-28499 | OAuth 2.1 Resource Server |
 | **Identity** | **Relying Party (RP)** | **identity-rp** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8500-8599 | 18500-18599 | 28500-28599 | OAuth 2.1 Relying Party |
 | **Identity** | **Single Page Application (SPA)** | **identity-spa** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8600-8699 | 18600-18699 | 28600-28699 | OAuth 2.1 Single Page Application |
-| **Secrets Manager (SM)** | **Instant Messenger (IM)** | **sm-im** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8700-8799 | 18700-18799 | 28700-28799 | E2E encrypted messaging, encryption-at-rest |
-| **JSON Object Signing and Encryption (JOSE)** | **JWK Authority (JA)** | **jose-ja** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8800-8899 | 18800-18899 | 28800-28899 | JWK/JWS/JWE/JWT operations |
 | **Skeleton** | **Template** | **skeleton-template** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8900-8999 | 18900-18999 | 28900-28999 | Best-practice stereotype product-service template |
 
 **Implementation Status**:
@@ -670,15 +670,15 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 | Product-Service Identifier | Status | Completion | Notes |
 |----------------------------|--------|------------|-------|
 | **sm-kms** | ✅ Complete | 100% | Reference implementation with dual servers, Docker Compose |
-| **pki-ca** | ⚠️ Extraction Pending | 0% | Domain archived (`_ca-archived/`); fresh skeleton installed (Phase 8 reintegration) |
-| **jose-ja** | ⚠️ Partial | ~85% | Missing admin server, Docker Compose needs update |
 | **sm-im** | ✅ Complete | 100% | E2E encrypted messaging, Docker Compose working |
+| **jose-ja** | ✅ Complete | ~95% | Dual HTTPS servers, Docker Compose, E2E tests |
+| **pki-ca** | ⚠️ Extraction Pending | 0% | Domain archived (`_ca-archived/`); fresh skeleton installed (Phase 8 reintegration) |
 | **identity-authz** | ⚠️ Extraction Pending | 0% | Domain archived (`_authz-archived/`); fresh skeleton installed (Phase 8 reintegration) |
 | **identity-idp** | ⚠️ Extraction Pending | 0% | Domain archived (`_idp-archived/`); fresh skeleton installed (Phase 8 reintegration) |
 | **identity-rs** | ⚠️ Extraction Pending | 0% | Domain archived (`_rs-archived/`); fresh skeleton installed (Phase 8 reintegration) |
 | **identity-rp** | ⚠️ Extraction Pending | 0% | Domain archived (`_rp-archived/`); fresh skeleton installed (Phase 8 reintegration) |
 | **identity-spa** | ⚠️ Extraction Pending | 0% | Domain archived (`_spa-archived/`); fresh skeleton installed (Phase 8 reintegration) |
-| **skeleton-template** | ❌ Not Started | 0% | Best-practice stereotype product-service template |
+| **skeleton-template** | ✅ Complete | ~95% | Best-practice stereotype template, dual HTTPS, Docker Compose, E2E tests |
 
 **Legend**: ✅ Complete (production-ready), ⚠️ Partial (functional but missing features), ❌ Not Started
 

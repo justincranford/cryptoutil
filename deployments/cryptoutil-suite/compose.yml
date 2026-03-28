@@ -6,16 +6,17 @@
 # Deployment Level: SUITE (port range 28000-28999, SERVICE base + 20000 offset)
 # Each service has 3 instances (1 SQLite + 2 PostgreSQL).
 #
-# Services (9 total):
-#   1. pki-ca (PKI Certificate Authority) - 28100-28102
-#   2. jose-ja (JOSE JWK Authority) - 28800-28802
-#   3. sm-im (SM Instant Messenger) - 28700-28702
-#   4. sm-kms (Secret Manager Key Management Service) - 28000-28002
-#   5. identity-authz (Identity Authorization Server) - 28200-28202
-#   6. identity-idp (Identity Provider) - 28300-28302
-#   7. identity-rs (Resource Server) - 28400-28402
-#   8. identity-rp (Relying Party) - 28500-28502
-#   9. identity-spa (Single Page App) - 28600-28602
+# Services (10 total):
+#   1. sm-kms (SM Key Management Service) - 28000-28002
+#   2. pki-ca (PKI Certificate Authority) - 28100-28102
+#   3. identity-authz (Identity Authorization Server) - 28200-28202
+#   4. identity-idp (Identity Provider) - 28300-28302
+#   5. identity-rs (Identity Resource Server) - 28400-28402
+#   6. identity-rp (Identity Relying Party) - 28500-28502
+#   7. identity-spa (Identity Single Page App) - 28600-28602
+#   8. sm-im (SM Instant Messenger) - 28700-28702
+#   9. jose-ja (JOSE JWK Authority) - 28800-28802
+#  10. skeleton-template (Skeleton Template) - 28900-28902
 #
 # Port allocation (SUITE-level, base + 20000 offset):
 #   - sm-kms:         28000 (SQLite), 28001-28002 (PostgreSQL)
@@ -25,8 +26,9 @@
 #   - identity-rs:    28400 (SQLite), 28401-28402 (PostgreSQL)
 #   - identity-rp:    28500 (SQLite), 28501-28502 (PostgreSQL)
 #   - identity-spa:   28600 (SQLite), 28601-28602 (PostgreSQL)
-#   - sm-im:      28700 (SQLite), 28701-28702 (PostgreSQL)
+#   - sm-im:          28700 (SQLite), 28701-28702 (PostgreSQL)
 #   - jose-ja:        28800 (SQLite), 28801-28802 (PostgreSQL)
+#   - skeleton-template: 28900 (SQLite), 28901-28902 (PostgreSQL)
 #
 # Database ports (PostgreSQL leader/follower):
 #   - postgres-leader:      5432
@@ -99,7 +101,7 @@ services:
     command: ["pki", "ca", "server", "--bind-public-port=8080", "--config=/app/config/pki-ca-app-sqlite-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28100:8000"  # HTTPS public
+      - "28100:8000" # HTTPS public
     volumes:
       - ../pki-ca/config/pki-ca-app-sqlite-1.yml:/app/config/pki-ca-app-sqlite-1.yml:ro
       - ../pki-ca/config/pki-ca-app-common.yml:/app/config/common.yml:ro
@@ -1341,7 +1343,7 @@ services:
     command: ["skeleton", "template", "server", "--bind-public-port=8080", "--config=/app/config/skeleton-template-app-sqlite-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28900:8000"  # HTTPS public
+      - "28900:8000" # HTTPS public
     volumes:
       - ../skeleton-template/config/skeleton-template-app-sqlite-1.yml:/app/config/skeleton-template-app-sqlite-1.yml:ro
       - ../skeleton-template/config/skeleton-template-app-common.yml:/app/config/common.yml:ro
