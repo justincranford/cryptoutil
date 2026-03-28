@@ -10,7 +10,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// Cicd is the thin entry point for the cicd command.
+// Cicd is the thin entry point for the cicd-lint command.
 // It validates the command and delegates to internal/apps/cicd for all processing.
 // Returns exit code: 0 for success, 1 for failure.
 func Cicd(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
@@ -39,10 +39,10 @@ func Cicd(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 }
 
 func printUsage(w io.Writer) {
-	_, _ = fmt.Fprint(w, `cicd - Cryptoutil CI/CD linter and formatter tools
+	_, _ = fmt.Fprint(w, `cicd-lint - Cryptoutil CI/CD linter and formatter tools
 
 Usage:
-	cicd <command> [args]
+	cicd-lint <command> [args]
 
 Lint Commands:
 	lint-fitness              Architecture fitness functions (cross-service isolation, file limits, etc.)
@@ -73,12 +73,12 @@ Script Commands:
 	help, --help, -h          Show this help message
 
 Examples:
-	cicd lint-text
-	cicd lint-go lint-go-test format-go
-	cicd lint-deployments
-	cicd lint-docs
-	cicd github-cleanup                   # Dry-run preview
-	cicd github-cleanup --confirm         # Execute deletions
-	cicd github-cleanup --max-age-days=7  # Preview runs older than 7 days
+	cicd-lint lint-text
+	cicd-lint lint-go lint-go-test format-go
+	cicd-lint lint-deployments
+	cicd-lint lint-docs
+	cicd-lint github-cleanup                   # Dry-run preview
+	cicd-lint github-cleanup --confirm         # Execute deletions
+	cicd-lint github-cleanup --max-age-days=7  # Preview runs older than 7 days
 `)
 }

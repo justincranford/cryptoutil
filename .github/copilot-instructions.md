@@ -23,7 +23,7 @@
 
 **ARCHITECTURE.md is the single source of truth**. Instruction files contain verbatim copies of ARCHITECTURE.md content chunks delimited by `<!-- @propagate -->` / `<!-- @source -->` HTML comment markers. Non-propagated glue (section headings, `See` cross-references, transitions) connects the verbatim chunks. When ARCHITECTURE.md chunks change, corresponding `@source` blocks in instruction files MUST be updated to match byte-for-byte. CI/CD validates propagation integrity via `cicd lint-docs validate-propagation`.
 
-See [ARCHITECTURE.md Section 12.7 Documentation Propagation Strategy](docs/ARCHITECTURE.md#127-documentation-propagation-strategy) for marker system design, rules, and CI/CD validation.
+See [ARCHITECTURE.md Section 13.4 Documentation Propagation Strategy](docs/ARCHITECTURE.md#134-documentation-propagation-strategy) for marker system design, rules, and CI/CD validation.
 
 ## Available Skills
 

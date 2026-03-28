@@ -41,8 +41,6 @@ tags:
 
 ## Document Organization
 
-**Companion Document**: [ARCHITECTURE-INDEX.md](ARCHITECTURE-INDEX.md) provides a semantic topic index with line number ranges for efficient agent lookups. MUST be kept in sync with this document when sections are added, removed, or significantly reorganized.
-
 This document is structured to serve multiple audiences:
 - **Copilot Instructions & Agents**: Machine-parseable sections with clear directives
 - **Developers**: Detailed implementation patterns and examples
@@ -63,8 +61,9 @@ This document is structured to serve multiple audiences:
 - [10. Testing Architecture](#10-testing-architecture)
 - [11. Quality Architecture](#11-quality-architecture)
 - [12. Deployment Architecture](#12-deployment-architecture)
-- [13. Development Practices](#13-development-practices)
-- [14. Operational Excellence](#14-operational-excellence)
+- [13. Deployment Tooling & Validation](#13-deployment-tooling--validation)
+- [14. Development Practices](#14-development-practices)
+- [15. Operational Excellence](#15-operational-excellence)
 - [Appendix A: Decision Records](#appendix-a-decision-records)
 - [Appendix B: Reference Tables](#appendix-b-reference-tables)
 - [Appendix C: Compliance Matrix](#appendix-c-compliance-matrix)
@@ -501,6 +500,7 @@ See the [beast-mode agent](.github/agents/beast-mode.agent.md) for the full auto
 
 ##### End-of-Turn Commit Protocol
 
+<!-- NOTE: This @propagate target is the beast-mode instruction file, which is injected as modeInstructions at runtime (not via the standard instructions directory scan). This means the chunk is consumed in the mode prompt, not in the standard instructions context — a different injection path than all other @propagate targets. -->
 <!-- @propagate to=".github/instructions/01-02.beast-mode.instructions.md" as="end-of-turn-commit-protocol" -->
 **MANDATORY: NEVER end a turn with uncommitted changes. Run `git status --porcelain` as the absolute last action before yielding to the user.**
 
@@ -754,9 +754,11 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 
 ##### 3.2.4.1 OAuth 2.1 Authorization Server (Authz) Service
 
+**Architecture note**: `identity-authz` is an **authorization-only** service. It implements OAuth 2.1 token issuance, scope enforcement, and client management. It does **NOT** authenticate users directly — it delegates user authentication to `identity-idp` (the OIDC Identity Provider). In error messages, logs, and variable names ALWAYS use `authz` (never the ambiguous `auth`).
+
 - Product-Service (Unique Identifier): identity-authz
 - Service Name: OAuth 2.1 Authorization Server (Authz)
-- Service Description: OAuth 2.1 authorization server
+- Service Description: OAuth 2.1 authorization server (authz-only; delegates user authn to identity-idp)
 - Address (Container): Private Admin Compose+K8s APIs: 127.0.0.1 (container loopback only, IPv4 only)
 - Address (Container): Public Browser+Service APIs: 0.0.0.0 (all interfaces, IPv4 only)
 - Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
@@ -768,9 +770,11 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 
 ##### 3.2.4.2 OIDC 1.0 Identity Provider (IdP) Service
 
+**Architecture note**: `identity-idp` is the **authentication and identification** service. It implements all 41 authentication methods (13 headless + 28 browser) and issues OIDC ID tokens. `identity-authz` calls `identity-idp` to authenticate users as part of the OAuth 2.1 authorization code flow. At the Identity **product** level, saying "authentication and authorization" is correct since the product provides both capabilities via separate services.
+
 - Product-Service (Unique Identifier): identity-idp
 - Service Name: OIDC 1.0 Identity Provider (IdP)
-- Service Description: OIDC 1.0 Identity Provider
+- Service Description: OIDC 1.0 Identity Provider (authentication + identification; all 41 authn methods)
 - Address (Container): Private Admin Compose+K8s APIs: 127.0.0.1 (container loopback only, IPv4 only)
 - Address (Container): Public Browser+Service APIs: 0.0.0.0 (all interfaces, IPv4 only)
 - Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
@@ -1833,7 +1837,7 @@ Non-Deterministic Example: {n2}nonce:aad#{R5}HKDF-HMAC-SHA256:abc123...:def456..
 
 **Trade-offs**: Length threshold catches most real secrets (UUIDs, tokens, hashes) while allowing short developer passwords (`admin`, `dev123`). Infrastructure deployments (Grafana, OTLP collector) are excluded since they intentionally use inline dev credentials.
 
-**Cross-References**: Implementation in [validate_secrets.go](/internal/apps/tools/cicd_lint/lint_deployments/validate_secrets.go). Deployment secrets management in [Section 12.6](#126-secrets-management-in-deployments).
+**Cross-References**: Implementation in [validate_secrets.go](/internal/apps/tools/cicd_lint/lint_deployments/validate_secrets.go). Deployment secrets management in [Section 12.6](#133-secrets-management-in-deployments).
 
 ---
 
@@ -1913,7 +1917,7 @@ db.Where("tenant_id = ? AND user_id = ?", tenantID, userID).Find(&messages)
 - **Unique Password**: Each service MUST have unique `postgres-password.secret`
 - **Unique Connection URL**: Each service MUST have unique `postgres-url.secret`
 
-**Linter Enforcement** (`cicd lint-deployments`):
+**Linter Enforcement** (`cicd-lint lint-deployments`):
 - Scans ALL 10 service directories for database credential secrets
 - ERRORS on duplicate database names or usernames across services
 - Validates credentials are isolated regardless of deployment level (SUITE/PRODUCT/SERVICE)
@@ -2430,7 +2434,7 @@ COPY --from=validator /app/cryptoutil /app/cryptoutil
 - **CI**: ci-quality (lint/format/build), ci-test (unit tests), ci-coverage (≥95%/98%), ci-benchmark, ci-mutation (≥95%/98%), ci-race (concurrency)
 - **Security**: ci-sast (gosec), ci-gitleaks (secret detection), ci-dast (Nuclei/ZAP)
 - **Integration**: ci-e2e (Docker Compose), ci-load (Gatling)
-- **Deployment**: cicd-lint-deployments (7 validators on deployments/ and configs/)
+- **Deployment**: cicd-lint-deployments (8 validators on deployments/ and configs/)
 
 **Quality Gates** (MANDATORY before merge):
 
@@ -2529,7 +2533,7 @@ Set-Content -Path $path -Value $content -Encoding UTF8  # ❌ BOM
 
 ### 9.10 CICD Command Architecture
 
-The `cicd` CLI tool implements a strict directory-driven code organization pattern. Every command is enforced through a consistent four-layer dispatch, with three command naming categories.
+The `cicd-lint` CLI tool implements a strict directory-driven code organization pattern. Every command is enforced through a consistent four-layer dispatch, with three command naming categories.
 
 #### 9.10.1 Code Flow
 
@@ -2788,6 +2792,22 @@ Architecture fitness functions are automated checks that enforce ARCHITECTURE.md
 - **E2E Tests**: Docker Compose, production-like, cross-service validation
 
 <!-- @propagate to=".github/instructions/03-02.testing.instructions.md" as="three-tier-database-strategy" -->
+**3-Tier Database Strategy (MANDATORY)**:
+
+| Tier | Database | Pattern | PostgreSQL? |
+|------|----------|---------|-------------|
+| Unit | SQLite in-memory | `testdb.NewInMemorySQLiteDB(t)` | NEVER |
+| Integration | SQLite in-memory via TestMain | ONE shared instance per package | NEVER |
+| E2E | Docker Compose PostgreSQL | 3 app instances (2 PostgreSQL + 1 SQLite) | YES (only here) |
+
+**Key Rules**:
+- NEVER use PostgreSQL in unit or integration tests — PostgreSQL tested ONLY in E2E.
+- NEVER create DB per-test in integration tests (use TestMain shared instance).
+- NEVER start real servers in unit tests (use Fiber app.Test()).
+- E2E tests use Docker Compose with 3 service instances: 2 sharing a PostgreSQL container, 1 using in-memory SQLite, validating cross-database compatibility.
+<!-- @/propagate -->
+
+<!-- @propagate to=".github/instructions/03-04.data-infrastructure.instructions.md" as="three-tier-database-strategy" -->
 **3-Tier Database Strategy (MANDATORY)**:
 
 | Tier | Database | Pattern | PostgreSQL? |
@@ -3620,7 +3640,7 @@ func BenchmarkWithSetup(b *testing.B) {
 
 ***Docker Desktop** MUST be running locally, because workflows are run locally by `act` in containers.
 
-See [Section 13.5.4 Docker Desktop Startup](#1354-docker-desktop-startup---critical) for cross-platform startup instructions (Windows, macOS, Linux).
+See [Section 14.5.5 Docker Desktop Startup](#1455-docker-desktop-startup---critical) for cross-platform startup instructions (Windows, macOS, Linux).
 
 Here are local convenience commands to run the workflows locally for Development and Testing.
 
@@ -4089,7 +4109,7 @@ healthcheck-secrets:
   2. Suite can scale from 5 to N products without hardcoded service dependencies
   3. Enables independent testing at each level (service, product, suite)
 
-**Linter Enforcement** (`cicd lint-deployments`):
+**Linter Enforcement** (`cicd-lint lint-deployments`):
 - Suite compose MUST include product-level (e.g., `../sm/compose.yml`), NOT service-level (e.g., `../sm-kms/compose.yml`)
 - Product compose MUST include service-level (e.g., `../sm-kms/compose.yml`)
 - Violations are ERRORS that block CI/CD
@@ -4238,7 +4258,9 @@ HASH_PEPPER_FILE: /run/secrets/hash-pepper-v3.secret   # value: cryptoutil-hash-
 
 ##### Linter Validation
 
-**PRODUCT Deployment Validation** (`cicd lint-deployments deployments/identity`):
+`cicd-lint lint-deployments` validates ALL deployment tiers automatically (no parameters).
+
+**PRODUCT Deployment Validation Rules**:
 
 ```
 ✅ Required: compose.yml exists
@@ -4250,7 +4272,7 @@ HASH_PEPPER_FILE: /run/secrets/hash-pepper-v3.secret   # value: cryptoutil-hash-
 ✅ Forbidden: unseal-*.secret MUST NOT exist (service-level only)
 ```
 
-**SUITE Deployment Validation** (`cicd lint-deployments deployments/cryptoutil-suite`):
+**SUITE Deployment Validation Rules**:
 
 ```
 ✅ Required: compose.yml exists
@@ -4261,25 +4283,27 @@ HASH_PEPPER_FILE: /run/secrets/hash-pepper-v3.secret   # value: cryptoutil-hash-
 ✅ Forbidden: unseal-*.secret MUST NOT exist (service-level only)
 ```
 
-**Enforcement**: Linter validates ALL deployments (10 SERVICE, 5 PRODUCT, 1 SUITE, 2 shared infrastructure).
+**Coverage**: Linter validates ALL deployments (10 SERVICE, 5 PRODUCT, 1 SUITE, 2 shared infrastructure).
 
 **Implementation**: [internal/apps/tools/cicd_lint/lint_deployments/lint_deployments.go](/internal/apps/tools/cicd_lint/lint_deployments/) with `validateProductSecrets()` and `validateSuiteSecrets()` functions.
 
 ##### Cross-Reference Documentation
 
 - **Secrets coordination**: [12.3.3 Secrets Coordination Strategy](#1233-secrets-coordination-strategy)
-- **Deployment validation**: [12.4 Deployment Structure Validation](#124-deployment-structure-validation)
+- **Deployment validation**: [13.1 Deployment Structure Validation](#131-deployment-structure-validation)
 - **Port assignments**: [3.4.1 Port Design Principles](#341-port-design-principles)
 
-### 12.4 Deployment Structure Validation
+## 13. Deployment Tooling & Validation
+
+### 13.1 Deployment Structure Validation
 
 **Purpose**: Automated enforcement of consistent deployment directory structures across all services to prevent configuration drift and deployment failures.
 
-**Linter Tool**: `cicd lint-deployments <directory>` validates all deployments in a directory tree.
+**Linter Tool**: `cicd-lint lint-deployments` validates ALL deployments in `deployments/` and `configs/` directories.
 
 **Implementation**: [internal/apps/tools/cicd_lint/lint_deployments](/internal/apps/tools/cicd_lint/lint_deployments/) package with comprehensive table-driven tests.
 
-#### 12.4.1 Deployment Types
+#### 13.1.1 Deployment Types
 
 **SUITE** (e.g., cryptoutil - all 10 services):
 - Required directories: `secrets/`
@@ -4316,7 +4340,7 @@ HASH_PEPPER_FILE: /run/secrets/hash-pepper-v3.secret   # value: cryptoutil-hash-
 - Optional files: `init-db.sql`, `README.md`
 - Required secrets: none (infrastructure secrets are optional)
 
-#### 12.4.2 Validation Rules
+#### 13.1.2 Validation Rules
 
 **Directory Structure**: Each deployment type enforces specific required/optional directories.
 
@@ -4350,7 +4374,7 @@ HASH_PEPPER_FILE: /run/secrets/hash-pepper-v3.secret   # value: cryptoutil-hash-
 - **Validation Function**: `checkOTLPProtocolOverride()` in lint_deployments.go
 - **Failure Mode**: Violations are WARNINGS (non-blocking)
 
-#### 12.4.3 CI/CD Integration
+#### 13.1.3 CI/CD Integration
 
 **GitHub Actions Workflow**: [cicd-lint-deployments.yml](/.github/workflows/cicd-lint-deployments.yml) runs on all changes to `deployments/**`.
 
@@ -4358,13 +4382,13 @@ HASH_PEPPER_FILE: /run/secrets/hash-pepper-v3.secret   # value: cryptoutil-hash-
 
 **Artifact Upload**: Validation reports uploaded as GitHub Actions artifacts for 7-day retention.
 
-#### 12.4.4 Cross-Reference Documentation
+#### 13.1.4 Cross-Reference Documentation
 
 - Secrets coordination strategy: [12.3.3 Secrets Coordination Strategy](#1233-secrets-coordination-strategy)
 - Docker Compose deployment patterns: [12.3.1 Docker Compose Deployment](#1231-docker-compose-deployment)
 - Secret management instructions: [02-05.security.instructions.md](../.github/instructions/02-05.security.instructions.md#secret-management---mandatory)
 
-#### 12.4.5 Config File Naming Strategy
+#### 13.1.5 Config File Naming Strategy
 
 **MANDATORY Pattern**: All service config files MUST use full `{PS-ID}-app-{variant}.yml` naming.
 
@@ -4378,7 +4402,7 @@ HASH_PEPPER_FILE: /run/secrets/hash-pepper-v3.secret   # value: cryptoutil-hash-
 
 **Optional Config Files**:
 
-- `{PS-ID}-e2e.yml` - End-to-end test-specific overrides.
+- Additional domain-specific files may exist with valid `{PS-ID}-` prefix naming.
 
 **Examples**:
 
@@ -4388,8 +4412,7 @@ deployments/{PS-ID}/config/         # e.g., {PS-ID}=sm-kms
 ├── {PS-ID}-app-sqlite-1.yml       # sm-kms-app-sqlite-1.yml
 ├── {PS-ID}-app-sqlite-2.yml       # sm-kms-app-sqlite-2.yml
 ├── {PS-ID}-app-postgresql-1.yml   # sm-kms-app-postgresql-1.yml
-├── {PS-ID}-app-postgresql-2.yml   # sm-kms-app-postgresql-2.yml
-└── {PS-ID}-e2e.yml                # sm-kms-e2e.yml (optional)
+└── {PS-ID}-app-postgresql-2.yml   # sm-kms-app-postgresql-2.yml
 ```
 
 **Rationale**:
@@ -4406,7 +4429,7 @@ deployments/{PS-ID}/config/         # e.g., {PS-ID}=sm-kms
 - NO symlinks or aliases - clean cutover
 - **Rationale**: Pre-production repository with zero deployed instances, rigid enforcement prevents future drift
 
-#### 12.4.6 Deprecated File Handling
+#### 13.1.6 Deprecated File Handling
 
 **Decision**: Remove deprecated files from all `deployments/{PS-ID}/config/` directories.
 
@@ -4423,7 +4446,7 @@ deployments/{PS-ID}/config/         # e.g., {PS-ID}=sm-kms
 
 **Linter Enforcement**: Strict mode. Presence of any deprecated file is an ERROR that blocks CI/CD.
 
-#### 12.4.7 Linter Validation Modes
+#### 13.1.7 Linter Validation Modes
 
 **Current Mode**: Strict (all violations block CI/CD)
 
@@ -4438,11 +4461,9 @@ deployments/{PS-ID}/config/         # e.g., {PS-ID}=sm-kms
 - Single-part deployment names (must be `{PS-ID}` format, e.g., `sm-kms`, `jose-ja`).
 - Wrong PS-ID prefix in config file names.
 
-#### 12.4.8 Config File Content Validation
+#### 13.1.8 Config File Content Validation
 
 **Implementation**: `ValidateConfigFile()` in [internal/apps/tools/cicd_lint/lint_deployments/validate_config.go](/internal/apps/tools/cicd_lint/lint_deployments/validate_config.go)
-
-**Schema Reference**: See [CONFIG-SCHEMA.md](/docs/CONFIG-SCHEMA.md) for complete config file schema with all supported keys, types, and valid values.
 
 **Validation Rules**:
 
@@ -4454,9 +4475,9 @@ deployments/{PS-ID}/config/         # e.g., {PS-ID}=sm-kms
 6. **Secret References**: `database-url` must use `file:///run/secrets/` or `sqlite://` (never inline `postgres://`)
 7. **OTLP Consistency**: When `otlp: true`, `otlp-service` and `otlp-endpoint` are required
 
-**CLI Usage**: `cicd lint-deployments validate-config <config-file.yml>`
+**Triggered by**: `cicd-lint lint-deployments` (no parameters; validates all config files automatically)
 
-#### 12.4.9 Compose File Content Validation
+#### 13.1.9 Compose File Content Validation
 
 **Implementation**: `ValidateComposeFile()` in [internal/apps/tools/cicd_lint/lint_deployments/validate_compose.go](/internal/apps/tools/cicd_lint/lint_deployments/validate_compose.go)
 
@@ -4470,9 +4491,9 @@ deployments/{PS-ID}/config/         # e.g., {PS-ID}=sm-kms
 6. **Bind Mount Security**: Host paths must use relative paths (no absolute paths)
 7. **Include Resolution**: Docker Compose `include` directives are resolved for cross-file validation
 
-**CLI Usage**: `cicd lint-deployments validate-compose <compose-file.yml>`
+**Triggered by**: `cicd-lint lint-deployments` (no parameters; validates all compose files automatically)
 
-#### 12.4.10 Structural Mirror Validation
+#### 13.1.10 Structural Mirror Validation
 
 **Implementation**: `ValidateStructuralMirror()` in [internal/apps/tools/cicd_lint/lint_deployments/validate_mirror.go](/internal/apps/tools/cicd_lint/lint_deployments/validate_mirror.go)
 
@@ -4485,13 +4506,15 @@ deployments/{PS-ID}/config/         # e.g., {PS-ID}=sm-kms
 
 **Exclusions**: Infrastructure deployments (`shared-postgres`, `shared-telemetry`, `compose`, `template`)
 
-**Orphan Handling**: Orphaned `configs/` directories produce warnings (not errors). No archive directory — git history preserves all deleted files (see Section 13.9).
+**Orphan Handling**: Orphaned `configs/` directories produce **errors** (blocking). Each `configs/` directory MUST have a corresponding `deployments/` directory. No archive directory — git history preserves all deleted files (see Section 14.9).
 
-**CLI Usage**: `cicd lint-deployments validate-mirror [deployments-dir configs-dir]`
+**Triggered by**: `cicd-lint lint-deployments` (no parameters; validates `deployments/` → `configs/` mirror automatically)
 
-#### 12.4.11 Validation Pipeline Architecture
+#### 13.1.11 Validation Pipeline Architecture
 
-**Execution Model**: All 8 validators run sequentially with aggregated error reporting. Each validator produces a `ValidationResult` with pass/fail status, error list, and timing metrics. The `validate-all` orchestrator collects all results and prints a unified summary.
+**Execution Model**: All 8 validators run sequentially with aggregated error reporting. Sequential execution ensures deterministic output ordering — each validator's errors appear in the same order across runs, simplifying CI/CD log analysis. The internal `ValidateAll()` Go function orchestrates the pipeline; it is NOT a CLI subcommand. Each validator produces a `ValidationResult` with pass/fail status, error list, and timing metrics. Results are collected and a unified summary printed at the end.
+
+**Note on Concurrency**: Sequential execution was chosen for output determinism. A concurrent collection model (validators run in parallel, errors merged after join) is architecturally feasible and would improve throughput for large deployments — but is not currently implemented.
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -4523,11 +4546,11 @@ deployments/{PS-ID}/config/         # e.g., {PS-ID}=sm-kms
 
 **Cross-References**: Each validator is implemented in `internal/apps/tools/cicd_lint/lint_deployments/validate_<name>.go` with comprehensive table-driven tests in `validate_<name>_test.go`. See code comments for detailed validation rules (per Decision 9:A minimal docs, comprehensive code comments).
 
-### 12.5 Config File Architecture
+### 13.2 Config File Architecture
 
 **Purpose**: Centralized configuration management for all services with a consistent directory hierarchy mirroring the deployment structure.
 
-**Schema Strategy**: Config file schema is HARDCODED in Go (`validate_schema.go`) with comprehensive code comments. No external schema files (e.g., JSON Schema, CONFIG-SCHEMA.md) are maintained. The validator source code is the single source of truth for schema rules.
+**Schema Strategy**: Config file schema is HARDCODED in Go (`validate_schema.go`) with comprehensive code comments. The validator source code is the single source of truth for schema rules.
 
 **Directory Structure** (flat `configs/{PS-ID}/` pattern):
 
@@ -4586,7 +4609,7 @@ configs/
 
 **Cross-References**: Schema validation rules in [validate_schema.go](/internal/apps/tools/cicd_lint/lint_deployments/validate_schema.go). Config naming in [Section 12.4.5](#1245-config-file-naming-strategy).
 
-### 12.6 Secrets Management in Deployments
+### 13.3 Secrets Management in Deployments
 
 **Purpose**: Enforce Docker secrets usage for all credentials in compose files, preventing inline secret exposure in version-controlled YAML.
 
@@ -4608,9 +4631,9 @@ configs/
 
 **Cross-References**: Secrets coordination strategy in [Section 12.3.3](#1233-secrets-coordination-strategy). Validator implementation in [validate_secrets.go](/internal/apps/tools/cicd_lint/lint_deployments/validate_secrets.go).
 
-### 12.7 Documentation Propagation Strategy
+### 13.4 Documentation Propagation Strategy
 
-#### 12.7.1 Design Intent
+#### 13.4.1 Design Intent
 
 **Problem**: Different Copilot modes of operation (VS Code Chat, CLI agents, Cloud agents, custom agents) read different file sets. Custom agents do NOT read `.github/instructions/*.instructions.md`. CLI and Cloud agents may not read `.github/copilot-instructions.md`. Keeping all file sets synchronized is error-prone.
 
@@ -4618,7 +4641,7 @@ configs/
 
 **MANDATORY**: Changes to ARCHITECTURE.md MUST be propagated to ALL downstream files in the SAME commit. Infrastructure changes (Docker, OTel, testcontainers, CI/CD) are ALWAYS BLOCKING — NEVER deferred.
 
-#### 12.7.2 Propagation Marker System
+#### 13.4.2 Propagation Marker System
 
 **Marker Format in ARCHITECTURE.md** (source):
 
@@ -4653,7 +4676,20 @@ content here (verbatim copy of source)
 - Transitional paragraphs connecting propagated chunks
 - YAML frontmatter (instruction files only)
 
-#### 12.7.3 Propagation Rules
+**Formal Grammar** (BNF-like, for validator implementors):
+
+```
+@propagate-open  ::= '<!-- @propagate to="' PATH '" as="' CHUNK_ID '" -->'
+@propagate-close ::= '<!-- @/propagate -->'
+@source-open     ::= '<!-- @source from="' PATH '" as="' CHUNK_ID '" -->'
+@source-close    ::= '<!-- @/source -->'
+PATH             ::= [a-zA-Z0-9_./-]+
+CHUNK_ID         ::= [a-z0-9-]+
+```
+
+Any variant not matching the above grammar (e.g., `@propagate from=...`, `@source to=...`, alternative quoting) will be silently missed by the validator — this grammar defines the enforced contract.
+
+#### 13.4.3 Propagation Rules
 
 **One-to-many**: One ARCHITECTURE.md chunk MAY propagate to multiple target files. Use separate `@propagate`/`@/propagate` blocks with different `to` attributes and the same `as` identifier. Content MUST be duplicated identically in each block to enable simple regex extraction.
 
@@ -4665,7 +4701,7 @@ content here (verbatim copy of source)
 
 **Whitespace normalization**: CI/CD comparison ignores leading/trailing blank lines within markers and normalizes line endings (CRLF → LF). All other whitespace (indentation, inline spaces) MUST match exactly.
 
-#### 12.7.4 Section-Level Mapping
+#### 13.4.4 Section-Level Mapping
 
 | ARCHITECTURE.md Section | Primary Instruction File(s) | Agent File(s) |
 |------------------------|----------------------------|---------------|
@@ -4681,13 +4717,14 @@ content here (verbatim copy of source)
 | 10. Testing Architecture | 03-02.testing | implementation-execution |
 | 11. Quality Architecture | 03-05.linting, 03-01.coding, 06-01.evidence-based | implementation-planning, beast-mode |
 | 12. Deployment Architecture | 04-01.deployment, 02-05.security | fix-workflows |
-| 13. Development Practices | 05-02.git, 03-01.coding, 03-03.golang | implementation-planning, implementation-execution |
-| 14. Operational Excellence | 02-03.observability | — |
+| 13. Deployment Tooling & Validation | 04-01.deployment | fix-workflows |
+| 14. Development Practices | 05-02.git, 03-01.coding, 03-03.golang | implementation-planning, implementation-execution |
+| 15. Operational Excellence | 02-03.observability | — |
 | Appendix A-C | (reference only) | — |
 
-#### 12.7.5 CI/CD Validation
+#### 13.4.5 CI/CD Validation
 
-**Command**: `cicd lint-docs validate-propagation`
+**Command**: `cicd-lint lint-docs`
 
 **Algorithm**:
 1. Parse all `@propagate` markers in ARCHITECTURE.md → extract (target_file, chunk_id, content)
@@ -4700,7 +4737,7 @@ content here (verbatim copy of source)
 
 **CI/CD integration**: Runs in `cicd-lint-docs` workflow on every push/PR. Blocks merge on divergence.
 
-#### 12.7.6 Feasibility Constraints
+#### 13.4.6 Feasibility Constraints
 
 **Verbatim propagation IS feasible** for ~80% of content with the following constraints:
 
@@ -4716,7 +4753,7 @@ content here (verbatim copy of source)
 
 **Non-propagated content** (~20%) is structural glue: headings, `See` references, transitions. This content exists in both documents but is NOT required to match verbatim.
 
-#### 12.7.7 Migration Strategy
+#### 13.4.7 Migration Strategy
 
 Propagation markers are added incrementally:
 1. Start with highest-value instruction files (most-referenced, most-divergent)
@@ -4733,7 +4770,7 @@ Propagation markers are added incrementally:
 | rfc-2119-keywords | Document Conventions | 01-01.terminology |
 | emphasis-keywords | Document Conventions | 01-01.terminology |
 | abbreviations | Document Conventions | 01-01.terminology |
-| infrastructure-blocker-escalation | 13.7 | 01-02.beast-mode, 06-01.evidence-based |
+| infrastructure-blocker-escalation | 14.7 | 01-02.beast-mode, 06-01.evidence-based |
 | service-framework-components | 5.1.1 | 02-01.architecture |
 | minimum-versions | B.1 | 02-02.versions |
 | otel-collector-constraints | 9.4.1 | 02-03.observability |
@@ -4745,41 +4782,41 @@ Propagation markers are added incrementally:
 | browser-authn | 6.9.3 | 02-06.authn |
 | mfa-combinations | 6.9.4 | 02-06.authn |
 | authz-methods | 6.9.5 | 02-06.authn |
-| validator-error-aggregation | 12.8 | 03-01.coding |
+| validator-error-aggregation | 13.5 | 03-01.coding |
 | format-go-protection | 11.2.8 | 03-01.coding |
 | test-file-suffixes | 10.1 | 03-02.testing |
 | crypto-acronyms-caps | 11.1.3 | 03-03.golang |
 | docker-compose-rules | 12.3.1 | 04-01.deployment |
-| docker-desktop-startup | 13.5.4 | 05-01.cross-platform |
-| docker-desktop-upgrade | 13.5.4 | 05-01.cross-platform |
-| conventional-commits | 13.2.1 | 05-02.git |
-| incremental-commits | 13.2.2 | 05-02.git |
-| restore-from-baseline | 13.2.3 | 05-02.git |
+| docker-desktop-startup | 14.5.5 | 05-01.cross-platform |
+| docker-desktop-upgrade | 14.5.5 | 05-01.cross-platform |
+| conventional-commits | 14.2.1 | 05-02.git |
+| incremental-commits | 14.2.2 | 05-02.git |
+| restore-from-baseline | 14.2.3 | 05-02.git |
 | agent-self-containment | 2.1.1 | 06-02.agent-format |
 
 **Instruction file coverage**: All 18 instruction files analyzed. 15 files have 1+ propagation chunks (26 total chunk pairs). 3 files (03-04.data-infrastructure, 03-05.linting, copilot-instructions) are structural glue only — their content is condensed quick-reference summaries, code blocks in different formats from ARCHITECTURE.md, or instruction-file-specific formatting that cannot be byte-for-byte identical with ARCHITECTURE.md source sections.
 
 **Structural glue** (~20% of instruction file content) remains non-propagated: condensed quick-reference summaries, section headings, `See` cross-references, transitional text, tables in different formats, and code examples unique to instruction file context.
 
-### 12.8 Validator Error Aggregation Pattern
+### 13.5 Validator Error Aggregation Pattern
 
 <!-- @propagate to=".github/instructions/03-01.coding.instructions.md" as="validator-error-aggregation" -->
 All validators run to completion (never short-circuit) and aggregate errors for a single unified report. Sequential execution ensures deterministic output ordering. Aggregated errors (not fail-fast) show ALL problems in one run, reducing fix-test-fix cycles. `validate-all` returns exit code 0 if all pass, exit code 1 if any fail.
 <!-- @/propagate -->
 
-**Execution Model**: Sequential execution of all 7 validators. Each validator produces a `ValidationResult` containing: valid/invalid status, error list, and execution duration. The orchestrator (`ValidateAll`) collects all results and produces a summary with pass/fail counts and total duration.
+**Execution Model**: Sequential execution of all 8 validators. Each validator produces a `ValidationResult` containing: valid/invalid status, error list, and execution duration. The orchestrator (`ValidateAll`) collects all results and produces a summary with pass/fail counts and total duration.
 
 **Rationale**: Sequential execution (not parallel) ensures deterministic output ordering and simplifies debugging. Aggregated errors (not fail-fast) show ALL problems in one run, reducing fix-test-fix cycles.
 
 **Exit Code**: `validate-all` returns exit code 0 if all validators pass, exit code 1 if any validator fails. CI/CD workflows use this to block merges on validation failures.
 
-### 12.9 Environment Strategy
+### 12.4 Environment Strategy
 
 **Development**: SQLite in-memory, port 0, auto-generated TLS, disabled telemetry
 **Testing**: test-containers (PostgreSQL), dynamic ports, ephemeral instances
 **Production**: PostgreSQL (cloud), static ports, full telemetry, TLS required
 
-### 12.10 Release Management
+### 12.5 Release Management
 
 **Versioning**: Semantic versioning (major.minor.patch)
 **Release Process**: Tag creation, CHANGELOG generation, artifact publishing
@@ -4787,14 +4824,14 @@ All validators run to completion (never short-circuit) and aggregate errors for 
 
 ---
 
-## 13. Development Practices
+## 14. Development Practices
 
-### 13.1 Coding Standards
+### 14.1 Coding Standards
 
 **Go Best Practices**: Effective Go, Code Review Comments, Go Proverbs
 **Project Patterns**: See [03-01.coding.instructions.md](../.github/instructions/03-01.coding.instructions.md) for file size limits, default values, conditional statements
 
-#### 13.1.1 Opportunistic Quality Fixes — MANDATORY
+#### 14.1.1 Opportunistic Quality Fixes — MANDATORY
 
 **CRITICAL: ALL linter violations, code quality issues, and pre-existing defects discovered during ANY work MUST be fixed immediately — even when not part of the original request, phase, task, or plan.**
 
@@ -4813,9 +4850,9 @@ This applies to ALL issue types including but not limited to:
 
 **Atomic Staging for Cross-Cutting Changes**: When a refactor touches imports across multiple packages AND renames/moves directories, ALL changes MUST be staged together. Pre-commit hooks run against the staged state, not the working directory — partial staging of cross-cutting changes will fail type-checking.
 
-### 13.2 Version Control
+### 14.2 Version Control
 
-#### 13.2.1 Conventional Commits
+#### 14.2.1 Conventional Commits
 
 <!-- @propagate to=".github/instructions/05-02.git.instructions.md" as="conventional-commits" -->
 **Format**: `<type>[optional scope]: <description>`
@@ -4831,7 +4868,7 @@ feat(api)!: remove deprecated v1 endpoints  # Breaking change
 ```
 <!-- @/propagate -->
 
-#### 13.2.2 Incremental Commit Strategy
+#### 14.2.2 Incremental Commit Strategy
 
 <!-- @propagate to=".github/instructions/05-02.git.instructions.md" as="incremental-commits" -->
 - ALWAYS commit incrementally (NOT amend) - preserves history for bisect, selective revert.
@@ -4841,7 +4878,7 @@ feat(api)!: remove deprecated v1 endpoints  # Breaking change
 - **Periodic Commits**: Prefer frequent small commits over rare large commits. A completed task = a commit. Push every 5-10 commits.
 <!-- @/propagate -->
 
-#### 13.2.3 Restore from Clean Baseline Pattern
+#### 14.2.3 Restore from Clean Baseline Pattern
 
 <!-- @propagate to=".github/instructions/05-02.git.instructions.md" as="restore-from-baseline" -->
 **When fixing regressions, ALWAYS restore clean baseline FIRST**:
@@ -4855,42 +4892,42 @@ feat(api)!: remove deprecated v1 endpoints  # Breaking change
 **Why**: HEAD may be corrupted from previous failed attempts. Start from known-good state.
 <!-- @/propagate -->
 
-### 13.3 Branching Strategy
+### 14.3 Branching Strategy
 
 **Main branch**: Always stable, deployable, protected
 **Feature branches**: Short-lived (<7 days), rebased on main before merge
 **Release branches**: For production releases, cherry-pick hotfixes
 
-### 13.4 Code Review
+### 14.4 Code Review
 
 **Requirements**: 2+ approvals for core changes, 1 approval for docs/tests
 **Checklist**: Tests added, docs updated, linting passes, security reviewed
 **Size limits**: <500 lines ideal, >1000 lines requires breakdown
 
-### 13.5 Development Workflow
+### 14.5 Development Workflow
 
-#### 13.5.1 Spec Structure Patterns
+#### 14.5.1 Spec Structure Patterns
 
 - plan.md: Vision, phases, success criteria, anti-patterns
 - tasks.md: Phase breakdown, task checklist, dependencies
 - DETAILED.md: Session timeline with date-stamped entries
 - Coverage tracking by package
 
-#### 13.5.2 Terminal Command Auto-Approval
+#### 14.5.2 Terminal Command Auto-Approval
 
 - Pattern checking against .vscode/settings.json
 - Auto-enable: Read-only and build operations
 - Auto-disable: Destructive operations
 - autoapprove wrapper for loopback network commands
 
-#### 13.5.3 Session Documentation Strategy
+#### 14.5.3 Session Documentation Strategy
 
 - MANDATORY: Append to DETAILED.md Section 2 timeline
 - Format: `### YYYY-MM-DD: Title`
 - NEVER create standalone session docs
 - DELETE completed tasks immediately from todos-*.md
 
-#### 13.5.5 Air Live Reload
+#### 14.5.4 Air Live Reload
 
 Use `air` for live-reload development of individual services. Air watches Go source files and automatically rebuilds/restarts the service binary on changes.
 
@@ -4915,7 +4952,7 @@ Use `air` for live-reload development of individual services. Air watches Go sou
 - NEVER use `air` for running tests — use `go test ./...`
 - NEVER hard-code SERVICE in scripts — `SERVICE` env var is required
 
-#### 13.5.4 Docker Desktop Startup - CRITICAL
+#### 14.5.5 Docker Desktop Startup - CRITICAL
 
 <!-- @propagate to=".github/instructions/05-01.cross-platform.instructions.md" as="docker-desktop-startup" -->
 **MANDATORY**: Docker Desktop MUST be running before executing any Docker-dependent operations (E2E tests, Docker Compose, container builds).
@@ -4986,7 +5023,7 @@ See: [Section 11.2.5 CI/CD](#1125-cicd) for local workflow testing commands that
 
 See [Section 9.4.2 Docker Desktop and Testcontainers API Compatibility](#942-docker-desktop-and-testcontainers-api-compatibility) for diagnosis checklist and resolution guidance.
 
-### 13.6 Plan Lifecycle Management
+### 14.6 Plan Lifecycle Management
 
 **Single Living Plan**: Each project MUST have exactly one active plan document (`plan.md`) and one active task list (`tasks.md`). Creating versioned successor plans (e.g., `plan-v2.md`, `fixes-v8/`) is an anti-pattern.
 
@@ -5011,7 +5048,7 @@ See [Section 9.4.2 Docker Desktop and Testcontainers API Compatibility](#942-doc
 - Conduct post-mortems after EVERY phase to self-evaluate artifacts for contradictions or omissions
 - Document all architectural decisions in plan.md before archiving the plan
 
-### 13.7 Infrastructure Blocker Escalation
+### 14.7 Infrastructure Blocker Escalation
 
 <!-- @propagate to=".github/instructions/06-01.evidence-based.instructions.md" as="infrastructure-blocker-escalation" -->
 **MANDATORY: ALL infrastructure issues are BLOCKING. NEVER defer, deprioritize, skip, or tag as "pre-existing."**
@@ -5046,9 +5083,9 @@ Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATO
 
 **Resolution Priority**: Infrastructure blockers take priority over feature work. A broken test infrastructure means ALL test results are unreliable.
 
-### 13.8 Phase Post-Mortem & Knowledge Propagation
+### 14.8 Phase Post-Mortem & Knowledge Propagation
 
-#### 13.8.1 Phase Post-Mortem — MANDATORY
+#### 14.8.1 Phase Post-Mortem — MANDATORY
 
 At the end of EVERY phase's quality gates, conduct a post-mortem **before starting the next phase**:
 
@@ -5067,7 +5104,7 @@ At the end of EVERY phase's quality gates, conduct a post-mortem **before starti
 
 Skipping post-mortems is FORBIDDEN. This is continuous self-improvement.
 
-#### 13.8.2 Plan Completion Knowledge Propagation — MANDATORY
+#### 14.8.2 Plan Completion Knowledge Propagation — MANDATORY
 
 After ALL plan tasks are complete, apply accumulated lessons to permanent artifacts:
 
@@ -5084,7 +5121,7 @@ After ALL plan tasks are complete, apply accumulated lessons to permanent artifa
 
 **Every plan MUST include a final "Knowledge Propagation" phase** that executes these steps. This phase is NOT optional.
 
-### 13.9 Archive and Dead Code Policy
+### 14.9 Archive and Dead Code Policy
 
 **MANDATORY: Code is DELETED, not archived. Git history preserves everything.**
 
@@ -5106,34 +5143,34 @@ After ALL plan tasks are complete, apply accumulated lessons to permanent artifa
 
 ---
 
-## 14. Operational Excellence
+## 15. Operational Excellence
 
-### 14.1 Monitoring & Alerting
+### 15.1 Monitoring & Alerting
 
 **Metrics**: Prometheus (HTTP, DB, crypto, keys)
 **Logging**: Structured logs via OpenTelemetry
 **Tracing**: Distributed traces via OTLP
 **Dashboards**: Grafana LGTM (Loki, Tempo, Prometheus)
 
-### 14.2 Incident Management
+### 15.2 Incident Management
 
 **Post-Mortem Template**: docs/P0.X-INCIDENT_NAME.md - Summary, root cause, timeline, impact, lessons, action items
 **Severity Levels**: P0 (critical), P1 (high), P2 (medium), P3 (low)
 **Response Time**: P0 <15min, P1 <1hr, P2 <1 day, P3 <1 week
 
-### 14.3 Performance Management
+### 15.3 Performance Management
 
 **Benchmarks**: Crypto operations, HTTP endpoints, database queries
 **Load Testing**: Gatling scenarios (baseline, peak, stress)
 **Optimization**: Profile hot paths, caching strategies, connection pooling
 
-### 14.4 Capacity Planning
+### 15.4 Capacity Planning
 
 **Resource Limits**: Memory, CPU, disk, network
 **Scaling Triggers**: >70% utilization sustained >5min
 **Horizontal Scaling**: Stateless services, PostgreSQL read replicas (future)
 
-### 14.5 Disaster Recovery
+### 15.5 Disaster Recovery
 
 **Backup Strategy**: PostgreSQL daily snapshots, 30-day retention
 **Recovery Time**: RTO <4 hours, RPO <1 hour
@@ -5230,8 +5267,10 @@ After ALL plan tasks are complete, apply accumulated lessons to permanent artifa
 |-------|-------------|-------|----------|
 | implementation-planning | Planning and task decomposition | edit, execute, read, search, web | → implementation-execution |
 | implementation-execution | Autonomous implementation execution | edit, execute, read, search, web | → fix-workflows |
-| fix-workflows | Workflow repair and validation | TBD | TBD |
-| beast-mode | Continuous execution mode | TBD | TBD |
+| fix-workflows | Workflow repair and validation | agent, edit, execute, read, search | None defined |
+| beast-mode | Continuous execution mode | agent, edit, execute, read, search, todo, vscode, web | None defined |
+
+See `.github/agents/*.agent.md` `tools:` frontmatter for the authoritative per-agent tool list.
 
 ### B.6 CI/CD Workflow Catalog
 
@@ -5239,22 +5278,23 @@ After ALL plan tasks are complete, apply accumulated lessons to permanent artifa
 |----------|---------|--------------|----------|---------|
 | ci-coverage | Test coverage collection, enforce ≥95%/98% | None | 5-6min | 20min |
 | ci-mutation | Mutation testing with gremlins | None | 15-20min | 45min |
-| ci-race | Race condition detection | None | TBD | 20min |
-| ci-benchmark | Performance benchmarking | None | TBD | 30min |
+| ci-race | Race condition detection | None | 10-15min | 20min |
+| ci-benchmark | Performance benchmarking | None | 8-15min | 30min |
 | ci-quality | Linting and code quality | None | 3-5min | 15min |
-| ci-sast | Static security analysis | None | TBD | 20min |
-| ci-dast | Dynamic security testing | PostgreSQL | TBD | 30min |
-| ci-e2e | End-to-end integration tests | Docker Compose | TBD | 60min |
-| ci-load | Load testing with Gatling | Docker Compose | TBD | 45min |
+| ci-sast | Static security analysis | None | 5-10min | 20min |
+| ci-dast | Dynamic security testing | PostgreSQL | 10-20min | 30min |
+| ci-e2e | End-to-end integration tests | Docker Compose | 20-40min | 60min |
+| ci-load | Load testing with Gatling | Docker Compose | 15-30min | 45min |
 | ci-gitleaks | Secret detection | None | 2-3min | 10min |
-| release | Automated release workflows | ci-* passing | TBD | 30min |
+| release | Automated release workflows | ci-* passing | 5-10min | 30min |
 
 ### B.7 Reusable Action Catalog
 
 | Action | Description | Inputs | Outputs |
 |--------|-------------|--------|---------|
 | docker-images-pull | Parallel Docker image pre-fetching | images (newline-separated list) | None |
-| Additional actions | TBD | TBD | TBD |
+
+See `.github/actions/` for the authoritative action catalog.
 
 ### B.8 Linter Rule Reference
 
@@ -5266,7 +5306,8 @@ After ALL plan tasks are complete, apply accumulated lessons to permanent artifa
 | wsl_v5 | Whitespace linting | ✅ | ✅ | None |
 | godot | Comment periods | ✅ | ✅ | None |
 | gosec | Security issues | ✅ | ❌ | Justified cases |
-| ... | (30+ total linters) | TBD | TBD | TBD |
+
+See `.golangci.yml` for the authoritative linter configuration with all 30+ active linters.
 
 ---
 
@@ -5308,16 +5349,10 @@ After ALL plan tasks are complete, apply accumulated lessons to permanent artifa
 
 ## Document Metadata
 
-**Revision History**:
-- v2.0 (2026-02-08): Initial skeleton structure
-- v1.0 (historical): Original ARCHITECTURE.md
-
 **Related Documents**:
 - `.github/copilot-instructions.md` - Copilot configuration
 - `.github/instructions/*.instructions.md` - Detailed instructions
-- `docs/ARCHITECTURE-INDEX.md` - Agent lookup reference
 
 **Cross-References**:
 - All sections maintain stable anchor links for referencing
-- Machine-readable YAML frontmatter for metadata
 - Consistent section numbering for navigation

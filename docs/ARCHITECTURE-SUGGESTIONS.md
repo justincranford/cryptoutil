@@ -57,30 +57,28 @@ Evidence of application: document shrank 1,426 lines; headings -47; @propagate -
 
 ### Still Open (confirmed NOT applied)
 
-| # | Suggestion | Priority |
-|---|-----------|----------|
-| 5 | Multi-target `@propagate` syntax | Low |
-| 8 | Fix Section 13.5 numbering (13.5.5 before 13.5.4) | **High** |
-| 9 | Reconcile duplicate port docs | Low |
-| 10 | Clarify `end-of-turn-commit-protocol` propagation target | Low |
-| 11 | Remove stale TBD entries in Appendix B | **High** |
-| 12 | Fix healthcheck numbered list (all `1.`) | Medium |
-| 13 | Add `@propagate` for 3 non-propagated instruction files | Medium |
-| 14 | Machine-readable `@propagate` grammar | Low |
-| 15 | Anchor stability policy | Medium |
-| 16 | Pre-commit propagation drift detection | Medium |
-| 17 | Config file count validation in deployment linter | Medium |
-| 18 | Token budget quality gate documentation | Medium |
-| 19 | Split Section 12 into two sections | **High** |
-| 20 | Expand / move Section 14 | Medium |
-| 21 | Add reading guide table | Medium |
-| 22 | Cross-reference index for frequently-referenced topics | Low |
-| 23 | Glue content maintenance strategy | Low |
-| 24 | Propagation coverage metrics command | Low |
-| 25 | Remove or archive ARCHITECTURE-INDEX.md reference | Low |
-| 26 | Reconcile CONFIG-SCHEMA.md vs hardcoded schema | Medium |
-
-All 20 pending items from Feb remain valid. None were invalidated by framework-v6 restructuring.
+| # | Suggestion | Priority | Status |
+|---|-----------|----------|--------|
+| 5 | Multi-target `@propagate` syntax | Low | Open (code change) |
+| 8 | Fix Section 13.5 numbering (13.5.5 before 13.5.4) | **High** | ✅ Applied (renamed → 14.5.4/14.5.5) |
+| 9 | Reconcile duplicate port docs | Low | Open |
+| 10 | Clarify `end-of-turn-commit-protocol` propagation target | Low | ✅ Applied (NOTE comment added) |
+| 11 | Remove stale TBD entries in Appendix B | **High** | ✅ Applied |
+| 12 | Fix healthcheck numbered list (all `1.`) | Medium | ✅ Applied |
+| 13 | Add `@propagate` for non-propagated instruction files | Medium | ✅ Applied (three-tier→03-04, utf8-bom→03-05 already were done) |
+| 14 | Machine-readable `@propagate` grammar | Low | ✅ Applied (BNF added to §13.4.2) |
+| 15 | Anchor stability policy | Medium | Open |
+| 16 | Pre-commit propagation drift detection | Medium | Open |
+| 17 | Config file count validation in deployment linter | Medium | Open |
+| 18 | Token budget quality gate documentation | Medium | Open |
+| 19 | Split Section 12 into two sections | **High** | ✅ Applied (§12.4-12.8 → new §13) |
+| 20 | Expand / move Section 14 | Medium | Open |
+| 21 | Add reading guide table | Medium | Open |
+| 22 | Cross-reference index for frequently-referenced topics | Low | Open |
+| 23 | Glue content maintenance strategy | Low | Open |
+| 24 | Propagation coverage metrics command | Low | Open (code change) |
+| 25 | Remove ARCHITECTURE-INDEX.md reference | Low | ✅ Applied (file deleted) |
+| 26 | Reconcile CONFIG-SCHEMA.md vs hardcoded schema | Medium | ✅ Applied (file deleted, refs fixed) |
 
 ---
 
@@ -837,11 +835,12 @@ Section 12.7 (Documentation Propagation) could also be extracted to a standalone
 
 ### Phase 1 — Blocking / Immediate (must do now)
 
-1. **#27** Execute `workflow` → `cicd-workflow` rename (blocks #29, #33, #38).
-2. **#8** Fix Section 13.5 numbering (13.5.5 before 13.5.4) — 5-minute fix.
-3. **#11** Remove stale TBD entries from Appendix B — quick quality improvement.
-4. **#12** Fix healthcheck numbered list (all `1.`) — trivial correctness fix.
-5. **#38** Update INFRA-TOOL table in Section 9.10 after rename (part of #27 commit).
+1. ✅ **#8** Fix Section 13.5 numbering (13.5.5 before 13.5.4) — renamed to 14.5.4/14.5.5.
+2. ✅ **#11** Remove stale TBD entries from Appendix B — done.
+3. ✅ **#12** Fix healthcheck numbered list (all `1.`) — done.
+4. ✅ **#19** Split Section 12 (§12.4-12.8 → new §13 "Deployment Tooling & Validation") — done.
+5. **#27** Execute `workflow` → `cicd-workflow` rename (blocks #29, #33, #38).
+6. **#38** Update INFRA-TOOL table in Section 9.10 after rename (part of #27 commit).
 
 ### Phase 2 — Quality Gates (medium effort, high value)
 
@@ -849,11 +848,11 @@ Section 12.7 (Documentation Propagation) could also be extracted to a standalone
 2. **#29** Add `infra-tool-naming` fitness linter (post-rename).
 3. **#16** Add propagation drift detection to pre-commit hooks.
 4. **#41** Verify SQLite+Barrier rule has `@propagate` coverage.
-5. **#42** Add `@source` blocks to 2 non-propagated instruction files.
+5. ✅ **#13** Add `@source` blocks to non-propagated instruction files — done (03-04 three-tier-database-strategy added; 03-05 utf8-without-bom was already done).
 
 ### Phase 3 — Completeness (fill documented gaps)
 
-1. **#40** Fill Appendix B TBD entries from actual agent/workflow files.
+1. ✅ **#11** Appendix B TBD entries filled from actual agent/workflow files — done.
 2. **#39** Verify `Explore` agent and `agent-customization` skill in Section 2.1.
 3. **#21** Add reading guide table to top of ARCHITECTURE.md.
 4. **#35** Create `security-audit` agent.
@@ -861,11 +860,10 @@ Section 12.7 (Documentation Propagation) could also be extracted to a standalone
 
 ### Phase 4 — Structural Improvements (moderate risk)
 
-1. **#50/#19** Split Section 12 (now 25.8% — most urgent structural change).
-2. **#34** Categorize fitness linter catalog in Section 9.11.1.
-3. **#20** Expand or move Section 14.
-4. **#32** Remove hard count from Section 9.11.1 heading.
-5. **#49** Add token budget quality gate to Section 11.4.
+1. **#34** Categorize fitness linter catalog in Section 9.11.1.
+2. **#20** Expand or move Section 14.
+3. **#32** Remove hard count from Section 9.11.1 heading.
+4. **#49** Add token budget quality gate to Section 11.4.
 
 ### Phase 5 — Token Budget Reduction (efficiency)
 
@@ -885,14 +883,14 @@ Section 12.7 (Documentation Propagation) could also be extracted to a standalone
 ### Phase 7 — Low-Priority Cleanup
 
 1. **#9** Reconcile duplicate port assignment documentation.
-2. **#10** Clarify `end-of-turn-commit-protocol` propagation target.
-3. **#14** Machine-readable `@propagate` grammar.
+2. ✅ **#10** Clarify `end-of-turn-commit-protocol` propagation target — NOTE comment added to §2.4.
+3. ✅ **#14** Machine-readable `@propagate` grammar — BNF added to §13.4.2.
 4. **#15** Anchor stability policy.
 5. **#22** Cross-reference index for frequently-referenced topics.
 6. **#23** Glue content maintenance strategy.
 7. **#43** Archive framework-v5/v6 planning docs.
-8. **#44** Link ARCHITECTURE-TODO.md from ARCHITECTURE.md.
+8. ~~**#44** Link ARCHITECTURE-TODO.md from ARCHITECTURE.md~~ — obsolete: ARCHITECTURE-TODO.md deleted.
 9. **#45–#47** Add `@propagate` coverage for testing anti-patterns.
 10. **#48** Add expansion note to Section 14.
-11. **#25** Remove or archive ARCHITECTURE-INDEX.md reference.
-12. **#26** Reconcile CONFIG-SCHEMA.md vs hardcoded schema.
+11. ~~**#25** Remove or archive ARCHITECTURE-INDEX.md reference~~ — obsolete: ARCHITECTURE-INDEX.md deleted.
+12. ~~**#26** Reconcile CONFIG-SCHEMA.md vs hardcoded schema~~ — obsolete: CONFIG-SCHEMA.md deleted, refs fixed.

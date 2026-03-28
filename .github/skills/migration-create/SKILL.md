@@ -80,7 +80,7 @@ If the new domain table requires new service configuration keys, also update:
 - `deployments/PS-ID/config/{PS-ID}-app-*.yml` — update per-variant overrides if needed
 - `validate_schema.go` — update the hardcoded Go schema with the new key definitions
 
-Reference [docs/CONFIG-SCHEMA.md](../../../docs/CONFIG-SCHEMA.md) for flat kebab-case YAML key naming conventions.
+Reference [validate_schema.go](/internal/apps/tools/cicd_lint/lint_deployments/validate_schema.go) for flat kebab-case YAML key naming conventions.
 
 ## References
 

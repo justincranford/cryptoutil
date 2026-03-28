@@ -105,7 +105,7 @@ You MUST keep working until the problem is completely solved, and all items in t
 2. **Module Cache**: `go list -m all` (dependencies resolved)
 3. **Go Version**: `go version` (verify 1.26.1+)
 4. **Docker**: `docker ps` (if tasks require Docker)
-   - If Docker not running, see [ARCHITECTURE.md Section 13.5.4](../../docs/ARCHITECTURE.md#1354-docker-desktop-startup---critical) for cross-platform startup instructions
+   - If Docker not running, see [ARCHITECTURE.md Section 13.5.4](../../docs/ARCHITECTURE.md#1455-docker-desktop-startup---critical) for cross-platform startup instructions
    - Windows: `Start-Process "C:\Program Files\Docker\Docker\Docker Desktop.exe"`
    - macOS: `open -a Docker`
    - Linux: `sudo systemctl start docker` or `systemctl --user start docker-desktop`
@@ -1026,6 +1026,6 @@ See [ARCHITECTURE.md Section 2.5 Quality Strategy](/docs/ARCHITECTURE.md#25-qual
 - **Test Seam Pattern**: See [ARCHITECTURE.md Section 10.2.4 Test Seam Injection Pattern](/docs/ARCHITECTURE.md#1024-test-seam-injection-pattern) for unreachable code path testing.
 - **Quality Gates**: See [ARCHITECTURE.md Section 11.2 Quality Gates](/docs/ARCHITECTURE.md#112-quality-gates) for mandatory quality gate enforcement.
 - **Mandatory Review Passes**: See [ARCHITECTURE.md Section 2.5 Quality Strategy](/docs/ARCHITECTURE.md#25-quality-strategy) for 3-pass review requirements.
-- **Infrastructure Blockers**: See [ARCHITECTURE.md Section 13.7 Infrastructure Blocker Escalation](/docs/ARCHITECTURE.md#137-infrastructure-blocker-escalation) for three-encounter escalation rule.
-- **Coding Standards**: See [ARCHITECTURE.md Section 13.1 Coding Standards](/docs/ARCHITECTURE.md#131-coding-standards) for Go coding patterns.
-- **Plan Lifecycle**: See [ARCHITECTURE.md Section 13.6 Plan Lifecycle Management](/docs/ARCHITECTURE.md#136-plan-lifecycle-management) for plan document rules.
+- **Infrastructure Blockers**: See [ARCHITECTURE.md Section 14.7 Infrastructure Blocker Escalation](/docs/ARCHITECTURE.md#147-infrastructure-blocker-escalation) for three-encounter escalation rule.
+- **Coding Standards**: See [ARCHITECTURE.md Section 15.1 Coding Standards](/docs/ARCHITECTURE.md#141-coding-standards) for Go coding patterns.
+- **Plan Lifecycle**: See [ARCHITECTURE.md Section 13.6 Plan Lifecycle Management](/docs/ARCHITECTURE.md#146-plan-lifecycle-management) for plan document rules.
