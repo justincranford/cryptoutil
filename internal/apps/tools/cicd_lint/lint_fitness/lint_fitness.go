@@ -57,6 +57,7 @@ import (
 	lintFitnessRequireAPIDir "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/require_api_dir"
 	lintFitnessRequireFrameworkNaming "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/require_framework_naming"
 	lintFitnessRootJunkDetection "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/root_junk_detection"
+	lintFitnessSecretContent "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/secret_content"
 	lintFitnessSecretNaming "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/secret_naming"
 	lintFitnessServiceContractCompliance "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/service_contract_compliance"
 	lintFitnessServiceStructure "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/service_structure"
@@ -142,6 +143,7 @@ var registeredLinters = []struct {
 	{"configs-naming", lintFitnessConfigsNaming.Check},
 	// New fitness checks (added in Phase 8 of framework-v6).
 	{"dockerfile-labels", lintFitnessDockerfileLabels.Check},
+	{"secret-content", lintFitnessSecretContent.Check},
 	{"secret-naming", lintFitnessSecretNaming.Check},
 	{"unseal-secret-content", lintFitnessUnsealSecretContent.Check},
 	// New fitness checks (added in documentation-audit pass).
