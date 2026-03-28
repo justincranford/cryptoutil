@@ -6,6 +6,8 @@ package magic
 
 // Percentages and tolerances (as decimal values).
 const (
+	// Tolerance1Percent - 1% tolerance, common percentage value.
+	Tolerance1Percent = 0.01
 	// Tolerance5Percent - 5% tolerance, common percentage value.
 	Tolerance5Percent = 0.05
 	// Tolerance10Percent - 10% tolerance, common percentage value.

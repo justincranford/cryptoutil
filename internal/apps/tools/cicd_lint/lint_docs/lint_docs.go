@@ -10,6 +10,7 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
 	cryptoutilCheckChunkVerification "cryptoutil/internal/apps/tools/cicd_lint/lint_docs/check_chunk_verification"
+	cryptoutilPropagationCoverage "cryptoutil/internal/apps/tools/cicd_lint/lint_docs/propagation_coverage"
 	cryptoutilValidateChunks "cryptoutil/internal/apps/tools/cicd_lint/lint_docs/validate_chunks"
 	cryptoutilValidatePropagation "cryptoutil/internal/apps/tools/cicd_lint/lint_docs/validate_propagation"
 )
@@ -25,6 +26,7 @@ var registeredLinters = []struct {
 	{"check-chunk-verification", cryptoutilCheckChunkVerification.Check},
 	{"validate-chunks", cryptoutilValidateChunks.Check},
 	{"validate-propagation", cryptoutilValidatePropagation.Check},
+	{"propagation-coverage", cryptoutilPropagationCoverage.Check},
 }
 
 // Lint runs all registered documentation linters sequentially.

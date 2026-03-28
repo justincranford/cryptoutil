@@ -65,9 +65,11 @@ cover.html
 *.cover
 *_coverage
 *coverage
-# Exception: cicd_coverage is a Go source package (not a coverage output file)
+# Exception: cicd_coverage and propagation_coverage are Go source packages (not coverage output files)
 !**/cicd_coverage/
 !**/cicd_coverage/**
+!**/propagation_coverage/
+!**/propagation_coverage/**
 *.test
 $coverage*
 $out*
