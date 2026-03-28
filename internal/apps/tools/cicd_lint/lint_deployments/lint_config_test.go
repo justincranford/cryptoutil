@@ -28,12 +28,13 @@ func TestValidateConfigFiles_MissingRequiredConfigs(t *testing.T) {
 	require.NoError(t, err)
 
 	require.False(t, result.Valid, "should be invalid with missing config files")
-	require.GreaterOrEqual(t, len(result.Errors), 4, "should have at least 4 errors for missing config files")
+	require.GreaterOrEqual(t, len(result.Errors), cryptoutilSharedMagic.RequiredConfigOverlayCount, "should have at least 5 errors for missing config files")
 
 	// Verify specific missing files mentioned in errors.
 	errorStr := joinErrors(result.Errors)
 	require.Contains(t, errorStr, "sm-kms-app-common.yml")
 	require.Contains(t, errorStr, "sm-kms-app-sqlite-1.yml")
+	require.Contains(t, errorStr, "sm-kms-app-sqlite-2.yml")
 	require.Contains(t, errorStr, "sm-kms-app-postgresql-1.yml")
 	require.Contains(t, errorStr, "sm-kms-app-postgresql-2.yml")
 }

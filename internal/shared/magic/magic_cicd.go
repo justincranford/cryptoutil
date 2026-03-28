@@ -201,6 +201,10 @@ const (
 	// Services: sm-kms, sm-im, jose-ja, pki-ca, identity-authz, identity-idp,
 	// identity-rp, identity-rs, identity-spa, skeleton-template.
 	SuiteServiceCount = 10
+
+	// RequiredConfigOverlayCount is the number of required config overlay files per service.
+	// Variants: common, sqlite-1, sqlite-2, postgresql-1, postgresql-2.
+	RequiredConfigOverlayCount = 5
 )
 
 // ListAllFilesStartDirectory is the ListAllFiles start directory.

@@ -31,6 +31,7 @@ var requiredTemplateComposeFiles = []string{
 var requiredTemplateConfigFiles = []string{
 	"template-app-common.yml",
 	"template-app-sqlite-1.yml",
+	"template-app-sqlite-2.yml",
 	"template-app-postgresql-1.yml",
 	"template-app-postgresql-2.yml",
 }

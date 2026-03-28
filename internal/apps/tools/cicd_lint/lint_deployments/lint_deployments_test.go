@@ -30,7 +30,7 @@ func createRequiredSecrets(t *testing.T, baseDir string) {
 	}
 }
 
-// createRequiredConfigFiles creates the 4 required config files for a PRODUCT-SERVICE.
+// createRequiredConfigFiles creates the 5 required config files for a PRODUCT-SERVICE.
 func createRequiredConfigFiles(t *testing.T, baseDir string, productService string) {
 	t.Helper()
 
@@ -38,6 +38,7 @@ func createRequiredConfigFiles(t *testing.T, baseDir string, productService stri
 	requiredConfigs := []string{
 		productService + "-app-common.yml",
 		productService + "-app-sqlite-1.yml",
+		productService + "-app-sqlite-2.yml",
 		productService + "-app-postgresql-1.yml",
 		productService + "-app-postgresql-2.yml",
 	}

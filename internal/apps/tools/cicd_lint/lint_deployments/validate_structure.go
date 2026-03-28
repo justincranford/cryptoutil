@@ -107,6 +107,7 @@ func validateConfigFiles(basePath string, deploymentName string, result *Validat
 	requiredConfigs := []string{
 		fmt.Sprintf("%s-app-common.yml", productService),       // sm-kms-app-common.yml.
 		fmt.Sprintf("%s-app-sqlite-1.yml", productService),     // sm-kms-app-sqlite-1.yml.
+		fmt.Sprintf("%s-app-sqlite-2.yml", productService),     // sm-kms-app-sqlite-2.yml.
 		fmt.Sprintf("%s-app-postgresql-1.yml", productService), // sm-kms-app-postgresql-1.yml.
 		fmt.Sprintf("%s-app-postgresql-2.yml", productService), // sm-kms-app-postgresql-2.yml.
 	}
