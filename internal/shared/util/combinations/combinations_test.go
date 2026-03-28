@@ -108,18 +108,18 @@ func TestEncode(t *testing.T) {
 	valueB := value("B")
 	valueC := value("C")
 
-	expectededCombinationAB := []byte{2, 1, 'A', 1, 'B'}
-	expectededCombinationC := []byte{1, 1, 'C'}
+	expectedCombinationAB := []byte{2, 1, 'A', 1, 'B'}
+	expectedCombinationC := []byte{1, 1, 'C'}
 
 	combinationAB := combination{valueA, valueB}
 	encodedCombinationAB := combinationAB.Encode()
-	require.Equal(t, expectededCombinationAB, encodedCombinationAB)
+	require.Equal(t, expectedCombinationAB, encodedCombinationAB)
 	t.Logf("combinationAB = %s", combinationAB.ToString())
 	t.Logf("encodedCombinationAB = 0x%x", encodedCombinationAB)
 
 	combinationC := combination{valueC}
 	encodedCombinationC := combinationC.Encode()
-	require.Equal(t, expectededCombinationC, encodedCombinationC)
+	require.Equal(t, expectedCombinationC, encodedCombinationC)
 	t.Logf("combinationC = %s", combinationC.ToString())
 	t.Logf("combinationC = 0x%x", encodedCombinationC)
 
@@ -127,6 +127,6 @@ func TestEncode(t *testing.T) {
 
 	encodedCombos := combos.Encode()
 	require.Equal(t, 2, len(encodedCombos))
-	require.Equal(t, expectededCombinationAB, encodedCombos[0])
-	require.Equal(t, expectededCombinationC, encodedCombos[1])
+	require.Equal(t, expectedCombinationAB, encodedCombos[0])
+	require.Equal(t, expectedCombinationC, encodedCombos[1])
 }

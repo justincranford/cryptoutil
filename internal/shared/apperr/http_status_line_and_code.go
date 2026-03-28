@@ -28,13 +28,13 @@ type HTTPStatusLineAndCode struct {
 }
 
 // NewHTTPStatusLineAndCode creates a new HTTPStatusLineAndCode from a status code and app code.
-func NewHTTPStatusLineAndCode(httpStatusCode HTTPStatusCode, proprietartAppCode *ProprietaryAppCode) HTTPStatusLineAndCode {
+func NewHTTPStatusLineAndCode(httpStatusCode HTTPStatusCode, proprietaryAppCode *ProprietaryAppCode) HTTPStatusLineAndCode {
 	return HTTPStatusLineAndCode{
 		StatusLine: HTTPStatusLine{
 			StatusCode:   httpStatusCode,                                         // 100-599.
 			ReasonPhrase: HTTPReasonPhrase(http.StatusText(int(httpStatusCode))), // standard HTTP reason phrase from standard HTTP status codes.
 		},
-		Code: *proprietartAppCode, // Proprietary application code.
+		Code: *proprietaryAppCode, // Proprietary application code.
 	}
 }
 

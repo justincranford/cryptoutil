@@ -156,7 +156,7 @@ func (s *Service) BeginWebAuthnRegistration(c *fiber.Ctx) error {
 	// Get WebAuthn service.
 	webauthnSvc, err := s.getWebAuthnService()
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "WebAauthn service unavailable"})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "WebAuthn service unavailable"})
 	}
 
 	// Load WebAuthn user.
@@ -226,7 +226,7 @@ func (s *Service) FinishWebAuthnRegistration(c *fiber.Ctx) error {
 	// Get WebAuthn service.
 	webauthnSvc, err := s.getWebAuthnService()
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "WebAauthn service unavailable"})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{cryptoutilSharedMagic.StringError: "WebAuthn service unavailable"})
 	}
 
 	// Load WebAuthn user.

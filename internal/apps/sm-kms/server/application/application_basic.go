@@ -29,7 +29,7 @@ func StartServerApplicationBasic(ctx context.Context, settings *cryptoutilAppsFr
 
 	telemetryService, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, settings.ToTelemetrySettings())
 	if err != nil {
-		return nil, fmt.Errorf("failed to initailize telemetry: %w", err)
+		return nil, fmt.Errorf("failed to initialize telemetry: %w", err)
 	}
 
 	serverApplicationBasic.TelemetryService = telemetryService
