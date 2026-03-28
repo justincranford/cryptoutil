@@ -320,6 +320,9 @@ Implementation plans use the following files in `<work-dir>/`:
 - fix-workflows: Workflow repair and validation
 - beast-mode: Continuous execution mode
 - Explore: Fast read-only codebase exploration and Q&A subagent (quick/medium/thorough)
+- security-audit: Orchestrates FIPS audit → gosec → govulncheck → SAST → DAST → consolidated report
+- coverage-boost: Analyzes coverage gaps and generates targeted tests to reach ≥95%/98% thresholds
+- dependency-update: Updates Go dependencies, checks CVEs, runs full tests, commits safe updates
 
 #### 2.1.3 Agent Handoff Flow
 
