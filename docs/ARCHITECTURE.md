@@ -68,6 +68,21 @@ This document is structured to serve multiple audiences:
 - [Appendix B: Reference Tables](#appendix-b-reference-tables)
 - [Appendix C: Compliance Matrix](#appendix-c-compliance-matrix)
 
+### Cross-Reference Index
+
+| Topic | Primary Section | Also Referenced In |
+|-------|----------------|-------------------|
+| Secrets management | [12.3.3](#1233-secrets-coordination-strategy) | [6.10](#610-secrets-detection-strategy), [13.3](#133-secrets-management-in-deployments), [4.4.6](#446-deployments) |
+| TLS / mTLS | [6.11](#611-tls-certificate-configuration) | [5.3](#53-dual-https-endpoint-pattern), [6.5](#65-pki-architecture--strategy) |
+| Port assignments | [3.4](#34-port-assignments--networking) | [3.4.1](#341-port-design-principles), [12.3.4](#1234-multi-level-deployment-hierarchy) |
+| Health checks | [5.5](#55-health-check-patterns) | [10.3.5](#1035-cross-service-contract-test-pattern) |
+| Testing database tiers | [10.1](#101-testing-strategy-overview) | [7.3](#73-dual-database-strategy) |
+| @propagate system | [13.4](#134-documentation-propagation-strategy) | [13.4.7](#1347-propagation-coverage-accounting) |
+| Key rotation | [6.4.2](#642-key-hierarchy-barrier-service) | [6.7](#67-key-management-system-architecture) |
+| Multi-tenancy | [7.2](#72-multi-tenancy-architecture--strategy) | [2.2](#22-architecture-strategy) |
+| FIPS 140-3 | [6.1](#61-fips-140-3-compliance-strategy) | [6.4.1](#641-fips-140-3-compliance-always-enabled) |
+| Fitness linters | [9.11.1](#9111-fitness-sub-linter-catalog) | [9.11](#911-architecture-fitness-functions) |
+
 ### Document Conventions
 
 #### RFC 2119 Keywords
