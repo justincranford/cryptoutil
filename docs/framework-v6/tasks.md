@@ -122,10 +122,10 @@
 - **Estimated**: 20m
 - **Actual**: 15m
 - **Dependencies**: None
-- **Description**: Replace incomplete pki-ca examples with full 14-secret listings for both sm-im and pki-ca, including all 5 unseal shards with unique hex values.
+- **Description**: Replace incomplete pki-ca examples with full 14-secret listings for both sm-im and pki-ca, including all 5 unseal shards with unique base64-random-32-bytes values.
 - **Acceptance Criteria**:
-  - [x] sm-im example: 14 secrets, `sm-im-` prefix, unique hex
-  - [x] pki-ca example: 14 secrets, `pki-ca-` prefix, unique hex (not copied from sm-kms)
+  - [x] sm-im example: 14 secrets, `sm-im-` prefix, unique base64-random-32-bytes
+  - [x] pki-ca example: 14 secrets, `pki-ca-` prefix, unique base64-random-32-bytes (not copied from sm-kms)
 
 #### Task 1.8: Add F.6 Dockerfile Parameterization (commit 286ea4588)
 
@@ -264,10 +264,10 @@
 - **Estimated**: 20m
 - **Actual**: 5m
 - **Dependencies**: Phase 1 (Decision 1)
-- **Description**: Regenerate ALL pki-ca secrets. Currently copy-pasted from sm-kms with `kms-` prefix and hardcoded hex. Generate unique random values with correct `pki-ca-` prefix pattern.
+- **Description**: Regenerate ALL pki-ca secrets. Currently copy-pasted from sm-kms with `kms-` prefix and hardcoded base64-random-32-bytes. Generate unique random values with correct `pki-ca-` prefix pattern.
 - **Acceptance Criteria**:
   - [x] All 5 unseal secrets have `pki-ca-` prefix (not `kms-`)
-  - [x] All hex values are unique (not `11111111...` through `55555555...`)
+  - [x] All base64-random-32-bytes values are unique (not `11111111...` through `55555555...`)
   - [x] postgres-database = `pki_ca_database`
   - [x] postgres-username = `pki_ca_database_user`
   - [x] postgres-url reflects corrected db/user values
@@ -296,7 +296,7 @@
   - [x] skeleton-template: prefix `skeleton-template-` (was `template-`)
   - [x] sm-im: prefix `sm-im-` (was `im-`)
   - [x] sm-kms: prefix `sm-kms-` (was `kms-`)
-  - [x] Each service has 5 unique hex values (not copied from another service)
+  - [x] Each service has 5 unique base64-random-32-bytes values (not copied from another service)
 - **Files**:
   - `deployments/*/secrets/unseal-*of5.secret` (50 files across 10 services)
 
@@ -385,7 +385,7 @@
 - **Description**: Cross-check every service secret against spec. Verify no duplicate values across services.
 - **Acceptance Criteria**:
   - [x] Each of 10 services has exactly 14 secret files
-  - [x] No two services share any unseal hex values
+  - [x] No two services share any unseal base64-random-32-bytes values
   - [x] No two services share postgres credentials
   - [x] pki-ca values completely different from sm-kms
 
@@ -400,14 +400,14 @@
 - **Estimated**: 20m
 - **Actual**: 10m
 - **Dependencies**: Phase 1
-- **Description**: Replace generic `dev-unseal-key-N-of-5` with `{PRODUCT}-unseal-key-N-of-5-{hex}` for jose, pki, skeleton, sm. Normalize identity format.
+- **Description**: Replace generic `dev-unseal-key-N-of-5` with `{PRODUCT}-unseal-key-N-of-5-{base64-random-32-bytes}` for jose, pki, skeleton, sm. Normalize identity format.
 - **Acceptance Criteria**:
-  - [x] jose: `jose-unseal-key-N-of-5-{hex}` (was `dev-unseal-key-N-of-5`)
-  - [x] pki: `pki-unseal-key-N-of-5-{hex}` (was `dev-unseal-key-N-of-5`)
-  - [x] skeleton: `skeleton-unseal-key-N-of-5-{hex}` (was `dev-unseal-key-N-of-5`)
-  - [x] sm: `sm-unseal-key-N-of-5-{hex}` (was `dev-unseal-key-N-of-5`)
-  - [x] identity: normalized to `identity-unseal-key-N-of-5-{hex}` format
-  - [x] All hex values unique per product
+  - [x] jose: `jose-unseal-key-N-of-5-{base64-random-32-bytes}` (was `dev-unseal-key-N-of-5`)
+  - [x] pki: `pki-unseal-key-N-of-5-{base64-random-32-bytes}` (was `dev-unseal-key-N-of-5`)
+  - [x] skeleton: `skeleton-unseal-key-N-of-5-{base64-random-32-bytes}` (was `dev-unseal-key-N-of-5`)
+  - [x] sm: `sm-unseal-key-N-of-5-{base64-random-32-bytes}` (was `dev-unseal-key-N-of-5`)
+  - [x] identity: normalized to `identity-unseal-key-N-of-5-{base64-random-32-bytes}` format
+  - [x] All base64-random-32-bytes values unique per product
 - **Files**:
   - `deployments/{identity,jose,pki,skeleton,sm}/secrets/unseal-*of5.secret` (25 files)
 
@@ -447,7 +447,7 @@
 - **Estimated**: 15m
 - **Actual**: 10m
 - **Dependencies**: Phase 1
-- **Description**: Fix cryptoutil-suite secrets to use `cryptoutil-` prefix (not `suite-`). Fix unseal values to `cryptoutil-unseal-key-N-of-5-{hex}`. Fix postgres values to use `cryptoutil_database` pattern.
+- **Description**: Fix cryptoutil-suite secrets to use `cryptoutil-` prefix (not `suite-`). Fix unseal values to `cryptoutil-unseal-key-N-of-5-{base64-random-32-bytes}`. Fix postgres values to use `cryptoutil_database` pattern.
 - **Acceptance Criteria**:
   - [x] Unseal prefix: `cryptoutil-` (was `suite-`)
   - [x] postgres-database: `cryptoutil_database`
@@ -468,7 +468,7 @@
 - **Acceptance Criteria**:
   - [x] No generic `dev-unseal-key-N-of-5` values remain anywhere
   - [x] No `suite-` prefix anywhere (should be `cryptoutil-`)
-  - [x] All products have unique unseal hex values
+  - [x] All products have unique unseal base64-random-32-bytes values
 
 ### Phase 5: Restructure Config Directories — Flat Pattern (Decision 2=B)
 
@@ -738,11 +738,11 @@
 - **Estimated**: 45m
 - **Actual**: -
 - **Dependencies**: Phases 3-4 (secret values corrected)
-- **Description**: Create `internal/apps/tools/cicd_lint/lint_fitness/unseal_secret_content/unseal_secret_content.go`. Validates: correct PS-ID/PRODUCT/SUITE prefix, unique hex per shard, correct `N-of-5` infix, tier prefix matches deployment tier. Tests with >=98% coverage.
+- **Description**: Create `internal/apps/tools/cicd_lint/lint_fitness/unseal_secret_content/unseal_secret_content.go`. Validates: correct PS-ID/PRODUCT/SUITE prefix, unique base64-random-32-bytes per shard, correct `N-of-5` infix, tier prefix matches deployment tier. Tests with >=98% coverage.
 - **Acceptance Criteria**:
   - [x] Linter validates unseal values for all 3 tiers (service, product, suite)
   - [x] Detects wrong prefix (e.g., `kms-` in pki-ca)
-  - [x] Detects duplicate hex across services
+  - [x] Detects duplicate base64-random-32-bytes across services
   - [x] Detects generic `dev-unseal-key-N-of-5` values
   - [x] Tests pass with >=98% coverage
   - [x] Registered in fitness linter catalog

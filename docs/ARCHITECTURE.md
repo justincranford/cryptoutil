@@ -1163,16 +1163,16 @@ All tiers (service, product, suite) use **identical `{purpose}.secret` filenames
 
 | Secret Purpose | Filename | Service Value | Product Value | Suite Value |
 |---------------|----------|---------------|---------------|-------------|
-| Hash pepper v3 | `hash-pepper-v3.secret` | `{PS-ID}-hash-pepper-v3-{base64url-43}` | `{PRODUCT}-hash-pepper-v3-{base64url-43}` | `{SUITE}-hash-pepper-v3-{base64url-43}` |
+| Hash pepper v3 | `hash-pepper-v3.secret` | `{PS-ID}-hash-pepper-v3-{base64-random-32-bytes}` | `{PRODUCT}-hash-pepper-v3-{base64-random-32-bytes}` | `{SUITE}-hash-pepper-v3-{base64-random-32-bytes}` |
 | Browser username | `browser-username.secret` | `{PS-ID}-browser-user` | `.never` marker | `.never` marker |
-| Browser password | `browser-password.secret` | `{PS-ID}-browser-pass-{base64url-43}` | `.never` marker | `.never` marker |
+| Browser password | `browser-password.secret` | `{PS-ID}-browser-pass-{base64-random-32-bytes}` | `.never` marker | `.never` marker |
 | Service username | `service-username.secret` | `{PS-ID}-service-user` | `.never` marker | `.never` marker |
-| Service password | `service-password.secret` | `{PS-ID}-service-pass-{base64url-43}` | `.never` marker | `.never` marker |
+| Service password | `service-password.secret` | `{PS-ID}-service-pass-{base64-random-32-bytes}` | `.never` marker | `.never` marker |
 | PostgreSQL username | `postgres-username.secret` | `{PS_ID}_database_user` | `{PRODUCT}_database_user` | `{SUITE}_database_user` |
-| PostgreSQL password | `postgres-password.secret` | `{PS_ID}_database_pass-{base64url-43}` | `{PRODUCT}_database_pass-{base64url-43}` | `{SUITE}_database_pass-{base64url-43}` |
+| PostgreSQL password | `postgres-password.secret` | `{PS_ID}_database_pass-{base64-random-32-bytes}` | `{PRODUCT}_database_pass-{base64-random-32-bytes}` | `{SUITE}_database_pass-{base64-random-32-bytes}` |
 | PostgreSQL database | `postgres-database.secret` | `{PS_ID}_database` | `{PRODUCT}_database` | `{SUITE}_database` |
 | PostgreSQL URL | `postgres-url.secret` | `postgres://{PS_ID}_database_user:{password}@{PS-ID}-postgres:5432/{PS_ID}_database?sslmode=disable` | `...@{PRODUCT}-postgres:5432/...` | `...@{SUITE}-postgres:5432/...` |
-| Unseal shard N | `unseal-{N}of5.secret` | `{PS-ID}-unseal-key-N-of-5-{hex-64}` | `{PRODUCT}-unseal-key-N-of-5-{hex-64}` | `{SUITE}-unseal-key-N-of-5-{hex-64}` |
+| Unseal shard N | `unseal-{N}of5.secret` | `{PS-ID}-unseal-key-N-of-5-{base64-random-32-bytes}` | `{PRODUCT}-unseal-key-N-of-5-{base64-random-32-bytes}` | `{SUITE}-unseal-key-N-of-5-{base64-random-32-bytes}` |
 
 #### 4.4.7 CLI Patterns
 
@@ -2671,12 +2671,12 @@ Architecture fitness functions are automated checks that enforce ARCHITECTURE.md
 | `deployment-dir-completeness` | Every PS must have Dockerfile, compose.yml, secrets/, and config/ |
 | `dockerfile-labels` | Dockerfile `org.opencontainers.image.title` LABEL matches deployment tier; `image.description` is non-empty |
 | `otlp-service-name-pattern` | OTLP service names must match `{ps-id}-{db}-N` pattern |
-| `secret-content` | Non-unseal secret values match documented format patterns: `{PREFIX}-hash-pepper-v3-{base64url-43}`, `{PREFIX}-browser-user`, `{PREFIX}-browser-pass-{base64url-43}`, `{PREFIX}-service-user`, `{PREFIX}-service-pass-{base64url-43}`, `{PREFIX_UNDERSCORE}_database[_user/_pass-{base64url-43}]`, postgres-url composition; `.secret.never` marker content enforced at product/suite tiers |
+| `secret-content` | Non-unseal secret values match documented format patterns: `{PREFIX}-hash-pepper-v3-{base64-random-32-bytes}`, `{PREFIX}-browser-user`, `{PREFIX}-browser-pass-{base64-random-32-bytes}`, `{PREFIX}-service-user`, `{PREFIX}-service-pass-{base64-random-32-bytes}`, `{PREFIX_UNDERSCORE}_database[_user/_pass-{base64-random-32-bytes}]`, postgres-url composition; `.secret.never` marker content enforced at product/suite tiers |
 | `secret-naming` | All tiers use `{purpose}.secret` filenames; `.secret.never` markers enforced at product/suite tiers |
 | `standalone-config-otlp-names` | Config file `otlp-service` values must match `{ps-id}-{db}-N` pattern |
 | `standalone-config-presence` | All PS must have 5 config overlay files: `{PS-ID}-app-common.yml`, `{PS-ID}-app-sqlite-1.yml`, `{PS-ID}-app-sqlite-2.yml`, `{PS-ID}-app-postgresql-1.yml`, `{PS-ID}-app-postgresql-2.yml` |
 | `template-consistency` | `deployments/skeleton-template/` uses hyphenated secret names (not underscores) |
-| `unseal-secret-content` | Unseal secret values match `{TIER-PREFIX}-unseal-key-N-of-5-{hex-64}` (64 lowercase hex chars, unique per shard, tier prefix matches deployment directory) |
+| `unseal-secret-content` | Unseal secret values match `{TIER-PREFIX}-unseal-key-N-of-5-{base64-random-32-bytes}` (base64-encoded 32 random bytes, unique per shard, tier prefix matches deployment directory) |
 | | **Code Quality** |
 | `archive-detector` | `_archived/`, `archived/`, `orphaned/` directories must not exist |
 | `banned-product-names` | Old product names (`Cipher IM`, `Cipher KMS`, etc.) banned from source |
@@ -3897,18 +3897,18 @@ See [Section 4.4.6](#446-deployments) for the complete secret file listing at ea
 
 | Secret | Service Value | Product Value | Suite Value |
 |--------|---------------|---------------|-------------|
-| `hash-pepper-v3.secret` | `{PS-ID}-hash-pepper-v3-{base64url-43}` | `{PRODUCT}-hash-pepper-v3-{base64url-43}` | `{SUITE}-hash-pepper-v3-{base64url-43}` |
+| `hash-pepper-v3.secret` | `{PS-ID}-hash-pepper-v3-{base64-random-32-bytes}` | `{PRODUCT}-hash-pepper-v3-{base64-random-32-bytes}` | `{SUITE}-hash-pepper-v3-{base64-random-32-bytes}` |
 | `browser-username.secret` | `{PS-ID}-browser-user` | `.never` marker | `.never` marker |
-| `browser-password.secret` | `{PS-ID}-browser-pass-{base64url-43}` | `.never` marker | `.never` marker |
+| `browser-password.secret` | `{PS-ID}-browser-pass-{base64-random-32-bytes}` | `.never` marker | `.never` marker |
 | `service-username.secret` | `{PS-ID}-service-user` | `.never` marker | `.never` marker |
-| `service-password.secret` | `{PS-ID}-service-pass-{base64url-43}` | `.never` marker | `.never` marker |
+| `service-password.secret` | `{PS-ID}-service-pass-{base64-random-32-bytes}` | `.never` marker | `.never` marker |
 | `postgres-username.secret` | `{PS_ID}_database_user` | `{PRODUCT}_database_user` | `{SUITE}_database_user` |
-| `postgres-password.secret` | `{PS_ID}_database_pass-{base64url-43}` | `{PRODUCT}_database_pass-{base64url-43}` | `{SUITE}_database_pass-{base64url-43}` |
+| `postgres-password.secret` | `{PS_ID}_database_pass-{base64-random-32-bytes}` | `{PRODUCT}_database_pass-{base64-random-32-bytes}` | `{SUITE}_database_pass-{base64-random-32-bytes}` |
 | `postgres-database.secret` | `{PS_ID}_database` | `{PRODUCT}_database` | `{SUITE}_database` |
 | `postgres-url.secret` | `postgres://{PS_ID}_database_user:{password}@{PS-ID}-postgres:5432/{PS_ID}_database?sslmode=disable` | `...@{PRODUCT}-postgres:5432/...` | `...@{SUITE}-postgres:5432/...` |
-| `unseal-{N}of5.secret` | `{PS-ID}-unseal-key-N-of-5-{hex-64}` | `{PRODUCT}-unseal-key-N-of-5-{hex-64}` | `{SUITE}-unseal-key-N-of-5-{hex-64}` |
+| `unseal-{N}of5.secret` | `{PS-ID}-unseal-key-N-of-5-{base64-random-32-bytes}` | `{PRODUCT}-unseal-key-N-of-5-{base64-random-32-bytes}` | `{SUITE}-unseal-key-N-of-5-{base64-random-32-bytes}` |
 
-**Encoding Notation**: `{hex-64}` = 64 lowercase hex characters (32 random bytes). `{base64url-43}` = 43 base64url characters without padding (32 random bytes, charset `[A-Za-z0-9_-]`). `{password}` = the full `{PS_ID}_database_pass-{base64url-43}` value from `postgres-password.secret`.
+**Encoding Notation**: `{base64-random-32-bytes}` = base64 encoding of 32 cryptographically random bytes. `{password}` = the full `{PS_ID}_database_pass-{base64-random-32-bytes}` value from `postgres-password.secret`.
 
 **`.secret.never` Marker Content**: Product-level markers contain `MUST NEVER be used at product level. Use service-specific secrets.` Suite-level markers contain `MUST NEVER be used at suite level. Use service-specific secrets.`
 
@@ -3954,20 +3954,20 @@ See [Section 4.4.6](#446-deployments) for the complete secret file listing at ea
 
 | Secret | Format | Generation |
 |--------|--------|-----------|
-| `unseal-{N}of5.secret` | `{PREFIX}-unseal-key-N-of-5-{hex-64}` | `secrets.token_hex(32)` |
-| `hash-pepper-v3.secret` | `{PREFIX}-hash-pepper-v3-{base64url-43}` | `base64.urlsafe_b64encode(secrets.token_bytes(32)).rstrip(b'=')` |
+| `unseal-{N}of5.secret` | `{PREFIX}-unseal-key-N-of-5-{base64-random-32-bytes}` | `base64.b64encode(secrets.token_bytes(32)).decode()` |
+| `hash-pepper-v3.secret` | `{PREFIX}-hash-pepper-v3-{base64-random-32-bytes}` | `base64.urlsafe_b64encode(secrets.token_bytes(32)).rstrip(b'=')` |
 | `browser-username.secret` | `{PREFIX}-browser-user` | Static |
-| `browser-password.secret` | `{PREFIX}-browser-pass-{base64url-43}` | `base64.urlsafe_b64encode(secrets.token_bytes(32)).rstrip(b'=')` |
+| `browser-password.secret` | `{PREFIX}-browser-pass-{base64-random-32-bytes}` | `base64.urlsafe_b64encode(secrets.token_bytes(32)).rstrip(b'=')` |
 | `service-username.secret` | `{PREFIX}-service-user` | Static |
-| `service-password.secret` | `{PREFIX}-service-pass-{base64url-43}` | `base64.urlsafe_b64encode(secrets.token_bytes(32)).rstrip(b'=')` |
+| `service-password.secret` | `{PREFIX}-service-pass-{base64-random-32-bytes}` | `base64.urlsafe_b64encode(secrets.token_bytes(32)).rstrip(b'=')` |
 | `postgres-database.secret` | `{PREFIX_UNDERSCORE}_database` | Static |
 | `postgres-username.secret` | `{PREFIX_UNDERSCORE}_database_user` | Static |
-| `postgres-password.secret` | `{PREFIX_UNDERSCORE}_database_pass-{base64url-43}` | `base64.urlsafe_b64encode(secrets.token_bytes(32)).rstrip(b'=')` |
+| `postgres-password.secret` | `{PREFIX_UNDERSCORE}_database_pass-{base64-random-32-bytes}` | `base64.urlsafe_b64encode(secrets.token_bytes(32)).rstrip(b'=')` |
 | `postgres-url.secret` | `postgres://{user}:{pass}@{PREFIX}-postgres:5432/{db}?sslmode=disable` | Composed from above |
 
-**Encoding Notation**: `{hex-64}` = 64 lowercase hex characters (32 bytes). `{base64url-43}` = 43 base64url characters without padding (32 bytes). `{PREFIX}` = deployment-specific prefix (PS-ID, PRODUCT, or SUITE). `{PREFIX_UNDERSCORE}` = prefix with hyphens replaced by underscores for PostgreSQL identifiers.
+**Encoding Notation**: `{base64-random-32-bytes}` = base64 encoding of 32 cryptographically random bytes. `{PREFIX}` = deployment-specific prefix (PS-ID, PRODUCT, or SUITE). `{PREFIX_UNDERSCORE}` = prefix with hyphens replaced by underscores for PostgreSQL identifiers.
 
-**Enforcement**: `secret-content` fitness linter validates ALL secret file content matches these patterns. `unseal-secret-content` fitness linter validates unseal-specific patterns (hex uniqueness, shard matching). `secret-naming` fitness linter validates filenames.
+**Enforcement**: `secret-content` fitness linter validates ALL secret file content matches these patterns. `unseal-secret-content` fitness linter validates unseal-specific patterns (value uniqueness, shard matching). `secret-naming` fitness linter validates filenames.
 
 **Note**: `{PREFIX_UNDERSCORE}` uses underscores for PostgreSQL identifiers; `{PREFIX}` uses hyphens for all other contexts. Unseal keys are used for HKDF deterministic derivation; hash pepper for PBKDF2/HKDF PII hashing.
 

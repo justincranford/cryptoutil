@@ -37,7 +37,7 @@ The specification document itself contains contradictions that made compliant im
 
 **F.1 Unseal Pattern vs Example Conflict**: F.1 pattern says `{PS-ID}-unseal-key-N-of-5-{base64-random-32-bytes}` but the example shows `im-0d6dfc52f2517a2820e11859fe9e4f3c` (SERVICE-only prefix `im-`, not PS-ID `sm-im-`, and no `unseal-key-N-of-5` infix). The actual repo matches the example, not the pattern.
 
-**F.2 Duplicate Listing**: F.2 lists `unseal-5of5.secret` twice with different semantics (one says "MUST ALWAYS be overridden at PRODUCT LEVEL" with `{PRODUCT}-unseal-key-5-of-5-{hex}`, the other says `dev-unseal-key-5-of-5`).
+**F.2 Duplicate Listing**: F.2 lists `unseal-5of5.secret` twice with different semantics (one says "MUST ALWAYS be overridden at PRODUCT LEVEL" with `{PRODUCT}-unseal-key-5-of-5-{base64-random-32-bytes}`, the other says `dev-unseal-key-5-of-5`).
 
 **Resolution Strategy**: Fix target-structure.md FIRST to resolve contradictions. Use the fitness linter enforcement as the source of truth for structural patterns. Use the actual working services (sm-im, sm-kms) as reference for value patterns where the spec self-contradicts.
 
@@ -52,18 +52,18 @@ Multiple categories of incorrect secret values across all tiers:
 - `identity-rs`: prefix `rs-` (should be `identity-rs-`)
 - `identity-spa`: prefix `spa-` (should be `identity-spa-`)
 - `jose-ja`: prefix `ja-` (should be `jose-ja-`)
-- `pki-ca`: prefix `kms-` (COPY-PASTE from sm-kms! hardcoded hex)
+- `pki-ca`: prefix `kms-` (COPY-PASTE from sm-kms! hardcoded base64-random-32-bytes)
 - `skeleton-template`: prefix `template-` (should be `skeleton-template-`)
 - `sm-im`: prefix `im-` (should be `sm-im-`)
 - `sm-kms`: prefix `kms-` (should be `sm-kms-`)
 
 **pki-ca is a complete copy of sm-kms**: All 5 pki-ca unseal secrets contain `kms-11111111...` through `kms-55555555...` values - identical to sm-kms. This means pki-ca was copy-pasted from sm-kms without updating ANY secret values.
 
-**Product-level unseal prefixes** (5 products): 4 of 5 use generic `dev-unseal-key-N-of-5` instead of `{PRODUCT}-unseal-key-N-of-5-{hex}`:
+**Product-level unseal prefixes** (5 products): 4 of 5 use generic `dev-unseal-key-N-of-5` instead of `{PRODUCT}-unseal-key-N-of-5-{base64-random-32-bytes}`:
 - `identity`: uses `identity-00000000...N-unseal-Nof5` (non-standard format but at least product-prefixed)
 - `jose`, `pki`, `skeleton`, `sm`: all use generic `dev-unseal-key-N-of-5`
 
-**Suite-level unseal prefixes**: `cryptoutil-suite` uses `suite-00000000...N` pattern. Spec says `{SUITE}-unseal-key-N-of-5-{base64-random-32-bytes}` = `cryptoutil-unseal-key-N-of-5-{hex}`. Actual uses `suite-` prefix not `cryptoutil-`.
+**Suite-level unseal prefixes**: `cryptoutil-suite` uses `suite-00000000...N` pattern. Spec says `{SUITE}-unseal-key-N-of-5-{base64-random-32-bytes}` = `cryptoutil-unseal-key-N-of-5-{base64-random-32-bytes}`. Actual uses `suite-` prefix not `cryptoutil-`.
 
 **Postgres secret values**: Missing `_database` suffix in postgres-database.secret and missing `_database_` infix in postgres-username.secret:
 - `sm-im`: db=`sm_im` (spec: `sm_im_database`), user=`sm_im_user` (spec: `sm_im_database_user`)
@@ -130,7 +130,7 @@ All 7 phases were marked Complete without catching any of the above issues. The 
 **Completed Work** (commit `286ea4588`): Nine target-structure.md corrections committed:
 - **C. cmd/**: Replaced nested tree with flat listing (18 entries: 1 SUITE + 5 PRODUCT + 10 PS-ID + 2 INFRA-TOOL)
 - **E.1**: Added `{SUITE}` parameterized pattern before concrete `cryptoutil` expansion
-- **F.1**: Replaced incomplete pki-ca examples with full 14-secret listings for both sm-im and pki-ca (all 5 unseal shards with unique hex)
+- **F.1**: Replaced incomplete pki-ca examples with full 14-secret listings for both sm-im and pki-ca (all 5 unseal shards with unique base64-random-32-bytes)
 - **F.3**: Added `{SUITE}` parameterized pattern followed by concrete `cryptoutil-suite` expansion
 - **F.6 (NEW)**: Added Dockerfile Parameterization section documenting multi-stage structure, parameterized ARGs/LABELs, concrete PS-ID values table. Notes suite Dockerfile has incorrect OCI labels.
 - **G.1**: Restructured into G.1.1 (Suite & Product), G.1.2 (Service with nested `{PRODUCT}/{SERVICE}/` and actual subdirectories table), G.1.3 (Framework & Tools with new linter entries)
@@ -167,9 +167,9 @@ All 7 phases were marked Complete without catching any of the above issues. The 
 ### Phase 4: Fix Product-Level and Suite-Level Secret Values (1h) [Status: TODO]
 
 **Objective**: Fix all product-level and suite-level secret values.
-- Fix 4 products' unseal secrets (jose, pki, skeleton, sm) from generic `dev-unseal-key-N-of-5` to `{PRODUCT}-unseal-key-N-of-5-{hex}`
+- Fix 4 products' unseal secrets (jose, pki, skeleton, sm) from generic `dev-unseal-key-N-of-5` to `{PRODUCT}-unseal-key-N-of-5-{base64-random-32-bytes}`
 - Normalize identity product unseal format to match other products
-- Fix suite unseal prefix from `suite-` to `cryptoutil-` (per spec `{SUITE}-unseal-key-N-of-5-{hex}`)
+- Fix suite unseal prefix from `suite-` to `cryptoutil-` (per spec `{SUITE}-unseal-key-N-of-5-{base64-random-32-bytes}`)
 - Fix product-level postgres secrets to use `{PRODUCT}_database` etc.
 - **Success**: All product and suite secrets match spec patterns.
 - **Post-Mortem**: After quality gates pass, update lessons.md.
@@ -218,7 +218,7 @@ All 7 phases were marked Complete without catching any of the above issues. The 
 ### Phase 8: Fitness Linter Verification (1.5h) [Status: TODO]
 
 **Objective**: Implement new fitness linters discovered during Phase 1 and run all linters to verify full compliance.
-- Implement `unseal-secret-content` fitness linter: validates unseal key value patterns (correct PS-ID/PRODUCT/SUITE prefix, unique hex per shard, correct `N-of-5` infix, correct tier prefix matching deployment tier)
+- Implement `unseal-secret-content` fitness linter: validates unseal key value patterns (correct PS-ID/PRODUCT/SUITE prefix, unique base64-random-32-bytes per shard, correct `N-of-5` infix, correct tier prefix matching deployment tier)
 - Implement `dockerfile-labels` fitness linter: validates OCI labels in all Dockerfiles (correct PS-ID in `org.opencontainers.image.title`, correct description, version label present)
 - Implement `secret-naming` fitness linter: validates secret filenames follow hyphen convention (no underscores), correct count per tier
 - Run `go run ./cmd/cicd-lint lint-fitness`
@@ -298,7 +298,7 @@ All 7 phases were marked Complete without catching any of the above issues. The 
 **Options**:
 - A: Use `{PS-ID}-unseal-key-N-of-5-{base64-random-32-bytes}` (full PS-ID prefix with descriptive infix) **SELECTED** ✓
 - B: Use `{PS-ID}-{base64-random-32-bytes}` (compact PS-ID prefix)
-- C: Keep current SERVICE-only prefix (e.g., `im-{hex}`, `kms-{hex}`) and update spec to match
+- C: Keep current SERVICE-only prefix (e.g., `im-{base64-random-32-bytes}`, `kms-{base64-random-32-bytes}`) and update spec to match
 - D: Use current values as-is and only fix pki-ca (which is a broken copy of sm-kms)
 - E:
 
