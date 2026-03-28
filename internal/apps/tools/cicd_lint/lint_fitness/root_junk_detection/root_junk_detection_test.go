@@ -53,7 +53,7 @@ func TestCheckInDir_PyFile_Detected(t *testing.T) {
 
 	err := CheckInDir(newTestLogger(), tmp)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "junk file(s)")
+	require.Contains(t, err.Error(), "junk entry")
 }
 
 func TestCheckInDir_ExeFile_Detected(t *testing.T) {
@@ -64,7 +64,7 @@ func TestCheckInDir_ExeFile_Detected(t *testing.T) {
 
 	err := CheckInDir(newTestLogger(), tmp)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "junk file(s)")
+	require.Contains(t, err.Error(), "junk entry")
 }
 
 func TestCheckInDir_TestExeFile_Detected(t *testing.T) {
@@ -75,7 +75,7 @@ func TestCheckInDir_TestExeFile_Detected(t *testing.T) {
 
 	err := CheckInDir(newTestLogger(), tmp)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "junk file(s)")
+	require.Contains(t, err.Error(), "junk entry")
 }
 
 func TestCheckInDir_CoverageFile_Detected(t *testing.T) {
@@ -86,7 +86,7 @@ func TestCheckInDir_CoverageFile_Detected(t *testing.T) {
 
 	err := CheckInDir(newTestLogger(), tmp)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "junk file(s)")
+	require.Contains(t, err.Error(), "junk entry")
 }
 
 func TestCheckInDir_CoveragePrefix_Detected(t *testing.T) {
@@ -97,7 +97,7 @@ func TestCheckInDir_CoveragePrefix_Detected(t *testing.T) {
 
 	err := CheckInDir(newTestLogger(), tmp)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "junk file(s)")
+	require.Contains(t, err.Error(), "junk entry")
 }
 
 func TestCheckInDir_MultipleViolations_ReportsAll(t *testing.T) {
@@ -110,14 +110,38 @@ func TestCheckInDir_MultipleViolations_ReportsAll(t *testing.T) {
 
 	err := CheckInDir(newTestLogger(), tmp)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "3 junk file(s)")
+	require.Contains(t, err.Error(), "3 junk entry")
 }
 
-func TestCheckInDir_DirectoryNamedCoverage_Ignored(t *testing.T) {
+func TestCheckInDir_CoverageDirectory_Detected(t *testing.T) {
 	t.Parallel()
 
 	tmp := t.TempDir()
-	err := os.MkdirAll(filepath.Join(tmp, "coverage_output"), cryptoutilSharedMagic.DirPermissions)
+	err := os.MkdirAll(filepath.Join(tmp, "all_coverage"), cryptoutilSharedMagic.DirPermissions)
+	require.NoError(t, err)
+
+	err = CheckInDir(newTestLogger(), tmp)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "junk entry")
+}
+
+func TestCheckInDir_CoverDirectory_Detected(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	err := os.MkdirAll(filepath.Join(tmp, "cover"), cryptoutilSharedMagic.DirPermissions)
+	require.NoError(t, err)
+
+	err = CheckInDir(newTestLogger(), tmp)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "junk entry")
+}
+
+func TestCheckInDir_LegitimateDirectory_Passes(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	err := os.MkdirAll(filepath.Join(tmp, "internal"), cryptoutilSharedMagic.DirPermissions)
 	require.NoError(t, err)
 
 	err = CheckInDir(newTestLogger(), tmp)
@@ -148,6 +172,35 @@ func TestIsBannedRootFile_CaseInsensitive(t *testing.T) {
 			t.Parallel()
 
 			got := isBannedRootFile(tc.filename)
+			require.Equal(t, tc.want, got)
+		})
+	}
+}
+
+func TestIsBannedRootDir_Patterns(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		dirName string
+		want    bool
+	}{
+		{name: "all_coverage suffix", dirName: "all_coverage", want: true},
+		{name: "barrier_coverage suffix", dirName: "barrier_coverage", want: true},
+		{name: "ANY_coverage suffix", dirName: "foo_coverage", want: true},
+		{name: "cover exact", dirName: "cover", want: true},
+		{name: "COVER uppercase", dirName: "COVER", want: true},
+		{name: "coverage not matched by suffix", dirName: "coverage", want: false},
+		{name: "internal not banned", dirName: "internal", want: false},
+		{name: "cmd not banned", dirName: "cmd", want: false},
+		{name: "docs not banned", dirName: cryptoutilSharedMagic.CICDExcludeDirDocs, want: false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := isBannedRootDir(tc.dirName)
 			require.Equal(t, tc.want, got)
 		})
 	}
