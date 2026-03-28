@@ -477,7 +477,7 @@ func TestRegister_UnverifiedClientExpiryDuration(t *testing.T) {
 
 ## References
 
-- Baseline Results: docs/gremlins/mutation-baseline-results.md
+- Baseline Results: docs/framework-v7/gremlins/mutation-baseline-results.md
 - Gremlins Logs: /tmp/gremlins_jose_ja.log, /tmp/gremlins_template.log
 - Configuration: .gremlins.yml (180s timeout, 85% threshold)
 - Commits: 00399210 (template fix), 3e23ef86 (baseline), 992479f9 (task tracking)

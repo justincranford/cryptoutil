@@ -1,10 +1,11 @@
-# Target Repository Structure - Framework v6
+# Target Repository Structure
 
-**Status**: CANONICAL TARGET — Post-v6 implementation state
+**Status**: CANONICAL TARGET — Living reference document
 **Created**: 2026-03-26
-**Last Updated**: 2026-03-26
+**Last Updated**: 2026-03-28
 **Purpose**: Define the complete, parameterized target state of every directory and file in the
-repository after all framework-v6 phases complete. This document supersedes framework-v5/target-structure.md.
+repository. Originally created during framework-v6, now maintained as a living spec in framework-v7.
+This document supersedes framework-v5/target-structure.md (deleted — git history preserves).
 
 **RULE**: Everything listed here MUST exist after v6 completes. Everything NOT listed is deleted.
 
@@ -910,31 +911,36 @@ docs/                                                 # drwxr-x---
 ├── DEV-SETUP.md                                      # Developer setup guide
 ├── README.md                                         # Documentation index
 ├── UPDATE-TOOLS.md                                   # VS Code / MCP tool catalog and update guide
-└── framework-v6/                                     # Current active plan
-    ├── plan.md
-    ├── tasks.md
-    ├── lessons.md
-    └── target-structure.md                           # THIS FILE
+└── framework-v7/                                     # Ongoing reference documentation
+    ├── README.md                                     # Index of living docs
+    ├── target-structure.md                           # THIS FILE (canonical target structure)
+    ├── gremlins/                                     # Mutation testing reference
+    │   ├── MUTATIONS-HOWTO.md
+    │   ├── MUTATIONS-TASKS.md
+    │   ├── mutation-analysis.md
+    │   └── mutation-baseline-results.md
+    └── workflow-runtimes/                            # CI/CD operational reference
+        ├── README.md
+        └── GITHUB-STORAGE-CLEANUP.md
 ```
 
-**DELETE** (historical and stale docs):
+**DELETED** (completed — git history preserves all content):
 
 | Entry | Reason |
 |-------|--------|
-| `docs/framework-v3/` | Historical plan (completed) |
-| `docs/framework-v4/` | Historical plan (completed) |
-| `docs/framework-v5/` | Superseded by framework-v6/ |
-| `docs/LESSONS/` | Cross-plan lessons archive (superseded by per-plan lessons.md) |
-| `docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md` | After merge into ARCHITECTURE.md |
+| `docs/framework-brainstorm/` | Initial research, consumed by v1-v6 |
+| `docs/framework-v3/` | Completed: aggressive standardization |
+| `docs/framework-v4/` | Completed: anti-drift fitness linter expansion (43 checks) |
+| `docs/framework-v5/` | Completed: archive cleanup, configs standardization (49/49 tasks) |
+| `docs/framework-v6/` | Completed: corrective standardization (63/63 tasks) |
+| `docs/LESSONS/` | Completed: all 8 lessons propagated to instruction files |
+| `docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md` | Merged into ARCHITECTURE.md |
 | `docs/ARCHITECTURE-INDEX.md` | Superseded by ARCHITECTURE.md ToC |
 | `docs/ARCHITECTURE-TODO.md` | Superseded by plan tracking |
 | `docs/COPILOT-MULTI-PROJECT.md` | Stale reference doc |
 | `docs/DEAD_CODE_REVIEW.md` | Completed, no longer needed |
 | `docs/VSCODE-CRASHES.md` | Stale troubleshooting doc |
 | `docs/demo-brainstorm/` | Demos archived |
-| `docs/framework-brainstorm/` | Superseded by framework-v3+ |
-| `docs/gremlins/` | Stale mutation testing notes |
-| `docs/workflow-runtimes/` | Stale workflow analysis |
 
 ---
 
