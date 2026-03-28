@@ -1135,90 +1135,36 @@ internal/shared/
 ##### Per-Service Deployment (`deployments/{PS-ID}/`) — ×10
 
 ```
-deployments/{PS-ID}/                                  # One per service (×10)
-├── compose.yml                                       # Docker Compose service definition
-├── Dockerfile                                        # Service Docker image build
-├── config/
-│   ├── {PS-ID}-app-common.yml                        #   Common: bind addresses, TLS, network
-│   ├── {PS-ID}-app-sqlite-1.yml                      #   SQLite in-memory instance 1
-│   ├── {PS-ID}-app-sqlite-2.yml                      #   SQLite in-memory instance 2 (REQUIRED)
-│   ├── {PS-ID}-app-postgresql-1.yml                  #   PostgreSQL logical instance 1
-│   └── {PS-ID}-app-postgresql-2.yml                  #   PostgreSQL logical instance 2
-└── secrets/                                          # 14 secret files
-    ├── hash-pepper-v3.secret                         #   {PS-ID}-hash-pepper-v3-{base64-random-32-bytes}
-    ├── browser-username.secret                       #   {PS-ID}-browser-user
-    ├── browser-password.secret                       #   {PS-ID}-browser-pass-{base64-random-32-bytes}
-    ├── service-username.secret                       #   {PS-ID}-service-user
-    ├── service-password.secret                       #   {PS-ID}-service-pass-{base64-random-32-bytes}
-    ├── postgres-username.secret                      #   {PS_ID}_database_user
-    ├── postgres-password.secret                      #   {PS_ID}_database_pass-{base64-random-32-bytes}
-    ├── postgres-database.secret                      #   {PS_ID}_database
-    ├── postgres-url.secret                           #   postgres://{PS_ID}_database_user:{PS_ID}_database_pass@{PS-ID}-postgres:5432/{PS_ID}_database?sslmode=disable
-    ├── unseal-1of5.secret                            #   {PS-ID}-unseal-key-1-of-5-{base64-random-32-bytes}
-    ├── unseal-2of5.secret                            #   {PS-ID}-unseal-key-2-of-5-{base64-random-32-bytes}
-    ├── unseal-3of5.secret                            #   {PS-ID}-unseal-key-3-of-5-{base64-random-32-bytes}
-    ├── unseal-4of5.secret                            #   {PS-ID}-unseal-key-4-of-5-{base64-random-32-bytes}
-    └── unseal-5of5.secret                            #   {PS-ID}-unseal-key-5-of-5-{base64-random-32-bytes}
+deployments/{PS-ID}/
+├── compose.yml                    # Docker Compose service definition
+├── Dockerfile                     # Service Docker image build
+├── config/                        # 5 config overlay files
+│   ├── {PS-ID}-app-common.yml
+│   ├── {PS-ID}-app-sqlite-1.yml
+│   ├── {PS-ID}-app-sqlite-2.yml
+│   ├── {PS-ID}-app-postgresql-1.yml
+│   └── {PS-ID}-app-postgresql-2.yml
+└── secrets/                       # 14 secret files (see table below)
 ```
 
 **All 10 PS-IDs**: `identity-authz`, `identity-idp`, `identity-rp`, `identity-rs`, `identity-spa`, `jose-ja`, `pki-ca`, `skeleton-template`, `sm-im`, `sm-kms`.
 
-##### Per-Product Deployment (`deployments/{PRODUCT}/`) — ×5
+##### Tier Differences (Product ×5 / Suite ×1)
 
-```
-deployments/{PRODUCT}/                                # One per product (×5)
-├── compose.yml                                       # Product-level Docker Compose (includes service composes)
-├── Dockerfile                                        # Product Docker image
-└── secrets/
-    ├── hash-pepper-v3.secret                         # {PRODUCT}-hash-pepper-v3-{base64-random-32-bytes}
-    ├── browser-username.secret.never                 # Marker: browser creds are service-level only
-    ├── browser-password.secret.never                 # Marker: browser creds are service-level only
-    ├── service-username.secret.never                 # Marker: service creds are service-level only
-    ├── service-password.secret.never                 # Marker: service creds are service-level only
-    ├── postgres-username.secret                      # {PRODUCT}_database_user
-    ├── postgres-password.secret                      # {PRODUCT}_database_pass-{base64-random-32-bytes}
-    ├── postgres-database.secret                      # {PRODUCT}_database
-    ├── postgres-url.secret                           # postgres://{PRODUCT}_database_user:{PRODUCT}_database_pass@{PRODUCT}-postgres:5432/{PRODUCT}_database?sslmode=disable
-    ├── unseal-1of5.secret                            # {PRODUCT}-unseal-key-1-of-5-{base64-random-32-bytes}
-    ├── unseal-2of5.secret                            # {PRODUCT}-unseal-key-2-of-5-{base64-random-32-bytes}
-    ├── unseal-3of5.secret                            # {PRODUCT}-unseal-key-3-of-5-{base64-random-32-bytes}
-    ├── unseal-4of5.secret                            # {PRODUCT}-unseal-key-4-of-5-{base64-random-32-bytes}
-    └── unseal-5of5.secret                            # {PRODUCT}-unseal-key-5-of-5-{base64-random-32-bytes}
-```
+| Component | Service (`{PS-ID}/`) | Product (`{PRODUCT}/`) | Suite (`cryptoutil-suite/`) |
+|-----------|---------------------|----------------------|---------------------------|
+| `compose.yml` | Direct service definition | Includes service composes | Includes product composes |
+| `Dockerfile` | ✅ | ✅ | ❌ (no separate image) |
+| `config/` | 5 overlay files | ❌ (uses service configs) | ❌ (uses service configs) |
+| `secrets/` | 14 `.secret` files | `.secret` + `.secret.never` | `.secret` + `.secret.never` |
+| Browser/service creds | Real `.secret` files | `.secret.never` markers | `.secret.never` markers |
+| Value prefix | `{PS-ID}-` / `{PS_ID}_` | `{PRODUCT}-` / `{PRODUCT}_` | `{SUITE}-` / `{SUITE}_` |
 
 **All 5 products**: `identity`, `jose`, `pki`, `skeleton`, `sm`.
 
-##### Suite Deployment (`deployments/{SUITE}-suite/`)
-
-```
-deployments/{SUITE}-suite/                            # Suite-level (×1, {SUITE}=cryptoutil)
-├── compose.yml                                       # Suite-level Docker Compose (includes product composes)
-└── secrets/
-    ├── hash-pepper-v3.secret                         # {SUITE}-hash-pepper-v3-{base64-random-32-bytes}
-    ├── browser-username.secret.never                 # Marker: browser creds are service-level only
-    ├── browser-password.secret.never                 # Marker: browser creds are service-level only
-    ├── service-username.secret.never                 # Marker: service creds are service-level only
-    ├── service-password.secret.never                 # Marker: service creds are service-level only
-    ├── postgres-username.secret                      # {SUITE}_database_user
-    ├── postgres-password.secret                      # {SUITE}_database_pass-{base64-random-32-bytes}
-    ├── postgres-database.secret                      # {SUITE}_database
-    ├── postgres-url.secret                           # postgres://{SUITE}_database_user:{SUITE}_database_pass@{SUITE}-postgres:5432/{SUITE}_database?sslmode=disable
-    ├── unseal-1of5.secret                            # {SUITE}-unseal-key-1-of-5-{base64-random-32-bytes}
-    ├── unseal-2of5.secret                            # {SUITE}-unseal-key-2-of-5-{base64-random-32-bytes}
-    ├── unseal-3of5.secret                            # {SUITE}-unseal-key-3-of-5-{base64-random-32-bytes}
-    ├── unseal-4of5.secret                            # {SUITE}-unseal-key-4-of-5-{base64-random-32-bytes}
-    └── unseal-5of5.secret                            # {SUITE}-unseal-key-5-of-5-{base64-random-32-bytes}
-```
-
 ##### Shared Infrastructure Deployments
 
-```
-deployments/
-├── shared-telemetry/
-│   └── compose.yml                                   # otel-collector-contrib + grafana-otel-lgtm
-└── shared-postgres/
-    └── compose.yml                                   # Shared PostgreSQL container
-```
+`deployments/shared-telemetry/compose.yml` (otel-collector-contrib + grafana-otel-lgtm) and `deployments/shared-postgres/compose.yml` (shared PostgreSQL container).
 
 ##### Secret File Naming Convention
 
@@ -1940,31 +1886,16 @@ db.Where("tenant_id = ? AND user_id = ?", tenantID, userID).Find(&messages)
 
 #### Authentication Realm Types
 
-| Realm Type | Purpose | Scheme | Credential | Credential Validators |
-|------|--------|------------|-------------------------|-----------------|
-| `https-client-cert-factor` | Create or Upgrade Session | HTTP/mTLS Handshake | HTTPS Client Certificate | File, Database, Federated |
-| `webauthn-resident-synced-factor` | Create or Upgrade Session | WebAuthn L2 Resident Synced (aka Passkeys) | Local PublicKeyCredential | File, Database, Federated |
-| `webauthn-resident-unsynced-factor` | Create or Upgrade Session | WebAuthn L2 Resident Unsynced (e.g. Windows Hello) | Local PublicKeyCredential | File, Database, Federated |
-| `webauthn-nonresident-synced-factor` | Create or Upgrade Session | WebAuthn L2 Non-Resident Synced (e.g. Azure AD) | Cloud PublicKeyCredential | File, Database, Federated |
-| `webauthn-nonresident-unsynced-factor` | Create or Upgrade Session | WebAuthn L2 Non-Resident Unsynced (e.g. YubiKey) | Cloud PublicKeyCredential | File, Database, Federated |
-| `authorization-code-opaque-factor` | Create or Upgrade Session | OAuth 2.1 Authorization Code Flow + PKCE | Opaque | File, Database, Federated |
-| `authorization-code-jwe-factor` | Create or Upgrade Session | OAuth 2.1 Authorization Code Flow + PKCE | JWE | File, Database, Federated |
-| `authorization-code-jws-factor` | Create or Upgrade Session | OAuth 2.1 Authorization Code Flow + PKCE | JWS | File, Database, Federated |
-| `bearer-token-opaque-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Bearer | Opaque Token | File, Database, Federated |
-| `bearer-token-jwe-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Bearer | JWE Token | File, Database, Federated |
-| `bearer-token-jws-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Bearer | JWS Token | File, Database, Federated |
-| `basic-username-password-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Basic | Username/Password | File, Database, Federated |
-| `basic-email-password-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Basic | Email/Password | File, Database, Federated |
-| `basic-email-otp-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Basic | Email/RandomOTP | File, Database, Federated |
-| `basic-email-magiclink-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Basic + Query String | Email/Nothing & QueryParameter | File, Database, Federated |
-| `basic-sms-password-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Basic | Phone/Password | File, Database, Federated |
-| `basic-sms-otp-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Basic | Phone/RandomOTP | File, Database, Federated |
-| `basic-sms-magiclink-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Basic + Query String | Phone/Nothing & QueryParameter | File, Database, Federated |
-| `basic-voice-otp-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Basic | Phone/RandomOTP | File, Database, Federated |
-| `basic-id-otp-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Basic | ID/Nothing & HOTP/TOTP | File, Database, Federated |
-| `cookie-token-opaque-session` | Use Session | HTTP Header 'Cookie' Token | Opaque Token | File, Database, Federated |
-| `cookie-token-jwe-session` | Use Session | HTTP Header 'Cookie' Token | JWE Token | File, Database, Federated |
-| `cookie-token-jws-session` | Use Session | HTTP Header 'Cookie' Token | JWS Token | File, Database, Federated |
+| Category | Realm Types | Scheme | Credential Validators |
+|----------|------------|--------|----------------------|
+| **mTLS** | `https-client-cert-factor` | HTTP/mTLS Handshake | File, Database, Federated |
+| **WebAuthn** (4 variants) | `webauthn-{resident,nonresident}-{synced,unsynced}-factor` | WebAuthn L2 | File, Database, Federated |
+| **OAuth 2.1 AuthZ Code** (3 variants) | `authorization-code-{opaque,jwe,jws}-factor` | AuthZ Code Flow + PKCE | File, Database, Federated |
+| **Bearer Token** (3 variants) | `bearer-token-{opaque,jwe,jws}-factor` | HTTP `Authorization: Bearer` | File, Database, Federated |
+| **Basic Auth** (8 variants) | `basic-{username,email,sms}-password-factor`, `basic-{email,sms}-{otp,magiclink}-factor`, `basic-voice-otp-factor`, `basic-id-otp-factor` | HTTP `Authorization: Basic` | File, Database, Federated |
+| **Session Cookies** (3 variants) | `cookie-token-{opaque,jwe,jws}-session` | HTTP `Cookie` | File, Database, Federated |
+
+All factor realm types create or upgrade sessions. All session realm types use existing sessions. Total: 22 factor types + 1 session type (with 3 token format variants each = 3 session realm types). All realm types support File, Database, and Federated credential validators.
 
 ### Authentication Realm Principals
 
@@ -4041,105 +3972,33 @@ See [Section 4.4.6](#446-deployments) for the complete secret file listing at ea
 
 ##### Secret File Format
 
-**Unseal Keys** (`unseal-{N}of5.secret`, N=1..5):
+| Secret | Format | Generation |
+|--------|--------|-----------|
+| `unseal-{N}of5.secret` | `{PS-ID}-unseal-key-N-of-5-{base64-random-32-bytes}` | `secrets.token_hex(32)` |
+| `hash-pepper-v3.secret` | `{PS-ID}-hash-pepper-v3-{base64-random-32-bytes}` | `base64.b64encode(secrets.token_bytes(32))` |
+| `postgres-username.secret` | `{PS_ID}_database_user` | Static |
+| `postgres-password.secret` | `{PS_ID}_database_pass-{base64-random-32-bytes}` | `secrets.token_hex(32)` |
+| `postgres-database.secret` | `{PS_ID}_database` | Static |
+| `postgres-url.secret` | `postgres://{PS_ID}_database_user:...@{PS-ID}-postgres:5432/{PS_ID}_database?sslmode=disable` | Composed from above |
 
-```
-jose-ja-unseal-key-1-of-5-40c8c0f3c1c3b9c3f3c3b9c3f3c3b9c3f3c3b9c3
-```
+**Note**: `{PS_ID}` uses underscores for PostgreSQL identifiers; `{PS-ID}` uses hyphens for all other contexts. Unseal keys are used for HKDF deterministic derivation; hash pepper for PBKDF2/HKDF PII hashing.
 
-- Format: `{PS-ID}-unseal-key-N-of-5-{base64-random-32-bytes}`
-- Generation: `secrets.token_hex(32)`
-- Purpose: HKDF deterministic derivation for Root Key encryption.
+##### TLS Secrets (Static/Mixed Modes Only)
 
-**Hash Pepper** (`hash-pepper-v3.secret`):
-
-```
-jose-ja-hash-pepper-v3-dGhpcyBpcyBhIDMyLWJ5dGUgcGVwcGVyIGZvciBoYXNoaW5nIQ==
-```
-
-- Format: `{PS-ID}-hash-pepper-v3-{base64-random-32-bytes}`
-- Generation: `base64.b64encode(secrets.token_bytes(32))`
-- Purpose: PBKDF2/HKDF salt/pepper for PII hashing (username, email deduplication).
-
-**PostgreSQL Credentials** (`postgres-{url,username,password,database}.secret`):
-
-```
-# postgres-url.secret
-postgres://jose_ja_database_user:jose_ja_database_pass-40c8c0f3...@jose-ja-postgres:5432/jose_ja_database?sslmode=disable
-
-# postgres-username.secret
-jose_ja_database_user
-
-# postgres-password.secret
-jose_ja_database_pass-40c8c0f3c1c3b9c3f3c3b9c3f3c3b9c3
-
-# postgres-database.secret
-jose_ja_database
-```
-
-- Username: `{PS_ID}_database_user`
-- Password: `{PS_ID}_database_pass-{base64-random-32-bytes}`
-- Database: `{PS_ID}_database`
-
-**TLS Certificate and Key Secrets** (Static/Mixed TLS modes — production and E2E):
-
-These secrets are only required in Static/Mixed TLS modes. Unit/integration tests use Auto TLS (self-generated ephemeral certificates — no secrets needed). See [Section 6.11](#611-tls-certificate-configuration) for TLS mode taxonomy.
+Unit/integration tests use Auto TLS (no secrets needed). See [Section 6.11](#611-tls-certificate-configuration) for TLS mode taxonomy.
 
 | Secret File | TLS Mode | Purpose |
 |-------------|----------|---------|
-| `tls_server_cert.secret` | Static | Pre-generated PEM server certificate |
+| `tls_server_cert.secret` | Static | PEM server certificate |
 | `tls_server_key.secret` | Static + Mixed | PEM server private key |
-| `tls_ca_cert.secret` | Static + Mixed | PEM CA certificate chain (client verification) |
-| `tls_issuing_ca_key.secret` | Mixed | PEM CA signing key (runtime certificate generation) |
+| `tls_ca_cert.secret` | Static + Mixed | PEM CA certificate chain |
+| `tls_issuing_ca_key.secret` | Mixed | PEM CA signing key (runtime generation) |
 
-```
-# tls_server_cert.secret    — PEM-encoded server certificate (Static mode)
-# tls_server_key.secret     — PEM-encoded server private key (Static/Mixed)
-# tls_ca_cert.secret        — PEM-encoded CA certificate chain (Static/Mixed)
-# tls_issuing_ca_key.secret — PEM-encoded CA issuing key (Mixed mode only)
-```
-
-**TLS Mode Detection** (automatic from provided secrets — see [Section 6.11](#611-tls-certificate-configuration)):
-- Static: Provide `tls_server_cert.secret` + `tls_server_key.secret`
-- Mixed: Provide `tls_ca_cert.secret` + `tls_issuing_ca_key.secret`
-- Auto (default): Omit all TLS secrets → self-generated ephemeral certificates
+**TLS Mode Detection**: Static = cert + key provided; Mixed = CA cert + CA key provided; Auto = no TLS secrets → self-generated ephemeral certificates.
 
 ##### Secret Validation
 
-**Healthcheck-Secrets Service** (in all compose templates):
-
-```yaml
-healthcheck-secrets:
-  image: alpine:3.19
-  command: >
-    sh -c "
-      for secret in unseal-1of5 unseal-2of5 unseal-3of5 unseal-4of5 unseal-5of5
-                   hash-pepper-v3
-                   browser-username browser-password
-                   service-username service-password
-                   postgres-url postgres-username postgres-password postgres-database; do
-        test -f /run/secrets/$${secret}.secret || exit 1;
-      done;
-      echo 'All secrets validated';
-    "
-  secrets:
-    - hash-pepper-v3.secret
-    - browser-username.secret
-    - browser-password.secret
-    - service-username.secret
-    - service-password.secret
-    - postgres-username.secret
-    - postgres-password.secret
-    - postgres-database.secret
-    - postgres-url.secret
-    - unseal-1of5.secret
-    - unseal-2of5.secret
-    - unseal-3of5.secret
-    - unseal-4of5.secret
-    - unseal-5of5.secret
-```
-
-**Purpose**: Fail fast on missing secrets, prevent runtime errors.
+**Healthcheck-Secrets Service**: All compose templates include a `healthcheck-secrets` service (Alpine) that validates all 14 secrets exist at `/run/secrets/` on startup. Fails fast on missing secrets to prevent runtime errors. See any `compose.yml` in `deployments/` for the canonical implementation.
 
 ##### Cross-Reference Documentation
 
@@ -4190,115 +4049,17 @@ Docker Compose `include` merges services from different compose files into a sin
 - Secret names MUST be globally unique within a compose project unless pointing to the same file.
 - Infrastructure services (telemetry, postgres) included by multiple service files appear once in the merged configuration.
 
-##### SUITE-Level Deployment (cryptoutil)
+##### Deployment Composition Patterns
 
-**Location**: `deployments/cryptoutil-suite/compose.yml`
+All tiers follow the same Docker Compose pattern with `include` + shared `hash-pepper-v3.secret`. The difference is which level they include and what pepper value prefix they use:
 
-**Composition Pattern**: Includes all PRODUCT-level composes via Docker Compose `include` directive.
+| Tier | `include:` targets | Pepper value prefix | Hash pepper scope |
+|------|-------------------|--------------------|--------------------|
+| **SUITE** | Product composes (`../sm/`, `../pki/`, etc.) | `cryptoutil-` | Cross-product SSO, PII dedup |
+| **PRODUCT** | Service composes (`../identity-authz/`, etc.) | `{PRODUCT}-` | SSO within product |
+| **SERVICE** | None (direct service definition) | `{PS-ID}-` | Maximum isolation |
 
-```yaml
-include:
-  - path: ../sm/compose.yml          # sm-kms, sm-im services
-  - path: ../pki/compose.yml         # pki-ca service
-  - path: ../jose/compose.yml        # jose-ja service
-  - path: ../identity/compose.yml    # identity-authz, -idp, -rp, -rs, -spa
-  - path: ../skeleton/compose.yml    # skeleton-template service
-
-secrets:
-  hash-pepper-v3.secret:
-    file: ./secrets/hash-pepper-v3.secret
-```
-
-**Purpose**: Deploy all 10 services with unified hash pepper for cross-product SSO and PII deduplication.
-
-**Secret Sharing**: `hash-pepper-v3.secret` (value prefixed with `cryptoutil-`) shared by ALL services enables username@domain lookups across identity-authz, identity-idp, jose-ja, etc.
-
-**Port Assignments**: Suite deployment uses offset +20000 (e.g., sm-kms: 28080 public, 29090 admin instead of 8080/9090).
-
-##### PRODUCT-Level Deployment (Multi-Service Products)
-
-**Example**: `deployments/identity/compose.yml` (5 services: authz, idp, rp, rs, spa)
-
-**Composition Pattern**: Includes all SERVICE-level composes for product services.
-
-```yaml
-include:
-  - path: ../identity-authz/compose.yml
-  - path: ../identity-idp/compose.yml
-  - path: ../identity-rp/compose.yml
-  - path: ../identity-rs/compose.yml
-  - path: ../identity-spa/compose.yml
-
-secrets:
-  hash-pepper-v3.secret:
-    file: ./secrets/hash-pepper-v3.secret
-```
-
-**Purpose**: Deploy all identity services with shared hash pepper for SSO within product.
-
-**Secret Sharing**: `hash-pepper-v3.secret` (value prefixed with `identity-`) shared by all 5 identity services enables unified username lookups for authentication/authorization.
-
-**Port Assignments**: Product deployment uses offset +10000 (e.g., identity-authz: 18200 public, 19290 admin instead of 8200/9290).
-
-**Other Products**:
-- `deployments/sm/compose.yml` → includes `../sm-kms/` (currently single service)
-- `deployments/pki/compose.yml` → includes `../pki-ca/` (currently single service)
-- `deployments/sm/compose.yml` → includes sm-kms and sm-im services
-- `deployments/jose/compose.yml` → includes `../jose-ja/` (currently single service)
-
-##### SERVICE-Level Deployment (Individual Services)
-
-**Example**: `deployments/sm-kms/compose.yml` (standalone sm-kms service)
-
-**Composition Pattern**: Direct service deployment with NO includes.
-
-```yaml
-services:
-  sm-kms:
-    build:
-      context: ../..
-      dockerfile: ./deployments/sm-kms/Dockerfile
-    ports:
-      - "8080:8080"   # Public API
-      - "9090:9090"   # Admin API
-
-secrets:
-  hash-pepper-v3.secret:
-    file: ./secrets/hash-pepper-v3.secret
-```
-
-**Purpose**: Deploy single service with unique hash pepper (NO cross-service sharing).
-
-**Secret Uniqueness**: Each SERVICE-level deployment uses unique `hash-pepper-v3.secret` (value prefixed with `{PS-ID}-`) for maximum isolation.
-
-**Port Assignments**: Service deployment uses base ports (e.g., sm-kms: 8080 public, 9090 admin).
-
-##### Layered Pepper Strategy
-
-**Three Tiers** (from most isolated to most shared):
-
-1. **SERVICE pepper** (`hash-pepper-v3.secret` with `{PS-ID}-` value prefix): Unique per service, NO cross-service lookups.
-2. **PRODUCT pepper** (`hash-pepper-v3.secret` with `{PRODUCT}-` value prefix): Shared within product services (e.g., 5 identity services).
-3. **SUITE pepper** (`hash-pepper-v3.secret` with `{SUITE}-` value prefix): Shared by ALL 10 services for cross-product federation.
-
-**Selection Logic** (service configures which pepper to use — all tiers use the same filename):
-
-```yaml
-# SERVICE-only deployment (isolated)
-HASH_PEPPER_FILE: /run/secrets/hash-pepper-v3.secret   # value: sm-kms-hash-pepper-v3-...
-
-# PRODUCT deployment (SSO within product)
-HASH_PEPPER_FILE: /run/secrets/hash-pepper-v3.secret   # value: identity-hash-pepper-v3-...
-
-# SUITE deployment (cross-product federation)
-HASH_PEPPER_FILE: /run/secrets/hash-pepper-v3.secret   # value: cryptoutil-hash-pepper-v3-...
-```
-
-**Rationale**: Layered peppers enable flexible deployment modes while maintaining security isolation at SERVICE level and enabling federation at PRODUCT/SUITE levels. Identical filenames across tiers simplify compose `include` merging — the tier is selected by which `secrets/` directory the compose file references.
-
-##### Port Offset Strategy
-
-**Three Port Ranges** (prevents conflicts when multiple deployment levels running simultaneously):
+**Port Offset Strategy** (prevents conflicts when running multiple tiers simultaneously):
 
 | Level | Offset | Example (sm-kms base 8080/9090) |
 |-------|--------|----------------------------------|
@@ -4306,7 +4067,13 @@ HASH_PEPPER_FILE: /run/secrets/hash-pepper-v3.secret   # value: cryptoutil-hash-
 | PRODUCT | +10000 | 18080 (public), 19090 (admin) |
 | SUITE | +20000 | 28080 (public), 29090 (admin) |
 
-**Why**: Enables simultaneous SERVICE, PRODUCT, SUITE deployments on same host for testing without port conflicts.
+##### Layered Pepper Strategy
+
+1. **SERVICE** (`{PS-ID}-` prefix): Unique per service, NO cross-service lookups.
+2. **PRODUCT** (`{PRODUCT}-` prefix): Shared within product services (e.g., 5 identity services for SSO).
+3. **SUITE** (`{SUITE}-` prefix): Shared by ALL 10 services for cross-product federation.
+
+All tiers use the identical filename `hash-pepper-v3.secret` — the tier is selected by which `secrets/` directory the compose file references. This simplifies compose `include` merging.
 
 ##### Linter Validation
 
