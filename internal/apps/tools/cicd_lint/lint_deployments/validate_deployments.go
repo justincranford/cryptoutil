@@ -47,11 +47,11 @@ func ValidateAllDeployments(deploymentsRoot string) ([]ValidationResult, error) 
 	}
 
 	// SUITE-level deployment
-	suitePath := filepath.Join(deploymentsRoot, "cryptoutil-suite")
+	suitePath := filepath.Join(deploymentsRoot, cryptoutilSharedMagic.DefaultOTLPServiceDefault)
 	if _, err := os.Stat(suitePath); err == nil {
-		result, err := ValidateDeploymentStructure(suitePath, "cryptoutil-suite", DeploymentTypeSuite)
+		result, err := ValidateDeploymentStructure(suitePath, cryptoutilSharedMagic.DefaultOTLPServiceDefault, DeploymentTypeSuite)
 		if err != nil {
-			return nil, fmt.Errorf("failed to validate cryptoutil-suite: %w", err)
+			return nil, fmt.Errorf("failed to validate %s: %w", cryptoutilSharedMagic.DefaultOTLPServiceDefault, err)
 		}
 
 		results = append(results, *result)

@@ -107,7 +107,7 @@ func validateDockerfileLabels(dockerfilePath, deploymentName string) []string {
 
 // titleContainsDeploymentName checks if the title references the deployment name.
 // The title should contain the deployment name (e.g., "cryptoutil-sm-kms" contains "sm-kms").
-// Hyphens and spaces are treated as equivalent for comparison (e.g. "CryptoUtil Suite" matches "cryptoutil-suite").
+// Hyphens and spaces are treated as equivalent for comparison (e.g. "CryptoUtil Suite" matches "cryptoutil").
 func titleContainsDeploymentName(title, deploymentName string) bool {
 	normalizedTitle := strings.ToLower(strings.ReplaceAll(title, " ", "-"))
 	normalizedName := strings.ToLower(strings.ReplaceAll(deploymentName, " ", "-"))

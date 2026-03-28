@@ -52,11 +52,11 @@ func TestFindViolationsInDir_ValidDeployments(t *testing.T) {
 		{
 			name: "valid suite deployment",
 			setupFiles: map[string]string{
-				"deployments/cryptoutil-suite/secrets/unseal-1of5.secret": "cryptoutil-unseal-key-1-of-5-" + hexA(),
-				"deployments/cryptoutil-suite/secrets/unseal-2of5.secret": "cryptoutil-unseal-key-2-of-5-" + hexB(),
-				"deployments/cryptoutil-suite/secrets/unseal-3of5.secret": "cryptoutil-unseal-key-3-of-5-" + hexC(),
-				"deployments/cryptoutil-suite/secrets/unseal-4of5.secret": "cryptoutil-unseal-key-4-of-5-" + hexD(),
-				"deployments/cryptoutil-suite/secrets/unseal-5of5.secret": "cryptoutil-unseal-key-5-of-5-" + hexE(),
+				"deployments/cryptoutil/secrets/unseal-1of5.secret": "cryptoutil-unseal-key-1-of-5-" + hexA(),
+				"deployments/cryptoutil/secrets/unseal-2of5.secret": "cryptoutil-unseal-key-2-of-5-" + hexB(),
+				"deployments/cryptoutil/secrets/unseal-3of5.secret": "cryptoutil-unseal-key-3-of-5-" + hexC(),
+				"deployments/cryptoutil/secrets/unseal-4of5.secret": "cryptoutil-unseal-key-4-of-5-" + hexD(),
+				"deployments/cryptoutil/secrets/unseal-5of5.secret": "cryptoutil-unseal-key-5-of-5-" + hexE(),
 			},
 		},
 		{

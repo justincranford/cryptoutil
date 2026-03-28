@@ -92,14 +92,12 @@ func FindViolationsInDir(rootDir string) ([]string, error) {
 
 // buildDeploymentPrefixMap returns a mapping from deployment directory names to
 // their expected unseal content prefix. Most deployments use the directory name
-// as the prefix. Suite deployments (e.g. "cryptoutil-suite") use the suite ID
-// (e.g. "cryptoutil") as the prefix instead.
+// as the prefix. Suite deployments use the suite ID as the prefix.
 func buildDeploymentPrefixMap() map[string]string {
 	prefixMap := make(map[string]string)
 
 	for _, suite := range cryptoutilRegistry.AllSuites() {
-		deploymentDir := suite.ID + "-suite"
-		prefixMap[deploymentDir] = suite.ID
+		prefixMap[suite.ID] = suite.ID
 	}
 
 	return prefixMap

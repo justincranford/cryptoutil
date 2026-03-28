@@ -116,24 +116,9 @@ func ValidateStructuralMirror(deploymentsDir string, configsDir string) (*Mirror
 	return result, nil
 }
 
-// deploymentToConfigMapping maps deployment directory names to their expected configs directory names.
-// With flat configs/{PS-ID}/ structure, most deployments map 1:1 to their PS-ID config directory.
-// Only product-level and suite-level deployments need explicit mappings.
-var deploymentToConfigMapping = map[string]string{
-	"cryptoutil-suite": cryptoutilSharedMagic.DefaultOTLPServiceDefault,
-}
-
 // mapDeploymentToConfig maps a deployment directory name to its expected configs directory name.
-// Rules:
-//   - Uses explicit mapping table for known naming differences (suite-level).
-//   - Otherwise, identity mapping: deployment name = config name (1:1 flat layout).
+// With flat configs/{PS-ID}/ layout, deployment name maps 1:1 to config name.
 func mapDeploymentToConfig(deployDir string) string {
-	// Check explicit mapping first.
-	if mapped, ok := deploymentToConfigMapping[deployDir]; ok {
-		return mapped
-	}
-
-	// With flat configs/{PS-ID}/ layout, deployment name maps 1:1 to config name.
 	return deployDir
 }
 

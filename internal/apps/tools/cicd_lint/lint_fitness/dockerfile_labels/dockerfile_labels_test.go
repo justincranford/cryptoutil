@@ -39,7 +39,7 @@ func TestFindViolationsInDir_ValidDockerfiles(t *testing.T) {
 		{
 			name: "correct suite title",
 			setupFiles: map[string]string{
-				"deployments/cryptoutil-suite/Dockerfile": dockerfileWithLabels("CryptoUtil Suite", "CryptoUtil Suite Server"),
+				"deployments/cryptoutil/Dockerfile": dockerfileWithLabels("CryptoUtil Suite", "CryptoUtil Suite Server"),
 			},
 		},
 		{
@@ -235,7 +235,7 @@ func TestTitleContainsDeploymentName(t *testing.T) {
 	}{
 		{name: "exact match", title: cryptoutilSharedMagic.OTLPServiceSMKMS, deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS, want: true},
 		{name: "prefixed match", title: "cryptoutil-" + cryptoutilSharedMagic.OTLPServiceSMKMS, deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS, want: true},
-		{name: "case insensitive", title: "CryptoUtil-Suite", deploymentName: "cryptoutil-suite", want: true},
+		{name: "case insensitive", title: "CryptoUtil-Suite", deploymentName: cryptoutilSharedMagic.DefaultOTLPServiceDefault, want: true},
 		{name: "no match", title: "CA Server", deploymentName: cryptoutilSharedMagic.OTLPServiceSMKMS, want: false},
 	}
 

@@ -7,7 +7,7 @@ inputs:
   compose-file:
     description: 'Path to the Docker Compose file'
     required: false
-    default: './deployments/cryptoutil-suite/compose.yml'
+    default: './deployments/cryptoutil/compose.yml'
 runs:
   using: 'composite'
   steps:

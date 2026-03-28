@@ -80,7 +80,7 @@ services:
     image: cryptoutil:dev
     build:
       context: ../..
-      dockerfile: deployments/cryptoutil-suite/Dockerfile
+      dockerfile: deployments/cryptoutil/Dockerfile
       args:
         APP_VERSION: "dev"
         VCS_REF: "local"

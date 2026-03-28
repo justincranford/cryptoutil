@@ -249,7 +249,7 @@ For comprehensive usage, see [Unified CLI Guide](docs/02-identityV2/historical/u
 
 ```sh
 # Start full stack: PostgreSQL, cryptoutil, and observability
-cd deployments/cryptoutil-suite
+cd deployments/cryptoutil
 docker compose up -d
 
 # View logs

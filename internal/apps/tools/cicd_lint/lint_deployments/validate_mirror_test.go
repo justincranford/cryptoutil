@@ -28,7 +28,7 @@ func TestMapDeploymentToConfig(t *testing.T) {
 		{name: "pki-ca service", deployment: cryptoutilSharedMagic.OTLPServicePKICA, want: cryptoutilSharedMagic.OTLPServicePKICA},
 		{name: "sm product", deployment: "sm", want: "sm"},
 		{name: "sm-kms service", deployment: cryptoutilSharedMagic.OTLPServiceSMKMS, want: cryptoutilSharedMagic.OTLPServiceSMKMS},
-		{name: "suite mapping", deployment: "cryptoutil-suite", want: cryptoutilSharedMagic.DefaultOTLPServiceDefault},
+		{name: "suite mapping", deployment: cryptoutilSharedMagic.DefaultOTLPServiceDefault, want: cryptoutilSharedMagic.DefaultOTLPServiceDefault},
 		{name: "single segment identity", deployment: "newproduct", want: "newproduct"},
 		{name: "product-service identity", deployment: "newproduct-service", want: "newproduct-service"},
 	}

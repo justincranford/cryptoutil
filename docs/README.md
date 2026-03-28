@@ -253,7 +253,7 @@ Before running nuclei scans, ensure the cryptoutil services are running:
 
 ```sh
 # Navigate to suite deployment directory
-cd deployments/cryptoutil-suite
+cd deployments/cryptoutil
 
 # Clean shutdown with volume removal
 docker compose down -v
@@ -399,17 +399,17 @@ curl -k https://localhost:8000/ui/swagger/doc.json
 curl -k https://localhost:9090/admin/v1/livez  # Admin health endpoint
 
 # Check Docker containers
-docker compose -f ./deployments/cryptoutil-suite/compose.yml ps
+docker compose -f ./deployments/cryptoutil/compose.yml ps
 
 # View service logs
-docker compose -f ./deployments/cryptoutil-suite/compose.yml logs sm-kms
+docker compose -f ./deployments/cryptoutil/compose.yml logs sm-kms
 ```
 
 **Clean restart:**
 
 ```sh
 # Complete cleanup and restart
-cd deployments/cryptoutil-suite
+cd deployments/cryptoutil
 docker compose down -v
 docker compose up -d
 
@@ -717,7 +717,7 @@ Comprehensive E2E testing validates complete workflows across all services (KMS,
 
 ```powershell
 # Deploy all services (SUITE-level)
-docker compose -f ./deployments/cryptoutil-suite/compose.yml up -d
+docker compose -f ./deployments/cryptoutil/compose.yml up -d
 
 # Or deploy individual services (SERVICE-level)
 docker compose -f ./deployments/pki-ca/compose.yml up -d
@@ -734,7 +734,7 @@ go test -tags=e2e -v -timeout=30m ./...
 # - internal/apps/framework/service/testing/e2e_infra/ (Docker Compose orchestration)
 
 # Cleanup
-docker compose -f ./deployments/cryptoutil-suite/compose.yml down -v
+docker compose -f ./deployments/cryptoutil/compose.yml down -v
 ```
 
 **Detailed Documentation**: See [E2E-TESTING.md](./E2E-TESTING.md) for:

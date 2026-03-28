@@ -34,7 +34,7 @@ func TestClassifyDeployment(t *testing.T) {
 		{name: "product pki", input: cryptoutilSharedMagic.PKIProductName, expected: DeploymentTypeProduct},
 		{name: "product jose", input: cryptoutilSharedMagic.JoseProductName, expected: DeploymentTypeProduct},
 		{name: "product skeleton", input: cryptoutilSharedMagic.SkeletonProductName, expected: DeploymentTypeProduct},
-		{name: "suite cryptoutil-suite", input: "cryptoutil-suite", expected: DeploymentTypeSuite},
+		{name: "suite cryptoutil", input: cryptoutilSharedMagic.DefaultOTLPServiceDefault, expected: DeploymentTypeSuite},
 		{name: cryptoutilSharedMagic.SkeletonTemplateServiceName, input: cryptoutilSharedMagic.SkeletonTemplateServiceName, expected: DeploymentTypeTemplate},
 		{name: "infrastructure shared-postgres", input: "shared-postgres", expected: DeploymentTypeInfrastructure},
 
@@ -60,7 +60,7 @@ func TestDiscoverDeploymentDirs(t *testing.T) {
 		dir := t.TempDir()
 		require.NoError(t, os.MkdirAll(filepath.Join(dir, cryptoutilSharedMagic.OTLPServiceJoseJA), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.MkdirAll(filepath.Join(dir, cryptoutilSharedMagic.IdentityProductName), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-		require.NoError(t, os.MkdirAll(filepath.Join(dir, "cryptoutil-suite"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+		require.NoError(t, os.MkdirAll(filepath.Join(dir, cryptoutilSharedMagic.DefaultOTLPServiceDefault), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.MkdirAll(filepath.Join(dir, "shared-postgres"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		require.NoError(t, os.WriteFile(filepath.Join(dir, "README.md"), []byte("readme"), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -74,7 +74,7 @@ func TestDiscoverDeploymentDirs(t *testing.T) {
 
 		require.Equal(t, DeploymentTypeProductService, nameMap[cryptoutilSharedMagic.OTLPServiceJoseJA])
 		require.Equal(t, DeploymentTypeProduct, nameMap[cryptoutilSharedMagic.IdentityProductName])
-		require.Equal(t, DeploymentTypeSuite, nameMap["cryptoutil-suite"])
+		require.Equal(t, DeploymentTypeSuite, nameMap[cryptoutilSharedMagic.DefaultOTLPServiceDefault])
 		require.Equal(t, DeploymentTypeInfrastructure, nameMap["shared-postgres"])
 	})
 

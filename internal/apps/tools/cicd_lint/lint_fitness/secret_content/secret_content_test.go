@@ -60,15 +60,15 @@ func TestFindViolationsInDir_ValidDeployments(t *testing.T) {
 		{
 			name: "valid suite deployment",
 			setupFiles: map[string]string{
-				"deployments/cryptoutil-suite/secrets/hash-pepper-v3.secret":            "cryptoutil-hash-pepper-v3-" + base64url43A(),
-				"deployments/cryptoutil-suite/secrets/browser-username.secret.never":    neverMarkerSuite,
-				"deployments/cryptoutil-suite/secrets/browser-password.secret.never":    neverMarkerSuite,
-				"deployments/cryptoutil-suite/secrets/service-username.secret.never":    neverMarkerSuite,
-				"deployments/cryptoutil-suite/secrets/service-password.secret.never":    neverMarkerSuite,
-				"deployments/cryptoutil-suite/secrets/postgres-database.secret":         "cryptoutil_database",
-				"deployments/cryptoutil-suite/secrets/postgres-username.secret":         "cryptoutil_database_user",
-				"deployments/cryptoutil-suite/secrets/postgres-password.secret":         "cryptoutil_database_pass-" + base64url43C(),
-				"deployments/cryptoutil-suite/secrets/postgres-url.secret":              "postgres://cryptoutil_database_user:cryptoutil_database_pass-" + base64url43C() + "@cryptoutil-postgres:5432/cryptoutil_database?sslmode=disable",
+				"deployments/cryptoutil/secrets/hash-pepper-v3.secret":            "cryptoutil-hash-pepper-v3-" + base64url43A(),
+				"deployments/cryptoutil/secrets/browser-username.secret.never":    neverMarkerSuite,
+				"deployments/cryptoutil/secrets/browser-password.secret.never":    neverMarkerSuite,
+				"deployments/cryptoutil/secrets/service-username.secret.never":    neverMarkerSuite,
+				"deployments/cryptoutil/secrets/service-password.secret.never":    neverMarkerSuite,
+				"deployments/cryptoutil/secrets/postgres-database.secret":         "cryptoutil_database",
+				"deployments/cryptoutil/secrets/postgres-username.secret":         "cryptoutil_database_user",
+				"deployments/cryptoutil/secrets/postgres-password.secret":         "cryptoutil_database_pass-" + base64url43C(),
+				"deployments/cryptoutil/secrets/postgres-url.secret":              "postgres://cryptoutil_database_user:cryptoutil_database_pass-" + base64url43C() + "@cryptoutil-postgres:5432/cryptoutil_database?sslmode=disable",
 			},
 		},
 		{
@@ -227,7 +227,7 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 		{
 			name: "wrong never marker at suite tier",
 			setupFiles: map[string]string{
-				"deployments/cryptoutil-suite/secrets/service-password.secret.never": "wrong content",
+				"deployments/cryptoutil/secrets/service-password.secret.never": "wrong content",
 			},
 			wantViolations: 1,
 			wantSubstring:  "expected",
@@ -243,7 +243,7 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 		{
 			name: "suite tier marker has product text",
 			setupFiles: map[string]string{
-				"deployments/cryptoutil-suite/secrets/browser-password.secret.never": neverMarkerProduct,
+				"deployments/cryptoutil/secrets/browser-password.secret.never": neverMarkerProduct,
 			},
 			wantViolations: 1,
 			wantSubstring:  "expected",

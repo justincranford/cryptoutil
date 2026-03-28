@@ -316,7 +316,7 @@ func classifyDeployment(name string) string {
 		return DeploymentTypeProductService
 	case productNames[name]:
 		return DeploymentTypeProduct
-	case name == "cryptoutil-suite":
+	case name == cryptoutilSharedMagic.DefaultOTLPServiceDefault:
 		return DeploymentTypeSuite
 	case name == cryptoutilSharedMagic.SkeletonTemplateServiceName:
 		return DeploymentTypeTemplate

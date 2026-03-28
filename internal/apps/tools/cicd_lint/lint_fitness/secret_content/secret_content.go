@@ -145,8 +145,7 @@ func buildTierMap() map[string]deploymentInfo {
 	}
 
 	for _, suite := range cryptoutilRegistry.AllSuites() {
-		deploymentDir := suite.ID + "-suite"
-		tierMap[deploymentDir] = deploymentInfo{
+		tierMap[suite.ID] = deploymentInfo{
 			tier:     tierSuite,
 			prefix:   suite.ID,
 			prefixUS: strings.ReplaceAll(suite.ID, "-", "_"),

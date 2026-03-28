@@ -427,9 +427,9 @@ deployments/{PRODUCT}/                                # drwxr-x---
 
 **Pattern**: `deployments/{SUITE}-suite/`
 
-**Naming exception**: The deployment directory uses `{SUITE}-suite` (e.g., `cryptoutil-suite`)
+**Naming exception**: The deployment directory uses `{SUITE}-suite` (e.g., `cryptoutil`)
 while all other contexts use bare `{SUITE}` (e.g., `cryptoutil`). This is the ONLY place the
-`-suite` suffix appears. The structural mirror validator maps `cryptoutil-suite` → `cryptoutil`
+`-suite` suffix appears. The structural mirror validator maps `cryptoutil` → `cryptoutil`
 for config directory matching.
 
 ```

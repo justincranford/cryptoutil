@@ -285,11 +285,11 @@ func TestValidateAllDeployments_ProductAndSuiteAndTemplate(t *testing.T) {
 				t.Helper()
 
 				tmpDir := t.TempDir()
-				suiteDir := filepath.Join(tmpDir, "cryptoutil-suite")
+				suiteDir := filepath.Join(tmpDir, cryptoutilSharedMagic.DefaultOTLPServiceDefault)
 				require.NoError(t, os.MkdirAll(filepath.Join(suiteDir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
 				require.NoError(t, os.WriteFile(
 					filepath.Join(suiteDir, "compose.yml"),
-					[]byte("name: cryptoutil\n"), cryptoutilSharedMagic.CacheFilePermissions))
+					[]byte("name: "+cryptoutilSharedMagic.DefaultOTLPServiceDefault+"\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 				return tmpDir
 			},
@@ -358,7 +358,7 @@ func TestValidateDeploymentStructure_SuiteType(t *testing.T) {
 	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "compose.yml"), []byte("n: t\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	result, err := ValidateDeploymentStructure(tmpDir, "cryptoutil-suite", "SUITE")
+	result, err := ValidateDeploymentStructure(tmpDir, cryptoutilSharedMagic.DefaultOTLPServiceDefault, "SUITE")
 	require.NoError(t, err)
 	require.NotNil(t, result)
 

@@ -1142,7 +1142,7 @@ deployments/{PS-ID}/
 
 ##### Tier Differences (Product ×5 / Suite ×1)
 
-| Component | Service (`{PS-ID}/`) | Product (`{PRODUCT}/`) | Suite (`cryptoutil-suite/`) |
+| Component | Service (`{PS-ID}/`) | Product (`{PRODUCT}/`) | Suite (`cryptoutil/`) |
 |-----------|---------------------|----------------------|---------------------------|
 | `compose.yml` | Direct service definition | Includes service composes | Includes product composes |
 | `Dockerfile` | ✅ | ✅ | ❌ (no separate image) |
@@ -3916,7 +3916,7 @@ See [Section 4.4.6](#446-deployments) for the complete secret file listing at ea
 
 ##### SUITE-Level Deployment (cryptoutil)
 
-**Location**: `deployments/cryptoutil-suite/secrets/`
+**Location**: `deployments/cryptoutil/secrets/`
 
 **Consistency Requirements**:
 
@@ -4019,7 +4019,7 @@ Unit/integration tests use Auto TLS (no secrets needed). See [Section 6.11](#611
 |-------|-----------|-------|----------|-----------|
 | **SERVICE** | `deployments/{PS-ID}/` | Single service | 1 | Development, testing, isolated deployment |
 | **PRODUCT** | `deployments/{PRODUCT}/` | Product services | 1-5 | Product-level testing, SSO within product |
-| **SUITE** | `deployments/cryptoutil-suite/` | All services | 10 | Full integration, cross-product federation |
+| **SUITE** | `deployments/cryptoutil/` | All services | 10 | Full integration, cross-product federation |
 
 ##### Docker Compose `include` Semantics
 
@@ -4309,7 +4309,7 @@ deployments/{PS-ID}/config/         # e.g., {PS-ID}=sm-kms
 **Mapping Rules**:
 
 - Identity mapping (1:1): deployment directory name = `configs/` directory name
-- Only exception: `cryptoutil-suite` → `cryptoutil`
+- Only exception: `cryptoutil` → `cryptoutil`
 
 **Exclusions**: Infrastructure deployments (`shared-postgres`, `shared-telemetry`, `compose`, `template`)
 

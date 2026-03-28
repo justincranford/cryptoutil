@@ -18,7 +18,7 @@ const (
 func GetDeploymentDirectories() (suite []string, product []string, productService []string, infrastructure []string, template []string) {
 	// SUITE-level deployment (all 10 services)
 	suite = []string{
-		"cryptoutil-suite",
+		cryptoutilSharedMagic.DefaultOTLPServiceDefault,
 	}
 
 	// PRODUCT-level deployments (aggregation of services within product)
@@ -70,10 +70,10 @@ func GetDeploymentDirectories() (suite []string, product []string, productServic
 func GetExpectedDeploymentsContents() map[string]string {
 	contents := make(map[string]string)
 
-	// SUITE Level (cryptoutil-suite) - ALL 10 services.
-	contents["cryptoutil-suite/compose.yml"] = RequiredFileStatus
-	contents["cryptoutil-suite/Dockerfile"] = RequiredFileStatus
-	addSuiteProductSecrets(&contents, "cryptoutil-suite")
+	// SUITE Level (cryptoutil) - ALL 10 services.
+	contents[cryptoutilSharedMagic.DefaultOTLPServiceDefault+"/compose.yml"] = RequiredFileStatus
+	contents[cryptoutilSharedMagic.DefaultOTLPServiceDefault+"/Dockerfile"] = RequiredFileStatus
+	addSuiteProductSecrets(&contents, cryptoutilSharedMagic.DefaultOTLPServiceDefault)
 
 	// PRODUCT Level - identity (multi-service product: 5 identity services).
 	contents[cryptoutilSharedMagic.IdentityProductName+"/compose.yml"] = RequiredFileStatus

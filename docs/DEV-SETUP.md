@@ -879,7 +879,7 @@ See [test/load/README.md](../test/load/README.md) for detailed Gatling documenta
 
 ```bash
 # Start services first (SUITE-level for full deployment)
-cd deployments/cryptoutil-suite
+cd deployments/cryptoutil
 docker compose up -d
 
 # Wait for services to be ready (30-60 seconds)

@@ -25,7 +25,7 @@ func TestCheckDelegationPattern_SuiteValid(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(compose), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result := &ValidationResult{Valid: true}
-	checkDelegationPattern(dir, "cryptoutil-suite", DeploymentTypeSuite, result)
+	checkDelegationPattern(dir, cryptoutilSharedMagic.DefaultOTLPServiceDefault, DeploymentTypeSuite, result)
 
 	require.True(t, result.Valid, "expected valid for proper delegation")
 	require.Empty(t, result.Errors)
@@ -51,7 +51,7 @@ func TestCheckDelegationPattern_SuiteInvalidServiceLevel(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(compose), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result := &ValidationResult{Valid: true}
-	checkDelegationPattern(dir, "cryptoutil-suite", DeploymentTypeSuite, result)
+	checkDelegationPattern(dir, cryptoutilSharedMagic.DefaultOTLPServiceDefault, DeploymentTypeSuite, result)
 
 	require.False(t, result.Valid, "expected invalid for service-level delegation")
 	require.Len(t, result.Errors, cryptoutilSharedMagic.SuiteServiceCount, "expected 10 errors for 10 invalid patterns")
@@ -67,7 +67,7 @@ func TestCheckDelegationPattern_SuiteMissingProducts(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(compose), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result := &ValidationResult{Valid: true}
-	checkDelegationPattern(dir, "cryptoutil-suite", DeploymentTypeSuite, result)
+	checkDelegationPattern(dir, cryptoutilSharedMagic.DefaultOTLPServiceDefault, DeploymentTypeSuite, result)
 
 	require.True(t, result.Valid, "should still be valid, missing products is a warning")
 	require.NotEmpty(t, result.Warnings, "expected warning about missing products")
@@ -186,7 +186,7 @@ func TestCheckDelegationPattern_NoComposeFile(t *testing.T) {
 	t.Parallel()
 
 	result := &ValidationResult{Valid: true}
-	checkDelegationPattern(t.TempDir(), "cryptoutil-suite", DeploymentTypeSuite, result)
+	checkDelegationPattern(t.TempDir(), cryptoutilSharedMagic.DefaultOTLPServiceDefault, DeploymentTypeSuite, result)
 
 	require.True(t, result.Valid, "should skip when no compose file exists")
 	require.Empty(t, result.Errors)

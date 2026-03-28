@@ -50,9 +50,9 @@ func TestGetDeploymentDirectories(t *testing.T) {
 
 	suite, product, productService, infrastructure, template := GetDeploymentDirectories()
 
-	// Suite should contain exactly cryptoutil-suite.
+	// Suite should contain exactly cryptoutil.
 	require.Len(t, suite, 1)
-	require.Equal(t, "cryptoutil-suite", suite[0])
+	require.Equal(t, cryptoutilSharedMagic.DefaultOTLPServiceDefault, suite[0])
 
 	// Products should include all 5 products.
 	expectedProducts := []string{cryptoutilSharedMagic.IdentityProductName, cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.PKIProductName, cryptoutilSharedMagic.JoseProductName, cryptoutilSharedMagic.SkeletonProductName}
@@ -209,22 +209,22 @@ func TestAddSuiteProductSecrets(t *testing.T) {
 	t.Parallel()
 
 	contents := make(map[string]string)
-	addSuiteProductSecrets(&contents, "cryptoutil-suite")
+	addSuiteProductSecrets(&contents, cryptoutilSharedMagic.DefaultOTLPServiceDefault)
 
 	// Should have hash-pepper secret.
-	require.Equal(t, RequiredFileStatus, contents["cryptoutil-suite/secrets/hash-pepper-v3.secret"])
+	require.Equal(t, RequiredFileStatus, contents[cryptoutilSharedMagic.DefaultOTLPServiceDefault+"/secrets/hash-pepper-v3.secret"])
 
 	// Should have unseal secrets.
-	require.Equal(t, RequiredFileStatus, contents["cryptoutil-suite/secrets/unseal-1of5.secret"])
-	require.Equal(t, RequiredFileStatus, contents["cryptoutil-suite/secrets/unseal-5of5.secret"])
+	require.Equal(t, RequiredFileStatus, contents[cryptoutilSharedMagic.DefaultOTLPServiceDefault+"/secrets/unseal-1of5.secret"])
+	require.Equal(t, RequiredFileStatus, contents[cryptoutilSharedMagic.DefaultOTLPServiceDefault+"/secrets/unseal-5of5.secret"])
 
 	// Should have postgres secrets.
-	require.Equal(t, RequiredFileStatus, contents["cryptoutil-suite/secrets/postgres-username.secret"])
-	require.Equal(t, RequiredFileStatus, contents["cryptoutil-suite/secrets/postgres-url.secret"])
+	require.Equal(t, RequiredFileStatus, contents[cryptoutilSharedMagic.DefaultOTLPServiceDefault+"/secrets/postgres-username.secret"])
+	require.Equal(t, RequiredFileStatus, contents[cryptoutilSharedMagic.DefaultOTLPServiceDefault+"/secrets/postgres-url.secret"])
 
 	// Browser/service credentials use .secret.never at suite/product level.
-	require.Equal(t, RequiredFileStatus, contents["cryptoutil-suite/secrets/browser-password.secret.never"])
-	require.Equal(t, RequiredFileStatus, contents["cryptoutil-suite/secrets/service-password.secret.never"])
+	require.Equal(t, RequiredFileStatus, contents[cryptoutilSharedMagic.DefaultOTLPServiceDefault+"/secrets/browser-password.secret.never"])
+	require.Equal(t, RequiredFileStatus, contents[cryptoutilSharedMagic.DefaultOTLPServiceDefault+"/secrets/service-password.secret.never"])
 
 	// Should have exactly 14 entries (no extras).
 	require.Len(t, contents, 14)
