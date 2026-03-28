@@ -70,86 +70,30 @@ func GetDeploymentDirectories() (suite []string, product []string, productServic
 func GetExpectedDeploymentsContents() map[string]string {
 	contents := make(map[string]string)
 
-	// SUITE Level (cryptoutil-suite) - ALL 10 services
-	// Required: compose.yml, Dockerfile, hash_pepper only
-	// Forbidden (via .never): unseal keys, postgres secrets (MUST be service-specific)
+	// SUITE Level (cryptoutil-suite) - ALL 10 services.
 	contents["cryptoutil-suite/compose.yml"] = RequiredFileStatus
 	contents["cryptoutil-suite/Dockerfile"] = RequiredFileStatus
-	contents["cryptoutil-suite/secrets/cryptoutil-hash_pepper.secret"] = RequiredFileStatus
-	contents["cryptoutil-suite/secrets/cryptoutil-unseal_1of5.secret.never"] = RequiredFileStatus
-	contents["cryptoutil-suite/secrets/cryptoutil-unseal_2of5.secret.never"] = RequiredFileStatus
-	contents["cryptoutil-suite/secrets/cryptoutil-unseal_3of5.secret.never"] = RequiredFileStatus
-	contents["cryptoutil-suite/secrets/cryptoutil-unseal_4of5.secret.never"] = RequiredFileStatus
-	contents["cryptoutil-suite/secrets/cryptoutil-unseal_5of5.secret.never"] = RequiredFileStatus
-	contents["cryptoutil-suite/secrets/cryptoutil-postgres_username.secret.never"] = RequiredFileStatus
-	contents["cryptoutil-suite/secrets/cryptoutil-postgres_password.secret.never"] = RequiredFileStatus
-	contents["cryptoutil-suite/secrets/cryptoutil-postgres_database.secret.never"] = RequiredFileStatus
-	contents["cryptoutil-suite/secrets/cryptoutil-postgres_url.secret.never"] = RequiredFileStatus
+	addSuiteProductSecrets(&contents, "cryptoutil-suite")
 
-	// PRODUCT Level - identity (multi-service product: 5 identity services)
-	contents["identity/compose.yml"] = RequiredFileStatus
-	contents["identity/secrets/identity-hash_pepper.secret"] = RequiredFileStatus
-	contents["identity/secrets/identity-unseal_1of5.secret.never"] = RequiredFileStatus
-	contents["identity/secrets/identity-unseal_2of5.secret.never"] = RequiredFileStatus
-	contents["identity/secrets/identity-unseal_3of5.secret.never"] = RequiredFileStatus
-	contents["identity/secrets/identity-unseal_4of5.secret.never"] = RequiredFileStatus
-	contents["identity/secrets/identity-unseal_5of5.secret.never"] = RequiredFileStatus
-	contents["identity/secrets/identity-postgres_username.secret.never"] = RequiredFileStatus
-	contents["identity/secrets/identity-postgres_password.secret.never"] = RequiredFileStatus
-	contents["identity/secrets/identity-postgres_database.secret.never"] = RequiredFileStatus
-	contents["identity/secrets/identity-postgres_url.secret.never"] = RequiredFileStatus
+	// PRODUCT Level - identity (multi-service product: 5 identity services).
+	contents[cryptoutilSharedMagic.IdentityProductName+"/compose.yml"] = RequiredFileStatus
+	addSuiteProductSecrets(&contents, cryptoutilSharedMagic.IdentityProductName)
 
-	// PRODUCT Level - jose (currently single service: jose-ja)
-	contents["jose/compose.yml"] = RequiredFileStatus
-	contents["jose/secrets/jose-hash_pepper.secret"] = RequiredFileStatus
-	contents["jose/secrets/jose-unseal_1of5.secret.never"] = RequiredFileStatus
-	contents["jose/secrets/jose-unseal_2of5.secret.never"] = RequiredFileStatus
-	contents["jose/secrets/jose-unseal_3of5.secret.never"] = RequiredFileStatus
-	contents["jose/secrets/jose-unseal_4of5.secret.never"] = RequiredFileStatus
-	contents["jose/secrets/jose-unseal_5of5.secret.never"] = RequiredFileStatus
-	contents["jose/secrets/jose-postgres_username.secret.never"] = RequiredFileStatus
-	contents["jose/secrets/jose-postgres_password.secret.never"] = RequiredFileStatus
-	contents["jose/secrets/jose-postgres_database.secret.never"] = RequiredFileStatus
-	contents["jose/secrets/jose-postgres_url.secret.never"] = RequiredFileStatus
+	// PRODUCT Level - jose (currently single service: jose-ja).
+	contents[cryptoutilSharedMagic.JoseProductName+"/compose.yml"] = RequiredFileStatus
+	addSuiteProductSecrets(&contents, cryptoutilSharedMagic.JoseProductName)
 
-	// PRODUCT Level - pki (currently single service: pki-ca)
-	contents["pki/compose.yml"] = RequiredFileStatus
-	contents["pki/secrets/pki-hash_pepper.secret"] = RequiredFileStatus
-	contents["pki/secrets/pki-unseal_1of5.secret.never"] = RequiredFileStatus
-	contents["pki/secrets/pki-unseal_2of5.secret.never"] = RequiredFileStatus
-	contents["pki/secrets/pki-unseal_3of5.secret.never"] = RequiredFileStatus
-	contents["pki/secrets/pki-unseal_4of5.secret.never"] = RequiredFileStatus
-	contents["pki/secrets/pki-unseal_5of5.secret.never"] = RequiredFileStatus
-	contents["pki/secrets/pki-postgres_username.secret.never"] = RequiredFileStatus
-	contents["pki/secrets/pki-postgres_password.secret.never"] = RequiredFileStatus
-	contents["pki/secrets/pki-postgres_database.secret.never"] = RequiredFileStatus
-	contents["pki/secrets/pki-postgres_url.secret.never"] = RequiredFileStatus
+	// PRODUCT Level - pki (currently single service: pki-ca).
+	contents[cryptoutilSharedMagic.PKIProductName+"/compose.yml"] = RequiredFileStatus
+	addSuiteProductSecrets(&contents, cryptoutilSharedMagic.PKIProductName)
 
-	// PRODUCT Level - sm (services: sm-kms, sm-im)
-	contents["sm/compose.yml"] = RequiredFileStatus
-	contents["sm/secrets/sm-hash_pepper.secret"] = RequiredFileStatus
-	contents["sm/secrets/sm-unseal_1of5.secret.never"] = RequiredFileStatus
-	contents["sm/secrets/sm-unseal_2of5.secret.never"] = RequiredFileStatus
-	contents["sm/secrets/sm-unseal_3of5.secret.never"] = RequiredFileStatus
-	contents["sm/secrets/sm-unseal_4of5.secret.never"] = RequiredFileStatus
-	contents["sm/secrets/sm-unseal_5of5.secret.never"] = RequiredFileStatus
-	contents["sm/secrets/sm-postgres_username.secret.never"] = RequiredFileStatus
-	contents["sm/secrets/sm-postgres_password.secret.never"] = RequiredFileStatus
-	contents["sm/secrets/sm-postgres_database.secret.never"] = RequiredFileStatus
-	contents["sm/secrets/sm-postgres_url.secret.never"] = RequiredFileStatus
+	// PRODUCT Level - sm (services: sm-kms, sm-im).
+	contents[cryptoutilSharedMagic.SMProductName+"/compose.yml"] = RequiredFileStatus
+	addSuiteProductSecrets(&contents, cryptoutilSharedMagic.SMProductName)
 
-	// PRODUCT Level - skeleton (single service: skeleton-template)
-	contents["skeleton/compose.yml"] = RequiredFileStatus
-	contents["skeleton/secrets/skeleton-hash_pepper.secret"] = RequiredFileStatus
-	contents["skeleton/secrets/skeleton-unseal_1of5.secret.never"] = RequiredFileStatus
-	contents["skeleton/secrets/skeleton-unseal_2of5.secret.never"] = RequiredFileStatus
-	contents["skeleton/secrets/skeleton-unseal_3of5.secret.never"] = RequiredFileStatus
-	contents["skeleton/secrets/skeleton-unseal_4of5.secret.never"] = RequiredFileStatus
-	contents["skeleton/secrets/skeleton-unseal_5of5.secret.never"] = RequiredFileStatus
-	contents["skeleton/secrets/skeleton-postgres_username.secret.never"] = RequiredFileStatus
-	contents["skeleton/secrets/skeleton-postgres_password.secret.never"] = RequiredFileStatus
-	contents["skeleton/secrets/skeleton-postgres_database.secret.never"] = RequiredFileStatus
-	contents["skeleton/secrets/skeleton-postgres_url.secret.never"] = RequiredFileStatus
+	// PRODUCT Level - skeleton (single service: skeleton-template).
+	contents[cryptoutilSharedMagic.SkeletonProductName+"/compose.yml"] = RequiredFileStatus
+	addSuiteProductSecrets(&contents, cryptoutilSharedMagic.SkeletonProductName)
 
 	// PRODUCT-SERVICE Level - sm-im
 	addProductServiceFiles(&contents, cryptoutilSharedMagic.OTLPServiceSMIM)
@@ -183,33 +127,61 @@ func GetExpectedDeploymentsContents() map[string]string {
 	return contents
 }
 
+// addSuiteProductSecrets adds required secrets for SUITE and PRODUCT level deployments.
+// Secret filenames use hyphens without deployment-name prefixes.
+// Browser/service credentials use .secret.never markers (NEVER real secrets at suite/product level).
+func addSuiteProductSecrets(contents *map[string]string, dirName string) {
+	prefix := dirName + "/secrets/"
+
+	(*contents)[prefix+"hash-pepper-v3.secret"] = RequiredFileStatus
+	(*contents)[prefix+"unseal-1of5.secret"] = RequiredFileStatus
+	(*contents)[prefix+"unseal-2of5.secret"] = RequiredFileStatus
+	(*contents)[prefix+"unseal-3of5.secret"] = RequiredFileStatus
+	(*contents)[prefix+"unseal-4of5.secret"] = RequiredFileStatus
+	(*contents)[prefix+"unseal-5of5.secret"] = RequiredFileStatus
+	(*contents)[prefix+"postgres-username.secret"] = RequiredFileStatus
+	(*contents)[prefix+"postgres-password.secret"] = RequiredFileStatus
+	(*contents)[prefix+"postgres-database.secret"] = RequiredFileStatus
+	(*contents)[prefix+"postgres-url.secret"] = RequiredFileStatus
+	(*contents)[prefix+"browser-password.secret.never"] = RequiredFileStatus
+	(*contents)[prefix+"browser-username.secret.never"] = RequiredFileStatus
+	(*contents)[prefix+"service-password.secret.never"] = RequiredFileStatus
+	(*contents)[prefix+"service-username.secret.never"] = RequiredFileStatus
+}
+
 // addProductServiceFiles adds required files for a PRODUCT-SERVICE deployment.
-// Pattern: 10 secrets (5 unseal, 1 hash_pepper, 4 postgres) + compose.yml + Dockerfile + 4 config files.
+// Secret filenames use hyphens without service-name prefixes.
 func addProductServiceFiles(contents *map[string]string, serviceName string) {
-	// Required root files
+	// Required root files.
 	(*contents)[serviceName+"/compose.yml"] = RequiredFileStatus
 	(*contents)[serviceName+"/Dockerfile"] = RequiredFileStatus
 
-	// Required secrets (10 total)
-	(*contents)[serviceName+"/secrets/"+serviceName+"-hash_pepper.secret"] = RequiredFileStatus
-	(*contents)[serviceName+"/secrets/"+serviceName+"-unseal_1of5.secret"] = RequiredFileStatus
-	(*contents)[serviceName+"/secrets/"+serviceName+"-unseal_2of5.secret"] = RequiredFileStatus
-	(*contents)[serviceName+"/secrets/"+serviceName+"-unseal_3of5.secret"] = RequiredFileStatus
-	(*contents)[serviceName+"/secrets/"+serviceName+"-unseal_4of5.secret"] = RequiredFileStatus
-	(*contents)[serviceName+"/secrets/"+serviceName+"-unseal_5of5.secret"] = RequiredFileStatus
-	(*contents)[serviceName+"/secrets/"+serviceName+"-postgres_username.secret"] = RequiredFileStatus
-	(*contents)[serviceName+"/secrets/"+serviceName+"-postgres_password.secret"] = RequiredFileStatus
-	(*contents)[serviceName+"/secrets/"+serviceName+"-postgres_database.secret"] = RequiredFileStatus
-	(*contents)[serviceName+"/secrets/"+serviceName+"-postgres_url.secret"] = RequiredFileStatus
+	// Required secrets.
+	prefix := serviceName + "/secrets/"
 
-	// Required config files (5 standard files per F.1)
+	(*contents)[prefix+"hash-pepper-v3.secret"] = RequiredFileStatus
+	(*contents)[prefix+"unseal-1of5.secret"] = RequiredFileStatus
+	(*contents)[prefix+"unseal-2of5.secret"] = RequiredFileStatus
+	(*contents)[prefix+"unseal-3of5.secret"] = RequiredFileStatus
+	(*contents)[prefix+"unseal-4of5.secret"] = RequiredFileStatus
+	(*contents)[prefix+"unseal-5of5.secret"] = RequiredFileStatus
+	(*contents)[prefix+"postgres-username.secret"] = RequiredFileStatus
+	(*contents)[prefix+"postgres-password.secret"] = RequiredFileStatus
+	(*contents)[prefix+"postgres-database.secret"] = RequiredFileStatus
+	(*contents)[prefix+"postgres-url.secret"] = RequiredFileStatus
+	(*contents)[prefix+"browser-password.secret"] = RequiredFileStatus
+	(*contents)[prefix+"browser-username.secret"] = RequiredFileStatus
+	(*contents)[prefix+"service-password.secret"] = RequiredFileStatus
+	(*contents)[prefix+"service-username.secret"] = RequiredFileStatus
+
+	// Required config files (5 standard files per F.1).
 	(*contents)[serviceName+"/config/"+serviceName+"-app-common.yml"] = RequiredFileStatus
 	(*contents)[serviceName+"/config/"+serviceName+"-app-sqlite-1.yml"] = RequiredFileStatus
 	(*contents)[serviceName+"/config/"+serviceName+"-app-sqlite-2.yml"] = RequiredFileStatus
 	(*contents)[serviceName+"/config/"+serviceName+"-app-postgresql-1.yml"] = RequiredFileStatus
 	(*contents)[serviceName+"/config/"+serviceName+"-app-postgresql-2.yml"] = RequiredFileStatus
 
-	// FORBIDDEN deprecated config files (Section 12.4.6)
+	// FORBIDDEN deprecated config files (Section 12.4.6).
 	(*contents)[serviceName+"/config/demo-seed.yml"] = ForbiddenFileStatus
 	(*contents)[serviceName+"/config/integration.yml"] = ForbiddenFileStatus
 	(*contents)[serviceName+"/config/"+serviceName+"-demo.yml"] = ForbiddenFileStatus
@@ -227,18 +199,25 @@ func addInfrastructureFiles(contents *map[string]string, infraName string) {
 }
 
 // addTemplateFiles adds required files for template deployment.
+// Uses same hyphenated naming convention as product-service secrets.
 func addTemplateFiles(contents *map[string]string) {
 	(*contents)["template/compose.yml"] = RequiredFileStatus
 
-	// Template has same secret structure as PRODUCT-SERVICE for reference
-	(*contents)["template/secrets/hash_pepper_v3.secret"] = RequiredFileStatus
-	(*contents)["template/secrets/unseal_1of5.secret"] = RequiredFileStatus
-	(*contents)["template/secrets/unseal_2of5.secret"] = RequiredFileStatus
-	(*contents)["template/secrets/unseal_3of5.secret"] = RequiredFileStatus
-	(*contents)["template/secrets/unseal_4of5.secret"] = RequiredFileStatus
-	(*contents)["template/secrets/unseal_5of5.secret"] = RequiredFileStatus
-	(*contents)["template/secrets/postgres_username.secret"] = RequiredFileStatus
-	(*contents)["template/secrets/postgres_password.secret"] = RequiredFileStatus
-	(*contents)["template/secrets/postgres_database.secret"] = RequiredFileStatus
-	(*contents)["template/secrets/postgres_url.secret"] = RequiredFileStatus
+	// Template has same secret structure as PRODUCT-SERVICE for reference.
+	prefix := "template/secrets/"
+
+	(*contents)[prefix+"hash-pepper-v3.secret"] = RequiredFileStatus
+	(*contents)[prefix+"unseal-1of5.secret"] = RequiredFileStatus
+	(*contents)[prefix+"unseal-2of5.secret"] = RequiredFileStatus
+	(*contents)[prefix+"unseal-3of5.secret"] = RequiredFileStatus
+	(*contents)[prefix+"unseal-4of5.secret"] = RequiredFileStatus
+	(*contents)[prefix+"unseal-5of5.secret"] = RequiredFileStatus
+	(*contents)[prefix+"postgres-username.secret"] = RequiredFileStatus
+	(*contents)[prefix+"postgres-password.secret"] = RequiredFileStatus
+	(*contents)[prefix+"postgres-database.secret"] = RequiredFileStatus
+	(*contents)[prefix+"postgres-url.secret"] = RequiredFileStatus
+	(*contents)[prefix+"browser-password.secret"] = RequiredFileStatus
+	(*contents)[prefix+"browser-username.secret"] = RequiredFileStatus
+	(*contents)[prefix+"service-password.secret"] = RequiredFileStatus
+	(*contents)[prefix+"service-username.secret"] = RequiredFileStatus
 }

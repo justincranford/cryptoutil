@@ -127,14 +127,18 @@ func TestAddProductServiceFiles(t *testing.T) {
 	// Should have Dockerfile as required.
 	require.Equal(t, RequiredFileStatus, contents["jose-ja/Dockerfile"])
 
-	// Should have hash_pepper secret.
-	require.Equal(t, RequiredFileStatus, contents["jose-ja/secrets/jose-ja-hash_pepper.secret"])
+	// Should have hash-pepper secret (hyphenated, no service prefix).
+	require.Equal(t, RequiredFileStatus, contents["jose-ja/secrets/hash-pepper-v3.secret"])
 
-	// Should have unseal secrets.
-	require.Equal(t, RequiredFileStatus, contents["jose-ja/secrets/jose-ja-unseal_1of5.secret"])
+	// Should have unseal secrets (hyphenated, no service prefix).
+	require.Equal(t, RequiredFileStatus, contents["jose-ja/secrets/unseal-1of5.secret"])
 
-	// Should have postgres secrets.
-	require.Equal(t, RequiredFileStatus, contents["jose-ja/secrets/jose-ja-postgres_username.secret"])
+	// Should have postgres secrets (hyphenated, no service prefix).
+	require.Equal(t, RequiredFileStatus, contents["jose-ja/secrets/postgres-username.secret"])
+
+	// Should have browser/service credential secrets.
+	require.Equal(t, RequiredFileStatus, contents["jose-ja/secrets/browser-password.secret"])
+	require.Equal(t, RequiredFileStatus, contents["jose-ja/secrets/service-password.secret"])
 
 	// Should have config files.
 	require.Equal(t, RequiredFileStatus, contents["jose-ja/config/jose-ja-app-common.yml"])
@@ -191,9 +195,37 @@ func TestAddTemplateFiles(t *testing.T) {
 	// Should have template compose.yml as required.
 	require.Equal(t, RequiredFileStatus, contents["template/compose.yml"])
 
-	// Should have template secrets.
-	require.Equal(t, RequiredFileStatus, contents["template/secrets/hash_pepper_v3.secret"])
-	require.Equal(t, RequiredFileStatus, contents["template/secrets/unseal_1of5.secret"])
-	require.Equal(t, RequiredFileStatus, contents["template/secrets/postgres_username.secret"])
-	require.Equal(t, RequiredFileStatus, contents["template/secrets/postgres_url.secret"])
+	// Should have template secrets (hyphenated, no prefix).
+	require.Equal(t, RequiredFileStatus, contents["template/secrets/hash-pepper-v3.secret"])
+	require.Equal(t, RequiredFileStatus, contents["template/secrets/unseal-1of5.secret"])
+	require.Equal(t, RequiredFileStatus, contents["template/secrets/postgres-username.secret"])
+	require.Equal(t, RequiredFileStatus, contents["template/secrets/postgres-url.secret"])
+	require.Equal(t, RequiredFileStatus, contents["template/secrets/browser-password.secret"])
+	require.Equal(t, RequiredFileStatus, contents["template/secrets/service-password.secret"])
+}
+
+// TestAddSuiteProductSecrets validates suite/product-level secret entries.
+func TestAddSuiteProductSecrets(t *testing.T) {
+	t.Parallel()
+
+	contents := make(map[string]string)
+	addSuiteProductSecrets(&contents, "cryptoutil-suite")
+
+	// Should have hash-pepper secret.
+	require.Equal(t, RequiredFileStatus, contents["cryptoutil-suite/secrets/hash-pepper-v3.secret"])
+
+	// Should have unseal secrets.
+	require.Equal(t, RequiredFileStatus, contents["cryptoutil-suite/secrets/unseal-1of5.secret"])
+	require.Equal(t, RequiredFileStatus, contents["cryptoutil-suite/secrets/unseal-5of5.secret"])
+
+	// Should have postgres secrets.
+	require.Equal(t, RequiredFileStatus, contents["cryptoutil-suite/secrets/postgres-username.secret"])
+	require.Equal(t, RequiredFileStatus, contents["cryptoutil-suite/secrets/postgres-url.secret"])
+
+	// Browser/service credentials use .secret.never at suite/product level.
+	require.Equal(t, RequiredFileStatus, contents["cryptoutil-suite/secrets/browser-password.secret.never"])
+	require.Equal(t, RequiredFileStatus, contents["cryptoutil-suite/secrets/service-password.secret.never"])
+
+	// Should have exactly 14 entries (no extras).
+	require.Len(t, contents, 14)
 }
