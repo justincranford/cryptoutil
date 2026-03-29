@@ -9,9 +9,9 @@ import (
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-	cryptoutilAppsSmKms "cryptoutil/internal/apps/sm-kms"
-	cryptoutilAppsSmIm "cryptoutil/internal/apps/sm-im"
 	cryptoutilAppsFrameworkProductCli "cryptoutil/internal/apps/framework/product/cli"
+	cryptoutilAppsSmIm "cryptoutil/internal/apps/sm-im"
+	cryptoutilAppsSmKms "cryptoutil/internal/apps/sm-kms"
 )
 
 const (
