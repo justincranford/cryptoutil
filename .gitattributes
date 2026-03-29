@@ -5,13 +5,16 @@
 *.bat text eol=crlf
 *.cmd text eol=crlf
 
+# Crypto text files — PEM is text (RFC 7468 §2: eol = CRLF / CR / LF, parsers MUST handle all)
+# Pinned to LF: openssl and crypto tooling generates LF; some strict TLS parsers reject CRLF
+*.pem text eol=lf
+*.crt text eol=lf
+*.key text eol=lf
+
 # Binary files — do not attempt line ending conversion
 *.exe binary
 *.dll binary
 *.so binary
 *.dylib binary
-*.key binary
-*.crt binary
-*.pem binary
 *.der binary
 *.bin binary
