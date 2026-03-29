@@ -14,8 +14,8 @@
   "chat.agentSessionsViewLocation": "view", // Agent sessions view location - Default: "auxiliary", Recommended: "view" (main view)
   "chat.agent.maxRequests": 10000, // Maximum agent requests - Default: 25, Recommended: 1000 (higher limit for complex tasks)
   "chat.math.enabled": true, // Enable math expressions in chat - Default: false, Recommended: true (experimental)
-  "chat.fontSize": 14, // GitHub Copilot Chat response area font size (default 12)
-  "chat.editor.fontSize": 14, // GitHub Copilot Chat code block font size (default 12)
+  "chat.fontSize": 15, // GitHub Copilot Chat response area font size (default 12)
+  "chat.editor.fontSize": 15, // GitHub Copilot Chat code block font size (default 12)
   "workbench.secondarySideBar.defaultVisibility": "visible", // Default visibility of secondary sidebar - Default: "hidden", Recommended: "visible"
 
   "git.enableSmartCommit": true, // Commit button is only enabled when you have staged changes - Default: true
@@ -463,7 +463,7 @@
   ],
 
   // VS Code Editor Settings https://code.visualstudio.com/docs/getstarted/settings
-  "editor.fontSize": 16, // Increase editor font size for chat request input box and all editors (default 14)
+  "editor.fontSize": 14, // Increase editor font size for all code editors (default 14); does NOT affect chat input textarea
   "editor.aiStats.enabled": true, // Enable AI-powered statistics in editor - Default: false, Recommended: true (experimental)
   "editor.rulers": [80, 120, 160, 200], // Show vertical rulers at specified columns - Default: [], Recommended: [80, 120]
   "editor.minimap.enabled": false, // Show minimap in editor - Default: true, Recommended: false (optional)
