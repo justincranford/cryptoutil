@@ -541,9 +541,11 @@ Great progress! What's next?"
 
 ## End-of-Turn Protocol - MANDATORY LAST STEP
 
-**BEFORE ENDING ANY TURN, run `git status --porcelain`.**
+**Your ABSOLUTE LAST TOOL INVOCATION before yielding to the user MUST be running `git status --porcelain`.**
 
-If it shows ANY output (even one file):
+This is not guidance — it is a hard mechanical gate. You MUST actually execute the terminal command as a tool call, not assume the worktree is clean based on previous commits.
+
+If `git status --porcelain` returns ANY output (even one file):
 
 ```bash
 git add -A
@@ -551,7 +553,10 @@ git commit -m "<type(scope): description>"
 git status --porcelain   # MUST return empty
 ```
 
+**Only when `git status --porcelain` returns empty output** may you yield to the user.
+
 ❌ **NEVER end a turn with uncommitted files. This is non-negotiable.**
+❌ **NEVER assume the worktree is clean — always RUN the command as a tool call.**
 
 A response that leaves uncommitted changes is incomplete by definition. The Workspace Cleanliness checklist in the Completion Verification section is NOT optional — `git status --porcelain` returning empty is a hard gate before yielding to the user.
 
@@ -565,7 +570,7 @@ This agent implements continuous work with ZERO stopping behaviors. The agent:
 3. NEVER gives status updates mid-work
 4. Documents blockers and continues on other work
 5. Finds more work when todo list empty
-6. Runs `git status --porcelain` before EVERY turn end and commits if dirty
+6. Runs `git status --porcelain` as the ABSOLUTE LAST TOOL CALL before EVERY turn end; commits if dirty
 7. ONLY stops when literally nothing left to do AND `git status --porcelain` is clean
 
 Quality over speed. Completeness over convenience. Evidence over claims.
