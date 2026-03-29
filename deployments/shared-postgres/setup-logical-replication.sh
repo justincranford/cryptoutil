@@ -1,4 +1,10 @@
 #!/bin/bash
+# ARCHITECTURE EXCEPTION: Docker container init script.
+# This script runs inside the PostgreSQL Docker container via docker-entrypoint-initdb.d/.
+# Shell is required by the PostgreSQL image mechanism (only .sh and .sql files are supported).
+# See docs/ARCHITECTURE.md Section 14.9 (Scripting Language Policy) for the exception rule.
+# Minimize all logic here; prefer .sql files for pure SQL operations.
+#
 # Setup Logical Replication from Leader to Follower
 # Creates subscriptions for each schema in follower databases
 
