@@ -1,7 +1,7 @@
 ---
 title: cryptoutil Architecture - Single Source of Truth
 version: 2.0
-date: 2026-02-08
+date: 2026-03-29
 status: Draft
 audience:
   - Copilot Instructions
@@ -33,7 +33,7 @@ tags:
 
 # cryptoutil Architecture - Single Source of Truth
 
-**Last Updated**: February 8, 2026
+**Last Updated**: March 29, 2026
 **Version**: 2.0
 **Purpose**: Comprehensive architectural reference for the cryptoutil product suite, serving as the canonical source for all architectural decisions, patterns, strategies, and implementation guidelines.
 
@@ -261,7 +261,7 @@ cryptoutil (suite)
 
 **Product & Suite Convenience**: Each `{PRODUCT}` product and `{SUITE}` suite are also available as all-in-one binaries for optional, alternate packaging for ease of distribution. They also come with convenience `{PRODUCT}` product and `{SUITE}` suite Docker Compose files for ease of e2e testing.
 
-**Migration Priority** (to service framework — see [Section 5.1.3](#513-mandatory-usage)): sm-im → jose-ja → sm-kms → skeleton-template → pki-ca → identity services. SM services first, PKI second, Identity last.
+**Migration Priority** (to service framework — see [Section 5.1.3](#513-mandatory-usage)): sm-im → jose-ja → sm-kms → pki-ca → identity services. SM services (sm-im/jose-ja/sm-kms) migrate first; pki-ca second; identity last.
 
 **Federation**: Services fail over through FEDERATED → DATABASE → FILE realms with no retry logic or circuit breakers. FILE realms (local, always available) are the last-resort failsafe.
 
@@ -673,12 +673,12 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 | **sm-kms** | ✅ Complete | 100% | Reference implementation with dual servers, Docker Compose |
 | **sm-im** | ✅ Complete | 100% | E2E encrypted messaging, Docker Compose working |
 | **jose-ja** | ✅ Complete | ~95% | Dual HTTPS servers, Docker Compose, E2E tests |
-| **pki-ca** | ⚠️ Extraction Pending | 0% | Domain archived (`_ca-archived/`); fresh skeleton installed (Phase 8 reintegration) |
-| **identity-authz** | ⚠️ Extraction Pending | 0% | Domain archived (`_authz-archived/`); fresh skeleton installed (Phase 8 reintegration) |
-| **identity-idp** | ⚠️ Extraction Pending | 0% | Domain archived (`_idp-archived/`); fresh skeleton installed (Phase 8 reintegration) |
-| **identity-rs** | ⚠️ Extraction Pending | 0% | Domain archived (`_rs-archived/`); fresh skeleton installed (Phase 8 reintegration) |
-| **identity-rp** | ⚠️ Extraction Pending | 0% | Domain archived (`_rp-archived/`); fresh skeleton installed (Phase 8 reintegration) |
-| **identity-spa** | ⚠️ Extraction Pending | 0% | Domain archived (`_spa-archived/`); fresh skeleton installed (Phase 8 reintegration) |
+| **pki-ca** | ⚠️ Partial | ~40% | Domain under active development; E2E tests pending |
+| **identity-authz** | ⚠️ Partial | ~50% | Domain under active development; partial E2E tests |
+| **identity-idp** | ⚠️ Partial | ~50% | Domain under active development; partial E2E tests |
+| **identity-rs** | ⚠️ Partial | ~20% | Domain implementation started; E2E tests pending |
+| **identity-rp** | ⚠️ Partial | ~15% | Domain implementation started; E2E tests pending |
+| **identity-spa** | ⚠️ Partial | ~15% | Domain implementation started; E2E tests pending |
 | **skeleton-template** | ✅ Complete | ~95% | Best-practice stereotype template, dual HTTPS, Docker Compose, E2E tests |
 
 **Legend**: ✅ Complete (production-ready), ⚠️ Partial (functional but missing features), ❌ Not Started
@@ -829,7 +829,7 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 - **Purpose**: Best-practice stereotype product-service template for service-framework usage reference
 - **Capabilities**: Showcases all service-framework patterns with minimal domain logic
 - **Use Cases**: Reference implementation for new product-service creation, developer onboarding, service-framework validation
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete (~95%)
 - **Network Configuration**:
   - Address (Container): Private Admin Compose+K8s APIs: 127.0.0.1 (IPv4 only)
   - Address (Container): Public Browser+Service APIs: 0.0.0.0 (all interfaces, IPv4 only)
@@ -909,15 +909,15 @@ Three deployment scenarios each use distinct host port ranges to enable concurre
 
 | Product-Service Identifier | Address (Host) | Host Port | Container Address | Port Value (Container) |
 |---------|-----------|----------------|----------|----------------|
-| **pki-ca** | 127.0.0.1 | 54320 | 0.0.0.0 | 5432 |
-| **jose-ja** | 127.0.0.1 | 54321 | 0.0.0.0 | 5432 |
-| **sm-im** | 127.0.0.1 | 54322 | 0.0.0.0 | 5432 |
 | **sm-kms** | 127.0.0.1 | 54323 | 0.0.0.0 | 5432 |
+| **pki-ca** | 127.0.0.1 | 54320 | 0.0.0.0 | 5432 |
 | **identity-authz** | 127.0.0.1 | 54324 | 0.0.0.0 | 5432 |
 | **identity-idp** | 127.0.0.1 | 54325 | 0.0.0.0 | 5432 |
 | **identity-rs** | 127.0.0.1 | 54326 | 0.0.0.0 | 5432 |
 | **identity-rp** | 127.0.0.1 | 54327 | 0.0.0.0 | 5432 |
 | **identity-spa** | 127.0.0.1 | 54328 | 0.0.0.0 | 5432 |
+| **sm-im** | 127.0.0.1 | 54322 | 0.0.0.0 | 5432 |
+| **jose-ja** | 127.0.0.1 | 54321 | 0.0.0.0 | 5432 |
 | **skeleton-template** | 127.0.0.1 | 54329 | 0.0.0.0 | 5432 |
 
 #### 3.4.3 Telemetry Ports (Shared)
@@ -1504,13 +1504,13 @@ if session.CreatedAt.After(time.Now().UTC()) { ... }
 
 **mTLS Deployment Strategy**:
 
-| Phase | TLS Mode | Authentication | Status |
+| Stage | TLS Mode | Authentication | Status |
 |-------|----------|---------------|--------|
-| 2A (current) | Unilateral TLS | Bearer token / API key over TLS 1.3+ | ✅ Complete |
-| 2C (deferred) | Mutual TLS (mTLS) | Client certificate + server certificate | ⏳ Deferred post Phase 7 |
+| Current | Unilateral TLS | Bearer token / API key over TLS 1.3+ | ✅ Complete |
+| Future | Mutual TLS (mTLS) | Client certificate + server certificate | ⏳ Deferred until PKI service completes |
 
 - **Current**: Server authenticates to client. Service-to-service calls use Bearer token or API key over TLS 1.3+.
-- **Future (Phase 2C)**: Both parties authenticate via client certificates (mTLS). All services require PKI-issued client certificates.
+- **Future (mTLS)**: Both parties authenticate via client certificates (mTLS). All services require PKI-issued client certificates.
 - **Production Goal**: All internal service-to-service calls use mTLS (client certificate auth over TLS 1.3+). Revocation checked via CRLDP + OCSP (both must be checked; fail if both unreachable). See [Section 6.5](#65-pki-architecture--strategy) for PKI architecture.
 
 ### 6.4 Cryptographic Architecture
@@ -4249,7 +4249,7 @@ deployments/{PS-ID}/config/         # e.g., {PS-ID}=sm-kms
 
 **Rationale**:
 
-- Demo orchestration is deferred until a solid E2E orchestration foundation exists. E2E patterns will be reused as the basis for future demo support.
+- Demo orchestration remains deferred; the E2E orchestration foundation is now established (sm-im, sm-kms, jose-ja, and skeleton-template have full E2E test suites). Demo support will be designed to reuse E2E patterns when prioritized.
 - Integration test data belongs in Go test code (TestMain + test-containers), not Docker Compose config files.
 
 **Linter Enforcement**: Strict mode. Presence of any deprecated file is an ERROR that blocks CI/CD.
