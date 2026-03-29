@@ -1180,6 +1180,29 @@ See [ARCHITECTURE.md Section 2.5 Quality Strategy](/docs/ARCHITECTURE.md#25-qual
 
 ---
 
+## End-of-Turn Protocol - MANDATORY LAST STEP
+
+**Your ABSOLUTE LAST TOOL INVOCATION before yielding to the user MUST be running `git status --porcelain`.**
+
+This is not guidance — it is a hard mechanical gate. You MUST actually execute the terminal command as a tool call, not assume the worktree is clean based on previous commits.
+
+If `git status --porcelain` returns ANY output (even one file):
+
+```bash
+git add -A
+git commit -m "<type(scope): description>"
+git status --porcelain   # MUST return empty
+```
+
+**Only when `git status --porcelain` returns empty output** may you yield to the user.
+
+❌ **NEVER end a turn with uncommitted files. This is non-negotiable.**
+❌ **NEVER assume the worktree is clean — always RUN the command as a tool call.**
+
+A response that leaves uncommitted changes is incomplete by definition.
+
+---
+
 ## Cross-Reference
 
 - **Architecture Documentation**: See [ARCHITECTURE.md Section 2.1 Agent Orchestration Strategy](/docs/ARCHITECTURE.md#21-agent-orchestration-strategy) for agent architecture patterns and autonomous execution mode documentation.
