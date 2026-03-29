@@ -21,7 +21,7 @@ const (
 	IMServiceName = "im"
 
 	// IMServicePort is the default public HTTPS server port for sm-im.
-	IMServicePort = 8700
+	IMServicePort = 8100
 
 	// IMAdminPort is the default private admin HTTPS server port for sm-im.
 	IMAdminPort = 9090
@@ -174,13 +174,13 @@ const (
 	IME2EHealthPollInterval = 2 * time.Second
 
 	// IME2ESQLitePublicPort is the SQLite instance public HTTPS port.
-	IME2ESQLitePublicPort = 8700
+	IME2ESQLitePublicPort = 8100
 
 	// IME2EPostgreSQL1PublicPort is the PostgreSQL instance 1 public HTTPS port.
-	IME2EPostgreSQL1PublicPort = 8701
+	IME2EPostgreSQL1PublicPort = 8101
 
 	// IME2EPostgreSQL2PublicPort is the PostgreSQL instance 2 public HTTPS port.
-	IME2EPostgreSQL2PublicPort = 8702
+	IME2EPostgreSQL2PublicPort = 8102
 
 	// IME2EGrafanaPort is the Grafana UI port.
 	IME2EGrafanaPort = 3000

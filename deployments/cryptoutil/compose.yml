@@ -8,26 +8,26 @@
 #
 # Services (10 total):
 #   1. sm-kms (SM Key Management Service) - 28000-28002
-#   2. sm-im (SM Instant Messenger) - 28700-28702
-#   3. jose-ja (JOSE JWK Authority) - 28800-28802
-#   4. pki-ca (PKI Certificate Authority) - 28100-28102
-#   5. identity-authz (Identity Authorization Server) - 28200-28202
-#   6. identity-idp (Identity Provider) - 28300-28302
-#   7. identity-rs (Identity Resource Server) - 28400-28402
-#   8. identity-rp (Identity Relying Party) - 28500-28502
-#   9. identity-spa (Identity Single Page App) - 28600-28602
+#   2. sm-im (SM Instant Messenger) - 28100-28102
+#   3. jose-ja (JOSE JWK Authority) - 28200-28202
+#   4. pki-ca (PKI Certificate Authority) - 28300-28302
+#   5. identity-authz (Identity Authorization Server) - 28400-28402
+#   6. identity-idp (Identity Provider) - 28500-28502
+#   7. identity-rs (Identity Resource Server) - 28600-28602
+#   8. identity-rp (Identity Relying Party) - 28700-28702
+#   9. identity-spa (Identity Single Page App) - 28800-28802
 #  10. skeleton-template (Skeleton Template) - 28900-28902
 #
 # Port allocation (SUITE-level, base + 20000 offset):
 #   - sm-kms:         28000 (SQLite), 28001-28002 (PostgreSQL)
-#   - sm-im:          28700 (SQLite), 28701-28702 (PostgreSQL)
-#   - jose-ja:        28800 (SQLite), 28801-28802 (PostgreSQL)
-#   - pki-ca:         28100 (SQLite), 28101-28102 (PostgreSQL)
-#   - identity-authz: 28200 (SQLite), 28201-28202 (PostgreSQL)
-#   - identity-idp:   28300 (SQLite), 28301-28302 (PostgreSQL)
-#   - identity-rs:    28400 (SQLite), 28401-28402 (PostgreSQL)
-#   - identity-rp:    28500 (SQLite), 28501-28502 (PostgreSQL)
-#   - identity-spa:   28600 (SQLite), 28601-28602 (PostgreSQL)
+#   - sm-im:          28100 (SQLite), 28101-28102 (PostgreSQL)
+#   - jose-ja:        28200 (SQLite), 28201-28202 (PostgreSQL)
+#   - pki-ca:         28300 (SQLite), 28301-28302 (PostgreSQL)
+#   - identity-authz: 28400 (SQLite), 28401-28402 (PostgreSQL)
+#   - identity-idp:   28500 (SQLite), 28501-28502 (PostgreSQL)
+#   - identity-rs:    28600 (SQLite), 28601-28602 (PostgreSQL)
+#   - identity-rp:    28700 (SQLite), 28701-28702 (PostgreSQL)
+#   - identity-spa:   28800 (SQLite), 28801-28802 (PostgreSQL)
 #   - skeleton-template: 28900 (SQLite), 28901-28902 (PostgreSQL)
 #
 # Database ports (PostgreSQL leader/follower):
@@ -239,7 +239,7 @@ services:
     command: ["sm", "im", "server", "--bind-public-port=8080", "--config=/app/config/sm-im-app-sqlite-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28700:8000"
+      - "28100:8000"
     volumes:
       - ../sm-im/config/sm-im-app-sqlite-1.yml:/app/config/sm-im-app-sqlite-1.yml:ro
       - ../sm-im/config/sm-im-app-common.yml:/app/config/common.yml:ro
@@ -279,7 +279,7 @@ services:
     command: ["sm", "im", "server", "--bind-public-port=8080", "--config=/app/config/sm-im-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28701:8000"
+      - "28101:8000"
     volumes:
       - ../sm-im/config/sm-im-postgres.yml:/app/config/sm-im-postgres.yml:ro
       - ../sm-im/config/sm-im-app-common.yml:/app/config/common.yml:ro
@@ -326,7 +326,7 @@ services:
     command: ["sm", "im", "server", "--bind-public-port=8080", "--config=/app/config/sm-im-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28702:8000"
+      - "28102:8000"
     volumes:
       - ../sm-im/config/sm-im-postgres.yml:/app/config/sm-im-postgres.yml:ro
       - ../sm-im/config/sm-im-app-common.yml:/app/config/common.yml:ro
@@ -377,7 +377,7 @@ services:
     command: ["jose", "ja", "server", "--bind-public-port=8080", "--config=/app/config/jose-ja-app-sqlite-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28800:8000"
+      - "28200:8000"
     volumes:
       - ../jose-ja/config/jose-ja-app-sqlite-1.yml:/app/config/jose-ja-app-sqlite-1.yml:ro
       - ../jose-ja/config/jose-ja-app-common.yml:/app/config/common.yml:ro
@@ -417,7 +417,7 @@ services:
     command: ["jose", "ja", "server", "--bind-public-port=8080", "--config=/app/config/jose-ja-app-postgresql-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28801:8000"
+      - "28201:8000"
     volumes:
       - ../jose-ja/config/jose-ja-app-postgresql-1.yml:/app/config/jose-ja-app-postgresql-1.yml:ro
       - ../jose-ja/config/jose-ja-app-common.yml:/app/config/common.yml:ro
@@ -464,7 +464,7 @@ services:
     command: ["jose", "ja", "server", "--bind-public-port=8080", "--config=/app/config/jose-ja-app-postgresql-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28802:8000"
+      - "28202:8000"
     volumes:
       - ../jose-ja/config/jose-ja-app-postgresql-1.yml:/app/config/jose-ja-app-postgresql-1.yml:ro
       - ../jose-ja/config/jose-ja-app-common.yml:/app/config/common.yml:ro
@@ -515,7 +515,7 @@ services:
     command: ["pki", "ca", "server", "--bind-public-port=8080", "--config=/app/config/pki-ca-app-sqlite-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28100:8000" # HTTPS public
+      - "28300:8000" # HTTPS public
     volumes:
       - ../pki-ca/config/pki-ca-app-sqlite-1.yml:/app/config/pki-ca-app-sqlite-1.yml:ro
       - ../pki-ca/config/pki-ca-app-common.yml:/app/config/common.yml:ro
@@ -555,7 +555,7 @@ services:
     command: ["pki", "ca", "server", "--bind-public-port=8080", "--config=/app/config/pki-ca-app-postgresql-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28101:8000"
+      - "28301:8000"
     volumes:
       - ../pki-ca/config/pki-ca-app-postgresql-1.yml:/app/config/pki-ca-app-postgresql-1.yml:ro
       - ../pki-ca/config/pki-ca-app-common.yml:/app/config/common.yml:ro
@@ -602,7 +602,7 @@ services:
     command: ["pki", "ca", "server", "--bind-public-port=8080", "--config=/app/config/pki-ca-app-postgresql-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28102:8000"
+      - "28302:8000"
     volumes:
       - ../pki-ca/config/pki-ca-app-postgresql-1.yml:/app/config/pki-ca-app-postgresql-1.yml:ro
       - ../pki-ca/config/pki-ca-app-common.yml:/app/config/common.yml:ro
@@ -653,7 +653,7 @@ services:
     command: ["identity", "authz", "server", "--bind-public-port=8080", "--config=/app/config/identity-authz-sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28200:8000"
+      - "28400:8000"
     volumes:
       - ../identity-authz/config/identity-authz-sqlite.yml:/app/config/identity-authz-sqlite.yml:ro
       - ../identity-authz/config/identity-authz-common.yml:/app/config/common.yml:ro
@@ -693,7 +693,7 @@ services:
     command: ["identity", "authz", "server", "--bind-public-port=8080", "--config=/app/config/identity-authz-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28201:8000"
+      - "28401:8000"
     volumes:
       - ../identity-authz/config/identity-authz-postgres.yml:/app/config/identity-authz-postgres.yml:ro
       - ../identity-authz/config/identity-authz-common.yml:/app/config/common.yml:ro
@@ -740,7 +740,7 @@ services:
     command: ["identity", "authz", "server", "--bind-public-port=8080", "--config=/app/config/identity-authz-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28202:8000"
+      - "28402:8000"
     volumes:
       - ../identity-authz/config/identity-authz-postgres.yml:/app/config/identity-authz-postgres.yml:ro
       - ../identity-authz/config/identity-authz-common.yml:/app/config/common.yml:ro
@@ -791,7 +791,7 @@ services:
     command: ["identity", "idp", "server", "--bind-public-port=8080", "--config=/app/config/identity-idp-sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28300:8000"
+      - "28500:8000"
     volumes:
       - ../identity-idp/config/identity-idp-sqlite.yml:/app/config/identity-idp-sqlite.yml:ro
       - ../identity-idp/config/identity-idp-common.yml:/app/config/common.yml:ro
@@ -831,7 +831,7 @@ services:
     command: ["identity", "idp", "server", "--bind-public-port=8080", "--config=/app/config/identity-idp-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28301:8000"
+      - "28501:8000"
     volumes:
       - ../identity-idp/config/identity-idp-postgres.yml:/app/config/identity-idp-postgres.yml:ro
       - ../identity-idp/config/identity-idp-common.yml:/app/config/common.yml:ro
@@ -878,7 +878,7 @@ services:
     command: ["identity", "idp", "server", "--bind-public-port=8080", "--config=/app/config/identity-idp-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28302:8000"
+      - "28502:8000"
     volumes:
       - ../identity-idp/config/identity-idp-postgres.yml:/app/config/identity-idp-postgres.yml:ro
       - ../identity-idp/config/identity-idp-common.yml:/app/config/common.yml:ro
@@ -929,7 +929,7 @@ services:
     command: ["identity", "rs", "server", "--bind-public-port=8080", "--config=/app/config/identity-rs-sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28400:8000"
+      - "28600:8000"
     volumes:
       - ../identity-rs/config/identity-rs-sqlite.yml:/app/config/identity-rs-sqlite.yml:ro
       - ../identity-rs/config/identity-rs-common.yml:/app/config/common.yml:ro
@@ -969,7 +969,7 @@ services:
     command: ["identity", "rs", "server", "--bind-public-port=8080", "--config=/app/config/identity-rs-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28401:8000"
+      - "28601:8000"
     volumes:
       - ../identity-rs/config/identity-rs-postgres.yml:/app/config/identity-rs-postgres.yml:ro
       - ../identity-rs/config/identity-rs-common.yml:/app/config/common.yml:ro
@@ -1016,7 +1016,7 @@ services:
     command: ["identity", "rs", "server", "--bind-public-port=8080", "--config=/app/config/identity-rs-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28402:8000"
+      - "28602:8000"
     volumes:
       - ../identity-rs/config/identity-rs-postgres.yml:/app/config/identity-rs-postgres.yml:ro
       - ../identity-rs/config/identity-rs-common.yml:/app/config/common.yml:ro
@@ -1067,7 +1067,7 @@ services:
     command: ["identity", "rp", "server", "--bind-public-port=8080", "--config=/app/config/identity-rp-sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28500:8000"
+      - "28700:8000"
     volumes:
       - ../identity-rp/config/identity-rp-sqlite.yml:/app/config/identity-rp-sqlite.yml:ro
       - ../identity-rp/config/identity-rp-common.yml:/app/config/common.yml:ro
@@ -1107,7 +1107,7 @@ services:
     command: ["identity", "rp", "server", "--bind-public-port=8080", "--config=/app/config/identity-rp-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28501:8000"
+      - "28701:8000"
     volumes:
       - ../identity-rp/config/identity-rp-postgres.yml:/app/config/identity-rp-postgres.yml:ro
       - ../identity-rp/config/identity-rp-common.yml:/app/config/common.yml:ro
@@ -1154,7 +1154,7 @@ services:
     command: ["identity", "rp", "server", "--bind-public-port=8080", "--config=/app/config/identity-rp-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28502:8000"
+      - "28702:8000"
     volumes:
       - ../identity-rp/config/identity-rp-postgres.yml:/app/config/identity-rp-postgres.yml:ro
       - ../identity-rp/config/identity-rp-common.yml:/app/config/common.yml:ro
@@ -1205,7 +1205,7 @@ services:
     command: ["identity", "spa", "server", "--bind-public-port=8080", "--config=/app/config/identity-spa-sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28600:8000"
+      - "28800:8000"
     volumes:
       - ../identity-spa/config/identity-spa-sqlite.yml:/app/config/identity-spa-sqlite.yml:ro
       - ../identity-spa/config/identity-spa-common.yml:/app/config/common.yml:ro
@@ -1245,7 +1245,7 @@ services:
     command: ["identity", "spa", "server", "--bind-public-port=8080", "--config=/app/config/identity-spa-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28601:8000"
+      - "28801:8000"
     volumes:
       - ../identity-spa/config/identity-spa-postgres.yml:/app/config/identity-spa-postgres.yml:ro
       - ../identity-spa/config/identity-spa-common.yml:/app/config/common.yml:ro
@@ -1292,7 +1292,7 @@ services:
     command: ["identity", "spa", "server", "--bind-public-port=8080", "--config=/app/config/identity-spa-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28602:8000"
+      - "28802:8000"
     volumes:
       - ../identity-spa/config/identity-spa-postgres.yml:/app/config/identity-spa-postgres.yml:ro
       - ../identity-spa/config/identity-spa-common.yml:/app/config/common.yml:ro

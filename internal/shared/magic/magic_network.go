@@ -71,6 +71,9 @@ const (
 
 	// FQDNLabelMaxLength - Maximum length of a single DNS label (63 characters).
 	FQDNLabelMaxLength = 63
+
+	// EmailDomainMaxLength - Maximum length of the domain part of an email address (255 characters per RFC 5321).
+	EmailDomainMaxLength = 255
 )
 
 // Rate limiting constants.
@@ -137,13 +140,13 @@ const (
 	DefaultPublicPortCryptoutilCompose2 uint16 = 8002
 
 	// DefaultPublicPortJOSEServer - Port for JOSE Authority Server.
-	DefaultPublicPortJOSEServer uint16 = 8800
+	DefaultPublicPortJOSEServer uint16 = 8200
 
 	// DefaultPublicPortCAServer - Port for CA Server.
-	DefaultPublicPortCAServer uint16 = 8100
+	DefaultPublicPortCAServer uint16 = 8300
 
 	// DefaultPublicPortSmIM - Port for SM Instant Messenger service.
-	DefaultPublicPortSmIM uint16 = 8700
+	DefaultPublicPortSmIM uint16 = 8100
 	// DefaultPrivatePortSmIM - Admin port for SM Instant Messenger service.
 	DefaultPrivatePortSmIM uint16 = 9090
 

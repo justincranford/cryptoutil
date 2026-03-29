@@ -86,7 +86,7 @@ var ServicePorts = map[string]ServicePortConfig{
 	},
 	cryptoutilSharedMagic.OTLPServiceIdentityIDP: {
 		Name:          cryptoutilSharedMagic.OTLPServiceIdentityIDP,
-		PublicPorts:   []uint16{cryptoutilSharedMagic.IdentityDefaultIDPPort, 8301}, // 8300 default, 8301 for E2E (avoids conflict with authz)
+		PublicPorts:   []uint16{cryptoutilSharedMagic.IdentityDefaultIDPPort, 8501}, // 8500 default, 8501 for E2E (avoids conflict with authz)
 		AdminPort:     StandardAdminPort,
 		LegacyPorts:   []uint16{8110, 8111, 8112},
 		MagicConstant: "IdentityIdpServicePort",
@@ -107,7 +107,7 @@ var ServicePorts = map[string]ServicePortConfig{
 	},
 	cryptoutilSharedMagic.OTLPServiceIdentitySPA: {
 		Name:          cryptoutilSharedMagic.OTLPServiceIdentitySPA,
-		PublicPorts:   []uint16{8600},
+		PublicPorts:   []uint16{cryptoutilSharedMagic.IdentitySPAServicePort},
 		AdminPort:     StandardAdminPort,
 		LegacyPorts:   []uint16{8140, 8141, 8142},
 		MagicConstant: "IdentitySpaServicePort",

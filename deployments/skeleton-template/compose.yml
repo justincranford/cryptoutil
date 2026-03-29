@@ -9,7 +9,7 @@
 #   - skeleton-template-app-sqlite-1:    8900 (SQLite, dev/ci)
 #   - skeleton-template-app-postgres-1:  8901 (PostgreSQL instance 1) [--profile postgres]
 #   - skeleton-template-app-postgres-2:  8902 (PostgreSQL instance 2) [--profile postgres]
-#   - skeleton-template-db-postgres-1:   5432 (PostgreSQL database) [--profile postgres]
+#   - skeleton-template-db-postgres-1:   54329 (PostgreSQL database) [--profile postgres]
 #
 # Usage:
 #   docker compose -f compose.yml up -d                        # SQLite (default: dev profile)
@@ -72,7 +72,7 @@ services:
       POSTGRES_DB_FILE: /run/secrets/postgres-database.secret
     shm_size: 256mb
     ports:
-      - "5432:5432"
+      - "127.0.0.1:54329:5432"
     volumes:
       - postgres-data:/var/lib/postgresql
     secrets:
@@ -104,7 +104,7 @@ services:
     command: ["server", "--config=/app/config/skeleton-template-app-sqlite-1.yml", "--config=/app/config/skeleton-template-app-common.yml", "--config=/app/otel/otel.yml", "-u", "sqlite://file::memory:?cache=shared", "--bind-public-port=8080"]
     working_dir: /tmp
     ports:
-      - "8900:8080"  # HTTPS public
+      - "8900:8080" # HTTPS public
     volumes:
       - ./config/skeleton-template-app-sqlite-1.yml:/app/config/skeleton-template-app-sqlite-1.yml:ro
       - ./config/skeleton-template-app-common.yml:/app/config/skeleton-template-app-common.yml:ro
@@ -147,7 +147,7 @@ services:
     command: ["server", "--config=/app/config/skeleton-template-app-postgresql-1.yml", "--config=/app/config/skeleton-template-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret", "--bind-public-port=8080"]
     working_dir: /tmp
     ports:
-      - "8901:8080"  # HTTPS public
+      - "8901:8080" # HTTPS public
     volumes:
       - ./config/skeleton-template-app-postgresql-1.yml:/app/config/skeleton-template-app-postgresql-1.yml:ro
       - ./config/skeleton-template-app-common.yml:/app/config/skeleton-template-app-common.yml:ro
@@ -193,7 +193,7 @@ services:
     command: ["server", "--config=/app/config/skeleton-template-app-postgresql-2.yml", "--config=/app/config/skeleton-template-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret", "--bind-public-port=8080"]
     working_dir: /tmp
     ports:
-      - "8902:8080"  # HTTPS public
+      - "8902:8080" # HTTPS public
     volumes:
       - ./config/skeleton-template-app-postgresql-2.yml:/app/config/skeleton-template-app-postgresql-2.yml:ro
       - ./config/skeleton-template-app-common.yml:/app/config/skeleton-template-app-common.yml:ro

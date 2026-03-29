@@ -6,16 +6,16 @@ package magic
 
 // Identity service default ports.
 // Port ranges per service catalog (architecture.md):
-// - identity-authz: 8200-8299
-// - identity-idp: 8300-8399
-// - identity-rs: 8400-8499
+// - identity-authz: 8400-8499
+// - identity-idp: 8500-8599
+// - identity-rs: 8600-8699
 // All admin ports: 9090.
 const (
-	IdentityDefaultAuthZPort      = 8200 // Default AuthZ server port.
+	IdentityDefaultAuthZPort      = 8400 // Default AuthZ server port.
 	IdentityDefaultAuthZAdminPort = 9090 // Default AuthZ admin port.
-	IdentityDefaultIDPPort        = 8300 // Default IDP server port.
+	IdentityDefaultIDPPort        = 8500 // Default IDP server port.
 	IdentityDefaultIDPAdminPort   = 9090 // Default IDP admin port.
-	IdentityDefaultRSPort         = 8400 // Default RS server port.
+	IdentityDefaultRSPort         = 8600 // Default RS server port.
 	IdentityDefaultRSAdminPort    = 9090 // Default RS admin port.
 )
 

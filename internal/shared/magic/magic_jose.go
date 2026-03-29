@@ -20,7 +20,7 @@ const (
 	JoseJAServiceName = "ja"
 
 	// JoseJAServicePort is the default public API port for jose-ja service.
-	JoseJAServicePort = 8800
+	JoseJAServicePort = 8200
 
 	// JoseJAAdminPort is the admin API port (same for all services).
 	JoseJAAdminPort = 9090
@@ -91,14 +91,14 @@ const (
 	// JoseJAE2EHealthPollInterval is the interval between health check attempts.
 	JoseJAE2EHealthPollInterval = 2 * time.Second
 
-	// JoseJAE2ESQLitePublicPort is the SQLite instance public HTTPS port (PRODUCT level: 18800).
-	JoseJAE2ESQLitePublicPort = 18800
+	// JoseJAE2ESQLitePublicPort is the SQLite instance public HTTPS port (PRODUCT level: 18200).
+	JoseJAE2ESQLitePublicPort = 18200
 
-	// JoseJAE2EPostgreSQL1PublicPort is the PostgreSQL instance 1 public HTTPS port (PRODUCT level: 18801).
-	JoseJAE2EPostgreSQL1PublicPort = 18801
+	// JoseJAE2EPostgreSQL1PublicPort is the PostgreSQL instance 1 public HTTPS port (PRODUCT level: 18201).
+	JoseJAE2EPostgreSQL1PublicPort = 18201
 
-	// JoseJAE2EPostgreSQL2PublicPort is the PostgreSQL instance 2 public HTTPS port (PRODUCT level: 18802).
-	JoseJAE2EPostgreSQL2PublicPort = 18802
+	// JoseJAE2EPostgreSQL2PublicPort is the PostgreSQL instance 2 public HTTPS port (PRODUCT level: 18202).
+	JoseJAE2EPostgreSQL2PublicPort = 18202
 
 	// JoseJAE2EGrafanaPort is the Grafana port for E2E tests.
 	JoseJAE2EGrafanaPort = 3000

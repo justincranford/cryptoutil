@@ -84,7 +84,7 @@ services:
       POSTGRES_DB_FILE: /run/secrets/postgres-database.secret
     shm_size: 256mb
     ports:
-      - "5432:5432"
+      - "127.0.0.1:54320:5432"
     volumes:
       - postgres-data:/var/lib/postgresql
     secrets:
@@ -116,7 +116,7 @@ services:
     command: ["sm", "kms", "server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/sm-kms-app-sqlite-1.yml", "--config=/app/config/sm-kms-app-common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "8000:8080"  # HTTPS public
+      - "8000:8080" # HTTPS public
     volumes:
       - ./config/sm-kms-app-sqlite-1.yml:/app/config/sm-kms-app-sqlite-1.yml:ro
       - ./config/sm-kms-app-common.yml:/app/config/sm-kms-app-common.yml:ro
@@ -162,7 +162,7 @@ services:
     command: ["sm", "kms", "server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/sm-kms-app-postgresql-1.yml", "--config=/app/config/sm-kms-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
-      - "8001:8080"  # HTTPS public
+      - "8001:8080" # HTTPS public
     volumes:
       - ./config/sm-kms-app-postgresql-1.yml:/app/config/sm-kms-app-postgresql-1.yml:ro
       - ./config/sm-kms-app-common.yml:/app/config/sm-kms-app-common.yml:ro
@@ -211,7 +211,7 @@ services:
     command: ["sm", "kms", "server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/sm-kms-app-postgresql-2.yml", "--config=/app/config/sm-kms-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
-      - "8002:8080"  # HTTPS public
+      - "8002:8080" # HTTPS public
     volumes:
       - ./config/sm-kms-app-postgresql-2.yml:/app/config/sm-kms-app-postgresql-2.yml:ro
       - ./config/sm-kms-app-common.yml:/app/config/sm-kms-app-common.yml:ro

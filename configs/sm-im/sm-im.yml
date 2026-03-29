@@ -17,8 +17,8 @@ observability:
 
 # Database Configuration
 database:
-  type: "sqlite"  # Development default
-  dsn: ":memory:"  # In-memory for development
+  type: "sqlite" # Development default
+  dsn: ":memory:" # In-memory for development
   # For PostgreSQL, use:
   # type: "postgres"
   # dsn: "postgres://user:pass@localhost:5432/sm_im?sslmode=disable"
@@ -31,7 +31,7 @@ database:
 # Public Server Configuration
 server:
   bind_address: "127.0.0.1"
-  bind_port: 8700
+  bind_port: 8100
   protocol: "https"
   read_timeout: 30s
   write_timeout: 30s
@@ -48,8 +48,8 @@ admin:
 tls:
   # Development/Test - self-signed certificates
   enabled: true
-  cert_file: ""  # Auto-generated if empty
-  key_file: ""   # Auto-generated if empty
+  cert_file: "" # Auto-generated if empty
+  key_file: "" # Auto-generated if empty
   # Production - use Docker secrets
   # cert_file: "file:///run/secrets/tls_cert"
   # key_file: "file:///run/secrets/tls_key"
@@ -70,12 +70,12 @@ rate_limit:
 cors:
   enabled: true
   allowed_origins:
-    - "http://localhost:8700"
-    - "http://127.0.0.1:8700"
-    - "http://[::1]:8700"
-    - "https://localhost:8700"
-    - "https://127.0.0.1:8700"
-    - "https://[::1]:8700"
+    - "http://localhost:8100"
+    - "http://127.0.0.1:8100"
+    - "http://[::1]:8100"
+    - "https://localhost:8100"
+    - "https://127.0.0.1:8100"
+    - "https://[::1]:8100"
   allowed_methods:
     - "GET"
     - "POST"
@@ -90,10 +90,10 @@ cors:
 # Session Configuration
 # Browser session algorithm (OPAQUE, JWS, JWE)
 browser-session-algorithm: "JWS"
-browser-session-jws-algorithm: "HS256"  # HS256 for faster testing (symmetric key)
+browser-session-jws-algorithm: "HS256" # HS256 for faster testing (symmetric key)
 browser-session-jwe-algorithm: "dir+A256GCM"
 
 # Service session algorithm (OPAQUE, JWS, JWE)
 service-session-algorithm: "JWS"
-service-session-jws-algorithm: "HS256"  # HS256 for faster testing (symmetric key)
+service-session-jws-algorithm: "HS256" # HS256 for faster testing (symmetric key)
 service-session-jwe-algorithm: "dir+A256GCM"

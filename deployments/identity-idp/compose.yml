@@ -5,11 +5,11 @@
 # SERVICE-level deployment for Identity Provider.
 # Supports 3 instances: 1 SQLite + 2 PostgreSQL.
 #
-# Port allocation (SERVICE level: 8300-8399):
-#   - identity-idp-app-sqlite-1:    8300 (SQLite, dev/ci)
-#   - identity-idp-app-postgres-1:  8301 (PostgreSQL instance 1) [--profile postgres]
-#   - identity-idp-app-postgres-2:  8302 (PostgreSQL instance 2) [--profile postgres]
-#   - identity-idp-db-postgres-1:   5432 (PostgreSQL database) [--profile postgres]
+# Port allocation (SERVICE level: 8500-8599):
+#   - identity-idp-app-sqlite-1:    8500 (SQLite, dev/ci)
+#   - identity-idp-app-postgres-1:  8501 (PostgreSQL instance 1) [--profile postgres]
+#   - identity-idp-app-postgres-2:  8502 (PostgreSQL instance 2) [--profile postgres]
+#   - identity-idp-db-postgres-1:   54325 (PostgreSQL database) [--profile postgres]
 #
 # Usage:
 #   docker compose -f compose.yml up -d                        # SQLite (default: dev profile)
@@ -19,7 +19,7 @@
 #   docker compose -f compose.yml down -v                      # Stop and clean up
 #
 # Health Checks:
-#   - Public health endpoint: https://localhost:8300/browser/api/v1/health
+#   - Public health endpoint: https://localhost:8500/browser/api/v1/health
 #   - Admin livez endpoint: https://127.0.0.1:9090/admin/api/v1/livez (internal only)
 #
 include:
@@ -69,7 +69,7 @@ services:
       POSTGRES_DB_FILE: /run/secrets/postgres-database.secret
     shm_size: 256mb
     ports:
-      - "5432:5432"
+      - "127.0.0.1:54325:5432"
     volumes:
       - postgres-data:/var/lib/postgresql
     secrets:
@@ -100,7 +100,7 @@ services:
     command: ["--config=/app/config/identity-idp-app-sqlite-1.yml", "--config=/app/config/identity-idp-app-common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "8300:8080"
+      - "8500:8080"
     volumes:
       - ./config/identity-idp-app-sqlite-1.yml:/app/config/identity-idp-app-sqlite-1.yml:ro
       - ./config/identity-idp-app-common.yml:/app/config/identity-idp-app-common.yml:ro
@@ -142,7 +142,7 @@ services:
     command: ["--config=/app/config/identity-idp-app-postgresql-1.yml", "--config=/app/config/identity-idp-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
-      - "8301:8080"
+      - "8501:8080"
     volumes:
       - ./config/identity-idp-app-postgresql-1.yml:/app/config/identity-idp-app-postgresql-1.yml:ro
       - ./config/identity-idp-app-common.yml:/app/config/identity-idp-app-common.yml:ro
@@ -187,7 +187,7 @@ services:
     command: ["--config=/app/config/identity-idp-app-postgresql-2.yml", "--config=/app/config/identity-idp-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
-      - "8302:8080"
+      - "8502:8080"
     volumes:
       - ./config/identity-idp-app-postgresql-2.yml:/app/config/identity-idp-app-postgresql-2.yml:ro
       - ./config/identity-idp-app-common.yml:/app/config/identity-idp-app-common.yml:ro

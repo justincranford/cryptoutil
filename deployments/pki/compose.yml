@@ -6,9 +6,9 @@
 # Supports 3 instances: 1 SQLite + 2 PostgreSQL.
 #
 # Port allocation:
-#   - pki-ca-app-sqlite-1:    18100 (SQLite, dev/ci)
-#   - pki-ca-app-postgres-1:  18101 (PostgreSQL instance 1)
-#   - pki-ca-app-postgres-2:  18102 (PostgreSQL instance 2)
+#   - pki-ca-app-sqlite-1:    18300 (SQLite, dev/ci)
+#   - pki-ca-app-postgres-1:  18301 (PostgreSQL instance 1)
+#   - pki-ca-app-postgres-2:  18302 (PostgreSQL instance 2)
 #
 # Usage:
 #   docker compose -f compose.yml up -d                        # SQLite (default: dev profile)
@@ -18,7 +18,7 @@
 #   docker compose -f compose.yml down -v                      # Stop and clean up
 #
 # Health Checks:
-#   - Public:  https://localhost:18100/browser/api/v1/health
+#   - Public:  https://localhost:18300/browser/api/v1/health
 #   - Admin:   https://127.0.0.1:9090/admin/api/v1/livez (container-internal only)
 #
 
@@ -72,7 +72,7 @@ services:
       POSTGRES_DB_FILE: /run/secrets/postgres-database.secret
     shm_size: 256mb
     ports:
-      - "5432:5432"
+      - "127.0.0.1:54323:5432"
     volumes:
       - postgres_data:/var/lib/postgresql
     secrets:
@@ -104,7 +104,7 @@ services:
     command: ["pki", "ca", "server", "--bind-public-port=8080", "--config=/app/config/pki-ca-app-sqlite-1.yml", "--config=/app/config/pki-ca-app-common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "18100:8080"
+      - "18300:8080"
     volumes:
       - ../pki-ca/config/pki-ca-app-sqlite-1.yml:/app/config/pki-ca-app-sqlite-1.yml:ro
       - ../pki-ca/config/pki-ca-app-common.yml:/app/config/pki-ca-app-common.yml:ro
@@ -145,7 +145,7 @@ services:
     command: ["pki", "ca", "server", "--bind-public-port=8080", "--config=/app/config/pki-ca-app-postgresql-1.yml", "--config=/app/config/pki-ca-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
-      - "18101:8080"
+      - "18301:8080"
     volumes:
       - ../pki-ca/config/pki-ca-app-postgresql-1.yml:/app/config/pki-ca-app-postgresql-1.yml:ro
       - ../pki-ca/config/pki-ca-app-common.yml:/app/config/pki-ca-app-common.yml:ro
@@ -189,7 +189,7 @@ services:
     command: ["pki", "ca", "server", "--bind-public-port=8080", "--config=/app/config/pki-ca-app-postgresql-2.yml", "--config=/app/config/pki-ca-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
-      - "18102:8080"
+      - "18302:8080"
     volumes:
       - ../pki-ca/config/pki-ca-app-postgresql-2.yml:/app/config/pki-ca-app-postgresql-2.yml:ro
       - ../pki-ca/config/pki-ca-app-common.yml:/app/config/pki-ca-app-common.yml:ro

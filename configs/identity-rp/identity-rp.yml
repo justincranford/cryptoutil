@@ -3,7 +3,7 @@
 rp:
   name: rp-server
   bind_address: 127.0.0.1
-  port: 8500
+  port: 8700
   tls_enabled: false
   read_timeout: 30s
   write_timeout: 30s
@@ -22,12 +22,12 @@ database:
   auto_migrate: true
 
 # OAuth 2.1 Provider settings
-authz_server_url: https://localhost:8200
-client_id: ""  # Must be configured
-client_secret: ""  # Must be configured via Docker secret (file:///run/secrets/client_secret)
-redirect_uri: ""  # Must be configured
-spa_origin: https://localhost:8600
-session_secret: ""  # Must be configured via Docker secret (file:///run/secrets/session_secret)
+authz_server_url: https://localhost:8400
+client_id: "" # Must be configured
+client_secret: "" # Must be configured via Docker secret (file:///run/secrets/client_secret)
+redirect_uri: "" # Must be configured
+spa_origin: https://localhost:8800
+session_secret: "" # Must be configured via Docker secret (file:///run/secrets/session_secret)
 
 telemetry:
   enabled: true

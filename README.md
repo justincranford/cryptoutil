@@ -172,8 +172,8 @@ Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8888/me
 - **5432**: PostgreSQL database
 - **8000**: sm-kms public API (HTTPS)
 - **8001-8002**: Additional sm-kms instances in Docker Compose (HTTPS)
-- **8800**: JOSE Authority Server (HTTPS)
-- **8100**: Certificate Authority Server (HTTPS)
+- **8200**: JOSE Authority Server (HTTPS)
+- **8300**: Certificate Authority Server (HTTPS)
 - **9090**: cryptoutil private admin API (health checks, graceful shutdown) on all instances
 - **14317**: Grafana OTLP gRPC receiver (telemetry ingress)
 - **14318**: Grafana OTLP HTTP receiver (telemetry ingress)
@@ -185,8 +185,8 @@ Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8888/me
 - **Loki**: Integrated log aggregation
 - **Tempo**: Integrated trace storage
 - **OpenTelemetry Collector**: Receives telemetry from cryptoutil services
-- **JOSE Authority Server**: <https://localhost:8800> (cryptographic operations)
-- **Certificate Authority**: <https://localhost:8100> (X.509 certificate management)
+- **JOSE Authority Server**: <https://localhost:8200> (cryptographic operations)
+- **Certificate Authority**: <https://localhost:8300> (X.509 certificate management)
 
 ### 🏗️ Production Ready
 
@@ -329,25 +329,25 @@ go run main.go --dev --config=./configs/sm/config-sqlite-1.yml
 #### Identity System APIs
 
 - **AuthZ Service** (OAuth 2.1 Authorization Server):
-  - **Base URL**: <https://localhost:8200>
-  - **Swagger UI**: <https://localhost:8200/ui/swagger>
-  - **OpenAPI Spec**: <https://localhost:8200/ui/swagger/doc.json>
+  - **Base URL**: <https://localhost:8400>
+  - **Swagger UI**: <https://localhost:8400/ui/swagger>
+  - **OpenAPI Spec**: <https://localhost:8400/ui/swagger/doc.json>
   - **OAuth 2.1 Endpoints**: `/oauth2/v1/authorize`, `/oauth2/v1/token`, `/oauth2/v1/introspect`, `/oauth2/v1/revoke`
   - **Health**: `/health`
   - **Documentation**: See [OpenAPI Guide](docs/02-identityV2/historical/openapi-guide.md) for detailed API documentation
 
 - **IdP Service** (OpenID Connect Identity Provider):
-  - **Base URL**: <https://localhost:8300>
-  - **Swagger UI**: <https://localhost:8300/ui/swagger>
-  - **OpenAPI Spec**: <https://localhost:8300/ui/swagger/doc.json>
+  - **Base URL**: <https://localhost:8500>
+  - **Swagger UI**: <https://localhost:8500/ui/swagger>
+  - **OpenAPI Spec**: <https://localhost:8500/ui/swagger/doc.json>
   - **OIDC Endpoints**: `/oidc/v1/login`, `/oidc/v1/consent`, `/oidc/v1/userinfo`, `/oidc/v1/logout`
   - **Health**: `/health`
   - **Documentation**: See [OpenAPI Guide](docs/02-identityV2/historical/openapi-guide.md) for detailed API documentation
 
 - **RS Service** (OAuth 2.1 Resource Server):
-  - **Base URL**: <https://localhost:8400>
-  - **Swagger UI**: <https://localhost:8400/ui/swagger>
-  - **OpenAPI Spec**: <https://localhost:8400/ui/swagger/doc.json>
+  - **Base URL**: <https://localhost:8600>
+  - **Swagger UI**: <https://localhost:8600/ui/swagger>
+  - **OpenAPI Spec**: <https://localhost:8600/ui/swagger/doc.json>
   - **API Endpoints**: `/api/v1/public/health`, `/api/v1/protected/resource`, `/api/v1/admin/*`
   - **Health**: `/api/v1/public/health`
   - **Documentation**: See [OpenAPI Guide](docs/02-identityV2/historical/openapi-guide.md) for detailed API documentation
@@ -355,9 +355,9 @@ go run main.go --dev --config=./configs/sm/config-sqlite-1.yml
 #### JOSE Authority Server APIs
 
 - **JOSE Authority Service** (JOSE Cryptographic Operations):
-  - **Base URL**: <https://localhost:8800>
-  - **Swagger UI**: <https://localhost:8800/ui/swagger>
-  - **OpenAPI Spec**: <https://localhost:8800/ui/swagger/doc.json>
+  - **Base URL**: <https://localhost:8200>
+  - **Swagger UI**: <https://localhost:8200/ui/swagger>
+  - **OpenAPI Spec**: <https://localhost:8200/ui/swagger/doc.json>
   - **API Endpoints**:
     - `/jose/v1/sign` - Sign data with JWS
     - `/jose/v1/verify` - Verify JWS signatures
@@ -369,9 +369,9 @@ go run main.go --dev --config=./configs/sm/config-sqlite-1.yml
 #### Certificate Authority APIs
 
 - **CA Service** (X.509 Certificate Authority):
-  - **Base URL**: <https://localhost:8100>
-  - **Swagger UI**: <https://localhost:8100/ui/swagger>
-  - **OpenAPI Spec**: <https://localhost:8100/ui/swagger/doc.json>
+  - **Base URL**: <https://localhost:8300>
+  - **Swagger UI**: <https://localhost:8300/ui/swagger>
+  - **OpenAPI Spec**: <https://localhost:8300/ui/swagger/doc.json>
   - **API Endpoints**:
     - `/ca/v1/certificates` - Certificate lifecycle management
     - `/ca/v1/csr` - Certificate signing request operations

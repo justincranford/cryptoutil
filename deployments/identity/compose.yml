@@ -6,22 +6,22 @@
 # Supports 3 instances per service: 1 SQLite + 2 PostgreSQL (15 app instances total).
 #
 # Port allocation:
-#   - identity-authz-app-sqlite-1:    18200 (SQLite, dev/ci)
-#   - identity-authz-app-postgres-1:  18201 (PostgreSQL instance 1)
-#   - identity-authz-app-postgres-2:  18202 (PostgreSQL instance 2)
-#   - identity-idp-app-sqlite-1:      18300 (SQLite, dev/ci)
-#   - identity-idp-app-postgres-1:    18301 (PostgreSQL instance 1)
-#   - identity-idp-app-postgres-2:    18302 (PostgreSQL instance 2)
-#   - identity-rs-app-sqlite-1:       18400 (SQLite, dev/ci)
-#   - identity-rs-app-postgres-1:     18401 (PostgreSQL instance 1)
-#   - identity-rs-app-postgres-2:     18402 (PostgreSQL instance 2)
-#   - identity-rp-app-sqlite-1:       18500 (SQLite, dev/ci)
-#   - identity-rp-app-postgres-1:     18501 (PostgreSQL instance 1)
-#   - identity-rp-app-postgres-2:     18502 (PostgreSQL instance 2)
-#   - identity-spa-app-sqlite-1:      18600 (SQLite, dev/ci)
-#   - identity-spa-app-postgres-1:    18601 (PostgreSQL instance 1)
-#   - identity-spa-app-postgres-2:    18602 (PostgreSQL instance 2)
-#   - identity-db-postgres-1:         5432  (PostgreSQL, shared by ALL services)
+#   - identity-authz-app-sqlite-1:    18400 (SQLite, dev/ci)
+#   - identity-authz-app-postgres-1:  18401 (PostgreSQL instance 1)
+#   - identity-authz-app-postgres-2:  18402 (PostgreSQL instance 2)
+#   - identity-idp-app-sqlite-1:      18500 (SQLite, dev/ci)
+#   - identity-idp-app-postgres-1:    18501 (PostgreSQL instance 1)
+#   - identity-idp-app-postgres-2:    18502 (PostgreSQL instance 2)
+#   - identity-rs-app-sqlite-1:       18600 (SQLite, dev/ci)
+#   - identity-rs-app-postgres-1:     18601 (PostgreSQL instance 1)
+#   - identity-rs-app-postgres-2:     18602 (PostgreSQL instance 2)
+#   - identity-rp-app-sqlite-1:       18700 (SQLite, dev/ci)
+#   - identity-rp-app-postgres-1:     18701 (PostgreSQL instance 1)
+#   - identity-rp-app-postgres-2:     18702 (PostgreSQL instance 2)
+#   - identity-spa-app-sqlite-1:      18800 (SQLite, dev/ci)
+#   - identity-spa-app-postgres-1:    18801 (PostgreSQL instance 1)
+#   - identity-spa-app-postgres-2:    18802 (PostgreSQL instance 2)
+#   - identity-db-postgres-1:         54324 (PostgreSQL, shared by ALL services)
 #
 # Usage:
 #   docker compose -f compose.yml up -d                        # SQLite (default: dev profile)
@@ -31,7 +31,7 @@
 #   docker compose -f compose.yml down -v                      # Stop and clean up
 #
 # Health Checks:
-#   - Public:  https://localhost:18200/browser/api/v1/health (authz)
+#   - Public:  https://localhost:18400/browser/api/v1/health (authz)
 #   - Admin:   https://127.0.0.1:9090/admin/api/v1/livez (container-internal only)
 #
 
@@ -85,7 +85,7 @@ services:
       POSTGRES_DB_FILE: /run/secrets/postgres-database.secret
     shm_size: 256mb
     ports:
-      - "5432:5432"
+      - "127.0.0.1:54324:5432"
     volumes:
       - postgres_data:/var/lib/postgresql
     secrets:
@@ -111,7 +111,7 @@ services:
           memory: 256M
 
   ##############################################################################
-  # AUTHZ SERVICE (Authorization Server) - Ports 18200-18202
+  # AUTHZ SERVICE (Authorization Server) - Ports 18400-18402
   ##############################################################################
 
   # Authz server with SQLite backend (dev/ci mode).
@@ -121,7 +121,7 @@ services:
     command: ["identity", "authz", "server", "--bind-public-port=8080", "--config=/app/config/identity-authz-app-sqlite-1.yml", "--config=/app/config/identity-authz-app-common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "18200:8080"
+      - "18400:8080"
     volumes:
       - ../identity-authz/config/identity-authz-app-sqlite-1.yml:/app/config/identity-authz-app-sqlite-1.yml:ro
       - ../identity-authz/config/identity-authz-app-common.yml:/app/config/identity-authz-app-common.yml:ro
@@ -162,7 +162,7 @@ services:
     command: ["identity", "authz", "server", "--bind-public-port=8080", "--config=/app/config/identity-authz-app-postgresql-1.yml", "--config=/app/config/identity-authz-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
-      - "18201:8080"
+      - "18401:8080"
     volumes:
       - ../identity-authz/config/identity-authz-app-postgresql-1.yml:/app/config/identity-authz-app-postgresql-1.yml:ro
       - ../identity-authz/config/identity-authz-app-common.yml:/app/config/identity-authz-app-common.yml:ro
@@ -206,7 +206,7 @@ services:
     command: ["identity", "authz", "server", "--bind-public-port=8080", "--config=/app/config/identity-authz-app-postgresql-2.yml", "--config=/app/config/identity-authz-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
-      - "18202:8080"
+      - "18402:8080"
     volumes:
       - ../identity-authz/config/identity-authz-app-postgresql-2.yml:/app/config/identity-authz-app-postgresql-2.yml:ro
       - ../identity-authz/config/identity-authz-app-common.yml:/app/config/identity-authz-app-common.yml:ro
@@ -246,7 +246,7 @@ services:
           memory: 128M
 
   ##############################################################################
-  # IDP SERVICE (Identity Provider) - Ports 18300-18302
+  # IDP SERVICE (Identity Provider) - Ports 18500-18502
   ##############################################################################
 
   # IdP server with SQLite backend (dev/ci mode).
@@ -256,7 +256,7 @@ services:
     command: ["identity", "idp", "server", "--bind-public-port=8080", "--config=/app/config/identity-idp-app-sqlite-1.yml", "--config=/app/config/identity-idp-app-common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "18300:8080"
+      - "18500:8080"
     volumes:
       - ../identity-idp/config/identity-idp-app-sqlite-1.yml:/app/config/identity-idp-app-sqlite-1.yml:ro
       - ../identity-idp/config/identity-idp-app-common.yml:/app/config/identity-idp-app-common.yml:ro
@@ -297,7 +297,7 @@ services:
     command: ["identity", "idp", "server", "--bind-public-port=8080", "--config=/app/config/identity-idp-app-postgresql-1.yml", "--config=/app/config/identity-idp-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
-      - "18301:8080"
+      - "18501:8080"
     volumes:
       - ../identity-idp/config/identity-idp-app-postgresql-1.yml:/app/config/identity-idp-app-postgresql-1.yml:ro
       - ../identity-idp/config/identity-idp-app-common.yml:/app/config/identity-idp-app-common.yml:ro
@@ -341,7 +341,7 @@ services:
     command: ["identity", "idp", "server", "--bind-public-port=8080", "--config=/app/config/identity-idp-app-postgresql-2.yml", "--config=/app/config/identity-idp-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
-      - "18302:8080"
+      - "18502:8080"
     volumes:
       - ../identity-idp/config/identity-idp-app-postgresql-2.yml:/app/config/identity-idp-app-postgresql-2.yml:ro
       - ../identity-idp/config/identity-idp-app-common.yml:/app/config/identity-idp-app-common.yml:ro
@@ -381,7 +381,7 @@ services:
           memory: 128M
 
   ##############################################################################
-  # RS SERVICE (Resource Server) - Ports 18400-18402
+  # RS SERVICE (Resource Server) - Ports 18600-18602
   ##############################################################################
 
   # RS server with SQLite backend (dev/ci mode).
@@ -391,7 +391,7 @@ services:
     command: ["identity", "rs", "server", "--bind-public-port=8080", "--config=/app/config/identity-rs-app-sqlite-1.yml", "--config=/app/config/identity-rs-app-common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "18400:8080"
+      - "18600:8080"
     volumes:
       - ../identity-rs/config/identity-rs-app-sqlite-1.yml:/app/config/identity-rs-app-sqlite-1.yml:ro
       - ../identity-rs/config/identity-rs-app-common.yml:/app/config/identity-rs-app-common.yml:ro
@@ -432,7 +432,7 @@ services:
     command: ["identity", "rs", "server", "--bind-public-port=8080", "--config=/app/config/identity-rs-app-postgresql-1.yml", "--config=/app/config/identity-rs-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
-      - "18401:8080"
+      - "18601:8080"
     volumes:
       - ../identity-rs/config/identity-rs-app-postgresql-1.yml:/app/config/identity-rs-app-postgresql-1.yml:ro
       - ../identity-rs/config/identity-rs-app-common.yml:/app/config/identity-rs-app-common.yml:ro
@@ -476,7 +476,7 @@ services:
     command: ["identity", "rs", "server", "--bind-public-port=8080", "--config=/app/config/identity-rs-app-postgresql-2.yml", "--config=/app/config/identity-rs-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
-      - "18402:8080"
+      - "18602:8080"
     volumes:
       - ../identity-rs/config/identity-rs-app-postgresql-2.yml:/app/config/identity-rs-app-postgresql-2.yml:ro
       - ../identity-rs/config/identity-rs-app-common.yml:/app/config/identity-rs-app-common.yml:ro
@@ -516,7 +516,7 @@ services:
           memory: 128M
 
   ##############################################################################
-  # RP SERVICE (Relying Party) - Ports 18500-18502
+  # RP SERVICE (Relying Party) - Ports 18700-18702
   ##############################################################################
 
   # RP server with SQLite backend (dev/ci mode).
@@ -526,7 +526,7 @@ services:
     command: ["identity", "rp", "server", "--bind-public-port=8080", "--config=/app/config/identity-rp-app-sqlite-1.yml", "--config=/app/config/identity-rp-app-common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "18500:8080"
+      - "18700:8080"
     volumes:
       - ../identity-rp/config/identity-rp-app-sqlite-1.yml:/app/config/identity-rp-app-sqlite-1.yml:ro
       - ../identity-rp/config/identity-rp-app-common.yml:/app/config/identity-rp-app-common.yml:ro
@@ -567,7 +567,7 @@ services:
     command: ["identity", "rp", "server", "--bind-public-port=8080", "--config=/app/config/identity-rp-app-postgresql-1.yml", "--config=/app/config/identity-rp-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
-      - "18501:8080"
+      - "18701:8080"
     volumes:
       - ../identity-rp/config/identity-rp-app-postgresql-1.yml:/app/config/identity-rp-app-postgresql-1.yml:ro
       - ../identity-rp/config/identity-rp-app-common.yml:/app/config/identity-rp-app-common.yml:ro
@@ -611,7 +611,7 @@ services:
     command: ["identity", "rp", "server", "--bind-public-port=8080", "--config=/app/config/identity-rp-app-postgresql-2.yml", "--config=/app/config/identity-rp-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
-      - "18502:8080"
+      - "18702:8080"
     volumes:
       - ../identity-rp/config/identity-rp-app-postgresql-2.yml:/app/config/identity-rp-app-postgresql-2.yml:ro
       - ../identity-rp/config/identity-rp-app-common.yml:/app/config/identity-rp-app-common.yml:ro
@@ -651,7 +651,7 @@ services:
           memory: 128M
 
   ##############################################################################
-  # SPA SERVICE (Single Page App) - Ports 18600-18602
+  # SPA SERVICE (Single Page App) - Ports 18800-18802
   ##############################################################################
 
   # SPA server with SQLite backend (dev/ci mode).
@@ -661,7 +661,7 @@ services:
     command: ["identity", "spa", "server", "--bind-public-port=8080", "--config=/app/config/identity-spa-app-sqlite-1.yml", "--config=/app/config/identity-spa-app-common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "18600:8080"
+      - "18800:8080"
     volumes:
       - ../identity-spa/config/identity-spa-app-sqlite-1.yml:/app/config/identity-spa-app-sqlite-1.yml:ro
       - ../identity-spa/config/identity-spa-app-common.yml:/app/config/identity-spa-app-common.yml:ro
@@ -702,7 +702,7 @@ services:
     command: ["identity", "spa", "server", "--bind-public-port=8080", "--config=/app/config/identity-spa-app-postgresql-1.yml", "--config=/app/config/identity-spa-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
-      - "18601:8080"
+      - "18801:8080"
     volumes:
       - ../identity-spa/config/identity-spa-app-postgresql-1.yml:/app/config/identity-spa-app-postgresql-1.yml:ro
       - ../identity-spa/config/identity-spa-app-common.yml:/app/config/identity-spa-app-common.yml:ro
@@ -746,7 +746,7 @@ services:
     command: ["identity", "spa", "server", "--bind-public-port=8080", "--config=/app/config/identity-spa-app-postgresql-2.yml", "--config=/app/config/identity-spa-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
-      - "18602:8080"
+      - "18802:8080"
     volumes:
       - ../identity-spa/config/identity-spa-app-postgresql-2.yml:/app/config/identity-spa-app-postgresql-2.yml:ro
       - ../identity-spa/config/identity-spa-app-common.yml:/app/config/identity-spa-app-common.yml:ro

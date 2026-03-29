@@ -5,11 +5,11 @@
 # SERVICE-level deployment for JOSE JWK Authority.
 # Supports 3 instances: 1 SQLite + 2 PostgreSQL.
 #
-# Port allocation (SERVICE level: 8800-8899):
-#   - jose-ja-app-sqlite-1:    8800 (SQLite, dev/ci)
-#   - jose-ja-app-postgres-1:  8801 (PostgreSQL instance 1) [--profile postgres]
-#   - jose-ja-app-postgres-2:  8802 (PostgreSQL instance 2) [--profile postgres]
-#   - jose-ja-db-postgres-1:   5432 (PostgreSQL database) [--profile postgres]
+# Port allocation (SERVICE level: 8200-8299):
+#   - jose-ja-app-sqlite-1:    8200 (SQLite, dev/ci)
+#   - jose-ja-app-postgres-1:  8201 (PostgreSQL instance 1) [--profile postgres]
+#   - jose-ja-app-postgres-2:  8202 (PostgreSQL instance 2) [--profile postgres]
+#   - jose-ja-db-postgres-1:   54322 (PostgreSQL database) [--profile postgres]
 #
 # Usage:
 #   docker compose -f compose.yml up -d                        # SQLite (default: dev profile)
@@ -19,7 +19,7 @@
 #   docker compose -f compose.yml down -v                      # Stop and clean up
 #
 # Health Checks:
-#   - Public health endpoint: https://localhost:8800/browser/api/v1/health
+#   - Public health endpoint: https://localhost:8200/browser/api/v1/health
 #   - Admin livez endpoint: https://127.0.0.1:9090/admin/api/v1/livez (internal only)
 #
 include:
@@ -72,7 +72,7 @@ services:
       POSTGRES_DB_FILE: /run/secrets/postgres-database.secret
     shm_size: 256mb
     ports:
-      - "5432:5432"
+      - "127.0.0.1:54322:5432"
     volumes:
       - postgres-data:/var/lib/postgresql
     secrets:
@@ -104,7 +104,7 @@ services:
     command: ["server", "--config=/app/config/jose-ja-app-sqlite-1.yml", "--config=/app/config/jose-ja-app-common.yml", "--config=/app/otel/otel.yml", "-u", "sqlite://file::memory:?cache=shared", "--bind-public-port=8080"]
     working_dir: /tmp
     ports:
-      - "8800:8080"  # HTTPS public
+      - "8200:8080" # HTTPS public
     volumes:
       - ./config/jose-ja-app-sqlite-1.yml:/app/config/jose-ja-app-sqlite-1.yml:ro
       - ./config/jose-ja-app-common.yml:/app/config/jose-ja-app-common.yml:ro
@@ -147,7 +147,7 @@ services:
     command: ["server", "--config=/app/config/jose-ja-app-postgresql-1.yml", "--config=/app/config/jose-ja-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret", "--bind-public-port=8080"]
     working_dir: /tmp
     ports:
-      - "8801:8080"  # HTTPS public
+      - "8201:8080" # HTTPS public
     volumes:
       - ./config/jose-ja-app-postgresql-1.yml:/app/config/jose-ja-app-postgresql-1.yml:ro
       - ./config/jose-ja-app-common.yml:/app/config/jose-ja-app-common.yml:ro
@@ -193,7 +193,7 @@ services:
     command: ["server", "--config=/app/config/jose-ja-app-postgresql-2.yml", "--config=/app/config/jose-ja-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret", "--bind-public-port=8080"]
     working_dir: /tmp
     ports:
-      - "8802:8080"  # HTTPS public
+      - "8202:8080" # HTTPS public
     volumes:
       - ./config/jose-ja-app-postgresql-2.yml:/app/config/jose-ja-app-postgresql-2.yml:ro
       - ./config/jose-ja-app-common.yml:/app/config/jose-ja-app-common.yml:ro

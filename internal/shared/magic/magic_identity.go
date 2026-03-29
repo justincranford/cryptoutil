@@ -90,11 +90,11 @@ const (
 
 // Identity service port and OTLP constants.
 // Port ranges per service catalog (architecture.md):
-// - identity-authz: 8200-8299
-// - identity-idp: 8300-8399
-// - identity-rs: 8400-8499
-// - identity-rp: 8500-8599
-// - identity-spa: 8600-8699.
+// - identity-authz: 8400-8499
+// - identity-idp: 8500-8599
+// - identity-rs: 8600-8699
+// - identity-rp: 8700-8799
+// - identity-spa: 8800-8899.
 const (
 	// IdentityProductName is the product name component of the Identity product.
 	IdentityProductName = "identity"
@@ -109,7 +109,7 @@ const (
 	AuthzServiceName = "authz"
 
 	// IdentityAuthzServicePort is the default public port for identity-authz service.
-	IdentityAuthzServicePort = uint16(8200)
+	IdentityAuthzServicePort = uint16(8400)
 
 	// OTLPServiceIdentityIDP is the OTLP service name for identity-idp.
 	OTLPServiceIdentityIDP = "identity-idp"
@@ -121,7 +121,7 @@ const (
 	IDPServiceName = "idp"
 
 	// IdentityIDPServicePort is the default public port for identity-idp service.
-	IdentityIDPServicePort = uint16(8300)
+	IdentityIDPServicePort = uint16(8500)
 
 	// OTLPServiceIdentityRS is the OTLP service name for identity-rs.
 	OTLPServiceIdentityRS = "identity-rs"
@@ -133,7 +133,7 @@ const (
 	RSServiceName = "rs"
 
 	// IdentityRSServicePort is the default public port for identity-rs service.
-	IdentityRSServicePort = uint16(8400)
+	IdentityRSServicePort = uint16(8600)
 
 	// OTLPServiceIdentityRP is the OTLP service name for identity-rp.
 	OTLPServiceIdentityRP = "identity-rp"
@@ -145,7 +145,7 @@ const (
 	RPServiceName = "rp"
 
 	// IdentityRPServicePort is the default public port for identity-rp service.
-	IdentityRPServicePort = uint16(8500)
+	IdentityRPServicePort = uint16(8700)
 
 	// OTLPServiceIdentitySPA is the OTLP service name for identity-spa.
 	OTLPServiceIdentitySPA = "identity-spa"
@@ -157,7 +157,7 @@ const (
 	SPAServiceName = "spa"
 
 	// IdentitySPAServicePort is the default public port for identity-spa service.
-	IdentitySPAServicePort = uint16(8600)
+	IdentitySPAServicePort = uint16(8800)
 )
 
 // E2E Test Configuration for identity services.
@@ -191,19 +191,19 @@ const (
 	IdentityE2EHealthPollInterval = 2 * time.Second
 
 	// IdentityE2EAuthzPublicPort is the identity-authz PRODUCT-level public HTTPS port.
-	IdentityE2EAuthzPublicPort = 18200
+	IdentityE2EAuthzPublicPort = 18400
 
 	// IdentityE2EIDPPublicPort is the identity-idp PRODUCT-level public HTTPS port.
-	IdentityE2EIDPPublicPort = 18300
+	IdentityE2EIDPPublicPort = 18500
 
 	// IdentityE2ERSPublicPort is the identity-rs PRODUCT-level public HTTPS port.
-	IdentityE2ERSPublicPort = 18400
+	IdentityE2ERSPublicPort = 18600
 
 	// IdentityE2ERPPublicPort is the identity-rp PRODUCT-level public HTTPS port.
-	IdentityE2ERPPublicPort = 18500
+	IdentityE2ERPPublicPort = 18700
 
 	// IdentityE2ESPAPublicPort is the identity-spa PRODUCT-level public HTTPS port.
-	IdentityE2ESPAPublicPort = 18600
+	IdentityE2ESPAPublicPort = 18800
 
 	// IdentityE2EHealthEndpoint is the public health check endpoint.
 	// Uses /service/api/v1/health for headless client health checks (per 02-03.https-ports.instructions.md).

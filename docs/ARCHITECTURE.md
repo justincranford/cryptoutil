@@ -656,14 +656,14 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 | Product | Service | Product-Service Identifier | Address (Container) [Admin] | Address (Container) [Public] | Address (Host) [Public] | Port Value (Container) [Admin] | Port Value (Container) [Public] | Port Range (Host) [Service Deployment] | Port Range (Host) [Product Deployment] | Port Range (Host) [Suite Deployment] | Description |
 |---------|---------|----------------------------|-----------------------------|-----------------------------|-------------------------|--------------------------------|---------------------------------|----------------------------------------|----------------------------------------|--------------------------------------|-------------|
 | **Secrets Manager (SM)** | **Key Management Service (KMS)** | **sm-kms** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8000-8099 | 18000-18099 | 28000-28099 | Elastic key management, encryption-at-rest |
-| **Secrets Manager (SM)** | **Instant Messenger (IM)** | **sm-im** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8700-8799 | 18700-18799 | 28700-28799 | E2E encrypted messaging, encryption-at-rest |
-| **JSON Object Signing and Encryption (JOSE)** | **JWK Authority (JA)** | **jose-ja** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8800-8899 | 18800-18899 | 28800-28899 | JWK/JWS/JWE/JWT operations |
-| **Private Key Infrastructure (PKI)** | **Certificate Authority (CA)** | **pki-ca** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8100-8199 | 18100-18199 | 28100-28199 | X.509 certificates, EST, SCEP, OCSP, CRL |
-| **Identity** | **Authorization Server (Authz)** | **identity-authz** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8200-8299 | 18200-18299 | 28200-28299 | OAuth 2.1 authorization server |
-| **Identity** | **Identity Provider (IdP)** | **identity-idp** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8300-8399 | 18300-18399 | 28300-28399 | OIDC 1.0 Identity Provider |
-| **Identity** | **Resource Server (RS)** | **identity-rs** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8400-8499 | 18400-18499 | 28400-28499 | OAuth 2.1 Resource Server |
-| **Identity** | **Relying Party (RP)** | **identity-rp** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8500-8599 | 18500-18599 | 28500-28599 | OAuth 2.1 Relying Party |
-| **Identity** | **Single Page Application (SPA)** | **identity-spa** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8600-8699 | 18600-18699 | 28600-28699 | OAuth 2.1 Single Page Application |
+| **Secrets Manager (SM)** | **Instant Messenger (IM)** | **sm-im** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8100-8199 | 18100-18199 | 28100-28199 | E2E encrypted messaging, encryption-at-rest |
+| **JSON Object Signing and Encryption (JOSE)** | **JWK Authority (JA)** | **jose-ja** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8200-8299 | 18200-18299 | 28200-28299 | JWK/JWS/JWE/JWT operations |
+| **Private Key Infrastructure (PKI)** | **Certificate Authority (CA)** | **pki-ca** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8300-8399 | 18300-18399 | 28300-28399 | X.509 certificates, EST, SCEP, OCSP, CRL |
+| **Identity** | **Authorization Server (Authz)** | **identity-authz** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8400-8499 | 18400-18499 | 28400-28499 | OAuth 2.1 authorization server |
+| **Identity** | **Identity Provider (IdP)** | **identity-idp** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8500-8599 | 18500-18599 | 28500-28599 | OIDC 1.0 Identity Provider |
+| **Identity** | **Resource Server (RS)** | **identity-rs** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8600-8699 | 18600-18699 | 28600-28699 | OAuth 2.1 Resource Server |
+| **Identity** | **Relying Party (RP)** | **identity-rp** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8700-8799 | 18700-18799 | 28700-28799 | OAuth 2.1 Relying Party |
+| **Identity** | **Single Page Application (SPA)** | **identity-spa** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8800-8899 | 18800-18899 | 28800-28899 | OAuth 2.1 Single Page Application |
 | **Skeleton** | **Template** | **skeleton-template** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8900-8999 | 18900-18999 | 28900-28999 | Best-practice stereotype product-service template |
 
 **Implementation Status**:
@@ -709,9 +709,9 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 - Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
 - Port Value (Container): Private Admin Compose+K8s APIs: 9090
 - Port Value (Container): Public Browser+Service APIs: 8080
-- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8700-8799
-- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18700-18799
-- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28700-28799
+- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8100-8199
+- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18100-18199
+- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28100-28199
 
 #### 3.2.2 JSON Object Signing and Encryption (JOSE) Product (1 Service)
 
@@ -725,9 +725,9 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 - Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
 - Port Value (Container): Private Admin Compose+K8s APIs: 9090
 - Port Value (Container): Public Browser+Service APIs: 8080
-- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8800-8899
-- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18800-18899
-- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28800-28899
+- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8200-8299
+- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18200-18299
+- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28200-28299
 
 #### 3.2.3 Public Key Infrastructure (PKI) Product
 
@@ -741,9 +741,9 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 - Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
 - Port Value (Container): Private Admin Compose+K8s APIs: 9090
 - Port Value (Container): Public Browser+Service APIs: 8080
-- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8100-8199
-- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18100-18199
-- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28100-28199
+- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8300-8399
+- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18300-18399
+- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28300-28399
 
 #### 3.2.4 Identity Product
 
@@ -759,9 +759,9 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 - Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
 - Port Value (Container): Private Admin Compose+K8s APIs: 9090
 - Port Value (Container): Public Browser+Service APIs: 8080
-- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8200-8299
-- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18200-18299
-- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28200-28299
+- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8400-8499
+- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18400-18499
+- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28400-28499
 
 ##### 3.2.4.2 OIDC 1.0 Identity Provider (IdP) Service
 
@@ -775,9 +775,9 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 - Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
 - Port Value (Container): Private Admin Compose+K8s APIs: 9090
 - Port Value (Container): Public Browser+Service APIs: 8080
-- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8300-8399
-- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18300-18399
-- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28300-28399
+- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8500-8599
+- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18500-18599
+- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28500-28599
 
 ##### 3.2.4.3 OAuth 2.1 Resource Server (RS) Service
 
@@ -789,9 +789,9 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 - Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
 - Port Value (Container): Private Admin Compose+K8s APIs: 9090
 - Port Value (Container): Public Browser+Service APIs: 8080
-- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8400-8499
-- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18400-18499
-- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28400-28499
+- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8600-8699
+- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18600-18699
+- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28600-28699
 
 ##### 3.2.4.4 OAuth 2.1 Relying Party (RP) Service
 
@@ -803,9 +803,9 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 - Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
 - Port Value (Container): Private Admin Compose+K8s APIs: 9090
 - Port Value (Container): Public Browser+Service APIs: 8080
-- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8500-8599
-- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18500-18599
-- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28500-28599
+- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8700-8799
+- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18700-18799
+- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28700-28799
 
 ##### 3.2.4.5 OAuth 2.1 Single Page Application (SPA) Service
 
@@ -817,9 +817,9 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 - Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
 - Port Value (Container): Private Admin Compose+K8s APIs: 9090
 - Port Value (Container): Public Browser+Service APIs: 8080
-- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8600-8699
-- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18600-18699
-- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28600-28699
+- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8800-8899
+- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18800-18899
+- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28800-28899
 
 #### 3.2.5 Skeleton Product
 
@@ -885,17 +885,17 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 Three deployment scenarios each use distinct host port ranges to enable concurrent operation:
 
 1. **Service Deployment** (8XXX): Single isolated service
-   - Port Range: Service-specific base (e.g., 8100-8199 for pki-ca)
+   - Port Range: Service-specific base (e.g., 8300-8399 for pki-ca)
    - Use Case: Independent service development, testing, or production deployment
-   - Example: `pki-ca` alone uses host ports 8100-8199
+   - Example: `pki-ca` alone uses host ports 8300-8399
 
 2. **Product Deployment** (18XXX): All services within a product
-   - Port Range: Service-specific base + 10000 offset (e.g., 18100-18199 for pki-ca)
+   - Port Range: Service-specific base + 10000 offset (e.g., 18300-18399 for pki-ca)
    - Use Case: Product-level integration testing, product-only deployments
-   - Example: All PKI services (currently only pki-ca) use host ports 18100-18199
+   - Example: All PKI services (currently only pki-ca) use host ports 18300-18399
 
 3. **Suite Deployment** (28XXX): All services across all products
-   - Port Range: Service-specific base + 20000 offset (e.g., 28100-28199 for pki-ca)
+   - Port Range: Service-specific base + 20000 offset (e.g., 28300-28399 for pki-ca)
    - Use Case: Full system integration, E2E testing, complete production suite
    - Example: All 10 services across 5 products use host ports 28000-28999
 
@@ -909,15 +909,15 @@ Three deployment scenarios each use distinct host port ranges to enable concurre
 
 | Product-Service Identifier | Address (Host) | Host Port | Container Address | Port Value (Container) |
 |---------|-----------|----------------|----------|----------------|
-| **sm-kms** | 127.0.0.1 | 54323 | 0.0.0.0 | 5432 |
-| **pki-ca** | 127.0.0.1 | 54320 | 0.0.0.0 | 5432 |
+| **sm-kms** | 127.0.0.1 | 54320 | 0.0.0.0 | 5432 |
+| **sm-im** | 127.0.0.1 | 54321 | 0.0.0.0 | 5432 |
+| **jose-ja** | 127.0.0.1 | 54322 | 0.0.0.0 | 5432 |
+| **pki-ca** | 127.0.0.1 | 54323 | 0.0.0.0 | 5432 |
 | **identity-authz** | 127.0.0.1 | 54324 | 0.0.0.0 | 5432 |
 | **identity-idp** | 127.0.0.1 | 54325 | 0.0.0.0 | 5432 |
 | **identity-rs** | 127.0.0.1 | 54326 | 0.0.0.0 | 5432 |
 | **identity-rp** | 127.0.0.1 | 54327 | 0.0.0.0 | 5432 |
 | **identity-spa** | 127.0.0.1 | 54328 | 0.0.0.0 | 5432 |
-| **sm-im** | 127.0.0.1 | 54322 | 0.0.0.0 | 5432 |
-| **jose-ja** | 127.0.0.1 | 54321 | 0.0.0.0 | 5432 |
 | **skeleton-template** | 127.0.0.1 | 54329 | 0.0.0.0 | 5432 |
 
 #### 3.4.3 Telemetry Ports (Shared)

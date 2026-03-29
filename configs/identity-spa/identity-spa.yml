@@ -3,7 +3,7 @@
 spa:
   name: spa-server
   bind_address: 127.0.0.1
-  port: 8600
+  port: 8800
   tls_enabled: false
   read_timeout: 30s
   write_timeout: 30s
@@ -24,8 +24,8 @@ database:
 # SPA-specific settings
 static_files_path: ./static
 index_file: index.html
-rp_origin: ""  # Optional: Relying Party (BFF) origin for API proxying
-cache_control_max_age: 3600  # 1 hour
+rp_origin: "" # Optional: Relying Party (BFF) origin for API proxying
+cache_control_max_age: 3600 # 1 hour
 enable_gzip: true
 enable_brotli: true
 csp_directives: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'"

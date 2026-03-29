@@ -40,10 +40,10 @@ func TestAllValidPublicPorts(t *testing.T) {
 	require.Contains(t, ports, uint16(cryptoutilSharedMagic.KMSE2EPostgreSQL2PublicPort)) // sm-kms
 	require.Contains(t, ports, uint16(cryptoutilSharedMagic.IdentityDefaultAuthZPort))    // identity-authz
 	require.Contains(t, ports, uint16(cryptoutilSharedMagic.IdentityDefaultIDPPort))      // identity-idp
-	require.Contains(t, ports, uint16(8301))                                              // identity-idp E2E (avoids conflict with authz)
+	require.Contains(t, ports, uint16(8501))                                              // identity-idp E2E (avoids conflict with authz)
 	require.Contains(t, ports, uint16(cryptoutilSharedMagic.IdentityDefaultRSPort))       // identity-rs
 	require.Contains(t, ports, uint16(cryptoutilSharedMagic.DefaultSPARPPort))            // identity-rp
-	require.Contains(t, ports, uint16(8600))                                              // identity-spa
+	require.Contains(t, ports, uint16(cryptoutilSharedMagic.IdentitySPAServicePort))      // identity-spa
 }
 
 func TestIsOtelCollectorPort(t *testing.T) {

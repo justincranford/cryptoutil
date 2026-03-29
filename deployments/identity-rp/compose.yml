@@ -5,11 +5,11 @@
 # SERVICE-level deployment for Identity Relying Party.
 # Supports 3 instances: 1 SQLite + 2 PostgreSQL.
 #
-# Port allocation (SERVICE level: 8500-8599):
-#   - identity-rp-app-sqlite-1:    8500 (SQLite, dev/ci)
-#   - identity-rp-app-postgres-1:  8501 (PostgreSQL instance 1) [--profile postgres]
-#   - identity-rp-app-postgres-2:  8502 (PostgreSQL instance 2) [--profile postgres]
-#   - identity-rp-db-postgres-1:   5432 (PostgreSQL database) [--profile postgres]
+# Port allocation (SERVICE level: 8700-8799):
+#   - identity-rp-app-sqlite-1:    8700 (SQLite, dev/ci)
+#   - identity-rp-app-postgres-1:  8701 (PostgreSQL instance 1) [--profile postgres]
+#   - identity-rp-app-postgres-2:  8702 (PostgreSQL instance 2) [--profile postgres]
+#   - identity-rp-db-postgres-1:   54327 (PostgreSQL database) [--profile postgres]
 #
 # Usage:
 #   docker compose -f compose.yml up -d                        # SQLite (default: dev profile)
@@ -19,7 +19,7 @@
 #   docker compose -f compose.yml down -v                      # Stop and clean up
 #
 # Health Checks:
-#   - Public health endpoint: https://localhost:8500/browser/api/v1/health
+#   - Public health endpoint: https://localhost:8700/browser/api/v1/health
 #   - Admin livez endpoint: https://127.0.0.1:9090/admin/api/v1/livez (internal only)
 #
 include:
@@ -69,7 +69,7 @@ services:
       POSTGRES_DB_FILE: /run/secrets/postgres-database.secret
     shm_size: 256mb
     ports:
-      - "5432:5432"
+      - "127.0.0.1:54327:5432"
     volumes:
       - postgres-data:/var/lib/postgresql
     secrets:
@@ -100,7 +100,7 @@ services:
     command: ["--config=/app/config/identity-rp-app-sqlite-1.yml", "--config=/app/config/identity-rp-app-common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "8500:8080"
+      - "8700:8080"
     volumes:
       - ./config/identity-rp-app-sqlite-1.yml:/app/config/identity-rp-app-sqlite-1.yml:ro
       - ./config/identity-rp-app-common.yml:/app/config/identity-rp-app-common.yml:ro
@@ -142,7 +142,7 @@ services:
     command: ["--config=/app/config/identity-rp-app-postgresql-1.yml", "--config=/app/config/identity-rp-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
-      - "8501:8080"
+      - "8701:8080"
     volumes:
       - ./config/identity-rp-app-postgresql-1.yml:/app/config/identity-rp-app-postgresql-1.yml:ro
       - ./config/identity-rp-app-common.yml:/app/config/identity-rp-app-common.yml:ro
@@ -187,7 +187,7 @@ services:
     command: ["--config=/app/config/identity-rp-app-postgresql-2.yml", "--config=/app/config/identity-rp-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
-      - "8502:8080"
+      - "8702:8080"
     volumes:
       - ./config/identity-rp-app-postgresql-2.yml:/app/config/identity-rp-app-postgresql-2.yml:ro
       - ./config/identity-rp-app-common.yml:/app/config/identity-rp-app-common.yml:ro

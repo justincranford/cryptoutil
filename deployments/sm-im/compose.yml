@@ -5,11 +5,11 @@
 # SERVICE-level deployment for Secrets Manager Instant Messenger.
 # Supports 3 instances: 1 SQLite + 2 PostgreSQL.
 #
-# Port allocation (SERVICE level: 8700-8799):
-#   - sm-im-app-sqlite-1:    8700 (SQLite, dev/ci)
-#   - sm-im-app-postgres-1:  8701 (PostgreSQL instance 1) [--profile postgres]
-#   - sm-im-app-postgres-2:  8702 (PostgreSQL instance 2) [--profile postgres]
-#   - sm-im-db-postgres-1:   5432 (PostgreSQL database) [--profile postgres]
+# Port allocation (SERVICE level: 8100-8199):
+#   - sm-im-app-sqlite-1:    8100 (SQLite, dev/ci)
+#   - sm-im-app-postgres-1:  8101 (PostgreSQL instance 1) [--profile postgres]
+#   - sm-im-app-postgres-2:  8102 (PostgreSQL instance 2) [--profile postgres]
+#   - sm-im-db-postgres-1:   54321 (PostgreSQL database) [--profile postgres]
 #
 # Usage:
 #   docker compose -f compose.yml up -d                        # SQLite (default: dev profile)
@@ -19,7 +19,7 @@
 #   docker compose -f compose.yml down -v                      # Stop and clean up
 #
 # Health Checks:
-#   - Public health endpoint: https://localhost:8700/browser/api/v1/health
+#   - Public health endpoint: https://localhost:8100/browser/api/v1/health
 #   - Admin livez endpoint: https://127.0.0.1:9090/admin/api/v1/livez (internal only)
 #
 include:
@@ -84,7 +84,7 @@ services:
       POSTGRES_DB_FILE: /run/secrets/postgres-database.secret
     shm_size: 256mb
     ports:
-      - "5432:5432"
+      - "127.0.0.1:54321:5432"
     volumes:
       - postgres-data:/var/lib/postgresql
     secrets:
@@ -116,7 +116,7 @@ services:
     command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/sm-im-app-sqlite-1.yml", "--config=/app/config/sm-im-app-common.yml", "--config=/app/otel/otel.yml", "-u", "sqlite://file::memory:?cache=shared"]
     working_dir: /tmp
     ports:
-      - "8700:8080"  # HTTPS public
+      - "8100:8080" # HTTPS public
     volumes:
       - ./config/sm-im-app-sqlite-1.yml:/app/config/sm-im-app-sqlite-1.yml:ro
       - ./config/sm-im-app-common.yml:/app/config/sm-im-app-common.yml:ro
@@ -162,7 +162,7 @@ services:
     command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/sm-im-app-postgresql-1.yml", "--config=/app/config/sm-im-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
-      - "8701:8080"  # HTTPS public
+      - "8101:8080" # HTTPS public
     volumes:
       - ./config/sm-im-app-postgresql-1.yml:/app/config/sm-im-app-postgresql-1.yml:ro
       - ./config/sm-im-app-common.yml:/app/config/sm-im-app-common.yml:ro
@@ -211,7 +211,7 @@ services:
     command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/sm-im-app-postgresql-2.yml", "--config=/app/config/sm-im-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
-      - "8702:8080"  # HTTPS public
+      - "8102:8080" # HTTPS public
     volumes:
       - ./config/sm-im-app-postgresql-2.yml:/app/config/sm-im-app-postgresql-2.yml:ro
       - ./config/sm-im-app-common.yml:/app/config/sm-im-app-common.yml:ro

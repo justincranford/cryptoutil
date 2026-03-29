@@ -426,7 +426,7 @@ func TestLint_AllThreeChecksPass(t *testing.T) {
 	goFile := filepath.Join(tempDir, "main.go")
 	err := os.WriteFile(goFile, []byte(`package main
 
-const port = 8700
+const port = 8100
 `), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
@@ -435,7 +435,7 @@ const port = 8700
 	err = os.WriteFile(composeFile, []byte(`services:
   sm-im:
     ports:
-      - "8700:8700"
+      - "8100:8100"
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
 `), cryptoutilSharedMagic.CacheFilePermissions)
