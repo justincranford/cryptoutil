@@ -49,12 +49,13 @@ type Suite struct {
 }
 
 // allProducts is the canonical registry of all 5 cryptoutil products.
+// Canonical order: sm, jose, pki, identity, skeleton.
 var allProducts = []Product{
 	{
-		ID:              cryptoutilSharedMagic.IdentityProductName,
-		DisplayName:     "Identity",
-		InternalAppsDir: cryptoutilSharedMagic.IdentityProductName + "/",
-		CmdDir:          cryptoutilSharedMagic.IdentityProductName + "/",
+		ID:              cryptoutilSharedMagic.SMProductName,
+		DisplayName:     "Secrets Manager",
+		InternalAppsDir: cryptoutilSharedMagic.SMProductName + "/",
+		CmdDir:          cryptoutilSharedMagic.SMProductName + "/",
 	},
 	{
 		ID:              cryptoutilSharedMagic.JoseProductName,
@@ -69,60 +70,37 @@ var allProducts = []Product{
 		CmdDir:          cryptoutilSharedMagic.PKIProductName + "/",
 	},
 	{
+		ID:              cryptoutilSharedMagic.IdentityProductName,
+		DisplayName:     "Identity",
+		InternalAppsDir: cryptoutilSharedMagic.IdentityProductName + "/",
+		CmdDir:          cryptoutilSharedMagic.IdentityProductName + "/",
+	},
+	{
 		ID:              cryptoutilSharedMagic.SkeletonProductName,
 		DisplayName:     cryptoutilSharedMagic.SkeletonProductNameTitleCase,
 		InternalAppsDir: cryptoutilSharedMagic.SkeletonProductName + "/",
 		CmdDir:          cryptoutilSharedMagic.SkeletonProductName + "/",
 	},
-	{
-		ID:              cryptoutilSharedMagic.SMProductName,
-		DisplayName:     "Secrets Manager",
-		InternalAppsDir: cryptoutilSharedMagic.SMProductName + "/",
-		CmdDir:          cryptoutilSharedMagic.SMProductName + "/",
-	},
 }
 
 // allProductServices is the canonical registry of all 10 cryptoutil product-services.
+// Canonical order: sm-kms, sm-im, jose-ja, pki-ca, identity-authz, identity-idp, identity-rs, identity-rp, identity-spa, skeleton-template.
 var allProductServices = []ProductService{
 	{
-		PSID:            cryptoutilSharedMagic.OTLPServiceIdentityAuthz,
-		Product:         cryptoutilSharedMagic.IdentityProductName,
-		Service:         cryptoutilSharedMagic.AuthzServiceName,
-		DisplayName:     "Identity Authorization Server",
-		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceIdentityAuthz + "/",
-		MagicFile:       "magic_identity.go",
+		PSID:            cryptoutilSharedMagic.OTLPServiceSMKMS,
+		Product:         cryptoutilSharedMagic.SMProductName,
+		Service:         cryptoutilSharedMagic.KMSServiceName,
+		DisplayName:     "Secrets Manager Key Management",
+		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceSMKMS + "/",
+		MagicFile:       "magic_sm.go",
 	},
 	{
-		PSID:            cryptoutilSharedMagic.OTLPServiceIdentityIDP,
-		Product:         cryptoutilSharedMagic.IdentityProductName,
-		Service:         cryptoutilSharedMagic.IDPServiceName,
-		DisplayName:     "Identity Provider",
-		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceIdentityIDP + "/",
-		MagicFile:       "magic_identity.go",
-	},
-	{
-		PSID:            cryptoutilSharedMagic.OTLPServiceIdentityRP,
-		Product:         cryptoutilSharedMagic.IdentityProductName,
-		Service:         cryptoutilSharedMagic.RPServiceName,
-		DisplayName:     "Identity Relying Party",
-		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceIdentityRP + "/",
-		MagicFile:       "magic_identity.go",
-	},
-	{
-		PSID:            cryptoutilSharedMagic.OTLPServiceIdentityRS,
-		Product:         cryptoutilSharedMagic.IdentityProductName,
-		Service:         cryptoutilSharedMagic.RSServiceName,
-		DisplayName:     "Identity Resource Server",
-		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceIdentityRS + "/",
-		MagicFile:       "magic_identity.go",
-	},
-	{
-		PSID:            cryptoutilSharedMagic.OTLPServiceIdentitySPA,
-		Product:         cryptoutilSharedMagic.IdentityProductName,
-		Service:         cryptoutilSharedMagic.SPAServiceName,
-		DisplayName:     "Identity Single Page App",
-		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceIdentitySPA + "/",
-		MagicFile:       "magic_identity.go",
+		PSID:            cryptoutilSharedMagic.OTLPServiceSMIM,
+		Product:         cryptoutilSharedMagic.SMProductName,
+		Service:         cryptoutilSharedMagic.IMServiceName,
+		DisplayName:     "Secrets Manager Instant Messenger",
+		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceSMIM + "/",
+		MagicFile:       "magic_sm_im.go",
 	},
 	{
 		PSID:            cryptoutilSharedMagic.OTLPServiceJoseJA,
@@ -141,28 +119,52 @@ var allProductServices = []ProductService{
 		MagicFile:       "magic_pki.go",
 	},
 	{
+		PSID:            cryptoutilSharedMagic.OTLPServiceIdentityAuthz,
+		Product:         cryptoutilSharedMagic.IdentityProductName,
+		Service:         cryptoutilSharedMagic.AuthzServiceName,
+		DisplayName:     "Identity Authorization Server",
+		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceIdentityAuthz + "/",
+		MagicFile:       "magic_identity.go",
+	},
+	{
+		PSID:            cryptoutilSharedMagic.OTLPServiceIdentityIDP,
+		Product:         cryptoutilSharedMagic.IdentityProductName,
+		Service:         cryptoutilSharedMagic.IDPServiceName,
+		DisplayName:     "Identity Provider",
+		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceIdentityIDP + "/",
+		MagicFile:       "magic_identity.go",
+	},
+	{
+		PSID:            cryptoutilSharedMagic.OTLPServiceIdentityRS,
+		Product:         cryptoutilSharedMagic.IdentityProductName,
+		Service:         cryptoutilSharedMagic.RSServiceName,
+		DisplayName:     "Identity Resource Server",
+		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceIdentityRS + "/",
+		MagicFile:       "magic_identity.go",
+	},
+	{
+		PSID:            cryptoutilSharedMagic.OTLPServiceIdentityRP,
+		Product:         cryptoutilSharedMagic.IdentityProductName,
+		Service:         cryptoutilSharedMagic.RPServiceName,
+		DisplayName:     "Identity Relying Party",
+		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceIdentityRP + "/",
+		MagicFile:       "magic_identity.go",
+	},
+	{
+		PSID:            cryptoutilSharedMagic.OTLPServiceIdentitySPA,
+		Product:         cryptoutilSharedMagic.IdentityProductName,
+		Service:         cryptoutilSharedMagic.SPAServiceName,
+		DisplayName:     "Identity Single Page App",
+		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceIdentitySPA + "/",
+		MagicFile:       "magic_identity.go",
+	},
+	{
 		PSID:            cryptoutilSharedMagic.OTLPServiceSkeletonTemplate,
 		Product:         cryptoutilSharedMagic.SkeletonProductName,
 		Service:         cryptoutilSharedMagic.SkeletonTemplateServiceName,
 		DisplayName:     "Skeleton Template",
 		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceSkeletonTemplate + "/",
 		MagicFile:       "magic_skeleton.go",
-	},
-	{
-		PSID:            cryptoutilSharedMagic.OTLPServiceSMIM,
-		Product:         cryptoutilSharedMagic.SMProductName,
-		Service:         cryptoutilSharedMagic.IMServiceName,
-		DisplayName:     "Secrets Manager Instant Messenger",
-		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceSMIM + "/",
-		MagicFile:       "magic_sm_im.go",
-	},
-	{
-		PSID:            cryptoutilSharedMagic.OTLPServiceSMKMS,
-		Product:         cryptoutilSharedMagic.SMProductName,
-		Service:         cryptoutilSharedMagic.KMSServiceName,
-		DisplayName:     "Secrets Manager Key Management",
-		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceSMKMS + "/",
-		MagicFile:       "magic_sm.go",
 	},
 }
 

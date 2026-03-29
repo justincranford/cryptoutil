@@ -20,20 +20,20 @@ type productServicePair struct {
 }
 
 // knownProducts lists all products that must have cmd/PRODUCT/main.go.
-var knownProducts = []string{cryptoutilSharedMagic.IdentityProductName, cryptoutilSharedMagic.JoseProductName, cryptoutilSharedMagic.PKIProductName, cryptoutilSharedMagic.SkeletonProductName, "sm"}
+var knownProducts = []string{"sm", cryptoutilSharedMagic.JoseProductName, cryptoutilSharedMagic.PKIProductName, cryptoutilSharedMagic.IdentityProductName, cryptoutilSharedMagic.SkeletonProductName}
 
 // knownServices lists all product-service pairs that must have cmd/PRODUCT-SERVICE/main.go.
 var knownServices = []productServicePair{
-	{product: cryptoutilSharedMagic.SkeletonProductName, service: cryptoutilSharedMagic.SkeletonTemplateServiceName},
-	{product: cryptoutilSharedMagic.PKIProductName, service: "ca"},
-	{product: cryptoutilSharedMagic.JoseProductName, service: "ja"},
-	{product: "sm", service: "im"},
 	{product: "sm", service: cryptoutilSharedMagic.KMSServiceName},
+	{product: "sm", service: "im"},
+	{product: cryptoutilSharedMagic.JoseProductName, service: "ja"},
+	{product: cryptoutilSharedMagic.PKIProductName, service: "ca"},
 	{product: cryptoutilSharedMagic.IdentityProductName, service: cryptoutilSharedMagic.AuthzServiceName},
 	{product: cryptoutilSharedMagic.IdentityProductName, service: cryptoutilSharedMagic.IDPServiceName},
-	{product: cryptoutilSharedMagic.IdentityProductName, service: "rp"},
 	{product: cryptoutilSharedMagic.IdentityProductName, service: "rs"},
+	{product: cryptoutilSharedMagic.IdentityProductName, service: "rp"},
 	{product: cryptoutilSharedMagic.IdentityProductName, service: cryptoutilSharedMagic.SPAServiceName},
+	{product: cryptoutilSharedMagic.SkeletonProductName, service: cryptoutilSharedMagic.SkeletonTemplateServiceName},
 }
 
 // Check validates product wiring from the workspace root.

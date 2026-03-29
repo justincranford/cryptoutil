@@ -100,10 +100,10 @@ func TestServicePorts_AllServicesPresent(t *testing.T) {
 	t.Parallel()
 
 	expectedServices := []string{
+		cryptoutilSharedMagic.OTLPServiceSMKMS,
 		cryptoutilSharedMagic.OTLPServiceSMIM,
 		cryptoutilSharedMagic.OTLPServiceJoseJA,
 		cryptoutilSharedMagic.OTLPServicePKICA,
-		cryptoutilSharedMagic.OTLPServiceSMKMS,
 		cryptoutilSharedMagic.OTLPServiceIdentityAuthz,
 		cryptoutilSharedMagic.OTLPServiceIdentityIDP,
 		cryptoutilSharedMagic.OTLPServiceIdentityRS,

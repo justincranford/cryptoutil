@@ -16,6 +16,7 @@ on:
   schedule:
     # Run weekly on Sundays at 3 AM UTC (after DAST at 2 AM)
     - cron: '0 3 * * 0'
+  # checkov:skip=CKV_GHA_7:workflow_dispatch inputs are intentional for cleanup parameterization
   workflow_dispatch:
     inputs:
       max_age_days:

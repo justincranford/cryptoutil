@@ -20,6 +20,14 @@
         // SERVICE LAUNCHES
         // ═══════════════════════════════════════════════════════════════════════
         {
+            "name": "sm-kms: SQLite (dev mode)",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/sm-kms",
+            "args": ["server", "--dev=true"]
+        },
+        {
             "name": "sm-im: SQLite (dev mode)",
             "type": "go",
             "request": "launch",

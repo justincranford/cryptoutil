@@ -55,13 +55,13 @@ func TestGetDeploymentDirectories(t *testing.T) {
 	require.Equal(t, cryptoutilSharedMagic.DefaultOTLPServiceDefault, suite[0])
 
 	// Products should include all 5 products.
-	expectedProducts := []string{cryptoutilSharedMagic.IdentityProductName, cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.PKIProductName, cryptoutilSharedMagic.JoseProductName, cryptoutilSharedMagic.SkeletonProductName}
+	expectedProducts := []string{cryptoutilSharedMagic.SMProductName, cryptoutilSharedMagic.JoseProductName, cryptoutilSharedMagic.PKIProductName, cryptoutilSharedMagic.IdentityProductName, cryptoutilSharedMagic.SkeletonProductName}
 	require.ElementsMatch(t, expectedProducts, product)
 
 	// Product-services should include all 10 services.
 	expectedServices := []string{
-		cryptoutilSharedMagic.OTLPServiceJoseJA, cryptoutilSharedMagic.OTLPServiceSMIM, cryptoutilSharedMagic.OTLPServicePKICA, cryptoutilSharedMagic.OTLPServiceSMKMS,
-		cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP, cryptoutilSharedMagic.OTLPServiceIdentityRP, cryptoutilSharedMagic.OTLPServiceIdentityRS, cryptoutilSharedMagic.OTLPServiceIdentitySPA,
+		cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceSMIM, cryptoutilSharedMagic.OTLPServiceJoseJA, cryptoutilSharedMagic.OTLPServicePKICA,
+		cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP, cryptoutilSharedMagic.OTLPServiceIdentityRS, cryptoutilSharedMagic.OTLPServiceIdentityRP, cryptoutilSharedMagic.OTLPServiceIdentitySPA,
 		cryptoutilSharedMagic.OTLPServiceSkeletonTemplate,
 	}
 	require.ElementsMatch(t, expectedServices, productService)
@@ -83,8 +83,8 @@ func TestGetExpectedDeploymentsContents(t *testing.T) {
 
 	// Verify product-service entries exist with compose.yml.
 	services := []string{
-		cryptoutilSharedMagic.OTLPServiceJoseJA, cryptoutilSharedMagic.OTLPServiceSMIM, cryptoutilSharedMagic.OTLPServicePKICA, cryptoutilSharedMagic.OTLPServiceSMKMS,
-		cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP, cryptoutilSharedMagic.OTLPServiceIdentityRP, cryptoutilSharedMagic.OTLPServiceIdentityRS, cryptoutilSharedMagic.OTLPServiceIdentitySPA,
+		cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceSMIM, cryptoutilSharedMagic.OTLPServiceJoseJA, cryptoutilSharedMagic.OTLPServicePKICA,
+		cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cryptoutilSharedMagic.OTLPServiceIdentityIDP, cryptoutilSharedMagic.OTLPServiceIdentityRS, cryptoutilSharedMagic.OTLPServiceIdentityRP, cryptoutilSharedMagic.OTLPServiceIdentitySPA,
 		cryptoutilSharedMagic.OTLPServiceSkeletonTemplate,
 	}
 

@@ -23,14 +23,14 @@ type ServiceDef struct {
 // knownServices lists all product-service pairs that must follow structural conventions.
 // identity/authz and identity/idp are intentionally excluded (legacy, don't follow service template pattern).
 var knownServices = []ServiceDef{
-	{PSID: cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, Service: cryptoutilSharedMagic.SkeletonTemplateServiceName},
-	{PSID: cryptoutilSharedMagic.OTLPServicePKICA, Service: cryptoutilSharedMagic.PKICAServiceName},
-	{PSID: cryptoutilSharedMagic.OTLPServiceJoseJA, Service: cryptoutilSharedMagic.JoseJAServiceName},
-	{PSID: cryptoutilSharedMagic.OTLPServiceSMIM, Service: cryptoutilSharedMagic.IMServiceName},
 	{PSID: cryptoutilSharedMagic.OTLPServiceSMKMS, Service: cryptoutilSharedMagic.KMSServiceName, Required: kmsRequiredFiles},
-	{PSID: cryptoutilSharedMagic.OTLPServiceIdentityRP, Service: cryptoutilSharedMagic.RPServiceName},
+	{PSID: cryptoutilSharedMagic.OTLPServiceSMIM, Service: cryptoutilSharedMagic.IMServiceName},
+	{PSID: cryptoutilSharedMagic.OTLPServiceJoseJA, Service: cryptoutilSharedMagic.JoseJAServiceName},
+	{PSID: cryptoutilSharedMagic.OTLPServicePKICA, Service: cryptoutilSharedMagic.PKICAServiceName},
 	{PSID: cryptoutilSharedMagic.OTLPServiceIdentityRS, Service: cryptoutilSharedMagic.RSServiceName},
+	{PSID: cryptoutilSharedMagic.OTLPServiceIdentityRP, Service: cryptoutilSharedMagic.RPServiceName},
 	{PSID: cryptoutilSharedMagic.OTLPServiceIdentitySPA, Service: cryptoutilSharedMagic.SPAServiceName},
+	{PSID: cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, Service: cryptoutilSharedMagic.SkeletonTemplateServiceName},
 }
 
 // defaultRequiredFiles are files that every service must have (relative to service dir).

@@ -47,6 +47,7 @@ const LineSeparatorLength = 60
 
 // ServicePorts defines the canonical port assignments for all cryptoutil services.
 // This is the single source of truth for port assignments.
+// Canonical order: sm-kms, sm-im, jose-ja, pki-ca, identity-authz, identity-idp, identity-rs, identity-rp, identity-spa, skeleton-template.
 var ServicePorts = map[string]ServicePortConfig{
 	cryptoutilSharedMagic.OTLPServiceSMKMS: {
 		Name:          cryptoutilSharedMagic.OTLPServiceSMKMS,
@@ -54,6 +55,20 @@ var ServicePorts = map[string]ServicePortConfig{
 		AdminPort:     StandardAdminPort,
 		LegacyPorts:   []uint16{8081, 8082},
 		MagicConstant: "KMSServicePort",
+	},
+	cryptoutilSharedMagic.OTLPServiceSMIM: {
+		Name:          cryptoutilSharedMagic.OTLPServiceSMIM,
+		PublicPorts:   []uint16{cryptoutilSharedMagic.IMServicePort, cryptoutilSharedMagic.IME2EPostgreSQL1PublicPort, cryptoutilSharedMagic.IME2EPostgreSQL2PublicPort},
+		AdminPort:     StandardAdminPort,
+		LegacyPorts:   []uint16{8070, 8071, 8072, cryptoutilSharedMagic.DefaultPublicPortInternalMetrics, cryptoutilSharedMagic.PortOtelCollectorReceivedMetrics, 8890},
+		MagicConstant: "IMServicePort",
+	},
+	cryptoutilSharedMagic.OTLPServiceJoseJA: {
+		Name:          cryptoutilSharedMagic.OTLPServiceJoseJA,
+		PublicPorts:   []uint16{cryptoutilSharedMagic.JoseJAServicePort},
+		AdminPort:     StandardAdminPort,
+		LegacyPorts:   []uint16{8060, 9443, 8092},
+		MagicConstant: "JoseJAServicePort",
 	},
 	cryptoutilSharedMagic.OTLPServicePKICA: {
 		Name:          cryptoutilSharedMagic.OTLPServicePKICA,
@@ -96,20 +111,6 @@ var ServicePorts = map[string]ServicePortConfig{
 		AdminPort:     StandardAdminPort,
 		LegacyPorts:   []uint16{8140, 8141, 8142},
 		MagicConstant: "IdentitySpaServicePort",
-	},
-	cryptoutilSharedMagic.OTLPServiceSMIM: {
-		Name:          cryptoutilSharedMagic.OTLPServiceSMIM,
-		PublicPorts:   []uint16{cryptoutilSharedMagic.IMServicePort, cryptoutilSharedMagic.IME2EPostgreSQL1PublicPort, cryptoutilSharedMagic.IME2EPostgreSQL2PublicPort},
-		AdminPort:     StandardAdminPort,
-		LegacyPorts:   []uint16{8070, 8071, 8072, cryptoutilSharedMagic.DefaultPublicPortInternalMetrics, cryptoutilSharedMagic.PortOtelCollectorReceivedMetrics, 8890},
-		MagicConstant: "IMServicePort",
-	},
-	cryptoutilSharedMagic.OTLPServiceJoseJA: {
-		Name:          cryptoutilSharedMagic.OTLPServiceJoseJA,
-		PublicPorts:   []uint16{cryptoutilSharedMagic.JoseJAServicePort},
-		AdminPort:     StandardAdminPort,
-		LegacyPorts:   []uint16{8060, 9443, 8092},
-		MagicConstant: "JoseJAServicePort",
 	},
 	cryptoutilSharedMagic.OTLPServiceSkeletonTemplate: {
 		Name:          cryptoutilSharedMagic.OTLPServiceSkeletonTemplate,

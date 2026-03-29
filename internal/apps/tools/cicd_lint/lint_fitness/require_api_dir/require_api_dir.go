@@ -21,17 +21,18 @@ type apiServiceDef struct {
 }
 
 // knownAPIServices lists all product-service pairs that must have a corresponding api/ directory.
+// Canonical order: sm-kms, sm-im, jose-ja, pki-ca, identity-authz, identity-idp, identity-rs, identity-rp, identity-spa, skeleton-template.
 var knownAPIServices = []apiServiceDef{
-	{Product: cryptoutilSharedMagic.IdentityProductName, Service: cryptoutilSharedMagic.AuthzServiceName},
-	{Product: cryptoutilSharedMagic.IdentityProductName, Service: cryptoutilSharedMagic.IDPServiceName},
-	{Product: cryptoutilSharedMagic.IdentityProductName, Service: cryptoutilSharedMagic.RPServiceName},
-	{Product: cryptoutilSharedMagic.IdentityProductName, Service: cryptoutilSharedMagic.RSServiceName},
-	{Product: cryptoutilSharedMagic.IdentityProductName, Service: cryptoutilSharedMagic.SPAServiceName},
+	{Product: cryptoutilSharedMagic.SMProductName, Service: cryptoutilSharedMagic.KMSServiceName},
+	{Product: cryptoutilSharedMagic.SMProductName, Service: cryptoutilSharedMagic.IMServiceName},
 	{Product: cryptoutilSharedMagic.JoseProductName, Service: cryptoutilSharedMagic.JoseJAServiceName},
 	{Product: cryptoutilSharedMagic.PKIProductName, Service: cryptoutilSharedMagic.PKICAServiceName},
+	{Product: cryptoutilSharedMagic.IdentityProductName, Service: cryptoutilSharedMagic.AuthzServiceName},
+	{Product: cryptoutilSharedMagic.IdentityProductName, Service: cryptoutilSharedMagic.IDPServiceName},
+	{Product: cryptoutilSharedMagic.IdentityProductName, Service: cryptoutilSharedMagic.RSServiceName},
+	{Product: cryptoutilSharedMagic.IdentityProductName, Service: cryptoutilSharedMagic.RPServiceName},
+	{Product: cryptoutilSharedMagic.IdentityProductName, Service: cryptoutilSharedMagic.SPAServiceName},
 	{Product: cryptoutilSharedMagic.SkeletonProductName, Service: cryptoutilSharedMagic.SkeletonTemplateServiceName},
-	{Product: cryptoutilSharedMagic.SMProductName, Service: cryptoutilSharedMagic.IMServiceName},
-	{Product: cryptoutilSharedMagic.SMProductName, Service: cryptoutilSharedMagic.KMSServiceName},
 }
 
 // requiredFiles are files that every api/<product>-<service>/ directory must have.

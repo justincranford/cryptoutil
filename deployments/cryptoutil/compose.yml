@@ -8,26 +8,26 @@
 #
 # Services (10 total):
 #   1. sm-kms (SM Key Management Service) - 28000-28002
-#   2. pki-ca (PKI Certificate Authority) - 28100-28102
-#   3. identity-authz (Identity Authorization Server) - 28200-28202
-#   4. identity-idp (Identity Provider) - 28300-28302
-#   5. identity-rs (Identity Resource Server) - 28400-28402
-#   6. identity-rp (Identity Relying Party) - 28500-28502
-#   7. identity-spa (Identity Single Page App) - 28600-28602
-#   8. sm-im (SM Instant Messenger) - 28700-28702
-#   9. jose-ja (JOSE JWK Authority) - 28800-28802
+#   2. sm-im (SM Instant Messenger) - 28700-28702
+#   3. jose-ja (JOSE JWK Authority) - 28800-28802
+#   4. pki-ca (PKI Certificate Authority) - 28100-28102
+#   5. identity-authz (Identity Authorization Server) - 28200-28202
+#   6. identity-idp (Identity Provider) - 28300-28302
+#   7. identity-rs (Identity Resource Server) - 28400-28402
+#   8. identity-rp (Identity Relying Party) - 28500-28502
+#   9. identity-spa (Identity Single Page App) - 28600-28602
 #  10. skeleton-template (Skeleton Template) - 28900-28902
 #
 # Port allocation (SUITE-level, base + 20000 offset):
 #   - sm-kms:         28000 (SQLite), 28001-28002 (PostgreSQL)
+#   - sm-im:          28700 (SQLite), 28701-28702 (PostgreSQL)
+#   - jose-ja:        28800 (SQLite), 28801-28802 (PostgreSQL)
 #   - pki-ca:         28100 (SQLite), 28101-28102 (PostgreSQL)
 #   - identity-authz: 28200 (SQLite), 28201-28202 (PostgreSQL)
 #   - identity-idp:   28300 (SQLite), 28301-28302 (PostgreSQL)
 #   - identity-rs:    28400 (SQLite), 28401-28402 (PostgreSQL)
 #   - identity-rp:    28500 (SQLite), 28501-28502 (PostgreSQL)
 #   - identity-spa:   28600 (SQLite), 28601-28602 (PostgreSQL)
-#   - sm-im:          28700 (SQLite), 28701-28702 (PostgreSQL)
-#   - jose-ja:        28800 (SQLite), 28801-28802 (PostgreSQL)
 #   - skeleton-template: 28900 (SQLite), 28901-28902 (PostgreSQL)
 #
 # Database ports (PostgreSQL leader/follower):
@@ -92,19 +92,19 @@ services:
         condition: service_completed_successfully
 
   # ========================================================================
-  # PKI-CA (Certificate Authority)
+  # SM-KMS (Key Management Service)
   # ========================================================================
 
-  pki-ca-app-sqlite-1:
+  sm-kms-app-sqlite-1:
     profiles: ["dev", "ci"]
     image: cryptoutil:dev
-    command: ["pki", "ca", "server", "--bind-public-port=8080", "--config=/app/config/pki-ca-app-sqlite-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["sm", "kms", "server", "--bind-public-port=8080", "--config=/app/config/sm-kms-app-sqlite-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28100:8000" # HTTPS public
+      - "28000:8000"
     volumes:
-      - ../pki-ca/config/pki-ca-app-sqlite-1.yml:/app/config/pki-ca-app-sqlite-1.yml:ro
-      - ../pki-ca/config/pki-ca-app-common.yml:/app/config/common.yml:ro
+      - ../sm-kms/config/sm-kms-app-sqlite-1.yml:/app/config/sm-kms-app-sqlite-1.yml:ro
+      - ../sm-kms/config/sm-kms-app-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal-1of5.secret
@@ -135,16 +135,16 @@ services:
         reservations:
           memory: 128M
 
-  pki-ca-app-postgres-1:
+  sm-kms-app-postgres-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["pki", "ca", "server", "--bind-public-port=8080", "--config=/app/config/pki-ca-app-postgresql-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["sm", "kms", "server", "--bind-public-port=8080", "--config=/app/config/sm-kms-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28101:8000"
+      - "28001:8000"
     volumes:
-      - ../pki-ca/config/pki-ca-app-postgresql-1.yml:/app/config/pki-ca-app-postgresql-1.yml:ro
-      - ../pki-ca/config/pki-ca-app-common.yml:/app/config/common.yml:ro
+      - ../sm-kms/config/sm-kms-postgres.yml:/app/config/sm-kms-postgres.yml:ro
+      - ../sm-kms/config/sm-kms-app-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal-1of5.secret
@@ -182,16 +182,154 @@ services:
         reservations:
           memory: 128M
 
-  pki-ca-app-postgres-2:
+  sm-kms-app-postgres-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["pki", "ca", "server", "--bind-public-port=8080", "--config=/app/config/pki-ca-app-postgresql-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["sm", "kms", "server", "--bind-public-port=8080", "--config=/app/config/sm-kms-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28102:8000"
+      - "28002:8000"
     volumes:
-      - ../pki-ca/config/pki-ca-app-postgresql-1.yml:/app/config/pki-ca-app-postgresql-1.yml:ro
-      - ../pki-ca/config/pki-ca-app-common.yml:/app/config/common.yml:ro
+      - ../sm-kms/config/sm-kms-postgres.yml:/app/config/sm-kms-postgres.yml:ro
+      - ../sm-kms/config/sm-kms-app-common.yml:/app/config/common.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+    secrets:
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - postgres-url.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-cryptoutil:
+        condition: service_completed_successfully
+      postgres-leader:
+        condition: service_healthy
+      opentelemetry-collector-contrib:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      start_period: 60s
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - cryptoutil-network
+      - postgres-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  # ========================================================================
+  # SM-IM (Instant Messenger)
+  # ========================================================================
+
+  sm-im-app-sqlite-1:
+    profiles: ["dev", "ci"]
+    image: cryptoutil:dev
+    command: ["sm", "im", "server", "--bind-public-port=8080", "--config=/app/config/sm-im-app-sqlite-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    working_dir: /tmp
+    ports:
+      - "28700:8000"
+    volumes:
+      - ../sm-im/config/sm-im-app-sqlite-1.yml:/app/config/sm-im-app-sqlite-1.yml:ro
+      - ../sm-im/config/sm-im-app-common.yml:/app/config/common.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+    secrets:
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-cryptoutil:
+        condition: service_completed_successfully
+      opentelemetry-collector-contrib:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      start_period: 60s
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - cryptoutil-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  sm-im-app-postgres-1:
+    profiles: ["postgres"]
+    image: cryptoutil:dev
+    command: ["sm", "im", "server", "--bind-public-port=8080", "--config=/app/config/sm-im-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    working_dir: /tmp
+    ports:
+      - "28701:8000"
+    volumes:
+      - ../sm-im/config/sm-im-postgres.yml:/app/config/sm-im-postgres.yml:ro
+      - ../sm-im/config/sm-im-app-common.yml:/app/config/common.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+    secrets:
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - postgres-url.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-cryptoutil:
+        condition: service_completed_successfully
+      postgres-leader:
+        condition: service_healthy
+      opentelemetry-collector-contrib:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      start_period: 60s
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - cryptoutil-network
+      - postgres-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  sm-im-app-postgres-2:
+    profiles: ["postgres"]
+    image: cryptoutil:dev
+    command: ["sm", "im", "server", "--bind-public-port=8080", "--config=/app/config/sm-im-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    working_dir: /tmp
+    ports:
+      - "28702:8000"
+    volumes:
+      - ../sm-im/config/sm-im-postgres.yml:/app/config/sm-im-postgres.yml:ro
+      - ../sm-im/config/sm-im-app-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal-1of5.secret
@@ -368,19 +506,19 @@ services:
           memory: 128M
 
   # ========================================================================
-  # CIPHER-IM (Instant Messenger)
+  # PKI-CA (Certificate Authority)
   # ========================================================================
 
-  sm-im-app-sqlite-1:
+  pki-ca-app-sqlite-1:
     profiles: ["dev", "ci"]
     image: cryptoutil:dev
-    command: ["sm", "im", "server", "--bind-public-port=8080", "--config=/app/config/sm-im-app-sqlite-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["pki", "ca", "server", "--bind-public-port=8080", "--config=/app/config/pki-ca-app-sqlite-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28700:8000"
+      - "28100:8000" # HTTPS public
     volumes:
-      - ../sm-im/config/sm-im-app-sqlite-1.yml:/app/config/sm-im-app-sqlite-1.yml:ro
-      - ../sm-im/config/sm-im-app-common.yml:/app/config/common.yml:ro
+      - ../pki-ca/config/pki-ca-app-sqlite-1.yml:/app/config/pki-ca-app-sqlite-1.yml:ro
+      - ../pki-ca/config/pki-ca-app-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal-1of5.secret
@@ -411,16 +549,16 @@ services:
         reservations:
           memory: 128M
 
-  sm-im-app-postgres-1:
+  pki-ca-app-postgres-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["sm", "im", "server", "--bind-public-port=8080", "--config=/app/config/sm-im-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["pki", "ca", "server", "--bind-public-port=8080", "--config=/app/config/pki-ca-app-postgresql-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28701:8000"
+      - "28101:8000"
     volumes:
-      - ../sm-im/config/sm-im-postgres.yml:/app/config/sm-im-postgres.yml:ro
-      - ../sm-im/config/sm-im-app-common.yml:/app/config/common.yml:ro
+      - ../pki-ca/config/pki-ca-app-postgresql-1.yml:/app/config/pki-ca-app-postgresql-1.yml:ro
+      - ../pki-ca/config/pki-ca-app-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal-1of5.secret
@@ -458,154 +596,16 @@ services:
         reservations:
           memory: 128M
 
-  sm-im-app-postgres-2:
+  pki-ca-app-postgres-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["sm", "im", "server", "--bind-public-port=8080", "--config=/app/config/sm-im-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["pki", "ca", "server", "--bind-public-port=8080", "--config=/app/config/pki-ca-app-postgresql-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28702:8000"
+      - "28102:8000"
     volumes:
-      - ../sm-im/config/sm-im-postgres.yml:/app/config/sm-im-postgres.yml:ro
-      - ../sm-im/config/sm-im-app-common.yml:/app/config/common.yml:ro
-      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
-    secrets:
-      - unseal-1of5.secret
-      - unseal-2of5.secret
-      - unseal-3of5.secret
-      - unseal-4of5.secret
-      - unseal-5of5.secret
-      - postgres-url.secret
-      - postgres-username.secret
-      - postgres-password.secret
-      - postgres-database.secret
-    depends_on:
-      healthcheck-secrets:
-        condition: service_completed_successfully
-      builder-cryptoutil:
-        condition: service_completed_successfully
-      postgres-leader:
-        condition: service_healthy
-      opentelemetry-collector-contrib:
-        condition: service_started
-    healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
-      start_period: 60s
-      interval: 5s
-      timeout: 5s
-      retries: 10
-    networks:
-      - cryptoutil-network
-      - postgres-network
-      - telemetry-network
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 128M
-
-  # ========================================================================
-  # SM-KMS (Key Management Service)
-  # ========================================================================
-
-  sm-kms-app-sqlite-1:
-    profiles: ["dev", "ci"]
-    image: cryptoutil:dev
-    command: ["sm", "kms", "server", "--bind-public-port=8080", "--config=/app/config/sm-kms-app-sqlite-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
-    working_dir: /tmp
-    ports:
-      - "28000:8000"
-    volumes:
-      - ../sm-kms/config/sm-kms-app-sqlite-1.yml:/app/config/sm-kms-app-sqlite-1.yml:ro
-      - ../sm-kms/config/sm-kms-app-common.yml:/app/config/common.yml:ro
-      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
-    secrets:
-      - unseal-1of5.secret
-      - unseal-2of5.secret
-      - unseal-3of5.secret
-      - unseal-4of5.secret
-      - unseal-5of5.secret
-    depends_on:
-      healthcheck-secrets:
-        condition: service_completed_successfully
-      builder-cryptoutil:
-        condition: service_completed_successfully
-      opentelemetry-collector-contrib:
-        condition: service_started
-    healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
-      start_period: 60s
-      interval: 5s
-      timeout: 5s
-      retries: 10
-    networks:
-      - cryptoutil-network
-      - telemetry-network
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 128M
-
-  sm-kms-app-postgres-1:
-    profiles: ["postgres"]
-    image: cryptoutil:dev
-    command: ["sm", "kms", "server", "--bind-public-port=8080", "--config=/app/config/sm-kms-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
-    working_dir: /tmp
-    ports:
-      - "28001:8000"
-    volumes:
-      - ../sm-kms/config/sm-kms-postgres.yml:/app/config/sm-kms-postgres.yml:ro
-      - ../sm-kms/config/sm-kms-app-common.yml:/app/config/common.yml:ro
-      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
-    secrets:
-      - unseal-1of5.secret
-      - unseal-2of5.secret
-      - unseal-3of5.secret
-      - unseal-4of5.secret
-      - unseal-5of5.secret
-      - postgres-url.secret
-      - postgres-username.secret
-      - postgres-password.secret
-      - postgres-database.secret
-    depends_on:
-      healthcheck-secrets:
-        condition: service_completed_successfully
-      builder-cryptoutil:
-        condition: service_completed_successfully
-      postgres-leader:
-        condition: service_healthy
-      opentelemetry-collector-contrib:
-        condition: service_started
-    healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
-      start_period: 60s
-      interval: 5s
-      timeout: 5s
-      retries: 10
-    networks:
-      - cryptoutil-network
-      - postgres-network
-      - telemetry-network
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 128M
-
-  sm-kms-app-postgres-2:
-    profiles: ["postgres"]
-    image: cryptoutil:dev
-    command: ["sm", "kms", "server", "--bind-public-port=8080", "--config=/app/config/sm-kms-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
-    working_dir: /tmp
-    ports:
-      - "28002:8000"
-    volumes:
-      - ../sm-kms/config/sm-kms-postgres.yml:/app/config/sm-kms-postgres.yml:ro
-      - ../sm-kms/config/sm-kms-app-common.yml:/app/config/common.yml:ro
+      - ../pki-ca/config/pki-ca-app-postgresql-1.yml:/app/config/pki-ca-app-postgresql-1.yml:ro
+      - ../pki-ca/config/pki-ca-app-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal-1of5.secret

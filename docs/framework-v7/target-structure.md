@@ -16,7 +16,7 @@ This document supersedes framework-v5/target-structure.md (deleted — git histo
 | Level | Variable | Instances | Count |
 |-------|----------|-----------|-------|
 | Suite | `{SUITE}` | `cryptoutil` | 1 |
-| Product | `{PRODUCT}` | `identity`, `jose`, `pki`, `skeleton`, `sm` | 5 |
+| Product | `{PRODUCT}` | `sm`, `jose`, `pki`, `identity`, `skeleton` | 5 |
 | Service | `{SERVICE}` | varies per product (see below) | 10 total |
 | PS-ID | `{PS-ID}` = `{PRODUCT}-{SERVICE}` | see table below | 10 |
 | PS_ID | `{PS_ID}` = `{PRODUCT}_{SERVICE}` | underscore variant for SQL/secrets | 10 |
@@ -27,16 +27,16 @@ This document supersedes framework-v5/target-structure.md (deleted — git histo
 
 | PS-ID | PS_ID | Product | Service | Display Name |
 |-------|-------|---------|---------|-------------|
-| `identity-authz` | `identity_authz` | identity | authz | Identity Authorization Server |
-| `identity-idp` | `identity_idp` | identity | idp | Identity Provider |
-| `identity-rp` | `identity_rp` | identity | rp | Identity Relying Party |
-| `identity-rs` | `identity_rs` | identity | rs | Identity Resource Server |
-| `identity-spa` | `identity_spa` | identity | spa | Identity Single Page App |
+| `sm-kms` | `sm_kms` | sm | kms | Secrets Manager Key Management |
+| `sm-im` | `sm_im` | sm | im | Secrets Manager Instant Messenger |
 | `jose-ja` | `jose_ja` | jose | ja | JOSE JWK Authority |
 | `pki-ca` | `pki_ca` | pki | ca | PKI Certificate Authority |
+| `identity-authz` | `identity_authz` | identity | authz | Identity Authorization Server |
+| `identity-idp` | `identity_idp` | identity | idp | Identity Provider |
+| `identity-rs` | `identity_rs` | identity | rs | Identity Resource Server |
+| `identity-rp` | `identity_rp` | identity | rp | Identity Relying Party |
+| `identity-spa` | `identity_spa` | identity | spa | Identity Single Page App |
 | `skeleton-template` | `skeleton_template` | skeleton | template | Skeleton Template |
-| `sm-im` | `sm_im` | sm | im | Secrets Manager Instant Messenger |
-| `sm-kms` | `sm_kms` | sm | kms | Secrets Manager Key Management |
 
 ### Permission Convention
 
