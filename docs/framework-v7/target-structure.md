@@ -2,7 +2,7 @@
 
 **Status**: CANONICAL TARGET — Living reference document
 **Created**: 2026-03-26
-**Last Updated**: 2026-06-27
+**Last Updated**: 2026-03-29
 **Purpose**: Define the complete, parameterized target state of every directory and file in the
 repository. Originally created during framework-v6, now maintained as a living spec in framework-v7.
 This document supersedes framework-v5/target-structure.md (deleted — git history preserves).
@@ -75,8 +75,11 @@ This document supersedes framework-v5/target-structure.md (deleted — git histo
 ├── go.mod                                 # Go module definition
 ├── go.sum                                 # Go module dependency checksums
 ├── LICENSE                                # Project license
+├── NOTICE                                 # Third-party attribution notices
 ├── pyproject.toml                         # Python project config (pre-commit tooling)
-└── README.md                              # Project README
+├── README.md                              # Project README
+├── robots.txt                             # Web crawler control
+└── TERMS.md                               # Terms of service
 ```
 
 ### A.2 Root Files (DELETE — junk artifacts)
@@ -101,6 +104,8 @@ artifacts that must never be committed.
 │   ├── launch.json                        #   Debug launch configs
 │   ├── mcp.json                           #   MCP server configuration (v6 NEW)
 │   └── settings.json                      #   Workspace settings
+├── .well-known/                           # Well-known URIs (RFC 8615)
+│   └── tdm-reservation.txt               #   Text & Data Mining reservation
 └── .zap/                                  # OWASP ZAP DAST config
     └── rules.tsv                          #   ZAP scan rules
 ```
@@ -196,7 +201,7 @@ artifacts that must never be committed.
 └── test-table-driven/SKILL.md
 ```
 
-### B.5 Workflows (14 workflows)
+### B.5 Workflows (15 workflows)
 
 ```
 .github/workflows/
@@ -206,6 +211,7 @@ artifacts that must never be committed.
 ├── ci-e2e.yml                             # End-to-end testing
 ├── ci-fitness.yml                         # Architecture fitness functions
 ├── ci-fuzz.yml                            # Fuzz testing
+├── ci-github-cleanup.yml                  # GitHub Actions storage cleanup
 ├── ci-gitleaks.yml                        # Secret detection
 ├── ci-identity-validation.yml             # Identity service validation
 ├── ci-load.yml                            # Load testing (Gatling)
@@ -395,13 +401,12 @@ this identical structure.
 
 ### F.2 Per-Product Deployment (5 products)
 
-Each product has a deployment directory with a Dockerfile, compose.yml, and secrets.
-Product-level secrets are shared across all services in the product.
+Each product has a deployment directory with a compose.yml and secrets. Product-level
+Dockerfiles do NOT yet exist (CREATE pending — see Section N).
 
 ```
 deployments/{PRODUCT}/                                # drwxr-x---
 ├── compose.yml                                       # Product-level Docker Compose
-├── Dockerfile                                        # Product Docker image (v6 CREATE)
 └── secrets/
     ├── hash-pepper-v3.secret                         # {PRODUCT}-hash-pepper-v3-{base64-random-32-bytes}
     ├── browser-username.secret.never                 # MUST use `.never` filename extension at product level; these are service-level creds only
@@ -419,22 +424,22 @@ deployments/{PRODUCT}/                                # drwxr-x---
     └── unseal-5of5.secret                            # {PRODUCT}-unseal-key-5-of-5-{base64-random-32-bytes}
 ```
 
-**Total per product**: 4 `.secret.never` + 10 `.secret` = 14 files.
+**Total per product**: 4 `.secret.never` + 10 `.secret` = 14 files (no Dockerfile yet).
 
 **All 5 products** (`identity`, `jose`, `pki`, `skeleton`, `sm`) follow this identical structure.
 
 ### F.3 Suite Deployment
 
-**Pattern**: `deployments/{SUITE}-suite/`
+**Pattern**: `deployments/{SUITE}/`
 
-**Naming exception**: The deployment directory uses `{SUITE}-suite` (e.g., `cryptoutil`)
-while all other contexts use bare `{SUITE}` (e.g., `cryptoutil`). This is the ONLY place the
-`-suite` suffix appears. The structural mirror validator maps `cryptoutil` → `cryptoutil`
-for config directory matching.
+The suite deployment directory uses the bare `{SUITE}` name (e.g., `cryptoutil`),
+consistent with all other naming conventions. Contains a Dockerfile, compose.yml,
+and secrets.
 
 ```
-deployments/{SUITE}-suite/                            # drwxr-x---
+deployments/{SUITE}/                                  # drwxr-x---
 ├── compose.yml                                       # Suite-level Docker Compose
+├── Dockerfile                                        # Suite Docker image build
 └── secrets/
     ├── hash-pepper-v3.secret                         # {SUITE}-hash-pepper-v3-{base64-random-32-bytes}
     ├── browser-username.secret.never                 # MUST use `.never` filename extension at suite level; these are service-level creds only
@@ -452,7 +457,7 @@ deployments/{SUITE}-suite/                            # drwxr-x---
     └── unseal-5of5.secret                            # {SUITE}-unseal-key-5-of-5-{base64-random-32-bytes}
 ```
 
-**Total**: 4 `.secret.never` + 10 `.secret` = 14 files. No Dockerfile (suite orchestrates via compose only).
+**Total**: 4 `.secret.never` + 10 `.secret` = 14 files + Dockerfile + compose.yml.
 
 ### F.4 Shared Infrastructure Deployments
 
@@ -474,8 +479,8 @@ Parameterized fields differ by deployment tier.
 
 **Pattern**: `deployments/{DEPLOYMENT-DIR}/Dockerfile`
 
-| Field | Service (`{PS-ID}`) | Product (`{PRODUCT}`) | Suite (`{SUITE}-suite`) |
-|-------|---------------------|----------------------|-------------------------|
+| Field | Service (`{PS-ID}`) | Product (`{PRODUCT}`) | Suite (`{SUITE}`) |
+|-------|---------------------|----------------------|-------------------|
 | `image.title` LABEL | `{SUITE}-{PS-ID}` | `{SUITE}-{PRODUCT}` | `{SUITE}` |
 | `image.description` LABEL | Service-specific description | Product-specific description | Suite-level description |
 | Binary built | `./cmd/{SUITE}` (always suite binary) | `./cmd/{SUITE}` | `./cmd/{SUITE}` |
@@ -542,46 +547,50 @@ Each service lives at `internal/apps/{PS-ID}/` (flat, NOT nested under product).
 
 | PS-ID | Subdirectories |
 |-------|---------------|
-| `identity-authz` | `server/` (with `config/`), `unified/`, `clientauth/`, `dpop/`, `pkce/` |
-| `identity-idp` | `server/` (with `config/`), `unified/`, `auth/`, `templates/`, `userauth/` |
+| `identity-authz` | `clientauth/`, `dpop/`, `e2e/`, `pkce/`, `server/`, `unified/` |
+| `identity-idp` | `auth/`, `server/`, `templates/`, `unified/`, `userauth/` |
 | `identity-rp` | `server/`, `unified/` |
 | `identity-rs` | `server/`, `unified/` |
 | `identity-spa` | `server/`, `unified/` |
-| `jose-ja` | `e2e/`, `model/`, `repository/`, `server/`, `service/` (with `coverage/`) |
-| `pki-ca` | `api/`, `bootstrap/`, `cli/`, `compliance/`, `config/`, `crypto/`, `demo/`, `domain/`, `domain-v2/`, `intermediate/`, `observability/`, `profile/`, `repository-v2/`, `security/`, `server/` (with `config/`, `cmd/`, `middleware/`), `service/` (with `issuer/`, `ra/`, `revocation/`, `timestamp/`), `storage/` |
-| `skeleton-template` | `domain/`, `e2e/`, `repository/` (with `migrations/`), `server/` |
-| `sm-im` | `client/`, `e2e/`, `integration/`, `model/`, `repository/` (with `migrations/`), `server/`, `testing/` |
+| `jose-ja` | `e2e/`, `model/`, `repository/`, `server/`, `service/` |
+| `pki-ca` | `api/`, `bootstrap/`, `cli/`, `compliance/`, `config/`, `crypto/`, `domain/`, `domain-v2/`, `intermediate/`, `observability/`, `profile/`, `repository-v2/`, `security/`, `server/`, `service/`, `storage/` |
+| `skeleton-template` | `domain/`, `e2e/`, `repository/`, `server/` |
+| `sm-im` | `client/`, `e2e/`, `integration/`, `model/`, `repository/`, `server/`, `testing/` |
 | `sm-kms` | `client/`, `e2e/`, `server/` |
 
 **Identity shared packages** (at `internal/apps/identity/`, shared across identity services):
 
 | Package | Purpose |
 |---------|---------|
-| `domain/` | Shared identity domain types |
-| `repository/` (with `orm/`, `migrations/`) | Shared identity data access |
-| `config/` | Shared identity configuration |
 | `apperr/` | Identity-specific error types |
+| `authz/` | Authorization logic shared across identity services |
+| `config/` | Shared identity configuration |
+| `domain/` | Shared identity domain types |
 | `email/` | Email sending |
+| `idp/` | Identity provider shared logic |
 | `issuer/` | Token issuer |
 | `jobs/` | Background jobs |
 | `mfa/` | Multi-factor authentication |
 | `ratelimit/` | Rate limiting |
+| `repository/` (with `orm/`, `migrations/`) | Shared identity data access |
 | `rotation/` | Key/token rotation |
+| `rp/` | Relying party shared logic |
+| `rs/` | Resource server shared logic |
+| `spa/` | Single page app shared logic |
 
 #### G.1.3 Framework & Tools
 
 ```
 internal/apps/
 ├── framework/                                        # Service framework (shared by ALL services)
-│   ├── apperr/                                       #   Application error types (moved from shared/apperr/)
-│   ├── suite/                                        #   Suite-level framework
-│   │   └── cli/
-│   │       ├── suite_router.go                       #     RouteSuite(), SuiteConfig, ProductEntry
-│   │       └── suite_router_test.go
 │   ├── product/                                      #   Product-level framework
 │   │   └── cli/
 │   │       ├── product_router.go                     #     RouteProduct(), ProductConfig, ServiceEntry
 │   │       └── product_router_test.go
+│   ├── suite/                                        #   Suite-level framework
+│   │   └── cli/
+│   │       ├── suite_router.go                       #     RouteSuite(), SuiteConfig, ProductEntry
+│   │       └── suite_router_test.go
 │   ├── tls/                                          #   TLS certificate generation (merged: tls_generator + pkiinit)
 │   └── service/                                      #   Service-level framework
 │       ├── cli/
@@ -619,36 +628,35 @@ internal/apps/
 │
 ├── tools/                                            # Infrastructure tooling
 │   ├── cicd_lint/                                    #   Custom linting and formatting tools
-│   │   ├── common/
-│   │   ├── format_go/
-│   │   ├── format_gotest/
-│   │   ├── lint_compose/
-│   │   ├── lint_deployments/                         #   Deployment structure validator (8 validators)
-│   │   ├── lint_docs/                                #   Documentation linter (includes docs_validation)
-│   │   ├── lint_fitness/                             #   Architecture fitness functions
-│   │   │   ├── registry/                             #     Entity registry (SSOT)
+│   │   ├── cicd.go                                   #     CLI entry point + command registration
+│   │   ├── cicd_test.go
+│   │   ├── adaptive-sim/                             #     Adaptive simulation tools
+│   │   ├── common/                                   #     Shared linter utilities
+│   │   ├── docs_validation/                          #     Documentation validation (propagation checks)
+│   │   ├── format_go/                                #     Go file formatting (any, copyloopvar)
+│   │   ├── format_gotest/                            #     Go test file formatting (t.Helper)
+│   │   ├── github_cleanup/                           #     GitHub Actions storage cleanup
+│   │   ├── lint_compose/                             #     Docker Compose file linting
+│   │   ├── lint_deployments/                         #     Deployment structure validator (8 validators)
+│   │   ├── lint_docs/                                #     Documentation linter (includes docs_validation)
+│   │   ├── lint_fitness/                             #     Architecture fitness functions (59 linters)
+│   │   │   ├── lint_fitness.go                       #       Fitness runner
+│   │   │   ├── lint_fitness_test.go
+│   │   │   ├── registry/                             #       Entity registry (SSOT)
 │   │   │   │   ├── registry.go
 │   │   │   │   └── registry_test.go
-│   │   │   ├── banned_product_names/
-│   │   │   ├── circular_deps/
-│   │   │   ├── configs_naming/                       #     Validates FLAT configs/{PS-ID}/ pattern
-│   │   │   ├── entity_registry_completeness/
-│   │   │   ├── file_size/
-│   │   │   ├── parallel_tests/
-│   │   │   ├── secret_naming/                        #     (NEW) All tiers use {purpose}.secret names
-│   │   │   ├── unseal_secret_content/                #     (NEW) Validates unseal key value patterns
-│   │   │   ├── dockerfile_labels/                    #     (NEW) Validates Dockerfile OCI labels
-│   │   │   ├── test_patterns/
-│   │   │   └── ... (44+ linters)
-│   │   ├── lint_go/
-│   │   ├── lint_golangci/
-│   │   ├── lint_gotest/
-│   │   ├── lint_go_mod/
-│   │   ├── lint_ports/
-│   │   ├── lint_text/
-│   │   └── lint_workflow/
+│   │   │   └── (59 linter directories)               #       See Section M for full list
+│   │   ├── lint_go/                                  #     Go package linting
+│   │   ├── lint_golangci/                            #     golangci-lint config validation
+│   │   ├── lint_gotest/                              #     Go test file linting
+│   │   ├── lint_go_mod/                              #     Go module linting
+│   │   ├── lint_openapi/                             #     OpenAPI spec validation
+│   │   ├── lint_ports/                               #     Port assignment validation
+│   │   ├── lint_security/                            #     Security-focused linting
+│   │   ├── lint_text/                                #     UTF-8 text file linting
+│   │   └── lint_workflow/                            #     GitHub Actions workflow linting
 │   │
-│   └── workflow/                                     #   GitHub Actions workflow management
+│   └── cicd_workflow/                                #   GitHub Actions workflow management
 │       └── *.go                                      #     run + cleanup subcommands
 ```
 
@@ -656,6 +664,7 @@ internal/apps/
 
 ```
 internal/shared/                                      # drwxr-x---
+├── apperr/                                           # Application error types (MOVE to framework/apperr/ pending)
 ├── container/
 ├── crypto/
 │   ├── asn1/
@@ -670,23 +679,47 @@ internal/shared/                                      # drwxr-x---
 │   └── tls/
 ├── database/
 ├── magic/                                            # Named constants (SSOT, excluded from coverage)
+│   │                                                 # 42 files (all magic_*.go pattern)
 │   ├── magic_api.go
 │   ├── magic_cicd.go
+│   ├── magic_cicd_test.go
 │   ├── magic_console.go
 │   ├── magic_crypto.go
 │   ├── magic_database.go
 │   ├── magic_docker.go
 │   ├── magic_framework.go
-│   ├── magic_{PRODUCT}.go                            # Per-product constants (×5)
-│   ├── magic_{PRODUCT}_{topic}.go                    # Per-product topic files (identity has ~12)
+│   ├── magic_identity.go                             # Identity product constants
+│   ├── magic_identity_adaptive.go                    # Identity adaptive auth
+│   ├── magic_identity_config.go                      # Identity config
+│   ├── magic_identity_http.go                        # Identity HTTP
+│   ├── magic_identity_keys.go                        # Identity keys
+│   ├── magic_identity_metrics.go                     # Identity metrics
+│   ├── magic_identity_mfa.go                         # Identity MFA
+│   ├── magic_identity_oauth.go                       # Identity OAuth
+│   ├── magic_identity_oidc.go                        # Identity OIDC
+│   ├── magic_identity_pbkdf2.go                      # Identity PBKDF2
+│   ├── magic_identity_scopes.go                      # Identity scopes
+│   ├── magic_identity_testing.go                     # Identity testing
+│   ├── magic_identity_timeouts.go                    # Identity timeouts
+│   ├── magic_identity_uris.go                        # Identity URIs
+│   ├── magic_jose.go                                 # JOSE product constants
+│   ├── magic_memory.go                               # Memory constants
 │   ├── magic_misc.go
 │   ├── magic_network.go
 │   ├── magic_orchestration.go
 │   ├── magic_percent.go
+│   ├── magic_pki.go                                  # PKI product constants
+│   ├── magic_pkiinit.go                              # PKI init constants
+│   ├── magic_pkix.go                                 # PKIX constants
+│   ├── magic_pki_ca.go                               # PKI-CA service constants
 │   ├── magic_security.go
 │   ├── magic_session.go
+│   ├── magic_skeleton.go                             # Skeleton product constants
+│   ├── magic_sm.go                                   # SM product constants
+│   ├── magic_sm_im.go                                # SM-IM service constants
 │   ├── magic_telemetry.go
 │   ├── magic_testing.go
+│   ├── magic_test_fixtures.go                        # Test fixture constants
 │   ├── magic_unseal.go
 │   └── magic_workflows.go
 ├── pool/
@@ -705,6 +738,18 @@ internal/shared/                                      # drwxr-x---
     └── thread/
 ```
 
+### G.3 internal/cmd/ — CLI Wiring `drwxr-x---`
+
+```
+internal/cmd/                                         # drwxr-x---
+└── cicd_lint/                                        # cicd-lint CLI wiring
+    ├── cicd.go                                       #   Bridges cmd/cicd-lint/main.go → tools/cicd_lint/
+    └── cicd_test.go
+```
+
+**Note**: `internal/cmd/cicd_lint/` is the thin wiring layer between `cmd/cicd-lint/main.go`
+and `internal/apps/tools/cicd_lint/`. It contains the CLI entry point and argument parsing.
+
 ---
 
 ## H. docs/ — Documentation `drwxr-x---`
@@ -712,11 +757,14 @@ internal/shared/                                      # drwxr-x---
 ```
 docs/                                                 # drwxr-x---
 ├── ARCHITECTURE.md                                   # SSOT: Architecture reference (5080+ lines)
-├── CONFIG-SCHEMA.md                                  # Config file schema reference
 ├── DEV-SETUP.md                                      # Developer setup guide
 ├── README.md                                         # Documentation index
+├── gremlins/                                         # ORPHANED empty dir (DELETE — content is at framework-v7/gremlins/)
+├── workflow-runtimes/                                # ORPHANED empty dir (DELETE — content is at framework-v7/workflow-runtimes/)
 └── framework-v7/                                     # Ongoing reference documentation
     ├── README.md                                     # Index of living docs
+    ├── PORT-REORDERING.md                            # Port reassignment plan (completed)
+    ├── STALE.md                                      # Stale content tracking (all items resolved)
     ├── target-structure.md                           # THIS FILE (canonical target structure)
     ├── gremlins/                                     # Mutation testing reference
     │   ├── MUTATIONS-HOWTO.md
@@ -801,21 +849,85 @@ reminders that browser/service credentials are service-level concerns.
 
 ---
 
-## M. Fitness Linter Coverage (New/Enhanced in v6)
+## M. Fitness Linter Coverage (59 linters)
+
+**All 59 fitness linter directories** (alphabetical):
+
+```
+lint_fitness/
+├── admin_bind_address/                    # Admin 127.0.0.1:9090 bind enforcement
+├── archive_detector/                      # No archived/orphaned directories
+├── banned_product_names/                  # Legacy product name detection
+├── bind_address_safety/                   # Bind address safety (no 0.0.0.0 in tests)
+├── cgo_free_sqlite/                       # CGO-free SQLite driver enforcement
+├── check_skeleton_placeholders/           # Skeleton template placeholder validation
+├── cicd_coverage/                         # CICD coverage enforcement
+├── circular_deps/                         # Circular dependency detection
+├── cmd_anti_pattern/                      # cmd/ anti-pattern detection
+├── cmd_entry_whitelist/                   # Only 18 allowed cmd/ entries
+├── cmd_main_pattern/                      # cmd/*/main.go pattern validation
+├── compose_db_naming/                     # Docker Compose DB naming conventions
+├── compose_header_format/                 # Docker Compose header format
+├── compose_service_names/                 # Docker Compose service name conventions
+├── configs_deployments_consistency/       # configs/ ↔ deployments/ structural mirror
+├── configs_empty_dir/                     # No empty config directories
+├── configs_naming/                        # Flat configs/{PS-ID}/ naming pattern
+├── cross_service_import_isolation/        # Service import isolation enforcement
+├── crypto_rand/                           # crypto/rand enforcement (never math/rand)
+├── deployment_dir_completeness/           # Deployment directory completeness
+├── dockerfile_labels/                     # Dockerfile OCI label validation
+├── domain_layer_isolation/                # Domain layer isolation enforcement
+├── entity_registry_completeness/          # Entity registry vs filesystem sync
+├── file_size_limits/                      # File size limit enforcement (500 lines)
+├── gen_config_initialisms/                # oapi-codegen initialism consistency
+├── health_endpoint_presence/              # Health endpoint presence in services
+├── infra_tool_naming/                     # Infrastructure tool naming conventions
+├── insecure_skip_verify/                  # InsecureSkipVerify detection
+├── legacy_dir_detection/                  # Legacy directory detection
+├── magic_constant_location/               # Magic constants in internal/shared/magic/
+├── magic_e2e_compose_path/                # E2E compose path magic constants
+├── magic_e2e_container_names/             # E2E container name magic constants
+├── migration_comment_headers/             # Migration file comment headers
+├── migration_numbering/                   # Migration file numbering
+├── migration_range_compliance/            # Framework (1001-1999) vs domain (2001+)
+├── non_fips_algorithms/                   # FIPS 140-3 algorithm enforcement
+├── no_hardcoded_passwords/                # No hardcoded password detection
+├── no_local_closed_db_helper/             # No local closed DB helpers
+├── no_postgres_in_non_e2e/                # PostgreSQL only in E2E tests
+├── no_unit_test_real_db/                  # No real DB in unit tests
+├── no_unit_test_real_server/              # No real server in unit tests
+├── otlp_service_name_pattern/             # OTLP service name pattern enforcement
+├── parallel_tests/                        # t.Parallel() enforcement
+├── product_structure/                     # Product directory structure validation
+├── product_wiring/                        # Product wiring validation
+├── registry/                              # Entity registry (SSOT)
+├── require_api_dir/                       # api/ directory requirement per service
+├── require_framework_naming/              # Framework naming convention enforcement
+├── root_junk_detection/                   # Root directory junk file detection
+├── secret_content/                        # Secret file content validation
+├── secret_naming/                         # Secret file naming conventions
+├── service_contract_compliance/           # Service contract test presence
+├── service_structure/                     # Service directory structure validation
+├── standalone_config_otlp_names/          # Standalone config OTLP name consistency
+├── standalone_config_presence/            # Standalone config file presence
+├── template_consistency/                  # Skeleton template consistency
+├── test_patterns/                         # Test pattern enforcement
+├── tls_minimum_version/                   # TLS 1.3+ minimum version enforcement
+└── unseal_secret_content/                 # Unseal key value pattern validation
+```
+
+**Selection of linters by scope**:
 
 | Linter | Scope | Rule |
 |--------|-------|------|
-| `root-junk-detection` | `{ROOT}/` | No `*.exe`, `*.py`, `coverage*`, `*.test.exe` at root |
-| `cmd-entry-whitelist` | `cmd/` | Only 18 allowed entries (1 suite + 5 products + 10 services + 2 infra tools) |
-| `configs-structure` | `configs/` | Must follow flat `{SUITE}/`, `{PRODUCT}/`, `{PS-ID}/` hierarchy (Decision 2=B) |
-| `configs-naming` (rewritten) | `configs/` | Validates flat `{PS-ID}/{PS-ID}.yml` pattern; rejects nested `{PRODUCT}/{SERVICE}/`; allows `pki-ca/profiles/` and `identity-authz/domain/policies/` exceptions |
-| `configs-no-deployment` | `configs/` | No deployment variants (`*-pg-*.yml`, `*-postgresql-*.yml`, `*-sqlite.yml`, `*-sqlite-*.yml`) or environment files (`development.yml`, `production.yml`, `test.yml`) |
-| `secret-naming` | `deployments/*/secrets/` | All tiers use `{purpose}.secret` names; `.never` markers enforced at product/suite |
-| `unseal-secret-content` | `deployments/*/secrets/unseal-*.secret` | Validates unseal secret value patterns: `{TIER-PREFIX}-unseal-key-N-of-5-{base64-random-32-bytes}`; value must be base64-encoded 32 random bytes; all 5 shards must have unique values; tier prefix must match deployment directory (`{PS-ID}-` for services, `{PRODUCT}-` for products, `{SUITE}-` for suite); rejects generic `dev-unseal-key-N-of-5` placeholders |
-| `template-consistency` | `deployments/skeleton-template/` | Hyphens in secret names (not underscores) |
-| `archive-detection` | `**/*archived*/`, `**/*orphaned*/` | No archived/orphaned directories |
-| `entity-registry-completeness` | (existing, enhanced) | Verify `configs/{PS-ID}/` existence for all registered PS-IDs |
-| `dockerfile-labels` | `deployments/*/Dockerfile` | Validates LABEL `org.opencontainers.image.title` matches deployment tier; validates `image.description` is non-empty |
+| `root_junk_detection` | `{ROOT}/` | No `*.exe`, `*.py`, `coverage*`, `*.test.exe` at root |
+| `cmd_entry_whitelist` | `cmd/` | Only 18 allowed entries (1 suite + 5 products + 10 services + 2 infra tools) |
+| `configs_naming` | `configs/` | Validates flat `{PS-ID}/{PS-ID}.yml` pattern; rejects nested `{PRODUCT}/{SERVICE}/`; allows `pki-ca/profiles/` and `identity-authz/domain/policies/` exceptions |
+| `secret_naming` | `deployments/*/secrets/` | All tiers use `{purpose}.secret` names; `.never` markers enforced at product/suite |
+| `unseal_secret_content` | `deployments/*/secrets/unseal-*.secret` | Validates unseal secret value patterns; rejects generic `dev-unseal-key-N-of-5` placeholders |
+| `template_consistency` | `deployments/skeleton-template/` | Hyphens in secret names (not underscores) |
+| `entity_registry_completeness` | (cross-cutting) | Verify `configs/{PS-ID}/` existence for all registered PS-IDs |
+| `dockerfile_labels` | `deployments/*/Dockerfile` | Validates LABEL `org.opencontainers.image.title` matches deployment tier |
 
 ---
 
@@ -824,6 +936,9 @@ reminders that browser/service credentials are service-level concerns.
 | Area | Current State | Target State | Action |
 |------|--------------|-------------|--------|
 | Root files | 9 junk `*_coverage`/`cover` artifacts | Clean project config only | DELETE artifacts |
+| `docs/gremlins/` | Empty orphaned directory at `docs/` root | Deleted (content is at `docs/framework-v7/gremlins/`) | DELETE |
+| `docs/workflow-runtimes/` | Empty orphaned directory at `docs/` root | Deleted (content is at `docs/framework-v7/workflow-runtimes/`) | DELETE |
 | `deployments/` product Dockerfile | Missing in all 5 products | Present in all 5 products | CREATE |
 | `internal/shared/apperr/` | Present | Moved to `internal/apps/framework/apperr/` | MOVE |
-| `testdata/` | Present (1 sample file) | Deleted (move to owning package) | DELETE |
+| `testdata/` | Present (`adaptive-sim/` subdirectory) | Deleted (move to owning package) | DELETE |
+| `sm-im` orphaned test DBs | ~130 `test_*.db` files committed | Gitignored and removed from tracking | ADD to `.gitignore`, `git rm --cached` |
