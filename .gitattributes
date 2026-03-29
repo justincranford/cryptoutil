@@ -1,5 +1,5 @@
-# Normalize all text files to LF in the repository
-* text=auto eol=lf
+# Normalize all text files in the repository; working-tree line endings follow core.autocrlf
+* text=auto
 
 # Windows-specific files that must remain CRLF
 *.bat text eol=crlf
