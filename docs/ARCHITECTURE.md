@@ -520,7 +520,7 @@ See the [beast-mode agent](.github/agents/beast-mode.agent.md) for the full auto
 
 <!-- NOTE: This @propagate target is the beast-mode instruction file, which is injected as modeInstructions at runtime (not via the standard instructions directory scan). This means the chunk is consumed in the mode prompt, not in the standard instructions context — a different injection path than all other @propagate targets. -->
 <!-- @propagate to=".github/instructions/01-02.beast-mode.instructions.md" as="end-of-turn-commit-protocol" -->
-**MANDATORY: NEVER end a turn with uncommitted changes. Run `git status --porcelain` as the absolute last action before yielding to the user.**
+**MANDATORY: NEVER end a turn with uncommitted changes. Your ABSOLUTE LAST TOOL INVOCATION before yielding to the user MUST be running `git status --porcelain`. NEVER assume the worktree is clean — always RUN the command as a tool call.**
 
 If `git status --porcelain` returns ANY output:
 
@@ -535,6 +535,7 @@ If `git status --porcelain` returns ANY output:
 - Stopping after analysis without committing changes
 - Marking work "done" with unstaged or uncommitted files
 - Responding to the user without committing work in progress
+- Assuming the worktree is clean without running the command as a tool call
 
 **Pattern**: `git status --porcelain` returns empty → End turn. Any output → Commit first.
 <!-- @/propagate -->
