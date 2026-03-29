@@ -988,8 +988,8 @@ Based on golang-standards/project-layout:
 - deployments/: Docker Compose, Kubernetes manifests
 - docs/: Documentation
 - pkg/: Public library code (intentionally empty - all code is internal)
-- scripts/: Build/test scripts (minimal, prefer Go applications)
-- test/: Additional test files (Gatling load tests)
+- scripts/: Placeholder only (`.gitkeep`). All tooling lives in `cmd/` or `internal/apps/tools/`.
+- test/: Additional test files (Gatling load tests — Java/Maven only)
 
 #### 4.4.2 Directory Rules
 
@@ -2613,6 +2613,22 @@ internal/apps/tools/cicd_lint/
 5. **Sub-commands are registered**: Sub-linters/formatters MUST be registered in a slice within the parent command's entry point file. No ad-hoc invocations.
 6. **Test presence**: Every package under `internal/apps/tools/cicd_lint/` MUST have at least one `_test.go` file (enforced by `lint_go/test_presence` sub-linter).
 
+#### 9.10.6 cicd-lint Command Constraints — MANDATORY
+
+<!-- @propagate to=".github/instructions/04-01.deployment.instructions.md" as="cicd-lint-constraints" -->
+**Purpose**: `cicd-lint` is exclusively for linting, formatting, and operational cleanup. It NEVER generates files, scaffolds content, or transforms the repository.
+
+**Constraints** (NO EXCEPTIONS):
+
+1. **Subcommands only**: `go run ./cmd/cicd-lint <subcommand> [<subcommand2> ...]` — the ONLY accepted arguments are subcommand names. No `--flags`, no `--ps-id=`, no customization parameters of any kind.
+2. **Linting and formatting only**: Linter commands detect deviations from expected structure and return errors. Formatter commands auto-fix style issues. Neither generates new content.
+3. **No content generation**: cicd-lint NEVER creates Dockerfiles, compose files, config overlays, secrets, migration files, or any other repository artifacts. The strategy is detect-and-error, not generate-and-apply.
+4. **No Python under cicd_lint**: `internal/apps/tools/cicd_lint/` is pure Go. No Python scripts, modules, or helpers.
+5. **Codify as validators**: When a new invariant is identified, implement it as a fitness linter that validates the actual state against expected state and returns descriptive errors. NEVER implement it as a generator that creates the expected state.
+<!-- @/propagate -->
+
+**Rationale**: The single source of truth is `docs/ARCHITECTURE.md` (prose). Its invariants are codified by a combination of pre-commit and pre-push hooks, including many `cicd-lint` subcommands. This strategy means ARCHITECTURE.md drives the repository, not generated files that can drift from the prose.
+
 ---
 
 ### 9.11 Architecture Fitness Functions
@@ -3991,7 +4007,6 @@ Unit/integration tests use Auto TLS (no secrets needed). See [Section 6.11](#611
 
 ##### Cross-Reference Documentation
 
-- Secrets generation scripts: `internal/apps/tools/cicd_lint/secrets/` (Python secrets module)
 - Security architecture: [02-05.security.instructions.md](../.github/instructions/02-05.security.instructions.md#secret-management---mandatory)
 - Hash service patterns: [02-05.security.instructions.md](../.github/instructions/02-05.security.instructions.md#hash-service-architecture)
 - Deployment structure: [Section 4.4.6 Deployments](#446-deployments)
@@ -4534,7 +4549,7 @@ Any variant not matching the above grammar (e.g., `@propagate from=...`, `@sourc
 | 11. Quality Architecture | 03-05.linting, 03-01.coding, 06-01.evidence-based | implementation-planning, beast-mode |
 | 12. Deployment Architecture | 04-01.deployment, 02-05.security | fix-workflows |
 | 13. Deployment Tooling & Validation | 04-01.deployment | fix-workflows |
-| 14. Development Practices | 05-02.git, 03-01.coding, 03-03.golang | implementation-planning, implementation-execution |
+| 14. Development Practices | 05-02.git, 03-01.coding, 03-03.golang, 05-01.cross-platform | implementation-planning, implementation-execution |
 | 15. Operational Excellence | 02-03.observability | — |
 | Appendix A-C | (reference only) | — |
 
@@ -4614,8 +4629,10 @@ Propagation markers are added incrementally:
 | utf8-without-bom | 9.9.3 | 03-05.linting |
 | docker-compose-rules | 12.3.1 | 04-01.deployment |
 | cicd-command-naming | 9.10.2 | 04-01.deployment |
+| cicd-lint-constraints | 9.10.6 | 04-01.deployment |
 | docker-desktop-startup | 14.5.5 | 05-01.cross-platform |
 | docker-desktop-upgrade | 14.5.5 | 05-01.cross-platform |
+| scripting-language-policy | 14.9 | 05-01.cross-platform |
 | conventional-commits | 14.2.1 | 05-02.git |
 | incremental-commits | 14.2.2 | 05-02.git |
 | restore-from-baseline | 14.2.3 | 05-02.git |
@@ -4943,7 +4960,27 @@ After ALL plan tasks are complete, apply accumulated lessons to permanent artifa
 
 **Every plan MUST include a final "Knowledge Propagation" phase** that executes these steps. This phase is NOT optional.
 
-### 14.9 Archive and Dead Code Policy
+### 14.9 Scripting Language Policy — MANDATORY
+
+<!-- @propagate to=".github/instructions/05-01.cross-platform.instructions.md" as="scripting-language-policy" -->
+**MANDATORY: Choose scripting language in priority order. Lower-priority choices require justification.**
+
+| Priority | Language | When to Use |
+|----------|----------|-------------|
+| 1 (primary) | **Go** | ALL tooling, automation, scripts — compiled, cross-platform, static binary |
+| 2 (exception) | **Java** | Gatling load tests in `test/load/` ONLY |
+| 3 (last resort) | **Python** | Quick one-offs where Go is not suitable; one file, no maintenance burden |
+| ❌ (BANNED) | **Bash** | BANNED everywhere except Docker container init scripts (`docker-entrypoint-initdb.d/`) |
+| ❌ (BANNED) | **PowerShell** | BANNED everywhere, no exceptions |
+
+**Rationale**: Go and Java are compiled languages that produce cross-platform static binaries with proper type safety and testability. Python scripts tend to accumulate without lifecycle management. Bash/PowerShell are platform-specific and error-prone.
+
+**Docker container init exception**: The official PostgreSQL Docker image's `docker-entrypoint-initdb.d/` mechanism runs shell scripts natively. Shell scripts in this specific directory are the only permitted Bash exception. Minimize logic in these scripts; prefer `.sql` files where possible.
+
+**NO Python under `internal/apps/tools/cicd_lint/`**: The `cicd_lint` tool is pure Go. No Python scripts, generation helpers, or utility modules belong here. If a capability requires Python (rare), it belongs outside the Go module.
+<!-- @/propagate -->
+
+### 14.10 Archive and Dead Code Policy
 
 **MANDATORY: Code is DELETED, not archived. Git history preserves everything.**
 
