@@ -173,15 +173,6 @@ func TestAuditLogRepository_ListByOperation(t *testing.T) {
 	require.Empty(t, entries)
 }
 
-func TestShouldAudit_DatabaseErrorPropagation(t *testing.T) {
-	t.Parallel()
-
-	// Skip: In-memory SQLite doesn't trigger database errors for Nil UUID queries.
-	// The Nil UUID query returns ErrRecordNotFound (no rows), not a database error.
-	// This mutation-killing test requires PostgreSQL with FK constraints to work.
-	t.Skip("TODO: Requires PostgreSQL with FK constraints to trigger non-ErrRecordNotFound errors")
-}
-
 func TestShouldAudit_FallbackSamplingBoundary(t *testing.T) {
 	t.Parallel()
 

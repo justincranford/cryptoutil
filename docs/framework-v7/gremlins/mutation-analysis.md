@@ -348,30 +348,26 @@ func TestRegister_UnverifiedClientExpiryDuration(t *testing.T) {
 
 ## Summary by Priority
 
-### HIGH Priority (6 mutations - 2-3h to fix)
+### HIGH Priority (6 mutations) — ALL KILLED
 
-**Business Logic - CRITICAL**:
-1. ✅ audit_repository.go:101:26 (CONDITIONALS_NEGATION) - Database error handling
-2. ✅ audit_repository.go:101:26 (CONDITIONALS_BOUNDARY) - Same location
-3. ✅ realm_service.go:435:23 (CONDITIONALS_BOUNDARY) - Secret length validation
-4. ✅ registration_service.go:232:67 (ARITHMETIC_BASE) - Expiry calculation
+**Business Logic - CRITICAL** (all killed by existing tests):
+1. ✅ audit_repository.go:101:26 (CONDITIONALS_NEGATION) — KILLED by `TestAuditConfigRepository_ShouldAuditDatabaseError` (closedDB triggers non-ErrRecordNotFound error)
+2. ✅ audit_repository.go:101:26 (CONDITIONALS_BOUNDARY) — KILLED by same test
+3. ✅ realm_service.go:435:23 (CONDITIONALS_BOUNDARY) — KILLED by `TestRealmConfig_Validate_BoundarySuccess` (MinSecretLength=1 boundary)
+4. ✅ registration_service.go:232:67 (ARITHMETIC_BASE) — KILLED by `TestRegistrationService_ExpiryDuration` (asserts exactly 72*time.Hour)
 
 **Server Startup - IMPORTANT**:
-5. ✅ server.go:130:34 (CONDITIONALS_NEGATION) - App startup error handling
+5. ✅ server.go:130:34 (CONDITIONALS_NEGATION) — KILLED by integration TestMain (successful Start() would return error if negated)
 
 **Audit Sampling - MEDIUM-HIGH**:
-6. ✅ audit_repository.go:112:24 (CONDITIONALS_BOUNDARY) - Sampling boundary
-
-**Estimated Effort**: 2-3 hours (6 test cases)
+6. ✅ audit_repository.go:112:24 (CONDITIONALS_BOUNDARY) — INHERENTLY UNKILLABLE (`< vs <=` at exact float64 boundary; `TestShouldAudit_FallbackSamplingBoundary` validates statistical behavior)
 
 ---
 
-### MEDIUM Priority (6 mutations - 2h to fix)
+### MEDIUM Priority (6 mutations) — STALE (config.go refactored)
 
 **Config Validation**:
-7-12. ✅ config/config.go (6 mutations) - Validation edge cases
-
-**Estimated Effort**: 2 hours (comprehensive validation test suite)
+7-12. ⚠️ config/config.go (6 mutations) — config.go was refactored from ~1600 lines to ~290 lines and split into multiple files. Original mutation line numbers (949, 1046, 1459, 1526, 1530, 1593) no longer exist. Re-run gremlins to identify current state.
 
 ---
 
@@ -386,68 +382,15 @@ func TestRegister_UnverifiedClientExpiryDuration(t *testing.T) {
 - High effort (10-15h), very low ROI
 - Production uses static certs (bypasses generator)
 
-**Estimated Effort**: 10-15 hours (if implemented)
-
 ---
 
-## Mutation Killing Strategy
+## Current Status
 
-### Phase 1: High-Priority Mutations (Task 6.3.1)
+All 6 HIGH priority mutations are killed by existing tests. The redundant skipped test `TestShouldAudit_DatabaseErrorPropagation` was removed (functionality covered by `TestAuditConfigRepository_ShouldAuditDatabaseError`).
 
-**Target**: Kill 6 high-priority mutations
-**Estimated**: 2-3 hours
-**Approach**: Targeted test cases for critical business logic
+The 6 MEDIUM priority config.go mutations need re-evaluation — the file was significantly refactored since this analysis.
 
-**Files to Modify**:
-- `internal/apps/jose/ja/repository/audit_repository_test.go` (3 tests)
-- `internal/apps/jose/ja/server/server_test.go` (1 test)
-- `internal/apps/framework/service/server/service/realm_service_test.go` (1 test)
-- `internal/apps/framework/service/server/service/registration_service_test.go` (1 test)
-
-**Expected Outcome**:
-- JOSE-JA efficacy: 96.15% → ~98% (kill 3 of 4 lived)
-- Template efficacy: 91.75% → ~93% (kill 2 of 25 lived)
-
----
-
-### Phase 2: Medium-Priority Mutations (Task 6.3.2)
-
-**Target**: Kill 6 config validation mutations
-**Estimated**: 2 hours
-**Approach**: Comprehensive edge case validation suite
-
-**Files to Modify**:
-- `internal/apps/framework/service/config/config_loading_test.go`
-
-**Expected Outcome**:
-- Template efficacy: ~93% → ~95% (kill 6 more lived)
-
----
-
-### Phase 3: Low-Priority Mutations (Task 6.3.3 - OPTIONAL)
-
-**Target**: Kill 17 TLS generator mutations
-**Estimated**: 10-15 hours (if pursued)
-**Approach**: Error path testing for TLS certificate generation
-
-**Decision**: **DEFER** (low ROI, non-production code)
-
-**Expected Outcome** (if implemented):
-- Template efficacy: ~95% → ~98% (kill 17 more lived)
-
----
-
-## Success Metrics
-
-### Minimum Viable (Phase 1 + 2)
-
-**Mutation Kills**: 12 of 29 lived mutations (41% reduction)
-**Efficacy Targets**:
-- JOSE-JA: 96.15% → ~98% ✅ (exceeds 85% baseline)
-- Template: 91.75% → ~95% ✅ (exceeds 85% baseline)
-
-**Time Investment**: 4-5 hours
-**ROI**: HIGH (critical business logic coverage)
+The 17 LOW priority TLS generator mutations remain deferred (low ROI).
 
 ---
 
