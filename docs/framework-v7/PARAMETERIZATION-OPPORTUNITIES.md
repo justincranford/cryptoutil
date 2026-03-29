@@ -12,14 +12,14 @@ instruction files, all 14 skills, `deployments/`, `configs/`, and `docs/framewor
 
 ## Executive Summary
 
-Twenty ranked opportunities to replace descriptive convention with computable, enforceable structure.
-Each moves one or more currently prose-described or manually-maintained invariants into a machine that
-generates, validates, and rejects deviations automatically.
+Eighteen ranked opportunities to implement (Part A) plus two deferred items (Part B). Each Part A
+item moves one or more currently prose-described or manually-maintained invariants into a machine
+that validates and rejects deviations automatically.
 
 1. **[#01] Machine-Readable Entity Registry Schema** — replace the Go-struct registry with a canonical
    YAML schema that becomes the single data source for every downstream artifact in the repo.
-2. **[#02] Generative Deployment Scaffold Command** — one command generates all required deployment
-   artifacts for a new PS-ID (compose, Dockerfile, 5 config overlays, 14 secrets) from the entity registry.
+2. **[#02] Generative Deployment Scaffold Command** — *(Deferred — see Part B. Violates cicd-lint
+   no-generation and no-parameter constraints.)*
 3. **[#03] @propagate Coverage Completeness Matrix** — formalize which ARCHITECTURE.md section must
    propagate to which instruction/agent file; lint-docs reports missing blocks, not only content drift.
 4. **[#04] Port Formula Codification** — store base port per PS-ID in the entity registry; compute all
@@ -42,8 +42,7 @@ generates, validates, and rejects deviations automatically.
     schema used by both the generation tool and the `secret-content` fitness linter.
 13. **[#13] API Path Parameter Registry** — each PS-ID declares its resource names as typed tuples
     `(path_type, api_version, resource)`; a fitness linter validates OpenAPI spec paths match the declarations.
-14. **[#14] Instruction File Slot Reservation Table** — the `NN-NN.name.instructions.md` numbering space
-    formalized as an explicit reservation table with category boundaries and open slot tracking.
+14. **[#14] Instruction File Slot Reservation Table** — *(Deferred — see Part B. Not planned at this time.)*
 15. **[#15] Fitness Sub-Linter Category Registry** — the 57 sub-linters expressed as a structured registry
     (category, name, scope, enforcement level) enabling automated docs generation and gap detection.
 16. **[#16] Compose Service Instance Naming Schema** — `{ps-id}-{db}-{N}` stored as an explicit enumeration
@@ -59,7 +58,7 @@ generates, validates, and rejects deviations automatically.
 
 ---
 
-## Details
+## Part A: To Implement
 
 ---
 
@@ -132,41 +131,7 @@ JSON Schema on every commit.
 
 ---
 
-### #02 — Generative Deployment Scaffold Command
-
-**Impact**: 100× — a new service exists in the repository in one command, not 100 manual steps.
-
-**Current state**: Section 2.2 of ARCHITECTURE.md documents the "Update Procedure" for adding a
-new PS-ID: (1) add magic constants, (2) add entity registry entry, (3) manually create deployment
-artifacts (Dockerfile, compose.yml, 5 config overlays, 14 secrets, otel-collector-config.yaml),
-(4) add `configs/{PS-ID}/{PS-ID}.yml`, (5) run `cicd-lint lint-fitness`. Steps 3–4 require
-manually creating ~25 files for each new service, each following the same patterns with only the PS-ID token swapped.
-
-The `skeleton-template` service exists for copying, but copying is a manual process with no
-mechanical guarantee that the copy is complete or correct.
-
-**Opportunity**: A new `go run ./cmd/cicd-lint scaffold --ps-id=NEW-SVC` command that:
-
-1. Looks up `NEW-SVC` in `registry.yaml` to get all derived values.
-2. Renders every required file from parameterized Go templates:
-   - `deployments/new-svc/Dockerfile` — labels, EXPOSE, ENTRYPOINT from registry
-   - `deployments/new-svc/compose.yml` — service definitions, port bindings, secret mounts
-   - `deployments/new-svc/config/{5 overlay files}` — common, sqlite-1/2, postgresql-1/2
-   - `deployments/new-svc/secrets/{14 .secret files}` — placeholder values with correct format
-   - `configs/new-svc/new-svc.yml` — domain config with OTLP endpoint and bind addresses
-   - `deployments/new-svc/otel-collector-config.yaml`
-3. Runs `cicd-lint lint-fitness --focus=new-svc` to verify structure integrity.
-4. Prints a checklist of manual steps not automatable (domain logic in `internal/apps/new-svc/`).
-
-**Quantified scope**: Reduces new-service onboarding from ~25 manual files + guesswork to 1
-command + a short checklist. Every subsequent add-service task becomes O(1) command, not O(N)
-file.
-
-**Pre-requisites**: Opportunity #01 (registry.yaml) must be in place; template files must exist
-in `internal/apps/tools/cicd_lint/scaffold/templates/`.
-
-**Fitness enforcement**: The existing `deployment-dir-completeness` and `entity-registry-completeness`
-linters already catch missing artifacts — scaffold just generates them up front.
+> **[#02] Generative Deployment Scaffold Command** — Deferred. See **Part B** below for rationale.
 
 ---
 
@@ -281,8 +246,9 @@ types at all 3 deployment tiers. The format for each type is:
 - Optional random suffix: `base64.urlsafe_b64encode(secrets.token_bytes(32))` for password-like secrets
 - Static suffix: none for identifiers
 
-A Python `secrets/` directory exists under `internal/apps/tools/cicd_lint/` with generation
-scripts, but each script is service-specific and the format schemas are not machine-readable.
+No automated generation tooling exists. Secrets are authored manually following the format
+conventions documented in Section 12.3.3, but the format schemas are not machine-readable —
+they live only in ARCHITECTURE.md prose and in ad-hoc regex inside the linters.
 
 **Current gap**: No single command generates all secrets for a new deployment tier; no validator
 checks that existing secrets match their declared format. The `secret-content` fitness linter
@@ -315,9 +281,9 @@ secrets:
 ```
 
 Use this schema to:
-1. **Generate** all secrets for any tier/PS-ID combination: `cicd-lint scaffold-secrets --ps-id=sm-kms`
-2. **Validate** all existing secrets in CI: `cicd-lint lint-fitness secret-content` reads schemas
-3. **Document** the format table in ARCHITECTURE.md via `@propagate` from the YAML
+1. **Validate** all existing secrets in CI: `cicd-lint lint-fitness` runs `secret-content` linter against schemas.
+2. **Document** the format table in ARCHITECTURE.md via `@propagate` from the YAML.
+3. **Guide** manual secret creation: developers follow the schema when onboarding a new tier or PS-ID.
 
 **Quantified scope**: 14 format schemas × 10 PS-IDs × 3 tiers = 420 secret instances all
 derivable from 14 schemas + entity registry. Replaces 420 hand-crafted secret files.
@@ -329,9 +295,9 @@ validate against `secret-schemas.yaml` rather than hardcoded regex.
 
 ---
 
-### #06 — Config Overlay Generation Template
+### #06 — Config Overlay Template Validation
 
-**Impact**: 30× — eliminates 50 hand-crafted deployment config files.
+**Impact**: 30× — validates 50 deployment config overlay files against canonical templates.
 
 **Current state**: Every service requires exactly 5 config overlay files in
 `deployments/{PS-ID}/config/`:
@@ -360,19 +326,15 @@ internal/apps/tools/cicd_lint/scaffold/templates/
 ```
 
 Each template references entity registry values (PS-ID, base port, OTLP service name pattern)
-and instance parameters (variant: sqlite/postgresql, N: 1/2). Generation:
-
-```bash
-go run ./cmd/cicd-lint scaffold-configs --ps-id=sm-kms
-# outputs: deployments/sm-kms/config/{5 files}
-```
+and instance parameters (variant: sqlite/postgresql, N: 1/2).
 
 A `config-overlay-freshness` fitness check verifies that each overlay file matches what the
-template would generate for its PS-ID and variant — catching drift when templates change without
-corresponding overlay regeneration.
+template defines for its PS-ID and variant — catching drift when template patterns change
+without corresponding overlay updates. When onboarding a new service, the developer copies the
+template and substitutes the PS-ID manually; the linter validates correctness.
 
-**Quantified scope**: 50 files × avg. 15 lines = 750 YAML lines reduced to 3 templates × 15
-lines = 45 lines + registry data. New service onboarding: 5 files generated in 1 command.
+**Quantified scope**: 50 files × avg. 15 lines = 750 YAML lines covered by 3 templates × 15
+lines = 45 lines + registry data. New service onboarding: 5 files validated by `cicd-lint lint-fitness`.
 
 **Pre-requisites**: Opportunities #01 (base_port), #04 (port formula), #10 (OTLP naming).
 
@@ -511,19 +473,12 @@ New `subcommand-completeness` fitness linter traverses the Go AST of each
 `internal/apps/{PS-ID}/{PS-ID}.go` file and verifies that all required subcommand handlers
 are registered. Reports missing handlers as errors with the exact function signature expected.
 
-Additionally, generate a `subcommand-matrix.md` reference table from the registry:
-
-| PS-ID | server | health | livez | readyz | shutdown | client | init | compose | e2e |
-|-------|--------|--------|-------|--------|----------|--------|------|---------|-----|
-| sm-kms | ✅ | ✅ | ✅ | ✅ | ✅ | … | … | … | … |
-
 **Quantified scope**: 10 PS-IDs × 5 required subcommands = 50 required handlers. Currently tracked
 implicitly; fitness linter would surface the ~15 gaps in less-mature services.
 
 **Pre-requisites**: Opportunity #01 (subcommand_requirements in registry.yaml).
 
-**Fitness enforcement**: New `subcommand-completeness` linter; generated matrix kept in sync
-by `cicd-lint format-go` or a dedicated `generate-subcommand-matrix` script.
+**Fitness enforcement**: New `subcommand-completeness` linter.
 
 ---
 
@@ -541,7 +496,7 @@ These names appear in:
 The `otlp-service-name-pattern` fitness linter validates the `{ps-id}-{db}-{N}` format via
 regex. The `compose-service-names` linter validates compose service name format. However,
 neither linter cross-references the entity registry to verify that the ps-id component is a
-_valid registered PS-ID_ — a typo like `sm-km-sqlite-1` (hyphen instead of dash) would pass
+*valid registered PS-ID* — a typo like `sm-km-sqlite-1` (hyphen instead of dash) would pass
 the regex but reference a non-existent service.
 
 **Opportunity**: Generate the OTLP service name and compose service name in the entity registry:
@@ -710,46 +665,7 @@ validated against a formula rather than inspected manually during code review.
 
 ---
 
-### #14 — Instruction File Slot Reservation Table
-
-**Impact**: 5× — prevents numbering collisions and provides a structural roadmap for future instruction files.
-
-**Current state**: The 18 instruction files follow the `NN-NN.name.instructions.md` numbering
-pattern. The current space:
-- 01-xx: Meta (terminology, beast-mode)
-- 02-xx: Architecture (6 files: 02-01 through 02-06)
-- 03-xx: Development (5 files: 03-01 through 03-05)
-- 04-xx: Deployment (1 file: 04-01)
-- 05-xx: Platform (2 files: 05-01, 05-02)
-- 06-xx: Evidence/Quality (2 files: 06-01, 06-02)
-
-The numbering scheme is described in `copilot-instructions.md` as a table but the slot
-allocation logic (which numbers belong to which category, which slots are reserved vs. open)
-exists only as implicit convention.
-
-**Opportunity**: Add a `instruction-registry.yaml`:
-
-```yaml
-categories:
-  "01": name: "Meta"          slots_reserved: [01, 02]    slots_open: [03–09]
-  "02": name: "Architecture"  slots_reserved: [01–06]     slots_open: [07–09]
-  "03": name: "Development"   slots_reserved: [01–05]     slots_open: [06–09]
-  "04": name: "Deployment"    slots_reserved: [01]        slots_open: [02–09]
-  "05": name: "Platform"      slots_reserved: [01, 02]    slots_open: [03–09]
-  "06": name: "Evidence"      slots_reserved: [01, 02]    slots_open: [03–09]
-  "07": name: "Reserved"      slots_reserved: []          slots_open: [01–09]
-```
-
-The `instruction-scaffold` skill reads this registry to assign the next available slot when
-creating a new instruction file. A `lint-fitness instruction-numbering` check verifies that
-all 18 files match their declared slot and no two files share a slot.
-
-**Quantified scope**: 18 current files; prevents numbering drift as new files are added.
-Provides a structural roadmap: "there are 3 open slots in category 04 Deployment".
-
-**Pre-requisites**: None — purely additive.
-
-**Fitness enforcement**: New `instruction-numbering` fitness check.
+> **[#14] Instruction File Slot Reservation Table** — Deferred. See **Part B** below for rationale.
 
 ---
 
@@ -951,16 +867,18 @@ external_aliases:
   # ... all external packages
 ```
 
-`golangci-lint` `importas` config is generated from this YAML by `cicd-lint format-go` before
-each lint run, ensuring the enforced alias list always matches the package alias map.
+The `importas` golangci-lint config is maintained separately, but a new `import-alias-formula`
+fitness linter reads the alias map YAML and validates every import block in the codebase directly,
+ensuring actual usage matches the declared convention.
 
 **Quantified scope**: ~50 internal packages + ~20 external packages = 70 import alias rules.
 Currently only ~20 are declared in `.golangci.yml`; the rest are convention without enforcement.
 
 **Pre-requisites**: None.
 
-**Fitness enforcement**: Generated `.golangci.yml` `importas` section; `format-go` regenerates
-it before every lint run.
+**Fitness enforcement**: New `import-alias-formula` fitness linter reads the alias map YAML and
+validates import blocks across all `.go` files; `importas` golangci-lint config updated manually
+when adding new packages.
 
 ---
 
@@ -1001,30 +919,67 @@ or as a standalone pre-commit hook using `check-jsonschema`.
 
 ---
 
+## Part B: Deferred — Not Planned
+
+The following items are **not planned for implementation** at this time.
+
+---
+
+### #02 — Generative Deployment Scaffold Command
+
+**Status**: Deferred.
+
+**Reason**: cicd-lint is exclusively for linting, formatting, and operational cleanup. It NEVER
+generates content and NEVER accepts customization parameters beyond subcommand names. The proposed
+`scaffold --ps-id=NEW-SVC` command violates both constraints:
+
+- `--ps-id=NEW-SVC` is a customization parameter (violates subcommands-only rule).
+- Generating Dockerfiles, compose files, config overlays, and secrets is content generation
+  (violates no-generation rule).
+
+**Alternative**: New services are onboarded manually following the patterns documented in
+ARCHITECTURE.md. The `entity-registry-completeness`, `deployment-dir-completeness`, and
+`config-overlay-freshness` fitness linters detect gaps and missing artifacts after manual
+creation. The `skeleton-template` service provides a copy-and-modify reference.
+
+---
+
+### #14 — Instruction File Slot Reservation Table
+
+**Status**: Deferred — not sure if valuable enough to implement.
+
+**Reason**: The `NN-NN.name.instructions.md` numbering convention is a lightweight implicit
+scheme. A formal reservation table adds governance overhead without a clear benefit given the
+current small number of files (18). May reconsider if the number grows significantly or if
+numbering collisions occur in practice.
+
+**Alternative**: The existing `copilot-instructions.md` table serves as an informal slot registry.
+Conflicts are rare enough that manual coordination suffices.
+
+---
+
 ## Impact Ranking Summary
 
 | Rank | ID | Title | Impact | Primary Benefit |
 |------|----|-------|--------|-----------------|
 | 1 | #01 | Machine-Readable Entity Registry Schema | 100× | Foundation for all other opportunities |
-| 2 | #02 | Generative Deployment Scaffold Command | 100× | New service in 1 command, not 100 files |
-| 3 | #03 | @propagate Coverage Completeness Matrix | 50× | Zero knowledge rot across 18 instruction files |
-| 4 | #04 | Port Formula Codification | 30× | 90 port values → 10 base values + 3 formulas |
-| 5 | #05 | Parameterized Secret Value Generation | 30× | 420 secret instances from 14 schemas |
-| 6 | #06 | Config Overlay Generation Template | 30× | 50 overlay files from 3 templates |
-| 7 | #07 | Per-PS-ID Migration Range Reservation | 20× | Cross-service collision prevention |
-| 8 | #08 | Dockerfile Label Derivation | 20× | 128 parameterized lines from registry |
-| 9 | #09 | CLI Subcommand Completeness Matrix | 15× | 80 required handlers tracked automatically |
-| 10 | #10 | OTLP / Compose Naming Formula | 15× | 60 name instances from bounded formula |
-| 11 | #11 | SQL Identifier Derivation Function | 10× | 40 SQL identifiers from 1 function |
-| 12 | #12 | Secret File Content Schema | 10× | Schema-driven validation replaces ad-hoc regex |
-| 13 | #13 | API Path Parameter Registry | 10× | 100 API paths validated against formula |
-| 14 | #14 | Instruction File Slot Reservation Table | 5× | Prevents numbering collisions |
-| 15 | #15 | Fitness Sub-Linter Category Registry | 5× | Doc ↔ code cross-reference for 57 linters |
-| 16 | #16 | Compose Service Instance Naming Schema | 5× | 50 names validated by set membership |
-| 17 | #17 | Health Path Completeness Matrix | 5× | 60 health path appearances verified |
-| 18 | #18 | Test File Suffix Registry | 3× | Structural content rules per suffix type |
-| 19 | #19 | Import Alias Formula Enforcement | 3× | 70 import aliases auto-generated |
-| 20 | #20 | X.509 Certificate Profile Schema | 2× | 375 profile field values type-validated |
+| 2 | #03 | @propagate Coverage Completeness Matrix | 50× | Zero knowledge rot across 18 instruction files |
+| 3 | #04 | Port Formula Codification | 30× | 90 port values → 10 base values + 3 formulas |
+| 4 | #05 | Parameterized Secret Value Generation | 30× | 420 secret instances validated against 14 schemas |
+| 5 | #06 | Config Overlay Freshness Validation | 30× | 50 overlay files validated against templates |
+| 6 | #07 | Per-PS-ID Migration Range Reservation | 20× | Cross-service collision prevention |
+| 7 | #08 | Dockerfile Label Derivation | 20× | 128 parameterized lines from registry |
+| 8 | #09 | CLI Subcommand Completeness Matrix | 15× | 80 required handlers tracked automatically |
+| 9 | #10 | OTLP / Compose Naming Formula | 15× | 60 name instances from bounded formula |
+| 10 | #11 | SQL Identifier Derivation Function | 10× | 40 SQL identifiers from 1 function |
+| 11 | #12 | Secret File Content Schema | 10× | Schema-driven validation replaces ad-hoc regex |
+| 12 | #13 | API Path Parameter Registry | 10× | 100 API paths validated against formula |
+| 13 | #15 | Fitness Sub-Linter Category Registry | 5× | Doc ↔ code cross-reference for 57 linters |
+| 14 | #16 | Compose Service Instance Naming Schema | 5× | 50 names validated by set membership |
+| 15 | #17 | Health Path Completeness Matrix | 5× | 60 health path appearances verified |
+| 16 | #18 | Test File Suffix Registry | 3× | Structural content rules per suffix type |
+| 17 | #19 | Import Alias Formula Enforcement | 3× | 70 import aliases machine-validated |
+| 18 | #20 | X.509 Certificate Profile Schema | 2× | 375 profile field values type-validated |
 
 ---
 
@@ -1032,7 +987,6 @@ or as a standalone pre-commit hook using `check-jsonschema`.
 
 ```
 #01 Registry YAML
-├── → #02 Scaffold Command
 ├── → #04 Port Formula
 │       └── → #06 Config Overlay Template
 ├── → #05 Secret Generation
@@ -1047,7 +1001,6 @@ or as a standalone pre-commit hook using `check-jsonschema`.
         └── → #17 Health Path Matrix
 
 #03 @propagate Coverage ── standalone ──→  (no external deps)
-#14 Instruction Slots ──── standalone ──→  (no external deps)
 #15 Fitness Registry ────── standalone ──→  (no external deps)
 #18 Test Suffix Rules ───── standalone ──→  (no external deps)
 #19 Import Alias Gen ────── standalone ──→  (no external deps)
@@ -1058,7 +1011,7 @@ or as a standalone pre-commit hook using `check-jsonschema`.
 
 ```
 #01 → #03 → #04 → #11 → #12 → #05 → #07 → #08 → #10
-→ #16 → #06 → #02 → #09 → #13 → #17 → #14 → #15 → #18 → #19 → #20
+→ #16 → #06 → #09 → #13 → #17 → #15 → #18 → #19 → #20
 ```
 
 ---
