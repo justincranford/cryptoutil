@@ -40,6 +40,9 @@ const (
 	// FilePermOwnerReadWriteExecuteGroupOtherReadExecute - Owner read/write/execute, group/other read/execute (0o755).
 	FilePermOwnerReadWriteExecuteGroupOtherReadExecute = 0o755
 
+	// SysInfoConcurrentOpCount - Number of concurrent info-gathering goroutines in GetAllInfoWithTimeout.
+	SysInfoConcurrentOpCount = 5
+
 	// DefaultHelp - Default help flag value.
 	DefaultHelp = false
 	// DefaultDevMode - Default dev mode flag value.

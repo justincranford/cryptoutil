@@ -7,6 +7,8 @@ package random
 import (
 	"testing"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,7 +24,7 @@ const (
 	passwordMinLength = 8
 	passwordMaxLength = 64
 	domainMinLength   = 5
-	domainMaxLength   = 255
+	domainMaxLength   = cryptoutilSharedMagic.EmailDomainMaxLength
 )
 
 // GenerateUsername generates a random username of the specified length for testing.

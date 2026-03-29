@@ -80,7 +80,7 @@ func TestPrintUsage(t *testing.T) {
 
 	printUsage(&buf)
 	output := buf.String()
-	require.Contains(t, output, "cicd - Cryptoutil CI/CD linter and formatter tools")
+	require.Contains(t, output, "cicd-lint - Cryptoutil CI/CD linter and formatter tools")
 	require.Contains(t, output, "Usage:")
 	require.Contains(t, output, "Commands:")
 	require.Contains(t, output, "lint-deployments")

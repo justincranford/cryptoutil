@@ -11,12 +11,13 @@ import (
 	"sync"
 	"time"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 )
 
 const (
 	// Number of concurrent info gathering operations.
-	numConcurrentInfoOps = 5
+	numConcurrentInfoOps = cryptoutilSharedMagic.SysInfoConcurrentOpCount
 )
 
 // GetAllInfoWithTimeout gathers all system information with the specified timeout.
