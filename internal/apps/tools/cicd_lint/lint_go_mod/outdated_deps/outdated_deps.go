@@ -104,11 +104,16 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, dir string) error {
 	if len(outdated) > 0 {
 		logger.Log(fmt.Sprintf("Found outdated Go dependencies (checking %s)", modeName))
 
+		fmt.Fprintln(os.Stderr, "\n❌ Outdated Go dependencies found:")
+
 		for _, dep := range outdated {
-			fmt.Fprintln(os.Stderr, dep)
+			fmt.Fprintf(os.Stderr, "  - %s\n", dep)
 		}
 
-		fmt.Fprintln(os.Stderr, "\nPlease run 'go get -u ./...' to update dependencies manually.")
+		fmt.Fprintln(os.Stderr, "\nFix: Update each dependency individually or all at once:")
+		fmt.Fprintln(os.Stderr, "  Individual: go get module/path@latest")
+		fmt.Fprintln(os.Stderr, "  All direct: go get -u ./...")
+		fmt.Fprintln(os.Stderr, "  Then run:   go mod tidy")
 
 		return fmt.Errorf("outdated dependencies found")
 	}

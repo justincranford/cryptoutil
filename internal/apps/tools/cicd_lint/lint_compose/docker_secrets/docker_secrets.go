@@ -145,7 +145,7 @@ func CheckComposeFileSecrets(filePath string) ([]SecretsViolation, error) {
 					File:    filePath,
 					Line:    lineNum,
 					Content: strings.TrimSpace(line),
-					Reason:  "Inline credential found - MUST use Docker secrets pattern (see 03-06.security.instructions.md)",
+					Reason:  "Inline credential found - MUST use Docker secrets pattern (see ARCHITECTURE.md Section 13.3)",
 				})
 
 				break

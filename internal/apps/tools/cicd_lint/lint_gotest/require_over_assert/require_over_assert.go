@@ -48,7 +48,10 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger, testFiles []string) error {
 
 	if totalIssues > 0 {
 		logger.Log(fmt.Sprintf("Found %d assert usage violations", totalIssues))
-		fmt.Fprintln(os.Stderr, "Please use require.* instead of assert.* for fail-fast testing pattern.")
+		fmt.Fprintln(os.Stderr)
+		fmt.Fprintln(os.Stderr, "Fix: Replace assert.* calls with require.* equivalents for fail-fast testing.")
+		fmt.Fprintln(os.Stderr, "  1. Change import: testify/assert → testify/require")
+		fmt.Fprintln(os.Stderr, "  2. Change calls: assert.NoError → require.NoError, assert.Equal → require.Equal, etc.")
 
 		return fmt.Errorf("found %d assert usage violations", totalIssues)
 	}
@@ -63,7 +66,7 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger, testFiles []string) error {
 // assertPattern matches assert.* calls that should be require.* calls.
 var assertPattern = regexp.MustCompile(`\bassert\.(NoError|Error|Nil|NotNil|Equal|NotEqual|True|False|Contains|NotContains|Len|Empty|NotEmpty|Greater|Less|GreaterOrEqual|LessOrEqual|Eventually|Never|ErrorIs|ErrorAs|ErrorContains|Fail|FailNow|Implements|IsType|JSONEq|Panics|PanicsWithValue|PanicsWithError|NoPanic|Regexp|NotRegexp|Same|NotSame|Subset|NotSubset|WithinDuration|WithinRange|Zero|NotZero|FileExists|NoFileExists|DirExists|NoDirExists)\b`)
 
-// checkAssertUsage checks a test file for assert.* usage that should be require.*.
+// CheckAssertUsage checks a test file for assert.* usage that should be require.*.
 func CheckAssertUsage(filePath string) []string {
 	content, err := os.ReadFile(filePath)
 	if err != nil {
@@ -74,10 +77,15 @@ func CheckAssertUsage(filePath string) []string {
 
 	contentStr := string(content)
 
-	// Check for assert.* usage.
-	if assertPattern.MatchString(contentStr) {
-		matches := assertPattern.FindAllString(contentStr, -1)
-		issues = append(issues, fmt.Sprintf("Found %d instances of assert.* - should use require.* for fail-fast testing", len(matches)))
+	// Check for assert.* usage with line numbers.
+	lines := strings.Split(contentStr, "\n")
+
+	for lineNum, line := range lines {
+		if matches := assertPattern.FindAllString(line, -1); len(matches) > 0 {
+			for _, match := range matches {
+				issues = append(issues, fmt.Sprintf("%s:%d: %s → use require.%s instead", filePath, lineNum+1, match, strings.TrimPrefix(match, "assert.")))
+			}
+		}
 	}
 
 	// Also check for assert import without require import.
@@ -85,7 +93,7 @@ func CheckAssertUsage(filePath string) []string {
 	hasRequireImport := strings.Contains(contentStr, `"github.com/stretchr/testify/require"`)
 
 	if hasAssertImport && !hasRequireImport {
-		issues = append(issues, "Test file imports testify/assert but not testify/require - prefer require for fail-fast testing")
+		issues = append(issues, "imports testify/assert but not testify/require | Fix: replace assert import with require import")
 	}
 
 	return issues
