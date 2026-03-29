@@ -2,7 +2,7 @@
 
 **Status**: CANONICAL TARGET — Living reference document
 **Created**: 2026-03-26
-**Last Updated**: 2026-03-29
+**Last Updated**: 2026-03-31
 **Purpose**: Define the complete, parameterized target state of every directory and file in the
 repository. Originally created during framework-v6, now maintained as a living spec in framework-v7.
 This document supersedes framework-v5/target-structure.md (deleted — git history preserves).
@@ -759,21 +759,8 @@ docs/                                                 # drwxr-x---
 ├── ARCHITECTURE.md                                   # SSOT: Architecture reference (5080+ lines)
 ├── DEV-SETUP.md                                      # Developer setup guide
 ├── README.md                                         # Documentation index
-├── gremlins/                                         # ORPHANED empty dir (DELETE — content is at framework-v7/gremlins/)
-├── workflow-runtimes/                                # ORPHANED empty dir (DELETE — content is at framework-v7/workflow-runtimes/)
-└── framework-v7/                                     # Ongoing reference documentation
-    ├── README.md                                     # Index of living docs
-    ├── PORT-REORDERING.md                            # Port reassignment plan (completed)
-    ├── STALE.md                                      # Stale content tracking (all items resolved)
-    ├── target-structure.md                           # THIS FILE (canonical target structure)
-    ├── gremlins/                                     # Mutation testing reference
-    │   ├── MUTATIONS-HOWTO.md
-    │   ├── MUTATIONS-TASKS.md
-    │   ├── mutation-analysis.md
-    │   └── mutation-baseline-results.md
-    └── workflow-runtimes/                            # CI/CD operational reference
-        ├── README.md
-        └── GITHUB-STORAGE-CLEANUP.md
+└── framework-v7/                                     # Target structure documentation
+    └── target-structure.md                           # THIS FILE (canonical target structure)
 ```
 
 ---
@@ -935,10 +922,5 @@ lint_fitness/
 
 | Area | Current State | Target State | Action |
 |------|--------------|-------------|--------|
-| Root files | 9 junk `*_coverage`/`cover` artifacts | Clean project config only | DELETE artifacts |
-| `docs/gremlins/` | Empty orphaned directory at `docs/` root | Deleted (content is at `docs/framework-v7/gremlins/`) | DELETE |
-| `docs/workflow-runtimes/` | Empty orphaned directory at `docs/` root | Deleted (content is at `docs/framework-v7/workflow-runtimes/`) | DELETE |
 | `deployments/` product Dockerfile | Missing in all 5 products | Present in all 5 products | CREATE |
 | `internal/shared/apperr/` | Present | Moved to `internal/apps/framework/apperr/` | MOVE |
-| `testdata/` | Present (`adaptive-sim/` subdirectory) | Deleted (move to owning package) | DELETE |
-| `sm-im` orphaned test DBs | ~130 `test_*.db` files committed | Gitignored and removed from tracking | ADD to `.gitignore`, `git rm --cached` |
