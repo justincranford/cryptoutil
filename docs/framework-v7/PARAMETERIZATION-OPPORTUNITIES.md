@@ -74,16 +74,16 @@ services imports this Go package at compile time.
 
 This approach works today (10 services), but it has critical limitations:
 
-- Non-Go tooling (Python secrets scripts, shell healthchecks, GitHub Actions expressions, future
-  Terraform modules) cannot read the Go registry without a separate extraction step.
+- Non-Go tooling (GitHub Actions expressions, future Terraform modules) cannot read the
+  Go registry without a separate extraction step.
 - Adding a new PS-ID requires: (a) adding a magic constant, (b) updating the Go registry struct,
   (c) manually creating every downstream artifact — there is no generative feedback loop.
 - The registry contains only structural fields; derived fields (base port, SQL identifier,
   display name title-case, OTLP prefix, compose service name) must be re-derived independently
   in every consumer.
 
-**Opportunity**: Introduce a canonical `registry.yaml` at repository root (or
-`internal/apps/tools/cicd_lint/lint_fitness/registry/registry.yaml`) with the full entity schema:
+**Opportunity**: Introduce a canonical `registry.yaml` (location TBD — see quizme-v1.md
+Question 1) with the full entity schema capturing suite, products, and product-services:
 
 ```yaml
 suite:
@@ -96,6 +96,22 @@ products:
     display_name: "Secrets Manager"
     internal_apps_dir: sm/
     cmd_dir: sm/
+  - id: jose
+    display_name: "JOSE"
+    internal_apps_dir: jose/
+    cmd_dir: jose/
+  - id: pki
+    display_name: "PKI"
+    internal_apps_dir: pki/
+    cmd_dir: pki/
+  - id: identity
+    display_name: "Identity"
+    internal_apps_dir: identity/
+    cmd_dir: identity/
+  - id: skeleton
+    display_name: "Skeleton"
+    internal_apps_dir: skeleton/
+    cmd_dir: skeleton/
 
 product_services:
   - ps_id: sm-kms
@@ -108,16 +124,67 @@ product_services:
     pg_host_port: 54320       # ← New: PostgreSQL host port assignment
     migration_range_start: 2001  # ← New: explicit domain migration band
     migration_range_end: 2099
-    api_resources:            # ← New: API resource declarations
-      - name: keys
-        path: /keys
-      - name: key
-        path: /keys/{keyId}
+    api_resources:            # ← New: from api/sm-kms/openapi_spec_paths.yaml
+      - path: /elastickey
+      - path: /elastickey/{elasticKeyID}
+      - path: /elastickeys
+      - path: /elastickey/{elasticKeyID}/materialkey
+      - path: /elastickey/{elasticKeyID}/materialkey/{materialKeyID}
+      - path: /elastickey/{elasticKeyID}/materialkey/{materialKeyID}/revoke
+      - path: /elastickey/{elasticKeyID}/materialkeys
+      - path: /materialkeys
+      - path: /elastickey/{elasticKeyID}/generate
+      - path: /elastickey/{elasticKeyID}/encrypt
+      - path: /elastickey/{elasticKeyID}/decrypt
+      - path: /elastickey/{elasticKeyID}/sign
+      - path: /elastickey/{elasticKeyID}/verify
+      - path: /elastickey/{elasticKeyID}/import
+  - ps_id: sm-im
+    product: sm
+    service: im
+    display_name: "Secrets Manager Instant Messenger"
+    internal_apps_dir: sm-im/
+    magic_file: magic_sm_im.go
+    base_port: 8100
+    pg_host_port: 54321
+    migration_range_start: 2101
+    migration_range_end: 2199
+    api_resources:            # ← from api/sm-im/openapi_spec.yaml
+      - path: /messages/tx
+      - path: /messages/rx
+      - path: /messages/{id}
+  - ps_id: jose-ja
+    product: jose
+    service: ja
+    display_name: "JOSE JWK Authority"
+    internal_apps_dir: jose-ja/
+    magic_file: magic_jose.go
+    base_port: 8200
+    pg_host_port: 54322
+    migration_range_start: 2201
+    migration_range_end: 2299
+    api_resources:            # ← from api/jose-ja/openapi_spec.yaml
+      - path: /elastic-jwks
+      - path: /elastic-jwks/{kid}
+      - path: /elastic-jwks/{kid}/materials
+      - path: /elastic-jwks/{kid}/materials/active
+      - path: /elastic-jwks/{kid}/rotate
+      - path: /jwk/generate
+      - path: /jwk/{kid}
+      - path: /jwk
+      - path: /jwks
+      - path: /jws/sign
+      - path: /jws/verify
+      - path: /jwe/encrypt
+      - path: /jwe/decrypt
+      - path: /jwt/create
+      - path: /jwt/verify
+  # ... remaining 7 PS-IDs follow same pattern
 ```
 
-The Go registry structs become **generated code** — `go generate ./cmd/registry-gen` reads
-`registry.yaml` and emits `registry.go`. All other downstream consumers (Python scripts,
-GitHub Actions, Dockerfile templates) read `registry.yaml` directly.
+The Go registry structs become **generated code** — `go generate` reads `registry.yaml` and
+emits `registry.go`. All other downstream consumers (GitHub Actions, Dockerfile templates)
+read `registry.yaml` directly.
 
 **Quantified scope**: Replaces manual authorship in 10 PS-ID Dockerfiles, 10 PS-ID compose files,
 50 config overlay files, 140 secret files (14 × 10), 30 port rows in docs tables, 57 fitness
@@ -243,7 +310,7 @@ computed formulas + automated cross-file validation.
 types at all 3 deployment tiers. The format for each type is:
 - Static prefix: `{PREFIX}-`, `{PREFIX_UNDERSCORE}_`
 - Purpose string: e.g., `hash-pepper-v3`, `unseal-key-N-of-5`, `database_user`
-- Optional random suffix: `base64.urlsafe_b64encode(secrets.token_bytes(32))` for password-like secrets
+- Optional random suffix: base64url-encoded 32 random bytes for password-like secrets
 - Static suffix: none for identifiers
 
 No automated generation tooling exists. Secrets are authored manually following the format
