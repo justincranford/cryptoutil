@@ -222,14 +222,14 @@ func ValidatePropagation(rootDir string, readFile func(string) ([]byte, error)) 
 		dir     string
 		pattern string
 	}{
-		{dir: ".github/instructions", pattern: "*.instructions.md"},
-		{dir: ".github/agents", pattern: "*.agent.md"},
+		{dir: cryptoutilSharedMagic.CICDGithubInstructionsDir, pattern: cryptoutilSharedMagic.CICDInstructionsPattern},
+		{dir: cryptoutilSharedMagic.CICDGithubAgentsDir, pattern: cryptoutilSharedMagic.CICDAgentsPattern},
 	}
 
 	// Also scan copilot-instructions.md directly.
-	copilotContent, err := readFile(".github/copilot-instructions.md")
+	copilotContent, err := readFile(cryptoutilSharedMagic.CICDCopilotInstructionsFile)
 	if err == nil {
-		allRefs = append(allRefs, extractRefsFromFile(".github/copilot-instructions.md", string(copilotContent))...)
+		allRefs = append(allRefs, extractRefsFromFile(cryptoutilSharedMagic.CICDCopilotInstructionsFile, string(copilotContent))...)
 	}
 
 	for _, sd := range scanDirs {

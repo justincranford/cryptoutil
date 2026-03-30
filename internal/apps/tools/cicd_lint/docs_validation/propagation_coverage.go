@@ -36,16 +36,16 @@ func ComputeCoverage(rootDir string, readFile func(string) ([]byte, error)) (*Pr
 		dir     string
 		pattern string
 	}{
-		{dir: ".github/instructions", pattern: "*.instructions.md"},
-		{dir: ".github/agents", pattern: "*.agent.md"},
+		{dir: cryptoutilSharedMagic.CICDGithubInstructionsDir, pattern: cryptoutilSharedMagic.CICDInstructionsPattern},
+		{dir: cryptoutilSharedMagic.CICDGithubAgentsDir, pattern: cryptoutilSharedMagic.CICDAgentsPattern},
 	}
 
 	var fileCoverages []FileCoverage
 
 	// Scan copilot-instructions.md directly.
-	copilotContent, err := readFile(".github/copilot-instructions.md")
+	copilotContent, err := readFile(cryptoutilSharedMagic.CICDCopilotInstructionsFile)
 	if err == nil {
-		fileCoverages = append(fileCoverages, computeFileCoverage(".github/copilot-instructions.md", string(copilotContent)))
+		fileCoverages = append(fileCoverages, computeFileCoverage(cryptoutilSharedMagic.CICDCopilotInstructionsFile, string(copilotContent)))
 	}
 
 	for _, sd := range scanDirs {

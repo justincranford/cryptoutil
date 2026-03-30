@@ -162,6 +162,24 @@ const (
 	// CICDIdentityTaskDocsDir is the identity task docs directory path.
 	CICDIdentityTaskDocsDir = "docs/02-identityV2/passthru5/"
 
+	// CICDRequiredPropagationsManifest is the relative path to the required-propagations YAML manifest.
+	CICDRequiredPropagationsManifest = "docs/required-propagations.yaml"
+
+	// CICDGithubInstructionsDir is the relative path to the GitHub instructions directory.
+	CICDGithubInstructionsDir = ".github/instructions"
+
+	// CICDGithubAgentsDir is the relative path to the GitHub agents directory.
+	CICDGithubAgentsDir = ".github/agents"
+
+	// CICDCopilotInstructionsFile is the relative path to the copilot instructions file.
+	CICDCopilotInstructionsFile = ".github/copilot-instructions.md"
+
+	// CICDInstructionsPattern is the glob pattern for instruction files.
+	CICDInstructionsPattern = "*.instructions.md"
+
+	// CICDAgentsPattern is the glob pattern for agent files.
+	CICDAgentsPattern = "*.agent.md"
+
 	// RequirementsTotalPatternGroups is the requirements coverage regex pattern groups count.
 	RequirementsTotalPatternGroups = 4
 	// RequirementsPriorityPatternGroups is the requirements priority pattern groups count.

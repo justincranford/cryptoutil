@@ -8,6 +8,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // ChunkMapping defines a mapping from an ARCHITECTURE.md section to an instruction file.
@@ -75,7 +77,7 @@ func chunkMappings() []ChunkMapping {
 		{
 			ArchSection: "13.4",
 			Description: "Documentation Propagation Strategy",
-			DestFile:    ".github/copilot-instructions.md",
+			DestFile:    cryptoutilSharedMagic.CICDCopilotInstructionsFile,
 			MarkerText:  "Documentation Propagation",
 		},
 		{

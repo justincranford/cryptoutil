@@ -1,6 +1,6 @@
 # Tasks — Parameterization Opportunities
 
-**Status**: 4 of 68 tasks complete (6%)
+**Status**: 5 of 68 tasks complete (7%)
 **Last Updated**: 2026-03-30
 **Created**: 2026-03-29
 
@@ -124,24 +124,27 @@ the entity registry (#01).
 
 #### Task 2.1: #03 @propagate Coverage Manifest
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 4h
-- **Actual**: —
+- **Actual**: Completed in session 4
 - **Dependencies**: None (standalone)
 - **Description**: Create a `required-propagations.yaml` manifest listing every
   ARCHITECTURE.md chunk that MUST exist in at least one instruction file. Extend
   `lint-docs validate-propagation` to check coverage.
 - **Acceptance Criteria**:
-  - [ ] YAML manifest with chunk_id, source_file, required_targets
-  - [ ] `lint-docs` validates every listed chunk appears in ≥1 instruction file
-  - [ ] Detects orphaned @propagate tags (in ARCHITECTURE.md but missing from manifest)
-  - [ ] Tests: ≥98% coverage
-  - [ ] Zero false positives on current codebase
+  - [x] YAML manifest with chunk_id, source_file, required_targets
+  - [x] `lint-docs` validates every listed chunk appears in ≥1 instruction file
+  - [x] Detects orphaned @propagate tags (in ARCHITECTURE.md but missing from manifest)
+  - [x] Tests: ≥98% coverage (validate_coverage.go at 100%, wrapper at 100%)
+  - [x] Zero false positives on current codebase (chunkIDRegex filters grammar examples)
 - **Files**:
   - `docs/required-propagations.yaml`
-  - `internal/apps/tools/cicd_lint/lint_docs/validate_coverage.go`
-  - `internal/apps/tools/cicd_lint/lint_docs/validate_coverage_test.go`
+  - `internal/apps/tools/cicd_lint/docs_validation/validate_coverage.go`
+  - `internal/apps/tools/cicd_lint/docs_validation/validate_coverage_test.go`
+  - `internal/apps/tools/cicd_lint/lint_docs/validate_coverage/validate_coverage.go`
+  - `internal/apps/tools/cicd_lint/lint_docs/validate_coverage/validate_coverage_test.go`
+  - `internal/apps/tools/cicd_lint/lint_docs/lint_docs.go` (registered)
 
 #### Task 2.2: #15 Fitness Sub-Linter Registry
 

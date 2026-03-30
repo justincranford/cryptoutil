@@ -12,6 +12,7 @@ import (
 	cryptoutilCheckChunkVerification "cryptoutil/internal/apps/tools/cicd_lint/lint_docs/check_chunk_verification"
 	cryptoutilPropagationCoverage "cryptoutil/internal/apps/tools/cicd_lint/lint_docs/propagation_coverage"
 	cryptoutilValidateChunks "cryptoutil/internal/apps/tools/cicd_lint/lint_docs/validate_chunks"
+	cryptoutilValidateCoverage "cryptoutil/internal/apps/tools/cicd_lint/lint_docs/validate_coverage"
 	cryptoutilValidatePropagation "cryptoutil/internal/apps/tools/cicd_lint/lint_docs/validate_propagation"
 )
 
@@ -26,6 +27,7 @@ var registeredLinters = []struct {
 	{"check-chunk-verification", cryptoutilCheckChunkVerification.Check},
 	{"validate-chunks", cryptoutilValidateChunks.Check},
 	{"validate-propagation", cryptoutilValidatePropagation.Check},
+	{"validate-coverage", cryptoutilValidateCoverage.Check},
 	{"propagation-coverage", cryptoutilPropagationCoverage.Check},
 }
 

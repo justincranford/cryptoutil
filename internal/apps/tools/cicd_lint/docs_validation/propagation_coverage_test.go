@@ -80,7 +80,7 @@ func TestComputeCoverage(t *testing.T) {
 		{
 			name: "mixed coverage",
 			files: map[string]string{
-				".github/copilot-instructions.md":         "plain text only\nno source blocks",
+				cryptoutilSharedMagic.CICDCopilotInstructionsFile:       "plain text only\nno source blocks",
 				".github/instructions/01.instructions.md": "before\n<!-- @source from=\"docs/ARCHITECTURE.md\" as=\"x\" -->\ncontent\n<!-- @/source -->\nafter",
 			},
 			wantTotalFiles: 2,

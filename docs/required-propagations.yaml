@@ -1,0 +1,219 @@
+# docs/required-propagations.yaml
+#
+# Lists every ARCHITECTURE.md @propagate chunk that MUST appear in at least one
+# instruction/agent file as an @source block.
+#
+# Validated by: go run ./cmd/cicd-lint lint-docs
+# Sub-linter:   validate-coverage
+#
+# Fields:
+#   chunk_id:         The value of as="..." in <!-- @propagate ... as="CHUNK_ID" -->
+#   source_file:      The ARCHITECTURE.md relative path (always docs/ARCHITECTURE.md)
+#   required_targets: Files that MUST contain <!-- @source ... as="CHUNK_ID" -->
+#
+# Orphan detection: Any @propagate chunk in ARCHITECTURE.md not listed here
+# causes validate-coverage to report an error.
+
+required_propagations:
+  - chunk_id: abbreviations
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/01-01.terminology.instructions.md
+
+  - chunk_id: agent-self-containment
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/06-02.agent-format.instructions.md
+
+  - chunk_id: agent-tool-discovery
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/06-02.agent-format.instructions.md
+
+  - chunk_id: authz-methods
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/02-06.authn.instructions.md
+
+  - chunk_id: base-initialisms
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/02-04.openapi.instructions.md
+
+  - chunk_id: browser-authn
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/02-06.authn.instructions.md
+
+  - chunk_id: cicd-command-naming
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/04-01.deployment.instructions.md
+
+  - chunk_id: cicd-lint-constraints
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/04-01.deployment.instructions.md
+
+  - chunk_id: conventional-commits
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/05-02.git.instructions.md
+
+  - chunk_id: crypto-acronyms-caps
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/03-03.golang.instructions.md
+
+  - chunk_id: disable-keep-alives-test-transport
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/03-02.testing.instructions.md
+
+  - chunk_id: docker-compose-rules
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/04-01.deployment.instructions.md
+
+  - chunk_id: docker-desktop-startup
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/05-01.cross-platform.instructions.md
+
+  - chunk_id: docker-desktop-upgrade
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/05-01.cross-platform.instructions.md
+
+  - chunk_id: emphasis-keywords
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/01-01.terminology.instructions.md
+
+  - chunk_id: end-of-turn-commit-protocol
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/01-02.beast-mode.instructions.md
+
+  - chunk_id: format-go-protection
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/03-01.coding.instructions.md
+
+  - chunk_id: headless-authn
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/02-06.authn.instructions.md
+
+  - chunk_id: http-status-codes
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/02-04.openapi.instructions.md
+
+  - chunk_id: incremental-commits
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/05-02.git.instructions.md
+
+  - chunk_id: infrastructure-blocker-escalation
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/01-02.beast-mode.instructions.md
+      - .github/instructions/06-01.evidence-based.instructions.md
+
+  - chunk_id: key-principles
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/02-06.authn.instructions.md
+
+  - chunk_id: mandatory-review-passes
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/01-02.beast-mode.instructions.md
+      - .github/instructions/06-01.evidence-based.instructions.md
+
+  - chunk_id: mfa-combinations
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/02-06.authn.instructions.md
+
+  - chunk_id: minimum-versions
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/02-02.versions.instructions.md
+
+  - chunk_id: otel-collector-constraints
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/02-03.observability.instructions.md
+
+  - chunk_id: quality-attributes
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/01-02.beast-mode.instructions.md
+
+  - chunk_id: restore-from-baseline
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/05-02.git.instructions.md
+
+  - chunk_id: rfc-2119-keywords
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/01-01.terminology.instructions.md
+
+  - chunk_id: scripting-language-policy
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/05-01.cross-platform.instructions.md
+
+  - chunk_id: secrets-detection-strategy
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/02-05.security.instructions.md
+
+  - chunk_id: sequential-test-exemption
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/03-02.testing.instructions.md
+
+  - chunk_id: service-framework-components
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/02-01.architecture.instructions.md
+
+  - chunk_id: session-token-formats
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/02-06.authn.instructions.md
+
+  - chunk_id: sqlite-barrier-outside-tx
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/03-04.data-infrastructure.instructions.md
+
+  - chunk_id: test-file-suffixes
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/03-02.testing.instructions.md
+
+  - chunk_id: three-tier-database-strategy
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/03-02.testing.instructions.md
+      - .github/instructions/03-04.data-infrastructure.instructions.md
+
+  - chunk_id: timeout-double-multiplication-antipattern
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/03-02.testing.instructions.md
+
+  - chunk_id: utf8-without-bom
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/03-05.linting.instructions.md
+
+  - chunk_id: validator-error-aggregation
+    source_file: docs/ARCHITECTURE.md
+    required_targets:
+      - .github/instructions/03-01.coding.instructions.md
