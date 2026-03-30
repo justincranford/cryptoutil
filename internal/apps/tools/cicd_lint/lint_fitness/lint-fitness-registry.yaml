@@ -1,0 +1,311 @@
+# lint-fitness-registry.yaml
+# Canonical registry of all architecture fitness sub-linters.
+# Each entry represents one sub-linter package under internal/apps/tools/cicd_lint/lint_fitness/.
+# The registry-completeness linter cross-checks this file against the filesystem.
+#
+# Fields:
+#   name:        The CLI name used in the linter runner (kebab-case, matches lint_fitness.go registration).
+#   directory:   The Go package directory name under lint_fitness/ (snake_case).
+#   description: One-sentence description of what the linter checks.
+#   category:    Grouping category: architecture | security | testing | config | migration | docs | registry
+
+sub_linters:
+  - name: admin-bind-address
+    directory: admin_bind_address
+    description: Ensures admin endpoints bind only to loopback, not 0.0.0.0.
+    category: security
+
+  - name: archive-detector
+    directory: archive_detector
+    description: Detects accidentally committed archive files (zip, tar, etc.) in the repo.
+    category: architecture
+
+  - name: banned-product-names
+    directory: banned_product_names
+    description: Ensures no source files reference banned product names or deprecated branding.
+    category: architecture
+
+  - name: bind-address-safety
+    directory: bind_address_safety
+    description: Validates that test servers bind to 127.0.0.1, not 0.0.0.0.
+    category: security
+
+  - name: cgo-free-sqlite
+    directory: cgo_free_sqlite
+    description: Ensures all SQLite driver imports use the pure-Go CGO-free variant.
+    category: architecture
+
+  - name: check-skeleton-placeholders
+    directory: check_skeleton_placeholders
+    description: Detects unsubstituted skeleton template placeholders in production code.
+    category: architecture
+
+  - name: cicd-coverage
+    directory: cicd_coverage
+    description: Validates that all cicd-lint commands appear in GitHub Actions, pre-commit, and CI workflows.
+    category: architecture
+
+  - name: circular-deps
+    directory: circular_deps
+    description: Detects circular import dependencies between internal packages.
+    category: architecture
+
+  - name: cmd-anti-pattern
+    directory: cmd_anti_pattern
+    description: Detects cmd/ packages that contain non-main logic or import non-cmd packages incorrectly.
+    category: architecture
+
+  - name: cmd-entry-whitelist
+    directory: cmd_entry_whitelist
+    description: Validates that only whitelisted cmd/ entry packages exist under cmd/.
+    category: architecture
+
+  - name: cmd-main-pattern
+    directory: cmd_main_pattern
+    description: Verifies that each cmd/{service}/main.go follows the standard entry point pattern.
+    category: architecture
+
+  - name: compose-db-naming
+    directory: compose_db_naming
+    description: Validates Docker Compose database service naming conventions.
+    category: config
+
+  - name: compose-header-format
+    directory: compose_header_format
+    description: Validates that Docker Compose files have required header comments with service metadata.
+    category: config
+
+  - name: compose-service-names
+    directory: compose_service_names
+    description: Validates Docker Compose service name conventions against the entity registry.
+    category: config
+
+  - name: configs-deployments-consistency
+    directory: configs_deployments_consistency
+    description: Ensures configs/ and deployments/ directories are consistent across product services.
+    category: config
+
+  - name: configs-empty-dir
+    directory: configs_empty_dir
+    description: Detects empty configuration directories that should contain config files.
+    category: config
+
+  - name: configs-naming
+    directory: configs_naming
+    description: Validates configuration file naming conventions within configs/ directories.
+    category: config
+
+  - name: cross-service-import-isolation
+    directory: cross_service_import_isolation
+    description: Ensures services do not import internal packages from other services directly.
+    category: architecture
+
+  - name: crypto-rand
+    directory: crypto_rand
+    description: Detects use of math/rand instead of crypto/rand for cryptographic operations.
+    category: security
+
+  - name: deployment-dir-completeness
+    directory: deployment_dir_completeness
+    description: Validates that all registered product services have a corresponding deployments/ directory.
+    category: config
+
+  - name: dockerfile-labels
+    directory: dockerfile_labels
+    description: Ensures all Dockerfiles include required OCI image labels (maintainer, version, etc.).
+    category: config
+
+  - name: domain-layer-isolation
+    directory: domain_layer_isolation
+    description: Validates that domain layer packages do not import infrastructure-layer packages.
+    category: architecture
+
+  - name: entity-registry-completeness
+    directory: entity_registry_completeness
+    description: Validates that all registered entity types have required corresponding files and directories.
+    category: registry
+
+  - name: entity-registry-schema
+    directory: entity_registry_schema
+    description: Validates the entity registry YAML against its JSON schema definition.
+    category: registry
+
+  - name: fitness-registry-completeness
+    directory: fitness_registry_completeness
+    description: Validates that lint-fitness-registry.yaml is consistent with the fitness sub-linter directories on disk.
+    category: registry
+
+  - name: file-size-limits
+    directory: file_size_limits
+    description: Detects source files exceeding the maximum allowed line count.
+    category: architecture
+
+  - name: gen-config-initialisms
+    directory: gen_config_initialisms
+    description: Validates that generated config structs use correct Go initialisms (URL not Url, TLS not Tls).
+    category: architecture
+
+  - name: health-endpoint-presence
+    directory: health_endpoint_presence
+    description: Validates that every registered service exposes a /health endpoint.
+    category: architecture
+
+  - name: infra-tool-naming
+    directory: infra_tool_naming
+    description: Validates naming conventions for infrastructure tool packages (cicd-lint sub-commands, etc.).
+    category: architecture
+
+  - name: insecure-skip-verify
+    directory: insecure_skip_verify
+    description: Detects TLS InsecureSkipVerify=true usage in non-test production code.
+    category: security
+
+  - name: legacy-dir-detection
+    directory: legacy_dir_detection
+    description: Detects legacy or deprecated directory names that should have been removed.
+    category: architecture
+
+  - name: magic-constant-location
+    directory: magic_constant_location
+    description: Validates that magic constants are only defined in the shared/magic package.
+    category: architecture
+
+  - name: magic-e2e-compose-path
+    directory: magic_e2e_compose_path
+    description: Validates that E2E test compose file paths use magic constants from the magic package.
+    category: architecture
+
+  - name: magic-e2e-container-names
+    directory: magic_e2e_container_names
+    description: Validates that E2E test container names use magic constants from the magic package.
+    category: architecture
+
+  - name: migration-comment-headers
+    directory: migration_comment_headers
+    description: Validates that all SQL migration files have required comment headers.
+    category: migration
+
+  - name: migration-numbering
+    directory: migration_numbering
+    description: Validates that SQL migration files are sequentially numbered without gaps.
+    category: migration
+
+  - name: migration-range-compliance
+    directory: migration_range_compliance
+    description: Validates that each service's migration numbers fall within its assigned range.
+    category: migration
+
+  - name: no-hardcoded-passwords
+    directory: no_hardcoded_passwords
+    description: Detects hardcoded passwords and secrets in non-test source files.
+    category: security
+
+  - name: no-local-closed-db-helper
+    directory: no_local_closed_db_helper
+    description: Detects use of test database helpers that create per-test DB instances.
+    category: testing
+
+  - name: no-postgres-in-non-e2e
+    directory: no_postgres_in_non_e2e
+    description: Ensures PostgreSQL drivers are not imported outside E2E test files.
+    category: testing
+
+  - name: no-unit-test-real-db
+    directory: no_unit_test_real_db
+    description: Detects unit tests that connect to real databases instead of using in-memory SQLite.
+    category: testing
+
+  - name: no-unit-test-real-server
+    directory: no_unit_test_real_server
+    description: Detects unit tests that spin up real HTTP servers instead of using test handlers.
+    category: testing
+
+  - name: non-fips-algorithms
+    directory: non_fips_algorithms
+    description: Detects use of cryptographic algorithms that are not FIPS 140-3 compliant.
+    category: security
+
+  - name: otlp-service-name-pattern
+    directory: otlp_service_name_pattern
+    description: Validates OTLP/OpenTelemetry service name patterns against naming conventions.
+    category: config
+
+  - name: parallel-tests
+    directory: parallel_tests
+    description: Ensures all unit and integration tests call t.Parallel() for parallel execution.
+    category: testing
+
+  - name: product-structure
+    directory: product_structure
+    description: Validates that product directories follow the required internal structure.
+    category: architecture
+
+  - name: product-wiring
+    directory: product_wiring
+    description: Validates that product service wiring (DI) follows required patterns.
+    category: architecture
+
+  - name: require-api-dir
+    directory: require_api_dir
+    description: Validates that all registered product services have a corresponding api/ directory.
+    category: architecture
+
+  - name: require-framework-naming
+    directory: require_framework_naming
+    description: Validates that framework-level packages use required naming conventions.
+    category: architecture
+
+  - name: root-junk-detection
+    directory: root_junk_detection
+    description: Detects stray files in the project root that should be in subdirectories.
+    category: architecture
+
+  - name: secret-content
+    directory: secret_content
+    description: Validates that secret config files contain only expected fields, no plaintext secrets.
+    category: security
+
+  - name: secret-naming
+    directory: secret_naming
+    description: Validates naming conventions for secret files within deployments/ directories.
+    category: security
+
+  - name: service-contract-compliance
+    directory: service_contract_compliance
+    description: Validates that services implement their declared interface contracts.
+    category: architecture
+
+  - name: service-structure
+    directory: service_structure
+    description: Validates that service packages follow the required internal layer structure.
+    category: architecture
+
+  - name: standalone-config-otlp-names
+    directory: standalone_config_otlp_names
+    description: Validates OTLP service names in standalone configuration files.
+    category: config
+
+  - name: standalone-config-presence
+    directory: standalone_config_presence
+    description: Validates that all required standalone configuration files exist for each service.
+    category: config
+
+  - name: template-consistency
+    directory: template_consistency
+    description: Validates that skeleton template files are consistent across all service instances.
+    category: architecture
+
+  - name: test-patterns
+    directory: test_patterns
+    description: Validates that test files follow required patterns (TestMain, table-driven, etc.).
+    category: testing
+
+  - name: tls-minimum-version
+    directory: tls_minimum_version
+    description: Validates that TLS configurations enforce at least TLS 1.2 as the minimum version.
+    category: security
+
+  - name: unseal-secret-content
+    directory: unseal_secret_content
+    description: Validates that unseal key secret files contain only expected content.
+    category: security

@@ -180,6 +180,12 @@ const (
 	// CICDAgentsPattern is the glob pattern for agent files.
 	CICDAgentsPattern = "*.agent.md"
 
+	// CICDLintFitnessDir is the relative path to the lint_fitness sub-linters directory.
+	CICDLintFitnessDir = "internal/apps/tools/cicd_lint/lint_fitness"
+
+	// CICDFitnessRegistryFile is the relative path to the fitness sub-linter registry YAML.
+	CICDFitnessRegistryFile = "internal/apps/tools/cicd_lint/lint_fitness/lint-fitness-registry.yaml"
+
 	// RequirementsTotalPatternGroups is the requirements coverage regex pattern groups count.
 	RequirementsTotalPatternGroups = 4
 	// RequirementsPriorityPatternGroups is the requirements priority pattern groups count.
