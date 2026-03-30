@@ -37,10 +37,10 @@ type overlayTemplates struct {
 
 // variantTemplate describes required/forbidden keys and value patterns for one variant.
 type variantTemplate struct {
-	Variant         string            `yaml:"variant"`
-	Description     string            `yaml:"description"`
-	RequiredKeys    []string          `yaml:"required_keys"`
-	ForbiddenKeys   []string          `yaml:"forbidden_keys"`
+	Variant          string            `yaml:"variant"`
+	Description      string            `yaml:"description"`
+	RequiredKeys     []string          `yaml:"required_keys"`
+	ForbiddenKeys    []string          `yaml:"forbidden_keys"`
 	RequiredPatterns []requiredPattern `yaml:"required_patterns"`
 }
 

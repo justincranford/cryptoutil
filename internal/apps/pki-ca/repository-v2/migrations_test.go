@@ -24,8 +24,8 @@ func TestMigrationsFS_Embedded(t *testing.T) {
 
 	// Verify expected migration files exist.
 	expectedFiles := map[string]bool{
-		"2001_ca_items.up.sql":   false,
-		"2001_ca_items.down.sql": false,
+		"5001_ca_items.up.sql":   false,
+		"5001_ca_items.down.sql": false,
 	}
 
 	for _, entry := range entries {
@@ -53,7 +53,7 @@ func TestGetMergedMigrationsFS(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, entries, "merged FS should have migration files")
 
-	// Should contain both template (1001-1004) and pki-ca (2001+) migrations.
+	// Should contain both template (1001-1004) and pki-ca (5001+) migrations.
 	hasTemplate := false
 	hasPkiCa := false
 
@@ -64,13 +64,13 @@ func TestGetMergedMigrationsFS(t *testing.T) {
 			hasTemplate = true
 		}
 
-		if len(name) >= 4 && name[:4] == "2001" {
+		if len(name) >= 4 && name[:4] == "5001" {
 			hasPkiCa = true
 		}
 	}
 
 	require.True(t, hasTemplate, "merged FS should contain template migrations (1001+)")
-	require.True(t, hasPkiCa, "merged FS should contain pki-ca migrations (2001+)")
+	require.True(t, hasPkiCa, "merged FS should contain pki-ca migrations (5001+)")
 }
 
 func TestMergedFS_Open(t *testing.T) {
@@ -79,7 +79,7 @@ func TestMergedFS_Open(t *testing.T) {
 	mergedFS := GetMergedMigrationsFS()
 
 	// Test opening pki-ca migration file.
-	file, err := mergedFS.Open("migrations/2001_ca_items.up.sql")
+	file, err := mergedFS.Open("migrations/5001_ca_items.up.sql")
 	require.NoError(t, err)
 	require.NoError(t, file.Close())
 
@@ -101,7 +101,7 @@ func TestMergedFS_ReadFile(t *testing.T) {
 	require.True(t, ok, "merged FS should implement fs.ReadFileFS")
 
 	// Test reading pki-ca migration.
-	data, err := mergedFS.ReadFile("migrations/2001_ca_items.up.sql")
+	data, err := mergedFS.ReadFile("migrations/5001_ca_items.up.sql")
 	require.NoError(t, err)
 	require.Contains(t, string(data), "ca_items")
 
@@ -123,7 +123,7 @@ func TestMergedFS_Stat(t *testing.T) {
 	require.True(t, ok, "merged FS should implement fs.StatFS")
 
 	// Test stat pki-ca migration.
-	info, err := mergedFS.Stat("migrations/2001_ca_items.up.sql")
+	info, err := mergedFS.Stat("migrations/5001_ca_items.up.sql")
 	require.NoError(t, err)
 	require.Greater(t, info.Size(), int64(0))
 

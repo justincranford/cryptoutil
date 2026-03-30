@@ -26,8 +26,8 @@ func TestMergedFS_Open_JoseJAFile(t *testing.T) {
 
 	mergedFS := GetMergedMigrationsFS()
 
-	// Open a jose-ja migration file (2001+).
-	file, err := mergedFS.Open("migrations/2001_elastic_jwks.up.sql")
+	// Open a jose-ja migration file (4001+).
+	file, err := mergedFS.Open("migrations/4001_elastic_jwks.up.sql")
 	require.NoError(t, err)
 	require.NotNil(t, file)
 	require.NoError(t, file.Close())
@@ -69,7 +69,7 @@ func TestMergedFS_ReadDir(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, entries)
 
-	// Should contain both template migrations (1001+) and jose-ja migrations (2001+).
+	// Should contain both template migrations (1001+) and jose-ja migrations (4001+).
 	hasTemplate := false
 	hasJoseJA := false
 
@@ -80,13 +80,13 @@ func TestMergedFS_ReadDir(t *testing.T) {
 			hasTemplate = true
 		}
 
-		if name == "2001_elastic_jwks.up.sql" {
+		if name == "4001_elastic_jwks.up.sql" {
 			hasJoseJA = true
 		}
 	}
 
 	require.True(t, hasTemplate, "Should contain template migration 1001")
-	require.True(t, hasJoseJA, "Should contain jose-ja migration 2001")
+	require.True(t, hasJoseJA, "Should contain jose-ja migration 4001")
 }
 
 func TestMergedFS_ReadFile(t *testing.T) {
@@ -99,7 +99,7 @@ func TestMergedFS_ReadFile(t *testing.T) {
 	require.True(t, ok, "mergedFS should implement fs.ReadFileFS")
 
 	// Read a jose-ja migration file.
-	data, err := readFileFS.ReadFile("migrations/2001_elastic_jwks.up.sql")
+	data, err := readFileFS.ReadFile("migrations/4001_elastic_jwks.up.sql")
 	require.NoError(t, err)
 	require.NotEmpty(t, data)
 	require.Contains(t, string(data), "CREATE TABLE")
@@ -146,7 +146,7 @@ func TestMergedFS_Stat_JoseJAFile(t *testing.T) {
 	require.True(t, ok, "mergedFS should implement fs.StatFS")
 
 	// Stat a jose-ja migration file.
-	info, err := statFS.Stat("migrations/2001_elastic_jwks.up.sql")
+	info, err := statFS.Stat("migrations/4001_elastic_jwks.up.sql")
 	require.NoError(t, err)
 	require.NotNil(t, info)
 	require.False(t, info.IsDir())

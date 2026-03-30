@@ -1,7 +1,8 @@
 // Copyright (c) 2025 Justin Cranford
 
 // Package migration_range_compliance verifies migration file version numbers are
-// within assigned ranges: template migrations 1001-1999, domain migrations 2001+.
+// within assigned ranges: template migrations 1001-1999, domain migrations per-PS-ID
+// ranges declared in the entity registry YAML. Also detects cross-service range overlaps.
 // This is complementary to migration_numbering (which checks naming patterns and
 // up/down pairing); this check focuses exclusively on the numeric range constraint.
 package migration_range_compliance
@@ -15,13 +16,13 @@ import (
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
+	lintFitnessRegistry "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/registry"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
 	templateMigrationMin = 1001
 	templateMigrationMax = 1999
-	domainMigrationMin   = 2001
 )
 
 // migrationVersionPattern extracts the leading version number from a migration filename.
@@ -38,7 +39,11 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 	var violations []string
 
-	// Check template migration directory.
+	// Step 1: Check registry-declared ranges for cross-service collisions.
+	collisions := checkRegistryRangeCollisions()
+	violations = append(violations, collisions...)
+
+	// Step 2: Check template migration directory.
 	templateDir := filepath.Join(rootDir,
 		"internal", "apps", cryptoutilSharedMagic.FrameworkProductName,
 		"service", "server", "repository", "migrations")
@@ -50,18 +55,34 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 	violations = append(violations, templateViolations...)
 
-	// Check all domain migration directories.
+	// Step 3: Check all domain migration directories with per-PS-ID ranges.
 	appsDir := filepath.Join(rootDir, "internal", "apps")
 
-	domainDirs, err := findDomainMigrationDirs(appsDir, templateDir)
+	domainDirs, err := findDomainMigrationDirsWithPSID(appsDir, templateDir)
 	if err != nil {
 		return fmt.Errorf("finding domain migration dirs: %w", err)
 	}
 
-	for _, dir := range domainDirs {
-		dirViolations, dirErr := checkDir(dir, domainMigrationMin, 0, false)
+	// Build per-PS-ID range map from registry.
+	rangeMap := buildPSIDRangeMap()
+
+	for _, entry := range domainDirs {
+		rangeInfo, ok := rangeMap[entry.psID]
+		if !ok {
+			// PS-ID not in registry — use loose lower bound only.
+			dirViolations, dirErr := checkDir(entry.dir, templateMigrationMax+1, 0, false)
+			if dirErr != nil {
+				return fmt.Errorf("checking migrations in %s: %w", entry.dir, dirErr)
+			}
+
+			violations = append(violations, dirViolations...)
+
+			continue
+		}
+
+		dirViolations, dirErr := checkDir(entry.dir, rangeInfo.Start, rangeInfo.End, false)
 		if dirErr != nil {
-			return fmt.Errorf("checking domain migrations in %s: %w", dir, dirErr)
+			return fmt.Errorf("checking migrations in %s: %w", entry.dir, dirErr)
 		}
 
 		violations = append(violations, dirViolations...)
@@ -74,6 +95,49 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	logger.Log("Migration range compliance check passed")
 
 	return nil
+}
+
+// migrationDirEntry holds a migrations directory path and its associated PS-ID.
+type migrationDirEntry struct {
+	dir  string
+	psID string
+}
+
+// buildPSIDRangeMap returns a map of PS-ID → MigrationRangeInfo from the entity registry.
+func buildPSIDRangeMap() map[string]lintFitnessRegistry.MigrationRangeInfo {
+	ranges := lintFitnessRegistry.AllMigrationRanges()
+	m := make(map[string]lintFitnessRegistry.MigrationRangeInfo, len(ranges))
+
+	for _, r := range ranges {
+		m[r.PSID] = r
+	}
+
+	return m
+}
+
+// checkRegistryRangeCollisions detects cross-service migration range overlaps declared in
+// the entity registry. Two PS-IDs overlap if their [start, end] intervals intersect.
+func checkRegistryRangeCollisions() []string {
+	return checkRangeCollisions(lintFitnessRegistry.AllMigrationRanges())
+}
+
+// checkRangeCollisions detects overlapping intervals in the provided ranges slice.
+func checkRangeCollisions(ranges []lintFitnessRegistry.MigrationRangeInfo) []string {
+	var violations []string
+
+	for i := 0; i < len(ranges); i++ {
+		for j := i + 1; j < len(ranges); j++ {
+			a, b := ranges[i], ranges[j]
+			// Intervals [a.Start, a.End] and [b.Start, b.End] overlap iff a.Start <= b.End && b.Start <= a.End.
+			if a.Start <= b.End && b.Start <= a.End {
+				violations = append(violations, fmt.Sprintf(
+					"cross-service range collision: %s [%d-%d] overlaps %s [%d-%d]",
+					a.PSID, a.Start, a.End, b.PSID, b.Start, b.End))
+			}
+		}
+	}
+
+	return violations
 }
 
 // checkDir validates that all migration SQL files in dir have version numbers within [min, max].
@@ -152,9 +216,10 @@ func isNonFrameworkProduct(dirName string) bool {
 	return false
 }
 
-// findDomainMigrationDirs finds all migrations/ directories under appsDir, excluding
-// the template service and non-framework products. Skips _-prefixed directories.
-func findDomainMigrationDirs(appsDir, templateDir string) ([]string, error) {
+// findDomainMigrationDirsWithPSID finds all migrations/ directories under appsDir, excluding
+// the template service and non-framework products. Returns (dir, psID) pairs where psID is
+// derived from the first path component under appsDir.
+func findDomainMigrationDirsWithPSID(appsDir, templateDir string) ([]migrationDirEntry, error) {
 	if _, statErr := os.Stat(appsDir); os.IsNotExist(statErr) {
 		return nil, nil
 	}
@@ -169,7 +234,7 @@ func findDomainMigrationDirs(appsDir, templateDir string) ([]string, error) {
 		return nil, fmt.Errorf("abs apps dir: %w", err)
 	}
 
-	var dirs []string
+	var entries []migrationDirEntry
 
 	walkErr := filepath.Walk(appsDir, func(path string, info os.FileInfo, walkErr error) error {
 		if walkErr != nil {
@@ -205,12 +270,34 @@ func findDomainMigrationDirs(appsDir, templateDir string) ([]string, error) {
 			return filepath.SkipDir
 		}
 
-		dirs = append(dirs, path)
+		// Derive PS-ID from the first component under appsDir.
+		psID := ""
+		if len(parts) >= 1 {
+			psID = parts[0]
+		}
+
+		entries = append(entries, migrationDirEntry{dir: path, psID: psID})
 
 		return filepath.SkipDir
 	})
 	if walkErr != nil {
 		return nil, fmt.Errorf("walk %s: %w", appsDir, walkErr)
+	}
+
+	return entries, nil
+}
+
+// findDomainMigrationDirs is a backward-compatible wrapper for tests that only need directories.
+func findDomainMigrationDirs(appsDir, templateDir string) ([]string, error) {
+	entries, err := findDomainMigrationDirsWithPSID(appsDir, templateDir)
+	if err != nil {
+		return nil, err
+	}
+
+	dirs := make([]string, len(entries))
+
+	for i, e := range entries {
+		dirs[i] = e.dir
 	}
 
 	return dirs, nil

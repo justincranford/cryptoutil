@@ -35,8 +35,8 @@ func setupTempDir(t *testing.T, files map[string]string) string {
 
 func sqliteFilesFor(psID string) map[string]string {
 	return map[string]string{
-		fmt.Sprintf("deployments/%s/config/%s-app-sqlite-1.yml", psID, psID): fmt.Sprintf("database-url: \"sqlite://file::memory:?cache=shared\"\notlp-service: %s-sqlite-1\n", psID),
-		fmt.Sprintf("deployments/%s/config/%s-app-sqlite-2.yml", psID, psID): fmt.Sprintf("database-url: \"sqlite://file::memory:?cache=shared\"\notlp-service: %s-sqlite-2\n", psID),
+		fmt.Sprintf("deployments/%s/config/%s-app-sqlite-1.yml", psID, psID):     fmt.Sprintf("database-url: \"sqlite://file::memory:?cache=shared\"\notlp-service: %s-sqlite-1\n", psID),
+		fmt.Sprintf("deployments/%s/config/%s-app-sqlite-2.yml", psID, psID):     fmt.Sprintf("database-url: \"sqlite://file::memory:?cache=shared\"\notlp-service: %s-sqlite-2\n", psID),
 		fmt.Sprintf("deployments/%s/config/%s-app-postgresql-1.yml", psID, psID): fmt.Sprintf("otlp-service: %s-postgres-1\n", psID),
 		fmt.Sprintf("deployments/%s/config/%s-app-postgresql-2.yml", psID, psID): fmt.Sprintf("otlp-service: %s-postgres-2\n", psID),
 	}
@@ -63,16 +63,16 @@ func TestCheckInDir_ValidOverlays(t *testing.T) {
 		setupFiles map[string]string
 	}{
 		{
-			name: "valid sqlite and postgresql overlays for one service",
+			name:       "valid sqlite and postgresql overlays for one service",
 			setupFiles: sqliteFilesFor(cryptoutilSharedMagic.OTLPServiceSMKMS),
 		},
 		{
 			name: "postgresql overlay: no database-url is valid",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/config/sm-kms-app-sqlite-1.yml":      "database-url: \"sqlite://file::memory:?cache=shared\"\n",
-				"deployments/sm-kms/config/sm-kms-app-sqlite-2.yml":      "database-url: \"sqlite://file::memory:?cache=shared\"\n",
-				"deployments/sm-kms/config/sm-kms-app-postgresql-1.yml":  "otlp-service: sm-kms-postgres-1\n",
-				"deployments/sm-kms/config/sm-kms-app-postgresql-2.yml":  "otlp-service: sm-kms-postgres-2\n",
+				"deployments/sm-kms/config/sm-kms-app-sqlite-1.yml":     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+				"deployments/sm-kms/config/sm-kms-app-sqlite-2.yml":     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+				"deployments/sm-kms/config/sm-kms-app-postgresql-1.yml": "otlp-service: sm-kms-postgres-1\n",
+				"deployments/sm-kms/config/sm-kms-app-postgresql-2.yml": "otlp-service: sm-kms-postgres-2\n",
 			},
 		},
 		{
@@ -112,50 +112,50 @@ func TestCheckInDir_Violations(t *testing.T) {
 		{
 			name: "sqlite variant missing database-url",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/config/sm-kms-app-sqlite-1.yml":      "otlp-service: sm-kms-sqlite-1\n",
-				"deployments/sm-kms/config/sm-kms-app-sqlite-2.yml":      "database-url: \"sqlite://file::memory:?cache=shared\"\n",
-				"deployments/sm-kms/config/sm-kms-app-postgresql-1.yml":  "otlp-service: sm-kms-postgres-1\n",
-				"deployments/sm-kms/config/sm-kms-app-postgresql-2.yml":  "otlp-service: sm-kms-postgres-2\n",
+				"deployments/sm-kms/config/sm-kms-app-sqlite-1.yml":     "otlp-service: sm-kms-sqlite-1\n",
+				"deployments/sm-kms/config/sm-kms-app-sqlite-2.yml":     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+				"deployments/sm-kms/config/sm-kms-app-postgresql-1.yml": "otlp-service: sm-kms-postgres-1\n",
+				"deployments/sm-kms/config/sm-kms-app-postgresql-2.yml": "otlp-service: sm-kms-postgres-2\n",
 			},
 			wantSubstring: `missing required key "database-url"`,
 		},
 		{
 			name: "sqlite variant has non-sqlite database-url",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/config/sm-kms-app-sqlite-1.yml":      "database-url: \"postgres://localhost/db\"\n",
-				"deployments/sm-kms/config/sm-kms-app-sqlite-2.yml":      "database-url: \"sqlite://file::memory:?cache=shared\"\n",
-				"deployments/sm-kms/config/sm-kms-app-postgresql-1.yml":  "otlp-service: sm-kms-postgres-1\n",
-				"deployments/sm-kms/config/sm-kms-app-postgresql-2.yml":  "otlp-service: sm-kms-postgres-2\n",
+				"deployments/sm-kms/config/sm-kms-app-sqlite-1.yml":     "database-url: \"postgres://localhost/db\"\n",
+				"deployments/sm-kms/config/sm-kms-app-sqlite-2.yml":     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+				"deployments/sm-kms/config/sm-kms-app-postgresql-1.yml": "otlp-service: sm-kms-postgres-1\n",
+				"deployments/sm-kms/config/sm-kms-app-postgresql-2.yml": "otlp-service: sm-kms-postgres-2\n",
 			},
 			wantSubstring: `does not match pattern`,
 		},
 		{
 			name: "postgresql variant has database-url (forbidden)",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/config/sm-kms-app-sqlite-1.yml":      "database-url: \"sqlite://file::memory:?cache=shared\"\n",
-				"deployments/sm-kms/config/sm-kms-app-sqlite-2.yml":      "database-url: \"sqlite://file::memory:?cache=shared\"\n",
-				"deployments/sm-kms/config/sm-kms-app-postgresql-1.yml":  "database-url: \"postgres://localhost/db\"\n",
-				"deployments/sm-kms/config/sm-kms-app-postgresql-2.yml":  "otlp-service: sm-kms-postgres-2\n",
+				"deployments/sm-kms/config/sm-kms-app-sqlite-1.yml":     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+				"deployments/sm-kms/config/sm-kms-app-sqlite-2.yml":     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+				"deployments/sm-kms/config/sm-kms-app-postgresql-1.yml": "database-url: \"postgres://localhost/db\"\n",
+				"deployments/sm-kms/config/sm-kms-app-postgresql-2.yml": "otlp-service: sm-kms-postgres-2\n",
 			},
 			wantSubstring: `forbidden key "database-url"`,
 		},
 		{
 			name: "missing overlay file",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/config/sm-kms-app-sqlite-1.yml":      "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+				"deployments/sm-kms/config/sm-kms-app-sqlite-1.yml": "database-url: \"sqlite://file::memory:?cache=shared\"\n",
 				// sqlite-2 is missing
-				"deployments/sm-kms/config/sm-kms-app-postgresql-1.yml":  "otlp-service: sm-kms-postgres-1\n",
-				"deployments/sm-kms/config/sm-kms-app-postgresql-2.yml":  "otlp-service: sm-kms-postgres-2\n",
+				"deployments/sm-kms/config/sm-kms-app-postgresql-1.yml": "otlp-service: sm-kms-postgres-1\n",
+				"deployments/sm-kms/config/sm-kms-app-postgresql-2.yml": "otlp-service: sm-kms-postgres-2\n",
 			},
 			wantSubstring: "missing overlay file",
 		},
 		{
 			name: "database-url value is not a string",
 			setupFiles: map[string]string{
-				"deployments/sm-kms/config/sm-kms-app-sqlite-1.yml":      "database-url: 12345\n",
-				"deployments/sm-kms/config/sm-kms-app-sqlite-2.yml":      "database-url: \"sqlite://file::memory:?cache=shared\"\n",
-				"deployments/sm-kms/config/sm-kms-app-postgresql-1.yml":  "otlp-service: sm-kms-postgres-1\n",
-				"deployments/sm-kms/config/sm-kms-app-postgresql-2.yml":  "otlp-service: sm-kms-postgres-2\n",
+				"deployments/sm-kms/config/sm-kms-app-sqlite-1.yml":     "database-url: 12345\n",
+				"deployments/sm-kms/config/sm-kms-app-sqlite-2.yml":     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
+				"deployments/sm-kms/config/sm-kms-app-postgresql-1.yml": "otlp-service: sm-kms-postgres-1\n",
+				"deployments/sm-kms/config/sm-kms-app-postgresql-2.yml": "otlp-service: sm-kms-postgres-2\n",
 			},
 			wantSubstring: "must be a string",
 		},

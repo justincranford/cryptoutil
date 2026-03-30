@@ -7,6 +7,7 @@ import (
 	"context"
 	"database/sql"
 	"io/fs"
+	"strings"
 	"testing"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -24,8 +25,8 @@ func TestMigrationsFS_Embedded(t *testing.T) {
 
 	// Verify expected migration files exist.
 	expectedFiles := map[string]bool{
-		"2001_template_items.up.sql":   false,
-		"2001_template_items.down.sql": false,
+		"11001_template_items.up.sql":   false,
+		"11001_template_items.down.sql": false,
 	}
 
 	for _, entry := range entries {
@@ -53,24 +54,24 @@ func TestGetMergedMigrationsFS(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, entries, "merged FS should have migration files")
 
-	// Should contain both template (1001-1004) and skeleton-template (2001+) migrations.
+	// Should contain both template (1001-1004) and skeleton-template (11001+) migrations.
 	hasTemplate := false
 	hasSkeleton := false
 
 	for _, entry := range entries {
 		name := entry.Name()
 
-		if len(name) >= 4 && name[:4] == "1001" {
+		if strings.HasPrefix(name, "1001") {
 			hasTemplate = true
 		}
 
-		if len(name) >= 4 && name[:4] == "2001" {
+		if strings.HasPrefix(name, "11001") {
 			hasSkeleton = true
 		}
 	}
 
 	require.True(t, hasTemplate, "merged FS should contain template migrations (1001+)")
-	require.True(t, hasSkeleton, "merged FS should contain skeleton-template migrations (2001+)")
+	require.True(t, hasSkeleton, "merged FS should contain skeleton-template migrations (11001+)")
 }
 
 func TestMergedFS_Open(t *testing.T) {
@@ -79,7 +80,7 @@ func TestMergedFS_Open(t *testing.T) {
 	mergedFS := GetMergedMigrationsFS()
 
 	// Test opening skeleton-template migration file.
-	file, err := mergedFS.Open("migrations/2001_template_items.up.sql")
+	file, err := mergedFS.Open("migrations/11001_template_items.up.sql")
 	require.NoError(t, err)
 	require.NoError(t, file.Close())
 
@@ -101,7 +102,7 @@ func TestMergedFS_ReadFile(t *testing.T) {
 	require.True(t, ok, "merged FS should implement fs.ReadFileFS")
 
 	// Test reading skeleton-template migration.
-	data, err := mergedFS.ReadFile("migrations/2001_template_items.up.sql")
+	data, err := mergedFS.ReadFile("migrations/11001_template_items.up.sql")
 	require.NoError(t, err)
 	require.Contains(t, string(data), "template_items")
 
@@ -123,7 +124,7 @@ func TestMergedFS_Stat(t *testing.T) {
 	require.True(t, ok, "merged FS should implement fs.StatFS")
 
 	// Test stat skeleton-template migration.
-	info, err := mergedFS.Stat("migrations/2001_template_items.up.sql")
+	info, err := mergedFS.Stat("migrations/11001_template_items.up.sql")
 	require.NoError(t, err)
 	require.Greater(t, info.Size(), int64(0))
 

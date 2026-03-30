@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
+	lintFitnessRegistry "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/registry"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -35,7 +35,9 @@ func makeMigrationDir(t *testing.T, root, relDir string, fileNumbers []int) {
 const (
 	templateMigRelDir = "internal/apps/framework/service/server/repository/migrations"
 	joseMigRelDir     = "internal/apps/jose-ja/repository/migrations"
+	smImMigRelDir     = "internal/apps/sm-im/repository/migrations"
 	identityMigRelDir = "internal/apps/identity-idp/repository/migrations"
+	unknownSvcMigDir  = "internal/apps/unknown-service/repository/migrations"
 )
 
 // ---- CheckInDir: template range ----
@@ -66,12 +68,13 @@ func TestCheckInDir_TemplateMigrations_AboveMax_Fails(t *testing.T) {
 	require.Contains(t, err.Error(), "migration range compliance")
 }
 
-// ---- CheckInDir: domain range ----
+// ---- CheckInDir: domain range per-PS-ID ----
 
 func TestCheckInDir_DomainMigrations_ValidRange_Passes(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
-	makeMigrationDir(t, tmp, joseMigRelDir, []int{2001, 2002})
+	// jose-ja registry range is 4001-4999.
+	makeMigrationDir(t, tmp, joseMigRelDir, []int{4001, 4002})
 	err := CheckInDir(newTestLogger(), tmp)
 	require.NoError(t, err)
 }
@@ -79,10 +82,30 @@ func TestCheckInDir_DomainMigrations_ValidRange_Passes(t *testing.T) {
 func TestCheckInDir_DomainMigrations_BelowMin_Fails(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
-	makeMigrationDir(t, tmp, joseMigRelDir, []int{2001, 1})
+	// jose-ja min is 4001; version 1 is below range.
+	makeMigrationDir(t, tmp, joseMigRelDir, []int{4001, 1})
 	err := CheckInDir(newTestLogger(), tmp)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "migration range compliance")
+}
+
+func TestCheckInDir_DomainMigrations_AboveMax_Fails(t *testing.T) {
+	t.Parallel()
+	tmp := t.TempDir()
+	// jose-ja max is 4999; version 5001 is above range.
+	makeMigrationDir(t, tmp, joseMigRelDir, []int{4001, 5001})
+	err := CheckInDir(newTestLogger(), tmp)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "migration range compliance")
+}
+
+func TestCheckInDir_DomainMigrations_SmIm_ValidRange_Passes(t *testing.T) {
+	t.Parallel()
+	tmp := t.TempDir()
+	// sm-im registry range is 3001-3999.
+	makeMigrationDir(t, tmp, smImMigRelDir, []int{3001, 3002})
+	err := CheckInDir(newTestLogger(), tmp)
+	require.NoError(t, err)
 }
 
 // ---- CheckInDir: identity skipped ----
@@ -129,7 +152,7 @@ func TestFindDomainMigrationDirs_WithIdentity_ExcludesIt(t *testing.T) {
 func TestFindDomainMigrationDirs_WithJose_IncludesIt(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
-	makeMigrationDir(t, tmp, joseMigRelDir, []int{2001})
+	makeMigrationDir(t, tmp, joseMigRelDir, []int{4001})
 	appsDir := filepath.Join(tmp, "internal", "apps")
 	templateDir := filepath.Join(tmp, "internal", "apps", cryptoutilSharedMagic.FrameworkProductName, "service", "server", "repository", "migrations")
 	dirs, err := findDomainMigrationDirs(appsDir, templateDir)
@@ -272,3 +295,97 @@ func TestCheckInDir_NoInternalAppsDir_Succeeds(t *testing.T) {
 	err := CheckInDir(cryptoutilCmdCicdCommon.NewLogger("test"), tmp)
 	require.NoError(t, err)
 }
+
+// ---- checkRegistryRangeCollisions ----
+
+func TestCheckRegistryRangeCollisions_NoOverlaps(t *testing.T) {
+	t.Parallel()
+
+	violations := checkRegistryRangeCollisions()
+	require.Empty(t, violations, "registry should have no overlapping migration ranges; got: %v", violations)
+}
+
+// ---- buildPSIDRangeMap ----
+
+func TestBuildPSIDRangeMap_ContainsAllPSIDs(t *testing.T) {
+	t.Parallel()
+
+	rangeMap := buildPSIDRangeMap()
+	allPS := lintFitnessRegistry.AllProductServices()
+
+	for _, ps := range allPS {
+		_, ok := rangeMap[ps.PSID]
+		require.True(t, ok, "expected PS-ID %q in range map", ps.PSID)
+	}
+}
+
+func TestBuildPSIDRangeMap_JoseJaHasCorrectRange(t *testing.T) {
+	t.Parallel()
+
+	rangeMap := buildPSIDRangeMap()
+	joseRange, ok := rangeMap[cryptoutilSharedMagic.OTLPServiceJoseJA]
+	require.True(t, ok)
+	require.Equal(t, 4001, joseRange.Start)
+	require.Equal(t, 4999, joseRange.End)
+}
+
+// ---- checkRangeCollisions ----
+
+func TestCheckRangeCollisions_NoOverlap_ReturnsEmpty(t *testing.T) {
+	t.Parallel()
+
+	ranges := []lintFitnessRegistry.MigrationRangeInfo{
+		{PSID: "svc-a", Start: 1001, End: 1999},
+		{PSID: "svc-b", Start: 2001, End: 2999},
+		{PSID: "svc-c", Start: 3001, End: 3999},
+	}
+	violations := checkRangeCollisions(ranges)
+	require.Empty(t, violations)
+}
+
+func TestCheckRangeCollisions_Overlap_ReturnsViolation(t *testing.T) {
+	t.Parallel()
+
+	ranges := []lintFitnessRegistry.MigrationRangeInfo{
+		{PSID: "svc-a", Start: 1001, End: 2500},
+		{PSID: "svc-b", Start: 2001, End: 2999},
+	}
+	violations := checkRangeCollisions(ranges)
+	require.NotEmpty(t, violations)
+	require.Contains(t, violations[0], "svc-a")
+	require.Contains(t, violations[0], "svc-b")
+}
+
+func TestCheckRangeCollisions_EmptyRanges_ReturnsEmpty(t *testing.T) {
+	t.Parallel()
+
+	violations := checkRangeCollisions(nil)
+	require.Empty(t, violations)
+}
+
+// ---- CheckInDir: PS-ID not in registry falls back ----
+
+func TestCheckInDir_UnknownPSID_UsesLooseLowerBound(t *testing.T) {
+	t.Parallel()
+	tmp := t.TempDir()
+	// Use a directory name unknown to registry; files at 2001+ pass loose lower bound.
+	makeMigrationDir(t, tmp, unknownSvcMigDir, []int{2001, 9999})
+	err := CheckInDir(newTestLogger(), tmp)
+	require.NoError(t, err)
+}
+
+func TestCheckInDir_UnknownPSID_BelowLooseLower_Fails(t *testing.T) {
+	t.Parallel()
+	tmp := t.TempDir()
+	// Use a directory name unknown to registry; file at 999 is below loose lower bound (1999+1=2000).
+	makeMigrationDir(t, tmp, unknownSvcMigDir, []int{999})
+	err := CheckInDir(newTestLogger(), tmp)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "migration range compliance")
+}
+
+// Note: checkDir error path (non-IsNotExist ReadDir failure) and
+// findDomainMigrationDirsWithPSID absErr path are structural ceilings:
+// on Windows, os.ReadDir on a file returns os.IsNotExist (treated as "no dir"),
+// and filepath.Abs never fails for valid paths. These OS-level failure paths
+// cannot be triggered without OS-level intervention.

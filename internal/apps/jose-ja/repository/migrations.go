@@ -23,13 +23,13 @@ const (
 	DatabaseTypePostgreSQL = cryptoutilAppsFrameworkServiceServerRepository.DatabaseTypePostgreSQL
 )
 
-// MigrationsFS contains embedded jose-ja specific migrations (2001+ only).
+// MigrationsFS contains embedded jose-ja specific migrations (4001+ only).
 //
 // Migration version numbering convention:
 //   - 1001-1999: Service-template base infrastructure (reserved range, loaded from template package)
-//   - 2001+: JOSE-JA app-specific tables (elastic_jwks, material_jwks, audit_config, audit_log)
+//   - 4001-4999: JOSE-JA app-specific tables (elastic_jwks, material_jwks, audit_config, audit_log)
 //
-// CRITICAL: This embed ONLY contains jose-ja specific migrations (2001+).
+// CRITICAL: This embed ONLY contains jose-ja specific migrations (4001+).
 // CRITICAL: Template can add migrations 1005-1999 without conflicts with jose-ja migrations.
 // Service-template base infrastructure migrations (1001-1004) are loaded from template package first.
 //
@@ -37,7 +37,7 @@ const (
 var MigrationsFS embed.FS
 
 // GetMergedMigrationsFS returns a filesystem combining template and JOSE-JA migrations.
-// This is used by tests to access all migrations (1001-1999 template + 2001+ JOSE-JA) in sequence.
+// This is used by tests to access all migrations (1001-1999 template + 4001+ JOSE-JA) in sequence.
 func GetMergedMigrationsFS() fs.FS {
 	return cryptoutilAppsFrameworkServiceServerRepository.NewMergedMigrationsFS(MigrationsFS)
 }
@@ -52,17 +52,17 @@ func GetMergedMigrationsFS() fs.FS {
 // - 1003_realms_template: template_realms table structure
 // - 1004_add_multi_tenancy: tenants, users, clients, unverified_users, unverified_clients, roles, user_roles, client_roles
 //
-// Phase 2 - JOSE-JA specific tables (2001+):
-// - 2001_elastic_jwks: Elastic JWK containers for key rotation
-// - 2002_material_jwks: Encrypted key material versions
-// - 2003_audit_config: Per-tenant audit configuration
-// - 2004_audit_log: Cryptographic operation audit entries.
+// Phase 2 - JOSE-JA specific tables (4001+):
+// - 4001_elastic_jwks: Elastic JWK containers for key rotation
+// - 4002_material_jwks: Encrypted key material versions
+// - 4003_audit_config: Per-tenant audit configuration
+// - 4004_audit_log: Cryptographic operation audit entries.
 func ApplyJoseJAMigrations(db *sql.DB, dbType DatabaseType) error {
-	// Apply all migrations in sequence (1001-1999 template + 2001+ jose-ja) using merged filesystem.
+	// Apply all migrations in sequence (1001-1999 template + 4001+ jose-ja) using merged filesystem.
 	runner := cryptoutilAppsFrameworkServiceServerRepository.NewMigrationRunner(GetMergedMigrationsFS(), "migrations")
 
 	if err := runner.Apply(db, dbType); err != nil {
-		return fmt.Errorf("failed to apply jose-ja migrations (1001-1999 + 2001+): %w", err)
+		return fmt.Errorf("failed to apply jose-ja migrations (1001-1999 + 4001+): %w", err)
 	}
 
 	return nil

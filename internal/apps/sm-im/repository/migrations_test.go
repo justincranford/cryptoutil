@@ -31,7 +31,7 @@ func TestMergedFS_ReadFile(t *testing.T) {
 	}{
 		{
 			name:        "read sm-im migration",
-			filename:    "migrations/2001_init.up.sql",
+			filename:    "migrations/3001_init.up.sql",
 			wantErr:     false,
 			wantContent: true,
 		},
@@ -87,7 +87,7 @@ func TestMergedFS_Stat(t *testing.T) {
 	}{
 		{
 			name:     "stat sm-im migration",
-			filename: "migrations/2001_init.up.sql",
+			filename: "migrations/3001_init.up.sql",
 			wantErr:  false,
 			wantDir:  false,
 		},
@@ -148,7 +148,7 @@ func TestMergedFS_Open(t *testing.T) {
 	}{
 		{
 			name:     "open sm-im migration",
-			filename: "migrations/2001_init.up.sql",
+			filename: "migrations/3001_init.up.sql",
 			wantErr:  false,
 		},
 		{
@@ -201,7 +201,7 @@ func TestMergedFS_ReadDir(t *testing.T) {
 	entries, err := readDirFS.ReadDir("migrations")
 	require.NoError(t, err)
 
-	// Should have at least template migrations (1001-1004) plus sm-im migrations (2001+).
+	// Should have at least template migrations (1001-1004) plus sm-im migrations (3001+).
 	require.GreaterOrEqual(t, len(entries), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, "should have at least 5 migration files")
 
 	// Verify entries contain expected migrations.
@@ -214,7 +214,7 @@ func TestMergedFS_ReadDir(t *testing.T) {
 	require.True(t, fileNames["1001_session_management.up.sql"], "should contain 1001_session_management.up.sql")
 
 	// Check for sm-im migrations.
-	require.True(t, fileNames["2001_init.up.sql"], "should contain 2001_init.up.sql")
+	require.True(t, fileNames["3001_init.up.sql"], "should contain 3001_init.up.sql")
 }
 
 // TestMergedFS_ReadDir_NonExistentDirectory tests ReadDir with a directory that doesn't exist in either filesystem.

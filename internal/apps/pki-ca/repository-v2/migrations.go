@@ -21,13 +21,13 @@ const (
 	DatabaseTypePostgreSQL = cryptoutilAppsFrameworkServiceServerRepository.DatabaseTypePostgreSQL
 )
 
-// MigrationsFS contains embedded pki-ca specific migrations (2001+ only).
+// MigrationsFS contains embedded pki-ca specific migrations (5001+ only).
 //
 // Migration version numbering convention:
 //   - 1001-1999: Service-template base infrastructure (reserved range, loaded from template package)
-//   - 2001+: pki-ca app-specific tables (ca_items)
+//   - 5001-5999: pki-ca app-specific tables (ca_items)
 //
-// CRITICAL: This embed ONLY contains pki-ca specific migrations (2001+).
+// CRITICAL: This embed ONLY contains pki-ca specific migrations (5001+).
 // CRITICAL: Template can add migrations 1005-1999 without conflicts with pki-ca migrations.
 // Service-template base infrastructure migrations (1001-1004) are loaded from template package first.
 //
@@ -35,7 +35,7 @@ const (
 var MigrationsFS embed.FS
 
 // GetMergedMigrationsFS returns a filesystem combining template and pki-ca migrations.
-// This is used by tests to access all migrations (1001-1999 template + 2001+ pki-ca) in sequence.
+// This is used by tests to access all migrations (1001-1999 template + 5001+ pki-ca) in sequence.
 func GetMergedMigrationsFS() fs.FS {
 	return cryptoutilAppsFrameworkServiceServerRepository.NewMergedMigrationsFS(MigrationsFS)
 }
@@ -50,14 +50,14 @@ func GetMergedMigrationsFS() fs.FS {
 // - 1003_realms_template: template_realms table structure
 // - 1004_add_multi_tenancy: tenants, users, clients, unverified_users, unverified_clients, roles, user_roles, client_roles
 //
-// Phase 2 - pki-ca specific tables (2001+):
-// - 2001_ca_items: Minimal CA demonstration table.
+// Phase 2 - pki-ca specific tables (5001+):
+// - 5001_ca_items: Minimal CA demonstration table.
 func ApplyPKICAMigrations(db *sql.DB, dbType DatabaseType) error {
-	// Apply all migrations in sequence (1001-1999 template + 2001+ pki-ca) using merged filesystem.
+	// Apply all migrations in sequence (1001-1999 template + 5001+ pki-ca) using merged filesystem.
 	runner := cryptoutilAppsFrameworkServiceServerRepository.NewMigrationRunner(GetMergedMigrationsFS(), "migrations")
 
 	if err := runner.Apply(db, dbType); err != nil {
-		return fmt.Errorf("failed to apply pki-ca migrations (1001-1999 + 2001+): %w", err)
+		return fmt.Errorf("failed to apply pki-ca migrations (1001-1999 + 5001+): %w", err)
 	}
 
 	return nil
