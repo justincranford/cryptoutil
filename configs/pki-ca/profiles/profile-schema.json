@@ -1,0 +1,285 @@
+{
+  "$id": "https://cryptoutil.dev/schemas/pki-ca-profile/v1",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "additionalProperties": false,
+  "description": "JSON Schema for PKI-CA certificate profile YAML files in configs/pki-ca/profiles/.",
+  "properties": {
+    "profile": {
+      "additionalProperties": true,
+      "properties": {
+        "basic_constraints": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "description": {
+          "description": "Human-readable description of the certificate type",
+          "minLength": 1,
+          "type": "string"
+        },
+        "extended_key_usage": {
+          "additionalProperties": false,
+          "properties": {
+            "optional": {
+              "description": "EKU OIDs or names that MAY be present",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "required": {
+              "description": "EKU OIDs or names that MUST be present",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "required",
+            "optional"
+          ],
+          "type": "object"
+        },
+        "extensions": {
+          "additionalProperties": false,
+          "properties": {
+            "optional": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "required": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "required",
+            "optional"
+          ],
+          "type": "object"
+        },
+        "key": {
+          "additionalProperties": false,
+          "properties": {
+            "allowed_algorithms": {
+              "description": "List of allowed key algorithms and their constraints",
+              "items": {
+                "additionalProperties": true,
+                "properties": {
+                  "algorithm": {
+                    "description": "Key algorithm",
+                    "enum": [
+                      "RSA",
+                      "ECDSA",
+                      "Ed25519"
+                    ],
+                    "type": "string"
+                  },
+                  "allowed_curves": {
+                    "description": "Allowed ECDSA curves",
+                    "items": {
+                      "enum": [
+                        "P-256",
+                        "P-384",
+                        "P-521"
+                      ],
+                      "type": "string"
+                    },
+                    "minItems": 1,
+                    "type": "array"
+                  },
+                  "max_size": {
+                    "description": "Maximum RSA key size in bits",
+                    "minimum": 1024,
+                    "type": "integer"
+                  },
+                  "min_size": {
+                    "description": "Minimum RSA key size in bits",
+                    "minimum": 1024,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "algorithm"
+                ],
+                "type": "object"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            "default_algorithm": {
+              "description": "Default key algorithm",
+              "enum": [
+                "RSA",
+                "ECDSA",
+                "Ed25519"
+              ],
+              "type": "string"
+            },
+            "default_curve_or_size": {
+              "description": "Default curve name (ECDSA) or key size in bits (RSA)"
+            }
+          },
+          "required": [
+            "allowed_algorithms",
+            "default_algorithm",
+            "default_curve_or_size"
+          ],
+          "type": "object"
+        },
+        "key_usage": {
+          "description": "RFC 5280 key usage bits",
+          "items": {
+            "enum": [
+              "digitalSignature",
+              "nonRepudiation",
+              "keyEncipherment",
+              "dataEncipherment",
+              "keyAgreement",
+              "keyCertSign",
+              "cRLSign",
+              "encipherOnly",
+              "decipherOnly"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "name": {
+          "description": "Kebab-case profile name matching the filename (without .yaml)",
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "type": "string"
+        },
+        "name_constraints": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "san": {
+          "additionalProperties": true,
+          "properties": {
+            "allow_dns_names": {
+              "type": "boolean"
+            },
+            "allow_email_addresses": {
+              "type": "boolean"
+            },
+            "allow_ip_addresses": {
+              "type": "boolean"
+            },
+            "allow_uris": {
+              "type": "boolean"
+            },
+            "max_entries": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "require_at_least_one": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "allow_dns_names",
+            "allow_ip_addresses",
+            "allow_email_addresses",
+            "allow_uris",
+            "require_at_least_one",
+            "max_entries"
+          ],
+          "type": "object"
+        },
+        "signature": {
+          "additionalProperties": true,
+          "properties": {
+            "forbidden": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "preferred": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        },
+        "subject": {
+          "additionalProperties": true,
+          "properties": {
+            "allow_country": {
+              "type": "boolean"
+            },
+            "allow_locality": {
+              "type": "boolean"
+            },
+            "allow_organization": {
+              "type": "boolean"
+            },
+            "allow_organizational_unit": {
+              "type": "boolean"
+            },
+            "allow_state": {
+              "type": "boolean"
+            },
+            "max_cn_length": {
+              "minimum": 1,
+              "type": "integer"
+            },
+            "require_common_name": {
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        },
+        "validity": {
+          "additionalProperties": false,
+          "properties": {
+            "default_days": {
+              "description": "Default validity period in days (must be within min_days..max_days)",
+              "minimum": 1,
+              "type": "integer"
+            },
+            "max_days": {
+              "description": "Maximum allowed validity period in days",
+              "minimum": 1,
+              "type": "integer"
+            },
+            "min_days": {
+              "description": "Minimum allowed validity period in days (0 = short-lived/minutes allowed)",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "max_days",
+            "min_days",
+            "default_days"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "name",
+        "description",
+        "validity",
+        "key",
+        "key_usage",
+        "extended_key_usage"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "profile"
+  ],
+  "title": "PKI-CA Certificate Profile",
+  "type": "object"
+}

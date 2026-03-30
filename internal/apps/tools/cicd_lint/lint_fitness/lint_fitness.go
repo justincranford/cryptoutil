@@ -55,6 +55,7 @@ import (
 	lintFitnessNonFIPSAlgorithms "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/non_fips_algorithms"
 	lintFitnessOTLPServiceNamePattern "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/otlp_service_name_pattern"
 	lintFitnessParallelTests "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/parallel_tests"
+	lintFitnessPKICAProfileSchema "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/pki_ca_profile_schema"
 	lintFitnessProductStructure "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/product_structure"
 	lintFitnessProductWiring "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/product_wiring"
 	lintFitnessRequireAPIDir "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/require_api_dir"
@@ -126,6 +127,7 @@ var registeredLinters = []struct {
 	{"fitness-registry-completeness", lintFitnessFitnessRegistryCompleteness.Check},
 	{"test-file-suffix-structure", lintFitnessTestFileSuffixStructure.Check},
 	{"import-alias-formula", lintFitnessImportAliasFormula.Check},
+	{"pki-ca-profile-schema", lintFitnessPKICAProfileSchema.Check},
 	// New fitness checks (added in Phase 3 of framework-v4).
 	{"banned-product-names", lintFitnessBannedProductNames.Check},
 	{"legacy-dir-detection", lintFitnessLegacyDirDetection.Check},

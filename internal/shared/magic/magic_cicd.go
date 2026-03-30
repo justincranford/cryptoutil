@@ -192,6 +192,9 @@ const (
 	// CICDImportAliasMapFile is the relative path to the import alias map YAML.
 	CICDImportAliasMapFile = "internal/apps/tools/cicd_lint/lint_fitness/import_alias_formula/alias_map.yaml"
 
+	// CICDPKICAProfilesDir is the relative path to the PKI-CA certificate profile YAML files.
+	CICDPKICAProfilesDir = "configs/pki-ca/profiles"
+
 	// RequirementsTotalPatternGroups is the requirements coverage regex pattern groups count.
 	RequirementsTotalPatternGroups = 4
 	// RequirementsPriorityPatternGroups is the requirements priority pattern groups count.

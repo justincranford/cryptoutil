@@ -1,6 +1,6 @@
 # Tasks — Parameterization Opportunities
 
-**Status**: 5 of 68 tasks complete (7%)
+**Status**: 6 of 68 tasks complete (9%)
 **Last Updated**: 2026-03-30
 **Created**: 2026-03-29
 
@@ -188,19 +188,19 @@ the entity registry (#01).
 
 #### Task 2.4: #19 Import Alias Formula
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 4h
-- **Actual**: —
+- **Actual**: Completed in session 7
 - **Dependencies**: None (standalone)
 - **Description**: Create an alias map YAML mapping import paths to required aliases
   (e.g., `github.com/google/uuid` → `googleUuid`). New `import-alias-formula` fitness
   linter validates all Go files.
 - **Acceptance Criteria**:
-  - [ ] YAML defines import_path → required_alias pairs
-  - [ ] Separate sections for internal (`cryptoutil*`) and external (`vendor*`) aliases
-  - [ ] Fitness linter scans all non-generated Go files
-  - [ ] Tests: ≥98% coverage
+  - [x] YAML defines import_path → required_alias pairs
+  - [x] Separate sections for internal (`cryptoutil*`) and external (`vendor*`) aliases
+  - [x] Fitness linter scans all non-generated Go files
+  - [x] Tests: 100% coverage (30 tests)
 - **Files**:
   - `internal/apps/tools/cicd_lint/lint_fitness/import_alias_formula/alias_map.yaml`
   - `internal/apps/tools/cicd_lint/lint_fitness/import_alias_formula/import_alias_formula.go`

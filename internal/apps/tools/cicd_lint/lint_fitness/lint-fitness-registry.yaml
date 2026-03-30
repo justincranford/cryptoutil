@@ -324,3 +324,10 @@ sub_linters:
     directory: unseal_secret_content
     description: Validates that unseal key secret files contain only expected content.
     category: security
+
+  - name: pki-ca-profile-schema
+    directory: pki_ca_profile_schema
+    description: >-
+      Validates all PKI-CA certificate profile YAML files in configs/pki-ca/profiles/ against
+      the required schema (name, description, validity, key, key_usage, extended_key_usage).
+    category: pki

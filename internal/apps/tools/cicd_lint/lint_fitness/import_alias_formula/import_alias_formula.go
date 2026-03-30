@@ -45,10 +45,12 @@ type AliasMap struct {
 // See ARCHITECTURE.md Section 10.2.4 (Test Seam Injection Pattern).
 // =========================================================================
 
-var importAliasReadFileFn = os.ReadFile
-var importAliasWalkDirFn = filepath.WalkDir
-var importAliasGetwdFn = os.Getwd
-var findImportAliasProjectRootFn = findImportAliasProjectRoot
+var (
+	importAliasReadFileFn        = os.ReadFile
+	importAliasWalkDirFn         = filepath.WalkDir
+	importAliasGetwdFn           = os.Getwd
+	findImportAliasProjectRootFn = findImportAliasProjectRoot
+)
 
 // =========================================================================
 // Public API
