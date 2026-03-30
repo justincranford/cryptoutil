@@ -34,7 +34,7 @@ integrate it with the existing Go registry.
 - **Owner**: LLM Agent
 - **Estimated**: 4h
 - **Actual**: —
-- **Dependencies**: Decision 1 (registry location) from quizme-v1.md
+- **Dependencies**: None (location decided: `api/cryptosuite-registry/registry.yaml`)
 - **Description**: Design and implement the YAML schema for the entity registry covering
   suite, products, and product-services with all derived fields.
 - **Acceptance Criteria**:
@@ -48,8 +48,8 @@ integrate it with the existing Go registry.
   - [ ] Schema file created in location per Decision 1
   - [ ] JSON Schema for YAML validation created
 - **Files**:
-  - `{registry-location}/registry.yaml` (location per Decision 1)
-  - `{registry-location}/registry-schema.json`
+  - `api/cryptosuite-registry/registry.yaml`
+  - `api/cryptosuite-registry/registry-schema.json`
 
 #### Task 1.2: Implement Registry YAML Loader
 
@@ -69,9 +69,9 @@ integrate it with the existing Go registry.
   - [ ] Tests: table-driven, t.Parallel(), dynamic test data (UUIDv7)
   - [ ] Tests: invalid YAML, missing required fields, duplicate PS-IDs, overlapping ports
 - **Files**:
-  - `{registry-package}/loader.go`
-  - `{registry-package}/loader_test.go`
-  - `{registry-package}/types.go`
+  - `internal/apps/tools/cicd_lint/lint_fitness/registry/loader.go`
+  - `internal/apps/tools/cicd_lint/lint_fitness/registry/loader_test.go`
+  - `internal/apps/tools/cicd_lint/lint_fitness/registry/types.go`
 
 #### Task 1.3: Integrate Registry YAML with Existing Go Registry
 
@@ -79,19 +79,23 @@ integrate it with the existing Go registry.
 - **Owner**: LLM Agent
 - **Estimated**: 4h
 - **Actual**: —
-- **Dependencies**: Task 1.2, Decision 2 (generate vs validate)
-- **Description**: Based on Decision 2, either (a) generate registry.go from YAML or
-  (b) add a fitness linter that validates YAML↔Go consistency.
+- **Dependencies**: Task 1.2
+- **Description**: Replace the hardcoded Go struct initialization in `registry.go` with
+  YAML loading. The existing exported API surface is preserved exactly: `AllProducts()`,
+  `AllProductServices()`, `AllSuites()` keep identical signatures. All 57+ callers see zero
+  change. New accessor functions are added for richer YAML fields.
 - **Acceptance Criteria**:
-  - [ ] If generate: `go generate` command produces registry.go from YAML
-  - [ ] If validate: `entity-registry-yaml-consistency` fitness linter compares YAML to Go
-  - [ ] Existing `AllProducts()`, `AllProductServices()`, `AllSuites()` functions continue
-        to work unchanged
-  - [ ] All existing fitness linters pass after integration
-  - [ ] Tests: ≥95% coverage
+  - [ ] `registry.go` hardcoded structs replaced with `os.ReadFile("api/cryptosuite-registry/registry.yaml")` + gopkg.in/yaml.v3
+  - [ ] `AllProducts()`, `AllProductServices()`, `AllSuites()` return identical types/values
+  - [ ] New functions: `AllPorts()`, `AllMigrationRanges()`, `AllAPIResources()`
+  - [ ] `entity-registry-schema` fitness linter validates YAML against JSON Schema
+  - [ ] All 57+ existing fitness linters continue to pass with no import changes
+  - [ ] Tests: ≥98% coverage on loader
 - **Files**:
-  - If generate: `{registry-package}/generate.go`, `cmd/tools/cicd-registry/main.go`
-  - If validate: `lint_fitness/entity_registry_yaml_consistency/entity_registry_yaml_consistency.go`
+  - `internal/apps/tools/cicd_lint/lint_fitness/registry/registry.go` (replace hardcoded structs)
+  - `internal/apps/tools/cicd_lint/lint_fitness/registry/loader.go`
+  - `internal/apps/tools/cicd_lint/lint_fitness/entity_registry_schema/entity_registry_schema.go`
+  - `internal/apps/tools/cicd_lint/lint_fitness/entity_registry_schema/entity_registry_schema_test.go`
 
 #### Task 1.4: Phase 1 Quality Gates
 
@@ -259,8 +263,8 @@ replacing hardcoded formulas in fitness linters.
   - [ ] Tests: ≥98% coverage (all 10 PS-IDs × 3 tiers)
   - [ ] Replace hardcoded port expectations in existing `lint_ports/` linter
 - **Files**:
-  - `{registry-package}/derivations.go`
-  - `{registry-package}/derivations_test.go`
+  - `internal/apps/tools/cicd_lint/lint_fitness/registry/derivations.go`
+  - `internal/apps/tools/cicd_lint/lint_fitness/registry/derivations_test.go`
   - `internal/apps/tools/cicd_lint/lint_fitness/lint_ports/` (enhance)
 
 #### Task 3.2: #11 SQL Identifier Derivation
@@ -279,10 +283,8 @@ replacing hardcoded formulas in fitness linters.
   - [ ] Tests: ≥98% coverage (all 10 PS-IDs)
   - [ ] All existing compose DB names match computed values
 - **Files**:
-  - `{registry-package}/derivations.go` (extend)
-  - `{registry-package}/derivations_test.go` (extend)
-
-#### Task 3.3: #10 OTLP/Compose Naming Formula
+  - `internal/apps/tools/cicd_lint/lint_fitness/registry/derivations.go` (extend)
+  - `internal/apps/tools/cicd_lint/lint_fitness/registry/derivations_test.go` (extend Task 3.2)
 
 - **Status**: ❌
 - **Owner**: LLM Agent
@@ -296,8 +298,8 @@ replacing hardcoded formulas in fitness linters.
   - [ ] Enhance `otlp-service-name-pattern` and `compose-service-names` linters
   - [ ] Tests: ≥98% coverage
 - **Files**:
-  - `{registry-package}/derivations.go` (extend)
-  - `{registry-package}/derivations_test.go` (extend)
+  - `internal/apps/tools/cicd_lint/lint_fitness/registry/derivations.go` (extend Task 3.3)
+  - `internal/apps/tools/cicd_lint/lint_fitness/registry/derivations_test.go` (extend)
 
 #### Task 3.4: Phase 3 Quality Gates
 

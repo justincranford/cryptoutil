@@ -1,6 +1,6 @@
 # Implementation Plan — Parameterization Opportunities
 
-**Status**: Planning
+**Status**: In Progress
 **Created**: 2026-03-29
 **Last Updated**: 2026-03-29
 **Purpose**: Implement the 18 ranked parameterization opportunities from
@@ -62,45 +62,52 @@ PARAMETERIZATION-OPPORTUNITIES.md reorganization into Part A (18 items) / Part B
 - **Secret files**: `deployments/{PS-ID}/secrets/*.secret` (140 files across 3 tiers)
 - **Dependencies**: gopkg.in/yaml.v3 (YAML parsing), oapi-codegen (OpenAPI)
 
-## Executive Decision (Pending — See quizme-v1.md Q1)
+## Executive Decisions
 
-### Decision 1: Registry YAML Location
+### Decision 1: Registry YAML Location ✅ RESOLVED
 
-**Options**:
+**Selected**: B — `api/cryptosuite-registry/registry.yaml`, no code generation.
 
-- A: `api/cryptosuite-registry/registry.yml` + `generate.go` invoking `./cmd/tools/cicd-registry`
-  → `api/cryptosuite-registry/registry.go` (generated). Standard Go project layout per
-  [golang-standards/project-layout/api](https://github.com/golang-standards/project-layout/tree/master/api).
-- B: `api/cryptosuite-registry/registry.yml` read by `cicd-lint lint-fitness` to build
-  parameterized model in-memory and diff against actual code, emitting errors for all deviations.
-  No code generation — pure validation.
-- C: `internal/apps/tools/cicd_lint/lint_fitness/registry/registry.yaml` alongside existing
-  `registry.go`. Consumed at compile time. Registry stays internal.
-- D: Repository root `registry.yaml`. Simplest location. Consumed by all consumers.
-- E:
+`cicd-lint lint-fitness` reads the YAML at runtime from this path (relative to project root,
+which is always the working directory when running `go run ./cmd/cicd-lint`). No `cmd/`
+binary, no `go generate` step.
 
-**Decision**: TBD — awaiting user answer in quizme-v1.md.
+**Rejected alternatives**:
+- A: Code generation adds build pipeline complexity with no benefit given Decision 2 below.
+- C: Keeping YAML internal hides it from CI/CD, docs tooling, and future non-Go consumers.
+- D: Root-level file proliferation; `api/` is the Go standard location for API artifacts.
 
-### Decision 2: Code Generation vs Pure Validation
+### Decision 2: Code Generation vs Pure Validation ✅ RESOLVED
 
-**Options**:
+**Selected**: D — YAML replaces the hardcoded Go structs entirely.
 
-- A: **Generate-and-validate** — YAML → `go generate` → `registry.go`; fitness linters also read
-  YAML at runtime. Advantage: generated Go code eliminates manual struct maintenance. Risk:
-  adds a build step dependency.
-- B: **Validate-only** — YAML is the schema; fitness linters load it at runtime and build the
-  parameterized model in-memory; existing `registry.go` is maintained manually but linters
-  verify it matches YAML. Advantage: no new `cmd/` binary, no code generation. Risk: YAML
-  and Go registry can silently drift if lint is not run.
-- C: **Hybrid** — YAML is source of truth; `registry.go` is generated; fitness linters import
-  the generated Go code (not YAML). Advantage: strong compile-time guarantees. Risk: more
-  complex build pipeline.
-- D: **YAML replaces Go entirely** — no `registry.go` at all; all consumers parse YAML at
-  startup. Advantage: single source. Risk: YAML parsing at every fitness linter invocation;
-  breaks existing import patterns.
-- E:
+**Critical design clarification**: The quizme stated "breaks existing import patterns" as a
+risk. This was incorrect. The correct implementation **preserves all import patterns**:
 
-**Decision**: TBD — awaiting user answer in quizme-v1.md.
+- The Go package `internal/apps/tools/cicd_lint/lint_fitness/registry/` **stays at that
+  path** — import paths are unchanged.
+- `registry.go` is **replaced** (not deleted): hardcoded struct initialization
+  (`allProducts = []Product{{ID: "sm"...}}`) is replaced by YAML loading from
+  `api/cryptosuite-registry/registry.yaml` read via `os.ReadFile()` at runtime.
+- `AllProducts()`, `AllProductServices()`, `AllSuites()` keep **identical signatures** and
+  return the same types — all 57+ existing callers see zero change.
+- The richer YAML fields (base_port, pg_host_port, migration_range, api_resources) are
+  available via new functions `AllPorts()`, `AllMigrationRanges()`, etc.
+
+**Why this is better than B (validate-only)**:
+- No drift possible: there are no hardcoded Go values left to go stale.
+- No `lint-fitness` discipline required to catch drift — drift literally cannot occur.
+- All linters automatically gain access to the richer model without any code changes.
+
+**Rejected alternatives**:
+- A/C: Code generation adds pipeline complexity; with D, generation is unnecessary.
+- B: Validate-only leaves two sources of truth with silent drift risk.
+
+### Decision 3: Implementation Ordering ✅ RESOLVED
+
+**Selected**: Follow PARAMETERIZATION-OPPORTUNITIES.md recommended order as default
+(`#01 → #03 → #04 → #11 → #12 → #05 → #07 → #08 → #10 → #16 → #06 → #09 → #13 → #17 → #15 → #18 → #19 → #20`). No strict parallelization preference — all work must
+complete regardless of order.
 
 ## Phases
 
@@ -113,17 +120,21 @@ Go registry.
 
 **Work**:
 
-- Define YAML schema covering suite, products (with configurable display names), and all 10
-  product-services (with base_port, pg_host_port, migration_range, api_resources using actual
-  OpenAPI paths).
-- Create JSON Schema for validation.
-- Implement registry YAML loader in Go (gopkg.in/yaml.v3).
-- Based on Decision 1 & 2: either generate `registry.go` or validate YAML↔Go consistency.
-- Add `entity-registry-schema` fitness linter.
-- Tests: ≥95% coverage on loader/validator; mutation testing ≥95%.
+- Create `api/cryptosuite-registry/registry.yaml` with full schema: 1 suite, 5 products
+  (with display_name), 10 PS-IDs (with base_port, pg_host_port, migration_range_start,
+  migration_range_end, api_resources using actual OpenAPI paths from `api/{PS-ID}/`).
+- Create JSON Schema for YAML validation.
+- Replace hardcoded struct initialization in `internal/.../registry/registry.go` with
+  YAML loader using `os.ReadFile("api/cryptosuite-registry/registry.yaml")` and
+  gopkg.in/yaml.v3. Preserve all existing exported functions and type signatures.
+- Add new accessor functions for richer fields: `AllPorts()`, `AllMigrationRanges()`,
+  `AllAPIResources()`.
+- Add `entity-registry-schema` fitness linter that validates YAML against JSON Schema.
+- Tests: ≥98% coverage on loader (infrastructure code); mutation testing ≥98%.
 
-**Success**: `registry.yaml` exists with all 1 suite + 5 products + 10 PS-IDs; fitness linter
-validates schema on every commit; existing fitness linters continue working.
+**Success**: `api/cryptosuite-registry/registry.yaml` is the single source of truth;
+`AllProducts()` / `AllProductServices()` / `AllSuites()` work unchanged for 57+ callers;
+fitness linter validates schema on every commit.
 
 **Post-Mortem**: After quality gates pass, update lessons.md with lessons learned.
 
