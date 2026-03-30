@@ -701,22 +701,43 @@ fitness linter verifies the `api/{PS-ID}/` directory exists. But no linter check
 in OpenAPI specs follow the `/{prefix}/api/v{N}/{resource}` formula or that resource names are
 correctly plural and kebab-case.
 
-**Opportunity**: Each PS-ID entry in `registry.yaml` declares its API resources:
+**Opportunity**: Each PS-ID entry in `registry.yaml` declares its API resources (using actual
+paths from existing OpenAPI specs):
 
 ```yaml
 product_services:
   - ps_id: sm-kms
     api_version: 1
-    api_resources:
-      - name: keys           # plural noun
-        path_segment: keys
-        methods: [GET, POST]
-      - name: key
-        path_segment: keys/{keyId}
-        methods: [GET, DELETE]
+    api_resources:              # from api/sm-kms/openapi_spec_paths.yaml
+      - path: /elastickey
+      - path: /elastickey/{elasticKeyID}
+      - path: /elastickeys
+      - path: /elastickey/{elasticKeyID}/materialkey
+      - path: /elastickey/{elasticKeyID}/materialkeys
+      - path: /materialkeys
+      - path: /elastickey/{elasticKeyID}/generate
+      - path: /elastickey/{elasticKeyID}/encrypt
+      - path: /elastickey/{elasticKeyID}/decrypt
+      - path: /elastickey/{elasticKeyID}/sign
+      - path: /elastickey/{elasticKeyID}/verify
+  - ps_id: jose-ja
+    api_version: 1
+    api_resources:              # from api/jose-ja/openapi_spec.yaml
+      - path: /elastic-jwks
+      - path: /elastic-jwks/{kid}
+      - path: /elastic-jwks/{kid}/materials
+      - path: /elastic-jwks/{kid}/rotate
+      - path: /jwk/generate
+      - path: /jwk/{kid}
+      - path: /jwk
+      - path: /jwks
+      - path: /jws/sign
+      - path: /jws/verify
+      - path: /jwe/encrypt
+      - path: /jwe/decrypt
 ```
 
-A new `api-path-formula` fitness linter reads the PS-ID's OpenAPI spec (`api/{PS-ID}/openapi_spec_paths.yaml`)
+A new `api-path-formula` fitness linter reads the PS-ID's OpenAPI spec
 and verifies:
 1. Every path matches `/browser/api/v{N}/{resource}` or `/service/api/v{N}/{resource}`
 2. N matches the declared `api_version`
