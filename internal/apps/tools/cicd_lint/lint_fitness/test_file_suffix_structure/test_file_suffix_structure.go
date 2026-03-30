@@ -36,9 +36,9 @@ type SuffixRule struct {
 
 // ContentRule defines a mapping from a content pattern to a required file suffix.
 type ContentRule struct {
-	ContentPattern  string `yaml:"content_pattern"`
-	RequiredSuffix  string `yaml:"required_suffix"`
-	Description     string `yaml:"description"`
+	ContentPattern string `yaml:"content_pattern"`
+	RequiredSuffix string `yaml:"required_suffix"`
+	Description    string `yaml:"description"`
 }
 
 // SuffixRules is the top-level structure of test-file-suffix-rules.yaml.
@@ -99,11 +99,11 @@ func LoadSuffixRules(rootDir string) (*SuffixRules, error) {
 
 // compiledSuffixRule holds the pre-compiled regexes for a suffix rule.
 type compiledSuffixRule struct {
-	Suffix                   string
-	Description              string
-	RequiredContentRegexes   []*regexp.Regexp
-	ForbiddenContentRegexes  []*regexp.Regexp
-	RequiredBuildTags        []string
+	Suffix                  string
+	Description             string
+	RequiredContentRegexes  []*regexp.Regexp
+	ForbiddenContentRegexes []*regexp.Regexp
+	RequiredBuildTags       []string
 }
 
 // compiledContentRule holds the pre-compiled regex for a content rule.

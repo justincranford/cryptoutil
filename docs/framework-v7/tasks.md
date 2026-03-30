@@ -168,21 +168,21 @@ the entity registry (#01).
 
 #### Task 2.3: #18 Test File Suffix Rules
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 4h
-- **Actual**: —
+- **Actual**: Completed in session 6
 - **Dependencies**: None (standalone)
 - **Description**: Create `test-file-suffix-rules.yaml` defining allowed suffixes
   (`_test.go`, `_bench_test.go`, `_fuzz_test.go`, `_property_test.go`,
   `_integration_test.go`) and what content must/must not appear in each.
 - **Acceptance Criteria**:
-  - [ ] YAML defines suffix → required_content_patterns and forbidden_content_patterns
-  - [ ] New `test-file-suffix-structure` fitness linter validates all test files
-  - [ ] Catches: fuzz functions in non-fuzz files, benchmarks in non-bench files
-  - [ ] Tests: ≥98% coverage
+  - [x] YAML defines suffix → required_content_patterns and forbidden_content_patterns
+  - [x] New `test-file-suffix-structure` fitness linter validates all test files
+  - [x] Catches: fuzz functions in non-fuzz files, benchmarks in non-bench files
+  - [x] Tests: 100% statement coverage (29 tests), 0 lint issues
 - **Files**:
-  - `internal/apps/tools/cicd_lint/lint_fitness/test_file_suffix_structure/rules.yaml`
+  - `internal/apps/tools/cicd_lint/lint_fitness/test_file_suffix_structure/test-file-suffix-rules.yaml`
   - `internal/apps/tools/cicd_lint/lint_fitness/test_file_suffix_structure/test_file_suffix_structure.go`
   - `internal/apps/tools/cicd_lint/lint_fitness/test_file_suffix_structure/test_file_suffix_structure_test.go`
 

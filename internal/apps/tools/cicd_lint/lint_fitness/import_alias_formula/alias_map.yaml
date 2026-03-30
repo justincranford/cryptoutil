@@ -1,0 +1,451 @@
+# alias_map.yaml — Import Alias Formula Registry
+#
+# Maps import import_path → required_alias for all aliased imports in this project.
+# Used by the import-alias-formula fitness linter to validate that every Go file
+# that imports one of these packages uses the canonical alias.
+#
+# golangci-lint (importas linter) enforces these rules at build time.
+# This YAML is the single source of truth; golangci.yml reads from here via
+# the fitness linter (or is kept in sync by the import-alias-formula linter).
+#
+# Format:
+#   external_aliases:  third-party / stdlib packages
+#   internal_aliases:  cryptoutil/… packages (formula: path segments → camelCase)
+
+external_aliases:
+  # JOSE libraries
+  - import_path: "github.com/lestrrat-go/jwx/v3/jwe"
+    alias: joseJwe
+  - import_path: "github.com/lestrrat-go/jwx/v3/jwk"
+    alias: joseJwk
+  - import_path: "github.com/lestrrat-go/jwx/v3/jws"
+    alias: joseJws
+  - import_path: "github.com/lestrrat-go/jwx/v3/jwa"
+    alias: joseJwa
+  # Third-party
+  - import_path: "github.com/google/uuid"
+    alias: googleUuid
+  - import_path: "encoding/json"
+    alias: json
+  - import_path: "encoding/xml"
+    alias: xml
+  - import_path: "net/http"
+    alias: http
+  - import_path: "github.com/gofiber/fiber/v2"
+    alias: fiber
+  - import_path: "github.com/stretchr/testify"
+    alias: testify
+  # Crypto stdlib
+  - import_path: "crypto/aes"
+    alias: aes
+  - import_path: "crypto/ecdsa"
+    alias: ecdsa
+  - import_path: "crypto/hmac"
+    alias: hmac
+  - import_path: "crypto/rsa"
+    alias: rsa
+  - import_path: "crypto/sha256"
+    alias: sha256
+  - import_path: "crypto/sha512"
+    alias: sha512
+  - import_path: "crypto/rand"
+    alias: crand
+
+internal_aliases:
+  # Cryptoutil API
+  - import_path: "cryptoutil/api/client"
+    alias: cryptoutilOpenapiClient
+  - import_path: "cryptoutil/api/model"
+    alias: cryptoutilOpenapiModel
+  - import_path: "cryptoutil/api/server"
+    alias: cryptoutilOpenapiServer
+  - import_path: "cryptoutil/api/pki-ca/client"
+    alias: cryptoutilApiCaClient
+  - import_path: "cryptoutil/api/pki-ca/models"
+    alias: cryptoutilApiCaModels
+  - import_path: "cryptoutil/api/pki-ca/server"
+    alias: cryptoutilApiCaServer
+  - import_path: "cryptoutil/api/identity-authz"
+    alias: cryptoutilApiIdentityAuthz
+  - import_path: "cryptoutil/api/identity-idp"
+    alias: cryptoutilApiIdentityIdp
+  - import_path: "cryptoutil/api/identity-rs"
+    alias: cryptoutilApiIdentityRs
+  - import_path: "cryptoutil/api/jose-ja/client"
+    alias: cryptoutilApiJoseClient
+  # Cryptoutil cmd
+  - import_path: "cryptoutil/internal/cmd"
+    alias: cryptoutilCmd
+  - import_path: "cryptoutil/internal/cmd/cicd_lint"
+    alias: cryptoutilCmdCicd
+  - import_path: "cryptoutil/internal/cmd/cryptoutil"
+    alias: cryptoutilCmdCryptoutil
+  - import_path: "cryptoutil/internal/cmd/cicd_lint/common"
+    alias: cryptoutilCmdCicdCommon
+  - import_path: "cryptoutil/internal/cmd/cicd_lint/all_enforce_utf8"
+    alias: cryptoutilCmdCicdAllEnforceUtf8
+  - import_path: "cryptoutil/internal/cmd/cicd_lint/go_check_circular_package_dependencies"
+    alias: cryptoutilCmdCicdGoCheckCircularPackageDependencies
+  - import_path: "cryptoutil/internal/cmd/cicd_lint/go_enforce_any"
+    alias: cryptoutilCmdCicdGoEnforceAny
+  - import_path: "cryptoutil/internal/cmd/cicd_lint/go_enforce_test_patterns"
+    alias: cryptoutilCmdCicdGoEnforceTestPatterns
+  - import_path: "cryptoutil/internal/cmd/cicd_lint/go_fix_all"
+    alias: cryptoutilCmdCicdGoFixAll
+  - import_path: "cryptoutil/internal/cmd/cicd_lint/go_fix_copyloopvar"
+    alias: cryptoutilCmdCicdGoFixCopyLoopVar
+  - import_path: "cryptoutil/internal/cmd/cicd_lint/go_fix_thelper"
+    alias: cryptoutilCmdCicdGoFixTHelper
+  - import_path: "cryptoutil/internal/cmd/cicd_lint/go_generate_postmortem"
+    alias: cryptoutilGoGeneratePostmortem
+  - import_path: "cryptoutil/internal/cmd/cicd_lint/go_update_direct_dependencies"
+    alias: cryptoutilCmdCicdGoUpdateDirectDependencies
+  - import_path: "cryptoutil/internal/cmd/cicd_lint/go_update_project_status"
+    alias: cryptoutilCmdCicdGoUpdateProjectStatus
+  - import_path: "cryptoutil/internal/cmd/cicd_lint/go_update_project_status_v2"
+    alias: cryptoutilGoUpdateProjectStatusV2
+  - import_path: "cryptoutil/internal/cmd/cicd_lint/github_workflow_lint"
+    alias: cryptoutilCmdCicdGithubWorkflowLint
+  - import_path: "cryptoutil/internal/cmd/cicd_lint/format_go"
+    alias: cryptoutilCmdCicdFormatGo
+  - import_path: "cryptoutil/internal/cmd/cicd_lint/format_gotest"
+    alias: cryptoutilCmdCicdFormatGotest
+  - import_path: "cryptoutil/internal/cmd/cicd_lint/lint_compose"
+    alias: cryptoutilCmdCicdLintCompose
+  - import_path: "cryptoutil/internal/cmd/cicd_lint/lint_go"
+    alias: cryptoutilCmdCicdLintGo
+  - import_path: "cryptoutil/internal/cmd/cicd_lint/lint_go_mod"
+    alias: cryptoutilCmdCicdLintGoMod
+  - import_path: "cryptoutil/internal/cmd/cicd_lint/lint_gotest"
+    alias: cryptoutilCmdCicdLintGotest
+  - import_path: "cryptoutil/internal/cmd/cicd_lint/lint_text"
+    alias: cryptoutilCmdCicdLintText
+  - import_path: "cryptoutil/internal/cmd/cicd_lint/lint_workflow"
+    alias: cryptoutilCmdCicdLintWorkflow
+  - import_path: "cryptoutil/internal/cmd/sm"
+    alias: cryptoutilCmdSM
+  - import_path: "cryptoutil/internal/cmd/cryptoutil/authz"
+    alias: cryptoutilCmdCryptoutilAuthz
+  - import_path: "cryptoutil/internal/cmd/cryptoutil/ca"
+    alias: cryptoutilCmdCryptoutilCa
+  - import_path: "cryptoutil/internal/cmd/cryptoutil/identity"
+    alias: cryptoutilCmdCryptoutilIdentity
+  - import_path: "cryptoutil/internal/cmd/cryptoutil/idp"
+    alias: cryptoutilCmdCryptoutilIdp
+  - import_path: "cryptoutil/internal/cmd/cryptoutil/jose"
+    alias: cryptoutilCmdCryptoutilJose
+  - import_path: "cryptoutil/internal/cmd/cryptoutil/rp"
+    alias: cryptoutilCmdCryptoutilRp
+  - import_path: "cryptoutil/internal/cmd/cryptoutil/rs"
+    alias: cryptoutilCmdCryptoutilRs
+  - import_path: "cryptoutil/internal/cmd/cryptoutil/spa"
+    alias: cryptoutilCmdCryptoutilSpa
+  # Cryptoutil test
+  - import_path: "cryptoutil/internal/test/e2e"
+    alias: cryptoutilE2E
+  - import_path: "cryptoutil/internal/identity/test/testutils"
+    alias: cryptoutilIdentityTestTestutils
+  # Cryptoutil common
+  - import_path: "cryptoutil/internal/common/apperr"
+    alias: cryptoutilAppErr
+  - import_path: "cryptoutil/internal/common/config"
+    alias: cryptoutilConfig
+  - import_path: "cryptoutil/internal/common/container"
+    alias: cryptoutilContainer
+  - import_path: "cryptoutil/internal/common/magic"
+    alias: cryptoutilMagic
+  - import_path: "cryptoutil/internal/common/pool"
+    alias: cryptoutilPool
+  - import_path: "cryptoutil/internal/common/telemetry"
+    alias: cryptoutilTelemetry
+  - import_path: "cryptoutil/internal/common/testutil"
+    alias: cryptoutilTestutil
+  - import_path: "cryptoutil/internal/common/util"
+    alias: cryptoutilUtil
+  - import_path: "cryptoutil/internal/common/util/combinations"
+    alias: cryptoutilCombinations
+  - import_path: "cryptoutil/internal/common/util/datetime"
+    alias: cryptoutilDateTime
+  - import_path: "cryptoutil/internal/common/util/files"
+    alias: cryptoutilFiles
+  - import_path: "cryptoutil/internal/common/util/network"
+    alias: cryptoutilNetwork
+  - import_path: "cryptoutil/internal/common/util/sysinfo"
+    alias: cryptoutilSysinfo
+  # Cryptoutil shared
+  - import_path: "cryptoutil/internal/shared/apperr"
+    alias: cryptoutilSharedApperr
+  - import_path: "cryptoutil/internal/shared/testutil"
+    alias: cryptoutilSharedTestutil
+  - import_path: "cryptoutil/internal/shared/util"
+    alias: cryptoutilSharedUtil
+  - import_path: "cryptoutil/internal/shared/util/cache"
+    alias: cryptoutilSharedUtilCache
+  - import_path: "cryptoutil/internal/shared/util/files"
+    alias: cryptoutilSharedUtilFiles
+  - import_path: "cryptoutil/internal/shared/util/network"
+    alias: cryptoutilSharedUtilNetwork
+  - import_path: "cryptoutil/internal/shared/util/random"
+    alias: cryptoutilSharedUtilRandom
+  - import_path: "cryptoutil/internal/shared/container"
+    alias: cryptoutilSharedContainer
+  - import_path: "cryptoutil/internal/shared/crypto/asn1"
+    alias: cryptoutilSharedCryptoAsn1
+  - import_path: "cryptoutil/internal/shared/crypto/certificate"
+    alias: cryptoutilSharedCryptoCertificate
+  - import_path: "cryptoutil/internal/shared/crypto/digests"
+    alias: cryptoutilSharedCryptoDigests
+  - import_path: "cryptoutil/internal/shared/crypto/hash"
+    alias: cryptoutilSharedCryptoHash
+  - import_path: "cryptoutil/internal/shared/crypto/jose"
+    alias: cryptoutilSharedCryptoJose
+  - import_path: "cryptoutil/internal/shared/crypto/keygen"
+    alias: cryptoutilSharedCryptoKeygen
+  - import_path: "cryptoutil/internal/shared/crypto/password"
+    alias: cryptoutilSharedCryptoPassword
+  - import_path: "cryptoutil/internal/shared/crypto/pbkdf2"
+    alias: cryptoutilSharedCryptoPbkdf2
+  - import_path: "cryptoutil/internal/shared/crypto/tls"
+    alias: cryptoutilSharedCryptoTls
+  - import_path: "cryptoutil/internal/shared/magic"
+    alias: cryptoutilSharedMagic
+  - import_path: "cryptoutil/internal/shared/pool"
+    alias: cryptoutilSharedPool
+  - import_path: "cryptoutil/internal/shared/pwdgen"
+    alias: cryptoutilSharedPwdgen
+  - import_path: "cryptoutil/internal/shared/telemetry"
+    alias: cryptoutilSharedTelemetry
+  - import_path: "cryptoutil/internal/shared/util/combinations"
+    alias: cryptoutilSharedUtilCombinations
+  - import_path: "cryptoutil/internal/shared/util/datetime"
+    alias: cryptoutilSharedUtilDatetime
+  - import_path: "cryptoutil/internal/shared/util/sysinfo"
+    alias: cryptoutilSharedUtilSysinfo
+  # Cryptoutil infra
+  - import_path: "cryptoutil/internal/infra/tls"
+    alias: cryptoutilTLS
+  # Cryptoutil crypto (common)
+  - import_path: "cryptoutil/internal/common/crypto/asn1"
+    alias: cryptoutilAsn1
+  - import_path: "cryptoutil/internal/common/crypto/certificate"
+    alias: cryptoutilCertificate
+  - import_path: "cryptoutil/internal/common/crypto/digests"
+    alias: cryptoutilDigests
+  - import_path: "cryptoutil/internal/jose"
+    alias: cryptoutilJose
+  - import_path: "cryptoutil/internal/common/crypto/keygen"
+    alias: cryptoutilKeyGen
+  # Cryptoutil KMS
+  - import_path: "cryptoutil/internal/apps/sm/kms/server/application"
+    alias: cryptoutilServerApplication
+  - import_path: "cryptoutil/internal/apps/sm/kms/businesslogic"
+    alias: cryptoutilBusinessLogic
+  - import_path: "cryptoutil/internal/apps/sm/kms/handler"
+    alias: cryptoutilOpenapiHandler
+  - import_path: "cryptoutil/internal/shared/barrier"
+    alias: cryptoutilBarrierService
+  - import_path: "cryptoutil/internal/shared/barrier/contentkeysservice"
+    alias: cryptoutilContentKeysService
+  - import_path: "cryptoutil/internal/shared/barrier/intermediatekeysservice"
+    alias: cryptoutilIntermediateKeysService
+  - import_path: "cryptoutil/internal/shared/barrier/rootkeysservice"
+    alias: cryptoutilRootKeysService
+  - import_path: "cryptoutil/internal/shared/barrier/unsealkeysservice"
+    alias: cryptoutilUnsealKeysService
+  - import_path: "cryptoutil/internal/apps/sm/kms/server/repository/orm"
+    alias: cryptoutilOrmRepository
+  - import_path: "cryptoutil/internal/apps/sm/kms/server/repository/sqlrepository"
+    alias: cryptoutilSQLRepository
+  - import_path: "cryptoutil/internal/apps/sm/kms/client"
+    alias: cryptoutilKmsClient
+  - import_path: "cryptoutil/internal/apps/sm/kms/server/businesslogic"
+    alias: cryptoutilKmsServerBusinesslogic
+  - import_path: "cryptoutil/internal/apps/sm/kms/server/handler"
+    alias: cryptoutilKmsServerHandler
+  # Cryptoutil template
+  - import_path: "cryptoutil/internal/template/server"
+    alias: cryptoutilTemplateServer
+  # Cryptoutil sm-im
+  - import_path: "cryptoutil/internal/sm/crypto"
+    alias: cryptoutilSmCrypto
+  - import_path: "cryptoutil/internal/sm/domain"
+    alias: cryptoutilSmDomain
+  - import_path: "cryptoutil/internal/sm/e2e"
+    alias: cryptoutilSmE2E
+  - import_path: "cryptoutil/internal/sm/integration"
+    alias: cryptoutilSmIntegration
+  - import_path: "cryptoutil/internal/sm/repository"
+    alias: cryptoutilSmRepository
+  - import_path: "cryptoutil/internal/sm/server"
+    alias: cryptoutilSmServer
+  # Cryptoutil apps
+  - import_path: "cryptoutil/internal/apps/pki/ca/server/config"
+    alias: cryptoutilAppsCaServerConfig
+  - import_path: "cryptoutil/internal/apps/sm"
+    alias: cryptoutilAppsSm
+  - import_path: "cryptoutil/internal/apps/sm/im"
+    alias: cryptoutilAppsSmIm
+  - import_path: "cryptoutil/internal/apps/sm/im/domain"
+    alias: cryptoutilAppsSmImDomain
+  - import_path: "cryptoutil/internal/apps/sm/im/repository"
+    alias: cryptoutilAppsSmImRepository
+  - import_path: "cryptoutil/internal/apps/sm/im/server"
+    alias: cryptoutilAppsSmImServer
+  - import_path: "cryptoutil/internal/apps/sm/im/server/apis"
+    alias: cryptoutilAppsSmImServerApis
+  - import_path: "cryptoutil/internal/apps/sm/im/server/config"
+    alias: cryptoutilAppsSmImServerConfig
+  - import_path: "cryptoutil/internal/apps/identity/authz/server/config"
+    alias: cryptoutilAppsIdentityAuthzServerConfig
+  - import_path: "cryptoutil/internal/apps/identity/idp/server/config"
+    alias: cryptoutilAppsIdentityIdpServerConfig
+  - import_path: "cryptoutil/internal/apps/identity/rp/server"
+    alias: cryptoutilAppsIdentityRpServer
+  - import_path: "cryptoutil/internal/apps/identity/rp/server/config"
+    alias: cryptoutilAppsIdentityRpServerConfig
+  - import_path: "cryptoutil/internal/apps/identity/rs/server/config"
+    alias: cryptoutilAppsIdentityRsServerConfig
+  - import_path: "cryptoutil/internal/apps/jose/ja/repository"
+    alias: cryptoutilAppsJoseJaRepository
+  - import_path: "cryptoutil/internal/apps/jose/ja/server/apis"
+    alias: cryptoutilAppsJoseJaServerApis
+  - import_path: "cryptoutil/internal/apps/jose/ja/server/config"
+    alias: cryptoutilAppsJoseJaServerConfig
+  - import_path: "cryptoutil/internal/apps/framework/service/server"
+    alias: cryptoutilAppsFrameworkServiceServer
+  - import_path: "cryptoutil/internal/apps/framework/service/server/repository"
+    alias: cryptoutilAppsFrameworkServiceServerRepository
+  - import_path: "cryptoutil/internal/apps/pki/ca/server"
+    alias: cryptoutilAppsCaServer
+  - import_path: "cryptoutil/internal/apps/sm/im/client"
+    alias: cryptoutilAppsSmImClient
+  - import_path: "cryptoutil/internal/apps/sm/im/testing"
+    alias: cryptoutilAppsSmImTesting
+  - import_path: "cryptoutil/internal/apps/identity/authz/server"
+    alias: cryptoutilAppsIdentityAuthzServer
+  - import_path: "cryptoutil/internal/apps/identity/idp/server"
+    alias: cryptoutilAppsIdentityIdpServer
+  - import_path: "cryptoutil/internal/apps/identity/rs/server"
+    alias: cryptoutilAppsIdentityRsServer
+  - import_path: "cryptoutil/internal/apps/identity/spa/server"
+    alias: cryptoutilAppsIdentitySpaServer
+  - import_path: "cryptoutil/internal/apps/identity/spa/server/config"
+    alias: cryptoutilAppsIdentitySpaServerConfig
+  - import_path: "cryptoutil/internal/apps/jose/ja/domain"
+    alias: cryptoutilAppsJoseJaDomain
+  - import_path: "cryptoutil/internal/apps/framework/service/client"
+    alias: cryptoutilAppsFrameworkServiceClient
+  - import_path: "cryptoutil/internal/apps/framework/service/config"
+    alias: cryptoutilAppsFrameworkServiceConfig
+  - import_path: "cryptoutil/internal/apps/framework/service/config/tls_generator"
+    alias: cryptoutilAppsFrameworkServiceConfigTlsGenerator
+  - import_path: "cryptoutil/internal/apps/framework/tls"
+    alias: cryptoutilAppsFrameworkTls
+  - import_path: "cryptoutil/internal/apps/framework/product/cli"
+    alias: cryptoutilAppsFrameworkProductCli
+  - import_path: "cryptoutil/internal/apps/framework/suite/cli"
+    alias: cryptoutilAppsFrameworkSuiteCli
+  - import_path: "cryptoutil/internal/apps/tools/cicd_workflow"
+    alias: cryptoutilAppsToolsCicdWorkflow
+  - import_path: "cryptoutil/internal/apps/framework/service/server/apis"
+    alias: cryptoutilAppsFrameworkServiceServerApis
+  - import_path: "cryptoutil/internal/apps/framework/service/server/application"
+    alias: cryptoutilAppsFrameworkServiceServerApplication
+  - import_path: "cryptoutil/internal/apps/framework/service/server/barrier"
+    alias: cryptoutilAppsFrameworkServiceServerBarrier
+  - import_path: "cryptoutil/internal/apps/framework/service/server/builder"
+    alias: cryptoutilAppsFrameworkServiceServerBuilder
+  - import_path: "cryptoutil/internal/apps/framework/service/server/businesslogic"
+    alias: cryptoutilAppsFrameworkServiceServerBusinesslogic
+  - import_path: "cryptoutil/internal/apps/framework/service/server/domain"
+    alias: cryptoutilAppsFrameworkServiceServerDomain
+  - import_path: "cryptoutil/internal/apps/framework/service/server/listener"
+    alias: cryptoutilAppsFrameworkServiceServerListener
+  - import_path: "cryptoutil/internal/apps/framework/service/server/middleware"
+    alias: cryptoutilAppsFrameworkServiceServerMiddleware
+  - import_path: "cryptoutil/internal/apps/framework/service/server/realms"
+    alias: cryptoutilAppsFrameworkServiceServerRealms
+  - import_path: "cryptoutil/internal/apps/framework/service/server/service"
+    alias: cryptoutilAppsFrameworkServiceServerService
+  - import_path: "cryptoutil/internal/apps/framework/service/server/testutil"
+    alias: cryptoutilAppsFrameworkServiceServerTestutil
+  - import_path: "cryptoutil/internal/apps/framework/service/testing/e2e"
+    alias: cryptoutilAppsFrameworkServiceTestingE2e
+  - import_path: "cryptoutil/internal/apps/framework/service/testing/httpservertests"
+    alias: cryptoutilAppsFrameworkServiceTestingHttpservertests
+  - import_path: "cryptoutil/internal/apps/framework/service/testutil"
+    alias: cryptoutilAppsFrameworkServiceTestutil
+  - import_path: "cryptoutil/internal/apps/framework/testing/e2e"
+    alias: cryptoutilAppsFrameworkTestingE2e
+  # Cryptoutil jose
+  - import_path: "cryptoutil/internal/jose/domain"
+    alias: cryptoutilJoseDomain
+  - import_path: "cryptoutil/internal/jose/repository"
+    alias: cryptoutilJoseRepository
+  - import_path: "cryptoutil/internal/jose/server/middleware"
+    alias: cryptoutilJoseServerMiddleware
+  - import_path: "cryptoutil/internal/jose/service"
+    alias: cryptoutilJoseService
+  - import_path: "cryptoutil/internal/jose/config"
+    alias: cryptoutilJoseConfig
+  - import_path: "cryptoutil/internal/jose/server"
+    alias: cryptoutilJoseServer
+  # Cryptoutil identity
+  - import_path: "cryptoutil/internal/identity/apperr"
+    alias: cryptoutilIdentityAppErr
+  - import_path: "cryptoutil/internal/identity/authz"
+    alias: cryptoutilIdentityAuthz
+  - import_path: "cryptoutil/internal/identity/authz/clientauth"
+    alias: cryptoutilIdentityClientAuth
+  - import_path: "cryptoutil/internal/identity/bootstrap"
+    alias: cryptoutilIdentityBootstrap
+  - import_path: "cryptoutil/internal/identity/config"
+    alias: cryptoutilIdentityConfig
+  - import_path: "cryptoutil/internal/identity/domain"
+    alias: cryptoutilIdentityDomain
+  - import_path: "cryptoutil/internal/identity/healthcheck"
+    alias: cryptoutilIdentityHealthcheck
+  - import_path: "cryptoutil/internal/identity/idp"
+    alias: cryptoutilIdentityIdp
+  - import_path: "cryptoutil/internal/identity/idp/auth"
+    alias: cryptoutilIdentityAuth
+  - import_path: "cryptoutil/internal/identity/idp/userauth"
+    alias: cryptoutilIdentityIdpUserauth
+  - import_path: "cryptoutil/internal/identity/idp/userauth/mocks"
+    alias: cryptoutilIdentityIdpUserauthMocks
+  - import_path: "cryptoutil/internal/identity/issuer"
+    alias: cryptoutilIdentityIssuer
+  - import_path: "cryptoutil/internal/identity/jobs"
+    alias: cryptoutilIdentityJobs
+  - import_path: "cryptoutil/internal/identity/magic"
+    alias: cryptoutilIdentityMagic
+  - import_path: "cryptoutil/internal/identity/process"
+    alias: cryptoutilIdentityProcess
+  - import_path: "cryptoutil/internal/identity/repository"
+    alias: cryptoutilIdentityRepository
+  - import_path: "cryptoutil/internal/identity/repository/orm"
+    alias: cryptoutilIdentityORM
+  - import_path: "cryptoutil/internal/identity/rotation"
+    alias: cryptoutilIdentityRotation
+  - import_path: "cryptoutil/internal/identity/server"
+    alias: cryptoutilIdentityServer
+  - import_path: "cryptoutil/internal/identity/cmd/main"
+    alias: cryptoutilIdentityCmd
+  - import_path: "cryptoutil/internal/identity/authz/pkce"
+    alias: cryptoutilIdentityAuthzPkce
+  - import_path: "cryptoutil/internal/identity/authz/server"
+    alias: cryptoutilIdentityAuthzServer
+  - import_path: "cryptoutil/internal/identity/email"
+    alias: cryptoutilIdentityEmail
+  - import_path: "cryptoutil/internal/identity/idp/server"
+    alias: cryptoutilIdentityIdpServer
+  - import_path: "cryptoutil/internal/identity/mfa"
+    alias: cryptoutilIdentityMfa
+  - import_path: "cryptoutil/internal/identity/notifications"
+    alias: cryptoutilIdentityNotifications
+  - import_path: "cryptoutil/internal/identity/ratelimit"
+    alias: cryptoutilIdentityRatelimit
+  - import_path: "cryptoutil/internal/identity/rs"
+    alias: cryptoutilIdentityRs
+  - import_path: "cryptoutil/internal/identity/rs/server"
+    alias: cryptoutilIdentityRsServer

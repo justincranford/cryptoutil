@@ -189,6 +189,9 @@ const (
 	// CICDTestFileSuffixRulesFile is the relative path to the test file suffix rules YAML.
 	CICDTestFileSuffixRulesFile = "internal/apps/tools/cicd_lint/lint_fitness/test_file_suffix_structure/test-file-suffix-rules.yaml"
 
+	// CICDImportAliasMapFile is the relative path to the import alias map YAML.
+	CICDImportAliasMapFile = "internal/apps/tools/cicd_lint/lint_fitness/import_alias_formula/alias_map.yaml"
+
 	// RequirementsTotalPatternGroups is the requirements coverage regex pattern groups count.
 	RequirementsTotalPatternGroups = 4
 	// RequirementsPriorityPatternGroups is the requirements priority pattern groups count.

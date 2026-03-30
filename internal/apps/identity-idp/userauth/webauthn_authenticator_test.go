@@ -21,7 +21,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/shared/magic"
 )
 
 // mockCredentialStore implements CredentialStore for testing.
@@ -87,7 +86,7 @@ func TestNewWebAuthnAuthenticator(t *testing.T) {
 				RPID:          "example.com",
 				RPDisplayName: "Example Corp",
 				RPOrigins:     []string{"https://example.com"},
-				Timeout:       cryptoutilIdentityMagic.DefaultOTPLifetime,
+				Timeout:       cryptoutilSharedMagic.DefaultOTPLifetime,
 			},
 			credentialStore: newMockCredentialStore(),
 			challengeStore:  newMockChallengeStore(),
@@ -156,7 +155,7 @@ func TestNewWebAuthnAuthenticator(t *testing.T) {
 				require.Equal(t, "passkey_webauthn", auth.Method())
 
 				if tc.config.Timeout == 0 {
-					require.Equal(t, cryptoutilIdentityMagic.DefaultOTPLifetime, auth.config.Timeout)
+					require.Equal(t, cryptoutilSharedMagic.DefaultOTPLifetime, auth.config.Timeout)
 				}
 			}
 		})
@@ -236,7 +235,7 @@ func TestWebAuthnAuthenticator_BeginRegistration(t *testing.T) {
 				RPID:          "example.com",
 				RPDisplayName: "Example Corp",
 				RPOrigins:     []string{"https://example.com"},
-				Timeout:       cryptoutilIdentityMagic.DefaultOTPLifetime,
+				Timeout:       cryptoutilSharedMagic.DefaultOTPLifetime,
 			}
 
 			auth, err := NewWebAuthnAuthenticator(config, credStore, challengeStore)
@@ -317,7 +316,7 @@ func TestWebAuthnAuthenticator_InitiateAuth(t *testing.T) {
 				RPID:          "example.com",
 				RPDisplayName: "Example Corp",
 				RPOrigins:     []string{"https://example.com"},
-				Timeout:       cryptoutilIdentityMagic.DefaultOTPLifetime,
+				Timeout:       cryptoutilSharedMagic.DefaultOTPLifetime,
 			}
 
 			auth, err := NewWebAuthnAuthenticator(config, credStore, challengeStore)
@@ -393,7 +392,7 @@ func TestWebAuthnAuthenticator_Method(t *testing.T) {
 		RPID:          "example.com",
 		RPDisplayName: "Example Corp",
 		RPOrigins:     []string{"https://example.com"},
-		Timeout:       cryptoutilIdentityMagic.DefaultOTPLifetime,
+		Timeout:       cryptoutilSharedMagic.DefaultOTPLifetime,
 	}
 
 	auth, err := NewWebAuthnAuthenticator(config, credStore, challengeStore)

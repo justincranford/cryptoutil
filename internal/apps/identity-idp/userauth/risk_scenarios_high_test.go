@@ -15,7 +15,6 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilIdentityMagic "cryptoutil/internal/shared/magic"
 )
 
 func TestRiskScenario_HighRisk(t *testing.T) {
@@ -290,11 +289,11 @@ func calculateScore(factors []RiskFactor, engine *BehavioralRiskEngine) float64 
 
 func determineLevel(score float64) RiskLevel {
 	switch {
-	case score >= cryptoutilIdentityMagic.RiskScoreCriticalThreshold:
+	case score >= cryptoutilSharedMagic.RiskScoreCritical:
 		return RiskLevelCritical
-	case score >= cryptoutilIdentityMagic.RiskScoreHighThreshold:
+	case score >= cryptoutilSharedMagic.RiskScoreHigh:
 		return RiskLevelHigh
-	case score >= cryptoutilIdentityMagic.RiskScoreMediumThreshold:
+	case score >= cryptoutilSharedMagic.RiskScoreMedium:
 		return RiskLevelMedium
 	default:
 		return RiskLevelLow

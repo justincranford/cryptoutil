@@ -33,11 +33,11 @@ import (
 	lintFitnessDomainLayerIsolation "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/domain_layer_isolation"
 	lintFitnessEntityRegistryCompleteness "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/entity_registry_completeness"
 	lintFitnessEntityRegistrySchema "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/entity_registry_schema"
-	lintFitnessFitnessRegistryCompleteness "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/fitness_registry_completeness"
-	lintFitnessTestFileSuffixStructure "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/test_file_suffix_structure"
 	lintFitnessFileSizeLimits "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/file_size_limits"
+	lintFitnessFitnessRegistryCompleteness "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/fitness_registry_completeness"
 	lintFitnessGenConfigInitialisms "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/gen_config_initialisms"
 	lintFitnessHealthEndpointPresence "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/health_endpoint_presence"
+	lintFitnessImportAliasFormula "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/import_alias_formula"
 	lintFitnessInfraToolNaming "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/infra_tool_naming"
 	lintFitnessInsecureSkipVerify "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/insecure_skip_verify"
 	lintFitnessLegacyDirDetection "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/legacy_dir_detection"
@@ -67,6 +67,7 @@ import (
 	lintFitnessStandaloneConfigOTLPNames "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/standalone_config_otlp_names"
 	lintFitnessStandaloneConfigPresence "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/standalone_config_presence"
 	lintFitnessTemplateConsistency "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/template_consistency"
+	lintFitnessTestFileSuffixStructure "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/test_file_suffix_structure"
 	lintFitnessTestPatterns "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/test_patterns"
 	lintFitnessTLSMinimumVersion "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/tls_minimum_version"
 	lintFitnessUnsealSecretContent "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/unseal_secret_content"
@@ -124,6 +125,7 @@ var registeredLinters = []struct {
 	// New fitness checks (added in Phase 2 of framework-v7).
 	{"fitness-registry-completeness", lintFitnessFitnessRegistryCompleteness.Check},
 	{"test-file-suffix-structure", lintFitnessTestFileSuffixStructure.Check},
+	{"import-alias-formula", lintFitnessImportAliasFormula.Check},
 	// New fitness checks (added in Phase 3 of framework-v4).
 	{"banned-product-names", lintFitnessBannedProductNames.Check},
 	{"legacy-dir-detection", lintFitnessLegacyDirDetection.Check},

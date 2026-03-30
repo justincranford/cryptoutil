@@ -143,6 +143,13 @@ sub_linters:
       _integration_test.go for integration tests.
     category: testing
 
+  - name: import-alias-formula
+    directory: import_alias_formula
+    description: >-
+      Validates that all Go source files use canonical import aliases as defined in alias_map.yaml.
+      Enforces the project's import alias naming formula for internal and external packages.
+    category: style
+
   - name: file-size-limits
     directory: file_size_limits
     description: Detects source files exceeding the maximum allowed line count.

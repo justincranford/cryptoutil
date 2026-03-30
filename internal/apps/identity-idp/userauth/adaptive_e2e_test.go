@@ -17,7 +17,6 @@ import (
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityAuth "cryptoutil/internal/apps/identity-idp/auth"
-	cryptoutilIdentityMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestAdaptiveAuth_E2E_LowRiskNoStepUp tests low-risk scenario requiring no step-up.
@@ -191,8 +190,8 @@ func TestAdaptiveAuth_E2E_MediumRiskOTPStepUp(t *testing.T) {
 	require.NotNil(t, riskScore)
 
 	// Verify medium risk.
-	require.GreaterOrEqual(t, riskScore.Score, cryptoutilIdentityMagic.RiskScoreMediumThreshold, "Score should be at least medium-risk threshold")
-	require.LessOrEqual(t, riskScore.Score, cryptoutilIdentityMagic.RiskScoreHighThreshold, "Score should be below high-risk threshold")
+	require.GreaterOrEqual(t, riskScore.Score, cryptoutilSharedMagic.RiskScoreMedium, "Score should be at least medium-risk threshold")
+	require.LessOrEqual(t, riskScore.Score, cryptoutilSharedMagic.RiskScoreHigh, "Score should be below high-risk threshold")
 	require.Equal(t, RiskLevelMedium, riskScore.Level)
 
 	// Create OTP service for step-up authentication.
@@ -300,8 +299,8 @@ func TestAdaptiveAuth_E2E_HighRiskStrongMFAOrBlock(t *testing.T) {
 	require.NotNil(t, riskScore)
 
 	// Verify high risk.
-	require.GreaterOrEqual(t, riskScore.Score, cryptoutilIdentityMagic.RiskScoreHighThreshold, "Score should be at least high-risk threshold")
-	require.LessOrEqual(t, riskScore.Score, cryptoutilIdentityMagic.RiskScoreCriticalThreshold, "Score should be below critical-risk threshold")
+	require.GreaterOrEqual(t, riskScore.Score, cryptoutilSharedMagic.RiskScoreHigh, "Score should be at least high-risk threshold")
+	require.LessOrEqual(t, riskScore.Score, cryptoutilSharedMagic.RiskScoreCritical, "Score should be below critical-risk threshold")
 	require.Equal(t, RiskLevelHigh, riskScore.Level)
 
 	// Create step-up authenticator.
@@ -407,7 +406,7 @@ func TestAdaptiveAuth_E2E_CriticalRiskBlocked(t *testing.T) {
 	require.NotNil(t, riskScore)
 
 	// Verify critical risk.
-	require.GreaterOrEqual(t, riskScore.Score, cryptoutilIdentityMagic.RiskScoreCriticalThreshold, "Score should be at least critical-risk threshold")
+	require.GreaterOrEqual(t, riskScore.Score, cryptoutilSharedMagic.RiskScoreCritical, "Score should be at least critical-risk threshold")
 	require.Equal(t, RiskLevelCritical, riskScore.Level)
 
 	// For critical risk, authentication should be blocked entirely.
