@@ -67,7 +67,20 @@ for _, ps := range lintFitnessRegistry.AllProductServices() {
 writeComposeYML(t, tmpDir, ps.PSID, correctDBCompose(ps.PSID))
 }
 }
+func TestCheck_DelegatesToCheckInDir(t *testing.T) {
+	// Not parallel: changes process working directory.
+	root := findProjectRoot(t)
 
+	orig, err := os.Getwd()
+	require.NoError(t, err)
+
+	require.NoError(t, os.Chdir(root))
+
+	defer func() { _ = os.Chdir(orig) }()
+
+	err = lintFitnessComposeDBNaming.Check(newTestLogger())
+	require.NoError(t, err, "Check() should pass on project root (delegates to CheckInDir)")
+}
 func TestCheck_RealWorkspace(t *testing.T) {
 t.Parallel()
 

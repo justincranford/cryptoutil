@@ -22,6 +22,7 @@ import (
 	lintFitnessCmdMainPattern "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/cmd_main_pattern"
 	lintFitnessComposeDBNaming "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/compose_db_naming"
 	lintFitnessComposeHeaderFormat "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/compose_header_format"
+	lintFitnessComposePortFormula "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/compose_port_formula"
 	lintFitnessComposeServiceNames "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/compose_service_names"
 	lintFitnessConfigsDeploymentsConsistency "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/configs_deployments_consistency"
 	lintFitnessConfigsEmptyDir "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/configs_empty_dir"
@@ -135,8 +136,7 @@ var registeredLinters = []struct {
 	{"deployment-dir-completeness", lintFitnessDeploymentDirCompleteness.Check},
 	// New fitness checks (added in Phase 5 of framework-v4).
 	{"compose-header-format", lintFitnessComposeHeaderFormat.Check},
-	{"compose-service-names", lintFitnessComposeServiceNames.Check},
-	{"compose-db-naming", lintFitnessComposeDBNaming.Check},
+	{"compose-service-names", lintFitnessComposeServiceNames.Check},		{"compose-port-formula", lintFitnessComposePortFormula.Check},	{"compose-db-naming", lintFitnessComposeDBNaming.Check},
 	// New fitness checks (added in Phase 6 of framework-v4).
 	{"magic-e2e-container-names", lintFitnessMagicE2EContainerNames.Check},
 	{"magic-e2e-compose-path", lintFitnessMagicE2EComposePath.Check},

@@ -80,6 +80,11 @@ sub_linters:
     description: Validates Docker Compose service name conventions against the entity registry.
     category: config
 
+  - name: compose-port-formula
+    directory: compose_port_formula
+    description: Validates that Docker Compose port bindings follow the canonical formula (base_port + tier_offset + variant_offset).
+    category: config
+
   - name: configs-deployments-consistency
     directory: configs_deployments_consistency
     description: Ensures configs/ and deployments/ directories are consistent across product services.

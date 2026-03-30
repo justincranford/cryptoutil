@@ -1,10 +1,11 @@
 // Copyright (c) 2025 Justin Cranford
 
-// Package otlp_service_name_pattern validates that standalone service config files
-// use the canonical otlp-service naming convention:
-//   - {ps-id}-sqlite.yml  -> {ps-id}-sqlite-1
-//   - {ps-id}-pg-1.yml    -> {ps-id}-postgres-1
-//   - {ps-id}-pg-2.yml    -> {ps-id}-postgres-2
+// Package otlp_service_name_pattern validates that service config files use the
+// canonical otlp-service naming convention:
+//   - Standalone: {ps-id}-sqlite.yml  -> {ps-id}-sqlite-1
+//   - Deployment:  deployments/{ps-id}/config/{ps-id}-app-sqlite-1.yml  -> {ps-id}-sqlite-1
+//   - Deployment:  deployments/{ps-id}/config/{ps-id}-app-postgresql-1.yml -> {ps-id}-postgres-1
+//   - Deployment:  deployments/{ps-id}/config/{ps-id}-app-postgresql-2.yml -> {ps-id}-postgres-2
 //
 // See ARCHITECTURE.md Section 9.11 for naming convention details.
 package otlp_service_name_pattern
@@ -18,7 +19,14 @@ import (
 	"gopkg.in/yaml.v3"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
+	lintFitnessRegistry "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/registry"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+)
+
+// Injectable functions for testing defensive error paths.
+var (
+	otlpReadDirFn  = os.ReadDir
+	otlpReadFileFn = os.ReadFile
 )
 
 // configRule maps a standalone config file suffix to its expected otlp-service suffix.
@@ -32,9 +40,18 @@ type configRule struct {
 // standaloneConfigRules defines the expected otlp-service suffix for each config file suffix.
 // Full expected value: {ps-id} + expectedOTLPSuffix.
 var standaloneConfigRules = []configRule{
-	{filenameSuffix: "-sqlite.yml", expectedOTLPSuffix: "-sqlite-1"},
-	{filenameSuffix: "-pg-1.yml", expectedOTLPSuffix: "-postgres-1"},
-	{filenameSuffix: "-pg-2.yml", expectedOTLPSuffix: "-postgres-2"},
+	{filenameSuffix: "-sqlite.yml", expectedOTLPSuffix: "-" + lintFitnessRegistry.ComposeVariantSQLite1},
+	{filenameSuffix: "-pg-1.yml", expectedOTLPSuffix: "-" + lintFitnessRegistry.ComposeVariantPostgres1},
+	{filenameSuffix: "-pg-2.yml", expectedOTLPSuffix: "-" + lintFitnessRegistry.ComposeVariantPostgres2},
+}
+
+// deploymentConfigRules defines the expected otlp-service suffix for deployment config overlay files.
+// File: deployments/{psid}/config/{psid}{filenameSuffix} → otlp-service: {psid}-{expectedOTLPSuffix}.
+var deploymentConfigRules = []configRule{
+	{filenameSuffix: lintFitnessRegistry.DeploymentConfigSuffixSQLite1, expectedOTLPSuffix: "-" + lintFitnessRegistry.ComposeVariantSQLite1},
+	{filenameSuffix: lintFitnessRegistry.DeploymentConfigSuffixSQLite2, expectedOTLPSuffix: "-" + lintFitnessRegistry.ComposeVariantSQLite2},
+	{filenameSuffix: lintFitnessRegistry.DeploymentConfigSuffixPostgresql1, expectedOTLPSuffix: "-" + lintFitnessRegistry.ComposeVariantPostgres1},
+	{filenameSuffix: lintFitnessRegistry.DeploymentConfigSuffixPostgresql2, expectedOTLPSuffix: "-" + lintFitnessRegistry.ComposeVariantPostgres2},
 }
 
 // excludedProductDirs lists top-level directories under configs/ that are NOT product directories.
@@ -64,7 +81,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	var violations []string
 
 	// Walk configs/{PRODUCT}/{SERVICE}/ looking for config-*.yml files at depth 2.
-	productEntries, err := os.ReadDir(configsDir)
+	productEntries, err := otlpReadDirFn(configsDir)
 	if err != nil {
 		return fmt.Errorf("failed to read configs dir: %w", err)
 	}
@@ -80,7 +97,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 		productDir := filepath.Join(configsDir, productEntry.Name())
 
-		serviceEntries, readErr := os.ReadDir(productDir)
+		serviceEntries, readErr := otlpReadDirFn(productDir)
 		if readErr != nil {
 			return fmt.Errorf("failed to read product dir %s: %w", productDir, readErr)
 		}
@@ -102,9 +119,52 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 		return fmt.Errorf("OTLP service name violations:\n%s", strings.Join(violations, "\n"))
 	}
 
+	// Also validate deployment config overlay files using the entity registry.
+	deploymentViolations := checkDeploymentConfigs(rootDir)
+	violations = append(violations, deploymentViolations...)
+
+	if len(violations) > 0 {
+		return fmt.Errorf("OTLP service name violations:\n%s", strings.Join(violations, "\n"))
+	}
+
 	logger.Log("otlp-service-name-pattern: all standalone config files use canonical names")
 
 	return nil
+}
+
+// checkDeploymentConfigs validates otlp-service values in deployment config overlay files
+// using the entity registry to iterate product-services by PS-ID.
+func checkDeploymentConfigs(rootDir string) []string {
+	var violations []string
+
+	for _, ps := range lintFitnessRegistry.AllProductServices() {
+		v := checkDeploymentConfigDir(rootDir, ps.PSID)
+		violations = append(violations, v...)
+	}
+
+	return violations
+}
+
+// checkDeploymentConfigDir checks all deployment config overlay files for a single PS-ID.
+// It looks in deployments/{psid}/config/ for files matching the deployment config rules.
+func checkDeploymentConfigDir(rootDir, psID string) []string {
+	var violations []string
+
+	configDir := filepath.Join(rootDir, "deployments", psID, "config")
+
+	for _, rule := range deploymentConfigRules {
+		filename := psID + rule.filenameSuffix
+		configPath := filepath.Join(configDir, filename)
+
+		if _, err := os.Stat(configPath); os.IsNotExist(err) {
+			continue // File does not exist — not a violation.
+		}
+
+		v := checkOTLPServiceValue(configPath, psID, rule.expectedOTLPSuffix, rootDir)
+		violations = append(violations, v...)
+	}
+
+	return violations
 }
 
 // checkServiceDir checks all config-*.yml files in a service directory for correct otlp-service names.
@@ -128,7 +188,7 @@ func checkServiceDir(serviceDir, psID, rootDir string) []string {
 
 // checkOTLPServiceValue parses a config YAML and validates the otlp-service value.
 func checkOTLPServiceValue(configPath, psID, expectedSuffix, rootDir string) []string {
-	data, err := os.ReadFile(configPath) //nolint:gosec // configPath from controlled directory walk
+	data, err := otlpReadFileFn(configPath) //nolint:gosec // configPath from controlled directory walk
 	if err != nil {
 		return []string{fmt.Sprintf("%s: cannot read file: %s", configPath, err)}
 	}

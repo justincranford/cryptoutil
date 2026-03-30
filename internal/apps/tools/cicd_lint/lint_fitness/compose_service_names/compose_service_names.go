@@ -70,11 +70,11 @@ return []string{fmt.Sprintf("%s: cannot parse deployments/%s/compose.yml: %v", p
 }
 
 requiredServices := []string{
-psID + "-app-sqlite-1",
-psID + "-app-postgres-1",
-psID + "-app-postgres-2",
-psID + "-db-postgres-1",
-}
+		lintFitnessRegistry.ComposeServiceName(psID, lintFitnessRegistry.ComposeVariantSQLite1),
+		lintFitnessRegistry.ComposeServiceName(psID, lintFitnessRegistry.ComposeVariantPostgres1),
+		lintFitnessRegistry.ComposeServiceName(psID, lintFitnessRegistry.ComposeVariantPostgres2),
+		lintFitnessRegistry.DBServiceName(psID),
+	}
 
 for _, svc := range requiredServices {
 if _, ok := cf.Services[svc]; !ok {

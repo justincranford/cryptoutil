@@ -74,14 +74,14 @@ if err := yaml.Unmarshal(data, &cf); err != nil {
 return []string{fmt.Sprintf("%s: cannot parse deployments/%s/compose.yml: %v", psID, psID, err)}
 }
 
-dbServiceName := psID + "-db-postgres-1"
+	dbServiceName := lintFitnessRegistry.DBServiceName(psID)
 svc, ok := cf.Services[dbServiceName]
 
 if !ok {
 return []string{fmt.Sprintf("%s: deployments/%s/compose.yml missing service %q", psID, psID, dbServiceName)}
 }
 
-expectedName := psID + "-postgres"
+expectedName := lintFitnessRegistry.PostgresServiceName(psID)
 
 if svc.ContainerName != expectedName {
 violations = append(violations, fmt.Sprintf(
