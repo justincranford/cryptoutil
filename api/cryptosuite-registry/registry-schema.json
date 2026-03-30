@@ -1,0 +1,182 @@
+{
+  "$id": "https://cryptoutil.dev/schemas/entity-registry/v1",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "additionalProperties": false,
+  "definitions": {
+    "APIPath": {
+      "description": "An OpenAPI path starting with /.",
+      "minLength": 1,
+      "pattern": "^/",
+      "type": "string"
+    },
+    "DirPath": {
+      "description": "A relative directory path ending with a forward slash.",
+      "minLength": 2,
+      "pattern": "^[a-z][a-z0-9/-]*/$",
+      "type": "string"
+    },
+    "GoFilename": {
+      "description": "A Go source filename.",
+      "minLength": 5,
+      "pattern": "^magic_[a-z][a-z0-9_]*\\.go$",
+      "type": "string"
+    },
+    "KebabCaseID": {
+      "description": "A kebab-case identifier (lowercase letters, digits, hyphens).",
+      "minLength": 1,
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "type": "string"
+    },
+    "NonEmptyString": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "Product": {
+      "additionalProperties": false,
+      "description": "A cryptoutil product group.",
+      "properties": {
+        "cmd_dir": {
+          "$ref": "#/definitions/DirPath"
+        },
+        "display_name": {
+          "$ref": "#/definitions/NonEmptyString"
+        },
+        "id": {
+          "$ref": "#/definitions/KebabCaseID"
+        },
+        "internal_apps_dir": {
+          "$ref": "#/definitions/DirPath"
+        }
+      },
+      "required": [
+        "id",
+        "display_name",
+        "internal_apps_dir",
+        "cmd_dir"
+      ],
+      "type": "object"
+    },
+    "ProductService": {
+      "additionalProperties": false,
+      "description": "An individual product-service (PS-ID).",
+      "properties": {
+        "api_resources": {
+          "description": "Canonical OpenAPI path list for this PS-ID's service API.",
+          "items": {
+            "$ref": "#/definitions/APIPath"
+          },
+          "type": "array"
+        },
+        "base_port": {
+          "description": "Public service port at the SERVICE tier. PRODUCT=base+10000, SUITE=base+20000.",
+          "maximum": 8999,
+          "minimum": 8000,
+          "type": "integer"
+        },
+        "display_name": {
+          "$ref": "#/definitions/NonEmptyString"
+        },
+        "internal_apps_dir": {
+          "$ref": "#/definitions/DirPath"
+        },
+        "magic_file": {
+          "$ref": "#/definitions/GoFilename"
+        },
+        "migration_range_end": {
+          "description": "Inclusive end of this PS-ID's assigned migration version range.",
+          "minimum": 2002,
+          "type": "integer"
+        },
+        "migration_range_start": {
+          "description": "Inclusive start of this PS-ID's assigned migration version range.",
+          "minimum": 2001,
+          "type": "integer"
+        },
+        "pg_host_port": {
+          "description": "Host-side PostgreSQL port for E2E tests.",
+          "maximum": 54329,
+          "minimum": 54320,
+          "type": "integer"
+        },
+        "product": {
+          "$ref": "#/definitions/KebabCaseID"
+        },
+        "ps_id": {
+          "$ref": "#/definitions/KebabCaseID"
+        },
+        "service": {
+          "$ref": "#/definitions/KebabCaseID"
+        }
+      },
+      "required": [
+        "ps_id",
+        "product",
+        "service",
+        "display_name",
+        "internal_apps_dir",
+        "magic_file",
+        "base_port",
+        "pg_host_port",
+        "migration_range_start",
+        "migration_range_end",
+        "api_resources"
+      ],
+      "type": "object"
+    },
+    "Suite": {
+      "additionalProperties": false,
+      "description": "A top-level suite deployment.",
+      "properties": {
+        "cmd_dir": {
+          "$ref": "#/definitions/DirPath"
+        },
+        "display_name": {
+          "$ref": "#/definitions/NonEmptyString"
+        },
+        "id": {
+          "$ref": "#/definitions/KebabCaseID"
+        }
+      },
+      "required": [
+        "id",
+        "display_name",
+        "cmd_dir"
+      ],
+      "type": "object"
+    }
+  },
+  "description": "JSON Schema for the cryptoutil entity registry YAML. Validates suite, product, and product-service entries.",
+  "properties": {
+    "product_services": {
+      "description": "Individual product-service entries.",
+      "items": {
+        "$ref": "#/definitions/ProductService"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "products": {
+      "description": "Product group entries.",
+      "items": {
+        "$ref": "#/definitions/Product"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "suites": {
+      "description": "Top-level suite deployment entries.",
+      "items": {
+        "$ref": "#/definitions/Suite"
+      },
+      "minItems": 1,
+      "type": "array"
+    }
+  },
+  "required": [
+    "suites",
+    "products",
+    "product_services"
+  ],
+  "title": "Cryptoutil Entity Registry",
+  "type": "object"
+}

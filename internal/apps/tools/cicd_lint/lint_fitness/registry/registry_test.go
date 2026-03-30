@@ -165,7 +165,137 @@ func TestAllReturnsIndependentCopies(t *testing.T) {
 
 	require.Equal(t, ps1, ps2, "two calls must return equal slices")
 
+	const mutatedPSID = "mutated"
+
 	// Mutate first copy and verify second is unaffected.
-	ps1[0].PSID = "mutated"
+	ps1[0].PSID = mutatedPSID
 	require.NotEqual(t, ps1[0].PSID, ps2[0].PSID, "AllProductServices must return independent copies")
+}
+
+func TestAllPorts_Count(t *testing.T) {
+	t.Parallel()
+
+	ports := lintFitnessRegistry.AllPorts()
+	require.Len(t, ports, cryptoutilSharedMagic.SuiteServiceCount, "expected exactly 10 port entries")
+}
+
+func TestAllPorts_FieldsNonZero(t *testing.T) {
+	t.Parallel()
+
+	for _, p := range lintFitnessRegistry.AllPorts() {
+		t.Run(p.PSID, func(t *testing.T) {
+			t.Parallel()
+
+			assert.NotEmpty(t, p.PSID, "port PSID must not be empty")
+			assert.Greater(t, p.BasePort, 0, "base_port must be positive")
+			assert.Greater(t, p.PGHostPort, 0, "pg_host_port must be positive")
+		})
+	}
+}
+
+func TestAllPorts_ContainsExpectedPSIDs(t *testing.T) {
+	t.Parallel()
+
+	ports := lintFitnessRegistry.AllPorts()
+	psIDs := make(map[string]bool, len(ports))
+
+	for _, p := range ports {
+		psIDs[p.PSID] = true
+	}
+
+	assert.True(t, psIDs[cryptoutilSharedMagic.OTLPServiceSMKMS], "AllPorts must contain sm-kms")
+	assert.True(t, psIDs[cryptoutilSharedMagic.OTLPServiceSMIM], "AllPorts must contain sm-im")
+}
+
+func TestAllPorts_NoDuplicatePSIDsOrPorts(t *testing.T) {
+	t.Parallel()
+
+	ports := lintFitnessRegistry.AllPorts()
+	seenPSID := make(map[string]bool, len(ports))
+	seenBase := make(map[int]bool, len(ports))
+	seenPG := make(map[int]bool, len(ports))
+
+	for _, p := range ports {
+		assert.False(t, seenPSID[p.PSID], "duplicate PSID in AllPorts: %s", p.PSID)
+		assert.False(t, seenBase[p.BasePort], "duplicate base_port in AllPorts: %d", p.BasePort)
+		assert.False(t, seenPG[p.PGHostPort], "duplicate pg_host_port in AllPorts: %d", p.PGHostPort)
+		seenPSID[p.PSID] = true
+		seenBase[p.BasePort] = true
+		seenPG[p.PGHostPort] = true
+	}
+}
+
+func TestAllMigrationRanges_Count(t *testing.T) {
+	t.Parallel()
+
+	ranges := lintFitnessRegistry.AllMigrationRanges()
+	require.Len(t, ranges, cryptoutilSharedMagic.SuiteServiceCount, "expected exactly 10 migration range entries")
+}
+
+func TestAllMigrationRanges_FieldsValid(t *testing.T) {
+	t.Parallel()
+
+	for _, mr := range lintFitnessRegistry.AllMigrationRanges() {
+		t.Run(mr.PSID, func(t *testing.T) {
+			t.Parallel()
+
+			assert.NotEmpty(t, mr.PSID, "migration range PSID must not be empty")
+			assert.GreaterOrEqual(t, mr.Start, 2001, "migration_range_start must be >= 2001")
+			assert.Greater(t, mr.End, mr.Start, "migration_range_end must be > start")
+		})
+	}
+}
+
+func TestAllMigrationRanges_NoOverlap(t *testing.T) {
+	t.Parallel()
+
+	ranges := lintFitnessRegistry.AllMigrationRanges()
+
+	for i := range ranges {
+		for j := i + 1; j < len(ranges); j++ {
+			a := ranges[i]
+			b := ranges[j]
+			overlaps := a.Start <= b.End && b.Start <= a.End
+			assert.False(t, overlaps,
+				"migration ranges for %s [%d,%d] and %s [%d,%d] must not overlap",
+				a.PSID, a.Start, a.End, b.PSID, b.Start, b.End)
+		}
+	}
+}
+
+func TestAllAPIResources_Count(t *testing.T) {
+	t.Parallel()
+
+	resources := lintFitnessRegistry.AllAPIResources()
+	require.Len(t, resources, cryptoutilSharedMagic.SuiteServiceCount, "expected exactly 10 API resource entries")
+}
+
+func TestAllAPIResources_FieldsNonEmpty(t *testing.T) {
+	t.Parallel()
+
+	for _, ar := range lintFitnessRegistry.AllAPIResources() {
+		t.Run(ar.PSID, func(t *testing.T) {
+			t.Parallel()
+
+			assert.NotEmpty(t, ar.PSID, "API resource PSID must not be empty")
+			// Resources may be empty for services with no OpenAPI spec (e.g. identity-spa).
+			// We only assert the PSID is set.
+		})
+	}
+}
+
+func TestAllAPIResources_ResourcesAreIndependentCopies(t *testing.T) {
+	t.Parallel()
+
+	r1 := lintFitnessRegistry.AllAPIResources()
+	r2 := lintFitnessRegistry.AllAPIResources()
+
+	require.Equal(t, r1, r2, "two AllAPIResources calls must return equal results")
+
+	// Mutate first slice and verify second is unaffected.
+	if len(r1) > 0 && len(r1[0].Resources) > 0 {
+		original := r1[0].Resources[0]
+		r1[0].Resources[0] = "mutated"
+		require.Equal(t, original, r2[0].Resources[0], "AllAPIResources must return independent copies")
+	}
 }

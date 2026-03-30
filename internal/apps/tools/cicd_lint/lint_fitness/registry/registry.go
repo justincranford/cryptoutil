@@ -3,11 +3,10 @@
 // Package registry defines the canonical entity registry for all cryptoutil products,
 // product-services, and suites. This is the single source of truth for structural
 // conventions. Fitness linters use this registry to detect drift.
+//
+// Data is loaded from api/cryptosuite-registry/registry.yaml at package initialization.
+// The YAML file is the machine-readable SSOT; this package exposes Go-typed accessors.
 package registry
-
-import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-)
 
 // Product represents a cryptoutil product (e.g. "sm", "jose").
 type Product struct {
@@ -48,133 +47,39 @@ type Suite struct {
 	CmdDir string
 }
 
+// allRegistryFile holds the parsed registry YAML loaded once at init time.
+var allRegistryFile *RegistryFile
+
 // allProducts is the canonical registry of all 5 cryptoutil products.
 // Canonical order: sm, jose, pki, identity, skeleton.
-var allProducts = []Product{
-	{
-		ID:              cryptoutilSharedMagic.SMProductName,
-		DisplayName:     "Secrets Manager",
-		InternalAppsDir: cryptoutilSharedMagic.SMProductName + "/",
-		CmdDir:          cryptoutilSharedMagic.SMProductName + "/",
-	},
-	{
-		ID:              cryptoutilSharedMagic.JoseProductName,
-		DisplayName:     "JOSE",
-		InternalAppsDir: cryptoutilSharedMagic.JoseProductName + "/",
-		CmdDir:          cryptoutilSharedMagic.JoseProductName + "/",
-	},
-	{
-		ID:              cryptoutilSharedMagic.PKIProductName,
-		DisplayName:     "PKI",
-		InternalAppsDir: cryptoutilSharedMagic.PKIProductName + "/",
-		CmdDir:          cryptoutilSharedMagic.PKIProductName + "/",
-	},
-	{
-		ID:              cryptoutilSharedMagic.IdentityProductName,
-		DisplayName:     "Identity",
-		InternalAppsDir: cryptoutilSharedMagic.IdentityProductName + "/",
-		CmdDir:          cryptoutilSharedMagic.IdentityProductName + "/",
-	},
-	{
-		ID:              cryptoutilSharedMagic.SkeletonProductName,
-		DisplayName:     cryptoutilSharedMagic.SkeletonProductNameTitleCase,
-		InternalAppsDir: cryptoutilSharedMagic.SkeletonProductName + "/",
-		CmdDir:          cryptoutilSharedMagic.SkeletonProductName + "/",
-	},
-}
+// Populated by init() from api/cryptosuite-registry/registry.yaml.
+var allProducts []Product
 
 // allProductServices is the canonical registry of all 10 cryptoutil product-services.
-// Canonical order: sm-kms, sm-im, jose-ja, pki-ca, identity-authz, identity-idp, identity-rs, identity-rp, identity-spa, skeleton-template.
-var allProductServices = []ProductService{
-	{
-		PSID:            cryptoutilSharedMagic.OTLPServiceSMKMS,
-		Product:         cryptoutilSharedMagic.SMProductName,
-		Service:         cryptoutilSharedMagic.KMSServiceName,
-		DisplayName:     "Secrets Manager Key Management",
-		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceSMKMS + "/",
-		MagicFile:       "magic_sm.go",
-	},
-	{
-		PSID:            cryptoutilSharedMagic.OTLPServiceSMIM,
-		Product:         cryptoutilSharedMagic.SMProductName,
-		Service:         cryptoutilSharedMagic.IMServiceName,
-		DisplayName:     "Secrets Manager Instant Messenger",
-		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceSMIM + "/",
-		MagicFile:       "magic_sm_im.go",
-	},
-	{
-		PSID:            cryptoutilSharedMagic.OTLPServiceJoseJA,
-		Product:         cryptoutilSharedMagic.JoseProductName,
-		Service:         cryptoutilSharedMagic.JoseJAServiceName,
-		DisplayName:     "JOSE JWK Authority",
-		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceJoseJA + "/",
-		MagicFile:       "magic_jose.go",
-	},
-	{
-		PSID:            cryptoutilSharedMagic.OTLPServicePKICA,
-		Product:         cryptoutilSharedMagic.PKIProductName,
-		Service:         cryptoutilSharedMagic.PKICAServiceName,
-		DisplayName:     "PKI Certificate Authority",
-		InternalAppsDir: cryptoutilSharedMagic.OTLPServicePKICA + "/",
-		MagicFile:       "magic_pki.go",
-	},
-	{
-		PSID:            cryptoutilSharedMagic.OTLPServiceIdentityAuthz,
-		Product:         cryptoutilSharedMagic.IdentityProductName,
-		Service:         cryptoutilSharedMagic.AuthzServiceName,
-		DisplayName:     "Identity Authorization Server",
-		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceIdentityAuthz + "/",
-		MagicFile:       "magic_identity.go",
-	},
-	{
-		PSID:            cryptoutilSharedMagic.OTLPServiceIdentityIDP,
-		Product:         cryptoutilSharedMagic.IdentityProductName,
-		Service:         cryptoutilSharedMagic.IDPServiceName,
-		DisplayName:     "Identity Provider",
-		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceIdentityIDP + "/",
-		MagicFile:       "magic_identity.go",
-	},
-	{
-		PSID:            cryptoutilSharedMagic.OTLPServiceIdentityRS,
-		Product:         cryptoutilSharedMagic.IdentityProductName,
-		Service:         cryptoutilSharedMagic.RSServiceName,
-		DisplayName:     "Identity Resource Server",
-		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceIdentityRS + "/",
-		MagicFile:       "magic_identity.go",
-	},
-	{
-		PSID:            cryptoutilSharedMagic.OTLPServiceIdentityRP,
-		Product:         cryptoutilSharedMagic.IdentityProductName,
-		Service:         cryptoutilSharedMagic.RPServiceName,
-		DisplayName:     "Identity Relying Party",
-		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceIdentityRP + "/",
-		MagicFile:       "magic_identity.go",
-	},
-	{
-		PSID:            cryptoutilSharedMagic.OTLPServiceIdentitySPA,
-		Product:         cryptoutilSharedMagic.IdentityProductName,
-		Service:         cryptoutilSharedMagic.SPAServiceName,
-		DisplayName:     "Identity Single Page App",
-		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceIdentitySPA + "/",
-		MagicFile:       "magic_identity.go",
-	},
-	{
-		PSID:            cryptoutilSharedMagic.OTLPServiceSkeletonTemplate,
-		Product:         cryptoutilSharedMagic.SkeletonProductName,
-		Service:         cryptoutilSharedMagic.SkeletonTemplateServiceName,
-		DisplayName:     "Skeleton Template",
-		InternalAppsDir: cryptoutilSharedMagic.OTLPServiceSkeletonTemplate + "/",
-		MagicFile:       "magic_skeleton.go",
-	},
-}
+// Canonical order: sm-kms, sm-im, jose-ja, pki-ca, identity-authz, identity-idp,
+// identity-rs, identity-rp, identity-spa, skeleton-template.
+// Populated by init() from api/cryptosuite-registry/registry.yaml.
+var allProductServices []ProductService
 
 // allSuites is the canonical registry of the cryptoutil suite.
-var allSuites = []Suite{
-	{
-		ID:          cryptoutilSharedMagic.DefaultOTLPServiceDefault,
-		DisplayName: cryptoutilSharedMagic.DefaultOTLPServiceDefault,
-		CmdDir:      cryptoutilSharedMagic.DefaultOTLPServiceDefault + "/",
-	},
+// Populated by init() from api/cryptosuite-registry/registry.yaml.
+var allSuites []Suite
+
+func init() {
+	path, err := findRegistryYAMLPath()
+	if err != nil {
+		panic("registry: cannot locate registry YAML: " + err.Error())
+	}
+
+	r, err := LoadRegistry(path)
+	if err != nil {
+		panic("registry: failed to load " + path + ": " + err.Error())
+	}
+
+	allRegistryFile = r
+	allProducts = r.ToProducts()
+	allProductServices = r.ToProductServices()
+	allSuites = r.ToSuites()
 }
 
 // AllProducts returns the canonical list of all 5 products.
@@ -197,6 +102,53 @@ func AllProductServices() []ProductService {
 func AllSuites() []Suite {
 	result := make([]Suite, len(allSuites))
 	copy(result, allSuites)
+
+	return result
+}
+
+// AllPorts returns port information for every product-service.
+// Each entry provides the base public port and the host-side PostgreSQL port.
+func AllPorts() []PortInfo {
+	result := make([]PortInfo, len(allRegistryFile.ProductServices))
+
+	for i, ps := range allRegistryFile.ProductServices {
+		result[i] = PortInfo{
+			PSID:       ps.PSID,
+			BasePort:   ps.BasePort,
+			PGHostPort: ps.PGHostPort,
+		}
+	}
+
+	return result
+}
+
+// AllMigrationRanges returns the assigned migration version range per product-service.
+func AllMigrationRanges() []MigrationRangeInfo {
+	result := make([]MigrationRangeInfo, len(allRegistryFile.ProductServices))
+
+	for i, ps := range allRegistryFile.ProductServices {
+		result[i] = MigrationRangeInfo{
+			PSID:  ps.PSID,
+			Start: ps.MigrationRangeStart,
+			End:   ps.MigrationRangeEnd,
+		}
+	}
+
+	return result
+}
+
+// AllAPIResources returns the declared OpenAPI path list per product-service.
+func AllAPIResources() []APIResourceInfo {
+	result := make([]APIResourceInfo, len(allRegistryFile.ProductServices))
+
+	for i, ps := range allRegistryFile.ProductServices {
+		resources := make([]string, len(ps.APIResources))
+		copy(resources, ps.APIResources)
+		result[i] = APIResourceInfo{
+			PSID:      ps.PSID,
+			Resources: resources,
+		}
+	}
 
 	return result
 }

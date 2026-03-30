@@ -1,0 +1,240 @@
+# Cryptoutil Entity Registry
+# This is the machine-readable single source of truth for all suites, products,
+# and product-services in the cryptoutil suite. Fitness linters read this file
+# at runtime to validate architectural invariants.
+#
+# Port assignment formula (ARCHITECTURE.md Section 3.4):
+#   Service tier:  base_port
+#   Product tier:  base_port + 10000
+#   Suite tier:    base_port + 20000
+#
+# Migration range assignment:
+#   Framework (template): 1001-1999
+#   Domain per PS-ID:     see migration_range_start / migration_range_end
+
+suites:
+  - id: cryptoutil
+    display_name: Cryptoutil
+    cmd_dir: cryptoutil/
+
+products:
+  - id: sm
+    display_name: "Secrets Manager"
+    internal_apps_dir: sm/
+    cmd_dir: sm/
+
+  - id: jose
+    display_name: JOSE
+    internal_apps_dir: jose/
+    cmd_dir: jose/
+
+  - id: pki
+    display_name: PKI
+    internal_apps_dir: pki/
+    cmd_dir: pki/
+
+  - id: identity
+    display_name: Identity
+    internal_apps_dir: identity/
+    cmd_dir: identity/
+
+  - id: skeleton
+    display_name: Skeleton
+    internal_apps_dir: skeleton/
+    cmd_dir: skeleton/
+
+product_services:
+  - ps_id: sm-kms
+    product: sm
+    service: kms
+    display_name: "Secrets Manager Key Management"
+    internal_apps_dir: sm-kms/
+    magic_file: magic_sm.go
+    base_port: 8000
+    pg_host_port: 54320
+    migration_range_start: 2001
+    migration_range_end: 2999
+    api_resources:
+      - /elastickey
+      - /elastickey/{elasticKeyID}
+      - /elastickeys
+      - /elastickey/{elasticKeyID}/materialkey
+      - /elastickey/{elasticKeyID}/materialkey/{materialKeyID}
+      - /elastickey/{elasticKeyID}/materialkey/{materialKeyID}/revoke
+      - /elastickey/{elasticKeyID}/materialkeys
+      - /materialkeys
+      - /elastickey/{elasticKeyID}/generate
+      - /elastickey/{elasticKeyID}/encrypt
+      - /elastickey/{elasticKeyID}/decrypt
+      - /elastickey/{elasticKeyID}/sign
+      - /elastickey/{elasticKeyID}/verify
+      - /elastickey/{elasticKeyID}/import
+
+  - ps_id: sm-im
+    product: sm
+    service: im
+    display_name: "Secrets Manager Instant Messenger"
+    internal_apps_dir: sm-im/
+    magic_file: magic_sm_im.go
+    base_port: 8100
+    pg_host_port: 54321
+    migration_range_start: 3001
+    migration_range_end: 3999
+    api_resources:
+      - /messages/tx
+      - /messages/rx
+      - /messages/{id}
+
+  - ps_id: jose-ja
+    product: jose
+    service: ja
+    display_name: "JOSE JWK Authority"
+    internal_apps_dir: jose-ja/
+    magic_file: magic_jose.go
+    base_port: 8200
+    pg_host_port: 54322
+    migration_range_start: 4001
+    migration_range_end: 4999
+    api_resources:
+      - /elastic-jwks
+      - /elastic-jwks/{kid}
+      - /elastic-jwks/{kid}/materials
+      - /elastic-jwks/{kid}/materials/active
+      - /elastic-jwks/{kid}/rotate
+      - /jwk/generate
+      - /jwk/{kid}
+      - /jwk
+      - /jwks
+      - /jws/sign
+      - /jws/verify
+      - /jwe/encrypt
+      - /jwe/decrypt
+      - /jwt/create
+      - /jwt/verify
+
+  - ps_id: pki-ca
+    product: pki
+    service: ca
+    display_name: "PKI Certificate Authority"
+    internal_apps_dir: pki-ca/
+    magic_file: magic_pki.go
+    base_port: 8300
+    pg_host_port: 54323
+    migration_range_start: 5001
+    migration_range_end: 5999
+    api_resources:
+      - /ca
+      - /ca/{caId}
+      - /ca/{caId}/crl
+      - /enroll
+      - /enroll/{requestId}
+      - /certificates
+      - /certificates/{serialNumber}
+      - /certificates/{serialNumber}/chain
+      - /certificates/{serialNumber}/revoke
+      - /profiles
+      - /profiles/{profileId}
+      - /ocsp
+      - /est/cacerts
+      - /est/simpleenroll
+      - /est/simplereenroll
+      - /est/serverkeygen
+      - /est/csrattrs
+      - /tsa/timestamp
+
+  - ps_id: identity-authz
+    product: identity
+    service: authz
+    display_name: "Identity Authorization Server"
+    internal_apps_dir: identity-authz/
+    magic_file: magic_identity.go
+    base_port: 8400
+    pg_host_port: 54324
+    migration_range_start: 6001
+    migration_range_end: 6999
+    api_resources:
+      - /oauth2/v1/authorize
+      - /oauth2/v1/token
+      - /oauth2/v1/introspect
+      - /oauth2/v1/revoke
+      - /health
+      - /oidc/v1/mfa/totp/enroll
+      - /oidc/v1/mfa/totp/verify
+      - /oidc/v1/mfa/totp/backup-codes/generate
+      - /oidc/v1/mfa/totp/backup-codes/verify
+      - /oidc/v1/mfa/webauthn/register/begin
+      - /oidc/v1/mfa/webauthn/register/finish
+      - /oidc/v1/mfa/webauthn/authenticate/begin
+      - /oidc/v1/mfa/webauthn/authenticate/finish
+      - /oidc/v1/mfa/webauthn/credentials/{user_id}
+      - /oidc/v1/mfa/webauthn/credentials
+
+  - ps_id: identity-idp
+    product: identity
+    service: idp
+    display_name: "Identity Provider"
+    internal_apps_dir: identity-idp/
+    magic_file: magic_identity.go
+    base_port: 8500
+    pg_host_port: 54325
+    migration_range_start: 7001
+    migration_range_end: 7999
+    api_resources:
+      - /oidc/v1/login
+      - /oidc/v1/consent
+      - /oidc/v1/logout
+      - /oidc/v1/userinfo
+      - /health
+
+  - ps_id: identity-rs
+    product: identity
+    service: rs
+    display_name: "Identity Resource Server"
+    internal_apps_dir: identity-rs/
+    magic_file: magic_identity.go
+    base_port: 8600
+    pg_host_port: 54326
+    migration_range_start: 8001
+    migration_range_end: 8999
+    api_resources:
+      - /api/v1/protected
+      - /api/v1/public
+      - /health
+
+  - ps_id: identity-rp
+    product: identity
+    service: rp
+    display_name: "Identity Relying Party"
+    internal_apps_dir: identity-rp/
+    magic_file: magic_identity.go
+    base_port: 8700
+    pg_host_port: 54327
+    migration_range_start: 9001
+    migration_range_end: 9999
+    api_resources: []
+
+  - ps_id: identity-spa
+    product: identity
+    service: spa
+    display_name: "Identity Single Page App"
+    internal_apps_dir: identity-spa/
+    magic_file: magic_identity.go
+    base_port: 8800
+    pg_host_port: 54328
+    migration_range_start: 10001
+    migration_range_end: 10999
+    api_resources: []
+
+  - ps_id: skeleton-template
+    product: skeleton
+    service: template
+    display_name: "Skeleton Template"
+    internal_apps_dir: skeleton-template/
+    magic_file: magic_skeleton.go
+    base_port: 8900
+    pg_host_port: 54329
+    migration_range_start: 11001
+    migration_range_end: 11999
+    api_resources:
+      - /items
+      - /items/{itemID}

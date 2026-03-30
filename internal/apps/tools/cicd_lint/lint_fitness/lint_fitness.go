@@ -32,6 +32,7 @@ import (
 	lintFitnessDockerfileLabels "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/dockerfile_labels"
 	lintFitnessDomainLayerIsolation "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/domain_layer_isolation"
 	lintFitnessEntityRegistryCompleteness "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/entity_registry_completeness"
+	lintFitnessEntityRegistrySchema "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/entity_registry_schema"
 	lintFitnessFileSizeLimits "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/file_size_limits"
 	lintFitnessGenConfigInitialisms "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/gen_config_initialisms"
 	lintFitnessHealthEndpointPresence "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/health_endpoint_presence"
@@ -116,6 +117,8 @@ var registeredLinters = []struct {
 	{"otlp-service-name-pattern", lintFitnessOTLPServiceNamePattern.Check},
 	// New fitness checks (added in Phase 2 of framework-v4).
 	{"entity-registry-completeness", lintFitnessEntityRegistryCompleteness.Check},
+	// New fitness checks (added in Phase 1 of framework-v7).
+	{"entity-registry-schema", lintFitnessEntityRegistrySchema.Check},
 	// New fitness checks (added in Phase 3 of framework-v4).
 	{"banned-product-names", lintFitnessBannedProductNames.Check},
 	{"legacy-dir-detection", lintFitnessLegacyDirDetection.Check},
