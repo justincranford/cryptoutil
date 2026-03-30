@@ -148,23 +148,23 @@ the entity registry (#01).
 
 #### Task 2.2: #15 Fitness Sub-Linter Registry
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 4h
-- **Actual**: —
+- **Actual**: Completed in session 5
 - **Dependencies**: None (standalone)
 - **Description**: Create `lint-fitness-registry.yaml` listing all expected fitness sub-linters.
   Add a registry-completeness check that verifies every listed sub-linter has a directory.
 - **Acceptance Criteria**:
-  - [ ] YAML manifest with sub-linter name, directory, description, category
-  - [ ] Completeness check in `lint_fitness.go` or new sub-linter
-  - [ ] Detects orphaned directories (exist but not in YAML) and missing directories
+  - [x] YAML manifest with sub-linter name, directory, description, category
+  - [x] Completeness check in `lint_fitness.go` or new sub-linter
+  - [x] Detects orphaned directories (exist but not in YAML) and missing directories
         (in YAML but no directory)
-  - [ ] Tests: ≥98% coverage
+  - [x] Tests: 100% coverage, 20 tests
 - **Files**:
   - `internal/apps/tools/cicd_lint/lint_fitness/lint-fitness-registry.yaml`
-  - `internal/apps/tools/cicd_lint/lint_fitness/registry_completeness.go`
-  - `internal/apps/tools/cicd_lint/lint_fitness/registry_completeness_test.go`
+  - `internal/apps/tools/cicd_lint/lint_fitness/fitness_registry_completeness/fitness_registry_completeness.go`
+  - `internal/apps/tools/cicd_lint/lint_fitness/fitness_registry_completeness/fitness_registry_completeness_test.go`
 
 #### Task 2.3: #18 Test File Suffix Rules
 

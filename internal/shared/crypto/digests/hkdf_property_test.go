@@ -1,5 +1,7 @@
 // Copyright (c) 2025 Justin Cranford
 
+//go:build !fuzz
+
 package digests
 
 import (

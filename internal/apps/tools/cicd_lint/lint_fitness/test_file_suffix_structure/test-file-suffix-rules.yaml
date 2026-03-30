@@ -1,0 +1,57 @@
+# test-file-suffix-rules.yaml
+# Defines structural rules for Go test files based on filename suffix.
+#
+# Fields per rule:
+#   suffix:                     Filename suffix that this rule applies to.
+#   required_content_patterns:  Regexes — at least one must match a line in the file.
+#   forbidden_content_patterns: Regexes — none may match any line in the file.
+#   required_build_tags:        If non-empty, the file must declare at least one of
+#                               these build tags (//go:build <tag>).
+#
+# Reverse rules (content-driven):
+#   content_pattern:  Regex that, if found anywhere in a test file, triggers the rule.
+#   required_suffix:  The file must end with this suffix if content_pattern is found.
+
+suffix_rules:
+  - suffix: _bench_test.go
+    description: Benchmark test files must contain at least one Benchmark function.
+    required_content_patterns:
+      - '^func Benchmark'
+    forbidden_content_patterns:
+      - '^func Fuzz'
+
+  - suffix: _fuzz_test.go
+    description: Fuzz test files must contain at least one Fuzz function.
+    required_content_patterns:
+      - '^func Fuzz'
+    forbidden_content_patterns:
+      - '^func Benchmark'
+
+  - suffix: _property_test.go
+    description: Property test files must declare the !fuzz build tag.
+    required_build_tags:
+      - '!fuzz'
+    required_content_patterns:
+      - '^func Test'
+    forbidden_content_patterns:
+      - '^func Fuzz'
+      - '^func Benchmark'
+
+  - suffix: _integration_test.go
+    description: >-
+      Integration test files must not contain Fuzz or Benchmark functions.
+      Build tags are optional (some integration tests use TestMain pattern without tags,
+      others declare //go:build integration or //go:build !integration).
+    required_content_patterns: []
+    forbidden_content_patterns:
+      - '^func Fuzz'
+      - '^func Benchmark'
+
+content_rules:
+  - content_pattern: '^func Fuzz'
+    required_suffix: _fuzz_test.go
+    description: Files containing Fuzz functions must use the _fuzz_test.go suffix.
+
+  - content_pattern: '^func Benchmark'
+    required_suffix: _bench_test.go
+    description: Files containing Benchmark functions must use the _bench_test.go suffix.

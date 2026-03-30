@@ -135,6 +135,14 @@ sub_linters:
     description: Validates that lint-fitness-registry.yaml is consistent with the fitness sub-linter directories on disk.
     category: registry
 
+  - name: test-file-suffix-structure
+    directory: test_file_suffix_structure
+    description: >-
+      Validates that Go test files follow suffix naming rules: _bench_test.go for benchmarks,
+      _fuzz_test.go for fuzz tests, _property_test.go for property tests,
+      _integration_test.go for integration tests.
+    category: testing
+
   - name: file-size-limits
     directory: file_size_limits
     description: Detects source files exceeding the maximum allowed line count.

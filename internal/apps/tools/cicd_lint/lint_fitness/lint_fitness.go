@@ -34,6 +34,7 @@ import (
 	lintFitnessEntityRegistryCompleteness "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/entity_registry_completeness"
 	lintFitnessEntityRegistrySchema "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/entity_registry_schema"
 	lintFitnessFitnessRegistryCompleteness "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/fitness_registry_completeness"
+	lintFitnessTestFileSuffixStructure "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/test_file_suffix_structure"
 	lintFitnessFileSizeLimits "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/file_size_limits"
 	lintFitnessGenConfigInitialisms "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/gen_config_initialisms"
 	lintFitnessHealthEndpointPresence "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/health_endpoint_presence"
@@ -122,6 +123,7 @@ var registeredLinters = []struct {
 	{"entity-registry-schema", lintFitnessEntityRegistrySchema.Check},
 	// New fitness checks (added in Phase 2 of framework-v7).
 	{"fitness-registry-completeness", lintFitnessFitnessRegistryCompleteness.Check},
+	{"test-file-suffix-structure", lintFitnessTestFileSuffixStructure.Check},
 	// New fitness checks (added in Phase 3 of framework-v4).
 	{"banned-product-names", lintFitnessBannedProductNames.Check},
 	{"legacy-dir-detection", lintFitnessLegacyDirDetection.Check},
