@@ -1,11 +1,26 @@
 # Lessons — Parameterization Opportunities
 
 **Created**: 2026-03-29
-**Last Updated**: 2026-03-29
+**Last Updated**: 2026-03-30
 
 ## Phase 1: Foundation — Entity Registry YAML
 
-*(To be filled during Phase 1 execution)*
+**Completed**: 2026-03-30 (sessions 1-3)
+
+### What Worked
+
+- **Struct-based YAML loader with gopkg.in/yaml.v3**: Clean, idiomatic loader with validation at load time prevents runtime issues.
+- **init() panic for missing registry**: Using `init()` to load the registry means any malformed YAML fails fast at program start, not silently at first use.
+- **AllProducts/AllProductServices/AllSuites preserved unchanged**: Zero callers disrupted by replacing hardcoded structs with YAML loading.
+
+### What Didn't Work
+
+- **97.6% coverage ceiling**: The `init()` panic path and `os.Getwd()` error path in `findRegistryYAMLPath` are structurally unreachable in unit tests. Documented as ceiling.
+
+### Patterns
+
+- **Registry YAML location**: `api/cryptosuite-registry/registry.yaml` with JSON Schema at `api/cryptosuite-registry/registry-schema.json`.
+- **Fitness linter validates YAML schema**: `entity-registry-schema` linter runs the JSON Schema validation at CI/CD time.
 
 ## Phase 2: Standalone Linters — No Registry Dependency
 
@@ -39,7 +54,34 @@
 
 ## Phase 3: Derivation Functions — Registry Consumers
 
-*(To be filled during Phase 3 execution)*
+**Completed**: 2026-03-30 (session 9, commit d76097707)
+
+### What Worked
+
+- **Derivation functions in a separate file**: Placing all derivation functions in `registry/derivations.go` (not `registry.go`) keeps the registry loader clean and makes derivations independently testable.
+- **Fixture-based test pattern for derivations**: Table-driven tests iterating all 10 PS-IDs provide fast confirmation that formulas apply uniformly.
+- **Injectable functions for test seams**: Using `var otlpReadDirFn = os.ReadDir` / `var otlpReadFileFn = os.ReadFile` (and equivalents) and restoring in `defer` allows testing error paths without OS setup.
+- **wsl_v5 blank-line-before-defer rule**: When a seam test does `original := varFn` then `defer func() { varFn = original }()`, a blank line is REQUIRED between the assignment and the defer. Pattern: `original := x`, blank line, `defer func() { x = original }()`.
+- **TestCheck_DelegatesToCheckInDir with os.Chdir**: When `Check()` uses `"."` as root and tests run from package dirs, use `os.Chdir(projectRoot)` + defer restore (non-parallel) to test the real entry point.
+
+### What Didn't Work
+
+- **Wrong ValidComposeServiceNames() variants**: Initial implementation used `sqlite`, `pg-1`, `pg-2` instead of the canonical `sqlite-1`, `postgres-1`, `postgres-2`. Always verify variant names against actual compose service names in deployments/.
+- **Assuming compose_port_formula TestCheck_DelegatesToCheckInDir passes silently**: That package's linter skips missing files — so `Check(".")` returns nil even from package dir. But compose_db_naming and compose_service_names FAIL on missing files. Each linter's error behavior differs.
+- **Magic literal `:8080` in test string**: Used literal `":8080"` as container port suffix. Must use `cryptoutilSharedMagic.TestPort`. The `lint-go literal-use [blocking]` rule catches this.
+
+### Root Causes
+
+- **Variant name mismatch**: Existing compose files used `sqlite-1`/`postgres-1`/`postgres-2` but the registry constants had been written as `sqlite`/`pg-1`/`pg-2`. Root cause: created constants from memory rather than checking actual compose files.
+- **wsl_v5 violations in seam tests**: The `wsl_v5` linter requires blank lines around `defer` in certain cases. Sequential seam tests that save and restore package-level vars are a reliable trigger.
+- **4 deployment config YAML files with wrong OTLP names**: `jose-ja` and `skeleton-template` postgresql config files had `otlp-service: "jose-e2e"` — a stale copy-paste from when the configs were scaffolded. The new `checkDeploymentConfigs()` function caught this correctly.
+
+### Patterns
+
+- **Deployment config YAML naming**: Config overlay files use `postgresql` in filename (e.g. `jose-ja-app-postgresql-1.yml`) but the OTLP service name value uses `postgres` not `postgresql` (e.g. `jose-ja-postgres-1`). These are intentionally different conventions.
+- **Three-tier compose structure**: SERVICE tier = `deployments/{psid}/compose.yml`, PRODUCT tier = `deployments/{product}/compose.yml`, SUITE tier = `deployments/cryptoutil/compose.yml`. Port offsets: +0/+10000/+20000.
+- **Compose port formula variant offsets**: `sqlite-1`=+0, `postgres-1`=+1, `postgres-2`=+2 (base_port + tier_offset + variant_offset).
+- **Sequential seam test NON-PARALLEL requirement**: Tests modifying package-level `var` function pointers MUST NOT use `t.Parallel()`. Document this with comment `// Sequential seam test — must not use t.Parallel().`
 
 ## Phase 4: Secret & Config Schema Validation
 
