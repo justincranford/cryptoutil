@@ -47,10 +47,10 @@ func TestFindViolationsInDir_ValidDeployments(t *testing.T) {
 			name: "valid product deployment",
 			setupFiles: map[string]string{
 				"deployments/sm/secrets/hash-pepper-v3.secret":            "sm-hash-pepper-v3-" + base64url43A(),
-				"deployments/sm/secrets/browser-username.secret.never":    neverMarkerProduct,
-				"deployments/sm/secrets/browser-password.secret.never":    neverMarkerProduct,
-				"deployments/sm/secrets/service-username.secret.never":    neverMarkerProduct,
-				"deployments/sm/secrets/service-password.secret.never":    neverMarkerProduct,
+				"deployments/sm/secrets/browser-username.secret.never":    NeverMarkerProduct,
+				"deployments/sm/secrets/browser-password.secret.never":    NeverMarkerProduct,
+				"deployments/sm/secrets/service-username.secret.never":    NeverMarkerProduct,
+				"deployments/sm/secrets/service-password.secret.never":    NeverMarkerProduct,
 				"deployments/sm/secrets/postgres-database.secret":         "sm_database",
 				"deployments/sm/secrets/postgres-username.secret":         "sm_database_user",
 				"deployments/sm/secrets/postgres-password.secret":         "sm_database_pass-" + base64url43B(),
@@ -61,10 +61,10 @@ func TestFindViolationsInDir_ValidDeployments(t *testing.T) {
 			name: "valid suite deployment",
 			setupFiles: map[string]string{
 				"deployments/cryptoutil/secrets/hash-pepper-v3.secret":            "cryptoutil-hash-pepper-v3-" + base64url43A(),
-				"deployments/cryptoutil/secrets/browser-username.secret.never":    neverMarkerSuite,
-				"deployments/cryptoutil/secrets/browser-password.secret.never":    neverMarkerSuite,
-				"deployments/cryptoutil/secrets/service-username.secret.never":    neverMarkerSuite,
-				"deployments/cryptoutil/secrets/service-password.secret.never":    neverMarkerSuite,
+				"deployments/cryptoutil/secrets/browser-username.secret.never":    NeverMarkerSuite,
+				"deployments/cryptoutil/secrets/browser-password.secret.never":    NeverMarkerSuite,
+				"deployments/cryptoutil/secrets/service-username.secret.never":    NeverMarkerSuite,
+				"deployments/cryptoutil/secrets/service-password.secret.never":    NeverMarkerSuite,
 				"deployments/cryptoutil/secrets/postgres-database.secret":         "cryptoutil_database",
 				"deployments/cryptoutil/secrets/postgres-username.secret":         "cryptoutil_database_user",
 				"deployments/cryptoutil/secrets/postgres-password.secret":         "cryptoutil_database_pass-" + base64url43C(),
@@ -206,7 +206,7 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 				"deployments/jose-ja/secrets/postgres-url.secret": "postgres://jose_ja_database_user:jose_ja_database_pass-" + base64url43A() + "@wrong-postgres:5432/jose_ja_database?sslmode=disable",
 			},
 			wantViolations: 1,
-			wantSubstring:  "does not match expected URL pattern",
+			wantSubstring:  "does not match expected pattern",
 		},
 		{
 			name: "empty postgres url",
@@ -235,7 +235,7 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 		{
 			name: "product tier marker has suite text",
 			setupFiles: map[string]string{
-				"deployments/sm/secrets/browser-password.secret.never": neverMarkerSuite,
+				"deployments/sm/secrets/browser-password.secret.never": NeverMarkerSuite,
 			},
 			wantViolations: 1,
 			wantSubstring:  "expected",
@@ -243,7 +243,7 @@ func TestFindViolationsInDir_InvalidContent(t *testing.T) {
 		{
 			name: "suite tier marker has product text",
 			setupFiles: map[string]string{
-				"deployments/cryptoutil/secrets/browser-password.secret.never": neverMarkerProduct,
+				"deployments/cryptoutil/secrets/browser-password.secret.never": NeverMarkerProduct,
 			},
 			wantViolations: 1,
 			wantSubstring:  "expected",
@@ -334,6 +334,75 @@ func TestCheckInDir_NoViolation(t *testing.T) {
 	err := CheckInDir(logger, rootDir)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestCheck_DelegatesToWorkspaceRoot(t *testing.T) {
+	// Non-parallel: modifies working directory.
+	orig, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("cannot get cwd: %v", err)
+	}
+
+	projectRoot := filepath.Join(orig, "..", "..", "..", "..", "..", "..")
+
+	if err := os.Chdir(projectRoot); err != nil {
+		t.Fatalf("cannot chdir to project root: %v", err)
+	}
+
+	defer func() { _ = os.Chdir(orig) }()
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+
+	if err := Check(logger); err != nil {
+		t.Fatalf("unexpected violation in real workspace: %v", err)
+	}
+}
+
+func TestFindViolationsInDir_InvalidYAML(t *testing.T) {
+	// Non-parallel: modifies package-level secretSchemasYAML.
+	orig := secretSchemasYAML
+	secretSchemasYAML = []byte("not: valid: yaml: [unclosed")
+
+	defer func() { secretSchemasYAML = orig }()
+
+	tmpDir := t.TempDir()
+
+	_, err := FindViolationsInDir(tmpDir)
+	if err == nil {
+		t.Fatal("expected error for invalid YAML")
+	}
+}
+
+func TestFindViolationsInDir_ReadError(t *testing.T) {
+	t.Parallel()
+
+	// Create a directory where the secret file is expected, so ReadFile returns
+	// a non-NotExist error (is-a-directory error).
+	rootDir := t.TempDir()
+	secretsDir := filepath.Join(rootDir, "deployments", cryptoutilSharedMagic.JoseJAServiceID, "secrets")
+
+	if err := os.MkdirAll(secretsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute); err != nil {
+		t.Fatalf("failed to create secrets dir: %v", err)
+	}
+
+	// Create a directory with the secret file name (forces read error).
+	dirAsFile := filepath.Join(secretsDir, "hash-pepper-v3.secret")
+	if err := os.Mkdir(dirAsFile, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute); err != nil {
+		t.Fatalf("failed to create dir-as-file: %v", err)
+	}
+
+	violations, err := FindViolationsInDir(rootDir)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(violations) != 1 {
+		t.Fatalf("expected 1 violation for read error, got %d: %v", len(violations), violations)
+	}
+
+	if !containsSubstring(violations[0], "failed to read") {
+		t.Errorf("expected violation about read failure, got: %q", violations[0])
 	}
 }
 
