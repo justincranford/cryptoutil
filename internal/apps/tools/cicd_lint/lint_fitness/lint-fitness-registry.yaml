@@ -100,6 +100,13 @@ sub_linters:
     description: Validates configuration file naming conventions within configs/ directories.
     category: config
 
+  - name: config-overlay-freshness
+    directory: config_overlay_freshness
+    description: >-
+      Validates that deployment config overlay files have correct database-url keys for
+      SQLite variants and no database-url for PostgreSQL variants.
+    category: config
+
   - name: cross-service-import-isolation
     directory: cross_service_import_isolation
     description: Ensures services do not import internal packages from other services directly.

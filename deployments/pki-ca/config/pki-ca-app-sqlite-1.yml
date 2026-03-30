@@ -11,6 +11,8 @@ service-name: "ca-sqlite"
 bind-public-port: 8080
 
 # Database backend (SQLite in-memory for dev/ci)
+# Note: database-url is the standard framework key; database.dsn is the legacy pki-ca config key.
+database-url: "sqlite://file::memory:?cache=shared"
 database:
   type: "sqlite"
   dsn: "file::memory:?cache=shared"

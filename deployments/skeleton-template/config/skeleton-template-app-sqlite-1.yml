@@ -18,6 +18,9 @@ cors-origins:
   - "https://127.0.0.1:8900"
   - "https://skeleton-template:8080"
 
+# Database - SQLite in-memory URL for containerized testing.
+database-url: "sqlite://file::memory:?cache=shared"
+
 # Key storage - in-memory for E2E tests.
 key-storage:
   type: "memory"

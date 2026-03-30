@@ -85,7 +85,33 @@
 
 ## Phase 4: Secret & Config Schema Validation
 
-*(To be filled during Phase 4 execution)*
+**Completed**: 2026-03-30 (sessions 10-11, commits bd217babd, 2e57c132e + Phase 4 commit)
+
+### What Worked
+
+- **`go:embed` for YAML schemas**: Embedding YAML validation templates via `//go:embed schema.yaml` on a `var embeddedYAML []byte` seam makes the schema portable with the binary while remaining overridable in tests.
+- **Schema-driven linter rewrite**: Replacing hardcoded regex in `secret_content.go` with a loaded YAML schema reduces brittleness and makes new secret types additive (add YAML entry, no Go changes needed).
+- **Skip logic for missing config dirs**: When a linter iterates all 10 PS-IDs from registry but test temp dirs only contain a subset, returning `nil` (skip) when `deployments/{psid}/config/` doesn't exist enables clean unit test isolation per PS-ID.
+- **variantSuffixes map keys use ComposeVariant constants**: Template YAML `variant:` names must match `ComposeVariant*` constants (`sqlite-1`, `postgres-1`, `postgres-2`)—not the file suffix keywords (`postgresql-1.yml`). The map handles the namespace translation.
+- **8 missing `database-url` keys discovered by linter**: The linter immediately caught real drift (jose-ja, sm-im, skeleton-template, pki-ca sqlite overlays missing `database-url`). The linter correctly enforced the invariant before the config files existed.
+
+### What Didn't Work
+
+- **Initial template YAML used `postgresql-1` as variant name**: Template was written with `postgresql-1` matching the file name suffix, but `variantSuffixes` map keys use `ComposeVariant*` constants which are `postgres-1`. Root cause: didn't verify constant values before writing YAML.
+- **wsl_v5 and nlreturn violations in linter code**: Required blank lines before `continue` (nlreturn) and before `if err` after multiple statements (wsl_v5). These are systematic violations that need consideration when writing any loop body.
+
+### Root Causes
+
+- **Variant name mismatch**: Template YAML must use values matching Go `ComposeVariant*` constants, not the file naming convention. Always verify constant values before writing YAML.
+- **pki-ca dual database key**: pki-ca config overlays use both `database.dsn` (legacy) and `database-url` (standard). The linter correctly requires `database-url`; both keys co-exist with a comment explaining the dual-key design.
+- **nlreturn/wsl_v5 in range loops**: Any `for range` loop body with multi-line logic needs careful blank line management. Pattern: blank line before `continue`, blank line before `if err :=` when preceded by multi-statement blocks.
+
+### Patterns
+
+- **go:embed + overlay seam**: `var overlayTemplatesYAML []byte` (embedded) + `var overlayReadFileFn = os.ReadFile` (injectable). Both can be overridden in non-parallel seam tests for error path coverage.
+- **Config overlay template YAML location convention**: Template embedded in linter package (`lint_fitness/config_overlay_freshness/config-overlay-templates.yaml`). Documentation copy in lint_deployments (`lint_deployments/config-overlay-templates.yaml`).
+- **Database-url standard for SQLite overlays**: ALL sqlite overlay files (`*-app-sqlite-1.yml`, `*-app-sqlite-2.yml`) MUST contain `database-url: "sqlite://file::memory:?cache=shared"`. PostgreSQL overlays MUST NOT contain `database-url`.
+- **`OTLPServiceSMKMS` constant**: Use `cryptoutilSharedMagic.OTLPServiceSMKMS` instead of literal `"sm-kms"` in all test code.
 
 ## Phase 5: Deployment & Build Validation
 

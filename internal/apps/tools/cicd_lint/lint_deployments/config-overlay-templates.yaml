@@ -1,0 +1,57 @@
+# config-overlay-templates.yaml
+# Canonical templates for deployment config overlay files under deployments/{ps-id}/config/.
+#
+# Each variant template defines:
+#   required_keys:    YAML keys that MUST be present in the overlay file.
+#   forbidden_keys:   YAML keys that MUST NOT be present in the overlay file.
+#   required_patterns: Key-value pattern pairs where the value must match the regex.
+#
+# Variant names correspond to ComposeVariant constants in the registry:
+#   sqlite-1  -> {ps-id}-app-sqlite-1.yml    (ComposeVariantSQLite1)
+#   sqlite-2  -> {ps-id}-app-sqlite-2.yml    (ComposeVariantSQLite2)
+#   postgres-1 -> {ps-id}-app-postgresql-1.yml (ComposeVariantPostgres1)
+#   postgres-2 -> {ps-id}-app-postgresql-2.yml (ComposeVariantPostgres2)
+#
+# Note: Variant name "postgres-1" maps to file suffix "-app-postgresql-1.yml"
+# (the file uses "postgresql" but the variant name uses the compose abbreviation "postgres").
+#
+# See ARCHITECTURE.md Section 9.11 for config overlay naming and content conventions.
+
+variants:
+  - variant: sqlite-1
+    description: >-
+      SQLite instance 1 config overlay: in-memory database for containerized testing.
+    required_keys:
+      - database-url
+    forbidden_keys: []
+    required_patterns:
+      - key: database-url
+        pattern: "^sqlite://"
+        description: SQLite instance must use sqlite:// URL scheme.
+
+  - variant: sqlite-2
+    description: >-
+      SQLite instance 2 config overlay: in-memory database for containerized testing.
+    required_keys:
+      - database-url
+    forbidden_keys: []
+    required_patterns:
+      - key: database-url
+        pattern: "^sqlite://"
+        description: SQLite instance must use sqlite:// URL scheme.
+
+  - variant: postgres-1
+    description: >-
+      PostgreSQL instance 1 config overlay: database URL passed via secret or env var at runtime.
+    required_keys: []
+    forbidden_keys:
+      - database-url
+    required_patterns: []
+
+  - variant: postgres-2
+    description: >-
+      PostgreSQL instance 2 config overlay: database URL passed via secret or env var at runtime.
+    required_keys: []
+    forbidden_keys:
+      - database-url
+    required_patterns: []

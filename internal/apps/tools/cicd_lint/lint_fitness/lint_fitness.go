@@ -27,6 +27,7 @@ import (
 	lintFitnessConfigsDeploymentsConsistency "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/configs_deployments_consistency"
 	lintFitnessConfigsEmptyDir "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/configs_empty_dir"
 	lintFitnessConfigsNaming "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/configs_naming"
+	lintFitnessConfigOverlayFreshness "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/config_overlay_freshness"
 	lintFitnessCrossServiceImportIsolation "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/cross_service_import_isolation"
 	lintFitnessCryptoRand "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/crypto_rand"
 	lintFitnessDeploymentDirCompleteness "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/deployment_dir_completeness"
@@ -136,7 +137,9 @@ var registeredLinters = []struct {
 	{"deployment-dir-completeness", lintFitnessDeploymentDirCompleteness.Check},
 	// New fitness checks (added in Phase 5 of framework-v4).
 	{"compose-header-format", lintFitnessComposeHeaderFormat.Check},
-	{"compose-service-names", lintFitnessComposeServiceNames.Check},		{"compose-port-formula", lintFitnessComposePortFormula.Check},	{"compose-db-naming", lintFitnessComposeDBNaming.Check},
+	{"compose-service-names", lintFitnessComposeServiceNames.Check},
+	{"compose-port-formula", lintFitnessComposePortFormula.Check},
+	{"compose-db-naming", lintFitnessComposeDBNaming.Check},
 	// New fitness checks (added in Phase 6 of framework-v4).
 	{"magic-e2e-container-names", lintFitnessMagicE2EContainerNames.Check},
 	{"magic-e2e-compose-path", lintFitnessMagicE2EComposePath.Check},
@@ -152,8 +155,8 @@ var registeredLinters = []struct {
 	{"cmd-anti-pattern", lintFitnessCmdAntiPattern.Check},
 	{"configs-deployments-consistency", lintFitnessConfigsDeploymentsConsistency.Check},
 	{"configs-empty-dir", lintFitnessConfigsEmptyDir.Check},
-	{"configs-naming", lintFitnessConfigsNaming.Check},
-	// New fitness checks (added in Phase 8 of framework-v6).
+	{"configs-naming", lintFitnessConfigsNaming.Check},		// New fitness checks (added in Phase 4 of framework-v7).
+		{"config-overlay-freshness", lintFitnessConfigOverlayFreshness.Check},	// New fitness checks (added in Phase 8 of framework-v6).
 	{"dockerfile-labels", lintFitnessDockerfileLabels.Check},
 	{"secret-content", lintFitnessSecretContent.Check},
 	{"secret-naming", lintFitnessSecretNaming.Check},

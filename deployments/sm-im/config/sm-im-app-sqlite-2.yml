@@ -1,4 +1,7 @@
 bind-public-address: "0.0.0.0"
 bind-public-port: 8080
 
+# Database - SQLite in-memory URL for containerized testing.
+database-url: "sqlite://file::memory:?cache=shared"
+
 otlp-service: sm-im-sqlite-2
