@@ -69,6 +69,7 @@ import (
 	lintFitnessServiceStructure "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/service_structure"
 	lintFitnessStandaloneConfigOTLPNames "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/standalone_config_otlp_names"
 	lintFitnessStandaloneConfigPresence "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/standalone_config_presence"
+	lintFitnessSubcommandCompleteness "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/subcommand_completeness"
 	lintFitnessTemplateConsistency "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/template_consistency"
 	lintFitnessTestFileSuffixStructure "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/test_file_suffix_structure"
 	lintFitnessTestPatterns "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/test_patterns"
@@ -161,6 +162,8 @@ var registeredLinters = []struct {
 	{"secret-content", lintFitnessSecretContent.Check},
 	{"secret-naming", lintFitnessSecretNaming.Check},
 	{"unseal-secret-content", lintFitnessUnsealSecretContent.Check},
+	// New fitness checks (added in Phase 6 of framework-v7).
+	{"subcommand-completeness", lintFitnessSubcommandCompleteness.Check},
 	// New fitness checks (added in documentation-audit pass).
 	{"cmd-entry-whitelist", lintFitnessCmdEntryWhitelist.Check},
 	{"infra-tool-naming", lintFitnessInfraToolNaming.Check},
