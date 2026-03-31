@@ -189,10 +189,7 @@ func isGeneratedGoFile(path string) bool {
 		return false
 	}
 
-	limit := len(data)
-	if limit > codeGeneratedCheckBytes {
-		limit = codeGeneratedCheckBytes
-	}
+	limit := min(len(data), codeGeneratedCheckBytes)
 
 	return bytes.Contains(data[:limit], []byte("Code generated"))
 }

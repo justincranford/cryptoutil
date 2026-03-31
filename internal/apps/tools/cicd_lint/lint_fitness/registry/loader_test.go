@@ -358,7 +358,48 @@ product_services:
 func TestLoadRegistry_OverlappingMigrationRanges(t *testing.T) {
 	t.Parallel()
 
-	yaml := `
+	tests := []struct {
+		name   string
+		start1 int
+		end1   int
+		start2 int
+		end2   int
+	}{
+		{
+			name:   "large overlap",
+			start1: 2001,
+			end1:   3999,
+			start2: 2999,
+			end2:   4999,
+		},
+		{
+			name:   "exact boundary overlap start equals end",
+			start1: 2001,
+			end1:   2999,
+			start2: 2999,
+			end2:   4001,
+		},
+		{
+			name:   "exact boundary overlap end equals start",
+			start1: 2999,
+			end1:   4001,
+			start2: 2001,
+			end2:   2999,
+		},
+		{
+			name:   "single point overlap",
+			start1: 2001,
+			end1:   2500,
+			start2: 2500,
+			end2:   migrationRangeTestEnd,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			yaml := `
 suites:
   - id: s
     display_name: "S"
@@ -377,8 +418,8 @@ product_services:
     magic_file: magic_ex.go
     base_port: 8000
     pg_host_port: 54320
-    migration_range_start: 2001
-    migration_range_end: 3999
+    migration_range_start: ` + strconv.Itoa(tt.start1) + `
+    migration_range_end: ` + strconv.Itoa(tt.end1) + `
     api_resources: []
   - ps_id: ex-alt
     product: ex
@@ -388,14 +429,17 @@ product_services:
     magic_file: magic_ex.go
     base_port: 8001
     pg_host_port: 54321
-    migration_range_start: 3000
-    migration_range_end: 4999
+    migration_range_start: ` + strconv.Itoa(tt.start2) + `
+    migration_range_end: ` + strconv.Itoa(tt.end2) + `
     api_resources: []
 `
-	path := writeRegistryYAML(t, yaml)
-	_, err := lintFitnessRegistry.LoadRegistry(path)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "overlaps with ex-svc")
+
+			path := writeRegistryYAML(t, yaml)
+			_, err := lintFitnessRegistry.LoadRegistry(path)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "overlaps with")
+		})
+	}
 }
 
 func TestLoadRegistry_MigrationRangeEndNotGreaterThanStart(t *testing.T) {
@@ -1183,10 +1227,22 @@ product_services:
 	assert.Contains(t, err.Error(), "must end with '/'")
 }
 
-func TestLoadRegistry_PSNegativeBasePort(t *testing.T) {
+func TestLoadRegistry_PSNonPositiveBasePort(t *testing.T) {
 	t.Parallel()
 
-	yaml := `
+	tests := []struct {
+		name     string
+		basePort string
+	}{
+		{name: "negative base_port", basePort: "-1"},
+		{name: "zero base_port", basePort: "0"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			yaml := `
 suites:
   - id: s
     display_name: "S"
@@ -1203,23 +1259,37 @@ product_services:
     display_name: "Example Service"
     internal_apps_dir: ex-svc/
     magic_file: magic_ex.go
-    base_port: -1
+    base_port: ` + tt.basePort + `
     pg_host_port: 54320
     migration_range_start: 2001
     migration_range_end: 2999
     api_resources: []
 `
 
-	path := writeRegistryYAML(t, yaml)
-	_, err := lintFitnessRegistry.LoadRegistry(path)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "base_port")
+			path := writeRegistryYAML(t, yaml)
+			_, err := lintFitnessRegistry.LoadRegistry(path)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "base_port")
+		})
+	}
 }
 
-func TestLoadRegistry_PSNegativePGHostPort(t *testing.T) {
+func TestLoadRegistry_PSNonPositivePGHostPort(t *testing.T) {
 	t.Parallel()
 
-	yaml := `
+	tests := []struct {
+		name       string
+		pgHostPort string
+	}{
+		{name: "negative pg_host_port", pgHostPort: "-1"},
+		{name: "zero pg_host_port", pgHostPort: "0"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			yaml := `
 suites:
   - id: s
     display_name: "S"
@@ -1237,14 +1307,16 @@ product_services:
     internal_apps_dir: ex-svc/
     magic_file: magic_ex.go
     base_port: 8000
-    pg_host_port: -1
+    pg_host_port: ` + tt.pgHostPort + `
     migration_range_start: 2001
     migration_range_end: 2999
     api_resources: []
 `
 
-	path := writeRegistryYAML(t, yaml)
-	_, err := lintFitnessRegistry.LoadRegistry(path)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "pg_host_port")
+			path := writeRegistryYAML(t, yaml)
+			_, err := lintFitnessRegistry.LoadRegistry(path)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "pg_host_port")
+		})
+	}
 }

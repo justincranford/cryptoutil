@@ -854,6 +854,70 @@ func TestValidateProfile_NilDefaultCurveOrSizeForEd25519_Allowed(t *testing.T) {
 }
 
 // -----------------------------------------------------------------------
+// Boundary tests — kill CONDITIONALS_BOUNDARY / CONDITIONALS_NEGATION mutations
+// -----------------------------------------------------------------------
+
+func TestValidateValidity_MaxDaysEqualMinDays(t *testing.T) {
+	t.Parallel()
+
+	days := cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days
+
+	errs := validateValidity(&ValiditySpec{MinDays: days, MaxDays: days, DefaultDays: days}, "boundary.yaml")
+
+	require.Empty(t, errs, "max_days == min_days should be valid")
+}
+
+func TestValidateValidity_MaxDaysExactlyCap(t *testing.T) {
+	t.Parallel()
+
+	errs := validateValidity(&ValiditySpec{MinDays: 1, MaxDays: maxValidityDaysAbsoluteCap, DefaultDays: cryptoutilSharedMagic.StrictCertificateMaxAgeDays}, "cap.yaml")
+
+	require.Empty(t, errs, "max_days == absolute cap should be valid")
+}
+
+func TestValidateValidity_DefaultDaysEqualMinDays(t *testing.T) {
+	t.Parallel()
+
+	days30 := cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days
+	days365 := cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year
+
+	errs := validateValidity(&ValiditySpec{MinDays: days30, MaxDays: days365, DefaultDays: days30}, "boundary.yaml")
+
+	require.Empty(t, errs, "default_days == min_days should be valid")
+}
+
+func TestValidateValidity_DefaultDaysEqualMaxDays(t *testing.T) {
+	t.Parallel()
+
+	days365 := cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year
+
+	errs := validateValidity(&ValiditySpec{MinDays: 1, MaxDays: days365, DefaultDays: days365}, "boundary.yaml")
+
+	require.Empty(t, errs, "default_days == max_days should be valid")
+}
+
+func TestValidateSAN_AllFieldsPopulated(t *testing.T) {
+	t.Parallel()
+
+	boolTrue := true
+	boolFalse := false
+	zeroEntries := 0
+
+	san := &SANSpec{
+		AllowDNSNames:       &boolTrue,
+		AllowIPAddresses:    &boolFalse,
+		AllowEmailAddresses: &boolFalse,
+		AllowURIs:           &boolFalse,
+		RequireAtLeastOne:   &boolTrue,
+		MaxEntries:          &zeroEntries,
+	}
+
+	errs := validateSAN(san)
+
+	require.Empty(t, errs, "SAN with all fields set (including max_entries=0) should be valid")
+}
+
+// -----------------------------------------------------------------------
 // Helpers
 // -----------------------------------------------------------------------
 
