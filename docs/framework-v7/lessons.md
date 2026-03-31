@@ -174,7 +174,32 @@
 
 ## Phase 6: API & Health Completeness
 
-*(To be filled during Phase 6 execution)*
+**Lessons Learned:**
+
+1. **`SkeletonTemplateServiceID` vs `SkeletonTemplateServiceName`**: When filtering the skeleton-template PSID during service iteration, use `SkeletonTemplateServiceID = "skeleton-template"` (not `SkeletonTemplateServiceName = "template"`). PSID filtering must use the PSID constant, not the service name.
+
+2. **`NewLogger` signature**: `NewLogger(operation string)` takes a string, not a bool. Use `NewLogger("test")` in test helpers.
+
+3. **Health path count discrepancy**: Task description said "6 paths" but there are only 5 required health paths (`/service/api/v1/health`, `/browser/api/v1/health`, `/admin/api/v1/livez`, `/admin/api/v1/readyz`, `/admin/api/v1/shutdown`). Plan docs may contain minor count errors — verify by checking the actual magic constants.
+
+4. **Test file scanning**: The health-path-completeness linter scans ALL top-level `.go` files in a service directory, including `_test.go` files. This was intentional — sm-im's service health path is documented in its `http_test.go`. When checking real workspace, test files count toward compliance.
+
+5. **Pre-commit hook blocks commit for pre-existing issues**: The `cicd-lint-all` pre-commit hook runs lint-go, which fails if ANY magic-aliases violation exists anywhere in the codebase. Pre-existing violations (`domainMaxLength` in `usernames_passwords_test_util.go`, `numConcurrentInfoOps` in `sysinfo_all.go`) blocked all new commits until fixed. Always run `go run ./cmd/cicd-lint lint-go` before committing new code.
+
+6. **`magic-usage` literal-use violations**: The `magic-usage` linter flags literal octal file permissions (e.g. `0o755`, `0o600`) as blocking violations. Use the corresponding magic constants: `FilePermOwnerReadWriteExecuteGroupOtherReadExecute` for `0o755` and `FilePermissionsDefault` for `0o600`.
+
+7. **Fitness skill template**: The `.github/skills/fitness-function-gen/SKILL.md` prescribes `cryptoutilSharedMagic.CacheFilePermissions` for `0o600` and `cryptoutilSharedMagic.CICDTempDirPermissions` for `0o755`, but the magic-usage linter recommends `FilePermissionsDefault` and `FilePermOwnerReadWriteExecuteGroupOtherReadExecute`. Both are semantically equivalent, but the linter recommendation is authoritative. The SKILL.md should be updated.
+
+8. **Usage file documentation gap**: All services need both `/service/api/v1/health` (for service-to-service clients) and `/browser/api/v1/health` (for browser clients) in their `*_usage.go` commentary. The health-path-completeness linter now enforces this as a fitness function.
+
+**Phase 6 Quality Gate Results:**
+- Build: ✅ clean
+- golangci-lint: ✅ 0 issues on Phase 6 code
+- lint-go: ✅ SUCCESS (after fixing pre-existing magic-alias violations)
+- lint-fitness: ✅ SUCCESS (all 68 linters pass)
+- Coverage: ✅ 96.3% across all lint_fitness packages (≥95% gate met)
+- Tests: ✅ all pass
+
 
 ## Phase 7: Knowledge Propagation
 
