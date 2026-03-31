@@ -114,6 +114,9 @@ product_services:
       - /jwe/decrypt
       - /jwt/create
       - /jwt/verify
+      - /health
+      - /livez
+      - /readyz
 
   - ps_id: pki-ca
     product: pki

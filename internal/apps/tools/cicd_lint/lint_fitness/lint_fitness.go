@@ -10,6 +10,7 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
 	lintFitnessAdminBindAddress "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/admin_bind_address"
+	lintFitnessAPIPathRegistry "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/api_path_registry"
 	lintFitnessArchiveDetector "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/archive_detector"
 	lintFitnessBannedProductNames "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/banned_product_names"
 	lintFitnessBindAddressSafety "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/bind_address_safety"
@@ -163,6 +164,7 @@ var registeredLinters = []struct {
 	{"secret-naming", lintFitnessSecretNaming.Check},
 	{"unseal-secret-content", lintFitnessUnsealSecretContent.Check},
 	// New fitness checks (added in Phase 6 of framework-v7).
+	{"api-path-registry", lintFitnessAPIPathRegistry.Check},
 	{"subcommand-completeness", lintFitnessSubcommandCompleteness.Check},
 	// New fitness checks (added in documentation-audit pass).
 	{"cmd-entry-whitelist", lintFitnessCmdEntryWhitelist.Check},

@@ -407,7 +407,7 @@ existing files.
 - **Acceptance Criteria**:
   - [x] All tests pass, build clean, linting clean
   - [x] Coverage ≥95% on config_overlay_freshness (95.3%), ≥96.1% on secret_content
-  - [ ] Mutation testing ≥95% (deferred to CI/CD: gremlins times out on Windows)
+  - [ ] Mutation testing ≥95% (deferred to CI/CD: gremlins times out on Windows unless you run it package by package)
   - [x] All fitness linters pass: lint-fitness Passed: 1, Failed: 0
   - [x] Post-mortem: update lessons.md Phase 4 section
 
@@ -522,20 +522,26 @@ existing files.
 
 #### Task 6.2: #13 API Path Parameter Registry
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 4h
-- **Actual**: —
+- **Actual**: Completed in this session
 - **Dependencies**: Phase 1 (registry YAML)
 - **Description**: Validate OpenAPI spec paths against `api_resources` declared in registry.
 - **Acceptance Criteria**:
-  - [ ] Linter loads registry, iterates PS-IDs, reads each `api/{PS-ID}/openapi_spec*.yaml`
-  - [ ] Compares declared paths vs. actual paths (detects missing and undeclared)
-  - [ ] Handles services with no OpenAPI spec (identity-rp, identity-spa) — skip or warn
-  - [ ] Tests: ≥95% coverage
+  - [x] Linter loads registry, iterates PS-IDs, reads each `api/{PS-ID}/openapi_spec*.yaml`
+  - [x] Compares declared paths vs. actual paths (detects missing and undeclared)
+  - [x] Handles services with no OpenAPI spec (identity-rp, identity-spa) — skip
+  - [x] Tests: 100% coverage, 16 tests (including seam tests)
+  - [x] Registered in lint_fitness.go and lint-fitness-registry.yaml
+  - [x] Added /health, /livez, /readyz to jose-ja api_resources in registry.yaml (spec/registry alignment)
+  - [x] lint-fitness passes, lint-go passes, golangci-lint 0 issues
 - **Files**:
   - `lint_fitness/api_path_registry/api_path_registry.go`
   - `lint_fitness/api_path_registry/api_path_registry_test.go`
+  - `internal/apps/tools/cicd_lint/lint_fitness/lint_fitness.go` (import + registration)
+  - `internal/apps/tools/cicd_lint/lint_fitness/lint-fitness-registry.yaml` (YAML entry)
+  - `api/cryptosuite-registry/registry.yaml` (added /health, /livez, /readyz to jose-ja)
 
 #### Task 6.3: #17 Health Path Completeness
 

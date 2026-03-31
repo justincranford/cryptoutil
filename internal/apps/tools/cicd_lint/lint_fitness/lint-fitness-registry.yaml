@@ -15,6 +15,13 @@ sub_linters:
     description: Ensures admin endpoints bind only to loopback, not 0.0.0.0.
     category: security
 
+  - name: api-path-registry
+    directory: api_path_registry
+    description: >-
+      Validates that OpenAPI spec paths in each service's api/{ps-id}/openapi_spec*.yaml
+      match the api_resources declared in the entity registry (registry.yaml).
+    category: architecture
+
   - name: archive-detector
     directory: archive_detector
     description: Detects accidentally committed archive files (zip, tar, etc.) in the repo.
