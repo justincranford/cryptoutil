@@ -64,13 +64,14 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 //   - All DB service names: {PS-ID}-db-postgres-1
 func buildValidServiceSet() map[string]struct{} {
 	validNames := lintFitnessRegistry.ValidComposeServiceNames()
-	set := make(map[string]struct{}, len(validNames)*2)
+	allPS := lintFitnessRegistry.AllProductServices()
+	set := make(map[string]struct{}, len(validNames)+len(allPS))
 
 	for _, name := range validNames {
 		set[name] = struct{}{}
 	}
 
-	for _, ps := range lintFitnessRegistry.AllProductServices() {
+	for _, ps := range allPS {
 		set[lintFitnessRegistry.DBServiceName(ps.PSID)] = struct{}{}
 	}
 
