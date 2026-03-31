@@ -15,11 +15,6 @@ import (
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 )
 
-const (
-	// Number of concurrent info gathering operations.
-	numConcurrentInfoOps = cryptoutilSharedMagic.SysInfoConcurrentOpCount
-)
-
 // GetAllInfoWithTimeout gathers all system information with the specified timeout.
 func GetAllInfoWithTimeout(sysInfoProvider SysInfoProvider, timeout time.Duration) ([][]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
@@ -41,7 +36,7 @@ func GetAllInfoWithTimeout(sysInfoProvider SysInfoProvider, timeout time.Duratio
 
 	var wg sync.WaitGroup
 
-	wg.Add(numConcurrentInfoOps)
+	wg.Add(cryptoutilSharedMagic.SysInfoConcurrentOpCount)
 
 	go func() {
 		defer wg.Done()

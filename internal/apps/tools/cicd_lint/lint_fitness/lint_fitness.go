@@ -40,6 +40,7 @@ import (
 	lintFitnessFitnessRegistryCompleteness "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/fitness_registry_completeness"
 	lintFitnessGenConfigInitialisms "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/gen_config_initialisms"
 	lintFitnessHealthEndpointPresence "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/health_endpoint_presence"
+	lintFitnessHealthPathCompleteness "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/health_path_completeness"
 	lintFitnessImportAliasFormula "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/import_alias_formula"
 	lintFitnessInfraToolNaming "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/infra_tool_naming"
 	lintFitnessInsecureSkipVerify "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/insecure_skip_verify"
@@ -165,6 +166,7 @@ var registeredLinters = []struct {
 	{"unseal-secret-content", lintFitnessUnsealSecretContent.Check},
 	// New fitness checks (added in Phase 6 of framework-v7).
 	{"api-path-registry", lintFitnessAPIPathRegistry.Check},
+	{"health-path-completeness", lintFitnessHealthPathCompleteness.Check},
 	{"subcommand-completeness", lintFitnessSubcommandCompleteness.Check},
 	// New fitness checks (added in documentation-audit pass).
 	{"cmd-entry-whitelist", lintFitnessCmdEntryWhitelist.Check},

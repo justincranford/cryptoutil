@@ -69,7 +69,8 @@ Examples:
 
 Description:
   Check service health via public API endpoint.
-  Calls GET /health endpoint on the public server.
+  Calls GET /service/api/v1/health endpoint by service-to-service clients.
+  Calls GET /browser/api/v1/health endpoint by browser clients.
 
 Options:
   --url URL      Service URL (default: https://127.0.0.1:8700)
@@ -102,7 +103,7 @@ Examples:
 
 Description:
   Check service readiness via admin API endpoint.
-  Calls GET /admin/v1/readyz endpoint on the admin server.
+  Calls GET /admin/api/v1/readyz endpoint on the admin server.
 
 Options:
   --url URL      Admin URL (default: https://127.0.0.1:9090)
@@ -118,7 +119,7 @@ Examples:
 
 Description:
   Trigger graceful shutdown via admin API endpoint.
-  Calls POST /admin/v1/shutdown endpoint on the admin server.
+  Calls POST /admin/api/v1/shutdown endpoint on the admin server.
 
 Options:
   --url URL      Admin URL (default: https://127.0.0.1:9090)

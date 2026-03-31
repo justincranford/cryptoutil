@@ -184,6 +184,14 @@ sub_linters:
     description: Validates that every registered service exposes a /health endpoint.
     category: architecture
 
+  - name: health-path-completeness
+    directory: health_path_completeness
+    description: >-
+      Validates that every registered service documents all five standard health
+      endpoint paths: /service/api/v1/health, /browser/api/v1/health,
+      /admin/api/v1/livez, /admin/api/v1/readyz, and /admin/api/v1/shutdown.
+    category: architecture
+
   - name: infra-tool-naming
     directory: infra_tool_naming
     description: Validates naming conventions for infrastructure tool packages (cicd-lint sub-commands, etc.).

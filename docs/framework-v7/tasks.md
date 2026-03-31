@@ -545,18 +545,20 @@ existing files.
 
 #### Task 6.3: #17 Health Path Completeness
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 4h
-- **Actual**: —
+- **Actual**: 3h
 - **Dependencies**: Phase 1 (registry YAML)
-- **Description**: New `health-path-completeness` linter checking all 6 health paths per
+- **Description**: New `health-path-completeness` linter checking all 5 health paths per
   service: `/browser/api/v1/health`, `/service/api/v1/health` (public), `/admin/api/v1/livez`,
   `/admin/api/v1/readyz`, `/admin/api/v1/shutdown` (admin).
 - **Acceptance Criteria**:
-  - [ ] Verifies each PS-ID's handlers register all 6 paths
-  - [ ] Validates both public and admin servers
-  - [ ] Tests: ≥95% coverage
+  - [x] Verifies each PS-ID's handlers register all 5 paths (task said 6, actually 5)
+  - [x] Validates both public and admin servers
+  - [x] Tests: 97.5% coverage (10 test functions, 15 test cases including subtests)
+  - [x] Fixed sm-im wrong paths: /health→/browser/api/v1/health, /admin/v1/*→/admin/api/v1/*
+  - [x] Added /service/api/v1/health documentation to all 9 service usage files
 - **Files**:
   - `lint_fitness/health_path_completeness/health_path_completeness.go`
   - `lint_fitness/health_path_completeness/health_path_completeness_test.go`

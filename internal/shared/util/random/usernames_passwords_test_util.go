@@ -24,7 +24,6 @@ const (
 	passwordMinLength = 8
 	passwordMaxLength = 64
 	domainMinLength   = 5
-	domainMaxLength   = cryptoutilSharedMagic.EmailDomainMaxLength
 )
 
 // GenerateUsername generates a random username of the specified length for testing.
@@ -39,7 +38,7 @@ func GeneratePassword(t *testing.T, length int) *string {
 
 // GenerateDomain generates a random domain of the specified length for testing.
 func GenerateDomain(t *testing.T, length int) *string {
-	return generateValue(t, domainPrefix, domainSuffix, length, domainMinLength, domainMaxLength)
+	return generateValue(t, domainPrefix, domainSuffix, length, domainMinLength, cryptoutilSharedMagic.EmailDomainMaxLength)
 }
 
 // GenerateEmailAddress generates a random email address for testing.
