@@ -31,6 +31,7 @@ import (
 // Injectable functions for testing defensive error paths.
 var (
 	portReadFileFn = os.ReadFile
+	allSuitesFn    = lintFitnessRegistry.AllSuites
 )
 
 // portMapping maps a compose service variant to its expected port offset.
@@ -80,7 +81,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 		}
 
 		// Add suite tier if registry defines at least one suite.
-		if suites := lintFitnessRegistry.AllSuites(); len(suites) > 0 {
+		if suites := allSuitesFn(); len(suites) > 0 {
 			tiers = append(tiers, tierConfig{
 				composePath: filepath.Join("deployments", suites[0].ID, "compose.yml"),
 				tierOffset:  lintFitnessRegistry.PortTierOffsetSuite,

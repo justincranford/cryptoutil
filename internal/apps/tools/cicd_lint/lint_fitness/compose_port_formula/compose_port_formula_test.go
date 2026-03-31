@@ -159,6 +159,7 @@ func TestCheckInDir_ViolationServiceTierWrongPort(t *testing.T) {
 	require.Contains(t, err.Error(), "compose port formula violations")
 	require.Contains(t, err.Error(), "host port 9999")
 	require.Contains(t, err.Error(), "want 8000")
+	require.Contains(t, err.Error(), "line 4", "violation must report correct 1-based line number")
 }
 
 func TestCheckInDir_ViolationProductTierWrongPort(t *testing.T) {
@@ -299,4 +300,37 @@ func TestCheckTierPorts_ValidProductTierAllVariants(t *testing.T) {
 
 	violations := checkTierPorts(tmpDir, psID, "compose.yml", basePort, lintFitnessRegistry.PortTierOffsetProduct)
 	require.Empty(t, violations, "All 3 product-tier variants correct should produce no violations")
+}
+
+// Sequential: modifies package-level allSuitesFn seam.
+func TestCheckInDir_NoSuites(t *testing.T) {
+	origSuites := allSuitesFn
+
+	defer func() { allSuitesFn = origSuites }()
+
+	allSuitesFn = func() []lintFitnessRegistry.Suite { return nil }
+
+	// With no suites, only SERVICE and PRODUCT tiers should be checked.
+	tmpDir := t.TempDir()
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test-no-suites")
+
+	err := CheckInDir(logger, tmpDir)
+	require.NoError(t, err, "No suites defined should skip suite tier and produce no violations")
+}
+
+func TestCheckTierPorts_TwoCharLineNotPanic(t *testing.T) {
+	t.Parallel()
+
+	// A line exactly 2 chars long must not panic (boundary: len > 2 guard).
+	psID := cryptoutilSharedMagic.OTLPServiceSMKMS
+	basePort := lintFitnessRegistry.PublicPort(psID)
+
+	tmpDir := t.TempDir()
+
+	content := "services:\n  \n  " + lintFitnessRegistry.ComposeServiceName(psID, lintFitnessRegistry.ComposeVariantSQLite1) + ":\n    ports:\n      - \"" + strconv.Itoa(basePort) + ":8080\"\n"
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "compose.yml"), []byte(content), cryptoutilSharedMagic.FilePermissionsDefault))
+
+	violations := checkTierPorts(tmpDir, psID, "compose.yml", basePort, lintFitnessRegistry.PortTierOffsetService)
+	require.Empty(t, violations, "Two-char line must not cause panic or violation")
 }
