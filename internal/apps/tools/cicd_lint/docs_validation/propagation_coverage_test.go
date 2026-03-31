@@ -170,6 +170,7 @@ func TestFormatCoverageResults_EmptyInput(t *testing.T) {
 
 	require.Contains(t, report, "0/0 files")
 	require.Contains(t, report, "0% file coverage")
+	require.NotContains(t, report, "ZERO COVERAGE FILES", "empty result must not print zero-coverage section")
 }
 
 func TestPercentage(t *testing.T) {

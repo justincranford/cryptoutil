@@ -97,7 +97,9 @@ func TestExtractRefsFromFile_MultipleOnSameLine(t *testing.T) {
 
 	require.Len(t, refs, 2)
 	require.Equal(t, "11-vision", refs[0].Anchor)
+	require.Equal(t, "A", refs[0].DisplayText)
 	require.Equal(t, "12-key-chars", refs[1].Anchor)
+	require.Equal(t, "B", refs[1].DisplayText)
 }
 
 func TestExtractRefsFromFile_NoRefs(t *testing.T) {
