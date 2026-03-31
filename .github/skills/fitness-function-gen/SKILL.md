@@ -117,7 +117,7 @@ tmp := t.TempDir()
 require.NoError(t, os.WriteFile(
 filepath.Join(tmp, "compliant.go"),
 []byte("package foo\n// compliant content\n"),
-cryptoutilSharedMagic.CacheFilePermissions,
+cryptoutilSharedMagic.FilePermissionsDefault,
 ))
 require.NoError(t, CheckInDir(newTestLogger(), tmp))
 }
@@ -129,7 +129,7 @@ tmp := t.TempDir()
 require.NoError(t, os.WriteFile(
 filepath.Join(tmp, "violating.go"),
 []byte("package foo\n// violating content\n"),
-cryptoutilSharedMagic.CacheFilePermissions,
+cryptoutilSharedMagic.FilePermissionsDefault,
 ))
 err := CheckInDir(newTestLogger(), tmp)
 require.Error(t, err)
@@ -181,7 +181,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 - **CheckInDir pattern**: Always separate Check (calls .) from CheckInDir (parameterized root). Tests use CheckInDir(logger, tmp) for isolation.
 - **Error aggregation**: NEVER short-circuit. Collect ALL violations before returning. Report them all, then return one consolidated error.
-- **File permissions**: Use cryptoutilSharedMagic.CacheFilePermissions for test files.
+- **File permissions**: Use `cryptoutilSharedMagic.FilePermissionsDefault` for test files (0o600). Use `cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute` for directories (0o755). Never use raw octal literals — the `magic-usage` linter enforces this.
 - **t.Parallel()**: MANDATORY on all tests EXCEPT those using os.Chdir. Add // Sequential: comment for those.
 - **The fitness check runs on CI**: Adding a linter that fails on existing code is a CI blocker. Always test against the actual codebase root first.
 
@@ -195,6 +195,6 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 ## References
 
 Read [ARCHITECTURE.md Section 9.10](../../../docs/ARCHITECTURE.md#910-cicd-command-architecture) for CICD command architecture.
-Read [ARCHITECTURE.md Section 9.11 Architecture Fitness Functions](../../../docs/ARCHITECTURE.md#911-architecture-fitness-functions) for the complete list of 49 existing sub-linters in 5 groups — use this section to understand what invariants are already enforced and select a unique new architectural rule.
+Read [ARCHITECTURE.md Section 9.11 Architecture Fitness Functions](../../../docs/ARCHITECTURE.md#911-architecture-fitness-functions) for the complete list of 68 existing sub-linters in 5 groups — use this section to understand what invariants are already enforced and select a unique new architectural rule.
 Read [ARCHITECTURE.md Section 10.2.5](../../../docs/ARCHITECTURE.md#1025-sequential-test-exemption) for // Sequential: comment exemption.
 Read [ARCHITECTURE.md Section 11.3](../../../docs/ARCHITECTURE.md#113-code-quality-standards) for test coverage targets (=98% for infrastructure/utility code).

@@ -1,9 +1,23 @@
 # Lessons — Parameterization Opportunities
 
 **Created**: 2026-03-29
-**Last Updated**: 2026-03-30
+**Last Updated**: 2026-03-31
 
-## Phase 1: Foundation — Entity Registry YAML
+## Cross-Phase Patterns
+
+**Identified after Phases 1–6 completion:**
+
+1. **`literal-use [blocking]` is the #1 recurring blocker** (Phases 2–6): The `magic-usage` linter flags ALL string/int/octal literals that have a corresponding magic constant — even in test files, `want` slices, and struct initializers. Pattern: run `go run ./cmd/cicd-lint lint-go 2>&1 | Select-String "literal-use"` after every new file to catch violations before commit. Specific recurring literals: `0o755` → `FilePermOwnerReadWriteExecuteGroupOtherReadExecute`, `0o600` → `FilePermissionsDefault`, PS-ID strings → `OTLPService*` constants.
+
+2. **`wsl_v5` blank-line-before-defer** (Phases 3, 6): When a seam test does `original := varFn; defer func() { varFn = original }()`, a blank line is **required** between the assignment and the defer statement. This is the most common `wsl_v5` violation pattern in test code.
+
+3. **Seam tests must NOT use `t.Parallel()`** (all phases): Any test that modifies a package-level `var` function pointer via the seam injection pattern must be marked "NOT parallel" with a comment. Parallel execution with seam injection causes race conditions.
+
+4. **Pre-commit hook runs the full lint-go suite** (all phases): `cicd-lint-all` pre-commit hook runs `lint-go` which includes `magic-aliases`, `magic-usage`, `magic-duplicates`, and others. Pre-existing violations from ANY file in the codebase block ALL new commits. Always run `go run ./cmd/cicd-lint lint-go` before staging new files.
+
+5. **Variant/constant value drift** (Phases 3, 4): Registry YAML files and test constants frequently drift from the actual constants defined in Go magic files. Pattern: always verify constant VALUES (not just names) by reading the magic file before writing a YAML entry or test expectation.
+
+6. **99% coverage ceiling on OS error paths** (all phases): `filepath.Abs` errors, `os.Stat` permission errors, and `bufio.Scanner.Err()` I/O errors cannot be injected without OS-level mocks. Accept 95–99% per function as practical ceiling. Document the ceiling in test comments.
 
 **Completed**: 2026-03-30 (sessions 1-3)
 
@@ -199,7 +213,6 @@
 - lint-fitness: ✅ SUCCESS (all 68 linters pass)
 - Coverage: ✅ 96.3% across all lint_fitness packages (≥95% gate met)
 - Tests: ✅ all pass
-
 
 ## Phase 7: Knowledge Propagation
 

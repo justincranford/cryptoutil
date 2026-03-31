@@ -2587,8 +2587,8 @@ internal/apps/tools/cicd_lint/
 │   ├── validate_chunks/                            # Sub-linter
 │   └── validate_propagation/                       # Sub-linter
 ├── lint_fitness/                                      # lint-fitness command
-│   ├── lint_fitness.go                             # Lint() + registeredLinters (57 sub-linters)
-│   └── ... (49 sub-linters, see Section 9.11)
+│   ├── lint_fitness.go                             # Lint() + registeredLinters (68 sub-linters)
+│   └── ... (68 sub-linters, see Section 9.11)
 ├── format_go/                                        # format-go command
 │   ├── format_go.go                                # Format() + registeredFormatters
 │   ├── copyloopvar/                                # Sub-formatter
@@ -2648,11 +2648,11 @@ Architecture fitness functions are automated checks that enforce ARCHITECTURE.md
 | Category | Count | Examples |
 |----------|-------|---------|
 | Security | 7 | `crypto-rand`, `tls-minimum-version`, `non-fips-algorithms` |
-| Architecture | 10 | `circular-deps`, `cmd-entry-whitelist`, `domain-layer-isolation` |
+| Architecture | 12 | `circular-deps`, `cmd-entry-whitelist`, `api-path-registry`, `subcommand-completeness` |
 | Deployment & Config | 14 | `compose-service-names`, `secret-naming`, `unseal-secret-content` |
 | Code Quality | 9 | `file-size-limits`, `cgo-free-sqlite`, `banned-product-names` |
 | Testing | 7 | `parallel-tests`, `no-unit-test-real-db`, `test-patterns` |
-| Service Framework | 5 | `health-endpoint-presence`, `service-contract-compliance` |
+| Service Framework | 6 | `health-endpoint-presence`, `health-path-completeness`, `service-contract-compliance` |
 | Database & Migrations | 3 | `migration-numbering`, `migration-range-compliance` |
 
 **Full catalog** (ordered by category):
@@ -2678,6 +2678,8 @@ Architecture fitness functions are automated checks that enforce ARCHITECTURE.md
 | `product-structure` | Product packages must follow PRODUCT/SERVICE hierarchy |
 | `product-wiring` | Product wiring must delegate to service entry points |
 | `service-structure` | Service packages must follow PRODUCT/SERVICE layout convention |
+| `api-path-registry` | OpenAPI specs must have paths matching the registry entry for each PS-ID; no paths allowed outside the declared `api_resources` list |
+| `subcommand-completeness` | Service `cmd/*/main.go` must use the `route.Service()` entry point for all registered PS-IDs |
 | | **Deployment & Configuration** |
 | `compose-db-naming` | Compose DB service names must use `sqlite`/`postgres` not `pg` |
 | `compose-header-format` | Compose files must have canonical comment header |
@@ -2714,6 +2716,7 @@ Architecture fitness functions are automated checks that enforce ARCHITECTURE.md
 | `test-patterns` | Test file naming, table-driven structure compliance |
 | | **Service Framework** |
 | `health-endpoint-presence` | Services must expose `/admin/api/v1/livez` and `/admin/api/v1/readyz` |
+| `health-path-completeness` | Services must document all 5 standard health paths in top-level Go files: `/service/api/v1/health`, `/browser/api/v1/health`, `/admin/api/v1/livez`, `/admin/api/v1/readyz`, `/admin/api/v1/shutdown` |
 | `magic-e2e-compose-path` | `*E2EComposePath` constants must point to existing compose files |
 | `magic-e2e-container-names` | `*E2ESQLiteContainer`/`*E2EPostgresContainer` constants must match compose names |
 | `require-api-dir` | Services must have an `api/` directory |
@@ -2727,16 +2730,18 @@ Architecture fitness functions are automated checks that enforce ARCHITECTURE.md
 
 **Location**: `internal/apps/tools/cicd_lint/lint_fitness/registry/registry.go`
 
-**Purpose**: Single source of truth for all products and product-services. All registry-driven fitness checks iterate `AllProductServices()` to detect drift without hardcoding names.
+**YAML Source**: `api/cryptosuite-registry/registry.yaml` — single source of truth for all products and product-services. Loaded at startup via `gopkg.in/yaml.v3` with JSON Schema validation at `api/cryptosuite-registry/registry-schema.json`.
+
+**Purpose**: All registry-driven fitness checks iterate `AllProductServices()` to detect drift without hardcoding names. The registry is loaded once via `init()` — malformed YAML panics at program start (fail-fast pattern).
 
 **Types**:
 - `Product` — ID, DisplayName, InternalAppsDir, CmdDir
-- `ProductService` — PSID, Product, Service, DisplayName, InternalAppsDir, MagicFile
+- `ProductService` — PSID, Product, Service, DisplayName, InternalAppsDir, MagicFile, Entrypoint, APIResources
 
 **Update Procedure**: When adding a new product-service:
-1. Add entry to `allProductServices` in `registry.go` using `cryptoutilSharedMagic.*` constants
-2. Add the corresponding magic constants to `internal/shared/magic/magic_*.go`
-3. Run `go run ./cmd/cicd-lint lint-fitness` — entity-registry-completeness will catch any gaps
+1. Add entry to `api/cryptosuite-registry/registry.yaml` with all required fields
+2. Run `go run ./cmd/cicd-lint lint-fitness` — `entity-registry-completeness` and `entity-registry-schema` will catch gaps
+3. Add the corresponding magic constants to `internal/shared/magic/magic_*.go`
 4. Add required deployment artifacts (Dockerfile, compose.yml, configs, secrets)
 
 **Current registry**: 5 products, 10 product-services
