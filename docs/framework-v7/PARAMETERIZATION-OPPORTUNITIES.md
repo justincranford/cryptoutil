@@ -1,6 +1,6 @@
 # Parameterization Opportunities
 
-**Status**: Reference — Ideas Backlog
+**Status**: COMPLETED — All Part A Items Implemented (framework-v7)
 **Created**: 2026-04-14
 **Purpose**: Exhaustive catalogue of opportunities to apply 10×–100× more rigid parameterization
 across the cryptoutil repository. Based on deep analysis of `docs/ARCHITECTURE.md` (§1–15,
@@ -43,7 +43,7 @@ that validates and rejects deviations automatically.
 13. **[#13] API Path Parameter Registry** — each PS-ID declares its resource names as typed tuples
     `(path_type, api_version, resource)`; a fitness linter validates OpenAPI spec paths match the declarations.
 14. **[#14] Instruction File Slot Reservation Table** — *(Deferred — see Part B. Not planned at this time.)*
-15. **[#15] Fitness Sub-Linter Category Registry** — the 57 sub-linters expressed as a structured registry
+15. **[#15] Fitness Sub-Linter Category Registry** — the 68 sub-linters expressed as a structured registry
     (category, name, scope, enforcement level) enabling automated docs generation and gap detection.
 16. **[#16] Compose Service Instance Naming Schema** — `{ps-id}-{db}-{N}` stored as an explicit enumeration
     of all valid (ps-id, db, N) tuples; invalid names are errors, missing names are warnings.
@@ -62,7 +62,7 @@ that validates and rejects deviations automatically.
 
 ---
 
-### #01 — Machine-Readable Entity Registry Schema
+### #01 — Machine-Readable Entity Registry Schema ✅ IMPLEMENTED
 
 **Impact**: 100× — eliminates the root cause of every consistency gap.
 
@@ -202,7 +202,7 @@ JSON Schema on every commit.
 
 ---
 
-### #03 — @propagate Coverage Completeness Matrix
+### #03 — @propagate Coverage Completeness Matrix ✅ IMPLEMENTED
 
 **Impact**: 50× — prevents knowledge rot and compliance gaps across all 18 instruction files.
 
@@ -254,7 +254,7 @@ instruction-worthy content.
 
 ---
 
-### #04 — Port Formula Codification
+### #04 — Port Formula Codification ✅ IMPLEMENTED
 
 **Impact**: 30× — eliminates the only remaining manual source of port conflicts across
 the 10-service, 3-tier port matrix.
@@ -302,7 +302,7 @@ computed formulas + automated cross-file validation.
 
 ---
 
-### #05 — Parameterized Secret Value Generation
+### #05 — Parameterized Secret Value Generation ✅ IMPLEMENTED
 
 **Impact**: 30× — eliminates the most error-prone part of onboarding: generating 140 correct secrets.
 
@@ -362,7 +362,7 @@ validate against `secret-schemas.yaml` rather than hardcoded regex.
 
 ---
 
-### #06 — Config Overlay Template Validation
+### #06 — Config Overlay Template Validation ✅ IMPLEMENTED
 
 **Impact**: 30× — validates 50 deployment config overlay files against canonical templates.
 
@@ -410,7 +410,7 @@ continues to provide independent content validation.
 
 ---
 
-### #07 — Per-PS-ID Migration Range Reservation
+### #07 — Per-PS-ID Migration Range Reservation ✅ IMPLEMENTED
 
 **Impact**: 20× — prevents migration number collisions when multiple services evolve concurrently.
 
@@ -466,7 +466,7 @@ detection; enhanced `migration-numbering` linter reading bands from registry.
 
 ---
 
-### #08 — Dockerfile Label Derivation
+### #08 — Dockerfile Label Derivation ✅ IMPLEMENTED
 
 **Impact**: 20× — eliminates 10–11 hand-maintained Dockerfile sections with divergent labels.
 
@@ -506,7 +506,7 @@ fields per PS-ID.
 
 ---
 
-### #09 — CLI Subcommand Completeness Matrix
+### #09 — CLI Subcommand Completeness Matrix ✅ IMPLEMENTED
 
 **Impact**: 15× — guarantees every PS-ID exposes every required subcommand with zero manual tracking.
 
@@ -549,7 +549,7 @@ implicitly; fitness linter would surface the ~15 gaps in less-mature services.
 
 ---
 
-### #10 — OTLP / Compose Naming Formula
+### #10 — OTLP / Compose Naming Formula ✅ IMPLEMENTED
 
 **Impact**: 15× — eliminates ~50 string literals that must match a precise formula.
 
@@ -593,7 +593,7 @@ with entity registry validation; new `standalone-config-otlp-names` derivation f
 
 ---
 
-### #11 — SQL Identifier Derivation Function
+### #11 — SQL Identifier Derivation Function ✅ IMPLEMENTED
 
 **Impact**: 10× — provides a single canonical function for all database identifier computations.
 
@@ -647,7 +647,7 @@ these functions rather than regex-match independently.
 
 ---
 
-### #12 — Secret File Content Schema
+### #12 — Secret File Content Schema ✅ IMPLEMENTED
 
 **Impact**: 10× — closes the validation gap between "file exists" and "file contains correct content".
 
@@ -687,7 +687,7 @@ the cost of adding a new secret type from "modify linter code + tests" to "appen
 
 ---
 
-### #13 — API Path Parameter Registry
+### #13 — API Path Parameter Registry ✅ IMPLEMENTED
 
 **Impact**: 10× — ensures OpenAPI specs are structurally consistent across all 10 PS-IDs.
 
@@ -757,7 +757,7 @@ validated against a formula rather than inspected manually during code review.
 
 ---
 
-### #15 — Fitness Sub-Linter Category Registry
+### #15 — Fitness Sub-Linter Category Registry ✅ IMPLEMENTED
 
 **Impact**: 5× — enables automated documentation and gap detection for the 57-linter catalog.
 
@@ -806,7 +806,7 @@ validated via `@propagate`.
 
 ---
 
-### #16 — Compose Service Instance Naming Schema
+### #16 — Compose Service Instance Naming Schema ✅ IMPLEMENTED
 
 **Impact**: 5× — closes the validation gap between formula description and formula enforcement.
 
@@ -841,7 +841,7 @@ service names. All 50 validated by set membership rather than regex.
 
 ---
 
-### #17 — Health Path Completeness Matrix
+### #17 — Health Path Completeness Matrix ✅ IMPLEMENTED
 
 **Impact**: 5× — guarantees every service exposes every required health endpoint.
 
@@ -878,7 +878,7 @@ linter checking OpenAPI spec completeness.
 
 ---
 
-### #18 — Test File Suffix Registry
+### #18 — Test File Suffix Registry ✅ IMPLEMENTED
 
 **Impact**: 3× — enforces structural content rules for each of the 5 test file types.
 
@@ -922,7 +922,7 @@ content compliance, catching common errors (benchmark in non-bench file, missing
 
 ---
 
-### #19 — Import Alias Formula Enforcement
+### #19 — Import Alias Formula Enforcement ✅ IMPLEMENTED
 
 **Impact**: 3× — makes the `cryptoutil{Package}` / `{vendor}{Package}` convention machine-enforced.
 
@@ -970,7 +970,7 @@ when adding new packages.
 
 ---
 
-### #20 — X.509 Certificate Profile Schema
+### #20 — X.509 Certificate Profile Schema ✅ IMPLEMENTED
 
 **Impact**: 2× — validates 25 certificate profiles against a strict typed schema.
 
@@ -1013,7 +1013,7 @@ The following items are **not planned for implementation** at this time.
 
 ---
 
-### #02 — Generative Deployment Scaffold Command
+### #02 — Generative Deployment Scaffold Command ⏸️ DEFERRED
 
 **Status**: Deferred.
 
@@ -1032,7 +1032,7 @@ creation. The `skeleton-template` service provides a copy-and-modify reference.
 
 ---
 
-### #14 — Instruction File Slot Reservation Table
+### #14 — Instruction File Slot Reservation Table ⏸️ DEFERRED
 
 **Status**: Deferred — not sure if valuable enough to implement.
 
@@ -1048,26 +1048,26 @@ Conflicts are rare enough that manual coordination suffices.
 
 ## Impact Ranking Summary
 
-| Rank | ID | Title | Impact | Primary Benefit |
-|------|----|-------|--------|-----------------|
-| 1 | #01 | Machine-Readable Entity Registry Schema | 100× | Foundation for all other opportunities |
-| 2 | #03 | @propagate Coverage Completeness Matrix | 50× | Zero knowledge rot across 18 instruction files |
-| 3 | #04 | Port Formula Codification | 30× | 90 port values → 10 base values + 3 formulas |
-| 4 | #05 | Parameterized Secret Value Generation | 30× | 420 secret instances validated against 14 schemas |
-| 5 | #06 | Config Overlay Freshness Validation | 30× | 50 overlay files validated against templates |
-| 6 | #07 | Per-PS-ID Migration Range Reservation | 20× | Cross-service collision prevention |
-| 7 | #08 | Dockerfile Label Derivation | 20× | 128 parameterized lines from registry |
-| 8 | #09 | CLI Subcommand Completeness Matrix | 15× | 80 required handlers tracked automatically |
-| 9 | #10 | OTLP / Compose Naming Formula | 15× | 60 name instances from bounded formula |
-| 10 | #11 | SQL Identifier Derivation Function | 10× | 40 SQL identifiers from 1 function |
-| 11 | #12 | Secret File Content Schema | 10× | Schema-driven validation replaces ad-hoc regex |
-| 12 | #13 | API Path Parameter Registry | 10× | 100 API paths validated against formula |
-| 13 | #15 | Fitness Sub-Linter Category Registry | 5× | Doc ↔ code cross-reference for 57 linters |
-| 14 | #16 | Compose Service Instance Naming Schema | 5× | 50 names validated by set membership |
-| 15 | #17 | Health Path Completeness Matrix | 5× | 60 health path appearances verified |
-| 16 | #18 | Test File Suffix Registry | 3× | Structural content rules per suffix type |
-| 17 | #19 | Import Alias Formula Enforcement | 3× | 70 import aliases machine-validated |
-| 18 | #20 | X.509 Certificate Profile Schema | 2× | 375 profile field values type-validated |
+| Rank | ID | Title | Impact | Primary Benefit | Status |
+|------|----|-------|--------|-----------------|--------|
+| 1 | #01 | Machine-Readable Entity Registry Schema | 100× | Foundation for all other opportunities | ✅ Implemented |
+| 2 | #03 | @propagate Coverage Completeness Matrix | 50× | Zero knowledge rot across 18 instruction files | ✅ Implemented |
+| 3 | #04 | Port Formula Codification | 30× | 90 port values → 10 base values + 3 formulas | ✅ Implemented |
+| 4 | #05 | Parameterized Secret Value Generation | 30× | 420 secret instances validated against 14 schemas | ✅ Implemented |
+| 5 | #06 | Config Overlay Freshness Validation | 30× | 50 overlay files validated against templates | ✅ Implemented |
+| 6 | #07 | Per-PS-ID Migration Range Reservation | 20× | Cross-service collision prevention | ✅ Implemented |
+| 7 | #08 | Dockerfile Label Derivation | 20× | 128 parameterized lines from registry | ✅ Implemented |
+| 8 | #09 | CLI Subcommand Completeness Matrix | 15× | 80 required handlers tracked automatically | ✅ Implemented |
+| 9 | #10 | OTLP / Compose Naming Formula | 15× | 60 name instances from bounded formula | ✅ Implemented |
+| 10 | #11 | SQL Identifier Derivation Function | 10× | 40 SQL identifiers from 1 function | ✅ Implemented |
+| 11 | #12 | Secret File Content Schema | 10× | Schema-driven validation replaces ad-hoc regex | ✅ Implemented |
+| 12 | #13 | API Path Parameter Registry | 10× | 100 API paths validated against formula | ✅ Implemented |
+| 13 | #15 | Fitness Sub-Linter Category Registry | 5× | Doc ↔ code cross-reference for 68 linters | ✅ Implemented |
+| 14 | #16 | Compose Service Instance Naming Schema | 5× | 50 names validated by set membership | ✅ Implemented |
+| 15 | #17 | Health Path Completeness Matrix | 5× | 60 health path appearances verified | ✅ Implemented |
+| 16 | #18 | Test File Suffix Registry | 3× | Structural content rules per suffix type | ✅ Implemented |
+| 17 | #19 | Import Alias Formula Enforcement | 3× | 70 import aliases machine-validated | ✅ Implemented |
+| 18 | #20 | X.509 Certificate Profile Schema | 2× | 375 profile field values type-validated | ✅ Implemented |
 
 ---
 

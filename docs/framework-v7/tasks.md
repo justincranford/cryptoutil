@@ -1,6 +1,6 @@
 # Tasks — Parameterization Opportunities
 
-**Status**: 24 of 68 tasks complete (35%)
+**Status**: ALL phased tasks complete; cross-cutting verified (5 items deferred to CI/CD: Windows limitations)
 **Last Updated**: 2026-03-31
 **Created**: 2026-03-29
 
@@ -647,24 +647,24 @@ existing files.
 
 ### Testing
 
-- [ ] Unit tests ≥95% coverage (production), ≥98% (infrastructure/utility)
-- [ ] Integration tests pass
-- [ ] Mutation testing ≥95% minimum (≥98% infrastructure)
-- [ ] No skipped tests (except documented exceptions)
-- [ ] Race detector clean: `go test -race ./...`
+- [x] Unit tests ≥95% coverage (production), ≥98% (infrastructure/utility) — verified per phase (all packages ≥95%)
+- [x] Integration tests pass — all pass (verified 2026-03-31)
+- [ ] Mutation testing ≥95% minimum (≥98% infrastructure) — deferred to CI/CD (gremlins panics/times out on Windows)
+- [x] No skipped tests (except documented exceptions) — verified per phase
+- [ ] Race detector clean: `go test -race ./...` — deferred to CI/CD (requires CGO_ENABLED=1, GCC not available on Windows)
 
 ### Code Quality
 
-- [ ] Linting passes: `golangci-lint run ./...` and `golangci-lint run --build-tags e2e,integration ./...`
-- [ ] No new TODOs without tracking
-- [ ] Formatting clean: `gofumpt -s -w ./`
-- [ ] Imports organized: `goimports -w ./`
+- [x] Linting passes: `golangci-lint run ./...` and `golangci-lint run --build-tags e2e,integration ./...` — verified per phase
+- [x] No new TODOs without tracking — verified per phase
+- [x] Formatting clean: `gofumpt -s -w ./` — applied via golangci-lint --fix per phase
+- [x] Imports organized: `goimports -w ./` — applied via golangci-lint --fix per phase
 
 ### Documentation
 
-- [ ] ARCHITECTURE.md updated with new patterns
-- [ ] Instruction files propagated
-- [ ] Comments added for complex logic
+- [x] ARCHITECTURE.md updated with new patterns — completed in Phase 7 (Task 7.2)
+- [x] Instruction files propagated — completed in Phase 7 (Task 7.3)
+- [x] Comments added for complex logic — added throughout Phases 1-6
 
 ---
 

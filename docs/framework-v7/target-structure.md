@@ -269,10 +269,13 @@ cmd/                                                  # drwxr-x---  (18 flat ent
 ## D. api/ — OpenAPI Specs and Generated Code `drwxr-x---`
 
 **Pattern**: One directory per PS-ID. Each contains the OpenAPI spec files and oapi-codegen
-generated code.
+generated code. Plus a `cryptosuite-registry/` directory for the machine-readable entity registry.
 
 ```
 api/                                                  # drwxr-x---
+├── cryptosuite-registry/                             # Machine-readable entity registry (SSOT)
+│   ├── registry.yaml                                 #   Canonical YAML entity registry
+│   └── registry-schema.json                          #   JSON Schema validating registry.yaml
 ├── {PS-ID}/                                          # One dir per service (×10)
 │   ├── openapi_spec_components.yaml                  #   Reusable components
 │   ├── openapi_spec_paths.yaml                       #   API endpoints
@@ -639,13 +642,14 @@ internal/apps/
 │   │   ├── lint_compose/                             #     Docker Compose file linting
 │   │   ├── lint_deployments/                         #     Deployment structure validator (8 validators)
 │   │   ├── lint_docs/                                #     Documentation linter (includes docs_validation)
-│   │   ├── lint_fitness/                             #     Architecture fitness functions (59 linters)
+│   │   ├── lint_fitness/                             #     Architecture fitness functions (68 linters)
 │   │   │   ├── lint_fitness.go                       #       Fitness runner
 │   │   │   ├── lint_fitness_test.go
+│   │   │   ├── lint-fitness-registry.yaml             #       Machine-readable linter category registry
 │   │   │   ├── registry/                             #       Entity registry (SSOT)
 │   │   │   │   ├── registry.go
 │   │   │   │   └── registry_test.go
-│   │   │   └── (59 linter directories)               #       See Section M for full list
+│   │   │   └── (68 linter directories)               #       See Section M for full list
 │   │   ├── lint_go/                                  #     Go package linting
 │   │   ├── lint_golangci/                            #     golangci-lint config validation
 │   │   ├── lint_gotest/                              #     Go test file linting
@@ -759,8 +763,13 @@ docs/                                                 # drwxr-x---
 ├── ARCHITECTURE.md                                   # SSOT: Architecture reference (5080+ lines)
 ├── DEV-SETUP.md                                      # Developer setup guide
 ├── README.md                                         # Documentation index
+├── required-propagations.yaml                        # @propagate coverage completeness manifest
 └── framework-v7/                                     # Target structure documentation
-    └── target-structure.md                           # THIS FILE (canonical target structure)
+    ├── lessons.md                                    #   Lessons from framework-v7 implementation
+    ├── PARAMETERIZATION-OPPORTUNITIES.md             #   Parameterization opportunity catalog
+    ├── plan.md                                       #   Implementation plan
+    ├── target-structure.md                           #   THIS FILE (canonical target structure)
+    └── tasks.md                                      #   Task checklist
 ```
 
 ---
@@ -836,13 +845,15 @@ reminders that browser/service credentials are service-level concerns.
 
 ---
 
-## M. Fitness Linter Coverage (59 linters)
+## M. Fitness Linter Coverage (68 linters)
 
-**All 59 fitness linter directories** (alphabetical):
+**All 68 fitness linter directories** (alphabetical):
 
 ```
 lint_fitness/
+├── lint-fitness-registry.yaml             # Machine-readable linter category registry
 ├── admin_bind_address/                    # Admin 127.0.0.1:9090 bind enforcement
+├── api_path_registry/                     # API path registry validation (v7 NEW)
 ├── archive_detector/                      # No archived/orphaned directories
 ├── banned_product_names/                  # Legacy product name detection
 ├── bind_address_safety/                   # Bind address safety (no 0.0.0.0 in tests)
@@ -855,19 +866,25 @@ lint_fitness/
 ├── cmd_main_pattern/                      # cmd/*/main.go pattern validation
 ├── compose_db_naming/                     # Docker Compose DB naming conventions
 ├── compose_header_format/                 # Docker Compose header format
+├── compose_port_formula/                  # Compose port formula validation (v7 NEW)
 ├── compose_service_names/                 # Docker Compose service name conventions
 ├── configs_deployments_consistency/       # configs/ ↔ deployments/ structural mirror
 ├── configs_empty_dir/                     # No empty config directories
 ├── configs_naming/                        # Flat configs/{PS-ID}/ naming pattern
+├── config_overlay_freshness/              # Config overlay template freshness (v7 NEW)
 ├── cross_service_import_isolation/        # Service import isolation enforcement
 ├── crypto_rand/                           # crypto/rand enforcement (never math/rand)
 ├── deployment_dir_completeness/           # Deployment directory completeness
 ├── dockerfile_labels/                     # Dockerfile OCI label validation
 ├── domain_layer_isolation/                # Domain layer isolation enforcement
 ├── entity_registry_completeness/          # Entity registry vs filesystem sync
+├── entity_registry_schema/                # Entity registry YAML schema validation (v7 NEW)
 ├── file_size_limits/                      # File size limit enforcement (500 lines)
+├── fitness_registry_completeness/         # Fitness linter registry completeness (v7 NEW)
 ├── gen_config_initialisms/                # oapi-codegen initialism consistency
 ├── health_endpoint_presence/              # Health endpoint presence in services
+├── health_path_completeness/              # Health path completeness matrix (v7 NEW)
+├── import_alias_formula/                  # Import alias formula enforcement (v7 NEW)
 ├── infra_tool_naming/                     # Infrastructure tool naming conventions
 ├── insecure_skip_verify/                  # InsecureSkipVerify detection
 ├── legacy_dir_detection/                  # Legacy directory detection
@@ -885,6 +902,7 @@ lint_fitness/
 ├── no_unit_test_real_server/              # No real server in unit tests
 ├── otlp_service_name_pattern/             # OTLP service name pattern enforcement
 ├── parallel_tests/                        # t.Parallel() enforcement
+├── pki_ca_profile_schema/                 # PKI-CA certificate profile schema validation (v7 NEW)
 ├── product_structure/                     # Product directory structure validation
 ├── product_wiring/                        # Product wiring validation
 ├── registry/                              # Entity registry (SSOT)
@@ -897,7 +915,9 @@ lint_fitness/
 ├── service_structure/                     # Service directory structure validation
 ├── standalone_config_otlp_names/          # Standalone config OTLP name consistency
 ├── standalone_config_presence/            # Standalone config file presence
+├── subcommand_completeness/               # CLI subcommand completeness matrix (v7 NEW)
 ├── template_consistency/                  # Skeleton template consistency
+├── test_file_suffix_structure/            # Test file suffix structural rules (v7 NEW)
 ├── test_patterns/                         # Test pattern enforcement
 ├── tls_minimum_version/                   # TLS 1.3+ minimum version enforcement
 └── unseal_secret_content/                 # Unseal key value pattern validation
