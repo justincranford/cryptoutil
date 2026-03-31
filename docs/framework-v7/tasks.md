@@ -1,6 +1,6 @@
 # Tasks — Parameterization Opportunities
 
-**Status**: 21 of 68 tasks complete (31%)
+**Status**: 22 of 68 tasks complete (32%)
 **Last Updated**: 2026-03-31
 **Created**: 2026-03-29
 
@@ -464,19 +464,20 @@ existing files.
 
 #### Task 5.3: #16 Compose Instance Naming
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 4h
-- **Actual**: —
+- **Actual**: Completed 2026-03-31
 - **Dependencies**: Phase 3 (derivation functions)
 - **Description**: Change `compose-service-names` from regex-match to set-membership check
   using `ValidComposeServiceNames()`.
 - **Acceptance Criteria**:
-  - [ ] Linter computes valid names from registry + variant list
-  - [ ] Rejects any service name not in computed set
-  - [ ] Tests: ≥95% coverage
+  - [x] Linter computes valid names from registry + variant list via `buildValidServiceSet()` using `ValidComposeServiceNames()` + `DBServiceName()`
+  - [x] Rejects any service name with PS-ID prefix not in valid set (infrastructure services without prefix are allowed)
+  - [x] Tests: 100% coverage
 - **Files**:
-  - `lint_fitness/compose_service_names/` (rewrite)
+  - `internal/apps/tools/cicd_lint/lint_fitness/compose_service_names/compose_service_names.go` (rewrite)
+  - `internal/apps/tools/cicd_lint/lint_fitness/compose_service_names/compose_service_names_test.go` (added 2 tests)
 
 #### Task 5.4: Phase 5 Quality Gates
 

@@ -159,3 +159,39 @@ func TestCheckInDir_MissingRequiredService(t *testing.T) {
 		})
 	}
 }
+
+func TestCheckInDir_UnrecognisedPSIDService(t *testing.T) {
+    t.Parallel()
+
+    psID := cryptoutilSharedMagic.OTLPServiceSMIM
+
+    tmpDir := t.TempDir()
+    setupAllComposeFiles(t, tmpDir)
+
+    // Add a service with the PS-ID prefix but an unrecognised variant name.
+    // e.g., "sm-im-app-sqlite-99" -- has prefix "sm-im-" but is not in valid set.
+    bogusServiceBlock := correctServicesBlock(psID) + "  " + psID + "-app-bogus-variant: {}\n"
+    writeComposeYML(t, tmpDir, psID, bogusServiceBlock)
+
+    err := lintFitnessComposeServiceNames.CheckInDir(newTestLogger(), tmpDir)
+    require.Error(t, err)
+    assert.Contains(t, err.Error(), "unrecognised service")
+    assert.Contains(t, err.Error(), psID+"-app-bogus-variant")
+}
+
+func TestCheckInDir_InvalidYAML(t *testing.T) {
+    t.Parallel()
+
+    psID := cryptoutilSharedMagic.OTLPServiceSMIM
+
+    tmpDir := t.TempDir()
+    setupAllComposeFiles(t, tmpDir)
+
+    // Overwrite sm-im compose.yml with invalid YAML.
+    deployDir := filepath.Join(tmpDir, "deployments", psID)
+    require.NoError(t, os.WriteFile(filepath.Join(deployDir, "compose.yml"), []byte("services: [\ninvalid yaml"), cryptoutilSharedMagic.FilePermissions))
+
+    err := lintFitnessComposeServiceNames.CheckInDir(newTestLogger(), tmpDir)
+    require.Error(t, err)
+    assert.Contains(t, err.Error(), "cannot parse")
+}
