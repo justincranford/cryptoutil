@@ -154,7 +154,7 @@ ENTRYPOINT ["/sbin/tini", "--", "/app/cryptoutil", "identity-spa", "start"]
 #############################################################################################
 # Labels for container metadata.
 #############################################################################################
-LABEL org.opencontainers.image.title="cryptoutil-identity-spa-rp" \
+LABEL org.opencontainers.image.title="cryptoutil-identity-spa" \
     org.opencontainers.image.description="SPA Relying Party for cryptoutil Identity services" \
     org.opencontainers.image.version="${APP_VERSION}" \
     org.opencontainers.image.created="${BUILD_DATE}" \

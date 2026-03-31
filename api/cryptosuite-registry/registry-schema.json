@@ -76,6 +76,14 @@
         "display_name": {
           "$ref": "#/definitions/NonEmptyString"
         },
+        "entrypoint": {
+          "description": "Canonical Dockerfile ENTRYPOINT arguments for this PS-ID.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
         "internal_apps_dir": {
           "$ref": "#/definitions/DirPath"
         },
@@ -119,7 +127,8 @@
         "pg_host_port",
         "migration_range_start",
         "migration_range_end",
-        "api_resources"
+        "api_resources",
+        "entrypoint"
       ],
       "type": "object"
     },

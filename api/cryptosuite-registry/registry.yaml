@@ -51,6 +51,7 @@ product_services:
     internal_apps_dir: sm-kms/
     magic_file: magic_sm.go
     base_port: 8000
+    entrypoint: ["/sbin/tini", "--", "/app/cryptoutil"]
     pg_host_port: 54320
     migration_range_start: 2001
     migration_range_end: 2999
@@ -77,6 +78,7 @@ product_services:
     internal_apps_dir: sm-im/
     magic_file: magic_sm_im.go
     base_port: 8100
+    entrypoint: ["/app/sm-im"]
     pg_host_port: 54321
     migration_range_start: 3001
     migration_range_end: 3999
@@ -92,6 +94,7 @@ product_services:
     internal_apps_dir: jose-ja/
     magic_file: magic_jose.go
     base_port: 8200
+    entrypoint: ["/app/jose-ja"]
     pg_host_port: 54322
     migration_range_start: 4001
     migration_range_end: 4999
@@ -119,6 +122,7 @@ product_services:
     internal_apps_dir: pki-ca/
     magic_file: magic_pki.go
     base_port: 8300
+    entrypoint: ["/app/pki-ca"]
     pg_host_port: 54323
     migration_range_start: 5001
     migration_range_end: 5999
@@ -149,6 +153,7 @@ product_services:
     internal_apps_dir: identity-authz/
     magic_file: magic_identity.go
     base_port: 8400
+    entrypoint: ["/sbin/tini", "--", "/app/cryptoutil", "identity-authz", "start"]
     pg_host_port: 54324
     migration_range_start: 6001
     migration_range_end: 6999
@@ -176,6 +181,7 @@ product_services:
     internal_apps_dir: identity-idp/
     magic_file: magic_identity.go
     base_port: 8500
+    entrypoint: ["/sbin/tini", "--", "/app/cryptoutil", "identity-idp", "start"]
     pg_host_port: 54325
     migration_range_start: 7001
     migration_range_end: 7999
@@ -193,6 +199,7 @@ product_services:
     internal_apps_dir: identity-rs/
     magic_file: magic_identity.go
     base_port: 8600
+    entrypoint: ["/sbin/tini", "--", "/app/cryptoutil", "identity-rs", "start"]
     pg_host_port: 54326
     migration_range_start: 8001
     migration_range_end: 8999
@@ -208,6 +215,7 @@ product_services:
     internal_apps_dir: identity-rp/
     magic_file: magic_identity.go
     base_port: 8700
+    entrypoint: ["/sbin/tini", "--", "/app/cryptoutil", "identity-rp", "start"]
     pg_host_port: 54327
     migration_range_start: 9001
     migration_range_end: 9999
@@ -220,6 +228,7 @@ product_services:
     internal_apps_dir: identity-spa/
     magic_file: magic_identity.go
     base_port: 8800
+    entrypoint: ["/sbin/tini", "--", "/app/cryptoutil", "identity-spa", "start"]
     pg_host_port: 54328
     migration_range_start: 10001
     migration_range_end: 10999
@@ -232,6 +241,7 @@ product_services:
     internal_apps_dir: skeleton-template/
     magic_file: magic_skeleton.go
     base_port: 8900
+    entrypoint: ["/app/skeleton-template"]
     pg_host_port: 54329
     migration_range_start: 11001
     migration_range_end: 11999

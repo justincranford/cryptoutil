@@ -202,3 +202,21 @@ func ValidComposeServiceNames() []string {
 
 	return names
 }
+
+// -----------------------------------------------------------------------
+// Dockerfile derivation functions (Task 5.2)
+// -----------------------------------------------------------------------
+
+// DockerfileEntrypoint returns the canonical ENTRYPOINT arguments for the given PS-ID.
+// The entrypoint is defined in registry.yaml per PS-ID and reflects the actual
+// binary used to run the service (own PS-ID binary or suite binary with subcommand).
+// Returns nil if the PS-ID is not found in the registry.
+func DockerfileEntrypoint(psID string) []string {
+	for _, ps := range allRegistryFile.ProductServices {
+		if ps.PSID == psID {
+			return ps.Entrypoint
+		}
+	}
+
+	return nil
+}

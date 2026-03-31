@@ -60,6 +60,9 @@ type RegistryProductService struct {
 	MigrationRangeEnd int `yaml:"migration_range_end"`
 	// APIResources lists the canonical OpenAPI path strings for this service's API.
 	APIResources []string `yaml:"api_resources"`
+	// Entrypoint is the canonical Dockerfile ENTRYPOINT arguments for this PS-ID.
+	// Example: ["/app/jose-ja"] or ["/sbin/tini", "--", "/app/cryptoutil", "identity-authz", "start"].
+	Entrypoint []string `yaml:"entrypoint"`
 }
 
 // PortInfo holds port information derived from the registry for a product-service.

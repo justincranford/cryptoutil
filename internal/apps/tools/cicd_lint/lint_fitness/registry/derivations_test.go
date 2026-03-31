@@ -402,3 +402,42 @@ func TestValidComposeServiceNames(t *testing.T) {
 	require.Contains(t, names, cryptoutilSharedMagic.OTLPServiceJoseJA+ComposeAppSuffix+ComposeVariantSQLite1)
 	require.Contains(t, names, cryptoutilSharedMagic.OTLPServiceSkeletonTemplate+ComposeAppSuffix+ComposeVariantPostgres2)
 }
+
+// -----------------------------------------------------------------------
+// Dockerfile derivation tests (Task 5.2)
+// -----------------------------------------------------------------------
+
+func TestDockerfileEntrypoint_AllPSIDs(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		psID string
+		want []string
+	}{
+		{psID: cryptoutilSharedMagic.OTLPServiceSMKMS, want: []string{"/sbin/tini", "--", "/app/cryptoutil"}},
+		{psID: cryptoutilSharedMagic.OTLPServiceSMIM, want: []string{"/app/sm-im"}},
+		{psID: cryptoutilSharedMagic.OTLPServiceJoseJA, want: []string{"/app/jose-ja"}},
+		{psID: cryptoutilSharedMagic.OTLPServicePKICA, want: []string{"/app/pki-ca"}},
+		{psID: cryptoutilSharedMagic.OTLPServiceIdentityAuthz, want: []string{"/sbin/tini", "--", "/app/cryptoutil", cryptoutilSharedMagic.OTLPServiceIdentityAuthz, "start"}},
+		{psID: cryptoutilSharedMagic.OTLPServiceIdentityIDP, want: []string{"/sbin/tini", "--", "/app/cryptoutil", cryptoutilSharedMagic.OTLPServiceIdentityIDP, "start"}},
+		{psID: cryptoutilSharedMagic.OTLPServiceIdentityRS, want: []string{"/sbin/tini", "--", "/app/cryptoutil", cryptoutilSharedMagic.OTLPServiceIdentityRS, "start"}},
+		{psID: cryptoutilSharedMagic.OTLPServiceIdentityRP, want: []string{"/sbin/tini", "--", "/app/cryptoutil", cryptoutilSharedMagic.OTLPServiceIdentityRP, "start"}},
+		{psID: cryptoutilSharedMagic.OTLPServiceIdentitySPA, want: []string{"/sbin/tini", "--", "/app/cryptoutil", cryptoutilSharedMagic.OTLPServiceIdentitySPA, "start"}},
+		{psID: cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, want: []string{"/app/skeleton-template"}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.psID, func(t *testing.T) {
+			t.Parallel()
+
+			got := DockerfileEntrypoint(tt.psID)
+			require.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestDockerfileEntrypoint_UnknownPSID(t *testing.T) {
+	t.Parallel()
+
+	require.Nil(t, DockerfileEntrypoint("unknown-service"))
+}
