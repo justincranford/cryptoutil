@@ -65,7 +65,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 func buildValidServiceSet() map[string]struct{} {
 	validNames := lintFitnessRegistry.ValidComposeServiceNames()
 	allPS := lintFitnessRegistry.AllProductServices()
-	set := make(map[string]struct{}, len(validNames)+len(allPS))
+	set := make(map[string]struct{})
 
 	for _, name := range validNames {
 		set[name] = struct{}{}
