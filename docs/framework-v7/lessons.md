@@ -115,7 +115,62 @@
 
 ## Phase 5: Deployment & Build Validation
 
-*(To be filled during Phase 5 execution)*
+**Completed**: 2026-03-31 (Tasks 5.1–5.3)
+
+### What Worked
+
+- **Explicit `entrypoint` field per PS-ID in registry.yaml**: When ENTRYPOINT patterns are
+  inconsistent across PS-IDs (own binary vs. suite binary + subcommand + start), adding an
+  explicit `entrypoint` field to each PS-ID in `registry.yaml` is cleaner than deriving the
+  pattern algorithmically. Enables `DockerfileEntrypoint(psID)` derivation with zero ambiguity.
+- **Exact title matching via `OTLPServiceName()` for PS-ID dirs**: Switching from substring
+  match to exact case-insensitive comparison for PS-ID Dockerfiles caught a real bug —
+  `identity-spa` had title `cryptoutil-identity-spa-rp` (wrong `-rp` suffix from copy-paste).
+  Suite/product dirs kept substring match (legitimate multi-service images).
+- **Set-membership via `buildValidServiceSet()` with PS-ID prefix filter**: For compose
+  service name validation, check only services whose name starts with `psID+"-"` against the
+  valid set built from `ValidComposeServiceNames()` + `DBServiceName()`. Infrastructure helper
+  services (`pki-init`, `healthcheck-secrets`, `builder-*`) don't carry the PS-ID prefix and
+  pass through naturally without an exemption list.
+- **`buildValidServiceSet()` computed once in `CheckInDir`**: Build the full valid set once
+  and pass it as a parameter to `checkServiceNames()` for all 10 PS-IDs, avoiding 10 redundant
+  set builds per invocation.
+
+### What Didn't Work
+
+- **Initial set-membership checked ALL service names**: Rejected legitimate infrastructure
+  services (`pki-init`, `healthcheck-secrets`, `builder-{psID}`) present in all 10 real compose
+  files. Fix: only validate services with the PS-ID prefix via `strings.HasPrefix`.
+- **Magic literal in `want []string{...}` test expected values**: Even in test assertion slices
+  like `want: []string{..., "identity-authz", ...}`, the identity PS-ID string literal
+  triggers `literal-use [blocking]`. Must use `cryptoutilSharedMagic.OTLPService*` constants
+  in expected values too — not just production code.
+
+### Root Causes
+
+- **identity-spa title bug**: Dockerfile had `cryptoutil-identity-spa-rp` — the `-rp` suffix
+  was an incorrect copy-paste from `identity-rp`. Registry-driven exact matching caught this;
+  substring matching had silently accepted it for months.
+- **magic literal-use in test `want` slices**: The `lint-go literal-use` scanner examines ALL
+  Go string literals, including struct field initializers inside table-driven test `want` slices.
+  Pattern: all PS-ID string literals in tests must use the `cryptoutilSharedMagic` constants.
+
+### Patterns
+
+- **ENTRYPOINT registry field**: For services with non-uniform ENTRYPOINT, declare canonical
+  entrypoint array in `registry.yaml` per PS-ID under the `entrypoint` key. Schema enforces
+  `minItems: 1`. Derivation: `DockerfileEntrypoint(psID) []string`.
+- **Structural coverage ceilings on Windows**: `os.Stat` permission errors and
+  `bufio.Scanner.Err()` I/O errors cannot be injected without OS-level mocks. Accept
+  93–97% per function as structural ceiling; overall ≥95% is the practical quality gate.
+  Document the ceiling in test comments.
+- **Compose prefix filter**: When validating compose service names by set membership, scope
+  to `strings.HasPrefix(svc, psID+"-")` to automatically exclude infrastructure services
+  without needing an explicit exemption list.
+- **Pre-commit double-commit pattern**: PowerShell `WriteAllText` writes system line endings.
+  `end-of-file-fixer` and `mixed-line-ending` pre-commit hooks fix on first commit attempt;
+  second commit succeeds. Always expect two `git commit` invocations when new files are
+  written via PowerShell.
 
 ## Phase 6: API & Health Completeness
 
