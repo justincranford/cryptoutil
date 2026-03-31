@@ -181,7 +181,7 @@ func TestFormatVerificationResults(t *testing.T) {
 				{Mapping: ChunkMapping{ArchSection: "2.2", Description: "B"}, Found: true},
 			},
 			allPassed: true,
-			wantParts: []string{"PASS [1.1] A", "PASS [2.2] B", "2 PASS, 0 FAIL", "verified successfully"},
+			wantParts: []string{"PASS [1.1] A", "PASS [2.2] B", "Summary: 2 PASS, 0 FAIL", "verified successfully"},
 		},
 		{
 			name: "some fail - missing",

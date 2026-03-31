@@ -235,6 +235,56 @@ See [ARCHITECTURE.md Section 99.9](../../docs/ARCHITECTURE.md#99-nonexistent) br
 	require.Equal(t, 0, result.LowImpact.Referenced)
 }
 
+func TestValidatePropagation_AllLevelsCovered(t *testing.T) {
+	t.Parallel()
+
+	archContent := `# Main
+## 1. Executive Summary
+### 1.1 Vision Statement
+#### 1.1.1 Deep Section
+#### 1.1.2 Another Deep Section
+`
+	// References: ## (executive-summary), ### (vision-statement), #### (111-deep-section).
+	instructionContent := `See [ARCHITECTURE.md Section 1](../../docs/ARCHITECTURE.md#1-executive-summary) for summary.
+See [ARCHITECTURE.md Section 1.1](../../docs/ARCHITECTURE.md#11-vision-statement) for vision.
+See [ARCHITECTURE.md Section 1.1.1](../../docs/ARCHITECTURE.md#111-deep-section) for detail.
+`
+	rootDir := t.TempDir()
+
+	require.NoError(t, os.MkdirAll(rootDir+"/.github/instructions", 0o700))
+	require.NoError(t, os.MkdirAll(rootDir+"/.github/agents", 0o700))
+	require.NoError(t, os.MkdirAll(rootDir+"/docs", 0o700))
+	require.NoError(t, os.WriteFile(rootDir+"/docs/ARCHITECTURE.md", []byte(archContent), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(rootDir+"/.github/instructions/test.instructions.md", []byte(instructionContent), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(rootDir+"/.github/copilot-instructions.md", []byte("No refs."), cryptoutilSharedMagic.CacheFilePermissions))
+
+	readFile := func(path string) ([]byte, error) {
+		return os.ReadFile(rootDir + "/" + path)
+	}
+
+	result, err := ValidatePropagation(rootDir, readFile)
+	require.NoError(t, err)
+
+	// All 3 references should be valid.
+	require.Len(t, result.ValidRefs, 3)
+	require.Empty(t, result.BrokenRefs)
+
+	// ## level: 1 total, 1 referenced (kills HighImpact.Total++/Referenced++ mutations).
+	require.Equal(t, 1, result.HighImpact.Total)
+	require.Equal(t, 1, result.HighImpact.Referenced)
+
+	// ### level: 1 total, 1 referenced (kills MediumImpact counter mutations).
+	require.Equal(t, 1, result.MediumImpact.Total)
+	require.Equal(t, 1, result.MediumImpact.Referenced)
+
+	// #### level: 2 total, 1 referenced (kills LowImpact.Total++/Referenced++ mutations).
+	require.Equal(t, 2, result.LowImpact.Total)
+	require.Equal(t, 1, result.LowImpact.Referenced)
+
+	// One orphaned #### section (1.1.2 not referenced).
+	require.Empty(t, result.OrphanedKeys, "#### sections are not tracked as orphans")
+}
+
 func TestValidatePropagation_MissingArchFile(t *testing.T) {
 	t.Parallel()
 
@@ -287,6 +337,37 @@ See [Section 1.1](../../docs/ARCHITECTURE.md#11-vision-statement) correct.
 	require.Equal(t, "134-documentation-strategy", result.DisplayTextWarnings[0].Anchor)
 }
 
+func TestValidatePropagation_CopilotInstructionsRef(t *testing.T) {
+	t.Parallel()
+
+	archContent := `# Main
+## 1. Executive Summary
+### 1.1 Vision Statement
+`
+	// copilot-instructions.md has a valid ref (kills err==nil negation mutation).
+	copilotContent := `See [ARCHITECTURE.md Section 1.1](../../docs/ARCHITECTURE.md#11-vision-statement) for vision.`
+
+	rootDir := t.TempDir()
+
+	require.NoError(t, os.MkdirAll(rootDir+"/.github/instructions", 0o700))
+	require.NoError(t, os.MkdirAll(rootDir+"/.github/agents", 0o700))
+	require.NoError(t, os.MkdirAll(rootDir+"/docs", 0o700))
+	require.NoError(t, os.WriteFile(rootDir+"/docs/ARCHITECTURE.md", []byte(archContent), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(rootDir+"/.github/copilot-instructions.md", []byte(copilotContent), cryptoutilSharedMagic.CacheFilePermissions))
+
+	readFile := func(path string) ([]byte, error) {
+		return os.ReadFile(rootDir + "/" + path)
+	}
+
+	result, err := ValidatePropagation(rootDir, readFile)
+	require.NoError(t, err)
+
+	// The ref from copilot-instructions.md should be included.
+	require.Len(t, result.ValidRefs, 1)
+	require.Equal(t, "11-vision-statement", result.ValidRefs[0].Anchor)
+	require.Equal(t, cryptoutilSharedMagic.CICDCopilotInstructionsFile, result.ValidRefs[0].SourceFile)
+}
+
 func TestFormatPropagationResults_AllValid(t *testing.T) {
 	t.Parallel()
 
@@ -309,6 +390,9 @@ func TestFormatPropagationResults_AllValid(t *testing.T) {
 	require.Contains(t, report, "Medium (### ): 5/7 (71%)")
 	require.Contains(t, report, "Low    (####): 2/10 (20%)")
 	require.Contains(t, report, "Combined ##/###: 8/10 (80%)")
+	// Verify empty sections are NOT printed (kills len()>0 boundary mutations).
+	require.NotContains(t, report, "ORPHANED SECTIONS")
+	require.NotContains(t, report, "DISPLAY TEXT MISMATCHES")
 }
 
 func TestFormatPropagationResults_WithBroken(t *testing.T) {

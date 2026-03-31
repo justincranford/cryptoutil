@@ -609,6 +609,10 @@ func TestValidateCoverage_ViolationsSortedByChunkAndFile(t *testing.T) {
 	require.Equal(t, "aaa-first", result.Violations[1].ChunkID)
 	// Last should be zzz-last.
 	require.Equal(t, "zzz-last", result.Violations[2].ChunkID)
+
+	// Verify secondary sort by File within same ChunkID (kills sort negation mutation).
+	require.Contains(t, result.Violations[0].File, "a.instructions.md")
+	require.Contains(t, result.Violations[1].File, "b.instructions.md")
 }
 
 // -----------------------------------------------------------------------
@@ -628,6 +632,9 @@ func TestFormatCoverageValidationResults_CleanResult(t *testing.T) {
 	require.Contains(t, report, "Manifest chunks:      40")
 	require.Contains(t, report, "Architecture chunks:  40")
 	require.Contains(t, report, "All required @propagate chunks are covered")
+	// Verify empty sections are NOT printed (kills len()>0 boundary mutations).
+	require.NotContains(t, report, "ORPHANED CHUNKS")
+	require.NotContains(t, report, "MISSING @SOURCE BLOCKS")
 }
 
 func TestFormatCoverageValidationResults_WithViolations(t *testing.T) {

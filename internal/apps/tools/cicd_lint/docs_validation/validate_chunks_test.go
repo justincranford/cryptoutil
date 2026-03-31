@@ -399,7 +399,7 @@ func TestFormatChunkResults(t *testing.T) {
 				Matched: 2,
 			},
 			wantContains: []string{"2 chunks, 2 matched, 0 mismatched", "All propagated chunks are in sync."},
-			wantExcludes: []string{"STALE", cryptoutilSharedMagic.TestStatusFail},
+			wantExcludes: []string{"STALE", cryptoutilSharedMagic.TestStatusFail, "FILE NOT FOUND", "MISSING @source BLOCKS", "CONTENT MISMATCHES"},
 		},
 		{
 			name: "with mismatch",
