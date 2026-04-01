@@ -9,6 +9,8 @@ import (
 	"database/sql"
 	"fmt"
 	"io/fs"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -80,12 +82,16 @@ func NewInitializedPostgresTestDatabase(ctx context.Context, migrationsFS fs.FS)
 // Usage: sqlDB, err := NewInitializedSQLiteTestDatabase(ctx, migrationsFS, true).
 func NewInitializedSQLiteTestDatabase(ctx context.Context, migrationsFS fs.FS, inMemory bool) (*sql.DB, func(), error) {
 	var databaseURL string
+
+	var tempFile string
+
 	if inMemory {
 		// Unique in-memory database (prevents cross-test pollution).
 		databaseURL = fmt.Sprintf("file:%s?mode=memory&cache=shared", googleUuid.NewString())
 	} else {
-		// Unique file-based database (no directory path - creates in current dir).
-		databaseURL = fmt.Sprintf("file:test_%s.db?cache=shared", googleUuid.NewString())
+		// Unique file-based database in OS temp directory (not current working directory).
+		tempFile = filepath.Join(os.TempDir(), fmt.Sprintf("cryptoutil-test-%s.db", googleUuid.NewString()))
+		databaseURL = fmt.Sprintf("file:%s?cache=shared", tempFile)
 	}
 
 	// Initialize database with migrations.
@@ -106,6 +112,13 @@ func NewInitializedSQLiteTestDatabase(ctx context.Context, migrationsFS fs.FS, i
 		err := sqlDB.Close()
 		if err != nil {
 			fmt.Printf("Failed to close SQLite in-memory database: %v\n", err)
+		}
+
+		// Remove file-based database from temp directory.
+		if tempFile != "" {
+			_ = os.Remove(tempFile)
+			_ = os.Remove(tempFile + "-shm")
+			_ = os.Remove(tempFile + "-wal")
 		}
 	}
 
