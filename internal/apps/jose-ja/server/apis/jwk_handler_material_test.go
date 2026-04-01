@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose-ja/model"
+	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose-ja/server/model"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	fiber "github.com/gofiber/fiber/v2"

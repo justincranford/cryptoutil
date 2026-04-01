@@ -7,8 +7,8 @@ package apis
 import (
 	"time"
 
-	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose-ja/model"
-	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose-ja/repository"
+	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose-ja/server/model"
+	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose-ja/server/repository"
 	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"

@@ -7,7 +7,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 
-	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose-ja/repository"
+	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose-ja/server/repository"
 	cryptoutilAppsJoseJaServerApis "cryptoutil/internal/apps/jose-ja/server/apis"
 	cryptoutilAppsFrameworkServiceServer "cryptoutil/internal/apps/framework/service/server"
 	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"

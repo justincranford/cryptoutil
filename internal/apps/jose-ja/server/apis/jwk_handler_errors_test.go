@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose-ja/model"
+	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose-ja/server/model"
 
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
