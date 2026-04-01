@@ -75,7 +75,7 @@ func TestCheckInDir_CorrectHeaders(t *testing.T) {
 	// Write correct migrations for sm-im (representative PS with migrations).
 	const (
 		smIMAppsDir     = "sm-im/"
-		smIMDisplayName = "Secrets Manager Instant Messenger"
+		smIMDisplayName = "Instant Messenger"
 	)
 
 	writeMigrationFile(t, tmpDir, smIMAppsDir, "2001_init.up.sql", upHeader(smIMDisplayName))
@@ -92,7 +92,7 @@ func TestCheckInDir_WrongUpHeader(t *testing.T) {
 
 	const (
 		smIMAppsDir     = "sm-im/"
-		smIMDisplayName = "Secrets Manager Instant Messenger"
+		smIMDisplayName = "Instant Messenger"
 	)
 
 	writeMigrationFile(t, tmpDir, smIMAppsDir, "2001_init.up.sql",
@@ -113,7 +113,7 @@ func TestCheckInDir_WrongDownHeader(t *testing.T) {
 
 	const (
 		smIMAppsDir     = "sm-im/"
-		smIMDisplayName = "Secrets Manager Instant Messenger"
+		smIMDisplayName = "Instant Messenger"
 	)
 
 	writeMigrationFile(t, tmpDir, smIMAppsDir, "2001_init.up.sql", upHeader(smIMDisplayName))
@@ -134,7 +134,7 @@ func TestCheckInDir_NoCommentHeader(t *testing.T) {
 
 	const (
 		smIMAppsDir     = "sm-im/"
-		smIMDisplayName = "Secrets Manager Instant Messenger"
+		smIMDisplayName = "Instant Messenger"
 	)
 
 	// File with no comment header at all.
@@ -156,7 +156,7 @@ func TestCheckInDir_FrameworkMigrationSkipped(t *testing.T) {
 
 	const (
 		smIMAppsDir     = "sm-im/"
-		smIMDisplayName = "Secrets Manager Instant Messenger"
+		smIMDisplayName = "Instant Messenger"
 	)
 
 	// Framework migration (1001) - must be skipped even with wrong header.

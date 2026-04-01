@@ -414,16 +414,16 @@ func TestDockerfileEntrypoint_AllPSIDs(t *testing.T) {
 		psID string
 		want []string
 	}{
-		{psID: cryptoutilSharedMagic.OTLPServiceSMKMS, want: []string{"/sbin/tini", "--", "/app/cryptoutil"}},
-		{psID: cryptoutilSharedMagic.OTLPServiceSMIM, want: []string{"/app/sm-im"}},
-		{psID: cryptoutilSharedMagic.OTLPServiceJoseJA, want: []string{"/app/jose-ja"}},
-		{psID: cryptoutilSharedMagic.OTLPServicePKICA, want: []string{"/app/pki-ca"}},
-		{psID: cryptoutilSharedMagic.OTLPServiceIdentityAuthz, want: []string{"/sbin/tini", "--", "/app/cryptoutil", cryptoutilSharedMagic.OTLPServiceIdentityAuthz, "start"}},
-		{psID: cryptoutilSharedMagic.OTLPServiceIdentityIDP, want: []string{"/sbin/tini", "--", "/app/cryptoutil", cryptoutilSharedMagic.OTLPServiceIdentityIDP, "start"}},
-		{psID: cryptoutilSharedMagic.OTLPServiceIdentityRS, want: []string{"/sbin/tini", "--", "/app/cryptoutil", cryptoutilSharedMagic.OTLPServiceIdentityRS, "start"}},
-		{psID: cryptoutilSharedMagic.OTLPServiceIdentityRP, want: []string{"/sbin/tini", "--", "/app/cryptoutil", cryptoutilSharedMagic.OTLPServiceIdentityRP, "start"}},
-		{psID: cryptoutilSharedMagic.OTLPServiceIdentitySPA, want: []string{"/sbin/tini", "--", "/app/cryptoutil", cryptoutilSharedMagic.OTLPServiceIdentitySPA, "start"}},
-		{psID: cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, want: []string{"/app/skeleton-template"}},
+		{psID: cryptoutilSharedMagic.OTLPServiceSMKMS, want: []string{"/sbin/tini", "--", "/app/sm-kms"}},
+		{psID: cryptoutilSharedMagic.OTLPServiceSMIM, want: []string{"/sbin/tini", "--", "/app/sm-im"}},
+		{psID: cryptoutilSharedMagic.OTLPServiceJoseJA, want: []string{"/sbin/tini", "--", "/app/jose-ja"}},
+		{psID: cryptoutilSharedMagic.OTLPServicePKICA, want: []string{"/sbin/tini", "--", "/app/pki-ca"}},
+		{psID: cryptoutilSharedMagic.OTLPServiceIdentityAuthz, want: []string{"/sbin/tini", "--", "/app/identity-authz"}},
+		{psID: cryptoutilSharedMagic.OTLPServiceIdentityIDP, want: []string{"/sbin/tini", "--", "/app/identity-idp"}},
+		{psID: cryptoutilSharedMagic.OTLPServiceIdentityRS, want: []string{"/sbin/tini", "--", "/app/identity-rs"}},
+		{psID: cryptoutilSharedMagic.OTLPServiceIdentityRP, want: []string{"/sbin/tini", "--", "/app/identity-rp"}},
+		{psID: cryptoutilSharedMagic.OTLPServiceIdentitySPA, want: []string{"/sbin/tini", "--", "/app/identity-spa"}},
+		{psID: cryptoutilSharedMagic.OTLPServiceSkeletonTemplate, want: []string{"/sbin/tini", "--", "/app/skeleton-template"}},
 	}
 
 	for _, tt := range tests {
