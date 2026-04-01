@@ -18,9 +18,10 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
 	_ "modernc.org/sqlite"             // CGO-free SQLite driver
 
+	cryptoutilTemplateCli "cryptoutil/internal/apps/framework/service/cli"
+	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps/framework/tls"
 	cryptoutilAppsSkeletonTemplateServer "cryptoutil/internal/apps/skeleton-template/server"
 	cryptoutilAppsSkeletonTemplateServerConfig "cryptoutil/internal/apps/skeleton-template/server/config"
-	cryptoutilTemplateCli "cryptoutil/internal/apps/framework/service/cli"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -140,16 +141,7 @@ func templateClient(args []string, _, stderr io.Writer) int {
 }
 
 // templateInit implements the init subcommand.
-// CLI wrapper for database and configuration initialization.
-func templateInit(args []string, _, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args) {
-		_, _ = fmt.Fprintln(stderr, TemplateUsageInit)
-
-		return 0
-	}
-
-	_, _ = fmt.Fprintln(stderr, "❌ Init subcommand not yet implemented")
-	_, _ = fmt.Fprintln(stderr, "   This will initialize database schema and configuration")
-
-	return 1
+// Generates PKI certificates for skeleton-template TLS endpoints via the framework PKI init.
+func templateInit(args []string, stdout, stderr io.Writer) int {
+	return cryptoutilAppsFrameworkTls.InitForService(cryptoutilSharedMagic.SkeletonTemplateServiceID, args, stdout, stderr)
 }

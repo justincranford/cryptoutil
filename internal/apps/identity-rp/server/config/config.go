@@ -12,7 +12,6 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
 )
 
 // IdentityRPServerSettings contains identity-rp specific configuration.
@@ -88,58 +87,58 @@ var (
 	})
 )
 
-// Parse parses command line arguments and returns identity-rp settings.
-func Parse(args []string, exitIfHelp bool) (*IdentityRPServerSettings, error) {
-	// Parse base template settings first.
-	baseSettings, err := cryptoutilAppsFrameworkServiceConfig.Parse(args, exitIfHelp)
+// ParseWithFlagSet parses command line arguments using provided FlagSet and returns identity-rp settings.
+// This enables test isolation by allowing each test to use its own FlagSet.
+func ParseWithFlagSet(fs *pflag.FlagSet, args []string, exitIfHelp bool) (*IdentityRPServerSettings, error) {
+	// Register identity-rp specific flags on the provided FlagSet BEFORE parsing.
+	fs.StringP(authzServerURLSetting.Name, authzServerURLSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(authzServerURLSetting), authzServerURLSetting.Description)
+	fs.StringP(clientIDSetting.Name, clientIDSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(clientIDSetting), clientIDSetting.Description)
+	fs.StringP(clientSecretSetting.Name, clientSecretSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(clientSecretSetting), clientSecretSetting.Description)
+	fs.StringP(redirectURISetting.Name, redirectURISetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(redirectURISetting), redirectURISetting.Description)
+	fs.StringP(spaOriginSetting.Name, spaOriginSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(spaOriginSetting), spaOriginSetting.Description)
+	fs.StringP(sessionSecretSetting.Name, sessionSecretSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(sessionSecretSetting), sessionSecretSetting.Description)
+
+	// Parse base template settings using the same FlagSet.
+	baseSettings, err := cryptoutilAppsFrameworkServiceConfig.ParseWithFlagSet(fs, args, exitIfHelp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template settings: %w", err)
 	}
 
-	// Register identity-rp specific flags.
-	pflag.StringP(authzServerURLSetting.Name, authzServerURLSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(authzServerURLSetting), authzServerURLSetting.Description)
-	pflag.StringP(clientIDSetting.Name, clientIDSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(clientIDSetting), clientIDSetting.Description)
-	pflag.StringP(clientSecretSetting.Name, clientSecretSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(clientSecretSetting), clientSecretSetting.Description)
-	pflag.StringP(redirectURISetting.Name, redirectURISetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(redirectURISetting), redirectURISetting.Description)
-	pflag.StringP(spaOriginSetting.Name, spaOriginSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(spaOriginSetting), spaOriginSetting.Description)
-	pflag.StringP(sessionSecretSetting.Name, sessionSecretSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(sessionSecretSetting), sessionSecretSetting.Description)
+	authzServerURL, _ := fs.GetString(authzServerURLSetting.Name)
+	clientID, _ := fs.GetString(clientIDSetting.Name)
+	clientSecret, _ := fs.GetString(clientSecretSetting.Name)
+	redirectURI, _ := fs.GetString(redirectURISetting.Name)
+	spaOrigin, _ := fs.GetString(spaOriginSetting.Name)
+	sessionSecret, _ := fs.GetString(sessionSecretSetting.Name)
 
-	// Parse flags.
-	pflag.Parse()
-
-	// Bind flags to viper.
-	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
-		return nil, fmt.Errorf("failed to bind flags: %w", err)
-	}
-
-	// Create identity-rp settings.
 	settings := &IdentityRPServerSettings{
 		ServiceFrameworkServerSettings: baseSettings,
-		AuthzServerURL:                viper.GetString(authzServerURLSetting.Name),
-		ClientID:                      viper.GetString(clientIDSetting.Name),
-		ClientSecret:                  viper.GetString(clientSecretSetting.Name),
-		RedirectURI:                   viper.GetString(redirectURISetting.Name),
-		SPAOrigin:                     viper.GetString(spaOriginSetting.Name),
-		SessionSecret:                 viper.GetString(sessionSecretSetting.Name),
+		AuthzServerURL:                authzServerURL,
+		ClientID:                      clientID,
+		ClientSecret:                  clientSecret,
+		RedirectURI:                   redirectURI,
+		SPAOrigin:                     spaOrigin,
+		SessionSecret:                 sessionSecret,
 	}
 
-	// Override template defaults with identity-rp specific values.
-	// NOTE: Only override public port if not explicitly set in config.
-	if baseSettings.BindPublicPort == 0 {
+	if !fs.Changed("bind-public-port") {
 		settings.BindPublicPort = cryptoutilSharedMagic.IdentityRPServicePort
 	}
 
 	settings.OTLPService = cryptoutilSharedMagic.OTLPServiceIdentityRP
 
-	// Validate identity-rp specific settings.
 	if err := validateIdentityRPSettings(settings); err != nil {
 		return nil, fmt.Errorf("identity-rp settings validation failed: %w", err)
 	}
 
-	// Log identity-rp specific settings.
 	logIdentityRPSettings(settings)
 
 	return settings, nil
+}
+
+// Parse parses command-line arguments and returns the identity-rp server settings.
+func Parse(args []string, exitIfHelp bool) (*IdentityRPServerSettings, error) {
+	return ParseWithFlagSet(pflag.CommandLine, args, exitIfHelp)
 }
 
 // validateIdentityRPSettings validates identity-rp specific configuration.

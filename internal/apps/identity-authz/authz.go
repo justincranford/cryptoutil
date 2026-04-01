@@ -16,9 +16,12 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
 	_ "modernc.org/sqlite"             // CGO-free SQLite driver
 
+	"github.com/spf13/pflag"
+
+	cryptoutilTemplateCli "cryptoutil/internal/apps/framework/service/cli"
+	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps/framework/tls"
 	cryptoutilAppsIdentityAuthzServer "cryptoutil/internal/apps/identity-authz/server"
 	cryptoutilAppsIdentityAuthzServerConfig "cryptoutil/internal/apps/identity-authz/server/config"
-	cryptoutilTemplateCli "cryptoutil/internal/apps/framework/service/cli"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -57,11 +60,14 @@ func authzServerStart(args []string, stdout, stderr io.Writer) int {
 
 	ctx := context.Background()
 
-	// Parse configuration using config.Parse() which leverages viper+pflag.
+	// Parse configuration using ParseWithFlagSet with a fresh FlagSet.
+	// Uses ContinueOnError for proper error handling (no os.Exit on bad flags).
 	// Note: We prepend "start" as the subcommand for Parse() to validate.
 	argsWithSubcommand := append([]string{"start"}, args...)
 
-	cfg, err := cryptoutilAppsIdentityAuthzServerConfig.Parse(argsWithSubcommand, true)
+	fs := pflag.NewFlagSet("identity-authz-server", pflag.ContinueOnError)
+
+	cfg, err := cryptoutilAppsIdentityAuthzServerConfig.ParseWithFlagSet(fs, argsWithSubcommand, true)
 	if err != nil {
 		_, _ = fmt.Fprintf(stderr, "❌ Failed to parse configuration: %v\n", err)
 
@@ -102,10 +108,19 @@ func authzServerStart(args []string, stdout, stderr io.Writer) int {
 			return 1
 		}
 	case sig := <-sigChan:
-		fmt.Printf("\n⏹️  Received signal %v, shutting down gracefully...\n", sig)
+		_, _ = fmt.Fprintf(stdout, "\n⏹️  Received signal %v, shutting down gracefully...\n", sig)
+
+		shutdownCtx, cancel := context.WithTimeout(ctx, cryptoutilSharedMagic.DefaultDataServerShutdownTimeout)
+		defer cancel()
+
+		if shutdownErr := srv.Shutdown(shutdownCtx); shutdownErr != nil {
+			_, _ = fmt.Fprintf(stderr, "⚠️  Shutdown error: %v\n", shutdownErr)
+		}
 	}
 
-	fmt.Println("✅ identity-authz service stopped")
+	signal.Stop(sigChan)
+
+	_, _ = fmt.Fprintln(stdout, "✅ identity-authz service stopped")
 
 	return 0
 }
@@ -126,16 +141,7 @@ func authzClient(args []string, _, stderr io.Writer) int {
 }
 
 // authzServiceInit implements the init subcommand.
-// CLI wrapper for database and configuration initialization.
-func authzServiceInit(args []string, _, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args) {
-		_, _ = fmt.Fprintln(stderr, AUTHZUsageInit)
-
-		return 0
-	}
-
-	_, _ = fmt.Fprintln(stderr, "❌ Init subcommand not yet implemented")
-	_, _ = fmt.Fprintln(stderr, "   This will initialize database schema and configuration")
-
-	return 1
+// Generates PKI certificates for identity-authz TLS endpoints via the framework PKI init.
+func authzServiceInit(args []string, stdout, stderr io.Writer) int {
+	return cryptoutilAppsFrameworkTls.InitForService(cryptoutilSharedMagic.IdentityAuthzServiceID, args, stdout, stderr)
 }

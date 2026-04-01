@@ -15,9 +15,10 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
 	_ "modernc.org/sqlite"             // CGO-free SQLite driver
 
+	cryptoutilTemplateCli "cryptoutil/internal/apps/framework/service/cli"
+	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps/framework/tls"
 	cryptoutilAppsSmImServer "cryptoutil/internal/apps/sm-im/server"
 	cryptoutilAppsSmImServerConfig "cryptoutil/internal/apps/sm-im/server/config"
-	cryptoutilTemplateCli "cryptoutil/internal/apps/framework/service/cli"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/spf13/pflag"
@@ -144,16 +145,7 @@ func imServiceClient(args []string, _, stderr io.Writer) int {
 }
 
 // imServiceInit implements the init subcommand.
-// CLI wrapper for database and configuration initialization.
-func imServiceInit(args []string, _, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args) {
-		_, _ = fmt.Fprintln(stderr, IMUsageInit)
-
-		return 0
-	}
-
-	_, _ = fmt.Fprintln(stderr, "❌ Init subcommand not yet implemented")
-	_, _ = fmt.Fprintln(stderr, "   This will initialize database schema and configuration")
-
-	return 1
+// Generates PKI certificates for sm-im TLS endpoints via the framework PKI init.
+func imServiceInit(args []string, stdout, stderr io.Writer) int {
+	return cryptoutilAppsFrameworkTls.InitForService(cryptoutilSharedMagic.IMServiceID, args, stdout, stderr)
 }

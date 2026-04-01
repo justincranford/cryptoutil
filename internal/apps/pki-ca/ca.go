@@ -18,9 +18,10 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
 	_ "modernc.org/sqlite"             // CGO-free SQLite driver
 
+	cryptoutilTemplateCli "cryptoutil/internal/apps/framework/service/cli"
+	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps/framework/tls"
 	cryptoutilAppsCaServer "cryptoutil/internal/apps/pki-ca/server"
 	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/pki-ca/server/config"
-	cryptoutilTemplateCli "cryptoutil/internal/apps/framework/service/cli"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -140,16 +141,7 @@ func caClient(args []string, _, stderr io.Writer) int {
 }
 
 // caInit implements the init subcommand.
-// CLI wrapper for database and configuration initialization.
-func caInit(args []string, _, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args) {
-		_, _ = fmt.Fprintln(stderr, CAUsageInit)
-
-		return 0
-	}
-
-	_, _ = fmt.Fprintln(stderr, "❌ Init subcommand not yet implemented")
-	_, _ = fmt.Fprintln(stderr, "   This will initialize database schema and configuration")
-
-	return 1
+// Generates PKI certificates for pki-ca TLS endpoints via the framework PKI init.
+func caInit(args []string, stdout, stderr io.Writer) int {
+	return cryptoutilAppsFrameworkTls.InitForService(cryptoutilSharedMagic.PKICAServiceID, args, stdout, stderr)
 }

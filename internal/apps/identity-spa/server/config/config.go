@@ -12,7 +12,6 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
 )
 
 // IdentitySPAServerSettings contains identity-spa specific configuration.
@@ -114,65 +113,67 @@ var (
 	})
 )
 
-// Parse parses command line arguments and returns identity-spa settings.
-func Parse(args []string, exitIfHelp bool) (*IdentitySPAServerSettings, error) {
-	// Parse base template settings first.
-	baseSettings, err := cryptoutilAppsFrameworkServiceConfig.Parse(args, exitIfHelp)
+// ParseWithFlagSet parses command line arguments using provided FlagSet and returns identity-spa settings.
+// This enables test isolation by allowing each test to use its own FlagSet.
+func ParseWithFlagSet(fs *pflag.FlagSet, args []string, exitIfHelp bool) (*IdentitySPAServerSettings, error) {
+	// Register identity-spa specific flags on the provided FlagSet BEFORE parsing.
+	fs.StringP(staticFilesPathSetting.Name, staticFilesPathSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(staticFilesPathSetting), staticFilesPathSetting.Description)
+	fs.StringP(indexFileSetting.Name, indexFileSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(indexFileSetting), indexFileSetting.Description)
+	fs.StringP(rpOriginSetting.Name, rpOriginSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(rpOriginSetting), rpOriginSetting.Description)
+	fs.IntP(cacheControlMaxAgeSetting.Name, cacheControlMaxAgeSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsIntSetting(cacheControlMaxAgeSetting), cacheControlMaxAgeSetting.Description)
+	fs.BoolP(enableGzipSetting.Name, enableGzipSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsBoolSetting(enableGzipSetting), enableGzipSetting.Description)
+	fs.BoolP(enableBrotliSetting.Name, enableBrotliSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsBoolSetting(enableBrotliSetting), enableBrotliSetting.Description)
+	fs.StringP(cspDirectivesSetting.Name, cspDirectivesSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(cspDirectivesSetting), cspDirectivesSetting.Description)
+
+	// Parse base template settings using the same FlagSet.
+	baseSettings, err := cryptoutilAppsFrameworkServiceConfig.ParseWithFlagSet(fs, args, exitIfHelp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template settings: %w", err)
 	}
 
-	// Register identity-spa specific flags.
-	pflag.StringP(staticFilesPathSetting.Name, staticFilesPathSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(staticFilesPathSetting), staticFilesPathSetting.Description)
-	pflag.StringP(indexFileSetting.Name, indexFileSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(indexFileSetting), indexFileSetting.Description)
-	pflag.StringP(rpOriginSetting.Name, rpOriginSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(rpOriginSetting), rpOriginSetting.Description)
-	pflag.IntP(cacheControlMaxAgeSetting.Name, cacheControlMaxAgeSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsIntSetting(cacheControlMaxAgeSetting), cacheControlMaxAgeSetting.Description)
-	pflag.BoolP(enableGzipSetting.Name, enableGzipSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsBoolSetting(enableGzipSetting), enableGzipSetting.Description)
-	pflag.BoolP(enableBrotliSetting.Name, enableBrotliSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsBoolSetting(enableBrotliSetting), enableBrotliSetting.Description)
-	pflag.StringP(cspDirectivesSetting.Name, cspDirectivesSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(cspDirectivesSetting), cspDirectivesSetting.Description)
+	staticFilesPath, _ := fs.GetString(staticFilesPathSetting.Name)
+	indexFile, _ := fs.GetString(indexFileSetting.Name)
+	rpOrigin, _ := fs.GetString(rpOriginSetting.Name)
+	cacheControlMaxAge, _ := fs.GetInt(cacheControlMaxAgeSetting.Name)
+	enableGzip, _ := fs.GetBool(enableGzipSetting.Name)
+	enableBrotli, _ := fs.GetBool(enableBrotliSetting.Name)
+	cspDirectives, _ := fs.GetString(cspDirectivesSetting.Name)
 
-	// Parse flags.
-	pflag.Parse()
-
-	// Bind flags to viper.
-	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
-		return nil, fmt.Errorf("failed to bind flags: %w", err)
-	}
-
-	// Create identity-spa settings.
 	settings := &IdentitySPAServerSettings{
 		ServiceFrameworkServerSettings: baseSettings,
-		StaticFilesPath:               viper.GetString(staticFilesPathSetting.Name),
-		IndexFile:                     viper.GetString(indexFileSetting.Name),
-		RPOrigin:                      viper.GetString(rpOriginSetting.Name),
-		CacheControlMaxAge:            viper.GetInt(cacheControlMaxAgeSetting.Name),
-		EnableGzip:                    viper.GetBool(enableGzipSetting.Name),
-		EnableBrotli:                  viper.GetBool(enableBrotliSetting.Name),
-		CSPDirectives:                 viper.GetString(cspDirectivesSetting.Name),
+		StaticFilesPath:               staticFilesPath,
+		IndexFile:                     indexFile,
+		RPOrigin:                      rpOrigin,
+		CacheControlMaxAge:            cacheControlMaxAge,
+		EnableGzip:                    enableGzip,
+		EnableBrotli:                  enableBrotli,
+		CSPDirectives:                 cspDirectives,
 	}
 
 	// Override template defaults with identity-spa specific values.
 	// NOTE: Only override public port if not explicitly set in config.
-	if baseSettings.BindPublicPort == 0 {
+	if !fs.Changed("bind-public-port") {
 		settings.BindPublicPort = cryptoutilSharedMagic.IdentitySPAServicePort
 	}
 
 	settings.OTLPService = cryptoutilSharedMagic.OTLPServiceIdentitySPA
 
-	// Adjust cache control for dev mode.
 	if settings.DevMode {
 		settings.CacheControlMaxAge = defaultCacheMaxAgeDev
 	}
 
-	// Validate identity-spa specific settings.
 	if err := validateIdentitySPASettings(settings); err != nil {
 		return nil, fmt.Errorf("identity-spa settings validation failed: %w", err)
 	}
 
-	// Log identity-spa specific settings.
 	logIdentitySPASettings(settings)
 
 	return settings, nil
+}
+
+// Parse parses command-line arguments and returns the identity-spa server settings.
+func Parse(args []string, exitIfHelp bool) (*IdentitySPAServerSettings, error) {
+	return ParseWithFlagSet(pflag.CommandLine, args, exitIfHelp)
 }
 
 // validateIdentitySPASettings validates identity-spa specific configuration.

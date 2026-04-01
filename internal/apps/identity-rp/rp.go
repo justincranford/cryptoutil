@@ -16,9 +16,12 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
 	_ "modernc.org/sqlite"             // CGO-free SQLite driver
 
+	"github.com/spf13/pflag"
+
+	cryptoutilTemplateCli "cryptoutil/internal/apps/framework/service/cli"
+	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps/framework/tls"
 	cryptoutilAppsIdentityRpServer "cryptoutil/internal/apps/identity-rp/server"
 	cryptoutilAppsIdentityRpServerConfig "cryptoutil/internal/apps/identity-rp/server/config"
-	cryptoutilTemplateCli "cryptoutil/internal/apps/framework/service/cli"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -57,11 +60,11 @@ func rpServerStart(args []string, stdout, stderr io.Writer) int {
 
 	ctx := context.Background()
 
-	// Parse configuration using config.Parse() which leverages viper+pflag.
-	// Note: We prepend "start" as the subcommand for Parse() to validate.
 	argsWithSubcommand := append([]string{"start"}, args...)
 
-	cfg, err := cryptoutilAppsIdentityRpServerConfig.Parse(argsWithSubcommand, true)
+	fs := pflag.NewFlagSet("identity-rp-server", pflag.ContinueOnError)
+
+	cfg, err := cryptoutilAppsIdentityRpServerConfig.ParseWithFlagSet(fs, argsWithSubcommand, true)
 	if err != nil {
 		_, _ = fmt.Fprintf(stderr, "❌ Failed to parse configuration: %v\n", err)
 
@@ -75,11 +78,8 @@ func rpServerStart(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 
-	// Mark server as ready after successful initialization.
-	// This enables /admin/api/v1/readyz to return 200 OK instead of 503 Service Unavailable.
 	srv.SetReady(true)
 
-	// Start server with graceful shutdown.
 	errChan := make(chan error, 1)
 
 	go func() {
@@ -90,7 +90,6 @@ func rpServerStart(args []string, stdout, stderr io.Writer) int {
 		errChan <- srv.Start(ctx)
 	}()
 
-	// Wait for interrupt signal.
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
@@ -102,10 +101,19 @@ func rpServerStart(args []string, stdout, stderr io.Writer) int {
 			return 1
 		}
 	case sig := <-sigChan:
-		fmt.Printf("\n⏹️  Received signal %v, shutting down gracefully...\n", sig)
+		_, _ = fmt.Fprintf(stdout, "\n⏹️  Received signal %v, shutting down gracefully...\n", sig)
+
+		shutdownCtx, cancel := context.WithTimeout(ctx, cryptoutilSharedMagic.DefaultDataServerShutdownTimeout)
+		defer cancel()
+
+		if shutdownErr := srv.Shutdown(shutdownCtx); shutdownErr != nil {
+			_, _ = fmt.Fprintf(stderr, "⚠️  Shutdown error: %v\n", shutdownErr)
+		}
 	}
 
-	fmt.Println("✅ identity-rp service stopped")
+	signal.Stop(sigChan)
+
+	_, _ = fmt.Fprintln(stdout, "✅ identity-rp service stopped")
 
 	return 0
 }
@@ -126,16 +134,8 @@ func rpClient(args []string, _, stderr io.Writer) int {
 }
 
 // rpServiceInit implements the init subcommand.
-// CLI wrapper for database and configuration initialization.
-func rpServiceInit(args []string, _, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args) {
-		_, _ = fmt.Fprintln(stderr, RPUsageInit)
+// Generates PKI certificates for identity-rp TLS endpoints via the framework PKI init.
+func rpServiceInit(args []string, stdout, stderr io.Writer) int {
+	return cryptoutilAppsFrameworkTls.InitForService(cryptoutilSharedMagic.IdentityRPServiceID, args, stdout, stderr)
 
-		return 0
-	}
-
-	_, _ = fmt.Fprintln(stderr, "❌ Init subcommand not yet implemented")
-	_, _ = fmt.Fprintln(stderr, "   This will initialize database schema and configuration")
-
-	return 1
 }

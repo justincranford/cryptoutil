@@ -16,9 +16,10 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
 	_ "modernc.org/sqlite"             // CGO-free SQLite driver
 
-	cryptoutilKMSServer "cryptoutil/internal/apps/sm-kms/server"
 	cryptoutilTemplateCli "cryptoutil/internal/apps/framework/service/cli"
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
+	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps/framework/tls"
+	cryptoutilKMSServer "cryptoutil/internal/apps/sm-kms/server"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/spf13/pflag"
@@ -130,16 +131,7 @@ func kmsClient(args []string, _, stderr io.Writer) int {
 }
 
 // kmsInit implements the init subcommand.
-// CLI wrapper for database and configuration initialization.
-func kmsInit(args []string, _, stderr io.Writer) int {
-	if cryptoutilTemplateCli.IsHelpRequest(args) {
-		_, _ = fmt.Fprintln(stderr, KMSUsageInit)
-
-		return 0
-	}
-
-	_, _ = fmt.Fprintln(stderr, "❌ Init subcommand not yet implemented")
-	_, _ = fmt.Fprintln(stderr, "   This will initialize database schema and configuration")
-
-	return 1
+// Generates PKI certificates for sm-kms TLS endpoints via the framework PKI init.
+func kmsInit(args []string, stdout, stderr io.Writer) int {
+	return cryptoutilAppsFrameworkTls.InitForService(cryptoutilSharedMagic.KMSServiceID, args, stdout, stderr)
 }

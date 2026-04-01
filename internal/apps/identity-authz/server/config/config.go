@@ -12,7 +12,6 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
 )
 
 // IdentityAuthzServerSettings contains identity-authz specific configuration.
@@ -90,44 +89,46 @@ var (
 	})
 )
 
-// Parse parses command line arguments and returns identity-authz settings.
-func Parse(args []string, exitIfHelp bool) (*IdentityAuthzServerSettings, error) {
-	// Parse base template settings first.
-	baseSettings, err := cryptoutilAppsFrameworkServiceConfig.Parse(args, exitIfHelp)
+// ParseWithFlagSet parses command line arguments using provided FlagSet and returns identity-authz settings.
+// This enables test isolation by allowing each test to use its own FlagSet.
+func ParseWithFlagSet(fs *pflag.FlagSet, args []string, exitIfHelp bool) (*IdentityAuthzServerSettings, error) {
+	// Register identity-authz specific flags on the provided FlagSet BEFORE parsing.
+	// This must happen before calling template ParseWithFlagSet since it will call fs.Parse().
+	fs.StringP(issuerSetting.Name, issuerSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(issuerSetting), issuerSetting.Description)
+	fs.IntP(tokenLifetimeSetting.Name, tokenLifetimeSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsIntSetting(tokenLifetimeSetting), tokenLifetimeSetting.Description)
+	fs.IntP(refreshTokenLifetimeSetting.Name, refreshTokenLifetimeSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsIntSetting(refreshTokenLifetimeSetting), refreshTokenLifetimeSetting.Description)
+	fs.IntP(authorizationCodeTTLSetting.Name, authorizationCodeTTLSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsIntSetting(authorizationCodeTTLSetting), authorizationCodeTTLSetting.Description)
+	fs.BoolP(enableDiscoverySetting.Name, enableDiscoverySetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsBoolSetting(enableDiscoverySetting), enableDiscoverySetting.Description)
+	fs.BoolP(enableDynamicRegistrationSetting.Name, enableDynamicRegistrationSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsBoolSetting(enableDynamicRegistrationSetting), enableDynamicRegistrationSetting.Description)
+
+	// Parse base template settings using the same FlagSet.
+	// This will register template flags and call fs.Parse() + viper.BindPFlags().
+	baseSettings, err := cryptoutilAppsFrameworkServiceConfig.ParseWithFlagSet(fs, args, exitIfHelp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template settings: %w", err)
 	}
 
-	// Register identity-authz specific flags.
-	pflag.StringP(issuerSetting.Name, issuerSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(issuerSetting), issuerSetting.Description)
-	pflag.IntP(tokenLifetimeSetting.Name, tokenLifetimeSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsIntSetting(tokenLifetimeSetting), tokenLifetimeSetting.Description)
-	pflag.IntP(refreshTokenLifetimeSetting.Name, refreshTokenLifetimeSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsIntSetting(refreshTokenLifetimeSetting), refreshTokenLifetimeSetting.Description)
-	pflag.IntP(authorizationCodeTTLSetting.Name, authorizationCodeTTLSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsIntSetting(authorizationCodeTTLSetting), authorizationCodeTTLSetting.Description)
-	pflag.BoolP(enableDiscoverySetting.Name, enableDiscoverySetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsBoolSetting(enableDiscoverySetting), enableDiscoverySetting.Description)
-	pflag.BoolP(enableDynamicRegistrationSetting.Name, enableDynamicRegistrationSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsBoolSetting(enableDynamicRegistrationSetting), enableDynamicRegistrationSetting.Description)
+	// Create identity-authz settings using values from the FlagSet (avoids global viper dependency).
+	issuer, _ := fs.GetString(issuerSetting.Name)
+	tokenLifetime, _ := fs.GetInt(tokenLifetimeSetting.Name)
+	refreshTokenLifetime, _ := fs.GetInt(refreshTokenLifetimeSetting.Name)
+	authorizationCodeTTL, _ := fs.GetInt(authorizationCodeTTLSetting.Name)
+	enableDiscovery, _ := fs.GetBool(enableDiscoverySetting.Name)
+	enableDynamicRegistration, _ := fs.GetBool(enableDynamicRegistrationSetting.Name)
 
-	// Parse flags.
-	pflag.Parse()
-
-	// Bind flags to viper.
-	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
-		return nil, fmt.Errorf("failed to bind flags: %w", err)
-	}
-
-	// Create identity-authz settings.
 	settings := &IdentityAuthzServerSettings{
 		ServiceFrameworkServerSettings: baseSettings,
-		Issuer:                        viper.GetString(issuerSetting.Name),
-		TokenLifetime:                 viper.GetInt(tokenLifetimeSetting.Name),
-		RefreshTokenLifetime:          viper.GetInt(refreshTokenLifetimeSetting.Name),
-		AuthorizationCodeTTL:          viper.GetInt(authorizationCodeTTLSetting.Name),
-		EnableDiscovery:               viper.GetBool(enableDiscoverySetting.Name),
-		EnableDynamicRegistration:     viper.GetBool(enableDynamicRegistrationSetting.Name),
+		Issuer:                        issuer,
+		TokenLifetime:                 tokenLifetime,
+		RefreshTokenLifetime:          refreshTokenLifetime,
+		AuthorizationCodeTTL:          authorizationCodeTTL,
+		EnableDiscovery:               enableDiscovery,
+		EnableDynamicRegistration:     enableDynamicRegistration,
 	}
 
 	// Override template defaults with identity-authz specific values.
-	// NOTE: Only override public port if not explicitly set in config.
-	if baseSettings.BindPublicPort == 0 {
+	// Only override public port if user didn't explicitly specify one via CLI flag.
+	if !fs.Changed("bind-public-port") {
 		settings.BindPublicPort = cryptoutilSharedMagic.IdentityAuthzServicePort
 	}
 
@@ -142,6 +143,11 @@ func Parse(args []string, exitIfHelp bool) (*IdentityAuthzServerSettings, error)
 	logIdentityAuthzSettings(settings)
 
 	return settings, nil
+}
+
+// Parse parses command-line arguments and returns the identity-authz server settings.
+func Parse(args []string, exitIfHelp bool) (*IdentityAuthzServerSettings, error) {
+	return ParseWithFlagSet(pflag.CommandLine, args, exitIfHelp)
 }
 
 // validateIdentityAuthzSettings validates identity-authz specific configuration.

@@ -1,5 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 //
+//
 
 // Package tls provides TLS certificate initialization for the framework.
 // This package is used by Docker Compose E2E deployments to generate TLS
@@ -8,102 +9,140 @@
 package tls
 
 import (
-"encoding/base64"
-"encoding/pem"
-"fmt"
-"io"
-"os"
-"path/filepath"
-"strings"
+	"encoding/base64"
+	"encoding/pem"
+	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+	"strings"
 
-cryptoutilAppsFrameworkServiceConfigTlsGenerator "cryptoutil/internal/apps/framework/service/config/tls_generator"
-cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	"github.com/spf13/pflag"
+
+	cryptoutilAppsFrameworkServiceConfigTlsGenerator "cryptoutil/internal/apps/framework/service/config/tls_generator"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Init executes the pki-init CLI command.
 // It generates a TLS certificate hierarchy and writes the certs to an output directory.
 // The output directory is typically a Docker volume shared between pki-init and app services.
+// Uses manual arg parsing for backward compatibility with Docker Compose entrypoint scripts.
 func Init(args []string, _ io.Reader, stdout io.Writer, stderr io.Writer) int {
-outputDir := cryptoutilSharedMagic.PKIInitDefaultOutputDir
+	outputDir := cryptoutilSharedMagic.PKIInitDefaultOutputDir
 
-domains := append([]string{}, cryptoutilSharedMagic.DefaultTLSPublicDNSNames...)
-ips := append([]string{}, cryptoutilSharedMagic.DefaultTLSPublicIPAddresses...)
+	domains := append([]string{}, cryptoutilSharedMagic.DefaultTLSPublicDNSNames...)
+	ips := append([]string{}, cryptoutilSharedMagic.DefaultTLSPublicIPAddresses...)
 
-for _, arg := range args {
-switch {
-case strings.HasPrefix(arg, "--output-dir="):
-outputDir = strings.TrimPrefix(arg, "--output-dir=")
-case strings.HasPrefix(arg, "--domain="):
-domains = append(domains, strings.TrimPrefix(arg, "--domain="))
-case strings.HasPrefix(arg, "--ip="):
-ips = append(ips, strings.TrimPrefix(arg, "--ip="))
-case arg == "--help" || arg == "-h":
-_, _ = fmt.Fprintf(stdout, "Usage: cryptoutil pki-init [--output-dir=DIR] [--domain=DNS] [--ip=IP]\n")
+	for _, arg := range args {
+		switch {
+		case strings.HasPrefix(arg, "--output-dir="):
+			outputDir = strings.TrimPrefix(arg, "--output-dir=")
+		case strings.HasPrefix(arg, "--domain="):
+			domains = append(domains, strings.TrimPrefix(arg, "--domain="))
+		case strings.HasPrefix(arg, "--ip="):
+			ips = append(ips, strings.TrimPrefix(arg, "--ip="))
+		case arg == "--help" || arg == "-h":
+			_, _ = fmt.Fprintf(stdout, "Usage: cryptoutil pki-init [--output-dir=DIR] [--domain=DNS] [--ip=IP]\n")
 
-return 0
-}
-}
+			return 0
+		}
+	}
 
-if err := os.MkdirAll(outputDir, cryptoutilSharedMagic.PKIInitCertsDirMode); err != nil {
-_, _ = fmt.Fprintf(stderr, "pki-init: failed to create output directory %q: %v\n", outputDir, err)
-
-return 1
+	return runInit(outputDir, domains, ips, stdout, stderr)
 }
 
-settings, err := cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings(
-domains, ips, cryptoutilSharedMagic.PKIInitCertValidityDays,
-)
-if err != nil {
-_, _ = fmt.Fprintf(stderr, "pki-init: failed to generate TLS material: %v\n", err)
+// InitForService executes the init subcommand for a named PS-ID service.
+// Uses pflag for argument parsing. The serviceID is added as an extra DNS
+// SAN so the generated certificate covers Docker Compose service discovery.
+func InitForService(serviceID string, args []string, stdout, stderr io.Writer) int {
+	fs := pflag.NewFlagSet(serviceID+"-init", pflag.ContinueOnError)
+	fs.SetOutput(stderr)
 
-return 1
+	outputDir := fs.String("output-dir", cryptoutilSharedMagic.PKIInitDefaultOutputDir, "Output directory for generated certificates")
+
+	var extraDomains []string
+
+	var extraIPs []string
+
+	fs.StringArrayVar(&extraDomains, "domain", nil, "Additional DNS SAN (may be repeated)")
+	fs.StringArrayVar(&extraIPs, "ip", nil, "Additional IP SAN (may be repeated)")
+
+	if err := fs.Parse(args); err != nil {
+		return 1
+	}
+
+	domains := append([]string{}, cryptoutilSharedMagic.DefaultTLSPublicDNSNames...)
+	domains = append(domains, serviceID)
+	domains = append(domains, extraDomains...)
+
+	ips := append([]string{}, cryptoutilSharedMagic.DefaultTLSPublicIPAddresses...)
+	ips = append(ips, extraIPs...)
+
+	return runInit(*outputDir, domains, ips, stdout, stderr)
 }
 
-rootCACertPEM := extractRootCACert(settings.StaticCertPEM)
+// runInit contains the shared cert generation and file writing logic.
+func runInit(outputDir string, domains, ips []string, stdout, stderr io.Writer) int {
+	if err := os.MkdirAll(outputDir, cryptoutilSharedMagic.PKIInitCertsDirMode); err != nil {
+		_, _ = fmt.Fprintf(stderr, "pki-init: failed to create output directory %q: %v\n", outputDir, err)
 
-rootCAPath := filepath.Join(outputDir, cryptoutilSharedMagic.PKIInitRootCACertFile)
-if err := os.WriteFile(rootCAPath, rootCACertPEM, cryptoutilSharedMagic.PKIInitCertFileMode); err != nil {
-_, _ = fmt.Fprintf(stderr, "pki-init: failed to write root CA cert to %q: %v\n", rootCAPath, err)
+		return 1
+	}
 
-return 1
-}
+	settings, err := cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings(
+		domains, ips, cryptoutilSharedMagic.PKIInitCertValidityDays,
+	)
+	if err != nil {
+		_, _ = fmt.Fprintf(stderr, "pki-init: failed to generate TLS material: %v\n", err)
 
-certB64 := base64.StdEncoding.EncodeToString(settings.StaticCertPEM)
-keyB64 := base64.StdEncoding.EncodeToString(settings.StaticKeyPEM)
-configYAML := fmt.Sprintf(cryptoutilSharedMagic.PKIInitTLSConfigYAMLFormat, certB64, keyB64)
+		return 1
+	}
 
-configPath := filepath.Join(outputDir, cryptoutilSharedMagic.PKIInitTLSConfigFile)
-if err := os.WriteFile(configPath, []byte(configYAML), cryptoutilSharedMagic.PKIInitCertFileMode); err != nil {
-_, _ = fmt.Fprintf(stderr, "pki-init: failed to write TLS config to %q: %v\n", configPath, err)
+	rootCACertPEM := extractRootCACert(settings.StaticCertPEM)
 
-return 1
-}
+	rootCAPath := filepath.Join(outputDir, cryptoutilSharedMagic.PKIInitRootCACertFile)
+	if err := os.WriteFile(rootCAPath, rootCACertPEM, cryptoutilSharedMagic.PKIInitCertFileMode); err != nil {
+		_, _ = fmt.Fprintf(stderr, "pki-init: failed to write root CA cert to %q: %v\n", rootCAPath, err)
 
-_, _ = fmt.Fprintf(stdout, "pki-init: certificates written to %q (root-ca.pem, tls-config.yml)\n", outputDir)
+		return 1
+	}
 
-return 0
+	certB64 := base64.StdEncoding.EncodeToString(settings.StaticCertPEM)
+	keyB64 := base64.StdEncoding.EncodeToString(settings.StaticKeyPEM)
+	configYAML := fmt.Sprintf(cryptoutilSharedMagic.PKIInitTLSConfigYAMLFormat, certB64, keyB64)
+
+	configPath := filepath.Join(outputDir, cryptoutilSharedMagic.PKIInitTLSConfigFile)
+	if err := os.WriteFile(configPath, []byte(configYAML), cryptoutilSharedMagic.PKIInitCertFileMode); err != nil {
+		_, _ = fmt.Fprintf(stderr, "pki-init: failed to write TLS config to %q: %v\n", configPath, err)
+
+		return 1
+	}
+
+	_, _ = fmt.Fprintf(stdout, "pki-init: certificates written to %q (root-ca.pem, tls-config.yml)\n", outputDir)
+
+	return 0
 }
 
 // extractRootCACert extracts the last (root) certificate from a PEM chain.
 func extractRootCACert(chainPEM []byte) []byte {
-var lastBlock *pem.Block
+	var lastBlock *pem.Block
 
-rest := chainPEM
+	rest := chainPEM
 
-for {
-var block *pem.Block
+	for {
+		var block *pem.Block
 
-block, rest = pem.Decode(rest)
-if block == nil {
-break
-}
+		block, rest = pem.Decode(rest)
+		if block == nil {
+			break
+		}
 
-lastBlock = block
-}
+		lastBlock = block
+	}
 
-if lastBlock == nil {
-return chainPEM
-}
+	if lastBlock == nil {
+		return chainPEM
+	}
 
-return pem.EncodeToMemory(lastBlock)
+	return pem.EncodeToMemory(lastBlock)
 }

@@ -12,7 +12,6 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
 )
 
 // IdentityRSServerSettings contains identity-rs specific configuration.
@@ -115,64 +114,66 @@ var (
 	})
 )
 
-// Parse parses command line arguments and returns identity-rs settings.
-func Parse(args []string, exitIfHelp bool) (*IdentityRSServerSettings, error) {
-	// Parse base template settings first.
-	baseSettings, err := cryptoutilAppsFrameworkServiceConfig.Parse(args, exitIfHelp)
+// ParseWithFlagSet parses command line arguments using provided FlagSet and returns identity-rs settings.
+// This enables test isolation by allowing each test to use its own FlagSet.
+func ParseWithFlagSet(fs *pflag.FlagSet, args []string, exitIfHelp bool) (*IdentityRSServerSettings, error) {
+	// Register identity-rs specific flags on the provided FlagSet BEFORE parsing.
+	fs.StringP(rsAuthzServerURLSetting.Name, rsAuthzServerURLSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(rsAuthzServerURLSetting), rsAuthzServerURLSetting.Description)
+	fs.StringP(jwksEndpointSetting.Name, jwksEndpointSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(jwksEndpointSetting), jwksEndpointSetting.Description)
+	fs.StringP(introspectionURLSetting.Name, introspectionURLSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(introspectionURLSetting), introspectionURLSetting.Description)
+	fs.BoolP(allowBearerTokenSetting.Name, allowBearerTokenSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsBoolSetting(allowBearerTokenSetting), allowBearerTokenSetting.Description)
+	fs.BoolP(allowClientCertSetting.Name, allowClientCertSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsBoolSetting(allowClientCertSetting), allowClientCertSetting.Description)
+	fs.IntP(jwksCacheTTLSetting.Name, jwksCacheTTLSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsIntSetting(jwksCacheTTLSetting), jwksCacheTTLSetting.Description)
+	fs.IntP(tokenCacheTTLSetting.Name, tokenCacheTTLSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsIntSetting(tokenCacheTTLSetting), tokenCacheTTLSetting.Description)
+	fs.BoolP(enableTokenCachingSetting.Name, enableTokenCachingSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsBoolSetting(enableTokenCachingSetting), enableTokenCachingSetting.Description)
+
+	// Parse base template settings using the same FlagSet.
+	baseSettings, err := cryptoutilAppsFrameworkServiceConfig.ParseWithFlagSet(fs, args, exitIfHelp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template settings: %w", err)
 	}
 
-	// Register identity-rs specific flags.
-	pflag.StringP(rsAuthzServerURLSetting.Name, rsAuthzServerURLSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(rsAuthzServerURLSetting), rsAuthzServerURLSetting.Description)
-	pflag.StringP(jwksEndpointSetting.Name, jwksEndpointSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(jwksEndpointSetting), jwksEndpointSetting.Description)
-	pflag.StringP(introspectionURLSetting.Name, introspectionURLSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(introspectionURLSetting), introspectionURLSetting.Description)
-	pflag.BoolP(allowBearerTokenSetting.Name, allowBearerTokenSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsBoolSetting(allowBearerTokenSetting), allowBearerTokenSetting.Description)
-	pflag.BoolP(allowClientCertSetting.Name, allowClientCertSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsBoolSetting(allowClientCertSetting), allowClientCertSetting.Description)
-	pflag.IntP(jwksCacheTTLSetting.Name, jwksCacheTTLSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsIntSetting(jwksCacheTTLSetting), jwksCacheTTLSetting.Description)
-	pflag.IntP(tokenCacheTTLSetting.Name, tokenCacheTTLSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsIntSetting(tokenCacheTTLSetting), tokenCacheTTLSetting.Description)
-	pflag.BoolP(enableTokenCachingSetting.Name, enableTokenCachingSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsBoolSetting(enableTokenCachingSetting), enableTokenCachingSetting.Description)
+	authzServerURL, _ := fs.GetString(rsAuthzServerURLSetting.Name)
+	jwksEndpoint, _ := fs.GetString(jwksEndpointSetting.Name)
+	introspectionURL, _ := fs.GetString(introspectionURLSetting.Name)
+	allowBearerToken, _ := fs.GetBool(allowBearerTokenSetting.Name)
+	allowClientCert, _ := fs.GetBool(allowClientCertSetting.Name)
+	jwksCacheTTL, _ := fs.GetInt(jwksCacheTTLSetting.Name)
+	tokenCacheTTL, _ := fs.GetInt(tokenCacheTTLSetting.Name)
+	enableTokenCaching, _ := fs.GetBool(enableTokenCachingSetting.Name)
 
-	// Parse flags.
-	pflag.Parse()
-
-	// Bind flags to viper.
-	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
-		return nil, fmt.Errorf("failed to bind flags: %w", err)
-	}
-
-	// Create identity-rs settings.
 	settings := &IdentityRSServerSettings{
 		ServiceFrameworkServerSettings: baseSettings,
-		AuthzServerURL:                viper.GetString(rsAuthzServerURLSetting.Name),
-		JWKSEndpoint:                  viper.GetString(jwksEndpointSetting.Name),
-		IntrospectionURL:              viper.GetString(introspectionURLSetting.Name),
+		AuthzServerURL:                authzServerURL,
+		JWKSEndpoint:                  jwksEndpoint,
+		IntrospectionURL:              introspectionURL,
 		RequiredScopes:                defaultRequiredScopes,
 		RequiredAudiences:             defaultRequiredAudiences,
-		AllowBearerToken:              viper.GetBool(allowBearerTokenSetting.Name),
-		AllowClientCert:               viper.GetBool(allowClientCertSetting.Name),
-		JWKSCacheTTL:                  viper.GetInt(jwksCacheTTLSetting.Name),
-		TokenCacheTTL:                 viper.GetInt(tokenCacheTTLSetting.Name),
-		EnableTokenCaching:            viper.GetBool(enableTokenCachingSetting.Name),
+		AllowBearerToken:              allowBearerToken,
+		AllowClientCert:               allowClientCert,
+		JWKSCacheTTL:                  jwksCacheTTL,
+		TokenCacheTTL:                 tokenCacheTTL,
+		EnableTokenCaching:            enableTokenCaching,
 	}
 
-	// Override template defaults with identity-rs specific values.
-	// NOTE: Only override public port if not explicitly set in config.
-	if baseSettings.BindPublicPort == 0 {
+	if !fs.Changed("bind-public-port") {
 		settings.BindPublicPort = cryptoutilSharedMagic.IdentityRSServicePort
 	}
 
 	settings.OTLPService = cryptoutilSharedMagic.OTLPServiceIdentityRS
 
-	// Validate identity-rs specific settings.
 	if err := validateIdentityRSSettings(settings); err != nil {
 		return nil, fmt.Errorf("identity-rs settings validation failed: %w", err)
 	}
 
-	// Log identity-rs specific settings.
 	logIdentityRSSettings(settings)
 
 	return settings, nil
+}
+
+// Parse parses command-line arguments and returns the identity-rs server settings.
+func Parse(args []string, exitIfHelp bool) (*IdentityRSServerSettings, error) {
+	return ParseWithFlagSet(pflag.CommandLine, args, exitIfHelp)
 }
 
 // validateIdentityRSSettings validates identity-rs specific configuration.

@@ -12,7 +12,6 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
 )
 
 // IdentityIDPServerSettings contains identity-idp specific configuration.
@@ -102,48 +101,50 @@ var (
 	})
 )
 
-// Parse parses command line arguments and returns identity-idp settings.
-func Parse(args []string, exitIfHelp bool) (*IdentityIDPServerSettings, error) {
-	// Parse base template settings first.
-	baseSettings, err := cryptoutilAppsFrameworkServiceConfig.Parse(args, exitIfHelp)
+// ParseWithFlagSet parses command line arguments using provided FlagSet and returns identity-idp settings.
+// This enables test isolation by allowing each test to use its own FlagSet.
+func ParseWithFlagSet(fs *pflag.FlagSet, args []string, exitIfHelp bool) (*IdentityIDPServerSettings, error) {
+	// Register identity-idp specific flags on the provided FlagSet BEFORE parsing.
+	// This must happen before calling template ParseWithFlagSet since it will call fs.Parse().
+	fs.StringP(idpAuthzServerURLSetting.Name, idpAuthzServerURLSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(idpAuthzServerURLSetting), idpAuthzServerURLSetting.Description)
+	fs.StringP(loginPagePathSetting.Name, loginPagePathSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(loginPagePathSetting), loginPagePathSetting.Description)
+	fs.StringP(consentPagePathSetting.Name, consentPagePathSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(consentPagePathSetting), consentPagePathSetting.Description)
+	fs.BoolP(enableMFAEnrollmentSetting.Name, enableMFAEnrollmentSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsBoolSetting(enableMFAEnrollmentSetting), enableMFAEnrollmentSetting.Description)
+	fs.BoolP(requireMFASetting.Name, requireMFASetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsBoolSetting(requireMFASetting), requireMFASetting.Description)
+	fs.IntP(loginSessionTimeoutSetting.Name, loginSessionTimeoutSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsIntSetting(loginSessionTimeoutSetting), loginSessionTimeoutSetting.Description)
+	fs.IntP(consentSessionTimeoutSetting.Name, consentSessionTimeoutSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsIntSetting(consentSessionTimeoutSetting), consentSessionTimeoutSetting.Description)
+
+	// Parse base template settings using the same FlagSet.
+	// This will register template flags and call fs.Parse() + viper.BindPFlags().
+	baseSettings, err := cryptoutilAppsFrameworkServiceConfig.ParseWithFlagSet(fs, args, exitIfHelp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template settings: %w", err)
 	}
 
-	// Register identity-idp specific flags.
-	pflag.StringP(idpAuthzServerURLSetting.Name, idpAuthzServerURLSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(idpAuthzServerURLSetting), idpAuthzServerURLSetting.Description)
-	pflag.StringP(loginPagePathSetting.Name, loginPagePathSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(loginPagePathSetting), loginPagePathSetting.Description)
-	pflag.StringP(consentPagePathSetting.Name, consentPagePathSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsStringSetting(consentPagePathSetting), consentPagePathSetting.Description)
-	pflag.BoolP(enableMFAEnrollmentSetting.Name, enableMFAEnrollmentSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsBoolSetting(enableMFAEnrollmentSetting), enableMFAEnrollmentSetting.Description)
-	pflag.BoolP(requireMFASetting.Name, requireMFASetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsBoolSetting(requireMFASetting), requireMFASetting.Description)
-	pflag.IntP(loginSessionTimeoutSetting.Name, loginSessionTimeoutSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsIntSetting(loginSessionTimeoutSetting), loginSessionTimeoutSetting.Description)
-	pflag.IntP(consentSessionTimeoutSetting.Name, consentSessionTimeoutSetting.Shorthand, cryptoutilAppsFrameworkServiceConfig.RegisterAsIntSetting(consentSessionTimeoutSetting), consentSessionTimeoutSetting.Description)
+	// Create identity-idp settings using values from the FlagSet (avoids global viper dependency).
+	authzServerURL, _ := fs.GetString(idpAuthzServerURLSetting.Name)
+	loginPagePath, _ := fs.GetString(loginPagePathSetting.Name)
+	consentPagePath, _ := fs.GetString(consentPagePathSetting.Name)
+	enableMFAEnrollment, _ := fs.GetBool(enableMFAEnrollmentSetting.Name)
+	requireMFA, _ := fs.GetBool(requireMFASetting.Name)
+	loginSessionTimeout, _ := fs.GetInt(loginSessionTimeoutSetting.Name)
+	consentSessionTimeout, _ := fs.GetInt(consentSessionTimeoutSetting.Name)
 
-	// Parse flags.
-	pflag.Parse()
-
-	// Bind flags to viper.
-	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
-		return nil, fmt.Errorf("failed to bind flags: %w", err)
-	}
-
-	// Create identity-idp settings.
 	settings := &IdentityIDPServerSettings{
 		ServiceFrameworkServerSettings: baseSettings,
-		AuthzServerURL:                viper.GetString(idpAuthzServerURLSetting.Name),
-		LoginPagePath:                 viper.GetString(loginPagePathSetting.Name),
-		ConsentPagePath:               viper.GetString(consentPagePathSetting.Name),
-		EnableMFAEnrollment:           viper.GetBool(enableMFAEnrollmentSetting.Name),
-		RequireMFA:                    viper.GetBool(requireMFASetting.Name),
+		AuthzServerURL:                authzServerURL,
+		LoginPagePath:                 loginPagePath,
+		ConsentPagePath:               consentPagePath,
+		EnableMFAEnrollment:           enableMFAEnrollment,
+		RequireMFA:                    requireMFA,
 		MFAMethods:                    defaultMFAMethods,
-		LoginSessionTimeout:           viper.GetInt(loginSessionTimeoutSetting.Name),
-		ConsentSessionTimeout:         viper.GetInt(consentSessionTimeoutSetting.Name),
+		LoginSessionTimeout:           loginSessionTimeout,
+		ConsentSessionTimeout:         consentSessionTimeout,
 	}
 
 	// Override template defaults with identity-idp specific values.
-	// NOTE: Only override public port if not explicitly set in config.
-	// The config file may specify a different port (e.g., 8301 for E2E to avoid conflict with authz on 8300).
-	if baseSettings.BindPublicPort == 0 {
+	// Only override public port if user didn't explicitly specify one via CLI flag.
+	if !fs.Changed("bind-public-port") {
 		settings.BindPublicPort = cryptoutilSharedMagic.IdentityIDPServicePort
 	}
 
@@ -158,6 +159,11 @@ func Parse(args []string, exitIfHelp bool) (*IdentityIDPServerSettings, error) {
 	logIdentityIDPSettings(settings)
 
 	return settings, nil
+}
+
+// Parse parses command-line arguments and returns the identity-idp server settings.
+func Parse(args []string, exitIfHelp bool) (*IdentityIDPServerSettings, error) {
+	return ParseWithFlagSet(pflag.CommandLine, args, exitIfHelp)
 }
 
 // validateIdentityIDPSettings validates identity-idp specific configuration.
