@@ -5,7 +5,7 @@
 //
 //
 
-package integration
+package client
 
 import (
 	"context"

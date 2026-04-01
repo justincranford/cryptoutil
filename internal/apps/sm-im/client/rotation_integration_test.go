@@ -5,7 +5,7 @@
 //
 //
 
-package integration
+package client
 
 import (
 	"bytes"
@@ -14,7 +14,6 @@ import (
 	http "net/http"
 	"testing"
 
-	cryptoutilAppsSmImClient "cryptoutil/internal/apps/sm-im/client"
 	cryptoutilAppsFrameworkServiceTestingE2eHelpers "cryptoutil/internal/apps/framework/service/testing/e2e_helpers"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
@@ -32,7 +31,7 @@ func TestE2E_RotateRootKey(t *testing.T) {
 
 	plaintext1 := "Message before root key rotation"
 
-	messageID1, err := cryptoutilAppsSmImClient.SendMessage(sharedHTTPClient, publicBaseURL, plaintext1, user1.Token, user2.ID)
+	messageID1, err := SendMessage(sharedHTTPClient, publicBaseURL, plaintext1, user1.Token, user2.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, messageID1, "baseline message ID should not be empty")
 
@@ -74,12 +73,12 @@ func TestE2E_RotateRootKey(t *testing.T) {
 	// Step 5: Send new message after rotation (uses new root key chain).
 	plaintext2 := "Message after root key rotation"
 
-	messageID2, err := cryptoutilAppsSmImClient.SendMessage(sharedHTTPClient, publicBaseURL, plaintext2, user1.Token, user2.ID)
+	messageID2, err := SendMessage(sharedHTTPClient, publicBaseURL, plaintext2, user1.Token, user2.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, messageID2, "post-rotation message ID should not be empty")
 
 	// Step 6: Verify user2 can decrypt BOTH old and new messages (backward compatibility).
-	messages, err := cryptoutilAppsSmImClient.ReceiveMessagesService(sharedHTTPClient, publicBaseURL, user2.Token)
+	messages, err := ReceiveMessagesService(sharedHTTPClient, publicBaseURL, user2.Token)
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, len(messages), 2, "user2 should have at least 2 messages")
 
@@ -113,7 +112,7 @@ func TestE2E_RotateIntermediateKey(t *testing.T) {
 
 	plaintext1 := "Message before intermediate key rotation"
 
-	messageID1, err := cryptoutilAppsSmImClient.SendMessage(sharedHTTPClient, publicBaseURL, plaintext1, user1.Token, user2.ID)
+	messageID1, err := SendMessage(sharedHTTPClient, publicBaseURL, plaintext1, user1.Token, user2.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, messageID1, "baseline message ID should not be empty")
 
@@ -147,12 +146,12 @@ func TestE2E_RotateIntermediateKey(t *testing.T) {
 	// Step 5: Send new message after rotation.
 	plaintext2 := "Message after intermediate key rotation"
 
-	messageID2, err := cryptoutilAppsSmImClient.SendMessage(sharedHTTPClient, publicBaseURL, plaintext2, user1.Token, user2.ID)
+	messageID2, err := SendMessage(sharedHTTPClient, publicBaseURL, plaintext2, user1.Token, user2.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, messageID2, "post-rotation message ID should not be empty")
 
 	// Step 6: Verify backward compatibility.
-	messages, err := cryptoutilAppsSmImClient.ReceiveMessagesService(sharedHTTPClient, publicBaseURL, user2.Token)
+	messages, err := ReceiveMessagesService(sharedHTTPClient, publicBaseURL, user2.Token)
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, len(messages), 2, "user2 should have at least 2 messages")
 
@@ -185,7 +184,7 @@ func TestE2E_RotateContentKey(t *testing.T) {
 
 	plaintext1 := "Message before content key rotation"
 
-	messageID1, err := cryptoutilAppsSmImClient.SendMessage(sharedHTTPClient, publicBaseURL, plaintext1, user1.Token, user2.ID)
+	messageID1, err := SendMessage(sharedHTTPClient, publicBaseURL, plaintext1, user1.Token, user2.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, messageID1, "baseline message ID should not be empty")
 
@@ -209,12 +208,12 @@ func TestE2E_RotateContentKey(t *testing.T) {
 	// Step 3: Send new message after rotation (uses new content key).
 	plaintext2 := "Message after content key rotation"
 
-	messageID2, err := cryptoutilAppsSmImClient.SendMessage(sharedHTTPClient, publicBaseURL, plaintext2, user1.Token, user2.ID)
+	messageID2, err := SendMessage(sharedHTTPClient, publicBaseURL, plaintext2, user1.Token, user2.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, messageID2, "post-rotation message ID should not be empty")
 
 	// Step 4: Verify both messages decrypt correctly (elastic rotation preserves old keys).
-	messages, err := cryptoutilAppsSmImClient.ReceiveMessagesService(sharedHTTPClient, publicBaseURL, user2.Token)
+	messages, err := ReceiveMessagesService(sharedHTTPClient, publicBaseURL, user2.Token)
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, len(messages), 2, "user2 should have at least 2 messages")
 

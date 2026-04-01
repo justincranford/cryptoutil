@@ -5,7 +5,7 @@
 //
 //
 
-package integration
+package client
 
 import (
 	"crypto/tls"
@@ -20,7 +20,6 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilAppsSmImClient "cryptoutil/internal/apps/sm-im/client"
 	cryptoutilAppsFrameworkServiceTestingE2eHelpers "cryptoutil/internal/apps/framework/service/testing/e2e_helpers"
 )
 
@@ -143,7 +142,7 @@ func createTestUsersAPI(t *testing.T, client *http.Client, baseURL string, numUs
 func sendMessageAPI(t *testing.T, client *http.Client, baseURL string, recipientIDs []googleUuid.UUID, content string, token string) {
 	t.Helper()
 
-	_, err := cryptoutilAppsSmImClient.SendMessage(client, baseURL, content, token, recipientIDs...)
+	_, err := SendMessage(client, baseURL, content, token, recipientIDs...)
 	require.NoError(t, err, "Failed to send message")
 }
 
@@ -151,7 +150,7 @@ func sendMessageAPI(t *testing.T, client *http.Client, baseURL string, recipient
 func getMessagesAPI(t *testing.T, client *http.Client, baseURL string, _ googleUuid.UUID, token string) []map[string]any {
 	t.Helper()
 
-	messages, err := cryptoutilAppsSmImClient.ReceiveMessagesService(client, baseURL, token)
+	messages, err := ReceiveMessagesService(client, baseURL, token)
 	require.NoError(t, err, "Failed to get messages")
 
 	return messages

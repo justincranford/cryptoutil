@@ -4,12 +4,11 @@
 // Copyright (c) 2025 Justin Cranford
 //
 
-package integration
+package client
 
 import (
 	"testing"
 
-	cryptoutilAppsSmImClient "cryptoutil/internal/apps/sm-im/client"
 	cryptoutilAppsFrameworkServiceTestingE2eHelpers "cryptoutil/internal/apps/framework/service/testing/e2e_helpers"
 
 	"github.com/stretchr/testify/require"
@@ -27,12 +26,12 @@ func TestE2E_FullEncryptionFlow(t *testing.T) {
 	// user1 sends encrypted message to user2.
 	plaintext := "Hello " + user2.Username + ", this is a secret message from " + user1.Username + "!"
 
-	messageID, err := cryptoutilAppsSmImClient.SendMessage(sharedHTTPClient, publicBaseURL, plaintext, user1.Token, user2.ID)
+	messageID, err := SendMessage(sharedHTTPClient, publicBaseURL, plaintext, user1.Token, user2.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, messageID, "message ID should not be empty")
 
 	// user2 receives messages.
-	messages, err := cryptoutilAppsSmImClient.ReceiveMessagesService(sharedHTTPClient, publicBaseURL, user2.Token)
+	messages, err := ReceiveMessagesService(sharedHTTPClient, publicBaseURL, user2.Token)
 	require.NoError(t, err)
 	require.Len(t, messages, 1, "%s should have 1 message", user2.Username)
 
@@ -61,12 +60,12 @@ func TestE2E_MultiReceiverEncryption(t *testing.T) {
 	// user1 sends message to both user2 and user3.
 	plaintext := "Hello to both of you!"
 
-	messageID, err := cryptoutilAppsSmImClient.SendMessage(sharedHTTPClient, publicBaseURL, plaintext, user1.Token, user2.ID, user3.ID)
+	messageID, err := SendMessage(sharedHTTPClient, publicBaseURL, plaintext, user1.Token, user2.ID, user3.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, messageID, "message ID should not be empty")
 
 	// user2 receives messages.
-	user2Messages, err := cryptoutilAppsSmImClient.ReceiveMessagesService(sharedHTTPClient, publicBaseURL, user2.Token)
+	user2Messages, err := ReceiveMessagesService(sharedHTTPClient, publicBaseURL, user2.Token)
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, len(user2Messages), 1, "user2 should have at least 1 message")
 
@@ -77,7 +76,7 @@ func TestE2E_MultiReceiverEncryption(t *testing.T) {
 	require.Equal(t, plaintext, user2Decrypted)
 
 	// user3 receives messages.
-	user3Messages, err := cryptoutilAppsSmImClient.ReceiveMessagesService(sharedHTTPClient, publicBaseURL, user3.Token)
+	user3Messages, err := ReceiveMessagesService(sharedHTTPClient, publicBaseURL, user3.Token)
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, len(user3Messages), 1, "user3 should have at least 1 message")
 
@@ -100,21 +99,21 @@ func TestE2E_MessageDeletion(t *testing.T) {
 	// user1 sends message to user2.
 	plaintext := "This message will be deleted!"
 
-	messageID, err := cryptoutilAppsSmImClient.SendMessage(sharedHTTPClient, publicBaseURL, plaintext, user1.Token, user2.ID)
+	messageID, err := SendMessage(sharedHTTPClient, publicBaseURL, plaintext, user1.Token, user2.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, messageID, "message ID should not be empty")
 
 	// user2 receives messages.
-	messages, err := cryptoutilAppsSmImClient.ReceiveMessagesService(sharedHTTPClient, publicBaseURL, user2.Token)
+	messages, err := ReceiveMessagesService(sharedHTTPClient, publicBaseURL, user2.Token)
 	require.NoError(t, err)
 	require.Len(t, messages, 1)
 
 	// user1 deletes the message.
-	err = cryptoutilAppsSmImClient.DeleteMessageService(sharedHTTPClient, publicBaseURL, messageID, user1.Token)
+	err = DeleteMessageService(sharedHTTPClient, publicBaseURL, messageID, user1.Token)
 	require.NoError(t, err)
 
 	// user2 receives messages again (should be empty).
-	messages, err = cryptoutilAppsSmImClient.ReceiveMessagesService(sharedHTTPClient, publicBaseURL, user2.Token)
+	messages, err = ReceiveMessagesService(sharedHTTPClient, publicBaseURL, user2.Token)
 	require.NoError(t, err)
 	require.Len(t, messages, 0, "user2 should have no messages after deletion")
 }
