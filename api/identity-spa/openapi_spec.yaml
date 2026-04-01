@@ -1,0 +1,248 @@
+openapi: 3.0.3
+info:
+  title: Single Page App Backend-for-Frontend API
+  version: 1.0.0
+  description: |
+    SPA Backend-for-Frontend (BFF) service.
+    Browser-facing OAuth 2.1 client that proxies authentication flows
+    for SPA clients that cannot securely store tokens.
+  contact:
+    name: Identity Team
+    email: identity@cryptoutil.local
+
+servers:
+  - url: https://localhost:8800
+    description: Local Development
+  - url: https://spa.cryptoutil.local
+    description: Production
+
+paths:
+  /authn/login:
+    get:
+      summary: Initiate Login
+      description: |
+        Redirect the SPA user to the authorization server.
+        The BFF handles PKCE and token storage on behalf of the SPA.
+      operationId: initiateLogin
+      tags:
+        - Authentication
+      parameters:
+        - name: return_url
+          in: query
+          schema:
+            type: string
+            format: uri
+          description: SPA URL to return to after login
+      responses:
+        '302':
+          description: Redirect to authorization server
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+              description: Authorization endpoint with PKCE parameters
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /authn/callback:
+    get:
+      summary: OAuth 2.1 Callback
+      description: |
+        Handle the OAuth 2.1 authorization code callback.
+        Exchanges code for tokens, stores them server-side, sets session cookie.
+      operationId: handleCallback
+      tags:
+        - Authentication
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Authorization code
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+          description: State parameter for CSRF protection
+      responses:
+        '302':
+          description: Redirect to SPA with session cookie
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+            Set-Cookie:
+              schema:
+                type: string
+              description: Secure session cookie
+        '400':
+          description: Invalid callback parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Token exchange failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /authn/logout:
+    post:
+      summary: Logout
+      description: |
+        End the session and revoke tokens. Clears session cookie.
+      operationId: logout
+      tags:
+        - Authentication
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Logged out
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: Expired session cookie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Logged out successfully"
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /authn/session:
+    get:
+      summary: Get Session Info
+      description: |
+        Return session information and user claims for the SPA.
+        The SPA calls this to determine authentication state.
+      operationId: getSession
+      tags:
+        - Session
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Session information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /authn/token:
+    get:
+      summary: Get Access Token
+      description: |
+        Return an access token for the SPA to use when calling resource servers.
+        The BFF retrieves the token from server-side storage and returns it.
+        Token is refreshed automatically if expired.
+      operationId: getToken
+      tags:
+        - Token
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: Not authenticated or token expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: session_id
+      description: BFF session cookie
+
+  schemas:
+    SessionResponse:
+      type: object
+      required:
+        - sub
+        - expiresAt
+      properties:
+        sub:
+          type: string
+          description: Subject identifier (user ID)
+          example: "01932e4d-1234-5678-9abc-def012345678"
+        name:
+          type: string
+          description: User display name
+          example: "John Doe"
+        email:
+          type: string
+          format: email
+          description: User email
+          example: "john.doe@example.com"
+        expiresAt:
+          type: string
+          format: date-time
+          description: Session expiration time
+          example: "2025-01-28T12:00:00Z"
+
+    TokenResponse:
+      type: object
+      required:
+        - accessToken
+        - tokenType
+        - expiresIn
+      properties:
+        accessToken:
+          type: string
+          description: OAuth 2.1 access token
+        tokenType:
+          type: string
+          description: Token type (always "Bearer")
+          example: "Bearer"
+        expiresIn:
+          type: integer
+          description: Token lifetime in seconds
+          example: 3600
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error code or message
+          example: "invalid_request"
+        errorDescription:
+          type: string
+          description: Human-readable error description
+          example: "Missing required parameter"

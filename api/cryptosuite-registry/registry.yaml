@@ -47,100 +47,94 @@ product_services:
   - ps_id: sm-kms
     product: sm
     service: kms
-    display_name: "Secrets Manager Key Management"
+    display_name: "Key Management"
     internal_apps_dir: sm-kms/
     magic_file: magic_sm.go
     base_port: 8000
-    entrypoint: ["/sbin/tini", "--", "/app/cryptoutil"]
+    entrypoint: ["/sbin/tini", "--", "/app/sm-kms"]
     pg_host_port: 54320
     migration_range_start: 2001
     migration_range_end: 2999
     api_resources:
-      - /elastickey
-      - /elastickey/{elasticKeyID}
-      - /elastickeys
-      - /elastickey/{elasticKeyID}/materialkey
-      - /elastickey/{elasticKeyID}/materialkey/{materialKeyID}
-      - /elastickey/{elasticKeyID}/materialkey/{materialKeyID}/revoke
-      - /elastickey/{elasticKeyID}/materialkeys
-      - /materialkeys
-      - /elastickey/{elasticKeyID}/generate
-      - /elastickey/{elasticKeyID}/encrypt
-      - /elastickey/{elasticKeyID}/decrypt
-      - /elastickey/{elasticKeyID}/sign
-      - /elastickey/{elasticKeyID}/verify
-      - /elastickey/{elasticKeyID}/import
+      - /elastic-keys
+      - /elastic-keys/{elasticKeyID}
+      - /elastic-keys/{elasticKeyID}/material-keys
+      - /elastic-keys/{elasticKeyID}/material-keys/{materialKeyID}
+      - /elastic-keys/{elasticKeyID}/material-keys/{materialKeyID}/revoke
+      - /material-keys
+      - /elastic-keys/{elasticKeyID}/generate
+      - /elastic-keys/{elasticKeyID}/encrypt
+      - /elastic-keys/{elasticKeyID}/decrypt
+      - /elastic-keys/{elasticKeyID}/sign
+      - /elastic-keys/{elasticKeyID}/verify
+      - /elastic-keys/{elasticKeyID}/import
 
   - ps_id: sm-im
     product: sm
     service: im
-    display_name: "Secrets Manager Instant Messenger"
+    display_name: "Instant Messenger"
     internal_apps_dir: sm-im/
     magic_file: magic_sm_im.go
     base_port: 8100
-    entrypoint: ["/app/sm-im"]
+    entrypoint: ["/sbin/tini", "--", "/app/sm-im"]
     pg_host_port: 54321
     migration_range_start: 3001
     migration_range_end: 3999
     api_resources:
-      - /messages/tx
-      - /messages/rx
-      - /messages/{id}
+      - /messages
+      - /messages/{messageID}
+      - /messages/send
+      - /messages/receive
 
   - ps_id: jose-ja
     product: jose
     service: ja
-    display_name: "JOSE JWK Authority"
+    display_name: "JWK Authority"
     internal_apps_dir: jose-ja/
     magic_file: magic_jose.go
     base_port: 8200
-    entrypoint: ["/app/jose-ja"]
+    entrypoint: ["/sbin/tini", "--", "/app/jose-ja"]
     pg_host_port: 54322
     migration_range_start: 4001
     migration_range_end: 4999
     api_resources:
-      - /elastic-jwks
-      - /elastic-jwks/{kid}
-      - /elastic-jwks/{kid}/materials
-      - /elastic-jwks/{kid}/materials/active
-      - /elastic-jwks/{kid}/rotate
-      - /jwk/generate
-      - /jwk/{kid}
-      - /jwk
+      - /elastic-keys
+      - /elastic-keys/{elasticKeyID}
+      - /elastic-keys/{elasticKeyID}/material-keys
+      - /elastic-keys/{elasticKeyID}/material-keys/active
+      - /elastic-keys/{elasticKeyID}/material-keys/{materialKeyID}
+      - /material-keys
+      - /elastic-keys/{elasticKeyID}/rotate
+      - /elastic-keys/{elasticKeyID}/generate
+      - /elastic-keys/{elasticKeyID}/encrypt
+      - /elastic-keys/{elasticKeyID}/decrypt
+      - /elastic-keys/{elasticKeyID}/sign
+      - /elastic-keys/{elasticKeyID}/verify
       - /jwks
-      - /jws/sign
-      - /jws/verify
-      - /jwe/encrypt
-      - /jwe/decrypt
-      - /jwt/create
-      - /jwt/verify
-      - /health
-      - /livez
-      - /readyz
 
   - ps_id: pki-ca
     product: pki
     service: ca
-    display_name: "PKI Certificate Authority"
+    display_name: "Certificate Authority"
     internal_apps_dir: pki-ca/
     magic_file: magic_pki.go
     base_port: 8300
-    entrypoint: ["/app/pki-ca"]
+    entrypoint: ["/sbin/tini", "--", "/app/pki-ca"]
     pg_host_port: 54323
     migration_range_start: 5001
     migration_range_end: 5999
     api_resources:
-      - /ca
-      - /ca/{caId}
-      - /ca/{caId}/crl
-      - /enroll
-      - /enroll/{requestId}
+      - /cas
+      - /cas/{caID}
+      - /cas/{caID}/crl
+      - /enrollments
+      - /enrollments/{requestID}
       - /certificates
       - /certificates/{serialNumber}
       - /certificates/{serialNumber}/chain
       - /certificates/{serialNumber}/revoke
       - /profiles
-      - /profiles/{profileId}
+      - /profiles/{profileID}
       - /ocsp
       - /est/cacerts
       - /est/simpleenroll
@@ -149,14 +143,17 @@ product_services:
       - /est/csrattrs
       - /tsa/timestamp
 
+  # OAuth 2.1 Authorization Server — handles token lifecycle only.
+  # MFA endpoints belong in identity-idp (authentication concern, not authorization).
+  # See RFC 6749 (OAuth 2.0), RFC 9101 (OAuth 2.1), OIDC Core 1.0.
   - ps_id: identity-authz
     product: identity
     service: authz
-    display_name: "Identity Authorization Server"
+    display_name: "Authorization Server"
     internal_apps_dir: identity-authz/
     magic_file: magic_identity.go
     base_port: 8400
-    entrypoint: ["/sbin/tini", "--", "/app/cryptoutil", "identity-authz", "start"]
+    entrypoint: ["/sbin/tini", "--", "/app/identity-authz"]
     pg_host_port: 54324
     migration_range_start: 6001
     migration_range_end: 6999
@@ -165,26 +162,20 @@ product_services:
       - /oauth2/v1/token
       - /oauth2/v1/introspect
       - /oauth2/v1/revoke
-      - /health
-      - /oidc/v1/mfa/totp/enroll
-      - /oidc/v1/mfa/totp/verify
-      - /oidc/v1/mfa/totp/backup-codes/generate
-      - /oidc/v1/mfa/totp/backup-codes/verify
-      - /oidc/v1/mfa/webauthn/register/begin
-      - /oidc/v1/mfa/webauthn/register/finish
-      - /oidc/v1/mfa/webauthn/authenticate/begin
-      - /oidc/v1/mfa/webauthn/authenticate/finish
-      - /oidc/v1/mfa/webauthn/credentials/{user_id}
-      - /oidc/v1/mfa/webauthn/credentials
+      - /.well-known/openid-configuration
 
+  # OIDC 1.0 Identity Provider — handles user authentication including MFA.
+  # MFA (TOTP, WebAuthn) is an authentication concern that verifies user identity,
+  # which is the IdP's responsibility. Best practice (Keycloak, Okta, Azure AD)
+  # separates token lifecycle (authz) from user authentication (idp).
   - ps_id: identity-idp
     product: identity
     service: idp
-    display_name: "Identity Provider"
+    display_name: "Provider"
     internal_apps_dir: identity-idp/
     magic_file: magic_identity.go
     base_port: 8500
-    entrypoint: ["/sbin/tini", "--", "/app/cryptoutil", "identity-idp", "start"]
+    entrypoint: ["/sbin/tini", "--", "/app/identity-idp"]
     pg_host_port: 54325
     migration_range_start: 7001
     migration_range_end: 7999
@@ -193,58 +184,80 @@ product_services:
       - /oidc/v1/consent
       - /oidc/v1/logout
       - /oidc/v1/userinfo
-      - /health
+      - /oidc/v1/mfa/totp/enroll
+      - /oidc/v1/mfa/totp/verify
+      - /oidc/v1/mfa/totp/backup-codes/generate
+      - /oidc/v1/mfa/totp/backup-codes/verify
+      - /oidc/v1/mfa/webauthn/register/begin
+      - /oidc/v1/mfa/webauthn/register/finish
+      - /oidc/v1/mfa/webauthn/authenticate/begin
+      - /oidc/v1/mfa/webauthn/authenticate/finish
+      - /oidc/v1/mfa/webauthn/credentials
+      - /oidc/v1/mfa/webauthn/credentials/{userID}
 
   - ps_id: identity-rs
     product: identity
     service: rs
-    display_name: "Identity Resource Server"
+    display_name: "Resource Server"
     internal_apps_dir: identity-rs/
     magic_file: magic_identity.go
     base_port: 8600
-    entrypoint: ["/sbin/tini", "--", "/app/cryptoutil", "identity-rs", "start"]
+    entrypoint: ["/sbin/tini", "--", "/app/identity-rs"]
     pg_host_port: 54326
     migration_range_start: 8001
     migration_range_end: 8999
     api_resources:
-      - /api/v1/protected
-      - /api/v1/public
-      - /health
+      - /resources
+      - /resources/{resourceID}
 
+  # OIDC Relying Party — consumes tokens from the IdP/Authz server.
+  # Handles OAuth 2.1 callback flow, session management, and token refresh.
   - ps_id: identity-rp
     product: identity
     service: rp
-    display_name: "Identity Relying Party"
+    display_name: "Relying Party"
     internal_apps_dir: identity-rp/
     magic_file: magic_identity.go
     base_port: 8700
-    entrypoint: ["/sbin/tini", "--", "/app/cryptoutil", "identity-rp", "start"]
+    entrypoint: ["/sbin/tini", "--", "/app/identity-rp"]
     pg_host_port: 54327
     migration_range_start: 9001
     migration_range_end: 9999
-    api_resources: []
+    api_resources:
+      - /authn/login
+      - /authn/callback
+      - /authn/logout
+      - /authn/session
+      - /authn/refresh
 
+  # Single Page App Backend-for-Frontend (BFF) — browser-facing OAuth 2.1 client.
+  # Proxies authentication flows for SPA clients that cannot securely store tokens.
   - ps_id: identity-spa
     product: identity
     service: spa
-    display_name: "Identity Single Page App"
+    display_name: "Single Page App"
     internal_apps_dir: identity-spa/
     magic_file: magic_identity.go
     base_port: 8800
-    entrypoint: ["/sbin/tini", "--", "/app/cryptoutil", "identity-spa", "start"]
+    entrypoint: ["/sbin/tini", "--", "/app/identity-spa"]
     pg_host_port: 54328
     migration_range_start: 10001
     migration_range_end: 10999
-    api_resources: []
+    api_resources:
+      - /authn/login
+      - /authn/callback
+      - /authn/logout
+      - /authn/session
+      - /authn/token
 
   - ps_id: skeleton-template
     product: skeleton
     service: template
-    display_name: "Skeleton Template"
+    display_name: "Template"
     internal_apps_dir: skeleton-template/
     magic_file: magic_skeleton.go
     base_port: 8900
-    entrypoint: ["/app/skeleton-template"]
+    entrypoint: ["/sbin/tini", "--", "/app/skeleton-template"]
     pg_host_port: 54329
     migration_range_start: 11001
     migration_range_end: 11999

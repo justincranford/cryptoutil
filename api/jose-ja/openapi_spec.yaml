@@ -24,152 +24,8 @@ servers:
     description: JOSE Authority Server API v1
 
 paths:
-  # Health Endpoints
-  /health:
-    get:
-      summary: Health check
-      description: Returns the health status of the JOSE Authority Server.
-      operationId: getHealth
-      tags: [Health]
-      responses:
-        '200':
-          description: Server is healthy.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HealthResponse'
-
-  /livez:
-    get:
-      summary: Liveness check
-      description: Returns OK if the server is alive.
-      operationId: getLivez
-      tags: [Health]
-      responses:
-        '200':
-          description: Server is alive.
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: OK
-
-  /readyz:
-    get:
-      summary: Readiness check
-      description: Returns OK if the server is ready to accept requests.
-      operationId: getReadyz
-      tags: [Health]
-      responses:
-        '200':
-          description: Server is ready.
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: OK
-
-  # JWK Endpoints
-  /jwk/generate:
-    post:
-      summary: Generate a new JWK
-      description: |
-        Generate a new JSON Web Key with the specified algorithm.
-        Supported algorithms:
-        - RSA: RSA4096, RSA3072, RSA2048
-        - EC: ECP521, ECP384, ECP256
-        - OKP: OKPEd25519
-        - Symmetric: Oct512, Oct384, Oct256, Oct192, Oct128
-      operationId: generateJWK
-      tags: [JWK]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/JWKGenerateRequest'
-      responses:
-        '201':
-          description: JWK generated successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JWKResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /jwk/{kid}:
-    parameters:
-      - name: kid
-        in: path
-        required: true
-        description: Key ID (UUIDv7 format)
-        schema:
-          type: string
-          format: uuid
-    get:
-      summary: Get a JWK by Key ID
-      description: Retrieve a JSON Web Key by its Key ID. Returns public key information only.
-      operationId: getJWK
-      tags: [JWK]
-      responses:
-        '200':
-          description: JWK retrieved successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JWKResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-    delete:
-      summary: Delete a JWK by Key ID
-      description: Delete a JSON Web Key by its Key ID.
-      operationId: deleteJWK
-      tags: [JWK]
-      responses:
-        '204':
-          description: JWK deleted successfully.
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-  /jwk:
-    get:
-      summary: List all JWKs
-      description: List all stored JSON Web Keys with metadata.
-      operationId: listJWKs
-      tags: [JWK]
-      responses:
-        '200':
-          description: JWK list retrieved successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JWKListResponse'
-
-  /jwks:
-    get:
-      summary: Get JWKS (public keys)
-      description: |
-        Returns a JSON Web Key Set containing all public keys.
-        This endpoint is typically used for token verification by relying parties.
-      operationId: getJWKS
-      tags: [JWK]
-      responses:
-        '200':
-          description: JWKS retrieved successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JWKS'
-
-  # Elastic JWK Endpoints
-  /elastic-jwks:
+  # Elastic Key Endpoints
+  /elastic-keys:
     post:
       summary: Create an elastic JWK
       description: |
@@ -233,18 +89,19 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /elastic-jwks/{kid}:
+  /elastic-keys/{elasticKeyID}:
     parameters:
-      - name: kid
+      - name: elasticKeyID
         in: path
         required: true
-        description: Elastic JWK Key ID.
+        description: Elastic Key ID.
         schema:
           type: string
+          format: uuid
     get:
-      summary: Get an elastic JWK
-      description: Retrieve an elastic JWK by its Key ID.
-      operationId: getElasticJWK
+      summary: Get an elastic key
+      description: Retrieve an elastic key by its ID.
+      operationId: getElasticKey
       tags: [ElasticJWK]
       responses:
         '200':
@@ -262,9 +119,9 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
     delete:
-      summary: Delete an elastic JWK
-      description: Delete an elastic JWK and all its material JWKs.
-      operationId: deleteElasticJWK
+      summary: Delete an elastic key
+      description: Delete an elastic key and all its material keys.
+      operationId: deleteElasticKey
       tags: [ElasticJWK]
       responses:
         '204':
@@ -278,19 +135,20 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /elastic-jwks/{kid}/materials:
+  /elastic-keys/{elasticKeyID}/material-keys:
     parameters:
-      - name: kid
+      - name: elasticKeyID
         in: path
         required: true
-        description: Elastic JWK Key ID.
+        description: Elastic Key ID.
         schema:
           type: string
+          format: uuid
     post:
-      summary: Create a material JWK
-      description: Create a new material JWK for an elastic JWK.
-      operationId: createMaterialJWK
-      tags: [MaterialJWK]
+      summary: Create a material key
+      description: Create a new material key for an elastic key.
+      operationId: createMaterialKey
+      tags: [MaterialKey]
       responses:
         '201':
           description: Material JWK created successfully.
@@ -315,10 +173,10 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
     get:
-      summary: List material JWKs
-      description: List all material JWKs for an elastic JWK.
-      operationId: listMaterialJWKs
-      tags: [MaterialJWK]
+      summary: List material keys
+      description: List all material keys for an elastic key.
+      operationId: listMaterialKeys
+      tags: [MaterialKey]
       parameters:
         - name: offset
           in: query
@@ -349,19 +207,20 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /elastic-jwks/{kid}/materials/active:
+  /elastic-keys/{elasticKeyID}/material-keys/active:
     parameters:
-      - name: kid
+      - name: elasticKeyID
         in: path
         required: true
-        description: Elastic JWK Key ID.
+        description: Elastic Key ID.
         schema:
           type: string
+          format: uuid
     get:
-      summary: Get active material JWK
-      description: Get the currently active material JWK for an elastic JWK.
-      operationId: getActiveMaterialJWK
-      tags: [MaterialJWK]
+      summary: Get active material key
+      description: Get the currently active material key for an elastic key.
+      operationId: getActiveMaterialKey
+      tags: [MaterialKey]
       responses:
         '200':
           description: Active material JWK retrieved successfully.
@@ -378,19 +237,20 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /elastic-jwks/{kid}/rotate:
+  /elastic-keys/{elasticKeyID}/rotate:
     parameters:
-      - name: kid
+      - name: elasticKeyID
         in: path
         required: true
-        description: Elastic JWK Key ID.
+        description: Elastic Key ID.
         schema:
           type: string
+          format: uuid
     post:
-      summary: Rotate material JWK
-      description: Create a new active material JWK and retire the current one.
-      operationId: rotateMaterialJWK
-      tags: [MaterialJWK]
+      summary: Rotate material key
+      description: Create a new active material key and retire the current one.
+      operationId: rotateMaterialKey
+      tags: [MaterialKey]
       responses:
         '201':
           description: Material JWK rotated successfully.
@@ -415,28 +275,109 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  # JWS Endpoints
-  /jws/sign:
+  # Material Key by ID
+  /elastic-keys/{elasticKeyID}/material-keys/{materialKeyID}:
+    parameters:
+      - name: elasticKeyID
+        in: path
+        required: true
+        description: Elastic Key ID.
+        schema:
+          type: string
+          format: uuid
+      - name: materialKeyID
+        in: path
+        required: true
+        description: Material Key ID.
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: Get a material key by ID
+      description: Retrieve a material key by its ID within an elastic key.
+      operationId: getMaterialKey
+      tags: [MaterialKey]
+      responses:
+        '200':
+          description: Material key retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaterialJWKResponse'
+        '401':
+          description: Missing tenant context.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Top-level Material Keys
+  /material-keys:
+    get:
+      summary: List all material keys
+      description: List all material keys across all elastic keys for the current tenant.
+      operationId: listAllMaterialKeys
+      tags: [MaterialKey]
+      parameters:
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 50
+      responses:
+        '200':
+          description: Material key list retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaterialJWKListResponse'
+        '401':
+          description: Missing tenant context.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Cryptographic Operations (scoped to elastic key)
+  /elastic-keys/{elasticKeyID}/generate:
+    parameters:
+      - name: elasticKeyID
+        in: path
+        required: true
+        description: Elastic Key ID.
+        schema:
+          type: string
+          format: uuid
     post:
-      summary: Sign a payload
+      summary: Generate a new key
       description: |
-        Create a JWS (JSON Web Signature) by signing the provided payload
-        with the specified key.
-      operationId: signJWS
-      tags: [JWS]
+        Generate a new JSON Web Key with the specified algorithm within an elastic key.
+        Supported algorithms: RSA (4096/3072/2048), EC (P-521/P-384/P-256), OKP (Ed25519), Symmetric (128-512 bit).
+      operationId: generateKey
+      tags: [CryptoOps]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/JWSSignRequest'
+              $ref: '#/components/schemas/JWKGenerateRequest'
       responses:
-        '200':
-          description: Payload signed successfully.
+        '201':
+          description: Key generated successfully.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JWSSignResponse'
+                $ref: '#/components/schemas/JWKResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
@@ -444,41 +385,22 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /jws/verify:
-    post:
-      summary: Verify a JWS
-      description: |
-        Verify a JWS (JSON Web Signature) and extract the payload.
-        If no key ID is specified, all keys in the store are tried.
-      operationId: verifyJWS
-      tags: [JWS]
-      requestBody:
+  /elastic-keys/{elasticKeyID}/encrypt:
+    parameters:
+      - name: elasticKeyID
+        in: path
         required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/JWSVerifyRequest'
-      responses:
-        '200':
-          description: JWS verification result.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JWSVerifyResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-  # JWE Endpoints
-  /jwe/encrypt:
+        description: Elastic Key ID.
+        schema:
+          type: string
+          format: uuid
     post:
       summary: Encrypt a payload
       description: |
         Create a JWE (JSON Web Encryption) by encrypting the provided plaintext
-        with the specified key.
-      operationId: encryptJWE
-      tags: [JWE]
+        with the active material key in the specified elastic key.
+      operationId: encryptPayload
+      tags: [CryptoOps]
       requestBody:
         required: true
         content:
@@ -499,13 +421,22 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /jwe/decrypt:
+  /elastic-keys/{elasticKeyID}/decrypt:
+    parameters:
+      - name: elasticKeyID
+        in: path
+        required: true
+        description: Elastic Key ID.
+        schema:
+          type: string
+          format: uuid
     post:
       summary: Decrypt a JWE
       description: |
-        Decrypt a JWE (JSON Web Encryption) and return the plaintext.
-      operationId: decryptJWE
-      tags: [JWE]
+        Decrypt a JWE (JSON Web Encryption) using the matching material key
+        in the specified elastic key.
+      operationId: decryptPayload
+      tags: [CryptoOps]
       requestBody:
         required: true
         content:
@@ -524,28 +455,35 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  # JWT Endpoints
-  /jwt/create:
+  /elastic-keys/{elasticKeyID}/sign:
+    parameters:
+      - name: elasticKeyID
+        in: path
+        required: true
+        description: Elastic Key ID.
+        schema:
+          type: string
+          format: uuid
     post:
-      summary: Create a JWT
+      summary: Sign a payload
       description: |
-        Create a JWT (JSON Web Token) with the provided claims,
-        signed with the specified key.
-      operationId: createJWT
-      tags: [JWT]
+        Create a JWS (JSON Web Signature) by signing the provided payload
+        with the active material key in the specified elastic key.
+      operationId: signPayload
+      tags: [CryptoOps]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/JWTCreateRequest'
+              $ref: '#/components/schemas/JWSSignRequest'
       responses:
         '200':
-          description: JWT created successfully.
+          description: Payload signed successfully.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JWTCreateResponse'
+                $ref: '#/components/schemas/JWSSignResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
@@ -553,48 +491,59 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /jwt/verify:
+  /elastic-keys/{elasticKeyID}/verify:
+    parameters:
+      - name: elasticKeyID
+        in: path
+        required: true
+        description: Elastic Key ID.
+        schema:
+          type: string
+          format: uuid
     post:
-      summary: Verify a JWT
+      summary: Verify a JWS
       description: |
-        Verify a JWT (JSON Web Token) and extract the claims.
-        If no key ID is specified, all keys in the store are tried.
-      operationId: verifyJWT
-      tags: [JWT]
+        Verify a JWS (JSON Web Signature) using the matching material key
+        in the specified elastic key.
+      operationId: verifyPayload
+      tags: [CryptoOps]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/JWTVerifyRequest'
+              $ref: '#/components/schemas/JWSVerifyRequest'
       responses:
         '200':
-          description: JWT verification result.
+          description: JWS verification result.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JWTVerifyResponse'
+                $ref: '#/components/schemas/JWSVerifyResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
 
+  # JWKS Public Endpoint
+  /jwks:
+    get:
+      summary: Get JWKS (public keys)
+      description: |
+        Returns a JSON Web Key Set containing all public keys.
+        This endpoint is typically used for token verification by relying parties.
+      operationId: getJWKS
+      tags: [JWKS]
+      responses:
+        '200':
+          description: JWKS retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JWKS'
+
 components:
   schemas:
-    # Health
-    HealthResponse:
-      type: object
-      required: [status, time]
-      properties:
-        status:
-          type: string
-          enum: [healthy, unhealthy]
-          example: healthy
-        time:
-          type: string
-          format: date-time
-          example: "2025-12-04T12:00:00Z"
-
     # JWK Schemas
     JWKGenerateRequest:
       type: object
@@ -641,19 +590,6 @@ components:
           format: int64
           description: Unix timestamp when the key was created.
           example: 1733313600
-
-    JWKListResponse:
-      type: object
-      required: [keys, count]
-      properties:
-        keys:
-          type: array
-          items:
-            $ref: '#/components/schemas/JWKResponse'
-        count:
-          type: integer
-          description: Total number of keys.
-          example: 5
 
     JWKS:
       type: object
@@ -896,69 +832,6 @@ components:
         error:
           type: string
           description: Error message (if decryption failed).
-
-    # JWT Schemas
-    JWTCreateRequest:
-      type: object
-      required: [kid, claims]
-      properties:
-        kid:
-          type: string
-          format: uuid
-          description: Key ID to use for signing.
-          example: "019377a8-4f00-7000-8000-000000000001"
-        claims:
-          type: object
-          description: JWT claims.
-          additionalProperties: true
-          example:
-            sub: "user123"
-            iss: "jose-authority"
-            aud: "my-app"
-            exp: 1733400000
-            iat: 1733313600
-
-    JWTCreateResponse:
-      type: object
-      required: [jwt]
-      properties:
-        jwt:
-          type: string
-          description: Compact JWT serialization.
-          example: "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9...."
-
-    JWTVerifyRequest:
-      type: object
-      required: [jwt]
-      properties:
-        jwt:
-          type: string
-          description: Compact JWT to verify.
-          example: "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9...."
-        kid:
-          type: string
-          format: uuid
-          description: Optional key ID to use for verification.
-
-    JWTVerifyResponse:
-      type: object
-      required: [valid]
-      properties:
-        valid:
-          type: boolean
-          description: Whether the JWT signature is valid.
-          example: true
-        claims:
-          type: object
-          description: Decoded claims (if valid).
-          additionalProperties: true
-        kid:
-          type: string
-          format: uuid
-          description: Key ID used for verification.
-        error:
-          type: string
-          description: Error message (if invalid).
 
     # Error Schemas
     ErrorResponse:

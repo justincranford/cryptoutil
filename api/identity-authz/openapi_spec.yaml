@@ -333,423 +333,22 @@ paths:
               schema:
                 $ref: '#/components/schemas/OAuth2Error'
 
-  /health:
+  /.well-known/openid-configuration:
     get:
-      summary: Health Check
-      description: Service health status including database connectivity
-      operationId: healthCheck
+      summary: OpenID Connect Discovery
+      description: |
+        Returns OpenID Connect Provider metadata as defined in OpenID Connect Discovery 1.0.
+        Contains authorization_endpoint, token_endpoint, issuer, jwks_uri, and other metadata.
+      operationId: getOpenIDConfiguration
       tags:
-        - Health
+        - Discovery
       responses:
         '200':
-          description: Service is healthy
+          description: OpenID Provider configuration
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HealthResponse'
-        '503':
-          description: Service is unhealthy
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HealthResponse'
-
-  /oidc/v1/mfa/totp/enroll:
-    post:
-      summary: Enroll TOTP MFA
-      description: |
-        Enroll Time-based One-Time Password (TOTP) multi-factor authentication for a user.
-        Returns TOTP secret, QR code, and backup codes for account recovery.
-      operationId: enrollTOTP
-      tags:
-        - MFA
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TOTPEnrollRequest'
-      responses:
-        '200':
-          description: TOTP MFA enrolled successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TOTPEnrollResponse'
-        '400':
-          description: Invalid request (missing user_id or user already enrolled)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /oidc/v1/mfa/totp/verify:
-    post:
-      summary: Verify TOTP Code
-      description: |
-        Verify a 6-digit TOTP code from authenticator app.
-        Updates mfa_verified_at timestamp on success.
-        Implements lockout after 5 consecutive failures (locked for 15 minutes).
-      operationId: verifyTOTP
-      tags:
-        - MFA
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TOTPVerifyRequest'
-      responses:
-        '200':
-          description: TOTP verification result
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TOTPVerifyResponse'
-        '400':
-          description: Invalid request (missing user_id or code)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Account temporarily locked due to too many failed attempts
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "account_locked"
-                  error_description:
-                    type: string
-                    example: "Account temporarily locked due to too many failed attempts"
-        '404':
-          description: TOTP secret not found for user
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /oidc/v1/mfa/totp/backup-codes/generate:
-    post:
-      summary: Generate Backup Codes
-      description: |
-        Generate new set of 10 single-use backup codes for account recovery.
-        Invalidates all previous backup codes. Each code can only be used once.
-      operationId: generateBackupCodes
-      tags:
-        - MFA
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GenerateBackupCodesRequest'
-      responses:
-        '201':
-          description: Backup codes generated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GenerateBackupCodesResponse'
-        '400':
-          description: Invalid request (missing user_id)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: TOTP secret not found for user
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /oidc/v1/mfa/totp/backup-codes/verify:
-    post:
-      summary: Verify Backup Code
-      description: |
-        Verify a single-use backup code for account recovery.
-        Marks code as used on successful verification.
-        Returns verified=false for invalid, already-used, or non-existent codes.
-      operationId: verifyBackupCode
-      tags:
-        - MFA
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/VerifyBackupCodeRequest'
-      responses:
-        '200':
-          description: Backup code verification result
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/VerifyBackupCodeResponse'
-        '400':
-          description: Invalid request (missing user_id or code)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /oidc/v1/mfa/webauthn/register/begin:
-    post:
-      summary: Begin WebAuthn Registration
-      description: |
-        Start a WebAuthn registration ceremony to enroll a new passkey or security key.
-        Returns credential creation options including a challenge for the authenticator.
-      operationId: beginWebAuthnRegistration
-      tags:
-        - MFA
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/WebAuthnBeginRegistrationRequest'
-      responses:
-        '200':
-          description: Registration ceremony started
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WebAuthnBeginRegistrationResponse'
-        '400':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /oidc/v1/mfa/webauthn/register/finish:
-    post:
-      summary: Finish WebAuthn Registration
-      description: |
-        Complete a WebAuthn registration ceremony by submitting the authenticator's response.
-        Stores the new credential for future authentication.
-      operationId: finishWebAuthnRegistration
-      tags:
-        - MFA
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/WebAuthnFinishRegistrationRequest'
-      responses:
-        '201':
-          description: Credential registered successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WebAuthnCredentialResponse'
-        '400':
-          description: Invalid request or credential verification failed
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '410':
-          description: Session expired
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /oidc/v1/mfa/webauthn/authenticate/begin:
-    post:
-      summary: Begin WebAuthn Authentication
-      description: |
-        Start a WebAuthn authentication ceremony for a user with registered credentials.
-        Returns assertion options including a challenge for the authenticator.
-      operationId: beginWebAuthnAuthentication
-      tags:
-        - MFA
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/WebAuthnBeginAuthenticationRequest'
-      responses:
-        '200':
-          description: Authentication ceremony started
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WebAuthnBeginAuthenticationResponse'
-        '400':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: No credentials found for user
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /oidc/v1/mfa/webauthn/authenticate/finish:
-    post:
-      summary: Finish WebAuthn Authentication
-      description: |
-        Complete a WebAuthn authentication ceremony by submitting the authenticator's assertion.
-        Verifies the signature and updates the credential's sign count.
-      operationId: finishWebAuthnAuthentication
-      tags:
-        - MFA
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/WebAuthnFinishAuthenticationRequest'
-      responses:
-        '200':
-          description: Authentication successful
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WebAuthnAuthenticationResponse'
-        '400':
-          description: Invalid request or assertion verification failed
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '410':
-          description: Session expired
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /oidc/v1/mfa/webauthn/credentials/{user_id}:
-    get:
-      summary: List WebAuthn Credentials
-      description: |
-        List all WebAuthn credentials (passkeys, security keys) registered for a user.
-      operationId: listWebAuthnCredentials
-      tags:
-        - MFA
-      parameters:
-        - name: user_id
-          in: path
-          required: true
-          description: User ID to list credentials for
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: List of user's WebAuthn credentials
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WebAuthnCredentialListResponse'
-        '400':
-          description: Invalid user_id format
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /oidc/v1/mfa/webauthn/credentials:
-    delete:
-      summary: Delete WebAuthn Credential
-      description: |
-        Delete a WebAuthn credential by ID. Cannot delete if it's the user's only credential.
-      operationId: deleteWebAuthnCredential
-      tags:
-        - MFA
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/WebAuthnDeleteCredentialRequest'
-      responses:
-        '204':
-          description: Credential deleted successfully
-        '400':
-          description: Invalid request or cannot delete last credential
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Credential not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/OpenIDConfiguration'
 
 components:
   schemas:
@@ -814,25 +413,56 @@ components:
           description: URI for error documentation
           example: "https://docs.example.com/oauth2/errors/invalid_request"
 
-    HealthResponse:
+    OpenIDConfiguration:
       type: object
       required:
-        - status
+        - issuer
+        - authorization_endpoint
+        - token_endpoint
+        - jwks_uri
+        - response_types_supported
+        - subject_types_supported
+        - id_token_signing_alg_values_supported
       properties:
-        status:
+        issuer:
           type: string
-          enum: [healthy, unhealthy]
-          description: Overall service health status
-          example: healthy
-        database:
+          format: uri
+          description: OIDC issuer identifier URL
+        authorization_endpoint:
           type: string
-          enum: [ok, error]
-          description: Database connectivity status
-          example: ok
-        uptime:
-          type: integer
-          description: Service uptime in seconds
-          example: 86400
+          format: uri
+          description: OAuth 2.0 authorization endpoint
+        token_endpoint:
+          type: string
+          format: uri
+          description: OAuth 2.0 token endpoint
+        jwks_uri:
+          type: string
+          format: uri
+          description: URL of the JSON Web Key Set
+        response_types_supported:
+          type: array
+          items:
+            type: string
+          description: Supported response types
+        subject_types_supported:
+          type: array
+          items:
+            type: string
+          description: Supported subject identifier types
+        id_token_signing_alg_values_supported:
+          type: array
+          items:
+            type: string
+          description: Supported signing algorithms for ID tokens
+        introspection_endpoint:
+          type: string
+          format: uri
+          description: OAuth 2.0 token introspection endpoint
+        revocation_endpoint:
+          type: string
+          format: uri
+          description: OAuth 2.0 token revocation endpoint
 
     IntrospectionResponse:
       type: object
@@ -895,327 +525,6 @@ components:
           description: Human-readable error description
           example: "Missing required parameter: user_id"
 
-    TOTPEnrollRequest:
-      type: object
-      required:
-        - user_id
-      properties:
-        user_id:
-          type: string
-          format: uuid
-          description: User ID to enroll TOTP MFA
-          example: "550e8400-e29b-41d4-a716-446655440000"
-
-    TOTPEnrollResponse:
-      type: object
-      required:
-        - secret
-        - qr_code
-        - backup_codes
-      properties:
-        secret:
-          type: string
-          description: Base32-encoded TOTP secret for manual entry
-          example: "JBSWY3DPEHPK3PXP"
-        qr_code:
-          type: string
-          description: Data URI of QR code image for scanning
-          example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
-        backup_codes:
-          type: array
-          items:
-            type: string
-          minItems: 10
-          maxItems: 10
-          description: Single-use backup codes for account recovery
-          example: ["ABC123XYZ", "DEF456UVW", "GHI789RST"]
-
-    TOTPVerifyRequest:
-      type: object
-      required:
-        - user_id
-        - code
-      properties:
-        user_id:
-          type: string
-          format: uuid
-          description: User ID to verify TOTP code for
-          example: "550e8400-e29b-41d4-a716-446655440000"
-        code:
-          type: string
-          minLength: 6
-          maxLength: 6
-          pattern: '^\d{6}$'
-          description: 6-digit TOTP code from authenticator app
-          example: "123456"
-
-    TOTPVerifyResponse:
-      type: object
-      required:
-        - verified
-      properties:
-        verified:
-          type: boolean
-          description: Whether TOTP code was valid
-          example: true
-        mfa_verified_at:
-          type: string
-          format: date-time
-          description: Timestamp when MFA was successfully verified (only present if verified=true)
-          example: "2025-01-27T10:30:00Z"
-
-    GenerateBackupCodesRequest:
-      type: object
-      required:
-        - user_id
-      properties:
-        user_id:
-          type: string
-          format: uuid
-          description: User ID to generate backup codes for
-          example: "550e8400-e29b-41d4-a716-446655440000"
-
-    GenerateBackupCodesResponse:
-      type: object
-      required:
-        - backup_codes
-      properties:
-        backup_codes:
-          type: array
-          items:
-            type: string
-          minItems: 10
-          maxItems: 10
-          description: Newly generated single-use backup codes
-          example: ["ABC123XYZ", "DEF456UVW", "GHI789RST"]
-
-    VerifyBackupCodeRequest:
-      type: object
-      required:
-        - user_id
-        - code
-      properties:
-        user_id:
-          type: string
-          format: uuid
-          description: User ID to verify backup code for
-          example: "550e8400-e29b-41d4-a716-446655440000"
-        code:
-          type: string
-          description: Backup code to verify (case-sensitive)
-          example: "ABC123XYZ"
-
-    VerifyBackupCodeResponse:
-      type: object
-      required:
-        - verified
-      properties:
-        verified:
-          type: boolean
-          description: Whether backup code was valid and unused
-          example: true
-        mfa_verified_at:
-          type: string
-          format: date-time
-          description: Timestamp when MFA was successfully verified (only present if verified=true)
-          example: "2025-01-27T10:30:00Z"
-
-    # WebAuthn MFA Schemas
-    WebAuthnBeginRegistrationRequest:
-      type: object
-      required:
-        - user_id
-        - user_name
-      properties:
-        user_id:
-          type: string
-          format: uuid
-          description: User ID to register credential for
-          example: "550e8400-e29b-41d4-a716-446655440000"
-        user_name:
-          type: string
-          description: Display name for the user (shown by authenticator)
-          example: "john.doe@example.com"
-
-    WebAuthnBeginRegistrationResponse:
-      type: object
-      required:
-        - session_id
-        - public_key_credential_creation_options
-      properties:
-        session_id:
-          type: string
-          format: uuid
-          description: Session ID for finishing registration
-          example: "660e8400-e29b-41d4-a716-446655440001"
-        public_key_credential_creation_options:
-          type: object
-          description: |
-            WebAuthn PublicKeyCredentialCreationOptions to pass to navigator.credentials.create().
-            Contains challenge, RP info, user info, and pubKeyCredParams.
-
-    WebAuthnFinishRegistrationRequest:
-      type: object
-      required:
-        - user_id
-        - session_id
-        - credential
-        - display_name
-      properties:
-        user_id:
-          type: string
-          format: uuid
-          description: User ID completing registration
-          example: "550e8400-e29b-41d4-a716-446655440000"
-        session_id:
-          type: string
-          format: uuid
-          description: Session ID from begin registration
-          example: "660e8400-e29b-41d4-a716-446655440001"
-        credential:
-          type: object
-          description: |
-            Credential response from navigator.credentials.create().
-            Contains id, rawId, response (attestationObject, clientDataJSON), type.
-        display_name:
-          type: string
-          description: User-friendly name for this credential (e.g., "iPhone Face ID")
-          example: "MacBook Touch ID"
-
-    WebAuthnCredentialResponse:
-      type: object
-      required:
-        - id
-        - display_name
-        - created_at
-      properties:
-        id:
-          type: string
-          format: uuid
-          description: Credential ID
-          example: "770e8400-e29b-41d4-a716-446655440002"
-        display_name:
-          type: string
-          description: User-friendly name for this credential
-          example: "MacBook Touch ID"
-        transports:
-          type: array
-          items:
-            type: string
-            enum: [usb, nfc, ble, internal, hybrid]
-          description: Authenticator transport mechanisms
-          example: ["internal"]
-        created_at:
-          type: string
-          format: date-time
-          description: When the credential was registered
-          example: "2025-01-28T10:00:00Z"
-        last_used_at:
-          type: string
-          format: date-time
-          description: When the credential was last used
-          example: "2025-01-28T12:00:00Z"
-
-    WebAuthnBeginAuthenticationRequest:
-      type: object
-      required:
-        - user_id
-      properties:
-        user_id:
-          type: string
-          format: uuid
-          description: User ID to authenticate
-          example: "550e8400-e29b-41d4-a716-446655440000"
-
-    WebAuthnBeginAuthenticationResponse:
-      type: object
-      required:
-        - session_id
-        - public_key_credential_request_options
-      properties:
-        session_id:
-          type: string
-          format: uuid
-          description: Session ID for finishing authentication
-          example: "880e8400-e29b-41d4-a716-446655440003"
-        public_key_credential_request_options:
-          type: object
-          description: |
-            WebAuthn PublicKeyCredentialRequestOptions to pass to navigator.credentials.get().
-            Contains challenge, rpId, and allowCredentials.
-
-    WebAuthnFinishAuthenticationRequest:
-      type: object
-      required:
-        - user_id
-        - session_id
-        - credential
-      properties:
-        user_id:
-          type: string
-          format: uuid
-          description: User ID completing authentication
-          example: "550e8400-e29b-41d4-a716-446655440000"
-        session_id:
-          type: string
-          format: uuid
-          description: Session ID from begin authentication
-          example: "880e8400-e29b-41d4-a716-446655440003"
-        credential:
-          type: object
-          description: |
-            Credential response from navigator.credentials.get().
-            Contains id, rawId, response (authenticatorData, clientDataJSON, signature), type.
-
-    WebAuthnAuthenticationResponse:
-      type: object
-      required:
-        - verified
-        - credential_id
-      properties:
-        verified:
-          type: boolean
-          description: Whether authentication was successful
-          example: true
-        credential_id:
-          type: string
-          format: uuid
-          description: ID of the credential used
-          example: "770e8400-e29b-41d4-a716-446655440002"
-        mfa_verified_at:
-          type: string
-          format: date-time
-          description: Timestamp when MFA was successfully verified
-          example: "2025-01-28T12:00:00Z"
-
-    WebAuthnCredentialListResponse:
-      type: object
-      required:
-        - credentials
-      properties:
-        credentials:
-          type: array
-          items:
-            $ref: '#/components/schemas/WebAuthnCredentialResponse'
-          description: List of registered WebAuthn credentials
-
-    WebAuthnDeleteCredentialRequest:
-      type: object
-      required:
-        - user_id
-        - credential_id
-      properties:
-        user_id:
-          type: string
-          format: uuid
-          description: User ID owning the credential
-          example: "550e8400-e29b-41d4-a716-446655440000"
-        credential_id:
-          type: string
-          format: uuid
-          description: Credential ID to delete
-          example: "770e8400-e29b-41d4-a716-446655440002"
-
   responses:
     OAuth2Error:
       description: OAuth 2.0 error response
@@ -1235,7 +544,7 @@ components:
     clientSecretPost:
       type: http
       scheme: bearer
-      description: |
+      description: |-
         Client authentication using client_secret in request body.
         Note: OpenAPI 3.0 uses bearer scheme for form-based authentication.
         Actual implementation uses client_secret as form parameter per OAuth 2.1.

@@ -28,7 +28,7 @@ servers:
 
 paths:
   # Elastic Key Management Endpoints
-  /elastickey:
+  /elastic-keys:
     post:
       summary: Create a new Elastic Key
       description: Create a new Elastic Key with specified algorithm and configuration. The elastic key will be isolated to the current tenant.
@@ -54,8 +54,36 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalServerError'
+    get:
+      summary: List Elastic Keys
+      description: Find elastic keys with optional filtering, sorting, and pagination
+      tags: [ElasticKeys]
+      parameters:
+        - $ref: '#/components/parameters/ElasticKeyIDs'
+        - $ref: '#/components/parameters/Names'
+        - $ref: '#/components/parameters/Providers'
+        - $ref: '#/components/parameters/Algorithms'
+        - $ref: '#/components/parameters/VersioningAllowed'
+        - $ref: '#/components/parameters/ImportAllowed'
+        - $ref: '#/components/parameters/Statuses'
+        - $ref: '#/components/parameters/Sorts'
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: List of elastic keys
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ElasticKey'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
-  /elastickey/{elasticKeyID}:
+  /elastic-keys/{elasticKeyID}:
     parameters:
       - $ref: '#/components/parameters/ElasticKeyID'
     get:
@@ -114,38 +142,8 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /elastickeys:
-    get:
-      summary: List Elastic Keys
-      description: Find elastic keys with optional filtering, sorting, and pagination
-      tags: [ElasticKeys]
-      parameters:
-        - $ref: '#/components/parameters/ElasticKeyIDs'
-        - $ref: '#/components/parameters/Names'
-        - $ref: '#/components/parameters/Providers'
-        - $ref: '#/components/parameters/Algorithms'
-        - $ref: '#/components/parameters/VersioningAllowed'
-        - $ref: '#/components/parameters/ImportAllowed'
-        - $ref: '#/components/parameters/Statuses'
-        - $ref: '#/components/parameters/Sorts'
-        - $ref: '#/components/parameters/PageNumber'
-        - $ref: '#/components/parameters/PageSize'
-      responses:
-        '200':
-          description: List of elastic keys
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ElasticKey'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
   # Material Key Endpoints
-  /elastickey/{elasticKeyID}/materialkey:
+  /elastic-keys/{elasticKeyID}/material-keys:
     parameters:
       - $ref: '#/components/parameters/ElasticKeyID'
     post:
@@ -171,8 +169,39 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
+    get:
+      summary: List Material Keys
+      description: List all material keys for an elastic key
+      tags: [MaterialKeys]
+      parameters:
+        - $ref: '#/components/parameters/MaterialKeyIDs'
+        - $ref: '#/components/parameters/MinGenerateDate'
+        - $ref: '#/components/parameters/MaxGenerateDate'
+        - $ref: '#/components/parameters/MinImportDate'
+        - $ref: '#/components/parameters/MaxImportDate'
+        - $ref: '#/components/parameters/MinExpirationDate'
+        - $ref: '#/components/parameters/MaxExpirationDate'
+        - $ref: '#/components/parameters/MinRevocationDate'
+        - $ref: '#/components/parameters/MaxRevocationDate'
+        - $ref: '#/components/parameters/MaterialKeyPageNumber'
+        - $ref: '#/components/parameters/MaterialKeyPageSize'
+      responses:
+        '200':
+          description: List of material keys
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MaterialKey'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
-  /elastickey/{elasticKeyID}/import:
+  /elastic-keys/{elasticKeyID}/import:
     parameters:
       - $ref: '#/components/parameters/ElasticKeyID'
     post:
@@ -199,7 +228,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /elastickey/{elasticKeyID}/materialkey/{materialKeyID}:
+  /elastic-keys/{elasticKeyID}/material-keys/{materialKeyID}:
     parameters:
       - $ref: '#/components/parameters/ElasticKeyID'
       - $ref: '#/components/parameters/MaterialKeyID'
@@ -234,7 +263,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /elastickey/{elasticKeyID}/materialkey/{materialKeyID}/revoke:
+  /elastic-keys/{elasticKeyID}/material-keys/{materialKeyID}/revoke:
     parameters:
       - $ref: '#/components/parameters/ElasticKeyID'
       - $ref: '#/components/parameters/MaterialKeyID'
@@ -252,42 +281,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /elastickey/{elasticKeyID}/materialkeys:
-    parameters:
-      - $ref: '#/components/parameters/ElasticKeyID'
-    get:
-      summary: List Material Keys
-      description: List all material keys for an elastic key
-      tags: [MaterialKeys]
-      parameters:
-        - $ref: '#/components/parameters/MaterialKeyIDs'
-        - $ref: '#/components/parameters/MinGenerateDate'
-        - $ref: '#/components/parameters/MaxGenerateDate'
-        - $ref: '#/components/parameters/MinImportDate'
-        - $ref: '#/components/parameters/MaxImportDate'
-        - $ref: '#/components/parameters/MinExpirationDate'
-        - $ref: '#/components/parameters/MaxExpirationDate'
-        - $ref: '#/components/parameters/MinRevocationDate'
-        - $ref: '#/components/parameters/MaxRevocationDate'
-        - $ref: '#/components/parameters/MaterialKeyPageNumber'
-        - $ref: '#/components/parameters/MaterialKeyPageSize'
-      responses:
-        '200':
-          description: List of material keys
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/MaterialKey'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /materialkeys:
+  /material-keys:
     get:
       summary: List all Material Keys
       description: List material keys across all elastic keys for current tenant
@@ -320,7 +314,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 
   # Cryptographic Operation Endpoints
-  /elastickey/{elasticKeyID}/generate:
+  /elastic-keys/{elasticKeyID}/generate:
     parameters:
       - $ref: '#/components/parameters/ElasticKeyID'
     post:
@@ -354,7 +348,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /elastickey/{elasticKeyID}/encrypt:
+  /elastic-keys/{elasticKeyID}/encrypt:
     parameters:
       - $ref: '#/components/parameters/ElasticKeyID'
     post:
@@ -388,7 +382,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /elastickey/{elasticKeyID}/decrypt:
+  /elastic-keys/{elasticKeyID}/decrypt:
     parameters:
       - $ref: '#/components/parameters/ElasticKeyID'
     post:
@@ -416,7 +410,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /elastickey/{elasticKeyID}/sign:
+  /elastic-keys/{elasticKeyID}/sign:
     parameters:
       - $ref: '#/components/parameters/ElasticKeyID'
     post:
@@ -443,7 +437,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /elastickey/{elasticKeyID}/verify:
+  /elastic-keys/{elasticKeyID}/verify:
     parameters:
       - $ref: '#/components/parameters/ElasticKeyID'
     post:

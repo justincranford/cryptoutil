@@ -8,8 +8,8 @@
 //   - Paths declared in the registry but not found in any spec file (missing from spec).
 //   - Paths found in the spec but not declared in the registry (undeclared in registry).
 //
-// Services with no api_resources in the registry (e.g., identity-rp, identity-spa) are
-// skipped because they have no OpenAPI spec files.
+// Services with no api_resources in the registry are skipped because they have
+// no OpenAPI spec files.
 package api_path_registry
 
 import (

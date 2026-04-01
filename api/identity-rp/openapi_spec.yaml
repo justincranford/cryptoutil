@@ -1,0 +1,228 @@
+openapi: 3.0.3
+info:
+  title: OIDC Relying Party API
+  version: 1.0.0
+  description: |
+    OIDC Relying Party (RP) service.
+    Consumes tokens from the IdP/Authz server.
+    Handles OAuth 2.1 callback flow, session management, and token refresh.
+  contact:
+    name: Identity Team
+    email: identity@cryptoutil.local
+
+servers:
+  - url: https://localhost:8700
+    description: Local Development
+  - url: https://rp.cryptoutil.local
+    description: Production
+
+paths:
+  /authn/login:
+    get:
+      summary: Initiate Login
+      description: |
+        Redirect user to the authorization server for authentication.
+        Constructs the OAuth 2.1 authorization request with PKCE.
+      operationId: initiateLogin
+      tags:
+        - Authentication
+      parameters:
+        - name: return_url
+          in: query
+          schema:
+            type: string
+            format: uri
+          description: URL to return to after login
+      responses:
+        '302':
+          description: Redirect to authorization server
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+              description: Authorization endpoint with PKCE parameters
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /authn/callback:
+    get:
+      summary: OAuth 2.1 Callback
+      description: |
+        Handle the OAuth 2.1 authorization code callback.
+        Exchanges authorization code for tokens and creates a session.
+      operationId: handleCallback
+      tags:
+        - Authentication
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Authorization code from authorization server
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+          description: State parameter for CSRF protection
+      responses:
+        '302':
+          description: Redirect to original return_url with session cookie
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+            Set-Cookie:
+              schema:
+                type: string
+              description: Session cookie
+        '400':
+          description: Invalid callback parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Token exchange failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /authn/logout:
+    post:
+      summary: Logout
+      description: |
+        End the user session. Revokes tokens and clears session cookie.
+      operationId: logout
+      tags:
+        - Authentication
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Logged out successfully
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: Expired session cookie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Logged out successfully"
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /authn/session:
+    get:
+      summary: Get Session Info
+      description: |
+        Return current session information including user claims.
+        Requires an active session.
+      operationId: getSession
+      tags:
+        - Session
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Session information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /authn/refresh:
+    post:
+      summary: Refresh Session
+      description: |
+        Refresh the session by exchanging the refresh token for new tokens.
+        Extends session lifetime without re-authentication.
+      operationId: refreshSession
+      tags:
+        - Session
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Session refreshed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '401':
+          description: Refresh token expired or invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: session_id
+      description: Session cookie set during login callback
+
+  schemas:
+    SessionResponse:
+      type: object
+      required:
+        - sub
+        - expiresAt
+      properties:
+        sub:
+          type: string
+          description: Subject identifier (user ID)
+          example: "01932e4d-1234-5678-9abc-def012345678"
+        name:
+          type: string
+          description: User display name
+          example: "John Doe"
+        email:
+          type: string
+          format: email
+          description: User email
+          example: "john.doe@example.com"
+        expiresAt:
+          type: string
+          format: date-time
+          description: Session expiration time
+          example: "2025-01-28T12:00:00Z"
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error code or message
+          example: "invalid_request"
+        errorDescription:
+          type: string
+          description: Human-readable error description
+          example: "Missing required parameter"

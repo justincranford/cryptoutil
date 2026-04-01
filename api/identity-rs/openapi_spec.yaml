@@ -21,36 +21,45 @@ servers:
     description: Production
 
 tags:
-  - name: protected
-    description: Protected resource endpoints requiring authentication
-  - name: public
-    description: Public resource endpoints (no authentication required)
+  - name: resources
+    description: Resource endpoints for protected data access
 
 paths:
-  /api/v1/protected:
+  /resources:
     get:
       tags:
-        - protected
-      summary: Protected Resource
+        - resources
+      summary: List Resources
       description: |
-        Access protected resource data. Requires valid access token with
-        'read:resource' scope. Returns sensitive user data.
-      operationId: getProtectedResource
+        List protected resources. Requires valid access token with
+        'read:resource' scope. Returns paginated resource collection.
+      operationId: listResources
       security:
         - BearerAuth:
-          - 'read:resource'
+            - 'read:resource'
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number
+        - name: size
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 50
+          description: Page size
       responses:
         '200':
-          description: Successfully accessed protected resource
+          description: List of resources
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProtectedResourceResponse'
-              example:
-                message: "Protected resource accessed successfully"
-                data: "Sensitive user information"
-                timestamp: "2024-01-15T10:30:00Z"
-                user_id: "550e8400-e29b-41d4-a716-446655440000"
+                $ref: '#/components/schemas/ResourceListResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -58,57 +67,45 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/v1/public:
+  /resources/{resourceID}:
     get:
       tags:
-        - public
-      summary: Public Resource
+        - resources
+      summary: Get Resource
       description: |
-        Access public resource data. No authentication required.
-        Returns publicly available information.
-      operationId: getPublicResource
+        Get a specific protected resource by ID. Requires valid access token
+        with 'read:resource' scope.
+      operationId: getResource
+      security:
+        - BearerAuth:
+            - 'read:resource'
+      parameters:
+        - name: resourceID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Resource identifier
       responses:
         '200':
-          description: Successfully accessed public resource
+          description: Resource details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PublicResourceResponse'
-              example:
-                message: "Public resource accessed successfully"
-                data: "Public information available to all"
-                timestamp: "2024-01-15T10:30:00Z"
+                $ref: '#/components/schemas/ResourceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           $ref: '#/components/responses/InternalServerError'
-
-  /health:
-    get:
-      tags:
-        - public
-      summary: Health Check
-      description: Service health status including database connectivity
-      operationId: healthCheckRS
-      responses:
-        '200':
-          description: Service is healthy
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HealthResponse'
-              example:
-                status: "healthy"
-                database: "ok"
-                uptime: 86400
-        '503':
-          description: Service is unhealthy
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HealthResponse'
-              example:
-                status: "unhealthy"
-                database: "error"
-                uptime: 86400
 
 components:
   securitySchemes:
@@ -121,60 +118,54 @@ components:
         Token must contain required scopes for the endpoint.
 
   schemas:
-    ProtectedResourceResponse:
+    ResourceResponse:
       type: object
       required:
-        - message
+        - id
         - data
       properties:
-        message:
+        id:
           type: string
-          example: Protected resource accessed successfully
+          format: uuid
+          description: Resource identifier
         data:
-          type: string
-          example: Sensitive information
-        timestamp:
+          type: object
+          description: Resource data
+        createdAt:
           type: string
           format: date-time
-        user_id:
-          type: string
-          description: Authenticated user identifier
-
-    PublicResourceResponse:
-      type: object
-      required:
-        - message
-        - data
-      properties:
-        message:
-          type: string
-          example: Public resource accessed successfully
-        data:
-          type: string
-          example: Public information
-        timestamp:
+          description: Resource creation timestamp
+        updatedAt:
           type: string
           format: date-time
+          description: Resource last update timestamp
 
-    HealthResponse:
+    ResourceListResponse:
       type: object
       required:
-        - status
+        - items
+        - pagination
       properties:
-        status:
-          type: string
-          enum: [healthy, unhealthy]
-          description: Overall service health status
-          example: healthy
-        database:
-          type: string
-          enum: [ok, error]
-          description: Database connectivity status
-          example: ok
-        uptime:
-          type: integer
-          description: Service uptime in seconds
-          example: 86400
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceResponse'
+        pagination:
+          type: object
+          required:
+            - page
+            - size
+            - total
+          properties:
+            page:
+              type: integer
+              minimum: 1
+            size:
+              type: integer
+              minimum: 1
+            total:
+              type: integer
+              minimum: 0
 
     Error:
       type: object

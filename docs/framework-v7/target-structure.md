@@ -91,7 +91,7 @@ artifacts that must never be committed.
 
 ```
 {ROOT}/
-├── .cicd/                                 # CICD runtime caches (gitignored)
+├── .cicd-lint/                             # CICD-lint runtime caches (gitignored)
 │   ├── circular-dep-cache.json            #   Circular dependency analysis cache
 │   └── dep-cache.json                     #   Dependency analysis cache
 ├── .ruff_cache/                           # Ruff Python linter cache (gitignored)

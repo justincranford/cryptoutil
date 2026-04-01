@@ -303,26 +303,365 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /health:
-    get:
-      summary: Health Check
-      description: Service health status including database connectivity
-      operationId: healthCheckIdP
+  # TOTP MFA Endpoints
+  /oidc/v1/mfa/totp/enroll:
+    post:
+      summary: Enroll TOTP MFA
+      description: |
+        Initialize TOTP MFA enrollment for a user.
+        Returns secret, QR code, and backup codes.
+        Requires authenticated session.
+      operationId: enrollTOTP
       tags:
-        - Health
+        - MFA
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TOTPEnrollRequest'
       responses:
         '200':
-          description: Service is healthy
+          description: TOTP enrollment initialized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HealthResponse'
-        '503':
-          description: Service is unhealthy
+                $ref: '#/components/schemas/TOTPEnrollResponse'
+        '400':
+          description: Invalid request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HealthResponse'
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: TOTP already enrolled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /oidc/v1/mfa/totp/verify:
+    post:
+      summary: Verify TOTP Code
+      description: |
+        Verify a TOTP code from authenticator app.
+        Used during MFA step-up authentication.
+        Requires authenticated session.
+      operationId: verifyTOTP
+      tags:
+        - MFA
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TOTPVerifyRequest'
+      responses:
+        '200':
+          description: Verification result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TOTPVerifyResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /oidc/v1/mfa/totp/backup-codes/generate:
+    post:
+      summary: Generate Backup Codes
+      description: |
+        Generate new single-use backup codes for account recovery.
+        Invalidates any previously generated codes.
+        Requires authenticated session.
+      operationId: generateBackupCodes
+      tags:
+        - MFA
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateBackupCodesRequest'
+      responses:
+        '200':
+          description: New backup codes generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateBackupCodesResponse'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /oidc/v1/mfa/totp/backup-codes/verify:
+    post:
+      summary: Verify Backup Code
+      description: |
+        Verify a single-use backup code for MFA bypass.
+        Code is consumed on successful verification.
+        Requires authenticated session.
+      operationId: verifyBackupCode
+      tags:
+        - MFA
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyBackupCodeRequest'
+      responses:
+        '200':
+          description: Verification result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyBackupCodeResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # WebAuthn MFA Endpoints
+  /oidc/v1/mfa/webauthn/register/begin:
+    post:
+      summary: Begin WebAuthn Registration
+      description: |
+        Start WebAuthn credential registration ceremony.
+        Returns PublicKeyCredentialCreationOptions for navigator.credentials.create().
+        Requires authenticated session.
+      operationId: beginWebAuthnRegistration
+      tags:
+        - MFA
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebAuthnBeginRegistrationRequest'
+      responses:
+        '200':
+          description: Registration options
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebAuthnBeginRegistrationResponse'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /oidc/v1/mfa/webauthn/register/finish:
+    post:
+      summary: Finish WebAuthn Registration
+      description: |
+        Complete WebAuthn credential registration ceremony.
+        Validates attestation and stores credential.
+        Requires authenticated session.
+      operationId: finishWebAuthnRegistration
+      tags:
+        - MFA
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebAuthnFinishRegistrationRequest'
+      responses:
+        '201':
+          description: Credential registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebAuthnCredentialResponse'
+        '400':
+          description: Invalid attestation or session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /oidc/v1/mfa/webauthn/authenticate/begin:
+    post:
+      summary: Begin WebAuthn Authentication
+      description: |
+        Start WebAuthn authentication ceremony.
+        Returns PublicKeyCredentialRequestOptions for navigator.credentials.get().
+        Requires authenticated session (first factor already completed).
+      operationId: beginWebAuthnAuthentication
+      tags:
+        - MFA
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebAuthnBeginAuthenticationRequest'
+      responses:
+        '200':
+          description: Authentication options
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebAuthnBeginAuthenticationResponse'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /oidc/v1/mfa/webauthn/authenticate/finish:
+    post:
+      summary: Finish WebAuthn Authentication
+      description: |
+        Complete WebAuthn authentication ceremony.
+        Validates assertion and grants MFA-verified session.
+        Requires authenticated session.
+      operationId: finishWebAuthnAuthentication
+      tags:
+        - MFA
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebAuthnFinishAuthenticationRequest'
+      responses:
+        '200':
+          description: Authentication result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebAuthnAuthenticationResponse'
+        '400':
+          description: Invalid assertion or session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /oidc/v1/mfa/webauthn/credentials:
+    get:
+      summary: List WebAuthn Credentials
+      description: |
+        List all registered WebAuthn credentials for the authenticated user.
+        Requires authenticated session.
+      operationId: listWebAuthnCredentials
+      tags:
+        - MFA
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: List of credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebAuthnCredentialListResponse'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /oidc/v1/mfa/webauthn/credentials/{userID}:
+    delete:
+      summary: Delete WebAuthn Credential
+      description: |
+        Delete a registered WebAuthn credential.
+        Requires authenticated session and ownership of the credential.
+      operationId: deleteWebAuthnCredential
+      tags:
+        - MFA
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: userID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User ID owning the credential
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebAuthnDeleteCredentialRequest'
+      responses:
+        '204':
+          description: Credential deleted
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Credential not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
 components:
   securitySchemes:
@@ -388,22 +727,318 @@ components:
           description: Human-readable error description
           example: "Missing required parameter: return_url"
 
-    HealthResponse:
+    # TOTP MFA Schemas
+    TOTPEnrollRequest:
       type: object
       required:
-        - status
+        - userID
       properties:
-        status:
+        userID:
           type: string
-          enum: [healthy, unhealthy]
-          description: Overall service health status
-          example: healthy
-        database:
+          format: uuid
+          description: User ID to enroll TOTP MFA
+          example: "550e8400-e29b-41d4-a716-446655440000"
+
+    TOTPEnrollResponse:
+      type: object
+      required:
+        - secret
+        - qrCode
+        - backupCodes
+      properties:
+        secret:
           type: string
-          enum: [ok, error]
-          description: Database connectivity status
-          example: ok
-        uptime:
-          type: integer
-          description: Service uptime in seconds
-          example: 86400
+          description: Base32-encoded TOTP secret for manual entry
+          example: "JBSWY3DPEHPK3PXP"
+        qrCode:
+          type: string
+          description: Data URI of QR code image for scanning
+          example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
+        backupCodes:
+          type: array
+          items:
+            type: string
+          minItems: 10
+          maxItems: 10
+          description: Single-use backup codes for account recovery
+          example: ["ABC123XYZ", "DEF456UVW", "GHI789RST"]
+
+    TOTPVerifyRequest:
+      type: object
+      required:
+        - userID
+        - code
+      properties:
+        userID:
+          type: string
+          format: uuid
+          description: User ID to verify TOTP code for
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        code:
+          type: string
+          minLength: 6
+          maxLength: 6
+          pattern: '^\d{6}$'
+          description: 6-digit TOTP code from authenticator app
+          example: "123456"
+
+    TOTPVerifyResponse:
+      type: object
+      required:
+        - verified
+      properties:
+        verified:
+          type: boolean
+          description: Whether TOTP code was valid
+          example: true
+        mfaVerifiedAt:
+          type: string
+          format: date-time
+          description: Timestamp when MFA was successfully verified (only present if verified=true)
+          example: "2025-01-27T10:30:00Z"
+
+    GenerateBackupCodesRequest:
+      type: object
+      required:
+        - userID
+      properties:
+        userID:
+          type: string
+          format: uuid
+          description: User ID to generate backup codes for
+          example: "550e8400-e29b-41d4-a716-446655440000"
+
+    GenerateBackupCodesResponse:
+      type: object
+      required:
+        - backupCodes
+      properties:
+        backupCodes:
+          type: array
+          items:
+            type: string
+          minItems: 10
+          maxItems: 10
+          description: Newly generated single-use backup codes
+          example: ["ABC123XYZ", "DEF456UVW", "GHI789RST"]
+
+    VerifyBackupCodeRequest:
+      type: object
+      required:
+        - userID
+        - code
+      properties:
+        userID:
+          type: string
+          format: uuid
+          description: User ID to verify backup code for
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        code:
+          type: string
+          description: Backup code to verify (case-sensitive)
+          example: "ABC123XYZ"
+
+    VerifyBackupCodeResponse:
+      type: object
+      required:
+        - verified
+      properties:
+        verified:
+          type: boolean
+          description: Whether backup code was valid and unused
+          example: true
+        mfaVerifiedAt:
+          type: string
+          format: date-time
+          description: Timestamp when MFA was successfully verified (only present if verified=true)
+          example: "2025-01-27T10:30:00Z"
+
+    # WebAuthn MFA Schemas
+    WebAuthnBeginRegistrationRequest:
+      type: object
+      required:
+        - userID
+        - userName
+      properties:
+        userID:
+          type: string
+          format: uuid
+          description: User ID to register credential for
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        userName:
+          type: string
+          description: Display name for the user (shown by authenticator)
+          example: "john.doe@example.com"
+
+    WebAuthnBeginRegistrationResponse:
+      type: object
+      required:
+        - sessionID
+        - publicKeyCredentialCreationOptions
+      properties:
+        sessionID:
+          type: string
+          format: uuid
+          description: Session ID for finishing registration
+          example: "660e8400-e29b-41d4-a716-446655440001"
+        publicKeyCredentialCreationOptions:
+          type: object
+          description: |
+            WebAuthn PublicKeyCredentialCreationOptions to pass to navigator.credentials.create().
+            Contains challenge, RP info, user info, and pubKeyCredParams.
+
+    WebAuthnFinishRegistrationRequest:
+      type: object
+      required:
+        - userID
+        - sessionID
+        - credential
+        - displayName
+      properties:
+        userID:
+          type: string
+          format: uuid
+          description: User ID completing registration
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        sessionID:
+          type: string
+          format: uuid
+          description: Session ID from begin registration
+          example: "660e8400-e29b-41d4-a716-446655440001"
+        credential:
+          type: object
+          description: |
+            Credential response from navigator.credentials.create().
+            Contains id, rawId, response (attestationObject, clientDataJSON), type.
+        displayName:
+          type: string
+          description: User-friendly name for this credential (e.g., "iPhone Face ID")
+          example: "MacBook Touch ID"
+
+    WebAuthnCredentialResponse:
+      type: object
+      required:
+        - id
+        - displayName
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Credential ID
+          example: "770e8400-e29b-41d4-a716-446655440002"
+        displayName:
+          type: string
+          description: User-friendly name for this credential
+          example: "MacBook Touch ID"
+        transports:
+          type: array
+          items:
+            type: string
+            enum: [usb, nfc, ble, internal, hybrid]
+          description: Authenticator transport mechanisms
+          example: ["internal"]
+        createdAt:
+          type: string
+          format: date-time
+          description: When the credential was registered
+          example: "2025-01-28T10:00:00Z"
+        lastUsedAt:
+          type: string
+          format: date-time
+          description: When the credential was last used
+          example: "2025-01-28T12:00:00Z"
+
+    WebAuthnBeginAuthenticationRequest:
+      type: object
+      required:
+        - userID
+      properties:
+        userID:
+          type: string
+          format: uuid
+          description: User ID to authenticate
+          example: "550e8400-e29b-41d4-a716-446655440000"
+
+    WebAuthnBeginAuthenticationResponse:
+      type: object
+      required:
+        - sessionID
+        - publicKeyCredentialRequestOptions
+      properties:
+        sessionID:
+          type: string
+          format: uuid
+          description: Session ID for finishing authentication
+          example: "880e8400-e29b-41d4-a716-446655440003"
+        publicKeyCredentialRequestOptions:
+          type: object
+          description: |
+            WebAuthn PublicKeyCredentialRequestOptions to pass to navigator.credentials.get().
+            Contains challenge, rpId, and allowCredentials.
+
+    WebAuthnFinishAuthenticationRequest:
+      type: object
+      required:
+        - userID
+        - sessionID
+        - credential
+      properties:
+        userID:
+          type: string
+          format: uuid
+          description: User ID completing authentication
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        sessionID:
+          type: string
+          format: uuid
+          description: Session ID from begin authentication
+          example: "880e8400-e29b-41d4-a716-446655440003"
+        credential:
+          type: object
+          description: |
+            Credential response from navigator.credentials.get().
+            Contains id, rawId, response (authenticatorData, clientDataJSON, signature), type.
+
+    WebAuthnAuthenticationResponse:
+      type: object
+      required:
+        - verified
+        - credentialID
+      properties:
+        verified:
+          type: boolean
+          description: Whether authentication was successful
+          example: true
+        credentialID:
+          type: string
+          format: uuid
+          description: ID of the credential used
+          example: "770e8400-e29b-41d4-a716-446655440002"
+        mfaVerifiedAt:
+          type: string
+          format: date-time
+          description: Timestamp when MFA was successfully verified
+          example: "2025-01-28T12:00:00Z"
+
+    WebAuthnCredentialListResponse:
+      type: object
+      required:
+        - credentials
+      properties:
+        credentials:
+          type: array
+          items:
+            $ref: '#/components/schemas/WebAuthnCredentialResponse'
+          description: List of registered WebAuthn credentials
+
+    WebAuthnDeleteCredentialRequest:
+      type: object
+      required:
+        - credentialID
+      properties:
+        credentialID:
+          type: string
+          format: uuid
+          description: Credential ID to delete
+          example: "770e8400-e29b-41d4-a716-446655440002"

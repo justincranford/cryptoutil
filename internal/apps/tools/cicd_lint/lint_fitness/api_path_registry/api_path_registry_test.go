@@ -117,8 +117,8 @@ func TestCheckInDir_MissingFromSpec(t *testing.T) {
 
 	// Overwrite sm-kms spec with a subset of registry paths (missing one).
 	specPaths := []string{
-		"/elastickey",
-		// Deliberately omit /elastickeys to trigger a "missing from spec" violation.
+		"/elastic-keys",
+		// Deliberately omit other paths to trigger a "missing from spec" violation.
 	}
 
 	setupSpecFile(t, tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS, specPaths)

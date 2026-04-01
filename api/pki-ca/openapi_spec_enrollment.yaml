@@ -35,7 +35,7 @@ tags:
     description: Time Stamp Authority (RFC 3161)
 
 paths:
-  /ca:
+  /cas:
     get:
       tags:
         - CA
@@ -52,7 +52,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/CAListResponse'
 
-  /ca/{caId}:
+  /cas/{caID}:
     get:
       tags:
         - CA
@@ -62,7 +62,7 @@ paths:
         including its certificate chain and configuration.
       operationId: getCA
       parameters:
-        - name: caId
+        - name: caID
           in: path
           required: true
           schema:
@@ -82,7 +82,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /ca/{caId}/crl:
+  /cas/{caID}/crl:
     get:
       tags:
         - CA
@@ -91,7 +91,7 @@ paths:
         Download the current CRL for a specific Certificate Authority in DER or PEM format.
       operationId: getCRL
       parameters:
-        - name: caId
+        - name: caID
           in: path
           required: true
           schema:
@@ -122,7 +122,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /enroll:
+  /enrollments:
     post:
       tags:
         - Enrollment
@@ -164,7 +164,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /enroll/{requestId}:
+  /enrollments/{requestID}:
     get:
       tags:
         - Enrollment
@@ -172,7 +172,7 @@ paths:
       description: Retrieve the status of a pending enrollment request.
       operationId: getEnrollmentStatus
       parameters:
-        - name: requestId
+        - name: requestID
           in: path
           required: true
           schema:
@@ -368,7 +368,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProfileListResponse'
 
-  /profiles/{profileId}:
+  /profiles/{profileID}:
     get:
       tags:
         - Profiles
@@ -376,7 +376,7 @@ paths:
       description: Retrieve detailed information about a specific certificate profile.
       operationId: getProfile
       parameters:
-        - name: profileId
+        - name: profileID
           in: path
           required: true
           schema:
