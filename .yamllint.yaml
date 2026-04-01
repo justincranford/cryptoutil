@@ -1,0 +1,12 @@
+# yamllint configuration for cryptoutil
+# Extends the relaxed profile, overriding line-length to match other linters (200 chars).
+# new-lines disabled: repository uses platform-native line endings; mixed LF/CRLF is expected.
+# Run: yamllint .
+extends: relaxed
+
+rules:
+  line-length:
+    max: 200
+    allow-non-breakable-words: true
+    allow-non-breakable-inline-mappings: true
+  new-lines: false

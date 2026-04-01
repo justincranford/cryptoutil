@@ -283,13 +283,13 @@ repos:
         require_serial: false
         stages: [pre-commit]
 
-  # Stricter YAML validation
+  # Stricter YAML validation — config in .yamllint.yaml (max-line-length: 200)
   - repo: https://github.com/adrienverge/yamllint
     rev: v1.38.0
     hooks:
       - id: yamllint
         name: YAML strict lint
-        args: [-d, relaxed]
+        args: [-c, .yamllint.yaml]
         files: '\.(yaml|yml)$'
         stages: [pre-commit]
 
