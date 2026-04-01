@@ -150,7 +150,7 @@ const (
 	CICDOutputDirPermissions = 0o711
 
 	// CICDOutputDir is the CICD output directory for all generated files, reports, and cache files.
-	CICDOutputDir = ".cicd"
+	CICDOutputDir = ".cicd-lint"
 
 	// CICDOutputFilePermissions is the CICD output file permissions (owner read/write, group/others read).
 	CICDOutputFilePermissions = 0o644
@@ -231,10 +231,10 @@ const (
 	RequirementsTaskMinimumThreshold = 90.0
 
 	// DepCacheFileName is the dependency cache file name.
-	DepCacheFileName = ".cicd/dep-cache.json"
+	DepCacheFileName = ".cicd-lint/dep-cache.json"
 
 	// CircularDepCacheFileName is the circular dependency cache file name.
-	CircularDepCacheFileName = ".cicd/circular-dep-cache.json"
+	CircularDepCacheFileName = ".cicd-lint/circular-dep-cache.json"
 
 	// ModeNameDirect is the dependency check mode name for direct dependencies.
 	ModeNameDirect = "direct"
