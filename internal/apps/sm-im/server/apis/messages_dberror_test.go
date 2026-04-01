@@ -20,8 +20,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilApiSmImServer "cryptoutil/api/sm-im/server"
-	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm-im/model"
-	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm-im/repository"
+	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm-im/server/model"
+	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm-im/server/repository"
 	cryptoutilTestdb "cryptoutil/internal/apps/framework/service/testing/testdb"
 )
 

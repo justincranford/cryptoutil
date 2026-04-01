@@ -23,8 +23,8 @@ import (
 
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
-	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm-im/model"
-	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm-im/repository"
+	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm-im/server/model"
+	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm-im/server/repository"
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilTestdb "cryptoutil/internal/apps/framework/service/testing/testdb"
 

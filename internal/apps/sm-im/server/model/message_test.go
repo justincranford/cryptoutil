@@ -13,7 +13,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm-im/model"
+	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm-im/server/model"
 )
 
 func TestMessage_TableName(t *testing.T) {

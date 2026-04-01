@@ -17,7 +17,7 @@ import (
 	cryptoutilAppsFrameworkServiceServerRealms "cryptoutil/internal/apps/framework/service/server/realms"
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
 	cryptoutilAppsFrameworkServiceServerService "cryptoutil/internal/apps/framework/service/server/service"
-	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm-im/repository"
+	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm-im/server/repository"
 	cryptoutilAppsSmImServerApis "cryptoutil/internal/apps/sm-im/server/apis"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"

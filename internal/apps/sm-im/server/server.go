@@ -18,7 +18,7 @@ import (
 	cryptoutilAppsFrameworkServiceServerBusinesslogic "cryptoutil/internal/apps/framework/service/server/businesslogic"
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
 	cryptoutilAppsFrameworkServiceServerService "cryptoutil/internal/apps/framework/service/server/service"
-	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm-im/repository"
+	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm-im/server/repository"
 	cryptoutilAppsSmImServerConfig "cryptoutil/internal/apps/sm-im/server/config"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"

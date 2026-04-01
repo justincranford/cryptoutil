@@ -11,7 +11,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
 
-	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm-im/model"
+	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm-im/server/model"
 	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
 )

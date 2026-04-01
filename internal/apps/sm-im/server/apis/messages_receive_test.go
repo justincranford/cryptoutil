@@ -18,7 +18,7 @@ import (
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
 	cryptoutilApiSmImServer "cryptoutil/api/sm-im/server"
-	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm-im/model"
+	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm-im/server/model"
 )
 
 func TestHandleReceiveMessages_WithMessages(t *testing.T) {
