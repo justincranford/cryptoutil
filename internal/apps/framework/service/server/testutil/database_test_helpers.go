@@ -5,7 +5,6 @@ package testutil
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"database/sql"
 	"fmt"
 	"io/fs"
@@ -13,6 +12,8 @@ import (
 	"path/filepath"
 	"testing"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
 	cryptoutilSharedContainer "cryptoutil/internal/shared/container"
