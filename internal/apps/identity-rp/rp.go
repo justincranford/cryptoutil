@@ -137,5 +137,4 @@ func rpClient(args []string, _, stderr io.Writer) int {
 // Generates PKI certificates for identity-rp TLS endpoints via the framework PKI init.
 func rpServiceInit(args []string, stdout, stderr io.Writer) int {
 	return cryptoutilAppsFrameworkTls.InitForService(cryptoutilSharedMagic.IdentityRPServiceID, args, stdout, stderr)
-
 }

@@ -10,7 +10,7 @@ import (
 	"database/sql"
 	"testing"
 
-	cryptoutilAppsSkeletonTemplateDomain "cryptoutil/internal/apps/skeleton-template/domain"
+	cryptoutilAppsSkeletonTemplateServerModel "cryptoutil/internal/apps/skeleton-template/server/model"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
@@ -47,7 +47,7 @@ func newRepoTestDB(t *testing.T) *gorm.DB {
 	db, err := gorm.Open(sqlite.Dialector{Conn: rawDB}, &gorm.Config{SkipDefaultTransaction: true})
 	require.NoError(t, err)
 
-	require.NoError(t, db.AutoMigrate(&cryptoutilAppsSkeletonTemplateDomain.TemplateItem{}))
+	require.NoError(t, db.AutoMigrate(&cryptoutilAppsSkeletonTemplateServerModel.TemplateItem{}))
 
 	t.Cleanup(func() { _ = rawDB.Close() })
 
@@ -90,13 +90,13 @@ func TestItemRepository_Create(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		item    *cryptoutilAppsSkeletonTemplateDomain.TemplateItem
+		item    *cryptoutilAppsSkeletonTemplateServerModel.TemplateItem
 		useBad  bool
 		wantErr bool
 	}{
 		{
 			name: "success",
-			item: &cryptoutilAppsSkeletonTemplateDomain.TemplateItem{
+			item: &cryptoutilAppsSkeletonTemplateServerModel.TemplateItem{
 				ID:          googleUuid.Must(googleUuid.NewV7()),
 				TenantID:    googleUuid.Must(googleUuid.NewV7()),
 				Name:        "test item",
@@ -106,7 +106,7 @@ func TestItemRepository_Create(t *testing.T) {
 		},
 		{
 			name: "db_error_no_table",
-			item: &cryptoutilAppsSkeletonTemplateDomain.TemplateItem{
+			item: &cryptoutilAppsSkeletonTemplateServerModel.TemplateItem{
 				ID:       googleUuid.Must(googleUuid.NewV7()),
 				TenantID: googleUuid.Must(googleUuid.NewV7()),
 				Name:     "fail",
@@ -156,7 +156,7 @@ func TestItemRepository_GetByID(t *testing.T) {
 				t.Helper()
 
 				tenantID := googleUuid.Must(googleUuid.NewV7())
-				item := &cryptoutilAppsSkeletonTemplateDomain.TemplateItem{
+				item := &cryptoutilAppsSkeletonTemplateServerModel.TemplateItem{
 					ID:       googleUuid.Must(googleUuid.NewV7()),
 					TenantID: tenantID,
 					Name:     "found",
@@ -251,7 +251,7 @@ func TestItemRepository_List(t *testing.T) {
 			tenantID := googleUuid.Must(googleUuid.NewV7())
 
 			for range tc.seedCount {
-				item := &cryptoutilAppsSkeletonTemplateDomain.TemplateItem{
+				item := &cryptoutilAppsSkeletonTemplateServerModel.TemplateItem{
 					ID:       googleUuid.Must(googleUuid.NewV7()),
 					TenantID: tenantID,
 					Name:     "item",
@@ -277,18 +277,18 @@ func TestItemRepository_Update(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		setup   func(t *testing.T, repo *ItemRepository) *cryptoutilAppsSkeletonTemplateDomain.TemplateItem
+		setup   func(t *testing.T, repo *ItemRepository) *cryptoutilAppsSkeletonTemplateServerModel.TemplateItem
 		useBad  bool
 		wantErr bool
 		errMsg  string
 	}{
 		{
 			name: "success",
-			setup: func(t *testing.T, repo *ItemRepository) *cryptoutilAppsSkeletonTemplateDomain.TemplateItem {
+			setup: func(t *testing.T, repo *ItemRepository) *cryptoutilAppsSkeletonTemplateServerModel.TemplateItem {
 				t.Helper()
 
 				tenantID := googleUuid.Must(googleUuid.NewV7())
-				item := &cryptoutilAppsSkeletonTemplateDomain.TemplateItem{
+				item := &cryptoutilAppsSkeletonTemplateServerModel.TemplateItem{
 					ID:       googleUuid.Must(googleUuid.NewV7()),
 					TenantID: tenantID,
 					Name:     "original",
@@ -306,8 +306,8 @@ func TestItemRepository_Update(t *testing.T) {
 			// is no DB error, so the RowsAffected==0 branch in Update is unreachable
 			// in SQLite. That path is only exercisable with PostgreSQL in E2E tests.
 			name: "db_error",
-			setup: func(_ *testing.T, _ *ItemRepository) *cryptoutilAppsSkeletonTemplateDomain.TemplateItem {
-				return &cryptoutilAppsSkeletonTemplateDomain.TemplateItem{
+			setup: func(_ *testing.T, _ *ItemRepository) *cryptoutilAppsSkeletonTemplateServerModel.TemplateItem {
+				return &cryptoutilAppsSkeletonTemplateServerModel.TemplateItem{
 					ID:       googleUuid.Must(googleUuid.NewV7()),
 					TenantID: googleUuid.Must(googleUuid.NewV7()),
 					Name:     "fail",
@@ -359,7 +359,7 @@ func TestItemRepository_Delete(t *testing.T) {
 				t.Helper()
 
 				tenantID := googleUuid.Must(googleUuid.NewV7())
-				item := &cryptoutilAppsSkeletonTemplateDomain.TemplateItem{
+				item := &cryptoutilAppsSkeletonTemplateServerModel.TemplateItem{
 					ID:       googleUuid.Must(googleUuid.NewV7()),
 					TenantID: tenantID,
 					Name:     "delete-me",

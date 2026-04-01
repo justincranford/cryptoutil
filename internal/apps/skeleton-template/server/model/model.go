@@ -4,7 +4,7 @@
 
 // Package domain provides domain models for the skeleton-template service.
 // These models represent a minimal template item for demonstration purposes.
-package domain
+package model
 
 import (
 	"time"

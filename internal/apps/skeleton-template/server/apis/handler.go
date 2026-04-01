@@ -2,8 +2,8 @@
 //
 // TEMPLATE: Copy and rename 'skeleton' -> your-service-name before use.
 
-// Package handler implements the OpenAPI strict server for the skeleton-template service.
-package handler
+// Package apis implements the OpenAPI strict server for the skeleton-template service.
+package apis
 
 import (
 	"context"
@@ -12,8 +12,8 @@ import (
 	"time"
 
 	cryptoutilSkeletonTemplateServer "cryptoutil/api/skeleton-template/server"
-	cryptoutilAppsSkeletonTemplateDomain "cryptoutil/internal/apps/skeleton-template/domain"
-	cryptoutilAppsSkeletonTemplateRepository "cryptoutil/internal/apps/skeleton-template/repository"
+	cryptoutilAppsSkeletonTemplateServerModel "cryptoutil/internal/apps/skeleton-template/server/model"
+	cryptoutilAppsSkeletonTemplateServerRepository "cryptoutil/internal/apps/skeleton-template/server/repository"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
@@ -32,11 +32,11 @@ var defaultSize = cryptoutilSharedMagic.SeparatorLength
 
 // StrictServer implements the generated StrictServerInterface for Item CRUD.
 type StrictServer struct {
-	itemRepo *cryptoutilAppsSkeletonTemplateRepository.ItemRepository
+	itemRepo *cryptoutilAppsSkeletonTemplateServerRepository.ItemRepository
 }
 
 // NewStrictServer creates a new StrictServer with the given repository.
-func NewStrictServer(itemRepo *cryptoutilAppsSkeletonTemplateRepository.ItemRepository) *StrictServer {
+func NewStrictServer(itemRepo *cryptoutilAppsSkeletonTemplateServerRepository.ItemRepository) *StrictServer {
 	return &StrictServer{itemRepo: itemRepo}
 }
 
@@ -88,7 +88,7 @@ func (s *StrictServer) CreateItem(_ context.Context, request cryptoutilSkeletonT
 	}
 
 	now := time.Now().UTC()
-	item := &cryptoutilAppsSkeletonTemplateDomain.TemplateItem{
+	item := &cryptoutilAppsSkeletonTemplateServerModel.TemplateItem{
 		ID:          googleUuid.Must(googleUuid.NewV7()),
 		TenantID:    defaultTenantID,
 		Name:        request.Body.Name,
@@ -172,7 +172,7 @@ func (s *StrictServer) DeleteItem(_ context.Context, request cryptoutilSkeletonT
 }
 
 // domainToAPI converts a domain TemplateItem to an API Item.
-func domainToAPI(item *cryptoutilAppsSkeletonTemplateDomain.TemplateItem) cryptoutilSkeletonTemplateServer.Item {
+func domainToAPI(item *cryptoutilAppsSkeletonTemplateServerModel.TemplateItem) cryptoutilSkeletonTemplateServer.Item {
 	desc := item.Description
 
 	return cryptoutilSkeletonTemplateServer.Item{

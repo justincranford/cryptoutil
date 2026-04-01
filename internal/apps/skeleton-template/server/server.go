@@ -19,9 +19,9 @@ import (
 	cryptoutilAppsFrameworkServiceServerBusinesslogic "cryptoutil/internal/apps/framework/service/server/businesslogic"
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
 	cryptoutilAppsFrameworkServiceServerService "cryptoutil/internal/apps/framework/service/server/service"
-	cryptoutilAppsSkeletonTemplateRepository "cryptoutil/internal/apps/skeleton-template/repository"
+	cryptoutilAppsSkeletonTemplateServerApis "cryptoutil/internal/apps/skeleton-template/server/apis"
 	cryptoutilAppsSkeletonTemplateServerConfig "cryptoutil/internal/apps/skeleton-template/server/config"
-	cryptoutilAppsSkeletonTemplateServerHandler "cryptoutil/internal/apps/skeleton-template/server/handler"
+	cryptoutilAppsSkeletonTemplateServerRepository "cryptoutil/internal/apps/skeleton-template/server/repository"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
@@ -54,7 +54,7 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsSkeletonTemplateServe
 
 	// Create server builder with template config.
 	resources, err := cryptoutilAppsFrameworkServiceServerBuilder.Build(ctx, cfg.ServiceFrameworkServerSettings, &cryptoutilAppsFrameworkServiceServerBuilder.DomainConfig{
-		MigrationsFS:   cryptoutilAppsSkeletonTemplateRepository.MigrationsFS,
+		MigrationsFS:   cryptoutilAppsSkeletonTemplateServerRepository.MigrationsFS,
 		MigrationsPath: "migrations",
 		RouteRegistration: func(base *cryptoutilAppsFrameworkServiceServer.PublicServerBase, res *cryptoutilAppsFrameworkServiceServerBuilder.ServiceResources) error {
 			return registerItemRoutes(base, res)
@@ -177,10 +177,10 @@ var _ cryptoutilAppsFrameworkServiceServer.ServiceServer = (*SkeletonTemplateSer
 // registerItemRoutes sets up the Item CRUD routes using the OpenAPI strict server pattern.
 func registerItemRoutes(base *cryptoutilAppsFrameworkServiceServer.PublicServerBase, res *cryptoutilAppsFrameworkServiceServerBuilder.ServiceResources) error {
 	// Create domain repository.
-	itemRepo := cryptoutilAppsSkeletonTemplateRepository.NewItemRepository(res.DB)
+	itemRepo := cryptoutilAppsSkeletonTemplateServerRepository.NewItemRepository(res.DB)
 
 	// Create OpenAPI strict server handler.
-	strictServer := cryptoutilAppsSkeletonTemplateServerHandler.NewStrictServer(itemRepo)
+	strictServer := cryptoutilAppsSkeletonTemplateServerApis.NewStrictServer(itemRepo)
 	strictHandler := cryptoutilSkeletonTemplateServer.NewStrictHandler(strictServer, nil)
 
 	// Register handlers on both browser and service paths.

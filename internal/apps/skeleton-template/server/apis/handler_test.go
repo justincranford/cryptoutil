@@ -2,8 +2,8 @@
 //
 // TEMPLATE: Copy and rename 'skeleton' -> your-service-name before use.
 
-// Package handler provides unit tests for the skeleton-template OpenAPI strict server.
-package handler
+// Package apis provides unit tests for the skeleton-template OpenAPI strict server.
+package apis
 
 import (
 	"context"
@@ -11,8 +11,8 @@ import (
 	"testing"
 
 	cryptoutilSkeletonTemplateServer "cryptoutil/api/skeleton-template/server"
-	cryptoutilAppsSkeletonTemplateDomain "cryptoutil/internal/apps/skeleton-template/domain"
-	cryptoutilAppsSkeletonTemplateRepository "cryptoutil/internal/apps/skeleton-template/repository"
+	cryptoutilAppsSkeletonTemplateServerModel "cryptoutil/internal/apps/skeleton-template/server/model"
+	cryptoutilAppsSkeletonTemplateServerRepository "cryptoutil/internal/apps/skeleton-template/server/repository"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
@@ -53,7 +53,7 @@ func newHandlerTestDB(t *testing.T) *gorm.DB {
 	db, err := gorm.Open(sqlite.Dialector{Conn: rawDB}, &gorm.Config{SkipDefaultTransaction: true})
 	require.NoError(t, err)
 
-	require.NoError(t, db.AutoMigrate(&cryptoutilAppsSkeletonTemplateDomain.TemplateItem{}))
+	require.NoError(t, db.AutoMigrate(&cryptoutilAppsSkeletonTemplateServerModel.TemplateItem{}))
 
 	t.Cleanup(func() { _ = rawDB.Close() })
 
@@ -89,13 +89,13 @@ func newHandlerNoTableDB(t *testing.T) *gorm.DB {
 func newHandlerTestServer(t *testing.T) *StrictServer {
 	t.Helper()
 
-	return NewStrictServer(cryptoutilAppsSkeletonTemplateRepository.NewItemRepository(newHandlerTestDB(t)))
+	return NewStrictServer(cryptoutilAppsSkeletonTemplateServerRepository.NewItemRepository(newHandlerTestDB(t)))
 }
 
 func newHandlerErrorServer(t *testing.T) *StrictServer {
 	t.Helper()
 
-	return NewStrictServer(cryptoutilAppsSkeletonTemplateRepository.NewItemRepository(newHandlerNoTableDB(t)))
+	return NewStrictServer(cryptoutilAppsSkeletonTemplateServerRepository.NewItemRepository(newHandlerNoTableDB(t)))
 }
 
 func handlerStrPtr(s string) *string { return &s }

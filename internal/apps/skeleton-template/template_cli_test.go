@@ -73,7 +73,6 @@ func TestTemplate_SubcommandNotImplemented(t *testing.T) {
 		errorText  string
 	}{
 		{subcommand: "client", errorText: "not yet implemented"},
-		{subcommand: "init", errorText: "not yet implemented"},
 	}
 
 	for _, tc := range tests {

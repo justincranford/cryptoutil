@@ -143,5 +143,11 @@ func templateClient(args []string, _, stderr io.Writer) int {
 // templateInit implements the init subcommand.
 // Generates PKI certificates for skeleton-template TLS endpoints via the framework PKI init.
 func templateInit(args []string, stdout, stderr io.Writer) int {
+	if cryptoutilTemplateCli.IsHelpRequest(args) {
+		_, _ = fmt.Fprintln(stderr, TemplateUsageInit)
+
+		return 0
+	}
+
 	return cryptoutilAppsFrameworkTls.InitForService(cryptoutilSharedMagic.SkeletonTemplateServiceID, args, stdout, stderr)
 }
