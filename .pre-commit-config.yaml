@@ -203,7 +203,7 @@ repos:
       - id: pretty-format-json
         name: Pretty format JSON files
         args: [--autofix, --indent=2]
-        exclude: '(\.vscode/.*\.json$|\.cicd/.*\.json$)'  # Skip VS Code settings with comments and CI/CD cache files
+        exclude: '(\.vscode/.*\.json$|\.cicd-lint/.*\.json$)'  # Skip VS Code settings with comments and CI/CD cache files
         require_serial: false
 
       # Mixed line endings

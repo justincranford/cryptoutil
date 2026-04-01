@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://mojo.codehaus.org/versions-maven-plugin/rule/2.0.0 http://mojo.codehaus.org/versions-maven-plugin/xsd/rule-2.0.0.xsd">
 
-  <!-- Allow patch updates for stable dependencies -->
+  <!-- Allow minor and patch updates; block major updates by default -->
   <rules>
     <rule groupId="*" artifactId="*" comparisonMethod="maven">
       <allowMajorUpdates>false</allowMajorUpdates>
@@ -12,15 +12,5 @@
       <allowIncrementalUpdates>true</allowIncrementalUpdates>
     </rule>
   </rules>
-
-  <!-- Ignore specific dependencies that should not be updated -->
-  <ignoreVersions>
-    <!-- Gatling versions are tightly coupled -->
-    <ignoreVersion type="regex">.*gatling.*</ignoreVersion>
-    <!-- Test dependencies can be updated more aggressively -->
-    <ignoreVersion type="regex">.*junit.*</ignoreVersion>
-    <ignoreVersion type="regex">.*testng.*</ignoreVersion>
-    <ignoreVersion type="regex">.*mockito.*</ignoreVersion>
-  </ignoreVersions>
 
 </ruleset>

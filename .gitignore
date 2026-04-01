@@ -65,11 +65,13 @@ cover.html
 *.cover
 *_coverage
 *coverage
-# Exception: cicd_coverage and propagation_coverage are Go source packages (not coverage output files)
+# Exception: cicd_coverage, propagation_coverage, and validate_coverage are Go source packages (not coverage output files)
 !**/cicd_coverage/
 !**/cicd_coverage/**
 !**/propagation_coverage/
 !**/propagation_coverage/**
+!**/validate_coverage/
+!**/validate_coverage/**
 *.test
 $coverage*
 $out*
@@ -146,8 +148,9 @@ Thumbs.db
 .ruff_cache/
 .mypy_cache/
 
-# CI/CD cache
+# CI/CD cache (both old .cicd/ and new .cicd-lint/ names are ignored)
 .cicd/
+.cicd-lint/
 
 # Scanner runtime output (keep tracked rule files under .semgrep/ and .zap/)
 .semgrep/tmp/

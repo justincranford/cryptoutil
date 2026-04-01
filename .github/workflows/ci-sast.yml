@@ -70,7 +70,7 @@ jobs:
     steps:
       - name: Checkout code
         # https://github.com/actions/checkout/releases (v6.0.0, 2025-11-11)
-        uses: actions/checkout@v6.0.0
+        uses: actions/checkout@v6.0.2
         with:
           sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
@@ -252,7 +252,7 @@ jobs:
     steps:
       - name: Checkout code
         # https://github.com/actions/checkout/releases (v6.0.0, 2025-11-11)
-        uses: actions/checkout@v6.0.0
+        uses: actions/checkout@v6.0.2
         with:
           sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
@@ -411,7 +411,7 @@ jobs:
     steps:
       - name: Checkout repository
         # https://github.com/actions/checkout/releases (v6.0.0, 2025-11-11)
-        uses: actions/checkout@v6.0.0
+        uses: actions/checkout@v6.0.2
         with:
           sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
