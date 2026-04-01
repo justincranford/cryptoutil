@@ -74,5 +74,5 @@ HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=3 \
     CMD wget --no-check-certificate --quiet --tries=1 --spider https://127.0.0.1:9090/admin/api/v1/livez || exit 1
 
 # Run the application
-ENTRYPOINT ["/app/sm-im"]
+ENTRYPOINT ["/sbin/tini", "--", "/app/sm-im"]
 CMD []

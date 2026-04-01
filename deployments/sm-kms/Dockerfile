@@ -168,7 +168,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
 # For Docker Compose: Use external healthcheck or depends_on with condition
 
 # Use tini for proper signal handling and zombie process reaping
-ENTRYPOINT ["/sbin/tini", "--", "/app/cryptoutil"]
+ENTRYPOINT ["/sbin/tini", "--", "/app/sm-kms"]
 
 # Switch to non-root user for security
 # USER 65532:65532

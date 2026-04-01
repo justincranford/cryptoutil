@@ -140,6 +140,5 @@ EXPOSE 9093 9093
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
     CMD wget --no-check-certificate -q -O /dev/null https://127.0.0.1:9090/admin/api/v1/livez || exit 1
 
-# Default entrypoint.
-ENTRYPOINT ["/app/pki-ca"]
+ENTRYPOINT ["/sbin/tini", "--", "/app/pki-ca"]
 CMD ["server", "--config=/etc/pki-ca/ca.yml"]

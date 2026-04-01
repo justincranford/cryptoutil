@@ -155,7 +155,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD wget --no-check-certificate -q -O /dev/null https://127.0.0.1:9090/admin/api/v1/livez || exit 1
 
 # Use tini for proper signal handling and zombie process reaping.
-ENTRYPOINT ["/sbin/tini", "--", "/app/cryptoutil", "identity-idp", "start"]
+ENTRYPOINT ["/sbin/tini", "--", "/app/identity-idp"]
 
 # Switch to non-root user for security.
 # USER 65532:65532

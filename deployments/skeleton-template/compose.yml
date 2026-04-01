@@ -2,7 +2,7 @@
 #
 # SKELETON-TEMPLATE Docker Compose Configuration
 #
-# SERVICE-level deployment for Skeleton Template.
+# SERVICE-level deployment for Template.
 # Supports 3 instances: 1 SQLite + 2 PostgreSQL.
 #
 # Port allocation (SERVICE level: 8900-8999):
