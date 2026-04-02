@@ -90,7 +90,6 @@ func TestKMS_SubcommandNotImplemented(t *testing.T) {
 		contains   string
 	}{
 		{name: "client", subcommand: "client", contains: "not yet implemented"},
-		{name: "init", subcommand: "init", contains: "not yet implemented"},
 	}
 
 	for _, tc := range tests {

@@ -70,13 +70,3 @@ func TestSpaServiceInit_HelpFlag(t *testing.T) {
 	exitCode := spaServiceInit([]string{"--help"}, nil, &stderr)
 	testify.Equal(t, 0, exitCode)
 }
-
-func TestSpaServiceInit_NotImplemented(t *testing.T) {
-	t.Parallel()
-
-	var stderr bytes.Buffer
-
-	exitCode := spaServiceInit([]string{}, nil, &stderr)
-	testify.Equal(t, 1, exitCode)
-	testify.Contains(t, stderr.String(), "not yet implemented")
-}

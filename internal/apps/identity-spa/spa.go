@@ -136,5 +136,11 @@ func spaClient(args []string, _, stderr io.Writer) int {
 // spaServiceInit implements the init subcommand.
 // Generates PKI certificates for identity-spa TLS endpoints via the framework PKI init.
 func spaServiceInit(args []string, stdout, stderr io.Writer) int {
+	if cryptoutilTemplateCli.IsHelpRequest(args) {
+		_, _ = fmt.Fprintln(stderr, SPAUsageInit)
+
+		return 0
+	}
+
 	return cryptoutilAppsFrameworkTls.InitForService(cryptoutilSharedMagic.IdentitySPAServiceID, args, stdout, stderr)
 }

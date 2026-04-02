@@ -110,10 +110,6 @@ func TestIM_SubcommandNotImplemented(t *testing.T) {
 			subcommand:      "client",
 			expectedMessage: "Client subcommand not yet implemented",
 		},
-		{
-			subcommand:      "init",
-			expectedMessage: "Init subcommand not yet implemented",
-		},
 	}
 
 	for _, tt := range tests {

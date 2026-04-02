@@ -136,5 +136,11 @@ func rsClient(args []string, _, stderr io.Writer) int {
 // rsServiceInit implements the init subcommand.
 // Generates PKI certificates for identity-rs TLS endpoints via the framework PKI init.
 func rsServiceInit(args []string, stdout, stderr io.Writer) int {
+	if cryptoutilTemplateCli.IsHelpRequest(args) {
+		_, _ = fmt.Fprintln(stderr, RSUsageInit)
+
+		return 0
+	}
+
 	return cryptoutilAppsFrameworkTls.InitForService(cryptoutilSharedMagic.IdentityRSServiceID, args, stdout, stderr)
 }

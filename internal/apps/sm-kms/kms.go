@@ -133,5 +133,11 @@ func kmsClient(args []string, _, stderr io.Writer) int {
 // kmsInit implements the init subcommand.
 // Generates PKI certificates for sm-kms TLS endpoints via the framework PKI init.
 func kmsInit(args []string, stdout, stderr io.Writer) int {
+	if cryptoutilTemplateCli.IsHelpRequest(args) {
+		_, _ = fmt.Fprintln(stderr, KMSUsageInit)
+
+		return 0
+	}
+
 	return cryptoutilAppsFrameworkTls.InitForService(cryptoutilSharedMagic.KMSServiceID, args, stdout, stderr)
 }

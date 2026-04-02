@@ -70,13 +70,3 @@ func TestRpServiceInit_HelpFlag(t *testing.T) {
 	exitCode := rpServiceInit([]string{"--help"}, nil, &stderr)
 	testify.Equal(t, 0, exitCode)
 }
-
-func TestRpServiceInit_NotImplemented(t *testing.T) {
-	t.Parallel()
-
-	var stderr bytes.Buffer
-
-	exitCode := rpServiceInit([]string{}, nil, &stderr)
-	testify.Equal(t, 1, exitCode)
-	testify.Contains(t, stderr.String(), "not yet implemented")
-}

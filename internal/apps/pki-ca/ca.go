@@ -143,5 +143,11 @@ func caClient(args []string, _, stderr io.Writer) int {
 // caInit implements the init subcommand.
 // Generates PKI certificates for pki-ca TLS endpoints via the framework PKI init.
 func caInit(args []string, stdout, stderr io.Writer) int {
+	if cryptoutilTemplateCli.IsHelpRequest(args) {
+		_, _ = fmt.Fprintln(stderr, CAUsageInit)
+
+		return 0
+	}
+
 	return cryptoutilAppsFrameworkTls.InitForService(cryptoutilSharedMagic.PKICAServiceID, args, stdout, stderr)
 }

@@ -143,5 +143,11 @@ func jaClient(args []string, _, stderr io.Writer) int {
 // jaInit implements the init subcommand.
 // Generates PKI certificates for jose-ja TLS endpoints via the framework PKI init.
 func jaInit(args []string, stdout, stderr io.Writer) int {
+	if cryptoutilTemplateCli.IsHelpRequest(args) {
+		_, _ = fmt.Fprintln(stderr, JAUsageInit)
+
+		return 0
+	}
+
 	return cryptoutilAppsFrameworkTls.InitForService(cryptoutilSharedMagic.JoseJAServiceID, args, stdout, stderr)
 }

@@ -143,5 +143,11 @@ func authzClient(args []string, _, stderr io.Writer) int {
 // authzServiceInit implements the init subcommand.
 // Generates PKI certificates for identity-authz TLS endpoints via the framework PKI init.
 func authzServiceInit(args []string, stdout, stderr io.Writer) int {
+	if cryptoutilTemplateCli.IsHelpRequest(args) {
+		_, _ = fmt.Fprintln(stderr, AUTHZUsageInit)
+
+		return 0
+	}
+
 	return cryptoutilAppsFrameworkTls.InitForService(cryptoutilSharedMagic.IdentityAuthzServiceID, args, stdout, stderr)
 }

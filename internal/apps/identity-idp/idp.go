@@ -136,5 +136,11 @@ func idpClient(args []string, _, stderr io.Writer) int {
 // idpServiceInit implements the init subcommand.
 // Generates PKI certificates for identity-idp TLS endpoints via the framework PKI init.
 func idpServiceInit(args []string, stdout, stderr io.Writer) int {
+	if cryptoutilTemplateCli.IsHelpRequest(args) {
+		_, _ = fmt.Fprintln(stderr, IDPUsageInit)
+
+		return 0
+	}
+
 	return cryptoutilAppsFrameworkTls.InitForService(cryptoutilSharedMagic.IdentityIDPServiceID, args, stdout, stderr)
 }

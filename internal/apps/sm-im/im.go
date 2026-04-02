@@ -147,5 +147,11 @@ func imServiceClient(args []string, _, stderr io.Writer) int {
 // imServiceInit implements the init subcommand.
 // Generates PKI certificates for sm-im TLS endpoints via the framework PKI init.
 func imServiceInit(args []string, stdout, stderr io.Writer) int {
+	if cryptoutilTemplateCli.IsHelpRequest(args) {
+		_, _ = fmt.Fprintln(stderr, IMUsageInit)
+
+		return 0
+	}
+
 	return cryptoutilAppsFrameworkTls.InitForService(cryptoutilSharedMagic.IMServiceID, args, stdout, stderr)
 }
