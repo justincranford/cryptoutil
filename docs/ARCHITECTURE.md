@@ -13,7 +13,7 @@ audience:
 references:
   - .github/copilot-instructions.md
   - .github/instructions/*.instructions.md
-  - .github/agents/*.agent.md
+  - .claude/agents/*.md
   - .github/skills/NAME/SKILL.md
   - .github/prompts/NAME.prompt.md
   - .github/workflows/*.yml
@@ -278,15 +278,18 @@ VS Code Copilot supports exactly 3 customization file types:
 | Type | Pattern | Trigger | Best For |
 |------|---------|---------|----------|
 | **Instructions** | `.github/instructions/*.instructions.md` | Always loaded automatically | Passive context, standards, constraints |
-| **Agents** | `.github/agents/*.agent.md` | `/agent-name` invocation | Complex multi-step autonomous tasks |
+| **Agents** | `.claude/agents/*.md` | `/agent-name` invocation | Complex multi-step autonomous tasks |
 | **Skills** | `.github/skills/NAME/SKILL.md` | `/skill-name` slash command or auto-loaded | On-demand templates, code generation, analysis |
+
+**Note**: VS Code Copilot natively reads `.claude/agents/*.md` in addition to `.github/agents/*.agent.md`. Since we use `.claude/agents/` as the sole canonical source, both VS Code and Claude Code share the same agent definitions without duplication.
 
 See [Section 2.1.5 Copilot Skills](#215-copilot-skills) for skill catalogue and `.github/skills/` organization.
 
 #### 2.1.1 Agent Architecture
 
+- **Single canonical source**: `.claude/agents/*.md` — VS Code Copilot and Claude Code both natively read this directory. The `.github/agents/` directory no longer exists.
 - Agent isolation principle (agents do NOT inherit copilot instructions)
-- YAML frontmatter requirements (name, description, tools, handoffs)
+- YAML frontmatter requirements (name, description, argument-hint; tools is optional — omit to inherit all)
 - Autonomous execution mode patterns
 - Quality over speed enforcement
 
@@ -356,7 +359,7 @@ Skills live in `.github/skills/NAME/SKILL.md` — each skill in its own subdirec
 | `propagation-check` | docs | Detect @propagate/@source drift, generate corrected @source blocks | [SKILL.md](.github/skills/propagation-check/SKILL.md) |
 | `contract-test-gen` | testing | Generate cross-service contract compliance tests for framework behavioral contracts | [SKILL.md](.github/skills/contract-test-gen/SKILL.md) |
 | `fitness-function-gen` | tooling | Create new architecture fitness function (linter) for lint-fitness framework | [SKILL.md](.github/skills/fitness-function-gen/SKILL.md) |
-| `agent-scaffold` | tooling | Create conformant `.github/agents/NAME.agent.md` with all mandatory sections | [SKILL.md](.github/skills/agent-scaffold/SKILL.md) |
+| `agent-scaffold` | tooling | Create conformant `.claude/agents/NAME.md` with all mandatory sections | [SKILL.md](.github/skills/agent-scaffold/SKILL.md) |
 | `instruction-scaffold` | tooling | Create conformant `.github/instructions/NN-NN.name.instructions.md` | [SKILL.md](.github/skills/instruction-scaffold/SKILL.md) |
 | `skill-scaffold` | tooling | Create conformant `.github/skills/NAME/SKILL.md` with proper YAML frontmatter | [SKILL.md](.github/skills/skill-scaffold/SKILL.md) |
 
@@ -469,7 +472,7 @@ See [Section 11.1 Maximum Quality Strategy](#111-maximum-quality-strategy---mand
 
 #### 2.3.2 Autonomous Execution Principles
 
-See the [beast-mode agent](.github/agents/beast-mode.agent.md) for the full autonomous execution contract:
+See the [beast-mode agent](.claude/agents/beast-mode.md) for the full autonomous execution contract:
 
 - Continuous work until ALL tasks complete or user clicks STOP
 - Zero permission requests, zero status updates between tasks
@@ -4936,7 +4939,7 @@ At the end of EVERY phase's quality gates, conduct a post-mortem **before starti
 1. **lessons.md** (in `<work-dir>/`): Record lessons learned — what worked, what didn't, root causes, patterns observed.
 2. **Artifact Self-Evaluation**: Actively evaluate whether phase lessons expose contradictions or omissions in:
    - `docs/ARCHITECTURE.md` — architecture decisions, patterns, strategies
-   - `.github/agents/*.agent.md` — agent guidance and workflows
+   - `.claude/agents/*.md` — agent guidance and workflows
    - `.github/skills/*/SKILL.md` — skill templates and guidance
    - `.github/instructions/*.instructions.md` — coding, testing, security guidelines
    - Production code — missed abstractions, incorrect patterns, technical debt
@@ -4953,7 +4956,7 @@ Skipping post-mortems is FORBIDDEN. This is continuous self-improvement.
 After ALL plan tasks are complete, apply accumulated lessons to permanent artifacts:
 
 1. **ARCHITECTURE.md**: Update with new patterns, strategies, and architectural decisions discovered.
-2. **Agents**: Update `.github/agents/*.agent.md` with improved guidance and workflows.
+2. **Agents**: Update `.claude/agents/*.md` with improved guidance and workflows.
 3. **Skills**: Add or update `.github/skills/*/SKILL.md` to capture new patterns and templates.
 4. **Instructions**: Update `.github/instructions/*.instructions.md` with new coding/testing patterns.
 5. **Code**: Apply patterns discovered during the plan back to production code where appropriate.
@@ -5134,7 +5137,7 @@ After ALL plan tasks are complete, apply accumulated lessons to permanent artifa
 | fix-workflows | Workflow repair and validation | agent, edit, execute, read, search | None defined |
 | beast-mode | Continuous execution mode | agent, edit, execute, read, search, todo, vscode, web | None defined |
 
-See `.github/agents/*.agent.md` `tools:` frontmatter for the authoritative per-agent tool list.
+See `.claude/agents/*.md` frontmatter for the authoritative per-agent tool list.
 
 ### B.6 CI/CD Workflow Catalog
 

@@ -49,8 +49,7 @@ Copilot instruction files auto-apply to all Claude Code work in this repo.
 
 ## Agents
 
-Custom sub-agents for Claude Code live in [.claude/agents/](.claude/agents/).
-Full Copilot originals: [.github/agents/](.github/agents/).
+Agent definitions live in [.claude/agents/](.claude/agents/) — the single canonical source for both VS Code Copilot and Claude Code.
 
 | Agent | When to Use |
 |-------|-------------|
@@ -77,6 +76,6 @@ Full Copilot originals: [.github/skills/](.github/skills/).
 | `/propagation-check` | Detect `@propagate`/`@source` drift between ARCHITECTURE.md and instruction files |
 | `/contract-test-gen` | Cross-service contract compliance tests via TestMain pattern |
 | `/fitness-function-gen` | New architecture fitness function linter in cicd_lint/lint_fitness/ |
-| `/agent-scaffold` | New `.github/agents/NAME.agent.md` with mandatory sections |
+| `/agent-scaffold` | New `.claude/agents/NAME.md` with mandatory sections |
 | `/instruction-scaffold` | New `.github/instructions/NN-NN.name.instructions.md` |
 | `/skill-scaffold` | New `.github/skills/NAME/SKILL.md` with proper YAML frontmatter |

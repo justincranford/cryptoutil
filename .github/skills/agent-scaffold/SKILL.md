@@ -1,15 +1,15 @@
 ---
 name: agent-scaffold
-description: "Create a conformant .github/agents/NAME.agent.md with all mandatory sections. Use when adding a new Copilot agent to ensure correct YAML frontmatter, autonomous execution mode, quality gates, and ARCHITECTURE.md self-containment references."
+description: "Create a conformant .claude/agents/NAME.md with all mandatory sections. Use when adding a new agent to ensure correct YAML frontmatter, autonomous execution mode, quality gates, and ARCHITECTURE.md self-containment references. Both VS Code Copilot and Claude Code read .claude/agents/ natively."
 argument-hint: "[agent-name]"
 disable-model-invocation: true
 ---
 
-Create a conformant `.github/agents/NAME.agent.md` with all mandatory sections.
+Create a conformant `.claude/agents/NAME.md` with all mandatory sections.
 
 ## Purpose
 
-Use when creating a new Copilot agent. Ensures correct YAML frontmatter, mandatory
+Use when creating a new agent for VS Code Copilot or Claude Code. Ensures correct YAML frontmatter, mandatory
 sections, and ARCHITECTURE.md references for agent self-containment.
 
 ## Template
@@ -18,16 +18,6 @@ sections, and ARCHITECTURE.md references for agent self-containment.
 ---
 name: agent-name
 description: One-line description of what this agent does
-tools:
-  - edit/editFiles
-  - execute/runInTerminal
-  - execute/getTerminalOutput
-  - read/problems
-  - search/codebase
-  - search/usages
-  - search/changes
-handoffs:
-  - next-agent-name
 argument-hint: "<required-argument>"
 ---
 
@@ -79,7 +69,7 @@ Read [ARCHITECTURE.md Section 2.5 Quality Strategy](../../../docs/ARCHITECTURE.m
 
 ## Mandatory Checklist
 
-- [ ] YAML frontmatter with `name`, `description`, `tools`
+- [ ] YAML frontmatter with `name`, `description`
 - [ ] References to ARCHITECTURE.md (self-contained, agents don't load instructions)
 - [ ] Section for Quality Gates with ARCHITECTURE.md cross-reference
 - [ ] Section for Mandatory Review Passes (min 3, max 5)

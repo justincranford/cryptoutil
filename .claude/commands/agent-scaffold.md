@@ -1,6 +1,8 @@
-Create a new `.github/agents/NAME.agent.md` file with all mandatory sections.
+Create a new `.claude/agents/NAME.md` file with all mandatory sections.
 
 **Full Copilot original**: [.github/skills/agent-scaffold/SKILL.md](.github/skills/agent-scaffold/SKILL.md)
+
+**Note**: `.claude/agents/` is the single canonical source — VS Code Copilot and Claude Code both natively read this directory.
 
 Provide: agent name (e.g., `security-audit`), description, purpose.
 
@@ -12,11 +14,6 @@ name: {agent-name}
 description: >
   {One paragraph: what this agent does, when to use it, what it produces.
   Be specific — this is used for auto-selection.}
-tools:
-  - category/toolName  # See ARCHITECTURE.md §2.1.6 for tool discovery
-handoffs:
-  - agent: implementation-execution
-    trigger: "When plan is approved and ready for execution"
 argument-hint: "[optional hint shown in chat input]"
 ---
 ```
@@ -58,6 +55,6 @@ for d in sorted(ext_dir.iterdir()):
                 print(f"  {t.get('toolReferenceName', t.get('name', ''))}")
 ```
 
-## Claude Code Bridge
+## Claude Code + VS Code Compatibility
 
-After creating `.github/agents/NAME.agent.md`, also create `.claude/agents/NAME.md` with the same content adapted for Claude Code's agent format (YAML frontmatter with `description:` field).
+Both VS Code Copilot and Claude Code natively read `.claude/agents/*.md`. No separate bridge file is needed.
