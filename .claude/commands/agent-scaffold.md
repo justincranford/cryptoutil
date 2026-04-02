@@ -1,12 +1,14 @@
-Create a new `.claude/agents/NAME.md` file with all mandatory sections.
+Create BOTH canonical agent files: `.github/agents/NAME.agent.md` (Copilot) and `.claude/agents/NAME.md` (Claude Code).
 
-**Full Copilot original**: [.github/skills/agent-scaffold/SKILL.md](.github/skills/agent-scaffold/SKILL.md)
-
-**Note**: `.claude/agents/` is the single canonical source — VS Code Copilot and Claude Code both natively read this directory.
+**Full skill**: [.github/skills/agent-scaffold/SKILL.md](.github/skills/agent-scaffold/SKILL.md)
 
 Provide: agent name (e.g., `security-audit`), description, purpose.
 
-## YAML Frontmatter (Required)
+## VS Code + Claude Code Compatibility
+
+Two files are required. Copilot treats `tools:` as a **whitelist** — omitting it restricts tool access. Claude Code treats absent `tools:` as **inherit all**. A single file cannot satisfy both.
+
+## Copilot Frontmatter (`.github/agents/NAME.agent.md`)
 
 ```yaml
 ---
@@ -14,9 +16,27 @@ name: {agent-name}
 description: >
   {One paragraph: what this agent does, when to use it, what it produces.
   Be specific — this is used for auto-selection.}
+tools:
+  - category/toolName  # See ARCHITECTURE.md §2.1.6 for tool discovery
+handoffs:
+  - agent: implementation-execution
+    trigger: "When plan is approved and ready for execution"
 argument-hint: "[optional hint shown in chat input]"
 ---
 ```
+
+## Claude Code Frontmatter (`.claude/agents/NAME.md`)
+
+```yaml
+---
+name: {agent-name}
+description: >
+  {Same description as Copilot file.}
+argument-hint: "[optional hint shown in chat input]"
+---
+```
+
+**Never add `tools:` to the Claude file.** Body content must be identical to the Copilot file.
 
 ## Mandatory Sections
 
@@ -55,6 +75,6 @@ for d in sorted(ext_dir.iterdir()):
                 print(f"  {t.get('toolReferenceName', t.get('name', ''))}")
 ```
 
-## Claude Code + VS Code Compatibility
+## Claude Code Bridge
 
-Both VS Code Copilot and Claude Code natively read `.claude/agents/*.md`. No separate bridge file is needed.
+After creating `.github/agents/NAME.agent.md`, also create `.claude/agents/NAME.md` with the same content adapted for Claude Code's agent format (YAML frontmatter with `description:` field).

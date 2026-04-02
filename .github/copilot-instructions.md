@@ -7,7 +7,7 @@
 - **Instruction files auto-discovered and used in alphanumeric order from** `.github/instructions/*.instructions.md`
 - **Reference external & project resources** - avoid duplication of content
 - **ALWAYS use built-in tools over terminal commands**
-- **Custom agent tool names** - Use official [VS Code Copilot Chat Tools Reference](https://code.visualstudio.com/docs/copilot/chat/chat-tools) and [Chat Tools API Reference](https://code.visualstudio.com/docs/copilot/reference/copilot-vscode-features#_chat-tools) for correct tool names when creating/editing `.claude/agents/*.md` files
+- **Custom agent tool names** - Use official [VS Code Copilot Chat Tools Reference](https://code.visualstudio.com/docs/copilot/chat/chat-tools) and [Chat Tools API Reference](https://code.visualstudio.com/docs/copilot/reference/copilot-vscode-features#_chat-tools) for correct tool names when creating/editing `.agent.md` files
 - **ALWAYS Do regular commits and pushes** to enable workflow monitoring and validation
 - **ALWAYS bias towards quality, correctness, completeness, thoroughness, reliability, efficiency, and accuracy** - NEVER bias towards fast completion at the expense of quality
 - **ALWAYS take the time required to do things correctly** - Time and token budgets are not constraints
@@ -40,7 +40,7 @@ See [.github/skills/README.md](.github/skills/README.md) for the full catalogue.
 | `/fips-audit` | Auditing Go code for FIPS 140-3 compliance |
 | `/propagation-check` | Checking @propagate/@source drift before committing docs |
 | `/openapi-codegen` | Creating or extending service APIs |
-| `/agent-scaffold` | Creating a new `.claude/agents/NAME.md` |
+| `/agent-scaffold` | Creating a new `.github/agents/NAME.agent.md` + `.claude/agents/NAME.md` dual canonical pair |
 | `/instruction-scaffold` | Creating a new `.github/instructions/NN-NN.name.instructions.md` |
 | `/skill-scaffold` | Creating a new `.github/skills/NAME/SKILL.md` |
 | `/new-service` | Creating a new service from skeleton-template |

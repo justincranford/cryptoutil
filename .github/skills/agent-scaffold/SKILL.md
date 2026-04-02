@@ -1,23 +1,33 @@
 ---
 name: agent-scaffold
-description: "Create a conformant .claude/agents/NAME.md with all mandatory sections. Use when adding a new agent to ensure correct YAML frontmatter, autonomous execution mode, quality gates, and ARCHITECTURE.md self-containment references. Both VS Code Copilot and Claude Code read .claude/agents/ natively."
+description: "Create both .github/agents/NAME.agent.md (Copilot canonical, with tools whitelist) and .claude/agents/NAME.md (Claude Code canonical, without tools). Use when adding a new agent to ensure both files have correct YAML frontmatter, autonomous execution mode, quality gates, and ARCHITECTURE.md self-containment references."
 argument-hint: "[agent-name]"
 disable-model-invocation: true
 ---
 
-Create a conformant `.claude/agents/NAME.md` with all mandatory sections.
+Create both `.github/agents/NAME.agent.md` (Copilot) and `.claude/agents/NAME.md` (Claude Code) with all mandatory sections.
 
 ## Purpose
 
-Use when creating a new agent for VS Code Copilot or Claude Code. Ensures correct YAML frontmatter, mandatory
-sections, and ARCHITECTURE.md references for agent self-containment.
+Use when creating a new agent. Creates BOTH canonical files so the agent works
+correctly in both VS Code Copilot (with tool whitelist) and Claude Code (inherits all tools).
 
-## Template
+## Copilot Template (`.github/agents/NAME.agent.md`)
 
 ```markdown
 ---
 name: agent-name
 description: One-line description of what this agent does
+tools:
+  - edit/editFiles
+  - execute/runInTerminal
+  - execute/getTerminalOutput
+  - read/problems
+  - search/codebase
+  - search/usages
+  - search/changes
+handoffs:
+  - next-agent-name
 argument-hint: "<required-argument>"
 ---
 
@@ -67,9 +77,27 @@ Read [ARCHITECTURE.md Section 11.2 Quality Gates](../../../docs/ARCHITECTURE.md#
 Read [ARCHITECTURE.md Section 2.5 Quality Strategy](../../../docs/ARCHITECTURE.md#25-quality-strategy) for mandatory review pass requirements — perform minimum 3, maximum 5 passes checking all 8 quality attributes before marking complete.
 ```
 
+## Claude Code Template (`.claude/agents/NAME.md`)
+
+Identical body to the Copilot file. Only the frontmatter differs — omit all Copilot-only fields:
+
+```markdown
+---
+name: agent-name
+description: One-line description of what this agent does
+argument-hint: "<required-argument>"
+---
+
+[same body as .github/agents/NAME.agent.md]
+```
+
+**Never add `tools:` to the Claude file** — Claude inherits all tools when the field is absent. Adding it with an empty list would restrict access.
+
 ## Mandatory Checklist
 
-- [ ] YAML frontmatter with `name`, `description`
+- [ ] Copilot file created: `.github/agents/NAME.agent.md` with `name`, `description`, `tools` (whitelist)
+- [ ] Claude file created: `.claude/agents/NAME.md` with `name`, `description` only (no `tools:`)
+- [ ] Both files have identical body content
 - [ ] References to ARCHITECTURE.md (self-contained, agents don't load instructions)
 - [ ] Section for Quality Gates with ARCHITECTURE.md cross-reference
 - [ ] Section for Mandatory Review Passes (min 3, max 5)
@@ -89,7 +117,8 @@ ALL relevant context MUST be in the agent file itself.
 ## After Creating
 
 1. Add entry to ARCHITECTURE.md Section 2.1.2 Agent Catalog table
-2. Run `go run ./cmd/cicd-lint lint-docs` to validate cross-references
+2. Add entries to CLAUDE.md Agents table (link to `.claude/agents/NAME.md`)
+3. Run `go run ./cmd/cicd-lint lint-docs` to validate cross-references
 
 ## References
 
