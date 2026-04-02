@@ -171,14 +171,35 @@ const (
 	// CICDGithubAgentsDir is the relative path to the GitHub agents directory.
 	CICDGithubAgentsDir = ".github/agents"
 
+	// CICDClaudeAgentsDir is the relative path to the Claude Code agents directory.
+	CICDClaudeAgentsDir = ".claude/agents"
+
+	// CICDClaudeCommandsDir is the relative path to the Claude Code commands directory.
+	CICDClaudeCommandsDir = ".claude/commands"
+
+	// CICDGithubSkillsDir is the relative path to the GitHub Copilot skills directory.
+	CICDGithubSkillsDir = ".github/skills"
+
 	// CICDCopilotInstructionsFile is the relative path to the copilot instructions file.
 	CICDCopilotInstructionsFile = ".github/copilot-instructions.md"
 
 	// CICDInstructionsPattern is the glob pattern for instruction files.
 	CICDInstructionsPattern = "*.instructions.md"
 
-	// CICDAgentsPattern is the glob pattern for agent files.
+	// CICDAgentsPattern is the glob pattern for Copilot agent files.
 	CICDAgentsPattern = "*.agent.md"
+
+	// CICDClaudeAgentsPattern is the glob pattern for Claude Code agent files.
+	CICDClaudeAgentsPattern = "*.md"
+
+	// CICDClaudeCommandsPattern is the glob pattern for Claude Code command files.
+	CICDClaudeCommandsPattern = "*.md"
+
+	// CICDSkillFileName is the standard filename for Copilot skill files within skill directories.
+	CICDSkillFileName = "SKILL.md"
+
+	// CICDAgentFrontMatterNameField is the "name" field in agent YAML front-matter, used for violation Field identification.
+	CICDAgentFrontMatterNameField = "name"
 
 	// CICDLintFitnessDir is the relative path to the lint_fitness sub-linters directory.
 	CICDLintFitnessDir = "internal/apps/tools/cicd_lint/lint_fitness"

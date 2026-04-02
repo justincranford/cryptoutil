@@ -1,5 +1,5 @@
 ---
-name: implementation-planning
+name: claude-implementation-planning
 description: Use to create or update plan.md, tasks.md, and lessons.md scaffold for a non-trivial implementation task. Creates phased plans with scope, LOE, rationale, and detailed task breakdowns before any code is written.
 argument-hint: "<directory-path> <create|update|review>"
 ---
@@ -1118,9 +1118,10 @@ Would you like me to...?  ❌ FORBIDDEN
 
 ## Mandatory Review Passes
 
+<!-- @source from="docs/ARCHITECTURE.md" as="mandatory-review-passes" -->
 **MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
 
-Every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
+Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
 
 **Each pass checks ALL 8 attributes** (fresh perspective per pass):
 1. ✅ **Correctness** — code/docs correct, no regressions
@@ -1135,6 +1136,7 @@ Every task completion MUST include at least 3 review passes, each checking ALL 8
 **Continuation rule**: If pass 3 finds ANY issue, continue to pass 4. If pass 4 still finds issues, continue to pass 5. Diminishing returns = done.
 
 **Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
+<!-- @/source -->
 
 See [ARCHITECTURE.md Section 2.5 Quality Strategy](/docs/ARCHITECTURE.md#25-quality-strategy) for mandatory review pass requirements.
 

@@ -376,6 +376,23 @@ func TestExtractSourceChunks_SortsFileLists(t *testing.T) {
 	require.True(t, strings.Compare(files[0], files[1]) < 0)
 }
 
+func TestExtractSourceChunks_ClaudeAgentsDir(t *testing.T) {
+	t.Parallel()
+
+	rootDir := t.TempDir()
+	claudeDir := rootDir + "/.claude/agents"
+	require.NoError(t, os.MkdirAll(claudeDir, 0o700))
+
+	agentContent := "# Agent\n\n<!-- @source from=\"docs/ARCHITECTURE.md\" as=\"claude-chunk\" -->\nchunk content\n<!-- @/source -->\n"
+	require.NoError(t, os.WriteFile(claudeDir+"/myagent.md", []byte(agentContent), cryptoutilSharedMagic.FilePermissionsDefault))
+
+	result, err := ExtractSourceChunks(rootDir, rootedReadFile(rootDir))
+
+	require.NoError(t, err)
+	require.Contains(t, result, "claude-chunk")
+	require.Contains(t, result["claude-chunk"], ".claude/agents/myagent.md")
+}
+
 func TestExtractSourceChunks_ReadFileFails(t *testing.T) {
 	t.Parallel()
 

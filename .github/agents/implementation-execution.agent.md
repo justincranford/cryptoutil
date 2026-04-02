@@ -1,6 +1,6 @@
 ---
-name: implementation-execution
-description: Execute plan/tasks autonomously without asking permission - continuous execution
+name: copilot-implementation-execution
+description: Use to execute an existing plan.md/tasks.md autonomously. Continuously updates tasks.md, runs quality gates after each phase, and commits incrementally. Requires plan.md and tasks.md to already exist in the work directory.
 skills:
   - test-table-driven
   - coverage-analysis
@@ -997,9 +997,10 @@ If a task cannot be completed due to architectural limitations, missing infrastr
 
 ## Mandatory Review Passes
 
+<!-- @source from="docs/ARCHITECTURE.md" as="mandatory-review-passes" -->
 **MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
 
-Every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
+Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
 
 **Each pass checks ALL 8 attributes** (fresh perspective per pass):
 1. ✅ **Correctness** — code/docs correct, no regressions
@@ -1014,6 +1015,7 @@ Every task completion MUST include at least 3 review passes, each checking ALL 8
 **Continuation rule**: If pass 3 finds ANY issue, continue to pass 4. If pass 4 still finds issues, continue to pass 5. Diminishing returns = done.
 
 **Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
+<!-- @/source -->
 
 See [ARCHITECTURE.md Section 2.5 Quality Strategy](/docs/ARCHITECTURE.md#25-quality-strategy) for mandatory review pass requirements.
 

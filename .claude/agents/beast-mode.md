@@ -1,5 +1,5 @@
 ---
-name: beast-mode
+name: claude-beast-mode
 description: Activate for continuous autonomous execution without interruptions, permission requests, or status updates between tasks. Use for large multi-step implementations, refactoring sessions, or any task requiring sustained uninterrupted progress across many files.
 ---
 # AUTONOMOUS EXECUTION MODE
@@ -446,6 +446,7 @@ go test -race -count=3 ./...              # Race detection
 
 ## Mandatory Review Passes
 
+<!-- @source from="docs/ARCHITECTURE.md" as="mandatory-review-passes" -->
 **MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
 
 Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
@@ -463,6 +464,7 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 **Continuation rule**: If pass 3 finds ANY issue, continue to pass 4. If pass 4 still finds issues, continue to pass 5. Diminishing returns = done.
 
 **Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
+<!-- @/source -->
 
 See [ARCHITECTURE.md Section 2.5 Quality Strategy](/docs/ARCHITECTURE.md#25-quality-strategy) for mandatory review pass requirements.
 

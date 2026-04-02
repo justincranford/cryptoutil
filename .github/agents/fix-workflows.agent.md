@@ -1,6 +1,6 @@
 ---
-name: fix-workflows
-description: Elite GitHub Actions workflows specialist - systematically analyze, fix, test, commit, push, and monitor workflows with evidence-based validation
+name: copilot-fix-workflows
+description: Use for GitHub Actions workflow failures, CI/CD repair, workflow validation, or any work touching .github/workflows/*.yml files. Requires Docker Desktop for local testing.
 tools:
   - agent/runSubagent
   - edit/createDirectory
@@ -797,9 +797,10 @@ permissions:
 
 ## Mandatory Review Passes
 
+<!-- @source from="docs/ARCHITECTURE.md" as="mandatory-review-passes" -->
 **MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
 
-Every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
+Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
 
 **Each pass checks ALL 8 attributes** (fresh perspective per pass):
 1. ✅ **Correctness** — code/docs correct, no regressions
@@ -814,6 +815,7 @@ Every task completion MUST include at least 3 review passes, each checking ALL 8
 **Continuation rule**: If pass 3 finds ANY issue, continue to pass 4. If pass 4 still finds issues, continue to pass 5. Diminishing returns = done.
 
 **Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
+<!-- @/source -->
 
 See [ARCHITECTURE.md Section 2.5 Quality Strategy](/docs/ARCHITECTURE.md#25-quality-strategy) for mandatory review pass requirements.
 

@@ -38,6 +38,7 @@ func ComputeCoverage(rootDir string, readFile func(string) ([]byte, error)) (*Pr
 	}{
 		{dir: cryptoutilSharedMagic.CICDGithubInstructionsDir, pattern: cryptoutilSharedMagic.CICDInstructionsPattern},
 		{dir: cryptoutilSharedMagic.CICDGithubAgentsDir, pattern: cryptoutilSharedMagic.CICDAgentsPattern},
+		{dir: cryptoutilSharedMagic.CICDClaudeAgentsDir, pattern: cryptoutilSharedMagic.CICDClaudeAgentsPattern},
 	}
 
 	var fileCoverages []FileCoverage

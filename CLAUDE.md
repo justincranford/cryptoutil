@@ -54,10 +54,10 @@ Full Copilot originals: [.github/agents/](.github/agents/).
 
 | Agent | When to Use |
 |-------|-------------|
-| [beast-mode](.claude/agents/beast-mode.md) | Continuous autonomous execution without interruptions or permission requests |
-| [fix-workflows](.claude/agents/fix-workflows.md) | GitHub Actions workflow repair and validation |
-| [implementation-execution](.claude/agents/implementation-execution.md) | Execute plan.md/tasks.md items autonomously with continuous tasks.md updates |
-| [implementation-planning](.claude/agents/implementation-planning.md) | Create/update plan.md + tasks.md + lessons.md scaffold before implementation |
+| [claude-beast-mode](.claude/agents/beast-mode.md) | Activate for continuous autonomous execution without interruptions or permission requests |
+| [claude-fix-workflows](.claude/agents/fix-workflows.md) | GitHub Actions workflow repair and validation |
+| [claude-implementation-execution](.claude/agents/implementation-execution.md) | Execute plan.md/tasks.md items autonomously with continuous tasks.md updates |
+| [claude-implementation-planning](.claude/agents/implementation-planning.md) | Create/update plan.md + tasks.md + lessons.md scaffold before implementation |
 
 ## Skills (Slash Commands)
 

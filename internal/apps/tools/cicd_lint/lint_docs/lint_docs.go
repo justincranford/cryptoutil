@@ -1,7 +1,7 @@
 // Copyright (c) 2025 Justin Cranford
 
 // Package lint_docs provides documentation linting: chunk verification, chunk
-// content validation, and propagation reference validation.
+// content validation, propagation reference validation, and agent/skill drift detection.
 package lint_docs
 
 import (
@@ -10,6 +10,8 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
 	cryptoutilCheckChunkVerification "cryptoutil/internal/apps/tools/cicd_lint/lint_docs/check_chunk_verification"
+	cryptoutilLintAgentDrift "cryptoutil/internal/apps/tools/cicd_lint/lint_docs/lint_agent_drift"
+	cryptoutilLintSkillCommandDrift "cryptoutil/internal/apps/tools/cicd_lint/lint_docs/lint_skill_command_drift"
 	cryptoutilPropagationCoverage "cryptoutil/internal/apps/tools/cicd_lint/lint_docs/propagation_coverage"
 	cryptoutilValidateChunks "cryptoutil/internal/apps/tools/cicd_lint/lint_docs/validate_chunks"
 	cryptoutilValidateCoverage "cryptoutil/internal/apps/tools/cicd_lint/lint_docs/validate_coverage"
@@ -29,6 +31,8 @@ var registeredLinters = []struct {
 	{"validate-propagation", cryptoutilValidatePropagation.Check},
 	{"validate-coverage", cryptoutilValidateCoverage.Check},
 	{"propagation-coverage", cryptoutilPropagationCoverage.Check},
+	{"lint-agent-drift", cryptoutilLintAgentDrift.Check},
+	{"lint-skill-command-drift", cryptoutilLintSkillCommandDrift.Check},
 }
 
 // Lint runs all registered documentation linters sequentially.

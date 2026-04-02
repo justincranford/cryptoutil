@@ -108,6 +108,7 @@ func ExtractSourceChunks(rootDir string, readFile func(string) ([]byte, error)) 
 	}{
 		{dir: cryptoutilSharedMagic.CICDGithubInstructionsDir, pattern: cryptoutilSharedMagic.CICDInstructionsPattern},
 		{dir: cryptoutilSharedMagic.CICDGithubAgentsDir, pattern: cryptoutilSharedMagic.CICDAgentsPattern},
+		{dir: cryptoutilSharedMagic.CICDClaudeAgentsDir, pattern: cryptoutilSharedMagic.CICDClaudeAgentsPattern},
 	}
 
 	result := make(map[string][]string)

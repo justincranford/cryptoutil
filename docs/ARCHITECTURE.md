@@ -321,11 +321,19 @@ Implementation plans use the following files in `<work-dir>/`:
 
 #### 2.1.2 Agent Catalog
 
-- implementation-planning: Planning and task decomposition, quizme, and lessons.md scaffold
-- implementation-execution: Autonomous implementation execution, plan.md, tasks.md (phases and tasks and post-mortems and lessons.md), lessons.md updates
-- fix-workflows: Workflow repair and validation
-- beast-mode: Continuous execution mode
-- Explore: Fast read-only codebase exploration and Q&A subagent (quick/medium/thorough)
+**Naming convention**: Copilot agents are named `copilot-NAME`; Claude Code agents are named `claude-NAME`. Invoke via `@copilot-NAME` in Copilot Chat or `/claude-NAME` in Claude Code.
+
+| Agent (Copilot) | Agent (Claude Code) | Description |
+|----------------|--------------------|--------------|
+| `copilot-implementation-planning` | `claude-implementation-planning` | Planning and task decomposition, quizme, and lessons.md scaffold |
+| `copilot-implementation-execution` | `claude-implementation-execution` | Autonomous implementation execution, plan.md, tasks.md (phases and tasks and post-mortems and lessons.md), lessons.md updates |
+| `copilot-fix-workflows` | `claude-fix-workflows` | Workflow repair and validation |
+| `copilot-beast-mode` | `claude-beast-mode` | Continuous execution mode |
+| Explore (built-in) | Explore (built-in) | Fast read-only codebase exploration and Q&A subagent (quick/medium/thorough) |
+
+**Drift prevention**: `cicd-lint lint-docs` runs two drift sub-linters:
+- **`lint-agent-drift`**: enforces that each Copilot agent (`copilot-NAME.agent.md`) has a matching Claude agent (`claude-NAME.md`) with identical `description:`, `argument-hint:`, and body. Only `name:` prefix and Copilot-only fields (`tools:`, `handoffs:`, `skills:`) may differ.
+- **`lint-skill-command-drift`**: enforces that each Copilot skill in `.github/skills/NAME/SKILL.md` has a corresponding Claude Code slash command in `.claude/commands/NAME.md` that references the skill path string. Detects missing commands, missing skill path references, and orphaned commands.
 
 #### 2.1.3 Agent Handoff Flow
 
@@ -346,6 +354,8 @@ Implementation plans use the following files in `<work-dir>/`:
 Skills live in `.github/skills/NAME/SKILL.md` — each skill in its own subdirectory where the directory name matches the `name` field in the SKILL.md YAML frontmatter. Invoked via `/skill-name` slash command or auto-loaded by Copilot when the request matches the skill description. See [VS Code Agent Skills reference](https://code.visualstudio.com/docs/copilot/customization/agent-skills).
 
 **SKILL.md Frontmatter Requirements**: `name` (required, matches directory name, max 64 chars, lowercase-hyphens), `description` (required, max 1024 chars, specific about both capabilities and use cases), `argument-hint` (optional, hint shown in chat input), `user-invocable` (optional, defaults true; set false to hide from / menu), `disable-model-invocation` (optional, defaults false; set true to require manual /skill invocation only). The `metadata:` sub-key is NOT a valid SKILL.md frontmatter field and MUST NOT be used.
+
+**Claude Code slash commands**: Each Copilot skill has a corresponding Claude Code slash command file at `.claude/commands/NAME.md` that references the skill path string `".github/skills/NAME/SKILL.md"` in its body. The `lint-skill-command-drift` sub-linter (part of `cicd-lint lint-docs`) enforces this 1:1 correspondence — missing commands, missing skill references, and orphaned commands all produce errors.
 
 **Skill Catalogue**:
 
@@ -582,7 +592,7 @@ If `git status --porcelain` returns ANY output:
 
 #### Mandatory Review Passes
 
-<!-- @propagate to=".github/instructions/01-02.beast-mode.instructions.md, .github/instructions/06-01.evidence-based.instructions.md" as="mandatory-review-passes" -->
+<!-- @propagate to=".github/instructions/01-02.beast-mode.instructions.md, .github/instructions/06-01.evidence-based.instructions.md, .github/agents/beast-mode.agent.md, .github/agents/fix-workflows.agent.md, .github/agents/implementation-execution.agent.md, .github/agents/implementation-planning.agent.md, .claude/agents/beast-mode.md, .claude/agents/fix-workflows.md, .claude/agents/implementation-execution.md, .claude/agents/implementation-planning.md" as="mandatory-review-passes" -->
 **MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
 
 Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
@@ -4614,7 +4624,7 @@ Propagation markers are added incrementally:
 | abbreviations | 1.2 | 01-01.terminology |
 | quality-attributes | 11.1 | 01-02.beast-mode |
 | end-of-turn-commit-protocol | 2.4 | 01-02.beast-mode |
-| mandatory-review-passes | 2.5 | 01-02.beast-mode, 06-01.evidence-based |
+| mandatory-review-passes | 2.5 | 01-02.beast-mode, 06-01.evidence-based, .github/agents/beast-mode, .github/agents/fix-workflows, .github/agents/implementation-execution, .github/agents/implementation-planning, .claude/agents/beast-mode, .claude/agents/fix-workflows, .claude/agents/implementation-execution, .claude/agents/implementation-planning |
 | infrastructure-blocker-escalation | 14.7 | 01-02.beast-mode, 06-01.evidence-based |
 | service-framework-components | 5.1.1 | 02-01.architecture |
 | minimum-versions | B.1 | 02-02.versions |
@@ -5133,14 +5143,14 @@ After ALL plan tasks are complete, apply accumulated lessons to permanent artifa
 
 ### B.5 Agent Catalog & Handoff Matrix
 
-| Agent | Description | Tools | Handoffs |
-|-------|-------------|-------|----------|
-| implementation-planning | Planning and task decomposition | edit, execute, read, search, web | → implementation-execution |
-| implementation-execution | Autonomous implementation execution | edit, execute, read, search, web | → fix-workflows |
-| fix-workflows | Workflow repair and validation | agent, edit, execute, read, search | None defined |
-| beast-mode | Continuous execution mode | agent, edit, execute, read, search, todo, vscode, web | None defined |
+| Copilot Agent | Claude Code Agent | Description | Handoffs |
+|--------------|------------------|-------------|----------|
+| `copilot-implementation-planning` | `claude-implementation-planning` | Planning and task decomposition | → implementation-execution |
+| `copilot-implementation-execution` | `claude-implementation-execution` | Autonomous implementation execution | → fix-workflows |
+| `copilot-fix-workflows` | `claude-fix-workflows` | Workflow repair and validation | None defined |
+| `copilot-beast-mode` | `claude-beast-mode` | Continuous execution mode | None defined |
 
-See `.github/agents/*.agent.md` `tools:` frontmatter for the authoritative Copilot per-agent tool list. The parallel `.claude/agents/*.md` files omit `tools:` — Claude Code inherits all tools by default.
+See `.github/agents/*.agent.md` `tools:` frontmatter for the authoritative Copilot per-agent tool list. The parallel `.claude/agents/*.md` files omit `tools:` — Claude Code inherits all tools by default. `cicd-lint lint-docs` (`lint-agent-drift`) enforces that description, argument-hint, and body are verbatim identical across each pair.
 
 ### B.6 CI/CD Workflow Catalog
 
