@@ -6,7 +6,7 @@ require (
 	github.com/cloudflare/circl v1.6.3
 	github.com/docker/go-connections v0.6.0
 	github.com/getkin/kin-openapi v0.134.0
-	github.com/go-jose/go-jose/v4 v4.1.3
+	github.com/go-jose/go-jose/v4 v4.1.4
 	github.com/go-webauthn/webauthn v0.16.1
 	github.com/goccy/go-yaml v1.19.2
 	github.com/gofiber/fiber/v2 v2.52.12
@@ -17,7 +17,7 @@ require (
 	github.com/jackc/pgx/v5 v5.9.1
 	github.com/leanovate/gopter v0.2.11
 	github.com/lestrrat-go/jwx/v3 v3.0.13
-	github.com/lib/pq v1.12.0
+	github.com/lib/pq v1.12.1
 	github.com/oapi-codegen/fiber-middleware v1.0.2
 	github.com/oapi-codegen/runtime v1.3.1
 	github.com/pquerna/otp v1.5.0

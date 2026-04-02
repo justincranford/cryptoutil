@@ -305,7 +305,7 @@ repos:
 
   # Specialized file linting: GitHub Actions workflow linting
   - repo: https://github.com/rhysd/actionlint
-    rev: v1.7.11
+    rev: v1.7.12
     hooks:
       - id: actionlint
         files: '\.github/workflows/.*\.(yml|yaml)$'
@@ -431,7 +431,7 @@ repos:
 
   # pyproject.toml normalization (consistent key ordering, whitespace)
   - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: v2.20.0
+    rev: v2.21.0
     hooks:
       - id: pyproject-fmt
         name: Normalize pyproject.toml
