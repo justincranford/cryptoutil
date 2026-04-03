@@ -167,9 +167,10 @@ func TestCheckInDir_NoCmdDir(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	tmpDir := t.TempDir()
 
-	// No cmd/ directory present - should succeed silently.
+	// No cmd/ directory present - hard error (cmd/ is required in all repositories).
 	err := CheckInDir(logger, tmpDir)
-	require.NoError(t, err)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "cmd/ directory not found")
 }
 
 func TestCheckInDir_WithValidMainFiles(t *testing.T) {
@@ -266,10 +267,15 @@ func TestCheck_DelegatesCheckInDir(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
+	// Create an empty cmd/ dir so the hard-error-on-absent-cmd-dir check passes.
+	if err := os.MkdirAll(filepath.Join(tmpDir, "cmd"), 0o755); err != nil {
+		t.Fatalf("setup: mkdir cmd/: %v", err)
+	}
+
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
 	err := CheckInDir(logger, tmpDir)
-	require.NoError(t, err) // no cmd/ dir in temp dir → no violations
+	require.NoError(t, err) // empty cmd/ dir → no violations (no main.go files to check)
 }
 
 func findProjectRoot() (string, error) {

@@ -73,9 +73,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	configsDir := filepath.Join(rootDir, cryptoutilSharedMagic.CICDConfigsDir)
 
 	if _, err := os.Stat(configsDir); os.IsNotExist(err) {
-		logger.Log("No configs/ directory found — skipping otlp-service-name-pattern check")
-
-		return nil
+		return fmt.Errorf("configs/ directory not found at %s", configsDir)
 	}
 
 	var violations []string

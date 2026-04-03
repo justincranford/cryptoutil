@@ -2794,7 +2794,21 @@ Architecture fitness functions are automated checks that enforce ARCHITECTURE.md
 | `migration-numbering` | Migration files must use `NNNN_name.up.sql` format |
 | `migration-range-compliance` | Template migrations use 1001-1999; domain migrations use 2001+ |
 
-#### 9.11.2 Entity Registry
+#### 9.11.2 Fitness Linter Contract — Hard Error on Absent Dirs
+
+**MANDATORY: ALL fitness linters must return a hard error when a required directory is absent.**
+
+The majority pattern (`os.IsNotExist(err) → return nil`) silently hides compliance gaps and is CATEGORICALLY WRONG for fitness linters. Strict enforcement requires every linter to fail loudly when its required input does not exist.
+
+**Rule**: When a `CheckInDir()` or equivalent function encounters an absent required directory, it MUST return `fmt.Errorf("directory not found: ...")` (or similar). It MUST NOT return `nil`.
+
+**Rationale**: A missing directory is a signal of structural non-compliance, not a vacuously true state. Silently passing on absent input makes the linter useless for catching drift.
+
+**Test Pattern**: Unit tests that create isolated `t.TempDir()` workspaces must create stubs for ALL directories that the linter requires to exist. For linters that iterate the entity registry (e.g., `database_key_uniformity`, `config_overlay_freshness`), use a registry-iterating helper to create stubs for all 10 PS-IDs. For template-directory linters (`migration_numbering`, `migration_range_compliance`), use a `createTemplateMigrationsDirStub()` helper.
+
+**Structural ceiling**: When a template stub necessarily creates a parent directory that another absent-dir check depends on, direct testing via `CheckInDir` is structurally impossible. In these cases, the equivalent coverage MUST be provided by a direct unit test of the inner function (e.g., `TestFindDomainMigrationDirs_NoAppsDir_ReturnsError` covers the code path that `TestCheckInDir_NoInternalAppsDir_Fails` cannot reach via `CheckInDir`).
+
+#### 9.11.3 Entity Registry
 
 **Location**: `internal/apps/tools/cicd_lint/lint_fitness/registry/registry.go`
 
@@ -2814,7 +2828,7 @@ Architecture fitness functions are automated checks that enforce ARCHITECTURE.md
 
 **Current registry**: 5 products, 10 product-services
 
-#### 9.11.3 Naming Convention Catalog
+#### 9.11.4 Naming Convention Catalog
 
 **Key conventions**:
 - Compose service names: `{ps-id}-{db}-N` (e.g. `sm-im-postgres-1`)

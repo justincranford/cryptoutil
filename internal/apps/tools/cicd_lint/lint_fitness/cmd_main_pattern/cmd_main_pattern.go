@@ -35,7 +35,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 	cmdDir := filepath.Join(rootDir, "cmd")
 	if _, statErr := os.Stat(cmdDir); os.IsNotExist(statErr) {
-		return nil // No cmd directory, skip check
+		return fmt.Errorf("cmd/ directory not found at %s", cmdDir)
 	}
 
 	err := cmdMainWalkFn(cmdDir, func(path string, info os.FileInfo, err error) error {

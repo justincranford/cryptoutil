@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
+	lintFitnessRegistry "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/registry"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -31,6 +32,24 @@ func setupTempDir(t *testing.T, files map[string]string) string {
 	}
 
 	return rootDir
+}
+
+// allMinimalPSIDFiles returns a file map with minimal valid content for every PS-ID in the
+// registry. Callers may merge their own specific content on top to override individual entries.
+// This allows CheckInDir tests to satisfy the hard-error-on-absent-config-dir requirement
+// without having to enumerate all PS-IDs in every test.
+func allMinimalPSIDFiles() map[string]string {
+	files := make(map[string]string)
+
+	for _, ps := range lintFitnessRegistry.AllProductServices() {
+		id := ps.PSID
+		files[fmt.Sprintf("deployments/%s/config/%s-app-sqlite-1.yml", id, id)] = fmt.Sprintf("database-url: \"sqlite://file::memory:?cache=shared\"\notlp-service: %s-sqlite-1\n", id)
+		files[fmt.Sprintf("deployments/%s/config/%s-app-sqlite-2.yml", id, id)] = fmt.Sprintf("database-url: \"sqlite://file::memory:?cache=shared\"\notlp-service: %s-sqlite-2\n", id)
+		files[fmt.Sprintf("deployments/%s/config/%s-app-postgresql-1.yml", id, id)] = fmt.Sprintf("otlp-service: %s-postgres-1\n", id)
+		files[fmt.Sprintf("deployments/%s/config/%s-app-postgresql-2.yml", id, id)] = fmt.Sprintf("otlp-service: %s-postgres-2\n", id)
+	}
+
+	return files
 }
 
 func sqliteFilesFor(psID string) map[string]string {
@@ -90,7 +109,14 @@ func TestCheckInDir_ValidOverlays(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			rootDir := setupTempDir(t, tc.setupFiles)
+			// Merge test-specific files on top of the all-PS-IDs base so that the
+			// hard-error-on-absent-config-dir check passes for every PS-ID.
+			merged := allMinimalPSIDFiles()
+			for k, v := range tc.setupFiles {
+				merged[k] = v
+			}
+
+			rootDir := setupTempDir(t, merged)
 			logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
 			err := CheckInDir(logger, rootDir)

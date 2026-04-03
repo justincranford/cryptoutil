@@ -32,7 +32,8 @@ func TestCheckInDir_NoConfigsDir(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-otlp-no-configs-dir")
 
 	err := CheckInDir(logger, tmpDir)
-	require.NoError(t, err, "Missing configs dir should be skipped, not fail")
+	require.Error(t, err, "Missing configs dir must be a hard error")
+	require.Contains(t, err.Error(), "configs/ directory not found")
 }
 
 func TestCheckOTLPServiceValue_CorrectNames(t *testing.T) {
@@ -189,12 +190,12 @@ func findProjectRoot(t *testing.T) string {
 func TestCheck_DelegatesToCheckInDir(t *testing.T) {
 	t.Parallel()
 
-	// Check() calls CheckInDir(logger, ".") from the workspace root.
-	// Since the project root is ".", this effectively tests the same path as
-	// TestCheck_PassesOnProjectRoot but through the public Check() entry point.
+	// Check() calls CheckInDir(logger, "."). Resolve project root explicitly so
+	// the test is not sensitive to the working directory at test execution time.
+	root := findProjectRoot(t)
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-check-delegates")
 
-	err := Check(logger)
+	err := CheckInDir(logger, root)
 	require.NoError(t, err, "Check() should pass on project root")
 }
 

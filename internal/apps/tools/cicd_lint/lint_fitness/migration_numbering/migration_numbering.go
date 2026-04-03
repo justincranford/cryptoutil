@@ -88,7 +88,7 @@ func findDomainMigrationDirs(rootDir, templateDir string) ([]string, error) {
 
 	appsDir := filepath.Join(rootDir, "internal", "apps")
 	if _, statErr := os.Stat(appsDir); os.IsNotExist(statErr) {
-		return nil, nil
+		return nil, fmt.Errorf("internal/apps directory not found at %s", appsDir)
 	}
 
 	walkErr := filepath.Walk(appsDir, func(path string, info os.FileInfo, walkErr error) error {
@@ -143,7 +143,7 @@ func checkMigrationDir(dir string, minVersion, maxVersion int, isTemplate bool) 
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil
+			return []string{fmt.Sprintf("%s: directory does not exist", dir)}
 		}
 
 		return []string{fmt.Sprintf("%s: failed to read directory: %v", dir, err)}

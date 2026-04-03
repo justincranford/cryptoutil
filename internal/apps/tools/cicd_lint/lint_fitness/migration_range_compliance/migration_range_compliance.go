@@ -146,7 +146,7 @@ func checkDir(dir string, min, max int, isTemplate bool) ([]string, error) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil, nil
+			return nil, fmt.Errorf("directory not found: %s", dir)
 		}
 
 		return nil, fmt.Errorf("read dir %s: %w", dir, err)
@@ -221,7 +221,7 @@ func isNonFrameworkProduct(dirName string) bool {
 // derived from the first path component under appsDir.
 func findDomainMigrationDirsWithPSID(appsDir, templateDir string) ([]migrationDirEntry, error) {
 	if _, statErr := os.Stat(appsDir); os.IsNotExist(statErr) {
-		return nil, nil
+		return nil, fmt.Errorf("internal/apps directory not found at %s", appsDir)
 	}
 
 	absTemplateDir, err := filepath.Abs(templateDir)

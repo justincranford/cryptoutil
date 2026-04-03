@@ -65,7 +65,7 @@ func checkPS(rootDir string, ps lintFitnessRegistry.ProductService) []string {
 	psDir := filepath.Join(rootDir, "internal", "apps", filepath.FromSlash(ps.InternalAppsDir))
 
 	if _, err := os.Stat(psDir); os.IsNotExist(err) {
-		return nil
+		return []string{fmt.Sprintf("%s: internal/apps/%s directory does not exist", ps.PSID, ps.InternalAppsDir)}
 	}
 
 	var migrationDirs []string

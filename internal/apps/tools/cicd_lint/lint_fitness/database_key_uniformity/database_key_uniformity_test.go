@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
+	lintFitnessRegistry "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/registry"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -65,6 +66,18 @@ func setupConfigDir(t *testing.T, rootDir, psID string, files map[string]string)
 	return configDir
 }
 
+// createAllConfigDirStubs creates empty deployments/{psID}/config/ directories for all PS-IDs
+// in the registry. This satisfies the hard-error-on-absent-config-dir requirement so that
+// tests can focus on a single PS-ID without failing due to missing dirs for the other 9.
+func createAllConfigDirStubs(t *testing.T, rootDir string) {
+	t.Helper()
+
+	for _, ps := range lintFitnessRegistry.AllProductServices() {
+		configDir := filepath.Join(rootDir, "deployments", ps.PSID, "config")
+		require.NoError(t, os.MkdirAll(configDir, 0o700))
+	}
+}
+
 // TestCheck_RealWorkspace verifies that the real project workspace passes the linter.
 func TestCheck_RealWorkspace(t *testing.T) {
 	t.Parallel()
@@ -91,6 +104,9 @@ func TestCheckInDir_AllCorrect(t *testing.T) {
 	tmpDir := t.TempDir()
 	psID := cryptoutilSharedMagic.KMSServiceID
 
+	// Stub all PS-ID config dirs so the hard-error-on-absent-dir check passes for all of them.
+	createAllConfigDirStubs(t, tmpDir)
+
 	setupConfigDir(t, tmpDir, psID, map[string]string{
 		psID + "-app-common.yml":       "bind-public-address: \"0.0.0.0\"\n",
 		psID + "-app-sqlite-1.yml":     "database-url: \"sqlite://file::memory:?cache=shared\"\n",
@@ -103,7 +119,7 @@ func TestCheckInDir_AllCorrect(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-// TestCheckInDir_NoConfigDir verifies that missing config directories are skipped.
+// TestCheckInDir_NoConfigDir verifies that a missing config directory is a hard error.
 func TestCheckInDir_NoConfigDir(t *testing.T) {
 	t.Parallel()
 
@@ -112,7 +128,8 @@ func TestCheckInDir_NoConfigDir(t *testing.T) {
 	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "deployments"), 0o700))
 
 	err := CheckInDir(newLogger(), tmpDir)
-	assert.NoError(t, err)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "does not exist")
 }
 
 // TestCheckInDir_NestedDatabaseMapping verifies that nested database: mapping is detected.
@@ -165,6 +182,9 @@ func TestCheckInDir_ScalarDatabaseKeyAllowed(t *testing.T) {
 	tmpDir := t.TempDir()
 	psID := cryptoutilSharedMagic.OTLPServiceJoseJA
 
+	// Stub all PS-ID config dirs so the hard-error-on-absent-dir check passes for all of them.
+	createAllConfigDirStubs(t, tmpDir)
+
 	// A scalar database: value (not a mapping) should not trigger a violation.
 	setupConfigDir(t, tmpDir, psID, map[string]string{
 		psID + "-app-common.yml": "database: \"sqlite://file::memory:?cache=shared\"\n",
@@ -179,10 +199,9 @@ func TestCheckInDir_EmptyConfigDir(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	psID := cryptoutilSharedMagic.PKICAServiceID
 
-	// Create an empty config dir (no yml files).
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "deployments", psID, "config"), 0o700))
+	// Create empty config dirs for all PS-IDs so the hard-error-on-absent-dir check passes.
+	createAllConfigDirStubs(t, tmpDir)
 
 	err := CheckInDir(newLogger(), tmpDir)
 	assert.NoError(t, err)
@@ -194,9 +213,11 @@ func TestCheckInDir_NonYMLFilesIgnored(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	psID := cryptoutilSharedMagic.OTLPServiceSkeletonTemplate
-	configDir := filepath.Join(tmpDir, "deployments", psID, "config")
 
-	require.NoError(t, os.MkdirAll(configDir, 0o700))
+	// Stub all PS-ID config dirs so the hard-error-on-absent-dir check passes for all of them.
+	createAllConfigDirStubs(t, tmpDir)
+
+	configDir := filepath.Join(tmpDir, "deployments", psID, "config")
 
 	// Write a non-yml file that contains forbidden content.
 	require.NoError(t, os.WriteFile(filepath.Join(configDir, "readme.txt"), []byte("database:\n  type: postgres\n"), cryptoutilSharedMagic.KeyFilePermissions))
@@ -211,6 +232,10 @@ func TestCheckInDir_SubdirIgnored(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	psID := cryptoutilSharedMagic.KMSServiceID
+
+	// Stub all PS-ID config dirs so the hard-error-on-absent-dir check passes for all of them.
+	createAllConfigDirStubs(t, tmpDir)
+
 	configDir := filepath.Join(tmpDir, "deployments", psID, "config")
 	subDir := filepath.Join(configDir, "nested")
 
@@ -309,6 +334,10 @@ func TestCheckInDir_MultipleViolations(t *testing.T) {
 // Sequential: uses os.Chdir (global process state, cannot run in parallel).
 func TestCheck_DelegatesToCheckInDir(t *testing.T) {
 	tmpDir := t.TempDir()
+
+	// Stub all PS-ID config dirs so the hard-error-on-absent-dir check passes for all of them.
+	createAllConfigDirStubs(t, tmpDir)
+
 	psID := cryptoutilSharedMagic.KMSServiceID
 	filename := psID + "-app-common.yml"
 
@@ -323,7 +352,7 @@ func TestCheck_DelegatesToCheckInDir(t *testing.T) {
 		require.NoError(t, os.Chdir(origDir))
 	})
 
-	// Should work because Check() calls CheckInDir(".") and tmpDir has a valid sm-kms config.
+	// Should work because Check() calls CheckInDir(".") and tmpDir has valid config dirs for all PS-IDs.
 	err = Check(newLogger())
 	assert.NoError(t, err)
 }

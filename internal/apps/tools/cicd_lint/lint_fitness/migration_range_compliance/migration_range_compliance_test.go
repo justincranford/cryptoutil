@@ -32,6 +32,15 @@ func makeMigrationDir(t *testing.T, root, relDir string, fileNumbers []int) {
 	}
 }
 
+// createTemplateMigrationsDirStub creates an empty template migrations directory
+// so that tests focused on domain migration ranges do not fail on the absent template dir check.
+func createTemplateMigrationsDirStub(t *testing.T, rootDir string) {
+	t.Helper()
+
+	dir := filepath.Join(rootDir, filepath.FromSlash(templateMigRelDir))
+	require.NoError(t, os.MkdirAll(dir, cryptoutilSharedMagic.DirPermissions))
+}
+
 const (
 	templateMigRelDir = "internal/apps/framework/service/server/repository/migrations"
 	joseMigRelDir     = "internal/apps/jose-ja/repository/migrations"
@@ -73,6 +82,8 @@ func TestCheckInDir_TemplateMigrations_AboveMax_Fails(t *testing.T) {
 func TestCheckInDir_DomainMigrations_ValidRange_Passes(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
+	// Stub template migrations dir so the hard-error-on-absent-template-dir check passes.
+	createTemplateMigrationsDirStub(t, tmp)
 	// jose-ja registry range is 4001-4999.
 	makeMigrationDir(t, tmp, joseMigRelDir, []int{4001, 4002})
 	err := CheckInDir(newTestLogger(), tmp)
@@ -82,6 +93,8 @@ func TestCheckInDir_DomainMigrations_ValidRange_Passes(t *testing.T) {
 func TestCheckInDir_DomainMigrations_BelowMin_Fails(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
+	// Stub template migrations dir so the hard-error-on-absent-template-dir check passes.
+	createTemplateMigrationsDirStub(t, tmp)
 	// jose-ja min is 4001; version 1 is below range.
 	makeMigrationDir(t, tmp, joseMigRelDir, []int{4001, 1})
 	err := CheckInDir(newTestLogger(), tmp)
@@ -92,6 +105,8 @@ func TestCheckInDir_DomainMigrations_BelowMin_Fails(t *testing.T) {
 func TestCheckInDir_DomainMigrations_AboveMax_Fails(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
+	// Stub template migrations dir so the hard-error-on-absent-template-dir check passes.
+	createTemplateMigrationsDirStub(t, tmp)
 	// jose-ja max is 4999; version 5001 is above range.
 	makeMigrationDir(t, tmp, joseMigRelDir, []int{4001, 5001})
 	err := CheckInDir(newTestLogger(), tmp)
@@ -102,6 +117,8 @@ func TestCheckInDir_DomainMigrations_AboveMax_Fails(t *testing.T) {
 func TestCheckInDir_DomainMigrations_SmIm_ValidRange_Passes(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
+	// Stub template migrations dir so the hard-error-on-absent-template-dir check passes.
+	createTemplateMigrationsDirStub(t, tmp)
 	// sm-im registry range is 3001-3999.
 	makeMigrationDir(t, tmp, smImMigRelDir, []int{3001, 3002})
 	err := CheckInDir(newTestLogger(), tmp)
@@ -113,6 +130,8 @@ func TestCheckInDir_DomainMigrations_SmIm_ValidRange_Passes(t *testing.T) {
 func TestCheckInDir_IdentityMigrations_Skipped(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
+	// Stub template migrations dir so the hard-error-on-absent-template-dir check passes.
+	createTemplateMigrationsDirStub(t, tmp)
 	// Identity uses 0001-0011 legacy numbering — excluded from range compliance.
 	makeMigrationDir(t, tmp, identityMigRelDir, []int{1, 2, 3, 11})
 	err := CheckInDir(newTestLogger(), tmp)
@@ -122,19 +141,22 @@ func TestCheckInDir_IdentityMigrations_Skipped(t *testing.T) {
 func TestCheckInDir_EmptyDir_Passes(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
+	// Stub template migrations dir so the hard-error-on-absent-template-dir check passes.
+	createTemplateMigrationsDirStub(t, tmp)
 	err := CheckInDir(newTestLogger(), tmp)
 	require.NoError(t, err)
 }
 
 // ---- findDomainMigrationDirs ----
 
-func TestFindDomainMigrationDirs_NoAppsDir_ReturnsEmpty(t *testing.T) {
+func TestFindDomainMigrationDirs_NoAppsDir_ReturnsError(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
 	appsDir := filepath.Join(tmp, "internal", "apps")
 	templateDir := filepath.Join(tmp, "internal", "apps", cryptoutilSharedMagic.FrameworkProductName, "service", "server", "repository", "migrations")
 	dirs, err := findDomainMigrationDirs(appsDir, templateDir)
-	require.NoError(t, err)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "internal/apps directory not found")
 	require.Empty(t, dirs)
 }
 
@@ -197,11 +219,12 @@ func TestCheckDir_NonSQLFile_Ignored(t *testing.T) {
 	require.Empty(t, violations)
 }
 
-func TestCheckDir_MissingDir_ReturnsNilNoError(t *testing.T) {
+func TestCheckDir_MissingDir_ReturnsError(t *testing.T) {
 	t.Parallel()
 
 	violations, err := checkDir("/nonexistent/migrations", templateMigrationMin, templateMigrationMax, true)
-	require.NoError(t, err)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "directory not found")
 	require.Empty(t, violations)
 }
 
@@ -285,16 +308,10 @@ func TestCheck_Integration(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestCheckInDir_NoInternalAppsDir_Succeeds(t *testing.T) {
-	t.Parallel()
-
-	// When appsDir doesn't exist, findDomainMigrationDirs returns nil/nil.
-	// When the template dir doesn't exist, checkDir returns nil/nil.
-	// CheckInDir should succeed with no violations.
-	tmp := t.TempDir()
-	err := CheckInDir(cryptoutilCmdCicdCommon.NewLogger("test"), tmp)
-	require.NoError(t, err)
-}
+// Note: TestCheckInDir_NoInternalAppsDir cannot be implemented via CheckInDir because
+// createTemplateMigrationsDirStub necessarily creates internal/apps/ (the template dir
+// lives under it). The equivalent coverage is provided by
+// TestFindDomainMigrationDirs_NoAppsDir_ReturnsError which tests the function directly.
 
 // ---- checkRegistryRangeCollisions ----
 
@@ -368,6 +385,8 @@ func TestCheckRangeCollisions_EmptyRanges_ReturnsEmpty(t *testing.T) {
 func TestCheckInDir_UnknownPSID_UsesLooseLowerBound(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
+	// Stub template migrations dir so the hard-error-on-absent-template-dir check passes.
+	createTemplateMigrationsDirStub(t, tmp)
 	// Use a directory name unknown to registry; files at 2001+ pass loose lower bound.
 	makeMigrationDir(t, tmp, unknownSvcMigDir, []int{2001, 9999})
 	err := CheckInDir(newTestLogger(), tmp)
@@ -377,6 +396,8 @@ func TestCheckInDir_UnknownPSID_UsesLooseLowerBound(t *testing.T) {
 func TestCheckInDir_UnknownPSID_BelowLooseLower_Fails(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
+	// Stub template migrations dir so the hard-error-on-absent-template-dir check passes.
+	createTemplateMigrationsDirStub(t, tmp)
 	// Use a directory name unknown to registry; file at 999 is below loose lower bound (1999+1=2000).
 	makeMigrationDir(t, tmp, unknownSvcMigDir, []int{999})
 	err := CheckInDir(newTestLogger(), tmp)

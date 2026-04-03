@@ -35,6 +35,16 @@ func findProjectRoot() (string, error) {
 	}
 }
 
+// createTemplateMigrationsDirStub creates an empty template migrations directory
+// (internal/apps/framework/service/server/repository/migrations) so that tests
+// focused on domain migrations do not fail due to the absent template migrations dir check.
+func createTemplateMigrationsDirStub(t *testing.T, rootDir string) {
+	t.Helper()
+
+	templateDir := filepath.Join(rootDir, "internal", "apps", cryptoutilSharedMagic.FrameworkProductName, "service", "server", "repository", "migrations")
+	require.NoError(t, os.MkdirAll(templateDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+}
+
 func TestCheck_RealWorkspace(t *testing.T) {
 	t.Parallel()
 
@@ -52,6 +62,10 @@ func TestCheckInDir_ValidDomainMigrations(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
+
+	// Stub template migrations dir so the hard-error-on-absent-template-dir check passes.
+	createTemplateMigrationsDirStub(t, tmpDir)
+
 	migrationsDir := filepath.Join(tmpDir, "internal", "apps", "myproduct", "myservice", "repository", "migrations")
 	require.NoError(t, os.MkdirAll(migrationsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(migrationsDir, "2001_init.up.sql"), []byte("CREATE TABLE t;"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -171,13 +185,18 @@ func TestCheckInDir_NoAppsDir(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	err := CheckInDir(logger, tmpDir)
-	require.NoError(t, err)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "internal/apps directory not found")
 }
 
 func TestCheckInDir_EmptyMigrationsDir(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
+
+	// Stub template migrations dir so the hard-error-on-absent-template-dir check passes.
+	createTemplateMigrationsDirStub(t, tmpDir)
+
 	migrationsDir := filepath.Join(tmpDir, "internal", "apps", "myproduct", "myservice", "repository", "migrations")
 	require.NoError(t, os.MkdirAll(migrationsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
@@ -190,6 +209,10 @@ func TestCheckInDir_ArchivedDirsSkipped(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
+
+	// Stub template migrations dir so the hard-error-on-absent-template-dir check passes.
+	createTemplateMigrationsDirStub(t, tmpDir)
+
 	archivedDir := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.PKIProductName, "_ca-archived", "repository", "migrations")
 	require.NoError(t, os.MkdirAll(archivedDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(archivedDir, "0001_bad.up.sql"), []byte("BAD"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -203,6 +226,9 @@ func TestCheckInDir_MultipleDomainDirs(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
+
+	// Stub template migrations dir so the hard-error-on-absent-template-dir check passes.
+	createTemplateMigrationsDirStub(t, tmpDir)
 
 	dir1 := filepath.Join(tmpDir, "internal", "apps", "product1", "svc1", "repository", "migrations")
 	require.NoError(t, os.MkdirAll(dir1, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
@@ -238,6 +264,10 @@ func TestCheckInDir_MultipleVersions(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
+
+	// Stub template migrations dir so the hard-error-on-absent-template-dir check passes.
+	createTemplateMigrationsDirStub(t, tmpDir)
+
 	migrationsDir := filepath.Join(tmpDir, "internal", "apps", "myproduct", "myservice", "repository", "migrations")
 	require.NoError(t, os.MkdirAll(migrationsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(migrationsDir, "2001_init.up.sql"), []byte("OK"), cryptoutilSharedMagic.CacheFilePermissions))
@@ -268,7 +298,8 @@ func TestCheckMigrationDir_NonexistentDir(t *testing.T) {
 	t.Parallel()
 
 	errs := checkMigrationDir("/nonexistent/migrations", domainMigrationMin, 0, false)
-	require.Empty(t, errs)
+	require.Len(t, errs, 1)
+	require.Contains(t, errs[0], "does not exist")
 }
 
 func TestFindDomainMigrationDirs_NoAppsDir(t *testing.T) {
@@ -277,7 +308,8 @@ func TestFindDomainMigrationDirs_NoAppsDir(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	dirs, err := findDomainMigrationDirs(tmpDir, filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.FrameworkProductName, "service", "server", "repository", "migrations"))
-	require.NoError(t, err)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "internal/apps directory not found")
 	require.Empty(t, dirs)
 }
 

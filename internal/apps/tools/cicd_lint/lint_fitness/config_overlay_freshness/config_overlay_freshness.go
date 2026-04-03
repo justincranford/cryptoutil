@@ -105,15 +105,15 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 }
 
 // checkPSIDOverlays validates all 4 variant overlay files for a single PS-ID.
-// If the deployments/{ps-id}/config/ directory does not exist, the PS-ID is skipped.
+// If the deployments/{ps-id}/config/ directory does not exist, it is a hard error.
 func checkPSIDOverlays(rootDir, psID string, tmpl *overlayTemplates) []string {
 	var violations []string
 
 	configDir := filepath.Join(rootDir, "deployments", psID, "config")
 
-	// Skip PS-IDs that have no deployments config directory in this workspace root.
+	// Hard error: deployments/{ps-id}/config/ must exist for every PS-ID.
 	if _, err := os.Stat(configDir); os.IsNotExist(err) {
-		return nil
+		return []string{fmt.Sprintf("%s: deployments/%s/config/ directory does not exist", psID, psID)}
 	}
 
 	for _, vt := range tmpl.Variants {

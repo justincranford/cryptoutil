@@ -61,7 +61,7 @@ func checkConfigDir(rootDir, psID string) []string {
 	configDir := filepath.Join(rootDir, "deployments", psID, "config")
 
 	if _, err := os.Stat(configDir); os.IsNotExist(err) {
-		return nil
+		return []string{fmt.Sprintf("%s: deployments/%s/config/ directory does not exist", psID, psID)}
 	}
 
 	entries, err := readDirFn(configDir)

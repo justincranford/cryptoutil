@@ -12,6 +12,7 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
 	lintFitnessMigrationCommentHeaders "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/migration_comment_headers"
+	lintFitnessRegistry "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/registry"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -36,6 +37,18 @@ func findProjectRoot(t *testing.T) string {
 		}
 
 		dir = parent
+	}
+}
+
+// createAllPSDirStubs creates a minimal internal/apps/{InternalAppsDir} stub for every
+// PS in the registry. This satisfies the hard-error-on-absent-dir requirement without
+// pre-populating migrations content, so individual tests can control what they add.
+func createAllPSDirStubs(t *testing.T, tmpDir string) {
+	t.Helper()
+
+	for _, ps := range lintFitnessRegistry.AllProductServices() {
+		dir := filepath.Join(tmpDir, "internal", "apps", filepath.FromSlash(ps.InternalAppsDir))
+		require.NoError(t, os.MkdirAll(dir, cryptoutilSharedMagic.CICDTempDirPermissions))
 	}
 }
 
@@ -71,6 +84,7 @@ func TestCheckInDir_CorrectHeaders(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
+	createAllPSDirStubs(t, tmpDir)
 
 	// Write correct migrations for sm-im (representative PS with migrations).
 	const (
@@ -89,6 +103,7 @@ func TestCheckInDir_WrongUpHeader(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
+	createAllPSDirStubs(t, tmpDir)
 
 	const (
 		smIMAppsDir     = "sm-im/"
@@ -110,6 +125,7 @@ func TestCheckInDir_WrongDownHeader(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
+	createAllPSDirStubs(t, tmpDir)
 
 	const (
 		smIMAppsDir     = "sm-im/"
@@ -131,6 +147,7 @@ func TestCheckInDir_NoCommentHeader(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
+	createAllPSDirStubs(t, tmpDir)
 
 	const (
 		smIMAppsDir     = "sm-im/"
@@ -153,6 +170,7 @@ func TestCheckInDir_FrameworkMigrationSkipped(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
+	createAllPSDirStubs(t, tmpDir)
 
 	const (
 		smIMAppsDir     = "sm-im/"
@@ -172,16 +190,27 @@ func TestCheckInDir_FrameworkMigrationSkipped(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestCheckInDir_NoMigrationsDir_Skipped(t *testing.T) {
+func TestCheckInDir_NoMigrationsDir_NoError(t *testing.T) {
 	t.Parallel()
 
-	// PS with no migrations directory should be silently skipped.
+	// A PS with no migrations directory (but the apps dir exists) produces no violation.
 	tmpDir := t.TempDir()
+	createAllPSDirStubs(t, tmpDir)
 
-	// Create sm/im/ apps dir but no migrations subdir.
-	appsDir := filepath.Join(tmpDir, "internal", "apps", "sm", "im")
-	require.NoError(t, os.MkdirAll(appsDir, cryptoutilSharedMagic.CICDTempDirPermissions))
+	// sm-im apps dir already created by createAllPSDirStubs; no migrations subdir added.
 
 	err := lintFitnessMigrationCommentHeaders.CheckInDir(newTestLogger(), tmpDir)
 	require.NoError(t, err)
+}
+
+func TestCheckPS_AbsentPSDir(t *testing.T) {
+	t.Parallel()
+
+	// A PS whose internal/apps/{InternalAppsDir} does not exist at all is a hard error.
+	tmpDir := t.TempDir()
+	// Do NOT call createAllPSDirStubs — leave all PS dirs absent.
+
+	err := lintFitnessMigrationCommentHeaders.CheckInDir(newTestLogger(), tmpDir)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "does not exist")
 }
