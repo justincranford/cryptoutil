@@ -81,10 +81,13 @@ Six new work areas:
 
 ## Phases
 
-### Phase 0: Pre-Work Defect Fixes (18h) [Status: ☐ TODO]
+### Phase 0: Pre-Work Defect Fixes (20h) [Status: ☐ TODO]
 
 **Objective**: Fix 9 defects and omissions identified during plan review. ALL Phase 0 tasks
 MUST complete before Phase 1 begins — these are blocking regressions not feature work.
+
+**Prerequisite**: quizme-v2.md must be answered before starting tasks 0.10 (Q6) and 0.11
+(Q1–5). Tasks 0.1–0.9 have no quizme dependency and may start immediately.
 
 **Research Summary** (facts confirmed before writing tasks):
 
@@ -101,28 +104,45 @@ MUST complete before Phase 1 begins — these are blocking regressions not featu
   `["server"]` WITHOUT tls-config, no `-u` for SQLite; all 5 identity PS-IDs use NO "server"
   subcommand, no `--bind-public-port`, no tls-config — just raw config flags. No canonical form.
 
-- **Issue #4 — CRLF double-commit**: The `mixed-line-ending` hook runs with no args, defaults
-  to "auto" (picks dominant line ending per file). On Windows the agent writes LF; the hook
-  normalizes to CRLF, modifies files, pre-commit fails. Second commit succeeds. Fix: add
-  `--fix lf` arg to force LF regardless of platform. This supersedes lessons.md lesson C.2
-  which accepted double-commit as expected behavior — user feedback explicitly overrides this.
+- **Issue #4 — CRLF root cause (two factors)**: (1) Local repo has `git config
+  core.autocrlf = false` which overrides the global `core.autocrlf = true`, preventing CRLF
+  working-tree checkout on Windows. (2) The AI agent (LLM) always generates `\n` (LF) in text
+  output regardless of platform — no post-processing converts it to CRLF before file write.
+  The previously proposed fix "add `--fix lf` to the `mixed-line-ending` hook" is WRONG —
+  it forces LF everywhere, overrides platform conventions, and violates the user's explicit
+  requirement. Correct approach: remove the local `core.autocrlf=false` override so the
+  global `core.autocrlf=true` takes effect on Windows (CRLF working tree, LF in repo);
+  on Linux devs should use `core.autocrlf=input`. The `mixed-line-ending` hook stays at
+  default "auto" (does not modify files with consistent LF-only content). Document the
+  platform line-ending policy in ARCHITECTURE.md §9.9.
 
 - **Issue #6 — PKI insecure values**: `kubernetes-workload.yaml` has `min_days: 0` (comment:
   "Minutes allowed"). `ssh-user.yaml` has both `min_days: 0` and `default_curve_or_size: null`.
   User mandates `min_days >= 1`. This supersedes lessons.md lesson A.5 which accepted
   `min_days: 0` as valid for short-lived certs — user feedback explicitly overrides.
 
-- **Issue #7 — Seam parallel safety**: Package-level function-variable seams (e.g.,
-  `var osStatFn = os.Stat`) CANNOT use `t.Parallel()` — goroutines share process memory;
-  concurrent mutations to the same package var cause data races. `saveRestoreSeams(t)` with
-  `t.Cleanup` correctly restores state but does NOT prevent concurrent access mid-test.
-  The `// Sequential: mutates package-level seam vars` comment exemption is the ONLY safe
-  approach; no refactor-free alternative exists. Must be formally documented.
+- **Issue #7 — Seam parallel safety (user decision required)**: 60+ package-level function-
+  variable seams (`var xxxFn = pkg.Func`) found across 5 categories: (A) OS I/O seams in
+  fitness linters (~20 seams: `walkFn`, `readFileFn`, `getwdFn` across `lint_fitness/`
+  sub-packages); (B) Crypto/random seams in shared library (~9 seams: `digestsHKDFReadFn`,
+  `pbkdf2CrandReadFn`, `digestsRandReadFn` in `internal/shared/crypto/`); (C) Network/server
+  seams in framework listener (~5 seams: `adminListenFn`, `publicListenFn`); (D) Internal
+  framework dependency seams (~6 seams: `newTelemetryServiceFn`, `newJWKGenServiceFn`);
+  (E) Single-use utility seams (~5 seams: `jsonMarshalFn`, `printerFprintFn`). Each category
+  has DIFFERENT refactoring trade-offs. The prior resolution ("// Sequential: is the ONLY
+  safe approach") was incorrect — it presented one option where multiple exist. User decides
+  per-category in quizme-v2.md (Q1–Q5) before implementation.
 
-- **Issue #8 — Linter error behavior**: All 68+ fitness linters implement `LinterFunc`
-  uniformly (interface confirmed). The inconsistency is in how individual linters handle absent
-  files — some return `nil` (skip silently), some return error. Canonical contract must be
-  documented and audited: absent dir/file = `nil`; OS I/O error on existing file = `error`.
+- **Issue #8 — Linter absent-file inconsistency (specific linters identified)**: Interface
+  is uniform (`LinterFunc`), confirmed. Specific inconsistency found: `health_path_completeness`
+  and `api_path_registry` return hard `error` when a per-PS-ID service directory is absent
+  (`return nil, fmt.Errorf("read service dir %s: %w", psID, err)`). Majority of 68 linters
+  use `return nil` via `os.IsNotExist` for absent dirs. Three patterns exist: (A) skip
+  gracefully — `os.IsNotExist` → `return nil`; (B) violation — add to violations list;
+  (C) hard error — return `fmt.Errorf`. Additionally, 38 linters do IO operations without
+  explicit `IsNotExist` checks (Walk/ReadDir propagate errors naturally). User decides correct
+  pattern for the two inconsistent linters in quizme-v2.md (Q6); full audit of 38 linters
+  follows during implementation.
 
 - **Issue #9 — pki-ca dual DB key**: All 5 pki-ca config overlays contain BOTH `database-url:`
   (framework standard) AND nested `database: {type:, dsn:}` (legacy pki-ca key). Files even
@@ -140,14 +160,17 @@ MUST complete before Phase 1 begins — these are blocking regressions not featu
 - **0.6** Implement `database-key-uniformity` fitness linter (≥98% coverage).
 - **0.7** Fix PKI profile insecure values (`min_days: 0` → 1; `null` curve → explicit value).
 - **0.8** Update `pki-ca-profile-schema` linter validation: `min_days >= 0` → `min_days >= 1`.
-- **0.9** Fix CRLF double-commit: add `--fix lf` arg to `mixed-line-ending` hook.
-- **0.10** Audit and document linter error-behavior contract in ARCHITECTURE.md §9.10.
-- **0.11** Document seam parallel safety in ARCHITECTURE.md §10.2.5 + §03-02 instructions.
+- **0.9** Remove local `core.autocrlf=false` override; restore platform-native line endings
+  (Windows CRLF / Linux LF); document in ARCHITECTURE.md §9.9. No `--fix lf`.
+- **0.10** Fix `health_path_completeness` and `api_path_registry` absent-dir handling per
+  quizme-v2.md Q6; audit 38 IO-without-IsNotExist linters; document contract in ARCH §9.10.
+- **0.11** Implement per-category seam refactoring per quizme-v2.md Q1–Q5; update ARCH
+  §10.2.5, §03-02.testing instructions, and test-table-driven skill.
 
 **Success**: All 11 tasks verified; `go run ./cmd/cicd-lint lint-fitness` passes with 2 new
 linters; all 10 compose.yml files have 4 service instances; pki-ca uses `database-url` only;
-PKI profiles have `min_days >= 1`; pre-commit does not double-commit; contract and seam safety
-documented and covered by `lint-docs` and `lint-fitness`.
+PKI profiles have `min_days >= 1`; local `core.autocrlf=false` removed; abandoned `--fix lf`
+approach; linter absent-dir contract documented; seam categories refactored per quizme-v2.md.
 
 **Post-Mortem**: After quality gates pass, update lessons.md Phase 0 section.
 
@@ -219,7 +242,8 @@ parsing, add InitForProduct/Suite, add configurable signing algorithm, move pkiI
 - **Remove backward-compat from `Init()`**: The `Init()` function uses manual
   `strings.HasPrefix` arg parsing "for backward compatibility with Docker Compose entrypoint
   scripts." Products have NOT been released — backward compatibility is unnecessary. Replace
-  with pflag parsing identical to `InitForService()`. Remove the backward-compat comment.
+  with pflag AND Viper YAML parsing identical to `InitForService()`. Remove the
+  backward-compat comment.
 
 - **Add `InitForProduct()` and `InitForSuite()`**: `InitForService(serviceID, args, stdout, stderr)`
   exists; add matching:

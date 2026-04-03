@@ -210,78 +210,107 @@ complete before Phase 1 begins. Each task is a blocking regression, not improvem
   - `internal/apps/tools/cicd_lint/lint_fitness/pki_ca_profile_schema/pki_ca_profile_schema.go`
   - `internal/apps/tools/cicd_lint/lint_fitness/pki_ca_profile_schema/pki_ca_profile_schema_test.go`
 
-#### Task 0.9: Fix CRLF/LF Double-Commit (--fix lf on mixed-line-ending Hook)
-
-- **Status**: ❌
-- **Owner**: LLM Agent
-- **Estimated**: 0.5h
-- **Dependencies**: None
-- **Description**: The `mixed-line-ending` pre-commit hook runs with no args, defaults to
-  "auto" (picks dominant line ending per file). On Windows the agent writes LF via
-  `UTF8Encoding.WriteAllText`; the hook normalizes to CRLF, modifies files, pre-commit
-  fails. Second commit succeeds. Fix: add `args: [--fix, lf]` so the hook always normalizes
-  to LF regardless of platform. The `.gitattributes` `* text=auto` pattern is compatible with
-  LF-always (git normalizes on checkout per `core.autocrlf` setting, AFTER pre-commit). Also
-  update ARCHITECTURE.md §9.9 to document the LF-always pre-commit policy. This supersedes
-  lessons.md lesson C.2 which accepted double-commit as expected — user overrides.
-- **Acceptance Criteria**:
-  - [ ] `mixed-line-ending` hook in `.pre-commit-config.yaml` has `args: [--fix, lf]`
-  - [ ] ARCHITECTURE.md §9.9 documents LF-always policy for pre-commit hooks
-  - [ ] Agent-written LF files no longer trigger hook modification on first commit attempt
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
-- **Files**:
-  - `.pre-commit-config.yaml`
-  - `docs/ARCHITECTURE.md`
-
-#### Task 0.10: Audit and Document Linter Error-Behavior Contract
-
-- **Status**: ❌
-- **Owner**: LLM Agent
-- **Estimated**: 1.5h
-- **Dependencies**: None
-- **Description**: Audit all 68+ fitness linters for consistent behavior when directories or
-  files are absent. Define and document canonical contract:
-  (a) Absent directory or expected file → return `nil` (valid empty state, not an error; some
-      PS-IDs may legitimately not have certain files and linters must handle this gracefully).
-  (b) OS I/O error when reading an EXISTING file → return `error` with descriptive context.
-  Fix any linters that violate the contract (e.g., returning an error when a directory simply
-  doesn't exist). Add the contract to ARCHITECTURE.md §9.10 cicd-lint architecture section.
-- **Acceptance Criteria**:
-  - [ ] All 68+ linters audited (findings logged in `test-output/phase0/linter-audit.md`)
-  - [ ] Linters with wrong absent-file behavior fixed
-  - [ ] ARCHITECTURE.md §9.10 documents error-behavior contract with examples
-  - [ ] Tests added/updated for any fixed linters
-  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
-- **Files**:
-  - Various `internal/apps/tools/cicd_lint/lint_fitness/**/*.go` (audit determines exact scope)
-  - `docs/ARCHITECTURE.md`
-  - `test-output/phase0/linter-audit.md` (evidence)
-
-#### Task 0.11: Document Seam Parallel Safety Guidance
+#### Task 0.9: Investigate and Fix CRLF Root Cause — Restore Platform-Native Line Endings
 
 - **Status**: ❌
 - **Owner**: LLM Agent
 - **Estimated**: 1h
 - **Dependencies**: None
-- **Description**: Package-level function-variable seams (e.g., `var osStatFn = os.Stat`)
-  cannot safely use `t.Parallel()`. Goroutines share process memory; two parallel tests mutating
-  the same package-level var produce data races detectable by `-race` flag. `saveRestoreSeams(t)`
-  - `t.Cleanup` correctly restores state AFTER the test, but does NOT prevent concurrent access
-  DURING the test. The `// Sequential: mutates package-level seam vars` exemption comment is the
-  ONLY safe approach without a deep refactor to function-parameter injection. Alternatives
-  (sync.Mutex, goroutine-local state) exist but require refactoring all call sites in production
-  code. Document this in ARCHITECTURE.md §10.2.5 (Sequential Test Exemption), update the
-  §03-02.testing instruction file, and update the `test-table-driven` skill and its Claude
-  command counterpart with seam safety guidance. Also document the temp-dir + chmod coverage
-  approach: reliable on Linux/macOS; use `t.Skip` for Windows (pattern already in codebase).
+- **Description**: Two root causes identified during planning: (1) local repo has
+  `git config core.autocrlf = false` which overrides the global `core.autocrlf = true`,
+  preventing CRLF working-tree checkout on Windows; (2) the AI agent (LLM) always generates
+  `\n` (LF) in text output regardless of platform — no conversion to CRLF occurs before
+  file write. WRONG approach (from prior plan): add `--fix lf` to `mixed-line-ending` hook
+  to force LF everywhere. CORRECT approach: remove the local `core.autocrlf=false` override
+  to restore platform-native behavior. On Windows global `core.autocrlf=true` applies:
+  git checkout converts LF→CRLF in working tree; AI-written LF files stay LF on disk until
+  next checkout. The `mixed-line-ending` hook with default "auto" does NOT modify consistently
+  LF-only files — it only modifies files containing MIXED endings. On Linux devs use
+  `core.autocrlf=input` (commit normalizes CRLF→LF, no checkout conversion). Document the
+  full platform line-ending policy in ARCHITECTURE.md §9.9.
 - **Acceptance Criteria**:
-  - [ ] ARCHITECTURE.md §10.2.5 updated with seam parallel safety explanation and examples
-  - [ ] `.github/instructions/03-02.testing.instructions.md` updated with seam section
-  - [ ] `.github/skills/test-table-driven/SKILL.md` updated with seam safety guidance
-  - [ ] `.claude/commands/test-table-driven.md` updated (identical body to Copilot skill)
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes (no drift between Copilot and Claude files)
+  - [ ] Confirm bug: run `git config core.autocrlf` → must show `false` (evidence)
+  - [ ] Fix: `git config --unset core.autocrlf` removes local override
+  - [ ] Verify: `git config core.autocrlf` now returns empty (global `true` takes effect)
+  - [ ] ARCHITECTURE.md §9.9 documents: Windows devs use `core.autocrlf=true` (global),
+    Linux devs use `core.autocrlf=input`; repo stores LF; working tree is platform-native
+  - [ ] `mixed-line-ending` hook has NO `--fix lf` arg (keep default "auto")
+  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
 - **Files**:
+  - `docs/ARCHITECTURE.md`
+  - (local git config changed via terminal; not a tracked file)
+
+#### Task 0.10: Fix Linter Absent-Dir Handling per quizme-v2.md Q6
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1.5h
+- **Dependencies**: quizme-v2.md Q6 answered
+- **Description**: Specific linters with inconsistent absent-dir handling identified during
+  planning: `health_path_completeness` returns hard `error` (not nil, not violation) when a
+  per-PS-ID service directory is absent; `api_path_registry` does the same. The majority of
+  68 linters correctly use `os.IsNotExist` → `return nil` for absent dirs. Fix these two
+  linters per the user's answer to quizme-v2.md Q6 (skip nil / violation / keep hard error).
+  Then run a full audit of the 38 linters that do IO without explicit `IsNotExist` checks —
+  verify they propagate Walk/ReadDir errors correctly via their existing return-error paths.
+  Document the canonical contract in ARCHITECTURE.md §9.10.
+- **Acceptance Criteria**:
+  - [ ] quizme-v2.md Q6 answered BEFORE starting this task
+  - [ ] `health_path_completeness` absent-dir handling fixed per Q6 answer
+  - [ ] `api_path_registry` absent-dir handling fixed per Q6 answer
+  - [ ] Audit of 38 IO-without-IsNotExist linters complete; findings in
+    `test-output/phase0/linter-audit.md`
+  - [ ] ARCHITECTURE.md §9.10 documents error-behavior contract: (A) absent dir/file →
+    `return nil` OR add to violations; NEVER return hard error unless caller guarantees
+    presence; (B) OS I/O error on existing file → return error with context
+  - [ ] Tests added/updated for fixed linters (coverage ≥98%)
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes
+  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
+- **Files**:
+  - `internal/apps/tools/cicd_lint/lint_fitness/health_path_completeness/health_path_completeness.go`
+  - `internal/apps/tools/cicd_lint/lint_fitness/api_path_registry/api_path_registry.go`
+  - `docs/ARCHITECTURE.md`
+  - `test-output/phase0/linter-audit.md` (evidence)
+
+#### Task 0.11: Implement Seam Refactoring per quizme-v2.md Q1–Q5
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 4h
+- **Dependencies**: quizme-v2.md Q1–Q5 all answered
+- **Description**: 60+ package-level function-variable seams found across 5 categories during
+  planning. Implement per-category decisions from quizme-v2.md:
+  - **Category 1 — Fitness linter OS I/O seams (~20 seams)**: `walkFn`, `readFileFn`,
+    `readDirFn`, `getwdFn` in `internal/apps/tools/cicd_lint/lint_fitness/` sub-packages.
+    Options: A=Sequential exemption, B=function-param injection, C=fs.FS interface.
+  - **Category 2 — Crypto/random seams (~9 seams)**: `digestsHKDFReadFn`,
+    `pbkdf2CrandReadFn`, `digestsRandReadFn` in `internal/shared/crypto/`.
+    Options: A=Sequential, B=io.Reader param, C=struct injection, D=remove (ceiling).
+  - **Category 3 — Network/server seams (~5 seams)**: `adminListenFn`, `publicListenFn`,
+    `adminAppListenerFn`, `publicAppListenerFn`, `appListenerFn` in
+    `internal/apps/framework/service/server/listener/`.
+    Options: A=Sequential, B=builder WithListenFn param, C=inject listener, D=remove.
+  - **Category 4 — Framework dependency seams (~6 seams)**: `newTelemetryServiceFn`,
+    `newJWKGenServiceFn`, `intermediateGenerateJWEJWKFn` etc.
+    Options: A=Sequential, B=interface injection, C=functional option, D=integration only.
+  - **Category 5 — Single-use utility seams (~5 seams)**: `jsonMarshalFn`, `printerFprintFn`,
+    `sessionMiddlewareStringsSplitNFn` etc.
+    Options: A=Sequential, B=function param, D=remove.
+  After implementation update ARCHITECTURE.md §10.2.5 with per-category guide.
+- **Acceptance Criteria**:
+  - [ ] quizme-v2.md Q1–Q5 all answered BEFORE starting this task
+  - [ ] Each category implemented per user answer
+  - [ ] `-race` clean: `go test -race -count=2 ./...`
+  - [ ] All tests pass with `-shuffle=on`
+  - [ ] ARCHITECTURE.md §10.2.5 updated with per-category seam guidance and decisions made
+  - [ ] `.github/instructions/03-02.testing.instructions.md` updated
+  - [ ] `.github/skills/test-table-driven/SKILL.md` updated
+  - [ ] `.claude/commands/test-table-driven.md` updated (body identical to Copilot skill)
+  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
+- **Files**:
+  - Various `internal/apps/tools/cicd_lint/lint_fitness/**/*.go` (per Category 1 answer)
+  - Various `internal/shared/crypto/**/*.go` (per Category 2 answer)
+  - Various `internal/apps/framework/service/server/**/*.go` (per Categories 3, 4 answers)
   - `docs/ARCHITECTURE.md`
   - `.github/instructions/03-02.testing.instructions.md`
   - `.github/skills/test-table-driven/SKILL.md`
@@ -508,10 +537,11 @@ functions, add configurable FIPS signing algorithm, move pkiInitName to magic.
 - **Owner**: LLM Agent
 - **Estimated**: 2h
 - **Dependencies**: None
-- **Description**: Replace manual `strings.HasPrefix` arg parsing in `Init()` with pflag
-  parsing identical to `InitForService()`. Remove backward-compat comment.
+- **Description**: Replace manual `strings.HasPrefix` arg parsing in `Init()` with pflag AND
+  Viper YAML parsing identical to `InitForService()`. Remove backward-compat comment.
 - **Acceptance Criteria**:
   - [ ] `Init()` uses pflag for all flag parsing
+  - [ ] `Init()` loads config from YAML via Viper (consistent with `InitForService()`)
   - [ ] `strings.HasPrefix` manual arg parsing removed
   - [ ] Backward-compat comment removed
   - [ ] Tests pass
