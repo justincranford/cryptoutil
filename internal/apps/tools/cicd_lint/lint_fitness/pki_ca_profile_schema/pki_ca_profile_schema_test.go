@@ -129,7 +129,7 @@ func TestCheckInDir_HappyPath_Ed25519NullCurve(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestCheckInDir_HappyPath_ZeroMinDays(t *testing.T) {
+func TestCheckInDir_HappyPath_MinOneDayShortLived(t *testing.T) {
 	t.Parallel()
 
 	rootDir := buildProfileRoot(t)
@@ -138,7 +138,7 @@ func TestCheckInDir_HappyPath_ZeroMinDays(t *testing.T) {
   description: "Short-lived Kubernetes Workload Certificate"
   validity:
     max_days: 1
-    min_days: 0
+    min_days: 1
     default_days: 1
   key:
     allowed_algorithms:
@@ -158,6 +158,38 @@ func TestCheckInDir_HappyPath_ZeroMinDays(t *testing.T) {
 	err := CheckInDir(logger, rootDir)
 
 	require.NoError(t, err)
+}
+
+func TestCheckInDir_ZeroMinDaysIsError(t *testing.T) {
+	t.Parallel()
+
+	rootDir := buildProfileRoot(t)
+	writeProfileYAML(t, rootDir, "zero-min.yaml", `profile:
+  name: "zero-min"
+  description: "Invalid zero min_days"
+  validity:
+    max_days: 30
+    min_days: 0
+    default_days: 1
+  key:
+    allowed_algorithms:
+      - algorithm: "ECDSA"
+        allowed_curves:
+          - "P-256"
+    default_algorithm: "ECDSA"
+    default_curve_or_size: "P-256"
+  key_usage:
+    - "digitalSignature"
+  extended_key_usage:
+    required: []
+    optional: []
+`)
+	logger := newTestLogger(t)
+
+	err := CheckInDir(logger, rootDir)
+
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "min_days must be >= 1")
 }
 
 func TestCheckInDir_NonYAMLFileSkipped(t *testing.T) {
@@ -856,6 +888,32 @@ func TestValidateProfile_NilDefaultCurveOrSizeForEd25519_Allowed(t *testing.T) {
 // -----------------------------------------------------------------------
 // Boundary tests — kill CONDITIONALS_BOUNDARY / CONDITIONALS_NEGATION mutations
 // -----------------------------------------------------------------------
+
+func TestValidateValidity_MinDaysOneIsValid(t *testing.T) {
+	t.Parallel()
+
+	errs := validateValidity(&ValiditySpec{MinDays: 1, MaxDays: 1, DefaultDays: 1}, "boundary.yaml")
+
+	require.Empty(t, errs, "min_days == 1 should be valid")
+}
+
+func TestValidateValidity_MinDaysZeroIsError(t *testing.T) {
+	t.Parallel()
+
+	errs := validateValidity(&ValiditySpec{MinDays: 0, MaxDays: cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days, DefaultDays: 1}, "boundary.yaml")
+
+	require.NotEmpty(t, errs, "min_days == 0 must be an error")
+	require.Contains(t, errs[0], "min_days must be >= 1")
+}
+
+func TestValidateValidity_MinDaysNegativeIsError(t *testing.T) {
+	t.Parallel()
+
+	errs := validateValidity(&ValiditySpec{MinDays: -1, MaxDays: cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days, DefaultDays: 1}, "boundary.yaml")
+
+	require.NotEmpty(t, errs, "min_days == -1 must be an error")
+	require.Contains(t, errs[0], "min_days must be >= 1")
+}
 
 func TestValidateValidity_MaxDaysEqualMinDays(t *testing.T) {
 	t.Parallel()

@@ -2489,6 +2489,27 @@ Set-Content -Path $path -Value $content -Encoding UTF8  # ❌ BOM
 ```
 <!-- @/propagate -->
 
+#### 9.9.4 Platform Line-Ending Policy
+
+The repository stores files with LF line endings (`\n`). Working-tree line endings are platform-native on developer machines.
+
+**Policy** (MANDATORY):
+
+- **Repository storage**: Always LF (`\n`). Git normalizes on commit.
+- **Windows developers**: `git config --global core.autocrlf true` — git converts LF→CRLF on checkout, CRLF→LF on commit. Working tree has CRLF.
+- **Linux/macOS developers**: `git config --global core.autocrlf input` — git converts CRLF→LF on commit; no conversion on checkout. Working tree has LF.
+- **Local repo override BANNED**: `git config core.autocrlf false` in `.git/config` overrides the global setting and prevents CRLF working-tree checkout on Windows. NEVER set this local override.
+- **AI agent behavior**: LLMs always write `\n` (LF) regardless of platform. With `core.autocrlf=true`, files written by AI agents are LF on disk until the next `git checkout`. This is acceptable — the `mixed-line-ending` pre-commit hook (default "auto") only modifies files with **mixed** CRLF+LF content; consistently LF-only files are not touched.
+- **`mixed-line-ending` hook**: MUST NOT have `--fix lf` arg. Keep default "auto" mode.
+
+**To fix if local override was set**:
+
+```bash
+git config --unset core.autocrlf          # remove local override
+git config core.autocrlf                  # verify: empty = global takes effect
+git config --global core.autocrlf         # verify: true (Windows) or input (Linux)
+```
+
 ### 9.10 CICD Command Architecture
 
 The `cicd-lint` CLI tool implements a strict directory-driven code organization pattern. Every command is enforced through a consistent four-layer dispatch, with three command naming categories.

@@ -263,8 +263,8 @@ func validateValidity(v *ValiditySpec, filename string) []string {
 		return []string{"profile.validity is required"}
 	}
 
-	if v.MinDays < 0 {
-		errs = append(errs, fmt.Sprintf("profile.validity.min_days must be >= 0, got %d", v.MinDays))
+	if v.MinDays < 1 {
+		errs = append(errs, fmt.Sprintf("profile.validity.min_days must be >= 1, got %d", v.MinDays))
 	}
 
 	if v.MaxDays < v.MinDays {

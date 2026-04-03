@@ -1,25 +1,22 @@
 # CA PostgreSQL Instance 1 Configuration
-# Used by: ca-postgres-1 service in compose.yml
+# Used by: pki-ca-app-postgresql-1 service in compose.yml
 #
 # This file contains instance-specific settings.
-# Common settings are in ca-common.yml.
+# Common settings are in pki-ca-app-common.yml.
 
 # Service name for telemetry
-service-name: "ca-postgres-1"
+service-name: "pki-ca-postgresql-1"
 
-# Public API port (mapped externally as 8101)
+# Public API port (mapped externally as 8302)
 bind-public-port: 8080
 
-# Database backend (PostgreSQL - URL passed via --database-url flag)
-database:
-  type: "postgres"
-  # DSN loaded from Docker secret via -u flag in compose.yml
+# Database backend: URL passed via -u flag in compose.yml (file:///run/secrets/postgres-url.secret)
 
 # CORS origins (specific to this instance)
 cors-origins:
-  - "https://localhost:8101"
-  - "https://127.0.0.1:8101"
+  - "https://localhost:8302"
+  - "https://127.0.0.1:8302"
 
 # OTLP telemetry service name (unique per instance)
-otlp-service-name: "ca-postgres-1"
-otlp-hostname: "ca-postgres-1"
+otlp-service-name: "pki-ca-postgresql-1"
+otlp-hostname: "pki-ca-postgresql-1"

@@ -8,6 +8,8 @@ import (
 	"strings"
 	"testing"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/stretchr/testify/require"
 )
@@ -70,8 +72,8 @@ var (
 		},
 		{
 			name:       "maximum domain length 255",
-			length:     domainMaxLength,
-			wantLength: domainMaxLength,
+			length:     cryptoutilSharedMagic.EmailDomainMaxLength,
+			wantLength: cryptoutilSharedMagic.EmailDomainMaxLength,
 		},
 	}
 	emailAddressTests = []EmailAddressTest{
@@ -84,8 +86,8 @@ var (
 		{
 			name:           "maximum email address length 320",
 			usernameLength: usernameMaxLength,
-			domainLength:   domainMaxLength,
-			wantLength:     usernameMaxLength + 1 + domainMaxLength,
+			domainLength:   cryptoutilSharedMagic.EmailDomainMaxLength,
+			wantLength:     usernameMaxLength + 1 + cryptoutilSharedMagic.EmailDomainMaxLength,
 		},
 	}
 )

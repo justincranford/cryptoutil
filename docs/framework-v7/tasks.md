@@ -1,6 +1,6 @@
 # Tasks — Framework v7 (Continuation)
 
-**Status**: 1 of 48 tasks complete (2%)
+**Status**: 5 of 48 tasks complete (10%)
 **Last Updated**: 2026-04-02
 **Created**: 2026-04-02
 
@@ -121,7 +121,7 @@ complete before Phase 1 begins. Each task is a blocking regression, not improvem
 
 #### Task 0.5: Fix pki-ca Dual Database Key and Service Names
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 1h
 - **Dependencies**: None
@@ -133,11 +133,11 @@ complete before Phase 1 begins. Each task is a blocking regression, not improvem
   and `otlp-hostname` values in all overlays to match the new naming. Verify
   `standalone-config-otlp-names` fitness linter still passes after rename.
 - **Acceptance Criteria**:
-  - [ ] All 5 pki-ca config overlays contain ONLY `database-url:` (no nested `database:` key)
-  - [ ] Service names in all 5 overlays use `pki-ca-{variant}` format
-  - [ ] OTLP names match new service name format
-  - [ ] `go run ./cmd/cicd-lint lint-fitness standalone-config-otlp-names` passes
-  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes (no regressions)
+  - [x] All 5 pki-ca config overlays contain ONLY `database-url:` (no nested `database:` key)
+  - [x] Service names in all 5 overlays use `pki-ca-{variant}` format
+  - [x] OTLP names match new service name format
+  - [x] `go run ./cmd/cicd-lint lint-fitness standalone-config-otlp-names` passes
+  - [x] `go run ./cmd/cicd-lint lint-fitness` passes (no regressions)
 - **Files**:
   - `deployments/pki-ca/config/pki-ca-app-common.yml`
   - `deployments/pki-ca/config/pki-ca-app-sqlite-1.yml`
@@ -170,7 +170,7 @@ complete before Phase 1 begins. Each task is a blocking regression, not improvem
 
 #### Task 0.7: Fix PKI Profile Insecure Values
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
 - **Dependencies**: None
@@ -183,16 +183,16 @@ complete before Phase 1 begins. Each task is a blocking regression, not improvem
   Verify `ssh-host.yaml` (Ed25519, null curve): determine if null remains acceptable when
   default_algorithm is Ed25519. Run updated linter (Task 0.8) to confirm all 25 profiles pass.
 - **Acceptance Criteria**:
-  - [ ] `kubernetes-workload.yaml` has `min_days >= 1`
-  - [ ] `ssh-user.yaml` has `min_days >= 1` and `default_curve_or_size` is not null
-  - [ ] All 25 profile files pass `pki-ca-profile-schema` linter after Task 0.8 update
+  - [x] `kubernetes-workload.yaml` has `min_days >= 1`
+  - [x] `ssh-user.yaml` has `min_days >= 1` and `default_curve_or_size` is not null
+  - [x] All 25 profile files pass `pki-ca-profile-schema` linter after Task 0.8 update
 - **Files**:
   - `configs/pki-ca/profiles/kubernetes-workload.yaml`
   - `configs/pki-ca/profiles/ssh-user.yaml`
 
 #### Task 0.8: Update pki-ca-profile-schema Linter (min_days ≥ 1)
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 1h
 - **Dependencies**: 0.7
@@ -201,18 +201,18 @@ complete before Phase 1 begins. Each task is a blocking regression, not improvem
   config profile files pass after the rule tightening. This supersedes lessons.md lesson A.5
   which accepted `min_days: 0` as valid for short-lived certs — user feedback overrides.
 - **Acceptance Criteria**:
-  - [ ] `ValidateValidity()` returns error when `min_days < 1` (changed from `< 0`)
-  - [ ] All test fixtures updated: no `min_days: 0` in any test case
-  - [ ] Tests ≥98% line coverage (maintained)
-  - [ ] Mutation score ≥98% (maintained)
-  - [ ] `go run ./cmd/cicd-lint lint-fitness pki-ca-profile-schema` passes
+  - [x] `ValidateValidity()` returns error when `min_days < 1` (changed from `< 0`)
+  - [x] All test fixtures updated: no `min_days: 0` in any test case
+  - [x] Tests ≥98% line coverage (maintained)
+  - [x] Mutation score ≥98% (maintained)
+  - [x] `go run ./cmd/cicd-lint lint-fitness pki-ca-profile-schema` passes
 - **Files**:
   - `internal/apps/tools/cicd_lint/lint_fitness/pki_ca_profile_schema/pki_ca_profile_schema.go`
   - `internal/apps/tools/cicd_lint/lint_fitness/pki_ca_profile_schema/pki_ca_profile_schema_test.go`
 
 #### Task 0.9: Investigate and Fix CRLF Root Cause — Restore Platform-Native Line Endings
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 1h
 - **Dependencies**: None
@@ -229,13 +229,13 @@ complete before Phase 1 begins. Each task is a blocking regression, not improvem
   `core.autocrlf=input` (commit normalizes CRLF→LF, no checkout conversion). Document the
   full platform line-ending policy in ARCHITECTURE.md §9.9.
 - **Acceptance Criteria**:
-  - [ ] Confirm bug: run `git config core.autocrlf` → must show `false` (evidence)
-  - [ ] Fix: `git config --unset core.autocrlf` removes local override
-  - [ ] Verify: `git config core.autocrlf` now returns empty (global `true` takes effect)
-  - [ ] ARCHITECTURE.md §9.9 documents: Windows devs use `core.autocrlf=true` (global),
+  - [x] Confirm bug: run `git config core.autocrlf` → must show `false` (evidence)
+  - [x] Fix: `git config --unset core.autocrlf` removes local override
+  - [x] Verify: `git config core.autocrlf` now returns empty (global `true` takes effect)
+  - [x] ARCHITECTURE.md §9.9 documents: Windows devs use `core.autocrlf=true` (global),
     Linux devs use `core.autocrlf=input`; repo stores LF; working tree is platform-native
-  - [ ] `mixed-line-ending` hook has NO `--fix lf` arg (keep default "auto")
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
+  - [x] `mixed-line-ending` hook has NO `--fix lf` arg (keep default "auto")
+  - [x] `go run ./cmd/cicd-lint lint-docs` passes
 - **Files**:
   - `docs/ARCHITECTURE.md`
   - (local git config changed via terminal; not a tracked file)

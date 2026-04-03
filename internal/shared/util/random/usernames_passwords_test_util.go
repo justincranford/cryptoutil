@@ -24,7 +24,6 @@ const (
 	passwordMinLength = 8
 	passwordMaxLength = 64
 	domainMinLength   = 5
-	domainMaxLength   = cryptoutilSharedMagic.EmailDomainMaxLength
 )
 
 // GenerateUsername generates a random username of the specified length for testing.

@@ -6,8 +6,8 @@ profile:
   description: "Kubernetes Workload Identity Certificate"
 
   validity:
-    max_days: 1  # Short-lived by design
-    min_days: 0  # Minutes allowed
+    max_days: 1 # Short-lived by design
+    min_days: 1 # Minimum 1 day (short-lived certs valid at max_days: 1)
     default_days: 1
 
   key:
@@ -30,7 +30,7 @@ profile:
     optional: []
 
   subject:
-    require_common_name: false  # SPIFFE uses URI SANs
+    require_common_name: false # SPIFFE uses URI SANs
     allow_organization: true
     allow_organizational_unit: true
     allow_country: false
@@ -42,7 +42,7 @@ profile:
     allow_dns_names: true
     allow_ip_addresses: true
     allow_email_addresses: false
-    allow_uris: true  # Required for SPIFFE
+    allow_uris: true # Required for SPIFFE
     require_at_least_one: true
     max_entries: 50
     # SPIFFE ID format
