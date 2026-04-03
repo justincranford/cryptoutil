@@ -91,6 +91,10 @@ sub_linters:
     directory: compose_port_formula
     description: Validates that Docker Compose port bindings follow the canonical formula (base_port + tier_offset + variant_offset).
     category: config
+  - name: compose-entrypoint-uniformity
+    directory: compose_entrypoint_uniformity
+    description: Validates that all 10 PS-ID Docker Compose app services use the canonical command array structure from ARCHITECTURE.md §12.3.5.
+    category: config
 
   - name: configs-deployments-consistency
     directory: configs_deployments_consistency

@@ -22,6 +22,7 @@ import (
 	lintFitnessCmdEntryWhitelist "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/cmd_entry_whitelist"
 	lintFitnessCmdMainPattern "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/cmd_main_pattern"
 	lintFitnessComposeDBNaming "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/compose_db_naming"
+	lintFitnessComposeEntrypointUniformity "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/compose_entrypoint_uniformity"
 	lintFitnessComposeHeaderFormat "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/compose_header_format"
 	lintFitnessComposePortFormula "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/compose_port_formula"
 	lintFitnessComposeServiceNames "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/compose_service_names"
@@ -143,6 +144,7 @@ var registeredLinters = []struct {
 	{"compose-service-names", lintFitnessComposeServiceNames.Check},
 	{"compose-port-formula", lintFitnessComposePortFormula.Check},
 	{"compose-db-naming", lintFitnessComposeDBNaming.Check},
+	{"compose-entrypoint-uniformity", lintFitnessComposeEntrypointUniformity.Check},
 	// New fitness checks (added in Phase 6 of framework-v4).
 	{"magic-e2e-container-names", lintFitnessMagicE2EContainerNames.Check},
 	{"magic-e2e-compose-path", lintFitnessMagicE2EComposePath.Check},

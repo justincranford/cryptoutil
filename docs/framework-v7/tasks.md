@@ -99,7 +99,7 @@ complete before Phase 1 begins. Each task is a blocking regression, not improvem
 
 #### Task 0.4: Implement compose-entrypoint-uniformity Fitness Linter
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 3h
 - **Dependencies**: 0.3
@@ -108,12 +108,12 @@ complete before Phase 1 begins. Each task is a blocking regression, not improvem
   in Task 0.3. Prevents AI drift from reintroducing inconsistent patterns. Also validates
   supporting services (pki-init, healthcheck-secrets, builder-*) are uniform.
 - **Acceptance Criteria**:
-  - [ ] `compose_entrypoint_uniformity/compose_entrypoint_uniformity.go` implemented
-  - [ ] Registered in `lint_fitness.go` registeredLinters slice
-  - [ ] Entry added to `lint-fitness-registry.yaml`
-  - [ ] Tests ≥98% line coverage
-  - [ ] Mutation score ≥98%
-  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes with new linter active
+  - [x] `compose_entrypoint_uniformity/compose_entrypoint_uniformity.go` implemented
+  - [x] Registered in `lint_fitness.go` registeredLinters slice
+  - [x] Entry added to `lint-fitness-registry.yaml`
+  - [x] Tests ≥98% line coverage
+  - [x] Mutation score ≥98%
+  - [x] `go run ./cmd/cicd-lint lint-fitness` passes with new linter active
 - **Files**:
   - `internal/apps/tools/cicd_lint/lint_fitness/compose_entrypoint_uniformity/` (new directory)
   - `internal/apps/tools/cicd_lint/lint_fitness/lint_fitness.go`
