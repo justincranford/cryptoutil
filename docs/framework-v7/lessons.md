@@ -1,12 +1,18 @@
 # Lessons — Parameterization Opportunities
 
 **Created**: 2026-03-29
-**Last Updated**: 2026-03-31
-**Status**: COMPLETE — All 7 phases finished. Reorganized into actionable suggestions.
+**Last Updated**: 2026-04-02
+**Status**: Phases 1–7 complete (DONE). Phase 0 continuation in progress.
 
 ---
 
-## Suggestions for Permanent Artifacts
+## Phase 0: Pre-Work Defect Fixes
+
+*(To be filled during Phase 0 execution — after all 11 tasks complete and quality gates pass)*
+
+---
+
+## Phases 1–7 Suggestions for Permanent Artifacts
 
 The following numbered suggestions distill all lessons from Phases 1–7 into actionable items
 organized by target artifact. Each item describes a specific change or addition.

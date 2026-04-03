@@ -1,6 +1,6 @@
 # Tasks — Framework v7 (Continuation)
 
-**Status**: 1 of 37 tasks complete (3%)
+**Status**: 1 of 48 tasks complete (2%)
 **Last Updated**: 2026-04-02
 **Created**: 2026-04-02
 
@@ -22,6 +22,272 @@
 ---
 
 ## Task Checklist
+
+### Phase 0: Pre-Work Defect Fixes
+
+**Phase Objective**: Fix 9 defects identified during plan review. ALL Phase 0 tasks must
+complete before Phase 1 begins. Each task is a blocking regression, not improvement work.
+
+#### Task 0.1: Add sqlite-2 Service to All 10 compose.yml Files
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 4h
+- **Dependencies**: None
+- **Description**: All 10 PS-ID compose.yml files define only 3 app service instances. Add
+  `{PS-ID}-app-sqlite-2` service to each. Rename existing service names: `{PS-ID}-app-postgres-1`
+  → `{PS-ID}-app-postgresql-1`, `{PS-ID}-app-postgres-2` → `{PS-ID}-app-postgresql-2` (aligns
+  with config overlay file naming). Update port formula to 4-variant: sqlite-1=base+0,
+  sqlite-2=base+1, postgresql-1=base+2, postgresql-2=base+3. Update compose section comment
+  "3 instances: 1 SQLite + 2 PostgreSQL" → "4 instances: 2 SQLite + 2 PostgreSQL".
+  DB postgres service port also needs updating: postgresql container retains same host port;
+  only the app service instance ports shift.
+- **Acceptance Criteria**:
+  - [ ] All 10 compose.yml files have `{PS-ID}-app-sqlite-2` service block defined
+  - [ ] Port allocation uses 4-variant formula (sqlite-1=+0, sqlite-2=+1, postgresql-1=+2, postgresql-2=+3)
+  - [ ] Existing `postgres-1`/`postgres-2` app service names renamed to `postgresql-1`/`postgresql-2`
+  - [ ] All compose headers updated: "4 instances: 2 SQLite + 2 PostgreSQL"
+  - [ ] sqlite-2 service references correct config overlay (`{PS-ID}-app-sqlite-2.yml`)
+  - [ ] sqlite-2 service has correct network aliases, healthchecks, and depends_on matching sqlite-1 pattern
+  - [ ] `go run ./cmd/cicd-lint lint-fitness compose-port-formula` passes with new port ranges
+  - [ ] `go run ./cmd/cicd-lint lint-fitness compose-service-names` passes after rename
+  - [ ] `go run ./cmd/cicd-lint lint-compose` passes
+- **Files**:
+  - `deployments/{sm-kms,sm-im,jose-ja,pki-ca,identity-authz,identity-idp,identity-rp,identity-rs,identity-spa,skeleton-template}/compose.yml` (10 files)
+
+#### Task 0.2: Update ARCHITECTURE.md §3.4.1 Variant Offset Table
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Dependencies**: 0.1
+- **Description**: ARCHITECTURE.md §3.4.1 documents tier offsets (SERVICE/PRODUCT/SUITE) but
+  NOT variant offsets within a PS-ID. Add full host_port formula and variant offset table.
+  Also update the service catalog port tables in §3.4 to show correct 4-instance ranges per
+  PS-ID (each PS-ID now occupies 4 ports: base, base+1, base+2, base+3).
+- **Acceptance Criteria**:
+  - [ ] §3.4.1 contains formula: `host_port = base_port + tier_offset + variant_offset`
+  - [ ] Variant offset table present: sqlite-1=+0, sqlite-2=+1, postgresql-1=+2, postgresql-2=+3
+  - [ ] Service catalog (§3.4) shows 4 app service ports per PS-ID
+  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
+- **Files**:
+  - `docs/ARCHITECTURE.md`
+
+#### Task 0.3: Define and Apply Canonical ENTRYPOINT Pattern
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 4h
+- **Dependencies**: 0.1
+- **Description**: No canonical ENTRYPOINT exists across the 10 PS-IDs. Conduct code
+  archaeology: read cmd/ main.go files to determine if the binary runs as `["sm", "kms", "server"]`
+  (sm-kms style) or just `["server"]` (most others). Determine: (a) whether all PS-IDs should
+  include `--config=/certs/tls-config.yml`; (b) whether SQLite DSN goes via `-u` flag or config
+  overlay; (c) whether `--bind-public-port` always comes first. Define canonical pattern.
+  Apply it uniformly to all 40 app service command arrays (10 PS-IDs × 4 variants).
+  Also verify pki-init, healthcheck-secrets, and builder-* supporting services are consistent
+  across all PS-IDs. Document canonical pattern in ARCHITECTURE.md §12.
+- **Acceptance Criteria**:
+  - [ ] Canonical ENTRYPOINT pattern defined and documented in ARCHITECTURE.md §12
+  - [ ] All 10 PS-ID compose.yml app services (all 4 variants each) use identical command structure
+  - [ ] Supporting services (pki-init, healthcheck-secrets, builder-*) are uniform across PS-IDs
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes (no regressions)
+  - [ ] `go run ./cmd/cicd-lint lint-docs` passes (new ARCHITECTURE.md content)
+- **Files**:
+  - `deployments/{all 10 PS-IDs}/compose.yml` (10 files)
+  - `docs/ARCHITECTURE.md`
+
+#### Task 0.4: Implement compose-entrypoint-uniformity Fitness Linter
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 3h
+- **Dependencies**: 0.3
+- **Description**: New `lint_fitness/compose_entrypoint_uniformity/` sub-linter. Validates
+  that all 10 PS-ID compose.yml app service command arrays match the canonical pattern defined
+  in Task 0.3. Prevents AI drift from reintroducing inconsistent patterns. Also validates
+  supporting services (pki-init, healthcheck-secrets, builder-*) are uniform.
+- **Acceptance Criteria**:
+  - [ ] `compose_entrypoint_uniformity/compose_entrypoint_uniformity.go` implemented
+  - [ ] Registered in `lint_fitness.go` registeredLinters slice
+  - [ ] Entry added to `lint-fitness-registry.yaml`
+  - [ ] Tests ≥98% line coverage
+  - [ ] Mutation score ≥98%
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes with new linter active
+- **Files**:
+  - `internal/apps/tools/cicd_lint/lint_fitness/compose_entrypoint_uniformity/` (new directory)
+  - `internal/apps/tools/cicd_lint/lint_fitness/lint_fitness.go`
+  - `internal/apps/tools/cicd_lint/lint_fitness/lint-fitness-registry.yaml`
+
+#### Task 0.5: Fix pki-ca Dual Database Key and Service Names
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Dependencies**: None
+- **Description**: All 5 pki-ca config overlays have BOTH `database-url:` (framework standard)
+  AND nested `database: {type:, dsn:}` (legacy). Remove the `database:` nested block entirely
+  from all 5 overlays; keep only `database-url:`. Also fix service names: `ca-sqlite` →
+  `pki-ca-sqlite-1`, `ca-sqlite-2` → `pki-ca-sqlite-2`, `ca-postgres-1` → `pki-ca-postgres-1`
+  (or `pki-ca-postgresql-1`), `ca-postgres-2` → `pki-ca-postgres-2`. Update `otlp-service-name`
+  and `otlp-hostname` values in all overlays to match the new naming. Verify
+  `standalone-config-otlp-names` fitness linter still passes after rename.
+- **Acceptance Criteria**:
+  - [ ] All 5 pki-ca config overlays contain ONLY `database-url:` (no nested `database:` key)
+  - [ ] Service names in all 5 overlays use `pki-ca-{variant}` format
+  - [ ] OTLP names match new service name format
+  - [ ] `go run ./cmd/cicd-lint lint-fitness standalone-config-otlp-names` passes
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes (no regressions)
+- **Files**:
+  - `deployments/pki-ca/config/pki-ca-app-common.yml`
+  - `deployments/pki-ca/config/pki-ca-app-sqlite-1.yml`
+  - `deployments/pki-ca/config/pki-ca-app-sqlite-2.yml`
+  - `deployments/pki-ca/config/pki-ca-app-postgresql-1.yml`
+  - `deployments/pki-ca/config/pki-ca-app-postgresql-2.yml`
+
+#### Task 0.6: Implement database-key-uniformity Fitness Linter
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Dependencies**: 0.5
+- **Description**: New `lint_fitness/database_key_uniformity/` sub-linter. Scans all
+  `deployments/*/config/*.yml` overlay files; errors if any file contains nested
+  `database: {type:, dsn:}` key structure. Framework standard is `database-url:` only.
+  Provides remediation guidance in error messages.
+- **Acceptance Criteria**:
+  - [ ] `database_key_uniformity/database_key_uniformity.go` implemented
+  - [ ] Registered in `lint_fitness.go` registeredLinters slice
+  - [ ] Entry added to `lint-fitness-registry.yaml`
+  - [ ] Tests ≥98% line coverage
+  - [ ] Mutation score ≥98%
+  - [ ] All current config overlays pass (after Task 0.5 fixes pki-ca)
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes
+- **Files**:
+  - `internal/apps/tools/cicd_lint/lint_fitness/database_key_uniformity/` (new directory)
+  - `internal/apps/tools/cicd_lint/lint_fitness/lint_fitness.go`
+  - `internal/apps/tools/cicd_lint/lint_fitness/lint-fitness-registry.yaml`
+
+#### Task 0.7: Fix PKI Profile Insecure Values
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Dependencies**: None
+- **Description**: Two profile files have values the user has mandated are insecure:
+  `kubernetes-workload.yaml`: `min_days: 0` → `min_days: 1` (short-lived certs still valid
+  with min_days: 1 since max_days is 1; the comment "Minutes allowed" is misleading but the
+  K8s pattern uses days not minutes). `ssh-user.yaml`: `min_days: 0` → `min_days: 1`;
+  `default_curve_or_size: null` → set appropriate explicit value (check `default_algorithm`
+  — if Ed25519, set to `"Ed25519"` explicitly; if another algorithm, set curve/size).
+  Verify `ssh-host.yaml` (Ed25519, null curve): determine if null remains acceptable when
+  default_algorithm is Ed25519. Run updated linter (Task 0.8) to confirm all 25 profiles pass.
+- **Acceptance Criteria**:
+  - [ ] `kubernetes-workload.yaml` has `min_days >= 1`
+  - [ ] `ssh-user.yaml` has `min_days >= 1` and `default_curve_or_size` is not null
+  - [ ] All 25 profile files pass `pki-ca-profile-schema` linter after Task 0.8 update
+- **Files**:
+  - `configs/pki-ca/profiles/kubernetes-workload.yaml`
+  - `configs/pki-ca/profiles/ssh-user.yaml`
+
+#### Task 0.8: Update pki-ca-profile-schema Linter (min_days ≥ 1)
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Dependencies**: 0.7
+- **Description**: Current linter validates `min_days >= 0`. Update to `min_days >= 1`.
+  Update all test fixtures that use `min_days: 0` to use `min_days: 1`. Re-verify all 25
+  config profile files pass after the rule tightening. This supersedes lessons.md lesson A.5
+  which accepted `min_days: 0` as valid for short-lived certs — user feedback overrides.
+- **Acceptance Criteria**:
+  - [ ] `ValidateValidity()` returns error when `min_days < 1` (changed from `< 0`)
+  - [ ] All test fixtures updated: no `min_days: 0` in any test case
+  - [ ] Tests ≥98% line coverage (maintained)
+  - [ ] Mutation score ≥98% (maintained)
+  - [ ] `go run ./cmd/cicd-lint lint-fitness pki-ca-profile-schema` passes
+- **Files**:
+  - `internal/apps/tools/cicd_lint/lint_fitness/pki_ca_profile_schema/pki_ca_profile_schema.go`
+  - `internal/apps/tools/cicd_lint/lint_fitness/pki_ca_profile_schema/pki_ca_profile_schema_test.go`
+
+#### Task 0.9: Fix CRLF/LF Double-Commit (--fix lf on mixed-line-ending Hook)
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Dependencies**: None
+- **Description**: The `mixed-line-ending` pre-commit hook runs with no args, defaults to
+  "auto" (picks dominant line ending per file). On Windows the agent writes LF via
+  `UTF8Encoding.WriteAllText`; the hook normalizes to CRLF, modifies files, pre-commit
+  fails. Second commit succeeds. Fix: add `args: [--fix, lf]` so the hook always normalizes
+  to LF regardless of platform. The `.gitattributes` `* text=auto` pattern is compatible with
+  LF-always (git normalizes on checkout per `core.autocrlf` setting, AFTER pre-commit). Also
+  update ARCHITECTURE.md §9.9 to document the LF-always pre-commit policy. This supersedes
+  lessons.md lesson C.2 which accepted double-commit as expected — user overrides.
+- **Acceptance Criteria**:
+  - [ ] `mixed-line-ending` hook in `.pre-commit-config.yaml` has `args: [--fix, lf]`
+  - [ ] ARCHITECTURE.md §9.9 documents LF-always policy for pre-commit hooks
+  - [ ] Agent-written LF files no longer trigger hook modification on first commit attempt
+  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
+- **Files**:
+  - `.pre-commit-config.yaml`
+  - `docs/ARCHITECTURE.md`
+
+#### Task 0.10: Audit and Document Linter Error-Behavior Contract
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1.5h
+- **Dependencies**: None
+- **Description**: Audit all 68+ fitness linters for consistent behavior when directories or
+  files are absent. Define and document canonical contract:
+  (a) Absent directory or expected file → return `nil` (valid empty state, not an error; some
+      PS-IDs may legitimately not have certain files and linters must handle this gracefully).
+  (b) OS I/O error when reading an EXISTING file → return `error` with descriptive context.
+  Fix any linters that violate the contract (e.g., returning an error when a directory simply
+  doesn't exist). Add the contract to ARCHITECTURE.md §9.10 cicd-lint architecture section.
+- **Acceptance Criteria**:
+  - [ ] All 68+ linters audited (findings logged in `test-output/phase0/linter-audit.md`)
+  - [ ] Linters with wrong absent-file behavior fixed
+  - [ ] ARCHITECTURE.md §9.10 documents error-behavior contract with examples
+  - [ ] Tests added/updated for any fixed linters
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes
+  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
+- **Files**:
+  - Various `internal/apps/tools/cicd_lint/lint_fitness/**/*.go` (audit determines exact scope)
+  - `docs/ARCHITECTURE.md`
+  - `test-output/phase0/linter-audit.md` (evidence)
+
+#### Task 0.11: Document Seam Parallel Safety Guidance
+
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Dependencies**: None
+- **Description**: Package-level function-variable seams (e.g., `var osStatFn = os.Stat`)
+  cannot safely use `t.Parallel()`. Goroutines share process memory; two parallel tests mutating
+  the same package-level var produce data races detectable by `-race` flag. `saveRestoreSeams(t)`
+  - `t.Cleanup` correctly restores state AFTER the test, but does NOT prevent concurrent access
+  DURING the test. The `// Sequential: mutates package-level seam vars` exemption comment is the
+  ONLY safe approach without a deep refactor to function-parameter injection. Alternatives
+  (sync.Mutex, goroutine-local state) exist but require refactoring all call sites in production
+  code. Document this in ARCHITECTURE.md §10.2.5 (Sequential Test Exemption), update the
+  §03-02.testing instruction file, and update the `test-table-driven` skill and its Claude
+  command counterpart with seam safety guidance. Also document the temp-dir + chmod coverage
+  approach: reliable on Linux/macOS; use `t.Skip` for Windows (pattern already in codebase).
+- **Acceptance Criteria**:
+  - [ ] ARCHITECTURE.md §10.2.5 updated with seam parallel safety explanation and examples
+  - [ ] `.github/instructions/03-02.testing.instructions.md` updated with seam section
+  - [ ] `.github/skills/test-table-driven/SKILL.md` updated with seam safety guidance
+  - [ ] `.claude/commands/test-table-driven.md` updated (identical body to Copilot skill)
+  - [ ] `go run ./cmd/cicd-lint lint-docs` passes (no drift between Copilot and Claude files)
+- **Files**:
+  - `docs/ARCHITECTURE.md`
+  - `.github/instructions/03-02.testing.instructions.md`
+  - `.github/skills/test-table-driven/SKILL.md`
+  - `.claude/commands/test-table-driven.md`
+
+---
 
 ### Phase 1: Parameterization Items #21–#27
 

@@ -63,6 +63,12 @@ Six new work areas:
    defaults to their services, remove usage constants from product-level authz/idp subdirs.
 6. **Knowledge Propagation**: Apply all lessons to permanent artifacts.
 
+**Phase 0 (blocking pre-work, added post-review)**:
+
+1. **Pre-Work Defect Fixes**: 9 defects identified during plan review. sqlite-2 compose service
+   missing from all 10 PS-IDs, ENTRYPOINT inconsistency across 10 PS-IDs, pki-ca dual DB key,
+   PKI profile insecure values, CRLF double-commit, linter contract, seam parallel safety.
+
 ## Technical Context
 
 - **Language**: Go 1.26.1
@@ -74,6 +80,78 @@ Six new work areas:
 - **Pre-commit config**: `.pre-commit-config.yaml`
 
 ## Phases
+
+### Phase 0: Pre-Work Defect Fixes (18h) [Status: ☐ TODO]
+
+**Objective**: Fix 9 defects and omissions identified during plan review. ALL Phase 0 tasks
+MUST complete before Phase 1 begins — these are blocking regressions not feature work.
+
+**Research Summary** (facts confirmed before writing tasks):
+
+- **Issues #1+#5 — sqlite-2 universally missing**: All 10 PS-ID `compose.yml` files define
+  only 3 app service instances (`{PS-ID}-app-sqlite-1`, `{PS-ID}-app-postgres-1`,
+  `{PS-ID}-app-postgres-2`). The `{PS-ID}-app-sqlite-2` service is absent from ALL 10.
+  Config overlays (5 per PS-ID, including `{PS-ID}-app-sqlite-2.yml`) already exist correctly.
+  Port formula currently assumes 3 variants; adding sqlite-2 requires renumbering all ports.
+
+- **Issue #2 — ENTRYPOINT inconsistency**: 5 distinct command patterns found across 10 PS-IDs:
+  sm-kms uses 3-part product verb `["sm", "kms", "server"]` with tls-config, no `-u` for SQLite;
+  sm-im uses `["server"]` with tls-config, `-u` for SQLite; jose-ja and skeleton-template use
+  `["server"]` WITHOUT tls-config, `-u` for SQLite, `--bind-public-port` at end; pki-ca uses
+  `["server"]` WITHOUT tls-config, no `-u` for SQLite; all 5 identity PS-IDs use NO "server"
+  subcommand, no `--bind-public-port`, no tls-config — just raw config flags. No canonical form.
+
+- **Issue #4 — CRLF double-commit**: The `mixed-line-ending` hook runs with no args, defaults
+  to "auto" (picks dominant line ending per file). On Windows the agent writes LF; the hook
+  normalizes to CRLF, modifies files, pre-commit fails. Second commit succeeds. Fix: add
+  `--fix lf` arg to force LF regardless of platform. This supersedes lessons.md lesson C.2
+  which accepted double-commit as expected behavior — user feedback explicitly overrides this.
+
+- **Issue #6 — PKI insecure values**: `kubernetes-workload.yaml` has `min_days: 0` (comment:
+  "Minutes allowed"). `ssh-user.yaml` has both `min_days: 0` and `default_curve_or_size: null`.
+  User mandates `min_days >= 1`. This supersedes lessons.md lesson A.5 which accepted
+  `min_days: 0` as valid for short-lived certs — user feedback explicitly overrides.
+
+- **Issue #7 — Seam parallel safety**: Package-level function-variable seams (e.g.,
+  `var osStatFn = os.Stat`) CANNOT use `t.Parallel()` — goroutines share process memory;
+  concurrent mutations to the same package var cause data races. `saveRestoreSeams(t)` with
+  `t.Cleanup` correctly restores state but does NOT prevent concurrent access mid-test.
+  The `// Sequential: mutates package-level seam vars` comment exemption is the ONLY safe
+  approach; no refactor-free alternative exists. Must be formally documented.
+
+- **Issue #8 — Linter error behavior**: All 68+ fitness linters implement `LinterFunc`
+  uniformly (interface confirmed). The inconsistency is in how individual linters handle absent
+  files — some return `nil` (skip silently), some return error. Canonical contract must be
+  documented and audited: absent dir/file = `nil`; OS I/O error on existing file = `error`.
+
+- **Issue #9 — pki-ca dual DB key**: All 5 pki-ca config overlays contain BOTH `database-url:`
+  (framework standard) AND nested `database: {type:, dsn:}` (legacy pki-ca key). Files even
+  include a comment acknowledging the conflict. Only `database-url:` is correct; legacy key
+  must be removed. Also: pki-ca overlays use `ca-{variant}` service names (e.g., `ca-sqlite`,
+  `ca-postgres-1`) instead of the standard `pki-ca-{variant}` form used by all other PS-IDs.
+
+**Work** (11 tasks — see tasks.md §Phase 0 for full acceptance criteria):
+
+- **0.1** Add `{PS-ID}-app-sqlite-2` to all 10 `compose.yml` files; update port formula.
+- **0.2** Update ARCHITECTURE.md §3.4.1 with variant offset table and corrected port ranges.
+- **0.3** Define canonical ENTRYPOINT pattern via code archaeology; apply to all 10 PS-IDs.
+- **0.4** Implement `compose-entrypoint-uniformity` fitness linter (≥98% coverage).
+- **0.5** Fix pki-ca dual database key; rename `ca-*` service/OTLP names → `pki-ca-*`.
+- **0.6** Implement `database-key-uniformity` fitness linter (≥98% coverage).
+- **0.7** Fix PKI profile insecure values (`min_days: 0` → 1; `null` curve → explicit value).
+- **0.8** Update `pki-ca-profile-schema` linter validation: `min_days >= 0` → `min_days >= 1`.
+- **0.9** Fix CRLF double-commit: add `--fix lf` arg to `mixed-line-ending` hook.
+- **0.10** Audit and document linter error-behavior contract in ARCHITECTURE.md §9.10.
+- **0.11** Document seam parallel safety in ARCHITECTURE.md §10.2.5 + §03-02 instructions.
+
+**Success**: All 11 tasks verified; `go run ./cmd/cicd-lint lint-fitness` passes with 2 new
+linters; all 10 compose.yml files have 4 service instances; pki-ca uses `database-url` only;
+PKI profiles have `min_days >= 1`; pre-commit does not double-commit; contract and seam safety
+documented and covered by `lint-docs` and `lint-fitness`.
+
+**Post-Mortem**: After quality gates pass, update lessons.md Phase 0 section.
+
+---
 
 ### Phase 1: Parameterization Items #21–#27 (24h) [Status: ☐ TODO]
 
@@ -333,6 +411,8 @@ framework; PS-ID-specific defaults in PS-IDs; duplicate usage files removed; all
 
 ## Success Criteria
 
+- [ ] **Phase 0**: sqlite-2 in all 10 compose.yml; canonical ENTRYPOINT applied; pki-ca dual key fixed;
+      PKI profiles `min_days >= 1`; pre-commit LF-always; linter contract and seam safety documented
 - [ ] All 7 parameterization items (#21–#27) implemented with linters
 - [ ] PARAMETERIZATION-OPPORTUNITIES.md and PARAMETERIZATION-DONE.md deleted
 - [ ] `tls/init.go` refactored: pflag, 3 tiers, configurable FIPS signing, pkiInitName magic
@@ -347,7 +427,15 @@ framework; PS-ID-specific defaults in PS-IDs; duplicate usage files removed; all
 
 | Topic | Section | Phases |
 |-------|---------|--------|
-| Testing Strategy | [§10](../../docs/ARCHITECTURE.md#10-testing-architecture) | 1, 6 |
+| Port Design | [§3.4.1](../../docs/ARCHITECTURE.md#341-port-design-principles) | 0 |
+| Docker Compose | [§12](../../docs/ARCHITECTURE.md#12-deployment-architecture) | 0 |
+| Deployment Secrets | [§13.3](../../docs/ARCHITECTURE.md#133-secrets-management-in-deployments) | 0 |
+| Pre-commit Hooks | [§9.9](../../docs/ARCHITECTURE.md#99-pre-commit-hook-architecture) | 0, 3 |
+| CICD Command Arch | [§9.10](../../docs/ARCHITECTURE.md#910-cicd-command-architecture) | 0, 1, 3 |
+| Test Seam Injection | [§10.2.4](../../docs/ARCHITECTURE.md#1024-test-seam-injection-pattern) | 0 |
+| Sequential Exemption | [§10.2.5](../../docs/ARCHITECTURE.md#1025-sequential-test-exemption) | 0 |
+| PKI Architecture | [§6.5](../../docs/ARCHITECTURE.md#65-pki-architecture--strategy) | 0 |
+| Testing Strategy | [§10](../../docs/ARCHITECTURE.md#10-testing-architecture) | 0, 1, 6 |
 | Quality Gates | [§11.2](../../docs/ARCHITECTURE.md#112-quality-gates) | ALL |
 | Magic Values | [§11.1.4](../../docs/ARCHITECTURE.md#1114-magic-values-organization) | 2, 3 |
 | Agent Architecture | [§2.1.1](../../docs/ARCHITECTURE.md#211-agent-architecture) | 1 |
