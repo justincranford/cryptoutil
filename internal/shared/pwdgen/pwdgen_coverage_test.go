@@ -65,15 +65,12 @@ func TestGenerate_1000AttemptsExhausted(t *testing.T) {
 }
 
 // TestGenerate_RandomLengthError tests error when crand.Int fails in randomLength.
-// Cannot be parallel because it modifies package-level vars.
-// Sequential: uses shared state (not safe for parallel execution).
 func TestGenerate_RandomLengthError(t *testing.T) {
-	orig := pwdgenCrandIntFn
-	pwdgenCrandIntFn = func(_ *big.Int) (*big.Int, error) {
+	t.Parallel()
+
+	stubErr := func(_ *big.Int) (*big.Int, error) {
 		return nil, errors.New("injected crand failure")
 	}
-
-	defer func() { pwdgenCrandIntFn = orig }()
 
 	// Use a policy with MinLength != MaxLength to trigger randomLength -> crand.Int.
 	pol := PasswordPolicy{
@@ -85,21 +82,18 @@ func TestGenerate_RandomLengthError(t *testing.T) {
 	gen, err := NewPasswordGenerator(pol)
 	require.NoError(t, err)
 
-	_, err = gen.Generate()
+	_, err = gen.generateInternal(stubErr)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to determine password length")
 }
 
 // TestGenerateCandidate_StartCharIndexError tests crand.Int error in start char selection.
-// Cannot be parallel because it modifies package-level vars.
-// Sequential: uses shared state (not safe for parallel execution).
 func TestGenerateCandidate_StartCharIndexError(t *testing.T) {
-	orig := pwdgenCrandIntFn
-	pwdgenCrandIntFn = func(_ *big.Int) (*big.Int, error) {
+	t.Parallel()
+
+	stubErr := func(_ *big.Int) (*big.Int, error) {
 		return nil, errors.New("injected crand failure")
 	}
-
-	defer func() { pwdgenCrandIntFn = orig }()
 
 	pol := PasswordPolicy{
 		Name:            "with-start",
@@ -111,38 +105,34 @@ func TestGenerateCandidate_StartCharIndexError(t *testing.T) {
 	gen, err := NewPasswordGenerator(pol)
 	require.NoError(t, err)
 
-	_, err = gen.Generate()
+	_, err = gen.generateInternal(stubErr)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to generate start character index")
 }
 
 // TestGenerateCandidate_FirstCharIndexError tests crand.Int error when no StartCharacters.
-// Cannot be parallel because it modifies package-level vars.
-// Sequential: uses shared state (not safe for parallel execution).
 func TestGenerateCandidate_FirstCharIndexError(t *testing.T) {
-	orig := pwdgenCrandIntFn
-	pwdgenCrandIntFn = func(_ *big.Int) (*big.Int, error) {
+	t.Parallel()
+
+	stubErr := func(_ *big.Int) (*big.Int, error) {
 		return nil, errors.New("injected crand failure")
 	}
-
-	defer func() { pwdgenCrandIntFn = orig }()
 
 	gen, err := NewPasswordGenerator(noStartEndPolicy)
 	require.NoError(t, err)
 
-	_, err = gen.Generate()
+	_, err = gen.generateInternal(stubErr)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to generate first character index")
 }
 
 // TestGenerateCandidate_EndCharIndexError tests crand.Int error in end char selection.
-// Cannot be parallel because it modifies package-level vars.
-// Sequential: uses shared state (not safe for parallel execution).
 func TestGenerateCandidate_EndCharIndexError(t *testing.T) {
+	t.Parallel()
+
 	// First call succeeds (for start), subsequent calls fail.
 	callCount := 0
-	orig := pwdgenCrandIntFn
-	pwdgenCrandIntFn = func(max *big.Int) (*big.Int, error) {
+	stubFn := func(max *big.Int) (*big.Int, error) {
 		callCount++
 		if callCount < 2 {
 			// Let first crand.Int succeed for start character.
@@ -151,8 +141,6 @@ func TestGenerateCandidate_EndCharIndexError(t *testing.T) {
 
 		return nil, errors.New("injected crand failure for end char")
 	}
-
-	defer func() { pwdgenCrandIntFn = orig }()
 
 	pol := PasswordPolicy{
 		Name:          "with-end",
@@ -164,19 +152,18 @@ func TestGenerateCandidate_EndCharIndexError(t *testing.T) {
 	gen, err := NewPasswordGenerator(pol)
 	require.NoError(t, err)
 
-	_, err = gen.Generate()
+	_, err = gen.generateInternal(stubFn)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to generate end character index")
 }
 
 // TestGenerateCandidate_MiddleCharIndexError tests crand.Int error in middle char selection.
-// Cannot be parallel because it modifies package-level vars.
-// Sequential: uses shared state (not safe for parallel execution).
 func TestGenerateCandidate_MiddleCharIndexError(t *testing.T) {
+	t.Parallel()
+
 	// First few calls succeed, then fail.
 	callCount := 0
-	orig := pwdgenCrandIntFn
-	pwdgenCrandIntFn = func(max *big.Int) (*big.Int, error) {
+	stubFn := func(max *big.Int) (*big.Int, error) {
 		callCount++
 		if callCount <= 2 {
 			// Let first+second crand.Int succeed for start and end/first.
@@ -186,12 +173,10 @@ func TestGenerateCandidate_MiddleCharIndexError(t *testing.T) {
 		return nil, errors.New("injected crand failure for middle char")
 	}
 
-	defer func() { pwdgenCrandIntFn = orig }()
-
 	gen, err := NewPasswordGenerator(noStartEndPolicy)
 	require.NoError(t, err)
 
-	_, err = gen.Generate()
+	_, err = gen.generateInternal(stubFn)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to generate random middle character index")
 }

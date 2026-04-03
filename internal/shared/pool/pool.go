@@ -23,13 +23,13 @@ import (
 
 var poolMaintenanceInterval = cryptoutilSharedMagic.PoolMaintenanceInterval
 
-// newFloat64HistogramFn wraps metric.Meter.Float64Histogram for testing.
-var newFloat64HistogramFn = func(m metric.Meter, name string, opts ...metric.Float64HistogramOption) (metric.Float64Histogram, error) {
+// newFloat64HistogramImpl is the real implementation of Float64Histogram creation.
+func newFloat64HistogramImpl(m metric.Meter, name string, opts ...metric.Float64HistogramOption) (metric.Float64Histogram, error) {
 	return m.Float64Histogram(name, opts...)
 }
 
-// newInt64CounterFn wraps metric.Meter.Int64Counter for testing.
-var newInt64CounterFn = func(m metric.Meter, name string, opts ...metric.Int64CounterOption) (metric.Int64Counter, error) {
+// newInt64CounterImpl is the real implementation of Int64Counter creation.
+func newInt64CounterImpl(m metric.Meter, name string, opts ...metric.Int64CounterOption) (metric.Int64Counter, error) {
 	return m.Int64Counter(name, opts...)
 }
 
@@ -66,6 +66,10 @@ type ValueGenPoolConfig[T any] struct {
 
 // NewValueGenPool supports indefinite pools, or finite pools based on maxTime and/or maxValues.
 func NewValueGenPool[T any](cfg *ValueGenPoolConfig[T], err error) (*ValueGenPool[T], error) {
+	return newValueGenPoolInternal[T](cfg, err, newFloat64HistogramImpl, newInt64CounterImpl)
+}
+
+func newValueGenPoolInternal[T any](cfg *ValueGenPoolConfig[T], err error, newFloat64HistogramFn func(metric.Meter, string, ...metric.Float64HistogramOption) (metric.Float64Histogram, error), newInt64CounterFn func(metric.Meter, string, ...metric.Int64CounterOption) (metric.Int64Counter, error)) (*ValueGenPool[T], error) {
 	poolStartTime := time.Now().UTC()
 
 	if err != nil { // config and err are from the call to NewValueGenPoolConfig, check the error value

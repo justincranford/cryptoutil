@@ -11,14 +11,11 @@ import (
 )
 
 func TestHashPassword_Error(t *testing.T) {
+	t.Parallel()
+
 	injectedErr := errors.New("injected hash error")
-	orig := passwordHashFn
 
-	passwordHashFn = func(_ string) (string, error) { return "", injectedErr }
-
-	defer func() { passwordHashFn = orig }()
-
-	_, err := HashPassword("password123")
+	_, err := hashPasswordInternal("password123", func(_ string) (string, error) { return "", injectedErr })
 
 	require.ErrorIs(t, err, injectedErr)
 }
@@ -35,15 +32,12 @@ func TestVerifyPassword_BcryptInvalidHash(t *testing.T) {
 }
 
 func TestVerifyPassword_PBKDF2VerifyError(t *testing.T) {
+	t.Parallel()
+
 	injectedErr := errors.New("injected verify error")
-	orig := passwordVerifyFn
-
-	passwordVerifyFn = func(_, _ string) (bool, error) { return false, injectedErr }
-
-	defer func() { passwordVerifyFn = orig }()
 
 	// Use a valid pbkdf2 hash prefix so DetectHashType returns "pbkdf2".
-	_, _, err := VerifyPassword("password", "$pbkdf2-sha256$600000$aGVsbG8$aGVsbG8")
+	_, _, err := verifyPasswordInternal("password", "$pbkdf2-sha256$600000$aGVsbG8$aGVsbG8", func(_, _ string) (bool, error) { return false, injectedErr })
 
 	require.ErrorIs(t, err, injectedErr)
 }

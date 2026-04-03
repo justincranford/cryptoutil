@@ -14,14 +14,13 @@ import (
 	cryptoutilSharedCryptoPbkdf2 "cryptoutil/internal/shared/crypto/pbkdf2"
 )
 
-var (
-	passwordHashFn   = cryptoutilSharedCryptoPbkdf2.HashPassword
-	passwordVerifyFn = cryptoutilSharedCryptoPbkdf2.VerifyPassword
-)
-
 // HashPassword generates a FIPS-compliant PBKDF2-HMAC-SHA256 hash.
 // Always use this for new passwords.
 func HashPassword(password string) (string, error) {
+	return hashPasswordInternal(password, cryptoutilSharedCryptoPbkdf2.HashPassword)
+}
+
+func hashPasswordInternal(password string, passwordHashFn func(string) (string, error)) (string, error) {
 	hash, err := passwordHashFn(password)
 	if err != nil {
 		return "", fmt.Errorf("failed to hash password: %w", err)
@@ -64,12 +63,7 @@ func VerifyPassword(password, storedHash string) (bool, bool, error) {
 
 	case "pbkdf2":
 		// Modern FIPS-compliant PBKDF2.
-		match, err := passwordVerifyFn(password, storedHash)
-		if err != nil {
-			return false, false, fmt.Errorf("pbkdf2 verification failed: %w", err)
-		}
-
-		return match, false, nil // No upgrade needed.
+		return verifyPasswordInternal(password, storedHash, cryptoutilSharedCryptoPbkdf2.VerifyPassword)
 
 	default:
 		return false, false, fmt.Errorf("unknown hash type: %s", hashType)
@@ -80,4 +74,13 @@ func VerifyPassword(password, storedHash string) (bool, bool, error) {
 // Supports: "bcrypt", "pbkdf2", "unknown".
 func DetectHashType(hash string) string {
 	return cryptoutilSharedCryptoPbkdf2.DetectHashType(hash)
+}
+
+func verifyPasswordInternal(password, storedHash string, passwordVerifyFn func(string, string) (bool, error)) (bool, bool, error) {
+	match, err := passwordVerifyFn(password, storedHash)
+	if err != nil {
+		return false, false, fmt.Errorf("pbkdf2 verification failed: %w", err)
+	}
+
+	return match, false, nil // No upgrade needed.
 }

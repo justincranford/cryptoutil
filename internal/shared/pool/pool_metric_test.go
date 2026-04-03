@@ -18,8 +18,10 @@ import (
 )
 
 // TestNewValueGenPool_MetricCreationErrors covers the metric creation error paths
-// in NewValueGenPool (lines 84-106). NOT parallel — modifies package-level vars.
+// in NewValueGenPool (lines 84-106). Uses fn-param injection via newValueGenPoolInternal.
 func TestNewValueGenPool_MetricCreationErrors(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name          string
 		histFailAt    int
@@ -35,43 +37,34 @@ func TestNewValueGenPool_MetricCreationErrors(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			histCallCount := 0
-			origHist := newFloat64HistogramFn
-
-			if tc.histFailAt > 0 {
-				newFloat64HistogramFn = func(m metric.Meter, name string, opts ...metric.Float64HistogramOption) (metric.Float64Histogram, error) {
-					histCallCount++
-					if histCallCount == tc.histFailAt {
-						return nil, fmt.Errorf("injected histogram error")
-					}
-
-					return origHist(m, name, opts...)
+			stubHistFn := func(m metric.Meter, name string, opts ...metric.Float64HistogramOption) (metric.Float64Histogram, error) {
+				histCallCount++
+				if tc.histFailAt > 0 && histCallCount == tc.histFailAt {
+					return nil, fmt.Errorf("injected histogram error")
 				}
-			}
 
-			defer func() { newFloat64HistogramFn = origHist }()
+				return newFloat64HistogramImpl(m, name, opts...)
+			}
 
 			counterCallCount := 0
-			origCounter := newInt64CounterFn
-
-			if tc.counterFailAt > 0 {
-				newInt64CounterFn = func(m metric.Meter, name string, opts ...metric.Int64CounterOption) (metric.Int64Counter, error) {
-					counterCallCount++
-					if counterCallCount == tc.counterFailAt {
-						return nil, fmt.Errorf("injected counter error")
-					}
-
-					return origCounter(m, name, opts...)
+			stubCounterFn := func(m metric.Meter, name string, opts ...metric.Int64CounterOption) (metric.Int64Counter, error) {
+				counterCallCount++
+				if tc.counterFailAt > 0 && counterCallCount == tc.counterFailAt {
+					return nil, fmt.Errorf("injected counter error")
 				}
+
+				return newInt64CounterImpl(m, name, opts...)
 			}
 
-			defer func() { newInt64CounterFn = origCounter }()
-
-			_, err := NewValueGenPool(NewValueGenPoolConfig(
+			cfg, cfgErr := NewValueGenPoolConfig(
 				context.Background(), testTelemetryService,
 				"metric-error", 1, 1, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, time.Second,
 				cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false,
-			))
+			)
+			_, err := newValueGenPoolInternal(cfg, cfgErr, stubHistFn, stubCounterFn)
 			require.Error(t, err)
 			require.ErrorContains(t, err, tc.wantErr)
 		})

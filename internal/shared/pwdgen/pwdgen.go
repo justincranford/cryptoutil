@@ -164,8 +164,14 @@ func (p *PasswordPolicy) Validate() error {
 
 // Generate generates a password according to the policy.
 func (g *PasswordGenerator) Generate() (string, error) {
+	return g.generateInternal(func(max *big.Int) (*big.Int, error) {
+		return crand.Int(crand.Reader, max)
+	})
+}
+
+func (g *PasswordGenerator) generateInternal(crandIntFn func(max *big.Int) (*big.Int, error)) (string, error) {
 	// Determine password length.
-	length, err := g.randomLength()
+	length, err := g.randomLength(crandIntFn)
 	if err != nil {
 		return "", fmt.Errorf("failed to determine password length: %w", err)
 	}
@@ -178,7 +184,7 @@ func (g *PasswordGenerator) Generate() (string, error) {
 
 	// Generate password meeting all requirements.
 	for attempts := 0; attempts < cryptoutilSharedMagic.JoseJADefaultListLimit; attempts++ {
-		password, err := g.generateCandidate(length, allChars)
+		password, err := g.generateCandidate(length, allChars, crandIntFn)
 		if err != nil {
 			return "", err
 		}
@@ -191,20 +197,14 @@ func (g *PasswordGenerator) Generate() (string, error) {
 	return "", errors.New("failed to generate password meeting requirements after 1000 attempts")
 }
 
-// randomLength picks a random length between MinLength and MaxLength.
-// pwdgenCrandIntFn is an injectable var for crypto/rand.Int, used for testing error paths.
-var pwdgenCrandIntFn = func(max *big.Int) (*big.Int, error) { //nolint:gochecknoglobals // Injectable for testing.
-	return crand.Int(crand.Reader, max)
-}
-
-func (g *PasswordGenerator) randomLength() (int, error) {
+func (g *PasswordGenerator) randomLength(crandIntFn func(max *big.Int) (*big.Int, error)) (int, error) {
 	if g.policy.MinLength == g.policy.MaxLength {
 		return g.policy.MinLength, nil
 	}
 
 	rangeSize := g.policy.MaxLength - g.policy.MinLength + 1
 
-	n, err := pwdgenCrandIntFn(big.NewInt(int64(rangeSize)))
+	n, err := crandIntFn(big.NewInt(int64(rangeSize)))
 	if err != nil {
 		return 0, fmt.Errorf("failed to generate random length: %w", err)
 	}
@@ -213,19 +213,19 @@ func (g *PasswordGenerator) randomLength() (int, error) {
 }
 
 // generateCandidate generates a candidate password.
-func (g *PasswordGenerator) generateCandidate(length int, allChars []rune) (string, error) {
+func (g *PasswordGenerator) generateCandidate(length int, allChars []rune, crandIntFn func(max *big.Int) (*big.Int, error)) (string, error) {
 	password := make([]rune, length)
 
 	// First character from StartCharacters if specified.
 	if len(g.policy.StartCharacters) > 0 {
-		idx, err := pwdgenCrandIntFn(big.NewInt(int64(len(g.policy.StartCharacters))))
+		idx, err := crandIntFn(big.NewInt(int64(len(g.policy.StartCharacters))))
 		if err != nil {
 			return "", fmt.Errorf("failed to generate start character index: %w", err)
 		}
 
 		password[0] = g.policy.StartCharacters[idx.Int64()]
 	} else {
-		idx, err := pwdgenCrandIntFn(big.NewInt(int64(len(allChars))))
+		idx, err := crandIntFn(big.NewInt(int64(len(allChars))))
 		if err != nil {
 			return "", fmt.Errorf("failed to generate first character index: %w", err)
 		}
@@ -235,14 +235,14 @@ func (g *PasswordGenerator) generateCandidate(length int, allChars []rune) (stri
 
 	// Last character from EndCharacters if specified.
 	if len(g.policy.EndCharacters) > 0 {
-		idx, err := pwdgenCrandIntFn(big.NewInt(int64(len(g.policy.EndCharacters))))
+		idx, err := crandIntFn(big.NewInt(int64(len(g.policy.EndCharacters))))
 		if err != nil {
 			return "", fmt.Errorf("failed to generate end character index: %w", err)
 		}
 
 		password[length-1] = g.policy.EndCharacters[idx.Int64()]
 	} else {
-		idx, err := pwdgenCrandIntFn(big.NewInt(int64(len(allChars))))
+		idx, err := crandIntFn(big.NewInt(int64(len(allChars))))
 		if err != nil {
 			return "", fmt.Errorf("failed to generate last character index: %w", err)
 		}
@@ -253,7 +253,7 @@ func (g *PasswordGenerator) generateCandidate(length int, allChars []rune) (stri
 	// Fill middle characters.
 	for i := 1; i < length-1; i++ {
 		for attempts := 0; attempts < cryptoutilSharedMagic.JoseJAMaxMaterials; attempts++ {
-			idx, err := pwdgenCrandIntFn(big.NewInt(int64(len(allChars))))
+			idx, err := crandIntFn(big.NewInt(int64(len(allChars))))
 			if err != nil {
 				return "", fmt.Errorf("failed to generate random middle character index: %w", err)
 			}
