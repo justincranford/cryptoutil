@@ -921,6 +921,37 @@ Three deployment scenarios each use distinct host port ranges to enable concurre
 - Consistent port offsets simplify troubleshooting (service port + offset = deployment type)
 - Clear separation enables independent CI/CD pipelines per deployment type
 
+**App Service Variant Port Formula**:
+
+Each PS-ID compose.yml defines 4 app service instances. The host port for each instance is:
+
+```
+host_port = base_port + tier_offset + variant_offset
+```
+
+Where:
+- `base_port` is the PS-ID's assigned base host port (see §3.2 Service Catalog)
+- `tier_offset` is 0 (Service), 10000 (Product), or 20000 (Suite)
+- `variant_offset` is the instance variant offset:
+
+| Variant | Compose Service Suffix | Variant Offset | Database Backend |
+|---------|------------------------|----------------|-----------------|
+| sqlite-1 | `-app-sqlite-1` | +0 | SQLite in-memory (dev/CI primary) |
+| sqlite-2 | `-app-sqlite-2` | +1 | SQLite in-memory (dev/CI secondary) |
+| postgresql-1 | `-app-postgresql-1` | +2 | PostgreSQL (primary) |
+| postgresql-2 | `-app-postgresql-2` | +3 | PostgreSQL (secondary) |
+
+**Example** (sm-kms, SERVICE tier, base_port=8000, tier_offset=0):
+
+| Compose Service | host_port formula | Host Port |
+|----------------|------------------|-----------|
+| `sm-kms-app-sqlite-1` | 8000 + 0 + 0 | 8000 |
+| `sm-kms-app-sqlite-2` | 8000 + 0 + 1 | 8001 |
+| `sm-kms-app-postgresql-1` | 8000 + 0 + 2 | 8002 |
+| `sm-kms-app-postgresql-2` | 8000 + 0 + 3 | 8003 |
+
+The `compose-port-formula` fitness linter (`go run ./cmd/cicd-lint lint-fitness`) validates all compose port bindings against this formula at CI time.
+
 #### 3.4.2 PostgreSQL Ports
 
 | Product-Service Identifier | Address (Host) | Host Port | Container Address | Port Value (Container) |

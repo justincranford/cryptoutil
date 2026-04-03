@@ -1,7 +1,7 @@
 # Tasks — Framework v7 (Continuation)
 
-**Status**: 5 of 48 tasks complete (10%)
-**Last Updated**: 2026-04-02
+**Status**: 6 of 48 tasks complete (13%)
+**Last Updated**: 2026-04-03
 **Created**: 2026-04-02
 
 ## Quality Mandate — MANDATORY
@@ -30,7 +30,7 @@ complete before Phase 1 begins. Each task is a blocking regression, not improvem
 
 #### Task 0.1: Add sqlite-2 Service to All 10 compose.yml Files
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 4h
 - **Dependencies**: None
@@ -43,15 +43,15 @@ complete before Phase 1 begins. Each task is a blocking regression, not improvem
   DB postgres service port also needs updating: postgresql container retains same host port;
   only the app service instance ports shift.
 - **Acceptance Criteria**:
-  - [ ] All 10 compose.yml files have `{PS-ID}-app-sqlite-2` service block defined
-  - [ ] Port allocation uses 4-variant formula (sqlite-1=+0, sqlite-2=+1, postgresql-1=+2, postgresql-2=+3)
-  - [ ] Existing `postgres-1`/`postgres-2` app service names renamed to `postgresql-1`/`postgresql-2`
-  - [ ] All compose headers updated: "4 instances: 2 SQLite + 2 PostgreSQL"
-  - [ ] sqlite-2 service references correct config overlay (`{PS-ID}-app-sqlite-2.yml`)
-  - [ ] sqlite-2 service has correct network aliases, healthchecks, and depends_on matching sqlite-1 pattern
-  - [ ] `go run ./cmd/cicd-lint lint-fitness compose-port-formula` passes with new port ranges
-  - [ ] `go run ./cmd/cicd-lint lint-fitness compose-service-names` passes after rename
-  - [ ] `go run ./cmd/cicd-lint lint-compose` passes
+  - [x] All 10 compose.yml files have `{PS-ID}-app-sqlite-2` service block defined
+  - [x] Port allocation uses 4-variant formula (sqlite-1=+0, sqlite-2=+1, postgresql-1=+2, postgresql-2=+3)
+  - [x] Existing `postgres-1`/`postgres-2` app service names renamed to `postgresql-1`/`postgresql-2`
+  - [x] All compose headers updated: "4 instances: 2 SQLite + 2 PostgreSQL"
+  - [x] sqlite-2 service references correct config overlay (`{PS-ID}-app-sqlite-2.yml`)
+  - [x] sqlite-2 service has correct network aliases, healthchecks, and depends_on matching sqlite-1 pattern
+  - [x] `go run ./cmd/cicd-lint lint-fitness compose-port-formula` passes with new port ranges
+  - [x] `go run ./cmd/cicd-lint lint-fitness compose-service-names` passes after rename
+  - [x] `go run ./cmd/cicd-lint lint-compose` passes
 - **Files**:
   - `deployments/{sm-kms,sm-im,jose-ja,pki-ca,identity-authz,identity-idp,identity-rp,identity-rs,identity-spa,skeleton-template}/compose.yml` (10 files)
 
