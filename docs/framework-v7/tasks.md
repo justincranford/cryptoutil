@@ -240,77 +240,96 @@ complete before Phase 1 begins. Each task is a blocking regression, not improvem
   - `docs/ARCHITECTURE.md`
   - (local git config changed via terminal; not a tracked file)
 
-#### Task 0.10: Fix Linter Absent-Dir Handling per quizme-v2.md Q6
+#### Task 0.10: Change ALL Fitness Linters to Hard-Error on Absent Dirs (Q6 decision: E)
 
 - **Status**: ❌
 - **Owner**: LLM Agent
-- **Estimated**: 1.5h
-- **Dependencies**: quizme-v2.md Q6 answered
-- **Description**: Specific linters with inconsistent absent-dir handling identified during
-  planning: `health_path_completeness` returns hard `error` (not nil, not violation) when a
-  per-PS-ID service directory is absent; `api_path_registry` does the same. The majority of
-  68 linters correctly use `os.IsNotExist` → `return nil` for absent dirs. Fix these two
-  linters per the user's answer to quizme-v2.md Q6 (skip nil / violation / keep hard error).
-  Then run a full audit of the 38 linters that do IO without explicit `IsNotExist` checks —
-  verify they propagate Walk/ReadDir errors correctly via their existing return-error paths.
-  Document the canonical contract in ARCHITECTURE.md §9.10.
+- **Estimated**: 6h
+- **Dependencies**: None (quizme-v2.md Q6 answered 2026-04-03)
+- **Decision**: Q6 answer E — ALL 68 fitness linters must return hard error when a required
+  directory is absent. The majority pattern (`os.IsNotExist` → `return nil`) is NOT correct;
+  it silently hides compliance gaps. Strict enforcement requires all linters to fail loudly.
+- **Description**: Audit ALL 68 fitness linters. For each linter:
+  1. Identify whether it currently skips (`return nil`) on absent dirs
+  2. Change to return hard `fmt.Errorf` for any required-but-absent directory
+  3. Identify any repo directories that the strict linter now expects but currently don’t exist
+  4. Create missing directories (with appropriate placeholder content) in the SAME commit
+  Batch: commit ~10 linters at a time. Linter code change + repo dir creation go together to
+  avoid CI partial breakage (linter strict before dirs exist = red CI). Final step: document
+  the contract in ARCHITECTURE.md §9.10 and lessons.md.
 - **Acceptance Criteria**:
-  - [ ] quizme-v2.md Q6 answered BEFORE starting this task
-  - [ ] `health_path_completeness` absent-dir handling fixed per Q6 answer
-  - [ ] `api_path_registry` absent-dir handling fixed per Q6 answer
-  - [ ] Audit of 38 IO-without-IsNotExist linters complete; findings in
-    `test-output/phase0/linter-audit.md`
-  - [ ] ARCHITECTURE.md §9.10 documents error-behavior contract: (A) absent dir/file →
-    `return nil` OR add to violations; NEVER return hard error unless caller guarantees
-    presence; (B) OS I/O error on existing file → return error with context
-  - [ ] Tests added/updated for fixed linters (coverage ≥98%)
-  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes
+  - [ ] All 68 fitness linter `CheckInDir` / `check*` functions return hard error on required-but-absent dirs
+  - [ ] No fitness linter uses `os.IsNotExist` → `return nil` (skip) for dirs that must exist
+  - [ ] All missing repo directories created in same commit batch as their linter code changes
+  - [ ] Audit evidence in `test-output/phase0/linter-audit.md` listing all 68 linters, old
+    behavior, new behavior, and any dirs created
+  - [ ] ARCHITECTURE.md §9.10 documents: fitness linters hard-error on absent dirs; intentional strictness
+  - [ ] lessons.md updated: absent-dir = hard error is the project-wide standard for fitness linters
+  - [ ] Tests updated for all changed linters (coverage ≥98%)
+  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes on current repo after all batches
   - [ ] `go run ./cmd/cicd-lint lint-docs` passes
 - **Files**:
-  - `internal/apps/tools/cicd_lint/lint_fitness/health_path_completeness/health_path_completeness.go`
-  - `internal/apps/tools/cicd_lint/lint_fitness/api_path_registry/api_path_registry.go`
+  - `internal/apps/tools/cicd_lint/lint_fitness/**/*.go` (all 68 linter packages)
   - `docs/ARCHITECTURE.md`
+  - Any missing repo directories required by newly strict linters
   - `test-output/phase0/linter-audit.md` (evidence)
 
-#### Task 0.11: Implement Seam Refactoring per quizme-v2.md Q1–Q5
+#### Task 0.11: Implement Option B Seam Refactoring — All 5 Categories (Q1–Q5 decision: B)
 
 - **Status**: ❌
 - **Owner**: LLM Agent
 - **Estimated**: 4h
-- **Dependencies**: quizme-v2.md Q1–Q5 all answered
-- **Description**: 60+ package-level function-variable seams found across 5 categories during
-  planning. Implement per-category decisions from quizme-v2.md:
-  - **Category 1 — Fitness linter OS I/O seams (~20 seams)**: `walkFn`, `readFileFn`,
-    `readDirFn`, `getwdFn` in `internal/apps/tools/cicd_lint/lint_fitness/` sub-packages.
-    Options: A=Sequential exemption, B=function-param injection, C=fs.FS interface.
-  - **Category 2 — Crypto/random seams (~9 seams)**: `digestsHKDFReadFn`,
-    `pbkdf2CrandReadFn`, `digestsRandReadFn` in `internal/shared/crypto/`.
-    Options: A=Sequential, B=io.Reader param, C=struct injection, D=remove (ceiling).
-  - **Category 3 — Network/server seams (~5 seams)**: `adminListenFn`, `publicListenFn`,
-    `adminAppListenerFn`, `publicAppListenerFn`, `appListenerFn` in
-    `internal/apps/framework/service/server/listener/`.
-    Options: A=Sequential, B=builder WithListenFn param, C=inject listener, D=remove.
-  - **Category 4 — Framework dependency seams (~6 seams)**: `newTelemetryServiceFn`,
-    `newJWKGenServiceFn`, `intermediateGenerateJWEJWKFn` etc.
-    Options: A=Sequential, B=interface injection, C=functional option, D=integration only.
-  - **Category 5 — Single-use utility seams (~5 seams)**: `jsonMarshalFn`, `printerFprintFn`,
-    `sessionMiddlewareStringsSplitNFn` etc.
-    Options: A=Sequential, B=function param, D=remove.
-  After implementation update ARCHITECTURE.md §10.2.5 with per-category guide.
+- **Dependencies**: None (quizme-v2.md Q1–Q5 answered 2026-04-03)
+- **Decision**: All 5 categories answered option B — function-param injection. Remove ALL
+  package-level seam vars (`var xxxFn = pkg.Func`) from non-test Go files. Document in
+  ARCHITECTURE.md and lessons.md that ALL production code must use function-param injection
+  for testability, not package-level seam vars.
+- **Description**: Implement option B for each category:
+  - **Category 1 — Fitness linter OS I/O seams (~20 seams)**: Pass `walkFn`, `readFileFn`,
+    `readDirFn`, `getwdFn` as parameters to each linter's `Lint()` / `CheckInDir()` function.
+    Production callers pass real OS functions; tests inject stubs via call-site args.
+    Remove all `var walkFn = filepath.Walk` etc. from `lint_fitness/` sub-packages.
+  - **Category 2 — Crypto/random seams (~9 seams)**: Add `rand io.Reader` parameter to
+    `HKDF()`, `PBKDF2()`, and other crypto functions where `crand.Read` is seam-injected.
+    Production callers pass `crand.Reader`; tests pass `bytes.NewReader(deterministic bytes)`.
+    API break is accepted — update ALL call sites.
+  - **Category 3 — Network/server seams (~5 seams)**: Add `WithListenFn(fn)` and
+    `WithAppListenerFn(fn)` functional options to the server builder. Tests inject no-op or
+    error functions via options. Remove `adminListenFn`, `publicListenFn`, `appListenerFn`
+    package vars from `internal/apps/framework/service/server/listener/`.
+  - **Category 4 — Framework dependency seams (~6 seams)**: Define `TelemetryFactory`,
+    `JWKFactory`, `MigrationFactory` interfaces. Inject via `NewServiceFramework(ctx, config,
+    factories...)` constructor. Remove `newTelemetryServiceFn`, `newJWKGenServiceFn`,
+    `intermediateGenerateJWEJWKFn`, `migrateNewWithInstanceFn` package vars.
+  - **Category 5 — Single-use utility seams (~5 seams)**: Add fn parameter at each call site:
+    `marshalFn func(any) ([]byte, error)` in `sm-im/client/message.go`; `fprintFn` in
+    `format_gotest/thelper/thelper.go`; `splitNFn` in `middleware/session.go`; etc.
+    Remove all package-level vars.
 - **Acceptance Criteria**:
-  - [ ] quizme-v2.md Q1–Q5 all answered BEFORE starting this task
-  - [ ] Each category implemented per user answer
+  - [ ] Zero `var xxxFn =` declarations remain in non-test Go files
+  - [ ] Category 1: all `lint_fitness` `Lint()`/`CheckInDir()` accept OS I/O fn params;
+    callers updated; seam tests use `t.Parallel()`
+  - [ ] Category 2: crypto functions accept `io.Reader`; ALL call sites updated; `go build ./...` clean
+  - [ ] Category 3: server builder exposes `WithListenFn`/`WithAppListenerFn` options;
+    old package vars removed; tests use builder options
+  - [ ] Category 4: factory interfaces defined; constructor accepts factories; all framework
+    init tests pass parallel-safe
+  - [ ] Category 5: each utility call site accepts fn param; package vars removed
   - [ ] `-race` clean: `go test -race -count=2 ./...`
-  - [ ] All tests pass with `-shuffle=on`
-  - [ ] ARCHITECTURE.md §10.2.5 updated with per-category seam guidance and decisions made
-  - [ ] `.github/instructions/03-02.testing.instructions.md` updated
+  - [ ] All tests pass with shuffle: `go test ./... -shuffle=on`
+  - [ ] `go build ./...` clean (verifies all API break call sites updated)
+  - [ ] ARCHITECTURE.md §10.2.5 updated with per-category decisions and function-param standard
+  - [ ] `.github/instructions/03-02.testing.instructions.md` updated (remove seam-parallel
+    antipattern; add function-param injection rule)
   - [ ] `.github/skills/test-table-driven/SKILL.md` updated
-  - [ ] `.claude/commands/test-table-driven.md` updated (body identical to Copilot skill)
+  - [ ] `.claude/commands/test-table-driven.md` updated (body matches Copilot skill)
+  - [ ] lessons.md updated: function-param injection is the project-wide seam standard
   - [ ] `go run ./cmd/cicd-lint lint-docs` passes
 - **Files**:
-  - Various `internal/apps/tools/cicd_lint/lint_fitness/**/*.go` (per Category 1 answer)
-  - Various `internal/shared/crypto/**/*.go` (per Category 2 answer)
-  - Various `internal/apps/framework/service/server/**/*.go` (per Categories 3, 4 answers)
+  - `internal/apps/tools/cicd_lint/lint_fitness/**/*.go` (Category 1: ~20 seams, ~10 packages)
+  - `internal/shared/crypto/**/*.go` (Category 2: ~9 seams)
+  - `internal/apps/framework/service/server/**/*.go` (Categories 3+4: ~11 seams)
+  - `internal/apps/sm-im/client/message.go` and other Category 5 files (~5 files)
   - `docs/ARCHITECTURE.md`
   - `.github/instructions/03-02.testing.instructions.md`
   - `.github/skills/test-table-driven/SKILL.md`

@@ -81,13 +81,26 @@ Six new work areas:
 
 ## Phases
 
-### Phase 0: Pre-Work Defect Fixes (20h) [Status: ☐ TODO]
+### Phase 0: Pre-Work Defect Fixes (24.5h) [Status: ☐ TODO]
 
 **Objective**: Fix 9 defects and omissions identified during plan review. ALL Phase 0 tasks
 MUST complete before Phase 1 begins — these are blocking regressions not feature work.
 
-**Prerequisite**: quizme-v2.md must be answered before starting tasks 0.10 (Q6) and 0.11
-(Q1–5). Tasks 0.1–0.9 have no quizme dependency and may start immediately.
+**quizme-v2.md Decisions (answered 2026-04-03)**:
+- Q1 (Cat A — fitness linter OS I/O seams ~20): **B** — pass OS I/O functions as parameters
+  to each linter's `Lint()` / `CheckInDir()` function; remove package-level seam vars
+- Q2 (Cat B — crypto/random seams ~9): **B** — add `io.Reader` parameter to relevant crypto
+  functions; API break accepted; production callers pass `crand.Reader`
+- Q3 (Cat C — network/server seams ~5): **B** — add `WithListenFn(fn)` and
+  `WithAppListenerFn(fn)` functional options to server builder; remove package-level vars
+- Q4 (Cat D — framework dependency seams ~6): **B** — define `TelemetryFactory`,
+  `JWKFactory`, `MigrationFactory` interfaces; inject via constructor
+- Q5 (Cat E — single-use utility seams ~5): **B** — convert each to function parameter at
+  call site; remove package-level vars
+- Q6 (absent-dir behavior): **E** — ALL 68 fitness linters must return hard error on absent
+  dirs; audit all 68; batch ~10 linters per commit; create any missing repo dirs in same commit
+- Cross-cutting: document in ARCHITECTURE.md and lessons.md that ALL production code must
+  use function-param injection rather than package-level seam vars
 
 **Research Summary** (facts confirmed before writing tasks):
 
@@ -162,15 +175,18 @@ MUST complete before Phase 1 begins — these are blocking regressions not featu
 - **0.8** Update `pki-ca-profile-schema` linter validation: `min_days >= 0` → `min_days >= 1`.
 - **0.9** Remove local `core.autocrlf=false` override; restore platform-native line endings
   (Windows CRLF / Linux LF); document in ARCHITECTURE.md §9.9. No `--fix lf`.
-- **0.10** Fix `health_path_completeness` and `api_path_registry` absent-dir handling per
-  quizme-v2.md Q6; audit 38 IO-without-IsNotExist linters; document contract in ARCH §9.10.
-- **0.11** Implement per-category seam refactoring per quizme-v2.md Q1–Q5; update ARCH
-  §10.2.5, §03-02.testing instructions, and test-table-driven skill.
+- **0.10** Change ALL 68 fitness linters to return hard error on absent dirs (Q6: option E);
+  audit all 68 in batches of ~10; create any missing repo dirs in same commit as linter fix;
+  document contract in ARCH §9.10 and lessons.md.
+- **0.11** Implement option B (function-param injection) for all 5 seam categories (Q1–Q5);
+  remove all package-level seam vars; update ARCH §10.2.5, 03-02.testing instructions,
+  test-table-driven skill; document in lessons.md.
 
 **Success**: All 11 tasks verified; `go run ./cmd/cicd-lint lint-fitness` passes with 2 new
 linters; all 10 compose.yml files have 4 service instances; pki-ca uses `database-url` only;
-PKI profiles have `min_days >= 1`; local `core.autocrlf=false` removed; abandoned `--fix lf`
-approach; linter absent-dir contract documented; seam categories refactored per quizme-v2.md.
+PKI profiles have `min_days >= 1`; local `core.autocrlf=false` removed; ALL 68 fitness
+linters return hard error on absent dirs; all package-level seam vars replaced with function-
+param injection; contracts documented in ARCHITECTURE.md and lessons.md.
 
 **Post-Mortem**: After quality gates pass, update lessons.md Phase 0 section.
 
