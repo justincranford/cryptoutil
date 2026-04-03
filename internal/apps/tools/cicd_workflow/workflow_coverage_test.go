@@ -212,25 +212,23 @@ func TestWorkflow_NoArgs(t *testing.T) {
 	require.Equal(t, 1, result)
 }
 
-// Sequential: mutates cleanupFn package-level variable.
+// TestWorkflow_CleanupSubcommand_Success tests cleanup subcommand success path via fn-param injection.
 func TestWorkflow_CleanupSubcommand_Success(t *testing.T) {
-	orig := cleanupFn
-	cleanupFn = func(_ []string, _ io.Writer) int { return 0 }
+	t.Parallel()
 
-	defer func() { cleanupFn = orig }()
+	stubCleanupFn := func(_ []string, _ io.Writer) int { return 0 }
 
-	result := Workflow([]string{cryptoutilSharedMagic.CICDCmdDirWorkflow, cryptoutilSharedMagic.WorkflowSubCmdCleanup}, nil, nil, nil)
+	result := workflow([]string{cryptoutilSharedMagic.CICDCmdDirWorkflow, cryptoutilSharedMagic.WorkflowSubCmdCleanup}, nil, nil, nil, stubCleanupFn)
 	require.Equal(t, 0, result)
 }
 
-// Sequential: mutates cleanupFn package-level variable.
+// TestWorkflow_CleanupSubcommand_Error tests cleanup subcommand error path via fn-param injection.
 func TestWorkflow_CleanupSubcommand_Error(t *testing.T) {
-	orig := cleanupFn
-	cleanupFn = func(_ []string, _ io.Writer) int { return 1 }
+	t.Parallel()
 
-	defer func() { cleanupFn = orig }()
+	stubCleanupFn := func(_ []string, _ io.Writer) int { return 1 }
 
-	result := Workflow([]string{cryptoutilSharedMagic.CICDCmdDirWorkflow, cryptoutilSharedMagic.WorkflowSubCmdCleanup}, nil, nil, nil)
+	result := workflow([]string{cryptoutilSharedMagic.CICDCmdDirWorkflow, cryptoutilSharedMagic.WorkflowSubCmdCleanup}, nil, nil, nil, stubCleanupFn)
 	require.Equal(t, 1, result)
 }
 

@@ -3,6 +3,7 @@
 package outdated_deps
 
 import (
+	json "encoding/json"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -71,7 +72,7 @@ func TestCheckOutdatedDeps_CacheUsed(t *testing.T) {
 		Mode:         cryptoutilSharedMagic.ModeNameDirect,
 	}
 
-	err = saveDepCache(filepath.Join(tmpDir, cryptoutilSharedMagic.DepCacheFileName), cache)
+	err = saveDepCache(filepath.Join(tmpDir, cryptoutilSharedMagic.DepCacheFileName), cache, json.MarshalIndent)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -108,7 +109,7 @@ func TestCheckOutdatedDeps_CacheWithError(t *testing.T) {
 		Mode:         cryptoutilSharedMagic.ModeNameDirect,
 	}
 
-	err = saveDepCache(filepath.Join(tmpDir, cryptoutilSharedMagic.DepCacheFileName), cache)
+	err = saveDepCache(filepath.Join(tmpDir, cryptoutilSharedMagic.DepCacheFileName), cache, json.MarshalIndent)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -182,7 +183,7 @@ func TestSaveDepCache_WriteError(t *testing.T) {
 		Mode:         cryptoutilSharedMagic.ModeNameDirect,
 	}
 
-	err = saveDepCache(cacheFile, cache)
+	err = saveDepCache(cacheFile, cache, json.MarshalIndent)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to create output directory")
 }
@@ -288,7 +289,7 @@ func TestSaveDepCache_WriteFileError(t *testing.T) {
 		Mode:         cryptoutilSharedMagic.ModeNameDirect,
 	}
 
-	err = saveDepCache(cacheFile, cache)
+	err = saveDepCache(cacheFile, cache, json.MarshalIndent)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to write cache file")
 }

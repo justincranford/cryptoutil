@@ -143,7 +143,7 @@ func TestFindUnaliasedCryptoutilImports_WalkCallbackError(t *testing.T) {
 
 	defer func() { _ = os.Chmod(filepath.Join(tmpDir, "locked"), 0o700) }()
 
-	_, err = FindUnaliasedCryptoutilImports()
+	_, err = FindUnaliasedCryptoutilImports(filepath.Walk)
 	require.Error(t, err)
 }
 
@@ -190,7 +190,7 @@ func TestFindUnaliasedCryptoutilImports_WithTempDir(t *testing.T) {
 	require.NoError(t, os.WriteFile(testCleanGoFile, []byte(testCleanContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Test - should have no violations.
-	violations, err := FindUnaliasedCryptoutilImports()
+	violations, err := FindUnaliasedCryptoutilImports(filepath.Walk)
 	require.NoError(t, err)
 	require.Empty(t, violations)
 }
@@ -283,7 +283,7 @@ func TestFindUnaliasedCryptoutilImports_ErrorPath(t *testing.T) {
 	}()
 
 	// Test - should get error from reading file.
-	_, err = FindUnaliasedCryptoutilImports()
+	_, err = FindUnaliasedCryptoutilImports(filepath.Walk)
 	require.Error(t, err)
 }
 
@@ -305,7 +305,7 @@ func TestFindUnaliasedCryptoutilImports_VendorDirSkipped(t *testing.T) {
 	require.NoError(t, os.WriteFile(vendorFile, []byte("package vendor\nimport \"cryptoutil/internal/apps/foo\"\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// FindUnaliasedCryptoutilImports should skip vendor directory.
-	violations, findErr := FindUnaliasedCryptoutilImports()
+	violations, findErr := FindUnaliasedCryptoutilImports(filepath.Walk)
 	require.NoError(t, findErr)
 	require.Empty(t, violations, "vendor directory should be skipped")
 }
@@ -339,17 +339,15 @@ func TestCheck_WalkError(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to check cryptoutil imports")
 }
 
-// Sequential: modifies package-level unaliasedImportsWalkFn seam.
+// TestFindUnaliasedCryptoutilImports_WalkSeamError tests the walk error path with fn-param injection.
 func TestFindUnaliasedCryptoutilImports_WalkSeamError(t *testing.T) {
-	orig := unaliasedImportsWalkFn
+	t.Parallel()
 
-	t.Cleanup(func() { unaliasedImportsWalkFn = orig })
-
-	unaliasedImportsWalkFn = func(_ string, _ filepath.WalkFunc) error {
+	stubWalkFn := func(_ string, _ filepath.WalkFunc) error {
 		return fmt.Errorf("injected walk error")
 	}
 
-	_, err := FindUnaliasedCryptoutilImports()
+	_, err := FindUnaliasedCryptoutilImports(stubWalkFn)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "error walking directory tree")
 }

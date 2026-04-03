@@ -6,25 +6,25 @@
 package middleware
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 )
 
 // TestSessionMiddleware_EmptyBearerToken covers the defensive dead code path at
-// session.go:75-79 where the token after "Bearer " is empty. This path cannot
+// session.go where the token after "Bearer " is empty. This path cannot
 // be triggered via real HTTP requests because Fiber trims trailing whitespace
-// from headers, but is exercised via the injectable sessionMiddlewareStringsSplitNFn.
-//
-// NOTE: NOT parallel — modifies package-level injectable var.
+// from headers, but is exercised via the injectable splitNFn parameter.
 func TestSessionMiddleware_EmptyBearerToken(t *testing.T) {
+	t.Parallel()
+
 	// Override SplitN to simulate "Bearer " with empty token part.
-	orig := sessionMiddlewareStringsSplitNFn
-	sessionMiddlewareStringsSplitNFn = func(s, sep string, n int) []string {
+	stubSplitNFn := func(s, sep string, n int) []string {
 		if strings.HasPrefix(strings.ToLower(s), "bearer") {
 			return []string{cryptoutilSharedMagic.AuthorizationBearer, ""}
 		}
@@ -32,11 +32,9 @@ func TestSessionMiddleware_EmptyBearerToken(t *testing.T) {
 		return strings.SplitN(s, sep, n)
 	}
 
-	defer func() { sessionMiddlewareStringsSplitNFn = orig }()
-
 	validator := &mockSessionValidator{}
 	app := createTestApp()
-	app.Get("/test", SessionMiddleware(validator, true), func(c *fiber.Ctx) error {
+	app.Get("/test", sessionMiddleware(validator, true, stubSplitNFn), func(c *fiber.Ctx) error {
 		return c.SendStatus(200)
 	})
 

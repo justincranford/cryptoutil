@@ -19,6 +19,8 @@ import (
 type UserServiceImpl struct {
 	userRepo    UserRepository
 	userFactory func() UserModel // Factory function to create user instances
+	hashFn      func(string) (string, error)
+	generateJWT func(googleUuid.UUID, string, string) (string, time.Time, error)
 }
 
 // NewUserService creates a new UserService.
@@ -28,13 +30,12 @@ type UserServiceImpl struct {
 // - userFactory: Factory function to create new UserModel instances (e.g., func() UserModel { return &domain.User{} })
 //
 // Returns configured UserService ready for registration and authentication.
-// realmsServiceHashSecretPBKDF2Fn allows overriding hash function for unit testing.
-var realmsServiceHashSecretPBKDF2Fn = cryptoutilSharedCryptoHash.HashSecretPBKDF2
-
 func NewUserService(userRepo UserRepository, userFactory func() UserModel) *UserServiceImpl {
 	return &UserServiceImpl{
 		userRepo:    userRepo,
 		userFactory: userFactory,
+		hashFn:      cryptoutilSharedCryptoHash.HashSecretPBKDF2,
+		generateJWT: GenerateJWT,
 	}
 }
 
@@ -101,7 +102,7 @@ func (s *UserServiceImpl) RegisterUser(ctx context.Context, username, password s
 	}
 
 	// Hash password with PBKDF2-HMAC-SHA256 (LowEntropyRandom, FIPS-approved).
-	passwordHash, err := realmsServiceHashSecretPBKDF2Fn(password)
+	passwordHash, err := s.hashFn(password)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}

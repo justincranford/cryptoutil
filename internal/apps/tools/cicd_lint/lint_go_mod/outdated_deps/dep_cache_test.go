@@ -3,6 +3,7 @@
 package outdated_deps
 
 import (
+	json "encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -42,7 +43,7 @@ func TestCheckAndUseDepCache_Expired(t *testing.T) {
 		OutdatedDeps: []string{},
 		Mode:         cryptoutilSharedMagic.ModeNameDirect,
 	}
-	err = saveDepCache(cacheFile, cache)
+	err = saveDepCache(cacheFile, cache, json.MarshalIndent)
 	require.NoError(t, err)
 
 	used, state, err := checkAndUseDepCache(cacheFile, cryptoutilSharedMagic.ModeNameDirect, goModStat, goSumStat, logger)
@@ -81,7 +82,7 @@ func TestCheckAndUseDepCache_GoModChanged(t *testing.T) {
 		OutdatedDeps: []string{},
 		Mode:         cryptoutilSharedMagic.ModeNameDirect,
 	}
-	err = saveDepCache(cacheFile, cache)
+	err = saveDepCache(cacheFile, cache, json.MarshalIndent)
 	require.NoError(t, err)
 
 	used, state, err := checkAndUseDepCache(cacheFile, cryptoutilSharedMagic.ModeNameDirect, goModStat, goSumStat, logger)
@@ -118,7 +119,7 @@ func TestCheckAndUseDepCache_ValidCacheWithOutdated(t *testing.T) {
 		OutdatedDeps: []string{"example.com/dep v1.0.0 [v1.1.0]"},
 		Mode:         cryptoutilSharedMagic.ModeNameDirect,
 	}
-	err = saveDepCache(cacheFile, cache)
+	err = saveDepCache(cacheFile, cache, json.MarshalIndent)
 	require.NoError(t, err)
 
 	used, state, err := checkAndUseDepCache(cacheFile, cryptoutilSharedMagic.ModeNameDirect, goModStat, goSumStat, logger)
@@ -156,7 +157,7 @@ func TestCheckAndUseDepCache_ValidCacheClean(t *testing.T) {
 		OutdatedDeps: []string{},
 		Mode:         cryptoutilSharedMagic.ModeNameDirect,
 	}
-	err = saveDepCache(cacheFile, cache)
+	err = saveDepCache(cacheFile, cache, json.MarshalIndent)
 	require.NoError(t, err)
 
 	used, state, err := checkAndUseDepCache(cacheFile, cryptoutilSharedMagic.ModeNameDirect, goModStat, goSumStat, logger)
@@ -178,7 +179,7 @@ func TestLoadDepCache_ValidCache(t *testing.T) {
 		OutdatedDeps: []string{"example.com/dep v1.0.0 [v1.1.0]"},
 		Mode:         cryptoutilSharedMagic.ModeNameDirect,
 	}
-	err := saveDepCache(cacheFile, cache)
+	err := saveDepCache(cacheFile, cache, json.MarshalIndent)
 	require.NoError(t, err)
 
 	loadedCache, err := loadDepCache(cacheFile)
@@ -202,7 +203,7 @@ func TestSaveDepCache_CreateDirectory(t *testing.T) {
 		Mode:         cryptoutilSharedMagic.ModeNameDirect,
 	}
 
-	err := saveDepCache(cacheFile, cache)
+	err := saveDepCache(cacheFile, cache, json.MarshalIndent)
 	require.NoError(t, err)
 
 	_, err = os.Stat(cacheFile)

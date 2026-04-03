@@ -53,11 +53,13 @@ type SessionValidator interface {
 //	sessionValidator := businesslogic.NewSessionManager(...)
 //	app.Get("/browser/api/v1/messages", middleware.BrowserSessionMiddleware(sessionValidator), handleMessages)
 //	app.Get("/service/api/v1/messages", middleware.ServiceSessionMiddleware(sessionValidator), handleMessages)
-//
-// sessionMiddlewareStringsSplitNFn allows overriding strings.SplitN for testing.
-var sessionMiddlewareStringsSplitNFn = strings.SplitN
 
 func SessionMiddleware(sessionValidator SessionValidator, isBrowser bool) fiber.Handler {
+	return sessionMiddleware(sessionValidator, isBrowser, strings.SplitN)
+}
+
+// sessionMiddleware is the testable implementation with injectable splitNFn.
+func sessionMiddleware(sessionValidator SessionValidator, isBrowser bool, splitNFn func(string, string, int) []string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// Extract token from Authorization header
 		authHeader := c.Get("Authorization")
@@ -68,7 +70,7 @@ func SessionMiddleware(sessionValidator SessionValidator, isBrowser bool) fiber.
 		}
 
 		// Parse Bearer token format
-		parts := sessionMiddlewareStringsSplitNFn(authHeader, " ", 2)
+		parts := splitNFn(authHeader, " ", 2)
 		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
 			summary := "Invalid Authorization header format (expected: Bearer <token>)"
 

@@ -3,6 +3,7 @@
 package outdated_deps
 
 import (
+	json "encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -199,7 +200,7 @@ func TestSaveDepCache_Success(t *testing.T) {
 		Mode:         cryptoutilSharedMagic.ModeNameDirect,
 	}
 
-	err := saveDepCache(cacheFile, cache)
+	err := saveDepCache(cacheFile, cache, json.MarshalIndent)
 	require.NoError(t, err)
 
 	content, err := os.ReadFile(cacheFile)
@@ -340,7 +341,7 @@ func TestCheckAndUseDepCache_ModeMismatch(t *testing.T) {
 		OutdatedDeps: []string{},
 		Mode:         "indirect",
 	}
-	err = saveDepCache(cacheFile, cache)
+	err = saveDepCache(cacheFile, cache, json.MarshalIndent)
 	require.NoError(t, err)
 
 	used, state, err := checkAndUseDepCache(cacheFile, cryptoutilSharedMagic.ModeNameDirect, goModStat, goSumStat, logger)

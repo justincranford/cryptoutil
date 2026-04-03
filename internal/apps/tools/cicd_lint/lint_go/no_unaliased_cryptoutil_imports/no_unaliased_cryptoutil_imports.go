@@ -18,16 +18,12 @@ const (
 	importBlockEndMarker = ")" // End of import block marker.
 )
 
-// Test seams: replaceable in tests to exercise unreachable OS-level error paths.
-// See ARCHITECTURE.md Section 10.2.4 (Test Seam Injection Pattern).
-var unaliasedImportsWalkFn = filepath.Walk
-
 // Check validates all cryptoutil imports use aliases from .golangci.yml.
 // Returns error if any unaliased cryptoutil imports are found.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 	logger.Log("Checking for unaliased cryptoutil imports")
 
-	violations, err := FindUnaliasedCryptoutilImports()
+	violations, err := FindUnaliasedCryptoutilImports(filepath.Walk)
 	if err != nil {
 		return fmt.Errorf("failed to check cryptoutil imports: %w", err)
 	}
@@ -43,10 +39,10 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 	return nil
 }
 
-func FindUnaliasedCryptoutilImports() ([]string, error) {
+func FindUnaliasedCryptoutilImports(walkFn func(string, filepath.WalkFunc) error) ([]string, error) {
 	var violations []string
 
-	err := unaliasedImportsWalkFn(".", func(path string, info os.FileInfo, err error) error {
+	err := walkFn(".", func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}

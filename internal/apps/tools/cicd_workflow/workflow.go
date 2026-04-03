@@ -66,14 +66,14 @@ type ExecutionSummary struct {
 	CombinedLog   string
 }
 
-// cleanupFn is the GitHub Actions cleanup handler.
-// Test seam: replaceable in tests to avoid invoking gh CLI.
-// See ARCHITECTURE.md Section 10.2.4 (Test Seam Injection Pattern).
-var cleanupFn = defaultCleanup
-
 // Workflow executes the workflow tool with the provided command line arguments.
 // It dispatches to run or cleanup subcommands.
 func Workflow(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
+	return workflow(args, stdin, stdout, stderr, defaultCleanup)
+}
+
+// workflow is the testable implementation with injectable cleanupFn.
+func workflow(args []string, _ io.Reader, _ io.Writer, stderr io.Writer, cleanupFn func([]string, io.Writer) int) int {
 	if len(args) < 2 {
 		_, _ = fmt.Fprintf(stderr, "%s\n", cryptoutilSharedMagic.UsageWorkflow)
 

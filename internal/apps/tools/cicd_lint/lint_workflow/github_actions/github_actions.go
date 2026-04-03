@@ -39,9 +39,6 @@ type WorkflowActionExceptions struct {
 // Actions pinned to branches are not deterministic and fail security best practices.
 var disallowedVersionsBranchPinning = []string{"main", "master", "latest", "develop", cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault, "trunk"}
 
-// checkActionVersionsConcurrentlyFn is injectable for testing the outdated actions branch.
-var checkActionVersionsConcurrentlyFn = checkActionVersionsConcurrently
-
 // Check validates GitHub workflow files for outdated actions and other issues.
 // It returns an error if validation fails or outdated actions are found.
 func Check(logger *cryptoutilCmdCicdCommon.Logger, workflowFiles []string) error {
@@ -52,6 +49,11 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger, workflowFiles []string) error
 // loading action exceptions relative to the given directory.
 // It returns an error if validation fails or outdated actions are found.
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, workflowFiles []string, dir string) error {
+	return checkInDir(logger, workflowFiles, dir, checkActionVersionsConcurrently)
+}
+
+// checkInDir is the testable implementation with injectable checkVersionsFn.
+func checkInDir(logger *cryptoutilCmdCicdCommon.Logger, workflowFiles []string, dir string, checkVersionsFn func(*cryptoutilCmdCicdCommon.Logger, map[string]WorkflowActionDetails, *WorkflowActionExceptions) ([]WorkflowActionDetails, []WorkflowActionDetails, []string)) error {
 	workflowActionExceptions, err := loadWorkflowActionExceptionsInDir(dir)
 	if err != nil {
 		logger.Log(fmt.Sprintf("Warning: Failed to load action exceptions: %v", err))
@@ -73,7 +75,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, workflowFiles []string, 
 	logger.Log(fmt.Sprintf("Checking %d unique actions for updates", len(workflowsActionDetails)))
 
 	versionCheckStart := time.Now().UTC()
-	outdated, exempted, errors := checkActionVersionsConcurrentlyFn(logger, workflowsActionDetails, workflowActionExceptions)
+	outdated, exempted, errors := checkVersionsFn(logger, workflowsActionDetails, workflowActionExceptions)
 	versionCheckEnd := time.Now().UTC()
 
 	logger.Log(fmt.Sprintf("Version checks completed in %.2fs", versionCheckEnd.Sub(versionCheckStart).Seconds()))

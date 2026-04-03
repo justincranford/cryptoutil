@@ -14,27 +14,29 @@ import (
 	cryptoutilAppsFrameworkServiceClient "cryptoutil/internal/apps/framework/service/client"
 )
 
-// jsonMarshalFn is an injectable JSON marshal function for testing error paths.
-var jsonMarshalFn = json.Marshal
-
 // SendMessage sends a message to one or more receivers via /service/api/v1/messages/tx.
 func SendMessage(client *http.Client, baseURL, message, token string, receiverIDs ...googleUuid.UUID) (string, error) {
-	receiverIDStrs := make([]string, len(receiverIDs))
+	return sendMessageInternal(client, baseURL, message, token, json.Marshal, "/service/api/v1/messages/tx", receiverIDs...)
+}
+
+// sendMessageInternal is the testable implementation of SendMessage with injectable marshal function.
+func sendMessageInternal(client *http.Client, baseURL, message, token string, marshalFn func(any) ([]byte, error), path string, receiverIDs ...googleUuid.UUID) (string, error) {
+	receiversIDStrs := make([]string, len(receiverIDs))
 	for i, id := range receiverIDs {
-		receiverIDStrs[i] = id.String()
+		receiversIDStrs[i] = id.String()
 	}
 
 	reqBody := map[string]any{
 		"message":      message,
-		"receiver_ids": receiverIDStrs,
+		"receiver_ids": receiversIDStrs,
 	}
 
-	reqJSON, err := jsonMarshalFn(reqBody)
+	reqJSON, err := marshalFn(reqBody)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	resp, err := cryptoutilAppsFrameworkServiceClient.SendAuthenticatedRequest(client, http.MethodPut, baseURL+"/service/api/v1/messages/tx", token, reqJSON)
+	resp, err := cryptoutilAppsFrameworkServiceClient.SendAuthenticatedRequest(client, http.MethodPut, baseURL+path, token, reqJSON)
 	if err != nil {
 		return "", fmt.Errorf("failed to send message: %w", err)
 	}
@@ -102,43 +104,7 @@ func DeleteMessageService(client *http.Client, baseURL, messageID, token string)
 
 // SendMessageBrowser sends a message to one or more receivers via /browser/api/v1/messages/tx.
 func SendMessageBrowser(client *http.Client, baseURL, message, token string, receiverIDs ...googleUuid.UUID) (string, error) {
-	receiverIDStrs := make([]string, len(receiverIDs))
-	for i, id := range receiverIDs {
-		receiverIDStrs[i] = id.String()
-	}
-
-	reqBody := map[string]any{
-		"message":      message,
-		"receiver_ids": receiverIDStrs,
-	}
-
-	reqJSON, err := jsonMarshalFn(reqBody)
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal request: %w", err)
-	}
-
-	resp, err := cryptoutilAppsFrameworkServiceClient.SendAuthenticatedRequest(client, http.MethodPut, baseURL+"/browser/api/v1/messages/tx", token, reqJSON)
-	if err != nil {
-		return "", fmt.Errorf("failed to send message: %w", err)
-	}
-
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusCreated {
-		return "", decodeErrorResponse(resp)
-	}
-
-	var respBody map[string]string
-	if err := cryptoutilAppsFrameworkServiceClient.DecodeJSONResponse(resp, &respBody); err != nil {
-		return "", fmt.Errorf("failed to decode response: %w", err)
-	}
-
-	messageID, ok := respBody["message_id"]
-	if !ok {
-		return "", &Error{Message: "response missing message_id field"}
-	}
-
-	return messageID, nil
+	return sendMessageInternal(client, baseURL, message, token, json.Marshal, "/browser/api/v1/messages/tx", receiverIDs...)
 }
 
 // ReceiveMessagesBrowser retrieves messages for the specified receiver via /browser/api/v1/messages/rx.

@@ -18,9 +18,6 @@ import (
 	cryptoutilSharedUtilFiles "cryptoutil/internal/shared/util/files"
 )
 
-// Injectable functions for testing defensive error paths.
-var outdatedDepsMarshalFn = func(v any, prefix, indent string) ([]byte, error) { return json.MarshalIndent(v, prefix, indent) }
-
 // Check checks for outdated Go direct dependencies using the current working directory.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 	return CheckInDir(logger, ".")
@@ -97,7 +94,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, dir string) error {
 		Mode:         modeName,
 	}
 
-	if err := saveDepCache(cacheFile, cache); err != nil {
+	if err := saveDepCache(cacheFile, cache, json.MarshalIndent); err != nil {
 		logger.Log(fmt.Sprintf("Warning: Failed to save dependency cache: %v", err))
 	}
 
@@ -290,8 +287,8 @@ func loadDepCache(cacheFile string) (*cryptoutilSharedMagic.DepCache, error) {
 }
 
 // saveDepCache saves dependency cache to the specified file.
-func saveDepCache(cacheFile string, cache cryptoutilSharedMagic.DepCache) error {
-	content, err := outdatedDepsMarshalFn(cache, "", "  ")
+func saveDepCache(cacheFile string, cache cryptoutilSharedMagic.DepCache, marshalFn func(any, string, string) ([]byte, error)) error {
+	content, err := marshalFn(cache, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to marshal cache JSON: %w", err)
 	}

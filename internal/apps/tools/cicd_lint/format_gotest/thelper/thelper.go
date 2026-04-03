@@ -16,11 +16,6 @@ import (
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
 )
 
-// printerFprintFn is an injectable function for printer.Fprint (used in tests for error coverage).
-var printerFprintFn = func(output io.Writer, fset *token.FileSet, node any) error {
-	return printer.Fprint(output, fset, node)
-}
-
 // helperFunctionPatterns are naming patterns that indicate test helper functions.
 var helperFunctionPatterns = []string{
 	"setup",
@@ -69,7 +64,14 @@ func Fix(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) (int, int, int,
 }
 
 // fixTHelperInFile adds t.Helper() to test helper functions in a single file.
-func fixTHelperInFile(_ *cryptoutilCmdCicdCommon.Logger, filePath string) (bool, int, error) {
+func fixTHelperInFile(logger *cryptoutilCmdCicdCommon.Logger, filePath string) (bool, int, error) {
+	return fixTHelperInFileWithPrinter(logger, filePath, func(output io.Writer, fset *token.FileSet, node any) error {
+		return printer.Fprint(output, fset, node)
+	})
+}
+
+// fixTHelperInFileWithPrinter is the testable implementation with injectable printer function.
+func fixTHelperInFileWithPrinter(_ *cryptoutilCmdCicdCommon.Logger, filePath string, fprintFn func(io.Writer, *token.FileSet, any) error) (bool, int, error) {
 	fset := token.NewFileSet()
 
 	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
@@ -128,7 +130,7 @@ func fixTHelperInFile(_ *cryptoutilCmdCicdCommon.Logger, filePath string) (bool,
 		}
 		defer file.Close() //nolint:errcheck // Defer close is best-effort.
 
-		if err := printerFprintFn(file, fset, node); err != nil {
+		if err := fprintFn(file, fset, node); err != nil {
 			return false, fixCount, fmt.Errorf("failed to write file: %w", err)
 		}
 

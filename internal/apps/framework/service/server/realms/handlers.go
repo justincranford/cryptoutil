@@ -31,9 +31,6 @@ type realmIDGetter interface {
 	GetRealmID() googleUuid.UUID
 }
 
-// realmsHandlersGenerateJWTFn allows overriding GenerateJWT for testing error paths.
-var realmsHandlersGenerateJWTFn = GenerateJWT
-
 // HandleRegisterUser returns a Fiber handler for user registration.
 //
 // Workflow:
@@ -176,7 +173,7 @@ func (s *UserServiceImpl) HandleLoginUser(jwtSecret string) fiber.Handler {
 		}
 
 		// Generate JWT token.
-		token, expiresAt, err := realmsHandlersGenerateJWTFn(user.GetID(), user.GetUsername(), jwtSecret)
+		token, expiresAt, err := s.generateJWT(user.GetID(), user.GetUsername(), jwtSecret)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				cryptoutilSharedMagic.StringError: "Failed to generate token",

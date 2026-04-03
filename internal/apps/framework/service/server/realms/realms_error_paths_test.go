@@ -18,18 +18,15 @@ import (
 )
 
 // TestRegisterUser_HashError tests the error path when PBKDF2 hashing fails.
-// Cannot be parallel because it modifies a package-level variable.
 func TestRegisterUser_HashError(t *testing.T) {
-	orig := realmsServiceHashSecretPBKDF2Fn
-	realmsServiceHashSecretPBKDF2Fn = func(_ string) (string, error) {
-		return "", errors.New("injected hash failure")
-	}
-
-	defer func() { realmsServiceHashSecretPBKDF2Fn = orig }()
+	t.Parallel()
 
 	repo := newMockUserRepository()
 	factory := func() UserModel { return &BasicUser{} }
 	svc := NewUserService(repo, factory)
+	svc.hashFn = func(_ string) (string, error) {
+		return "", errors.New("injected hash failure")
+	}
 
 	_, err := svc.RegisterUser(t.Context(), "validuser", "SecurePass123!")
 	require.Error(t, err)
@@ -37,18 +34,15 @@ func TestRegisterUser_HashError(t *testing.T) {
 }
 
 // TestHandleLoginUser_GenerateJWTError tests the error path when JWT generation fails.
-// Cannot be parallel because it modifies a package-level variable.
 func TestHandleLoginUser_GenerateJWTError(t *testing.T) {
-	orig := realmsHandlersGenerateJWTFn
-	realmsHandlersGenerateJWTFn = func(_ googleUuid.UUID, _ string, _ string) (string, time.Time, error) {
-		return "", time.Time{}, errors.New("injected jwt failure")
-	}
-
-	defer func() { realmsHandlersGenerateJWTFn = orig }()
+	t.Parallel()
 
 	repo := newMockUserRepository()
 	factory := func() UserModel { return &BasicUser{} }
 	svc := NewUserService(repo, factory)
+	svc.generateJWT = func(_ googleUuid.UUID, _ string, _ string) (string, time.Time, error) {
+		return "", time.Time{}, errors.New("injected jwt failure")
+	}
 
 	// Register user first.
 	_, err := svc.RegisterUser(t.Context(), "jwtuser", "SecurePass123!")

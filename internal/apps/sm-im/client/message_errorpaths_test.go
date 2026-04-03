@@ -3,11 +3,12 @@
 package client
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	http "net/http"
 	"net/http/httptest"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -167,20 +168,14 @@ func TestDeleteMessageBrowser_RequestError(t *testing.T) {
 
 // TestSendMessage_MarshalError covers the json.Marshal error path.
 func TestSendMessage_MarshalError(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() here because this test mutates the
-	// package-level jsonMarshalFn variable, which would cause a race
-	// condition with other parallel tests that call SendMessage.
-	originalFn := jsonMarshalFn
+	t.Parallel()
 
-	defer func() { jsonMarshalFn = originalFn }()
-
-	jsonMarshalFn = func(_ any) ([]byte, error) {
+	receiver := googleUuid.New()
+	stubMarshalFn := func(_ any) ([]byte, error) {
 		return nil, fmt.Errorf("simulated marshal failure")
 	}
 
-	receiver := googleUuid.New()
-
-	_, err := SendMessage(http.DefaultClient, "http://localhost", "test", cryptoutilSharedMagic.ParamToken, receiver)
+	_, err := sendMessageInternal(http.DefaultClient, "http://localhost", "test", cryptoutilSharedMagic.ParamToken, stubMarshalFn, "/service/api/v1/messages/tx", receiver)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to marshal request")
 }

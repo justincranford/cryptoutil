@@ -3,21 +3,22 @@
 package github_actions
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
 
 	"github.com/stretchr/testify/require"
 )
 
-// TestCheck_OutdatedActionsFound covers the len(outdated) > 0 branch in Check.
-// NOT parallel — modifies package-level injectable var.
+// TestCheck_OutdatedActionsFound covers the len(outdated) > 0 branch in CheckInDir.
 func TestCheck_OutdatedActionsFound(t *testing.T) {
-	original := checkActionVersionsConcurrentlyFn
-	checkActionVersionsConcurrentlyFn = func(_ *cryptoutilCmdCicdCommon.Logger, details map[string]WorkflowActionDetails, _ *WorkflowActionExceptions) ([]WorkflowActionDetails, []WorkflowActionDetails, []string) {
+	t.Parallel()
+
+	stubCheckVersionsFn := func(_ *cryptoutilCmdCicdCommon.Logger, details map[string]WorkflowActionDetails, _ *WorkflowActionExceptions) ([]WorkflowActionDetails, []WorkflowActionDetails, []string) {
 		var outdated []WorkflowActionDetails
 
 		for _, d := range details {
@@ -27,8 +28,6 @@ func TestCheck_OutdatedActionsFound(t *testing.T) {
 
 		return outdated, nil, nil
 	}
-
-	defer func() { checkActionVersionsConcurrentlyFn = original }()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
@@ -46,7 +45,7 @@ jobs:
 	workflowFile := filepath.Join(tmpDir, "test.yml")
 	require.NoError(t, os.WriteFile(workflowFile, []byte(workflowContent), cryptoutilSharedMagic.CacheFilePermissions))
 
-	err := Check(logger, []string{workflowFile})
+	err := checkInDir(logger, []string{workflowFile}, tmpDir, stubCheckVersionsFn)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "found")
 	require.Contains(t, err.Error(), "outdated GitHub Actions")

@@ -59,17 +59,9 @@ func TestHandleRegisterUser_ValidationError(t *testing.T) {
 	require.Equal(t, 400, resp.StatusCode)
 }
 
-// TestHandleRegisterUser_HashError covers the hash failure path at
-// registration_handlers.go:90-93.
-//
-// NOTE: NOT parallel — modifies package-level injectable var.
+// TestHandleRegisterUser_HashError covers the hash failure path in HandleRegisterUser.
 func TestHandleRegisterUser_HashError(t *testing.T) {
-	orig := registrationHandlersHashSecretPBKDF2Fn
-	registrationHandlersHashSecretPBKDF2Fn = func(_ string) (string, error) {
-		return "", errors.New("hash failure injected for test")
-	}
-
-	defer func() { registrationHandlersHashSecretPBKDF2Fn = orig }()
+	t.Parallel()
 
 	db := &gorm.DB{}
 	tenantRepo := cryptoutilAppsFrameworkServiceServerRepository.NewTenantRepository(db)
@@ -77,6 +69,9 @@ func TestHandleRegisterUser_HashError(t *testing.T) {
 	joinRepo := cryptoutilAppsFrameworkServiceServerRepository.NewTenantJoinRequestRepository(db)
 	registrationService := cryptoutilAppsFrameworkServiceServerBusinesslogic.NewTenantRegistrationService(db, tenantRepo, userRepo, joinRepo)
 	handlers := NewRegistrationHandlers(registrationService)
+	handlers.hashFn = func(_ string) (string, error) {
+		return "", errors.New("hash failure injected for test")
+	}
 
 	app := fiber.New()
 	app.Post(cryptoutilSharedMagic.PathRegistration, handlers.HandleRegisterUser)
