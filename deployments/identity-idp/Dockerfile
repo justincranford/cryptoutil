@@ -75,17 +75,17 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 # Copy the remainder of the source.
 COPY . .
 
-# Build the cryptoutil binary (contains identity-idp as subcommand).
+# Build the static, trimmed binary. Uses BuildKit cache mounts for faster incremental builds.
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=${CGO_ENABLED} GOOS=${GOOS} GOARCH=${GOARCH} \
-    go build -a -tags netgo -trimpath -ldflags="${LDFLAGS}" -o /app/cryptoutil ./cmd/cryptoutil
+    go build -a -tags netgo -trimpath -ldflags="${LDFLAGS}" -o /app/identity-idp ./cmd/identity-idp
 
 # Validate that the binary is statically linked.
 SHELL ["/bin/bash", "-c"]
-RUN if ldd /app/cryptoutil 2>/dev/null; then \
-        echo "✗ Binary is dynamically linked - failing build"; \
-        ldd /app/cryptoutil; \
+RUN if ldd /app/identity-idp 2>/dev/null; then \
+        echo "âœ— Binary is dynamically linked - failing build"; \
+        ldd /app/identity-idp; \
         exit 1; \
     else \
         echo "✓ Binary is statically linked"; \

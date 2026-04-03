@@ -114,7 +114,7 @@ services:
   sm-kms-app-sqlite-1:
     profiles: ["dev", "ci"]
     image: cryptoutil:dev
-    command: ["sm", "kms", "server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/sm-kms-app-sqlite-1.yml", "--config=/app/config/sm-kms-app-common.yml", "--config=/app/otel/otel.yml"]
+    command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/sm-kms-app-sqlite-1.yml", "--config=/app/config/sm-kms-app-common.yml", "--config=/app/otel/otel.yml", "-u", "sqlite://file::memory:?cache=shared"]
     working_dir: /tmp
     ports:
       - "8000:8080" # HTTPS public
@@ -160,7 +160,7 @@ services:
   sm-kms-app-sqlite-2:
     profiles: ["dev", "ci"]
     image: cryptoutil:dev
-    command: ["sm", "kms", "server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/sm-kms-app-sqlite-2.yml", "--config=/app/config/sm-kms-app-common.yml", "--config=/app/otel/otel.yml"]
+    command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/sm-kms-app-sqlite-2.yml", "--config=/app/config/sm-kms-app-common.yml", "--config=/app/otel/otel.yml", "-u", "sqlite://file::memory:?cache=shared"]
     working_dir: /tmp
     ports:
       - "8001:8080" # HTTPS public
@@ -206,7 +206,7 @@ services:
   sm-kms-app-postgresql-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["sm", "kms", "server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/sm-kms-app-postgresql-1.yml", "--config=/app/config/sm-kms-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/sm-kms-app-postgresql-1.yml", "--config=/app/config/sm-kms-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
       - "8002:8080" # HTTPS public
@@ -255,7 +255,7 @@ services:
   sm-kms-app-postgresql-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["sm", "kms", "server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/sm-kms-app-postgresql-2.yml", "--config=/app/config/sm-kms-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/sm-kms-app-postgresql-2.yml", "--config=/app/config/sm-kms-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
       - "8003:8080" # HTTPS public

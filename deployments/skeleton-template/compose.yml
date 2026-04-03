@@ -102,7 +102,7 @@ services:
   skeleton-template-app-sqlite-1:
     profiles: ["dev", "ci"]
     image: cryptoutil:dev
-    command: ["server", "--config=/app/config/skeleton-template-app-sqlite-1.yml", "--config=/app/config/skeleton-template-app-common.yml", "--config=/app/otel/otel.yml", "-u", "sqlite://file::memory:?cache=shared", "--bind-public-port=8080"]
+    command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/skeleton-template-app-sqlite-1.yml", "--config=/app/config/skeleton-template-app-common.yml", "--config=/app/otel/otel.yml", "-u", "sqlite://file::memory:?cache=shared"]
     working_dir: /tmp
     ports:
       - "8900:8080" # HTTPS public
@@ -145,7 +145,7 @@ services:
   skeleton-template-app-sqlite-2:
     profiles: ["dev", "ci"]
     image: cryptoutil:dev
-    command: ["server", "--config=/app/config/skeleton-template-app-sqlite-2.yml", "--config=/app/config/skeleton-template-app-common.yml", "--config=/app/otel/otel.yml", "-u", "sqlite://file::memory:?cache=shared", "--bind-public-port=8080"]
+    command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/skeleton-template-app-sqlite-2.yml", "--config=/app/config/skeleton-template-app-common.yml", "--config=/app/otel/otel.yml", "-u", "sqlite://file::memory:?cache=shared"]
     working_dir: /tmp
     ports:
       - "8901:8080" # HTTPS public
@@ -188,7 +188,7 @@ services:
   skeleton-template-app-postgresql-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["server", "--config=/app/config/skeleton-template-app-postgresql-1.yml", "--config=/app/config/skeleton-template-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret", "--bind-public-port=8080"]
+    command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/skeleton-template-app-postgresql-1.yml", "--config=/app/config/skeleton-template-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
       - "8902:8080" # HTTPS public
@@ -234,7 +234,7 @@ services:
   skeleton-template-app-postgresql-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["server", "--config=/app/config/skeleton-template-app-postgresql-2.yml", "--config=/app/config/skeleton-template-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret", "--bind-public-port=8080"]
+    command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/skeleton-template-app-postgresql-2.yml", "--config=/app/config/skeleton-template-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
       - "8903:8080" # HTTPS public

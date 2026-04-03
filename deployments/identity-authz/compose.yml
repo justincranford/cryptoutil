@@ -102,7 +102,7 @@ services:
   identity-authz-app-sqlite-1:
     profiles: ["dev", "ci"]
     image: cryptoutil:dev
-    command: ["--config=/app/config/identity-authz-app-sqlite-1.yml", "--config=/app/config/identity-authz-app-common.yml", "--config=/app/otel/otel.yml"]
+    command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/identity-authz-app-sqlite-1.yml", "--config=/app/config/identity-authz-app-common.yml", "--config=/app/otel/otel.yml", "-u", "sqlite://file::memory:?cache=shared"]
     working_dir: /tmp
     ports:
       - "8400:8080" # HTTPS public
@@ -145,7 +145,7 @@ services:
   identity-authz-app-sqlite-2:
     profiles: ["dev", "ci"]
     image: cryptoutil:dev
-    command: ["--config=/app/config/identity-authz-app-sqlite-2.yml", "--config=/app/config/identity-authz-app-common.yml", "--config=/app/otel/otel.yml"]
+    command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/identity-authz-app-sqlite-2.yml", "--config=/app/config/identity-authz-app-common.yml", "--config=/app/otel/otel.yml", "-u", "sqlite://file::memory:?cache=shared"]
     working_dir: /tmp
     ports:
       - "8401:8080" # HTTPS public
@@ -188,7 +188,7 @@ services:
   identity-authz-app-postgresql-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["--config=/app/config/identity-authz-app-postgresql-1.yml", "--config=/app/config/identity-authz-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/identity-authz-app-postgresql-1.yml", "--config=/app/config/identity-authz-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
       - "8402:8080" # HTTPS public
@@ -234,7 +234,7 @@ services:
   identity-authz-app-postgresql-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["--config=/app/config/identity-authz-app-postgresql-2.yml", "--config=/app/config/identity-authz-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/identity-authz-app-postgresql-2.yml", "--config=/app/config/identity-authz-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
       - "8403:8080" # HTTPS public

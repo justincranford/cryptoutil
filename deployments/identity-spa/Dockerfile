@@ -79,13 +79,13 @@ COPY . .
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=${CGO_ENABLED} GOOS=${GOOS} GOARCH=${GOARCH} \
-    go build -a -tags netgo -trimpath -ldflags="${LDFLAGS}" -o /app/cryptoutil ./cmd/cryptoutil
+    go build -a -tags netgo -trimpath -ldflags="${LDFLAGS}" -o /app/identity-spa ./cmd/identity-spa
 
 # Validate that the binary is statically linked.
 SHELL ["/bin/bash", "-c"]
-RUN if ldd /app/cryptoutil 2>/dev/null; then \
-        echo "✗ Binary is dynamically linked - failing build"; \
-        ldd /app/cryptoutil; \
+RUN if ldd /app/identity-spa 2>/dev/null; then \
+        echo "âœ— Binary is dynamically linked - failing build"; \
+        ldd /app/identity-spa; \
         exit 1; \
     else \
         echo "✓ Binary is statically linked"; \

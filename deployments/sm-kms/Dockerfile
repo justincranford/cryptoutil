@@ -81,13 +81,13 @@ COPY . .
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=${CGO_ENABLED} GOOS=${GOOS} GOARCH=${GOARCH} \
-    go build -a -tags netgo -trimpath -ldflags="${LDFLAGS}" -o /app/cryptoutil ./cmd/cryptoutil
+    go build -a -tags netgo -trimpath -ldflags="${LDFLAGS}" -o /app/sm-kms ./cmd/sm-kms
 
 # Validate that the binary is statically linked
 SHELL ["/bin/bash", "-c"]
-RUN if ldd /app/cryptoutil 2>/dev/null; then \
-        echo "✗ Binary is dynamically linked - failing build"; \
-        ldd /app/cryptoutil; \
+RUN if ldd /app/sm-kms 2>/dev/null; then \
+        echo "âœ— Binary is dynamically linked - failing build"; \
+        ldd /app/sm-kms; \
         exit 1; \
     else \
         echo "✓ Binary is statically linked"; \
@@ -158,7 +158,7 @@ EXPOSE 8080
 
 # Healthcheck available with Alpine base image
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD /app/cryptoutil kms server ready --dev || exit 1
+    CMD /app/sm-kms server ready --dev || exit 1
 
 # For Kubernetes: Use liveness/readiness probes like:
 #   livenessProbe:

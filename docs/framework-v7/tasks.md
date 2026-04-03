@@ -1,6 +1,6 @@
 # Tasks — Framework v7 (Continuation)
 
-**Status**: 6 of 48 tasks complete (13%)
+**Status**: 7 of 48 tasks complete (15%)
 **Last Updated**: 2026-04-03
 **Created**: 2026-04-02
 
@@ -57,7 +57,7 @@ complete before Phase 1 begins. Each task is a blocking regression, not improvem
 
 #### Task 0.2: Update ARCHITECTURE.md §3.4.1 Variant Offset Table
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 1h
 - **Dependencies**: 0.1
@@ -66,16 +66,16 @@ complete before Phase 1 begins. Each task is a blocking regression, not improvem
   Also update the service catalog port tables in §3.4 to show correct 4-instance ranges per
   PS-ID (each PS-ID now occupies 4 ports: base, base+1, base+2, base+3).
 - **Acceptance Criteria**:
-  - [ ] §3.4.1 contains formula: `host_port = base_port + tier_offset + variant_offset`
-  - [ ] Variant offset table present: sqlite-1=+0, sqlite-2=+1, postgresql-1=+2, postgresql-2=+3
-  - [ ] Service catalog (§3.4) shows 4 app service ports per PS-ID
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
+  - [x] §3.4.1 contains formula: `host_port = base_port + tier_offset + variant_offset`
+  - [x] Variant offset table present: sqlite-1=+0, sqlite-2=+1, postgresql-1=+2, postgresql-2=+3
+  - [x] Service catalog (§3.4) shows 4 app service ports per PS-ID
+  - [x] `go run ./cmd/cicd-lint lint-docs` passes
 - **Files**:
   - `docs/ARCHITECTURE.md`
 
 #### Task 0.3: Define and Apply Canonical ENTRYPOINT Pattern
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 4h
 - **Dependencies**: 0.1
@@ -88,11 +88,11 @@ complete before Phase 1 begins. Each task is a blocking regression, not improvem
   Also verify pki-init, healthcheck-secrets, and builder-* supporting services are consistent
   across all PS-IDs. Document canonical pattern in ARCHITECTURE.md §12.
 - **Acceptance Criteria**:
-  - [ ] Canonical ENTRYPOINT pattern defined and documented in ARCHITECTURE.md §12
-  - [ ] All 10 PS-ID compose.yml app services (all 4 variants each) use identical command structure
-  - [ ] Supporting services (pki-init, healthcheck-secrets, builder-*) are uniform across PS-IDs
-  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes (no regressions)
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes (new ARCHITECTURE.md content)
+  - [x] Canonical ENTRYPOINT pattern defined and documented in ARCHITECTURE.md §12
+  - [x] All 10 PS-ID compose.yml app services (all 4 variants each) use identical command structure
+  - [x] Supporting services (pki-init, healthcheck-secrets, builder-*) are uniform across PS-IDs
+  - [x] `go run ./cmd/cicd-lint lint-fitness` passes (no regressions)
+  - [x] `go run ./cmd/cicd-lint lint-docs` passes (new ARCHITECTURE.md content)
 - **Files**:
   - `deployments/{all 10 PS-IDs}/compose.yml` (10 files)
   - `docs/ARCHITECTURE.md`

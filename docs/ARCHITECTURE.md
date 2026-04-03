@@ -4728,6 +4728,51 @@ All validators run to completion (never short-circuit) and aggregate errors for 
 
 **Exit Code**: `validate-all` returns exit code 0 if all validators pass, exit code 1 if any validator fails. CI/CD workflows use this to block merges on validation failures.
 
+#### 12.3.5 Canonical Docker Compose Service Command Pattern
+
+**MANDATORY**: All 10 PS-ID Docker Compose app services (all 4 variants each) MUST use the following canonical command array structure. This pattern is enforced by the `compose-entrypoint-uniformity` fitness linter.
+
+**Canonical Command Format**:
+
+```yaml
+command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml",
+          "--config=/app/config/{PS-ID}-app-{variant}.yml",
+          "--config=/app/config/{PS-ID}-app-common.yml",
+          "--config=/app/otel/otel.yml",
+          "-u", "{DATABASE_URL}"]
+```
+
+**Argument Order** (MUST NOT deviate):
+
+1. `server` — service subcommand (ALWAYS first)
+2. `--bind-public-port=8080` — public HTTPS port binding (ALWAYS second)
+3. `--config=/certs/tls-config.yml` — TLS certificate configuration (ALWAYS third)
+4. `--config=/app/config/{PS-ID}-app-{variant}.yml` — variant-specific config overlay
+5. `--config=/app/config/{PS-ID}-app-common.yml` — common config overlay
+6. `--config=/app/otel/otel.yml` — OpenTelemetry/OTLP configuration
+7. `-u {DATABASE_URL}` — database connection URL (ALWAYS last)
+
+**Database URL by Variant**:
+
+| Variant | `-u` Value |
+|---------|-----------|
+| `sqlite-1` | `sqlite://file::memory:?cache=shared` |
+| `sqlite-2` | `sqlite://file::memory:?cache=shared` |
+| `postgresql-1` | `file:///run/secrets/postgres-url.secret` |
+| `postgresql-2` | `file:///run/secrets/postgres-url.secret` |
+
+**Dockerfile ENTRYPOINT**:
+- Each PS-ID Dockerfile builds its own service binary: `go build ... -o /app/{PS-ID} ./cmd/{PS-ID}`
+- ENTRYPOINT: `["/sbin/tini", "--", "/app/{PS-ID}"]`
+- The `command:` array in compose.yml is appended to the ENTRYPOINT as arguments
+
+**Rationale**:
+- `server` subcommand is explicit (not relying on default empty-args behavior)
+- `--bind-public-port=8080` before configs allows configs to override if needed
+- TLS config always present (dual HTTPS servers require certificates)
+- `-u` flag always last, always present (explicit database URL)
+- Each service builds its own binary (not the suite binary) for minimal image size
+
 ### 12.4 Environment Strategy
 
 **Development**: SQLite in-memory, port 0, auto-generated TLS, disabled telemetry
