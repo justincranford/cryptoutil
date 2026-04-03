@@ -153,32 +153,26 @@ func TestCountLines_NonexistentFile_Error(t *testing.T) {
 	require.Error(t, err)
 }
 
-// Sequential: modifies package-level fileSizeWalkFn seam.
 func TestCheckInDir_WalkError(t *testing.T) {
-	orig := fileSizeWalkFn
+	t.Parallel()
 
-	t.Cleanup(func() { fileSizeWalkFn = orig })
-
-	fileSizeWalkFn = func(_ string, _ filepath.WalkFunc) error {
+	stubWalkFn := func(_ string, _ filepath.WalkFunc) error {
 		return fmt.Errorf("injected walk error")
 	}
 
-	err := CheckInDir(newTestLogger(), t.TempDir())
+	err := checkInDir(newTestLogger(), t.TempDir(), stubWalkFn)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "filesystem walk failed")
 }
 
-// Sequential: modifies package-level fileSizeWalkFn seam.
 func TestCheckInDir_WalkCallbackError(t *testing.T) {
-	orig := fileSizeWalkFn
+	t.Parallel()
 
-	t.Cleanup(func() { fileSizeWalkFn = orig })
-
-	fileSizeWalkFn = func(_ string, fn filepath.WalkFunc) error {
+	stubWalkFn := func(_ string, fn filepath.WalkFunc) error {
 		return fn("bad/path", nil, fmt.Errorf("injected callback error"))
 	}
 
-	err := CheckInDir(newTestLogger(), t.TempDir())
+	err := checkInDir(newTestLogger(), t.TempDir(), stubWalkFn)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "filesystem walk failed")
 }

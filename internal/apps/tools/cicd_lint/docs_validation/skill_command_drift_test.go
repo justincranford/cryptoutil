@@ -289,29 +289,25 @@ func TestSkillCommandDriftCommand_NoDirs(t *testing.T) {
 	require.Contains(t, err.Error(), "cannot read .github/skills")
 }
 
-// Sequential: modifies findProjectRootFn package-level seam.
 func TestSkillCommandDriftCommand_AllClean(t *testing.T) {
+	t.Parallel()
+
 	tmpDir := t.TempDir()
 
 	makeSkillCommandPair(t, tmpDir, "my-skill")
 
-	orig := findProjectRootFn
-
-	t.Cleanup(func() { findProjectRootFn = orig })
-
-	findProjectRootFn = func() (string, error) { return tmpDir, nil }
-
 	var stdout, stderr bytes.Buffer
 
-	exitCode := SkillCommandDriftCommand(&stdout, &stderr)
+	exitCode := skillCommandDriftCommand(&stdout, &stderr, func() (string, error) { return tmpDir, nil })
 
 	require.Equal(t, 0, exitCode)
 	require.Contains(t, stdout.String(), "All skill/command pairs are in sync")
 	require.Empty(t, stderr.String())
 }
 
-// Sequential: modifies findProjectRootFn package-level seam.
 func TestSkillCommandDriftCommand_WithViolation(t *testing.T) {
+	t.Parallel()
+
 	tmpDir := t.TempDir()
 
 	// Missing Claude command.
@@ -322,15 +318,9 @@ func TestSkillCommandDriftCommand_WithViolation(t *testing.T) {
 	require.NoError(t, os.MkdirAll(commandDir, 0o700))
 	require.NoError(t, os.WriteFile(filepath.Join(skillDir, cryptoutilSharedMagic.CICDSkillFileName), []byte("# Broken skill\n"), cryptoutilSharedMagic.FilePermissionsDefault))
 
-	orig := findProjectRootFn
-
-	t.Cleanup(func() { findProjectRootFn = orig })
-
-	findProjectRootFn = func() (string, error) { return tmpDir, nil }
-
 	var stdout, stderr bytes.Buffer
 
-	exitCode := SkillCommandDriftCommand(&stdout, &stderr)
+	exitCode := skillCommandDriftCommand(&stdout, &stderr, func() (string, error) { return tmpDir, nil })
 
 	require.Equal(t, 1, exitCode)
 	require.Contains(t, stdout.String(), "violation(s) found")

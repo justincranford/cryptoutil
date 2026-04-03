@@ -33,10 +33,6 @@ var importLinePattern = regexp.MustCompile(`^\s+(?:\w+ )?"([^"]+)"`)
 
 var singleImportPattern = regexp.MustCompile(`^import\s+"([^"]+)"`)
 
-// Test seam: replaceable in tests to exercise unreachable OS-level error paths.
-// See ARCHITECTURE.md Section 10.2.4 (Test Seam Injection Pattern).
-var walkFn = filepath.Walk
-
 // Check validates that no Go file imports the banned old framework path.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 	return CheckInDir(logger, ".")
@@ -44,6 +40,10 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 
 // CheckInDir validates that no Go file under rootDir imports the banned path.
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
+	return checkInDir(logger, rootDir, filepath.Walk)
+}
+
+func checkInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, walkFn func(string, filepath.WalkFunc) error) error {
 	logger.Log("Checking for banned internal/apps/template/ imports...")
 
 	var violations []string

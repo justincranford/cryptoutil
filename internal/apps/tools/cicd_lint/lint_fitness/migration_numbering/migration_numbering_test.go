@@ -525,6 +525,7 @@ func TestSeam_CheckMigrationDir_AtoiError(t *testing.T) {
 	require.NotEmpty(t, errs)
 	require.Contains(t, errs[0], "failed to parse version number")
 }
+
 // Sequential: uses os.Chdir (global process state, cannot run in parallel).
 func TestCheck_Integration(t *testing.T) {
 	root, err := findProjectRoot()

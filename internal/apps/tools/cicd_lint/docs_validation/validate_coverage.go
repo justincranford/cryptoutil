@@ -170,16 +170,16 @@ func extractSourceChunksFromContent(relPath, content string, result map[string][
 	}
 }
 
-// extractSourceChunksFn is a test seam for ExtractSourceChunks, enabling injection of errors
-// that ExtractSourceChunks itself never returns (it always returns nil for error).
-var extractSourceChunksFn = ExtractSourceChunks
-
 // ValidateCoverage runs the full coverage validation:
 //  1. Loads the required-propagations manifest.
 //  2. Extracts @propagate chunk IDs from ARCHITECTURE.md.
 //  3. Scans instruction/agent files for @source chunk IDs.
 //  4. Returns violations and orphaned chunks.
 func ValidateCoverage(rootDir string, readFile func(string) ([]byte, error)) (*CoverageResult, error) {
+	return validateCoverage(rootDir, readFile, ExtractSourceChunks)
+}
+
+func validateCoverage(rootDir string, readFile func(string) ([]byte, error), extractFn func(string, func(string) ([]byte, error)) (map[string][]string, error)) (*CoverageResult, error) {
 	manifest, err := LoadPropagationsManifest(readFile)
 	if err != nil {
 		return nil, err
@@ -190,7 +190,7 @@ func ValidateCoverage(rootDir string, readFile func(string) ([]byte, error)) (*C
 		return nil, err
 	}
 
-	sourceChunks, err := extractSourceChunksFn(rootDir, readFile)
+	sourceChunks, err := extractFn(rootDir, readFile)
 	if err != nil {
 		return nil, err
 	}
@@ -293,7 +293,11 @@ func FormatCoverageValidationResults(result *CoverageResult) string {
 // ValidateCoverageCommand is the CLI entry point for validate-coverage.
 // Returns exit code: 0 if all chunks covered, 1 on any failure.
 func ValidateCoverageCommand(stdout, stderr io.Writer) int {
-	rootDir, err := findProjectRootFn()
+	return validateCoverageCommand(stdout, stderr, findProjectRoot)
+}
+
+func validateCoverageCommand(stdout, stderr io.Writer, rootFn func() (string, error)) int {
+	rootDir, err := rootFn()
 	if err != nil {
 		_, _ = fmt.Fprintf(stderr, "Error: %s\n", err)
 

@@ -240,6 +240,9 @@ const (
 	// PercentMultiplier is the percent multiplier for coverage calculations.
 	PercentMultiplier = 100.0
 
+	// MaxPropagationRefDisplayLength is the maximum character length for displaying a propagation reference line.
+	MaxPropagationRefDisplayLength = 120
+
 	// RequirementsProductionReadyThreshold is the production readiness threshold for requirements.
 	RequirementsProductionReadyThreshold = 85.0
 	// TestCoverageProductionReadyThreshold is the production readiness threshold for test coverage.

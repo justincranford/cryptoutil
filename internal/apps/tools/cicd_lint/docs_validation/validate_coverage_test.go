@@ -558,15 +558,8 @@ func TestValidateCoverage_ManifestLoadError(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to read")
 }
 
-// Sequential: mutates extractSourceChunksFn seam.
 func TestValidateCoverage_ExtractSourceChunksError(t *testing.T) {
-	orig := extractSourceChunksFn
-
-	t.Cleanup(func() { extractSourceChunksFn = orig })
-
-	extractSourceChunksFn = func(rootDir string, readFile func(string) ([]byte, error)) (map[string][]string, error) {
-		return nil, fmt.Errorf("simulated ExtractSourceChunks error")
-	}
+	t.Parallel()
 
 	rootDir, readFile := buildValidateRoot(t,
 		minimalManifestYAML(),
@@ -574,7 +567,9 @@ func TestValidateCoverage_ExtractSourceChunksError(t *testing.T) {
 		map[string]string{},
 	)
 
-	result, err := ValidateCoverage(rootDir, readFile)
+	result, err := validateCoverage(rootDir, readFile, func(_ string, _ func(string) ([]byte, error)) (map[string][]string, error) {
+		return nil, fmt.Errorf("simulated ExtractSourceChunks error")
+	})
 
 	require.Error(t, err)
 	require.Nil(t, result)
@@ -707,32 +702,24 @@ func TestFormatCoverageValidationResults_WithBoth(t *testing.T) {
 }
 
 // -----------------------------------------------------------------------
-// ValidateCoverageCommand (sequential: modifies findProjectRootFn seam)
+// ValidateCoverageCommand
 // -----------------------------------------------------------------------
 
-// Sequential: modifies package-level findProjectRootFn seam.
 func TestValidateCoverageCommand_RootError(t *testing.T) {
-	orig := findProjectRootFn
-
-	t.Cleanup(func() { findProjectRootFn = orig })
-
-	findProjectRootFn = func() (string, error) {
-		return "", fmt.Errorf("simulated root error")
-	}
+	t.Parallel()
 
 	var stdout, stderr bytes.Buffer
 
-	code := ValidateCoverageCommand(&stdout, &stderr)
+	code := validateCoverageCommand(&stdout, &stderr, func() (string, error) {
+		return "", fmt.Errorf("simulated root error")
+	})
 
 	require.Equal(t, 1, code)
 	require.Contains(t, stderr.String(), "simulated root error")
 }
 
-// Sequential: modifies package-level findProjectRootFn seam.
 func TestValidateCoverageCommand_CleanProject(t *testing.T) {
-	orig := findProjectRootFn
-
-	t.Cleanup(func() { findProjectRootFn = orig })
+	t.Parallel()
 
 	rootDir, _ := buildValidateRoot(t,
 		minimalManifestYAML(),
@@ -742,13 +729,11 @@ func TestValidateCoverageCommand_CleanProject(t *testing.T) {
 		},
 	)
 
-	findProjectRootFn = func() (string, error) {
-		return rootDir, nil
-	}
-
 	var stdout, stderr bytes.Buffer
 
-	code := ValidateCoverageCommand(&stdout, &stderr)
+	code := validateCoverageCommand(&stdout, &stderr, func() (string, error) {
+		return rootDir, nil
+	})
 
 	require.Equal(t, 0, code)
 	require.Contains(t, stdout.String(), "All required @propagate chunks are covered")

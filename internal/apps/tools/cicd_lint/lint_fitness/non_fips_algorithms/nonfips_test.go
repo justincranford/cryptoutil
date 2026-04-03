@@ -266,7 +266,7 @@ func TestFindGoFiles_WithTempDir(t *testing.T) {
 	require.NoError(t, os.WriteFile("vendor/vendored.go", []byte("package vendor\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	// Test - should find main.go and util.go, but NOT test files, vendor files.
-	files, err := FindGoFiles()
+	files, err := FindGoFiles(filepath.Walk)
 	require.NoError(t, err)
 	require.Len(t, files, 2)
 }
@@ -324,32 +324,26 @@ func TestCheckNonFIPS_WithViolations(t *testing.T) {
 	require.Contains(t, err.Error(), "non-FIPS algorithm violations")
 }
 
-// Sequential: modifies package-level nonFIPSWalkFn seam.
 func TestFindGoFiles_ErrorPath(t *testing.T) {
-	orig := nonFIPSWalkFn
+	t.Parallel()
 
-	t.Cleanup(func() { nonFIPSWalkFn = orig })
-
-	nonFIPSWalkFn = func(_ string, _ filepath.WalkFunc) error {
+	stubWalkFn := func(_ string, _ filepath.WalkFunc) error {
 		return fmt.Errorf("injected walk error")
 	}
 
-	_, err := FindGoFiles()
+	_, err := FindGoFiles(stubWalkFn)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to walk directory tree")
 }
 
-// Sequential: modifies package-level nonFIPSWalkFn seam.
 func TestFindGoFiles_WalkCallbackError(t *testing.T) {
-	orig := nonFIPSWalkFn
+	t.Parallel()
 
-	t.Cleanup(func() { nonFIPSWalkFn = orig })
-
-	nonFIPSWalkFn = func(_ string, fn filepath.WalkFunc) error {
+	stubWalkFn := func(_ string, fn filepath.WalkFunc) error {
 		return fn("bad/path", nil, fmt.Errorf("injected callback error"))
 	}
 
-	_, err := FindGoFiles()
+	_, err := FindGoFiles(stubWalkFn)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to walk directory tree")
 }
@@ -377,18 +371,15 @@ func TestCheckFileForNonFIPS_NolintComment(t *testing.T) {
 	require.Empty(t, violations, "nolint comment should suppress violation")
 }
 
-// Sequential: modifies package-level nonFIPSWalkFn seam.
 func TestCheck_FindGoFilesError(t *testing.T) {
-	orig := nonFIPSWalkFn
+	t.Parallel()
 
-	t.Cleanup(func() { nonFIPSWalkFn = orig })
-
-	nonFIPSWalkFn = func(_ string, _ filepath.WalkFunc) error {
+	stubWalkFn := func(_ string, _ filepath.WalkFunc) error {
 		return fmt.Errorf("injected walk error")
 	}
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := Check(logger)
+	err := check(logger, stubWalkFn)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to find Go files")
 }

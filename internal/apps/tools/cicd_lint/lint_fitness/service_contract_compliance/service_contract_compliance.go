@@ -19,12 +19,6 @@ import (
 // compileTimeAssertionPattern is the pattern that must appear in a service's server.go.
 const compileTimeAssertionPattern = "ServiceServer = (*"
 
-// Test seams: replaceable in tests to exercise unreachable OS-level error paths.
-// See ARCHITECTURE.md Section 10.2.4 (Test Seam Injection Pattern).
-var serviceContractReadDirFn = os.ReadDir
-
-var serviceContractReadFileFn = os.ReadFile
-
 // Check verifies service contract compliance from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 	return CheckInDir(logger, ".")
@@ -32,6 +26,10 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 
 // CheckInDir verifies service contract compliance under rootDir.
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
+	return checkInDir(logger, rootDir, os.ReadDir, os.ReadFile)
+}
+
+func checkInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, readDirFn func(string) ([]os.DirEntry, error), readFileFn func(string) ([]byte, error)) error {
 	logger.Log("Checking service contract compliance (compile-time assertions)...")
 
 	projectRoot, err := filepath.Abs(rootDir)
@@ -41,7 +39,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 	appsDir := filepath.Join(projectRoot, "internal", "apps")
 
-	services, err := discoverServices(appsDir)
+	services, err := discoverServices(appsDir, readDirFn)
 	if err != nil {
 		return fmt.Errorf("failed to discover services: %w", err)
 	}
@@ -51,7 +49,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	for _, svc := range services {
 		serverFile := filepath.Join(appsDir, svc.product, svc.service, "server", "server.go")
 
-		if checkErr := checkServerFile(serverFile, svc, &violations); checkErr != nil {
+		if checkErr := checkServerFile(serverFile, svc, &violations, readFileFn); checkErr != nil {
 			return fmt.Errorf("failed to check %s/%s: %w", svc.product, svc.service, checkErr)
 		}
 	}
@@ -78,10 +76,10 @@ type serviceID struct {
 // discoverServices returns all product/service pairs under appsDir.
 // Excludes: cicd, skeleton, template products; archived (_-prefixed) dirs;
 // non-service dirs (those without a server/ subdirectory).
-func discoverServices(appsDir string) ([]serviceID, error) {
+func discoverServices(appsDir string, readDirFn func(string) ([]os.DirEntry, error)) ([]serviceID, error) {
 	var services []serviceID
 
-	products, err := serviceContractReadDirFn(appsDir)
+	products, err := readDirFn(appsDir)
 	if err != nil {
 		return nil, fmt.Errorf("read apps dir: %w", err)
 	}
@@ -125,8 +123,8 @@ func discoverServices(appsDir string) ([]serviceID, error) {
 }
 
 // checkServerFile verifies that the server.go file contains the compile-time assertion.
-func checkServerFile(serverFile string, svc serviceID, violations *[]string) error {
-	content, err := serviceContractReadFileFn(serverFile) //nolint:gosec // serverFile is a constructed path, controlled
+func checkServerFile(serverFile string, svc serviceID, violations *[]string, readFileFn func(string) ([]byte, error)) error {
+	content, err := readFileFn(serverFile) //nolint:gosec // serverFile is a constructed path, controlled
 	if err != nil {
 		if os.IsNotExist(err) {
 			*violations = append(*violations, fmt.Sprintf(

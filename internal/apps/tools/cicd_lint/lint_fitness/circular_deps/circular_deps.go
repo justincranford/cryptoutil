@@ -18,13 +18,6 @@ import (
 	cryptoutilSharedUtilFiles "cryptoutil/internal/shared/util/files"
 )
 
-// goListOutputFn wraps the go list command for testing.
-var goListOutputFn = func() ([]byte, error) {
-	cmd := exec.CommandContext(context.Background(), "go", "list", "-json", "./...")
-
-	return cmd.Output()
-}
-
 // PackageInfo represents Go package metadata from 'go list -json'.
 type PackageInfo struct {
 	ImportPath string   `json:"ImportPath"`
@@ -35,6 +28,16 @@ type PackageInfo struct {
 // It analyzes the dependency graph of all packages in the project and returns an error if circular dependencies are found.
 // Uses caching to avoid expensive go list calls when nothing has changed.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
+	goListFn := func() ([]byte, error) {
+		cmd := exec.CommandContext(context.Background(), "go", "list", "-json", "./...")
+
+		return cmd.Output()
+	}
+
+	return check(logger, goListFn)
+}
+
+func check(logger *cryptoutilCmdCicdCommon.Logger, goListFn func() ([]byte, error)) error {
 	logger.Log("Checking for circular package dependencies...")
 
 	cacheFile := cryptoutilSharedMagic.CircularDepCacheFileName
@@ -85,7 +88,7 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 	// Cache miss or expired, perform actual check.
 	logger.Log("Running: go list -json ./...")
 
-	output, err := goListOutputFn()
+	output, err := goListFn()
 	if err != nil {
 		logger.Log(fmt.Sprintf("Error running go list: %v", err))
 

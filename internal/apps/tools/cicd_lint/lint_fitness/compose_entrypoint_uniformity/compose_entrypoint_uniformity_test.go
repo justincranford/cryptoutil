@@ -256,19 +256,16 @@ func TestCheckInDir_CommandMismatch(t *testing.T) {
 	}
 }
 
-// Sequential: mutates readFileFn package-level seam; cannot run in parallel.
 func TestCheckInDir_ReadFileFnError(t *testing.T) {
-	original := readFileFn
-
-	defer func() { readFileFn = original }()
-
-	readFileFn = func(_ string) ([]byte, error) {
-		return nil, os.ErrPermission
-	}
+	t.Parallel()
 
 	tmpDir := t.TempDir()
 
-	err := CheckInDir(newLogger(), tmpDir)
+	stubReadFileFn := func(_ string) ([]byte, error) {
+		return nil, os.ErrPermission
+	}
+
+	err := checkInDir(newLogger(), tmpDir, stubReadFileFn)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "cannot read")
 }

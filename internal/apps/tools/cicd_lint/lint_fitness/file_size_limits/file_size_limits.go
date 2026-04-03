@@ -30,10 +30,6 @@ type Violation struct {
 	IsError bool // true = hard limit exceeded, false = soft limit warning
 }
 
-// Test seams: replaceable in tests to exercise unreachable OS-level error paths.
-// See ARCHITECTURE.md Section 10.2.4 (Test Seam Injection Pattern).
-var fileSizeWalkFn = filepath.Walk
-
 // Check enforces file size limits from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 	return CheckInDir(logger, ".")
@@ -41,6 +37,10 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 
 // CheckInDir enforces file size limits under rootDir.
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
+	return checkInDir(logger, rootDir, filepath.Walk)
+}
+
+func checkInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, walkFn func(string, filepath.WalkFunc) error) error {
 	logger.Log("Checking file size limits...")
 
 	projectRoot, err := filepath.Abs(rootDir)
@@ -50,7 +50,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 	var violations []Violation
 
-	walkErr := fileSizeWalkFn(projectRoot, func(path string, info os.FileInfo, err error) error {
+	walkErr := walkFn(projectRoot, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}

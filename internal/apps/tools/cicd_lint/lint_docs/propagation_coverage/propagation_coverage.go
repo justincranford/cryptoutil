@@ -13,16 +13,17 @@ import (
 	cryptoutilDocsValidation "cryptoutil/internal/apps/tools/cicd_lint/docs_validation"
 )
 
-// propagationCoverageFn is the seam for testing, replacing PropagationCoverageCommand.
-var propagationCoverageFn = func(stdout, stderr io.Writer) int {
-	return cryptoutilDocsValidation.PropagationCoverageCommand(stdout, stderr)
-}
-
 // Check reports @source block coverage metrics for instruction and agent files.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
+	return check(logger, func(stdout, stderr io.Writer) int {
+		return cryptoutilDocsValidation.PropagationCoverageCommand(stdout, stderr)
+	})
+}
+
+func check(logger *cryptoutilCmdCicdCommon.Logger, fn func(io.Writer, io.Writer) int) error {
 	var stdout, stderr bytes.Buffer
 
-	exitCode := propagationCoverageFn(&stdout, &stderr)
+	exitCode := fn(&stdout, &stderr)
 
 	if stdout.Len() > 0 {
 		logger.Log(stdout.String())

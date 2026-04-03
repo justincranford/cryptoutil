@@ -68,7 +68,7 @@ func TestLoadFitnessRegistry_HappyPath(t *testing.T) {
 
 	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), nil)
 
-	reg, err := LoadFitnessRegistry(rootDir)
+	reg, err := LoadFitnessRegistry(rootDir, os.ReadFile)
 
 	require.NoError(t, err)
 	require.Len(t, reg.SubLinters, 2)
@@ -82,7 +82,7 @@ func TestLoadFitnessRegistry_FileNotFound(t *testing.T) {
 
 	rootDir := t.TempDir()
 
-	reg, err := LoadFitnessRegistry(rootDir)
+	reg, err := LoadFitnessRegistry(rootDir, os.ReadFile)
 
 	require.Error(t, err)
 	require.Nil(t, reg)
@@ -94,7 +94,7 @@ func TestLoadFitnessRegistry_InvalidYAML(t *testing.T) {
 
 	rootDir := buildRegistryRoot(t, "!!! not valid: yaml: [", nil)
 
-	reg, err := LoadFitnessRegistry(rootDir)
+	reg, err := LoadFitnessRegistry(rootDir, os.ReadFile)
 
 	require.Error(t, err)
 	require.Nil(t, reg)
@@ -106,7 +106,7 @@ func TestLoadFitnessRegistry_EmptyRegistry(t *testing.T) {
 
 	rootDir := buildRegistryRoot(t, "sub_linters: []\n", nil)
 
-	reg, err := LoadFitnessRegistry(rootDir)
+	reg, err := LoadFitnessRegistry(rootDir, os.ReadFile)
 
 	require.NoError(t, err)
 	require.Empty(t, reg.SubLinters)
@@ -121,7 +121,7 @@ func TestCheckRegistryCompleteness_AllMatch(t *testing.T) {
 
 	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), []string{"cgo_free_sqlite", "crypto_rand"})
 
-	orphaned, missing, err := CheckRegistryCompleteness(rootDir)
+	orphaned, missing, err := CheckRegistryCompleteness(rootDir, os.ReadFile, os.ReadDir)
 
 	require.NoError(t, err)
 	require.Empty(t, orphaned)
@@ -134,7 +134,7 @@ func TestCheckRegistryCompleteness_OrphanedDir(t *testing.T) {
 	// Filesystem has extra_linter but it's not in the YAML.
 	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), []string{"cgo_free_sqlite", "crypto_rand", "extra_linter"})
 
-	orphaned, missing, err := CheckRegistryCompleteness(rootDir)
+	orphaned, missing, err := CheckRegistryCompleteness(rootDir, os.ReadFile, os.ReadDir)
 
 	require.NoError(t, err)
 	require.Equal(t, []string{"extra_linter"}, orphaned)
@@ -147,7 +147,7 @@ func TestCheckRegistryCompleteness_MissingDir(t *testing.T) {
 	// YAML has crypto_rand but filesystem only has cgo_free_sqlite.
 	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), []string{"cgo_free_sqlite"})
 
-	orphaned, missing, err := CheckRegistryCompleteness(rootDir)
+	orphaned, missing, err := CheckRegistryCompleteness(rootDir, os.ReadFile, os.ReadDir)
 
 	require.NoError(t, err)
 	require.Empty(t, orphaned)
@@ -160,7 +160,7 @@ func TestCheckRegistryCompleteness_SkipsRegistryDir(t *testing.T) {
 	// Filesystem has a "registry" directory which should be excluded.
 	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), []string{"cgo_free_sqlite", "crypto_rand", "registry"})
 
-	orphaned, missing, err := CheckRegistryCompleteness(rootDir)
+	orphaned, missing, err := CheckRegistryCompleteness(rootDir, os.ReadFile, os.ReadDir)
 
 	require.NoError(t, err)
 	require.Empty(t, orphaned, "registry directory should be excluded from filesystem scan")
@@ -177,7 +177,7 @@ func TestCheckRegistryCompleteness_SkipsNonDirectories(t *testing.T) {
 	fitnessDir := filepath.Join(rootDir, filepath.FromSlash(cryptoutilSharedMagic.CICDLintFitnessDir))
 	require.NoError(t, os.WriteFile(filepath.Join(fitnessDir, "some-extra-file.yaml"), []byte(""), cryptoutilSharedMagic.FilePermissionsDefault))
 
-	orphaned, missing, err := CheckRegistryCompleteness(rootDir)
+	orphaned, missing, err := CheckRegistryCompleteness(rootDir, os.ReadFile, os.ReadDir)
 
 	require.NoError(t, err)
 	require.Empty(t, orphaned)
@@ -189,7 +189,7 @@ func TestCheckRegistryCompleteness_ManifestLoadError(t *testing.T) {
 
 	rootDir := t.TempDir() // no YAML file
 
-	orphaned, missing, err := CheckRegistryCompleteness(rootDir)
+	orphaned, missing, err := CheckRegistryCompleteness(rootDir, os.ReadFile, os.ReadDir)
 
 	require.Error(t, err)
 	require.Nil(t, orphaned)
@@ -197,17 +197,15 @@ func TestCheckRegistryCompleteness_ManifestLoadError(t *testing.T) {
 }
 
 func TestCheckRegistryCompleteness_ReadDirError(t *testing.T) {
-	orig := fitnessRegistryReadDirFn
+	t.Parallel()
 
-	t.Cleanup(func() { fitnessRegistryReadDirFn = orig })
-
-	fitnessRegistryReadDirFn = func(path string) ([]os.DirEntry, error) {
+	stubReadDirFn := func(_ string) ([]os.DirEntry, error) {
 		return nil, fmt.Errorf("simulated ReadDir error")
 	}
 
 	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), nil)
 
-	orphaned, missing, err := CheckRegistryCompleteness(rootDir)
+	orphaned, missing, err := CheckRegistryCompleteness(rootDir, os.ReadFile, stubReadDirFn)
 
 	require.Error(t, err)
 	require.Nil(t, orphaned)
@@ -221,7 +219,7 @@ func TestCheckRegistryCompleteness_BothOrphanedAndMissing(t *testing.T) {
 	// YAML has crypto_rand (missing from FS) + FS has extra_unknown (not in YAML).
 	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), []string{"cgo_free_sqlite", "extra_unknown"})
 
-	orphaned, missing, err := CheckRegistryCompleteness(rootDir)
+	orphaned, missing, err := CheckRegistryCompleteness(rootDir, os.ReadFile, os.ReadDir)
 
 	require.NoError(t, err)
 	require.Equal(t, []string{"extra_unknown"}, orphaned)
@@ -244,7 +242,7 @@ func TestCheckRegistryCompleteness_SortedResults(t *testing.T) {
 	// Filesystem has two extra dirs and none from YAML.
 	rootDir := buildRegistryRoot(t, yaml, []string{"zzz_extra", "aaa_extra"})
 
-	orphaned, missing, err := CheckRegistryCompleteness(rootDir)
+	orphaned, missing, err := CheckRegistryCompleteness(rootDir, os.ReadFile, os.ReadDir)
 
 	require.NoError(t, err)
 	require.Equal(t, []string{"aaa_extra", "zzz_extra"}, orphaned, "orphaned should be sorted")
@@ -304,20 +302,17 @@ func TestCheckInDir_ManifestError(t *testing.T) {
 	require.Contains(t, err.Error(), "fitness-registry-completeness")
 }
 
-// Sequential: mutates fitnessRegistryReadDirFn seam.
 func TestCheckInDir_ReadDirError(t *testing.T) {
-	orig := fitnessRegistryReadDirFn
+	t.Parallel()
 
-	t.Cleanup(func() { fitnessRegistryReadDirFn = orig })
-
-	fitnessRegistryReadDirFn = func(path string) ([]os.DirEntry, error) {
+	stubReadDirFn := func(_ string) ([]os.DirEntry, error) {
 		return nil, fmt.Errorf("simulated CheckInDir ReadDir error")
 	}
 
 	rootDir := buildRegistryRoot(t, minimalRegistryYAML(), nil)
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
-	err := CheckInDir(logger, rootDir)
+	err := checkInDir(logger, rootDir, os.ReadFile, stubReadDirFn)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "simulated CheckInDir ReadDir error")
@@ -336,48 +331,39 @@ func TestCheck_Integration(t *testing.T) {
 	require.NoError(t, err, "fitness-registry-completeness should pass on real project files")
 }
 
-// Sequential: mutates findFitnessProjectRootFn seam.
 func TestCheck_ProjectRootError(t *testing.T) {
-	orig := findFitnessProjectRootFn
+	t.Parallel()
 
-	t.Cleanup(func() { findFitnessProjectRootFn = orig })
-
-	findFitnessProjectRootFn = func() (string, error) {
+	stubGetwdFn := func() (string, error) {
 		return "", fmt.Errorf("simulated root error")
 	}
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := Check(logger)
+	err := check(logger, stubGetwdFn, os.ReadFile, os.ReadDir)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "simulated root error")
 }
 
-// Sequential: mutates fitnessGetwdFn seam to cover os.Getwd error path.
 func TestFindFitnessProjectRoot_GetwdError(t *testing.T) {
-	orig := fitnessGetwdFn
+	t.Parallel()
 
-	t.Cleanup(func() { fitnessGetwdFn = orig })
-
-	fitnessGetwdFn = func() (string, error) {
+	stubGetwdFn := func() (string, error) {
 		return "", fmt.Errorf("simulated getwd error")
 	}
 
-	result, err := findFitnessProjectRoot()
+	result, err := findFitnessProjectRoot(stubGetwdFn)
 
 	require.Error(t, err)
 	require.Empty(t, result)
 	require.Contains(t, err.Error(), "simulated getwd error")
 }
 
-// Sequential: mutates fitnessGetwdFn to return a tmp dir with no go.mod ancestors.
 func TestFindFitnessProjectRoot_GoModNotFound(t *testing.T) {
-	orig := fitnessGetwdFn
-
-	t.Cleanup(func() { fitnessGetwdFn = orig })
+	t.Parallel()
 
 	// Use the filesystem root; it will never have go.mod.
-	fitnessGetwdFn = func() (string, error) {
+	stubGetwdFn := func() (string, error) {
 		// Return a path that has no go.mod in itself or any parent.
 		// On Windows this is e.g. C:\ on Unix it is /
 		root := filepath.VolumeName(t.TempDir())
@@ -390,7 +376,7 @@ func TestFindFitnessProjectRoot_GoModNotFound(t *testing.T) {
 		return root, nil
 	}
 
-	result, err := findFitnessProjectRoot()
+	result, err := findFitnessProjectRoot(stubGetwdFn)
 
 	require.Error(t, err)
 	require.Empty(t, result)

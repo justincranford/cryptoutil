@@ -57,7 +57,7 @@ func TestLoadSuffixRules_HappyPath(t *testing.T) {
 
 	rootDir := buildSuffixRoot(t)
 
-	rules, err := LoadSuffixRules(rootDir)
+	rules, err := LoadSuffixRules(rootDir, os.ReadFile)
 
 	require.NoError(t, err)
 	require.NotEmpty(t, rules.SuffixRules)
@@ -67,7 +67,7 @@ func TestLoadSuffixRules_HappyPath(t *testing.T) {
 func TestLoadSuffixRules_FileNotFound(t *testing.T) {
 	t.Parallel()
 
-	rules, err := LoadSuffixRules(t.TempDir())
+	rules, err := LoadSuffixRules(t.TempDir(), os.ReadFile)
 
 	require.Error(t, err)
 	require.Nil(t, rules)
@@ -84,7 +84,7 @@ func TestLoadSuffixRules_InvalidYAML(t *testing.T) {
 	destPath := filepath.Join(rootDir, filepath.FromSlash(cryptoutilSharedMagic.CICDTestFileSuffixRulesFile))
 	require.NoError(t, os.WriteFile(destPath, []byte("!!! not: valid: yaml: ["), cryptoutilSharedMagic.FilePermissionsDefault))
 
-	rules, err := LoadSuffixRules(rootDir)
+	rules, err := LoadSuffixRules(rootDir, os.ReadFile)
 
 	require.Error(t, err)
 	require.Nil(t, rules)
@@ -99,7 +99,7 @@ func TestCheckFiles_BenchFileHasBenchmark(t *testing.T) {
 	t.Parallel()
 
 	rootDir := buildSuffixRoot(t)
-	rules, err := LoadSuffixRules(rootDir)
+	rules, err := LoadSuffixRules(rootDir, os.ReadFile)
 	require.NoError(t, err)
 
 	pkgDir := filepath.Join(t.TempDir(), "mypkg")
@@ -107,7 +107,7 @@ func TestCheckFiles_BenchFileHasBenchmark(t *testing.T) {
 		"package mypkg\nimport \"testing\"\nfunc BenchmarkFoo(b *testing.B) {}\n")
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
-	err = CheckFiles(logger, []string{f}, rules)
+	err = CheckFiles(logger, []string{f}, rules, os.ReadFile)
 
 	require.NoError(t, err)
 }
@@ -116,7 +116,7 @@ func TestCheckFiles_BenchFileMissingBenchmark(t *testing.T) {
 	t.Parallel()
 
 	rootDir := buildSuffixRoot(t)
-	rules, err := LoadSuffixRules(rootDir)
+	rules, err := LoadSuffixRules(rootDir, os.ReadFile)
 	require.NoError(t, err)
 
 	pkgDir := filepath.Join(t.TempDir(), "mypkg")
@@ -124,7 +124,7 @@ func TestCheckFiles_BenchFileMissingBenchmark(t *testing.T) {
 		"package mypkg\nimport \"testing\"\nfunc TestFoo(t *testing.T) {}\n")
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
-	err = CheckFiles(logger, []string{f}, rules)
+	err = CheckFiles(logger, []string{f}, rules, os.ReadFile)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "violation(s)")
@@ -134,7 +134,7 @@ func TestCheckFiles_BenchFileForbiddenFuzz(t *testing.T) {
 	t.Parallel()
 
 	rootDir := buildSuffixRoot(t)
-	rules, err := LoadSuffixRules(rootDir)
+	rules, err := LoadSuffixRules(rootDir, os.ReadFile)
 	require.NoError(t, err)
 
 	pkgDir := filepath.Join(t.TempDir(), "mypkg")
@@ -142,7 +142,7 @@ func TestCheckFiles_BenchFileForbiddenFuzz(t *testing.T) {
 		"package mypkg\nimport \"testing\"\nfunc BenchmarkFoo(b *testing.B) {}\nfunc FuzzFoo(f *testing.F) {}\n")
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
-	err = CheckFiles(logger, []string{f}, rules)
+	err = CheckFiles(logger, []string{f}, rules, os.ReadFile)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "violation(s)")
@@ -152,7 +152,7 @@ func TestCheckFiles_FuzzFileHasFuzz(t *testing.T) {
 	t.Parallel()
 
 	rootDir := buildSuffixRoot(t)
-	rules, err := LoadSuffixRules(rootDir)
+	rules, err := LoadSuffixRules(rootDir, os.ReadFile)
 	require.NoError(t, err)
 
 	pkgDir := filepath.Join(t.TempDir(), "mypkg")
@@ -160,7 +160,7 @@ func TestCheckFiles_FuzzFileHasFuzz(t *testing.T) {
 		"package mypkg\nimport \"testing\"\nfunc FuzzFoo(f *testing.F) {}\n")
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
-	err = CheckFiles(logger, []string{f}, rules)
+	err = CheckFiles(logger, []string{f}, rules, os.ReadFile)
 
 	require.NoError(t, err)
 }
@@ -169,7 +169,7 @@ func TestCheckFiles_FuzzFileMissingFuzz(t *testing.T) {
 	t.Parallel()
 
 	rootDir := buildSuffixRoot(t)
-	rules, err := LoadSuffixRules(rootDir)
+	rules, err := LoadSuffixRules(rootDir, os.ReadFile)
 	require.NoError(t, err)
 
 	pkgDir := filepath.Join(t.TempDir(), "mypkg")
@@ -177,7 +177,7 @@ func TestCheckFiles_FuzzFileMissingFuzz(t *testing.T) {
 		"package mypkg\nimport \"testing\"\nfunc TestFoo(t *testing.T) {}\n")
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
-	err = CheckFiles(logger, []string{f}, rules)
+	err = CheckFiles(logger, []string{f}, rules, os.ReadFile)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "violation(s)")
@@ -187,7 +187,7 @@ func TestCheckFiles_PropertyFileHasBuildTag(t *testing.T) {
 	t.Parallel()
 
 	rootDir := buildSuffixRoot(t)
-	rules, err := LoadSuffixRules(rootDir)
+	rules, err := LoadSuffixRules(rootDir, os.ReadFile)
 	require.NoError(t, err)
 
 	pkgDir := filepath.Join(t.TempDir(), "mypkg")
@@ -195,7 +195,7 @@ func TestCheckFiles_PropertyFileHasBuildTag(t *testing.T) {
 		"//go:build !fuzz\npackage mypkg\nimport \"testing\"\nfunc TestFooProp(t *testing.T) {}\n")
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
-	err = CheckFiles(logger, []string{f}, rules)
+	err = CheckFiles(logger, []string{f}, rules, os.ReadFile)
 
 	require.NoError(t, err)
 }
@@ -204,7 +204,7 @@ func TestCheckFiles_PropertyFileMissingBuildTag(t *testing.T) {
 	t.Parallel()
 
 	rootDir := buildSuffixRoot(t)
-	rules, err := LoadSuffixRules(rootDir)
+	rules, err := LoadSuffixRules(rootDir, os.ReadFile)
 	require.NoError(t, err)
 
 	pkgDir := filepath.Join(t.TempDir(), "mypkg")
@@ -212,7 +212,7 @@ func TestCheckFiles_PropertyFileMissingBuildTag(t *testing.T) {
 		"package mypkg\nimport \"testing\"\nfunc TestFooProp(t *testing.T) {}\n")
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
-	err = CheckFiles(logger, []string{f}, rules)
+	err = CheckFiles(logger, []string{f}, rules, os.ReadFile)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "violation(s)")
@@ -222,7 +222,7 @@ func TestCheckFiles_IntegrationFileNoFuzz(t *testing.T) {
 	t.Parallel()
 
 	rootDir := buildSuffixRoot(t)
-	rules, err := LoadSuffixRules(rootDir)
+	rules, err := LoadSuffixRules(rootDir, os.ReadFile)
 	require.NoError(t, err)
 
 	pkgDir := filepath.Join(t.TempDir(), "mypkg")
@@ -230,7 +230,7 @@ func TestCheckFiles_IntegrationFileNoFuzz(t *testing.T) {
 		"package mypkg\nimport \"testing\"\nfunc TestFoo(t *testing.T) {}\n")
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
-	err = CheckFiles(logger, []string{f}, rules)
+	err = CheckFiles(logger, []string{f}, rules, os.ReadFile)
 
 	require.NoError(t, err)
 }
@@ -239,7 +239,7 @@ func TestCheckFiles_IntegrationFileForbiddenFuzz(t *testing.T) {
 	t.Parallel()
 
 	rootDir := buildSuffixRoot(t)
-	rules, err := LoadSuffixRules(rootDir)
+	rules, err := LoadSuffixRules(rootDir, os.ReadFile)
 	require.NoError(t, err)
 
 	pkgDir := filepath.Join(t.TempDir(), "mypkg")
@@ -247,7 +247,7 @@ func TestCheckFiles_IntegrationFileForbiddenFuzz(t *testing.T) {
 		"package mypkg\nimport \"testing\"\nfunc FuzzFoo(f *testing.F) {}\n")
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
-	err = CheckFiles(logger, []string{f}, rules)
+	err = CheckFiles(logger, []string{f}, rules, os.ReadFile)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "violation(s)")
@@ -261,7 +261,7 @@ func TestCheckFiles_ContentRule_FuzzInWrongFile(t *testing.T) {
 	t.Parallel()
 
 	rootDir := buildSuffixRoot(t)
-	rules, err := LoadSuffixRules(rootDir)
+	rules, err := LoadSuffixRules(rootDir, os.ReadFile)
 	require.NoError(t, err)
 
 	pkgDir := filepath.Join(t.TempDir(), "mypkg")
@@ -269,7 +269,7 @@ func TestCheckFiles_ContentRule_FuzzInWrongFile(t *testing.T) {
 		"package mypkg\nimport \"testing\"\nfunc FuzzFoo(f *testing.F) {}\n")
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
-	err = CheckFiles(logger, []string{f}, rules)
+	err = CheckFiles(logger, []string{f}, rules, os.ReadFile)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "violation(s)")
@@ -279,7 +279,7 @@ func TestCheckFiles_ContentRule_BenchmarkInWrongFile(t *testing.T) {
 	t.Parallel()
 
 	rootDir := buildSuffixRoot(t)
-	rules, err := LoadSuffixRules(rootDir)
+	rules, err := LoadSuffixRules(rootDir, os.ReadFile)
 	require.NoError(t, err)
 
 	pkgDir := filepath.Join(t.TempDir(), "mypkg")
@@ -287,7 +287,7 @@ func TestCheckFiles_ContentRule_BenchmarkInWrongFile(t *testing.T) {
 		"package mypkg\nimport \"testing\"\nfunc BenchmarkFoo(b *testing.B) {}\n")
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
-	err = CheckFiles(logger, []string{f}, rules)
+	err = CheckFiles(logger, []string{f}, rules, os.ReadFile)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "violation(s)")
@@ -297,46 +297,31 @@ func TestCheckFiles_EmptyFileList(t *testing.T) {
 	t.Parallel()
 
 	rootDir := buildSuffixRoot(t)
-	rules, err := LoadSuffixRules(rootDir)
+	rules, err := LoadSuffixRules(rootDir, os.ReadFile)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = CheckFiles(logger, []string{}, rules)
+	err = CheckFiles(logger, []string{}, rules, os.ReadFile)
 
 	require.NoError(t, err)
 }
 
 func TestCheckFiles_ReadFileError(t *testing.T) {
-	orig := testFileSuffixReadFileFn
-
-	t.Cleanup(func() { testFileSuffixReadFileFn = orig })
-
-	callCount := 0
-	testFileSuffixReadFileFn = func(path string) ([]byte, error) {
-		// The first call loads the YAML; subsequent calls simulate read errors for test files.
-		callCount++
-
-		if callCount <= 1 {
-			return orig(path)
-		}
-
-		return nil, fmt.Errorf("simulated read error")
-	}
+	t.Parallel()
 
 	rootDir := buildSuffixRoot(t)
-	rules, err := LoadSuffixRules(rootDir)
+	rules, err := LoadSuffixRules(rootDir, os.ReadFile)
 	require.NoError(t, err)
 
 	pkgDir := filepath.Join(t.TempDir(), "mypkg")
 	f := writeTestFile(t, pkgDir, "foo_test.go", "package mypkg\n")
 
-	// Reset the seam AFTER building root and writing test file (avoid polluting LoadSuffixRules).
-	testFileSuffixReadFileFn = func(path string) ([]byte, error) {
+	stubReadFileFn := func(_ string) ([]byte, error) {
 		return nil, fmt.Errorf("simulated read error")
 	}
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = CheckFiles(logger, []string{f}, rules)
+	err = CheckFiles(logger, []string{f}, rules, stubReadFileFn)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "simulated read error")
@@ -355,7 +340,7 @@ func TestCheckFiles_InvalidContentPatternInRules(t *testing.T) {
 	pkgDir := filepath.Join(t.TempDir(), "mypkg")
 	f := writeTestFile(t, pkgDir, "foo_test.go", "package mypkg\n")
 
-	err := CheckFiles(logger, []string{f}, rules)
+	err := CheckFiles(logger, []string{f}, rules, os.ReadFile)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid content_pattern")
@@ -374,7 +359,7 @@ func TestCheckFiles_InvalidRequiredPatternInRule(t *testing.T) {
 	pkgDir := filepath.Join(t.TempDir(), "mypkg")
 	f := writeTestFile(t, pkgDir, "foo_test.go", "package mypkg\n")
 
-	err := CheckFiles(logger, []string{f}, rules)
+	err := CheckFiles(logger, []string{f}, rules, os.ReadFile)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid required_content_pattern")
@@ -393,7 +378,7 @@ func TestCheckFiles_InvalidForbiddenPatternInRule(t *testing.T) {
 	pkgDir := filepath.Join(t.TempDir(), "mypkg")
 	f := writeTestFile(t, pkgDir, "foo_test.go", "package mypkg\n")
 
-	err := CheckFiles(logger, []string{f}, rules)
+	err := CheckFiles(logger, []string{f}, rules, os.ReadFile)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid forbidden_content_pattern")
@@ -432,39 +417,33 @@ func TestCheckInDir_ManifestError(t *testing.T) {
 	require.Contains(t, err.Error(), "test-file-suffix-structure")
 }
 
-// Sequential: mutates testFileSuffixWalkDirFn seam — outer walk returns error.
 func TestCheckInDir_WalkDirError(t *testing.T) {
-	orig := testFileSuffixWalkDirFn
+	t.Parallel()
 
-	t.Cleanup(func() { testFileSuffixWalkDirFn = orig })
-
-	testFileSuffixWalkDirFn = func(_ string, _ fs.WalkDirFunc) error {
+	stubWalkDirFn := func(_ string, _ fs.WalkDirFunc) error {
 		return fmt.Errorf("simulated walk error")
 	}
 
 	rootDir := buildSuffixRoot(t)
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := CheckInDir(logger, rootDir)
+	err := checkInDir(logger, rootDir, os.ReadFile, stubWalkDirFn)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "simulated walk error")
 }
 
-// Sequential: mutates testFileSuffixWalkDirFn to forward a callback error via walkFileErr.
 func TestCheckInDir_WalkCallbackError(t *testing.T) {
-	orig := testFileSuffixWalkDirFn
-
-	t.Cleanup(func() { testFileSuffixWalkDirFn = orig })
+	t.Parallel()
 
 	callbackErr := fmt.Errorf("simulated callback error")
-	testFileSuffixWalkDirFn = func(root string, fn fs.WalkDirFunc) error {
+	stubWalkDirFn := func(root string, fn fs.WalkDirFunc) error {
 		// Invoke the walker callback with an error to trigger the walkFileErr != nil branch.
 		return fn(root, nil, callbackErr)
 	}
 
 	rootDir := buildSuffixRoot(t)
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := CheckInDir(logger, rootDir)
+	err := checkInDir(logger, rootDir, os.ReadFile, stubWalkDirFn)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "simulated callback error")
@@ -483,47 +462,45 @@ func TestCheck_Integration(t *testing.T) {
 	require.NoError(t, err, "test-file-suffix-structure should pass on real project files")
 }
 
-// Sequential: mutates findTestFileSuffixProjectRootFn seam.
 func TestCheck_ProjectRootError(t *testing.T) {
-	orig := findTestFileSuffixProjectRootFn
+	t.Parallel()
 
-	t.Cleanup(func() { findTestFileSuffixProjectRootFn = orig })
-
-	findTestFileSuffixProjectRootFn = func() (string, error) {
+	stubGetwdFn := func() (string, error) {
 		return "", fmt.Errorf("simulated root error")
 	}
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := Check(logger)
 
+	rootDir, err := findTestFileSuffixProjectRoot(stubGetwdFn)
+	if err != nil {
+		require.Contains(t, err.Error(), "simulated root error")
+
+		return
+	}
+
+	err = CheckInDir(logger, rootDir)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "simulated root error")
 }
 
-// Sequential: mutates testFileSuffixGetwdFn seam to cover os.Getwd error.
 func TestFindTestFileSuffixProjectRoot_GetwdError(t *testing.T) {
-	orig := testFileSuffixGetwdFn
+	t.Parallel()
 
-	t.Cleanup(func() { testFileSuffixGetwdFn = orig })
-
-	testFileSuffixGetwdFn = func() (string, error) {
+	stubGetwdFn := func() (string, error) {
 		return "", fmt.Errorf("simulated getwd error")
 	}
 
-	result, err := findTestFileSuffixProjectRoot()
+	result, err := findTestFileSuffixProjectRoot(stubGetwdFn)
 
 	require.Error(t, err)
 	require.Empty(t, result)
 	require.Contains(t, err.Error(), "simulated getwd error")
 }
 
-// Sequential: mutates testFileSuffixGetwdFn to return a path with no go.mod ancestors.
 func TestFindTestFileSuffixProjectRoot_GoModNotFound(t *testing.T) {
-	orig := testFileSuffixGetwdFn
+	t.Parallel()
 
-	t.Cleanup(func() { testFileSuffixGetwdFn = orig })
-
-	testFileSuffixGetwdFn = func() (string, error) {
+	stubGetwdFn := func() (string, error) {
 		root := filepath.VolumeName(t.TempDir())
 		if root == "" {
 			root = "/"
@@ -534,7 +511,7 @@ func TestFindTestFileSuffixProjectRoot_GoModNotFound(t *testing.T) {
 		return root, nil
 	}
 
-	result, err := findTestFileSuffixProjectRoot()
+	result, err := findTestFileSuffixProjectRoot(stubGetwdFn)
 
 	require.Error(t, err)
 	require.Empty(t, result)

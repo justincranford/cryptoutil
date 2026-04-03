@@ -172,7 +172,11 @@ func formatSkillCommandDriftResults(result *SkillCommandDriftResult) string {
 // SkillCommandDriftCommand runs the skill/command drift check and writes results to stdout/stderr.
 // Returns 0 on success, 1 on violations.
 func SkillCommandDriftCommand(stdout, stderr io.Writer) int {
-	rootDir, err := findProjectRootFn()
+	return skillCommandDriftCommand(stdout, stderr, findProjectRoot)
+}
+
+func skillCommandDriftCommand(stdout, stderr io.Writer, rootFn func() (string, error)) int {
+	rootDir, err := rootFn()
 	if err != nil {
 		_, _ = fmt.Fprintf(stderr, "skill-command-drift: cannot determine project root: %v\n", err)
 

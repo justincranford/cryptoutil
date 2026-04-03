@@ -380,61 +380,47 @@ func TestCheckAgentDrift_MultipleViolations(t *testing.T) {
 	require.Contains(t, fields, "body")
 }
 
-// Sequential: modifies findProjectRootFn package-level seam.
 func TestAgentDriftCommand_NoPairsDir(t *testing.T) {
-	// AgentDriftCommand reads from project root via findProjectRootFn.
+	t.Parallel()
+
+	// agentDriftCommand reads from project root via rootFn.
 	var stdout, stderr bytes.Buffer
-
-	orig := findProjectRootFn
-
-	t.Cleanup(func() { findProjectRootFn = orig })
 
 	// Point root at a temp dir that has no .github/agents directory.
 	tmpDir := t.TempDir()
-	findProjectRootFn = func() (string, error) { return tmpDir, nil }
 
-	exitCode := AgentDriftCommand(&stdout, &stderr)
+	exitCode := agentDriftCommand(&stdout, &stderr, func() (string, error) { return tmpDir, nil })
 
 	require.Equal(t, 1, exitCode)
 	require.Contains(t, stderr.String(), "cannot read .github/agents")
 }
 
-// Sequential: modifies findProjectRootFn package-level seam.
 func TestAgentDriftCommand_AllClean(t *testing.T) {
+	t.Parallel()
+
 	tmpDir := t.TempDir()
 
 	makeAgentFiles(t, tmpDir, "beast-mode", testCopilotDescription, testCopilotDescription, "", "", testBody, testBody)
 
-	orig := findProjectRootFn
-
-	t.Cleanup(func() { findProjectRootFn = orig })
-
-	findProjectRootFn = func() (string, error) { return tmpDir, nil }
-
 	var stdout, stderr bytes.Buffer
 
-	exitCode := AgentDriftCommand(&stdout, &stderr)
+	exitCode := agentDriftCommand(&stdout, &stderr, func() (string, error) { return tmpDir, nil })
 
 	require.Equal(t, 0, exitCode)
 	require.Contains(t, stdout.String(), "All agent pairs are in sync")
 	require.Empty(t, stderr.String())
 }
 
-// Sequential: modifies findProjectRootFn package-level seam.
 func TestAgentDriftCommand_WithViolation(t *testing.T) {
+	t.Parallel()
+
 	tmpDir := t.TempDir()
 
 	makeAgentFiles(t, tmpDir, "drifted", "Copilot desc.", "Claude desc.", "", "", testBody, testBody)
 
-	orig := findProjectRootFn
-
-	t.Cleanup(func() { findProjectRootFn = orig })
-
-	findProjectRootFn = func() (string, error) { return tmpDir, nil }
-
 	var stdout, stderr bytes.Buffer
 
-	exitCode := AgentDriftCommand(&stdout, &stderr)
+	exitCode := agentDriftCommand(&stdout, &stderr, func() (string, error) { return tmpDir, nil })
 
 	require.Equal(t, 1, exitCode)
 	require.Contains(t, stdout.String(), "1 violation(s) found")

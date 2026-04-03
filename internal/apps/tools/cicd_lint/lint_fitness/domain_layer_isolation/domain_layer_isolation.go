@@ -16,10 +16,6 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// Test seams: replaceable in tests to exercise unreachable OS-level error paths.
-// See ARCHITECTURE.md Section 10.2.4 (Test Seam Injection Pattern).
-var domainIsolationWalkFn = filepath.Walk
-
 // Check verifies domain layer isolation from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 	return CheckInDir(logger, ".")
@@ -27,6 +23,11 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 
 // CheckInDir verifies domain layer isolation under rootDir.
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
+	return checkInDir(logger, rootDir, filepath.Walk)
+}
+
+// checkInDir is the internal implementation that accepts a walkFn for testing.
+func checkInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, walkFn func(string, filepath.WalkFunc) error) error {
 	logger.Log("Checking domain layer isolation...")
 
 	projectRoot, err := filepath.Abs(rootDir)
@@ -36,7 +37,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 	var violations []string
 
-	walkErr := domainIsolationWalkFn(projectRoot, func(path string, info os.FileInfo, err error) error {
+	walkErr := walkFn(projectRoot, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}

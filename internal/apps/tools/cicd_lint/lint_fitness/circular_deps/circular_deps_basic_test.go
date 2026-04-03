@@ -236,18 +236,15 @@ func TestCheck_FreshCheckFindsCircularDeps(t *testing.T) {
 	cacheFile := cryptoutilSharedMagic.CircularDepCacheFileName
 	_ = os.Remove(cacheFile)
 
-	// Inject go list output containing a circular dependency.
-	origGoList := goListOutputFn
-	goListOutputFn = func() ([]byte, error) {
+	// Inject go list output containing a circular dependency via fn-param.
+	stubGoListFn := func() ([]byte, error) {
 		return []byte("{\"ImportPath\": \"testmod/a\", \"Imports\": [\"testmod/b\"]}\n{\"ImportPath\": \"testmod/b\", \"Imports\": [\"testmod/a\"]}"), nil
 	}
-
-	defer func() { goListOutputFn = origGoList }()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-circular-fresh")
 
 	// Check should detect circular dependency from injected output.
-	err = Check(logger)
+	err = check(logger, stubGoListFn)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "circular dependency")
 

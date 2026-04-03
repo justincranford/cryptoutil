@@ -194,7 +194,7 @@ func extractRefsFromFile(relPath, content string) []PropagationRef {
 
 // truncateRef truncates a line for display.
 func truncateRef(line string) string {
-	const maxRefLength = 120
+	maxRefLength := cryptoutilSharedMagic.MaxPropagationRefDisplayLength
 
 	line = strings.TrimSpace(line)
 
@@ -362,9 +362,7 @@ func formatLevelCoverage(label string, lc LevelCoverage) string {
 		return fmt.Sprintf("%s: 0/0 (N/A)\n", label)
 	}
 
-	const percentMultiplier = 100
-
-	pct := percentMultiplier * lc.Referenced / lc.Total
+	pct := cryptoutilSharedMagic.PercentageBasis100 * lc.Referenced / lc.Total
 
 	return fmt.Sprintf("%s: %d/%d (%d%%)\n", label, lc.Referenced, lc.Total, pct)
 }
@@ -439,7 +437,11 @@ func FormatPropagationResults(result *PropagationResult) string {
 // ValidatePropagationCommand is the CLI entry point for validate-propagation.
 // Returns exit code: 0 if no broken refs, 1 if broken refs found.
 func ValidatePropagationCommand(stdout, stderr io.Writer) int {
-	rootDir, err := findProjectRootFn()
+	return validatePropagationCommand(stdout, stderr, findProjectRoot)
+}
+
+func validatePropagationCommand(stdout, stderr io.Writer, rootFn func() (string, error)) int {
+	rootDir, err := rootFn()
 	if err != nil {
 		_, _ = fmt.Fprintf(stderr, "Error: %s\n", err)
 

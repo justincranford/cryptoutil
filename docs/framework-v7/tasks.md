@@ -243,7 +243,7 @@ complete before Phase 1 begins. Each task is a blocking regression, not improvem
 
 #### Task 0.10: Change ALL Fitness Linters to Hard-Error on Absent Dirs (Q6 decision: E)
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 6h
 - **Dependencies**: None (quizme-v2.md Q6 answered 2026-04-03)
@@ -259,16 +259,16 @@ complete before Phase 1 begins. Each task is a blocking regression, not improvem
   avoid CI partial breakage (linter strict before dirs exist = red CI). Final step: document
   the contract in ARCHITECTURE.md §9.10 and lessons.md.
 - **Acceptance Criteria**:
-  - [ ] All 68 fitness linter `CheckInDir` / `check*` functions return hard error on required-but-absent dirs
-  - [ ] No fitness linter uses `os.IsNotExist` → `return nil` (skip) for dirs that must exist
-  - [ ] All missing repo directories created in same commit batch as their linter code changes
-  - [ ] Audit evidence in `test-output/phase0/linter-audit.md` listing all 68 linters, old
+  - [x] All 68 fitness linter `CheckInDir` / `check*` functions return hard error on required-but-absent dirs
+  - [x] No fitness linter uses `os.IsNotExist` → `return nil` (skip) for dirs that must exist
+  - [x] All missing repo directories created in same commit batch as their linter code changes
+  - [x] Audit evidence in `test-output/phase0/linter-audit.md` listing all 68 linters, old
     behavior, new behavior, and any dirs created
-  - [ ] ARCHITECTURE.md §9.10 documents: fitness linters hard-error on absent dirs; intentional strictness
-  - [ ] lessons.md updated: absent-dir = hard error is the project-wide standard for fitness linters
-  - [ ] Tests updated for all changed linters (coverage ≥98%)
-  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes on current repo after all batches
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
+  - [x] ARCHITECTURE.md §9.11.2 documents: fitness linters hard-error on absent dirs; intentional strictness
+  - [x] lessons.md updated: absent-dir = hard error is the project-wide standard for fitness linters
+  - [x] Tests updated for all changed linters (coverage ≥98%)
+  - [x] `go run ./cmd/cicd-lint lint-fitness` passes on current repo after all batches
+  - [x] `go run ./cmd/cicd-lint lint-docs` passes
 - **Files**:
   - `internal/apps/tools/cicd_lint/lint_fitness/**/*.go` (all 68 linter packages)
   - `docs/ARCHITECTURE.md`

@@ -47,21 +47,9 @@ type SuffixRules struct {
 	ContentRules []ContentRule `yaml:"content_rules"`
 }
 
-// testFileSuffixReadFileFn is a seam for testing.
-var testFileSuffixReadFileFn = os.ReadFile
-
-// testFileSuffixWalkDirFn is a seam for testing.
-var testFileSuffixWalkDirFn = filepath.WalkDir
-
-// testFileSuffixGetwdFn is a seam for testing.
-var testFileSuffixGetwdFn = os.Getwd
-
-// findTestFileSuffixProjectRootFn is a seam for testing.
-var findTestFileSuffixProjectRootFn = findTestFileSuffixProjectRoot
-
 // findTestFileSuffixProjectRoot walks up from cwd to find the directory containing go.mod.
-func findTestFileSuffixProjectRoot() (string, error) {
-	dir, err := testFileSuffixGetwdFn()
+func findTestFileSuffixProjectRoot(getwdFn func() (string, error)) (string, error) {
+	dir, err := getwdFn()
 	if err != nil {
 		return "", fmt.Errorf("getwd failed: %w", err)
 	}
@@ -81,10 +69,10 @@ func findTestFileSuffixProjectRoot() (string, error) {
 }
 
 // LoadSuffixRules loads and parses the test-file-suffix-rules.yaml manifest.
-func LoadSuffixRules(rootDir string) (*SuffixRules, error) {
+func LoadSuffixRules(rootDir string, readFileFn func(string) ([]byte, error)) (*SuffixRules, error) {
 	path := filepath.Join(rootDir, filepath.FromSlash(cryptoutilSharedMagic.CICDTestFileSuffixRulesFile))
 
-	data, err := testFileSuffixReadFileFn(path)
+	data, err := readFileFn(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read %s: %w", cryptoutilSharedMagic.CICDTestFileSuffixRulesFile, err)
 	}
@@ -250,7 +238,7 @@ func isExcludedFromContentRules(filePath string) bool {
 }
 
 // CheckFiles validates all provided test files against the loaded suffix rules.
-func CheckFiles(logger *cryptoutilCmdCicdCommon.Logger, testFiles []string, rules *SuffixRules) error {
+func CheckFiles(logger *cryptoutilCmdCicdCommon.Logger, testFiles []string, rules *SuffixRules, readFileFn func(string) ([]byte, error)) error {
 	logger.Log("Enforcing test file suffix structure rules...")
 
 	suffixRules, contentRules, err := compileRules(rules)
@@ -261,7 +249,7 @@ func CheckFiles(logger *cryptoutilCmdCicdCommon.Logger, testFiles []string, rule
 	var allViolations []string
 
 	for _, filePath := range testFiles {
-		content, readErr := testFileSuffixReadFileFn(filePath)
+		content, readErr := readFileFn(filePath)
 		if readErr != nil {
 			return fmt.Errorf("test-file-suffix-structure: failed to read %s: %w", filePath, readErr)
 		}
@@ -307,7 +295,7 @@ func CheckFiles(logger *cryptoutilCmdCicdCommon.Logger, testFiles []string, rule
 // Check runs the linter by discovering all _test.go files in the repository.
 // Returns an error if any violations are found.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
-	rootDir, err := findTestFileSuffixProjectRootFn()
+	rootDir, err := findTestFileSuffixProjectRoot(os.Getwd)
 	if err != nil {
 		return fmt.Errorf("test-file-suffix-structure: %w", err)
 	}
@@ -317,14 +305,18 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 
 // CheckInDir runs the linter from a specified root directory.
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
-	rules, err := LoadSuffixRules(rootDir)
+	return checkInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
+}
+
+func checkInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, readFileFn func(string) ([]byte, error), walkDirFn func(string, fs.WalkDirFunc) error) error {
+	rules, err := LoadSuffixRules(rootDir, readFileFn)
 	if err != nil {
 		return fmt.Errorf("test-file-suffix-structure: %w", err)
 	}
 
 	var testFiles []string
 
-	walkErr := testFileSuffixWalkDirFn(rootDir, func(path string, d fs.DirEntry, walkFileErr error) error {
+	walkErr := walkDirFn(rootDir, func(path string, d fs.DirEntry, walkFileErr error) error {
 		if walkFileErr != nil {
 			return walkFileErr
 		}
@@ -347,5 +339,5 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 		return fmt.Errorf("test-file-suffix-structure: failed to walk %s: %w", rootDir, walkErr)
 	}
 
-	return CheckFiles(logger, testFiles, rules)
+	return CheckFiles(logger, testFiles, rules, readFileFn)
 }

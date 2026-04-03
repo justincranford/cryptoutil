@@ -246,38 +246,32 @@ func TestCheckInDir_SkeletonProduct_Skipped(t *testing.T) {
 	require.NoError(t, err)
 }
 
-// Sequential: modifies package-level crossServiceWalkFn seam.
 func TestCheckInDir_WalkError(t *testing.T) {
-	orig := crossServiceWalkFn
+	t.Parallel()
 
-	t.Cleanup(func() { crossServiceWalkFn = orig })
-
-	crossServiceWalkFn = func(_ string, _ filepath.WalkFunc) error {
+	stubWalkFn := func(_ string, _ filepath.WalkFunc) error {
 		return fmt.Errorf("injected walk error")
 	}
 
 	tmp := t.TempDir()
 	mkServiceDir(t, tmp, cryptoutilSharedMagic.OTLPServiceSMIM)
 
-	err := CheckInDir(newTestLogger(), tmp)
+	err := checkInDir(newTestLogger(), tmp, stubWalkFn)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to scan service")
 }
 
-// Sequential: modifies package-level crossServiceWalkFn seam.
 func TestCheckInDir_WalkCallbackError(t *testing.T) {
-	orig := crossServiceWalkFn
+	t.Parallel()
 
-	t.Cleanup(func() { crossServiceWalkFn = orig })
-
-	crossServiceWalkFn = func(_ string, fn filepath.WalkFunc) error {
+	stubWalkFn := func(_ string, fn filepath.WalkFunc) error {
 		return fn("bad/path", nil, fmt.Errorf("injected callback error"))
 	}
 
 	tmp := t.TempDir()
 	mkServiceDir(t, tmp, cryptoutilSharedMagic.OTLPServiceSMIM)
 
-	err := CheckInDir(newTestLogger(), tmp)
+	err := checkInDir(newTestLogger(), tmp, stubWalkFn)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to scan service")
 }

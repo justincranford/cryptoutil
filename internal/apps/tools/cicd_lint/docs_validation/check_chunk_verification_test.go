@@ -340,19 +340,14 @@ func TestRootedReadFile(t *testing.T) {
 	}
 }
 
-// Sequential: modifies package-level findProjectRootFn seam.
 func TestCheckChunkVerification_FindRootError(t *testing.T) {
-	orig := findProjectRootFn
-
-	t.Cleanup(func() { findProjectRootFn = orig })
-
-	findProjectRootFn = func() (string, error) {
-		return "", fmt.Errorf("injected root error")
-	}
+	t.Parallel()
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := CheckChunkVerification(&stdout, &stderr)
+	exitCode := checkChunkVerificationCommand(&stdout, &stderr, func() (string, error) {
+		return "", fmt.Errorf("injected root error")
+	})
 	require.Equal(t, 1, exitCode)
 	require.Contains(t, stderr.String(), "injected root error")
 }

@@ -18,10 +18,6 @@ const mainGoFilename = "main.go"
 // Accepts both os.Args (suite/infrastructure) and os.Args[1:] (product/service) patterns.
 var mainPattern = regexp.MustCompile(`func\s+main\(\)\s*\{\s*os\.Exit\(cryptoutil[A-Z][a-zA-Z0-9]*\.[A-Z][a-zA-Z0-9]*\(os\.Args(\[1:\])?,\s*os\.Stdin,\s*os\.Stdout,\s*os\.Stderr\)\)\s*\}`)
 
-// Test seams: replaceable in tests to exercise unreachable OS-level error paths.
-// See ARCHITECTURE.md Section 10.2.4 (Test Seam Injection Pattern).
-var cmdMainWalkFn = filepath.Walk
-
 // Check checks that all main.go files under cmd/ follow the ARCHITECTURE.md 4.4.3 pattern.
 // Required pattern: func main() { os.Exit(cryptoutilApps<SOMETHING>.<SOMETHING>(os.Args[1:], os.Stdin, os.Stdout, os.Stderr)) }.
 // Also accepts os.Args (without [1:]) for suite/infrastructure binaries.
@@ -31,6 +27,11 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 
 // CheckInDir checks all main.go files under rootDir/cmd/ follow the required pattern.
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
+	return checkInDir(logger, rootDir, filepath.Walk)
+}
+
+// checkInDir is the internal implementation that accepts a walkFn for testing.
+func checkInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, walkFn func(string, filepath.WalkFunc) error) error {
 	errors := []string{}
 
 	cmdDir := filepath.Join(rootDir, "cmd")
@@ -38,7 +39,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 		return fmt.Errorf("cmd/ directory not found at %s", cmdDir)
 	}
 
-	err := cmdMainWalkFn(cmdDir, func(path string, info os.FileInfo, err error) error {
+	err := walkFn(cmdDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}

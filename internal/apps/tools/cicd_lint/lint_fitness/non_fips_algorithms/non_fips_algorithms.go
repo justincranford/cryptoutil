@@ -65,17 +65,17 @@ var bannedAlgorithms = map[string]string{
 	`"golang.org/x/crypto/argon2"`: "golang.org/x/crypto/pbkdf2",
 }
 
-// Test seams: replaceable in tests to exercise unreachable OS-level error paths.
-// See ARCHITECTURE.md Section 10.2.4 (Test Seam Injection Pattern).
-var nonFIPSWalkFn = filepath.Walk
-
 // Check detects banned non-FIPS algorithms in Go code.
 // Returns error if violations found.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
+	return check(logger, filepath.Walk)
+}
+
+func check(logger *cryptoutilCmdCicdCommon.Logger, walkFn func(string, filepath.WalkFunc) error) error {
 	logger.Log("Checking for non-FIPS algorithms...")
 
 	// Find all .go files (exclude vendor, test-output).
-	goFiles, err := FindGoFiles()
+	goFiles, err := FindGoFiles(walkFn)
 	if err != nil {
 		return fmt.Errorf("failed to find Go files: %w", err)
 	}
@@ -101,10 +101,10 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 }
 
 // FindGoFiles finds all .go files in the project (exclude vendor, test-output, .git, test files, nonfips.go).
-func FindGoFiles() ([]string, error) {
+func FindGoFiles(walkFn func(string, filepath.WalkFunc) error) ([]string, error) {
 	var files []string
 
-	err := nonFIPSWalkFn(".", func(path string, info os.FileInfo, walkErr error) error {
+	err := walkFn(".", func(path string, info os.FileInfo, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
 		}

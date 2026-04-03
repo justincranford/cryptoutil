@@ -32,13 +32,13 @@ import (
 
 // DSN constants for the two database backends, matching the canonical values in §12.3.5.
 const (
-	dsnSQLite    = "sqlite://file::memory:?cache=shared"
-	dsnPostgres  = "file:///run/secrets/postgres-url.secret"
-	bindPublic   = "--bind-public-port=8080"
-	tlsConfig    = "--config=/certs/tls-config.yml"
-	otelConfig   = "--config=/app/otel/otel.yml"
-	argSubcmd    = "server"
-	argDSNFlag   = "-u"
+	dsnSQLite   = "sqlite://file::memory:?cache=shared"
+	dsnPostgres = "file:///run/secrets/postgres-url.secret"
+	bindPublic  = "--bind-public-port=8080"
+	tlsConfig   = "--config=/certs/tls-config.yml"
+	otelConfig  = "--config=/app/otel/otel.yml"
+	argSubcmd   = "server"
+	argDSNFlag  = "-u"
 )
 
 // variantDSN maps each compose variant to its expected database URL.
@@ -67,9 +67,6 @@ type composeService struct {
 	Command []string `yaml:"command"`
 }
 
-// Injectable function for testing the read-error path.
-var readFileFn = os.ReadFile
-
 // Check validates compose entrypoint uniformity from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 	return CheckInDir(logger, ".")
@@ -77,12 +74,17 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 
 // CheckInDir validates compose entrypoint uniformity under rootDir.
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
+	return checkInDir(logger, rootDir, os.ReadFile)
+}
+
+// checkInDir is the internal implementation that accepts a readFileFn for testing.
+func checkInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, readFileFn func(string) ([]byte, error)) error {
 	logger.Log("Checking compose entrypoint uniformity (canonical command array §12.3.5)...")
 
 	var violations []string
 
 	for _, ps := range lintFitnessRegistry.AllProductServices() {
-		v := checkCompose(rootDir, ps.PSID)
+		v := checkCompose(rootDir, ps.PSID, readFileFn)
 		violations = append(violations, v...)
 	}
 
@@ -110,7 +112,7 @@ func expectedCommand(psID, variant string) []string {
 }
 
 // checkCompose validates all 4 app-service command arrays in one PS-ID compose file.
-func checkCompose(rootDir, psID string) []string {
+func checkCompose(rootDir, psID string, readFileFn func(string) ([]byte, error)) []string {
 	composePath := filepath.Join(rootDir, "deployments", psID, "compose.yml")
 
 	data, err := readFileFn(composePath)

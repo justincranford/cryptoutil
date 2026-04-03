@@ -163,7 +163,11 @@ func percentage(covered, total int) float64 {
 
 // PropagationCoverageCommand is the entry point for the propagation-coverage sub-command.
 func PropagationCoverageCommand(stdout, stderr io.Writer) int {
-	rootDir, err := findProjectRootFn()
+	return propagationCoverageCommand(stdout, stderr, findProjectRoot)
+}
+
+func propagationCoverageCommand(stdout, stderr io.Writer, rootFn func() (string, error)) int {
+	rootDir, err := rootFn()
 	if err != nil {
 		_, _ = fmt.Fprintf(stderr, "Error: %s\n", err)
 

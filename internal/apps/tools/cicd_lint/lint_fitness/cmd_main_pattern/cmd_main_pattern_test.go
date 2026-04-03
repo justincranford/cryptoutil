@@ -219,15 +219,8 @@ println("bad pattern")
 	require.Contains(t, err.Error(), "cmd/ main() pattern violations")
 }
 
-// Sequential: modifies package-level cmdMainWalkFn seam.
 func TestCheckInDir_WalkError(t *testing.T) {
-	orig := cmdMainWalkFn
-
-	t.Cleanup(func() { cmdMainWalkFn = orig })
-
-	cmdMainWalkFn = func(_ string, _ filepath.WalkFunc) error {
-		return fmt.Errorf("injected walk error")
-	}
+	t.Parallel()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	tmpDir := t.TempDir()
@@ -236,7 +229,11 @@ func TestCheckInDir_WalkError(t *testing.T) {
 	cmdDir := filepath.Join(tmpDir, "cmd")
 	require.NoError(t, os.MkdirAll(cmdDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
-	err := CheckInDir(logger, tmpDir)
+	stubWalkFn := func(_ string, _ filepath.WalkFunc) error {
+		return fmt.Errorf("injected walk error")
+	}
+
+	err := checkInDir(logger, tmpDir, stubWalkFn)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to walk cmd directory")
 }
@@ -268,7 +265,7 @@ func TestCheck_DelegatesCheckInDir(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create an empty cmd/ dir so the hard-error-on-absent-cmd-dir check passes.
-	if err := os.MkdirAll(filepath.Join(tmpDir, "cmd"), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Join(tmpDir, "cmd"), cryptoutilSharedMagic.CICDTempDirPermissions); err != nil {
 		t.Fatalf("setup: mkdir cmd/: %v", err)
 	}
 

@@ -198,29 +198,21 @@ func TestPercentage(t *testing.T) {
 	}
 }
 
-// Sequential: modifies package-level findProjectRootFn seam.
 func TestPropagationCoverageCommand_RootError(t *testing.T) {
-	orig := findProjectRootFn
-
-	t.Cleanup(func() { findProjectRootFn = orig })
-
-	findProjectRootFn = func() (string, error) {
-		return "", fmt.Errorf("injected root error")
-	}
+	t.Parallel()
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := PropagationCoverageCommand(&stdout, &stderr)
+	exitCode := propagationCoverageCommand(&stdout, &stderr, func() (string, error) {
+		return "", fmt.Errorf("injected root error")
+	})
 
 	require.Equal(t, 1, exitCode)
 	require.Contains(t, stderr.String(), "injected root error")
 }
 
-// Sequential: modifies package-level findProjectRootFn seam.
 func TestPropagationCoverageCommand_Integration(t *testing.T) {
-	orig := findProjectRootFn
-
-	t.Cleanup(func() { findProjectRootFn = orig })
+	t.Parallel()
 
 	rootDir := t.TempDir()
 
@@ -229,13 +221,11 @@ func TestPropagationCoverageCommand_Integration(t *testing.T) {
 	require.NoError(t, os.MkdirAll(instrDir, 0o700))
 	require.NoError(t, os.WriteFile(instrDir+"/01.instructions.md", []byte("before\n<!-- @source from=\"docs/ARCHITECTURE.md\" as=\"chunk\" -->\nline\n<!-- @/source -->\nafter"), cryptoutilSharedMagic.FilePermissionsDefault))
 
-	findProjectRootFn = func() (string, error) {
-		return rootDir, nil
-	}
-
 	var stdout, stderr bytes.Buffer
 
-	exitCode := PropagationCoverageCommand(&stdout, &stderr)
+	exitCode := propagationCoverageCommand(&stdout, &stderr, func() (string, error) {
+		return rootDir, nil
+	})
 
 	require.Equal(t, 0, exitCode)
 	require.Contains(t, stdout.String(), "Propagation Coverage Report")

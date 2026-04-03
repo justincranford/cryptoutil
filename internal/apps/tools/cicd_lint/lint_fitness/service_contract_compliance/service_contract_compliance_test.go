@@ -101,7 +101,7 @@ func TestCheckInDir_MultipleServices_OneFails(t *testing.T) {
 func TestDiscoverServices_NoAppsDir_Error(t *testing.T) {
 	t.Parallel()
 	// discoverServices reads the appsDir; missing dir causes ReadDir error.
-	_, err := discoverServices("/nonexistent/apps")
+	_, err := discoverServices("/nonexistent/apps", os.ReadDir)
 	require.Error(t, err)
 }
 
@@ -110,7 +110,7 @@ func TestDiscoverServices_EmptyAppsDir_ReturnsNil(t *testing.T) {
 	tmp := t.TempDir()
 	appsDir := filepath.Join(tmp, "apps")
 	require.NoError(t, os.MkdirAll(appsDir, cryptoutilSharedMagic.DirPermissions))
-	services, err := discoverServices(appsDir)
+	services, err := discoverServices(appsDir, os.ReadDir)
 	require.NoError(t, err)
 	require.Empty(t, services)
 }
@@ -122,7 +122,7 @@ func TestDiscoverServices_WithService_ReturnsIt(t *testing.T) {
 	serverDir := filepath.Join(tmp, "apps", cryptoutilSharedMagic.JoseProductName, "ja", "server")
 	require.NoError(t, os.MkdirAll(serverDir, cryptoutilSharedMagic.DirPermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(serverDir, "server.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
-	services, err := discoverServices(filepath.Join(tmp, "apps"))
+	services, err := discoverServices(filepath.Join(tmp, "apps"), os.ReadDir)
 	require.NoError(t, err)
 	require.Len(t, services, 1)
 	require.Equal(t, cryptoutilSharedMagic.JoseProductName, services[0].product)
@@ -138,7 +138,7 @@ func TestCheckServerFile_WithAssertion_NoViolation(t *testing.T) {
 	var violations []string
 
 	svc := serviceID{product: cryptoutilSharedMagic.JoseProductName, service: "ja"}
-	err := checkServerFile(p, svc, &violations)
+	err := checkServerFile(p, svc, &violations, os.ReadFile)
 	require.NoError(t, err)
 	require.Empty(t, violations)
 }
@@ -152,7 +152,7 @@ func TestCheckServerFile_MissingAssertion_AddsViolation(t *testing.T) {
 	var violations []string
 
 	svc := serviceID{product: cryptoutilSharedMagic.JoseProductName, service: "ja"}
-	err := checkServerFile(p, svc, &violations)
+	err := checkServerFile(p, svc, &violations, os.ReadFile)
 	require.NoError(t, err) // returns nil, appends to violations
 	require.NotEmpty(t, violations)
 }
@@ -164,7 +164,7 @@ func TestCheckServerFile_NonexistentFile_AddsViolation(t *testing.T) {
 
 	svc := serviceID{product: cryptoutilSharedMagic.JoseProductName, service: "ja"}
 	// Missing file is reported as a violation (not an error) per implementation.
-	err := checkServerFile("/nonexistent/server.go", svc, &violations)
+	err := checkServerFile("/nonexistent/server.go", svc, &violations, os.ReadFile)
 	require.NoError(t, err)
 	require.NotEmpty(t, violations)
 }
@@ -176,7 +176,7 @@ func TestDiscoverServices_NonDirFileInAppsDir_Skipped(t *testing.T) {
 	require.NoError(t, os.MkdirAll(appsDir, cryptoutilSharedMagic.DirPermissions))
 	// Create a FILE (not directory) directly in appsDir - triggers !p.IsDir() continue.
 	require.NoError(t, os.WriteFile(filepath.Join(appsDir, "README.md"), []byte(cryptoutilSharedMagic.CICDExcludeDirDocs), cryptoutilSharedMagic.CacheFilePermissions))
-	services, err := discoverServices(appsDir)
+	services, err := discoverServices(appsDir, os.ReadDir)
 	require.NoError(t, err)
 	require.Empty(t, services)
 }
@@ -190,40 +190,34 @@ func TestDiscoverServices_NonDirFileInProductDir_Skipped(t *testing.T) {
 	// Create a FILE (not directory) in the product dir - triggers !s.IsDir() continue.
 	require.NoError(t, os.WriteFile(filepath.Join(productDir, "README.md"), []byte(cryptoutilSharedMagic.CICDExcludeDirDocs), cryptoutilSharedMagic.CacheFilePermissions))
 
-	services, err := discoverServices(appsDir)
+	services, err := discoverServices(appsDir, os.ReadDir)
 	require.NoError(t, err)
 	require.Empty(t, services)
 }
 
-// Sequential: modifies package-level serviceContractReadDirFn seam.
 func TestDiscoverServices_ReadDirSeamError(t *testing.T) {
-	orig := serviceContractReadDirFn
+	t.Parallel()
 
-	t.Cleanup(func() { serviceContractReadDirFn = orig })
-
-	serviceContractReadDirFn = func(_ string) ([]os.DirEntry, error) {
+	stubReadDirFn := func(_ string) ([]os.DirEntry, error) {
 		return nil, fmt.Errorf("injected readdir error")
 	}
 
-	err := CheckInDir(newTestLogger(), t.TempDir())
+	err := checkInDir(newTestLogger(), t.TempDir(), stubReadDirFn, os.ReadFile)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to discover services")
 }
 
-// Sequential: modifies package-level serviceContractReadFileFn seam.
 func TestCheckServerFile_ReadFileError(t *testing.T) {
-	orig := serviceContractReadFileFn
+	t.Parallel()
 
-	t.Cleanup(func() { serviceContractReadFileFn = orig })
-
-	serviceContractReadFileFn = func(_ string) ([]byte, error) {
+	stubReadFileFn := func(_ string) ([]byte, error) {
 		return nil, fmt.Errorf("injected read error")
 	}
 
 	tmp := t.TempDir()
 	makeServiceDir(t, tmp, "sm", "im", "package server\ntype MyServer struct{}\n")
 
-	err := CheckInDir(newTestLogger(), tmp)
+	err := checkInDir(newTestLogger(), tmp, os.ReadDir, stubReadFileFn)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to check")
 }
@@ -283,7 +277,7 @@ func TestDiscoverServices_ArchivedDirSkipped(t *testing.T) {
 	archivedDir := filepath.Join(productDir, "_archived_service")
 	require.NoError(t, os.MkdirAll(archivedDir, cryptoutilSharedMagic.DirPermissions))
 
-	services, err := discoverServices(appsDir)
+	services, err := discoverServices(appsDir, os.ReadDir)
 	require.NoError(t, err)
 	require.Empty(t, services)
 }

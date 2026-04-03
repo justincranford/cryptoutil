@@ -30,10 +30,6 @@ const (
 
 var importLinePattern = regexp.MustCompile(`^\s+(?:\w+ )?"([^"]+)"`)
 
-// Test seams: replaceable in tests to exercise unreachable OS-level error paths.
-// See ARCHITECTURE.md Section 10.2.4 (Test Seam Injection Pattern).
-var crossServiceWalkFn = filepath.Walk
-
 // Check verifies cross-service import isolation from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 	return CheckInDir(logger, ".")
@@ -41,6 +37,11 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 
 // CheckInDir verifies cross-service import isolation under rootDir.
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
+	return checkInDir(logger, rootDir, filepath.Walk)
+}
+
+// checkInDir is the internal implementation that accepts a walkFn for testing.
+func checkInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, walkFn func(string, filepath.WalkFunc) error) error {
 	logger.Log("Checking cross-service import isolation...")
 
 	projectRoot, err := filepath.Abs(rootDir)
@@ -60,7 +61,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	for _, svc := range services {
 		svcDir := filepath.Join(appsDir, svc.psid)
 
-		if walkErr := walkServiceImports(projectRoot, svcDir, svc, services, &violations); walkErr != nil {
+		if walkErr := walkServiceImports(projectRoot, svcDir, svc, services, &violations, walkFn); walkErr != nil {
 			return fmt.Errorf("failed to scan service %s: %w", svc.psid, walkErr)
 		}
 	}
@@ -151,8 +152,8 @@ func collectServices(appsDir string) ([]serviceRef, error) {
 	return services, nil
 }
 
-func walkServiceImports(projectRoot, svcDir string, self serviceRef, allServices []serviceRef, violations *[]string) error {
-	err := crossServiceWalkFn(svcDir, func(path string, info os.FileInfo, err error) error {
+func walkServiceImports(projectRoot, svcDir string, self serviceRef, allServices []serviceRef, violations *[]string, walkFn func(string, filepath.WalkFunc) error) error {
+	err := walkFn(svcDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}

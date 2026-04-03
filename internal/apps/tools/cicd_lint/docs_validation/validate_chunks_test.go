@@ -492,37 +492,28 @@ func TestValidateChunksWithRoot_BadRoot(t *testing.T) {
 	require.NotEmpty(t, stderr.String())
 }
 
-// Sequential: modifies package-level findProjectRootFn seam.
 func TestValidateChunksCommand_FindRootError(t *testing.T) {
-	orig := findProjectRootFn
-
-	t.Cleanup(func() { findProjectRootFn = orig })
-
-	findProjectRootFn = func() (string, error) {
-		return "", fmt.Errorf("injected root error")
-	}
+	t.Parallel()
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := ValidateChunksCommand(&stdout, &stderr)
+	exitCode := validateChunksCommand(&stdout, &stderr, func() (string, error) {
+		return "", fmt.Errorf("injected root error")
+	})
 	require.Equal(t, 1, exitCode)
 	require.Contains(t, stderr.String(), "injected root error")
 }
 
-// Sequential: modifies package-level findProjectRootFn seam.
 func TestValidateChunksCommand_Success(t *testing.T) {
-	orig := findProjectRootFn
-
-	t.Cleanup(func() { findProjectRootFn = orig })
+	t.Parallel()
 
 	root := findChunksProjectRoot(t)
-	findProjectRootFn = func() (string, error) {
-		return root, nil
-	}
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := ValidateChunksCommand(&stdout, &stderr)
+	exitCode := validateChunksCommand(&stdout, &stderr, func() (string, error) {
+		return root, nil
+	})
 	require.Equal(t, 0, exitCode, "validate-chunks should pass on real project: stderr=%s", stderr.String())
 }
 

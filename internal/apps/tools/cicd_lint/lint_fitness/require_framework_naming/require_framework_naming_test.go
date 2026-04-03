@@ -295,32 +295,26 @@ func TestCheckInDir_EmptyDir_Passes(t *testing.T) {
 	require.NoError(t, err)
 }
 
-// Sequential: modifies package-level walkFn seam.
 func TestCheckInDir_WalkError(t *testing.T) {
-	origWalkFn := walkFn
+	t.Parallel()
 
-	defer func() { walkFn = origWalkFn }()
-
-	walkFn = func(_ string, _ filepath.WalkFunc) error {
+	stubWalkFn := func(_ string, _ filepath.WalkFunc) error {
 		return errors.New("simulated walk error")
 	}
 
-	err := CheckInDir(newTestLogger(), ".")
+	err := checkInDir(newTestLogger(), ".", stubWalkFn)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "walking directory tree")
 }
 
-// Sequential: modifies package-level walkFn seam.
 func TestCheckInDir_WalkCallbackError(t *testing.T) {
-	origWalkFn := walkFn
+	t.Parallel()
 
-	defer func() { walkFn = origWalkFn }()
-
-	walkFn = func(_ string, fn filepath.WalkFunc) error {
+	stubWalkFn := func(_ string, fn filepath.WalkFunc) error {
 		return fn("fake.go", nil, errors.New("simulated callback error"))
 	}
 
-	err := CheckInDir(newTestLogger(), ".")
+	err := checkInDir(newTestLogger(), ".", stubWalkFn)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "walking directory tree")
 }

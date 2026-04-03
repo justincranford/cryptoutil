@@ -14,17 +14,18 @@ import (
 	cryptoutilDocsValidation "cryptoutil/internal/apps/tools/cicd_lint/docs_validation"
 )
 
-// validateCoverageFn is the seam for testing, replacing ValidateCoverageCommand.
-var validateCoverageFn = func(stdout, stderr io.Writer) int {
-	return cryptoutilDocsValidation.ValidateCoverageCommand(stdout, stderr)
-}
-
 // Check validates that required @propagate chunks are covered in instruction/agent files.
 // Returns an error if any required chunk is missing or orphaned @propagate tags exist.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
+	return check(logger, func(stdout, stderr io.Writer) int {
+		return cryptoutilDocsValidation.ValidateCoverageCommand(stdout, stderr)
+	})
+}
+
+func check(logger *cryptoutilCmdCicdCommon.Logger, fn func(io.Writer, io.Writer) int) error {
 	var stdout, stderr bytes.Buffer
 
-	exitCode := validateCoverageFn(&stdout, &stderr)
+	exitCode := fn(&stdout, &stderr)
 
 	if stdout.Len() > 0 {
 		logger.Log(stdout.String())

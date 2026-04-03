@@ -39,21 +39,9 @@ type FitnessRegistry struct {
 // registryDirName is excluded from the filesystem scan because it is infrastructure, not a sub-linter.
 const registryDirName = "registry"
 
-// fitnessRegistryReadFileFn is a seam for testing.
-var fitnessRegistryReadFileFn = os.ReadFile
-
-// fitnessRegistryReadDirFn is a seam for testing.
-var fitnessRegistryReadDirFn = os.ReadDir
-
-// fitnessGetwdFn is a seam for testing.
-var fitnessGetwdFn = os.Getwd
-
-// findFitnessProjectRootFn is a seam for testing.
-var findFitnessProjectRootFn = findFitnessProjectRoot
-
 // findFitnessProjectRoot walks up from cwd to find the directory containing go.mod.
-func findFitnessProjectRoot() (string, error) {
-	dir, err := fitnessGetwdFn()
+func findFitnessProjectRoot(getwdFn func() (string, error)) (string, error) {
+	dir, err := getwdFn()
 	if err != nil {
 		return "", fmt.Errorf("getwd failed: %w", err)
 	}
@@ -73,10 +61,10 @@ func findFitnessProjectRoot() (string, error) {
 }
 
 // LoadFitnessRegistry loads and parses the lint-fitness-registry.yaml manifest.
-func LoadFitnessRegistry(rootDir string) (*FitnessRegistry, error) {
+func LoadFitnessRegistry(rootDir string, readFileFn func(string) ([]byte, error)) (*FitnessRegistry, error) {
 	path := filepath.Join(rootDir, filepath.FromSlash(cryptoutilSharedMagic.CICDFitnessRegistryFile))
 
-	data, err := fitnessRegistryReadFileFn(path)
+	data, err := readFileFn(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read %s: %w", cryptoutilSharedMagic.CICDFitnessRegistryFile, err)
 	}
@@ -91,8 +79,8 @@ func LoadFitnessRegistry(rootDir string) (*FitnessRegistry, error) {
 
 // CheckRegistryCompleteness validates consistency between the YAML registry and the filesystem.
 // Returns orphaned (filesystem-only) and missing (YAML-only) directory names.
-func CheckRegistryCompleteness(rootDir string) (orphaned, missing []string, err error) {
-	reg, err := LoadFitnessRegistry(rootDir)
+func CheckRegistryCompleteness(rootDir string, readFileFn func(string) ([]byte, error), readDirFn func(string) ([]os.DirEntry, error)) (orphaned, missing []string, err error) {
+	reg, err := LoadFitnessRegistry(rootDir, readFileFn)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -106,7 +94,7 @@ func CheckRegistryCompleteness(rootDir string) (orphaned, missing []string, err 
 	// Scan actual directories on disk.
 	fitnessDir := filepath.Join(rootDir, filepath.FromSlash(cryptoutilSharedMagic.CICDLintFitnessDir))
 
-	entries, readErr := fitnessRegistryReadDirFn(fitnessDir)
+	entries, readErr := readDirFn(fitnessDir)
 	if readErr != nil {
 		return nil, nil, fmt.Errorf("failed to read %s: %w", cryptoutilSharedMagic.CICDLintFitnessDir, readErr)
 	}
@@ -148,24 +136,32 @@ func CheckRegistryCompleteness(rootDir string) (orphaned, missing []string, err 
 
 // Check validates fitness sub-linter registry completeness from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
-	rootDir, err := findFitnessProjectRootFn()
+	return check(logger, os.Getwd, os.ReadFile, os.ReadDir)
+}
+
+func check(logger *cryptoutilCmdCicdCommon.Logger, getwdFn func() (string, error), readFileFn func(string) ([]byte, error), readDirFn func(string) ([]os.DirEntry, error)) error {
+	rootDir, err := findFitnessProjectRoot(getwdFn)
 	if err != nil {
 		return fmt.Errorf("fitness-registry-completeness: %w", err)
 	}
 
-	return CheckInDir(logger, rootDir)
+	return checkInDir(logger, rootDir, readFileFn, readDirFn)
 }
 
 // CheckInDir validates fitness sub-linter registry completeness under rootDir.
 func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
+	return checkInDir(logger, rootDir, os.ReadFile, os.ReadDir)
+}
+
+func checkInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, readFileFn func(string) ([]byte, error), readDirFn func(string) ([]os.DirEntry, error)) error {
 	logger.Log("Checking fitness sub-linter registry completeness...")
 
-	reg, loadErr := LoadFitnessRegistry(rootDir)
+	reg, loadErr := LoadFitnessRegistry(rootDir, readFileFn)
 	if loadErr != nil {
 		return fmt.Errorf("fitness-registry-completeness: %w", loadErr)
 	}
 
-	orphaned, missing, err := CheckRegistryCompleteness(rootDir)
+	orphaned, missing, err := CheckRegistryCompleteness(rootDir, readFileFn, readDirFn)
 	if err != nil {
 		return fmt.Errorf("fitness-registry-completeness: %w", err)
 	}

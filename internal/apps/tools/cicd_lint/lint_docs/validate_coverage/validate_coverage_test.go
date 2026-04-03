@@ -23,69 +23,56 @@ func TestCheck_Integration(t *testing.T) {
 	require.NoError(t, err, "validate-coverage should pass on real project files")
 }
 
-// Sequential: mutates validateCoverageFn package-level state.
 func TestCheck_ErrorWithStderr(t *testing.T) {
-	original := validateCoverageFn
+	t.Parallel()
 
-	t.Cleanup(func() { validateCoverageFn = original })
-
-	validateCoverageFn = func(stdout, stderr io.Writer) int {
+	stubFn := func(stdout, stderr io.Writer) int {
 		_, _ = fmt.Fprint(stderr, "coverage error message")
 
 		return 1
 	}
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := Check(logger)
+	err := check(logger, stubFn)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "coverage error message")
 }
 
-// Sequential: mutates validateCoverageFn package-level state.
 func TestCheck_ErrorWithoutStderr(t *testing.T) {
-	original := validateCoverageFn
+	t.Parallel()
 
-	t.Cleanup(func() { validateCoverageFn = original })
-
-	validateCoverageFn = func(stdout, stderr io.Writer) int {
+	stubFn := func(stdout, stderr io.Writer) int {
 		_, _ = fmt.Fprint(stdout, "some output")
 
 		return 1
 	}
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := Check(logger)
+	err := check(logger, stubFn)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "required @propagate chunks are missing @source blocks")
 }
 
-// Sequential: mutates validateCoverageFn package-level state.
 func TestCheck_StdoutLogged(t *testing.T) {
-	original := validateCoverageFn
+	t.Parallel()
 
-	t.Cleanup(func() { validateCoverageFn = original })
-
-	validateCoverageFn = func(stdout, stderr io.Writer) int {
+	stubFn := func(stdout, stderr io.Writer) int {
 		_, _ = fmt.Fprint(stdout, "All required @propagate chunks are covered")
 
 		return 0
 	}
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := Check(logger)
+	err := check(logger, stubFn)
 
 	require.NoError(t, err)
 }
 
-// Sequential: mutates validateCoverageFn package-level state and os.Stderr.
+// Sequential: mutates os.Stderr (global process state, cannot run in parallel).
 func TestCheck_EmptyStdout_NoLogCall(t *testing.T) {
-	original := validateCoverageFn
-
-	t.Cleanup(func() { validateCoverageFn = original })
-
-	validateCoverageFn = func(_, _ io.Writer) int {
+	stubFn := func(_, _ io.Writer) int {
 		return 0
 	}
 
@@ -99,7 +86,7 @@ func TestCheck_EmptyStdout_NoLogCall(t *testing.T) {
 	t.Cleanup(func() { os.Stderr = oldStderr })
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-empty")
-	checkErr := Check(logger)
+	checkErr := check(logger, stubFn)
 
 	require.NoError(t, w.Close())
 

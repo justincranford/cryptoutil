@@ -279,7 +279,11 @@ func formatAgentDriftResults(result *AgentDriftResult) string {
 // AgentDriftCommand runs the agent drift check and writes results to stdout/stderr.
 // Returns 0 on success, 1 on violations.
 func AgentDriftCommand(stdout, stderr io.Writer) int {
-	rootDir, err := findProjectRootFn()
+	return agentDriftCommand(stdout, stderr, findProjectRoot)
+}
+
+func agentDriftCommand(stdout, stderr io.Writer, rootFn func() (string, error)) int {
+	rootDir, err := rootFn()
 	if err != nil {
 		_, _ = fmt.Fprintf(stderr, "agent-drift: cannot determine project root: %v\n", err)
 

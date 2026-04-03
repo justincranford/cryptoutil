@@ -21,39 +21,33 @@ func TestCheck_Integration(t *testing.T) {
 	require.NoError(t, err, "validate-propagation should pass on real project files")
 }
 
-// Sequential: mutates validatePropagationFn package-level state.
 func TestCheck_ErrorWithStderr(t *testing.T) {
-	original := validatePropagationFn
+	t.Parallel()
 
-	t.Cleanup(func() { validatePropagationFn = original })
-
-	validatePropagationFn = func(stdout, stderr io.Writer) int {
+	stubFn := func(stdout, stderr io.Writer) int {
 		_, _ = fmt.Fprint(stderr, "broken reference error")
 
 		return 1
 	}
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := Check(logger)
+	err := check(logger, stubFn)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "broken reference error")
 }
 
-// Sequential: mutates validatePropagationFn package-level state.
 func TestCheck_ErrorWithoutStderr(t *testing.T) {
-	original := validatePropagationFn
+	t.Parallel()
 
-	t.Cleanup(func() { validatePropagationFn = original })
-
-	validatePropagationFn = func(stdout, stderr io.Writer) int {
+	stubFn := func(stdout, stderr io.Writer) int {
 		_, _ = fmt.Fprint(stdout, "some output")
 
 		return 1
 	}
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := Check(logger)
+	err := check(logger, stubFn)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "broken @source references")

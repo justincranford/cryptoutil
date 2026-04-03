@@ -21,39 +21,33 @@ func TestCheck_Integration(t *testing.T) {
 	require.NoError(t, err, "propagation-coverage should pass on real project files")
 }
 
-// Sequential: mutates propagationCoverageFn package-level state.
 func TestCheck_ErrorWithStderr(t *testing.T) {
-	original := propagationCoverageFn
+	t.Parallel()
 
-	t.Cleanup(func() { propagationCoverageFn = original })
-
-	propagationCoverageFn = func(stdout, stderr io.Writer) int {
+	stubFn := func(stdout, stderr io.Writer) int {
 		_, _ = fmt.Fprint(stderr, "coverage error detail")
 
 		return 1
 	}
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := Check(logger)
+	err := check(logger, stubFn)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "coverage error detail")
 }
 
-// Sequential: mutates propagationCoverageFn package-level state.
 func TestCheck_ErrorWithoutStderr(t *testing.T) {
-	original := propagationCoverageFn
+	t.Parallel()
 
-	t.Cleanup(func() { propagationCoverageFn = original })
-
-	propagationCoverageFn = func(stdout, stderr io.Writer) int {
+	stubFn := func(stdout, stderr io.Writer) int {
 		_, _ = fmt.Fprint(stdout, "some output")
 
 		return 1
 	}
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := Check(logger)
+	err := check(logger, stubFn)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "coverage computation error")
