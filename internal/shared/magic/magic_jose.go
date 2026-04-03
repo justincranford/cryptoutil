@@ -79,11 +79,14 @@ const (
 	// JoseJAE2ESQLiteContainer is the SQLite instance service name in compose.
 	JoseJAE2ESQLiteContainer = "jose-ja-app-sqlite-1"
 
+	// JoseJAE2ESQLite2Container is the SQLite instance 2 service name in compose.
+	JoseJAE2ESQLite2Container = "jose-ja-app-sqlite-2"
+
 	// JoseJAE2EPostgreSQL1Container is the PostgreSQL instance 1 service name in compose.
-	JoseJAE2EPostgreSQL1Container = "jose-ja-app-postgres-1"
+	JoseJAE2EPostgreSQL1Container = "jose-ja-app-postgresql-1"
 
 	// JoseJAE2EPostgreSQL2Container is the PostgreSQL instance 2 service name in compose.
-	JoseJAE2EPostgreSQL2Container = "jose-ja-app-postgres-2"
+	JoseJAE2EPostgreSQL2Container = "jose-ja-app-postgresql-2"
 
 	// JoseJAE2EHealthTimeout is the timeout for health checks during E2E tests.
 	JoseJAE2EHealthTimeout = 180 * time.Second
@@ -94,11 +97,14 @@ const (
 	// JoseJAE2ESQLitePublicPort is the SQLite instance public HTTPS port (PRODUCT level: 18200).
 	JoseJAE2ESQLitePublicPort = 18200
 
-	// JoseJAE2EPostgreSQL1PublicPort is the PostgreSQL instance 1 public HTTPS port (PRODUCT level: 18201).
-	JoseJAE2EPostgreSQL1PublicPort = 18201
+	// JoseJAE2ESQLite2PublicPort is the SQLite instance 2 public HTTPS port (PRODUCT level: 18201).
+	JoseJAE2ESQLite2PublicPort = 18201
 
-	// JoseJAE2EPostgreSQL2PublicPort is the PostgreSQL instance 2 public HTTPS port (PRODUCT level: 18202).
-	JoseJAE2EPostgreSQL2PublicPort = 18202
+	// JoseJAE2EPostgreSQL1PublicPort is the PostgreSQL instance 1 public HTTPS port (PRODUCT level: 18202).
+	JoseJAE2EPostgreSQL1PublicPort = 18202
+
+	// JoseJAE2EPostgreSQL2PublicPort is the PostgreSQL instance 2 public HTTPS port (PRODUCT level: 18203).
+	JoseJAE2EPostgreSQL2PublicPort = 18203
 
 	// JoseJAE2EGrafanaPort is the Grafana port for E2E tests.
 	JoseJAE2EGrafanaPort = 3000

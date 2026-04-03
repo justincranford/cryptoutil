@@ -1,4 +1,4 @@
 bind-public-address: "0.0.0.0"
 bind-public-port: 8080
 
-otlp-service: sm-im-postgres-2
+otlp-service: sm-im-postgresql-2

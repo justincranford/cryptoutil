@@ -91,16 +91,22 @@ func TestCheckInDir_ValidServiceTierPorts(t *testing.T) {
 			variantOffset:  0,
 		},
 		{
-			name:           "sm-kms postgres-1 service tier",
+			name:           "sm-kms sqlite-2 service tier",
 			psID:           cryptoutilSharedMagic.OTLPServiceSMKMS,
-			serviceVariant: lintFitnessRegistry.ComposeVariantPostgres1,
+			serviceVariant: lintFitnessRegistry.ComposeVariantSQLite2,
 			variantOffset:  1,
 		},
 		{
-			name:           "sm-kms postgres-2 service tier",
+			name:           "sm-kms postgresql-1 service tier",
+			psID:           cryptoutilSharedMagic.OTLPServiceSMKMS,
+			serviceVariant: lintFitnessRegistry.ComposeVariantPostgres1,
+			variantOffset:  2,
+		},
+		{
+			name:           "sm-kms postgresql-2 service tier",
 			psID:           cryptoutilSharedMagic.OTLPServiceSMKMS,
 			serviceVariant: lintFitnessRegistry.ComposeVariantPostgres2,
-			variantOffset:  2,
+			variantOffset:  3,
 		},
 		{
 			name:           "sm-im sqlite-1 service tier",
@@ -109,10 +115,10 @@ func TestCheckInDir_ValidServiceTierPorts(t *testing.T) {
 			variantOffset:  0,
 		},
 		{
-			name:           "jose-ja postgres-1 service tier",
+			name:           "jose-ja postgresql-2 service tier",
 			psID:           cryptoutilSharedMagic.OTLPServiceJoseJA,
 			serviceVariant: lintFitnessRegistry.ComposeVariantPostgres2,
-			variantOffset:  2,
+			variantOffset:  3,
 		},
 	}
 

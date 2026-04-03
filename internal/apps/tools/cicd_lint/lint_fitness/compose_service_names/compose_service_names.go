@@ -3,8 +3,9 @@
 // Package compose_service_names validates that every product-service compose.yml
 // contains the four required service definitions and no unrecognised service names:
 //   - {PS-ID}-app-sqlite-1
-//   - {PS-ID}-app-postgres-1
-//   - {PS-ID}-app-postgres-2
+//   - {PS-ID}-app-sqlite-2
+//   - {PS-ID}-app-postgresql-1
+//   - {PS-ID}-app-postgresql-2
 //   - {PS-ID}-db-postgres-1
 //
 // Service names are validated via set-membership against the canonical list computed
@@ -98,6 +99,7 @@ func checkServiceNames(rootDir, psID string, validSet map[string]struct{}) []str
 
 	requiredServices := []string{
 		lintFitnessRegistry.ComposeServiceName(psID, lintFitnessRegistry.ComposeVariantSQLite1),
+		lintFitnessRegistry.ComposeServiceName(psID, lintFitnessRegistry.ComposeVariantSQLite2),
 		lintFitnessRegistry.ComposeServiceName(psID, lintFitnessRegistry.ComposeVariantPostgres1),
 		lintFitnessRegistry.ComposeServiceName(psID, lintFitnessRegistry.ComposeVariantPostgres2),
 		lintFitnessRegistry.DBServiceName(psID),

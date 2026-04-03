@@ -64,11 +64,11 @@ func setupAllCorrectOTLPConfigs(t *testing.T, tmpDir string) {
 		suffix   string
 	}{
 		{cryptoutilSharedMagic.OTLPServiceSMIM, "sm-im-app-sqlite-1.yml", "-sqlite-1"},
-		{cryptoutilSharedMagic.OTLPServiceSMIM, "sm-im-app-postgresql-1.yml", "-postgres-1"},
-		{cryptoutilSharedMagic.OTLPServiceSMIM, "sm-im-app-postgresql-2.yml", "-postgres-2"},
+		{cryptoutilSharedMagic.OTLPServiceSMIM, "sm-im-app-postgresql-1.yml", "-postgresql-1"},
+		{cryptoutilSharedMagic.OTLPServiceSMIM, "sm-im-app-postgresql-2.yml", "-postgresql-2"},
 		{cryptoutilSharedMagic.OTLPServiceSMKMS, "sm-kms-app-sqlite-1.yml", "-sqlite-1"},
-		{cryptoutilSharedMagic.OTLPServiceSMKMS, "sm-kms-app-postgresql-1.yml", "-postgres-1"},
-		{cryptoutilSharedMagic.OTLPServiceSMKMS, "sm-kms-app-postgresql-2.yml", "-postgres-2"},
+		{cryptoutilSharedMagic.OTLPServiceSMKMS, "sm-kms-app-postgresql-1.yml", "-postgresql-1"},
+		{cryptoutilSharedMagic.OTLPServiceSMKMS, "sm-kms-app-postgresql-2.yml", "-postgresql-2"},
 	}
 
 	for _, c := range configs {

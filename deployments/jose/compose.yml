@@ -6,9 +6,10 @@
 # Supports 3 instances: 1 SQLite + 2 PostgreSQL.
 #
 # Port allocation:
-#   - jose-ja-app-sqlite-1:    18200 (SQLite, dev/ci)
-#   - jose-ja-app-postgres-1:  18201 (PostgreSQL instance 1)
-#   - jose-ja-app-postgres-2:  18202 (PostgreSQL instance 2)
+#   - jose-ja-app-sqlite-1:     18200 (SQLite instance 1, dev/ci)
+#   - jose-ja-app-sqlite-2:     18201 (SQLite instance 2, dev/ci)
+#   - jose-ja-app-postgresql-1: 18202 (PostgreSQL instance 1)
+#   - jose-ja-app-postgresql-2: 18203 (PostgreSQL instance 2)
 #
 # Usage:
 #   docker compose -f compose.yml up -d                        # SQLite (default: dev profile)
@@ -153,14 +154,58 @@ services:
         reservations:
           memory: 128M
 
+  # JA server with SQLite backend (dev/ci mode, instance 2).
+  jose-ja-app-sqlite-2:
+    profiles: ["dev", "ci"]
+    image: cryptoutil:dev
+    command: ["jose", "ja", "server", "--config=/certs/tls-config.yml", "--config=/app/config/jose-ja-app-sqlite-2.yml", "--config=/app/config/jose-ja-app-common.yml", "--config=/app/otel/otel.yml", "-u", "sqlite://file::memory:?cache=shared", "--bind-public-port=8080"]
+    working_dir: /tmp
+    ports:
+      - "18201:8080"
+    volumes:
+      - ../jose-ja/config/jose-ja-app-sqlite-2.yml:/app/config/jose-ja-app-sqlite-2.yml:ro
+      - ../jose-ja/config/jose-ja-app-common.yml:/app/config/jose-ja-app-common.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ./certs/:/certs/:ro
+    secrets:
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-jose:
+        condition: service_completed_successfully
+      pki-init:
+        condition: service_completed_successfully
+      opentelemetry-collector-contrib:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--ca-certificate=/certs/root-ca.pem", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      start_period: 60s
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - jose-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
   # JA server with PostgreSQL backend (instance 1).
-  jose-ja-app-postgres-1:
+  jose-ja-app-postgresql-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
     command: ["jose", "ja", "server", "--config=/certs/tls-config.yml", "--config=/app/config/jose-ja-app-postgresql-1.yml", "--config=/app/config/jose-ja-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret", "--bind-public-port=8080"]
     working_dir: /tmp
     ports:
-      - "18201:8080"
+      - "18202:8080"
     volumes:
       - ../jose-ja/config/jose-ja-app-postgresql-1.yml:/app/config/jose-ja-app-postgresql-1.yml:ro
       - ../jose-ja/config/jose-ja-app-common.yml:/app/config/jose-ja-app-common.yml:ro
@@ -201,13 +246,13 @@ services:
           memory: 128M
 
   # JA server with PostgreSQL backend (instance 2 - shared DB with instance 1).
-  jose-ja-app-postgres-2:
+  jose-ja-app-postgresql-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
     command: ["jose", "ja", "server", "--config=/certs/tls-config.yml", "--config=/app/config/jose-ja-app-postgresql-2.yml", "--config=/app/config/jose-ja-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret", "--bind-public-port=8080"]
     working_dir: /tmp
     ports:
-      - "18202:8080"
+      - "18203:8080"
     volumes:
       - ../jose-ja/config/jose-ja-app-postgresql-2.yml:/app/config/jose-ja-app-postgresql-2.yml:ro
       - ../jose-ja/config/jose-ja-app-common.yml:/app/config/jose-ja-app-common.yml:ro
@@ -231,7 +276,7 @@ services:
         condition: service_healthy
       opentelemetry-collector-contrib:
         condition: service_started
-      jose-ja-app-postgres-1:
+      jose-ja-app-postgresql-1:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "--ca-certificate=/certs/root-ca.pem", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]

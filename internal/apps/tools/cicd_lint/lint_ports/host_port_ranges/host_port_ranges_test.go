@@ -149,7 +149,7 @@ func TestIsPortInValidRange(t *testing.T) {
 		{name: "public port cryptoutilSharedMagic.IME2EPostgreSQL1PublicPort", port: cryptoutilSharedMagic.IME2EPostgreSQL1PublicPort, cfg: smIMConfig, want: true},
 		{name: "public port cryptoutilSharedMagic.IME2EPostgreSQL2PublicPort", port: cryptoutilSharedMagic.IME2EPostgreSQL2PublicPort, cfg: smIMConfig, want: true},
 		{name: "admin port cryptoutilSharedMagic.JoseJAAdminPort", port: cryptoutilSharedMagic.IdentityDefaultAuthZAdminPort, cfg: smIMConfig, want: true},
-		{name: "range port 8103", port: 8103, cfg: smIMConfig, want: true},                                                                                                       // In range 8100-8199
+		{name: "range port 8150", port: 8150, cfg: smIMConfig, want: true},                                                                                                       // In range 8100-8199
 		{name: "range port 8199", port: 8199, cfg: smIMConfig, want: true},                                                                                                       // Last in range
 		{name: "out of range cryptoutilSharedMagic.JoseJAServicePort", port: cryptoutilSharedMagic.JoseJAServicePort, cfg: smIMConfig, want: false},                              // Out of range (jose-ja territory)
 		{name: "out of range 8060", port: 8060, cfg: smIMConfig, want: false},                                                                                                    // Legacy jose-ja port

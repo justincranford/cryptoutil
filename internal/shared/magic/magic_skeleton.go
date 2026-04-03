@@ -47,11 +47,14 @@ const (
 	// SkeletonTemplateE2ESQLiteContainer is the SQLite instance service name in compose.
 	SkeletonTemplateE2ESQLiteContainer = "skeleton-template-app-sqlite-1"
 
+	// SkeletonTemplateE2ESQLite2Container is the SQLite instance 2 service name in compose.
+	SkeletonTemplateE2ESQLite2Container = "skeleton-template-app-sqlite-2"
+
 	// SkeletonTemplateE2EPostgreSQL1Container is the PostgreSQL instance 1 service name in compose.
-	SkeletonTemplateE2EPostgreSQL1Container = "skeleton-template-app-postgres-1"
+	SkeletonTemplateE2EPostgreSQL1Container = "skeleton-template-app-postgresql-1"
 
 	// SkeletonTemplateE2EPostgreSQL2Container is the PostgreSQL instance 2 service name in compose.
-	SkeletonTemplateE2EPostgreSQL2Container = "skeleton-template-app-postgres-2"
+	SkeletonTemplateE2EPostgreSQL2Container = "skeleton-template-app-postgresql-2"
 
 	// SkeletonTemplateE2EHealthTimeout is the timeout for health checks during E2E tests.
 	SkeletonTemplateE2EHealthTimeout = 180 * time.Second
@@ -62,11 +65,14 @@ const (
 	// SkeletonTemplateE2ESQLitePublicPort is the SQLite instance public HTTPS port (PRODUCT level: 18900).
 	SkeletonTemplateE2ESQLitePublicPort = 18900
 
-	// SkeletonTemplateE2EPostgreSQL1PublicPort is the PostgreSQL instance 1 public HTTPS port (PRODUCT level: 18901).
-	SkeletonTemplateE2EPostgreSQL1PublicPort = 18901
+	// SkeletonTemplateE2ESQLite2PublicPort is the SQLite instance 2 public HTTPS port (PRODUCT level: 18901).
+	SkeletonTemplateE2ESQLite2PublicPort = 18901
 
-	// SkeletonTemplateE2EPostgreSQL2PublicPort is the PostgreSQL instance 2 public HTTPS port (PRODUCT level: 18902).
-	SkeletonTemplateE2EPostgreSQL2PublicPort = 18902
+	// SkeletonTemplateE2EPostgreSQL1PublicPort is the PostgreSQL instance 1 public HTTPS port (PRODUCT level: 18902).
+	SkeletonTemplateE2EPostgreSQL1PublicPort = 18902
+
+	// SkeletonTemplateE2EPostgreSQL2PublicPort is the PostgreSQL instance 2 public HTTPS port (PRODUCT level: 18903).
+	SkeletonTemplateE2EPostgreSQL2PublicPort = 18903
 
 	// SkeletonTemplateE2EGrafanaPort is the Grafana port for E2E tests.
 	SkeletonTemplateE2EGrafanaPort = 3000

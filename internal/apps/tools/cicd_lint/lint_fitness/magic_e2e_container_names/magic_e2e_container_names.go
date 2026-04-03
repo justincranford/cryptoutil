@@ -6,8 +6,8 @@
 // For each product-service that has E2E container name constants in its magic file,
 // this check parses the Go source and verifies:
 //   - *E2ESQLiteContainer      = "{ps-id}-app-sqlite-1"
-//   - *E2EPostgreSQL1Container = "{ps-id}-app-postgres-1"
-//   - *E2EPostgreSQL2Container = "{ps-id}-app-postgres-2"
+//   - *E2EPostgreSQL1Container = "{ps-id}-app-postgresql-1"
+//   - *E2EPostgreSQL2Container = "{ps-id}-app-postgresql-2"
 //
 // Product-services whose magic files do not contain any E2ESQLiteContainer constant
 // (e.g. identity, pki-ca) are skipped — not all services have the 3-tuple pattern.
@@ -35,8 +35,8 @@ type containerCheck struct {
 // containerChecks is the ordered list of container name constants to verify.
 var containerChecks = []containerCheck{
 	{constSuffix: "E2ESQLiteContainer", expectedSuffix: "-app-sqlite-1"},
-	{constSuffix: "E2EPostgreSQL1Container", expectedSuffix: "-app-postgres-1"},
-	{constSuffix: "E2EPostgreSQL2Container", expectedSuffix: "-app-postgres-2"},
+	{constSuffix: "E2EPostgreSQL1Container", expectedSuffix: "-app-postgresql-1"},
+	{constSuffix: "E2EPostgreSQL2Container", expectedSuffix: "-app-postgresql-2"},
 }
 
 // constValueRe matches Go string constant assignments of the form:

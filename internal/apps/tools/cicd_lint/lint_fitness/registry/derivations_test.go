@@ -393,10 +393,12 @@ func TestValidComposeServiceNames(t *testing.T) {
 	t.Parallel()
 
 	names := ValidComposeServiceNames()
+	allVariants := []string{ComposeVariantSQLite1, ComposeVariantSQLite2, ComposeVariantPostgres1, ComposeVariantPostgres2}
 
-	// 10 PS-IDs × 3 variants = 30 names
-	require.Len(t, names, cryptoutilSharedMagic.IdentityDefaultReadTimeoutSeconds)
+	// 10 PS-IDs × 4 variants = 40 names (sqlite-1, sqlite-2, postgresql-1, postgresql-2).
+	require.Len(t, names, len(AllProductServices())*len(allVariants))
 	require.Contains(t, names, cryptoutilSharedMagic.OTLPServiceSMKMS+ComposeAppSuffix+ComposeVariantSQLite1)
+	require.Contains(t, names, cryptoutilSharedMagic.OTLPServiceSMKMS+ComposeAppSuffix+ComposeVariantSQLite2)
 	require.Contains(t, names, cryptoutilSharedMagic.OTLPServiceSMKMS+ComposeAppSuffix+ComposeVariantPostgres1)
 	require.Contains(t, names, cryptoutilSharedMagic.OTLPServiceSMKMS+ComposeAppSuffix+ComposeVariantPostgres2)
 	require.Contains(t, names, cryptoutilSharedMagic.OTLPServiceJoseJA+ComposeAppSuffix+ComposeVariantSQLite1)

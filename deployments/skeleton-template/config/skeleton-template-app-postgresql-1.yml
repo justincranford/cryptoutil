@@ -7,8 +7,8 @@ bind-public-port: 8080
 # OTLP telemetry - connects to otel-collector sidecar.
 otlp-enabled: true
 otlp-endpoint: "opentelemetry-collector-contrib:4317"
-otlp-service: "skeleton-template-postgres-1"
-otlp-hostname: "skeleton-template-postgres-1"
+otlp-service: "skeleton-template-postgresql-1"
+otlp-hostname: "skeleton-template-postgresql-1"
 
 # Security headers.
 security-headers:

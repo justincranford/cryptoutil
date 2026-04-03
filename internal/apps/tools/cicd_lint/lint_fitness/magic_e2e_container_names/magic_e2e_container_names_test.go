@@ -52,8 +52,8 @@ func writeMagicFile(t *testing.T, tmpDir, filename, content string) {
 func correctMagicSource(psID string) string {
 	return "package magic\nconst (\n" +
 		"	TestE2ESQLiteContainer = \"" + psID + "-app-sqlite-1\"\n" +
-		"	TestE2EPostgreSQL1Container = \"" + psID + "-app-postgres-1\"\n" +
-		"	TestE2EPostgreSQL2Container = \"" + psID + "-app-postgres-2\"\n" +
+		"\tTestE2EPostgreSQL1Container = \"" + psID + "-app-postgresql-1\"\n" +
+		"\tTestE2EPostgreSQL2Container = \"" + psID + "-app-postgresql-2\"\n" +
 		")\n"
 }
 
@@ -105,8 +105,8 @@ func TestCheckInDir_WrongSQLiteContainer(t *testing.T) {
 	// Write sm-im with wrong SQLite container name.
 	wrongSrc := "package magic\nconst (\n" +
 		"	IME2ESQLiteContainer = \"wrong-value\"\n" +
-		"	IME2EPostgreSQL1Container = \"sm-im-app-postgres-1\"\n" +
-		"	IME2EPostgreSQL2Container = \"sm-im-app-postgres-2\"\n" +
+		"\tIME2EPostgreSQL1Container = \"sm-im-app-postgresql-1\"\n" +
+		"\tIME2EPostgreSQL2Container = \"sm-im-app-postgresql-2\"\n" +
 		")\n"
 	writeMagicFile(t, tmpDir, "magic_sm_im.go", wrongSrc)
 
@@ -129,7 +129,7 @@ func TestCheckInDir_MissingPostgreSQL1Container(t *testing.T) {
 	// Write sm-im with SQLite present but PostgreSQL1 missing.
 	partialSrc := "package magic\nconst (\n" +
 		"	IME2ESQLiteContainer = \"sm-im-app-sqlite-1\"\n" +
-		"	IME2EPostgreSQL2Container = \"sm-im-app-postgres-2\"\n" +
+		"\tIME2EPostgreSQL2Container = \"sm-im-app-postgresql-2\"\n" +
 		")\n"
 	writeMagicFile(t, tmpDir, "magic_sm_im.go", partialSrc)
 

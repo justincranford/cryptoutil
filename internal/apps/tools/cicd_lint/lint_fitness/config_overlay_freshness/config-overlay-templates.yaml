@@ -7,13 +7,10 @@
 #   required_patterns: Key-value pattern pairs where the value must match the regex.
 #
 # Variant names correspond to ComposeVariant constants in the registry:
-#   sqlite-1  -> {ps-id}-app-sqlite-1.yml    (ComposeVariantSQLite1)
-#   sqlite-2  -> {ps-id}-app-sqlite-2.yml    (ComposeVariantSQLite2)
-#   postgres-1 -> {ps-id}-app-postgresql-1.yml (ComposeVariantPostgres1)
-#   postgres-2 -> {ps-id}-app-postgresql-2.yml (ComposeVariantPostgres2)
-#
-# Note: Variant name "postgres-1" maps to file suffix "-app-postgresql-1.yml"
-# (the file uses "postgresql" but the variant name uses the compose abbreviation "postgres").
+#   sqlite-1     -> {ps-id}-app-sqlite-1.yml     (ComposeVariantSQLite1)
+#   sqlite-2     -> {ps-id}-app-sqlite-2.yml     (ComposeVariantSQLite2)
+#   postgresql-1 -> {ps-id}-app-postgresql-1.yml (ComposeVariantPostgres1)
+#   postgresql-2 -> {ps-id}-app-postgresql-2.yml (ComposeVariantPostgres2)
 #
 # See ARCHITECTURE.md Section 9.11 for config overlay naming and content conventions.
 
@@ -40,7 +37,7 @@ variants:
         pattern: "^sqlite://"
         description: SQLite instance must use sqlite:// URL scheme.
 
-  - variant: postgres-1
+  - variant: postgresql-1
     description: >-
       PostgreSQL instance 1 config overlay: database URL passed via secret or env var at runtime.
     required_keys: []
@@ -48,7 +45,7 @@ variants:
       - database-url
     required_patterns: []
 
-  - variant: postgres-2
+  - variant: postgresql-2
     description: >-
       PostgreSQL instance 2 config overlay: database URL passed via secret or env var at runtime.
     required_keys: []

@@ -242,7 +242,7 @@ func TestCheckDeploymentConfigDir_Violation(t *testing.T) {
 
 	violations := checkDeploymentConfigDir(tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS)
 	require.NotEmpty(t, violations)
-	require.Contains(t, violations[0], "want \"sm-kms-postgres-1\"")
+	require.Contains(t, violations[0], "want \"sm-kms-postgresql-1\"")
 }
 
 func TestCheckInDir_ReadDirConfigsError(t *testing.T) {

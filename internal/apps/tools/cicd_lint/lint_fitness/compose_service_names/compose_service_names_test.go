@@ -52,10 +52,10 @@ func writeComposeYML(t *testing.T, tmpDir, psID, servicesBlock string) {
 	require.NoError(t, os.WriteFile(filepath.Join(deployDir, "compose.yml"), []byte(content), cryptoutilSharedMagic.FilePermissions))
 }
 
-// correctServicesBlock generates the 4 required service entries for a PS-ID.
+// correctServicesBlock generates the 5 required service entries for a PS-ID.
 func correctServicesBlock(psID string) string {
-	return fmt.Sprintf("  %s-app-sqlite-1: {}\n  %s-app-postgres-1: {}\n  %s-app-postgres-2: {}\n  %s-db-postgres-1: {}\n",
-		psID, psID, psID, psID)
+	return fmt.Sprintf("  %s-app-sqlite-1: {}\n  %s-app-sqlite-2: {}\n  %s-app-postgresql-1: {}\n  %s-app-postgresql-2: {}\n  %s-db-postgres-1: {}\n",
+		psID, psID, psID, psID, psID)
 }
 
 // setupAllComposeFiles creates correct compose files for all 10 PS.
@@ -124,6 +124,7 @@ func TestCheckInDir_MissingRequiredService(t *testing.T) {
 		missingService string
 	}{
 		{"missing sqlite service", cryptoutilSharedMagic.IME2ESQLiteContainer},
+		{"missing sqlite-2 service", psID + "-app-sqlite-2"},
 		{"missing postgres-1 service", cryptoutilSharedMagic.IME2EPostgreSQL1Container},
 		{"missing postgres-2 service", cryptoutilSharedMagic.IME2EPostgreSQL2Container},
 		{"missing db service", psID + "-db-postgres-1"},
@@ -139,8 +140,9 @@ func TestCheckInDir_MissingRequiredService(t *testing.T) {
 			// Overwrite sm-im compose without the missing service.
 			allServices := []string{
 				psID + "-app-sqlite-1",
-				psID + "-app-postgres-1",
-				psID + "-app-postgres-2",
+				psID + "-app-sqlite-2",
+				psID + "-app-postgresql-1",
+				psID + "-app-postgresql-2",
 				psID + "-db-postgres-1",
 			}
 			services := ""
@@ -161,37 +163,37 @@ func TestCheckInDir_MissingRequiredService(t *testing.T) {
 }
 
 func TestCheckInDir_UnrecognisedPSIDService(t *testing.T) {
-    t.Parallel()
+	t.Parallel()
 
-    psID := cryptoutilSharedMagic.OTLPServiceSMIM
+	psID := cryptoutilSharedMagic.OTLPServiceSMIM
 
-    tmpDir := t.TempDir()
-    setupAllComposeFiles(t, tmpDir)
+	tmpDir := t.TempDir()
+	setupAllComposeFiles(t, tmpDir)
 
-    // Add a service with the PS-ID prefix but an unrecognised variant name.
-    // e.g., "sm-im-app-sqlite-99" -- has prefix "sm-im-" but is not in valid set.
-    bogusServiceBlock := correctServicesBlock(psID) + "  " + psID + "-app-bogus-variant: {}\n"
-    writeComposeYML(t, tmpDir, psID, bogusServiceBlock)
+	// Add a service with the PS-ID prefix but an unrecognised variant name.
+	// e.g., "sm-im-app-sqlite-99" -- has prefix "sm-im-" but is not in valid set.
+	bogusServiceBlock := correctServicesBlock(psID) + "  " + psID + "-app-bogus-variant: {}\n"
+	writeComposeYML(t, tmpDir, psID, bogusServiceBlock)
 
-    err := lintFitnessComposeServiceNames.CheckInDir(newTestLogger(), tmpDir)
-    require.Error(t, err)
-    assert.Contains(t, err.Error(), "unrecognised service")
-    assert.Contains(t, err.Error(), psID+"-app-bogus-variant")
+	err := lintFitnessComposeServiceNames.CheckInDir(newTestLogger(), tmpDir)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "unrecognised service")
+	assert.Contains(t, err.Error(), psID+"-app-bogus-variant")
 }
 
 func TestCheckInDir_InvalidYAML(t *testing.T) {
-    t.Parallel()
+	t.Parallel()
 
-    psID := cryptoutilSharedMagic.OTLPServiceSMIM
+	psID := cryptoutilSharedMagic.OTLPServiceSMIM
 
-    tmpDir := t.TempDir()
-    setupAllComposeFiles(t, tmpDir)
+	tmpDir := t.TempDir()
+	setupAllComposeFiles(t, tmpDir)
 
-    // Overwrite sm-im compose.yml with invalid YAML.
-    deployDir := filepath.Join(tmpDir, "deployments", psID)
-    require.NoError(t, os.WriteFile(filepath.Join(deployDir, "compose.yml"), []byte("services: [\ninvalid yaml"), cryptoutilSharedMagic.FilePermissions))
+	// Overwrite sm-im compose.yml with invalid YAML.
+	deployDir := filepath.Join(tmpDir, "deployments", psID)
+	require.NoError(t, os.WriteFile(filepath.Join(deployDir, "compose.yml"), []byte("services: [\ninvalid yaml"), cryptoutilSharedMagic.FilePermissions))
 
-    err := lintFitnessComposeServiceNames.CheckInDir(newTestLogger(), tmpDir)
-    require.Error(t, err)
-    assert.Contains(t, err.Error(), "cannot parse")
+	err := lintFitnessComposeServiceNames.CheckInDir(newTestLogger(), tmpDir)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "cannot parse")
 }

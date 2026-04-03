@@ -136,7 +136,7 @@ jobs:
     - name: Verify services are ready
       uses: ./.github/actions/docker-compose-verify
       with:
-        endpoints: '[{"url": "https://127.0.0.1:8001/browser/api/v1/health", "name": "sm-kms-postgres-1"}, {"url": "https://127.0.0.1:8002/browser/api/v1/health", "name": "sm-kms-postgres-2"}]'
+        endpoints: '[{"url": "https://127.0.0.1:8002/browser/api/v1/health", "name": "sm-kms-postgresql-1"}, {"url": "https://127.0.0.1:8003/browser/api/v1/health", "name": "sm-kms-postgresql-2"}]'
 
     - name: Set load test parameters
       id: load-params
@@ -281,8 +281,8 @@ jobs:
         mkdir -p ./load-reports/service-logs
 
         # Collect logs from all cryptoutil services
-        docker compose -f ./deployments/sm-kms/compose.yml logs sm-kms-app-postgres-1 > ./load-reports/service-logs/sm-kms-postgres-1.log 2>&1 || true
-        docker compose -f ./deployments/sm-kms/compose.yml logs sm-kms-app-postgres-2 > ./load-reports/service-logs/sm-kms-postgres-2.log 2>&1 || true
+        docker compose -f ./deployments/sm-kms/compose.yml logs sm-kms-app-postgresql-1 > ./load-reports/service-logs/sm-kms-postgresql-1.log 2>&1 || true
+        docker compose -f ./deployments/sm-kms/compose.yml logs sm-kms-app-postgresql-2 > ./load-reports/service-logs/sm-kms-postgresql-2.log 2>&1 || true
         docker compose -f ./deployments/sm-kms/compose.yml logs sm-kms-db-postgres-1 > ./load-reports/service-logs/postgres.log 2>&1 || true
         docker compose -f ./deployments/sm-kms/compose.yml logs opentelemetry-collector-contrib > ./load-reports/service-logs/otel-collector.log 2>&1 || true
 
@@ -315,12 +315,12 @@ jobs:
         | Load Profile | ${{ env.LOAD_PROFILE }} |
         | Virtual Clients | ${{ steps.load-params.outputs.virtual_clients }} |
         | Test Duration | ${{ steps.load-params.outputs.duration }}s |
-        | Target Services | sm-kms-postgres-1, sm-kms-postgres-2 |
+        | Target Services | sm-kms-postgresql-1, sm-kms-postgresql-2 |
 
         ## Services Tested
 
-        - **sm-kms-postgres-1** - https://127.0.0.1:8001/service/api/v1
-        - **sm-kms-postgres-2** - https://127.0.0.1:8002/service/api/v1
+        - **sm-kms-postgresql-1** - https://127.0.0.1:8002/service/api/v1
+        - **sm-kms-postgresql-2** - https://127.0.0.1:8003/service/api/v1
 
         ## Artifacts Generated
 

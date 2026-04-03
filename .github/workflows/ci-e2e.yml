@@ -212,8 +212,8 @@ jobs:
 
         # Collect logs from all cryptoutil services
           docker compose -f ./deployments/sm-kms/compose.yml logs sm-kms-app-sqlite-1 > ./workflow-reports/e2e/sm-kms-sqlite.log 2>&1 || true
-          docker compose -f ./deployments/sm-kms/compose.yml logs sm-kms-app-postgres-1 > ./workflow-reports/e2e/sm-kms-postgres-1.log 2>&1 || true
-          docker compose -f ./deployments/sm-kms/compose.yml logs sm-kms-app-postgres-2 > ./workflow-reports/e2e/sm-kms-postgres-2.log 2>&1 || true
+          docker compose -f ./deployments/sm-kms/compose.yml logs sm-kms-app-postgresql-1 > ./workflow-reports/e2e/sm-kms-postgresql-1.log 2>&1 || true
+          docker compose -f ./deployments/sm-kms/compose.yml logs sm-kms-app-postgresql-2 > ./workflow-reports/e2e/sm-kms-postgresql-2.log 2>&1 || true
           docker compose -f ./deployments/sm-kms/compose.yml logs sm-kms-db-postgres-1 > ./workflow-reports/e2e/sm-kms-db-postgres.log 2>&1 || true
           docker compose -f ./deployments/sm-kms/compose.yml logs opentelemetry-collector-contrib > ./workflow-reports/e2e/otel-collector.log 2>&1 || true
 

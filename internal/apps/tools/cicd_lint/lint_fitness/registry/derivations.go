@@ -18,6 +18,19 @@ const (
 	PortTierOffsetSuite = 20_000
 )
 
+// ComposeVariantOffset defines the variant-level port offset within a deployment tier.
+// Formula: host_port = base_port + tier_offset + variant_offset.
+const (
+	// ComposeVariantOffsetSQLite1 is the variant offset for the SQLite instance 1 service (+0).
+	ComposeVariantOffsetSQLite1 = 0
+	// ComposeVariantOffsetSQLite2 is the variant offset for the SQLite instance 2 service (+1).
+	ComposeVariantOffsetSQLite2 = 1
+	// ComposeVariantOffsetPostgres1 is the variant offset for the PostgreSQL instance 1 service (+2).
+	ComposeVariantOffsetPostgres1 = 2
+	// ComposeVariantOffsetPostgres2 is the variant offset for the PostgreSQL instance 2 service (+3).
+	ComposeVariantOffsetPostgres2 = 3
+)
+
 // OTLPServicePrefix is the canonical OTLP service name prefix for all cryptoutil services.
 const OTLPServicePrefix = "cryptoutil-"
 
@@ -43,10 +56,10 @@ const ComposeVariantSQLite1 = "sqlite-1"
 const ComposeVariantSQLite2 = "sqlite-2"
 
 // ComposeVariantPostgres1 is the PostgreSQL instance 1 variant used in compose service names.
-const ComposeVariantPostgres1 = "postgres-1"
+const ComposeVariantPostgres1 = "postgresql-1"
 
 // ComposeVariantPostgres2 is the PostgreSQL instance 2 variant used in compose service names.
-const ComposeVariantPostgres2 = "postgres-2"
+const ComposeVariantPostgres2 = "postgresql-2"
 
 // DeploymentConfigSuffixSQLite1 is the deployment config file suffix for the SQLite instance 1 overlay.
 // File: {psid}-app-sqlite-1.yml → OTLP suffix: ComposeVariantSQLite1.
@@ -188,9 +201,9 @@ func ValidOTLPServiceNames() []string {
 }
 
 // ValidComposeServiceNames returns the computed compose app service names for all product-services.
-// Each name has the form "{PS-ID}-app-{variant}" for the variants: sqlite-1, postgres-1, postgres-2.
+// Each name has the form "{PS-ID}-app-{variant}" for the variants: sqlite-1, sqlite-2, postgresql-1, postgresql-2.
 func ValidComposeServiceNames() []string {
-	variants := []string{ComposeVariantSQLite1, ComposeVariantPostgres1, ComposeVariantPostgres2}
+	variants := []string{ComposeVariantSQLite1, ComposeVariantSQLite2, ComposeVariantPostgres1, ComposeVariantPostgres2}
 	pss := AllProductServices()
 	names := make([]string, 0, len(pss)*len(variants))
 

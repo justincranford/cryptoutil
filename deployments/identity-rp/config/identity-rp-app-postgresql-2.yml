@@ -1,4 +1,4 @@
-# CRITICAL: ALL settings in this file MUST BE UNIQUE and CORRESPOND TO the 'identity-rp-app-postgres-2' service name in compose.yml
+# CRITICAL: ALL settings in this file MUST BE UNIQUE and CORRESPOND TO the 'identity-rp-app-postgresql-2' service name in compose.yml
 
 # CORS configuration - HTTPS origins only
 cors-origins:
@@ -6,5 +6,5 @@ cors-origins:
   - "https://127.0.0.1:18502"
   - "https://[::1]:18502"
 
-otlp-service: identity-rp-postgres-2
-otlp-hostname: identity-rp-postgres-2
+otlp-service: identity-rp-postgresql-2
+otlp-hostname: identity-rp-postgresql-2

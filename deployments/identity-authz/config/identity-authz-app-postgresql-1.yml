@@ -1,4 +1,4 @@
-# CRITICAL: ALL settings in this file MUST BE UNIQUE and CORRESPOND TO the 'identity-authz-app-postgres-1' service name in compose.yml
+# CRITICAL: ALL settings in this file MUST BE UNIQUE and CORRESPOND TO the 'identity-authz-app-postgresql-1' service name in compose.yml
 
 # CORS configuration - HTTPS origins only
 cors-origins:
@@ -6,5 +6,5 @@ cors-origins:
   - "https://127.0.0.1:18201"
   - "https://[::1]:18201"
 
-otlp-service: identity-authz-postgres-1
-otlp-hostname: identity-authz-postgres-1
+otlp-service: identity-authz-postgresql-1
+otlp-hostname: identity-authz-postgresql-1

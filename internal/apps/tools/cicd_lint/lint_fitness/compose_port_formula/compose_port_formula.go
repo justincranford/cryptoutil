@@ -9,9 +9,10 @@
 //   - SUITE tier:    base_port + 20000 (e.g., sm-kms: 28000/28001/28002)
 //
 // Variant offsets add to the tier base:
-//   - sqlite-1:   +0 (base instance)
-//   - postgres-1: +1 (first PostgreSQL instance)
-//   - postgres-2: +2 (second PostgreSQL instance)
+//   - sqlite-1:      +0 (base instance)
+//   - sqlite-2:      +1 (second SQLite instance)
+//   - postgresql-1:  +2 (first PostgreSQL instance)
+//   - postgresql-2:  +3 (second PostgreSQL instance)
 //
 // See ARCHITECTURE.md Section 3.4.1 for the port allocation design.
 package compose_port_formula
@@ -44,9 +45,10 @@ type portMapping struct {
 
 // variantMappings defines the expected port offsets for each compose service variant.
 var variantMappings = []portMapping{
-	{serviceVariant: lintFitnessRegistry.ComposeVariantSQLite1, variantOffset: 0},
-	{serviceVariant: lintFitnessRegistry.ComposeVariantPostgres1, variantOffset: 1},
-	{serviceVariant: lintFitnessRegistry.ComposeVariantPostgres2, variantOffset: 2},
+	{serviceVariant: lintFitnessRegistry.ComposeVariantSQLite1, variantOffset: lintFitnessRegistry.ComposeVariantOffsetSQLite1},
+	{serviceVariant: lintFitnessRegistry.ComposeVariantSQLite2, variantOffset: lintFitnessRegistry.ComposeVariantOffsetSQLite2},
+	{serviceVariant: lintFitnessRegistry.ComposeVariantPostgres1, variantOffset: lintFitnessRegistry.ComposeVariantOffsetPostgres1},
+	{serviceVariant: lintFitnessRegistry.ComposeVariantPostgres2, variantOffset: lintFitnessRegistry.ComposeVariantOffsetPostgres2},
 }
 
 // tierConfig describes a compose file and its expected port tier offset.

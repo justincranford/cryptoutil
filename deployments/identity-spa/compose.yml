@@ -3,13 +3,14 @@
 # IDENTITY-SPA Docker Compose Configuration
 #
 # SERVICE-level deployment for Single Page App.
-# Supports 3 instances: 1 SQLite + 2 PostgreSQL.
+# Supports 4 instances: 2 SQLite + 2 PostgreSQL.
 #
 # Port allocation (SERVICE level: 8800-8899):
-#   - identity-spa-app-sqlite-1:    8800 (SQLite, dev/ci)
-#   - identity-spa-app-postgres-1:  8801 (PostgreSQL instance 1) [--profile postgres]
-#   - identity-spa-app-postgres-2:  8802 (PostgreSQL instance 2) [--profile postgres]
-#   - identity-spa-db-postgres-1:   54328 (PostgreSQL database) [--profile postgres]
+#   - identity-spa-app-sqlite-1:      8800 (SQLite instance 1, dev/ci)
+#   - identity-spa-app-sqlite-2:      8801 (SQLite instance 2, dev/ci)
+#   - identity-spa-app-postgresql-1:  8802 (PostgreSQL instance 1) [--profile postgres]
+#   - identity-spa-app-postgresql-2:  8803 (PostgreSQL instance 2) [--profile postgres]
+#   - identity-spa-db-postgres-1:     54328 (PostgreSQL database) [--profile postgres]
 #
 # Usage:
 #   docker compose -f compose.yml up -d                        # SQLite (default: dev profile)
@@ -136,13 +137,56 @@ services:
         reservations:
           memory: 128M
 
-  identity-spa-app-postgres-1:
+  # identity-spa server with SQLite backend (dev/ci mode, instance 2).
+  identity-spa-app-sqlite-2:
+    profiles: ["dev", "ci"]
+    image: cryptoutil:dev
+    command: ["--config=/app/config/identity-spa-app-sqlite-2.yml", "--config=/app/config/identity-spa-app-common.yml", "--config=/app/otel/otel.yml"]
+    working_dir: /tmp
+    ports:
+      - "8801:8080" # HTTPS public
+    volumes:
+      - ./config/identity-spa-app-sqlite-2.yml:/app/config/identity-spa-app-sqlite-2.yml:ro
+      - ./config/identity-spa-app-common.yml:/app/config/identity-spa-app-common.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+    secrets:
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-identity-spa:
+        condition: service_completed_successfully
+      opentelemetry-collector-contrib:
+        condition: service_started
+      healthcheck-opentelemetry-collector-contrib:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      start_period: 60s
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - identity-spa-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  identity-spa-app-postgresql-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
     command: ["--config=/app/config/identity-spa-app-postgresql-1.yml", "--config=/app/config/identity-spa-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
-      - "8801:8080"
+      - "8802:8080"
     volumes:
       - ./config/identity-spa-app-postgresql-1.yml:/app/config/identity-spa-app-postgresql-1.yml:ro
       - ./config/identity-spa-app-common.yml:/app/config/identity-spa-app-common.yml:ro
@@ -181,13 +225,13 @@ services:
         reservations:
           memory: 128M
 
-  identity-spa-app-postgres-2:
+  identity-spa-app-postgresql-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
     command: ["--config=/app/config/identity-spa-app-postgresql-2.yml", "--config=/app/config/identity-spa-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
-      - "8802:8080"
+      - "8803:8080"
     volumes:
       - ./config/identity-spa-app-postgresql-2.yml:/app/config/identity-spa-app-postgresql-2.yml:ro
       - ./config/identity-spa-app-common.yml:/app/config/identity-spa-app-common.yml:ro
@@ -210,7 +254,7 @@ services:
         condition: service_started
       healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
-      identity-spa-app-postgres-1:
+      identity-spa-app-postgresql-1:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]

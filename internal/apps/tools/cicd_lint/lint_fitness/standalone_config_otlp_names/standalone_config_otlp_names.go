@@ -8,8 +8,8 @@
 // following the pattern:
 //   - {PS-ID}-app-sqlite-1.yml       -> {PS-ID}-sqlite-1
 //   - {PS-ID}-app-sqlite-2.yml       -> {PS-ID}-sqlite-2
-//   - {PS-ID}-app-postgresql-1.yml   -> {PS-ID}-postgres-1
-//   - {PS-ID}-app-postgresql-2.yml   -> {PS-ID}-postgres-2
+//   - {PS-ID}-app-postgresql-1.yml   -> {PS-ID}-postgresql-1
+//   - {PS-ID}-app-postgresql-2.yml   -> {PS-ID}-postgresql-2
 //
 // Only sm-im and sm-kms are in the allowlist.
 // The check is registry-driven: it uses the canonical PS registry to determine
@@ -41,8 +41,8 @@ type configRule struct {
 var otlpConfigRules = []configRule{
 	{filenameSuffix: "-app-sqlite-1.yml", expectedOTLPSuffix: "-sqlite-1"},
 	{filenameSuffix: "-app-sqlite-2.yml", expectedOTLPSuffix: "-sqlite-2"},
-	{filenameSuffix: "-app-postgresql-1.yml", expectedOTLPSuffix: "-postgres-1"},
-	{filenameSuffix: "-app-postgresql-2.yml", expectedOTLPSuffix: "-postgres-2"},
+	{filenameSuffix: "-app-postgresql-1.yml", expectedOTLPSuffix: "-postgresql-1"},
+	{filenameSuffix: "-app-postgresql-2.yml", expectedOTLPSuffix: "-postgresql-2"},
 }
 
 // configAllowlist is the set of PS IDs whose standalone configs are validated.

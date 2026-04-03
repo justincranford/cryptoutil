@@ -153,11 +153,14 @@ const (
 	// IME2ESQLiteContainer is the SQLite instance service name in compose.
 	IME2ESQLiteContainer = "sm-im-app-sqlite-1"
 
+	// IME2ESQLite2Container is the SQLite instance 2 service name in compose.
+	IME2ESQLite2Container = "sm-im-app-sqlite-2"
+
 	// IME2EPostgreSQL1Container is the PostgreSQL instance 1 service name in compose.
-	IME2EPostgreSQL1Container = "sm-im-app-postgres-1"
+	IME2EPostgreSQL1Container = "sm-im-app-postgresql-1"
 
 	// IME2EPostgreSQL2Container is the PostgreSQL instance 2 service name in compose.
-	IME2EPostgreSQL2Container = "sm-im-app-postgres-2"
+	IME2EPostgreSQL2Container = "sm-im-app-postgresql-2"
 
 	// IME2EOtelCollectorContainer is the OpenTelemetry Collector service name in compose.
 	IME2EOtelCollectorContainer = "opentelemetry-collector-contrib"
@@ -176,11 +179,14 @@ const (
 	// IME2ESQLitePublicPort is the SQLite instance public HTTPS port.
 	IME2ESQLitePublicPort = 8100
 
+	// IME2ESQLite2PublicPort is the SQLite instance 2 public HTTPS port.
+	IME2ESQLite2PublicPort = 8101
+
 	// IME2EPostgreSQL1PublicPort is the PostgreSQL instance 1 public HTTPS port.
-	IME2EPostgreSQL1PublicPort = 8101
+	IME2EPostgreSQL1PublicPort = 8102
 
 	// IME2EPostgreSQL2PublicPort is the PostgreSQL instance 2 public HTTPS port.
-	IME2EPostgreSQL2PublicPort = 8102
+	IME2EPostgreSQL2PublicPort = 8103
 
 	// IME2EGrafanaPort is the Grafana UI port.
 	IME2EGrafanaPort = 3000
