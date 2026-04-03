@@ -45,17 +45,13 @@ func TestRandomizedNotBeforeNotAfterCA_BoundaryDurationSucceeds(t *testing.T) {
 	maxSub := cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute
 	maxRangeOffset := int64(maxSub - minSub)
 
-	original := randIntFn
-
 	// The only randIntFn call inside generateNotBeforeNotAfter is the random offset.
 	// Force it to exactly maxRangeOffset to hit the boundary.
-	randIntFn = func(_ io.Reader, _ *big.Int) (*big.Int, error) {
+	stubBoundaryFn := func(_ io.Reader, _ *big.Int) (*big.Int, error) {
 		return big.NewInt(maxRangeOffset), nil // Force exact boundary offset.
 	}
 
-	defer func() { randIntFn = original }()
-
-	_, _, err := randomizedNotBeforeNotAfterCA(time.Now().UTC(), cryptoutilSharedMagic.HoursPerDay*time.Hour, minSub, maxSub)
+	_, _, err := randomizedNotBeforeNotAfterCAInternal(time.Now().UTC(), cryptoutilSharedMagic.HoursPerDay*time.Hour, minSub, maxSub, stubBoundaryFn)
 	require.NoError(t, err) // Original `>`: no error. Mutant `>=`: would error.
 }
 
@@ -69,16 +65,12 @@ func TestRandomizedNotBeforeNotAfterEndEntity_BoundaryDurationSucceeds(t *testin
 	maxSub := cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Minute
 	maxRangeOffset := int64(maxSub - minSub)
 
-	original := randIntFn
-
 	// Force exact boundary offset (same as CA variant).
-	randIntFn = func(_ io.Reader, _ *big.Int) (*big.Int, error) {
+	stubBoundaryFn := func(_ io.Reader, _ *big.Int) (*big.Int, error) {
 		return big.NewInt(maxRangeOffset), nil
 	}
 
-	defer func() { randIntFn = original }()
-
-	_, _, err := randomizedNotBeforeNotAfterEndEntity(time.Now().UTC(), cryptoutilSharedMagic.HoursPerDay*time.Hour, minSub, maxSub)
+	_, _, err := randomizedNotBeforeNotAfterEndEntityInternal(time.Now().UTC(), cryptoutilSharedMagic.HoursPerDay*time.Hour, minSub, maxSub, stubBoundaryFn)
 	require.NoError(t, err) // Original `>`: no error. Mutant `>=`: would error.
 }
 

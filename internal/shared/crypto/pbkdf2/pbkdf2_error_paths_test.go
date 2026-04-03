@@ -11,14 +11,12 @@ import (
 )
 
 func TestHashPasswordWithIterations_CrandReadError(t *testing.T) {
+	t.Parallel()
+
 	injectedErr := errors.New("injected crand.Read error")
-	orig := pbkdf2CrandReadFn
+	stubRandReadFn := func(_ []byte) (int, error) { return 0, injectedErr }
 
-	pbkdf2CrandReadFn = func(_ []byte) (int, error) { return 0, injectedErr }
-
-	defer func() { pbkdf2CrandReadFn = orig }()
-
-	_, err := HashPasswordWithIterations("password123", Iterations600k)
+	_, err := hashPasswordWithIterationsInternal("password123", Iterations600k, stubRandReadFn)
 
 	require.ErrorIs(t, err, injectedErr)
 }

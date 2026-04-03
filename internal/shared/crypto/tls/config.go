@@ -15,8 +15,6 @@ import (
 	cryptoutilSharedCryptoCertificate "cryptoutil/internal/shared/crypto/certificate"
 )
 
-var configBuildTLSCertificateFn = cryptoutilSharedCryptoCertificate.BuildTLSCertificate
-
 // MinTLSVersion is the minimum TLS version allowed (TLS 1.3 only per Session 4 Q5).
 const MinTLSVersion = tls.VersionTLS13
 
@@ -67,13 +65,17 @@ type ClientConfigOptions struct {
 // NewServerConfig creates a TLS configuration for a server.
 // This enforces TLS 1.3 only and full certificate validation (Session 4 Q4, Q5).
 func NewServerConfig(opts *ServerConfigOptions) (*Config, error) {
+	return newServerConfigInternal(opts, cryptoutilSharedCryptoCertificate.BuildTLSCertificate)
+}
+
+func newServerConfigInternal(opts *ServerConfigOptions, buildTLSCertificateFn func(*cryptoutilSharedCryptoCertificate.Subject) (*tls.Certificate, *x509.CertPool, *x509.CertPool, error)) (*Config, error) {
 	if opts == nil {
 		return nil, fmt.Errorf("options cannot be nil")
 	} else if opts.Subject == nil {
 		return nil, fmt.Errorf("subject cannot be nil")
 	}
 
-	tlsCert, rootCAsPool, intermediateCAsPool, err := configBuildTLSCertificateFn(opts.Subject)
+	tlsCert, rootCAsPool, intermediateCAsPool, err := buildTLSCertificateFn(opts.Subject)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build TLS certificate: %w", err)
 	}
@@ -110,6 +112,10 @@ func NewServerConfig(opts *ServerConfigOptions) (*Config, error) {
 // NewClientConfig creates a TLS configuration for a client.
 // This enforces TLS 1.3 only and full certificate validation by default (Session 4 Q4, Q5).
 func NewClientConfig(opts *ClientConfigOptions) (*Config, error) {
+	return newClientConfigInternal(opts, cryptoutilSharedCryptoCertificate.BuildTLSCertificate)
+}
+
+func newClientConfigInternal(opts *ClientConfigOptions, buildTLSCertificateFn func(*cryptoutilSharedCryptoCertificate.Subject) (*tls.Certificate, *x509.CertPool, *x509.CertPool, error)) (*Config, error) {
 	if opts == nil {
 		return nil, fmt.Errorf("options cannot be nil")
 	}
@@ -131,7 +137,7 @@ func NewClientConfig(opts *ClientConfigOptions) (*Config, error) {
 	if opts.ClientSubject != nil {
 		var err error
 
-		tlsCert, rootCAsPool, intermediateCAsPool, err = configBuildTLSCertificateFn(opts.ClientSubject)
+		tlsCert, rootCAsPool, intermediateCAsPool, err = buildTLSCertificateFn(opts.ClientSubject)
 		if err != nil {
 			return nil, fmt.Errorf("failed to build client TLS certificate: %w", err)
 		}

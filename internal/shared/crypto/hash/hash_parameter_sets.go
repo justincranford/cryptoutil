@@ -11,11 +11,6 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-var (
-	hashPBKDF2WithParamsFn       = cryptoutilSharedCryptoDigests.PBKDF2WithParams
-	hashVerifySecretWithParamsFn = cryptoutilSharedCryptoDigests.VerifySecretWithParams
-)
-
 // HashSecretPBKDF2 returns a formatted PBKDF2 hash string using default parameter set (version "1").
 // Format: {1}$pbkdf2-sha256$iter$base64(salt)$base64(dk).
 //
@@ -25,7 +20,12 @@ var (
 //  2. Get parameter set: params := registry.GetDefaultParameterSet()
 //  3. Hash with pepper: HashSecretPBKDF2WithParams(secret, params)
 func HashSecretPBKDF2(secret string) (string, error) {
-	hash, err := hashPBKDF2WithParamsFn(secret, DefaultPBKDF2ParameterSet())
+	return hashSecretPBKDF2Internal(secret, cryptoutilSharedCryptoDigests.PBKDF2WithParams)
+}
+
+// hashSecretPBKDF2Internal is the testable core of HashSecretPBKDF2 with injectable pbkdf2Fn.
+func hashSecretPBKDF2Internal(secret string, pbkdf2Fn func(string, *cryptoutilSharedCryptoDigests.PBKDF2Params) (string, error)) (string, error) {
+	hash, err := pbkdf2Fn(secret, DefaultPBKDF2ParameterSet())
 	if err != nil {
 		return "", fmt.Errorf("failed to generate PBKDF2 hash: %w", err)
 	}
@@ -40,7 +40,12 @@ func HashSecretPBKDF2(secret string) (string, error) {
 // Pattern: PBKDF2(password||pepper, salt, iterations, keyLength)
 // Reference: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#peppering
 func HashSecretPBKDF2WithParams(secret string, params *cryptoutilSharedCryptoDigests.PBKDF2Params) (string, error) {
-	hash, err := hashPBKDF2WithParamsFn(secret, params)
+	return hashSecretPBKDF2WithParamsInternal(secret, params, cryptoutilSharedCryptoDigests.PBKDF2WithParams)
+}
+
+// hashSecretPBKDF2WithParamsInternal is the testable core of HashSecretPBKDF2WithParams with injectable pbkdf2Fn.
+func hashSecretPBKDF2WithParamsInternal(secret string, params *cryptoutilSharedCryptoDigests.PBKDF2Params, pbkdf2Fn func(string, *cryptoutilSharedCryptoDigests.PBKDF2Params) (string, error)) (string, error) {
+	hash, err := pbkdf2Fn(secret, params)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate PBKDF2 hash: %w", err)
 	}
@@ -52,7 +57,12 @@ func HashSecretPBKDF2WithParams(secret string, params *cryptoutilSharedCryptoDig
 // CRITICAL: params MUST include pepper loaded from Docker/K8s secrets (same pepper used during hashing).
 // Pattern: PBKDF2(password||pepper, salt, iterations, keyLength).
 func VerifySecretPBKDF2WithParams(stored, provided string, params *cryptoutilSharedCryptoDigests.PBKDF2Params) (bool, error) {
-	valid, err := hashVerifySecretWithParamsFn(stored, provided, params)
+	return verifySecretPBKDF2WithParamsInternal(stored, provided, params, cryptoutilSharedCryptoDigests.VerifySecretWithParams)
+}
+
+// verifySecretPBKDF2WithParamsInternal is the testable core of VerifySecretPBKDF2WithParams with injectable verifyFn.
+func verifySecretPBKDF2WithParamsInternal(stored, provided string, params *cryptoutilSharedCryptoDigests.PBKDF2Params, verifyFn func(string, string, *cryptoutilSharedCryptoDigests.PBKDF2Params) (bool, error)) (bool, error) {
+	valid, err := verifyFn(stored, provided, params)
 	if err != nil {
 		return false, fmt.Errorf("failed to verify secret: %w", err)
 	}

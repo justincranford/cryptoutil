@@ -15,12 +15,6 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-var (
-	storageMkdirAllFn     = os.MkdirAll
-	storageWriteFileFn    = os.WriteFile
-	storageMarshalPKCS8Fn = func(key any) ([]byte, error) { return x509.MarshalPKCS8PrivateKey(key) }
-)
-
 // StorageFormat defines the format for storing certificates and keys.
 type StorageFormat string
 
@@ -91,6 +85,10 @@ type StoredCertificate struct {
 
 // StoreCertificate stores a certificate subject to disk in the specified format.
 func StoreCertificate(subject *cryptoutilSharedCryptoCertificate.Subject, opts *StorageOptions) (*StoredCertificate, error) {
+	return storeCertificateInternal(subject, opts, os.MkdirAll, os.WriteFile, func(key any) ([]byte, error) { return x509.MarshalPKCS8PrivateKey(key) })
+}
+
+func storeCertificateInternal(subject *cryptoutilSharedCryptoCertificate.Subject, opts *StorageOptions, mkdirAllFn func(string, os.FileMode) error, writeFileFn func(string, []byte, os.FileMode) error, marshalPKCS8Fn func(any) ([]byte, error)) (*StoredCertificate, error) {
 	if subject == nil {
 		return nil, fmt.Errorf("subject cannot be nil")
 	} else if opts == nil {
@@ -100,13 +98,13 @@ func StoreCertificate(subject *cryptoutilSharedCryptoCertificate.Subject, opts *
 	}
 
 	// Create directory if it doesn't exist.
-	if err := storageMkdirAllFn(opts.Directory, opts.DirMode); err != nil {
+	if err := mkdirAllFn(opts.Directory, opts.DirMode); err != nil {
 		return nil, fmt.Errorf("failed to create directory %s: %w", opts.Directory, err)
 	}
 
 	switch opts.Format {
 	case FormatPEM:
-		return storePEM(subject, opts)
+		return storePEM(subject, opts, writeFileFn, marshalPKCS8Fn)
 	case FormatPKCS12:
 		return storePKCS12(subject, opts)
 	default:
@@ -115,7 +113,7 @@ func StoreCertificate(subject *cryptoutilSharedCryptoCertificate.Subject, opts *
 }
 
 // storePEM stores a certificate in PEM format.
-func storePEM(subject *cryptoutilSharedCryptoCertificate.Subject, opts *StorageOptions) (*StoredCertificate, error) {
+func storePEM(subject *cryptoutilSharedCryptoCertificate.Subject, opts *StorageOptions, writeFileFn func(string, []byte, os.FileMode) error, marshalPKCS8Fn func(any) ([]byte, error)) (*StoredCertificate, error) {
 	certPath := filepath.Join(opts.Directory, opts.CertificateFilename)
 	keyPath := filepath.Join(opts.Directory, opts.PrivateKeyFilename)
 
@@ -131,7 +129,7 @@ func storePEM(subject *cryptoutilSharedCryptoCertificate.Subject, opts *StorageO
 	}
 
 	// Write certificate chain.
-	if err := storageWriteFileFn(certPath, certChainPEM, cryptoutilSharedMagic.FilePermOwnerReadWriteGroupRead); err != nil {
+	if err := writeFileFn(certPath, certChainPEM, cryptoutilSharedMagic.FilePermOwnerReadWriteGroupRead); err != nil {
 		return nil, fmt.Errorf("failed to write certificate: %w", err)
 	}
 
@@ -142,7 +140,7 @@ func storePEM(subject *cryptoutilSharedCryptoCertificate.Subject, opts *StorageO
 
 	// Write private key if requested.
 	if opts.IncludePrivateKey && subject.KeyMaterial.PrivateKey != nil { //nolint:gosec // Explicit check for private key
-		keyDER, err := storageMarshalPKCS8Fn(subject.KeyMaterial.PrivateKey)
+		keyDER, err := marshalPKCS8Fn(subject.KeyMaterial.PrivateKey)
 		if err != nil {
 			return nil, fmt.Errorf("failed to marshal private key: %w", err)
 		}
@@ -152,7 +150,7 @@ func storePEM(subject *cryptoutilSharedCryptoCertificate.Subject, opts *StorageO
 			Bytes: keyDER,
 		})
 
-		if err := storageWriteFileFn(keyPath, keyPEM, opts.FileMode); err != nil {
+		if err := writeFileFn(keyPath, keyPEM, opts.FileMode); err != nil {
 			return nil, fmt.Errorf("failed to write private key: %w", err)
 		}
 

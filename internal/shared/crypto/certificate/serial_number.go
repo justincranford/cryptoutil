@@ -7,6 +7,7 @@ package certificate
 import (
 	crand "crypto/rand"
 	"fmt"
+	"io"
 	"math/big"
 	"time"
 
@@ -17,12 +18,14 @@ var (
 	minSerialNumber   = new(big.Int).Lsh(big.NewInt(1), cryptoutilSharedMagic.MinSerialNumberBits) // 2^64
 	maxSerialNumber   = new(big.Int).Lsh(big.NewInt(1), cryptoutilSharedMagic.MaxSerialNumberBits) // 2^159
 	rangeSerialNumber = new(big.Int).Sub(maxSerialNumber, minSerialNumber)                         // Range size: 2^159 - 2^64
-
-	randIntFn = crand.Int // injectable for testing error paths.
 )
 
 // GenerateSerialNumber generates a cryptographically random serial number in the range [2^64, 2^159) per CA/Browser Forum requirements.
 func GenerateSerialNumber() (*big.Int, error) {
+	return generateSerialNumberInternal(crand.Int)
+}
+
+func generateSerialNumberInternal(randIntFn func(rand io.Reader, max *big.Int) (n *big.Int, err error)) (*big.Int, error) {
 	randomOffsetFromMin, err := randIntFn(crand.Reader, rangeSerialNumber) // Range [0, rangeSerialNumber)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate random serial number offset: %w", err)
@@ -32,11 +35,15 @@ func GenerateSerialNumber() (*big.Int, error) {
 }
 
 func randomizedNotBeforeNotAfterCA(requestedStart time.Time, requestedDuration, minSubtract, maxSubtract time.Duration) (time.Time, time.Time, error) {
+	return randomizedNotBeforeNotAfterCAInternal(requestedStart, requestedDuration, minSubtract, maxSubtract, crand.Int)
+}
+
+func randomizedNotBeforeNotAfterCAInternal(requestedStart time.Time, requestedDuration, minSubtract, maxSubtract time.Duration, randIntFn func(rand io.Reader, max *big.Int) (n *big.Int, err error)) (time.Time, time.Time, error) {
 	if requestedDuration > cryptoutilSharedMagic.TLSMaxCACertDuration {
 		return time.Time{}, time.Time{}, fmt.Errorf("requestedDuration exceeds maxCACertDuration")
 	}
 
-	notBefore, notAfter, err := generateNotBeforeNotAfter(requestedStart, requestedDuration, minSubtract, maxSubtract)
+	notBefore, notAfter, err := generateNotBeforeNotAfterInternal(requestedStart, requestedDuration, minSubtract, maxSubtract, randIntFn)
 	if err != nil {
 		return notBefore, notAfter, fmt.Errorf("failed to generate notBefore/notAfter: %w", err)
 	} else if notAfter.Sub(notBefore) > requestedDuration+maxSubtract {
@@ -47,11 +54,15 @@ func randomizedNotBeforeNotAfterCA(requestedStart time.Time, requestedDuration, 
 }
 
 func randomizedNotBeforeNotAfterEndEntity(requestedStart time.Time, requestedDuration, minSubtract, maxSubtract time.Duration) (time.Time, time.Time, error) {
+	return randomizedNotBeforeNotAfterEndEntityInternal(requestedStart, requestedDuration, minSubtract, maxSubtract, crand.Int)
+}
+
+func randomizedNotBeforeNotAfterEndEntityInternal(requestedStart time.Time, requestedDuration, minSubtract, maxSubtract time.Duration, randIntFn func(rand io.Reader, max *big.Int) (n *big.Int, err error)) (time.Time, time.Time, error) {
 	if requestedDuration > cryptoutilSharedMagic.TLSDefaultSubscriberCertDuration {
 		return time.Time{}, time.Time{}, fmt.Errorf("requestedDuration exceeds maxSubscriberCertDuration")
 	}
 
-	notBefore, notAfter, err := generateNotBeforeNotAfter(requestedStart, requestedDuration, minSubtract, maxSubtract)
+	notBefore, notAfter, err := generateNotBeforeNotAfterInternal(requestedStart, requestedDuration, minSubtract, maxSubtract, randIntFn)
 	if err != nil {
 		return notBefore, notAfter, fmt.Errorf("failed to generate notBefore/notAfter: %w", err)
 	} else if notAfter.Sub(notBefore) > requestedDuration+maxSubtract {
@@ -62,6 +73,10 @@ func randomizedNotBeforeNotAfterEndEntity(requestedStart time.Time, requestedDur
 }
 
 func generateNotBeforeNotAfter(requestedStart time.Time, requestedDuration, minSubtract, maxSubtract time.Duration) (time.Time, time.Time, error) {
+	return generateNotBeforeNotAfterInternal(requestedStart, requestedDuration, minSubtract, maxSubtract, crand.Int)
+}
+
+func generateNotBeforeNotAfterInternal(requestedStart time.Time, requestedDuration, minSubtract, maxSubtract time.Duration, randIntFn func(rand io.Reader, max *big.Int) (n *big.Int, err error)) (time.Time, time.Time, error) {
 	maxRangeOffset := int64(maxSubtract - minSubtract)
 
 	if requestedDuration <= 0 {

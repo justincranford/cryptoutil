@@ -21,22 +21,6 @@ import (
 	"github.com/cloudflare/circl/sign/ed448"
 )
 
-var (
-	// Function seams for testable error injection.
-	// Go 1.24+ stdlib RSA/ECDSA/ECDH/EdDSA functions ignore the rand io.Reader parameter;
-	// function-level seams are required to test error paths in this package.
-	keygenRSAFn   = func(bits int) (*rsa.PrivateKey, error) { return rsa.GenerateKey(crand.Reader, bits) }
-	keygenECDSAFn = func(curve elliptic.Curve) (*ecdsa.PrivateKey, error) {
-		return ecdsa.GenerateKey(curve, crand.Reader)
-	}
-	keygenECDHFn         = func(curve ecdh.Curve) (*ecdh.PrivateKey, error) { return curve.GenerateKey(crand.Reader) }
-	keygenEdDSAEd448Fn   = func() (ed448.PublicKey, ed448.PrivateKey, error) { return ed448.GenerateKey(crand.Reader) }
-	keygenEdDSAEd25519Fn = func() (ed25519.PublicKey, ed25519.PrivateKey, error) {
-		return ed25519.GenerateKey(crand.Reader)
-	}
-	keygenGenerateBytesFn = cryptoutilSharedUtilRandom.GenerateBytes
-)
-
 // KeyPair represents an asymmetric key pair with private and public keys.
 type KeyPair struct {
 	Private crypto.PrivateKey
@@ -83,7 +67,11 @@ func GenerateRSAKeyPairFunction(rsaBits int) func() (*KeyPair, error) {
 
 // GenerateRSAKeyPair generates an RSA key pair with the specified bit size.
 func GenerateRSAKeyPair(rsaBits int) (*KeyPair, error) {
-	privateKey, err := keygenRSAFn(rsaBits)
+	return generateRSAKeyPairInternal(rsaBits, func(bits int) (*rsa.PrivateKey, error) { return rsa.GenerateKey(crand.Reader, bits) })
+}
+
+func generateRSAKeyPairInternal(rsaBits int, rsaFn func(int) (*rsa.PrivateKey, error)) (*KeyPair, error) {
+	privateKey, err := rsaFn(rsaBits)
 	if err != nil {
 		return nil, fmt.Errorf("generate RSA key pair failed: %w", err)
 	}
@@ -98,7 +86,13 @@ func GenerateECDSAKeyPairFunction(ecdsaCurve elliptic.Curve) func() (*KeyPair, e
 
 // GenerateECDSAKeyPair generates an ECDSA key pair with the specified curve.
 func GenerateECDSAKeyPair(ecdsaCurve elliptic.Curve) (*KeyPair, error) {
-	privateKey, err := keygenECDSAFn(ecdsaCurve)
+	return generateECDSAKeyPairInternal(ecdsaCurve, func(curve elliptic.Curve) (*ecdsa.PrivateKey, error) {
+		return ecdsa.GenerateKey(curve, crand.Reader)
+	})
+}
+
+func generateECDSAKeyPairInternal(ecdsaCurve elliptic.Curve, ecdsaFn func(elliptic.Curve) (*ecdsa.PrivateKey, error)) (*KeyPair, error) {
+	privateKey, err := ecdsaFn(ecdsaCurve)
 	if err != nil {
 		return nil, fmt.Errorf("generate ECDSA key pair failed: %w", err)
 	}
@@ -113,7 +107,11 @@ func GenerateECDHKeyPairFunction(ecdhCurve ecdh.Curve) func() (*KeyPair, error) 
 
 // GenerateECDHKeyPair generates an ECDH key pair with the specified curve.
 func GenerateECDHKeyPair(ecdhCurve ecdh.Curve) (*KeyPair, error) {
-	privateKey, err := keygenECDHFn(ecdhCurve)
+	return generateECDHKeyPairInternal(ecdhCurve, func(curve ecdh.Curve) (*ecdh.PrivateKey, error) { return curve.GenerateKey(crand.Reader) })
+}
+
+func generateECDHKeyPairInternal(ecdhCurve ecdh.Curve, ecdhFn func(ecdh.Curve) (*ecdh.PrivateKey, error)) (*KeyPair, error) {
+	privateKey, err := ecdhFn(ecdhCurve)
 	if err != nil {
 		return nil, fmt.Errorf("generate ECDH key pair failed: %w", err)
 	}
@@ -128,16 +126,23 @@ func GenerateEDDSAKeyPairFunction(edCurve string) func() (*KeyPair, error) {
 
 // GenerateEDDSAKeyPair generates an EdDSA key pair with the specified curve (Ed25519 or Ed448).
 func GenerateEDDSAKeyPair(edCurve string) (*KeyPair, error) {
+	return generateEDDSAKeyPairInternal(edCurve,
+		func() (ed448.PublicKey, ed448.PrivateKey, error) { return ed448.GenerateKey(crand.Reader) },
+		func() (ed25519.PublicKey, ed25519.PrivateKey, error) { return ed25519.GenerateKey(crand.Reader) },
+	)
+}
+
+func generateEDDSAKeyPairInternal(edCurve string, ed448Fn func() (ed448.PublicKey, ed448.PrivateKey, error), ed25519Fn func() (ed25519.PublicKey, ed25519.PrivateKey, error)) (*KeyPair, error) {
 	switch edCurve {
 	case EdCurveEd448:
-		publicKey, privateKey, err := keygenEdDSAEd448Fn()
+		publicKey, privateKey, err := ed448Fn()
 		if err != nil {
 			return nil, fmt.Errorf("generate Ed448 key pair failed: %w", err)
 		}
 
 		return &KeyPair{Private: privateKey, Public: publicKey}, nil
 	case EdCurveEd25519:
-		publicKey, privateKey, err := keygenEdDSAEd25519Fn()
+		publicKey, privateKey, err := ed25519Fn()
 		if err != nil {
 			return nil, fmt.Errorf("generate Ed25519 key pair failed: %w", err)
 		}
@@ -155,11 +160,15 @@ func GenerateAESKeyFunction(aesBits int) func() (SecretKey, error) {
 
 // GenerateAESKey generates an AES key with the specified bit size (128, 192, or 256).
 func GenerateAESKey(aesBits int) (SecretKey, error) {
+	return generateAESKeyInternal(aesBits, cryptoutilSharedUtilRandom.GenerateBytes)
+}
+
+func generateAESKeyInternal(aesBits int, generateBytesFn func(int) ([]byte, error)) (SecretKey, error) {
 	if aesBits != cryptoutilSharedMagic.AESKeySize128 && aesBits != cryptoutilSharedMagic.AESKeySize192 && aesBits != cryptoutilSharedMagic.AESKeySize256 {
 		return nil, fmt.Errorf("invalid AES key size: %d (must be %d, %d, or %d bits)", aesBits, cryptoutilSharedMagic.AESKeySize128, cryptoutilSharedMagic.AESKeySize192, cryptoutilSharedMagic.AESKeySize256)
 	}
 
-	aesSecretKeyBytes, err := keygenGenerateBytesFn(aesBits / cryptoutilSharedMagic.BitsToBytes)
+	aesSecretKeyBytes, err := generateBytesFn(aesBits / cryptoutilSharedMagic.BitsToBytes)
 	if err != nil {
 		return nil, fmt.Errorf("generate AES %d key failed: %w", aesBits, err)
 	}
@@ -174,11 +183,15 @@ func GenerateAESHSKeyFunction(aesHsBits int) func() (SecretKey, error) {
 
 // GenerateAESHSKey generates an AES-HMAC-SHA2 key with the specified bit size (256, 384, or 512).
 func GenerateAESHSKey(aesHsBits int) (SecretKey, error) {
+	return generateAESHSKeyInternal(aesHsBits, cryptoutilSharedUtilRandom.GenerateBytes)
+}
+
+func generateAESHSKeyInternal(aesHsBits int, generateBytesFn func(int) ([]byte, error)) (SecretKey, error) {
 	if aesHsBits != cryptoutilSharedMagic.AESHSKeySize256 && aesHsBits != cryptoutilSharedMagic.AESHSKeySize384 && aesHsBits != cryptoutilSharedMagic.AESHSKeySize512 {
 		return nil, fmt.Errorf("invalid AES HAMC-SHA2 key size: %d (must be %d, %d, or %d bits)", aesHsBits, cryptoutilSharedMagic.AESHSKeySize256, cryptoutilSharedMagic.AESHSKeySize384, cryptoutilSharedMagic.AESHSKeySize512)
 	}
 
-	aesHsSecretKeyBytes, err := keygenGenerateBytesFn(aesHsBits / cryptoutilSharedMagic.BitsToBytes)
+	aesHsSecretKeyBytes, err := generateBytesFn(aesHsBits / cryptoutilSharedMagic.BitsToBytes)
 	if err != nil {
 		return nil, fmt.Errorf("generate AES HAMC-SHA2 %d key failed: %w", aesHsBits, err)
 	}
@@ -193,11 +206,15 @@ func GenerateHMACKeyFunction(hmacBits int) func() (SecretKey, error) {
 
 // GenerateHMACKey generates an HMAC key with the specified bit size.
 func GenerateHMACKey(hmacBits int) (SecretKey, error) {
+	return generateHMACKeyInternal(hmacBits, cryptoutilSharedUtilRandom.GenerateBytes)
+}
+
+func generateHMACKeyInternal(hmacBits int, generateBytesFn func(int) ([]byte, error)) (SecretKey, error) {
 	if hmacBits < cryptoutilSharedMagic.MinHMACKeySize {
 		return nil, fmt.Errorf("invalid HMAC key size: %d (must be %d bits or higher)", hmacBits, cryptoutilSharedMagic.MinHMACKeySize)
 	}
 
-	hmacSecretKeyBytes, err := keygenGenerateBytesFn(hmacBits / cryptoutilSharedMagic.BitsToBytes)
+	hmacSecretKeyBytes, err := generateBytesFn(hmacBits / cryptoutilSharedMagic.BitsToBytes)
 	if err != nil {
 		return nil, fmt.Errorf("generate HMAC %d key failed: %w", hmacBits, err)
 	}

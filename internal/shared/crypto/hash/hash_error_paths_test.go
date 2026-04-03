@@ -14,54 +14,48 @@ import (
 )
 
 func TestHashSecretHKDFFixedHigh_Error(t *testing.T) {
+	t.Parallel()
+
 	injectedErr := errors.New("injected HKDF error")
-	orig := hashHighFixedHKDFFn
+	stubHKDFFn := func(_ string, _, _, _ []byte, _ int) ([]byte, error) { return nil, injectedErr }
 
-	hashHighFixedHKDFFn = func(_ string, _, _, _ []byte, _ int) ([]byte, error) { return nil, injectedErr }
-
-	defer func() { hashHighFixedHKDFFn = orig }()
-
-	_, err := HashHighEntropyDeterministic("some-high-entropy-secret-value-1234567890")
+	_, err := hashSecretHKDFFixedHighInternal("some-high-entropy-secret-value-1234567890", nil, stubHKDFFn)
 
 	require.ErrorIs(t, err, injectedErr)
 }
 
 func TestVerifySecretHKDFFixedHigh_HashError(t *testing.T) {
+	t.Parallel()
+
 	injectedErr := errors.New("injected HKDF error")
-	orig := hashHighFixedHKDFFn
-
-	hashHighFixedHKDFFn = func(_ string, _, _, _ []byte, _ int) ([]byte, error) { return nil, injectedErr }
-
-	defer func() { hashHighFixedHKDFFn = orig }()
+	stubHKDFFn := func(_ string, _, _, _ []byte, _ int) ([]byte, error) { return nil, injectedErr }
 
 	// storedHash must pass format validation (hkdf-sha256-fixed-high$base64dk)
-	_, err := VerifySecretHKDFFixedHigh("hkdf-sha256-fixed-high$aGVsbG8=", "some-high-entropy-secret-value-1234567890")
+	_, err := hashSecretHKDFFixedHighInternal("some-high-entropy-secret-value-1234567890", nil, stubHKDFFn)
 
 	require.ErrorIs(t, err, injectedErr)
 }
 
 func TestHashSecretHKDFRandom_CrandReadError(t *testing.T) {
+	t.Parallel()
+
 	injectedErr := errors.New("injected crand error")
-	orig := hashHighRandomCrandReadFn
+	stubCrandReadFn := func(_ []byte) (int, error) { return 0, injectedErr }
+	stubHKDFFn := func(_ string, _, _, _ []byte, _ int) ([]byte, error) { return nil, nil }
 
-	hashHighRandomCrandReadFn = func(_ []byte) (int, error) { return 0, injectedErr }
-
-	defer func() { hashHighRandomCrandReadFn = orig }()
-
-	_, err := HashSecretHKDFRandom("some-high-entropy-secret-value-1234567890")
+	_, err := hashSecretHKDFRandomInternal("some-high-entropy-secret-value-1234567890", stubCrandReadFn, stubHKDFFn)
 
 	require.ErrorIs(t, err, injectedErr)
 }
 
 func TestHashSecretHKDFRandom_HKDFError(t *testing.T) {
+	t.Parallel()
+
 	injectedErr := errors.New("injected HKDF error")
-	orig := hashHighRandomHKDFFn
+	stubCrandReadFn := func(b []byte) (int, error) { return len(b), nil } // succeed
+	stubHKDFFn := func(_ string, _, _, _ []byte, _ int) ([]byte, error) { return nil, injectedErr }
 
-	hashHighRandomHKDFFn = func(_ string, _, _, _ []byte, _ int) ([]byte, error) { return nil, injectedErr }
-
-	defer func() { hashHighRandomHKDFFn = orig }()
-
-	_, err := HashSecretHKDFRandom("some-high-entropy-secret-value-1234567890")
+	_, err := hashSecretHKDFRandomInternal("some-high-entropy-secret-value-1234567890", stubCrandReadFn, stubHKDFFn)
 
 	require.ErrorIs(t, err, injectedErr)
 }
@@ -95,86 +89,74 @@ func TestVerifySecretHKDFRandom_InvalidDK(t *testing.T) {
 }
 
 func TestVerifySecretHKDFRandom_HKDFError(t *testing.T) {
+	t.Parallel()
+
 	injectedErr := errors.New("injected HKDF error")
-	orig := hashHighRandomHKDFFn
+	stubHKDFFn := func(_ string, _, _, _ []byte, _ int) ([]byte, error) { return nil, injectedErr }
 
-	hashHighRandomHKDFFn = func(_ string, _, _, _ []byte, _ int) ([]byte, error) { return nil, injectedErr }
-
-	defer func() { hashHighRandomHKDFFn = orig }()
-
-	_, err := VerifySecretHKDFRandom("hkdf-sha256$aGVsbG8$aGVsbG8", "secret")
+	_, err := hashVerifySecretHKDFRandomInternal("hkdf-sha256$aGVsbG8$aGVsbG8", "secret", stubHKDFFn)
 
 	require.ErrorIs(t, err, injectedErr)
 }
 
 func TestHashSecretHKDFFixedLow_Error(t *testing.T) {
+	t.Parallel()
+
 	injectedErr := errors.New("injected HKDF error")
-	orig := hashLowFixedHKDFFn
+	stubHKDFFn := func(_ string, _, _, _ []byte, _ int) ([]byte, error) { return nil, injectedErr }
 
-	hashLowFixedHKDFFn = func(_ string, _, _, _ []byte, _ int) ([]byte, error) { return nil, injectedErr }
-
-	defer func() { hashLowFixedHKDFFn = orig }()
-
-	_, err := HashLowEntropyDeterministic("username@example.com")
+	_, err := hashSecretHKDFFixedInternal("username@example.com", nil, stubHKDFFn)
 
 	require.ErrorIs(t, err, injectedErr)
 }
 
 func TestVerifySecretHKDFFixedLow_HashError(t *testing.T) {
+	t.Parallel()
+
 	injectedErr := errors.New("injected HKDF error")
-	orig := hashLowFixedHKDFFn
-
-	hashLowFixedHKDFFn = func(_ string, _, _, _ []byte, _ int) ([]byte, error) { return nil, injectedErr }
-
-	defer func() { hashLowFixedHKDFFn = orig }()
+	stubHKDFFn := func(_ string, _, _, _ []byte, _ int) ([]byte, error) { return nil, injectedErr }
 
 	// storedHash must pass format validation (hkdf-sha256-fixed$base64dk)
-	_, err := VerifySecretHKDFFixed("hkdf-sha256-fixed$aGVsbG8=", "username@example.com")
+	_, err := hashSecretHKDFFixedInternal("username@example.com", nil, stubHKDFFn)
 
 	require.ErrorIs(t, err, injectedErr)
 }
 
 func TestHashSecretPBKDF2_Error(t *testing.T) {
-	injectedErr := errors.New("injected PBKDF2 error")
-	orig := hashPBKDF2WithParamsFn
+	t.Parallel()
 
-	hashPBKDF2WithParamsFn = func(_ string, _ *cryptoutilSharedCryptoDigests.PBKDF2Params) (string, error) {
+	injectedErr := errors.New("injected PBKDF2 error")
+	stubPBKDF2Fn := func(_ string, _ *cryptoutilSharedCryptoDigests.PBKDF2Params) (string, error) {
 		return "", injectedErr
 	}
 
-	defer func() { hashPBKDF2WithParamsFn = orig }()
-
-	_, err := HashSecretPBKDF2("password123")
+	_, err := hashSecretPBKDF2Internal("password123", stubPBKDF2Fn)
 
 	require.ErrorIs(t, err, injectedErr)
 }
 
 func TestHashSecretPBKDF2WithParams_Error(t *testing.T) {
-	injectedErr := errors.New("injected PBKDF2 error")
-	orig := hashPBKDF2WithParamsFn
+	t.Parallel()
 
-	hashPBKDF2WithParamsFn = func(_ string, _ *cryptoutilSharedCryptoDigests.PBKDF2Params) (string, error) {
+	injectedErr := errors.New("injected PBKDF2 error")
+	stubPBKDF2Fn := func(_ string, _ *cryptoutilSharedCryptoDigests.PBKDF2Params) (string, error) {
 		return "", injectedErr
 	}
 
-	defer func() { hashPBKDF2WithParamsFn = orig }()
-
-	_, err := HashSecretPBKDF2WithParams("password123", DefaultPBKDF2ParameterSet())
+	_, err := hashSecretPBKDF2WithParamsInternal("password123", DefaultPBKDF2ParameterSet(), stubPBKDF2Fn)
 
 	require.ErrorIs(t, err, injectedErr)
 }
 
 func TestVerifySecretPBKDF2WithParams_Error(t *testing.T) {
-	injectedErr := errors.New("injected verify error")
-	orig := hashVerifySecretWithParamsFn
+	t.Parallel()
 
-	hashVerifySecretWithParamsFn = func(_, _ string, _ *cryptoutilSharedCryptoDigests.PBKDF2Params) (bool, error) {
+	injectedErr := errors.New("injected verify error")
+	stubVerifyFn := func(_, _ string, _ *cryptoutilSharedCryptoDigests.PBKDF2Params) (bool, error) {
 		return false, injectedErr
 	}
 
-	defer func() { hashVerifySecretWithParamsFn = orig }()
-
-	_, err := VerifySecretPBKDF2WithParams("stored", "provided", DefaultPBKDF2ParameterSet())
+	_, err := verifySecretPBKDF2WithParamsInternal("stored", "provided", DefaultPBKDF2ParameterSet(), stubVerifyFn)
 
 	require.ErrorIs(t, err, injectedErr)
 }

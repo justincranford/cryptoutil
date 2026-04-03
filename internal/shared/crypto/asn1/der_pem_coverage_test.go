@@ -105,103 +105,77 @@ func TestDERWrite_WriteFileFailure(t *testing.T) {
 }
 
 // TestDEREncode_PrivateKeyMarshalError covers DEREncode's MarshalPKCS8PrivateKey error path.
-// Sequential: modifies package-level x509MarshalPKCS8PrivateKeyFn injectable variable.
 func TestDEREncode_PrivateKeyMarshalError(t *testing.T) {
-	orig := x509MarshalPKCS8PrivateKeyFn
-	x509MarshalPKCS8PrivateKeyFn = func(_ any) ([]byte, error) {
-		return nil, errors.New("injected marshal error")
-	}
-
-	defer func() { x509MarshalPKCS8PrivateKeyFn = orig }()
+	t.Parallel()
 
 	key, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
-	_, _, err = DEREncode(key)
+	_, _, err = derEncodeWithFns(key, func(_ any) ([]byte, error) {
+		return nil, errors.New("injected marshal error")
+	}, x509.MarshalPKIXPublicKey)
 	require.Error(t, err)
 	require.ErrorContains(t, err, "encode failed")
 }
 
 // TestDEREncode_PublicKeyMarshalError covers DEREncode's MarshalPKIXPublicKey error path.
-// Sequential: modifies package-level x509MarshalPKIXPublicKeyFn injectable variable.
 func TestDEREncode_PublicKeyMarshalError(t *testing.T) {
-	orig := x509MarshalPKIXPublicKeyFn
-	x509MarshalPKIXPublicKeyFn = func(_ any) ([]byte, error) {
-		return nil, errors.New("injected marshal error")
-	}
-
-	defer func() { x509MarshalPKIXPublicKeyFn = orig }()
+	t.Parallel()
 
 	key, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.DefaultMetricsBatchSize)
 	require.NoError(t, err)
 
-	_, _, err = DEREncode(&key.PublicKey)
+	_, _, err = derEncodeWithFns(&key.PublicKey, x509.MarshalPKCS8PrivateKey, func(_ any) ([]byte, error) {
+		return nil, errors.New("injected marshal error")
+	})
 	require.Error(t, err)
 	require.ErrorContains(t, err, "encode failed")
 }
 
 // TestDERDecodes_AllDecodersFail covers DERDecodes' "decode failed" path when types list is empty.
-// Sequential: modifies package-level derDecodesPEMTypes injectable variable.
 func TestDERDecodes_AllDecodersFail(t *testing.T) {
-	orig := derDecodesPEMTypes
-	derDecodesPEMTypes = []string{}
+	t.Parallel()
 
-	defer func() { derDecodesPEMTypes = orig }()
-
-	_, _, err := DERDecodes([]byte("any bytes"))
+	_, _, err := derDecodesWithTypes([]byte("any bytes"), []string{})
 	require.Error(t, err)
 	require.ErrorContains(t, err, "decode failed")
 }
 
 // TestDERRead_DecodesAllFail covers DERRead's error path when DERDecodes fails.
-// Sequential: modifies package-level derDecodesPEMTypes injectable variable.
 func TestDERRead_DecodesAllFail(t *testing.T) {
-	orig := derDecodesPEMTypes
-	derDecodesPEMTypes = []string{}
-
-	defer func() { derDecodesPEMTypes = orig }()
+	t.Parallel()
 
 	tmpDir := t.TempDir()
 	filename := filepath.Join(tmpDir, "test.der")
 	require.NoError(t, os.WriteFile(filename, []byte("any bytes"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	_, _, err := DERRead(filename)
+	_, _, err := derReadWithTypes(filename, []string{})
 	require.Error(t, err)
 	require.ErrorContains(t, err, "decode failed")
 }
 
-// Sequential: uses shared state (not safe for parallel execution).
+// TestPEMEncodes_EncodeError covers PEMEncodes error path.
 func TestPEMEncodes_EncodeError(t *testing.T) {
-	// Cannot be parallel: modifies package-level injectable var.
-	originalFn := pemEncodeInternalFn
-
-	defer func() { pemEncodeInternalFn = originalFn }()
-
-	pemEncodeInternalFn = func(_ any) ([]byte, error) {
-		return nil, errors.New("injected PEM encode failure")
-	}
+	t.Parallel()
 
 	// Create a minimal certificate slice to trigger the loop.
 	certs := []*x509.Certificate{{Raw: []byte("test")}}
-	_, err := PEMEncodes(certs)
+	_, err := pemEncodesWithFn(certs, func(_ any) ([]byte, error) {
+		return nil, errors.New("injected PEM encode failure")
+	})
 	require.Error(t, err)
 	require.ErrorContains(t, err, "encode failed")
 }
 
-// Sequential: uses shared state (not safe for parallel execution).
+// TestDEREncodes_EncodeError covers DEREncodes error path.
 func TestDEREncodes_EncodeError(t *testing.T) {
-	// Cannot be parallel: modifies package-level injectable var.
-	originalFn := derEncodeInternalFn
-
-	defer func() { derEncodeInternalFn = originalFn }()
-
-	derEncodeInternalFn = func(_ any) ([]byte, string, error) {
-		return nil, "", errors.New("injected DER encode failure")
-	}
+	t.Parallel()
 
 	// Create a minimal certificate slice to trigger the loop.
 	certs := []*x509.Certificate{{Raw: []byte("test")}}
-	_, err := DEREncodes(certs)
+	_, err := derEncodesWithFn(certs, func(_ any) ([]byte, string, error) {
+		return nil, "", errors.New("injected DER encode failure")
+	})
 	require.Error(t, err)
 	require.ErrorContains(t, err, "encode failed")
 }

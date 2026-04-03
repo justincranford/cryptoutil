@@ -250,15 +250,9 @@ func TestParsePbkdf2Params_CoverageCheck(t *testing.T) {
 	}
 }
 
-// TestPBKDF2WithParams_RandReadError tests PBKDF2WithParams when crypto/rand.Read fails.
-// Sequential: modifies package-level digestsRandReadFn var — must not run concurrently.
+// TestPBKDF2WithParams_RandReadError tests pbkdf2WithParamsInternal when crypto/rand.Read fails.
 func TestPBKDF2WithParams_RandReadError(t *testing.T) {
-	orig := digestsRandReadFn
-	digestsRandReadFn = func(_ []byte) (int, error) {
-		return 0, errTestInjectFailure
-	}
-
-	defer func() { digestsRandReadFn = orig }()
+	t.Parallel()
 
 	params := &PBKDF2Params{
 		Version:    "1",
@@ -269,22 +263,22 @@ func TestPBKDF2WithParams_RandReadError(t *testing.T) {
 		HashFunc:   func() hash.Hash { return sha256.New() },
 	}
 
-	_, err := PBKDF2WithParams("testsecret", params)
+	stubRandReadFn := func(_ []byte) (int, error) { return 0, errTestInjectFailure }
+
+	_, err := pbkdf2WithParamsInternal("testsecret", params, stubRandReadFn)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to generate salt")
 }
 
-// TestHKDF_ReadError tests HKDF when the internal Read call fails.
-// Sequential: modifies package-level digestsHKDFReadFn var — must not run concurrently.
+// TestHKDF_ReadError tests hkdfInternal when the internal Read call fails.
 func TestHKDF_ReadError(t *testing.T) {
-	orig := digestsHKDFReadFn
-	digestsHKDFReadFn = func(_ interface{ Read([]byte) (int, error) }, _ []byte) (int, error) {
+	t.Parallel()
+
+	stubReadFn := func(_ interface{ Read([]byte) (int, error) }, _ []byte) (int, error) {
 		return 0, errTestInjectFailure
 	}
 
-	defer func() { digestsHKDFReadFn = orig }()
-
-	_, err := HKDF(cryptoutilSharedMagic.SHA256, []byte("secret"), []byte("salt"), []byte("info"), sha256.Size)
+	_, err := hkdfInternal(cryptoutilSharedMagic.SHA256, []byte("secret"), []byte("salt"), []byte("info"), sha256.Size, stubReadFn)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to compute HKDF")
 }

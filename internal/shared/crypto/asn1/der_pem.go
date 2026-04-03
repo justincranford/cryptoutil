@@ -23,23 +23,18 @@ var PEMTypes = []string{
 	cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey, cryptoutilSharedMagic.StringPEMTypePKIXPublicKey, cryptoutilSharedMagic.StringPEMTypeRSAPrivateKey, cryptoutilSharedMagic.StringPEMTypeRSAPublicKey, cryptoutilSharedMagic.StringPEMTypeECPrivateKey, cryptoutilSharedMagic.StringPEMTypeCertificate, cryptoutilSharedMagic.StringPEMTypeCSR, cryptoutilSharedMagic.StringPEMTypeSecretKey,
 }
 
-// Injectable vars for testing - allows error path coverage without modifying public API.
-var (
-	x509MarshalPKCS8PrivateKeyFn = x509.MarshalPKCS8PrivateKey
-	x509MarshalPKIXPublicKeyFn   = x509.MarshalPKIXPublicKey
-	derDecodesPEMTypes           = PEMTypes
-	pemEncodeInternalFn          = PEMEncode
-	derEncodeInternalFn          = DEREncode
-)
-
 // PEMEncodes encodes multiple keys (e.g., certificate chains) to PEM format.
 func PEMEncodes(keys any) ([][]byte, error) {
+	return pemEncodesWithFn(keys, PEMEncode)
+}
+
+func pemEncodesWithFn(keys any, pemEncodeFn func(any) ([]byte, error)) ([][]byte, error) {
 	switch expression := keys.(type) {
 	case []*x509.Certificate:
 		var pemBytesList [][]byte
 
 		for _, k := range expression {
-			pemBytes, err := pemEncodeInternalFn(k)
+			pemBytes, err := pemEncodeFn(k)
 			if err != nil {
 				return nil, fmt.Errorf("encode failed: %w", err)
 			}
@@ -55,12 +50,16 @@ func PEMEncodes(keys any) ([][]byte, error) {
 
 // DEREncodes encodes multiple keys (e.g., certificate chains) to DER format.
 func DEREncodes(key any) ([][]byte, error) {
+	return derEncodesWithFn(key, DEREncode)
+}
+
+func derEncodesWithFn(key any, derEncodeFn func(any) ([]byte, string, error)) ([][]byte, error) {
 	var derBytesList [][]byte
 
 	switch expression := key.(type) {
 	case []*x509.Certificate:
 		for _, k := range expression {
-			derBytes, _, err := derEncodeInternalFn(k)
+			derBytes, _, err := derEncodeFn(k)
 			if err != nil {
 				return nil, fmt.Errorf("encode failed: %w", err)
 			}
@@ -88,16 +87,20 @@ func PEMEncode(key any) ([]byte, error) {
 
 // DEREncode encodes a single key to DER format and returns the PEM type identifier.
 func DEREncode(key any) ([]byte, string, error) {
+	return derEncodeWithFns(key, x509.MarshalPKCS8PrivateKey, x509.MarshalPKIXPublicKey)
+}
+
+func derEncodeWithFns(key any, marshalPKCS8Fn func(any) ([]byte, error), marshalPKIXFn func(any) ([]byte, error)) ([]byte, string, error) {
 	switch x509Type := key.(type) {
 	case *rsa.PrivateKey, *ecdsa.PrivateKey, ed25519.PrivateKey, *ecdh.PrivateKey:
-		privateKeyBytes, err := x509MarshalPKCS8PrivateKeyFn(x509Type)
+		privateKeyBytes, err := marshalPKCS8Fn(x509Type)
 		if err != nil {
 			return nil, "", fmt.Errorf("encode failed: %w", err)
 		}
 
 		return privateKeyBytes, cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey, nil
 	case *rsa.PublicKey, *ecdsa.PublicKey, ed25519.PublicKey, *ecdh.PublicKey:
-		publicKeyBytes, err := x509MarshalPKIXPublicKeyFn(x509Type)
+		publicKeyBytes, err := marshalPKIXFn(x509Type)
 		if err != nil {
 			return nil, "", fmt.Errorf("encode failed: %w", err)
 		}
@@ -150,7 +153,11 @@ func DERDecode(bytes []byte, x509Type string) (any, error) {
 
 // DERDecodes attempts to decode DER-encoded bytes by trying all known PEM types.
 func DERDecodes(bytes []byte) (any, string, error) {
-	for _, derType := range derDecodesPEMTypes {
+	return derDecodesWithTypes(bytes, PEMTypes)
+}
+
+func derDecodesWithTypes(bytes []byte, pemTypes []string) (any, string, error) {
+	for _, derType := range pemTypes {
 		key, err := DERDecode(bytes, derType)
 		if err == nil {
 			return key, derType, nil
@@ -184,12 +191,16 @@ func PEMRead(filename string) (any, error) {
 
 // DERRead reads and decodes a DER-encoded file.
 func DERRead(filename string) (any, string, error) {
+	return derReadWithTypes(filename, PEMTypes)
+}
+
+func derReadWithTypes(filename string, pemTypes []string) (any, string, error) {
 	derBytes, err := os.ReadFile(filename) // #nosec G304 -- Legitimate file reading for crypto operations
 	if err != nil {
 		return nil, "", fmt.Errorf("read failed: %w", err)
 	}
 
-	key, derType, err := DERDecodes(derBytes)
+	key, derType, err := derDecodesWithTypes(derBytes, pemTypes)
 	if err != nil {
 		return nil, "", fmt.Errorf("decode failed: %w", err)
 	}

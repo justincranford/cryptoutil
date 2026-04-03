@@ -14,17 +14,14 @@ import (
 	json "encoding/json"
 	"encoding/pem"
 	"fmt"
+	"io"
+	"math/big"
 	"net"
 	"net/url"
 	"time"
 
 	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-)
-
-var (
-	parseCertificateFn = x509.ParseCertificate // injectable for testing error paths.
-	jsonMarshalFn      = json.Marshal          // injectable for testing error paths.
 )
 
 // KeyMaterial holds the cryptographic components for a certificate.
@@ -64,6 +61,10 @@ type Subject struct {
 
 // CreateCASubjects creates a certificate chain from multiple CA key pairs.
 func CreateCASubjects(keyPairs []*cryptoutilSharedCryptoKeygen.KeyPair, caSubjectNamePrefix string, duration time.Duration) ([]*Subject, error) {
+	return createCASubjectsInternal(keyPairs, caSubjectNamePrefix, duration, crand.Int)
+}
+
+func createCASubjectsInternal(keyPairs []*cryptoutilSharedCryptoKeygen.KeyPair, caSubjectNamePrefix string, duration time.Duration, randIntFn func(rand io.Reader, max *big.Int) (n *big.Int, err error)) ([]*Subject, error) {
 	subjects := make([]*Subject, len(keyPairs))
 
 	for i := len(keyPairs) - 1; i >= 0; i-- {
@@ -71,9 +72,9 @@ func CreateCASubjects(keyPairs []*cryptoutilSharedCryptoKeygen.KeyPair, caSubjec
 
 		var err error
 		if i == len(keyPairs)-1 {
-			subjects[i], err = CreateCASubject(nil, nil, subjectName, keyPairs[i], duration, i)
+			subjects[i], err = createCASubjectInternal(nil, nil, subjectName, keyPairs[i], duration, i, randIntFn)
 		} else {
-			subjects[i], err = CreateCASubject(subjects[i+1], subjects[i+1].KeyMaterial.PrivateKey, subjectName, keyPairs[i], duration, i)
+			subjects[i], err = createCASubjectInternal(subjects[i+1], subjects[i+1].KeyMaterial.PrivateKey, subjectName, keyPairs[i], duration, i, randIntFn)
 			subjects[i+1].KeyMaterial.PrivateKey = nil // pragma: allowlist secret
 		}
 
@@ -87,6 +88,10 @@ func CreateCASubjects(keyPairs []*cryptoutilSharedCryptoKeygen.KeyPair, caSubjec
 
 // CreateCASubject creates a single CA certificate subject with optional issuer.
 func CreateCASubject(issuerSubject *Subject, issuerPrivateKey crypto.PrivateKey, subjectName string, subjectKeyPair *cryptoutilSharedCryptoKeygen.KeyPair, duration time.Duration, maxPathLen int) (*Subject, error) {
+	return createCASubjectInternal(issuerSubject, issuerPrivateKey, subjectName, subjectKeyPair, duration, maxPathLen, crand.Int)
+}
+
+func createCASubjectInternal(issuerSubject *Subject, issuerPrivateKey crypto.PrivateKey, subjectName string, subjectKeyPair *cryptoutilSharedCryptoKeygen.KeyPair, duration time.Duration, maxPathLen int, randIntFn func(rand io.Reader, max *big.Int) (n *big.Int, err error)) (*Subject, error) {
 	if issuerSubject == nil && issuerPrivateKey != nil { // pragma: allowlist secret
 		return nil, fmt.Errorf("issuerSubject is nil but issuerPrivateKey is not nil for CA %s", subjectName)
 	} else if issuerSubject != nil && issuerPrivateKey == nil { // pragma: allowlist secret
@@ -132,7 +137,7 @@ func CreateCASubject(issuerSubject *Subject, issuerPrivateKey crypto.PrivateKey,
 		},
 	}
 
-	currentCACertTemplate, err := CertificateTemplateCA(issuerName, subjectName, currentSubject.Duration, maxPathLen)
+	currentCACertTemplate, err := certificateTemplateCAInternal(issuerName, subjectName, currentSubject.Duration, maxPathLen, randIntFn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create CA certificate template for %s: %w", subjectName, err)
 	}
@@ -205,12 +210,16 @@ func BuildTLSCertificate(endEntitySubject *Subject) (*tls.Certificate, *x509.Cer
 
 // CertificateTemplateCA creates an x509 certificate template for a CA with specified path length.
 func CertificateTemplateCA(issuerName, subjectName string, duration time.Duration, maxPathLen int) (*x509.Certificate, error) {
-	serialNumber, err := GenerateSerialNumber()
+	return certificateTemplateCAInternal(issuerName, subjectName, duration, maxPathLen, crand.Int)
+}
+
+func certificateTemplateCAInternal(issuerName, subjectName string, duration time.Duration, maxPathLen int, randIntFn func(rand io.Reader, max *big.Int) (n *big.Int, err error)) (*x509.Certificate, error) {
+	serialNumber, err := generateSerialNumberInternal(randIntFn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate serial number for TLS root CA: %w", err)
 	}
 
-	notBefore, notAfter, err := randomizedNotBeforeNotAfterCA(time.Now().UTC(), duration, 1*time.Minute, cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes*time.Minute)
+	notBefore, notAfter, err := randomizedNotBeforeNotAfterCAInternal(time.Now().UTC(), duration, 1*time.Minute, cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes*time.Minute, randIntFn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate certificate validity period for TLS root CA: %w", err)
 	}
@@ -231,12 +240,16 @@ func CertificateTemplateCA(issuerName, subjectName string, duration time.Duratio
 
 // CertificateTemplateEndEntity creates an x509 certificate template for an end entity with SANs and key usage.
 func CertificateTemplateEndEntity(issuerName, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL, keyUsage x509.KeyUsage, extKeyUsage []x509.ExtKeyUsage) (*x509.Certificate, error) {
-	serialNumber, err := GenerateSerialNumber()
+	return certificateTemplateEndEntityInternal(issuerName, subjectName, duration, dnsNames, ipAddresses, emailAddresses, uris, keyUsage, extKeyUsage, crand.Int)
+}
+
+func certificateTemplateEndEntityInternal(issuerName, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL, keyUsage x509.KeyUsage, extKeyUsage []x509.ExtKeyUsage, randIntFn func(rand io.Reader, max *big.Int) (n *big.Int, err error)) (*x509.Certificate, error) {
+	serialNumber, err := generateSerialNumberInternal(randIntFn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate serial number for TLS server: %w", err)
 	}
 
-	notBefore, notAfter, err := randomizedNotBeforeNotAfterEndEntity(time.Now().UTC(), duration, 1*time.Minute, cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes*time.Minute)
+	notBefore, notAfter, err := randomizedNotBeforeNotAfterEndEntityInternal(time.Now().UTC(), duration, 1*time.Minute, cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes*time.Minute, randIntFn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate certificate validity period for TLS server: %w", err)
 	}
@@ -260,6 +273,10 @@ func CertificateTemplateEndEntity(issuerName, subjectName string, duration time.
 
 // SignCertificate signs a subject certificate using an issuer certificate and private key.
 func SignCertificate(issuerCertificate *x509.Certificate, issuerPrivateKey crypto.PrivateKey, subjectCertificate *x509.Certificate, subjectPublicKey crypto.PublicKey, signatureAlgorithm x509.SignatureAlgorithm) (*x509.Certificate, []byte, []byte, error) {
+	return signCertificateInternal(issuerCertificate, issuerPrivateKey, subjectCertificate, subjectPublicKey, signatureAlgorithm, x509.ParseCertificate)
+}
+
+func signCertificateInternal(issuerCertificate *x509.Certificate, issuerPrivateKey crypto.PrivateKey, subjectCertificate *x509.Certificate, subjectPublicKey crypto.PublicKey, signatureAlgorithm x509.SignatureAlgorithm, parseCertificateFn func([]byte) (*x509.Certificate, error)) (*x509.Certificate, []byte, []byte, error) {
 	_, ok := issuerPrivateKey.(crypto.Signer)
 	if !ok {
 		return nil, nil, nil, fmt.Errorf("issuer private key is not a crypto.Signer")
@@ -290,6 +307,10 @@ func SignCertificate(issuerCertificate *x509.Certificate, issuerPrivateKey crypt
 
 // SerializeSubjects converts Subject structs to JSON-encoded byte slices with optional private key inclusion.
 func SerializeSubjects(subjects []*Subject, includePrivateKey bool) ([][]byte, error) {
+	return serializeSubjectsInternal(subjects, includePrivateKey, json.Marshal)
+}
+
+func serializeSubjectsInternal(subjects []*Subject, includePrivateKey bool, jsonMarshalFn func(any) ([]byte, error)) ([][]byte, error) {
 	if subjects == nil {
 		return nil, fmt.Errorf("subjects cannot be nil")
 	}

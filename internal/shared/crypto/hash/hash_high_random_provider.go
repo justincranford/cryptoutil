@@ -16,11 +16,6 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-var (
-	hashHighRandomCrandReadFn = func(b []byte) (int, error) { return crand.Read(b) }
-	hashHighRandomHKDFFn      = cryptoutilSharedCryptoDigests.HKDF
-)
-
 // HashHighEntropyNonDeterministic hashes a high-entropy secret (e.g., API key, token) using a random salt.
 // Each invocation produces a different hash for the same input (non-deterministic).
 //
@@ -35,21 +30,24 @@ func HashHighEntropyNonDeterministic(secret string) (string, error) {
 	return HashSecretHKDFRandom(secret)
 }
 
-// HashSecretHKDFRandom hashes a high-entropy secret using HKDF-SHA256 with random salt.
-// Format: hkdf-sha256$base64(salt)$base64(dk).
 func HashSecretHKDFRandom(secret string) (string, error) {
+	return hashSecretHKDFRandomInternal(secret, crand.Read, cryptoutilSharedCryptoDigests.HKDF)
+}
+
+// hashSecretHKDFRandomInternal is the testable core of HashSecretHKDFRandom with injectable fns.
+func hashSecretHKDFRandomInternal(secret string, crandReadFn func([]byte) (int, error), hkdfFn func(string, []byte, []byte, []byte, int) ([]byte, error)) (string, error) {
 	if secret == "" {
 		return "", errors.New("secret is empty")
 	}
 
 	// Generate random salt.
 	salt := make([]byte, cryptoutilSharedMagic.PBKDF2DefaultSaltBytes)
-	if _, err := hashHighRandomCrandReadFn(salt); err != nil {
+	if _, err := crandReadFn(salt); err != nil {
 		return "", fmt.Errorf("failed to generate salt: %w", err)
 	}
 
 	// Derive key using HKDF-SHA256.
-	dk, err := hashHighRandomHKDFFn(cryptoutilSharedMagic.SHA256, []byte(secret), salt, nil, cryptoutilSharedMagic.PBKDF2DerivedKeyLength)
+	dk, err := hkdfFn(cryptoutilSharedMagic.SHA256, []byte(secret), salt, nil, cryptoutilSharedMagic.PBKDF2DerivedKeyLength)
 	if err != nil {
 		return "", fmt.Errorf("HKDF failed: %w", err)
 	}
@@ -65,6 +63,11 @@ func HashSecretHKDFRandom(secret string) (string, error) {
 // VerifySecretHKDFRandom verifies a stored HKDF hash against a provided secret.
 // Format: hkdf-sha256$base64(salt)$base64(dk).
 func VerifySecretHKDFRandom(stored, provided string) (bool, error) {
+	return hashVerifySecretHKDFRandomInternal(stored, provided, cryptoutilSharedCryptoDigests.HKDF)
+}
+
+// hashVerifySecretHKDFRandomInternal is the testable core of VerifySecretHKDFRandom with injectable hkdfFn.
+func hashVerifySecretHKDFRandomInternal(stored, provided string, hkdfFn func(string, []byte, []byte, []byte, int) ([]byte, error)) (bool, error) {
 	if stored == "" {
 		return false, errors.New("stored hash is empty")
 	}
@@ -98,7 +101,7 @@ func VerifySecretHKDFRandom(stored, provided string) (bool, error) {
 	}
 
 	// Derive key from provided secret using HKDF-SHA256.
-	providedDK, err := hashHighRandomHKDFFn(cryptoutilSharedMagic.SHA256, []byte(provided), salt, nil, len(storedDK))
+	providedDK, err := hkdfFn(cryptoutilSharedMagic.SHA256, []byte(provided), salt, nil, len(storedDK))
 	if err != nil {
 		return false, fmt.Errorf("HKDF failed: %w", err)
 	}

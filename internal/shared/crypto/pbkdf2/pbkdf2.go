@@ -7,16 +7,15 @@ package pbkdf2
 import (
 	crand "crypto/rand"
 	"crypto/subtle"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/base64"
 	"fmt"
 	"strings"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	"golang.org/x/crypto/pbkdf2"
 	"golang.org/x/crypto/sha3"
 )
-
-var pbkdf2CrandReadFn = func(b []byte) (int, error) { return crand.Read(b) }
 
 const (
 	// Iterations600k is the OWASP 2025 recommended minimum for PBKDF2-HMAC-SHA256.
@@ -43,6 +42,11 @@ func HashPassword(password string) (string, error) {
 
 // HashPasswordWithIterations allows customizing iteration count for testing.
 func HashPasswordWithIterations(password string, iterations int) (string, error) {
+	return hashPasswordWithIterationsInternal(password, iterations, crand.Read)
+}
+
+// hashPasswordWithIterationsInternal is the testable core of HashPasswordWithIterations with injectable randReadFn.
+func hashPasswordWithIterationsInternal(password string, iterations int, randReadFn func([]byte) (int, error)) (string, error) {
 	if password == "" {
 		return "", fmt.Errorf("password cannot be empty")
 	}
@@ -53,7 +57,7 @@ func HashPasswordWithIterations(password string, iterations int) (string, error)
 
 	// Generate cryptographically secure random salt.
 	salt := make([]byte, SaltLength32)
-	if _, err := pbkdf2CrandReadFn(salt); err != nil {
+	if _, err := randReadFn(salt); err != nil {
 		return "", fmt.Errorf("failed to generate salt: %w", err)
 	}
 

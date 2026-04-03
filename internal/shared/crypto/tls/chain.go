@@ -19,12 +19,6 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-var (
-	chainGenerateECDSAKeyPairFn   = cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair
-	chainCreateCASubjectsFn       = cryptoutilSharedCryptoCertificate.CreateCASubjects
-	chainCreateEndEntitySubjectFn = cryptoutilSharedCryptoCertificate.CreateEndEntitySubject
-)
-
 // fqdnPattern validates FQDN-style names (per Session 3 Q3).
 // Allows alphanumeric, hyphens, and dots. Must start/end with alphanumeric.
 var fqdnPattern = regexp.MustCompile(`^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)*$`)
@@ -214,6 +208,10 @@ func curveToElliptic(curve ECCurve) elliptic.Curve {
 
 // CreateCAChain creates a CA chain with the specified options.
 func CreateCAChain(opts *CAChainOptions) (*CAChain, error) {
+	return createCAChainInternal(opts, cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair, cryptoutilSharedCryptoCertificate.CreateCASubjects)
+}
+
+func createCAChainInternal(opts *CAChainOptions, generateECDSAKeyPairFn func(elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error), createCASubjectsFn func([]*cryptoutilSharedCryptoKeygen.KeyPair, string, time.Duration) ([]*cryptoutilSharedCryptoCertificate.Subject, error)) (*CAChain, error) {
 	if opts == nil {
 		return nil, fmt.Errorf("options cannot be nil")
 	} else if opts.ChainLength < 1 {
@@ -241,7 +239,7 @@ func CreateCAChain(opts *CAChainOptions) (*CAChain, error) {
 	keyPairs := make([]*cryptoutilSharedCryptoKeygen.KeyPair, opts.ChainLength)
 
 	for i := range keyPairs {
-		keyPair, err := chainGenerateECDSAKeyPairFn(ellipticCurve)
+		keyPair, err := generateECDSAKeyPairFn(ellipticCurve)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate key pair for CA %d: %w", i, err)
 		}
@@ -261,7 +259,7 @@ func CreateCAChain(opts *CAChainOptions) (*CAChain, error) {
 		caSubjectNamePrefix = opts.CommonNamePrefix + " CA"
 	}
 
-	caSubjects, err := chainCreateCASubjectsFn(keyPairs, caSubjectNamePrefix, opts.Duration)
+	caSubjects, err := createCASubjectsFn(keyPairs, caSubjectNamePrefix, opts.Duration)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create CA subjects: %w", err)
 	}
@@ -275,6 +273,15 @@ func CreateCAChain(opts *CAChainOptions) (*CAChain, error) {
 
 // CreateEndEntity creates an end entity certificate signed by the issuing CA.
 func (c *CAChain) CreateEndEntity(opts *EndEntityOptions) (*cryptoutilSharedCryptoCertificate.Subject, error) {
+	return createEndEntityInternal(c, opts, cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair, cryptoutilSharedCryptoCertificate.CreateEndEntitySubject)
+}
+
+func createEndEntityInternal(
+	c *CAChain,
+	opts *EndEntityOptions,
+	generateECDSAKeyPairFn func(elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error),
+	createEndEntitySubjectFn func(*cryptoutilSharedCryptoCertificate.Subject, *cryptoutilSharedCryptoKeygen.KeyPair, string, time.Duration, []string, []net.IP, []string, []*url.URL, x509.KeyUsage, []x509.ExtKeyUsage) (*cryptoutilSharedCryptoCertificate.Subject, error),
+) (*cryptoutilSharedCryptoCertificate.Subject, error) {
 	if opts == nil {
 		return nil, fmt.Errorf("options cannot be nil")
 	} else if opts.SubjectName == "" {
@@ -286,7 +293,7 @@ func (c *CAChain) CreateEndEntity(opts *EndEntityOptions) (*cryptoutilSharedCryp
 	// Generate key pair for end entity.
 	ellipticCurve := curveToElliptic(opts.Curve)
 
-	keyPair, err := chainGenerateECDSAKeyPairFn(ellipticCurve)
+	keyPair, err := generateECDSAKeyPairFn(ellipticCurve)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate key pair: %w", err)
 	}
@@ -296,7 +303,7 @@ func (c *CAChain) CreateEndEntity(opts *EndEntityOptions) (*cryptoutilSharedCryp
 		duration = DefaultEndEntityDuration
 	}
 
-	subject, err := chainCreateEndEntitySubjectFn(
+	subject, err := createEndEntitySubjectFn(
 		c.IssuingCA,
 		keyPair,
 		opts.SubjectName,
