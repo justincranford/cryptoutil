@@ -1,11 +1,12 @@
-# Implementation Plan — Parameterization Opportunities
+# Implementation Plan — Framework v7 (Continuation)
 
 **Status**: In Progress
 **Created**: 2026-03-29
-**Last Updated**: 2026-03-29
-**Purpose**: Implement the 18 ranked parameterization opportunities from
-[PARAMETERIZATION-OPPORTUNITIES.md](PARAMETERIZATION-OPPORTUNITIES.md) to replace prose-described
-and manually-maintained invariants with machine-enforced validation.
+**Last Updated**: 2026-04-02
+**Purpose**: Continuation of framework-v7 parameterization work. Phases 1–7 (all 18 original
+parameterization items) are fully complete. This plan tracks the next wave of work: 7 new
+parameterization items (#21–#27), TLS init refactoring, framework CLI and magic cleanup,
+config test reorganization, and identity product refactoring.
 
 ## Quality Mandate — MANDATORY
 
@@ -20,293 +21,341 @@ and manually-maintained invariants with machine-enforced validation.
 - ❌ **Time Pressure**: NEVER rush, NEVER skip validation, NEVER defer quality checks
 - ❌ **Premature Completion**: NEVER mark phases or tasks or steps complete without objective evidence
 
-**ALL issues are blockers — NO exceptions:**
+**ALL issues are blockers — NO exceptions.**
 
-- ✅ **Fix issues immediately** — STOP and address
-- ✅ **Treat as BLOCKING** — ALL issues block progress to next phase or task
-- ✅ **Document root causes** — part of planning AND implementation
-- ✅ **NEVER defer**: No "we'll fix later", no "non-critical", no "nice-to-have"
-- ✅ **NEVER skip**: Cannot mark phase or task or step complete with known issues
-- ✅ **NEVER de-prioritize quality** — evidence-based verification is ALWAYS highest priority
+## Background (Phases 1–7 Complete)
+
+All 18 original parameterization opportunities are fully implemented, tested, and committed.
+
+| Phase | Items | Status |
+|-------|-------|--------|
+| Phase 1 — Entity Registry YAML | #01 Machine-Readable Entity Registry Schema | ✅ Complete |
+| Phase 2 — Standalone Linters | #03, #15, #18, #19, #20 | ✅ Complete |
+| Phase 3 — Derivation Functions | #04, #11, #10 | ✅ Complete |
+| Phase 4 — Secret & Config Schema | #12, #05, #06 | ✅ Complete |
+| Phase 5 — Deployment & Build | #07, #08, #16 | ✅ Complete |
+| Phase 6 — API & Health | #09, #13, #17 | ✅ Complete |
+| Phase 7 — Knowledge Propagation | ARCHITECTURE.md, instructions, skills | ✅ Complete |
+
+**Artifacts delivered**: `api/cryptosuite-registry/registry.yaml`, 68 fitness linters, derivation
+functions, secret/config schemas, migration range enforcement, Dockerfile label validation, API
+path registry, health path completeness, @propagate coverage manifest.
+
+**Deferred to NEVER**: Items #02 (Generative Deployment Scaffold Command) and #14 (Instruction
+File Slot Reservation Table) violate cicd-lint constraints or provide insufficient value.
+Recorded in PARAMETERIZATION-DONE.md, then both PARAMETERIZATION files deleted.
 
 ## Overview
 
-This plan implements 18 parameterization opportunities that transform the cryptoutil repository
-from prose-described conventions to machine-enforced invariants. Each opportunity introduces a
-machine-readable schema or derivation function, paired with a fitness linter that validates the
-actual codebase matches the declared model.
+Six new work areas:
 
-**Scope**: 5 products, 10 PS-IDs, 1 suite, 57+ fitness linters, 50 config overlays, 140 secret
-files, 10 Dockerfiles, 10 compose files, 18 instruction files, 25 PKI profiles.
-
-## Background
-
-The current entity registry (`registry.go`) defines products, product-services, and suites as Go
-structs. This approach works but has critical limitations:
-
-- Only Go code can consume the registry at compile time.
-- Derived values (ports, SQL identifiers, OTLP names) are re-computed independently in consumers.
-- No single source of truth connects the registry to deployment artifacts.
-
-Prior work completed: scripting language policy documentation, cicd-lint constraints codification,
-PARAMETERIZATION-OPPORTUNITIES.md reorganization into Part A (18 items) / Part B (2 deferred).
+1. **Parameterization #21–#27**: Enforce Claude command frontmatter, multi-language testing
+   standards, skill/command drift rules, Claude autonomous config, agent self-containment, ARCH
+   link validity, and lint-go-test expansion.
+2. **TLS Init Refactoring**: Replace manual arg parsing with pflag, add InitForProduct/InitForSuite,
+   add configurable signing algorithm (default ECDSA P-384 + SHA-384), move pkiInitName to magic.
+3. **Framework CLI & Magic Cleanup**: Move CLI constants to magic package, add cicd-lint to
+   pre-commit, remove function variable redeclarations, consolidate duplicate CLI help code,
+   parameterize health_commands.go, fix product_router_test.go formatting.
+4. **Framework Config Test Reorganization**: Rename non-semantic test files
+   (`_coverage`, `_gaps`) to semantically-named test files.
+5. **Identity Product Refactoring**: Move common config types to framework, move PS-ID-specific
+   defaults to their services, remove usage constants from product-level authz/idp subdirs.
+6. **Knowledge Propagation**: Apply all lessons to permanent artifacts.
 
 ## Technical Context
 
 - **Language**: Go 1.26.1
-- **Registry**: `internal/apps/tools/cicd_lint/lint_fitness/registry/registry.go`
-- **Magic constants**: `internal/shared/magic/magic_*.go` (46 files)
-- **Fitness linters**: `internal/apps/tools/cicd_lint/lint_fitness/` (57 sub-linters)
-- **OpenAPI specs**: `api/{PS-ID}/openapi_spec*.yaml` (8 of 10 services have specs)
-- **Config overlays**: `deployments/{PS-ID}/config/{PS-ID}-app-{variant}.yml` (50 files)
-- **Secret files**: `deployments/{PS-ID}/secrets/*.secret` (140 files across 3 tiers)
-- **Dependencies**: gopkg.in/yaml.v3 (YAML parsing), oapi-codegen (OpenAPI)
-
-## Executive Decisions
-
-### Decision 1: Registry YAML Location ✅ RESOLVED
-
-**Selected**: B — `api/cryptosuite-registry/registry.yaml`, no code generation.
-
-`cicd-lint lint-fitness` reads the YAML at runtime from this path (relative to project root,
-which is always the working directory when running `go run ./cmd/cicd-lint`). No `cmd/`
-binary, no `go generate` step.
-
-**Rejected alternatives**:
-- A: Code generation adds build pipeline complexity with no benefit given Decision 2 below.
-- C: Keeping YAML internal hides it from CI/CD, docs tooling, and future non-Go consumers.
-- D: Root-level file proliferation; `api/` is the Go standard location for API artifacts.
-
-### Decision 2: Code Generation vs Pure Validation ✅ RESOLVED
-
-**Selected**: D — YAML replaces the hardcoded Go structs entirely.
-
-**Critical design clarification**: The quizme stated "breaks existing import patterns" as a
-risk. This was incorrect. The correct implementation **preserves all import patterns**:
-
-- The Go package `internal/apps/tools/cicd_lint/lint_fitness/registry/` **stays at that
-  path** — import paths are unchanged.
-- `registry.go` is **replaced** (not deleted): hardcoded struct initialization
-  (`allProducts = []Product{{ID: "sm"...}}`) is replaced by YAML loading from
-  `api/cryptosuite-registry/registry.yaml` read via `os.ReadFile()` at runtime.
-- `AllProducts()`, `AllProductServices()`, `AllSuites()` keep **identical signatures** and
-  return the same types — all 57+ existing callers see zero change.
-- The richer YAML fields (base_port, pg_host_port, migration_range, api_resources) are
-  available via new functions `AllPorts()`, `AllMigrationRanges()`, etc.
-
-**Why this is better than B (validate-only)**:
-- No drift possible: there are no hardcoded Go values left to go stale.
-- No `lint-fitness` discipline required to catch drift — drift literally cannot occur.
-- All linters automatically gain access to the richer model without any code changes.
-
-**Rejected alternatives**:
-- A/C: Code generation adds pipeline complexity; with D, generation is unnecessary.
-- B: Validate-only leaves two sources of truth with silent drift risk.
-
-### Decision 3: Implementation Ordering ✅ RESOLVED
-
-**Selected**: Follow PARAMETERIZATION-OPPORTUNITIES.md recommended order as default
-(`#01 → #03 → #04 → #11 → #12 → #05 → #07 → #08 → #10 → #16 → #06 → #09 → #13 → #17 → #15 → #18 → #19 → #20`). No strict parallelization preference — all work must
-complete regardless of order.
+- **Framework**: `internal/apps/framework/` (service, product, tls, builder)
+- **Magic constants**: `internal/shared/magic/magic_*.go`
+- **Fitness linters**: `internal/apps/tools/cicd_lint/lint_fitness/` (68 sub-linters)
+- **Identity product**: `internal/apps/identity/` and 5 PS-IDs (`identity-{authz,idp,rs,rp,spa}`)
+- **TLS init**: `internal/apps/framework/tls/init.go`
+- **Pre-commit config**: `.pre-commit-config.yaml`
 
 ## Phases
 
-### Phase 1: Foundation — Entity Registry YAML (16h) [Status: ☐ TODO]
+### Phase 1: Parameterization Items #21–#27 (24h) [Status: ☐ TODO]
 
-**Objective**: Create the canonical `registry.yaml` schema and integrate it with the existing
-Go registry.
+**Objective**: Implement all 7 new parameterization opportunities. These items enforce
+Claude/Copilot artifact alignment, multi-language testing standards, and lint-go-test expansion.
 
-**Items**: #01 Machine-Readable Entity Registry Schema.
+**Prerequisite cleanup**: Before starting Phase 1 implementation, add #02 and #14 to
+PARAMETERIZATION-DONE.md as permanently deferred, then delete both PARAMETERIZATION files.
 
-**Work**:
+**Items**:
 
-- Create `api/cryptosuite-registry/registry.yaml` with full schema: 1 suite, 5 products
-  (with display_name), 10 PS-IDs (with base_port, pg_host_port, migration_range_start,
-  migration_range_end, api_resources using actual OpenAPI paths from `api/{PS-ID}/`).
-- Create JSON Schema for YAML validation.
-- Replace hardcoded struct initialization in `internal/.../registry/registry.go` with
-  YAML loader using `os.ReadFile("api/cryptosuite-registry/registry.yaml")` and
-  gopkg.in/yaml.v3. Preserve all existing exported functions and type signatures.
-- Add new accessor functions for richer fields: `AllPorts()`, `AllMigrationRanges()`,
-  `AllAPIResources()`.
-- Add `entity-registry-schema` fitness linter that validates YAML against JSON Schema.
-- Tests: ≥98% coverage on loader (infrastructure code); mutation testing ≥98%.
+- **#21 Claude Command YAML Frontmatter + Drift Validation** (CRITICAL): All 14
+  `.claude/commands/*.md` files are missing YAML frontmatter. Extend `CheckSkillCommandDrift()`
+  to validate presence, `description` match, and `argument-hint` match. Claude command `name`
+  field uses bare skill name (e.g., `test-table-driven`), NOT `claude-` prefix. Update
+  ARCHITECTURE.md §2.1.5 and instruction file §06-02.
 
-**Success**: `api/cryptosuite-registry/registry.yaml` is the single source of truth;
-`AllProducts()` / `AllProductServices()` / `AllSuites()` work unchanged for 57+ callers;
-fitness linter validates schema on every commit.
+- **#22 Multi-Language Parameterized Testing** (High): Expand `test-table-driven` skill and
+  Claude command to cover Go, Java (Gatling), and Python (pytest). Add `lint-java-test` and
+  `lint-python-test` cicd-lint subcommands. Update ARCHITECTURE.md §10 with §10.9 and §10.10.
+  Update cicd-lint command table to show 13 linter commands.
 
-**Post-Mortem**: After quality gates pass, update lessons.md with lessons learned.
+- **#23 Copilot↔Claude Skill Body Content Drift** (High): Normalize `## Key Rules` heading
+  in all 14 skill/command pairs. Extend `CheckSkillCommandDrift()` to validate rule section
+  presence. Every skill MUST have `## Key Rules`; every Claude command MUST mirror it.
 
-### Phase 2: Standalone Linters — No Registry Dependency (20h) [Status: ☐ TODO]
+- **#24 Claude Code Continuous Execution Config** (Medium): Add ARCHITECTURE.md §14.9 covering
+  Claude Code autonomous execution options (beast-mode agent invocation, settings.local.json,
+  CLI flags). Update CLAUDE.md. Update `.claude/settings.local.json`.
 
-**Objective**: Implement the 5 standalone opportunities that have no dependency on #01.
+- **#25 Agent Self-Containment Linter** (Medium): New `lint_agent_self_containment/` sub-linter
+  in `lint-docs`. Scans `.github/agents/*.agent.md` bodies; errors if no `ARCHITECTURE.md`
+  reference found. Tests ≥95%.
 
-**Items**: #03 @propagate Coverage, #15 Fitness Sub-Linter Registry, #18 Test File Suffix Rules, #19 Import Alias Formula, #20 X.509 Certificate Profile Schema.
+- **#26 ARCHITECTURE.md Section Link Validity** (Medium): New `lint_architecture_links/`
+  sub-linter in `lint-docs`. Extracts H1–H4 headings from ARCHITECTURE.md; validates all
+  `](../../docs/ARCHITECTURE.md#ANCHOR)` references in instruction/agent/skill files.
+  Tests ≥95%.
 
-**Work**:
+- **#27 lint-go-test Expansion** (Medium): Three new sub-linters in `lint_gotest/`:
+  - `hardcoded_uuid/`: forbid `uuid.MustParse("literal")` in test files
+  - `real_http_server/`: forbid `httptest.NewServer(` in test files
+  - `test_sleep/`: forbid `time.Sleep(` in test files
+  All registered in `lint_gotest.go`. ARCHITECTURE.md §9.10 cicd-lint table updated.
 
-- #03: Create `required-propagations.yaml` manifest; extend `lint-docs` with coverage check.
-- #15: Create `lint-fitness-registry.yaml`; add registry-completeness check in `lint_fitness.go`.
-- #18: Create `test-file-suffix-rules.yaml`; new `test-file-suffix-structure` fitness linter.
-- #19: Create alias map YAML; new `import-alias-formula` fitness linter.
-- #20: Create `pki-ca-profile-schema.json`; validate 25 profile files.
+**Success**: `lint-docs` exits non-zero on missing frontmatter; all 7 linters registered;
+≥95% coverage on all new code; PARAMETERIZATION files deleted.
 
-**Success**: All 5 linters pass with zero violations; all have ≥95% test coverage.
+**Post-Mortem**: After quality gates pass, update lessons.md Phase 1 section.
 
-**Post-Mortem**: After quality gates pass, update lessons.md.
+---
 
-### Phase 3: Derivation Functions — Registry Consumers (16h) [Status: ☐ TODO]
+### Phase 2: TLS Init Refactoring (12h) [Status: ☐ TODO]
 
-**Objective**: Implement derivation functions that consume registry data to compute derived values.
-
-**Items**: #04 Port Formula, #11 SQL Identifier Derivation, #10 OTLP/Compose Naming Formula.
-
-**Work**:
-
-- #04: Add `PublicPort()`, `AdminPort()`, `PostgresPort()` functions; enhance `ValidatePorts`
-  fitness linter with formula-level verification.
-- #11: Add `PSIDToSQLID()`, `DatabaseName()`, `DatabaseUser()`, `PostgresServiceName()` functions;
-  update `compose-db-naming` and `secret-content` linters.
-- #10: Add `OTLPServiceName()`, `ComposeServiceName()`, `ValidOTLPServiceNames()` functions;
-  enhance `otlp-service-name-pattern` and `compose-service-names` linters with entity registry
-  cross-reference.
-
-**Success**: All derivation functions have ≥98% test coverage; enhanced linters cross-reference
-registry entities and reject typos.
-
-**Post-Mortem**: After quality gates pass, update lessons.md.
-
-### Phase 4: Secret & Config Schema Validation (16h) [Status: ☐ TODO]
-
-**Objective**: Define machine-readable schemas for secrets and config overlays;
-validate all existing files against them.
-
-**Items**: #12 Secret File Content Schema, #05 Parameterized Secret Validation, #06 Config Overlay Template Validation.
+**Objective**: Refactor `internal/apps/framework/tls/init.go` — remove legacy manual arg
+parsing, add InitForProduct/Suite, add configurable signing algorithm, move pkiInitName to magic.
 
 **Work**:
 
-- #12: Create `secret-schemas.yaml` with 14 format entries; rewrite `secret-content` linter to
-  read schema instead of hardcoded regex.
-- #05: Integrate `secret-schemas.yaml` with entity registry for prefix derivation; validate all
-  420 secret instances.
-- #06: Create config overlay templates; add `config-overlay-freshness` fitness linter to detect
-  drift between templates and actual overlay files.
+- **Move `pkiInitName` to magic**: In `internal/apps/cryptoutil/cryptoutil.go` the local
+  variable `pkiInitName = "pki-init"` is a magic literal. Add a named constant to
+  `internal/shared/magic/` (e.g., `PSIDPKIInit = "pki-init"` in `magic_psids.go`). Replace
+  the local variable. Verify `golangci-lint run` passes after change.
 
-**Success**: All 420 secrets validated against schemas; 50 config overlays validated against
-templates; zero false positives.
+- **Remove backward-compat from `Init()`**: The `Init()` function uses manual
+  `strings.HasPrefix` arg parsing "for backward compatibility with Docker Compose entrypoint
+  scripts." Products have NOT been released — backward compatibility is unnecessary. Replace
+  with pflag parsing identical to `InitForService()`. Remove the backward-compat comment.
 
-**Post-Mortem**: After quality gates pass, update lessons.md.
+- **Add `InitForProduct()` and `InitForSuite()`**: `InitForService(serviceID, args, stdout, stderr)`
+  exists; add matching:
+  - `InitForProduct(productID string, args []string, stdout, stderr io.Writer) int`
+  - `InitForSuite(suiteID string, args []string, stdout, stderr io.Writer) int`
+  Same pflag approach as `InitForService()`. Add productID/suiteID as additional DNS SAN
+  entries. Wire up in product and suite CLI entry points.
 
-### Phase 5: Deployment & Build Validation (12h) [Status: ☐ TODO]
+- **Configurable signing algorithm**: Add `--signing-algorithm` pflag (default:
+  `ECDSA-P384-SHA384`, FIPS-approved). Supported: `ECDSA-P256-SHA256`, `ECDSA-P384-SHA384`,
+  `ECDSA-P521-SHA512`, `RSA-2048-SHA256`, `RSA-3072-SHA256`, `RSA-4096-SHA256`. Validate the
+  flag value; pass to TLS generator. Add magic constants for each algorithm name string.
 
-**Objective**: Validate Dockerfiles, migration ranges, and compose naming against registry.
+**Success**: `tls/init.go` uses pflag uniformly in all public functions; all 3 tiers have Init
+functions; signing algorithm is configurable with FIPS defaults; pkiInitName is a magic constant;
+≥95% test coverage.
 
-**Items**: #07 Migration Ranges, #08 Dockerfile Labels, #16 Compose Instance Naming.
+**Post-Mortem**: After quality gates pass, update lessons.md Phase 2 section.
 
-**Work**:
+---
 
-- #07: Add migration_range_start/end per PS-ID; enhance `migration-range-compliance` with
-  cross-service collision detection.
-- #08: Enhance `dockerfile-labels` with registry-derived expected values; new
-  `dockerfile-entrypoint-formula` check.
-- #16: Change `compose-service-names` from regex-match to set-membership check using
-  `ValidComposeServiceNames()`.
+### Phase 3: Framework CLI & Magic Cleanup (14h) [Status: ☐ TODO]
 
-**Success**: All migration ranges are non-overlapping; Dockerfile labels match registry;
-compose names validated by set membership.
-
-**Post-Mortem**: After quality gates pass, update lessons.md.
-
-### Phase 6: API & Health Completeness (10h) [Status: ☐ TODO]
-
-**Objective**: Validate API paths and health endpoints against registry declarations.
-
-**Items**: #09 CLI Subcommand Completeness, #13 API Path Parameter Registry, #17 Health Path Completeness.
+**Objective**: Eliminate magic value duplication in `service/cli/constants.go`, remove
+function-variable redeclaration anti-pattern, consolidate duplicate help/version code,
+parameterize health commands, add cicd-lint to pre-commit, and fix formatting.
 
 **Work**:
 
-- #09: Define subcommand requirements per role; new `subcommand-completeness` fitness linter
-  traversing Go AST.
-- #13: Validate OpenAPI spec paths against `api_resources` declared in registry using actual
-  paths from existing specs (e.g., `/elastickey`, `/elastic-jwks`, `/messages/tx`).
-- #17: New `health-path-completeness` linter checking all 6 health paths per service.
+- **Move `constants.go` to magic package**: `service/cli/constants.go` declares
+  `helpCommand = "help"`, `helpFlag = "--help"`, `helpShortFlag = "-h"`, `urlFlag = "--url"`,
+  `cacertFlag = "--cacert"`, `versionCommand = "version"`, `versionFlag = "--version"`,
+  `versionShortFlag = "-v"`. These MUST be in `internal/shared/magic/`. Move all 8 to
+  `magic_cli.go` (or appropriate file). Delete `constants.go`. Update all callers.
+  Verify `lint-go literal-use` passes.
 
-**Success**: All 50 required subcommand handlers tracked; API paths match registry declarations;
-60 health path appearances verified.
+- **Add cicd-lint to pre-commit**: Currently cicd-lint only runs in CI/CD. Add as pre-commit
+  stage hooks in `.pre-commit-config.yaml` so commit rejections show lint reasons to Copilot:
+  ```yaml
+  - id: lint-go
+    entry: go
+    args: [run, ./cmd/cicd-lint/main.go, lint-go]
+    stages: [pre-commit]
+  - id: lint-go-test
+    entry: go
+    args: [run, ./cmd/cicd-lint/main.go, lint-go-test]
+    stages: [pre-commit]
+  - id: lint-fitness
+    entry: go
+    args: [run, ./cmd/cicd-lint/main.go, lint-fitness]
+    stages: [pre-commit]
+  ```
 
-**Post-Mortem**: After quality gates pass, update lessons.md.
+- **Remove function-variable redeclarations in `user_auth.go`**: Remove the `var` block
+  declaring `templateClientGenerateUsernameSimpleFn`, `templateClientGeneratePasswordSimpleFn`,
+  `templateClientJSONMarshalFn`. Call `cryptoutilSharedUtilRandom.GenerateUsernameSimple`,
+  `cryptoutilSharedUtilRandom.GeneratePasswordSimple`, and `json.Marshal` directly at call sites.
 
-### Phase 7: Knowledge Propagation (4h) [Status: ☐ TODO]
+- **New lint-go sub-linter for function-variable redeclaration**: Add
+  `lint_go/function_var_redeclaration/` sub-linter. Detects `var xxx = pkg.FunctionName`
+  patterns in non-test production `.go` files (excludes `*_test.go` and `export_test.go`
+  where seam injection is valid). Register in `lint_go.go`. Tests ≥95%.
 
-**Objective**: Apply lessons learned to permanent artifacts — NEVER skip this phase.
+- **Consolidate duplicate CLI help/version code**: After moving constants to magic, verify
+  that `cli.IsHelpRequest()` is the sole canonical help checker. Remove any inline
+  `args[0] == "help" || args[0] == "--help"` logic that duplicates it. Same for version.
 
-- Review lessons.md from all prior phases.
-- Update ARCHITECTURE.md with new patterns and decisions.
+- **Parameterize `health_commands.go`**: Extract shared logic from `HealthCommand`,
+  `LivezCommand`, `ReadyzCommand` into a private `httpGetCommand(...)` helper. Keep the 3
+  public functions as thin parameterized wrappers. Tests verify all 3 paths still work.
+
+- **Fix `product_router_test.go` formatting**: File has incorrect indentation. Run
+  `golangci-lint run --fix ./internal/apps/framework/product/cli/...` to apply gofumpt.
+  Verify file is properly formatted before commit.
+
+**Success**: No magic literals in CLI; cicd-lint in pre-commit; `user_auth.go` calls functions
+directly; function-var-redeclaration linter passes; health commands share implementation;
+`product_router_test.go` passes gofumpt.
+
+**Post-Mortem**: After quality gates pass, update lessons.md Phase 3 section.
+
+---
+
+### Phase 4: Config Test File Reorganization (6h) [Status: ☐ TODO]
+
+**Objective**: Rename/reorganize test files with non-semantic names in
+`internal/apps/framework/service/config/`.
+
+**Affected files (scan contents, then reorganize)**:
+
+- `config_coverage_test.go` — contains tests for real semantic code (TLS PEM bytes, factory
+  functions). Rename to match the production code being tested (e.g., `config_tls_test.go`
+  or merge into existing `config_parse_test.go`).
+- `config_gaps_test.go` — scan, then split into files by tested feature
+  (`config_loading_test.go`, `config_validation_test.go`, etc.).
+- `config_test_util_coverage_test.go` — tests for `config_test_util.go`. Rename to
+  `config_test_util_test.go`.
+
+**Rule**: Test file names MUST reflect the production code or feature being tested,
+NOT why they exist (coverage, gaps). After rename, verify all tests pass.
+
+**Post-Mortem**: After quality gates pass, update lessons.md Phase 4 section.
+
+---
+
+### Phase 5: Identity Product Refactoring (20h) [Status: ☐ TODO]
+
+**Objective**: Enforce architectural layering in `internal/apps/identity/`:
+framework-generic code moves to `framework/`, PS-ID-specific code moves to PS-IDs,
+identity-domain-specific code stays in `identity/`.
+
+**Work**:
+
+**5A — Migrate common config types to framework**:
+`identity/config/config.go` defines `ServerConfig`, `DatabaseConfig`, `SessionConfig`,
+`ObservabilityConfig` — non-identity types. Move to `internal/apps/framework/` (likely
+joining existing framework config types). Identity's `Config` struct then references framework
+types. Update all callers.
+
+**5B — Migrate loader.go to framework**:
+`identity/config/loader.go` implements `LoadFromFile()` / `SaveToFile()` using `os.ReadFile` +
+`yaml.Unmarshal` + `os.ExpandEnv`. This is a general config loading pattern. Move to framework.
+Update all callers in identity and any other consumers.
+
+**5C — Migrate common default configs to framework**:
+`identity/config/defaults.go` `defaultDatabaseConfig()`, `defaultSessionConfig()`, and
+`defaultObservabilityConfig()` belong in framework defaults (not identity). Move them.
+`defaultAuthZConfig()`, `defaultIDPConfig()`, `defaultRSConfig()` belong in their PS-ID
+service directories. Move them to `identity-authz/`, `identity-idp/`, `identity-rs/`.
+Add missing `defaultRPConfig()` and `defaultSPAConfig()` to `identity-rp/` and `identity-spa/`.
+
+**5D — Remove duplicate PS-ID usage constants from product subdirs**:
+`identity/authz/authz_usage.go` provides PS-ID-specific CLI usage strings. These are ALREADY
+in `identity-authz/authz_usage.go`. Confirm there is no unique content in the product-level
+file, then delete `internal/apps/identity/authz/` subdirectory. Same for `identity/idp/`.
+
+**5E — Classify remaining non-service-subdir files**:
+Walk every file in `identity/` that is NOT inside a PS-ID service directory. Classify each:
+- `identity.go`, `identity_test.go` — product entry point, stays
+- `apperr/` — identity-domain errors, stays
+- `domain/` — OAuth2/OIDC domain types, stays
+- `email/` — email service (identity-shared), stays
+- `issuer/` — JWT/JWE issuer (identity-shared), stays
+- `jobs/` — background jobs (identity-shared), stays
+- `mfa/` — MFA services (identity-shared), stays
+- `ratelimit/` — in-memory rate limiter for identity services, stays (comment says
+  "for identity services"; it is identity-domain rate limiting, not framework)
+- `repository/` — data repositories (identity-shared), stays
+
+**Success**: `identity/config/` has only identity-domain-specific types; common types in
+framework; PS-ID-specific defaults in PS-IDs; duplicate usage files removed; all tests pass.
+
+**Post-Mortem**: After quality gates pass, update lessons.md Phase 5 section.
+
+---
+
+### Phase 6: Knowledge Propagation (4h) [Status: ☐ TODO]
+
+**Objective**: Apply lessons learned from Phases 1–5 to permanent artifacts — NEVER skip.
+
+- Review `lessons.md` from all prior phases.
+- Update ARCHITECTURE.md with new patterns and decisions discovered in Phases 1–5.
 - Update agents, skills, instructions, code, tests, workflows, and docs where warranted.
 - Verify propagation integrity (`go run ./cmd/cicd-lint lint-docs validate-propagation`).
 
 **Success**: All artifact updates committed; propagation check passes.
 
+---
+
 ## Risk Assessment
 
 | Risk | Probability | Impact | Mitigation |
 |------|-------------|--------|------------|
-| YAML schema design proves insufficient | Medium | High | Start with minimal schema, iterate |
-| Existing fitness linters break during migration | Medium | Medium | Incremental changes, run full suite after each |
-| Registry location causes import cycle | Low | High | `api/` directory avoids internal/ import restrictions |
-| Config overlay drift too large to auto-detect | Low | Medium | Start with structural validation, not byte-exact |
-| OpenAPI spec inconsistencies across services | High | Medium | Document known deviations, fix incrementally |
+| Identity config migration breaks callers | High | High | Scan all callers before moving; update one at a time |
+| Magic constant move breaks literal-use lint | Medium | Medium | Run lint-go after each constant move |
+| InitForProduct/Suite not wired in CLI entry points | Medium | Medium | Audit all cmd/ entry points |
+| Health command refactor breaks fitness linter | Low | Medium | Run lint-fitness after refactor |
+| Claude command frontmatter breaks lint-docs | Low | Low | Additive only; existing body unchanged |
 
 ## Quality Gates — MANDATORY
 
-**Per-Action Quality Gates**:
-
 - ✅ All tests pass (`go test ./...`) — 100% passing, zero skips
-- ✅ Build clean (`go build ./...` AND `go build -tags e2e,integration ./...`) — zero errors
-- ✅ Linting clean (`golangci-lint run` AND `golangci-lint run --build-tags e2e,integration`) — zero warnings
-- ✅ No new TODOs without tracking in tasks.md
-
-**Coverage Targets** (from copilot instructions):
-
-- ✅ Production code: ≥95% line coverage
-- ✅ Infrastructure/utility code: ≥98% line coverage
-- ✅ Generated code: Excluded from coverage
-
-**Mutation Testing Targets**:
-
-- ✅ Production code: ≥95%
-- ✅ Infrastructure/utility code: ≥98%
-
-**Per-Phase Quality Gates**:
-
-- ✅ Unit + integration tests complete before moving to next phase
-- ✅ Deployment validators pass (`go run ./cmd/cicd-lint lint-deployments` — when relevant)
-- ✅ Race detector clean (`go test -race -count=2 ./...`)
+- ✅ Build clean (`go build ./...` AND `go build -tags e2e,integration ./...`)
+- ✅ Linting clean (`golangci-lint run` AND `golangci-lint run --build-tags e2e,integration`)
+- ✅ `go run ./cmd/cicd-lint lint-fitness` passes after each phase
+- ✅ `go run ./cmd/cicd-lint lint-docs` passes after each phase
+- ✅ Coverage: ≥95% production, ≥98% infrastructure/utility linters
+- ✅ Mutation: ≥98% new linters, ≥95% production code
 
 ## Success Criteria
 
-- [ ] All 18 opportunities implemented with fitness linters
+- [ ] All 7 parameterization items (#21–#27) implemented with linters
+- [ ] PARAMETERIZATION-OPPORTUNITIES.md and PARAMETERIZATION-DONE.md deleted
+- [ ] `tls/init.go` refactored: pflag, 3 tiers, configurable FIPS signing, pkiInitName magic
+- [ ] `constants.go` deleted; CLI constants in magic package
+- [ ] cicd-lint hooks in pre-commit
+- [ ] Function-var-redeclaration linter implemented
+- [ ] Config test files renamed to semantic names
+- [ ] Identity product refactoring complete (common → framework, PS-ID-specific → PS-IDs)
 - [ ] All quality gates passing
-- [ ] Registry YAML covers suite + 5 products + 10 PS-IDs with actual OpenAPI paths
-- [ ] Documentation updated (ARCHITECTURE.md, instructions)
-- [ ] CI/CD workflows green
-- [ ] Evidence archived (test output, logs, analysis)
 
 ## ARCHITECTURE.md Cross-References — MANDATORY
 
-| Topic | ARCHITECTURE.md Section | When to Reference |
-|-------|------------------------|-------------------|
-| Testing Strategy | [Section 10](../../docs/ARCHITECTURE.md#10-testing-architecture) | ALL phases |
-| Unit Testing | [Section 10.2](../../docs/ARCHITECTURE.md#102-unit-testing-strategy) | ALL phases |
-| Quality Gates | [Section 11.2](../../docs/ARCHITECTURE.md#112-quality-gates) | ALL phases |
-| Code Quality | [Section 11.3](../../docs/ARCHITECTURE.md#113-code-quality-standards) | ALL phases |
-| Coding Standards | [Section 14.1](../../docs/ARCHITECTURE.md#141-coding-standards) | ALL phases |
-| Version Control | [Section 14.2](../../docs/ARCHITECTURE.md#142-version-control) | ALL phases |
-| Entity Registry | [Section 9.11.2](../../docs/ARCHITECTURE.md#9112-entity-registry) | Phase 1 |
-| Fitness Linters | [Section 9.11.1](../../docs/ARCHITECTURE.md#9111-fitness-sub-linter-catalog) | ALL phases |
-| Deployment Architecture | [Section 12](../../docs/ARCHITECTURE.md#12-deployment-architecture) | Phases 4, 5 |
-| Secrets Management | [Section 13.3](../../docs/ARCHITECTURE.md#133-secrets-management-in-deployments) | Phase 4 |
-| API Architecture | [Section 8](../../docs/ARCHITECTURE.md#8-api-architecture) | Phase 6 |
-| Plan Lifecycle | [Section 14.6](../../docs/ARCHITECTURE.md#146-plan-lifecycle-management) | ALL phases |
-| Post-Mortem | [Section 14.8](../../docs/ARCHITECTURE.md#148-phase-post-mortem--knowledge-propagation) | ALL phases |
+| Topic | Section | Phases |
+|-------|---------|--------|
+| Testing Strategy | [§10](../../docs/ARCHITECTURE.md#10-testing-architecture) | 1, 6 |
+| Quality Gates | [§11.2](../../docs/ARCHITECTURE.md#112-quality-gates) | ALL |
+| Magic Values | [§11.1.4](../../docs/ARCHITECTURE.md#1114-magic-values-organization) | 2, 3 |
+| Agent Architecture | [§2.1.1](../../docs/ARCHITECTURE.md#211-agent-architecture) | 1 |
+| Skill Catalog | [§2.1](../../docs/ARCHITECTURE.md#21-agent-orchestration-strategy) | 1 |
+| CICD Command Arch | [§9.10](../../docs/ARCHITECTURE.md#910-cicd-command-architecture) | 1, 3 |
+| Pre-commit Hooks | [§9.9](../../docs/ARCHITECTURE.md#99-pre-commit-hook-architecture) | 3 |
+| Service Framework | [§5.1](../../docs/ARCHITECTURE.md#51-service-framework-pattern) | 2, 5 |
+| Security / FIPS | [§6.4](../../docs/ARCHITECTURE.md#64-cryptographic-architecture) | 2 |
+| Import Aliases | [§11.1.3](../../docs/ARCHITECTURE.md#1113-import-alias-conventions) | 3 |
+| Version Control | [§14.2](../../docs/ARCHITECTURE.md#142-version-control) | ALL |
+| Post-Mortem | [§14.8](../../docs/ARCHITECTURE.md#148-phase-post-mortem--knowledge-propagation) | 6 |

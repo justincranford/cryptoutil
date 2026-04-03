@@ -131,3 +131,39 @@ organized by target artifact. Each item describes a specific change or addition.
 | Tests | ✅ all pass |
 | Mutation testing | ⏳ Deferred to CI/CD (gremlins panics/times out on Windows) |
 | Race detector | ⏳ Deferred to CI/CD (requires CGO_ENABLED=1) |
+
+---
+
+## Phase 1 (Continuation): Parameterization Items #21–#27
+
+*(To be filled during Phase 1 execution)*
+
+---
+
+## Phase 2 (Continuation): TLS Init Refactoring
+
+*(To be filled during Phase 2 execution)*
+
+---
+
+## Phase 3 (Continuation): Framework CLI & Magic Cleanup
+
+*(To be filled during Phase 3 execution)*
+
+---
+
+## Phase 4 (Continuation): Config Test File Reorganization
+
+*(To be filled during Phase 4 execution)*
+
+---
+
+## Phase 5 (Continuation): Identity Product Refactoring
+
+*(To be filled during Phase 5 execution)*
+
+---
+
+## Phase 6 (Continuation): Knowledge Propagation
+
+*(To be filled during Phase 6 execution)*
