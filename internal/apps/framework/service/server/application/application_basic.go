@@ -7,17 +7,15 @@ package application
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilUnsealKeysService "cryptoutil/internal/apps/framework/service/server/barrier/unsealkeysservice"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
-
-// Injectable function variables for testing.
-var newJWKGenServiceFn = cryptoutilSharedCryptoJose.NewJWKGenService
 
 // Basic encapsulates basic service infrastructure (telemetry, unseal, JWK generation).
 // This is the foundation layer used by Core.
@@ -31,6 +29,14 @@ type Basic struct {
 // StartBasic initializes basic service infrastructure.
 // This includes telemetry, unseal keys, and JWK generation services.
 func StartBasic(ctx context.Context, settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*Basic, error) {
+	return startBasicInternal(ctx, settings, cryptoutilSharedCryptoJose.NewJWKGenService)
+}
+
+func startBasicInternal(
+	ctx context.Context,
+	settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings,
+	newJWKGenServiceFn func(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, devMode bool) (*cryptoutilSharedCryptoJose.JWKGenService, error),
+) (*Basic, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx cannot be nil")
 	} else if settings == nil {

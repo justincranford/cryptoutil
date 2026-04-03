@@ -17,20 +17,8 @@ import (
 	"github.com/golang-migrate/migrate/v4/database"
 	"github.com/golang-migrate/migrate/v4/database/pgx/v5"
 	"github.com/golang-migrate/migrate/v4/database/sqlite"
+	migrateSource "github.com/golang-migrate/migrate/v4/source"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
-)
-
-// migrateNewWithInstanceFn is injectable for testing the migrate.NewWithInstance error path.
-var migrateNewWithInstanceFn = migrate.NewWithInstance
-
-// DatabaseType represents supported database types.
-type DatabaseType string
-
-const (
-	// DatabaseTypeSQLite represents SQLite database.
-	DatabaseTypeSQLite DatabaseType = "sqlite3"
-	// DatabaseTypePostgreSQL represents PostgreSQL database.
-	DatabaseTypePostgreSQL DatabaseType = "postgres"
 )
 
 // MigrationsFS contains embedded base infrastructure migrations (1001-1004).
@@ -57,9 +45,20 @@ var MigrationsFS embed.FS
 //	runner := NewMigrationRunner(migrationsFS, "migrations")
 //	err := runner.Apply(sqlDB, DatabaseTypePostgreSQL)
 type MigrationRunner struct {
-	fsys           interface{ fs.FS }
-	migrationsPath string
+	fsys                 interface{ fs.FS }
+	migrationsPath       string
+	migrateNewInstanceFn func(sourceName string, sourceDriver migrateSource.Driver, databaseName string, databaseDriver database.Driver) (*migrate.Migrate, error)
 }
+
+// DatabaseType represents supported database types.
+type DatabaseType string
+
+const (
+	// DatabaseTypeSQLite represents SQLite database.
+	DatabaseTypeSQLite DatabaseType = "sqlite3"
+	// DatabaseTypePostgreSQL represents PostgreSQL database.
+	DatabaseTypePostgreSQL DatabaseType = "postgres"
+)
 
 // NewMigrationRunner creates a new migration runner with filesystem.
 //
@@ -69,9 +68,18 @@ type MigrationRunner struct {
 //
 // Returns configured migration runner ready to apply migrations.
 func NewMigrationRunner(fsys interface{ fs.FS }, migrationsPath string) *MigrationRunner {
+	return newMigrationRunnerInternal(fsys, migrationsPath, migrate.NewWithInstance)
+}
+
+func newMigrationRunnerInternal(
+	fsys interface{ fs.FS },
+	migrationsPath string,
+	migrateNewInstanceFn func(sourceName string, sourceDriver migrateSource.Driver, databaseName string, databaseDriver database.Driver) (*migrate.Migrate, error),
+) *MigrationRunner {
 	return &MigrationRunner{
-		fsys:           fsys,
-		migrationsPath: migrationsPath,
+		fsys:                 fsys,
+		migrationsPath:       migrationsPath,
+		migrateNewInstanceFn: migrateNewInstanceFn,
 	}
 }
 
@@ -108,7 +116,7 @@ func (r *MigrationRunner) Apply(db *sql.DB, dbType DatabaseType) error {
 		return fmt.Errorf("unsupported database type: %s", dbType)
 	}
 
-	m, err := migrateNewWithInstanceFn("iofs", sourceDriver, string(dbType), databaseDriver)
+	m, err := r.migrateNewInstanceFn("iofs", sourceDriver, string(dbType), databaseDriver)
 	if err != nil {
 		return fmt.Errorf("failed to create migrate instance: %w", err)
 	}

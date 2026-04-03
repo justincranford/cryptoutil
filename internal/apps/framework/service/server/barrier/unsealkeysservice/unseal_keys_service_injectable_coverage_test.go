@@ -86,21 +86,18 @@ func TestNewUnsealKeysServiceFromSysInfo_FailingProvider(t *testing.T) {
 }
 
 // TestNewUnsealKeysServiceSharedSecrets_HKDFError tests the HKDF error path in
-// deriveJWKsFromMChooseNCombinations and the corresponding error in NewUnsealKeysServiceSharedSecrets.
-//
-// Sequential: modifies package-level hkdfWithSHA256Fn injectable variable.
+// deriveJWKsFromMChooseNCombinationsInternal and the corresponding error in newUnsealKeysServiceSharedSecretsInternal.
 func TestNewUnsealKeysServiceSharedSecrets_HKDFError(t *testing.T) {
-	originalFn := hkdfWithSHA256Fn
-	hkdfWithSHA256Fn = func(secret, salt, info []byte, outputBytesLength int) ([]byte, error) {
+	t.Parallel()
+
+	stubHKDF := func(_, _, _ []byte, _ int) ([]byte, error) {
 		return nil, fmt.Errorf("simulated HKDF error")
 	}
-
-	defer func() { hkdfWithSHA256Fn = originalFn }()
 
 	sharedSecret := make([]byte, cryptoutilSharedMagic.MinSharedSecretLength)
 	sharedSecretsM := [][]byte{sharedSecret}
 
-	unsealKeysService, err := NewUnsealKeysServiceSharedSecrets(sharedSecretsM, 1)
+	unsealKeysService, err := newUnsealKeysServiceSharedSecretsInternal(sharedSecretsM, 1, stubHKDF)
 
 	require.Error(t, err)
 	require.Nil(t, unsealKeysService)
@@ -108,18 +105,15 @@ func TestNewUnsealKeysServiceSharedSecrets_HKDFError(t *testing.T) {
 }
 
 // TestNewUnsealKeysServiceFromSysInfo_HKDFError tests the HKDF error path in
-// deriveJWKsFromMChooseNCombinations when called from the sysinfo path.
-//
-// Sequential: modifies package-level hkdfWithSHA256Fn injectable variable.
+// deriveJWKsFromMChooseNCombinationsInternal when called from the sysinfo path.
 func TestNewUnsealKeysServiceFromSysInfo_HKDFError(t *testing.T) {
-	originalFn := hkdfWithSHA256Fn
-	hkdfWithSHA256Fn = func(secret, salt, info []byte, outputBytesLength int) ([]byte, error) {
+	t.Parallel()
+
+	stubHKDF := func(_, _, _ []byte, _ int) ([]byte, error) {
 		return nil, fmt.Errorf("simulated HKDF error")
 	}
 
-	defer func() { hkdfWithSHA256Fn = originalFn }()
-
-	unsealKeysService, err := NewUnsealKeysServiceFromSysInfo(&cryptoutilSharedUtilSysinfo.DefaultSysInfoProvider{})
+	unsealKeysService, err := newUnsealKeysServiceFromSysInfoInternal(&cryptoutilSharedUtilSysinfo.DefaultSysInfoProvider{}, cryptoutilSharedUtilSysinfo.GetAllInfoWithTimeout, stubHKDF)
 
 	require.Error(t, err)
 	require.Nil(t, unsealKeysService)
@@ -127,18 +121,15 @@ func TestNewUnsealKeysServiceFromSysInfo_HKDFError(t *testing.T) {
 }
 
 // TestNewUnsealKeysServiceFromSysInfo_EmptySysinfos tests the empty sysinfos error path.
-// Uses injectable getAllInfoWithTimeoutFn to return empty slice, covering numSysinfos == 0 branch.
-//
-// Sequential: modifies package-level getAllInfoWithTimeoutFn injectable variable.
+// Uses fn-param injection to return empty slice, covering numSysinfos == 0 branch.
 func TestNewUnsealKeysServiceFromSysInfo_EmptySysinfos(t *testing.T) {
-	originalFn := getAllInfoWithTimeoutFn
-	getAllInfoWithTimeoutFn = func(_ cryptoutilSharedUtilSysinfo.SysInfoProvider, _ time.Duration) ([][]byte, error) {
+	t.Parallel()
+
+	stubGetAllInfo := func(_ cryptoutilSharedUtilSysinfo.SysInfoProvider, _ time.Duration) ([][]byte, error) {
 		return [][]byte{}, nil
 	}
 
-	defer func() { getAllInfoWithTimeoutFn = originalFn }()
-
-	unsealKeysService, err := NewUnsealKeysServiceFromSysInfo(&cryptoutilSharedUtilSysinfo.DefaultSysInfoProvider{})
+	unsealKeysService, err := newUnsealKeysServiceFromSysInfoInternal(&cryptoutilSharedUtilSysinfo.DefaultSysInfoProvider{}, stubGetAllInfo, cryptoutilSharedCryptoDigests.HKDFwithSHA256)
 
 	require.Error(t, err)
 	require.Nil(t, unsealKeysService)
@@ -146,32 +137,27 @@ func TestNewUnsealKeysServiceFromSysInfo_EmptySysinfos(t *testing.T) {
 }
 
 // TestNewUnsealKeysServiceFromSysInfo_SingleSysinfo tests the numSysinfos == 1 branch.
-// Uses injectable getAllInfoWithTimeoutFn to return a single element, covering chooseN = 1 path.
-//
-// Sequential: modifies package-level getAllInfoWithTimeoutFn injectable variable.
+// Uses fn-param injection to return a single element, covering chooseN = 1 path.
 func TestNewUnsealKeysServiceFromSysInfo_SingleSysinfo(t *testing.T) {
-	originalFn := getAllInfoWithTimeoutFn
-	getAllInfoWithTimeoutFn = func(_ cryptoutilSharedUtilSysinfo.SysInfoProvider, _ time.Duration) ([][]byte, error) {
+	t.Parallel()
+
+	stubGetAllInfo := func(_ cryptoutilSharedUtilSysinfo.SysInfoProvider, _ time.Duration) ([][]byte, error) {
 		return [][]byte{[]byte("single-sysinfo-entry-for-testing")}, nil
 	}
 
-	defer func() { getAllInfoWithTimeoutFn = originalFn }()
-
-	unsealKeysService, err := NewUnsealKeysServiceFromSysInfo(&cryptoutilSharedUtilSysinfo.DefaultSysInfoProvider{})
+	unsealKeysService, err := newUnsealKeysServiceFromSysInfoInternal(&cryptoutilSharedUtilSysinfo.DefaultSysInfoProvider{}, stubGetAllInfo, cryptoutilSharedCryptoDigests.HKDFwithSHA256)
 
 	require.NoError(t, err)
 	require.NotNil(t, unsealKeysService)
 }
 
-// TestDeriveJWKs_SecondHKDFError tests the second HKDF error path in deriveJWKsFromMChooseNCombinations.
+// TestDeriveJWKs_SecondHKDFError tests the second HKDF error path in deriveJWKsFromMChooseNCombinationsInternal.
 // Uses call-count injection: first HKDF call (for KID) succeeds, second (for secret) fails.
-//
-// Sequential: modifies package-level hkdfWithSHA256Fn injectable variable.
 func TestDeriveJWKs_SecondHKDFError(t *testing.T) {
-	callCount := 0
-	originalFn := hkdfWithSHA256Fn
+	t.Parallel()
 
-	hkdfWithSHA256Fn = func(secret, salt, info []byte, outputBytesLength int) ([]byte, error) {
+	callCount := 0
+	stubHKDF := func(secret, salt, info []byte, outputBytesLength int) ([]byte, error) {
 		callCount++
 		if callCount == 2 {
 			return nil, fmt.Errorf("simulated second HKDF error")
@@ -180,12 +166,10 @@ func TestDeriveJWKs_SecondHKDFError(t *testing.T) {
 		return cryptoutilSharedCryptoDigests.HKDFwithSHA256(secret, salt, info, outputBytesLength)
 	}
 
-	defer func() { hkdfWithSHA256Fn = originalFn }()
-
 	sharedSecret := make([]byte, cryptoutilSharedMagic.MinSharedSecretLength)
 	sharedSecretsM := [][]byte{sharedSecret}
 
-	unsealKeysService, err := NewUnsealKeysServiceSharedSecrets(sharedSecretsM, 1)
+	unsealKeysService, err := newUnsealKeysServiceSharedSecretsInternal(sharedSecretsM, 1, stubHKDF)
 
 	require.Error(t, err)
 	require.Nil(t, unsealKeysService)
@@ -193,23 +177,20 @@ func TestDeriveJWKs_SecondHKDFError(t *testing.T) {
 }
 
 // TestNewUnsealKeysServiceFromSettings_DevMode_GenerateBytesError tests the GenerateBytes error path.
-// Uses injectable generateBytesFn to simulate random byte generation failure in DevMode.
-//
-// Sequential: modifies package-level generateBytesFn injectable variable.
+// Uses fn-param injection to simulate random byte generation failure in DevMode.
 func TestNewUnsealKeysServiceFromSettings_DevMode_GenerateBytesError(t *testing.T) {
-	originalFn := generateBytesFn
-	generateBytesFn = func(_ int) ([]byte, error) {
+	t.Parallel()
+
+	stubGenerateBytes := func(_ int) ([]byte, error) {
 		return nil, fmt.Errorf("simulated random generation error")
 	}
-
-	defer func() { generateBytesFn = originalFn }()
 
 	ctx := context.Background()
 	settings := cryptoutilAppsFrameworkServiceConfig.RequireNewForTest("test-dev-generate-error")
 	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings.ToTelemetrySettings())
 	settings.DevMode = true
 
-	unsealKeysService, err := NewUnsealKeysServiceFromSettings(ctx, telemetryService, settings)
+	unsealKeysService, err := newUnsealKeysServiceFromSettingsInternal(ctx, telemetryService, settings, stubGenerateBytes)
 
 	require.Error(t, err)
 	require.Nil(t, unsealKeysService)

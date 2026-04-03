@@ -17,24 +17,14 @@ import (
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
+	cryptoutilUnsealKeysService "cryptoutil/internal/apps/framework/service/server/barrier/unsealkeysservice"
 	cryptoutilAppsFrameworkServiceServerBusinesslogic "cryptoutil/internal/apps/framework/service/server/businesslogic"
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
 	cryptoutilAppsFrameworkServiceServerService "cryptoutil/internal/apps/framework/service/server/service"
 	cryptoutilSharedContainer "cryptoutil/internal/shared/container"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-)
-
-// Injectable function variables for testing.
-var (
-	newBarrierGormRepositoryFn = cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository
-	newSessionManagerServiceFn = cryptoutilAppsFrameworkServiceServerBusinesslogic.NewSessionManagerService
-	newRotationServiceFn       = cryptoutilAppsFrameworkServiceServerBarrier.NewRotationService
-	newStatusServiceFn         = cryptoutilAppsFrameworkServiceServerBarrier.NewStatusService
-	startPostgresFn            = cryptoutilSharedContainer.StartPostgres
-	sqlOpenFn                  = sql.Open
-	gormOpenSQLiteFn           = func(dialector gorm.Dialector, config *gorm.Config) (*gorm.DB, error) {
-		return gorm.Open(dialector, config)
-	}
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // Core extends Basic with database infrastructure.
@@ -66,6 +56,24 @@ func StartCoreWithServices(ctx context.Context, settings *cryptoutilAppsFramewor
 // - PostgreSQL testcontainer: DatabaseURL empty + DatabaseContainer="required"/"preferred"
 // - External DB: DatabaseURL with postgres:// or file:// scheme.
 func StartCore(ctx context.Context, settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*Core, error) {
+	return startCoreInternal(ctx, settings,
+		cryptoutilSharedCryptoJose.NewJWKGenService,
+		cryptoutilSharedContainer.StartPostgres,
+		sql.Open,
+		func(dialector gorm.Dialector, config *gorm.Config) (*gorm.DB, error) {
+			return gorm.Open(dialector, config)
+		},
+	)
+}
+
+func startCoreInternal(
+	ctx context.Context,
+	settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings,
+	newJWKGenServiceFn func(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, devMode bool) (*cryptoutilSharedCryptoJose.JWKGenService, error),
+	startPostgresFn func(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, dbName, username, password string) (string, func(), error),
+	sqlOpenFn func(driverName, dataSourceName string) (*sql.DB, error),
+	gormOpenSQLiteFn func(dialector gorm.Dialector, config *gorm.Config) (*gorm.DB, error),
+) (*Core, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx cannot be nil")
 	} else if settings == nil {
@@ -73,7 +81,7 @@ func StartCore(ctx context.Context, settings *cryptoutilAppsFrameworkServiceConf
 	}
 
 	// Start basic infrastructure.
-	basic, err := StartBasic(ctx, settings)
+	basic, err := startBasicInternal(ctx, settings, newJWKGenServiceFn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start basic application: %w", err)
 	}
@@ -85,7 +93,7 @@ func StartCore(ctx context.Context, settings *cryptoutilAppsFrameworkServiceConf
 	}
 
 	// Provision database based on DatabaseURL and DatabaseContainer settings.
-	db, shutdownContainer, err := provisionDatabase(ctx, basic, settings)
+	db, shutdownContainer, err := provisionDatabaseInternal(ctx, basic, settings, startPostgresFn, sqlOpenFn, gormOpenSQLiteFn)
 	if err != nil {
 		basic.TelemetryService.Slogger.Error("failed to provision database", cryptoutilSharedMagic.StringError, err)
 		core.Shutdown()
@@ -126,6 +134,23 @@ func InitializeServicesOnCore(
 	ctx context.Context,
 	core *Core,
 	settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings,
+) (*CoreWithServices, error) {
+	return initializeServicesOnCoreInternal(ctx, core, settings,
+		cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository,
+		cryptoutilAppsFrameworkServiceServerBusinesslogic.NewSessionManagerService,
+		cryptoutilAppsFrameworkServiceServerBarrier.NewRotationService,
+		cryptoutilAppsFrameworkServiceServerBarrier.NewStatusService,
+	)
+}
+
+func initializeServicesOnCoreInternal(
+	ctx context.Context,
+	core *Core,
+	settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings,
+	newBarrierGormRepositoryFn func(db *gorm.DB) (*cryptoutilAppsFrameworkServiceServerBarrier.GormRepository, error),
+	newSessionManagerServiceFn func(ctx context.Context, db *gorm.DB, telemetryService *cryptoutilSharedTelemetry.TelemetryService, jwkGenService *cryptoutilSharedCryptoJose.JWKGenService, barrierService *cryptoutilAppsFrameworkServiceServerBarrier.Service, settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*cryptoutilAppsFrameworkServiceServerBusinesslogic.SessionManagerService, error),
+	newRotationServiceFn func(jwkGenService *cryptoutilSharedCryptoJose.JWKGenService, repository cryptoutilAppsFrameworkServiceServerBarrier.Repository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService) (*cryptoutilAppsFrameworkServiceServerBarrier.RotationService, error),
+	newStatusServiceFn func(repository cryptoutilAppsFrameworkServiceServerBarrier.Repository) (*cryptoutilAppsFrameworkServiceServerBarrier.StatusService, error),
 ) (*CoreWithServices, error) {
 	if core == nil {
 		return nil, fmt.Errorf("core is nil")
@@ -259,6 +284,19 @@ func (a *Core) Shutdown() {
 // 2. Internal managed PostgreSQL testcontainer (DatabaseContainer=required/preferred)
 // 3. External DB connection (postgres:// or file:// scheme).
 func provisionDatabase(ctx context.Context, basic *Basic, settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*gorm.DB, func(), error) {
+	return provisionDatabaseInternal(ctx, basic, settings, cryptoutilSharedContainer.StartPostgres, sql.Open, func(dialector gorm.Dialector, config *gorm.Config) (*gorm.DB, error) {
+		return gorm.Open(dialector, config)
+	})
+}
+
+func provisionDatabaseInternal(
+	ctx context.Context,
+	basic *Basic,
+	settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings,
+	startPostgresFn func(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, dbName, username, password string) (string, func(), error),
+	sqlOpenFn func(driverName, dataSourceName string) (*sql.DB, error),
+	gormOpenSQLiteFn func(dialector gorm.Dialector, config *gorm.Config) (*gorm.DB, error),
+) (*gorm.DB, func(), error) {
 	databaseURL := settings.DatabaseURL
 	containerMode := settings.DatabaseContainer
 
@@ -331,7 +369,7 @@ func provisionDatabase(ctx context.Context, basic *Basic, settings *cryptoutilAp
 
 	if isSQLite {
 		basic.TelemetryService.Slogger.Debug("opening SQLite database", "url", databaseURL)
-		db, err = openSQLite(ctx, databaseURL, settings.VerboseMode)
+		db, err = openSQLiteInternal(ctx, databaseURL, settings.VerboseMode, sqlOpenFn, gormOpenSQLiteFn)
 	} else {
 		basic.TelemetryService.Slogger.Debug("opening PostgreSQL database", "url", maskPassword(databaseURL))
 		db, err = openPostgreSQL(ctx, databaseURL, settings.VerboseMode)
@@ -350,6 +388,18 @@ func provisionDatabase(ctx context.Context, basic *Basic, settings *cryptoutilAp
 
 // openSQLite opens a SQLite database connection with GORM and configures WAL mode.
 func openSQLite(ctx context.Context, databaseURL string, debugMode bool) (*gorm.DB, error) {
+	return openSQLiteInternal(ctx, databaseURL, debugMode, sql.Open, func(dialector gorm.Dialector, config *gorm.Config) (*gorm.DB, error) {
+		return gorm.Open(dialector, config)
+	})
+}
+
+func openSQLiteInternal(
+	ctx context.Context,
+	databaseURL string,
+	debugMode bool,
+	sqlOpenFn func(driverName, dataSourceName string) (*sql.DB, error),
+	gormOpenSQLiteFn func(dialector gorm.Dialector, config *gorm.Config) (*gorm.DB, error),
+) (*gorm.DB, error) {
 	// Open database connection using database/sql.
 	sqlDB, err := sqlOpenFn("sqlite", databaseURL)
 	if err != nil {

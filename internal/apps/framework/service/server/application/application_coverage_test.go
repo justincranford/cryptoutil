@@ -52,16 +52,14 @@ func TestProvisionDatabase_FileMemoryNamedFormat(t *testing.T) {
 
 // TestProvisionDatabase_ContainerSuccess tests the PostgreSQL container success path.
 // Covers application_core.go:303-307 (container started successfully).
-// Cannot use t.Parallel() because it modifies the package-level injectable var.
 func TestProvisionDatabase_ContainerSuccess(t *testing.T) {
-	origStartPostgres := startPostgresFn
-	startPostgresFn = func(_ context.Context, _ *cryptoutilSharedTelemetry.TelemetryService, _, _, _ string) (string, func(), error) {
-		return cryptoutilSharedMagic.SQLiteInMemoryDSN, func() {}, nil
-	}
-
-	defer func() { startPostgresFn = origStartPostgres }()
+	t.Parallel()
 
 	ctx := context.Background()
+
+	stubStartPostgres := func(_ context.Context, _ *cryptoutilSharedTelemetry.TelemetryService, _, _, _ string) (string, func(), error) {
+		return cryptoutilSharedMagic.SQLiteInMemoryDSN, func() {}, nil
+	}
 
 	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
 		LogLevel:          "info",
@@ -81,7 +79,9 @@ func TestProvisionDatabase_ContainerSuccess(t *testing.T) {
 
 	// Container "succeeds" with injected fake URL. openPostgreSQL will fail
 	// because the containerURL is actually SQLite, but lines 303-307 are covered.
-	_, cleanup, err := provisionDatabase(ctx, basic, settings)
+	_, cleanup, err := provisionDatabaseInternal(ctx, basic, settings, stubStartPostgres, sql.Open, func(d gorm.Dialector, c *gorm.Config) (*gorm.DB, error) {
+		return gorm.Open(d, c)
+	})
 	if cleanup != nil {
 		defer cleanup()
 	}
@@ -92,16 +92,14 @@ func TestProvisionDatabase_ContainerSuccess(t *testing.T) {
 
 // TestProvisionDatabase_ContainerPreferredFallback tests the preferred container fallback path.
 // Covers application_core.go:307-309 (preferred container fails, fallback to external).
-// Cannot use t.Parallel() because it modifies the package-level injectable var.
 func TestProvisionDatabase_ContainerPreferredFallback(t *testing.T) {
-	origStartPostgres := startPostgresFn
-	startPostgresFn = func(_ context.Context, _ *cryptoutilSharedTelemetry.TelemetryService, _, _, _ string) (string, func(), error) {
-		return "", nil, fmt.Errorf("forced container failure")
-	}
-
-	defer func() { startPostgresFn = origStartPostgres }()
+	t.Parallel()
 
 	ctx := context.Background()
+
+	stubStartPostgres := func(_ context.Context, _ *cryptoutilSharedTelemetry.TelemetryService, _, _, _ string) (string, func(), error) {
+		return "", nil, fmt.Errorf("forced container failure")
+	}
 
 	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
 		LogLevel:          "info",
@@ -121,7 +119,9 @@ func TestProvisionDatabase_ContainerPreferredFallback(t *testing.T) {
 
 	// Container fails (preferred mode), falls back to external DB URL.
 	// External DB URL is invalid so openPostgreSQL will fail, but line 309 is covered.
-	_, cleanup, err := provisionDatabase(ctx, basic, settings)
+	_, cleanup, err := provisionDatabaseInternal(ctx, basic, settings, stubStartPostgres, sql.Open, func(d gorm.Dialector, c *gorm.Config) (*gorm.DB, error) {
+		return gorm.Open(d, c)
+	})
 	if cleanup != nil {
 		defer cleanup()
 	}
@@ -132,16 +132,14 @@ func TestProvisionDatabase_ContainerPreferredFallback(t *testing.T) {
 
 // TestProvisionDatabase_ContainerRequiredFailure tests the required container failure path.
 // Covers application_core.go:304-306 (required container fails, returns error).
-// Cannot use t.Parallel() because it modifies the package-level injectable var.
 func TestProvisionDatabase_ContainerRequiredFailure(t *testing.T) {
-	origStartPostgres := startPostgresFn
-	startPostgresFn = func(_ context.Context, _ *cryptoutilSharedTelemetry.TelemetryService, _, _, _ string) (string, func(), error) {
-		return "", nil, fmt.Errorf("forced required container failure")
-	}
-
-	defer func() { startPostgresFn = origStartPostgres }()
+	t.Parallel()
 
 	ctx := context.Background()
+
+	stubStartPostgres := func(_ context.Context, _ *cryptoutilSharedTelemetry.TelemetryService, _, _, _ string) (string, func(), error) {
+		return "", nil, fmt.Errorf("forced required container failure")
+	}
 
 	settings := &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{
 		LogLevel:          "info",
@@ -159,7 +157,9 @@ func TestProvisionDatabase_ContainerRequiredFailure(t *testing.T) {
 
 	defer basic.Shutdown()
 
-	_, cleanup, err := provisionDatabase(ctx, basic, settings)
+	_, cleanup, err := provisionDatabaseInternal(ctx, basic, settings, stubStartPostgres, sql.Open, func(d gorm.Dialector, c *gorm.Config) (*gorm.DB, error) {
+		return gorm.Open(d, c)
+	})
 	if cleanup != nil {
 		defer cleanup()
 	}
@@ -170,37 +170,34 @@ func TestProvisionDatabase_ContainerRequiredFailure(t *testing.T) {
 
 // TestOpenSQLite_SqlOpenError tests the sql.Open error path.
 // Covers application_core.go:340-342 (sql.Open failure).
-// Cannot use t.Parallel() because it modifies the package-level injectable var.
 func TestOpenSQLite_SqlOpenError(t *testing.T) {
-	origSQLOpen := sqlOpenFn
-	sqlOpenFn = func(_, _ string) (*sql.DB, error) {
-		return nil, fmt.Errorf("forced sql.Open failure")
-	}
-
-	defer func() { sqlOpenFn = origSQLOpen }()
+	t.Parallel()
 
 	ctx := context.Background()
 
-	_, err := openSQLite(ctx, cryptoutilSharedMagic.SQLiteInMemoryDSN, false)
+	stubSQLOpen := func(_, _ string) (*sql.DB, error) {
+		return nil, fmt.Errorf("forced sql.Open failure")
+	}
+
+	_, err := openSQLiteInternal(ctx, cryptoutilSharedMagic.SQLiteInMemoryDSN, false, stubSQLOpen, func(d gorm.Dialector, c *gorm.Config) (*gorm.DB, error) {
+		return gorm.Open(d, c)
+	})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to open SQLite database")
 }
 
 // TestOpenSQLite_GormOpenError tests the gorm.Open error path.
 // Covers application_core.go:373-377 (gorm.Open failure).
-// Cannot use t.Parallel() because it modifies the package-level injectable var.
-// Sequential: modifies package-level injectable function variable.
 func TestOpenSQLite_GormOpenError(t *testing.T) {
-	origGormOpen := gormOpenSQLiteFn
-	gormOpenSQLiteFn = func(_ gorm.Dialector, _ *gorm.Config) (*gorm.DB, error) {
-		return nil, fmt.Errorf("forced gorm.Open failure")
-	}
-
-	defer func() { gormOpenSQLiteFn = origGormOpen }()
+	t.Parallel()
 
 	ctx := context.Background()
 
-	_, err := openSQLite(ctx, cryptoutilSharedMagic.SQLiteInMemoryDSN, false)
+	stubGormOpen := func(_ gorm.Dialector, _ *gorm.Config) (*gorm.DB, error) {
+		return nil, fmt.Errorf("forced gorm.Open failure")
+	}
+
+	_, err := openSQLiteInternal(ctx, cryptoutilSharedMagic.SQLiteInMemoryDSN, false, sql.Open, stubGormOpen)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to initialize GORM")
 }

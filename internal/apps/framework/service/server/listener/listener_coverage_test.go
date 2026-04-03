@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
+	cryptoutilAppsFrameworkServiceConfigTlsGenerator "cryptoutil/internal/apps/framework/service/config/tls_generator"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -44,10 +45,10 @@ func (f *invalidPortListener) Addr() net.Addr {
 
 // TestAdminServer_Start_NonTCPAddr tests Start when listener returns a non-TCP address.
 // Covers admin.go:208-214 (TCP addr type assertion failure guard).
-// Cannot use t.Parallel() because it modifies the package-level injectable var.
 func TestAdminServer_Start_NonTCPAddr(t *testing.T) {
-	original := adminListenFn
-	adminListenFn = func(ctx context.Context, network, address string) (net.Listener, error) {
+	t.Parallel()
+
+	stubListenFn := func(ctx context.Context, network, address string) (net.Listener, error) {
 		realLn, err := (&net.ListenConfig{}).Listen(ctx, network, address)
 		if err != nil {
 			return nil, err
@@ -56,12 +57,14 @@ func TestAdminServer_Start_NonTCPAddr(t *testing.T) {
 		return &fakeListener{inner: realLn}, nil
 	}
 
-	defer func() { adminListenFn = original }()
-
 	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	tlsCfg := validAutoTLSSettings(t)
 
-	server, err := NewAdminHTTPServer(context.Background(), settings, tlsCfg)
+	server, err := newAdminHTTPServerInternal(context.Background(), settings, tlsCfg,
+		cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateTLSMaterial,
+		stubListenFn,
+		func(app *fiber.App, ln net.Listener) error { return app.Listener(ln) },
+	)
 	require.NoError(t, err)
 
 	err = server.Start(context.Background())
@@ -71,10 +74,10 @@ func TestAdminServer_Start_NonTCPAddr(t *testing.T) {
 
 // TestAdminServer_Start_InvalidPort tests Start when listener returns an invalid port.
 // Covers admin.go:216-222 (port range validation guard).
-// Cannot use t.Parallel() because it modifies the package-level injectable var.
 func TestAdminServer_Start_InvalidPort(t *testing.T) {
-	original := adminListenFn
-	adminListenFn = func(ctx context.Context, network, address string) (net.Listener, error) {
+	t.Parallel()
+
+	stubListenFn := func(ctx context.Context, network, address string) (net.Listener, error) {
 		realLn, err := (&net.ListenConfig{}).Listen(ctx, network, address)
 		if err != nil {
 			return nil, err
@@ -83,14 +86,15 @@ func TestAdminServer_Start_InvalidPort(t *testing.T) {
 		return &invalidPortListener{inner: realLn}, nil
 	}
 
-	defer func() { adminListenFn = original }()
-
 	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	tlsCfg := validAutoTLSSettings(t)
 
-	server, err := NewAdminHTTPServer(context.Background(), settings, tlsCfg)
+	server, err := newAdminHTTPServerInternal(context.Background(), settings, tlsCfg,
+		cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateTLSMaterial,
+		stubListenFn,
+		func(app *fiber.App, ln net.Listener) error { return app.Listener(ln) },
+	)
 	require.NoError(t, err)
-
 	err = server.Start(context.Background())
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid port number")
@@ -98,22 +102,25 @@ func TestAdminServer_Start_InvalidPort(t *testing.T) {
 
 // TestAdminServer_Start_AppListenerError tests Start when app.Listener returns an error.
 // Covers admin.go:240-242 (app.Listener error in goroutine).
-// Cannot use t.Parallel() because it modifies the package-level injectable var.
-// Sequential: modifies package-level injectable function variable.
 func TestAdminServer_Start_AppListenerError(t *testing.T) {
-	original := adminAppListenerFn
-	adminAppListenerFn = func(_ *fiber.App, ln net.Listener) error {
+	t.Parallel()
+
+	stubAppListenerFn := func(_ *fiber.App, ln net.Listener) error {
 		_ = ln.Close()
 
 		return fmt.Errorf("forced admin listener error")
 	}
 
-	defer func() { adminAppListenerFn = original }()
-
 	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	tlsCfg := validAutoTLSSettings(t)
 
-	server, err := NewAdminHTTPServer(context.Background(), settings, tlsCfg)
+	server, err := newAdminHTTPServerInternal(context.Background(), settings, tlsCfg,
+		cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateTLSMaterial,
+		func(ctx context.Context, network, address string) (net.Listener, error) {
+			return (&net.ListenConfig{}).Listen(ctx, network, address)
+		},
+		stubAppListenerFn,
+	)
 	require.NoError(t, err)
 
 	err = server.Start(context.Background())
@@ -155,10 +162,10 @@ func TestAdminServer_ErrChanPath(t *testing.T) {
 
 // TestPublicServer_Start_NonTCPAddr tests Start when listener returns a non-TCP address.
 // Covers public.go TCPAddr type assertion failure guard.
-// Cannot use t.Parallel() because it modifies the package-level injectable var.
 func TestPublicServer_Start_NonTCPAddr(t *testing.T) {
-	original := publicListenFn
-	publicListenFn = func(ctx context.Context, network, address string) (net.Listener, error) {
+	t.Parallel()
+
+	stubListenFn := func(ctx context.Context, network, address string) (net.Listener, error) {
 		realLn, err := (&net.ListenConfig{}).Listen(ctx, network, address)
 		if err != nil {
 			return nil, err
@@ -167,12 +174,14 @@ func TestPublicServer_Start_NonTCPAddr(t *testing.T) {
 		return &fakeListener{inner: realLn}, nil
 	}
 
-	defer func() { publicListenFn = original }()
-
 	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	tlsCfg := validAutoTLSSettings(t)
 
-	server, err := NewPublicHTTPServer(context.Background(), settings, tlsCfg)
+	server, err := newPublicHTTPServerInternal(context.Background(), settings, tlsCfg,
+		cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateTLSMaterial,
+		stubListenFn,
+		func(app *fiber.App, ln net.Listener) error { return app.Listener(ln) },
+	)
 	require.NoError(t, err)
 
 	err = server.Start(context.Background())
@@ -182,22 +191,25 @@ func TestPublicServer_Start_NonTCPAddr(t *testing.T) {
 
 // TestPublicServer_Start_AppListenerError tests Start when app.Listener returns an error.
 // Covers public.go app.Listener error in goroutine.
-// Cannot use t.Parallel() because it modifies the package-level injectable var.
-// Sequential: modifies package-level injectable function variable.
 func TestPublicServer_Start_AppListenerError(t *testing.T) {
-	original := publicAppListenerFn
-	publicAppListenerFn = func(_ *fiber.App, ln net.Listener) error {
+	t.Parallel()
+
+	stubAppListenerFn := func(_ *fiber.App, ln net.Listener) error {
 		_ = ln.Close()
 
 		return fmt.Errorf("forced public listener error")
 	}
 
-	defer func() { publicAppListenerFn = original }()
-
 	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	tlsCfg := validAutoTLSSettings(t)
 
-	server, err := NewPublicHTTPServer(context.Background(), settings, tlsCfg)
+	server, err := newPublicHTTPServerInternal(context.Background(), settings, tlsCfg,
+		cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateTLSMaterial,
+		func(ctx context.Context, network, address string) (net.Listener, error) {
+			return (&net.ListenConfig{}).Listen(ctx, network, address)
+		},
+		stubAppListenerFn,
+	)
 	require.NoError(t, err)
 
 	err = server.Start(context.Background())

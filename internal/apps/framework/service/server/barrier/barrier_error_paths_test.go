@@ -341,24 +341,22 @@ func TestRotateContentKey_EncryptFails(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to encrypt content key")
 }
 
-// TestIntermediateKeyInit_GenerateJWKFails verifies the error path when intermediateGenerateJWEJWKFn
+// TestIntermediateKeyInit_GenerateJWKFails verifies the error path when generateJWEJWKFn
 // fails during intermediate key service init. The mock repo returns ErrNoIntermediateKeyFound so that
 // the code attempts to generate the first intermediate key, which then fails.
-// Cannot use t.Parallel() because it modifies the package-level injectable var.
 func TestIntermediateKeyInit_GenerateJWKFails(t *testing.T) {
+	t.Parallel()
+
 	telemetryService, jwkGenService, unsealService := setupBarrierErrorTestHelper(t)
 
-	originalFn := intermediateGenerateJWEJWKFn
-	intermediateGenerateJWEJWKFn = func(_ *cryptoutilSharedCryptoJose.JWKGenService) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
+	stubGenerateJWEJWK := func(_ *cryptoutilSharedCryptoJose.JWKGenService) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 		return nil, nil, nil, nil, nil, errMockServiceFailure
 	}
-
-	defer func() { intermediateGenerateJWEJWKFn = originalFn }()
 
 	mockRepo := newMockServiceRepository()
 	mockRepo.tx.getIntermediateKeyLatestErr = ErrNoIntermediateKeyFound
 
-	_, err := NewService(context.Background(), telemetryService, jwkGenService, mockRepo, unsealService)
+	_, err := newServiceInternal(context.Background(), telemetryService, jwkGenService, mockRepo, unsealService, stubGenerateJWEJWK)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to create intermediate keys service")
 }

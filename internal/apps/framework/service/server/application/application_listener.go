@@ -6,9 +6,15 @@ package application
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
+	"gorm.io/gorm"
+
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
+	cryptoutilSharedContainer "cryptoutil/internal/shared/container"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // Listener represents the top-level service application.
@@ -56,6 +62,24 @@ type ListenerConfig struct {
 // - Calling Start() to begin serving requests
 // - Calling Shutdown() to gracefully stop.
 func StartListener(ctx context.Context, config *ListenerConfig) (*Listener, error) {
+	return startListenerInternal(ctx, config,
+		cryptoutilSharedCryptoJose.NewJWKGenService,
+		cryptoutilSharedContainer.StartPostgres,
+		sql.Open,
+		func(dialector gorm.Dialector, cfg *gorm.Config) (*gorm.DB, error) {
+			return gorm.Open(dialector, cfg)
+		},
+	)
+}
+
+func startListenerInternal(
+	ctx context.Context,
+	config *ListenerConfig,
+	newJWKGenServiceFn func(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, devMode bool) (*cryptoutilSharedCryptoJose.JWKGenService, error),
+	startPostgresFn func(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, dbName, username, password string) (string, func(), error),
+	sqlOpenFn func(driverName, dataSourceName string) (*sql.DB, error),
+	gormOpenSQLiteFn func(dialector gorm.Dialector, config *gorm.Config) (*gorm.DB, error),
+) (*Listener, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx cannot be nil")
 	} else if config == nil {
@@ -69,7 +93,7 @@ func StartListener(ctx context.Context, config *ListenerConfig) (*Listener, erro
 	}
 
 	// Start core infrastructure (telemetry, JWK gen, unseal, database).
-	core, err := StartCore(ctx, config.Settings)
+	core, err := startCoreInternal(ctx, config.Settings, newJWKGenServiceFn, startPostgresFn, sqlOpenFn, gormOpenSQLiteFn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start application core: %w", err)
 	}

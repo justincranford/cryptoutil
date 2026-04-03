@@ -6,7 +6,9 @@ package unsealkeysservice
 
 import (
 	"fmt"
+	"time"
 
+	cryptoutilSharedCryptoDigests "cryptoutil/internal/shared/crypto/digests"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilSysinfo "cryptoutil/internal/shared/util/sysinfo"
 
@@ -14,9 +16,6 @@ import (
 )
 
 const fingerprintLeeway = 1
-
-// injectable for testing error paths.
-var getAllInfoWithTimeoutFn = cryptoutilSharedUtilSysinfo.GetAllInfoWithTimeout
 
 // UnsealKeysServiceFromSysInfo implements UnsealKeysService using system information fingerprinting.
 type UnsealKeysServiceFromSysInfo struct {
@@ -50,6 +49,10 @@ func (u *UnsealKeysServiceFromSysInfo) Shutdown() {
 
 // NewUnsealKeysServiceFromSysInfo creates a new UnsealKeysService using system information fingerprinting.
 func NewUnsealKeysServiceFromSysInfo(sysInfoProvider cryptoutilSharedUtilSysinfo.SysInfoProvider) (UnsealKeysService, error) {
+	return newUnsealKeysServiceFromSysInfoInternal(sysInfoProvider, cryptoutilSharedUtilSysinfo.GetAllInfoWithTimeout, cryptoutilSharedCryptoDigests.HKDFwithSHA256)
+}
+
+func newUnsealKeysServiceFromSysInfoInternal(sysInfoProvider cryptoutilSharedUtilSysinfo.SysInfoProvider, getAllInfoWithTimeoutFn func(cryptoutilSharedUtilSysinfo.SysInfoProvider, time.Duration) ([][]byte, error), hkdfFn func(secret, salt, info []byte, outputBytesLength int) ([]byte, error)) (UnsealKeysService, error) {
 	sysinfos, err := getAllInfoWithTimeoutFn(sysInfoProvider, cryptoutilSharedMagic.DefaultSysInfoAllTimeout)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get sysinfo: %w", err)
@@ -67,7 +70,7 @@ func NewUnsealKeysServiceFromSysInfo(sysInfoProvider cryptoutilSharedUtilSysinfo
 		chooseN = numSysinfos - fingerprintLeeway // use combinations of M choose M-1
 	}
 
-	unsealJWKs, err := deriveJWKsFromMChooseNCombinations(sysinfos, chooseN)
+	unsealJWKs, err := deriveJWKsFromMChooseNCombinationsInternal(sysinfos, chooseN, hkdfFn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create unseal JWKs: %w", err)
 	}

@@ -33,16 +33,6 @@ type ServiceFramework struct {
 // ServiceFrameworkOption is a functional option for configuring ServiceFramework.
 type ServiceFrameworkOption func(*ServiceFramework) error
 
-// newTelemetryServiceFn is an injectable var for testing the telemetry init error path.
-var newTelemetryServiceFn = func(ctx context.Context, config *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*cryptoutilSharedTelemetry.TelemetryService, error) {
-	return cryptoutilSharedTelemetry.NewTelemetryService(ctx, config.ToTelemetrySettings())
-}
-
-// newJWKGenServiceFn is an injectable var for testing the JWK gen init error path.
-var newJWKGenServiceFn = func(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, devMode bool) (*cryptoutilSharedCryptoJose.JWKGenService, error) {
-	return cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetryService, devMode)
-}
-
 // NewServiceFramework creates a new ServiceFramework with common infrastructure.
 // Initializes telemetry, JWK generation service, and optionally barrier service.
 // Does NOT run migrations or create HTTP servers (caller-specific).
@@ -51,6 +41,30 @@ func NewServiceFramework(
 	config *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings,
 	db *gorm.DB,
 	dbType cryptoutilAppsFrameworkServiceServerRepository.DatabaseType,
+	options ...ServiceFrameworkOption,
+) (*ServiceFramework, error) {
+	return newServiceFrameworkInternal(
+		ctx,
+		config,
+		db,
+		dbType,
+		func(ctx context.Context, config *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*cryptoutilSharedTelemetry.TelemetryService, error) {
+			return cryptoutilSharedTelemetry.NewTelemetryService(ctx, config.ToTelemetrySettings())
+		},
+		func(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, devMode bool) (*cryptoutilSharedCryptoJose.JWKGenService, error) {
+			return cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetryService, devMode)
+		},
+		options...,
+	)
+}
+
+func newServiceFrameworkInternal(
+	ctx context.Context,
+	config *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings,
+	db *gorm.DB,
+	dbType cryptoutilAppsFrameworkServiceServerRepository.DatabaseType,
+	newTelemetryServiceFn func(ctx context.Context, config *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*cryptoutilSharedTelemetry.TelemetryService, error),
+	newJWKGenServiceFn func(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, devMode bool) (*cryptoutilSharedCryptoJose.JWKGenService, error),
 	options ...ServiceFrameworkOption,
 ) (*ServiceFramework, error) {
 	if ctx == nil {

@@ -5,6 +5,9 @@ package listener
 import (
 	"context"
 	"fmt"
+	"net"
+
+	fiber "github.com/gofiber/fiber/v2"
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilAppsFrameworkServiceConfigTlsGenerator "cryptoutil/internal/apps/framework/service/config/tls_generator"
@@ -24,6 +27,14 @@ type HTTPSServers struct {
 // It will generate TLS material based on TLSPublicMode/TLSPrivateMode and return
 // an HTTPSServers wrapper containing servers and TLS configs.
 func NewHTTPServers(ctx context.Context, settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*HTTPSServers, error) {
+	return newHTTPServersInternal(ctx, settings, cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateTLSMaterial)
+}
+
+func newHTTPServersInternal(
+	ctx context.Context,
+	settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings,
+	generateTLSMaterialFn func(cfg *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings) (*cryptoutilAppsFrameworkServiceConfig.TLSMaterial, error),
+) (*HTTPSServers, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	} else if settings == nil {
@@ -41,12 +52,27 @@ func NewHTTPServers(ctx context.Context, settings *cryptoutilAppsFrameworkServic
 	}
 
 	// Create servers
-	publicServer, err := NewPublicHTTPServer(ctx, settings, publicTLSGeneratedSettings)
+	publicServer, err := newPublicHTTPServerInternal(ctx, settings, publicTLSGeneratedSettings, generateTLSMaterialFn,
+		func(ctx context.Context, network, address string) (net.Listener, error) {
+			return (&net.ListenConfig{}).Listen(ctx, network, address)
+		},
+		func(app *fiber.App, ln net.Listener) error {
+			return app.Listener(ln) //nolint:wrapcheck // Pass-through to Fiber framework.
+		},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create public server: %w", err)
 	}
 
-	adminServer, err := NewAdminHTTPServer(ctx, settings, adminTLSGeneratedSettings)
+	adminServer, err := newAdminHTTPServerInternal(ctx, settings, adminTLSGeneratedSettings, generateTLSMaterialFn,
+		func(ctx context.Context, network, address string) (net.Listener, error) {
+			return (&net.ListenConfig{}).Listen(ctx, network, address)
+		},
+		func(app *fiber.App, ln net.Listener) error {
+			//nolint:wrapcheck // Pass-through to Fiber framework.
+			return app.Listener(ln)
+		},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create admin server: %w", err)
 	}

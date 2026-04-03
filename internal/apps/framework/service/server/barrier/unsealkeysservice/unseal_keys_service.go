@@ -26,10 +26,11 @@ type UnsealKeysService interface {
 	Shutdown()
 }
 
-// Injectable vars for testing - allows error path coverage without modifying public API.
-var hkdfWithSHA256Fn = cryptoutilSharedCryptoDigests.HKDFwithSHA256
-
 func deriveJWKsFromMChooseNCombinations(m [][]byte, chooseN int) ([]joseJwk.Key, error) {
+	return deriveJWKsFromMChooseNCombinationsInternal(m, chooseN, cryptoutilSharedCryptoDigests.HKDFwithSHA256)
+}
+
+func deriveJWKsFromMChooseNCombinationsInternal(m [][]byte, chooseN int, hkdfWithSHA256Fn func(secret, salt, info []byte, outputBytesLength int) ([]byte, error)) ([]joseJwk.Key, error) {
 	combinations, err := cryptoutilSharedUtilCombinations.ComputeCombinations(m, chooseN)
 	if err != nil {
 		return nil, fmt.Errorf("failed to compute %d of %d combinations of shared secrets: %w", len(m), chooseN, err)

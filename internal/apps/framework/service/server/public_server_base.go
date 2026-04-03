@@ -16,23 +16,18 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// appListenerFn is an injectable var for testing the app.Listener error path.
-var appListenerFn = func(app *fiber.App, ln net.Listener) error {
-	//nolint:wrapcheck // Pass-through to Fiber framework.
-	return app.Listener(ln)
-}
-
 // PublicServerBase provides reusable public server infrastructure.
 type PublicServerBase struct {
-	bindAddress string
-	port        int
-	tlsMaterial *cryptoutilAppsFrameworkServiceConfig.TLSMaterial
-	app         *fiber.App
-	mu          sync.RWMutex
-	shutdown    bool
-	actualPort  int
-	ctx         context.Context
-	cancel      context.CancelFunc
+	bindAddress   string
+	port          int
+	tlsMaterial   *cryptoutilAppsFrameworkServiceConfig.TLSMaterial
+	app           *fiber.App
+	appListenerFn func(app *fiber.App, ln net.Listener) error
+	mu            sync.RWMutex
+	shutdown      bool
+	actualPort    int
+	ctx           context.Context
+	cancel        context.CancelFunc
 }
 
 // PublicServerConfig holds configuration for PublicServerBase.
@@ -44,6 +39,13 @@ type PublicServerConfig struct {
 
 // NewPublicServerBase creates a new PublicServerBase.
 func NewPublicServerBase(cfg *PublicServerConfig) (*PublicServerBase, error) {
+	return newPublicServerBaseInternal(cfg, func(app *fiber.App, ln net.Listener) error {
+		//nolint:wrapcheck // Pass-through to Fiber framework.
+		return app.Listener(ln)
+	})
+}
+
+func newPublicServerBaseInternal(cfg *PublicServerConfig, appListenerFn func(app *fiber.App, ln net.Listener) error) (*PublicServerBase, error) {
 	if cfg == nil {
 		return nil, fmt.Errorf("configuration cannot be nil")
 	}
@@ -57,10 +59,11 @@ func NewPublicServerBase(cfg *PublicServerConfig) (*PublicServerBase, error) {
 	}
 
 	s := &PublicServerBase{
-		bindAddress: cfg.BindAddress,
-		port:        cfg.Port,
-		tlsMaterial: cfg.TLSMaterial,
-		app:         fiber.New(fiber.Config{DisableStartupMessage: true}),
+		bindAddress:   cfg.BindAddress,
+		port:          cfg.Port,
+		tlsMaterial:   cfg.TLSMaterial,
+		app:           fiber.New(fiber.Config{DisableStartupMessage: true}),
+		appListenerFn: appListenerFn,
 	}
 
 	s.registerHealthEndpoints()
@@ -145,7 +148,7 @@ func (s *PublicServerBase) Start(ctx context.Context) error {
 	errChan := make(chan error, 1)
 
 	go func() {
-		if err := appListenerFn(s.app, tlsListener); err != nil {
+		if err := s.appListenerFn(s.app, tlsListener); err != nil {
 			errChan <- fmt.Errorf("public server error: %w", err)
 		} else {
 			errChan <- nil

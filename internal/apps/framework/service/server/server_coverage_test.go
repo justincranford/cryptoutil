@@ -125,18 +125,9 @@ func TestPublicServerBase_ShutdownTwice(t *testing.T) {
 	require.Contains(t, err.Error(), "public server already shutdown")
 }
 
-// TestNewServiceFramework_JWKGenInitError tests NewServiceFramework when JWKGenService fails to initialize.
-// Target: service_framework.go:83 (JWKGenService init error)
-//
 // TestNewServiceFramework_TelemetryInitError tests NewServiceFramework when telemetry init fails.
-// Cannot use t.Parallel() because it modifies the package-level injectable var.
 func TestNewServiceFramework_TelemetryInitError(t *testing.T) {
-	originalFn := newTelemetryServiceFn
-	newTelemetryServiceFn = func(_ context.Context, _ *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*cryptoutilSharedTelemetry.TelemetryService, error) {
-		return nil, fmt.Errorf("mock telemetry failure")
-	}
-
-	defer func() { newTelemetryServiceFn = originalFn }()
+	t.Parallel()
 
 	ctx := context.Background()
 
@@ -158,21 +149,21 @@ func TestNewServiceFramework_TelemetryInitError(t *testing.T) {
 	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{SkipDefaultTransaction: true})
 	require.NoError(t, err)
 
-	_, err = NewServiceFramework(ctx, config, db, cryptoutilAppsFrameworkServiceServerRepository.DatabaseTypeSQLite)
+	stubTelemetry := func(_ context.Context, _ *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*cryptoutilSharedTelemetry.TelemetryService, error) {
+		return nil, fmt.Errorf("mock telemetry failure")
+	}
+
+	_, err = newServiceFrameworkInternal(ctx, config, db, cryptoutilAppsFrameworkServiceServerRepository.DatabaseTypeSQLite,
+		stubTelemetry,
+		cryptoutilSharedCryptoJose.NewJWKGenService,
+	)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to initialize telemetry")
 }
 
 // TestNewServiceFramework_JWKGenInitError tests NewServiceFramework when JWK gen service init fails.
-// Cannot use t.Parallel() because it modifies the package-level injectable var.
-// Sequential: modifies package-level injectable function variable.
 func TestNewServiceFramework_JWKGenInitError(t *testing.T) {
-	originalFn := newJWKGenServiceFn
-	newJWKGenServiceFn = func(_ context.Context, _ *cryptoutilSharedTelemetry.TelemetryService, _ bool) (*cryptoutilSharedCryptoJose.JWKGenService, error) {
-		return nil, fmt.Errorf("mock jwkgen failure")
-	}
-
-	defer func() { newJWKGenServiceFn = originalFn }()
+	t.Parallel()
 
 	ctx := context.Background()
 
@@ -195,7 +186,16 @@ func TestNewServiceFramework_JWKGenInitError(t *testing.T) {
 	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{SkipDefaultTransaction: true})
 	require.NoError(t, err)
 
-	_, err = NewServiceFramework(ctx, config, db, cryptoutilAppsFrameworkServiceServerRepository.DatabaseTypeSQLite)
+	stubJWKGen := func(_ context.Context, _ *cryptoutilSharedTelemetry.TelemetryService, _ bool) (*cryptoutilSharedCryptoJose.JWKGenService, error) {
+		return nil, fmt.Errorf("mock jwkgen failure")
+	}
+
+	_, err = newServiceFrameworkInternal(ctx, config, db, cryptoutilAppsFrameworkServiceServerRepository.DatabaseTypeSQLite,
+		func(ctx context.Context, cfg *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*cryptoutilSharedTelemetry.TelemetryService, error) {
+			return cryptoutilSharedTelemetry.NewTelemetryService(ctx, cfg.ToTelemetrySettings())
+		},
+		stubJWKGen,
+	)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to initialize JWK generation service")
 }
@@ -411,17 +411,14 @@ func TestPublicServerBase_ErrChanPath(t *testing.T) {
 
 // TestPublicServerBase_ListenerError tests Start when app.Listener returns an error.
 // Covers public_server_base.go:141-143 (app.Listener error inside goroutine).
-// Cannot use t.Parallel() because it modifies the package-level injectable var.
-// Sequential: modifies package-level injectable function variable.
 func TestPublicServerBase_ListenerError(t *testing.T) {
-	original := appListenerFn
-	appListenerFn = func(_ *fiber.App, ln net.Listener) error {
+	t.Parallel()
+
+	stubAppListenerFn := func(_ *fiber.App, ln net.Listener) error {
 		_ = ln.Close()
 
 		return fmt.Errorf("forced listener error")
 	}
-
-	defer func() { appListenerFn = original }()
 
 	config := &PublicServerConfig{
 		BindAddress: cryptoutilSharedMagic.IPv4Loopback,
@@ -429,7 +426,7 @@ func TestPublicServerBase_ListenerError(t *testing.T) {
 		TLSMaterial: createTestTLSMaterial(t),
 	}
 
-	base, err := NewPublicServerBase(config)
+	base, err := newPublicServerBaseInternal(config, stubAppListenerFn)
 	require.NoError(t, err)
 
 	err = base.Start(context.Background())

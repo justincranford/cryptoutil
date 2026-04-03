@@ -6,10 +6,14 @@ package application
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	"database/sql"
 	"errors"
+	"fmt"
 	"testing"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 
@@ -18,11 +22,14 @@ import (
 	cryptoutilUnsealKeysService "cryptoutil/internal/apps/framework/service/server/barrier/unsealkeysservice"
 	cryptoutilAppsFrameworkServiceServerBusinesslogic "cryptoutil/internal/apps/framework/service/server/businesslogic"
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
+	cryptoutilSharedContainer "cryptoutil/internal/shared/container"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
-var errInjectFailure = errors.New("injected test failure")
+var (
+	errInjectFailure = errors.New("injected test failure")
+)
 
 // injectJWKGenFail replaces newJWKGenServiceFn with a failure stub.
 func injectJWKGenFail(_ context.Context, _ *cryptoutilSharedTelemetry.TelemetryService, _ bool) (*cryptoutilSharedCryptoJose.JWKGenService, error) {
@@ -49,12 +56,16 @@ func injectStatusFail(_ cryptoutilAppsFrameworkServiceServerBarrier.Repository) 
 	return nil, errInjectFailure
 }
 
-// setupCoreWithMigrations creates a Core with in-memory SQLite and applies all required migrations.
+// setupCoreWithMigrations creates a Core with a unique in-memory SQLite DB and applies all required migrations.
 func setupCoreWithMigrations(t *testing.T) (*Core, *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) {
 	t.Helper()
 
 	ctx := context.Background()
+
+	// Use a unique in-memory SQLite DB per test to avoid cross-test contamination during parallel execution.
+	uniqueName, _ := googleUuid.NewV7()
 	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+	settings.DatabaseURL = fmt.Sprintf("file:test_%s?mode=memory&cache=shared", uniqueName)
 
 	core, err := StartCore(ctx, settings)
 	require.NoError(t, err)
@@ -77,53 +88,51 @@ func setupCoreWithMigrations(t *testing.T) (*Core, *cryptoutilAppsFrameworkServi
 
 // TestStartBasic_JWKGenServiceFailure tests StartBasic JWKGenService error path.
 func TestStartBasic_JWKGenServiceFailure(t *testing.T) {
-	orig := newJWKGenServiceFn
-	newJWKGenServiceFn = injectJWKGenFail
-
-	defer func() { newJWKGenServiceFn = orig }()
+	t.Parallel()
 
 	ctx := context.Background()
 	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
-	_, err := StartBasic(ctx, settings)
+	_, err := startBasicInternal(ctx, settings, injectJWKGenFail)
 	require.ErrorContains(t, err, "JWK Gen Service")
 }
 
 // TestStartCore_StartBasicViaJWKGenFailure tests StartCore error path via StartBasic failure.
 func TestStartCore_StartBasicViaJWKGenFailure(t *testing.T) {
-	orig := newJWKGenServiceFn
-	newJWKGenServiceFn = injectJWKGenFail
-
-	defer func() { newJWKGenServiceFn = orig }()
+	t.Parallel()
 
 	ctx := context.Background()
 	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
-	_, err := StartCore(ctx, settings)
+	_, err := startCoreInternal(ctx, settings, injectJWKGenFail,
+		cryptoutilSharedContainer.StartPostgres,
+		sql.Open,
+		func(d gorm.Dialector, c *gorm.Config) (*gorm.DB, error) { return gorm.Open(d, c) },
+	)
 	require.ErrorContains(t, err, "basic application")
 }
 
 // TestStartListener_StartCoreViaJWKGenFailure tests StartListener error path via StartCore failure.
 func TestStartListener_StartCoreViaJWKGenFailure(t *testing.T) {
-	orig := newJWKGenServiceFn
-	newJWKGenServiceFn = injectJWKGenFail
-
-	defer func() { newJWKGenServiceFn = orig }()
+	t.Parallel()
 
 	ctx := context.Background()
 	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	cfg := &ListenerConfig{Settings: settings, PublicServer: &mockPublicServer{}, AdminServer: &mockAdminServer{}}
 
-	_, err := StartListener(ctx, cfg)
+	// startCoreInternal returns error due to JWK gen failure, StartListener returns error.
+	_, err := startListenerInternal(ctx, cfg,
+		injectJWKGenFail,
+		cryptoutilSharedContainer.StartPostgres,
+		sql.Open,
+		func(d gorm.Dialector, c *gorm.Config) (*gorm.DB, error) { return gorm.Open(d, c) },
+	)
 	require.ErrorContains(t, err, "application core")
 }
 
 // TestInitializeServicesOnCore_NewGormRepositoryFailure tests error path when NewGormRepository fails.
 func TestInitializeServicesOnCore_NewGormRepositoryFailure(t *testing.T) {
-	orig := newBarrierGormRepositoryFn
-	newBarrierGormRepositoryFn = injectGormRepoFail
-
-	defer func() { newBarrierGormRepositoryFn = orig }()
+	t.Parallel()
 
 	ctx := context.Background()
 	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
@@ -133,48 +142,58 @@ func TestInitializeServicesOnCore_NewGormRepositoryFailure(t *testing.T) {
 
 	defer core.Shutdown()
 
-	_, err = InitializeServicesOnCore(ctx, core, settings)
+	_, err = initializeServicesOnCoreInternal(ctx, core, settings, injectGormRepoFail,
+		cryptoutilAppsFrameworkServiceServerBusinesslogic.NewSessionManagerService,
+		cryptoutilAppsFrameworkServiceServerBarrier.NewRotationService,
+		cryptoutilAppsFrameworkServiceServerBarrier.NewStatusService,
+	)
 	require.ErrorContains(t, err, "barrier repository")
 }
 
 // TestInitializeServicesOnCore_NewSessionManagerServiceFailure tests error when NewSessionManagerService fails.
 func TestInitializeServicesOnCore_NewSessionManagerServiceFailure(t *testing.T) {
-	orig := newSessionManagerServiceFn
-	newSessionManagerServiceFn = injectSessionManagerFail
-
-	defer func() { newSessionManagerServiceFn = orig }()
+	t.Parallel()
 
 	ctx := context.Background()
 	core, settings := setupCoreWithMigrations(t)
 
-	_, err := InitializeServicesOnCore(ctx, core, settings)
+	_, err := initializeServicesOnCoreInternal(ctx, core, settings,
+		cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository,
+		injectSessionManagerFail,
+		cryptoutilAppsFrameworkServiceServerBarrier.NewRotationService,
+		cryptoutilAppsFrameworkServiceServerBarrier.NewStatusService,
+	)
 	require.ErrorContains(t, err, "session manager service")
 }
 
 // TestInitializeServicesOnCore_NewRotationServiceFailure tests error when NewRotationService fails.
 func TestInitializeServicesOnCore_NewRotationServiceFailure(t *testing.T) {
-	orig := newRotationServiceFn
-	newRotationServiceFn = injectRotationFail
-
-	defer func() { newRotationServiceFn = orig }()
+	t.Parallel()
 
 	ctx := context.Background()
 	core, settings := setupCoreWithMigrations(t)
 
-	_, err := InitializeServicesOnCore(ctx, core, settings)
+	_, err := initializeServicesOnCoreInternal(ctx, core, settings,
+		cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository,
+		cryptoutilAppsFrameworkServiceServerBusinesslogic.NewSessionManagerService,
+		injectRotationFail,
+		cryptoutilAppsFrameworkServiceServerBarrier.NewStatusService,
+	)
 	require.ErrorContains(t, err, "rotation service")
 }
 
 // TestInitializeServicesOnCore_NewStatusServiceFailure tests error when NewStatusService fails.
 func TestInitializeServicesOnCore_NewStatusServiceFailure(t *testing.T) {
-	orig := newStatusServiceFn
-	newStatusServiceFn = injectStatusFail
-
-	defer func() { newStatusServiceFn = orig }()
+	t.Parallel()
 
 	ctx := context.Background()
 	core, settings := setupCoreWithMigrations(t)
 
-	_, err := InitializeServicesOnCore(ctx, core, settings)
+	_, err := initializeServicesOnCoreInternal(ctx, core, settings,
+		cryptoutilAppsFrameworkServiceServerBarrier.NewGormRepository,
+		cryptoutilAppsFrameworkServiceServerBusinesslogic.NewSessionManagerService,
+		cryptoutilAppsFrameworkServiceServerBarrier.NewRotationService,
+		injectStatusFail,
+	)
 	require.ErrorContains(t, err, "status service")
 }

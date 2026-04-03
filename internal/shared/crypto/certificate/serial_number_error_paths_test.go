@@ -6,12 +6,13 @@ package certificate
 
 import (
 	"crypto/x509"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"io"
 	"math/big"
 	"testing"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )

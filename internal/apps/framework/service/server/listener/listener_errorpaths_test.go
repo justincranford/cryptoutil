@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -38,34 +39,42 @@ func validAutoTLSSettings(t *testing.T) *cryptoutilAppsFrameworkServiceConfigTls
 // === TLS Material Generation Failure (admin.go:55, public.go:64) ===
 
 func TestNewAdminHTTPServer_TLSMaterialGenFailure(t *testing.T) {
-	orig := generateTLSMaterialFn
-	generateTLSMaterialFn = func(_ *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings) (*cryptoutilAppsFrameworkServiceConfig.TLSMaterial, error) {
+	t.Parallel()
+
+	stubGenerateTLS := func(_ *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings) (*cryptoutilAppsFrameworkServiceConfig.TLSMaterial, error) {
 		return nil, errForcedTLSMaterialFailure
 	}
-
-	defer func() { generateTLSMaterialFn = orig }()
 
 	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	tlsCfg := &cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings{}
 
-	server, err := NewAdminHTTPServer(context.Background(), settings, tlsCfg)
+	server, err := newAdminHTTPServerInternal(context.Background(), settings, tlsCfg, stubGenerateTLS,
+		func(ctx context.Context, network, address string) (net.Listener, error) {
+			return (&net.ListenConfig{}).Listen(ctx, network, address)
+		},
+		func(app *fiber.App, ln net.Listener) error { return app.Listener(ln) },
+	)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to generate TLS material")
 	assert.Nil(t, server)
 }
 
 func TestNewPublicHTTPServer_TLSMaterialGenFailure(t *testing.T) {
-	orig := generateTLSMaterialFn
-	generateTLSMaterialFn = func(_ *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings) (*cryptoutilAppsFrameworkServiceConfig.TLSMaterial, error) {
+	t.Parallel()
+
+	stubGenerateTLS := func(_ *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings) (*cryptoutilAppsFrameworkServiceConfig.TLSMaterial, error) {
 		return nil, errForcedTLSMaterialFailure
 	}
-
-	defer func() { generateTLSMaterialFn = orig }()
 
 	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	tlsCfg := &cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings{}
 
-	server, err := NewPublicHTTPServer(context.Background(), settings, tlsCfg)
+	server, err := newPublicHTTPServerInternal(context.Background(), settings, tlsCfg, stubGenerateTLS,
+		func(ctx context.Context, network, address string) (net.Listener, error) {
+			return (&net.ListenConfig{}).Listen(ctx, network, address)
+		},
+		func(app *fiber.App, ln net.Listener) error { return app.Listener(ln) },
+	)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to generate TLS material")
 	assert.Nil(t, server)
@@ -188,38 +197,37 @@ func TestPublicHTTPServer_Start_ContextCancellation(t *testing.T) {
 // === NewHTTPServers Server Creation Failures (servers.go:45, servers.go:50) ===
 
 func TestNewHTTPServers_PublicServerCreateFailure(t *testing.T) {
-	orig := generateTLSMaterialFn
-	generateTLSMaterialFn = func(_ *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings) (*cryptoutilAppsFrameworkServiceConfig.TLSMaterial, error) {
+	t.Parallel()
+
+	stubGenerateTLS := func(_ *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings) (*cryptoutilAppsFrameworkServiceConfig.TLSMaterial, error) {
 		return nil, errForcedTLSMaterialFailure
 	}
 
-	defer func() { generateTLSMaterialFn = orig }()
-
 	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
-	h, err := NewHTTPServers(context.Background(), settings)
+	h, err := newHTTPServersInternal(context.Background(), settings, stubGenerateTLS)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to create public server")
 	assert.Nil(t, h)
 }
 
 func TestNewHTTPServers_AdminServerCreateFailure(t *testing.T) {
+	t.Parallel()
+
 	callCount := 0
-	orig := generateTLSMaterialFn
-	generateTLSMaterialFn = func(cfg *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings) (*cryptoutilAppsFrameworkServiceConfig.TLSMaterial, error) {
+	realGenerateTLS := cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateTLSMaterial
+	stubGenerateTLS := func(cfg *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings) (*cryptoutilAppsFrameworkServiceConfig.TLSMaterial, error) {
 		callCount++
 		if callCount >= 2 {
 			return nil, errForcedTLSMaterialFailure
 		}
 
-		return orig(cfg)
+		return realGenerateTLS(cfg)
 	}
-
-	defer func() { generateTLSMaterialFn = orig }()
 
 	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
-	h, err := NewHTTPServers(context.Background(), settings)
+	h, err := newHTTPServersInternal(context.Background(), settings, stubGenerateTLS)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to create admin server")
 	assert.Nil(t, h)

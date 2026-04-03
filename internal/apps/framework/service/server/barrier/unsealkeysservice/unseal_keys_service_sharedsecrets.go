@@ -7,6 +7,7 @@ package unsealkeysservice
 import (
 	"fmt"
 
+	cryptoutilSharedCryptoDigests "cryptoutil/internal/shared/crypto/digests"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
@@ -71,7 +72,11 @@ func NewUnsealKeysServiceSharedSecrets(sharedSecretsM [][]byte, chooseN int) (Un
 		}
 	}
 
-	unsealJWKs, err := deriveJWKsFromMChooseNCombinations(sharedSecretsM, chooseN) // pragma: allowlist secret
+	return newUnsealKeysServiceSharedSecretsInternal(sharedSecretsM, chooseN, cryptoutilSharedCryptoDigests.HKDFwithSHA256)
+}
+
+func newUnsealKeysServiceSharedSecretsInternal(sharedSecretsM [][]byte, chooseN int, hkdfFn func(secret, salt, info []byte, outputBytesLength int) ([]byte, error)) (UnsealKeysService, error) { // pragma: allowlist secret
+	unsealJWKs, err := deriveJWKsFromMChooseNCombinationsInternal(sharedSecretsM, chooseN, hkdfFn) // pragma: allowlist secret
 	if err != nil {
 		return nil, fmt.Errorf("failed to create unseal JWK combinations: %w", err)
 	}

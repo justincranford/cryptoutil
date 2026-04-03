@@ -4,11 +4,12 @@ package repository
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"database/sql"
 	"errors"
 	"io/fs"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
@@ -81,10 +82,9 @@ func TestInitPostgreSQL_SqlOpenError(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to open PostgreSQL database")
 }
 
-// TestMigrationRunner_MigrateNewWithInstanceError covers the migrateNewWithInstanceFn error path.
-// NOT parallel — modifies package-level injectable var.
+// TestMigrationRunner_MigrateNewWithInstanceError covers the migrateNewInstanceFn error path.
 func TestMigrationRunner_MigrateNewWithInstanceError(t *testing.T) {
-	original := migrateNewWithInstanceFn
+	t.Parallel()
 
 	// Open a real SQLite database so that iofs and sqlite driver creation succeed,
 	// then fail at the migrate.NewWithInstance step.
@@ -95,13 +95,11 @@ func TestMigrationRunner_MigrateNewWithInstanceError(t *testing.T) {
 		require.NoError(t, sqlDB.Close())
 	}()
 
-	migrateNewWithInstanceFn = func(_ string, _ source.Driver, _ string, _ database.Driver) (*migrate.Migrate, error) {
+	stubMigrateNewInstanceFn := func(_ string, _ source.Driver, _ string, _ database.Driver) (*migrate.Migrate, error) {
 		return nil, errors.New("injected migrate instance error")
 	}
 
-	defer func() { migrateNewWithInstanceFn = original }()
-
-	runner := NewMigrationRunner(testDBMigrationsFS, "test_migrations")
+	runner := newMigrationRunnerInternal(testDBMigrationsFS, "test_migrations", stubMigrateNewInstanceFn)
 	applyErr := runner.Apply(sqlDB, DatabaseTypeSQLite)
 	require.Error(t, applyErr)
 	require.Contains(t, applyErr.Error(), "failed to create migrate instance")

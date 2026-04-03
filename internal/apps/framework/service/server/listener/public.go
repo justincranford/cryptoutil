@@ -19,16 +19,6 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// publicListenFn is injectable for testing the TCP listener creation in Start().
-var publicListenFn = func(ctx context.Context, network, address string) (net.Listener, error) {
-	return (&net.ListenConfig{}).Listen(ctx, network, address)
-}
-
-// publicAppListenerFn is injectable for testing the Fiber app.Listener call in Start().
-var publicAppListenerFn = func(app *fiber.App, ln net.Listener) error {
-	return app.Listener(ln)
-}
-
 // PublicHTTPServer implements the PublicServer interface for business logic APIs and UIs.
 // Binds to configurable address and port from ServiceFrameworkServerSettings.
 //
@@ -38,13 +28,15 @@ var publicAppListenerFn = func(app *fiber.App, ln net.Listener) error {
 //
 // Both paths serve the SAME OpenAPI specification but with different middleware stacks.
 type PublicHTTPServer struct {
-	app         *fiber.App
-	settings    *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings
-	actualPort  int
-	listener    net.Listener
-	tlsMaterial *cryptoutilAppsFrameworkServiceConfig.TLSMaterial
-	mu          sync.RWMutex
-	shutdown    bool
+	app           *fiber.App
+	settings      *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings
+	actualPort    int
+	listener      net.Listener
+	tlsMaterial   *cryptoutilAppsFrameworkServiceConfig.TLSMaterial
+	listenFn      func(ctx context.Context, network, address string) (net.Listener, error)
+	appListenerFn func(app *fiber.App, ln net.Listener) error
+	mu            sync.RWMutex
+	shutdown      bool
 }
 
 // NewPublicHTTPServer creates a new public HTTPS server instance.
@@ -61,6 +53,25 @@ type PublicHTTPServer struct {
 // - *PublicHTTPServer: Server instance ready to Start()
 // - error: Non-nil if initialization fails (nil context, TLS generation failure, Fiber setup failure).
 func NewPublicHTTPServer(ctx context.Context, settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings, tlsCfg *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings) (*PublicHTTPServer, error) {
+	return newPublicHTTPServerInternal(ctx, settings, tlsCfg,
+		cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateTLSMaterial,
+		func(ctx context.Context, network, address string) (net.Listener, error) {
+			return (&net.ListenConfig{}).Listen(ctx, network, address)
+		},
+		func(app *fiber.App, ln net.Listener) error {
+			return app.Listener(ln) //nolint:wrapcheck // Pass-through to Fiber framework.
+		},
+	)
+}
+
+func newPublicHTTPServerInternal(
+	ctx context.Context,
+	settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings,
+	tlsCfg *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings,
+	generateTLSMaterialFn func(cfg *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings) (*cryptoutilAppsFrameworkServiceConfig.TLSMaterial, error),
+	listenFn func(ctx context.Context, network, address string) (net.Listener, error),
+	appListenerFn func(app *fiber.App, ln net.Listener) error,
+) (*PublicHTTPServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	} else if settings == nil {
@@ -76,8 +87,10 @@ func NewPublicHTTPServer(ctx context.Context, settings *cryptoutilAppsFrameworkS
 	}
 
 	server := &PublicHTTPServer{
-		settings:    settings,
-		tlsMaterial: tlsMaterial,
+		settings:      settings,
+		tlsMaterial:   tlsMaterial,
+		listenFn:      listenFn,
+		appListenerFn: appListenerFn,
 	}
 
 	server.app = fiber.New(fiber.Config{
@@ -172,7 +185,7 @@ func (s *PublicHTTPServer) Start(ctx context.Context) error {
 	}
 
 	// Create TCP listener using address and port from ServiceFrameworkServerSettings.
-	listener, err := publicListenFn(ctx, "tcp", fmt.Sprintf("%s:%d", s.settings.BindPublicAddress, s.settings.BindPublicPort))
+	listener, err := s.listenFn(ctx, "tcp", fmt.Sprintf("%s:%d", s.settings.BindPublicAddress, s.settings.BindPublicPort))
 	if err != nil {
 		return fmt.Errorf("failed to create listener: %w", err)
 	}
@@ -197,7 +210,7 @@ func (s *PublicHTTPServer) Start(ctx context.Context) error {
 	errChan := make(chan error, 1)
 
 	go func() {
-		if err := publicAppListenerFn(s.app, tlsListener); err != nil {
+		if err := s.appListenerFn(s.app, tlsListener); err != nil {
 			errChan <- fmt.Errorf("public server error: %w", err)
 		} else {
 			errChan <- nil

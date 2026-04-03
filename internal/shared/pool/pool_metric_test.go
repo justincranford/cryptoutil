@@ -6,10 +6,11 @@ package pool
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"testing"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 

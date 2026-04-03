@@ -4,10 +4,11 @@
 package pwdgen
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"math/big"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )

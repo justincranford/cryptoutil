@@ -12,6 +12,10 @@ import (
 	cryptoutilUnsealKeysService "cryptoutil/internal/apps/framework/service/server/barrier/unsealkeysservice"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
+
+	googleUuid "github.com/google/uuid"
+
+	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
 // Service provides multi-layer encryption using unseal → root → intermediate → content key hierarchy.
@@ -39,6 +43,19 @@ func NewService(
 	repository Repository,
 	unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService,
 ) (*Service, error) {
+	return newServiceInternal(ctx, telemetryService, jwkGenService, repository, unsealKeysService, func(svc *cryptoutilSharedCryptoJose.JWKGenService) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
+		return svc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgDir)
+	})
+}
+
+func newServiceInternal(
+	ctx context.Context,
+	telemetryService *cryptoutilSharedTelemetry.TelemetryService,
+	jwkGenService *cryptoutilSharedCryptoJose.JWKGenService,
+	repository Repository,
+	unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService,
+	generateIntermediateJWEJWKFn func(svc *cryptoutilSharedCryptoJose.JWKGenService) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error),
+) (*Service, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx must be non-nil")
 	}
@@ -64,7 +81,7 @@ func NewService(
 		return nil, fmt.Errorf("failed to create root keys service: %w", err)
 	}
 
-	intermediateKeysService, err := NewIntermediateKeysService(telemetryService, jwkGenService, repository, rootKeysService)
+	intermediateKeysService, err := newIntermediateKeysServiceInternal(telemetryService, jwkGenService, repository, rootKeysService, generateIntermediateJWEJWKFn)
 	if err != nil {
 		rootKeysService.Shutdown()
 

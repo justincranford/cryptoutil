@@ -22,37 +22,45 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// generateTLSMaterialFn is the function used to generate TLS material. Injectable for testing.
-var generateTLSMaterialFn = cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateTLSMaterial
-
-// adminListenFn is injectable for testing the TCP listener creation error paths.
-var adminListenFn = func(ctx context.Context, network, address string) (net.Listener, error) {
-	return (&net.ListenConfig{}).Listen(ctx, network, address)
-}
-
-// adminAppListenerFn is injectable for testing the app.Listener error path.
-var adminAppListenerFn = func(app *fiber.App, ln net.Listener) error {
-	//nolint:wrapcheck // Pass-through to Fiber framework.
-	return app.Listener(ln)
-}
-
 // AdminServer represents the private admin API server for health checks and graceful shutdown.
 // Binds to address and port from ServiceFrameworkServerSettings.
 type AdminServer struct {
-	app         *fiber.App
-	listener    net.Listener
-	settings    *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings
-	actualPort  uint16
-	tlsMaterial *cryptoutilAppsFrameworkServiceConfig.TLSMaterial
-	mu          sync.RWMutex
-	ready       bool
-	shutdown    bool
+	app           *fiber.App
+	listener      net.Listener
+	settings      *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings
+	actualPort    uint16
+	tlsMaterial   *cryptoutilAppsFrameworkServiceConfig.TLSMaterial
+	listenFn      func(ctx context.Context, network, address string) (net.Listener, error)
+	appListenerFn func(app *fiber.App, ln net.Listener) error
+	mu            sync.RWMutex
+	ready         bool
+	shutdown      bool
 }
 
 // NewAdminHTTPServer creates a new admin server instance for private administrative operations.
 // settings: ServiceFrameworkServerSettings containing bind address, port, and paths (MUST NOT be nil).
 // tlsCfg: TLS configuration (mode + parameters) for HTTPS server. MUST NOT be nil.
 func NewAdminHTTPServer(ctx context.Context, settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings, tlsCfg *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings) (*AdminServer, error) {
+	return newAdminHTTPServerInternal(ctx, settings, tlsCfg,
+		cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateTLSMaterial,
+		func(ctx context.Context, network, address string) (net.Listener, error) {
+			return (&net.ListenConfig{}).Listen(ctx, network, address)
+		},
+		func(app *fiber.App, ln net.Listener) error {
+			//nolint:wrapcheck // Pass-through to Fiber framework.
+			return app.Listener(ln)
+		},
+	)
+}
+
+func newAdminHTTPServerInternal(
+	ctx context.Context,
+	settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings,
+	tlsCfg *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings,
+	generateTLSMaterialFn func(cfg *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings) (*cryptoutilAppsFrameworkServiceConfig.TLSMaterial, error),
+	listenFn func(ctx context.Context, network, address string) (net.Listener, error),
+	appListenerFn func(app *fiber.App, ln net.Listener) error,
+) (*AdminServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	}
@@ -72,10 +80,12 @@ func NewAdminHTTPServer(ctx context.Context, settings *cryptoutilAppsFrameworkSe
 	}
 
 	server := &AdminServer{
-		settings:    settings,
-		tlsMaterial: tlsMaterial,
-		ready:       false,
-		shutdown:    false,
+		settings:      settings,
+		tlsMaterial:   tlsMaterial,
+		listenFn:      listenFn,
+		appListenerFn: appListenerFn,
+		ready:         false,
+		shutdown:      false,
 	}
 
 	// Create Fiber app with minimal configuration.
@@ -202,7 +212,7 @@ func (s *AdminServer) Start(ctx context.Context) error {
 	addr := fmt.Sprintf("%s:%d", s.settings.BindPrivateAddress, s.settings.BindPrivatePort)
 
 	// Create listener.
-	listener, err := adminListenFn(ctx, "tcp", addr)
+	listener, err := s.listenFn(ctx, "tcp", addr)
 	if err != nil {
 		return fmt.Errorf("failed to create admin listener: %w", err)
 	}
@@ -247,7 +257,7 @@ func (s *AdminServer) Start(ctx context.Context) error {
 	errChan := make(chan error, 1)
 
 	go func() {
-		if err := adminAppListenerFn(s.app, tlsListener); err != nil {
+		if err := s.appListenerFn(s.app, tlsListener); err != nil {
 			errChan <- fmt.Errorf("admin server error: %w", err)
 		} else {
 			errChan <- nil

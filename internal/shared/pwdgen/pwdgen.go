@@ -6,10 +6,11 @@ package pwdgen
 
 import (
 	crand "crypto/rand"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"fmt"
 	"math/big"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // CharSetConfig defines a character set with minimum and maximum requirements.
