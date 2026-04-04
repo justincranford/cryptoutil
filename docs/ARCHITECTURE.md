@@ -2577,7 +2577,7 @@ cmd/cicd-lint/main.go                          # Layer 1: Thin main(), os.Exit(C
 | **Formatters** | `format-<target>` | `format_<target>/` | `Format(logger, ...)` | `registeredFormatters` |
 | **Scripts** | `<action>-<target>` | `<action>_<target>/` | Script-specific | `registeredCleaners` etc. |
 
-**Linter commands** (11): `lint-text`, `lint-go`, `lint-go-test`, `lint-go-mod`, `lint-golangci`, `lint-compose`, `lint-ports`, `lint-workflow`, `lint-deployments`, `lint-docs`, `lint-fitness`
+**Linter commands** (13): `lint-text`, `lint-go`, `lint-go-test`, `lint-go-mod`, `lint-golangci`, `lint-compose`, `lint-ports`, `lint-workflow`, `lint-deployments`, `lint-docs`, `lint-fitness`, `lint-java-test`, `lint-python-test`
 **Formatter commands** (2): `format-go`, `format-go-test`
 **Script commands** (1): `github-cleanup`
 <!-- @/propagate -->
@@ -2661,6 +2661,10 @@ internal/apps/tools/cicd_lint/
 ├── lint_fitness/                                      # lint-fitness command
 │   ├── lint_fitness.go                             # Lint() + registeredLinters (68 sub-linters)
 │   └── ... (68 sub-linters, see Section 9.11)
+├── lint_javatest/                                     # lint-java-test command
+│   └── lint_javatest.go                            # Lint() + CheckInsecureRandom()
+├── lint_pythontest/                                   # lint-python-test command
+│   └── lint_pythontest.go                          # Lint() + CheckUnittestAntipattern()
 ├── format_go/                                        # format-go command
 │   ├── format_go.go                                # Format() + registeredFormatters
 │   ├── copyloopvar/                                # Sub-formatter
@@ -3667,6 +3671,120 @@ func BenchmarkWithSetup(b *testing.B) {
 **Local Testing**: go run ./cmd/cicd-workflow -workflows=dast,e2e -inputs="key=value"
 
 **Act Compatibility**: NEVER use -t timeout, ALWAYS specify -workflows, use -inputs for params
+
+### 10.13 Java / Gatling Load Test Standards
+
+Java Gatling simulations in `test/load/src/test/java/cryptoutil/` MUST follow these standards, enforced by `cicd-lint lint-java-test`.
+
+**Secure RNG (MANDATORY)**:
+
+- ALWAYS use `java.security.SecureRandom` — FIPS 140-3 compliance requires it
+- NEVER use `new Random()` (java.util.Random) — non-cryptographic, predictable
+- NEVER use `Math.random()` — delegates to java.util.Random internally
+
+```java
+// CORRECT
+import java.security.SecureRandom;
+private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
+// WRONG — detected by lint-java-test
+private static final Random RANDOM = new Random();          // new Random()
+private double roll() { return Math.random(); }             // Math.random()
+```
+
+**Parameterization — MANDATORY**:
+
+All configurable values (base URLs, user counts, durations) MUST use `System.getProperty()` with a default:
+
+```java
+private static final String BASE_URL = System.getProperty("baseUrl", "https://localhost:8080");
+private static final int    USERS    = Integer.parseInt(System.getProperty("users", "10"));
+private static final int    DURATION = Integer.parseInt(System.getProperty("durationSeconds", "60"));
+```
+
+**Simulation pattern**:
+
+```java
+import java.security.SecureRandom;
+import io.gatling.javaapi.core.*;
+import io.gatling.javaapi.http.*;
+import static io.gatling.javaapi.core.CoreDsl.*;
+import static io.gatling.javaapi.http.HttpDsl.*;
+
+public class ApiSimulation extends Simulation {
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    private static final String BASE_URL = System.getProperty("baseUrl", "https://localhost:8080");
+    private static final int    USERS    = Integer.parseInt(System.getProperty("users", "1"));
+
+    HttpProtocolBuilder protocol = http.baseUrl(BASE_URL).disableFollowRedirect();
+
+    ScenarioBuilder scn = scenario("Health check")
+        .exec(http("health").get("/service/api/v1/health").check(status().is(200)));
+
+    { setUp(scn.injectOpen(atOnceUsers(USERS))).protocols(protocol); }
+}
+```
+
+**Violations detected by `lint-java-test`**:
+
+| Pattern | Violation | Fix |
+|---------|-----------|-----|
+| `new Random()` | Non-FIPS RNG | Replace with `new SecureRandom()` |
+| `Math.random()` | Non-FIPS RNG | Replace with `secureRandom.nextDouble()` |
+
+**Execution**: `mvn gatling:test -pl test/load -Dgatling.simulationClass=cryptoutil.ApiSimulation`
+
+### 10.14 Python / pytest Standards
+
+Python test files (when present in `test/` or elsewhere) MUST use pytest style, enforced by `cicd-lint lint-python-test`. The linter checks files named `test_*.py` or `*_test.py` only.
+
+**Required: pytest standalone functions**:
+
+```python
+# CORRECT — pytest style
+import pytest
+
+@pytest.mark.parametrize("value,expected", [
+    ("valid",   True),
+    ("invalid", False),
+])
+def test_validate_input(value, expected):
+    result = validate_input(value)
+    assert result == expected
+```
+
+**Prohibited: unittest.TestCase inheritance**:
+
+```python
+# WRONG — detected by lint-python-test
+import unittest
+
+class MyTest(unittest.TestCase):
+    def test_something(self):
+        self.assertEqual(result, expected)   # self.assert*()
+```
+
+**pytest fixtures (parameterization)**:
+
+```python
+@pytest.fixture
+def api_client(base_url):
+    return ApiClient(base_url)
+
+def test_health_check(api_client):
+    resp = api_client.get("/service/api/v1/health")
+    assert resp.status_code == 200
+```
+
+**Violations detected by `lint-python-test`** (in `test_*.py` / `*_test.py` files only):
+
+| Pattern | Violation | Fix |
+|---------|-----------|-----|
+| `class X(unittest.TestCase)` | unittest inheritance | Use standalone `def test_*()` |
+| `from unittest import TestCase` | unittest import | Use `import pytest` |
+| `self.assertEqual(...)` etc. | self.assert* calls | Use bare `assert` or `pytest.raises()` |
+
+**Execution**: `pytest test/ -v --tb=short`
 
 ---
 

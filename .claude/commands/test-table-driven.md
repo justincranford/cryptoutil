@@ -98,3 +98,18 @@ func TestDoSomething_EncryptError(t *testing.T) {
 ```
 
 See [ARCHITECTURE.md §10.2.4](../../docs/ARCHITECTURE.md#1024-test-seam-injection-pattern).
+
+## Java / Gatling Load Test Rules
+
+- `SecureRandom` MANDATORY — NEVER `new Random()` or `Math.random()`
+- Parameterize via `System.getProperty("key", "default")` — no hardcoded URLs/counts
+- All simulation classes MUST extend `Simulation`
+- Validated by: `cicd-lint lint-java-test`
+
+## Python / pytest Rules
+
+- USE pytest standalone functions (`def test_*(...)`) — NEVER `class MyTest(unittest.TestCase)`
+- USE `@pytest.mark.parametrize` — NEVER `self.assertEqual` loops
+- USE bare `assert` — NEVER `self.assert*()` methods
+- Files MUST be named `test_*.py` or `*_test.py`
+- Validated by: `cicd-lint lint-python-test`

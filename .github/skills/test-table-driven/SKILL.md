@@ -105,17 +105,91 @@ os.Exit(m.Run())
 ```go
 // Struct method error path test
 func TestDoSomething_EncryptError(t *testing.T) {
-	t.Parallel()
-	sm := setupSessionManager(t)
-	sm.encryptBytesFn = func(_ []joseJwk.Key, _ []byte) (*joseJwe.Message, []byte, error) {
-		return nil, nil, fmt.Errorf("injected encrypt error")
-	}
-	_, err := sm.DoSomething(ctx, input)
-	require.ErrorContains(t, err, "injected encrypt error")
+ t.Parallel()
+ sm := setupSessionManager(t)
+ sm.encryptBytesFn = func(_ []joseJwk.Key, _ []byte) (*joseJwe.Message, []byte, error) {
+  return nil, nil, fmt.Errorf("injected encrypt error")
+ }
+ _, err := sm.DoSomething(ctx, input)
+ require.ErrorContains(t, err, "injected encrypt error")
 }
 ```
 
 See [ARCHITECTURE.md §10.2.4](../../../docs/ARCHITECTURE.md#1024-test-seam-injection-pattern) for full decision matrix.
+
+## Java / Gatling Load Test Pattern
+
+Java Gatling simulations in `test/load/src/test/java/cryptoutil/` MUST follow these standards:
+
+- **Secure RNG**: ALWAYS use `java.security.SecureRandom`, NEVER `new Random()` or `Math.random()`
+- **Parameterization**: Use `System.getProperty("key", "default")` for all configurable values (base URLs, user counts, durations)
+- **Simulation extension**: All simulation classes MUST extend `Simulation` — do not extend other test frameworks
+- **Validated by**: `cicd-lint lint-java-test` — checks for insecure random number generation
+
+**Correct pattern:**
+
+```java
+import java.security.SecureRandom;
+import io.gatling.javaapi.core.*;
+import io.gatling.javaapi.http.*;
+import static io.gatling.javaapi.core.CoreDsl.*;
+
+public class MyApiSimulation extends Simulation {
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    private static final String BASE_URL = System.getProperty("baseUrl", "https://localhost:8080");
+    private static final int USERS   = Integer.parseInt(System.getProperty("users", "10"));
+
+    HttpProtocolBuilder protocol = http.baseUrl(BASE_URL);
+
+    ScenarioBuilder scn = scenario("MyScenario")
+        .exec(http("request").get("/service/api/v1/health").check(status().is(200)));
+
+    { setUp(scn.injectOpen(atOnceUsers(USERS))).protocols(protocol); }
+}
+```
+
+**Violations detected by `lint-java-test`:**
+- `new Random()` — replace with `new SecureRandom()`
+- `Math.random()` — replace with `secureRandom.nextDouble()`
+
+## Python / pytest Pattern
+
+Python test files (when present) MUST use pytest style:
+
+- **pytest functions**: Use standalone `def test_*()` functions, NOT `class MyTest(unittest.TestCase)`
+- **Parameterization**: Use `@pytest.mark.parametrize` decorator, NOT `self.assertEqual` loops
+- **Assertions**: Use bare `assert` statements, NOT `self.assert*()` methods
+- **File naming**: Test files MUST be named `test_*.py` or `*_test.py`
+- **Validated by**: `cicd-lint lint-python-test` — checks for unittest.TestCase antipatterns
+
+**Correct pattern:**
+
+```python
+import pytest
+
+@pytest.mark.parametrize("value,expected", [
+    ("valid",   True),
+    ("invalid", False),
+])
+def test_validate_input(value, expected):
+    result = validate_input(value)
+    assert result == expected
+
+
+@pytest.fixture
+def client(base_url):
+    return ApiClient(base_url)
+
+
+def test_health_check(client):
+    resp = client.get("/service/api/v1/health")
+    assert resp.status_code == 200
+```
+
+**Violations detected by `lint-python-test` (in `test_*.py` and `*_test.py` files only):**
+- `class MyTest(unittest.TestCase)` — replace with standalone functions
+- `from unittest import TestCase` — use pytest instead
+- `self.assert*(...)` calls — use bare `assert` or `pytest.raises()`
 
 ## References
 

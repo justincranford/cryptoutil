@@ -365,7 +365,7 @@ delete both PARAMETERIZATION files.
 
 #### Task 1.1: #21 — Claude Command YAML Frontmatter + Drift Validation
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 4h
 - **Dependencies**: None
@@ -374,13 +374,13 @@ delete both PARAMETERIZATION files.
   `argument-hint` match. Claude command `name` field uses bare skill name (NOT `claude-` prefix).
   Update ARCHITECTURE.md §2.1.5 and instruction file §06-02.
 - **Acceptance Criteria**:
-  - [ ] All 14 `.claude/commands/*.md` files have `---` YAML frontmatter with `name`, `description`
-  - [ ] `CheckSkillCommandDrift()` validates frontmatter presence (fails if missing)
-  - [ ] `CheckSkillCommandDrift()` validates `description` matches between Copilot skill and Claude command
-  - [ ] `lint-docs` exits non-zero on missing or mismatched frontmatter
-  - [ ] ARCHITECTURE.md §2.1.5 documents Claude command frontmatter rules
-  - [ ] §06-02 instruction rules updated
-  - [ ] Tests ≥95% coverage on new validation logic
+  - [x] All 14 `.claude/commands/*.md` files have `---` YAML frontmatter with `name`, `description`
+  - [x] `CheckSkillCommandDrift()` validates frontmatter presence (fails if missing)
+  - [x] `CheckSkillCommandDrift()` validates `description` matches between Copilot skill and Claude command
+  - [x] `lint-docs` exits non-zero on missing or mismatched frontmatter
+  - [x] ARCHITECTURE.md §2.1.5 documents Claude command frontmatter rules
+  - [x] §06-02 instruction rules updated
+  - [x] Tests ≥95% coverage on new validation logic
 - **Files**:
   - `.claude/commands/*.md` (all 14 files)
   - `internal/apps/tools/cicd_lint/lint_docs/` (CheckSkillCommandDrift)
@@ -389,22 +389,22 @@ delete both PARAMETERIZATION files.
 
 #### Task 1.2: #22 — Multi-Language Parameterized Testing Standards
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 4h
 - **Dependencies**: None
 - **Description**: Expand `test-table-driven` skill and Claude command to cover Go, Java
   (Gatling), and Python (pytest). Add `lint-java-test` and `lint-python-test` cicd-lint
-  subcommands. Update ARCHITECTURE.md §10 with §10.9 (Java/Gatling) and §10.10 (Python/pytest).
-  Update cicd-lint command table to show 13 linter commands.
+  subcommands. Update ARCHITECTURE.md §10 with §10.13 (Java/Gatling) and §10.14 (Python/pytest)
+  (§10.9–§10.12 were already occupied). Update cicd-lint command table to show 13 linter commands.
 - **Acceptance Criteria**:
-  - [ ] `test-table-driven` skill updated with Java and Python sections
-  - [ ] Claude command updated to match
-  - [ ] `lint-java-test` sub-linter implemented and registered
-  - [ ] `lint-python-test` sub-linter implemented and registered
-  - [ ] ARCHITECTURE.md §10.9 and §10.10 added
-  - [ ] cicd-lint command table shows 13 linter commands
-  - [ ] Tests ≥95%
+  - [x] `test-table-driven` skill updated with Java and Python sections
+  - [x] Claude command updated to match
+  - [x] `lint-java-test` sub-linter implemented and registered
+  - [x] `lint-python-test` sub-linter implemented and registered
+  - [x] ARCHITECTURE.md §10.13 (Java/Gatling) and §10.14 (Python/pytest) added
+  - [x] cicd-lint command table shows 13 linter commands
+  - [x] Tests ≥95% (100% achieved)
 - **Files**:
   - `.github/skills/test-table-driven/SKILL.md`
   - `.claude/commands/test-table-driven.md`
@@ -413,7 +413,7 @@ delete both PARAMETERIZATION files.
 
 #### Task 1.3: #23 — Copilot↔Claude Skill Body Content Drift
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 3h
 - **Dependencies**: 1.1 (drift checker extended)
@@ -421,11 +421,11 @@ delete both PARAMETERIZATION files.
   `CheckSkillCommandDrift()` to validate rule section presence. Every skill MUST have
   `## Key Rules`; every Claude command MUST mirror it.
 - **Acceptance Criteria**:
-  - [ ] All 14 skills have `## Key Rules` section
-  - [ ] All 14 Claude commands mirror the `## Key Rules` section from skill
-  - [ ] `CheckSkillCommandDrift()` errors if section is missing
-  - [ ] `lint-docs` rejects mismatches
-  - [ ] Tests ≥95%
+  - [x] All 14 skills have `## Key Rules` section
+  - [x] All 14 Claude commands mirror the `## Key Rules` section from skill
+  - [x] `CheckSkillCommandDrift()` errors if section is missing
+  - [x] `lint-docs` rejects mismatches
+  - [x] Tests ≥95%
 - **Files**:
   - `.github/skills/*/SKILL.md` (all 14)
   - `.claude/commands/*.md` (all 14)
