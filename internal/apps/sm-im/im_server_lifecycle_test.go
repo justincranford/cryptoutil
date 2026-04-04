@@ -5,6 +5,7 @@
 package im
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"testing"
 
@@ -15,7 +16,7 @@ import (
 func TestIM_ServerHelp(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Im([]string{"server", "--help"}, nil, &stdout, &stderr)
+	exitCode := Im([]string{"server", cryptoutilSharedMagic.CLIHelpFlag}, nil, &stdout, &stderr)
 	require.Equal(t, 0, exitCode)
 
 	combined := stdout.String() + stderr.String()

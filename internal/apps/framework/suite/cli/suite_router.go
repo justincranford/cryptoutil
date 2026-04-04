@@ -8,12 +8,8 @@ package cli
 import (
 	"fmt"
 	"io"
-)
 
-const (
-	helpCommand   = "help"
-	helpFlag      = "--help"
-	helpShortFlag = "-h"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // SuiteConfig holds configuration for a suite CLI entrypoint.
@@ -44,7 +40,7 @@ func RouteSuite(cfg SuiteConfig, args []string, stdin io.Reader, stdout, stderr 
 	}
 
 	// Check for help flags.
-	if args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag {
+	if args[0] == cryptoutilSharedMagic.CLIHelpCommand || args[0] == cryptoutilSharedMagic.CLIHelpFlag || args[0] == cryptoutilSharedMagic.CLIHelpShortFlag {
 		_, _ = fmt.Fprintln(stderr, cfg.UsageText)
 
 		return 0

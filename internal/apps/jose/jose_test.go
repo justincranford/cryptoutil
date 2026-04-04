@@ -5,6 +5,7 @@
 package jose
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"strings"
 	"testing"
@@ -33,8 +34,8 @@ func TestJose_HelpCommand(t *testing.T) {
 		name string
 		args []string
 	}{
-		{name: "help command", args: []string{"help"}},
-		{name: "help flag long", args: []string{"--help"}},
+		{name: "help command", args: []string{cryptoutilSharedMagic.CLIHelpCommand}},
+		{name: "help flag long", args: []string{cryptoutilSharedMagic.CLIHelpFlag}},
 		{name: "help flag short", args: []string{"-h"}},
 	}
 
@@ -62,8 +63,8 @@ func TestJose_VersionCommand(t *testing.T) {
 		name string
 		args []string
 	}{
-		{name: "version command", args: []string{"version"}},
-		{name: "version flag long", args: []string{"--version"}},
+		{name: "version command", args: []string{cryptoutilSharedMagic.CLIVersionCommand}},
+		{name: "version flag long", args: []string{cryptoutilSharedMagic.CLIVersionFlag}},
 		{name: "version flag short", args: []string{"-v"}},
 	}
 
@@ -114,7 +115,7 @@ func TestJose_JAService_RoutesCorrectly(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Jose([]string{"ja", "help"}, nil, &stdout, &stderr)
+	exitCode := Jose([]string{"ja", cryptoutilSharedMagic.CLIHelpCommand}, nil, &stdout, &stderr)
 	require.Equal(t, 0, exitCode)
 
 	combinedOutput := stdout.String() + stderr.String()
@@ -145,7 +146,7 @@ func TestJose_EntryPoint(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Jose([]string{"--help"}, nil, &stdout, &stderr)
+	exitCode := Jose([]string{cryptoutilSharedMagic.CLIHelpFlag}, nil, &stdout, &stderr)
 	require.Equal(t, 0, exitCode)
 
 	output := stdout.String() + stderr.String()

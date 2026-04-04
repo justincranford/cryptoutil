@@ -5,6 +5,7 @@
 package spa
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"testing"
 
@@ -16,7 +17,7 @@ func TestSpa_MainHelp(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Spa([]string{"--help"}, nil, &stdout, &stderr)
+	exitCode := Spa([]string{cryptoutilSharedMagic.CLIHelpFlag}, nil, &stdout, &stderr)
 
 	require.Equal(t, 0, exitCode)
 	require.Contains(t, stdout.String()+stderr.String(), "identity spa")

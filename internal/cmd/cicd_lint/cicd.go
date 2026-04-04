@@ -26,7 +26,7 @@ func Cicd(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	case cryptoutilSharedMagic.ValidCommands[command]:
 		// ALL valid commands route to apps/cicd for processing.
 		return cryptoutilAppsCicd.Cicd(args, stdin, stdout, stderr)
-	case command == "help" || command == "--help" || command == "-h":
+	case command == cryptoutilSharedMagic.CLIHelpCommand || command == cryptoutilSharedMagic.CLIHelpFlag || command == "-h":
 		printUsage(stdout)
 
 		return 0

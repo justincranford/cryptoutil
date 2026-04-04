@@ -1,7 +1,7 @@
 # Tasks — Framework v7 (Continuation)
 
-**Status**: 19 of 48 tasks complete (40%)
-**Last Updated**: 2026-04-03
+**Status**: 25 of 48 tasks complete (52%)
+**Last Updated**: 2026-04-04
 **Created**: 2026-04-02
 
 ## Quality Mandate — MANDATORY
@@ -540,7 +540,7 @@ functions, add configurable FIPS signing algorithm, move pkiInitName to magic.
 
 #### Task 2.1: Move pkiInitName to Magic Package
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 1h
 - **Dependencies**: None
@@ -548,29 +548,29 @@ functions, add configurable FIPS signing algorithm, move pkiInitName to magic.
   Add `PSIDPKIInit = "pki-init"` to an appropriate `internal/shared/magic/` file and replace the
   local variable. Verify `golangci-lint run` passes.
 - **Acceptance Criteria**:
-  - [ ] Magic constant added to `internal/shared/magic/`
-  - [ ] Local variable in `cryptoutil.go` replaced with magic constant
-  - [ ] `golangci-lint run` clean
-  - [ ] `go build ./...` clean
+  - [x] Magic constant added to `internal/shared/magic/`
+  - [x] Local variable in `cryptoutil.go` replaced with magic constant
+  - [x] `golangci-lint run` clean
+  - [x] `go build ./...` clean
 
 #### Task 2.2: Remove Backward-Compat from Init()
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 2h
 - **Dependencies**: None
 - **Description**: Replace manual `strings.HasPrefix` arg parsing in `Init()` with pflag AND
   Viper YAML parsing identical to `InitForService()`. Remove backward-compat comment.
 - **Acceptance Criteria**:
-  - [ ] `Init()` uses pflag for all flag parsing
-  - [ ] `Init()` loads config from YAML via Viper (consistent with `InitForService()`)
-  - [ ] `strings.HasPrefix` manual arg parsing removed
-  - [ ] Backward-compat comment removed
-  - [ ] Tests pass
+  - [x] `Init()` uses pflag for all flag parsing
+  - [x] `Init()` loads config from YAML via Viper (consistent with `InitForService()`)
+  - [x] `strings.HasPrefix` manual arg parsing removed
+  - [x] Backward-compat comment removed
+  - [x] Tests pass
 
 #### Task 2.3: Add InitForProduct() and InitForSuite()
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 4h
 - **Dependencies**: 2.2
@@ -579,14 +579,14 @@ functions, add configurable FIPS signing algorithm, move pkiInitName to magic.
   `InitForService()`. Add productID/suiteID as SAN DNS entries. Wire into product/suite CLI
   entry points in `cmd/`.
 - **Acceptance Criteria**:
-  - [ ] `InitForProduct()` implemented
-  - [ ] `InitForSuite()` implemented
-  - [ ] Both wired in product and suite entry points
-  - [ ] Tests for both new functions ≥95%
+  - [x] `InitForProduct()` implemented
+  - [x] `InitForSuite()` implemented
+  - [x] Both wired in product and suite entry points
+  - [x] Tests for both new functions ≥95%
 
 #### Task 2.4: Add Configurable Signing Algorithm
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 3h
 - **Dependencies**: 2.2
@@ -595,24 +595,24 @@ functions, add configurable FIPS signing algorithm, move pkiInitName to magic.
   RSA-2048+SHA256, RSA-3072+SHA256, RSA-4096+SHA256. Add magic constants for each name string.
   Validate flag value; pass to TLS generator.
 - **Acceptance Criteria**:
-  - [ ] `--signing-algorithm` flag present in all 4 Init functions
-  - [ ] Default is `ECDSA-P384-SHA384`
-  - [ ] All 6 algorithms accepted; invalid values rejected with clear error
-  - [ ] Magic constants defined for each algorithm name
-  - [ ] Tests verify all algorithms configurable
+  - [x] `--signing-algorithm` flag present in all 4 Init functions
+  - [x] Default is `ECDSA-P384-SHA384`
+  - [x] All 6 algorithms accepted; invalid values rejected with clear error
+  - [x] Magic constants defined for each algorithm name
+  - [x] Tests verify all algorithms configurable
 
 #### Task 2.5: Phase 2 Quality Gates
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 1h
 - **Dependencies**: 2.1, 2.2, 2.3, 2.4
 - **Description**: Verify Phase 2 quality gates. Update lessons.md Phase 2.
 - **Acceptance Criteria**:
-  - [ ] `go test ./internal/apps/framework/tls/...` passes 100%
-  - [ ] Coverage ≥95%
-  - [ ] `golangci-lint run` clean
-  - [ ] lessons.md Phase 2 updated
+  - [x] `go test ./internal/apps/framework/tls/...` passes 100%
+  - [x] Coverage ≥95% (96.7%)
+  - [x] `golangci-lint run` clean
+  - [x] lessons.md Phase 2 updated
 
 ---
 

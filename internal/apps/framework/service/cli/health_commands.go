@@ -17,7 +17,7 @@ import (
 // usageText is shown when --help is passed.
 // defaultPublicPort is the service's default public port (e.g., 8700 for sm-im).
 func HealthCommand(args []string, stdout, stderr io.Writer, usageText string, defaultPublicPort uint16) int {
-	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
+	if len(args) > 0 && (args[0] == cryptoutilSharedMagic.CLIHelpCommand || args[0] == cryptoutilSharedMagic.CLIHelpFlag || args[0] == cryptoutilSharedMagic.CLIHelpShortFlag) {
 		_, _ = fmt.Fprintln(stderr, usageText)
 
 		return 0
@@ -32,7 +32,7 @@ func HealthCommand(args []string, stdout, stderr io.Writer, usageText string, de
 
 	for i := 0; i < len(args); i++ {
 		switch args[i] {
-		case urlFlag:
+		case cryptoutilSharedMagic.CLIURLFlag:
 			if i+1 < len(args) && url == defaultBase { // Only set if not already set
 				baseURL := args[i+1]
 
@@ -44,7 +44,7 @@ func HealthCommand(args []string, stdout, stderr io.Writer, usageText string, de
 
 				i++ // Skip next arg
 			}
-		case cacertFlag:
+		case cryptoutilSharedMagic.CLICACertFlag:
 			if i+1 < len(args) && cacertPath == "" { // Only set if not already set
 				cacertPath = args[i+1]
 				i++ // Skip next arg
@@ -84,7 +84,7 @@ func HealthCommand(args []string, stdout, stderr io.Writer, usageText string, de
 // Calls GET /admin/api/v1/livez on the admin server.
 // usageText is shown when --help is passed.
 func LivezCommand(args []string, stdout, stderr io.Writer, usageText string) int {
-	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
+	if len(args) > 0 && (args[0] == cryptoutilSharedMagic.CLIHelpCommand || args[0] == cryptoutilSharedMagic.CLIHelpFlag || args[0] == cryptoutilSharedMagic.CLIHelpShortFlag) {
 		_, _ = fmt.Fprintln(stderr, usageText)
 
 		return 0
@@ -101,7 +101,7 @@ func LivezCommand(args []string, stdout, stderr io.Writer, usageText string) int
 
 	for i := 0; i < len(args); i++ {
 		switch args[i] {
-		case urlFlag:
+		case cryptoutilSharedMagic.CLIURLFlag:
 			if i+1 < len(args) && url == defaultURL { // Only set if not already set
 				baseURL := args[i+1]
 
@@ -113,7 +113,7 @@ func LivezCommand(args []string, stdout, stderr io.Writer, usageText string) int
 
 				i++ // Skip next arg
 			}
-		case cacertFlag:
+		case cryptoutilSharedMagic.CLICACertFlag:
 			if i+1 < len(args) && cacertPath == "" { // Only set if not already set
 				cacertPath = args[i+1]
 				i++ // Skip next arg
@@ -153,7 +153,7 @@ func LivezCommand(args []string, stdout, stderr io.Writer, usageText string) int
 // Calls GET /admin/api/v1/readyz on the admin server.
 // usageText is shown when --help is passed.
 func ReadyzCommand(args []string, stdout, stderr io.Writer, usageText string) int {
-	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
+	if len(args) > 0 && (args[0] == cryptoutilSharedMagic.CLIHelpCommand || args[0] == cryptoutilSharedMagic.CLIHelpFlag || args[0] == cryptoutilSharedMagic.CLIHelpShortFlag) {
 		_, _ = fmt.Fprintln(stderr, usageText)
 
 		return 0
@@ -170,7 +170,7 @@ func ReadyzCommand(args []string, stdout, stderr io.Writer, usageText string) in
 
 	for i := 0; i < len(args); i++ {
 		switch args[i] {
-		case urlFlag:
+		case cryptoutilSharedMagic.CLIURLFlag:
 			if i+1 < len(args) && url == defaultURL { // Only set if not already set
 				baseURL := args[i+1]
 
@@ -182,7 +182,7 @@ func ReadyzCommand(args []string, stdout, stderr io.Writer, usageText string) in
 
 				i++ // Skip next arg
 			}
-		case cacertFlag:
+		case cryptoutilSharedMagic.CLICACertFlag:
 			if i+1 < len(args) && cacertPath == "" { // Only set if not already set
 				cacertPath = args[i+1]
 				i++ // Skip next arg
@@ -222,7 +222,7 @@ func ReadyzCommand(args []string, stdout, stderr io.Writer, usageText string) in
 // Calls POST /admin/api/v1/shutdown on the admin server.
 // usageText is shown when --help is passed.
 func ShutdownCommand(args []string, stdout, stderr io.Writer, usageText string) int {
-	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
+	if len(args) > 0 && (args[0] == cryptoutilSharedMagic.CLIHelpCommand || args[0] == cryptoutilSharedMagic.CLIHelpFlag || args[0] == cryptoutilSharedMagic.CLIHelpShortFlag) {
 		_, _ = fmt.Fprintln(stderr, usageText)
 
 		return 0
@@ -239,7 +239,7 @@ func ShutdownCommand(args []string, stdout, stderr io.Writer, usageText string) 
 
 	for i := 0; i < len(args); i++ {
 		switch args[i] {
-		case urlFlag:
+		case cryptoutilSharedMagic.CLIURLFlag:
 			if i+1 < len(args) && url == defaultURL { // Only set if not already set
 				baseURL := args[i+1]
 
@@ -251,7 +251,7 @@ func ShutdownCommand(args []string, stdout, stderr io.Writer, usageText string) 
 
 				i++ // Skip next arg
 			}
-		case cacertFlag:
+		case cryptoutilSharedMagic.CLICACertFlag:
 			if i+1 < len(args) && cacertPath == "" { // Only set if not already set
 				cacertPath = args[i+1]
 				i++ // Skip next arg

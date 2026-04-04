@@ -55,7 +55,7 @@ func TestInit_HelpFlag(t *testing.T) {
 		name string
 		arg  string
 	}{
-		{name: "help long", arg: "--help"},
+		{name: "help long", arg: cryptoutilSharedMagic.CLIHelpFlag},
 		{name: "help short", arg: "-h"},
 	}
 

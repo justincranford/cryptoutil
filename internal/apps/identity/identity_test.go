@@ -37,8 +37,8 @@ func TestIdentity_HelpCommand(t *testing.T) {
 		name string
 		args []string
 	}{
-		{name: "help command", args: []string{"help"}},
-		{name: "help flag long", args: []string{"--help"}},
+		{name: "help command", args: []string{cryptoutilSharedMagic.CLIHelpCommand}},
+		{name: "help flag long", args: []string{cryptoutilSharedMagic.CLIHelpFlag}},
 		{name: "help flag short", args: []string{"-h"}},
 	}
 
@@ -66,8 +66,8 @@ func TestIdentity_VersionCommand(t *testing.T) {
 		name string
 		args []string
 	}{
-		{name: "version command", args: []string{"version"}},
-		{name: "version flag long", args: []string{"--version"}},
+		{name: "version command", args: []string{cryptoutilSharedMagic.CLIVersionCommand}},
+		{name: "version flag long", args: []string{cryptoutilSharedMagic.CLIVersionFlag}},
 		{name: "version flag short", args: []string{"-v"}},
 	}
 
@@ -134,7 +134,7 @@ func TestIdentity_ServiceRouting(t *testing.T) {
 
 			var stdout, stderr bytes.Buffer
 
-			exitCode := Identity([]string{tt.serviceName, "help"}, nil, &stdout, &stderr)
+			exitCode := Identity([]string{tt.serviceName, cryptoutilSharedMagic.CLIHelpCommand}, nil, &stdout, &stderr)
 			require.Equal(t, 0, exitCode)
 
 			combinedOutput := stdout.String() + stderr.String()
@@ -151,7 +151,7 @@ func TestIdentity_EntryPoint(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Identity([]string{"--help"}, nil, &stdout, &stderr)
+	exitCode := Identity([]string{cryptoutilSharedMagic.CLIHelpFlag}, nil, &stdout, &stderr)
 	require.Equal(t, 0, exitCode)
 
 	output := stdout.String() + stderr.String()

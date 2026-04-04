@@ -8,15 +8,8 @@ package cli
 import (
 	"fmt"
 	"io"
-)
 
-const (
-	helpCommand      = "help"
-	helpFlag         = "--help"
-	helpShortFlag    = "-h"
-	versionCommand   = "version"
-	versionFlag      = "--version"
-	versionShortFlag = "-v"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // ProductConfig holds configuration for a product CLI entrypoint.
@@ -52,14 +45,14 @@ func RouteProduct(cfg ProductConfig, args []string, stdin io.Reader, stdout, std
 	}
 
 	// Check for help flags.
-	if args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag {
+	if args[0] == cryptoutilSharedMagic.CLIHelpCommand || args[0] == cryptoutilSharedMagic.CLIHelpFlag || args[0] == cryptoutilSharedMagic.CLIHelpShortFlag {
 		_, _ = fmt.Fprintln(stderr, cfg.UsageText)
 
 		return 0
 	}
 
 	// Check for version flags.
-	if args[0] == versionCommand || args[0] == versionFlag || args[0] == versionShortFlag {
+	if args[0] == cryptoutilSharedMagic.CLIVersionCommand || args[0] == cryptoutilSharedMagic.CLIVersionFlag || args[0] == cryptoutilSharedMagic.CLIVersionShortFlag {
 		_, _ = fmt.Fprintln(stdout, cfg.VersionText)
 
 		return 0

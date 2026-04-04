@@ -56,7 +56,7 @@ func TestIM_SubcommandHelpFlags(t *testing.T) {
 
 			var stdout, stderr bytes.Buffer
 
-			exitCode := Im([]string{tt.subcommand, "--help"}, nil, &stdout, &stderr)
+			exitCode := Im([]string{tt.subcommand, cryptoutilSharedMagic.CLIHelpFlag}, nil, &stdout, &stderr)
 			require.Equal(t, 0, exitCode, "%s --help should succeed", tt.subcommand)
 
 			for _, expected := range tt.helpTexts {
@@ -76,7 +76,7 @@ func TestIM_SubcommandHelpFlags(t *testing.T) {
 			// Test with help as positional argument.
 			stdout.Reset()
 			stderr.Reset()
-			exitCode = Im([]string{tt.subcommand, "help"}, nil, &stdout, &stderr)
+			exitCode = Im([]string{tt.subcommand, cryptoutilSharedMagic.CLIHelpCommand}, nil, &stdout, &stderr)
 			require.Equal(t, 0, exitCode, "%s help should succeed", tt.subcommand)
 
 			for _, expected := range tt.helpTexts {
@@ -92,7 +92,7 @@ func TestPrintIMVersion(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Im([]string{"version"}, nil, &stdout, &stderr)
+	exitCode := Im([]string{cryptoutilSharedMagic.CLIVersionCommand}, nil, &stdout, &stderr)
 	require.Equal(t, 0, exitCode, "version command should succeed")
 
 	output := stdout.String() + stderr.String()
@@ -168,7 +168,7 @@ func TestIM_SubcommandLiveServer(t *testing.T) {
 
 			var stdout, stderr bytes.Buffer
 
-			exitCode := Im([]string{tt.subcommand, "--url", tt.url}, nil, &stdout, &stderr)
+			exitCode := Im([]string{tt.subcommand, cryptoutilSharedMagic.CLIURLFlag, tt.url}, nil, &stdout, &stderr)
 
 			if tt.customCheck != nil {
 				// For readyz: check exit code is 0 or 1, and custom output check
@@ -254,7 +254,7 @@ func TestIM_SubcommandErrors(t *testing.T) {
 
 			var stdout, stderr bytes.Buffer
 
-			Im([]string{tt.subcommand, "--url", tt.url}, nil, &stdout, &stderr)
+			Im([]string{tt.subcommand, cryptoutilSharedMagic.CLIURLFlag, tt.url}, nil, &stdout, &stderr)
 			output := stdout.String() + stderr.String()
 			// Check that output contains at least one of the expected strings.
 			require.True(t, cryptoutilSharedTestutil.ContainsAny(output, tt.contains),
@@ -340,7 +340,7 @@ func TestIM_SubcommandResponseBodies(t *testing.T) {
 
 			var stdout, stderr bytes.Buffer
 
-			exitCode := Im([]string{tt.subcommand, "--url", tt.url}, nil, &stdout, &stderr)
+			exitCode := Im([]string{tt.subcommand, cryptoutilSharedMagic.CLIURLFlag, tt.url}, nil, &stdout, &stderr)
 			require.Equal(t, tt.expectExit, exitCode, "%s should exit with code %d", tt.subcommand, tt.expectExit)
 
 			output := stdout.String() + stderr.String()
@@ -387,7 +387,7 @@ func TestIM_URLHandling(t *testing.T) {
 
 			var stdout, stderr bytes.Buffer
 
-			exitCode := Im([]string{tt.subcommand, "--url", tt.url}, nil, &stdout, &stderr)
+			exitCode := Im([]string{tt.subcommand, cryptoutilSharedMagic.CLIURLFlag, tt.url}, nil, &stdout, &stderr)
 			require.Equal(t, 0, exitCode, "%s should succeed with explicit suffix", tt.subcommand)
 
 			output := stdout.String() + stderr.String()

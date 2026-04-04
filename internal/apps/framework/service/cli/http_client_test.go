@@ -236,7 +236,7 @@ func TestHealthCommand_WithCACert(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	exitCode := cryptoutilAppsFrameworkCli.HealthCommand(
-		[]string{"--url", srv.URL, "--cacert", certPath},
+		[]string{cryptoutilSharedMagic.CLIURLFlag, srv.URL, cryptoutilSharedMagic.CLICACertFlag, certPath},
 		&stdout, &stderr,
 		"Usage: health",
 		cryptoutilSharedMagic.JoseJAServicePort,
@@ -255,7 +255,7 @@ func TestLivezCommand_WithCACert(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	exitCode := cryptoutilAppsFrameworkCli.LivezCommand(
-		[]string{"--url", srv.URL, "--cacert", certPath},
+		[]string{cryptoutilSharedMagic.CLIURLFlag, srv.URL, cryptoutilSharedMagic.CLICACertFlag, certPath},
 		&stdout, &stderr,
 		"Usage: livez",
 	)
@@ -273,7 +273,7 @@ func TestReadyzCommand_WithCACert(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	exitCode := cryptoutilAppsFrameworkCli.ReadyzCommand(
-		[]string{"--url", srv.URL, "--cacert", certPath},
+		[]string{cryptoutilSharedMagic.CLIURLFlag, srv.URL, cryptoutilSharedMagic.CLICACertFlag, certPath},
 		&stdout, &stderr,
 		"Usage: readyz",
 	)
@@ -291,7 +291,7 @@ func TestShutdownCommand_WithCACert(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	exitCode := cryptoutilAppsFrameworkCli.ShutdownCommand(
-		[]string{"--url", srv.URL, "--cacert", certPath},
+		[]string{cryptoutilSharedMagic.CLIURLFlag, srv.URL, cryptoutilSharedMagic.CLICACertFlag, certPath},
 		&stdout, &stderr,
 		"Usage: shutdown",
 	)
@@ -312,7 +312,7 @@ func TestHealthCommand_URLAlreadyHasHealthPath(t *testing.T) {
 
 	// Pass a URL that already ends with /health
 	exitCode := cryptoutilAppsFrameworkCli.HealthCommand(
-		[]string{"--url", srv.URL + "/health"},
+		[]string{cryptoutilSharedMagic.CLIURLFlag, srv.URL + "/health"},
 		&stdout, &stderr,
 		"Usage: health",
 		cryptoutilSharedMagic.JoseJAServicePort,

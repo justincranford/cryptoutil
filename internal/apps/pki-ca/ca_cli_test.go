@@ -32,7 +32,7 @@ func TestCA_SubcommandHelpFlags(t *testing.T) {
 		t.Run(tc.subcommand, func(t *testing.T) {
 			t.Parallel()
 
-			for _, flag := range []string{"--help", "-h", "help"} {
+			for _, flag := range []string{cryptoutilSharedMagic.CLIHelpFlag, "-h", cryptoutilSharedMagic.CLIHelpCommand} {
 				var stdout, stderr bytes.Buffer
 
 				exitCode := Ca([]string{tc.subcommand, flag}, nil, &stdout, &stderr)
@@ -52,7 +52,7 @@ func TestCA_MainHelp(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Ca([]string{"--help"}, nil, &stdout, &stderr)
+	exitCode := Ca([]string{cryptoutilSharedMagic.CLIHelpFlag}, nil, &stdout, &stderr)
 	require.Equal(t, 0, exitCode)
 
 	combined := stdout.String() + stderr.String()
@@ -64,7 +64,7 @@ func TestCA_Version(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Ca([]string{"version"}, nil, &stdout, &stderr)
+	exitCode := Ca([]string{cryptoutilSharedMagic.CLIVersionCommand}, nil, &stdout, &stderr)
 	require.Equal(t, 0, exitCode)
 }
 
@@ -98,7 +98,7 @@ func TestCA_ServerHelp(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Ca([]string{"server", "--help"}, nil, &stdout, &stderr)
+	exitCode := Ca([]string{"server", cryptoutilSharedMagic.CLIHelpFlag}, nil, &stdout, &stderr)
 	require.Equal(t, 0, exitCode)
 
 	combined := stdout.String() + stderr.String()
@@ -177,7 +177,7 @@ func TestCA_SubcommandLiveServer(t *testing.T) {
 
 			var stdout, stderr bytes.Buffer
 
-			exitCode := Ca([]string{tc.subcommand, "--url", tc.url}, nil, &stdout, &stderr)
+			exitCode := Ca([]string{tc.subcommand, cryptoutilSharedMagic.CLIURLFlag, tc.url}, nil, &stdout, &stderr)
 			require.Equal(t, tc.expectedExitCode, exitCode, "%s should succeed", tc.subcommand)
 
 			output := stdout.String() + stderr.String()

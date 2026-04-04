@@ -80,7 +80,7 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 
 	commandParameters := []string{
 		"start",
-		"--help",
+		cryptoutilSharedMagic.CLIHelpFlag,
 		"--config=test.yaml",
 		"--log-level=debug",
 		"--verbose",

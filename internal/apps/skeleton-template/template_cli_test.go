@@ -4,6 +4,7 @@
 package template
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"testing"
 
@@ -29,7 +30,7 @@ func TestTemplate_SubcommandHelpFlags(t *testing.T) {
 		t.Run(tc.subcommand, func(t *testing.T) {
 			t.Parallel()
 
-			for _, flag := range []string{"--help", "-h", "help"} {
+			for _, flag := range []string{cryptoutilSharedMagic.CLIHelpFlag, "-h", cryptoutilSharedMagic.CLIHelpCommand} {
 				var stdout, stderr bytes.Buffer
 
 				exitCode := Template([]string{tc.subcommand, flag}, nil, &stdout, &stderr)
@@ -49,7 +50,7 @@ func TestTemplate_MainHelp(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Template([]string{"--help"}, nil, &stdout, &stderr)
+	exitCode := Template([]string{cryptoutilSharedMagic.CLIHelpFlag}, nil, &stdout, &stderr)
 	require.Equal(t, 0, exitCode)
 
 	combined := stdout.String() + stderr.String()
@@ -61,7 +62,7 @@ func TestTemplate_Version(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Template([]string{"version"}, nil, &stdout, &stderr)
+	exitCode := Template([]string{cryptoutilSharedMagic.CLIVersionCommand}, nil, &stdout, &stderr)
 	require.Equal(t, 0, exitCode)
 }
 
@@ -95,7 +96,7 @@ func TestTemplate_ServerHelp(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Template([]string{"server", "--help"}, nil, &stdout, &stderr)
+	exitCode := Template([]string{"server", cryptoutilSharedMagic.CLIHelpFlag}, nil, &stdout, &stderr)
 	require.Equal(t, 0, exitCode)
 
 	combined := stdout.String() + stderr.String()

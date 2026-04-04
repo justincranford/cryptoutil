@@ -5,6 +5,7 @@
 package idp
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"testing"
 
@@ -16,7 +17,7 @@ func TestIdp_MainHelp(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Idp([]string{"--help"}, nil, &stdout, &stderr)
+	exitCode := Idp([]string{cryptoutilSharedMagic.CLIHelpFlag}, nil, &stdout, &stderr)
 
 	require.Equal(t, 0, exitCode)
 	require.Contains(t, stdout.String()+stderr.String(), "identity idp")

@@ -5,6 +5,7 @@
 package rp
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"testing"
 
@@ -16,7 +17,7 @@ func TestRp_MainHelp(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Rp([]string{"--help"}, nil, &stdout, &stderr)
+	exitCode := Rp([]string{cryptoutilSharedMagic.CLIHelpFlag}, nil, &stdout, &stderr)
 
 	require.Equal(t, 0, exitCode)
 	require.Contains(t, stdout.String()+stderr.String(), "identity rp")

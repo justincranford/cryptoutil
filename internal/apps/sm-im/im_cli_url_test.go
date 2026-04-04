@@ -27,8 +27,8 @@ func TestIM_URLEdgeCases(t *testing.T) {
 			name: "HealthSubcommand_ExtraURLIgnored",
 			args: []string{
 				"health",
-				"--url", testMockServerCustom.URL + cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath + "/health",
-				"--url", "https://invalid-second-url:9999",
+				cryptoutilSharedMagic.CLIURLFlag, testMockServerCustom.URL + cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath + "/health",
+				cryptoutilSharedMagic.CLIURLFlag, "https://invalid-second-url:9999",
 			},
 			wantExitCode: 0,
 			wantContains: []string{"Service is healthy"},
@@ -37,7 +37,7 @@ func TestIM_URLEdgeCases(t *testing.T) {
 			name: "HealthSubcommand_URLWithFragment",
 			args: []string{
 				"health",
-				"--url", testMockServerCustom.URL + cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath + "/health#section",
+				cryptoutilSharedMagic.CLIURLFlag, testMockServerCustom.URL + cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath + "/health#section",
 			},
 			wantExitCode: 0,
 			wantContains: []string{"Service is healthy"},
@@ -46,7 +46,7 @@ func TestIM_URLEdgeCases(t *testing.T) {
 			name: "ReadyzSubcommand_ExtraArgumentsIgnored",
 			args: []string{
 				"readyz",
-				"--url", testMockServerCustom.URL + cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath + cryptoutilSharedMagic.PrivateAdminReadyzRequestPath,
+				cryptoutilSharedMagic.CLIURLFlag, testMockServerCustom.URL + cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath + cryptoutilSharedMagic.PrivateAdminReadyzRequestPath,
 				"extra", "ignored", "args",
 			},
 			wantExitCode: 0,
@@ -56,7 +56,7 @@ func TestIM_URLEdgeCases(t *testing.T) {
 			name: "ShutdownSubcommand_URLWithoutQueryParameters",
 			args: []string{
 				"shutdown",
-				"--url", testMockServerCustom.URL + cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath + cryptoutilSharedMagic.PrivateAdminShutdownRequestPath,
+				cryptoutilSharedMagic.CLIURLFlag, testMockServerCustom.URL + cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath + cryptoutilSharedMagic.PrivateAdminShutdownRequestPath,
 			},
 			wantExitCode: 0,
 			wantContains: []string{"Shutdown initiated"},
@@ -65,7 +65,7 @@ func TestIM_URLEdgeCases(t *testing.T) {
 			name: "LivezSubcommand_URLWithUserInfo",
 			args: []string{
 				"livez",
-				"--url", func() string {
+				cryptoutilSharedMagic.CLIURLFlag, func() string {
 					// Extract host from server URL and add user info.
 					urlParts := strings.Split(testMockServerOK.URL, "//")
 
@@ -77,7 +77,7 @@ func TestIM_URLEdgeCases(t *testing.T) {
 		},
 		{
 			name:         "LivezSubcommand_URLFlagWithoutValue",
-			args:         []string{"livez", "--url"},
+			args:         []string{"livez", cryptoutilSharedMagic.CLIURLFlag},
 			wantExitCode: 1,
 			wantContains: []string{"Liveness check failed"},
 			wantAny: []string{
@@ -91,7 +91,7 @@ func TestIM_URLEdgeCases(t *testing.T) {
 			name: "ReadyzSubcommand_CaseInsensitiveHTTPStatus",
 			args: []string{
 				"readyz",
-				"--url", testMockServerError.URL + cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath + cryptoutilSharedMagic.PrivateAdminReadyzRequestPath,
+				cryptoutilSharedMagic.CLIURLFlag, testMockServerError.URL + cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath + cryptoutilSharedMagic.PrivateAdminReadyzRequestPath,
 			},
 			wantExitCode: 1,
 			wantContains: []string{"Service is not ready", "503"},

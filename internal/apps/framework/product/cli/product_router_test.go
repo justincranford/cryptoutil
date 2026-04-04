@@ -47,8 +47,8 @@ tests := []struct {
 name string
 arg  string
 }{
-{name: "help_word", arg: "help"},
-{name: "help_long", arg: "--help"},
+{name: "help_word", arg: cryptoutilSharedMagic.CLIHelpCommand},
+{name: "help_long", arg: cryptoutilSharedMagic.CLIHelpFlag},
 {name: "help_short", arg: "-h"},
 }
 
@@ -72,8 +72,8 @@ tests := []struct {
 name string
 arg  string
 }{
-{name: "version_word", arg: "version"},
-{name: "version_long", arg: "--version"},
+{name: "version_word", arg: cryptoutilSharedMagic.CLIVersionCommand},
+{name: "version_long", arg: cryptoutilSharedMagic.CLIVersionFlag},
 {name: "version_short", arg: "-v"},
 }
 

@@ -45,8 +45,8 @@ func TestRouteSuite_HelpFlag(t *testing.T) {
 		name string
 		arg  string
 	}{
-		{name: "help_word", arg: "help"},
-		{name: "help_long", arg: "--help"},
+		{name: "help_word", arg: cryptoutilSharedMagic.CLIHelpCommand},
+		{name: "help_long", arg: cryptoutilSharedMagic.CLIHelpFlag},
 		{name: "help_short", arg: "-h"},
 	}
 

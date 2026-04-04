@@ -5,6 +5,7 @@
 package authz
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"testing"
 
@@ -16,7 +17,7 @@ func TestAuthz_MainHelp(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Authz([]string{"--help"}, nil, &stdout, &stderr)
+	exitCode := Authz([]string{cryptoutilSharedMagic.CLIHelpFlag}, nil, &stdout, &stderr)
 
 	require.Equal(t, 0, exitCode)
 	require.Contains(t, stdout.String()+stderr.String(), "identity authz")

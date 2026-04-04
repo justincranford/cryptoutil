@@ -6,6 +6,8 @@ package cli
 import (
 	"fmt"
 	"io"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // ServiceConfig holds configuration for a service CLI entrypoint.
@@ -63,7 +65,7 @@ func RouteService(cfg ServiceConfig, args []string, stdout, stderr io.Writer, se
 	}
 
 	// Check for help flags.
-	if args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag {
+	if args[0] == cryptoutilSharedMagic.CLIHelpCommand || args[0] == cryptoutilSharedMagic.CLIHelpFlag || args[0] == cryptoutilSharedMagic.CLIHelpShortFlag {
 		_, _ = fmt.Fprintln(stdout, cfg.UsageMain)
 
 		return 0
@@ -71,7 +73,7 @@ func RouteService(cfg ServiceConfig, args []string, stdout, stderr io.Writer, se
 
 	// Route to subcommand.
 	switch args[0] {
-	case versionCommand:
+	case cryptoutilSharedMagic.CLIVersionCommand:
 		_, _ = fmt.Fprintf(stdout, "%s service\n", cfg.ServiceID)
 		_, _ = fmt.Fprintf(stdout, "Part of cryptoutil %s product\n", cfg.ProductName)
 		_, _ = fmt.Fprintln(stdout, "Version information available via Docker image tags")
@@ -98,4 +100,9 @@ func RouteService(cfg ServiceConfig, args []string, stdout, stderr io.Writer, se
 
 		return 1
 	}
+}
+
+// IsHelpRequest reports whether the first arg is a help command or flag.
+func IsHelpRequest(args []string) bool {
+	return len(args) > 0 && (args[0] == cryptoutilSharedMagic.CLIHelpCommand || args[0] == cryptoutilSharedMagic.CLIHelpFlag || args[0] == cryptoutilSharedMagic.CLIHelpShortFlag)
 }

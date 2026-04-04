@@ -5,6 +5,7 @@
 package spa
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"testing"
 
@@ -18,9 +19,9 @@ func TestSpa_HelpFlag(t *testing.T) {
 		name string
 		args []string
 	}{
-		{name: "help flag", args: []string{"--help"}},
+		{name: "help flag", args: []string{cryptoutilSharedMagic.CLIHelpFlag}},
 		{name: "h flag", args: []string{"-h"}},
-		{name: "help command", args: []string{"help"}},
+		{name: "help command", args: []string{cryptoutilSharedMagic.CLIHelpCommand}},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -48,7 +49,7 @@ func TestSpaClient_HelpFlag(t *testing.T) {
 
 	var stderr bytes.Buffer
 
-	exitCode := spaClient([]string{"--help"}, nil, &stderr)
+	exitCode := spaClient([]string{cryptoutilSharedMagic.CLIHelpFlag}, nil, &stderr)
 	testify.Equal(t, 0, exitCode)
 }
 
@@ -67,6 +68,6 @@ func TestSpaServiceInit_HelpFlag(t *testing.T) {
 
 	var stderr bytes.Buffer
 
-	exitCode := spaServiceInit([]string{"--help"}, nil, &stderr)
+	exitCode := spaServiceInit([]string{cryptoutilSharedMagic.CLIHelpFlag}, nil, &stderr)
 	testify.Equal(t, 0, exitCode)
 }

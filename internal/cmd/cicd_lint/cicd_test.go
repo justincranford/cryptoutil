@@ -3,6 +3,7 @@
 package cicd_lint
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"strings"
 	"testing"
@@ -27,8 +28,8 @@ func TestCicd_Help(t *testing.T) {
 		name string
 		arg  string
 	}{
-		{name: "help", arg: "help"},
-		{name: "--help", arg: "--help"},
+		{name: cryptoutilSharedMagic.CLIHelpCommand, arg: cryptoutilSharedMagic.CLIHelpCommand},
+		{name: cryptoutilSharedMagic.CLIHelpFlag, arg: cryptoutilSharedMagic.CLIHelpFlag},
 		{name: "-h", arg: "-h"},
 	}
 

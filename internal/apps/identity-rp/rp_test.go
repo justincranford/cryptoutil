@@ -5,6 +5,7 @@
 package rp
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"testing"
 
@@ -18,9 +19,9 @@ func TestRp_HelpFlag(t *testing.T) {
 		name string
 		args []string
 	}{
-		{name: "help flag", args: []string{"--help"}},
+		{name: "help flag", args: []string{cryptoutilSharedMagic.CLIHelpFlag}},
 		{name: "h flag", args: []string{"-h"}},
-		{name: "help command", args: []string{"help"}},
+		{name: "help command", args: []string{cryptoutilSharedMagic.CLIHelpCommand}},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -48,7 +49,7 @@ func TestRpClient_HelpFlag(t *testing.T) {
 
 	var stderr bytes.Buffer
 
-	exitCode := rpClient([]string{"--help"}, nil, &stderr)
+	exitCode := rpClient([]string{cryptoutilSharedMagic.CLIHelpFlag}, nil, &stderr)
 	testify.Equal(t, 0, exitCode)
 }
 
@@ -67,6 +68,6 @@ func TestRpServiceInit_HelpFlag(t *testing.T) {
 
 	var stderr bytes.Buffer
 
-	exitCode := rpServiceInit([]string{"--help"}, nil, &stderr)
+	exitCode := rpServiceInit([]string{cryptoutilSharedMagic.CLIHelpFlag}, nil, &stderr)
 	testify.Equal(t, 0, exitCode)
 }

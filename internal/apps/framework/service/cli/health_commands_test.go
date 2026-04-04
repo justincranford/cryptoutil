@@ -47,8 +47,8 @@ func TestHealthCommand_HelpFlag(t *testing.T) {
 		name string
 		arg  string
 	}{
-		{name: "help_word", arg: "help"},
-		{name: "help_long", arg: "--help"},
+		{name: "help_word", arg: cryptoutilSharedMagic.CLIHelpCommand},
+		{name: "help_long", arg: cryptoutilSharedMagic.CLIHelpFlag},
 		{name: "help_short", arg: "-h"},
 	}
 
@@ -73,7 +73,7 @@ func TestHealthCommand_Success(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	exitCode := cryptoutilAppsFrameworkCli.HealthCommand(
-		[]string{"--url", srv.URL},
+		[]string{cryptoutilSharedMagic.CLIURLFlag, srv.URL},
 		&stdout, &stderr,
 		"Usage: health",
 		cryptoutilSharedMagic.JoseJAServicePort,
@@ -90,7 +90,7 @@ func TestHealthCommand_ServiceUnavailable(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	exitCode := cryptoutilAppsFrameworkCli.HealthCommand(
-		[]string{"--url", srv.URL},
+		[]string{cryptoutilSharedMagic.CLIURLFlag, srv.URL},
 		&stdout, &stderr,
 		"Usage: health",
 		cryptoutilSharedMagic.JoseJAServicePort,
@@ -105,7 +105,7 @@ func TestHealthCommand_ConnectionRefused(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	exitCode := cryptoutilAppsFrameworkCli.HealthCommand(
-		[]string{"--url", "https://127.0.0.1:1"},
+		[]string{cryptoutilSharedMagic.CLIURLFlag, "https://127.0.0.1:1"},
 		&stdout, &stderr,
 		"Usage: health",
 		cryptoutilSharedMagic.JoseJAServicePort,
@@ -121,8 +121,8 @@ func TestLivezCommand_HelpFlag(t *testing.T) {
 		name string
 		arg  string
 	}{
-		{name: "help_word", arg: "help"},
-		{name: "help_long", arg: "--help"},
+		{name: "help_word", arg: cryptoutilSharedMagic.CLIHelpCommand},
+		{name: "help_long", arg: cryptoutilSharedMagic.CLIHelpFlag},
 		{name: "help_short", arg: "-h"},
 	}
 
@@ -147,7 +147,7 @@ func TestLivezCommand_Success(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	exitCode := cryptoutilAppsFrameworkCli.LivezCommand(
-		[]string{"--url", srv.URL},
+		[]string{cryptoutilSharedMagic.CLIURLFlag, srv.URL},
 		&stdout, &stderr,
 		"Usage: livez",
 	)
@@ -163,7 +163,7 @@ func TestLivezCommand_Failure(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	exitCode := cryptoutilAppsFrameworkCli.LivezCommand(
-		[]string{"--url", srv.URL},
+		[]string{cryptoutilSharedMagic.CLIURLFlag, srv.URL},
 		&stdout, &stderr,
 		"Usage: livez",
 	)
@@ -177,7 +177,7 @@ func TestLivezCommand_ConnectionRefused(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	exitCode := cryptoutilAppsFrameworkCli.LivezCommand(
-		[]string{"--url", "https://127.0.0.1:1"},
+		[]string{cryptoutilSharedMagic.CLIURLFlag, "https://127.0.0.1:1"},
 		&stdout, &stderr,
 		"Usage: livez",
 	)
@@ -192,8 +192,8 @@ func TestReadyzCommand_HelpFlag(t *testing.T) {
 		name string
 		arg  string
 	}{
-		{name: "help_word", arg: "help"},
-		{name: "help_long", arg: "--help"},
+		{name: "help_word", arg: cryptoutilSharedMagic.CLIHelpCommand},
+		{name: "help_long", arg: cryptoutilSharedMagic.CLIHelpFlag},
 		{name: "help_short", arg: "-h"},
 	}
 
@@ -218,7 +218,7 @@ func TestReadyzCommand_Success(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	exitCode := cryptoutilAppsFrameworkCli.ReadyzCommand(
-		[]string{"--url", srv.URL},
+		[]string{cryptoutilSharedMagic.CLIURLFlag, srv.URL},
 		&stdout, &stderr,
 		"Usage: readyz",
 	)
@@ -234,7 +234,7 @@ func TestReadyzCommand_Failure(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	exitCode := cryptoutilAppsFrameworkCli.ReadyzCommand(
-		[]string{"--url", srv.URL},
+		[]string{cryptoutilSharedMagic.CLIURLFlag, srv.URL},
 		&stdout, &stderr,
 		"Usage: readyz",
 	)
@@ -248,7 +248,7 @@ func TestReadyzCommand_ConnectionRefused(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	exitCode := cryptoutilAppsFrameworkCli.ReadyzCommand(
-		[]string{"--url", "https://127.0.0.1:1"},
+		[]string{cryptoutilSharedMagic.CLIURLFlag, "https://127.0.0.1:1"},
 		&stdout, &stderr,
 		"Usage: readyz",
 	)
@@ -263,8 +263,8 @@ func TestShutdownCommand_HelpFlag(t *testing.T) {
 		name string
 		arg  string
 	}{
-		{name: "help_word", arg: "help"},
-		{name: "help_long", arg: "--help"},
+		{name: "help_word", arg: cryptoutilSharedMagic.CLIHelpCommand},
+		{name: "help_long", arg: cryptoutilSharedMagic.CLIHelpFlag},
 		{name: "help_short", arg: "-h"},
 	}
 
@@ -289,7 +289,7 @@ func TestShutdownCommand_Success(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	exitCode := cryptoutilAppsFrameworkCli.ShutdownCommand(
-		[]string{"--url", srv.URL},
+		[]string{cryptoutilSharedMagic.CLIURLFlag, srv.URL},
 		&stdout, &stderr,
 		"Usage: shutdown",
 	)
@@ -305,7 +305,7 @@ func TestShutdownCommand_SuccessWithAccepted(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	exitCode := cryptoutilAppsFrameworkCli.ShutdownCommand(
-		[]string{"--url", srv.URL},
+		[]string{cryptoutilSharedMagic.CLIURLFlag, srv.URL},
 		&stdout, &stderr,
 		"Usage: shutdown",
 	)
@@ -321,7 +321,7 @@ func TestShutdownCommand_Failure(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	exitCode := cryptoutilAppsFrameworkCli.ShutdownCommand(
-		[]string{"--url", srv.URL},
+		[]string{cryptoutilSharedMagic.CLIURLFlag, srv.URL},
 		&stdout, &stderr,
 		"Usage: shutdown",
 	)
@@ -335,7 +335,7 @@ func TestShutdownCommand_ConnectionRefused(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	exitCode := cryptoutilAppsFrameworkCli.ShutdownCommand(
-		[]string{"--url", "https://127.0.0.1:1"},
+		[]string{cryptoutilSharedMagic.CLIURLFlag, "https://127.0.0.1:1"},
 		&stdout, &stderr,
 		"Usage: shutdown",
 	)
@@ -351,7 +351,7 @@ func TestLivezCommand_URLWithSuffix(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	exitCode := cryptoutilAppsFrameworkCli.LivezCommand(
-		[]string{"--url", srv.URL + "/admin/api/v1/livez"},
+		[]string{cryptoutilSharedMagic.CLIURLFlag, srv.URL + "/admin/api/v1/livez"},
 		&stdout, &stderr,
 		"Usage: livez",
 	)
@@ -367,7 +367,7 @@ func TestReadyzCommand_URLWithSuffix(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	exitCode := cryptoutilAppsFrameworkCli.ReadyzCommand(
-		[]string{"--url", srv.URL + "/admin/api/v1/readyz"},
+		[]string{cryptoutilSharedMagic.CLIURLFlag, srv.URL + "/admin/api/v1/readyz"},
 		&stdout, &stderr,
 		"Usage: readyz",
 	)
@@ -383,7 +383,7 @@ func TestShutdownCommand_URLWithSuffix(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
 	exitCode := cryptoutilAppsFrameworkCli.ShutdownCommand(
-		[]string{"--url", srv.URL + "/admin/api/v1/shutdown"},
+		[]string{cryptoutilSharedMagic.CLIURLFlag, srv.URL + "/admin/api/v1/shutdown"},
 		&stdout, &stderr,
 		"Usage: shutdown",
 	)
@@ -398,7 +398,7 @@ func TestRouteService_HealthSubcommand_Success(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := cryptoutilAppsFrameworkCli.RouteService(testServiceCfg, []string{"health", "--url", srv.URL}, &stdout, &stderr, noopSubcmd, noopSubcmd, noopSubcmd)
+	exitCode := cryptoutilAppsFrameworkCli.RouteService(testServiceCfg, []string{"health", cryptoutilSharedMagic.CLIURLFlag, srv.URL}, &stdout, &stderr, noopSubcmd, noopSubcmd, noopSubcmd)
 	require.Equal(t, 0, exitCode)
 	require.Contains(t, stdout.String(), cryptoutilSharedMagic.TestStatusEmojiPass)
 }
@@ -410,7 +410,7 @@ func TestRouteService_LivezSubcommand_Success(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := cryptoutilAppsFrameworkCli.RouteService(testServiceCfg, []string{"livez", "--url", srv.URL}, &stdout, &stderr, noopSubcmd, noopSubcmd, noopSubcmd)
+	exitCode := cryptoutilAppsFrameworkCli.RouteService(testServiceCfg, []string{"livez", cryptoutilSharedMagic.CLIURLFlag, srv.URL}, &stdout, &stderr, noopSubcmd, noopSubcmd, noopSubcmd)
 	require.Equal(t, 0, exitCode)
 	require.Contains(t, stdout.String(), cryptoutilSharedMagic.TestStatusEmojiPass)
 }
@@ -422,7 +422,7 @@ func TestRouteService_ReadyzSubcommand_Success(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := cryptoutilAppsFrameworkCli.RouteService(testServiceCfg, []string{"readyz", "--url", srv.URL}, &stdout, &stderr, noopSubcmd, noopSubcmd, noopSubcmd)
+	exitCode := cryptoutilAppsFrameworkCli.RouteService(testServiceCfg, []string{"readyz", cryptoutilSharedMagic.CLIURLFlag, srv.URL}, &stdout, &stderr, noopSubcmd, noopSubcmd, noopSubcmd)
 	require.Equal(t, 0, exitCode)
 	require.Contains(t, stdout.String(), cryptoutilSharedMagic.TestStatusEmojiPass)
 }
@@ -434,7 +434,7 @@ func TestRouteService_ShutdownSubcommand_Success(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := cryptoutilAppsFrameworkCli.RouteService(testServiceCfg, []string{"shutdown", "--url", srv.URL}, &stdout, &stderr, noopSubcmd, noopSubcmd, noopSubcmd)
+	exitCode := cryptoutilAppsFrameworkCli.RouteService(testServiceCfg, []string{"shutdown", cryptoutilSharedMagic.CLIURLFlag, srv.URL}, &stdout, &stderr, noopSubcmd, noopSubcmd, noopSubcmd)
 	require.Equal(t, 0, exitCode)
 	require.Contains(t, stdout.String(), cryptoutilSharedMagic.TestStatusEmojiPass)
 }

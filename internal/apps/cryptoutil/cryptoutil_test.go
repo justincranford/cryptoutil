@@ -45,8 +45,8 @@ func TestSuite_HelpCommand(t *testing.T) {
 		name string
 		args []string
 	}{
-		{name: "help command", args: []string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, "help"}},
-		{name: "help flag long", args: []string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, "--help"}},
+		{name: "help command", args: []string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, cryptoutilSharedMagic.CLIHelpCommand}},
+		{name: "help flag long", args: []string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, cryptoutilSharedMagic.CLIHelpFlag}},
 		{name: "help flag short", args: []string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, "-h"}},
 	}
 
@@ -106,7 +106,7 @@ func TestSuite_ProductRouting(t *testing.T) {
 			var stdout, stderr bytes.Buffer
 
 			// Route to product with help flag to verify routing works.
-			exitCode := Suite([]string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, tt.product, "help"}, nil, &stdout, &stderr)
+			exitCode := Suite([]string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, tt.product, cryptoutilSharedMagic.CLIHelpCommand}, nil, &stdout, &stderr)
 			require.Equal(t, 0, exitCode)
 
 			combinedOutput := stdout.String() + stderr.String()
@@ -136,7 +136,7 @@ func TestSuite_ProductVersion(t *testing.T) {
 
 			var stdout, stderr bytes.Buffer
 
-			exitCode := Suite([]string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, tt.product, "version"}, nil, &stdout, &stderr)
+			exitCode := Suite([]string{cryptoutilSharedMagic.DefaultOTLPServiceDefault, tt.product, cryptoutilSharedMagic.CLIVersionCommand}, nil, &stdout, &stderr)
 			require.Equal(t, 0, exitCode)
 
 			combinedOutput := stdout.String() + stderr.String()

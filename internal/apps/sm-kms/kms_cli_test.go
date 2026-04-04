@@ -19,7 +19,7 @@ func TestKMS_ServerHelp(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Kms([]string{"server", "--help"}, nil, &stdout, &stderr)
+	exitCode := Kms([]string{"server", cryptoutilSharedMagic.CLIHelpFlag}, nil, &stdout, &stderr)
 	require.Equal(t, 0, exitCode)
 
 	combined := stdout.String() + stderr.String()
@@ -32,7 +32,7 @@ func TestKMS_MainHelp(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Kms([]string{"--help"}, nil, &stdout, &stderr)
+	exitCode := Kms([]string{cryptoutilSharedMagic.CLIHelpFlag}, nil, &stdout, &stderr)
 	require.Equal(t, 0, exitCode)
 
 	combined := stdout.String() + stderr.String()
@@ -45,7 +45,7 @@ func TestKMS_Version(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Kms([]string{"version"}, nil, &stdout, &stderr)
+	exitCode := Kms([]string{cryptoutilSharedMagic.CLIVersionCommand}, nil, &stdout, &stderr)
 	require.Equal(t, 0, exitCode)
 
 	combined := stdout.String() + stderr.String()
@@ -71,7 +71,7 @@ func TestKMS_SubcommandHelpFlags(t *testing.T) {
 
 			var stdout, stderr bytes.Buffer
 
-			exitCode := Kms([]string{tc.subcommand, "--help"}, nil, &stdout, &stderr)
+			exitCode := Kms([]string{tc.subcommand, cryptoutilSharedMagic.CLIHelpFlag}, nil, &stdout, &stderr)
 			require.Equal(t, 0, exitCode)
 
 			combined := stdout.String() + stderr.String()

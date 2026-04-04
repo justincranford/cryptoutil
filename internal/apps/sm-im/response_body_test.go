@@ -18,7 +18,7 @@ func TestIM_HealthSubcommand_NoBodySuccess(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Im([]string{"health", "--url", testMockServerOK.URL + "/health"}, nil, &stdout, &stderr)
+	exitCode := Im([]string{"health", cryptoutilSharedMagic.CLIURLFlag, testMockServerOK.URL + "/health"}, nil, &stdout, &stderr)
 	require.Equal(t, 0, exitCode, "Health should succeed with 200 even if no body")
 
 	output := stdout.String() + stderr.String()
@@ -31,7 +31,7 @@ func TestIM_HealthSubcommand_UnhealthyNoBody(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Im([]string{"health", "--url", testMockServerError.URL + "/health"}, nil, &stdout, &stderr)
+	exitCode := Im([]string{"health", cryptoutilSharedMagic.CLIURLFlag, testMockServerError.URL + "/health"}, nil, &stdout, &stderr)
 	require.Equal(t, 1, exitCode, "Health should fail with 503")
 
 	output := stdout.String() + stderr.String()
@@ -45,7 +45,7 @@ func TestIM_LivezSubcommand_NoBodySuccess(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Im([]string{"livez", "--url", testMockServerOK.URL + cryptoutilSharedMagic.PrivateAdminLivezRequestPath}, nil, &stdout, &stderr)
+	exitCode := Im([]string{"livez", cryptoutilSharedMagic.CLIURLFlag, testMockServerOK.URL + cryptoutilSharedMagic.PrivateAdminLivezRequestPath}, nil, &stdout, &stderr)
 	require.Equal(t, 0, exitCode, "Livez should succeed with 200 even if no body")
 
 	output := stdout.String() + stderr.String()
@@ -58,7 +58,7 @@ func TestIM_LivezSubcommand_NotAliveNoBody(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Im([]string{"livez", "--url", testMockServerError.URL + cryptoutilSharedMagic.PrivateAdminLivezRequestPath}, nil, &stdout, &stderr)
+	exitCode := Im([]string{"livez", cryptoutilSharedMagic.CLIURLFlag, testMockServerError.URL + cryptoutilSharedMagic.PrivateAdminLivezRequestPath}, nil, &stdout, &stderr)
 	require.Equal(t, 1, exitCode, "Livez should fail with 503")
 
 	output := stdout.String() + stderr.String()
@@ -72,7 +72,7 @@ func TestIM_ShutdownSubcommand_NoBodySuccess(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Im([]string{"shutdown", "--url", testMockServerOK.URL + cryptoutilSharedMagic.PrivateAdminShutdownRequestPath}, nil, &stdout, &stderr)
+	exitCode := Im([]string{"shutdown", cryptoutilSharedMagic.CLIURLFlag, testMockServerOK.URL + cryptoutilSharedMagic.PrivateAdminShutdownRequestPath}, nil, &stdout, &stderr)
 	require.Equal(t, 0, exitCode, "Shutdown should succeed with 200 even if no body")
 
 	output := stdout.String() + stderr.String()
@@ -85,7 +85,7 @@ func TestIM_ShutdownSubcommand_FailedNoBody(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Im([]string{"shutdown", "--url", testMockServerError.URL + cryptoutilSharedMagic.PrivateAdminShutdownRequestPath}, nil, &stdout, &stderr)
+	exitCode := Im([]string{"shutdown", cryptoutilSharedMagic.CLIURLFlag, testMockServerError.URL + cryptoutilSharedMagic.PrivateAdminShutdownRequestPath}, nil, &stdout, &stderr)
 	require.Equal(t, 1, exitCode, "Shutdown should fail with 503")
 
 	output := stdout.String() + stderr.String()
@@ -99,7 +99,7 @@ func TestIM_ShutdownSubcommand_PartialBodyRead(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Im([]string{"shutdown", "--url", testMockServerOK.URL + cryptoutilSharedMagic.PrivateAdminShutdownRequestPath}, nil, &stdout, &stderr)
+	exitCode := Im([]string{"shutdown", cryptoutilSharedMagic.CLIURLFlag, testMockServerOK.URL + cryptoutilSharedMagic.PrivateAdminShutdownRequestPath}, nil, &stdout, &stderr)
 	// Should still succeed because we got 200 status.
 	require.Equal(t, 0, exitCode, "Shutdown should succeed even with partial body")
 

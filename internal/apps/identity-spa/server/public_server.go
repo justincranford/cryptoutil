@@ -98,7 +98,7 @@ func (s *PublicServer) handleReadyz(c *fiber.Ctx) error {
 func (s *PublicServer) handleConfig(c *fiber.Ctx) error {
 	config := fiber.Map{
 		"service": cryptoutilSharedMagic.OTLPServiceIdentitySPA,
-		"version": cryptoutilSharedMagic.DefaultOTLPVersionDefault,
+		cryptoutilSharedMagic.CLIVersionCommand: cryptoutilSharedMagic.DefaultOTLPVersionDefault,
 	}
 
 	// Include RP origin if configured.

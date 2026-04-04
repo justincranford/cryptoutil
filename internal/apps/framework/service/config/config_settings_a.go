@@ -10,7 +10,7 @@ import (
 
 var (
 	help = *SetEnvAndRegisterSetting(allServiceFrameworkServerRegisteredSettings, &Setting{
-		Name:      "help",
+		Name:      cryptoutilSharedMagic.CLIHelpCommand,
 		Shorthand: "h",
 		Value:     cryptoutilSharedMagic.DefaultHelp,
 		Usage: "print help; you can run the server with parameters like this:\n" +

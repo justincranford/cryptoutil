@@ -172,7 +172,7 @@ func (s *Service) handlePublicHealth(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		cryptoutilSharedMagic.StringStatus: cryptoutilSharedMagic.DockerServiceHealthHealthy,
 		"service":                          "resource-server",
-		"version":                          cryptoutilSharedMagic.ServiceVersion,
+		cryptoutilSharedMagic.CLIVersionCommand:                          cryptoutilSharedMagic.ServiceVersion,
 	})
 }
 

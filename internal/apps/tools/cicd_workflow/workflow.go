@@ -120,7 +120,7 @@ func runWithWorkflowsDir(args []string, workflowsDir string) int {
 	fs := flag.NewFlagSet(cryptoutilSharedMagic.CICDCmdDirWorkflow, flag.ContinueOnError)
 
 	workflows := fs.String("workflows", "", "Comma-separated list of workflows to run (benchmark,coverage,dast,e2e,fuzz,gitleaks,load,quality,race,sast)")
-	showHelp := fs.Bool("help", false, "Show usage with list available workflows and exit")
+	showHelp := fs.Bool(cryptoutilSharedMagic.CLIHelpCommand, false, "Show usage with list available workflows and exit")
 	outputDir := fs.String("output", "workflow-reports", "Output directory for logs and reports")
 	dryRun := fs.Bool("dry-run", false, "Show what would be executed without running workflows")
 	actPath := fs.String("act-path", "act", "Path to act executable")

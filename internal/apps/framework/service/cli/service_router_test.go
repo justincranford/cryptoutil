@@ -62,8 +62,8 @@ func TestRouteService_HelpFlag(t *testing.T) {
 		name string
 		arg  string
 	}{
-		{name: "help_word", arg: "help"},
-		{name: "help_long", arg: "--help"},
+		{name: "help_word", arg: cryptoutilSharedMagic.CLIHelpCommand},
+		{name: "help_long", arg: cryptoutilSharedMagic.CLIHelpFlag},
 		{name: "help_short", arg: "-h"},
 	}
 
@@ -85,7 +85,7 @@ func TestRouteService_VersionSubcommand(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := cryptoutilAppsFrameworkCli.RouteService(testServiceCfg, []string{"version"}, &stdout, &stderr, noopSubcmd, noopSubcmd, noopSubcmd)
+	exitCode := cryptoutilAppsFrameworkCli.RouteService(testServiceCfg, []string{cryptoutilSharedMagic.CLIVersionCommand}, &stdout, &stderr, noopSubcmd, noopSubcmd, noopSubcmd)
 	require.Equal(t, 0, exitCode)
 	require.Contains(t, stdout.String(), testServiceID)
 	require.Contains(t, stdout.String(), testProductNameService)

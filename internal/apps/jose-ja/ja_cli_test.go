@@ -5,6 +5,7 @@
 package ja
 
 import (
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"testing"
 
@@ -30,7 +31,7 @@ func TestJA_SubcommandHelpFlags(t *testing.T) {
 		t.Run(tc.subcommand, func(t *testing.T) {
 			t.Parallel()
 
-			for _, flag := range []string{"--help", "-h", "help"} {
+			for _, flag := range []string{cryptoutilSharedMagic.CLIHelpFlag, "-h", cryptoutilSharedMagic.CLIHelpCommand} {
 				var stdout, stderr bytes.Buffer
 
 				exitCode := Ja([]string{tc.subcommand, flag}, nil, &stdout, &stderr)
@@ -50,7 +51,7 @@ func TestJA_MainHelp(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Ja([]string{"--help"}, nil, &stdout, &stderr)
+	exitCode := Ja([]string{cryptoutilSharedMagic.CLIHelpFlag}, nil, &stdout, &stderr)
 	require.Equal(t, 0, exitCode)
 
 	combined := stdout.String() + stderr.String()
@@ -62,7 +63,7 @@ func TestJA_Version(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Ja([]string{"version"}, nil, &stdout, &stderr)
+	exitCode := Ja([]string{cryptoutilSharedMagic.CLIVersionCommand}, nil, &stdout, &stderr)
 	require.Equal(t, 0, exitCode)
 }
 
@@ -96,7 +97,7 @@ func TestJA_ServerHelp(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := Ja([]string{"server", "--help"}, nil, &stdout, &stderr)
+	exitCode := Ja([]string{"server", cryptoutilSharedMagic.CLIHelpFlag}, nil, &stdout, &stderr)
 	require.Equal(t, 0, exitCode)
 
 	combined := stdout.String() + stderr.String()
