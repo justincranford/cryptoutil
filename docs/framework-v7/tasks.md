@@ -1,6 +1,6 @@
 # Tasks — Framework v7 (Continuation)
 
-**Status**: 7 of 48 tasks complete (15%)
+**Status**: 8 of 48 tasks complete (17%)
 **Last Updated**: 2026-04-03
 **Created**: 2026-04-02
 
@@ -470,21 +470,22 @@ delete both PARAMETERIZATION files.
 
 #### Task 1.6: #26 — ARCHITECTURE.md Section Link Validity
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 4h
+- **Actual**: 4h
 - **Dependencies**: None
 - **Description**: New `lint_architecture_links/` sub-linter in lint-docs. Extracts H1–H4
   headings from ARCHITECTURE.md; validates all `](../../docs/ARCHITECTURE.md#ANCHOR)` references
   in instruction/agent/skill files resolve to real headings.
 - **Acceptance Criteria**:
-  - [ ] `lint_architecture_links/lint_architecture_links.go` implemented
-  - [ ] Extracts all real anchors from ARCHITECTURE.md using heading → anchor conversion
-  - [ ] Scans all `.github/instructions/`, `.github/agents/`, `.github/skills/` files
-  - [ ] Errors on any `#ANCHOR` that doesn't correspond to a real heading
-  - [ ] All existing references are valid (fix any broken ones found during implementation)
-  - [ ] Registered in `lint_docs.go`
-  - [ ] Tests ≥95%
+  - [x] `lint_architecture_links/lint_architecture_links.go` implemented
+  - [x] Extracts all real anchors from ARCHITECTURE.md using heading → anchor conversion
+  - [x] Scans all `.github/instructions/`, `.github/agents/`, `.github/skills/` files
+  - [x] Errors on any `#ANCHOR` that doesn't correspond to a real heading
+  - [x] All existing references are valid (fix any broken ones found during implementation)
+  - [x] Registered in `lint_docs.go`
+  - [x] Tests ≥95% (98.6% achieved)
 - **Files**:
   - `internal/apps/tools/cicd_lint/lint_docs/lint_architecture_links/`
   - `internal/apps/tools/cicd_lint/lint_docs/lint_docs.go`

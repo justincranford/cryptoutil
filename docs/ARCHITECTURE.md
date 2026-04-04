@@ -2633,8 +2633,12 @@ internal/apps/tools/cicd_lint/
 │   ├── lint_go_mod.go                              # Lint() + registeredLinters
 │   └── outdated_deps/                              # Sub-linter
 ├── lint_gotest/                                      # lint-go-test command
-│   ├── lint_gotest.go                              # Lint() + registeredLinters
-│   └── ... (sub-linters)
+│   ├── lint_gotest.go                              # Lint() + registeredLinters (4 sub-linters)
+│   ├── common/                                     # Shared helpers (ListAllFiles, FilterExcludedTestFiles)
+│   ├── require_over_assert/                        # Sub-linter: forbid assert.*; use require.*
+│   ├── lint_gotest_hardcoded_uuid/                 # Sub-linter: forbid uuid.MustParse(literal)
+│   ├── lint_gotest_real_http_server/               # Sub-linter: forbid httptest.NewServer(
+│   └── lint_gotest_test_sleep/                     # Sub-linter: forbid time.Sleep(
 ├── lint_golangci/                                    # lint-golangci command
 │   ├── lint_golangci.go                            # Lint() + registeredLinters
 │   └── golangci_config/                            # Sub-linter

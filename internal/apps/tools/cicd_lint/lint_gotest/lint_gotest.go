@@ -7,6 +7,9 @@ import (
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
+	lintGoTestHardcodedUUID "cryptoutil/internal/apps/tools/cicd_lint/lint_gotest/lint_gotest_hardcoded_uuid"
+	lintGoTestRealHTTPServer "cryptoutil/internal/apps/tools/cicd_lint/lint_gotest/lint_gotest_real_http_server"
+	lintGoTestTestSleep "cryptoutil/internal/apps/tools/cicd_lint/lint_gotest/lint_gotest_test_sleep"
 	lintGoTestRequireOverAssert "cryptoutil/internal/apps/tools/cicd_lint/lint_gotest/require_over_assert"
 )
 
@@ -20,6 +23,9 @@ var registeredLinters = []struct {
 	linter LinterFunc
 }{
 	{"require-over-assert", lintGoTestRequireOverAssert.Check},
+	{"hardcoded-uuid", lintGoTestHardcodedUUID.Check},
+	{"real-http-server", lintGoTestRealHTTPServer.Check},
+	{"test-sleep", lintGoTestTestSleep.Check},
 }
 
 // Lint runs all registered Go test file linters.
