@@ -23,6 +23,7 @@
 | §11 | Quality strategy: ≥95% coverage production, ≥98% infrastructure |
 | §13 | Deployment, @propagate documentation system |
 | §14 | Development practices, Go patterns, import aliases |
+| §14.11 | Claude Code autonomous execution modes (beast-mode, plan+execute, standard chat) |
 
 ## Instruction Files
 

@@ -5316,6 +5316,57 @@ After ALL plan tasks are complete, apply accumulated lessons to permanent artifa
 
 ---
 
+### 14.11 Claude Code Autonomous Execution
+
+Claude Code supports three execution modes for cryptoutil development work.
+
+**Mode 1: Beast-Mode Agent (Sustained autonomous work)**
+
+Invoke `/claude-beast-mode` (or `@claude-beast-mode` in chat) for continuous autonomous execution without interruptions. NEVER-STOP behavior: commits after every completed task, enforces all quality gates, and continues until ALL tasks done. Agent file: `.claude/agents/beast-mode.md`.
+
+Use for: large multi-step implementations, refactoring sessions, any task requiring sustained uninterrupted progress across many files.
+
+**Mode 2: Implementation Execution Workflow (Plan-then-execute)**
+
+Two-phase approach for complex, high-risk changes:
+
+1. `/claude-implementation-planning <work-dir>` — research + create `<work-dir>/plan.md` and `<work-dir>/tasks.md` with phases, decisions, and quality gates
+2. `/claude-implementation-execution <work-dir>` — execute ALL tasks in plan.md/tasks.md continuously, committing after each task
+
+Use for: features requiring upfront design decisions, multi-phase implementations, or when quizme-style Q&A is needed before coding starts.
+
+**Mode 3: Standard Chat (Interactive)**
+
+Default conversational mode. Claude asks clarifying questions and waits for confirmation. Use for: single-file edits, Q&A, quick targeted fixes, code review.
+
+**`.claude/settings.local.json` Configuration**
+
+`.claude/settings.local.json` configures Claude Code workspace behavior. This file is tracked in git but contains machine-local paths where needed.
+
+```json
+{
+  "permissions": {
+    "additionalDirectories": ["/path/to/memory/dir"]
+  }
+}
+```
+
+Key settings:
+
+| Setting | Purpose |
+|---------|---------|
+| `permissions.additionalDirectories` | Extra directories Claude can read/write (e.g., memory store) |
+| `permissions.allow` | Tool patterns to allow without prompting (e.g., `"Bash(go test*)"`) |
+| `permissions.deny` | Tool patterns to deny unconditionally |
+
+**CLAUDE.md** (`.claude/agents/`, `.claude/commands/`) registers all Claude Code agents and slash commands. Update CLAUDE.md when adding new agents or commands.
+
+**Enforcement**
+
+All autonomous execution modes enforce the same quality gates as Section 11.2 and the same commit discipline as Section 14.2. Beast-mode and implementation-execution agents are held to identical standards as interactive chat — the difference is only in interruption behavior, not in quality requirements.
+
+---
+
 ## 15. Operational Excellence
 
 ### 15.1 Monitoring & Alerting
