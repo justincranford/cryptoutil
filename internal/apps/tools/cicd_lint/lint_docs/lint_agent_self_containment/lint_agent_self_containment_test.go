@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -63,7 +64,7 @@ func TestCheckWithFS_AllAgentsCompliant(t *testing.T) {
 		}
 
 		for _, f := range files {
-			if err := fn(filepath.Join(root, agentsRelDir, f.name), &fakeAgentDirEntry{name: f.name, isDir: false}, nil); err != nil {
+			if err := fn(filepath.Join(root, cryptoutilSharedMagic.CICDGithubAgentsDir, f.name), &fakeAgentDirEntry{name: f.name, isDir: false}, nil); err != nil {
 				return err
 			}
 		}
@@ -99,7 +100,7 @@ func TestCheckWithFS_AgentMissingReference(t *testing.T) {
 		files := []string{"beast-mode.agent.md", "noncompliant.agent.md"}
 
 		for _, name := range files {
-			if err := fn(filepath.Join(root, agentsRelDir, name), &fakeAgentDirEntry{name: name, isDir: false}, nil); err != nil {
+			if err := fn(filepath.Join(root, cryptoutilSharedMagic.CICDGithubAgentsDir, name), &fakeAgentDirEntry{name: name, isDir: false}, nil); err != nil {
 				return err
 			}
 		}
@@ -178,7 +179,7 @@ func TestCheckWithFS_ReadFileError(t *testing.T) {
 	walkFn := func(_ string, fn fs.WalkDirFunc) error {
 		name := "agent.agent.md"
 
-		return fn(filepath.Join(root, agentsRelDir, name), &fakeAgentDirEntry{name: name, isDir: false}, nil)
+		return fn(filepath.Join(root, cryptoutilSharedMagic.CICDGithubAgentsDir, name), &fakeAgentDirEntry{name: name, isDir: false}, nil)
 	}
 
 	readFileFn := func(_ string) ([]byte, error) {
@@ -234,7 +235,7 @@ func TestCheckWithFS_SkipsDirectoriesAndNonAgentFiles(t *testing.T) {
 		}
 
 		for _, e := range entries {
-			path := filepath.Join(root, agentsRelDir, e.name)
+			path := filepath.Join(root, cryptoutilSharedMagic.CICDGithubAgentsDir, e.name)
 			if err := fn(path, &fakeAgentDirEntry{name: e.name, isDir: e.isDir}, nil); err != nil {
 				return err
 			}
@@ -287,7 +288,7 @@ func TestCheckWithFS_MultipleViolations(t *testing.T) {
 
 	walkFn := func(_ string, fn fs.WalkDirFunc) error {
 		for _, name := range []string{"a.agent.md", "b.agent.md", "c.agent.md"} {
-			path := filepath.Join(root, agentsRelDir, name)
+			path := filepath.Join(root, cryptoutilSharedMagic.CICDGithubAgentsDir, name)
 			if err := fn(path, &fakeAgentDirEntry{name: name, isDir: false}, nil); err != nil {
 				return err
 			}

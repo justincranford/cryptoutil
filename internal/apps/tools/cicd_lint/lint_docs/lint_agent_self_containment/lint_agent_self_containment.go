@@ -14,10 +14,10 @@ import (
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
-	agentsRelDir        = ".github/agents"
 	agentFileSuffix     = ".agent.md"
 	architectureRefText = "ARCHITECTURE.md"
 )
@@ -39,9 +39,9 @@ func checkWithFS(
 		return fmt.Errorf("lint-agent-self-containment: %w", err)
 	}
 
-	agentsDir := filepath.Join(root, agentsRelDir)
+	agentsDir := filepath.Join(root, cryptoutilSharedMagic.CICDGithubAgentsDir)
 
-	logger.Log(fmt.Sprintf("Checking agents in %s for ARCHITECTURE.md references...", agentsRelDir))
+	logger.Log(fmt.Sprintf("Checking agents in %s for ARCHITECTURE.md references...", cryptoutilSharedMagic.CICDGithubAgentsDir))
 
 	var (
 		violations []string
@@ -75,11 +75,11 @@ func checkWithFS(
 		return nil
 	})
 	if err != nil {
-		return fmt.Errorf("lint-agent-self-containment: failed to walk %s: %w", agentsRelDir, err)
+		return fmt.Errorf("lint-agent-self-containment: failed to walk %s: %w", cryptoutilSharedMagic.CICDGithubAgentsDir, err)
 	}
 
 	if checked == 0 {
-		return fmt.Errorf("lint-agent-self-containment: no .agent.md files found in %s", agentsRelDir)
+		return fmt.Errorf("lint-agent-self-containment: no .agent.md files found in %s", cryptoutilSharedMagic.CICDGithubAgentsDir)
 	}
 
 	if len(violations) > 0 {
