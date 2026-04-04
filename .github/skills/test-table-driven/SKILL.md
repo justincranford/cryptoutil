@@ -98,6 +98,25 @@ os.Exit(m.Run())
 }
 ```
 
+## Error Path Testing via Function-Param Injection
+
+**MANDATORY**: Use function-parameter injection (struct fields or fn params), NOT package-level `var xxxFn`. Tests that use struct fields are parallel-safe.
+
+```go
+// Struct method error path test
+func TestDoSomething_EncryptError(t *testing.T) {
+	t.Parallel()
+	sm := setupSessionManager(t)
+	sm.encryptBytesFn = func(_ []joseJwk.Key, _ []byte) (*joseJwe.Message, []byte, error) {
+		return nil, nil, fmt.Errorf("injected encrypt error")
+	}
+	_, err := sm.DoSomething(ctx, input)
+	require.ErrorContains(t, err, "injected encrypt error")
+}
+```
+
+See [ARCHITECTURE.md §10.2.4](../../../docs/ARCHITECTURE.md#1024-test-seam-injection-pattern) for full decision matrix.
+
 ## References
 
 Read [ARCHITECTURE.md Section 10.2 Unit Testing Strategy](../../../docs/ARCHITECTURE.md#102-unit-testing-strategy) for full testing requirements — apply all forbidden patterns, `t.Parallel()` rules, `TestMain` requirements, and coverage targets from this section.

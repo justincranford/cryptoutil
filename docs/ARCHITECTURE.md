@@ -3005,29 +3005,89 @@ func TestListMessages_Handler(t *testing.T) {
 
 #### 10.2.4 Test Seam Injection Pattern
 
-**Purpose**: Enable error path testing in third-party library wrappers without interfaces or mocks.
+**Purpose**: Enable error path testing for third-party library wrappers and dependency injection without interfaces or mocks.
 
-**Pattern**: Package-level function variables that default to real implementations but can be replaced in tests with error-returning versions.
+**Standard: Function-Parameter Injection (MANDATORY)**
+
+All production code MUST use function-parameter injection (passing `fn func(...)` parameters or struct fields) as the seam mechanism. Package-level `var xxxFn = pkg.Func` declarations are FORBIDDEN in production code.
 
 ```go
-// Production code (seams file)
-var jwkKeySet = func(key any) (jwk.Set, error) { return jwk.Import(key) }
+// Production code — function fields on struct
+type SessionManager struct {
+    generateRSAJWKFn func(rsaBits int) (joseJwk.Key, error)
+    encryptBytesFn   func(jwks []joseJwk.Key, clear []byte) (*joseJwe.Message, []byte, error)
+}
 
-// Test code
-func TestErrorPath(t *testing.T) {
+func NewSessionManager(ctx context.Context) (*SessionManager, error) {
+    return &SessionManager{
+        generateRSAJWKFn: joseJwkUtil.GenerateRSAJWK,
+        encryptBytesFn:   joseJweUtil.EncryptBytes,
+    }, nil
+}
+
+func (sm *SessionManager) initKey(bits int) (joseJwk.Key, error) {
+    return sm.generateRSAJWKFn(bits) // indirected through struct field
+}
+
+// Test code — per-test struct field mutation (parallel-safe: sm is per-test instance)
+func TestGenerateKey_Error(t *testing.T) {
     t.Parallel()
-    original := jwkKeySet
-    t.Cleanup(func() { jwkKeySet = original })
-    jwkKeySet = func(any) (jwk.Set, error) { return nil, errors.New("injected") }
-    // ... test error handling path
+    sm := setupSessionManager(t)
+    sm.generateRSAJWKFn = func(_ int) (joseJwk.Key, error) {
+        return nil, fmt.Errorf("injected generate error")
+    }
+    _, err := sm.initKey(2048)
+    require.ErrorContains(t, err, "injected generate error")
 }
 ```
 
-**When to Use**: Third-party library calls that may fail but rarely do in practice (Set, Import, Marshal, PublicKey, keygen). NOT for business logic (use interfaces).
+**For standalone functions** (not struct methods), pass the fn as a parameter:
 
-**Coverage Impact**: Typically adds 3-8% coverage by testing default/error switch branches that are structurally unreachable in normal operation.
+```go
+// Production code
+func Lint(ctx context.Context, walkFn filepath.WalkFunc, readFileFn func(string) ([]byte, error)) error { ... }
 
-**Helper Pattern**: Use `saveRestoreSeams(t)` to automatically save and restore all seam variables via `t.Cleanup()`, preventing test pollution.
+// Test code
+func TestLint_WalkError(t *testing.T) {
+    t.Parallel()
+    err := Lint(ctx, func(root string, fn fs.WalkDirFunc) error { return errors.New("walk fail") }, os.ReadFile)
+    require.ErrorContains(t, err, "walk fail")
+}
+```
+
+**Restricted Exception: Package-Level Vars for OS/Process Exits**
+
+Package-level `var` is permitted ONLY for process-exit functions that cannot be injected through normal call paths (`os.Exit`, `log.Fatal`). Use `export_test.go` (not `seams.go`) to expose the var for testing:
+
+```go
+// Production code — osExit only, no other package-level seam vars
+var osExit = os.Exit
+
+// export_test.go — expose for tests only
+var OsExit = &osExit
+
+// Test code
+func TestShutdownError(t *testing.T) {
+    // Sequential: mutates osExit package-level var — cannot use t.Parallel()
+    orig := *OsExit
+    defer func() { *OsExit = orig }()
+    *OsExit = func(code int) { panic(fmt.Sprintf("exit %d", code)) }
+    require.Panics(t, func() { callShutdown() })
+}
+```
+
+**Decision Matrix**:
+
+| Scenario | Pattern | Parallel-Safe? |
+|----------|---------|---------------|
+| Struct method calls fn dep | Struct field (`sm.xxxFn`) | ✅ Yes (per-test instance) |
+| Standalone function calls fn dep | fn parameter | ✅ Yes (per-call) |
+| `os.Exit` / `log.Fatal` | Package-level var + `export_test.go` | ❌ No (Sequential:) |
+| Business logic substitution | Interface injection | ✅ Yes |
+
+**Coverage Impact**: Function-param injection enables full parallel error-path testing (3-8% coverage gain) without the sequential test constraint imposed by package-level seam variable mutation.
+
+**FORBIDDEN**: `var xxxFn = pkg.Func` in non-test production files (except `osExit` / `log.Fatal` patterns). Use `golangci-lint` `no-pkg-seam-vars` fitness linter to enforce.
 
 #### 10.2.5 Sequential Test Exemption
 

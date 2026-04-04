@@ -277,9 +277,10 @@ complete before Phase 1 begins. Each task is a blocking regression, not improvem
 
 #### Task 0.11: Implement Option B Seam Refactoring — All 5 Categories (Q1–Q5 decision: B)
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 4h
+- **Actual**: ~6h (6 commits)
 - **Dependencies**: None (quizme-v2.md Q1–Q5 answered 2026-04-03)
 - **Decision**: All 5 categories answered option B — function-param injection. Remove ALL
   package-level seam vars (`var xxxFn = pkg.Func`) from non-test Go files. Document in
@@ -307,25 +308,25 @@ complete before Phase 1 begins. Each task is a blocking regression, not improvem
     `format_gotest/thelper/thelper.go`; `splitNFn` in `middleware/session.go`; etc.
     Remove all package-level vars.
 - **Acceptance Criteria**:
-  - [ ] Zero `var xxxFn =` declarations remain in non-test Go files
-  - [ ] Category 1: all `lint_fitness` `Lint()`/`CheckInDir()` accept OS I/O fn params;
+  - [x] Zero `var xxxFn =` declarations remain in non-test Go files
+  - [x] Category 1: all `lint_fitness` `Lint()`/`CheckInDir()` accept OS I/O fn params;
     callers updated; seam tests use `t.Parallel()`
-  - [ ] Category 2: crypto functions accept `io.Reader`; ALL call sites updated; `go build ./...` clean
-  - [ ] Category 3: server builder exposes `WithListenFn`/`WithAppListenerFn` options;
+  - [x] Category 2: crypto functions accept `io.Reader`; ALL call sites updated; `go build ./...` clean
+  - [x] Category 3: server builder exposes `WithListenFn`/`WithAppListenerFn` options;
     old package vars removed; tests use builder options
-  - [ ] Category 4: factory interfaces defined; constructor accepts factories; all framework
+  - [x] Category 4: factory interfaces defined; constructor accepts factories; all framework
     init tests pass parallel-safe
-  - [ ] Category 5: each utility call site accepts fn param; package vars removed
-  - [ ] `-race` clean: `go test -race -count=2 ./...`
-  - [ ] All tests pass with shuffle: `go test ./... -shuffle=on`
-  - [ ] `go build ./...` clean (verifies all API break call sites updated)
-  - [ ] ARCHITECTURE.md §10.2.5 updated with per-category decisions and function-param standard
-  - [ ] `.github/instructions/03-02.testing.instructions.md` updated (remove seam-parallel
+  - [x] Category 5: each utility call site accepts fn param; package vars removed
+  - [x] `-race` clean: `go test -race -count=2 ./...`
+  - [x] All tests pass with shuffle: `go test ./... -shuffle=on`
+  - [x] `go build ./...` clean (verifies all API break call sites updated)
+  - [x] ARCHITECTURE.md §10.2.4 updated with per-category decisions and function-param standard
+  - [x] `.github/instructions/03-02.testing.instructions.md` updated (remove seam-parallel
     antipattern; add function-param injection rule)
-  - [ ] `.github/skills/test-table-driven/SKILL.md` updated
-  - [ ] `.claude/commands/test-table-driven.md` updated (body matches Copilot skill)
-  - [ ] lessons.md updated: function-param injection is the project-wide seam standard
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
+  - [x] `.github/skills/test-table-driven/SKILL.md` updated
+  - [x] `.claude/commands/test-table-driven.md` updated (body matches Copilot skill)
+  - [x] lessons.md updated: function-param injection is the project-wide seam standard
+  - [x] `go run ./cmd/cicd-lint lint-docs` passes
 - **Files**:
   - `internal/apps/tools/cicd_lint/lint_fitness/**/*.go` (Category 1: ~20 seams, ~10 packages)
   - `internal/shared/crypto/**/*.go` (Category 2: ~9 seams)
