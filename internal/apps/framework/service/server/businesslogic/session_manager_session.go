@@ -34,14 +34,6 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// Injectable keygen functions for testing error paths in generateJWSKey/generateJWEKey.
-var (
-	generateRSAKeyPairSessionFn   = cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair
-	generateECDSAKeyPairSessionFn = cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair
-	generateEdDSAKeyPairSessionFn = cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPair
-	generateAESKeySessionFn       = cryptoutilSharedCryptoKeygen.GenerateAESKey
-)
-
 func (sm *SessionManager) generateSessionJWK(isBrowser bool, algorithm cryptoutilSharedMagic.SessionAlgorithmType) (crypto.PrivateKey, error) {
 	var algIdentifier string
 	if isBrowser {
@@ -69,7 +61,7 @@ func (sm *SessionManager) generateJWSKey(algorithm string) (crypto.PrivateKey, e
 		cryptoutilSharedMagic.SessionJWSAlgorithmRS384,
 		cryptoutilSharedMagic.SessionJWSAlgorithmRS512:
 		// RSA key generation
-		keyPair, err := generateRSAKeyPairSessionFn(cryptoutilSharedMagic.RSAKeySize2048)
+		keyPair, err := sm.generateRSAKeyPairSessionFn(cryptoutilSharedMagic.RSAKeySize2048)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate RSA key pair: %w", err)
 		}
@@ -77,7 +69,7 @@ func (sm *SessionManager) generateJWSKey(algorithm string) (crypto.PrivateKey, e
 		return keyPair.Private, nil
 	case cryptoutilSharedMagic.SessionJWSAlgorithmES256:
 		// ECDSA P-256
-		keyPair, err := generateECDSAKeyPairSessionFn(elliptic.P256())
+		keyPair, err := sm.generateECDSAKeyPairSessionFn(elliptic.P256())
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate ECDSA P-256 key pair: %w", err)
 		}
@@ -85,7 +77,7 @@ func (sm *SessionManager) generateJWSKey(algorithm string) (crypto.PrivateKey, e
 		return keyPair.Private, nil
 	case cryptoutilSharedMagic.SessionJWSAlgorithmES384:
 		// ECDSA P-384
-		keyPair, err := generateECDSAKeyPairSessionFn(elliptic.P384())
+		keyPair, err := sm.generateECDSAKeyPairSessionFn(elliptic.P384())
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate ECDSA P-384 key pair: %w", err)
 		}
@@ -93,7 +85,7 @@ func (sm *SessionManager) generateJWSKey(algorithm string) (crypto.PrivateKey, e
 		return keyPair.Private, nil
 	case cryptoutilSharedMagic.SessionJWSAlgorithmES512:
 		// ECDSA P-521
-		keyPair, err := generateECDSAKeyPairSessionFn(elliptic.P521())
+		keyPair, err := sm.generateECDSAKeyPairSessionFn(elliptic.P521())
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate ECDSA P-521 key pair: %w", err)
 		}
@@ -101,7 +93,7 @@ func (sm *SessionManager) generateJWSKey(algorithm string) (crypto.PrivateKey, e
 		return keyPair.Private, nil
 	case cryptoutilSharedMagic.SessionJWSAlgorithmEdDSA:
 		// Ed25519
-		keyPair, err := generateEdDSAKeyPairSessionFn(cryptoutilSharedCryptoKeygen.EdCurveEd25519)
+		keyPair, err := sm.generateEdDSAKeyPairSessionFn(cryptoutilSharedCryptoKeygen.EdCurveEd25519)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate EdDSA key pair: %w", err)
 		}
@@ -118,7 +110,7 @@ func (sm *SessionManager) generateJWEKey(algorithm string) (crypto.PrivateKey, e
 	case cryptoutilSharedMagic.SessionJWEAlgorithmDirA256GCM,
 		cryptoutilSharedMagic.SessionJWEAlgorithmA256GCMKWA256GCM:
 		// AES-256 key generation (32 bytes)
-		key, err := generateAESKeySessionFn(cryptoutilSharedMagic.AESKeySize256)
+		key, err := sm.generateAESKeySessionFn(cryptoutilSharedMagic.AESKeySize256)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate AES key: %w", err)
 		}
@@ -332,7 +324,7 @@ func (sm *SessionManager) issueOPAQUESession(ctx context.Context, isBrowser bool
 	token := tokenID.String()
 
 	// Hash token for database storage using HighEntropyDeterministic
-	tokenHash, err := hashHighEntropyDeterministicFn(token)
+	tokenHash, err := sm.hashHighEntropyDeterministicFn(token)
 	if err != nil {
 		return "", fmt.Errorf("failed to hash session token: %w", err)
 	}
@@ -384,7 +376,7 @@ func (sm *SessionManager) issueOPAQUESession(ctx context.Context, isBrowser bool
 // validateOPAQUESession validates an OPAQUE session token.
 func (sm *SessionManager) validateOPAQUESession(ctx context.Context, isBrowser bool, token string) (any, error) {
 	// Hash token for database lookup
-	tokenHash, err := hashHighEntropyDeterministicFn(token)
+	tokenHash, err := sm.hashHighEntropyDeterministicFn(token)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash session token: %w", err)
 	}

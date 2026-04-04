@@ -19,11 +19,12 @@ package businesslogic
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	json "encoding/json"
 	"errors"
 	"fmt"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
@@ -68,13 +69,13 @@ func (sm *SessionManager) issueJWSSession(ctx context.Context, isBrowser bool, p
 	}
 
 	// Decrypt JWK bytes with barrier service (skip decryption if no barrier service for tests)
-	decryptedJWKBytes, decryptErr := barrierDecryptFn(ctx, sm.barrier, jwkBytes)
+	decryptedJWKBytes, decryptErr := sm.barrierDecryptFn(ctx, sm.barrier, jwkBytes)
 	if decryptErr != nil {
 		return "", fmt.Errorf("failed to decrypt JWK: %w", decryptErr)
 	}
 
 	// Parse JWK from JSON and ensure 'alg' is properly typed for signing
-	jwk, err := jwkParseKeyFn(decryptedJWKBytes)
+	jwk, err := sm.jwkParseKeyFn(decryptedJWKBytes)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse JWK: %w", err)
 	}
@@ -100,19 +101,19 @@ func (sm *SessionManager) issueJWSSession(ctx context.Context, isBrowser bool, p
 		"realm_id":                     realmID.String(),
 	}
 
-	claimsBytes, err := jsonMarshalFn(claims)
+	claimsBytes, err := sm.jsonMarshalFn(claims)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal JWT claims: %w", err)
 	}
 
 	// Sign JWT
-	_, jwsBytes, err := signBytesFn([]joseJwk.Key{jwk}, claimsBytes)
+	_, jwsBytes, err := sm.signBytesFn([]joseJwk.Key{jwk}, claimsBytes)
 	if err != nil {
 		return "", fmt.Errorf("failed to sign JWT: %w", err)
 	}
 
 	// Store session metadata in database (for revocation)
-	tokenHash, err := hashHighEntropyDeterministicFn(jti.String())
+	tokenHash, err := sm.hashHighEntropyDeterministicFn(jti.String())
 	if err != nil {
 		return "", fmt.Errorf("failed to hash jti: %w", err)
 	}
@@ -188,7 +189,7 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 	}
 
 	// Decrypt JWK bytes with barrier service (skip decryption if no barrier service for tests)
-	decryptedJWKBytes, decryptErr := barrierDecryptFn(ctx, sm.barrier, jwkBytes)
+	decryptedJWKBytes, decryptErr := sm.barrierDecryptFn(ctx, sm.barrier, jwkBytes)
 	if decryptErr != nil {
 		summary := "Failed to decrypt JWK"
 
@@ -196,7 +197,7 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 	}
 
 	// Parse JWK from JSON
-	privateJWK, err := jwkParseKeyFn(decryptedJWKBytes)
+	privateJWK, err := sm.jwkParseKeyFn(decryptedJWKBytes)
 	if err != nil {
 		summary := "Failed to parse session JWK"
 
@@ -213,7 +214,7 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 	// No normalization required; verification utilities will validate algorithm type.
 
 	// Verify JWT signature
-	claimsBytes, err := verifyBytesFn([]joseJwk.Key{publicJWK}, []byte(token))
+	claimsBytes, err := sm.verifyBytesFn([]joseJwk.Key{publicJWK}, []byte(token))
 	if err != nil {
 		summary := "Invalid JWT signature"
 
@@ -259,7 +260,7 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 	}
 
 	// Hash jti for database lookup
-	tokenHash, err := hashHighEntropyDeterministicFn(jti.String())
+	tokenHash, err := sm.hashHighEntropyDeterministicFn(jti.String())
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash jti: %w", err)
 	}

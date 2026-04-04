@@ -1,8 +1,7 @@
 // Copyright (c) 2025 Justin Cranford
 
-// Package businesslogic — error path coverage tests for session manager.
-// These tests use injectable function variables to trigger hard-to-reach error paths.
-// Tests modifying package-level injectables MUST NOT use t.Parallel().
+// Package businesslogic Ã¢â‚¬â€ error path coverage tests for session manager.
+// These tests inject errors via SessionManager struct fields, enabling t.Parallel().
 package businesslogic
 
 import (
@@ -26,6 +25,8 @@ import (
 
 // TestInitializeSessionJWK_UnsupportedSessionAlgorithm covers the outer default case.
 func TestInitializeSessionJWK_UnsupportedSessionAlgorithm(t *testing.T) {
+	t.Parallel()
+
 	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	_, err := sm.initializeSessionJWK(context.Background(), true, "INVALID_ALGO")
 	require.Error(t, err)
@@ -34,14 +35,13 @@ func TestInitializeSessionJWK_UnsupportedSessionAlgorithm(t *testing.T) {
 
 // TestInitializeSessionJWK_GenerateJWKError covers the genErr != nil branch.
 func TestInitializeSessionJWK_GenerateJWKError(t *testing.T) {
-	orig := generateRSAJWKFn
-	generateRSAJWKFn = func(_ int) (joseJwk.Key, error) {
+	t.Parallel()
+
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
+	sm.generateRSAJWKFn = func(_ int) (joseJwk.Key, error) {
 		return nil, fmt.Errorf("injected generate error")
 	}
 
-	defer func() { generateRSAJWKFn = orig }()
-
-	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	_, err := sm.initializeSessionJWK(context.Background(), true, cryptoutilSharedMagic.SessionAlgorithmJWS)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to generate JWK")
@@ -49,13 +49,10 @@ func TestInitializeSessionJWK_GenerateJWKError(t *testing.T) {
 
 // TestInitializeSessionJWK_MarshalJWKError covers the marshalErr != nil branch.
 func TestInitializeSessionJWK_MarshalJWKError(t *testing.T) {
-	orig := jsonMarshalFn
-
-	defer func() { jsonMarshalFn = orig }()
+	t.Parallel()
 
 	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
-
-	jsonMarshalFn = func(_ any) ([]byte, error) {
+	sm.jsonMarshalFn = func(_ any) ([]byte, error) {
 		return nil, fmt.Errorf("injected marshal error")
 	}
 
@@ -66,15 +63,13 @@ func TestInitializeSessionJWK_MarshalJWKError(t *testing.T) {
 
 // TestInitializeSessionJWK_BarrierEncryptError covers the barrier encrypt error branch.
 func TestInitializeSessionJWK_BarrierEncryptError(t *testing.T) {
-	orig := barrierEncryptFn
+	t.Parallel()
 
-	defer func() { barrierEncryptFn = orig }()
-
-	barrierEncryptFn = func(_ context.Context, _ *cryptoutilAppsFrameworkServiceServerBarrier.Service, _ []byte) ([]byte, error) {
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
+	sm.barrierEncryptFn = func(_ context.Context, _ *cryptoutilAppsFrameworkServiceServerBarrier.Service, _ []byte) ([]byte, error) {
 		return nil, fmt.Errorf("injected barrier encrypt error")
 	}
 
-	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	_, err := sm.initializeSessionJWK(context.Background(), true, cryptoutilSharedMagic.SessionAlgorithmJWS)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to encrypt JWK")
@@ -82,6 +77,8 @@ func TestInitializeSessionJWK_BarrierEncryptError(t *testing.T) {
 
 // TestInitializeSessionJWK_StoreJWKDBError covers the DB create error branch.
 func TestInitializeSessionJWK_StoreJWKDBError(t *testing.T) {
+	t.Parallel()
+
 	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 
 	// Close DB to force error.
@@ -113,13 +110,10 @@ func TestIssueJWESession_LoadJWKError(t *testing.T) {
 
 // TestIssueJWESession_BarrierDecryptError covers the barrier decrypt error in issue.
 func TestIssueJWESession_BarrierDecryptError(t *testing.T) {
-	orig := barrierDecryptFn
-
-	defer func() { barrierDecryptFn = orig }()
+	t.Parallel()
 
 	sm := setupJWESessionManager(t)
-
-	barrierDecryptFn = func(_ context.Context, _ *cryptoutilAppsFrameworkServiceServerBarrier.Service, _ []byte) ([]byte, error) {
+	sm.barrierDecryptFn = func(_ context.Context, _ *cryptoutilAppsFrameworkServiceServerBarrier.Service, _ []byte) ([]byte, error) {
 		return nil, fmt.Errorf("injected barrier decrypt error")
 	}
 
@@ -130,13 +124,10 @@ func TestIssueJWESession_BarrierDecryptError(t *testing.T) {
 
 // TestIssueJWESession_ParseJWKError covers the JWK parse error in issue.
 func TestIssueJWESession_ParseJWKError(t *testing.T) {
-	orig := jwkParseKeyFn
-
-	defer func() { jwkParseKeyFn = orig }()
+	t.Parallel()
 
 	sm := setupJWESessionManager(t)
-
-	jwkParseKeyFn = func(_ []byte, _ ...joseJwk.ParseOption) (joseJwk.Key, error) {
+	sm.jwkParseKeyFn = func(_ []byte, _ ...joseJwk.ParseOption) (joseJwk.Key, error) {
 		return nil, fmt.Errorf("injected parse error")
 	}
 
@@ -147,13 +138,10 @@ func TestIssueJWESession_ParseJWKError(t *testing.T) {
 
 // TestIssueJWESession_MarshalClaimsError covers the JSON marshal error in issue.
 func TestIssueJWESession_MarshalClaimsError(t *testing.T) {
-	orig := jsonMarshalFn
-
-	defer func() { jsonMarshalFn = orig }()
+	t.Parallel()
 
 	sm := setupJWESessionManager(t)
-
-	jsonMarshalFn = func(_ any) ([]byte, error) {
+	sm.jsonMarshalFn = func(_ any) ([]byte, error) {
 		return nil, fmt.Errorf("injected marshal error")
 	}
 
@@ -164,13 +152,10 @@ func TestIssueJWESession_MarshalClaimsError(t *testing.T) {
 
 // TestIssueJWESession_EncryptError covers the encrypt error in issue.
 func TestIssueJWESession_EncryptError(t *testing.T) {
-	orig := encryptBytesFn
-
-	defer func() { encryptBytesFn = orig }()
+	t.Parallel()
 
 	sm := setupJWESessionManager(t)
-
-	encryptBytesFn = func(_ []joseJwk.Key, _ []byte) (*joseJwe.Message, []byte, error) {
+	sm.encryptBytesFn = func(_ []joseJwk.Key, _ []byte) (*joseJwe.Message, []byte, error) {
 		return nil, nil, fmt.Errorf("injected encrypt error")
 	}
 
@@ -181,13 +166,10 @@ func TestIssueJWESession_EncryptError(t *testing.T) {
 
 // TestIssueJWESession_HashError covers the hash error in issue.
 func TestIssueJWESession_HashError(t *testing.T) {
-	orig := hashHighEntropyDeterministicFn
-
-	defer func() { hashHighEntropyDeterministicFn = orig }()
+	t.Parallel()
 
 	sm := setupJWESessionManager(t)
-
-	hashHighEntropyDeterministicFn = func(_ string) (string, error) {
+	sm.hashHighEntropyDeterministicFn = func(_ string) (string, error) {
 		return "", fmt.Errorf("injected hash error")
 	}
 
@@ -228,15 +210,13 @@ func TestValidateJWESession_LoadJWKError(t *testing.T) {
 
 // TestValidateJWESession_BarrierDecryptError covers the barrier decrypt error in validate.
 func TestValidateJWESession_BarrierDecryptError(t *testing.T) {
-	orig := barrierDecryptFn
-
-	defer func() { barrierDecryptFn = orig }()
+	t.Parallel()
 
 	sm := setupJWESessionManager(t)
 	token, err := sm.IssueBrowserSession(context.Background(), "user1", googleUuid.Must(googleUuid.NewV7()), googleUuid.Must(googleUuid.NewV7()))
 	require.NoError(t, err)
 
-	barrierDecryptFn = func(_ context.Context, _ *cryptoutilAppsFrameworkServiceServerBarrier.Service, _ []byte) ([]byte, error) {
+	sm.barrierDecryptFn = func(_ context.Context, _ *cryptoutilAppsFrameworkServiceServerBarrier.Service, _ []byte) ([]byte, error) {
 		return nil, fmt.Errorf("injected barrier decrypt error")
 	}
 
@@ -289,13 +269,10 @@ func TestIssueJWSSession_LoadJWKError(t *testing.T) {
 
 // TestIssueJWSSession_BarrierDecryptError covers the barrier decrypt error in issue.
 func TestIssueJWSSession_BarrierDecryptError(t *testing.T) {
-	orig := barrierDecryptFn
-
-	defer func() { barrierDecryptFn = orig }()
+	t.Parallel()
 
 	sm := setupJWSSessionManager(t)
-
-	barrierDecryptFn = func(_ context.Context, _ *cryptoutilAppsFrameworkServiceServerBarrier.Service, _ []byte) ([]byte, error) {
+	sm.barrierDecryptFn = func(_ context.Context, _ *cryptoutilAppsFrameworkServiceServerBarrier.Service, _ []byte) ([]byte, error) {
 		return nil, fmt.Errorf("injected barrier decrypt error")
 	}
 
@@ -306,13 +283,10 @@ func TestIssueJWSSession_BarrierDecryptError(t *testing.T) {
 
 // TestIssueJWSSession_MarshalClaimsError covers the JSON marshal error.
 func TestIssueJWSSession_MarshalClaimsError(t *testing.T) {
-	orig := jsonMarshalFn
-
-	defer func() { jsonMarshalFn = orig }()
+	t.Parallel()
 
 	sm := setupJWSSessionManager(t)
-
-	jsonMarshalFn = func(_ any) ([]byte, error) {
+	sm.jsonMarshalFn = func(_ any) ([]byte, error) {
 		return nil, fmt.Errorf("injected marshal error")
 	}
 
@@ -323,13 +297,10 @@ func TestIssueJWSSession_MarshalClaimsError(t *testing.T) {
 
 // TestIssueJWSSession_SignError covers the sign error in issue.
 func TestIssueJWSSession_SignError(t *testing.T) {
-	orig := signBytesFn
-
-	defer func() { signBytesFn = orig }()
+	t.Parallel()
 
 	sm := setupJWSSessionManager(t)
-
-	signBytesFn = func(_ []joseJwk.Key, _ []byte) (*joseJws.Message, []byte, error) {
+	sm.signBytesFn = func(_ []joseJwk.Key, _ []byte) (*joseJws.Message, []byte, error) {
 		return nil, nil, fmt.Errorf("injected sign error")
 	}
 
@@ -340,13 +311,10 @@ func TestIssueJWSSession_SignError(t *testing.T) {
 
 // TestIssueJWSSession_HashError covers the hash error in issue.
 func TestIssueJWSSession_HashError(t *testing.T) {
-	orig := hashHighEntropyDeterministicFn
-
-	defer func() { hashHighEntropyDeterministicFn = orig }()
+	t.Parallel()
 
 	sm := setupJWSSessionManager(t)
-
-	hashHighEntropyDeterministicFn = func(_ string) (string, error) {
+	sm.hashHighEntropyDeterministicFn = func(_ string) (string, error) {
 		return "", fmt.Errorf("injected hash error")
 	}
 
@@ -388,15 +356,13 @@ func TestValidateJWSSession_LoadJWKError(t *testing.T) {
 
 // TestValidateJWSSession_BarrierDecryptError covers the barrier decrypt error in validate.
 func TestValidateJWSSession_BarrierDecryptError(t *testing.T) {
-	orig := barrierDecryptFn
-
-	defer func() { barrierDecryptFn = orig }()
+	t.Parallel()
 
 	sm := setupJWSSessionManager(t)
 	token, err := sm.IssueBrowserSession(context.Background(), "user1", googleUuid.Must(googleUuid.NewV7()), googleUuid.Must(googleUuid.NewV7()))
 	require.NoError(t, err)
 
-	barrierDecryptFn = func(_ context.Context, _ *cryptoutilAppsFrameworkServiceServerBarrier.Service, _ []byte) ([]byte, error) {
+	sm.barrierDecryptFn = func(_ context.Context, _ *cryptoutilAppsFrameworkServiceServerBarrier.Service, _ []byte) ([]byte, error) {
 		return nil, fmt.Errorf("injected barrier decrypt error")
 	}
 
@@ -415,15 +381,13 @@ func TestValidateJWSSession_VerifyError(t *testing.T) {
 
 // TestValidateJWSSession_HashError covers the hash error in validate.
 func TestValidateJWSSession_HashError(t *testing.T) {
-	orig := hashHighEntropyDeterministicFn
-
-	defer func() { hashHighEntropyDeterministicFn = orig }()
+	t.Parallel()
 
 	sm := setupJWSSessionManager(t)
 	token, err := sm.IssueBrowserSession(context.Background(), "user1", googleUuid.Must(googleUuid.NewV7()), googleUuid.Must(googleUuid.NewV7()))
 	require.NoError(t, err)
 
-	hashHighEntropyDeterministicFn = func(_ string) (string, error) {
+	sm.hashHighEntropyDeterministicFn = func(_ string) (string, error) {
 		return "", fmt.Errorf("injected hash error")
 	}
 

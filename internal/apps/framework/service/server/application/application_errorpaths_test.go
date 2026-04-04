@@ -27,9 +27,7 @@ import (
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
-var (
-	errInjectFailure = errors.New("injected test failure")
-)
+var errInjectFailure = errors.New("injected test failure")
 
 // injectJWKGenFail replaces newJWKGenServiceFn with a failure stub.
 func injectJWKGenFail(_ context.Context, _ *cryptoutilSharedTelemetry.TelemetryService, _ bool) (*cryptoutilSharedCryptoJose.JWKGenService, error) {

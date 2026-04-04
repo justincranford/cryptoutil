@@ -27,7 +27,9 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
+	joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
+	joseJws "github.com/lestrrat-go/jwx/v3/jws"
 	"gorm.io/gorm"
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
@@ -35,6 +37,7 @@ import (
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
 	cryptoutilSharedCryptoHash "cryptoutil/internal/shared/crypto/hash"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -44,24 +47,6 @@ const (
 	errMsgMissingInvalidJTIClaim = "Missing or invalid jti claim"
 	errMsgSessionRevokedNotFound = "Session revoked or not found"
 	errMsgInvalidSessionToken    = "Invalid session token"
-)
-
-// Injectable function variables for testing error paths.
-var (
-	jsonMarshalFn                  = json.Marshal
-	generateRSAJWKFn               = cryptoutilSharedCryptoJose.GenerateRSAJWK
-	generateECDSAJWKFn             = cryptoutilSharedCryptoJose.GenerateECDSAJWK
-	generateEdDSAJWKFn             = cryptoutilSharedCryptoJose.GenerateEDDSAJWK
-	generateAESJWKFn               = cryptoutilSharedCryptoJose.GenerateAESJWK
-	generateHMACJWKFn              = cryptoutilSharedCryptoJose.GenerateHMACJWK
-	jwkParseKeyFn                  = joseJwk.ParseKey
-	signBytesFn                    = cryptoutilSharedCryptoJose.SignBytes
-	encryptBytesFn                 = cryptoutilSharedCryptoJose.EncryptBytes
-	decryptBytesFn                 = cryptoutilSharedCryptoJose.DecryptBytes
-	verifyBytesFn                  = cryptoutilSharedCryptoJose.VerifyBytes
-	hashHighEntropyDeterministicFn = cryptoutilSharedCryptoHash.HashHighEntropyDeterministic
-	barrierEncryptFn               = defaultBarrierEncrypt
-	barrierDecryptFn               = defaultBarrierDecrypt
 )
 
 // defaultBarrierEncrypt encrypts data using the barrier service, or returns data as-is if barrier is nil (test mode).
@@ -121,6 +106,26 @@ type SessionManager struct {
 	// Runtime state for service sessions
 	serviceAlgorithm cryptoutilSharedMagic.SessionAlgorithmType
 	serviceJWKID     *googleUuid.UUID // Active JWK ID for JWS/JWE, nil for OPAQUE
+
+	// Injectable function fields for testing error paths.
+	jsonMarshalFn                  func(v any) ([]byte, error)
+	generateRSAJWKFn               func(rsaBits int) (joseJwk.Key, error)
+	generateECDSAJWKFn             func(ecdsaCurve elliptic.Curve) (joseJwk.Key, error)
+	generateEdDSAJWKFn             func(edCurve string) (joseJwk.Key, error)
+	generateAESJWKFn               func(aesBits int) (joseJwk.Key, error)
+	generateHMACJWKFn              func(hmacBits int) (joseJwk.Key, error)
+	jwkParseKeyFn                  func(data []byte, options ...joseJwk.ParseOption) (joseJwk.Key, error)
+	signBytesFn                    func(jwks []joseJwk.Key, clearBytes []byte) (*joseJws.Message, []byte, error)
+	encryptBytesFn                 func(jwks []joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []byte, error)
+	decryptBytesFn                 func(jwks []joseJwk.Key, jweMessageBytes []byte) ([]byte, error)
+	verifyBytesFn                  func(jwks []joseJwk.Key, jwsMessageBytes []byte) ([]byte, error)
+	hashHighEntropyDeterministicFn func(secret string) (string, error)
+	barrierEncryptFn               func(ctx context.Context, barrier *cryptoutilAppsFrameworkServiceServerBarrier.Service, data []byte) ([]byte, error)
+	barrierDecryptFn               func(ctx context.Context, barrier *cryptoutilAppsFrameworkServiceServerBarrier.Service, data []byte) ([]byte, error)
+	generateRSAKeyPairSessionFn    func(rsaBits int) (*cryptoutilSharedCryptoKeygen.KeyPair, error)
+	generateECDSAKeyPairSessionFn  func(ecdsaCurve elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error)
+	generateEdDSAKeyPairSessionFn  func(edCurve string) (*cryptoutilSharedCryptoKeygen.KeyPair, error)
+	generateAESKeySessionFn        func(aesBits int) (cryptoutilSharedCryptoKeygen.SecretKey, error)
 }
 
 // NewSessionManager creates a new SessionManager instance.
@@ -133,9 +138,27 @@ type SessionManager struct {
 // Returns configured SessionManager (call Initialize before use).
 func NewSessionManager(db *gorm.DB, barrier *cryptoutilAppsFrameworkServiceServerBarrier.Service, config *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) *SessionManager {
 	return &SessionManager{
-		db:      db,
-		barrier: barrier,
-		config:  config,
+		db:                             db,
+		barrier:                        barrier,
+		config:                         config,
+		jsonMarshalFn:                  json.Marshal,
+		generateRSAJWKFn:               cryptoutilSharedCryptoJose.GenerateRSAJWK,
+		generateECDSAJWKFn:             cryptoutilSharedCryptoJose.GenerateECDSAJWK,
+		generateEdDSAJWKFn:             cryptoutilSharedCryptoJose.GenerateEDDSAJWK,
+		generateAESJWKFn:               cryptoutilSharedCryptoJose.GenerateAESJWK,
+		generateHMACJWKFn:              cryptoutilSharedCryptoJose.GenerateHMACJWK,
+		jwkParseKeyFn:                  joseJwk.ParseKey,
+		signBytesFn:                    cryptoutilSharedCryptoJose.SignBytes,
+		encryptBytesFn:                 cryptoutilSharedCryptoJose.EncryptBytes,
+		decryptBytesFn:                 cryptoutilSharedCryptoJose.DecryptBytes,
+		verifyBytesFn:                  cryptoutilSharedCryptoJose.VerifyBytes,
+		hashHighEntropyDeterministicFn: cryptoutilSharedCryptoHash.HashHighEntropyDeterministic,
+		barrierEncryptFn:               defaultBarrierEncrypt,
+		barrierDecryptFn:               defaultBarrierDecrypt,
+		generateRSAKeyPairSessionFn:    cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair,
+		generateECDSAKeyPairSessionFn:  cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair,
+		generateEdDSAKeyPairSessionFn:  cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPair,
+		generateAESKeySessionFn:        cryptoutilSharedCryptoKeygen.GenerateAESKey,
 	}
 }
 
@@ -259,7 +282,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 				algValue = joseJwa.HS512()
 			}
 
-			jwk, genErr = generateHMACJWKFn(hmacBits)
+			jwk, genErr = sm.generateHMACJWKFn(hmacBits)
 			if genErr == nil {
 				genErr = jwk.Set(joseJwk.AlgorithmKey, algValue)
 				if genErr == nil {
@@ -267,7 +290,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 				}
 			}
 		case cryptoutilSharedMagic.JoseAlgRS256, cryptoutilSharedMagic.JoseAlgRS384, cryptoutilSharedMagic.JoseAlgRS512:
-			jwk, genErr = generateRSAJWKFn(cryptoutilSharedMagic.RSAKeySize2048)
+			jwk, genErr = sm.generateRSAJWKFn(cryptoutilSharedMagic.RSAKeySize2048)
 			if genErr == nil {
 				// Set 'alg' attribute for signing
 				var algValue joseJwa.SignatureAlgorithm
@@ -287,7 +310,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 				}
 			}
 		case cryptoutilSharedMagic.JoseAlgES256:
-			jwk, genErr = generateECDSAJWKFn(elliptic.P256())
+			jwk, genErr = sm.generateECDSAJWKFn(elliptic.P256())
 			if genErr == nil {
 				genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.ES256())
 				if genErr == nil {
@@ -295,7 +318,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 				}
 			}
 		case cryptoutilSharedMagic.JoseAlgES384:
-			jwk, genErr = generateECDSAJWKFn(elliptic.P384())
+			jwk, genErr = sm.generateECDSAJWKFn(elliptic.P384())
 			if genErr == nil {
 				genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.ES384())
 				if genErr == nil {
@@ -303,7 +326,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 				}
 			}
 		case cryptoutilSharedMagic.JoseAlgES512:
-			jwk, genErr = generateECDSAJWKFn(elliptic.P521())
+			jwk, genErr = sm.generateECDSAJWKFn(elliptic.P521())
 			if genErr == nil {
 				genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.ES512())
 				if genErr == nil {
@@ -311,7 +334,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 				}
 			}
 		case cryptoutilSharedMagic.JoseAlgEdDSA:
-			jwk, genErr = generateEdDSAJWKFn(cryptoutilSharedMagic.EdCurveEd25519)
+			jwk, genErr = sm.generateEdDSAJWKFn(cryptoutilSharedMagic.EdCurveEd25519)
 			if genErr == nil {
 				genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.EdDSA())
 				if genErr == nil {
@@ -325,7 +348,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 		// Generate encryption JWK based on algorithm
 		switch algIdentifier {
 		case cryptoutilSharedMagic.SessionJWEAlgorithmDirA256GCM:
-			jwk, genErr = generateAESJWKFn(cryptoutilSharedMagic.AESKeySize256)
+			jwk, genErr = sm.generateAESJWKFn(cryptoutilSharedMagic.AESKeySize256)
 			if genErr == nil {
 				// Set 'enc' and 'alg' attributes for encryption
 				genErr = jwk.Set(cryptoutilSharedMagic.JoseKeyUseEnc, joseJwa.A256GCM())
@@ -334,7 +357,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 				}
 			}
 		case cryptoutilSharedMagic.SessionJWEAlgorithmA256GCMKWA256GCM:
-			jwk, genErr = generateAESJWKFn(cryptoutilSharedMagic.AESKeySize256)
+			jwk, genErr = sm.generateAESJWKFn(cryptoutilSharedMagic.AESKeySize256)
 			if genErr == nil {
 				genErr = jwk.Set(cryptoutilSharedMagic.JoseKeyUseEnc, joseJwa.A256GCM())
 				if genErr == nil {
@@ -353,13 +376,13 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 	}
 
 	// Marshal JWK to JSON bytes
-	jwkBytes, marshalErr := jsonMarshalFn(jwk)
+	jwkBytes, marshalErr := sm.jsonMarshalFn(jwk)
 	if marshalErr != nil {
 		return googleUuid.UUID{}, fmt.Errorf("failed to marshal JWK: %w", marshalErr)
 	}
 
 	// Encrypt JWK with barrier service (skip encryption if no barrier service for tests)
-	encryptedJWK, encryptErr := barrierEncryptFn(ctx, sm.barrier, jwkBytes)
+	encryptedJWK, encryptErr := sm.barrierEncryptFn(ctx, sm.barrier, jwkBytes)
 	if encryptErr != nil {
 		return googleUuid.UUID{}, fmt.Errorf("failed to encrypt JWK: %w", encryptErr)
 	}

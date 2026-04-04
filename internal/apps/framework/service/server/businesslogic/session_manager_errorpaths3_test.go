@@ -1,6 +1,7 @@
 // Copyright (c) 2025 Justin Cranford
 
-// Package businesslogic — error path tests for OPAQUE, unsupported algorithms, cleanup, and service-side.
+// Package businesslogic â€” error path tests for OPAQUE, unsupported algorithms, cleanup, and service-side.
+// Tests inject errors via SessionManager struct fields, enabling t.Parallel().
 package businesslogic
 
 import (
@@ -20,16 +21,12 @@ const testInvalidAlgorithm = "INVALID_ALGO"
 // OPAQUE session error path tests.
 // =============================================================================
 
-// Sequential: mutates global hashHighEntropyDeterministicFn - package-level state, cannot run in parallel.
 // TestIssueOPAQUESession_HashError covers the hash error in OPAQUE issue.
 func TestIssueOPAQUESession_HashError(t *testing.T) {
-	orig := hashHighEntropyDeterministicFn
-
-	defer func() { hashHighEntropyDeterministicFn = orig }()
+	t.Parallel()
 
 	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
-
-	hashHighEntropyDeterministicFn = func(_ string) (string, error) {
+	sm.hashHighEntropyDeterministicFn = func(_ string) (string, error) {
 		return "", fmt.Errorf("injected hash error")
 	}
 
@@ -53,18 +50,15 @@ func TestIssueOPAQUESession_CreateDBError(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to store session")
 }
 
-// Sequential: mutates global hashHighEntropyDeterministicFn - package-level state, cannot run in parallel.
 // TestValidateOPAQUESession_HashError covers the hash error in OPAQUE validate.
 func TestValidateOPAQUESession_HashError(t *testing.T) {
-	orig := hashHighEntropyDeterministicFn
-
-	defer func() { hashHighEntropyDeterministicFn = orig }()
+	t.Parallel()
 
 	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	token, err := sm.IssueBrowserSession(context.Background(), "user1", googleUuid.Must(googleUuid.NewV7()), googleUuid.Must(googleUuid.NewV7()))
 	require.NoError(t, err)
 
-	hashHighEntropyDeterministicFn = func(_ string) (string, error) {
+	sm.hashHighEntropyDeterministicFn = func(_ string) (string, error) {
 		return "", fmt.Errorf("injected hash error")
 	}
 

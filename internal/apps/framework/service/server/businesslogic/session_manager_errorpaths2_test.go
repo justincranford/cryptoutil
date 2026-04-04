@@ -1,7 +1,8 @@
 // Copyright (c) 2025 Justin Cranford
 
-// Package businesslogic — additional error path coverage tests (part 2).
+// Package businesslogic â€” additional error path coverage tests (part 2).
 // Covers JWK parse errors, verify/decrypt result errors, and DB query/update errors.
+// Tests inject errors via SessionManager struct fields, enabling t.Parallel().
 package businesslogic
 
 import (
@@ -25,16 +26,12 @@ import (
 // JWK parse error tests for issue and validate paths.
 // =============================================================================
 
-// Sequential: mutates global jwkParseKeyFn - package-level state, cannot run in parallel.
 // TestIssueJWSSession_ParseJWKError covers the JWK parse error in JWS issue.
 func TestIssueJWSSession_ParseJWKError(t *testing.T) {
-	orig := jwkParseKeyFn
-
-	defer func() { jwkParseKeyFn = orig }()
+	t.Parallel()
 
 	sm := setupJWSSessionManager(t)
-
-	jwkParseKeyFn = func(_ []byte, _ ...joseJwk.ParseOption) (joseJwk.Key, error) {
+	sm.jwkParseKeyFn = func(_ []byte, _ ...joseJwk.ParseOption) (joseJwk.Key, error) {
 		return nil, fmt.Errorf("injected parse error")
 	}
 
@@ -43,12 +40,9 @@ func TestIssueJWSSession_ParseJWKError(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to parse JWK")
 }
 
-// Sequential: mutates global jwkParseKeyFn - package-level state, cannot run in parallel.
 // TestValidateJWESession_ParseJWKError covers the JWK parse error in JWE validate.
 func TestValidateJWESession_ParseJWKError(t *testing.T) {
-	orig := jwkParseKeyFn
-
-	defer func() { jwkParseKeyFn = orig }()
+	t.Parallel()
 
 	sm := setupJWESessionManager(t)
 
@@ -57,7 +51,7 @@ func TestValidateJWESession_ParseJWKError(t *testing.T) {
 	require.NoError(t, err)
 
 	// Now inject parse failure for validate path.
-	jwkParseKeyFn = func(_ []byte, _ ...joseJwk.ParseOption) (joseJwk.Key, error) {
+	sm.jwkParseKeyFn = func(_ []byte, _ ...joseJwk.ParseOption) (joseJwk.Key, error) {
 		return nil, fmt.Errorf("injected parse error")
 	}
 
@@ -65,19 +59,16 @@ func TestValidateJWESession_ParseJWKError(t *testing.T) {
 	require.Error(t, err)
 }
 
-// Sequential: mutates global jwkParseKeyFn - package-level state, cannot run in parallel.
 // TestValidateJWSSession_ParseJWKError covers the JWK parse error in JWS validate.
 func TestValidateJWSSession_ParseJWKError(t *testing.T) {
-	orig := jwkParseKeyFn
-
-	defer func() { jwkParseKeyFn = orig }()
+	t.Parallel()
 
 	sm := setupJWSSessionManager(t)
 
 	token, err := sm.IssueBrowserSession(context.Background(), "user1", googleUuid.Must(googleUuid.NewV7()), googleUuid.Must(googleUuid.NewV7()))
 	require.NoError(t, err)
 
-	jwkParseKeyFn = func(_ []byte, _ ...joseJwk.ParseOption) (joseJwk.Key, error) {
+	sm.jwkParseKeyFn = func(_ []byte, _ ...joseJwk.ParseOption) (joseJwk.Key, error) {
 		return nil, fmt.Errorf("injected parse error")
 	}
 
@@ -89,12 +80,9 @@ func TestValidateJWSSession_ParseJWKError(t *testing.T) {
 // Verify/decrypt result error tests (non-JSON payloads trigger unmarshal errors).
 // =============================================================================
 
-// Sequential: mutates global decryptBytesFn - package-level state, cannot run in parallel.
 // TestValidateJWESession_UnmarshalError covers the claims unmarshal error in JWE validate.
 func TestValidateJWESession_UnmarshalError(t *testing.T) {
-	orig := decryptBytesFn
-
-	defer func() { decryptBytesFn = orig }()
+	t.Parallel()
 
 	sm := setupJWESessionManager(t)
 
@@ -102,7 +90,7 @@ func TestValidateJWESession_UnmarshalError(t *testing.T) {
 	require.NoError(t, err)
 
 	// Override decryptBytesFn to return non-JSON bytes, triggering unmarshal error.
-	decryptBytesFn = func(_ []joseJwk.Key, _ []byte) ([]byte, error) {
+	sm.decryptBytesFn = func(_ []joseJwk.Key, _ []byte) ([]byte, error) {
 		return []byte("not-valid-json"), nil
 	}
 
@@ -110,12 +98,9 @@ func TestValidateJWESession_UnmarshalError(t *testing.T) {
 	require.Error(t, err)
 }
 
-// Sequential: mutates global verifyBytesFn - package-level state, cannot run in parallel.
 // TestValidateJWSSession_UnmarshalError covers the claims unmarshal error in JWS validate.
 func TestValidateJWSSession_UnmarshalError(t *testing.T) {
-	orig := verifyBytesFn
-
-	defer func() { verifyBytesFn = orig }()
+	t.Parallel()
 
 	sm := setupJWSSessionManager(t)
 
@@ -123,7 +108,7 @@ func TestValidateJWSSession_UnmarshalError(t *testing.T) {
 	require.NoError(t, err)
 
 	// Override verifyBytesFn to return non-JSON bytes, triggering unmarshal error.
-	verifyBytesFn = func(_ []joseJwk.Key, _ []byte) ([]byte, error) {
+	sm.verifyBytesFn = func(_ []joseJwk.Key, _ []byte) ([]byte, error) {
 		return []byte("not-valid-json"), nil
 	}
 
@@ -135,12 +120,9 @@ func TestValidateJWSSession_UnmarshalError(t *testing.T) {
 // JWS validate PublicKey error test.
 // =============================================================================
 
-// Sequential: mutates global jwkParseKeyFn - package-level state, cannot run in parallel.
 // TestValidateJWSSession_PublicKeyError covers the PublicKey extraction error.
 func TestValidateJWSSession_PublicKeyError(t *testing.T) {
-	orig := jwkParseKeyFn
-
-	defer func() { jwkParseKeyFn = orig }()
+	t.Parallel()
 
 	sm := setupJWSSessionManager(t)
 
@@ -149,7 +131,7 @@ func TestValidateJWSSession_PublicKeyError(t *testing.T) {
 
 	// Override jwkParseKeyFn to return a symmetric (HMAC) key.
 	// Symmetric keys do not support PublicKey(), which triggers the error.
-	jwkParseKeyFn = func(_ []byte, _ ...joseJwk.ParseOption) (joseJwk.Key, error) {
+	sm.jwkParseKeyFn = func(_ []byte, _ ...joseJwk.ParseOption) (joseJwk.Key, error) {
 		return cryptoutilSharedCryptoJose.GenerateHMACJWK(cryptoutilSharedMagic.HMACKeySize256)
 	}
 
@@ -341,16 +323,12 @@ var (
 // Keygen error path tests (injectable keygen vars in session_manager_session.go).
 // =============================================================================
 
-// Sequential: mutates global generateRSAKeyPairSessionFn - package-level state, cannot run in parallel.
 // TestGenerateJWSKey_RSAKeygenError covers RSA keygen failure in generateJWSKey.
 func TestGenerateJWSKey_RSAKeygenError(t *testing.T) {
-	orig := generateRSAKeyPairSessionFn
-
-	defer func() { generateRSAKeyPairSessionFn = orig }()
+	t.Parallel()
 
 	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
-
-	generateRSAKeyPairSessionFn = func(_ int) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
+	sm.generateRSAKeyPairSessionFn = func(_ int) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
 		return nil, fmt.Errorf("injected RSA keygen error")
 	}
 
@@ -359,16 +337,12 @@ func TestGenerateJWSKey_RSAKeygenError(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to generate RSA key pair")
 }
 
-// Sequential: mutates global generateAESKeySessionFn - package-level state, cannot run in parallel.
 // TestGenerateJWEKey_AESKeygenError covers AES keygen failure in generateJWEKey.
 func TestGenerateJWEKey_AESKeygenError(t *testing.T) {
-	orig := generateAESKeySessionFn
-
-	defer func() { generateAESKeySessionFn = orig }()
+	t.Parallel()
 
 	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
-
-	generateAESKeySessionFn = func(_ int) (cryptoutilSharedCryptoKeygen.SecretKey, error) {
+	sm.generateAESKeySessionFn = func(_ int) (cryptoutilSharedCryptoKeygen.SecretKey, error) {
 		return nil, fmt.Errorf("injected AES keygen error")
 	}
 
