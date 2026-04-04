@@ -12,6 +12,15 @@ Create both `.github/agents/NAME.agent.md` (Copilot) and `.claude/agents/NAME.md
 Use when creating a new agent. Creates BOTH canonical files so the agent works
 correctly in both VS Code Copilot (with tool whitelist) and Claude Code (inherits all tools).
 
+## Key Rules
+
+- ALWAYS create both files: `.github/agents/NAME.agent.md` (Copilot) AND `.claude/agents/NAME.md` (Claude Code)
+- `tools:` field REQUIRED in Copilot file (whitelist); OMIT in Claude file (inherits all)
+- Body content MUST be identical between both files; only frontmatter differs
+- `name:` prefix: `copilot-NAME` in Copilot file, `claude-NAME` in Claude file
+- MUST include ARCHITECTURE.md self-containment references (≥1 section reference)
+- MUST include Autonomous Execution Mode and Prohibited Stop Behaviors sections
+
 ## Copilot Template (`.github/agents/NAME.agent.md`)
 
 ```markdown

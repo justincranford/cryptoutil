@@ -1,8 +1,23 @@
+---
+name: fitness-function-gen
+description: "Generate a new architecture fitness function (linter) for the cryptoutil lint-fitness framework. Use when adding a new architectural invariant that should be enforced via go run ./cmd/cicd-lint lint-fitness across every service."
+argument-hint: "[linter-name] [architectural rule description]"
+---
+
 Create a new architecture fitness function (linter) for the cicd_lint/lint_fitness framework.
 
 **Full Copilot original**: [.github/skills/fitness-function-gen/SKILL.md](.github/skills/fitness-function-gen/SKILL.md)
 
 Provide: linter name (e.g., `check-migration-ranges`), what invariant it checks.
+
+## Key Rules
+
+- Register in `registeredLinters` slice in `lint_fitness.go` and `lint-fitness-registry.yaml`
+- Function signature: `Check(logger *cryptoutilCmdCicdCommon.Logger) error`
+- MUST return hard error (`fmt.Errorf`) on absent required directories (never `return nil`)
+- Use function-param injection for OS I/O (never package-level `var walkFn = filepath.Walk`)
+- Tests ≥98% line coverage (infrastructure/utility target)
+- Validator error aggregation: collect ALL violations before returning (never short-circuit)
 
 ## Directory Structure
 

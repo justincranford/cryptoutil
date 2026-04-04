@@ -12,6 +12,15 @@ Use to audit cryptographic usage for FIPS 140-3 compliance. Goes beyond
 the `cicd lint-go` non-fips-algorithms checker by analyzing usage patterns,
 key sizes, and algorithm configurations.
 
+## Key Rules
+
+- ALWAYS use `crypto/rand` (NEVER `math/rand`)
+- BANNED: MD5, SHA-1, DES, 3DES, RC4, bcrypt, scrypt, Argon2, RSA<2048
+- APPROVED: RSA≥2048, ECDSA P-256/384/521, AES≥128 (GCM/CBC+HMAC), SHA-256/384/512
+- TLS minimum version: TLS 1.3; NEVER `InsecureSkipVerify: true`
+- ALL crypto algorithms MUST be configurable via config struct (algorithm agility)
+- Crypto acronyms ALWAYS ALL CAPS: RSA, EC, ECDSA, HMAC, AES, JWK, JWE, JWS
+
 ## FIPS 140-3 Approved Algorithms
 
 | Category | Approved | Banned |

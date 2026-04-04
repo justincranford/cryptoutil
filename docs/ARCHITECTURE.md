@@ -357,6 +357,10 @@ Skills live in `.github/skills/NAME/SKILL.md` — each skill in its own subdirec
 
 **Claude Code slash commands**: Each Copilot skill has a corresponding Claude Code slash command file at `.claude/commands/NAME.md` that references the skill path string `".github/skills/NAME/SKILL.md"` in its body. The `lint-skill-command-drift` sub-linter (part of `cicd-lint lint-docs`) enforces this 1:1 correspondence — missing commands, missing skill references, and orphaned commands all produce errors.
 
+**Claude Command Frontmatter Requirements** (`.claude/commands/NAME.md`): YAML frontmatter (`---`) is REQUIRED. Fields: `name` (bare skill name, NOT the `claude-` prefix — e.g., `test-table-driven` not `claude-test-table-driven`), `description` (IDENTICAL to the corresponding Copilot skill's `description`), `argument-hint` (IDENTICAL to the Copilot skill's `argument-hint` when the skill has one). NEVER include `disable-model-invocation` — that field is Copilot-ONLY. The `lint-skill-command-drift` linter validates frontmatter presence, `description` match, and `argument-hint` match.
+
+**Key Rules Section**: Both `.github/skills/NAME/SKILL.md` AND `.claude/commands/NAME.md` MUST contain a `## Key Rules` section with the essential rules for using the skill/command correctly. The linter enforces this requirement and errors if either file is missing the section.
+
 **Skill Catalogue**:
 
 | Skill | Domain | Purpose | File |

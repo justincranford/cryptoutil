@@ -1,8 +1,23 @@
+---
+name: new-service
+description: "Guide service creation from skeleton-template including copy, rename, port assignment, migration, and test setup. Use when creating a new cryptoutil service to cover all steps from copying the skeleton source to CI/CD registration."
+argument-hint: "[PRODUCT SERVICE port-prefix]"
+---
+
 Guide for creating a new PS-ID service from skeleton-template.
 
 **Full Copilot original**: [.github/skills/new-service/SKILL.md](.github/skills/new-service/SKILL.md)
 
 Provide: PS-ID (e.g., `sm-xyz`), product (e.g., `sm`), service name (e.g., `xyz`), base port (from registry.yaml).
+
+## Key Rules
+
+- ALWAYS copy from `skeleton-template` — NEVER create from scratch
+- Port block: assign from registry.yaml (4 ports per PS-ID: sqlite-1=+0, sqlite-2=+1, postgresql-1=+2, postgresql-2=+3)
+- Register PS-ID in `internal/apps/tools/cicd_lint/lint_fitness/registry/registry.go`
+- Add magic constants to `internal/shared/magic/magic_psids.go`
+- Compose.yml MUST have 4 service instances (2 SQLite + 2 PostgreSQL)
+- Migration numbers MUST use PS-ID range from `api/cryptosuite-registry/registry.yaml`
 
 ## 9-Step Creation Process
 

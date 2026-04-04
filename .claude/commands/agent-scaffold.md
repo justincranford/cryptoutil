@@ -1,8 +1,23 @@
+---
+name: agent-scaffold
+description: "Create both .github/agents/NAME.agent.md (Copilot canonical, with tools whitelist) and .claude/agents/NAME.md (Claude Code canonical, without tools). Use when adding a new agent to ensure both files have correct YAML frontmatter, autonomous execution mode, quality gates, and ARCHITECTURE.md self-containment references."
+argument-hint: "[agent-name]"
+---
+
 Create BOTH canonical agent files: `.github/agents/NAME.agent.md` (Copilot) and `.claude/agents/NAME.md` (Claude Code).
 
 **Full skill**: [.github/skills/agent-scaffold/SKILL.md](.github/skills/agent-scaffold/SKILL.md)
 
 Provide: agent name (e.g., `security-audit`), description, purpose.
+
+## Key Rules
+
+- ALWAYS create both files: `.github/agents/NAME.agent.md` (Copilot) AND `.claude/agents/NAME.md` (Claude Code)
+- `tools:` field REQUIRED in Copilot file (whitelist); OMIT in Claude file (inherits all)
+- Body content MUST be identical between both files; only frontmatter differs
+- `name:` prefix: `copilot-NAME` in Copilot file, `claude-NAME` in Claude file
+- MUST include ARCHITECTURE.md self-containment references (≥1 section reference)
+- MUST include Autonomous Execution Mode and Prohibited Stop Behaviors sections
 
 ## VS Code + Claude Code Compatibility
 

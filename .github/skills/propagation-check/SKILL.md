@@ -11,6 +11,15 @@ Detect @propagate/@source drift and generate corrected @source block content.
 Use when ARCHITECTURE.md sections have changed and you need to update downstream
 `@source` blocks in instruction files or agents. Prevents copy-paste errors.
 
+## Key Rules
+
+- `@source` content MUST be byte-for-byte identical to `@propagate` content in ARCHITECTURE.md
+- Run `go run ./cmd/cicd-lint lint-docs validate-propagation` to detect drift
+- Copilot and Claude agent files MUST have identical body content (only frontmatter differs)
+- Add both Copilot file AND Claude file to `@propagate to=` attribute (comma-separated)
+- Update `docs/required-propagations.yaml` `required_targets` when adding new targets
+- When ARCHITECTURE.md chunk changes, ALL downstream `@source` blocks must be updated
+
 ## Marker System
 
 **Source (ARCHITECTURE.md)**:

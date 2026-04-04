@@ -1,8 +1,14 @@
+---
+name: test-table-driven
+description: "Generate table-driven Go tests conforming to cryptoutil project standards. Use when writing or reviewing Go tests to ensure correct t.Parallel() usage, UUIDv7 test data, require over assert, proper subtest structure, and TestMain for heavyweight resources."
+argument-hint: "[package or function name]"
+---
+
 Generate table-driven Go tests for the specified function or package.
 
 **Full Copilot original**: [.github/skills/test-table-driven/SKILL.md](.github/skills/test-table-driven/SKILL.md)
 
-## Rules
+## Key Rules
 
 - `t.Parallel()` MANDATORY in every test function and every subtest
 - Use `googleUuid.NewV7()` for all test data IDs (not hardcoded strings or UUIDs)

@@ -1,3 +1,9 @@
+---
+name: propagation-check
+description: "Detect @propagate/@source drift between ARCHITECTURE.md and instruction files, and generate corrected @source block content. Use before committing instruction file changes to ensure lint-docs passes and verbatim doc chunks stay synchronized."
+argument-hint: "[instruction file or omit for full project check]"
+---
+
 Detect @propagate/@source drift between docs/ARCHITECTURE.md and .github/instructions/ files.
 
 **Full Copilot original**: [.github/skills/propagation-check/SKILL.md](.github/skills/propagation-check/SKILL.md)
@@ -26,7 +32,7 @@ Content that must be copied verbatim...
 <!-- @/source -->
 ```
 
-## Rules
+## Key Rules
 
 1. Content inside `@source` blocks MUST be byte-for-byte identical to the corresponding `@propagate` block
 2. ARCHITECTURE.md changes to a propagated block MUST be propagated to ALL target files in the same commit

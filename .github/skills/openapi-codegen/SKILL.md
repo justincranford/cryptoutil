@@ -11,6 +11,15 @@ Generate oapi-codegen configuration files and OpenAPI spec skeletons for cryptou
 Use when creating a new service or adding API endpoints. Generates the 3 standard
 oapi-codegen config files and a baseline OpenAPI 3.0.3 spec.
 
+## Key Rules
+
+- OpenAPI version MUST be 3.0.3 (NOT 2.0/Swagger, NOT 3.1.x)
+- Generate THREE config files: server (`strict-server: true`), model, client
+- API MUST duplicate under BOTH `/service/` and `/browser/` paths
+- Content type: `application/json` ONLY (no form, multipart, or other types)
+- `strict-server: true` is MANDATORY in server config
+- All `openapi-gen_config*.yaml` MUST include the full base initialisms list from ARCHITECTURE.md §8
+
 ## Three Config Files Per Service
 
 ### 1. Server Config: `openapi-gen_config_server.yaml`

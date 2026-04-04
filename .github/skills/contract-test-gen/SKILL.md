@@ -14,6 +14,14 @@ Every cryptoutil service MUST call RunContractTests to verify it conforms to the
 - Adding integration tests to an existing service
 - Verifying a service after migration to the service builder pattern
 
+## Key Rules
+
+- Use `RunContractTests(t, testServer)` from `internal/apps/framework/service/testing/contract`
+- Service MUST implement `ServiceServer` interface (PublicBaseURL, AdminBaseURL, SetReady)
+- Call `server.SetReady(true)` after startup when using manual TestMain
+- Use `testserver.StartAndWait(ctx, t, srv)` helper for standard test setup
+- Tests use TestMain pattern — shared server instance per package, not per test
+
 ## What Contracts Are Tested
 
 RunContractTests verifies 8 contracts per service:

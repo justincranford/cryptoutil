@@ -201,6 +201,12 @@ const (
 	// CICDAgentFrontMatterNameField is the "name" field in agent YAML front-matter, used for violation Field identification.
 	CICDAgentFrontMatterNameField = "name"
 
+	// CICDYAMLFrontmatterDelimiter is the YAML front-matter boundary marker used in Markdown files.
+	CICDYAMLFrontmatterDelimiter = "---"
+
+	// CICDFrontmatterFirstNLines is the number of lines inspected to detect YAML front-matter presence.
+	CICDFrontmatterFirstNLines = 3
+
 	// CICDLintFitnessDir is the relative path to the lint_fitness sub-linters directory.
 	CICDLintFitnessDir = "internal/apps/tools/cicd_lint/lint_fitness"
 

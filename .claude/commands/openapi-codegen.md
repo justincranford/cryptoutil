@@ -1,8 +1,23 @@
+---
+name: openapi-codegen
+description: "Generate oapi-codegen configuration files and OpenAPI 3.0.3 spec skeletons for cryptoutil services. Use when creating or extending service APIs to produce the three standard configs (server/model/client) and a baseline spec with dual /service/ and /browser/ paths."
+argument-hint: "[service-name]"
+---
+
 Generate three oapi-codegen configuration files and an OpenAPI 3.0.3 spec skeleton for a PS-ID service.
 
 **Full Copilot original**: [.github/skills/openapi-codegen/SKILL.md](.github/skills/openapi-codegen/SKILL.md)
 
 Provide the PS-ID (e.g., `sm-kms`) and list of resources.
+
+## Key Rules
+
+- OpenAPI version MUST be 3.0.3 (NOT 2.0/Swagger, NOT 3.1.x)
+- Generate THREE config files: server (`strict-server: true`), model, client
+- API MUST duplicate under BOTH `/service/` and `/browser/` paths
+- Content type: `application/json` ONLY (no form, multipart, or other types)
+- `strict-server: true` is MANDATORY in server config
+- All `openapi-gen_config*.yaml` MUST include the full base initialisms list from ARCHITECTURE.md §8
 
 ## Three Config Files to Generate
 

@@ -14,6 +14,15 @@ The lint-fitness framework runs 55 architectural invariant checks on every CI pu
 - Migrating a soft architectural guideline to a hard enforced check
 - Extending compliance checking for a new pattern (e.g., new file naming conventions)
 
+## Key Rules
+
+- Register in `registeredLinters` slice in `lint_fitness.go` and `lint-fitness-registry.yaml`
+- Function signature: `Check(logger *cryptoutilCmdCicdCommon.Logger) error`
+- MUST return hard error (`fmt.Errorf`) on absent required directories (never `return nil`)
+- Use function-param injection for OS I/O (never package-level `var walkFn = filepath.Walk`)
+- Tests ≥98% line coverage (infrastructure/utility target)
+- Validator error aggregation: collect ALL violations before returning (never short-circuit)
+
 ## Fitness Function Registration
 
 Every fitness function MUST:

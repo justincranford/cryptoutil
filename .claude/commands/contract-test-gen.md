@@ -1,8 +1,22 @@
+---
+name: contract-test-gen
+description: "Generate cross-service contract compliance tests for cryptoutil services. Use when adding a new service or integration test suite to verify it conforms to all shared framework behavioral contracts (health endpoints, dual-server isolation, response format)."
+argument-hint: "[service name or package path]"
+---
+
 Generate cross-service contract compliance tests for framework behavioral contracts.
 
 **Full Copilot original**: [.github/skills/contract-test-gen/SKILL.md](.github/skills/contract-test-gen/SKILL.md)
 
 Provide the PS-ID to generate contract tests for (e.g., `sm-kms`).
+
+## Key Rules
+
+- Use `RunContractTests(t, testServer)` from `internal/apps/framework/service/testing/contract`
+- Service MUST implement `ServiceServer` interface (PublicBaseURL, AdminBaseURL, SetReady)
+- Call `server.SetReady(true)` after startup when using manual TestMain
+- Use `testserver.StartAndWait(ctx, t, srv)` helper for standard test setup
+- Tests use TestMain pattern — shared server instance per package, not per test
 
 ## 8 Contracts Verified
 

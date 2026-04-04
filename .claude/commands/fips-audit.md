@@ -1,6 +1,21 @@
+---
+name: fips-audit
+description: "Detect FIPS 140-3 violations in Go cryptographic code and provide fix guidance. Use to audit crypto usage for FIPS 140-3 compliance, checking algorithm choices, key sizes, and random number generation beyond what static linters enforce."
+argument-hint: "[./... or specific package path]"
+---
+
 Audit Go code for FIPS 140-3 compliance violations and provide fixes.
 
 **Full Copilot original**: [.github/skills/fips-audit/SKILL.md](.github/skills/fips-audit/SKILL.md)
+
+## Key Rules
+
+- ALWAYS use `crypto/rand` (NEVER `math/rand`)
+- BANNED: MD5, SHA-1, DES, 3DES, RC4, bcrypt, scrypt, Argon2, RSA<2048
+- APPROVED: RSA≥2048, ECDSA P-256/384/521, AES≥128 (GCM/CBC+HMAC), SHA-256/384/512
+- TLS minimum version: TLS 1.3; NEVER `InsecureSkipVerify: true`
+- ALL crypto algorithms MUST be configurable via config struct (algorithm agility)
+- Crypto acronyms ALWAYS ALL CAPS: RSA, EC, ECDSA, HMAC, AES, JWK, JWE, JWS
 
 ## Approved Algorithms
 

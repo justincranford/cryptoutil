@@ -12,6 +12,15 @@ Create a conformant `.github/instructions/NN-NN.name.instructions.md` file.
 Use when adding a new instruction file to the project. Ensures correct YAML
 frontmatter, numbering scheme, and @source blocks for propagated content.
 
+## Key Rules
+
+- Filename pattern: `NN-NN.name.instructions.md` (two-part numeric prefix, dot-separated name)
+- YAML frontmatter REQUIRED: `description:` and `applyTo:` fields
+- Use `<!-- @source from="docs/ARCHITECTURE.md" as="chunk-id" -->` for propagated content
+- Content in `@source` blocks MUST be byte-for-byte identical to ARCHITECTURE.md `@propagate` blocks
+- Every section using ARCHITECTURE.md content MUST have a `See [ARCHITECTURE.md §X.Y](...)` reference
+- Run `go run ./cmd/cicd-lint lint-docs` to validate propagation integrity after creating
+
 ## Numbering Scheme
 
 | Range | Category |

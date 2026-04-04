@@ -27,9 +27,67 @@ type SkillCommandDriftResult struct {
 	Checked    int
 }
 
+// extractFrontmatterField extracts the value of a named field from a YAML
+// frontmatter block delimited by `---` markers. Returns an empty string if the
+// field is absent or the file has no frontmatter.
+func extractFrontmatterField(content, field string) string {
+	lines := strings.SplitAfter(content, "\n")
+	inFrontmatter := false
+
+	for _, rawLine := range lines {
+		line := strings.TrimRight(rawLine, "\r\n")
+
+		if line == cryptoutilSharedMagic.CICDYAMLFrontmatterDelimiter {
+			if !inFrontmatter {
+				inFrontmatter = true
+
+				continue
+			}
+
+			break
+		}
+
+		if !inFrontmatter {
+			return ""
+		}
+
+		prefix := field + ":"
+		if !strings.HasPrefix(line, prefix) {
+			continue
+		}
+
+		val := strings.TrimSpace(strings.TrimPrefix(line, prefix))
+		// Strip surrounding double-quotes if present.
+		if len(val) >= 2 && val[0] == '"' && val[len(val)-1] == '"' {
+			val = val[1 : len(val)-1]
+		}
+
+		return val
+	}
+
+	return ""
+}
+
+// hasFrontmatter reports whether a file content begins with a YAML frontmatter block.
+func hasFrontmatter(content string) bool {
+	lines := strings.SplitN(content, "\n", cryptoutilSharedMagic.CICDFrontmatterFirstNLines)
+	if len(lines) == 0 {
+		return false
+	}
+
+	return strings.TrimRight(lines[0], "\r") == cryptoutilSharedMagic.CICDYAMLFrontmatterDelimiter
+}
+
+// hasMarkdownSection reports whether the content contains the given Markdown section heading.
+func hasMarkdownSection(content, heading string) bool {
+	return strings.Contains(content, heading)
+}
+
 // CheckSkillCommandDrift validates that every Copilot skill in .github/skills/NAME/
 // has a matching Claude Code command at .claude/commands/NAME.md, and that each
 // Claude command file contains a reference back to its Copilot skill file.
+// It also validates that command frontmatter matches skill frontmatter and that
+// both files contain a ## Key Rules section.
 func CheckSkillCommandDrift(rootDir string, readFileFn func(string) ([]byte, error)) (*SkillCommandDriftResult, error) {
 	result := &SkillCommandDriftResult{}
 
@@ -73,6 +131,13 @@ func CheckSkillCommandDrift(rootDir string, readFileFn func(string) ([]byte, err
 		skillFilePath := filepath.ToSlash(filepath.Join(cryptoutilSharedMagic.CICDGithubSkillsDir, skillName, cryptoutilSharedMagic.CICDSkillFileName))
 		commandRelPath := filepath.ToSlash(filepath.Join(cryptoutilSharedMagic.CICDClaudeCommandsDir, skillName+".md"))
 
+		skillContent, skillReadErr := readFileFn(skillFilePath)
+		if skillReadErr != nil {
+			continue // Missing skill file already flagged in Step 1.
+		}
+
+		skillStr := string(skillContent)
+
 		commandContent, commandReadErr := readFileFn(commandRelPath)
 		if commandReadErr != nil {
 			result.Violations = append(result.Violations, SkillCommandDriftViolation{
@@ -89,14 +154,72 @@ func CheckSkillCommandDrift(rootDir string, readFileFn func(string) ([]byte, err
 
 		result.Checked++
 
+		commandStr := string(commandContent)
+
 		// Validate that the Claude command references the Copilot skill file.
 		expectedSkillRef := filepath.ToSlash(filepath.Join(cryptoutilSharedMagic.CICDGithubSkillsDir, skillName, cryptoutilSharedMagic.CICDSkillFileName))
-		if !strings.Contains(string(commandContent), expectedSkillRef) {
+		if !strings.Contains(commandStr, expectedSkillRef) {
 			result.Violations = append(result.Violations, SkillCommandDriftViolation{
 				SkillFile:   skillFilePath,
 				CommandFile: commandRelPath,
 				Field:       "missing-reference",
 				Detail:      fmt.Sprintf("Claude Code command %s does not reference the Copilot skill file %q", commandRelPath, expectedSkillRef),
+			})
+		}
+
+		// Validate that the Claude command has YAML frontmatter.
+		if !hasFrontmatter(commandStr) {
+			result.Violations = append(result.Violations, SkillCommandDriftViolation{
+				SkillFile:   skillFilePath,
+				CommandFile: commandRelPath,
+				Field:       "missing-frontmatter",
+				Detail:      fmt.Sprintf("Claude Code command %s is missing YAML frontmatter (must begin with ---)", commandRelPath),
+			})
+		} else {
+			// Validate description field matches.
+			skillDesc := extractFrontmatterField(skillStr, "description")
+			cmdDesc := extractFrontmatterField(commandStr, "description")
+
+			if skillDesc != "" && cmdDesc != skillDesc {
+				result.Violations = append(result.Violations, SkillCommandDriftViolation{
+					SkillFile:   skillFilePath,
+					CommandFile: commandRelPath,
+					Field:       "description-mismatch",
+					Detail:      fmt.Sprintf("Claude Code command %s description does not match skill: command=%q skill=%q", commandRelPath, cmdDesc, skillDesc),
+				})
+			}
+
+			// Validate argument-hint field matches (only when skill has one).
+			skillHint := extractFrontmatterField(skillStr, "argument-hint")
+			if skillHint != "" {
+				cmdHint := extractFrontmatterField(commandStr, "argument-hint")
+				if cmdHint != skillHint {
+					result.Violations = append(result.Violations, SkillCommandDriftViolation{
+						SkillFile:   skillFilePath,
+						CommandFile: commandRelPath,
+						Field:       "argument-hint-mismatch",
+						Detail:      fmt.Sprintf("Claude Code command %s argument-hint does not match skill: command=%q skill=%q", commandRelPath, cmdHint, skillHint),
+					})
+				}
+			}
+		}
+
+		// Validate ## Key Rules section in skill.
+		if !hasMarkdownSection(skillStr, "## Key Rules") {
+			result.Violations = append(result.Violations, SkillCommandDriftViolation{
+				SkillFile: skillFilePath,
+				Field:     "missing-key-rules",
+				Detail:    fmt.Sprintf("Copilot skill %s is missing the '## Key Rules' section", skillFilePath),
+			})
+		}
+
+		// Validate ## Key Rules section in command.
+		if !hasMarkdownSection(commandStr, "## Key Rules") {
+			result.Violations = append(result.Violations, SkillCommandDriftViolation{
+				SkillFile:   skillFilePath,
+				CommandFile: commandRelPath,
+				Field:       "missing-key-rules",
+				Detail:      fmt.Sprintf("Claude Code command %s is missing the '## Key Rules' section", commandRelPath),
 			})
 		}
 	}

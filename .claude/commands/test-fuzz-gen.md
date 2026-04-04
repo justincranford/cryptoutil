@@ -1,8 +1,14 @@
+---
+name: test-fuzz-gen
+description: "Generate _fuzz_test.go fuzz tests conforming to cryptoutil project standards. Use when adding fuzz coverage for parsers, decoders, or crypto input handling to ensure correct build tags, 15s minimum fuzz time, seed corpus, and safe assertion patterns."
+argument-hint: "[package or function name]"
+---
+
 Generate a `_fuzz_test.go` file for the specified function or parser.
 
 **Full Copilot original**: [.github/skills/test-fuzz-gen/SKILL.md](.github/skills/test-fuzz-gen/SKILL.md)
 
-## Rules
+## Key Rules
 
 - Build tag `//go:build fuzz` MANDATORY (top of file)
 - Minimum 15 seconds fuzz time: `f.Fuzz(func(t *testing.T, ...) {...})`

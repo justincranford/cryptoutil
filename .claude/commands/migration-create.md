@@ -1,8 +1,24 @@
+---
+name: migration-create
+description: "Create numbered golang-migrate SQL migration files for cryptoutil services. Use when adding database schema changes to ensure correct version ranges (template 1001-1999, domain 2001+), paired up/down files, and cross-DB SQL idioms."
+argument-hint: "[NNN description of change]"
+---
+
 Create numbered golang-migrate SQL migration files for a PS-ID service.
 
 **Full Copilot original**: [.github/skills/migration-create/SKILL.md](.github/skills/migration-create/SKILL.md)
 
 Provide: PS-ID (e.g., `sm-kms`), migration description (e.g., `add_audit_log`).
+
+## Key Rules
+
+- ALWAYS create both `.up.sql` and `.down.sql` files
+- Filenames: `NNNN_description.up.sql` / `NNNN_description.down.sql`
+- Domain migrations START at 2001 (never overlap with template 1001-1999)
+- `.down.sql` must fully reverse `.up.sql` (idempotent rollback)
+- Use `IF NOT EXISTS` / `IF EXISTS` for safety
+- UUID columns: `TEXT` type (cross-DB: PostgreSQL + SQLite)
+- Timestamps: `TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP`
 
 ## Migration Number Ranges (from registry.yaml)
 

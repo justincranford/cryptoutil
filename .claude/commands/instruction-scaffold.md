@@ -1,8 +1,23 @@
+---
+name: instruction-scaffold
+description: "Create a conformant .github/instructions/NN-NN.name.instructions.md file. Use when adding project-specific instruction files to ensure correct YAML frontmatter, numbering scheme, @source propagation blocks, and ARCHITECTURE.md cross-references."
+argument-hint: "[NN-NN.name description]"
+---
+
 Create a new `.github/instructions/NN-NN.name.instructions.md` file.
 
 **Full Copilot original**: [.github/skills/instruction-scaffold/SKILL.md](.github/skills/instruction-scaffold/SKILL.md)
 
 Provide: number (e.g., `03-06`), name (e.g., `error-handling`), topic description.
+
+## Key Rules
+
+- Filename pattern: `NN-NN.name.instructions.md` (two-part numeric prefix, dot-separated name)
+- YAML frontmatter REQUIRED: `description:` and `applyTo:` fields
+- Use `<!-- @source from="docs/ARCHITECTURE.md" as="chunk-id" -->` for propagated content
+- Content in `@source` blocks MUST be byte-for-byte identical to ARCHITECTURE.md `@propagate` blocks
+- Every section using ARCHITECTURE.md content MUST have a `See [ARCHITECTURE.md §X.Y](...)` reference
+- Run `go run ./cmd/cicd-lint lint-docs` to validate propagation integrity after creating
 
 ## Numbering Scheme
 
