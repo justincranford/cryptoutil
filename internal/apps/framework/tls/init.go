@@ -9,13 +9,14 @@
 package tls
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/spf13/pflag"
 
@@ -23,42 +24,55 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// Init executes the pki-init CLI command.
+// validSigningAlgorithms is the set of FIPS 140-3 approved signing algorithm flag values.
+var validSigningAlgorithms = map[string]bool{
+	cryptoutilSharedMagic.TLSSigningAlgorithmECDSAP256SHA256: true,
+	cryptoutilSharedMagic.TLSSigningAlgorithmECDSAP384SHA384: true,
+	cryptoutilSharedMagic.TLSSigningAlgorithmECDSAP521SHA512: true,
+	cryptoutilSharedMagic.TLSSigningAlgorithmRSA2048SHA256:   true,
+	cryptoutilSharedMagic.TLSSigningAlgorithmRSA3072SHA256:   true,
+	cryptoutilSharedMagic.TLSSigningAlgorithmRSA4096SHA256:   true,
+}
+
+// Init executes the pki-init CLI command using pflag for argument parsing.
 // It generates a TLS certificate hierarchy and writes the certs to an output directory.
 // The output directory is typically a Docker volume shared between pki-init and app services.
-// Uses manual arg parsing for backward compatibility with Docker Compose entrypoint scripts.
 func Init(args []string, _ io.Reader, stdout io.Writer, stderr io.Writer) int {
-	outputDir := cryptoutilSharedMagic.PKIInitDefaultOutputDir
+	return initWithID("pki-init", nil, args, stdout, stderr)
+}
 
-	domains := append([]string{}, cryptoutilSharedMagic.DefaultTLSPublicDNSNames...)
-	ips := append([]string{}, cryptoutilSharedMagic.DefaultTLSPublicIPAddresses...)
+// InitForSuite executes the init subcommand for a named suite.
+// Uses pflag for argument parsing. The suiteID is added as an extra DNS SAN so the
+// generated certificate covers Docker Compose service discovery at the suite level.
+func InitForSuite(suiteID string, args []string, stdout, stderr io.Writer) int {
+	return initWithID(suiteID+"-init", []string{suiteID}, args, stdout, stderr)
+}
 
-	for _, arg := range args {
-		switch {
-		case strings.HasPrefix(arg, "--output-dir="):
-			outputDir = strings.TrimPrefix(arg, "--output-dir=")
-		case strings.HasPrefix(arg, "--domain="):
-			domains = append(domains, strings.TrimPrefix(arg, "--domain="))
-		case strings.HasPrefix(arg, "--ip="):
-			ips = append(ips, strings.TrimPrefix(arg, "--ip="))
-		case arg == "--help" || arg == "-h":
-			_, _ = fmt.Fprintf(stdout, "Usage: cryptoutil pki-init [--output-dir=DIR] [--domain=DNS] [--ip=IP]\n")
-
-			return 0
-		}
-	}
-
-	return runInit(outputDir, domains, ips, stdout, stderr)
+// InitForProduct executes the init subcommand for a named product.
+// Uses pflag for argument parsing. The productID is added as an extra DNS SAN so the
+// generated certificate covers Docker Compose service discovery at the product level.
+func InitForProduct(productID string, args []string, stdout, stderr io.Writer) int {
+	return initWithID(productID+"-init", []string{productID}, args, stdout, stderr)
 }
 
 // InitForService executes the init subcommand for a named PS-ID service.
 // Uses pflag for argument parsing. The serviceID is added as an extra DNS
 // SAN so the generated certificate covers Docker Compose service discovery.
 func InitForService(serviceID string, args []string, stdout, stderr io.Writer) int {
-	fs := pflag.NewFlagSet(serviceID+"-init", pflag.ContinueOnError)
-	fs.SetOutput(stderr)
+	return initWithID(serviceID+"-init", []string{serviceID}, args, stdout, stderr)
+}
+
+// initWithID is the unified pflag-based implementation for all tier Init functions.
+// The name parameter is used as the pflag FlagSet name for error messages.
+// The extraDNSDefaults are DNS SANs added before any --domain flags (e.g., serviceID).
+func initWithID(name string, extraDNSDefaults []string, args []string, stdout, stderr io.Writer) int {
+	var flagOutput bytes.Buffer
+
+	fs := pflag.NewFlagSet(name, pflag.ContinueOnError)
+	fs.SetOutput(&flagOutput)
 
 	outputDir := fs.String("output-dir", cryptoutilSharedMagic.PKIInitDefaultOutputDir, "Output directory for generated certificates")
+	signingAlgorithm := fs.String("signing-algorithm", cryptoutilSharedMagic.TLSSigningAlgorithmDefault, "TLS signing algorithm (FIPS-approved: ECDSA-P256-SHA256, ECDSA-P384-SHA384, ECDSA-P521-SHA512, RSA-2048-SHA256, RSA-3072-SHA256, RSA-4096-SHA256)")
 
 	var extraDomains []string
 
@@ -68,11 +82,25 @@ func InitForService(serviceID string, args []string, stdout, stderr io.Writer) i
 	fs.StringArrayVar(&extraIPs, "ip", nil, "Additional IP SAN (may be repeated)")
 
 	if err := fs.Parse(args); err != nil {
+		if errors.Is(err, pflag.ErrHelp) {
+			_, _ = fmt.Fprint(stdout, flagOutput.String())
+
+			return 0
+		}
+
+		_, _ = fmt.Fprintf(stderr, "%s: %v\n", name, err)
+
+		return 1
+	}
+
+	if !validSigningAlgorithms[*signingAlgorithm] {
+		_, _ = fmt.Fprintf(stderr, "pki-init: invalid --signing-algorithm %q; valid values: ECDSA-P256-SHA256, ECDSA-P384-SHA384, ECDSA-P521-SHA512, RSA-2048-SHA256, RSA-3072-SHA256, RSA-4096-SHA256\n", *signingAlgorithm)
+
 		return 1
 	}
 
 	domains := append([]string{}, cryptoutilSharedMagic.DefaultTLSPublicDNSNames...)
-	domains = append(domains, serviceID)
+	domains = append(domains, extraDNSDefaults...)
 	domains = append(domains, extraDomains...)
 
 	ips := append([]string{}, cryptoutilSharedMagic.DefaultTLSPublicIPAddresses...)

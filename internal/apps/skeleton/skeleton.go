@@ -5,11 +5,13 @@
 package skeleton
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"io"
 
-	cryptoutilAppsSkeletonTemplate "cryptoutil/internal/apps/skeleton-template"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	cryptoutilAppsFrameworkProductCli "cryptoutil/internal/apps/framework/product/cli"
+	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps/framework/tls"
+	cryptoutilAppsSkeletonTemplate "cryptoutil/internal/apps/skeleton-template"
 )
 
 const (
@@ -34,6 +36,9 @@ func Skeleton(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		args, stdin, stdout, stderr,
 		[]cryptoutilAppsFrameworkProductCli.ServiceEntry{
 			{Name: cryptoutilSharedMagic.SkeletonTemplateServiceName, Handler: cryptoutilAppsSkeletonTemplate.Template},
+			{Name: cryptoutilSharedMagic.PSIDPKIInit, Handler: func(args []string, _ io.Reader, stdout, stderr io.Writer) int {
+				return cryptoutilAppsFrameworkTls.InitForProduct(cryptoutilSharedMagic.SkeletonProductName, args, stdout, stderr)
+			}},
 		},
 	)
 }

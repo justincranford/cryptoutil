@@ -67,7 +67,7 @@ func TestInit_HelpFlag(t *testing.T) {
 
 			code := cryptoutilAppsFrameworkTls.Init([]string{tc.arg}, nil, &stdout, &stderr)
 			require.Equal(t, 0, code)
-			require.Contains(t, stdout.String(), "Usage:")
+			require.Contains(t, stdout.String(), "output-dir")
 			require.Empty(t, stderr.String())
 		})
 	}
@@ -209,4 +209,66 @@ func countPEMBlocks(data []byte) int {
 	}
 
 	return count
+}
+
+func TestInitForSuite_HappyPath(t *testing.T) {
+	t.Parallel()
+
+	outputDir := t.TempDir()
+
+	var stdout, stderr bytes.Buffer
+
+	code := cryptoutilAppsFrameworkTls.InitForSuite("cryptoutil", []string{"--output-dir=" + outputDir}, &stdout, &stderr)
+	require.Equal(t, 0, code, "expected exit 0; stderr=%s", stderr.String())
+	require.Contains(t, stdout.String(), "certificates written")
+	require.Empty(t, stderr.String())
+}
+
+func TestInitForProduct_HappyPath(t *testing.T) {
+	t.Parallel()
+
+	outputDir := t.TempDir()
+
+	var stdout, stderr bytes.Buffer
+
+	code := cryptoutilAppsFrameworkTls.InitForProduct("jose", []string{"--output-dir=" + outputDir}, &stdout, &stderr)
+	require.Equal(t, 0, code, "expected exit 0; stderr=%s", stderr.String())
+	require.Contains(t, stdout.String(), "certificates written")
+	require.Empty(t, stderr.String())
+}
+
+func TestInitForService_HappyPath(t *testing.T) {
+	t.Parallel()
+
+	outputDir := t.TempDir()
+
+	var stdout, stderr bytes.Buffer
+
+	code := cryptoutilAppsFrameworkTls.InitForService("sm-kms", []string{"--output-dir=" + outputDir}, &stdout, &stderr)
+	require.Equal(t, 0, code, "expected exit 0; stderr=%s", stderr.String())
+	require.Contains(t, stdout.String(), "certificates written")
+	require.Empty(t, stderr.String())
+}
+
+func TestInit_BadFlag(t *testing.T) {
+	t.Parallel()
+
+	var stdout, stderr bytes.Buffer
+
+	code := cryptoutilAppsFrameworkTls.Init([]string{"--unknown-flag=value"}, nil, &stdout, &stderr)
+	require.Equal(t, 1, code)
+	require.Empty(t, stdout.String())
+	require.Contains(t, stderr.String(), "unknown flag")
+}
+
+func TestInit_InvalidSigningAlgorithm(t *testing.T) {
+	t.Parallel()
+
+	outputDir := t.TempDir()
+
+	var stdout, stderr bytes.Buffer
+
+	code := cryptoutilAppsFrameworkTls.Init([]string{"--output-dir=" + outputDir, "--signing-algorithm=MD5-INVALID"}, nil, &stdout, &stderr)
+	require.Equal(t, 1, code)
+	require.Contains(t, stderr.String(), "invalid --signing-algorithm")
 }

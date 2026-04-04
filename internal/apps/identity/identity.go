@@ -9,12 +9,13 @@ import (
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
+	cryptoutilAppsFrameworkProductCli "cryptoutil/internal/apps/framework/product/cli"
+	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps/framework/tls"
 	cryptoutilAppsIdentityAuthz "cryptoutil/internal/apps/identity-authz"
 	cryptoutilAppsIdentityIdp "cryptoutil/internal/apps/identity-idp"
 	cryptoutilAppsIdentityRp "cryptoutil/internal/apps/identity-rp"
 	cryptoutilAppsIdentityRs "cryptoutil/internal/apps/identity-rs"
 	cryptoutilAppsIdentitySpa "cryptoutil/internal/apps/identity-spa"
-	cryptoutilAppsFrameworkProductCli "cryptoutil/internal/apps/framework/product/cli"
 )
 
 const (
@@ -43,6 +44,9 @@ func Identity(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			{Name: cryptoutilSharedMagic.RPServiceName, Handler: cryptoutilAppsIdentityRp.Rp},
 			{Name: cryptoutilSharedMagic.RSServiceName, Handler: cryptoutilAppsIdentityRs.Rs},
 			{Name: cryptoutilSharedMagic.SPAServiceName, Handler: cryptoutilAppsIdentitySpa.Spa},
+			{Name: cryptoutilSharedMagic.PSIDPKIInit, Handler: func(args []string, _ io.Reader, stdout, stderr io.Writer) int {
+				return cryptoutilAppsFrameworkTls.InitForProduct(cryptoutilSharedMagic.IdentityProductName, args, stdout, stderr)
+			}},
 		},
 	)
 }

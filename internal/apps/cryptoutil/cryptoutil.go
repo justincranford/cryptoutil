@@ -20,7 +20,6 @@ import (
 )
 
 const (
-	pkiInitName    = "pki-init"
 	suiteUsageText = "Usage: cryptoutil <product> [service] [options]\n\nAvailable products:\n  identity    Identity product (OAuth 2.1, OIDC 1.0)\n  jose        JOSE product (JWK/JWS/JWE/JWT operations)\n  pki         PKI product (X.509 certificates, CA)\n  skeleton    Skeleton product (service template demonstration)\n  sm          Secrets Manager product (KMS, IM)\n  pki-init    PKI Init (generate TLS certificates for Docker Compose E2E deployments)\n\nUse \"cryptoutil <product> help\" for product-specific help."
 )
 
@@ -41,7 +40,7 @@ func Suite(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			{Name: cryptoutilSharedMagic.PKIProductName, Handler: cryptoutilAppsPki.Pki},
 			{Name: cryptoutilSharedMagic.SkeletonProductName, Handler: cryptoutilAppsSkeleton.Skeleton},
 			{Name: cryptoutilSharedMagic.SMProductName, Handler: cryptoutilAppsSm.Sm},
-			{Name: pkiInitName, Handler: cryptoutilAppsFrameworkTls.Init},
+			{Name: cryptoutilSharedMagic.PSIDPKIInit, Handler: cryptoutilAppsFrameworkTls.Init},
 		},
 	)
 }

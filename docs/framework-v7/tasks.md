@@ -1,6 +1,6 @@
 # Tasks — Framework v7 (Continuation)
 
-**Status**: 8 of 48 tasks complete (17%)
+**Status**: 19 of 48 tasks complete (40%)
 **Last Updated**: 2026-04-03
 **Created**: 2026-04-02
 
@@ -492,7 +492,7 @@ delete both PARAMETERIZATION files.
 
 #### Task 1.7: #27 — lint-go-test Expansion (3 New Sub-Linters)
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 4h
 - **Dependencies**: None
@@ -502,13 +502,13 @@ delete both PARAMETERIZATION files.
   - `test_sleep/`: forbid `time.Sleep(` in test files
   All registered in `lint_gotest.go`. Fix any existing violations found.
 - **Acceptance Criteria**:
-  - [ ] `hardcoded_uuid/` sub-linter implemented and registered
-  - [ ] `real_http_server/` sub-linter implemented and registered
-  - [ ] `test_sleep/` sub-linter implemented and registered
-  - [ ] All 3 registered in `lint_gotest.go`
-  - [ ] ARCHITECTURE.md §9.10 cicd-lint table updated
-  - [ ] Existing violations fixed (or exempted with documented reason)
-  - [ ] Tests ≥95% for each sub-linter
+  - [x] `hardcoded_uuid/` sub-linter implemented and registered
+  - [x] `real_http_server/` sub-linter implemented and registered
+  - [x] `test_sleep/` sub-linter implemented and registered
+  - [x] All 3 registered in `lint_gotest.go`
+  - [x] ARCHITECTURE.md §9.10 cicd-lint table updated
+  - [x] Existing violations fixed (or exempted with documented reason)
+  - [x] Tests ≥95% for each sub-linter
 - **Files**:
   - `internal/apps/tools/cicd_lint/lint_go_test/lint_gotest_hardcoded_uuid/`
   - `internal/apps/tools/cicd_lint/lint_go_test/lint_gotest_real_http_server/`
@@ -518,18 +518,18 @@ delete both PARAMETERIZATION files.
 
 #### Task 1.8: Phase 1 Quality Gates
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 1h
 - **Dependencies**: 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7
 - **Description**: Verify all Phase 1 quality gates. Update lessons.md Phase 1.
 - **Acceptance Criteria**:
-  - [ ] `go test ./... -shuffle=on` passes 100%
-  - [ ] `golangci-lint run` clean
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
-  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes
-  - [ ] PARAMETERIZATION files deleted
-  - [ ] lessons.md Phase 1 section updated
+  - [x] `go test ./... -shuffle=on` passes 100%
+  - [x] `golangci-lint run` clean
+  - [x] `go run ./cmd/cicd-lint lint-docs` passes
+  - [x] `go run ./cmd/cicd-lint lint-fitness` passes
+  - [x] PARAMETERIZATION files deleted
+  - [x] lessons.md Phase 1 section updated
 
 ---
 

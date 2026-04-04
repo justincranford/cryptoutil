@@ -10,8 +10,9 @@ import (
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-	cryptoutilAppsPkiCa "cryptoutil/internal/apps/pki-ca"
 	cryptoutilAppsFrameworkProductCli "cryptoutil/internal/apps/framework/product/cli"
+	cryptoutilAppsFrameworkTls "cryptoutil/internal/apps/framework/tls"
+	cryptoutilAppsPkiCa "cryptoutil/internal/apps/pki-ca"
 )
 
 const (
@@ -36,6 +37,9 @@ func Pki(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		args, stdin, stdout, stderr,
 		[]cryptoutilAppsFrameworkProductCli.ServiceEntry{
 			{Name: cryptoutilSharedMagic.PKICAServiceName, Handler: cryptoutilAppsPkiCa.Ca},
+			{Name: cryptoutilSharedMagic.PSIDPKIInit, Handler: func(args []string, _ io.Reader, stdout, stderr io.Writer) int {
+				return cryptoutilAppsFrameworkTls.InitForProduct(cryptoutilSharedMagic.PKIProductName, args, stdout, stderr)
+			}},
 		},
 	)
 }
