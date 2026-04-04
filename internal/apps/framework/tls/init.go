@@ -38,7 +38,7 @@ var validSigningAlgorithms = map[string]bool{
 // It generates a TLS certificate hierarchy and writes the certs to an output directory.
 // The output directory is typically a Docker volume shared between pki-init and app services.
 func Init(args []string, _ io.Reader, stdout io.Writer, stderr io.Writer) int {
-	return initWithID("pki-init", nil, args, stdout, stderr)
+	return initWithID(cryptoutilSharedMagic.PSIDPKIInit, nil, args, stdout, stderr)
 }
 
 // InitForSuite executes the init subcommand for a named suite.

@@ -218,7 +218,7 @@ func TestInitForSuite_HappyPath(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	code := cryptoutilAppsFrameworkTls.InitForSuite("cryptoutil", []string{"--output-dir=" + outputDir}, &stdout, &stderr)
+	code := cryptoutilAppsFrameworkTls.InitForSuite(cryptoutilSharedMagic.DefaultOTLPServiceDefault, []string{"--output-dir=" + outputDir}, &stdout, &stderr)
 	require.Equal(t, 0, code, "expected exit 0; stderr=%s", stderr.String())
 	require.Contains(t, stdout.String(), "certificates written")
 	require.Empty(t, stderr.String())
@@ -231,7 +231,7 @@ func TestInitForProduct_HappyPath(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	code := cryptoutilAppsFrameworkTls.InitForProduct("jose", []string{"--output-dir=" + outputDir}, &stdout, &stderr)
+	code := cryptoutilAppsFrameworkTls.InitForProduct(cryptoutilSharedMagic.JoseProductName, []string{"--output-dir=" + outputDir}, &stdout, &stderr)
 	require.Equal(t, 0, code, "expected exit 0; stderr=%s", stderr.String())
 	require.Contains(t, stdout.String(), "certificates written")
 	require.Empty(t, stderr.String())
@@ -244,7 +244,7 @@ func TestInitForService_HappyPath(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	code := cryptoutilAppsFrameworkTls.InitForService("sm-kms", []string{"--output-dir=" + outputDir}, &stdout, &stderr)
+	code := cryptoutilAppsFrameworkTls.InitForService(cryptoutilSharedMagic.OTLPServiceSMKMS, []string{"--output-dir=" + outputDir}, &stdout, &stderr)
 	require.Equal(t, 0, code, "expected exit 0; stderr=%s", stderr.String())
 	require.Contains(t, stdout.String(), "certificates written")
 	require.Empty(t, stderr.String())
