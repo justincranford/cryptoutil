@@ -11,6 +11,7 @@ import (
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
 	cryptoutilCheckChunkVerification "cryptoutil/internal/apps/tools/cicd_lint/lint_docs/check_chunk_verification"
 	cryptoutilLintAgentDrift "cryptoutil/internal/apps/tools/cicd_lint/lint_docs/lint_agent_drift"
+	cryptoutilLintAgentSelfContainment "cryptoutil/internal/apps/tools/cicd_lint/lint_docs/lint_agent_self_containment"
 	cryptoutilLintSkillCommandDrift "cryptoutil/internal/apps/tools/cicd_lint/lint_docs/lint_skill_command_drift"
 	cryptoutilPropagationCoverage "cryptoutil/internal/apps/tools/cicd_lint/lint_docs/propagation_coverage"
 	cryptoutilValidateChunks "cryptoutil/internal/apps/tools/cicd_lint/lint_docs/validate_chunks"
@@ -33,6 +34,7 @@ var registeredLinters = []struct {
 	{"propagation-coverage", cryptoutilPropagationCoverage.Check},
 	{"lint-agent-drift", cryptoutilLintAgentDrift.Check},
 	{"lint-skill-command-drift", cryptoutilLintSkillCommandDrift.Check},
+	{"lint-agent-self-containment", cryptoutilLintAgentSelfContainment.Check},
 }
 
 // Lint runs all registered documentation linters sequentially.

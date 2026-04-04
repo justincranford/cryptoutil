@@ -452,18 +452,18 @@ delete both PARAMETERIZATION files.
 
 #### Task 1.5: #25 — Agent Self-Containment Linter
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 3h
 - **Dependencies**: None
 - **Description**: New `lint_agent_self_containment/` sub-linter in lint-docs. Scans
   `.github/agents/*.agent.md` bodies; errors if no `ARCHITECTURE.md` reference found.
 - **Acceptance Criteria**:
-  - [ ] `lint_agent_self_containment/lint_agent_self_containment.go` implemented
-  - [ ] Registered in `lint_docs.go`
-  - [ ] Fails for agents with zero ARCHITECTURE.md references
-  - [ ] Passes for all current compliant agents
-  - [ ] Tests ≥95%
+  - [x] `lint_agent_self_containment/lint_agent_self_containment.go` implemented
+  - [x] Registered in `lint_docs.go`
+  - [x] Fails for agents with zero ARCHITECTURE.md references
+  - [x] Passes for all current compliant agents
+  - [x] Tests ≥95% (97.6% achieved)
 - **Files**:
   - `internal/apps/tools/cicd_lint/lint_docs/lint_agent_self_containment/`
   - `internal/apps/tools/cicd_lint/lint_docs/lint_docs.go`
