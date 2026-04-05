@@ -1,6 +1,6 @@
 # Tasks — Framework v7 (Continuation)
 
-**Status**: 25 of 48 tasks complete (52%)
+**Status**: 30 of 48 tasks complete (62%)
 **Last Updated**: 2026-04-04
 **Created**: 2026-04-02
 
@@ -675,71 +675,76 @@ function-var redeclarations, consolidate CLI code, fix formatting.
 
 #### Task 3.4: New lint-go Sub-Linter for Function-Variable Redeclaration
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 3h
+- **Actual**: 2h
 - **Dependencies**: 3.3
 - **Description**: Add `lint_go/function_var_redeclaration/` sub-linter. Detects
   `var xxx = pkg.FunctionName` in non-test production `.go` files. Excludes `*_test.go`
   and `export_test.go` (seam injection valid). Register in `lint_go.go`. Tests ≥95%.
 - **Acceptance Criteria**:
-  - [ ] Sub-linter implemented and registered
-  - [ ] Detects the pattern in production code; misses valid seam injection in test files
-  - [ ] Passes on current codebase (after 3.3 cleans the only violation)
-  - [ ] Tests ≥95%
+  - [x] Sub-linter implemented and registered
+  - [x] Detects the pattern in production code; misses valid seam injection in test files
+  - [x] Passes on current codebase (after 3.3 cleans the only violation)
+  - [x] Tests ≥95% (96.4% achieved)
 
 #### Task 3.5: Consolidate Duplicate CLI Help/Version Code
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 1h
+- **Actual**: 0.5h
 - **Dependencies**: 3.1
 - **Description**: After moving constants, verify `cli.IsHelpRequest()` is the sole help
   checker. Remove any inline `args[0] == "help" || args[0] == "--help"` duplications. Same
   for version.
 - **Acceptance Criteria**:
-  - [ ] No inline help/version string comparisons outside `cli.IsHelpRequest()` / `cli.IsVersionRequest()`
-  - [ ] `golangci-lint run` clean
+  - [x] No inline help/version string comparisons outside `cli.IsHelpRequest()` / `cli.IsVersionRequest()`
+  - [x] `golangci-lint run` clean
 
 #### Task 3.6: Parameterize health_commands.go
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 3h
+- **Actual**: 1.5h
 - **Dependencies**: None
 - **Description**: Extract shared logic from `HealthCommand`, `LivezCommand`, `ReadyzCommand`
   into a private `httpGetCommand(...)` helper. Keep 3 public functions as thin wrappers.
 - **Acceptance Criteria**:
-  - [ ] Private `httpGetCommand` helper exists
-  - [ ] All 3 public functions delegate to it
-  - [ ] All 3 command tests still pass
-  - [ ] Coverage ≥95%
+  - [x] Private `httpGetCommand` helper exists (also httpPostCommand, parseURLAndCACert, displayResult)
+  - [x] All 3 public functions delegate to it (plus ShutdownCommand)
+  - [x] All 3 command tests still pass
+  - [x] Coverage ≥95% (97.0% achieved)
 
 #### Task 3.7: Fix product_router_test.go Formatting
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
+- **Actual**: 0.25h
 - **Dependencies**: None
 - **Description**: Run `golangci-lint run --fix ./internal/apps/framework/product/cli/...` to
   apply gofumpt to `product_router_test.go`. Verify file passes gofumpt check.
 - **Acceptance Criteria**:
-  - [ ] `product_router_test.go` passes `golangci-lint run`
-  - [ ] File uses proper Go tab indentation
+  - [x] `product_router_test.go` passes `golangci-lint run`
+  - [x] File uses proper Go tab indentation
 
 #### Task 3.8: Phase 3 Quality Gates
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 1h
+- **Actual**: 0.5h
 - **Dependencies**: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7
 - **Description**: Verify Phase 3 quality gates. Update lessons.md Phase 3.
 - **Acceptance Criteria**:
-  - [ ] `go test ./...` passes 100%
-  - [ ] `golangci-lint run` clean
-  - [ ] `go run ./cmd/cicd-lint lint-go` passes
-  - [ ] `go run ./cmd/cicd-lint lint-fitness` passes
-  - [ ] lessons.md Phase 3 updated
+  - [x] `go test ./...` passes 100%
+  - [x] `golangci-lint run` clean
+  - [x] `go run ./cmd/cicd-lint lint-go` passes
+  - [x] `go run ./cmd/cicd-lint lint-fitness` passes
+  - [x] lessons.md Phase 3 updated
 
 ---
 

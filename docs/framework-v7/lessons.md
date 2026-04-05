@@ -1,8 +1,8 @@
 # Lessons — Parameterization Opportunities
 
 **Created**: 2026-03-29
-**Last Updated**: 2026-04-04
-**Status**: Phase 0 complete; Phase 1 ready.
+**Last Updated**: 2026-04-05
+**Status**: Phases 0–3 complete; Phase 4 in progress.
 
 ---
 
@@ -79,9 +79,23 @@ Tests mutate `sm.xxxFn` after calling `setupSessionManager(t)` — parallel-safe
 
 ---
 
-## Phase 3 (Continuation): Framework CLI & Magic Cleanup
+## Phase 3: Framework CLI & Magic Cleanup
 
-*(To be filled during Phase 3 execution)*
+### Task 3.4 — function-var-redeclaration lint-go sub-linter
+
+**Lesson**: The `magic-usage` linter distinguishes `literal-use` (blocking) from `const-redefine` (informational). `literal-use` violations in test files introduced during the same commit will prevent commit via pre-commit. Always add `cryptoutilSharedMagic` import and use magic constants for permissions (`0o600` → `CacheFilePermissions`, `0o750` → `FilePermOwnerReadWriteExecuteGroupReadExecute`) and string constants (`"vendor"` → `CICDExcludeDirVendor`) in NEW test files.
+
+**Coverage**: 96.4% — vars ending in "Fn" whose value is a bare `pkg.Func` selector are the exact anti-pattern detected. Function literals (`func(args) { return pkg.Func(args) }`) are NOT flagged; only plain `pkg.Func` selector expressions are flagged.
+
+### Task 3.5/3.6 — IsHelpRequest + health_commands refactoring
+
+**Lesson**: Inline help-check comparisons (`args[0] == CLIHelpCommand || ...`) that duplicate `IsHelpRequest()` are a maintenance hazard. The refactoring revealed that `ShutdownCommand` should also be covered by the extraction, yielding 4 shared helpers: `httpGetCommand`, `httpPostCommand`, `parseURLAndCACert`, `displayResult`. Test coverage went from 97.0% — all helpers are fully covered.
+
+**URL suffix handling**: When `--url` is provided, the URL suffix check (`strings.HasSuffix(baseURL, urlSuffix)`) correctly handles both "URL with suffix already appended" and "base URL only" cases. The `/health` suffix is special (not the full `/service/api/v1/health` path) because tests supply `srv.URL` directly to the test server root.
+
+### Task 3.7 — gofumpt indentation
+
+**Lesson**: `golangci-lint run --fix` does NOT fix tab indentation in existing files if the parser can't read them (no tabs → parsed as invalid indentation by gofumpt's diffing stage). Use `gofumpt -w <file>` directly for files with missing indentation. After `gofumpt -w`, `golangci-lint run` passes with 0 issues.
 
 ---
 
