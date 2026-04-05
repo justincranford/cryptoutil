@@ -19,12 +19,6 @@ import (
 	lintGoCommon "cryptoutil/internal/apps/tools/cicd_lint/lint_go/common"
 )
 
-// Injectable functions for testing defensive error paths.
-var (
-	magicAliasesAbsFn  = filepath.Abs
-	magicAliasesWalkFn = filepath.Walk
-)
-
 // aliasViolation records one const alias redeclaration.
 type aliasViolation struct {
 	File      string
@@ -37,19 +31,24 @@ type aliasViolation struct {
 // for const declarations that alias a cryptoutilSharedMagic constant.
 // Exported aliases (uppercase first letter) are allowed as package API boundaries.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
-	return CheckMagicAliasesInDir(logger, lintGoCommon.MagicDefaultDir, ".")
+	return CheckMagicAliasesInDir(logger, lintGoCommon.MagicDefaultDir, ".", filepath.Abs, filepath.Walk)
 }
 
 // CheckMagicAliasesInDir is the testable implementation with explicit directory arguments.
-func CheckMagicAliasesInDir(logger *cryptoutilCmdCicdCommon.Logger, magicDir, rootDir string) error {
+func CheckMagicAliasesInDir(
+	logger *cryptoutilCmdCicdCommon.Logger,
+	magicDir, rootDir string,
+	absFn func(string) (string, error),
+	walkFn func(string, filepath.WalkFunc) error,
+) error {
 	logger.Log("Checking for const alias redeclarations of magic package constants...")
 
-	absMagicDir, err := magicAliasesAbsFn(magicDir)
+	absMagicDir, err := absFn(magicDir)
 	if err != nil {
 		return fmt.Errorf("cannot resolve magic dir: %w", err)
 	}
 
-	absRootDir, err := magicAliasesAbsFn(rootDir)
+	absRootDir, err := absFn(rootDir)
 	if err != nil {
 		return fmt.Errorf("cannot resolve root dir: %w", err)
 	}
@@ -58,7 +57,7 @@ func CheckMagicAliasesInDir(logger *cryptoutilCmdCicdCommon.Logger, magicDir, ro
 
 	var walkErrors []string
 
-	walkErr := magicAliasesWalkFn(absRootDir, func(path string, info os.FileInfo, walkFileErr error) error {
+	walkErr := walkFn(absRootDir, func(path string, info os.FileInfo, walkFileErr error) error {
 		if walkFileErr != nil {
 			walkErrors = append(walkErrors, fmt.Sprintf("walk error at %s: %v", path, walkFileErr))
 

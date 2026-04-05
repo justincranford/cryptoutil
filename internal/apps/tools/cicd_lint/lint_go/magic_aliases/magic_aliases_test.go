@@ -41,7 +41,7 @@ var x = cryptoutilSharedMagic.EmptyString
 `)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-aliases-test")
-	err := CheckMagicAliasesInDir(logger, magicDir, rootDir)
+	err := CheckMagicAliasesInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
 	require.NoError(t, err)
 }
 
@@ -62,7 +62,7 @@ localName = cryptoutilSharedMagic.EmptyString
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-aliases-test")
 	// magic-aliases is informational: violations are logged but do not return an error.
-	err := CheckMagicAliasesInDir(logger, magicDir, rootDir)
+	err := CheckMagicAliasesInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
 	require.NoError(t, err)
 }
 
@@ -82,7 +82,7 @@ ExportedAlias = cryptoutilSharedMagic.EmptyString
 `)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-aliases-test")
-	err := CheckMagicAliasesInDir(logger, magicDir, rootDir)
+	err := CheckMagicAliasesInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
 	require.NoError(t, err)
 }
 
@@ -105,7 +105,7 @@ const localHelper = cryptoutilSharedMagic.EmptyString
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-aliases-test")
-	err = CheckMagicAliasesInDir(logger, magicDir, rootDir)
+	err = CheckMagicAliasesInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
 	require.NoError(t, err)
 }
 
@@ -123,7 +123,7 @@ var prefix = fmt.Sprintf
 `)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-aliases-test")
-	err := CheckMagicAliasesInDir(logger, magicDir, rootDir)
+	err := CheckMagicAliasesInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
 	require.NoError(t, err)
 }
 
@@ -139,7 +139,7 @@ const x = "hello"
 `)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-aliases-test")
-	err := CheckMagicAliasesInDir(logger, magicDir, rootDir)
+	err := CheckMagicAliasesInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
 	require.NoError(t, err)
 }
 
@@ -162,7 +162,7 @@ localC = cryptoutilSharedMagic.ProtocolHTTP
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-aliases-test")
 	// magic-aliases is informational: violations are logged but do not return an error.
-	err := CheckMagicAliasesInDir(logger, magicDir, rootDir)
+	err := CheckMagicAliasesInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
 	require.NoError(t, err)
 }
 
@@ -172,65 +172,59 @@ func TestCheckMagicAliasesInDir_InvalidRootDir(t *testing.T) {
 	magicDir := t.TempDir()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-aliases-test")
-	err := CheckMagicAliasesInDir(logger, magicDir, "/nonexistent/root")
+	err := CheckMagicAliasesInDir(logger, magicDir, "/nonexistent/root", filepath.Abs, filepath.Walk)
 	require.Error(t, err)
 }
 
-// Sequential: modifies package-level seam variables.
 func TestCheckMagicAliasesInDir_AbsMagicDirError(t *testing.T) {
-	origAbs := magicAliasesAbsFn
+	t.Parallel()
+
 	callCount := 0
-	magicAliasesAbsFn = func(path string) (string, error) {
+	stubAbsFn := func(path string) (string, error) {
 		callCount++
 		if callCount == 1 {
 			return "", fmt.Errorf("injected abs error")
 		}
 
-		return origAbs(path)
+		return filepath.Abs(path)
 	}
 
-	defer func() { magicAliasesAbsFn = origAbs }()
-
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-aliases-test")
-	err := CheckMagicAliasesInDir(logger, ".", ".")
+	err := CheckMagicAliasesInDir(logger, ".", ".", stubAbsFn, filepath.Walk)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "cannot resolve magic dir")
 }
 
-// Sequential: modifies package-level seam variables.
 func TestCheckMagicAliasesInDir_AbsRootDirError(t *testing.T) {
-	origAbs := magicAliasesAbsFn
+	t.Parallel()
+
 	callCount := 0
-	magicAliasesAbsFn = func(path string) (string, error) {
+	stubAbsFn := func(path string) (string, error) {
 		callCount++
 		if callCount == 2 {
 			return "", fmt.Errorf("injected abs error")
 		}
 
-		return origAbs(path)
+		return filepath.Abs(path)
 	}
 
-	defer func() { magicAliasesAbsFn = origAbs }()
-
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-aliases-test")
-	err := CheckMagicAliasesInDir(logger, ".", ".")
+	err := CheckMagicAliasesInDir(logger, ".", ".", stubAbsFn, filepath.Walk)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "cannot resolve root dir")
 }
 
-// Sequential: modifies package-level seam variables.
 func TestCheckMagicAliasesInDir_WalkError(t *testing.T) {
-	origWalk := magicAliasesWalkFn
-	magicAliasesWalkFn = func(_ string, _ filepath.WalkFunc) error {
+	t.Parallel()
+
+	stubWalkFn := func(_ string, _ filepath.WalkFunc) error {
 		return fmt.Errorf("injected walk error")
 	}
-
-	defer func() { magicAliasesWalkFn = origWalk }()
 
 	magicDir := t.TempDir()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-aliases-test")
-	err := CheckMagicAliasesInDir(logger, magicDir, ".")
+	err := CheckMagicAliasesInDir(logger, magicDir, ".", filepath.Abs, stubWalkFn)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "directory walk failed")
 }
@@ -258,7 +252,7 @@ const localName = cryptoutilSharedMagic.EmptyString
 `)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-aliases-test")
-	err := CheckMagicAliasesInDir(logger, magicDir, rootDir)
+	err := CheckMagicAliasesInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
 	require.NoError(t, err)
 }
 

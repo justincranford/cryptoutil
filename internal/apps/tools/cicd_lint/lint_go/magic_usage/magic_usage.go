@@ -16,11 +16,7 @@ import (
 	lintGoCommon "cryptoutil/internal/apps/tools/cicd_lint/lint_go/common"
 )
 
-// Injectable functions for testing defensive error paths.
-var (
-	magicUsageAbsFn  = filepath.Abs
-	magicUsageWalkFn = filepath.Walk
-)
+
 
 // magicUsageKind classifies how a magic value appears outside the magic package.
 type magicUsageKind string
@@ -52,11 +48,16 @@ type magicUsageViolation struct {
 // This catches violations that fall through goconst (requires >=2 occurrences
 // per file) and mnd (numbers only; strings ignored).
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
-	return CheckMagicUsageInDir(logger, lintGoCommon.MagicDefaultDir, ".")
+	return CheckMagicUsageInDir(logger, lintGoCommon.MagicDefaultDir, ".", filepath.Abs, filepath.Walk)
 }
 
 // CheckMagicUsageInDir is the testable implementation with explicit directory arguments.
-func CheckMagicUsageInDir(logger *cryptoutilCmdCicdCommon.Logger, magicDir, rootDir string) error {
+func CheckMagicUsageInDir(
+	logger *cryptoutilCmdCicdCommon.Logger,
+	magicDir, rootDir string,
+	absFn func(string) (string, error),
+	walkFn func(string, filepath.WalkFunc) error,
+) error {
 	logger.Log("Checking for magic values used as literals outside the magic package...")
 
 	inv, err := lintGoCommon.ParseMagicDir(magicDir)
@@ -70,12 +71,12 @@ func CheckMagicUsageInDir(logger *cryptoutilCmdCicdCommon.Logger, magicDir, root
 		return nil
 	}
 
-	absMagicDir, err := magicUsageAbsFn(magicDir)
+	absMagicDir, err := absFn(magicDir)
 	if err != nil {
 		return fmt.Errorf("cannot resolve magic dir: %w", err)
 	}
 
-	absRootDir, err := magicUsageAbsFn(rootDir)
+	absRootDir, err := absFn(rootDir)
 	if err != nil {
 		return fmt.Errorf("cannot resolve root dir: %w", err)
 	}
@@ -85,7 +86,7 @@ func CheckMagicUsageInDir(logger *cryptoutilCmdCicdCommon.Logger, magicDir, root
 		walkErrors []string
 	)
 
-	walkErr := magicUsageWalkFn(absRootDir, func(path string, info os.FileInfo, err error) error {
+	walkErr := walkFn(absRootDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			walkErrors = append(walkErrors, fmt.Sprintf("walk error at %s: %v", path, err))
 

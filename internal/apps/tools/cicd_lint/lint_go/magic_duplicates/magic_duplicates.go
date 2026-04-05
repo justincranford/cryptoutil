@@ -17,12 +17,6 @@ import (
 	lintGoCommon "cryptoutil/internal/apps/tools/cicd_lint/lint_go/common"
 )
 
-// Injectable functions for testing defensive error paths.
-var (
-	magicDuplicatesWalkFn = filepath.Walk
-	magicDuplicatesAbsFn  = filepath.Abs
-)
-
 // crossFileConstant records one const declaration in a non-magic Go file.
 type crossFileConstant struct {
 	File  string
@@ -40,7 +34,7 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 		return err
 	}
 
-	return CheckCrossFileDuplicatesInDir(logger, lintGoCommon.MagicDefaultDir, ".")
+	return CheckCrossFileDuplicatesInDir(logger, lintGoCommon.MagicDefaultDir, ".", filepath.Abs, filepath.Walk)
 }
 
 // CheckMagicDuplicatesInDir is the testable implementation that accepts an explicit magicDir.
@@ -110,15 +104,15 @@ func CheckMagicDuplicatesInDir(logger *cryptoutilCmdCicdCommon.Logger, magicDir 
 // package and reports constants whose literal string values are shared across
 // two or more distinct files. These are candidates for consolidation into the
 // magic package.
-func CheckCrossFileDuplicatesInDir(logger *cryptoutilCmdCicdCommon.Logger, magicDir, rootDir string) error {
+func CheckCrossFileDuplicatesInDir(logger *cryptoutilCmdCicdCommon.Logger, magicDir, rootDir string, absFn func(string) (string, error), walkFn func(string, filepath.WalkFunc) error) error {
 	logger.Log("Checking for constant values duplicated across multiple files outside the magic package...")
 
-	absMagicDir, err := magicDuplicatesAbsFn(magicDir)
+	absMagicDir, err := absFn(magicDir)
 	if err != nil {
 		return fmt.Errorf("cannot resolve magic dir: %w", err)
 	}
 
-	absRootDir, err := magicDuplicatesAbsFn(rootDir)
+	absRootDir, err := absFn(rootDir)
 	if err != nil {
 		return fmt.Errorf("cannot resolve root dir: %w", err)
 	}
@@ -127,7 +121,7 @@ func CheckCrossFileDuplicatesInDir(logger *cryptoutilCmdCicdCommon.Logger, magic
 
 	var walkErrors []string
 
-	walkErr := magicDuplicatesWalkFn(absRootDir, func(path string, info os.FileInfo, walkFileErr error) error {
+	walkErr := walkFn(absRootDir, func(path string, info os.FileInfo, walkFileErr error) error {
 		if walkFileErr != nil {
 			walkErrors = append(walkErrors, fmt.Sprintf("walk error at %s: %v", path, walkFileErr))
 

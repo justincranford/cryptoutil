@@ -193,7 +193,7 @@ const ProtoHTTPS = "https"
 `)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("cross-dup-test")
-	err := CheckCrossFileDuplicatesInDir(logger, magicDir, rootDir)
+	err := CheckCrossFileDuplicatesInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
 	require.NoError(t, err)
 }
 
@@ -215,7 +215,7 @@ const SchemeHTTPS = "https"
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("cross-dup-test")
 	// magic-cross-duplicates is informational: violations are logged but do not return an error.
-	err := CheckCrossFileDuplicatesInDir(logger, magicDir, rootDir)
+	err := CheckCrossFileDuplicatesInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
 	require.NoError(t, err)
 }
 
@@ -235,7 +235,7 @@ SchemeHTTPS = "https"
 `)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("cross-dup-test")
-	err := CheckCrossFileDuplicatesInDir(logger, magicDir, rootDir)
+	err := CheckCrossFileDuplicatesInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
 	require.NoError(t, err)
 }
 
@@ -261,67 +261,57 @@ const SchemeHTTPS = "https"
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("cross-dup-test")
 	// Only one non-magic file has the value, so no cross-file duplicate.
-	err := CheckCrossFileDuplicatesInDir(logger, magicDir, rootDir)
+	err := CheckCrossFileDuplicatesInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
 	require.NoError(t, err)
 }
 
 func TestCheckCrossFileDuplicatesInDir_AbsMagicDirError(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() - test replaces package-level injectable function.
-	// Force magicDuplicatesAbsFn to error on the magicDir call.
+	t.Parallel()
+
 	callCount := 0
-	origFn := magicDuplicatesAbsFn
-
-	t.Cleanup(func() { magicDuplicatesAbsFn = origFn })
-
-	magicDuplicatesAbsFn = func(path string) (string, error) {
+	stubAbsFn := func(path string) (string, error) {
 		callCount++
 		if callCount == 1 {
 			return "", os.ErrInvalid
 		}
 
-		return origFn(path)
+		return filepath.Abs(path)
 	}
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("cross-dup-test")
-	err := CheckCrossFileDuplicatesInDir(logger, "/some/magic", "/some/root")
+	err := CheckCrossFileDuplicatesInDir(logger, "/some/magic", "/some/root", stubAbsFn, filepath.Walk)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "cannot resolve magic dir")
 }
 
 func TestCheckCrossFileDuplicatesInDir_AbsRootDirError(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() - test replaces package-level injectable function.
+	t.Parallel()
+
 	callCount := 0
-	origFn := magicDuplicatesAbsFn
-
-	t.Cleanup(func() { magicDuplicatesAbsFn = origFn })
-
-	magicDuplicatesAbsFn = func(path string) (string, error) {
+	stubAbsFn := func(path string) (string, error) {
 		callCount++
 		if callCount == 2 {
 			return "", os.ErrInvalid
 		}
 
-		return origFn(path)
+		return filepath.Abs(path)
 	}
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("cross-dup-test")
-	err := CheckCrossFileDuplicatesInDir(logger, "/some/magic", "/some/root")
+	err := CheckCrossFileDuplicatesInDir(logger, "/some/magic", "/some/root", stubAbsFn, filepath.Walk)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "cannot resolve root dir")
 }
 
 func TestCheckCrossFileDuplicatesInDir_WalkError(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() - test replaces package-level injectable function.
-	origFn := magicDuplicatesWalkFn
+	t.Parallel()
 
-	t.Cleanup(func() { magicDuplicatesWalkFn = origFn })
-
-	magicDuplicatesWalkFn = func(root string, fn filepath.WalkFunc) error {
+	stubWalkFn := func(_ string, _ filepath.WalkFunc) error {
 		return os.ErrPermission
 	}
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("cross-dup-test")
-	err := CheckCrossFileDuplicatesInDir(logger, t.TempDir(), t.TempDir())
+	err := CheckCrossFileDuplicatesInDir(logger, t.TempDir(), t.TempDir(), filepath.Abs, stubWalkFn)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "directory walk failed")
 }
@@ -345,12 +335,29 @@ func TestCheckCrossFileDuplicatesInDir_WalkFileErr(t *testing.T) {
 	t.Cleanup(func() { _ = os.Chmod(subDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute) })
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("cross-dup-test")
-	err := CheckCrossFileDuplicatesInDir(logger, magicDir, rootDir)
+	err := CheckCrossFileDuplicatesInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
 	// On Windows chmod 000 doesn't work the same way; the test is best-effort.
 	// If it doesn't produce an error, that's acceptable.
 	if err != nil {
 		require.Contains(t, err.Error(), "walk errors")
 	}
+}
+
+func TestCheckCrossFileDuplicatesInDir_WalkCallbackError(t *testing.T) {
+	t.Parallel()
+
+	// Stub walkFn that invokes the walk callback with a non-nil walkFileErr,
+	// exercising the walkErrors accumulation path inside CheckCrossFileDuplicatesInDir.
+	stubWalkFn := func(root string, fn filepath.WalkFunc) error {
+		_ = fn(filepath.Join(root, "bad.go"), nil, fmt.Errorf("injected walk callback error"))
+
+		return nil
+	}
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("cross-dup-test")
+	err := CheckCrossFileDuplicatesInDir(logger, t.TempDir(), t.TempDir(), filepath.Abs, stubWalkFn)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "walk errors")
 }
 
 func TestCheckCrossFileDuplicatesInDir_NonStringConst(t *testing.T) {
@@ -364,7 +371,7 @@ func TestCheckCrossFileDuplicatesInDir_NonStringConst(t *testing.T) {
 	writeMagicFile(t, tmpDir, "consts.go", "package root\nconst (\n\tA = 42\n\tB = 3.14\n)\n")
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := CheckCrossFileDuplicatesInDir(logger, magicDir, tmpDir)
+	err := CheckCrossFileDuplicatesInDir(logger, magicDir, tmpDir, filepath.Abs, filepath.Walk)
 	require.NoError(t, err)
 }
 
@@ -379,7 +386,7 @@ func TestCheckCrossFileDuplicatesInDir_UnparseableFile(t *testing.T) {
 	writeMagicFile(t, tmpDir, "bad.go", "THIS IS NOT VALID GO CODE @@@@!!")
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := CheckCrossFileDuplicatesInDir(logger, magicDir, tmpDir)
+	err := CheckCrossFileDuplicatesInDir(logger, magicDir, tmpDir, filepath.Abs, filepath.Walk)
 	require.NoError(t, err)
 }
 

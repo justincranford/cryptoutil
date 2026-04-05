@@ -20,16 +20,15 @@ import (
 // legacyPortPattern matches port numbers in various contexts.
 var legacyPortPattern = regexp.MustCompile(`\b(\d{4,5})\b`)
 
-// Injectable functions for testing defensive error paths.
-var (
-	legacyPortsAllFn     = lintPortsCommon.AllLegacyPorts
-	legacyPortsFindAllFn = legacyPortPattern.FindAllStringSubmatch
-)
-
 // Check checks for legacy port usage in all relevant files.
 // Returns an error if any legacy ports are found.
 func Check(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][]string) error {
-	legacyPorts := legacyPortsAllFn()
+	return checkWithAllFn(logger, filesByExtension, lintPortsCommon.AllLegacyPorts)
+}
+
+// checkWithAllFn is the testable implementation that accepts an explicit allFn.
+func checkWithAllFn(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][]string, allFn func() []uint16) error {
+	legacyPorts := allFn()
 	if len(legacyPorts) == 0 {
 		logger.Log("No legacy ports defined, skipping legacy port check")
 
@@ -42,24 +41,24 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][
 
 	// Check Go files.
 	for _, file := range filesByExtension["go"] {
-		fileViolations := CheckFile(file, legacyPorts)
+		fileViolations := CheckFile(file, legacyPorts, legacyPortPattern.FindAllStringSubmatch)
 		violations = append(violations, fileViolations...)
 	}
 
 	// Check YAML files.
 	for _, file := range filesByExtension["yml"] {
-		fileViolations := CheckFile(file, legacyPorts)
+		fileViolations := CheckFile(file, legacyPorts, legacyPortPattern.FindAllStringSubmatch)
 		violations = append(violations, fileViolations...)
 	}
 
 	for _, file := range filesByExtension["yaml"] {
-		fileViolations := CheckFile(file, legacyPorts)
+		fileViolations := CheckFile(file, legacyPorts, legacyPortPattern.FindAllStringSubmatch)
 		violations = append(violations, fileViolations...)
 	}
 
 	// Check Markdown files.
 	for _, file := range filesByExtension["md"] {
-		fileViolations := CheckFile(file, legacyPorts)
+		fileViolations := CheckFile(file, legacyPorts, legacyPortPattern.FindAllStringSubmatch)
 		violations = append(violations, fileViolations...)
 	}
 
@@ -75,7 +74,7 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][
 }
 
 // CheckFile checks a single file for legacy port usage.
-func CheckFile(filePath string, legacyPorts []uint16) []lintPortsCommon.Violation {
+func CheckFile(filePath string, legacyPorts []uint16, findAllFn func(string, int) [][]string) []lintPortsCommon.Violation {
 	// Skip this package itself (port definitions are legitimate here).
 	if strings.Contains(filePath, "lint_ports") {
 		return nil
@@ -129,7 +128,7 @@ func CheckFile(filePath string, legacyPorts []uint16) []lintPortsCommon.Violatio
 		line := scanner.Text()
 
 		// Find all potential port numbers in the line.
-		matches := legacyPortsFindAllFn(line, -1)
+		matches := findAllFn(line, -1)
 		for _, match := range matches {
 			if len(match) < 2 {
 				continue

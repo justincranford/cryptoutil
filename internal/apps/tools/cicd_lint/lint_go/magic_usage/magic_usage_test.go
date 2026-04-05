@@ -54,7 +54,7 @@ func greet() { fmt.Println("hello") }
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
-	err = CheckMagicUsageInDir(logger, magicDir, rootDir)
+	err = CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
 	require.NoError(t, err)
 }
 
@@ -76,7 +76,7 @@ func scheme() string { return "https" }
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
-	err = CheckMagicUsageInDir(logger, magicDir, rootDir)
+	err = CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
 	// literal-use violations are blocking: inline literals must reference magic.XXX.
 	require.Error(t, err)
 	require.ErrorContains(t, err, "literal-use")
@@ -100,7 +100,7 @@ const localHTTPS = "https"
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
-	err = CheckMagicUsageInDir(logger, magicDir, rootDir)
+	err = CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
 	// magic-usage is informational: violations are logged but do not return an error.
 	require.NoError(t, err)
 }
@@ -124,7 +124,7 @@ func f() string { return "." }
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
-	err = CheckMagicUsageInDir(logger, magicDir, rootDir)
+	err = CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
 	require.NoError(t, err)
 }
 
@@ -146,7 +146,7 @@ func count() int { return 0 }
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
-	err = CheckMagicUsageInDir(logger, magicDir, rootDir)
+	err = CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
 	require.NoError(t, err)
 }
 
@@ -176,7 +176,7 @@ const wantLimit = 500
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
-	err = CheckMagicUsageInDir(logger, magicDir, rootDir)
+	err = CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
 	// magic-usage is informational: violations are logged but do not return an error.
 	// The test confirms production-file violations are suppressed (no panic, clean exit).
 	require.NoError(t, err)
@@ -196,7 +196,7 @@ const x = "hello"
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
-	err = CheckMagicUsageInDir(logger, magicDir, rootDir)
+	err = CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
 	require.NoError(t, err)
 }
 
@@ -204,7 +204,7 @@ func TestCheckMagicUsageInDir_InvalidMagicDir(t *testing.T) {
 	t.Parallel()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
-	err := CheckMagicUsageInDir(logger, "/nonexistent/magic", ".")
+	err := CheckMagicUsageInDir(logger, "/nonexistent/magic", ".", filepath.Abs, filepath.Walk)
 	require.Error(t, err)
 }
 
@@ -226,7 +226,7 @@ func genFunc() string { return "https" }
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
-	err = CheckMagicUsageInDir(logger, magicDir, rootDir)
+	err = CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
 	require.NoError(t, err)
 }
 
@@ -257,7 +257,7 @@ func TestCheckMagicUsageInDir_MagicDirInsideRoot(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(rootDir, "app.go"), []byte("package app\n\nfunc f() {}\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := CheckMagicUsageInDir(logger, magicDir, rootDir)
+	err := CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
 	// Should succeed - the magicDir is skipped by filepath.SkipDir.
 	require.NoError(t, err)
 }
@@ -274,7 +274,7 @@ func TestCheckMagicUsageInDir_VendorDirSkipped(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(vendorDir, "pkg.go"), []byte("package somepkg\n\nconst x = 30\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := CheckMagicUsageInDir(logger, magicDir, rootDir)
+	err := CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
 	require.NoError(t, err)
 }
 
@@ -296,7 +296,7 @@ func TestCheckMagicUsageInDir_WalkError(t *testing.T) {
 	t.Cleanup(func() { _ = os.Chmod(badSubDir, 0o700) })
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := CheckMagicUsageInDir(logger, magicDir, rootDir)
+	err := CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
 	// Walk errors are accumulated and returned as an error.
 	require.Error(t, err, "Walk errors should be returned")
 	require.Contains(t, err.Error(), "walk errors")
@@ -312,7 +312,7 @@ func TestCheckMagicUsageInDir_UnparseableGoFile(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(rootDir, "broken.go"), []byte("package INVALID {{{"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := CheckMagicUsageInDir(logger, magicDir, rootDir)
+	err := CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
 	// The unparseable file is silently skipped.
 	require.NoError(t, err)
 }
@@ -325,7 +325,7 @@ func TestCheckMagicUsageInDir_WalkErrNonExistentRoot(t *testing.T) {
 	writeMagicFile(t, magicDir, "magic.go", "package magic\n\nconst Timeout = 30\n")
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := CheckMagicUsageInDir(logger, magicDir, "/nonexistent/root/dir")
+	err := CheckMagicUsageInDir(logger, magicDir, "/nonexistent/root/dir", filepath.Abs, filepath.Walk)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "walk errors")
 }
@@ -355,7 +355,7 @@ func TestCheckMagicUsageInDir_AbsErrorDeletedCWD(t *testing.T) {
 	// Now filepath.Abs on any relative path will fail because Getwd() fails.
 	// Pass a relative rootDir to trigger the Abs error path.
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = CheckMagicUsageInDir(logger, magicDir, "relative/root")
+	err = CheckMagicUsageInDir(logger, magicDir, "relative/root", filepath.Abs, filepath.Walk)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "cannot resolve")
 }

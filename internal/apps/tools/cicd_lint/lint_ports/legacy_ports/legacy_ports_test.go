@@ -102,14 +102,14 @@ func TestCheckFile_WithLegacyPort(t *testing.T) {
 	content := "package main\nconst tlsPort = 9443\n"
 	require.NoError(t, os.WriteFile(goFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
-	violations := CheckFile(goFile, lintPortsCommon.AllLegacyPorts())
+	violations := CheckFile(goFile, lintPortsCommon.AllLegacyPorts(), legacyPortPattern.FindAllStringSubmatch)
 	require.NotEmpty(t, violations, "Should find legacy port 9443")
 }
 
 func TestCheckFile_NonExistentFile(t *testing.T) {
 	t.Parallel()
 
-	violations := CheckFile("/nonexistent/path/file.go", lintPortsCommon.AllLegacyPorts())
+	violations := CheckFile("/nonexistent/path/file.go", lintPortsCommon.AllLegacyPorts(), legacyPortPattern.FindAllStringSubmatch)
 	require.Empty(t, violations, "Non-existent file returns empty violations")
 }
 
@@ -139,7 +139,7 @@ func TestCheckFile_ParseUintOverflow(t *testing.T) {
 	content := "package main\nconst bigPort = 99999\n"
 	require.NoError(t, os.WriteFile(goFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
-	violations := CheckFile(goFile, lintPortsCommon.AllLegacyPorts())
+	violations := CheckFile(goFile, lintPortsCommon.AllLegacyPorts(), legacyPortPattern.FindAllStringSubmatch)
 	require.Empty(t, violations, "99999 cannot be uint16, should be skipped")
 }
 
@@ -156,7 +156,7 @@ func TestCheckFile_OtelPortSkipped(t *testing.T) {
 	content := "grpc_port: 4317\n"
 	require.NoError(t, os.WriteFile(otelFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
-	violations := CheckFile(otelFile, lintPortsCommon.AllLegacyPorts())
+	violations := CheckFile(otelFile, lintPortsCommon.AllLegacyPorts(), legacyPortPattern.FindAllStringSubmatch)
 	// 4317 is not a legacy port anyway, but this exercises the OTEL skip path.
 	require.Empty(t, violations)
 }
@@ -167,7 +167,7 @@ func TestCheckFile_LintPortsDirectorySkipped(t *testing.T) {
 	// Files inside "lint_ports/" directory are skipped (port definitions are
 	// legitimate there). This covers the early return nil in CheckFile.
 	skipPath := "/some/project/lint_ports/common/ports.go"
-	violations := CheckFile(skipPath, lintPortsCommon.AllLegacyPorts())
+	violations := CheckFile(skipPath, lintPortsCommon.AllLegacyPorts(), legacyPortPattern.FindAllStringSubmatch)
 	require.Nil(t, violations, "Files in lint_ports/ should be skipped entirely")
 }
 
@@ -184,7 +184,7 @@ func TestCheckFile_OtelPortInOtelContext(t *testing.T) {
 	content := "metrics_port: 8888\n"
 	require.NoError(t, os.WriteFile(otelFile, []byte(content), cryptoutilSharedMagic.CacheFilePermissions))
 
-	violations := CheckFile(otelFile, lintPortsCommon.AllLegacyPorts())
+	violations := CheckFile(otelFile, lintPortsCommon.AllLegacyPorts(), legacyPortPattern.FindAllStringSubmatch)
 	// 8888 is both an OTEL collector port AND a legacy sm-im port.
 	// In an OTEL-related file, the OTEL continue fires and no violation is flagged.
 	require.Empty(t, violations, "8888 in OTEL context should be skipped")
@@ -193,34 +193,34 @@ func TestCheckFile_OtelPortInOtelContext(t *testing.T) {
 func TestCheckFile_CicdDirectorySkipped(t *testing.T) {
 	t.Parallel()
 
-	violations := CheckFile("/project/internal/apps/cicd/lint_go/lint.go", lintPortsCommon.AllLegacyPorts())
+	violations := CheckFile("/project/internal/apps/cicd/lint_go/lint.go", lintPortsCommon.AllLegacyPorts(), legacyPortPattern.FindAllStringSubmatch)
 	require.Nil(t, violations, "Files in internal/apps/cicd/ should be skipped")
 }
 
 func TestCheckFile_MagicDirectorySkipped(t *testing.T) {
 	t.Parallel()
 
-	violations := CheckFile("/project/internal/shared/magic/magic_ports.go", lintPortsCommon.AllLegacyPorts())
+	violations := CheckFile("/project/internal/shared/magic/magic_ports.go", lintPortsCommon.AllLegacyPorts(), legacyPortPattern.FindAllStringSubmatch)
 	require.Nil(t, violations, "Files in internal/shared/magic/ should be skipped")
 }
 
 func TestCheckFile_TestFileSkipped(t *testing.T) {
 	t.Parallel()
 
-	violations := CheckFile("/project/internal/apps/sm-im/server_test.go", lintPortsCommon.AllLegacyPorts())
+	violations := CheckFile("/project/internal/apps/sm-im/server_test.go", lintPortsCommon.AllLegacyPorts(), legacyPortPattern.FindAllStringSubmatch)
 	require.Nil(t, violations, "Test files should be skipped")
 }
 
 func TestCheckFile_ArchivedDeploymentSkipped(t *testing.T) {
 	t.Parallel()
 
-	violations := CheckFile("/project/deployments/archived/old-compose.yml", lintPortsCommon.AllLegacyPorts())
+	violations := CheckFile("/project/deployments/archived/old-compose.yml", lintPortsCommon.AllLegacyPorts(), legacyPortPattern.FindAllStringSubmatch)
 	require.Nil(t, violations, "Files in deployments/archived/ should be skipped")
 }
 
 func TestCheckFile_OrphanedConfigSkipped(t *testing.T) {
 	t.Parallel()
 
-	violations := CheckFile("/project/configs/orphaned/old-config.yml", lintPortsCommon.AllLegacyPorts())
+	violations := CheckFile("/project/configs/orphaned/old-config.yml", lintPortsCommon.AllLegacyPorts(), legacyPortPattern.FindAllStringSubmatch)
 	require.Nil(t, violations, "Files in configs/orphaned/ should be skipped")
 }

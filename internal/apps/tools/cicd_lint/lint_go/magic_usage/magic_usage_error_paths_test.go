@@ -16,10 +16,7 @@ import (
 )
 
 func TestCheckMagicUsageInDir_AbsMagicDirError(t *testing.T) {
-	// Cannot be parallel: modifies package-level injectable var.
-	originalFn := magicUsageAbsFn
-
-	defer func() { magicUsageAbsFn = originalFn }()
+	t.Parallel()
 
 	// Set up valid magic dir with at least one constant so ParseMagicDir succeeds.
 	magicDir, rootDir := setupMagicUsageDirs(t)
@@ -28,7 +25,7 @@ const TestVal = "test-value"
 `)
 
 	callCount := 0
-	magicUsageAbsFn = func(path string) (string, error) {
+	stubAbsFn := func(path string) (string, error) {
 		callCount++
 		if callCount == 1 {
 			return "", fmt.Errorf("injected abs error for magic dir")
@@ -38,28 +35,25 @@ const TestVal = "test-value"
 	}
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := CheckMagicUsageInDir(logger, magicDir, rootDir)
+	err := CheckMagicUsageInDir(logger, magicDir, rootDir, stubAbsFn, filepath.Walk)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "cannot resolve magic dir")
 }
 
 func TestCheckMagicUsageInDir_WalkFnError(t *testing.T) {
-	// Cannot be parallel: modifies package-level injectable var.
-	originalFn := magicUsageWalkFn
-
-	defer func() { magicUsageWalkFn = originalFn }()
+	t.Parallel()
 
 	magicDir, rootDir := setupMagicUsageDirs(t)
 	writeMagicFile(t, magicDir, "magic_test_vals.go", `package magic
 const TestVal = "test-value"
 `)
 
-	magicUsageWalkFn = func(_ string, _ filepath.WalkFunc) error {
+	stubWalkFn := func(_ string, _ filepath.WalkFunc) error {
 		return fmt.Errorf("injected walk error")
 	}
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := CheckMagicUsageInDir(logger, magicDir, rootDir)
+	err := CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, stubWalkFn)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "directory walk failed")
 }
@@ -87,6 +81,6 @@ var x = "hello"
 `)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := CheckMagicUsageInDir(logger, magicDir, rootDir)
+	err := CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
 	require.NoError(t, err)
 }

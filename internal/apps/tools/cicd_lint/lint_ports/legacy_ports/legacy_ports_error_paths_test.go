@@ -14,28 +14,20 @@ import (
 )
 
 func TestCheck_EmptyLegacyPorts(t *testing.T) {
-	// Cannot be parallel: modifies package-level injectable var.
-	originalFn := legacyPortsAllFn
-
-	defer func() { legacyPortsAllFn = originalFn }()
-
-	legacyPortsAllFn = func() []uint16 {
-		return nil
-	}
+	t.Parallel()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := Check(logger, map[string][]string{})
+	err := CheckWithAllFn(logger, map[string][]string{}, func() []uint16 {
+		return nil
+	})
 	require.NoError(t, err)
 }
 
 func TestCheckFile_ShortRegexMatch(t *testing.T) {
-	// Cannot be parallel: modifies package-level injectable var.
-	originalFn := legacyPortsFindAllFn
-
-	defer func() { legacyPortsFindAllFn = originalFn }()
+	t.Parallel()
 
 	// Return matches with only 1 element (no capture group) to trigger the len(match) < 2 guard.
-	legacyPortsFindAllFn = func(_ string, _ int) [][]string {
+	stubFindAllFn := func(_ string, _ int) [][]string {
 		return [][]string{{"8080"}} // Missing capture group element.
 	}
 
@@ -44,6 +36,6 @@ func TestCheckFile_ShortRegexMatch(t *testing.T) {
 	testFile := filepath.Join(tmpDir, "test.go")
 	require.NoError(t, os.WriteFile(testFile, []byte("port: 8080\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	violations := CheckFile(testFile, []uint16{cryptoutilSharedMagic.TestServerPort})
+	violations := CheckFile(testFile, []uint16{cryptoutilSharedMagic.TestServerPort}, stubFindAllFn)
 	require.Empty(t, violations)
 }
