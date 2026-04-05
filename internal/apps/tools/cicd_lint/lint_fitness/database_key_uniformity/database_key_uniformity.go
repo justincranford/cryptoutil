@@ -25,25 +25,19 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// Injectable OS functions for test seam injection.
-var (
-	readFileFn = os.ReadFile
-	readDirFn  = os.ReadDir
-)
-
 // Check validates database key uniformity from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
-	return CheckInDir(logger, ".")
+	return CheckInDir(logger, ".", os.ReadDir, os.ReadFile)
 }
 
 // CheckInDir validates database key uniformity under rootDir.
-func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
+func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, readDirFn func(string) ([]os.DirEntry, error), readFileFn func(string) ([]byte, error)) error {
 	logger.Log("Checking database key uniformity (no nested database: mapping allowed)...")
 
 	var violations []string
 
 	for _, ps := range lintFitnessRegistry.AllProductServices() {
-		v := checkConfigDir(rootDir, ps.PSID)
+		v := checkConfigDir(rootDir, ps.PSID, readDirFn, readFileFn)
 		violations = append(violations, v...)
 	}
 
@@ -57,7 +51,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 }
 
 // checkConfigDir scans all *.yml files in deployments/{psID}/config/ for violations.
-func checkConfigDir(rootDir, psID string) []string {
+func checkConfigDir(rootDir, psID string, readDirFn func(string) ([]os.DirEntry, error), readFileFn func(string) ([]byte, error)) []string {
 	configDir := filepath.Join(rootDir, "deployments", psID, "config")
 
 	if _, err := os.Stat(configDir); os.IsNotExist(err) {
@@ -78,7 +72,7 @@ func checkConfigDir(rootDir, psID string) []string {
 
 		configPath := filepath.Join(configDir, entry.Name())
 
-		v := checkFile(configPath, psID, entry.Name())
+		v := checkFile(configPath, psID, entry.Name(), readFileFn)
 		violations = append(violations, v...)
 	}
 
@@ -87,7 +81,7 @@ func checkConfigDir(rootDir, psID string) []string {
 
 // checkFile parses one YAML file and returns a violation string if it contains
 // a nested "database:" mapping.
-func checkFile(configPath, psID, filename string) []string {
+func checkFile(configPath, psID, filename string, readFileFn func(string) ([]byte, error)) []string {
 	data, err := readFileFn(configPath) //nolint:gosec // configPath constructed from controlled registry + dir walk
 	if err != nil {
 		return []string{fmt.Sprintf("%s: %s: cannot read file: %s", psID, filename, err)}

@@ -13,67 +13,45 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Sequential: modifies package-level configsDeploymentsStatFn seam.
 func TestFindViolationsInDir_StatError(t *testing.T) {
-	orig := configsDeploymentsStatFn
+	t.Parallel()
 
-	defer func() { configsDeploymentsStatFn = orig }()
-
-	configsDeploymentsStatFn = func(_ string) (os.FileInfo, error) {
+	violations, err := FindViolationsInDir(".", func(_ string) (os.FileInfo, error) {
 		return nil, errors.New("injected stat error")
-	}
-
-	violations, err := FindViolationsInDir(".")
+	}, os.ReadDir)
 	require.Error(t, err)
 	require.Nil(t, violations)
 	require.Contains(t, err.Error(), "deployments/ directory not found")
 }
 
-// Sequential: modifies package-level configsDeploymentsReadDirFn seam.
 func TestFindViolationsInDir_ReadDirError(t *testing.T) {
-	orig := configsDeploymentsReadDirFn
-	origStat := configsDeploymentsStatFn
+	t.Parallel()
 
-	defer func() {
-		configsDeploymentsReadDirFn = orig
-		configsDeploymentsStatFn = origStat
-	}()
-
-	configsDeploymentsStatFn = func(_ string) (os.FileInfo, error) {
+	violations, err := FindViolationsInDir(".", func(_ string) (os.FileInfo, error) {
 		return nil, nil
-	}
-	configsDeploymentsReadDirFn = func(_ string) ([]fs.DirEntry, error) {
+	}, func(_ string) ([]fs.DirEntry, error) {
 		return nil, errors.New("injected readdir error")
-	}
-
-	violations, err := FindViolationsInDir(".")
+	})
 	require.Error(t, err)
 	require.Nil(t, violations)
 	require.Contains(t, err.Error(), "failed to read deployments/ directory")
 }
 
-// Sequential: modifies package-level configsDeploymentsStatFn seam.
 func TestFindViolationsInDir_ConfigsStatError(t *testing.T) {
-	origStat := configsDeploymentsStatFn
-
-	defer func() {
-		configsDeploymentsStatFn = origStat
-	}()
+	t.Parallel()
 
 	root := t.TempDir()
 	require.NoError(t, os.MkdirAll(root+"/deployments/sm-kms", cryptoutilSharedMagic.CICDTempDirPermissions))
 
 	callCount := 0
-	configsDeploymentsStatFn = func(path string) (os.FileInfo, error) {
+	violations, err := FindViolationsInDir(root, func(path string) (os.FileInfo, error) {
 		callCount++
 		if callCount == 1 {
-			return os.Stat(path) // Let deployments/ stat succeed
+			return os.Stat(path) // Let deployments/ stat succeed.
 		}
 
 		return nil, errors.New("injected configs stat error")
-	}
-
-	violations, err := FindViolationsInDir(root)
+	}, os.ReadDir)
 	require.NoError(t, err)
 	require.NotEmpty(t, violations)
 }

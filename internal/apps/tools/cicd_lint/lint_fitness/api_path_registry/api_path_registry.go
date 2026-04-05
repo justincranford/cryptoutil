@@ -25,20 +25,13 @@ import (
 	cryptoutilLintFitnessRegistry "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/registry"
 )
 
-// Test seams: replaceable in tests to exercise unreachable OS-level error paths.
-// See ARCHITECTURE.md Section 10.2.4 (Test Seam Injection Pattern).
-var (
-	apiPathReadDirFn  = os.ReadDir
-	apiPathReadFileFn = os.ReadFile
-)
-
 // Check validates API path registry from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
-	return CheckInDir(logger, ".")
+	return CheckInDir(logger, ".", os.ReadDir, os.ReadFile)
 }
 
 // CheckInDir validates API path registry under rootDir.
-func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
+func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, readDirFn func(string) ([]os.DirEntry, error), readFileFn func(string) ([]byte, error)) error {
 	logger.Log("Checking API path registry consistency...")
 
 	// Build psID → resources map from the registry.
@@ -61,7 +54,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 		apiDir := filepath.Join(rootDir, "api", ps.PSID)
 
-		specPaths, err := collectSpecPaths(apiDir)
+			specPaths, err := collectSpecPaths(apiDir, readDirFn, readFileFn)
 		if err != nil {
 			violations = append(violations, fmt.Sprintf("%s: %v", ps.PSID, err))
 
@@ -82,8 +75,8 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 // collectSpecPaths reads all openapi_spec*.yaml files in apiDir (excluding *_components.yaml)
 // and returns the union of all path keys found across the spec files.
-func collectSpecPaths(apiDir string) (map[string]struct{}, error) {
-	entries, err := apiPathReadDirFn(apiDir)
+func collectSpecPaths(apiDir string, readDirFn func(string) ([]os.DirEntry, error), readFileFn func(string) ([]byte, error)) (map[string]struct{}, error) {
+	entries, err := readDirFn(apiDir)
 	if err != nil {
 		return nil, fmt.Errorf("cannot read api directory %s: %w", apiDir, err)
 	}
@@ -106,7 +99,7 @@ func collectSpecPaths(apiDir string) (map[string]struct{}, error) {
 
 		filePath := filepath.Join(apiDir, name)
 
-		paths, readErr := parseSpecPaths(filePath)
+			paths, readErr := parseSpecPaths(filePath, readFileFn)
 		if readErr != nil {
 			return nil, fmt.Errorf("cannot parse %s: %w", name, readErr)
 		}
@@ -146,8 +139,8 @@ func isSpecFile(name string) bool {
 }
 
 // parseSpecPaths reads a YAML file and returns the set of path keys under the `paths:` top-level key.
-func parseSpecPaths(filePath string) (map[string]struct{}, error) {
-	data, err := apiPathReadFileFn(filePath)
+func parseSpecPaths(filePath string, readFileFn func(string) ([]byte, error)) (map[string]struct{}, error) {
+	data, err := readFileFn(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("cannot read file: %w", err)
 	}

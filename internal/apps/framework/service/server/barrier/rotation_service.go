@@ -24,6 +24,7 @@ type RotationService struct {
 	jwkGenService     *cryptoutilSharedCryptoJose.JWKGenService
 	repository        Repository
 	unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService
+	encryptKeyFn      func([]joseJwk.Key, joseJwk.Key) (*joseJwe.Message, []byte, error)
 }
 
 // Injectable vars for testing error path coverage.
@@ -40,7 +41,6 @@ var (
 	rotationUnsealEncryptKeyFn = func(svc cryptoutilUnsealKeysService.UnsealKeysService, clearKey joseJwk.Key) ([]byte, error) {
 		return svc.EncryptKey(clearKey)
 	}
-	rotationEncryptKeyFn = cryptoutilSharedCryptoJose.EncryptKey
 )
 
 // NewRotationService creates a new rotation service.
@@ -65,6 +65,7 @@ func NewRotationService(
 		jwkGenService:     jwkGenService,
 		repository:        repository,
 		unsealKeysService: unsealKeysService,
+		encryptKeyFn:      cryptoutilSharedCryptoJose.EncryptKey,
 	}, nil
 }
 
@@ -178,7 +179,7 @@ func (s *RotationService) RotateIntermediateKey(ctx context.Context, reason stri
 		}
 
 		// Encrypt new intermediate key with current root key
-		_, encryptedIntermediateKeyBytes, err := rotationEncryptKeyFn([]joseJwk.Key{clearRootKey}, clearIntermediateKey)
+		_, encryptedIntermediateKeyBytes, err := s.encryptKeyFn([]joseJwk.Key{clearRootKey}, clearIntermediateKey)
 		if err != nil {
 			return fmt.Errorf("failed to encrypt intermediate key: %w", err)
 		}
@@ -277,7 +278,7 @@ func (s *RotationService) RotateContentKey(ctx context.Context, reason string) (
 		}
 
 		// Encrypt content key with intermediate key
-		_, encryptedContentKeyBytes, err := rotationEncryptKeyFn([]joseJwk.Key{clearIntermediateKey}, clearContentKey)
+		_, encryptedContentKeyBytes, err := s.encryptKeyFn([]joseJwk.Key{clearIntermediateKey}, clearContentKey)
 		if err != nil {
 			return fmt.Errorf("failed to encrypt content key: %w", err)
 		}

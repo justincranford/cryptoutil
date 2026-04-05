@@ -59,7 +59,7 @@ func TestCheck_PassesOnProjectRoot(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-compose-port-formula")
 
-	err := CheckInDir(logger, projectRoot)
+	err := CheckInDir(logger, projectRoot, lintFitnessRegistry.AllSuites, os.ReadFile)
 	require.NoError(t, err, "Project should pass compose port formula check")
 }
 
@@ -139,7 +139,7 @@ func TestCheckInDir_ValidServiceTierPorts(t *testing.T) {
 			buildComposeWithPorts(t, svcDir, svcName, portStr)
 
 			logger := cryptoutilCmdCicdCommon.NewLogger("test-valid-service-tier")
-			err := CheckInDir(logger, tmpDir)
+			err := CheckInDir(logger, tmpDir, lintFitnessRegistry.AllSuites, os.ReadFile)
 			require.NoError(t, err, "Valid service-tier port should pass")
 		})
 	}
@@ -160,7 +160,7 @@ func TestCheckInDir_ViolationServiceTierWrongPort(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-violation-service-tier")
 
-	err := CheckInDir(logger, tmpDir)
+	err := CheckInDir(logger, tmpDir, lintFitnessRegistry.AllSuites, os.ReadFile)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "compose port formula violations")
 	require.Contains(t, err.Error(), "host port 9999")
@@ -184,7 +184,7 @@ func TestCheckInDir_ViolationProductTierWrongPort(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-violation-product-tier")
 
-	err := CheckInDir(logger, tmpDir)
+	err := CheckInDir(logger, tmpDir, lintFitnessRegistry.AllSuites, os.ReadFile)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "compose port formula violations")
 	require.Contains(t, err.Error(), "host port 8000")
@@ -211,7 +211,7 @@ func TestCheckInDir_ViolationSuiteTierWrongPort(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-violation-suite-tier")
 
-	err := CheckInDir(logger, tmpDir)
+	err := CheckInDir(logger, tmpDir, lintFitnessRegistry.AllSuites, os.ReadFile)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "compose port formula violations")
 	require.Contains(t, err.Error(), "want 28000")
@@ -225,7 +225,7 @@ func TestCheckInDir_MissingComposeFileIsSkipped(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-missing-compose-skipped")
 
-	err := CheckInDir(logger, tmpDir)
+	err := CheckInDir(logger, tmpDir, lintFitnessRegistry.AllSuites, os.ReadFile)
 	require.NoError(t, err, "Missing compose files should be skipped, not counted as violations")
 }
 
@@ -248,19 +248,12 @@ func TestCheckInDir_NonMatchingServicesIgnored(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-non-matching-ignored")
 
-	err := CheckInDir(logger, tmpDir)
+	err := CheckInDir(logger, tmpDir, lintFitnessRegistry.AllSuites, os.ReadFile)
 	require.NoError(t, err, "Non-matching service ports should be ignored")
 }
 
 func TestCheckInDir_ReadFileError(t *testing.T) {
-	// Sequential seam test — must not use t.Parallel().
-	original := portReadFileFn
-
-	defer func() { portReadFileFn = original }()
-
-	portReadFileFn = func(path string) ([]byte, error) {
-		return nil, os.ErrPermission
-	}
+	t.Parallel()
 
 	// Create a deployments/{psid}/ dir so the file lookup attempts.
 	psID := cryptoutilSharedMagic.OTLPServiceSMKMS
@@ -278,7 +271,9 @@ func TestCheckInDir_ReadFileError(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-read-file-error")
 
-	err := CheckInDir(logger, tmpDir)
+	err := CheckInDir(logger, tmpDir, lintFitnessRegistry.AllSuites, func(path string) ([]byte, error) {
+		return nil, os.ErrPermission
+	})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "cannot read")
 }
@@ -304,24 +299,19 @@ func TestCheckTierPorts_ValidProductTierAllVariants(t *testing.T) {
 	content := "services:\n" + portEntries
 	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "compose.yml"), []byte(content), cryptoutilSharedMagic.FilePermissionsDefault))
 
-	violations := checkTierPorts(tmpDir, psID, "compose.yml", basePort, lintFitnessRegistry.PortTierOffsetProduct)
+	violations := checkTierPorts(tmpDir, psID, "compose.yml", basePort, lintFitnessRegistry.PortTierOffsetProduct, os.ReadFile)
 	require.Empty(t, violations, "All 3 product-tier variants correct should produce no violations")
 }
 
-// Sequential: modifies package-level allSuitesFn seam.
 func TestCheckInDir_NoSuites(t *testing.T) {
-	origSuites := allSuitesFn
-
-	defer func() { allSuitesFn = origSuites }()
-
-	allSuitesFn = func() []lintFitnessRegistry.Suite { return nil }
+	t.Parallel()
 
 	// With no suites, only SERVICE and PRODUCT tiers should be checked.
 	tmpDir := t.TempDir()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-no-suites")
 
-	err := CheckInDir(logger, tmpDir)
+	err := CheckInDir(logger, tmpDir, func() []lintFitnessRegistry.Suite { return nil }, os.ReadFile)
 	require.NoError(t, err, "No suites defined should skip suite tier and produce no violations")
 }
 
@@ -337,6 +327,6 @@ func TestCheckTierPorts_TwoCharLineNotPanic(t *testing.T) {
 	content := "services:\n  \n  " + lintFitnessRegistry.ComposeServiceName(psID, lintFitnessRegistry.ComposeVariantSQLite1) + ":\n    ports:\n      - \"" + strconv.Itoa(basePort) + ":8080\"\n"
 	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "compose.yml"), []byte(content), cryptoutilSharedMagic.FilePermissionsDefault))
 
-	violations := checkTierPorts(tmpDir, psID, "compose.yml", basePort, lintFitnessRegistry.PortTierOffsetService)
+	violations := checkTierPorts(tmpDir, psID, "compose.yml", basePort, lintFitnessRegistry.PortTierOffsetService, os.ReadFile)
 	require.Empty(t, violations, "Two-char line must not cause panic or violation")
 }

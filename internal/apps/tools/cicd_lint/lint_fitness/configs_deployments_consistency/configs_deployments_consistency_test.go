@@ -66,7 +66,7 @@ func TestFindViolationsInDir_NoDeploymentsDir(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	violations, err := lintFitnessConfigsDeploymentsConsistency.FindViolationsInDir(tmpDir)
+	violations, err := lintFitnessConfigsDeploymentsConsistency.FindViolationsInDir(tmpDir, os.Stat, os.ReadDir)
 	require.Error(t, err)
 	assert.Nil(t, violations)
 	assert.Contains(t, err.Error(), "deployments/ directory not found")
@@ -79,7 +79,7 @@ func TestFindViolationsInDir_EmptyDeployments(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupDeployments(t, tmpDir)
 
-	violations, err := lintFitnessConfigsDeploymentsConsistency.FindViolationsInDir(tmpDir)
+	violations, err := lintFitnessConfigsDeploymentsConsistency.FindViolationsInDir(tmpDir, os.Stat, os.ReadDir)
 	require.NoError(t, err)
 	assert.Empty(t, violations)
 }
@@ -91,7 +91,7 @@ func TestFindViolationsInDir_UnknownPSID(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupDeployments(t, tmpDir, "unknown-service")
 
-	violations, err := lintFitnessConfigsDeploymentsConsistency.FindViolationsInDir(tmpDir)
+	violations, err := lintFitnessConfigsDeploymentsConsistency.FindViolationsInDir(tmpDir, os.Stat, os.ReadDir)
 	require.NoError(t, err)
 	assert.Empty(t, violations)
 }
@@ -106,7 +106,7 @@ func TestFindViolationsInDir_MatchingConfigExists(t *testing.T) {
 	setupDeployments(t, tmpDir, ps.PSID)
 	setupConfigs(t, tmpDir, ps.PSID)
 
-	violations, err := lintFitnessConfigsDeploymentsConsistency.FindViolationsInDir(tmpDir)
+	violations, err := lintFitnessConfigsDeploymentsConsistency.FindViolationsInDir(tmpDir, os.Stat, os.ReadDir)
 	require.NoError(t, err)
 	assert.Empty(t, violations)
 }
@@ -120,7 +120,7 @@ func TestFindViolationsInDir_MissingConfig(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupDeployments(t, tmpDir, ps.PSID)
 
-	violations, err := lintFitnessConfigsDeploymentsConsistency.FindViolationsInDir(tmpDir)
+	violations, err := lintFitnessConfigsDeploymentsConsistency.FindViolationsInDir(tmpDir, os.Stat, os.ReadDir)
 	require.NoError(t, err)
 	require.Len(t, violations, 1)
 	assert.Contains(t, violations[0], ps.PSID)
@@ -142,7 +142,7 @@ func TestFindViolationsInDir_AllRegisteredPSIDs(t *testing.T) {
 	setupDeployments(t, tmpDir, psIDs...)
 	setupConfigs(t, tmpDir, psIDs...)
 
-	violations, err := lintFitnessConfigsDeploymentsConsistency.FindViolationsInDir(tmpDir)
+	violations, err := lintFitnessConfigsDeploymentsConsistency.FindViolationsInDir(tmpDir, os.Stat, os.ReadDir)
 	require.NoError(t, err)
 	assert.Empty(t, violations)
 }
@@ -157,7 +157,7 @@ func TestFindViolationsInDir_MultipleViolations(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupDeployments(t, tmpDir, allPS[0].PSID, allPS[1].PSID)
 
-	violations, err := lintFitnessConfigsDeploymentsConsistency.FindViolationsInDir(tmpDir)
+	violations, err := lintFitnessConfigsDeploymentsConsistency.FindViolationsInDir(tmpDir, os.Stat, os.ReadDir)
 	require.NoError(t, err)
 	assert.Len(t, violations, 2)
 }
@@ -170,7 +170,7 @@ func TestFindViolationsInDir_FileInDeployments(t *testing.T) {
 	setupDeployments(t, tmpDir)
 	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "deployments", "README.md"), []byte("# Readme"), cryptoutilSharedMagic.CICDOutputFilePermissions))
 
-	violations, err := lintFitnessConfigsDeploymentsConsistency.FindViolationsInDir(tmpDir)
+	violations, err := lintFitnessConfigsDeploymentsConsistency.FindViolationsInDir(tmpDir, os.Stat, os.ReadDir)
 	require.NoError(t, err)
 	assert.Empty(t, violations)
 }
@@ -185,7 +185,7 @@ func TestCheckInDir_ValidStructure(t *testing.T) {
 	setupDeployments(t, tmpDir, ps.PSID)
 	setupConfigs(t, tmpDir, ps.PSID)
 
-	err := lintFitnessConfigsDeploymentsConsistency.CheckInDir(newTestLogger(), tmpDir)
+	err := lintFitnessConfigsDeploymentsConsistency.CheckInDir(newTestLogger(), tmpDir, os.Stat, os.ReadDir)
 	require.NoError(t, err)
 }
 
@@ -198,7 +198,7 @@ func TestCheckInDir_MissingConfig_ReturnsError(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupDeployments(t, tmpDir, ps.PSID)
 
-	err := lintFitnessConfigsDeploymentsConsistency.CheckInDir(newTestLogger(), tmpDir)
+	err := lintFitnessConfigsDeploymentsConsistency.CheckInDir(newTestLogger(), tmpDir, os.Stat, os.ReadDir)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "configs/deployments inconsistencies")
 }
@@ -207,7 +207,7 @@ func TestCheckInDir_MissingConfig_ReturnsError(t *testing.T) {
 func TestCheckInDir_NoDeploymentsDir_ReturnsError(t *testing.T) {
 	t.Parallel()
 
-	err := lintFitnessConfigsDeploymentsConsistency.CheckInDir(newTestLogger(), "/nonexistent/path/does/not/exist")
+	err := lintFitnessConfigsDeploymentsConsistency.CheckInDir(newTestLogger(), "/nonexistent/path/does/not/exist", os.Stat, os.ReadDir)
 	require.Error(t, err)
 }
 
@@ -215,7 +215,7 @@ func TestCheckInDir_NoDeploymentsDir_ReturnsError(t *testing.T) {
 func TestCheck_Integration(t *testing.T) {
 	root := findProjectRoot(t)
 
-	err := lintFitnessConfigsDeploymentsConsistency.CheckInDir(newTestLogger(), root)
+	err := lintFitnessConfigsDeploymentsConsistency.CheckInDir(newTestLogger(), root, os.Stat, os.ReadDir)
 	require.NoError(t, err)
 }
 

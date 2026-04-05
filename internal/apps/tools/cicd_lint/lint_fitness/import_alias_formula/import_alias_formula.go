@@ -45,12 +45,9 @@ type AliasMap struct {
 // See ARCHITECTURE.md Section 10.2.4 (Test Seam Injection Pattern).
 // =========================================================================
 
-var (
-	importAliasReadFileFn        = os.ReadFile
-	importAliasWalkDirFn         = filepath.WalkDir
-	importAliasGetwdFn           = os.Getwd
-	findImportAliasProjectRootFn = findImportAliasProjectRoot
-)
+var findImportAliasProjectRootFn = func() (string, error) {
+	return findImportAliasProjectRoot(os.Getwd)
+}
 
 // =========================================================================
 // Public API
@@ -66,10 +63,10 @@ var ExcludedDirs = map[string]bool{
 const codeGeneratedCheckBytes = 512
 
 // LoadAliasMap reads and parses the alias_map.yaml from rootDir.
-func LoadAliasMap(rootDir string) (*AliasMap, error) {
+func LoadAliasMap(rootDir string, readFileFn func(string) ([]byte, error)) (*AliasMap, error) {
 	yamlPath := filepath.Join(rootDir, filepath.FromSlash(cryptoutilSharedMagic.CICDImportAliasMapFile))
 
-	data, err := importAliasReadFileFn(yamlPath)
+	data, err := readFileFn(yamlPath)
 	if err != nil {
 		return nil, fmt.Errorf("import-alias-formula: failed to read %s: %w", yamlPath, err)
 	}
@@ -102,14 +99,14 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 		return fmt.Errorf("import-alias-formula: %w", err)
 	}
 
-	return CheckInDir(logger, rootDir)
+	return CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 }
 
 // CheckInDir runs the linter from rootDir.
-func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
+func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, readFileFn func(string) ([]byte, error), walkDirFn func(string, fs.WalkDirFunc) error) error {
 	logger.Log("Enforcing import alias formula...")
 
-	aliasMap, err := LoadAliasMap(rootDir)
+	aliasMap, err := LoadAliasMap(rootDir, readFileFn)
 	if err != nil {
 		return fmt.Errorf("import-alias-formula: %w", err)
 	}
@@ -132,7 +129,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 	var goFiles []string
 
-	walkErr := importAliasWalkDirFn(rootDir, func(path string, d fs.DirEntry, walkFileErr error) error {
+	walkErr := walkDirFn(rootDir, func(path string, d fs.DirEntry, walkFileErr error) error {
 		if walkFileErr != nil {
 			return walkFileErr
 		}
@@ -145,7 +142,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 			return nil
 		}
 
-		if strings.HasSuffix(path, ".go") && !isGeneratedGoFile(path) {
+		if strings.HasSuffix(path, ".go") && !isGeneratedGoFile(path, readFileFn) {
 			goFiles = append(goFiles, path)
 		}
 
@@ -156,7 +153,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	}
 
 	for _, goFile := range goFiles {
-		fileViolations, checkErr := checkFile(goFile, required)
+		fileViolations, checkErr := checkFile(goFile, required, readFileFn)
 		if checkErr != nil {
 			return checkErr
 		}
@@ -183,8 +180,8 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 // isGeneratedGoFile returns true when the first 512 bytes of a file contain the
 // standard "Code generated" marker. Generated files are excluded from alias checks.
-func isGeneratedGoFile(path string) bool {
-	data, err := importAliasReadFileFn(path)
+func isGeneratedGoFile(path string, readFileFn func(string) ([]byte, error)) bool {
+	data, err := readFileFn(path)
 	if err != nil {
 		return false
 	}
@@ -196,8 +193,8 @@ func isGeneratedGoFile(path string) bool {
 
 // checkFile uses the Go AST parser to scan import declarations for alias violations.
 // Using the AST parser avoids false positives from raw string literals.
-func checkFile(path string, required map[string]string) ([]string, error) {
-	data, err := importAliasReadFileFn(path)
+func checkFile(path string, required map[string]string, readFileFn func(string) ([]byte, error)) ([]string, error) {
+	data, err := readFileFn(path)
 	if err != nil {
 		return nil, fmt.Errorf("import-alias-formula: failed to read %s: %w", path, err)
 	}
@@ -248,8 +245,8 @@ func checkFile(path string, required map[string]string) ([]string, error) {
 }
 
 // findImportAliasProjectRoot walks up from cwd until go.mod is found.
-func findImportAliasProjectRoot() (string, error) {
-	cwd, err := importAliasGetwdFn()
+func findImportAliasProjectRoot(getwdFn func() (string, error)) (string, error) {
+	cwd, err := getwdFn()
 	if err != nil {
 		return "", fmt.Errorf("failed to get working directory: %w", err)
 	}

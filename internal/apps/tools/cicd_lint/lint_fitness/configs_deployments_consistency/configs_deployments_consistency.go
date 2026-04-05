@@ -16,22 +16,16 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// Seam variables for test injection.
-var (
-	configsDeploymentsStatFn    = os.Stat
-	configsDeploymentsReadDirFn = os.ReadDir
-)
-
 // Check validates configs/deployments consistency from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
-	return CheckInDir(logger, ".")
+	return CheckInDir(logger, ".", os.Stat, os.ReadDir)
 }
 
 // CheckInDir validates configs/deployments consistency under rootDir.
-func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
+func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, statFn func(string) (os.FileInfo, error), readDirFn func(string) ([]os.DirEntry, error)) error {
 	logger.Log("Checking configs/deployments consistency...")
 
-	violations, err := FindViolationsInDir(rootDir)
+	violations, err := FindViolationsInDir(rootDir, statFn, readDirFn)
 	if err != nil {
 		return fmt.Errorf("failed to check configs/deployments consistency: %w", err)
 	}
@@ -51,14 +45,14 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 // FindViolationsInDir scans deployments/ under rootDir and verifies each PS-ID has
 // a matching configs/{PS-ID}/ directory.
-func FindViolationsInDir(rootDir string) ([]string, error) {
+func FindViolationsInDir(rootDir string, statFn func(string) (os.FileInfo, error), readDirFn func(string) ([]os.DirEntry, error)) ([]string, error) {
 	deploymentsDir := filepath.Join(rootDir, "deployments")
 
-	if _, err := configsDeploymentsStatFn(deploymentsDir); err != nil {
+	if _, err := statFn(deploymentsDir); err != nil {
 		return nil, fmt.Errorf("deployments/ directory not found: %w", err)
 	}
 
-	entries, err := configsDeploymentsReadDirFn(deploymentsDir)
+	entries, err := readDirFn(deploymentsDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read deployments/ directory: %w", err)
 	}
@@ -80,7 +74,7 @@ func FindViolationsInDir(rootDir string) ([]string, error) {
 
 		configsDir := filepath.Join(rootDir, cryptoutilSharedMagic.CICDConfigsDir, psID)
 
-		if _, err := configsDeploymentsStatFn(configsDir); err != nil {
+		if _, err := statFn(configsDir); err != nil {
 			violations = append(violations, fmt.Sprintf("deployments/%s/ exists but configs/%s/ is missing", psID, psID))
 		}
 	}

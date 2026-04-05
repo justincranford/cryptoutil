@@ -12,8 +12,9 @@ import (
 	"crypto/elliptic"
 	rsa "crypto/rsa"
 	"crypto/x509"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
 )
@@ -67,17 +68,17 @@ type Provider interface {
 }
 
 // SoftwareProvider implements Provider using software-based cryptography.
-type SoftwareProvider struct{}
-
-// Injectable vars for testing - allows error path coverage without modifying public API.
-var (
-	pkiCryptoGenerateRSAKeyPairFn   func(int) (*cryptoutilSharedCryptoKeygen.KeyPair, error)            = cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair
-	pkiCryptoGenerateECDSAKeyPairFn func(elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error) = cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair
-)
+type SoftwareProvider struct {
+	generateRSAKeyPairFn   func(int) (*cryptoutilSharedCryptoKeygen.KeyPair, error)
+	generateECDSAKeyPairFn func(elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error)
+}
 
 // NewSoftwareProvider creates a new software-based crypto provider.
 func NewSoftwareProvider() *SoftwareProvider {
-	return &SoftwareProvider{}
+	return &SoftwareProvider{
+		generateRSAKeyPairFn:   cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair,
+		generateECDSAKeyPairFn: cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair,
+	}
 }
 
 // GenerateKeyPair generates a new key pair using the internal keygen package.
@@ -99,7 +100,7 @@ func (p *SoftwareProvider) generateRSAKeyPair(bits int) (*KeyPair, error) {
 		return nil, fmt.Errorf("RSA key size must be at least %d bits, got %d", MinRSAKeyBits, bits)
 	}
 
-	keyPair, err := pkiCryptoGenerateRSAKeyPairFn(bits)
+	keyPair, err := p.generateRSAKeyPairFn(bits)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate RSA key pair: %w", err)
 	}
@@ -126,7 +127,7 @@ func (p *SoftwareProvider) generateECDSAKeyPair(curve string) (*KeyPair, error) 
 		return nil, fmt.Errorf("unsupported ECDSA curve: %s", curve)
 	}
 
-	keyPair, err := pkiCryptoGenerateECDSAKeyPairFn(ecCurve)
+	keyPair, err := p.generateECDSAKeyPairFn(ecCurve)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate ECDSA key pair: %w", err)
 	}

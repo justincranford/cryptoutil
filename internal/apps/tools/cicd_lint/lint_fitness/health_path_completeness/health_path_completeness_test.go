@@ -4,7 +4,6 @@ package health_path_completeness
 
 import (
 	"fmt"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -92,7 +91,7 @@ func TestCheckInDir_RealWorkspace(t *testing.T) {
 
 	workspaceRoot := filepath.Join("..", "..", "..", "..", "..", "..")
 
-	err := CheckInDir(testLogger(), workspaceRoot)
+	err := CheckInDir(testLogger(), workspaceRoot, os.ReadDir, os.ReadFile)
 	require.NoError(t, err)
 }
 
@@ -103,7 +102,7 @@ func TestCheckInDir_AllPathsPresent(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupAllValidServiceDirs(t, tmpDir)
 
-	err := CheckInDir(testLogger(), tmpDir)
+	err := CheckInDir(testLogger(), tmpDir, os.ReadDir, os.ReadFile)
 	require.NoError(t, err)
 }
 
@@ -152,7 +151,7 @@ func TestCheckInDir_MissingPath(t *testing.T) {
 				}
 			}
 
-			err := CheckInDir(testLogger(), tmpDir)
+			err := CheckInDir(testLogger(), tmpDir, os.ReadDir, os.ReadFile)
 			require.Error(t, err)
 			require.Contains(t, err.Error(), "1 health path completeness violations")
 		})
@@ -186,7 +185,7 @@ func TestCheckInDir_WrongPath(t *testing.T) {
 		}
 	}
 
-	err := CheckInDir(testLogger(), tmpDir)
+	err := CheckInDir(testLogger(), tmpDir, os.ReadDir, os.ReadFile)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "health path completeness violations")
 }
@@ -213,7 +212,7 @@ func TestCheckInDir_EmptyServiceDir(t *testing.T) {
 		}
 	}
 
-	err := CheckInDir(testLogger(), tmpDir)
+	err := CheckInDir(testLogger(), tmpDir, os.ReadDir, os.ReadFile)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), fmt.Sprintf("%d health path completeness violations", len(allHealthPaths())))
 }
@@ -238,7 +237,7 @@ func TestCheckInDir_ServiceDirMissing(t *testing.T) {
 		setupServiceDir(t, tmpDir, psDir, allHealthPaths())
 	}
 
-	err := CheckInDir(testLogger(), tmpDir)
+	err := CheckInDir(testLogger(), tmpDir, os.ReadDir, os.ReadFile)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "checking service")
 }
@@ -260,7 +259,7 @@ func TestCheckInDir_SkeletonTemplateSkipped(t *testing.T) {
 	}
 
 	// Do NOT create skeleton-template dir — check should pass anyway.
-	err := CheckInDir(testLogger(), tmpDir)
+	err := CheckInDir(testLogger(), tmpDir, os.ReadDir, os.ReadFile)
 	require.NoError(t, err)
 }
 
@@ -294,54 +293,42 @@ func TestCheckInDir_NonGoFilesSkipped(t *testing.T) {
 		}
 	}
 
-	err := CheckInDir(testLogger(), tmpDir)
+	err := CheckInDir(testLogger(), tmpDir, os.ReadDir, os.ReadFile)
 	require.Error(t, err, "non-Go file with paths should not satisfy the requirement")
 }
 
 // TestCheckInDir_ReadDirError verifies ReadDir error returns wrapped error.
-// NOT parallel: modifies package-level seam var.
 func TestCheckInDir_ReadDirError(t *testing.T) {
+	t.Parallel()
+
 	tmpDir := t.TempDir()
 	setupAllValidServiceDirs(t, tmpDir)
 
-	origReadDir := healthPathReadDirFn
-
-	defer func() { healthPathReadDirFn = origReadDir }()
-
-	// Inject error only for sm-kms service directory path.
-	healthPathReadDirFn = func(name string) ([]fs.DirEntry, error) {
+	err := CheckInDir(testLogger(), tmpDir, func(name string) ([]os.DirEntry, error) {
 		if strings.HasSuffix(filepath.ToSlash(name), "/"+cryptoutilSharedMagic.OTLPServiceSMKMS) {
 			return nil, fmt.Errorf("injected ReadDir error")
 		}
 
-		return origReadDir(name)
-	}
-
-	err := CheckInDir(testLogger(), tmpDir)
+		return os.ReadDir(name)
+	}, os.ReadFile)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "injected ReadDir error")
 }
 
 // TestCheckInDir_ReadFileError verifies ReadFile error returns wrapped error.
-// NOT parallel: modifies package-level seam var.
 func TestCheckInDir_ReadFileError(t *testing.T) {
+	t.Parallel()
+
 	tmpDir := t.TempDir()
 	setupAllValidServiceDirs(t, tmpDir)
 
-	origReadFile := healthPathReadFileFn
-
-	defer func() { healthPathReadFileFn = origReadFile }()
-
-	// Inject error only for files named kms_usage.go (sm-kms usage file).
-	healthPathReadFileFn = func(name string) ([]byte, error) {
+	err := CheckInDir(testLogger(), tmpDir, os.ReadDir, func(name string) ([]byte, error) {
 		if filepath.Base(name) == "sm-kms_usage.go" {
 			return nil, fmt.Errorf("injected ReadFile error")
 		}
 
-		return origReadFile(name)
-	}
-
-	err := CheckInDir(testLogger(), tmpDir)
+		return os.ReadFile(name)
+	})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "injected ReadFile error")
 }

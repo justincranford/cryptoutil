@@ -93,7 +93,7 @@ func TestCheckInDir_RealWorkspace(t *testing.T) {
 
 	root := findProjectRoot(t)
 
-	err := CheckInDir(newTestLogger(), root)
+	err := CheckInDir(newTestLogger(), root, os.ReadDir, os.ReadFile)
 	require.NoError(t, err, "all registry services with api_resources should have matching OpenAPI spec paths")
 }
 
@@ -103,7 +103,7 @@ func TestCheckInDir_AllPathsMatch(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupAllValidAPIDirs(t, tmpDir)
 
-	err := CheckInDir(newTestLogger(), tmpDir)
+	err := CheckInDir(newTestLogger(), tmpDir, os.ReadDir, os.ReadFile)
 	require.NoError(t, err)
 }
 
@@ -123,7 +123,7 @@ func TestCheckInDir_MissingFromSpec(t *testing.T) {
 
 	setupSpecFile(t, tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS, specPaths)
 
-	err := CheckInDir(newTestLogger(), tmpDir)
+	err := CheckInDir(newTestLogger(), tmpDir, os.ReadDir, os.ReadFile)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMKMS)
 	assert.Contains(t, err.Error(), "declared in registry but missing from OpenAPI spec")
@@ -152,7 +152,7 @@ func TestCheckInDir_UndeclaredInSpec(t *testing.T) {
 	smKMSPaths = append(smKMSPaths, "/undeclared-extra-path")
 	setupSpecFile(t, tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS, smKMSPaths)
 
-	err := CheckInDir(newTestLogger(), tmpDir)
+	err := CheckInDir(newTestLogger(), tmpDir, os.ReadDir, os.ReadFile)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMKMS)
 	assert.Contains(t, err.Error(), "in OpenAPI spec but not declared in registry api_resources")
@@ -170,7 +170,7 @@ func TestCheckInDir_SkipsEmptyResources(t *testing.T) {
 
 	// Verify that services with empty api_resources don't cause errors
 	// (no spec file exists for them, and that's fine).
-	err := CheckInDir(newTestLogger(), tmpDir)
+	err := CheckInDir(newTestLogger(), tmpDir, os.ReadDir, os.ReadFile)
 	require.NoError(t, err)
 }
 
@@ -188,7 +188,7 @@ func TestCheckInDir_MissingAPIDir(t *testing.T) {
 		setupSpecFile(t, tmpDir, info.PSID, info.Resources)
 	}
 
-	err := CheckInDir(newTestLogger(), tmpDir)
+	err := CheckInDir(newTestLogger(), tmpDir, os.ReadDir, os.ReadFile)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMKMS)
 	assert.Contains(t, err.Error(), "cannot read api directory")
@@ -211,7 +211,7 @@ func TestCheckInDir_NoSpecFiles(t *testing.T) {
 		require.NoError(t, os.Remove(filepath.Join(smKMSDir, e.Name())))
 	}
 
-	err = CheckInDir(newTestLogger(), tmpDir)
+	err = CheckInDir(newTestLogger(), tmpDir, os.ReadDir, os.ReadFile)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMKMS)
 	assert.Contains(t, err.Error(), "no openapi_spec*.yaml files found")
@@ -233,7 +233,7 @@ func TestCheckInDir_InvalidYAML(t *testing.T) {
 		cryptoutilSharedMagic.FilePermissions,
 	))
 
-	err := CheckInDir(newTestLogger(), tmpDir)
+	err := CheckInDir(newTestLogger(), tmpDir, os.ReadDir, os.ReadFile)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMKMS)
 }
@@ -256,7 +256,7 @@ func TestCheckInDir_SpecFileNoPathsBlock(t *testing.T) {
 
 	// A spec file with no paths block means 0 spec paths but registry has paths —
 	// so every registry path is "missing from spec".
-	err := CheckInDir(newTestLogger(), tmpDir)
+	err := CheckInDir(newTestLogger(), tmpDir, os.ReadDir, os.ReadFile)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMKMS)
 	assert.Contains(t, err.Error(), "declared in registry but missing from OpenAPI spec")
@@ -278,51 +278,43 @@ func TestCheckInDir_PathsBlockNotMapping(t *testing.T) {
 		cryptoutilSharedMagic.FilePermissions,
 	))
 
-	err := CheckInDir(newTestLogger(), tmpDir)
+	err := CheckInDir(newTestLogger(), tmpDir, os.ReadDir, os.ReadFile)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMKMS)
 	assert.Contains(t, err.Error(), "paths block is not a YAML mapping")
 }
 
 func TestCheckInDir_ReadDirError(t *testing.T) {
-	// Sequential seam test — must not use t.Parallel() because it modifies a package-level variable.
+	t.Parallel()
+
 	tmpDir := t.TempDir()
 	setupAllValidAPIDirs(t, tmpDir)
 
-	origReadDir := apiPathReadDirFn
-	apiPathReadDirFn = func(path string) ([]os.DirEntry, error) {
+	err := CheckInDir(newTestLogger(), tmpDir, func(path string) ([]os.DirEntry, error) {
 		if filepath.Base(path) == cryptoutilSharedMagic.OTLPServiceSMKMS {
 			return nil, fmt.Errorf("injected OS error: ReadDir failed")
 		}
 
-		return origReadDir(path)
-	}
-
-	defer func() { apiPathReadDirFn = origReadDir }()
-
-	err := CheckInDir(newTestLogger(), tmpDir)
+		return os.ReadDir(path)
+	}, os.ReadFile)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMKMS)
 	assert.Contains(t, err.Error(), "cannot read api directory")
 }
 
 func TestCheckInDir_ReadFileError(t *testing.T) {
-	// Sequential seam test — must not use t.Parallel() because it modifies a package-level variable.
+	t.Parallel()
+
 	tmpDir := t.TempDir()
 	setupAllValidAPIDirs(t, tmpDir)
 
-	origReadFile := apiPathReadFileFn
-	apiPathReadFileFn = func(path string) ([]byte, error) {
+	err := CheckInDir(newTestLogger(), tmpDir, os.ReadDir, func(path string) ([]byte, error) {
 		if filepath.Base(path) == "openapi_spec.yaml" {
 			return nil, fmt.Errorf("injected OS error: ReadFile failed")
 		}
 
-		return origReadFile(path)
-	}
-
-	defer func() { apiPathReadFileFn = origReadFile }()
-
-	err := CheckInDir(newTestLogger(), tmpDir)
+		return os.ReadFile(path)
+	})
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "cannot parse")
 }

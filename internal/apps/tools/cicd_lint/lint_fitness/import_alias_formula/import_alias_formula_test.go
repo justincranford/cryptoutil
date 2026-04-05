@@ -60,7 +60,7 @@ func TestLoadAliasMap_HappyPath(t *testing.T) {
 
 	rootDir := buildAliasRoot(t)
 
-	m, err := LoadAliasMap(rootDir)
+	m, err := LoadAliasMap(rootDir, os.ReadFile)
 
 	require.NoError(t, err)
 	require.NotNil(t, m)
@@ -73,7 +73,7 @@ func TestLoadAliasMap_HappyPath(t *testing.T) {
 func TestLoadAliasMap_FileNotFound(t *testing.T) {
 	t.Parallel()
 
-	m, err := LoadAliasMap(t.TempDir())
+	m, err := LoadAliasMap(t.TempDir(), os.ReadFile)
 
 	require.Error(t, err)
 	require.Nil(t, m)
@@ -90,7 +90,7 @@ func TestLoadAliasMap_InvalidYAML(t *testing.T) {
 	destPath := filepath.Join(rootDir, filepath.FromSlash(cryptoutilSharedMagic.CICDImportAliasMapFile))
 	require.NoError(t, os.WriteFile(destPath, []byte("!!! not: valid: yaml: ["), cryptoutilSharedMagic.FilePermissionsDefault))
 
-	m, err := LoadAliasMap(rootDir)
+	m, err := LoadAliasMap(rootDir, os.ReadFile)
 
 	require.Error(t, err)
 	require.Nil(t, m)
@@ -98,12 +98,9 @@ func TestLoadAliasMap_InvalidYAML(t *testing.T) {
 }
 
 func TestLoadAliasMap_ReadFileError(t *testing.T) {
-	orig := importAliasReadFileFn
-	importAliasReadFileFn = func(_ string) ([]byte, error) { return nil, errors.New("read error") }
+	t.Parallel()
 
-	defer func() { importAliasReadFileFn = orig }()
-
-	m, err := LoadAliasMap("dummy")
+	m, err := LoadAliasMap("dummy", func(_ string) ([]byte, error) { return nil, errors.New("read error") })
 
 	require.Error(t, err)
 	require.Nil(t, m)
@@ -157,7 +154,7 @@ var _ = fmt.Println
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
 	require.NoError(t, err)
 }
@@ -178,7 +175,7 @@ var _ = json.Marshal
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "violation(s)")
@@ -200,7 +197,7 @@ var _ = json.Marshal
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "violation(s)")
@@ -220,7 +217,7 @@ import (
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
 	require.NoError(t, err)
 }
@@ -243,7 +240,7 @@ var _ = Marshal
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
 	require.NoError(t, err)
 }
@@ -258,7 +255,7 @@ func TestCheckInDir_UnparsableFileSkipped(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
 	require.NoError(t, err)
 }
@@ -281,7 +278,7 @@ var _ = json.Marshal
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
 	require.NoError(t, err)
 }
@@ -298,7 +295,7 @@ func TestCheckInDir_EmptyAliasMap_Skips(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
 	require.NoError(t, err)
 }
@@ -320,7 +317,7 @@ var _ = json.Marshal
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
 	require.NoError(t, err)
 }
@@ -329,31 +326,30 @@ func TestCheckInDir_LoadAliasMapError(t *testing.T) {
 	// File not found → LoadAliasMap fails.
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
-	err := CheckInDir(logger, t.TempDir())
+	err := CheckInDir(logger, t.TempDir(), os.ReadFile, filepath.WalkDir)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to read")
 }
 
 func TestCheckInDir_WalkCallbackError(t *testing.T) {
-	orig := importAliasWalkDirFn
-	importAliasWalkDirFn = func(_ string, fn fs.WalkDirFunc) error {
-		// Simulate a walk-callback error.
-		return fn("somepath", nil, errors.New("permission denied"))
-	}
-
-	defer func() { importAliasWalkDirFn = orig }()
+	t.Parallel()
 
 	rootDir := buildAliasRoot(t)
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile, func(_ string, fn fs.WalkDirFunc) error {
+		// Simulate a walk-callback error.
+		return fn("somepath", nil, errors.New("permission denied"))
+	})
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to walk")
 }
 
 func TestCheckInDir_CheckFileReadError(t *testing.T) {
+	t.Parallel()
+
 	// Set up a rootDir with a valid alias map and one .go file.
 	rootDir := buildAliasRoot(t)
 	pkgDir := filepath.Join(rootDir, "mypkg")
@@ -363,23 +359,17 @@ func TestCheckInDir_CheckFileReadError(t *testing.T) {
 	// First call (read alias map) should succeed with the real function;
 	// subsequent calls (for .go files) should fail.
 	callCount := 0
-	orig := importAliasReadFileFn
-	origReal := os.ReadFile
-	importAliasReadFileFn = func(path string) ([]byte, error) {
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+
+	err := CheckInDir(logger, rootDir, func(path string) ([]byte, error) {
 		callCount++
 		// Allow the first read (alias map YAML) to succeed.
 		if callCount == 1 {
-			return origReal(path)
+			return os.ReadFile(path)
 		}
 
 		return nil, errors.New("disk error")
-	}
-
-	defer func() { importAliasReadFileFn = orig }()
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-
-	err := CheckInDir(logger, rootDir)
+	}, filepath.WalkDir)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "disk error")
@@ -432,25 +422,20 @@ func TestCheck_HappyPath(t *testing.T) {
 // -----------------------------------------------------------------------
 
 func TestFindProjectRoot_GetwdError(t *testing.T) {
-	orig := importAliasGetwdFn
-	importAliasGetwdFn = func() (string, error) { return "", errors.New("getwd failed") }
+	t.Parallel()
 
-	defer func() { importAliasGetwdFn = orig }()
-
-	_, err := findImportAliasProjectRoot()
+	_, err := findImportAliasProjectRoot(func() (string, error) { return "", errors.New("getwd failed") })
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to get working directory")
 }
 
 func TestFindProjectRoot_GoModNotFound(t *testing.T) {
-	orig := importAliasGetwdFn
+	t.Parallel()
+
+	tmpDir := t.TempDir()
 	// Point to a temp dir that has no go.mod ancestor.
-	importAliasGetwdFn = func() (string, error) { return t.TempDir(), nil }
-
-	defer func() { importAliasGetwdFn = orig }()
-
-	_, err := findImportAliasProjectRoot()
+	_, err := findImportAliasProjectRoot(func() (string, error) { return tmpDir, nil })
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "go.mod not found")
@@ -460,7 +445,7 @@ func TestFindProjectRoot_HappyPath(t *testing.T) {
 	t.Parallel()
 
 	// Real cwd is inside the project which has a go.mod — should succeed.
-	root, err := findImportAliasProjectRoot()
+	root, err := findImportAliasProjectRoot(os.Getwd)
 
 	require.NoError(t, err)
 	require.NotEmpty(t, root)
@@ -480,7 +465,7 @@ func TestIsGeneratedGoFile_True(t *testing.T) {
 	path := filepath.Join(dir, "gen.go")
 	require.NoError(t, os.WriteFile(path, []byte("// Code generated by mytool; DO NOT EDIT.\npackage x\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	require.True(t, isGeneratedGoFile(path))
+	require.True(t, isGeneratedGoFile(path, os.ReadFile))
 }
 
 func TestIsGeneratedGoFile_False(t *testing.T) {
@@ -490,12 +475,14 @@ func TestIsGeneratedGoFile_False(t *testing.T) {
 	path := filepath.Join(dir, "normal.go")
 	require.NoError(t, os.WriteFile(path, []byte("// Copyright (c) 2025\npackage x\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	require.False(t, isGeneratedGoFile(path))
+	require.False(t, isGeneratedGoFile(path, os.ReadFile))
 }
 
 func TestIsGeneratedGoFile_ReadError(t *testing.T) {
+	t.Parallel()
+
 	// isGeneratedGoFile returns false on read error.
-	require.False(t, isGeneratedGoFile("/nonexistent/path/gen.go"))
+	require.False(t, isGeneratedGoFile("/nonexistent/path/gen.go", os.ReadFile))
 }
 
 func TestIsGeneratedGoFile_LargeFile_MarkerInFirst512Bytes(t *testing.T) {
@@ -508,7 +495,7 @@ func TestIsGeneratedGoFile_LargeFile_MarkerInFirst512Bytes(t *testing.T) {
 	padding := make([]byte, 600) // more than codeGeneratedCheckBytes
 	require.NoError(t, os.WriteFile(path, append([]byte(header), padding...), cryptoutilSharedMagic.CacheFilePermissions))
 
-	require.True(t, isGeneratedGoFile(path))
+	require.True(t, isGeneratedGoFile(path, os.ReadFile))
 }
 
 func TestIsGeneratedGoFile_LargeFile_NoMarker(t *testing.T) {
@@ -521,7 +508,7 @@ func TestIsGeneratedGoFile_LargeFile_NoMarker(t *testing.T) {
 	padding := make([]byte, 600)
 	require.NoError(t, os.WriteFile(path, append([]byte(header), padding...), cryptoutilSharedMagic.CacheFilePermissions))
 
-	require.False(t, isGeneratedGoFile(path))
+	require.False(t, isGeneratedGoFile(path, os.ReadFile))
 }
 
 // -----------------------------------------------------------------------
@@ -548,7 +535,7 @@ import (
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
 	require.NoError(t, err)
 }

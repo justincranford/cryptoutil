@@ -59,11 +59,6 @@ var variantSuffixes = map[string]string{
 	lintFitnessRegistry.ComposeVariantPostgres2: lintFitnessRegistry.DeploymentConfigSuffixPostgresql2,
 }
 
-// Injectable OS functions for test seam injection.
-var (
-	overlayReadFileFn = os.ReadFile
-)
-
 // loadOverlayTemplates parses the embedded config-overlay-templates.yaml.
 func loadOverlayTemplates() (*overlayTemplates, error) {
 	var tmpl overlayTemplates
@@ -76,11 +71,11 @@ func loadOverlayTemplates() (*overlayTemplates, error) {
 
 // Check validates deployment config overlay files from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
-	return CheckInDir(logger, ".")
+	return CheckInDir(logger, ".", os.ReadFile)
 }
 
 // CheckInDir validates deployment config overlay files under rootDir.
-func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
+func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, readFileFn func(string) ([]byte, error)) error {
 	logger.Log("Checking deployment config overlay freshness...")
 
 	tmpl, err := loadOverlayTemplates()
@@ -91,7 +86,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	var violations []string
 
 	for _, ps := range lintFitnessRegistry.AllProductServices() {
-		v := checkPSIDOverlays(rootDir, ps.PSID, tmpl)
+		v := checkPSIDOverlays(rootDir, ps.PSID, tmpl, readFileFn)
 		violations = append(violations, v...)
 	}
 
@@ -106,7 +101,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 // checkPSIDOverlays validates all 4 variant overlay files for a single PS-ID.
 // If the deployments/{ps-id}/config/ directory does not exist, it is a hard error.
-func checkPSIDOverlays(rootDir, psID string, tmpl *overlayTemplates) []string {
+func checkPSIDOverlays(rootDir, psID string, tmpl *overlayTemplates, readFileFn func(string) ([]byte, error)) []string {
 	var violations []string
 
 	configDir := filepath.Join(rootDir, "deployments", psID, "config")
@@ -133,7 +128,7 @@ func checkPSIDOverlays(rootDir, psID string, tmpl *overlayTemplates) []string {
 			continue
 		}
 
-		v := checkOverlayFile(configPath, psID, filename, &vt)
+		v := checkOverlayFile(configPath, psID, filename, &vt, readFileFn)
 		violations = append(violations, v...)
 	}
 
@@ -141,8 +136,8 @@ func checkPSIDOverlays(rootDir, psID string, tmpl *overlayTemplates) []string {
 }
 
 // checkOverlayFile validates a single overlay file against its variant template.
-func checkOverlayFile(configPath, psID, filename string, vt *variantTemplate) []string {
-	data, err := overlayReadFileFn(configPath) //nolint:gosec // configPath from controlled directory walk
+func checkOverlayFile(configPath, psID, filename string, vt *variantTemplate, readFileFn func(string) ([]byte, error)) []string {
+	data, err := readFileFn(configPath) //nolint:gosec // configPath from controlled directory walk
 	if err != nil {
 		return []string{fmt.Sprintf("%s: %s: cannot read file: %s", psID, filename, err)}
 	}

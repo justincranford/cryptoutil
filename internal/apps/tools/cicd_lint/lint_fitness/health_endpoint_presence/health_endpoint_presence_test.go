@@ -38,7 +38,7 @@ func TestCheckInDir_ServiceWithHealthEndpoints_Passes(t *testing.T) {
 func (s *Server) Start() { }
 `), cryptoutilSharedMagic.CacheFilePermissions))
 
-	err := CheckInDir(newTestLogger(), tmp)
+	err := CheckInDir(newTestLogger(), tmp, os.ReadDir, os.ReadFile)
 	require.NoError(t, err)
 }
 
@@ -52,7 +52,7 @@ func TestCheckInDir_ServiceMissingHealthEndpoints_Fails(t *testing.T) {
 func (s *Server) Start() { }
 `), cryptoutilSharedMagic.CacheFilePermissions))
 
-	err := CheckInDir(newTestLogger(), tmp)
+	err := CheckInDir(newTestLogger(), tmp, os.ReadDir, os.ReadFile)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "health endpoint presence violations")
 }
@@ -64,7 +64,7 @@ func TestCheckInDir_SkipCicdProduct_Passes(t *testing.T) {
 	require.NoError(t, os.MkdirAll(cicdDir, cryptoutilSharedMagic.DirPermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(cicdDir, "server.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	err := CheckInDir(newTestLogger(), tmp)
+	err := CheckInDir(newTestLogger(), tmp, os.ReadDir, os.ReadFile)
 	require.NoError(t, err)
 }
 
@@ -75,7 +75,7 @@ func TestCheckInDir_SkipSkeletonProduct_Passes(t *testing.T) {
 	require.NoError(t, os.MkdirAll(skeletonDir, cryptoutilSharedMagic.DirPermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(skeletonDir, "server.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	err := CheckInDir(newTestLogger(), tmp)
+	err := CheckInDir(newTestLogger(), tmp, os.ReadDir, os.ReadFile)
 	require.NoError(t, err)
 }
 
@@ -87,7 +87,7 @@ func TestCheckInDir_SkipArchivedService_Passes(t *testing.T) {
 	require.NoError(t, os.MkdirAll(archivedDir, cryptoutilSharedMagic.DirPermissions))
 	require.NoError(t, os.WriteFile(filepath.Join(archivedDir, "server.go"), []byte("package server\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	err := CheckInDir(newTestLogger(), tmp)
+	err := CheckInDir(newTestLogger(), tmp, os.ReadDir, os.ReadFile)
 	require.NoError(t, err)
 }
 
@@ -95,7 +95,7 @@ func TestCheckInDir_NoServices_Passes(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
 	require.NoError(t, os.MkdirAll(filepath.Join(tmp, "internal", "apps"), cryptoutilSharedMagic.DirPermissions))
-	err := CheckInDir(newTestLogger(), tmp)
+	err := CheckInDir(newTestLogger(), tmp, os.ReadDir, os.ReadFile)
 	require.NoError(t, err)
 }
 
@@ -109,14 +109,14 @@ func TestCheckServiceHealth_PatternsFoundInSubdir(t *testing.T) {
 		[]byte("package sm\n// sets up livez and readyz\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	svc := serviceID{product: "sm", service: "im"}
-	violations := checkServiceHealth(svc, filepath.Join(tmp, "internal", "apps"))
+	violations := checkServiceHealth(svc, filepath.Join(tmp, "internal", "apps"), os.ReadFile)
 	require.Empty(t, violations)
 }
 
 func TestDiscoverServices_EmptyAppsDir(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
-	services, err := discoverServices(tmp)
+	services, err := discoverServices(tmp, os.ReadDir)
 	require.NoError(t, err)
 	require.Empty(t, services)
 }
@@ -128,7 +128,7 @@ func TestDiscoverServices_NonDirFileInAppsDir_Skipped(t *testing.T) {
 	require.NoError(t, os.MkdirAll(appsDir, cryptoutilSharedMagic.DirPermissions))
 	// Create a FILE (not directory) directly in appsDir - triggers !p.IsDir() continue.
 	require.NoError(t, os.WriteFile(filepath.Join(appsDir, "README.md"), []byte(cryptoutilSharedMagic.CICDExcludeDirDocs), cryptoutilSharedMagic.CacheFilePermissions))
-	services, err := discoverServices(appsDir)
+	services, err := discoverServices(appsDir, os.ReadDir)
 	require.NoError(t, err)
 	require.Empty(t, services)
 }
@@ -142,40 +142,30 @@ func TestDiscoverServices_NonDirFileInProductDir_Skipped(t *testing.T) {
 	// Create a FILE (not directory) in the product dir - triggers !s.IsDir() continue.
 	require.NoError(t, os.WriteFile(filepath.Join(productDir, "README.md"), []byte(cryptoutilSharedMagic.CICDExcludeDirDocs), cryptoutilSharedMagic.CacheFilePermissions))
 
-	services, err := discoverServices(appsDir)
+	services, err := discoverServices(appsDir, os.ReadDir)
 	require.NoError(t, err)
 	require.Empty(t, services)
 }
 
-// Sequential: modifies package-level healthEndpointReadDirFn seam.
 func TestDiscoverServices_ReadDirError(t *testing.T) {
-	orig := healthEndpointReadDirFn
+	t.Parallel()
 
-	t.Cleanup(func() { healthEndpointReadDirFn = orig })
-
-	healthEndpointReadDirFn = func(_ string) ([]os.DirEntry, error) {
+	err := CheckInDir(newTestLogger(), t.TempDir(), func(_ string) ([]os.DirEntry, error) {
 		return nil, fmt.Errorf("injected readdir error")
-	}
-
-	err := CheckInDir(newTestLogger(), t.TempDir())
+	}, os.ReadFile)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to discover services")
 }
 
-// Sequential: modifies package-level healthEndpointReadFileFn seam.
 func TestCheckServiceHealth_ReadFileError(t *testing.T) {
-	orig := healthEndpointReadFileFn
-
-	t.Cleanup(func() { healthEndpointReadFileFn = orig })
-
-	healthEndpointReadFileFn = func(_ string) ([]byte, error) {
-		return nil, fmt.Errorf("injected read error")
-	}
+	t.Parallel()
 
 	tmp := t.TempDir()
 	mkServiceWithServer(t, tmp, "sm", "im")
 
-	err := CheckInDir(newTestLogger(), tmp)
+	err := CheckInDir(newTestLogger(), tmp, os.ReadDir, func(_ string) ([]byte, error) {
+		return nil, fmt.Errorf("injected read error")
+	})
 	// ReadFile errors inside Walk are returned by WalkFunc, but Walk result
 	// is discarded (_ = filepath.Walk(...)), so patterns simply aren't found
 	// and the function reports missing-health-pattern violations instead.

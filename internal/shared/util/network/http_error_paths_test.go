@@ -40,12 +40,11 @@ func (e *errorReadCloser) Close() error {
 }
 
 func TestHTTPResponse_ReadAllInjectedError(t *testing.T) {
-	// Cannot be parallel: modifies package-level injectable var.
-	originalFn := networkReadAllFn
+	t.Parallel()
+
 	originalRT := networkRoundTripperFn
 
 	defer func() {
-		networkReadAllFn = originalFn
 		networkRoundTripperFn = originalRT
 	}()
 
@@ -57,11 +56,9 @@ func TestHTTPResponse_ReadAllInjectedError(t *testing.T) {
 		}, nil
 	}
 
-	networkReadAllFn = func(_ io.Reader) ([]byte, error) {
+	statusCode, _, _, err := httpResponseInner(context.Background(), http.MethodGet, "http://localhost/test", 0, true, nil, false, func(_ io.Reader) ([]byte, error) {
 		return nil, fmt.Errorf("injected read error")
-	}
-
-	statusCode, _, _, err := HTTPResponse(context.Background(), http.MethodGet, "http://localhost/test", 0, true, nil, false)
+	})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to read response body")
 	require.Equal(t, http.StatusOK, statusCode)

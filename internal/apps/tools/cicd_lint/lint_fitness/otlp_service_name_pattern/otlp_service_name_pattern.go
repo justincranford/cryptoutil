@@ -23,12 +23,6 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// Injectable functions for testing defensive error paths.
-var (
-	otlpReadDirFn  = os.ReadDir
-	otlpReadFileFn = os.ReadFile
-)
-
 // configRule maps a standalone config file suffix to its expected otlp-service suffix.
 // Filename is constructed as: {ps-id} + filenameSuffix.
 // The prefix is computed from the service ID (product-service).
@@ -63,11 +57,11 @@ var excludedProductDirs = map[string]bool{
 // Check validates otlp-service name patterns in standalone config files.
 // Scans configs/{PRODUCT}/{SERVICE}/config-*.yml files.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
-	return CheckInDir(logger, ".")
+	return CheckInDir(logger, ".", os.ReadDir, os.ReadFile)
 }
 
 // CheckInDir validates otlp-service names under rootDir.
-func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
+func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, readDirFn func(string) ([]os.DirEntry, error), readFileFn func(string) ([]byte, error)) error {
 	logger.Log("Checking OTLP service name patterns in standalone config files...")
 
 	configsDir := filepath.Join(rootDir, cryptoutilSharedMagic.CICDConfigsDir)
@@ -79,7 +73,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	var violations []string
 
 	// Walk configs/{PRODUCT}/{SERVICE}/ looking for config-*.yml files at depth 2.
-	productEntries, err := otlpReadDirFn(configsDir)
+	productEntries, err := readDirFn(configsDir)
 	if err != nil {
 		return fmt.Errorf("failed to read configs dir: %w", err)
 	}
@@ -95,7 +89,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 		productDir := filepath.Join(configsDir, productEntry.Name())
 
-		serviceEntries, readErr := otlpReadDirFn(productDir)
+		serviceEntries, readErr := readDirFn(productDir)
 		if readErr != nil {
 			return fmt.Errorf("failed to read product dir %s: %w", productDir, readErr)
 		}
@@ -108,7 +102,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 			serviceDir := filepath.Join(productDir, serviceEntry.Name())
 			psID := productEntry.Name() + "-" + serviceEntry.Name()
 
-			v := checkServiceDir(serviceDir, psID, rootDir)
+			v := checkServiceDir(serviceDir, psID, rootDir, readFileFn)
 			violations = append(violations, v...)
 		}
 	}
@@ -118,7 +112,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	}
 
 	// Also validate deployment config overlay files using the entity registry.
-	deploymentViolations := checkDeploymentConfigs(rootDir)
+	deploymentViolations := checkDeploymentConfigs(rootDir, readFileFn)
 	violations = append(violations, deploymentViolations...)
 
 	if len(violations) > 0 {
@@ -132,11 +126,11 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 // checkDeploymentConfigs validates otlp-service values in deployment config overlay files
 // using the entity registry to iterate product-services by PS-ID.
-func checkDeploymentConfigs(rootDir string) []string {
+func checkDeploymentConfigs(rootDir string, readFileFn func(string) ([]byte, error)) []string {
 	var violations []string
 
 	for _, ps := range lintFitnessRegistry.AllProductServices() {
-		v := checkDeploymentConfigDir(rootDir, ps.PSID)
+		v := checkDeploymentConfigDir(rootDir, ps.PSID, readFileFn)
 		violations = append(violations, v...)
 	}
 
@@ -145,7 +139,7 @@ func checkDeploymentConfigs(rootDir string) []string {
 
 // checkDeploymentConfigDir checks all deployment config overlay files for a single PS-ID.
 // It looks in deployments/{psid}/config/ for files matching the deployment config rules.
-func checkDeploymentConfigDir(rootDir, psID string) []string {
+func checkDeploymentConfigDir(rootDir, psID string, readFileFn func(string) ([]byte, error)) []string {
 	var violations []string
 
 	configDir := filepath.Join(rootDir, "deployments", psID, "config")
@@ -158,7 +152,7 @@ func checkDeploymentConfigDir(rootDir, psID string) []string {
 			continue // File does not exist — not a violation.
 		}
 
-		v := checkOTLPServiceValue(configPath, psID, rule.expectedOTLPSuffix, rootDir)
+		v := checkOTLPServiceValue(configPath, psID, rule.expectedOTLPSuffix, rootDir, readFileFn)
 		violations = append(violations, v...)
 	}
 
@@ -166,7 +160,7 @@ func checkDeploymentConfigDir(rootDir, psID string) []string {
 }
 
 // checkServiceDir checks all config-*.yml files in a service directory for correct otlp-service names.
-func checkServiceDir(serviceDir, psID, rootDir string) []string {
+func checkServiceDir(serviceDir, psID, rootDir string, readFileFn func(string) ([]byte, error)) []string {
 	var violations []string
 
 	for _, rule := range standaloneConfigRules {
@@ -177,7 +171,7 @@ func checkServiceDir(serviceDir, psID, rootDir string) []string {
 			continue // File does not exist — not a violation (file presence checked elsewhere).
 		}
 
-		v := checkOTLPServiceValue(configPath, psID, rule.expectedOTLPSuffix, rootDir)
+		v := checkOTLPServiceValue(configPath, psID, rule.expectedOTLPSuffix, rootDir, readFileFn)
 		violations = append(violations, v...)
 	}
 
@@ -185,8 +179,8 @@ func checkServiceDir(serviceDir, psID, rootDir string) []string {
 }
 
 // checkOTLPServiceValue parses a config YAML and validates the otlp-service value.
-func checkOTLPServiceValue(configPath, psID, expectedSuffix, rootDir string) []string {
-	data, err := otlpReadFileFn(configPath) //nolint:gosec // configPath from controlled directory walk
+func checkOTLPServiceValue(configPath, psID, expectedSuffix, rootDir string, readFileFn func(string) ([]byte, error)) []string {
+	data, err := readFileFn(configPath) //nolint:gosec // configPath from controlled directory walk
 	if err != nil {
 		return []string{fmt.Sprintf("%s: cannot read file: %s", configPath, err)}
 	}

@@ -26,20 +26,13 @@ var forbiddenMinVersions = []string{
 	"VersionTLS12",
 }
 
-// Test seams: replaceable in tests to exercise unreachable OS-level error paths.
-// See ARCHITECTURE.md Section 10.2.4 (Test Seam Injection Pattern).
-var (
-	tlsMinVersionWalkFn = filepath.Walk
-	tlsMinVersionOpenFn = os.Open
-)
-
 // Check verifies TLS minimum version from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
-	return CheckInDir(logger, ".")
+	return CheckInDir(logger, ".", filepath.Walk, os.Open)
 }
 
 // CheckInDir verifies TLS minimum version under rootDir.
-func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
+func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, walkFn func(string, filepath.WalkFunc) error, openFn func(string) (*os.File, error)) error {
 	logger.Log("Checking TLS minimum version requirements...")
 
 	projectRoot, err := filepath.Abs(rootDir)
@@ -49,7 +42,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 	var violations []string
 
-	walkErr := tlsMinVersionWalkFn(projectRoot, func(path string, info os.FileInfo, err error) error {
+	walkErr := walkFn(projectRoot, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -67,7 +60,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 			return nil
 		}
 
-		fileViolations, scanErr := scanFileForTLSVersion(path, projectRoot)
+		fileViolations, scanErr := scanFileForTLSVersion(path, projectRoot, openFn)
 		if scanErr != nil {
 			return scanErr
 		}
@@ -94,8 +87,8 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 }
 
 // scanFileForTLSVersion scans a Go file for forbidden TLS MinVersion values.
-func scanFileForTLSVersion(filePath, projectRoot string) ([]string, error) {
-	f, err := tlsMinVersionOpenFn(filePath) //nolint:gosec // filePath from filepath.Walk, controlled
+func scanFileForTLSVersion(filePath, projectRoot string, openFn func(string) (*os.File, error)) ([]string, error) {
+	f, err := openFn(filePath) //nolint:gosec // filePath from filepath.Walk, controlled
 	if err != nil {
 		return nil, fmt.Errorf("open %s: %w", filePath, err)
 	}

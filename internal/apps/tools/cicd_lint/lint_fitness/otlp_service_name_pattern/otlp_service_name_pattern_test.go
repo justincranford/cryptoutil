@@ -20,7 +20,7 @@ func TestCheck_PassesOnProjectRoot(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-otlp-service-name-pattern")
 
-	err := CheckInDir(logger, projectRoot)
+	err := CheckInDir(logger, projectRoot, os.ReadDir, os.ReadFile)
 	require.NoError(t, err, "Project should pass OTLP service name pattern check")
 }
 
@@ -31,7 +31,7 @@ func TestCheckInDir_NoConfigsDir(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-otlp-no-configs-dir")
 
-	err := CheckInDir(logger, tmpDir)
+	err := CheckInDir(logger, tmpDir, os.ReadDir, os.ReadFile)
 	require.Error(t, err, "Missing configs dir must be a hard error")
 	require.Contains(t, err.Error(), "configs/ directory not found")
 }
@@ -75,7 +75,7 @@ func TestCheckOTLPServiceValue_CorrectNames(t *testing.T) {
 			content := "otlp-service: \"" + tc.otlpService + "\"\n"
 			require.NoError(t, os.WriteFile(configPath, []byte(content), cryptoutilSharedMagic.FilePermissionsDefault))
 
-			violations := checkOTLPServiceValue(configPath, tc.psID, tc.expectedSuffix, tmpDir)
+			violations := checkOTLPServiceValue(configPath, tc.psID, tc.expectedSuffix, tmpDir, os.ReadFile)
 			require.Empty(t, violations, "Expected no violations for correct OTLP service name")
 		})
 	}
@@ -124,7 +124,7 @@ func TestCheckOTLPServiceValue_IncorrectNames(t *testing.T) {
 			content := "otlp-service: \"" + tc.otlpService + "\"\n"
 			require.NoError(t, os.WriteFile(configPath, []byte(content), cryptoutilSharedMagic.FilePermissionsDefault))
 
-			violations := checkOTLPServiceValue(configPath, tc.psID, tc.expectedSuffix, tmpDir)
+			violations := checkOTLPServiceValue(configPath, tc.psID, tc.expectedSuffix, tmpDir, os.ReadFile)
 			require.NotEmpty(t, violations, "Expected violation for incorrect OTLP service name")
 			require.Contains(t, violations[0], tc.wantErrContain)
 		})
@@ -144,7 +144,7 @@ func TestCheckInDir_NoOTLPServiceKey(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-otlp-no-key")
 
-	err := CheckInDir(logger, tmpDir)
+	err := CheckInDir(logger, tmpDir, os.ReadDir, os.ReadFile)
 	require.NoError(t, err, "Config without otlp-service key should not fail")
 }
 
@@ -161,7 +161,7 @@ func TestCheckInDir_ViolationReported(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-otlp-violation")
 
-	err := CheckInDir(logger, tmpDir)
+	err := CheckInDir(logger, tmpDir, os.ReadDir, os.ReadFile)
 	require.Error(t, err, "Legacy pg naming should be reported as violation")
 	require.Contains(t, err.Error(), "OTLP service name violations")
 }
@@ -195,7 +195,7 @@ func TestCheck_DelegatesToCheckInDir(t *testing.T) {
 	root := findProjectRoot(t)
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-check-delegates")
 
-	err := CheckInDir(logger, root)
+	err := CheckInDir(logger, root, os.ReadDir, os.ReadFile)
 	require.NoError(t, err, "Check() should pass on project root")
 }
 
@@ -209,7 +209,7 @@ func TestCheckOTLPServiceValue_NonStringValue(t *testing.T) {
 	content := "otlp-service: 12345\n"
 	require.NoError(t, os.WriteFile(configPath, []byte(content), cryptoutilSharedMagic.FilePermissionsDefault))
 
-	violations := checkOTLPServiceValue(configPath, cryptoutilSharedMagic.OTLPServiceSMKMS, "-sqlite-1", tmpDir)
+	violations := checkOTLPServiceValue(configPath, cryptoutilSharedMagic.OTLPServiceSMKMS, "-sqlite-1", tmpDir, os.ReadFile)
 	require.Len(t, violations, 1)
 	require.Contains(t, violations[0], "otlp-service value is not a string")
 }
@@ -224,7 +224,7 @@ func TestCheckOTLPServiceValue_InvalidYAML(t *testing.T) {
 	content := "key: [\nbad yaml\n"
 	require.NoError(t, os.WriteFile(configPath, []byte(content), cryptoutilSharedMagic.FilePermissionsDefault))
 
-	violations := checkOTLPServiceValue(configPath, cryptoutilSharedMagic.OTLPServiceSMKMS, "-sqlite-1", tmpDir)
+	violations := checkOTLPServiceValue(configPath, cryptoutilSharedMagic.OTLPServiceSMKMS, "-sqlite-1", tmpDir, os.ReadFile)
 	require.Len(t, violations, 1)
 	require.Contains(t, violations[0], "YAML parse error")
 }
@@ -241,20 +241,13 @@ func TestCheckDeploymentConfigDir_Violation(t *testing.T) {
 	content := "otlp-service: \"wrong-service-name\"\n"
 	require.NoError(t, os.WriteFile(filepath.Join(configDir, filename), []byte(content), cryptoutilSharedMagic.FilePermissionsDefault))
 
-	violations := checkDeploymentConfigDir(tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS)
+	violations := checkDeploymentConfigDir(tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS, os.ReadFile)
 	require.NotEmpty(t, violations)
 	require.Contains(t, violations[0], "want \"sm-kms-postgresql-1\"")
 }
 
 func TestCheckInDir_ReadDirConfigsError(t *testing.T) {
-	// Sequential seam test — must not use t.Parallel().
-	original := otlpReadDirFn
-
-	defer func() { otlpReadDirFn = original }()
-
-	otlpReadDirFn = func(_ string) ([]os.DirEntry, error) {
-		return nil, os.ErrPermission
-	}
+	t.Parallel()
 
 	// Create a configs/ dir so Stat passes.
 	tmpDir := t.TempDir()
@@ -262,53 +255,46 @@ func TestCheckInDir_ReadDirConfigsError(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-read-dir-error")
 
-	err := CheckInDir(logger, tmpDir)
+	err := CheckInDir(logger, tmpDir, func(_ string) ([]os.DirEntry, error) {
+		return nil, os.ErrPermission
+	}, os.ReadFile)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to read configs dir")
 }
 
 func TestCheckInDir_ReadDirProductError(t *testing.T) {
-	// Sequential seam test — must not use t.Parallel().
+	t.Parallel()
+
 	tmpDir := t.TempDir()
 	productDir := filepath.Join(tmpDir, cryptoutilSharedMagic.CICDConfigsDir, cryptoutilSharedMagic.SMProductName)
 	require.NoError(t, os.MkdirAll(productDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
 	callCount := 0
-	original := otlpReadDirFn
 
-	defer func() { otlpReadDirFn = original }()
+	logger := cryptoutilCmdCicdCommon.NewLogger("test-read-product-dir-error")
 
-	otlpReadDirFn = func(path string) ([]os.DirEntry, error) {
+	err := CheckInDir(logger, tmpDir, func(path string) ([]os.DirEntry, error) {
 		callCount++
 		if callCount > 1 {
 			return nil, os.ErrPermission
 		}
 
-		return original(path)
-	}
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test-read-product-dir-error")
-
-	err := CheckInDir(logger, tmpDir)
+		return os.ReadDir(path)
+	}, os.ReadFile)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to read product dir")
 }
 
 func TestCheckOTLPServiceValue_ReadFileError(t *testing.T) {
-	// Sequential seam test — must not use t.Parallel().
-	original := otlpReadFileFn
-
-	defer func() { otlpReadFileFn = original }()
-
-	otlpReadFileFn = func(_ string) ([]byte, error) {
-		return nil, os.ErrPermission
-	}
+	t.Parallel()
 
 	tmpDir := t.TempDir()
 	configPath := filepath.Join(tmpDir, "config-test.yml")
 	require.NoError(t, os.WriteFile(configPath, []byte("otlp-service: test\n"), cryptoutilSharedMagic.FilePermissionsDefault))
 
-	violations := checkOTLPServiceValue(configPath, cryptoutilSharedMagic.OTLPServiceSMKMS, "-sqlite-1", tmpDir)
+	violations := checkOTLPServiceValue(configPath, cryptoutilSharedMagic.OTLPServiceSMKMS, "-sqlite-1", tmpDir, func(_ string) ([]byte, error) {
+		return nil, os.ErrPermission
+	})
 	require.Len(t, violations, 1)
 	require.Contains(t, violations[0], "cannot read file")
 }
@@ -325,7 +311,7 @@ func TestCheckInDir_ExcludedProductDirSkipped(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-excluded")
 
-	err := CheckInDir(logger, tmpDir)
+	err := CheckInDir(logger, tmpDir, os.ReadDir, os.ReadFile)
 	require.NoError(t, err, "Excluded product dirs should be skipped entirely")
 }
 
@@ -340,6 +326,6 @@ func TestCheckInDir_NonDirFilesInConfigsSkipped(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-nondirs")
 
-	err := CheckInDir(logger, tmpDir)
+	err := CheckInDir(logger, tmpDir, os.ReadDir, os.ReadFile)
 	require.NoError(t, err, "Non-directory entries in configs/ should be skipped")
 }

@@ -16,20 +16,13 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// Test seams: replaceable in tests to exercise unreachable OS-level error paths.
-// See ARCHITECTURE.md Section 10.2.4 (Test Seam Injection Pattern).
-var (
-	adminBindWalkFn = filepath.Walk
-	adminBindOpenFn = os.Open
-)
-
 // Check verifies admin bind address from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
-	return CheckInDir(logger, ".")
+	return CheckInDir(logger, ".", filepath.Walk, os.Open)
 }
 
 // CheckInDir verifies admin bind address under rootDir.
-func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
+func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, walkFn func(string, filepath.WalkFunc) error, openFn func(string) (*os.File, error)) error {
 	logger.Log("Checking admin bind address (must be 127.0.0.1, not 0.0.0.0)...")
 
 	projectRoot, err := filepath.Abs(rootDir)
@@ -39,7 +32,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 	var violations []string
 
-	walkErr := adminBindWalkFn(projectRoot, func(path string, info os.FileInfo, err error) error {
+	walkErr := walkFn(projectRoot, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -59,7 +52,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 			return nil
 		}
 
-		fileViolations, scanErr := scanForAdminBindViolations(path, projectRoot)
+		fileViolations, scanErr := scanForAdminBindViolations(path, projectRoot, openFn)
 		if scanErr != nil {
 			return scanErr
 		}
@@ -91,8 +84,8 @@ var adminBindPatterns = []string{
 }
 
 // scanForAdminBindViolations checks a Go file for admin bind address set to 0.0.0.0.
-func scanForAdminBindViolations(filePath, projectRoot string) ([]string, error) {
-	f, err := adminBindOpenFn(filePath) //nolint:gosec // filePath from filepath.Walk, controlled
+func scanForAdminBindViolations(filePath, projectRoot string, openFn func(string) (*os.File, error)) ([]string, error) {
+	f, err := openFn(filePath) //nolint:gosec // filePath from filepath.Walk, controlled
 	if err != nil {
 		return nil, fmt.Errorf("open %s: %w", filePath, err)
 	}

@@ -9,10 +9,11 @@ import (
 	crand "crypto/rand"
 	rsa "crypto/rsa"
 	sha256 "crypto/sha256"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"io"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 
@@ -429,16 +430,13 @@ func TestSign_WithFailingSignerSign(t *testing.T) {
 }
 
 // TestGenerateRSAKeyPair_KeygenError tests generateRSAKeyPair when keygen fails.
-// NOTE: Must NOT use t.Parallel() - modifies package-level pkiCryptoGenerateRSAKeyPairFn.
 func TestGenerateRSAKeyPair_KeygenError(t *testing.T) {
-	orig := pkiCryptoGenerateRSAKeyPairFn
-	pkiCryptoGenerateRSAKeyPairFn = func(_ int) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
-		return nil, errSignFailed
-	}
-
-	defer func() { pkiCryptoGenerateRSAKeyPairFn = orig }()
+	t.Parallel()
 
 	provider := NewSoftwareProvider()
+	provider.generateRSAKeyPairFn = func(_ int) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
+		return nil, errSignFailed
+	}
 
 	_, err := provider.generateRSAKeyPair(MinRSAKeyBits)
 	require.Error(t, err)
@@ -446,18 +444,13 @@ func TestGenerateRSAKeyPair_KeygenError(t *testing.T) {
 }
 
 // TestGenerateECDSAKeyPair_KeygenError tests generateECDSAKeyPair when keygen fails.
-// NOTE: Must NOT use t.Parallel() - modifies package-level pkiCryptoGenerateECDSAKeyPairFn.
 func TestGenerateECDSAKeyPair_KeygenError(t *testing.T) {
 	t.Parallel()
 
-	orig := pkiCryptoGenerateECDSAKeyPairFn
-	pkiCryptoGenerateECDSAKeyPairFn = func(_ elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
+	provider := NewSoftwareProvider()
+	provider.generateECDSAKeyPairFn = func(_ elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
 		return nil, errSignFailed
 	}
-
-	defer func() { pkiCryptoGenerateECDSAKeyPairFn = orig }()
-
-	provider := NewSoftwareProvider()
 
 	_, err := provider.generateECDSAKeyPair("P-256")
 	require.Error(t, err)

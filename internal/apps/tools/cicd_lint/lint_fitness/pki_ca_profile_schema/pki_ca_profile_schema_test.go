@@ -74,7 +74,7 @@ func newTestLogger(t *testing.T) *cryptoutilCmdCicdCommon.Logger {
 }
 
 // -----------------------------------------------------------------------
-// CheckInDir — happy paths
+// CheckInDir â€” happy paths
 // -----------------------------------------------------------------------
 
 func TestCheckInDir_HappyPath_NoProfiles(t *testing.T) {
@@ -83,7 +83,7 @@ func TestCheckInDir_HappyPath_NoProfiles(t *testing.T) {
 	rootDir := buildProfileRoot(t)
 	logger := newTestLogger(t)
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
 	require.NoError(t, err)
 }
@@ -95,7 +95,7 @@ func TestCheckInDir_HappyPath_ValidProfile(t *testing.T) {
 	writeProfileYAML(t, rootDir, "tls-server.yaml", minValidProfile("tls-server"))
 	logger := newTestLogger(t)
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
 	require.NoError(t, err)
 }
@@ -124,7 +124,7 @@ func TestCheckInDir_HappyPath_Ed25519NullCurve(t *testing.T) {
 `)
 	logger := newTestLogger(t)
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
 	require.NoError(t, err)
 }
@@ -155,7 +155,7 @@ func TestCheckInDir_HappyPath_MinOneDayShortLived(t *testing.T) {
 `)
 	logger := newTestLogger(t)
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
 	require.NoError(t, err)
 }
@@ -186,7 +186,7 @@ func TestCheckInDir_ZeroMinDaysIsError(t *testing.T) {
 `)
 	logger := newTestLogger(t)
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "min_days must be >= 1")
@@ -197,17 +197,17 @@ func TestCheckInDir_NonYAMLFileSkipped(t *testing.T) {
 
 	rootDir := buildProfileRoot(t)
 	profilesDir := filepath.Join(rootDir, filepath.FromSlash(cryptoutilSharedMagic.CICDPKICAProfilesDir))
-	// Write a JSON schema file — it should be skipped (not .yaml extension)
+	// Write a JSON schema file â€” it should be skipped (not .yaml extension)
 	require.NoError(t, os.WriteFile(filepath.Join(profilesDir, "profile-schema.json"), []byte("{}"), cryptoutilSharedMagic.FilePermissionsDefault))
 	logger := newTestLogger(t)
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
 	require.NoError(t, err)
 }
 
 // -----------------------------------------------------------------------
-// CheckInDir — violations
+// CheckInDir â€” violations
 // -----------------------------------------------------------------------
 
 func TestCheckInDir_MissingProfileField(t *testing.T) {
@@ -217,7 +217,7 @@ func TestCheckInDir_MissingProfileField(t *testing.T) {
 	writeProfileYAML(t, rootDir, "bad.yaml", "validity:\n  max_days: 365\n") // no 'profile:' key
 	logger := newTestLogger(t)
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "violation")
@@ -249,7 +249,7 @@ func TestCheckInDir_EmptyProfileName(t *testing.T) {
 `)
 	logger := newTestLogger(t)
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "profile.name")
@@ -279,7 +279,7 @@ func TestCheckInDir_InvalidMaxDays(t *testing.T) {
 `)
 	logger := newTestLogger(t)
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "max_days")
@@ -309,7 +309,7 @@ func TestCheckInDir_DefaultDaysOutOfRange(t *testing.T) {
 `)
 	logger := newTestLogger(t)
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "default_days")
@@ -339,7 +339,7 @@ func TestCheckInDir_MaxDaysExceedsCap(t *testing.T) {
 `)
 	logger := newTestLogger(t)
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "absolute cap")
@@ -368,7 +368,7 @@ func TestCheckInDir_EmptyAllowedAlgorithms(t *testing.T) {
 `)
 	logger := newTestLogger(t)
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "at least one")
@@ -398,7 +398,7 @@ func TestCheckInDir_UnknownAlgorithm(t *testing.T) {
 `)
 	logger := newTestLogger(t)
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "known algorithm")
@@ -427,7 +427,7 @@ func TestCheckInDir_EmptyKeyUsage(t *testing.T) {
 `)
 	logger := newTestLogger(t)
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "key_usage")
@@ -457,7 +457,7 @@ func TestCheckInDir_UnknownKeyUsage(t *testing.T) {
 `)
 	logger := newTestLogger(t)
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "unknown value")
@@ -484,7 +484,7 @@ func TestCheckInDir_MissingExtendedKeyUsage(t *testing.T) {
 `)
 	logger := newTestLogger(t)
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "extended_key_usage")
@@ -521,7 +521,7 @@ func TestCheckInDir_SANNegativeMaxEntries(t *testing.T) {
 `)
 	logger := newTestLogger(t)
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "max_entries")
@@ -553,53 +553,41 @@ func TestCheckInDir_SANMissingRequiredFields(t *testing.T) {
 `)
 	logger := newTestLogger(t)
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "san.")
 }
 
 // -----------------------------------------------------------------------
-// CheckInDir — seam injection tests
+// CheckInDir â€” seam injection tests
 // -----------------------------------------------------------------------
 
 func TestCheckInDir_WalkError(t *testing.T) {
-	original := pkiProfileWalkDirFn
-
-	pkiProfileWalkDirFn = func(_ string, _ fs.WalkDirFunc) error {
-		return errors.New("injected walk error")
-	}
-
-	t.Cleanup(func() { pkiProfileWalkDirFn = original })
+	t.Parallel()
 
 	rootDir := buildProfileRoot(t)
 	logger := newTestLogger(t)
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile, func(_ string, _ fs.WalkDirFunc) error {
+		return errors.New("injected walk error")
+	})
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "injected walk error")
 }
 
 func TestCheckInDir_ReadFileError(t *testing.T) {
-	originalWalk := pkiProfileWalkDirFn
-	originalRead := pkiProfileReadFileFn
+	t.Parallel()
 
 	// Use real walk to find the file, then inject read error.
-	pkiProfileReadFileFn = func(_ string) ([]byte, error) {
-		return nil, errors.New("injected read error")
-	}
-
-	t.Cleanup(func() {
-		pkiProfileWalkDirFn = originalWalk
-		pkiProfileReadFileFn = originalRead
-	})
-
 	rootDir := buildProfileRoot(t)
 	writeProfileYAML(t, rootDir, "any.yaml", minValidProfile("any"))
 	logger := newTestLogger(t)
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, func(_ string) ([]byte, error) {
+		return nil, errors.New("injected read error")
+	}, filepath.WalkDir)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "injected read error")
@@ -612,14 +600,14 @@ func TestCheckInDir_InvalidYAMLSkipsWithError(t *testing.T) {
 	writeProfileYAML(t, rootDir, "bad-syntax.yaml", "!!! not: valid: yaml: [unparseable")
 	logger := newTestLogger(t)
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to parse")
 }
 
 // -----------------------------------------------------------------------
-// Check — project root seam tests
+// Check â€” project root seam tests
 // -----------------------------------------------------------------------
 
 func TestCheck_ProjectRootNotFound(t *testing.T) {
@@ -660,30 +648,24 @@ func TestCheck_HappyPath(t *testing.T) {
 // -----------------------------------------------------------------------
 
 func TestFindProjectRoot_GetwdError(t *testing.T) {
-	original := pkiProfileGetwdFn
+	t.Parallel()
 
-	pkiProfileGetwdFn = func() (string, error) {
+	_, err := findPKIProfileProjectRoot(func() (string, error) {
 		return "", errors.New("injected getwd error")
-	}
-
-	t.Cleanup(func() { pkiProfileGetwdFn = original })
-
-	_, err := findPKIProfileProjectRoot()
+	})
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to get working directory")
 }
 
 func TestFindProjectRoot_GoModNotFound(t *testing.T) {
-	original := pkiProfileGetwdFn
+	t.Parallel()
 
-	pkiProfileGetwdFn = func() (string, error) {
-		return t.TempDir(), nil
-	}
+	tmpDir := t.TempDir()
 
-	t.Cleanup(func() { pkiProfileGetwdFn = original })
-
-	_, err := findPKIProfileProjectRoot()
+	_, err := findPKIProfileProjectRoot(func() (string, error) {
+		return tmpDir, nil
+	})
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "go.mod not found")
@@ -693,7 +675,7 @@ func TestFindProjectRoot_HappyPath(t *testing.T) {
 	t.Parallel()
 
 	// Real cwd is within the cryptoutil project so go.mod WILL be found.
-	dir, err := findPKIProfileProjectRoot()
+	dir, err := findPKIProfileProjectRoot(os.Getwd)
 
 	require.NoError(t, err)
 	require.DirExists(t, dir)
@@ -701,7 +683,7 @@ func TestFindProjectRoot_HappyPath(t *testing.T) {
 }
 
 // -----------------------------------------------------------------------
-// validateProfile — direct unit tests
+// validateProfile â€” direct unit tests
 // -----------------------------------------------------------------------
 
 func TestValidateProfile_MissingProfileField(t *testing.T) {
@@ -886,7 +868,7 @@ func TestValidateProfile_NilDefaultCurveOrSizeForEd25519_Allowed(t *testing.T) {
 }
 
 // -----------------------------------------------------------------------
-// Boundary tests — kill CONDITIONALS_BOUNDARY / CONDITIONALS_NEGATION mutations
+// Boundary tests â€” kill CONDITIONALS_BOUNDARY / CONDITIONALS_NEGATION mutations
 // -----------------------------------------------------------------------
 
 func TestValidateValidity_MinDaysOneIsValid(t *testing.T) {

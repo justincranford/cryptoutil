@@ -29,12 +29,6 @@ import (
 	lintFitnessRegistry "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/registry"
 )
 
-// Injectable functions for testing defensive error paths.
-var (
-	portReadFileFn = os.ReadFile
-	allSuitesFn    = lintFitnessRegistry.AllSuites
-)
-
 // portMapping maps a compose service variant to its expected port offset.
 type portMapping struct {
 	// serviceVariant is the variant suffix (e.g., "sqlite-1").
@@ -61,11 +55,11 @@ type tierConfig struct {
 
 // Check validates compose port formula from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
-	return CheckInDir(logger, ".")
+	return CheckInDir(logger, ".", lintFitnessRegistry.AllSuites, os.ReadFile)
 }
 
 // CheckInDir validates compose port formula under rootDir.
-func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
+func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, allSuitesFn func() []lintFitnessRegistry.Suite, readFileFn func(string) ([]byte, error)) error {
 	logger.Log("Checking compose port formula (base_port + tier_offset + variant_offset)...")
 
 	var violations []string
@@ -93,7 +87,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 		basePort := lintFitnessRegistry.PublicPort(ps.PSID)
 
 		for _, tier := range tiers {
-			v := checkTierPorts(rootDir, ps.PSID, tier.composePath, basePort, tier.tierOffset)
+			v := checkTierPorts(rootDir, ps.PSID, tier.composePath, basePort, tier.tierOffset, readFileFn)
 			violations = append(violations, v...)
 		}
 	}
@@ -111,10 +105,10 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 var portLinePattern = regexp.MustCompile(`-\s*"?(\d+):(\d+)"?`)
 
 // checkTierPorts validates all per-psid port bindings in one compose file.
-func checkTierPorts(rootDir, psID, composeRelPath string, basePort, tierOffset int) []string {
+func checkTierPorts(rootDir, psID, composeRelPath string, basePort, tierOffset int, readFileFn func(string) ([]byte, error)) []string {
 	fullPath := filepath.Join(rootDir, composeRelPath)
 
-	data, err := portReadFileFn(fullPath)
+	data, err := readFileFn(fullPath)
 	if err != nil {
 		// In PRODUCT/SUITE compose files, multiple PSIDs share the file — skip missing files silently
 		// unless it is the SERVICE-level compose (unique per PS-ID).

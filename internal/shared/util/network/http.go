@@ -20,7 +20,6 @@ import (
 
 // Injectable functions for testing defensive error paths.
 var (
-	networkReadAllFn      = io.ReadAll
 	networkRoundTripperFn func(*http.Request) (*http.Response, error) // nil = use real client.Do
 )
 
@@ -74,6 +73,11 @@ func HTTPPostShutdown(ctx context.Context, baseURL, adminContextPath string, tim
 //
 // Returns the status code, headers, response body, and any error encountered.
 func HTTPResponse(ctx context.Context, method, url string, timeout time.Duration, followRedirects bool, rootCAsPool *x509.CertPool, insecureSkipVerify bool) (int, http.Header, []byte, error) {
+	return httpResponseInner(ctx, method, url, timeout, followRedirects, rootCAsPool, insecureSkipVerify, io.ReadAll)
+}
+
+// httpResponseInner is the testable implementation of HTTPResponse with injectable readAllFn.
+func httpResponseInner(ctx context.Context, method, url string, timeout time.Duration, followRedirects bool, rootCAsPool *x509.CertPool, insecureSkipVerify bool, readAllFn func(io.Reader) ([]byte, error)) (int, http.Header, []byte, error) {
 	if timeout > 0 {
 		var cancel context.CancelFunc
 
@@ -132,7 +136,7 @@ func HTTPResponse(ctx context.Context, method, url string, timeout time.Duration
 		}
 	}()
 
-	body, err := networkReadAllFn(resp.Body)
+	body, err := readAllFn(resp.Body)
 	if err != nil {
 		return resp.StatusCode, resp.Header, nil, fmt.Errorf("failed to read response body: %w", err)
 	}

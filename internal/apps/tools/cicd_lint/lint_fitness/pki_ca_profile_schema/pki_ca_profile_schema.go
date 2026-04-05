@@ -17,6 +17,7 @@ package pki_ca_profile_schema
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -115,10 +116,7 @@ type ExtensionsSpec struct {
 
 // test seams.
 var (
-	pkiProfileReadFileFn = os.ReadFile
-	pkiProfileWalkDirFn  = filepath.WalkDir
-	pkiProfileGetwdFn    = os.Getwd
-	findPKIProfileRootFn = findPKIProfileProjectRoot
+	findPKIProfileRootFn = func() (string, error) { return findPKIProfileProjectRoot(os.Getwd) }
 )
 
 // Check validates all PKI-CA profile YAML files from the workspace root.
@@ -128,16 +126,16 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 		return err
 	}
 
-	return CheckInDir(logger, rootDir)
+	return CheckInDir(logger, rootDir, os.ReadFile, filepath.WalkDir)
 }
 
 // CheckInDir validates all PKI-CA profile YAML files under rootDir.
-func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
+func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, readFileFn func(string) ([]byte, error), walkDirFn func(string, fs.WalkDirFunc) error) error {
 	profilesDir := filepath.Join(rootDir, filepath.FromSlash(cryptoutilSharedMagic.CICDPKICAProfilesDir))
 
 	var violations []string
 
-	err := pkiProfileWalkDirFn(profilesDir, func(path string, d os.DirEntry, walkErr error) error {
+	err := walkDirFn(profilesDir, func(path string, d os.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			return fmt.Errorf("failed to walk %s: %w", profilesDir, walkErr)
 		}
@@ -155,7 +153,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 			return nil
 		}
 
-		fileViolations, err := checkProfileFile(path)
+		fileViolations, err := checkProfileFile(path, readFileFn)
 		if err != nil {
 			return err
 		}
@@ -172,16 +170,16 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 		return fmt.Errorf("pki-ca-profile-schema: %d violation(s):\n%s", len(violations), strings.Join(violations, "\n"))
 	}
 
-	logger.Log(fmt.Sprintf("pki-ca-profile-schema: all %d profile files pass schema validation", countProfileFiles(profilesDir)))
+	logger.Log(fmt.Sprintf("pki-ca-profile-schema: all %d profile files pass schema validation", countProfileFiles(profilesDir, walkDirFn)))
 
 	return nil
 }
 
 // countProfileFiles counts YAML files in the profiles directory (non-schema).
-func countProfileFiles(profilesDir string) int {
+func countProfileFiles(profilesDir string, walkDirFn func(string, fs.WalkDirFunc) error) int {
 	count := 0
 
-	_ = pkiProfileWalkDirFn(profilesDir, func(path string, d os.DirEntry, walkErr error) error {
+	_ = walkDirFn(profilesDir, func(path string, d os.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
 		}
@@ -201,8 +199,8 @@ func countProfileFiles(profilesDir string) int {
 }
 
 // checkProfileFile validates one profile YAML file and returns a list of violations.
-func checkProfileFile(path string) ([]string, error) {
-	data, err := pkiProfileReadFileFn(path) //nolint:gosec // path is controlled by the tooling framework
+func checkProfileFile(path string, readFileFn func(string) ([]byte, error)) ([]string, error) {
+	data, err := readFileFn(path) //nolint:gosec // path is controlled by the tooling framework
 	if err != nil {
 		return nil, fmt.Errorf("failed to read %s: %w", path, err)
 	}
@@ -373,8 +371,8 @@ func validateSAN(san *SANSpec) []string {
 }
 
 // findPKIProfileProjectRoot walks up from the current working directory to find go.mod.
-func findPKIProfileProjectRoot() (string, error) {
-	cwd, err := pkiProfileGetwdFn()
+func findPKIProfileProjectRoot(getwdFn func() (string, error)) (string, error) {
+	cwd, err := getwdFn()
 	if err != nil {
 		return "", fmt.Errorf("failed to get working directory: %w", err)
 	}

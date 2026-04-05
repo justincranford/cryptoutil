@@ -9,6 +9,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"net"
+	"net/url"
 	"time"
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
@@ -17,18 +18,24 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-const (
-	// pemTypeCertificate is the PEM type identifier for X.509 certificates.
-	pemTypeCertificate = "CERTIFICATE"
-)
 
 // Injectable vars for testing error paths.
 var (
-	generateECDSAKeyPairFn   = cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair
-	createCASubjectsFn       = cryptoutilSharedCryptoCertificate.CreateCASubjects
-	createEndEntitySubjectFn = cryptoutilSharedCryptoCertificate.CreateEndEntitySubject
-	buildTLSCertificateFn    = cryptoutilSharedCryptoCertificate.BuildTLSCertificate
-	marshalPKCS8PrivateKeyFn = x509.MarshalPKCS8PrivateKey
+	generateECDSAKeyPairFn = func(curve elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
+		return cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(curve)
+	}
+	createCASubjectsFn = func(keyPairs []*cryptoutilSharedCryptoKeygen.KeyPair, commonNamePrefix string, validity time.Duration) ([]*cryptoutilSharedCryptoCertificate.Subject, error) {
+		return cryptoutilSharedCryptoCertificate.CreateCASubjects(keyPairs, commonNamePrefix, validity)
+	}
+	createEndEntitySubjectFn = func(issuer *cryptoutilSharedCryptoCertificate.Subject, keyPair *cryptoutilSharedCryptoKeygen.KeyPair, commonName string, validity time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL, keyUsage x509.KeyUsage, extKeyUsage []x509.ExtKeyUsage) (*cryptoutilSharedCryptoCertificate.Subject, error) {
+		return cryptoutilSharedCryptoCertificate.CreateEndEntitySubject(issuer, keyPair, commonName, validity, dnsNames, ipAddresses, emailAddresses, uris, keyUsage, extKeyUsage)
+	}
+	buildTLSCertificateFn = func(subject *cryptoutilSharedCryptoCertificate.Subject) (*tls.Certificate, *x509.CertPool, *x509.CertPool, error) {
+		return cryptoutilSharedCryptoCertificate.BuildTLSCertificate(subject)
+	}
+	marshalPKCS8PrivateKeyFn = func(key any) ([]byte, error) {
+		return x509.MarshalPKCS8PrivateKey(key)
+	}
 )
 
 // GenerateTLSMaterial creates TLS configuration based on the specified mode.
@@ -84,7 +91,7 @@ func generateTLSMaterialStatic(cfg *TLSGeneratedSettings) (*cryptoutilAppsFramew
 	var certCount int
 
 	for block != nil {
-		if block.Type == pemTypeCertificate {
+		if block.Type == cryptoutilSharedMagic.StringPEMTypeCertificate {
 			parsedCert, parseErr := x509.ParseCertificate(block.Bytes)
 			if parseErr != nil {
 				return nil, fmt.Errorf("failed to parse certificate %d: %w", certCount, parseErr)
@@ -134,7 +141,7 @@ func GenerateServerCertFromCA(caCertPEM, caKeyPEM []byte, dns []string, ips []st
 
 	// Parse CA certificate chain (use first block as issuer).
 	block, _ := pem.Decode(caCertPEM)
-	if block == nil || block.Type != pemTypeCertificate {
+	if block == nil || block.Type != cryptoutilSharedMagic.StringPEMTypeCertificate {
 		return nil, fmt.Errorf("failed to decode CA certificate PEM")
 	}
 
@@ -225,7 +232,7 @@ func GenerateServerCertFromCA(caCertPEM, caKeyPEM []byte, dns []string, ips []st
 	// Compose PEM chain: server cert first, then issuer certs (if any) from issuerSubject.KeyMaterial.CertificateChain
 	var pemChain []byte
 	for _, cert := range serverSubject.KeyMaterial.CertificateChain {
-		pemChain = append(pemChain, pem.EncodeToMemory(&pem.Block{Type: pemTypeCertificate, Bytes: cert.Raw})...)
+		pemChain = append(pemChain, pem.EncodeToMemory(&pem.Block{Type: cryptoutilSharedMagic.StringPEMTypeCertificate, Bytes: cert.Raw})...)
 	}
 
 	// Private key PEM
@@ -324,7 +331,7 @@ func GenerateAutoTLSGeneratedSettings(dns []string, ips []string, validityDays i
 	// Compose PEM chain from serverSubject.KeyMaterial.CertificateChain
 	var pemChain []byte
 	for _, cert := range serverSubject.KeyMaterial.CertificateChain {
-		pemChain = append(pemChain, pem.EncodeToMemory(&pem.Block{Type: pemTypeCertificate, Bytes: cert.Raw})...)
+		pemChain = append(pemChain, pem.EncodeToMemory(&pem.Block{Type: cryptoutilSharedMagic.StringPEMTypeCertificate, Bytes: cert.Raw})...)
 	}
 
 	// Marshal server private key to PKCS8 DER then PEM.
@@ -364,7 +371,7 @@ func GenerateTestCA() (caCertPEM []byte, caKeyPEM []byte, err error) {
 
 	// Encode CA certificate to PEM.
 	caCertPEM = pem.EncodeToMemory(&pem.Block{
-		Type:  pemTypeCertificate,
+		Type:  cryptoutilSharedMagic.StringPEMTypeCertificate,
 		Bytes: caCert.Raw,
 	})
 

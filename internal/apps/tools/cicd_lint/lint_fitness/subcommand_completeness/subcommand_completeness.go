@@ -24,20 +24,13 @@ import (
 // provided automatically when a service calls RouteService.
 const routeServiceCall = "RouteService"
 
-// Test seams: replaceable in tests to exercise unreachable OS-level error paths.
-// See ARCHITECTURE.md Section 10.2.4 (Test Seam Injection Pattern).
-var (
-	subcommandReadDirFn  = os.ReadDir
-	subcommandReadFileFn = os.ReadFile
-)
-
 // Check validates subcommand completeness from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
-	return CheckInDir(logger, ".")
+	return CheckInDir(logger, ".", os.ReadDir, os.ReadFile)
 }
 
 // CheckInDir validates that each registry PS-ID service uses RouteService under rootDir.
-func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
+func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, readDirFn func(string) ([]os.DirEntry, error), readFileFn func(string) ([]byte, error)) error {
 	logger.Log("Checking subcommand completeness for all registry services...")
 
 	var violations []string
@@ -45,7 +38,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	for _, ps := range cryptoutilLintFitnessRegistry.AllProductServices() {
 		serviceDir := filepath.Join(rootDir, "internal", "apps", ps.PSID)
 
-		if err := checkServiceUsesRouteService(serviceDir, ps.PSID); err != nil {
+		if err := checkServiceUsesRouteService(serviceDir, ps.PSID, readDirFn, readFileFn); err != nil {
 			violations = append(violations, fmt.Sprintf("%s: %v", ps.PSID, err))
 		}
 	}
@@ -59,8 +52,8 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 // checkServiceUsesRouteService verifies that at least one Go file in serviceDir
 // contains a call to RouteService, indicating the service uses the standard CLI framework.
-func checkServiceUsesRouteService(serviceDir, psID string) error {
-	entries, err := subcommandReadDirFn(serviceDir)
+func checkServiceUsesRouteService(serviceDir, psID string, readDirFn func(string) ([]os.DirEntry, error), readFileFn func(string) ([]byte, error)) error {
+	entries, err := readDirFn(serviceDir)
 	if err != nil {
 		return fmt.Errorf("cannot read service directory %s: %w", serviceDir, err)
 	}
@@ -77,7 +70,7 @@ func checkServiceUsesRouteService(serviceDir, psID string) error {
 
 		filePath := filepath.Join(serviceDir, name)
 
-		content, readErr := subcommandReadFileFn(filePath)
+		content, readErr := readFileFn(filePath)
 		if readErr != nil {
 			return fmt.Errorf("cannot read %s: %w", filePath, readErr)
 		}

@@ -236,17 +236,12 @@ func TestRotateIntermediateKey_GenerateJWKFails(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to generate intermediate JWK")
 }
 
-// TestRotateIntermediateKey_EncryptFails verifies the error path when rotationEncryptKeyFn fails
-// during intermediate key rotation. Cannot use t.Parallel() because it modifies the package-level injectable var.
+// TestRotateIntermediateKey_EncryptFails verifies the error path when encryptKeyFn fails
+// during intermediate key rotation.
 func TestRotateIntermediateKey_EncryptFails(t *testing.T) {
+	t.Parallel()
+
 	jwkGenService, unsealService := setupRotationServiceTestHelper(t)
-
-	originalFn := rotationEncryptKeyFn
-	rotationEncryptKeyFn = func(_ []joseJwk.Key, _ joseJwk.Key) (*joseJwe.Message, []byte, error) {
-		return nil, nil, errMockServiceFailure
-	}
-
-	defer func() { rotationEncryptKeyFn = originalFn }()
 
 	rootKeyUUID, clearRootJWK, _, _, _, err := jwkGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
@@ -260,6 +255,10 @@ func TestRotateIntermediateKey_EncryptFails(t *testing.T) {
 
 	rotationService, err := NewRotationService(jwkGenService, mockRepo, unsealService)
 	require.NoError(t, err)
+
+	rotationService.encryptKeyFn = func(_ []joseJwk.Key, _ joseJwk.Key) (*joseJwe.Message, []byte, error) {
+		return nil, nil, errMockServiceFailure
+	}
 
 	result, err := rotationService.RotateIntermediateKey(context.Background(), "test")
 	require.Error(t, err)
@@ -304,17 +303,12 @@ func TestRotateContentKey_GenerateJWKFails(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to generate content JWK")
 }
 
-// TestRotateContentKey_EncryptFails verifies the error path when rotationEncryptKeyFn fails
-// during content key rotation. Cannot use t.Parallel() because it modifies the package-level injectable var.
+// TestRotateContentKey_EncryptFails verifies the error path when encryptKeyFn fails
+// during content key rotation.
 func TestRotateContentKey_EncryptFails(t *testing.T) {
+	t.Parallel()
+
 	jwkGenService, unsealService := setupRotationServiceTestHelper(t)
-
-	originalFn := rotationEncryptKeyFn
-	rotationEncryptKeyFn = func(_ []joseJwk.Key, _ joseJwk.Key) (*joseJwe.Message, []byte, error) {
-		return nil, nil, errMockServiceFailure
-	}
-
-	defer func() { rotationEncryptKeyFn = originalFn }()
 
 	rootKeyUUID, clearRootJWK, _, _, _, err := jwkGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
@@ -334,6 +328,10 @@ func TestRotateContentKey_EncryptFails(t *testing.T) {
 
 	rotationService, err := NewRotationService(jwkGenService, mockRepo, unsealService)
 	require.NoError(t, err)
+
+	rotationService.encryptKeyFn = func(_ []joseJwk.Key, _ joseJwk.Key) (*joseJwe.Message, []byte, error) {
+		return nil, nil, errMockServiceFailure
+	}
 
 	result, err := rotationService.RotateContentKey(context.Background(), "test")
 	require.Error(t, err)

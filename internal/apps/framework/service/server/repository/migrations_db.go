@@ -15,8 +15,12 @@ import (
 
 // Injectable functions for testing error paths.
 var (
-	sqlOpenFn         = sql.Open
-	gormOpenFn        = gorm.Open
+	sqlOpenFn = func(driverName, dataSourceName string) (*sql.DB, error) {
+		return sql.Open(driverName, dataSourceName)
+	}
+	gormOpenFn = func(dialector gorm.Dialector, opts ...gorm.Option) (*gorm.DB, error) {
+		return gorm.Open(dialector, opts...)
+	}
 	applyMigrationsFn = ApplyMigrations
 )
 

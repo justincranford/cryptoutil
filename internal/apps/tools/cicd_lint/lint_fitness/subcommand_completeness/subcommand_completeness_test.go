@@ -79,7 +79,7 @@ func TestCheckInDir_RealWorkspace(t *testing.T) {
 
 	root := findProjectRoot(t)
 
-	err := CheckInDir(newTestLogger(), root)
+	err := CheckInDir(newTestLogger(), root, os.ReadDir, os.ReadFile)
 	require.NoError(t, err, "all 10 registry services should use RouteService")
 }
 
@@ -89,7 +89,7 @@ func TestCheckInDir_AllServicesValid(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupAllValidServices(t, tmpDir)
 
-	err := CheckInDir(newTestLogger(), tmpDir)
+	err := CheckInDir(newTestLogger(), tmpDir, os.ReadDir, os.ReadFile)
 	require.NoError(t, err)
 }
 
@@ -106,7 +106,7 @@ func TestCheckInDir_MissingRouteService(t *testing.T) {
 	content := "package kms\n\nfunc Handler() {}\n"
 	require.NoError(t, os.WriteFile(filepath.Join(smKmsDir, cryptoutilSharedMagic.OTLPServiceSMKMS+".go"), []byte(content), cryptoutilSharedMagic.FilePermissions))
 
-	err := CheckInDir(newTestLogger(), tmpDir)
+	err := CheckInDir(newTestLogger(), tmpDir, os.ReadDir, os.ReadFile)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMKMS)
 	assert.Contains(t, err.Error(), "RouteService")
@@ -126,7 +126,7 @@ func TestCheckInDir_MissingServiceDirectory(t *testing.T) {
 		setupValidServiceDir(t, tmpDir, ps.PSID)
 	}
 
-	err := CheckInDir(newTestLogger(), tmpDir)
+	err := CheckInDir(newTestLogger(), tmpDir, os.ReadDir, os.ReadFile)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMKMS)
 	assert.Contains(t, err.Error(), "cannot read service directory")
@@ -149,7 +149,7 @@ func TestCheckInDir_OnlyTestFiles(t *testing.T) {
 	testContent := "package im_test\n\nfunc TestRouteService() { _ = \"RouteService\" }\n"
 	require.NoError(t, os.WriteFile(filepath.Join(smImDir, "im_test.go"), []byte(testContent), cryptoutilSharedMagic.FilePermissions))
 
-	err := CheckInDir(newTestLogger(), tmpDir)
+	err := CheckInDir(newTestLogger(), tmpDir, os.ReadDir, os.ReadFile)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMIM)
 }
@@ -174,56 +174,45 @@ func TestCheckInDir_MultipleViolations(t *testing.T) {
 		require.NoError(t, os.WriteFile(filepath.Join(serviceDir, ps.PSID+".go"), []byte(content), cryptoutilSharedMagic.FilePermissions))
 	}
 
-	err := CheckInDir(newTestLogger(), tmpDir)
+	err := CheckInDir(newTestLogger(), tmpDir, os.ReadDir, os.ReadFile)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMKMS)
 	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMIM)
 }
 
 func TestCheckInDir_ReadFileError(t *testing.T) {
-	// Sequential seam test — must not use t.Parallel().
+	t.Parallel()
+
 	tmpDir := t.TempDir()
 	setupAllValidServices(t, tmpDir)
 
-	// Override the read file seam to simulate a read error for sm-kms.
 	smKmsFile := filepath.Join(tmpDir, "internal", "apps", cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceSMKMS+".go")
 
-	origFn := subcommandReadFileFn
-
-	subcommandReadFileFn = func(path string) ([]byte, error) {
+	err := CheckInDir(newTestLogger(), tmpDir, os.ReadDir, func(path string) ([]byte, error) {
 		if path == smKmsFile {
 			return nil, os.ErrPermission
 		}
 
-		return origFn(path)
-	}
-
-	defer func() { subcommandReadFileFn = origFn }()
-
-	err := CheckInDir(newTestLogger(), tmpDir)
+		return os.ReadFile(path)
+	})
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMKMS)
 	assert.Contains(t, err.Error(), "cannot read")
 }
 
 func TestCheckInDir_ReadDirError(t *testing.T) {
-	// Sequential seam test — must not use t.Parallel().
+	t.Parallel()
+
 	tmpDir := t.TempDir()
 	setupAllValidServices(t, tmpDir)
 
-	origFn := subcommandReadDirFn
-
-	subcommandReadDirFn = func(path string) ([]os.DirEntry, error) {
+	err := CheckInDir(newTestLogger(), tmpDir, func(path string) ([]os.DirEntry, error) {
 		if filepath.Base(path) == cryptoutilSharedMagic.OTLPServiceSMKMS {
 			return nil, os.ErrPermission
 		}
 
-		return origFn(path)
-	}
-
-	defer func() { subcommandReadDirFn = origFn }()
-
-	err := CheckInDir(newTestLogger(), tmpDir)
+		return os.ReadDir(path)
+	}, os.ReadFile)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMKMS)
 }

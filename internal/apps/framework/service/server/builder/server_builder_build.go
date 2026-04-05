@@ -6,6 +6,7 @@
 package builder
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"io/fs"
@@ -24,12 +25,43 @@ import (
 
 // Injectable vars for testing Build() error paths.
 var (
-	newAdminHTTPServerFn  = cryptoutilAppsFrameworkServiceServerListener.NewAdminHTTPServer
-	startCoreFn           = cryptoutilAppsFrameworkServiceServerApplication.StartCore
-	initServicesOnCoreFn  = cryptoutilAppsFrameworkServiceServerApplication.InitializeServicesOnCore
-	generateTLSMaterialFn = cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateTLSMaterial
-	newPublicServerBaseFn = cryptoutilAppsFrameworkServiceServer.NewPublicServerBase
-	newApplicationFn      = cryptoutilAppsFrameworkServiceServer.NewApplication
+	newAdminHTTPServerFn = func(
+		ctx context.Context,
+		settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings,
+		tlsCfg *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings,
+	) (*cryptoutilAppsFrameworkServiceServerListener.AdminServer, error) {
+		return cryptoutilAppsFrameworkServiceServerListener.NewAdminHTTPServer(ctx, settings, tlsCfg)
+	}
+	startCoreFn = func(
+		ctx context.Context,
+		settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings,
+	) (*cryptoutilAppsFrameworkServiceServerApplication.Core, error) {
+		return cryptoutilAppsFrameworkServiceServerApplication.StartCore(ctx, settings)
+	}
+	initServicesOnCoreFn = func(
+		ctx context.Context,
+		core *cryptoutilAppsFrameworkServiceServerApplication.Core,
+		settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings,
+	) (*cryptoutilAppsFrameworkServiceServerApplication.CoreWithServices, error) {
+		return cryptoutilAppsFrameworkServiceServerApplication.InitializeServicesOnCore(ctx, core, settings)
+	}
+	generateTLSMaterialFn = func(
+		cfg *cryptoutilAppsFrameworkServiceConfigTlsGenerator.TLSGeneratedSettings,
+	) (*cryptoutilAppsFrameworkServiceConfig.TLSMaterial, error) {
+		return cryptoutilAppsFrameworkServiceConfigTlsGenerator.GenerateTLSMaterial(cfg)
+	}
+	newPublicServerBaseFn = func(
+		cfg *cryptoutilAppsFrameworkServiceServer.PublicServerConfig,
+	) (*cryptoutilAppsFrameworkServiceServer.PublicServerBase, error) {
+		return cryptoutilAppsFrameworkServiceServer.NewPublicServerBase(cfg)
+	}
+	newApplicationFn = func(
+		ctx context.Context,
+		publicBase cryptoutilAppsFrameworkServiceServer.IPublicServer,
+		adminServer cryptoutilAppsFrameworkServiceServer.IAdminServer,
+	) (*cryptoutilAppsFrameworkServiceServer.Application, error) {
+		return cryptoutilAppsFrameworkServiceServer.NewApplication(ctx, publicBase, adminServer)
+	}
 )
 
 // ServiceResources contains all initialized service resources available to domain-specific code.

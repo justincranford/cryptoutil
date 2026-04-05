@@ -40,10 +40,12 @@ import (
 )
 
 var (
-	initMetricsFn             = initMetrics              // injectable for testing error paths.
-	initTracesFn              = initTraces               // injectable for testing error paths.
-	stdoutMetricExporterNewFn = stdoutMetricExporter.New // injectable for testing error paths.
-	stdoutTraceExporterNewFn  = stdoutTraceExporter.New  // injectable for testing error paths.
+	initMetricsFn = func(ctx context.Context, slogger *stdoutLogExporter.Logger, settings *TelemetrySettings) (*metricSdk.MeterProvider, error) {
+		return initMetrics(ctx, slogger, settings, stdoutMetricExporter.New)
+	} // injectable for testing error paths.
+	initTracesFn = func(ctx context.Context, slogger *stdoutLogExporter.Logger, settings *TelemetrySettings) (*traceSdk.TracerProvider, error) {
+		return initTraces(ctx, slogger, settings, stdoutTraceExporter.New)
+	} // injectable for testing error paths.
 )
 
 // TelemetryService is a composite of OpenTelemetry providers for Logs, Metrics, and Traces.
@@ -296,7 +298,7 @@ func initLogger(ctx context.Context, settings *TelemetrySettings) (*stdoutLogExp
 	return slogger, otelProvider, nil
 }
 
-func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, settings *TelemetrySettings) (*metricSdk.MeterProvider, error) {
+func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, settings *TelemetrySettings, newMetricExporterFn func(...stdoutMetricExporter.Option) (metricSdk.Exporter, error)) (*metricSdk.MeterProvider, error) {
 	if settings.VerboseMode {
 		slogger.Debug("initializing metrics provider")
 	}
@@ -343,7 +345,7 @@ func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, setting
 	}
 
 	if settings.OTLPConsole {
-		stdoutMetrics, err := stdoutMetricExporterNewFn(stdoutMetricExporter.WithPrettyPrint())
+		stdoutMetrics, err := newMetricExporterFn(stdoutMetricExporter.WithPrettyPrint())
 		if err != nil {
 			slogger.Error("create STDOUT metrics failed", cryptoutilSharedMagic.StringError, err)
 
@@ -361,7 +363,7 @@ func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, setting
 	return metricsProvider, nil
 }
 
-func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, settings *TelemetrySettings) (*traceSdk.TracerProvider, error) {
+func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, settings *TelemetrySettings, newTraceExporterFn func(...stdoutTraceExporter.Option) (*stdoutTraceExporter.Exporter, error)) (*traceSdk.TracerProvider, error) {
 	if settings.VerboseMode {
 		slogger.Debug("initializing traces provider")
 	}
@@ -400,7 +402,7 @@ func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, settings
 	}
 
 	if settings.OTLPConsole {
-		stdoutTraces, err := stdoutTraceExporterNewFn(stdoutTraceExporter.WithPrettyPrint())
+		stdoutTraces, err := newTraceExporterFn(stdoutTraceExporter.WithPrettyPrint())
 		if err != nil {
 			slogger.Error("create STDOUT traces failed", cryptoutilSharedMagic.StringError, err)
 

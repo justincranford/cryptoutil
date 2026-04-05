@@ -115,7 +115,7 @@ func TestCheckInDir_AllCorrect(t *testing.T) {
 		psID + "-app-postgresql-2.yml": fmt.Sprintf("otlp-service: %s-postgres-2\n", psID),
 	})
 
-	err := CheckInDir(newLogger(), tmpDir)
+	err := CheckInDir(newLogger(), tmpDir, os.ReadDir, os.ReadFile)
 	assert.NoError(t, err)
 }
 
@@ -127,7 +127,7 @@ func TestCheckInDir_NoConfigDir(t *testing.T) {
 	// Only create the deployments root; no config subdirectories for any PS-ID.
 	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "deployments"), 0o700))
 
-	err := CheckInDir(newLogger(), tmpDir)
+	err := CheckInDir(newLogger(), tmpDir, os.ReadDir, os.ReadFile)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "does not exist")
 }
@@ -165,7 +165,7 @@ func TestCheckInDir_NestedDatabaseMapping(t *testing.T) {
 
 			setupConfigDir(t, tmpDir, psID, map[string]string{filename: tc.content})
 
-			err := CheckInDir(newLogger(), tmpDir)
+			err := CheckInDir(newLogger(), tmpDir, os.ReadDir, os.ReadFile)
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), psID)
 			assert.Contains(t, err.Error(), filename)
@@ -190,7 +190,7 @@ func TestCheckInDir_ScalarDatabaseKeyAllowed(t *testing.T) {
 		psID + "-app-common.yml": "database: \"sqlite://file::memory:?cache=shared\"\n",
 	})
 
-	err := CheckInDir(newLogger(), tmpDir)
+	err := CheckInDir(newLogger(), tmpDir, os.ReadDir, os.ReadFile)
 	assert.NoError(t, err)
 }
 
@@ -203,7 +203,7 @@ func TestCheckInDir_EmptyConfigDir(t *testing.T) {
 	// Create empty config dirs for all PS-IDs so the hard-error-on-absent-dir check passes.
 	createAllConfigDirStubs(t, tmpDir)
 
-	err := CheckInDir(newLogger(), tmpDir)
+	err := CheckInDir(newLogger(), tmpDir, os.ReadDir, os.ReadFile)
 	assert.NoError(t, err)
 }
 
@@ -222,7 +222,7 @@ func TestCheckInDir_NonYMLFilesIgnored(t *testing.T) {
 	// Write a non-yml file that contains forbidden content.
 	require.NoError(t, os.WriteFile(filepath.Join(configDir, "readme.txt"), []byte("database:\n  type: postgres\n"), cryptoutilSharedMagic.KeyFilePermissions))
 
-	err := CheckInDir(newLogger(), tmpDir)
+	err := CheckInDir(newLogger(), tmpDir, os.ReadDir, os.ReadFile)
 	assert.NoError(t, err)
 }
 
@@ -244,7 +244,7 @@ func TestCheckInDir_SubdirIgnored(t *testing.T) {
 	// Nested yml with forbidden content should not be detected.
 	require.NoError(t, os.WriteFile(filepath.Join(subDir, "nested.yml"), []byte("database:\n  type: postgres\n"), cryptoutilSharedMagic.KeyFilePermissions))
 
-	err := CheckInDir(newLogger(), tmpDir)
+	err := CheckInDir(newLogger(), tmpDir, os.ReadDir, os.ReadFile)
 	assert.NoError(t, err)
 }
 
@@ -258,7 +258,7 @@ func TestCheckInDir_InvalidYAML(t *testing.T) {
 
 	setupConfigDir(t, tmpDir, psID, map[string]string{filename: ":\n  invalid: [yaml"})
 
-	err := CheckInDir(newLogger(), tmpDir)
+	err := CheckInDir(newLogger(), tmpDir, os.ReadDir, os.ReadFile)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), psID)
 	assert.Contains(t, err.Error(), filename)
@@ -266,44 +266,32 @@ func TestCheckInDir_InvalidYAML(t *testing.T) {
 }
 
 // TestCheckInDir_ReadDirFnError verifies that a ReadDir error is reported.
-//
-// Sequential: mutates readDirFn package-level state.
 func TestCheckInDir_ReadDirFnError(t *testing.T) {
-	origReadDir := readDirFn
-
-	defer func() { readDirFn = origReadDir }()
+	t.Parallel()
 
 	sentinelErr := errors.New("simulated readdir failure")
-	readDirFn = func(_ string) ([]os.DirEntry, error) { return nil, sentinelErr }
-
 	tmpDir := t.TempDir()
 	psID := cryptoutilSharedMagic.KMSServiceID
 	// Create the config dir so os.Stat passes, then readDirFn will fail.
 	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "deployments", psID, "config"), 0o700))
 
-	err := CheckInDir(newLogger(), tmpDir)
+	err := CheckInDir(newLogger(), tmpDir, func(_ string) ([]os.DirEntry, error) { return nil, sentinelErr }, os.ReadFile)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "cannot read config dir")
 }
 
 // TestCheckInDir_ReadFileFnError verifies that a read error is reported.
-//
-// Sequential: mutates readFileFn package-level state.
 func TestCheckInDir_ReadFileFnError(t *testing.T) {
-	orig := readFileFn
-
-	defer func() { readFileFn = orig }()
+	t.Parallel()
 
 	sentinelErr := errors.New("simulated read failure")
-	readFileFn = func(_ string) ([]byte, error) { return nil, sentinelErr }
-
 	tmpDir := t.TempDir()
 	psID := cryptoutilSharedMagic.KMSServiceID
 	filename := psID + "-app-common.yml"
 
 	setupConfigDir(t, tmpDir, psID, map[string]string{filename: "bind-public-address: \"0.0.0.0\"\n"})
 
-	err := CheckInDir(newLogger(), tmpDir)
+	err := CheckInDir(newLogger(), tmpDir, os.ReadDir, func(_ string) ([]byte, error) { return nil, sentinelErr })
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "cannot read file")
 }
@@ -321,7 +309,7 @@ func TestCheckInDir_MultipleViolations(t *testing.T) {
 		setupConfigDir(t, tmpDir, psID, map[string]string{filename: badContent})
 	}
 
-	err := CheckInDir(newLogger(), tmpDir)
+	err := CheckInDir(newLogger(), tmpDir, os.ReadDir, os.ReadFile)
 	require.Error(t, err)
 
 	// Both PS-IDs should be reported.

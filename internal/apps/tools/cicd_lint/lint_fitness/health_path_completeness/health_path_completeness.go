@@ -28,20 +28,13 @@ var requiredHealthPaths = []string{
 	cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath + cryptoutilSharedMagic.PrivateAdminShutdownRequestPath, // /admin/api/v1/shutdown
 }
 
-// Test seams: replaceable in tests to exercise unreachable OS-level error paths.
-// See ARCHITECTURE.md Section 10.2.4 (Test Seam Injection Pattern).
-var (
-	healthPathReadDirFn  = os.ReadDir
-	healthPathReadFileFn = os.ReadFile
-)
-
 // Check verifies health path completeness from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
-	return CheckInDir(logger, ".")
+	return CheckInDir(logger, ".", os.ReadDir, os.ReadFile)
 }
 
 // CheckInDir verifies health path completeness under rootDir.
-func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
+func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, readDirFn func(string) ([]os.DirEntry, error), readFileFn func(string) ([]byte, error)) error {
 	logger.Log("Checking health path completeness in services...")
 
 	projectRoot, err := filepath.Abs(rootDir)
@@ -60,7 +53,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 		svcDir := filepath.Join(appsDir, ps.InternalAppsDir)
 
-		svcViolations, err := checkServiceHealthPaths(ps.PSID, svcDir)
+		svcViolations, err := checkServiceHealthPaths(ps.PSID, svcDir, readDirFn, readFileFn)
 		if err != nil {
 			return fmt.Errorf("checking service %s: %w", ps.PSID, err)
 		}
@@ -83,10 +76,10 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 // checkServiceHealthPaths checks that svcDir references all required health paths.
 // Returns violations, one per missing path.
-func checkServiceHealthPaths(psID, svcDir string) ([]string, error) {
+func checkServiceHealthPaths(psID, svcDir string, readDirFn func(string) ([]os.DirEntry, error), readFileFn func(string) ([]byte, error)) ([]string, error) {
 	foundPaths := make(map[string]bool)
 
-	entries, err := healthPathReadDirFn(svcDir)
+	entries, err := readDirFn(svcDir)
 	if err != nil {
 		return nil, fmt.Errorf("read service dir %s: %w", psID, err)
 	}
@@ -98,7 +91,7 @@ func checkServiceHealthPaths(psID, svcDir string) ([]string, error) {
 
 		filePath := filepath.Join(svcDir, entry.Name())
 
-		content, readErr := healthPathReadFileFn(filePath) //nolint:gosec // path from controlled ReadDir
+		content, readErr := readFileFn(filePath) //nolint:gosec // path from controlled ReadDir
 		if readErr != nil {
 			return nil, fmt.Errorf("read file %s: %w", filePath, readErr)
 		}

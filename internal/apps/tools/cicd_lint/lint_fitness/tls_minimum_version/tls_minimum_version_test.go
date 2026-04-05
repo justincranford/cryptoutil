@@ -50,7 +50,7 @@ func TestCheckInDir_CleanFile_Passes(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
 	writeGoFile(t, tmp, "server.go", cleanGoContent)
-	err := CheckInDir(newTestLogger(), tmp)
+	err := CheckInDir(newTestLogger(), tmp, filepath.Walk, os.Open)
 	require.NoError(t, err)
 }
 
@@ -58,7 +58,7 @@ func TestCheckInDir_TLS12Production_Fails(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
 	writeGoFile(t, tmp, "server.go", tls12GoContent)
-	err := CheckInDir(newTestLogger(), tmp)
+	err := CheckInDir(newTestLogger(), tmp, filepath.Walk, os.Open)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "TLS minimum version violation")
 }
@@ -68,7 +68,7 @@ func TestCheckInDir_TLS12InTestFile_Skipped(t *testing.T) {
 	tmp := t.TempDir()
 	// _test.go files are excluded from TLS check.
 	writeGoFile(t, tmp, "server_test.go", tls12GoContent)
-	err := CheckInDir(newTestLogger(), tmp)
+	err := CheckInDir(newTestLogger(), tmp, filepath.Walk, os.Open)
 	require.NoError(t, err)
 }
 
@@ -78,7 +78,7 @@ func TestCheckInDir_TLS12InArchivedDir_Skipped(t *testing.T) {
 	archivedDir := filepath.Join(tmp, "archived")
 	writeGoFile(t, archivedDir, "old.go", tls12GoContent)
 
-	err := CheckInDir(newTestLogger(), tmp)
+	err := CheckInDir(newTestLogger(), tmp, filepath.Walk, os.Open)
 	require.NoError(t, err)
 }
 
@@ -90,7 +90,7 @@ func TestCheckInDir_CommentLine_Skipped(t *testing.T) {
 // This is an old example: MinVersion: tls.VersionTLS12 should not be used.
 func Good() {}
 `)
-	err := CheckInDir(newTestLogger(), tmp)
+	err := CheckInDir(newTestLogger(), tmp, filepath.Walk, os.Open)
 	require.NoError(t, err)
 }
 
@@ -104,7 +104,7 @@ import "crypto/tls"
 func c1() *tls.Config { return &tls.Config{MinVersion: tls.VersionTLS12} }
 func c2() *tls.Config { return &tls.Config{MinVersion: tls.VersionTLS12} }
 `)
-	err := CheckInDir(newTestLogger(), tmp)
+	err := CheckInDir(newTestLogger(), tmp, filepath.Walk, os.Open)
 	require.Error(t, err)
 }
 
@@ -114,7 +114,7 @@ func TestCheckInDir_NonGoFile_Ignored(t *testing.T) {
 	p := filepath.Join(tmp, "config.yaml")
 	require.NoError(t, os.WriteFile(p, []byte("MinVersion: tls.VersionTLS12\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	err := CheckInDir(newTestLogger(), tmp)
+	err := CheckInDir(newTestLogger(), tmp, filepath.Walk, os.Open)
 	require.NoError(t, err)
 }
 
@@ -122,7 +122,7 @@ func TestScanFileForTLSVersion_NoViolations(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
 	p := writeGoFile(t, tmp, "clean.go", cleanGoContent)
-	violations, err := scanFileForTLSVersion(p, tmp)
+	violations, err := scanFileForTLSVersion(p, tmp, os.Open)
 	require.NoError(t, err)
 	require.Empty(t, violations)
 }
@@ -131,7 +131,7 @@ func TestScanFileForTLSVersion_WithViolation(t *testing.T) {
 	t.Parallel()
 	tmp := t.TempDir()
 	p := writeGoFile(t, tmp, "bad.go", tls12GoContent)
-	violations, err := scanFileForTLSVersion(p, tmp)
+	violations, err := scanFileForTLSVersion(p, tmp, os.Open)
 	require.NoError(t, err)
 	require.Len(t, violations, 1)
 	require.Contains(t, violations[0], "TLS MinVersion below TLS 1.3")
@@ -140,7 +140,7 @@ func TestScanFileForTLSVersion_WithViolation(t *testing.T) {
 func TestScanFileForTLSVersion_NonexistentFile_Error(t *testing.T) {
 	t.Parallel()
 
-	_, err := scanFileForTLSVersion("/nonexistent/file.go", "/tmp")
+	_, err := scanFileForTLSVersion("/nonexistent/file.go", "/tmp", os.Open)
 	require.Error(t, err)
 }
 
@@ -150,54 +150,50 @@ func TestCheckInDir_VendorDir_Skipped(t *testing.T) {
 	vendorDir := filepath.Join(tmp, cryptoutilSharedMagic.CICDExcludeDirVendor)
 	writeGoFile(t, vendorDir, "dep.go", tls12GoContent)
 
-	err := CheckInDir(newTestLogger(), tmp)
+	err := CheckInDir(newTestLogger(), tmp, filepath.Walk, os.Open)
 	require.NoError(t, err)
 }
 
-// Sequential: modifies package-level tlsMinVersionWalkFn seam.
 func TestCheckInDir_WalkError(t *testing.T) {
-	orig := tlsMinVersionWalkFn
+	t.Parallel()
 
-	t.Cleanup(func() { tlsMinVersionWalkFn = orig })
-
-	tlsMinVersionWalkFn = func(_ string, _ filepath.WalkFunc) error {
-		return fmt.Errorf("injected walk error")
-	}
-
-	err := CheckInDir(newTestLogger(), t.TempDir())
+	err := CheckInDir(
+		newTestLogger(),
+		t.TempDir(),
+		func(_ string, _ filepath.WalkFunc) error { return fmt.Errorf("injected walk error") },
+		os.Open,
+	)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "filesystem walk failed")
 }
 
-// Sequential: modifies package-level tlsMinVersionWalkFn seam.
 func TestCheckInDir_WalkCallbackError(t *testing.T) {
-	orig := tlsMinVersionWalkFn
+	t.Parallel()
 
-	t.Cleanup(func() { tlsMinVersionWalkFn = orig })
-
-	tlsMinVersionWalkFn = func(_ string, fn filepath.WalkFunc) error {
-		return fn("bad/path", nil, fmt.Errorf("injected callback error"))
-	}
-
-	err := CheckInDir(newTestLogger(), t.TempDir())
+	err := CheckInDir(
+		newTestLogger(),
+		t.TempDir(),
+		func(_ string, fn filepath.WalkFunc) error {
+			return fn("bad/path", nil, fmt.Errorf("injected callback error"))
+		},
+		os.Open,
+	)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "filesystem walk failed")
 }
 
-// Sequential: modifies package-level tlsMinVersionOpenFn seam.
 func TestCheckInDir_ScanOpenError(t *testing.T) {
-	orig := tlsMinVersionOpenFn
-
-	t.Cleanup(func() { tlsMinVersionOpenFn = orig })
-
-	tlsMinVersionOpenFn = func(_ string) (*os.File, error) {
-		return nil, fmt.Errorf("injected open error")
-	}
+	t.Parallel()
 
 	tmp := t.TempDir()
 	writeGoFile(t, tmp, "main.go", "package main\n")
 
-	err := CheckInDir(newTestLogger(), tmp)
+	err := CheckInDir(
+		newTestLogger(),
+		tmp,
+		filepath.Walk,
+		func(_ string) (*os.File, error) { return nil, fmt.Errorf("injected open error") },
+	)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "filesystem walk failed")
 }

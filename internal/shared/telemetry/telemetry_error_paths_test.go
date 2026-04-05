@@ -119,12 +119,14 @@ func TestShutdown_LogsProviderShutdownError(t *testing.T) {
 
 // TestInitMetrics_StdoutExporterError tests the error path when STDOUT metric exporter creation fails.
 func TestInitMetrics_StdoutExporterError(t *testing.T) {
-	originalStdout := stdoutMetricExporterNewFn
-	stdoutMetricExporterNewFn = func(_ ...stdoutMetricExporter.Option) (metricSdk.Exporter, error) {
-		return nil, fmt.Errorf("injected STDOUT metrics error")
+	originalFn := initMetricsFn
+	initMetricsFn = func(ctx context.Context, slogger *stdoutLogExporter.Logger, settings *TelemetrySettings) (*metricSdk.MeterProvider, error) {
+		return initMetrics(ctx, slogger, settings, func(_ ...stdoutMetricExporter.Option) (metricSdk.Exporter, error) {
+			return nil, fmt.Errorf("injected STDOUT metrics error")
+		})
 	}
 
-	defer func() { stdoutMetricExporterNewFn = originalStdout }()
+	defer func() { initMetricsFn = originalFn }()
 
 	settings := NewTestTelemetrySettings("test_stdout_metrics_error")
 	settings.OTLPConsole = true
@@ -136,12 +138,14 @@ func TestInitMetrics_StdoutExporterError(t *testing.T) {
 
 // TestInitTraces_StdoutExporterError tests the error path when STDOUT trace exporter creation fails.
 func TestInitTraces_StdoutExporterError(t *testing.T) {
-	originalStdout := stdoutTraceExporterNewFn
-	stdoutTraceExporterNewFn = func(_ ...stdoutTraceExporter.Option) (*stdoutTraceExporter.Exporter, error) {
-		return nil, fmt.Errorf("injected STDOUT traces error")
+	originalFn := initTracesFn
+	initTracesFn = func(ctx context.Context, slogger *stdoutLogExporter.Logger, settings *TelemetrySettings) (*traceSdk.TracerProvider, error) {
+		return initTraces(ctx, slogger, settings, func(_ ...stdoutTraceExporter.Option) (*stdoutTraceExporter.Exporter, error) {
+			return nil, fmt.Errorf("injected STDOUT traces error")
+		})
 	}
 
-	defer func() { stdoutTraceExporterNewFn = originalStdout }()
+	defer func() { initTracesFn = originalFn }()
 
 	settings := NewTestTelemetrySettings("test_stdout_traces_error")
 	settings.OTLPConsole = true

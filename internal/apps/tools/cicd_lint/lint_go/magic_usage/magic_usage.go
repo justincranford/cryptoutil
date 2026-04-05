@@ -16,8 +16,6 @@ import (
 	lintGoCommon "cryptoutil/internal/apps/tools/cicd_lint/lint_go/common"
 )
 
-
-
 // magicUsageKind classifies how a magic value appears outside the magic package.
 type magicUsageKind string
 

@@ -18,20 +18,13 @@ import (
 // healthRequirements are string patterns that must appear somewhere in a service.
 var healthRequirements = []string{"livez", "readyz"}
 
-// Test seams: replaceable in tests to exercise unreachable OS-level error paths.
-// See ARCHITECTURE.md Section 10.2.4 (Test Seam Injection Pattern).
-var (
-	healthEndpointReadDirFn  = os.ReadDir
-	healthEndpointReadFileFn = os.ReadFile
-)
-
 // Check verifies health endpoint presence from the workspace root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
-	return CheckInDir(logger, ".")
+	return CheckInDir(logger, ".", os.ReadDir, os.ReadFile)
 }
 
 // CheckInDir verifies health endpoint presence under rootDir.
-func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
+func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, readDirFn func(string) ([]os.DirEntry, error), readFileFn func(string) ([]byte, error)) error {
 	logger.Log("Checking health endpoint presence in services...")
 
 	projectRoot, err := filepath.Abs(rootDir)
@@ -41,7 +34,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 	appsDir := filepath.Join(projectRoot, "internal", "apps")
 
-	services, err := discoverServices(appsDir)
+	services, err := discoverServices(appsDir, readDirFn)
 	if err != nil {
 		return fmt.Errorf("failed to discover services: %w", err)
 	}
@@ -49,7 +42,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	var violations []string
 
 	for _, svc := range services {
-		svcViolations := checkServiceHealth(svc, appsDir)
+		svcViolations := checkServiceHealth(svc, appsDir, readFileFn)
 		violations = append(violations, svcViolations...)
 	}
 
@@ -75,10 +68,10 @@ type serviceID struct {
 // discoverServices returns all product/service pairs under appsDir.
 // Excludes: cicd, skeleton, template products; archived (_-prefixed) dirs;
 // non-service dirs (those without a server/ subdirectory).
-func discoverServices(appsDir string) ([]serviceID, error) {
+func discoverServices(appsDir string, readDirFn func(string) ([]os.DirEntry, error)) ([]serviceID, error) {
 	var services []serviceID
 
-	products, err := healthEndpointReadDirFn(appsDir)
+	products, err := readDirFn(appsDir)
 	if err != nil {
 		return nil, fmt.Errorf("read apps dir: %w", err)
 	}
@@ -122,7 +115,7 @@ func discoverServices(appsDir string) ([]serviceID, error) {
 }
 
 // checkServiceHealth checks that a service references all required health patterns.
-func checkServiceHealth(svc serviceID, appsDir string) []string {
+func checkServiceHealth(svc serviceID, appsDir string, readFileFn func(string) ([]byte, error)) []string {
 	svcDir := filepath.Join(appsDir, svc.product, svc.service)
 
 	// Collect all Go file content in the service directory.
@@ -137,7 +130,7 @@ func checkServiceHealth(svc serviceID, appsDir string) []string {
 			return nil
 		}
 
-		content, readErr := healthEndpointReadFileFn(path) //nolint:gosec // path from filepath.Walk, controlled
+		content, readErr := readFileFn(path) //nolint:gosec // path from filepath.Walk, controlled
 		if readErr != nil {
 			return fmt.Errorf("reading file %s: %w", path, readErr)
 		}

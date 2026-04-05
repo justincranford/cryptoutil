@@ -68,7 +68,7 @@ func TestCheck_RealWorkspace(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	// Run from project root (6 levels up from this test file).
-	err := CheckInDir(logger, filepath.Join("..", "..", "..", "..", "..", ".."))
+	err := CheckInDir(logger, filepath.Join("..", "..", "..", "..", "..", ".."), os.ReadFile)
 	if err != nil {
 		t.Fatalf("unexpected violation in real workspace: %v", err)
 	}
@@ -119,7 +119,7 @@ func TestCheckInDir_ValidOverlays(t *testing.T) {
 			rootDir := setupTempDir(t, merged)
 			logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
-			err := CheckInDir(logger, rootDir)
+			err := CheckInDir(logger, rootDir, os.ReadFile)
 			if err != nil {
 				t.Errorf("expected no violations, got: %v", err)
 			}
@@ -194,7 +194,7 @@ func TestCheckInDir_Violations(t *testing.T) {
 			rootDir := setupTempDir(t, tc.setupFiles)
 			logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
-			err := CheckInDir(logger, rootDir)
+			err := CheckInDir(logger, rootDir, os.ReadFile)
 			if err == nil {
 				t.Fatal("expected violation, got nil error")
 			}
@@ -219,7 +219,7 @@ func TestCheckInDir_YAMLParseError(t *testing.T) {
 	rootDir := setupTempDir(t, setupFiles)
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile)
 	if err == nil {
 		t.Fatal("expected error for invalid YAML, got nil")
 	}
@@ -230,16 +230,7 @@ func TestCheckInDir_YAMLParseError(t *testing.T) {
 }
 
 func TestCheckInDir_ReadFileError(t *testing.T) {
-	// Non-parallel: modifies package-level overlayReadFileFn.
-	original := overlayReadFileFn
-
-	defer func() {
-		overlayReadFileFn = original
-	}()
-
-	overlayReadFileFn = func(name string) ([]byte, error) {
-		return nil, fmt.Errorf("simulated read error")
-	}
+	t.Parallel()
 
 	setupFiles := map[string]string{
 		"deployments/sm-kms/config/sm-kms-app-sqlite-1.yml":     "exists",
@@ -251,7 +242,9 @@ func TestCheckInDir_ReadFileError(t *testing.T) {
 	rootDir := setupTempDir(t, setupFiles)
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, func(_ string) ([]byte, error) {
+		return nil, fmt.Errorf("simulated read error")
+	})
 	if err == nil {
 		t.Fatal("expected error from simulated read failure, got nil")
 	}
@@ -291,7 +284,7 @@ func TestCheck_LoadTemplateError(t *testing.T) {
 	// ensure we get a proper error when YAML is truly broken (not just wrong shape).
 	overlayTemplatesYAML = []byte("{ invalid yaml: [unclosed")
 
-	err := CheckInDir(logger, t.TempDir())
+	err := CheckInDir(logger, t.TempDir(), os.ReadFile)
 	if err == nil {
 		t.Fatal("expected error for invalid YAML in phase, got nil")
 	}
@@ -321,7 +314,7 @@ func TestCheckInDir_UnknownVariantInTemplate(t *testing.T) {
 	rootDir := setupTempDir(t, setupFiles)
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
-	err := CheckInDir(logger, rootDir)
+	err := CheckInDir(logger, rootDir, os.ReadFile)
 	if err == nil {
 		t.Fatal("expected violation for unknown variant, got nil")
 	}
