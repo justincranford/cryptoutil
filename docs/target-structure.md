@@ -2,9 +2,9 @@
 
 **Status**: CANONICAL TARGET — Living reference document
 **Created**: 2026-03-26
-**Last Updated**: 2026-03-31
+**Last Updated**: 2026-04-05
 **Purpose**: Define the complete, parameterized target state of every directory and file in the
-repository. Originally created during framework-v6, now maintained as a living spec in framework-v7.
+repository. Originally created during framework-v6, now maintained as a living spec in framework-v8.
 This document supersedes framework-v5/target-structure.md (deleted — git history preserves).
 
 **RULE**: Everything listed here MUST exist. Everything NOT listed is deleted.
@@ -566,20 +566,14 @@ Each service lives at `internal/apps/{PS-ID}/` (flat, NOT nested under product).
 | Package | Purpose |
 |---------|---------|
 | `apperr/` | Identity-specific error types |
-| `authz/` | Authorization logic shared across identity services |
 | `config/` | Shared identity configuration |
 | `domain/` | Shared identity domain types |
 | `email/` | Email sending |
-| `idp/` | Identity provider shared logic |
 | `issuer/` | Token issuer |
 | `jobs/` | Background jobs |
 | `mfa/` | Multi-factor authentication |
-| `ratelimit/` | Rate limiting |
 | `repository/` (with `orm/`, `migrations/`) | Shared identity data access |
 | `rotation/` | Key/token rotation |
-| `rp/` | Relying party shared logic |
-| `rs/` | Resource server shared logic |
-| `spa/` | Single page app shared logic |
 
 #### G.1.3 Framework & Tools
 
@@ -598,7 +592,8 @@ internal/apps/
 │   └── service/                                      #   Service-level framework
 │       ├── cli/
 │       ├── client/
-│       ├── config/
+│       ├── config/                                            #   Shared config types (ServerConfig, DatabaseConfig, etc.)
+│       ├── ratelimit/                                         #   Rate limiter (moved from identity/ratelimit)
 │       ├── server/
 │       │   ├── apis/
 │       │   ├── application/
@@ -764,12 +759,14 @@ docs/                                                 # drwxr-x---
 ├── DEV-SETUP.md                                      # Developer setup guide
 ├── README.md                                         # Documentation index
 ├── required-propagations.yaml                        # @propagate coverage completeness manifest
-└── framework-v7/                                     # Target structure documentation
-    ├── lessons.md                                    #   Lessons from framework-v7 implementation
-    ├── PARAMETERIZATION-OPPORTUNITIES.md             #   Parameterization opportunity catalog
-    ├── plan.md                                       #   Implementation plan
-    ├── target-structure.md                           #   THIS FILE (canonical target structure)
-    └── tasks.md                                      #   Task checklist
+├── target-structure.md                               # THIS FILE — canonical target structure
+├── framework-v7/                                     # Framework-v7 implementation artifacts (complete)
+│   ├── lessons.md                                    #   Lessons (apply to ARCHITECTURE.md + delete after)
+│   ├── plan.md                                       #   Implementation plan (48 tasks complete)
+│   └── tasks.md                                      #   Task checklist (48/48 ✅)
+└── framework-v8/                                     # Framework-v8 planning artifacts (in progress)
+    ├── carryover.md                                  #   Prioritized carryover items
+    └── claude.md                                     #   Claude AI best practices and file structure
 ```
 
 ---
