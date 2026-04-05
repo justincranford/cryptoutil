@@ -1414,6 +1414,49 @@ if session.CreatedAt.After(time.Now().UTC()) { ... }
 
 **Pre-commit hook auto-converts** `time.Now()` → `time.Now().UTC()`.
 
+#### 5.2.5 Framework Shared Types
+
+The `internal/apps/framework/service/` package provides reusable infrastructure types that all services share. These types eliminate boilerplate and ensure architectural consistency.
+
+##### Config Types (`internal/apps/framework/service/config/`)
+
+| Type | Purpose | Key Fields |
+|------|---------|-----------|
+| `ServerConfig` | HTTP server settings | Name, BindAddress, Port, TLS fields, Admin fields |
+| `DatabaseConfig` | Database connection settings | Type (postgres/sqlite), DSN, MaxOpenConns, MaxIdleConns |
+| `SessionConfig` | Session management settings | SessionLifetime, IdleTimeout, Cookie fields |
+| `ObservabilityConfig` | Logging and telemetry settings | LogLevel, LogFormat, MetricsEnabled, TracingEnabled |
+
+Each type has a `Validate()` method that enforces field constraints.
+
+**Usage pattern** (type alias for backward compatibility in service-specific config packages):
+
+```go
+import cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
+
+// Type alias: backward compatible — all importers unchanged, Validate() inherited
+type ServerConfig = cryptoutilAppsFrameworkServiceConfig.ServerConfig
+type DatabaseConfig = cryptoutilAppsFrameworkServiceConfig.DatabaseConfig
+type SessionConfig = cryptoutilAppsFrameworkServiceConfig.SessionConfig
+type ObservabilityConfig = cryptoutilAppsFrameworkServiceConfig.ObservabilityConfig
+```
+
+Service-specific types (e.g., `identity.TokenConfig`, `identity.SecurityConfig`) remain in their own packages.
+
+##### Rate Limiter (`internal/apps/framework/service/ratelimit/`)
+
+The `RateLimiter` type provides per-key token-bucket rate limiting with configurable windows. Used by services to throttle operations like email OTP sending.
+
+```go
+// Create with max requests per window
+rateLimiter := cryptoutilFrameworkServiceRatelimit.NewRateLimiter(maxCount, windowSize)
+
+// Allow returns nil or an error if the rate limit is exceeded
+if err := rateLimiter.Allow(userID.String()); err != nil {
+    return fmt.Errorf("%w: %w", apperr.ErrRateLimitExceeded, err)
+}
+```
+
 ### 5.3 Dual HTTPS Endpoint Pattern
 
 #### 5.3.1 Public HTTPS Endpoint
