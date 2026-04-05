@@ -1504,6 +1504,8 @@ if err := rateLimiter.Allow(userID.String()); err != nil {
 - API contracts identical, only middleware/authentication differ
 - Middleware enforces authorization mutual exclusivity (headless → /service/**, browser → /browser/**)
 - E2E tests MUST verify BOTH path prefixes
+- Each PS-ID `{ps-id}_usage.go` MUST mention BOTH `/service/api/v1/health` AND `/browser/api/v1/health`
+  paths in its CLI usage string — every PS-ID exposes both health endpoints without exception
 
 ### 5.5 Health Check Patterns
 
@@ -2551,6 +2553,10 @@ See `.github/actions/` for the authoritative action catalog.
 - Skip patterns and exclusions
 - Fail-fast vs continue-on-error strategies
 
+**MANDATORY**: `git commit --no-verify` is BANNED. Pre-commit IS the primary validator;
+CI/CD audits that all pre-commit validators were actually run. Investigate and fix
+the root cause of any pre-commit failure before committing. NEVER bypass with `--no-verify`.
+
 #### 9.9.3 UTF-8 Without BOM Enforcement
 
 <!-- @propagate to=".github/instructions/03-05.linting.instructions.md" as="utf8-without-bom" -->
@@ -2674,7 +2680,7 @@ internal/apps/tools/cicd_lint/
 │   ├── leftover_coverage/                          # Sub-linter: detect _coverage_ test files
 │   ├── magic_aliases/                              # Sub-linter: import alias enforcement
 │   ├── magic_duplicates/                           # Sub-linter: duplicate magic constants
-│   ├── magic_usage/                                # Sub-linter: literal-use violations
+│   ├── magic_usage/                                # Sub-linter: literal-use + const-redefine (both BLOCKING)
 │   ├── no_unaliased_cryptoutil_imports/            # Sub-linter: require aliases on internal imports
 │   └── test_presence/                              # Sub-linter: require test files per package
 ├── lint_go_mod/                                      # lint-go-mod command
@@ -4040,6 +4046,11 @@ Here are local convenience commands to run the workflows locally for Development
 - Auto-fixable linters (--fix workflow)
 - Manual fix requirements
 - Pre-commit hook integration
+
+**gofumpt bulk fix**: `golangci-lint run --fix` does NOT fix tab indentation in all files
+(especially files with no tabs at all — the diff is empty so gofumpt skips them). Use
+`gofumpt -w .` directly to fix ALL Go files in the repository at once. After `gofumpt -w .`,
+`golangci-lint run` must report zero formatting violations.
 
 #### 11.3.4 Mutation Testing Architecture
 
