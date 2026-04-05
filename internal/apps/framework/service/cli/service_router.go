@@ -65,7 +65,7 @@ func RouteService(cfg ServiceConfig, args []string, stdout, stderr io.Writer, se
 	}
 
 	// Check for help flags.
-	if args[0] == cryptoutilSharedMagic.CLIHelpCommand || args[0] == cryptoutilSharedMagic.CLIHelpFlag || args[0] == cryptoutilSharedMagic.CLIHelpShortFlag {
+	if IsHelpRequest(args) {
 		_, _ = fmt.Fprintln(stdout, cfg.UsageMain)
 
 		return 0
