@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilIdentityRatelimit "cryptoutil/internal/apps/identity/ratelimit"
+	cryptoutilFrameworkServiceRatelimit "cryptoutil/internal/apps/framework/service/ratelimit"
 
 	"github.com/stretchr/testify/require"
 )
@@ -15,7 +15,7 @@ import (
 func TestRateLimiter_Allow(t *testing.T) {
 	t.Parallel()
 
-	rl := cryptoutilIdentityRatelimit.NewRateLimiter(3, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond)
+	rl := cryptoutilFrameworkServiceRatelimit.NewRateLimiter(3, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond)
 
 	// First 3 requests should succeed.
 	for i := 0; i < 3; i++ {
@@ -32,7 +32,7 @@ func TestRateLimiter_Allow(t *testing.T) {
 func TestRateLimiter_Allow_DifferentKeys(t *testing.T) {
 	t.Parallel()
 
-	rl := cryptoutilIdentityRatelimit.NewRateLimiter(2, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond)
+	rl := cryptoutilFrameworkServiceRatelimit.NewRateLimiter(2, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond)
 
 	// User1: 2 requests (at limit).
 	err := rl.Allow("user1")
@@ -58,7 +58,7 @@ func TestRateLimiter_Allow_DifferentKeys(t *testing.T) {
 func TestRateLimiter_WindowExpiration(t *testing.T) {
 	t.Parallel()
 
-	rl := cryptoutilIdentityRatelimit.NewRateLimiter(2, cryptoutilSharedMagic.IMMaxUsernameLength*time.Millisecond)
+	rl := cryptoutilFrameworkServiceRatelimit.NewRateLimiter(2, cryptoutilSharedMagic.IMMaxUsernameLength*time.Millisecond)
 
 	// Make 2 requests (at limit).
 	err := rl.Allow("user1")
@@ -81,7 +81,7 @@ func TestRateLimiter_WindowExpiration(t *testing.T) {
 func TestRateLimiter_Reset(t *testing.T) {
 	t.Parallel()
 
-	rl := cryptoutilIdentityRatelimit.NewRateLimiter(2, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond)
+	rl := cryptoutilFrameworkServiceRatelimit.NewRateLimiter(2, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond)
 
 	// Make 2 requests (at limit).
 	err := rl.Allow("user1")
@@ -104,7 +104,7 @@ func TestRateLimiter_Reset(t *testing.T) {
 func TestRateLimiter_GetCount(t *testing.T) {
 	t.Parallel()
 
-	rl := cryptoutilIdentityRatelimit.NewRateLimiter(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond)
+	rl := cryptoutilFrameworkServiceRatelimit.NewRateLimiter(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries, cryptoutilSharedMagic.IMMaxUsernameLength*time.Millisecond)
 
 	// No requests yet.
 	count := rl.GetCount("user1")
@@ -121,7 +121,7 @@ func TestRateLimiter_GetCount(t *testing.T) {
 	require.Equal(t, 3, count)
 
 	// Wait for window to expire.
-	time.Sleep(110 * time.Millisecond)
+	time.Sleep(cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds * time.Millisecond)
 
 	// Count should be 0 after expiration.
 	count = rl.GetCount("user1")

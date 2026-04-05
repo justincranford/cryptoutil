@@ -11,7 +11,7 @@ import (
 	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityEmail "cryptoutil/internal/apps/identity/email"
-	cryptoutilIdentityRatelimit "cryptoutil/internal/apps/identity/ratelimit"
+	cryptoutilFrameworkServiceRatelimit "cryptoutil/internal/apps/framework/service/ratelimit"
 	cryptoutilSharedCryptoPassword "cryptoutil/internal/shared/crypto/password"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
@@ -22,7 +22,7 @@ import (
 type EmailOTPService struct {
 	emailOTPRepo EmailOTPRepository
 	emailService cryptoutilIdentityEmail.EmailService
-	rateLimiter  *cryptoutilIdentityRatelimit.RateLimiter
+	rateLimiter  *cryptoutilFrameworkServiceRatelimit.RateLimiter
 }
 
 // EmailOTPRepository defines minimal repository interface needed by EmailOTPService.
@@ -40,7 +40,7 @@ func NewEmailOTPService(
 	return &EmailOTPService{
 		emailOTPRepo: emailOTPRepo,
 		emailService: emailService,
-		rateLimiter: cryptoutilIdentityRatelimit.NewRateLimiter(
+		rateLimiter: cryptoutilFrameworkServiceRatelimit.NewRateLimiter(
 			cryptoutilSharedMagic.DefaultEmailOTPRateLimit,
 			cryptoutilSharedMagic.DefaultEmailOTPRateLimitWindow,
 		),

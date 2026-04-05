@@ -1,6 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
-// Package ratelimit provides rate limiting functionality for identity services.
+// Package ratelimit provides rate limiting functionality for services.
 package ratelimit
 
 import (
