@@ -43,6 +43,7 @@ See [.github/skills/README.md](.github/skills/README.md) for the full catalogue.
 | `/agent-scaffold` | Creating a new `.github/agents/NAME.agent.md` + `.claude/agents/NAME.md` dual canonical pair |
 | `/instruction-scaffold` | Creating a new `.github/instructions/NN-NN.name.instructions.md` |
 | `/skill-scaffold` | Creating a new `.github/skills/NAME/SKILL.md` |
+| `/sync-copilot-claude` | Auditing/syncing Copilot skills and agents with their Claude counterparts |
 | `/new-service` | Creating a new service from skeleton-template |
 | `/contract-test-gen` | Adding cross-service contract compliance tests to a service |
 | `/fitness-function-gen` | Creating a new architecture fitness function (linter) |

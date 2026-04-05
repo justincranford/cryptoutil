@@ -41,6 +41,35 @@ display name.
 
 ---
 
+## 2.1. Migrate `.claude/commands/` → `.claude/skills/` + Update Linter [HIGH]
+
+**Current state**: Claude Code's preferred format for custom slash commands is now a
+directory-based skill at `.claude/skills/<name>/SKILL.md` (following the
+[Agent Skills open standard](https://agentskills.io/)). The 14 existing command files at
+`.claude/commands/*.md` are the legacy format — still supported but superseded.
+
+**The `lint-skill-command-drift` linter** currently checks `.claude/commands/<name>.md` against
+Copilot skills. After migration, it must check `.claude/skills/<name>/SKILL.md` instead.
+
+**Why HIGH**: The dual canonical strategy (Copilot Skills ↔ Claude Skills) is a foundational
+architectural principle. As long as the linter checks the legacy path, drift between Copilot
+skills and Claude skills is undetected. New skills created using the correct format (`sync-copilot-claude`
+attempted to do this) are not yet validated by the linter.
+
+**Action** (3 steps):
+1. For each of the 14 files in `.claude/commands/`: create `.claude/skills/<name>/SKILL.md`
+   directory and file (copy + adapt frontmatter; body stays identical to Copilot skill body),
+   test via `/<name>` in Claude Code, then delete the command file
+2. Update `lint-skill-command-drift` Go implementation in `internal/apps/tools/cicd_lint/lint_docs/`
+   to check `.claude/skills/<name>/SKILL.md` instead of `.claude/commands/<name>.md`
+3. Verify `go run ./cmd/cicd-lint lint-docs` still passes with zero errors after migration
+
+**Skills to migrate**: agent-scaffold, contract-test-gen, coverage-analysis, fips-audit,
+fitness-function-gen, instruction-scaffold, migration-create, new-service, openapi-codegen,
+propagation-check, skill-scaffold, test-benchmark-gen, test-fuzz-gen, test-table-driven (14 total).
+
+---
+
 ## 3. Fitness Linter: `usage/service_browser_health_paths` [MEDIUM]
 
 **Current state**: Each PS-ID has a `{ps-id}_usage.go` file with CLI usage strings. These usage
@@ -60,43 +89,25 @@ with `lint.go` + `lint_test.go`, register in the fitness registry.
 
 ---
 
-## 4. Create `docs/framework-v8/claude.md` — Claude AI Best Practices [MEDIUM]
+## 4. ✅ Create `docs/framework-v8/claude.md` — Claude AI Best Practices [MEDIUM]
 
-**Current state**: Claude Code configuration lives in `.claude/` (commands/, agents/,
-settings.local.json, CLAUDE.md). There is no canonical reference documenting what belongs in
-each file, how to structure Claude commands, and how to keep Copilot and Claude files in sync.
+**Status**: COMPLETED in framework-v8 session (2026-04-05).
 
-**Why MEDIUM**: As the team grows, onboarding engineers need a canonical reference for the
-dual Copilot+Claude tooling strategy. The `agent-customization` skill covers Copilot; Claude
-needs equivalent documentation.
-
-**Action**: Research Claude Code docs (especially CLAUDE.md format, `commands/` structure,
-`agents/` structure, `settings.local.json`). Create `docs/framework-v8/claude.md` with:
-- File structure explanation (what goes where)
-- CLAUDE.md mandatory fields and sections
-- Command file format (YAML frontmatter + body = system prompt)
-- Agent file format (same as commands but invoked as sub-agents)
-- Sync strategy between Copilot skills and Claude commands
-- `lint-agent-drift` and `lint-skill-command-drift` enforcement rules
+**What was done**: Created `docs/framework-v8/claude.md` covering Claude Code file structure
+(`.claude/` directory layout), CLAUDE.md format guidelines, skill YAML frontmatter reference,
+agent frontmatter reference, path-scoped rules (`.claude/rules/`), the Agent Skills open standard
+(agentskills.io), corrected dual canonical strategy (Skills → Claude Skills, not Commands),
+and migration checklist from legacy commands to skills.
 
 ---
 
-## 5. Create Copilot Skill: `sync-copilot-claude` [MEDIUM]
+## 5. ✅ Create Copilot Skill: `sync-copilot-claude` [MEDIUM]
 
-**Current state**: No skill exists to guide synchronizing `.github/skills/*.md` (Copilot) with
-`.claude/commands/*.md` (Claude). The `06-02.agent-format.instructions.md` documents the dual
-canonical strategy but there is no skill that walks through the full sync workflow.
+**Status**: COMPLETED in framework-v8 session (2026-04-05).
 
-**Why MEDIUM**: Keeping the dual-format tooling in sync is error-prone without a procedural
-skill. The `lint-skill-command-drift` fitness linter detects drift but doesn't guide the fix.
-
-**Action**: Create `.github/skills/sync-copilot-claude/SKILL.md` and corresponding
-`.claude/commands/sync-copilot-claude.md`. The skill should cover:
-- Checking drift via `go run ./cmd/cicd-lint lint-docs`
-- Creating a new Copilot skill (frontmatter requirements)
-- Creating the corresponding Claude command (different frontmatter)
-- Required `## Key Rules` section in both files
-- Running `lint-skill-command-drift` to verify zero drift
+**What was done**: Created `.github/skills/sync-copilot-claude/SKILL.md` (Copilot) and
+`.claude/skills/sync-copilot-claude/SKILL.md` (Claude — using the new preferred directory format).
+The skill covers audit, pair creation, migration workflow, and legacy status checks.
 
 ---
 

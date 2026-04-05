@@ -333,7 +333,7 @@ Implementation plans use the following files in `<work-dir>/`:
 
 **Drift prevention**: `cicd-lint lint-docs` runs two drift sub-linters:
 - **`lint-agent-drift`**: enforces that each Copilot agent (`copilot-NAME.agent.md`) has a matching Claude agent (`claude-NAME.md`) with identical `description:`, `argument-hint:`, and body. Only `name:` prefix and Copilot-only fields (`tools:`, `handoffs:`, `skills:`) may differ.
-- **`lint-skill-command-drift`**: enforces that each Copilot skill in `.github/skills/NAME/SKILL.md` has a corresponding Claude Code slash command in `.claude/commands/NAME.md` that references the skill path string. Detects missing commands, missing skill path references, and orphaned commands.
+- **`lint-skill-command-drift`**: enforces that each Copilot skill in `.github/skills/NAME/SKILL.md` has a corresponding Claude Code skill in `.claude/skills/NAME/SKILL.md`. Detects missing Claude skills, missing `## Key Rules` sections, and `description`/`argument-hint` mismatches. (**Note**: during migration from legacy `.claude/commands/` format, both paths are checked; see `docs/framework-v8/carryover.md`.)
 
 #### 2.1.3 Agent Handoff Flow
 
@@ -355,11 +355,13 @@ Skills live in `.github/skills/NAME/SKILL.md` — each skill in its own subdirec
 
 **SKILL.md Frontmatter Requirements**: `name` (required, matches directory name, max 64 chars, lowercase-hyphens), `description` (required, max 1024 chars, specific about both capabilities and use cases), `argument-hint` (optional, hint shown in chat input), `user-invocable` (optional, defaults true; set false to hide from / menu), `disable-model-invocation` (optional, defaults false; set true to require manual /skill invocation only). The `metadata:` sub-key is NOT a valid SKILL.md frontmatter field and MUST NOT be used.
 
-**Claude Code slash commands**: Each Copilot skill has a corresponding Claude Code slash command file at `.claude/commands/NAME.md` that references the skill path string `".github/skills/NAME/SKILL.md"` in its body. The `lint-skill-command-drift` sub-linter (part of `cicd-lint lint-docs`) enforces this 1:1 correspondence — missing commands, missing skill references, and orphaned commands all produce errors.
+**Claude Code skills**: Each Copilot skill has a corresponding Claude Code skill at `.claude/skills/NAME/SKILL.md` (directory-based, following the [Agent Skills open standard](https://agentskills.io/)). The `lint-skill-command-drift` sub-linter (part of `cicd-lint lint-docs`) enforces this 1:1 correspondence — missing Claude skills, `description`/`argument-hint` mismatches, and missing `## Key Rules` sections all produce errors.
 
-**Claude Command Frontmatter Requirements** (`.claude/commands/NAME.md`): YAML frontmatter (`---`) is REQUIRED. Fields: `name` (bare skill name, NOT the `claude-` prefix — e.g., `test-table-driven` not `claude-test-table-driven`), `description` (IDENTICAL to the corresponding Copilot skill's `description`), `argument-hint` (IDENTICAL to the Copilot skill's `argument-hint` when the skill has one). NEVER include `disable-model-invocation` — that field is Copilot-ONLY. The `lint-skill-command-drift` linter validates frontmatter presence, `description` match, and `argument-hint` match.
+**Claude Skill Frontmatter Requirements** (`.claude/skills/NAME/SKILL.md`): YAML frontmatter (`---`) is REQUIRED. Fields: `name` (bare skill name — e.g., `test-table-driven` NOT `claude-test-table-driven`), `description` (IDENTICAL to the corresponding Copilot skill's `description`), `argument-hint` (IDENTICAL to the Copilot skill's `argument-hint` when the skill has one). NEVER include `disable-model-invocation` — that field is Copilot-ONLY. Body content MUST be identical to the Copilot skill body. The `lint-skill-command-drift` linter validates frontmatter presence, `description` match, `argument-hint` match, and `## Key Rules` presence.
 
-**Key Rules Section**: Both `.github/skills/NAME/SKILL.md` AND `.claude/commands/NAME.md` MUST contain a `## Key Rules` section with the essential rules for using the skill/command correctly. The linter enforces this requirement and errors if either file is missing the section.
+**Legacy commands** (`.claude/commands/NAME.md`): Still supported by Claude Code but superseded by the skills directory format. Existing commands are migrated to `.claude/skills/NAME/SKILL.md` per `docs/framework-v8/carryover.md`. Skills take precedence when both exist for the same name.
+
+**Key Rules Section**: Both `.github/skills/NAME/SKILL.md` AND `.claude/skills/NAME/SKILL.md` MUST contain a `## Key Rules` section with the essential rules for using the skill correctly. The linter enforces this requirement and errors if either file is missing the section.
 
 **Skill Catalogue**:
 
@@ -379,6 +381,7 @@ Skills live in `.github/skills/NAME/SKILL.md` — each skill in its own subdirec
 | `agent-scaffold` | tooling | Create both `.github/agents/NAME.agent.md` (Copilot, with `tools:`) and `.claude/agents/NAME.md` (Claude Code, without `tools:`) with all mandatory sections | [SKILL.md](.github/skills/agent-scaffold/SKILL.md) |
 | `instruction-scaffold` | tooling | Create conformant `.github/instructions/NN-NN.name.instructions.md` | [SKILL.md](.github/skills/instruction-scaffold/SKILL.md) |
 | `skill-scaffold` | tooling | Create conformant `.github/skills/NAME/SKILL.md` with proper YAML frontmatter | [SKILL.md](.github/skills/skill-scaffold/SKILL.md) |
+| `sync-copilot-claude` | tooling | Audit and sync Copilot skills/agents with Claude skills/agents; shows migration status of legacy `.claude/commands/` | [SKILL.md](.github/skills/sync-copilot-claude/SKILL.md) |
 
 #### 2.1.6 Agent Tool Discovery
 
