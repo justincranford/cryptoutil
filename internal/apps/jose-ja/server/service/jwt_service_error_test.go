@@ -9,6 +9,7 @@ import (
 
 	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose-ja/server/model"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	_ "modernc.org/sqlite" // CGO-free SQLite driver.

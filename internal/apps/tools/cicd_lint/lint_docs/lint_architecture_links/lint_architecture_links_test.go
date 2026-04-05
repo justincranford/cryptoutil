@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	testArchPath            = "docs/ARCHITECTURE.md"
+	testArchPath            = "docs/ENG-HANDBOOK.md"
 	testInstructionFileName = "01-01.test.instructions.md"
 	testAgentFileName       = "my-agent.agent.md"
 
@@ -50,7 +50,7 @@ func TestCheck_Integration(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-lint-architecture-links")
 	err := Check(logger)
 
-	require.NoError(t, err, "all current instruction/agent/skill file anchors should resolve to real ARCHITECTURE.md headings")
+	require.NoError(t, err, "all current instruction/agent/skill file anchors should resolve to real ENG-HANDBOOK.md headings")
 }
 
 func TestHeadingToAnchor(t *testing.T) {
@@ -170,7 +170,7 @@ func TestCheckWithFS_AllAnchorsValid(t *testing.T) {
 			return []byte(archContent), nil
 		}
 
-		return []byte("See [ARCHITECTURE.md Section 2.5](../../docs/ARCHITECTURE.md#25-quality-strategy) for details.\n"), nil
+		return []byte("See [ENG-HANDBOOK.md Section 2.5](../../docs/ENG-HANDBOOK.md#25-quality-strategy) for details.\n"), nil
 	}
 
 	err := checkWithFS(logger, getwdFn, walkFn, readFileFn)
@@ -205,13 +205,13 @@ func TestCheckWithFS_BrokenAnchor(t *testing.T) {
 			return []byte(archContent), nil
 		}
 
-		return []byte("See [ARCHITECTURE.md Section 99](../../docs/ARCHITECTURE.md#99-nonexistent-section) for details.\n"), nil
+		return []byte("See [ENG-HANDBOOK.md Section 99](../../docs/ENG-HANDBOOK.md#99-nonexistent-section) for details.\n"), nil
 	}
 
 	err := checkWithFS(logger, getwdFn, walkFn, readFileFn)
 
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "1 broken ARCHITECTURE.md anchor(s) found")
+	require.Contains(t, err.Error(), "1 broken ENG-HANDBOOK.md anchor(s) found")
 }
 
 func TestCheckWithFS_GetwdError(t *testing.T) {
@@ -254,7 +254,7 @@ func TestCheckWithFS_ReadArchError(t *testing.T) {
 	err := checkWithFS(logger, getwdFn, walkFn, readFileFn)
 
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to read ARCHITECTURE.md")
+	require.Contains(t, err.Error(), "failed to read ENG-HANDBOOK.md")
 }
 
 func TestCheckWithFS_WalkError(t *testing.T) {
@@ -380,7 +380,7 @@ func TestCheckWithFS_SkipsNonMdFiles(t *testing.T) {
 	err := checkWithFS(logger, getwdFn, walkFn, readFileFn)
 
 	require.NoError(t, err)
-	// readFileFn is called once for ARCHITECTURE.md and once for valid.md only.
+	// readFileFn is called once for ENG-HANDBOOK.md and once for valid.md only.
 	require.Len(t, readCalled, 2)
 }
 
@@ -427,7 +427,7 @@ func TestCheckWithFS_SkipsExcludedScaffoldDirs(t *testing.T) {
 	err := checkWithFS(logger, getwdFn, walkFn, readFileFn)
 
 	require.NoError(t, err)
-	// Only ARCHITECTURE.md and the instruction file should be read (not scaffold files).
+	// Only ENG-HANDBOOK.md and the instruction file should be read (not scaffold files).
 	require.Len(t, filesRead, 2)
 }
 
@@ -441,9 +441,9 @@ func TestCheckWithFS_MultipleBrokenAnchors(t *testing.T) {
 
 	archContent := testArchContentSimple
 
-	fileContent := `See ARCHITECTURE.md#broken-one.
-See ARCHITECTURE.md#broken-two.
-See ARCHITECTURE.md#executive-summary valid.
+	fileContent := `See ENG-HANDBOOK.md#broken-one.
+See ENG-HANDBOOK.md#broken-two.
+See ENG-HANDBOOK.md#executive-summary valid.
 `
 	callCount := 0
 
@@ -471,7 +471,7 @@ See ARCHITECTURE.md#executive-summary valid.
 	err := checkWithFS(logger, getwdFn, walkFn, readFileFn)
 
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "2 broken ARCHITECTURE.md anchor(s) found")
+	require.Contains(t, err.Error(), "2 broken ENG-HANDBOOK.md anchor(s) found")
 }
 
 func TestCheckWithFS_AgentFilesChecked(t *testing.T) {
@@ -491,7 +491,7 @@ func TestCheckWithFS_AgentFilesChecked(t *testing.T) {
 			return []byte(archContent), nil
 		}
 
-		return []byte("See ARCHITECTURE.md#99-missing for details.\n"), nil
+		return []byte("See ENG-HANDBOOK.md#99-missing for details.\n"), nil
 	}
 
 	// Only provide an agent file (not instruction) to verify agents dir is scanned.
@@ -512,7 +512,7 @@ func TestCheckWithFS_AgentFilesChecked(t *testing.T) {
 	err := checkWithFS(logger, getwdFn, walkFn, readFileFn)
 
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "1 broken ARCHITECTURE.md anchor(s) found")
+	require.Contains(t, err.Error(), "1 broken ENG-HANDBOOK.md anchor(s) found")
 }
 
 // fakeDirEntry implements fs.DirEntry for testing.

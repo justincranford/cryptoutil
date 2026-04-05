@@ -12,7 +12,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// PropagateBlock represents a @propagate block extracted from ARCHITECTURE.md.
+// PropagateBlock represents a @propagate block extracted from ENG-HANDBOOK.md.
 type PropagateBlock struct {
 	TargetFile string // e.g., ".github/instructions/02-06.authn.instructions.md"
 	ChunkID    string // e.g., "key-principles"
@@ -65,7 +65,7 @@ var propagateRegex = regexp.MustCompile(`^<!-- @propagate to="([^"]+)" as="([^"]
 // sourceRegex matches the @source opening marker.
 var sourceRegex = regexp.MustCompile(`<!-- @source from="([^"]+)" as="([^"]+)" -->`)
 
-// extractPropagateBlocks extracts all @propagate blocks from ARCHITECTURE.md content,
+// extractPropagateBlocks extracts all @propagate blocks from ENG-HANDBOOK.md content,
 // skipping markers inside code fences but preserving code fences within propagated content.
 func extractPropagateBlocks(content string) []PropagateBlock {
 	var blocks []PropagateBlock
@@ -188,9 +188,9 @@ func extractSourceBlocks(content string) []SourceBlock {
 
 // ValidateChunks compares all @propagate blocks against their @source counterparts.
 func ValidateChunks(rootDir string, readFile func(string) ([]byte, error)) (*ChunkValidationResult, error) {
-	archContent, err := readFile("docs/ARCHITECTURE.md")
+	archContent, err := readFile("docs/ENG-HANDBOOK.md")
 	if err != nil {
-		return nil, fmt.Errorf("failed to read docs/ARCHITECTURE.md: %w", err)
+		return nil, fmt.Errorf("failed to read docs/ENG-HANDBOOK.md: %w", err)
 	}
 
 	propagateBlocks := extractPropagateBlocks(string(archContent))
@@ -288,7 +288,7 @@ func ValidateChunks(rootDir string, readFile func(string) ([]byte, error)) (*Chu
 func FormatChunkResults(result *ChunkValidationResult) string {
 	var sb strings.Builder
 
-	sb.WriteString("=== ARCHITECTURE.md Chunk Verification ===\n\n")
+	sb.WriteString("=== ENG-HANDBOOK.md Chunk Verification ===\n\n")
 
 	// Group issues by type.
 	var mismatches, missing, fileErrors []ChunkResult

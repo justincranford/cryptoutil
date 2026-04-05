@@ -2,7 +2,7 @@
 
 // Package lint_gotest_real_http_server enforces that test files do not use
 // httptest.NewServer to start real HTTP listeners when testing service handlers.
-// Per ARCHITECTURE.md §10.2, handler tests must use Fiber's app.Test() (in-memory,
+// Per ENG-HANDBOOK.md §10.2, handler tests must use Fiber's app.Test() (in-memory,
 // no network binding), which avoids port conflicts, Windows firewall prompts,
 // and TIME_WAIT delays. The exemption for files in client/ directories applies
 // because client code tests legitimately mock remote servers via httptest.NewServer.

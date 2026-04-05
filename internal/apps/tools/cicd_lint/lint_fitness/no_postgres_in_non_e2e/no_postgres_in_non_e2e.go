@@ -3,7 +3,7 @@
 // Package no_postgres_in_non_e2e enforces that PostgreSQL test containers are only used in E2E tests.
 // Unit tests and integration tests MUST use testdb.NewInMemorySQLiteDB() instead.
 // PostgreSQL containers are allowed only in files ending with _e2e_test.go or containing //go:build e2e.
-// See ARCHITECTURE.md Section 10.3 Integration Testing Strategy (D19).
+// See ENG-HANDBOOK.md Section 10.3 Integration Testing Strategy (D19).
 package no_postgres_in_non_e2e
 
 import (
@@ -124,7 +124,7 @@ func CheckFiles(logger *cryptoutilCmdCicdCommon.Logger, testFiles []string) erro
 	if totalViolations > 0 {
 		logger.Log(fmt.Sprintf("Found %d PostgreSQL container violation(s) in non-E2E tests", totalViolations))
 		fmt.Fprintln(os.Stderr, "Use testdb.NewInMemorySQLiteDB() for unit/integration tests or place in _e2e_test.go files.")
-		fmt.Fprintln(os.Stderr, "See ARCHITECTURE.md Section 10.3 Integration Testing Strategy (D19).")
+		fmt.Fprintln(os.Stderr, "See ENG-HANDBOOK.md Section 10.3 Integration Testing Strategy (D19).")
 
 		return fmt.Errorf("found %d PostgreSQL container violation(s) in non-E2E tests", totalViolations)
 	}

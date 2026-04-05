@@ -10,37 +10,37 @@ output-options:
   skip-prune: true
   name-normalizer: ToCamelCaseWithInitialisms
   additional-initialisms:
-    # Base initialisms (ARCHITECTURE.md Section 8.1.4 - mandatory in all gen configs)
-    - IDS    # Intrusion Detection System
-    - JWT    # JSON Web Token
-    - JWK    # JSON Web Key
-    - JWE    # JSON Web Encryption
-    - JWS    # JSON Web Signature
-    - OIDC   # OpenID Connect
-    - SAML   # Security Assertion Markup Language
-    - AES    # Advanced Encryption Standard
-    - GCM    # Galois/Counter Mode
-    - CBC    # Cipher Block Chaining
-    - RSA    # Rivest-Shamir-Adleman
-    - EC     # Elliptic Curve
-    - HMAC   # Hash-based Message Authentication Code
-    - SHA    # Secure Hash Algorithm
-    - TLS    # Transport Layer Security
-    - IP     # Internet Protocol
-    - AI     # Artificial Intelligence
-    - ML     # Machine Learning
-    - KEM    # Key Encapsulation Mechanism
-    - PEM    # Privacy Enhanced Mail
-    - DER    # Distinguished Encoding Rules
-    - DSA    # Digital Signature Algorithm
-    - IKM    # Input Keying Material
+    # Base initialisms (ENG-HANDBOOK.md Section 8.1.4 - mandatory in all gen configs)
+    - IDS # Intrusion Detection System
+    - JWT # JSON Web Token
+    - JWK # JSON Web Key
+    - JWE # JSON Web Encryption
+    - JWS # JSON Web Signature
+    - OIDC # OpenID Connect
+    - SAML # Security Assertion Markup Language
+    - AES # Advanced Encryption Standard
+    - GCM # Galois/Counter Mode
+    - CBC # Cipher Block Chaining
+    - RSA # Rivest-Shamir-Adleman
+    - EC # Elliptic Curve
+    - HMAC # Hash-based Message Authentication Code
+    - SHA # Secure Hash Algorithm
+    - TLS # Transport Layer Security
+    - IP # Internet Protocol
+    - AI # Artificial Intelligence
+    - ML # Machine Learning
+    - KEM # Key Encapsulation Mechanism
+    - PEM # Privacy Enhanced Mail
+    - DER # Distinguished Encoding Rules
+    - DSA # Digital Signature Algorithm
+    - IKM # Input Keying Material
     # Domain-specific additions
-    - CSR    # Certificate Signing Request
-    - CA     # Certificate Authority
-    - CRL    # Certificate Revocation List
-    - OCSP   # Online Certificate Status Protocol
-    - URI    # Uniform Resource Identifier
-    - SAN    # Subject Alternative Name
-    - DN     # Distinguished Name
-    - CN     # Common Name
-    - OU     # Organizational Unit
+    - CSR # Certificate Signing Request
+    - CA # Certificate Authority
+    - CRL # Certificate Revocation List
+    - OCSP # Online Certificate Status Protocol
+    - URI # Uniform Resource Identifier
+    - SAN # Subject Alternative Name
+    - DN # Distinguished Name
+    - CN # Common Name
+    - OU # Organizational Unit

@@ -18,7 +18,7 @@ oapi-codegen config files and a baseline OpenAPI 3.0.3 spec.
 - API MUST duplicate under BOTH `/service/` and `/browser/` paths
 - Content type: `application/json` ONLY (no form, multipart, or other types)
 - `strict-server: true` is MANDATORY in server config
-- All `openapi-gen_config*.yaml` MUST include the full base initialisms list from ARCHITECTURE.md §8
+- All `openapi-gen_config*.yaml` MUST include the full base initialisms list from ENG-HANDBOOK.md §8
 
 ## Three Config Files Per Service
 
@@ -140,5 +140,5 @@ oapi-codegen -config openapi-gen_config_client.yaml openapi_spec_paths.yaml
 
 ## References
 
-Read [ARCHITECTURE.md Section 8.1 OpenAPI-First Design](../../../docs/ARCHITECTURE.md#81-openapi-first-design) for strict-server requirements and code generation patterns — ensure all three config files (server/model/client) are generated with `strict-server: true` and correct output paths.
-Read [ARCHITECTURE.md Section 8.4 Error Handling](../../../docs/ARCHITECTURE.md#84-error-handling) for HTTP status codes and error schema — apply the standard error schema and status code table when generating response definitions.
+Read [ENG-HANDBOOK.md Section 8.1 OpenAPI-First Design](../../../docs/ENG-HANDBOOK.md#81-openapi-first-design) for strict-server requirements and code generation patterns — ensure all three config files (server/model/client) are generated with `strict-server: true` and correct output paths.
+Read [ENG-HANDBOOK.md Section 8.4 Error Handling](../../../docs/ENG-HANDBOOK.md#84-error-handling) for HTTP status codes and error schema — apply the standard error schema and status code table when generating response definitions.

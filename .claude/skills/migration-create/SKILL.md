@@ -83,5 +83,5 @@ Reference [validate_schema.go](/internal/apps/tools/cicd_lint/lint_deployments/v
 
 ## References
 
-Read [ARCHITECTURE.md Section 7 Data Architecture](../../../docs/ARCHITECTURE.md#7-data-architecture) for migration versioning and naming — apply the version range rules (template 1001–1999, domain 2001+) and `NNNN_description.up.sql` / `.down.sql` naming format.
-Read [ARCHITECTURE.md Section 5.2 Service Builder Pattern](../../../docs/ARCHITECTURE.md#52-service-builder-pattern) for migration registration — use the `WithDomainMigrations` and merged FS patterns from this section.
+Read [ENG-HANDBOOK.md Section 7 Data Architecture](../../../docs/ENG-HANDBOOK.md#7-data-architecture) for migration versioning and naming — apply the version range rules (template 1001–1999, domain 2001+) and `NNNN_description.up.sql` / `.down.sql` naming format.
+Read [ENG-HANDBOOK.md Section 5.2 Service Builder Pattern](../../../docs/ENG-HANDBOOK.md#52-service-builder-pattern) for migration registration — use the `WithDomainMigrations` and merged FS patterns from this section.

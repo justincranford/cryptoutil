@@ -331,7 +331,7 @@ func TestCheckInDir_FailsWithViolation(t *testing.T) {
 	err = CheckInDir(logger, tempDir)
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "[ValidateSkeleton]"))
-	require.True(t, strings.Contains(err.Error(), "ARCHITECTURE.md Section 5.1"))
+	require.True(t, strings.Contains(err.Error(), "ENG-HANDBOOK.md Section 5.1"))
 }
 
 func TestCheckInDir_InvalidRootDir(t *testing.T) {
@@ -471,7 +471,7 @@ func TestFindViolations_ErrorWrapping(t *testing.T) {
 }
 
 // TestFindViolations_AbsError exercises the filepath.Abs error path via test seam injection.
-// Sequential: modifies a package-level seam variable — see ARCHITECTURE.md Section 10.2.4.
+// Sequential: modifies a package-level seam variable — see ENG-HANDBOOK.md Section 10.2.4.
 func TestFindViolations_AbsError(t *testing.T) {
 	orig := filepathAbs
 
@@ -485,7 +485,7 @@ func TestFindViolations_AbsError(t *testing.T) {
 }
 
 // TestFindViolations_RelError exercises the filepath.Rel error path via test seam injection.
-// Sequential: modifies a package-level seam variable — see ARCHITECTURE.md Section 10.2.4.
+// Sequential: modifies a package-level seam variable — see ENG-HANDBOOK.md Section 10.2.4.
 func TestFindViolations_RelError(t *testing.T) {
 	orig := filepathRel
 

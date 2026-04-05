@@ -93,7 +93,7 @@ sub_linters:
     category: config
   - name: compose-entrypoint-uniformity
     directory: compose_entrypoint_uniformity
-    description: Validates that all 10 PS-ID Docker Compose app services use the canonical command array structure from ARCHITECTURE.md §12.3.5.
+    description: Validates that all 10 PS-ID Docker Compose app services use the canonical command array structure from ENG-HANDBOOK.md §12.3.5.
     category: config
 
   - name: configs-deployments-consistency

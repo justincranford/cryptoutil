@@ -1,7 +1,7 @@
 // Copyright (c) 2025 Justin Cranford
 
 // Package lint_gotest_hardcoded_uuid enforces that test files do not use
-// uuid.MustParse with hardcoded literal strings. Per ARCHITECTURE.md §10.2,
+// uuid.MustParse with hardcoded literal strings. Per ENG-HANDBOOK.md §10.2,
 // tests must use googleUuid.NewV7() for dynamic test data, or googleUuid.UUID{}
 // (nil UUID) and googleUuid.UUID{0xff, 0xff, ...} (max UUID) for edge cases.
 // Hardcoded literal UUIDs cause test coupling and fragile fixtures.

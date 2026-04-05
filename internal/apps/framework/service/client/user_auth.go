@@ -188,7 +188,7 @@ func LoginUser(client *http.Client, baseURL, loginPath, username, password strin
 }
 
 // generateCredentials generates a username and password using the provided functions.
-// Accepts fn params for testability (function-param injection pattern per ARCHITECTURE.md §10.2.4).
+// Accepts fn params for testability (function-param injection pattern per ENG-HANDBOOK.md §10.2.4).
 func generateCredentials(
 	generateUsernameFn func() (string, error),
 	generatePasswordFn func() (string, error),

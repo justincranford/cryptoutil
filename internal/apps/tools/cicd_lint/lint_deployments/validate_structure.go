@@ -86,8 +86,8 @@ func ValidateDeploymentStructure(basePath string, deploymentName string, structT
 
 // validateConfigFiles checks config directory for required files and deprecated patterns.
 // Strict enforcement mode: all violations are errors that block CI/CD.
-// See: docs/ARCHITECTURE.md Section 12.4.5 "Config File Naming Strategy".
-// See: docs/ARCHITECTURE.md Section 12.4.7 "Linter Validation Modes".
+// See: docs/ENG-HANDBOOK.md Section 12.4.5 "Config File Naming Strategy".
+// See: docs/ENG-HANDBOOK.md Section 12.4.7 "Linter Validation Modes".
 func validateConfigFiles(basePath string, deploymentName string, result *ValidationResult) {
 	configPath := filepath.Join(basePath, "config")
 
@@ -175,7 +175,7 @@ func validateConfigFiles(basePath string, deploymentName string, result *Validat
 }
 
 // validateProductSecrets validates PRODUCT-level hash_pepper.secret and .never files.
-// See: docs/ARCHITECTURE.md Section 12.3.4 "Layered Pepper Strategy".
+// See: docs/ENG-HANDBOOK.md Section 12.3.4 "Layered Pepper Strategy".
 func validateProductSecrets(basePath string, productName string, result *ValidationResult) {
 	expectedSecret := fmt.Sprintf("%s-hash_pepper.secret", productName)
 	secretPath := filepath.Join(basePath, "secrets", expectedSecret)
@@ -212,7 +212,7 @@ func validateProductSecrets(basePath string, productName string, result *Validat
 }
 
 // validateSuiteSecrets validates SUITE-level hash_pepper.secret and .never files.
-// See: docs/ARCHITECTURE.md Section 12.3.4 "Layered Pepper Strategy".
+// See: docs/ENG-HANDBOOK.md Section 12.3.4 "Layered Pepper Strategy".
 func validateSuiteSecrets(basePath string, result *ValidationResult) {
 	expectedSecret := "cryptoutil-hash_pepper.secret"
 	secretPath := filepath.Join(basePath, "secrets", expectedSecret)

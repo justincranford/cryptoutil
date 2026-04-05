@@ -3,7 +3,7 @@
 // Package cmd_entry_whitelist enforces that the cmd/ directory contains only the
 // 18 allowed entry points: 1 suite, 5 products, 10 product-services, and 2
 // infrastructure tools. Any extra or unknown cmd/ directory is a violation
-// (ARCHITECTURE.md Section 4.4.7 CLI Patterns).
+// (ENG-HANDBOOK.md Section 4.4.7 CLI Patterns).
 package cmd_entry_whitelist
 
 import (

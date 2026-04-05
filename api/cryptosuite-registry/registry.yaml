@@ -3,7 +3,7 @@
 # and product-services in the cryptoutil suite. Fitness linters read this file
 # at runtime to validate architectural invariants.
 #
-# Port assignment formula (ARCHITECTURE.md Section 3.4):
+# Port assignment formula (ENG-HANDBOOK.md Section 3.4):
 #   Service tier:  base_port
 #   Product tier:  base_port + 10000
 #   Suite tier:    base_port + 20000

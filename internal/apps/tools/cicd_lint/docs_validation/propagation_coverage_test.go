@@ -33,14 +33,14 @@ func TestComputeFileCoverage(t *testing.T) {
 		},
 		{
 			name:          "single source block",
-			content:       "<!-- @source from=\"docs/ARCHITECTURE.md\" as=\"chunk\" -->\ncontent\n<!-- @/source -->",
+			content:       "<!-- @source from=\"docs/ENG-HANDBOOK.md\" as=\"chunk\" -->\ncontent\n<!-- @/source -->",
 			wantTotal:     3,
 			wantCovered:   3,
 			wantHasSource: true,
 		},
 		{
 			name:          "multiple source blocks",
-			content:       "<!-- @source from=\"docs/ARCHITECTURE.md\" as=\"a\" -->\n<!-- @/source -->\n<!-- @source from=\"docs/ARCHITECTURE.md\" as=\"b\" -->\n<!-- @/source -->",
+			content:       "<!-- @source from=\"docs/ENG-HANDBOOK.md\" as=\"a\" -->\n<!-- @/source -->\n<!-- @source from=\"docs/ENG-HANDBOOK.md\" as=\"b\" -->\n<!-- @/source -->",
 			wantTotal:     4,
 			wantCovered:   4,
 			wantHasSource: true,
@@ -81,7 +81,7 @@ func TestComputeCoverage(t *testing.T) {
 			name: "mixed coverage",
 			files: map[string]string{
 				cryptoutilSharedMagic.CICDCopilotInstructionsFile: "plain text only\nno source blocks",
-				".github/instructions/01.instructions.md":         "before\n<!-- @source from=\"docs/ARCHITECTURE.md\" as=\"x\" -->\ncontent\n<!-- @/source -->\nafter",
+				".github/instructions/01.instructions.md":         "before\n<!-- @source from=\"docs/ENG-HANDBOOK.md\" as=\"x\" -->\ncontent\n<!-- @/source -->\nafter",
 			},
 			wantTotalFiles: 2,
 			wantCovered:    1,
@@ -90,7 +90,7 @@ func TestComputeCoverage(t *testing.T) {
 		{
 			name: "all covered",
 			files: map[string]string{
-				".github/instructions/01.instructions.md": "<!-- @source from=\"docs/ARCHITECTURE.md\" as=\"x\" -->\nline\n<!-- @/source -->",
+				".github/instructions/01.instructions.md": "<!-- @source from=\"docs/ENG-HANDBOOK.md\" as=\"x\" -->\nline\n<!-- @/source -->",
 			},
 			wantTotalFiles: 1,
 			wantCovered:    1,
@@ -219,7 +219,7 @@ func TestPropagationCoverageCommand_Integration(t *testing.T) {
 	// Create instruction file with @source block.
 	instrDir := rootDir + "/.github/instructions"
 	require.NoError(t, os.MkdirAll(instrDir, 0o700))
-	require.NoError(t, os.WriteFile(instrDir+"/01.instructions.md", []byte("before\n<!-- @source from=\"docs/ARCHITECTURE.md\" as=\"chunk\" -->\nline\n<!-- @/source -->\nafter"), cryptoutilSharedMagic.FilePermissionsDefault))
+	require.NoError(t, os.WriteFile(instrDir+"/01.instructions.md", []byte("before\n<!-- @source from=\"docs/ENG-HANDBOOK.md\" as=\"chunk\" -->\nline\n<!-- @/source -->\nafter"), cryptoutilSharedMagic.FilePermissionsDefault))
 
 	var stdout, stderr bytes.Buffer
 

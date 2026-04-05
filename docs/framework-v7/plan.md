@@ -35,7 +35,7 @@ All 18 original parameterization opportunities are fully implemented, tested, an
 | Phase 4 — Secret & Config Schema | #12, #05, #06 | ✅ Complete |
 | Phase 5 — Deployment & Build | #07, #08, #16 | ✅ Complete |
 | Phase 6 — API & Health | #09, #13, #17 | ✅ Complete |
-| Phase 7 — Knowledge Propagation | ARCHITECTURE.md, instructions, skills | ✅ Complete |
+| Phase 7 — Knowledge Propagation | ENG-HANDBOOK.md, instructions, skills | ✅ Complete |
 
 **Artifacts delivered**: `api/cryptosuite-registry/registry.yaml`, 68 fitness linters, derivation
 functions, secret/config schemas, migration range enforcement, Dockerfile label validation, API
@@ -99,7 +99,7 @@ MUST complete before Phase 1 begins — these are blocking regressions not featu
   call site; remove package-level vars
 - Q6 (absent-dir behavior): **E** — ALL 68 fitness linters must return hard error on absent
   dirs; audit all 68; batch ~10 linters per commit; create any missing repo dirs in same commit
-- Cross-cutting: document in ARCHITECTURE.md and lessons.md that ALL production code must
+- Cross-cutting: document in ENG-HANDBOOK.md and lessons.md that ALL production code must
   use function-param injection rather than package-level seam vars
 
 **Research Summary** (facts confirmed before writing tasks):
@@ -127,7 +127,7 @@ MUST complete before Phase 1 begins — these are blocking regressions not featu
   global `core.autocrlf=true` takes effect on Windows (CRLF working tree, LF in repo);
   on Linux devs should use `core.autocrlf=input`. The `mixed-line-ending` hook stays at
   default "auto" (does not modify files with consistent LF-only content). Document the
-  platform line-ending policy in ARCHITECTURE.md §9.9.
+  platform line-ending policy in ENG-HANDBOOK.md §9.9.
 
 - **Issue #6 — PKI insecure values**: `kubernetes-workload.yaml` has `min_days: 0` (comment:
   "Minutes allowed"). `ssh-user.yaml` has both `min_days: 0` and `default_curve_or_size: null`.
@@ -166,7 +166,7 @@ MUST complete before Phase 1 begins — these are blocking regressions not featu
 **Work** (11 tasks — see tasks.md §Phase 0 for full acceptance criteria):
 
 - **0.1** Add `{PS-ID}-app-sqlite-2` to all 10 `compose.yml` files; update port formula.
-- **0.2** Update ARCHITECTURE.md §3.4.1 with variant offset table and corrected port ranges.
+- **0.2** Update ENG-HANDBOOK.md §3.4.1 with variant offset table and corrected port ranges.
 - **0.3** Define canonical ENTRYPOINT pattern via code archaeology; apply to all 10 PS-IDs.
 - **0.4** Implement `compose-entrypoint-uniformity` fitness linter (≥98% coverage).
 - **0.5** Fix pki-ca dual database key; rename `ca-*` service/OTLP names → `pki-ca-*`.
@@ -174,7 +174,7 @@ MUST complete before Phase 1 begins — these are blocking regressions not featu
 - **0.7** Fix PKI profile insecure values (`min_days: 0` → 1; `null` curve → explicit value).
 - **0.8** Update `pki-ca-profile-schema` linter validation: `min_days >= 0` → `min_days >= 1`.
 - **0.9** Remove local `core.autocrlf=false` override; restore platform-native line endings
-  (Windows CRLF / Linux LF); document in ARCHITECTURE.md §9.9. No `--fix lf`.
+  (Windows CRLF / Linux LF); document in ENG-HANDBOOK.md §9.9. No `--fix lf`.
 - **0.10** Change ALL 68 fitness linters to return hard error on absent dirs (Q6: option E);
   audit all 68 in batches of ~10; create any missing repo dirs in same commit as linter fix;
   document contract in ARCH §9.10 and lessons.md.
@@ -186,7 +186,7 @@ MUST complete before Phase 1 begins — these are blocking regressions not featu
 linters; all 10 compose.yml files have 4 service instances; pki-ca uses `database-url` only;
 PKI profiles have `min_days >= 1`; local `core.autocrlf=false` removed; ALL 68 fitness
 linters return hard error on absent dirs; all package-level seam vars replaced with function-
-param injection; contracts documented in ARCHITECTURE.md and lessons.md.
+param injection; contracts documented in ENG-HANDBOOK.md and lessons.md.
 
 **Post-Mortem**: After quality gates pass, update lessons.md Phase 0 section.
 
@@ -206,35 +206,35 @@ PARAMETERIZATION-DONE.md as permanently deferred, then delete both PARAMETERIZAT
   `.claude/commands/*.md` files are missing YAML frontmatter. Extend `CheckSkillCommandDrift()`
   to validate presence, `description` match, and `argument-hint` match. Claude command `name`
   field uses bare skill name (e.g., `test-table-driven`), NOT `claude-` prefix. Update
-  ARCHITECTURE.md §2.1.5 and instruction file §06-02.
+  ENG-HANDBOOK.md §2.1.5 and instruction file §06-02.
 
 - **#22 Multi-Language Parameterized Testing** (High): Expand `test-table-driven` skill and
   Claude command to cover Go, Java (Gatling), and Python (pytest). Add `lint-java-test` and
-  `lint-python-test` cicd-lint subcommands. Update ARCHITECTURE.md §10 with §10.9 and §10.10.
+  `lint-python-test` cicd-lint subcommands. Update ENG-HANDBOOK.md §10 with §10.9 and §10.10.
   Update cicd-lint command table to show 13 linter commands.
 
 - **#23 Copilot↔Claude Skill Body Content Drift** (High): Normalize `## Key Rules` heading
   in all 14 skill/command pairs. Extend `CheckSkillCommandDrift()` to validate rule section
   presence. Every skill MUST have `## Key Rules`; every Claude command MUST mirror it.
 
-- **#24 Claude Code Continuous Execution Config** (Medium): Add ARCHITECTURE.md §14.9 covering
+- **#24 Claude Code Continuous Execution Config** (Medium): Add ENG-HANDBOOK.md §14.9 covering
   Claude Code autonomous execution options (beast-mode agent invocation, settings.local.json,
   CLI flags). Update CLAUDE.md. Update `.claude/settings.local.json`.
 
 - **#25 Agent Self-Containment Linter** (Medium): New `lint_agent_self_containment/` sub-linter
-  in `lint-docs`. Scans `.github/agents/*.agent.md` bodies; errors if no `ARCHITECTURE.md`
+  in `lint-docs`. Scans `.github/agents/*.agent.md` bodies; errors if no `ENG-HANDBOOK.md`
   reference found. Tests ≥95%.
 
-- **#26 ARCHITECTURE.md Section Link Validity** (Medium): New `lint_architecture_links/`
-  sub-linter in `lint-docs`. Extracts H1–H4 headings from ARCHITECTURE.md; validates all
-  `](../../docs/ARCHITECTURE.md#ANCHOR)` references in instruction/agent/skill files.
+- **#26 ENG-HANDBOOK.md Section Link Validity** (Medium): New `lint_architecture_links/`
+  sub-linter in `lint-docs`. Extracts H1–H4 headings from ENG-HANDBOOK.md; validates all
+  `](../../docs/ENG-HANDBOOK.md#ANCHOR)` references in instruction/agent/skill files.
   Tests ≥95%.
 
 - **#27 lint-go-test Expansion** (Medium): Three new sub-linters in `lint_gotest/`:
   - `hardcoded_uuid/`: forbid `uuid.MustParse("literal")` in test files
   - `real_http_server/`: forbid `httptest.NewServer(` in test files
   - `test_sleep/`: forbid `time.Sleep(` in test files
-  All registered in `lint_gotest.go`. ARCHITECTURE.md §9.10 cicd-lint table updated.
+  All registered in `lint_gotest.go`. ENG-HANDBOOK.md §9.10 cicd-lint table updated.
 
 **Success**: `lint-docs` exits non-zero on missing frontmatter; all 7 linters registered;
 ≥95% coverage on all new code; PARAMETERIZATION files deleted.
@@ -421,7 +421,7 @@ framework; PS-ID-specific defaults in PS-IDs; duplicate usage files removed; all
 **Objective**: Apply lessons learned from Phases 1–5 to permanent artifacts — NEVER skip.
 
 - Review `lessons.md` from all prior phases.
-- Update ARCHITECTURE.md with new patterns and decisions discovered in Phases 1–5.
+- Update ENG-HANDBOOK.md with new patterns and decisions discovered in Phases 1–5.
 - Update agents, skills, instructions, code, tests, workflows, and docs where warranted.
 - Verify propagation integrity (`go run ./cmd/cicd-lint lint-docs validate-propagation`).
 
@@ -463,27 +463,27 @@ framework; PS-ID-specific defaults in PS-IDs; duplicate usage files removed; all
 - [ ] Identity product refactoring complete (common → framework, PS-ID-specific → PS-IDs)
 - [ ] All quality gates passing
 
-## ARCHITECTURE.md Cross-References — MANDATORY
+## ENG-HANDBOOK.md Cross-References — MANDATORY
 
 | Topic | Section | Phases |
 |-------|---------|--------|
-| Port Design | [§3.4.1](../../docs/ARCHITECTURE.md#341-port-design-principles) | 0 |
-| Docker Compose | [§12](../../docs/ARCHITECTURE.md#12-deployment-architecture) | 0 |
-| Deployment Secrets | [§13.3](../../docs/ARCHITECTURE.md#133-secrets-management-in-deployments) | 0 |
-| Pre-commit Hooks | [§9.9](../../docs/ARCHITECTURE.md#99-pre-commit-hook-architecture) | 0, 3 |
-| CICD Command Arch | [§9.10](../../docs/ARCHITECTURE.md#910-cicd-command-architecture) | 0, 1, 3 |
-| Test Seam Injection | [§10.2.4](../../docs/ARCHITECTURE.md#1024-test-seam-injection-pattern) | 0 |
-| Sequential Exemption | [§10.2.5](../../docs/ARCHITECTURE.md#1025-sequential-test-exemption) | 0 |
-| PKI Architecture | [§6.5](../../docs/ARCHITECTURE.md#65-pki-architecture--strategy) | 0 |
-| Testing Strategy | [§10](../../docs/ARCHITECTURE.md#10-testing-architecture) | 0, 1, 6 |
-| Quality Gates | [§11.2](../../docs/ARCHITECTURE.md#112-quality-gates) | ALL |
-| Magic Values | [§11.1.4](../../docs/ARCHITECTURE.md#1114-magic-values-organization) | 2, 3 |
-| Agent Architecture | [§2.1.1](../../docs/ARCHITECTURE.md#211-agent-architecture) | 1 |
-| Skill Catalog | [§2.1](../../docs/ARCHITECTURE.md#21-agent-orchestration-strategy) | 1 |
-| CICD Command Arch | [§9.10](../../docs/ARCHITECTURE.md#910-cicd-command-architecture) | 1, 3 |
-| Pre-commit Hooks | [§9.9](../../docs/ARCHITECTURE.md#99-pre-commit-hook-architecture) | 3 |
-| Service Framework | [§5.1](../../docs/ARCHITECTURE.md#51-service-framework-pattern) | 2, 5 |
-| Security / FIPS | [§6.4](../../docs/ARCHITECTURE.md#64-cryptographic-architecture) | 2 |
-| Import Aliases | [§11.1.3](../../docs/ARCHITECTURE.md#1113-import-alias-conventions) | 3 |
-| Version Control | [§14.2](../../docs/ARCHITECTURE.md#142-version-control) | ALL |
-| Post-Mortem | [§14.8](../../docs/ARCHITECTURE.md#148-phase-post-mortem--knowledge-propagation) | 6 |
+| Port Design | [§3.4.1](../../docs/ENG-HANDBOOK.md#341-port-design-principles) | 0 |
+| Docker Compose | [§12](../../docs/ENG-HANDBOOK.md#12-deployment-architecture) | 0 |
+| Deployment Secrets | [§13.3](../../docs/ENG-HANDBOOK.md#133-secrets-management-in-deployments) | 0 |
+| Pre-commit Hooks | [§9.9](../../docs/ENG-HANDBOOK.md#99-pre-commit-hook-architecture) | 0, 3 |
+| CICD Command Arch | [§9.10](../../docs/ENG-HANDBOOK.md#910-cicd-command-architecture) | 0, 1, 3 |
+| Test Seam Injection | [§10.2.4](../../docs/ENG-HANDBOOK.md#1024-test-seam-injection-pattern) | 0 |
+| Sequential Exemption | [§10.2.5](../../docs/ENG-HANDBOOK.md#1025-sequential-test-exemption) | 0 |
+| PKI Architecture | [§6.5](../../docs/ENG-HANDBOOK.md#65-pki-architecture--strategy) | 0 |
+| Testing Strategy | [§10](../../docs/ENG-HANDBOOK.md#10-testing-architecture) | 0, 1, 6 |
+| Quality Gates | [§11.2](../../docs/ENG-HANDBOOK.md#112-quality-gates) | ALL |
+| Magic Values | [§11.1.4](../../docs/ENG-HANDBOOK.md#1114-magic-values-organization) | 2, 3 |
+| Agent Architecture | [§2.1.1](../../docs/ENG-HANDBOOK.md#211-agent-architecture) | 1 |
+| Skill Catalog | [§2.1](../../docs/ENG-HANDBOOK.md#21-agent-orchestration-strategy) | 1 |
+| CICD Command Arch | [§9.10](../../docs/ENG-HANDBOOK.md#910-cicd-command-architecture) | 1, 3 |
+| Pre-commit Hooks | [§9.9](../../docs/ENG-HANDBOOK.md#99-pre-commit-hook-architecture) | 3 |
+| Service Framework | [§5.1](../../docs/ENG-HANDBOOK.md#51-service-framework-pattern) | 2, 5 |
+| Security / FIPS | [§6.4](../../docs/ENG-HANDBOOK.md#64-cryptographic-architecture) | 2 |
+| Import Aliases | [§11.1.3](../../docs/ENG-HANDBOOK.md#1113-import-alias-conventions) | 3 |
+| Version Control | [§14.2](../../docs/ENG-HANDBOOK.md#142-version-control) | ALL |
+| Post-Mortem | [§14.8](../../docs/ENG-HANDBOOK.md#148-phase-post-mortem--knowledge-propagation) | 6 |

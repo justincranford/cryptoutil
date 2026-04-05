@@ -306,7 +306,7 @@ everything else meanwhile. Dependencies may resolve while you work.
 
 **Infrastructure Blockers ARE ALWAYS BLOCKING**: OTel config, Docker socket, testcontainers, CI/CD failures — NEVER tag as "pre-existing" to justify deferral. Three-encounter escalation rule: 1st → document, 2nd → create fix task, 3rd → MANDATORY Phase 0 fix.
 
-See [ARCHITECTURE.md Section 14.7 Infrastructure Blocker Escalation](/docs/ARCHITECTURE.md#147-infrastructure-blocker-escalation) for escalation rule details.
+See [ENG-HANDBOOK.md Section 14.7 Infrastructure Blocker Escalation](/docs/ENG-HANDBOOK.md#147-infrastructure-blocker-escalation) for escalation rule details.
 
 ### Example Blocker Scenario
 
@@ -485,7 +485,7 @@ go test -race -count=3 ./...              # Race detection
 
 ## Mandatory Review Passes
 
-<!-- @source from="docs/ARCHITECTURE.md" as="mandatory-review-passes" -->
+<!-- @source from="docs/ENG-HANDBOOK.md" as="mandatory-review-passes" -->
 **MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
 
 Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
@@ -505,7 +505,7 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 **Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
 <!-- @/source -->
 
-See [ARCHITECTURE.md Section 2.5 Quality Strategy](/docs/ARCHITECTURE.md#25-quality-strategy) for mandatory review pass requirements.
+See [ENG-HANDBOOK.md Section 2.5 Quality Strategy](/docs/ENG-HANDBOOK.md#25-quality-strategy) for mandatory review pass requirements.
 
 ---
 
@@ -580,6 +580,6 @@ Quality over speed. Completeness over convenience. Evidence over claims.
 
 ## Cross-Reference
 
-- **Architecture Documentation**: See [ARCHITECTURE.md Section 2.1 Agent
-  Orchestration Strategy](/docs/ARCHITECTURE.md#21-agent-orchestration-strategy)
+- **Architecture Documentation**: See [ENG-HANDBOOK.md Section 2.1 Agent
+  Orchestration Strategy](/docs/ENG-HANDBOOK.md#21-agent-orchestration-strategy)
   for agent architecture patterns and autonomous execution mode documentation.

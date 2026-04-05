@@ -12,7 +12,7 @@
 #   postgresql-1 -> {ps-id}-app-postgresql-1.yml (ComposeVariantPostgres1)
 #   postgresql-2 -> {ps-id}-app-postgresql-2.yml (ComposeVariantPostgres2)
 #
-# See ARCHITECTURE.md Section 9.11 for config overlay naming and content conventions.
+# See ENG-HANDBOOK.md Section 9.11 for config overlay naming and content conventions.
 
 variants:
   - variant: sqlite-1

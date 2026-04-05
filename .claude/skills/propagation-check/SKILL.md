@@ -1,6 +1,6 @@
 ---
 name: propagation-check
-description: "Detect @propagate/@source drift between ARCHITECTURE.md and instruction files, and generate corrected @source block content. Use before committing instruction file changes to ensure lint-docs passes and verbatim doc chunks stay synchronized."
+description: "Detect @propagate/@source drift between ENG-HANDBOOK.md and instruction files, and generate corrected @source block content. Use before committing instruction file changes to ensure lint-docs passes and verbatim doc chunks stay synchronized."
 argument-hint: "[instruction file or omit for full project check]"
 ---
 
@@ -8,21 +8,21 @@ Detect @propagate/@source drift and generate corrected @source block content.
 
 ## Purpose
 
-Use when ARCHITECTURE.md sections have changed and you need to update downstream
+Use when ENG-HANDBOOK.md sections have changed and you need to update downstream
 `@source` blocks in instruction files or agents. Prevents copy-paste errors.
 
 ## Key Rules
 
-- `@source` content MUST be byte-for-byte identical to `@propagate` content in ARCHITECTURE.md
+- `@source` content MUST be byte-for-byte identical to `@propagate` content in ENG-HANDBOOK.md
 - Run `go run ./cmd/cicd-lint lint-docs validate-propagation` to detect drift
 - Copilot and Claude agent files MUST have identical body content (only frontmatter differs)
 - Add both Copilot file AND Claude file to `@propagate to=` attribute (comma-separated)
 - Update `docs/required-propagations.yaml` `required_targets` when adding new targets
-- When ARCHITECTURE.md chunk changes, ALL downstream `@source` blocks must be updated
+- When ENG-HANDBOOK.md chunk changes, ALL downstream `@source` blocks must be updated
 
 ## Marker System
 
-**Source (ARCHITECTURE.md)**:
+**Source (ENG-HANDBOOK.md)**:
 ```html
 <!-- @propagate to=".github/instructions/FILE.md" as="chunk-id" -->
 content here
@@ -31,7 +31,7 @@ content here
 
 **Target (instruction file OR agent file)**:
 ```html
-<!-- @source from="docs/ARCHITECTURE.md" as="chunk-id" -->
+<!-- @source from="docs/ENG-HANDBOOK.md" as="chunk-id" -->
 content here (MUST be byte-for-byte identical)
 <!-- @/source -->
 ```
@@ -47,7 +47,7 @@ go run ./cmd/cicd-lint lint-docs
 # Manual: extract @propagate block content
 python3 - <<'EOF'
 import re
-with open('docs/ARCHITECTURE.md') as f: content = f.read()
+with open('docs/ENG-HANDBOOK.md') as f: content = f.read()
 # Find all propagate blocks
 for m in re.finditer(r'<!-- @propagate to="([^"]+)" as="([^"]+)" -->(.*?)<!-- @/propagate -->', content, re.DOTALL):
     print(f"Target: {m.group(1)}, ID: {m.group(2)}")
@@ -58,7 +58,7 @@ EOF
 
 ## Fix Workflow
 
-1. Find the @propagate block in ARCHITECTURE.md
+1. Find the @propagate block in ENG-HANDBOOK.md
 2. Copy its content verbatim
 3. Paste between @source markers in the target file
 4. Run `go run ./cmd/cicd-lint lint-docs` to verify match
@@ -67,11 +67,11 @@ EOF
 
 - Content between markers MUST be identical (byte-for-byte after whitespace normalization)
 - Headings NEVER inside markers (put outside as section headings)
-- No `See [ARCHITECTURE.md ...]` links inside markers (put outside as glue)
-- Changes to ARCHITECTURE.md MUST propagate in the SAME commit
+- No `See [ENG-HANDBOOK.md ...]` links inside markers (put outside as glue)
+- Changes to ENG-HANDBOOK.md MUST propagate in the SAME commit
 
 ## References
 
-Read [ARCHITECTURE.md Section 13.4 Documentation Propagation Strategy](../../../docs/ARCHITECTURE.md#134-documentation-propagation-strategy) for full marker system documentation — apply all marker system rules (byte-for-byte match, no headings inside markers, same-commit propagation) when checking and fixing drift.
+Read [ENG-HANDBOOK.md Section 13.4 Documentation Propagation Strategy](../../../docs/ENG-HANDBOOK.md#134-documentation-propagation-strategy) for full marker system documentation — apply all marker system rules (byte-for-byte match, no headings inside markers, same-commit propagation) when checking and fixing drift.
 
-For orchestrating full documentation synchronization across ARCHITECTURE.md, instruction files, and agent files, use the `beast-mode` agent.
+For orchestrating full documentation synchronization across ENG-HANDBOOK.md, instruction files, and agent files, use the `beast-mode` agent.

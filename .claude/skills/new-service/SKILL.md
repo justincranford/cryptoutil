@@ -104,11 +104,11 @@ go run ./cmd/cicd-lint lint-deployments
 ### Step 9: Update Documentation
 
 ```bash
-# Update ARCHITECTURE.md Section 3.4 Service Catalog table
+# Update ENG-HANDBOOK.md Section 3.4 Service Catalog table
 # Add row: | PRODUCT | SERVICE | PRODUCT-SERVICE | HOST_PORT_RANGE | 0.0.0.0:8080 | 127.0.0.1:9090 |
 ```
 
-- Update service catalog in `docs/ARCHITECTURE.md` Section 3.4 Port Assignments & Networking
+- Update service catalog in `docs/ENG-HANDBOOK.md` Section 3.4 Port Assignments & Networking
 - Update service catalog table in `.github/instructions/02-01.architecture.instructions.md`
 - Update `README.md` if it lists services
 
@@ -120,6 +120,6 @@ go run ./cmd/cicd-lint lint-deployments
 
 ## References
 
-Read [ARCHITECTURE.md Section 3.4 Port Assignments](../../../docs/ARCHITECTURE.md#34-port-assignments--networking) for port catalog — select the next available port range from this table when assigning host ports for the new service.
-Read [ARCHITECTURE.md Section 5.1 Service Framework Pattern](../../../docs/ARCHITECTURE.md#51-service-framework-pattern) for framework components — validate that all required components (dual HTTPS, health checks, migrations, telemetry) are present in the new service.
-Read [ARCHITECTURE.md Section 5.2 Service Builder Pattern](../../../docs/ARCHITECTURE.md#52-service-builder-pattern) for builder usage — follow the builder registration flow and `ServiceResources` pattern exactly as specified.
+Read [ENG-HANDBOOK.md Section 3.4 Port Assignments](../../../docs/ENG-HANDBOOK.md#34-port-assignments--networking) for port catalog — select the next available port range from this table when assigning host ports for the new service.
+Read [ENG-HANDBOOK.md Section 5.1 Service Framework Pattern](../../../docs/ENG-HANDBOOK.md#51-service-framework-pattern) for framework components — validate that all required components (dual HTTPS, health checks, migrations, telemetry) are present in the new service.
+Read [ENG-HANDBOOK.md Section 5.2 Service Builder Pattern](../../../docs/ENG-HANDBOOK.md#52-service-builder-pattern) for builder usage — follow the builder registration flow and `ServiceResources` pattern exactly as specified.

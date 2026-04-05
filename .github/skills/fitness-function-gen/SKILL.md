@@ -10,7 +10,7 @@ Generate a new architecture fitness function for the cryptoutil lint-fitness fra
 
 The lint-fitness framework runs 55 architectural invariant checks on every CI push. Use this skill when:
 
-- Adding a new architectural rule from ARCHITECTURE.md that must be enforced programmatically
+- Adding a new architectural rule from ENG-HANDBOOK.md that must be enforced programmatically
 - Migrating a soft architectural guideline to a hard enforced check
 - Extending compliance checking for a new pattern (e.g., new file naming conventions)
 
@@ -46,7 +46,7 @@ internal/apps/tools/cicd_lint/lint_fitness/
 `go
 // Copyright (c) 2025 Justin Cranford
 
-// Package your_linter_name enforces ARCHITECTURE.md Section X.Y rule name.
+// Package your_linter_name enforces ENG-HANDBOOK.md Section X.Y rule name.
 // Brief description of what this linter enforces.
 package your_linter_name
 
@@ -203,7 +203,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 ## References
 
-Read [ARCHITECTURE.md Section 9.10](../../../docs/ARCHITECTURE.md#910-cicd-command-architecture) for CICD command architecture.
-Read [ARCHITECTURE.md Section 9.11 Architecture Fitness Functions](../../../docs/ARCHITECTURE.md#911-architecture-fitness-functions) for the complete list of 68 existing sub-linters in 5 groups — use this section to understand what invariants are already enforced and select a unique new architectural rule.
-Read [ARCHITECTURE.md Section 10.2.5](../../../docs/ARCHITECTURE.md#1025-sequential-test-exemption) for // Sequential: comment exemption.
-Read [ARCHITECTURE.md Section 11.3](../../../docs/ARCHITECTURE.md#113-code-quality-standards) for test coverage targets (=98% for infrastructure/utility code).
+Read [ENG-HANDBOOK.md Section 9.10](../../../docs/ENG-HANDBOOK.md#910-cicd-command-architecture) for CICD command architecture.
+Read [ENG-HANDBOOK.md Section 9.11 Architecture Fitness Functions](../../../docs/ENG-HANDBOOK.md#911-architecture-fitness-functions) for the complete list of 68 existing sub-linters in 5 groups — use this section to understand what invariants are already enforced and select a unique new architectural rule.
+Read [ENG-HANDBOOK.md Section 10.2.5](../../../docs/ENG-HANDBOOK.md#1025-sequential-test-exemption) for // Sequential: comment exemption.
+Read [ENG-HANDBOOK.md Section 11.3](../../../docs/ENG-HANDBOOK.md#113-code-quality-standards) for test coverage targets (=98% for infrastructure/utility code).

@@ -1,6 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
-// Package check_chunk_verification verifies that ARCHITECTURE.md section chunks
+// Package check_chunk_verification verifies that ENG-HANDBOOK.md section chunks
 // are present in their target instruction files.
 package check_chunk_verification
 

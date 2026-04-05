@@ -14,7 +14,7 @@
 //   - postgresql-1:  +2 (first PostgreSQL instance)
 //   - postgresql-2:  +3 (second PostgreSQL instance)
 //
-// See ARCHITECTURE.md Section 3.4.1 for the port allocation design.
+// See ENG-HANDBOOK.md Section 3.4.1 for the port allocation design.
 package compose_port_formula
 
 import (

@@ -755,13 +755,13 @@ and `internal/apps/tools/cicd_lint/`. It contains the CLI entry point and argume
 
 ```
 docs/                                                 # drwxr-x---
-├── ARCHITECTURE.md                                   # SSOT: Architecture reference (5080+ lines)
+├── ENG-HANDBOOK.md                                   # SSOT: Architecture reference (5080+ lines)
 ├── DEV-SETUP.md                                      # Developer setup guide
 ├── README.md                                         # Documentation index
 ├── required-propagations.yaml                        # @propagate coverage completeness manifest
 ├── target-structure.md                               # THIS FILE — canonical target structure
 ├── framework-v7/                                     # Framework-v7 implementation artifacts (complete)
-│   ├── lessons.md                                    #   Lessons (apply to ARCHITECTURE.md + delete after)
+│   ├── lessons.md                                    #   Lessons (apply to ENG-HANDBOOK.md + delete after)
 │   ├── plan.md                                       #   Implementation plan (48 tasks complete)
 │   └── tasks.md                                      #   Task checklist (48/48 ✅)
 └── framework-v8/                                     # Framework-v8 planning artifacts (in progress)

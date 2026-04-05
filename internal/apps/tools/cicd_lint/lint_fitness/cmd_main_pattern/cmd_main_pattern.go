@@ -18,7 +18,7 @@ const mainGoFilename = "main.go"
 // Accepts both os.Args (suite/infrastructure) and os.Args[1:] (product/service) patterns.
 var mainPattern = regexp.MustCompile(`func\s+main\(\)\s*\{\s*os\.Exit\(cryptoutil[A-Z][a-zA-Z0-9]*\.[A-Z][a-zA-Z0-9]*\(os\.Args(\[1:\])?,\s*os\.Stdin,\s*os\.Stdout,\s*os\.Stderr\)\)\s*\}`)
 
-// Check checks that all main.go files under cmd/ follow the ARCHITECTURE.md 4.4.3 pattern.
+// Check checks that all main.go files under cmd/ follow the ENG-HANDBOOK.md 4.4.3 pattern.
 // Required pattern: func main() { os.Exit(cryptoutilApps<SOMETHING>.<SOMETHING>(os.Args[1:], os.Stdin, os.Stdout, os.Stderr)) }.
 // Also accepts os.Args (without [1:]) for suite/infrastructure binaries.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {

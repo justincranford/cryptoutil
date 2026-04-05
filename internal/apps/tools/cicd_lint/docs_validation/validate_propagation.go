@@ -15,18 +15,18 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// PropagationRef represents a reference from an instruction/agent file to ARCHITECTURE.md.
+// PropagationRef represents a reference from an instruction/agent file to ENG-HANDBOOK.md.
 type PropagationRef struct {
 	SourceFile  string // e.g., ".github/instructions/02-01.architecture.instructions.md"
 	LineNumber  int    // 1-based line number in SourceFile
 	Anchor      string // e.g., "941-otel-collector-processor-constraints"
-	RawRef      string // e.g., "See [ARCHITECTURE.md Section 9.4.1 ...](...)"
-	DisplayText string // e.g., "ARCHITECTURE.md Section 9.4.1 ..."
+	RawRef      string // e.g., "See [ENG-HANDBOOK.md Section 9.4.1 ...](...)"
+	DisplayText string // e.g., "ENG-HANDBOOK.md Section 9.4.1 ..."
 }
 
 // LevelCoverage tracks section coverage at a specific heading level.
 type LevelCoverage struct {
-	Total      int // Total sections at this level in ARCHITECTURE.md.
+	Total      int // Total sections at this level in ENG-HANDBOOK.md.
 	Referenced int // Sections at this level referenced by instruction/agent files.
 }
 
@@ -34,7 +34,7 @@ type LevelCoverage struct {
 type PropagationResult struct {
 	ValidRefs           []PropagationRef
 	BrokenRefs          []PropagationRef
-	OrphanedKeys        []string // ARCHITECTURE.md anchors with zero references
+	OrphanedKeys        []string // ENG-HANDBOOK.md anchors with zero references
 	DisplayTextWarnings []DisplayTextWarning
 	TotalAnchors        int
 	HighImpact          LevelCoverage // ## sections.
@@ -52,11 +52,11 @@ type DisplayTextWarning struct {
 	HeadingNumber string // section number from the actual heading
 }
 
-// anchorRegex matches ARCHITECTURE.md#anchor-fragment in markdown links.
-var anchorRegex = regexp.MustCompile(`ARCHITECTURE\.md#([a-z0-9_-]+)\)`)
+// anchorRegex matches ENG-HANDBOOK.md#anchor-fragment in markdown links.
+var anchorRegex = regexp.MustCompile(`ENG-HANDBOOK\.md#([a-z0-9_-]+)\)`)
 
-// displayTextRegex captures display text and anchor from markdown links to ARCHITECTURE.md.
-var displayTextRegex = regexp.MustCompile(`\[([^\]]+)\]\([^)]*ARCHITECTURE\.md#([a-z0-9_-]+)\)`)
+// displayTextRegex captures display text and anchor from markdown links to ENG-HANDBOOK.md.
+var displayTextRegex = regexp.MustCompile(`\[([^\]]+)\]\([^)]*ENG-HANDBOOK\.md#([a-z0-9_-]+)\)`)
 
 // sectionNumberRegex extracts section numbers like "1.2", "14.7.1" from text.
 var sectionNumberRegex = regexp.MustCompile(`\b(\d+(?:\.\d+)+)\b`)
@@ -68,7 +68,7 @@ func headerToAnchor(header string) string {
 	// Strip leading # and spaces.
 	text := strings.TrimLeft(header, "# ")
 
-	// Remove emoji (common in ARCHITECTURE.md section headers).
+	// Remove emoji (common in ENG-HANDBOOK.md section headers).
 	var sb strings.Builder
 
 	for _, r := range text {
@@ -102,7 +102,7 @@ func headerToAnchor(header string) string {
 	return cleaned
 }
 
-// extractAnchorsFromArchitecture reads ARCHITECTURE.md and returns a set of valid anchors.
+// extractAnchorsFromArchitecture reads ENG-HANDBOOK.md and returns a set of valid anchors.
 func extractAnchorsFromArchitecture(content string) map[string]bool {
 	anchors := make(map[string]bool)
 
@@ -143,7 +143,7 @@ func extractSectionNumber(text string) string {
 	return match
 }
 
-// extractRefsFromFile reads a file and extracts all ARCHITECTURE.md anchor references.
+// extractRefsFromFile reads a file and extracts all ENG-HANDBOOK.md anchor references.
 func extractRefsFromFile(relPath, content string) []PropagationRef {
 	var refs []PropagationRef
 
@@ -207,10 +207,10 @@ func truncateRef(line string) string {
 
 // ValidatePropagation performs the full validation.
 func ValidatePropagation(rootDir string, readFile func(string) ([]byte, error)) (*PropagationResult, error) {
-	// Read ARCHITECTURE.md.
-	archContent, err := readFile("docs/ARCHITECTURE.md")
+	// Read ENG-HANDBOOK.md.
+	archContent, err := readFile("docs/ENG-HANDBOOK.md")
 	if err != nil {
-		return nil, fmt.Errorf("failed to read docs/ARCHITECTURE.md: %w", err)
+		return nil, fmt.Errorf("failed to read docs/ENG-HANDBOOK.md: %w", err)
 	}
 
 	anchors := extractAnchorsFromArchitecture(string(archContent))
@@ -371,7 +371,7 @@ func formatLevelCoverage(label string, lc LevelCoverage) string {
 func FormatPropagationResults(result *PropagationResult) string {
 	var sb strings.Builder
 
-	sb.WriteString("=== ARCHITECTURE.md Propagation Validation ===\n\n")
+	sb.WriteString("=== ENG-HANDBOOK.md Propagation Validation ===\n\n")
 
 	// Broken refs.
 	if len(result.BrokenRefs) > 0 {
@@ -426,7 +426,7 @@ func FormatPropagationResults(result *PropagationResult) string {
 	sb.WriteString(fmt.Sprintf("=== Summary: %d valid refs, %d broken refs, %d orphaned sections ===\n", referencedCount, brokenCount, orphanedCount))
 
 	if brokenCount == 0 {
-		sb.WriteString("All references resolve to valid ARCHITECTURE.md sections.\n")
+		sb.WriteString("All references resolve to valid ENG-HANDBOOK.md sections.\n")
 	} else {
 		sb.WriteString("Propagation validation FAILED. Fix broken references.\n")
 	}

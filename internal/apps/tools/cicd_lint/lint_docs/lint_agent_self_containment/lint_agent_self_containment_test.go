@@ -43,7 +43,7 @@ func TestCheck_Integration(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-lint-agent-self-containment")
 	err := Check(logger)
 
-	require.NoError(t, err, "all current agents should reference ARCHITECTURE.md")
+	require.NoError(t, err, "all current agents should reference ENG-HANDBOOK.md")
 }
 
 func TestCheckWithFS_AllAgentsCompliant(t *testing.T) {
@@ -59,8 +59,8 @@ func TestCheckWithFS_AllAgentsCompliant(t *testing.T) {
 			name    string
 			content string
 		}{
-			{testBeastModeAgentFile, "# Beast Mode\n\nSee [ARCHITECTURE.md Section 14.7](docs/ARCHITECTURE.md#147).\n"},
-			{"fix-workflows.agent.md", "# Fix Workflows\n\nSee ARCHITECTURE.md Section 9.\n"},
+			{testBeastModeAgentFile, "# Beast Mode\n\nSee [ENG-HANDBOOK.md Section 14.7](docs/ENG-HANDBOOK.md#147).\n"},
+			{"fix-workflows.agent.md", "# Fix Workflows\n\nSee ENG-HANDBOOK.md Section 9.\n"},
 		}
 
 		for _, f := range files {
@@ -75,9 +75,9 @@ func TestCheckWithFS_AllAgentsCompliant(t *testing.T) {
 	readFileFn := func(name string) ([]byte, error) {
 		switch filepath.Base(name) {
 		case testBeastModeAgentFile:
-			return []byte("# Beast Mode\n\nSee [ARCHITECTURE.md Section 14.7](docs/ARCHITECTURE.md#147).\n"), nil
+			return []byte("# Beast Mode\n\nSee [ENG-HANDBOOK.md Section 14.7](docs/ENG-HANDBOOK.md#147).\n"), nil
 		case "fix-workflows.agent.md":
-			return []byte("# Fix Workflows\n\nSee ARCHITECTURE.md Section 9.\n"), nil
+			return []byte("# Fix Workflows\n\nSee ENG-HANDBOOK.md Section 9.\n"), nil
 		}
 
 		return nil, fmt.Errorf("unexpected file: %s", name)
@@ -111,7 +111,7 @@ func TestCheckWithFS_AgentMissingReference(t *testing.T) {
 	readFileFn := func(name string) ([]byte, error) {
 		switch filepath.Base(name) {
 		case "beast-mode.agent.md":
-			return []byte("# Beast Mode\nSee ARCHITECTURE.md Section 14.\n"), nil
+			return []byte("# Beast Mode\nSee ENG-HANDBOOK.md Section 14.\n"), nil
 		case "noncompliant.agent.md":
 			return []byte("# Noncompliant Agent\n\nNo architecture reference here.\n"), nil
 		}
@@ -122,7 +122,7 @@ func TestCheckWithFS_AgentMissingReference(t *testing.T) {
 	err := checkWithFS(logger, getwdFn, walkFn, readFileFn)
 
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "1 agent(s) missing ARCHITECTURE.md references")
+	require.Contains(t, err.Error(), "1 agent(s) missing ENG-HANDBOOK.md references")
 }
 
 func TestCheckWithFS_GetwdError(t *testing.T) {
@@ -247,7 +247,7 @@ func TestCheckWithFS_SkipsDirectoriesAndNonAgentFiles(t *testing.T) {
 	readFileFn := func(name string) ([]byte, error) {
 		readCalled = append(readCalled, filepath.Base(name))
 
-		return []byte("# Agent\nSee ARCHITECTURE.md Section 2.\n"), nil
+		return []byte("# Agent\nSee ENG-HANDBOOK.md Section 2.\n"), nil
 	}
 
 	err := checkWithFS(logger, getwdFn, walkFn, readFileFn)
@@ -304,7 +304,7 @@ func TestCheckWithFS_MultipleViolations(t *testing.T) {
 	err := checkWithFS(logger, getwdFn, walkFn, readFileFn)
 
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "3 agent(s) missing ARCHITECTURE.md references")
+	require.Contains(t, err.Error(), "3 agent(s) missing ENG-HANDBOOK.md references")
 }
 
 // fakeAgentDirEntry implements fs.DirEntry for testing.

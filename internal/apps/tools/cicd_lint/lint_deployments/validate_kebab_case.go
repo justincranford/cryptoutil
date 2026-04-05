@@ -103,7 +103,7 @@ func validateConfigFieldKebabCase(configPath, relPath string, result *KebabCaseV
 
 		if !isKebabCase(value) {
 			result.Errors = append(result.Errors, fmt.Sprintf(
-				"[ValidateKebabCase] Field '%s' value '%s' violates kebab-case - use '%s' (file: %s) | See: ARCHITECTURE.md Section 4.4.1",
+				"[ValidateKebabCase] Field '%s' value '%s' violates kebab-case - use '%s' (file: %s) | See: ENG-HANDBOOK.md Section 4.4.1",
 				fieldPath, value, toKebabCase(value), relPath))
 			result.Valid = false
 		}

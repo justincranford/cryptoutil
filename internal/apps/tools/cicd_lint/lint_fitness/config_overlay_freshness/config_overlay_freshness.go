@@ -10,7 +10,7 @@
 //   - {ps-id}-app-postgresql-2.yml -> database-url must be absent
 //
 // The rules are loaded from the embedded config-overlay-templates.yaml.
-// See ARCHITECTURE.md Section 9.11 for config overlay naming and content conventions.
+// See ENG-HANDBOOK.md Section 9.11 for config overlay naming and content conventions.
 package config_overlay_freshness
 
 import (

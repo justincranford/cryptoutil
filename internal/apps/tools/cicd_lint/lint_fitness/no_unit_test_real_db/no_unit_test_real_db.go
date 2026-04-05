@@ -2,7 +2,7 @@
 
 // Package no_unit_test_real_db enforces that unit tests do not create real PostgreSQL database containers.
 // Unit tests MUST use testdb.NewInMemorySQLiteDB() instead.
-// See ARCHITECTURE.md Section 10.3 TestMain Pattern (Forbidden Pattern #3).
+// See ENG-HANDBOOK.md Section 10.3 TestMain Pattern (Forbidden Pattern #3).
 package no_unit_test_real_db
 
 import (
@@ -118,7 +118,7 @@ func CheckFiles(logger *cryptoutilCmdCicdCommon.Logger, testFiles []string) erro
 	if totalViolations > 0 {
 		logger.Log(fmt.Sprintf("Found %d real-database container violation(s) in unit tests", totalViolations))
 		fmt.Fprintln(os.Stderr, "Use testdb.NewInMemorySQLiteDB() for unit tests or place containers in TestMain.")
-		fmt.Fprintln(os.Stderr, "See ARCHITECTURE.md Section 10.3 TestMain Pattern.")
+		fmt.Fprintln(os.Stderr, "See ENG-HANDBOOK.md Section 10.3 TestMain Pattern.")
 
 		return fmt.Errorf("found %d real-database container violation(s) in unit tests", totalViolations)
 	}
@@ -130,7 +130,7 @@ func CheckFiles(logger *cryptoutilCmdCicdCommon.Logger, testFiles []string) erro
 
 // CheckFile scans a single file for banned real-database container patterns.
 // Lines inside a TestMain function block are exempt - TestMain is the approved location
-// for per-package heavyweight resource setup per ARCHITECTURE.md Section 10.3.
+// for per-package heavyweight resource setup per ENG-HANDBOOK.md Section 10.3.
 func CheckFile(filePath string) []string {
 	content, err := os.ReadFile(filePath)
 	if err != nil {

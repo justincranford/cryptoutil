@@ -8,7 +8,7 @@
 // Any file whose top-level YAML contains a "database" key whose value is a mapping
 // (rather than a scalar or absent) is a violation.
 //
-// See ARCHITECTURE.md Section 5.2 Service Builder Pattern and Section 7. Data Architecture
+// See ENG-HANDBOOK.md Section 5.2 Service Builder Pattern and Section 7. Data Architecture
 // for the database-url canonical key documentation.
 package database_key_uniformity
 

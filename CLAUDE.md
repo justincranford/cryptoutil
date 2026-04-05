@@ -4,11 +4,11 @@
 
 | Resource | Purpose |
 |----------|---------|
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Canonical source for ALL architectural decisions, patterns, security, testing, deployment, and implementation guidelines (v2.0). Read relevant sections before making decisions. |
+| [docs/ENG-HANDBOOK.md](docs/ENG-HANDBOOK.md) | Canonical source for ALL architectural decisions, patterns, security, testing, deployment, and implementation guidelines (v2.0). Read relevant sections before making decisions. |
 | [api/cryptosuite-registry/registry.yaml](api/cryptosuite-registry/registry.yaml) | Machine-readable registry: 10 PS-IDs, port assignments, migration number ranges per PS-ID. |
 | [.github/copilot-instructions.md](.github/copilot-instructions.md) | Copilot instructions summary — Claude Code uses this file too. |
 
-### Key ARCHITECTURE.md Sections
+### Key ENG-HANDBOOK.md Sections
 
 | Section | Topic |
 |---------|-------|
@@ -75,7 +75,7 @@ Full Copilot originals: [.github/skills/](.github/skills/).
 | `/openapi-codegen` | Generate oapi-codegen configs (server/model/client) + OpenAPI spec skeleton |
 | `/migration-create` | Create numbered SQL migration files per registry.yaml ranges |
 | `/new-service` | Create new PS-ID service from skeleton-template (9-step guide) |
-| `/propagation-check` | Detect `@propagate`/`@source` drift between ARCHITECTURE.md and instruction files |
+| `/propagation-check` | Detect `@propagate`/`@source` drift between ENG-HANDBOOK.md and instruction files |
 | `/contract-test-gen` | Cross-service contract compliance tests via TestMain pattern |
 | `/fitness-function-gen` | New architecture fitness function linter in cicd_lint/lint_fitness/ |
 | `/agent-scaffold` | New `.github/agents/NAME.agent.md` + `.claude/agents/NAME.md` dual canonical pair |

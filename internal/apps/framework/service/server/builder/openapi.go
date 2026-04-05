@@ -9,6 +9,7 @@ import (
 	http "net/http"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	"github.com/getkin/kin-openapi/openapi3"
 	fiber "github.com/gofiber/fiber/v2"
 	fibermiddleware "github.com/oapi-codegen/fiber-middleware"

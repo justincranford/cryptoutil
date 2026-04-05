@@ -52,6 +52,6 @@ _ = result
 
 ## References
 
-Read [ARCHITECTURE.md Section 10.7 Fuzz Testing Strategy](../../../docs/ARCHITECTURE.md#107-fuzz-testing-strategy) for fuzz testing requirements — apply the 15s minimum fuzz time, `_fuzz_test.go` file suffix, unique function name rule, and seed corpus requirements from this section.
+Read [ENG-HANDBOOK.md Section 10.7 Fuzz Testing Strategy](../../../docs/ENG-HANDBOOK.md#107-fuzz-testing-strategy) for fuzz testing requirements — apply the 15s minimum fuzz time, `_fuzz_test.go` file suffix, unique function name rule, and seed corpus requirements from this section.
 
-Read [ARCHITECTURE.md Section 10.1 Testing Strategy Overview](../../../docs/ARCHITECTURE.md#101-testing-strategy-overview) for test file type suffixes — ensure `_fuzz_test.go` files contain ONLY fuzz functions and cross-check that `_property_test.go` files use `//go:build !fuzz` if they must not run during fuzz corpus execution.
+Read [ENG-HANDBOOK.md Section 10.1 Testing Strategy Overview](../../../docs/ENG-HANDBOOK.md#101-testing-strategy-overview) for test file type suffixes — ensure `_fuzz_test.go` files contain ONLY fuzz functions and cross-check that `_property_test.go` files use `//go:build !fuzz` if they must not run during fuzz corpus execution.

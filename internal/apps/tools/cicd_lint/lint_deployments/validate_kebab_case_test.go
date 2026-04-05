@@ -59,7 +59,7 @@ func TestValidateKebabCase_InvalidServiceName(t *testing.T) {
 			require.Contains(t, result.Errors[0], "[ValidateKebabCase]")
 			require.Contains(t, result.Errors[0], tc.wantErr)
 			require.Contains(t, result.Errors[0], "kebab-case")
-			require.Contains(t, result.Errors[0], "ARCHITECTURE.md Section 4.4.1")
+			require.Contains(t, result.Errors[0], "ENG-HANDBOOK.md Section 4.4.1")
 		})
 	}
 }

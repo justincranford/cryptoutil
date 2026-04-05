@@ -3,7 +3,7 @@
 // Package template_consistency verifies that deployments/skeleton-template/secrets/
 // uses hyphenated filenames (not underscores). This enforces the canonical secret
 // naming convention so the template serves as a correct reference for new services.
-// ARCHITECTURE.md Section 9.11.1 Fitness Sub-Linter Catalog.
+// ENG-HANDBOOK.md Section 9.11.1 Fitness Sub-Linter Catalog.
 package template_consistency
 
 import (

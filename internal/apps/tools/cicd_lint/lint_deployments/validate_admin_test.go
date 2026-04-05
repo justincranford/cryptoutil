@@ -63,7 +63,7 @@ func TestValidateAdmin_AdminPortExposed(t *testing.T) {
 	assert.Contains(t, result.Errors[0], "[ValidateAdmin]")
 	assert.Contains(t, result.Errors[0], "SECURITY VIOLATION")
 	assert.Contains(t, result.Errors[0], "9090")
-	assert.Contains(t, result.Errors[0], "ARCHITECTURE.md Section 5.3")
+	assert.Contains(t, result.Errors[0], "ENG-HANDBOOK.md Section 5.3")
 }
 
 func TestValidateAdmin_AdminPortNotExposedSafe(t *testing.T) {
@@ -89,7 +89,7 @@ func TestValidateAdmin_WrongAdminPort(t *testing.T) {
 	assert.False(t, result.Valid)
 	assert.Contains(t, result.Errors[0], "[ValidateAdmin]")
 	assert.Contains(t, result.Errors[0], "bind-private-port is 8443")
-	assert.Contains(t, result.Errors[0], "ARCHITECTURE.md Section 5.3")
+	assert.Contains(t, result.Errors[0], "ENG-HANDBOOK.md Section 5.3")
 }
 
 func TestValidateAdmin_WrongAdminAddress(t *testing.T) {
@@ -105,7 +105,7 @@ func TestValidateAdmin_WrongAdminAddress(t *testing.T) {
 	assert.Contains(t, result.Errors[0], "[ValidateAdmin]")
 	assert.Contains(t, result.Errors[0], "bind-private-address")
 	assert.Contains(t, result.Errors[0], cryptoutilSharedMagic.IPv4AnyAddress)
-	assert.Contains(t, result.Errors[0], "ARCHITECTURE.md Section 5.3")
+	assert.Contains(t, result.Errors[0], "ENG-HANDBOOK.md Section 5.3")
 }
 
 func TestValidateAdmin_NoComposeFile(t *testing.T) {

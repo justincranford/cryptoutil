@@ -174,7 +174,7 @@ systemctl --user start docker-desktop
 - E2E tests skip with environmental warnings
 - Integration test containers cannot start
 
-See [ARCHITECTURE.md Section 14.5.5 Docker Desktop Startup](../../docs/ARCHITECTURE.md#1455-docker-desktop-startup---critical) for comprehensive documentation.
+See [ENG-HANDBOOK.md Section 14.5.5 Docker Desktop Startup](../../docs/ENG-HANDBOOK.md#1455-docker-desktop-startup---critical) for comprehensive documentation.
 
 ### 1. Local Workflow Execution (MANDATORY METHOD)
 
@@ -763,7 +763,7 @@ permissions:
 
 ## Mandatory Review Passes
 
-<!-- @source from="docs/ARCHITECTURE.md" as="mandatory-review-passes" -->
+<!-- @source from="docs/ENG-HANDBOOK.md" as="mandatory-review-passes" -->
 **MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
 
 Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
@@ -783,7 +783,7 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 **Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
 <!-- @/source -->
 
-See [ARCHITECTURE.md Section 2.5 Quality Strategy](/docs/ARCHITECTURE.md#25-quality-strategy) for mandatory review pass requirements.
+See [ENG-HANDBOOK.md Section 2.5 Quality Strategy](/docs/ENG-HANDBOOK.md#25-quality-strategy) for mandatory review pass requirements.
 
 ---
 
@@ -812,4 +812,4 @@ A response that leaves uncommitted changes is incomplete by definition.
 
 ## Cross-Reference
 
-- **Architecture Documentation**: See [ARCHITECTURE.md Section 2.1 Agent Orchestration Strategy](/docs/ARCHITECTURE.md#21-agent-orchestration-strategy) for agent architecture patterns and autonomous execution mode documentation.
+- **Architecture Documentation**: See [ENG-HANDBOOK.md Section 2.1 Agent Orchestration Strategy](/docs/ENG-HANDBOOK.md#21-agent-orchestration-strategy) for agent architecture patterns and autonomous execution mode documentation.

@@ -7,7 +7,7 @@ package lint_deployments
 //   - RequiredFileStatus - file/directory MUST exist
 //   - OptionalFileStatus - file/directory MAY exist
 //
-// See: docs/ARCHITECTURE.md Section 12.4 for config organization patterns.
+// See: docs/ENG-HANDBOOK.md Section 12.4 for config organization patterns.
 func GetExpectedConfigsContents() map[string]string {
 	contents := make(map[string]string)
 

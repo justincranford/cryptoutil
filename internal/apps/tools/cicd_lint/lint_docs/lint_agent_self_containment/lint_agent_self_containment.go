@@ -1,9 +1,9 @@
 // Copyright (c) 2025 Justin Cranford
 
 // Package lint_agent_self_containment validates that every Copilot agent file
-// in .github/agents/ contains at least one reference to ARCHITECTURE.md,
-// enforcing the agent self-containment requirement from ARCHITECTURE.md §2.1.1.
-// Agents without ARCHITECTURE.md references are non-compliant and must be updated.
+// in .github/agents/ contains at least one reference to ENG-HANDBOOK.md,
+// enforcing the agent self-containment requirement from ENG-HANDBOOK.md §2.1.1.
+// Agents without ENG-HANDBOOK.md references are non-compliant and must be updated.
 package lint_agent_self_containment
 
 import (
@@ -19,7 +19,7 @@ import (
 
 const (
 	agentFileSuffix     = ".agent.md"
-	architectureRefText = "ARCHITECTURE.md"
+	architectureRefText = "ENG-HANDBOOK.md"
 )
 
 // Check runs the lint-agent-self-containment check, automatically finding the project root.
@@ -41,7 +41,7 @@ func checkWithFS(
 
 	agentsDir := filepath.Join(root, cryptoutilSharedMagic.CICDGithubAgentsDir)
 
-	logger.Log(fmt.Sprintf("Checking agents in %s for ARCHITECTURE.md references...", cryptoutilSharedMagic.CICDGithubAgentsDir))
+	logger.Log(fmt.Sprintf("Checking agents in %s for ENG-HANDBOOK.md references...", cryptoutilSharedMagic.CICDGithubAgentsDir))
 
 	var (
 		violations []string
@@ -84,13 +84,13 @@ func checkWithFS(
 
 	if len(violations) > 0 {
 		for _, v := range violations {
-			logger.Log(fmt.Sprintf("  agent missing ARCHITECTURE.md reference: %s", v))
+			logger.Log(fmt.Sprintf("  agent missing ENG-HANDBOOK.md reference: %s", v))
 		}
 
-		return fmt.Errorf("lint-agent-self-containment: %d agent(s) missing ARCHITECTURE.md references", len(violations))
+		return fmt.Errorf("lint-agent-self-containment: %d agent(s) missing ENG-HANDBOOK.md references", len(violations))
 	}
 
-	logger.Log(fmt.Sprintf("lint-agent-self-containment: all %d agents reference ARCHITECTURE.md", checked))
+	logger.Log(fmt.Sprintf("lint-agent-self-containment: all %d agents reference ENG-HANDBOOK.md", checked))
 
 	return nil
 }

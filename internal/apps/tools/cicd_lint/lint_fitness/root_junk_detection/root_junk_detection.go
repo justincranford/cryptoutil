@@ -4,7 +4,7 @@
 // Junk files include compiled binaries (*.exe, *.test.exe), Python scripts (*.py),
 // and test-output coverage files (coverage*). Junk directories include coverage
 // output directories (*_coverage, cover). These must never be committed to
-// the repository (ARCHITECTURE.md Section A.2 and Section 13.9).
+// the repository (ENG-HANDBOOK.md Section A.2 and Section 13.9).
 package root_junk_detection
 
 import (

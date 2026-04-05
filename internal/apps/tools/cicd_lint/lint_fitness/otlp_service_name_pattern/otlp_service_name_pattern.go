@@ -7,7 +7,7 @@
 //   - Deployment:  deployments/{ps-id}/config/{ps-id}-app-postgresql-1.yml -> {ps-id}-postgres-1
 //   - Deployment:  deployments/{ps-id}/config/{ps-id}-app-postgresql-2.yml -> {ps-id}-postgres-2
 //
-// See ARCHITECTURE.md Section 9.11 for naming convention details.
+// See ENG-HANDBOOK.md Section 9.11 for naming convention details.
 package otlp_service_name_pattern
 
 import (

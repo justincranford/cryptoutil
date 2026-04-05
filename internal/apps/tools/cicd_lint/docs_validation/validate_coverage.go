@@ -38,7 +38,7 @@ type CoverageViolation struct {
 // CoverageResult holds the result of validate-coverage.
 type CoverageResult struct {
 	Violations         []CoverageViolation
-	OrphanedChunks     []string // @propagate in ARCHITECTURE.md but missing from manifest
+	OrphanedChunks     []string // @propagate in ENG-HANDBOOK.md but missing from manifest
 	ManifestChunks     int
 	ArchitectureChunks int
 }
@@ -50,7 +50,7 @@ var sourceBlockRegex = regexp.MustCompile(`<!--\s+@source\s+from="[^"]+"\s+as="(
 var propagateMarkerRegex = regexp.MustCompile(`<!--\s+@propagate\s+to="([^"]+)"\s+as="([^"]+)"\s+-->`)
 
 // chunkIDRegex validates that a captured chunk ID matches the grammar: [a-z][a-z0-9-]*.
-// This filters out false positives from code-block grammar examples in ARCHITECTURE.md.
+// This filters out false positives from code-block grammar examples in ENG-HANDBOOK.md.
 var chunkIDRegex = regexp.MustCompile(`^[a-z][a-z0-9-]*$`)
 
 // LoadPropagationsManifest reads and parses the required-propagations YAML manifest.
@@ -68,11 +68,11 @@ func LoadPropagationsManifest(readFile func(string) ([]byte, error)) (*Propagati
 	return &manifest, nil
 }
 
-// ExtractPropagateChunks returns all chunk IDs declared in ARCHITECTURE.md @propagate markers.
+// ExtractPropagateChunks returns all chunk IDs declared in ENG-HANDBOOK.md @propagate markers.
 func ExtractPropagateChunks(readFile func(string) ([]byte, error)) ([]string, error) {
-	data, err := readFile("docs/ARCHITECTURE.md")
+	data, err := readFile("docs/ENG-HANDBOOK.md")
 	if err != nil {
-		return nil, fmt.Errorf("failed to read docs/ARCHITECTURE.md: %w", err)
+		return nil, fmt.Errorf("failed to read docs/ENG-HANDBOOK.md: %w", err)
 	}
 
 	seen := make(map[string]bool)
@@ -172,7 +172,7 @@ func extractSourceChunksFromContent(relPath, content string, result map[string][
 
 // ValidateCoverage runs the full coverage validation:
 //  1. Loads the required-propagations manifest.
-//  2. Extracts @propagate chunk IDs from ARCHITECTURE.md.
+//  2. Extracts @propagate chunk IDs from ENG-HANDBOOK.md.
 //  3. Scans instruction/agent files for @source chunk IDs.
 //  4. Returns violations and orphaned chunks.
 func ValidateCoverage(rootDir string, readFile func(string) ([]byte, error)) (*CoverageResult, error) {
@@ -201,7 +201,7 @@ func validateCoverage(rootDir string, readFile func(string) ([]byte, error), ext
 		manifestSet[entry.ChunkID] = true
 	}
 
-	// Build a set of chunk IDs from ARCHITECTURE.md.
+	// Build a set of chunk IDs from ENG-HANDBOOK.md.
 	archSet := make(map[string]bool, len(archChunks))
 	for _, id := range archChunks {
 		archSet[id] = true
@@ -237,7 +237,7 @@ func validateCoverage(rootDir string, readFile func(string) ([]byte, error), ext
 		}
 	}
 
-	// Find orphaned: @propagate in ARCHITECTURE.md but not in manifest.
+	// Find orphaned: @propagate in ENG-HANDBOOK.md but not in manifest.
 	for _, id := range archChunks {
 		if !manifestSet[id] {
 			result.OrphanedChunks = append(result.OrphanedChunks, id)
@@ -266,7 +266,7 @@ func FormatCoverageValidationResults(result *CoverageResult) string {
 	sb.WriteString(fmt.Sprintf("Architecture chunks:  %d\n", result.ArchitectureChunks))
 
 	if len(result.OrphanedChunks) > 0 {
-		sb.WriteString(fmt.Sprintf("\nORPHANED CHUNKS (%d) — in ARCHITECTURE.md but missing from manifest:\n", len(result.OrphanedChunks)))
+		sb.WriteString(fmt.Sprintf("\nORPHANED CHUNKS (%d) — in ENG-HANDBOOK.md but missing from manifest:\n", len(result.OrphanedChunks)))
 
 		for _, id := range result.OrphanedChunks {
 			sb.WriteString(fmt.Sprintf("  - %s\n", id))

@@ -1,14 +1,14 @@
 # Semgrep rules for Go test code patterns.
-# Enforces requirements from docs/ARCHITECTURE.md Sections 10.2-10.3.
+# Enforces requirements from docs/ENG-HANDBOOK.md Sections 10.2-10.3.
 rules:
-  # ARCHITECTURE.md Section 10.3.4: Test HTTP Client Patterns
+  # ENG-HANDBOOK.md Section 10.3.4: Test HTTP Client Patterns
   # Fasthttp keeps open counter > 0 while keep-alive connections remain.
   # ShutdownWithContext hangs 90 seconds waiting for the counter to reach zero.
   - id: test-http-transport-missing-disable-keepalives
     message: >
       Test HTTP transports MUST set DisableKeepAlives: true.
       Fasthttp ShutdownWithContext hangs 90 seconds waiting for keep-alive connections to close.
-      See: docs/ARCHITECTURE.md Section 10.3.4 Test HTTP Client Patterns.
+      See: docs/ENG-HANDBOOK.md Section 10.3.4 Test HTTP Client Patterns.
     languages: [go]
     severity: ERROR
     patterns:
@@ -20,13 +20,13 @@ rules:
         - "*_integration_test.go"
         - "*_e2e_test.go"
 
-  # ARCHITECTURE.md Section 10.3: Integration Testing Strategy - TestMain Pattern
+  # ENG-HANDBOOK.md Section 10.3: Integration Testing Strategy - TestMain Pattern
   # Per-test gorm.Open() creates a DB per test - violates shared-setup pattern.
   # Use TestMain with shared DB container to avoid per-test container overhead.
   - id: no-per-test-db-gorm-open
     message: >
       Never call gorm.Open() in individual test functions. Use TestMain with a shared DB setup.
-      See: docs/ARCHITECTURE.md Section 10.3 Integration Testing Strategy.
+      See: docs/ENG-HANDBOOK.md Section 10.3 Integration Testing Strategy.
     languages: [go]
     severity: ERROR
     pattern: |
@@ -43,7 +43,7 @@ rules:
   - id: no-tls-insecure-skip-verify
     message: >
       InsecureSkipVerify: true MUST NOT be used. Use proper TLS cert chains.
-      See: docs/ARCHITECTURE.md Section 6.4 Cryptographic Architecture.
+      See: docs/ENG-HANDBOOK.md Section 6.4 Cryptographic Architecture.
     languages: [go]
     severity: ERROR
     pattern: "InsecureSkipVerify: true"

@@ -71,7 +71,7 @@ to skills and the `.claude/commands/` directory has been removed.
 # {Project Name} — Claude Code Instructions
 
 ## Architecture Source of Truth
-(Links to ARCHITECTURE.md and key section index)
+(Links to ENG-HANDBOOK.md and key section index)
 
 ## Instruction Files
 @.github/instructions/*.instructions.md references

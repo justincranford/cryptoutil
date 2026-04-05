@@ -37,7 +37,7 @@ func TestValidateNaming_InvalidPascalCase(t *testing.T) {
 	require.Contains(t, result.Errors[0], "[ValidateNaming]")
 	require.Contains(t, result.Errors[0], "ServiceOne")
 	require.Contains(t, result.Errors[0], "kebab-case")
-	require.Contains(t, result.Errors[0], "ARCHITECTURE.md Section 4.4.1")
+	require.Contains(t, result.Errors[0], "ENG-HANDBOOK.md Section 4.4.1")
 }
 
 func TestValidateNaming_InvalidSnakeCase(t *testing.T) {
@@ -368,7 +368,7 @@ func TestValidateNaming_UPPERCASEDir(t *testing.T) {
 	require.Contains(t, result.Errors[0], "[ValidateNaming]")
 	require.Contains(t, result.Errors[0], "UPPER")
 	require.Contains(t, result.Errors[0], "kebab-case")
-	require.Contains(t, result.Errors[0], "ARCHITECTURE.md Section 4.4.1")
+	require.Contains(t, result.Errors[0], "ENG-HANDBOOK.md Section 4.4.1")
 }
 
 func TestValidateNaming_ComposeReadableFileError(t *testing.T) {

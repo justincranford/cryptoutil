@@ -1,7 +1,7 @@
 // Copyright (c) 2025 Justin Cranford
 
 // Package lint_gotest_test_sleep enforces that test files do not use time.Sleep.
-// Per ARCHITECTURE.md §10.2, time.Sleep in tests indicates a poorly designed test
+// Per ENG-HANDBOOK.md §10.2, time.Sleep in tests indicates a poorly designed test
 // that relies on timing rather than proper synchronization primitives (channels,
 // sync.WaitGroup, context cancellation, or signal injection). Use channels and
 // context-based coordination to make tests deterministic and fast.

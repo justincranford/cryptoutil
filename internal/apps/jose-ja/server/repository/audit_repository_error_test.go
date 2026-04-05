@@ -12,6 +12,7 @@ import (
 
 	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose-ja/server/model"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
+
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )

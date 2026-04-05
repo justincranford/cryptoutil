@@ -3,7 +3,7 @@
 // Package archive_detector enforces that archived or orphaned directories
 // do not exist in the repository. Directories named "_archived/", "archived/",
 // or "orphaned/" represent dead code and must be removed per the Archive and
-// Dead Code Policy (ARCHITECTURE.md Section 13.9).
+// Dead Code Policy (ENG-HANDBOOK.md Section 13.9).
 package archive_detector
 
 import (

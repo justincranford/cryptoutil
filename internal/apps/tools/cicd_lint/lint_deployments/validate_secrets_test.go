@@ -61,7 +61,7 @@ func TestValidateSecrets_EmptySecretFile(t *testing.T) {
 	require.NotEmpty(t, result.Errors)
 	require.Contains(t, result.Errors[0], "[ValidateSecrets]")
 	require.Contains(t, result.Errors[0], "is empty")
-	require.Contains(t, result.Errors[0], "ARCHITECTURE.md Section 12.6")
+	require.Contains(t, result.Errors[0], "ENG-HANDBOOK.md Section 12.6")
 }
 
 func TestValidateSecrets_ShortSecretFile(t *testing.T) {

@@ -17,7 +17,7 @@ import (
 // rfcOnlySourceContent returns instruction file content with ONLY the rfc-2119-keywords @source block.
 // Used in tests where emphasis-keywords is intentionally missing.
 func rfcOnlySourceContent() string {
-	return `<!-- @source from="docs/ARCHITECTURE.md" as="rfc-2119-keywords" -->
+	return `<!-- @source from="docs/ENG-HANDBOOK.md" as="rfc-2119-keywords" -->
 content
 <!-- @/source -->
 `
@@ -27,17 +27,17 @@ content
 func minimalManifestYAML() string {
 	return `required_propagations:
   - chunk_id: rfc-2119-keywords
-    source_file: docs/ARCHITECTURE.md
+    source_file: docs/ENG-HANDBOOK.md
     required_targets:
       - .github/instructions/01-01.terminology.instructions.md
   - chunk_id: emphasis-keywords
-    source_file: docs/ARCHITECTURE.md
+    source_file: docs/ENG-HANDBOOK.md
     required_targets:
       - .github/instructions/01-01.terminology.instructions.md
 `
 }
 
-// minimalArchitectureContent returns ARCHITECTURE.md content with two @propagate markers.
+// minimalArchitectureContent returns ENG-HANDBOOK.md content with two @propagate markers.
 func minimalArchitectureContent() string {
 	return `# Architecture
 <!-- @propagate to=".github/instructions/01-01.terminology.instructions.md" as="rfc-2119-keywords" -->
@@ -52,10 +52,10 @@ more content
 // sourceInstructionContent returns instruction file content with @source blocks.
 func sourceInstructionContent() string {
 	return `# Instruction File
-<!-- @source from="docs/ARCHITECTURE.md" as="rfc-2119-keywords" -->
+<!-- @source from="docs/ENG-HANDBOOK.md" as="rfc-2119-keywords" -->
 RFC keyword content
 <!-- @/source -->
-<!-- @source from="docs/ARCHITECTURE.md" as="emphasis-keywords" -->
+<!-- @source from="docs/ENG-HANDBOOK.md" as="emphasis-keywords" -->
 Emphasis content
 <!-- @/source -->
 `
@@ -88,7 +88,7 @@ func TestLoadPropagationsManifest_HappyPath(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, manifest.RequiredPropagations, 2)
 	require.Equal(t, "rfc-2119-keywords", manifest.RequiredPropagations[0].ChunkID)
-	require.Equal(t, "docs/ARCHITECTURE.md", manifest.RequiredPropagations[0].SourceFile)
+	require.Equal(t, "docs/ENG-HANDBOOK.md", manifest.RequiredPropagations[0].SourceFile)
 	require.Len(t, manifest.RequiredPropagations[0].RequiredTargets, 1)
 }
 
@@ -139,7 +139,7 @@ func TestExtractPropagateChunks_HappyPath(t *testing.T) {
 	t.Parallel()
 
 	readFile := makeFakeReadFile(map[string]string{
-		"docs/ARCHITECTURE.md": minimalArchitectureContent(),
+		"docs/ENG-HANDBOOK.md": minimalArchitectureContent(),
 	})
 
 	chunks, err := ExtractPropagateChunks(readFile)
@@ -156,7 +156,7 @@ func TestExtractPropagateChunks_Deduplicated(t *testing.T) {
 <!-- @propagate to=".github/instructions/b.md" as="my-chunk" -->
 `
 	readFile := makeFakeReadFile(map[string]string{
-		"docs/ARCHITECTURE.md": content,
+		"docs/ENG-HANDBOOK.md": content,
 	})
 
 	chunks, err := ExtractPropagateChunks(readFile)
@@ -173,7 +173,7 @@ func TestExtractPropagateChunks_FiltersInvalidChunkIDs(t *testing.T) {
 <!-- @propagate to=".github/instructions/a.md" as="valid-chunk" -->
 `
 	readFile := makeFakeReadFile(map[string]string{
-		"docs/ARCHITECTURE.md": content,
+		"docs/ENG-HANDBOOK.md": content,
 	})
 
 	chunks, err := ExtractPropagateChunks(readFile)
@@ -186,7 +186,7 @@ func TestExtractPropagateChunks_EmptyFile(t *testing.T) {
 	t.Parallel()
 
 	readFile := makeFakeReadFile(map[string]string{
-		"docs/ARCHITECTURE.md": "",
+		"docs/ENG-HANDBOOK.md": "",
 	})
 
 	chunks, err := ExtractPropagateChunks(readFile)
@@ -204,7 +204,7 @@ func TestExtractPropagateChunks_FileNotFound(t *testing.T) {
 
 	require.Error(t, err)
 	require.Nil(t, chunks)
-	require.Contains(t, err.Error(), "failed to read docs/ARCHITECTURE.md")
+	require.Contains(t, err.Error(), "failed to read docs/ENG-HANDBOOK.md")
 }
 
 // -----------------------------------------------------------------------
@@ -215,7 +215,7 @@ func TestExtractSourceChunksFromContent_SingleMatch(t *testing.T) {
 	t.Parallel()
 
 	result := make(map[string][]string)
-	content := `<!-- @source from="docs/ARCHITECTURE.md" as="my-chunk" -->
+	content := `<!-- @source from="docs/ENG-HANDBOOK.md" as="my-chunk" -->
 content
 <!-- @/source -->
 `
@@ -229,10 +229,10 @@ func TestExtractSourceChunksFromContent_MultipleMatches(t *testing.T) {
 	t.Parallel()
 
 	result := make(map[string][]string)
-	content := `<!-- @source from="docs/ARCHITECTURE.md" as="chunk-a" -->
+	content := `<!-- @source from="docs/ENG-HANDBOOK.md" as="chunk-a" -->
 a
 <!-- @/source -->
-<!-- @source from="docs/ARCHITECTURE.md" as="chunk-b" -->
+<!-- @source from="docs/ENG-HANDBOOK.md" as="chunk-b" -->
 b
 <!-- @/source -->
 `
@@ -258,7 +258,7 @@ func TestExtractSourceChunksFromContent_FiltersInvalidChunkIDs(t *testing.T) {
 	// Source block grammar example line should be filtered.
 	result := make(map[string][]string)
 	content := `@source-open     ::= '<!-- @source from="' PATH '" as="' CHUNK_ID '" -->'
-<!-- @source from="docs/ARCHITECTURE.md" as="valid-chunk" -->
+<!-- @source from="docs/ENG-HANDBOOK.md" as="valid-chunk" -->
 `
 	extractSourceChunksFromContent("file.md", content, result)
 
@@ -274,7 +274,7 @@ func TestExtractSourceChunksFromContent_AppendsToPriorEntries(t *testing.T) {
 		"my-chunk": {"already-there.md"},
 	}
 
-	content := `<!-- @source from="docs/ARCHITECTURE.md" as="my-chunk" -->`
+	content := `<!-- @source from="docs/ENG-HANDBOOK.md" as="my-chunk" -->`
 	extractSourceChunksFromContent("second.md", content, result)
 
 	require.Len(t, result["my-chunk"], 2)
@@ -308,7 +308,7 @@ func TestExtractSourceChunks_CopilotInstructionsFile(t *testing.T) {
 	copilotDir := rootDir + "/.github"
 	require.NoError(t, os.MkdirAll(copilotDir, 0o700))
 
-	copilotContent := `<!-- @source from="docs/ARCHITECTURE.md" as="copilot-chunk" -->
+	copilotContent := `<!-- @source from="docs/ENG-HANDBOOK.md" as="copilot-chunk" -->
 content
 <!-- @/source -->
 `
@@ -360,7 +360,7 @@ func TestExtractSourceChunks_SortsFileLists(t *testing.T) {
 	instrDir := rootDir + "/.github/instructions"
 	require.NoError(t, os.MkdirAll(instrDir, 0o700))
 
-	chunk := `<!-- @source from="docs/ARCHITECTURE.md" as="shared-chunk" -->`
+	chunk := `<!-- @source from="docs/ENG-HANDBOOK.md" as="shared-chunk" -->`
 
 	require.NoError(t, os.WriteFile(instrDir+"/z.instructions.md", []byte(chunk), cryptoutilSharedMagic.FilePermissionsDefault))
 	require.NoError(t, os.WriteFile(instrDir+"/a.instructions.md", []byte(chunk), cryptoutilSharedMagic.FilePermissionsDefault))
@@ -383,7 +383,7 @@ func TestExtractSourceChunks_ClaudeAgentsDir(t *testing.T) {
 	claudeDir := rootDir + "/.claude/agents"
 	require.NoError(t, os.MkdirAll(claudeDir, 0o700))
 
-	agentContent := "# Agent\n\n<!-- @source from=\"docs/ARCHITECTURE.md\" as=\"claude-chunk\" -->\nchunk content\n<!-- @/source -->\n"
+	agentContent := "# Agent\n\n<!-- @source from=\"docs/ENG-HANDBOOK.md\" as=\"claude-chunk\" -->\nchunk content\n<!-- @/source -->\n"
 	require.NoError(t, os.WriteFile(claudeDir+"/myagent.md", []byte(agentContent), cryptoutilSharedMagic.FilePermissionsDefault))
 
 	result, err := ExtractSourceChunks(rootDir, rootedReadFile(rootDir))
@@ -447,8 +447,8 @@ func buildValidateRoot(t *testing.T, manifestContent, archContent string, instru
 	require.NoError(t, os.MkdirAll(docsDir, 0o700))
 	require.NoError(t, os.WriteFile(docsDir+"/required-propagations.yaml", []byte(manifestContent), cryptoutilSharedMagic.FilePermissionsDefault))
 
-	// Write ARCHITECTURE.md.
-	require.NoError(t, os.WriteFile(docsDir+"/ARCHITECTURE.md", []byte(archContent), cryptoutilSharedMagic.FilePermissionsDefault))
+	// Write ENG-HANDBOOK.md.
+	require.NoError(t, os.WriteFile(docsDir+"/ENG-HANDBOOK.md", []byte(archContent), cryptoutilSharedMagic.FilePermissionsDefault))
 
 	// Write instruction files.
 	instrDir := rootDir + "/.github/instructions"
@@ -504,7 +504,7 @@ func TestValidateCoverage_MissingSourceBlock(t *testing.T) {
 func TestValidateCoverage_OrphanedChunk(t *testing.T) {
 	t.Parallel()
 
-	// ARCHITECTURE.md has "extra-chunk" but manifest only lists rfc-2119-keywords + emphasis-keywords.
+	// ENG-HANDBOOK.md has "extra-chunk" but manifest only lists rfc-2119-keywords + emphasis-keywords.
 	archContent := minimalArchitectureContent() + `<!-- @propagate to=".github/instructions/x.md" as="extra-chunk" -->
 `
 	rootDir, readFile := buildValidateRoot(t,
@@ -526,7 +526,7 @@ func TestValidateCoverage_ViolationsAndOrphansTogether(t *testing.T) {
 	t.Parallel()
 
 	// Instruction file only has rfc-2119-keywords (emphasis-keywords missing → violation),
-	// and ARCHITECTURE.md has extra-chunk (→ orphan).
+	// and ENG-HANDBOOK.md has extra-chunk (→ orphan).
 	archContent := minimalArchitectureContent() + `<!-- @propagate to=".github/instructions/x.md" as="extra-chunk" -->
 `
 	rootDir, readFile := buildValidateRoot(t,
@@ -547,7 +547,7 @@ func TestValidateCoverage_ViolationsAndOrphansTogether(t *testing.T) {
 func TestValidateCoverage_ManifestLoadError(t *testing.T) {
 	t.Parallel()
 
-	// rootDir has no ARCHITECTURE.md or manifest → manifest error first.
+	// rootDir has no ENG-HANDBOOK.md or manifest → manifest error first.
 	rootDir := t.TempDir()
 	readFile := rootedReadFile(rootDir)
 
@@ -579,7 +579,7 @@ func TestValidateCoverage_ExtractSourceChunksError(t *testing.T) {
 func TestValidateCoverage_ArchitectureMDError(t *testing.T) {
 	t.Parallel()
 
-	// Manifest exists but ARCHITECTURE.md absent.
+	// Manifest exists but ENG-HANDBOOK.md absent.
 	rootDir := t.TempDir()
 	docsDir := rootDir + "/docs"
 	require.NoError(t, os.MkdirAll(docsDir, 0o700))
@@ -589,7 +589,7 @@ func TestValidateCoverage_ArchitectureMDError(t *testing.T) {
 
 	require.Error(t, err)
 	require.Nil(t, result)
-	require.Contains(t, err.Error(), "ARCHITECTURE.md")
+	require.Contains(t, err.Error(), "ENG-HANDBOOK.md")
 }
 
 func TestValidateCoverage_ViolationsSortedByChunkAndFile(t *testing.T) {
@@ -598,11 +598,11 @@ func TestValidateCoverage_ViolationsSortedByChunkAndFile(t *testing.T) {
 	// Manifest has 3 entries across 2 files, none present in instruction files.
 	manifestYAML := `required_propagations:
   - chunk_id: zzz-last
-    source_file: docs/ARCHITECTURE.md
+    source_file: docs/ENG-HANDBOOK.md
     required_targets:
       - .github/instructions/b.instructions.md
   - chunk_id: aaa-first
-    source_file: docs/ARCHITECTURE.md
+    source_file: docs/ENG-HANDBOOK.md
     required_targets:
       - .github/instructions/a.instructions.md
       - .github/instructions/b.instructions.md
@@ -798,7 +798,7 @@ func TestValidateCoverageWithRoot_Violations(t *testing.T) {
 func TestValidateCoverageWithRoot_Orphans(t *testing.T) {
 	t.Parallel()
 
-	// ARCHITECTURE.md has extra-chunk not in manifest.
+	// ENG-HANDBOOK.md has extra-chunk not in manifest.
 	archContent := minimalArchitectureContent() + `<!-- @propagate to=".github/instructions/x.md" as="extra-chunk" -->
 `
 	rootDir, _ := buildValidateRoot(t,

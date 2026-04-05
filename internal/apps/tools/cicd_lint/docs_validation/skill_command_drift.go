@@ -15,10 +15,10 @@ import (
 
 // SkillCommandDriftViolation describes a single skill drift error between Copilot and Claude skill files.
 type SkillCommandDriftViolation struct {
-	SkillFile      string
+	SkillFile       string
 	ClaudeSkillFile string
-	Field          string
-	Detail         string
+	Field           string
+	Detail          string
 }
 
 // SkillCommandDriftResult holds the result of the skill/command drift check.
@@ -170,10 +170,10 @@ func CheckSkillCommandDrift(rootDir string, readFileFn func(string) ([]byte, err
 		claudeContent, claudeReadErr := readFileFn(claudeSkillRelPath)
 		if claudeReadErr != nil {
 			result.Violations = append(result.Violations, SkillCommandDriftViolation{
-				SkillFile:      skillFilePath,
+				SkillFile:       skillFilePath,
 				ClaudeSkillFile: claudeSkillRelPath,
-				Field:          "missing",
-				Detail:         fmt.Sprintf("Claude Code skill file not found for skill %q: expected %s", skillName, claudeSkillRelPath),
+				Field:           "missing",
+				Detail:          fmt.Sprintf("Claude Code skill file not found for skill %q: expected %s", skillName, claudeSkillRelPath),
 			})
 
 			result.Checked++
@@ -188,10 +188,10 @@ func CheckSkillCommandDrift(rootDir string, readFileFn func(string) ([]byte, err
 		// Validate that the Claude skill has YAML frontmatter.
 		if !hasFrontmatter(claudeStr) {
 			result.Violations = append(result.Violations, SkillCommandDriftViolation{
-				SkillFile:      skillFilePath,
+				SkillFile:       skillFilePath,
 				ClaudeSkillFile: claudeSkillRelPath,
-				Field:          "missing-frontmatter",
-				Detail:         fmt.Sprintf("Claude Code skill %s is missing YAML frontmatter (must begin with ---)", claudeSkillRelPath),
+				Field:           "missing-frontmatter",
+				Detail:          fmt.Sprintf("Claude Code skill %s is missing YAML frontmatter (must begin with ---)", claudeSkillRelPath),
 			})
 		} else {
 			// Validate description field matches.
@@ -200,10 +200,10 @@ func CheckSkillCommandDrift(rootDir string, readFileFn func(string) ([]byte, err
 
 			if skillDesc != "" && claudeDesc != skillDesc {
 				result.Violations = append(result.Violations, SkillCommandDriftViolation{
-					SkillFile:      skillFilePath,
+					SkillFile:       skillFilePath,
 					ClaudeSkillFile: claudeSkillRelPath,
-					Field:          "description-mismatch",
-					Detail:         fmt.Sprintf("Claude Code skill %s description does not match Copilot skill: claude=%q copilot=%q", claudeSkillRelPath, claudeDesc, skillDesc),
+					Field:           "description-mismatch",
+					Detail:          fmt.Sprintf("Claude Code skill %s description does not match Copilot skill: claude=%q copilot=%q", claudeSkillRelPath, claudeDesc, skillDesc),
 				})
 			}
 
@@ -213,10 +213,10 @@ func CheckSkillCommandDrift(rootDir string, readFileFn func(string) ([]byte, err
 				claudeHint := extractFrontmatterField(claudeStr, "argument-hint")
 				if claudeHint != skillHint {
 					result.Violations = append(result.Violations, SkillCommandDriftViolation{
-						SkillFile:      skillFilePath,
+						SkillFile:       skillFilePath,
 						ClaudeSkillFile: claudeSkillRelPath,
-						Field:          "argument-hint-mismatch",
-						Detail:         fmt.Sprintf("Claude Code skill %s argument-hint does not match Copilot skill: claude=%q copilot=%q", claudeSkillRelPath, claudeHint, skillHint),
+						Field:           "argument-hint-mismatch",
+						Detail:          fmt.Sprintf("Claude Code skill %s argument-hint does not match Copilot skill: claude=%q copilot=%q", claudeSkillRelPath, claudeHint, skillHint),
 					})
 				}
 			}
@@ -228,10 +228,10 @@ func CheckSkillCommandDrift(rootDir string, readFileFn func(string) ([]byte, err
 
 		if skillBody != claudeBody {
 			result.Violations = append(result.Violations, SkillCommandDriftViolation{
-				SkillFile:      skillFilePath,
+				SkillFile:       skillFilePath,
 				ClaudeSkillFile: claudeSkillRelPath,
-				Field:          "body-mismatch",
-				Detail:         fmt.Sprintf("Claude Code skill %s body content does not match Copilot skill %s", claudeSkillRelPath, skillFilePath),
+				Field:           "body-mismatch",
+				Detail:          fmt.Sprintf("Claude Code skill %s body content does not match Copilot skill %s", claudeSkillRelPath, skillFilePath),
 			})
 		}
 
@@ -247,10 +247,10 @@ func CheckSkillCommandDrift(rootDir string, readFileFn func(string) ([]byte, err
 		// Validate ## Key Rules section in Claude skill.
 		if !hasMarkdownSection(claudeStr, "## Key Rules") {
 			result.Violations = append(result.Violations, SkillCommandDriftViolation{
-				SkillFile:      skillFilePath,
+				SkillFile:       skillFilePath,
 				ClaudeSkillFile: claudeSkillRelPath,
-				Field:          "missing-key-rules",
-				Detail:         fmt.Sprintf("Claude Code skill %s is missing the '## Key Rules' section", claudeSkillRelPath),
+				Field:           "missing-key-rules",
+				Detail:          fmt.Sprintf("Claude Code skill %s is missing the '## Key Rules' section", claudeSkillRelPath),
 			})
 		}
 	}
@@ -275,10 +275,10 @@ func CheckSkillCommandDrift(rootDir string, readFileFn func(string) ([]byte, err
 		_, skillReadErr := readFileFn(expectedCopilotPath)
 		if skillReadErr != nil {
 			result.Violations = append(result.Violations, SkillCommandDriftViolation{
-				SkillFile:      expectedCopilotPath,
+				SkillFile:       expectedCopilotPath,
 				ClaudeSkillFile: claudeSkillRelPath,
-				Field:          "orphan",
-				Detail:         fmt.Sprintf("Claude Code skill %s has no matching Copilot skill at %s", claudeSkillRelPath, expectedCopilotPath),
+				Field:           "orphan",
+				Detail:          fmt.Sprintf("Claude Code skill %s has no matching Copilot skill at %s", claudeSkillRelPath, expectedCopilotPath),
 			})
 		}
 	}

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	"gopkg.in/yaml.v3"
 )
 
@@ -184,7 +185,7 @@ func validatePortConflicts(compose *composeFile, result *ComposeValidationResult
 
 			if existingService, exists := hostPorts[hostPort]; exists {
 				result.Errors = append(result.Errors,
-					fmt.Sprintf("[ValidateCompose] port conflict: host port %s used by both '%s' and '%s' | See: ARCHITECTURE.md Section 3.4",
+					fmt.Sprintf("[ValidateCompose] port conflict: host port %s used by both '%s' and '%s' | See: ENG-HANDBOOK.md Section 3.4",
 						hostPort, existingService, name))
 				result.Valid = false
 			} else {
@@ -224,7 +225,7 @@ func validateHealthChecks(compose *composeFile, result *ComposeValidationResult)
 
 		if svc.Healthcheck == nil {
 			result.Errors = append(result.Errors,
-				fmt.Sprintf("[ValidateCompose] service '%s' missing healthcheck | See: ARCHITECTURE.md Section 5.5", name))
+				fmt.Sprintf("[ValidateCompose] service '%s' missing healthcheck | See: ENG-HANDBOOK.md Section 5.5", name))
 			result.Valid = false
 		}
 	}
@@ -305,7 +306,7 @@ func validateSecretReferences(compose *composeFile, result *ComposeValidationRes
 
 			if compose.Secrets == nil {
 				result.Errors = append(result.Errors,
-					fmt.Sprintf("service '%s' references secret '%s' but no secrets section defined | See: ARCHITECTURE.md Section 12.6",
+					fmt.Sprintf("service '%s' references secret '%s' but no secrets section defined | See: ENG-HANDBOOK.md Section 12.6",
 						name, secretName))
 				result.Valid = false
 
@@ -314,7 +315,7 @@ func validateSecretReferences(compose *composeFile, result *ComposeValidationRes
 
 			if _, defined := compose.Secrets[secretName]; !defined {
 				result.Errors = append(result.Errors,
-					fmt.Sprintf("service '%s' references undefined secret '%s' | See: ARCHITECTURE.md Section 12.6",
+					fmt.Sprintf("service '%s' references undefined secret '%s' | See: ENG-HANDBOOK.md Section 12.6",
 						name, secretName))
 				result.Valid = false
 			}
@@ -338,7 +339,7 @@ func extractSecretName(secretRef any) string {
 	return ""
 }
 
-// infrastructureServices are services excluded from credential checks per ARCHITECTURE.md Section 12.6.
+// infrastructureServices are services excluded from credential checks per ENG-HANDBOOK.md Section 12.6.
 // "Infrastructure deployments excluded" from Docker secrets requirement.
 var infrastructureServices = map[string]bool{
 	cryptoutilSharedMagic.DockerServiceGrafanaOtelLgtm:             true,
@@ -363,7 +364,7 @@ func validateNoHardcodedCredentials(compose *composeFile, result *ComposeValidat
 			if credentialKeyPatterns.MatchString(key) && value != "" &&
 				!strings.HasPrefix(value, "$") && !strings.HasPrefix(value, "/run/secrets/") {
 				result.Errors = append(result.Errors,
-					fmt.Sprintf("service '%s': environment variable '%s' appears to contain hardcoded credentials | See: ARCHITECTURE.md Section 12.6",
+					fmt.Sprintf("service '%s': environment variable '%s' appears to contain hardcoded credentials | See: ENG-HANDBOOK.md Section 12.6",
 						name, key))
 				result.Valid = false
 			}
@@ -420,7 +421,7 @@ func validateBindMountSecurity(compose *composeFile, result *ComposeValidationRe
 			for _, dangerous := range dangerousMounts {
 				if strings.Contains(volume, dangerous) {
 					result.Errors = append(result.Errors,
-						fmt.Sprintf("service '%s': dangerous bind mount detected: %s | See: ARCHITECTURE.md Section 12",
+						fmt.Sprintf("service '%s': dangerous bind mount detected: %s | See: ENG-HANDBOOK.md Section 12",
 							name, volume))
 					result.Valid = false
 				}

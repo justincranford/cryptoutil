@@ -71,7 +71,7 @@ func TestCheckFile_Violations(t *testing.T) {
 			wantCount: 0,
 		},
 		{
-			name:      "TestMain postgres - exempt (approved per ARCHITECTURE.md)",
+			name:      "TestMain postgres - exempt (approved per ENG-HANDBOOK.md)",
 			content:   testMainExemptContent,
 			wantCount: 0,
 		},

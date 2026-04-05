@@ -153,7 +153,7 @@ func TestExtractSourceBlocks(t *testing.T) {
 			name: "basic single block",
 			content: join(
 				"Some intro",
-				`<!-- @source from="docs/ARCHITECTURE.md" as="chunk-1" -->`,
+				`<!-- @source from="docs/ENG-HANDBOOK.md" as="chunk-1" -->`,
 				"Source line one",
 				"Source line two",
 				"<!-- @/source -->",
@@ -241,7 +241,7 @@ func TestValidateChunks(t *testing.T) {
 			files: map[string]string{
 				"target.md": join(
 					"# Target",
-					`<!-- @source from="docs/ARCHITECTURE.md" as="chunk-a" -->`,
+					`<!-- @source from="docs/ENG-HANDBOOK.md" as="chunk-a" -->`,
 					"Line alpha",
 					"<!-- @/source -->",
 				),
@@ -257,7 +257,7 @@ func TestValidateChunks(t *testing.T) {
 			),
 			files: map[string]string{
 				"target.md": join(
-					`<!-- @source from="docs/ARCHITECTURE.md" as="chunk-b" -->`,
+					`<!-- @source from="docs/ENG-HANDBOOK.md" as="chunk-b" -->`,
 					"Old content",
 					"<!-- @/source -->",
 				),
@@ -300,10 +300,10 @@ func TestValidateChunks(t *testing.T) {
 			),
 			files: map[string]string{
 				"multi.md": join(
-					`<!-- @source from="docs/ARCHITECTURE.md" as="first" -->`,
+					`<!-- @source from="docs/ENG-HANDBOOK.md" as="first" -->`,
 					"First block",
 					"<!-- @/source -->",
-					`<!-- @source from="docs/ARCHITECTURE.md" as="second" -->`,
+					`<!-- @source from="docs/ENG-HANDBOOK.md" as="second" -->`,
 					"Second block",
 					"<!-- @/source -->",
 				),
@@ -331,12 +331,12 @@ func TestValidateChunks(t *testing.T) {
 			),
 			files: map[string]string{
 				"first.md": join(
-					`<!-- @source from="docs/ARCHITECTURE.md" as="multi" -->`,
+					`<!-- @source from="docs/ENG-HANDBOOK.md" as="multi" -->`,
 					"Multi content",
 					"<!-- @/source -->",
 				),
 				"second.md": join(
-					`<!-- @source from="docs/ARCHITECTURE.md" as="multi" -->`,
+					`<!-- @source from="docs/ENG-HANDBOOK.md" as="multi" -->`,
 					"Multi content",
 					"<!-- @/source -->",
 				),
@@ -355,7 +355,7 @@ func TestValidateChunks(t *testing.T) {
 			}
 
 			if tc.archContent != "" {
-				files["docs/ARCHITECTURE.md"] = tc.archContent
+				files["docs/ENG-HANDBOOK.md"] = tc.archContent
 			}
 
 			readFile := func(path string) ([]byte, error) {

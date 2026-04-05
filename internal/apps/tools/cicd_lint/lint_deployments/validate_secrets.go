@@ -147,7 +147,7 @@ func checkSecretLength(name string, value string, result *SecretValidationResult
 	if rawLen == 0 {
 		result.Valid = false
 		result.Errors = append(result.Errors,
-			fmt.Sprintf("[ValidateSecrets] secret file '%s' is empty | Fix: add content to secret file | See: ARCHITECTURE.md Section 12.6", name))
+			fmt.Sprintf("[ValidateSecrets] secret file '%s' is empty | Fix: add content to secret file | See: ENG-HANDBOOK.md Section 12.6", name))
 
 		return
 	}
@@ -236,7 +236,7 @@ func scanConfigMapForSecrets(config map[string]any, fileName string, prefix stri
 
 		result.Valid = false
 		result.Errors = append(result.Errors,
-			fmt.Sprintf("[ValidateSecrets] config '%s': field '%s' contains inline secret | Fix: use 'file:///run/secrets/' reference or move to external vault | See: ARCHITECTURE.md Section 12.6", fileName, fullKey))
+			fmt.Sprintf("[ValidateSecrets] config '%s': field '%s' contains inline secret | Fix: use 'file:///run/secrets/' reference or move to external vault | See: ENG-HANDBOOK.md Section 12.6", fileName, fullKey))
 	}
 }
 
@@ -331,7 +331,7 @@ func checkServiceEnvForInlineSecrets(svcName string, env map[string]any, fileNam
 
 		result.Valid = false
 		result.Errors = append(result.Errors,
-			fmt.Sprintf("[ValidateSecrets] compose '%s': service '%s' env '%s' contains inline secret | Fix: use Docker secrets with _FILE suffix | See: ARCHITECTURE.md Section 12.6", fileName, svcName, key))
+			fmt.Sprintf("[ValidateSecrets] compose '%s': service '%s' env '%s' contains inline secret | Fix: use Docker secrets with _FILE suffix | See: ENG-HANDBOOK.md Section 12.6", fileName, svcName, key))
 	}
 }
 

@@ -4,7 +4,7 @@
 // required health endpoint paths. Each service must reference all five standard
 // health paths: /service/api/v1/health, /browser/api/v1/health,
 // /admin/api/v1/livez, /admin/api/v1/readyz, and /admin/api/v1/shutdown.
-// See ARCHITECTURE.md Section 5.5 for the health check pattern.
+// See ENG-HANDBOOK.md Section 5.5 for the health check pattern.
 package health_path_completeness
 
 import (

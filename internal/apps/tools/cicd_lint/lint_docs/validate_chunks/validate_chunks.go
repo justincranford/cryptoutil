@@ -1,6 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
-// Package validate_chunks validates that @propagate blocks in ARCHITECTURE.md
+// Package validate_chunks validates that @propagate blocks in ENG-HANDBOOK.md
 // match their @source counterparts in instruction files.
 package validate_chunks
 

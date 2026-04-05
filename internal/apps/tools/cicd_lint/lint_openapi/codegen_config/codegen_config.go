@@ -14,7 +14,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// baseInitialisms lists the mandatory base initialisms per ARCHITECTURE.md Section 8.1.
+// baseInitialisms lists the mandatory base initialisms per ENG-HANDBOOK.md Section 8.1.
 var baseInitialisms = []string{
 	"IDS",
 	"JWT",

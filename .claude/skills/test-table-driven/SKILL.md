@@ -115,7 +115,7 @@ func TestDoSomething_EncryptError(t *testing.T) {
 }
 ```
 
-See [ARCHITECTURE.md §10.2.4](../../../docs/ARCHITECTURE.md#1024-test-seam-injection-pattern) for full decision matrix.
+See [ENG-HANDBOOK.md §10.2.4](../../../docs/ENG-HANDBOOK.md#1024-test-seam-injection-pattern) for full decision matrix.
 
 ## Java / Gatling Load Test Pattern
 
@@ -193,10 +193,10 @@ def test_health_check(client):
 
 ## References
 
-Read [ARCHITECTURE.md Section 10.2 Unit Testing Strategy](../../../docs/ARCHITECTURE.md#102-unit-testing-strategy) for full testing requirements — apply all forbidden patterns, `t.Parallel()` rules, `TestMain` requirements, and coverage targets from this section.
+Read [ENG-HANDBOOK.md Section 10.2 Unit Testing Strategy](../../../docs/ENG-HANDBOOK.md#102-unit-testing-strategy) for full testing requirements — apply all forbidden patterns, `t.Parallel()` rules, `TestMain` requirements, and coverage targets from this section.
 
-Read [ARCHITECTURE.md Section 10.2.2 Fiber Handler Testing](../../../docs/ARCHITECTURE.md#1022-fiber-handler-testing-apptest) for handler test patterns — apply `app.Test()` for ALL HTTP handler tests.
+Read [ENG-HANDBOOK.md Section 10.2.2 Fiber Handler Testing](../../../docs/ENG-HANDBOOK.md#1022-fiber-handler-testing-apptest) for handler test patterns — apply `app.Test()` for ALL HTTP handler tests.
 
-Read [ARCHITECTURE.md Section 10.3.2 Test Isolation](../../../docs/ARCHITECTURE.md#1032-test-isolation-with-tparallel) for parallelism requirements — ensure `t.Parallel()` is applied correctly at all levels.
+Read [ENG-HANDBOOK.md Section 10.3.2 Test Isolation](../../../docs/ENG-HANDBOOK.md#1032-test-isolation-with-tparallel) for parallelism requirements — ensure `t.Parallel()` is applied correctly at all levels.
 
-Read [ARCHITECTURE.md Section 10.3.6 Shared Test Infrastructure](../../../docs/ARCHITECTURE.md#1036-shared-test-infrastructure) for shared test helpers — use `testdb.NewInMemorySQLiteDB(t)`, `testserver.StartAndWait`, `fixtures.CreateTestTenant/Realm/User`, `assertions.AssertHealthy`, and `healthclient.NewHealthClient` when these test patterns apply to test infrastructure packages.
+Read [ENG-HANDBOOK.md Section 10.3.6 Shared Test Infrastructure](../../../docs/ENG-HANDBOOK.md#1036-shared-test-infrastructure) for shared test helpers — use `testdb.NewInMemorySQLiteDB(t)`, `testserver.StartAndWait`, `fixtures.CreateTestTenant/Realm/User`, `assertions.AssertHealthy`, and `healthclient.NewHealthClient` when these test patterns apply to test infrastructure packages.

@@ -97,7 +97,7 @@ Apply this when coverage analysis reveals uncovered algorithm branches: add the 
 
 ## References
 
-Read [ARCHITECTURE.md Section 10.2.3 Coverage Targets](../../../docs/ARCHITECTURE.md#1023-coverage-targets) for per-package targets — apply these targets when categorizing uncovered lines and setting package-specific coverage ceiling exceptions.
-Read [ARCHITECTURE.md Section 10.2.4 Test Seam Injection Pattern](../../../docs/ARCHITECTURE.md#1024-test-seam-injection-pattern) for unreachable code — use the seam injection pattern when suggesting how to cover structurally unreachable lines.
+Read [ENG-HANDBOOK.md Section 10.2.3 Coverage Targets](../../../docs/ENG-HANDBOOK.md#1023-coverage-targets) for per-package targets — apply these targets when categorizing uncovered lines and setting package-specific coverage ceiling exceptions.
+Read [ENG-HANDBOOK.md Section 10.2.4 Test Seam Injection Pattern](../../../docs/ENG-HANDBOOK.md#1024-test-seam-injection-pattern) for unreachable code — use the seam injection pattern when suggesting how to cover structurally unreachable lines.
 
-Read [ARCHITECTURE.md Section 10.2 Unit Testing Strategy](../../../docs/ARCHITECTURE.md#102-unit-testing-strategy) for probability-based test execution — when coverage gaps are in algorithm variant branches, apply `TestProbAlways/Quarter/Tenth` gates rather than unconstrained variant testing.
+Read [ENG-HANDBOOK.md Section 10.2 Unit Testing Strategy](../../../docs/ENG-HANDBOOK.md#102-unit-testing-strategy) for probability-based test execution — when coverage gaps are in algorithm variant branches, apply `TestProbAlways/Quarter/Tenth` gates rather than unconstrained variant testing.

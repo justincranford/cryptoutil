@@ -27,7 +27,7 @@ type DeploymentStructure struct {
 }
 
 // GetExpectedStructures returns validation rules for different deployment types.
-// See: docs/ARCHITECTURE.md Section 12.4 "Deployment Structure Validation".
+// See: docs/ENG-HANDBOOK.md Section 12.4 "Deployment Structure Validation".
 func GetExpectedStructures() map[string]DeploymentStructure {
 	return map[string]DeploymentStructure{
 		cryptoutilSharedMagic.SkeletonTemplateServiceName: {

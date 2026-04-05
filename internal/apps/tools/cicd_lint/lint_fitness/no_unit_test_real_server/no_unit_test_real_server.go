@@ -2,7 +2,7 @@
 
 // Package no_unit_test_real_server enforces that unit tests do not start real HTTP/HTTPS servers.
 // Unit tests MUST use fiber.App.Test() for handler testing instead of app.Listen().
-// See ARCHITECTURE.md Section 10.2 Forbidden Pattern #2.
+// See ENG-HANDBOOK.md Section 10.2 Forbidden Pattern #2.
 package no_unit_test_real_server
 
 import (
@@ -127,7 +127,7 @@ func CheckFiles(logger *cryptoutilCmdCicdCommon.Logger, testFiles []string) erro
 	if totalViolations > 0 {
 		logger.Log(fmt.Sprintf("Found %d real-server start violation(s) in unit tests", totalViolations))
 		fmt.Fprintln(os.Stderr, "Use fiber.App.Test() for handler testing instead of app.Listen().")
-		fmt.Fprintln(os.Stderr, "See ARCHITECTURE.md Section 10.2 Forbidden Pattern #2.")
+		fmt.Fprintln(os.Stderr, "See ENG-HANDBOOK.md Section 10.2 Forbidden Pattern #2.")
 
 		return fmt.Errorf("found %d real-server start violation(s) in unit tests", totalViolations)
 	}

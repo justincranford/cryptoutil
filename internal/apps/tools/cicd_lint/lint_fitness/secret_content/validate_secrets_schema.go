@@ -1,7 +1,7 @@
 // Copyright (c) 2025 Justin Cranford
 
 // Package secret_content validates that all non-unseal secret files across
-// deployments/ have correct content format per ARCHITECTURE.md Section 13.3.
+// deployments/ have correct content format per ENG-HANDBOOK.md Section 13.3.
 // This file implements the schema loader for secret-schemas.yaml.
 package secret_content
 

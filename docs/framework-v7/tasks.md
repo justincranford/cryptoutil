@@ -55,13 +55,13 @@ complete before Phase 1 begins. Each task is a blocking regression, not improvem
 - **Files**:
   - `deployments/{sm-kms,sm-im,jose-ja,pki-ca,identity-authz,identity-idp,identity-rp,identity-rs,identity-spa,skeleton-template}/compose.yml` (10 files)
 
-#### Task 0.2: Update ARCHITECTURE.md §3.4.1 Variant Offset Table
+#### Task 0.2: Update ENG-HANDBOOK.md §3.4.1 Variant Offset Table
 
 - **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 1h
 - **Dependencies**: 0.1
-- **Description**: ARCHITECTURE.md §3.4.1 documents tier offsets (SERVICE/PRODUCT/SUITE) but
+- **Description**: ENG-HANDBOOK.md §3.4.1 documents tier offsets (SERVICE/PRODUCT/SUITE) but
   NOT variant offsets within a PS-ID. Add full host_port formula and variant offset table.
   Also update the service catalog port tables in §3.4 to show correct 4-instance ranges per
   PS-ID (each PS-ID now occupies 4 ports: base, base+1, base+2, base+3).
@@ -71,7 +71,7 @@ complete before Phase 1 begins. Each task is a blocking regression, not improvem
   - [x] Service catalog (§3.4) shows 4 app service ports per PS-ID
   - [x] `go run ./cmd/cicd-lint lint-docs` passes
 - **Files**:
-  - `docs/ARCHITECTURE.md`
+  - `docs/ENG-HANDBOOK.md`
 
 #### Task 0.3: Define and Apply Canonical ENTRYPOINT Pattern
 
@@ -86,16 +86,16 @@ complete before Phase 1 begins. Each task is a blocking regression, not improvem
   overlay; (c) whether `--bind-public-port` always comes first. Define canonical pattern.
   Apply it uniformly to all 40 app service command arrays (10 PS-IDs × 4 variants).
   Also verify pki-init, healthcheck-secrets, and builder-* supporting services are consistent
-  across all PS-IDs. Document canonical pattern in ARCHITECTURE.md §12.
+  across all PS-IDs. Document canonical pattern in ENG-HANDBOOK.md §12.
 - **Acceptance Criteria**:
-  - [x] Canonical ENTRYPOINT pattern defined and documented in ARCHITECTURE.md §12
+  - [x] Canonical ENTRYPOINT pattern defined and documented in ENG-HANDBOOK.md §12
   - [x] All 10 PS-ID compose.yml app services (all 4 variants each) use identical command structure
   - [x] Supporting services (pki-init, healthcheck-secrets, builder-*) are uniform across PS-IDs
   - [x] `go run ./cmd/cicd-lint lint-fitness` passes (no regressions)
-  - [x] `go run ./cmd/cicd-lint lint-docs` passes (new ARCHITECTURE.md content)
+  - [x] `go run ./cmd/cicd-lint lint-docs` passes (new ENG-HANDBOOK.md content)
 - **Files**:
   - `deployments/{all 10 PS-IDs}/compose.yml` (10 files)
-  - `docs/ARCHITECTURE.md`
+  - `docs/ENG-HANDBOOK.md`
 
 #### Task 0.4: Implement compose-entrypoint-uniformity Fitness Linter
 
@@ -228,17 +228,17 @@ complete before Phase 1 begins. Each task is a blocking regression, not improvem
   next checkout. The `mixed-line-ending` hook with default "auto" does NOT modify consistently
   LF-only files — it only modifies files containing MIXED endings. On Linux devs use
   `core.autocrlf=input` (commit normalizes CRLF→LF, no checkout conversion). Document the
-  full platform line-ending policy in ARCHITECTURE.md §9.9.
+  full platform line-ending policy in ENG-HANDBOOK.md §9.9.
 - **Acceptance Criteria**:
   - [x] Confirm bug: run `git config core.autocrlf` → must show `false` (evidence)
   - [x] Fix: `git config --unset core.autocrlf` removes local override
   - [x] Verify: `git config core.autocrlf` now returns empty (global `true` takes effect)
-  - [x] ARCHITECTURE.md §9.9 documents: Windows devs use `core.autocrlf=true` (global),
+  - [x] ENG-HANDBOOK.md §9.9 documents: Windows devs use `core.autocrlf=true` (global),
     Linux devs use `core.autocrlf=input`; repo stores LF; working tree is platform-native
   - [x] `mixed-line-ending` hook has NO `--fix lf` arg (keep default "auto")
   - [x] `go run ./cmd/cicd-lint lint-docs` passes
 - **Files**:
-  - `docs/ARCHITECTURE.md`
+  - `docs/ENG-HANDBOOK.md`
   - (local git config changed via terminal; not a tracked file)
 
 #### Task 0.10: Change ALL Fitness Linters to Hard-Error on Absent Dirs (Q6 decision: E)
@@ -257,21 +257,21 @@ complete before Phase 1 begins. Each task is a blocking regression, not improvem
   4. Create missing directories (with appropriate placeholder content) in the SAME commit
   Batch: commit ~10 linters at a time. Linter code change + repo dir creation go together to
   avoid CI partial breakage (linter strict before dirs exist = red CI). Final step: document
-  the contract in ARCHITECTURE.md §9.10 and lessons.md.
+  the contract in ENG-HANDBOOK.md §9.10 and lessons.md.
 - **Acceptance Criteria**:
   - [x] All 68 fitness linter `CheckInDir` / `check*` functions return hard error on required-but-absent dirs
   - [x] No fitness linter uses `os.IsNotExist` → `return nil` (skip) for dirs that must exist
   - [x] All missing repo directories created in same commit batch as their linter code changes
   - [x] Audit evidence in `test-output/phase0/linter-audit.md` listing all 68 linters, old
     behavior, new behavior, and any dirs created
-  - [x] ARCHITECTURE.md §9.11.2 documents: fitness linters hard-error on absent dirs; intentional strictness
+  - [x] ENG-HANDBOOK.md §9.11.2 documents: fitness linters hard-error on absent dirs; intentional strictness
   - [x] lessons.md updated: absent-dir = hard error is the project-wide standard for fitness linters
   - [x] Tests updated for all changed linters (coverage ≥98%)
   - [x] `go run ./cmd/cicd-lint lint-fitness` passes on current repo after all batches
   - [x] `go run ./cmd/cicd-lint lint-docs` passes
 - **Files**:
   - `internal/apps/tools/cicd_lint/lint_fitness/**/*.go` (all 68 linter packages)
-  - `docs/ARCHITECTURE.md`
+  - `docs/ENG-HANDBOOK.md`
   - Any missing repo directories required by newly strict linters
   - `test-output/phase0/linter-audit.md` (evidence)
 
@@ -284,7 +284,7 @@ complete before Phase 1 begins. Each task is a blocking regression, not improvem
 - **Dependencies**: None (quizme-v2.md Q1–Q5 answered 2026-04-03)
 - **Decision**: All 5 categories answered option B — function-param injection. Remove ALL
   package-level seam vars (`var xxxFn = pkg.Func`) from non-test Go files. Document in
-  ARCHITECTURE.md and lessons.md that ALL production code must use function-param injection
+  ENG-HANDBOOK.md and lessons.md that ALL production code must use function-param injection
   for testability, not package-level seam vars.
 - **Description**: Implement option B for each category:
   - **Category 1 — Fitness linter OS I/O seams (~20 seams)**: Pass `walkFn`, `readFileFn`,
@@ -320,7 +320,7 @@ complete before Phase 1 begins. Each task is a blocking regression, not improvem
   - [x] `-race` clean: `go test -race -count=2 ./...`
   - [x] All tests pass with shuffle: `go test ./... -shuffle=on`
   - [x] `go build ./...` clean (verifies all API break call sites updated)
-  - [x] ARCHITECTURE.md §10.2.4 updated with per-category decisions and function-param standard
+  - [x] ENG-HANDBOOK.md §10.2.4 updated with per-category decisions and function-param standard
   - [x] `.github/instructions/03-02.testing.instructions.md` updated (remove seam-parallel
     antipattern; add function-param injection rule)
   - [x] `.github/skills/test-table-driven/SKILL.md` updated
@@ -332,7 +332,7 @@ complete before Phase 1 begins. Each task is a blocking regression, not improvem
   - `internal/shared/crypto/**/*.go` (Category 2: ~9 seams)
   - `internal/apps/framework/service/server/**/*.go` (Categories 3+4: ~11 seams)
   - `internal/apps/sm-im/client/message.go` and other Category 5 files (~5 files)
-  - `docs/ARCHITECTURE.md`
+  - `docs/ENG-HANDBOOK.md`
   - `.github/instructions/03-02.testing.instructions.md`
   - `.github/skills/test-table-driven/SKILL.md`
   - `.claude/commands/test-table-driven.md`
@@ -372,19 +372,19 @@ delete both PARAMETERIZATION files.
 - **Description**: Add YAML frontmatter to all 14 `.claude/commands/*.md` files. Extend
   `CheckSkillCommandDrift()` to validate frontmatter presence, `description` match, and
   `argument-hint` match. Claude command `name` field uses bare skill name (NOT `claude-` prefix).
-  Update ARCHITECTURE.md §2.1.5 and instruction file §06-02.
+  Update ENG-HANDBOOK.md §2.1.5 and instruction file §06-02.
 - **Acceptance Criteria**:
   - [x] All 14 `.claude/commands/*.md` files have `---` YAML frontmatter with `name`, `description`
   - [x] `CheckSkillCommandDrift()` validates frontmatter presence (fails if missing)
   - [x] `CheckSkillCommandDrift()` validates `description` matches between Copilot skill and Claude command
   - [x] `lint-docs` exits non-zero on missing or mismatched frontmatter
-  - [x] ARCHITECTURE.md §2.1.5 documents Claude command frontmatter rules
+  - [x] ENG-HANDBOOK.md §2.1.5 documents Claude command frontmatter rules
   - [x] §06-02 instruction rules updated
   - [x] Tests ≥95% coverage on new validation logic
 - **Files**:
   - `.claude/commands/*.md` (all 14 files)
   - `internal/apps/tools/cicd_lint/lint_docs/` (CheckSkillCommandDrift)
-  - `docs/ARCHITECTURE.md`
+  - `docs/ENG-HANDBOOK.md`
   - `.github/instructions/06-02.agent-format.instructions.md`
 
 #### Task 1.2: #22 — Multi-Language Parameterized Testing Standards
@@ -395,21 +395,21 @@ delete both PARAMETERIZATION files.
 - **Dependencies**: None
 - **Description**: Expand `test-table-driven` skill and Claude command to cover Go, Java
   (Gatling), and Python (pytest). Add `lint-java-test` and `lint-python-test` cicd-lint
-  subcommands. Update ARCHITECTURE.md §10 with §10.13 (Java/Gatling) and §10.14 (Python/pytest)
+  subcommands. Update ENG-HANDBOOK.md §10 with §10.13 (Java/Gatling) and §10.14 (Python/pytest)
   (§10.9–§10.12 were already occupied). Update cicd-lint command table to show 13 linter commands.
 - **Acceptance Criteria**:
   - [x] `test-table-driven` skill updated with Java and Python sections
   - [x] Claude command updated to match
   - [x] `lint-java-test` sub-linter implemented and registered
   - [x] `lint-python-test` sub-linter implemented and registered
-  - [x] ARCHITECTURE.md §10.13 (Java/Gatling) and §10.14 (Python/pytest) added
+  - [x] ENG-HANDBOOK.md §10.13 (Java/Gatling) and §10.14 (Python/pytest) added
   - [x] cicd-lint command table shows 13 linter commands
   - [x] Tests ≥95% (100% achieved)
 - **Files**:
   - `.github/skills/test-table-driven/SKILL.md`
   - `.claude/commands/test-table-driven.md`
   - `internal/apps/tools/cicd_lint/` (new lint-java-test, lint-python-test)
-  - `docs/ARCHITECTURE.md`
+  - `docs/ENG-HANDBOOK.md`
 
 #### Task 1.3: #23 — Copilot↔Claude Skill Body Content Drift
 
@@ -437,16 +437,16 @@ delete both PARAMETERIZATION files.
 - **Owner**: LLM Agent
 - **Estimated**: 2h
 - **Dependencies**: None
-- **Description**: Add ARCHITECTURE.md §14.11 documenting Claude Code autonomous execution
+- **Description**: Add ENG-HANDBOOK.md §14.11 documenting Claude Code autonomous execution
   options (beast-mode agent invocation, settings.local.json, CLI flags). Update CLAUDE.md.
   `.claude/settings.local.json` already existed with reasonable defaults (additionalDirectories).
 - **Acceptance Criteria**:
-  - [x] ARCHITECTURE.md §14.11 added documenting all three execution options
+  - [x] ENG-HANDBOOK.md §14.11 added documenting all three execution options
   - [x] CLAUDE.md updated with reference to §14.11
   - [x] `.claude/settings.local.json` exists with reasonable defaults
   - [x] No `lint-docs` failures from new section
 - **Files**:
-  - `docs/ARCHITECTURE.md`
+  - `docs/ENG-HANDBOOK.md`
   - `CLAUDE.md`
   - `.claude/settings.local.json`
 
@@ -457,18 +457,18 @@ delete both PARAMETERIZATION files.
 - **Estimated**: 3h
 - **Dependencies**: None
 - **Description**: New `lint_agent_self_containment/` sub-linter in lint-docs. Scans
-  `.github/agents/*.agent.md` bodies; errors if no `ARCHITECTURE.md` reference found.
+  `.github/agents/*.agent.md` bodies; errors if no `ENG-HANDBOOK.md` reference found.
 - **Acceptance Criteria**:
   - [x] `lint_agent_self_containment/lint_agent_self_containment.go` implemented
   - [x] Registered in `lint_docs.go`
-  - [x] Fails for agents with zero ARCHITECTURE.md references
+  - [x] Fails for agents with zero ENG-HANDBOOK.md references
   - [x] Passes for all current compliant agents
   - [x] Tests ≥95% (97.6% achieved)
 - **Files**:
   - `internal/apps/tools/cicd_lint/lint_docs/lint_agent_self_containment/`
   - `internal/apps/tools/cicd_lint/lint_docs/lint_docs.go`
 
-#### Task 1.6: #26 — ARCHITECTURE.md Section Link Validity
+#### Task 1.6: #26 — ENG-HANDBOOK.md Section Link Validity
 
 - **Status**: ✅
 - **Owner**: LLM Agent
@@ -476,11 +476,11 @@ delete both PARAMETERIZATION files.
 - **Actual**: 4h
 - **Dependencies**: None
 - **Description**: New `lint_architecture_links/` sub-linter in lint-docs. Extracts H1–H4
-  headings from ARCHITECTURE.md; validates all `](../../docs/ARCHITECTURE.md#ANCHOR)` references
+  headings from ENG-HANDBOOK.md; validates all `](../../docs/ENG-HANDBOOK.md#ANCHOR)` references
   in instruction/agent/skill files resolve to real headings.
 - **Acceptance Criteria**:
   - [x] `lint_architecture_links/lint_architecture_links.go` implemented
-  - [x] Extracts all real anchors from ARCHITECTURE.md using heading → anchor conversion
+  - [x] Extracts all real anchors from ENG-HANDBOOK.md using heading → anchor conversion
   - [x] Scans all `.github/instructions/`, `.github/agents/`, `.github/skills/` files
   - [x] Errors on any `#ANCHOR` that doesn't correspond to a real heading
   - [x] All existing references are valid (fix any broken ones found during implementation)
@@ -506,7 +506,7 @@ delete both PARAMETERIZATION files.
   - [x] `real_http_server/` sub-linter implemented and registered
   - [x] `test_sleep/` sub-linter implemented and registered
   - [x] All 3 registered in `lint_gotest.go`
-  - [x] ARCHITECTURE.md §9.10 cicd-lint table updated
+  - [x] ENG-HANDBOOK.md §9.10 cicd-lint table updated
   - [x] Existing violations fixed (or exempted with documented reason)
   - [x] Tests ≥95% for each sub-linter
 - **Files**:
@@ -514,7 +514,7 @@ delete both PARAMETERIZATION files.
   - `internal/apps/tools/cicd_lint/lint_go_test/lint_gotest_real_http_server/`
   - `internal/apps/tools/cicd_lint/lint_go_test/lint_gotest_test_sleep/`
   - `internal/apps/tools/cicd_lint/lint_go_test/lint_gotest.go`
-  - `docs/ARCHITECTURE.md`
+  - `docs/ENG-HANDBOOK.md`
 
 #### Task 1.8: Phase 1 Quality Gates
 
@@ -927,21 +927,21 @@ code stays.
 - **Estimated**: 1h
 - **Actual**: 0.5h
 - **Dependencies**: All preceding phases
-- **Description**: Read all lessons.md phase sections. Identify ARCHITECTURE.md contradictions,
+- **Description**: Read all lessons.md phase sections. Identify ENG-HANDBOOK.md contradictions,
   omissions, outdated patterns. List agent/skill/instruction files needing updates.
 - **Acceptance Criteria**:
   - [x] All lessons.md sections read
   - [x] Update list created: (1) lint-go sub-linter tree outdated (16→7), (2) test file naming
         guidance included `_coverage_gaps_` as valid — contradicts Phase 4 lesson
 
-#### Task 6.2: Update ARCHITECTURE.md
+#### Task 6.2: Update ENG-HANDBOOK.md
 
 - **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 1h
 - **Actual**: 0.5h
 - **Dependencies**: 6.1
-- **Description**: Apply identified ARCHITECTURE.md updates for new patterns.
+- **Description**: Apply identified ENG-HANDBOOK.md updates for new patterns.
 - **Acceptance Criteria**:
   - [x] §9.10 lint-go directory tree updated: 7 actual sub-linters listed (was fictional 16)
   - [x] §10.2.6 test file naming updated: removed recommendation of `_coverage_gaps_` suffix;
@@ -994,7 +994,7 @@ code stays.
 ### Documentation
 
 - [x] `go run ./cmd/cicd-lint lint-docs` passes ✅
-- [x] ARCHITECTURE.md updated per-phase (lint-go tree, test file naming guidance)
+- [x] ENG-HANDBOOK.md updated per-phase (lint-go tree, test file naming guidance)
 
 ---
 

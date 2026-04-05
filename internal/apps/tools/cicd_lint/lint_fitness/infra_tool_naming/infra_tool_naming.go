@@ -2,7 +2,7 @@
 
 // Package infra_tool_naming enforces that infrastructure tool cmd/ directories
 // follow the cicd- prefix convention and have matching internal/apps/tools/
-// counterparts (ARCHITECTURE.md Section 4.4.7 CLI Patterns).
+// counterparts (ENG-HANDBOOK.md Section 4.4.7 CLI Patterns).
 package infra_tool_naming
 
 import (

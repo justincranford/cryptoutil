@@ -2,7 +2,7 @@
 
 // Package lint_fitness runs all registered architecture fitness functions.
 // Fitness functions verify that the codebase conforms to architectural
-// invariants defined in ARCHITECTURE.md.
+// invariants defined in ENG-HANDBOOK.md.
 package lint_fitness
 
 import (

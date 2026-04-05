@@ -1,7 +1,7 @@
 // Copyright (c) 2025 Justin Cranford
 
 // Package gen_config_initialisms validates that all openapi-gen_config_server.yaml files
-// contain the full canonical base initialisms list defined in ARCHITECTURE.md Section 8.1.4.
+// contain the full canonical base initialisms list defined in ENG-HANDBOOK.md Section 8.1.4.
 package gen_config_initialisms
 
 import (
@@ -16,7 +16,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// baseInitialisms is the canonical list from ARCHITECTURE.md Section 8.1.4.
+// baseInitialisms is the canonical list from ENG-HANDBOOK.md Section 8.1.4.
 // Every openapi-gen_config_server.yaml MUST include all of these.
 var baseInitialisms = []string{
 	"IDS",
@@ -94,7 +94,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 		for _, item := range missing {
 			rel, _ := filepath.Rel(rootDir, path)
-			violations = append(violations, fmt.Sprintf("%s: missing base initialism %q (see ARCHITECTURE.md Section 8.1.4)", rel, item))
+			violations = append(violations, fmt.Sprintf("%s: missing base initialism %q (see ENG-HANDBOOK.md Section 8.1.4)", rel, item))
 		}
 
 		return nil

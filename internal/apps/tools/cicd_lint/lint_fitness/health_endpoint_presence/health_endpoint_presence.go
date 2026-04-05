@@ -2,7 +2,7 @@
 
 // Package health_endpoint_presence verifies that all services register
 // health check endpoints. Services must reference livez, readyz, and health
-// paths to satisfy the ARCHITECTURE.md Section 5.5 health check pattern.
+// paths to satisfy the ENG-HANDBOOK.md Section 5.5 health check pattern.
 package health_endpoint_presence
 
 import (

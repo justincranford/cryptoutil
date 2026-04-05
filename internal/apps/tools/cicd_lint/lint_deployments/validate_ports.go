@@ -30,7 +30,7 @@ type PortValidationResult struct {
 // PRODUCT level: 18000-18999 (isolated product deployment, SERVICE + 10000).
 // SUITE level:   28000-28999 (full suite deployment, SERVICE + 20000).
 //
-// See ARCHITECTURE.md Section 3.4 Port Assignments & Networking.
+// See ENG-HANDBOOK.md Section 3.4 Port Assignments & Networking.
 const (
 	servicePortMin = 8000
 	servicePortMax = 8999
@@ -121,7 +121,7 @@ func validateComposePortRanges(composePath, deploymentLevel string, result *Port
 			if port < minPort || port > maxPort {
 				result.Valid = false
 				result.Errors = append(result.Errors,
-					fmt.Sprintf("[ValidatePorts] Service '%s' host port %d outside %s range [%d-%d] | See: ARCHITECTURE.md Section 3.4",
+					fmt.Sprintf("[ValidatePorts] Service '%s' host port %d outside %s range [%d-%d] | See: ENG-HANDBOOK.md Section 3.4",
 						serviceName, port, deploymentLevel, minPort, maxPort))
 			}
 		}
@@ -174,7 +174,7 @@ func validateConfigPortValue(config map[string]any, configPath, deploymentName, 
 	if port < minPort || port > maxPort {
 		result.Valid = false
 		result.Errors = append(result.Errors,
-			fmt.Sprintf("[ValidatePorts] Config '%s' bind-public-port %d outside %s range [%d-%d] | See: ARCHITECTURE.md Section 3.4",
+			fmt.Sprintf("[ValidatePorts] Config '%s' bind-public-port %d outside %s range [%d-%d] | See: ENG-HANDBOOK.md Section 3.4",
 				filepath.Base(configPath), port, deploymentLevel, minPort, maxPort))
 	}
 }

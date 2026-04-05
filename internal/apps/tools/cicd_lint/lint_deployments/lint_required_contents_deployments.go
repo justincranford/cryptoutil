@@ -14,7 +14,7 @@ const (
 )
 
 // GetDeploymentDirectories returns lists of deployment directories by level.
-// See: docs/ARCHITECTURE.md Section 12.4 "Deployment Structure Validation".
+// See: docs/ENG-HANDBOOK.md Section 12.4 "Deployment Structure Validation".
 func GetDeploymentDirectories() (suite []string, product []string, productService []string, infrastructure []string, template []string) {
 	// SUITE-level deployment (all 10 services)
 	suite = []string{
@@ -66,7 +66,7 @@ func GetDeploymentDirectories() (suite []string, product []string, productServic
 //   - ForbiddenFileStatus - file MUST NOT exist (present = error) - used for deprecated files
 //   - OptionalFileStatus - file MAY exist (used for documentation, optional configs)
 //
-// See: docs/ARCHITECTURE.md Section 12.3.4 "Multi-Level Deployment Hierarchy".
+// See: docs/ENG-HANDBOOK.md Section 12.3.4 "Multi-Level Deployment Hierarchy".
 func GetExpectedDeploymentsContents() map[string]string {
 	contents := make(map[string]string)
 

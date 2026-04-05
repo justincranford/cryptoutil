@@ -114,6 +114,6 @@ cryptoutilContract.RunContractTests(t, testServer)
 
 ## References
 
-Read [ARCHITECTURE.md Section 10.3.5](../../../docs/ARCHITECTURE.md#1035-cross-service-contract-test-pattern) for full contract pattern documentation.
-Read [ARCHITECTURE.md Section 10.3.4](../../../docs/ARCHITECTURE.md#1034-test-http-client-patterns) for DisableKeepAlives requirement.
-Read [ARCHITECTURE.md Section 10.3.1](../../../docs/ARCHITECTURE.md#1031-testmain-pattern) for TestMain integration pattern.
+Read [ENG-HANDBOOK.md Section 10.3.5](../../../docs/ENG-HANDBOOK.md#1035-cross-service-contract-test-pattern) for full contract pattern documentation.
+Read [ENG-HANDBOOK.md Section 10.3.4](../../../docs/ENG-HANDBOOK.md#1034-test-http-client-patterns) for DisableKeepAlives requirement.
+Read [ENG-HANDBOOK.md Section 10.3.1](../../../docs/ENG-HANDBOOK.md#1031-testmain-pattern) for TestMain integration pattern.

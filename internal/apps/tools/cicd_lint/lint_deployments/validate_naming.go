@@ -78,7 +78,7 @@ func ValidateNaming(rootPath string) (*NamingValidationResult, error) {
 		if fInfo.IsDir() {
 			if !isKebabCase(name) {
 				result.Errors = append(result.Errors, fmt.Sprintf(
-					"[ValidateNaming] Directory '%s' violates kebab-case - rename to '%s' (path: %s) | See: ARCHITECTURE.md Section 4.4.1",
+					"[ValidateNaming] Directory '%s' violates kebab-case - rename to '%s' (path: %s) | See: ENG-HANDBOOK.md Section 4.4.1",
 					name, toKebabCase(name), relPath))
 				result.Valid = false
 			}
@@ -91,7 +91,7 @@ func ValidateNaming(rootPath string) (*NamingValidationResult, error) {
 			// Allow docker-compose.yml as-is (valid kebab-case).
 			if !isKebabCase(strings.TrimSuffix(strings.TrimSuffix(name, ".yml"), ".yaml")) {
 				result.Errors = append(result.Errors, fmt.Sprintf(
-					"[ValidateNaming] File '%s' violates kebab-case - rename to '%s' (path: %s) | See: ARCHITECTURE.md Section 4.4.1",
+					"[ValidateNaming] File '%s' violates kebab-case - rename to '%s' (path: %s) | See: ENG-HANDBOOK.md Section 4.4.1",
 					name, toKebabCase(name), relPath))
 				result.Valid = false
 			}
@@ -175,7 +175,7 @@ func validateComposeServiceNames(composePath, relPath string, result *NamingVali
 	for serviceName := range compose.Services {
 		if !isKebabCase(serviceName) {
 			result.Errors = append(result.Errors, fmt.Sprintf(
-				"[ValidateNaming] Compose service '%s' violates kebab-case - rename to '%s' (file: %s) | See: ARCHITECTURE.md Section 4.4.1",
+				"[ValidateNaming] Compose service '%s' violates kebab-case - rename to '%s' (file: %s) | See: ENG-HANDBOOK.md Section 4.4.1",
 				serviceName, toKebabCase(serviceName), relPath))
 			result.Valid = false
 		}

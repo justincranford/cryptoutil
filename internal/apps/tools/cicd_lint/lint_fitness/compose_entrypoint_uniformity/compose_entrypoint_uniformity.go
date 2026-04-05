@@ -1,7 +1,7 @@
 // Copyright (c) 2025 Justin Cranford
 
 // Package compose_entrypoint_uniformity validates that every PS-ID Docker Compose app
-// service uses the canonical command array structure defined in ARCHITECTURE.md §12.3.5.
+// service uses the canonical command array structure defined in ENG-HANDBOOK.md §12.3.5.
 //
 // Canonical command format (all 10 PS-IDs × 4 variants = 40 service definitions):
 //

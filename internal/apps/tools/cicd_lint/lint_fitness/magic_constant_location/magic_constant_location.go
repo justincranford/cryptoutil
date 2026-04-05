@@ -2,7 +2,7 @@
 
 // Package magic_constant_location enforces that magic constants are declared
 // in internal/shared/magic/ and NOT as package-local const declarations
-// (ARCHITECTURE.md Section 11.1.4 Magic Values Organization).
+// (ENG-HANDBOOK.md Section 11.1.4 Magic Values Organization).
 package magic_constant_location
 
 import (

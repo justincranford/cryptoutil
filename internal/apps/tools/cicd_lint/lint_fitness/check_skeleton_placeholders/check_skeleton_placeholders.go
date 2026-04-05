@@ -47,7 +47,7 @@ var excludedDirPrefixes = []string{
 var excludedDirNames = []string{cryptoutilSharedMagic.CICDExcludeDirVendor, cryptoutilSharedMagic.CICDExcludeDirGit, cryptoutilSharedMagic.CICDExcludeDirTestOutput, "node_modules"}
 
 // Test seams: replaceable in tests to exercise unreachable OS-level error paths.
-// See ARCHITECTURE.md Section 10.2.4 (Test Seam Injection Pattern).
+// See ENG-HANDBOOK.md Section 10.2.4 (Test Seam Injection Pattern).
 var (
 	filepathAbs = filepath.Abs
 	filepathRel = filepath.Rel
@@ -70,7 +70,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	if len(violations) > 0 {
 		printViolations(violations)
 
-		return fmt.Errorf("[ValidateSkeleton] found %d unreplaced skeleton placeholder(s) in non-skeleton source files | Fix: rename 'skeleton' to your service name | See: ARCHITECTURE.md Section 5.1", len(violations))
+		return fmt.Errorf("[ValidateSkeleton] found %d unreplaced skeleton placeholder(s) in non-skeleton source files | Fix: rename 'skeleton' to your service name | See: ENG-HANDBOOK.md Section 5.1", len(violations))
 	}
 
 	logger.Log("\u2705 Skeleton placeholder check passed \u2014 no unreplaced placeholders found")
@@ -183,7 +183,7 @@ func printViolations(violations []Violation) {
 	fmt.Fprintf(os.Stderr, "\n\u274c Found %d unreplaced skeleton placeholder(s) in non-skeleton source files:\n", len(violations))
 
 	for _, v := range violations {
-		fmt.Fprintf(os.Stderr, "  [ValidateSkeleton] %s:%d: unreplaced placeholder %q | Fix: rename to your service name | See: ARCHITECTURE.md Section 5.1\n",
+		fmt.Fprintf(os.Stderr, "  [ValidateSkeleton] %s:%d: unreplaced placeholder %q | Fix: rename to your service name | See: ENG-HANDBOOK.md Section 5.1\n",
 			v.File, v.Line, v.Word)
 		fmt.Fprintf(os.Stderr, "    > %s\n", v.Content)
 	}

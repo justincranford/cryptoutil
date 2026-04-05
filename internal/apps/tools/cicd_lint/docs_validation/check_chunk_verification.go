@@ -12,7 +12,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// ChunkMapping defines a mapping from an ARCHITECTURE.md section to an instruction file.
+// ChunkMapping defines a mapping from an ENG-HANDBOOK.md section to an instruction file.
 // MarkerText is a substring that MUST appear in the destination file to confirm propagation.
 type ChunkMapping struct {
 	ArchSection string // e.g., "12.4.11"
@@ -28,7 +28,7 @@ type ChunkVerificationResult struct {
 	Error   error
 }
 
-// chunkMappings defines the hardcoded mapping from ARCHITECTURE.md sections to instruction files.
+// chunkMappings defines the hardcoded mapping from ENG-HANDBOOK.md sections to instruction files.
 // Each entry specifies a section, its destination file, and a marker text to verify propagation.
 func chunkMappings() []ChunkMapping {
 	return []ChunkMapping{

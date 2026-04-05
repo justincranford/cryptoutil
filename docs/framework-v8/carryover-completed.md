@@ -20,7 +20,7 @@ Items are listed in original numbering order. Each includes completion analysis.
    with 20 tests covering all drift scenarios. Updated magic constants
    (`CICDClaudeSkillsDir`, `CICDClaudeSkillsPattern`, `CICDSkillFileName`).
 3. **Global reference cleanup** (session 2): Updated all references to `.claude/commands/` across
-   6 files: CLAUDE.md, docs/framework-v8/claude.md, docs/ARCHITECTURE.md,
+   6 files: CLAUDE.md, docs/framework-v8/claude.md, docs/ENG-HANDBOOK.md,
    .github/instructions/06-02.agent-format.instructions.md, and both sync-copilot-claude
    SKILL.md files (Copilot + Claude).
 

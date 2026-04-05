@@ -42,7 +42,7 @@ type AliasMap struct {
 
 // =========================================================================
 // Test seams - replaceable in tests to exercise OS-level error paths.
-// See ARCHITECTURE.md Section 10.2.4 (Test Seam Injection Pattern).
+// See ENG-HANDBOOK.md Section 10.2.4 (Test Seam Injection Pattern).
 // =========================================================================
 
 var findImportAliasProjectRootFn = func() (string, error) {

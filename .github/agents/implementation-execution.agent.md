@@ -105,7 +105,7 @@ You MUST keep working until the problem is completely solved, and all items in t
 2. **Module Cache**: `go list -m all` (dependencies resolved)
 3. **Go Version**: `go version` (verify 1.26.1+)
 4. **Docker**: `docker ps` (if tasks require Docker)
-   - If Docker not running, see [ARCHITECTURE.md Section 14.5.5](../../docs/ARCHITECTURE.md#1455-docker-desktop-startup---critical) for cross-platform startup instructions
+   - If Docker not running, see [ENG-HANDBOOK.md Section 14.5.5](../../docs/ENG-HANDBOOK.md#1455-docker-desktop-startup---critical) for cross-platform startup instructions
    - Windows: `Start-Process "C:\Program Files\Docker\Docker\Docker Desktop.exe"`
    - macOS: `open -a Docker`
    - Linux: `sudo systemctl start docker` or `systemctl --user start docker-desktop`
@@ -300,7 +300,7 @@ You are explicitly instructed NOT to:
 **Problem Completion Requirement:**
 
 You MUST iterate and keep going until the problem is solved.
-You have everything you need to resolve this problem; refer to copilot instructions, docs\arch\ARCHITECTURE.md.
+You have everything you need to resolve this problem; refer to copilot instructions, docs\arch\ENG-HANDBOOK.md.
 I want you to fully solve this autonomously before coming back to me.
 
 Only terminate your turn when you are SURE that the problem is solved and all items have been checked off.
@@ -545,7 +545,7 @@ Unit + integration + E2E tests MUST be done during EVERY phase:
 - **Integration tests**: ONE shared SQLite in-memory instance per package via TestMain. NEVER PostgreSQL. NEVER per-test DB creation.
 - **E2E tests**: Docker Compose with 3 app instances (2 PostgreSQL + 1 SQLite). PostgreSQL tested ONLY here.
 
-See [ARCHITECTURE.md Section 10.1](../../docs/ARCHITECTURE.md#101-testing-strategy-overview) for canonical definition.
+See [ENG-HANDBOOK.md Section 10.1](../../docs/ENG-HANDBOOK.md#101-testing-strategy-overview) for canonical definition.
 
 **Mutation Testing:**
 
@@ -887,7 +887,7 @@ Set-Content -Path $path -Value $content -Encoding UTF8  # ❌ BOM
 - At end of EVERY phase (after quality gates pass), conduct post-mortem BEFORE starting next phase:
   1. Update lessons.md with lessons learned (what worked, what didn't, root causes, patterns)
   2. **CRITICAL: Artifact Self-Evaluation** — evaluate whether phase lessons expose contradictions or omissions in:
-       - `docs/ARCHITECTURE.md` — architecture decisions, patterns, strategies
+       - `docs/ENG-HANDBOOK.md` — architecture decisions, patterns, strategies
        - `.github/agents/*.agent.md` — agent guidance and workflows
        - `.github/skills/*/SKILL.md` — skill templates and guidance
        - `.github/instructions/*.instructions.md` — coding, testing, security guidelines
@@ -967,7 +967,7 @@ If a task cannot be completed due to architectural limitations, missing infrastr
 
 1. **Finalize Docs**: Ensure lessons.md is complete and committed. plan.md and tasks.md should already exist with all tasks marked `[x]`.
 2. **Extract Lessons to Permanent Homes**: From lessons.md, update permanent artifacts as warranted:
-   - `docs/ARCHITECTURE.md` — Add/update patterns, strategies, and architectural decisions
+   - `docs/ENG-HANDBOOK.md` — Add/update patterns, strategies, and architectural decisions
    - `.github/agents/*.agent.md` — Improve agent guidance and workflows
    - `.github/skills/*/SKILL.md` — Add/update skill templates for new patterns
    - `.github/instructions/*.instructions.md` — Update coding/testing/security guidelines
@@ -976,9 +976,9 @@ If a task cannot be completed due to architectural limitations, missing infrastr
      - CI/CD workflows — Add new quality gates or tooling; fix incorrect steps discovered
      - `README.md`, `docs/DEV-SETUP.md`, inline comments — Developer-facing documentation
 3. **Artifact Self-Evaluation**: Review ALL of the following for contradictions or omissions introduced by this plan:
-   - Every `@source` block in instruction files must match its `@propagate` block in ARCHITECTURE.md
+   - Every `@source` block in instruction files must match its `@propagate` block in ENG-HANDBOOK.md
    - Run `go run ./cmd/cicd-lint lint-docs validate-propagation` to verify propagation integrity
-4. **Commit with Audit Trail**: Use separate semantic commits per artifact type: (1) ARCHITECTURE.md, (2) agents, (3) skills, (4) instructions
+4. **Commit with Audit Trail**: Use separate semantic commits per artifact type: (1) ENG-HANDBOOK.md, (2) agents, (3) skills, (4) instructions
 
 **Anti-Patterns:**
 
@@ -997,7 +997,7 @@ If a task cannot be completed due to architectural limitations, missing infrastr
 
 ## Mandatory Review Passes
 
-<!-- @source from="docs/ARCHITECTURE.md" as="mandatory-review-passes" -->
+<!-- @source from="docs/ENG-HANDBOOK.md" as="mandatory-review-passes" -->
 **MANDATORY: Minimum 3, maximum 5 review passes before marking any task complete.**
 
 Copilot and AI agents have a tendency to partially fulfill requested work, accidentally omitting or skipping items per request. To counter this, every task completion MUST include at least 3 review passes, each checking ALL 8 quality attributes:
@@ -1017,7 +1017,7 @@ Copilot and AI agents have a tendency to partially fulfill requested work, accid
 **Scope**: ALL work types — code, docs, config, tests, infrastructure, deployments.
 <!-- @/source -->
 
-See [ARCHITECTURE.md Section 2.5 Quality Strategy](/docs/ARCHITECTURE.md#25-quality-strategy) for mandatory review pass requirements.
+See [ENG-HANDBOOK.md Section 2.5 Quality Strategy](/docs/ENG-HANDBOOK.md#25-quality-strategy) for mandatory review pass requirements.
 
 ---
 
@@ -1046,11 +1046,11 @@ A response that leaves uncommitted changes is incomplete by definition.
 
 ## Cross-Reference
 
-- **Architecture Documentation**: See [ARCHITECTURE.md Section 2.1 Agent Orchestration Strategy](/docs/ARCHITECTURE.md#21-agent-orchestration-strategy) for agent architecture patterns and autonomous execution mode documentation.
-- **Testing Strategy**: See [ARCHITECTURE.md Section 10.2 Unit Testing Strategy](/docs/ARCHITECTURE.md#102-unit-testing-strategy) for table-driven tests, test seam injection, and coverage ceiling analysis.
-- **Test Seam Pattern**: See [ARCHITECTURE.md Section 10.2.4 Test Seam Injection Pattern](/docs/ARCHITECTURE.md#1024-test-seam-injection-pattern) for unreachable code path testing.
-- **Quality Gates**: See [ARCHITECTURE.md Section 11.2 Quality Gates](/docs/ARCHITECTURE.md#112-quality-gates) for mandatory quality gate enforcement.
-- **Mandatory Review Passes**: See [ARCHITECTURE.md Section 2.5 Quality Strategy](/docs/ARCHITECTURE.md#25-quality-strategy) for 3-pass review requirements.
-- **Infrastructure Blockers**: See [ARCHITECTURE.md Section 14.7 Infrastructure Blocker Escalation](/docs/ARCHITECTURE.md#147-infrastructure-blocker-escalation) for three-encounter escalation rule.
-- **Coding Standards**: See [ARCHITECTURE.md Section 14.1 Coding Standards](/docs/ARCHITECTURE.md#141-coding-standards) for Go coding patterns.
-- **Plan Lifecycle**: See [ARCHITECTURE.md Section 14.6 Plan Lifecycle Management](/docs/ARCHITECTURE.md#146-plan-lifecycle-management) for plan document rules.
+- **Architecture Documentation**: See [ENG-HANDBOOK.md Section 2.1 Agent Orchestration Strategy](/docs/ENG-HANDBOOK.md#21-agent-orchestration-strategy) for agent architecture patterns and autonomous execution mode documentation.
+- **Testing Strategy**: See [ENG-HANDBOOK.md Section 10.2 Unit Testing Strategy](/docs/ENG-HANDBOOK.md#102-unit-testing-strategy) for table-driven tests, test seam injection, and coverage ceiling analysis.
+- **Test Seam Pattern**: See [ENG-HANDBOOK.md Section 10.2.4 Test Seam Injection Pattern](/docs/ENG-HANDBOOK.md#1024-test-seam-injection-pattern) for unreachable code path testing.
+- **Quality Gates**: See [ENG-HANDBOOK.md Section 11.2 Quality Gates](/docs/ENG-HANDBOOK.md#112-quality-gates) for mandatory quality gate enforcement.
+- **Mandatory Review Passes**: See [ENG-HANDBOOK.md Section 2.5 Quality Strategy](/docs/ENG-HANDBOOK.md#25-quality-strategy) for 3-pass review requirements.
+- **Infrastructure Blockers**: See [ENG-HANDBOOK.md Section 14.7 Infrastructure Blocker Escalation](/docs/ENG-HANDBOOK.md#147-infrastructure-blocker-escalation) for three-encounter escalation rule.
+- **Coding Standards**: See [ENG-HANDBOOK.md Section 14.1 Coding Standards](/docs/ENG-HANDBOOK.md#141-coding-standards) for Go coding patterns.
+- **Plan Lifecycle**: See [ENG-HANDBOOK.md Section 14.6 Plan Lifecycle Management](/docs/ENG-HANDBOOK.md#146-plan-lifecycle-management) for plan document rules.

@@ -71,11 +71,11 @@ func TestExtractRefsFromFile(t *testing.T) {
 
 Some text here.
 
-See [ARCHITECTURE.md Section 1.1](../../docs/ARCHITECTURE.md#11-vision-statement) for details.
+See [ENG-HANDBOOK.md Section 1.1](../../docs/ENG-HANDBOOK.md#11-vision-statement) for details.
 
 More text.
 
-See [ARCHITECTURE.md Section 6.4](../../docs/ARCHITECTURE.md#64-cryptographic-architecture) for crypto.
+See [ENG-HANDBOOK.md Section 6.4](../../docs/ENG-HANDBOOK.md#64-cryptographic-architecture) for crypto.
 
 No ref on this line.
 `
@@ -91,7 +91,7 @@ No ref on this line.
 func TestExtractRefsFromFile_MultipleOnSameLine(t *testing.T) {
 	t.Parallel()
 
-	content := `See [A](../../docs/ARCHITECTURE.md#11-vision) and [B](../../docs/ARCHITECTURE.md#12-key-chars).`
+	content := `See [A](../../docs/ENG-HANDBOOK.md#11-vision) and [B](../../docs/ENG-HANDBOOK.md#12-key-chars).`
 
 	refs := extractRefsFromFile("multi.md", content)
 
@@ -116,7 +116,7 @@ No architecture references here.
 func TestExtractRefsFromFile_DisplayText(t *testing.T) {
 	t.Parallel()
 
-	content := `See [Section 1.1](../../docs/ARCHITECTURE.md#11-vision-statement) for details.`
+	content := `See [Section 1.1](../../docs/ENG-HANDBOOK.md#11-vision-statement) for details.`
 
 	refs := extractRefsFromFile("test.md", content)
 
@@ -198,8 +198,8 @@ func TestValidatePropagation(t *testing.T) {
 ## 2. Security & Principles
 `
 	instructionContent := `# Instructions
-See [ARCHITECTURE.md Section 1.1](../../docs/ARCHITECTURE.md#11-vision-statement) for vision.
-See [ARCHITECTURE.md Section 99.9](../../docs/ARCHITECTURE.md#99-nonexistent) broken.
+See [ENG-HANDBOOK.md Section 1.1](../../docs/ENG-HANDBOOK.md#11-vision-statement) for vision.
+See [ENG-HANDBOOK.md Section 99.9](../../docs/ENG-HANDBOOK.md#99-nonexistent) broken.
 `
 	rootDir := t.TempDir()
 
@@ -207,7 +207,7 @@ See [ARCHITECTURE.md Section 99.9](../../docs/ARCHITECTURE.md#99-nonexistent) br
 	require.NoError(t, os.MkdirAll(rootDir+"/.github/instructions", 0o700))
 	require.NoError(t, os.MkdirAll(rootDir+"/.github/agents", 0o700))
 	require.NoError(t, os.MkdirAll(rootDir+"/docs", 0o700))
-	require.NoError(t, os.WriteFile(rootDir+"/docs/ARCHITECTURE.md", []byte(archContent), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(rootDir+"/docs/ENG-HANDBOOK.md", []byte(archContent), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(rootDir+"/.github/instructions/test.instructions.md", []byte(instructionContent), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(rootDir+"/.github/copilot-instructions.md", []byte("No refs here."), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -247,16 +247,16 @@ func TestValidatePropagation_AllLevelsCovered(t *testing.T) {
 #### 1.1.2 Another Deep Section
 `
 	// References: ## (executive-summary), ### (vision-statement), #### (111-deep-section).
-	instructionContent := `See [ARCHITECTURE.md Section 1](../../docs/ARCHITECTURE.md#1-executive-summary) for summary.
-See [ARCHITECTURE.md Section 1.1](../../docs/ARCHITECTURE.md#11-vision-statement) for vision.
-See [ARCHITECTURE.md Section 1.1.1](../../docs/ARCHITECTURE.md#111-deep-section) for detail.
+	instructionContent := `See [ENG-HANDBOOK.md Section 1](../../docs/ENG-HANDBOOK.md#1-executive-summary) for summary.
+See [ENG-HANDBOOK.md Section 1.1](../../docs/ENG-HANDBOOK.md#11-vision-statement) for vision.
+See [ENG-HANDBOOK.md Section 1.1.1](../../docs/ENG-HANDBOOK.md#111-deep-section) for detail.
 `
 	rootDir := t.TempDir()
 
 	require.NoError(t, os.MkdirAll(rootDir+"/.github/instructions", 0o700))
 	require.NoError(t, os.MkdirAll(rootDir+"/.github/agents", 0o700))
 	require.NoError(t, os.MkdirAll(rootDir+"/docs", 0o700))
-	require.NoError(t, os.WriteFile(rootDir+"/docs/ARCHITECTURE.md", []byte(archContent), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(rootDir+"/docs/ENG-HANDBOOK.md", []byte(archContent), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(rootDir+"/.github/instructions/test.instructions.md", []byte(instructionContent), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(rootDir+"/.github/copilot-instructions.md", []byte("No refs."), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -297,7 +297,7 @@ func TestValidatePropagation_MissingArchFile(t *testing.T) {
 	result, err := ValidatePropagation(t.TempDir(), readFile)
 	require.Error(t, err)
 	require.Nil(t, result)
-	require.Contains(t, err.Error(), "ARCHITECTURE.md")
+	require.Contains(t, err.Error(), "ENG-HANDBOOK.md")
 }
 
 func TestValidatePropagation_DisplayTextWarnings(t *testing.T) {
@@ -309,15 +309,15 @@ func TestValidatePropagation_DisplayTextWarnings(t *testing.T) {
 ### 13.4 Documentation Strategy
 `
 	// Display text says "Section 12.7" but anchor resolves to "13.4 Documentation Strategy".
-	instructionContent := `See [Section 12.7](../../docs/ARCHITECTURE.md#134-documentation-strategy) for docs.
-See [Section 1.1](../../docs/ARCHITECTURE.md#11-vision-statement) correct.
+	instructionContent := `See [Section 12.7](../../docs/ENG-HANDBOOK.md#134-documentation-strategy) for docs.
+See [Section 1.1](../../docs/ENG-HANDBOOK.md#11-vision-statement) correct.
 `
 	rootDir := t.TempDir()
 
 	require.NoError(t, os.MkdirAll(rootDir+"/.github/instructions", 0o700))
 	require.NoError(t, os.MkdirAll(rootDir+"/.github/agents", 0o700))
 	require.NoError(t, os.MkdirAll(rootDir+"/docs", 0o700))
-	require.NoError(t, os.WriteFile(rootDir+"/docs/ARCHITECTURE.md", []byte(archContent), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(rootDir+"/docs/ENG-HANDBOOK.md", []byte(archContent), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(rootDir+"/.github/instructions/test.instructions.md", []byte(instructionContent), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(rootDir+"/.github/copilot-instructions.md", []byte("No refs."), cryptoutilSharedMagic.CacheFilePermissions))
 
@@ -347,14 +347,14 @@ func TestValidatePropagation_CopilotInstructionsRef(t *testing.T) {
 ### 1.1 Vision Statement
 `
 	// copilot-instructions.md has a valid ref (kills err==nil negation mutation).
-	copilotContent := `See [ARCHITECTURE.md Section 1.1](../../docs/ARCHITECTURE.md#11-vision-statement) for vision.`
+	copilotContent := `See [ENG-HANDBOOK.md Section 1.1](../../docs/ENG-HANDBOOK.md#11-vision-statement) for vision.`
 
 	rootDir := t.TempDir()
 
 	require.NoError(t, os.MkdirAll(rootDir+"/.github/instructions", 0o700))
 	require.NoError(t, os.MkdirAll(rootDir+"/.github/agents", 0o700))
 	require.NoError(t, os.MkdirAll(rootDir+"/docs", 0o700))
-	require.NoError(t, os.WriteFile(rootDir+"/docs/ARCHITECTURE.md", []byte(archContent), cryptoutilSharedMagic.CacheFilePermissions))
+	require.NoError(t, os.WriteFile(rootDir+"/docs/ENG-HANDBOOK.md", []byte(archContent), cryptoutilSharedMagic.CacheFilePermissions))
 	require.NoError(t, os.WriteFile(rootDir+"/.github/copilot-instructions.md", []byte(copilotContent), cryptoutilSharedMagic.CacheFilePermissions))
 
 	readFile := func(path string) ([]byte, error) {
@@ -385,7 +385,7 @@ func TestFormatPropagationResults_AllValid(t *testing.T) {
 
 	report := FormatPropagationResults(result)
 	require.Contains(t, report, "1 valid refs, 0 broken refs")
-	require.Contains(t, report, "All references resolve to valid ARCHITECTURE.md sections.")
+	require.Contains(t, report, "All references resolve to valid ENG-HANDBOOK.md sections.")
 	require.NotContains(t, report, "BROKEN")
 	require.Contains(t, report, "SECTION COVERAGE:")
 	require.Contains(t, report, "High   (##  ): 3/3 (100%)")
@@ -471,7 +471,7 @@ func TestValidatePropagationCommand_Integration(t *testing.T) {
 	// Should succeed on the real project (0 broken refs).
 	require.Equal(t, 0, exitCode, "validate-propagation should pass on real project: stdout=%s stderr=%s", stdout.String(), stderr.String())
 	require.Contains(t, stdout.String(), "0 broken refs")
-	require.Contains(t, stdout.String(), "All references resolve to valid ARCHITECTURE.md sections.")
+	require.Contains(t, stdout.String(), "All references resolve to valid ENG-HANDBOOK.md sections.")
 	require.Contains(t, stdout.String(), "SECTION COVERAGE:")
 	require.Contains(t, stdout.String(), "High   (##  ):")
 	require.Contains(t, stdout.String(), "Combined ##/###:")

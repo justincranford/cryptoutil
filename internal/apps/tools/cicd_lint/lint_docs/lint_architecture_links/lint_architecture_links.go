@@ -1,9 +1,9 @@
 // Copyright (c) 2025 Justin Cranford
 
-// Package lint_architecture_links validates that all ARCHITECTURE.md section anchors
+// Package lint_architecture_links validates that all ENG-HANDBOOK.md section anchors
 // referenced in instruction, agent, and skill files resolve to real headings in
-// docs/ARCHITECTURE.md. Prevents broken cross-references that lead to dead links.
-// Implements the agent self-containment requirement from ARCHITECTURE.md §2.1.1.
+// docs/ENG-HANDBOOK.md. Prevents broken cross-references that lead to dead links.
+// Implements the agent self-containment requirement from ENG-HANDBOOK.md §2.1.1.
 package lint_architecture_links
 
 import (
@@ -18,9 +18,9 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// architectureAnchorRegex matches ARCHITECTURE.md#anchor-name patterns in markdown.
+// architectureAnchorRegex matches ENG-HANDBOOK.md#anchor-name patterns in markdown.
 // Includes underscores because GitHub's anchor algorithm preserves them (e.g., format_go).
-var architectureAnchorRegex = regexp.MustCompile(`ARCHITECTURE\.md#([a-z0-9_][a-z0-9_-]*)`)
+var architectureAnchorRegex = regexp.MustCompile(`ENG-HANDBOOK\.md#([a-z0-9_][a-z0-9_-]*)`)
 
 // headingRegex matches H1–H4 markdown headings.
 var headingRegex = regexp.MustCompile(`^(#{1,4}) (.+)`)
@@ -40,8 +40,8 @@ var excludedSkillDirNames = map[string]struct{}{
 	"agent-scaffold":       {},
 }
 
-// architectureMdRelPath is the path to ARCHITECTURE.md relative to the project root.
-const architectureMdRelPath = "docs/ARCHITECTURE.md"
+// architectureMdRelPath is the path to ENG-HANDBOOK.md relative to the project root.
+const architectureMdRelPath = "docs/ENG-HANDBOOK.md"
 
 // Check runs the lint-architecture-links check, automatically finding the project root.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
@@ -64,11 +64,11 @@ func checkWithFS(
 
 	archContent, err := readFileFn(archPath)
 	if err != nil {
-		return fmt.Errorf("lint-architecture-links: failed to read ARCHITECTURE.md: %w", err)
+		return fmt.Errorf("lint-architecture-links: failed to read ENG-HANDBOOK.md: %w", err)
 	}
 
 	anchors := extractAnchors(string(archContent))
-	logger.Log(fmt.Sprintf("Extracted %d anchors from ARCHITECTURE.md", len(anchors)))
+	logger.Log(fmt.Sprintf("Extracted %d anchors from ENG-HANDBOOK.md", len(anchors)))
 
 	var violations []string
 
@@ -88,15 +88,15 @@ func checkWithFS(
 			logger.Log(fmt.Sprintf("  broken anchor: %s", v))
 		}
 
-		return fmt.Errorf("lint-architecture-links: %d broken ARCHITECTURE.md anchor(s) found", len(violations))
+		return fmt.Errorf("lint-architecture-links: %d broken ENG-HANDBOOK.md anchor(s) found", len(violations))
 	}
 
-	logger.Log("lint-architecture-links: all ARCHITECTURE.md anchors are valid")
+	logger.Log("lint-architecture-links: all ENG-HANDBOOK.md anchors are valid")
 
 	return nil
 }
 
-// checkDir walks a directory and validates all ARCHITECTURE.md anchor references in .md files.
+// checkDir walks a directory and validates all ENG-HANDBOOK.md anchor references in .md files.
 func checkDir(
 	logger *cryptoutilCmdCicdCommon.Logger,
 	absDir, relDir string,
@@ -150,7 +150,7 @@ func checkDir(
 	return violations, nil
 }
 
-// extractAnchors parses ARCHITECTURE.md content and returns all heading anchors as a set.
+// extractAnchors parses ENG-HANDBOOK.md content and returns all heading anchors as a set.
 // The anchor format follows GitHub's heading-to-anchor conversion algorithm.
 func extractAnchors(content string) map[string]struct{} {
 	anchors := make(map[string]struct{})

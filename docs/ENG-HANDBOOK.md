@@ -180,7 +180,7 @@ This document is structured to serve multiple audiences:
 - **Agent orchestration**: Copilot agents, Claude Code agents, dual canonical format, handoff flows, lint-agent-drift enforcement (see [Section 2.1](#21-agent-orchestration-strategy))
 - **Service framework & builder**: Shared HTTPS, TLS, database, barrier, session, and realm subsystems — eliminates 48,000+ lines of boilerplate per service (see [Section 5.1](#51-service-framework-pattern))
 - **Architecture fitness functions**: Programmatic invariant enforcement via 18+ fitness sub-linters (parallel-tests, file-size, test-patterns, entity-registry-completeness, and more — see [Section 9.11](#911-architecture-fitness-functions))
-- **Documentation propagation system**: `@source`/`@propagate` markers keep instruction files, agent files, and `ARCHITECTURE.md` byte-for-byte in sync; drift detected by `lint-docs` (see [Section 13.4](#134-documentation-propagation-strategy))
+- **Documentation propagation system**: `@source`/`@propagate` markers keep instruction files, agent files, and `ENG-HANDBOOK.md` byte-for-byte in sync; drift detected by `lint-docs` (see [Section 13.4](#134-documentation-propagation-strategy))
 - **Developer inner-loop tooling**: `cicd-lint` with 13 linters, 2 formatters, and 1 operational script enforces project invariants locally before every commit (see [Section 9.10](#910-cicd-command-architecture))
 - **Autonomous execution protocol**: Beast-mode agents and pre-commit quality gates enforce continuous-work, evidence-based completion, and end-of-turn commit discipline (see [Section 14.11](#1411-claude-code-autonomous-execution))
 
@@ -330,13 +330,13 @@ Implementation plans use the following files in `<work-dir>/`:
 
 <!-- @propagate to=".github/instructions/06-02.agent-format.instructions.md" as="agent-self-containment" -->
 **Agent Self-Containment Checklist** (MANDATORY):
-- Agents generating implementation plans MUST reference ARCHITECTURE.md testing (Section 10), quality gates (Section 11), coding standards (Section 14)
+- Agents generating implementation plans MUST reference ENG-HANDBOOK.md testing (Section 10), quality gates (Section 11), coding standards (Section 14)
 - Agents modifying code MUST reference coding standards (Sections 11, 14)
 - Agents modifying deployments MUST reference deployment architecture (Sections 12, 13)
 - Agents modifying CI/CD workflows or infrastructure MUST reference infrastructure architecture (Section 9)
 - Agents modifying documentation or copilot artifacts (skills, instructions, agents) MUST reference Section 2.1 (Agent/Skill/Instruction catalog) and Section 13.4 (Documentation Propagation)
 - ALL agents MUST reference Section 2.5 (Quality Strategy) for coverage and mutation targets
-- Agents with ZERO ARCHITECTURE.md references are NON-COMPLIANT and MUST be updated
+- Agents with ZERO ENG-HANDBOOK.md references are NON-COMPLIANT and MUST be updated
 <!-- @/propagate -->
 
 #### 2.1.2 Agent Catalog
@@ -367,7 +367,7 @@ Implementation plans use the following files in `<work-dir>/`:
 - Auto-discovery and alphanumeric ordering
 - Single responsibility per file
 - Cross-reference patterns
-- Propagations from this document (i.e. docs/ARCHITECTURE.md)
+- Propagations from this document (i.e. docs/ENG-HANDBOOK.md)
 
 #### 2.1.5 Copilot Skills
 
@@ -2784,13 +2784,13 @@ internal/apps/tools/cicd_lint/
 5. **Codify as validators**: When a new invariant is identified, implement it as a fitness linter that validates the actual state against expected state and returns descriptive errors. NEVER implement it as a generator that creates the expected state.
 <!-- @/propagate -->
 
-**Rationale**: The single source of truth is `docs/ARCHITECTURE.md` (prose). Its invariants are codified by a combination of pre-commit and pre-push hooks, including many `cicd-lint` subcommands. This strategy means ARCHITECTURE.md drives the repository, not generated files that can drift from the prose.
+**Rationale**: The single source of truth is `docs/ENG-HANDBOOK.md` (prose). Its invariants are codified by a combination of pre-commit and pre-push hooks, including many `cicd-lint` subcommands. This strategy means ENG-HANDBOOK.md drives the repository, not generated files that can drift from the prose.
 
 ---
 
 ### 9.11 Architecture Fitness Functions
 
-Architecture fitness functions are automated checks that enforce ARCHITECTURE.md invariants on every commit via `go run ./cmd/cicd-lint lint-fitness`. Violations are caught at pre-commit time and in CI, preventing architectural drift.
+Architecture fitness functions are automated checks that enforce ENG-HANDBOOK.md invariants on every commit via `go run ./cmd/cicd-lint lint-fitness`. Violations are caught at pre-commit time and in CI, preventing architectural drift.
 
 **Command**: `go run ./cmd/cicd-lint lint-fitness`
 **Pre-commit hook**: `lint-fitness` (runs on `.go`, `.yml`, `.sql` changes)
@@ -4111,7 +4111,7 @@ Here are local convenience commands to run the workflows locally for Development
 - Title: type(scope): description (<72 chars)
 - Tests added: ≥95%/98% coverage
 - Linting passes: golangci-lint clean
-- Docs updated: README, ARCHITECTURE.md, instruction files
+- Docs updated: README, ENG-HANDBOOK.md, instruction files
 - Security: No sensitive data, input validation, secure defaults
 
 **PR Size Guidelines**:
@@ -4815,13 +4815,13 @@ configs/
 
 **Problem**: Different Copilot modes of operation (VS Code Chat, CLI agents, Cloud agents, custom agents) read different file sets. Custom agents do NOT read `.github/instructions/*.instructions.md`. CLI and Cloud agents may not read `.github/copilot-instructions.md`. Keeping all file sets synchronized is error-prone.
 
-**Solution**: ARCHITECTURE.md is the **absolute single source of truth**. Content is propagated to downstream files using **chunk-based verbatim copying** with HTML comment markers. A deterministic CI/CD validator verifies propagation integrity.
+**Solution**: ENG-HANDBOOK.md is the **absolute single source of truth**. Content is propagated to downstream files using **chunk-based verbatim copying** with HTML comment markers. A deterministic CI/CD validator verifies propagation integrity.
 
-**MANDATORY**: Changes to ARCHITECTURE.md MUST be propagated to ALL downstream files in the SAME commit. Infrastructure changes (Docker, OTel, testcontainers, CI/CD) are ALWAYS BLOCKING — NEVER deferred.
+**MANDATORY**: Changes to ENG-HANDBOOK.md MUST be propagated to ALL downstream files in the SAME commit. Infrastructure changes (Docker, OTel, testcontainers, CI/CD) are ALWAYS BLOCKING — NEVER deferred.
 
 #### 13.4.2 Propagation Marker System
 
-**Marker Format in ARCHITECTURE.md** (source):
+**Marker Format in ENG-HANDBOOK.md** (source):
 
 ```html
 <!-- @propagate to=".github/instructions/02-06.authn.instructions.md" as="key-principles" -->
@@ -4832,25 +4832,25 @@ content here (verbatim body text)
 **Marker Format in Instruction Files** (target):
 
 ```html
-<!-- @source from="docs/ARCHITECTURE.md" as="key-principles" -->
+<!-- @source from="docs/ENG-HANDBOOK.md" as="key-principles" -->
 content here (verbatim copy of source)
 <!-- @/source -->
 ```
 
 **Attributes**:
-- `to`: Relative path from repository root to the target file (ARCHITECTURE.md markers only)
+- `to`: Relative path from repository root to the target file (ENG-HANDBOOK.md markers only)
 - `from`: Relative path from repository root to the source file (target file markers only)
 - `as`: Unique chunk identifier within the source-target pair (kebab-case)
 
 **Content Between Markers**:
 - MUST be identical in source and target (byte-for-byte after whitespace normalization)
 - MUST NOT contain section headings (headings go OUTSIDE markers, allowing different heading levels)
-- MUST NOT contain `See [ARCHITECTURE.md ...]` cross-reference links (those go OUTSIDE markers as glue)
+- MUST NOT contain `See [ENG-HANDBOOK.md ...]` cross-reference links (those go OUTSIDE markers as glue)
 - MUST be self-contained body text: paragraphs, bullet lists, tables, code blocks, bold/italic
 
 **Content Outside Markers** (non-propagated glue):
-- Section headings (## in instruction files, #### in ARCHITECTURE.md)
-- `See [ARCHITECTURE.md Section X.Y](...)` cross-reference links
+- Section headings (## in instruction files, #### in ENG-HANDBOOK.md)
+- `See [ENG-HANDBOOK.md Section X.Y](...)` cross-reference links
 - Transitional paragraphs connecting propagated chunks
 - YAML frontmatter (instruction files only)
 
@@ -4870,11 +4870,11 @@ Any variant not matching the above grammar (e.g., `@propagate from=...`, `@sourc
 
 #### 13.4.3 Propagation Rules
 
-**One-to-many**: One ARCHITECTURE.md chunk MAY propagate to multiple target files. Use a comma-separated `to` attribute: `to="file-a.md, file-b.md"`. The validator splits on comma-space and creates one propagation block per target with identical content. Avoid separate duplicate blocks.
+**One-to-many**: One ENG-HANDBOOK.md chunk MAY propagate to multiple target files. Use a comma-separated `to` attribute: `to="file-a.md, file-b.md"`. The validator splits on comma-space and creates one propagation block per target with identical content. Avoid separate duplicate blocks.
 
 **Chunk granularity**: Propagate the smallest self-contained unit. Prefer one chunk per logical concept (a table, a rule set, a code block with explanation). Do NOT wrap entire sections in a single marker.
 
-**Heading-agnostic**: Headings are NEVER inside markers. This allows ARCHITECTURE.md to use `####` while instruction files use `##` for the same content.
+**Heading-agnostic**: Headings are NEVER inside markers. This allows ENG-HANDBOOK.md to use `####` while instruction files use `##` for the same content.
 
 **Link transformation**: Content inside markers uses NO internal cross-references. All `See [Section X.Y](#anchor)` references go outside markers as instruction file glue.
 
@@ -4889,7 +4889,7 @@ Any variant not matching the above grammar (e.g., `@propagate from=...`, `@sourc
 
 #### 13.4.4 Section-Level Mapping
 
-| ARCHITECTURE.md Section | Primary Instruction File(s) | Agent File(s) |
+| ENG-HANDBOOK.md Section | Primary Instruction File(s) | Agent File(s) |
 |------------------------|----------------------------|---------------|
 | 1. Executive Summary | (none — context only) | — |
 | 2. Strategic Vision | 01-01.terminology, 01-02.beast-mode, 02-02.versions | implementation-planning, implementation-execution, beast-mode |
@@ -4913,7 +4913,7 @@ Any variant not matching the above grammar (e.g., `@propagate from=...`, `@sourc
 **Command**: `cicd-lint lint-docs`
 
 **Algorithm**:
-1. Parse all `@propagate` markers in ARCHITECTURE.md → extract (target_file, chunk_id, content)
+1. Parse all `@propagate` markers in ENG-HANDBOOK.md → extract (target_file, chunk_id, content)
 2. For each target, parse `@source` markers → extract (source_file, chunk_id, content)
 3. Normalize whitespace (trim leading/trailing blank lines, LF line endings)
 4. Compare source content with target content byte-for-byte
@@ -4943,15 +4943,15 @@ Any variant not matching the above grammar (e.g., `@propagate from=...`, `@sourc
 
 Propagation markers are added incrementally:
 1. Start with highest-value instruction files (most-referenced, most-divergent)
-2. For each section: reconcile content direction (ARCHITECTURE.md → instruction file)
-3. Add `@propagate` markers in ARCHITECTURE.md
+2. For each section: reconcile content direction (ENG-HANDBOOK.md → instruction file)
+3. Add `@propagate` markers in ENG-HANDBOOK.md
 4. Add `@source` markers in instruction files with verbatim copy
 5. Run `validate-propagation` to confirm match
 6. Repeat for remaining sections
 
 **Completed propagation chunks**:
 
-| Chunk ID | ARCHITECTURE.md Section | Target File(s) |
+| Chunk ID | ENG-HANDBOOK.md Section | Target File(s) |
 |----------|------------------------|----------------|
 | rfc-2119-keywords | 1.2 | 01-01.terminology |
 | emphasis-keywords | 1.2 | 01-01.terminology |
@@ -4994,7 +4994,7 @@ Propagation markers are added incrementally:
 | agent-self-containment | 2.1.1 | 06-02.agent-format |
 | agent-tool-discovery | 2.1.6 | 06-02.agent-format |
 
-**Instruction file coverage**: All 18 instruction files analyzed. 17 files have 1+ propagation chunks (38 unique chunks, 41 total source-target pairs). 1 file (copilot-instructions) is structural glue only — its content is a condensed quick-reference summary and instruction file table, not verbatim ARCHITECTURE.md content.
+**Instruction file coverage**: All 18 instruction files analyzed. 17 files have 1+ propagation chunks (38 unique chunks, 41 total source-target pairs). 1 file (copilot-instructions) is structural glue only — its content is a condensed quick-reference summary and instruction file table, not verbatim ENG-HANDBOOK.md content.
 
 **Structural glue** (~20% of instruction file content) remains non-propagated: condensed quick-reference summaries, section headings, `See` cross-references, transitional text, tables in different formats, and code examples unique to instruction file context.
 
@@ -5289,7 +5289,7 @@ See [Section 9.4.2 Docker Desktop and Testcontainers API Compatibility](#942-doc
 - Analysis results go in `research/` subdirectory, NOT in plan or task files
 
 **Knowledge Propagation — Every Plan MUST**:
-- Include a final "Knowledge Propagation" phase that updates ARCHITECTURE.md, agents, skills, and instructions with new patterns discovered
+- Include a final "Knowledge Propagation" phase that updates ENG-HANDBOOK.md, agents, skills, and instructions with new patterns discovered
 - Conduct post-mortems after EVERY phase to self-evaluate artifacts for contradictions or omissions
 - Document all architectural decisions in plan.md before archiving the plan
 
@@ -5330,7 +5330,7 @@ At the end of EVERY phase's quality gates, conduct a post-mortem **before starti
 
 1. **lessons.md** (in `<work-dir>/`): Record lessons learned — what worked, what didn't, root causes, patterns observed.
 2. **Artifact Self-Evaluation**: Actively evaluate whether phase lessons expose contradictions or omissions in:
-   - `docs/ARCHITECTURE.md` — architecture decisions, patterns, strategies
+   - `docs/ENG-HANDBOOK.md` — architecture decisions, patterns, strategies
    - `.github/agents/*.agent.md` — agent guidance and workflows
    - `.github/skills/*/SKILL.md` — skill templates and guidance
    - `.github/instructions/*.instructions.md` — coding, testing, security guidelines
@@ -5347,7 +5347,7 @@ Skipping post-mortems is FORBIDDEN. This is continuous self-improvement.
 
 After ALL plan tasks are complete, apply accumulated lessons to permanent artifacts:
 
-1. **ARCHITECTURE.md**: Update with new patterns, strategies, and architectural decisions discovered.
+1. **ENG-HANDBOOK.md**: Update with new patterns, strategies, and architectural decisions discovered.
 2. **Agents**: Update `.github/agents/*.agent.md` with improved guidance and workflows.
 3. **Skills**: Add or update `.github/skills/*/SKILL.md` to capture new patterns and templates.
 4. **Instructions**: Update `.github/instructions/*.instructions.md` with new coding/testing patterns.
@@ -5396,7 +5396,7 @@ After ALL plan tasks are complete, apply accumulated lessons to permanent artifa
 1. **No archive directories**: `_archived/`, `archived/`, `orphaned/` directories MUST NOT exist anywhere in the repository. The `archive-detector` fitness linter enforces this.
 2. **Git history is the archive**: Any deleted file is recoverable via `git log --diff-filter=D -- path/to/file` and `git show <hash>:path/to/file`.
 3. **No "soft delete" patterns**: Do not comment out large blocks of code, wrap in `if false {}`, or use build tags to hide dead code.
-4. **Satellite docs are merged, then deleted**: When consolidating documentation, merge unique content into ARCHITECTURE.md (the SSOT), then delete the satellite file. Do not keep both.
+4. **Satellite docs are merged, then deleted**: When consolidating documentation, merge unique content into ENG-HANDBOOK.md (the SSOT), then delete the satellite file. Do not keep both.
 
 **Rationale**: Archive directories accumulate stale code that confuses search results, inflates repository size, creates false positives in linters, and misleads developers into thinking archived code is maintained. Git provides complete history for recovery when needed.
 
