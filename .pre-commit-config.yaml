@@ -70,8 +70,8 @@ repos:
 
   - repo: local
     hooks:
-      # Go linting with auto-fix (includes gofumpt with extra-rules, imports, and all enabled linters)
-      # NOTE: golangci-lint includes gofumpt with extra-rules, so separate gofumpt not needed
+      # Go linting with auto-fix (runs gofumpt+goimports formatters + all enabled linters)
+      # NOTE: gofumpt and goimports are enabled in formatters: section of .golangci.yml
       - id: golangci-lint
         name: golangci-lint (incremental auto-fix)
         entry: golangci-lint

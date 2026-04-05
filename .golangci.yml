@@ -200,28 +200,28 @@ linters:
       no-unaliased: true
       alias:
         # JOSE libraries
-        - { pkg: "github.com/lestrrat-go/jwx/v3/jwe", alias: joseJwe }
-        - { pkg: "github.com/lestrrat-go/jwx/v3/jwk", alias: joseJwk }
-        - { pkg: "github.com/lestrrat-go/jwx/v3/jws", alias: joseJws }
-        - { pkg: "github.com/lestrrat-go/jwx/v3/jwa", alias: joseJwa }
+        - {pkg: "github.com/lestrrat-go/jwx/v3/jwe", alias: joseJwe}
+        - {pkg: "github.com/lestrrat-go/jwx/v3/jwk", alias: joseJwk}
+        - {pkg: "github.com/lestrrat-go/jwx/v3/jws", alias: joseJws}
+        - {pkg: "github.com/lestrrat-go/jwx/v3/jwa", alias: joseJwa}
         # Third-party
-        - { pkg: "github.com/google/uuid", alias: googleUuid }
-        - { pkg: "encoding/json", alias: json }
-        - { pkg: "encoding/xml", alias: xml }
-        - { pkg: "net/http", alias: http }
-        - { pkg: "github.com/gofiber/fiber/v2", alias: fiber }
-        - { pkg: "github.com/stretchr/testify", alias: testify }
+        - {pkg: "github.com/google/uuid", alias: googleUuid}
+        - {pkg: "encoding/json", alias: json}
+        - {pkg: "encoding/xml", alias: xml}
+        - {pkg: "net/http", alias: http}
+        - {pkg: "github.com/gofiber/fiber/v2", alias: fiber}
+        - {pkg: "github.com/stretchr/testify", alias: testify}
         # Cryptoutil API
-        - { pkg: "cryptoutil/api/client", alias: cryptoutilOpenapiClient }
-        - { pkg: "cryptoutil/api/model", alias: cryptoutilOpenapiModel }
-        - { pkg: "cryptoutil/api/server", alias: cryptoutilOpenapiServer }
-        - { pkg: "cryptoutil/api/pki-ca/client", alias: cryptoutilApiCaClient }
-        - { pkg: "cryptoutil/api/pki-ca/models", alias: cryptoutilApiCaModels }
-        - { pkg: "cryptoutil/api/pki-ca/server", alias: cryptoutilApiCaServer }
-        - { pkg: "cryptoutil/api/identity-authz", alias: cryptoutilApiIdentityAuthz }
-        - { pkg: "cryptoutil/api/identity-idp", alias: cryptoutilApiIdentityIdp }
-        - { pkg: "cryptoutil/api/identity-rs", alias: cryptoutilApiIdentityRs }
-        - { pkg: "cryptoutil/api/jose-ja/client", alias: cryptoutilApiJoseClient }
+        - {pkg: "cryptoutil/api/client", alias: cryptoutilOpenapiClient}
+        - {pkg: "cryptoutil/api/model", alias: cryptoutilOpenapiModel}
+        - {pkg: "cryptoutil/api/server", alias: cryptoutilOpenapiServer}
+        - {pkg: "cryptoutil/api/pki-ca/client", alias: cryptoutilApiCaClient}
+        - {pkg: "cryptoutil/api/pki-ca/models", alias: cryptoutilApiCaModels}
+        - {pkg: "cryptoutil/api/pki-ca/server", alias: cryptoutilApiCaServer}
+        - {pkg: "cryptoutil/api/identity-authz", alias: cryptoutilApiIdentityAuthz}
+        - {pkg: "cryptoutil/api/identity-idp", alias: cryptoutilApiIdentityIdp}
+        - {pkg: "cryptoutil/api/identity-rs", alias: cryptoutilApiIdentityRs}
+        - {pkg: "cryptoutil/api/jose-ja/client", alias: cryptoutilApiJoseClient}
         # Cryptoutil cmd
         - pkg: "cryptoutil/internal/cmd"
           alias: cryptoutilCmd
@@ -599,13 +599,18 @@ linters:
         - pkg: "cryptoutil/internal/identity/rs/server"
           alias: cryptoutilIdentityRsServer
         # Crypto packages
-        - { pkg: "crypto/aes", alias: aes }
-        - { pkg: "crypto/ecdsa", alias: ecdsa }
-        - { pkg: "crypto/hmac", alias: hmac }
-        - { pkg: "crypto/rsa", alias: rsa }
-        - { pkg: "crypto/sha256", alias: sha256 }
-        - { pkg: "crypto/sha512", alias: sha512 }
-        - { pkg: "crypto/rand", alias: crand }
+        - {pkg: "crypto/aes", alias: aes}
+        - {pkg: "crypto/ecdsa", alias: ecdsa}
+        - {pkg: "crypto/hmac", alias: hmac}
+        - {pkg: "crypto/rsa", alias: rsa}
+        - {pkg: "crypto/sha256", alias: sha256}
+        - {pkg: "crypto/sha512", alias: sha512}
+        - {pkg: "crypto/rand", alias: crand,}
+
+formatters:
+  enable:
+    - gofumpt # Stricter gofmt rules (superset of gofmt); enforced via gofumpt -w
+    - goimports # Automatic import organization and grouping
 
 issues:
   max-issues-per-linter: 50
