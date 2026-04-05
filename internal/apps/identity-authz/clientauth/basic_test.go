@@ -29,7 +29,7 @@ func TestBasicAuthenticator_MethodName(t *testing.T) {
 
 const (
 	testClientSecretStr = "test-client-secret"
-	testClientIDStr     = "test-client-id"
+	testClientIDStr     = cryptoutilSharedMagic.TestClientID
 )
 
 func TestBasicAuthenticator_Authenticate(t *testing.T) {

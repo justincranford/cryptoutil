@@ -21,11 +21,12 @@ import (
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
 	// Database type constants.
-	dbTypePostgres = "postgres"
+	dbTypePostgres = cryptoutilSharedMagic.DockerServicePostgres
 	dbTypeSQLite   = "sqlite"
 
 	// SQLite connection pool settings for GORM transaction pattern.

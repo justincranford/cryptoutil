@@ -10,6 +10,7 @@ import (
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // OTPMethod represents the OTP delivery method.
@@ -17,13 +18,13 @@ type OTPMethod string
 
 const (
 	// OTPMethodEmail delivers OTP via email.
-	OTPMethodEmail OTPMethod = "email"
+	OTPMethodEmail OTPMethod = cryptoutilSharedMagic.ClaimEmail
 
 	// OTPMethodSMS delivers OTP via SMS.
-	OTPMethodSMS OTPMethod = "sms"
+	OTPMethodSMS OTPMethod = cryptoutilSharedMagic.AMRSMS
 
 	// OTPMethodTOTP uses time-based OTP (TOTP).
-	OTPMethodTOTP OTPMethod = "totp"
+	OTPMethodTOTP OTPMethod = cryptoutilSharedMagic.AuthMethodTOTP
 )
 
 // OTPService handles OTP generation and validation.

@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
 	defaultDeploymentsDir = "deployments"
-	defaultConfigsDir     = "configs"
+	defaultConfigsDir     = cryptoutilSharedMagic.CICDConfigsDir
 )
 
 // Main is the CLI entry point for the deployment linter.

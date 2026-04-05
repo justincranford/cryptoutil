@@ -28,7 +28,7 @@ const (
 	TenantIsolationRow TenantIsolationMode = "row"
 
 	// TenantIsolationDatabase uses separate databases per tenant.
-	TenantIsolationDatabase TenantIsolationMode = "database"
+	TenantIsolationDatabase TenantIsolationMode = cryptoutilSharedMagic.RealmStorageTypeDatabase
 )
 
 // TenantConfig defines tenant configuration.

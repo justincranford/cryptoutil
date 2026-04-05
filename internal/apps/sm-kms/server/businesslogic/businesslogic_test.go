@@ -23,7 +23,7 @@ import (
 const (
 	testOTLPService  = "test-service"
 	testOTLPEndpoint = "http://localhost:4318"
-	testLogLevel     = "INFO"
+	testLogLevel     = cryptoutilSharedMagic.DefaultLogLevelInfo
 )
 
 func TestNewBusinessLogicService(t *testing.T) {

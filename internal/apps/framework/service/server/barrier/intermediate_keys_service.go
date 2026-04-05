@@ -53,12 +53,6 @@ func newIntermediateKeysServiceInternal(telemetryService *cryptoutilSharedTeleme
 	return &IntermediateKeysService{telemetryService: telemetryService, jwkGenService: jwkGenService, repository: repository, rootKeysService: rootKeysService}, nil
 }
 
-func initializeFirstIntermediateJWK(jwkGenService *cryptoutilSharedCryptoJose.JWKGenService, repository Repository, rootKeysService *RootKeysService) error {
-	return initializeFirstIntermediateJWKInternal(jwkGenService, repository, rootKeysService, func(svc *cryptoutilSharedCryptoJose.JWKGenService) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
-		return svc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgDir)
-	})
-}
-
 func initializeFirstIntermediateJWKInternal(jwkGenService *cryptoutilSharedCryptoJose.JWKGenService, repository Repository, rootKeysService *RootKeysService, generateJWEJWKFn func(svc *cryptoutilSharedCryptoJose.JWKGenService) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error)) error {
 	var encryptedIntermediateKeyLatest *IntermediateKey
 

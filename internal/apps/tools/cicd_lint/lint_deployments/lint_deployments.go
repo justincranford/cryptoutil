@@ -10,7 +10,7 @@ const (
 	DeploymentTypeProduct        = "PRODUCT"
 	DeploymentTypeProductService = "PRODUCT-SERVICE"
 	DeploymentTypeInfrastructure = "infrastructure"
-	DeploymentTypeTemplate       = "template"
+	DeploymentTypeTemplate       = cryptoutilSharedMagic.SkeletonTemplateServiceName
 )
 
 // productCount is the total number of products (sm, pki, jose, identity, skeleton).

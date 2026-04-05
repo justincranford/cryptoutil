@@ -25,11 +25,11 @@ type KeyType string
 // Key type constants for supported algorithms.
 const (
 	// KeyTypeRSA represents RSA cryptographic keys.
-	KeyTypeRSA KeyType = "RSA"
+	KeyTypeRSA KeyType = cryptoutilSharedMagic.KeyTypeRSA
 	// KeyTypeECDSA represents ECDSA cryptographic keys.
 	KeyTypeECDSA KeyType = "ECDSA"
 	// KeyTypeEdDSA represents EdDSA cryptographic keys.
-	KeyTypeEdDSA KeyType = "EdDSA"
+	KeyTypeEdDSA KeyType = cryptoutilSharedMagic.JoseAlgEdDSA
 )
 
 // Key size constants for FIPS 140-3 compliance.

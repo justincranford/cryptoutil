@@ -27,7 +27,7 @@ type DBType string
 // Supported database types.
 const (
 	DBTypeSQLite   DBType = "sqlite"
-	DBTypePostgres DBType = "postgres"
+	DBTypePostgres DBType = cryptoutilSharedMagic.DockerServicePostgres
 )
 
 // SchemaManager handles schema-per-tenant operations for both PostgreSQL and SQLite.

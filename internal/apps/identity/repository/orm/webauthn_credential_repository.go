@@ -14,6 +14,7 @@ import (
 	"gorm.io/gorm"
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // CredentialType represents the type of WebAuthn credential.
@@ -21,7 +22,7 @@ type CredentialType string
 
 // CredentialTypePasskey is the credential type for passkey-based authentication.
 const (
-	CredentialTypePasskey CredentialType = "passkey"
+	CredentialTypePasskey CredentialType = cryptoutilSharedMagic.AMRPasskey
 )
 
 // Credential represents a WebAuthn/FIDO2 credential.

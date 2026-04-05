@@ -57,7 +57,7 @@ const (
 	// DatabaseTypeSQLite represents SQLite database.
 	DatabaseTypeSQLite DatabaseType = "sqlite3"
 	// DatabaseTypePostgreSQL represents PostgreSQL database.
-	DatabaseTypePostgreSQL DatabaseType = "postgres"
+	DatabaseTypePostgreSQL DatabaseType = cryptoutilSharedMagic.DockerServicePostgres
 )
 
 // NewMigrationRunner creates a new migration runner with filesystem.

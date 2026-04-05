@@ -9,6 +9,8 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // MFAFactorType represents the type of multi-factor authentication factor.
@@ -21,13 +23,13 @@ const (
 	// MFAFactorTypeEmailOTP is an email OTP factor.
 	MFAFactorTypeEmailOTP MFAFactorType = "email_otp"
 	// MFAFactorTypeSMSOTP is an SMS OTP factor.
-	MFAFactorTypeSMSOTP MFAFactorType = "sms_otp"
+	MFAFactorTypeSMSOTP MFAFactorType = cryptoutilSharedMagic.AuthMethodSMSOTP
 	// MFAFactorTypeTOTP is a TOTP (Time-based OTP) factor.
-	MFAFactorTypeTOTP MFAFactorType = "totp"
+	MFAFactorTypeTOTP MFAFactorType = cryptoutilSharedMagic.AuthMethodTOTP
 	// MFAFactorTypeHOTP is an HOTP (HMAC-based OTP) factor.
 	MFAFactorTypeHOTP MFAFactorType = "hotp"
 	// MFAFactorTypePasskey is a passkey (WebAuthn) factor.
-	MFAFactorTypePasskey MFAFactorType = "passkey"
+	MFAFactorTypePasskey MFAFactorType = cryptoutilSharedMagic.AMRPasskey
 	// MFAFactorTypeMagicLink is a magic link factor.
 	MFAFactorTypeMagicLink MFAFactorType = "magic_link"
 	// MFAFactorTypeMTLS is an mTLS certificate factor.
@@ -35,7 +37,7 @@ const (
 	// MFAFactorTypeHardwareToken is a hardware security key factor.
 	MFAFactorTypeHardwareToken MFAFactorType = "hardware_token"
 	// MFAFactorTypeBiometric is a biometric factor.
-	MFAFactorTypeBiometric MFAFactorType = "biometric"
+	MFAFactorTypeBiometric MFAFactorType = cryptoutilSharedMagic.AuthMethodBiometric
 )
 
 // MFAFactor represents a multi-factor authentication factor configuration.

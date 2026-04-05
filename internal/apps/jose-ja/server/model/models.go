@@ -10,6 +10,8 @@ import (
 	"time"
 
 	googleUuid "github.com/google/uuid"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // ElasticJWK represents a logical key container that supports key rotation.
@@ -106,14 +108,14 @@ const (
 
 // KeyType constants.
 const (
-	KeyTypeRSA = "RSA"
+	KeyTypeRSA = cryptoutilSharedMagic.KeyTypeRSA
 	KeyTypeEC  = "EC"
 	KeyTypeOKP = "OKP"
-	KeyTypeOct = "oct"
+	KeyTypeOct = cryptoutilSharedMagic.KeyTypeOct
 )
 
 // KeyUse constants.
 const (
-	KeyUseSig = "sig"
-	KeyUseEnc = "enc"
+	KeyUseSig = cryptoutilSharedMagic.JoseKeyUseSig
+	KeyUseEnc = cryptoutilSharedMagic.JoseKeyUseEnc
 )

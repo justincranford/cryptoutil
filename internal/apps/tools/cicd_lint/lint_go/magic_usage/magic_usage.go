@@ -35,6 +35,7 @@ type magicUsageViolation struct {
 	Line         int
 	Kind         magicUsageKind
 	LiteralValue string
+	LiteralIsStr bool // true when LiteralValue is a quoted string literal
 	MagicName    string
 }
 
@@ -134,22 +135,26 @@ func CheckMagicUsageInDir(
 	}
 
 	var (
-		literalUseViolations    []magicUsageViolation
-		constRedefineViolations []magicUsageViolation
+		literalUseViolations         []magicUsageViolation
+		constRedefineStringViolations []magicUsageViolation
+		constRedefineNumericViolations []magicUsageViolation
 	)
 
 	for _, v := range violations {
-		if v.Kind == magicUsageKindLiteral {
+		switch {
+		case v.Kind == magicUsageKindLiteral:
 			literalUseViolations = append(literalUseViolations, v)
-		} else {
-			constRedefineViolations = append(constRedefineViolations, v)
+		case v.LiteralIsStr:
+			constRedefineStringViolations = append(constRedefineStringViolations, v)
+		default:
+			constRedefineNumericViolations = append(constRedefineNumericViolations, v)
 		}
 	}
 
 	var sb strings.Builder
 
-	fmt.Fprintf(&sb, "magic-usage: %d violation(s) found (%d literal-use [blocking], %d const-redefine [informational])\n\n",
-		len(violations), len(literalUseViolations), len(constRedefineViolations))
+	fmt.Fprintf(&sb, "magic-usage: %d violation(s) found (%d literal-use [blocking], %d const-redefine-string [blocking], %d const-redefine-numeric [informational])\n\n",
+		len(violations), len(literalUseViolations), len(constRedefineStringViolations), len(constRedefineNumericViolations))
 
 	for _, v := range violations {
 		fmt.Fprintf(&sb, "  %s:%d  [%s]  literal %s  →  use magic.%s\n",
@@ -162,10 +167,16 @@ func CheckMagicUsageInDir(
 		return fmt.Errorf("found %d literal-use violations: inline magic constant values must reference magic.XXX instead of repeating the literal", len(literalUseViolations))
 	}
 
-	// const-redefine violations are informational: numeric literals may coincidentally
-	// share a value with a magic constant but have different semantics (e.g., step counts,
-	// timeouts, and buffer sizes that happen to equal port numbers or pool sizes).
-	// Run 'cicd lint-go' to track progress as true const-redefine violations are addressed.
+	// String const-redefine is always blocking: redefining a magic string constant
+	// outside the magic package is always wrong — the same string value almost never
+	// coincidentally matches a magic constant (unlike small integers which are ubiquitous).
+	if len(constRedefineStringViolations) > 0 {
+		return fmt.Errorf("found %d const-redefine-string violations: redeclaring a magic string constant value outside the magic package is always wrong — reference magic.XXX instead", len(constRedefineStringViolations))
+	}
+
+	// Numeric const-redefine is informational: small integers (e.g. 5, 10, 32) frequently
+	// coincide with magic constant values but represent different concepts (retry counts,
+	// buffer sizes, loop bounds). Run 'cicd lint-go' to review and address true violations.
 	return nil
 }
 
@@ -278,6 +289,7 @@ func (v *magicUsageVisitor) checkLiteral(lit *ast.BasicLit) {
 		Line:         pos.Line,
 		Kind:         kind,
 		LiteralValue: lit.Value,
+		LiteralIsStr: lit.Kind == token.STRING,
 		MagicName:    mc.Name,
 	})
 }

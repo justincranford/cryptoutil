@@ -43,9 +43,9 @@ Tests mutate `sm.xxxFn` after calling `setupSessionManager(t)` — parallel-safe
 
 **File corruption bug in replace_string_in_file**: When `replace_string_in_file` replaces ONLY the `package xxx` header line, it leaves all original file content appended after the new content block, causing `imports must appear before other declarations` compile errors. Fix: PowerShell `$content[0..N]` truncation after detecting duplication. Always verify file line count matches expectations after large replacements.
 
-**Pre-commit hook bypass**: `SQLFluff`, `taplo`, `EditorConfig` checkers return non-zero exit codes even when showing "Skipped". Use `git commit --no-verify` for local commits; CI handles real validation.
+**Pre-commit hook failures are BLOCKING**: `SQLFluff`, `taplo`, `EditorConfig` checkers return non-zero exit codes even when showing "Skipped". NEVER use `git commit --no-verify` — pre-commit IS the primary validator and CI is auditing that all pre-commit validators were actually run. Investigate and fix the root cause of any pre-commit failure before committing.
 
-**Pre-existing issues to NOT fix**: `initializeFirstIntermediateJWK is unused` in barrier package (confirmed via `git stash` + `golangci-lint run` on pre-change HEAD). `TestProvisionDatabase_ErrorPaths/file::memory:_format` flaky timeout when packages run in parallel (passes in isolation — CPU sysinfo collection timeout).
+**Pre-existing issues MUST be fixed**: `initializeFirstIntermediateJWK is unused` in barrier package — fix it. `TestProvisionDatabase_ErrorPaths/file::memory:_format` flaky timeout — investigate and fix the root cause (e.g., configure a proper timeout or isolate the sysinfo collection). "Pre-existing" is NOT a valid reason to defer any blocker. ALL issues are BLOCKING.
 
 **Commits**:
 - `52ef41e8f` — Category 1 fitness linters
@@ -59,7 +59,7 @@ Tests mutate `sm.xxxFn` after calling `setupSessionManager(t)` — parallel-safe
 
 **Lesson**: `os.IsNotExist → return nil` (silent skip) in fitness linters is categorically wrong. When a required directory is absent it means the workspace is non-compliant — the linter MUST return a hard error so CI/CD fails visibly. All 71 fitness linter CheckInDir functions must return `fmt.Errorf(...)` when a required directory is not found. This is the project-wide standard documented in ARCHITECTURE.md §9.11.2.
 
-**Unit test pattern — stub ALL required dirs**: Tests for dir-iterating fitness linters must create stubs for every directory the linter checks: all PS-ID config dirs, all PS-ID domain dirs, and any shared infrastructure dirs (e.g. the framework template migrations dir). Use registry-iterating helpers (`createAllConfigDirStubs`, `createAllPSIDDirStubs`) so new PS-IDs added to the registry are automatically covered.
+**Unit test pattern — stub ALL required dirs**: Tests for dir-iterating fitness linters must create stubs for every directory the linter checks: all PS-ID config dirs, all PS-ID domain dirs, and any shared infrastructure dirs (e.g. the framework template migrations dir). Use registry-iterating helpers (`createAllConfigDirStubs`, `createAllPSIDDirStubs`) so new PS-IDs added to the registry are automatically covered. Stubbing applies at all three deployment levels: **PS-ID** (e.g., `configs/sm-kms/`, `configs/jose-ja/`), **PRODUCT** (e.g., `deployments/sm/`, `deployments/jose/`), and **SUITE** (e.g., `deployments/cryptoutil/`). Fitness linters that iterate deployment or config directories must stub and verify all three levels.
 
 **Structural ceiling pattern**: If a stub helper necessarily creates a parent directory (e.g., `createTemplateMigrationsDirStub` creates `internal/apps/framework/...` which also creates `internal/apps/`), then a test for "absent parent dir causes error" is structurally impossible when both stubs are required. Resolve by covering the absent-parent code path via a direct function test (not via CheckInDir) and documenting the ceiling with an explanatory comment where the deleted test was.
 
@@ -83,7 +83,7 @@ Tests mutate `sm.xxxFn` after calling `setupSessionManager(t)` — parallel-safe
 
 ### Task 3.4 — function-var-redeclaration lint-go sub-linter
 
-**Lesson**: The `magic-usage` linter distinguishes `literal-use` (blocking) from `const-redefine` (informational). `literal-use` violations in test files introduced during the same commit will prevent commit via pre-commit. Always add `cryptoutilSharedMagic` import and use magic constants for permissions (`0o600` → `CacheFilePermissions`, `0o750` → `FilePermOwnerReadWriteExecuteGroupReadExecute`) and string constants (`"vendor"` → `CICDExcludeDirVendor`) in NEW test files.
+**Lesson**: The `magic-usage` linter enforces two categories, BOTH BLOCKING: `literal-use` (bare literal in non-const code) and `const-redefine` (value redeclared as a local const outside the magic package). Both prevent commit via pre-commit. Always add `cryptoutilSharedMagic` import and use magic constants for permissions (`0o600` → `CacheFilePermissions`, `0o750` → `FilePermOwnerReadWriteExecuteGroupReadExecute`) and string constants (`"vendor"` → `CICDExcludeDirVendor`) in NEW test files. The `const-redefine` category was incorrectly implemented as informational and has been corrected to blocking — any const redeclaration of a magic value outside the magic package is always wrong and must be fixed immediately.
 
 **Coverage**: 96.4% — vars ending in "Fn" whose value is a bare `pkg.Func` selector are the exact anti-pattern detected. Function literals (`func(args) { return pkg.Func(args) }`) are NOT flagged; only plain `pkg.Func` selector expressions are flagged.
 
@@ -119,19 +119,22 @@ Tests mutate `sm.xxxFn` after calling `setupSessionManager(t)` — parallel-safe
 
 ## Phase 5: Identity Product Refactoring
 
-### Task 5.1–5.4 — Identity Config Types: Root-Cause Analysis
+### Task 5.1–5.4 — Identity Config Types: CORRECTED Decision
 
-**Decision**: Tasks 5.1–5.4 (move `ServerConfig`, `DatabaseConfig`, `SessionConfig`, `ObservabilityConfig` from `identity/config` to framework) were analyzed and deferred.
+**Decision (corrected)**: Tasks 5.1–5.4 (move `ServerConfig`, `DatabaseConfig`, `SessionConfig`, `ObservabilityConfig` from `identity/config` to framework) MUST be executed. The prior deferral was WRONG.
 
-**Root cause**: The plan labeled these types "non-identity" but they are identity-domain types:
-- `ServerConfig.Validate()` checks identity-admin settings (AdminEnabled, AdminBindAddress, AdminPort)
-- `SessionConfig.Validate()` checks identity cookie SameSite rules
-- `DatabaseConfig.Validate()` checks identity-specific DB types ("postgres", "sqlite")
-- `ObservabilityConfig.Validate()` checks identity logging formats
+**Root cause of prior error**: The previous analysis focused narrowly on `Validate()` method content and concluded these types were identity-specific. This reasoning was incorrect. The architectural rule is: **any type that expresses a concern shared by all 10 PS-IDs belongs in framework**. Server configuration, database configuration, session configuration, and observability configuration are framework-level concerns — all 10 PS-IDs need servers, databases, sessions, and observability.
 
-Moving them to framework would create a framework → identity dependency violation (the framework should not know about identity-specific validation rules). The correct architectural state is already correct: these types live in `identity/config`.
+**Correct approach**:
+- `ServerConfig` → move to `internal/apps/framework/service/config/` as a reusable type
+- `DatabaseConfig` → move to `internal/apps/framework/service/config/`
+- `SessionConfig` → move to `internal/apps/framework/service/config/` (cookie SameSite handling is a framework HTTP concern, not identity-specific)
+- `ObservabilityConfig` → move to `internal/apps/framework/service/config/`
+- Identity-specific validation logic (e.g., CookieSameSite rules) should live in framework as well — the framework MUST enforce cross-cutting concerns consistently
+- Any PS-ID-specific validation extends the framework types; it does NOT duplicate them
+- All 10 PS-IDs MUST import and use these types from framework, not maintain local copies
 
-**Lesson**: When a plan says "non-identity type", verify the `Validate()` methods — they reveal actual domain ownership. Generic-sounding type names can mask domain-specific validation logic.
+**Lesson**: "Framework dependency violation" reasoning is inverted. The framework is the dependency provider for all PS-IDs. Types that represent cross-cutting PS-ID concerns (server, database, session, observability) MUST live in framework. Identity-specific config (TokenConfig, SecurityConfig with PKCE/OIDC) stays in identity.
 
 ### Task 5.5 — Duplicate Product-Level Usage Files Deleted
 
@@ -142,7 +145,7 @@ Moving them to framework would create a framework → identity dependency violat
 - `identity/rs/rs_usage.go`
 - `identity/spa/spa_usage.go`
 
-**Pattern**: PS-ID canonical `usage.go` files in `identity-{psid}/{psid}_usage.go` have slightly better descriptions (mention both `/service/**` and `/browser/**` health paths). Product-level copies only mentioned `/browser/**`. The PS-IDs are the canonical source of truth.
+**Pattern (corrected)**: PS-ID `usage.go` files in `identity-{psid}/{psid}_usage.go` contain PS-ID-specific CLI usage strings. ALL usage.go files MUST mention both `/service/**` and `/browser/**` health paths because every PS-ID exposes both. The canonical template for usage string structure should be enforced by the framework (e.g., via a fitness linter that validates all usage.go files follow the pattern). Product-level copies that omit `/service/**` are a violation — all copies must be consistent. Verify all 10 PS-ID usage.go files mention both paths.
 
 **Discovery**: Also found `rp/`, `rs/`, `spa/` subdirs (not mentioned in plan) with the same pattern — deleted them too. Always verify whether sibling directories share the same anti-pattern before committing.
 
@@ -159,7 +162,7 @@ All remaining `identity/` product-level packages verified as identity-domain:
 | `issuer/` | JWT/JWE token issuance — stays |
 | `jobs/` | Scheduled cleanup/rotation jobs — stays |
 | `mfa/` | TOTP/WebAuthn/OTP services — stays |
-| `ratelimit/` | In-memory rate limiter (identity-specific) — stays |
+| `ratelimit/` | In-memory rate limiter — MUST move to framework (framework concern shared by all PS-IDs) |
 | `repository/` | GORM repositories for identity entities — stays |
 | `rotation/` | Key rotation service — stays |
 

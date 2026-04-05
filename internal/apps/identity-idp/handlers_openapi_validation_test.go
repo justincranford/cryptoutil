@@ -35,7 +35,7 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 
 	const (
 		endpointUserInfo  = "/browser/api/v1/userinfo"
-		endpointDiscovery = "/.well-known/openid-configuration"
+		endpointDiscovery = cryptoutilSharedMagic.PathDiscovery
 		endpointToken     = "/browser/api/v1/token"
 	)
 

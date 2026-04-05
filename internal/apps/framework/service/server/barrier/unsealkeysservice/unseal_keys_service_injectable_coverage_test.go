@@ -20,8 +20,8 @@ import (
 )
 
 const (
-	testGoArch = "amd64"
-	testGoOS   = "linux"
+	testGoArch = cryptoutilSharedMagic.MockRuntimeGoArch
+	testGoOS   = cryptoutilSharedMagic.MockRuntimeGoOS
 )
 
 // failingSysInfoProvider is a SysInfoProvider that returns an error from CPUInfo.

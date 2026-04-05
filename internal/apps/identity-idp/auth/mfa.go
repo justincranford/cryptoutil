@@ -14,11 +14,12 @@ import (
 	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
 	mfaFactorTypeEmailOTP = "email_otp"
-	mfaFactorTypeSMSOTP   = "sms_otp"
+	mfaFactorTypeSMSOTP   = cryptoutilSharedMagic.AuthMethodSMSOTP
 )
 
 // MFAOrchestrator manages multi-factor authentication flows.

@@ -9,6 +9,8 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // AuthProfileType represents the type of authentication profile.
@@ -17,13 +19,13 @@ type AuthProfileType string
 // Authentication profile type constants.
 const (
 	// AuthProfileTypeUsernamePassword is username/password authentication.
-	AuthProfileTypeUsernamePassword AuthProfileType = "username_password"
+	AuthProfileTypeUsernamePassword AuthProfileType = cryptoutilSharedMagic.AuthMethodUsernamePassword
 	// AuthProfileTypeEmailPassword is email/password authentication.
 	AuthProfileTypeEmailPassword AuthProfileType = "email_password"
 	// AuthProfileTypeMobilePassword is mobile/password authentication.
 	AuthProfileTypeMobilePassword AuthProfileType = "mobile_password"
 	// AuthProfileTypePasskey is passkey authentication.
-	AuthProfileTypePasskey AuthProfileType = "passkey"
+	AuthProfileTypePasskey AuthProfileType = cryptoutilSharedMagic.AMRPasskey
 	// AuthProfileTypeMTLS is mTLS authentication.
 	AuthProfileTypeMTLS AuthProfileType = "mtls"
 )

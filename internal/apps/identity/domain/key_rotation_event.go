@@ -9,6 +9,8 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // KeyRotationEvent represents an audit log entry for key management operations.
@@ -61,7 +63,7 @@ const (
 
 // Key type constants for KeyRotationEvent.
 const (
-	KeyTypeClientSecret = "client_secret" // OAuth 2.1 client secret.
+	KeyTypeClientSecret = cryptoutilSharedMagic.ParamClientSecret // OAuth 2.1 client secret.
 	KeyTypeJWK          = "jwk"           // JSON Web Key (signing/encryption).
 	KeyTypeAPIKey       = "api_key"       // Service-to-service API key.
 )

@@ -9,6 +9,8 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TokenType represents the type of token.
@@ -30,11 +32,11 @@ type TokenFormat string
 // Token format constants.
 const (
 	// TokenFormatJWS is JSON Web Signature (signed).
-	TokenFormatJWS TokenFormat = "jws"
+	TokenFormatJWS TokenFormat = cryptoutilSharedMagic.IdentityTokenFormatJWS
 	// TokenFormatJWE is JSON Web Encryption (encrypted).
-	TokenFormatJWE TokenFormat = "jwe"
+	TokenFormatJWE TokenFormat = cryptoutilSharedMagic.IdentityTokenFormatJWE
 	// TokenFormatUUID is an opaque UUID token.
-	TokenFormatUUID TokenFormat = "uuid"
+	TokenFormatUUID TokenFormat = cryptoutilSharedMagic.IdentityTokenFormatUUID
 )
 
 // Token represents an OAuth 2.1 / OIDC token.

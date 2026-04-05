@@ -87,7 +87,7 @@ type HashAlgorithm string
 
 // Supported hash algorithms.
 const (
-	HashAlgorithmSHA256 HashAlgorithm = "SHA-256"
+	HashAlgorithmSHA256 HashAlgorithm = cryptoutilSharedMagic.PBKDF2DefaultAlgorithm
 	HashAlgorithmSHA384 HashAlgorithm = "SHA-384"
 	HashAlgorithmSHA512 HashAlgorithm = "SHA-512"
 )

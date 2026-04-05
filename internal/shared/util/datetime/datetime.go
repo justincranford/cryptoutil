@@ -8,9 +8,11 @@ package datetime
 import (
 	"fmt"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-const utcFormat = "2006-01-02T15:04:05Z"
+const utcFormat = cryptoutilSharedMagic.StringUTCFormat
 
 // ISO8601Time2String converts Time pointer to ISO8601 UTC string pointer.
 func ISO8601Time2String(value *time.Time) *string {

@@ -33,9 +33,9 @@ const (
 )
 
 const (
-	authLevelStringNone      = "none"
+	authLevelStringNone      = cryptoutilSharedMagic.ClientAuthMethodNone
 	authLevelStringBasic     = "basic"
-	authLevelStringMFA       = "mfa"
+	authLevelStringMFA       = cryptoutilSharedMagic.AMRMultiFactor
 	authLevelStringStepUp    = "step_up"
 	authLevelStringStrongMFA = "strong_mfa"
 )

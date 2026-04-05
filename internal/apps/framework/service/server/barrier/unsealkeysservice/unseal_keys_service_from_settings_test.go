@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const testUnsealModeSysinfo = "sysinfo"
+const testUnsealModeSysinfo = cryptoutilSharedMagic.DefaultUnsealModeSysInfo
 
 // createTestContext creates context and telemetry service for testing.
 func createTestContext(t *testing.T) (context.Context, *cryptoutilSharedTelemetry.TelemetryService) {

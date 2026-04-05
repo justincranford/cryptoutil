@@ -27,7 +27,7 @@ const (
 	// Federated realm types (external identity providers).
 
 	// RealmTypeUsernamePassword is a database-based username/password realm.
-	RealmTypeUsernamePassword RealmType = "username_password"
+	RealmTypeUsernamePassword RealmType = cryptoutilSharedMagic.AuthMethodUsernamePassword
 
 	// RealmTypeLDAP is an LDAP-based authentication realm.
 	RealmTypeLDAP RealmType = "ldap"

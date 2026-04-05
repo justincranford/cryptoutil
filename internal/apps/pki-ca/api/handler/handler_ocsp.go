@@ -462,5 +462,5 @@ var _ cryptoutilApiCaServer.ServerInterface = (*Handler)(nil)
 const (
 	defaultValidityDays   = 365
 	maxTrackedEnrollments = 1000
-	pemTypeCertificateReq = "CERTIFICATE REQUEST"
+	pemTypeCertificateReq = cryptoutilSharedMagic.StringPEMTypeCSR
 )

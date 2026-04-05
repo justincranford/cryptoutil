@@ -13,6 +13,7 @@ import (
 
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // ContextKeySession is the Fiber context key for storing session information.
@@ -22,7 +23,7 @@ const ContextKeySession = "session"
 const ContextKeyUserID = "user_id"
 
 // ContextKeyClientID is the Fiber context key for storing the authenticated client ID.
-const ContextKeyClientID = "client_id"
+const ContextKeyClientID = cryptoutilSharedMagic.ClaimClientID
 
 // ContextKeyTenantID is the Fiber context key for storing the tenant ID.
 const ContextKeyTenantID = "tenant_id"

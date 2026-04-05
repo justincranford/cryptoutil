@@ -32,7 +32,7 @@ import (
 const (
 	DefaultTOTPDigits    = 6
 	DefaultTOTPPeriod    = 30
-	DefaultTOTPAlgorithm = "SHA1"
+	DefaultTOTPAlgorithm = cryptoutilSharedMagic.DefaultTOTPAlgorithm
 	TOTPSecretLength     = 20
 	BackupCodeCount      = 10
 	BackupCodeLength     = 8

@@ -9,6 +9,8 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // ClientType represents the type of OAuth 2.1 client.
@@ -19,9 +21,9 @@ const (
 	// ClientTypeConfidential is a confidential client (can securely store secrets).
 	ClientTypeConfidential ClientType = "confidential"
 	// ClientTypePublic is a public client (cannot store secrets).
-	ClientTypePublic ClientType = "public"
+	ClientTypePublic ClientType = cryptoutilSharedMagic.SubjectTypePublic
 	// ClientTypeSPA is a Single Page Application.
-	ClientTypeSPA ClientType = "spa"
+	ClientTypeSPA ClientType = cryptoutilSharedMagic.SPAServiceName
 )
 
 // ClientAuthMethod represents the client authentication method.
@@ -30,21 +32,21 @@ type ClientAuthMethod string
 // Client authentication method constants.
 const (
 	// ClientAuthMethodSecretBasic is HTTP Basic authentication.
-	ClientAuthMethodSecretBasic ClientAuthMethod = "client_secret_basic"
+	ClientAuthMethodSecretBasic ClientAuthMethod = cryptoutilSharedMagic.ClientAuthMethodSecretBasic
 	// ClientAuthMethodSecretPost is POST body authentication.
-	ClientAuthMethodSecretPost ClientAuthMethod = "client_secret_post"
+	ClientAuthMethodSecretPost ClientAuthMethod = cryptoutilSharedMagic.ClientAuthMethodSecretPost
 	// ClientAuthMethodSecretJWT is JWT signed with client secret.
-	ClientAuthMethodSecretJWT ClientAuthMethod = "client_secret_jwt"
+	ClientAuthMethodSecretJWT ClientAuthMethod = cryptoutilSharedMagic.ClientAuthMethodSecretJWT
 	// ClientAuthMethodPrivateKeyJWT is JWT signed with private key.
-	ClientAuthMethodPrivateKeyJWT ClientAuthMethod = "private_key_jwt"
+	ClientAuthMethodPrivateKeyJWT ClientAuthMethod = cryptoutilSharedMagic.ClientAuthMethodPrivateKeyJWT
 	// ClientAuthMethodTLSClientAuth is mTLS with CA-issued certificate.
-	ClientAuthMethodTLSClientAuth ClientAuthMethod = "tls_client_auth"
+	ClientAuthMethodTLSClientAuth ClientAuthMethod = cryptoutilSharedMagic.ClientAuthMethodTLSClientAuth
 	// ClientAuthMethodSelfSignedTLSAuth is mTLS with self-signed certificate.
-	ClientAuthMethodSelfSignedTLSAuth ClientAuthMethod = "self_signed_tls_client_auth"
+	ClientAuthMethodSelfSignedTLSAuth ClientAuthMethod = cryptoutilSharedMagic.ClientAuthMethodSelfSignedTLSAuth
 	// ClientAuthMethodBearerToken is Bearer token authentication.
-	ClientAuthMethodBearerToken ClientAuthMethod = "bearer_token"
+	ClientAuthMethodBearerToken ClientAuthMethod = cryptoutilSharedMagic.ClientAuthMethodBearerToken
 	// ClientAuthMethodNone is no authentication (public clients).
-	ClientAuthMethodNone ClientAuthMethod = "none"
+	ClientAuthMethodNone ClientAuthMethod = cryptoutilSharedMagic.ClientAuthMethodNone
 )
 
 // Client represents an OAuth 2.1 client configuration.

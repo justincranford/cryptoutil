@@ -44,7 +44,7 @@ const MagicDefaultDir = "internal/shared/magic"
 const MagicMinStringLen = 3
 
 const (
-	magicExcludeDirTestOutput      = "test-output"
+	magicExcludeDirTestOutput      = cryptoutilSharedMagic.CICDExcludeDirTestOutput
 	magicExcludeDirWorkflowReports = "workflow-reports"
 )
 

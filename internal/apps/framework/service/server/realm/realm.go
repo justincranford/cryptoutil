@@ -66,7 +66,7 @@ const (
 	RealmTypeFile RealmType = "file"
 
 	// RealmTypeDatabase is a database-backed realm.
-	RealmTypeDatabase RealmType = "database"
+	RealmTypeDatabase RealmType = cryptoutilSharedMagic.RealmStorageTypeDatabase
 
 	// RealmTypeLDAP is an LDAP/AD-backed realm.
 	RealmTypeLDAP RealmType = "ldap"

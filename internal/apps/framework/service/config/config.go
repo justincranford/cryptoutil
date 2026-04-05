@@ -33,7 +33,7 @@ const (
 	// TLSModeAuto fully auto-generates CA hierarchy and server certificates (development/testing).
 	// Requires: Configuration parameters only (DNS names, IP addresses, validity).
 	// Auto-generates: 3-tier CA hierarchy (Root → Intermediate → Server).
-	TLSModeAuto TLSMode = "auto"
+	TLSModeAuto TLSMode = cryptoutilSharedMagic.DefaultTLSPublicMode
 )
 
 // TLSMaterial holds the runtime TLS configuration and certificate pools.

@@ -9,6 +9,8 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // AuthFlowType represents the type of authorization flow.
@@ -17,11 +19,11 @@ type AuthFlowType string
 // Authorization flow type constants.
 const (
 	// AuthFlowTypeAuthorizationCode is the authorization code flow.
-	AuthFlowTypeAuthorizationCode AuthFlowType = "authorization_code"
+	AuthFlowTypeAuthorizationCode AuthFlowType = cryptoutilSharedMagic.GrantTypeAuthorizationCode
 	// AuthFlowTypeClientCredentials is the client credentials flow.
-	AuthFlowTypeClientCredentials AuthFlowType = "client_credentials"
+	AuthFlowTypeClientCredentials AuthFlowType = cryptoutilSharedMagic.GrantTypeClientCredentials
 	// AuthFlowTypeRefreshToken is the refresh token flow.
-	AuthFlowTypeRefreshToken AuthFlowType = "refresh_token"
+	AuthFlowTypeRefreshToken AuthFlowType = cryptoutilSharedMagic.GrantTypeRefreshToken
 )
 
 // AuthFlow represents an authorization code flow configuration with PKCE.

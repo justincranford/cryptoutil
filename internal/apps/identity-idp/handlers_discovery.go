@@ -57,20 +57,15 @@ type DiscoveryMetadata struct {
 
 // handleDiscovery handles GET /.well-known/openid-configuration - OIDC discovery endpoint.
 func (s *Service) handleDiscovery(c *fiber.Ctx) error {
-	const (
-		schemeHTTP  = "http"
-		schemeHTTPS = "https"
-	)
-
 	// Generate base URL from request (protocol + host).
-	scheme := schemeHTTPS
+	scheme := cryptoutilSharedMagic.ProtocolHTTPS
 
 	// Check X-Forwarded-Proto header first (standard proxy header).
 	forwardedProto := c.Get("X-Forwarded-Proto")
-	if forwardedProto == schemeHTTP {
-		scheme = schemeHTTP
-	} else if c.Protocol() == schemeHTTP {
-		scheme = schemeHTTP
+	if forwardedProto == cryptoutilSharedMagic.ProtocolHTTP {
+		scheme = cryptoutilSharedMagic.ProtocolHTTP
+	} else if c.Protocol() == cryptoutilSharedMagic.ProtocolHTTP {
+		scheme = cryptoutilSharedMagic.ProtocolHTTP
 	}
 
 	baseURL := scheme + "://" + c.Hostname()

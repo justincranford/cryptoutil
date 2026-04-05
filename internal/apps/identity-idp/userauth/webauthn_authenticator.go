@@ -24,7 +24,7 @@ type CredentialType string
 // Credential type constants.
 const (
 	// CredentialTypePasskey indicates a passkey credential.
-	CredentialTypePasskey CredentialType = "passkey"
+	CredentialTypePasskey CredentialType = cryptoutilSharedMagic.AMRPasskey
 )
 
 // Credential represents a WebAuthn/FIDO2 credential.

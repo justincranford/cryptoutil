@@ -101,8 +101,9 @@ const localHTTPS = "https"
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
 	err = CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
-	// magic-usage is informational: violations are logged but do not return an error.
-	require.NoError(t, err)
+	// const-redefine-string violations are blocking: redeclaring a magic STRING constant is always wrong.
+	require.Error(t, err)
+	require.ErrorContains(t, err, "const-redefine-string")
 }
 
 func TestCheckMagicUsageInDir_TrivialStringNotFlagged(t *testing.T) {
@@ -177,8 +178,9 @@ const wantLimit = 500
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
 	err = CheckMagicUsageInDir(logger, magicDir, rootDir, filepath.Abs, filepath.Walk)
-	// magic-usage is informational: violations are logged but do not return an error.
-	// The test confirms production-file violations are suppressed (no panic, clean exit).
+	// Numeric const-redefine is informational (too many false positives with small ints).
+	// Test-only constants are skipped in production files — no violation from server.go.
+	// Test file server_test.go uses integer 500; numeric const-redefine never blocks.
 	require.NoError(t, err)
 }
 

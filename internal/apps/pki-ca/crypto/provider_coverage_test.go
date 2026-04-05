@@ -21,8 +21,8 @@ import (
 )
 
 const (
-	testEd25519Curve = "Ed25519"
-	testRSAAlgorithm = "RSA"
+	testEd25519Curve = cryptoutilSharedMagic.EdCurveEd25519
+	testRSAAlgorithm = cryptoutilSharedMagic.KeyTypeRSA
 )
 
 // TestEdDSACurves tests Ed25519 and Ed448 curve generation.
