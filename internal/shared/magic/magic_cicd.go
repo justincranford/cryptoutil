@@ -174,8 +174,8 @@ const (
 	// CICDClaudeAgentsDir is the relative path to the Claude Code agents directory.
 	CICDClaudeAgentsDir = ".claude/agents"
 
-	// CICDClaudeCommandsDir is the relative path to the Claude Code commands directory.
-	CICDClaudeCommandsDir = ".claude/commands"
+	// CICDClaudeSkillsDir is the relative path to the Claude Code skills directory.
+	CICDClaudeSkillsDir = ".claude/skills"
 
 	// CICDGithubSkillsDir is the relative path to the GitHub Copilot skills directory.
 	CICDGithubSkillsDir = ".github/skills"
@@ -192,8 +192,8 @@ const (
 	// CICDClaudeAgentsPattern is the glob pattern for Claude Code agent files.
 	CICDClaudeAgentsPattern = "*.md"
 
-	// CICDClaudeCommandsPattern is the glob pattern for Claude Code command files.
-	CICDClaudeCommandsPattern = "*.md"
+	// CICDClaudeSkillsPattern is the glob pattern for Claude Code skill directories.
+	CICDClaudeSkillsPattern = "*/"
 
 	// CICDSkillFileName is the standard filename for Copilot skill files within skill directories.
 	CICDSkillFileName = "SKILL.md"

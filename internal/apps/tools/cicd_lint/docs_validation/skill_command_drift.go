@@ -13,12 +13,12 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// SkillCommandDriftViolation describes a single skill/command drift error.
+// SkillCommandDriftViolation describes a single skill drift error between Copilot and Claude skill files.
 type SkillCommandDriftViolation struct {
-	SkillFile   string
-	CommandFile string
-	Field       string
-	Detail      string
+	SkillFile      string
+	ClaudeSkillFile string
+	Field          string
+	Detail         string
 }
 
 // SkillCommandDriftResult holds the result of the skill/command drift check.
@@ -83,11 +83,40 @@ func hasMarkdownSection(content, heading string) bool {
 	return strings.Contains(content, heading)
 }
 
+// extractBody returns the content after the YAML frontmatter block (everything
+// after the closing `---` delimiter). If no frontmatter is present, the entire
+// content is returned. Leading/trailing whitespace is trimmed from the result.
+func extractBody(content string) string {
+	lines := strings.SplitAfter(content, "\n")
+	inFrontmatter := false
+	fmEndIdx := -1
+
+	for i, rawLine := range lines {
+		line := strings.TrimRight(rawLine, "\r\n")
+		if line == cryptoutilSharedMagic.CICDYAMLFrontmatterDelimiter {
+			if !inFrontmatter {
+				inFrontmatter = true
+
+				continue
+			}
+
+			fmEndIdx = i + 1
+
+			break
+		}
+	}
+
+	if fmEndIdx < 0 {
+		return strings.TrimSpace(content)
+	}
+
+	return strings.TrimSpace(strings.Join(lines[fmEndIdx:], ""))
+}
+
 // CheckSkillCommandDrift validates that every Copilot skill in .github/skills/NAME/
-// has a matching Claude Code command at .claude/commands/NAME.md, and that each
-// Claude command file contains a reference back to its Copilot skill file.
-// It also validates that command frontmatter matches skill frontmatter and that
-// both files contain a ## Key Rules section.
+// has a matching Claude Code skill at .claude/skills/NAME/SKILL.md, and that
+// frontmatter fields and body content are identical between the two files.
+// It also validates that both files contain a ## Key Rules section.
 func CheckSkillCommandDrift(rootDir string, readFileFn func(string) ([]byte, error)) (*SkillCommandDriftResult, error) {
 	result := &SkillCommandDriftResult{}
 
@@ -126,10 +155,10 @@ func CheckSkillCommandDrift(rootDir string, readFileFn func(string) ([]byte, err
 
 	sort.Strings(skillNames)
 
-	// Step 2: For each skill, validate the corresponding Claude command file.
+	// Step 2: For each skill, validate the corresponding Claude skill file.
 	for _, skillName := range skillNames {
 		skillFilePath := filepath.ToSlash(filepath.Join(cryptoutilSharedMagic.CICDGithubSkillsDir, skillName, cryptoutilSharedMagic.CICDSkillFileName))
-		commandRelPath := filepath.ToSlash(filepath.Join(cryptoutilSharedMagic.CICDClaudeCommandsDir, skillName+".md"))
+		claudeSkillRelPath := filepath.ToSlash(filepath.Join(cryptoutilSharedMagic.CICDClaudeSkillsDir, skillName, cryptoutilSharedMagic.CICDSkillFileName))
 
 		skillContent, skillReadErr := readFileFn(skillFilePath)
 		if skillReadErr != nil {
@@ -138,13 +167,13 @@ func CheckSkillCommandDrift(rootDir string, readFileFn func(string) ([]byte, err
 
 		skillStr := string(skillContent)
 
-		commandContent, commandReadErr := readFileFn(commandRelPath)
-		if commandReadErr != nil {
+		claudeContent, claudeReadErr := readFileFn(claudeSkillRelPath)
+		if claudeReadErr != nil {
 			result.Violations = append(result.Violations, SkillCommandDriftViolation{
-				SkillFile:   skillFilePath,
-				CommandFile: commandRelPath,
-				Field:       "missing",
-				Detail:      fmt.Sprintf("Claude Code command file not found for skill %q: expected %s", skillName, commandRelPath),
+				SkillFile:      skillFilePath,
+				ClaudeSkillFile: claudeSkillRelPath,
+				Field:          "missing",
+				Detail:         fmt.Sprintf("Claude Code skill file not found for skill %q: expected %s", skillName, claudeSkillRelPath),
 			})
 
 			result.Checked++
@@ -154,57 +183,59 @@ func CheckSkillCommandDrift(rootDir string, readFileFn func(string) ([]byte, err
 
 		result.Checked++
 
-		commandStr := string(commandContent)
+		claudeStr := string(claudeContent)
 
-		// Validate that the Claude command references the Copilot skill file.
-		expectedSkillRef := filepath.ToSlash(filepath.Join(cryptoutilSharedMagic.CICDGithubSkillsDir, skillName, cryptoutilSharedMagic.CICDSkillFileName))
-		if !strings.Contains(commandStr, expectedSkillRef) {
+		// Validate that the Claude skill has YAML frontmatter.
+		if !hasFrontmatter(claudeStr) {
 			result.Violations = append(result.Violations, SkillCommandDriftViolation{
-				SkillFile:   skillFilePath,
-				CommandFile: commandRelPath,
-				Field:       "missing-reference",
-				Detail:      fmt.Sprintf("Claude Code command %s does not reference the Copilot skill file %q", commandRelPath, expectedSkillRef),
-			})
-		}
-
-		// Validate that the Claude command has YAML frontmatter.
-		if !hasFrontmatter(commandStr) {
-			result.Violations = append(result.Violations, SkillCommandDriftViolation{
-				SkillFile:   skillFilePath,
-				CommandFile: commandRelPath,
-				Field:       "missing-frontmatter",
-				Detail:      fmt.Sprintf("Claude Code command %s is missing YAML frontmatter (must begin with ---)", commandRelPath),
+				SkillFile:      skillFilePath,
+				ClaudeSkillFile: claudeSkillRelPath,
+				Field:          "missing-frontmatter",
+				Detail:         fmt.Sprintf("Claude Code skill %s is missing YAML frontmatter (must begin with ---)", claudeSkillRelPath),
 			})
 		} else {
 			// Validate description field matches.
 			skillDesc := extractFrontmatterField(skillStr, "description")
-			cmdDesc := extractFrontmatterField(commandStr, "description")
+			claudeDesc := extractFrontmatterField(claudeStr, "description")
 
-			if skillDesc != "" && cmdDesc != skillDesc {
+			if skillDesc != "" && claudeDesc != skillDesc {
 				result.Violations = append(result.Violations, SkillCommandDriftViolation{
-					SkillFile:   skillFilePath,
-					CommandFile: commandRelPath,
-					Field:       "description-mismatch",
-					Detail:      fmt.Sprintf("Claude Code command %s description does not match skill: command=%q skill=%q", commandRelPath, cmdDesc, skillDesc),
+					SkillFile:      skillFilePath,
+					ClaudeSkillFile: claudeSkillRelPath,
+					Field:          "description-mismatch",
+					Detail:         fmt.Sprintf("Claude Code skill %s description does not match Copilot skill: claude=%q copilot=%q", claudeSkillRelPath, claudeDesc, skillDesc),
 				})
 			}
 
 			// Validate argument-hint field matches (only when skill has one).
 			skillHint := extractFrontmatterField(skillStr, "argument-hint")
 			if skillHint != "" {
-				cmdHint := extractFrontmatterField(commandStr, "argument-hint")
-				if cmdHint != skillHint {
+				claudeHint := extractFrontmatterField(claudeStr, "argument-hint")
+				if claudeHint != skillHint {
 					result.Violations = append(result.Violations, SkillCommandDriftViolation{
-						SkillFile:   skillFilePath,
-						CommandFile: commandRelPath,
-						Field:       "argument-hint-mismatch",
-						Detail:      fmt.Sprintf("Claude Code command %s argument-hint does not match skill: command=%q skill=%q", commandRelPath, cmdHint, skillHint),
+						SkillFile:      skillFilePath,
+						ClaudeSkillFile: claudeSkillRelPath,
+						Field:          "argument-hint-mismatch",
+						Detail:         fmt.Sprintf("Claude Code skill %s argument-hint does not match Copilot skill: claude=%q copilot=%q", claudeSkillRelPath, claudeHint, skillHint),
 					})
 				}
 			}
 		}
 
-		// Validate ## Key Rules section in skill.
+		// Validate body content is identical between Copilot and Claude skills.
+		skillBody := extractBody(skillStr)
+		claudeBody := extractBody(claudeStr)
+
+		if skillBody != claudeBody {
+			result.Violations = append(result.Violations, SkillCommandDriftViolation{
+				SkillFile:      skillFilePath,
+				ClaudeSkillFile: claudeSkillRelPath,
+				Field:          "body-mismatch",
+				Detail:         fmt.Sprintf("Claude Code skill %s body content does not match Copilot skill %s", claudeSkillRelPath, skillFilePath),
+			})
+		}
+
+		// Validate ## Key Rules section in Copilot skill.
 		if !hasMarkdownSection(skillStr, "## Key Rules") {
 			result.Violations = append(result.Violations, SkillCommandDriftViolation{
 				SkillFile: skillFilePath,
@@ -213,46 +244,41 @@ func CheckSkillCommandDrift(rootDir string, readFileFn func(string) ([]byte, err
 			})
 		}
 
-		// Validate ## Key Rules section in command.
-		if !hasMarkdownSection(commandStr, "## Key Rules") {
+		// Validate ## Key Rules section in Claude skill.
+		if !hasMarkdownSection(claudeStr, "## Key Rules") {
 			result.Violations = append(result.Violations, SkillCommandDriftViolation{
-				SkillFile:   skillFilePath,
-				CommandFile: commandRelPath,
-				Field:       "missing-key-rules",
-				Detail:      fmt.Sprintf("Claude Code command %s is missing the '## Key Rules' section", commandRelPath),
+				SkillFile:      skillFilePath,
+				ClaudeSkillFile: claudeSkillRelPath,
+				Field:          "missing-key-rules",
+				Detail:         fmt.Sprintf("Claude Code skill %s is missing the '## Key Rules' section", claudeSkillRelPath),
 			})
 		}
 	}
 
-	// Step 3: Reverse check — every Claude command must have a matching skill.
-	commandsDir := filepath.Join(rootDir, cryptoutilSharedMagic.CICDClaudeCommandsDir)
+	// Step 3: Reverse check — every Claude skill must have a matching Copilot skill.
+	claudeSkillsDir := filepath.Join(rootDir, cryptoutilSharedMagic.CICDClaudeSkillsDir)
 
-	commandEntries, err := os.ReadDir(commandsDir)
+	claudeEntries, err := os.ReadDir(claudeSkillsDir)
 	if err != nil {
-		return nil, fmt.Errorf("cannot read %s: %w", cryptoutilSharedMagic.CICDClaudeCommandsDir, err)
+		return nil, fmt.Errorf("cannot read %s: %w", cryptoutilSharedMagic.CICDClaudeSkillsDir, err)
 	}
 
-	for _, entry := range commandEntries {
-		if entry.IsDir() {
+	for _, entry := range claudeEntries {
+		if !entry.IsDir() {
 			continue
 		}
 
-		name := entry.Name()
-		if !strings.HasSuffix(name, ".md") {
-			continue
-		}
+		skillName := entry.Name()
+		claudeSkillRelPath := filepath.ToSlash(filepath.Join(cryptoutilSharedMagic.CICDClaudeSkillsDir, skillName, cryptoutilSharedMagic.CICDSkillFileName))
+		expectedCopilotPath := filepath.ToSlash(filepath.Join(cryptoutilSharedMagic.CICDGithubSkillsDir, skillName, cryptoutilSharedMagic.CICDSkillFileName))
 
-		skillName := strings.TrimSuffix(name, ".md")
-		commandRelPath := filepath.ToSlash(filepath.Join(cryptoutilSharedMagic.CICDClaudeCommandsDir, name))
-		expectedSkillFilePath := filepath.ToSlash(filepath.Join(cryptoutilSharedMagic.CICDGithubSkillsDir, skillName, cryptoutilSharedMagic.CICDSkillFileName))
-
-		_, skillReadErr := readFileFn(expectedSkillFilePath)
+		_, skillReadErr := readFileFn(expectedCopilotPath)
 		if skillReadErr != nil {
 			result.Violations = append(result.Violations, SkillCommandDriftViolation{
-				SkillFile:   expectedSkillFilePath,
-				CommandFile: commandRelPath,
-				Field:       "orphan",
-				Detail:      fmt.Sprintf("Claude Code command %s has no matching Copilot skill at %s", commandRelPath, expectedSkillFilePath),
+				SkillFile:      expectedCopilotPath,
+				ClaudeSkillFile: claudeSkillRelPath,
+				Field:          "orphan",
+				Detail:         fmt.Sprintf("Claude Code skill %s has no matching Copilot skill at %s", claudeSkillRelPath, expectedCopilotPath),
 			})
 		}
 	}
@@ -260,15 +286,15 @@ func CheckSkillCommandDrift(rootDir string, readFileFn func(string) ([]byte, err
 	return result, nil
 }
 
-// formatSkillCommandDriftResults formats the skill/command drift report for output.
+// formatSkillCommandDriftResults formats the skill drift report for output.
 func formatSkillCommandDriftResults(result *SkillCommandDriftResult) string {
 	var sb strings.Builder
 
-	sb.WriteString("=== Skill/Command Drift Check ===\n\n")
-	sb.WriteString(fmt.Sprintf("Checked %d Copilot skill / Claude Code command pairs\n\n", result.Checked))
+	sb.WriteString("=== Skill Drift Check ===\n\n")
+	sb.WriteString(fmt.Sprintf("Checked %d Copilot skill / Claude Code skill pairs\n\n", result.Checked))
 
 	if len(result.Violations) == 0 {
-		sb.WriteString("✅ All skill/command pairs are in sync\n")
+		sb.WriteString("✅ All skill pairs are in sync\n")
 
 		return sb.String()
 	}
@@ -279,11 +305,11 @@ func formatSkillCommandDriftResults(result *SkillCommandDriftResult) string {
 		sb.WriteString(fmt.Sprintf("[%d] field=%s\n", i+1, v.Field))
 
 		if v.SkillFile != "" {
-			sb.WriteString(fmt.Sprintf("    skill:   %s\n", v.SkillFile))
+			sb.WriteString(fmt.Sprintf("    copilot-skill: %s\n", v.SkillFile))
 		}
 
-		if v.CommandFile != "" {
-			sb.WriteString(fmt.Sprintf("    command: %s\n", v.CommandFile))
+		if v.ClaudeSkillFile != "" {
+			sb.WriteString(fmt.Sprintf("    claude-skill:  %s\n", v.ClaudeSkillFile))
 		}
 
 		sb.WriteString(fmt.Sprintf("    %s\n\n", v.Detail))

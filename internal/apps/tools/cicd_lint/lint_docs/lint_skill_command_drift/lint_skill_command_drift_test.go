@@ -50,14 +50,14 @@ func TestCheck_ErrorWithoutStderr(t *testing.T) {
 	err := check(logger, stubFn)
 
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "skill/command drift violations found")
+	require.Contains(t, err.Error(), "skill drift violations found")
 }
 
 func TestCheck_Success(t *testing.T) {
 	t.Parallel()
 
 	stubFn := func(stdout, stderr io.Writer) int {
-		_, _ = fmt.Fprint(stdout, "All skill/command pairs are in sync\n")
+		_, _ = fmt.Fprint(stdout, "All skill pairs are in sync\n")
 
 		return 0
 	}
