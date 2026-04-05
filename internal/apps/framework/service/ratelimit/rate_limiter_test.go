@@ -3,9 +3,10 @@
 package ratelimit_test
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilFrameworkServiceRatelimit "cryptoutil/internal/apps/framework/service/ratelimit"
 
