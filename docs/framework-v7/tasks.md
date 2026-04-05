@@ -1,7 +1,7 @@
 # Tasks — Framework v7 (Continuation)
 
-**Status**: 30 of 48 tasks complete (62%)
-**Last Updated**: 2026-04-04
+**Status**: 33 of 48 tasks complete (69%)
+**Last Updated**: 2026-04-05
 **Created**: 2026-04-02
 
 ## Quality Mandate — MANDATORY
@@ -755,42 +755,47 @@ to semantically-named alternatives.
 
 #### Task 4.1: Scan and Plan Renames
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 1h
+- **Actual**: 0.5h
 - **Dependencies**: None
 - **Description**: Read `config_coverage_test.go`, `config_gaps_test.go`, and
   `config_test_util_coverage_test.go`. Determine the semantic domain of each test.
   Document the rename mapping before executing it.
 - **Acceptance Criteria**:
-  - [ ] Each file's test domain documented (e.g., "tests TLS PEM parsing", "tests factory defaults")
-  - [ ] Rename mapping agreed before files moved
+  - [x] Each file's test domain documented (e.g., "tests TLS PEM parsing", "tests factory defaults")
+  - [x] Rename mapping agreed before files moved
 
 #### Task 4.2: Execute Renames and Verify
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 2h
+- **Actual**: 0.25h
 - **Dependencies**: 4.1
 - **Description**: Execute the rename mapping from 4.1. If test content spans multiple domains,
   split the file. After rename, verify all tests pass.
 - **Acceptance Criteria**:
-  - [ ] No test file contains `coverage` or `gaps` in its name
-  - [ ] `config_test_util_coverage_test.go` renamed to `config_test_util_test.go`
-  - [ ] All tests pass after rename
-  - [ ] `golangci-lint run` clean
+  - [x] No test file contains `coverage` or `gaps` in its name
+  - [x] `config_test_util_coverage_test.go` renamed to `config_test_util_test.go`
+  - [x] `config_coverage_test.go` renamed to `config_error_paths_test.go`
+  - [x] `config_gaps_test.go` renamed to `config_factory_test.go`
+  - [x] All tests pass after rename
+  - [x] `golangci-lint run` clean
 
 #### Task 4.3: Phase 4 Quality Gates
 
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
+- **Actual**: 0.25h
 - **Dependencies**: 4.1, 4.2
 - **Description**: Verify Phase 4 quality gates. Update lessons.md Phase 4.
 - **Acceptance Criteria**:
-  - [ ] `go test ./internal/apps/framework/service/config/...` 100%
-  - [ ] Coverage unchanged or improved
-  - [ ] lessons.md Phase 4 updated
+  - [x] `go test ./internal/apps/framework/service/config/...` 100%
+  - [x] Coverage unchanged or improved
+  - [x] lessons.md Phase 4 updated
 
 ---
 

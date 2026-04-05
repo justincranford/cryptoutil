@@ -99,9 +99,21 @@ Tests mutate `sm.xxxFn` after calling `setupSessionManager(t)` — parallel-safe
 
 ---
 
-## Phase 4 (Continuation): Config Test File Reorganization
+## Phase 4: Config Test File Reorganization
 
-*(To be filled during Phase 4 execution)*
+### Task 4.1/4.2 — Semantic Test File Rename Mapping
+
+**Rename mapping applied**:
+
+| Old Name | New Name | Domain |
+|----------|----------|--------|
+| `config_coverage_test.go` | `config_error_paths_test.go` | Error path tests for NewFromFile, ParseWithFlagSet, RegisterAs*_WrongType, getTLSPEMBytes error branches, NewTestConfig |
+| `config_gaps_test.go` | `config_factory_test.go` | Factory and settings tests: TestGetTLSPEMBytes (table-driven), TestNewForServer (Sequential — pflag global state), TestRegisterAsSettings |
+| `config_test_util_coverage_test.go` | `config_test_util_test.go` | Test utility coverage: RequireNewForTest panics, database URL rewriting branches, NewTestConfig validation panic |
+
+**Lesson**: "coverage" and "gaps" suffixes are anti-patterns in test file names — they signal "we added these to hit coverage" rather than documenting what the tests actually verify. Semantic names improve code archaeology: a developer searching for "factory function tests" finds `config_factory_test.go` instantly, not `config_gaps_test.go`.
+
+**All tests passed after rename** — only file names changed, no code changes required.
 
 ---
 
