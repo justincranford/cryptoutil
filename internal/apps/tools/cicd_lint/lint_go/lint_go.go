@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
+	lintGoFunctionVarRedeclaration "cryptoutil/internal/apps/tools/cicd_lint/lint_go/function_var_redeclaration"
 	lintGoLeftoverCoverage "cryptoutil/internal/apps/tools/cicd_lint/lint_go/leftover_coverage"
 	lintGoMagicAliases "cryptoutil/internal/apps/tools/cicd_lint/lint_go/magic_aliases"
 	lintGoMagicDuplicates "cryptoutil/internal/apps/tools/cicd_lint/lint_go/magic_duplicates"
@@ -24,6 +25,7 @@ var registeredLinters = []struct {
 	name   string
 	linter LinterFunc
 }{
+	{"function-var-redeclaration", lintGoFunctionVarRedeclaration.Check},
 	{"leftover-coverage", lintGoLeftoverCoverage.Check},
 	{"magic-aliases", lintGoMagicAliases.Check},
 	{"magic-duplicates", lintGoMagicDuplicates.Check},
