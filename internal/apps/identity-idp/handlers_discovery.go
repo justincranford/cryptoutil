@@ -6,9 +6,10 @@
 package idp
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // DiscoveryMetadata represents OIDC discovery metadata per https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata.

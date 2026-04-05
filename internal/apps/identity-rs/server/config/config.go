@@ -37,14 +37,14 @@ type IdentityRSServerSettings struct {
 
 // Identity-RS specific default values.
 const (
-	defaultRSAuthzServerURL   = "https://localhost:8200"        // Default authorization server URL.
-	defaultJWKSEndpoint       = cryptoutilSharedMagic.PathJWKS  // Standard JWKS endpoint path.
-	defaultIntrospectionURL   = ""                       // No introspection by default.
-	defaultAllowBearerToken   = true                     // Allow Bearer tokens by default.
-	defaultAllowClientCert    = false                    // Disable client cert auth by default.
-	defaultJWKSCacheTTL       = 3600                     // 1 hour JWKS cache.
-	defaultTokenCacheTTL      = 300                      // 5 minute token cache.
-	defaultEnableTokenCaching = true                     // Enable caching by default.
+	defaultRSAuthzServerURL   = "https://localhost:8200"       // Default authorization server URL.
+	defaultJWKSEndpoint       = cryptoutilSharedMagic.PathJWKS // Standard JWKS endpoint path.
+	defaultIntrospectionURL   = ""                             // No introspection by default.
+	defaultAllowBearerToken   = true                           // Allow Bearer tokens by default.
+	defaultAllowClientCert    = false                          // Disable client cert auth by default.
+	defaultJWKSCacheTTL       = 3600                           // 1 hour JWKS cache.
+	defaultTokenCacheTTL      = 300                            // 5 minute token cache.
+	defaultEnableTokenCaching = true                           // Enable caching by default.
 )
 
 var (
@@ -144,16 +144,16 @@ func ParseWithFlagSet(fs *pflag.FlagSet, args []string, exitIfHelp bool) (*Ident
 
 	settings := &IdentityRSServerSettings{
 		ServiceFrameworkServerSettings: baseSettings,
-		AuthzServerURL:                authzServerURL,
-		JWKSEndpoint:                  jwksEndpoint,
-		IntrospectionURL:              introspectionURL,
-		RequiredScopes:                defaultRequiredScopes,
-		RequiredAudiences:             defaultRequiredAudiences,
-		AllowBearerToken:              allowBearerToken,
-		AllowClientCert:               allowClientCert,
-		JWKSCacheTTL:                  jwksCacheTTL,
-		TokenCacheTTL:                 tokenCacheTTL,
-		EnableTokenCaching:            enableTokenCaching,
+		AuthzServerURL:                 authzServerURL,
+		JWKSEndpoint:                   jwksEndpoint,
+		IntrospectionURL:               introspectionURL,
+		RequiredScopes:                 defaultRequiredScopes,
+		RequiredAudiences:              defaultRequiredAudiences,
+		AllowBearerToken:               allowBearerToken,
+		AllowClientCert:                allowClientCert,
+		JWKSCacheTTL:                   jwksCacheTTL,
+		TokenCacheTTL:                  tokenCacheTTL,
+		EnableTokenCaching:             enableTokenCaching,
 	}
 
 	if !fs.Changed("bind-public-port") {
@@ -257,16 +257,16 @@ func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *IdentityRSSe
 
 	return &IdentityRSServerSettings{
 		ServiceFrameworkServerSettings: baseConfig,
-		AuthzServerURL:                defaultRSAuthzServerURL,
-		JWKSEndpoint:                  defaultJWKSEndpoint,
-		IntrospectionURL:              defaultIntrospectionURL,
-		RequiredScopes:                defaultRequiredScopes,
-		RequiredAudiences:             defaultRequiredAudiences,
-		AllowBearerToken:              defaultAllowBearerToken,
-		AllowClientCert:               defaultAllowClientCert,
-		JWKSCacheTTL:                  defaultJWKSCacheTTL,
-		TokenCacheTTL:                 defaultTokenCacheTTL,
-		EnableTokenCaching:            defaultEnableTokenCaching,
+		AuthzServerURL:                 defaultRSAuthzServerURL,
+		JWKSEndpoint:                   defaultJWKSEndpoint,
+		IntrospectionURL:               defaultIntrospectionURL,
+		RequiredScopes:                 defaultRequiredScopes,
+		RequiredAudiences:              defaultRequiredAudiences,
+		AllowBearerToken:               defaultAllowBearerToken,
+		AllowClientCert:                defaultAllowClientCert,
+		JWKSCacheTTL:                   defaultJWKSCacheTTL,
+		TokenCacheTTL:                  defaultTokenCacheTTL,
+		EnableTokenCaching:             defaultEnableTokenCaching,
 	}
 }
 

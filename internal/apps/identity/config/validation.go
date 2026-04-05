@@ -63,72 +63,6 @@ func (c *Config) Validate() error {
 	return nil
 }
 
-// Validate validates server configuration.
-func (sc *ServerConfig) Validate() error {
-	if sc.Name == "" {
-		return fmt.Errorf("server name is required")
-	}
-
-	if sc.BindAddress == "" {
-		return fmt.Errorf("bind address is required")
-	}
-
-	if sc.Port <= 0 || sc.Port > int(cryptoutilSharedMagic.MaxPortNumber) {
-		return fmt.Errorf("port must be between 1 and 65535")
-	}
-
-	if sc.TLSEnabled {
-		if sc.TLSCertFile == "" {
-			return fmt.Errorf("TLS cert file is required when TLS is enabled")
-		}
-
-		if sc.TLSKeyFile == "" {
-			return fmt.Errorf("TLS key file is required when TLS is enabled")
-		}
-	}
-
-	if sc.AdminEnabled {
-		if sc.AdminBindAddress == "" {
-			return fmt.Errorf("admin bind address is required when admin is enabled")
-		}
-
-		if sc.AdminPort <= 0 || sc.AdminPort > int(cryptoutilSharedMagic.MaxPortNumber) {
-			return fmt.Errorf("admin port must be between 1 and 65535")
-		}
-	}
-
-	return nil
-}
-
-// Validate validates database configuration.
-func (dc *DatabaseConfig) Validate() error {
-	if dc.Type == "" {
-		return fmt.Errorf("database type is required")
-	}
-
-	if dc.Type != cryptoutilSharedMagic.DockerServicePostgres && dc.Type != "sqlite" {
-		return fmt.Errorf("database type must be 'postgres' or 'sqlite'")
-	}
-
-	if dc.DSN == "" {
-		return fmt.Errorf("database DSN is required")
-	}
-
-	if dc.MaxOpenConns <= 0 {
-		return fmt.Errorf("max open connections must be positive")
-	}
-
-	if dc.MaxIdleConns <= 0 {
-		return fmt.Errorf("max idle connections must be positive")
-	}
-
-	if dc.MaxIdleConns > dc.MaxOpenConns {
-		return fmt.Errorf("max idle connections cannot exceed max open connections")
-	}
-
-	return nil
-}
-
 // Validate validates token configuration.
 func (tc *TokenConfig) Validate() error {
 	if tc.AccessTokenLifetime <= 0 {
@@ -166,27 +100,6 @@ func (tc *TokenConfig) Validate() error {
 	return nil
 }
 
-// Validate validates session configuration.
-func (sc *SessionConfig) Validate() error {
-	if sc.SessionLifetime <= 0 {
-		return fmt.Errorf("session lifetime must be positive")
-	}
-
-	if sc.IdleTimeout <= 0 {
-		return fmt.Errorf("idle timeout must be positive")
-	}
-
-	if sc.CookieName == "" {
-		return fmt.Errorf("cookie name is required")
-	}
-
-	if sc.CookieSameSite != cryptoutilSharedMagic.DefaultCSRFTokenSameSiteStrict && sc.CookieSameSite != "Lax" && sc.CookieSameSite != "None" {
-		return fmt.Errorf("cookie SameSite must be 'Strict', 'Lax', or 'None'")
-	}
-
-	return nil
-}
-
 // Validate validates security configuration.
 func (sc *SecurityConfig) Validate() error {
 	if sc.PKCEChallengeMethod != cryptoutilSharedMagic.PKCEMethodS256 && sc.PKCEChallengeMethod != cryptoutilSharedMagic.PKCEMethodPlain {
@@ -201,38 +114,6 @@ func (sc *SecurityConfig) Validate() error {
 		if sc.RateLimitWindow <= 0 {
 			return fmt.Errorf("rate limit window must be positive")
 		}
-	}
-
-	return nil
-}
-
-// Validate validates observability configuration.
-func (oc *ObservabilityConfig) Validate() error {
-	if oc.LogLevel == "" {
-		return fmt.Errorf("log level is required")
-	}
-
-	validLogLevels := map[string]bool{
-		"debug":                           true,
-		"info":                            true,
-		"warn":                            true,
-		cryptoutilSharedMagic.StringError: true,
-	}
-
-	if !validLogLevels[oc.LogLevel] {
-		return fmt.Errorf("log level must be 'debug', 'info', 'warn', or 'error'")
-	}
-
-	if oc.LogFormat != "json" && oc.LogFormat != "text" {
-		return fmt.Errorf("log format must be 'json' or 'text'")
-	}
-
-	if oc.MetricsEnabled && oc.MetricsPath == "" {
-		return fmt.Errorf("metrics path is required when metrics are enabled")
-	}
-
-	if oc.TracingEnabled && oc.TracingBackend == "" {
-		return fmt.Errorf("tracing backend is required when tracing is enabled")
 	}
 
 	return nil

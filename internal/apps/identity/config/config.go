@@ -7,6 +7,8 @@ package config
 
 import (
 	"time"
+
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 )
 
 // Config represents the identity module configuration.
@@ -32,48 +34,11 @@ type Config struct {
 	Observability *ObservabilityConfig `yaml:"observability" json:"observability"` // Observability configuration.
 }
 
-// ServerConfig represents HTTP server configuration.
-type ServerConfig struct {
-	// Server identification.
-	Name string `yaml:"name" json:"name"` // Server name.
+// ServerConfig is a shared framework HTTP server configuration type.
+type ServerConfig = cryptoutilAppsFrameworkServiceConfig.ServerConfig
 
-	// Bind configuration.
-	BindAddress string `yaml:"bind_address" json:"bind_address"` // Server bind address.
-	Port        int    `yaml:"port" json:"port"`                 // Server port.
-
-	// TLS configuration.
-	TLSEnabled  bool   `yaml:"tls_enabled" json:"tls_enabled"`     // Enable TLS.
-	TLSCertFile string `yaml:"tls_cert_file" json:"tls_cert_file"` // TLS certificate file.
-	TLSKeyFile  string `yaml:"tls_key_file" json:"tls_key_file"`   // TLS private key file.
-
-	// Timeouts.
-	ReadTimeout  time.Duration `yaml:"read_timeout" json:"read_timeout"`   // Read timeout.
-	WriteTimeout time.Duration `yaml:"write_timeout" json:"write_timeout"` // Write timeout.
-	IdleTimeout  time.Duration `yaml:"idle_timeout" json:"idle_timeout"`   // Idle timeout.
-
-	// Admin API configuration.
-	AdminEnabled     bool   `yaml:"admin_enabled" json:"admin_enabled"`           // Enable admin API.
-	AdminBindAddress string `yaml:"admin_bind_address" json:"admin_bind_address"` // Admin API bind address.
-	AdminPort        int    `yaml:"admin_port" json:"admin_port"`                 // Admin API port.
-}
-
-// DatabaseConfig represents database configuration.
-type DatabaseConfig struct {
-	// Database type.
-	Type string `yaml:"type" json:"type"` // Database type (postgres, sqlite).
-
-	// Connection string.
-	DSN string `yaml:"dsn" json:"dsn"` // Database DSN.
-
-	// Connection pool configuration.
-	MaxOpenConns    int           `yaml:"max_open_conns" json:"max_open_conns"`         // Maximum open connections.
-	MaxIdleConns    int           `yaml:"max_idle_conns" json:"max_idle_conns"`         // Maximum idle connections.
-	ConnMaxLifetime time.Duration `yaml:"conn_max_lifetime" json:"conn_max_lifetime"`   // Connection max lifetime.
-	ConnMaxIdleTime time.Duration `yaml:"conn_max_idle_time" json:"conn_max_idle_time"` // Connection max idle time.
-
-	// Migration configuration.
-	AutoMigrate bool `yaml:"auto_migrate" json:"auto_migrate"` // Enable auto-migration.
-}
+// DatabaseConfig is a shared framework database configuration type.
+type DatabaseConfig = cryptoutilAppsFrameworkServiceConfig.DatabaseConfig
 
 // TokenConfig represents token configuration.
 type TokenConfig struct {
@@ -94,20 +59,8 @@ type TokenConfig struct {
 	EncryptionEnabled bool   `yaml:"encryption_enabled" json:"encryption_enabled"` // Enable JWE encryption.
 }
 
-// SessionConfig represents session configuration.
-type SessionConfig struct {
-	// Session lifetime.
-	SessionLifetime time.Duration `yaml:"session_lifetime" json:"session_lifetime"` // Session lifetime.
-	IdleTimeout     time.Duration `yaml:"idle_timeout" json:"idle_timeout"`         // Session idle timeout.
-
-	// Cookie configuration.
-	CookieName     string `yaml:"cookie_name" json:"cookie_name"`           // Session cookie name.
-	CookieDomain   string `yaml:"cookie_domain" json:"cookie_domain"`       // Session cookie domain.
-	CookiePath     string `yaml:"cookie_path" json:"cookie_path"`           // Session cookie path.
-	CookieSecure   bool   `yaml:"cookie_secure" json:"cookie_secure"`       // Session cookie secure flag.
-	CookieHTTPOnly bool   `yaml:"cookie_http_only" json:"cookie_http_only"` // Session cookie HTTP-only flag.
-	CookieSameSite string `yaml:"cookie_same_site" json:"cookie_same_site"` // Session cookie SameSite attribute.
-}
+// SessionConfig is a shared framework session configuration type.
+type SessionConfig = cryptoutilAppsFrameworkServiceConfig.SessionConfig
 
 // SecurityConfig represents security configuration.
 type SecurityConfig struct {
@@ -131,17 +84,5 @@ type SecurityConfig struct {
 	CSRFEnabled bool `yaml:"csrf_enabled" json:"csrf_enabled"` // Enable CSRF protection.
 }
 
-// ObservabilityConfig represents observability configuration.
-type ObservabilityConfig struct {
-	// Logging configuration.
-	LogLevel  string `yaml:"log_level" json:"log_level"`   // Log level.
-	LogFormat string `yaml:"log_format" json:"log_format"` // Log format (json, text).
-
-	// Metrics configuration.
-	MetricsEnabled bool   `yaml:"metrics_enabled" json:"metrics_enabled"` // Enable metrics.
-	MetricsPath    string `yaml:"metrics_path" json:"metrics_path"`       // Metrics endpoint path.
-
-	// Tracing configuration.
-	TracingEnabled bool   `yaml:"tracing_enabled" json:"tracing_enabled"` // Enable tracing.
-	TracingBackend string `yaml:"tracing_backend" json:"tracing_backend"` // Tracing backend.
-}
+// ObservabilityConfig is a shared framework observability configuration type.
+type ObservabilityConfig = cryptoutilAppsFrameworkServiceConfig.ObservabilityConfig

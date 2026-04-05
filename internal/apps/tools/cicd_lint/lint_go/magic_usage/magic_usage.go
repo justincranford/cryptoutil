@@ -135,8 +135,8 @@ func CheckMagicUsageInDir(
 	}
 
 	var (
-		literalUseViolations         []magicUsageViolation
-		constRedefineStringViolations []magicUsageViolation
+		literalUseViolations           []magicUsageViolation
+		constRedefineStringViolations  []magicUsageViolation
 		constRedefineNumericViolations []magicUsageViolation
 	)
 

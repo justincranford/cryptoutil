@@ -64,6 +64,6 @@ const (
 // Key type constants for KeyRotationEvent.
 const (
 	KeyTypeClientSecret = cryptoutilSharedMagic.ParamClientSecret // OAuth 2.1 client secret.
-	KeyTypeJWK          = "jwk"           // JSON Web Key (signing/encryption).
-	KeyTypeAPIKey       = "api_key"       // Service-to-service API key.
+	KeyTypeJWK          = "jwk"                                   // JSON Web Key (signing/encryption).
+	KeyTypeAPIKey       = "api_key"                               // Service-to-service API key.
 )

@@ -6,12 +6,13 @@ package timestamp
 import (
 	"crypto"
 	"crypto/x509"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/asn1"
 	"fmt"
 	"math/big"
 	"sync/atomic"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilCACrypto "cryptoutil/internal/apps/pki-ca/crypto"
 )

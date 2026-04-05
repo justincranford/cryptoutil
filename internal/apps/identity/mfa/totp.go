@@ -11,7 +11,6 @@ import (
 	"crypto/sha1" //nolint:gosec // G505: SHA1 required by RFC 6238 TOTP specification for interoperability
 	sha256 "crypto/sha256"
 	sha512 "crypto/sha512"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/base32"
 	"encoding/base64"
 	"encoding/binary"
@@ -21,6 +20,8 @@ import (
 	"math"
 	"strings"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
