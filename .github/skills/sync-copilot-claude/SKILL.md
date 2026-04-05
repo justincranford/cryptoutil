@@ -12,7 +12,6 @@ Use when:
 - Adding a new Copilot skill → need to create matching Claude skill
 - Updating a Copilot skill body → propagate changes to Claude skill
 - Auditing all pairs for drift before a commit
-- Checking migration status of legacy `.claude/commands/` to `.claude/skills/`
 
 ## Key Rules
 
@@ -22,7 +21,6 @@ Use when:
 - Claude agents at `.claude/agents/<NAME>.md` must match Copilot agents at `.github/agents/<NAME>.agent.md`
 - NEVER update only one file — always sync both in the same commit
 - The `lint-agent-drift` linter (in `lint-docs`) enforces agent pair identity automatically
-- After migration from `.claude/commands/` to `.claude/skills/`, delete the legacy command file
 
 ## Argument Meanings
 
@@ -32,7 +30,6 @@ Use when:
 | `sync-copilot-claude all` | Sync all out-of-date pairs (audit + fix) |
 | `sync-copilot-claude agents` | Sync agent pairs only |
 | `sync-copilot-claude <name>` | Sync the named skill pair (e.g., `test-table-driven`) |
-| `sync-copilot-claude status` | Show migration status of `.claude/commands/` legacy files |
 
 ## Workflow: Audit All Pairs
 
@@ -90,39 +87,11 @@ diff <(tail -n +4 .github/skills/NAME/SKILL.md | sed '1,/^---$/d') \
      <(tail -n +4 .claude/skills/NAME/SKILL.md | sed '1,/^---$/d')
 ```
 
-## Workflow: Migrate Legacy Command → Skill
-
-For each file in `.claude/commands/<name>.md` that lacks a `.claude/skills/<name>/` counterpart:
-
-1. Create the skill directory: `mkdir -p .claude/skills/<name>`
-2. Copy and adapt: `cp .claude/commands/<name>.md .claude/skills/<name>/SKILL.md`
-3. Ensure the Claude skill frontmatter is compatible with Claude Code
-4. Test: invoke `/<name>` in a Claude Code session
-5. Delete: `rm .claude/commands/<name>.md`
-6. Verify `lint-docs` passes: `go run ./cmd/cicd-lint lint-docs`
-7. Commit both the skill creation and the command deletion together
-
-## Legacy Command Migration Status
-
-Check which `.claude/commands/` files still need migrating:
-
-```bash
-# Show all legacy commands without a corresponding skill
-for f in .claude/commands/*.md; do
-  name=$(basename "$f" .md)
-  if [ ! -d ".claude/skills/$name" ]; then
-    echo "NEEDS MIGRATION: $name"
-  else
-    echo "ALREADY MIGRATED: $name"
-  fi
-done
-```
-
 ## References
 
 Copilot ↔ Claude dual canonical pairs are enforced by:
 - `lint-agent-drift` (via `go run ./cmd/cicd-lint lint-docs`) — enforces agent pairs
-- `lint-skill-command-drift` — enforces skill pairs (check `.claude/skills/` post-migration)
+- `lint-skill-command-drift` — enforces skill pairs
 
 See `docs/framework-v8/claude.md` for the full Claude Code file structure reference
 and frontmatter options for both skills and agents.

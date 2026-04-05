@@ -353,7 +353,7 @@ Implementation plans use the following files in `<work-dir>/`:
 
 **Drift prevention**: `cicd-lint lint-docs` runs two drift sub-linters:
 - **`lint-agent-drift`**: enforces that each Copilot agent (`copilot-NAME.agent.md`) has a matching Claude agent (`claude-NAME.md`) with identical `description:`, `argument-hint:`, and body. Only `name:` prefix and Copilot-only fields (`tools:`, `handoffs:`, `skills:`) may differ.
-- **`lint-skill-command-drift`**: enforces that each Copilot skill in `.github/skills/NAME/SKILL.md` has a corresponding Claude Code skill in `.claude/skills/NAME/SKILL.md`. Detects missing Claude skills, missing `## Key Rules` sections, and `description`/`argument-hint` mismatches. (**Note**: during migration from legacy `.claude/commands/` format, both paths are checked; see `docs/framework-v8/carryover.md`.)
+- **`lint-skill-command-drift`**: enforces that each Copilot skill in `.github/skills/NAME/SKILL.md` has a corresponding Claude Code skill in `.claude/skills/NAME/SKILL.md`. Detects missing Claude skills, missing `## Key Rules` sections, `description`/`argument-hint` mismatches, and body content drift.
 
 #### 2.1.3 Agent Handoff Flow
 
@@ -379,7 +379,7 @@ Skills live in `.github/skills/NAME/SKILL.md` — each skill in its own subdirec
 
 **Claude Skill Frontmatter Requirements** (`.claude/skills/NAME/SKILL.md`): YAML frontmatter (`---`) is REQUIRED. Fields: `name` (bare skill name — e.g., `test-table-driven` NOT `claude-test-table-driven`), `description` (IDENTICAL to the corresponding Copilot skill's `description`), `argument-hint` (IDENTICAL to the Copilot skill's `argument-hint` when the skill has one). NEVER include `disable-model-invocation` — that field is Copilot-ONLY. Body content MUST be identical to the Copilot skill body. The `lint-skill-command-drift` linter validates frontmatter presence, `description` match, `argument-hint` match, and `## Key Rules` presence.
 
-**Legacy commands** (`.claude/commands/NAME.md`): Still supported by Claude Code but superseded by the skills directory format. Existing commands are migrated to `.claude/skills/NAME/SKILL.md` per `docs/framework-v8/carryover.md`. Skills take precedence when both exist for the same name.
+**Legacy commands** (`.claude/commands/NAME.md`): Removed — all migrated to `.claude/skills/NAME/SKILL.md`. The `lint-skill-command-drift` linter now checks `.claude/skills/` exclusively.
 
 **Key Rules Section**: Both `.github/skills/NAME/SKILL.md` AND `.claude/skills/NAME/SKILL.md` MUST contain a `## Key Rules` section with the essential rules for using the skill correctly. The linter enforces this requirement and errors if either file is missing the section.
 
@@ -401,7 +401,7 @@ Skills live in `.github/skills/NAME/SKILL.md` — each skill in its own subdirec
 | `agent-scaffold` | tooling | Create both `.github/agents/NAME.agent.md` (Copilot, with `tools:`) and `.claude/agents/NAME.md` (Claude Code, without `tools:`) with all mandatory sections | [SKILL.md](.github/skills/agent-scaffold/SKILL.md) |
 | `instruction-scaffold` | tooling | Create conformant `.github/instructions/NN-NN.name.instructions.md` | [SKILL.md](.github/skills/instruction-scaffold/SKILL.md) |
 | `skill-scaffold` | tooling | Create conformant `.github/skills/NAME/SKILL.md` with proper YAML frontmatter | [SKILL.md](.github/skills/skill-scaffold/SKILL.md) |
-| `sync-copilot-claude` | tooling | Audit and sync Copilot skills/agents with Claude skills/agents; shows migration status of legacy `.claude/commands/` | [SKILL.md](.github/skills/sync-copilot-claude/SKILL.md) |
+| `sync-copilot-claude` | tooling | Audit and sync Copilot skills/agents with Claude skills/agents | [SKILL.md](.github/skills/sync-copilot-claude/SKILL.md) |
 
 #### 2.1.6 Agent Tool Discovery
 
@@ -5445,7 +5445,7 @@ Key settings:
 | `permissions.allow` | Tool patterns to allow without prompting (e.g., `"Bash(go test*)"`) |
 | `permissions.deny` | Tool patterns to deny unconditionally |
 
-**CLAUDE.md** (`.claude/agents/`, `.claude/commands/`) registers all Claude Code agents and slash commands. Update CLAUDE.md when adding new agents or commands.
+**CLAUDE.md** (`.claude/agents/`, `.claude/skills/`) registers all Claude Code agents and skills. Update CLAUDE.md when adding new agents or skills.
 
 **Enforcement**
 

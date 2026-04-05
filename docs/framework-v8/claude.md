@@ -5,25 +5,20 @@
 
 ---
 
-## 1. Why Copilot Skills Were Mapped to Claude Commands (Historical)
+## 1. Copilot Skills → Claude Skills Mapping
 
 In the initial dual-format strategy (framework-v6/v7), Copilot Skills (`.github/skills/<NAME>/SKILL.md`)
-were mapped to **Claude Commands** (`.claude/commands/<NAME>.md`) because that was the only Claude
+were mapped to Claude Commands (`.claude/commands/<NAME>.md`) because that was the only Claude
 Code mechanism for custom slash commands at the time.
 
-**Correction (framework-v8)**: Claude Code has since introduced `.claude/skills/<name>/SKILL.md` as
-a new first-class concept under the [Agent Skills open standard](https://agentskills.io/). The correct
-mapping is:
+Claude Code has since introduced `.claude/skills/<name>/SKILL.md` as a first-class concept under
+the [Agent Skills open standard](https://agentskills.io/). All 15 legacy commands have been migrated
+to skills and the `.claude/commands/` directory has been removed.
 
 | Copilot | Claude Code | Status |
 |---------|-------------|--------|
-| `.github/skills/<NAME>/SKILL.md` | `.claude/skills/<name>/SKILL.md` | ✅ CORRECT (new) |
-| `.github/skills/<NAME>/SKILL.md` | `.claude/commands/<name>.md` | ⚠️ LEGACY (still works) |
+| `.github/skills/<NAME>/SKILL.md` | `.claude/skills/<name>/SKILL.md` | ✅ CORRECT |
 | `.github/agents/<NAME>.agent.md` | `.claude/agents/<NAME>.md` | ✅ CORRECT |
-
-**Migration needed**: All 14 existing `.claude/commands/*.md` files should be migrated to
-`.claude/skills/<name>/SKILL.md`. Both formats work; skills take precedence when both exist.
-See `docs/framework-v8/carryover.md` for the migration task.
 
 ---
 
@@ -43,7 +38,7 @@ See `docs/framework-v8/carryover.md` for the migration task.
 │       ├── references/         # Optional: detailed docs loaded on demand
 │       ├── scripts/            # Optional: executable code
 │       └── assets/             # Optional: templates, resources
-├── commands/                   # Legacy command files (still fully supported)
+├── commands/                   # Legacy command files (REMOVED — migrated to skills/)
 │   └── <name>.md               # Single-file commands (flat, no directories)
 ├── rules/                      # Path-scoped project rules
 │   └── *.md                    # Rule files (optional `paths` frontmatter)
@@ -163,24 +158,13 @@ Inline: `` !`git branch --show-current` `` runs before Claude sees the prompt; o
 
 ---
 
-## 5. Legacy Commands Format (`.claude/commands/<name>.md`) — STILL SUPPORTED
+## 5. Legacy Commands Format (`.claude/commands/<name>.md`) — REMOVED
 
-Single-file flat format. Use for simple slash commands that don't need supporting files.
-Skills take precedence when both `commands/<name>.md` and `skills/<name>/SKILL.md` exist.
+The legacy single-file command format has been fully migrated to the skills directory format.
+All 15 `.claude/commands/*.md` files have been moved to `.claude/skills/<name>/SKILL.md` and
+the `commands/` directory has been deleted.
 
-```markdown
----
-name: command-name
-description: "When to use this command"
-argument-hint: "[optional-args]"
-disable-model-invocation: true
----
-
-Command body. $ARGUMENTS substituted.
-```
-
-**Migration path**: Move `commands/<name>.md` → `skills/<name>/SKILL.md` for the new format.
-The `lint-skill-command-drift` linter must be updated to check `.claude/skills/` after migration.
+The `lint-skill-command-drift` linter now checks `.claude/skills/<name>/SKILL.md` exclusively.
 
 ---
 
@@ -265,7 +249,6 @@ Body content SHOULD be identical. The only expected difference is in handling (C
 | Concept | Copilot File | Claude File | Format |
 |---------|-------------|-------------|--------|
 | Skill | `.github/skills/<NAME>/SKILL.md` | `.claude/skills/<name>/SKILL.md` | SKILL.md in directory |
-| ~~Legacy~~ | n/a | ~~`.claude/commands/<name>.md`~~ | ~~Single .md file~~ |
 
 ### Agents (Sub-agents)
 
@@ -275,24 +258,16 @@ Body content SHOULD be identical. The only expected difference is in handling (C
 
 ### Linter Alignment
 
-The `lint-skill-command-drift` linter in `internal/apps/tools/cicd_lint/lint_docs/` must be
-updated to check `.claude/skills/<name>/SKILL.md` instead of `.claude/commands/<name>.md`.
-Until migration is complete, both directories are checked.
+The `lint-skill-command-drift` linter in `internal/apps/tools/cicd_lint/lint_docs/` checks
+`.claude/skills/<name>/SKILL.md` for each Copilot skill in `.github/skills/<NAME>/SKILL.md`.
 
 ---
 
-## 10. Migration Checklist: Commands → Skills
+## 10. Migration Checklist: Commands → Skills — COMPLETED
 
-For each `.claude/commands/<name>.md`:
-
-1. Create directory `.claude/skills/<name>/`
-2. Copy/adapt content to `.claude/skills/<name>/SKILL.md`
-   - Frontmatter stays mostly the same
-   - Add `allowed-tools: Read` if the command only reads files
-   - Optionally add `disable-model-invocation: true` for explicit-invoke-only skills
-3. Test: invoke `/name` in Claude Code — should respond using new skill
-4. Delete `.claude/commands/<name>.md` after verifying
-5. Update `lint-skill-command-drift` to check `.claude/skills/`
+All 15 legacy `.claude/commands/*.md` files have been migrated to `.claude/skills/<name>/SKILL.md`.
+The `lint-skill-command-drift` linter now checks `.claude/skills/` exclusively.
+The `.claude/commands/` directory has been removed.
 
 ---
 

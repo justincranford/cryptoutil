@@ -62,7 +62,7 @@ Full Copilot originals: [.github/agents/](.github/agents/).
 
 ## Skills (Slash Commands)
 
-Copilot skills are available as Claude Code slash commands in [.claude/commands/](.claude/commands/).
+Copilot skills are available as Claude Code skills in [.claude/skills/](.claude/skills/).
 Full Copilot originals: [.github/skills/](.github/skills/).
 
 | Command | Purpose |
@@ -81,4 +81,4 @@ Full Copilot originals: [.github/skills/](.github/skills/).
 | `/agent-scaffold` | New `.github/agents/NAME.agent.md` + `.claude/agents/NAME.md` dual canonical pair |
 | `/instruction-scaffold` | New `.github/instructions/NN-NN.name.instructions.md` |
 | `/skill-scaffold` | New `.github/skills/NAME/SKILL.md` with proper YAML frontmatter |
-| `/sync-copilot-claude` | Audit/sync Copilot skills+agents with Claude skills+agents; shows legacy command migration status |
+| `/sync-copilot-claude` | Audit/sync Copilot skills+agents with Claude skills+agents |
