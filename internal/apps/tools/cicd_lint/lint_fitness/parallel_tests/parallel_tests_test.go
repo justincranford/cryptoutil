@@ -168,7 +168,6 @@ func TestCheckParallelUsage_ReadFileError(t *testing.T) {
 	require.Contains(t, issues[0], "Error reading file")
 }
 
-
 func findProjectRoot() (string, error) {
 	dir, err := os.Getwd()
 	if err != nil {

@@ -1,11 +1,12 @@
 package lint_deployments
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-	"github.com/stretchr/testify/require"
 	"os"
 	"path/filepath"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	"github.com/stretchr/testify/require"
 )
 
 // createValidTemplateDir sets up a minimal valid template directory structure.

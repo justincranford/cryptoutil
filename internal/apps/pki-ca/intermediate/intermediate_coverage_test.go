@@ -9,12 +9,13 @@ import (
 	crand "crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"math/big"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilCABootstrap "cryptoutil/internal/apps/pki-ca/bootstrap"
 	cryptoutilCACrypto "cryptoutil/internal/apps/pki-ca/crypto"

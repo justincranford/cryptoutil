@@ -8,8 +8,9 @@ import (
 	"crypto/elliptic"
 	crand "crypto/rand"
 	rsa "crypto/rsa"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
 

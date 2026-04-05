@@ -5,10 +5,11 @@
 package config_test
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/require"

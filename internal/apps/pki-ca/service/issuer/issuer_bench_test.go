@@ -9,10 +9,11 @@ import (
 	rsa "crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"math/big"
 	"testing"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilCACrypto "cryptoutil/internal/apps/pki-ca/crypto"
 	cryptoutilCAProfileSubject "cryptoutil/internal/apps/pki-ca/profile/subject"

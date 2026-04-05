@@ -5,12 +5,13 @@ package dpop
 
 import (
 	sha256 "crypto/sha256"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/base64"
 	json "encoding/json"
 	"fmt"
 	"strings"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
 	joseJws "github.com/lestrrat-go/jwx/v3/jws"

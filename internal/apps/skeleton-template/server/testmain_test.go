@@ -12,19 +12,19 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilAppsSkeletonTemplateServerConfig "cryptoutil/internal/apps/skeleton-template/server/config"
 	cryptoutilAppsFrameworkServiceTestingE2eHelpers "cryptoutil/internal/apps/framework/service/testing/e2e_helpers"
 	cryptoutilTestingHealthclient "cryptoutil/internal/apps/framework/service/testing/healthclient"
+	cryptoutilAppsSkeletonTemplateServerConfig "cryptoutil/internal/apps/skeleton-template/server/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 var (
-	testServer             *SkeletonTemplateServer
-	testPublicHTTPClient   *http.Client
-	testAdminHTTPClient    *http.Client
-	testHealthClient       *cryptoutilTestingHealthclient.HealthClient
-	testPublicBaseURL      string
-	testAdminBaseURL       string
+	testServer           *SkeletonTemplateServer
+	testPublicHTTPClient *http.Client
+	testAdminHTTPClient  *http.Client
+	testHealthClient     *cryptoutilTestingHealthclient.HealthClient
+	testPublicBaseURL    string
+	testAdminBaseURL     string
 )
 
 func TestMain(m *testing.M) {

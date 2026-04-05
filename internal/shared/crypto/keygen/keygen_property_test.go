@@ -10,8 +10,9 @@ import (
 	"crypto/ed25519"
 	"crypto/elliptic"
 	rsa "crypto/rsa"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/leanovate/gopter"
 	"github.com/leanovate/gopter/gen"

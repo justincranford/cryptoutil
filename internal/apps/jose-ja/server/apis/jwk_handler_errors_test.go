@@ -4,11 +4,12 @@
 package apis
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose-ja/server/model"
 

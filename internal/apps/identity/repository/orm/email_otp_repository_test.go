@@ -4,10 +4,11 @@ package orm_test
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"database/sql"
 	"testing"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"

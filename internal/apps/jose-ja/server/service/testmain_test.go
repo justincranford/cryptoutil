@@ -16,11 +16,11 @@ import (
 
 	_ "modernc.org/sqlite" // CGO-free SQLite driver.
 
-	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose-ja/server/repository"
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
-	cryptoutilTestdb "cryptoutil/internal/apps/framework/service/testing/testdb"
 	cryptoutilUnsealKeysService "cryptoutil/internal/apps/framework/service/server/barrier/unsealkeysservice"
+	cryptoutilTestdb "cryptoutil/internal/apps/framework/service/testing/testdb"
+	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose-ja/server/repository"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"

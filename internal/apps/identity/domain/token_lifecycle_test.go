@@ -4,12 +4,13 @@ package domain_test
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"database/sql"
 	json "encoding/json"
 	"fmt"
 	"testing"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"

@@ -18,8 +18,8 @@ import (
 	cryptoutilAppsFrameworkServiceServerBusinesslogic "cryptoutil/internal/apps/framework/service/server/businesslogic"
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
 	cryptoutilAppsFrameworkServiceServerService "cryptoutil/internal/apps/framework/service/server/service"
-	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose-ja/server/repository"
 	cryptoutilAppsJoseJaServerConfig "cryptoutil/internal/apps/jose-ja/server/config"
+	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose-ja/server/repository"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )

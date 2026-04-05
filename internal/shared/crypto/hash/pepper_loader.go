@@ -3,10 +3,11 @@
 package hash
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"os"
 	"strings"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // PepperConfig defines version-specific pepper configuration.

@@ -6,10 +6,11 @@ package security
 import (
 	"context"
 	"crypto/x509"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"fmt"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // ThreatCategory represents a category in the STRIDE threat model.

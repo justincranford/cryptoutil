@@ -13,10 +13,11 @@ import (
 	crand "crypto/rand"
 	rsa "crypto/rsa"
 	"crypto/x509"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"math/big"
 	"os"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 

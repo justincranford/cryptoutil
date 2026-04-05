@@ -9,12 +9,13 @@ import (
 	crand "crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/pem"
 	"io"
 	http "net/http"
 	"net/http/httptest"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"

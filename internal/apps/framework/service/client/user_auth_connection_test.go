@@ -5,9 +5,10 @@
 package client_test
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	http "net/http"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 

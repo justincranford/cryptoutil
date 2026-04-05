@@ -132,14 +132,14 @@ func ParseWithFlagSet(fs *pflag.FlagSet, args []string, exitIfHelp bool) (*Ident
 
 	settings := &IdentityIDPServerSettings{
 		ServiceFrameworkServerSettings: baseSettings,
-		AuthzServerURL:                authzServerURL,
-		LoginPagePath:                 loginPagePath,
-		ConsentPagePath:               consentPagePath,
-		EnableMFAEnrollment:           enableMFAEnrollment,
-		RequireMFA:                    requireMFA,
-		MFAMethods:                    defaultMFAMethods,
-		LoginSessionTimeout:           loginSessionTimeout,
-		ConsentSessionTimeout:         consentSessionTimeout,
+		AuthzServerURL:                 authzServerURL,
+		LoginPagePath:                  loginPagePath,
+		ConsentPagePath:                consentPagePath,
+		EnableMFAEnrollment:            enableMFAEnrollment,
+		RequireMFA:                     requireMFA,
+		MFAMethods:                     defaultMFAMethods,
+		LoginSessionTimeout:            loginSessionTimeout,
+		ConsentSessionTimeout:          consentSessionTimeout,
 	}
 
 	// Override template defaults with identity-idp specific values.
@@ -240,14 +240,14 @@ func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *IdentityIDPS
 
 	return &IdentityIDPServerSettings{
 		ServiceFrameworkServerSettings: baseConfig,
-		AuthzServerURL:                defaultIDPAuthzServerURL,
-		LoginPagePath:                 defaultLoginPagePath,
-		ConsentPagePath:               defaultConsentPagePath,
-		EnableMFAEnrollment:           defaultEnableMFAEnrollment,
-		RequireMFA:                    defaultRequireMFA,
-		MFAMethods:                    defaultMFAMethods,
-		LoginSessionTimeout:           defaultLoginSessionTimeout,
-		ConsentSessionTimeout:         defaultConsentSessionTimeout,
+		AuthzServerURL:                 defaultIDPAuthzServerURL,
+		LoginPagePath:                  defaultLoginPagePath,
+		ConsentPagePath:                defaultConsentPagePath,
+		EnableMFAEnrollment:            defaultEnableMFAEnrollment,
+		RequireMFA:                     defaultRequireMFA,
+		MFAMethods:                     defaultMFAMethods,
+		LoginSessionTimeout:            defaultLoginSessionTimeout,
+		ConsentSessionTimeout:          defaultConsentSessionTimeout,
 	}
 }
 

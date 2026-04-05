@@ -5,10 +5,11 @@ package timestamp
 import (
 	"crypto"
 	sha256 "crypto/sha256"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/asn1"
 	"math/big"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 

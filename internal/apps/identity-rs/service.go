@@ -170,9 +170,9 @@ func (s *Service) RequireScopes(requiredScopes ...string) fiber.Handler {
 // handlePublicHealth handles GET /api/v1/public/health - public health check.
 func (s *Service) handlePublicHealth(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		cryptoutilSharedMagic.StringStatus: cryptoutilSharedMagic.DockerServiceHealthHealthy,
-		"service":                          "resource-server",
-		cryptoutilSharedMagic.CLIVersionCommand:                          cryptoutilSharedMagic.ServiceVersion,
+		cryptoutilSharedMagic.StringStatus:      cryptoutilSharedMagic.DockerServiceHealthHealthy,
+		"service":                               "resource-server",
+		cryptoutilSharedMagic.CLIVersionCommand: cryptoutilSharedMagic.ServiceVersion,
 	})
 }
 

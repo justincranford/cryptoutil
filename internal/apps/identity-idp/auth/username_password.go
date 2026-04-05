@@ -6,8 +6,9 @@ package auth
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilSharedCryptoDigests "cryptoutil/internal/shared/crypto/digests"
 

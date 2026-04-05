@@ -12,8 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
 
-	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityIdpUserauth "cryptoutil/internal/apps/identity-idp/userauth"
+	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 )
 
 func TestUsernamePasswordAuthenticator_VerifyAuth(t *testing.T) {

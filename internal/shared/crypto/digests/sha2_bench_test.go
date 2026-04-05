@@ -5,8 +5,9 @@
 package digests
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // BenchmarkSHA512 benchmarks SHA512 digest.

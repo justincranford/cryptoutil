@@ -9,13 +9,13 @@ import (
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-	cryptoutilKmsServerBusinesslogic "cryptoutil/internal/apps/sm-kms/server/businesslogic"
-	cryptoutilKmsServerMiddleware "cryptoutil/internal/apps/sm-kms/server/middleware"
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilAppsFrameworkServiceServer "cryptoutil/internal/apps/framework/service/server"
 	cryptoutilAppsFrameworkServiceServerBuilder "cryptoutil/internal/apps/framework/service/server/builder"
 	cryptoutilAppsFrameworkServiceServerBusinesslogic "cryptoutil/internal/apps/framework/service/server/businesslogic"
 	cryptoutilAppsFrameworkServiceServerMiddleware "cryptoutil/internal/apps/framework/service/server/middleware"
+	cryptoutilKmsServerBusinesslogic "cryptoutil/internal/apps/sm-kms/server/businesslogic"
+	cryptoutilKmsServerMiddleware "cryptoutil/internal/apps/sm-kms/server/middleware"
 
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"

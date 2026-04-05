@@ -7,8 +7,9 @@ package keygen
 import (
 	"crypto/ecdh"
 	"crypto/elliptic"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )

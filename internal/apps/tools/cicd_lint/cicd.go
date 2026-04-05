@@ -37,24 +37,24 @@ import (
 )
 
 const (
-	cmdLintFitness      = "lint-fitness"      // [Linter] Architecture fitness functions (cross-service isolation, file limits, etc.).
-	cmdLintText         = "lint-text"         // [Linter] Text file linters (UTF-8 encoding).
-	cmdLintGo           = "lint-go"           // [Linter] Go package linters (circular dependencies, CGO-free SQLite).
-	cmdLintGoTest       = "lint-go-test"      // [Linter] Go test file linters (test patterns).
-	cmdLintJavaTest     = "lint-java-test"    // [Linter] Java/Gatling test file linters (FIPS RNG, parameterization).
-	cmdLintPythonTest   = "lint-python-test"  // [Linter] Python/pytest test file linters (pytest style enforcement).
-	cmdLintCompose      = "lint-compose"      // [Linter] Docker Compose file linters (admin port exposure).
-	cmdLintPorts        = "lint-ports"        // [Linter] Port assignment validation (standardized ports).
-	cmdLintWorkflow     = "lint-workflow"     // [Linter] Workflow file linters (GitHub Actions).
-	cmdLintGoMod        = "lint-go-mod"       // [Linter] Go module linters (dependency updates).
-	cmdLintGolangci     = "lint-golangci"     // [Linter] golangci-lint config validation (v2 compatibility).
-	cmdFormatGo         = "format-go"         // [Formatter] Go file formatters (any, copyloopvar).
-	cmdFormatGoTest     = "format-go-test"    // [Formatter] Go test file formatters (t.Helper).
-	cmdLintDocs         = "lint-docs"         // [Linter] Documentation linters (chunk verification, propagation).
-	cmdLintDeployments  = "lint-deployments"  // [Linter] Deployment structure and config file validation.
-	cmdLintOpenAPI      = "lint-openapi"      // [Linter] OpenAPI spec version and codegen config validation.
-	cmdLintSecurity     = "lint-security"     // [Linter] Security linters (banned crypto imports, FIPS compliance).
-	cmdGitHubCleanup    = "github-cleanup"    // [Script] GitHub Actions storage cleanup (runs, artifacts, caches).
+	cmdLintFitness     = "lint-fitness"     // [Linter] Architecture fitness functions (cross-service isolation, file limits, etc.).
+	cmdLintText        = "lint-text"        // [Linter] Text file linters (UTF-8 encoding).
+	cmdLintGo          = "lint-go"          // [Linter] Go package linters (circular dependencies, CGO-free SQLite).
+	cmdLintGoTest      = "lint-go-test"     // [Linter] Go test file linters (test patterns).
+	cmdLintJavaTest    = "lint-java-test"   // [Linter] Java/Gatling test file linters (FIPS RNG, parameterization).
+	cmdLintPythonTest  = "lint-python-test" // [Linter] Python/pytest test file linters (pytest style enforcement).
+	cmdLintCompose     = "lint-compose"     // [Linter] Docker Compose file linters (admin port exposure).
+	cmdLintPorts       = "lint-ports"       // [Linter] Port assignment validation (standardized ports).
+	cmdLintWorkflow    = "lint-workflow"    // [Linter] Workflow file linters (GitHub Actions).
+	cmdLintGoMod       = "lint-go-mod"      // [Linter] Go module linters (dependency updates).
+	cmdLintGolangci    = "lint-golangci"    // [Linter] golangci-lint config validation (v2 compatibility).
+	cmdFormatGo        = "format-go"        // [Formatter] Go file formatters (any, copyloopvar).
+	cmdFormatGoTest    = "format-go-test"   // [Formatter] Go test file formatters (t.Helper).
+	cmdLintDocs        = "lint-docs"        // [Linter] Documentation linters (chunk verification, propagation).
+	cmdLintDeployments = "lint-deployments" // [Linter] Deployment structure and config file validation.
+	cmdLintOpenAPI     = "lint-openapi"     // [Linter] OpenAPI spec version and codegen config validation.
+	cmdLintSecurity    = "lint-security"    // [Linter] Security linters (banned crypto imports, FIPS compliance).
+	cmdGitHubCleanup   = "github-cleanup"   // [Script] GitHub Actions storage cleanup (runs, artifacts, caches).
 )
 
 // Cicd executes the specified CI/CD check commands.

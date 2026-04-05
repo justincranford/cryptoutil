@@ -6,10 +6,11 @@ package poll_test
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"testing"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
 

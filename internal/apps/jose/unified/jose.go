@@ -6,8 +6,9 @@
 package jose
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilAppsJoseJa "cryptoutil/internal/apps/jose-ja"
 )

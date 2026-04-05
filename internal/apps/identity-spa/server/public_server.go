@@ -11,8 +11,8 @@ import (
 
 	fiber "github.com/gofiber/fiber/v2"
 
-	cryptoutilAppsIdentitySpaServerConfig "cryptoutil/internal/apps/identity-spa/server/config"
 	cryptoutilAppsFrameworkServiceServer "cryptoutil/internal/apps/framework/service/server"
+	cryptoutilAppsIdentitySpaServerConfig "cryptoutil/internal/apps/identity-spa/server/config"
 )
 
 // PublicServer implements SPA-specific public endpoints.
@@ -97,7 +97,7 @@ func (s *PublicServer) handleReadyz(c *fiber.Ctx) error {
 // This allows the SPA to discover the RP (BFF) endpoint dynamically.
 func (s *PublicServer) handleConfig(c *fiber.Ctx) error {
 	config := fiber.Map{
-		"service": cryptoutilSharedMagic.OTLPServiceIdentitySPA,
+		"service":                               cryptoutilSharedMagic.OTLPServiceIdentitySPA,
 		cryptoutilSharedMagic.CLIVersionCommand: cryptoutilSharedMagic.DefaultOTLPVersionDefault,
 	}
 

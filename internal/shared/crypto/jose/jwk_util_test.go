@@ -10,10 +10,11 @@ import (
 	"crypto/ed25519"
 	"crypto/elliptic"
 	rsa "crypto/rsa"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"sync"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"

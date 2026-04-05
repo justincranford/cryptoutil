@@ -4,10 +4,11 @@
 package observability
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // MetricType represents the type of metric.

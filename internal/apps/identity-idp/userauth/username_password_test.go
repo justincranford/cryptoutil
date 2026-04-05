@@ -13,8 +13,8 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityIdpUserauth "cryptoutil/internal/apps/identity-idp/userauth"
+	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 

@@ -6,8 +6,9 @@ package userauth
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // AuthContext represents the contextual information for an authentication attempt.

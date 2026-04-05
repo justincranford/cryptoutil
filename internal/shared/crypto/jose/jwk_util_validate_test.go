@@ -10,8 +10,9 @@ import (
 	"crypto/elliptic"
 	crand "crypto/rand"
 	rsa "crypto/rsa"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"

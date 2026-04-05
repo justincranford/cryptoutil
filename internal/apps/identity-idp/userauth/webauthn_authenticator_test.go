@@ -12,9 +12,10 @@ package userauth
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	googleUuid "github.com/google/uuid"

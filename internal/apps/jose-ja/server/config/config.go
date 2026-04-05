@@ -77,9 +77,9 @@ func ParseWithFlagSet(fs *pflag.FlagSet, args []string, exitIfHelp bool) (*JoseJ
 
 	settings := &JoseJAServerSettings{
 		ServiceFrameworkServerSettings: baseSettings,
-		DefaultMaxMaterials:           maxMaterials,
-		AuditEnabled:                  auditEnabled,
-		AuditSamplingRate:             auditSamplingRate,
+		DefaultMaxMaterials:            maxMaterials,
+		AuditEnabled:                   auditEnabled,
+		AuditSamplingRate:              auditSamplingRate,
 	}
 
 	// Override template defaults with jose-ja specific values.

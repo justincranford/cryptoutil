@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"html/template"
 
-	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityAuth "cryptoutil/internal/apps/identity-idp/auth"
+	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
 )

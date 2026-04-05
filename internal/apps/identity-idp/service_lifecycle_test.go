@@ -6,13 +6,14 @@ package idp_test
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityIdp "cryptoutil/internal/apps/identity-idp"
+	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
 )
 

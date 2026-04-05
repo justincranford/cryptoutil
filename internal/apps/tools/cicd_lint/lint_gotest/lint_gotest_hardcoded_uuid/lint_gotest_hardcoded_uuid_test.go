@@ -174,7 +174,7 @@ uuid.MustParse("00000000-0000-0000-0000-000000000001")
 			wantIssues: true,
 		},
 		{
-			name: "empty_file",
+			name:        "empty_file",
 			fileContent: ``,
 			wantIssues:  false,
 		},

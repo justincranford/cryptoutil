@@ -3,9 +3,10 @@
 package lint_go_mod
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 

@@ -6,12 +6,13 @@ package authz_test
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/base64"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"

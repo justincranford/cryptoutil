@@ -4,12 +4,13 @@ package dpop
 
 import (
 	sha256 "crypto/sha256"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/base64"
 	json "encoding/json"
 	"strings"
 	"testing"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 

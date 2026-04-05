@@ -6,11 +6,12 @@ package rs_test
 import (
 	"bytes"
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"io"
 	http "net/http"
 	"net/http/httptest"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/getkin/kin-openapi/routers/gorillamux"
@@ -18,9 +19,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilApiIdentityRs "cryptoutil/api/identity-rs"
+	cryptoutilIdentityRs "cryptoutil/internal/apps/identity-rs"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
-	cryptoutilIdentityRs "cryptoutil/internal/apps/identity-rs"
 )
 
 // TestRSContractPublicHealth verifies the /api/v1/public/health endpoint complies with the OpenAPI spec.

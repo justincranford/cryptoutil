@@ -1,12 +1,13 @@
 package lint_deployments
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-	"github.com/stretchr/testify/require"
 	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	"github.com/stretchr/testify/require"
 )
 
 func TestValidateTelemetry_ValidConfigs(t *testing.T) {

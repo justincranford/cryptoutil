@@ -10,9 +10,10 @@ import (
 	crand "crypto/rand"
 	rsa "crypto/rsa"
 	"crypto/x509/pkix"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )

@@ -3,10 +3,11 @@
 package cache_test
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"sync"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilSharedUtilCache "cryptoutil/internal/shared/util/cache"
 

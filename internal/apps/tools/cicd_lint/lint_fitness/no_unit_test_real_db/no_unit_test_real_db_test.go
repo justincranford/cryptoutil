@@ -196,7 +196,6 @@ func TestCheckInDir_AgainstCurrentCodebase(t *testing.T) {
 	require.NoError(t, err)
 }
 
-
 func findProjectRoot() (string, error) {
 	dir, err := os.Getwd()
 	if err != nil {

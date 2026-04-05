@@ -6,9 +6,10 @@
 package config
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"os"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"gopkg.in/yaml.v3"
 )

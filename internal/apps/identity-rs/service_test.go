@@ -14,9 +14,9 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilIdentityRs "cryptoutil/internal/apps/identity-rs"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
-	cryptoutilIdentityRs "cryptoutil/internal/apps/identity-rs"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	fiber "github.com/gofiber/fiber/v2"

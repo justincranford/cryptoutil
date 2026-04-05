@@ -5,8 +5,9 @@
 package builder
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	fiber "github.com/gofiber/fiber/v2"
 )

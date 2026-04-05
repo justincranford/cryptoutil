@@ -5,15 +5,16 @@ package repository
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	"strings"
 	"testing"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
+	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose-ja/server/model"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
-	"strings"
-	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose-ja/server/model"
-	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 )
 
 // TestElasticJWKRepository_CreateDuplicateError tests duplicate key insertion error handling.

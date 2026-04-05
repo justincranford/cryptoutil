@@ -4,9 +4,10 @@ package issuer
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // BenchmarkJWSIssueAccessToken benchmarks JWS access token generation.

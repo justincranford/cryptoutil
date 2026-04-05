@@ -30,11 +30,11 @@ func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *SmIMServerSe
 
 	return &SmIMServerSettings{
 		ServiceFrameworkServerSettings: baseConfig,
-		MessageJWEAlgorithm:           cryptoutilSharedMagic.IMJWEAlgorithm,
-		MessageMinLength:              cryptoutilSharedMagic.IMMessageMinLength,
-		MessageMaxLength:              cryptoutilSharedMagic.IMMessageMaxLength,
-		RecipientsMinCount:            cryptoutilSharedMagic.IMRecipientsMinCount,
-		RecipientsMaxCount:            cryptoutilSharedMagic.IMRecipientsMaxCount,
+		MessageJWEAlgorithm:            cryptoutilSharedMagic.IMJWEAlgorithm,
+		MessageMinLength:               cryptoutilSharedMagic.IMMessageMinLength,
+		MessageMaxLength:               cryptoutilSharedMagic.IMMessageMaxLength,
+		RecipientsMinCount:             cryptoutilSharedMagic.IMRecipientsMinCount,
+		RecipientsMaxCount:             cryptoutilSharedMagic.IMRecipientsMaxCount,
 	}
 }
 

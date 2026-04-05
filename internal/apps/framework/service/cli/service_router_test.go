@@ -6,18 +6,21 @@ package cli_test
 
 import (
 	"bytes"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"io"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsFrameworkCli "cryptoutil/internal/apps/framework/service/cli"
 )
 
-const testServiceID = "test-svc"
-const testProductNameService = "testproduct"
-const testServiceNameConst = "svc"
+const (
+	testServiceID          = "test-svc"
+	testProductNameService = "testproduct"
+	testServiceNameConst   = "svc"
+)
 
 var testDefaultPort = uint16(8042) //nolint:gochecknoglobals // test fixture
 

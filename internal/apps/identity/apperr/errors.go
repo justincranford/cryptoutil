@@ -6,9 +6,10 @@
 package apperr
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	http "net/http"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // IdentityError represents an identity module-specific error.

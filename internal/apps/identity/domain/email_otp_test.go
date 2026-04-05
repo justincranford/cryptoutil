@@ -3,9 +3,10 @@
 package domain_test
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 

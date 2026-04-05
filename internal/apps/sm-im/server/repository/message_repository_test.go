@@ -6,15 +6,16 @@ package repository
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 
-	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm-im/server/model"
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
+	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm-im/server/model"
 )
 
 func TestMessageRepository_Create(t *testing.T) {

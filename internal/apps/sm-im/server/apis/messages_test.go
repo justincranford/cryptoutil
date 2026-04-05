@@ -23,11 +23,11 @@ import (
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
 	cryptoutilApiSmImServer "cryptoutil/api/sm-im/server"
-	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm-im/server/model"
-	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm-im/server/repository"
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
 	cryptoutilUnsealKeysService "cryptoutil/internal/apps/framework/service/server/barrier/unsealkeysservice"
+	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm-im/server/model"
+	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm-im/server/repository"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
@@ -461,6 +461,7 @@ func TestHandleReceiveMessages_NoMessages(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, response.Messages)
 }
+
 func TestHandleDeleteMessage_MissingMessageID(_ *testing.T) {
 	app := fiber.New()
 	app.Use(testAuthMiddleware())

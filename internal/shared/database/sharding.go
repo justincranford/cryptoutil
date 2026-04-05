@@ -5,10 +5,11 @@ package database
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"regexp"
 	"sync"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"

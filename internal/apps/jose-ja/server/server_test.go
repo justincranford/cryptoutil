@@ -9,8 +9,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilAppsJoseJaServerConfig "cryptoutil/internal/apps/jose-ja/server/config"
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
+	cryptoutilAppsJoseJaServerConfig "cryptoutil/internal/apps/jose-ja/server/config"
 )
 
 func TestNewFromConfig_NilContext(t *testing.T) {

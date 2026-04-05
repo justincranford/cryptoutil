@@ -4,18 +4,19 @@ package authz_test
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	json "encoding/json"
 	"fmt"
 	"net/http/httptest"
 	"testing"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
 	cryptoutilIdentityAuthz "cryptoutil/internal/apps/identity-authz"
+	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 )
 

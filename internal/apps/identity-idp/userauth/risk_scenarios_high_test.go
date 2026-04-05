@@ -7,14 +7,14 @@
 package userauth
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"math"
 	"testing"
 	"time"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-
 )
 
 func TestRiskScenario_HighRisk(t *testing.T) {

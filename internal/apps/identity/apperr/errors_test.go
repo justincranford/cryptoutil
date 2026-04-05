@@ -5,10 +5,11 @@
 package apperr
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	http "net/http"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )

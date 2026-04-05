@@ -141,13 +141,13 @@ func ParseWithFlagSet(fs *pflag.FlagSet, args []string, exitIfHelp bool) (*Ident
 
 	settings := &IdentitySPAServerSettings{
 		ServiceFrameworkServerSettings: baseSettings,
-		StaticFilesPath:               staticFilesPath,
-		IndexFile:                     indexFile,
-		RPOrigin:                      rpOrigin,
-		CacheControlMaxAge:            cacheControlMaxAge,
-		EnableGzip:                    enableGzip,
-		EnableBrotli:                  enableBrotli,
-		CSPDirectives:                 cspDirectives,
+		StaticFilesPath:                staticFilesPath,
+		IndexFile:                      indexFile,
+		RPOrigin:                       rpOrigin,
+		CacheControlMaxAge:             cacheControlMaxAge,
+		EnableGzip:                     enableGzip,
+		EnableBrotli:                   enableBrotli,
+		CSPDirectives:                  cspDirectives,
 	}
 
 	// Override template defaults with identity-spa specific values.
@@ -249,13 +249,13 @@ func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *IdentitySPAS
 
 	return &IdentitySPAServerSettings{
 		ServiceFrameworkServerSettings: baseConfig,
-		StaticFilesPath:               defaultStaticFilesPath,
-		IndexFile:                     defaultIndexFile,
-		RPOrigin:                      defaultRPOrigin,
-		CacheControlMaxAge:            cacheMaxAge,
-		EnableGzip:                    false, // Disable compression for easier test assertions.
-		EnableBrotli:                  false,
-		CSPDirectives:                 defaultCSPDirectives,
+		StaticFilesPath:                defaultStaticFilesPath,
+		IndexFile:                      defaultIndexFile,
+		RPOrigin:                       defaultRPOrigin,
+		CacheControlMaxAge:             cacheMaxAge,
+		EnableGzip:                     false, // Disable compression for easier test assertions.
+		EnableBrotli:                   false,
+		CSPDirectives:                  defaultCSPDirectives,
 	}
 }
 

@@ -13,8 +13,8 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityIdpUserauth "cryptoutil/internal/apps/identity-idp/userauth"
+	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -60,12 +60,15 @@ func (r *coverageUserRepo) Create(_ context.Context, u *cryptoutilIdentityDomain
 func (r *coverageUserRepo) GetByID(_ context.Context, _ googleUuid.UUID) (*cryptoutilIdentityDomain.User, error) {
 	return nil, nil
 }
+
 func (r *coverageUserRepo) GetByUsername(_ context.Context, _ string) (*cryptoutilIdentityDomain.User, error) {
 	return nil, nil
 }
+
 func (r *coverageUserRepo) GetByEmail(_ context.Context, _ string) (*cryptoutilIdentityDomain.User, error) {
 	return nil, nil
 }
+
 func (r *coverageUserRepo) Update(_ context.Context, _ *cryptoutilIdentityDomain.User) error {
 	return nil
 }

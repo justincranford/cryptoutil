@@ -5,8 +5,9 @@
 package authz
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"log/slog"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	fiber "github.com/gofiber/fiber/v2"
 )

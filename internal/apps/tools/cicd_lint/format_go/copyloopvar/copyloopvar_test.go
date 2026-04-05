@@ -3,7 +3,6 @@
 package copyloopvar
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -11,6 +10,8 @@ import (
 	"path/filepath"
 	"runtime"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 

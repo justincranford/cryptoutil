@@ -3,9 +3,10 @@
 package handler
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"

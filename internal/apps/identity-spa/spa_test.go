@@ -5,9 +5,10 @@
 package spa
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"bytes"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	testify "github.com/stretchr/testify/require"
 )

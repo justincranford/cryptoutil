@@ -7,11 +7,12 @@ package certificate
 import (
 	"crypto"
 	"crypto/x509"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"io"
 	"testing"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
 

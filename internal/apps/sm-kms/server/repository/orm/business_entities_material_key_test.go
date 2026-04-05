@@ -6,11 +6,12 @@
 package orm
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 
-	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
+	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"

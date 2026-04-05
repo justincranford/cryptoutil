@@ -6,7 +6,6 @@ package idp_test
 import (
 	"bytes"
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	json "encoding/json"
 	"io"
 	http "net/http"
@@ -14,14 +13,16 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/getkin/kin-openapi/routers/gorillamux"
 	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 
 	cryptoutilApiIdentityIdp "cryptoutil/api/identity-idp"
-	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityIdp "cryptoutil/internal/apps/identity-idp"
+	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
 )

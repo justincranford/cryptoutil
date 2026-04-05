@@ -115,12 +115,12 @@ func ParseWithFlagSet(fs *pflag.FlagSet, args []string, exitIfHelp bool) (*CASer
 
 	settings := &CAServerSettings{
 		ServiceFrameworkServerSettings: baseSettings,
-		CAConfigPath:                  caConfigPath,
-		ProfilesPath:                  profilesPath,
-		EnableEST:                     enableEST,
-		EnableOCSP:                    enableOCSP,
-		EnableCRL:                     enableCRL,
-		EnableTimestamp:               enableTimestamp,
+		CAConfigPath:                   caConfigPath,
+		ProfilesPath:                   profilesPath,
+		EnableEST:                      enableEST,
+		EnableOCSP:                     enableOCSP,
+		EnableCRL:                      enableCRL,
+		EnableTimestamp:                enableTimestamp,
 	}
 
 	// Override template defaults with pki-ca specific values.
@@ -214,12 +214,12 @@ func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *CAServerSett
 
 	return &CAServerSettings{
 		ServiceFrameworkServerSettings: baseConfig,
-		CAConfigPath:                  "",
-		ProfilesPath:                  "",
-		EnableEST:                     defaultEnableEST,
-		EnableOCSP:                    defaultEnableOCSP,
-		EnableCRL:                     defaultEnableCRL,
-		EnableTimestamp:               defaultEnableTimestamp,
+		CAConfigPath:                   "",
+		ProfilesPath:                   "",
+		EnableEST:                      defaultEnableEST,
+		EnableOCSP:                     defaultEnableOCSP,
+		EnableCRL:                      defaultEnableCRL,
+		EnableTimestamp:                defaultEnableTimestamp,
 	}
 }
 

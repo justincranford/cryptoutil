@@ -178,8 +178,8 @@ func _testMainAfter(m *testing.M) {
 	// Configure application (product-specific settings injected here).
 	cfg := &cryptoutilAppsFrameworkServiceServerListener.ApplicationConfig{
 		ServiceFrameworkServerSettings: cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true),
-		DB:                            db,
-		DBType:                        cryptoutilAppsFrameworkServiceServerRepository.DatabaseTypeSQLite,
+		DB:                             db,
+		DBType:                         cryptoutilAppsFrameworkServiceServerRepository.DatabaseTypeSQLite,
 		// PublicHandlers: registerSmIMHandlers, // Inject product-specific routes
 		// AdminHandlers:  registerBarrierRotation,  // Optional: barrier rotation endpoints
 	}

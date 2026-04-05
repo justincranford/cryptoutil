@@ -7,10 +7,11 @@ package jobs
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"log/slog"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
 )

@@ -4,10 +4,11 @@ package clientauth
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"testing"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	joseJwt "github.com/lestrrat-go/jwx/v3/jwt"
 	"github.com/stretchr/testify/require"

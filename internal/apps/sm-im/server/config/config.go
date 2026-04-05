@@ -97,11 +97,11 @@ func ParseWithFlagSet(fs *pflag.FlagSet, args []string, exitIfHelp bool) (*SmIMS
 
 	settings := &SmIMServerSettings{
 		ServiceFrameworkServerSettings: baseSettings,
-		MessageJWEAlgorithm:           messageJWEAlgo,
-		MessageMinLength:              msgMinLen,
-		MessageMaxLength:              msgMaxLen,
-		RecipientsMinCount:            recipMinCount,
-		RecipientsMaxCount:            recipMaxCount,
+		MessageJWEAlgorithm:            messageJWEAlgo,
+		MessageMinLength:               msgMinLen,
+		MessageMaxLength:               msgMaxLen,
+		RecipientsMinCount:             recipMinCount,
+		RecipientsMaxCount:             recipMaxCount,
 	}
 
 	// NOTE: BrowserRealms and ServiceRealms are inherited from template configuration.

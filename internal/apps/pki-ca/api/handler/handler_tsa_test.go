@@ -5,12 +5,13 @@ package handler
 import (
 	"bytes"
 	sha256 "crypto/sha256"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/asn1"
 	"math/big"
 	http "net/http"
 	"net/http/httptest"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"

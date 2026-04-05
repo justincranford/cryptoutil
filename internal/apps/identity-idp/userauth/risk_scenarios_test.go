@@ -7,14 +7,14 @@
 package userauth
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"math"
 	"testing"
 	"time"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-
 )
 
 // TestRiskScenario_LowRisk tests low-risk authentication scenarios.

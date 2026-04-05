@@ -7,12 +7,13 @@ import (
 	"crypto/ed25519"
 	crand "crypto/rand"
 	"crypto/x509/pkix"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"math/big"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilCACrypto "cryptoutil/internal/apps/pki-ca/crypto"
 

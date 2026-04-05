@@ -6,17 +6,17 @@
 package orm
 
 import (
-"fmt"
-"testing"
+	"fmt"
+	"testing"
 
-cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
-cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
-cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
+	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-"github.com/jackc/pgx/v5/pgconn"
-googleUuid "github.com/google/uuid"
-"github.com/stretchr/testify/require"
-"gorm.io/gorm"
+	googleUuid "github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/stretchr/testify/require"
+	"gorm.io/gorm"
 )
 
 // TestToAppErr_GormDuplicatedKey tests toAppErr handling of gorm.ErrDuplicatedKey.

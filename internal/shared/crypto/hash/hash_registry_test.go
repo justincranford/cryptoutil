@@ -5,9 +5,10 @@
 package hash
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"strings"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilSharedCryptoDigests "cryptoutil/internal/shared/crypto/digests"
 

@@ -6,15 +6,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-jose/go-jose/v4/jwt"
-	"github.com/stretchr/testify/require"
-	_ "modernc.org/sqlite" // CGO-free SQLite driver.
 	crand "crypto/rand"
+	rsa "crypto/rsa"
 	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose-ja/server/model"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-	googleUuid "github.com/google/uuid"
 	jose "github.com/go-jose/go-jose/v4"
-	rsa "crypto/rsa"
+	"github.com/go-jose/go-jose/v4/jwt"
+	googleUuid "github.com/google/uuid"
+	"github.com/stretchr/testify/require"
+	_ "modernc.org/sqlite" // CGO-free SQLite driver.
 )
 
 func TestCreateEncryptedJWT_AlgorithmKeyMismatch(t *testing.T) {

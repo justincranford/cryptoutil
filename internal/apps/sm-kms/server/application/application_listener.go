@@ -5,20 +5,20 @@
 package application
 
 import (
-"context"
-"fmt"
+	"context"
+	"fmt"
 
-cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
-cryptoutilAppsFrameworkServiceServerApplication "cryptoutil/internal/apps/framework/service/server/application"
-cryptoutilSharedCryptoCertificate "cryptoutil/internal/shared/crypto/certificate"
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
+	cryptoutilAppsFrameworkServiceServerApplication "cryptoutil/internal/apps/framework/service/server/application"
+	cryptoutilSharedCryptoCertificate "cryptoutil/internal/shared/crypto/certificate"
 )
 
 // ServerApplicationListener holds TLS configurations for both public and private servers.
 // Returned by StartServerListenerApplication after successful initialization.
 type ServerApplicationListener struct {
-PublicTLSServer  *cryptoutilSharedCryptoCertificate.Subject
-PrivateTLSServer *cryptoutilSharedCryptoCertificate.Subject
-ShutdownFunction func()
+	PublicTLSServer  *cryptoutilSharedCryptoCertificate.Subject
+	PrivateTLSServer *cryptoutilSharedCryptoCertificate.Subject
+	ShutdownFunction func()
 }
 
 // StartServerListenerApplication initializes core infrastructure (including database connectivity),
@@ -29,42 +29,42 @@ ShutdownFunction func()
 //
 // Returns an error if database connectivity fails (e.g., PostgreSQL not running).
 func StartServerListenerApplication(settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (*ServerApplicationListener, error) {
-if settings == nil {
-return nil, fmt.Errorf("settings cannot be nil")
-}
+	if settings == nil {
+		return nil, fmt.Errorf("settings cannot be nil")
+	}
 
-ctx := context.Background()
+	ctx := context.Background()
 
-// Initialize core infrastructure including database connectivity.
-// Fails for unavailable databases (e.g., PostgreSQL not running in the test environment).
-core, err := cryptoutilAppsFrameworkServiceServerApplication.StartCore(ctx, settings)
-if err != nil {
-return nil, fmt.Errorf("failed to start application core: %w", err)
-}
+	// Initialize core infrastructure including database connectivity.
+	// Fails for unavailable databases (e.g., PostgreSQL not running in the test environment).
+	core, err := cryptoutilAppsFrameworkServiceServerApplication.StartCore(ctx, settings)
+	if err != nil {
+		return nil, fmt.Errorf("failed to start application core: %w", err)
+	}
 
-// Initialize basic services (telemetry, unseal keys, JWK generation) for TLS cert generation.
-serverApplicationBasic, err := StartServerApplicationBasic(ctx, settings)
-if err != nil {
-core.Shutdown()
+	// Initialize basic services (telemetry, unseal keys, JWK generation) for TLS cert generation.
+	serverApplicationBasic, err := StartServerApplicationBasic(ctx, settings)
+	if err != nil {
+		core.Shutdown()
 
-return nil, fmt.Errorf("failed to start basic application services: %w", err)
-}
+		return nil, fmt.Errorf("failed to start basic application services: %w", err)
+	}
 
-// Generate TLS certificate subjects in memory (no disk I/O, safe for parallel tests).
-publicSubject, privateSubject, err := generateTLSServerSubjectsInMemory(settings, serverApplicationBasic)
-if err != nil {
-serverApplicationBasic.Shutdown()()
-core.Shutdown()
+	// Generate TLS certificate subjects in memory (no disk I/O, safe for parallel tests).
+	publicSubject, privateSubject, err := generateTLSServerSubjectsInMemory(settings, serverApplicationBasic)
+	if err != nil {
+		serverApplicationBasic.Shutdown()()
+		core.Shutdown()
 
-return nil, fmt.Errorf("failed to generate TLS server subjects: %w", err)
-}
+		return nil, fmt.Errorf("failed to generate TLS server subjects: %w", err)
+	}
 
-return &ServerApplicationListener{
-PublicTLSServer:  publicSubject,
-PrivateTLSServer: privateSubject,
-ShutdownFunction: func() {
-serverApplicationBasic.Shutdown()()
-core.Shutdown()
-},
-}, nil
+	return &ServerApplicationListener{
+		PublicTLSServer:  publicSubject,
+		PrivateTLSServer: privateSubject,
+		ShutdownFunction: func() {
+			serverApplicationBasic.Shutdown()()
+			core.Shutdown()
+		},
+	}, nil
 }

@@ -16,7 +16,6 @@ package middleware
 
 import (
 	"context"
-
 	"testing"
 
 	googleUuid "github.com/google/uuid"

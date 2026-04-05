@@ -16,9 +16,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilAppsSmImServer "cryptoutil/internal/apps/sm-im/server"
 	cryptoutilAppsSmImServerConfig "cryptoutil/internal/apps/sm-im/server/config"
-	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 )
 
 // initTestConfig returns an SmIMServerSettings with all required settings for tests.

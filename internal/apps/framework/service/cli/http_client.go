@@ -7,12 +7,13 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/pem"
 	"fmt"
 	"io"
 	http "net/http"
 	"os"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // LoadCACertPool loads a CA certificate from file and returns an x509.CertPool.

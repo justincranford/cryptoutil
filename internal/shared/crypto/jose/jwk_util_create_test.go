@@ -6,8 +6,9 @@ package crypto
 
 import (
 	"crypto/elliptic"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"

@@ -3,10 +3,11 @@
 package no_hardcoded_passwords
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
 
@@ -171,7 +172,6 @@ func TestCheckHardcodedPasswords_ReadFileError(t *testing.T) {
 	require.NotEmpty(t, issues)
 	require.Contains(t, issues[0], "Error reading file")
 }
-
 
 func findProjectRoot() (string, error) {
 	dir, err := os.Getwd()

@@ -6,15 +6,16 @@ package userauth_test
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityIdpUserauth "cryptoutil/internal/apps/identity-idp/userauth"
+	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 )
 
 func TestDefaultOTPGenerator_GenerateOTP(t *testing.T) {

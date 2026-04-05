@@ -11,8 +11,8 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm-im/server/model"
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
+	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm-im/server/model"
 )
 
 // TestConcurrentAccess_ParallelCreates tests concurrent Create operations for race conditions.

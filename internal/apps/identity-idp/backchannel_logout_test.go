@@ -13,8 +13,8 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityIdp "cryptoutil/internal/apps/identity-idp"
+	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 )
 
 // TestGenerateFrontChannelLogoutIframes validates front-channel logout iframe generation.

@@ -5,9 +5,10 @@
 package builder
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"database/sql"
 	"fmt"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"gorm.io/gorm"
 )

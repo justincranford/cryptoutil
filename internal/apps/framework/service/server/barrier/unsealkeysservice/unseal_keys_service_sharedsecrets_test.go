@@ -5,8 +5,9 @@
 package unsealkeysservice
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 

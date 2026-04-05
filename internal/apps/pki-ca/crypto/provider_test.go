@@ -11,8 +11,9 @@ import (
 	rsa "crypto/rsa"
 	sha256 "crypto/sha256"
 	"crypto/x509"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )

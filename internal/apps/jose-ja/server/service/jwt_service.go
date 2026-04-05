@@ -6,15 +6,16 @@ package service
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/base64"
 	json "encoding/json"
 	"fmt"
 	"time"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
+	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
 	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose-ja/server/model"
 	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose-ja/server/repository"
-	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
 
 	jose "github.com/go-jose/go-jose/v4"
 	"github.com/go-jose/go-jose/v4/jwt"

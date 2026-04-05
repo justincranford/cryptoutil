@@ -23,10 +23,10 @@ import (
 
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
-	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm-im/server/model"
-	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm-im/server/repository"
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilTestdb "cryptoutil/internal/apps/framework/service/testing/testdb"
+	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm-im/server/model"
+	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm-im/server/repository"
 
 	cryptoutilApiSmImServer "cryptoutil/api/sm-im/server"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
@@ -286,7 +286,7 @@ func TestHandleReceiveMessages_JWKDecryptionVariants(t *testing.T) {
 
 			require.Equal(t, http.StatusOK, resp.StatusCode)
 
-				var response cryptoutilApiSmImServer.ReceiveMessagesResponse
+			var response cryptoutilApiSmImServer.ReceiveMessagesResponse
 
 			err = json.NewDecoder(resp.Body).Decode(&response)
 			require.NoError(t, err)

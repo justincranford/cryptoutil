@@ -9,9 +9,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	cryptoutilAppsFrameworkServiceTestingE2eHelpers "cryptoutil/internal/apps/framework/service/testing/e2e_helpers"
 	cryptoutilAppsSkeletonTemplateServer "cryptoutil/internal/apps/skeleton-template/server"
 	cryptoutilAppsSkeletonTemplateServerConfig "cryptoutil/internal/apps/skeleton-template/server/config"
-	cryptoutilAppsFrameworkServiceTestingE2eHelpers "cryptoutil/internal/apps/framework/service/testing/e2e_helpers"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 

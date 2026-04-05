@@ -54,7 +54,7 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, readDirF
 
 		apiDir := filepath.Join(rootDir, "api", ps.PSID)
 
-			specPaths, err := collectSpecPaths(apiDir, readDirFn, readFileFn)
+		specPaths, err := collectSpecPaths(apiDir, readDirFn, readFileFn)
 		if err != nil {
 			violations = append(violations, fmt.Sprintf("%s: %v", ps.PSID, err))
 
@@ -99,7 +99,7 @@ func collectSpecPaths(apiDir string, readDirFn func(string) ([]os.DirEntry, erro
 
 		filePath := filepath.Join(apiDir, name)
 
-			paths, readErr := parseSpecPaths(filePath, readFileFn)
+		paths, readErr := parseSpecPaths(filePath, readFileFn)
 		if readErr != nil {
 			return nil, fmt.Errorf("cannot parse %s: %w", name, readErr)
 		}

@@ -20,9 +20,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilApiSmImServer "cryptoutil/api/sm-im/server"
+	cryptoutilTestdb "cryptoutil/internal/apps/framework/service/testing/testdb"
 	cryptoutilAppsSmImModel "cryptoutil/internal/apps/sm-im/server/model"
 	cryptoutilAppsSmImRepository "cryptoutil/internal/apps/sm-im/server/repository"
-	cryptoutilTestdb "cryptoutil/internal/apps/framework/service/testing/testdb"
 )
 
 // newBrokenMessageHandler creates a MessageHandler with a closed database to trigger repository errors.
@@ -276,7 +276,7 @@ func TestHandleReceiveMessages_DecryptionErrors(t *testing.T) {
 			// Should return 200 OK with empty messages (decryption failures are skipped).
 			require.Equal(t, http.StatusOK, resp.StatusCode)
 
-				var response cryptoutilApiSmImServer.ReceiveMessagesResponse
+			var response cryptoutilApiSmImServer.ReceiveMessagesResponse
 
 			err = json.NewDecoder(resp.Body).Decode(&response)
 			require.NoError(t, err)

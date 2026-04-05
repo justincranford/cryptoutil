@@ -8,15 +8,16 @@ package userauth
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityAuth "cryptoutil/internal/apps/identity-idp/auth"
+	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 )
 
 // TestAdaptiveAuth_E2E_LowRiskNoStepUp tests low-risk scenario requiring no step-up.

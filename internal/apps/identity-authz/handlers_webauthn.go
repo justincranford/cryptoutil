@@ -8,11 +8,12 @@ package authz
 import (
 	"bytes"
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/base64"
 	"errors"
 	"net/url"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	fiber "github.com/gofiber/fiber/v2"

@@ -5,9 +5,10 @@
 package idp
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/base64"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilIdentityClientAuth "cryptoutil/internal/apps/identity-authz/clientauth"
 

@@ -18,7 +18,6 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-
 // Injectable vars for testing error paths.
 var (
 	generateECDSAKeyPairFn = func(curve elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {

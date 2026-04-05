@@ -18,9 +18,9 @@ func TestValidateJoseJASettings_HappyPath(t *testing.T) {
 
 	settings := &JoseJAServerSettings{
 		ServiceFrameworkServerSettings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{},
-		DefaultMaxMaterials:           cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
-		AuditEnabled:                  true,
-		AuditSamplingRate:             cryptoutilSharedMagic.JoseJAAuditDefaultSamplingRate,
+		DefaultMaxMaterials:            cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
+		AuditEnabled:                   true,
+		AuditSamplingRate:              cryptoutilSharedMagic.JoseJAAuditDefaultSamplingRate,
 	}
 	err := validateJoseJASettings(settings)
 	require.NoError(t, err)
@@ -31,8 +31,8 @@ func TestValidateJoseJASettings_MinMaxMaterials(t *testing.T) {
 	t.Run("at_minimum", func(t *testing.T) {
 		settings := &JoseJAServerSettings{
 			ServiceFrameworkServerSettings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{},
-			DefaultMaxMaterials:           cryptoutilSharedMagic.JoseJAMinMaterials, // 1
-			AuditSamplingRate:             cryptoutilSharedMagic.IMMaxUsernameLength,
+			DefaultMaxMaterials:            cryptoutilSharedMagic.JoseJAMinMaterials, // 1
+			AuditSamplingRate:              cryptoutilSharedMagic.IMMaxUsernameLength,
 		}
 		err := validateJoseJASettings(settings)
 		require.NoError(t, err)
@@ -41,8 +41,8 @@ func TestValidateJoseJASettings_MinMaxMaterials(t *testing.T) {
 	t.Run("at_maximum", func(t *testing.T) {
 		settings := &JoseJAServerSettings{
 			ServiceFrameworkServerSettings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{},
-			DefaultMaxMaterials:           cryptoutilSharedMagic.JoseJAMaxMaterials, // 100
-			AuditSamplingRate:             cryptoutilSharedMagic.IMMaxUsernameLength,
+			DefaultMaxMaterials:            cryptoutilSharedMagic.JoseJAMaxMaterials, // 100
+			AuditSamplingRate:              cryptoutilSharedMagic.IMMaxUsernameLength,
 		}
 		err := validateJoseJASettings(settings)
 		require.NoError(t, err)
@@ -51,8 +51,8 @@ func TestValidateJoseJASettings_MinMaxMaterials(t *testing.T) {
 	t.Run("below_minimum", func(t *testing.T) {
 		settings := &JoseJAServerSettings{
 			ServiceFrameworkServerSettings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{},
-			DefaultMaxMaterials:           cryptoutilSharedMagic.JoseJAMinMaterials - 1, // 0
-			AuditSamplingRate:             cryptoutilSharedMagic.IMMaxUsernameLength,
+			DefaultMaxMaterials:            cryptoutilSharedMagic.JoseJAMinMaterials - 1, // 0
+			AuditSamplingRate:              cryptoutilSharedMagic.IMMaxUsernameLength,
 		}
 		err := validateJoseJASettings(settings)
 		require.Error(t, err)
@@ -62,8 +62,8 @@ func TestValidateJoseJASettings_MinMaxMaterials(t *testing.T) {
 	t.Run("above_maximum", func(t *testing.T) {
 		settings := &JoseJAServerSettings{
 			ServiceFrameworkServerSettings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{},
-			DefaultMaxMaterials:           cryptoutilSharedMagic.JoseJAMaxMaterials + 1, // 101
-			AuditSamplingRate:             cryptoutilSharedMagic.IMMaxUsernameLength,
+			DefaultMaxMaterials:            cryptoutilSharedMagic.JoseJAMaxMaterials + 1, // 101
+			AuditSamplingRate:              cryptoutilSharedMagic.IMMaxUsernameLength,
 		}
 		err := validateJoseJASettings(settings)
 		require.Error(t, err)
@@ -76,8 +76,8 @@ func TestValidateJoseJASettings_AuditSamplingRate(t *testing.T) {
 	t.Run("at_minimum", func(t *testing.T) {
 		settings := &JoseJAServerSettings{
 			ServiceFrameworkServerSettings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{},
-			DefaultMaxMaterials:           cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
-			AuditSamplingRate:             cryptoutilSharedMagic.JoseJAAuditMinSamplingRate, // 0
+			DefaultMaxMaterials:            cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
+			AuditSamplingRate:              cryptoutilSharedMagic.JoseJAAuditMinSamplingRate, // 0
 		}
 		err := validateJoseJASettings(settings)
 		require.NoError(t, err)
@@ -86,8 +86,8 @@ func TestValidateJoseJASettings_AuditSamplingRate(t *testing.T) {
 	t.Run("at_maximum", func(t *testing.T) {
 		settings := &JoseJAServerSettings{
 			ServiceFrameworkServerSettings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{},
-			DefaultMaxMaterials:           cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
-			AuditSamplingRate:             cryptoutilSharedMagic.JoseJAAuditMaxSamplingRate, // 100
+			DefaultMaxMaterials:            cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
+			AuditSamplingRate:              cryptoutilSharedMagic.JoseJAAuditMaxSamplingRate, // 100
 		}
 		err := validateJoseJASettings(settings)
 		require.NoError(t, err)
@@ -96,8 +96,8 @@ func TestValidateJoseJASettings_AuditSamplingRate(t *testing.T) {
 	t.Run("below_minimum", func(t *testing.T) {
 		settings := &JoseJAServerSettings{
 			ServiceFrameworkServerSettings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{},
-			DefaultMaxMaterials:           cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
-			AuditSamplingRate:             cryptoutilSharedMagic.JoseJAAuditMinSamplingRate - 1, // -1
+			DefaultMaxMaterials:            cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
+			AuditSamplingRate:              cryptoutilSharedMagic.JoseJAAuditMinSamplingRate - 1, // -1
 		}
 		err := validateJoseJASettings(settings)
 		require.Error(t, err)
@@ -107,8 +107,8 @@ func TestValidateJoseJASettings_AuditSamplingRate(t *testing.T) {
 	t.Run("above_maximum", func(t *testing.T) {
 		settings := &JoseJAServerSettings{
 			ServiceFrameworkServerSettings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{},
-			DefaultMaxMaterials:           cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
-			AuditSamplingRate:             cryptoutilSharedMagic.JoseJAAuditMaxSamplingRate + 1, // 101
+			DefaultMaxMaterials:            cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
+			AuditSamplingRate:              cryptoutilSharedMagic.JoseJAAuditMaxSamplingRate + 1, // 101
 		}
 		err := validateJoseJASettings(settings)
 		require.Error(t, err)
@@ -121,8 +121,8 @@ func TestValidateJoseJASettings_MultipleErrors(t *testing.T) {
 
 	settings := &JoseJAServerSettings{
 		ServiceFrameworkServerSettings: &cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings{},
-		DefaultMaxMaterials:           0,   // Invalid: below minimum
-		AuditSamplingRate:             101, // Invalid: above maximum
+		DefaultMaxMaterials:            0,   // Invalid: below minimum
+		AuditSamplingRate:              101, // Invalid: above maximum
 	}
 	err := validateJoseJASettings(settings)
 	require.Error(t, err)

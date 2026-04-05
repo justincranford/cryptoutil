@@ -6,15 +6,16 @@ package server
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	"github.com/stretchr/testify/require"
 
-	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilAppsFrameworkServiceTestingHttpservertests "cryptoutil/internal/apps/framework/service/testing/httpservertests"
+	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 )
 
 // TestAdminServer_Start_NilContext tests Start with nil context.

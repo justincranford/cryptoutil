@@ -5,14 +5,15 @@
 package idp_test
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityIdp "cryptoutil/internal/apps/identity-idp"
+	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 )
 
 // TestRegisterMiddleware_NilConfig validates middleware registration with nil config.

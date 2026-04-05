@@ -6,15 +6,16 @@ package auth_test
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityClientAuth "cryptoutil/internal/apps/identity-authz/clientauth"
-	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityAuth "cryptoutil/internal/apps/identity-idp/auth"
+	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 )
 
 func TestEmailPasswordProfile_NewProfile(t *testing.T) {

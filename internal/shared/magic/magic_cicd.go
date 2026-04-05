@@ -378,10 +378,10 @@ var (
 	// CRITICAL: Each command excludes its own subdirectory to prevent self-modification.
 	// Keys match command names: lint-text, lint-go, lint-compose, format-go, lint-go-test, format-go-test, lint-golangci, lint-ports, lint-workflow, lint-go-mod.
 	CICDSelfExclusionPatterns = map[string]string{
-		"format-go":      `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]format_go[/\\].*\.go$`,
-		"format-go-test": `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]format_gotest[/\\].*\.go$`,
-		"lint-compose":   `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_compose[/\\].*\.go$`,
-		"lint-fitness":   `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_fitness[/\\].*\.go$`,
+		"format-go":        `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]format_go[/\\].*\.go$`,
+		"format-go-test":   `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]format_gotest[/\\].*\.go$`,
+		"lint-compose":     `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_compose[/\\].*\.go$`,
+		"lint-fitness":     `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_fitness[/\\].*\.go$`,
 		"lint-go":          `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_go[/\\].*\.go$`,
 		"lint-go-mod":      `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_go_mod[/\\].*\.go$`,
 		"lint-go-test":     `internal[/\\]apps[/\\]tools[/\\]cicd_lint[/\\]lint_gotest[/\\].*\.go$`,

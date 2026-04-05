@@ -3,9 +3,10 @@
 package combinations
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"strings"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	testify "github.com/stretchr/testify/require"
 )

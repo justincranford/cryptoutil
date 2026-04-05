@@ -5,11 +5,12 @@
 package telemetry
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	stdoutLogExporter "log/slog"
 	"math"
 	"strings"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Log level values. We use slog.Level as the underlying type so the values

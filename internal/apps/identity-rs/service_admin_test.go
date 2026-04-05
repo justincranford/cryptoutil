@@ -15,8 +15,8 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityRs "cryptoutil/internal/apps/identity-rs"
+	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	testify "github.com/stretchr/testify/require"

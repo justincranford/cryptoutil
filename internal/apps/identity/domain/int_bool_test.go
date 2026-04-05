@@ -5,9 +5,10 @@
 package domain
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"database/sql/driver"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )

@@ -5,12 +5,13 @@ package health_paths
 
 import (
 	"bufio"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
 	lintPortsCommon "cryptoutil/internal/apps/tools/cicd_lint/lint_ports/common"

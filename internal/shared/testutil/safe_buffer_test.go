@@ -5,9 +5,10 @@
 package testutil
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"sync"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )

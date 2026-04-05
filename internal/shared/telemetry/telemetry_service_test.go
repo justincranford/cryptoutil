@@ -7,12 +7,13 @@ package telemetry
 import (
 	"context"
 	crand "crypto/rand"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"math/big"
 	"os"
 	"testing"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 var (

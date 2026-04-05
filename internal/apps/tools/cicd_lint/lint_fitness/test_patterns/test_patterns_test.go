@@ -3,10 +3,11 @@
 package test_patterns
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
 
@@ -261,7 +262,6 @@ func TestCheckTestFile_FatalfViolation(t *testing.T) {
 	issues := CheckTestFile(testFile)
 	require.NotEmpty(t, issues, "t.Fatalf() should be flagged")
 }
-
 
 func findProjectRoot() (string, error) {
 	dir, err := os.Getwd()

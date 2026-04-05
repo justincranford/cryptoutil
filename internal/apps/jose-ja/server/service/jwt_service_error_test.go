@@ -7,11 +7,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
-	_ "modernc.org/sqlite" // CGO-free SQLite driver.
 	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose-ja/server/model"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	googleUuid "github.com/google/uuid"
+	"github.com/stretchr/testify/require"
+	_ "modernc.org/sqlite" // CGO-free SQLite driver.
 )
 
 func TestJWTService_CreateEncryptedJWTDatabaseError(t *testing.T) {

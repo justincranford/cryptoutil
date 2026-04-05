@@ -8,8 +8,8 @@ import (
 	"context"
 	"testing"
 
-	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/pki-ca/server/config"
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
+	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/pki-ca/server/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"

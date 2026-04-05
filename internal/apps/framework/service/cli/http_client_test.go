@@ -6,7 +6,6 @@ package cli_test
 
 import (
 	"bytes"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/pem"
 	"fmt"
 	http "net/http"
@@ -14,6 +13,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 

@@ -319,7 +319,6 @@ func TestFindInsecureSkipVerifyViolationsInDir_CheckFileError(t *testing.T) {
 	require.Error(t, err)
 }
 
-
 func findProjectRoot() (string, error) {
 	dir, err := os.Getwd()
 	if err != nil {

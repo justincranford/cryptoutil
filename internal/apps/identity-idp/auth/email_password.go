@@ -7,11 +7,12 @@ package auth
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 
-	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	cryptoutilIdentityClientAuth "cryptoutil/internal/apps/identity-authz/clientauth"
+	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
 )

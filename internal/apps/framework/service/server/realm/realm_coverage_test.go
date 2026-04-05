@@ -6,7 +6,6 @@ package realm
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"database/sql"
 	"encoding/base64"
 	json "encoding/json"
@@ -18,6 +17,8 @@ import (
 	"path/filepath"
 	"runtime"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"

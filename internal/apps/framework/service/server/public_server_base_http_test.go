@@ -7,10 +7,11 @@ package server
 
 import (
 	"crypto/tls"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	http "net/http"
 	"testing"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 )

@@ -19,9 +19,9 @@ import (
 	"testing"
 
 	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
-	cryptoutilKmsServer "cryptoutil/internal/apps/sm-kms/server"
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilAppsFrameworkServiceTestingE2eHelpers "cryptoutil/internal/apps/framework/service/testing/e2e_helpers"
+	cryptoutilKmsServer "cryptoutil/internal/apps/sm-kms/server"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"

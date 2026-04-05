@@ -3,9 +3,10 @@
 package random
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/binary"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )

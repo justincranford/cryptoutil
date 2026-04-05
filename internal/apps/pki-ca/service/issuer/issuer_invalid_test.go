@@ -4,9 +4,10 @@ package issuer
 
 import (
 	"crypto/x509"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilCABootstrap "cryptoutil/internal/apps/pki-ca/bootstrap"
 	cryptoutilCACrypto "cryptoutil/internal/apps/pki-ca/crypto"

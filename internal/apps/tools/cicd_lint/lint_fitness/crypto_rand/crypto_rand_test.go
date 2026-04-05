@@ -367,7 +367,6 @@ func TestCheckFileForMathRand_ScannerError(t *testing.T) {
 	require.Contains(t, err.Error(), "error reading file")
 }
 
-
 func findProjectRoot() (string, error) {
 	dir, err := os.Getwd()
 	if err != nil {

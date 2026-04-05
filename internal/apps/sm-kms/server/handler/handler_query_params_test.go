@@ -3,12 +3,13 @@
 package handler
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
 
-	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
+	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
 
 	googleUuid "github.com/google/uuid"
 	openapiTypes "github.com/oapi-codegen/runtime/types"

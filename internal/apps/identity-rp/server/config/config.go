@@ -113,12 +113,12 @@ func ParseWithFlagSet(fs *pflag.FlagSet, args []string, exitIfHelp bool) (*Ident
 
 	settings := &IdentityRPServerSettings{
 		ServiceFrameworkServerSettings: baseSettings,
-		AuthzServerURL:                authzServerURL,
-		ClientID:                      clientID,
-		ClientSecret:                  clientSecret,
-		RedirectURI:                   redirectURI,
-		SPAOrigin:                     spaOrigin,
-		SessionSecret:                 sessionSecret,
+		AuthzServerURL:                 authzServerURL,
+		ClientID:                       clientID,
+		ClientSecret:                   clientSecret,
+		RedirectURI:                    redirectURI,
+		SPAOrigin:                      spaOrigin,
+		SessionSecret:                  sessionSecret,
 	}
 
 	if !fs.Changed("bind-public-port") {
@@ -214,12 +214,12 @@ func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *IdentityRPSe
 
 	return &IdentityRPServerSettings{
 		ServiceFrameworkServerSettings: baseConfig,
-		AuthzServerURL:                defaultAuthzServerURL,
-		ClientID:                      "",
-		ClientSecret:                  "",
-		RedirectURI:                   "",
-		SPAOrigin:                     defaultSPAOrigin,
-		SessionSecret:                 "",
+		AuthzServerURL:                 defaultAuthzServerURL,
+		ClientID:                       "",
+		ClientSecret:                   "",
+		RedirectURI:                    "",
+		SPAOrigin:                      defaultSPAOrigin,
+		SessionSecret:                  "",
 	}
 }
 

@@ -5,14 +5,15 @@ package repository
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	"strings"
 	"testing"
 
-	googleUuid "github.com/google/uuid"
-	"github.com/stretchr/testify/require"
-	"strings"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	cryptoutilAppsJoseJaModel "cryptoutil/internal/apps/jose-ja/server/model"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
+	googleUuid "github.com/google/uuid"
+	"github.com/stretchr/testify/require"
 )
 
 // testNonExistentOperation is a test constant to satisfy goconst linter.

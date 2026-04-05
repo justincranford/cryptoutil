@@ -15,11 +15,11 @@ import (
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
+	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
+	cryptoutilAppsFrameworkServiceTestutil "cryptoutil/internal/apps/framework/service/testutil"
 	cryptoutilAppsSmImServer "cryptoutil/internal/apps/sm-im/server"
 	cryptoutilAppsSmImServerConfig "cryptoutil/internal/apps/sm-im/server/config"
 	cryptoutilAppsSmImTesting "cryptoutil/internal/apps/sm-im/testing"
-	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
-	cryptoutilAppsFrameworkServiceTestutil "cryptoutil/internal/apps/framework/service/testutil"
 )
 
 var (

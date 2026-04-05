@@ -6,15 +6,16 @@ package auth_test
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityAuth "cryptoutil/internal/apps/identity-idp/auth"
+	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilSharedCryptoHash "cryptoutil/internal/shared/crypto/hash"
 )
 

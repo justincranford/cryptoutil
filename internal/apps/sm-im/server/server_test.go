@@ -5,15 +5,16 @@ package server_test
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"testing"
 	"time"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	"github.com/stretchr/testify/require"
 
+	cryptoutilTestingTestserver "cryptoutil/internal/apps/framework/service/testing/testserver"
 	cryptoutilAppsSmImServer "cryptoutil/internal/apps/sm-im/server"
 	cryptoutilAppsSmImServerConfig "cryptoutil/internal/apps/sm-im/server/config"
-	cryptoutilTestingTestserver "cryptoutil/internal/apps/framework/service/testing/testserver"
 )
 
 // TestServer_AccessorMethods tests all server accessor methods (delegation to Application).

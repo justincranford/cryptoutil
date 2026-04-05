@@ -3,10 +3,11 @@
 package bind_address_safety
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"os"
 	"path/filepath"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
 
@@ -252,7 +253,6 @@ func TestEnforceBindAddressSafety_FilteredFiles(t *testing.T) {
 
 	require.NoError(t, err, "Should succeed when only filtered files are provided")
 }
-
 
 func findProjectRoot() (string, error) {
 	dir, err := os.Getwd()

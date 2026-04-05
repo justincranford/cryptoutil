@@ -9,15 +9,15 @@ import (
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
 	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
-	cryptoutilKmsMiddleware "cryptoutil/internal/apps/sm-kms/server/middleware"
-	cryptoutilKmsServerRepository "cryptoutil/internal/apps/sm-kms/server/repository"
-	cryptoutilOrmRepository "cryptoutil/internal/apps/sm-kms/server/repository/orm"
+	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilAppsFrameworkServiceServerApplication "cryptoutil/internal/apps/framework/service/server/application"
 	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
 	cryptoutilAppsFrameworkServiceServerRepository "cryptoutil/internal/apps/framework/service/server/repository"
+	cryptoutilKmsMiddleware "cryptoutil/internal/apps/sm-kms/server/middleware"
+	cryptoutilKmsServerRepository "cryptoutil/internal/apps/sm-kms/server/repository"
+	cryptoutilOrmRepository "cryptoutil/internal/apps/sm-kms/server/repository/orm"
 
 	googleUuid "github.com/google/uuid"
 	testify "github.com/stretchr/testify/require"

@@ -5,17 +5,18 @@ package server
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	http "net/http"
 	"testing"
 	"time"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	"github.com/stretchr/testify/require"
 
-	cryptoutilAppsJoseJaServerConfig "cryptoutil/internal/apps/jose-ja/server/config"
 	cryptoutilContract "cryptoutil/internal/apps/framework/service/testing/contract"
 	cryptoutilTestingTestserver "cryptoutil/internal/apps/framework/service/testing/testserver"
+	cryptoutilAppsJoseJaServerConfig "cryptoutil/internal/apps/jose-ja/server/config"
 )
 
 func TestJoseJAServer_Lifecycle(t *testing.T) {

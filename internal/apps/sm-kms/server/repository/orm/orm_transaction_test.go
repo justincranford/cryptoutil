@@ -10,11 +10,12 @@ package orm
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"os"
 	"testing"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
 	cryptoutilAppsFrameworkServiceServerApplication "cryptoutil/internal/apps/framework/service/server/application"
@@ -24,8 +25,8 @@ import (
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
-	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
 	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
+	cryptoutilKmsServer "cryptoutil/api/sm-kms/server"
 
 	googleUuid "github.com/google/uuid"
 	_ "github.com/jackc/pgx/v5/stdlib"

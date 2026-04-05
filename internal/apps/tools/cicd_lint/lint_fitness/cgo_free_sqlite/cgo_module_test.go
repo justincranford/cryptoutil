@@ -479,7 +479,6 @@ func TestCheckRequiredCGOModule_ScannerError(t *testing.T) {
 	require.Contains(t, err.Error(), "error reading go.mod")
 }
 
-
 func findProjectRoot() (string, error) {
 	dir, err := os.Getwd()
 	if err != nil {

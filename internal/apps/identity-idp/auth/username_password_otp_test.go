@@ -12,8 +12,8 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityAuth "cryptoutil/internal/apps/identity-idp/auth"
+	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 )
 
 func TestNewOTPService(t *testing.T) {

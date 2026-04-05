@@ -5,10 +5,11 @@ package email
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"net/smtp"
 	"strings"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // EmailService interface defines email sending capabilities.

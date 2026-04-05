@@ -9,8 +9,8 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose-ja/server/repository"
 	cryptoutilAppsFrameworkServiceServerBarrier "cryptoutil/internal/apps/framework/service/server/barrier"
+	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose-ja/server/repository"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	jose "github.com/go-jose/go-jose/v4"

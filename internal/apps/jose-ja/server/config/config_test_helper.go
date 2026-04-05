@@ -30,9 +30,9 @@ func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *JoseJAServer
 
 	return &JoseJAServerSettings{
 		ServiceFrameworkServerSettings: baseConfig,
-		DefaultMaxMaterials:           cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
-		AuditEnabled:                  cryptoutilSharedMagic.JoseJAAuditDefaultEnabled,
-		AuditSamplingRate:             cryptoutilSharedMagic.JoseJAAuditDefaultSamplingRate,
+		DefaultMaxMaterials:            cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
+		AuditEnabled:                   cryptoutilSharedMagic.JoseJAAuditDefaultEnabled,
+		AuditSamplingRate:              cryptoutilSharedMagic.JoseJAAuditDefaultSamplingRate,
 	}
 }
 

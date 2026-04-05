@@ -6,19 +6,20 @@ package idp_test
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	http "net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
+	cryptoutilIdentityIdp "cryptoutil/internal/apps/identity-idp"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityIdp "cryptoutil/internal/apps/identity-idp"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
 )
 

@@ -4,8 +4,9 @@
 package authz
 
 import (
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 

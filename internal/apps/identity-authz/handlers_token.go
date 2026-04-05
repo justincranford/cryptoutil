@@ -13,8 +13,8 @@ import (
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
 	cryptoutilIdentityAuthzPkce "cryptoutil/internal/apps/identity-authz/pkce"
+	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )

@@ -6,11 +6,12 @@ package random
 
 import (
 	crand "crypto/rand"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"io"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 )

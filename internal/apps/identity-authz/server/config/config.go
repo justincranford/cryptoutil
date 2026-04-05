@@ -118,12 +118,12 @@ func ParseWithFlagSet(fs *pflag.FlagSet, args []string, exitIfHelp bool) (*Ident
 
 	settings := &IdentityAuthzServerSettings{
 		ServiceFrameworkServerSettings: baseSettings,
-		Issuer:                        issuer,
-		TokenLifetime:                 tokenLifetime,
-		RefreshTokenLifetime:          refreshTokenLifetime,
-		AuthorizationCodeTTL:          authorizationCodeTTL,
-		EnableDiscovery:               enableDiscovery,
-		EnableDynamicRegistration:     enableDynamicRegistration,
+		Issuer:                         issuer,
+		TokenLifetime:                  tokenLifetime,
+		RefreshTokenLifetime:           refreshTokenLifetime,
+		AuthorizationCodeTTL:           authorizationCodeTTL,
+		EnableDiscovery:                enableDiscovery,
+		EnableDynamicRegistration:      enableDynamicRegistration,
 	}
 
 	// Override template defaults with identity-authz specific values.
@@ -217,12 +217,12 @@ func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *IdentityAuth
 
 	return &IdentityAuthzServerSettings{
 		ServiceFrameworkServerSettings: baseConfig,
-		Issuer:                        defaultIssuer,
-		TokenLifetime:                 defaultTokenLifetime,
-		RefreshTokenLifetime:          defaultRefreshTokenLifetime,
-		AuthorizationCodeTTL:          defaultAuthorizationCodeTTL,
-		EnableDiscovery:               defaultEnableDiscovery,
-		EnableDynamicRegistration:     defaultEnableDynReg,
+		Issuer:                         defaultIssuer,
+		TokenLifetime:                  defaultTokenLifetime,
+		RefreshTokenLifetime:           defaultRefreshTokenLifetime,
+		AuthorizationCodeTTL:           defaultAuthorizationCodeTTL,
+		EnableDiscovery:                defaultEnableDiscovery,
+		EnableDynamicRegistration:      defaultEnableDynReg,
 	}
 }
 

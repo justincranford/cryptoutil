@@ -6,9 +6,10 @@ package crypto
 
 import (
 	"crypto"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"fmt"
 	"testing"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	cryptoutilOpenapiModel "cryptoutil/api/sm-kms/models"
 	joseCert "github.com/lestrrat-go/jwx/v3/cert"
