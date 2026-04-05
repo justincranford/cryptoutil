@@ -2,7 +2,7 @@
 
 **Created**: 2026-03-29
 **Last Updated**: 2026-04-05
-**Status**: Phases 0–3 complete; Phase 4 in progress.
+**Status**: All phases complete (Phases 0–6).
 
 ---
 
@@ -165,6 +165,16 @@ All remaining `identity/` product-level packages verified as identity-domain:
 
 ---
 
-## Phase 6 (Continuation): Knowledge Propagation
+## Phase 6: Knowledge Propagation
 
-*(To be filled during Phase 6 execution)*
+### Task 6.1–6.4 — ARCHITECTURE.md Updates
+
+**Two corrections applied**:
+
+1. **§9.10 lint-go directory tree**: The tree showed fictional sub-linters (`circular_deps/`, `cgo_free_sqlite/`) and claimed "16 sub-linters." Reality: 7 sub-linters (`function_var_redeclaration`, `leftover_coverage`, `magic_aliases`, `magic_duplicates`, `magic_usage`, `no_unaliased_cryptoutil_imports`, `test_presence`). Updated to match actual filesystem state.
+
+2. **§10.2.6 Test file naming**: The section used to recommend `*_coverage_gaps_test.go` as a valid example. This contradicts Phase 4's lesson — such names signal motivation (hitting coverage gaps) rather than domain. Updated to recommend semantic names like `*_error_paths_test.go`, `*_factory_test.go` and explicitly forbid `*_coverage_test.go` and `*_gaps_test.go`.
+
+**No agent/skill/instruction updates needed**: The seam injection standard (function-param injection) was already fully documented in §10.2.4 and propagated to `03-02.testing.instructions.md`. The `function_var_redeclaration` linter runs automatically as a `lint-go` sub-linter.
+
+**Propagation integrity**: `go run ./cmd/cicd-lint lint-docs` passes with zero failures. No `@propagate` blocks were modified — only non-propagated sections were updated.

@@ -2625,10 +2625,15 @@ internal/apps/tools/cicd_lint/
 │   ├── lint_text.go                                # Lint() + registeredLinters
 │   └── utf8/utf8.go                                # Sub-linter: UTF-8 enforcement
 ├── lint_go/                                          # lint-go command
-│   ├── lint_go.go                                  # Lint() + registeredLinters (16 sub-linters)
-│   ├── circular_deps/                              # Sub-linter
-│   ├── cgo_free_sqlite/                            # Sub-linter
-│   └── ... (14 more sub-linters)
+│   ├── lint_go.go                                  # Lint() + registeredLinters (7 sub-linters)
+│   ├── common/                                     # Shared helpers
+│   ├── function_var_redeclaration/                 # Sub-linter: forbid var xxxFn = pkg.Func
+│   ├── leftover_coverage/                          # Sub-linter: detect _coverage_ test files
+│   ├── magic_aliases/                              # Sub-linter: import alias enforcement
+│   ├── magic_duplicates/                           # Sub-linter: duplicate magic constants
+│   ├── magic_usage/                                # Sub-linter: literal-use violations
+│   ├── no_unaliased_cryptoutil_imports/            # Sub-linter: require aliases on internal imports
+│   └── test_presence/                              # Sub-linter: require test files per package
 ├── lint_go_mod/                                      # lint-go-mod command
 │   ├── lint_go_mod.go                              # Lint() + registeredLinters
 │   └── outdated_deps/                              # Sub-linter
@@ -3131,7 +3136,7 @@ Seam variables (see §10.2.4) are a common cause of sequential tests.
 
 **500-line hard limit per file**: When merging would exceed 500 lines, keep files separate with clear thematic grouping.
 
-**Naming**: Use descriptive thematic names (`*_error_paths_test.go`, `*_db_errors_test.go`, `*_coverage_gaps_test.go`) rather than implementation-detail names.
+**Naming**: Use descriptive semantic names (`*_error_paths_test.go`, `*_factory_test.go`, `*_db_errors_test.go`) that describe WHAT is being tested, not WHY the test was written. NEVER use `*_coverage_test.go` or `*_gaps_test.go` — these describe motivation (hitting coverage) rather than domain. Use `*_test_util_test.go` to test test-utility functions.
 
 ### 10.3 Integration Testing Strategy
 
