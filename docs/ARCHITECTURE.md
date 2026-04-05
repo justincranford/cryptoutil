@@ -83,6 +83,14 @@ This document is structured to serve multiple audiences:
 | Multi-tenancy | [7.2](#72-multi-tenancy-architecture--strategy) | [2.2](#22-architecture-strategy) |
 | FIPS 140-3 | [6.1](#61-fips-140-3-compliance-strategy) | [6.4.1](#641-fips-140-3-compliance-always-enabled) |
 | Fitness linters | [9.11.1](#9111-fitness-sub-linter-catalog) | [9.11](#911-architecture-fitness-functions) |
+| Agent orchestration | [2.1](#21-agent-orchestration-strategy) | [14.11](#1411-claude-code-autonomous-execution), [B.5](#b5-agent-catalog--handoff-matrix) |
+| Service framework / builder | [5.1](#51-service-framework-pattern) | [5.2](#52-service-builder-pattern), [9.10](#910-cicd-command-architecture) |
+| CGO-free compilation | [11.1.2](#1112-cgo-ban---critical) | [3.1](#31-product-overview) |
+| Autonomous execution | [14.11](#1411-claude-code-autonomous-execution) | [2.4](#24-implementation-strategy) |
+| Spec-Driven Development (SDD) | [1.1](#11-vision-statement) | [2.3](#23-design-strategy) |
+| Elastic key ring | [6.6](#66-jose-architecture--strategy) | [6.4.5](#645-key-rotation-strategies) |
+| Barrier / encryption-at-rest | [6.4.2](#642-key-hierarchy-barrier-service) | [6.7](#67-key-management-system-architecture) |
+| CA/Browser Forum compliance | [6.5](#65-pki-architecture--strategy) | [C.2](#c2-pki-standards-compliance) |
 
 ### Document Conventions
 
@@ -167,6 +175,15 @@ This document is structured to serve multiple audiences:
 - **Configuration management**: YAML files + CLI parameters
 - **Graceful shutdown**: Signal handling and connection draining
 
+#### 🤖 AI-Augmented Platform Engineering
+
+- **Agent orchestration**: Copilot agents, Claude Code agents, dual canonical format, handoff flows, lint-agent-drift enforcement (see [Section 2.1](#21-agent-orchestration-strategy))
+- **Service framework & builder**: Shared HTTPS, TLS, database, barrier, session, and realm subsystems — eliminates 48,000+ lines of boilerplate per service (see [Section 5.1](#51-service-framework-pattern))
+- **Architecture fitness functions**: Programmatic invariant enforcement via 18+ fitness sub-linters (parallel-tests, file-size, test-patterns, entity-registry-completeness, and more — see [Section 9.11](#911-architecture-fitness-functions))
+- **Documentation propagation system**: `@source`/`@propagate` markers keep instruction files, agent files, and `ARCHITECTURE.md` byte-for-byte in sync; drift detected by `lint-docs` (see [Section 13.4](#134-documentation-propagation-strategy))
+- **Developer inner-loop tooling**: `cicd-lint` with 13 linters, 2 formatters, and 1 operational script enforces project invariants locally before every commit (see [Section 9.10](#910-cicd-command-architecture))
+- **Autonomous execution protocol**: Beast-mode agents and pre-commit quality gates enforce continuous-work, evidence-based completion, and end-of-turn commit discipline (see [Section 14.11](#1411-claude-code-autonomous-execution))
+
 ### 1.3 Core Principles
 
 #### Security-First Design
@@ -193,6 +210,9 @@ See [Section 11.1 Maximum Quality Strategy](#111-maximum-quality-strategy---mand
 - **Comprehensive testing**: Build, unit, integration, E2E, code coverage, mutation, benchmark, fuzzing, race condition, property-based, load, SAST, DAST, gitleaks, linting, formatting
 - **Observability built-in**: Structured logging, tracing, metrics from day one
 - **Documentation as code**: Single source of truth for architecture and implementation
+- **Service framework**: Reusable builder eliminates 48,000+ lines of boilerplate per new service
+- **Architecture fitness functions**: 18+ programmatic linters enforce invariants on every commit (no manual audit needed)
+- **CGO-free compilation**: `CGO_ENABLED=0` throughout — pure Go static binaries, fully cross-compilable
 
 ### 1.4 Success Metrics
 
