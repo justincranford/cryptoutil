@@ -8,7 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
@@ -45,7 +45,7 @@ func newIntermediateKeysServiceInternal(telemetryService *cryptoutilSharedTeleme
 		return nil, fmt.Errorf("rootKeysService must be non-nil")
 	}
 
-	err := initializeFirstIntermediateJWKInternal(jwkGenService, repository, rootKeysService, generateJWEJWKFn)
+	err := initializeFirstIntermediateJWKInternal(telemetryService.Slogger, jwkGenService, repository, rootKeysService, generateJWEJWKFn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize first intermediate JWK: %w", err)
 	}
@@ -53,7 +53,7 @@ func newIntermediateKeysServiceInternal(telemetryService *cryptoutilSharedTeleme
 	return &IntermediateKeysService{telemetryService: telemetryService, jwkGenService: jwkGenService, repository: repository, rootKeysService: rootKeysService}, nil
 }
 
-func initializeFirstIntermediateJWKInternal(jwkGenService *cryptoutilSharedCryptoJose.JWKGenService, repository Repository, rootKeysService *RootKeysService, generateJWEJWKFn func(svc *cryptoutilSharedCryptoJose.JWKGenService) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error)) error {
+func initializeFirstIntermediateJWKInternal(slogger *slog.Logger, jwkGenService *cryptoutilSharedCryptoJose.JWKGenService, repository Repository, rootKeysService *RootKeysService, generateJWEJWKFn func(svc *cryptoutilSharedCryptoJose.JWKGenService) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error)) error {
 	var encryptedIntermediateKeyLatest *IntermediateKey
 
 	var err error
@@ -70,23 +70,23 @@ func initializeFirstIntermediateJWKInternal(jwkGenService *cryptoutilSharedCrypt
 
 	// DEBUG: Log error handling decision.
 	isNoIntermediateKeyErr := errors.Is(err, ErrNoIntermediateKeyFound)
-	log.Printf("DEBUG initializeFirstIntermediateJWK: err=%v, isNoIntermediateKeyFound=%v, encryptedIntermediateKeyLatest=%v", err, isNoIntermediateKeyErr, encryptedIntermediateKeyLatest)
+	slogger.Info("DEBUG initializeFirstIntermediateJWK: error state", slog.Any("err", err), slog.Bool("isNoIntermediateKeyFound", isNoIntermediateKeyErr), slog.Any("encryptedIntermediateKeyLatest", encryptedIntermediateKeyLatest))
 
 	if err != nil && !isNoIntermediateKeyErr {
 		return fmt.Errorf("failed to get encrypted intermediate JWK latest from DB: %w", err)
 	}
 
 	if encryptedIntermediateKeyLatest == nil {
-		log.Printf("DEBUG initializeFirstIntermediateJWK: Creating first intermediate JWK")
+		slogger.Info("DEBUG initializeFirstIntermediateJWK: Creating first intermediate JWK")
 
 		intermediateKeyKidUUID, clearIntermediateKey, _, _, _, err := generateJWEJWKFn(jwkGenService)
 		if err != nil {
-			log.Printf("DEBUG initializeFirstIntermediateJWK: GenerateJWEJWK failed: %v", err)
+			slogger.Info("DEBUG initializeFirstIntermediateJWK: GenerateJWEJWK failed", slog.Any("err", err))
 
 			return fmt.Errorf("failed to generate first intermediate JWK: %w", err)
 		}
 
-		log.Printf("DEBUG initializeFirstIntermediateJWK: Generated JWK with kid=%v", intermediateKeyKidUUID)
+		slogger.Info("DEBUG initializeFirstIntermediateJWK: Generated JWK", slog.Any("kid", intermediateKeyKidUUID))
 
 		var encryptedIntermediateKeyBytes []byte
 
@@ -95,33 +95,33 @@ func initializeFirstIntermediateJWKInternal(jwkGenService *cryptoutilSharedCrypt
 		err = repository.WithTransaction(context.Background(), func(sqlTransaction Transaction) error {
 			encryptedIntermediateKeyBytes, rootKeyKidUUID, err = rootKeysService.EncryptKey(sqlTransaction, clearIntermediateKey)
 			if err != nil {
-				log.Printf("DEBUG initializeFirstIntermediateJWK: EncryptKey failed: %v", err)
+				slogger.Info("DEBUG initializeFirstIntermediateJWK: EncryptKey failed", slog.Any("err", err))
 
 				return fmt.Errorf("failed to encrypt first intermediate JWK: %w", err)
 			}
 
-			log.Printf("DEBUG initializeFirstIntermediateJWK: Encrypted intermediate JWK, len=%d, rootKeyKid=%v", len(encryptedIntermediateKeyBytes), rootKeyKidUUID)
+			slogger.Info("DEBUG initializeFirstIntermediateJWK: Encrypted intermediate JWK", slog.Int("len", len(encryptedIntermediateKeyBytes)), slog.Any("rootKeyKid", rootKeyKidUUID))
 
 			firstEncryptedIntermediateKey := &IntermediateKey{UUID: *intermediateKeyKidUUID, Encrypted: string(encryptedIntermediateKeyBytes), KEKUUID: *rootKeyKidUUID}
 
 			err = sqlTransaction.AddIntermediateKey(firstEncryptedIntermediateKey)
 			if err != nil {
-				log.Printf("DEBUG initializeFirstIntermediateJWK: AddIntermediateKey failed: %v", err)
+				slogger.Info("DEBUG initializeFirstIntermediateJWK: AddIntermediateKey failed", slog.Any("err", err))
 
 				return fmt.Errorf("failed to store first intermediate JWK: %w", err)
 			}
 
-			log.Printf("DEBUG initializeFirstIntermediateJWK: Successfully stored first intermediate JWK")
+			slogger.Info("DEBUG initializeFirstIntermediateJWK: Successfully stored first intermediate JWK")
 
 			return nil
 		})
 		if err != nil {
-			log.Printf("DEBUG initializeFirstIntermediateJWK: Transaction failed: %v", err)
+			slogger.Info("DEBUG initializeFirstIntermediateJWK: Transaction failed", slog.Any("err", err))
 
 			return fmt.Errorf("failed to encrypt and store first intermediate first JWK: %w", err)
 		}
 
-		log.Printf("DEBUG initializeFirstIntermediateJWK: Successfully created first intermediate JWK")
+		slogger.Info("DEBUG initializeFirstIntermediateJWK: Successfully created first intermediate JWK")
 	}
 
 	return nil

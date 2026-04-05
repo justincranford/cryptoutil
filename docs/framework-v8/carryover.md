@@ -7,18 +7,21 @@ Numbered list, prioritized from highest to lowest impact. Items marked ✅ are c
 
 ---
 
-## 1. Move `internal/shared/apperr/` → `internal/apps/framework/apperr/` [HIGH]
+## 1. ~~Move `internal/shared/apperr/` → `internal/apps/framework/apperr/`~~ [BLOCKED]
 
 **Current state**: `internal/shared/apperr/` contains `app_errors.go`, `http_errors.go`, and
 `http_status_line_and_code.go` — application-level HTTP error abstraction used by all services.
 
-**Why HIGH**: This is an architectural correctness issue. `internal/shared/` is for truly cross-cutting
-infrastructure utilities (crypto, telemetry, magic constants). Application error types that
-map to HTTP status codes are a **service framework concern** — they belong in
-`internal/apps/framework/apperr/` alongside `ServerConfig`, `DatabaseConfig`, etc. Keeping them
-in `internal/shared/` violates the layering rule established during framework-v7.
+**Why BLOCKED**: Moving `apperr` to `internal/apps/framework/` would create a circular dependency.
+The package is imported by `internal/shared/crypto/jose/` (10+ files), `internal/shared/util/random/`,
+and `internal/shared/telemetry/` — all of which live in `internal/shared/`. These shared packages
+CANNOT import from `internal/apps/framework/` (lower layer cannot depend on upper layer).
+The package legitimately IS cross-cutting infrastructure: UUID validation errors and HTTP error
+mapping are used at every layer. It correctly belongs in `internal/shared/`.
 
-**Action**: Move the package, update all import paths, run `go build ./...` + `golangci-lint run`.
+**Resolution**: Keep `internal/shared/apperr/` in its current location. The original rationale
+("HTTP status codes are a framework concern") is incorrect — the error types are used by
+shared crypto, telemetry, and utility packages that are below the framework layer.
 
 ---
 
@@ -111,19 +114,21 @@ The skill covers audit, pair creation, migration workflow, and legacy status che
 
 ---
 
-## 6. `const-redefine` Linter: Verify Blocking in CI/CD [MEDIUM]
+## 6. ✅ `const-redefine` Linter: Verify Blocking in CI/CD [MEDIUM]
 
-**Current state**: The `magic-usage` sub-linter within `lint-go` enforces two categories:
-`literal-use` (BLOCKING) and `const-redefine` (was informational, corrected to BLOCKING in
-Task 3.4). This correction may not be propagated to all CI/CD pipeline stages.
+**Status**: VERIFIED — correctly implemented.
 
-**Why MEDIUM**: `const-redefine` detects values that are re-declared as local constants outside
-the magic package — always a violation. If CI/CD still treats this as informational, the fix
-will not prevent regressions.
+**Findings**: The `magic-usage` sub-linter within `lint-go` splits const-redefine into two
+sub-categories with correct blocking behavior:
+- `literal-use` → BLOCKING (exit code 1)
+- `const-redefine-string` → BLOCKING (exit code 1) — redefining a magic string constant
+  outside the magic package is always wrong
+- `const-redefine-numeric` → INFORMATIONAL (exit code 0) — small integers frequently coincide
+  with magic values but represent different concepts (retry counts, buffer sizes)
 
-**Action**: Verify `go run ./cmd/cicd-lint lint-go` reports `const-redefine` violations with
-exit code 1. Run the lint-go fitness test suite to confirm blocking behavior. If not blocking,
-trace through `magic_usage.go` and update the severity classification.
+Test coverage confirms this in `magic_usage_test.go`:
+`TestCheckMagicUsageInDir_ConstRedefine` (line 85) verifies string const-redefine blocks,
+and `TestCheckMagicUsageInDir_NumericConstRedefineInfo` (line 181) verifies numeric is informational.
 
 ---
 
@@ -144,13 +149,16 @@ Ensure `pom.xml` is updated with the new simulation entry points.
 
 ---
 
-## 8. Debug Log Cleanup in Barrier Service [LOW]
+## 8. ✅ Debug Log Cleanup in Barrier Service [LOW]
 
-**Current state**: `internal/apps/framework/service/server/barrier/intermediate_keys_service.go`
-contains ~10 `log.Printf("DEBUG ...")` statements from development debugging.
+**Status**: COMPLETED — converted to structured logging via TelemetryService.Slogger.
 
-**Why LOW**: Debug logging at INFO level pollutes production logs. These should be converted to
-proper structured logging (zap) at DEBUG level or removed if they are no longer needed.
-
-**Action**: Replace `log.Printf("DEBUG ...")` calls with `logger.Debug(...)` using zap structured
-logging, or remove if the debug context is no longer needed after initial implementation.
+**What was done**: Replaced all `log.Printf("DEBUG ...")` calls in both
+`intermediate_keys_service.go` and `root_keys_service.go` with `slogger.Info("DEBUG ...")`
+using structured `slog.Attr` attributes (slog.Any, slog.Bool, slog.Int). The `"log"` stdlib
+import was replaced with `"log/slog"`. The package-level init functions (`initializeFirstIntermediateJWKInternal`
+and `initializeFirstRootJWK`) received a `slogger *slog.Logger` parameter, passed from
+`telemetryService.Slogger` by their callers. Debug message text prefixed with "DEBUG" was
+preserved per user request. All other framework code was audited — only the barrier service
+used stdlib `"log"`; the rest already used `TelemetryService.Slogger` or framework-appropriate
+loggers (Fiber log, GORM logger).

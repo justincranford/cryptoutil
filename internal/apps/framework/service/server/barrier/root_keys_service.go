@@ -8,7 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 
 	// Repository interface used instead of OrmRepository.
 	cryptoutilUnsealKeysService "cryptoutil/internal/apps/framework/service/server/barrier/unsealkeysservice"
@@ -40,7 +40,7 @@ func NewRootKeysService(telemetryService *cryptoutilSharedTelemetry.TelemetrySer
 		return nil, fmt.Errorf("unsealKeysService must be non-nil")
 	}
 
-	err := initializeFirstRootJWK(jwkGenService, repository, unsealKeysService)
+	err := initializeFirstRootJWK(telemetryService.Slogger, jwkGenService, repository, unsealKeysService)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize first root JWK: %w", err)
 	}
@@ -48,7 +48,7 @@ func NewRootKeysService(telemetryService *cryptoutilSharedTelemetry.TelemetrySer
 	return &RootKeysService{telemetryService: telemetryService, jwkGenService: jwkGenService, repository: repository, unsealKeysService: unsealKeysService}, nil
 }
 
-func initializeFirstRootJWK(jwkGenService *cryptoutilSharedCryptoJose.JWKGenService, repository Repository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService) error {
+func initializeFirstRootJWK(slogger *slog.Logger, jwkGenService *cryptoutilSharedCryptoJose.JWKGenService, repository Repository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService) error {
 	var encryptedRootKeyLatest *RootKey
 
 	var err error
@@ -63,34 +63,34 @@ func initializeFirstRootJWK(jwkGenService *cryptoutilSharedCryptoJose.JWKGenServ
 		return nil
 	})
 
-	// DEBUG: Log error handling decision
+	// DEBUG: Log error handling decision.
 	isNoRootKeyErr := errors.Is(err, ErrNoRootKeyFound)
-	log.Printf("DEBUG initializeFirstRootJWK: err=%v, isNoRootKeyFound=%v, encryptedRootKeyLatest=%v", err, isNoRootKeyErr, encryptedRootKeyLatest)
+	slogger.Info("DEBUG initializeFirstRootJWK: error state", slog.Any("err", err), slog.Bool("isNoRootKeyFound", isNoRootKeyErr), slog.Any("encryptedRootKeyLatest", encryptedRootKeyLatest))
 
 	if err != nil && !isNoRootKeyErr {
 		return fmt.Errorf("failed to get encrypted root JWK latest from DB: %w", err)
 	}
 
 	if encryptedRootKeyLatest == nil {
-		log.Printf("DEBUG initializeFirstRootJWK: Creating first root JWK")
+		slogger.Info("DEBUG initializeFirstRootJWK: Creating first root JWK")
 
 		rootKeyKidUUID, clearRootKey, _, _, _, err := jwkGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgDir)
 		if err != nil {
-			log.Printf("DEBUG initializeFirstRootJWK: GenerateJWEJWK failed: %v", err)
+			slogger.Info("DEBUG initializeFirstRootJWK: GenerateJWEJWK failed", slog.Any("err", err))
 
 			return fmt.Errorf("failed to generate first root JWK latest: %w", err)
 		}
 
-		log.Printf("DEBUG initializeFirstRootJWK: Generated JWK with kid=%v", rootKeyKidUUID)
+		slogger.Info("DEBUG initializeFirstRootJWK: Generated JWK", slog.Any("kid", rootKeyKidUUID))
 
 		encryptedRootKeyBytes, err := unsealKeysService.EncryptKey(clearRootKey)
 		if err != nil {
-			log.Printf("DEBUG initializeFirstRootJWK: EncryptKey failed: %v", err)
+			slogger.Info("DEBUG initializeFirstRootJWK: EncryptKey failed", slog.Any("err", err))
 
 			return fmt.Errorf("failed to encrypt first root JWK: %w", err)
 		}
 
-		log.Printf("DEBUG initializeFirstRootJWK: Encrypted root JWK, len=%d", len(encryptedRootKeyBytes))
+		slogger.Info("DEBUG initializeFirstRootJWK: Encrypted root JWK", slog.Int("len", len(encryptedRootKeyBytes)))
 
 		firstEncryptedRootKey := &RootKey{UUID: *rootKeyKidUUID, Encrypted: string(encryptedRootKeyBytes), KEKUUID: googleUuid.Nil}
 
@@ -98,12 +98,12 @@ func initializeFirstRootJWK(jwkGenService *cryptoutilSharedCryptoJose.JWKGenServ
 			return tx.AddRootKey(firstEncryptedRootKey)
 		})
 		if err != nil {
-			log.Printf("DEBUG initializeFirstRootJWK: AddRootKey failed: %v", err)
+			slogger.Info("DEBUG initializeFirstRootJWK: AddRootKey failed", slog.Any("err", err))
 
 			return fmt.Errorf("failed to encrypt and store first root JWK: %w", err)
 		}
 
-		log.Printf("DEBUG initializeFirstRootJWK: Successfully created first root JWK")
+		slogger.Info("DEBUG initializeFirstRootJWK: Successfully created first root JWK")
 	}
 
 	return nil
