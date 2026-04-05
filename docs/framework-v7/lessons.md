@@ -117,9 +117,51 @@ Tests mutate `sm.xxxFn` after calling `setupSessionManager(t)` — parallel-safe
 
 ---
 
-## Phase 5 (Continuation): Identity Product Refactoring
+## Phase 5: Identity Product Refactoring
 
-*(To be filled during Phase 5 execution)*
+### Task 5.1–5.4 — Identity Config Types: Root-Cause Analysis
+
+**Decision**: Tasks 5.1–5.4 (move `ServerConfig`, `DatabaseConfig`, `SessionConfig`, `ObservabilityConfig` from `identity/config` to framework) were analyzed and deferred.
+
+**Root cause**: The plan labeled these types "non-identity" but they are identity-domain types:
+- `ServerConfig.Validate()` checks identity-admin settings (AdminEnabled, AdminBindAddress, AdminPort)
+- `SessionConfig.Validate()` checks identity cookie SameSite rules
+- `DatabaseConfig.Validate()` checks identity-specific DB types ("postgres", "sqlite")
+- `ObservabilityConfig.Validate()` checks identity logging formats
+
+Moving them to framework would create a framework → identity dependency violation (the framework should not know about identity-specific validation rules). The correct architectural state is already correct: these types live in `identity/config`.
+
+**Lesson**: When a plan says "non-identity type", verify the `Validate()` methods — they reveal actual domain ownership. Generic-sounding type names can mask domain-specific validation logic.
+
+### Task 5.5 — Duplicate Product-Level Usage Files Deleted
+
+**Deleted 5 files** with zero importers across the codebase:
+- `identity/authz/authz_usage.go`
+- `identity/idp/idp_usage.go`
+- `identity/rp/rp_usage.go`
+- `identity/rs/rs_usage.go`
+- `identity/spa/spa_usage.go`
+
+**Pattern**: PS-ID canonical `usage.go` files in `identity-{psid}/{psid}_usage.go` have slightly better descriptions (mention both `/service/**` and `/browser/**` health paths). Product-level copies only mentioned `/browser/**`. The PS-IDs are the canonical source of truth.
+
+**Discovery**: Also found `rp/`, `rs/`, `spa/` subdirs (not mentioned in plan) with the same pattern — deleted them too. Always verify whether sibling directories share the same anti-pattern before committing.
+
+### Task 5.6 — Product-Level File Classification
+
+All remaining `identity/` product-level packages verified as identity-domain:
+
+| Directory | Classification |
+|-----------|----------------|
+| `config/` | Identity product YAML config (ServerConfig, DatabaseConfig, etc.) — stays |
+| `domain/` | OAuth2/OIDC entities — stays |
+| `apperr/` | Identity error codes — stays |
+| `email/` | Email notification service — stays |
+| `issuer/` | JWT/JWE token issuance — stays |
+| `jobs/` | Scheduled cleanup/rotation jobs — stays |
+| `mfa/` | TOTP/WebAuthn/OTP services — stays |
+| `ratelimit/` | In-memory rate limiter (identity-specific) — stays |
+| `repository/` | GORM repositories for identity entities — stays |
+| `rotation/` | Key rotation service — stays |
 
 ---
 
