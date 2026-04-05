@@ -18,13 +18,6 @@ import (
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 )
 
-// Injectable vars for testing - allows error path coverage without modifying public API.
-var (
-	templateClientGenerateUsernameSimpleFn = cryptoutilSharedUtilRandom.GenerateUsernameSimple
-	templateClientGeneratePasswordSimpleFn = cryptoutilSharedUtilRandom.GeneratePasswordSimple
-	templateClientJSONMarshalFn            = json.Marshal
-)
-
 // User represents a user with authentication token for client operations.
 // Reusable across all services implementing user authentication.
 type User struct {
@@ -42,7 +35,7 @@ func RegisterServiceUser(client *http.Client, baseURL, username, password string
 		"password": password,
 	}
 
-	reqJSON, err := templateClientJSONMarshalFn(reqBody)
+	reqJSON, err := json.Marshal(reqBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
@@ -99,7 +92,7 @@ func RegisterBrowserUser(client *http.Client, baseURL, username, password string
 		"password": password,
 	}
 
-	reqJSON, err := templateClientJSONMarshalFn(reqBody)
+	reqJSON, err := json.Marshal(reqBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
@@ -156,7 +149,7 @@ func LoginUser(client *http.Client, baseURL, loginPath, username, password strin
 		"password": password,
 	}
 
-	reqJSON, err := templateClientJSONMarshalFn(reqBody)
+	reqJSON, err := json.Marshal(reqBody)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal request: %w", err)
 	}
@@ -194,17 +187,34 @@ func LoginUser(client *http.Client, baseURL, loginPath, username, password strin
 	return token, nil
 }
 
+// generateCredentials generates a username and password using the provided functions.
+// Accepts fn params for testability (function-param injection pattern per ARCHITECTURE.md §10.2.4).
+func generateCredentials(
+	generateUsernameFn func() (string, error),
+	generatePasswordFn func() (string, error),
+) (string, string, error) {
+	username, err := generateUsernameFn()
+	if err != nil {
+		return "", "", fmt.Errorf("failed to generate username: %w", err)
+	}
+
+	password, err := generatePasswordFn()
+	if err != nil {
+		return "", "", fmt.Errorf("failed to generate password: %w", err)
+	}
+
+	return username, password, nil
+}
+
 // RegisterTestUserService registers a test user with randomly generated credentials via /service paths.
 // Reusable for all services implementing user registration.
 func RegisterTestUserService(client *http.Client, baseURL string) (*User, error) {
-	username, err := templateClientGenerateUsernameSimpleFn()
+	username, password, err := generateCredentials(
+		cryptoutilSharedUtilRandom.GenerateUsernameSimple,
+		cryptoutilSharedUtilRandom.GeneratePasswordSimple,
+	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate username: %w", err)
-	}
-
-	password, err := templateClientGeneratePasswordSimpleFn()
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate password: %w", err)
+		return nil, err
 	}
 
 	return RegisterServiceUser(client, baseURL, username, password)
@@ -213,14 +223,12 @@ func RegisterTestUserService(client *http.Client, baseURL string) (*User, error)
 // RegisterTestUserBrowser registers a test user with randomly generated credentials via /browser paths.
 // Reusable for all services implementing user registration.
 func RegisterTestUserBrowser(client *http.Client, baseURL string) (*User, error) {
-	username, err := templateClientGenerateUsernameSimpleFn()
+	username, password, err := generateCredentials(
+		cryptoutilSharedUtilRandom.GenerateUsernameSimple,
+		cryptoutilSharedUtilRandom.GeneratePasswordSimple,
+	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate username: %w", err)
-	}
-
-	password, err := templateClientGeneratePasswordSimpleFn()
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate password: %w", err)
+		return nil, err
 	}
 
 	return RegisterBrowserUser(client, baseURL, username, password)

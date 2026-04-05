@@ -6,109 +6,125 @@
 package sysinfo
 
 import (
-	"context"
-	"fmt"
-	"os"
-	"os/user"
-	"runtime"
+"context"
+"fmt"
+"os"
+"os/user"
+"runtime"
 
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-	"github.com/shirou/gopsutil/cpu"
-	"github.com/shirou/gopsutil/host"
-	"github.com/shirou/gopsutil/mem"
+"github.com/shirou/gopsutil/cpu"
+"github.com/shirou/gopsutil/host"
+"github.com/shirou/gopsutil/mem"
 )
 
 const (
-	// EmptyString is a constant for an empty string.
-	EmptyString = cryptoutilSharedMagic.EmptyString
+// EmptyString is a constant for an empty string.
+EmptyString = cryptoutilSharedMagic.EmptyString
 
-	// Timeouts for system info queries to prevent hanging.
+// Timeouts for system info queries to prevent hanging.
 )
 
 // RuntimeGoArch returns the GOARCH runtime architecture.
 func RuntimeGoArch() string {
-	return runtime.GOARCH
+return runtime.GOARCH
 }
 
 // RuntimeGoOS returns the GOOS runtime operating system.
 func RuntimeGoOS() string {
-	return runtime.GOOS
+return runtime.GOOS
 }
 
 // RuntimeNumCPU returns the number of CPUs available.
 func RuntimeNumCPU() int {
-	return runtime.NumCPU()
+return runtime.NumCPU()
 }
 
-// sysinfoFns holds injectable function vars for testing OS-level calls.
-var (
-	sysinfoGetCPUInfoFn       = func(ctx context.Context) ([]cpu.InfoStat, error) { return cpu.InfoWithContext(ctx) }
-	sysinfoGetVirtualMemoryFn = func(ctx context.Context) (*mem.VirtualMemoryStat, error) { return mem.VirtualMemoryWithContext(ctx) }
-	sysinfoGetOSHostnameFn    = os.Hostname
-	sysinfoGetHostIDFn        = func(ctx context.Context) (string, error) { return host.HostIDWithContext(ctx) }
-	sysinfoGetUserCurrentFn   = user.Current
-)
+// cpuInfoWithFn returns CPU info using the provided context-aware fn (function-param injection).
+func cpuInfoWithFn(ctx context.Context, fn func(context.Context) ([]cpu.InfoStat, error)) (string, string, string, string, error) {
+cpuInfo, err := fn(ctx)
+if err != nil {
+return EmptyString, EmptyString, EmptyString, EmptyString, fmt.Errorf("failed to get CPU info: %w", err)
+}
 
-// CPUInfo Returns VendorID, Family, Model, PhysicalID, ModelName.
+for _, c := range cpuInfo {
+return c.VendorID, c.Family, c.PhysicalID, c.ModelName, nil
+}
+
+return EmptyString, EmptyString, EmptyString, EmptyString, fmt.Errorf("no CPU info")
+}
+
+// CPUInfo returns VendorID, Family, Model, PhysicalID, ModelName.
 func CPUInfo() (string, string, string, string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSysInfoCPUTimeout)
-	defer cancel()
+ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSysInfoCPUTimeout)
+defer cancel()
 
-	cpuInfo, err := sysinfoGetCPUInfoFn(ctx)
-	if err != nil {
-		return EmptyString, EmptyString, EmptyString, EmptyString, fmt.Errorf("failed to get CPU info: %w", err)
-	}
+return cpuInfoWithFn(ctx, func(c context.Context) ([]cpu.InfoStat, error) { return cpu.InfoWithContext(c) })
+}
 
-	for _, cpu := range cpuInfo {
-		return cpu.VendorID, cpu.Family, cpu.PhysicalID, cpu.ModelName, nil
-	}
+// ramSizeWithFn returns RAM size using the provided context-aware fn (function-param injection).
+func ramSizeWithFn(ctx context.Context, fn func(context.Context) (*mem.VirtualMemoryStat, error)) (uint64, error) {
+vmStats, err := fn(ctx)
+if err != nil {
+return 0, fmt.Errorf("failed to get RAM info: %w", err)
+}
 
-	return EmptyString, EmptyString, EmptyString, EmptyString, fmt.Errorf("no CPU info")
+return vmStats.Total, nil
 }
 
 // RAMSize returns the total RAM size in bytes.
 func RAMSize() (uint64, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSysInfoMemoryTimeout)
-	defer cancel()
+ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSysInfoMemoryTimeout)
+defer cancel()
 
-	vmStats, err := sysinfoGetVirtualMemoryFn(ctx)
-	if err != nil {
-		return 0, fmt.Errorf("failed to get RAM info: %w", err)
-	}
+return ramSizeWithFn(ctx, func(c context.Context) (*mem.VirtualMemoryStat, error) { return mem.VirtualMemoryWithContext(c) })
+}
 
-	return vmStats.Total, nil
+// osHostnameWithFn returns the OS hostname using the provided fn (function-param injection).
+func osHostnameWithFn(fn func() (string, error)) (string, error) {
+hostname, err := fn()
+if err != nil {
+return "", fmt.Errorf("failed to get OS hostname: %w", err)
+}
+
+return hostname, nil
 }
 
 // OSHostname returns the OS hostname.
 func OSHostname() (string, error) {
-	hostname, err := sysinfoGetOSHostnameFn()
-	if err != nil {
-		return "", fmt.Errorf("failed to get OS hostname: %w", err)
-	}
+return osHostnameWithFn(os.Hostname)
+}
 
-	return hostname, nil
+// hostIDWithFn returns the host ID using the provided context-aware fn (function-param injection).
+func hostIDWithFn(ctx context.Context, fn func(context.Context) (string, error)) (string, error) {
+hostID, err := fn(ctx)
+if err != nil {
+return "", fmt.Errorf("failed to get host ID: %w", err)
+}
+
+return hostID, nil
 }
 
 // HostID returns the unique host identifier.
 func HostID() (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSysInfoHostTimeout)
-	defer cancel()
+ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSysInfoHostTimeout)
+defer cancel()
 
-	hostID, err := sysinfoGetHostIDFn(ctx)
-	if err != nil {
-		return "", fmt.Errorf("failed to get host ID: %w", err)
-	}
-
-	return hostID, nil
+return hostIDWithFn(ctx, func(c context.Context) (string, error) { return host.HostIDWithContext(c) })
 }
 
-// UserInfo Returns UserID, GroupID, Username.
-func UserInfo() (string, string, string, error) {
-	userInfo, err := sysinfoGetUserCurrentFn()
-	if err != nil {
-		return EmptyString, EmptyString, EmptyString, fmt.Errorf("failed to get user info: %w", err)
-	}
+// userInfoWithFn returns user info using the provided fn (function-param injection).
+func userInfoWithFn(fn func() (*user.User, error)) (string, string, string, error) {
+userInfo, err := fn()
+if err != nil {
+return EmptyString, EmptyString, EmptyString, fmt.Errorf("failed to get user info: %w", err)
+}
 
-	return userInfo.Uid, userInfo.Gid, userInfo.Username, nil
+return userInfo.Uid, userInfo.Gid, userInfo.Username, nil
+}
+
+// UserInfo returns UserID, GroupID, Username.
+func UserInfo() (string, string, string, error) {
+return userInfoWithFn(user.Current)
 }

@@ -5,103 +5,101 @@ package sysinfo
 
 import (
 	"context"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"errors"
 	"os/user"
 	"testing"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/mem"
 	"github.com/stretchr/testify/require"
 )
 
+var errInjected = errors.New("injected failure")
+
+// TestCPUInfo_Success tests the happy path when gopsutil returns valid CPU info.
+func TestCPUInfo_Success(t *testing.T) {
+	t.Parallel()
+
+	vendorID, family, physicalID, modelName, err := cpuInfoWithFn(context.Background(), func(_ context.Context) ([]cpu.InfoStat, error) {
+		return []cpu.InfoStat{{
+			VendorID:   cryptoutilSharedMagic.MockCPUVendorID,
+			Family:     cryptoutilSharedMagic.MockCPUFamily,
+			PhysicalID: cryptoutilSharedMagic.MockCPUModel,
+			ModelName:  cryptoutilSharedMagic.MockCPUModelName,
+		}}, nil
+	})
+	require.NoError(t, err)
+	require.Equal(t, cryptoutilSharedMagic.MockCPUVendorID, vendorID)
+	require.Equal(t, cryptoutilSharedMagic.MockCPUFamily, family)
+	require.Equal(t, cryptoutilSharedMagic.MockCPUModel, physicalID)
+	require.Equal(t, cryptoutilSharedMagic.MockCPUModelName, modelName)
+}
+
 // TestCPUInfo_Error tests error path when gopsutil fails.
-// Cannot be parallel since it modifies package-level vars.
 func TestCPUInfo_Error(t *testing.T) {
-	orig := sysinfoGetCPUInfoFn
-	sysinfoGetCPUInfoFn = func(_ context.Context) ([]cpu.InfoStat, error) {
-		return nil, errors.New("injected CPU info failure")
-	}
+	t.Parallel()
 
-	defer func() { sysinfoGetCPUInfoFn = orig }()
-
-	_, _, _, _, err := CPUInfo()
+	_, _, _, _, err := cpuInfoWithFn(context.Background(), func(_ context.Context) ([]cpu.InfoStat, error) {
+		return nil, errInjected
+	})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to get CPU info")
 }
 
 // TestCPUInfo_NoCPU tests the "no CPU info" error path when gopsutil returns empty slice.
-// Cannot be parallel since it modifies package-level vars.
 func TestCPUInfo_NoCPU(t *testing.T) {
-	orig := sysinfoGetCPUInfoFn
-	sysinfoGetCPUInfoFn = func(_ context.Context) ([]cpu.InfoStat, error) {
-		return []cpu.InfoStat{}, nil // empty slice
-	}
+	t.Parallel()
 
-	defer func() { sysinfoGetCPUInfoFn = orig }()
-
-	_, _, _, _, err := CPUInfo()
+	_, _, _, _, err := cpuInfoWithFn(context.Background(), func(_ context.Context) ([]cpu.InfoStat, error) {
+		return []cpu.InfoStat{}, nil
+	})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "no CPU info")
 }
 
 // TestRAMSize_Error tests error path when gopsutil fails.
-// Cannot be parallel since it modifies package-level vars.
 func TestRAMSize_Error(t *testing.T) {
-	orig := sysinfoGetVirtualMemoryFn
-	sysinfoGetVirtualMemoryFn = func(_ context.Context) (*mem.VirtualMemoryStat, error) {
-		return nil, errors.New("injected RAM info failure")
-	}
+	t.Parallel()
 
-	defer func() { sysinfoGetVirtualMemoryFn = orig }()
-
-	_, err := RAMSize()
+	_, err := ramSizeWithFn(context.Background(), func(_ context.Context) (*mem.VirtualMemoryStat, error) {
+		return nil, errInjected
+	})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to get RAM info")
 }
 
 // TestOSHostname_Error tests error path when os.Hostname fails.
-// Cannot be parallel since it modifies package-level vars.
 func TestOSHostname_Error(t *testing.T) {
-	orig := sysinfoGetOSHostnameFn
-	sysinfoGetOSHostnameFn = func() (string, error) {
-		return "", errors.New("injected hostname failure")
-	}
+	t.Parallel()
 
-	defer func() { sysinfoGetOSHostnameFn = orig }()
-
-	_, err := OSHostname()
+	_, err := osHostnameWithFn(func() (string, error) {
+		return "", errInjected
+	})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to get OS hostname")
 }
 
 // TestHostID_Error tests error path when gopsutil fails.
-// Cannot be parallel since it modifies package-level vars.
 func TestHostID_Error(t *testing.T) {
-	orig := sysinfoGetHostIDFn
-	sysinfoGetHostIDFn = func(_ context.Context) (string, error) {
-		return "", errors.New("injected host ID failure")
-	}
+	t.Parallel()
 
-	defer func() { sysinfoGetHostIDFn = orig }()
-
-	_, err := HostID()
+	_, err := hostIDWithFn(context.Background(), func(_ context.Context) (string, error) {
+		return "", errInjected
+	})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to get host ID")
 }
 
 // TestUserInfo_Error tests error path when user.Current fails.
-// Cannot be parallel since it modifies package-level vars.
 func TestUserInfo_Error(t *testing.T) {
-	orig := sysinfoGetUserCurrentFn
-	sysinfoGetUserCurrentFn = func() (*user.User, error) {
-		return nil, errors.New("injected user info failure")
-	}
+	t.Parallel()
 
-	defer func() { sysinfoGetUserCurrentFn = orig }()
-
-	_, _, _, err := UserInfo()
+	_, _, _, err := userInfoWithFn(func() (*user.User, error) {
+		return nil, errInjected
+	})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to get user info")
 }
@@ -115,6 +113,7 @@ type blockingProviderForTimeout struct {
 func (p *blockingProviderForTimeout) RuntimeGoArch() string {
 	return cryptoutilSharedMagic.MockRuntimeGoArch
 }
+
 func (p *blockingProviderForTimeout) RuntimeGoOS() string {
 	return cryptoutilSharedMagic.MockRuntimeGoOS
 }
