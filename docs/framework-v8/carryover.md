@@ -3,7 +3,11 @@
 **Created**: 2026-04-05
 **Source**: Analysis of `docs/framework-v7/` (plan.md, tasks.md, lessons.md) + `docs/target-structure.md` Section N
 
-Numbered list, prioritized from highest to lowest impact. Items marked ✅ are complete.
+Numbered list, prioritized from highest to lowest impact. Items marked ✅ have been moved to
+[carryover-completed.md](carryover-completed.md). Items marked ~~BLOCKED~~ have been analyzed
+and determined infeasible.
+
+**Completed items** (see [carryover-completed.md](carryover-completed.md)): 2.1, 4, 5, 6, 8
 
 ---
 
@@ -44,35 +48,6 @@ display name.
 
 ---
 
-## 2.1. Migrate `.claude/commands/` → `.claude/skills/` + Update Linter [HIGH]
-
-**Current state**: Claude Code's preferred format for custom slash commands is now a
-directory-based skill at `.claude/skills/<name>/SKILL.md` (following the
-[Agent Skills open standard](https://agentskills.io/)). The 14 existing command files at
-`.claude/commands/*.md` are the legacy format — still supported but superseded.
-
-**The `lint-skill-command-drift` linter** currently checks `.claude/commands/<name>.md` against
-Copilot skills. After migration, it must check `.claude/skills/<name>/SKILL.md` instead.
-
-**Why HIGH**: The dual canonical strategy (Copilot Skills ↔ Claude Skills) is a foundational
-architectural principle. As long as the linter checks the legacy path, drift between Copilot
-skills and Claude skills is undetected. New skills created using the correct format (`sync-copilot-claude`
-attempted to do this) are not yet validated by the linter.
-
-**Action** (3 steps):
-1. For each of the 14 files in `.claude/commands/`: create `.claude/skills/<name>/SKILL.md`
-   directory and file (copy + adapt frontmatter; body stays identical to Copilot skill body),
-   test via `/<name>` in Claude Code, then delete the command file
-2. Update `lint-skill-command-drift` Go implementation in `internal/apps/tools/cicd_lint/lint_docs/`
-   to check `.claude/skills/<name>/SKILL.md` instead of `.claude/commands/<name>.md`
-3. Verify `go run ./cmd/cicd-lint lint-docs` still passes with zero errors after migration
-
-**Skills to migrate**: agent-scaffold, contract-test-gen, coverage-analysis, fips-audit,
-fitness-function-gen, instruction-scaffold, migration-create, new-service, openapi-codegen,
-propagation-check, skill-scaffold, test-benchmark-gen, test-fuzz-gen, test-table-driven (14 total).
-
----
-
 ## 3. Fitness Linter: `usage/service_browser_health_paths` [MEDIUM]
 
 **Current state**: Each PS-ID has a `{ps-id}_usage.go` file with CLI usage strings. These usage
@@ -92,46 +67,6 @@ with `lint.go` + `lint_test.go`, register in the fitness registry.
 
 ---
 
-## 4. ✅ Create `docs/framework-v8/claude.md` — Claude AI Best Practices [MEDIUM]
-
-**Status**: COMPLETED in framework-v8 session (2026-04-05).
-
-**What was done**: Created `docs/framework-v8/claude.md` covering Claude Code file structure
-(`.claude/` directory layout), CLAUDE.md format guidelines, skill YAML frontmatter reference,
-agent frontmatter reference, path-scoped rules (`.claude/rules/`), the Agent Skills open standard
-(agentskills.io), corrected dual canonical strategy (Skills → Claude Skills, not Commands),
-and migration checklist from legacy commands to skills.
-
----
-
-## 5. ✅ Create Copilot Skill: `sync-copilot-claude` [MEDIUM]
-
-**Status**: COMPLETED in framework-v8 session (2026-04-05).
-
-**What was done**: Created `.github/skills/sync-copilot-claude/SKILL.md` (Copilot) and
-`.claude/skills/sync-copilot-claude/SKILL.md` (Claude — using the new preferred directory format).
-The skill covers audit, pair creation, migration workflow, and legacy status checks.
-
----
-
-## 6. ✅ `const-redefine` Linter: Verify Blocking in CI/CD [MEDIUM]
-
-**Status**: VERIFIED — correctly implemented.
-
-**Findings**: The `magic-usage` sub-linter within `lint-go` splits const-redefine into two
-sub-categories with correct blocking behavior:
-- `literal-use` → BLOCKING (exit code 1)
-- `const-redefine-string` → BLOCKING (exit code 1) — redefining a magic string constant
-  outside the magic package is always wrong
-- `const-redefine-numeric` → INFORMATIONAL (exit code 0) — small integers frequently coincide
-  with magic values but represent different concepts (retry counts, buffer sizes)
-
-Test coverage confirms this in `magic_usage_test.go`:
-`TestCheckMagicUsageInDir_ConstRedefine` (line 85) verifies string const-redefine blocks,
-and `TestCheckMagicUsageInDir_NumericConstRedefineInfo` (line 181) verifies numeric is informational.
-
----
-
 ## 7. Load Test Refactoring: All Tiers [LOW]
 
 **Current state**: `test/load/` (Gatling, Java 21, Maven) covers only some service-level
@@ -146,19 +81,3 @@ unknown until these are created.
 
 **Action**: Extend `test/load/src/` to add product-level and suite-level simulation classes.
 Ensure `pom.xml` is updated with the new simulation entry points.
-
----
-
-## 8. ✅ Debug Log Cleanup in Barrier Service [LOW]
-
-**Status**: COMPLETED — converted to structured logging via TelemetryService.Slogger.
-
-**What was done**: Replaced all `log.Printf("DEBUG ...")` calls in both
-`intermediate_keys_service.go` and `root_keys_service.go` with `slogger.Info("DEBUG ...")`
-using structured `slog.Attr` attributes (slog.Any, slog.Bool, slog.Int). The `"log"` stdlib
-import was replaced with `"log/slog"`. The package-level init functions (`initializeFirstIntermediateJWKInternal`
-and `initializeFirstRootJWK`) received a `slogger *slog.Logger` parameter, passed from
-`telemetryService.Slogger` by their callers. Debug message text prefixed with "DEBUG" was
-preserved per user request. All other framework code was audited — only the barrier service
-used stdlib `"log"`; the rest already used `TelemetryService.Slogger` or framework-appropriate
-loggers (Fiber log, GORM logger).
