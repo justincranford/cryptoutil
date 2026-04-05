@@ -25,12 +25,22 @@ var poolMaintenanceInterval = cryptoutilSharedMagic.PoolMaintenanceInterval
 
 // newFloat64HistogramImpl is the real implementation of Float64Histogram creation.
 func newFloat64HistogramImpl(m metric.Meter, name string, opts ...metric.Float64HistogramOption) (metric.Float64Histogram, error) {
-	return m.Float64Histogram(name, opts...)
+	histogram, err := m.Float64Histogram(name, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create float64 histogram %s: %w", name, err)
+	}
+
+	return histogram, nil
 }
 
 // newInt64CounterImpl is the real implementation of Int64Counter creation.
 func newInt64CounterImpl(m metric.Meter, name string, opts ...metric.Int64CounterOption) (metric.Int64Counter, error) {
-	return m.Int64Counter(name, opts...)
+	counter, err := m.Int64Counter(name, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create int64 counter %s: %w", name, err)
+	}
+
+	return counter, nil
 }
 
 // ValueGenPool is a high-performance generic pool that pre-generates values using worker goroutines.
