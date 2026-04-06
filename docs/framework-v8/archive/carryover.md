@@ -4,7 +4,7 @@
 **Source**: Analysis of `docs/framework-v7/` (plan.md, tasks.md, lessons.md) + `docs/target-structure.md` Section N
 
 Numbered list, prioritized from highest to lowest impact. Items marked ✅ have been moved to
-[carryover-completed.md](carryover-completed.md). Items marked ~~BLOCKED~~ have been analyzed
+[carryover-completed.md](../carryover-completed.md). Items marked ~~BLOCKED~~ have been analyzed
 and determined infeasible.
 
 **Completed items**: 1, 2.1, 4, 5, 6, 8 (deleted — git history preserves details)
