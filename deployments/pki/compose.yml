@@ -3,293 +3,54 @@
 # PKI Product Docker Compose Configuration
 #
 # PRODUCT-level deployment for PKI product (1 service: ca).
-# Supports 4 instances: 2 SQLite + 2 PostgreSQL.
+# Recursive includes: pki-ca (which includes shared-postgres and shared-telemetry).
 #
-# Port allocation (PRODUCT level: 18300-18399):
-#   - pki-ca-app-sqlite-1:      18300 (SQLite instance 1, dev/ci)
-#   - pki-ca-app-sqlite-2:      18301 (SQLite instance 2, dev/ci)
-#   - pki-ca-app-postgresql-1:  18302 (PostgreSQL instance 1) [--profile postgres]
-#   - pki-ca-app-postgresql-2:  18303 (PostgreSQL instance 2) [--profile postgres]
+# Port allocation (PRODUCT level: SERVICE + 10000):
+#   pki-ca (SERVICE 8300-8303):
+#   - pki-ca-app-sqlite-1:      18300
+#   - pki-ca-app-sqlite-2:      18301
+#   - pki-ca-app-postgresql-1:  18302  [--profile postgres]
+#   - pki-ca-app-postgresql-2:  18303  [--profile postgres]
 #
 # Usage:
-#   docker compose -f compose.yml up -d                        # SQLite (default: dev profile)
+#   docker compose -f compose.yml up -d                        # SQLite (dev profile)
 #   docker compose -f compose.yml --profile postgres up -d     # All instances
 #   docker compose -f compose.yml --profile ci up -d           # CI mode
 #   docker compose -f compose.yml logs -f                      # View logs
 #   docker compose -f compose.yml down -v                      # Stop and clean up
 #
 # Health Checks:
-#   - Public:  https://localhost:18300/browser/api/v1/health
-#   - Admin:   https://127.0.0.1:9090/admin/api/v1/livez (container-internal only)
+#   - pki-ca: https://localhost:18300/browser/api/v1/health
+#   - Admin:  https://127.0.0.1:9090/admin/api/v1/livez (container-internal only)
 #
 
 include:
-  - path: ../shared-telemetry/compose.yml
+  - path: ../pki-ca/compose.yml
 
 services:
-  # Healthcheck for Docker secrets availability.
-  healthcheck-secrets:
-    image: alpine:latest
-    secrets:
-      - unseal-1of5.secret
-      - unseal-2of5.secret
-      - unseal-3of5.secret
-      - unseal-4of5.secret
-      - unseal-5of5.secret
-      - hash-pepper-v3.secret
-      - postgres-url.secret
-      - postgres-username.secret
-      - postgres-password.secret
-      - postgres-database.secret
-    command: ["sh", "-c", "ls -l /run/secrets/*.secret"]
-    networks:
-      - pki-network
+  # PRODUCT-level port overrides: SERVICE ports + 10000.
+  # Service definitions (image, command, volumes, secrets, depends_on) are inherited from PS-ID include.
 
-  # Build cryptoutil image from source.
-  builder-pki:
-    image: cryptoutil:dev
-    build:
-      context: ../..
-      dockerfile: deployments/cryptoutil/Dockerfile
-      args:
-        APP_VERSION: "dev"
-        VCS_REF: "local"
-        BUILD_DATE: "2026-02-14T00:00:00Z"
-    entrypoint: ["sh", "-c"]
-    command: ["echo 'Build completed successfully'"]
-    depends_on:
-      healthcheck-secrets:
-        condition: service_completed_successfully
-
-  # PostgreSQL database for PKI persistence (shared by all services and instances).
-  pki-db-postgres-1:
-    profiles: ["postgres"]
-    image: postgres:18
-    container_name: pki-postgres
-    hostname: pki-postgres
-    environment:
-      POSTGRES_USER_FILE: /run/secrets/postgres-username.secret
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password.secret
-      POSTGRES_DB_FILE: /run/secrets/postgres-database.secret
-    shm_size: 256mb
-    ports:
-      - "127.0.0.1:54323:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql
-    secrets:
-      - postgres-username.secret
-      - postgres-password.secret
-      - postgres-database.secret
-    depends_on:
-      healthcheck-secrets:
-        condition: service_completed_successfully
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres-username.secret) -d $(cat /run/secrets/postgres-database.secret)"]
-      start_period: 5s
-      interval: 5s
-      timeout: 3s
-      retries: 5
-    networks:
-      - pki-network
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-        reservations:
-          memory: 256M
-
-  # CA server with SQLite backend (dev/ci mode).
   pki-ca-app-sqlite-1:
-    profiles: ["dev", "ci"]
-    image: cryptoutil:dev
-    command: ["pki", "ca", "server", "--bind-public-port=8080", "--config=/app/config/pki-ca-app-sqlite-1.yml", "--config=/app/config/pki-ca-app-common.yml", "--config=/app/otel/otel.yml"]
-    working_dir: /tmp
-    ports:
+    ports: !override
       - "18300:8080"
-    volumes:
-      - ../pki-ca/config/pki-ca-app-sqlite-1.yml:/app/config/pki-ca-app-sqlite-1.yml:ro
-      - ../pki-ca/config/pki-ca-app-common.yml:/app/config/pki-ca-app-common.yml:ro
-      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
-    secrets:
-      - unseal-1of5.secret
-      - unseal-2of5.secret
-      - unseal-3of5.secret
-      - unseal-4of5.secret
-      - unseal-5of5.secret
-    depends_on:
-      healthcheck-secrets:
-        condition: service_completed_successfully
-      builder-pki:
-        condition: service_completed_successfully
-      opentelemetry-collector-contrib:
-        condition: service_started
-    healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
-      start_period: 60s
-      interval: 5s
-      timeout: 5s
-      retries: 10
-    networks:
-      - pki-network
-      - telemetry-network
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 128M
 
-  # CA server with SQLite backend (dev/ci mode, instance 2).
   pki-ca-app-sqlite-2:
-    profiles: ["dev", "ci"]
-    image: cryptoutil:dev
-    command: ["pki", "ca", "server", "--bind-public-port=8080", "--config=/app/config/pki-ca-app-sqlite-2.yml", "--config=/app/config/pki-ca-app-common.yml", "--config=/app/otel/otel.yml"]
-    working_dir: /tmp
-    ports:
+    ports: !override
       - "18301:8080"
-    volumes:
-      - ../pki-ca/config/pki-ca-app-sqlite-2.yml:/app/config/pki-ca-app-sqlite-2.yml:ro
-      - ../pki-ca/config/pki-ca-app-common.yml:/app/config/pki-ca-app-common.yml:ro
-      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
-    secrets:
-      - unseal-1of5.secret
-      - unseal-2of5.secret
-      - unseal-3of5.secret
-      - unseal-4of5.secret
-      - unseal-5of5.secret
-    depends_on:
-      healthcheck-secrets:
-        condition: service_completed_successfully
-      builder-pki:
-        condition: service_completed_successfully
-      opentelemetry-collector-contrib:
-        condition: service_started
-    healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
-      start_period: 60s
-      interval: 5s
-      timeout: 5s
-      retries: 10
-    networks:
-      - pki-network
-      - telemetry-network
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 128M
 
-  # CA server with PostgreSQL backend (instance 1).
   pki-ca-app-postgresql-1:
-    profiles: ["postgres"]
-    image: cryptoutil:dev
-    command: ["pki", "ca", "server", "--bind-public-port=8080", "--config=/app/config/pki-ca-app-postgresql-1.yml", "--config=/app/config/pki-ca-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
-    working_dir: /tmp
-    ports:
+    ports: !override
       - "18302:8080"
-    volumes:
-      - ../pki-ca/config/pki-ca-app-postgresql-1.yml:/app/config/pki-ca-app-postgresql-1.yml:ro
-      - ../pki-ca/config/pki-ca-app-common.yml:/app/config/pki-ca-app-common.yml:ro
-      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
-    secrets:
-      - unseal-1of5.secret
-      - unseal-2of5.secret
-      - unseal-3of5.secret
-      - unseal-4of5.secret
-      - unseal-5of5.secret
-      - postgres-url.secret
-    depends_on:
-      healthcheck-secrets:
-        condition: service_completed_successfully
-      builder-pki:
-        condition: service_completed_successfully
-      pki-db-postgres-1:
-        condition: service_healthy
-      opentelemetry-collector-contrib:
-        condition: service_started
-    healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
-      start_period: 60s
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    networks:
-      - pki-network
-      - telemetry-network
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 128M
 
-  # CA server with PostgreSQL backend (instance 2 - shared DB with instance 1).
   pki-ca-app-postgresql-2:
-    profiles: ["postgres"]
-    image: cryptoutil:dev
-    command: ["pki", "ca", "server", "--bind-public-port=8080", "--config=/app/config/pki-ca-app-postgresql-2.yml", "--config=/app/config/pki-ca-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
-    working_dir: /tmp
-    ports:
+    ports: !override
       - "18303:8080"
-    volumes:
-      - ../pki-ca/config/pki-ca-app-postgresql-2.yml:/app/config/pki-ca-app-postgresql-2.yml:ro
-      - ../pki-ca/config/pki-ca-app-common.yml:/app/config/pki-ca-app-common.yml:ro
-      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
-    secrets:
-      - unseal-1of5.secret
-      - unseal-2of5.secret
-      - unseal-3of5.secret
-      - unseal-4of5.secret
-      - unseal-5of5.secret
-      - postgres-url.secret
-    depends_on:
-      healthcheck-secrets:
-        condition: service_completed_successfully
-      builder-pki:
-        condition: service_completed_successfully
-      pki-db-postgres-1:
-        condition: service_healthy
-      opentelemetry-collector-contrib:
-        condition: service_started
-      pki-ca-app-postgresql-1:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
-      start_period: 60s
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    networks:
-      - pki-network
-      - telemetry-network
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 128M
-
-networks:
-  pki-network:
-    driver: bridge
-
-volumes:
-  postgres_data:
-    name: pki-postgres-volume
 
 secrets:
-  postgres-username.secret:
-    file: ./secrets/postgres-username.secret
-  postgres-password.secret:
-    file: ./secrets/postgres-password.secret
-  postgres-database.secret:
-    file: ./secrets/postgres-database.secret
-  postgres-url.secret:
-    file: ./secrets/postgres-url.secret
-
+  # PRODUCT-level secrets override PS-ID secrets (paths resolve relative to this file).
   unseal-1of5.secret:
-    file: ./secrets/unseal-1of5.secret
+    file: ./secrets/unseal-1of5.secret # pragma: allowlist secret
   unseal-2of5.secret:
     file: ./secrets/unseal-2of5.secret
   unseal-3of5.secret:
@@ -298,6 +59,7 @@ secrets:
     file: ./secrets/unseal-4of5.secret
   unseal-5of5.secret:
     file: ./secrets/unseal-5of5.secret
-
   hash-pepper-v3.secret:
     file: ./secrets/hash-pepper-v3.secret
+  postgres-url.secret:
+    file: ./secrets/postgres-url.secret

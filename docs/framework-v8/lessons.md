@@ -64,13 +64,60 @@ root causes, and patterns to propagate to permanent artifacts.*
 
 ## Phase 2: Standalone Profile + Shared Infrastructure at All Tiers
 
-*(To be filled during Phase 2 execution)*
+### What Worked
+
+- Removing per-PS-ID postgres DB services was clean: delete service block, volumes, secrets
+- Adding `include:` entries for shared-postgres and shared-telemetry was a straightforward addition
+- lint-fitness compose-service-names and compose-db-naming linters correctly caught the transition
+- `docker compose config` validated all 10 PS-ID composes successfully after migration
+- Updating compose-db-naming from a forward check (must exist) to a regression guard (must NOT exist) = correct strategy
+
+### What Didn't Work (Initially)
+
+- Lint-fitness compose-service-names expected 5 services (4 app + 1 DB); needed to be updated to expect exactly 4
+- Lint-fitness compose-db-naming needed a complete rewrite from "DB service name must match" to "DB service must NOT be present"
+- Some PS-ID composes had `postgres-network:` stanza in the top-level `networks:` section that also needed removal
+
+### Root Cause
+
+- Per-PS-ID postgres services were fully embedded in each compose file; removing them required touching many sections (services, networks, volumes, secrets)
+- Fitness linters were validating the OLD shape; they had to be updated before the new shape could pass
+
+### Patterns to Propagate
+
+1. **Fitness linters must be updated BEFORE or DURING structural changes** — not after
+2. **Regression guard pattern**: When a structural element is permanently removed, the linter should flip from "must exist" to "must NOT exist" (catches accidental re-introduction)
+3. **Config validation is sufficient pre-E2E smoke test** — `docker compose config --quiet` catches structural errors without needing running containers
 
 ---
 
 ## Phase 3: PRODUCT Recursive Includes — Approach C
 
-*(To be filled during Phase 3 execution)*
+### What Worked
+
+- `include:` + `!override` pattern works cleanly for port substitution at PRODUCT level
+- Docker Compose deduplicates shared infrastructure (shared-postgres, shared-telemetry) automatically when included multiple times via different PS-ID composes
+- Product-level `secrets:` section correctly overrides all 7 shared secrets from both PS-ID includes (critical for SM which includes sm-kms AND sm-im, both defining `postgres-url.secret`)
+- postgres-username/password/database secrets do NOT need product-level override; shared-postgres defines them once and they are inherited correctly
+- Line count reduction: 2 product composes (SM 501 lines, identity 1033 lines) reduced to 80 and 155 lines respectively; overall reduction >80%
+- `docker compose --profile dev config | Select-String "published"` is the correct way to verify port overrides when services have profiles
+
+### What Didn't Work (Initially)
+
+- Plans called for "single builder-sm service" at product level but include-based approach inherits per-PS-ID builders (builder-sm-kms, builder-sm-im); this is correct behavior — Docker caches the build, only one actual build occurs
+- The Includes acceptance criterion originally said "shared-telemetry, shared-postgres, sm-kms, sm-im" but shared-postgres and shared-telemetry are inherited transitively via PS-ID includes
+
+### Root Cause
+
+- Acceptance criteria reflected a pre-research understanding; Phase 0 research confirmed the actual behavior and the acceptance criteria needed updating to match reality
+
+### Patterns to Propagate
+
+1. **Product composes need ONLY PS-ID includes** — shared infrastructure is inherited transitively
+2. **Product-level secrets: section must override ALL conflicting secrets** from multiple PS-ID includes
+3. **postgres-username/password/database use shared-postgres-scoped paths** — never need overriding at PRODUCT level
+4. **Use `--profile dev` flag** when testing port overrides (`docker compose config` without profile hides profiled services)
+5. **Acceptance criteria should be updated** when plans are proven incorrect by implementation
 
 ---
 

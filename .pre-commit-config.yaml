@@ -110,7 +110,7 @@ repos:
       # Check YAML syntax
       - id: check-yaml
         name: Check YAML syntax
-        args: ['--allow-multiple-documents']
+        args: ['--allow-multiple-documents', '--unsafe']  # --unsafe allows custom YAML tags (e.g. !override for Docker Compose)
         exclude: '\.github/workflows/.*\.yml$'  # Workflows checked by actionlint
         require_serial: false
         stages: [pre-commit]
