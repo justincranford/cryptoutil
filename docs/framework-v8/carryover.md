@@ -11,22 +11,19 @@ and determined infeasible.
 
 ---
 
-## 2. Create Product-Level Dockerfiles (5 Products) [HIGH]
+## ~~2. Create Product-Level Dockerfiles (5 Products)~~ [CANCELLED]
 
-**Current state**: Product-level deployment directories (`deployments/sm/`, `deployments/jose/`,
-`deployments/pki/`, `deployments/identity/`, `deployments/skeleton/`) are missing Dockerfiles.
+**Status**: CANCELLED (Q3=D, 2026-04-06)
 
-**Why HIGH**: The `dockerfile_labels` fitness linter and `deployment_dir_completeness` validator
-already enforce per-service Dockerfiles. Product-level Dockerfiles are needed to support
-product-tier Docker Compose deployments (compose.yml at the product level launches all services
-within a product via a single product-built image). Without these, the product-tier deployments
-are structurally incomplete.
+**Resolution**: Permanently cancelled. The recursive-include architecture (framework-v8) renders
+product Dockerfiles unnecessary. PRODUCT compose files include PS-ID compose files, which
+reference PS-ID Dockerfiles. Each PS-ID image is built by its own `builder-{PS-ID}` service at
+SERVICE level. No separate PRODUCT-level build is needed.
 
-**Template**: Use the existing `skeleton-template/Dockerfile` as the base. Each product Dockerfile
-must include the standard OCI labels (`org.opencontainers.image.title`, etc.) matching the product
-display name.
-
-**Action**: Create `deployments/{sm,jose,pki,identity,skeleton}/Dockerfile` (5 files).
+**Actions taken**:
+- `validate_structure.go`: Dockerfile requirement removed from `DeploymentTypeProduct`
+- ENG-HANDBOOK.md: Updated to document that product deployments use PS-ID Dockerfiles transitively
+- This carryover item will NOT be revisited
 
 ---
 

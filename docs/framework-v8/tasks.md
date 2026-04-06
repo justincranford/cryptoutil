@@ -1,7 +1,7 @@
 # Tasks — Framework v8: Deployment Parameterization
 
-**Status**: 0 of 62 tasks complete (0%)
-**Last Updated**: 2026-04-05
+**Status**: 0 of 43 tasks complete (0%)
+**Last Updated**: 2026-04-06
 **Created**: 2026-04-05
 
 ---
@@ -19,13 +19,6 @@
 - ❌ **Premature Completion**: NEVER mark phases or tasks or steps complete without evidence
 
 **ALL issues are blockers — NO exceptions.**
-
----
-
-## ⚠️ PREREQUISITE: Resolve quizme-v1.md BEFORE starting Phases 2–6
-
-Phases 0 and 1 can run immediately. Phases 2–6 depend on quizme-v1.md answers (Q1: postgres
-import strategy, Q2: postgres port scheme, Q3: product Dockerfiles).
 
 ---
 
@@ -202,63 +195,68 @@ Archive findings in `test-output/framework-v8-research/`.
 
 ---
 
-### Phase 2: Standalone Profile + Shared Infrastructure at All Tiers
+### Phase 2: Remove Per-PS-ID PostgreSQL + Shared Infrastructure at All Tiers
 
-**Phase Objective**: Prepare PS-ID compose files for use as include targets. All tiers import
-both shared-telemetry AND shared-postgres.
+**Phase Objective**: Remove per-PS-ID postgres services; add shared-postgres and shared-telemetry
+includes to all PS-ID compose files. No host port exposure for postgres (Q1=C, Q2=E).
 
-**⚠️ BLOCKED pending quizme-v1.md Q1 (postgres import) and Q2 (postgres port scheme)**
+#### Task 2.1: Remove Per-PS-ID PostgreSQL DB Services from All 10 PS-ID Compose Files
 
-#### Task 2.1: Add `standalone` Profile to Per-PS-ID PostgreSQL Services
-
-- **Status**: ❌ (BLOCKED on quizme Q1)
+- **Status**: ❌
 - **Estimated**: 1h
-- **Dependencies**: Phase 1 complete, quizme Q1 answered
-- **Description**: Change `profiles: ["postgres"]` on all per-PS-ID PostgreSQL DB service
-  definitions to `profiles: ["standalone"]`. This marks them as opt-in for direct developer
-  access (bypassing shared-postgres). All 10 PS-IDs affected.
-- **Files**: All 10 `deployments/{PS-ID}/compose.yml` (the `{PS-ID}-db-postgres-1` service)
+- **Dependencies**: Phase 1 complete
+- **Description**: Remove the dedicated `{PS-ID}-db-postgres-1` service definition, associated
+  `profiles: ["postgres"]`, volumes, and healthchecks from all 10 PS-ID compose files. Per Q1=C:
+  per-PS-ID postgres is eliminated entirely — replaced by shared-postgres.
+- **Files**: All 10 `deployments/{PS-ID}/compose.yml`
 - **Acceptance Criteria**:
-  - [ ] `profiles: ["standalone"]` on all 10 per-PS-ID postgres services
-  - [ ] Old `profiles: ["postgres"]` on postgres DB services — zero occurrences
+  - [ ] Zero per-PS-ID postgres DB service definitions remain
+  - [ ] `grep -r "db-postgres" deployments/*/compose.yml` returns no matches (except shared-postgres)
+  - [ ] Associated volumes for per-PS-ID postgres removed
   - [ ] `docker compose -f deployments/sm-im/compose.yml up --profile dev` starts SQLite OK
-  - [ ] `docker compose -f deployments/sm-im/compose.yml up --profile standalone` starts sm-im's own postgres
 
-#### Task 2.2: Add shared-postgres Include to All 10 PS-ID Compose Files
+#### Task 2.2: Add shared-postgres + shared-telemetry Include to All 10 PS-ID Compose Files
 
-- **Status**: ❌ (BLOCKED on quizme Q1)
+- **Status**: ❌
 - **Estimated**: 0.5h
 - **Dependencies**: Task 2.1, Phase 0 research confirmed
-- **Description**: Add `include: path: ../shared-postgres/compose.yml` to each PS-ID compose
+- **Description**: Add `include:` entries for both `../shared-postgres/compose.yml` and
+  `../shared-telemetry/compose.yml` to each PS-ID compose (if not already present)
 - **Acceptance Criteria**:
   - [ ] All 10 PS-ID compose files include shared-postgres
+  - [ ] All 10 PS-ID compose files include shared-telemetry
   - [ ] `docker compose -f deployments/sm-im/compose.yml config` shows postgres-leader service
   - [ ] No "duplicate service" errors
+  - [ ] No host port exposure for postgres-leader or postgres-follower
 
-#### Task 2.3: Add postgres-leader Port Overrides to Each PS-ID Compose
+#### Task 2.3: Update App Service `depends_on` for shared-postgres
 
-- **Status**: ❌ (BLOCKED on quizme Q2)
-- **Estimated**: 1h
-- **Dependencies**: Task 2.2, quizme Q2 answered
-- **Description**: Add Approach C service redefinition in each PS-ID compose to expose
-  postgres-leader on the PS-ID-specific host port (per ENG-HANDBOOK.md Section 3.4)
-- **Port Assignments** (from ENG-HANDBOOK.md, SERVICE postgres column):
-  - sm-kms: `127.0.0.1:54320:5432`
-  - sm-im: `127.0.0.1:54321:5432`
-  - jose-ja: `127.0.0.1:54322:5432`
-  - pki-ca: `127.0.0.1:54323:5432`
-  - identity-authz: `127.0.0.1:54324:5432`
-  - identity-idp: `127.0.0.1:54325:5432`
-  - identity-rs: `127.0.0.1:54326:5432`
-  - identity-rp: `127.0.0.1:54327:5432`
-  - identity-spa: `127.0.0.1:54328:5432`
-  - skeleton-template: `127.0.0.1:54329:5432`
+- **Status**: ❌
+- **Estimated**: 0.5h
+- **Dependencies**: Task 2.2
+- **Description**: Update `depends_on` for `{PS-ID}-app-postgresql-*` services to reference
+  `postgres-leader` from shared-postgres instead of the removed per-PS-ID postgres service
 - **Acceptance Criteria**:
-  - [ ] Each PS-ID compose exposes postgres-leader on its unique port
-  - [ ] `docker compose -f deployments/sm-im/compose.yml config` | grep 54321 → match
-  - [ ] No two PS-ID composes expose postgres-leader on the same port
+  - [ ] All postgresql app services depend on `postgres-leader: condition: service_healthy`
+  - [ ] No references to removed per-PS-ID postgres service names in `depends_on`
+  - [ ] `docker compose -f deployments/sm-im/compose.yml config` shows correct dependency graph
 
-#### Task 2.4: Verify PS-ID Composes Still Work Standalone
+#### Task 2.4: Remove Host Port Exposure from shared-postgres
+
+- **Status**: ❌
+- **Estimated**: 0.25h
+- **Dependencies**: None
+- **Description**: Remove `ports:` mapping from both `postgres-leader` (currently `5432:5432`)
+  and `postgres-follower` (currently `5433:5432`) in `deployments/shared-postgres/compose.yml`.
+  Per Q1=C: no host port exposure for postgres at any tier. Developers use
+  `docker exec postgres-leader psql` for direct database access.
+- **Acceptance Criteria**:
+  - [ ] `postgres-leader` has no `ports:` section in shared-postgres/compose.yml
+  - [ ] `postgres-follower` has no `ports:` section in shared-postgres/compose.yml
+  - [ ] `docker compose -f deployments/shared-postgres/compose.yml config` shows no port bindings
+  - [ ] `docker exec` access still works (container port 5432 is still exposed internally)
+
+#### Task 2.5: Verify PS-ID Composes Still Work
 
 - **Status**: ❌
 - **Estimated**: 0.5h
@@ -274,8 +272,9 @@ both shared-telemetry AND shared-postgres.
 #### Phase 2 Quality Gate
 
 - [ ] `go run ./cmd/cicd-lint lint-deployments` — ≤ baseline errors (likely improvements)
-- [ ] All 10 PS-ID compose files include shared-postgres
-- [ ] Per-PS-ID postgres on `standalone` profile
+- [ ] All 10 PS-ID compose files include shared-postgres and shared-telemetry
+- [ ] Zero per-PS-ID postgres DB service definitions remain
+- [ ] No host port exposure for postgres at SERVICE level
 - [ ] Smoke tests pass for ≥ 2 PS-ID compose files
 - [ ] Phase 2 post-mortem — update lessons.md
 
@@ -284,12 +283,11 @@ both shared-telemetry AND shared-postgres.
 ### Phase 3: PRODUCT Recursive Includes — Approach C
 
 **Phase Objective**: Each PRODUCT compose file becomes ≤ 150 lines: only includes and port overrides.
-
-**⚠️ BLOCKED pending quizme-v1.md Q1/Q2 and Phase 0 research**
+No postgres port overrides needed (no host port exposure per Q1=C).
 
 #### Task 3.1: Refactor `deployments/sm/compose.yml`
 
-- **Status**: ❌ (BLOCKED on Phase 2)
+- **Status**: ❌
 - **Estimated**: 1h
 - **Dependencies**: Phase 2 complete, Phase 0 research confirmed
 - **Description**: Replace copy-paste service definitions with `include:` of sm-kms and sm-im
@@ -305,7 +303,7 @@ both shared-telemetry AND shared-postgres.
 
 #### Task 3.2: Refactor `deployments/jose/compose.yml`
 
-- **Status**: ❌ (BLOCKED on Phase 2)
+- **Status**: ❌
 - **Estimated**: 0.5h
 - **Dependencies**: Task 3.1 (pattern established)
 - **Acceptance Criteria**:
@@ -315,7 +313,7 @@ both shared-telemetry AND shared-postgres.
 
 #### Task 3.3: Refactor `deployments/pki/compose.yml`
 
-- **Status**: ❌ (BLOCKED on Phase 2)
+- **Status**: ❌
 - **Estimated**: 0.5h
 - **Dependencies**: Task 3.1
 - **Acceptance Criteria**:
@@ -325,7 +323,7 @@ both shared-telemetry AND shared-postgres.
 
 #### Task 3.4: Refactor `deployments/identity/compose.yml`
 
-- **Status**: ❌ (BLOCKED on Phase 2)
+- **Status**: ❌
 - **Estimated**: 1.5h
 - **Dependencies**: Task 3.1 (5 PS-IDs = more port overrides)
 - **Acceptance Criteria**:
@@ -336,25 +334,13 @@ both shared-telemetry AND shared-postgres.
 
 #### Task 3.5: Refactor `deployments/skeleton/compose.yml`
 
-- **Status**: ❌ (BLOCKED on Phase 2)
+- **Status**: ❌
 - **Estimated**: 0.5h
 - **Dependencies**: Task 3.1
 - **Acceptance Criteria**:
   - [ ] compose.yml ≤ 100 lines
   - [ ] Port overrides: skeleton-template (18900-18903)
   - [ ] Config renders correctly
-
-#### Task 3.6: PRODUCT postgres Port Overrides (quizme Q2 dependent)
-
-- **Status**: ❌ (BLOCKED on quizme Q2)
-- **Estimated**: 0.5h
-- **Dependencies**: quizme Q2 answered, Tasks 3.1–3.5
-- **Description**: Add Approach C port override for `postgres-leader` in each PRODUCT compose
-  using PRODUCT-level postgres host port (per quizme Q2 decision)
-- **Acceptance Criteria**:
-  - [ ] Each PRODUCT compose exposes postgres-leader on its PRODUCT-specific port
-  - [ ] No port conflict between PRODUCT postgres ports and SERVICE postgres ports
-  - [ ] Port assignments documented in tasks.md and plan.md
 
 #### Phase 3 Quality Gate
 
@@ -369,12 +355,11 @@ both shared-telemetry AND shared-postgres.
 ### Phase 4: SUITE Recursive Includes — Approach C
 
 **Phase Objective**: SUITE compose ≤ 300 lines — includes 5 PRODUCT compose files with SUITE port overrides.
-
-**⚠️ BLOCKED pending Phase 3 complete**
+No postgres port overrides needed (no host port exposure per Q1=C).
 
 #### Task 4.1: Refactor `deployments/cryptoutil/compose.yml`
 
-- **Status**: ❌ (BLOCKED on Phase 3)
+- **Status**: ❌
 - **Estimated**: 2.5h
 - **Dependencies**: Phase 3 complete
 - **Description**: Replace 1,504-line compose with includes of 5 PRODUCT compose files and
@@ -387,17 +372,6 @@ both shared-telemetry AND shared-postgres.
   - [ ] Suite-scoped secrets override PRODUCT secrets
   - [ ] `docker compose -f deployments/cryptoutil/compose.yml config` renders all 40+ services
   - [ ] `docker compose -f deployments/cryptoutil/compose.yml up --profile dev -d` starts OK
-
-#### Task 4.2: SUITE postgres Port Override (quizme Q2 dependent)
-
-- **Status**: ❌ (BLOCKED on quizme Q2)
-- **Estimated**: 0.25h
-- **Dependencies**: Task 4.1, quizme Q2
-- **Description**: Add Approach C port override for postgres-leader and postgres-follower in
-  SUITE compose using SUITE-level postgres host ports
-- **Acceptance Criteria**:
-  - [ ] SUITE compose exposes postgres-leader and postgres-follower on SUITE-specific ports
-  - [ ] Ports documented in ENG-HANDBOOK.md Section 3.4 (Phase 7)
 
 #### Phase 4 Quality Gate
 
@@ -412,20 +386,21 @@ both shared-telemetry AND shared-postgres.
 ### Phase 5: Validator + Linter Updates
 
 **Phase Objective**: Update lint-deployments to understand recursive includes and new structure.
+Product Dockerfile requirement removed per Q3=D.
 
-**⚠️ Some tasks blocked on quizme Q3 (product Dockerfiles)**
+#### Task 5.1: Update validate_structure.go — Remove PRODUCT Dockerfile Requirement
 
-#### Task 5.1: Update validate_structure.go for PRODUCT Level
-
-- **Status**: ❌ (BLOCKED on quizme Q3)
+- **Status**: ❌
 - **Estimated**: 0.5h
-- **Dependencies**: quizme Q3 answered
-- **Description**: If Q3 = defer product Dockerfiles, update `DeploymentTypeProduct` list of
-  required files to remove `Dockerfile`; update tests accordingly
-- **Acceptance Criteria** (if Q3 = defer):
+- **Dependencies**: None (Q3=D confirmed)
+- **Description**: Update `DeploymentTypeProduct` in `validate_structure.go` to remove
+  `Dockerfile` from the list of required files. Product deployments use PS-ID Dockerfiles
+  transitively via recursive includes. Update carryover.md Item 2 → CANCELLED.
+- **Acceptance Criteria**:
   - [ ] `DeploymentTypeProduct` expected structure does NOT include `Dockerfile`
   - [ ] `validate_structure_test.go` updated to match
   - [ ] `go test ./internal/apps/tools/cicd_lint/lint_deployments/... -run TestDeploymentStructure` passes
+  - [ ] Carryover Item 2 marked CANCELLED in `docs/framework-v8/carryover.md`
 
 #### Task 5.2: Update validate_ports.go for Recursive Includes
 
@@ -569,15 +544,19 @@ both `/service/api/v1/health` and `/browser/api/v1/health`.
 **Phase Objective**: Make architecture canonical — document new recursive include pattern and
 complete postgres port assignments at all tiers.
 
-#### Task 7.1: Update ENG-HANDBOOK.md Section 3.4 — Postgres Ports
+#### Task 7.1: Update ENG-HANDBOOK.md Section 3.4 — Shared PostgreSQL Architecture
 
-- **Status**: ❌ (BLOCKED on quizme Q2)
+- **Status**: ❌
 - **Estimated**: 0.5h
-- **Dependencies**: quizme Q2 answered, Phases 3–4 complete
-- **Description**: Add postgres host port table for PRODUCT and SUITE tiers
+- **Dependencies**: Phases 3–4 complete
+- **Description**: Document that postgres uses a single shared leader/follower pair with no host
+  port exposure at any tier (Q1=C, Q2=E). Remove per-PS-ID postgres port table (54320-54329)
+  since those services no longer exist. Document `docker exec postgres-leader psql` as the
+  developer access method.
 - **Acceptance Criteria**:
-  - [ ] Table shows postgres leader/follower host ports for SERVICE, PRODUCT, and SUITE tiers
-  - [ ] Values match what is implemented in compose files
+  - [ ] Section 3.4 documents shared-postgres architecture (no per-PS-ID postgres ports)
+  - [ ] Per-PS-ID postgres port table (54320-54329) removed or updated
+  - [ ] Developer access via `docker exec` documented
   - [ ] `go run ./cmd/cicd-lint lint-docs` passes (no propagation drift)
 
 #### Task 7.2: Update ENG-HANDBOOK.md Section 12 — Recursive Include Architecture
@@ -622,7 +601,7 @@ complete postgres port assignments at all tiers.
 #### Phase 7 Quality Gate
 
 - [ ] `go run ./cmd/cicd-lint lint-docs` — passes (zero propagation drift)
-- [ ] ENG-HANDBOOK.md Section 3.4 has postgres port table for all 3 tiers
+- [ ] ENG-HANDBOOK.md Section 3.4 documents shared-postgres architecture (no per-PS-ID ports)
 - [ ] ENG-HANDBOOK.md Section 12 documents recursive include pattern
 - [ ] All compose file headers accurate and complete
 - [ ] Phase 7 post-mortem — update lessons.md
@@ -747,12 +726,16 @@ complete postgres port assignments at all tiers.
 
 ## Notes / Deferred Work
 
-- **Carryover Item 3** (Product Dockerfiles): Resolution depends on quizme Q3. If Q3 = A or D
-  (defer/superseded), update `validate_structure.go` to remove Dockerfile requirement from
-  PRODUCT tier. If Q3 = B or C, add Product Dockerfile creation to Phase 3 tasks.
+- **Carryover Item 2** (Product Dockerfiles): **CANCELLED** (Q3=D). Product deployments use
+  PS-ID Dockerfiles transitively via recursive includes. `validate_structure.go` updated to
+  remove Dockerfile requirement from PRODUCT tier.
 - **Carryover Item 7** (Load Tests): LOW priority. Deferred to framework-v9 plan.
 - **Docker Compose v2.24+ minimum**: If team uses older Docker Compose, Approach C may not work.
   Add version check to lint-deployments or document minimum requirement.
+- **Per-PS-ID logical database initialization** (Q2=E): Already implemented in existing
+  `deployments/shared-postgres/compose.yml` with `init-leader-databases.sql`,
+  `init-follower-databases.sql`, and `setup-logical-replication.sh`. 30 logical databases
+  (10 PS-IDs × 3 tiers) with Docker secrets for credentials. No quizme-v2 needed.
 
 ---
 
