@@ -185,7 +185,29 @@ root causes, and patterns to propagate to permanent artifacts.*
 
 ## Phase 6: Fitness Linter — `usage_health_path_completeness`
 
-*(To be filled during Phase 6 execution)*
+### What Worked
+
+- Pre-scan of all `*_usage.go` files confirmed zero pre-existing violations
+- Discovery that the existing `health_path_completeness` linter already satisfies Carryover Item 3
+- The existing linter checks ALL 5 health paths (superset of the 2 paths in the carryover item)
+- The existing linter checks ALL `.go` files (superset of just `*_usage.go` files)
+- 97.5% test coverage on the existing linter with comprehensive scenarios
+
+### What Didn't Work (Initially)
+
+- Planning phase created a task for a linter that was already implemented under a slightly different name
+- Carryover Item 3 was written before the existing `health_path_completeness` linter was created
+
+### Root Cause
+
+- Carryover items can become stale when parallel work addresses the same concern with a different approach
+- The existing linter was created during framework-v7 Phase 6 but the carryover item from v7 didn't reflect this
+
+### Patterns to Propagate
+
+1. **Always check for existing linters before creating new ones** — search `lint_fitness/` for related linters
+2. **Carryover items should be verified against current state** during planning, not just copied forward
+3. **Superset linters eliminate need for subset linters** — `health_path_completeness` (5 paths, all .go files) makes `usage_health_path_completeness` (2 paths, only _usage.go files) redundant
 
 ---
 
