@@ -72,6 +72,7 @@ This document supersedes framework-v5/target-structure.md (deleted — git histo
 ├── .rgignore                              # ripgrep ignore patterns
 ├── .sqlfluff                              # SQL linting config
 ├── .yamlfmt                               # yamlfmt YAML formatter config
+├── CLAUDE.md                              # Claude Code project instructions
 ├── go.mod                                 # Go module definition
 ├── go.sum                                 # Go module dependency checksums
 ├── LICENSE                                # Project license
@@ -112,7 +113,7 @@ artifacts that must never be committed.
 
 ---
 
-## B. .github/ — GitHub & Copilot Configuration `drwxr-x---`
+## B. .github/ & .claude/ — GitHub, Copilot & Claude Configuration `drwxr-x---`
 
 ### B.0 Top-Level .github/ Files
 
@@ -224,6 +225,37 @@ artifacts that must never be committed.
 
 **NOTE**: The `ci-cicd-lint.yml` separate workflow is consolidated INTO `ci-quality.yml` as a
 job step. No standalone cicd-lint workflow in target state.
+
+### B.6 .claude/ — Claude Code Configuration (Dual Canonical Pairs)
+
+Every Copilot agent and skill has a Claude Code counterpart. See `06-02.agent-format.instructions.md`
+for the dual canonical file strategy and drift linting (`lint-agent-drift`, `lint-skill-command-drift`).
+
+```
+.claude/
+├── settings.local.json                    # Claude Code workspace settings
+├── agents/                                # Claude agents (4 — mirrors .github/agents/)
+│   ├── beast-mode.md
+│   ├── fix-workflows.md
+│   ├── implementation-execution.md
+│   └── implementation-planning.md
+└── skills/                                # Claude skills (15 — mirrors .github/skills/)
+    ├── agent-scaffold/SKILL.md
+    ├── contract-test-gen/SKILL.md
+    ├── coverage-analysis/SKILL.md
+    ├── fips-audit/SKILL.md
+    ├── fitness-function-gen/SKILL.md
+    ├── instruction-scaffold/SKILL.md
+    ├── migration-create/SKILL.md
+    ├── new-service/SKILL.md
+    ├── openapi-codegen/SKILL.md
+    ├── propagation-check/SKILL.md
+    ├── skill-scaffold/SKILL.md
+    ├── sync-copilot-claude/SKILL.md
+    ├── test-benchmark-gen/SKILL.md
+    ├── test-fuzz-gen/SKILL.md
+    └── test-table-driven/SKILL.md
+```
 
 ---
 
@@ -663,7 +695,7 @@ internal/apps/
 
 ```
 internal/shared/                                      # drwxr-x---
-├── apperr/                                           # Application error types (MOVE to framework/apperr/ pending)
+├── apperr/                                           # Application error types
 ├── container/
 ├── crypto/
 │   ├── asn1/
@@ -940,4 +972,3 @@ lint_fitness/
 | Area | Current State | Target State | Action |
 |------|--------------|-------------|--------|
 | `deployments/` product Dockerfile | Missing in all 5 products | Present in all 5 products | CREATE |
-| `internal/shared/apperr/` | Present | Moved to `internal/apps/framework/apperr/` | MOVE |

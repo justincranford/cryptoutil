@@ -7,25 +7,7 @@ Numbered list, prioritized from highest to lowest impact. Items marked ✅ have 
 [carryover-completed.md](carryover-completed.md). Items marked ~~BLOCKED~~ have been analyzed
 and determined infeasible.
 
-**Completed items** (see [carryover-completed.md](carryover-completed.md)): 2.1, 4, 5, 6, 8
-
----
-
-## 1. ~~Move `internal/shared/apperr/` → `internal/apps/framework/apperr/`~~ [BLOCKED]
-
-**Current state**: `internal/shared/apperr/` contains `app_errors.go`, `http_errors.go`, and
-`http_status_line_and_code.go` — application-level HTTP error abstraction used by all services.
-
-**Why BLOCKED**: Moving `apperr` to `internal/apps/framework/` would create a circular dependency.
-The package is imported by `internal/shared/crypto/jose/` (10+ files), `internal/shared/util/random/`,
-and `internal/shared/telemetry/` — all of which live in `internal/shared/`. These shared packages
-CANNOT import from `internal/apps/framework/` (lower layer cannot depend on upper layer).
-The package legitimately IS cross-cutting infrastructure: UUID validation errors and HTTP error
-mapping are used at every layer. It correctly belongs in `internal/shared/`.
-
-**Resolution**: Keep `internal/shared/apperr/` in its current location. The original rationale
-("HTTP status codes are a framework concern") is incorrect — the error types are used by
-shared crypto, telemetry, and utility packages that are below the framework layer.
+**Completed items**: 1, 2.1, 4, 5, 6, 8 (deleted — git history preserves details)
 
 ---
 
