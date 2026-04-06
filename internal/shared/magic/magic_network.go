@@ -157,6 +157,19 @@ const (
 	ServiceToProductPortOffset uint16 = 10000
 	// ServiceToSuitePortOffset - Port offset between service-level and suite-level deployments (base + 20000).
 	ServiceToSuitePortOffset uint16 = 20000
+
+	// ServiceTierPortMin - Minimum port for SERVICE-level deployments (8000).
+	ServiceTierPortMin = 8000
+	// ServiceTierPortMax - Maximum port for SERVICE-level deployments (8999).
+	ServiceTierPortMax = 8999
+	// ProductTierPortMin - Minimum port for PRODUCT-level deployments (18000).
+	ProductTierPortMin = 18000
+	// ProductTierPortMax - Maximum port for PRODUCT-level deployments (18999).
+	ProductTierPortMax = 18999
+	// SuiteTierPortMin - Minimum port for SUITE-level deployments (28000).
+	SuiteTierPortMin = 28000
+	// SuiteTierPortMax - Maximum port for SUITE-level deployments (28999).
+	SuiteTierPortMax = 28999
 )
 
 // Telemetry ports. See https://opentelemetry.io/docs/collector/configuration/.

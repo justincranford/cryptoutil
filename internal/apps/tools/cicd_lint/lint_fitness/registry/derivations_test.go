@@ -120,7 +120,7 @@ func TestProductPublicPort_AllPSIDs(t *testing.T) {
 		psID string
 		want int
 	}{
-		{psID: cryptoutilSharedMagic.OTLPServiceSMKMS, want: 18000},
+		{psID: cryptoutilSharedMagic.OTLPServiceSMKMS, want: int(cryptoutilSharedMagic.ProductTierPortMin)},
 		{psID: cryptoutilSharedMagic.OTLPServiceSMIM, want: 18100},
 		{psID: cryptoutilSharedMagic.OTLPServiceJoseJA, want: int(cryptoutilSharedMagic.JoseJAE2ESQLitePublicPort)},
 		{psID: cryptoutilSharedMagic.OTLPServicePKICA, want: 18300},
@@ -154,8 +154,8 @@ func TestSuitePublicPort_AllPSIDs(t *testing.T) {
 		psID string
 		want int
 	}{
-		{psID: cryptoutilSharedMagic.OTLPServiceSMKMS, want: 28000},
-		{psID: cryptoutilSharedMagic.OTLPServiceSMIM, want: 28100},
+		{psID: cryptoutilSharedMagic.OTLPServiceSMKMS, want: int(cryptoutilSharedMagic.SuiteTierPortMin)},
+		{psID: cryptoutilSharedMagic.OTLPServiceSMIM, want: int(cryptoutilSharedMagic.DefaultPublicPortSmIM) + int(cryptoutilSharedMagic.ServiceToSuitePortOffset)},
 		{psID: cryptoutilSharedMagic.OTLPServiceJoseJA, want: 28200},
 		{psID: cryptoutilSharedMagic.OTLPServicePKICA, want: 28300},
 		{psID: cryptoutilSharedMagic.OTLPServiceIdentityAuthz, want: 28400},
