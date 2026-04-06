@@ -23,11 +23,7 @@ func ValidateAllDeployments(deploymentsRoot string) ([]ValidationResult, error) 
 	for _, svc := range serviceNames {
 		svcPath := filepath.Join(deploymentsRoot, svc)
 		if _, err := os.Stat(svcPath); err == nil {
-			result, err := ValidateDeploymentStructure(svcPath, svc, DeploymentTypeProductService)
-			if err != nil {
-				return nil, fmt.Errorf("failed to validate %s: %w", svc, err)
-			}
-
+			result := ValidateDeploymentStructure(svcPath, svc, DeploymentTypeProductService)
 			results = append(results, *result)
 		}
 	}
@@ -37,11 +33,7 @@ func ValidateAllDeployments(deploymentsRoot string) ([]ValidationResult, error) 
 	for _, product := range productNames {
 		productPath := filepath.Join(deploymentsRoot, product)
 		if _, err := os.Stat(productPath); err == nil {
-			result, err := ValidateDeploymentStructure(productPath, product, DeploymentTypeProduct)
-			if err != nil {
-				return nil, fmt.Errorf("failed to validate %s: %w", product, err)
-			}
-
+			result := ValidateDeploymentStructure(productPath, product, DeploymentTypeProduct)
 			results = append(results, *result)
 		}
 	}
@@ -49,21 +41,13 @@ func ValidateAllDeployments(deploymentsRoot string) ([]ValidationResult, error) 
 	// SUITE-level deployment
 	suitePath := filepath.Join(deploymentsRoot, cryptoutilSharedMagic.DefaultOTLPServiceDefault)
 	if _, err := os.Stat(suitePath); err == nil {
-		result, err := ValidateDeploymentStructure(suitePath, cryptoutilSharedMagic.DefaultOTLPServiceDefault, DeploymentTypeSuite)
-		if err != nil {
-			return nil, fmt.Errorf("failed to validate %s: %w", cryptoutilSharedMagic.DefaultOTLPServiceDefault, err)
-		}
-
+		result := ValidateDeploymentStructure(suitePath, cryptoutilSharedMagic.DefaultOTLPServiceDefault, DeploymentTypeSuite)
 		results = append(results, *result)
 	}
 	// Template deployment
 	templatePath := filepath.Join(deploymentsRoot, cryptoutilSharedMagic.SkeletonTemplateServiceName)
 	if _, err := os.Stat(templatePath); err == nil {
-		result, err := ValidateDeploymentStructure(templatePath, cryptoutilSharedMagic.SkeletonTemplateServiceName, cryptoutilSharedMagic.SkeletonTemplateServiceName)
-		if err != nil {
-			return nil, fmt.Errorf("failed to validate template: %w", err)
-		}
-
+		result := ValidateDeploymentStructure(templatePath, cryptoutilSharedMagic.SkeletonTemplateServiceName, cryptoutilSharedMagic.SkeletonTemplateServiceName)
 		results = append(results, *result)
 	}
 
@@ -72,11 +56,7 @@ func ValidateAllDeployments(deploymentsRoot string) ([]ValidationResult, error) 
 	for _, infra := range infraNames {
 		infraPath := filepath.Join(deploymentsRoot, infra)
 		if _, err := os.Stat(infraPath); err == nil {
-			result, err := ValidateDeploymentStructure(infraPath, infra, "infrastructure")
-			if err != nil {
-				return nil, fmt.Errorf("failed to validate %s: %w", infra, err)
-			}
-
+			result := ValidateDeploymentStructure(infraPath, infra, "infrastructure")
 			results = append(results, *result)
 		}
 	}

@@ -232,8 +232,7 @@ func TestValidateDeploymentStructure(t *testing.T) {
 			tmpDir := t.TempDir()
 			tc.setupFunc(t, tmpDir)
 
-			result, err := ValidateDeploymentStructure(tmpDir, tc.deploymentName, tc.structType)
-			require.NoError(t, err)
+			result := ValidateDeploymentStructure(tmpDir, tc.deploymentName, tc.structType)
 
 			require.Equal(t, tc.wantValid, result.Valid, "validity mismatch")
 			require.ElementsMatch(t, tc.wantMissingDirs, result.MissingDirs, "missing dirs mismatch")
@@ -248,10 +247,9 @@ func TestValidateDeploymentStructure_UnknownType(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	result, err := ValidateDeploymentStructure(tmpDir, "test", "UNKNOWN-TYPE")
-	require.Error(t, err)
-	require.Nil(t, result)
-	require.Contains(t, err.Error(), "unknown structure type")
+	require.Panics(t, func() {
+		ValidateDeploymentStructure(tmpDir, "test", "UNKNOWN-TYPE")
+	}, "should panic for unknown structure type")
 }
 
 // TestValidateAllDeployments_ProductAndSuiteAndTemplate tests PRODUCT, SUITE, template paths.
@@ -342,8 +340,7 @@ func TestValidateDeploymentStructure_ProductType(t *testing.T) {
 	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "compose.yml"), []byte("n: t\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	result, err := ValidateDeploymentStructure(tmpDir, cryptoutilSharedMagic.IdentityProductName, "PRODUCT")
-	require.NoError(t, err)
+	result := ValidateDeploymentStructure(tmpDir, cryptoutilSharedMagic.IdentityProductName, "PRODUCT")
 	require.NotNil(t, result)
 
 	// Missing product secrets should cause invalid.
@@ -358,10 +355,49 @@ func TestValidateDeploymentStructure_SuiteType(t *testing.T) {
 	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "secrets"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
 	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "compose.yml"), []byte("n: t\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
-	result, err := ValidateDeploymentStructure(tmpDir, cryptoutilSharedMagic.DefaultOTLPServiceDefault, "SUITE")
-	require.NoError(t, err)
+	result := ValidateDeploymentStructure(tmpDir, cryptoutilSharedMagic.DefaultOTLPServiceDefault, "SUITE")
 	require.NotNil(t, result)
 
 	// Missing suite secrets should cause invalid.
 	require.False(t, result.Valid)
+}
+
+// TestValidateAllDeployments_SharedDatabaseIsolation verifies that when two services share
+// identical postgres_database.secret or postgres_username.secret values the DATABASE-ISOLATION
+// validator result is present, invalid, and contains a descriptive error.
+func TestValidateAllDeployments_SharedDatabaseIsolation(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	// Create two service directories with identical database name and username — this
+	// violates the isolation requirement that every service uses a unique database/user.
+	for _, svc := range []string{cryptoutilSharedMagic.OTLPServiceSMKMS, cryptoutilSharedMagic.OTLPServiceSMIM} {
+		secretsDir := filepath.Join(tmpDir, svc, "secrets")
+		require.NoError(t, os.MkdirAll(secretsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute))
+		require.NoError(t, os.WriteFile(
+			filepath.Join(secretsDir, "postgres_database.secret"),
+			[]byte("shared_db_name"), cryptoutilSharedMagic.CacheFilePermissions))
+		require.NoError(t, os.WriteFile(
+			filepath.Join(secretsDir, "postgres_username.secret"),
+			[]byte("shared_db_user"), cryptoutilSharedMagic.CacheFilePermissions))
+	}
+
+	results, err := ValidateAllDeployments(tmpDir)
+	require.NoError(t, err)
+
+	// Find the DATABASE-ISOLATION result.
+	var dbResult *ValidationResult
+
+	for i := range results {
+		if results[i].Type == "DATABASE-ISOLATION" {
+			dbResult = &results[i]
+
+			break
+		}
+	}
+
+	require.NotNil(t, dbResult, "expected DATABASE-ISOLATION result")
+	require.False(t, dbResult.Valid)
+	// Both the database-name collision and the username collision must be reported.
+	require.GreaterOrEqual(t, len(dbResult.Errors), 2)
 }

@@ -194,6 +194,18 @@ func TestGetExpectedStructures(t *testing.T) {
 	require.ElementsMatch(t, []string{"secrets"}, tmpl.RequiredDirs)
 	require.ElementsMatch(t, []string{"compose.yml"}, tmpl.RequiredFiles)
 
+	// Verify PRODUCT has correct requirements (NO Dockerfile — Q3=D permanently cancelled).
+	product := structures["PRODUCT"]
+	require.ElementsMatch(t, []string{"secrets"}, product.RequiredDirs)
+	require.ElementsMatch(t, []string{"compose.yml"}, product.RequiredFiles, "PRODUCT must NOT require Dockerfile (Q3=D)")
+	require.Empty(t, product.RequiredSecrets, "PRODUCT secrets validated by validateProductSecrets()")
+
+	// Verify SUITE has correct requirements (includes Dockerfile for suite binary).
+	suite := structures["SUITE"]
+	require.ElementsMatch(t, []string{"secrets"}, suite.RequiredDirs)
+	require.ElementsMatch(t, []string{"compose.yml", "Dockerfile"}, suite.RequiredFiles)
+	require.Empty(t, suite.RequiredSecrets, "SUITE secrets validated by validateSuiteSecrets()")
+
 	// Verify infrastructure has minimal requirements.
 	infra := structures["infrastructure"]
 	require.Empty(t, infra.RequiredDirs)
@@ -238,8 +250,7 @@ func TestValidateConfigFiles_DirectoryEntry(t *testing.T) {
 	// Add a subdirectory inside config/ (should be skipped, not cause errors).
 	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "config", "subdir"), cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 
-	result, err := ValidateDeploymentStructure(tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS, "PRODUCT-SERVICE")
-	require.NoError(t, err)
+	result := ValidateDeploymentStructure(tmpDir, cryptoutilSharedMagic.OTLPServiceSMKMS, "PRODUCT-SERVICE")
 	require.True(t, result.Valid, "subdirectory in config/ should be ignored")
 	require.Empty(t, result.Errors, "no errors expected for config subdirectory")
 }

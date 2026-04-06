@@ -8,12 +8,13 @@ import (
 )
 
 // ValidateDeploymentStructure validates a deployment directory against expected structure.
-func ValidateDeploymentStructure(basePath string, deploymentName string, structType string) (*ValidationResult, error) {
+// Panics if structType is not a recognized deployment type — callers must use known constants.
+func ValidateDeploymentStructure(basePath string, deploymentName string, structType string) *ValidationResult {
 	structures := GetExpectedStructures()
 
 	expected, ok := structures[structType]
 	if !ok {
-		return nil, fmt.Errorf("unknown structure type: %s", structType)
+		panic(fmt.Sprintf("unknown structure type: %s", structType))
 	}
 
 	result := &ValidationResult{
@@ -81,7 +82,7 @@ func ValidateDeploymentStructure(basePath string, deploymentName string, structT
 	// Check for hardcoded credentials in ALL deployment types
 	checkHardcodedCredentials(basePath, result)
 
-	return result, nil
+	return result
 }
 
 // validateConfigFiles checks config directory for required files and deprecated patterns.

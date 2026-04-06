@@ -154,7 +154,32 @@ root causes, and patterns to propagate to permanent artifacts.*
 
 ## Phase 5: Validator + Linter Updates
 
-*(To be filled during Phase 5 execution)*
+### What Worked
+
+- Signature change from `(*ValidationResult, error)` to `*ValidationResult` (with panic for unknown types) simplifies all callers — no need for error checks on a programmer-error condition
+- Existing validators already handled Approach C override-only services correctly:
+  - `isExemptFromHealthcheck` already exempts services with `image == "" && build == nil && ports > 0`
+  - Port validators read each tier's compose file directly — no include chain resolution needed
+  - Secret validators check product/suite-specific files, not PS-ID secrets
+- Go's `yaml.v3` correctly parses Docker Compose's `!override` YAML tag (strips tag, preserves values)
+- 98.0% test coverage maintained after all changes
+
+### What Didn't Work (Initially)
+
+- Prior session changed production code (validate_structure.go, validate_deployments.go) to the new single-return signature but left test files using the old 2-return-value pattern — build was broken
+- 9 call sites across 3 test files needed updating to match the new signature
+
+### Root Cause
+
+- Incomplete prior work: production code was updated but corresponding test files were not
+- The change was correct (panic for unknown struct type is better than returning an error that all callers ignore), but both sides need updating atomically
+
+### Patterns to Propagate
+
+1. **Signature changes must update both production and test code atomically** — never leave test files with stale API calls
+2. **Panic is appropriate for programmer errors** (unknown deployment type constants) vs errors for runtime failures (file not found)
+3. **YAML custom tags** (like `!override`) are preserved by Go's yaml.v3 for unmarshal purposes — the tag is stripped and the value is decoded normally
+4. **Validators that read compose files directly** (not via Docker Compose include resolution) work correctly for Approach C because each tier explicitly lists its own ports
 
 ---
 
