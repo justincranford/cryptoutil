@@ -237,6 +237,35 @@ func TestMainSubcommandRouting(t *testing.T) {
 			},
 			wantCode: 0,
 		},
+		{
+			name: "validate-all via Main routing passes with empty dirs",
+			setup: func(t *testing.T) []string {
+				t.Helper()
+
+				deploymentsDir := t.TempDir()
+				configsDir := t.TempDir()
+
+				return []string{"validate-all", deploymentsDir, configsDir}
+			},
+			wantCode: 0,
+		},
+		{
+			name: "validate-all via Main routing fails with naming violation",
+			setup: func(t *testing.T) []string {
+				t.Helper()
+
+				deploymentsDir := t.TempDir()
+				configsDir := t.TempDir()
+				// A subdirectory with uppercase violates kebab-case naming; causes
+				// the naming validator to fail, making AllPassed() return false.
+				require.NoError(t, os.MkdirAll(
+					filepath.Join(deploymentsDir, "INVALID_DIR"),
+					dirPermissions))
+
+				return []string{"validate-all", deploymentsDir, configsDir}
+			},
+			wantCode: 1,
+		},
 	}
 
 	for _, tc := range tests {

@@ -261,13 +261,14 @@ func TestValidateTelemetry_InvalidYAML(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
+	// Use a YAML sequence — yaml.Unmarshal fails when decoding !!seq into map[string]any.
 	require.NoError(t, os.WriteFile(
 		filepath.Join(dir, "config.yml"),
-		[]byte("{{invalid yaml"), cryptoutilSharedMagic.CacheFilePermissions))
+		[]byte("- item1\n- item2\n"), cryptoutilSharedMagic.CacheFilePermissions))
 
 	result, err := ValidateTelemetry(dir)
 	require.NoError(t, err)
-	require.True(t, result.Valid) // Invalid YAML skipped.
+	require.True(t, result.Valid) // Invalid YAML type skipped.
 }
 
 func TestValidateTelemetry_UnreadableFile(t *testing.T) {

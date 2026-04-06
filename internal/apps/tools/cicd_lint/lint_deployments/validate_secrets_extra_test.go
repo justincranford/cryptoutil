@@ -348,6 +348,19 @@ func TestValidateSecrets_ComposeEnvNonStringValue(t *testing.T) {
 	require.True(t, result.Valid)
 }
 
+func TestValidateSecrets_ComposeInvalidYAMLSilentSkip(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	invalidYAML := []byte("services:\n  - [invalid: yaml: {broken")
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), invalidYAML, cryptoutilSharedMagic.CacheFilePermissions))
+
+	result, err := ValidateSecrets(dir)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	// Invalid YAML in compose is silently skipped (no error, result still valid).
+	require.True(t, result.Valid)
+}
+
 func TestValidateSecrets_ComposeEnvSafeFileRef(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()

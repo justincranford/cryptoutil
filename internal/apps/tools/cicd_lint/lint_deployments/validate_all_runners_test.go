@@ -169,6 +169,7 @@ func TestIsServiceFrameworkConfig(t *testing.T) {
 		{name: "authz-docker.yml", path: "configs/identity-authz/authz-docker.yml", expected: false},
 		{name: "compose.yml", path: "deployments/compose/compose.yml", expected: false},
 		{name: "random.yml", path: "/tmp/random.yml", expected: false},
+		{name: "non-yaml readme.md", path: "/tmp/readme.md", expected: false},
 	}
 
 	for _, tc := range tests {

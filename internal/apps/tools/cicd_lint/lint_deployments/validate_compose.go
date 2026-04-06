@@ -249,6 +249,13 @@ func isExemptFromHealthcheck(name string, svc *composeService) bool {
 		}
 	}
 
+	// Override-only services (Approach C) have ports defined but no image and no build.
+	// They inherit image and healthcheck from the included PS-ID compose file, so no
+	// standalone healthcheck is required at the PRODUCT or SUITE level.
+	if svc.Image == "" && svc.Build == nil && len(svc.Ports) > 0 {
+		return true
+	}
+
 	return false
 }
 

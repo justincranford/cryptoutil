@@ -32,7 +32,7 @@ type PortValidationResult struct {
 //
 // See ENG-HANDBOOK.md Section 3.4 Port Assignments & Networking.
 const (
-	servicePortMin = 8000
+	servicePortMin = cryptoutilSharedMagic.KMSServicePort
 	servicePortMax = 8999
 	productPortMin = 18000
 	productPortMax = 18999

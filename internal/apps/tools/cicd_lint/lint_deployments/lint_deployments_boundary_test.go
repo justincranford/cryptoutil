@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	cryptoutilCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
@@ -176,6 +177,84 @@ func TestFormatResults_SortOrderBoundary(t *testing.T) {
 	require.Less(t, aValidIdx, bValidIdx, "valid items should be sorted by path")
 }
 
+// TestCountFailed verifies countFailed counts ValidatorResult entries where Passed==false.
+func TestCountFailed(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		results []ValidatorResult
+		want    int
+	}{
+		{
+			name:    "all pass",
+			results: []ValidatorResult{{Passed: true}, {Passed: true}},
+			want:    0,
+		},
+		{
+			name:    "one fail",
+			results: []ValidatorResult{{Passed: true}, {Passed: false}},
+			want:    1,
+		},
+		{
+			name:    "all fail",
+			results: []ValidatorResult{{Passed: false}, {Passed: false}},
+			want:    2,
+		},
+		{
+			name:    "empty results",
+			results: nil,
+			want:    0,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			result := &AllValidationResult{Results: tc.results}
+			require.Equal(t, tc.want, countFailed(result))
+		})
+	}
+}
+
+// Sequential: uses os.Chdir (global process state, cannot run in parallel).
+func TestLint_WithRealDirs(t *testing.T) {
+	original, err := os.Getwd()
+	require.NoError(t, err)
+
+	// Navigate five directories up from the package dir to reach the project root.
+	// Package path: internal/apps/tools/cicd_lint/lint_deployments/ (5 levels below module root).
+	root := filepath.Join(original, "../../../../../")
+
+	if _, statErr := os.Stat(filepath.Join(root, "deployments")); os.IsNotExist(statErr) {
+		t.Skip("cannot locate project deployments/ directory — not running from expected workspace")
+	}
+
+	require.NoError(t, os.Chdir(root))
+	t.Cleanup(func() { require.NoError(t, os.Chdir(original)) })
+
+	logger := cryptoutilCicdCommon.NewLogger("test-lint-real-dirs")
+	require.NoError(t, Lint(logger), "Lint must succeed on real project files")
+}
+
+// Sequential: uses os.Chdir (global process state, cannot run in parallel).
+func TestLint_WithInvalidDir(t *testing.T) {
+	original, err := os.Getwd()
+	require.NoError(t, err)
+
+	// Chdir to a temp directory where deployments/ and configs/ do not exist.
+	// ValidateNaming will return Valid=false for non-existent paths, causing Lint to error.
+	emptyDir := t.TempDir()
+	require.NoError(t, os.Chdir(emptyDir))
+	t.Cleanup(func() { require.NoError(t, os.Chdir(original)) })
+
+	logger := cryptoutilCicdCommon.NewLogger("test-lint-invalid-dir")
+	err = Lint(logger)
+	require.Error(t, err, "Lint must fail when deployments/ and configs/ do not exist")
+	require.Contains(t, err.Error(), "lint-deployments failed")
+}
+
 // TestFormatResults_EmptySlicesSectionsOmitted verifies that empty MissingDirs
 // and MissingSecrets don't produce output, killing BOUNDARY mutant on len > 0.
 func TestFormatResults_EmptySlicesSectionsOmitted(t *testing.T) {
@@ -202,4 +281,45 @@ func TestFormatResults_EmptySlicesSectionsOmitted(t *testing.T) {
 	require.NotContains(t, output, "Missing secrets")
 	require.NotContains(t, output, "ERROR:")
 	require.NotContains(t, output, "WARN:")
+}
+
+// TestValidateStructuralMirror_DirArgIsFile verifies that passing a regular file
+// as the deploymentsDir or configsDir triggers the expected error without requiring
+// os.Chmod (which does not restrict access on Windows NTFS).
+func TestValidateStructuralMirror_DirArgIsFile(t *testing.T) {
+	t.Parallel()
+
+	validDir := t.TempDir()
+	fileInDir := filepath.Join(t.TempDir(), "not-a-dir.txt")
+	require.NoError(t, os.WriteFile(fileInDir, []byte("content"), cryptoutilSharedMagic.CacheFilePermissions))
+
+	tests := []struct {
+		name            string
+		deploymentsDir  string
+		configsDir      string
+		wantErrContains string
+	}{
+		{
+			name:            "deployments dir is a file",
+			deploymentsDir:  fileInDir,
+			configsDir:      validDir,
+			wantErrContains: "failed to list deployment directories",
+		},
+		{
+			name:            "configs dir is a file",
+			deploymentsDir:  validDir,
+			configsDir:      fileInDir,
+			wantErrContains: "failed to list config directories",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			_, err := ValidateStructuralMirror(tc.deploymentsDir, tc.configsDir)
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tc.wantErrContains)
+		})
+	}
 }

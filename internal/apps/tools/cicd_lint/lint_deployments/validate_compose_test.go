@@ -163,6 +163,27 @@ secrets:
 			wantValid: true,
 		},
 		{
+			name: "credentials via run secrets path safe",
+			content: `services:
+  mydb:
+    image: postgres:18
+    environment:
+      POSTGRES_PASSWORD: /run/secrets/postgres-password.secret
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+`,
+			wantValid: true,
+		},
+		{
+			name: "override-only service exempt from healthcheck",
+			content: `services:
+  product-app-sqlite-1:
+    ports:
+      - "18000:8080"
+`,
+			wantValid: true,
+		},
+		{
 			name: "dangerous bind mount docker.sock",
 			content: `services:
   myapp:
@@ -226,6 +247,18 @@ secrets:
 `,
 			wantValid:  false,
 			wantErrors: []string{"hardcoded credentials"},
+		},
+		{
+			name: "infrastructure service exempt from credential check",
+			content: `services:
+  grafana-otel-lgtm:
+    image: grafana/otel-lgtm:latest
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: hardcoded-admin-pw
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:3000"]
+`,
+			wantValid: true,
 		},
 	}
 

@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
@@ -19,8 +21,8 @@ const (
 	fileTypeJSON    = "json"
 	fileTypeOther   = "other"
 
-	filePermissions = 0o600
-	dirPermissions  = 0o750
+	filePermissions = cryptoutilSharedMagic.KeyFilePermissions
+	dirPermissions  = cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute
 )
 
 // FileEntry represents metadata about a single file in the listing.

@@ -979,20 +979,22 @@ Where:
 
 The `compose-port-formula` fitness linter (`go run ./cmd/cicd-lint lint-fitness`) validates all compose port bindings against this formula at CI time.
 
-#### 3.4.2 PostgreSQL Ports
+#### 3.4.2 Shared PostgreSQL Architecture
 
-| Product-Service Identifier | Address (Host) | Host Port | Container Address | Port Value (Container) |
-|---------|-----------|----------------|----------|----------------|
-| **sm-kms** | 127.0.0.1 | 54320 | 0.0.0.0 | 5432 |
-| **sm-im** | 127.0.0.1 | 54321 | 0.0.0.0 | 5432 |
-| **jose-ja** | 127.0.0.1 | 54322 | 0.0.0.0 | 5432 |
-| **pki-ca** | 127.0.0.1 | 54323 | 0.0.0.0 | 5432 |
-| **identity-authz** | 127.0.0.1 | 54324 | 0.0.0.0 | 5432 |
-| **identity-idp** | 127.0.0.1 | 54325 | 0.0.0.0 | 5432 |
-| **identity-rs** | 127.0.0.1 | 54326 | 0.0.0.0 | 5432 |
-| **identity-rp** | 127.0.0.1 | 54327 | 0.0.0.0 | 5432 |
-| **identity-spa** | 127.0.0.1 | 54328 | 0.0.0.0 | 5432 |
-| **skeleton-template** | 127.0.0.1 | 54329 | 0.0.0.0 | 5432 |
+PostgreSQL uses a **single shared leader/follower pair** (`deployments/shared-postgres/compose.yml`) at all deployment tiers (SERVICE, PRODUCT, SUITE). Per-PS-ID PostgreSQL services have been **permanently removed** (framework-v8, Q1=C, Q2=E).
+
+**Key Design Decisions**:
+
+- **No host port exposure**: PostgreSQL containers have no `ports:` mapping at any tier.
+- **Developer access**: `docker exec postgres-leader psql` (container-internal, no host port needed).
+- **Per-PS-ID isolation**: Each service connects with a unique username, password, and logical database name.
+- **Replication**: Follower replicates all logical databases from leader via init scripts.
+- **Init scripts**: `init-leader-databases.sql`, `init-follower-databases.sql`, `setup-logical-replication.sh` create 30 logical databases (10 PS-IDs x 3 tiers).
+
+| Component | Container Address | Container Port | Host Port |
+|-----------|-------------------|----------------|-----------|
+| **postgres-leader** | 0.0.0.0 | 5432 | None (no host exposure) |
+| **postgres-follower** | 0.0.0.0 | 5432 | None (no host exposure) |
 
 #### 3.4.3 Telemetry Ports (Shared)
 

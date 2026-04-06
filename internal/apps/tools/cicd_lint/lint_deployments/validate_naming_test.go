@@ -395,3 +395,26 @@ func TestValidateNaming_ComposeReadableFileError(t *testing.T) {
 	// Should have warning about failed read.
 	require.True(t, len(result.Warnings) > 0 || len(result.Errors) > 0)
 }
+
+// TestValidateNaming_SkipsTemplateDirectory verifies that directories named "template"
+// are skipped entirely, allowing intentional uppercase placeholders within them.
+func TestValidateNaming_SkipsTemplateDirectory(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	// Create a directory named "template" (DeploymentTypeTemplate constant value).
+	templateDir := filepath.Join(dir, DeploymentTypeTemplate)
+	require.NoError(t, os.MkdirAll(templateDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
+	// Put a file with invalid kebab-case naming inside template/ — it would trigger
+	// a naming error if the directory were NOT skipped (uppercase in filename).
+	require.NoError(t, os.WriteFile(
+		filepath.Join(templateDir, "PRODUCT-SERVICE.yml"),
+		[]byte("name: template\n"), cryptoutilSharedMagic.CacheFilePermissions))
+
+	result, err := ValidateNaming(dir)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	// Template directory is entirely skipped; no naming violation reported.
+	require.True(t, result.Valid)
+	require.Empty(t, result.Errors)
+}

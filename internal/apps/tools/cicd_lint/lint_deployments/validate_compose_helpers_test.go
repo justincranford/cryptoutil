@@ -130,7 +130,10 @@ func TestIsExemptFromHealthcheck(t *testing.T) {
 	}{
 		{name: "builder prefix", svcName: "builder-myapp", svc: composeService{}, expected: true},
 		{name: "healthcheck prefix", svcName: cryptoutilSharedMagic.DockerJobHealthcheckSecrets, svc: composeService{}, expected: true},
+		{name: "setup suffix", svcName: "migration-setup", svc: composeService{}, expected: true},
+		{name: "init suffix", svcName: "db-init", svc: composeService{}, expected: true},
 		{name: "echo entrypoint", svcName: "init", svc: composeService{Entrypoint: []any{"sh", "-c", "echo done"}}, expected: true},
+		{name: "override-only port service", svcName: cryptoutilSharedMagic.KMSE2ESQLiteContainer, svc: composeService{Ports: []string{"18000:8080"}}, expected: true},
 		{name: "regular service", svcName: "myapp", svc: composeService{}, expected: false},
 		{name: "non-echo entrypoint", svcName: "myapp", svc: composeService{Entrypoint: []any{"app", "start"}}, expected: false},
 	}
