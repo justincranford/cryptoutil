@@ -123,7 +123,32 @@ root causes, and patterns to propagate to permanent artifacts.*
 
 ## Phase 4: SUITE Recursive Includes — Approach C
 
-*(To be filled during Phase 4 execution)*
+### What Worked
+
+- Same `include:` + `!override` pattern from Phase 3 applied cleanly at the suite level
+- Including 5 PRODUCT composes transitively brings in all 10 PS-ID composes → no manual work
+- Suite-level `secrets:` section correctly overrides all 7 PS-ID/product-level secrets
+- 1904 lines → 127 lines (93.3% reduction) in a single pass
+- All 54 validators pass without any changes to validators
+- `docker compose --profile dev config` shows all 20 SQLite published ports in 28000-28901 range
+
+### What Didn't Work (Initially)
+
+- Old suite compose used `28000:8000` (container port 8000) — different from PS-ID/product pattern (container port 8080)
+- New suite compose uses `28000:8080` (container port 8080) to match the PS-ID pattern since we're just overriding host ports
+
+### Root Cause
+
+- Old suite compose had hand-crafted full service definitions with `--bind-public-port=8000` command
+- New suite compose inherits service definitions from PS-ID composes which use port 8080
+- The `!override` port replacement must match the container port already in the inherited definition
+
+### Patterns to Propagate
+
+1. **Container port is always 8080 in PS-ID composes** — PRODUCT and SUITE overrides must use `["XXXX:8080"]`
+2. **Suite-level can have additional services** (builder-cryptoutil) that don't conflict with inherited PS-ID builders
+3. **93% line reduction achieved** at suite level using recursive includes pattern
+4. **All 3 tiers work with same pattern** — SERVICE defines, PRODUCT overrides (+10000), SUITE overrides (+20000)
 
 ---
 
