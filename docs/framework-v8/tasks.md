@@ -1,6 +1,6 @@
 # Tasks — Framework v8: Deployment Parameterization
 
-**Status**: 4 of 43 tasks complete (9%)
+**Status**: 10 of 43 tasks complete (23%)
 **Last Updated**: 2026-04-06
 **Created**: 2026-04-05
 
@@ -97,35 +97,30 @@ Archive findings in `test-output/framework-v8-research/`.
 
 #### Task 1.1: Standardize to `postgresql` in PRODUCT Compose Files
 
-- **Status**: ❌
-- **Estimated**: 0.5h
+- **Status**: ✅
+- **Actual**: 0.15h
 - **Dependencies**: None
 - **Description**: Rename service names in PRODUCT compose files from `postgres-N` to
   `postgresql-N` to match PS-ID and config file conventions
-- **Files Affected** (PRODUCT composes with `postgres` service names — check all 5):
-  - `deployments/sm/compose.yml`
-  - `deployments/jose/compose.yml`
-  - `deployments/pki/compose.yml`
-  - `deployments/identity/compose.yml`
-  - `deployments/skeleton/compose.yml`
+- **Files Affected**: sm, pki, identity (jose and skeleton already correct)
 - **Acceptance Criteria**:
-  - [ ] Zero occurrences of `{ps-id}-app-postgres-N` (without `ql`) in service names
-  - [ ] All config file references (`sm-kms-app-postgresql-1.yml`) match service names
-  - [ ] `grep -r "app-postgres-[0-9]" deployments/` returns no matches
+  - [x] Zero occurrences of `{ps-id}-app-postgres-N` (without `ql`) in service names
+  - [x] All config file references (`sm-kms-app-postgresql-1.yml`) match service names
+  - [x] `grep -r "app-postgres-[0-9]" deployments/` returns no matches
 
 #### Task 1.2: Standardize to `postgresql` in SUITE Compose File
 
-- **Status**: ❌
-- **Estimated**: 0.25h
+- **Status**: ✅
+- **Actual**: 0.1h
 - **Dependencies**: Task 1.1
 - **Description**: Rename `app-postgres-N` service names in `deployments/cryptoutil/compose.yml`
 - **Acceptance Criteria**:
-  - [ ] `grep "app-postgres-" deployments/cryptoutil/compose.yml` returns no matches
+  - [x] `grep "app-postgres-" deployments/cryptoutil/compose.yml` returns no matches
 
 #### Task 1.3: Add sm-im Services to SM Product Compose
 
-- **Status**: ❌
-- **Estimated**: 0.75h
+- **Status**: ✅
+- **Actual**: 0.5h
 - **Dependencies**: None
 - **Description**: Add sm-im-app-sqlite-1, sm-im-app-sqlite-2, sm-im-app-postgresql-1,
   sm-im-app-postgresql-2 to `deployments/sm/compose.yml` (currently missing)
@@ -135,15 +130,15 @@ Archive findings in `test-output/framework-v8-research/`.
   - sm-im-app-postgresql-1: 18102
   - sm-im-app-postgresql-2: 18103
 - **Acceptance Criteria**:
-  - [ ] All 4 sm-im instances defined in sm compose
-  - [ ] sm-im instances reference correct config files from `../sm-im/config/`
-  - [ ] sm-im instances depend on `builder-sm` and `sm-db-postgres-1`
-  - [ ] `go run ./cmd/cicd-lint lint-deployments` does not error on missing sm-im services
+  - [x] All 4 sm-im instances defined in sm compose
+  - [x] sm-im instances reference correct config files from `../sm-im/config/`
+  - [x] sm-im instances depend on `builder-sm` and `sm-db-postgres-1`
+  - [x] `go run ./cmd/cicd-lint lint-deployments` does not error on missing sm-im services
 
 #### Task 1.4: Add sqlite-2 Variants at PRODUCT Level
 
-- **Status**: ❌
-- **Estimated**: 1h
+- **Status**: ✅
+- **Actual**: 0.75h
 - **Dependencies**: None
 - **Description**: Each PS-ID has 4 variants at SERVICE level but PRODUCT compose files only
   have 3 (sqlite-1, postgresql-1, postgresql-2). Add sqlite-2 at PRODUCT level.
@@ -159,40 +154,40 @@ Archive findings in `test-output/framework-v8-research/`.
   - identity-spa-app-sqlite-2: 18801
   - skeleton-template-app-sqlite-2: 18901
 - **Acceptance Criteria**:
-  - [ ] Each PS-ID in each PRODUCT compose has exactly 4 app service instances
-  - [ ] sqlite-2 services use `dev` and `ci` profiles (same as sqlite-1)
-  - [ ] No port conflicts within each PRODUCT compose
+  - [x] Each PS-ID in each PRODUCT compose has exactly 4 app service instances
+  - [x] sqlite-2 services use `dev` and `ci` profiles (same as sqlite-1)
+  - [x] No port conflicts within each PRODUCT compose
 
 #### Task 1.5: Add sqlite-2 Variants at SUITE Level
 
-- **Status**: ❌
-- **Estimated**: 0.75h
+- **Status**: ✅
+- **Actual**: 0.5h
 - **Dependencies**: Task 1.4
 - **Description**: SUITE compose currently missing sqlite-2 for all 10 PS-IDs. Add them.
 - **Port Assignments** (sqlite-2 = SUITE_BASE + 1):
   - sm-kms-app-sqlite-2: 28001, sm-im: 28101, jose-ja: 28201, pki-ca: 28301, etc.
 - **Acceptance Criteria**:
-  - [ ] All 10 PS-IDs have sqlite-2 service at SUITE level
-  - [ ] SUITE compose shows 40 app service instances total (10 PS-IDs × 4 variants)
+  - [x] All 10 PS-IDs have sqlite-2 service at SUITE level
+  - [x] SUITE compose shows 40 app service instances total (10 PS-IDs × 4 variants)
 
 #### Task 1.6: Run lint-deployments Baseline
 
-- **Status**: ❌
-- **Estimated**: 0.25h
+- **Status**: ✅
+- **Actual**: 0.1h
 - **Dependencies**: Tasks 1.1–1.5
 - **Description**: Run `go run ./cmd/cicd-lint lint-deployments` and document baseline
 - **Acceptance Criteria**:
-  - [ ] Output saved to `test-output/framework-v8-research/lint-deployments-phase1.txt`
-  - [ ] No new errors introduced by Phase 1 changes (error count ≤ pre-phase baseline)
+  - [x] Output saved to `test-output/framework-v8-research/lint-deployments-phase1.txt`
+  - [x] No new errors introduced by Phase 1 changes (54/54 validators passed, 0 errors)
 
 #### Phase 1 Quality Gate
 
-- [ ] `go build ./...` — clean
-- [ ] `golangci-lint run` — clean
-- [ ] `go run ./cmd/cicd-lint lint-deployments` — ≤ baseline errors
-- [ ] `grep "app-postgres-" deployments/` — zero matches
-- [ ] SM product compose has 8 sm-kms + 8 sm-im service instances (16 total app + infra)
-- [ ] Phase 1 post-mortem — update lessons.md
+- [x] `go build ./...` — clean
+- [x] `golangci-lint run` — clean (no Go changes in Phase 1)
+- [x] `go run ./cmd/cicd-lint lint-deployments` — 54/54 passed, 0 errors
+- [x] `grep "app-postgres-" deployments/` — zero matches
+- [x] SM product compose has sm-kms + sm-im with 4 variants each (8 app + 3 infra services)
+- [x] Phase 1 post-mortem — update lessons.md
 
 ---
 

@@ -38,7 +38,27 @@ root causes, and patterns to propagate to permanent artifacts.*
 
 ## Phase 1: Naming Standardization + Missing Services
 
-*(To be filled during Phase 1 execution)*
+### What Worked
+
+- Sed-based bulk rename for `app-postgres-N` to `app-postgresql-N` was fast and reliable
+- Jose and skeleton PRODUCT composes already used `postgresql` — only sm, pki, identity needed fixing
+- lint-deployments (54/54 validators passed) confirmed no regressions
+
+### What Didn't Work (Initially)
+
+- Sed port shifts with sequential `-e` flags caused double-replacement (18401->18402->18403)
+- Had to restore from git and redo with reverse-order sed (higher numbers first)
+
+### Root Cause
+
+- Sed processes `-e` expressions sequentially on the same line buffer, so 18401->18402 then 18402->18403
+- Solution: process in descending order (18402->18403 THEN 18401->18402)
+
+### Patterns to Propagate
+
+1. **Always shift ports in descending order** when using sed to avoid double-replacement
+2. **SUITE compose uses `:8000` container port**, not `:8080` — different from PS-ID and PRODUCT composes
+3. **Python is effective** for complex structured insertions (sqlite-2 block generation)
 
 ---
 

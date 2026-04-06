@@ -4,31 +4,31 @@
 #
 # Purpose: Complete suite deployment with ALL 10 services across 5 products.
 # Deployment Level: SUITE (port range 28000-28999, SERVICE base + 20000 offset)
-# Each service has 3 instances (1 SQLite + 2 PostgreSQL).
+# Each service has 4 instances (2 SQLite + 2 PostgreSQL).
 #
-# Services (10 total):
-#   1. sm-kms (SM Key Management Service) - 28000-28002
-#   2. sm-im (SM Instant Messenger) - 28100-28102
-#   3. jose-ja (JOSE JWK Authority) - 28200-28202
-#   4. pki-ca (PKI Certificate Authority) - 28300-28302
-#   5. identity-authz (Identity Authorization Server) - 28400-28402
-#   6. identity-idp (Identity Provider) - 28500-28502
-#   7. identity-rs (Identity Resource Server) - 28600-28602
-#   8. identity-rp (Identity Relying Party) - 28700-28702
-#   9. identity-spa (Identity Single Page App) - 28800-28802
-#  10. skeleton-template (Skeleton Template) - 28900-28902
+# Services (10 total, 40 app instances):
+#   1. sm-kms (SM Key Management Service) - 28000-28003
+#   2. sm-im (SM Instant Messenger) - 28100-28103
+#   3. jose-ja (JOSE JWK Authority) - 28200-28203
+#   4. pki-ca (PKI Certificate Authority) - 28300-28303
+#   5. identity-authz (Identity Authorization Server) - 28400-28403
+#   6. identity-idp (Identity Provider) - 28500-28503
+#   7. identity-rs (Identity Resource Server) - 28600-28603
+#   8. identity-rp (Identity Relying Party) - 28700-28703
+#   9. identity-spa (Identity Single Page App) - 28800-28803
+#  10. skeleton-template (Skeleton Template) - 28900-28903
 #
 # Port allocation (SUITE-level, base + 20000 offset):
-#   - sm-kms:         28000 (SQLite), 28001-28002 (PostgreSQL)
-#   - sm-im:          28100 (SQLite), 28101-28102 (PostgreSQL)
-#   - jose-ja:        28200 (SQLite), 28201-28202 (PostgreSQL)
-#   - pki-ca:         28300 (SQLite), 28301-28302 (PostgreSQL)
-#   - identity-authz: 28400 (SQLite), 28401-28402 (PostgreSQL)
-#   - identity-idp:   28500 (SQLite), 28501-28502 (PostgreSQL)
-#   - identity-rs:    28600 (SQLite), 28601-28602 (PostgreSQL)
-#   - identity-rp:    28700 (SQLite), 28701-28702 (PostgreSQL)
-#   - identity-spa:   28800 (SQLite), 28801-28802 (PostgreSQL)
-#   - skeleton-template: 28900 (SQLite), 28901-28902 (PostgreSQL)
+#   - sm-kms:            28000-28001 (SQLite), 28002-28003 (PostgreSQL)
+#   - sm-im:             28100-28101 (SQLite), 28102-28103 (PostgreSQL)
+#   - jose-ja:           28200-28201 (SQLite), 28202-28203 (PostgreSQL)
+#   - pki-ca:            28300-28301 (SQLite), 28302-28303 (PostgreSQL)
+#   - identity-authz:    28400-28401 (SQLite), 28402-28403 (PostgreSQL)
+#   - identity-idp:      28500-28501 (SQLite), 28502-28503 (PostgreSQL)
+#   - identity-rs:       28600-28601 (SQLite), 28602-28603 (PostgreSQL)
+#   - identity-rp:       28700-28701 (SQLite), 28702-28703 (PostgreSQL)
+#   - identity-spa:      28800-28801 (SQLite), 28802-28803 (PostgreSQL)
+#   - skeleton-template: 28900-28901 (SQLite), 28902-28903 (PostgreSQL)
 #
 # Database ports (PostgreSQL leader/follower):
 #   - postgres-leader:      5432
@@ -135,13 +135,53 @@ services:
         reservations:
           memory: 128M
 
-  sm-kms-app-postgres-1:
+  sm-kms-app-sqlite-2:
+    profiles: ["dev", "ci"]
+    image: cryptoutil:dev
+    command: ["sm", "kms", "server", "--bind-public-port=8080", "--config=/app/config/sm-kms-app-sqlite-2.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    working_dir: /tmp
+    ports:
+      - "28001:8000"
+    volumes:
+      - ../sm-kms/config/sm-kms-app-sqlite-2.yml:/app/config/sm-kms-app-sqlite-2.yml:ro
+      - ../sm-kms/config/sm-kms-app-common.yml:/app/config/common.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+    secrets:
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-cryptoutil:
+        condition: service_completed_successfully
+      opentelemetry-collector-contrib:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      start_period: 60s
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - cryptoutil-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  sm-kms-app-postgresql-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
     command: ["sm", "kms", "server", "--bind-public-port=8080", "--config=/app/config/sm-kms-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28001:8000"
+      - "28002:8000"
     volumes:
       - ../sm-kms/config/sm-kms-postgres.yml:/app/config/sm-kms-postgres.yml:ro
       - ../sm-kms/config/sm-kms-app-common.yml:/app/config/common.yml:ro
@@ -182,13 +222,13 @@ services:
         reservations:
           memory: 128M
 
-  sm-kms-app-postgres-2:
+  sm-kms-app-postgresql-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
     command: ["sm", "kms", "server", "--bind-public-port=8080", "--config=/app/config/sm-kms-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28002:8000"
+      - "28003:8000"
     volumes:
       - ../sm-kms/config/sm-kms-postgres.yml:/app/config/sm-kms-postgres.yml:ro
       - ../sm-kms/config/sm-kms-app-common.yml:/app/config/common.yml:ro
@@ -273,13 +313,53 @@ services:
         reservations:
           memory: 128M
 
-  sm-im-app-postgres-1:
+  sm-im-app-sqlite-2:
+    profiles: ["dev", "ci"]
+    image: cryptoutil:dev
+    command: ["sm", "im", "server", "--bind-public-port=8080", "--config=/app/config/sm-im-app-sqlite-2.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    working_dir: /tmp
+    ports:
+      - "28101:8000"
+    volumes:
+      - ../sm-im/config/sm-im-app-sqlite-2.yml:/app/config/sm-im-app-sqlite-2.yml:ro
+      - ../sm-im/config/sm-im-app-common.yml:/app/config/common.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+    secrets:
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-cryptoutil:
+        condition: service_completed_successfully
+      opentelemetry-collector-contrib:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      start_period: 60s
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - cryptoutil-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  sm-im-app-postgresql-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
     command: ["sm", "im", "server", "--bind-public-port=8080", "--config=/app/config/sm-im-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28101:8000"
+      - "28102:8000"
     volumes:
       - ../sm-im/config/sm-im-postgres.yml:/app/config/sm-im-postgres.yml:ro
       - ../sm-im/config/sm-im-app-common.yml:/app/config/common.yml:ro
@@ -320,13 +400,13 @@ services:
         reservations:
           memory: 128M
 
-  sm-im-app-postgres-2:
+  sm-im-app-postgresql-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
     command: ["sm", "im", "server", "--bind-public-port=8080", "--config=/app/config/sm-im-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28102:8000"
+      - "28103:8000"
     volumes:
       - ../sm-im/config/sm-im-postgres.yml:/app/config/sm-im-postgres.yml:ro
       - ../sm-im/config/sm-im-app-common.yml:/app/config/common.yml:ro
@@ -411,13 +491,53 @@ services:
         reservations:
           memory: 128M
 
-  jose-ja-app-postgres-1:
+  jose-ja-app-sqlite-2:
+    profiles: ["dev", "ci"]
+    image: cryptoutil:dev
+    command: ["jose", "ja", "server", "--bind-public-port=8080", "--config=/app/config/jose-ja-app-sqlite-2.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    working_dir: /tmp
+    ports:
+      - "28201:8000"
+    volumes:
+      - ../jose-ja/config/jose-ja-app-sqlite-2.yml:/app/config/jose-ja-app-sqlite-2.yml:ro
+      - ../jose-ja/config/jose-ja-app-common.yml:/app/config/common.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+    secrets:
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-cryptoutil:
+        condition: service_completed_successfully
+      opentelemetry-collector-contrib:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      start_period: 60s
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - cryptoutil-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  jose-ja-app-postgresql-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
     command: ["jose", "ja", "server", "--bind-public-port=8080", "--config=/app/config/jose-ja-app-postgresql-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28201:8000"
+      - "28202:8000"
     volumes:
       - ../jose-ja/config/jose-ja-app-postgresql-1.yml:/app/config/jose-ja-app-postgresql-1.yml:ro
       - ../jose-ja/config/jose-ja-app-common.yml:/app/config/common.yml:ro
@@ -458,13 +578,13 @@ services:
         reservations:
           memory: 128M
 
-  jose-ja-app-postgres-2:
+  jose-ja-app-postgresql-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
     command: ["jose", "ja", "server", "--bind-public-port=8080", "--config=/app/config/jose-ja-app-postgresql-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28202:8000"
+      - "28203:8000"
     volumes:
       - ../jose-ja/config/jose-ja-app-postgresql-1.yml:/app/config/jose-ja-app-postgresql-1.yml:ro
       - ../jose-ja/config/jose-ja-app-common.yml:/app/config/common.yml:ro
@@ -549,13 +669,53 @@ services:
         reservations:
           memory: 128M
 
-  pki-ca-app-postgres-1:
+  pki-ca-app-sqlite-2:
+    profiles: ["dev", "ci"]
+    image: cryptoutil:dev
+    command: ["pki", "ca", "server", "--bind-public-port=8080", "--config=/app/config/pki-ca-app-sqlite-2.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    working_dir: /tmp
+    ports:
+      - "28301:8000"
+    volumes:
+      - ../pki-ca/config/pki-ca-app-sqlite-2.yml:/app/config/pki-ca-app-sqlite-2.yml:ro
+      - ../pki-ca/config/pki-ca-app-common.yml:/app/config/common.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+    secrets:
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-cryptoutil:
+        condition: service_completed_successfully
+      opentelemetry-collector-contrib:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      start_period: 60s
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - cryptoutil-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  pki-ca-app-postgresql-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
     command: ["pki", "ca", "server", "--bind-public-port=8080", "--config=/app/config/pki-ca-app-postgresql-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28301:8000"
+      - "28302:8000"
     volumes:
       - ../pki-ca/config/pki-ca-app-postgresql-1.yml:/app/config/pki-ca-app-postgresql-1.yml:ro
       - ../pki-ca/config/pki-ca-app-common.yml:/app/config/common.yml:ro
@@ -596,13 +756,13 @@ services:
         reservations:
           memory: 128M
 
-  pki-ca-app-postgres-2:
+  pki-ca-app-postgresql-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
     command: ["pki", "ca", "server", "--bind-public-port=8080", "--config=/app/config/pki-ca-app-postgresql-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28302:8000"
+      - "28303:8000"
     volumes:
       - ../pki-ca/config/pki-ca-app-postgresql-1.yml:/app/config/pki-ca-app-postgresql-1.yml:ro
       - ../pki-ca/config/pki-ca-app-common.yml:/app/config/common.yml:ro
@@ -687,13 +847,53 @@ services:
         reservations:
           memory: 128M
 
-  identity-authz-app-postgres-1:
+  identity-authz-app-sqlite-2:
+    profiles: ["dev", "ci"]
+    image: cryptoutil:dev
+    command: ["identity", "authz", "server", "--bind-public-port=8080", "--config=/app/config/identity-authz-app-sqlite-2.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    working_dir: /tmp
+    ports:
+      - "28401:8000"
+    volumes:
+      - ../identity-authz/config/identity-authz-app-sqlite-2.yml:/app/config/identity-authz-app-sqlite-2.yml:ro
+      - ../identity-authz/config/identity-authz-app-common.yml:/app/config/common.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+    secrets:
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-cryptoutil:
+        condition: service_completed_successfully
+      opentelemetry-collector-contrib:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      start_period: 60s
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - cryptoutil-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  identity-authz-app-postgresql-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
     command: ["identity", "authz", "server", "--bind-public-port=8080", "--config=/app/config/identity-authz-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28401:8000"
+      - "28402:8000"
     volumes:
       - ../identity-authz/config/identity-authz-postgres.yml:/app/config/identity-authz-postgres.yml:ro
       - ../identity-authz/config/identity-authz-common.yml:/app/config/common.yml:ro
@@ -734,13 +934,13 @@ services:
         reservations:
           memory: 128M
 
-  identity-authz-app-postgres-2:
+  identity-authz-app-postgresql-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
     command: ["identity", "authz", "server", "--bind-public-port=8080", "--config=/app/config/identity-authz-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28402:8000"
+      - "28403:8000"
     volumes:
       - ../identity-authz/config/identity-authz-postgres.yml:/app/config/identity-authz-postgres.yml:ro
       - ../identity-authz/config/identity-authz-common.yml:/app/config/common.yml:ro
@@ -825,13 +1025,53 @@ services:
         reservations:
           memory: 128M
 
-  identity-idp-app-postgres-1:
+  identity-idp-app-sqlite-2:
+    profiles: ["dev", "ci"]
+    image: cryptoutil:dev
+    command: ["identity", "idp", "server", "--bind-public-port=8080", "--config=/app/config/identity-idp-app-sqlite-2.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    working_dir: /tmp
+    ports:
+      - "28501:8000"
+    volumes:
+      - ../identity-idp/config/identity-idp-app-sqlite-2.yml:/app/config/identity-idp-app-sqlite-2.yml:ro
+      - ../identity-idp/config/identity-idp-app-common.yml:/app/config/common.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+    secrets:
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-cryptoutil:
+        condition: service_completed_successfully
+      opentelemetry-collector-contrib:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      start_period: 60s
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - cryptoutil-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  identity-idp-app-postgresql-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
     command: ["identity", "idp", "server", "--bind-public-port=8080", "--config=/app/config/identity-idp-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28501:8000"
+      - "28502:8000"
     volumes:
       - ../identity-idp/config/identity-idp-postgres.yml:/app/config/identity-idp-postgres.yml:ro
       - ../identity-idp/config/identity-idp-common.yml:/app/config/common.yml:ro
@@ -872,13 +1112,13 @@ services:
         reservations:
           memory: 128M
 
-  identity-idp-app-postgres-2:
+  identity-idp-app-postgresql-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
     command: ["identity", "idp", "server", "--bind-public-port=8080", "--config=/app/config/identity-idp-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28502:8000"
+      - "28503:8000"
     volumes:
       - ../identity-idp/config/identity-idp-postgres.yml:/app/config/identity-idp-postgres.yml:ro
       - ../identity-idp/config/identity-idp-common.yml:/app/config/common.yml:ro
@@ -963,13 +1203,53 @@ services:
         reservations:
           memory: 128M
 
-  identity-rs-app-postgres-1:
+  identity-rs-app-sqlite-2:
+    profiles: ["dev", "ci"]
+    image: cryptoutil:dev
+    command: ["identity", "rs", "server", "--bind-public-port=8080", "--config=/app/config/identity-rs-app-sqlite-2.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    working_dir: /tmp
+    ports:
+      - "28601:8000"
+    volumes:
+      - ../identity-rs/config/identity-rs-app-sqlite-2.yml:/app/config/identity-rs-app-sqlite-2.yml:ro
+      - ../identity-rs/config/identity-rs-app-common.yml:/app/config/common.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+    secrets:
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-cryptoutil:
+        condition: service_completed_successfully
+      opentelemetry-collector-contrib:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      start_period: 60s
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - cryptoutil-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  identity-rs-app-postgresql-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
     command: ["identity", "rs", "server", "--bind-public-port=8080", "--config=/app/config/identity-rs-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28601:8000"
+      - "28602:8000"
     volumes:
       - ../identity-rs/config/identity-rs-postgres.yml:/app/config/identity-rs-postgres.yml:ro
       - ../identity-rs/config/identity-rs-common.yml:/app/config/common.yml:ro
@@ -1010,13 +1290,13 @@ services:
         reservations:
           memory: 128M
 
-  identity-rs-app-postgres-2:
+  identity-rs-app-postgresql-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
     command: ["identity", "rs", "server", "--bind-public-port=8080", "--config=/app/config/identity-rs-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28602:8000"
+      - "28603:8000"
     volumes:
       - ../identity-rs/config/identity-rs-postgres.yml:/app/config/identity-rs-postgres.yml:ro
       - ../identity-rs/config/identity-rs-common.yml:/app/config/common.yml:ro
@@ -1101,13 +1381,53 @@ services:
         reservations:
           memory: 128M
 
-  identity-rp-app-postgres-1:
+  identity-rp-app-sqlite-2:
+    profiles: ["dev", "ci"]
+    image: cryptoutil:dev
+    command: ["identity", "rp", "server", "--bind-public-port=8080", "--config=/app/config/identity-rp-app-sqlite-2.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    working_dir: /tmp
+    ports:
+      - "28701:8000"
+    volumes:
+      - ../identity-rp/config/identity-rp-app-sqlite-2.yml:/app/config/identity-rp-app-sqlite-2.yml:ro
+      - ../identity-rp/config/identity-rp-app-common.yml:/app/config/common.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+    secrets:
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-cryptoutil:
+        condition: service_completed_successfully
+      opentelemetry-collector-contrib:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      start_period: 60s
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - cryptoutil-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  identity-rp-app-postgresql-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
     command: ["identity", "rp", "server", "--bind-public-port=8080", "--config=/app/config/identity-rp-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28701:8000"
+      - "28702:8000"
     volumes:
       - ../identity-rp/config/identity-rp-postgres.yml:/app/config/identity-rp-postgres.yml:ro
       - ../identity-rp/config/identity-rp-common.yml:/app/config/common.yml:ro
@@ -1148,13 +1468,13 @@ services:
         reservations:
           memory: 128M
 
-  identity-rp-app-postgres-2:
+  identity-rp-app-postgresql-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
     command: ["identity", "rp", "server", "--bind-public-port=8080", "--config=/app/config/identity-rp-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28702:8000"
+      - "28703:8000"
     volumes:
       - ../identity-rp/config/identity-rp-postgres.yml:/app/config/identity-rp-postgres.yml:ro
       - ../identity-rp/config/identity-rp-common.yml:/app/config/common.yml:ro
@@ -1239,13 +1559,53 @@ services:
         reservations:
           memory: 128M
 
-  identity-spa-app-postgres-1:
+  identity-spa-app-sqlite-2:
+    profiles: ["dev", "ci"]
+    image: cryptoutil:dev
+    command: ["identity", "spa", "server", "--bind-public-port=8080", "--config=/app/config/identity-spa-app-sqlite-2.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    working_dir: /tmp
+    ports:
+      - "28801:8000"
+    volumes:
+      - ../identity-spa/config/identity-spa-app-sqlite-2.yml:/app/config/identity-spa-app-sqlite-2.yml:ro
+      - ../identity-spa/config/identity-spa-app-common.yml:/app/config/common.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+    secrets:
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-cryptoutil:
+        condition: service_completed_successfully
+      opentelemetry-collector-contrib:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      start_period: 60s
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - cryptoutil-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  identity-spa-app-postgresql-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
     command: ["identity", "spa", "server", "--bind-public-port=8080", "--config=/app/config/identity-spa-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28801:8000"
+      - "28802:8000"
     volumes:
       - ../identity-spa/config/identity-spa-postgres.yml:/app/config/identity-spa-postgres.yml:ro
       - ../identity-spa/config/identity-spa-common.yml:/app/config/common.yml:ro
@@ -1286,13 +1646,13 @@ services:
         reservations:
           memory: 128M
 
-  identity-spa-app-postgres-2:
+  identity-spa-app-postgresql-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
     command: ["identity", "spa", "server", "--bind-public-port=8080", "--config=/app/config/identity-spa-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28802:8000"
+      - "28803:8000"
     volumes:
       - ../identity-spa/config/identity-spa-postgres.yml:/app/config/identity-spa-postgres.yml:ro
       - ../identity-spa/config/identity-spa-common.yml:/app/config/common.yml:ro
@@ -1377,13 +1737,53 @@ services:
         reservations:
           memory: 128M
 
-  skeleton-template-app-postgres-1:
+  skeleton-template-app-sqlite-2:
+    profiles: ["dev", "ci"]
+    image: cryptoutil:dev
+    command: ["skeleton", "template", "server", "--bind-public-port=8080", "--config=/app/config/skeleton-template-app-sqlite-2.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    working_dir: /tmp
+    ports:
+      - "28901:8000"
+    volumes:
+      - ../skeleton-template/config/skeleton-template-app-sqlite-2.yml:/app/config/skeleton-template-app-sqlite-2.yml:ro
+      - ../skeleton-template/config/skeleton-template-app-common.yml:/app/config/common.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+    secrets:
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-cryptoutil:
+        condition: service_completed_successfully
+      opentelemetry-collector-contrib:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      start_period: 60s
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - cryptoutil-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  skeleton-template-app-postgresql-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
     command: ["skeleton", "template", "server", "--bind-public-port=8080", "--config=/app/config/skeleton-template-app-postgresql-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28901:8000"
+      - "28902:8000"
     volumes:
       - ../skeleton-template/config/skeleton-template-app-postgresql-1.yml:/app/config/skeleton-template-app-postgresql-1.yml:ro
       - ../skeleton-template/config/skeleton-template-app-common.yml:/app/config/common.yml:ro
@@ -1424,13 +1824,13 @@ services:
         reservations:
           memory: 128M
 
-  skeleton-template-app-postgres-2:
+  skeleton-template-app-postgresql-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
     command: ["skeleton", "template", "server", "--bind-public-port=8080", "--config=/app/config/skeleton-template-app-postgresql-2.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "28902:8000"
+      - "28903:8000"
     volumes:
       - ../skeleton-template/config/skeleton-template-app-postgresql-2.yml:/app/config/skeleton-template-app-postgresql-2.yml:ro
       - ../skeleton-template/config/skeleton-template-app-common.yml:/app/config/common.yml:ro
