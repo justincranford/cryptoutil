@@ -1,6 +1,6 @@
 # Implementation Plan — Framework v8: Deployment Parameterization
 
-**Status**: Planning
+**Status**: Complete
 **Created**: 2026-04-05
 **Last Updated**: 2026-04-06
 **Purpose**: Eliminate ~2,800 lines of copy-paste across PRODUCT and SUITE compose files by
@@ -77,7 +77,7 @@ skeleton-template; in progress for pki-ca and identity services.
 
 ## Phases
 
-### Phase 0: Technical Research (0.5h) [Status: ☐ TODO]
+### Phase 0: Technical Research (0.5h) [Status: ☑ COMPLETE]
 
 **Objective**: Validate Docker Compose include + service override behavior before committing to
 the full recursive include design. Resolve work.md Open Questions #1–5.
@@ -97,7 +97,7 @@ the full recursive include design. Resolve work.md Open Questions #1–5.
 
 ---
 
-### Phase 1: Naming Standardization + Missing Services (2h) [Status: ☐ TODO]
+### Phase 1: Naming Standardization + Missing Services (2h) [Status: ☑ COMPLETE]
 
 **Objective**: Fix all naming inconsistencies and missing service definitions before touching the
 include hierarchy. Establishes a clean baseline for subsequent phases.
@@ -125,7 +125,7 @@ include hierarchy. Establishes a clean baseline for subsequent phases.
 
 ---
 
-### Phase 2: Remove Per-PS-ID PostgreSQL + Shared Infrastructure at All Tiers (2h) [Status: ☐ TODO]
+### Phase 2: Remove Per-PS-ID PostgreSQL + Shared Infrastructure at All Tiers (2h) [Status: ☑ COMPLETE]
 
 **Objective**: Prepare PS-ID compose files to serve as include targets by (a) removing per-PS-ID
 PostgreSQL DB services entirely and (b) adding `shared-postgres` and `shared-telemetry` includes
@@ -153,7 +153,7 @@ single shared leader/follower pair serves all PS-IDs with per-PS-ID logical data
 
 ---
 
-### Phase 3: PRODUCT Recursive Includes — Approach C (5h) [Status: ☐ TODO]
+### Phase 3: PRODUCT Recursive Includes — Approach C (5h) [Status: ☑ COMPLETE]
 
 **Objective**: Replace each PRODUCT compose file's copy-pasted PS-ID service definitions with
 `include:` references to the PS-ID compose files, adding inline port override redefinitions to
@@ -209,7 +209,7 @@ services:
 
 ---
 
-### Phase 4: SUITE Recursive Includes — Approach C (3h) [Status: ☐ TODO]
+### Phase 4: SUITE Recursive Includes — Approach C (3h) [Status: ☑ COMPLETE]
 
 **Objective**: Replace the SUITE (cryptoutil) compose file's 1,504 lines with `include:` of 5
 PRODUCT compose files, adding inline port override redefinitions to remap from PRODUCT range
@@ -247,7 +247,7 @@ services:
 
 ---
 
-### Phase 5: Validator + Linter Updates (4h) [Status: ☐ TODO]
+### Phase 5: Validator + Linter Updates (4h) [Status: ☑ COMPLETE]
 
 **Objective**: Update `lint-deployments` and `lint-ports` to understand recursive include
 structure. Remove Dockerfile requirement from PRODUCT level (Q3=D confirmed). These validators
@@ -277,7 +277,7 @@ resolved configuration.
 
 ---
 
-### Phase 6: Fitness Linter — `usage_health_path_completeness` (2h) [Status: ☐ TODO]
+### Phase 6: Fitness Linter — `usage_health_path_completeness` (2h) [Status: ☑ COMPLETE]
 
 **Objective**: Implement Carryover Item 3. All `{ps-id}_usage.go` files must mention both
 `/service/api/v1/health` and `/browser/api/v1/health` paths. Enforce via lint-fitness.
@@ -301,7 +301,7 @@ resolved configuration.
 
 ---
 
-### Phase 7: Documentation + ENG-HANDBOOK.md Updates (2h) [Status: ☐ TODO]
+### Phase 7: Documentation + ENG-HANDBOOK.md Updates (2h) [Status: ☑ COMPLETE]
 
 **Objective**: Update authoritative documentation to reflect the new recursive include
 architecture and the resolved port strategy from quizme Q2.
@@ -330,7 +330,7 @@ architecture and the resolved port strategy from quizme Q2.
 
 ---
 
-### Phase 8: E2E Validation (2h) [Status: ☐ TODO]
+### Phase 8: E2E Validation (2h) [Status: ☑ COMPLETE]
 
 **Objective**: Confirm all 3 deployment tiers start correctly with Docker Compose after the
 recursive include refactoring.
@@ -357,7 +357,7 @@ recursive include refactoring.
 
 ---
 
-### Phase 9: Knowledge Propagation (1h) [Status: ☐ TODO]
+### Phase 9: Knowledge Propagation (1h) [Status: ☑ COMPLETE]
 
 **Objective**: Apply lessons learned to permanent artifacts — NEVER skip this phase.
 
@@ -515,16 +515,16 @@ All three design decisions have been resolved. Answers merged from `quizme-v1.md
 
 ## Success Criteria
 
-- [ ] All 9 phases complete with evidence
-- [ ] Line count: PRODUCT compose files ≤ 150 lines each, SUITE ≤ 300 lines
-- [ ] Zero copy-paste service definitions across tiers (service defs only in PS-ID compose)
-- [ ] All 10 PS-IDs have 4 variants (sqlite-1, sqlite-2, postgresql-1, postgresql-2) at all 3 tiers
-- [ ] All naming standardized to `postgresql` throughout
-- [ ] SM product includes both sm-kms and sm-im services
-- [ ] shared-postgres and shared-telemetry imported at all tiers (no per-PS-ID postgres services)
-- [ ] `usage_health_path_completeness` fitness linter active and passing
-- [ ] ENG-HANDBOOK.md documents shared-postgres architecture (no per-PS-ID postgres ports)
-- [ ] `go run ./cmd/cicd-lint lint-deployments` clean end-to-end
+- [x] All 9 phases complete with evidence
+- [x] Line count: PRODUCT compose files ≤ 150 lines each, SUITE ≤ 300 lines
+- [x] Zero copy-paste service definitions across tiers (service defs only in PS-ID compose)
+- [x] All 10 PS-IDs have 4 variants (sqlite-1, sqlite-2, postgresql-1, postgresql-2) at all 3 tiers
+- [x] All naming standardized to `postgresql` throughout
+- [x] SM product includes both sm-kms and sm-im services
+- [x] shared-postgres and shared-telemetry imported at all tiers (no per-PS-ID postgres services)
+- [x] `usage_health_path_completeness` fitness linter active and passing
+- [x] ENG-HANDBOOK.md documents shared-postgres architecture (no per-PS-ID postgres ports)
+- [x] `go run ./cmd/cicd-lint lint-deployments` clean end-to-end
 
 ---
 
