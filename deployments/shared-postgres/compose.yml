@@ -103,8 +103,6 @@ services:
       - -c
       - work_mem=16MB
     shm_size: 512mb
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_leader_data:/var/lib/postgresql
       - ../shared-postgres/init-leader-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro
@@ -157,8 +155,6 @@ services:
       - -c
       - default_transaction_read_only=on
     shm_size: 1gb
-    ports:
-      - "5433:5432"
     volumes:
       - postgres_follower_data:/var/lib/postgresql
       - ../shared-postgres/init-follower-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro

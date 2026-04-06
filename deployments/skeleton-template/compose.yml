@@ -10,7 +10,6 @@
 #   - skeleton-template-app-sqlite-2:      8901 (SQLite instance 2, dev/ci)
 #   - skeleton-template-app-postgresql-1:  8902 (PostgreSQL instance 1) [--profile postgres]
 #   - skeleton-template-app-postgresql-2:  8903 (PostgreSQL instance 2) [--profile postgres]
-#   - skeleton-template-db-postgres-1:     54329 (PostgreSQL database) [--profile postgres]
 #
 # Usage:
 #   docker compose -f compose.yml up -d                        # SQLite (default: dev profile)
@@ -25,6 +24,7 @@
 #
 include:
   - path: ../shared-telemetry/compose.yml
+  - path: ../shared-postgres/compose.yml
 
 services:
   # Healthcheck for Docker secrets availability.
@@ -38,9 +38,6 @@ services:
       - unseal-5of5.secret
       - hash-pepper-v3.secret
       - postgres-url.secret
-      - postgres-username.secret
-      - postgres-password.secret
-      - postgres-database.secret
     command: ["sh", "-c", "ls -l /run/secrets/*.secret"]
     networks:
       - skeleton-template-network
@@ -62,43 +59,6 @@ services:
         condition: service_completed_successfully
 
   # PostgreSQL database for skeleton-template persistence.
-  skeleton-template-db-postgres-1:
-    profiles: ["postgres"]
-    image: postgres:18
-    container_name: skeleton-template-postgres
-    hostname: skeleton-template-postgres
-    environment:
-      POSTGRES_USER_FILE: /run/secrets/postgres-username.secret
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password.secret
-      POSTGRES_DB_FILE: /run/secrets/postgres-database.secret
-    shm_size: 256mb
-    ports:
-      - "127.0.0.1:54329:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql
-    secrets:
-      - postgres-username.secret
-      - postgres-password.secret
-      - postgres-database.secret
-    depends_on:
-      healthcheck-secrets:
-        condition: service_completed_successfully
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres-username.secret) -d $(cat /run/secrets/postgres-database.secret)"]
-      start_period: 5s
-      interval: 5s
-      timeout: 3s
-      retries: 5
-    networks:
-      - skeleton-template-network
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-        reservations:
-          memory: 256M
-
-  # skeleton-template server with SQLite backend (dev/ci mode).
   skeleton-template-app-sqlite-1:
     profiles: ["dev", "ci"]
     image: cryptoutil:dev
@@ -208,7 +168,7 @@ services:
         condition: service_completed_successfully
       builder-skeleton-template:
         condition: service_completed_successfully
-      skeleton-template-db-postgres-1:
+      postgres-leader:
         condition: service_healthy
       opentelemetry-collector-contrib:
         condition: service_started
@@ -223,6 +183,7 @@ services:
     networks:
       - skeleton-template-network
       - telemetry-network
+      - postgres-network
     deploy:
       resources:
         limits:
@@ -254,7 +215,7 @@ services:
         condition: service_completed_successfully
       builder-skeleton-template:
         condition: service_completed_successfully
-      skeleton-template-db-postgres-1:
+      postgres-leader:
         condition: service_healthy
       opentelemetry-collector-contrib:
         condition: service_started
@@ -271,6 +232,7 @@ services:
     networks:
       - skeleton-template-network
       - telemetry-network
+      - postgres-network
     deploy:
       resources:
         limits:
@@ -282,17 +244,7 @@ networks:
   skeleton-template-network:
     driver: bridge
 
-volumes:
-  postgres-data:
-    name: skeleton-template-postgres-volume
-
 secrets:
-  postgres-username.secret:
-    file: ./secrets/postgres-username.secret
-  postgres-password.secret:
-    file: ./secrets/postgres-password.secret
-  postgres-database.secret:
-    file: ./secrets/postgres-database.secret
   postgres-url.secret:
     file: ./secrets/postgres-url.secret
   hash-pepper-v3.secret:

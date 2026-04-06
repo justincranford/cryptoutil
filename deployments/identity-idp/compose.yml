@@ -10,7 +10,6 @@
 #   - identity-idp-app-sqlite-2:      8501 (SQLite instance 2, dev/ci)
 #   - identity-idp-app-postgresql-1:  8502 (PostgreSQL instance 1) [--profile postgres]
 #   - identity-idp-app-postgresql-2:  8503 (PostgreSQL instance 2) [--profile postgres]
-#   - identity-idp-db-postgres-1:     54325 (PostgreSQL database) [--profile postgres]
 #
 # Usage:
 #   docker compose -f compose.yml up -d                        # SQLite (default: dev profile)
@@ -25,6 +24,7 @@
 #
 include:
   - path: ../shared-telemetry/compose.yml
+  - path: ../shared-postgres/compose.yml
 
 services:
   healthcheck-secrets:
@@ -37,9 +37,6 @@ services:
       - unseal-5of5.secret
       - hash-pepper-v3.secret
       - postgres-url.secret
-      - postgres-username.secret
-      - postgres-password.secret
-      - postgres-database.secret
     command: ["sh", "-c", "ls -l /run/secrets/*.secret"]
     networks:
       - identity-idp-network
@@ -58,42 +55,6 @@ services:
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
-
-  identity-idp-db-postgres-1:
-    profiles: ["postgres"]
-    image: postgres:18
-    container_name: identity-idp-postgres
-    hostname: identity-idp-postgres
-    environment:
-      POSTGRES_USER_FILE: /run/secrets/postgres-username.secret
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password.secret
-      POSTGRES_DB_FILE: /run/secrets/postgres-database.secret
-    shm_size: 256mb
-    ports:
-      - "127.0.0.1:54325:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql
-    secrets:
-      - postgres-username.secret
-      - postgres-password.secret
-      - postgres-database.secret
-    depends_on:
-      healthcheck-secrets:
-        condition: service_completed_successfully
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres-username.secret) -d $(cat /run/secrets/postgres-database.secret)"]
-      start_period: 5s
-      interval: 5s
-      timeout: 3s
-      retries: 5
-    networks:
-      - identity-idp-network
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-        reservations:
-          memory: 256M
 
   identity-idp-app-sqlite-1:
     profiles: ["dev", "ci"]
@@ -203,7 +164,7 @@ services:
         condition: service_completed_successfully
       builder-identity-idp:
         condition: service_completed_successfully
-      identity-idp-db-postgres-1:
+      postgres-leader:
         condition: service_healthy
       opentelemetry-collector-contrib:
         condition: service_started
@@ -218,6 +179,7 @@ services:
     networks:
       - identity-idp-network
       - telemetry-network
+      - postgres-network
     deploy:
       resources:
         limits:
@@ -248,7 +210,7 @@ services:
         condition: service_completed_successfully
       builder-identity-idp:
         condition: service_completed_successfully
-      identity-idp-db-postgres-1:
+      postgres-leader:
         condition: service_healthy
       opentelemetry-collector-contrib:
         condition: service_started
@@ -265,6 +227,7 @@ services:
     networks:
       - identity-idp-network
       - telemetry-network
+      - postgres-network
     deploy:
       resources:
         limits:
@@ -276,17 +239,7 @@ networks:
   identity-idp-network:
     driver: bridge
 
-volumes:
-  postgres-data:
-    name: identity-idp-postgres-volume
-
 secrets:
-  postgres-username.secret:
-    file: ./secrets/postgres-username.secret
-  postgres-password.secret:
-    file: ./secrets/postgres-password.secret
-  postgres-database.secret:
-    file: ./secrets/postgres-database.secret
   postgres-url.secret:
     file: ./secrets/postgres-url.secret
   hash-pepper-v3.secret:

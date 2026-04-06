@@ -3,7 +3,6 @@
 package compose_db_naming_test
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -50,13 +49,10 @@ func writeComposeYML(t *testing.T, tmpDir, psID string, content string) {
 	require.NoError(t, os.WriteFile(filepath.Join(deployDir, "compose.yml"), []byte(content), cryptoutilSharedMagic.FilePermissions))
 }
 
-// correctDBCompose generates a minimal compose.yml with correct db service naming.
+// correctDBCompose generates a minimal compose.yml without a per-PS-ID DB service.
+// After Framework v8, per-PS-ID postgres is provided by the shared-postgres tier.
 func correctDBCompose(psID string) string {
-	return fmt.Sprintf(`services:
-  %s-db-postgres-1:
-    container_name: %s-postgres
-    hostname: %s-postgres
-`, psID, psID, psID)
+	return "services:\n  " + psID + "-app-sqlite-1: {}\n"
 }
 
 // setupAllComposeFiles creates correct compose files for all 10 PS.
@@ -115,57 +111,40 @@ func TestCheckInDir_MissingComposeFile(t *testing.T) {
 	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMIM)
 }
 
-func TestCheckInDir_MissingDBService(t *testing.T) {
+func TestCheckInDir_DBServicePresent_Fails(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
 	setupAllComposeFiles(t, tmpDir)
 
-	// Write compose with no DB service.
-	writeComposeYML(t, tmpDir, cryptoutilSharedMagic.OTLPServiceSMIM,
-		"services:\n  "+cryptoutilSharedMagic.IME2ESQLiteContainer+": {}\n",
-	)
-
-	err := lintFitnessComposeDBNaming.CheckInDir(newTestLogger(), tmpDir)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMIM)
-	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMIM+"-db-postgres-1")
-}
-
-func TestCheckInDir_WrongContainerName(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	setupAllComposeFiles(t, tmpDir)
-
-	// Write sm-im compose with wrong container_name.
+	// Write sm-im compose WITH the legacy per-PS-ID DB service — must be rejected.
 	writeComposeYML(t, tmpDir, cryptoutilSharedMagic.OTLPServiceSMIM, `services:
+  sm-im-app-sqlite-1: {}
   sm-im-db-postgres-1:
-    container_name: sm-im-db
+    container_name: sm-im-postgres
     hostname: sm-im-postgres
 `)
 
 	err := lintFitnessComposeDBNaming.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMIM)
-	assert.Contains(t, err.Error(), "container_name")
+	assert.Contains(t, err.Error(), "sm-im-db-postgres-1")
+	assert.Contains(t, err.Error(), "shared-postgres tier")
 }
 
-func TestCheckInDir_WrongHostname(t *testing.T) {
+func TestCheckInDir_InvalidYAML(t *testing.T) {
 	t.Parallel()
+
+	psID := cryptoutilSharedMagic.OTLPServiceSMIM
 
 	tmpDir := t.TempDir()
 	setupAllComposeFiles(t, tmpDir)
 
-	// Write sm-im compose with wrong hostname.
-	writeComposeYML(t, tmpDir, cryptoutilSharedMagic.OTLPServiceSMIM, `services:
-  sm-im-db-postgres-1:
-    container_name: sm-im-postgres
-    hostname: sm-im-db
-`)
+	// Overwrite sm-im compose.yml with invalid YAML.
+	deployDir := filepath.Join(tmpDir, "deployments", psID)
+	require.NoError(t, os.WriteFile(filepath.Join(deployDir, "compose.yml"), []byte("services: [\ninvalid yaml"), cryptoutilSharedMagic.FilePermissions))
 
 	err := lintFitnessComposeDBNaming.CheckInDir(newTestLogger(), tmpDir)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), cryptoutilSharedMagic.OTLPServiceSMIM)
-	assert.Contains(t, err.Error(), "hostname")
+	assert.Contains(t, err.Error(), "cannot parse")
 }

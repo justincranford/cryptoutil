@@ -61,19 +61,16 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 
 // buildValidServiceSet computes the complete set of valid compose service names
 // from the entity registry.  The set contains:
-//   - All app variant names: {PS-ID}-app-sqlite-1, {PS-ID}-app-postgres-1, {PS-ID}-app-postgres-2
-//   - All DB service names: {PS-ID}-db-postgres-1
+//   - All app variant names: {PS-ID}-app-sqlite-1, {PS-ID}-app-sqlite-2, {PS-ID}-app-postgresql-1, {PS-ID}-app-postgresql-2
+//
+// Note: {PS-ID}-db-postgres-1 is no longer valid in PS-ID compose files.
+// The shared-postgres tier (shared-postgres/compose.yml) provides postgres-leader and postgres-follower.
 func buildValidServiceSet() map[string]struct{} {
 	validNames := lintFitnessRegistry.ValidComposeServiceNames()
-	allPS := lintFitnessRegistry.AllProductServices()
 	set := make(map[string]struct{})
 
 	for _, name := range validNames {
 		set[name] = struct{}{}
-	}
-
-	for _, ps := range allPS {
-		set[lintFitnessRegistry.DBServiceName(ps.PSID)] = struct{}{}
 	}
 
 	return set
@@ -102,7 +99,6 @@ func checkServiceNames(rootDir, psID string, validSet map[string]struct{}) []str
 		lintFitnessRegistry.ComposeServiceName(psID, lintFitnessRegistry.ComposeVariantSQLite2),
 		lintFitnessRegistry.ComposeServiceName(psID, lintFitnessRegistry.ComposeVariantPostgres1),
 		lintFitnessRegistry.ComposeServiceName(psID, lintFitnessRegistry.ComposeVariantPostgres2),
-		lintFitnessRegistry.DBServiceName(psID),
 	}
 
 	// Check all required services are present.

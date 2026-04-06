@@ -52,10 +52,11 @@ func writeComposeYML(t *testing.T, tmpDir, psID, servicesBlock string) {
 	require.NoError(t, os.WriteFile(filepath.Join(deployDir, "compose.yml"), []byte(content), cryptoutilSharedMagic.FilePermissions))
 }
 
-// correctServicesBlock generates the 5 required service entries for a PS-ID.
+// correctServicesBlock generates the 4 required service entries for a PS-ID.
+// Note: {PS-ID}-db-postgres-1 is no longer included; shared-postgres tier provides it.
 func correctServicesBlock(psID string) string {
-	return fmt.Sprintf("  %s-app-sqlite-1: {}\n  %s-app-sqlite-2: {}\n  %s-app-postgresql-1: {}\n  %s-app-postgresql-2: {}\n  %s-db-postgres-1: {}\n",
-		psID, psID, psID, psID, psID)
+	return fmt.Sprintf("  %s-app-sqlite-1: {}\n  %s-app-sqlite-2: {}\n  %s-app-postgresql-1: {}\n  %s-app-postgresql-2: {}\n",
+		psID, psID, psID, psID)
 }
 
 // setupAllComposeFiles creates correct compose files for all 10 PS.
@@ -127,7 +128,6 @@ func TestCheckInDir_MissingRequiredService(t *testing.T) {
 		{"missing sqlite-2 service", psID + "-app-sqlite-2"},
 		{"missing postgres-1 service", cryptoutilSharedMagic.IME2EPostgreSQL1Container},
 		{"missing postgres-2 service", cryptoutilSharedMagic.IME2EPostgreSQL2Container},
-		{"missing db service", psID + "-db-postgres-1"},
 	}
 
 	for _, tc := range missingServiceTests {
@@ -143,7 +143,6 @@ func TestCheckInDir_MissingRequiredService(t *testing.T) {
 				psID + "-app-sqlite-2",
 				psID + "-app-postgresql-1",
 				psID + "-app-postgresql-2",
-				psID + "-db-postgres-1",
 			}
 			services := ""
 
@@ -160,6 +159,25 @@ func TestCheckInDir_MissingRequiredService(t *testing.T) {
 			assert.Contains(t, err.Error(), tc.missingService)
 		})
 	}
+}
+
+func TestCheckInDir_DBServiceFlaggedAsUnrecognised(t *testing.T) {
+	t.Parallel()
+
+	psID := cryptoutilSharedMagic.OTLPServiceSMIM
+
+	tmpDir := t.TempDir()
+	setupAllComposeFiles(t, tmpDir)
+
+	// Add the legacy db service — it should now be flagged as unrecognised
+	// (shared-postgres tier replaced per-PS-ID postgres, Framework v8).
+	dbServiceBlock := correctServicesBlock(psID) + "  " + psID + "-db-postgres-1: {}\n"
+	writeComposeYML(t, tmpDir, psID, dbServiceBlock)
+
+	err := lintFitnessComposeServiceNames.CheckInDir(newTestLogger(), tmpDir)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "unrecognised service")
+	assert.Contains(t, err.Error(), psID+"-db-postgres-1")
 }
 
 func TestCheckInDir_UnrecognisedPSIDService(t *testing.T) {

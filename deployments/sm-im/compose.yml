@@ -10,7 +10,6 @@
 #   - sm-im-app-sqlite-2:      8101 (SQLite instance 2, dev/ci)
 #   - sm-im-app-postgresql-1:  8102 (PostgreSQL instance 1) [--profile postgres]
 #   - sm-im-app-postgresql-2:  8103 (PostgreSQL instance 2) [--profile postgres]
-#   - sm-im-db-postgres-1:     54321 (PostgreSQL database) [--profile postgres]
 #
 # Usage:
 #   docker compose -f compose.yml up -d                        # SQLite (default: dev profile)
@@ -25,6 +24,7 @@
 #
 include:
   - path: ../shared-telemetry/compose.yml
+  - path: ../shared-postgres/compose.yml
 
 services:
   # Healthcheck for Docker secrets availability.
@@ -38,9 +38,6 @@ services:
       - unseal-5of5.secret
       - hash-pepper-v3.secret
       - postgres-url.secret
-      - postgres-username.secret
-      - postgres-password.secret
-      - postgres-database.secret
     command: ["sh", "-c", "ls -l /run/secrets/*.secret"]
     networks:
       - sm-im-network
@@ -74,43 +71,6 @@ services:
       - sm-im-network
 
   # PostgreSQL database for sm-im persistence.
-  sm-im-db-postgres-1:
-    profiles: ["postgres"]
-    image: postgres:18
-    container_name: sm-im-postgres
-    hostname: sm-im-postgres
-    environment:
-      POSTGRES_USER_FILE: /run/secrets/postgres-username.secret
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password.secret
-      POSTGRES_DB_FILE: /run/secrets/postgres-database.secret
-    shm_size: 256mb
-    ports:
-      - "127.0.0.1:54321:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql
-    secrets:
-      - postgres-username.secret
-      - postgres-password.secret
-      - postgres-database.secret
-    depends_on:
-      healthcheck-secrets:
-        condition: service_completed_successfully
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres-username.secret) -d $(cat /run/secrets/postgres-database.secret)"]
-      start_period: 5s
-      interval: 5s
-      timeout: 3s
-      retries: 5
-    networks:
-      - sm-im-network
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-        reservations:
-          memory: 256M
-
-  # sm-im server with SQLite backend (dev/ci mode).
   sm-im-app-sqlite-1:
     profiles: ["dev", "ci"]
     image: cryptoutil:dev
@@ -229,7 +189,7 @@ services:
         condition: service_completed_successfully
       pki-init:
         condition: service_completed_successfully
-      sm-im-db-postgres-1:
+      postgres-leader:
         condition: service_healthy
       opentelemetry-collector-contrib:
         condition: service_started
@@ -244,6 +204,7 @@ services:
     networks:
       - sm-im-network
       - telemetry-network
+      - postgres-network
     deploy:
       resources:
         limits:
@@ -278,7 +239,7 @@ services:
         condition: service_completed_successfully
       pki-init:
         condition: service_completed_successfully
-      sm-im-db-postgres-1:
+      postgres-leader:
         condition: service_healthy
       opentelemetry-collector-contrib:
         condition: service_started
@@ -295,6 +256,7 @@ services:
     networks:
       - sm-im-network
       - telemetry-network
+      - postgres-network
     deploy:
       resources:
         limits:
@@ -306,17 +268,7 @@ networks:
   sm-im-network:
     driver: bridge
 
-volumes:
-  postgres-data:
-    name: sm-im-postgres-volume
-
 secrets:
-  postgres-username.secret:
-    file: ./secrets/postgres-username.secret
-  postgres-password.secret:
-    file: ./secrets/postgres-password.secret
-  postgres-database.secret:
-    file: ./secrets/postgres-database.secret
   postgres-url.secret:
     file: ./secrets/postgres-url.secret
   hash-pepper-v3.secret:
