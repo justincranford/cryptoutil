@@ -215,7 +215,7 @@ components:
 
     ElasticKeyCreate:
       type: object
-      required: [ name, description ]
+      required: [name, description]
       properties:
         name:
           $ref: '#/components/schemas/ElasticKeyName'
@@ -252,7 +252,7 @@ components:
 
     ElasticKeyUpdate:
       type: object
-      required: [ name, description ]
+      required: [name, description]
       properties:
         name:
           $ref: '#/components/schemas/ElasticKeyName'
@@ -265,7 +265,7 @@ components:
 
     MaterialKeyImport:
       type: object
-      required: [ jwk ]
+      required: [jwk]
       properties:
         jwk:
           type: string
@@ -274,7 +274,7 @@ components:
 
     MaterialKeyUpdate:
       type: object
-      required: [ elastic_key_id, material_key_id ]
+      required: [elastic_key_id, material_key_id]
       properties:
         elastic_key_id:
           $ref: '#/components/schemas/ElasticKeyID'
@@ -283,7 +283,7 @@ components:
 
     MaterialKey:
       type: object
-      required: [ elastic_key_id, material_key_id ]
+      required: [elastic_key_id, material_key_id]
       properties:
         elastic_key_id:
           $ref: '#/components/schemas/ElasticKeyID'
@@ -429,13 +429,10 @@ components:
         - "HS512"
         - "EdDSA"
       example: "A256GCM/A256KW"
-      description: Cryptographic algorithm(s) used for Material Keys in the Elastic Key. The first is the content encryption algorithm, and the second is the optional key encryption algorithm.
-                    If key encryption algorithm is 'dir', the Elastic Key Key is directly used on values. direct encryption is useful for small values.
-                    If key encryption algorithm is 'K*W', a random Content Encryption Key (CEK) is used directly on values, and the Elastic Key Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc).
-                    If in doubt, it is safe to use 'A256GCM/A256KW' for all values; it is the default.
+      description: Cryptographic algorithm(s) used for Material Keys in the Elastic Key. The first is the content encryption algorithm, and the second is the optional key encryption algorithm. If key encryption algorithm is 'dir', the Elastic Key Key is directly used on values. direct encryption is useful for small values. If key encryption algorithm is 'K*W', a random Content Encryption Key (CEK) is used directly on values, and the Elastic Key Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc). If in doubt, it is safe to use 'A256GCM/A256KW' for all values; it is the default.
     ElasticKeyProvider:
       type: string
-      enum: [ Internal ]
+      enum: [Internal]
       example: "Internal"
       description: Provider of the Elastic Key management service.
     ElasticKeyVersioningAllowed:
@@ -754,7 +751,7 @@ components:
 
     HTTPError:
       type: object
-      required: [ status, error, message ]
+      required: [status, error, message]
       properties:
         status:
           type: integer

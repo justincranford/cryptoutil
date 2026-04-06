@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	defaultStartupTimeout  = 5 * time.Second
+	defaultStartupTimeout  = 30 * time.Second
 	defaultStartupInterval = 100 * time.Millisecond
 	defaultShutdownTimeout = 5 * time.Second
 )

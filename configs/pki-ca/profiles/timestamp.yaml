@@ -29,7 +29,7 @@ profile:
 
   extended_key_usage:
     required:
-      - "timeStamping"  # 1.3.6.1.5.5.7.3.8
+      - "timeStamping" # 1.3.6.1.5.5.7.3.8
     optional: []
 
   subject:
@@ -62,5 +62,5 @@ profile:
 
   # Special extension for TSA
   custom_extensions:
-    - oid: "2.5.29.37"  # Extended Key Usage
+    - oid: "2.5.29.37" # Extended Key Usage
       critical: true

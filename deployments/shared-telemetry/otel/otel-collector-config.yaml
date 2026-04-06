@@ -16,12 +16,12 @@ receivers:
   otlp:
     protocols:
       grpc:
-        endpoint: 0.0.0.0:4317      # OTLP/gRPC receiver (default port)
+        endpoint: 0.0.0.0:4317 # OTLP/gRPC receiver (default port)
         # tls:
         #   cert_file: /etc/otel/certs/server.crt
         #   key_file: /etc/otel/certs/server.key
       http:
-        endpoint: 0.0.0.0:4318      # OTLP/HTTP receiver (default port)
+        endpoint: 0.0.0.0:4318 # OTLP/HTTP receiver (default port)
         # tls:
         #   cert_file: /etc/otel/certs/server.crt
         #   key_file: /etc/otel/certs/server.key
@@ -35,7 +35,7 @@ receivers:
         - job_name: 'otel-collector'
           scrape_interval: 2s
           static_configs:
-            - targets: ['127.0.0.1:8888']  # Collector's internal metrics port
+            - targets: ['127.0.0.1:8888'] # Collector's internal metrics port
 
   ###################################################################
   # Collects the Collector's own logs (works for Docker setups)
@@ -93,22 +93,22 @@ processors:
         from_attribute: container.id
         action: insert
 
-      # 🔽 Optional attributes — uncomment as needed
-      # - key: service.container.image.name
-      #   from_attribute: container.image.name
-      #   action: insert
-      # - key: service.container.image.tag
-      #   from_attribute: container.image.tag
-      #   action: insert
-      # - key: service.deployment.environment
-      #   value: production
-      #   action: insert
-      # - key: host.name
-      #   from_attribute: host.hostname
-      #   action: insert
-      # - key: cloud.provider
-      #   from_attribute: cloud.provider
-      #   action: insert
+    # 🔽 Optional attributes — uncomment as needed
+    # - key: service.container.image.name
+    #   from_attribute: container.image.name
+    #   action: insert
+    # - key: service.container.image.tag
+    #   from_attribute: container.image.tag
+    #   action: insert
+    # - key: service.deployment.environment
+    #   value: production
+    #   action: insert
+    # - key: host.name
+    #   from_attribute: host.hostname
+    #   action: insert
+    # - key: cloud.provider
+    #   from_attribute: cloud.provider
+    #   action: insert
 
   ###################################################################
   # Prevents memory overload by throttling ingestion
@@ -139,7 +139,7 @@ exporters:
   # Logs all exported telemetry to stdout (useful for debugging)
   ###################################################################
   debug:
-    # verbosity: detailed
+  # verbosity: detailed
 
 service:
   extensions: [health_check, pprof, zpages]

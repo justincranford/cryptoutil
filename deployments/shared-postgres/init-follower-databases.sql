@@ -3,7 +3,7 @@
 -- Read-only replica with logical replication from leader
 
 -- Suite-level: 1 database with 10 schemas (all services across all products)
-CREATE DATABASE cryptoutil OWNER cryptoutil_admin;
+CREATE DATABASE cryptoutil;
 \c cryptoutil
 CREATE SCHEMA pki_ca;
 CREATE SCHEMA jose_ja;
@@ -17,20 +17,20 @@ CREATE SCHEMA identity_spa;
 CREATE SCHEMA skeleton_template;
 
 -- Product-level: 5 product databases with schemas grouped by product
-CREATE DATABASE pki OWNER cryptoutil_admin;
+CREATE DATABASE pki;
 \c pki
 CREATE SCHEMA ca;
 
-CREATE DATABASE jose OWNER cryptoutil_admin;
+CREATE DATABASE jose;
 \c jose
 CREATE SCHEMA ja;
 
-CREATE DATABASE sm OWNER cryptoutil_admin;
+CREATE DATABASE sm;
 \c sm
 CREATE SCHEMA im;
 CREATE SCHEMA kms;
 
-CREATE DATABASE identity OWNER cryptoutil_admin;
+CREATE DATABASE identity;
 \c identity
 CREATE SCHEMA authz;
 CREATE SCHEMA idp;
@@ -38,48 +38,48 @@ CREATE SCHEMA rs;
 CREATE SCHEMA rp;
 CREATE SCHEMA spa;
 
-CREATE DATABASE skeleton OWNER cryptoutil_admin;
+CREATE DATABASE skeleton;
 \c skeleton
 CREATE SCHEMA template;
 
 -- Service-level: 10 databases with 1:1 schema mapping
-CREATE DATABASE "pki-ca" OWNER cryptoutil_admin;
+CREATE DATABASE "pki-ca";
 \c "pki-ca"
 CREATE SCHEMA ca;
 
-CREATE DATABASE "jose-ja" OWNER cryptoutil_admin;
+CREATE DATABASE "jose-ja";
 \c "jose-ja"
 CREATE SCHEMA ja;
 
-CREATE DATABASE "sm-im" OWNER cryptoutil_admin;
+CREATE DATABASE "sm-im";
 \c "sm-im"
 CREATE SCHEMA im;
 
-CREATE DATABASE "sm-kms" OWNER cryptoutil_admin;
+CREATE DATABASE "sm-kms";
 \c "sm-kms"
 CREATE SCHEMA kms;
 
-CREATE DATABASE "identity-authz" OWNER cryptoutil_admin;
+CREATE DATABASE "identity-authz";
 \c "identity-authz"
 CREATE SCHEMA authz;
 
-CREATE DATABASE "identity-idp" OWNER cryptoutil_admin;
+CREATE DATABASE "identity-idp";
 \c "identity-idp"
 CREATE SCHEMA idp;
 
-CREATE DATABASE "identity-rs" OWNER cryptoutil_admin;
+CREATE DATABASE "identity-rs";
 \c "identity-rs"
 CREATE SCHEMA rs;
 
-CREATE DATABASE "identity-rp" OWNER cryptoutil_admin;
+CREATE DATABASE "identity-rp";
 \c "identity-rp"
 CREATE SCHEMA rp;
 
-CREATE DATABASE "identity-spa" OWNER cryptoutil_admin;
+CREATE DATABASE "identity-spa";
 \c "identity-spa"
 CREATE SCHEMA spa;
 
-CREATE DATABASE "skeleton-template" OWNER cryptoutil_admin;
+CREATE DATABASE "skeleton-template";
 \c "skeleton-template"
 CREATE SCHEMA template;
 

@@ -76,6 +76,7 @@ func TestProvisionDatabase_SQLiteVariations(t *testing.T) {
 				OTLPService:       "test-service",
 				OTLPVersion:       cryptoutilSharedMagic.ServiceVersion,
 				OTLPEnvironment:   "test",
+				DevMode:           true,
 				UnsealMode:        cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 				DatabaseURL:       tt.databaseURL,
 				DatabaseContainer: cryptoutilSharedMagic.DefaultDatabaseContainerDisabled,
@@ -138,6 +139,7 @@ func TestStartCore_Variations(t *testing.T) {
 				OTLPService:     "test-service",
 				OTLPVersion:     cryptoutilSharedMagic.ServiceVersion,
 				OTLPEnvironment: "test",
+				DevMode:         true,
 				UnsealMode:      tt.unsealMode,
 				DatabaseURL:     tt.databaseURL,
 			}
@@ -226,6 +228,7 @@ func TestOpenPostgreSQL_WithContainer(t *testing.T) {
 		OTLPService:     "test-container",
 		OTLPVersion:     cryptoutilSharedMagic.ServiceVersion,
 		OTLPEnvironment: "test",
+		DevMode:         true,
 		UnsealMode:      cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 		DatabaseURL:     cryptoutilSharedMagic.SQLiteInMemoryDSN,
 	}
@@ -319,6 +322,7 @@ func TestStartBasic_VerboseMode(t *testing.T) {
 				OTLPService:     "test-service",
 				OTLPVersion:     cryptoutilSharedMagic.ServiceVersion,
 				OTLPEnvironment: "test",
+				DevMode:         true,
 				UnsealMode:      cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 				VerboseMode:     tt.verboseMode,
 				DatabaseURL:     cryptoutilSharedMagic.SQLiteInMemoryDSN,
@@ -375,6 +379,7 @@ func TestProvisionDatabase_PostgreSQLContainerModes(t *testing.T) {
 				OTLPService:       "test-container-modes",
 				OTLPVersion:       cryptoutilSharedMagic.ServiceVersion,
 				OTLPEnvironment:   "test",
+				DevMode:           true,
 				UnsealMode:        cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 				DatabaseURL:       tt.databaseURL,
 				DatabaseContainer: tt.containerMode,
@@ -440,6 +445,7 @@ func TestMaskPasswordVariations(t *testing.T) {
 				OTLPService:       "test-mask-password",
 				OTLPVersion:       cryptoutilSharedMagic.ServiceVersion,
 				OTLPEnvironment:   "test",
+				DevMode:           true,
 				UnsealMode:        cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 				DatabaseURL:       tt.databaseURL,
 				DatabaseContainer: cryptoutilSharedMagic.DefaultDatabaseContainerDisabled, // Don't try to start container.

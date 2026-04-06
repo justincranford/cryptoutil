@@ -25,7 +25,8 @@ func createTestHTTPClient(t *testing.T, tlsMaterial *cryptoutilAppsFrameworkServ
 				RootCAs:    tlsMaterial.RootCAPool,
 				MinVersion: tls.VersionTLS12,
 			},
+			DisableKeepAlives: true,
 		},
-		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
+		Timeout: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second,
 	}
 }

@@ -8,7 +8,7 @@ profile:
 
   # Validity constraints
   validity:
-    max_days: 398  # CA/Browser Forum max for public TLS
+    max_days: 398 # CA/Browser Forum max for public TLS
     min_days: 1
     default_days: 365
 
@@ -34,9 +34,9 @@ profile:
   # Extended key usage (RFC 5280)
   extended_key_usage:
     required:
-      - "serverAuth"  # 1.3.6.1.5.5.7.3.1
+      - "serverAuth" # 1.3.6.1.5.5.7.3.1
     optional:
-      - "clientAuth"  # 1.3.6.1.5.5.7.3.2 (for mTLS)
+      - "clientAuth" # 1.3.6.1.5.5.7.3.2 (for mTLS)
 
   # Subject constraints
   subject:
@@ -83,7 +83,7 @@ profile:
   # Basic constraints (end-entity certificate)
   basic_constraints:
     is_ca: false
-    path_length: -1  # Not applicable for end-entity
+    path_length: -1 # Not applicable for end-entity
 
   # Signature algorithm preferences
   signature:

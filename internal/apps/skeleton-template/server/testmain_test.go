@@ -62,7 +62,7 @@ func TestMain(m *testing.M) {
 			},
 			DisableKeepAlives: true,
 		},
-		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
+		Timeout: cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second,
 	}
 
 	testAdminHTTPClient = &http.Client{
@@ -73,7 +73,7 @@ func TestMain(m *testing.M) {
 			},
 			DisableKeepAlives: true,
 		},
-		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
+		Timeout: cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second,
 	}
 
 	// Run all tests.

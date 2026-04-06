@@ -59,10 +59,10 @@ services:
       healthcheck-secrets:
         condition: service_completed_successfully
 
-  # PKI init job: generates TLS certificates into shared volume.
+  # Init job: bootstraps service prerequisites before app startup.
   pki-init:
     image: cryptoutil:dev
-    command: ["pki-init", "--output-dir=/certs"]
+    command: ["init"]
     volumes:
       - ./certs/:/certs/:rw
     depends_on:

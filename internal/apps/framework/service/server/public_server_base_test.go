@@ -384,7 +384,7 @@ func TestPublicServerBase_StartAndShutdown(t *testing.T) {
 	case err := <-errChan:
 		// Expected: context cancelled error.
 		require.Error(t, err)
-	case <-time.After(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second):
+	case <-time.After(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second):
 		t.Fatal("server did not stop within timeout")
 	}
 }
@@ -447,7 +447,7 @@ func TestPublicServerBase_StartAndMakeRequest(t *testing.T) {
 	select {
 	case <-errChan:
 		// Server stopped.
-	case <-time.After(cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second):
+	case <-time.After(cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second):
 		t.Fatal("server did not stop within timeout")
 	}
 }

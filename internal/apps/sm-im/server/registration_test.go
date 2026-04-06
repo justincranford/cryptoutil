@@ -33,7 +33,7 @@ func newTestHTTPClient() *http.Client {
 			},
 			DisableKeepAlives: true,
 		},
-		Timeout: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second,
+		Timeout: cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second,
 	}
 }
 
@@ -62,7 +62,7 @@ func TestUserRegistration_TriggerUserFactory(t *testing.T) {
 			username := fmt.Sprintf("reg-user-%d-%s", i, googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength])
 			body := fmt.Sprintf(`{"username":"%s","password":"testpassword123"}`, username)
 
-			ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second)
 			defer cancel()
 
 			req, err := http.NewRequestWithContext(ctx, http.MethodPost, registerURL, strings.NewReader(body))
@@ -104,7 +104,7 @@ func TestUserRegistration_DBClosedError(t *testing.T) {
 	// Wait for server to bind to ports.
 	require.Eventually(t, func() bool {
 		return server.PublicPort() > 0
-	}, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond, "Server should start within 10 seconds")
+	}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond, "Server should start within 30 seconds")
 
 	// Close DB to force RegisterUserWithTenant failure in userFactory.
 	sqlDB, err := server.DB().DB()
@@ -122,14 +122,14 @@ func TestUserRegistration_DBClosedError(t *testing.T) {
 			},
 			DisableKeepAlives: true,
 		},
-		Timeout: cryptoutilSharedMagic.JoseJADefaultMaxMaterials * time.Second,
+		Timeout: cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second,
 	}
 	registerURL := server.PublicBaseURL() + "/service/api/v1/users/register"
 
 	username := fmt.Sprintf("db-closed-%s", googleUuid.New().String()[:cryptoutilSharedMagic.IMMinPasswordLength])
 	body := fmt.Sprintf(`{"username":"%s","password":"testpassword123"}`, username)
 
-	reqCtx, reqCancel := context.WithTimeout(ctx, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second)
+	reqCtx, reqCancel := context.WithTimeout(ctx, cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second)
 	defer reqCancel()
 
 	req, err := http.NewRequestWithContext(reqCtx, http.MethodPost, registerURL, strings.NewReader(body))

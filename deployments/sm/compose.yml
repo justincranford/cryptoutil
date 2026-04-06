@@ -38,35 +38,64 @@ services:
   # PRODUCT-level port overrides: SERVICE ports + 10000.
   # Service definitions (image, command, volumes, secrets, depends_on) are inherited from PS-ID includes.
 
+  # PRODUCT-level image overrides to avoid cross-service image tag collisions.
+  # Each PS-ID keeps its own image tag so sm-kms and sm-im binaries do not overwrite each other.
+  builder-sm-kms:
+    image: cryptoutil-sm-kms:dev
+    build:
+      context: ../..
+      dockerfile: deployments/sm-kms/Dockerfile
+
+  builder-sm-im:
+    image: cryptoutil-sm-im:dev
+    build:
+      context: ../..
+      dockerfile: deployments/sm-im/Dockerfile
+
+  # PRODUCT-level no-op override for helper init job.
+  # Multiple PS-ID includes define pki-init; a single no-op helper avoids cross-include path conflicts.
+  pki-init:
+    image: alpine:latest
+    entrypoint: ["sh", "-c"]
+    command: ["echo 'SM product pki-init no-op'"]
+
   sm-kms-app-sqlite-1:
+    image: cryptoutil-sm-kms:dev
     ports: !override
       - "18000:8080"
 
   sm-kms-app-sqlite-2:
+    image: cryptoutil-sm-kms:dev
     ports: !override
       - "18001:8080"
 
   sm-kms-app-postgresql-1:
+    image: cryptoutil-sm-kms:dev
     ports: !override
       - "18002:8080"
 
   sm-kms-app-postgresql-2:
+    image: cryptoutil-sm-kms:dev
     ports: !override
       - "18003:8080"
 
   sm-im-app-sqlite-1:
+    image: cryptoutil-sm-im:dev
     ports: !override
       - "18100:8080"
 
   sm-im-app-sqlite-2:
+    image: cryptoutil-sm-im:dev
     ports: !override
       - "18101:8080"
 
   sm-im-app-postgresql-1:
+    image: cryptoutil-sm-im:dev
     ports: !override
       - "18102:8080"
 
   sm-im-app-postgresql-2:
+    image: cryptoutil-sm-im:dev
     ports: !override
       - "18103:8080"
 

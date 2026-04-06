@@ -17,8 +17,8 @@ observability:
 
 # Database Configuration
 database:
-  type: "sqlite"  # Development default
-  dsn: ":memory:"  # In-memory for development
+  type: "sqlite" # Development default
+  dsn: ":memory:" # In-memory for development
   # For PostgreSQL, use:
   # type: "postgres"
   # dsn: "postgres://user:pass@localhost:5432/sm_kms?sslmode=disable"
@@ -48,8 +48,8 @@ admin:
 tls:
   # Development/Test - self-signed certificates
   enabled: true
-  cert_file: ""  # Auto-generated if empty
-  key_file: ""   # Auto-generated if empty
+  cert_file: "" # Auto-generated if empty
+  key_file: "" # Auto-generated if empty
   # Production - use Docker secrets
   # cert_file: "file:///run/secrets/tls_cert"
   # key_file: "file:///run/secrets/tls_key"

@@ -6,9 +6,9 @@ profile:
   description: "Device Identity Certificate"
 
   validity:
-    max_days: 3650  # 10 years for long-lived devices
+    max_days: 3650 # 10 years for long-lived devices
     min_days: 1
-    default_days: 1095  # 3 years
+    default_days: 1095 # 3 years
 
   key:
     allowed_algorithms:
@@ -39,7 +39,7 @@ profile:
     allow_country: true
     allow_state: false
     allow_locality: false
-    max_cn_length: 128  # Device IDs can be longer
+    max_cn_length: 128 # Device IDs can be longer
 
   san:
     allow_dns_names: true

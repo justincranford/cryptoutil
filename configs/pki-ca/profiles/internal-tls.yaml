@@ -7,7 +7,7 @@ profile:
   description: "Internal TLS Server Certificate"
 
   validity:
-    max_days: 730  # 2 years
+    max_days: 730 # 2 years
     min_days: 1
     default_days: 365
 

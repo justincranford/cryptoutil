@@ -4569,6 +4569,14 @@ Services in PRODUCT/SUITE compose files that consist ONLY of a `ports:` section 
 
 Detection heuristic: `svc.Image == "" && svc.Build == nil && len(svc.Ports) > 0`
 
+##### Operational Guardrails for Recursive Includes
+
+1. **Helper service names MUST be PS-ID-prefixed** when defined in PS-ID compose files and intended for recursive include usage.
+2. Generic helper names like `pki-init`, `healthcheck-secrets`, and `healthcheck-opentelemetry-collector-contrib` create cross-include collisions at PRODUCT/SUITE tiers.
+3. If legacy helper names exist and cannot be renamed immediately, PRODUCT/SUITE compose files MUST provide an explicit override stub (for example, a deterministic no-op helper command) to avoid startup conflicts.
+4. Shared PostgreSQL init scripts MUST avoid hardcoded role ownership assumptions (`OWNER <fixed-role>`). Database creation scripts must work with the actual `POSTGRES_USER_FILE` user resolved at runtime.
+5. Shared PostgreSQL command arrays MUST remain syntactically complete after edits (no dangling `-c` flags). Validate with `docker compose config` after any command-list change.
+
 ##### Line Count Reduction (framework-v8)
 
 | File | Before | After | Reduction |
@@ -5153,6 +5161,7 @@ command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml",
 **Dockerfile ENTRYPOINT**:
 - Each PS-ID Dockerfile builds its own service binary: `go build ... -o /app/{PS-ID} ./cmd/{PS-ID}`
 - ENTRYPOINT: `["/sbin/tini", "--", "/app/{PS-ID}"]`
+- Runtime image MUST install or copy `tini` to `/sbin/tini` whenever this ENTRYPOINT is used.
 - The `command:` array in compose.yml is appended to the ENTRYPOINT as arguments
 
 **Rationale**:

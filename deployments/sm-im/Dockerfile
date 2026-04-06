@@ -56,7 +56,8 @@ WORKDIR /app
 RUN apk add --no-cache \
         ca-certificates \
         wget \
-        tzdata && \
+    tzdata \
+    tini && \
     addgroup -S smim -g 1000 && \
     adduser -S smim -u 1000 -G smim
 

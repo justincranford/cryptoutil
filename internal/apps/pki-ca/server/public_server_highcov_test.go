@@ -35,18 +35,19 @@ func TestCAServer_HandleOCSP(t *testing.T) {
 	}()
 
 	// Wait for server to be ready and ports to be allocated.
-	err = cryptoutilSharedUtilPoll.Until(ctx, cryptoutilSharedMagic.TestPollReadyTimeout, cryptoutilSharedMagic.TestPollReadyInterval, func(_ context.Context) (bool, error) {
+	err = cryptoutilSharedUtilPoll.Until(ctx, cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second, cryptoutilSharedMagic.TestPollReadyInterval, func(_ context.Context) (bool, error) {
 		return server.PublicPort() > 0, nil
 	})
 	require.NoError(t, err, "server did not bind to port")
 
 	// Create HTTP client.
 	client := &http.Client{
-		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
+		Timeout: cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true, //nolint:gosec // G402: Test client for self-signed certs.
 			},
+			DisableKeepAlives: true,
 		},
 	}
 
@@ -68,7 +69,7 @@ func TestCAServer_HandleOCSP(t *testing.T) {
 		"expected 501 or 400, got %d", resp.StatusCode)
 
 	// Cleanup.
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second)
 	defer cancel()
 
 	_ = server.Shutdown(shutdownCtx)
@@ -90,18 +91,19 @@ func TestCAServer_HandleOCSP_InvalidRequest(t *testing.T) {
 	}()
 
 	// Wait for server to be ready and ports to be allocated.
-	err = cryptoutilSharedUtilPoll.Until(ctx, cryptoutilSharedMagic.TestPollReadyTimeout, cryptoutilSharedMagic.TestPollReadyInterval, func(_ context.Context) (bool, error) {
+	err = cryptoutilSharedUtilPoll.Until(ctx, cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second, cryptoutilSharedMagic.TestPollReadyInterval, func(_ context.Context) (bool, error) {
 		return server.PublicPort() > 0, nil
 	})
 	require.NoError(t, err, "server did not bind to port")
 
 	// Create HTTP client.
 	client := &http.Client{
-		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
+		Timeout: cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true, //nolint:gosec // G402: Test client for self-signed certs.
 			},
+			DisableKeepAlives: true,
 		},
 	}
 
@@ -123,7 +125,7 @@ func TestCAServer_HandleOCSP_InvalidRequest(t *testing.T) {
 	require.True(t, resp.StatusCode >= 400, "expected error status, got %d", resp.StatusCode)
 
 	// Cleanup.
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second)
 	defer cancel()
 
 	_ = server.Shutdown(shutdownCtx)
@@ -145,18 +147,19 @@ func TestCAServer_HandleCRLDistribution_Error(t *testing.T) {
 	}()
 
 	// Wait for server to be ready and ports to be allocated.
-	err = cryptoutilSharedUtilPoll.Until(ctx, cryptoutilSharedMagic.TestPollReadyTimeout, cryptoutilSharedMagic.TestPollReadyInterval, func(_ context.Context) (bool, error) {
+	err = cryptoutilSharedUtilPoll.Until(ctx, cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second, cryptoutilSharedMagic.TestPollReadyInterval, func(_ context.Context) (bool, error) {
 		return server.PublicPort() > 0, nil
 	})
 	require.NoError(t, err, "server did not bind to port")
 
 	// Create HTTP client.
 	client := &http.Client{
-		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
+		Timeout: cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true, //nolint:gosec // G402: Test client for self-signed certs.
 			},
+			DisableKeepAlives: true,
 		},
 	}
 
@@ -190,7 +193,7 @@ func TestCAServer_HandleCRLDistribution_Error(t *testing.T) {
 	}
 
 	// Cleanup.
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second)
 	defer cancel()
 
 	_ = server.Shutdown(shutdownCtx)
@@ -215,18 +218,19 @@ func TestCAServer_HealthEndpoints_EdgeCases(t *testing.T) {
 	}()
 
 	// Wait for server to be ready and ports to be allocated.
-	err = cryptoutilSharedUtilPoll.Until(ctx, cryptoutilSharedMagic.TestPollReadyTimeout, cryptoutilSharedMagic.TestPollReadyInterval, func(_ context.Context) (bool, error) {
+	err = cryptoutilSharedUtilPoll.Until(ctx, cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second, cryptoutilSharedMagic.TestPollReadyInterval, func(_ context.Context) (bool, error) {
 		return server.PublicPort() > 0 && server.AdminPort() > 0, nil
 	})
 	require.NoError(t, err, "server did not bind to ports")
 
 	// Create HTTP client.
 	client := &http.Client{
-		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
+		Timeout: cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true, //nolint:gosec // G402: Test client for self-signed certs.
 			},
+			DisableKeepAlives: true,
 		},
 	}
 
@@ -290,7 +294,7 @@ func TestCAServer_HealthEndpoints_EdgeCases(t *testing.T) {
 	})
 
 	// Cleanup.
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second)
 	defer cancel()
 
 	_ = server.Shutdown(shutdownCtx)

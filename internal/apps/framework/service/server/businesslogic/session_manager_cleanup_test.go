@@ -57,21 +57,18 @@ func TestSessionManager_StartCleanupTask_CleansExpiredSessions(t *testing.T) {
 	// Start cleanup task in background
 	go sm.StartCleanupTask(ctx)
 
-	// Wait for at least 2 cleanup cycles
-	time.Sleep(300 * time.Millisecond)
+	// Poll until the cleanup task removes the expired session (robust under parallel load).
+	require.Eventually(t, func() bool {
+		var count int64
+		sm.db.Model(&cryptoutilAppsFrameworkServiceServerRepository.BrowserSession{}).
+			Where("user_id = ?", userID).
+			Count(&count)
 
-	// Cancel context to stop the task
+		return count == 0
+	}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second, cryptoutilSharedMagic.JoseJAMaxMaterials*time.Millisecond, "Expired session should be cleaned up by background task")
+
+	// Cancel context to stop the task.
 	cancel()
-
-	// Give task time to stop
-	time.Sleep(cryptoutilSharedMagic.IMMaxUsernameLength * time.Millisecond)
-
-	// Session should have been cleaned up
-	var count int64
-	sm.db.Model(&cryptoutilAppsFrameworkServiceServerRepository.BrowserSession{}).
-		Where("user_id = ?", userID).
-		Count(&count)
-	require.Equal(t, int64(0), count, "Expired session should be cleaned up by background task")
 }
 
 // TestSessionManager_ServiceSession_JWS_FullCycle tests service session JWS full lifecycle.

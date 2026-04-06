@@ -19,17 +19,17 @@ description: "Step-up authentication policies for sensitive operations"
 policies:
   transfer_funds:
     operation_pattern: "transfer_funds"
-    required_level: "step_up"  # AuthLevelStepUp (3)
+    required_level: "step_up" # AuthLevelStepUp (3)
     allowed_methods:
       - "sms_otp"
       - "email_otp"
       - "totp"
       - "webauthn"
-    max_age: "5m"  # 5 minutes
+    max_age: "5m" # 5 minutes
     description: "Money transfer requires recent step-up authentication"
     risk_level_overrides:
-      high: "strong_mfa"      # High-risk contexts require hardware key
-      critical: "block"        # Critical-risk contexts blocked
+      high: "strong_mfa" # High-risk contexts require hardware key
+      critical: "block" # Critical-risk contexts blocked
 
   change_password:
     operation_pattern: "change_password"
@@ -38,7 +38,7 @@ policies:
       - "sms_otp"
       - "email_otp"
       - "totp"
-    max_age: "2m"  # 2 minutes
+    max_age: "2m" # 2 minutes
     description: "Password changes require very recent step-up"
     risk_level_overrides:
       high: "strong_mfa"
@@ -60,27 +60,27 @@ policies:
 
   delete_account:
     operation_pattern: "delete_account"
-    required_level: "strong_mfa"  # AuthLevelStrongMFA (4)
+    required_level: "strong_mfa" # AuthLevelStrongMFA (4)
     allowed_methods:
-      - "webauthn"      # Hardware key only
+      - "webauthn" # Hardware key only
       - "face_id"
       - "touch_id"
-    max_age: "1m"  # 1 minute
+    max_age: "1m" # 1 minute
     description: "Account deletion requires strongest authentication"
     risk_level_overrides:
-      medium: "strong_mfa"  # Even medium-risk requires strong MFA
-      high: "block"          # High-risk blocked
+      medium: "strong_mfa" # Even medium-risk requires strong MFA
+      high: "block" # High-risk blocked
       critical: "block"
 
   view_pii:
     operation_pattern: "view_pii"
-    required_level: "mfa"  # AuthLevelMFA (2)
+    required_level: "mfa" # AuthLevelMFA (2)
     allowed_methods:
       - "sms_otp"
       - "email_otp"
       - "totp"
       - "webauthn"
-    max_age: "10m"  # 10 minutes
+    max_age: "10m" # 10 minutes
     description: "Viewing PII requires MFA within 10 minutes"
     risk_level_overrides:
       high: "step_up"
@@ -91,7 +91,7 @@ policies:
     required_level: "strong_mfa"
     allowed_methods:
       - "webauthn"
-      - "backup_codes"  # Backup codes as fallback
+      - "backup_codes" # Backup codes as fallback
     max_age: "2m"
     description: "Modifying 2FA settings requires hardware key"
     risk_level_overrides:
@@ -128,7 +128,7 @@ policies:
 
 # Default policy for operations without specific policy
 default_policy:
-  required_level: "basic"  # Password only
+  required_level: "basic" # Password only
   allowed_methods:
     - "password"
   max_age: "24h"
@@ -198,7 +198,7 @@ step_up_methods:
     name: "Backup Codes"
     type: "recovery"
     strength: "medium"
-    fallback_priority: 99  # Last resort
+    fallback_priority: 99 # Last resort
 
 # Session duration by authentication level
 session_durations:
@@ -209,6 +209,6 @@ session_durations:
 
 # Monitoring and alerting thresholds
 monitoring:
-  step_up_rate_threshold: 0.15  # Alert if >15% of operations require step-up
-  blocked_operation_threshold: 0.05  # Alert if >5% of operations blocked
-  fallback_method_threshold: 0.20  # Alert if >20% use fallback methods
+  step_up_rate_threshold: 0.15 # Alert if >15% of operations require step-up
+  blocked_operation_threshold: 0.05 # Alert if >5% of operations blocked
+  fallback_method_threshold: 0.20 # Alert if >20% use fallback methods

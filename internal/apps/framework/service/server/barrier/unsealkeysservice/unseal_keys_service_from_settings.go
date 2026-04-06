@@ -3,8 +3,10 @@
 package unsealkeysservice
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -18,9 +20,29 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
+var unsealSecretValuePattern = regexp.MustCompile(`^[a-z0-9-]+-unseal-key-[0-9]+-of-[0-9]+-([a-f0-9]{64})$`)
+
 // NewUnsealKeysServiceFromSettings creates a new UnsealKeysService from application settings.
 func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings) (UnsealKeysService, error) {
 	return newUnsealKeysServiceFromSettingsInternal(ctx, telemetryService, settings, cryptoutilSharedUtilRandom.GenerateBytes)
+}
+
+func normalizeSharedSecretValues(sharedSecretsM [][]byte) [][]byte {
+	normalized := make([][]byte, 0, len(sharedSecretsM))
+
+	for _, sharedSecret := range sharedSecretsM {
+		trimmed := bytes.TrimSpace(sharedSecret)
+		if len(trimmed) > cryptoutilSharedMagic.MaxSharedSecretLength {
+			matches := unsealSecretValuePattern.FindSubmatch(trimmed)
+			if len(matches) == 2 {
+				trimmed = matches[1]
+			}
+		}
+
+		normalized = append(normalized, trimmed)
+	}
+
+	return normalized
 }
 
 func newUnsealKeysServiceFromSettingsInternal(_ context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, settings *cryptoutilAppsFrameworkServiceConfig.ServiceFrameworkServerSettings, generateBytesFn func(int) ([]byte, error)) (UnsealKeysService, error) {
@@ -71,7 +93,9 @@ func newUnsealKeysServiceFromSettingsInternal(_ context.Context, telemetryServic
 			return nil, fmt.Errorf("expected %d shared secret files, got %d", n, len(filesContents))
 		}
 
-		return NewUnsealKeysServiceSharedSecrets(filesContents, m)
+		normalizedContents := normalizeSharedSecretValues(filesContents)
+
+		return NewUnsealKeysServiceSharedSecrets(normalizedContents, m)
 	default:
 		n, err := strconv.Atoi(settings.UnsealMode) // Try to parse as a number (N mode)
 		if err != nil {

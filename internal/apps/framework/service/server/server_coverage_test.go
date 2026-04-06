@@ -75,7 +75,7 @@ func TestPublicServerBase_StartListenError(t *testing.T) {
 	// Use a small sleep to allow server to bind.
 	require.Eventually(t, func() bool {
 		return base1.ActualPort() != 0
-	}, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Millisecond)
+	}, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Millisecond)
 
 	occupiedPort := base1.ActualPort()
 
@@ -396,7 +396,7 @@ func TestPublicServerBase_ErrChanPath(t *testing.T) {
 	// Wait for server to be listening.
 	require.Eventually(t, func() bool {
 		return base.ActualPort() != 0
-	}, cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries*time.Second, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Millisecond)
+	}, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Second, cryptoutilSharedMagic.JoseJADefaultMaxMaterials*time.Millisecond)
 
 	// Directly shutdown the Fiber app (NOT base.Shutdown which also cancels context).
 	// This causes app.Listener to return, firing errChan, without serverCtx.Done().

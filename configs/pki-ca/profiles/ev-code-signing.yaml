@@ -7,14 +7,14 @@ profile:
   description: "Extended Validation Code Signing Certificate"
 
   validity:
-    max_days: 1095  # 3 years max
+    max_days: 1095 # 3 years max
     min_days: 1
     default_days: 365
 
   key:
     allowed_algorithms:
       - algorithm: "RSA"
-        min_size: 3072  # EV requires 3072
+        min_size: 3072 # EV requires 3072
         max_size: 4096
       - algorithm: "ECDSA"
         allowed_curves:
@@ -58,11 +58,11 @@ profile:
       - "keyUsage"
       - "extendedKeyUsage"
       - "basicConstraints"
-      - "certificatePolicies"  # Required for EV
+      - "certificatePolicies" # Required for EV
     optional:
       - "crlDistributionPoints"
       - "authorityInfoAccess"
 
   # EV policy OIDs
   certificate_policies:
-    - oid: "2.23.140.1.3"  # CA/Browser Forum EV Code Signing
+    - oid: "2.23.140.1.3" # CA/Browser Forum EV Code Signing

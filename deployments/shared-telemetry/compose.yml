@@ -71,14 +71,14 @@ services:
 
   grafana-otel-lgtm:
     image: grafana/otel-lgtm:latest
-    profiles: ["with-grafana"]  # Optional: enable with --profile with-grafana
+    profiles: ["with-grafana"] # Optional: enable with --profile with-grafana
     environment:
       GF_SECURITY_ADMIN_PASSWORD: admin # pragma: allowlist secret
       GF_USERS_ALLOW_SIGN_UP: "false"
     ports:
-      - "3000:3000"    # Grafana UI
-      - "14317:4317"   # OTLP gRPC
-      - "14318:4318"   # OTLP HTTP
+      - "3000:3000" # Grafana UI
+      - "14317:4317" # OTLP gRPC
+      - "14318:4318" # OTLP HTTP
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana-otel-lgtm/provisioning:/etc/grafana/provisioning:ro

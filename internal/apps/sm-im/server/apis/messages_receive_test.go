@@ -42,7 +42,7 @@ func TestHandleReceiveMessages_WithMessages(t *testing.T) {
 	sendReq.Header.Set("Content-Type", "application/json")
 	sendReq.Header.Set("X-User-ID", senderID.String())
 
-	sendResp, err := sendApp.Test(sendReq)
+	sendResp, err := sendApp.Test(sendReq, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = sendResp.Body.Close() }()
@@ -57,7 +57,7 @@ func TestHandleReceiveMessages_WithMessages(t *testing.T) {
 	receiveReq := httptest.NewRequest(http.MethodGet, "/messages/receive", nil)
 	receiveReq.Header.Set("X-User-ID", receiverID.String())
 
-	receiveResp, err := receiveApp.Test(receiveReq)
+	receiveResp, err := receiveApp.Test(receiveReq, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = receiveResp.Body.Close() }()

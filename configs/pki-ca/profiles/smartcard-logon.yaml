@@ -30,7 +30,7 @@ profile:
   extended_key_usage:
     required:
       - "clientAuth"
-      - "smartCardLogon"  # 1.3.6.1.4.1.311.20.2.2
+      - "smartCardLogon" # 1.3.6.1.4.1.311.20.2.2
     optional: []
 
   subject:
@@ -52,7 +52,7 @@ profile:
     # Microsoft UPN format required
     allow_other_names: true
     other_name_types:
-      - "1.3.6.1.4.1.311.20.2.3"  # Microsoft UPN
+      - "1.3.6.1.4.1.311.20.2.3" # Microsoft UPN
 
   extensions:
     required:

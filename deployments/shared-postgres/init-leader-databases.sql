@@ -1,42 +1,42 @@
 -- PostgreSQL Leader Initialization Script
--- Creates 30 logical databases (10 services × 3 deployment types)
+-- Creates 30 logical databases (10 services Ãƒâ€” 3 deployment types)
 -- OLTP Read-Write databases for microservice isolation
 
 -- Suite-level deployment databases (10)
-CREATE DATABASE "suitedeployment-pki-ca" OWNER cryptoutil_admin;
-CREATE DATABASE "suitedeployment-jose-ja" OWNER cryptoutil_admin;
-CREATE DATABASE "suitedeployment-sm-im" OWNER cryptoutil_admin;
-CREATE DATABASE "suitedeployment-sm-kms" OWNER cryptoutil_admin;
-CREATE DATABASE "suitedeployment-identity-authz" OWNER cryptoutil_admin;
-CREATE DATABASE "suitedeployment-identity-idp" OWNER cryptoutil_admin;
-CREATE DATABASE "suitedeployment-identity-rs" OWNER cryptoutil_admin;
-CREATE DATABASE "suitedeployment-identity-rp" OWNER cryptoutil_admin;
-CREATE DATABASE "suitedeployment-identity-spa" OWNER cryptoutil_admin;
-CREATE DATABASE "suitedeployment-skeleton-template" OWNER cryptoutil_admin;
+CREATE DATABASE "suitedeployment-pki-ca";
+CREATE DATABASE "suitedeployment-jose-ja";
+CREATE DATABASE "suitedeployment-sm-im";
+CREATE DATABASE "suitedeployment-sm-kms";
+CREATE DATABASE "suitedeployment-identity-authz";
+CREATE DATABASE "suitedeployment-identity-idp";
+CREATE DATABASE "suitedeployment-identity-rs";
+CREATE DATABASE "suitedeployment-identity-rp";
+CREATE DATABASE "suitedeployment-identity-spa";
+CREATE DATABASE "suitedeployment-skeleton-template";
 
 -- Product-level deployment databases (10)
-CREATE DATABASE "productdeployment-pki-ca" OWNER cryptoutil_admin;
-CREATE DATABASE "productdeployment-jose-ja" OWNER cryptoutil_admin;
-CREATE DATABASE "productdeployment-sm-im" OWNER cryptoutil_admin;
-CREATE DATABASE "productdeployment-sm-kms" OWNER cryptoutil_admin;
-CREATE DATABASE "productdeployment-identity-authz" OWNER cryptoutil_admin;
-CREATE DATABASE "productdeployment-identity-idp" OWNER cryptoutil_admin;
-CREATE DATABASE "productdeployment-identity-rs" OWNER cryptoutil_admin;
-CREATE DATABASE "productdeployment-identity-rp" OWNER cryptoutil_admin;
-CREATE DATABASE "productdeployment-identity-spa" OWNER cryptoutil_admin;
-CREATE DATABASE "productdeployment-skeleton-template" OWNER cryptoutil_admin;
+CREATE DATABASE "productdeployment-pki-ca";
+CREATE DATABASE "productdeployment-jose-ja";
+CREATE DATABASE "productdeployment-sm-im";
+CREATE DATABASE "productdeployment-sm-kms";
+CREATE DATABASE "productdeployment-identity-authz";
+CREATE DATABASE "productdeployment-identity-idp";
+CREATE DATABASE "productdeployment-identity-rs";
+CREATE DATABASE "productdeployment-identity-rp";
+CREATE DATABASE "productdeployment-identity-spa";
+CREATE DATABASE "productdeployment-skeleton-template";
 
 -- Service-level deployment databases (10)
-CREATE DATABASE "servicedeployment-pki-ca" OWNER cryptoutil_admin;
-CREATE DATABASE "servicedeployment-jose-ja" OWNER cryptoutil_admin;
-CREATE DATABASE "servicedeployment-sm-im" OWNER cryptoutil_admin;
-CREATE DATABASE "servicedeployment-sm-kms" OWNER cryptoutil_admin;
-CREATE DATABASE "servicedeployment-identity-authz" OWNER cryptoutil_admin;
-CREATE DATABASE "servicedeployment-identity-idp" OWNER cryptoutil_admin;
-CREATE DATABASE "servicedeployment-identity-rs" OWNER cryptoutil_admin;
-CREATE DATABASE "servicedeployment-identity-rp" OWNER cryptoutil_admin;
-CREATE DATABASE "servicedeployment-identity-spa" OWNER cryptoutil_admin;
-CREATE DATABASE "servicedeployment-skeleton-template" OWNER cryptoutil_admin;
+CREATE DATABASE "servicedeployment-pki-ca";
+CREATE DATABASE "servicedeployment-jose-ja";
+CREATE DATABASE "servicedeployment-sm-im";
+CREATE DATABASE "servicedeployment-sm-kms";
+CREATE DATABASE "servicedeployment-identity-authz";
+CREATE DATABASE "servicedeployment-identity-idp";
+CREATE DATABASE "servicedeployment-identity-rs";
+CREATE DATABASE "servicedeployment-identity-rp";
+CREATE DATABASE "servicedeployment-identity-spa";
+CREATE DATABASE "servicedeployment-skeleton-template";
 
 -- Enable logical replication for all databases
 \c "suitedeployment-pki-ca"

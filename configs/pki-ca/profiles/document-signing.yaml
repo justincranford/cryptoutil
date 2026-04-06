@@ -28,7 +28,7 @@ profile:
 
   extended_key_usage:
     required:
-      - "codeSigning"  # Also used for document signing
+      - "codeSigning" # Also used for document signing
     optional:
       - "timeStamping"
 

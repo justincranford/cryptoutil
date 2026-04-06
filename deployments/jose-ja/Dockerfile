@@ -117,7 +117,7 @@ LABEL org.opencontainers.image.title="cryptoutil-jose-ja" \
 # Install ca-certificates for TLS and busybox for wget (healthchecks).
 # Create non-root user for security.
 # hadolint ignore=DL3018
-RUN apk --no-cache add ca-certificates && \
+RUN apk --no-cache add ca-certificates tini && \
     adduser -D -H -u 65532 -s /sbin/nologin jose
 
 # Copy build artifacts.

@@ -42,13 +42,7 @@ func (e *errorReadCloser) Close() error {
 func TestHTTPResponse_ReadAllInjectedError(t *testing.T) {
 	t.Parallel()
 
-	originalRT := networkRoundTripperFn
-
-	defer func() {
-		networkRoundTripperFn = originalRT
-	}()
-
-	networkRoundTripperFn = func(_ *http.Request) (*http.Response, error) {
+	injectedRT := func(_ *http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: http.StatusOK,
 			Header:     http.Header{},
@@ -56,7 +50,7 @@ func TestHTTPResponse_ReadAllInjectedError(t *testing.T) {
 		}, nil
 	}
 
-	statusCode, _, _, err := httpResponseInner(context.Background(), http.MethodGet, "http://localhost/test", 0, true, nil, false, func(_ io.Reader) ([]byte, error) {
+	statusCode, _, _, err := httpResponseInner(context.Background(), http.MethodGet, "http://localhost/test", 0, true, nil, false, injectedRT, func(_ io.Reader) ([]byte, error) {
 		return nil, fmt.Errorf("injected read error")
 	})
 	require.Error(t, err)
@@ -65,12 +59,9 @@ func TestHTTPResponse_ReadAllInjectedError(t *testing.T) {
 }
 
 func TestHTTPResponse_BodyCloseInjectedError(t *testing.T) {
-	// Cannot be parallel: modifies package-level injectable var.
-	originalRT := networkRoundTripperFn
+	t.Parallel()
 
-	defer func() { networkRoundTripperFn = originalRT }()
-
-	networkRoundTripperFn = func(_ *http.Request) (*http.Response, error) {
+	injectedRT := func(_ *http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: http.StatusOK,
 			Header:     http.Header{},
@@ -79,7 +70,7 @@ func TestHTTPResponse_BodyCloseInjectedError(t *testing.T) {
 	}
 
 	// The Close error only prints a warning — no error returned.
-	statusCode, _, body, err := HTTPResponse(context.Background(), http.MethodGet, "http://localhost/test", 0, true, nil, false)
+	statusCode, _, body, err := httpResponseInner(context.Background(), http.MethodGet, "http://localhost/test", 0, true, nil, false, injectedRT, io.ReadAll)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, statusCode)
 	require.Equal(t, []byte("body"), body)

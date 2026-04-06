@@ -7,7 +7,7 @@ profile:
   description: "S/MIME Email Signing Certificate"
 
   validity:
-    max_days: 1095  # 3 years
+    max_days: 1095 # 3 years
     min_days: 1
     default_days: 365
 

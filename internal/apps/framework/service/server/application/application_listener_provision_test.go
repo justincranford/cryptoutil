@@ -73,6 +73,7 @@ func TestProvisionDatabase_ErrorPaths(t *testing.T) {
 				UnsealMode:        cryptoutilSharedMagic.DefaultUnsealModeSysInfo,
 				DatabaseURL:       tt.databaseURL,
 				DatabaseContainer: tt.containerMode,
+				DevMode:           true,
 			}
 
 			basic, err := StartBasic(ctx, settings)

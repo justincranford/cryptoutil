@@ -6,7 +6,7 @@ profile:
   description: "Load Balancer TLS Certificate"
 
   validity:
-    max_days: 398  # CA/Browser Forum compliant
+    max_days: 398 # CA/Browser Forum compliant
     min_days: 1
     default_days: 90
 
@@ -46,7 +46,7 @@ profile:
     allow_email_addresses: false
     allow_uris: false
     require_at_least_one: true
-    max_entries: 200  # Multiple domains behind LB
+    max_entries: 200 # Multiple domains behind LB
 
   extensions:
     required:

@@ -2,7 +2,7 @@
 
 spa:
   name: spa-server
-  bind_address: 0.0.0.0  # Listen on all interfaces for container access
+  bind_address: 0.0.0.0 # Listen on all interfaces for container access
   port: 8600
   tls_enabled: false
   read_timeout: 30s
@@ -13,10 +13,10 @@ spa:
   admin_port: 9090
 
 # SPA-specific settings
-static_files_path: /app/static  # Container path
+static_files_path: /app/static # Container path
 index_file: index.html
-rp_origin: "${RP_ORIGIN}"  # Relying Party (BFF) origin for API proxying
-cache_control_max_age: 3600  # 1 hour
+rp_origin: "${RP_ORIGIN}" # Relying Party (BFF) origin for API proxying
+cache_control_max_age: 3600 # 1 hour
 enable_gzip: true
 enable_brotli: true
 csp_directives: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'"

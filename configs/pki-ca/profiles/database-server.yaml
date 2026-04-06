@@ -30,7 +30,7 @@ profile:
     required:
       - "serverAuth"
     optional:
-      - "clientAuth"  # For replication
+      - "clientAuth" # For replication
 
   subject:
     require_common_name: true

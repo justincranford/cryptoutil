@@ -10,8 +10,8 @@ bind-admin-port: 9091
 
 # TLS configuration for HTTPS
 tls-enabled: true
-tls-cert-file: ""   # Set in deployment config
-tls-key-file: ""    # Set in deployment config
+tls-cert-file: "" # Set in deployment config
+tls-key-file: "" # Set in deployment config
 
 # CORS configuration - HTTPS origins only
 cors-origins:
@@ -44,7 +44,7 @@ ca:
     algorithm: "ECDSA"
     curve_or_size: "P-384"
   validity:
-    days: 3650  # 10 years for root CA
+    days: 3650 # 10 years for root CA
 
 # Certificate storage
 storage:

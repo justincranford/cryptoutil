@@ -73,7 +73,7 @@
 #
 services:
   # PostgreSQL 18 Leader (OLTP - Read/Write)
-  # Hosts 30 logical databases (10 services × 3 deployment types)
+  # Hosts 30 logical databases (10 services Ã— 3 deployment types)
   postgres-leader:
     image: postgres:18
     container_name: cryptoutil-postgres-leader
@@ -152,8 +152,6 @@ services:
       - maintenance_work_mem=256MB
       - -c
       - work_mem=32MB
-      - -c
-      - default_transaction_read_only=on
     shm_size: 1gb
     volumes:
       - postgres_follower_data:/var/lib/postgresql

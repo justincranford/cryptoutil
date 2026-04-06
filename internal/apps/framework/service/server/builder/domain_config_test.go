@@ -37,7 +37,7 @@ func TestDomainConfig_Build_NilSettings(t *testing.T) {
 func TestDomainConfig_Build_NilDomain(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*time.Second)
 	defer cancel()
 
 	resources, err := Build(ctx, getMinimalSettings(), nil)
@@ -53,7 +53,7 @@ func TestDomainConfig_Build_NilDomain(t *testing.T) {
 func TestDomainConfig_Build_WithMigrations(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*time.Second)
 	defer cancel()
 
 	domainFS := fstest.MapFS{
@@ -80,7 +80,7 @@ func TestDomainConfig_Build_WithMigrations(t *testing.T) {
 func TestDomainConfig_Build_WithRouteRegistration(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*time.Second)
 	defer cancel()
 
 	routeRegistered := false

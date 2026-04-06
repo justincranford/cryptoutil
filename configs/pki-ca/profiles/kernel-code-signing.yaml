@@ -13,7 +13,7 @@ profile:
   key:
     allowed_algorithms:
       - algorithm: "RSA"
-        min_size: 4096  # Microsoft requires 4096 for kernel signing
+        min_size: 4096 # Microsoft requires 4096 for kernel signing
         max_size: 4096
     default_algorithm: "RSA"
     default_curve_or_size: 4096

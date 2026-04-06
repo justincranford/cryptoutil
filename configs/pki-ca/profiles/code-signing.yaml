@@ -7,7 +7,7 @@ profile:
 
   # Validity constraints
   validity:
-    max_days: 1095  # 3 years
+    max_days: 1095 # 3 years
     min_days: 30
     default_days: 365
 
@@ -31,9 +31,9 @@ profile:
   # Extended key usage (RFC 5280)
   extended_key_usage:
     required:
-      - "codeSigning"  # 1.3.6.1.5.5.7.3.3
+      - "codeSigning" # 1.3.6.1.5.5.7.3.3
     optional:
-      - "timeStamping"  # 1.3.6.1.5.5.7.3.8
+      - "timeStamping" # 1.3.6.1.5.5.7.3.8
 
   # Subject constraints
   subject:

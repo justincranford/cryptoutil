@@ -6,9 +6,9 @@ profile:
   description: "Intermediate Certificate Authority"
 
   validity:
-    max_days: 3650  # 10 years
+    max_days: 3650 # 10 years
     min_days: 365
-    default_days: 1825  # 5 years
+    default_days: 1825 # 5 years
 
   key:
     allowed_algorithms:
@@ -64,7 +64,7 @@ profile:
 
   basic_constraints:
     ca: true
-    path_len_constraint: 0  # Can only issue end-entity certs
+    path_len_constraint: 0 # Can only issue end-entity certs
 
   # Optional name constraints
   name_constraints:

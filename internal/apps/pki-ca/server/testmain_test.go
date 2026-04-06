@@ -49,7 +49,7 @@ func TestMain(m *testing.M) {
 
 	// Wait for server ports to be assigned.
 	const (
-		maxWaitAttempts = 50
+		maxWaitAttempts = 300
 		waitInterval    = 100 * time.Millisecond
 	)
 
@@ -87,8 +87,9 @@ func TestMain(m *testing.M) {
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true, //nolint:gosec // G402: Test client for self-signed certs.
 			},
+			DisableKeepAlives: true,
 		},
-		Timeout: cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries * time.Second,
+		Timeout: cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * time.Second,
 	}
 
 	// Run all tests.

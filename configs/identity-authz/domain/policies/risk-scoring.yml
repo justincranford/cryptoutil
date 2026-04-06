@@ -13,27 +13,27 @@ description: "Default risk scoring policy for adaptive authentication"
 # Higher weight = greater influence on overall risk score
 risk_factors:
   location:
-    weight: 0.25  # Geographic location anomalies
+    weight: 0.25 # Geographic location anomalies
     description: "Unknown locations, impossible travel, high-risk countries"
 
   device:
-    weight: 0.20  # Device fingerprint anomalies
+    weight: 0.20 # Device fingerprint anomalies
     description: "Unknown devices, device signature changes"
 
   time:
-    weight: 0.15  # Time-based anomalies
+    weight: 0.15 # Time-based anomalies
     description: "Unusual login times, rapid authentication attempts"
 
   behavior:
-    weight: 0.20  # User behavior anomalies
+    weight: 0.20 # User behavior anomalies
     description: "Deviations from baseline behavior patterns"
 
   network:
-    weight: 0.10  # Network-based risk
+    weight: 0.10 # Network-based risk
     description: "VPN usage, proxy detection, Tor exit nodes"
 
   velocity:
-    weight: 0.10  # Velocity anomalies
+    weight: 0.10 # Velocity anomalies
     description: "Rapid login attempts, account enumeration patterns"
 
 # Risk level thresholds (0.0-1.0 scale)
@@ -44,7 +44,7 @@ risk_thresholds:
     max: 0.1
     description: "Trusted context, known device/location, normal behavior"
     auth_requirements:
-      - "basic"  # Password only
+      - "basic" # Password only
     max_session_duration: "24h"
 
   medium:
@@ -53,7 +53,7 @@ risk_thresholds:
     description: "Minor anomalies, new location or device"
     auth_requirements:
       - "basic"
-      - "mfa"  # Require MFA (SMS OTP, email OTP, TOTP)
+      - "mfa" # Require MFA (SMS OTP, email OTP, TOTP)
     max_session_duration: "1h"
 
   high:
@@ -62,7 +62,7 @@ risk_thresholds:
     description: "Significant anomalies, VPN + new device, unusual time"
     auth_requirements:
       - "basic"
-      - "strong_mfa"  # Require hardware key or biometric
+      - "strong_mfa" # Require hardware key or biometric
     max_session_duration: "5m"
     step_up_required: true
 
@@ -71,22 +71,22 @@ risk_thresholds:
     max: 1.0
     description: "Severe anomalies, velocity attacks, impossible travel"
     auth_requirements:
-      - "block"  # Block authentication, require manual review
+      - "block" # Block authentication, require manual review
     max_session_duration: "1m"
     alert_security_team: true
 
 # Confidence scoring weights (how certain we are about the risk assessment)
 # Higher confidence = more historical data, more factors available
 confidence_weights:
-  factor_count: 0.5    # Contribution from number of factors evaluated
-  baseline_data: 0.15  # Contribution from user baseline data quality
-  behavior_profile: 0.10  # Contribution from behavior profile completeness
+  factor_count: 0.5 # Contribution from number of factors evaluated
+  baseline_data: 0.15 # Contribution from user baseline data quality
+  behavior_profile: 0.10 # Contribution from behavior profile completeness
 
 # Confidence thresholds for decision-making
 confidence_thresholds:
-  low: 0.3      # Insufficient data, use conservative defaults
-  medium: 0.6   # Adequate data for normal risk assessment
-  high: 0.8     # High-quality baseline, confident in assessment
+  low: 0.3 # Insufficient data, use conservative defaults
+  medium: 0.6 # Adequate data for normal risk assessment
+  high: 0.8 # High-quality baseline, confident in assessment
 
 # Network risk scoring
 network_risks:
@@ -110,16 +110,16 @@ network_risks:
 geographic_risks:
   high_risk_countries:
     countries:
-      - "KP"  # North Korea
-      - "IR"  # Iran
-      - "SY"  # Syria
+      - "KP" # North Korea
+      - "IR" # Iran
+      - "SY" # Syria
     score: 0.6
     description: "Countries with elevated cybercrime risk"
 
   embargoed_countries:
     countries:
-      - "CU"  # Cuba
-      - "SD"  # Sudan
+      - "CU" # Cuba
+      - "SD" # Sudan
     score: 0.8
     description: "Embargoed countries, blocked by policy"
 

@@ -31,7 +31,7 @@ profile:
     required:
       - "serverAuth"
     optional:
-      - "ikeIntermediate"  # 1.3.6.1.5.5.8.2.2
+      - "ikeIntermediate" # 1.3.6.1.5.5.8.2.2
 
   subject:
     require_common_name: true

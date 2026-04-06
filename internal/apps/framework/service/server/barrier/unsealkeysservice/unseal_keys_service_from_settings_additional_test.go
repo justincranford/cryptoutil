@@ -71,6 +71,35 @@ func TestNewUnsealKeysServiceFromSettings_MofN_HappyPath(t *testing.T) {
 	require.NotNil(t, unsealKeysService)
 }
 
+// TestNewUnsealKeysServiceFromSettings_MofN_PrefixedSecretValue_HappyPath tests prefixed deployment secret values.
+func TestNewUnsealKeysServiceFromSettings_MofN_PrefixedSecretValue_HappyPath(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	secret1 := filepath.Join(tmpDir, "secret1.bin")
+	secret2 := filepath.Join(tmpDir, "secret2.bin")
+	secret3 := filepath.Join(tmpDir, "secret3.bin")
+
+	err := os.WriteFile(secret1, []byte("sm-kms-unseal-key-1-of-5-c6559da027bdb88eb3d08a1f15df852f2cea6eaa0f5e5f4f02448054c51622f9"), cryptoutilSharedMagic.CacheFilePermissions)
+	require.NoError(t, err)
+
+	err = os.WriteFile(secret2, []byte("sm-kms-unseal-key-2-of-5-f624f2f39f4705f8de0f4e1d5fb4dbe607fe59989ebf82454ad377de26f8818c"), cryptoutilSharedMagic.CacheFilePermissions)
+	require.NoError(t, err)
+
+	err = os.WriteFile(secret3, []byte("sm-kms-unseal-key-3-of-5-c1a0f8f66d8f4e17edebfa648f8f4f1f2382fb3354f19ed9131984c3d2a1be64"), cryptoutilSharedMagic.CacheFilePermissions)
+	require.NoError(t, err)
+
+	ctx, telemetryService := createTestContext(t)
+	settings := cryptoutilAppsFrameworkServiceConfig.RequireNewForTest("test-mofn-prefixed")
+	settings.DevMode = false
+	settings.UnsealMode = testUnsealMode2Of3
+	settings.UnsealFiles = []string{secret1, secret2, secret3}
+
+	unsealKeysService, err := NewUnsealKeysServiceFromSettings(ctx, telemetryService, settings)
+	require.NoError(t, err)
+	require.NotNil(t, unsealKeysService)
+}
+
 // TestNewUnsealKeysServiceFromSettings_SimpleMode_HappyPath tests N mode with JWK files.
 func TestNewUnsealKeysServiceFromSettings_SimpleMode_HappyPath(t *testing.T) {
 	t.Parallel()

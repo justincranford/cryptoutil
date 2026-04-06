@@ -4,48 +4,48 @@
 
 # Quality gates - make Gremlins fail if thresholds are not met
 # Architecture requirement: ≥95% mandatory minimum, ≥98% ideal
-threshold-efficacy: 95.0    # Minimum percentage of killed mutants vs total killed+lived (≥95% mandatory, ≥98% ideal)
-threshold-mcover: 95.0      # Minimum percentage of mutant coverage
+threshold-efficacy: 95.0 # Minimum percentage of killed mutants vs total killed+lived (≥95% mandatory, ≥98% ideal)
+threshold-mcover: 95.0 # Minimum percentage of mutant coverage
 
 # Performance settings
-workers: 1                  # Single worker for stability (prevents race conditions)
-test-cpu: 1                 # Single CPU per test to avoid resource contention
-timeout-coefficient: 30     # High timeout for complex test setups
+workers: 1 # Single worker for stability (prevents race conditions)
+test-cpu: 1 # Single CPU per test to avoid resource contention
+timeout-coefficient: 30 # High timeout for complex test setups
 
 # Mutation operators (enable comprehensive coverage)
-arithmetic-base: true       # Change +, -, *, /, % operators
+arithmetic-base: true # Change +, -, *, /, % operators
 conditionals-boundary: true # Change <, <=, >, >= boundaries (off-by-one errors)
 conditionals-negation: true # Invert conditional expressions
-increment-decrement: true   # Change ++, -- operators
-invert-negatives: true      # Change positive/negative values
+increment-decrement: true # Change ++, -- operators
+invert-negatives: true # Change positive/negative values
 
 # Advanced mutation operators (can be noisy, start disabled)
-invert-assignments: false   # Invert assignment operations
-invert-bitwise: false       # Invert bitwise operations (&, |, ^)
-invert-bwassign: false      # Invert bitwise assignment operations
-invert-logical: false       # Invert logical operations (&&, ||)
-invert-loopctrl: false      # Invert loop control (break/continue)
+invert-assignments: false # Invert assignment operations
+invert-bitwise: false # Invert bitwise operations (&, |, ^)
+invert-bwassign: false # Invert bitwise assignment operations
+invert-logical: false # Invert logical operations (&&, ||)
+invert-loopctrl: false # Invert loop control (break/continue)
 remove-self-assignments: false # Remove self-assignments like x = x
 
 # File exclusions - skip generated code and external dependencies
 exclude-files:
-  - ".*\\.pb\\.go$"           # Protocol buffer generated files
-  - ".*_gen\\.go$"            # Generated Go files
-  - ".*_generated\\.go$"      # Generated Go files
-  - "api/.*"                  # OpenAPI generated code
-  - "vendor/.*"               # Vendor dependencies
-  - ".*mock.*\\.go$"          # Mock files
-  - ".*_mock\\.go$"           # Mock files
-  - "\\.venv/.*"              # Python virtual environment
-  - "node_modules/.*"         # Node.js dependencies
+  - ".*\\.pb\\.go$" # Protocol buffer generated files
+  - ".*_gen\\.go$" # Generated Go files
+  - ".*_generated\\.go$" # Generated Go files
+  - "api/.*" # OpenAPI generated code
+  - "vendor/.*" # Vendor dependencies
+  - ".*mock.*\\.go$" # Mock files
+  - ".*_mock\\.go$" # Mock files
+  - "\\.venv/.*" # Python virtual environment
+  - "node_modules/.*" # Node.js dependencies
 
 # Test configuration
-integration: false          # Use fast unit tests, not full integration suite
-tags: ""                    # Build tags for testing
+integration: false # Use fast unit tests, not full integration suite
+tags: "" # Build tags for testing
 
 # Output configuration
-output: "gremlins-report.json"  # Machine-readable results
-output-statuses: "klnvt"    # Show: Killed, Lived, Not covered, Not viable, Timed out
+output: "gremlins-report.json" # Machine-readable results
+output-statuses: "klnvt" # Show: Killed, Lived, Not covered, Not viable, Timed out
 
 # Coverage configuration
-coverpkg: "./..."           # Test all packages recursively
+coverpkg: "./..." # Test all packages recursively

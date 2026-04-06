@@ -84,13 +84,7 @@ func provisionDatabaseInternal(
 	if isPostgres && containerMode != "" && containerMode != cryptoutilSharedMagic.DefaultDatabaseContainerDisabled {
 		basic.TelemetryService.Slogger.Debug("attempting to start PostgreSQL testcontainer", "containerMode", containerMode)
 
-		containerURL, cleanup, err := startPostgresFn(
-			ctx,
-			basic.TelemetryService,
-			"test_db",
-			"test_user",
-			"test_password",
-		)
+		containerURL, cleanup, err := startPostgresSafely(ctx, basic, startPostgresFn, "test_db", "test_user", "test_password")
 		if err == nil {
 			basic.TelemetryService.Slogger.Info("successfully started PostgreSQL testcontainer", "containerURL", containerURL)
 			databaseURL = containerURL
@@ -126,6 +120,25 @@ func provisionDatabaseInternal(
 	basic.TelemetryService.Slogger.Info("database connection established successfully")
 
 	return db, shutdownContainer, nil
+}
+
+func startPostgresSafely(
+	ctx context.Context,
+	basic *Basic,
+	startPostgresFn func(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, dbName, username, password string) (string, func(), error),
+	dbName, username, password string,
+) (
+	containerURL string,
+	cleanup func(),
+	err error,
+) {
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			err = fmt.Errorf("panic while starting PostgreSQL testcontainer: %v", recovered)
+		}
+	}()
+
+	return startPostgresFn(ctx, basic.TelemetryService, dbName, username, password)
 }
 
 // openSQLite opens a SQLite database connection with GORM and configures WAL mode.

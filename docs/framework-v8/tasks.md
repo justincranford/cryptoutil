@@ -636,52 +636,52 @@ complete postgres port assignments at all tiers.
 
 #### Task 8.1: SERVICE Tier Validation (sm-im as representative)
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
 - **Dependencies**: Phase 4 complete
 - **Acceptance Criteria**:
-  - [ ] `docker compose -f deployments/sm-im/compose.yml config` — validates successfully
-  - [ ] `docker compose -f deployments/sm-im/compose.yml up --profile dev -d` starts OK
-  - [ ] sm-im-app-sqlite-1 healthcheck passes: `wget -q -O /dev/null https://127.0.0.1:9090/admin/api/v1/livez`
-  - [ ] `docker compose -f deployments/sm-im/compose.yml down -v` — cleans up cleanly
+  - [x] `docker compose -f deployments/sm-im/compose.yml config` — validates successfully
+  - [x] `docker compose -f deployments/sm-im/compose.yml up --profile dev -d` starts OK
+  - [x] sm-im-app-sqlite-1 healthcheck passes: `wget -q -O /dev/null https://127.0.0.1:9090/admin/api/v1/livez`
+  - [x] `docker compose -f deployments/sm-im/compose.yml down -v` — cleans up cleanly
 
 #### Task 8.2: PRODUCT Tier Validation (sm)
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
 - **Dependencies**: Task 8.1
 - **Acceptance Criteria**:
-  - [ ] `docker compose -f deployments/sm/compose.yml config` — validates successfully
-  - [ ] `docker compose -f deployments/sm/compose.yml up --profile dev -d` starts OK
-  - [ ] sm-kms at :18000 and sm-im at :18100 both pass healthcheck
-  - [ ] `docker compose -f deployments/sm/compose.yml down -v` — cleans up cleanly
+  - [x] `docker compose -f deployments/sm/compose.yml config` — validates successfully
+  - [x] `docker compose -f deployments/sm/compose.yml up --profile dev -d` starts OK
+  - [x] sm-kms at :18000 and sm-im at :18100 both pass healthcheck
+  - [x] `docker compose -f deployments/sm/compose.yml down -v` — cleans up cleanly
 
 #### Task 8.3: SUITE Tier Validation (cryptoutil, SQLite only for speed)
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
 - **Dependencies**: Task 8.2
 - **Acceptance Criteria**:
-  - [ ] `docker compose -f deployments/cryptoutil/compose.yml config` — validates
-  - [ ] At minimum 5 representative services start (sm-kms at :28000, sm-im at :28100, etc.)
-  - [ ] `docker compose -f deployments/cryptoutil/compose.yml down -v` — cleans up
+  - [x] `docker compose -f deployments/cryptoutil/compose.yml config` — validates
+  - [x] At minimum 5 representative services start (sm-kms at :28000, sm-im at :28100, etc.)
+  - [x] `docker compose -f deployments/cryptoutil/compose.yml down -v` — cleans up
 
 #### Task 8.4: Final lint-deployments Clean Run
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.25h
 - **Dependencies**: Tasks 8.1–8.3
 - **Acceptance Criteria**:
-  - [ ] `go run ./cmd/cicd-lint lint-deployments` — ZERO errors across ALL deployment directories
-  - [ ] Output saved to `test-output/framework-v8-research/lint-deployments-final.txt`
-  - [ ] Line count reduction confirmed: ≥ 35% from baseline
+  - [x] `go run ./cmd/cicd-lint lint-deployments` — ZERO errors across ALL deployment directories
+  - [x] Output saved to `test-output/framework-v8-research/lint-deployments-final.txt`
+  - [x] Line count reduction confirmed: ≥ 35% from baseline
 
 #### Phase 8 Quality Gate
 
-- [ ] All 3 tiers start and pass health checks
-- [ ] `go run ./cmd/cicd-lint lint-deployments` — zero errors
-- [ ] Line reduction documented with before/after counts
-- [ ] Phase 8 post-mortem — update lessons.md
+- [x] All 3 tiers start and pass health checks
+- [x] `go run ./cmd/cicd-lint lint-deployments` — zero errors
+- [x] Line reduction documented with before/after counts
+- [x] Phase 8 post-mortem — update lessons.md
 
 ---
 
@@ -691,30 +691,30 @@ complete postgres port assignments at all tiers.
 
 #### Task 9.1: Review lessons.md and Identify Propagation Targets
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.25h
 - **Dependencies**: All prior phases complete
 - **Acceptance Criteria**:
-  - [ ] lessons.md reviewed for all 8 phase post-mortems
-  - [ ] List of artifacts to update identified and tracked
+  - [x] lessons.md reviewed for all 8 phase post-mortems
+  - [x] List of artifacts to update identified and tracked
 
 #### Task 9.2: Apply Lessons to ENG-HANDBOOK.md
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
 - **Dependencies**: Task 9.1
 - **Acceptance Criteria**:
-  - [ ] Any patterns discovered during implementation added to relevant sections
-  - [ ] `go run ./cmd/cicd-lint lint-docs validate-propagation` passes
+  - [x] Any patterns discovered during implementation added to relevant sections
+  - [x] `go run ./cmd/cicd-lint lint-docs validate-propagation` passes
 
 #### Task 9.3: Apply Lessons to Agents/Skills/Instructions (if applicable)
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.25h
 - **Dependencies**: Task 9.1
 - **Acceptance Criteria**:
-  - [ ] Any Docker Compose best practices discovered added to relevant instruction files
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
+  - [x] Any Docker Compose best practices discovered added to relevant instruction files
+  - [x] `go run ./cmd/cicd-lint lint-docs` passes
 
 #### Task 9.4: Final Commit + Push
 
@@ -732,15 +732,15 @@ complete postgres port assignments at all tiers.
 
 ### Code Quality (applies to all Go changes in Phases 5–6)
 
-- [ ] `go build ./...` — clean after every phase
-- [ ] `golangci-lint run ./...` — zero violations after every Go change
-- [ ] `go test ./... -shuffle=on` — 100% pass, zero skips
+- [x] `go build ./...` — clean after every phase
+- [x] `golangci-lint run ./...` — zero violations after every Go change
+- [x] `go test ./... -shuffle=on` — 100% pass, zero skips
 
 ### Deployment Quality (applies to all compose changes)
 
-- [ ] `go run ./cmd/cicd-lint lint-deployments` — clean or improving after every phase
-- [ ] No hardcoded credentials (gosec check)
-- [ ] All service names use `postgresql` (not `postgres`)
+- [x] `go run ./cmd/cicd-lint lint-deployments` — clean or improving after every phase
+- [x] No hardcoded credentials (gosec check)
+- [x] All service names use `postgresql` (not `postgres`)
 
 ---
 

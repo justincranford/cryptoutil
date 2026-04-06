@@ -19,10 +19,6 @@ import (
 )
 
 // Injectable functions for testing defensive error paths.
-var (
-	networkRoundTripperFn func(*http.Request) (*http.Response, error) // nil = use real client.Do
-)
-
 // HTTPGetLivez performs a GET /livez request to the private health endpoint.
 func HTTPGetLivez(ctx context.Context, baseURL, adminContextPath string, timeout time.Duration, rootCAsPool *x509.CertPool, insecureSkipVerify bool) (int, http.Header, []byte, error) {
 	fullPath := adminContextPath + cryptoutilSharedMagic.PrivateAdminLivezRequestPath
@@ -73,11 +69,11 @@ func HTTPPostShutdown(ctx context.Context, baseURL, adminContextPath string, tim
 //
 // Returns the status code, headers, response body, and any error encountered.
 func HTTPResponse(ctx context.Context, method, url string, timeout time.Duration, followRedirects bool, rootCAsPool *x509.CertPool, insecureSkipVerify bool) (int, http.Header, []byte, error) {
-	return httpResponseInner(ctx, method, url, timeout, followRedirects, rootCAsPool, insecureSkipVerify, io.ReadAll)
+	return httpResponseInner(ctx, method, url, timeout, followRedirects, rootCAsPool, insecureSkipVerify, nil, io.ReadAll)
 }
 
 // httpResponseInner is the testable implementation of HTTPResponse with injectable readAllFn.
-func httpResponseInner(ctx context.Context, method, url string, timeout time.Duration, followRedirects bool, rootCAsPool *x509.CertPool, insecureSkipVerify bool, readAllFn func(io.Reader) ([]byte, error)) (int, http.Header, []byte, error) {
+func httpResponseInner(ctx context.Context, method, url string, timeout time.Duration, followRedirects bool, rootCAsPool *x509.CertPool, insecureSkipVerify bool, roundTripperFn func(*http.Request) (*http.Response, error), readAllFn func(io.Reader) ([]byte, error)) (int, http.Header, []byte, error) {
 	if timeout > 0 {
 		var cancel context.CancelFunc
 
@@ -120,8 +116,8 @@ func httpResponseInner(ctx context.Context, method, url string, timeout time.Dur
 	}
 
 	var resp *http.Response
-	if networkRoundTripperFn != nil {
-		resp, err = networkRoundTripperFn(req)
+	if roundTripperFn != nil {
+		resp, err = roundTripperFn(req)
 	} else {
 		resp, err = client.Do(req)
 	}

@@ -84,7 +84,7 @@ func TestBuild_InitServicesError(t *testing.T) {
 
 	defer func() { initServicesOnCoreFn = original }()
 
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*time.Second)
 	defer cancel()
 
 	cfg := getMinimalSettings()
@@ -110,7 +110,7 @@ func TestBuild_GenerateTLSMaterialError(t *testing.T) {
 
 	defer func() { generateTLSMaterialFn = original }()
 
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*time.Second)
 	defer cancel()
 
 	cfg := getMinimalSettings()
@@ -136,7 +136,7 @@ func TestBuild_PublicServerBaseError(t *testing.T) {
 
 	defer func() { newPublicServerBaseFn = original }()
 
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*time.Second)
 	defer cancel()
 
 	cfg := getMinimalSettings()
@@ -164,7 +164,7 @@ func TestBuild_NewApplicationError(t *testing.T) {
 
 	defer func() { newApplicationFn = original }()
 
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*time.Second)
 	defer cancel()
 
 	cfg := getMinimalSettings()

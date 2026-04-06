@@ -243,10 +243,61 @@ root causes, and patterns to propagate to permanent artifacts.*
 
 ## Phase 8: E2E Validation
 
-*(To be filled during Phase 8 execution)*
+### What Worked
+
+- SERVICE tier (`sm-im`) validated end-to-end with container-admin `livez` probe success.
+- PRODUCT tier (`sm`) validated both required app probes (`sm-kms` at 18000 and `sm-im` at 18100).
+- SUITE tier validated 5 representative services (`sm-kms`, `sm-im`, `jose-ja`, `pki-ca`, `identity-authz`) with successful admin `livez` probes.
+- `lint-deployments` final run remained clean (54/54 validators passed, 0 errors).
+- Line-reduction objective remained satisfied (suite compose 1904 -> 127, 93.3% reduction).
+
+### What Didn't Work (Initially)
+
+- shared-postgres startup failed due invalid init assumptions (hardcoded DB owner role, follower read-only initialization path, and a malformed command list after edits).
+- Several runtime images used `/sbin/tini` ENTRYPOINT without installing `tini`.
+- Helper service name collisions across recursive includes (`pki-init`) caused PRODUCT-tier startup conflicts.
+- Suite full `--build` encountered BuildKit instability (`rpc error: ... EOF`) under high parallel build pressure.
+- PRODUCT include stacks that shared a single image tag (`cryptoutil:dev`) could run the wrong service binary when multiple builders wrote the same tag.
+
+### Patterns to Propagate
+
+1. PRODUCT/SUITE override layers should use per-PS-ID image tags (for example, `cryptoutil-sm-kms:dev`, `cryptoutil-sm-im:dev`) when includes introduce multiple builders.
+2. Shared image tags across heterogeneous PS-ID binaries are unsafe in recursive include topologies because the final build wins tag resolution.
+
+### Root Cause
+
+- Infrastructure scripts/config had implicit assumptions that were not compatible with secret-backed runtime users.
+- ENTRYPOINT/runtime dependency coupling (`/sbin/tini`) was inconsistently enforced across Dockerfiles.
+- Recursive include hierarchy merged helper service names that were not globally unique.
+- Running broad suite rebuilds in one shot stressed BuildKit beyond stable local behavior.
+
+### Patterns to Propagate
+
+1. shared-postgres init SQL must avoid fixed role ownership assumptions and remain runtime-user agnostic.
+2. Any Dockerfile using `/sbin/tini` entrypoint must install/copy `tini` in runtime stage.
+3. Helper services in include-target compose files should be PS-ID-prefixed or explicitly overridden at higher tiers.
+4. For suite validation, prefer runtime `up -d` with known-good local images; perform full image rebuilds as a separate step when needed.
 
 ---
 
 ## Phase 9: Knowledge Propagation
 
-*(To be filled during Phase 9 execution)*
+### What Worked
+
+- Phase 8 operational lessons were propagated into ENG-HANDBOOK deployment architecture sections.
+- Deployment instruction guardrails were updated with recursive-include collision and runtime-entrypoint rules.
+- Evidence archive remained centralized under `test-output/framework-v8-research/`.
+
+### What Didn't Work (Initially)
+
+- Several lessons only surfaced under full E2E (not config/lint dry-runs), requiring immediate infrastructure fixes before task closure.
+
+### Root Cause
+
+- Structural/lint validation alone did not expose runtime-only startup failures (entrypoint binaries, init job collisions, runtime script assumptions).
+
+### Patterns to Propagate
+
+1. Treat runtime E2E as mandatory for deployment refactors, not optional after lint/config checks.
+2. Elevate discovered runtime blockers into handbook/instruction guardrails in the same execution session.
+3. Preserve full evidence logs for each tier (config/up/ps/health/down + lint final) in one analysis directory.

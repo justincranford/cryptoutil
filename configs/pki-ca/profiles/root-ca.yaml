@@ -6,7 +6,7 @@ profile:
   description: "Root Certificate Authority"
 
   validity:
-    max_days: 7300  # 20 years
+    max_days: 7300 # 20 years
     min_days: 3650
     default_days: 7300
 
@@ -61,7 +61,7 @@ profile:
 
   basic_constraints:
     ca: true
-    path_len_constraint: null  # Unlimited
+    path_len_constraint: null # Unlimited
 
   # Optional name constraints for enterprise roots
   name_constraints:

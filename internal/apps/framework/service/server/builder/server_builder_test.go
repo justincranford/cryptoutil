@@ -258,7 +258,7 @@ func TestBuild_AdminTLSError(t *testing.T) {
 func TestBuild_PublicRouteRegistrationError(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*time.Second)
 	defer cancel()
 
 	settings := getMinimalSettings()
@@ -285,7 +285,7 @@ func TestBuild_PublicRouteRegistrationError(t *testing.T) {
 func TestBuild_PublicTLSError(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*time.Second)
 	defer cancel()
 
 	settings := getMinimalSettings()
@@ -307,7 +307,7 @@ func TestBuild_PublicTLSError(t *testing.T) {
 func TestBuild_MigrationError(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*time.Second)
 	defer cancel()
 
 	settings := getMinimalSettings()
@@ -333,7 +333,7 @@ func TestBuild_MigrationError(t *testing.T) {
 func TestBuild_Success(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*time.Second)
 	defer cancel()
 
 	settings := getMinimalSettings()
@@ -429,7 +429,7 @@ func TestBuild_Success(t *testing.T) {
 func TestBuild_AutoConfigJWTAuth(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*time.Second)
 	defer cancel()
 
 	settings := getMinimalSettings()
@@ -457,7 +457,7 @@ func TestBuild_AutoConfigJWTAuth(t *testing.T) {
 func TestBuild_AutoConfigStrictServer(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*time.Second)
 	defer cancel()
 
 	settings := getMinimalSettings()
@@ -487,7 +487,7 @@ func TestBuild_AutoConfigStrictServer(t *testing.T) {
 func TestBuild_ExplicitJWTAuthPreserved(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*time.Second)
 	defer cancel()
 
 	settings := getMinimalSettings()
@@ -521,7 +521,7 @@ func TestBuild_ExplicitJWTAuthPreserved(t *testing.T) {
 func TestBuild_ExplicitStrictServerPreserved(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year*time.Second)
 	defer cancel()
 
 	settings := getMinimalSettings()
