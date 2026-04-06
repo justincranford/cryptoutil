@@ -1,6 +1,6 @@
 # Tasks — Framework v8: Deployment Parameterization
 
-**Status**: 0 of 43 tasks complete (0%)
+**Status**: 4 of 43 tasks complete (9%)
 **Last Updated**: 2026-04-06
 **Created**: 2026-04-05
 
@@ -33,60 +33,61 @@ Archive findings in `test-output/framework-v8-research/`.
 
 #### Task 0.1: Minimal Include Test — Service Override
 
-- **Status**: ❌
-- **Estimated**: 0.25h
+- **Status**: ✅
+- **Actual**: 0.3h
 - **Dependencies**: None
 - **Description**: Create 3-file minimal test to verify Approach C service override works
+- **Key Finding**: `!override` YAML tag required for port REPLACEMENT (default merge APPENDS arrays)
 - **Acceptance Criteria**:
-  - [ ] `test-output/framework-v8-research/` directory created
-  - [ ] `shared/compose.yml` defines service `postgres-leader` with NO host ports
-  - [ ] `psid/compose.yml` includes shared, redefines `postgres-leader` ports to `127.0.0.1:54321:5432`
-  - [ ] `product/compose.yml` includes psid, redefines `postgres-leader` ports to `127.0.0.1:54310:5432`
-  - [ ] `docker compose -f psid/compose.yml config` shows port 54321 on postgres-leader
-  - [ ] `docker compose -f product/compose.yml config` shows port 54310 on postgres-leader (override wins)
-  - [ ] Results documented in `test-output/framework-v8-research/override-test-results.md`
+  - [x] `test-output/framework-v8-research/` directory created
+  - [x] `shared/compose.yml` defines service `postgres-leader` with NO host ports
+  - [x] `psid/compose.yml` includes shared, redefines `postgres-leader` ports to `127.0.0.1:54321:5432`
+  - [x] `product/compose.yml` includes psid, redefines `postgres-leader` ports to `127.0.0.1:54310:5432`
+  - [x] `docker compose -f psid/compose.yml config` shows port 54321 on postgres-leader
+  - [x] `docker compose -f product/compose.yml config` shows port 54310 on postgres-leader (override wins with `!override`)
+  - [x] Results documented in `test-output/framework-v8-research/override-test-results.md`
 
 #### Task 0.2: Include Deduplication Behavior
 
-- **Status**: ❌
-- **Estimated**: 0.15h
+- **Status**: ✅
+- **Actual**: 0.1h
 - **Dependencies**: Task 0.1
 - **Description**: Verify that when shared.yml is included via multiple paths, Docker Compose
   does NOT duplicate services or error
 - **Acceptance Criteria**:
-  - [ ] `docker compose -f product/compose.yml config` shows postgres-leader ONCE (not twice)
-  - [ ] No "service defined multiple times" error
-  - [ ] Results documented in `test-output/framework-v8-research/deduplication-test-results.md`
+  - [x] `docker compose -f product/compose.yml config` shows postgres-leader ONCE (not twice)
+  - [x] No "service defined multiple times" error
+  - [x] Results documented in `test-output/framework-v8-research/deduplication-test-results.md`
 
 #### Task 0.3: Profile Inheritance Through Includes
 
-- **Status**: ❌
-- **Estimated**: 0.1h
+- **Status**: ✅
+- **Actual**: 0.05h
 - **Dependencies**: Task 0.1
 - **Description**: Verify `profiles:` defined in an included compose are honored by the including
   compose's `--profile` flag
 - **Acceptance Criteria**:
-  - [ ] Service with `profiles: ["standalone"]` in psid compose is NOT started without `--profile standalone`
-  - [ ] Service IS started when product compose is run with `--profile standalone`
-  - [ ] Result documented in `test-output/framework-v8-research/profile-test-results.md`
+  - [x] Service with `profiles: ["standalone"]` in psid compose is NOT started without `--profile standalone`
+  - [x] Service IS started when product compose is run with `--profile standalone`
+  - [x] Result documented in `test-output/framework-v8-research/profile-test-results.md`
 
 #### Task 0.4: Secret Path Resolution Through Includes
 
-- **Status**: ❌
-- **Estimated**: 0.1h
+- **Status**: ✅
+- **Actual**: 0.1h
 - **Dependencies**: Task 0.1
 - **Description**: Verify secrets declared with `file: ./secrets/…` in an included compose file
   resolve relative to the INCLUDED file's directory (not the including file's directory)
 - **Acceptance Criteria**:
-  - [ ] `docker compose -f product/compose.yml config` shows correct absolute path to `psid/secrets/unseal-1of5.secret`
-  - [ ] Result documented in `test-output/framework-v8-research/secret-path-test-results.md`
+  - [x] `docker compose -f product/compose.yml config` shows correct absolute path to `psid/secrets/unseal-1of5.secret`
+  - [x] Result documented in `test-output/framework-v8-research/secret-path-test-results.md`
 
 #### Phase 0 Quality Gate
 
-- [ ] All 4 research tasks completed with documented results
-- [ ] Go build still clean: `go build ./...`
-- [ ] No compose files in actual `deployments/` modified during research
-- [ ] Phase 0 findings documented — update lessons.md
+- [x] All 4 research tasks completed with documented results
+- [x] Go build still clean: `go build ./...`
+- [x] No compose files in actual `deployments/` modified during research
+- [x] Phase 0 findings documented — update lessons.md
 
 ---
 
