@@ -574,10 +574,10 @@ complete postgres port assignments at all tiers.
   since those services no longer exist. Document `docker exec postgres-leader psql` as the
   developer access method.
 - **Acceptance Criteria**:
-  - [ ] Section 3.4 documents shared-postgres architecture (no per-PS-ID postgres ports)
-  - [ ] Per-PS-ID postgres port table (54320-54329) removed or updated
-  - [ ] Developer access via `docker exec` documented
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes (no propagation drift)
+  - [x] Section 3.4 documents shared-postgres architecture (no per-PS-ID postgres ports)
+  - [x] Per-PS-ID postgres port table (54320-54329) removed or updated
+  - [x] Developer access via `docker exec` documented
+  - [x] `go run ./cmd/cicd-lint lint-docs` passes (no propagation drift)
 
 #### Task 7.2: Update ENG-HANDBOOK.md Section 12 — Recursive Include Architecture
 
@@ -592,8 +592,8 @@ complete postgres port assignments at all tiers.
   - Port calculation formulas: PRODUCT = SERVICE + 10000, SUITE = SERVICE + 20000
   - Builder service scope (PS-ID builder at SERVICE, product builder at PRODUCT, suite builder at SUITE)
 - **Acceptance Criteria**:
-  - [ ] Section 12 has subsection on recursive include architecture
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
+  - [x] Section 12 has subsection on recursive include architecture
+  - [x] `go run ./cmd/cicd-lint lint-docs` passes
 
 #### Task 7.3: Update compose.yml Header Comments
 
@@ -604,8 +604,8 @@ complete postgres port assignments at all tiers.
   their new "includes + overrides" role. Update PS-ID compose files to document their dual role
   as "standalone deployable AND include target."
 - **Acceptance Criteria**:
-  - [ ] PS-ID compose files explain both usage modes
-  - [ ] PRODUCT/SUITE compose files indicate they use recursive includes
+  - [x] PS-ID compose files explain both usage modes
+  - [x] PRODUCT/SUITE compose files indicate they use recursive includes
 
 #### Task 7.4: Update `deployments/` README or docs/ if applicable
 
@@ -615,8 +615,8 @@ complete postgres port assignments at all tiers.
 - **Description**: If `docs/DEV-SETUP.md` or any README references specific compose file
   usage patterns, update to reflect new recursive include architecture
 - **Acceptance Criteria**:
-  - [ ] No outdated references to copy-paste structure
-  - [ ] `go run ./cmd/cicd-lint lint-docs` passes
+  - [x] No outdated references to copy-paste structure
+  - [x] `go run ./cmd/cicd-lint lint-docs` passes
 
 #### Phase 7 Quality Gate
 
@@ -624,7 +624,7 @@ complete postgres port assignments at all tiers.
 - [x] ENG-HANDBOOK.md Section 3.4 documents shared-postgres architecture (no per-PS-ID ports)
 - [x] ENG-HANDBOOK.md Section 12 documents recursive include pattern (new Section 12.3.5)
 - [x] All compose file headers accurate and complete
-- [ ] Phase 7 post-mortem — update lessons.md
+- [x] Phase 7 post-mortem — update lessons.md
 
 ---
 

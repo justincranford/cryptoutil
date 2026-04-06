@@ -213,7 +213,31 @@ root causes, and patterns to propagate to permanent artifacts.*
 
 ## Phase 7: Documentation + ENG-HANDBOOK.md Updates
 
-*(To be filled during Phase 7 execution)*
+### What Worked
+
+- ENG-HANDBOOK.md Section 3.4.2 was already complete from prior phases — no changes needed
+- New Section 12.3.5 "Recursive Include Architecture (Approach C)" added cleanly as a new subsection before Section 13
+- Batch PowerShell update of all 10 PS-ID compose headers was fast (one pipeline, no individual file edits)
+- DEV-SETUP.md Docker Compose version update from v2+ to v2.24+ was minimal and targeted
+- `lint-docs` passed immediately after changes — no propagation drift introduced
+- Pre-commit hook stashes unstaged files automatically — no manual stash needed before committing doc-only changes
+
+### What Didn't Work (Initially)
+
+- Phase 7 task acceptance criteria checkboxes in tasks.md were unchecked `[ ]` despite all content being complete — reflected stale status from planning rather than execution
+- Phase 7 commit ran through a full 40+ step pre-commit hook (not just doc checks) — took ~30 seconds; triggered context summarization while waiting
+
+### Root Cause
+
+- tasks.md acceptance criteria checkboxes (task-level `[ ]` items) were not updated during execution — only the Phase-level quality gate checkboxes were updated
+- Pre-commit hooks always run all checks regardless of which files are staged
+
+### Patterns to Propagate
+
+1. **Always update task-level acceptance criteria checkboxes** (the `[ ]` items under each task) AND the Phase quality gate checkboxes — both levels must be marked complete
+2. **Doc-only commits still run all pre-commit checks** — plan for 30-60 second wait before context summarization window when committing
+3. **New ENG-HANDBOOK.md sections should be added immediately before the next numbered section** (not after — maintains numbering coherence)
+4. **Compose file headers are maintenance burden** — when adding new PS-ID compose files, the "Dual Role" comment must be added; consider adding this to the new-service skill template
 
 ---
 
