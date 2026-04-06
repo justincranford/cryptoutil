@@ -26,7 +26,7 @@ This guide covers setting up a complete development environment for the cryptout
 |------|---------|---------|--------------|
 | **Go** | 1.26.1+ | Primary language | All development |
 | **Docker** | 24+ | Containerization | PostgreSQL, E2E tests, deployments |
-| **Docker Compose** | v2+ | Container orchestration | Multi-service deployments |
+| **Docker Compose** | v2.24+ | Container orchestration | Multi-service deployments, recursive includes |
 | **Python** | 3.14+ | Pre-commit hooks, utilities | Code quality automation |
 | **Node.js** | 24.11.1+ LTS | Spell checking, markdown linting | Pre-commit hooks |
 | **Java** | 21 LTS | Gatling load tests | Performance testing (optional) |
@@ -691,9 +691,12 @@ go run ./cmd/cryptoutil/main.go --dev
 ### Development with PostgreSQL
 
 ```bash
-# Start PostgreSQL with Docker Compose (SERVICE-level)
+# Start shared-postgres with Docker Compose (compose includes shared-postgres automatically)
 cd deployments/sm-kms
-docker compose up -d postgres
+docker compose --profile postgres up -d
+
+# Direct database access (no host port exposure — use docker exec)
+docker exec postgres-leader psql -U sm_kms_user -d sm_kms_database
 
 # Run with PostgreSQL config
 go run ./cmd/cryptoutil/main.go --config=configs/dev/postgresql.yml

@@ -11,6 +11,7 @@
 #   - identity-spa-app-postgresql-1:  8802 (PostgreSQL instance 1) [--profile postgres]
 #   - identity-spa-app-postgresql-2:  8803 (PostgreSQL instance 2) [--profile postgres]
 #
+# Dual Role: Standalone deployable AND include target for PRODUCT/SUITE compose files.
 # Usage:
 #   docker compose -f compose.yml up -d                        # SQLite (default: dev profile)
 #   docker compose -f compose.yml --profile postgres up -d     # All instances

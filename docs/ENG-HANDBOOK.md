@@ -4473,6 +4473,111 @@ All tiers use the identical filename `hash-pepper-v3.secret` — the tier is sel
 - **Deployment validation**: [13.1 Deployment Structure Validation](#131-deployment-structure-validation)
 - **Port assignments**: [3.4.1 Port Design Principles](#341-port-design-principles)
 
+#### 12.3.5 Recursive Include Architecture (Approach C)
+
+**Purpose**: Document the PRODUCT and SUITE compose file pattern that uses Docker Compose `include:` with `!override` YAML tag for port replacement. Implemented in framework-v8.
+
+**Minimum Docker Compose version**: v2.24+ (required for `include:` deduplication).
+
+##### How to Read a PRODUCT/SUITE Compose File
+
+PRODUCT and SUITE compose files are **≤ 200 lines** and contain ONLY two things:
+
+1. **`include:` directives** — pull in lower-tier compose files transitively
+2. **Override service stubs** — redefine ONLY the `ports:` section using `!override` YAML tag
+
+All service configuration (image, build, environment, volumes, healthchecks, depends_on, secrets) is inherited from the included lower-tier composies. Override stubs have NO image or build context — they are valid because they inherit definition from the include chain.
+
+**Example PRODUCT compose for sm-kms (deployments/sm/compose.yml)**:
+```yaml
+include:
+  - path: ../sm-kms/compose.yml
+  - path: ../sm-im/compose.yml
+
+services:
+  sm-kms-app-sqlite-1:
+    ports: !override
+      - "127.0.0.1:18000:8080"
+  sm-kms-app-sqlite-2:
+    ports: !override
+      - "127.0.0.1:18001:8080"
+```
+
+##### The `!override` YAML Tag
+
+By default, Docker Compose **merges** arrays. For `ports:`, this means the parent's `127.0.0.1:8000:8080` and the child's `127.0.0.1:18000:8080` would BOTH appear. The `!override` tag **replaces** the inherited value instead of merging.
+
+**MANDATORY**: All port stubs in PRODUCT/SUITE compose files MUST use `!override`:
+
+```yaml
+ports: !override         # ← replaces inherited ports entirely
+  - "127.0.0.1:18000:8080"
+```
+
+**Without `!override`** (WRONG — double-binds both ports):
+```yaml
+ports:                   # ← merges with inherited ports (DO NOT USE)
+  - "127.0.0.1:18000:8080"
+```
+
+##### Port Calculation Formulas
+
+| Tier | Formula | Example (sm-kms base 8000) |
+|------|---------|---------------------------|
+| SERVICE | `base_port + variant_offset` | 8000 (sqlite-1), 8001 (sqlite-2) |
+| PRODUCT | `base_port + 10000 + variant_offset` | 18000 (sqlite-1), 18001 (sqlite-2) |
+| SUITE | `base_port + 20000 + variant_offset` | 28000 (sqlite-1), 28001 (sqlite-2) |
+
+Where `variant_offset` is: sqlite-1=+0, sqlite-2=+1, postgresql-1=+2, postgresql-2=+3.
+
+##### Standalone Profile Convention
+
+Each PS-ID compose file supports a `standalone` Docker Compose profile that starts the PostgreSQL service directly inside the PS-ID compose for isolated development WITHOUT shared-postgres:
+
+```yaml
+services:
+  # Always-on services (no profile needed):
+  sm-kms-app-sqlite-1: ...
+  sm-kms-app-sqlite-2: ...
+
+  # PostgreSQL services (profiles: ["postgres"]):
+  sm-kms-app-postgresql-1:
+    profiles: ["postgres"]
+    depends_on:
+      postgres-leader: {condition: service_healthy}
+```
+
+The `postgres-leader` service comes from the included `shared-postgres/compose.yml`. When using PRODUCT or SUITE compose (which already includes shared-postgres transitively), the `--profile postgres` flag enables PostgreSQL variants across ALL included services simultaneously.
+
+##### Builder Service Scope
+
+Builder services (`builder-{scope}`) are scoped to each tier:
+
+| Tier | Builder Service | Dockerfile | Purpose |
+|------|----------------|------------|---------|
+| SERVICE | `builder-{ps-id}` | `deployments/{PS-ID}/Dockerfile` | Build PS-ID binary |
+| PRODUCT | `builder-{product}` | `deployments/{PRODUCT}/Dockerfile` | Build product binary (currently none) |
+| SUITE | `builder-cryptoutil` | `deployments/cryptoutil/Dockerfile` | Build suite binary |
+
+Docker layer caching ensures a shared image is built only once even when multiple services reference the same base image.
+
+##### Override-Only Services and Linter Exemption
+
+Services in PRODUCT/SUITE compose files that consist ONLY of a `ports:` section are **override-only** services. The `cicd-lint lint-deployments validate-compose` validator automatically exempts these from:
+- Healthcheck requirement (inherited from included PS-ID compose)
+- Image/build requirement (inherited from included PS-ID compose)
+
+Detection heuristic: `svc.Image == "" && svc.Build == nil && len(svc.Ports) > 0`
+
+##### Line Count Reduction (framework-v8)
+
+| File | Before | After | Reduction |
+|------|--------|-------|-----------|
+| `deployments/cryptoutil/compose.yml` | 1,904 | 127 | **93%** |
+| `deployments/sm/compose.yml` | ~400 | 80 | **80%** |
+| `deployments/identity/compose.yml` | ~300 | 155 | **48%** |
+| Total PRODUCT composes | ~1,100 | 430 | **61%** |
+
 ## 13. Deployment Tooling & Validation
 
 ### 13.1 Deployment Structure Validation

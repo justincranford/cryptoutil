@@ -566,7 +566,7 @@ complete postgres port assignments at all tiers.
 
 #### Task 7.1: Update ENG-HANDBOOK.md Section 3.4 — Shared PostgreSQL Architecture
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
 - **Dependencies**: Phases 3–4 complete
 - **Description**: Document that postgres uses a single shared leader/follower pair with no host
@@ -581,7 +581,7 @@ complete postgres port assignments at all tiers.
 
 #### Task 7.2: Update ENG-HANDBOOK.md Section 12 — Recursive Include Architecture
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.75h
 - **Dependencies**: Phase 4 complete
 - **Description**: Document the recursive `include:` hierarchy, Approach C override pattern,
@@ -597,7 +597,7 @@ complete postgres port assignments at all tiers.
 
 #### Task 7.3: Update compose.yml Header Comments
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.5h
 - **Dependencies**: Phase 4 complete
 - **Description**: Update header comments in all PRODUCT and SUITE compose files to document
@@ -609,7 +609,7 @@ complete postgres port assignments at all tiers.
 
 #### Task 7.4: Update `deployments/` README or docs/ if applicable
 
-- **Status**: ❌
+- **Status**: ✅
 - **Estimated**: 0.25h
 - **Dependencies**: Task 7.2
 - **Description**: If `docs/DEV-SETUP.md` or any README references specific compose file
@@ -620,10 +620,10 @@ complete postgres port assignments at all tiers.
 
 #### Phase 7 Quality Gate
 
-- [ ] `go run ./cmd/cicd-lint lint-docs` — passes (zero propagation drift)
-- [ ] ENG-HANDBOOK.md Section 3.4 documents shared-postgres architecture (no per-PS-ID ports)
-- [ ] ENG-HANDBOOK.md Section 12 documents recursive include pattern
-- [ ] All compose file headers accurate and complete
+- [x] `go run ./cmd/cicd-lint lint-docs` — passes (zero propagation drift)
+- [x] ENG-HANDBOOK.md Section 3.4 documents shared-postgres architecture (no per-PS-ID ports)
+- [x] ENG-HANDBOOK.md Section 12 documents recursive include pattern (new Section 12.3.5)
+- [x] All compose file headers accurate and complete
 - [ ] Phase 7 post-mortem — update lessons.md
 
 ---
