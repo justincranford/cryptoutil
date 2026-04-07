@@ -37,13 +37,13 @@ type IdentityRSServerSettings struct {
 
 // Identity-RS specific default values.
 const (
-	defaultRSAuthzServerURL   = "https://localhost:8200"       // Default authorization server URL.
-	defaultIntrospectionURL   = ""                             // No introspection by default.
-	defaultAllowBearerToken   = true                           // Allow Bearer tokens by default.
-	defaultAllowClientCert    = false                          // Disable client cert auth by default.
-	defaultJWKSCacheTTL       = 3600                           // 1 hour JWKS cache.
-	defaultTokenCacheTTL      = 300                            // 5 minute token cache.
-	defaultEnableTokenCaching = true                           // Enable caching by default.
+	defaultRSAuthzServerURL   = "https://localhost:8200" // Default authorization server URL.
+	defaultIntrospectionURL   = ""                       // No introspection by default.
+	defaultAllowBearerToken   = true                     // Allow Bearer tokens by default.
+	defaultAllowClientCert    = false                    // Disable client cert auth by default.
+	defaultJWKSCacheTTL       = 3600                     // 1 hour JWKS cache.
+	defaultTokenCacheTTL      = 300                      // 5 minute token cache.
+	defaultEnableTokenCaching = true                     // Enable caching by default.
 )
 
 var (

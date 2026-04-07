@@ -26,7 +26,7 @@ import (
 
 const (
 	// Database type constants.
-	dbTypeSQLite   = "sqlite"
+	dbTypeSQLite = "sqlite"
 
 	// SQLite connection pool settings for GORM transaction pattern.
 	sqliteMaxOpenConns = 5 // Balance between concurrency and resource usage.
