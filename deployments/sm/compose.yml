@@ -38,26 +38,15 @@ services:
   # PRODUCT-level port overrides: SERVICE ports + 10000.
   # Service definitions (image, command, volumes, secrets, depends_on) are inherited from PS-ID includes.
 
-  # PRODUCT-level image overrides to avoid cross-service image tag collisions.
-  # Each PS-ID keeps its own image tag so sm-kms and sm-im binaries do not overwrite each other.
-  builder-sm-kms:
-    image: cryptoutil-sm-kms:dev
-    build:
-      context: ../..
-      dockerfile: deployments/sm-kms/Dockerfile
-
-  builder-sm-im:
-    image: cryptoutil-sm-im:dev
-    build:
-      context: ../..
-      dockerfile: deployments/sm-im/Dockerfile
-
-  # PRODUCT-level no-op override for helper init job.
-  # Multiple PS-ID includes define pki-init; a single no-op helper avoids cross-include path conflicts.
+  # PRODUCT-level PKI init (overrides PS-ID cert material).
   pki-init:
-    image: alpine:latest
-    entrypoint: ["sh", "-c"]
-    command: ["echo 'SM product pki-init no-op'"]
+    image: cryptoutil-sm-kms:dev
+    command: ["init", "--output-dir=/certs", "--domain=sm"]
+    volumes:
+      - ./certs/:/certs/:rw
+    depends_on:
+      builder-sm-kms:
+        condition: service_completed_successfully
 
   sm-kms-app-sqlite-1:
     image: cryptoutil-sm-kms:dev
@@ -118,3 +107,9 @@ secrets:
     file: ./secrets/hash-pepper-v3.secret
   postgres-url.secret:
     file: ./secrets/postgres-url.secret
+  postgres-username.secret:
+    file: ./secrets/postgres-username.secret
+  postgres-password.secret:
+    file: ./secrets/postgres-password.secret
+  postgres-database.secret:
+    file: ./secrets/postgres-database.secret

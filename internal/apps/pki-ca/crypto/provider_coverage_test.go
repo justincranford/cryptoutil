@@ -20,11 +20,6 @@ import (
 	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
 )
 
-const (
-	testEd25519Curve = cryptoutilSharedMagic.EdCurveEd25519
-	testRSAAlgorithm = cryptoutilSharedMagic.KeyTypeRSA
-)
-
 // TestEdDSACurves tests Ed25519 and Ed448 curve generation.
 func TestEdDSACurves(t *testing.T) {
 	t.Parallel()
@@ -39,7 +34,7 @@ func TestEdDSACurves(t *testing.T) {
 	}{
 		{
 			name:    cryptoutilSharedMagic.EdCurveEd25519,
-			curve:   testEd25519Curve,
+			curve:   cryptoutilSharedMagic.EdCurveEd25519,
 			wantErr: false,
 		},
 		{
@@ -75,7 +70,7 @@ func TestEdDSACurves(t *testing.T) {
 			require.NotNil(t, kp)
 			require.Equal(t, KeyTypeEdDSA, kp.Type)
 
-			if tt.curve == testEd25519Curve {
+			if tt.curve == cryptoutilSharedMagic.EdCurveEd25519 {
 				_, ok := kp.PrivateKey.(ed25519.PrivateKey)
 				require.True(t, ok, "expected Ed25519 private key")
 			}
@@ -90,7 +85,7 @@ func TestVerifyEdDSAFailures(t *testing.T) {
 	provider := NewSoftwareProvider()
 
 	// Generate Ed25519 key pair
-	kp, err := provider.generateEdDSAKeyPair(testEd25519Curve)
+	kp, err := provider.generateEdDSAKeyPair(cryptoutilSharedMagic.EdCurveEd25519)
 	require.NoError(t, err)
 
 	pub, ok := kp.PublicKey.(ed25519.PublicKey)
@@ -268,19 +263,19 @@ func TestGetSignatureAlgorithm(t *testing.T) {
 		{
 			name:    "RSA-2048",
 			keySize: cryptoutilSharedMagic.DefaultMetricsBatchSize,
-			keyType: testRSAAlgorithm,
+			keyType: cryptoutilSharedMagic.KeyTypeRSA,
 			wantErr: false,
 		},
 		{
 			name:    "RSA-3072",
 			keySize: cryptoutilSharedMagic.RSA3072KeySize,
-			keyType: testRSAAlgorithm,
+			keyType: cryptoutilSharedMagic.KeyTypeRSA,
 			wantErr: false,
 		},
 		{
 			name:    "RSA-4096",
 			keySize: cryptoutilSharedMagic.RSA4096KeySize,
-			keyType: testRSAAlgorithm,
+			keyType: cryptoutilSharedMagic.KeyTypeRSA,
 			wantErr: false,
 		},
 		{
@@ -304,7 +299,7 @@ func TestGetSignatureAlgorithm(t *testing.T) {
 		{
 			name:    cryptoutilSharedMagic.EdCurveEd25519,
 			keySize: 0,
-			keyType: testEd25519Curve,
+			keyType: cryptoutilSharedMagic.EdCurveEd25519,
 			wantErr: false,
 		},
 	}
@@ -318,7 +313,7 @@ func TestGetSignatureAlgorithm(t *testing.T) {
 			var err error
 
 			switch tt.keyType {
-			case testRSAAlgorithm:
+			case cryptoutilSharedMagic.KeyTypeRSA:
 				kp, genErr := provider.generateRSAKeyPair(tt.keySize)
 				require.NoError(t, genErr)
 
@@ -341,8 +336,8 @@ func TestGetSignatureAlgorithm(t *testing.T) {
 				require.NoError(t, genErr)
 
 				publicKey = kp.PublicKey
-			case testEd25519Curve:
-				kp, genErr := provider.generateEdDSAKeyPair(testEd25519Curve)
+			case cryptoutilSharedMagic.EdCurveEd25519:
+				kp, genErr := provider.generateEdDSAKeyPair(cryptoutilSharedMagic.EdCurveEd25519)
 				require.NoError(t, genErr)
 
 				publicKey = kp.PublicKey
@@ -397,7 +392,7 @@ func TestVerifyEdDSA_SuccessPath(t *testing.T) {
 	provider := NewSoftwareProvider()
 
 	// Generate Ed25519 key pair.
-	kp, err := provider.generateEdDSAKeyPair(testEd25519Curve)
+	kp, err := provider.generateEdDSAKeyPair(cryptoutilSharedMagic.EdCurveEd25519)
 	require.NoError(t, err)
 
 	pub, ok := kp.PublicKey.(ed25519.PublicKey)

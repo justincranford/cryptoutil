@@ -29,13 +29,12 @@ func TestBasicAuthenticator_MethodName(t *testing.T) {
 
 const (
 	testClientSecretStr = "test-client-secret"
-	testClientIDStr     = cryptoutilSharedMagic.TestClientID
 )
 
 func TestBasicAuthenticator_Authenticate(t *testing.T) {
 	t.Parallel()
 
-	testClientID := testClientIDStr
+	testClientID := cryptoutilSharedMagic.TestClientID
 	testClientSecret := testClientSecretStr
 	testClientIDUUID := googleUuid.New()
 

@@ -38,7 +38,6 @@ type IdentityRSServerSettings struct {
 // Identity-RS specific default values.
 const (
 	defaultRSAuthzServerURL   = "https://localhost:8200"       // Default authorization server URL.
-	defaultJWKSEndpoint       = cryptoutilSharedMagic.PathJWKS // Standard JWKS endpoint path.
 	defaultIntrospectionURL   = ""                             // No introspection by default.
 	defaultAllowBearerToken   = true                           // Allow Bearer tokens by default.
 	defaultAllowClientCert    = false                          // Disable client cert auth by default.
@@ -66,7 +65,7 @@ var (
 	jwksEndpointSetting = cryptoutilAppsFrameworkServiceConfig.SetEnvAndRegisterSetting(allIdentityRSServerRegisteredSettings, &cryptoutilAppsFrameworkServiceConfig.Setting{
 		Name:        "jwks-endpoint",
 		Shorthand:   "",
-		Value:       defaultJWKSEndpoint,
+		Value:       cryptoutilSharedMagic.PathJWKS,
 		Usage:       "JWKS endpoint path for token signature validation",
 		Description: "JWKS Endpoint",
 	})
@@ -258,7 +257,7 @@ func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *IdentityRSSe
 	return &IdentityRSServerSettings{
 		ServiceFrameworkServerSettings: baseConfig,
 		AuthzServerURL:                 defaultRSAuthzServerURL,
-		JWKSEndpoint:                   defaultJWKSEndpoint,
+		JWKSEndpoint:                   cryptoutilSharedMagic.PathJWKS,
 		IntrospectionURL:               defaultIntrospectionURL,
 		RequiredScopes:                 defaultRequiredScopes,
 		RequiredAudiences:              defaultRequiredAudiences,

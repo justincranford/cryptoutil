@@ -35,9 +35,8 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 	testUUID := googleUuid.Must(googleUuid.NewV7()).String()
 
 	const (
-		endpointUserInfo  = "/browser/api/v1/userinfo"
-		endpointDiscovery = cryptoutilSharedMagic.PathDiscovery
-		endpointToken     = "/browser/api/v1/token"
+		endpointUserInfo = "/browser/api/v1/userinfo"
+		endpointToken    = "/browser/api/v1/token"
 	)
 
 	tests := []struct {
@@ -134,7 +133,7 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 		},
 		{
 			name:     "discovery_endpoint_schema",
-			endpoint: endpointDiscovery,
+			endpoint: cryptoutilSharedMagic.PathDiscovery,
 			method:   http.MethodGet,
 			setupFunc: func(t *testing.T, _ *gorm.DB) string {
 				t.Helper()
@@ -342,7 +341,7 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 					cryptoutilSharedMagic.ClaimLocale:        "en-US",
 					cryptoutilSharedMagic.ClaimZoneinfo:      "America/New_York",
 				}
-			case endpointDiscovery:
+			case cryptoutilSharedMagic.PathDiscovery:
 				respBody = map[string]any{
 					"issuer":                                "https://example.com",
 					"authorization_endpoint":                "https://example.com/authorize",

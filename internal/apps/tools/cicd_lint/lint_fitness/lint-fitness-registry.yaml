@@ -87,6 +87,11 @@ sub_linters:
     description: Validates Docker Compose service name conventions against the entity registry.
     category: config
 
+  - name: compose-tier-override-integrity
+    directory: compose_tier_override_integrity
+    description: Validates tier-level compose overrides for builder service bans, postgres secret overrides, and postgres URL synchronization.
+    category: config
+
   - name: compose-port-formula
     directory: compose_port_formula
     description: Validates that Docker Compose port bindings follow the canonical formula (base_port + tier_offset + variant_offset).

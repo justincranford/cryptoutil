@@ -12,15 +12,13 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-const utcFormat = cryptoutilSharedMagic.StringUTCFormat
-
 // ISO8601Time2String converts Time pointer to ISO8601 UTC string pointer.
 func ISO8601Time2String(value *time.Time) *string {
 	if value == nil {
 		return nil
 	}
 
-	converted := (*value).Format(utcFormat)
+	converted := (*value).Format(cryptoutilSharedMagic.StringUTCFormat)
 
 	return &converted
 }
@@ -32,7 +30,7 @@ func ISO8601String2Time(value *string) (*time.Time, error) {
 		return nil, nil //nolint:nilnil // nil is valid sentinel value
 	}
 
-	converted, err := time.Parse(utcFormat, *value)
+	converted, err := time.Parse(cryptoutilSharedMagic.StringUTCFormat, *value)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse date: %w", err)
 	}

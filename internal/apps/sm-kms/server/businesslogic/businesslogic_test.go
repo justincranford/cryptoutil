@@ -23,7 +23,6 @@ import (
 const (
 	testOTLPService  = "test-service"
 	testOTLPEndpoint = "http://localhost:4318"
-	testLogLevel     = cryptoutilSharedMagic.DefaultLogLevelInfo
 )
 
 func TestNewBusinessLogicService(t *testing.T) {
@@ -34,7 +33,7 @@ func TestNewBusinessLogicService(t *testing.T) {
 	settings := cryptoutilAppsFrameworkServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	settings.OTLPService = testOTLPService
 	settings.OTLPEndpoint = testOTLPEndpoint
-	settings.LogLevel = testLogLevel
+	settings.LogLevel = cryptoutilSharedMagic.DefaultLogLevelInfo
 
 	telemetryService, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, settings.ToTelemetrySettings())
 	testify.NoError(t, err)

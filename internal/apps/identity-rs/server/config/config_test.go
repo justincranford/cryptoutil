@@ -19,7 +19,7 @@ func TestNewTestConfig(t *testing.T) {
 	require.Equal(t, cryptoutilSharedMagic.OTLPServiceIdentityRS, cfg.OTLPService)
 	require.True(t, cfg.DevMode)
 	require.Equal(t, defaultRSAuthzServerURL, cfg.AuthzServerURL)
-	require.Equal(t, defaultJWKSEndpoint, cfg.JWKSEndpoint)
+	require.Equal(t, cryptoutilSharedMagic.PathJWKS, cfg.JWKSEndpoint)
 	require.Equal(t, defaultIntrospectionURL, cfg.IntrospectionURL)
 	require.Equal(t, defaultAllowBearerToken, cfg.AllowBearerToken)
 	require.Equal(t, defaultAllowClientCert, cfg.AllowClientCert)
@@ -60,7 +60,7 @@ func TestIdentityRSServerSettings_FullConfig(t *testing.T) {
 
 	// Verify rs-specific settings.
 	require.Equal(t, defaultRSAuthzServerURL, cfg.AuthzServerURL)
-	require.Equal(t, defaultJWKSEndpoint, cfg.JWKSEndpoint)
+	require.Equal(t, cryptoutilSharedMagic.PathJWKS, cfg.JWKSEndpoint)
 	require.Equal(t, defaultIntrospectionURL, cfg.IntrospectionURL)
 	require.Equal(t, defaultRequiredScopes, cfg.RequiredScopes)
 	require.Equal(t, defaultRequiredAudiences, cfg.RequiredAudiences)

@@ -6,15 +6,16 @@ import (
 	"fmt"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/tools/cicd_lint/common"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Lint runs all 8 deployment validators sequentially with aggregated error reporting.
 // Uses the default deployments/ and configs/ directories.
 // Returns an error if any validator fails.
 func Lint(logger *cryptoutilCmdCicdCommon.Logger) error {
-	logger.Log(fmt.Sprintf("Validating deployments dir=%s configs dir=%s", defaultDeploymentsDir, defaultConfigsDir))
+	logger.Log(fmt.Sprintf("Validating deployments dir=%s configs dir=%s", defaultDeploymentsDir, cryptoutilSharedMagic.CICDConfigsDir))
 
-	result := ValidateAll(defaultDeploymentsDir, defaultConfigsDir)
+	result := ValidateAll(defaultDeploymentsDir, cryptoutilSharedMagic.CICDConfigsDir)
 
 	logger.Log(FormatAllValidationResult(result))
 

@@ -71,7 +71,6 @@ services:
 
   grafana-otel-lgtm:
     image: grafana/otel-lgtm:latest
-    profiles: ["with-grafana"] # Optional: enable with --profile with-grafana
     environment:
       GF_SECURITY_ADMIN_PASSWORD: admin # pragma: allowlist secret
       GF_USERS_ALLOW_SIGN_UP: "false"

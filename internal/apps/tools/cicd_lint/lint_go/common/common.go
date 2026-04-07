@@ -44,7 +44,6 @@ const MagicDefaultDir = "internal/shared/magic"
 const MagicMinStringLen = 3
 
 const (
-	magicExcludeDirTestOutput      = cryptoutilSharedMagic.CICDExcludeDirTestOutput
 	magicExcludeDirWorkflowReports = "workflow-reports"
 )
 
@@ -208,7 +207,7 @@ func MagicShouldSkipPath(path string) bool {
 		}
 
 		switch part {
-		case cryptoutilSharedMagic.CICDExcludeDirVendor, magicExcludeDirTestOutput, magicExcludeDirWorkflowReports:
+		case cryptoutilSharedMagic.CICDExcludeDirVendor, cryptoutilSharedMagic.CICDExcludeDirTestOutput, magicExcludeDirWorkflowReports:
 			return true
 
 		case "api":

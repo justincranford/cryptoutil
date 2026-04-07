@@ -113,7 +113,7 @@ problem without needing to ask the user for further input.
 2. **Go Version**: `go version` (1.26.1+)
 3. **Docker**: `docker ps` (if needed)
 
-**If fails**: Report, DO NOT proceed
+**If fails**: Treat as a blocker and fix it immediately; do NOT stop and do NOT defer
 
 ---
 
@@ -166,6 +166,7 @@ problem without needing to ask the user for further input.
 **ALL issues are blockers**:
 
 - ✅ Fix immediately
+- ✅ Fix unrelated issues discovered during work (lint, tests, infra, docs) before ending turn
 - ✅ E2E timeouts, test failures = BLOCKING
 - ❌ NEVER continue with issues
 - ❌ NEVER treat as "non-blocking"

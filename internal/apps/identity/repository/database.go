@@ -26,7 +26,6 @@ import (
 
 const (
 	// Database type constants.
-	dbTypePostgres = cryptoutilSharedMagic.DockerServicePostgres
 	dbTypeSQLite   = "sqlite"
 
 	// SQLite connection pool settings for GORM transaction pattern.
@@ -39,7 +38,7 @@ func initializeDatabase(ctx context.Context, cfg *cryptoutilIdentityConfig.Datab
 	var dialector gorm.Dialector
 
 	switch cfg.Type {
-	case dbTypePostgres:
+	case cryptoutilSharedMagic.DockerServicePostgres:
 		dialector = postgres.Open(cfg.DSN)
 	case dbTypeSQLite:
 		// Convert :memory: to shared cache mode for connection sharing.

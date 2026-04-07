@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -15,7 +17,7 @@ func TestISO8601Time2String(t *testing.T) {
 	t.Parallel()
 	// Happy path
 	now := time.Now().UTC()
-	expected := now.Format(utcFormat)
+	expected := now.Format(cryptoutilSharedMagic.StringUTCFormat)
 	result := ISO8601Time2String(&now)
 
 	require.NotNil(t, result)
@@ -31,9 +33,9 @@ func TestISO8601Time2String(t *testing.T) {
 func TestISO8601String2Time(t *testing.T) {
 	t.Parallel()
 	// Happy path
-	now := time.Now().UTC().Format(utcFormat)
+	now := time.Now().UTC().Format(cryptoutilSharedMagic.StringUTCFormat)
 
-	expected, err := time.Parse(utcFormat, now)
+	expected, err := time.Parse(cryptoutilSharedMagic.StringUTCFormat, now)
 	require.NoError(t, err)
 
 	result, err := ISO8601String2Time(&now)

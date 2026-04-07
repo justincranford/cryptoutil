@@ -68,8 +68,8 @@ func (h *Handler) parseCSR(csrPEM string) (*x509.CertificateRequest, error) {
 		return nil, fmt.Errorf("failed to decode PEM block")
 	}
 
-	if block.Type != pemTypeCertificateReq {
-		return nil, fmt.Errorf("expected %s, got %s", pemTypeCertificateReq, block.Type)
+	if block.Type != cryptoutilSharedMagic.StringPEMTypeCSR {
+		return nil, fmt.Errorf("expected %s, got %s", cryptoutilSharedMagic.StringPEMTypeCSR, block.Type)
 	}
 
 	csr, err := x509.ParseCertificateRequest(block.Bytes)
@@ -462,5 +462,4 @@ var _ cryptoutilApiCaServer.ServerInterface = (*Handler)(nil)
 const (
 	defaultValidityDays   = 365
 	maxTrackedEnrollments = 1000
-	pemTypeCertificateReq = cryptoutilSharedMagic.StringPEMTypeCSR
 )

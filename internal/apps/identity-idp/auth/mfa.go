@@ -19,7 +19,6 @@ import (
 
 const (
 	mfaFactorTypeEmailOTP = "email_otp"
-	mfaFactorTypeSMSOTP   = cryptoutilSharedMagic.AuthMethodSMSOTP
 )
 
 // MFAOrchestrator manages multi-factor authentication flows.
@@ -139,7 +138,7 @@ func (o *MFAOrchestrator) ValidateFactor(ctx context.Context, authProfileID goog
 			return fmt.Errorf("%w: invalid email OTP code", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 		}
 
-	case mfaFactorTypeSMSOTP:
+	case cryptoutilSharedMagic.AuthMethodSMSOTP:
 		valid, err := o.IntegrateTOTPValidation(ctx, matchingFactor, credentials)
 		if err != nil {
 			o.telemetry.RecordValidation(ctx, factorType, false, time.Since(startTime), false)

@@ -33,9 +33,7 @@ const (
 )
 
 const (
-	authLevelStringNone      = cryptoutilSharedMagic.ClientAuthMethodNone
 	authLevelStringBasic     = "basic"
-	authLevelStringMFA       = cryptoutilSharedMagic.AMRMultiFactor
 	authLevelStringStepUp    = "step_up"
 	authLevelStringStrongMFA = "strong_mfa"
 )
@@ -144,11 +142,11 @@ func (s *StepUpAuthenticator) loadPolicies(ctx context.Context) error {
 // parseAuthLevel converts string auth level to AuthenticationLevel enum.
 func (s *StepUpAuthenticator) parseAuthLevel(level string) AuthenticationLevel {
 	switch level {
-	case authLevelStringNone:
+	case cryptoutilSharedMagic.ClientAuthMethodNone:
 		return AuthLevelNone
 	case authLevelStringBasic:
 		return AuthLevelBasic
-	case authLevelStringMFA:
+	case cryptoutilSharedMagic.AMRMultiFactor:
 		return AuthLevelMFA
 	case authLevelStringStepUp:
 		return AuthLevelStepUp

@@ -19,17 +19,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const (
-	testGoArch = cryptoutilSharedMagic.MockRuntimeGoArch
-	testGoOS   = cryptoutilSharedMagic.MockRuntimeGoOS
-)
-
 // failingSysInfoProvider is a SysInfoProvider that returns an error from CPUInfo.
 type failingSysInfoProvider struct{}
 
-func (f *failingSysInfoProvider) RuntimeGoArch() string { return testGoArch }
+func (f *failingSysInfoProvider) RuntimeGoArch() string {
+	return cryptoutilSharedMagic.MockRuntimeGoArch
+}
 
-func (f *failingSysInfoProvider) RuntimeGoOS() string { return testGoOS }
+func (f *failingSysInfoProvider) RuntimeGoOS() string { return cryptoutilSharedMagic.MockRuntimeGoOS }
 
 func (f *failingSysInfoProvider) RuntimeNumCPU() int { return 1 }
 

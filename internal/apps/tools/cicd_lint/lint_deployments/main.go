@@ -10,7 +10,6 @@ import (
 
 const (
 	defaultDeploymentsDir = "deployments"
-	defaultConfigsDir     = cryptoutilSharedMagic.CICDConfigsDir
 )
 
 // Main is the CLI entry point for the deployment linter.
@@ -71,7 +70,7 @@ func Main(args []string) int {
 // mainGenerateListings handles the generate-listings subcommand.
 func mainGenerateListings(args []string) int {
 	deploymentsDir := defaultDeploymentsDir
-	configsDir := defaultConfigsDir
+	configsDir := cryptoutilSharedMagic.CICDConfigsDir
 
 	if len(args) >= 2 {
 		deploymentsDir = args[0]
@@ -105,7 +104,7 @@ func mainGenerateListings(args []string) int {
 // mainValidateMirror handles the validate-mirror subcommand.
 func mainValidateMirror(args []string) int {
 	deploymentsDir := defaultDeploymentsDir
-	configsDir := defaultConfigsDir
+	configsDir := cryptoutilSharedMagic.CICDConfigsDir
 
 	if len(args) >= 2 {
 		deploymentsDir = args[0]
@@ -183,7 +182,7 @@ func mainValidateCompose(args []string) int {
 // mainValidateAll handles the validate-all subcommand.
 func mainValidateAll(args []string) int {
 	deploymentsDir := defaultDeploymentsDir
-	configsDir := defaultConfigsDir
+	configsDir := cryptoutilSharedMagic.CICDConfigsDir
 
 	if len(args) >= 2 {
 		deploymentsDir = args[0]

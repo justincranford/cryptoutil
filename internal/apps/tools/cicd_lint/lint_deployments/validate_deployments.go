@@ -194,7 +194,7 @@ func checkDelegationPattern(basePath string, deploymentName string, structType s
 			}
 		}
 
-		if foundProducts < productCount {
+		if foundProducts < cryptoutilSharedMagic.SuiteProductCount {
 			result.Warnings = append(result.Warnings,
 				"Suite should include all 5 products (sm, pki, jose, identity, skeleton) via PRODUCT-level compose")
 		}

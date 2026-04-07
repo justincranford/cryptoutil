@@ -35,23 +35,16 @@ include:
   - path: ../skeleton/compose.yml
 
 services:
-  # Suite-level builder: builds cryptoutil:dev from deployments/cryptoutil/Dockerfile.
-  # All PS-ID builders also produce cryptoutil:dev; Docker caches the build after first run.
-  builder-cryptoutil:
-    image: cryptoutil:dev
-    build:
-      context: ../..
-      dockerfile: deployments/cryptoutil/Dockerfile
-      args:
-        APP_VERSION: "dev"
-        VCS_REF: "local"
-        BUILD_DATE: "2026-02-14T00:00:00Z"
-    entrypoint: ["sh", "-c"]
-    command: ["echo 'Build completed successfully'"]
-    depends_on:
-      healthcheck-secrets:
-        condition: service_completed_successfully
 
+  # SUITE-level PKI init (overrides PRODUCT/PS-ID cert material).
+  pki-init:
+    image: cryptoutil-sm-kms:dev
+    command: ["init", "--output-dir=/certs", "--domain=cryptoutil"]
+    volumes:
+      - ./certs/:/certs/:rw
+    depends_on:
+      builder-sm-kms:
+        condition: service_completed_successfully
   # --------------------------------------------------------------------------
   # Port overrides: !override replaces the entire ports array from PS-ID composes.
   # Container port is always 8080 (matching PS-ID service definition).
@@ -125,3 +118,6 @@ secrets:
   unseal-5of5.secret: {file: ./secrets/unseal-5of5.secret}
   hash-pepper-v3.secret: {file: ./secrets/hash-pepper-v3.secret}
   postgres-url.secret: {file: ./secrets/postgres-url.secret}
+  postgres-username.secret: {file: ./secrets/postgres-username.secret}
+  postgres-password.secret: {file: ./secrets/postgres-password.secret}
+  postgres-database.secret: {file: ./secrets/postgres-database.secret}

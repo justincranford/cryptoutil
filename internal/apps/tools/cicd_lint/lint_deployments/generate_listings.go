@@ -20,9 +20,6 @@ const (
 	fileTypeDoc     = "doc"
 	fileTypeJSON    = "json"
 	fileTypeOther   = "other"
-
-	filePermissions = cryptoutilSharedMagic.KeyFilePermissions
-	dirPermissions  = cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute
 )
 
 // FileEntry represents metadata about a single file in the listing.
@@ -201,7 +198,7 @@ func WriteListingFile(baseDir string, outputPath string) error {
 		return marshalErr
 	}
 
-	if writeErr := os.WriteFile(outputPath, data, filePermissions); writeErr != nil {
+	if writeErr := os.WriteFile(outputPath, data, cryptoutilSharedMagic.KeyFilePermissions); writeErr != nil {
 		return fmt.Errorf("failed to write listing file %s: %w", outputPath, writeErr)
 	}
 

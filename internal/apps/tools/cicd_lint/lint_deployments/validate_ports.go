@@ -32,7 +32,7 @@ type PortValidationResult struct {
 //
 // See ENG-HANDBOOK.md Section 3.4 Port Assignments & Networking.
 const (
-	servicePortMin = cryptoutilSharedMagic.KMSServicePort
+	servicePortMin = cryptoutilSharedMagic.ServiceTierPortMin
 	servicePortMax = 8999
 	productPortMin = 18000
 	productPortMax = 18999
@@ -188,7 +188,7 @@ func getPortRange(deploymentLevel string) (int, int) {
 		return suitePortMin, suitePortMax
 	default:
 		// PRODUCT-SERVICE and any unknown level default to SERVICE range.
-		return servicePortMin, servicePortMax
+		return cryptoutilSharedMagic.KMSServicePort, servicePortMax
 	}
 }
 

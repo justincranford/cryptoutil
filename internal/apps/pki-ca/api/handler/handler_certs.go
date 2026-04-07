@@ -391,7 +391,7 @@ func (h *Handler) parseESTCSR(data []byte) (*x509.CertificateRequest, error) {
 
 	// Try PEM format as fallback.
 	block, _ := pem.Decode(data)
-	if block != nil && block.Type == pemTypeCertificateReq {
+	if block != nil && block.Type == cryptoutilSharedMagic.StringPEMTypeCSR {
 		csr, err = x509.ParseCertificateRequest(block.Bytes)
 		if err == nil {
 			return csr, nil

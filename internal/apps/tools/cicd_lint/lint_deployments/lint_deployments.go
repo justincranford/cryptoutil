@@ -13,9 +13,6 @@ const (
 	DeploymentTypeTemplate       = cryptoutilSharedMagic.SkeletonTemplateServiceName
 )
 
-// productCount is the total number of products (sm, pki, jose, identity, skeleton).
-const productCount = cryptoutilSharedMagic.SuiteProductCount
-
 // DeploymentStructure defines expected directory structure for each deployment type.
 type DeploymentStructure struct {
 	Name              string

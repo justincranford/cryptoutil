@@ -6,18 +6,17 @@
 # Supports 4 instances: 2 SQLite + 2 PostgreSQL.
 #
 # Port allocation (SERVICE level: 8500-8599):
-#   - identity-idp-app-sqlite-1:      8500 (SQLite instance 1, dev/ci)
-#   - identity-idp-app-sqlite-2:      8501 (SQLite instance 2, dev/ci)
-#   - identity-idp-app-postgresql-1:  8502 (PostgreSQL instance 1) [--profile postgres]
-#   - identity-idp-app-postgresql-2:  8503 (PostgreSQL instance 2) [--profile postgres]
+#   - identity-idp-app-sqlite-1:      8500
+#   - identity-idp-app-sqlite-2:      8501
+#   - identity-idp-app-postgresql-1:  8502
+#   - identity-idp-app-postgresql-2:  8503
 #
 # Dual Role: Standalone deployable AND include target for PRODUCT/SUITE compose files.
 # Usage:
-#   docker compose -f compose.yml up -d                        # SQLite (default: dev profile)
-#   docker compose -f compose.yml --profile postgres up -d     # All instances
-#   docker compose -f compose.yml --profile ci up -d           # CI mode
-#   docker compose -f compose.yml logs -f                      # View logs
-#   docker compose -f compose.yml down -v                      # Stop and clean up
+#   docker compose -f compose.yml up -d                             # All instances
+#   docker compose -f compose.yml up identity-idp-app-sqlite-1 -d   # Single instance
+#   docker compose -f compose.yml logs -f                           # View logs
+#   docker compose -f compose.yml down -v                           # Stop and clean up
 #
 # Health Checks:
 #   - Public health endpoint: https://localhost:8500/browser/api/v1/health
@@ -28,6 +27,7 @@ include:
   - path: ../shared-postgres/compose.yml
 
 services:
+  # Healthcheck for Docker secrets availability.
   healthcheck-secrets:
     image: alpine:latest
     secrets:
@@ -38,12 +38,20 @@ services:
       - unseal-5of5.secret
       - hash-pepper-v3.secret
       - postgres-url.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
+      - browser-username.secret
+      - browser-password.secret
+      - service-username.secret
+      - service-password.secret
     command: ["sh", "-c", "ls -l /run/secrets/*.secret"]
     networks:
       - identity-idp-network
 
+  # Build identity-idp image from source.
   builder-identity-idp:
-    image: cryptoutil:dev
+    image: cryptoutil-identity-idp:dev
     build:
       context: ../..
       dockerfile: deployments/identity-idp/Dockerfile
@@ -57,17 +65,30 @@ services:
       healthcheck-secrets:
         condition: service_completed_successfully
 
+  # Init job: bootstraps service prerequisites before app startup.
+  pki-init:
+    image: cryptoutil-identity-idp:dev
+    command: ["init", "--output-dir=/certs"]
+    volumes:
+      - ./certs/:/certs/:rw
+    depends_on:
+      builder-identity-idp:
+        condition: service_completed_successfully
+    networks:
+      - identity-idp-network
+
+  # identity-idp server with SQLite backend (instance 1).
   identity-idp-app-sqlite-1:
-    profiles: ["dev", "ci"]
-    image: cryptoutil:dev
+    image: cryptoutil-identity-idp:dev
     command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/identity-idp-app-sqlite-1.yml", "--config=/app/config/identity-idp-app-common.yml", "--config=/app/otel/otel.yml", "-u", "sqlite://file::memory:?cache=shared"]
     working_dir: /tmp
     ports:
-      - "8500:8080"
+      - "8500:8080" # HTTPS public
     volumes:
       - ./config/identity-idp-app-sqlite-1.yml:/app/config/identity-idp-app-sqlite-1.yml:ro
       - ./config/identity-idp-app-common.yml:/app/config/identity-idp-app-common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ./certs/:/certs/:ro
     secrets:
       - unseal-1of5.secret
       - unseal-2of5.secret
@@ -79,12 +100,14 @@ services:
         condition: service_completed_successfully
       builder-identity-idp:
         condition: service_completed_successfully
+      pki-init:
+        condition: service_completed_successfully
       opentelemetry-collector-contrib:
         condition: service_started
       healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      test: ["CMD", "wget", "--ca-certificate=/certs/root-ca.pem", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
       start_period: 60s
       interval: 5s
       timeout: 5s
@@ -99,10 +122,9 @@ services:
         reservations:
           memory: 128M
 
-  # identity-idp server with SQLite backend (dev/ci mode, instance 2).
+  # identity-idp server with SQLite backend (instance 2).
   identity-idp-app-sqlite-2:
-    profiles: ["dev", "ci"]
-    image: cryptoutil:dev
+    image: cryptoutil-identity-idp:dev
     command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/identity-idp-app-sqlite-2.yml", "--config=/app/config/identity-idp-app-common.yml", "--config=/app/otel/otel.yml", "-u", "sqlite://file::memory:?cache=shared"]
     working_dir: /tmp
     ports:
@@ -111,6 +133,7 @@ services:
       - ./config/identity-idp-app-sqlite-2.yml:/app/config/identity-idp-app-sqlite-2.yml:ro
       - ./config/identity-idp-app-common.yml:/app/config/identity-idp-app-common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ./certs/:/certs/:ro
     secrets:
       - unseal-1of5.secret
       - unseal-2of5.secret
@@ -122,12 +145,14 @@ services:
         condition: service_completed_successfully
       builder-identity-idp:
         condition: service_completed_successfully
+      pki-init:
+        condition: service_completed_successfully
       opentelemetry-collector-contrib:
         condition: service_started
       healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      test: ["CMD", "wget", "--ca-certificate=/certs/root-ca.pem", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
       start_period: 60s
       interval: 5s
       timeout: 5s
@@ -142,17 +167,18 @@ services:
         reservations:
           memory: 128M
 
+  # identity-idp server with PostgreSQL backend (instance 1).
   identity-idp-app-postgresql-1:
-    profiles: ["postgres"]
-    image: cryptoutil:dev
+    image: cryptoutil-identity-idp:dev
     command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/identity-idp-app-postgresql-1.yml", "--config=/app/config/identity-idp-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
-      - "8502:8080"
+      - "8502:8080" # HTTPS public
     volumes:
       - ./config/identity-idp-app-postgresql-1.yml:/app/config/identity-idp-app-postgresql-1.yml:ro
       - ./config/identity-idp-app-common.yml:/app/config/identity-idp-app-common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ./certs/:/certs/:ro
     secrets:
       - unseal-1of5.secret
       - unseal-2of5.secret
@@ -165,6 +191,8 @@ services:
         condition: service_completed_successfully
       builder-identity-idp:
         condition: service_completed_successfully
+      pki-init:
+        condition: service_completed_successfully
       postgres-leader:
         condition: service_healthy
       opentelemetry-collector-contrib:
@@ -172,7 +200,7 @@ services:
       healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      test: ["CMD", "wget", "--ca-certificate=/certs/root-ca.pem", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
       start_period: 60s
       interval: 5s
       timeout: 5s
@@ -188,17 +216,18 @@ services:
         reservations:
           memory: 128M
 
+  # identity-idp server with PostgreSQL backend (instance 2 - shared DB with instance 1).
   identity-idp-app-postgresql-2:
-    profiles: ["postgres"]
-    image: cryptoutil:dev
+    image: cryptoutil-identity-idp:dev
     command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/identity-idp-app-postgresql-2.yml", "--config=/app/config/identity-idp-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
-      - "8503:8080"
+      - "8503:8080" # HTTPS public
     volumes:
       - ./config/identity-idp-app-postgresql-2.yml:/app/config/identity-idp-app-postgresql-2.yml:ro
       - ./config/identity-idp-app-common.yml:/app/config/identity-idp-app-common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ./certs/:/certs/:ro
     secrets:
       - unseal-1of5.secret
       - unseal-2of5.secret
@@ -211,6 +240,8 @@ services:
         condition: service_completed_successfully
       builder-identity-idp:
         condition: service_completed_successfully
+      pki-init:
+        condition: service_completed_successfully
       postgres-leader:
         condition: service_healthy
       opentelemetry-collector-contrib:
@@ -220,7 +251,7 @@ services:
       identity-idp-app-postgresql-1:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      test: ["CMD", "wget", "--ca-certificate=/certs/root-ca.pem", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
       start_period: 60s
       interval: 5s
       timeout: 5s
@@ -241,10 +272,6 @@ networks:
     driver: bridge
 
 secrets:
-  postgres-url.secret:
-    file: ./secrets/postgres-url.secret
-  hash-pepper-v3.secret:
-    file: ./secrets/hash-pepper-v3.secret
   unseal-1of5.secret:
     file: ./secrets/unseal-1of5.secret # pragma: allowlist secret
   unseal-2of5.secret:
@@ -255,3 +282,21 @@ secrets:
     file: ./secrets/unseal-4of5.secret
   unseal-5of5.secret:
     file: ./secrets/unseal-5of5.secret
+  hash-pepper-v3.secret:
+    file: ./secrets/hash-pepper-v3.secret
+  postgres-url.secret:
+    file: ./secrets/postgres-url.secret
+  postgres-username.secret:
+    file: ./secrets/postgres-username.secret
+  postgres-password.secret:
+    file: ./secrets/postgres-password.secret
+  postgres-database.secret:
+    file: ./secrets/postgres-database.secret
+  browser-username.secret:
+    file: ./secrets/browser-username.secret
+  browser-password.secret:
+    file: ./secrets/browser-password.secret
+  service-username.secret:
+    file: ./secrets/service-username.secret
+  service-password.secret:
+    file: ./secrets/service-password.secret

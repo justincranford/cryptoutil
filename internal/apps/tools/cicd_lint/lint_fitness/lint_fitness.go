@@ -26,6 +26,7 @@ import (
 	lintFitnessComposeHeaderFormat "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/compose_header_format"
 	lintFitnessComposePortFormula "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/compose_port_formula"
 	lintFitnessComposeServiceNames "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/compose_service_names"
+	lintFitnessComposeTierOverrideIntegrity "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/compose_tier_override_integrity"
 	lintFitnessConfigOverlayFreshness "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/config_overlay_freshness"
 	lintFitnessConfigsDeploymentsConsistency "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/configs_deployments_consistency"
 	lintFitnessConfigsEmptyDir "cryptoutil/internal/apps/tools/cicd_lint/lint_fitness/configs_empty_dir"
@@ -143,6 +144,7 @@ var registeredLinters = []struct {
 	// New fitness checks (added in Phase 5 of framework-v4).
 	{"compose-header-format", lintFitnessComposeHeaderFormat.Check},
 	{"compose-service-names", lintFitnessComposeServiceNames.Check},
+	{"compose-tier-override-integrity", lintFitnessComposeTierOverrideIntegrity.Check},
 	{"compose-port-formula", lintFitnessComposePortFormula.Check},
 	{"compose-db-naming", lintFitnessComposeDBNaming.Check},
 	{"compose-entrypoint-uniformity", lintFitnessComposeEntrypointUniformity.Check},

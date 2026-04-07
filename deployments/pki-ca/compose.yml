@@ -6,16 +6,15 @@
 # Supports 4 instances: 2 SQLite + 2 PostgreSQL.
 #
 # Port allocation (SERVICE level: 8300-8399):
-#   - pki-ca-app-sqlite-1:      8300 (SQLite instance 1, dev/ci)
-#   - pki-ca-app-sqlite-2:      8301 (SQLite instance 2, dev/ci)
-#   - pki-ca-app-postgresql-1:  8302 (PostgreSQL instance 1) [--profile postgres]
-#   - pki-ca-app-postgresql-2:  8303 (PostgreSQL instance 2) [--profile postgres]
+#   - pki-ca-app-sqlite-1:      8300
+#   - pki-ca-app-sqlite-2:      8301
+#   - pki-ca-app-postgresql-1:  8302
+#   - pki-ca-app-postgresql-2:  8303
 #
 # Dual Role: Standalone deployable AND include target for PRODUCT/SUITE compose files.
 # Usage:
-#   docker compose -f compose.yml up -d                        # SQLite (default: dev profile)
-#   docker compose -f compose.yml --profile postgres up -d     # All instances
-#   docker compose -f compose.yml --profile ci up -d           # CI mode
+#   docker compose -f compose.yml up -d                        # All instances
+#   docker compose -f compose.yml up pki-ca-app-sqlite-1 -d   # Single instance
 #   docker compose -f compose.yml logs -f                      # View logs
 #   docker compose -f compose.yml down -v                      # Stop and clean up
 #
@@ -39,13 +38,20 @@ services:
       - unseal-5of5.secret
       - hash-pepper-v3.secret
       - postgres-url.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
+      - browser-username.secret
+      - browser-password.secret
+      - service-username.secret
+      - service-password.secret
     command: ["sh", "-c", "ls -l /run/secrets/*.secret"]
     networks:
       - pki-ca-network
 
   # Build pki-ca image from source.
   builder-pki-ca:
-    image: cryptoutil:dev
+    image: cryptoutil-pki-ca:dev
     build:
       context: ../..
       dockerfile: deployments/pki-ca/Dockerfile
@@ -59,10 +65,21 @@ services:
       healthcheck-secrets:
         condition: service_completed_successfully
 
-  # PostgreSQL database for pki-ca persistence.
+  # Init job: bootstraps service prerequisites before app startup.
+  pki-init:
+    image: cryptoutil-pki-ca:dev
+    command: ["init", "--output-dir=/certs"]
+    volumes:
+      - ./certs/:/certs/:rw
+    depends_on:
+      builder-pki-ca:
+        condition: service_completed_successfully
+    networks:
+      - pki-ca-network
+
+  # pki-ca server with SQLite backend (instance 1).
   pki-ca-app-sqlite-1:
-    profiles: ["dev", "ci"]
-    image: cryptoutil:dev
+    image: cryptoutil-pki-ca:dev
     command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/pki-ca-app-sqlite-1.yml", "--config=/app/config/pki-ca-app-common.yml", "--config=/app/otel/otel.yml", "-u", "sqlite://file::memory:?cache=shared"]
     working_dir: /tmp
     ports:
@@ -71,6 +88,7 @@ services:
       - ./config/pki-ca-app-sqlite-1.yml:/app/config/pki-ca-app-sqlite-1.yml:ro
       - ./config/pki-ca-app-common.yml:/app/config/pki-ca-app-common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ./certs/:/certs/:ro
       - ./ca-crls:/app/crls
     secrets:
       - unseal-1of5.secret
@@ -83,12 +101,14 @@ services:
         condition: service_completed_successfully
       builder-pki-ca:
         condition: service_completed_successfully
+      pki-init:
+        condition: service_completed_successfully
       opentelemetry-collector-contrib:
         condition: service_started
       healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      test: ["CMD", "wget", "--ca-certificate=/certs/root-ca.pem", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
       start_period: 60s
       interval: 5s
       timeout: 5s
@@ -103,10 +123,9 @@ services:
         reservations:
           memory: 128M
 
-  # pki-ca server with SQLite backend (dev/ci mode, instance 2).
+  # pki-ca server with SQLite backend (instance 2).
   pki-ca-app-sqlite-2:
-    profiles: ["dev", "ci"]
-    image: cryptoutil:dev
+    image: cryptoutil-pki-ca:dev
     command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/pki-ca-app-sqlite-2.yml", "--config=/app/config/pki-ca-app-common.yml", "--config=/app/otel/otel.yml", "-u", "sqlite://file::memory:?cache=shared"]
     working_dir: /tmp
     ports:
@@ -115,6 +134,7 @@ services:
       - ./config/pki-ca-app-sqlite-2.yml:/app/config/pki-ca-app-sqlite-2.yml:ro
       - ./config/pki-ca-app-common.yml:/app/config/pki-ca-app-common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ./certs/:/certs/:ro
       - ./ca-crls:/app/crls
     secrets:
       - unseal-1of5.secret
@@ -127,12 +147,14 @@ services:
         condition: service_completed_successfully
       builder-pki-ca:
         condition: service_completed_successfully
+      pki-init:
+        condition: service_completed_successfully
       opentelemetry-collector-contrib:
         condition: service_started
       healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      test: ["CMD", "wget", "--ca-certificate=/certs/root-ca.pem", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
       start_period: 60s
       interval: 5s
       timeout: 5s
@@ -149,8 +171,7 @@ services:
 
   # pki-ca server with PostgreSQL backend (instance 1).
   pki-ca-app-postgresql-1:
-    profiles: ["postgres"]
-    image: cryptoutil:dev
+    image: cryptoutil-pki-ca:dev
     command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/pki-ca-app-postgresql-1.yml", "--config=/app/config/pki-ca-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
@@ -159,6 +180,7 @@ services:
       - ./config/pki-ca-app-postgresql-1.yml:/app/config/pki-ca-app-postgresql-1.yml:ro
       - ./config/pki-ca-app-common.yml:/app/config/pki-ca-app-common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ./certs/:/certs/:ro
       - ./ca-crls:/app/crls
     secrets:
       - unseal-1of5.secret
@@ -172,6 +194,8 @@ services:
         condition: service_completed_successfully
       builder-pki-ca:
         condition: service_completed_successfully
+      pki-init:
+        condition: service_completed_successfully
       postgres-leader:
         condition: service_healthy
       opentelemetry-collector-contrib:
@@ -179,7 +203,7 @@ services:
       healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      test: ["CMD", "wget", "--ca-certificate=/certs/root-ca.pem", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
       start_period: 60s
       interval: 5s
       timeout: 5s
@@ -197,8 +221,7 @@ services:
 
   # pki-ca server with PostgreSQL backend (instance 2 - shared DB with instance 1).
   pki-ca-app-postgresql-2:
-    profiles: ["postgres"]
-    image: cryptoutil:dev
+    image: cryptoutil-pki-ca:dev
     command: ["server", "--bind-public-port=8080", "--config=/certs/tls-config.yml", "--config=/app/config/pki-ca-app-postgresql-2.yml", "--config=/app/config/pki-ca-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
@@ -207,6 +230,7 @@ services:
       - ./config/pki-ca-app-postgresql-2.yml:/app/config/pki-ca-app-postgresql-2.yml:ro
       - ./config/pki-ca-app-common.yml:/app/config/pki-ca-app-common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ./certs/:/certs/:ro
       - ./ca-crls:/app/crls
     secrets:
       - unseal-1of5.secret
@@ -220,6 +244,8 @@ services:
         condition: service_completed_successfully
       builder-pki-ca:
         condition: service_completed_successfully
+      pki-init:
+        condition: service_completed_successfully
       postgres-leader:
         condition: service_healthy
       opentelemetry-collector-contrib:
@@ -229,7 +255,7 @@ services:
       pki-ca-app-postgresql-1:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      test: ["CMD", "wget", "--ca-certificate=/certs/root-ca.pem", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
       start_period: 60s
       interval: 5s
       timeout: 5s
@@ -250,10 +276,6 @@ networks:
     driver: bridge
 
 secrets:
-  postgres-url.secret:
-    file: ./secrets/postgres-url.secret
-  hash-pepper-v3.secret:
-    file: ./secrets/hash-pepper-v3.secret
   unseal-1of5.secret:
     file: ./secrets/unseal-1of5.secret # pragma: allowlist secret
   unseal-2of5.secret:
@@ -264,3 +286,21 @@ secrets:
     file: ./secrets/unseal-4of5.secret
   unseal-5of5.secret:
     file: ./secrets/unseal-5of5.secret
+  hash-pepper-v3.secret:
+    file: ./secrets/hash-pepper-v3.secret
+  postgres-url.secret:
+    file: ./secrets/postgres-url.secret
+  postgres-username.secret:
+    file: ./secrets/postgres-username.secret
+  postgres-password.secret:
+    file: ./secrets/postgres-password.secret
+  postgres-database.secret:
+    file: ./secrets/postgres-database.secret
+  browser-username.secret:
+    file: ./secrets/browser-username.secret
+  browser-password.secret:
+    file: ./secrets/browser-password.secret
+  service-username.secret:
+    file: ./secrets/service-username.secret
+  service-password.secret:
+    file: ./secrets/service-password.secret
