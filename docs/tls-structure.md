@@ -62,19 +62,26 @@ Required domains:
 
 **Public HTTPS Servers:**
 - Public HTTPS Servers:
-  - One globally shared CA chain (`ALL-app-public-server`, root + issuing) for all app instances in the deployment.
+  - One globally shared CA chain (`ALL-app-public-server`, root + issuing) for all app instances and Grafana LGTM in the deployment.
   - One server leaf cert per app instance (4 total: `sqlite-1`, `sqlite-2`, `postgresql-1`, `postgresql-2`), issued by that shared CA.
-  - Total per PS-ID: 1 CA chain + 4 TLS server leaf certs.
-  - Total per PRODUCT: 1 CA chain + same as PS-ID level, applied to all of the PS-IDs in the product (e.g. sm has 2 PS-IDs).
-  - Total per SUITE: 1 CA chain + 40 TLS server leaf certs; there are 10 PS-IDs in the suite, each with 4 app instances.
+  - One server leaf cert for the Grafana LGTM HTTPS UI (`ALL-telemetry-grafana-lgtm-public-server`), also issued by that shared CA.
+  - Total per PS-ID: 1 CA chain + 4 app-instance leaf certs + 1 Grafana LGTM leaf cert.
+  - Total per PRODUCT: 1 CA chain + (PS-ID count × 4) app-instance leaf certs + 1 Grafana LGTM leaf cert (e.g. sm has 2 PS-IDs: 1 CA + 9 leaf certs).
+  - Total per SUITE: 1 CA chain + 40 app-instance leaf certs + 1 Grafana LGTM leaf cert.
 
 **Public HTTPS Clients:**
 - Public HTTPS Clients:
-  - Per-PKI domain CA chain (root + issuing) for `{PS-ID}-app-sqlite-1`, `{PS-ID}-app-sqlite-2`, and (`{PS-ID}-app-postgresql-ALL`.
+  - Per-PKI domain CA chain (root + issuing) for `{PS-ID}-app-sqlite-1`, `{PS-ID}-app-sqlite-2`, and `{PS-ID}-app-postgresql-ALL`.
   - 4 client leaf certs per PKI domain: `browser-realm-file`, `browser-realm-db`, `service-realm-file`, `service-realm-db`.
   - Total per PS-ID: 3 CA chains + 12 client leaf certs (3 PKI domains × 4 realms).
   - Total per PRODUCT: same as PS-ID level, applied to all of the PS-IDs in the product (e.g. identity has 5 PS-IDs).
   - Total per SUITE: 30 CA chains + 120 client leaf certs; there are 10 PS-IDs in the suite, each with 3 PKI domains and 4 realms.
+
+**Public Grafana LGTM HTTPS Client:**
+- Public Grafana LGTM HTTPS Client:
+  - One globally shared CA chain (`ALL-telemetry-grafana-lgtm-public-client`, root + issuing) for clients connecting to the Grafana LGTM HTTPS UI (port 3000).
+  - One client leaf cert: `admin`, issued by that CA.
+  - Total: 1 CA chain + 1 client leaf cert; same across PS-ID, PRODUCT, and SUITE levels.
 
 **Private PostgreSQL/TLS Leader+Follower Servers:**
 - Private PostgreSQL/TLS Leader+Follower Servers:
@@ -109,7 +116,7 @@ Required domains:
   - One server leaf cert for the OTel collector receiver endpoints (gRPC :4317, HTTP :4318).
 - Private Grafana LGTM Server:
   - One globally shared CA chain (`ALL-telemetry-grafana-private-server`, root + issuing) for Grafana LGTM.
-  - One server leaf cert for the Grafana LGTM endpoints (OTLP ingest :14317/:14318, UI :3000).
+  - One server leaf cert for the Grafana LGTM OTLP ingest endpoints (:14317/:14318).
 
 **Private OTel Collector Contrib Client:**
 - Private OTel Collector Contrib Client:
@@ -141,6 +148,9 @@ Required logical layout:
     {PS-ID}-app-postgresql-1-public-server/{PS-ID}-app-postgresql-1-public-server-{crt,key}.pem
     {PS-ID}-app-postgresql-2-public-server/{PS-ID}-app-postgresql-2-public-server-{crt,key}.pem
 
+  ALL-telemetry-grafana-lgtm-public-server/
+    ALL-telemetry-grafana-lgtm-public-server/ALL-telemetry-grafana-lgtm-public-server-{crt,key}.pem
+
   {PS-ID}-app-public-client/                                          (for each PS-ID in the canonical tier ID)
     {PS-ID}-app-sqlite-1-public-client-ca-root/{PS-ID}-app-sqlite-1-public-client-ca-root-{crt,key}.pem
     {PS-ID}-app-sqlite-1-public-client-ca-issuing/{PS-ID}-app-sqlite-1-public-client-ca-issuing-{crt,key}.pem
@@ -151,6 +161,11 @@ Required logical layout:
     {PS-ID}-app-postgresql-ALL-public-client-ca-root/{PS-ID}-app-postgresql-ALL-public-client-ca-root-{crt,key}.pem
     {PS-ID}-app-postgresql-ALL-public-client-ca-issuing/{PS-ID}-app-postgresql-ALL-public-client-ca-issuing-{crt,key}.pem
     {PS-ID}-app-postgresql-ALL-public-client-{realm}/{PS-ID}-app-postgresql-ALL-public-client-{realm}-{crt,key}.pem        (×4 realms)
+
+  ALL-telemetry-grafana-lgtm-public-client/
+    ALL-telemetry-grafana-lgtm-public-client-ca-root/ALL-telemetry-grafana-lgtm-public-client-ca-root-{crt,key}.pem
+    ALL-telemetry-grafana-lgtm-public-client-ca-issuing/ALL-telemetry-grafana-lgtm-public-client-ca-issuing-{crt,key}.pem
+    ALL-telemetry-grafana-lgtm-public-client-admin/ALL-telemetry-grafana-lgtm-public-client-admin-{crt,key}.pem
 
   {PS-ID}-app-private-mutual/                                         (for each PS-ID in the canonical tier ID)
     {PS-ID}-app-sqlite-1-private-mutual-ca-root/{PS-ID}-app-sqlite-1-private-mutual-ca-root-{crt,key}.pem
@@ -221,7 +236,8 @@ Required logical layout:
 
 - Private HTTPS (admin channel): mutual TLS required; both server and client roles use the same combined leaf cert per instance.
 - Public HTTPS server: client TLS authentication optional
-- Public HTTPS client: client certificates issued per realm type per app instance.
+- Public HTTPS client: client certificates issued per realm type per app instance per PS-ID.
 - PostgreSQL connections: mutual TLS required; mTLS required for all app-instance-to-DB connections, and replication connections.
 - OTel collector OTLP receiver: mutual TLS required for all app-instance-to-Otel connections.
-- Grafana LGTM: mutual TLS required; mTLS required for OTel-to-Grafana connections.
+- Grafana LGTM OTLP ingest (:14317/:14318): mutual TLS required; mTLS required for OTel-to-Grafana connections.
+- Grafana LGTM HTTPS UI (port 3000): public HTTPS server cert issued by `ALL-app-public-server`; client certificate authentication using the `admin` realm issued by `ALL-telemetry-grafana-lgtm-public-client`.
