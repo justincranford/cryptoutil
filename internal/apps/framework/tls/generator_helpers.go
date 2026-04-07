@@ -49,7 +49,7 @@ func (g *Generator) generateCAChain(parentDir, name string, validity time.Durati
 	}
 
 	if err := g.writeCertAndKey(filepath.Join(parentDir, rootName), rootName, root); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to write root CA %s: %w", rootName, err)
 	}
 
 	issuing, err := g.createCAFn(root, root.KeyMaterial.PrivateKey, issuingName, issuingKP, validity, 0)
@@ -58,7 +58,7 @@ func (g *Generator) generateCAChain(parentDir, name string, validity time.Durati
 	}
 
 	if err := g.writeCertAndKey(filepath.Join(parentDir, issuingName), issuingName, issuing); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to write issuing CA %s: %w", issuingName, err)
 	}
 
 	return issuing, nil
@@ -76,7 +76,11 @@ func (g *Generator) generateServerLeaf(parentDir, name string, issuer *cryptouti
 		return fmt.Errorf("server leaf %s: %w", name, err)
 	}
 
-	return g.writeCertAndKey(filepath.Join(parentDir, name), name, leaf)
+	if err := g.writeCertAndKey(filepath.Join(parentDir, name), name, leaf); err != nil {
+		return fmt.Errorf("failed to write server leaf %s: %w", name, err)
+	}
+
+	return nil
 }
 
 // generateClientLeaf generates a TLS client leaf cert issued by the given CA.
@@ -91,7 +95,11 @@ func (g *Generator) generateClientLeaf(parentDir, dirName, leafName string, issu
 		return fmt.Errorf("client leaf %s: %w", leafName, err)
 	}
 
-	return g.writeCertAndKey(filepath.Join(parentDir, dirName), leafName, leaf)
+	if err := g.writeCertAndKey(filepath.Join(parentDir, dirName), leafName, leaf); err != nil {
+		return fmt.Errorf("failed to write client leaf %s: %w", leafName, err)
+	}
+
+	return nil
 }
 
 // generateMutualLeaf generates a combined client+server TLS leaf cert.
@@ -106,7 +114,11 @@ func (g *Generator) generateMutualLeaf(parentDir, name string, issuer *cryptouti
 		return fmt.Errorf("mutual leaf %s: %w", name, err)
 	}
 
-	return g.writeCertAndKey(filepath.Join(parentDir, name), name, leaf)
+	if err := g.writeCertAndKey(filepath.Join(parentDir, name), name, leaf); err != nil {
+		return fmt.Errorf("failed to write mutual leaf %s: %w", name, err)
+	}
+
+	return nil
 }
 
 // writeIssuerCert writes a CA's cert chain PEM (without private key) to a named subdirectory.

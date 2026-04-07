@@ -78,11 +78,11 @@ func (g *Generator) Shutdown() {
 func (g *Generator) Generate(tierID, targetDir string) error {
 	_, psIDs, err := ResolveTier(tierID)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to resolve tier %q: %w", tierID, err)
 	}
 
 	if err := g.validateTargetDir(targetDir); err != nil {
-		return err
+		return fmt.Errorf("failed to validate target directory %q: %w", targetDir, err)
 	}
 
 	validity := cryptoutilSharedMagic.PKIInitCertValidityDays * cryptoutilSharedMagic.HoursPerDay * time.Hour
