@@ -145,7 +145,7 @@ func TestGenerateServerCertFromCA_UnsupportedKeyType(t *testing.T) {
 
 	_, err = GenerateServerCertFromCA(caCertPEM, unsupportedKeyPEM, []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []string{cryptoutilSharedMagic.IPv4Loopback}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "unsupported CA private key type")
+	require.Contains(t, err.Error(), "failed to decode CA private key PEM")
 }
 
 // TestGenerateServerCertFromCA_MalformedPrivateKey verifies error when private key data is malformed.
@@ -161,7 +161,7 @@ func TestGenerateServerCertFromCA_MalformedPrivateKey(t *testing.T) {
 
 	_, err = GenerateServerCertFromCA(caCertPEM, malformedKeyPEM, []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []string{cryptoutilSharedMagic.IPv4Loopback}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to parse CA private key")
+	require.Contains(t, err.Error(), "failed to decode CA private key PEM")
 }
 
 // TestGenerateServerCertFromCA_DefaultValidity verifies default validity when validityDays is 0.

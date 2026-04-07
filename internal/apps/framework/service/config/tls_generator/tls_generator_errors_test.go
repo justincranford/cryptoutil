@@ -88,13 +88,13 @@ func TestGenerateAutoTLSGeneratedSettings_BuildTLSError(t *testing.T) {
 }
 
 func TestGenerateAutoTLSGeneratedSettings_MarshalKeyError(t *testing.T) {
-	orig := marshalPKCS8PrivateKeyFn
-	marshalPKCS8PrivateKeyFn = func(_ any) ([]byte, error) { return nil, errInjectTLSGen }
+	orig := pemEncodeKeyFn
+	pemEncodeKeyFn = func(_ any) ([]byte, error) { return nil, errInjectTLSGen }
 
-	defer func() { marshalPKCS8PrivateKeyFn = orig }()
+	defer func() { pemEncodeKeyFn = orig }()
 
 	_, err := GenerateAutoTLSGeneratedSettings([]string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, nil, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
-	require.ErrorContains(t, err, "failed to marshal server private key")
+	require.ErrorContains(t, err, "failed to PEM-encode server private key")
 }
 
 func TestGenerateTestCA_KeyGenError(t *testing.T) {
@@ -122,13 +122,13 @@ func TestGenerateTestCA_CASubjectsError(t *testing.T) {
 }
 
 func TestGenerateTestCA_MarshalKeyError(t *testing.T) {
-	orig := marshalPKCS8PrivateKeyFn
-	marshalPKCS8PrivateKeyFn = func(_ any) ([]byte, error) { return nil, errInjectTLSGen }
+	orig := pemEncodeKeyFn
+	pemEncodeKeyFn = func(_ any) ([]byte, error) { return nil, errInjectTLSGen }
 
-	defer func() { marshalPKCS8PrivateKeyFn = orig }()
+	defer func() { pemEncodeKeyFn = orig }()
 
 	_, _, err := GenerateTestCA()
-	require.ErrorContains(t, err, "failed to marshal CA private key")
+	require.ErrorContains(t, err, "failed to PEM-encode CA private key")
 }
 
 func TestGenerateServerCertFromCA_ServerKeyGenError(t *testing.T) {
@@ -165,11 +165,11 @@ func TestGenerateServerCertFromCA_MarshalKeyError(t *testing.T) {
 	caCertPEM, caKeyPEM, err := GenerateTestCA()
 	require.NoError(t, err)
 
-	orig := marshalPKCS8PrivateKeyFn
-	marshalPKCS8PrivateKeyFn = func(_ any) ([]byte, error) { return nil, errInjectTLSGen }
+	orig := pemEncodeKeyFn
+	pemEncodeKeyFn = func(_ any) ([]byte, error) { return nil, errInjectTLSGen }
 
-	defer func() { marshalPKCS8PrivateKeyFn = orig }()
+	defer func() { pemEncodeKeyFn = orig }()
 
 	_, err = GenerateServerCertFromCA(caCertPEM, caKeyPEM, []string{cryptoutilSharedMagic.DefaultOTLPHostnameDefault}, []string{cryptoutilSharedMagic.IPv4Loopback}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
-	require.ErrorContains(t, err, "failed to marshal server private key")
+	require.ErrorContains(t, err, "failed to PEM-encode server private key")
 }

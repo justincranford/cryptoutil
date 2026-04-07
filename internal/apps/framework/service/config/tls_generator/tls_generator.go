@@ -13,6 +13,7 @@ import (
 	"time"
 
 	cryptoutilAppsFrameworkServiceConfig "cryptoutil/internal/apps/framework/service/config"
+	cryptoutilSharedCryptoAsn1 "cryptoutil/internal/shared/crypto/asn1"
 	cryptoutilSharedCryptoCertificate "cryptoutil/internal/shared/crypto/certificate"
 	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -32,8 +33,8 @@ var (
 	buildTLSCertificateFn = func(subject *cryptoutilSharedCryptoCertificate.Subject) (*tls.Certificate, *x509.CertPool, *x509.CertPool, error) {
 		return cryptoutilSharedCryptoCertificate.BuildTLSCertificate(subject)
 	}
-	marshalPKCS8PrivateKeyFn = func(key any) ([]byte, error) {
-		return x509.MarshalPKCS8PrivateKey(key)
+	pemEncodeKeyFn = func(key any) ([]byte, error) {
+		return cryptoutilSharedCryptoAsn1.PEMEncode(key)
 	}
 )
 
@@ -149,27 +150,10 @@ func GenerateServerCertFromCA(caCertPEM, caKeyPEM []byte, dns []string, ips []st
 		return nil, fmt.Errorf("failed to parse CA certificate: %w", err)
 	}
 
-	// Parse CA private key.
-	keyBlock, _ := pem.Decode(caKeyPEM)
-	if keyBlock == nil {
-		return nil, fmt.Errorf("failed to decode CA private key PEM")
-	}
-
-	var caPrivateKey any
-
-	switch keyBlock.Type {
-	case cryptoutilSharedMagic.StringPEMTypeRSAPrivateKey:
-		caPrivateKey, err = x509.ParsePKCS1PrivateKey(keyBlock.Bytes)
-	case cryptoutilSharedMagic.StringPEMTypeECPrivateKey:
-		caPrivateKey, err = x509.ParseECPrivateKey(keyBlock.Bytes)
-	case cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey:
-		caPrivateKey, err = x509.ParsePKCS8PrivateKey(keyBlock.Bytes)
-	default:
-		return nil, fmt.Errorf("unsupported CA private key type: %s", keyBlock.Type)
-	}
-
+	// Parse CA private key using shared PEM decoder (handles RSA, EC, PKCS8 automatically).
+	caPrivateKey, err := cryptoutilSharedCryptoAsn1.PEMDecode(caKeyPEM)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse CA private key: %w", err)
+		return nil, fmt.Errorf("failed to decode CA private key PEM: %w", err)
 	}
 
 	// Generate server key pair (ECDSA P-384).
@@ -228,20 +212,17 @@ func GenerateServerCertFromCA(caCertPEM, caKeyPEM []byte, dns []string, ips []st
 		return nil, fmt.Errorf("failed to build TLS certificate: %w", err)
 	}
 
-	// Compose PEM chain: server cert first, then issuer certs (if any) from issuerSubject.KeyMaterial.CertificateChain
-	var pemChain []byte
-	for _, cert := range serverSubject.KeyMaterial.CertificateChain {
-		pemChain = append(pemChain, pem.EncodeToMemory(&pem.Block{Type: cryptoutilSharedMagic.StringPEMTypeCertificate, Bytes: cert.Raw})...)
-	}
-
-	// Private key PEM
-	// Marshal PKCS8 private key DER then encode to PEM.
-	dk, err := marshalPKCS8PrivateKeyFn(serverKeyPair.Private)
+	// Compose PEM chain: server cert first, then issuer certs.
+	pemChain, err := encodeCertChainPEM(serverSubject.KeyMaterial.CertificateChain)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal server private key to DER: %w", err)
+		return nil, fmt.Errorf("failed to PEM-encode certificate chain: %w", err)
 	}
 
-	privateKeyPEM := pem.EncodeToMemory(&pem.Block{Type: cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey, Bytes: dk})
+	// PEM-encode server private key.
+	privateKeyPEM, err := pemEncodeKeyFn(serverKeyPair.Private)
+	if err != nil {
+		return nil, fmt.Errorf("failed to PEM-encode server private key: %w", err)
+	}
 
 	return &TLSGeneratedSettings{
 		StaticCertPEM: pemChain,
@@ -327,19 +308,17 @@ func GenerateAutoTLSGeneratedSettings(dns []string, ips []string, validityDays i
 		return nil, fmt.Errorf("failed to build TLS certificate: %w", err)
 	}
 
-	// Compose PEM chain from serverSubject.KeyMaterial.CertificateChain
-	var pemChain []byte
-	for _, cert := range serverSubject.KeyMaterial.CertificateChain {
-		pemChain = append(pemChain, pem.EncodeToMemory(&pem.Block{Type: cryptoutilSharedMagic.StringPEMTypeCertificate, Bytes: cert.Raw})...)
-	}
-
-	// Marshal server private key to PKCS8 DER then PEM.
-	dk, err := marshalPKCS8PrivateKeyFn(serverKeyPair.Private)
+	// Compose PEM chain from server certificate chain.
+	pemChain, err := encodeCertChainPEM(serverSubject.KeyMaterial.CertificateChain)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal server private key to DER: %w", err)
+		return nil, fmt.Errorf("failed to PEM-encode certificate chain: %w", err)
 	}
 
-	privateKeyPEM := pem.EncodeToMemory(&pem.Block{Type: cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey, Bytes: dk})
+	// PEM-encode server private key.
+	privateKeyPEM, err := pemEncodeKeyFn(serverKeyPair.Private)
+	if err != nil {
+		return nil, fmt.Errorf("failed to PEM-encode server private key: %w", err)
+	}
 
 	return &TLSGeneratedSettings{
 		StaticCertPEM: pemChain,
@@ -369,21 +348,32 @@ func GenerateTestCA() (caCertPEM []byte, caKeyPEM []byte, err error) {
 	caCert := ca.KeyMaterial.CertificateChain[0]
 
 	// Encode CA certificate to PEM.
-	caCertPEM = pem.EncodeToMemory(&pem.Block{
-		Type:  cryptoutilSharedMagic.StringPEMTypeCertificate,
-		Bytes: caCert.Raw,
-	})
-
-	// Encode CA private key to PKCS8 PEM.
-	caKeyBytes, err := marshalPKCS8PrivateKeyFn(caKeyPair.Private)
+	caCertPEM, err = cryptoutilSharedCryptoAsn1.PEMEncode(caCert)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to marshal CA private key: %w", err)
+		return nil, nil, fmt.Errorf("failed to PEM-encode CA certificate: %w", err)
 	}
 
-	caKeyPEM = pem.EncodeToMemory(&pem.Block{
-		Type:  cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey,
-		Bytes: caKeyBytes,
-	})
+	// Encode CA private key to PEM.
+	caKeyPEM, err = pemEncodeKeyFn(caKeyPair.Private)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to PEM-encode CA private key: %w", err)
+	}
 
 	return caCertPEM, caKeyPEM, nil
+}
+
+// encodeCertChainPEM creates concatenated PEM from a certificate chain using shared ASN.1 utilities.
+func encodeCertChainPEM(certs []*x509.Certificate) ([]byte, error) {
+	var pemChain []byte
+
+	for _, cert := range certs {
+		pemBytes, err := cryptoutilSharedCryptoAsn1.PEMEncode(cert)
+		if err != nil {
+			return nil, fmt.Errorf("failed to PEM-encode certificate: %w", err)
+		}
+
+		pemChain = append(pemChain, pemBytes...)
+	}
+
+	return pemChain, nil
 }
