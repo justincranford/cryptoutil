@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"time"
 
+	cryptoutilSharedCryptoAsn1 "cryptoutil/internal/shared/crypto/asn1"
 	cryptoutilSharedCryptoCertificate "cryptoutil/internal/shared/crypto/certificate"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
@@ -117,7 +118,11 @@ func (g *Generator) writeIssuerCert(parentDir, name string, ca *cryptoutilShared
 		return fmt.Errorf("failed to create directory %s: %w", dir, err)
 	}
 
-	certPEM := encodeCertChainPEM(ca)
+	certPEM, err := encodeCertChainPEM(ca)
+	if err != nil {
+		return fmt.Errorf("failed to PEM-encode issuer cert chain %s: %w", name, err)
+	}
+
 	certPath := filepath.Join(dir, name+"-crt.pem")
 
 	if err := g.writeFileFn(certPath, certPEM, cryptoutilSharedMagic.PKIInitCertFileMode); err != nil {
@@ -133,7 +138,11 @@ func (g *Generator) writeCertAndKey(dir, baseName string, subject *cryptoutilSha
 		return fmt.Errorf("failed to create directory %s: %w", dir, err)
 	}
 
-	certPEM := encodeCertChainPEM(subject)
+	certPEM, err := encodeCertChainPEM(subject)
+	if err != nil {
+		return fmt.Errorf("failed to PEM-encode cert chain for %s: %w", baseName, err)
+	}
+
 	certPath := filepath.Join(dir, baseName+"-crt.pem")
 
 	if err := g.writeFileFn(certPath, certPEM, cryptoutilSharedMagic.PKIInitCertFileMode); err != nil {
@@ -141,7 +150,7 @@ func (g *Generator) writeCertAndKey(dir, baseName string, subject *cryptoutilSha
 	}
 
 	if subject.KeyMaterial.PrivateKey != nil {
-		keyPEM, err := encodePrivateKeyPEM(subject.KeyMaterial.PrivateKey)
+		keyPEM, err := cryptoutilSharedCryptoAsn1.PEMEncode(subject.KeyMaterial.PrivateKey)
 		if err != nil {
 			return fmt.Errorf("failed to encode private key for %s: %w", baseName, err)
 		}

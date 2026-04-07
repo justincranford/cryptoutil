@@ -5,32 +5,25 @@
 package tls
 
 import (
-	"crypto/x509"
-	"encoding/pem"
 	"fmt"
 
+	cryptoutilSharedCryptoAsn1 "cryptoutil/internal/shared/crypto/asn1"
 	cryptoutilSharedCryptoCertificate "cryptoutil/internal/shared/crypto/certificate"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// encodeCertChainPEM encodes a certificate chain (leaf first, root last) as concatenated PEM blocks.
-func encodeCertChainPEM(subject *cryptoutilSharedCryptoCertificate.Subject) []byte {
+// encodeCertChainPEM encodes a certificate chain (leaf first, root last) as concatenated PEM blocks
+// using the shared asn1.PEMEncode utility.
+func encodeCertChainPEM(subject *cryptoutilSharedCryptoCertificate.Subject) ([]byte, error) {
 	var out []byte
 
-	for _, cert := range subject.KeyMaterial.CertificateChain {
-		block := &pem.Block{Type: cryptoutilSharedMagic.StringPEMTypeCertificate, Bytes: cert.Raw}
-		out = append(out, pem.EncodeToMemory(block)...)
+	for i, cert := range subject.KeyMaterial.CertificateChain {
+		pemBytes, err := cryptoutilSharedCryptoAsn1.PEMEncode(cert)
+		if err != nil {
+			return nil, fmt.Errorf("failed to PEM-encode certificate %d: %w", i, err)
+		}
+
+		out = append(out, pemBytes...)
 	}
 
-	return out
-}
-
-// encodePrivateKeyPEM encodes a private key as a PKCS#8 PEM block.
-func encodePrivateKeyPEM(key any) ([]byte, error) {
-	der, err := x509.MarshalPKCS8PrivateKey(key)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal PKCS8 private key: %w", err)
-	}
-
-	return pem.EncodeToMemory(&pem.Block{Type: cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey, Bytes: der}), nil
+	return out, nil
 }
