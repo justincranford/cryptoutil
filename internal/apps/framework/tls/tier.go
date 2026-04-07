@@ -59,13 +59,9 @@ func ResolveTier(tierID string) (TierType, []string, error) {
 func resolveTierInternal(tierID string) (TierType, []string, error) {
 	if tierID == suiteID {
 		return TierSuite, allPSIDs, nil
-	}
-
-	if psIDs, ok := productToPSIDs[tierID]; ok {
+	} else if psIDs, ok := productToPSIDs[tierID]; ok {
 		return TierProduct, psIDs, nil
-	}
-
-	if psIDSet[tierID] {
+	} else if psIDSet[tierID] {
 		return TierService, []string{tierID}, nil
 	}
 
